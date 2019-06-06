@@ -153,6 +153,12 @@ EditorBuildSettings:
     path: Assets/Scenes/056_2D_Lights_Shader_Graph.unity
     guid: 381306730e4f1b141bf8e0e1c35f16e9
   - enabled: 1
+    path: Assets/Scenes/069_2D_Forward_Shader_Compatibility_Forward.unity
+    guid: 4387c323b80b3f8479359d07b90f0031
+  - enabled: 1
+    path: Assets/Scenes/070_2D_Forward_Shader_Compatibility_2D.unity
+    guid: c8f0da7688959b142bebd1f707d6f935
+  - enabled: 1
     path: Assets/Scenes/057_SpeedTree_V7.unity
     guid: ef200bbb51f946647ac204267d52a9bd
   - enabled: 1

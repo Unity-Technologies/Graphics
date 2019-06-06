@@ -231,6 +231,16 @@ namespace UnityEditor.VFX
             return m_Children.IndexOf(child);
         }
 
+        public object GetSettingValue(string name)
+        {
+            var setting = GetSetting(name);
+            if (setting.field == null)
+            {
+                throw new ArgumentException(string.Format("Unable to find field {0} in {1}", name, GetType().ToString()));
+            }
+            return setting.value;
+        }
+
         public void SetSettingValue(string name, object value)
         {
             SetSettingValue(name, value, true);
@@ -238,21 +248,26 @@ namespace UnityEditor.VFX
 
         protected void SetSettingValue(string name, object value, bool notify)
         {
-            var field = GetType().GetField(name, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
-            if (field == null)
+            var setting = GetSetting(name);
+            if (setting.field == null)
             {
                 throw new ArgumentException(string.Format("Unable to find field {0} in {1}", name, GetType().ToString()));
             }
 
-            var currentValue = field.GetValue(this);
+            var currentValue = setting.value;
             if (currentValue != value)
             {
-                field.SetValue(this, value);
+                setting.field.SetValue(setting.instance, value);
                 if (notify)
                 {
                     Invalidate(InvalidationCause.kSettingChanged);
                 }
             }
+        }
+
+        public virtual VFXSetting GetSetting(string  name)
+        {
+            return new VFXSetting(GetType().GetField(name, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance), this);
         }
 
         public void Invalidate(InvalidationCause cause)
@@ -277,7 +292,7 @@ namespace UnityEditor.VFX
                 m_Parent.Invalidate(model, cause);
         }
 
-        public IEnumerable<FieldInfo> GetSettings(bool listHidden, VFXSettingAttribute.VisibleFlags flags = VFXSettingAttribute.VisibleFlags.All)
+        public virtual IEnumerable<VFXSetting> GetSettings(bool listHidden, VFXSettingAttribute.VisibleFlags flags = VFXSettingAttribute.VisibleFlags.All)
         {
             return GetType().GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance).Where(f =>
             {
@@ -291,7 +306,7 @@ namespace UnityEditor.VFX
                     return (attr.visibleFlags & flags) != 0 && !filteredOutSettings.Contains(f.Name);
                 }
                 return false;
-            });
+            }).Select(field => new VFXSetting(field,this));
         }
 
         static public VFXExpression ConvertSpace(VFXExpression input, VFXSlot targetSlot, VFXCoordinateSpace space)

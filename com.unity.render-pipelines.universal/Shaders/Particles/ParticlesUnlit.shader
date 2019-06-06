@@ -62,7 +62,6 @@ Shader "Universal Render Pipeline/Particles/Unlit"
             // Lightmode matches the ShaderPassName set in UniversalRenderPipeline.cs. SRPDefaultUnlit and passes with
             // no LightMode tag are also rendered by Universal Render Pipeline
             Name "ForwardLit"
-            Tags {"LightMode" = "UniversalForward"}
 
             BlendOp[_BlendOp]
             Blend[_SrcBlend][_DstBlend]

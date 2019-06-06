@@ -29,6 +29,10 @@ Pass
 
     #pragma multi_compile _ LOD_FADE_CROSSFADE
 
+    #pragma shader_feature _SURFACE_TYPE_TRANSPARENT
+    #pragma shader_feature_local _DOUBLESIDED_ON
+    #pragma shader_feature_local _ _BLENDMODE_ALPHA _BLENDMODE_ADD _BLENDMODE_PRE_MULTIPLY
+
     //-------------------------------------------------------------------------------------
     // Variant Definitions
     //
@@ -138,16 +142,10 @@ Pass
 
     // Common shader_features:
 
-    $SurfaceType.Transparent:                            #define _SURFACE_TYPE_TRANSPARENT
-    $BlendMode.Alpha:                                    #define _BLENDMODE_ALPHA
-    $BlendMode.Add:                                      #define _BLENDMODE_ADD
-    $BlendMode.Premultiply:                              #define _BLENDMODE_PRE_MULTIPLY
-    $BlendMode.PreserveSpecular:                         #define _BLENDMODE_PRESERVE_SPECULAR_LIGHTING
     $AlphaFog:                                           #define _ENABLE_FOG_ON_TRANSPARENT
 
     $DisableDecals:                                      #define _DISABLE_DECALS
     $DisableSSR:                                         #define _DISABLE_SSR
-    $DoubleSided:                                        #define _DOUBLESIDED_ON 1
 
     // StackLit shader_features:
 
@@ -167,6 +165,7 @@ Pass
     $ShadeBaseUsingRefractedAngles:                      #define _VLAYERED_USE_REFRACTED_ANGLES_FOR_BASE
     $StackLitDebug:                                      #define _STACKLIT_DEBUG
     $DepthOffset:                                        #define _DEPTHOFFSET_ON 1
+    $BlendMode.PreserveSpecular:                         #define _BLENDMODE_PRESERVE_SPECULAR_LIGHTING 1
 
     // The other predicates that don't directly map to inputs (the more abstract, called "specific" above)
     // are used in the surfaceData and builtinData functions.
@@ -373,9 +372,11 @@ $include("SharedCode.template.hlsl")
         // Setup all surfaceData normals: .normalWS, .bentNormalWS, .tangentWS, .coatNormalWS, .geomNormalWS
         //
 
-        float3 doubleSidedConstants = float3(1.0, 1.0, 1.0);
-        $DoubleSided.Flip:   doubleSidedConstants = float3(-1.0, -1.0, -1.0);
-        $DoubleSided.Mirror: doubleSidedConstants = float3( 1.0,  1.0, -1.0);
+#ifdef _DOUBLESIDED_ON
+    float3 doubleSidedConstants = _DoubleSidedConstants.xyz;
+#else
+    float3 doubleSidedConstants = float3(1.0, 1.0, 1.0);
+#endif
 
         surfaceData.geomNormalWS = fragInputs.worldToTangent[2];
 
@@ -460,9 +461,11 @@ $include("SharedCode.template.hlsl")
         LODDitheringTransition(fadeMaskSeed, unity_LODFade.x);
 #endif
 
-        float3 doubleSidedConstants = float3(1.0, 1.0, 1.0);
-        $DoubleSided.Flip:   doubleSidedConstants = float3(-1.0, -1.0, -1.0);
-        $DoubleSided.Mirror: doubleSidedConstants = float3( 1.0,  1.0, -1.0);
+#ifdef _DOUBLESIDED_ON
+    float3 doubleSidedConstants = _DoubleSidedConstants.xyz;
+#else
+    float3 doubleSidedConstants = float3(1.0, 1.0, 1.0);
+#endif
 
         ApplyDoubleSidedFlipOrMirror(fragInputs, doubleSidedConstants);
 

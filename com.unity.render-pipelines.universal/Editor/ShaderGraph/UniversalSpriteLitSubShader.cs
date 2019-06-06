@@ -77,6 +77,7 @@ namespace UnityEditor.Experimental.Rendering.Univerasl
 
             string litPassTemplate = ReadTemplate("universalSpriteLitPass.template", sourceAssetDependencyPaths);
             string normalPassTemplate = ReadTemplate("universalSpriteNormalPass.template", sourceAssetDependencyPaths);
+            string forwardPassTemplate = ReadTemplate("universalSpriteForwardPass.template", sourceAssetDependencyPaths);
             var litMasterNode = masterNode as SpriteLitMasterNode;
 
             var litPass = m_LitPass;
@@ -103,6 +104,13 @@ namespace UnityEditor.Experimental.Rendering.Univerasl
                 subShader.AppendLines(GetShaderPassFromTemplate(
                         false,
                         normalPassTemplate,
+                        litMasterNode,
+                        normalPass,
+                        mode,
+                        materialOptions));
+                subShader.AppendLines(GetShaderPassFromTemplate(
+                        false,
+                        forwardPassTemplate,
                         litMasterNode,
                         normalPass,
                         mode,
