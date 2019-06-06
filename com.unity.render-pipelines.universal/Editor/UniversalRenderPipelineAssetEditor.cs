@@ -6,7 +6,7 @@ using UnityEngine.Scripting.APIUpdating;
 namespace UnityEditor.Rendering.Universal
 {
     [CustomEditor(typeof(LightweightRenderPipelineAsset))]
-    [MovedFrom("UnityEditor.Rendering.LWRP")] public class LightweightRenderPipelineAssetEditor : Editor
+    [MovedFrom("UnityEditor.Rendering.LWRP")] public class UniversalRenderPipelineAssetEditor : Editor
     {
         internal class Styles
         {
@@ -171,7 +171,7 @@ namespace UnityEditor.Rendering.Universal
                 if (EditorGUI.EndChangeCheck())
                 {
                     if (m_RendererTypeProp.intValue != (int) RendererType.Custom)
-                        m_RendererDataProp.objectReferenceValue = LightweightRenderPipeline.asset.LoadBuiltinRendererData();
+                        m_RendererDataProp.objectReferenceValue = UniversalRenderPipeline.asset.LoadBuiltinRendererData();
                 }
                 if (m_RendererTypeProp.intValue == (int) RendererType.Custom)
                 {
@@ -202,7 +202,7 @@ namespace UnityEditor.Rendering.Universal
                 EditorGUILayout.PropertyField(m_HDR, Styles.hdrText);
                 EditorGUILayout.PropertyField(m_MSAA, Styles.msaaText);
                 EditorGUI.BeginDisabledGroup(XRGraphics.enabled);
-                m_RenderScale.floatValue = EditorGUILayout.Slider(Styles.renderScaleText, m_RenderScale.floatValue, LightweightRenderPipeline.minRenderScale, LightweightRenderPipeline.maxRenderScale);
+                m_RenderScale.floatValue = EditorGUILayout.Slider(Styles.renderScaleText, m_RenderScale.floatValue, UniversalRenderPipeline.minRenderScale, UniversalRenderPipeline.maxRenderScale);
                 EditorGUI.EndDisabledGroup();
                 EditorGUI.indentLevel--;
                 EditorGUILayout.Space();
@@ -246,7 +246,7 @@ namespace UnityEditor.Rendering.Universal
 
                 disableGroup = m_AdditionalLightsRenderingModeProp.intValue == (int)LightRenderingMode.Disabled;
                 EditorGUI.BeginDisabledGroup(disableGroup);
-                m_AdditionalLightsPerObjectLimitProp.intValue = EditorGUILayout.IntSlider(Styles.perObjectLimit, m_AdditionalLightsPerObjectLimitProp.intValue, 0, LightweightRenderPipeline.maxPerObjectLights);
+                m_AdditionalLightsPerObjectLimitProp.intValue = EditorGUILayout.IntSlider(Styles.perObjectLimit, m_AdditionalLightsPerObjectLimitProp.intValue, 0, UniversalRenderPipeline.maxPerObjectLights);
                 EditorGUI.EndDisabledGroup();
 
                 disableGroup |= (m_AdditionalLightsPerObjectLimitProp.intValue == 0 || m_AdditionalLightsRenderingModeProp.intValue != (int)LightRenderingMode.PerPixel);
@@ -283,8 +283,8 @@ namespace UnityEditor.Rendering.Universal
                 else if (cascades == ShadowCascadesOption.TwoCascades)
                     EditorUtils.DrawCascadeSplitGUI<float>(ref m_ShadowCascade2SplitProp);
 
-                m_ShadowDepthBiasProp.floatValue = EditorGUILayout.Slider(Styles.shadowDepthBias, m_ShadowDepthBiasProp.floatValue, 0.0f, LightweightRenderPipeline.maxShadowBias);
-                m_ShadowNormalBiasProp.floatValue = EditorGUILayout.Slider(Styles.shadowNormalBias, m_ShadowNormalBiasProp.floatValue, 0.0f, LightweightRenderPipeline.maxShadowBias);
+                m_ShadowDepthBiasProp.floatValue = EditorGUILayout.Slider(Styles.shadowDepthBias, m_ShadowDepthBiasProp.floatValue, 0.0f, UniversalRenderPipeline.maxShadowBias);
+                m_ShadowNormalBiasProp.floatValue = EditorGUILayout.Slider(Styles.shadowNormalBias, m_ShadowNormalBiasProp.floatValue, 0.0f, UniversalRenderPipeline.maxShadowBias);
                 EditorGUILayout.PropertyField(m_SoftShadowsSupportedProp, Styles.supportsSoftShadows);
                 EditorGUI.indentLevel--;
                 EditorGUILayout.Space();

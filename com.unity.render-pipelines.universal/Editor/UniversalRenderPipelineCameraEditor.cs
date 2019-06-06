@@ -10,7 +10,7 @@ namespace UnityEditor.Rendering.Universal
 {
     [CustomEditorForRenderPipeline(typeof(Camera), typeof(LightweightRenderPipelineAsset))]
     [CanEditMultipleObjects]
-    class LightweightRenderPipelineCameraEditor : CameraEditor
+    class UniversalRenderPipelineCameraEditor : CameraEditor
     {
         internal enum BackgroundType
         {

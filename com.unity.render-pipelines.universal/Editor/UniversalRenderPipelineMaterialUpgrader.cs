@@ -7,9 +7,9 @@ using UnityEngine.Scripting.APIUpdating;
 
 namespace UnityEditor.Rendering.Universal
 {
-    internal sealed class LightweightRenderPipelineMaterialUpgrader
+    internal sealed class UniversalRenderPipelineMaterialUpgrader
     {
-        private LightweightRenderPipelineMaterialUpgrader()
+        private UniversalRenderPipelineMaterialUpgrader()
         {
         }
 

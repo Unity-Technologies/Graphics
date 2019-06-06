@@ -89,7 +89,7 @@ namespace UnityEditor.Experimental.Rendering.Univerasl
 
                 var materialTags = ShaderGenerator.BuildMaterialTags(SurfaceType.Transparent);
                 var tagsBuilder = new ShaderStringBuilder(0);
-                materialTags.GetTags(tagsBuilder, LightweightRenderPipeline.k_ShaderTagName);
+                materialTags.GetTags(tagsBuilder, UniversalRenderPipeline.k_ShaderTagName);
                 subShader.AppendLines(tagsBuilder.ToString());
 
                 var materialOptions = ShaderGenerator.GetMaterialOptions(SurfaceType.Transparent, AlphaMode.Alpha, true);

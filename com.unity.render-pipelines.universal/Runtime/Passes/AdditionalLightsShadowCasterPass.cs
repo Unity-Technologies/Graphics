@@ -34,7 +34,7 @@ namespace UnityEngine.Rendering.Universal
         {
             renderPassEvent = evt;
 
-            int maxLights = LightweightRenderPipeline.maxVisibleAdditionalLights;
+            int maxLights = UniversalRenderPipeline.maxVisibleAdditionalLights;
             m_AdditionalLightShadowMatrices = new Matrix4x4[maxLights];
             m_AdditionalLightSlices = new ShadowSliceData[maxLights];
             m_AdditionalLightsShadowStrength = new float[maxLights];

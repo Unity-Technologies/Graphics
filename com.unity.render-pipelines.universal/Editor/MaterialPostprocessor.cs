@@ -27,7 +27,7 @@ namespace UnityEditor.Rendering.Universal
         static void ReimportAllMaterials()
         {
             //Check to see if the upgrader has been run for this project/LWRP version
-            PackageManager.PackageInfo lwrpInfo = PackageManager.PackageInfo.FindForAssembly(Assembly.GetAssembly(typeof(LightweightRenderPipeline)));
+            PackageManager.PackageInfo lwrpInfo = PackageManager.PackageInfo.FindForAssembly(Assembly.GetAssembly(typeof(UniversalRenderPipeline)));
             var lwrpVersion = lwrpInfo.version;
             var curUpgradeVersion = PlayerPrefs.GetString(Key);
 

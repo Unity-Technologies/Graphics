@@ -51,7 +51,7 @@ public class CameraCallbackTests : ScriptableRendererFeature
     }
     public override void AddRenderPasses(ScriptableRenderer renderer, ref RenderingData renderingData)
     {
-        Downsampling downSamplingMethod = LightweightRenderPipeline.asset.opaqueDownsampling;
+        Downsampling downSamplingMethod = UniversalRenderPipeline.asset.opaqueDownsampling;
 
         var cameraColorTarget = renderer.cameraColorTarget;
         var clearRenderPass = new ClearColorPass(RenderPassEvent.BeforeRenderingOpaques, cameraColorTarget);
