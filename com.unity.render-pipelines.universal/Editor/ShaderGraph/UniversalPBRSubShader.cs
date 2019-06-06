@@ -111,7 +111,7 @@ namespace UnityEditor.Rendering.Universal
 
             string forwardTemplate = File.ReadAllText(templatePath);
             string extraTemplate = File.ReadAllText(extraPassesTemplatePath);
-            string lightweight2DTemplate = File.ReadAllText(universal2DPath);
+            string universal2DTemplate = File.ReadAllText(universal2DPath);
 
             var pbrMasterNode = masterNode as PBRMasterNode;
             var pass = pbrMasterNode.model == PBRMasterNode.Model.Metallic ? m_ForwardPassMetallic : m_ForwardPassSpecular;
