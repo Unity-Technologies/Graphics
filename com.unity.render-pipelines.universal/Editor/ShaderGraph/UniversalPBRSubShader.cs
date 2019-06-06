@@ -26,7 +26,7 @@ namespace UnityEditor.Rendering.Universal
 
         Pass m_ForwardPassMetallic = new Pass
         {
-            Name = "LightweightForward",
+            Name = "UniversalForward",
             PixelShaderSlots = new List<int>
             {
                 PBRMasterNode.AlbedoSlotId,
@@ -46,7 +46,7 @@ namespace UnityEditor.Rendering.Universal
 
         Pass m_ForwardPassSpecular = new Pass()
         {
-            Name = "LightweightForward",
+            Name = "UniversalForward",
             PixelShaderSlots = new List<int>()
             {
                 PBRMasterNode.AlbedoSlotId,
@@ -90,8 +90,8 @@ namespace UnityEditor.Rendering.Universal
                 sourceAssetDependencyPaths.Add(AssetDatabase.GUIDToAssetPath("ca91dbeb78daa054c9bbe15fef76361c"));
             }
 
-            var templatePath = GetTemplatePath("lightweightPBRForwardPass.template");
-            var extraPassesTemplatePath = GetTemplatePath("lightweightPBRExtraPasses.template");
+            var templatePath = GetTemplatePath("universalPBRForwardPass.template");
+            var extraPassesTemplatePath = GetTemplatePath("universalPBRExtraPasses.template");
             if (!File.Exists(templatePath) || !File.Exists(extraPassesTemplatePath))
                 return string.Empty;
 

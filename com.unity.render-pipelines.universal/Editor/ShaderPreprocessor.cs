@@ -196,7 +196,7 @@ namespace UnityEditor.Rendering.Universal
 
         void LogShaderVariants(Shader shader, ShaderSnippetData snippetData, ShaderVariantLogLevel logLevel, int prevVariantsCount, int currVariantsCount)
         {
-            if (logLevel == ShaderVariantLogLevel.AllShaders || shader.name.Contains("Lightweight Render Pipeline"))
+            if (logLevel == ShaderVariantLogLevel.AllShaders || shader.name.Contains("Universal Render Pipeline"))
             {
                 float percentageCurrent = (float)currVariantsCount / (float)prevVariantsCount * 100f;
                 float percentageTotal = (float)m_TotalVariantsOutputCount / (float)m_TotalVariantsInputCount * 100f;

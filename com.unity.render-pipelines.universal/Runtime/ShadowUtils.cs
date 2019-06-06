@@ -135,7 +135,7 @@ namespace UnityEngine.Rendering.Universal
             }
             else
             {
-                Debug.LogWarning("Only spot and directional shadow casters are supported in lightweight pipeline");
+                Debug.LogWarning("Only spot and directional shadow casters are supported in universal pipeline");
                 frustumSize = 0.0f;
             }
 

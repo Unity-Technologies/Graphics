@@ -1,9 +1,9 @@
-#ifndef LIGHTWEIGHT_UNLIT_META_PASS_INCLUDED
-#define LIGHTWEIGHT_UNLIT_META_PASS_INCLUDED
+#ifndef UNIVERSAL_UNLIT_META_PASS_INCLUDED
+#define UNIVERSAL_UNLIT_META_PASS_INCLUDED
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/MetaInput.hlsl"
 
-Varyings LightweightVertexMeta(Attributes input)
+Varyings UniversalVertexMeta(Attributes input)
 {
     Varyings output;
     output.positionCS = MetaVertexPosition(input.positionOS, input.uv1, input.uv2,
@@ -12,7 +12,7 @@ Varyings LightweightVertexMeta(Attributes input)
     return output;
 }
 
-half4 LightweightFragmentMetaUnlit(Varyings input) : SV_Target
+half4 UniversalFragmentMetaUnlit(Varyings input) : SV_Target
 {
     MetaInput metaInput = (MetaInput)0;
     metaInput.Albedo = _BaseColor.rgb * SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, input.uv).rgb;

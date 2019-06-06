@@ -1,5 +1,5 @@
-#ifndef LIGHTWEIGHT_SPEEDTREE7COMMON_PASSES_INCLUDED
-#define LIGHTWEIGHT_SPEEDTREE7COMMON_PASSES_INCLUDED
+#ifndef UNIVERSAL_SPEEDTREE7COMMON_PASSES_INCLUDED
+#define UNIVERSAL_SPEEDTREE7COMMON_PASSES_INCLUDED
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
 
@@ -141,7 +141,7 @@ half4 SpeedTree7Frag(SpeedTreeVertexOutput input) : SV_Target
         diffuseColor.rgb *= _Color.rgb;
     #endif
 
-    half4 color = LightweightFragmentBlinnPhong(inputData, diffuseColor.rgb, half4(0, 0, 0, 0), 0, 0, diffuse.a);
+    half4 color = UniversalFragmentBlinnPhong(inputData, diffuseColor.rgb, half4(0, 0, 0, 0), 0, 0, diffuse.a);
     color.rgb = MixFog(color.rgb, inputData.fogCoord);
 
     return color;

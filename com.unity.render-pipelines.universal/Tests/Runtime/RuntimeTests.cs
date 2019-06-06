@@ -19,7 +19,7 @@ class RuntimeTests
         GraphicsSettings.renderPipelineAsset = asset;
         camera.Render();
         yield return null;
-        
+
         Assert.AreEqual(QualitySettings.activeColorSpace == ColorSpace.Linear, GraphicsSettings.lightsUseLinearIntensity,
             "GraphicsSettings.lightsUseLinearIntensity must match active color space.");
 
@@ -28,7 +28,7 @@ class RuntimeTests
         GameObject.DestroyImmediate(go);
     }
 
-    // When switching to LWRP it sets "LightweightPipeline" as global shader tag.
+    // When switching to LWRP it sets "UniversalPipeline" as global shader tag.
     // When switching to Built-in it sets "" as global shader tag.
     [UnityTest]
     public IEnumerator PipelineSetsAndRestoreGlobalShaderTagCorrectly()
@@ -41,7 +41,7 @@ class RuntimeTests
         camera.Render();
         yield return null;
 
-        Assert.AreEqual("LightweightPipeline", Shader.globalRenderPipeline, "Wrong render pipeline shader tag.");
+        Assert.AreEqual("UniversalPipeline", Shader.globalRenderPipeline, "Wrong render pipeline shader tag.");
 
         GraphicsSettings.renderPipelineAsset = null;
         camera.Render();

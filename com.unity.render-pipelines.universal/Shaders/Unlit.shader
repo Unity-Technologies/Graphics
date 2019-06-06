@@ -25,7 +25,7 @@ Shader "Universal Render Pipeline/Unlit"
     }
     SubShader
     {
-        Tags { "RenderType" = "Opaque" "IgnoreProjector" = "True" "RenderPipeline" = "LightweightPipeline" }
+        Tags { "RenderType" = "Opaque" "IgnoreProjector" = "True" "RenderPipeline" = "UniversalPipeline" }
         LOD 100
 
         Blend [_SrcBlend][_DstBlend]
@@ -148,8 +148,8 @@ Shader "Universal Render Pipeline/Unlit"
             // Required to compile gles 2.0 with standard srp library
             #pragma prefer_hlslcc gles
             #pragma exclude_renderers d3d11_9x
-            #pragma vertex LightweightVertexMeta
-            #pragma fragment LightweightFragmentMetaUnlit
+            #pragma vertex UniversalVertexMeta
+            #pragma fragment UniversalFragmentMetaUnlit
 
             #include "UnlitInput.hlsl"
             #include "UnlitMetaPass.hlsl"

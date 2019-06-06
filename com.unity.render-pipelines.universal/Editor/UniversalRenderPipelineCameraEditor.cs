@@ -32,8 +32,8 @@ namespace UnityEditor.Rendering.Universal
             public static GUIContent rendererData = EditorGUIUtility.TrTextContent("Renderer Data", "Required by a custom Renderer. If none is assigned this camera uses the one assigned in the Pipeline Settings.");
 
             public readonly GUIContent[] renderingPathOptions = { EditorGUIUtility.TrTextContent("Forward") };
-            public readonly string hdrDisabledWarning = "HDR rendering is disabled in the Lightweight Render Pipeline asset.";
-            public readonly string mssaDisabledWarning = "Anti-aliasing is disabled in the Lightweight Render Pipeline asset.";
+            public readonly string hdrDisabledWarning = "HDR rendering is disabled in the Universal Render Pipeline asset.";
+            public readonly string mssaDisabledWarning = "Anti-aliasing is disabled in the Universal Render Pipeline asset.";
 
             public static GUIContent[] displayedRendererTypeOverride =
             {
@@ -267,7 +267,7 @@ namespace UnityEditor.Rendering.Universal
                     string pipelineMSAACaps = (pipelineSamplesCount > 1)
                         ? String.Format("is set to support {0}x", pipelineSamplesCount)
                         : "has MSAA disabled";
-                    EditorGUILayout.HelpBox(String.Format("Camera target texture requires {0}x MSAA. Lightweight pipeline {1}.", texture.antiAliasing, pipelineMSAACaps),
+                    EditorGUILayout.HelpBox(String.Format("Camera target texture requires {0}x MSAA. Universal pipeline {1}.", texture.antiAliasing, pipelineMSAACaps),
                         MessageType.Warning, true);
                 }
             }

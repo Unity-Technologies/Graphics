@@ -207,7 +207,7 @@ namespace UnityEngine.Rendering.Universal
             if (shaderTagIdList == null || shaderTagIdList.Count == 0)
             {
                 Debug.LogWarning("ShaderTagId list is invalid. DrawingSettings is created with default pipeline ShaderTagId");
-                return CreateDrawingSettings(new ShaderTagId("LightweightPipeline"), ref renderingData, sortingCriteria);
+                return CreateDrawingSettings(new ShaderTagId("UniversalPipeline"), ref renderingData, sortingCriteria);
             }
 
             DrawingSettings settings = CreateDrawingSettings(shaderTagIdList[0], ref renderingData, sortingCriteria);

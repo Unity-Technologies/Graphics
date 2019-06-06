@@ -50,7 +50,7 @@ Shader "Hidden/Universal Render Pipeline/Sampling"
 
     SubShader
     {
-        Tags { "RenderType" = "Opaque" "RenderPipeline" = "LightweightPipeline"}
+        Tags { "RenderType" = "Opaque" "RenderPipeline" = "UniversalPipeline"}
         LOD 100
 
         // 0 - Downsample - Box filtering

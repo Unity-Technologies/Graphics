@@ -75,7 +75,7 @@ namespace UnityEngine.Rendering.Universal
     [MovedFrom("UnityEngine.Rendering.LWRP")] public enum ShaderVariantLogLevel
     {
         Disabled,
-        OnlyLightweightRPShaders,
+        OnlyUniversalRPShaders,
         AllShaders,
     }
 
@@ -90,7 +90,7 @@ namespace UnityEngine.Rendering.Universal
         Shader m_DefaultShader;
         internal ScriptableRenderer m_Renderer;
 
-        // Default values set when a new LightweightRenderPipeline asset is created
+        // Default values set when a new UniversalRenderPipeline asset is created
         [SerializeField] int k_AssetVersion = 4;
 
         [SerializeField] RendererType m_RendererType = RendererType.ForwardRenderer;
@@ -158,7 +158,7 @@ namespace UnityEngine.Rendering.Universal
         }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1812")]
-        internal class CreateLightweightPipelineAsset : EndNameEditAction
+        internal class CreateUniversalPipelineAsset : EndNameEditAction
         {
             public override void Action(int instanceId, string pathName, string resourceFile)
             {
@@ -167,14 +167,14 @@ namespace UnityEngine.Rendering.Universal
         }
 
         [MenuItem("Assets/Create/Rendering/Universal Render Pipeline/Pipeline Asset", priority = CoreUtils.assetCreateMenuPriority1)]
-        static void CreateLightweightPipeline()
+        static void CreateUniversalPipeline()
         {
-            ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, CreateInstance<CreateLightweightPipelineAsset>(),
-                "LightweightRenderPipelineAsset.asset", null, null);
+            ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, CreateInstance<CreateUniversalPipelineAsset>(),
+                "UniversalRenderPipelineAsset.asset", null, null);
         }
 
-        //[MenuItem("Assets/Create/Rendering/Lightweight Pipeline Editor Resources", priority = CoreUtils.assetCreateMenuPriority1)]
-        static void CreateLightweightPipelineEditorResources()
+        //[MenuItem("Assets/Create/Rendering/Universal Pipeline Editor Resources", priority = CoreUtils.assetCreateMenuPriority1)]
+        static void CreateUniversalPipelineEditorResources()
         {
             var instance = CreateInstance<UniversalRenderPipelineEditorResources>();
             ResourceReloader.ReloadAllNullIn(instance, packagePath);

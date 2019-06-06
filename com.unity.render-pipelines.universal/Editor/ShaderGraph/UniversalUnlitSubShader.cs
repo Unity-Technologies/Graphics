@@ -62,8 +62,8 @@ namespace UnityEngine.Rendering.Universal
                 sourceAssetDependencyPaths.Add(AssetDatabase.GUIDToAssetPath("3ef30c5c1d5fc412f88511ef5818b654"));
             }
 
-            var templatePath = GetTemplatePath("lightweightUnlitPass.template");
-            var extraPassesTemplatePath = GetTemplatePath("lightweightUnlitExtraPasses.template");
+            var templatePath = GetTemplatePath("universalUnlitPass.template");
+            var extraPassesTemplatePath = GetTemplatePath("universalUnlitExtraPasses.template");
             if (!File.Exists(templatePath) || !File.Exists(extraPassesTemplatePath))
                 return string.Empty;
 

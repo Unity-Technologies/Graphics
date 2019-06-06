@@ -45,13 +45,13 @@ Shader "Universal Render Pipeline/Simple Lit"
 
     SubShader
     {
-        Tags { "RenderType" = "Opaque" "RenderPipeline" = "LightweightPipeline" "IgnoreProjector" = "True"}
+        Tags { "RenderType" = "Opaque" "RenderPipeline" = "UniversalPipeline" "IgnoreProjector" = "True"}
         LOD 300
 
         Pass
         {
             Name "ForwardLit"
-            Tags { "LightMode" = "LightweightForward" }
+            Tags { "LightMode" = "UniversalForward" }
 
             // Use same blending / depth states as Standard shader
             Blend[_SrcBlend][_DstBlend]
@@ -75,7 +75,7 @@ Shader "Universal Render Pipeline/Simple Lit"
             #pragma shader_feature _RECEIVE_SHADOWS_OFF
 
             // -------------------------------------
-            // Lightweight Pipeline keywords
+            // Universal Pipeline keywords
             #pragma multi_compile _ _MAIN_LIGHT_SHADOWS
             #pragma multi_compile _ _MAIN_LIGHT_SHADOWS_CASCADE
             #pragma multi_compile _ _ADDITIONAL_LIGHTS_VERTEX _ADDITIONAL_LIGHTS
@@ -179,8 +179,8 @@ Shader "Universal Render Pipeline/Simple Lit"
             #pragma prefer_hlslcc gles
             #pragma exclude_renderers d3d11_9x
 
-            #pragma vertex LightweightVertexMeta
-            #pragma fragment LightweightFragmentMetaSimple
+            #pragma vertex UniversalVertexMeta
+            #pragma fragment UniversalFragmentMetaSimple
 
             #pragma shader_feature _EMISSION
             #pragma shader_feature _SPECGLOSSMAP

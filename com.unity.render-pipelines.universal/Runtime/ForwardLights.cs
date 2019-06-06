@@ -19,7 +19,7 @@ namespace UnityEngine.Rendering.Universal
 
             public static int _AdditionalLightOcclusionProbeChannel;
         }
-        
+
         const string k_SetupLightConstants = "Setup Light Constants";
         MixedLightingSetup m_MixedLightingSetup;
 
@@ -34,7 +34,7 @@ namespace UnityEngine.Rendering.Universal
         Vector4[] m_AdditionalLightAttenuations;
         Vector4[] m_AdditionalLightSpotDirections;
         Vector4[] m_AdditionalLightOcclusionProbeChannels;
-        
+
         public ForwardLights()
         {
             LightConstantBuffer._MainLightPosition = Shader.PropertyToID("_MainLightPosition");
@@ -57,7 +57,7 @@ namespace UnityEngine.Rendering.Universal
         public void Setup(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             SetupPerObjectLightIndices(renderingData.cullResults, ref renderingData.lightData);
-            
+
             int additionalLightsCount = renderingData.lightData.additionalLightsCount;
             bool additionalLightsPerVertex = renderingData.lightData.shadeAdditionalLightsPerVertex;
             CommandBuffer cmd = CommandBufferPool.Get(k_SetupLightConstants);
@@ -73,7 +73,7 @@ namespace UnityEngine.Rendering.Universal
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
         }
-        
+
         void InitializeLightConstants(NativeArray<VisibleLight> lights, int lightIndex, out Vector4 lightPos, out Vector4 lightColor, out Vector4 lightAttenuation, out Vector4 lightSpotDir, out Vector4 lightOcclusionProbeChannel)
         {
             lightPos = k_DefaultLightPosition;
@@ -105,7 +105,7 @@ namespace UnityEngine.Rendering.Universal
             // Directional Light attenuation is initialize so distance attenuation always be 1.0
             if (lightData.lightType != LightType.Directional)
             {
-                // Light attenuation in lightweight matches the unity vanilla one.
+                // Light attenuation in universal matches the unity vanilla one.
                 // attenuation = 1.0 / distanceToLightSqr
                 // We offer two different smoothing factors.
                 // The smoothing factors make sure that the light intensity is zero at the light range limit.
@@ -159,7 +159,7 @@ namespace UnityEngine.Rendering.Universal
             }
 
             Light light = lightData.light;
-            
+
             // Set the occlusion probe channel.
             int occlusionProbeChannel = light != null ? light.bakingOutput.occlusionMaskChannel : -1;
 
@@ -169,7 +169,7 @@ namespace UnityEngine.Rendering.Universal
             // input to one. We then, in the shader max with the second value for non-occluded lights.
             lightOcclusionProbeChannel.x = occlusionProbeChannel == -1 ? 0f : occlusionProbeChannel;
             lightOcclusionProbeChannel.y = occlusionProbeChannel == -1 ? 1f : 0f;
-            
+
             // TODO: Add support to shadow mask
             if (light != null && light.bakingOutput.mixedLightingMode == MixedLightingMode.Subtractive && light.bakingOutput.lightmapBakeType == LightmapBakeType.Mixed)
             {
@@ -193,7 +193,7 @@ namespace UnityEngine.Rendering.Universal
             m_MixedLightingSetup = MixedLightingSetup.None;
 
             // Main light has an optimized shader path for main light. This will benefit games that only care about a single light.
-            // Lightweight pipeline also supports only a single shadow light, if available it will be the main light.
+            // Universal pipeline also supports only a single shadow light, if available it will be the main light.
             SetupMainLightConstants(cmd, ref lightData);
             SetupAdditionalLightConstants(cmd, ref lightData);
         }
@@ -242,7 +242,7 @@ namespace UnityEngine.Rendering.Universal
             cmd.SetGlobalVectorArray(LightConstantBuffer._AdditionalLightsSpotDir, m_AdditionalLightSpotDirections);
             cmd.SetGlobalVectorArray(LightConstantBuffer._AdditionalLightOcclusionProbeChannel, m_AdditionalLightOcclusionProbeChannels);
         }
-        
+
         void SetupPerObjectLightIndices(CullingResults cullResults, ref LightData lightData)
         {
             if (lightData.additionalLightsCount == 0)

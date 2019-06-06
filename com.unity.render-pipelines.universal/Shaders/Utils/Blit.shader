@@ -2,7 +2,7 @@ Shader "Hidden/Universal Render Pipeline/Blit"
 {
     SubShader
     {
-        Tags { "RenderType" = "Opaque" "RenderPipeline" = "LightweightPipeline"}
+        Tags { "RenderType" = "Opaque" "RenderPipeline" = "UniversalPipeline"}
         LOD 100
 
         Pass

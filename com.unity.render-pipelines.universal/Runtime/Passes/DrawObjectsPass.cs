@@ -6,7 +6,7 @@ namespace UnityEngine.Rendering.Universal
     /// Draw  objects into the given color and depth target
     ///
     /// You can use this pass to render objects that have a material and/or shader
-    /// with the pass names LightweightForward or SRPDefaultUnlit.
+    /// with the pass names UniversalForward or SRPDefaultUnlit.
     /// </summary>
     internal class DrawObjectsPass : ScriptableRenderPass
     {
@@ -19,7 +19,7 @@ namespace UnityEngine.Rendering.Universal
         public DrawObjectsPass(string profilerTag, bool opaque, RenderPassEvent evt, RenderQueueRange renderQueueRange, LayerMask layerMask, StencilState stencilState, int stencilReference)
         {
             m_ProfilerTag = profilerTag;
-            m_ShaderTagIdList.Add(new ShaderTagId("LightweightForward"));
+            m_ShaderTagIdList.Add(new ShaderTagId("UniversalForward"));
             m_ShaderTagIdList.Add(new ShaderTagId("SRPDefaultUnlit"));
             renderPassEvent = evt;
             m_FilteringSettings = new FilteringSettings(renderQueueRange, layerMask);

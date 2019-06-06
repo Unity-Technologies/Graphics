@@ -1,5 +1,5 @@
-#ifndef LIGHTWEIGHT_SHADOWS_INCLUDED
-#define LIGHTWEIGHT_SHADOWS_INCLUDED
+#ifndef UNIVERSAL_SHADOWS_INCLUDED
+#define UNIVERSAL_SHADOWS_INCLUDED
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Shadow/ShadowSamplingTent.hlsl"

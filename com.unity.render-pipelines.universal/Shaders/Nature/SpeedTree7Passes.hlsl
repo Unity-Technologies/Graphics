@@ -1,5 +1,5 @@
-#ifndef LIGHTWEIGHT_SPEEDTREE7_PASSES_INCLUDED
-#define LIGHTWEIGHT_SPEEDTREE7_PASSES_INCLUDED
+#ifndef UNIVERSAL_SPEEDTREE7_PASSES_INCLUDED
+#define UNIVERSAL_SPEEDTREE7_PASSES_INCLUDED
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
 #include "SpeedTree7CommonPasses.hlsl"

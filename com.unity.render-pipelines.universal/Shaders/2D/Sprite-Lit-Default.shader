@@ -13,7 +13,7 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-Default"
 
     SubShader
     {
-        Tags { "RenderType" = "Transparent" "RenderPipeline" = "LightweightPipeline" }
+        Tags { "RenderType" = "Transparent" "RenderPipeline" = "UniversalPipeline" }
 
         Blend SrcAlpha OneMinusSrcAlpha
         Cull Off

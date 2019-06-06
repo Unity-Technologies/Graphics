@@ -1,5 +1,5 @@
-#ifndef LIGHTWEIGHT_WAVING_GRASS_PASSES_INCLUDED
-#define LIGHTWEIGHT_WAVING_GRASS_PASSES_INCLUDED
+#ifndef UNIVERSAL_WAVING_GRASS_PASSES_INCLUDED
+#define UNIVERSAL_WAVING_GRASS_PASSES_INCLUDED
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
 
@@ -157,7 +157,7 @@ half4 LitPassFragmentGrass(GrassVertexOutput input) : SV_Target
     InputData inputData;
     InitializeInputData(input, inputData);
 
-    half4 color = LightweightFragmentBlinnPhong(inputData, diffuse, specularGloss, shininess, emission, alpha);
+    half4 color = UniversalFragmentBlinnPhong(inputData, diffuse, specularGloss, shininess, emission, alpha);
     color.rgb = MixFog(color.rgb, inputData.fogCoord);
     return color;
 };

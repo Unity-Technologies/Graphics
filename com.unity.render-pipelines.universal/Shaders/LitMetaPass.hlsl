@@ -1,9 +1,9 @@
-#ifndef LIGHTWEIGHT_LIT_META_PASS_INCLUDED
-#define LIGHTWEIGHT_LIT_META_PASS_INCLUDED
+#ifndef UNIVERSAL_LIT_META_PASS_INCLUDED
+#define UNIVERSAL_LIT_META_PASS_INCLUDED
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/MetaInput.hlsl"
 
-Varyings LightweightVertexMeta(Attributes input)
+Varyings UniversalVertexMeta(Attributes input)
 {
     Varyings output;
     output.positionCS = MetaVertexPosition(input.positionOS, input.uv1, input.uv2,
@@ -12,7 +12,7 @@ Varyings LightweightVertexMeta(Attributes input)
     return output;
 }
 
-half4 LightweightFragmentMeta(Varyings input) : SV_Target
+half4 UniversalFragmentMeta(Varyings input) : SV_Target
 {
     SurfaceData surfaceData;
     InitializeStandardLitSurfaceData(input.uv, surfaceData);

@@ -1,5 +1,5 @@
-#ifndef LIGHTWEIGHT_SIMPLE_LIT_PASS_INCLUDED
-#define LIGHTWEIGHT_SIMPLE_LIT_PASS_INCLUDED
+#ifndef UNIVERSAL_SIMPLE_LIT_PASS_INCLUDED
+#define UNIVERSAL_SIMPLE_LIT_PASS_INCLUDED
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
 
@@ -135,7 +135,7 @@ half4 LitPassFragmentSimple(Varyings input) : SV_Target
     InputData inputData;
     InitializeInputData(input, normalTS, inputData);
 
-    half4 color = LightweightFragmentBlinnPhong(inputData, diffuse, specular, smoothness, emission, alpha);
+    half4 color = UniversalFragmentBlinnPhong(inputData, diffuse, specular, smoothness, emission, alpha);
     color.rgb = MixFog(color.rgb, inputData.fogCoord);
     return color;
 };

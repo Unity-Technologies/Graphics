@@ -18,14 +18,14 @@ Shader "Universal Render Pipeline/Nature/SpeedTree7 Billboard"
             "IgnoreProjector" = "True"
             "RenderType" = "TransparentCutout"
             "DisableBatching" = "LODFading"
-            "RenderPipeline" = "LightweightPipeline"
+            "RenderPipeline" = "UniversalPipeline"
         }
         LOD 400
 
         Pass
         {
             Name "ForwardLit"
-            Tags { "LightMode" = "LightweightForward" }
+            Tags { "LightMode" = "UniversalForward" }
 
             HLSLPROGRAM
 

@@ -118,7 +118,7 @@ namespace UnityEditor
 
         public bool m_FirstTimeApply = true;
 
-        private const string k_KeyPrefix = "LightweightRP:Material:UI_State:";
+        private const string k_KeyPrefix = "UniversalRP:Material:UI_State:";
 
         private string m_HeaderStateKey = null;
 
@@ -165,7 +165,7 @@ namespace UnityEditor
             Material material = materialEditor.target as Material;
 
             // Make sure that needed setup (ie keywords/renderqueue) are set up if we're switching some existing
-            // material to a lightweight shader.
+            // material to a universal shader.
             if (m_FirstTimeApply)
             {
                 OnOpenGUI(material, materialEditorIn);

@@ -1,5 +1,5 @@
-#ifndef LIGHTWEIGHT_BAKEDLIT_INPUT_INCLUDED
-#define LIGHTWEIGHT_BAKEDLIT_INPUT_INCLUDED
+#ifndef UNIVERSAL_BAKEDLIT_INPUT_INCLUDED
+#define UNIVERSAL_BAKEDLIT_INPUT_INCLUDED
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/SurfaceInput.hlsl"
 

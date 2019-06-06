@@ -1,9 +1,9 @@
-#ifndef LIGHTWEIGHT_SIMPLE_LIT_META_PASS_INCLUDED
-#define LIGHTWEIGHT_SIMPLE_LIT_META_PASS_INCLUDED
+#ifndef UNIVERSAL_SIMPLE_LIT_META_PASS_INCLUDED
+#define UNIVERSAL_SIMPLE_LIT_META_PASS_INCLUDED
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/MetaInput.hlsl"
 
-Varyings LightweightVertexMeta(Attributes input)
+Varyings UniversalVertexMeta(Attributes input)
 {
     Varyings output;
     output.positionCS = MetaVertexPosition(input.positionOS, input.uv1, input.uv2,
@@ -12,7 +12,7 @@ Varyings LightweightVertexMeta(Attributes input)
     return output;
 }
 
-half4 LightweightFragmentMetaSimple(Varyings input) : SV_Target
+half4 UniversalFragmentMetaSimple(Varyings input) : SV_Target
 {
     float2 uv = input.uv;
     MetaInput metaInput;

@@ -36,7 +36,7 @@ namespace UnityEngine.Rendering.Universal
             int index = (int)id;
             if (index < 0 && index >= (int)ShaderPathID.Count)
             {
-                Debug.LogError("Trying to access lightweight shader path out of bounds");
+                Debug.LogError("Trying to access universal shader path out of bounds");
                 return "";
             }
 

@@ -35,7 +35,7 @@ Shader "Universal Render Pipeline/Nature/SpeedTree8"
             "IgnoreProjector"="True"
             "RenderType"="TransparentCutout"
             "DisableBatching"="LODFading"
-            "RenderPipeline" = "LightweightPipeline"
+            "RenderPipeline" = "UniversalPipeline"
         }
         LOD 400
         Cull [_TwoSided]
@@ -43,7 +43,7 @@ Shader "Universal Render Pipeline/Nature/SpeedTree8"
         Pass
         {
             Name "ForwardLit"
-            Tags { "LightMode" = "LightweightForward" }
+            Tags { "LightMode" = "UniversalForward" }
 
             HLSLPROGRAM
 
