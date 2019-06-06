@@ -143,7 +143,7 @@ namespace UnityEngine.Rendering.Universal
 
 #if UNITY_EDITOR
         [NonSerialized]
-        internal LightweightRenderPipelineEditorResources m_EditorResourcesAsset;
+        internal UniversalRenderPipelineEditorResources m_EditorResourcesAsset;
 
         public static readonly string packagePath = "Packages/com.unity.render-pipelines.universal";
 
@@ -152,7 +152,7 @@ namespace UnityEngine.Rendering.Universal
             var instance = CreateInstance<UniversalRenderPipelineAsset>();
 
             instance.LoadBuiltinRendererData();
-            instance.m_EditorResourcesAsset = LoadResourceFile<LightweightRenderPipelineEditorResources>();
+            instance.m_EditorResourcesAsset = LoadResourceFile<UniversalRenderPipelineEditorResources>();
             instance.m_Renderer = instance.m_RendererData.InternalCreateRenderer();
             return instance;
         }
@@ -176,9 +176,9 @@ namespace UnityEngine.Rendering.Universal
         //[MenuItem("Assets/Create/Rendering/Lightweight Pipeline Editor Resources", priority = CoreUtils.assetCreateMenuPriority1)]
         static void CreateLightweightPipelineEditorResources()
         {
-            var instance = CreateInstance<LightweightRenderPipelineEditorResources>();
+            var instance = CreateInstance<UniversalRenderPipelineEditorResources>();
             ResourceReloader.ReloadAllNullIn(instance, packagePath);
-            AssetDatabase.CreateAsset(instance, string.Format("Assets/{0}.asset", typeof(LightweightRenderPipelineEditorResources).Name));
+            AssetDatabase.CreateAsset(instance, string.Format("Assets/{0}.asset", typeof(UniversalRenderPipelineEditorResources).Name));
         }
 
         static T LoadResourceFile<T>() where T : ScriptableObject
@@ -206,12 +206,12 @@ namespace UnityEngine.Rendering.Universal
             return resourceAsset;
         }
 
-        LightweightRenderPipelineEditorResources editorResources
+        UniversalRenderPipelineEditorResources editorResources
         {
             get
             {
                 if (m_EditorResourcesAsset == null)
-                    m_EditorResourcesAsset = LoadResourceFile<LightweightRenderPipelineEditorResources>();
+                    m_EditorResourcesAsset = LoadResourceFile<UniversalRenderPipelineEditorResources>();
 
                 return m_EditorResourcesAsset;
             }
