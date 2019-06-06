@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Changed
 - The `Custom Function Node` now uses an object field to reference its source when using `File` mode.
+- Added a Strength input on the NormalFromHeight node and fix a NaN on it.
 
 ### Fixed
 - Fixed an error in `Custom Function Node` port naming.
