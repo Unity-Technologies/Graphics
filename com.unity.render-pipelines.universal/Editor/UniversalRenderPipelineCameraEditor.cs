@@ -84,7 +84,7 @@ namespace UnityEditor.Rendering.Universal
         static readonly int[] s_RenderingPathValues = {0};
         static Styles s_Styles;
         LightweightRenderPipelineAsset m_LightweightRenderPipeline;
-        LWRPAdditionalCameraData m_AdditionalCameraData;
+        UniversalAdditionalCameraData m_AdditionalCameraData;
         SerializedObject m_AdditionalCameraDataSO;
 
         readonly AnimBool m_ShowBGColorAnim = new AnimBool();
@@ -121,14 +121,14 @@ namespace UnityEditor.Rendering.Universal
         {
             m_LightweightRenderPipeline = GraphicsSettings.renderPipelineAsset as LightweightRenderPipelineAsset;
 
-            m_AdditionalCameraData = camera.gameObject.GetComponent<LWRPAdditionalCameraData>();
+            m_AdditionalCameraData = camera.gameObject.GetComponent<UniversalAdditionalCameraData>();
             settings.OnEnable();
             init(m_AdditionalCameraData);
 
             UpdateAnimationValues(true);
         }
 
-        void init(LWRPAdditionalCameraData additionalCameraData)
+        void init(UniversalAdditionalCameraData additionalCameraData)
         {
             if(additionalCameraData == null)
                 return;
@@ -384,7 +384,7 @@ namespace UnityEditor.Rendering.Universal
             {
                 if (m_AdditionalCameraDataSO == null)
                 {
-                    m_AdditionalCameraData = camera.gameObject.AddComponent<LWRPAdditionalCameraData>();
+                    m_AdditionalCameraData = camera.gameObject.AddComponent<UniversalAdditionalCameraData>();
                     init(m_AdditionalCameraData);
                 }
                 m_AdditionalCameraDataRenderShadowsProp.boolValue = selectedValueShadows;

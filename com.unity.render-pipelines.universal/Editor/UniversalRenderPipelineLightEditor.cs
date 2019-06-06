@@ -74,7 +74,7 @@ namespace UnityEditor.Rendering.Universal
             }
         }
 
-        LWRPAdditionalLightData m_AdditionalLightData;
+        UniversalAdditionalLightData m_AdditionalLightData;
         SerializedObject m_AdditionalLightDataSO;
 
         SerializedProperty m_UseAdditionalDataProp;
@@ -82,13 +82,13 @@ namespace UnityEditor.Rendering.Universal
 
         protected override void OnEnable()
         {
-            m_AdditionalLightData = lightProperty.gameObject.GetComponent<LWRPAdditionalLightData>();
+            m_AdditionalLightData = lightProperty.gameObject.GetComponent<UniversalAdditionalLightData>();
             settings.OnEnable();
             init(m_AdditionalLightData);
             UpdateShowOptions(true);
         }
 
-        void init(LWRPAdditionalLightData additionalLightData)
+        void init(UniversalAdditionalLightData additionalLightData)
         {
             if(additionalLightData == null)
                 return;
@@ -234,8 +234,8 @@ namespace UnityEditor.Rendering.Universal
             {
                 if (m_AdditionalLightDataSO == null)
                 {
-                    lightProperty.gameObject.AddComponent<LWRPAdditionalLightData>();
-                    m_AdditionalLightData = lightProperty.gameObject.GetComponent<LWRPAdditionalLightData>();
+                    lightProperty.gameObject.AddComponent<UniversalAdditionalLightData>();
+                    m_AdditionalLightData = lightProperty.gameObject.GetComponent<UniversalAdditionalLightData>();
 
                     LightweightRenderPipelineAsset asset = GraphicsSettings.renderPipelineAsset as LightweightRenderPipelineAsset;
                     settings.shadowsBias.floatValue = asset.shadowDepthBias;
