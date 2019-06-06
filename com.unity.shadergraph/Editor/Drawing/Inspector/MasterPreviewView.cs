@@ -223,6 +223,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
                 return;
 
             m_PreviewManager.ResizeMasterPreview(new Vector2(targetWidth, targetHeight));
+            DirtyMasterNode(ModificationScope.Node);
         }
 
         void OnScroll(float scrollValue)
