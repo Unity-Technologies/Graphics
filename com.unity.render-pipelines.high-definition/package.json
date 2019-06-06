@@ -8,6 +8,7 @@
     "dependencies": {
         "com.unity.render-pipelines.core": "7.0.0",
         "com.unity.shadergraph": "7.0.0",
+		"com.unity.visualeffectgraph": "7.0.0",
 		"com.unity.ugui" : "1.0.0"
     },
 	"samples" : [

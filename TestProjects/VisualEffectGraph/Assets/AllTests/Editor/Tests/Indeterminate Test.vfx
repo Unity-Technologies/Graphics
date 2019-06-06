@@ -2539,6 +2539,8 @@ MonoBehaviour:
   m_ParameterInfo: []
   m_GraphVersion: 2
   m_saved: 1
+  m_SubgraphDependencies: []
+  m_CategoryPath: 
 --- !u!114 &114214122751800258
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -7139,8 +7141,8 @@ MonoBehaviour:
   m_InputSlots: []
   m_OutputSlots:
   - {fileID: 114984596019172262}
-  m_exposedName: New bool
-  m_exposed: 0
+  m_ExposedName: New bool
+  m_Exposed: 0
   m_Order: 0
   m_Category: 
   m_Min:
@@ -7151,6 +7153,7 @@ MonoBehaviour:
     m_Type:
       m_SerializableType: 
     m_SerializableObject: 
+  m_IsOutput: 0
   m_Tooltip: 
   m_Nodes: []
 --- !u!114 &114709199838297718
@@ -8622,8 +8625,8 @@ MonoBehaviour:
   m_InputSlots: []
   m_OutputSlots:
   - {fileID: 114143974621120080}
-  m_exposedName: New int
-  m_exposed: 0
+  m_ExposedName: New int
+  m_Exposed: 0
   m_Order: 1
   m_Category: 
   m_Min:
@@ -8634,6 +8637,7 @@ MonoBehaviour:
     m_Type:
       m_SerializableType: 
     m_SerializableObject: 
+  m_IsOutput: 0
   m_Tooltip: 
   m_Nodes: []
 --- !u!114 &114886463104656102

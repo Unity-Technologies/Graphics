@@ -62,6 +62,8 @@ MonoBehaviour:
   m_OutputFlowSlot:
   - link: []
   blendMode: 1
+  m_SubOutputs:
+  - {fileID: 8926484042661616065}
   cullMode: 0
   zWriteMode: 0
   zTestMode: 0
@@ -971,6 +973,8 @@ MonoBehaviour:
     descendantCount: 0
   m_GraphVersion: 2
   m_saved: 1
+  m_SubgraphDependencies: []
+  m_CategoryPath: 
 --- !u!114 &114380859405582094
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -1604,9 +1608,9 @@ VisualEffectResource:
   - compute: 0
     name: '[Item 1 - Position]Quad Output'
     source: "Shader \"Hidden/VFX/23_ParameterBinders/Item 1 - Position/Quad Output\"\n{\n\tSubShader\n\t{\t\n\t\tCull
-      Off\n\t\t\n\t\tTags { \"Queue\"=\"Transparent\" \"IgnoreProjector\"=\"True\"
+      Off\n\t\t\n\t\tTags { \"Queue\"=\"Transparent+0\" \"IgnoreProjector\"=\"True\"
       \"RenderType\"=\"Transparent\" }\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\tBlend
-      SrcAlpha OneMinusSrcAlpha\n\t\tZTest LEqual\n\t\tZWrite Off\n\t\tCull Off\n\t\t\n\t\n\t\t\t\n\t\tHLSLINCLUDE\n\t\t#if
+      SrcAlpha OneMinusSrcAlpha \n\t\tZTest LEqual\n\t\tZWrite Off\n\t\tCull Off\n\t\t\n\t\n\t\t\t\n\t\tHLSLINCLUDE\n\t\t#if
       !defined(VFX_WORLD_SPACE) && !defined(VFX_LOCAL_SPACE)\n\t\t#define VFX_LOCAL_SPACE
       1\n\t\t#endif\n\t\t\n\t\t#define NB_THREADS_PER_GROUP 64\n\t\t#define VFX_USE_POSITION_CURRENT
       1\n\t\t#define VFX_USE_LIFETIME_CURRENT 1\n\t\t#define VFX_USE_COLOR_CURRENT
@@ -1749,7 +1753,8 @@ VisualEffectResource:
       o;\n\t\t\t}\n\t\t\t\n\t\t\t\n\t\t\t\n\t\t\t\n\t\t\t\n\t\t\t\n\t\t\t#include
       \"Packages/com.unity.visualeffectgraph/Shaders/VFXCommonOutput.cginc\"\n\t\t\t\n\t\t\t\n\t\t\t\n\t\t\t\t\n\t\t\t#pragma
       fragment frag\n\t\t\tps_output frag(ps_input i)\n\t\t\t{\n\t\t\t\tps_output
-      o = (ps_output)0;\n\t\t\t\t\n\t\t\t\t#define VFX_TEXTURE_COLOR VFXGetTextureColor(VFX_SAMPLER(mainTexture),i)\n\t\t\t\t\n\t\t\t\t\t\t\n\t\t\t\t\t\tfloat4
+      o = (ps_output)0;\n\t\t\t\tVFXTransformPSInputs(i);\n\t\t\t\n\t\t\t\t#define
+      VFX_TEXTURE_COLOR VFXGetTextureColor(VFX_SAMPLER(mainTexture),i)\n\t\t\t\t\n\t\t\t\t\t\t\n\t\t\t\t\t\tfloat4
       color = VFXGetFragmentColor(i);\n\t\t\t\t\t\t\n\t\t\t\t\t\t#ifndef VFX_TEXTURE_COLOR\n\t\t\t\t\t\t\t#define
       VFX_TEXTURE_COLOR float4(1.0,1.0,1.0,1.0)\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\t\t\t#if
       VFX_COLORMAPPING_DEFAULT\n\t\t\t\t\t\t\to.color = color * VFX_TEXTURE_COLOR;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\t\t\t#if
@@ -1870,9 +1875,9 @@ VisualEffectResource:
   - compute: 0
     name: '[Item 2 - Transform]Point Output'
     source: "Shader \"Hidden/VFX/23_ParameterBinders/Item 2 - Transform/Point Output\"\n{\n\tSubShader\n\t{\t\n\t\tTags
-      { \"Queue\"=\"Transparent\" \"IgnoreProjector\"=\"True\" \"RenderType\"=\"Transparent\"
+      { \"Queue\"=\"Transparent+0\" \"IgnoreProjector\"=\"True\" \"RenderType\"=\"Transparent\"
       }\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\tBlend
-      SrcAlpha OneMinusSrcAlpha\n\t\tZTest LEqual\n\t\tZWrite Off\n\t\tCull Off\n\t\t\n\t\n\t\t\t\n\t\tHLSLINCLUDE\n\t\t#if
+      SrcAlpha OneMinusSrcAlpha \n\t\tZTest LEqual\n\t\tZWrite Off\n\t\tCull Off\n\t\t\n\t\n\t\t\t\n\t\tHLSLINCLUDE\n\t\t#if
       !defined(VFX_WORLD_SPACE) && !defined(VFX_LOCAL_SPACE)\n\t\t#define VFX_LOCAL_SPACE
       1\n\t\t#endif\n\t\t\n\t\t#define NB_THREADS_PER_GROUP 64\n\t\t#define VFX_USE_POSITION_CURRENT
       1\n\t\t#define VFX_USE_COLOR_CURRENT 1\n\t\t#define VFX_USE_ALPHA_CURRENT 1\n\t\t#define
@@ -1929,7 +1934,7 @@ VisualEffectResource:
       = o.VFX_VARYING_UV.xy * uvScale + uvBias;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\t\t\t#if
       defined(VFX_VARYING_POSWS)\n\t\t\t\t\t\to.VFX_VARYING_POSWS = TransformPositionVFXToWorld(vPos);\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t\n\t\t\t\treturn
       o;\n\t\t\t}\n\t\t\t\n\t\t\t#include \"Packages/com.unity.visualeffectgraph/Shaders/VFXCommonOutput.cginc\"\n\t\t\t\n\t\t\t\n\t\t\t\t\n\t\t\t#pragma
-      fragment frag\n\t\t\tps_output frag(ps_input i)\n\t\t\t{\n\t\t\t\tps_output
+      fragment frag\n\t\t\tps_output frag(ps_input i)\n\t\t\t{\n\t\t\t\tVFXTransformPSInputs(i);\n\t\t\t\tps_output
       o = (ps_output)0;\n\t\t\t\t\n\t\t\t\t\t\t\n\t\t\t\t\t\tfloat4 color = VFXGetFragmentColor(i);\n\t\t\t\t\t\t\n\t\t\t\t\t\t#ifndef
       VFX_TEXTURE_COLOR\n\t\t\t\t\t\t\t#define VFX_TEXTURE_COLOR float4(1.0,1.0,1.0,1.0)\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\t\t\t#if
       VFX_COLORMAPPING_DEFAULT\n\t\t\t\t\t\t\to.color = color * VFX_TEXTURE_COLOR;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\t\t\t#if
@@ -2016,7 +2021,7 @@ VisualEffectResource:
   - compute: 0
     name: '[Item3]Cube Output'
     source: "Shader \"Hidden/VFX/23_ParameterBinders/Item3/Cube Output\"\n{\n\tSubShader\n\t{\t\n\t\tCull
-      Back\n\t\t\n\t\tTags { \"Queue\"=\"Geometry\" \"IgnoreProjector\"=\"False\"
+      Back\n\t\t\n\t\tTags { \"Queue\"=\"Geometry+0\" \"IgnoreProjector\"=\"False\"
       \"RenderType\"=\"Opaque\" }\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\tZTest
       LEqual\n\t\tZWrite On\n\t\tCull Back\n\t\t\n\t\n\t\t\t\n\t\tHLSLINCLUDE\n\t\t#if
       !defined(VFX_WORLD_SPACE) && !defined(VFX_LOCAL_SPACE)\n\t\t#define VFX_LOCAL_SPACE
@@ -2166,7 +2171,7 @@ VisualEffectResource:
       == 1)\n\t\t\t\t\tuv = i.VFX_VARYING_OFFSETS.xz * float2(i.VFX_VARYING_OFFSETS.y,1);\n\t\t\t\telse\n\t\t\t\t\tuv
       = i.VFX_VARYING_OFFSETS.zy * float2(i.VFX_VARYING_OFFSETS.x,1);\n\t\t\t\treturn
       uv * 0.5f + 0.5f;\n\t\t\t#else\n\t\t\t\treturn 0.0f;\n\t\t\t#endif\n\t\t\t}\n\t\t\t\n\t\t\t\n\t\t\t\t\n\t\t\t#pragma
-      fragment frag\n\t\t\tfloat4 frag(ps_input i) : SV_Target0\n\t\t\t{\n\t\t\t\tfloat
+      fragment frag\n\t\t\tfloat4 frag(ps_input i) : SV_Target0\n\t\t\t{\n\t\t\t\tVFXTransformPSInputs(i);\n\t\t\t\tfloat
       alpha = VFXGetFragmentColor(i).a;\t\t\n\t\t\t\tVFXClipFragmentColor(alpha,i);\n\t\t\t\treturn
       (float4)0;\n\t\t\t}\n\t\t\tENDHLSL\n\t\t}\n\n\t\t// Forward pass\n\t\tPass\n\t\t{\t\t\n\t\t\tTags
       { \"LightMode\"=\"ForwardOnly\" }\n\t\t\t\n\t\t\tHLSLPROGRAM\n\t\t\t#pragma
@@ -2303,8 +2308,8 @@ VisualEffectResource:
       = i.VFX_VARYING_OFFSETS.zy * float2(i.VFX_VARYING_OFFSETS.x,1);\n\t\t\t\treturn
       uv * 0.5f + 0.5f;\n\t\t\t#else\n\t\t\t\treturn 0.0f;\n\t\t\t#endif\n\t\t\t}\n\t\t\t\n\t\t\t\n\t\t\t\t\n\t\t\t#pragma
       fragment frag\n\t\t\tps_output frag(ps_input i)\n\t\t\t{\n\t\t\t\tps_output
-      o = (ps_output)0;\n\t\t\t\to.color = VFXGetFragmentColor(i);\n\t\t\t\to.color
-      *= VFXGetTextureColorWithProceduralUV(VFX_SAMPLER(mainTexture),i,VFXCubeGetUV(i));\n\t\t\t\to.color
+      o = (ps_output)0;\n\t\t\t\tVFXTransformPSInputs(i);\n\t\t\t\t\n\t\t\t\to.color
+      = VFXGetFragmentColor(i);\n\t\t\t\to.color *= VFXGetTextureColorWithProceduralUV(VFX_SAMPLER(mainTexture),i,VFXCubeGetUV(i));\n\t\t\t\to.color
       = VFXApplyFog(o.color,i);\n\t\t\t\tVFXClipFragmentColor(o.color.a,i);\n\t\t\t\treturn
       o;\n\t\t\t}\n\t\t\tENDHLSL\n\t\t}\n\t\t\n\n\t\t\n\t}\n}\n"
   - compute: 1
@@ -2459,9 +2464,9 @@ VisualEffectResource:
   - compute: 0
     name: '[Item4]Quad Output'
     source: "Shader \"Hidden/VFX/23_ParameterBinders/Item4/Quad Output\"\n{\n\tSubShader\n\t{\t\n\t\tCull
-      Off\n\t\t\n\t\tTags { \"Queue\"=\"Transparent\" \"IgnoreProjector\"=\"True\"
+      Off\n\t\t\n\t\tTags { \"Queue\"=\"Transparent+0\" \"IgnoreProjector\"=\"True\"
       \"RenderType\"=\"Transparent\" }\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\tBlend
-      SrcAlpha One\n\t\tZTest LEqual\n\t\tZWrite Off\n\t\tCull Off\n\t\t\n\t\n\t\t\t\n\t\tHLSLINCLUDE\n\t\t#if
+      SrcAlpha One \n\t\tZTest LEqual\n\t\tZWrite Off\n\t\tCull Off\n\t\t\n\t\n\t\t\t\n\t\tHLSLINCLUDE\n\t\t#if
       !defined(VFX_WORLD_SPACE) && !defined(VFX_LOCAL_SPACE)\n\t\t#define VFX_LOCAL_SPACE
       1\n\t\t#endif\n\t\t\n\t\t#define NB_THREADS_PER_GROUP 64\n\t\t#define VFX_USE_POSITION_CURRENT
       1\n\t\t#define VFX_USE_LIFETIME_CURRENT 1\n\t\t#define VFX_USE_VELOCITY_CURRENT
@@ -2633,7 +2638,8 @@ VisualEffectResource:
       o;\n\t\t\t}\n\t\t\t\n\t\t\t\n\t\t\t\n\t\t\t\n\t\t\t\n\t\t\t\n\t\t\t#include
       \"Packages/com.unity.visualeffectgraph/Shaders/VFXCommonOutput.cginc\"\n\t\t\t\n\t\t\t\n\t\t\t\n\t\t\t\t\n\t\t\t#pragma
       fragment frag\n\t\t\tps_output frag(ps_input i)\n\t\t\t{\n\t\t\t\tps_output
-      o = (ps_output)0;\n\t\t\t\t\n\t\t\t\t#define VFX_TEXTURE_COLOR VFXGetTextureColor(VFX_SAMPLER(mainTexture),i)\n\t\t\t\t\n\t\t\t\t\t\t\n\t\t\t\t\t\tfloat4
+      o = (ps_output)0;\n\t\t\t\tVFXTransformPSInputs(i);\n\t\t\t\n\t\t\t\t#define
+      VFX_TEXTURE_COLOR VFXGetTextureColor(VFX_SAMPLER(mainTexture),i)\n\t\t\t\t\n\t\t\t\t\t\t\n\t\t\t\t\t\tfloat4
       color = VFXGetFragmentColor(i);\n\t\t\t\t\t\t\n\t\t\t\t\t\t#ifndef VFX_TEXTURE_COLOR\n\t\t\t\t\t\t\t#define
       VFX_TEXTURE_COLOR float4(1.0,1.0,1.0,1.0)\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\t\t\t#if
       VFX_COLORMAPPING_DEFAULT\n\t\t\t\t\t\t\to.color = color * VFX_TEXTURE_COLOR;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\t\t\t#if
@@ -2705,9 +2711,9 @@ VisualEffectResource:
   - compute: 0
     name: '[Item5 - ElectricArk]Line Output'
     source: "Shader \"Hidden/VFX/23_ParameterBinders/Item5 - ElectricArk/Line Output\"\n{\n\tSubShader\n\t{\t\n\t\tTags
-      { \"Queue\"=\"Transparent\" \"IgnoreProjector\"=\"True\" \"RenderType\"=\"Transparent\"
+      { \"Queue\"=\"Transparent+0\" \"IgnoreProjector\"=\"True\" \"RenderType\"=\"Transparent\"
       }\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\tBlend
-      SrcAlpha OneMinusSrcAlpha\n\t\tZTest LEqual\n\t\tZWrite Off\n\t\tCull Off\n\t\t\n\t\n\t\t\t\n\t\tHLSLINCLUDE\n\t\t#if
+      SrcAlpha OneMinusSrcAlpha \n\t\tZTest LEqual\n\t\tZWrite Off\n\t\tCull Off\n\t\t\n\t\n\t\t\t\n\t\tHLSLINCLUDE\n\t\t#if
       !defined(VFX_WORLD_SPACE) && !defined(VFX_LOCAL_SPACE)\n\t\t#define VFX_LOCAL_SPACE
       1\n\t\t#endif\n\t\t\n\t\t#define NB_THREADS_PER_GROUP 64\n\t\t#define VFX_USE_POSITION_CURRENT
       1\n\t\t#define VFX_USE_COLOR_CURRENT 1\n\t\t#define VFX_USE_ALPHA_CURRENT 1\n\t\t#define
@@ -2805,17 +2811,15 @@ VisualEffectResource:
       = mul(elementToVFX,float4(0,0,0,1)).xyz;\n\t\t\t\t\n\t\t\t\t\n\t\t\t\ttargetPosition
       = mul(elementToVFX,float4(targetOffset,1)).xyz;\n\t\t\t\t#endif\n\t\t\t\t\t\n\t\t\t\tfloat4
       pos0 = TransformPositionVFXToClip(position);\n\t\t\t\tfloat4 pos1 = TransformPositionVFXToClip(targetPosition);\n\t\t\t\t\n\t\t\t\t//
-      Clip on near plane\n\t\t\t\t//pos0.w = pos0.w > 0.0f ? pos0.w : 1.0/ pos0.w;//max(-0.00001f,
-      pos0.w);\n\t\t\t\t//pos1.w = pos1.w > 0.0f ? pos1.w : 1.0/ pos1.w;////max(-0.00001f,
+      Clip on near plane\n\t\t\t\tpos0.w = max(1.0f, pos0.w);\n\t\t\t\tpos1.w = max(1.0f,
       pos1.w);\n\t\t\t\t\n\t\t\t\tfloat2 ndcPos0 = pos0.xy / pos0.w;\n\t\t\t\tfloat2
       ndcPos1 = pos1.xy / pos1.w;\n\t\t\t\t\n\t\t\t\tfloat2 dir = ndcPos0 - ndcPos1;\n\t\t\t\tfloat2
       normal = normalize(dir.yx * float2(-1,-UNITY_MATRIX_P[1][1] / UNITY_MATRIX_P[0][0]));\n\t\t\t\t\n\t\t\t#if
       IS_OPAQUE_PARTICLE\n\t\t\t\tconst float thicknessMul = 1.0f; // pixel perfect\n\t\t\t#else\n\t\t\t\tconst
       float thicknessMul = 2.0f; // for AA\n\t\t\t#endif\n\t\t\t\tnormal *= thicknessMul
-      / _ScreenParams.xy;\n\t\t\t\n\t\t\t\tfloat4 dPos0 = float4(normal * (pos0.w
-      > 0.0f ? pos0.w : 1.0/ -pos0.w), 0.0f, 0.0f);\n\t\t\t\tfloat4 dPos1 = float4(normal
-      * (pos1.w > 0.0f ? pos1.w : 1.0/ -pos1.w), 0.0f, 0.0f);\n\t\t\t\tfloat4 vPosArray[4]
-      = { pos0 + dPos0, pos0 - dPos0, pos1 + dPos1, pos1 - dPos1};\n\t\t\t\t\n\t\t\t\t#ifdef
+      / _ScreenParams.xy;\n\t\t\t\t\n\t\t\t\tfloat4 dPos0 = float4(normal * pos0.w,
+      0.0f, 0.0f);\n\t\t\t\tfloat4 dPos1 = float4(normal * pos1.w, 0.0f, 0.0f);\n\t\t\t\tfloat4
+      vPosArray[4] = { pos0 + dPos0, pos0 - dPos0, pos1 + dPos1, pos1 - dPos1};\n\t\t\t\t\n\t\t\t\t#ifdef
       VFX_VARYING_PIXELOFFSET\n\t\t\t\to.VFX_VARYING_PIXELOFFSET = (id & 1) ? -1.0f
       : 1.0f;\n\t\t\t\t#endif\n\t\t\t\t\n\t\t\t\t// If ever used we need the position
       in vfx space (we dont take into account the pixel offset)\n\t\t\t\tfloat3 vPos
@@ -2832,8 +2836,9 @@ VisualEffectResource:
       defined(VFX_VARYING_POSWS)\n\t\t\t\t\t\to.VFX_VARYING_POSWS = TransformPositionVFXToWorld(vPos);\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\n\t\t\t\treturn
       o;\n\t\t\t}\n\t\t\t\n\t\t\t#include \"Packages/com.unity.visualeffectgraph/Shaders/VFXCommonOutput.cginc\"\n\t\t\t\n\t\t\t\n\t\t\t\t\n\t\t\t#pragma
       fragment frag\n\t\t\tps_output frag(ps_input i)\n\t\t\t{\n\t\t\t\tps_output
-      o = (ps_output)0;\n\t\t\t\t\n\t\t\t\t\t\t\n\t\t\t\t\t\tfloat4 color = VFXGetFragmentColor(i);\n\t\t\t\t\t\t\n\t\t\t\t\t\t#ifndef
-      VFX_TEXTURE_COLOR\n\t\t\t\t\t\t\t#define VFX_TEXTURE_COLOR float4(1.0,1.0,1.0,1.0)\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\t\t\t#if
+      o = (ps_output)0;\n\t\t\t\tVFXTransformPSInputs(i);\n\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t\n\t\t\t\t\t\tfloat4
+      color = VFXGetFragmentColor(i);\n\t\t\t\t\t\t\n\t\t\t\t\t\t#ifndef VFX_TEXTURE_COLOR\n\t\t\t\t\t\t\t#define
+      VFX_TEXTURE_COLOR float4(1.0,1.0,1.0,1.0)\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\t\t\t#if
       VFX_COLORMAPPING_DEFAULT\n\t\t\t\t\t\t\to.color = color * VFX_TEXTURE_COLOR;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\t\t\t#if
       VFX_COLORMAPPING_GRADIENTMAPPED\n\t\t\t\t\t\t\t\n\t\t\t\t\t\t\to.color = SampleGradient(gradient,
       VFX_TEXTURE_COLOR.a * color.a) * float4(color.rgb,1.0);\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\t//
@@ -2964,9 +2969,9 @@ VisualEffectResource:
   - compute: 0
     name: '[Item6 - Impact Sparks]Quad Output'
     source: "Shader \"Hidden/VFX/23_ParameterBinders/Item6 - Impact Sparks/Quad Output\"\n{\n\tSubShader\n\t{\t\n\t\tCull
-      Off\n\t\t\n\t\tTags { \"Queue\"=\"Transparent\" \"IgnoreProjector\"=\"True\"
+      Off\n\t\t\n\t\tTags { \"Queue\"=\"Transparent+0\" \"IgnoreProjector\"=\"True\"
       \"RenderType\"=\"Transparent\" }\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\tBlend
-      SrcAlpha One\n\t\tZTest LEqual\n\t\tZWrite Off\n\t\tCull Off\n\t\t\n\t\n\t\t\t\n\t\tHLSLINCLUDE\n\t\t#if
+      SrcAlpha One \n\t\tZTest LEqual\n\t\tZWrite Off\n\t\tCull Off\n\t\t\n\t\n\t\t\t\n\t\tHLSLINCLUDE\n\t\t#if
       !defined(VFX_WORLD_SPACE) && !defined(VFX_LOCAL_SPACE)\n\t\t#define VFX_LOCAL_SPACE
       1\n\t\t#endif\n\t\t\n\t\t#define NB_THREADS_PER_GROUP 64\n\t\t#define VFX_USE_POSITION_CURRENT
       1\n\t\t#define VFX_USE_VELOCITY_CURRENT 1\n\t\t#define VFX_USE_LIFETIME_CURRENT
@@ -3111,7 +3116,8 @@ VisualEffectResource:
       o;\n\t\t\t}\n\t\t\t\n\t\t\t\n\t\t\t\n\t\t\t\n\t\t\t\n\t\t\t\n\t\t\t#include
       \"Packages/com.unity.visualeffectgraph/Shaders/VFXCommonOutput.cginc\"\n\t\t\t\n\t\t\t\n\t\t\t\n\t\t\t\t\n\t\t\t#pragma
       fragment frag\n\t\t\tps_output frag(ps_input i)\n\t\t\t{\n\t\t\t\tps_output
-      o = (ps_output)0;\n\t\t\t\t\n\t\t\t\t#define VFX_TEXTURE_COLOR VFXGetTextureColor(VFX_SAMPLER(mainTexture),i)\n\t\t\t\t\n\t\t\t\t\t\t\n\t\t\t\t\t\tfloat4
+      o = (ps_output)0;\n\t\t\t\tVFXTransformPSInputs(i);\n\t\t\t\n\t\t\t\t#define
+      VFX_TEXTURE_COLOR VFXGetTextureColor(VFX_SAMPLER(mainTexture),i)\n\t\t\t\t\n\t\t\t\t\t\t\n\t\t\t\t\t\tfloat4
       color = VFXGetFragmentColor(i);\n\t\t\t\t\t\t\n\t\t\t\t\t\t#ifndef VFX_TEXTURE_COLOR\n\t\t\t\t\t\t\t#define
       VFX_TEXTURE_COLOR float4(1.0,1.0,1.0,1.0)\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\t\t\t#if
       VFX_COLORMAPPING_DEFAULT\n\t\t\t\t\t\t\to.color = color * VFX_TEXTURE_COLOR;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\t\t\t#if
@@ -3314,9 +3320,9 @@ VisualEffectResource:
   - compute: 0
     name: '[Item7 - BlobbySphere]Quad Output'
     source: "Shader \"Hidden/VFX/23_ParameterBinders/Item7 - BlobbySphere/Quad Output\"\n{\n\tSubShader\n\t{\t\n\t\tCull
-      Off\n\t\t\n\t\tTags { \"Queue\"=\"Transparent\" \"IgnoreProjector\"=\"True\"
+      Off\n\t\t\n\t\tTags { \"Queue\"=\"Transparent+0\" \"IgnoreProjector\"=\"True\"
       \"RenderType\"=\"Transparent\" }\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\tBlend
-      SrcAlpha One\n\t\tZTest LEqual\n\t\tZWrite Off\n\t\tCull Off\n\t\t\n\t\n\t\t\t\n\t\tHLSLINCLUDE\n\t\t#if
+      SrcAlpha One \n\t\tZTest LEqual\n\t\tZWrite Off\n\t\tCull Off\n\t\t\n\t\n\t\t\t\n\t\tHLSLINCLUDE\n\t\t#if
       !defined(VFX_WORLD_SPACE) && !defined(VFX_LOCAL_SPACE)\n\t\t#define VFX_LOCAL_SPACE
       1\n\t\t#endif\n\t\t\n\t\t#define NB_THREADS_PER_GROUP 64\n\t\t#define VFX_USE_POSITION_CURRENT
       1\n\t\t#define VFX_USE_VELOCITY_CURRENT 1\n\t\t#define VFX_USE_COLOR_CURRENT
@@ -3462,7 +3468,8 @@ VisualEffectResource:
       o;\n\t\t\t}\n\t\t\t\n\t\t\t\n\t\t\t\n\t\t\t\n\t\t\t\n\t\t\t\n\t\t\t#include
       \"Packages/com.unity.visualeffectgraph/Shaders/VFXCommonOutput.cginc\"\n\t\t\t\n\t\t\t\n\t\t\t\n\t\t\t\t\n\t\t\t#pragma
       fragment frag\n\t\t\tps_output frag(ps_input i)\n\t\t\t{\n\t\t\t\tps_output
-      o = (ps_output)0;\n\t\t\t\t\n\t\t\t\t#define VFX_TEXTURE_COLOR VFXGetTextureColor(VFX_SAMPLER(mainTexture),i)\n\t\t\t\t\n\t\t\t\t\t\t\n\t\t\t\t\t\tfloat4
+      o = (ps_output)0;\n\t\t\t\tVFXTransformPSInputs(i);\n\t\t\t\n\t\t\t\t#define
+      VFX_TEXTURE_COLOR VFXGetTextureColor(VFX_SAMPLER(mainTexture),i)\n\t\t\t\t\n\t\t\t\t\t\t\n\t\t\t\t\t\tfloat4
       color = VFXGetFragmentColor(i);\n\t\t\t\t\t\t\n\t\t\t\t\t\t#ifndef VFX_TEXTURE_COLOR\n\t\t\t\t\t\t\t#define
       VFX_TEXTURE_COLOR float4(1.0,1.0,1.0,1.0)\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\t\t\t#if
       VFX_COLORMAPPING_DEFAULT\n\t\t\t\t\t\t\to.color = color * VFX_TEXTURE_COLOR;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\t\t\t#if
@@ -3534,7 +3541,7 @@ VisualEffectResource:
   - compute: 0
     name: '[Item8 - Hierarchy]Quad Output'
     source: "Shader \"Hidden/VFX/23_ParameterBinders/Item8 - Hierarchy/Quad Output\"\n{\n\tSubShader\n\t{\t\n\t\tCull
-      Off\n\t\t\n\t\tTags { \"Queue\"=\"Geometry\" \"IgnoreProjector\"=\"False\"
+      Off\n\t\t\n\t\tTags { \"Queue\"=\"Geometry+0\" \"IgnoreProjector\"=\"False\"
       \"RenderType\"=\"Opaque\" }\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\tZTest
       LEqual\n\t\tZWrite On\n\t\tCull Off\n\t\t\n\t\n\t\t\t\n\t\tHLSLINCLUDE\n\t\t#if
       !defined(VFX_WORLD_SPACE) && !defined(VFX_LOCAL_SPACE)\n\t\t#define VFX_LOCAL_SPACE
@@ -3679,7 +3686,7 @@ VisualEffectResource:
       = motionVectorScale * invFlipBookSize;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\n\t\t\t\t\n\t\t\t\n\t\t\t\treturn
       o;\n\t\t\t}\n\t\t\t\n\t\t\t\n\t\t\t\n\t\t\t\n\t\t\t\n\t\t\t\n\t\t\t#include
       \"Packages/com.unity.visualeffectgraph/Shaders/VFXCommonOutput.cginc\"\n\t\t\t\n\t\t\t\n\t\t\t\n\t\t\t\t\n\t\t\t#pragma
-      fragment frag\n\t\t\tfloat4 frag(ps_input i) : SV_TARGET\n\t\t\t{\n\t\t\t\tfloat
+      fragment frag\n\t\t\tfloat4 frag(ps_input i) : SV_TARGET\n\t\t\t{\n\t\t\t\tVFXTransformPSInputs(i);\n\t\t\t\tfloat
       alpha = VFXGetFragmentColor(i).a;\n\t\t\t\talpha *= VFXGetTextureColor(VFX_SAMPLER(mainTexture),i).a;\t\t\n\t\t\t\tVFXClipFragmentColor(alpha,i);\n\t\t\t\treturn
       (float4)0;\n\t\t\t}\n\t\t\tENDHLSL\n\t\t}\n\t\t\n\n\t\t// Forward pass\n\t\tPass\n\t\t{\t\t\n\t\t\tTags
       { \"LightMode\"=\"ForwardOnly\" }\n\t\t\t\n\t\t\tHLSLPROGRAM\n\t\t\t#pragma
@@ -3809,7 +3816,8 @@ VisualEffectResource:
       o;\n\t\t\t}\n\t\t\t\n\t\t\t\n\t\t\t\n\t\t\t\n\t\t\t\n\t\t\t\n\t\t\t#include
       \"Packages/com.unity.visualeffectgraph/Shaders/VFXCommonOutput.cginc\"\n\t\t\t\n\t\t\t\n\t\t\t\n\t\t\t\t\n\t\t\t#pragma
       fragment frag\n\t\t\tps_output frag(ps_input i)\n\t\t\t{\n\t\t\t\tps_output
-      o = (ps_output)0;\n\t\t\t\t\n\t\t\t\t#define VFX_TEXTURE_COLOR VFXGetTextureColor(VFX_SAMPLER(mainTexture),i)\n\t\t\t\t\n\t\t\t\t\t\t\n\t\t\t\t\t\tfloat4
+      o = (ps_output)0;\n\t\t\t\tVFXTransformPSInputs(i);\n\t\t\t\n\t\t\t\t#define
+      VFX_TEXTURE_COLOR VFXGetTextureColor(VFX_SAMPLER(mainTexture),i)\n\t\t\t\t\n\t\t\t\t\t\t\n\t\t\t\t\t\tfloat4
       color = VFXGetFragmentColor(i);\n\t\t\t\t\t\t\n\t\t\t\t\t\t#ifndef VFX_TEXTURE_COLOR\n\t\t\t\t\t\t\t#define
       VFX_TEXTURE_COLOR float4(1.0,1.0,1.0,1.0)\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\t\t\t#if
       VFX_COLORMAPPING_DEFAULT\n\t\t\t\t\t\t\to.color = color * VFX_TEXTURE_COLOR;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\t\t\t#if
@@ -3960,9 +3968,9 @@ VisualEffectResource:
   - compute: 0
     name: '[System 9]Quad Output'
     source: "Shader \"Hidden/VFX/23_ParameterBinders/System 9/Quad Output\"\n{\n\tSubShader\n\t{\t\n\t\tCull
-      Off\n\t\t\n\t\tTags { \"Queue\"=\"Transparent\" \"IgnoreProjector\"=\"True\"
+      Off\n\t\t\n\t\tTags { \"Queue\"=\"Transparent+0\" \"IgnoreProjector\"=\"True\"
       \"RenderType\"=\"Transparent\" }\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\tBlend
-      SrcAlpha One\n\t\tZTest LEqual\n\t\tZWrite Off\n\t\tCull Off\n\t\t\n\t\n\t\t\t\n\t\tHLSLINCLUDE\n\t\t#if
+      SrcAlpha One \n\t\tZTest LEqual\n\t\tZWrite Off\n\t\tCull Off\n\t\t\n\t\n\t\t\t\n\t\tHLSLINCLUDE\n\t\t#if
       !defined(VFX_WORLD_SPACE) && !defined(VFX_LOCAL_SPACE)\n\t\t#define VFX_LOCAL_SPACE
       1\n\t\t#endif\n\t\t\n\t\t#define NB_THREADS_PER_GROUP 64\n\t\t#define VFX_USE_POSITION_CURRENT
       1\n\t\t#define VFX_USE_LIFETIME_CURRENT 1\n\t\t#define VFX_USE_VELOCITY_CURRENT
@@ -4108,7 +4116,8 @@ VisualEffectResource:
       o;\n\t\t\t}\n\t\t\t\n\t\t\t\n\t\t\t\n\t\t\t\n\t\t\t\n\t\t\t\n\t\t\t#include
       \"Packages/com.unity.visualeffectgraph/Shaders/VFXCommonOutput.cginc\"\n\t\t\t\n\t\t\t\n\t\t\t\n\t\t\t\t\n\t\t\t#pragma
       fragment frag\n\t\t\tps_output frag(ps_input i)\n\t\t\t{\n\t\t\t\tps_output
-      o = (ps_output)0;\n\t\t\t\t\n\t\t\t\t#define VFX_TEXTURE_COLOR VFXGetTextureColor(VFX_SAMPLER(mainTexture),i)\n\t\t\t\t\n\t\t\t\t\t\t\n\t\t\t\t\t\tfloat4
+      o = (ps_output)0;\n\t\t\t\tVFXTransformPSInputs(i);\n\t\t\t\n\t\t\t\t#define
+      VFX_TEXTURE_COLOR VFXGetTextureColor(VFX_SAMPLER(mainTexture),i)\n\t\t\t\t\n\t\t\t\t\t\t\n\t\t\t\t\t\tfloat4
       color = VFXGetFragmentColor(i);\n\t\t\t\t\t\t\n\t\t\t\t\t\t#ifndef VFX_TEXTURE_COLOR\n\t\t\t\t\t\t\t#define
       VFX_TEXTURE_COLOR float4(1.0,1.0,1.0,1.0)\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\t\t\t#if
       VFX_COLORMAPPING_DEFAULT\n\t\t\t\t\t\t\to.color = color * VFX_TEXTURE_COLOR;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\t\t\t#if
@@ -8617,8 +8626,8 @@ MonoBehaviour:
   m_InputSlots: []
   m_OutputSlots:
   - {fileID: 8926484042661614546}
-  m_exposedName: Item1 Position
-  m_exposed: 1
+  m_ExposedName: Item1 Position
+  m_Exposed: 1
   m_Order: 21
   m_Category: Item 1
   m_Min:
@@ -8629,6 +8638,7 @@ MonoBehaviour:
     m_Type:
       m_SerializableType: 
     m_SerializableObject: 
+  m_IsOutput: 0
   m_Tooltip: 
   m_Nodes:
   - m_Id: 0
@@ -9775,6 +9785,8 @@ MonoBehaviour:
   m_OutputFlowSlot:
   - link: []
   blendMode: 1
+  m_SubOutputs:
+  - {fileID: 8926484042661616066}
   cullMode: 3
   zWriteMode: 0
   zTestMode: 0
@@ -9812,143 +9824,6 @@ MonoBehaviour:
   Source: 0
   Random: 0
   channels: 6
---- !u!114 &8926484042661614600
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ac39bd03fca81b849929b9c966f1836a, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_Parent: {fileID: 0}
-  m_Children:
-  - {fileID: 8926484042661614601}
-  - {fileID: 8926484042661614602}
-  - {fileID: 8926484042661614603}
-  m_UIPosition: {x: 0, y: 0}
-  m_UICollapsed: 1
-  m_UISuperCollapsed: 0
-  m_MasterSlot: {fileID: 8926484042661614600}
-  m_MasterData:
-    m_Owner: {fileID: 8926484042661614599}
-    m_Value:
-      m_Type:
-        m_SerializableType: UnityEngine.Vector3, UnityEngine.CoreModule, Version=0.0.0.0,
-          Culture=neutral, PublicKeyToken=null
-      m_SerializableObject: '{"x":0.0,"y":0.0,"z":0.0}'
-    m_Space: 2147483647
-  m_Property:
-    name: Position
-    m_serializedType:
-      m_SerializableType: UnityEngine.Vector3, UnityEngine.CoreModule, Version=0.0.0.0,
-        Culture=neutral, PublicKeyToken=null
-    attributes: []
-  m_Direction: 0
-  m_LinkedSlots:
-  - {fileID: 8926484042661614628}
---- !u!114 &8926484042661614601
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f780aa281814f9842a7c076d436932e7, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_Parent: {fileID: 8926484042661614600}
-  m_Children: []
-  m_UIPosition: {x: 0, y: 0}
-  m_UICollapsed: 1
-  m_UISuperCollapsed: 0
-  m_MasterSlot: {fileID: 8926484042661614600}
-  m_MasterData:
-    m_Owner: {fileID: 0}
-    m_Value:
-      m_Type:
-        m_SerializableType: 
-      m_SerializableObject: 
-    m_Space: 2147483647
-  m_Property:
-    name: x
-    m_serializedType:
-      m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral,
-        PublicKeyToken=b77a5c561934e089
-    attributes: []
-  m_Direction: 0
-  m_LinkedSlots: []
---- !u!114 &8926484042661614602
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f780aa281814f9842a7c076d436932e7, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_Parent: {fileID: 8926484042661614600}
-  m_Children: []
-  m_UIPosition: {x: 0, y: 0}
-  m_UICollapsed: 1
-  m_UISuperCollapsed: 0
-  m_MasterSlot: {fileID: 8926484042661614600}
-  m_MasterData:
-    m_Owner: {fileID: 0}
-    m_Value:
-      m_Type:
-        m_SerializableType: 
-      m_SerializableObject: 
-    m_Space: 2147483647
-  m_Property:
-    name: y
-    m_serializedType:
-      m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral,
-        PublicKeyToken=b77a5c561934e089
-    attributes: []
-  m_Direction: 0
-  m_LinkedSlots: []
---- !u!114 &8926484042661614603
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f780aa281814f9842a7c076d436932e7, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_Parent: {fileID: 8926484042661614600}
-  m_Children: []
-  m_UIPosition: {x: 0, y: 0}
-  m_UICollapsed: 1
-  m_UISuperCollapsed: 0
-  m_MasterSlot: {fileID: 8926484042661614600}
-  m_MasterData:
-    m_Owner: {fileID: 0}
-    m_Value:
-      m_Type:
-        m_SerializableType: 
-      m_SerializableObject: 
-    m_Space: 2147483647
-  m_Property:
-    name: z
-    m_serializedType:
-      m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral,
-        PublicKeyToken=b77a5c561934e089
-    attributes: []
-  m_Direction: 0
-  m_LinkedSlots: []
 --- !u!114 &8926484042661614604
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -10944,8 +10819,8 @@ MonoBehaviour:
   m_InputSlots: []
   m_OutputSlots:
   - {fileID: 8926484042661614633}
-  m_exposedName: Item2 Transform
-  m_exposed: 1
+  m_ExposedName: Item2 Transform
+  m_Exposed: 1
   m_Order: 23
   m_Category: Iten2
   m_Min:
@@ -10956,6 +10831,7 @@ MonoBehaviour:
     m_Type:
       m_SerializableType: 
     m_SerializableObject: 
+  m_IsOutput: 0
   m_Tooltip: 
   m_Nodes:
   - m_Id: 0
@@ -11452,8 +11328,8 @@ MonoBehaviour:
   m_InputSlots: []
   m_OutputSlots:
   - {fileID: 8926484042661614666}
-  m_exposedName: Bounds
-  m_exposed: 0
+  m_ExposedName: Bounds
+  m_Exposed: 0
   m_Order: 0
   m_Category: 
   m_Min:
@@ -11464,6 +11340,7 @@ MonoBehaviour:
     m_Type:
       m_SerializableType: 
     m_SerializableObject: 
+  m_IsOutput: 0
   m_Tooltip: 
   m_Nodes:
   - m_Id: 0
@@ -11828,8 +11705,8 @@ MonoBehaviour:
   m_InputSlots: []
   m_OutputSlots:
   - {fileID: 8926484042661614676}
-  m_exposedName: Item1 ToggleColor
-  m_exposed: 1
+  m_ExposedName: Item1 ToggleColor
+  m_Exposed: 1
   m_Order: 2
   m_Category: Item 1
   m_Min:
@@ -11840,6 +11717,7 @@ MonoBehaviour:
     m_Type:
       m_SerializableType: 
     m_SerializableObject: 
+  m_IsOutput: 0
   m_Tooltip: 
   m_Nodes:
   - m_Id: 0
@@ -13278,6 +13156,8 @@ MonoBehaviour:
   m_OutputFlowSlot:
   - link: []
   blendMode: 4
+  m_SubOutputs:
+  - {fileID: 8926484042661616067}
   cullMode: 0
   zWriteMode: 0
   zTestMode: 0
@@ -13807,8 +13687,8 @@ MonoBehaviour:
   m_InputSlots: []
   m_OutputSlots:
   - {fileID: 8926484042661614826}
-  m_exposedName: AudioSpectrum
-  m_exposed: 1
+  m_ExposedName: AudioSpectrum
+  m_Exposed: 1
   m_Order: 22
   m_Category: Item3
   m_Min:
@@ -13819,6 +13699,7 @@ MonoBehaviour:
     m_Type:
       m_SerializableType: 
     m_SerializableObject: 
+  m_IsOutput: 0
   m_Tooltip: 
   m_Nodes:
   - m_Id: 0
@@ -13883,8 +13764,8 @@ MonoBehaviour:
   m_InputSlots: []
   m_OutputSlots:
   - {fileID: 8926484042661614830}
-  m_exposedName: AudioSpectrumSamples
-  m_exposed: 1
+  m_ExposedName: AudioSpectrumSamples
+  m_Exposed: 1
   m_Order: 19
   m_Category: Item3
   m_Min:
@@ -13895,6 +13776,7 @@ MonoBehaviour:
     m_Type:
       m_SerializableType: 
     m_SerializableObject: 
+  m_IsOutput: 0
   m_Tooltip: 
   m_Nodes:
   - m_Id: 0
@@ -17129,6 +17011,8 @@ MonoBehaviour:
   m_OutputFlowSlot:
   - link: []
   blendMode: 0
+  m_SubOutputs:
+  - {fileID: 8926484042661616068}
   cullMode: 0
   zWriteMode: 0
   zTestMode: 0
@@ -17463,8 +17347,8 @@ MonoBehaviour:
   m_InputSlots: []
   m_OutputSlots:
   - {fileID: 8926484042661615011}
-  m_exposedName: Item4 Sphere
-  m_exposed: 1
+  m_ExposedName: Item4 Sphere
+  m_Exposed: 1
   m_Order: 6
   m_Category: Item4
   m_Min:
@@ -17475,6 +17359,7 @@ MonoBehaviour:
     m_Type:
       m_SerializableType: 
     m_SerializableObject: 
+  m_IsOutput: 0
   m_Tooltip: 
   m_Nodes:
   - m_Id: 0
@@ -17793,8 +17678,8 @@ MonoBehaviour:
   m_InputSlots: []
   m_OutputSlots:
   - {fileID: 8926484042661615031}
-  m_exposedName: Item4 LightColor
-  m_exposed: 1
+  m_ExposedName: Item4 LightColor
+  m_Exposed: 1
   m_Order: 9
   m_Category: Item4
   m_Min:
@@ -17805,6 +17690,7 @@ MonoBehaviour:
     m_Type:
       m_SerializableType: 
     m_SerializableObject: 
+  m_IsOutput: 0
   m_Tooltip: 
   m_Nodes:
   - m_Id: 0
@@ -18005,8 +17891,8 @@ MonoBehaviour:
   m_InputSlots: []
   m_OutputSlots:
   - {fileID: 8926484042661615040}
-  m_exposedName: Item4 LightRadius
-  m_exposed: 1
+  m_ExposedName: Item4 LightRadius
+  m_Exposed: 1
   m_Order: 13
   m_Category: Item4
   m_Min:
@@ -18017,6 +17903,7 @@ MonoBehaviour:
     m_Type:
       m_SerializableType: 
     m_SerializableObject: 
+  m_IsOutput: 0
   m_Tooltip: 
   m_Nodes:
   - m_Id: 0
@@ -18081,8 +17968,8 @@ MonoBehaviour:
   m_InputSlots: []
   m_OutputSlots:
   - {fileID: 8926484042661615045}
-  m_exposedName: Item4 LightBrightness
-  m_exposed: 1
+  m_ExposedName: Item4 LightBrightness
+  m_Exposed: 1
   m_Order: 11
   m_Category: Item4
   m_Min:
@@ -18093,6 +17980,7 @@ MonoBehaviour:
     m_Type:
       m_SerializableType: 
     m_SerializableObject: 
+  m_IsOutput: 0
   m_Tooltip: 
   m_Nodes:
   - m_Id: 0
@@ -18157,8 +18045,8 @@ MonoBehaviour:
   m_InputSlots: []
   m_OutputSlots:
   - {fileID: 8926484042661615058}
-  m_exposedName: Item4 LightPosition
-  m_exposed: 1
+  m_ExposedName: Item4 LightPosition
+  m_Exposed: 1
   m_Order: 14
   m_Category: Item4
   m_Min:
@@ -18169,6 +18057,7 @@ MonoBehaviour:
     m_Type:
       m_SerializableType: 
     m_SerializableObject: 
+  m_IsOutput: 0
   m_Tooltip: 
   m_Nodes:
   - m_Id: 0
@@ -20811,6 +20700,8 @@ MonoBehaviour:
   m_OutputFlowSlot:
   - link: []
   blendMode: 1
+  m_SubOutputs:
+  - {fileID: 8926484042661616069}
   cullMode: 3
   zWriteMode: 0
   zTestMode: 0
@@ -21360,8 +21251,8 @@ MonoBehaviour:
   m_InputSlots: []
   m_OutputSlots:
   - {fileID: 8926484042661615224}
-  m_exposedName: Item5_TargetPosition
-  m_exposed: 1
+  m_ExposedName: Item5_TargetPosition
+  m_Exposed: 1
   m_Order: 8
   m_Category: Item5
   m_Min:
@@ -21372,6 +21263,7 @@ MonoBehaviour:
     m_Type:
       m_SerializableType: 
     m_SerializableObject: 
+  m_IsOutput: 0
   m_Tooltip: 
   m_Nodes:
   - m_Id: 0
@@ -21586,8 +21478,8 @@ MonoBehaviour:
   m_InputSlots: []
   m_OutputSlots:
   - {fileID: 8926484042661615230}
-  m_exposedName: Item5_Source
-  m_exposed: 1
+  m_ExposedName: Item5_Source
+  m_Exposed: 1
   m_Order: 10
   m_Category: Item5
   m_Min:
@@ -21598,6 +21490,7 @@ MonoBehaviour:
     m_Type:
       m_SerializableType: 
     m_SerializableObject: 
+  m_IsOutput: 0
   m_Tooltip: 
   m_Nodes:
   - m_Id: 0
@@ -21804,8 +21697,8 @@ MonoBehaviour:
   m_InputSlots: []
   m_OutputSlots:
   - {fileID: 8926484042661615241}
-  m_exposedName: Item5_IsHit
-  m_exposed: 1
+  m_ExposedName: Item5_IsHit
+  m_Exposed: 1
   m_Order: 15
   m_Category: Item5
   m_Min:
@@ -21816,6 +21709,7 @@ MonoBehaviour:
     m_Type:
       m_SerializableType: 
     m_SerializableObject: 
+  m_IsOutput: 0
   m_Tooltip: 
   m_Nodes:
   - m_Id: 0
@@ -21949,8 +21843,8 @@ MonoBehaviour:
   m_InputSlots: []
   m_OutputSlots:
   - {fileID: 8926484042661615245}
-  m_exposedName: Item5_Normal
-  m_exposed: 1
+  m_ExposedName: Item5_Normal
+  m_Exposed: 1
   m_Order: 16
   m_Category: Item5
   m_Min:
@@ -21961,6 +21855,7 @@ MonoBehaviour:
     m_Type:
       m_SerializableType: 
     m_SerializableObject: 
+  m_IsOutput: 0
   m_Tooltip: 
   m_Nodes:
   - m_Id: 0
@@ -22178,41 +22073,6 @@ MonoBehaviour:
   Source: 0
   Random: 0
   channels: 6
---- !u!114 &8926484042661615275
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ac39bd03fca81b849929b9c966f1836a, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_Parent: {fileID: 0}
-  m_Children: []
-  m_UIPosition: {x: 0, y: 0}
-  m_UICollapsed: 1
-  m_UISuperCollapsed: 0
-  m_MasterSlot: {fileID: 8926484042661615275}
-  m_MasterData:
-    m_Owner: {fileID: 8926484042661615274}
-    m_Value:
-      m_Type:
-        m_SerializableType: UnityEngine.Vector3, UnityEngine.CoreModule, Version=0.0.0.0,
-          Culture=neutral, PublicKeyToken=null
-      m_SerializableObject: '{"x":0.0,"y":0.0,"z":0.0}'
-    m_Space: 2147483647
-  m_Property:
-    name: Position
-    m_serializedType:
-      m_SerializableType: UnityEngine.Vector3, UnityEngine.CoreModule, Version=0.0.0.0,
-        Culture=neutral, PublicKeyToken=null
-    attributes: []
-  m_Direction: 0
-  m_LinkedSlots:
-  - {fileID: 8926484042661615294}
 --- !u!114 &8926484042661615279
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -26437,6 +26297,8 @@ MonoBehaviour:
   m_OutputFlowSlot:
   - link: []
   blendMode: 0
+  m_SubOutputs:
+  - {fileID: 8926484042661616070}
   cullMode: 0
   zWriteMode: 0
   zTestMode: 0
@@ -29302,6 +29164,8 @@ MonoBehaviour:
   m_OutputFlowSlot:
   - link: []
   blendMode: 0
+  m_SubOutputs:
+  - {fileID: 8926484042661616071}
   cullMode: 0
   zWriteMode: 0
   zTestMode: 0
@@ -30016,8 +29880,8 @@ MonoBehaviour:
   m_InputSlots: []
   m_OutputSlots:
   - {fileID: 8926484042661615600}
-  m_exposedName: Item4 LightPreviousPosition
-  m_exposed: 1
+  m_ExposedName: Item4 LightPreviousPosition
+  m_Exposed: 1
   m_Order: 17
   m_Category: Item4
   m_Min:
@@ -30028,6 +29892,7 @@ MonoBehaviour:
     m_Type:
       m_SerializableType: 
     m_SerializableObject: 
+  m_IsOutput: 0
   m_Tooltip: 
   m_Nodes:
   - m_Id: 0
@@ -31723,8 +31588,8 @@ MonoBehaviour:
   m_InputSlots: []
   m_OutputSlots:
   - {fileID: 8926484042661615667}
-  m_exposedName: UIFloat
-  m_exposed: 1
+  m_ExposedName: UIFloat
+  m_Exposed: 1
   m_Order: 12
   m_Category: UI
   m_Min:
@@ -31735,6 +31600,7 @@ MonoBehaviour:
     m_Type:
       m_SerializableType: 
     m_SerializableObject: 
+  m_IsOutput: 0
   m_Tooltip: 
   m_Nodes:
   - m_Id: 0
@@ -31807,8 +31673,8 @@ MonoBehaviour:
   m_InputSlots: []
   m_OutputSlots:
   - {fileID: 8926484042661615669}
-  m_exposedName: UIBool
-  m_exposed: 1
+  m_ExposedName: UIBool
+  m_Exposed: 1
   m_Order: 18
   m_Category: UI
   m_Min:
@@ -31819,6 +31685,7 @@ MonoBehaviour:
     m_Type:
       m_SerializableType: 
     m_SerializableObject: 
+  m_IsOutput: 0
   m_Tooltip: 
   m_Nodes:
   - m_Id: 0
@@ -31883,8 +31750,8 @@ MonoBehaviour:
   m_InputSlots: []
   m_OutputSlots:
   - {fileID: 8926484042661615671}
-  m_exposedName: UIDropDown
-  m_exposed: 1
+  m_ExposedName: UIDropDown
+  m_Exposed: 1
   m_Order: 20
   m_Category: UI
   m_Min:
@@ -31895,6 +31762,7 @@ MonoBehaviour:
     m_Type:
       m_SerializableType: 
     m_SerializableObject: 
+  m_IsOutput: 0
   m_Tooltip: 
   m_Nodes:
   - m_Id: 0
@@ -33281,8 +33149,8 @@ MonoBehaviour:
   m_InputSlots: []
   m_OutputSlots:
   - {fileID: 8926484042661615720}
-  m_exposedName: Item4_Velocity
-  m_exposed: 1
+  m_ExposedName: Item4_Velocity
+  m_Exposed: 1
   m_Order: 4
   m_Category: Item4
   m_Min:
@@ -33293,6 +33161,7 @@ MonoBehaviour:
     m_Type:
       m_SerializableType: 
     m_SerializableObject: 
+  m_IsOutput: 0
   m_Tooltip: 
   m_Nodes:
   - m_Id: 0
@@ -33485,8 +33354,8 @@ MonoBehaviour:
   m_InputSlots: []
   m_OutputSlots:
   - {fileID: 8926484042661615730}
-  m_exposedName: BoneCount
-  m_exposed: 1
+  m_ExposedName: BoneCount
+  m_Exposed: 1
   m_Order: 1
   m_Category: HierarchyTree
   m_Min:
@@ -33497,6 +33366,7 @@ MonoBehaviour:
     m_Type:
       m_SerializableType: 
     m_SerializableObject: 
+  m_IsOutput: 0
   m_Tooltip: 
   m_Nodes:
   - m_Id: 0
@@ -33561,8 +33431,8 @@ MonoBehaviour:
   m_InputSlots: []
   m_OutputSlots:
   - {fileID: 8926484042661615732}
-  m_exposedName: Tree_PositionMap
-  m_exposed: 1
+  m_ExposedName: Tree_PositionMap
+  m_Exposed: 1
   m_Order: 3
   m_Category: HierarchyTree
   m_Min:
@@ -33573,6 +33443,7 @@ MonoBehaviour:
     m_Type:
       m_SerializableType: 
     m_SerializableObject: 
+  m_IsOutput: 0
   m_Tooltip: 
   m_Nodes:
   - m_Id: 0
@@ -33637,8 +33508,8 @@ MonoBehaviour:
   m_InputSlots: []
   m_OutputSlots:
   - {fileID: 8926484042661615734}
-  m_exposedName: Tree_TargetPositionMap
-  m_exposed: 1
+  m_ExposedName: Tree_TargetPositionMap
+  m_Exposed: 1
   m_Order: 5
   m_Category: HierarchyTree
   m_Min:
@@ -33649,6 +33520,7 @@ MonoBehaviour:
     m_Type:
       m_SerializableType: 
     m_SerializableObject: 
+  m_IsOutput: 0
   m_Tooltip: 
   m_Nodes:
   - m_Id: 1
@@ -33713,8 +33585,8 @@ MonoBehaviour:
   m_InputSlots: []
   m_OutputSlots:
   - {fileID: 8926484042661615736}
-  m_exposedName: Tree_RadiusMap
-  m_exposed: 1
+  m_ExposedName: Tree_RadiusMap
+  m_Exposed: 1
   m_Order: 7
   m_Category: HierarchyTree
   m_Min:
@@ -33725,6 +33597,7 @@ MonoBehaviour:
     m_Type:
       m_SerializableType: 
     m_SerializableObject: 
+  m_IsOutput: 0
   m_Tooltip: 
   m_Nodes: []
 --- !u!114 &8926484042661615736
@@ -34228,6 +34101,8 @@ MonoBehaviour:
   m_OutputFlowSlot:
   - link: []
   blendMode: 4
+  m_SubOutputs:
+  - {fileID: 8926484042661616072}
   cullMode: 0
   zWriteMode: 0
   zTestMode: 0
@@ -37162,6 +37037,8 @@ MonoBehaviour:
   m_OutputFlowSlot:
   - link: []
   blendMode: 0
+  m_SubOutputs:
+  - {fileID: 8926484042661616073}
   cullMode: 0
   zWriteMode: 0
   zTestMode: 0
@@ -37497,8 +37374,8 @@ MonoBehaviour:
   m_InputSlots: []
   m_OutputSlots:
   - {fileID: 8926484042661615984}
-  m_exposedName: MultiPosCount
-  m_exposed: 1
+  m_ExposedName: MultiPosCount
+  m_Exposed: 1
   m_Order: 24
   m_Category: MultiPos
   m_Min:
@@ -37509,6 +37386,7 @@ MonoBehaviour:
     m_Type:
       m_SerializableType: 
     m_SerializableObject: 
+  m_IsOutput: 0
   m_Tooltip: 
   m_Nodes: []
 --- !u!114 &8926484042661615984
@@ -37565,8 +37443,8 @@ MonoBehaviour:
   m_InputSlots: []
   m_OutputSlots:
   - {fileID: 8926484042661615986}
-  m_exposedName: MultiPosMap
-  m_exposed: 1
+  m_ExposedName: MultiPosMap
+  m_Exposed: 1
   m_Order: 25
   m_Category: MultiPos
   m_Min:
@@ -37577,6 +37455,7 @@ MonoBehaviour:
     m_Type:
       m_SerializableType: 
     m_SerializableObject: 
+  m_IsOutput: 0
   m_Tooltip: 
   m_Nodes:
   - m_Id: 0
@@ -40017,3 +39896,174 @@ MonoBehaviour:
     attributes: []
   m_Direction: 0
   m_LinkedSlots: []
+--- !u!114 &8926484042661616065
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 081ffb0090424ba4cb05370a42ead6b9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Parent: {fileID: 0}
+  m_Children: []
+  m_UIPosition: {x: 0, y: 0}
+  m_UICollapsed: 1
+  m_UISuperCollapsed: 0
+  opaqueRenderQueue: 0
+  transparentRenderQueue: 1
+--- !u!114 &8926484042661616066
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 081ffb0090424ba4cb05370a42ead6b9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Parent: {fileID: 0}
+  m_Children: []
+  m_UIPosition: {x: 0, y: 0}
+  m_UICollapsed: 1
+  m_UISuperCollapsed: 0
+  opaqueRenderQueue: 0
+  transparentRenderQueue: 1
+--- !u!114 &8926484042661616067
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 081ffb0090424ba4cb05370a42ead6b9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Parent: {fileID: 0}
+  m_Children: []
+  m_UIPosition: {x: 0, y: 0}
+  m_UICollapsed: 1
+  m_UISuperCollapsed: 0
+  opaqueRenderQueue: 0
+  transparentRenderQueue: 1
+--- !u!114 &8926484042661616068
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 081ffb0090424ba4cb05370a42ead6b9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Parent: {fileID: 0}
+  m_Children: []
+  m_UIPosition: {x: 0, y: 0}
+  m_UICollapsed: 1
+  m_UISuperCollapsed: 0
+  opaqueRenderQueue: 0
+  transparentRenderQueue: 1
+--- !u!114 &8926484042661616069
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 081ffb0090424ba4cb05370a42ead6b9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Parent: {fileID: 0}
+  m_Children: []
+  m_UIPosition: {x: 0, y: 0}
+  m_UICollapsed: 1
+  m_UISuperCollapsed: 0
+  opaqueRenderQueue: 0
+  transparentRenderQueue: 1
+--- !u!114 &8926484042661616070
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 081ffb0090424ba4cb05370a42ead6b9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Parent: {fileID: 0}
+  m_Children: []
+  m_UIPosition: {x: 0, y: 0}
+  m_UICollapsed: 1
+  m_UISuperCollapsed: 0
+  opaqueRenderQueue: 0
+  transparentRenderQueue: 1
+--- !u!114 &8926484042661616071
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 081ffb0090424ba4cb05370a42ead6b9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Parent: {fileID: 0}
+  m_Children: []
+  m_UIPosition: {x: 0, y: 0}
+  m_UICollapsed: 1
+  m_UISuperCollapsed: 0
+  opaqueRenderQueue: 0
+  transparentRenderQueue: 1
+--- !u!114 &8926484042661616072
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 081ffb0090424ba4cb05370a42ead6b9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Parent: {fileID: 0}
+  m_Children: []
+  m_UIPosition: {x: 0, y: 0}
+  m_UICollapsed: 1
+  m_UISuperCollapsed: 0
+  opaqueRenderQueue: 0
+  transparentRenderQueue: 1
+--- !u!114 &8926484042661616073
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 081ffb0090424ba4cb05370a42ead6b9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Parent: {fileID: 0}
+  m_Children: []
+  m_UIPosition: {x: 0, y: 0}
+  m_UICollapsed: 1
+  m_UISuperCollapsed: 0
+  opaqueRenderQueue: 0
+  transparentRenderQueue: 1
