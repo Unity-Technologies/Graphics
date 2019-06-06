@@ -1,6 +1,6 @@
 using UnityEditor.ShaderGraph;
 
-namespace UnityEditor.Experimental.Rendering.LWRP
+namespace UnityEditor.Experimental.Rendering.Univerasl
 {
     class CreateSpriteLitShaderGraph
     {

@@ -3,7 +3,7 @@ using UnityEngine.Rendering;
 using UnityEngine.Profiling;
 using UnityEngine.Rendering.Universal;
 
-namespace UnityEngine.Experimental.Rendering.LWRP
+namespace UnityEngine.Experimental.Rendering.Universal
 {
     internal class Render2DLightingPass : ScriptableRenderPass
     {

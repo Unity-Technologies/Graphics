@@ -1,7 +1,7 @@
 using UnityEditor.SceneManagement;
 using UnityEngine;
 
-namespace UnityEditor.Experimental.Rendering.LWRP
+namespace UnityEditor.Experimental.Rendering.Univerasl
 {
     static class Renderer2DUpgrader
     {

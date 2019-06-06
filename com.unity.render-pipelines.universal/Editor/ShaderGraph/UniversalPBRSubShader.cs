@@ -2,16 +2,18 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using UnityEditor;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph;
+using UnityEngine.Rendering;
+using UnityEngine.Rendering.Universal;
 
-namespace UnityEngine.Rendering.Universal
+namespace UnityEditor.Rendering.Universal
 {
     [Serializable]
-    [FormerName("UnityEngine.Experimental.Rendering.LightweightPipeline.LightWeightUnlitSubShader")]
-    [FormerName("UnityEditor.ShaderGraph.LightWeightUnlitSubShader")]
-    class LightWeightUnlitSubShader : IUnlitSubShader
+    [FormerName("UnityEditor.Experimental.Rendering.LightweightPipeline.LightWeightPBRSubShader")]
+    [FormerName("UnityEditor.ShaderGraph.LightWeightPBRSubShader")]
+    [FormerName("UnityEditor.Rendering.LWRP.LightWeightPBRSubShader")]
+    class UniversalPBRSubShader : IPBRSubShader
     {
         static readonly NeededCoordinateSpace k_PixelCoordinateSpace = NeededCoordinateSpace.World;
 
@@ -22,18 +24,43 @@ namespace UnityEngine.Rendering.Universal
             public List<int> PixelShaderSlots;
         }
 
-        Pass m_UnlitPass = new Pass
+        Pass m_ForwardPassMetallic = new Pass
         {
-            Name = "Pass",
+            Name = "LightweightForward",
             PixelShaderSlots = new List<int>
             {
-                UnlitMasterNode.ColorSlotId,
-                UnlitMasterNode.AlphaSlotId,
-                UnlitMasterNode.AlphaThresholdSlotId
+                PBRMasterNode.AlbedoSlotId,
+                PBRMasterNode.NormalSlotId,
+                PBRMasterNode.EmissionSlotId,
+                PBRMasterNode.MetallicSlotId,
+                PBRMasterNode.SmoothnessSlotId,
+                PBRMasterNode.OcclusionSlotId,
+                PBRMasterNode.AlphaSlotId,
+                PBRMasterNode.AlphaThresholdSlotId
             },
             VertexShaderSlots = new List<int>()
             {
-                UnlitMasterNode.PositionSlotId
+                PBRMasterNode.PositionSlotId
+            }
+        };
+
+        Pass m_ForwardPassSpecular = new Pass()
+        {
+            Name = "LightweightForward",
+            PixelShaderSlots = new List<int>()
+            {
+                PBRMasterNode.AlbedoSlotId,
+                PBRMasterNode.NormalSlotId,
+                PBRMasterNode.EmissionSlotId,
+                PBRMasterNode.SpecularSlotId,
+                PBRMasterNode.SmoothnessSlotId,
+                PBRMasterNode.OcclusionSlotId,
+                PBRMasterNode.AlphaSlotId,
+                PBRMasterNode.AlphaThresholdSlotId
+            },
+            VertexShaderSlots = new List<int>()
+            {
+                PBRMasterNode.PositionSlotId
             }
         };
 
@@ -42,6 +69,8 @@ namespace UnityEngine.Rendering.Universal
             Name = "",
             PixelShaderSlots = new List<int>()
             {
+                PBRMasterNode.AlbedoSlotId,
+                PBRMasterNode.EmissionSlotId,
                 PBRMasterNode.AlphaSlotId,
                 PBRMasterNode.AlphaThresholdSlotId
             },
@@ -57,12 +86,12 @@ namespace UnityEngine.Rendering.Universal
         {
             if (sourceAssetDependencyPaths != null)
             {
-                // LightWeightUnlitSubShader.cs
-                sourceAssetDependencyPaths.Add(AssetDatabase.GUIDToAssetPath("3ef30c5c1d5fc412f88511ef5818b654"));
+                // LightWeightPBRSubShader.cs
+                sourceAssetDependencyPaths.Add(AssetDatabase.GUIDToAssetPath("ca91dbeb78daa054c9bbe15fef76361c"));
             }
 
-            var templatePath = GetTemplatePath("lightweightUnlitPass.template");
-            var extraPassesTemplatePath = GetTemplatePath("lightweightUnlitExtraPasses.template");
+            var templatePath = GetTemplatePath("lightweightPBRForwardPass.template");
+            var extraPassesTemplatePath = GetTemplatePath("lightweightPBRExtraPasses.template");
             if (!File.Exists(templatePath) || !File.Exists(extraPassesTemplatePath))
                 return string.Empty;
 
@@ -80,32 +109,33 @@ namespace UnityEngine.Rendering.Universal
             string forwardTemplate = File.ReadAllText(templatePath);
             string extraTemplate = File.ReadAllText(extraPassesTemplatePath);
 
-            var unlitMasterNode = masterNode as UnlitMasterNode;
-            var pass = m_UnlitPass;
+            var pbrMasterNode = masterNode as PBRMasterNode;
+            var pass = pbrMasterNode.model == PBRMasterNode.Model.Metallic ? m_ForwardPassMetallic : m_ForwardPassSpecular;
             var subShader = new ShaderStringBuilder();
             subShader.AppendLine("SubShader");
             using (subShader.BlockScope())
             {
-                var materialTags = ShaderGenerator.BuildMaterialTags(unlitMasterNode.surfaceType);
+                var materialTags = ShaderGenerator.BuildMaterialTags(pbrMasterNode.surfaceType);
                 var tagsBuilder = new ShaderStringBuilder(0);
                 materialTags.GetTags(tagsBuilder, LightweightRenderPipeline.k_ShaderTagName);
                 subShader.AppendLines(tagsBuilder.ToString());
 
-                var materialOptions = ShaderGenerator.GetMaterialOptions(unlitMasterNode.surfaceType, unlitMasterNode.alphaMode, unlitMasterNode.twoSided.isOn);
+                var materialOptions = ShaderGenerator.GetMaterialOptions(pbrMasterNode.surfaceType, pbrMasterNode.alphaMode, pbrMasterNode.twoSided.isOn);
                 subShader.AppendLines(GetShaderPassFromTemplate(
                         forwardTemplate,
-                        unlitMasterNode,
+                        pbrMasterNode,
                         pass,
                         mode,
                         materialOptions));
 
                 subShader.AppendLines(GetShaderPassFromTemplate(
                         extraTemplate,
-                        unlitMasterNode,
+                        pbrMasterNode,
                         m_DepthShadowPass,
                         mode,
                         materialOptions));
             }
+            subShader.Append("CustomEditor \"UnityEditor.ShaderGraph.PBRMasterGUI\"");
 
             return subShader.ToString();
         }
@@ -126,7 +156,7 @@ namespace UnityEngine.Rendering.Universal
             throw new FileNotFoundException(string.Format(@"Cannot find a template with name ""{0}"".", templateName));
         }
 
-        static string GetShaderPassFromTemplate(string template, UnlitMasterNode masterNode, Pass pass, GenerationMode mode, SurfaceMaterialOptions materialOptions)
+        static string GetShaderPassFromTemplate(string template, PBRMasterNode masterNode, Pass pass, GenerationMode mode, SurfaceMaterialOptions materialOptions)
         {
             // ----------------------------------------------------- //
             //                         SETUP                         //
@@ -209,7 +239,13 @@ namespace UnityEngine.Rendering.Universal
             // -------------------------------------
             // Generate defines
 
-            if (masterNode.IsSlotConnected(UnlitMasterNode.AlphaThresholdSlotId))
+            if (masterNode.IsSlotConnected(PBRMasterNode.NormalSlotId))
+                defines.AppendLine("#define _NORMALMAP 1");
+
+            if (masterNode.model == PBRMasterNode.Model.Specular)
+                defines.AppendLine("#define _SPECULAR_SETUP 1");
+
+            if (masterNode.IsSlotConnected(PBRMasterNode.AlphaThresholdSlotId))
                 defines.AppendLine("#define _AlphaClip 1");
 
             if (masterNode.surfaceType == SurfaceType.Transparent && masterNode.alphaMode == AlphaMode.Premultiply)

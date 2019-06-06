@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
-using UnityEngine.Rendering.LWRP;
 using UnityEngine.Rendering;
+using UnityEngine.Rendering.Universal;
 
 [CreateAssetMenu]
 public class CameraCallbackTests : ScriptableRendererFeature
@@ -14,7 +14,7 @@ public class CameraCallbackTests : ScriptableRendererFeature
 	static RenderTargetHandle afterAll;
 
     Material m_SamplingMaterial;
-    
+
 	public CameraCallbackTests()
 	{
 		beforeAll.Init("_BeforeAll");
@@ -55,7 +55,7 @@ public class CameraCallbackTests : ScriptableRendererFeature
 
         var cameraColorTarget = renderer.cameraColorTarget;
         var clearRenderPass = new ClearColorPass(RenderPassEvent.BeforeRenderingOpaques, cameraColorTarget);
-        
+
         var copyBeforeOpaquePass = new CopyColorPass(RenderPassEvent.BeforeRenderingOpaques, m_SamplingMaterial);
         copyBeforeOpaquePass.Setup(cameraColorTarget, beforeAll, downSamplingMethod);
 

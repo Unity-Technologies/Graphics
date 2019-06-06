@@ -1,5 +1,5 @@
 using NUnit.Framework;
-using UnityEngine.Experimental.Rendering.LWRP;
+using UnityEngine.Experimental.Rendering.Universal;
 
 namespace UnityEngine.Rendering.Universal.Tests
 {

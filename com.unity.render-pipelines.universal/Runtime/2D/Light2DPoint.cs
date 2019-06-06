@@ -1,6 +1,6 @@
 using UnityEngine.Scripting.APIUpdating;
 
-namespace UnityEngine.Experimental.Rendering.LWRP
+namespace UnityEngine.Experimental.Rendering.Universal
 {
     sealed public partial class Light2D : MonoBehaviour
     {

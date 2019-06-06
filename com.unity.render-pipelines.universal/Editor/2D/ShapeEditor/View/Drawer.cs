@@ -1,9 +1,9 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
-using UnityEditor.Experimental.Rendering.LWRP.Path2D.GUIFramework;
+using UnityEditor.Experimental.Rendering.Univerasl.Path2D.GUIFramework;
 
-namespace UnityEditor.Experimental.Rendering.LWRP.Path2D
+namespace UnityEditor.Experimental.Rendering.Univerasl.Path2D
 {
     internal class DefaultStyles
     {

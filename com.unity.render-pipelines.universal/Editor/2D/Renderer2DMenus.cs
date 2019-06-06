@@ -1,12 +1,12 @@
 using UnityEngine;
-using UnityEngine.Experimental.Rendering.LWRP;
+using UnityEngine.Experimental.Rendering.Universal;
 using UnityEngine.Rendering.Universal;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEditor.ProjectWindowCallback;
 using UnityEngine.Rendering;
 
-namespace UnityEditor.Experimental.Rendering.LWRP
+namespace UnityEditor.Experimental.Rendering.Univerasl
 {
     static class Renderer2DMenus
     {

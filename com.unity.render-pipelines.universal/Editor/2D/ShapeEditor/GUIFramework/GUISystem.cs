@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace UnityEditor.Experimental.Rendering.LWRP.Path2D.GUIFramework
+namespace UnityEditor.Experimental.Rendering.Univerasl.Path2D.GUIFramework
 {
     internal class GUISystem
     {

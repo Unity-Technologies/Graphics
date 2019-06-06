@@ -1,13 +1,13 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.EditorTools;
-using UnityEditor.Experimental.Rendering.LWRP.Path2D;
+using UnityEditor.Experimental.Rendering.Univerasl.Path2D;
 using UnityEngine;
-using UnityEngine.Experimental.Rendering.LWRP;
+using UnityEngine.Experimental.Rendering.Universal;
 using UnityEngine.Rendering.Universal;
 using UnityEngine.UIElements;
 
-namespace UnityEditor.Experimental.Rendering.LWRP
+namespace UnityEditor.Experimental.Rendering.Univerasl
 {
     [CustomEditor(typeof(Light2D))]
     [CanEditMultipleObjects]

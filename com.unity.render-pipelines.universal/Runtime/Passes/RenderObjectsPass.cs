@@ -3,9 +3,9 @@ using UnityEngine.Rendering.Universal;
 using UnityEngine.Rendering;
 using UnityEngine.Scripting.APIUpdating;
 
-namespace UnityEngine.Experimental.Rendering.LWRP
+namespace UnityEngine.Experimental.Rendering.Universal
 {
-    [MovedFrom("UnityEngine.Rendering.LWRP")] public class RenderObjectsPass : ScriptableRenderPass
+    [MovedFrom("UnityEngine.Experimental.Rendering.LWRP")] public class RenderObjectsPass : ScriptableRenderPass
     {
         RenderQueueType renderQueueType;
         FilteringSettings m_FilteringSettings;

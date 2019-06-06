@@ -7,7 +7,7 @@ using UnityEngine.Scripting.APIUpdating;
 using UnityEditor.Experimental.SceneManagement;
 #endif
 
-namespace UnityEngine.Experimental.Rendering.LWRP
+namespace UnityEngine.Experimental.Rendering.Universal
 {
     class Light2DManager : IDisposable
     {

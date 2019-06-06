@@ -6,7 +6,7 @@ using UnityEditor;
 using UnityEditor.EditorTools;
 using UnityObject = UnityEngine.Object;
 
-namespace UnityEditor.Experimental.Rendering.LWRP.Path2D
+namespace UnityEditor.Experimental.Rendering.Univerasl.Path2D
 {
     internal class ScriptablePath : ScriptableObject, IEditablePath, IUndoObject
     {

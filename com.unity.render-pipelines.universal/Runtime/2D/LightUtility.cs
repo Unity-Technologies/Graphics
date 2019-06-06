@@ -1,8 +1,8 @@
 using System.Collections.Generic;
 using System.Linq;
-using UnityEngine.Experimental.Rendering.LWRP.LibTessDotNet;
+using UnityEngine.Experimental.Rendering.Universal.LibTessDotNet;
 
-namespace UnityEngine.Experimental.Rendering.LWRP
+namespace UnityEngine.Experimental.Rendering.Universal
 {
     internal static class LightUtility
     {
