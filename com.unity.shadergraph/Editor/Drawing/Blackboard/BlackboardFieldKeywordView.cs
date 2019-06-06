@@ -153,6 +153,9 @@ namespace UnityEditor.ShaderGraph.Drawing
                 
                 var displayName = EditorGUI.DelayedTextField( new Rect(rect.x, rect.y, rect.width / 2, EditorGUIUtility.singleLineHeight), entry.displayName, EditorStyles.label);
                 var referenceName = EditorGUI.DelayedTextField( new Rect(rect.x + rect.width / 2, rect.y, rect.width / 2, EditorGUIUtility.singleLineHeight), entry.referenceName, EditorStyles.label);
+
+                displayName = GetDuplicateSafeDisplayName(entry.id, displayName);
+                referenceName = GetDuplicateSafeReferenceName(entry.id, referenceName);
                 
                 if(EditorGUI.EndChangeCheck())
                 {
@@ -195,8 +198,12 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             graph.owner.RegisterCompleteObjectUndo("Add Keyword Entry");
 
+            var index = list.list.Count + 1;
+            var displayName = GetDuplicateSafeDisplayName(index, "New");
+            var referenceName = GetDuplicateSafeReferenceName(index, "NEW");
+
             // Add new entry
-            m_Keyword.entries.Add(new ShaderKeywordEntry(list.list.Count + 1, "New", "_NEW"));
+            m_Keyword.entries.Add(new ShaderKeywordEntry(index, displayName, referenceName));
 
             // Update GUI
             DirtyEnumEntries();
@@ -219,6 +226,20 @@ namespace UnityEditor.ShaderGraph.Drawing
         private void ReorderEntries(ReorderableList list)
         {
             DirtyEnumEntries();
+        }
+
+        public string GetDuplicateSafeDisplayName(int id, string name)
+        {
+            name = name.Trim();
+            var entryList = m_ReorderableList.list as List<ShaderKeywordEntry>;
+            return GraphUtil.SanitizeName(entryList.Where(p => p.id != id).Select(p => p.displayName), "{0} ({1})", name);
+        }
+
+        public string GetDuplicateSafeReferenceName(int id, string name)
+        {
+            name = name.Trim();
+            var entryList = m_ReorderableList.list as List<ShaderKeywordEntry>;
+            return GraphUtil.SanitizeName(entryList.Where(p => p.id != id).Select(p => p.referenceName), "{0}_{1}", name);
         }
 
         public override void DirtyNodes(ModificationScope modificationScope = ModificationScope.Node)
