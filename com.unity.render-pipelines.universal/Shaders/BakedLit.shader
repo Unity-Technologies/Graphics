@@ -1,4 +1,4 @@
-Shader "Lightweight Render Pipeline/Baked Lit"
+Shader "Universal Render Pipeline/Baked Lit"
 {
     Properties
     {
@@ -184,6 +184,6 @@ Shader "Lightweight Render Pipeline/Baked Lit"
             ENDHLSL
         }
     }
-    FallBack "Lightweight Render Pipeline/Unlit"
+    FallBack "Universal Render Pipeline/Unlit"
     CustomEditor "UnityEditor.Rendering.Universal.ShaderGUI.BakedLitShader"
 }

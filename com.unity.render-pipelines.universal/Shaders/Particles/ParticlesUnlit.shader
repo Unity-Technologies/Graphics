@@ -1,4 +1,4 @@
-Shader "Lightweight Render Pipeline/Particles/Unlit"
+Shader "Universal Render Pipeline/Particles/Unlit"
 {
     Properties
     {

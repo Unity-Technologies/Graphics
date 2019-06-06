@@ -1,4 +1,4 @@
-Shader "Lightweight Render Pipeline/2D/Sprite-Lit-Default"
+Shader "Universal Render Pipeline/2D/Sprite-Lit-Default"
 {
     Properties
     {

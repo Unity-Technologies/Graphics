@@ -1,4 +1,4 @@
-Shader "Hidden/Lightweight Render Pipeline/ScreenSpaceShadows"
+Shader "Hidden/Universal Render Pipeline/ScreenSpaceShadows"
 {
     SubShader
     {
