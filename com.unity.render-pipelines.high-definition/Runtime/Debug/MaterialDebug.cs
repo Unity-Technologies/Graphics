@@ -34,6 +34,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             BakeShadowMask1,
             BakeShadowMask2,
             BakeShadowMask3,
+            DepthData
             // if you add more values here, fix the first entry of next enum
         }
 
@@ -42,7 +43,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public enum DebugViewProperties
         {
             None = 0,
-            Tessellation = DebugViewGbuffer.BakeShadowMask3 + 1,
+            Tessellation = DebugViewGbuffer.DepthData + 1,
             PixelDisplacement,
             VertexDisplacement,
             TessellationDisplacement,
@@ -386,7 +387,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 isDebugViewMaterialInit = true;
             }
         }
-        
+
         //Validator Settings
         public Color materialValidateLowColor = new Color(1.0f, 0.0f, 0.0f);
         public Color materialValidateHighColor = new Color(0.0f, 0.0f, 1.0f);
@@ -527,7 +528,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
             return enabled;
         }
-        
+
         public bool IsDebugDisplayEnabled()
         {
             return (m_DebugViewEngine != 0 || IsDebugViewMaterialEnabled() || m_DebugViewVarying != DebugViewVarying.None || m_DebugViewProperties != DebugViewProperties.None || IsDebugGBufferEnabled());

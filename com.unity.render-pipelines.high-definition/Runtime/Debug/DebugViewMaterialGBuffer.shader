@@ -80,6 +80,12 @@ Shader "Hidden/HDRP/DebugViewMaterialGBuffer"
                     float linearDepth = frac(posInput.linearDepth * 0.1);
                     result = linearDepth.xxx;
                 }
+                else if (bufferIndex == DEBUGVIEWGBUFFER_DEPTHDATA )
+                {
+                    float linearDepth = posInput.linearDepth;
+                    linearDepth = 1.0/linearDepth;
+                    result = 1.0 - linearDepth.xxx;
+                }
                 // Caution: This value is not the same than the builtin data bakeDiffuseLighting. It also include emissive and multiply by the albedo
                 else if (bufferIndex == DEBUGVIEWGBUFFER_BAKE_DIFFUSE_LIGHTING_WITH_ALBEDO_PLUS_EMISSIVE)
                 {
