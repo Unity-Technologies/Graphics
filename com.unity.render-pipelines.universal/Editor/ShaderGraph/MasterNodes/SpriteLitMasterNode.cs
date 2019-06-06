@@ -9,6 +9,7 @@ namespace UnityEditor.Experimental.Rendering.Univerasl
 {
     [Serializable]
     [Title("Master", "Sprite Lit (Experimental)")]
+    [FormerName("UnityEditor.Experimental.Rendering.LWRP.SpriteLitMasterNode")]
     class SpriteLitMasterNode : MasterNode<ISpriteLitSubShader>, IMayRequirePosition
     {
         public const string PositionName = "Position";
