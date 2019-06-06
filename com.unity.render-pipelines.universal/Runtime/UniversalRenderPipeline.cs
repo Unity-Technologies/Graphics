@@ -154,7 +154,7 @@ namespace UnityEngine.Rendering.Universal
                 return;
 
             var settings = asset;
-            LWRPAdditionalCameraData additionalCameraData = null;
+            UniversalAdditionalCameraData additionalCameraData = null;
             if (camera.cameraType == CameraType.Game || camera.cameraType == CameraType.VR)
 #if UNITY_2019_3_OR_NEWER
                 camera.gameObject.TryGetComponent(out additionalCameraData);
@@ -219,7 +219,7 @@ namespace UnityEngine.Rendering.Universal
 #endif
         }
 
-        static void InitializeCameraData(LightweightRenderPipelineAsset settings, Camera camera, LWRPAdditionalCameraData additionalCameraData, out CameraData cameraData)
+        static void InitializeCameraData(LightweightRenderPipelineAsset settings, Camera camera, UniversalAdditionalCameraData additionalCameraData, out CameraData cameraData)
         {
             const float kRenderScaleThreshold = 0.05f;
             cameraData.camera = camera;
@@ -360,7 +360,7 @@ namespace UnityEngine.Rendering.Universal
             for (int i = 0; i < visibleLights.Length; ++i)
             {
                 Light light = visibleLights[i].light;
-                LWRPAdditionalLightData data = null;
+                UniversalAdditionalLightData data = null;
                 if (light != null)
                 {
 #if UNITY_2019_3_OR_NEWER

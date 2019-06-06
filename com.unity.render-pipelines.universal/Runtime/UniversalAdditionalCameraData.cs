@@ -1,5 +1,14 @@
+using System;
 using UnityEngine.Scripting.APIUpdating;
 using UnityEngine.Serialization;
+
+namespace UnityEngine.Rendering.LWRP
+{
+    [Obsolete("LWRP -> Universal (UnityUpgradable) -> UnityEngine.Rendering.Universal.UniversalAdditionalLightData", true)]
+    public class LWRPAdditionalCameraData
+    {
+    }
+}
 
 namespace UnityEngine.Rendering.Universal
 {
@@ -19,7 +28,7 @@ namespace UnityEngine.Rendering.Universal
     [DisallowMultipleComponent]
     [RequireComponent(typeof(Camera))]
     [ImageEffectAllowedInSceneView]
-    [MovedFrom("UnityEngine.Rendering.LWRP")] public class LWRPAdditionalCameraData : MonoBehaviour, ISerializationCallbackReceiver
+    [MovedFrom("UnityEngine.Rendering.LWRP")] public class UniversalAdditionalCameraData : MonoBehaviour, ISerializationCallbackReceiver
     {
         [Tooltip("If enabled shadows will render for this camera.")]
         [FormerlySerializedAs("renderShadows"), SerializeField]
