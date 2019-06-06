@@ -1,10 +1,11 @@
 using System;
+using UnityEngine.Scripting.APIUpdating;
 using UnityEngine.Serialization;
 
 namespace UnityEngine.Experimental.Rendering.LWRP
 {
     [Serializable]
-    public struct Light2DBlendStyle
+    [MovedFrom("UnityEngine.Rendering.LWRP")] public struct Light2DBlendStyle
     {
         internal enum TextureChannel
         {

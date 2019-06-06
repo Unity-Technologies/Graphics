@@ -13,7 +13,7 @@ namespace UnityEngine.Rendering.Universal
         Subtractive,
     };
 
-    public struct RenderingData
+    [MovedFrom("UnityEngine.Rendering.LWRP")] public struct RenderingData
     {
         public CullingResults cullResults;
         public CameraData cameraData;
@@ -24,7 +24,7 @@ namespace UnityEngine.Rendering.Universal
         public bool killAlphaInFinalBlit;
     }
 
-    public struct LightData
+    [MovedFrom("UnityEngine.Rendering.LWRP")] public struct LightData
     {
         public int mainLightIndex;
         public int additionalLightsCount;
@@ -34,7 +34,7 @@ namespace UnityEngine.Rendering.Universal
         public bool supportsMixedLighting;
     }
 
-    public struct CameraData
+    [MovedFrom("UnityEngine.Rendering.LWRP")] public struct CameraData
     {
         public Camera camera;
         public RenderTextureDescriptor cameraTargetDescriptor;
@@ -55,7 +55,7 @@ namespace UnityEngine.Rendering.Universal
         public IEnumerator<Action<RenderTargetIdentifier, CommandBuffer> > captureActions;
     }
 
-    public struct ShadowData
+    [MovedFrom("UnityEngine.Rendering.LWRP")] public struct ShadowData
     {
         public bool supportsMainLightShadows;
         public bool requiresScreenSpaceShadowResolve;
@@ -89,7 +89,7 @@ namespace UnityEngine.Rendering.Universal
         public static readonly string KillAlpha = "_KILL_ALPHA";
     }
 
-    public sealed partial class LightweightRenderPipeline
+    [MovedFrom("UnityEngine.Rendering.LWRP")] public sealed partial class LightweightRenderPipeline
     {
         static List<Vector4> m_ShadowBiasData = new List<Vector4>();
 
