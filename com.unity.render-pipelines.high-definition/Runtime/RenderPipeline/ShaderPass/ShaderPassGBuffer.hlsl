@@ -56,7 +56,7 @@ void Frag(  PackedVaryingsToPS packedInput,
 	// Note it doesn't mean we don't have negative value, we store negative or positive offset in NDC space.
 	// Note: ((positionCS * 0.5 + 0.5) - (previousPositionCS * 0.5 + 0.5)) = (velocity * 0.5)
 	float4 packedVelocity;
-	EncodeVelocity(velocity * 0.5f, packedVelocity);
+	EncodeMotionVector(velocity * 0.5f, packedVelocity);
 
 	// Note: unity_MotionVectorsParams.y is 0 is forceNoMotion is enabled
 	// unity_MotionVectorsParams is not setup for G-Buffer pass, though, so we're saved by the fact that we don't use it.
