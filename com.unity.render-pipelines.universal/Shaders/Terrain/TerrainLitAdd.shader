@@ -9,12 +9,12 @@ Shader "Hidden/Universal Render Pipeline/Terrain/Lit (Add Pass)"
 
     SubShader
     {
-        Tags { "Queue" = "Geometry-99" "RenderType" = "Opaque" "RenderPipeline" = "LightweightPipeline" "IgnoreProjector" = "True"}
+        Tags { "Queue" = "Geometry-99" "RenderType" = "Opaque" "RenderPipeline" = "UniversalPipeline" "IgnoreProjector" = "True"}
 
         Pass
         {
             Name "TerrainAddLit"
-            Tags { "LightMode" = "LightweightForward" }
+            Tags { "LightMode" = "UniversalForward" }
             Blend One One
             HLSLPROGRAM
             // Required to compile gles 2.0 with standard srp library
@@ -26,7 +26,7 @@ Shader "Hidden/Universal Render Pipeline/Terrain/Lit (Add Pass)"
             #pragma fragment SplatmapFragment
 
             // -------------------------------------
-            // Lightweight Pipeline keywords
+            // Universal Pipeline keywords
             #pragma multi_compile _ _MAIN_LIGHT_SHADOWS
             #pragma multi_compile _ _MAIN_LIGHT_SHADOWS_CASCADE
             #pragma multi_compile _ _ADDITIONAL_LIGHTS_VERTEX _ADDITIONAL_LIGHTS

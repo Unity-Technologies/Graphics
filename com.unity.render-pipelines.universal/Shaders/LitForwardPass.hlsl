@@ -1,5 +1,5 @@
-#ifndef LIGHTWEIGHT_FORWARD_LIT_PASS_INCLUDED
-#define LIGHTWEIGHT_FORWARD_LIT_PASS_INCLUDED
+#ifndef UNIVERSAL_FORWARD_LIT_PASS_INCLUDED
+#define UNIVERSAL_FORWARD_LIT_PASS_INCLUDED
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
 
@@ -133,7 +133,7 @@ half4 LitPassFragment(Varyings input) : SV_Target
     InputData inputData;
     InitializeInputData(input, surfaceData.normalTS, inputData);
 
-    half4 color = LightweightFragmentPBR(inputData, surfaceData.albedo, surfaceData.metallic, surfaceData.specular, surfaceData.smoothness, surfaceData.occlusion, surfaceData.emission, surfaceData.alpha);
+    half4 color = UniversalFragmentPBR(inputData, surfaceData.albedo, surfaceData.metallic, surfaceData.specular, surfaceData.smoothness, surfaceData.occlusion, surfaceData.emission, surfaceData.alpha);
 
     color.rgb = MixFog(color.rgb, inputData.fogCoord);
     return color;

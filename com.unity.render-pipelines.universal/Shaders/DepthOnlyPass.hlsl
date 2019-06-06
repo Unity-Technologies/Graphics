@@ -1,5 +1,5 @@
-#ifndef LIGHTWEIGHT_DEPTH_ONLY_PASS_INCLUDED
-#define LIGHTWEIGHT_DEPTH_ONLY_PASS_INCLUDED
+#ifndef UNIVERSAL_DEPTH_ONLY_PASS_INCLUDED
+#define UNIVERSAL_DEPTH_ONLY_PASS_INCLUDED
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
 

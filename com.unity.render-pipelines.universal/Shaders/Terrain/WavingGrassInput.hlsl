@@ -1,5 +1,5 @@
-#ifndef LIGHTWEIGHT_WAVING_GRASS_INPUT_INCLUDED
-#define LIGHTWEIGHT_WAVING_GRASS_INPUT_INCLUDED
+#ifndef UNIVERSAL_WAVING_GRASS_INPUT_INCLUDED
+#define UNIVERSAL_WAVING_GRASS_INPUT_INCLUDED
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/SurfaceInput.hlsl"

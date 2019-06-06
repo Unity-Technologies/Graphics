@@ -75,8 +75,8 @@ namespace UnityEditor.Experimental.Rendering.Univerasl
                 sourceAssetDependencyPaths.Add(AssetDatabase.GUIDToAssetPath("62511ee827d14492a8c78ba0ef167e7f"));
             }
 
-            string litPassTemplate = ReadTemplate("lightweightSpriteLitPass.template", sourceAssetDependencyPaths);
-            string normalPassTemplate = ReadTemplate("lightweightSpriteNormalPass.template", sourceAssetDependencyPaths);
+            string litPassTemplate = ReadTemplate("universalSpriteLitPass.template", sourceAssetDependencyPaths);
+            string normalPassTemplate = ReadTemplate("universalSpriteNormalPass.template", sourceAssetDependencyPaths);
             var litMasterNode = masterNode as SpriteLitMasterNode;
 
             var litPass = m_LitPass;
@@ -85,7 +85,7 @@ namespace UnityEditor.Experimental.Rendering.Univerasl
             subShader.AppendLine("SubShader");
             using (subShader.BlockScope())
             {
-                subShader.AppendLine("Tags{ \"RenderPipeline\" = \"LightweightPipeline\"}");
+                subShader.AppendLine("Tags{ \"RenderPipeline\" = \"UniversalPipeline\"}");
 
                 var materialTags = ShaderGenerator.BuildMaterialTags(SurfaceType.Transparent);
                 var tagsBuilder = new ShaderStringBuilder(0);

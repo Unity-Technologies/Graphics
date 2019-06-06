@@ -44,7 +44,7 @@ namespace UnityEditor.Experimental.Rendering.Univerasl
                 sourceAssetDependencyPaths.Add(AssetDatabase.GUIDToAssetPath("f2df349d00ec920488971bb77440b7bc"));
             }
 
-            var templatePath = GetTemplatePath("lightweightSpriteUnlitPass.template");
+            var templatePath = GetTemplatePath("universalSpriteUnlitPass.template");
 
             if (!File.Exists(templatePath))
                 return string.Empty;
@@ -62,7 +62,7 @@ namespace UnityEditor.Experimental.Rendering.Univerasl
             subShader.AppendLine("SubShader");
             using (subShader.BlockScope())
             {
-                subShader.AppendLine("Tags{ \"RenderPipeline\" = \"LightweightPipeline\"}");
+                subShader.AppendLine("Tags{ \"RenderPipeline\" = \"UniversalPipeline\"}");
 
                 var materialTags = ShaderGenerator.BuildMaterialTags(SurfaceType.Transparent);
                 var tagsBuilder = new ShaderStringBuilder(0);

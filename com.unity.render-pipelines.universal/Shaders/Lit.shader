@@ -55,20 +55,20 @@ Shader "Universal Render Pipeline/Lit"
 
     SubShader
     {
-        // Lightweight Pipeline tag is required. If Lightweight render pipeline is not set in the graphics settings
+        // Universal Pipeline tag is required. If Universal render pipeline is not set in the graphics settings
         // this Subshader will fail. One can add a subshader below or fallback to Standard built-in to make this
-        // material work with both Lightweight Render Pipeline and Builtin Unity Pipeline
-        Tags{"RenderType" = "Opaque" "RenderPipeline" = "LightweightPipeline" "IgnoreProjector" = "True"}
+        // material work with both Universal Render Pipeline and Builtin Unity Pipeline
+        Tags{"RenderType" = "Opaque" "RenderPipeline" = "UniversalPipeline" "IgnoreProjector" = "True"}
         LOD 300
 
         // ------------------------------------------------------------------
         //  Forward pass. Shades all light in a single pass. GI + emission + Fog
         Pass
         {
-            // Lightmode matches the ShaderPassName set in LightweightRenderPipeline.cs. SRPDefaultUnlit and passes with
-            // no LightMode tag are also rendered by Lightweight Render Pipeline
+            // Lightmode matches the ShaderPassName set in UniversalRenderPipeline.cs. SRPDefaultUnlit and passes with
+            // no LightMode tag are also rendered by Universal Render Pipeline
             Name "ForwardLit"
-            Tags{"LightMode" = "LightweightForward"}
+            Tags{"LightMode" = "UniversalForward"}
 
             Blend[_SrcBlend][_DstBlend]
             ZWrite[_ZWrite]
@@ -97,7 +97,7 @@ Shader "Universal Render Pipeline/Lit"
             #pragma shader_feature _RECEIVE_SHADOWS_OFF
 
             // -------------------------------------
-            // Lightweight Pipeline keywords
+            // Universal Pipeline keywords
             #pragma multi_compile _ _MAIN_LIGHT_SHADOWS
             #pragma multi_compile _ _MAIN_LIGHT_SHADOWS_CASCADE
             #pragma multi_compile _ _ADDITIONAL_LIGHTS_VERTEX _ADDITIONAL_LIGHTS
@@ -200,8 +200,8 @@ Shader "Universal Render Pipeline/Lit"
             #pragma prefer_hlslcc gles
             #pragma exclude_renderers d3d11_9x
 
-            #pragma vertex LightweightVertexMeta
-            #pragma fragment LightweightFragmentMeta
+            #pragma vertex UniversalVertexMeta
+            #pragma fragment UniversalFragmentMeta
 
             #pragma shader_feature _SPECULAR_SETUP
             #pragma shader_feature _EMISSION

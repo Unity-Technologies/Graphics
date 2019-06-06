@@ -41,7 +41,7 @@ namespace UnityEngine.Rendering.Universal
             public static int _WorldSpaceCameraPos;
         }
 
-        public const string k_ShaderTagName = "LightweightPipeline";
+        public const string k_ShaderTagName = "UniversalPipeline";
 
         const string k_RenderCameraTag = "Render Camera";
 
@@ -103,7 +103,7 @@ namespace UnityEngine.Rendering.Universal
             if (QualitySettings.antiAliasing != asset.msaaSampleCount)
                 QualitySettings.antiAliasing = asset.msaaSampleCount;
 
-            Shader.globalRenderPipeline = "LightweightPipeline";
+            Shader.globalRenderPipeline = "UniversalPipeline";
 
             Lightmapping.SetDelegate(lightsDelegate);
 

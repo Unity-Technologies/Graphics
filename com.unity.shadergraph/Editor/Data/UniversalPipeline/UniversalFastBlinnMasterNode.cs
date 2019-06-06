@@ -3,8 +3,8 @@ using System;
 namespace UnityEditor.ShaderGraph
 {
 /*    [Serializable]
-    [Title("Master", "Lightweight", "Fast Blinn")]
-    class LightweightFastBlinnMasterNode : AbstractMasterNode
+    [Title("Master", "Universal", "Fast Blinn")]
+    class UniversalFastBlinnMasterNode : AbstractMasterNode
     {
         public const string AlbedoSlotName = "Diffuse";
         public const string SpecularSlotName = "Specular";
@@ -32,9 +32,9 @@ namespace UnityEditor.ShaderGraph
             get { return m_MaterialOptions; }
         }
 
-        public LightweightFastBlinnMasterNode()
+        public UniversalFastBlinnMasterNode()
         {
-            name = "LightweightFastBlinnMasterNode";
+            name = "UniversalFastBlinnMasterNode";
             UpdateNodeAfterDeserialization();
         }
 
@@ -151,7 +151,7 @@ namespace UnityEditor.ShaderGraph
 
         public override string GetSubShader(GenerationMode mode, PropertyGenerator shaderPropertiesVisitor)
         {
-            var templateLocation = ShaderGenerator.GetTemplatePath("lightweightSubshaderFastBlinn.template");
+            var templateLocation = ShaderGenerator.GetTemplatePath("universalSubshaderFastBlinn.template");
 
             if (!File.Exists(templateLocation))
                 return string.Empty;

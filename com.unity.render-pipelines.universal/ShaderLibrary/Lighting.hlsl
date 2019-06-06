@@ -1,5 +1,5 @@
-#ifndef LIGHTWEIGHT_LIGHTING_INCLUDED
-#define LIGHTWEIGHT_LIGHTING_INCLUDED
+#ifndef UNIVERSAL_LIGHTING_INCLUDED
+#define UNIVERSAL_LIGHTING_INCLUDED
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/EntityLighting.hlsl"
@@ -366,7 +366,7 @@ half3 SampleLightmap(float2 lightmapUV, half3 normalWS)
     half4 decodeInstructions = half4(LIGHTMAP_HDR_MULTIPLIER, LIGHTMAP_HDR_EXPONENT, 0.0h, 0.0h);
 
     // The shader library sample lightmap functions transform the lightmap uv coords to apply bias and scale.
-    // However, lightweight pipeline already transformed those coords in vertex. We pass half4(1, 1, 0, 0) and
+    // However, universal pipeline already transformed those coords in vertex. We pass half4(1, 1, 0, 0) and
     // the compiler will optimize the transform away.
     half4 transformCoords = half4(1, 1, 0, 0);
 
@@ -505,7 +505,7 @@ half3 VertexLighting(float3 positionWS, half3 normalWS)
 //                      Fragment Functions                                   //
 //       Used by ShaderGraph and others builtin renderers                    //
 ///////////////////////////////////////////////////////////////////////////////
-half4 LightweightFragmentPBR(InputData inputData, half3 albedo, half metallic, half3 specular,
+half4 UniversalFragmentPBR(InputData inputData, half3 albedo, half metallic, half3 specular,
     half smoothness, half occlusion, half3 emission, half alpha)
 {
     BRDFData brdfData;
@@ -534,7 +534,7 @@ half4 LightweightFragmentPBR(InputData inputData, half3 albedo, half metallic, h
     return half4(color, alpha);
 }
 
-half4 LightweightFragmentBlinnPhong(InputData inputData, half3 diffuse, half4 specularGloss, half smoothness, half3 emission, half alpha)
+half4 UniversalFragmentBlinnPhong(InputData inputData, half3 diffuse, half4 specularGloss, half smoothness, half3 emission, half alpha)
 {
     Light mainLight = GetMainLight(inputData.shadowCoord);
     MixRealtimeAndBakedGI(mainLight, inputData.normalWS, inputData.bakedGI, half4(0, 0, 0, 0));

@@ -1,5 +1,5 @@
-#ifndef LIGHTWEIGHT_PIPELINE_CORE_INCLUDED
-#define LIGHTWEIGHT_PIPELINE_CORE_INCLUDED
+#ifndef UNIVERSAL_PIPELINE_CORE_INCLUDED
+#define UNIVERSAL_PIPELINE_CORE_INCLUDED
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Packing.hlsl"

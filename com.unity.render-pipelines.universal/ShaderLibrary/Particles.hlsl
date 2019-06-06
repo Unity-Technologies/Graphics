@@ -1,5 +1,5 @@
-#ifndef LIGHTWEIGHT_PARTICLES_INCLUDED
-#define LIGHTWEIGHT_PARTICLES_INCLUDED
+#ifndef UNIVERSAL_PARTICLES_INCLUDED
+#define UNIVERSAL_PARTICLES_INCLUDED
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
@@ -101,4 +101,4 @@ half3 SampleNormalTS(float2 uv, float3 blendUv, TEXTURE2D_PARAM(bumpMap, sampler
 #endif
 }
 
-#endif // LIGHTWEIGHT_PARTICLES_INCLUDED
+#endif // UNIVERSAL_PARTICLES_INCLUDED

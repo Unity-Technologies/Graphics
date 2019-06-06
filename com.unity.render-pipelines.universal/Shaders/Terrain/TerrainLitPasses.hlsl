@@ -1,5 +1,5 @@
-#ifndef LIGHTWEIGHT_TERRAIN_LIT_PASSES_INCLUDED
-#define LIGHTWEIGHT_TERRAIN_LIT_PASSES_INCLUDED
+#ifndef UNIVERSAL_TERRAIN_LIT_PASSES_INCLUDED
+#define UNIVERSAL_TERRAIN_LIT_PASSES_INCLUDED
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
 
@@ -240,7 +240,7 @@ half4 SplatmapFragment(Varyings IN) : SV_TARGET
 
     InputData inputData;
     InitializeInputData(IN, normalTS, inputData);
-    half4 color = LightweightFragmentPBR(inputData, albedo, metallic, half3(0.0h, 0.0h, 0.0h), smoothness, /* occlusion */ 1.0, /* emission */ half3(0, 0, 0), alpha);
+    half4 color = UniversalFragmentPBR(inputData, albedo, metallic, half3(0.0h, 0.0h, 0.0h), smoothness, /* occlusion */ 1.0, /* emission */ half3(0, 0, 0), alpha);
 
     SplatmapFinalColor(color, inputData.fogCoord);
 

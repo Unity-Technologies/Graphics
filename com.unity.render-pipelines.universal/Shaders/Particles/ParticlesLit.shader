@@ -61,16 +61,16 @@ Shader "Universal Render Pipeline/Particles/Lit"
 
     SubShader
     {
-        Tags{"RenderType" = "Opaque" "IgnoreProjector" = "True" "PreviewType" = "Plane" "PerformanceChecks" = "False" "RenderPipeline" = "LightweightPipeline"}
+        Tags{"RenderType" = "Opaque" "IgnoreProjector" = "True" "PreviewType" = "Plane" "PerformanceChecks" = "False" "RenderPipeline" = "UniversalPipeline"}
 
         // ------------------------------------------------------------------
         //  Forward pass.
         Pass
         {
-            // Lightmode matches the ShaderPassName set in LightweightRenderPipeline.cs. SRPDefaultUnlit and passes with
-            // no LightMode tag are also rendered by Lightweight Render Pipeline
+            // Lightmode matches the ShaderPassName set in UniversalRenderPipeline.cs. SRPDefaultUnlit and passes with
+            // no LightMode tag are also rendered by Universal Render Pipeline
             Name "ForwardLit"
-            Tags {"LightMode" = "LightweightForward"}
+            Tags {"LightMode" = "UniversalForward"}
 
             BlendOp[_BlendOp]
             Blend[_SrcBlend][_DstBlend]
@@ -102,7 +102,7 @@ Shader "Universal Render Pipeline/Particles/Lit"
             #pragma shader_feature _DISTORTION_ON
 
             // -------------------------------------
-            // Lightweight Pipeline keywords
+            // Universal Pipeline keywords
             #pragma multi_compile _ _MAIN_LIGHT_SHADOWS
             #pragma multi_compile _ _MAIN_LIGHT_SHADOWS_CASCADE
             #pragma multi_compile _ _ADDITIONAL_LIGHTS_VERTEX _ADDITIONAL_LIGHTS

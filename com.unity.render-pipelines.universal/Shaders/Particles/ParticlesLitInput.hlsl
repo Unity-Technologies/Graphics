@@ -1,5 +1,5 @@
-#ifndef LIGHTWEIGHT_PARTICLES_LIT_INPUT_INCLUDED
-#define LIGHTWEIGHT_PARTICLES_LIT_INPUT_INCLUDED
+#ifndef UNIVERSAL_PARTICLES_LIT_INPUT_INCLUDED
+#define UNIVERSAL_PARTICLES_LIT_INPUT_INCLUDED
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Particles.hlsl"
 
@@ -94,4 +94,4 @@ inline void InitializeParticleLitSurfaceData(float2 uv, float3 blendUv, float4 p
     outSurfaceData.alpha = albedo.a;
 }
 
-#endif // LIGHTWEIGHT_PARTICLES_LIT_INPUT_INCLUDED
+#endif // UNIVERSAL_PARTICLES_LIT_INPUT_INCLUDED

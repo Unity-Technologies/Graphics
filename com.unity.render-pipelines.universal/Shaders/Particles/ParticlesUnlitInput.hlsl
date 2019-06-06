@@ -1,5 +1,5 @@
-#ifndef LIGHTWEIGHT_PARTICLES_UNLIT_INPUT_INCLUDED
-#define LIGHTWEIGHT_PARTICLES_UNLIT_INPUT_INCLUDED
+#ifndef UNIVERSAL_PARTICLES_UNLIT_INPUT_INCLUDED
+#define UNIVERSAL_PARTICLES_UNLIT_INPUT_INCLUDED
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Particles.hlsl"
 
@@ -45,4 +45,4 @@ half4 SampleAlbedo(float2 uv, float3 blendUv, half4 color, float4 particleColor,
     return albedo;
 }
 
-#endif // LIGHTWEIGHT_PARTICLES_PBR_INCLUDED
+#endif // UNIVERSAL_PARTICLES_PBR_INCLUDED

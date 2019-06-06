@@ -1,4 +1,4 @@
-Shader "Hidden/TerrainEngine/Details/LightweightPipeline/Vertexlit"
+Shader "Hidden/TerrainEngine/Details/UniversalPipeline/Vertexlit"
 {
     Properties
     {
@@ -6,7 +6,7 @@ Shader "Hidden/TerrainEngine/Details/LightweightPipeline/Vertexlit"
     }
     SubShader
     {
-        Tags { "RenderType" = "Opaque" "RenderPipeline" = "LightweightPipeline" "IgnoreProjector" = "True"}
+        Tags { "RenderType" = "Opaque" "RenderPipeline" = "UniversalPipeline" "IgnoreProjector" = "True"}
         LOD 100
 
         ZWrite On
@@ -25,7 +25,7 @@ Shader "Hidden/TerrainEngine/Details/LightweightPipeline/Vertexlit"
             #pragma fragment Frag
 
             // -------------------------------------
-            // Lightweight Pipeline keywords
+            // Universal Pipeline keywords
             #pragma multi_compile _ _MAIN_LIGHT_SHADOWS
             #pragma multi_compile _ _MAIN_LIGHT_SHADOWS_CASCADE
             #pragma multi_compile _ _ADDITIONAL_LIGHTS_VERTEX _ADDITIONAL_LIGHTS
@@ -162,8 +162,8 @@ Shader "Hidden/TerrainEngine/Details/LightweightPipeline/Vertexlit"
             // Required to compile gles 2.0 with standard srp library
             #pragma prefer_hlslcc gles
             #pragma exclude_renderers d3d11_9x
-            #pragma vertex LightweightVertexMeta
-            #pragma fragment LightweightFragmentMetaSimple
+            #pragma vertex UniversalVertexMeta
+            #pragma fragment UniversalFragmentMetaSimple
 
             #pragma shader_feature _SPECGLOSSMAP
 

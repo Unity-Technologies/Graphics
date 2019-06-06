@@ -9,7 +9,7 @@ Shader "Hidden/Universal Render Pipeline/Terrain/Lit (Base Pass)"
 
     SubShader
     {
-        Tags { "Queue" = "Geometry-100" "RenderType" = "Opaque" "RenderPipeline" = "LightweightPipeline" "IgnoreProjector" = "True"}
+        Tags { "Queue" = "Geometry-100" "RenderType" = "Opaque" "RenderPipeline" = "UniversalPipeline" "IgnoreProjector" = "True"}
         LOD 200
 
         // ------------------------------------------------------------------
@@ -17,9 +17,9 @@ Shader "Hidden/Universal Render Pipeline/Terrain/Lit (Base Pass)"
         Pass
         {
             Name "ForwardLit"
-            // Lightmode matches the ShaderPassName set in LightweightPipeline.cs. SRPDefaultUnlit and passes with
-            // no LightMode tag are also rendered by Lightweight Pipeline
-            Tags{"LightMode" = "LightweightForward"}
+            // Lightmode matches the ShaderPassName set in UniversalPipeline.cs. SRPDefaultUnlit and passes with
+            // no LightMode tag are also rendered by Universal Pipeline
+            Tags{"LightMode" = "UniversalForward"}
 
             HLSLPROGRAM
             // Required to compile gles 2.0 with standard SRP library
@@ -34,7 +34,7 @@ Shader "Hidden/Universal Render Pipeline/Terrain/Lit (Base Pass)"
             #define _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A 1
 
             // -------------------------------------
-            // Lightweight Pipeline keywords
+            // Universal Pipeline keywords
             #pragma multi_compile _ _MAIN_LIGHT_SHADOWS
             #pragma multi_compile _ _MAIN_LIGHT_SHADOWS_CASCADE
             #pragma multi_compile _ _ADDITIONAL_LIGHTS_VERTEX _ADDITIONAL_LIGHTS

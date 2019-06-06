@@ -1,5 +1,5 @@
 // Unity built-in shader source. Copyright (c) 2016 Unity Technologies. MIT license (see license.txt)
-Shader "Hidden/TerrainEngine/Details/LightweightPipeline/WavingDoublePass"
+Shader "Hidden/TerrainEngine/Details/UniversalPipeline/WavingDoublePass"
 {
     Properties
     {
@@ -10,7 +10,7 @@ Shader "Hidden/TerrainEngine/Details/LightweightPipeline/WavingDoublePass"
     }
     SubShader
     {
-        Tags {"Queue" = "Geometry+200" "RenderType" = "Grass" "IgnoreProjector" = "True" "RenderPipeline" = "LightweightPipeline" }//"DisableBatching"="True"
+        Tags {"Queue" = "Geometry+200" "RenderType" = "Grass" "IgnoreProjector" = "True" "RenderPipeline" = "UniversalPipeline" }//"DisableBatching"="True"
         Cull Off
         LOD 200
         AlphaTest Greater [_Cutoff]
@@ -25,7 +25,7 @@ Shader "Hidden/TerrainEngine/Details/LightweightPipeline/WavingDoublePass"
             #pragma target 2.0
 
             // -------------------------------------
-            // Lightweight Pipeline keywords
+            // Universal Pipeline keywords
             #pragma multi_compile _ _MAIN_LIGHT_SHADOWS
             #pragma multi_compile _ _MAIN_LIGHT_SHADOWS_CASCADE
             #pragma multi_compile _ _ADDITIONAL_LIGHTS_VERTEX _ADDITIONAL_LIGHTS

@@ -1,5 +1,5 @@
-#ifndef LIGHTWEIGHT_INPUT_SURFACE_INCLUDED
-#define LIGHTWEIGHT_INPUT_SURFACE_INCLUDED
+#ifndef UNIVERSAL_INPUT_SURFACE_INCLUDED
+#define UNIVERSAL_INPUT_SURFACE_INCLUDED
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Packing.hlsl"
@@ -9,7 +9,7 @@ TEXTURE2D(_BaseMap);            SAMPLER(sampler_BaseMap);
 TEXTURE2D(_BumpMap);            SAMPLER(sampler_BumpMap);
 TEXTURE2D(_EmissionMap);        SAMPLER(sampler_EmissionMap);
 
-// Must match Lightweight ShaderGraph master node
+// Must match Universal ShaderGraph master node
 struct SurfaceData
 {
     half3 albedo;

@@ -1,5 +1,5 @@
-#ifndef LIGHTWEIGHT_PARTICLES_FORWARD_SIMPLE_LIT_PASS_INCLUDED
-#define LIGHTWEIGHT_PARTICLES_FORWARD_SIMPLE_LIT_PASS_INCLUDED
+#ifndef UNIVERSAL_PARTICLES_FORWARD_SIMPLE_LIT_PASS_INCLUDED
+#define UNIVERSAL_PARTICLES_FORWARD_SIMPLE_LIT_PASS_INCLUDED
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Particles.hlsl"
@@ -173,10 +173,10 @@ half4 ParticlesLitFragment(VaryingsParticle input) : SV_Target
     InputData inputData;
     InitializeInputData(input, normalTS, inputData);
 
-    half4 color = LightweightFragmentBlinnPhong(inputData, diffuse, specularGloss, shininess, emission, alpha);
+    half4 color = UniversalFragmentBlinnPhong(inputData, diffuse, specularGloss, shininess, emission, alpha);
 
     color.rgb = MixFog(color.rgb, inputData.fogCoord);
     return color;
 }
 
-#endif // LIGHTWEIGHT_PARTICLES_FORWARD_SIMPLE_LIT_PASS_INCLUDED
+#endif // UNIVERSAL_PARTICLES_FORWARD_SIMPLE_LIT_PASS_INCLUDED

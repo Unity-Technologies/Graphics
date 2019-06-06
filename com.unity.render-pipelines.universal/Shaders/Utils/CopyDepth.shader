@@ -2,7 +2,7 @@ Shader "Hidden/Universal Render Pipeline/CopyDepth"
 {
     SubShader
     {
-        Tags { "RenderType" = "Opaque" "RenderPipeline" = "LightweightPipeline"}
+        Tags { "RenderType" = "Opaque" "RenderPipeline" = "UniversalPipeline"}
 
         Pass
         {

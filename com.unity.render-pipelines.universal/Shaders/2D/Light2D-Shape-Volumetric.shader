@@ -2,7 +2,7 @@ Shader "Hidden/Light2D-Shape-Volumetric"
 {
     SubShader
     {
-        Tags { "RenderType" = "Transparent" "RenderPipeline" = "LightweightPipeline" }
+        Tags { "RenderType" = "Transparent" "RenderPipeline" = "UniversalPipeline" }
 
         Pass
         {

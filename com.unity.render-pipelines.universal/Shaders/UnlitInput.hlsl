@@ -1,5 +1,5 @@
-#ifndef LIGHTWEIGHT_UNLIT_INPUT_INCLUDED
-#define LIGHTWEIGHT_UNLIT_INPUT_INCLUDED
+#ifndef UNIVERSAL_UNLIT_INPUT_INCLUDED
+#define UNIVERSAL_UNLIT_INPUT_INCLUDED
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/SurfaceInput.hlsl"
 

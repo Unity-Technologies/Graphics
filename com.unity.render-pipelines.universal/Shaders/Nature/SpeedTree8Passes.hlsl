@@ -1,5 +1,5 @@
-#ifndef LIGHTWEIGHT_SPEEDTREE8_PASSES_INCLUDED
-#define LIGHTWEIGHT_SPEEDTREE8_PASSES_INCLUDED
+#ifndef UNIVERSAL_SPEEDTREE8_PASSES_INCLUDED
+#define UNIVERSAL_SPEEDTREE8_PASSES_INCLUDED
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
 
@@ -373,7 +373,7 @@ half4 SpeedTree8Frag(SpeedTreeFragmentInput input) : SV_Target
     InputData inputData;
     InitializeInputData(input, normalTs, inputData);
 
-    half4 color = LightweightFragmentPBR(inputData, albedo, metallic, specular, smoothness, occlusion, emission, alpha);
+    half4 color = UniversalFragmentPBR(inputData, albedo, metallic, specular, smoothness, occlusion, emission, alpha);
     color.rgb = MixFog(color.rgb, inputData.fogCoord);
     return color;
 }

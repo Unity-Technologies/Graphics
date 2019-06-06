@@ -94,8 +94,8 @@ namespace UnityEditor.Experimental.Rendering.Univerasl
             public static GUIContent sortingLayerNone = EditorGUIUtility.TrTextContent("None");
             public static GUIContent sortingLayerMixed = EditorGUIUtility.TrTextContent("Mixed...");
 
-            public static GUIContent renderPipelineUnassignedWarning = EditorGUIUtility.TrTextContentWithIcon("Lightweight scriptable renderpipeline asset must be assigned in graphics settings", MessageType.Warning);
-            public static GUIContent asset2DUnassignedWarning = EditorGUIUtility.TrTextContentWithIcon("2D renderer data must be assigned to your lightweight render pipeline asset", MessageType.Warning);
+            public static GUIContent renderPipelineUnassignedWarning = EditorGUIUtility.TrTextContentWithIcon("Universal scriptable renderpipeline asset must be assigned in graphics settings", MessageType.Warning);
+            public static GUIContent asset2DUnassignedWarning = EditorGUIUtility.TrTextContentWithIcon("2D renderer data must be assigned to your universal render pipeline asset", MessageType.Warning);
         }
 
         const float     k_GlobalLightGizmoSize      = 1.2f;
@@ -463,7 +463,7 @@ namespace UnityEditor.Experimental.Rendering.Univerasl
                 {
                     if (oldAngle < 180)
                         angle = 0;
-                    else 
+                    else
                         angle = 360;
                 }
             }
@@ -566,7 +566,7 @@ namespace UnityEditor.Experimental.Rendering.Univerasl
             {
                 light.pointLightInnerRadius = (outerRadius < innerRadius) ? outerRadius : innerRadius;
                 light.pointLightOuterRadius = (innerRadius > outerRadius) ? innerRadius : outerRadius;
-            }      
+            }
         }
 
         void OnSceneGUI()
@@ -673,7 +673,7 @@ namespace UnityEditor.Experimental.Rendering.Univerasl
             }
 
             UniversalRenderPipelineAsset asset = UniversalRenderPipeline.asset;
-            Renderer2DData assetData = asset.scriptableRendererData as Renderer2DData; 
+            Renderer2DData assetData = asset.scriptableRendererData as Renderer2DData;
             if(assetData == null)
             {
                 EditorGUILayout.HelpBox(Styles.asset2DUnassignedWarning);

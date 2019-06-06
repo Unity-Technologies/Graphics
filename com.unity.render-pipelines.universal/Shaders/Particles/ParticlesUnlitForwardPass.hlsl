@@ -1,5 +1,5 @@
-#ifndef LIGHTWEIGHT_PARTICLES_UNLIT_FORWARD_PASS_INCLUDED
-#define LIGHTWEIGHT_PARTICLES_UNLIT_FORWARD_PASS_INCLUDED
+#ifndef UNIVERSAL_PARTICLES_UNLIT_FORWARD_PASS_INCLUDED
+#define UNIVERSAL_PARTICLES_UNLIT_FORWARD_PASS_INCLUDED
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
 
@@ -172,4 +172,4 @@ half4 fragParticleUnlit(VaryingsParticle input) : SV_Target
     return half4(result, alpha);
 }
 
-#endif // LIGHTWEIGHT_PARTICLES_UNLIT_FORWARD_PASS_INCLUDED
+#endif // UNIVERSAL_PARTICLES_UNLIT_FORWARD_PASS_INCLUDED
