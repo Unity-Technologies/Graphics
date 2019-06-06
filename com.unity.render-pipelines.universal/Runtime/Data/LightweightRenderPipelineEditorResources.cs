@@ -64,7 +64,7 @@ namespace UnityEngine.Rendering.Universal
                 var resources = target as LightweightRenderPipelineEditorResources;
                 resources.materials = null;
                 resources.shaders = null;
-                ResourceReloader.ReloadAllNullIn(target, LightweightRenderPipelineAsset.packagePath);
+                ResourceReloader.ReloadAllNullIn(target, UniversalRenderPipelineAsset.packagePath);
             }
         }
     }

@@ -81,7 +81,7 @@ namespace UnityEngine.Rendering.Universal
             {
                 if (m_RequiresDepthTextureOption == CameraOverrideOption.UsePipelineSettings)
                 {
-                    LightweightRenderPipelineAsset asset = GraphicsSettings.renderPipelineAsset as LightweightRenderPipelineAsset;
+                    UniversalRenderPipelineAsset asset = GraphicsSettings.renderPipelineAsset as UniversalRenderPipelineAsset;
                     return asset.supportsCameraDepthTexture;
                 }
                 else
@@ -98,7 +98,7 @@ namespace UnityEngine.Rendering.Universal
             {
                 if (m_RequiresOpaqueTextureOption == CameraOverrideOption.UsePipelineSettings)
                 {
-                    LightweightRenderPipelineAsset asset = GraphicsSettings.renderPipelineAsset as LightweightRenderPipelineAsset;
+                    UniversalRenderPipelineAsset asset = GraphicsSettings.renderPipelineAsset as UniversalRenderPipelineAsset;
                     return asset.supportsCameraOpaqueTexture;
                 }
                 else

@@ -17,7 +17,7 @@ namespace UnityEngine.Rendering.Universal
             {
                 var instance = CreateInstance<ForwardRendererData>();
                 AssetDatabase.CreateAsset(instance, pathName);
-                ResourceReloader.ReloadAllNullIn(instance, LightweightRenderPipelineAsset.packagePath);
+                ResourceReloader.ReloadAllNullIn(instance, UniversalRenderPipelineAsset.packagePath);
                 Selection.activeObject = instance;
             }
         }
@@ -56,7 +56,7 @@ namespace UnityEngine.Rendering.Universal
         {
 #if UNITY_EDITOR
             if (!Application.isPlaying)
-                ResourceReloader.ReloadAllNullIn(this, LightweightRenderPipelineAsset.packagePath);
+                ResourceReloader.ReloadAllNullIn(this, UniversalRenderPipelineAsset.packagePath);
 #endif
             return new ForwardRenderer(this);
         }
@@ -83,7 +83,7 @@ namespace UnityEngine.Rendering.Universal
             {
                 if (shader.GetValue(shaders) == null)
                 {
-                    ResourceReloader.ReloadAllNullIn(this, LightweightRenderPipelineAsset.packagePath);
+                    ResourceReloader.ReloadAllNullIn(this, UniversalRenderPipelineAsset.packagePath);
                     break;
                 }
             }

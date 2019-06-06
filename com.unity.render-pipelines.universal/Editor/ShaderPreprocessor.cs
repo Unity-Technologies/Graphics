@@ -212,7 +212,7 @@ namespace UnityEditor.Rendering.Universal
 
         public void OnProcessShader(Shader shader, ShaderSnippetData snippetData, IList<ShaderCompilerData> compilerDataList)
         {
-            LightweightRenderPipelineAsset lwrpAsset = GraphicsSettings.renderPipelineAsset as LightweightRenderPipelineAsset;
+            UniversalRenderPipelineAsset lwrpAsset = GraphicsSettings.renderPipelineAsset as UniversalRenderPipelineAsset;
             if (lwrpAsset == null || compilerDataList == null || compilerDataList.Count == 0)
                 return;
 
@@ -237,7 +237,7 @@ namespace UnityEditor.Rendering.Universal
             }
         }
 
-        ShaderFeatures GetSupportedShaderFeatures(LightweightRenderPipelineAsset pipelineAsset)
+        ShaderFeatures GetSupportedShaderFeatures(UniversalRenderPipelineAsset pipelineAsset)
         {
             ShaderFeatures shaderFeatures;
             shaderFeatures = ShaderFeatures.MainLight;

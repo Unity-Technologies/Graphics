@@ -18,7 +18,7 @@ class EditorTests
 
         try
         {
-            LightweightRenderPipelineAsset asset = LightweightRenderPipelineAsset.Create();
+            UniversalRenderPipelineAsset asset = UniversalRenderPipelineAsset.Create();
             LogAssert.NoUnexpectedReceived();
             ScriptableObject.DestroyImmediate(asset);
         }
@@ -40,7 +40,7 @@ class EditorTests
         try
         {
             var asset = ScriptableObject.CreateInstance<ForwardRendererData>();
-            ResourceReloader.ReloadAllNullIn(asset, LightweightRenderPipelineAsset.packagePath);
+            ResourceReloader.ReloadAllNullIn(asset, UniversalRenderPipelineAsset.packagePath);
             LogAssert.NoUnexpectedReceived();
             ScriptableObject.DestroyImmediate(asset);
         }
@@ -63,7 +63,7 @@ class EditorTests
     [Test]
     public void ValidateNewAssetResources()
     {
-        LightweightRenderPipelineAsset asset = LightweightRenderPipelineAsset.Create();
+        UniversalRenderPipelineAsset asset = UniversalRenderPipelineAsset.Create();
         Assert.AreNotEqual(null, asset.defaultMaterial);
         Assert.AreNotEqual(null, asset.defaultParticleMaterial);
         Assert.AreNotEqual(null, asset.defaultLineMaterial);
@@ -86,7 +86,7 @@ class EditorTests
     public void ValidateAssetSettings()
     {
         // Create a new asset and validate invalid settings
-        LightweightRenderPipelineAsset asset = LightweightRenderPipelineAsset.Create();
+        UniversalRenderPipelineAsset asset = UniversalRenderPipelineAsset.Create();
         if (asset != null)
         {
             asset.shadowDistance = -1.0f;

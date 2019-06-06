@@ -6,6 +6,15 @@ using UnityEditor;
 using UnityEditor.ProjectWindowCallback;
 #endif
 
+namespace UnityEngine.Rendering.LWRP
+{
+    [Obsolete("LWRP -> Universal (UnityUpgradable) -> UnityEngine.Rendering.Universal.UniversalRenderPipelineAsset", true)]
+    public class LightweightRenderPipelineAsset
+    {
+    }
+}
+
+
 namespace UnityEngine.Rendering.Universal
 {
     [MovedFrom("UnityEngine.Rendering.LWRP")] public enum ShadowCascadesOption
@@ -76,7 +85,7 @@ namespace UnityEngine.Rendering.Universal
         ForwardRenderer,
     }
 
-    [MovedFrom("UnityEngine.Rendering.LWRP")] public class LightweightRenderPipelineAsset : RenderPipelineAsset, ISerializationCallbackReceiver
+    public class UniversalRenderPipelineAsset : RenderPipelineAsset, ISerializationCallbackReceiver
     {
         Shader m_DefaultShader;
         internal ScriptableRenderer m_Renderer;
@@ -138,9 +147,9 @@ namespace UnityEngine.Rendering.Universal
 
         public static readonly string packagePath = "Packages/com.unity.render-pipelines.universal";
 
-        public static LightweightRenderPipelineAsset Create()
+        public static UniversalRenderPipelineAsset Create()
         {
-            var instance = CreateInstance<LightweightRenderPipelineAsset>();
+            var instance = CreateInstance<UniversalRenderPipelineAsset>();
 
             instance.LoadBuiltinRendererData();
             instance.m_EditorResourcesAsset = LoadResourceFile<LightweightRenderPipelineEditorResources>();

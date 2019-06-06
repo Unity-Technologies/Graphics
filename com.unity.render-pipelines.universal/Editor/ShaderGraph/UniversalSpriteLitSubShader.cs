@@ -377,7 +377,7 @@ namespace UnityEditor.Experimental.Rendering.Univerasl
 
         public bool IsPipelineCompatible(RenderPipelineAsset renderPipelineAsset)
         {
-            return renderPipelineAsset is LightweightRenderPipelineAsset;
+            return renderPipelineAsset is UniversalRenderPipelineAsset;
         }
     }
 }

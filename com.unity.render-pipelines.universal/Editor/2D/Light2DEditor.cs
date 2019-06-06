@@ -220,7 +220,7 @@ namespace UnityEditor.Experimental.Rendering.Univerasl
             m_AnyBlendStyleEnabled = false;
             var blendStyleIndices = new List<int>();
             var blendStyleNames = new List<string>();
-            var pipelineAsset = UnityEngine.Rendering.GraphicsSettings.renderPipelineAsset as LightweightRenderPipelineAsset;
+            var pipelineAsset = UnityEngine.Rendering.GraphicsSettings.renderPipelineAsset as UniversalRenderPipelineAsset;
             var rendererData = pipelineAsset != null ? pipelineAsset.scriptableRendererData as Renderer2DData : null;
             if (rendererData != null)
             {
@@ -672,7 +672,7 @@ namespace UnityEditor.Experimental.Rendering.Univerasl
                 return;
             }
 
-            LightweightRenderPipelineAsset asset = UniversalRenderPipeline.asset;
+            UniversalRenderPipelineAsset asset = UniversalRenderPipeline.asset;
             Renderer2DData assetData = asset.scriptableRendererData as Renderer2DData; 
             if(assetData == null)
             {
