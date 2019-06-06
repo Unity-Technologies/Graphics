@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 
-namespace UnityEditor.Experimental.Rendering.LWRP.Path2D
+namespace UnityEditor.Experimental.Rendering.Univerasl.Path2D
 {
     internal interface IEditablePathController
     {

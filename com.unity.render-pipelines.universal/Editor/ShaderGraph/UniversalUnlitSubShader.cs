@@ -5,14 +5,17 @@ using System.Linq;
 using UnityEditor;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph;
-using UnityEngine.Rendering;
-using UnityEngine.Rendering.Universal;
 
-namespace UnityEditor.Experimental.Rendering.LWRP
+namespace UnityEngine.Rendering.Universal
 {
     [Serializable]
-    class LightWeightSpriteLitSubShader : ISpriteLitSubShader
+    [FormerName("UnityEngine.Experimental.Rendering.LightweightPipeline.LightWeightUnlitSubShader")]
+    [FormerName("UnityEditor.ShaderGraph.LightWeightUnlitSubShader")]
+    [FormerName("UnityEditor.Rendering.LWRP.LightWeightUnlitSubShader")]
+    class UniversalUnlitSubShader : IUnlitSubShader
     {
+        static readonly NeededCoordinateSpace k_PixelCoordinateSpace = NeededCoordinateSpace.World;
+
         struct Pass
         {
             public string Name;
@@ -20,90 +23,87 @@ namespace UnityEditor.Experimental.Rendering.LWRP
             public List<int> PixelShaderSlots;
         }
 
-        Pass m_LitPass = new Pass
+        Pass m_UnlitPass = new Pass
         {
-            Name = "Lit Pass",
+            Name = "Pass",
             PixelShaderSlots = new List<int>
             {
-                SpriteLitMasterNode.ColorSlotId,
-                SpriteLitMasterNode.MaskSlotId,
+                UnlitMasterNode.ColorSlotId,
+                UnlitMasterNode.AlphaSlotId,
+                UnlitMasterNode.AlphaThresholdSlotId
             },
             VertexShaderSlots = new List<int>()
             {
-                SpriteLitMasterNode.PositionSlotId,
+                UnlitMasterNode.PositionSlotId
             }
         };
 
-        Pass m_NormalPass = new Pass
+        Pass m_DepthShadowPass = new Pass()
         {
-            Name = "Sprite Normal",
-            PixelShaderSlots = new List<int>
+            Name = "",
+            PixelShaderSlots = new List<int>()
             {
-                SpriteLitMasterNode.ColorSlotId,
-                SpriteLitMasterNode.NormalSlotId
+                PBRMasterNode.AlphaSlotId,
+                PBRMasterNode.AlphaThresholdSlotId
             },
             VertexShaderSlots = new List<int>()
             {
-                SpriteLitMasterNode.PositionSlotId
+                PBRMasterNode.PositionSlotId
             }
         };
 
         public int GetPreviewPassIndex() { return 0; }
 
-        public string ReadTemplate(string template, List<string> sourceAssetDependencyPaths)
+        public string GetSubshader(IMasterNode masterNode, GenerationMode mode, List<string> sourceAssetDependencyPaths = null)
         {
-            string templatePath = GetTemplatePath(template);
+            if (sourceAssetDependencyPaths != null)
+            {
+                // LightWeightUnlitSubShader.cs
+                sourceAssetDependencyPaths.Add(AssetDatabase.GUIDToAssetPath("3ef30c5c1d5fc412f88511ef5818b654"));
+            }
 
-            if (!File.Exists(templatePath))
+            var templatePath = GetTemplatePath("lightweightUnlitPass.template");
+            var extraPassesTemplatePath = GetTemplatePath("lightweightUnlitExtraPasses.template");
+            if (!File.Exists(templatePath) || !File.Exists(extraPassesTemplatePath))
                 return string.Empty;
 
             if (sourceAssetDependencyPaths != null)
             {
                 sourceAssetDependencyPaths.Add(templatePath);
+                sourceAssetDependencyPaths.Add(extraPassesTemplatePath);
+
+                var relativePath = "Packages/com.unity.render-pipelines.universal/";
+                var fullPath = Path.GetFullPath(relativePath);
+                var shaderFiles = Directory.GetFiles(Path.Combine(fullPath, "ShaderLibrary")).Select(x => Path.Combine(relativePath, x.Substring(fullPath.Length)));
+                sourceAssetDependencyPaths.AddRange(shaderFiles);
             }
 
-            return File.ReadAllText(templatePath);
-        }
+            string forwardTemplate = File.ReadAllText(templatePath);
+            string extraTemplate = File.ReadAllText(extraPassesTemplatePath);
 
-
-        public string GetSubshader(IMasterNode masterNode, GenerationMode mode, List<string> sourceAssetDependencyPaths = null)
-        {
-            if (sourceAssetDependencyPaths != null)
-            {
-                // LightWeightSpriteLitSubShader.cs
-                sourceAssetDependencyPaths.Add(AssetDatabase.GUIDToAssetPath("62511ee827d14492a8c78ba0ef167e7f"));
-            }
-
-            string litPassTemplate = ReadTemplate("lightweightSpriteLitPass.template", sourceAssetDependencyPaths);
-            string normalPassTemplate = ReadTemplate("lightweightSpriteNormalPass.template", sourceAssetDependencyPaths);
-            var litMasterNode = masterNode as SpriteLitMasterNode;
-
-            var litPass = m_LitPass;
-            var normalPass = m_NormalPass;
+            var unlitMasterNode = masterNode as UnlitMasterNode;
+            var pass = m_UnlitPass;
             var subShader = new ShaderStringBuilder();
             subShader.AppendLine("SubShader");
             using (subShader.BlockScope())
             {
-                subShader.AppendLine("Tags{ \"RenderPipeline\" = \"LightweightPipeline\"}");
-
-                var materialTags = ShaderGenerator.BuildMaterialTags(SurfaceType.Transparent);
+                var materialTags = ShaderGenerator.BuildMaterialTags(unlitMasterNode.surfaceType);
                 var tagsBuilder = new ShaderStringBuilder(0);
                 materialTags.GetTags(tagsBuilder, LightweightRenderPipeline.k_ShaderTagName);
                 subShader.AppendLines(tagsBuilder.ToString());
 
-                var materialOptions = ShaderGenerator.GetMaterialOptions(SurfaceType.Transparent, AlphaMode.Alpha, true);
+                var materialOptions = ShaderGenerator.GetMaterialOptions(unlitMasterNode.surfaceType, unlitMasterNode.alphaMode, unlitMasterNode.twoSided.isOn);
                 subShader.AppendLines(GetShaderPassFromTemplate(
-                        true,
-                        litPassTemplate,
-                        litMasterNode,
-                        litPass,
+                        forwardTemplate,
+                        unlitMasterNode,
+                        pass,
                         mode,
                         materialOptions));
+
                 subShader.AppendLines(GetShaderPassFromTemplate(
-                        false,
-                        normalPassTemplate,
-                        litMasterNode,
-                        normalPass,
+                        extraTemplate,
+                        unlitMasterNode,
+                        m_DepthShadowPass,
                         mode,
                         materialOptions));
             }
@@ -111,7 +111,23 @@ namespace UnityEditor.Experimental.Rendering.LWRP
             return subShader.ToString();
         }
 
-        static string GetShaderPassFromTemplate(bool isColorPass, string template, SpriteLitMasterNode masterNode, Pass pass, GenerationMode mode, SurfaceMaterialOptions materialOptions)
+        public bool IsPipelineCompatible(RenderPipelineAsset renderPipelineAsset)
+        {
+            return renderPipelineAsset is LightweightRenderPipelineAsset;
+        }
+
+        static string GetTemplatePath(string templateName)
+        {
+            var basePath = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/";
+            string templatePath = Path.Combine(basePath, templateName);
+
+            if (File.Exists(templatePath))
+                return templatePath;
+
+            throw new FileNotFoundException(string.Format(@"Cannot find a template with name ""{0}"".", templateName));
+        }
+
+        static string GetShaderPassFromTemplate(string template, UnlitMasterNode masterNode, Pass pass, GenerationMode mode, SurfaceMaterialOptions materialOptions)
         {
             // ----------------------------------------------------- //
             //                         SETUP                         //
@@ -145,9 +161,11 @@ namespace UnityEditor.Experimental.Rendering.LWRP
 
             var pixelShader = new ShaderStringBuilder(2);
             var pixelShaderSurfaceInputs = new ShaderStringBuilder(2);
+            var pixelShaderSurfaceRemap = new ShaderStringBuilder(2);
 
             // -------------------------------------
             // Get Slot and Node lists per stage
+
             var vertexSlots = pass.VertexShaderSlots.Select(masterNode.FindSlot<MaterialSlot>).ToList();
             var vertexNodes = ListPool<AbstractMaterialNode>.Get();
             NodeUtils.DepthFirstCollectNodesFromNode(vertexNodes, masterNode, NodeUtils.IncludeSelf.Include, pass.VertexShaderSlots);
@@ -158,18 +176,19 @@ namespace UnityEditor.Experimental.Rendering.LWRP
 
             // -------------------------------------
             // Get Requirements
+
             var vertexRequirements = ShaderGraphRequirements.FromNodes(vertexNodes, ShaderStageCapability.Vertex, false);
             var pixelRequirements = ShaderGraphRequirements.FromNodes(pixelNodes, ShaderStageCapability.Fragment);
+            var graphRequirements = pixelRequirements.Union(vertexRequirements);
             var surfaceRequirements = ShaderGraphRequirements.FromNodes(pixelNodes, ShaderStageCapability.Fragment, false);
 
             var modelRequiements = ShaderGraphRequirements.none;
-            modelRequiements.requiresVertexColor = true;
-
-            if (isColorPass)
-            {
-
-                modelRequiements.requiresMeshUVs = new List<UVChannel>() { UVChannel.UV0 };
-            }
+            modelRequiements.requiresNormal |= k_PixelCoordinateSpace;
+            modelRequiements.requiresTangent |= k_PixelCoordinateSpace;
+            modelRequiements.requiresBitangent |= k_PixelCoordinateSpace;
+            modelRequiements.requiresPosition |= k_PixelCoordinateSpace;
+            modelRequiements.requiresViewDir |= k_PixelCoordinateSpace;
+            modelRequiements.requiresMeshUVs.Add(UVChannel.UV1);
 
             // ----------------------------------------------------- //
             //                START SHADER GENERATION                //
@@ -188,6 +207,20 @@ namespace UnityEditor.Experimental.Rendering.LWRP
             materialOptions.GetDepthTest(zTestBuilder);
             materialOptions.GetDepthWrite(zWriteBuilder);
 
+            // -------------------------------------
+            // Generate defines
+
+            if (masterNode.IsSlotConnected(UnlitMasterNode.AlphaThresholdSlotId))
+                defines.AppendLine("#define _AlphaClip 1");
+
+            if (masterNode.surfaceType == SurfaceType.Transparent && masterNode.alphaMode == AlphaMode.Premultiply)
+                defines.AppendLine("#define _ALPHAPREMULTIPLY_ON 1");
+
+            if (graphRequirements.requiresDepthTexture)
+                defines.AppendLine("#define REQUIRE_DEPTH_TEXTURE");
+
+            if (graphRequirements.requiresCameraOpaqueTexture)
+                defines.AppendLine("#define REQUIRE_OPAQUE_TEXTURE");
 
             // ----------------------------------------------------- //
             //                START VERTEX DESCRIPTION               //
@@ -318,6 +351,21 @@ namespace UnityEditor.Experimental.Rendering.LWRP
                 vertexRequirements,
                 CoordinateSpace.World);
 
+            // -------------------------------------
+            // Generate pixel shader surface remap
+
+            foreach (var slot in pixelSlots)
+            {
+                pixelShaderSurfaceRemap.AppendLine("{0} = surf.{0};", slot.shaderOutputName);
+            }
+
+            // -------------------------------------
+            // Extra pixel shader work
+
+            var faceSign = new ShaderStringBuilder();
+
+            if (pixelRequirements.requiresFaceSign)
+                faceSign.AppendLine(", half FaceSign : VFACE");
 
             // ----------------------------------------------------- //
             //                      FINALIZE                         //
@@ -358,25 +406,12 @@ namespace UnityEditor.Experimental.Rendering.LWRP
             resultPass = resultPass.Replace("${VertexShaderDescriptionInputs}", vertexShaderDescriptionInputs.ToString());
             resultPass = resultPass.Replace("${VertexShaderOutputs}", vertexShaderOutputs.ToString());
 
+            resultPass = resultPass.Replace("${FaceSign}", faceSign.ToString());
             resultPass = resultPass.Replace("${PixelShader}", pixelShader.ToString());
             resultPass = resultPass.Replace("${PixelShaderSurfaceInputs}", pixelShaderSurfaceInputs.ToString());
+            resultPass = resultPass.Replace("${PixelShaderSurfaceRemap}", pixelShaderSurfaceRemap.ToString());
 
             return resultPass;
-        }
-
-        static string GetTemplatePath(string templateName)
-        {
-            var basePath = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/";
-            string path = Path.Combine(basePath, templateName);
-
-            if (!File.Exists(path))
-                throw new FileNotFoundException(string.Format(@"Cannot find a template with name ""{0}"".", templateName));
-            return path;
-        }
-
-        public bool IsPipelineCompatible(RenderPipelineAsset renderPipelineAsset)
-        {
-            return renderPipelineAsset is LightweightRenderPipelineAsset;
         }
     }
 }

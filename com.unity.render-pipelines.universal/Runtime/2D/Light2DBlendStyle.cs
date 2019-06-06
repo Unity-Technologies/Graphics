@@ -2,7 +2,7 @@ using System;
 using UnityEngine.Scripting.APIUpdating;
 using UnityEngine.Serialization;
 
-namespace UnityEngine.Experimental.Rendering.LWRP
+namespace UnityEngine.Experimental.Rendering.Universal
 {
     [Serializable]
     [MovedFrom("UnityEngine.Rendering.LWRP")] public struct Light2DBlendStyle

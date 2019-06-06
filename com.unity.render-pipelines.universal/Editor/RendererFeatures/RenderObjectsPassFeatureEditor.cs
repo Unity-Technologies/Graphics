@@ -2,9 +2,9 @@
 using System.Linq;
 using UnityEngine;
 using UnityEditorInternal;
-using UnityEngine.Experimental.Rendering.LWRP;
+using UnityEngine.Experimental.Rendering.Universal;
 
-namespace UnityEditor.Experimental.Rendering.LWRP 
+namespace UnityEditor.Experimental.Rendering.Univerasl 
 {
 	[CustomPropertyDrawer(typeof(RenderObjects.RenderObjectsSettings), true)]
     internal class RenderObjectsPassFeatureEditor : PropertyDrawer

@@ -10,7 +10,7 @@ using UnityEditor.ProjectWindowCallback;
 #endif
 
 
-namespace UnityEngine.Experimental.Rendering.LWRP
+namespace UnityEngine.Experimental.Rendering.Universal
 {
     [MovedFrom("UnityEngine.Rendering.LWRP")] public class Renderer2DData : ScriptableRendererData
     {

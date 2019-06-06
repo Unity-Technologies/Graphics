@@ -5,7 +5,7 @@ using UnityEngine;
 using UnityEditor;
 using UnityEditor.EditorTools;
 
-namespace UnityEditor.Experimental.Rendering.LWRP.Path2D
+namespace UnityEditor.Experimental.Rendering.Univerasl.Path2D
 {
     internal class GenericScriptablePathInspector<U,T> : ScriptablePathInspector where U : ScriptableData<T>
     {

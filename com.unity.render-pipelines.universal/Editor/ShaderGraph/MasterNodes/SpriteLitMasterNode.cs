@@ -5,7 +5,7 @@ using UnityEditor.Graphing;
 using UnityEngine;
 using UnityEditor.ShaderGraph;
 
-namespace UnityEditor.Experimental.Rendering.LWRP
+namespace UnityEditor.Experimental.Rendering.Univerasl
 {
     [Serializable]
     [Title("Master", "Sprite Lit (Experimental)")]

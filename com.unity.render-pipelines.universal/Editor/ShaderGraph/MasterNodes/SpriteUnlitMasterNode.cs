@@ -8,7 +8,7 @@ using UnityEngine;
 using UnityEngine.UIElements;
 using UnityEditor.ShaderGraph;
 
-namespace UnityEditor.Experimental.Rendering.LWRP
+namespace UnityEditor.Experimental.Rendering.Univerasl
 {
     [Serializable]
     [Title("Master", "Sprite Unlit (Experimental)")]

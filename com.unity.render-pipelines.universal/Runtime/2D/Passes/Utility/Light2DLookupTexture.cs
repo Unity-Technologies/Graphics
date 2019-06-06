@@ -1,7 +1,7 @@
 using UnityEditor;
 using System.IO;
 
-namespace UnityEngine.Experimental.Rendering.LWRP
+namespace UnityEngine.Experimental.Rendering.Universal
 {
     internal static class Light2DLookupTexture
     {

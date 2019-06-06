@@ -8,10 +8,11 @@ using UnityEditor.ShaderGraph;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 
-namespace UnityEditor.Experimental.Rendering.LWRP
+namespace UnityEditor.Experimental.Rendering.Univerasl
 {
     [Serializable]
-    class LightWeightSpriteUnlitSubShader : ISpriteUnlitSubShader
+    [FormerName("UnityEditor.Experimental.Rendering.LWRP.LightWeightSpriteLitSubShader")]
+    class UniversalSpriteLitSubShader : ISpriteLitSubShader
     {
         struct Pass
         {
@@ -20,30 +21,39 @@ namespace UnityEditor.Experimental.Rendering.LWRP
             public List<int> PixelShaderSlots;
         }
 
-        Pass m_UnlitPass = new Pass
+        Pass m_LitPass = new Pass
         {
-            Name = "Pass",
+            Name = "Lit Pass",
             PixelShaderSlots = new List<int>
             {
-                SpriteUnlitMasterNode.ColorSlotId,
+                SpriteLitMasterNode.ColorSlotId,
+                SpriteLitMasterNode.MaskSlotId,
             },
             VertexShaderSlots = new List<int>()
             {
-                SpriteUnlitMasterNode.PositionSlotId,
+                SpriteLitMasterNode.PositionSlotId,
+            }
+        };
+
+        Pass m_NormalPass = new Pass
+        {
+            Name = "Sprite Normal",
+            PixelShaderSlots = new List<int>
+            {
+                SpriteLitMasterNode.ColorSlotId,
+                SpriteLitMasterNode.NormalSlotId
+            },
+            VertexShaderSlots = new List<int>()
+            {
+                SpriteLitMasterNode.PositionSlotId
             }
         };
 
         public int GetPreviewPassIndex() { return 0; }
 
-        public string GetSubshader(IMasterNode masterNode, GenerationMode mode, List<string> sourceAssetDependencyPaths = null)
+        public string ReadTemplate(string template, List<string> sourceAssetDependencyPaths)
         {
-            if (sourceAssetDependencyPaths != null)
-            {
-                // LightWeightSpriteUnlitSubShader.cs
-                sourceAssetDependencyPaths.Add(AssetDatabase.GUIDToAssetPath("f2df349d00ec920488971bb77440b7bc"));
-            }
-
-            var templatePath = GetTemplatePath("lightweightSpriteUnlitPass.template");
+            string templatePath = GetTemplatePath(template);
 
             if (!File.Exists(templatePath))
                 return string.Empty;
@@ -53,10 +63,24 @@ namespace UnityEditor.Experimental.Rendering.LWRP
                 sourceAssetDependencyPaths.Add(templatePath);
             }
 
-            string forwardTemplate = File.ReadAllText(templatePath);
-            var unlitMasterNode = masterNode as SpriteUnlitMasterNode;
+            return File.ReadAllText(templatePath);
+        }
 
-            var pass = m_UnlitPass;
+
+        public string GetSubshader(IMasterNode masterNode, GenerationMode mode, List<string> sourceAssetDependencyPaths = null)
+        {
+            if (sourceAssetDependencyPaths != null)
+            {
+                // LightWeightSpriteLitSubShader.cs
+                sourceAssetDependencyPaths.Add(AssetDatabase.GUIDToAssetPath("62511ee827d14492a8c78ba0ef167e7f"));
+            }
+
+            string litPassTemplate = ReadTemplate("lightweightSpriteLitPass.template", sourceAssetDependencyPaths);
+            string normalPassTemplate = ReadTemplate("lightweightSpriteNormalPass.template", sourceAssetDependencyPaths);
+            var litMasterNode = masterNode as SpriteLitMasterNode;
+
+            var litPass = m_LitPass;
+            var normalPass = m_NormalPass;
             var subShader = new ShaderStringBuilder();
             subShader.AppendLine("SubShader");
             using (subShader.BlockScope())
@@ -70,9 +94,17 @@ namespace UnityEditor.Experimental.Rendering.LWRP
 
                 var materialOptions = ShaderGenerator.GetMaterialOptions(SurfaceType.Transparent, AlphaMode.Alpha, true);
                 subShader.AppendLines(GetShaderPassFromTemplate(
-                        forwardTemplate,
-                        unlitMasterNode,
-                        pass,
+                        true,
+                        litPassTemplate,
+                        litMasterNode,
+                        litPass,
+                        mode,
+                        materialOptions));
+                subShader.AppendLines(GetShaderPassFromTemplate(
+                        false,
+                        normalPassTemplate,
+                        litMasterNode,
+                        normalPass,
                         mode,
                         materialOptions));
             }
@@ -80,7 +112,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP
             return subShader.ToString();
         }
 
-        static string GetShaderPassFromTemplate(string template, SpriteUnlitMasterNode masterNode, Pass pass, GenerationMode mode, SurfaceMaterialOptions materialOptions)
+        static string GetShaderPassFromTemplate(bool isColorPass, string template, SpriteLitMasterNode masterNode, Pass pass, GenerationMode mode, SurfaceMaterialOptions materialOptions)
         {
             // ----------------------------------------------------- //
             //                         SETUP                         //
@@ -114,11 +146,9 @@ namespace UnityEditor.Experimental.Rendering.LWRP
 
             var pixelShader = new ShaderStringBuilder(2);
             var pixelShaderSurfaceInputs = new ShaderStringBuilder(2);
-            // var pixelShaderSurfaceRemap = new ShaderStringBuilder(2);
 
             // -------------------------------------
             // Get Slot and Node lists per stage
-
             var vertexSlots = pass.VertexShaderSlots.Select(masterNode.FindSlot<MaterialSlot>).ToList();
             var vertexNodes = ListPool<AbstractMaterialNode>.Get();
             NodeUtils.DepthFirstCollectNodesFromNode(vertexNodes, masterNode, NodeUtils.IncludeSelf.Include, pass.VertexShaderSlots);
@@ -129,16 +159,18 @@ namespace UnityEditor.Experimental.Rendering.LWRP
 
             // -------------------------------------
             // Get Requirements
-
             var vertexRequirements = ShaderGraphRequirements.FromNodes(vertexNodes, ShaderStageCapability.Vertex, false);
             var pixelRequirements = ShaderGraphRequirements.FromNodes(pixelNodes, ShaderStageCapability.Fragment);
-            var graphRequirements = pixelRequirements.Union(vertexRequirements);
             var surfaceRequirements = ShaderGraphRequirements.FromNodes(pixelNodes, ShaderStageCapability.Fragment, false);
 
             var modelRequiements = ShaderGraphRequirements.none;
             modelRequiements.requiresVertexColor = true;
-            modelRequiements.requiresMeshUVs = new List<UVChannel>() { UVChannel.UV0 };
 
+            if (isColorPass)
+            {
+
+                modelRequiements.requiresMeshUVs = new List<UVChannel>() { UVChannel.UV0 };
+            }
 
             // ----------------------------------------------------- //
             //                START SHADER GENERATION                //
@@ -156,6 +188,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP
             materialOptions.GetCull(cullingBuilder);
             materialOptions.GetDepthTest(zTestBuilder);
             materialOptions.GetDepthWrite(zWriteBuilder);
+
 
             // ----------------------------------------------------- //
             //                START VERTEX DESCRIPTION               //
@@ -285,6 +318,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP
                 modelRequiements,
                 vertexRequirements,
                 CoordinateSpace.World);
+
 
             // ----------------------------------------------------- //
             //                      FINALIZE                         //
