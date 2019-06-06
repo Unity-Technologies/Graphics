@@ -1,4 +1,4 @@
-﻿Shader "Custom/LightweightPipeline/CustomParticleData"
+﻿Shader "Custom/UniversalPipeline/CustomParticleData"
 {
 	Properties
 	{
@@ -18,7 +18,7 @@
 			#pragma fragment frag
 			// make fog work
 			#pragma multi_compile_fog
-			
+
 			#include "UnityCG.cginc"
 
 			struct appdata
@@ -36,7 +36,7 @@
 				UNITY_FOG_COORDS(1)
 				float4 vertex : SV_POSITION;
 			};
-			
+
 			v2f vert (appdata v)
 			{
 				v2f o;
@@ -46,7 +46,7 @@
 				UNITY_TRANSFER_FOG(o,o.vertex);
 				return o;
 			}
-			
+
 			fixed4 frag (v2f i) : SV_Target
 			{
 				// sample the texture
