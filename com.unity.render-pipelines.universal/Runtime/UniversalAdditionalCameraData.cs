@@ -4,7 +4,7 @@ using UnityEngine.Serialization;
 
 namespace UnityEngine.Rendering.LWRP
 {
-    [Obsolete("LWRP -> Universal (UnityUpgradable) -> UnityEngine.Rendering.Universal.UniversalAdditionalLightData", true)]
+    [Obsolete("LWRP -> Universal (UnityUpgradable) -> UnityEngine.Rendering.Universal.UniversalAdditionalCameraData", true)]
     public class LWRPAdditionalCameraData
     {
     }
