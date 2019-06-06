@@ -15,9 +15,9 @@ namespace UnityEditor.ShaderGraph
             keywordScope = ShaderKeywordScope.Global,
             entries = new List<ShaderKeywordEntry>()
             {
-                new ShaderKeywordEntry("High", "HIGH"),
-                new ShaderKeywordEntry("Medium", "MEDIUM"),
-                new ShaderKeywordEntry("Low", "LOW"),
+                new ShaderKeywordEntry(1, "High", "HIGH"),
+                new ShaderKeywordEntry(2, "Medium", "MEDIUM"),
+                new ShaderKeywordEntry(3, "Low", "LOW"),
             },
         };
     }

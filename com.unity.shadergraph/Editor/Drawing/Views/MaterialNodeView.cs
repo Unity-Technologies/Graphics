@@ -598,8 +598,13 @@ namespace UnityEditor.ShaderGraph.Drawing
         void UpdatePortInput(GeometryChangedEvent evt)
         {
             var port = (ShaderPort)evt.target;
-            var inputView = m_PortInputContainer.Children().OfType<PortInputView>().First(x => Equals(x.slot, port.slot));
-            SetPortInputPosition(port, inputView);
+            var views = m_PortInputContainer.Children().OfType<PortInputView>().Where(x => Equals(x.slot, port.slot));
+            if(views.Count() != 0)
+            {
+                var inputView = views.First();
+                SetPortInputPosition(port, inputView);
+            }
+            
             port.UnregisterCallback<GeometryChangedEvent>(UpdatePortInput);
         }
 

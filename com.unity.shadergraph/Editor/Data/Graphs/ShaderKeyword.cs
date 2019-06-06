@@ -8,11 +8,13 @@ namespace UnityEditor.ShaderGraph
     [Serializable]
     struct ShaderKeywordEntry
     {
+        public int id;
         public string displayName;
         public string referenceName;
 
-        public ShaderKeywordEntry(string displayName, string referenceName)
+        public ShaderKeywordEntry(int id, string displayName, string referenceName)
         {
+            this.id = id;
             this.displayName = displayName;
             this.referenceName = referenceName;
         }
@@ -37,9 +39,9 @@ namespace UnityEditor.ShaderGraph
             if(keywordType == ShaderKeywordType.Enum)
             {
                 m_Entries = new List<ShaderKeywordEntry>();
-                m_Entries.Add(new ShaderKeywordEntry("A", $"A"));
-                m_Entries.Add(new ShaderKeywordEntry("B", $"B"));
-                m_Entries.Add(new ShaderKeywordEntry("C", $"C"));
+                m_Entries.Add(new ShaderKeywordEntry(1, "A", $"A"));
+                m_Entries.Add(new ShaderKeywordEntry(2, "B", $"B"));
+                m_Entries.Add(new ShaderKeywordEntry(3, "C", $"C"));
             }
         }
 
@@ -132,7 +134,6 @@ namespace UnityEditor.ShaderGraph
                     for(int i = 0; i < enumEntryDefinitions.Length; i++)
                         enumEntryDefinitions[i] = $"{referenceName}_{entries[i].referenceName}";
                     string enumEntriesString = string.Join(" ", enumEntryDefinitions);
-                    // string enumEntriesString = $"{string.Join(" ", entries.Select(x => x.referenceName))}";
                     return $"#pragma {definitionString} {enumEntriesString}";
                 default:
                     throw new ArgumentOutOfRangeException();

@@ -31,6 +31,7 @@ namespace UnityEditor.ShaderGraph
                 m_KeywordGuid = value;
                 
                 UpdateNode();
+                UpdateEnumEntries();
                 Dirty(ModificationScope.Topological);
             }
         }
@@ -43,6 +44,7 @@ namespace UnityEditor.ShaderGraph
         public void OnEnable()
         {
             UpdateNode();
+            UpdateEnumEntries();
         }
 
         public const int OutputSlotId = 0;
@@ -53,34 +55,65 @@ namespace UnityEditor.ShaderGraph
             if (keyword == null)
                 return;
             
+            // Set name
             name = keyword.displayName;
-            
-            List<MaterialSlot> inputSlots = new List<MaterialSlot>();
-            GetInputSlots(inputSlots);
-            for(int i = 0; i < inputSlots.Count; i++)
-                RemoveSlot(inputSlots[i].id);
-            
-            AddSlot(new DynamicVectorMaterialSlot(OutputSlotId, "Out", "Out", SlotType.Output, Vector4.zero));
 
-            if(keyword.keywordType == ShaderKeywordType.Enum)
+            // Boolean type slots
+            if(keyword.keywordType == ShaderKeywordType.Boolean)
             {
-                int[] slotIds = new int[keyword.entries.Count + 1];
-                slotIds[keyword.entries.Count] = OutputSlotId;
-                for(int i = 0; i < keyword.entries.Count; i++)
-                {
-                    int slotId = i + 1;
-                    AddSlot(new DynamicVectorMaterialSlot(slotId, keyword.entries[i].displayName, keyword.entries[i].referenceName, SlotType.Input, Vector4.zero));
-                    slotIds[i] = slotId;
-                }
-                RemoveSlotsNameNotMatching(slotIds);
-            }
-            else
-            {
-                int[] slotIds = new int[] {0, 1, 2};
                 AddSlot(new DynamicVectorMaterialSlot(1, "On", keyword.referenceName, SlotType.Input, Vector4.zero));
                 AddSlot(new DynamicVectorMaterialSlot(2, "Off", "_", SlotType.Input, Vector4.zero));
-                RemoveSlotsNameNotMatching(slotIds);
+                RemoveSlotsNameNotMatching(new int[] {0, 1, 2});
             }
+        }
+
+        public void UpdateEnumEntries()
+        {
+            var keyword = owner.keywords.FirstOrDefault(x => x.guid == keywordGuid);
+            if (keyword == null)
+                return;
+
+            if(keyword.keywordType != ShaderKeywordType.Enum)
+                return;
+            
+            // Get slots
+            List<MaterialSlot> inputSlots = new List<MaterialSlot>();
+            GetInputSlots(inputSlots);
+
+            // Store the edges
+            Dictionary<MaterialSlot, List<IEdge>> edgeDict = new Dictionary<MaterialSlot, List<IEdge>>();
+            foreach (MaterialSlot slot in inputSlots)
+                edgeDict.Add(slot, (List<IEdge>)slot.owner.owner.GetEdges(slot.slotReference));
+            
+            // Remove old slots
+            for(int i = 0; i < inputSlots.Count; i++)
+                RemoveSlot(inputSlots[i].id);
+
+            // Add output slot
+            AddSlot(new DynamicVectorMaterialSlot(OutputSlotId, "Out", "Out", SlotType.Output, Vector4.zero));
+
+            // Add input slots
+            int[] slotIds = new int[keyword.entries.Count + 1];
+            slotIds[keyword.entries.Count] = OutputSlotId;
+            for(int i = 0; i < keyword.entries.Count; i++)
+            {
+                MaterialSlot slot = inputSlots.Where(x => x.id == keyword.entries[i].id).FirstOrDefault();
+                if(slot == null)
+                    slot = new DynamicVectorMaterialSlot(keyword.entries[i].id, keyword.entries[i].displayName, keyword.entries[i].referenceName, SlotType.Input, Vector4.zero);
+
+                AddSlot(slot);
+                slotIds[i] = keyword.entries[i].id;
+            }
+            RemoveSlotsNameNotMatching(slotIds);
+
+            // Reconnect the edges
+            foreach (KeyValuePair<MaterialSlot, List<IEdge>> entry in edgeDict)
+            {
+                foreach (IEdge edge in entry.Value)
+                    owner.Connect(edge.outputSlot, edge.inputSlot);
+            }
+
+            ValidateNode();
         }
 
         protected override bool CalculateNodeHasError(ref string errorMessage)

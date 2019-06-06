@@ -156,8 +156,8 @@ namespace UnityEditor.ShaderGraph.Drawing
                 
                 if(EditorGUI.EndChangeCheck())
                 {
-                    m_Keyword.entries[index] = new ShaderKeywordEntry(displayName, referenceName);
-                    DirtyNodes();
+                    m_Keyword.entries[index] = new ShaderKeywordEntry(index + 1, displayName, referenceName);
+                    DirtyEnumEntries();
                 }   
             };
 
@@ -196,10 +196,10 @@ namespace UnityEditor.ShaderGraph.Drawing
             graph.owner.RegisterCompleteObjectUndo("Add Keyword Entry");
 
             // Add new entry
-            m_Keyword.entries.Add(new ShaderKeywordEntry("New", "_NEW"));
+            m_Keyword.entries.Add(new ShaderKeywordEntry(list.list.Count + 1, "New", "_NEW"));
 
             // Update GUI
-            DirtyNodes();
+            DirtyEnumEntries();
             m_SelectedIndex = list.list.Count - 1;
         }
 
@@ -213,18 +213,24 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_Keyword.entries.Remove(selectedEntry);
 
             // Update GUI
-            DirtyNodes();
+            DirtyEnumEntries();
         }
 
         private void ReorderEntries(ReorderableList list)
         {
-            DirtyNodes();
+            DirtyEnumEntries();
         }
 
         public override void DirtyNodes(ModificationScope modificationScope = ModificationScope.Node)
         {
             foreach (var node in graph.GetNodes<KeywordNode>())
                 node.UpdateNode();
+        }
+
+        public void DirtyEnumEntries()
+        {
+            foreach (var node in graph.GetNodes<KeywordNode>())
+                node.UpdateEnumEntries();
         }
     }
 }
