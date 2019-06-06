@@ -93,7 +93,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             m_ShapeLightVolumeShader = Shader.Find("Hidden/Light2D-Shape-Volumetric");
             m_PointLightShader = Shader.Find("Hidden/Light2D-Point");
             m_PointLightVolumeShader = Shader.Find("Hidden/Light2d-Point-Volumetric");
-            m_BlitShader = Shader.Find("Hidden/Lightweight Render Pipeline/Blit");
+            m_BlitShader = Shader.Find("Hidden/Universal Render Pipeline/Blit");
         }
 
         protected override void OnEnable()
@@ -130,7 +130,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         internal override Shader GetDefaultShader()
         {
-            return Shader.Find("Lightweight Render Pipeline/2D/Sprite-Lit-Default");
+            return Shader.Find("Universal Render Pipeline/2D/Sprite-Lit-Default");
         }
 #endif
     }

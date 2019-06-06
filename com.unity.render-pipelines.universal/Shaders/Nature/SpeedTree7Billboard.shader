@@ -1,4 +1,4 @@
-Shader "Lightweight Render Pipeline/Nature/SpeedTree7 Billboard"
+Shader "Universal Render Pipeline/Nature/SpeedTree7 Billboard"
 {
     Properties
     {
@@ -95,7 +95,7 @@ Shader "Lightweight Render Pipeline/Nature/SpeedTree7 Billboard"
 
             #include "SpeedTree7BillboardInput.hlsl"
             #include "SpeedTree7BillboardPasses.hlsl"
-            
+
             ENDHLSL
         }
     }

@@ -1,4 +1,4 @@
-Shader "Lightweight Render Pipeline/Nature/SpeedTree7"
+Shader "Universal Render Pipeline/Nature/SpeedTree7"
 {
     Properties
     {
@@ -55,7 +55,7 @@ Shader "Lightweight Render Pipeline/Nature/SpeedTree7"
 
             #include "SpeedTree7Input.hlsl"
             #include "SpeedTree7Passes.hlsl"
-            
+
             ENDHLSL
         }
 
@@ -96,7 +96,7 @@ Shader "Lightweight Render Pipeline/Nature/SpeedTree7"
             #pragma fragment SpeedTree7FragDepth
 
             #pragma multi_compile_vertex LOD_FADE_PERCENTAGE
-            
+
             #pragma multi_compile_instancing
             #pragma instancing_options assumeuniformscaling maxcount:50
 
@@ -127,7 +127,7 @@ Shader "Lightweight Render Pipeline/Nature/SpeedTree7"
 
             #pragma multi_compile_instancing
             #pragma instancing_options assumeuniformscaling maxcount:50
-            
+
             #pragma shader_feature_local GEOM_TYPE_BRANCH GEOM_TYPE_BRANCH_DETAIL GEOM_TYPE_FROND GEOM_TYPE_LEAF GEOM_TYPE_MESH
 
             #define ENABLE_WIND
@@ -140,6 +140,6 @@ Shader "Lightweight Render Pipeline/Nature/SpeedTree7"
         }
     }
 
-    Dependency "BillboardShader" = "Lightweight Render Pipeline/Nature/SpeedTree7 Billboard"
+    Dependency "BillboardShader" = "Universal Render Pipeline/Nature/SpeedTree7 Billboard"
     CustomEditor "SpeedTreeMaterialInspector"
 }

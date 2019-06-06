@@ -21,14 +21,14 @@ namespace UnityEngine.Rendering.Universal
     {
         static readonly string[] s_ShaderPaths  =
         {
-            "Lightweight Render Pipeline/Lit",
-            "Lightweight Render Pipeline/Simple Lit",
-            "Lightweight Render Pipeline/Unlit",
-            "Lightweight Render Pipeline/Terrain/Lit",
-            "Lightweight Render Pipeline/Particles/Lit",
-            "Lightweight Render Pipeline/Particles/Simple Lit",
-            "Lightweight Render Pipeline/Particles/Unlit",
-            "Lightweight Render Pipeline/Baked Lit",
+            "Universal Render Pipeline/Lit",
+            "Universal Render Pipeline/Simple Lit",
+            "Universal Render Pipeline/Unlit",
+            "Universal Render Pipeline/Terrain/Lit",
+            "Universal Render Pipeline/Particles/Lit",
+            "Universal Render Pipeline/Particles/Simple Lit",
+            "Universal Render Pipeline/Particles/Unlit",
+            "Universal Render Pipeline/Baked Lit",
         };
 
         public static string GetShaderPath(ShaderPathID id)

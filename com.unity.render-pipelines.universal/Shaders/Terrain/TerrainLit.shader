@@ -1,4 +1,4 @@
-Shader "Lightweight Render Pipeline/Terrain/Lit"
+Shader "Universal Render Pipeline/Terrain/Lit"
 {
     Properties
     {
@@ -108,8 +108,8 @@ Shader "Lightweight Render Pipeline/Terrain/Lit"
         UsePass "Hidden/Nature/Terrain/Utilities/PICKING"
         UsePass "Hidden/Nature/Terrain/Utilities/SELECTION"
     }
-    Dependency "AddPassShader" = "Hidden/Lightweight Render Pipeline/Terrain/Lit (Add Pass)"
-    Dependency "BaseMapShader" = "Hidden/Lightweight Render Pipeline/Terrain/Lit (Base Pass)"
+    Dependency "AddPassShader" = "Hidden/Universal Render Pipeline/Terrain/Lit (Add Pass)"
+    Dependency "BaseMapShader" = "Hidden/Universal Render Pipeline/Terrain/Lit (Base Pass)"
 
     Fallback "Hidden/InternalErrorShader"
 }

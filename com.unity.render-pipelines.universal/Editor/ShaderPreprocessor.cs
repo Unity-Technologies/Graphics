@@ -54,7 +54,7 @@ namespace UnityEditor.Rendering.Universal
                 shader.name.Contains("ScreenSpaceShadows"))
                 return true;
 
-            if (shader.name == "Hidden/Lightweight Render Pipeline/Blit")
+            if (shader.name == "Hidden/Universal Render Pipeline/Blit")
             {
                 bool preserveAlpha = PlayerSettings.preserveFramebufferAlpha && compilerData.platformKeywordSet.IsEnabled(BuiltinShaderDefine.SHADER_API_MOBILE);
                 bool shaderPreserveAlpha = !compilerData.shaderKeywordSet.IsEnabled(m_KillAlpha);

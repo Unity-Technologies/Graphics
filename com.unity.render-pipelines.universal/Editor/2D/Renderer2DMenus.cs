@@ -140,7 +140,7 @@ namespace UnityEditor.Experimental.Rendering.Univerasl
             return CreateLightValidation();
         }
 
-        [MenuItem("Assets/Create/Rendering/Lightweight Render Pipeline/2D Renderer (Experimental)", priority = CoreUtils.assetCreateMenuPriority1 + 1)]
+        [MenuItem("Assets/Create/Rendering/Universal Render Pipeline/2D Renderer (Experimental)", priority = CoreUtils.assetCreateMenuPriority1 + 1)]
         static void Create2DRendererData()
         {
             Renderer2DData.Create2DRendererData((instance) =>

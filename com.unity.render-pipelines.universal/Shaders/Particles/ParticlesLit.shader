@@ -1,6 +1,6 @@
 // ------------------------------------------
 // No shadows
-Shader "Lightweight Render Pipeline/Particles/Lit"
+Shader "Universal Render Pipeline/Particles/Lit"
 {
     Properties
     {
@@ -122,6 +122,6 @@ Shader "Lightweight Render Pipeline/Particles/Lit"
         }
     }
 
-    Fallback "Lightweight Render Pipeline/Particles/SimpleLit"
+    Fallback "Universal Render Pipeline/Particles/SimpleLit"
     CustomEditor "UnityEditor.Rendering.Universal.ShaderGUI.ParticlesLitShader"
 }

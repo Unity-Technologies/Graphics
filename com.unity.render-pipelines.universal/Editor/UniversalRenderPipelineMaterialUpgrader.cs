@@ -13,7 +13,7 @@ namespace UnityEditor.Rendering.Universal
         {
         }
 
-        [MenuItem("Edit/Render Pipeline/Lightweight Render Pipeline/Upgrade Project Materials to LightweightRP Materials", priority = CoreUtils.editMenuPriority2)]
+        [MenuItem("Edit/Render Pipeline/Universal Render Pipeline/Upgrade Project Materials to LightweightRP Materials", priority = CoreUtils.editMenuPriority2)]
         private static void UpgradeProjectMaterials()
         {
             List<MaterialUpgrader> upgraders = new List<MaterialUpgrader>();
@@ -22,7 +22,7 @@ namespace UnityEditor.Rendering.Universal
             MaterialUpgrader.UpgradeProjectFolder(upgraders, "Upgrade to LightweightRP Materials", MaterialUpgrader.UpgradeFlags.LogMessageWhenNoUpgraderFound);
         }
 
-        [MenuItem("Edit/Render Pipeline/Lightweight Render Pipeline/Upgrade Selected Materials to LightweightRP Materials", priority = CoreUtils.editMenuPriority2)]
+        [MenuItem("Edit/Render Pipeline/Universal Render Pipeline/Upgrade Selected Materials to LightweightRP Materials", priority = CoreUtils.editMenuPriority2)]
         private static void UpgradeSelectedMaterials()
         {
             List<MaterialUpgrader> upgraders = new List<MaterialUpgrader>();
@@ -431,7 +431,7 @@ namespace UnityEditor.Rendering.Universal
     {
         public AutodeskInteractiveUpgrader(string oldShaderName)
         {
-            RenameShader(oldShaderName, "Lightweight Render Pipeline/Autodesk Interactive/Autodesk Interactive");
+            RenameShader(oldShaderName, "Universal Render Pipeline/Autodesk Interactive/Autodesk Interactive");
         }
 
         public override void Convert(Material srcMaterial, Material dstMaterial)
