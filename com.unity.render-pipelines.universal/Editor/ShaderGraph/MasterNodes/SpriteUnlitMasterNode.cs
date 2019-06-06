@@ -12,6 +12,7 @@ namespace UnityEditor.Experimental.Rendering.Univerasl
 {
     [Serializable]
     [Title("Master", "Sprite Unlit (Experimental)")]
+    [FormerName("UnityEditor.Experimental.Rendering.LWRP.SpriteUnlitMasterNode")]
     class SpriteUnlitMasterNode : MasterNode<ISpriteUnlitSubShader>, IMayRequirePosition
     {
         public const string PositionName = "Position";
