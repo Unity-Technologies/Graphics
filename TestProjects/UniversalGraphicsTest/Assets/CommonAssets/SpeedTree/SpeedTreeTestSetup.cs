@@ -10,7 +10,7 @@ public class SpeedTreeTestSetup : MonoBehaviour
     {
         if (GraphicsSettings.renderPipelineAsset != null)
         {
-            var lwAsset = (UnityEngine.Rendering.Universal.LightweightRenderPipelineAsset)GraphicsSettings.renderPipelineAsset;
+            var lwAsset = (UnityEngine.Rendering.Universal.UniversalRenderPipelineAsset)GraphicsSettings.renderPipelineAsset;
             distance = lwAsset.shadowDistance;
             lwAsset.shadowDistance = 1000.0f;
         }
@@ -20,7 +20,7 @@ public class SpeedTreeTestSetup : MonoBehaviour
     {
         if (GraphicsSettings.renderPipelineAsset != null)
         {
-            var lwAsset = (UnityEngine.Rendering.Universal.LightweightRenderPipelineAsset)GraphicsSettings.renderPipelineAsset;
+            var lwAsset = (UnityEngine.Rendering.Universal.UniversalRenderPipelineAsset)GraphicsSettings.renderPipelineAsset;
             lwAsset.shadowDistance = distance;
         }
     }

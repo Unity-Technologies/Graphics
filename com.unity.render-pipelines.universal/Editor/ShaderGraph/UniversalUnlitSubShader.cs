@@ -113,7 +113,7 @@ namespace UnityEngine.Rendering.Universal
 
         public bool IsPipelineCompatible(RenderPipelineAsset renderPipelineAsset)
         {
-            return renderPipelineAsset is LightweightRenderPipelineAsset;
+            return renderPipelineAsset is UniversalRenderPipelineAsset;
         }
 
         static string GetTemplatePath(string templateName)

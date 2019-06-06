@@ -74,7 +74,7 @@ namespace UnityEditor.Experimental.Rendering.Univerasl
             UniversalRenderPipeline pipeline = UnityEngine.Rendering.RenderPipelineManager.currentPipeline as UniversalRenderPipeline;
             if (pipeline != null)
             {
-                LightweightRenderPipelineAsset asset = UniversalRenderPipeline.asset;
+                UniversalRenderPipelineAsset asset = UniversalRenderPipeline.asset;
                 Renderer2DData assetData = asset.scriptableRendererData as Renderer2DData;
                 if (assetData != null)
                     return true;

@@ -74,15 +74,15 @@ namespace UnityEngine.Rendering.Universal
             get => 16;
         }
 
-        public static LightweightRenderPipelineAsset asset
+        public static UniversalRenderPipelineAsset asset
         {
             get
             {
-                return GraphicsSettings.renderPipelineAsset as LightweightRenderPipelineAsset;
+                return GraphicsSettings.renderPipelineAsset as UniversalRenderPipelineAsset;
             }
         }
 
-        public UniversalRenderPipeline(LightweightRenderPipelineAsset asset)
+        public UniversalRenderPipeline(UniversalRenderPipelineAsset asset)
         {
             SetSupportedRenderingFeatures();
 
@@ -219,7 +219,7 @@ namespace UnityEngine.Rendering.Universal
 #endif
         }
 
-        static void InitializeCameraData(LightweightRenderPipelineAsset settings, Camera camera, UniversalAdditionalCameraData additionalCameraData, out CameraData cameraData)
+        static void InitializeCameraData(UniversalRenderPipelineAsset settings, Camera camera, UniversalAdditionalCameraData additionalCameraData, out CameraData cameraData)
         {
             const float kRenderScaleThreshold = 0.05f;
             cameraData.camera = camera;
@@ -306,7 +306,7 @@ namespace UnityEngine.Rendering.Universal
                 cameraData.isStereoEnabled, cameraData.isHdrEnabled, msaaSamples);
         }
 
-        static void InitializeRenderingData(LightweightRenderPipelineAsset settings, ref CameraData cameraData, ref CullingResults cullResults,
+        static void InitializeRenderingData(UniversalRenderPipelineAsset settings, ref CameraData cameraData, ref CullingResults cullResults,
             out RenderingData renderingData)
         {
             var visibleLights = cullResults.visibleLights;
@@ -353,7 +353,7 @@ namespace UnityEngine.Rendering.Universal
             renderingData.killAlphaInFinalBlit = !Graphics.preserveFramebufferAlpha && platformNeedsToKillAlpha;
         }
 
-        static void InitializeShadowData(LightweightRenderPipelineAsset settings, NativeArray<VisibleLight> visibleLights, bool mainLightCastShadows, bool additionalLightsCastShadows, out ShadowData shadowData)
+        static void InitializeShadowData(UniversalRenderPipelineAsset settings, NativeArray<VisibleLight> visibleLights, bool mainLightCastShadows, bool additionalLightsCastShadows, out ShadowData shadowData)
         {
             m_ShadowBiasData.Clear();
 
@@ -427,7 +427,7 @@ namespace UnityEngine.Rendering.Universal
             shadowData.shadowmapDepthBufferBits = 16;
         }
 
-        static void InitializeLightData(LightweightRenderPipelineAsset settings, NativeArray<VisibleLight> visibleLights, int mainLightIndex, out LightData lightData)
+        static void InitializeLightData(UniversalRenderPipelineAsset settings, NativeArray<VisibleLight> visibleLights, int mainLightIndex, out LightData lightData)
         {
             int maxPerObjectAdditionalLights = UniversalRenderPipeline.maxPerObjectLights;
             int maxVisibleAdditionalLights = UniversalRenderPipeline.maxVisibleAdditionalLights;
@@ -463,7 +463,7 @@ namespace UnityEngine.Rendering.Universal
         }
 
         // Main Light is always a directional light
-        static int GetMainLightIndex(LightweightRenderPipelineAsset settings, NativeArray<VisibleLight> visibleLights)
+        static int GetMainLightIndex(UniversalRenderPipelineAsset settings, NativeArray<VisibleLight> visibleLights)
         {
             int totalVisibleLights = visibleLights.Length;
 

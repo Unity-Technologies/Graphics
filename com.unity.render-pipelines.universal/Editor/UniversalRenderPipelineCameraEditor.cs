@@ -8,7 +8,7 @@ using UnityEngine.Rendering.PostProcessing;
 
 namespace UnityEditor.Rendering.Universal
 {
-    [CustomEditorForRenderPipeline(typeof(Camera), typeof(LightweightRenderPipelineAsset))]
+    [CustomEditorForRenderPipeline(typeof(Camera), typeof(UniversalRenderPipelineAsset))]
     [CanEditMultipleObjects]
     class UniversalRenderPipelineCameraEditor : CameraEditor
     {
@@ -83,7 +83,7 @@ namespace UnityEditor.Rendering.Universal
 
         static readonly int[] s_RenderingPathValues = {0};
         static Styles s_Styles;
-        LightweightRenderPipelineAsset m_LightweightRenderPipeline;
+        UniversalRenderPipelineAsset m_UniversalRenderPipeline;
         UniversalAdditionalCameraData m_AdditionalCameraData;
         SerializedObject m_AdditionalCameraDataSO;
 
@@ -119,7 +119,7 @@ namespace UnityEditor.Rendering.Universal
 
         public new void OnEnable()
         {
-            m_LightweightRenderPipeline = GraphicsSettings.renderPipelineAsset as LightweightRenderPipelineAsset;
+            m_UniversalRenderPipeline = GraphicsSettings.renderPipelineAsset as UniversalRenderPipelineAsset;
 
             m_AdditionalCameraData = camera.gameObject.GetComponent<UniversalAdditionalCameraData>();
             settings.OnEnable();
@@ -147,7 +147,7 @@ namespace UnityEditor.Rendering.Universal
             m_ShowOrthoAnim.valueChanged.RemoveListener(Repaint);
             m_ShowTargetEyeAnim.valueChanged.RemoveListener(Repaint);
 
-            m_LightweightRenderPipeline = null;
+            m_UniversalRenderPipeline = null;
         }
 
         public override void OnInspectorGUI()
@@ -260,7 +260,7 @@ namespace UnityEditor.Rendering.Universal
             if (!settings.targetTexture.hasMultipleDifferentValues)
             {
                 var texture = settings.targetTexture.objectReferenceValue as RenderTexture;
-                int pipelineSamplesCount = m_LightweightRenderPipeline.msaaSampleCount;
+                int pipelineSamplesCount = m_UniversalRenderPipeline.msaaSampleCount;
 
                 if (texture && texture.antiAliasing > pipelineSamplesCount)
                 {
@@ -328,7 +328,7 @@ namespace UnityEditor.Rendering.Universal
             var propValue = (int)selectedDepthOption;
             if (ppl != null && ppl.isActiveAndEnabled)
             {
-                if ((propValue == 2 && !m_LightweightRenderPipeline.supportsCameraDepthTexture) || propValue == 0)
+                if ((propValue == 2 && !m_UniversalRenderPipeline.supportsCameraDepthTexture) || propValue == 0)
                 {
                     EditorGUI.BeginDisabledGroup(true);
                     EditorGUI.IntPopup(controlRectDepth, Styles.requireDepthTexture, 0, Styles.displayedDepthTextureOverride, Styles.additionalDataOptions);

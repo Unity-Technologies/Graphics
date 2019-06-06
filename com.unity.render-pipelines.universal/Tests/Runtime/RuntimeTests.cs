@@ -15,7 +15,7 @@ class RuntimeTests
         Camera camera = go.AddComponent<Camera>();
         RenderPipelineAsset prevAsset = GraphicsSettings.renderPipelineAsset;
 
-        LightweightRenderPipelineAsset asset = ScriptableObject.CreateInstance<LightweightRenderPipelineAsset>();
+        UniversalRenderPipelineAsset asset = ScriptableObject.CreateInstance<UniversalRenderPipelineAsset>();
         GraphicsSettings.renderPipelineAsset = asset;
         camera.Render();
         yield return null;
@@ -36,7 +36,7 @@ class RuntimeTests
         GameObject go = new GameObject();
         Camera camera = go.AddComponent<Camera>();
         RenderPipelineAsset prevAsset = GraphicsSettings.renderPipelineAsset;
-        LightweightRenderPipelineAsset asset = ScriptableObject.CreateInstance<LightweightRenderPipelineAsset>();
+        UniversalRenderPipelineAsset asset = ScriptableObject.CreateInstance<UniversalRenderPipelineAsset>();
         GraphicsSettings.renderPipelineAsset = asset;
         camera.Render();
         yield return null;

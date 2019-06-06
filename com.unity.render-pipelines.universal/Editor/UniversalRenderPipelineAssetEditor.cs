@@ -5,7 +5,7 @@ using UnityEngine.Scripting.APIUpdating;
 
 namespace UnityEditor.Rendering.Universal
 {
-    [CustomEditor(typeof(LightweightRenderPipelineAsset))]
+    [CustomEditor(typeof(UniversalRenderPipelineAsset))]
     [MovedFrom("UnityEditor.Rendering.LWRP")] public class UniversalRenderPipelineAssetEditor : Editor
     {
         internal class Styles

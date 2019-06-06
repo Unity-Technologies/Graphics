@@ -6,7 +6,7 @@ using UnityEngine.Rendering;
 namespace UnityEditor.Rendering.Universal
 {
     [CanEditMultipleObjects]
-    [CustomEditorForRenderPipeline(typeof(Light), typeof(LightweightRenderPipelineAsset))]
+    [CustomEditorForRenderPipeline(typeof(Light), typeof(UniversalRenderPipelineAsset))]
     class UniversalRenderPipelineLightEditor : LightEditor
     {
         AnimBool m_AnimSpotOptions = new AnimBool();
@@ -237,7 +237,7 @@ namespace UnityEditor.Rendering.Universal
                     lightProperty.gameObject.AddComponent<UniversalAdditionalLightData>();
                     m_AdditionalLightData = lightProperty.gameObject.GetComponent<UniversalAdditionalLightData>();
 
-                    LightweightRenderPipelineAsset asset = GraphicsSettings.renderPipelineAsset as LightweightRenderPipelineAsset;
+                    UniversalRenderPipelineAsset asset = GraphicsSettings.renderPipelineAsset as UniversalRenderPipelineAsset;
                     settings.shadowsBias.floatValue = asset.shadowDepthBias;
                     settings.shadowsNormalBias.floatValue = asset.shadowNormalBias;
 
