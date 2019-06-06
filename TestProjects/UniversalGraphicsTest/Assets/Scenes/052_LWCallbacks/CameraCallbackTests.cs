@@ -27,7 +27,7 @@ public class CameraCallbackTests : ScriptableRendererFeature
 
 	public override void Create()
 	{
-		m_SamplingMaterial = CoreUtils.CreateEngineMaterial(Shader.Find("Hidden/Lightweight Render Pipeline/Sampling"));
+		m_SamplingMaterial = CoreUtils.CreateEngineMaterial(Shader.Find("Hidden/Universal Render Pipeline/Sampling"));
 	}
 
 	internal class ClearColorPass : ScriptableRenderPass
@@ -96,7 +96,7 @@ public class CameraCallbackTests : ScriptableRendererFeature
         {
             this.colorHandle = colorHandle;
             this.renderPassEvent = renderPassEvent;
-            m_BlitMaterial = CoreUtils.CreateEngineMaterial(Shader.Find("Hidden/Lightweight Render Pipeline/Blit"));
+            m_BlitMaterial = CoreUtils.CreateEngineMaterial(Shader.Find("Hidden/Universal Render Pipeline/Blit"));
         }
 
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)

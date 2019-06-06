@@ -846,22 +846,33 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 				if (texture.dimension == UnityEngine.Rendering.TextureDimension.Tex2D)
 				{
 					Texture2D tex2D = (texture as Texture2D);
-					if (allMips)
-						tex2D.requestedMipmapLevel = 0;
-					else
-						tex2D.ClearRequestedMipmapLevel();
+                    if (tex2D)
+                    {
+                        if (allMips)
+                            tex2D.requestedMipmapLevel = 0;
+                        else
+                            tex2D.ClearRequestedMipmapLevel();
+                    }
 				}
 			}
 		}
 
+        void SetupMipStreamingSettings(Material material, bool allMips)
+        {
+            if (material != null)
+            {
+                if (IsHDRenderPipelineDecal(material.shader.name))
+                {
+                    SetupMipStreamingSettings(material.GetTexture("_BaseColorMap"), allMips);
+                    SetupMipStreamingSettings(material.GetTexture("_NormalMap"), allMips);
+                    SetupMipStreamingSettings(material.GetTexture("_MaskMap"), allMips);
+                }
+            }
+        }
+
         DecalHandle AddDecal(Matrix4x4 localToWorld, Quaternion rotation, Matrix4x4 sizeOffset, float drawDistance, float fadeScale, Vector4 uvScaleBias, bool affectsTransparency, Material material, int layerMask, float fadeFactor)
         {
-			if (material != null)
-			{
-				SetupMipStreamingSettings(material.GetTexture("_BaseColorMap"), true);
-				SetupMipStreamingSettings(material.GetTexture("_NormalMap"), true);
-				SetupMipStreamingSettings(material.GetTexture("_MaskMap"), true);
-			}
+            SetupMipStreamingSettings(material, true);
 				
             DecalSet decalSet = null;
             int key = material != null ? material.GetInstanceID() : kNullMaterialIndex;
@@ -896,6 +907,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 decalSet.RemoveDecal(handle);
                 if (decalSet.Count == 0)
                 {
+                    SetupMipStreamingSettings(decalSet.KeyMaterial, false);
+
                     m_DecalSets.Remove(key);
                 }
             }

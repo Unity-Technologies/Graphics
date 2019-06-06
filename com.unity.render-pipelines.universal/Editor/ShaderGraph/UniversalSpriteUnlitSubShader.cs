@@ -44,17 +44,8 @@ namespace UnityEditor.Experimental.Rendering.Univerasl
                 sourceAssetDependencyPaths.Add(AssetDatabase.GUIDToAssetPath("f2df349d00ec920488971bb77440b7bc"));
             }
 
-            var templatePath = GetTemplatePath("universalSpriteUnlitPass.template");
+            string unlitTemplate = ReadTemplate("universalSpriteUnlitPass.template", sourceAssetDependencyPaths);
 
-            if (!File.Exists(templatePath))
-                return string.Empty;
-
-            if (sourceAssetDependencyPaths != null)
-            {
-                sourceAssetDependencyPaths.Add(templatePath);
-            }
-
-            string forwardTemplate = File.ReadAllText(templatePath);
             var unlitMasterNode = masterNode as SpriteUnlitMasterNode;
 
             var pass = m_UnlitPass;
@@ -71,7 +62,7 @@ namespace UnityEditor.Experimental.Rendering.Univerasl
 
                 var materialOptions = ShaderGenerator.GetMaterialOptions(SurfaceType.Transparent, AlphaMode.Alpha, true);
                 subShader.AppendLines(GetShaderPassFromTemplate(
-                        forwardTemplate,
+                        unlitTemplate,
                         unlitMasterNode,
                         pass,
                         mode,
@@ -330,6 +321,21 @@ namespace UnityEditor.Experimental.Rendering.Univerasl
             resultPass = resultPass.Replace("${PixelShaderSurfaceInputs}", pixelShaderSurfaceInputs.ToString());
 
             return resultPass;
+        }
+
+        public string ReadTemplate(string template, List<string> sourceAssetDependencyPaths)
+        {
+            string templatePath = GetTemplatePath(template);
+
+            if (!File.Exists(templatePath))
+                return string.Empty;
+
+            if (sourceAssetDependencyPaths != null)
+            {
+                sourceAssetDependencyPaths.Add(templatePath);
+            }
+
+            return File.ReadAllText(templatePath);
         }
 
         static string GetTemplatePath(string templateName)

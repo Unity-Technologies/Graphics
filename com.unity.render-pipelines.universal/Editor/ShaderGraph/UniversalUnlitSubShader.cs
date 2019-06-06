@@ -64,6 +64,7 @@ namespace UnityEngine.Rendering.Universal
 
             var templatePath = GetTemplatePath("universalUnlitPass.template");
             var extraPassesTemplatePath = GetTemplatePath("universalUnlitExtraPasses.template");
+
             if (!File.Exists(templatePath) || !File.Exists(extraPassesTemplatePath))
                 return string.Empty;
 

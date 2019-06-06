@@ -13,8 +13,8 @@ Pass
 		#if VFX_NEEDS_COLOR_INTERPOLATOR
 		nointerpolation float4 color : COLOR0;
 		#endif
-		#if USE_SOFT_PARTICLE || USE_ALPHA_TEST
-		nointerpolation float2 builtInInterpolants : TEXCOORD0;
+		#if USE_SOFT_PARTICLE || USE_ALPHA_TEST || USE_EXPOSURE_WEIGHT
+		nointerpolation float3 builtInInterpolants : TEXCOORD0;
 		#endif
 		#if VFX_NEEDS_POSWS_INTERPOLATOR
 		float3 posWS : TEXCOORD1;
@@ -35,6 +35,9 @@ Pass
 #if VFX_NEEDS_POSWS_INTERPOLATOR
 #define VFX_VARYING_POSWS posWS
 #endif
+#if USE_EXPOSURE_WEIGHT
+#define VFX_VARYING_EXPOSUREWEIGHT builtInInterpolants.z
+#endif
 	
 	${VFXInclude("Shaders/ParticleLines/Pass.template")}	
 		
@@ -42,8 +45,10 @@ Pass
 	ps_output frag(ps_input i)
 	{
 		ps_output o = (ps_output)0;
+		VFXTransformPSInputs(i);
+		
 		${VFXApplyColor}
-		o.color = VFXApplyPreExposure(o.color);
+		o.color = VFXApplyPreExposure(o.color, i);
 		o.color = VFXApplyFog(o.color,i);
 		VFXClipFragmentColor(o.color.a,i);
 		o.color.a = saturate(o.color.a);

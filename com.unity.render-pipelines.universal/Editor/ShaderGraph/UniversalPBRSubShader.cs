@@ -92,13 +92,16 @@ namespace UnityEditor.Rendering.Universal
 
             var templatePath = GetTemplatePath("universalPBRForwardPass.template");
             var extraPassesTemplatePath = GetTemplatePath("universalPBRExtraPasses.template");
+            var universal2DPath = GetTemplatePath("universal2DPBRPass.template");
             if (!File.Exists(templatePath) || !File.Exists(extraPassesTemplatePath))
                 return string.Empty;
+
 
             if (sourceAssetDependencyPaths != null)
             {
                 sourceAssetDependencyPaths.Add(templatePath);
                 sourceAssetDependencyPaths.Add(extraPassesTemplatePath);
+                sourceAssetDependencyPaths.Add(universal2DPath);
 
                 var relativePath = "Packages/com.unity.render-pipelines.universal/";
                 var fullPath = Path.GetFullPath(relativePath);
@@ -108,6 +111,7 @@ namespace UnityEditor.Rendering.Universal
 
             string forwardTemplate = File.ReadAllText(templatePath);
             string extraTemplate = File.ReadAllText(extraPassesTemplatePath);
+            string lightweight2DTemplate = File.ReadAllText(universal2DPath);
 
             var pbrMasterNode = masterNode as PBRMasterNode;
             var pass = pbrMasterNode.model == PBRMasterNode.Model.Metallic ? m_ForwardPassMetallic : m_ForwardPassSpecular;
@@ -134,6 +138,15 @@ namespace UnityEditor.Rendering.Universal
                         m_DepthShadowPass,
                         mode,
                         materialOptions));
+
+                string txt = GetShaderPassFromTemplate(
+                        universal2DTemplate,
+                        pbrMasterNode,
+                        pass,
+                        mode,
+                        materialOptions);
+                subShader.AppendLines(txt);
+
             }
             subShader.Append("CustomEditor \"UnityEditor.ShaderGraph.PBRMasterGUI\"");
 

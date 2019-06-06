@@ -16,10 +16,11 @@ Pass
 		#if VFX_NEEDS_COLOR_INTERPOLATOR
 		nointerpolation float4 color : COLOR0;
 		#endif
-		#if USE_ALPHA_TEST || USE_FLIPBOOK
+		#if USE_ALPHA_TEST || USE_FLIPBOOK || USE_EXPOSURE_WEIGHT
 		// x: alpha threshold
 		// y: texture index
-		nointerpolation float2 builtInInterpolants : TEXCOORD0;
+		// z: exposure weight
+		nointerpolation float3 builtInInterpolants : TEXCOORD0;
 		#if USE_FLIPBOOK
 		nointerpolation float4 flipbookSize : TEXCOORD1;
 		#endif
@@ -52,8 +53,11 @@ Pass
 #if VFX_NEEDS_POSWS_INTERPOLATOR
 #define VFX_VARYING_POSWS posWS
 #endif
+#if USE_EXPOSURE_WEIGHT
+#define VFX_VARYING_EXPOSUREWEIGHT builtInInterpolants.z
+#endif
 				
-	${VFXBegin:VFXVertexAdditionalProcess}
+${VFXBegin:VFXVertexAdditionalProcess}
 float4x4 viewToDecal = GetVFXToElementMatrix(axisX,axisY,axisZ,float3(angleX,angleY,angleZ),float3(pivotX,pivotY,pivotZ),size3,position);
 #if VFX_LOCAL_SPACE
 viewToDecal = mul(viewToDecal, VFXGetWorldToObjectMatrix());
@@ -70,6 +74,7 @@ o.viewToDecal2 = viewToDecal[2];
 	ps_output frag(ps_input i)
 	{
 		ps_output o = (ps_output)0;
+		VFXTransformPSInputs(i);
 		
 		float3 clipPos;
 		clipPos.xy = (i.pos.xy / _ScreenParams.xy) * 2.0f - 1.0f;
@@ -99,7 +104,7 @@ o.viewToDecal2 = viewToDecal[2];
 		#define VFX_TEXTURE_COLOR VFXGetTextureColorWithProceduralUV(s,i,uv)
 		${VFXApplyColor}
 
-		o.color = VFXApplyPreExposure(o.color);
+		o.color = VFXApplyPreExposure(o.color, i);
 		o.color = VFXApplyFog(o.color,i);
 		VFXClipFragmentColor(o.color.a,i);
 		o.color.a = saturate(o.color.a);

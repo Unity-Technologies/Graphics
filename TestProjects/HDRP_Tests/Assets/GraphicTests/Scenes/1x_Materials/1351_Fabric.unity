@@ -23,7 +23,7 @@ RenderSettings:
   m_AmbientSkyColor: {r: 0.212, g: 0.227, b: 0.259, a: 1}
   m_AmbientEquatorColor: {r: 0.114, g: 0.125, b: 0.133, a: 1}
   m_AmbientGroundColor: {r: 0.047, g: 0.043, b: 0.035, a: 1}
-  m_AmbientIntensity: 0
+  m_AmbientIntensity: 1
   m_AmbientMode: 0
   m_SubtractiveShadowColor: {r: 0.42, g: 0.478, b: 0.627, a: 1}
   m_SkyboxMaterial: {fileID: 0}
@@ -35,10 +35,10 @@ RenderSettings:
   m_DefaultReflectionMode: 0
   m_DefaultReflectionResolution: 128
   m_ReflectionBounces: 1
-  m_ReflectionIntensity: 0
+  m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0, g: 0, b: 0, a: 0}
+  m_IndirectSpecularColor: {r: 0, g: 0, b: 0, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -54,7 +54,7 @@ LightmapSettings:
     m_EnableBakedLightmaps: 0
     m_EnableRealtimeLightmaps: 0
   m_LightmapEditorSettings:
-    serializedVersion: 10
+    serializedVersion: 12
     m_Resolution: 2
     m_BakeResolution: 40
     m_AtlasSize: 1024
@@ -62,6 +62,7 @@ LightmapSettings:
     m_AOMaxDistance: 1
     m_CompAOExponent: 1
     m_CompAOExponentDirect: 0
+    m_ExtractAmbientOcclusion: 0
     m_Padding: 2
     m_LightmapParameters: {fileID: 0}
     m_LightmapsBakeMode: 1
@@ -76,10 +77,16 @@ LightmapSettings:
     m_PVRDirectSampleCount: 32
     m_PVRSampleCount: 500
     m_PVRBounces: 2
+    m_PVREnvironmentSampleCount: 500
+    m_PVREnvironmentReferencePointCount: 2048
+    m_PVRFilteringMode: 2
+    m_PVRDenoiserTypeDirect: 0
+    m_PVRDenoiserTypeIndirect: 0
+    m_PVRDenoiserTypeAO: 0
     m_PVRFilterTypeDirect: 0
     m_PVRFilterTypeIndirect: 0
     m_PVRFilterTypeAO: 0
-    m_PVRFilteringMode: 1
+    m_PVREnvironmentMIS: 0
     m_PVRCulling: 1
     m_PVRFilteringGaussRadiusDirect: 1
     m_PVRFilteringGaussRadiusIndirect: 5
@@ -87,7 +94,8 @@ LightmapSettings:
     m_PVRFilteringAtrousPositionSigmaDirect: 0.5
     m_PVRFilteringAtrousPositionSigmaIndirect: 2
     m_PVRFilteringAtrousPositionSigmaAO: 1
-    m_ShowResolutionOverlay: 1
+    m_ExportTrainingData: 0
+    m_TrainingDataDestination: TrainingData
   m_LightingDataAsset: {fileID: 0}
   m_UseShadowmask: 1
 --- !u!196 &4
@@ -119,6 +127,11 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 1478626404205079530, guid: 41c87b7333da66b47b573551700111c5,
+        type: 3}
+      propertyPath: m_Name
+      value: CottonWool
+      objectReference: {fileID: 0}
     - target: {fileID: 1478626404205574090, guid: 41c87b7333da66b47b573551700111c5,
         type: 3}
       propertyPath: m_LocalPosition.x
@@ -173,11 +186,6 @@ PrefabInstance:
         type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 1478626404205079530, guid: 41c87b7333da66b47b573551700111c5,
-        type: 3}
-      propertyPath: m_Name
-      value: CottonWool
       objectReference: {fileID: 0}
     - target: {fileID: 1478626404203148584, guid: 41c87b7333da66b47b573551700111c5,
         type: 3}
@@ -237,10 +245,6 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 1132393308280272, guid: c07ace9ab142ca9469fa377877c2f1e7, type: 3}
-      propertyPath: m_Name
-      value: HDRP_Test_Camera
-      objectReference: {fileID: 0}
     - target: {fileID: 20109210616973140, guid: c07ace9ab142ca9469fa377877c2f1e7,
         type: 3}
       propertyPath: field of view
@@ -256,6 +260,10 @@ PrefabInstance:
       propertyPath: ImageComparisonSettings.TargetWidth
       value: 1280
       objectReference: {fileID: 0}
+    - target: {fileID: 1132393308280272, guid: c07ace9ab142ca9469fa377877c2f1e7, type: 3}
+      propertyPath: m_Name
+      value: HDRP_Test_Camera
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: c07ace9ab142ca9469fa377877c2f1e7, type: 3}
 --- !u!1001 &295685778
@@ -265,6 +273,11 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 1478626404205079530, guid: 41c87b7333da66b47b573551700111c5,
+        type: 3}
+      propertyPath: m_Name
+      value: CottonWoolDetailNormal
+      objectReference: {fileID: 0}
     - target: {fileID: 1478626404205574090, guid: 41c87b7333da66b47b573551700111c5,
         type: 3}
       propertyPath: m_LocalPosition.x
@@ -320,11 +333,6 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 1478626404205079530, guid: 41c87b7333da66b47b573551700111c5,
-        type: 3}
-      propertyPath: m_Name
-      value: CottonWoolDetailNormal
-      objectReference: {fileID: 0}
     - target: {fileID: 1478626404203148584, guid: 41c87b7333da66b47b573551700111c5,
         type: 3}
       propertyPath: m_Materials.Array.data[0]
@@ -344,6 +352,11 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 1478626404205079530, guid: 41c87b7333da66b47b573551700111c5,
+        type: 3}
+      propertyPath: m_Name
+      value: SilkSSS
+      objectReference: {fileID: 0}
     - target: {fileID: 1478626404205574090, guid: 41c87b7333da66b47b573551700111c5,
         type: 3}
       propertyPath: m_LocalPosition.x
@@ -399,11 +412,6 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 1478626404205079530, guid: 41c87b7333da66b47b573551700111c5,
-        type: 3}
-      propertyPath: m_Name
-      value: SilkSSS
-      objectReference: {fileID: 0}
     - target: {fileID: 1478626404203148584, guid: 41c87b7333da66b47b573551700111c5,
         type: 3}
       propertyPath: m_Materials.Array.data[0]
@@ -418,6 +426,11 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 1478626404205079530, guid: 41c87b7333da66b47b573551700111c5,
+        type: 3}
+      propertyPath: m_Name
+      value: CottonWoolNormal
+      objectReference: {fileID: 0}
     - target: {fileID: 1478626404205574090, guid: 41c87b7333da66b47b573551700111c5,
         type: 3}
       propertyPath: m_LocalPosition.x
@@ -473,11 +486,6 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 1478626404205079530, guid: 41c87b7333da66b47b573551700111c5,
-        type: 3}
-      propertyPath: m_Name
-      value: CottonWoolNormal
-      objectReference: {fileID: 0}
     - target: {fileID: 1478626404203148584, guid: 41c87b7333da66b47b573551700111c5,
         type: 3}
       propertyPath: m_Materials.Array.data[0]
@@ -492,6 +500,11 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 1478626404205079530, guid: 41c87b7333da66b47b573551700111c5,
+        type: 3}
+      propertyPath: m_Name
+      value: CottonWoolTransmission
+      objectReference: {fileID: 0}
     - target: {fileID: 1478626404205574090, guid: 41c87b7333da66b47b573551700111c5,
         type: 3}
       propertyPath: m_LocalPosition.x
@@ -547,11 +560,6 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 1478626404205079530, guid: 41c87b7333da66b47b573551700111c5,
-        type: 3}
-      propertyPath: m_Name
-      value: CottonWoolTransmission
-      objectReference: {fileID: 0}
     - target: {fileID: 1478626404203148584, guid: 41c87b7333da66b47b573551700111c5,
         type: 3}
       propertyPath: m_Materials.Array.data[0]
@@ -571,6 +579,11 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 1478626404205079530, guid: 41c87b7333da66b47b573551700111c5,
+        type: 3}
+      propertyPath: m_Name
+      value: CottonWoolDetailNormalFuzz
+      objectReference: {fileID: 0}
     - target: {fileID: 1478626404205574090, guid: 41c87b7333da66b47b573551700111c5,
         type: 3}
       propertyPath: m_LocalPosition.x
@@ -626,11 +639,6 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 1478626404205079530, guid: 41c87b7333da66b47b573551700111c5,
-        type: 3}
-      propertyPath: m_Name
-      value: CottonWoolDetailNormalFuzz
-      objectReference: {fileID: 0}
     - target: {fileID: 1478626404203148584, guid: 41c87b7333da66b47b573551700111c5,
         type: 3}
       propertyPath: m_Materials.Array.data[0]
@@ -645,6 +653,11 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 1478626404205079530, guid: 41c87b7333da66b47b573551700111c5,
+        type: 3}
+      propertyPath: m_Name
+      value: Silk_Detail
+      objectReference: {fileID: 0}
     - target: {fileID: 1478626404205574090, guid: 41c87b7333da66b47b573551700111c5,
         type: 3}
       propertyPath: m_LocalPosition.x
@@ -700,11 +713,6 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 1478626404205079530, guid: 41c87b7333da66b47b573551700111c5,
-        type: 3}
-      propertyPath: m_Name
-      value: Silk_Detail
-      objectReference: {fileID: 0}
     - target: {fileID: 1478626404203148584, guid: 41c87b7333da66b47b573551700111c5,
         type: 3}
       propertyPath: m_Materials.Array.data[0]
@@ -740,7 +748,6 @@ MonoBehaviour:
   m_GameObject: {fileID: 917837881}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_GeneratorAsset: {fileID: 0}
   m_Script: {fileID: 11500000, guid: c6c2871f720b2af4e9210febdac74517, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
@@ -773,10 +780,6 @@ MonoBehaviour:
   shadowAlgorithm: 0
   shadowVariant: 0
   shadowPrecision: 0
-  shadowData:
-    format: 0
-    data: 
-  shadowDatas: []
 --- !u!114 &917837883
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -786,19 +789,19 @@ MonoBehaviour:
   m_GameObject: {fileID: 917837881}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_GeneratorAsset: {fileID: 0}
   m_Script: {fileID: 11500000, guid: 7a68c43fe1f2a47cfa234b5eeaa98012, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  version: 3
-  m_Version: 3
+  version: 4
+  m_Version: 4
   directionalIntensity: 3.1415927
   punctualIntensity: 600
   areaIntensity: 200
   enableSpotReflector: 0
+  luxAtDistance: 1
   m_InnerSpotPercent: 100
   lightDimmer: 1
-  volumetricDimmer: 1
+  m_VolumetricDimmer: 1
   lightUnit: 0
   sunDiskSize: 1
   sunHaloSize: 0.1
@@ -807,7 +810,7 @@ MonoBehaviour:
   affectSpecular: 1
   nonLightmappedOnly: 0
   lightTypeExtent: 0
-  spotLightShape: 0
+  m_SpotLightShape: 0
   shapeWidth: 0.5
   shapeHeight: 0.5
   aspectRatio: 1
@@ -815,15 +818,26 @@ MonoBehaviour:
   maxSmoothness: 1
   applyRangeAttenuation: 1
   useOldInspector: 0
+  useVolumetric: 1
   featuresFoldout: 1
   showAdditionalSettings: 0
   displayLightIntensity: 600
   displayAreaLightEmissiveMesh: 0
+  areaLightCookie: {fileID: 0}
+  areaLightShadowCone: 120
+  evsmExponent: 15
+  evsmLightLeakBias: 0
+  evsmVarianceBias: 0.00001
+  evsmBlurPasses: 0
   lightLayers: 1
   shadowNearPlane: 0.2
   shadowSoftness: 0.5
   blockerSampleCount: 24
   filterSampleCount: 32
+  minFilterSize: 0.00001
+  kernelSize: 5
+  lightAngle: 1
+  maxDepthBias: 0.001
 --- !u!108 &917837884
 Light:
   m_ObjectHideFlags: 0
@@ -848,6 +862,24 @@ Light:
     m_Bias: 0.05
     m_NormalBias: 0.4
     m_NearPlane: 0.2
+    m_CullingMatrixOverride:
+      e00: 1
+      e01: 0
+      e02: 0
+      e03: 0
+      e10: 0
+      e11: 1
+      e12: 0
+      e13: 0
+      e20: 0
+      e21: 0
+      e22: 1
+      e23: 0
+      e30: 0
+      e31: 0
+      e32: 0
+      e33: 1
+    m_UseCullingMatrixOverride: 0
   m_Cookie: {fileID: 0}
   m_DrawHalo: 0
   m_Flare: {fileID: 0}
@@ -855,12 +887,15 @@ Light:
   m_CullingMask:
     serializedVersion: 2
     m_Bits: 4294967295
+  m_RenderingLayerMask: 1
   m_Lightmapping: 4
   m_LightShadowCasterMode: 2
   m_AreaSize: {x: 1, y: 1}
   m_BounceIntensity: 1
   m_ColorTemperature: 6570
   m_UseColorTemperature: 0
+  m_BoundingSphereOverride: {x: 0, y: 0, z: 0, w: 0}
+  m_UseBoundingSphereOverride: 0
   m_ShadowRadius: 0
   m_ShadowAngle: 0
 --- !u!4 &917837885
@@ -884,6 +919,11 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 1478626404205079530, guid: 41c87b7333da66b47b573551700111c5,
+        type: 3}
+      propertyPath: m_Name
+      value: CottonWoolDetailNormalFuzzDouble
+      objectReference: {fileID: 0}
     - target: {fileID: 1478626404205574090, guid: 41c87b7333da66b47b573551700111c5,
         type: 3}
       propertyPath: m_LocalPosition.x
@@ -939,11 +979,6 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 1478626404205079530, guid: 41c87b7333da66b47b573551700111c5,
-        type: 3}
-      propertyPath: m_Name
-      value: CottonWoolDetailNormalFuzzDouble
-      objectReference: {fileID: 0}
     - target: {fileID: 1478626404203148584, guid: 41c87b7333da66b47b573551700111c5,
         type: 3}
       propertyPath: m_Materials.Array.data[0]
@@ -979,7 +1014,6 @@ MonoBehaviour:
   m_GameObject: {fileID: 1044727067}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_GeneratorAsset: {fileID: 0}
   m_Script: {fileID: 11500000, guid: c6c2871f720b2af4e9210febdac74517, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
@@ -1012,14 +1046,6 @@ MonoBehaviour:
   shadowAlgorithm: 0
   shadowVariant: 3
   shadowPrecision: 0
-  shadowData:
-    format: 3
-    data: 000000000000803f
-  shadowDatas:
-  - format: 0
-    data: 000000000000803f
-  - format: 3
-    data: 000000000000803f
 --- !u!114 &1044727069
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1029,19 +1055,19 @@ MonoBehaviour:
   m_GameObject: {fileID: 1044727067}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_GeneratorAsset: {fileID: 0}
   m_Script: {fileID: 11500000, guid: 7a68c43fe1f2a47cfa234b5eeaa98012, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  version: 3
-  m_Version: 3
+  version: 4
+  m_Version: 4
   directionalIntensity: 3.1415927
   punctualIntensity: 600
   areaIntensity: 200
   enableSpotReflector: 0
+  luxAtDistance: 1
   m_InnerSpotPercent: 0
   lightDimmer: 1
-  volumetricDimmer: 1
+  m_VolumetricDimmer: 1
   lightUnit: 0
   sunDiskSize: 1
   sunHaloSize: 0.1
@@ -1050,7 +1076,7 @@ MonoBehaviour:
   affectSpecular: 1
   nonLightmappedOnly: 0
   lightTypeExtent: 0
-  spotLightShape: 2
+  m_SpotLightShape: 2
   shapeWidth: 0.5
   shapeHeight: 2
   aspectRatio: 0.4
@@ -1058,15 +1084,26 @@ MonoBehaviour:
   maxSmoothness: 1
   applyRangeAttenuation: 1
   useOldInspector: 0
+  useVolumetric: 1
   featuresFoldout: 1
   showAdditionalSettings: 1
   displayLightIntensity: 300
   displayAreaLightEmissiveMesh: 0
+  areaLightCookie: {fileID: 0}
+  areaLightShadowCone: 120
+  evsmExponent: 15
+  evsmLightLeakBias: 0
+  evsmVarianceBias: 0.00001
+  evsmBlurPasses: 0
   lightLayers: 1
   shadowNearPlane: 2
   shadowSoftness: 0.5
   blockerSampleCount: 24
   filterSampleCount: 32
+  minFilterSize: 0.00001
+  kernelSize: 5
+  lightAngle: 1
+  maxDepthBias: 0.001
 --- !u!108 &1044727070
 Light:
   m_ObjectHideFlags: 0
@@ -1091,6 +1128,24 @@ Light:
     m_Bias: 0.05
     m_NormalBias: 0.4
     m_NearPlane: 2
+    m_CullingMatrixOverride:
+      e00: 4
+      e01: 0
+      e02: 0
+      e03: 0
+      e10: 0
+      e11: 1
+      e12: 0
+      e13: 0
+      e20: 0
+      e21: 0
+      e22: 0.071428575
+      e23: -1.1428572
+      e30: 0
+      e31: 0
+      e32: 0
+      e33: 1
+    m_UseCullingMatrixOverride: 1
   m_Cookie: {fileID: 0}
   m_DrawHalo: 0
   m_Flare: {fileID: 0}
@@ -1098,12 +1153,15 @@ Light:
   m_CullingMask:
     serializedVersion: 2
     m_Bits: 4294967295
+  m_RenderingLayerMask: 1
   m_Lightmapping: 4
   m_LightShadowCasterMode: 2
   m_AreaSize: {x: 1, y: 1}
   m_BounceIntensity: 1
   m_ColorTemperature: 6570
   m_UseColorTemperature: 0
+  m_BoundingSphereOverride: {x: 0, y: 0, z: 15, w: 15.035375}
+  m_UseBoundingSphereOverride: 1
   m_ShadowRadius: 0
   m_ShadowAngle: 0
 --- !u!4 &1044727071
@@ -1127,6 +1185,11 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 1478626404205079530, guid: 41c87b7333da66b47b573551700111c5,
+        type: 3}
+      propertyPath: m_Name
+      value: Silk_DetailNormal
+      objectReference: {fileID: 0}
     - target: {fileID: 1478626404205574090, guid: 41c87b7333da66b47b573551700111c5,
         type: 3}
       propertyPath: m_LocalPosition.x
@@ -1182,11 +1245,6 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 1478626404205079530, guid: 41c87b7333da66b47b573551700111c5,
-        type: 3}
-      propertyPath: m_Name
-      value: Silk_DetailNormal
-      objectReference: {fileID: 0}
     - target: {fileID: 1478626404203148584, guid: 41c87b7333da66b47b573551700111c5,
         type: 3}
       propertyPath: m_Materials.Array.data[0]
@@ -1201,6 +1259,11 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 1478626404205079530, guid: 41c87b7333da66b47b573551700111c5,
+        type: 3}
+      propertyPath: m_Name
+      value: SilkDetailNormalFuzz
+      objectReference: {fileID: 0}
     - target: {fileID: 1478626404205574090, guid: 41c87b7333da66b47b573551700111c5,
         type: 3}
       propertyPath: m_LocalPosition.x
@@ -1256,11 +1319,6 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 1478626404205079530, guid: 41c87b7333da66b47b573551700111c5,
-        type: 3}
-      propertyPath: m_Name
-      value: SilkDetailNormalFuzz
-      objectReference: {fileID: 0}
     - target: {fileID: 1478626404203148584, guid: 41c87b7333da66b47b573551700111c5,
         type: 3}
       propertyPath: m_Materials.Array.data[0]
@@ -1275,6 +1333,11 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 1478626404205079530, guid: 41c87b7333da66b47b573551700111c5,
+        type: 3}
+      propertyPath: m_Name
+      value: CottonWoolDetail
+      objectReference: {fileID: 0}
     - target: {fileID: 1478626404205574090, guid: 41c87b7333da66b47b573551700111c5,
         type: 3}
       propertyPath: m_LocalPosition.x
@@ -1330,11 +1393,6 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 1478626404205079530, guid: 41c87b7333da66b47b573551700111c5,
-        type: 3}
-      propertyPath: m_Name
-      value: CottonWoolDetail
-      objectReference: {fileID: 0}
     - target: {fileID: 1478626404203148584, guid: 41c87b7333da66b47b573551700111c5,
         type: 3}
       propertyPath: m_Materials.Array.data[0]
@@ -1349,6 +1407,11 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 1478626404205079530, guid: 41c87b7333da66b47b573551700111c5,
+        type: 3}
+      propertyPath: m_Name
+      value: CottonWoolSSS
+      objectReference: {fileID: 0}
     - target: {fileID: 1478626404205574090, guid: 41c87b7333da66b47b573551700111c5,
         type: 3}
       propertyPath: m_LocalPosition.x
@@ -1404,11 +1467,6 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 1478626404205079530, guid: 41c87b7333da66b47b573551700111c5,
-        type: 3}
-      propertyPath: m_Name
-      value: CottonWoolSSS
-      objectReference: {fileID: 0}
     - target: {fileID: 1478626404203148584, guid: 41c87b7333da66b47b573551700111c5,
         type: 3}
       propertyPath: m_Materials.Array.data[0]
@@ -1423,6 +1481,11 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 1478626404205079530, guid: 41c87b7333da66b47b573551700111c5,
+        type: 3}
+      propertyPath: m_Name
+      value: SilkDetailNormalCutout
+      objectReference: {fileID: 0}
     - target: {fileID: 1478626404205574090, guid: 41c87b7333da66b47b573551700111c5,
         type: 3}
       propertyPath: m_LocalPosition.x
@@ -1478,11 +1541,6 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 1478626404205079530, guid: 41c87b7333da66b47b573551700111c5,
-        type: 3}
-      propertyPath: m_Name
-      value: SilkDetailNormalCutout
-      objectReference: {fileID: 0}
     - target: {fileID: 1478626404203148584, guid: 41c87b7333da66b47b573551700111c5,
         type: 3}
       propertyPath: m_Materials.Array.data[0]
@@ -1502,6 +1560,11 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 1478626404205079530, guid: 41c87b7333da66b47b573551700111c5,
+        type: 3}
+      propertyPath: m_Name
+      value: SilkDetailNormalFuzzDouble
+      objectReference: {fileID: 0}
     - target: {fileID: 1478626404205574090, guid: 41c87b7333da66b47b573551700111c5,
         type: 3}
       propertyPath: m_LocalPosition.x
@@ -1557,11 +1620,6 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 1478626404205079530, guid: 41c87b7333da66b47b573551700111c5,
-        type: 3}
-      propertyPath: m_Name
-      value: SilkDetailNormalFuzzDouble
-      objectReference: {fileID: 0}
     - target: {fileID: 1478626404203148584, guid: 41c87b7333da66b47b573551700111c5,
         type: 3}
       propertyPath: m_Materials.Array.data[0]
@@ -1576,6 +1634,11 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 1478626404205079530, guid: 41c87b7333da66b47b573551700111c5,
+        type: 3}
+      propertyPath: m_Name
+      value: CottonWoolDetailNormalCutout
+      objectReference: {fileID: 0}
     - target: {fileID: 1478626404205574090, guid: 41c87b7333da66b47b573551700111c5,
         type: 3}
       propertyPath: m_LocalPosition.x
@@ -1631,11 +1694,6 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 1478626404205079530, guid: 41c87b7333da66b47b573551700111c5,
-        type: 3}
-      propertyPath: m_Name
-      value: CottonWoolDetailNormalCutout
-      objectReference: {fileID: 0}
     - target: {fileID: 1478626404203148584, guid: 41c87b7333da66b47b573551700111c5,
         type: 3}
       propertyPath: m_Materials.Array.data[0]
@@ -1650,6 +1708,16 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 5166460635194736116, guid: 1320610a60284bc4a94a401eb4f7cbf2,
+        type: 3}
+      propertyPath: m_Name
+      value: TriPointLight
+      objectReference: {fileID: 0}
+    - target: {fileID: 5166460635194736116, guid: 1320610a60284bc4a94a401eb4f7cbf2,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 5166460635194736117, guid: 1320610a60284bc4a94a401eb4f7cbf2,
         type: 3}
       propertyPath: m_LocalPosition.x
@@ -1705,20 +1773,40 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 5166460635194736116, guid: 1320610a60284bc4a94a401eb4f7cbf2,
-        type: 3}
-      propertyPath: m_Name
-      value: TriPointLight
-      objectReference: {fileID: 0}
     - target: {fileID: 5166460634817957697, guid: 1320610a60284bc4a94a401eb4f7cbf2,
         type: 3}
       propertyPath: m_Shadows.m_Type
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5166460634817957697, guid: 1320610a60284bc4a94a401eb4f7cbf2,
+        type: 3}
+      propertyPath: m_Intensity
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 5166460634817957697, guid: 1320610a60284bc4a94a401eb4f7cbf2,
+        type: 3}
+      propertyPath: m_Enabled
       value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 5166460634817957696, guid: 1320610a60284bc4a94a401eb4f7cbf2,
         type: 3}
       propertyPath: showAdditionalSettings
       value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5166460634817957696, guid: 1320610a60284bc4a94a401eb4f7cbf2,
+        type: 3}
+      propertyPath: version
+      value: 4
+      objectReference: {fileID: 0}
+    - target: {fileID: 5166460634817957696, guid: 1320610a60284bc4a94a401eb4f7cbf2,
+        type: 3}
+      propertyPath: m_Version
+      value: 4
+      objectReference: {fileID: 0}
+    - target: {fileID: 5166460634817957696, guid: 1320610a60284bc4a94a401eb4f7cbf2,
+        type: 3}
+      propertyPath: shadowNearPlane
+      value: 0.2
       objectReference: {fileID: 0}
     - target: {fileID: 5166460634817957703, guid: 1320610a60284bc4a94a401eb4f7cbf2,
         type: 3}
@@ -1735,10 +1823,20 @@ PrefabInstance:
       propertyPath: showAdditionalSettings
       value: 1
       objectReference: {fileID: 0}
-    - target: {fileID: 5166460635194736116, guid: 1320610a60284bc4a94a401eb4f7cbf2,
+    - target: {fileID: 5166460635176206052, guid: 1320610a60284bc4a94a401eb4f7cbf2,
         type: 3}
-      propertyPath: m_IsActive
-      value: 1
+      propertyPath: version
+      value: 4
+      objectReference: {fileID: 0}
+    - target: {fileID: 5166460635176206052, guid: 1320610a60284bc4a94a401eb4f7cbf2,
+        type: 3}
+      propertyPath: m_Version
+      value: 4
+      objectReference: {fileID: 0}
+    - target: {fileID: 5166460635176206052, guid: 1320610a60284bc4a94a401eb4f7cbf2,
+        type: 3}
+      propertyPath: shadowNearPlane
+      value: 0.2
       objectReference: {fileID: 0}
     - target: {fileID: 5166460635176206053, guid: 1320610a60284bc4a94a401eb4f7cbf2,
         type: 3}
@@ -1750,10 +1848,55 @@ PrefabInstance:
       propertyPath: m_Intensity
       value: 0.2
       objectReference: {fileID: 0}
-    - target: {fileID: 5166460634817957697, guid: 1320610a60284bc4a94a401eb4f7cbf2,
+    - target: {fileID: 5166460635176206074, guid: 1320610a60284bc4a94a401eb4f7cbf2,
         type: 3}
-      propertyPath: m_Intensity
-      value: 3
+      propertyPath: m_LocalPosition.x
+      value: -0.0565
+      objectReference: {fileID: 0}
+    - target: {fileID: 5166460635176206074, guid: 1320610a60284bc4a94a401eb4f7cbf2,
+        type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5166460635176206074, guid: 1320610a60284bc4a94a401eb4f7cbf2,
+        type: 3}
+      propertyPath: m_LocalPosition.z
+      value: -0.0326
+      objectReference: {fileID: 0}
+    - target: {fileID: 5166460635888423116, guid: 1320610a60284bc4a94a401eb4f7cbf2,
+        type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -0.561
+      objectReference: {fileID: 0}
+    - target: {fileID: 5166460635888423116, guid: 1320610a60284bc4a94a401eb4f7cbf2,
+        type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 1.943
+      objectReference: {fileID: 0}
+    - target: {fileID: 5166460635888423116, guid: 1320610a60284bc4a94a401eb4f7cbf2,
+        type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0.972
+      objectReference: {fileID: 0}
+    - target: {fileID: 5166460634817957701, guid: 1320610a60284bc4a94a401eb4f7cbf2,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5166460635888423118, guid: 1320610a60284bc4a94a401eb4f7cbf2,
+        type: 3}
+      propertyPath: version
+      value: 4
+      objectReference: {fileID: 0}
+    - target: {fileID: 5166460635888423118, guid: 1320610a60284bc4a94a401eb4f7cbf2,
+        type: 3}
+      propertyPath: m_Version
+      value: 4
+      objectReference: {fileID: 0}
+    - target: {fileID: 5166460635888423118, guid: 1320610a60284bc4a94a401eb4f7cbf2,
+        type: 3}
+      propertyPath: shadowNearPlane
+      value: 0.2
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 1320610a60284bc4a94a401eb4f7cbf2, type: 3}
@@ -1785,7 +1928,6 @@ MonoBehaviour:
   m_GameObject: {fileID: 1716383781}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_GeneratorAsset: {fileID: 0}
   m_Script: {fileID: 11500000, guid: c6c2871f720b2af4e9210febdac74517, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
@@ -1818,10 +1960,6 @@ MonoBehaviour:
   shadowAlgorithm: 0
   shadowVariant: 0
   shadowPrecision: 0
-  shadowData:
-    format: 0
-    data: 
-  shadowDatas: []
 --- !u!114 &1716383783
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1831,19 +1969,19 @@ MonoBehaviour:
   m_GameObject: {fileID: 1716383781}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_GeneratorAsset: {fileID: 0}
   m_Script: {fileID: 11500000, guid: 7a68c43fe1f2a47cfa234b5eeaa98012, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  version: 3
-  m_Version: 3
+  version: 4
+  m_Version: 4
   directionalIntensity: 3.1415927
   punctualIntensity: 600
   areaIntensity: 200
   enableSpotReflector: 0
+  luxAtDistance: 1
   m_InnerSpotPercent: 100
   lightDimmer: 1
-  volumetricDimmer: 1
+  m_VolumetricDimmer: 1
   lightUnit: 0
   sunDiskSize: 1
   sunHaloSize: 0.1
@@ -1852,7 +1990,7 @@ MonoBehaviour:
   affectSpecular: 1
   nonLightmappedOnly: 0
   lightTypeExtent: 0
-  spotLightShape: 0
+  m_SpotLightShape: 0
   shapeWidth: 0.5
   shapeHeight: 0.5
   aspectRatio: 1
@@ -1860,15 +1998,26 @@ MonoBehaviour:
   maxSmoothness: 1
   applyRangeAttenuation: 1
   useOldInspector: 0
+  useVolumetric: 1
   featuresFoldout: 1
   showAdditionalSettings: 0
   displayLightIntensity: 600
   displayAreaLightEmissiveMesh: 0
+  areaLightCookie: {fileID: 0}
+  areaLightShadowCone: 120
+  evsmExponent: 15
+  evsmLightLeakBias: 0
+  evsmVarianceBias: 0.00001
+  evsmBlurPasses: 0
   lightLayers: 1
   shadowNearPlane: 0.2
   shadowSoftness: 0.5
   blockerSampleCount: 24
   filterSampleCount: 32
+  minFilterSize: 0.00001
+  kernelSize: 5
+  lightAngle: 1
+  maxDepthBias: 0.001
 --- !u!108 &1716383784
 Light:
   m_ObjectHideFlags: 0
@@ -1893,6 +2042,24 @@ Light:
     m_Bias: 0.05
     m_NormalBias: 0.4
     m_NearPlane: 0.2
+    m_CullingMatrixOverride:
+      e00: 1
+      e01: 0
+      e02: 0
+      e03: 0
+      e10: 0
+      e11: 1
+      e12: 0
+      e13: 0
+      e20: 0
+      e21: 0
+      e22: 1
+      e23: 0
+      e30: 0
+      e31: 0
+      e32: 0
+      e33: 1
+    m_UseCullingMatrixOverride: 0
   m_Cookie: {fileID: 0}
   m_DrawHalo: 0
   m_Flare: {fileID: 0}
@@ -1900,12 +2067,15 @@ Light:
   m_CullingMask:
     serializedVersion: 2
     m_Bits: 4294967295
+  m_RenderingLayerMask: 1
   m_Lightmapping: 4
   m_LightShadowCasterMode: 2
   m_AreaSize: {x: 1, y: 1}
   m_BounceIntensity: 1
   m_ColorTemperature: 6570
   m_UseColorTemperature: 0
+  m_BoundingSphereOverride: {x: 0, y: 0, z: 0, w: 0}
+  m_UseBoundingSphereOverride: 0
   m_ShadowRadius: 0
   m_ShadowAngle: 0
 --- !u!4 &1716383785
@@ -1959,6 +2129,11 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 1478626404205079530, guid: 41c87b7333da66b47b573551700111c5,
+        type: 3}
+      propertyPath: m_Name
+      value: SilkTransmission
+      objectReference: {fileID: 0}
     - target: {fileID: 1478626404205574090, guid: 41c87b7333da66b47b573551700111c5,
         type: 3}
       propertyPath: m_LocalPosition.x
@@ -2014,11 +2189,6 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 1478626404205079530, guid: 41c87b7333da66b47b573551700111c5,
-        type: 3}
-      propertyPath: m_Name
-      value: SilkTransmission
-      objectReference: {fileID: 0}
     - target: {fileID: 1478626404203148584, guid: 41c87b7333da66b47b573551700111c5,
         type: 3}
       propertyPath: m_Materials.Array.data[0]
@@ -2038,6 +2208,11 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 1478626404205079530, guid: 41c87b7333da66b47b573551700111c5,
+        type: 3}
+      propertyPath: m_Name
+      value: Silk_Normal
+      objectReference: {fileID: 0}
     - target: {fileID: 1478626404205574090, guid: 41c87b7333da66b47b573551700111c5,
         type: 3}
       propertyPath: m_LocalPosition.x
@@ -2093,11 +2268,6 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 1478626404205079530, guid: 41c87b7333da66b47b573551700111c5,
-        type: 3}
-      propertyPath: m_Name
-      value: Silk_Normal
-      objectReference: {fileID: 0}
     - target: {fileID: 1478626404203148584, guid: 41c87b7333da66b47b573551700111c5,
         type: 3}
       propertyPath: m_Materials.Array.data[0]
@@ -2112,6 +2282,11 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 1478626404205079530, guid: 41c87b7333da66b47b573551700111c5,
+        type: 3}
+      propertyPath: m_Name
+      value: Silk
+      objectReference: {fileID: 0}
     - target: {fileID: 1478626404205574090, guid: 41c87b7333da66b47b573551700111c5,
         type: 3}
       propertyPath: m_LocalPosition.x
@@ -2166,11 +2341,6 @@ PrefabInstance:
         type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 1478626404205079530, guid: 41c87b7333da66b47b573551700111c5,
-        type: 3}
-      propertyPath: m_Name
-      value: Silk
       objectReference: {fileID: 0}
     - target: {fileID: 1478626404203148584, guid: 41c87b7333da66b47b573551700111c5,
         type: 3}
