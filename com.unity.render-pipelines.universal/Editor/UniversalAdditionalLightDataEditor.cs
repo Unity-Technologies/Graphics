@@ -5,7 +5,7 @@ namespace UnityEditor.Rendering.Universal
 {
     [CanEditMultipleObjects]
     [CustomEditor(typeof(LWRPAdditionalLightData))]
-    [MovedFrom("UnityEditor.Rendering.LWRP")] public class LWRPAdditionLightDataEditor : Editor
+    [MovedFrom("UnityEditor.Rendering.LWRP")] public class UniversalAdditionLightDataEditor : Editor
     {
         public override void OnInspectorGUI()
         {

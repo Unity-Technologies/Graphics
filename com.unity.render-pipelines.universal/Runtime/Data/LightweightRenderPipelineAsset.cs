@@ -236,7 +236,7 @@ namespace UnityEngine.Rendering.Universal
                 return null;
 
             m_Renderer = m_RendererData.InternalCreateRenderer();
-            return new LightweightRenderPipeline(this);
+            return new UniversalRenderPipeline(this);
         }
 
         Material GetMaterial(DefaultMaterialType materialType)
@@ -555,17 +555,17 @@ namespace UnityEngine.Rendering.Universal
 
         float ValidateShadowBias(float value)
         {
-            return Mathf.Max(0.0f, Mathf.Min(value, LightweightRenderPipeline.maxShadowBias));
+            return Mathf.Max(0.0f, Mathf.Min(value, UniversalRenderPipeline.maxShadowBias));
         }
 
         int ValidatePerObjectLights(int value)
         {
-            return System.Math.Max(0, System.Math.Min(value, LightweightRenderPipeline.maxPerObjectLights));
+            return System.Math.Max(0, System.Math.Min(value, UniversalRenderPipeline.maxPerObjectLights));
         }
 
         float ValidateRenderScale(float value)
         {
-            return Mathf.Max(LightweightRenderPipeline.minRenderScale, Mathf.Min(value, LightweightRenderPipeline.maxRenderScale));
+            return Mathf.Max(UniversalRenderPipeline.minRenderScale, Mathf.Min(value, UniversalRenderPipeline.maxRenderScale));
         }
     }
 }

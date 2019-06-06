@@ -89,7 +89,7 @@ namespace UnityEngine.Rendering.Universal
         public static readonly string KillAlpha = "_KILL_ALPHA";
     }
 
-    [MovedFrom("UnityEngine.Rendering.LWRP")] public sealed partial class LightweightRenderPipeline
+    public sealed partial class UniversalRenderPipeline
     {
         static List<Vector4> m_ShadowBiasData = new List<Vector4>();
 

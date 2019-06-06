@@ -71,10 +71,10 @@ namespace UnityEditor.Experimental.Rendering.Univerasl
 
         static bool CreateLightValidation()
         {
-            LightweightRenderPipeline pipeline = UnityEngine.Rendering.RenderPipelineManager.currentPipeline as LightweightRenderPipeline;
+            UniversalRenderPipeline pipeline = UnityEngine.Rendering.RenderPipelineManager.currentPipeline as UniversalRenderPipeline;
             if (pipeline != null)
             {
-                LightweightRenderPipelineAsset asset = LightweightRenderPipeline.asset;
+                LightweightRenderPipelineAsset asset = UniversalRenderPipeline.asset;
                 Renderer2DData assetData = asset.scriptableRendererData as Renderer2DData;
                 if (assetData != null)
                     return true;

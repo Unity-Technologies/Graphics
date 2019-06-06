@@ -36,17 +36,17 @@ namespace UnityEngine.Rendering.Universal
 
             if (cmd == null)
             {
-                Shader.SetGlobalVector(LightweightRenderPipeline.PerFrameBuffer._Time, timeVector);
-                Shader.SetGlobalVector(LightweightRenderPipeline.PerFrameBuffer._SinTime, sinTimeVector);
-                Shader.SetGlobalVector(LightweightRenderPipeline.PerFrameBuffer._CosTime, cosTimeVector);
-                Shader.SetGlobalVector(LightweightRenderPipeline.PerFrameBuffer.unity_DeltaTime, deltaTimeVector);
+                Shader.SetGlobalVector(UniversalRenderPipeline.PerFrameBuffer._Time, timeVector);
+                Shader.SetGlobalVector(UniversalRenderPipeline.PerFrameBuffer._SinTime, sinTimeVector);
+                Shader.SetGlobalVector(UniversalRenderPipeline.PerFrameBuffer._CosTime, cosTimeVector);
+                Shader.SetGlobalVector(UniversalRenderPipeline.PerFrameBuffer.unity_DeltaTime, deltaTimeVector);
             }
             else
             {
-                cmd.SetGlobalVector(LightweightRenderPipeline.PerFrameBuffer._Time, timeVector);
-                cmd.SetGlobalVector(LightweightRenderPipeline.PerFrameBuffer._SinTime, sinTimeVector);
-                cmd.SetGlobalVector(LightweightRenderPipeline.PerFrameBuffer._CosTime, cosTimeVector);
-                cmd.SetGlobalVector(LightweightRenderPipeline.PerFrameBuffer.unity_DeltaTime, deltaTimeVector);
+                cmd.SetGlobalVector(UniversalRenderPipeline.PerFrameBuffer._Time, timeVector);
+                cmd.SetGlobalVector(UniversalRenderPipeline.PerFrameBuffer._SinTime, sinTimeVector);
+                cmd.SetGlobalVector(UniversalRenderPipeline.PerFrameBuffer._CosTime, cosTimeVector);
+                cmd.SetGlobalVector(UniversalRenderPipeline.PerFrameBuffer.unity_DeltaTime, deltaTimeVector);
             }
         }
 

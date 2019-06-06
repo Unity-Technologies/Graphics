@@ -9,11 +9,19 @@ using UnityEngine.Experimental.GlobalIllumination;
 using UnityEngine.Scripting.APIUpdating;
 using Lightmapping = UnityEngine.Experimental.GlobalIllumination.Lightmapping;
 
+namespace UnityEngine.Rendering.LWRP
+{
+    [Obsolete("LWRP -> Universal (UnityUpgradable) -> UnityEngine.Rendering.Universal.UniversalRenderPipeline", true)]
+    public class LightweightRenderPipeline
+    {
+    }
+}
+
 namespace UnityEngine.Rendering.Universal
 {
-    public sealed partial class LightweightRenderPipeline : RenderPipeline
+    public sealed partial class UniversalRenderPipeline : RenderPipeline
     {
-        static internal class PerFrameBuffer
+        internal static class PerFrameBuffer
         {
             public static int _GlossyEnvironmentColor;
             public static int _SubtractiveShadowColor;
@@ -74,7 +82,7 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        public LightweightRenderPipeline(LightweightRenderPipelineAsset asset)
+        public UniversalRenderPipeline(LightweightRenderPipelineAsset asset)
         {
             SetSupportedRenderingFeatures();
 
@@ -421,8 +429,8 @@ namespace UnityEngine.Rendering.Universal
 
         static void InitializeLightData(LightweightRenderPipelineAsset settings, NativeArray<VisibleLight> visibleLights, int mainLightIndex, out LightData lightData)
         {
-            int maxPerObjectAdditionalLights = LightweightRenderPipeline.maxPerObjectLights;
-            int maxVisibleAdditionalLights = LightweightRenderPipeline.maxVisibleAdditionalLights;
+            int maxPerObjectAdditionalLights = UniversalRenderPipeline.maxPerObjectLights;
+            int maxVisibleAdditionalLights = UniversalRenderPipeline.maxVisibleAdditionalLights;
 
             lightData.mainLightIndex = mainLightIndex;
 

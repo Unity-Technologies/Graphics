@@ -7,7 +7,7 @@ namespace UnityEditor.Rendering.Universal
 {
     [CanEditMultipleObjects]
     [CustomEditorForRenderPipeline(typeof(Light), typeof(LightweightRenderPipelineAsset))]
-    class LightweightRenderPipelineLightEditor : LightEditor
+    class UniversalRenderPipelineLightEditor : LightEditor
     {
         AnimBool m_AnimSpotOptions = new AnimBool();
         AnimBool m_AnimPointOptions = new AnimBool();

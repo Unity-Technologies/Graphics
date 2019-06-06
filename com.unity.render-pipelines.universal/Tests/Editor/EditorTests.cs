@@ -93,28 +93,28 @@ class EditorTests
             Assert.GreaterOrEqual(asset.shadowDistance, 0.0f);
 
             asset.renderScale = -1.0f;
-            Assert.GreaterOrEqual(asset.renderScale, LightweightRenderPipeline.minRenderScale);
+            Assert.GreaterOrEqual(asset.renderScale, UniversalRenderPipeline.minRenderScale);
 
             asset.renderScale = 32.0f;
-            Assert.LessOrEqual(asset.renderScale, LightweightRenderPipeline.maxRenderScale);
+            Assert.LessOrEqual(asset.renderScale, UniversalRenderPipeline.maxRenderScale);
 
             asset.shadowNormalBias = -1.0f;
             Assert.GreaterOrEqual(asset.shadowNormalBias, 0.0f);
 
             asset.shadowNormalBias = 32.0f;
-            Assert.LessOrEqual(asset.shadowNormalBias, LightweightRenderPipeline.maxShadowBias);
+            Assert.LessOrEqual(asset.shadowNormalBias, UniversalRenderPipeline.maxShadowBias);
 
             asset.shadowDepthBias = -1.0f;
             Assert.GreaterOrEqual(asset.shadowDepthBias, 0.0f);
 
             asset.shadowDepthBias = 32.0f;
-            Assert.LessOrEqual(asset.shadowDepthBias, LightweightRenderPipeline.maxShadowBias);
+            Assert.LessOrEqual(asset.shadowDepthBias, UniversalRenderPipeline.maxShadowBias);
 
             asset.maxAdditionalLightsCount = -1;
             Assert.GreaterOrEqual(asset.maxAdditionalLightsCount, 0);
 
             asset.maxAdditionalLightsCount = 32;
-            Assert.LessOrEqual(asset.maxAdditionalLightsCount, LightweightRenderPipeline.maxPerObjectLights);
+            Assert.LessOrEqual(asset.maxAdditionalLightsCount, UniversalRenderPipeline.maxPerObjectLights);
         }
         ScriptableObject.DestroyImmediate(asset);
     }

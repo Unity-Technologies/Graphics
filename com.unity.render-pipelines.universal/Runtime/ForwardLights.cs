@@ -46,7 +46,7 @@ namespace UnityEngine.Rendering.Universal
             LightConstantBuffer._AdditionalLightsSpotDir = Shader.PropertyToID("_AdditionalLightsSpotDir");
             LightConstantBuffer._AdditionalLightOcclusionProbeChannel = Shader.PropertyToID("_AdditionalLightsOcclusionProbes");
 
-            int maxLights = LightweightRenderPipeline.maxVisibleAdditionalLights;
+            int maxLights = UniversalRenderPipeline.maxVisibleAdditionalLights;
             m_AdditionalLightPositions = new Vector4[maxLights];
             m_AdditionalLightColors = new Vector4[maxLights];
             m_AdditionalLightAttenuations = new Vector4[maxLights];
@@ -183,7 +183,7 @@ namespace UnityEngine.Rendering.Universal
         void SetupShaderLightConstants(CommandBuffer cmd, ref LightData lightData)
         {
             // Clear to default all light constant data
-            for (int i = 0; i < LightweightRenderPipeline.maxVisibleAdditionalLights; ++i)
+            for (int i = 0; i < UniversalRenderPipeline.maxVisibleAdditionalLights; ++i)
                 InitializeLightConstants(lightData.visibleLights, -1, out m_AdditionalLightPositions[i],
                     out m_AdditionalLightColors[i],
                     out m_AdditionalLightAttenuations[i],
@@ -209,7 +209,7 @@ namespace UnityEngine.Rendering.Universal
 
         void SetupAdditionalLightConstants(CommandBuffer cmd, ref LightData lightData)
         {
-            int maxVisibleAdditionalLights = LightweightRenderPipeline.maxVisibleAdditionalLights;
+            int maxVisibleAdditionalLights = UniversalRenderPipeline.maxVisibleAdditionalLights;
             var lights = lightData.visibleLights;
             if (lightData.additionalLightsCount > 0)
             {
@@ -257,7 +257,7 @@ namespace UnityEngine.Rendering.Universal
             // Pipeline handles them globally.
             for (int i = 0; i < visibleLights.Length; ++i)
             {
-                if (additionalLightsCount >= LightweightRenderPipeline.maxVisibleAdditionalLights)
+                if (additionalLightsCount >= UniversalRenderPipeline.maxVisibleAdditionalLights)
                     break;
 
                 VisibleLight light = visibleLights[i];

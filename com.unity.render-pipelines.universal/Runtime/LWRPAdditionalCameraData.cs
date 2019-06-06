@@ -105,7 +105,7 @@ namespace UnityEngine.Rendering.Universal
             get
             {
                 if (m_RendererOverrideOption == RendererOverrideOption.UsePipelineSettings || m_RendererData == null)
-                    return LightweightRenderPipeline.asset.scriptableRenderer;
+                    return UniversalRenderPipeline.asset.scriptableRenderer;
 
                 if (m_RendererData.isInvalidated || m_Renderer == null)
                     m_Renderer = m_RendererData.InternalCreateRenderer();

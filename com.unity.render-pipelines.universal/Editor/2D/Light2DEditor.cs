@@ -665,14 +665,14 @@ namespace UnityEditor.Experimental.Rendering.Univerasl
 
         public override void OnInspectorGUI()
         {
-            LightweightRenderPipeline pipeline = UnityEngine.Rendering.RenderPipelineManager.currentPipeline as LightweightRenderPipeline;
+            UniversalRenderPipeline pipeline = UnityEngine.Rendering.RenderPipelineManager.currentPipeline as UniversalRenderPipeline;
             if (pipeline == null)
             {
                 EditorGUILayout.HelpBox(Styles.renderPipelineUnassignedWarning);
                 return;
             }
 
-            LightweightRenderPipelineAsset asset = LightweightRenderPipeline.asset;
+            LightweightRenderPipelineAsset asset = UniversalRenderPipeline.asset;
             Renderer2DData assetData = asset.scriptableRendererData as Renderer2DData; 
             if(assetData == null)
             {
