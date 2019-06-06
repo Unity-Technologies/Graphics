@@ -140,6 +140,19 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
+        public string GetKeywordPreviewDeclarationString()
+        {
+            switch(keywordType)
+            {
+                case ShaderKeywordType.Boolean:
+                    return value == 1 ? $"#define {referenceName}_ON" : string.Empty;
+                case ShaderKeywordType.Enum:
+                    return $"#define {referenceName}_{entries[value].referenceName}";
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+        }
+
         public override ShaderInput Copy()
         {
             return new ShaderKeyword()

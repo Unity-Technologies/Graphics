@@ -130,12 +130,6 @@ namespace UnityEditor.ShaderGraph
                     var onValue = GetSlotValue(1, generationMode);
                     var offValue = GetSlotValue(2, generationMode);
 
-                    if(generationMode == GenerationMode.Preview)
-                    {
-                        sb.AppendLine(string.Format($"{outputSlot.concreteValueType.ToShaderString()} {GetVariableNameForSlot(OutputSlotId)} = {(keyword.value == 1 ? onValue : offValue)};"));
-                        return;
-                    }
-
                     sb.AppendLine($"#ifdef {keyword.referenceName}_ON");
                     using(sb.IndentScope())
                         sb.AppendLine(string.Format($"{outputSlot.concreteValueType.ToShaderString()} {GetVariableNameForSlot(OutputSlotId)} = {onValue};"));
@@ -145,13 +139,6 @@ namespace UnityEditor.ShaderGraph
                     sb.AppendLine($"#endif");
                     break;
                 case ShaderKeywordType.Enum:
-                    if(generationMode == GenerationMode.Preview)
-                    {
-                        var value = GetSlotValue(keyword.entries[keyword.value].id, generationMode);
-                        sb.AppendLine(string.Format($"{outputSlot.concreteValueType.ToShaderString()} {GetVariableNameForSlot(OutputSlotId)} = {value};"));
-                        return;
-                    }
-
                     for(int i = 0; i < keyword.entries.Count; i++)
                     {
                         if(i == 0)

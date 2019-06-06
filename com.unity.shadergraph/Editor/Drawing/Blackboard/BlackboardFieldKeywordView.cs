@@ -87,7 +87,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 {
                     graph.owner.RegisterCompleteObjectUndo("Change property value");
                     keyword.value = evt.newValue ? 1 : 0;
-                    DirtyNodes();
+                    DirtyNodes(ModificationScope.Graph);
                 });
             AddRow("Default", field);
         }
@@ -106,7 +106,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 int clampedValue = Mathf.Clamp(keyword.value, 0, keyword.entries.Count - 1);
                 field.value = clampedValue;
                 keyword.value = clampedValue;
-                DirtyEnumEntries();
+                DirtyNodes(ModificationScope.Graph);
             });
             AddRow("Default", field);
 
@@ -246,7 +246,16 @@ namespace UnityEditor.ShaderGraph.Drawing
         public override void DirtyNodes(ModificationScope modificationScope = ModificationScope.Node)
         {
             foreach (var node in graph.GetNodes<KeywordNode>())
+            {
                 node.UpdateNode();
+                node.Dirty(modificationScope);
+            }
+
+            // Cant determine if Sub Graphs contain the keyword so just update them
+            foreach (var node in graph.GetNodes<SubGraphNode>())
+            {
+                node.Dirty(modificationScope);
+            }
         }
 
         public void DirtyEnumEntries()
