@@ -233,8 +233,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 bool forceUpdate = (updateRequired || skyContext.updatedFramesRequired > 0 || m_NeedUpdate);
                 if (forceUpdate ||
-                    (skyContext.skySettings.updateMode == EnvironementUpdateMode.OnChanged && skyHash != skyContext.skyParametersHash) ||
-                    (skyContext.skySettings.updateMode == EnvironementUpdateMode.Realtime && skyContext.currentUpdateTime > skyContext.skySettings.updatePeriod.value))
+                    (skyContext.skySettings.updateMode == EnvironmentUpdateMode.OnChanged && skyHash != skyContext.skyParametersHash) ||
+                    (skyContext.skySettings.updateMode == EnvironmentUpdateMode.Realtime && skyContext.currentUpdateTime > skyContext.skySettings.updatePeriod.value))
                 {
                     using (new ProfilingSample(cmd, "Sky Environment Pass"))
                     {

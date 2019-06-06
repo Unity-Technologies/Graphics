@@ -54,8 +54,7 @@ namespace UnityEditor.ShaderGraph
             var edgesSampler = owner.GetEdges(samplerSlot.slotReference);
 
             var id = GetSlotValue(CubemapInputId, generationMode);
-            string result = string.Format("{0}4 {1} = SAMPLE_TEXTURECUBE_LOD({2}, {3}, reflect(-{4}, {5}), {6});"
-                    , precision
+            string result = string.Format("$precision4 {0} = SAMPLE_TEXTURECUBE_LOD({1}, {2}, reflect(-{3}, {4}), {5});"
                     , GetVariableNameForSlot(OutputSlotId)
                     , id
                     , edgesSampler.Any() ? GetSlotValue(SamplerInputId, generationMode) : "sampler" + id

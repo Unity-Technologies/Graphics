@@ -9,6 +9,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Colors
         public string GetTitle() => Title;
 
         public bool AllowCustom() => false;
+        public bool ClearOnDirty() => false;
 
         public void ApplyColor(IShaderNodeView nodeView)
         {

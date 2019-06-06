@@ -25,7 +25,7 @@ public class VFXExternalShaderProcessor : AssetPostprocessor
     {
         if (!allowExternalization)
             return;
-        if (assetPath.EndsWith(".vfx"))
+        if (assetPath.EndsWith(VisualEffectResource.Extension))
         {
             string vfxName = Path.GetFileNameWithoutExtension(assetPath);
             string vfxDirectory = Path.GetDirectoryName(assetPath);
@@ -87,6 +87,14 @@ public class VFXExternalShaderProcessor : AssetPostprocessor
 
     static void OnPostprocessAllAssets(string[] importedAssets, string[] deletedAssets, string[] movedAssets, string[] movedFromAssetPaths)
     {
+        foreach (var assetPath in deletedAssets)
+        {
+            if (VisualEffectAssetModicationProcessor.HasVFXExtension(assetPath))
+            {
+                VisualEffectResource.DeleteAtPath(assetPath);
+            }
+        }
+
         if (!allowExternalization)
             return;
         HashSet<string> vfxToRefresh = new HashSet<string>();
@@ -102,7 +110,7 @@ public class VFXExternalShaderProcessor : AssetPostprocessor
                 if (Path.GetFileName(vfxPath) != k_ShaderDirectory)
                     continue;
 
-                vfxPath = Path.GetDirectoryName(vfxPath) + "/" + vfxName + ".vfx";
+                vfxPath = Path.GetDirectoryName(vfxPath) + "/" + vfxName + VisualEffectResource.Extension;
 
                 if (deletedAssets.Contains(assetPath))
                     vfxToRecompile.Add(vfxPath);
@@ -122,7 +130,7 @@ public class VFXExternalShaderProcessor : AssetPostprocessor
             if (resource == null)
                 continue;
             resource.GetOrCreateGraph().SetExpressionGraphDirty();
-            resource.GetOrCreateGraph().RecompileIfNeeded();
+            resource.GetOrCreateGraph().RecompileIfNeeded(false,true);
         }
 
         foreach (var assetPath in vfxToRefresh)
@@ -155,11 +163,18 @@ public class VisualEffectAssetEditor : Editor
             VFXViewWindow.GetWindow<VFXViewWindow>().LoadAsset(obj as VisualEffectAsset, null);
             return true;
         }
+        else if (obj is VisualEffectSubgraph)
+        {
+            VisualEffectResource resource = VisualEffectResource.GetResourceAtPath(AssetDatabase.GetAssetPath(obj));
+
+            VFXViewWindow.GetWindow<VFXViewWindow>().LoadResource(resource, null);
+            return true;
+        }
         else if (obj is Shader || obj is ComputeShader)
         {
             string path = AssetDatabase.GetAssetPath(instanceID);
 
-            if (path.EndsWith(".vfx"))
+            if (path.EndsWith(VisualEffectResource.Extension))
             {
                 var resource = VisualEffectResource.GetResourceAtPath(path);
                 if (resource != null)

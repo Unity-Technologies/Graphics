@@ -10,6 +10,8 @@ using UnityEditor.VFX;
 using UnityEditor.VFX.UI;
 using UnityEditor.ProjectWindowCallback;
 
+using UnityObject = UnityEngine.Object;
+
 namespace UnityEditor
 {
     [InitializeOnLoad]
@@ -31,6 +33,8 @@ namespace UnityEditor
 
 
         public const string templateAssetName = "Simple Particle System.vfx";
+        public const string templateBlockSubgraphAssetName = "Default Subgraph Block.vfxblock";
+        public const string templateOperatorSubgraphAssetName = "Default Subgraph Operator.vfxoperator";
 
         [MenuItem("GameObject/Visual Effects/Visual Effect", false, 10)]
         public static void CreateVisualEffectGameObject(MenuCommand menuCommand)
@@ -51,13 +55,18 @@ namespace UnityEditor
 
         public static VisualEffectAsset CreateNewAsset(string path)
         {
+            return CreateNew<VisualEffectAsset>(path);  
+        }
+
+        public static T CreateNew<T>(string path) where T : UnityObject
+        {
             string emptyAsset = "%YAML 1.1\n%TAG !u! tag:unity3d.com,2011:\n--- !u!2058629511 &1\nVisualEffectResource:\n";
 
             File.WriteAllText(path, emptyAsset);
 
             AssetDatabase.ImportAsset(path);
 
-            return AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(path);
+            return AssetDatabase.LoadAssetAtPath<T>(path);
         }
 
         [MenuItem("Assets/Create/Visual Effects/Visual Effect Graph", false, 306)]
@@ -103,6 +112,51 @@ namespace UnityEditor
             }
         }
 
+        internal class DoCreateNewSubgraphBlock : EndNameEditAction
+        {
+            public override void Action(int instanceId, string pathName, string resourceFile)
+            {
+                var sg = CreateNew<VisualEffectSubgraphBlock>(pathName);
+                ProjectWindowUtil.FrameObjectInProjectWindow(sg.GetInstanceID());
+            }
+        }
 
+        [MenuItem("Assets/Create/Visual Effects/Visual Effect Subgraph Operator", false, 308)]
+        public static void CreateVisualEffectSubgraphOperator()
+        {
+            string fileName = "New VFX Subgraph Operator.vfxoperator";
+
+            CreateVisualEffectSubgraph<VisualEffectSubgraphOperator, DoCreateNewSubgraphOperator>(fileName, templateOperatorSubgraphAssetName);
+        }
+
+        [MenuItem("Assets/Create/Visual Effects/Visual Effect Subgraph Block", false, 309)]
+        public static void CreateVisualEffectSubgraphBlock()
+        {
+            string fileName = "New VFX Subgraph Block.vfxblock";
+
+            CreateVisualEffectSubgraph<VisualEffectSubgraphBlock, DoCreateNewSubgraphBlock>(fileName, templateBlockSubgraphAssetName);
+        }
+        
+        public static void CreateVisualEffectSubgraph<T,U>(string fileName,string templateName) where U : EndNameEditAction
+        {
+            string templateString = "";
+
+            Texture2D texture = EditorGUIUtility.FindTexture(typeof(T));
+            try // try with the template
+            {
+                templateString = System.IO.File.ReadAllText(templatePath + templateName);
+
+                ProjectWindowUtil.CreateAssetWithContent(fileName, templateString,texture);
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogError("Couldn't read template for new visual effect subgraph : " + e.Message);
+                var action = ScriptableObject.CreateInstance<U>();
+
+                ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, action, fileName, texture, null);
+
+                return;
+            }
+        }                
     }
 }

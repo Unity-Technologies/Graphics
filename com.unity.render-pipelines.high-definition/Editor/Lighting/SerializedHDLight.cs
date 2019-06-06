@@ -61,6 +61,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public SerializedProperty showFeatures;
             public SerializedProperty showAdditionalSettings;
             public SerializedProperty useVolumetric;
+
+            // Layers
+            public SerializedProperty linkLightLayers;
+            public SerializedProperty lightlayersMask;
         }
 
         public sealed class SerializedShadowData
@@ -157,7 +161,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     showFeatures = o.Find(x => x.featuresFoldout),
                     showAdditionalSettings = o.Find(x => x.showAdditionalSettings),
                     useVolumetric = o.Find(x => x.useVolumetric),
-                    renderingLayerMask = settings.renderingLayerMask
+                    renderingLayerMask = settings.renderingLayerMask,
+
+                    // Layers
+                    linkLightLayers = o.Find(x => x.linkShadowLayers),
+                    lightlayersMask = o.Find(x => x.lightlayersMask)
                 };
 
             // TODO: Review this once AdditionalShadowData is refactored

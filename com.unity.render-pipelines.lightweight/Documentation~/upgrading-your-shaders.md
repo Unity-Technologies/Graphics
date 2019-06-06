@@ -11,6 +11,8 @@ To upgrade built-in Shaders:
 
 **Tip:** If the Preview thumbnails in Project View are incorrect after you've upgraded, try right-clicking anywhere in the Project View window and selecting __Reimport All__.
 
+For [SpeedTree](https://docs.unity3d.com/Manual/SpeedTree.html) Shaders, Unity does not re-generate Materials when you re-import them, unless you click the Generate Materials or Apply & Generate Materials button.
+
 ## Shader mappings
 
 The table below shows which LWRP shaders the Unity built-in shaders convert to when you run the shader upgrader.
