@@ -75,6 +75,8 @@ ${VFXEnd}
 #endif
 	)
 	{
+		VFXTransformPSInputs(i);
+		
 #if !USE_DOUBLE_SIDED	
 		const bool frontFace = true;
 #endif

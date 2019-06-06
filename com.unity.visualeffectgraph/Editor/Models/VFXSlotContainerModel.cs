@@ -32,6 +32,10 @@ namespace UnityEditor.VFX
 
         void SetSettingValue(string name, object value);
 
+        object GetSettingValue(string name);
+
+        VFXSetting GetSetting(string name);
+
         void OnCopyLinksOtherSlot(VFXSlot mySlot, VFXSlot prevOtherSlot, VFXSlot newOtherSlot);
         void OnCopyLinksMySlot(VFXSlot myPrevSlot, VFXSlot myNewSlot, VFXSlot otherSlot);
 
