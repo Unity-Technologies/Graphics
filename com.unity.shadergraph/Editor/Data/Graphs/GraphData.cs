@@ -694,7 +694,8 @@ namespace UnityEditor.ShaderGraph
                     property.overrideReferenceName = GraphUtil.SanitizeName(properties.Where(p => p.guid != property.guid).Select(p => p.referenceName), "{0}_{1}", name);
                     break;
                 case ShaderKeyword keyword:
-                    input.overrideReferenceName = GraphUtil.SanitizeName(keywords.Where(p => p.guid != input.guid).Select(p => p.referenceName), "{0}_{1}", name);
+                    string overrideReferenceName = GraphUtil.SanitizeName(keywords.Where(p => p.guid != input.guid).Select(p => p.referenceName), "{0}_{1}", name);
+                    input.overrideReferenceName = overrideReferenceName.ToUpper();
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();

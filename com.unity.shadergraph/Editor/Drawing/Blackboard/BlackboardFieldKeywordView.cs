@@ -156,7 +156,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 var referenceName = EditorGUI.DelayedTextField( new Rect(rect.x + rect.width / 2, rect.y, rect.width / 2, EditorGUIUtility.singleLineHeight), entry.referenceName, EditorStyles.label);
 
                 displayName = GetDuplicateSafeDisplayName(entry.id, displayName);
-                referenceName = GetDuplicateSafeReferenceName(entry.id, referenceName);
+                referenceName = GetDuplicateSafeReferenceName(entry.id, referenceName.ToUpper());
                 
                 if(EditorGUI.EndChangeCheck())
                 {
