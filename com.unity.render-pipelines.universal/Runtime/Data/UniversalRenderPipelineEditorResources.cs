@@ -1,9 +1,18 @@
 using System;
 using UnityEngine.Scripting.APIUpdating;
 
+namespace UnityEngine.Rendering.LWRP
+{
+    [Obsolete("LWRP -> Universal (UnityUpgradable) -> UnityEngine.Rendering.Universal.UniversalRenderPipelineEditorResources", true)]
+    public class LightweightRenderPipelineEditorResources
+    {
+    }
+}
+
+
 namespace UnityEngine.Rendering.Universal
 {
-    [MovedFrom("UnityEngine.Rendering.LWRP")] public class LightweightRenderPipelineEditorResources : ScriptableObject
+    [MovedFrom("UnityEngine.Rendering.LWRP")] public class UniversalRenderPipelineEditorResources : ScriptableObject
     {
         [Serializable, ReloadGroup]
         [MovedFrom("UnityEngine.Rendering.LWRP")] public sealed class ShaderResources
@@ -51,7 +60,7 @@ namespace UnityEngine.Rendering.Universal
     }
 
 #if UNITY_EDITOR
-    [UnityEditor.CustomEditor(typeof(LightweightRenderPipelineEditorResources), true)]
+    [UnityEditor.CustomEditor(typeof(UniversalRenderPipelineEditorResources), true)]
     class LightweightRenderPipelineEditorResourcesEditor : UnityEditor.Editor
     {
         public override void OnInspectorGUI()
@@ -61,7 +70,7 @@ namespace UnityEngine.Rendering.Universal
             // Add a "Reload All" button in inspector when we are in developer's mode
             if (UnityEditor.EditorPrefs.GetBool("DeveloperMode") && GUILayout.Button("Reload All"))
             {
-                var resources = target as LightweightRenderPipelineEditorResources;
+                var resources = target as UniversalRenderPipelineEditorResources;
                 resources.materials = null;
                 resources.shaders = null;
                 ResourceReloader.ReloadAllNullIn(target, UniversalRenderPipelineAsset.packagePath);
