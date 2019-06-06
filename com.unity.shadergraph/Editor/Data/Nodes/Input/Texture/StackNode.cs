@@ -150,10 +150,8 @@ namespace UnityEditor.ShaderGraph
                 if (IsSlotConnected(OutputSlotIds[i]))
                 {
                     var id = GetSlotValue(TextureInputIds[i], generationMode);
-                    string resultLayer = string.Format("{2}4 {3} = SampleStack({0}_info, {4});"
+                    string resultLayer = string.Format("$precision4 {1} = SampleStack({0}_info, {2});"
                             , stackName
-                            , GetSlotValue(UVInputId, generationMode)
-                            , precision
                             , GetVariableNameForSlot(OutputSlotIds[i])
                             , id);
                     sb.AppendLine(resultLayer);
@@ -181,10 +179,11 @@ namespace UnityEditor.ShaderGraph
 
             if (IsSlotConnected(FeedbackSlotId))
             {
-                string feedBackCode = string.Format("float4 {0} = ResolveStack({1}, {2});"
+                string feedBackCode = string.Format("float4 {0} = ResolveStack({1}, {2}, {3});"
                         , GetVariableNameForSlot(FeedbackSlotId)
                         , GetSlotValue(UVInputId, generationMode)
-                        , stackName);
+                        , stackName
+                        , "VT_ResolveConstantPatch");
                sb.AppendLine(feedBackCode);
             }
         }
@@ -193,10 +192,11 @@ namespace UnityEditor.ShaderGraph
         {
             string stackName = GetVariableNameForSlot(OutputSlotIds[0]) + "_stack";
 
-            code = string.Format("{0} = ResolveStack({1}, {2});"
+            code = string.Format("{0} = ResolveStack({1}, {2}, {3});"
                     , assignLValue
                     , GetSlotValue(UVInputId, generationMode)
-                    , stackName);
+                    , stackName
+                    , "VT_ResolveConstantPatch");
         }
 
         public override void CollectShaderProperties(PropertyCollector properties, GenerationMode generationMode)
