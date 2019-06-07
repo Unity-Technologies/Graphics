@@ -648,13 +648,6 @@ namespace UnityEditor.ShaderGraph
             {
                 collector.AddShaderKeyword(keyword);
             }
-
-            // Collect from Sub Graph nodes
-            foreach(var subGraphNode in GetNodes<SubGraphNode>())
-            {
-                foreach (var keyword in subGraphNode.subGraphData.inputs.Where(x => x is ShaderKeyword))
-                    collector.AddShaderKeyword(keyword as ShaderKeyword);
-            }
         }
 
         public void AddGraphInput(ShaderInput input)

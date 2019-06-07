@@ -1000,6 +1000,7 @@ namespace UnityEditor.ShaderGraph
             var shaderKeywords = new KeywordCollector();
             var shaderPropertyUniforms = new ShaderStringBuilder();
             var shaderKeywordDeclarations = new ShaderStringBuilder();
+            
             var functionBuilder = new ShaderStringBuilder();
             var functionRegistry = new FunctionRegistry(functionBuilder);
 
@@ -1080,6 +1081,7 @@ namespace UnityEditor.ShaderGraph
                 surfaceDescriptionFunction,
                 functionRegistry,
                 shaderProperties,
+                shaderKeywords,
                 requirements,
                 mode,
                 outputIdProperty: results.outputIdProperty);
@@ -1089,9 +1091,8 @@ namespace UnityEditor.ShaderGraph
             // ----------------------------------------------------- //
 
             // -------------------------------------
-            // Get Keywords
+            // Keyword declarations
 
-            graph.CollectShaderKeywords(shaderKeywords, mode);
             shaderKeywords.GetKeywordsDeclaration(shaderKeywordDeclarations, mode);
 
             // -------------------------------------
@@ -1245,6 +1246,7 @@ namespace UnityEditor.ShaderGraph
             ShaderStringBuilder surfaceDescriptionFunction,
             FunctionRegistry functionRegistry,
             PropertyCollector shaderProperties,
+            KeywordCollector shaderKeywords,
             ShaderGraphRequirements requirements,
             GenerationMode mode,
             string functionName = "PopulateSurfaceData",
@@ -1259,6 +1261,7 @@ namespace UnityEditor.ShaderGraph
             GraphContext graphContext = new GraphContext(graphInputStructName);
 
             graph.CollectShaderProperties(shaderProperties, mode);
+            graph.CollectShaderKeywords(shaderKeywords, mode);
 
             surfaceDescriptionFunction.AppendLine(String.Format("{0} {1}(SurfaceDescriptionInputs IN)", surfaceDescriptionName, functionName), false);
             using (surfaceDescriptionFunction.BlockScope())
@@ -1281,6 +1284,7 @@ namespace UnityEditor.ShaderGraph
                     }
 
                     activeNode.CollectShaderProperties(shaderProperties, mode);
+                    activeNode.CollectShaderKeywords(shaderKeywords, mode);
                 }                
 
                 functionRegistry.builder.currentNode = null;
@@ -1352,6 +1356,7 @@ namespace UnityEditor.ShaderGraph
             ShaderStringBuilder builder,
             FunctionRegistry functionRegistry,
             PropertyCollector shaderProperties,
+            KeywordCollector shaderKeywords,
             GenerationMode mode,
             List<AbstractMaterialNode> nodes,
             List<MaterialSlot> slots,
@@ -1365,6 +1370,7 @@ namespace UnityEditor.ShaderGraph
             GraphContext graphContext = new GraphContext(graphInputStructName);
 
             graph.CollectShaderProperties(shaderProperties, mode);
+            graph.CollectShaderKeywords(shaderKeywords, mode);
 
             builder.AppendLine("{0} {1}({2} IN)", graphOutputStructName, functionName, graphInputStructName);
             using (builder.BlockScope())
@@ -1386,6 +1392,7 @@ namespace UnityEditor.ShaderGraph
                         builder.ReplaceInCurrentMapping(PrecisionUtil.Token, node.concretePrecision.ToShaderString());
                     }
                     node.CollectShaderProperties(shaderProperties, mode);
+                    node.CollectShaderKeywords(shaderKeywords, mode);
                 }
 
                 functionRegistry.builder.currentNode = null;

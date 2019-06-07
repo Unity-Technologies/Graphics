@@ -257,6 +257,10 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
+        public virtual void CollectShaderKeywords(KeywordCollector keywords, GenerationMode generationMode)
+        {
+        }
+
         public string GetSlotValue(int inputSlotId, GenerationMode generationMode, ConcretePrecision concretePrecision)
         {
             string slotValue = GetSlotValue(inputSlotId, generationMode);

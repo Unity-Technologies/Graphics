@@ -540,7 +540,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             // properties used by either pixel and vertex shader
             PropertyCollector sharedProperties = new PropertyCollector();
+            KeywordCollector sharedKeywords = new KeywordCollector();
             ShaderStringBuilder shaderPropertyUniforms = new ShaderStringBuilder(1);
+            ShaderStringBuilder shaderKeywordDeclarations = new ShaderStringBuilder(1);
 
             // build the graph outputs structure to hold the results of each active slots (and fill out activeFields to indicate they are active)
             string pixelGraphInputStructName = "SurfaceDescriptionInputs";
@@ -563,6 +565,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 pixelGraphEvalFunction,
                 functionRegistry,
                 sharedProperties,
+                sharedKeywords,
                 pixelRequirements,  // TODO : REMOVE UNUSED
                 mode,
                 pixelGraphEvalFunctionName,
@@ -595,6 +598,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     vertexGraphEvalFunction,
                     functionRegistry,
                     sharedProperties,
+                    sharedKeywords,
                     mode,
                     vertexNodes,
                     vertexSlots,
@@ -613,6 +617,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             HDSubShaderUtilities.BuildRenderStatesFromPassAndMaterialOptions(pass, materialOptions, blendCode, cullCode, zTestCode, zWriteCode, zClipCode, stencilCode, colorMaskCode);
 
             HDRPShaderStructs.AddRequiredFields(pass.RequiredFields, activeFields);
+
+            // Get keyword declarations
+            sharedKeywords.GetKeywordsDeclaration(shaderKeywordDeclarations, mode);
 
             // Get property declarations
             sharedProperties.GetPropertiesDeclaration(shaderPropertyUniforms, mode, masterNode.owner.concretePrecision);
@@ -680,6 +687,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             // build graph code
             var graph = new ShaderGenerator();
             {
+                graph.AddShaderChunk("// Shared Graph Keywords");
+                graph.AddShaderChunk(shaderKeywordDeclarations.ToString());
+
                 graph.AddShaderChunk("// Shared Graph Properties (uniform inputs)");
                 graph.AddShaderChunk(shaderPropertyUniforms.ToString());
 

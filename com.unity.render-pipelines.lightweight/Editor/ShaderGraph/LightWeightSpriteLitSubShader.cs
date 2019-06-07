@@ -120,10 +120,11 @@ namespace UnityEditor.Experimental.Rendering.LWRP
             // -------------------------------------
             // String builders
 
-            var shaderKeywords = new KeywordCollector();
-            var shaderKeywordDeclarations = new ShaderStringBuilder(1);
             var shaderProperties = new PropertyCollector();
+            var shaderKeywords = new KeywordCollector();
             var shaderPropertyUniforms = new ShaderStringBuilder(1);
+            var shaderKeywordDeclarations = new ShaderStringBuilder(1);
+
             var functionBuilder = new ShaderStringBuilder(1);
             var functionRegistry = new FunctionRegistry(functionBuilder);
 
@@ -231,6 +232,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP
                 vertexDescriptionFunction,
                 functionRegistry,
                 shaderProperties,
+                shaderKeywords,
                 mode,
                 vertexNodes,
                 vertexSlots);
@@ -280,6 +282,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP
                 surfaceDescriptionFunction,
                 functionRegistry,
                 shaderProperties,
+                shaderKeywords,
                 pixelRequirements,
                 mode,
                 "PopulateSurfaceData",
