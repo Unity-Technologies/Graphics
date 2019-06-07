@@ -459,7 +459,14 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         public void HandleGraphChanges()
         {
-            previewManager.HandleGraphChanges();
+            if (previewManager.HandleGraphChanges())
+            {
+                var nodeList = m_GraphView.Query<MaterialNodeView>().ToList();
+
+                m_ColorManager.SetNodesDirty(nodeList);
+                m_ColorManager.UpdateNodeViews(nodeList);
+            }
+
             previewManager.RenderPreviews();
             m_BlackboardProvider.HandleGraphChanges();
             m_GroupHashSet.Clear();
