@@ -420,6 +420,8 @@ namespace UnityEditor.ShaderGraph.Drawing
                             keywordNodes.AddRange(graph.GetNodes<KeywordNode>().Where(x => x.keywordGuid == keyword.guid));
                             containsKeyword = true;
                             break;
+                        default:
+                            throw new ArgumentOutOfRangeException();
                     }
                 }
             }
@@ -671,18 +673,23 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 ShaderInput copiedInput = input.Copy();
                 graphView.graph.SanitizeGraphInputName(copiedInput);
+                graphView.graph.SanitizeGraphInputReferenceName(copiedInput, input.overrideReferenceName);
                 graphView.graph.AddGraphInput(copiedInput);
                 graphView.graph.SanitizeGraphInputReferenceName(copiedInput, input.overrideReferenceName);
 
-                if(input is AbstractShaderProperty property)
+                switch(input)
                 {
-                    // Update the property nodes that depends on the copied node
-                    var dependentPropertyNodes = copyGraph.GetNodes<PropertyNode>().Where(x => x.propertyGuid == input.guid);
-                    foreach (var node in dependentPropertyNodes)
-                    {
-                        node.owner = graphView.graph;
-                        node.propertyGuid = copiedInput.guid;
-                    }
+                    case AbstractShaderProperty property:
+                        // Update the property nodes that depends on the copied node
+                        var dependentPropertyNodes = copyGraph.GetNodes<PropertyNode>().Where(x => x.propertyGuid == input.guid);
+                        foreach (var node in dependentPropertyNodes)
+                        {
+                            node.owner = graphView.graph;
+                            node.propertyGuid = copiedInput.guid;
+                        }
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException();
                 }
                 if(input is ShaderKeyword keyword)
                 {

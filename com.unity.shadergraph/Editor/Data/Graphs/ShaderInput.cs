@@ -27,9 +27,6 @@ namespace UnityEditor.ShaderGraph
         [SerializeField]
         private string m_DefaultReferenceName;
 
-        [SerializeField]
-        private string m_OverrideReferenceName;
-
         public virtual string referenceName
         {
             get
@@ -43,6 +40,9 @@ namespace UnityEditor.ShaderGraph
                 return overrideReferenceName;
             }
         }
+
+        [SerializeField]
+        private string m_OverrideReferenceName;
 
         public string overrideReferenceName
         {

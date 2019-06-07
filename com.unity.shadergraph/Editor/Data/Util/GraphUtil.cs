@@ -936,8 +936,8 @@ namespace UnityEditor.ShaderGraph
                     sb.AppendLine(prop.GetPropertyBlockString());
                 }
 
-                // Keyword branches are not generated in preview
-                // Never add them to property block
+                // Keywords use hardcoded state in preview
+                // Do not add them to the Property Block
                 if(mode == GenerationMode.Preview)
                     return;
 
