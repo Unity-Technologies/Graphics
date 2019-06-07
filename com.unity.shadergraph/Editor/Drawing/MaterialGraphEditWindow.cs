@@ -290,27 +290,18 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
             subGraph.AddNode(subGraphOutputNode);
 
+            // Always copy deserialized Keyword inputs
             foreach (ShaderInput input in deserialized.inputs)
             {
-                ShaderInput copiedInput = input.Copy();
-                subGraph.SanitizeGraphInputName(copiedInput);
-                subGraph.AddGraphInput(copiedInput);
-                subGraph.SanitizeGraphInputReferenceName(copiedInput, input.overrideReferenceName);
-
-                if(input is AbstractShaderProperty property)
-                {
-                    // Update the property nodes that depends on the copied node
-                    var dependentPropertyNodes = deserialized.GetNodes<PropertyNode>().Where(x => x.propertyGuid == input.guid);
-                    foreach (var node in dependentPropertyNodes)
-                    {
-                        node.owner = graphView.graph;
-                        node.propertyGuid = copiedInput.guid;
-                    }
-                }
                 if(input is ShaderKeyword keyword)
                 {
+                    ShaderInput copiedInput = keyword.Copy();
+                    subGraph.SanitizeGraphInputName(copiedInput);
+                    subGraph.SanitizeGraphInputReferenceName(copiedInput, keyword.overrideReferenceName);
+                    subGraph.AddGraphInput(copiedInput);
+
                     // Update the keyword nodes that depends on the copied node
-                    var dependentKeywordNodes = deserialized.GetNodes<KeywordNode>().Where(x => x.keywordGuid == input.guid);
+                    var dependentKeywordNodes = deserialized.GetNodes<KeywordNode>().Where(x => x.keywordGuid == keyword.guid);
                     foreach (var node in dependentKeywordNodes)
                     {
                         node.owner = graphView.graph;

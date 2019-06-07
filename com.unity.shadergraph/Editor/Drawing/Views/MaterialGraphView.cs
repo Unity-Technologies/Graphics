@@ -675,7 +675,6 @@ namespace UnityEditor.ShaderGraph.Drawing
                 graphView.graph.SanitizeGraphInputName(copiedInput);
                 graphView.graph.SanitizeGraphInputReferenceName(copiedInput, input.overrideReferenceName);
                 graphView.graph.AddGraphInput(copiedInput);
-                graphView.graph.SanitizeGraphInputReferenceName(copiedInput, input.overrideReferenceName);
 
                 switch(input)
                 {

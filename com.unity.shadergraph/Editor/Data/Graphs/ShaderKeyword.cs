@@ -39,9 +39,9 @@ namespace UnityEditor.ShaderGraph
             if(keywordType == ShaderKeywordType.Enum)
             {
                 m_Entries = new List<ShaderKeywordEntry>();
-                m_Entries.Add(new ShaderKeywordEntry(1, "A", $"A"));
-                m_Entries.Add(new ShaderKeywordEntry(2, "B", $"B"));
-                m_Entries.Add(new ShaderKeywordEntry(3, "C", $"C"));
+                m_Entries.Add(new ShaderKeywordEntry(1, "A", "A"));
+                m_Entries.Add(new ShaderKeywordEntry(2, "B", "B"));
+                m_Entries.Add(new ShaderKeywordEntry(3, "C", "C"));
             }
         }
 
@@ -130,9 +130,7 @@ namespace UnityEditor.ShaderGraph
                 case ShaderKeywordType.Boolean:
                     return $"#pragma {definitionString} _ {referenceName}_ON";
                 case ShaderKeywordType.Enum:
-                    string[] enumEntryDefinitions = new string[entries.Count];
-                    for(int i = 0; i < enumEntryDefinitions.Length; i++)
-                        enumEntryDefinitions[i] = $"{referenceName}_{entries[i].referenceName}";
+                    var enumEntryDefinitions = entries.Select(x => $"{referenceName}_{x.referenceName}");
                     string enumEntriesString = string.Join(" ", enumEntryDefinitions);
                     return $"#pragma {definitionString} {enumEntriesString}";
                 default:
