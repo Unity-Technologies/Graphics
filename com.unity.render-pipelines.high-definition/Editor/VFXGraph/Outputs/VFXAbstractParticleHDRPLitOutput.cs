@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.Rendering;
-using UnityEngine.Experimental.VFX;
 
 namespace UnityEditor.VFX
 {
@@ -51,10 +50,8 @@ namespace UnityEditor.VFX
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]
         protected bool onlyAmbientLighting = false;
 
-#if VFX_HAS_HDRP
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]
-        protected UnityEngine.Experimental.Rendering.HDPipeline.DiffusionProfileSettings diffusionProfileAsset;
-#endif
+        protected UnityEngine.Experimental.Rendering.HDPipeline.DiffusionProfileSettings diffusionProfileAsset = null;
 
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]
         protected bool multiplyThicknessWithAlpha = false;
@@ -132,7 +129,7 @@ namespace UnityEditor.VFX
         public class NormalMapProperties
         {
             [Tooltip("Normal in tangent space")]
-            public Texture2D normalMap;
+            public Texture2D normalMap = null; // TODO Add normal map to default resources
             [Range(0, 2)]
             public float normalScale = 1.0f;
         }
@@ -140,7 +137,7 @@ namespace UnityEditor.VFX
         public class EmissiveMapProperties
         {
             [Tooltip("Normal in tangent space")]
-            public Texture2D emissiveMap;
+            public Texture2D emissiveMap = null;
             public float emissiveScale = 1.0f;
         }
 
@@ -154,11 +151,7 @@ namespace UnityEditor.VFX
             public Color emissiveColor = Color.black;
         }
 
-        public class ExposureWeightProperties
-        {
-            [Tooltip("The proportion of emission to expose"), Range(0, 1)]
-            public float exposureWeight = 1.0f;
-        }
+        protected override bool needsExposureWeight { get { return (colorMode & ColorMode.Emissive) != 0 || useEmissive || useEmissiveMap; } }
 
         protected override IEnumerable<VFXPropertyWithValue> inputProperties
         {
@@ -190,9 +183,6 @@ namespace UnityEditor.VFX
                 if (((colorMode & ColorMode.Emissive) == 0) && useEmissive)
                     properties = properties.Concat(PropertiesFromType("EmissiveColorProperties"));
 
-                if ((colorMode & ColorMode.Emissive) != 0 || useEmissive || useEmissiveMap)
-                    properties = properties.Concat(PropertiesFromType("ExposureWeightProperties"));
-
                 return properties;
             }
         }
@@ -219,11 +209,7 @@ namespace UnityEditor.VFX
                 case MaterialType.Translucent:
                 case MaterialType.SimpleLitTranslucent:
                     yield return slotExpressions.First(o => o.name == "thickness");
-#if VFX_HAS_HDRP
                     diffusionProfileHash = (diffusionProfileAsset?.profile != null) ? diffusionProfileAsset.profile.hash : 0;
-#else
-                    diffusionProfileHash = 0;
-#endif
                     yield return new VFXNamedExpression(VFXValue.Constant(diffusionProfileHash), "diffusionProfileHash");
                     break;
 
@@ -253,9 +239,6 @@ namespace UnityEditor.VFX
 
             if (((colorMode & ColorMode.Emissive) == 0) && useEmissive)
                 yield return slotExpressions.First(o => o.name == "emissiveColor");
-
-            if ((colorMode & ColorMode.Emissive) != 0 || useEmissive || useEmissiveMap)
-                yield return slotExpressions.First(o => o.name == "exposureWeight");
         }
 
         public override IEnumerable<string> additionalDefines
@@ -394,17 +377,6 @@ namespace UnityEditor.VFX
         {
             colorMappingMode = ColorMappingMode.Default;
             base.OnEnable();
-        }
-
-        // HDRP always premultiplies in shader
-        protected override void WriteBlendMode(VFXShaderWriter writer)
-        {
-            if (blendMode == BlendMode.Additive)
-                writer.WriteLine("Blend One One");
-            else if (blendMode == BlendMode.Alpha)
-                writer.WriteLine("Blend One OneMinusSrcAlpha");
-            else if (blendMode == BlendMode.AlphaPremultiplied)
-                writer.WriteLine("Blend One OneMinusSrcAlpha");
         }
 
         public override IEnumerable<KeyValuePair<string, VFXShaderWriter>> additionalReplacements

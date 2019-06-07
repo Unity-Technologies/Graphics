@@ -29,7 +29,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         bool m_HasError;
 
         [NonSerialized]
-        public bool updatePreviewShaders = false;
+        HashSet<string> m_ChangedSubGraphs = new HashSet<string>();
 
         ColorSpace m_ColorSpace;
         RenderPipelineAsset m_RenderPipelineAsset;
@@ -145,17 +145,21 @@ namespace UnityEditor.ShaderGraph.Drawing
                     graphObject.Validate();
                 }
 
+                if (m_ChangedSubGraphs.Count > 0 && graphObject != null && graphObject.graph != null)
+                {
+                    foreach (var subGraphNode in graphObject.graph.GetNodes<SubGraphNode>())
+                    {
+                        subGraphNode.Reload(m_ChangedSubGraphs);
+                    }
+
+                    m_ChangedSubGraphs.Clear();
+                }
+
                 if (graphObject.wasUndoRedoPerformed)
                 {
                     graphEditorView.HandleGraphChanges();
                     graphObject.graph.ClearChanges();
                     graphObject.HandleUndoRedo();
-                }
-
-                if (updatePreviewShaders)
-                {
-                    m_GraphEditorView.UpdatePreviewShaders();
-                    updatePreviewShaders = false;
                 }
 
                 graphEditorView.HandleGraphChanges();
@@ -168,6 +172,14 @@ namespace UnityEditor.ShaderGraph.Drawing
                 graphObject = null;
                 Debug.LogException(e);
                 throw;
+            }
+        }
+
+        public void ReloadSubGraphsOnNextUpdate(List<string> subGraphs)
+        {
+            foreach (var subGraph in subGraphs)
+            {
+                m_ChangedSubGraphs.Add(subGraph);
             }
         }
 
@@ -217,11 +229,6 @@ namespace UnityEditor.ShaderGraph.Drawing
                 UpdateShaderGraphOnDisk(path);
 
                 graphObject.isDirty = false;
-                var windows = Resources.FindObjectsOfTypeAll<MaterialGraphEditWindow>();
-                foreach (var materialGraphEditWindow in windows)
-                {
-                    materialGraphEditWindow.Rebuild();
-                }
             }
         }
 
@@ -473,7 +480,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
 
             graphObject.graph.AddNode(subGraphNode);
-            subGraphNode.subGraphAsset = loadedSubGraph;
+            subGraphNode.asset = loadedSubGraph;
 
             foreach (var edgeMap in externalInputNeedingConnection)
             {
@@ -496,16 +503,6 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             if(FileUtilities.WriteShaderGraphToDisk(path, graphObject.graph))
                 AssetDatabase.ImportAsset(path);
-        }
-
-        private void Rebuild()
-        {
-            if (graphObject != null && graphObject.graph != null)
-            {
-                var subNodes = graphObject.graph.GetNodes<SubGraphNode>();
-                foreach (var node in subNodes)
-                    node.UpdateSlots();
-            }
         }
 
         public void Initialize(string assetGuid)
