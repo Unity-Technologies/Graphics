@@ -149,87 +149,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 014b42634abb77644aaab7956d8288aa, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  debugData:
-    debugOverlayRatio: 0.33
-    fullScreenDebugMode: 0
-    fullscreenDebugMip: 0
-    fullScreenContactShadowLightIndex: 0
-    showSSSampledColor: 0
-    showContactShadowFade: 0
-    materialDebugSettings:
-      debugViewMaterialCommonValue: 0
-      materialValidateLowColor: {r: 1, g: 0, b: 0, a: 1}
-      materialValidateHighColor: {r: 0, g: 0, b: 1, a: 1}
-      materialValidateTrueMetalColor: {r: 1, g: 1, b: 0, a: 1}
-      materialValidateTrueMetal: 0
-    lightingDebugSettings:
-      debugLightFilterMode: 0
-      debugLightingMode: 0
-      shadowDebugMode: 0
-      shadowDebugUseSelection: 0
-      shadowMapIndex: 0
-      shadowAtlasIndex: 0
-      shadowSliceIndex: 0
-      shadowMinValue: 0
-      shadowMaxValue: 1
-      shadowResolutionScaleFactor: 1
-      clearShadowAtlas: 0
-      overrideSmoothness: 0
-      overrideSmoothnessValue: 0.5
-      overrideAlbedo: 0
-      overrideAlbedoValue: {r: 0.5, g: 0.5, b: 0.5, a: 1}
-      overrideNormal: 0
-      overrideSpecularColor: 0
-      overrideSpecularColorValue: {r: 1, g: 1, b: 1, a: 1}
-      overrideEmissiveColor: 0
-      overrideEmissiveColorValue: {r: 1, g: 1, b: 1, a: 1}
-      displaySkyReflection: 0
-      skyReflectionMipmap: 0
-      displayLightVolumes: 0
-      lightVolumeDebugByCategory: 0
-      maxDebugLightCount: 24
-      environmentProxyDepthScale: 20
-      debugExposure: 0
-      showPunctualLight: 1
-      showDirectionalLight: 1
-      showAreaLight: 1
-      showReflectionProbe: 1
-      tileClusterDebug: 0
-      tileClusterDebugByCategory: 1
-    mipMapDebugSettings:
-      debugMipMapMode: 0
-      terrainTexture: 0
-    colorPickerDebugSettings:
-      colorPickerMode: 0
-      fontColor: {r: 1, g: 0, b: 0, a: 1}
-    falseColorDebugSettings:
-      falseColor: 0
-      colorThreshold0: 0
-      colorThreshold1: 2
-      colorThreshold2: 10
-      colorThreshold3: 20
-    decalsDebugSettings:
-      displayAtlas: 0
-      mipLevel: 0
-    msaaSamples: 1
-    debugCameraToFreeze: 0
-    lightingDebugModeEnumIndex: 0
-    lightingFulscreenDebugModeEnumIndex: 0
-    tileClusterDebugEnumIndex: 0
-    mipMapsEnumIndex: 0
-    engineEnumIndex: 0
-    attributesEnumIndex: 0
-    propertiesEnumIndex: 0
-    gBufferEnumIndex: 12
-    shadowDebugModeEnumIndex: 0
-    tileClusterDebugByCategoryEnumIndex: 0
-    lightVolumeDebugTypeEnumIndex: 0
-    renderingFulscreenDebugModeEnumIndex: 0
-    terrainTextureEnumIndex: 0
-    colorPickerDebugModeEnumIndex: 0
-    msaaSampleDebugModeEnumIndex: 0
-    debugCameraToFreezeEnumIndex: 0
   jsonData: '{"debugOverlayRatio":0.33000001311302187,"fullScreenDebugMode":0,"fullscreenDebugMip":0.0,"fullScreenContactShadowLightIndex":0,"showSSSampledColor":false,"showContactShadowFade":false,"materialDebugSettings":{"debugViewMaterialCommonValue":0,"materialValidateLowColor":{"r":1.0,"g":0.0,"b":0.0,"a":1.0},"materialValidateHighColor":{"r":0.0,"g":0.0,"b":1.0,"a":1.0},"materialValidateTrueMetalColor":{"r":1.0,"g":1.0,"b":0.0,"a":1.0},"materialValidateTrueMetal":false},"lightingDebugSettings":{"debugLightFilterMode":0,"debugLightingMode":0,"shadowDebugMode":0,"shadowDebugUseSelection":false,"shadowMapIndex":0,"shadowAtlasIndex":0,"shadowSliceIndex":0,"shadowMinValue":0.0,"shadowMaxValue":1.0,"shadowResolutionScaleFactor":1.0,"clearShadowAtlas":false,"overrideSmoothness":false,"overrideSmoothnessValue":0.5,"overrideAlbedo":false,"overrideAlbedoValue":{"r":0.5,"g":0.5,"b":0.5,"a":1.0},"overrideNormal":false,"overrideSpecularColor":false,"overrideSpecularColorValue":{"r":1.0,"g":1.0,"b":1.0,"a":1.0},"overrideEmissiveColor":false,"overrideEmissiveColorValue":{"r":1.0,"g":1.0,"b":1.0,"a":1.0},"displaySkyReflection":false,"skyReflectionMipmap":0.0,"displayLightVolumes":false,"lightVolumeDebugByCategory":0,"maxDebugLightCount":24,"environmentProxyDepthScale":20.0,"debugExposure":0.0,"showPunctualLight":true,"showDirectionalLight":true,"showAreaLight":true,"showReflectionProbe":true,"tileClusterDebug":0,"tileClusterDebugByCategory":1},"mipMapDebugSettings":{"debugMipMapMode":0,"terrainTexture":0},"colorPickerDebugSettings":{"colorPickerMode":0,"fontColor":{"r":1.0,"g":0.0,"b":0.0,"a":1.0}},"falseColorDebugSettings":{"falseColor":false,"colorThreshold0":0.0,"colorThreshold1":2.0,"colorThreshold2":10.0,"colorThreshold3":20.0},"decalsDebugSettings":{"displayAtlas":false,"mipLevel":0},"msaaSamples":1,"debugCameraToFreeze":0,"lightingDebugModeEnumIndex":0,"lightingFulscreenDebugModeEnumIndex":0,"tileClusterDebugEnumIndex":0,"mipMapsEnumIndex":0,"engineEnumIndex":0,"attributesEnumIndex":0,"propertiesEnumIndex":0,"gBufferEnumIndex":12,"shadowDebugModeEnumIndex":0,"tileClusterDebugByCategoryEnumIndex":0,"lightVolumeDebugTypeEnumIndex":0,"renderingFulscreenDebugModeEnumIndex":0,"terrainTextureEnumIndex":0,"colorPickerDebugModeEnumIndex":0,"msaaSampleDebugModeEnumIndex":0,"debugCameraToFreezeEnumIndex":0}'
+  debugViewMaterial: 0100000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+  debugViewVarying: 0
+  debugViewProperties: 0
 --- !u!4 &135442189
 Transform:
   m_ObjectHideFlags: 0
@@ -467,7 +390,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 73c176f402d2c2f4d929aa5da7585d17, type: 2}
+  - {fileID: 2100000, guid: 196bcec1d90a1844d8ee270c5c9b7a4a, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
