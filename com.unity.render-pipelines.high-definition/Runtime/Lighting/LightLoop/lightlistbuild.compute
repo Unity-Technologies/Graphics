@@ -47,7 +47,7 @@ StructuredBuffer<SFiniteLightBound> g_data : register( t3 );
 StructuredBuffer<uint> g_vBigTileLightList : register( t4 );        // don't support Buffer yet in unity
 #endif
 
-#if defined(SHADER_API_MOBILE)
+#if defined(SHADER_API_MOBILE) || defined(SHADER_API_SWITCH)
 #define PLATFORM_LANE_COUNT 32
 #endif
 

@@ -422,7 +422,7 @@ uint GetIBLRuntimeFilterSampleCount(uint mipLevel)
     {
         case 1: sampleCount = 21; break;
         case 2: sampleCount = 34; break;
-#ifdef SHADER_API_MOBILE
+#if defined(SHADER_API_MOBILE) || defined(SHADER_API_SWITCH)
         case 3: sampleCount = 34; break;
         case 4: sampleCount = 34; break;
         case 5: sampleCount = 34; break;
