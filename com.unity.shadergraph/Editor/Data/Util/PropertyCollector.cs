@@ -22,18 +22,6 @@ namespace UnityEditor.ShaderGraph
             properties.Add(chunk);
         }
 
-        public void GetPropertiesBlock(ShaderStringBuilder sb)
-        {
-            sb.AppendLine("Properties");
-            using (sb.BlockScope())
-            {
-                foreach (var prop in properties.Where(x => x.generatePropertyBlock))
-                {
-                    sb.AppendLine(prop.GetPropertyBlockString());
-                }
-            }
-        }
-
         public void GetPropertiesDeclaration(ShaderStringBuilder builder, GenerationMode mode, ConcretePrecision inheritedPrecision)
         {
             foreach (var prop in properties)

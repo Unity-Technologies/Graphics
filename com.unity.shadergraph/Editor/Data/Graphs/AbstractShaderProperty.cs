@@ -12,32 +12,6 @@ namespace UnityEditor.ShaderGraph
         public override ConcreteSlotValueType concreteShaderValueType => propertyType.ToConcreteShaderValueType();
 
         [SerializeField]
-        private string m_DefaultReferenceName;
-
-        [SerializeField]
-        private string m_OverrideReferenceName;
-
-        public virtual string referenceName
-        {
-            get
-            {
-                if (string.IsNullOrEmpty(overrideReferenceName))
-                {
-                    if (string.IsNullOrEmpty(m_DefaultReferenceName))
-                        m_DefaultReferenceName = $"{concreteShaderValueType}_{GuidEncoder.Encode(guid)}";
-                    return m_DefaultReferenceName;
-                }
-                return overrideReferenceName;
-            }
-        }
-
-        public string overrideReferenceName
-        {
-            get => m_OverrideReferenceName;
-            set => m_OverrideReferenceName = value;
-        }
-
-        [SerializeField]
         private Precision m_Precision = Precision.Inherit;
         
         private ConcretePrecision m_ConcretePrecision = ConcretePrecision.Float;
@@ -56,17 +30,6 @@ namespace UnityEditor.ShaderGraph
         }
 
         public abstract bool isBatchable { get; }
-        public abstract bool isExposable { get; }
-        public abstract bool isRenamable { get; }
-
-        [SerializeField]
-        private bool m_GeneratePropertyBlock = true;
-
-        public bool generatePropertyBlock
-        {
-            get => m_GeneratePropertyBlock;
-            set => m_GeneratePropertyBlock = value;
-        }
 
         [SerializeField]
         bool m_Hidden = false;

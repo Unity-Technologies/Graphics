@@ -391,17 +391,30 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void DeleteSelectionImplementation(string operationName, GraphView.AskUser askUser)
         {
+            bool containsProperty = false;
+
             foreach (var selectable in selection)
             {
                 var field = selectable as BlackboardField;
                 if (field != null && field.userData != null)
                 {
-                    if (graph.isSubGraph)
+                    switch(field.userData)
                     {
-                        if (EditorUtility.DisplayDialog("Sub Graph Will Change", "If you remove a property and save the sub graph, you might change other graphs that are using this sub graph.\n\nDo you want to continue?", "Yes", "No"))
+                        case AbstractShaderProperty property:
+                            containsProperty = true;
                             break;
-                        return;
+                        default:
+                            throw new ArgumentOutOfRangeException();
                     }
+                }
+            }
+
+            if(containsProperty)
+            {
+                if (graph.isSubGraph)
+                {
+                    if (!EditorUtility.DisplayDialog("Sub Graph Will Change", "If you remove a property and save the sub graph, you might change other graphs that are using this sub graph.\n\nDo you want to continue?", "Yes", "No"))
+                        return;
                 }
             }
 
@@ -589,6 +602,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 switch(blackboardField.userData)
                 {
                     case AbstractShaderProperty property:
+                    {
                         var node = new PropertyNode();
                         var drawState = node.drawState;
                         drawState.position =  new Rect(nodePosition, drawState.position.size);
@@ -598,6 +612,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                         // Setting the guid requires the graph to be set first.
                         node.propertyGuid = property.guid;
                         break;
+                    }
                     default:
                         throw new ArgumentOutOfRangeException();
                 }
@@ -619,17 +634,22 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 ShaderInput copiedInput = input.Copy();
                 graphView.graph.SanitizeGraphInputName(copiedInput);
+                graphView.graph.SanitizeGraphInputReferenceName(copiedInput, input.overrideReferenceName);
                 graphView.graph.AddGraphInput(copiedInput);
 
-                if(input is AbstractShaderProperty property)
+                switch(input)
                 {
-                    // Update the property nodes that depends on the copied node
-                    var dependentPropertyNodes = copyGraph.GetNodes<PropertyNode>().Where(x => x.propertyGuid == input.guid);
-                    foreach (var node in dependentPropertyNodes)
-                    {
-                        node.owner = graphView.graph;
-                        node.propertyGuid = copiedInput.guid;
-                    }
+                    case AbstractShaderProperty property:
+                        // Update the property nodes that depends on the copied node
+                        var dependentPropertyNodes = copyGraph.GetNodes<PropertyNode>().Where(x => x.propertyGuid == input.guid);
+                        foreach (var node in dependentPropertyNodes)
+                        {
+                            node.owner = graphView.graph;
+                            node.propertyGuid = copiedInput.guid;
+                        }
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException();
                 }
             }
 
