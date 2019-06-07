@@ -56,7 +56,7 @@ namespace UnityEditor.ShaderGraph
 
         public override ConcreteSlotValueType concreteShaderValueType => keywordType.ToConcreteSlotValueType();
         public override bool isExposable => keywordDefinition == ShaderKeywordDefinition.ShaderFeature;
-        public override bool isRenamable => true;
+        public override bool isRenamable => isEditable;
 
         [SerializeField]
         private ShaderKeywordType m_KeywordType = ShaderKeywordType.Boolean;
