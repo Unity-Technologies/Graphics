@@ -403,8 +403,14 @@ void FillVolumetricDensityBuffer(PositionInputs posInput, uint tileIndex, Jitter
 
         float3 voxelCenterWS = ray.originWS + t * ray.centerDirWS;
 
-        float3 volumeScattering = float3(0.0, 0.0, 0.0);
-        float  volumeExtinction = 0.0;
+        // TODO: the fog value at the center is likely different from the average value across the voxel.
+        // Compute the average value.
+        float fragmentHeight = voxelCenterWS.y;
+        float heightMultiplier = ComputeHeightFogMultiplier(fragmentHeight, _HeightFogBaseHeight, _HeightFogExponents);
+
+        // Start by sampling the height fog.
+        float3 voxelScattering = _HeightFogBaseScattering * heightMultiplier;
+        float  voxelExtinction = _HeightFogBaseExtinction * heightMultiplier;
 
         for (uint volumeOffset = 0; volumeOffset < volumeCount; volumeOffset++)
         {
@@ -502,12 +508,12 @@ void FillVolumetricDensityBuffer(PositionInputs posInput, uint tileIndex, Jitter
                 // to the sample point. We ignore it for performance and simplicity.
                 float dist = t;
 
-                volumeScattering += float3(0.0, 0.1, 0.0);
-                volumeExtinction += 0.0;
+                voxelScattering += float3(0.0, 0.5, 0.0);
+                voxelExtinction += 1.0;
             }
         }
 
-        _VBufferDensity[voxelCoord] += float4(volumeScattering, volumeExtinction);
+        _VBufferDensity[voxelCoord] += float4(voxelScattering, voxelExtinction);
 
         t0 = t1;
     }
