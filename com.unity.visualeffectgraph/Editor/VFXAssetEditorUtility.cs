@@ -110,8 +110,6 @@ namespace UnityEditor
 
                 ProjectWindowUtil.FrameObjectInProjectWindow(vfxAsset.GetInstanceID());
             }
-                ProjectWindowUtil.FrameObjectInProjectWindow(vfxAsset.GetInstanceID());
-            }
         }
 
         internal class DoCreateNewSubgraphOperator : EndNameEditAction
