@@ -49,14 +49,17 @@ namespace UnityEditor.VFX
         public static VFXExpressionMapper FromBlocks(IEnumerable<VFXBlock> blocks)
         {
             var mapper = new VFXExpressionMapper();
-            foreach (var block in blocks.Select((value, index) => new { index, value }))
-                mapper.AddExpressions(block.value.parameters, block.index);
+            int cpt = 0;
+            foreach (var block in blocks)
+            {
+                mapper.AddExpressions(block.parameters, cpt++);
+            }
             return mapper;
         }
 
         public static VFXExpressionMapper FromContext(VFXContext context)
         {
-            var mapper = FromBlocks(context.activeChildrenWithImplicit);
+            var mapper = FromBlocks(context.activeFlattenedChildrenWithImplicit);
             mapper.AddExpressionFromSlotContainer(context, -1);
             return mapper;
         }
