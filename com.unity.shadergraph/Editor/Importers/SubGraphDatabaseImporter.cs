@@ -256,6 +256,13 @@ namespace UnityEditor.ShaderGraph
             subGraphData.graphPrecision = graph.concretePrecision;
             subGraphData.outputPrecision = outputNode.concretePrecision;
 
+            foreach(var input in subGraphData.inputs)
+            {
+                // Keywords in Sub Graphs never generate Property Block
+                if(input is ShaderKeyword keyword)
+                    keyword.generatePropertyBlock = false;
+            }
+
             foreach (var node in nodes)
             {
                 if (node.hasError)
