@@ -548,7 +548,7 @@ namespace UnityEditor.VFX
                 var contextData = contextToCompiledData[context];
 
                 var taskDesc = new VFXEditorTaskDesc();
-                taskDesc.type = context.taskType;
+                taskDesc.type = (UnityEngine.Experimental.VFX.VFXTaskType)context.taskType;
 
                 bufferMappings.Clear();
 
