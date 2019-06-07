@@ -82,8 +82,36 @@ namespace UnityEditor
                 Debug.LogError("Couldn't read template for new vfx asset : " + e.Message);
                 return;
             }
+            
+            Texture2D texture = EditorGUIUtility.FindTexture(typeof(VisualEffectAsset));
+            var action = ScriptableObject.CreateInstance<DoCreateNewVFX>();
+            ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, action, "New VFX.vfx", texture, null);
+        }
+        
+        internal class DoCreateNewVFX : EndNameEditAction
+        {
+            public override void Action(int instanceId, string pathName, string resourceFile)
+            {
+                try
+                {
+                    var templateString = System.IO.File.ReadAllText(templatePath + templateAssetName);
+                    System.IO.File.WriteAllText(pathName, templateString);
 
-            ProjectWindowUtil.CreateAssetWithContent("New VFX.vfx", templateString,EditorGUIUtility.FindTexture(typeof(VisualEffectAsset)));
+            
+                }
+                catch(FileNotFoundException)
+                {
+                    CreateNewAsset(pathName);
+                }
+
+                AssetDatabase.ImportAsset(pathName);
+                VisualEffectAsset vfxAsset = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(pathName);
+                var graph = vfxAsset.GetResource().GetOrCreateGraph();
+                graph.SetExpressionGraphDirty();
+                graph.RecompileIfNeeded();
+
+                ProjectWindowUtil.FrameObjectInProjectWindow(vfxAsset.GetInstanceID());
+            }
         }
 
         internal class DoCreateNewSubgraphOperator : EndNameEditAction
@@ -139,7 +167,6 @@ namespace UnityEditor
 
                 return;
             }
-
         }
     }
 }

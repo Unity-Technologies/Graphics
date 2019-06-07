@@ -172,7 +172,7 @@ namespace  UnityEditor.VFX.UI
 
 #endif
 
-        protected void OnDisable()
+        protected void OnDestroy()
         {
 #if USE_EXIT_WORKAROUND_FOGBUGZ_1062258
             EditorApplication.wantsToQuit -= Quitting_Workaround;
