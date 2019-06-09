@@ -5,7 +5,21 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     [Serializable]
     public struct FluidSimVolumeArtistParameters
     {
-        public Texture3D initialState;
+        public Texture3D initialStateTexture;
+
+        [SerializeField]
+        public Vector3 positiveFade;
+        [SerializeField]
+        public Vector3 negativeFade;
+
+        [SerializeField]
+        internal float m_EditorUniformFade;
+        [SerializeField]
+        internal Vector3 m_EditorPositiveFade;
+        [SerializeField]
+        internal Vector3 m_EditorNegativeFade;
+        [SerializeField]
+        internal bool m_EditorAdvancedFade;
 
         public Vector3 size;
 

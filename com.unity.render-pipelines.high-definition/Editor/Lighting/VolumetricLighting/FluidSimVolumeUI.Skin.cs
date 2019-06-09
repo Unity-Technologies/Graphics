@@ -7,8 +7,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         internal static class Styles
         {
             public const string k_VolumeHeader = "Volume";
-            public const string k_InitialStateTextureHeader = "Initial State Texture";
-            public const string k_AnimatedSpriteTextureHeader = "Animated Sprite Textures";
+            public const string k_TransitVectorFieldHeader = "Transit Vector Field";
+            public const string k_AnimatedDensityHeader = "Animated Density";
 
             public static readonly GUIContent[] s_Toolbar_Contents = new GUIContent[]
             {
@@ -18,7 +18,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             public static readonly GUIContent s_Size = new GUIContent("Size", "Modify the size of this Density Volume. This is independent of the Transform's Scale.");
             public static readonly GUIContent s_MeanFreePathLabel = new GUIContent("Fog Distance", "Density at the base of the fog. Determines how far you can see through the fog in meters.");
-            public static readonly GUIContent s_InitialStateTextureLabel = new GUIContent("Texture", "The fog Texture for the Density Mask. Generate this Texture type using the Density Volume Texture Tool.");
+            public static readonly GUIContent s_InitialStateTextureLabel = new GUIContent("Initial State Texture", "");
             public static readonly GUIContent s_BlendLabel = new GUIContent("Blend Distance", "Interior distance from the Size where the fog fades in completely.");
             public static readonly GUIContent s_AdvancedModeContent = new GUIContent("Advanced", "Exposes advanced parameters.");
 

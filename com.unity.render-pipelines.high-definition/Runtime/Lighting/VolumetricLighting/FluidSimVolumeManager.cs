@@ -23,13 +23,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         private bool atlasNeedsRefresh = false;
 
         //TODO: hardcoded size....:-(
-        public static int fluidSimVolumeTextureSize = 64; //seongdae;fspm
+        public static int fluidSimVolumeTextureSize = 256; //seongdae;fspm
 
         private FluidSimVolumeManager()
         {
             volumes = new List<FluidSimVolume>(); //seongdae;fspm
 
-            volumeAtlas = new Texture3DAtlas(TextureFormat.ARGB32, fluidSimVolumeTextureSize); //seongdae;fspm
+            volumeAtlas = new Texture3DAtlas(TextureFormat.RGBA32, fluidSimVolumeTextureSize); //seongdae;fspm
 
             volumeAtlas.OnAtlasUpdated += FluidSimAtlasUpdated; //seongdae;fspm
         }
@@ -42,9 +42,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             //volume.OnTextureUpdated += TriggerVolumeAtlasRefresh;
 
-            if (volume.parameters.initialState != null)
+            if (volume.parameters.initialStateTexture != null)
             {
-                volumeAtlas.AddTexture(volume.parameters.initialState);
+                volumeAtlas.AddTexture(volume.parameters.initialStateTexture);
             }
         }
 
@@ -57,9 +57,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             //volume.OnTextureUpdated -= TriggerVolumeAtlasRefresh;
 
-            if (volume.parameters.initialState != null)
+            if (volume.parameters.initialStateTexture != null)
             {
-                volumeAtlas.RemoveTexture(volume.parameters.initialState);
+                volumeAtlas.RemoveTexture(volume.parameters.initialStateTexture);
             }
 
             //Upon removal we have to refresh the texture list.
@@ -80,7 +80,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             foreach (FluidSimVolume volume in volumes)
             {
-                volume.parameters.textureIndex = volumeAtlas.GetTextureIndex(volume.parameters.initialState);
+                volume.parameters.textureIndex = volumeAtlas.GetTextureIndex(volume.parameters.initialStateTexture);
             }
         }
     }

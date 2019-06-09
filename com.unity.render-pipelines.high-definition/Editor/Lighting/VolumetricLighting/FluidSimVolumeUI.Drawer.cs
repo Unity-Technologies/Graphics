@@ -5,7 +5,7 @@ using UnityEngine.Experimental.Rendering.HDPipeline;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
-    using CED = CoreEditorDrawer<SerializedDensityVolume>;
+    using CED = CoreEditorDrawer<SerializedFluidSimVolume>;
 
     static partial class FluidSimVolumeUI
     {
@@ -13,14 +13,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         enum Expandable
         {
             Volume = 1 << 0,
-            InitialStateTexture = 1 << 1,
-            AnimatedSpriteTexture = 1 << 2,
+            TransitVectorField = 1 << 1,
+            AnimatedDensity = 1 << 2,
         }
 
-        readonly static ExpandedState<Expandable, DensityVolume> k_ExpandedState = new ExpandedState<Expandable, DensityVolume>(
+        readonly static ExpandedState<Expandable, FluidSimVolume> k_ExpandedState = new ExpandedState<Expandable, FluidSimVolume>(
             Expandable.Volume |
-            Expandable.InitialStateTexture |
-            Expandable.AnimatedSpriteTexture,
+            Expandable.TransitVectorField |
+            Expandable.AnimatedDensity,
             "HDRP");
         
         public static readonly CED.IDrawer Inspector = CED.Group(
@@ -35,20 +35,20 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 Drawer_VolumeContent
                 ),
             CED.FoldoutGroup(
-                Styles.k_InitialStateTextureHeader, Expandable.InitialStateTexture, k_ExpandedState,
-                Drawer_InitialStateTextureContent
+                Styles.k_TransitVectorFieldHeader, Expandable.TransitVectorField, k_ExpandedState,
+                Drawer_TransitVectorFieldContent
                 ),
             CED.FoldoutGroup(
-                Styles.k_AnimatedSpriteTextureHeader, Expandable.AnimatedSpriteTexture, k_ExpandedState,
-                Drawer_AnimatedSpriteTextureContent
+                Styles.k_AnimatedDensityHeader, Expandable.AnimatedDensity, k_ExpandedState,
+                Drawer_AnimatedDensityContent
                 )
             );
         
-        static void Drawer_ToolBar(SerializedDensityVolume serialized, Editor owner)
+        static void Drawer_ToolBar(SerializedFluidSimVolume serialized, Editor owner)
         {
             GUILayout.BeginHorizontal();
             GUILayout.FlexibleSpace();
-            EditMode.DoInspectorToolbar(new[] { DensityVolumeEditor.k_EditShape, DensityVolumeEditor.k_EditBlend }, Styles.s_Toolbar_Contents, () =>
+            EditMode.DoInspectorToolbar(new[] { FluidSimVolumeEditor.k_EditShape, FluidSimVolumeEditor.k_EditBlend }, Styles.s_Toolbar_Contents, () =>
                 {
                     var bounds = new Bounds();
                     foreach (Component targetObject in owner.targets)
@@ -62,13 +62,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             GUILayout.EndHorizontal();
         }
 
-        static void Drawer_PrimarySettings(SerializedDensityVolume serialized, Editor owner)
+        static void Drawer_PrimarySettings(SerializedFluidSimVolume serialized, Editor owner)
         {
             //EditorGUILayout.PropertyField(serialized.albedo, Styles.s_AlbedoLabel);
-            EditorGUILayout.PropertyField(serialized.meanFreePath, Styles.s_MeanFreePathLabel);
+            //EditorGUILayout.PropertyField(serialized.meanFreePath, Styles.s_MeanFreePathLabel);
         }
 
-        static void Drawer_AdvancedSwitch(SerializedDensityVolume serialized, Editor owner)
+        static void Drawer_AdvancedSwitch(SerializedFluidSimVolume serialized, Editor owner)
         {
             using (new EditorGUILayout.HorizontalScope())
             {
@@ -76,7 +76,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
                 bool advanced = serialized.editorAdvancedFade.boolValue;
                 advanced = GUILayout.Toggle(advanced, Styles.s_AdvancedModeContent, EditorStyles.miniButton, GUILayout.Width(60f), GUILayout.ExpandWidth(false));
-                DensityVolumeEditor.s_BlendBox.monoHandle = !advanced;
+                FluidSimVolumeEditor.s_BlendBox.monoHandle = !advanced;
                 if (serialized.editorAdvancedFade.boolValue ^ advanced)
                 {
                     serialized.editorAdvancedFade.boolValue = advanced;
@@ -84,7 +84,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
         }
 
-        static void Drawer_VolumeContent(SerializedDensityVolume serialized, Editor owner)
+        static void Drawer_VolumeContent(SerializedFluidSimVolume serialized, Editor owner)
         {
             //keep previous data as value are stored in percent 
             Vector3 previousSize = serialized.size.vector3Value;
@@ -221,13 +221,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
         }
 
-        static void Drawer_InitialStateTextureContent(SerializedDensityVolume serialized, Editor owner)
+        static void Drawer_TransitVectorFieldContent(SerializedFluidSimVolume serialized, Editor owner)
         {
-            //EditorGUILayout.PropertyField(serialized.volumeTexture, Styles.s_VolumeTextureLabel);
+            EditorGUILayout.PropertyField(serialized.initialStateTexture, Styles.s_InitialStateTextureLabel);
             //EditorGUILayout.PropertyField(serialized.textureScroll, Styles.s_TextureScrollLabel);
             //EditorGUILayout.PropertyField(serialized.textureTile, Styles.s_TextureTileLabel);
         }
-        static void Drawer_AnimatedSpriteTextureContent(SerializedDensityVolume serialized, Editor owner)
+        static void Drawer_AnimatedDensityContent(SerializedFluidSimVolume serialized, Editor owner)
         {
             //EditorGUILayout.PropertyField(serialized.volumeTexture, Styles.s_VolumeTextureLabel);
             //EditorGUILayout.PropertyField(serialized.textureScroll, Styles.s_TextureScrollLabel);

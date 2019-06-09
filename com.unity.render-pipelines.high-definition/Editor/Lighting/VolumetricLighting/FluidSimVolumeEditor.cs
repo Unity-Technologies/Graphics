@@ -13,9 +13,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         static HierarchicalBox s_ShapeBox;
         internal static HierarchicalBox s_BlendBox;
 
+        SerializedFluidSimVolume m_SerializedFluidSimVolume;
+
         void OnEnable()
         {
-            //m_SerializedDensityVolume = new SerializedDensityVolume(serializedObject);
+            m_SerializedFluidSimVolume = new SerializedFluidSimVolume(serializedObject);
 
             if (s_ShapeBox == null || s_ShapeBox.Equals(null))
             {
@@ -30,11 +32,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         public override void OnInspectorGUI()
         {
-            //serializedObject.Update();
+            serializedObject.Update();
 
-            //FluidSimVolumeUI.Inspector.Draw(m_SerializedDensityVolume, this);
+            FluidSimVolumeUI.Inspector.Draw(m_SerializedFluidSimVolume, this);
 
-            //m_SerializedDensityVolume.Apply();
+            m_SerializedFluidSimVolume.Apply();
         }
     }
 }
