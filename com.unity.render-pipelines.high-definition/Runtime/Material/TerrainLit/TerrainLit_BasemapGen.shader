@@ -22,11 +22,11 @@ Shader "Hidden/HDRP/TerrainLit_BasemapGen"
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/TerrainLit/TerrainLitSurfaceData.hlsl"
 
         // Terrain builtin keywords
-        #pragma shader_feature _TERRAIN_8_LAYERS
-        #pragma shader_feature _NORMALMAP
-        #pragma shader_feature _MASKMAP
+        #pragma shader_feature_local _TERRAIN_8_LAYERS
+        #pragma shader_feature_local _NORMALMAP
+        #pragma shader_feature_local _MASKMAP
 
-        #pragma shader_feature _TERRAIN_BLEND_HEIGHT
+        #pragma shader_feature_local _TERRAIN_BLEND_HEIGHT
 
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/TerrainLit/TerrainLit_Splatmap_Includes.hlsl"
 
@@ -35,11 +35,6 @@ Shader "Hidden/HDRP/TerrainLit_BasemapGen"
             float4 _Control0_ST;
             float4 _Control0_TexelSize;
         CBUFFER_END
-
-        struct Attributes {
-            float3 vertex : POSITION;
-            float2 texcoord : TEXCOORD0;
-        };
 
         struct Varyings
         {
@@ -56,11 +51,11 @@ Shader "Hidden/HDRP/TerrainLit_BasemapGen"
             return (uv * (_Control0_TexelSize.zw - 1.0f) + 0.5f) * _Control0_TexelSize.xy;
         }
 
-        Varyings Vert(Attributes input)
+        Varyings Vert(uint vertexID : SV_VertexID)
         {
             Varyings output;
-            output.positionCS = TransformWorldToHClip(input.vertex);
-            output.texcoord.xy = TRANSFORM_TEX(input.texcoord, _Control0);
+            output.positionCS = GetFullScreenTriangleVertexPosition(vertexID);
+            output.texcoord.xy = TRANSFORM_TEX(GetFullScreenTriangleTexCoord(vertexID), _Control0);
             output.texcoord.zw = ComputeControlUV(output.texcoord.xy);
             return output;
         }

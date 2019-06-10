@@ -17,6 +17,7 @@ struct ViewConstants
     float4x4 nonJitteredViewProjMatrix;
     float4x4 prevViewProjMatrix;
     float4x4 prevViewProjMatrixNoCameraTrans;
+    float4x4 pixelCoordToViewDirWS;
     float3 worldSpaceCameraPos;
     float pad0;
     float3 worldSpaceCameraPosViewOffset;

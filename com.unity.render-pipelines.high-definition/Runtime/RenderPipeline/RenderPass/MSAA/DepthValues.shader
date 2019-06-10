@@ -37,7 +37,7 @@ Shader "Hidden/HDRP/DepthValues"
             UNITY_SETUP_INSTANCE_ID(input);
             UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
             output.positionCS = GetFullScreenTriangleVertexPosition(input.vertexID);
-            output.texcoord   = TexCoordStereoOffset(GetFullScreenTriangleTexCoord(input.vertexID) * _ScreenSize.xy);
+            output.texcoord   = GetFullScreenTriangleTexCoord(input.vertexID) * _ScreenSize.xy;
             return output;
         }
 

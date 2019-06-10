@@ -23,7 +23,6 @@ Shader "Hidden/Light2d-Point-Volumetric"
             {
                 float3 positionOS   : POSITION;
                 float2 texcoord     : TEXCOORD0;
-                float4 volumeColor  : TANGENT;
             };
 
             struct Varyings
@@ -33,7 +32,6 @@ Shader "Hidden/Light2d-Point-Volumetric"
                 float2	screenUV        : TEXCOORD1;
                 float2	lookupUV        : TEXCOORD2;  // This is used for light relative direction
                 float2	lookupNoRotUV   : TEXCOORD3;  // This is used for screen relative direction of a light
-                float4  volumeColor     : TANGENT;
 
 #if LIGHT_QUALITY_FAST
                 float4	lightDirection	: TEXCOORD4;
@@ -49,15 +47,17 @@ Shader "Hidden/Light2d-Point-Volumetric"
 
             TEXTURE2D(_FalloffLookup);
             SAMPLER(sampler_FalloffLookup);
-            float _FalloffCurve;
+            float _FalloffIntensity;
 
             TEXTURE2D(_LightLookup);
             SAMPLER(sampler_LightLookup);
+            float4 _LightLookup_TexelSize;
 
             TEXTURE2D(_NormalMap);
             SAMPLER(sampler_NormalMap);
 
             half4	_LightColor;
+            float   _VolumeOpacity;
             float4	_LightPosition;
             half4x4	_LightInvMatrix;
             half4x4	_LightNoRotInvMatrix;
@@ -65,7 +65,7 @@ Shader "Hidden/Light2d-Point-Volumetric"
             half	_OuterAngle;			// 1-0 where 1 is the value at 0 degrees and 1 is the value at 180 degrees
             half	_InnerAngleMult;			// 1-0 where 1 is the value at 0 degrees and 1 is the value at 180 degrees
             half	_InnerRadiusMult;			// 1-0 where 1 is the value at the center and 0 is the value at the outer radius
-            half	_InverseLightIntensityScale;
+            half	_InverseHDREmulationScale;
 
             Varyings vert(Attributes input)
             {
@@ -79,8 +79,9 @@ Shader "Hidden/Light2d-Point-Volumetric"
 
                 float4 lightSpacePos = mul(_LightInvMatrix, worldSpacePos);
                 float4 lightSpaceNoRotPos = mul(_LightNoRotInvMatrix, worldSpacePos);
-                output.lookupUV = 0.5 * (lightSpacePos.xy + 1);
-                output.lookupNoRotUV = 0.5 * (lightSpaceNoRotPos.xy + 1);
+                float halfTexelOffset = 0.5 * _LightLookup_TexelSize.x;
+                output.lookupUV = 0.5 * (lightSpacePos.xy + 1) + halfTexelOffset;
+                output.lookupNoRotUV = 0.5 * (lightSpaceNoRotPos.xy + 1) + halfTexelOffset;
 
 #if LIGHT_QUALITY_FAST
                 output.lightDirection.xy = _LightPosition.xy - worldSpacePos.xy;
@@ -93,7 +94,6 @@ Shader "Hidden/Light2d-Point-Volumetric"
 
                 float4 clipVertex = output.positionCS / output.positionCS.w;
                 output.screenUV = ComputeScreenPos(clipVertex).xy;
-                output.volumeColor = input.volumeColor;
 
                 return output;
             }
@@ -104,9 +104,6 @@ Shader "Hidden/Light2d-Point-Volumetric"
                 half4 lookupValueNoRot = SAMPLE_TEXTURE2D(_LightLookup, sampler_LightLookup, input.lookupNoRotUV);  // r = distance, g = angle, b = x direction, a = y direction
                 half4 lookupValue = SAMPLE_TEXTURE2D(_LightLookup, sampler_LightLookup, input.lookupUV);  // r = distance, g = angle, b = x direction, a = y direction
 
-                float usingDefaultNormalMap = (normal.x + normal.y + normal.z) == 0;  // 1 if using a black normal map, 0 if using a custom normal map
-                float3 normalUnpacked = UnpackNormal(normal);
-
                 // Inner Radius
                 half attenuation = saturate(_InnerRadiusMult * lookupValueNoRot.r);   // This is the code to take care of our inner radius
 
@@ -116,7 +113,7 @@ Shader "Hidden/Light2d-Point-Volumetric"
 
                 half2 mappedUV;
                 mappedUV.x = attenuation;
-                mappedUV.y = _FalloffCurve;
+                mappedUV.y = _FalloffIntensity;
                 attenuation = SAMPLE_TEXTURE2D(_FalloffLookup, sampler_FalloffLookup, mappedUV).r;
 
 #if USE_POINT_LIGHT_COOKIES
@@ -126,7 +123,7 @@ Shader "Hidden/Light2d-Point-Volumetric"
                 half4 lightColor = _LightColor * attenuation;
 #endif
 
-                return input.volumeColor.a * lightColor * _InverseLightIntensityScale;
+                return _VolumeOpacity * lightColor * _InverseHDREmulationScale;
             }
             ENDHLSL
         }

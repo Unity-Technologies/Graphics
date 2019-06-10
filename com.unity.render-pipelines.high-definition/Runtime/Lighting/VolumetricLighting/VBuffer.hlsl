@@ -40,8 +40,15 @@ float4 SampleVBuffer(TEXTURE3D_PARAM(VBuffer, clampSampler),
     float4 result = 0;
 
     #if defined(UNITY_STEREO_INSTANCING_ENABLED)
-        // XRTODO: figure out a better way to avoid leaks between eyes (double-wide might be safer, or guard bands, or 2 separate textures)
+        // With XR single-pass instancing, one 3D buffer is used to store all views (split along w)
         w = (w + unity_StereoEyeIndex) * _VBufferRcpInstancedViewCount;
+
+        // Manually clamp w with a safe limit to avoid linear interpolation from the others views
+        float limitSliceRange = 0.5f * _VBufferRcpSliceCount;
+        float lowerSliceRange = (unity_StereoEyeIndex + 0) * _VBufferRcpInstancedViewCount;
+        float upperSliceRange = (unity_StereoEyeIndex + 1) * _VBufferRcpInstancedViewCount;
+
+        w = clamp(w, lowerSliceRange + limitSliceRange, upperSliceRange - limitSliceRange);
     #endif
 
     if (coordIsInsideFrustum)

@@ -58,7 +58,7 @@ RefractionModelResult RefractionModelBox(real3 V, float3 positionWS, real3 norma
     real3 R = refract(-V, normalWS, 1.0 / ior);
 
     // Optical depth within the thin plane
-    real dist = thickness / dot(R, -normalWS);
+    real dist = thickness / max(dot(R, -normalWS), 1e-5f);
 
     RefractionModelResult result;
     result.dist = dist;

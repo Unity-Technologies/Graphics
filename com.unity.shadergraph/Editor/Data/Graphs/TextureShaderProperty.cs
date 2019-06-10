@@ -57,6 +57,11 @@ namespace UnityEditor.ShaderGraph
             get { return true; }
         }
 
+        public override bool isRenamable
+        {
+            get { return true; }
+        }
+
         public override string GetPropertyBlockString()
         {
             var result = new StringBuilder();
@@ -75,7 +80,7 @@ namespace UnityEditor.ShaderGraph
 
         public override string GetPropertyDeclarationString(string delimiter = ";")
         {
-            return string.Format("TEXTURE2D({0}){1} SAMPLER(sampler{0}); float4 {0}_TexelSize{1}", referenceName, delimiter);
+            return string.Format("TEXTURE2D({0}){1} SAMPLER(sampler{0}); {2}4 {0}_TexelSize{1}", referenceName, delimiter, concretePrecision.ToShaderString());
         }
 
         public override string GetPropertyAsArgumentString()

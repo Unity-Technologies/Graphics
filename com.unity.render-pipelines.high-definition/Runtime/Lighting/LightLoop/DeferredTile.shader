@@ -38,7 +38,7 @@ Shader "Hidden/HDRP/DeferredTile"
 
             #pragma multi_compile _ OUTPUT_SPLIT_LIGHTING // Split lighting is utilized during the SSS pass.
             #pragma multi_compile  _ SHADOWS_SHADOWMASK /// Variant with and without shadowmask
-            #pragma multi_compile VARIANT0 VARIANT1 VARIANT2 VARIANT3 VARIANT4 VARIANT5 VARIANT6 VARIANT7 VARIANT8 VARIANT9 VARIANT10 VARIANT11 VARIANT12 VARIANT13 VARIANT14 VARIANT15 VARIANT16 VARIANT17 VARIANT18 VARIANT19 VARIANT20 VARIANT21 VARIANT22 VARIANT23 VARIANT24 VARIANT25 VARIANT26
+            #pragma multi_compile VARIANT0 VARIANT1 VARIANT2 VARIANT3 VARIANT4 VARIANT5 VARIANT6 VARIANT7 VARIANT8 VARIANT9 VARIANT10 VARIANT11 VARIANT12 VARIANT13 VARIANT14 VARIANT15 VARIANT16 VARIANT17 VARIANT18 VARIANT19 VARIANT20 VARIANT21 VARIANT22 VARIANT23 VARIANT24 VARIANT25 VARIANT26 VARIANT27 VARIANT28
 
             #define USE_INDIRECT    // otherwise TileVariantToFeatureFlags() will not be defined in Lit.hlsl!!!
 
@@ -125,6 +125,12 @@ Shader "Hidden/HDRP/DeferredTile"
             #ifdef VARIANT26
             #define VARIANT 26
             #endif
+            #ifdef VARIANT27
+            #define VARIANT 27
+            #endif
+            #ifdef VARIANT28
+            #define VARIANT 28
+            #endif
 
             //-------------------------------------------------------------------------------------
             // Include
@@ -195,7 +201,7 @@ Shader "Hidden/HDRP/DeferredTile"
             Varyings Vert(Attributes input)
             {
                 uint  tilePackIndex = g_TileList[g_TileListOffset + input.instID];
-                uint2 tileCoord   = uint2(tilePackIndex & 0x0000FFFF, tilePackIndex >> 16); // see builddispatchindirect.compute
+                uint2 tileCoord = uint2((tilePackIndex >> TILE_INDEX_SHIFT_X) & TILE_INDEX_MASK, (tilePackIndex >> TILE_INDEX_SHIFT_Y) & TILE_INDEX_MASK); // see builddispatchindirect.compute
                 uint2 pixelCoord  = tileCoord * GetTileSize();
 
                 uint screenWidth  = (uint)_ScreenSize.x;
@@ -226,7 +232,7 @@ Shader "Hidden/HDRP/DeferredTile"
                 uint featureFlags = TileVariantToFeatureFlags(VARIANT, tileIndex);
 
                 float depth = LoadCameraDepth(input.positionCS.xy).x;
-                PositionInputs posInput = GetPositionInput_Stereo(input.positionCS.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V, tileCoord, unity_StereoEyeIndex);
+                PositionInputs posInput = GetPositionInput(input.positionCS.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V, tileCoord);
 
                 float3 V = GetWorldSpaceNormalizeViewDir(posInput.positionWS);
 
@@ -292,9 +298,6 @@ Shader "Hidden/HDRP/DeferredTile"
             #pragma vertex Vert
             #pragma fragment Frag
 
-            // Chose supported lighting architecture in case of deferred rendering
-            #pragma multi_compile _ LIGHTLOOP_DISABLE_TILE_AND_CLUSTER
-
             #pragma multi_compile _ OUTPUT_SPLIT_LIGHTING
             #pragma multi_compile _ DEBUG_DISPLAY
             #pragma multi_compile _ SHADOWS_SHADOWMASK /// Variant with and without shadowmask
@@ -354,11 +357,13 @@ Shader "Hidden/HDRP/DeferredTile"
             struct Attributes
             {
                 uint vertexID  : SV_VertexID;
+                UNITY_VERTEX_INPUT_INSTANCE_ID
             };
 
             struct Varyings
             {
                 float4 positionCS : SV_POSITION;
+                UNITY_VERTEX_OUTPUT_STEREO
             };
 
             struct Outputs
@@ -374,17 +379,21 @@ Shader "Hidden/HDRP/DeferredTile"
             Varyings Vert(Attributes input)
             {
                 Varyings output;
+                UNITY_SETUP_INSTANCE_ID(input);
+                UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
                 output.positionCS = GetFullScreenTriangleVertexPosition(input.vertexID);
                 return output;
             }
 
             Outputs Frag(Varyings input)
             {
+                UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
+
                 // This need to stay in sync with deferred.compute
 
                 // input.positionCS is SV_Position
                 float depth = LoadCameraDepth(input.positionCS.xy).x;
-                PositionInputs posInput = GetPositionInput_Stereo(input.positionCS.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V, uint2(input.positionCS.xy) / GetTileSize(), unity_StereoEyeIndex);
+                PositionInputs posInput = GetPositionInput(input.positionCS.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V, uint2(input.positionCS.xy) / GetTileSize());
 
                 float3 V = GetWorldSpaceNormalizeViewDir(posInput.positionWS);
 

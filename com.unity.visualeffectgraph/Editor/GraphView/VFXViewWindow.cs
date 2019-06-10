@@ -109,7 +109,7 @@ namespace  UnityEditor.VFX.UI
                 if (instanceID != 0)
                 {
                     string path = AssetDatabase.GetAssetPath(instanceID);
-                    if (path.EndsWith(".vfx"))
+                    if (path.EndsWith(VisualEffectResource.Extension))
                     {
                         selectedResource = VisualEffectResource.GetResourceAtPath(path);
                     }
@@ -172,7 +172,7 @@ namespace  UnityEditor.VFX.UI
 
 #endif
 
-        protected void OnDisable()
+        protected void OnDestroy()
         {
 #if USE_EXIT_WORKAROUND_FOGBUGZ_1062258
             EditorApplication.wantsToQuit -= Quitting_Workaround;
@@ -198,6 +198,8 @@ namespace  UnityEditor.VFX.UI
         }
 
         public bool autoCompile {get; set; }
+
+        public bool autoCompileDependent { get; set; }
 
         void Update()
         {
@@ -227,10 +229,16 @@ namespace  UnityEditor.VFX.UI
                         }
 
 
-                        graph.RecompileIfNeeded(!autoCompile);
+                        graph.RecompileIfNeeded(!autoCompile,!autoCompileDependent);
                         controller.RecompileExpressionGraphIfNeeded();
                     }
                 }
+            }
+
+            if( VFXViewModicationProcessor.assetMoved)
+            {
+                graphView.AssetMoved();
+                VFXViewModicationProcessor.assetMoved = false;
             }
             titleContent.text = filename;
         }

@@ -131,7 +131,7 @@ public class HDRP_TestSettings_Editor : Editor
 				// You could see the outputs by just logging
 				// Debug.Log(display);
 				int pren = display.IndexOf('(');
-				if (pren != -1)
+				if (pren > 0 && display.Length > pren)
 					display = display.Substring(0, pren-1); // -1 to remove the space that's before the prens. This is very implementation-depdenent
 				if (display == text)
 					return i;

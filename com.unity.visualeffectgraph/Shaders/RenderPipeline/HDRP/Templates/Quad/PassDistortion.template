@@ -1,0 +1,100 @@
+// Distortion pass
+Pass
+{		
+	Tags { "LightMode"="DistortionVectors" }
+
+	Stencil
+	{
+		WriteMask 64
+		Ref 64
+		Comp Always
+		Pass Replace
+	}
+
+	HLSLPROGRAM
+	#pragma target 4.5
+	${VFXPassForwardAdditionalPragma}
+	
+	#define USE_NORMAL_MAP DISTORTION_NORMALBASED
+	
+	struct ps_input
+	{
+		float4 pos : SV_POSITION;
+		#if USE_FLIPBOOK_INTERPOLATION
+		float4 uv : TEXCOORD0;
+		#else
+		float2 uv : TEXCOORD0;	
+		#endif
+
+		#if USE_SOFT_PARTICLE || VFX_USE_ALPHA_CURRENT || USE_FLIPBOOK_INTERPOLATION 
+		// x: inverse soft particles fade distance
+		// y: alpha threshold
+		// z: frame blending factor
+		// w: alpha
+		nointerpolation float4 builtInInterpolants : TEXCOORD1;
+		#endif
+
+		#if USE_FLIPBOOK_MOTIONVECTORS
+		// x: motion vector scale u
+		// y: motion vector scale v
+		nointerpolation float2 builtInInterpolants2 : TEXCOORD2;
+		#endif
+
+		// x: horizontal value / normal scale
+		// y: vertical value 
+		// z: blur scale
+		nointerpolation float3 distortionInterpolants : TEXCOORD3;
+
+		#if USE_SOFT_PARTICLE
+		float4 projPos : TEXCOORD4;
+		#endif
+
+		#if DISTORTION_NORMALBASED
+		float3 normal : TEXCOORD5;
+		float3 tangent : TEXCOORD6;
+		#endif
+	};
+
+	struct ps_output
+	{
+		float4 distortion : SV_Target0;
+	};
+
+	#define VFX_VARYING_PS_INPUTS ps_input
+	#define VFX_VARYING_POSCS pos
+	#define VFX_VARYING_POSSS projPos
+	#define VFX_VARYING_INVSOFTPARTICLEFADEDISTANCE builtInInterpolants.x
+	#define VFX_VARYING_ALPHATHRESHOLD builtInInterpolants.y
+	#define VFX_VARYING_FRAMEBLEND builtInInterpolants.z
+    #define VFX_VARYING_MOTIONVECTORSCALE builtInInterpolants2.xy
+	#define VFX_VARYING_ALPHA builtInInterpolants.w
+#if DISTORTION_NORMALBASED
+	#define VFX_VARYING_NORMAL normal
+	#define VFX_VARYING_TANGENT tangent
+#endif
+	#define VFX_VARYING_UV uv
+	
+	${VFXInclude("Shaders/RenderPipeline/HDRP/VFXDistortion.template")}
+	
+	${VFXBegin:VFXVertexAdditionalProcess}
+
+	${VFXVertexDistortionProcess}
+
+	${VFXEnd}
+
+	${VFXInclude("Shaders/ParticlePlanarPrimitives/Pass.template")}
+		
+	#pragma fragment frag
+	ps_output frag(ps_input i)
+	{
+		VFXTransformPSInputs(i);
+		ps_output o = (ps_output)0;
+
+		${VFXFragmentDistortionProcess}
+
+		o.distortion.xyw = i.VFX_VARYING_ALPHA * float3(distortion.xy, blur);
+		o.distortion.z = 1.0;
+		return o;
+	}
+	ENDHLSL
+}

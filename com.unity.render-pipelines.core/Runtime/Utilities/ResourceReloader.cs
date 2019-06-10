@@ -163,7 +163,7 @@ namespace UnityEngine.Rendering
                     path = attribute.paths[index];
                     break;
                 case ReloadAttribute.Package.Root:
-                    path = Path.Combine(basePath, attribute.paths[index]);
+                    path = basePath + "/" + attribute.paths[index];
                     break;
                 default:
                     throw new ArgumentException("Unknown Package Path!");

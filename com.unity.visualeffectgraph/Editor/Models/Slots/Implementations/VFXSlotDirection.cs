@@ -16,7 +16,11 @@ namespace UnityEditor.VFX
 
         sealed protected override bool CanConvertFrom(Type type)
         {
-            return base.CanConvertFrom(type) || type == typeof(Vector4) || type == typeof(Vector3) || type == typeof(Vector);
+            return base.CanConvertFrom(type)
+                || type == typeof(Vector4)
+                || type == typeof(Vector3)
+                || type == typeof(Vector);
+                //Doesn't expose cast from float/uint (scalar) due to the automatic normalization
         }
 
         sealed protected override VFXExpression ConvertExpression(VFXExpression expression, VFXSlot sourceSlot)
@@ -26,7 +30,7 @@ namespace UnityEditor.VFX
                 if (sourceSlot.GetType() == typeof(VFXSlotDirection))
                     return expression; //avoid multiple normalization
                 if (sourceSlot.property.attributes != null && sourceSlot.property.attributes.OfType<NormalizeAttribute>().Any())
-                    return expression; //avoid multiple normalization form Normalize attribute (rarely used for output slot)
+                    return expression; //avoid multiple normalization from Normalize attribute (rarely used for output slot)
             }
 
             if (expression.valueType == VFXValueType.Float4)

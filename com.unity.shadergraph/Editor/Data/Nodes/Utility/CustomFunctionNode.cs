@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -9,10 +10,38 @@ using UnityEditor.ShaderGraph.Drawing;
 
 namespace UnityEditor.ShaderGraph
 {
+    [HasDependencies(typeof(MinimalCustomFunctionNode))]
     [Title("Utility", "Custom Function")]
     class CustomFunctionNode : AbstractMaterialNode, IGeneratesBodyCode, IGeneratesFunction, IHasSettings
     {
-        static string s_MissingOutputSlot = "A Custom Function Node must have at least one output slot";
+        [Serializable]
+        public class MinimalCustomFunctionNode : IHasDependencies
+        {
+            [SerializeField]
+            HlslSourceType m_SourceType = HlslSourceType.File;
+
+            [SerializeField]
+            string m_FunctionName = k_DefaultFunctionName;
+
+            [SerializeField]
+            string m_FunctionSource = null;
+
+            public void GetSourceAssetDependencies(List<string> paths)
+            {
+                if (m_SourceType == HlslSourceType.File)
+                {
+                    m_FunctionSource = UpgradeFunctionSource(m_FunctionSource);
+                    if (IsValidFunction(m_SourceType, m_FunctionName, m_FunctionSource, null))
+                    {
+                        paths.Add(AssetDatabase.GUIDToAssetPath(m_FunctionSource));
+                    }
+                }
+            }
+        }
+        
+        readonly static string[] k_ValidExtensions = { ".hlsl", ".cginc" };
+        const string k_InvalidFileType = "Source file is not a valid file type. Valid file extensions are .hlsl and .cginc";
+        const string k_MissingOutputSlot = "A Custom Function Node must have at least one output slot";
 
         public CustomFunctionNode()
         {
@@ -22,7 +51,7 @@ namespace UnityEditor.ShaderGraph
         public override bool hasPreview => true;
 
         [SerializeField]
-        private HlslSourceType m_SourceType = HlslSourceType.File;
+        HlslSourceType m_SourceType = HlslSourceType.File;
 
         public HlslSourceType sourceType
         {
@@ -31,22 +60,22 @@ namespace UnityEditor.ShaderGraph
         }
 
         [SerializeField]
-        private string m_FunctionName = m_DefaultFunctionName;
+        string m_FunctionName = k_DefaultFunctionName;
 
-        private static string m_DefaultFunctionName = "Enter function name here...";
+        const string k_DefaultFunctionName = "Enter function name here...";
 
-        public string functionName 
+        public string functionName
         {
             get => m_FunctionName;
             set => m_FunctionName = value;
         }
 
-        public static string defaultFunctionName => m_DefaultFunctionName;
+        public static string defaultFunctionName => k_DefaultFunctionName;
 
         [SerializeField]
-        private string m_FunctionSource = m_DefaultFunctionSource;
+        string m_FunctionSource;
 
-        private static string m_DefaultFunctionSource = "Enter function source file path here...";
+        const string k_DefaultFunctionSource = "Enter function source file path here...";
 
         public string functionSource
         {
@@ -54,12 +83,10 @@ namespace UnityEditor.ShaderGraph
             set => m_FunctionSource = value;
         }
 
-        public static string defaultFunctionSource => m_DefaultFunctionSource;
-
         [SerializeField]
-        private string m_FunctionBody = m_DefaultFunctionBody;
+        string m_FunctionBody = k_DefaultFunctionBody;
 
-        private static string m_DefaultFunctionBody = "Enter function body here...";
+        const string k_DefaultFunctionBody = "Enter function body here...";
 
         public string functionBody
         {
@@ -67,9 +94,9 @@ namespace UnityEditor.ShaderGraph
             set => m_FunctionBody = value;
         }
 
-        public static string defaultFunctionBody => m_DefaultFunctionBody;
+        public static string defaultFunctionBody => k_DefaultFunctionBody;
 
-        public void GenerateNodeCode(ShaderGenerator visitor, GraphContext graphContext, GenerationMode generationMode)
+        public void GenerateNodeCode(ShaderStringBuilder sb, GraphContext graphContext, GenerationMode generationMode)
         {
             List<MaterialSlot> slots = new List<MaterialSlot>();
             GetOutputSlots<MaterialSlot>(slots);
@@ -79,21 +106,21 @@ namespace UnityEditor.ShaderGraph
                 if(generationMode == GenerationMode.Preview && slots.Count != 0)
                 {
                     slots.OrderBy(s => s.id);
-                    visitor.AddShaderChunk(string.Format("{0} _{1}_{2};",
-                        NodeUtils.ConvertConcreteSlotValueTypeToString(precision, slots[0].concreteValueType),
-                        GetVariableNameForNode(), NodeUtils.GetHLSLSafeName(slots[0].shaderOutputName)));
+                    sb.AppendLine("{0} {1};",
+                        slots[0].concreteValueType.ToShaderString(),
+                        GetVariableNameForSlot(slots[0].id));
                 }
                 return;
             }
-            
-            foreach (var argument in slots)
-                visitor.AddShaderChunk(string.Format("{0} _{1}_{2};",
-                    NodeUtils.ConvertConcreteSlotValueTypeToString(precision, argument.concreteValueType),
-                    GetVariableNameForNode(), NodeUtils.GetHLSLSafeName(argument.shaderOutputName)));
 
-            string call = string.Format("{0}_{1}(", functionName, precision);
+            foreach (var argument in slots)
+                sb.AppendLine("{0} {1};",
+                    argument.concreteValueType.ToShaderString(),
+                    GetVariableNameForSlot(argument.id));
+
+            string call = $"{functionName}_$precision(";
             bool first = true;
-            
+
             slots.Clear();
             GetInputSlots<MaterialSlot>(slots);
             foreach (var argument in slots)
@@ -111,10 +138,10 @@ namespace UnityEditor.ShaderGraph
                 if (!first)
                     call += ", ";
                 first = false;
-                call += string.Format("_{0}_{1}", GetVariableNameForNode(), NodeUtils.GetHLSLSafeName(argument.shaderOutputName));
+                call += GetVariableNameForSlot(argument.id);
             }
             call += ");";
-            visitor.AddShaderChunk(call, true);
+            sb.AppendLine(call);
         }
 
         public void GenerateNodeFunction(FunctionRegistry registry, GraphContext graphContext, GenerationMode generationMode)
@@ -122,29 +149,38 @@ namespace UnityEditor.ShaderGraph
             if(!IsValidFunction())
                 return;
 
-            registry.ProvideFunction(functionName, builder =>
+            switch (sourceType)
             {
-                switch (sourceType)
-                {
-                    case HlslSourceType.File:
-                        builder.AppendLine($"#include \"{functionSource}\"");
-                        break;
-                    case HlslSourceType.String:
+                case HlslSourceType.File:
+                    registry.ProvideFunction(functionSource, builder =>
+                    {
+                        string path = AssetDatabase.GUIDToAssetPath(functionSource);
+
+                        // This is required for upgrading without console errors
+                        if(string.IsNullOrEmpty(path))
+                            path = functionSource;
+
+                        builder.AppendLine($"#include \"{path}\"");
+                    });
+                    break;
+                case HlslSourceType.String:
+                    registry.ProvideFunction(functionName, builder =>
+                    {
                         builder.AppendLine(GetFunctionHeader());
-                        using(builder.BlockScope())
+                        using (builder.BlockScope())
                         {
                             builder.AppendLines(functionBody);
                         }
-                        break;
-                    default:
-                        throw new ArgumentOutOfRangeException();
-                }
-            });
+                    });
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
         }
 
-        private string GetFunctionHeader()
+        string GetFunctionHeader()
         {
-            string header = string.Format("void {0}_{1}(", functionName, precision);
+            string header = $"void {functionName}_$precision(";
             var first = true;
             List<MaterialSlot> slots = new List<MaterialSlot>();
 
@@ -154,7 +190,7 @@ namespace UnityEditor.ShaderGraph
                 if (!first)
                     header += ", ";
                 first = false;
-                header += string.Format("{0} {1}", argument.concreteValueType.ToString(precision), argument.shaderOutputName);
+                header += $"{argument.concreteValueType.ToShaderString()} {argument.shaderOutputName}";
             }
 
             slots.Clear();
@@ -164,13 +200,13 @@ namespace UnityEditor.ShaderGraph
                 if (!first)
                     header += ", ";
                 first = false;
-                header += string.Format("out {0} {1}", argument.concreteValueType.ToString(precision), argument.shaderOutputName);
+                header += $"out {argument.concreteValueType.ToShaderString()} {argument.shaderOutputName}";
             }
             header += ")";
             return header;
         }
 
-        private string SlotInputValue(MaterialSlot port, GenerationMode generationMode)
+        string SlotInputValue(MaterialSlot port, GenerationMode generationMode)
         {
             IEdge[] edges = port.owner.owner.GetEdges(port.slotReference).ToArray();
             if (edges.Any())
@@ -189,20 +225,48 @@ namespace UnityEditor.ShaderGraph
 
             return port.GetDefaultValue(generationMode);
         }
-
-        private bool IsValidFunction()
+        
+        bool IsValidFunction()
         {
-            bool validFunctionName = !string.IsNullOrEmpty(functionName) && functionName != m_DefaultFunctionName;
+            return IsValidFunction(sourceType, functionName, functionSource, functionBody);
+        }
+
+        static bool IsValidFunction(HlslSourceType sourceType, string functionName, string functionSource, string functionBody)
+        {
+            bool validFunctionName = !string.IsNullOrEmpty(functionName) && functionName != k_DefaultFunctionName;
 
             if(sourceType == HlslSourceType.String)
             {
-                bool validFunctionBody = !string.IsNullOrEmpty(functionBody) && functionBody != m_DefaultFunctionBody;
+                bool validFunctionBody = !string.IsNullOrEmpty(functionBody) && functionBody != k_DefaultFunctionBody;
                 return validFunctionName & validFunctionBody;
             }
             else
             {
-                bool validFunctionSource = !string.IsNullOrEmpty(functionSource) && functionSource != m_DefaultFunctionSource;
-                return validFunctionName & validFunctionSource;
+                if(!validFunctionName || string.IsNullOrEmpty(functionSource) || functionSource == k_DefaultFunctionSource)
+                    return false;
+
+                string path = AssetDatabase.GUIDToAssetPath(functionSource);
+                if(string.IsNullOrEmpty(path))
+                    path = functionSource;
+
+                string extension = Path.GetExtension(path);
+                return k_ValidExtensions.Contains(extension);
+            }
+        }
+
+        void ValidateSlotName()
+        {
+            List<MaterialSlot> slots = new List<MaterialSlot>();
+            GetSlots(slots);
+
+            foreach (var slot in slots)
+            {
+                var error = NodeUtils.ValidateSlotName(slot.RawDisplayName(), out string errorMessage);
+                if (error)
+                {
+                    owner.AddValidationError(tempId, errorMessage);
+                    break;
+                }
             }
         }
 
@@ -210,23 +274,28 @@ namespace UnityEditor.ShaderGraph
         {
             if (!this.GetOutputSlots<MaterialSlot>().Any())
             {
-                owner.AddValidationError(tempId, s_MissingOutputSlot, ShaderCompilerMessageSeverity.Warning);
+                owner.AddValidationError(tempId, k_MissingOutputSlot, ShaderCompilerMessageSeverity.Warning);
             }
-            
+            if(sourceType == HlslSourceType.File)
+            {
+                if(!string.IsNullOrEmpty(functionSource))
+                {
+                    string path = AssetDatabase.GUIDToAssetPath(functionSource);
+                    if(!string.IsNullOrEmpty(path))
+                    {
+                        string extension = path.Substring(path.LastIndexOf('.'));
+                        if(!k_ValidExtensions.Contains(extension))
+                        {
+                            owner.AddValidationError(tempId, k_InvalidFileType, ShaderCompilerMessageSeverity.Error);
+                        }
+                    }
+                }
+            }
+            ValidateSlotName();
+
             base.ValidateNode();
         }
-        
-        public override void GetSourceAssetDependencies(List<string> paths)
-        {
-            base.GetSourceAssetDependencies(paths);
-            if (sourceType == HlslSourceType.File && IsValidFunction())
-            {
-                paths.Add(functionSource);
-                foreach (var dependencyPath in AssetDatabase.GetDependencies(functionSource))
-                    paths.Add(dependencyPath);
-            }
-        }
-        
+
         public VisualElement CreateSettingsElement()
         {
             PropertySheet ps = new PropertySheet();
@@ -234,6 +303,34 @@ namespace UnityEditor.ShaderGraph
             ps.Add(new ReorderableSlotListView(this, SlotType.Output));
             ps.Add(new HlslFunctionView(this));
             return ps;
+        }
+
+        public static string UpgradeFunctionSource(string functionSource)
+        {
+            // Handle upgrade from legacy asset path version
+            // If functionSource is not empty or a guid then assume it is legacy version
+            // If asset can be loaded from path then get its guid
+            // Otherwise it was the default string so set to empty
+            Guid guid;
+            if(!string.IsNullOrEmpty(functionSource) && !Guid.TryParse(functionSource, out guid))
+            {
+                string guidString = string.Empty;
+                TextAsset textAsset = AssetDatabase.LoadAssetAtPath<TextAsset>(functionSource);
+                if(textAsset != null)
+                {
+                    long localId;
+                    AssetDatabase.TryGetGUIDAndLocalFileIdentifier(textAsset, out guidString, out localId);
+                }
+                functionSource = guidString;
+            }
+
+            return functionSource;
+        }
+
+        public override void OnAfterDeserialize()
+        {
+            base.OnAfterDeserialize();
+            functionSource = UpgradeFunctionSource(functionSource);
         }
     }
 }

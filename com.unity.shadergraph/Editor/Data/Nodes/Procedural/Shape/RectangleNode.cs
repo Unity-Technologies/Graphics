@@ -26,7 +26,7 @@ namespace UnityEditor.ShaderGraph
             return
                 @"
 {
-    {precision}2 d = abs(UV * 2 - 1) - {precision}2(Width, Height);
+    $precision2 d = abs(UV * 2 - 1) - $precision2(Width, Height);
     d = 1 - d / fwidth(d);
     Out = saturate(min(d.x, d.y));
 }";

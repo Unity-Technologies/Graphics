@@ -1,0 +1,87 @@
+#pragma vertex vert
+VFX_VARYING_PS_INPUTS vert(uint id : SV_VertexID, uint instanceID : SV_InstanceID)
+{
+#if VFX_PRIMITIVE_TRIANGLE
+	uint index = id / 3;
+#elif VFX_PRIMITIVE_QUAD
+	uint index = (id >> 2) + instanceID * 2048;
+#elif VFX_PRIMITIVE_OCTAGON
+	uint index = (id >> 3) + instanceID * 1024;
+#endif
+
+	VFX_VARYING_PS_INPUTS o = (VFX_VARYING_PS_INPUTS)0;
+
+	${VFXLoadAttributesOrCull}
+	${VFXProcessBlocks}
+	
+	if (!alive)
+		return o;
+	
+#if VFX_PRIMITIVE_QUAD
+
+	o.VFX_VARYING_UV.x = float(id & 1);
+	o.VFX_VARYING_UV.y = float((id & 2) >> 1);
+	const float2 vOffsets = o.VFX_VARYING_UV.xy - 0.5f;
+	
+#elif VFX_PRIMITIVE_TRIANGLE
+
+	const float2 kOffsets[] = {
+		float2(-0.5f, 	-0.288675129413604736328125f),
+		float2(0.0f, 	0.57735025882720947265625f),
+		float2(0.5f,	-0.288675129413604736328125f),
+	};
+	
+	const float kUVScale = 0.866025388240814208984375f;
+	
+	const float2 vOffsets = kOffsets[id % 3];
+	o.VFX_VARYING_UV.xy = (vOffsets * kUVScale) + 0.5f;
+	
+#elif VFX_PRIMITIVE_OCTAGON	
+	
+	const float2 kUvs[8] = 
+	{
+		float2(-0.5f,	0.0f),
+		float2(-0.5f,	0.5f),
+		float2(0.0f,	0.5f),
+		float2(0.5f,	0.5f),
+		float2(0.5f,	0.0f),
+		float2(0.5f,	-0.5f),
+		float2(0.0f,	-0.5f),
+		float2(-0.5f,	-0.5f),
+	};
+	
+	${VFXLoadParameter:{cropFactor}}
+	cropFactor = id & 1 ? 1.0f - cropFactor : 1.0f;
+	const float2 vOffsets = kUvs[id & 7] * cropFactor;
+	o.VFX_VARYING_UV.xy = vOffsets + 0.5f;
+	
+#endif
+	
+	${VFXLoadSize}
+	
+	const float4x4 elementToVFX = GetElementToVFXMatrix(axisX,axisY,axisZ,float3(angleX,angleY,angleZ),float3(pivotX,pivotY,pivotZ),size3,position);
+	float3 vPos = mul(elementToVFX,float4(vOffsets,0.0f,1.0f)).xyz;
+
+	o.VFX_VARYING_POSCS = TransformPositionVFXToClip(vPos);
+
+	float3 normalWS = normalize(TransformDirectionVFXToWorld(normalize(-transpose(elementToVFX)[2].xyz)));
+	#ifdef VFX_VARYING_NORMAL
+	float normalFlip = (size3.x * size3.y * size3.z) < 0 ? -1 : 1;
+	o.VFX_VARYING_NORMAL = normalFlip * normalWS;
+	#endif
+	#ifdef VFX_VARYING_TANGENT
+	o.VFX_VARYING_TANGENT = normalize(TransformDirectionVFXToWorld(normalize(transpose(elementToVFX)[0].xyz)));
+	#endif
+	#ifdef VFX_VARYING_BENTFACTORS
+	${VFXLoadParameter:{bentNormalFactor}}
+	o.VFX_VARYING_BENTFACTORS = vOffsets * bentNormalFactor;
+	#endif
+
+	${VFXVertexCommonProcess}
+	
+	${VFXVertexSetFlipbooksInterpolants}
+
+	${VFXVertexAdditionalProcess}
+
+	return o;
+}

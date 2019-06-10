@@ -1,0 +1,15 @@
+run_katana_metal:
+  name: Run OSX Metal Playmode tests on Katana
+  agent:
+    name: whatever
+    type: Unity::VM
+    image: cds-ops/ubuntu-18.04-agent:latest
+    flavor: b1.small
+  commands:
+  - sudo apt-get update
+  - sudo apt-get install python3.6
+  - python3 katana-ci/katana_launcher.py
+  artifacts:
+    logs.zip:
+      paths:
+      - "**/upm-ci~/test-results/**/*"

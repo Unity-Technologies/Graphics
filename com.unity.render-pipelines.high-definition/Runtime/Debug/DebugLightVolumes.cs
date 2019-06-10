@@ -54,10 +54,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             m_Blit = CoreUtils.CreateEngineMaterial(renderPipelineResources.shaders.blitPS);
 
-            m_LightCountBuffer = RTHandles.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: GraphicsFormat.R32_SFloat, enableRandomWrite: false, useMipMap: false, xrInstancing: true, name: "LightVolumeCount");
-            m_ColorAccumulationBuffer = RTHandles.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite: false, useMipMap: false, xrInstancing: true, name: "LightVolumeColorAccumulation");
-            m_DebugLightVolumesTexture = RTHandles.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite: true, useMipMap: false, xrInstancing: true, name: "LightVolumeDebugLightVolumesTexture");
-            m_DepthBuffer = RTHandles.Alloc(Vector2.one, depthBufferBits: DepthBits.None, colorFormat: GraphicsFormat.R8_UNorm, filterMode: FilterMode.Point, xrInstancing: true, name: "LightVolumeDepth");
+            m_LightCountBuffer = RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GraphicsFormat.R32_SFloat, enableRandomWrite: false, useMipMap: false, name: "LightVolumeCount");
+            m_ColorAccumulationBuffer = RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite: false, useMipMap: false, name: "LightVolumeColorAccumulation");
+            m_DebugLightVolumesTexture = RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite: true, useMipMap: false, name: "LightVolumeDebugLightVolumesTexture");
+            m_DepthBuffer = RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimension, depthBufferBits: DepthBits.None, colorFormat: GraphicsFormat.R8_UNorm, name: "LightVolumeDepth");
             // Fill the render target array
             m_RTIDs[0] = m_LightCountBuffer;
             m_RTIDs[1] = m_ColorAccumulationBuffer;
@@ -80,12 +80,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             using (new ProfilingSample(cmd, "Display Light Volumes"))
             {
                 // Clear the buffers
-                HDUtils.SetRenderTarget(cmd, hdCamera, m_ColorAccumulationBuffer, ClearFlag.Color, Color.black);
-                HDUtils.SetRenderTarget(cmd, hdCamera, m_LightCountBuffer, ClearFlag.Color, Color.black);
-                HDUtils.SetRenderTarget(cmd, hdCamera, m_DebugLightVolumesTexture, ClearFlag.Color, Color.black);
+                HDUtils.SetRenderTarget(cmd, m_ColorAccumulationBuffer, ClearFlag.Color, Color.black);
+                HDUtils.SetRenderTarget(cmd, m_LightCountBuffer, ClearFlag.Color, Color.black);
+                HDUtils.SetRenderTarget(cmd, m_DebugLightVolumesTexture, ClearFlag.Color, Color.black);
 
                 // Set the render target array
-                HDUtils.SetRenderTarget(cmd, hdCamera, m_RTIDs, m_DepthBuffer);
+                HDUtils.SetRenderTarget(cmd, m_RTIDs, m_DepthBuffer);
 
                 // First of all let's do the regions for the light sources (we only support Punctual and Area)
                 int numLights = cullResults.visibleLights.Length;
@@ -188,7 +188,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
 
                 // Define which kernel to use based on the lightloop options
-                int targetKernel = lightDebugSettings.lightVolumeDebugByCategory == LightLoop.LightVolumeDebug.ColorAndEdge ? m_DebugLightVolumeColorsKernel : m_DebugLightVolumeGradientKernel;
+                int targetKernel = lightDebugSettings.lightVolumeDebugByCategory == LightVolumeDebug.ColorAndEdge ? m_DebugLightVolumeColorsKernel : m_DebugLightVolumeGradientKernel;
 
                 // Set the input params for the compute
                 cmd.SetComputeTextureParam(m_DebugLightVolumeCompute, targetKernel, _DebugLightCountBufferShaderID, m_LightCountBuffer);
@@ -206,10 +206,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 int lightVolumesTileSize = 8;
                 int numTilesX = (texWidth + (lightVolumesTileSize - 1)) / lightVolumesTileSize;
                 int numTilesY = (texHeight + (lightVolumesTileSize - 1)) / lightVolumesTileSize;
-                cmd.DispatchCompute(m_DebugLightVolumeCompute, targetKernel, numTilesX, numTilesY, hdCamera.computePassCount);
+                cmd.DispatchCompute(m_DebugLightVolumeCompute, targetKernel, numTilesX, numTilesY, hdCamera.viewCount);
 
                 // Blit this into the camera target
-                HDUtils.SetRenderTarget(cmd, hdCamera, finalRT);
+                HDUtils.SetRenderTarget(cmd, finalRT);
                 m_MaterialProperty.SetTexture(HDShaderIDs._BlitTexture, m_DebugLightVolumesTexture);
                 cmd.DrawProcedural(Matrix4x4.identity, m_DebugLightVolumeMaterial, 1, MeshTopology.Triangles, 3, 1, m_MaterialProperty);
             }

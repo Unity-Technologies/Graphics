@@ -1,11 +1,11 @@
 using System;
 using UnityEngine;
 
-namespace UnityEditor.Experimental.Rendering.LWRP.GUIFramework
+namespace UnityEditor.Experimental.Rendering.LWRP.Path2D.GUIFramework
 {
     internal abstract class DefaultControl : Control
     {
-        private readonly float kPickDistance = 5f;
+        public static readonly float kPickDistance = 5f;
         
         public DefaultControl(string name) : base(name)
         {

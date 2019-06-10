@@ -202,24 +202,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
             using (new EditorGUI.DisabledScope(!HDUtils.hdrpSettings.supportLightLayers))
             {
-                var renderingLayerMask = serialized.serializedLightData.renderingLayerMask.intValue;
-                int lightLayer;
-                if (serialized.serializedLightData.renderingLayerMask.hasMultipleDifferentValues)
+                using (var change = new EditorGUI.ChangeCheckScope())
                 {
-                    EditorGUI.showMixedValue = true;
-                    lightLayer = 0;
+                    HDEditorUtils.LightLayerMaskPropertyDrawer(s_Styles.lightLayer, serialized.serializedLightData.lightlayersMask);
+
+                    // If we're not in decoupled mode for light layers, we sync light with shadow layers:
+                    if (serialized.serializedLightData.linkLightLayers.boolValue && change.changed)
+                        SyncLightAndShadowLayers(serialized, owner);
                 }
-                else
-                    lightLayer = HDAdditionalLightData.RenderingLayerMaskToLightLayer(renderingLayerMask);
-                EditorGUI.BeginChangeCheck();
-                lightLayer = Convert.ToInt32(EditorGUILayout.EnumFlagsField(s_Styles.lightLayer, (LightLayerEnum)lightLayer));
-                if (EditorGUI.EndChangeCheck())
-                {
-                    // Overwrite only first byte
-                    lightLayer = HDAdditionalLightData.LightLayerToRenderingLayerMask(lightLayer, renderingLayerMask);
-                    serialized.serializedLightData.renderingLayerMask.intValue = lightLayer;
-                }
-                EditorGUI.showMixedValue = false;
             }
         }
 
@@ -603,6 +593,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 if(LightShape.Rectangle == serialized.editorLightShape)
                 {
                     EditorGUILayout.PropertyField(serialized.serializedLightData.useRayTracedShadows, s_Styles.useRayTracedShadows);
+                    if(serialized.serializedLightData.useRayTracedShadows.boolValue)
+                    {
+                        EditorGUILayout.PropertyField(serialized.serializedLightData.numRayTracingSamples, s_Styles.numRayTracingSamples);
+                        EditorGUILayout.PropertyField(serialized.serializedLightData.filterTracedShadow, s_Styles.filterTracedShadow);
+                        EditorGUILayout.PropertyField(serialized.serializedLightData.filterSizeTraced, s_Styles.filterSizeTraced);
+                    }
                 }
                 if (!serialized.serializedLightData.useRayTracedShadows.boolValue || LightShape.Rectangle != serialized.editorLightShape)
 #endif
@@ -614,14 +610,17 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     {
                         using (new EditorGUI.DisabledScope(!(GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset).currentPlatformRenderPipelineSettings.supportShadowMask))
                         {
+                            EditorGUI.showMixedValue = serialized.serializedLightData.nonLightmappedOnly.hasMultipleDifferentValues;
                             EditorGUI.BeginChangeCheck();
                             ShadowmaskMode shadowmask = serialized.serializedLightData.nonLightmappedOnly.boolValue ? ShadowmaskMode.ShadowMask : ShadowmaskMode.DistanceShadowmask;
                             shadowmask = (ShadowmaskMode)EditorGUILayout.EnumPopup(s_Styles.nonLightmappedOnly, shadowmask);
                             if (EditorGUI.EndChangeCheck())
                             {
                                 serialized.serializedLightData.nonLightmappedOnly.boolValue = shadowmask == ShadowmaskMode.ShadowMask;
-                                ((Light)owner.target).lightShadowCasterMode = shadowmask == ShadowmaskMode.ShadowMask ? LightShadowCasterMode.NonLightmappedOnly : LightShadowCasterMode.Everything;
+                                foreach (Light target in owner.targets)
+                                    target.lightShadowCasterMode = shadowmask == ShadowmaskMode.ShadowMask ? LightShadowCasterMode.NonLightmappedOnly : LightShadowCasterMode.Everything;
                             }
+                            EditorGUI.showMixedValue = false;
                         }
                     }
                     if (serialized.editorLightShape == LightShape.Rectangle)
@@ -682,7 +681,36 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 {
                     EditorGUILayout.PropertyField(serialized.serializedShadowData.fadeDistance, s_Styles.shadowFadeDistance);
                 }
+
+                // Shadow Layers
+                using (new EditorGUI.DisabledScope(!HDUtils.hdrpSettings.supportLightLayers))
+                {
+                    using (var change = new EditorGUI.ChangeCheckScope())
+                    {
+                        EditorGUILayout.PropertyField(serialized.serializedLightData.linkLightLayers, s_Styles.linkLightAndShadowLayersText);
+
+                        // Undo the changes in the light component because the SyncLightAndShadowLayers will change the value automatically when link is ticked
+                        if (change.changed)
+                            Undo.RecordObjects(owner.targets, "Undo Light Layers Changed");
+                    }
+                    if (!serialized.serializedLightData.linkLightLayers.hasMultipleDifferentValues)
+                    {
+                        using (new EditorGUI.DisabledGroupScope(serialized.serializedLightData.linkLightLayers.boolValue))
+                        {
+                            HDEditorUtils.LightLayerMaskPropertyDrawer(s_Styles.shadowLayerMaskText, serialized.settings.renderingLayerMask);
+                        }
+                        if (serialized.serializedLightData.linkLightLayers.boolValue)
+                            SyncLightAndShadowLayers(serialized, owner);
+                    }
+                }
             }
+        }
+        
+        static void SyncLightAndShadowLayers(SerializedHDLight serialized, Editor owner)
+        {
+            // If we're not in decoupled mode for light layers, we sync light with shadow layers:
+            foreach (Light target in owner.targets)
+                target.renderingLayerMask = serialized.serializedLightData.lightlayersMask.intValue;
         }
 
         static void DrawContactShadowsContent(SerializedHDLight serialized, Editor owner)

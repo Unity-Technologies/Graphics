@@ -21,7 +21,6 @@ Shader "Hidden/HDRP/Sky/ProceduralSky"
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Sky/SkyUtils.hlsl"
 
     float4   _SkyParam; // x exposure, y multiplier
-    float4x4 _PixelCoordToViewDirWS; // Actually just 3x3, but Unity can only set 4x4
 
     float _SunSize;
     float _SunSizeConvergence;
@@ -124,7 +123,7 @@ Shader "Hidden/HDRP/Sky/ProceduralSky"
 
     float4 RenderSky(Varyings input)
     {
-        float3 viewDirWS = GetSkyViewDirWS(input.positionCS.xy, (float3x3)_PixelCoordToViewDirWS);
+        float3 viewDirWS = GetSkyViewDirWS(input.positionCS.xy);
 
         // Reverse it to point into the scene
         float3 dir = -viewDirWS;
@@ -250,7 +249,7 @@ Shader "Hidden/HDRP/Sky/ProceduralSky"
         // The sun should have a stable intensity in its course in the sky. Moreover it should match the highlight of a purely specular material.
         // This matching was done using the standard shader BRDF1 on the 5/31/2017
         // Finally we want the sun to be always bright even in LDR thus the normalization of the lightColor for low intensity.
-        float lightColorIntensity = clamp(length(_SunColor.xyz), 0.25, 1);
+        float lightColorIntensity = max(length(_SunColor.xyz), 0.25);
         sunColor    = kHDSundiskIntensityFactor * saturate(cOut) * _SunColor.xyz / lightColorIntensity;
     #endif
 

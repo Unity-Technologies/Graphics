@@ -1,4 +1,4 @@
-﻿#if !UNITY_EDITOR_OSX || MAC_FORCE_TESTS
+#if !UNITY_EDITOR_OSX || MAC_FORCE_TESTS
 using System;
 using NUnit.Framework;
 using UnityEngine;
@@ -17,24 +17,32 @@ namespace UnityEditor.VFX.Test
     {
         VFXViewController m_ViewController;
 
-        const string testAssetName = "Assets/TmpTests/VFXGraph1.vfx";
+        const string testAssetName = "Assets/TmpTests/VFXGraph{0}.vfx";
 
         private int m_StartUndoGroupId;
+
+
+        string lastFileName;
+        static int cpt = 0;
 
         [SetUp]
         public void CreateTestAsset()
         {
-            var directoryPath = Path.GetDirectoryName(testAssetName);
+            lastFileName = string.Format(testAssetName, cpt++);
+
+            var directoryPath = Path.GetDirectoryName(lastFileName);
             if (!Directory.Exists(directoryPath))
             {
                 Directory.CreateDirectory(directoryPath);
             }
-            if (File.Exists(testAssetName))
+
+
+            if (File.Exists(lastFileName))
             {
-                AssetDatabase.DeleteAsset(testAssetName);
+                AssetDatabase.DeleteAsset(lastFileName);
             }
 
-            var asset = VisualEffectResource.CreateNewAsset(testAssetName);
+            var asset = VisualEffectAssetEditorUtility.CreateNewAsset(lastFileName);
 
             VisualEffectResource resource = asset.GetResource(); // force resource creation
 
@@ -49,7 +57,8 @@ namespace UnityEditor.VFX.Test
         {
             m_ViewController.useCount--;
             Undo.RevertAllDownToGroup(m_StartUndoGroupId);
-            AssetDatabase.DeleteAsset(testAssetName);
+            AssetDatabase.DeleteAsset(lastFileName);
+            lastFileName = null;
         }
 
         [Test]
@@ -178,6 +187,52 @@ namespace UnityEditor.VFX.Test
 
             Assert.AreNotEqual(copy2Operator.controller.model.position, newOperator.position);
             Assert.AreNotEqual(copy2Operator.controller.model.position, copyOperator.controller.model.position);
+        }
+
+        [Test]
+        public void CopyPasteSpacableOperator()
+        {
+            var inlineOperatorDesc = VFXLibrary.GetOperators().Where(t => t.modelType == typeof(VFXInlineOperator)).First();
+
+            var newOperator = m_ViewController.AddVFXOperator(new Vector2(100, 100), inlineOperatorDesc);
+            newOperator.SetSettingValue("m_Type",new SerializableType(typeof(DirectionType)));
+
+            m_ViewController.ApplyChanges();
+            var operatorController = m_ViewController.allChildren.OfType<VFXOperatorController>().First();
+
+            Assert.AreEqual(operatorController.model, newOperator);
+
+            VFXViewWindow window = EditorWindow.GetWindow<VFXViewWindow>();
+
+            VFXView view = window.graphView;
+            view.controller = m_ViewController;
+
+            view.ClearSelection();
+            foreach (var element in view.Query().OfType<GraphElement>().ToList().OfType<ISelectable>())
+            {
+                view.AddToSelection(element);
+            }
+
+
+            VFXSlot aSlot = newOperator.GetInputSlot(0);
+
+            Assert.IsTrue(aSlot.spaceable);
+
+            aSlot.space = VFXCoordinateSpace.World;
+
+            view.CopySelectionCallback();
+
+            aSlot.space = VFXCoordinateSpace.Local;
+
+            view.PasteCallback();
+
+            var elements = view.Query().OfType<GraphElement>().ToList();
+
+            var copyOperator = elements.OfType<VFXOperatorUI>().First(t => t.controller.model != newOperator);
+
+            var copyASlot = copyOperator.controller.model.GetInputSlot(0);
+
+            Assert.AreEqual(VFXCoordinateSpace.World, copyASlot.space);
         }
 
         [Test]

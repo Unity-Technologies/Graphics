@@ -4,6 +4,10 @@ using UnityEngine.Experimental.Rendering.HDPipeline;
 using System.Collections.Generic;
 using UnityEditor.Rendering;
 using UnityEngine.Rendering;
+using UnityEditor.ShaderGraph;
+
+// Include material common properties names
+using static UnityEngine.Experimental.Rendering.HDPipeline.HDMaterialProperties;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
@@ -279,6 +283,59 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             // Caution: Version of latest script and default version in all HDRP shader must match 
 
             UpgradeSceneMaterials();
+        }
+
+        static readonly string[] floatPropertiesToReset = {
+            kStencilRef, kStencilWriteMask,
+            kStencilRefDepth, kStencilWriteMaskDepth,
+            kStencilRefMV, kStencilWriteMaskMV,
+            kStencilRefDistortionVec, kStencilWriteMaskDistortionVec,
+            kStencilRefGBuffer, kStencilWriteMaskGBuffer, kZTestGBuffer,
+            kSurfaceType, kBlendMode, "_SrcBlend", "_DstBlend", "_AlphaSrcBlend", "_AlphaDstBlend",
+            kZWrite, "_CullMode", "_CullModeForward", kTransparentCullMode,
+            kZTestDepthEqualForOpaque,
+            kAlphaCutoffEnabled, "_AlphaCutoff",
+            "_TransparentSortPriority", "_UseShadowThreshold",
+            kDoubleSidedEnable, kDoubleSidedNormalMode,
+            kTransparentBackfaceEnable, kReceivesSSR, kUseSplitLighting
+        };
+
+        static readonly string[] vectorPropertiesToReset = {
+            "_DoubleSidedConstants",
+        };
+
+        // This upgrade function iterate over all loaded materials in the scene, copy all the keywords needed for the BlendStates
+        // to be synced with their master node values, then it calls the HDRP material keyword reset function and finally
+        // it set the render queue of the material to match the one on the shader graph.
+        // It's required to sync the shader default properties with the material because when you create a new material,
+        // by default the Lit shader is assigned to it and so write all his properties into the material. It's a problem
+        // because now that the shader graphs uses these properties, the material properties don't match the shader settings.
+        // This function basically fix this.
+        [MenuItem("Edit/Render Pipeline/Reset All ShaderGraph Scene Materials BlendStates")]
+        static public void UpgradeAllShaderGraphMaterialBlendStates()
+        {
+            var materials = Resources.FindObjectsOfTypeAll< Material >();
+
+            foreach (var mat in materials)
+            {
+                if (GraphUtil.IsShaderGraph(mat.shader))
+                {
+                    var defaultProperties = new Material(mat.shader);
+
+                    foreach (var floatToReset in floatPropertiesToReset)
+                        if (mat.HasProperty(floatToReset))
+                            mat.SetFloat(floatToReset, defaultProperties.GetFloat(floatToReset));
+                    foreach (var vectorToReset in vectorPropertiesToReset)
+                        if (mat.HasProperty(vectorToReset))
+                            mat.SetVector(vectorToReset, defaultProperties.GetVector(vectorToReset));
+
+                    HDEditorUtils.ResetMaterialKeywords(mat);
+
+                    mat.renderQueue = mat.shader.renderQueue;
+
+                    defaultProperties = null;
+                }
+            }
         }
     }
 }
