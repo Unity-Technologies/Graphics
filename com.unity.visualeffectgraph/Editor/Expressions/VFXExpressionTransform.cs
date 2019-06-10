@@ -440,7 +440,7 @@ namespace UnityEditor.VFX
         }
 
         public VFXExpressionTransformVector4(VFXExpression matrix, VFXExpression position)
-            : base(VFXExpression.Flags.InvalidOnCPU, new VFXExpression[] { matrix, position })
+            : base(VFXExpression.Flags.InvalidOnCPU, new VFXExpression[] { matrix, position }) // TODO add CPU implementation in C++
         {
         }
 
