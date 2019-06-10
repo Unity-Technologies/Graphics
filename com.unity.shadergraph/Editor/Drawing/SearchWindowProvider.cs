@@ -31,8 +31,8 @@ namespace UnityEditor.ShaderGraph.Drawing
         public List<NodeEntry> currentNodeEntries;
         public ShaderPort connectedPort { get; set; }
         public bool nodeNeedsRepositioning { get; set; }
-        public SlotReference targetSlotReference { get; private set; }
-        public Vector2 targetPosition { get; private set; }
+        public SlotReference targetSlotReference { get; internal set; }
+        public Vector2 targetPosition { get; internal set; }
         private const string k_HiddenFolderName = "Hidden";
 
         public void Initialize(EditorWindow editorWindow, GraphData graph, GraphView graphView)
