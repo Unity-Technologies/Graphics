@@ -8,9 +8,7 @@ using UnityEngine;
 using UnityEditor.UIElements;
 using UnityEditor.Experimental.GraphView;
 using UnityEngine.UIElements;
-#if SEARCHER_PRESENT
 using UnityEditor.Searcher;
-#endif
 
 namespace UnityEditor.ShaderGraph.Drawing
 {
@@ -195,7 +193,6 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
         }
     }
-    #if SEARCHER_PRESENT
     class SearcherProvider : SearchWindowProvider
     {        
         public Searcher.Searcher LoadSearchWindow()
@@ -288,104 +285,5 @@ namespace UnityEditor.ShaderGraph.Drawing
             return true;
         }
     }
-
-    #else
-    class FallbackSearchProvider : SearchWindowProvider, ISearchWindowProvider
-    {
-        public List<SearchTreeEntry> CreateSearchTree(SearchWindowContext context)
-        {
-            GenerateNodeEntries();
-            //* Build up the data structure needed by SearchWindow.
-
-            // `groups` contains the current group path we're in.
-            var groups = new List<string>();
-
-            // First item in the tree is the title of the window.
-            var tree = new List<SearchTreeEntry>
-            {
-                new SearchTreeGroupEntry(new GUIContent("Create Node"), 0),
-            };
-
-            foreach (var nodeEntry in currentNodeEntries)
-            {
-                // `createIndex` represents from where we should add new group entries from the current entry's group path.
-                var createIndex = int.MaxValue;
-
-                // Compare the group path of the current entry to the current group path.
-                for (var i = 0; i < nodeEntry.title.Length - 1; i++)
-                {
-                    var group = nodeEntry.title[i];
-                    if (i >= groups.Count)
-                    {
-                        // The current group path matches a prefix of the current entry's group path, so we add the
-                        // rest of the group path from the currrent entry.
-                        createIndex = i;
-                        break;
-                    }
-                    if (groups[i] != group)
-                    {
-                        // A prefix of the current group path matches a prefix of the current entry's group path,
-                        // so we remove everyfrom from the point where it doesn't match anymore, and then add the rest
-                        // of the group path from the current entry.
-                        groups.RemoveRange(i, groups.Count - i);
-                        createIndex = i;
-                        break;
-                    }
-                }
-
-                // Create new group entries as needed.
-                // If we don't need to modify the group path, `createIndex` will be `int.MaxValue` and thus the loop won't run.
-                for (var i = createIndex; i < nodeEntry.title.Length - 1; i++)
-                {
-                    var group = nodeEntry.title[i];
-                    groups.Add(group);
-                    tree.Add(new SearchTreeGroupEntry(new GUIContent(group)) { level = i + 1 });
-                }
-                // Finally, add the actual entry.
-                //if item is a leaf and has different slot ids, add slot name 
-                if (nodeEntry.compatibleSlotId != -1)
-                    tree.Add(new SearchTreeEntry(new GUIContent(nodeEntry.title.Last() + ": " + nodeEntry.slotName, m_Icon)) { level = nodeEntry.title.Length, userData = nodeEntry });
-                else
-                    tree.Add(new SearchTreeEntry(new GUIContent(nodeEntry.title.Last(), m_Icon)) { level = nodeEntry.title.Length, userData = nodeEntry });
-            }
-
-            return tree;
-        }
-        public bool OnSelectEntry(SearchTreeEntry entry, SearchWindowContext context)
-        {
-            var nodeEntry = (NodeEntry)entry.userData;
-            var node = nodeEntry.node;
-
-            var drawState = node.drawState;
-
-
-            var windowRoot = m_EditorWindow.rootVisualElement;
-            var windowMousePosition = windowRoot.ChangeCoordinatesTo(windowRoot.parent, context.screenMousePosition - m_EditorWindow.position.position);
-            var graphMousePosition = m_GraphView.contentViewContainer.WorldToLocal(windowMousePosition);
-            drawState.position = new Rect(graphMousePosition, Vector2.zero);
-            node.drawState = drawState;
-
-            m_Graph.owner.RegisterCompleteObjectUndo("Add " + node.name);
-            m_Graph.AddNode(node);
-
-            if (connectedPort != null)
-            {
-                var connectedSlot = connectedPort.slot;
-                var connectedSlotReference = connectedSlot.owner.GetSlotReference(connectedSlot.id);
-                var compatibleSlotReference = node.GetSlotReference(nodeEntry.compatibleSlotId);
-
-                var fromReference = connectedSlot.isOutputSlot ? connectedSlotReference : compatibleSlotReference;
-                var toReference = connectedSlot.isOutputSlot ? compatibleSlotReference : connectedSlotReference;
-                m_Graph.Connect(fromReference, toReference);
-
-                nodeNeedsRepositioning = true;
-                targetSlotReference = compatibleSlotReference;
-                targetPosition = graphMousePosition;
-            }
-
-            return true;
-        }
-    }        
-    #endif
     
 }

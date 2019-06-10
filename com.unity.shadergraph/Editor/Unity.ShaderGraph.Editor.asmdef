@@ -12,11 +12,5 @@
     "precompiledReferences": [],
     "autoReferenced": true,
     "defineConstraints": [],
-    "versionDefines": [
-        {
-            "name": "com.unity.searcher",
-            "expression": "",
-            "define": "SEARCHER_PRESENT"
-        }
-    ]
+    "versionDefines": []
 }

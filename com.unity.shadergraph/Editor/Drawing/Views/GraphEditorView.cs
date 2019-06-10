@@ -11,9 +11,7 @@ using UnityEditor.Experimental.GraphView;
 using UnityEditor.ShaderGraph.Drawing.Colors;
 using UnityEngine.UIElements;
 using Edge = UnityEditor.Experimental.GraphView.Edge;
-#if SEARCHER_PRESENT
 using UnityEditor.Searcher;
-#endif
 
 
 namespace UnityEditor.ShaderGraph.Drawing
@@ -216,7 +214,6 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                 RegisterCallback<GeometryChangedEvent>(ApplySerializewindowLayouts);
             }            
-            #if SEARCHER_PRESENT
             m_SearchWindowProvider = ScriptableObject.CreateInstance<SearcherProvider>();
             m_SearchWindowProvider.Initialize(editorWindow, m_Graph, m_GraphView);
             m_GraphView.nodeCreationRequest = (c) =>
@@ -226,15 +223,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                         item => (m_SearchWindowProvider as SearcherProvider).OnSearcherSelectEntry(item, c.screenMousePosition - editorWindow.position.position),
                         c.screenMousePosition - editorWindow.position.position, null);
                 };
-            #else
-            m_SearchWindowProvider = ScriptableObject.CreateInstance<FallbackSearchProvider>();
-            m_SearchWindowProvider.Initialize(editorWindow, m_Graph, m_GraphView);
-            m_GraphView.nodeCreationRequest = (c) =>
-                {
-                    m_SearchWindowProvider.connectedPort = null;
-                    SearchWindow.Open(new SearchWindowContext(c.screenMousePosition), (m_SearchWindowProvider as FallbackSearchProvider));
-                };
-            #endif
+                
             m_EdgeConnectorListener = new EdgeConnectorListener(m_Graph, m_SearchWindowProvider, editorWindow);
 
             foreach (var graphGroup in graph.groups)

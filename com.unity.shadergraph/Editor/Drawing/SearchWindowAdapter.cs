@@ -9,7 +9,6 @@ using UnityEditor.UIElements;
 using UnityEditor.Experimental.GraphView;
 using UnityEngine.UIElements;
 using UnityEditor.ShaderGraph.Drawing;
-#if SEARCHER_PRESENT
 using UnityEditor.Searcher;
 
 namespace UnityEditor.ShaderGraph
@@ -41,13 +40,4 @@ namespace UnityEditor.ShaderGraph
     }
     
 }
-#else
-namespace UnityEditor.ShaderGraph
-{
-    public class SearchWindowAdapter
-    {
-
-    }
-}
-#endif
 
