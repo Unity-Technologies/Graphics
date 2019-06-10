@@ -98,11 +98,7 @@ namespace UnityEditor.ShaderGraph
             slotIds[keyword.entries.Count] = OutputSlotId;
             for(int i = 0; i < keyword.entries.Count; i++)
             {
-                MaterialSlot slot = inputSlots.Where(x => x.id == keyword.entries[i].id).FirstOrDefault();
-                if(slot == null)
-                    slot = new DynamicVectorMaterialSlot(keyword.entries[i].id, keyword.entries[i].displayName, keyword.entries[i].referenceName, SlotType.Input, Vector4.zero);
-
-                AddSlot(slot);
+                AddSlot(new DynamicVectorMaterialSlot(keyword.entries[i].id, keyword.entries[i].displayName, keyword.entries[i].referenceName, SlotType.Input, Vector4.zero));
                 slotIds[i] = keyword.entries[i].id;
             }
             RemoveSlotsNameNotMatching(slotIds);
