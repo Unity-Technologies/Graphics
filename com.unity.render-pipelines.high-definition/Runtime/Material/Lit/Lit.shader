@@ -274,9 +274,6 @@ Shader "HDRP/Lit"
         [ToggleUI] _ReceivesSSR("Receives SSR", Float) = 1.0
         [ToggleUI] _AddPrecomputedVelocity("AddPrecomputedVelocity", Float) = 0.0
 
-//forest-begin: Wind flutter map (baking help only)
-		_WindFlutterMap("Wind Flutter Map", 2D) = "white" {}
-//forest-end:
 
         [HideInInspector] _DiffusionProfile("Obsolete, kept for migration purpose", Int) = 0
         [HideInInspector] _DiffusionProfileAsset("Diffusion Profile Asset", Vector) = (0, 0, 0, 0)

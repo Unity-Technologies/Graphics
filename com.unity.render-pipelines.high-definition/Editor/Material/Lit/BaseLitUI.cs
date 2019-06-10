@@ -214,10 +214,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected MaterialProperty  windFlutterPhase;
         protected const string      kWindFlutterPhase       = "_WindFlutterPhase";
 //forest-end:
-//forest-begin: Wind flutter map
-        protected MaterialProperty  windFlutterMap          = null;
-        protected const string      kWindFlutterMap         = "_WindFlutterMap";
-//forest-end:
 
         // tessellation params
         protected MaterialProperty tessellationMode = null;
@@ -322,9 +318,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             windFlutterScale        = FindProperty(kWindFlutterScale,       props, false);
             windFlutterPeriodScale  = FindProperty(kWindFlutterPeriodScale, props, false);
             windFlutterPhase        = FindProperty(kWindFlutterPhase,       props, false);
-//forest-end:
-//forest-begin: Wind flutter map
-            windFlutterMap          = FindProperty(kWindFlutterMap, props, false);
 //forest-end:
 
             // Decal
@@ -623,10 +616,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                             }
 //forest-end:
                         }
-//forest-end:
-//forest-begin: Wind flutter map
-                        if(windFlutterMap != null)
-                            m_MaterialEditor.TexturePropertySingleLine(new GUIContent(windFlutterMap.displayName), windFlutterMap);
 //forest-end:
                     }
 
