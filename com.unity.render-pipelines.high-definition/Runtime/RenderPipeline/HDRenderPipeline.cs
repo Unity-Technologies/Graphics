@@ -222,13 +222,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-//forest-begin: Locked render camera
-#if UNITY_EDITOR
-		bool		m_LockRenderCamera;
-		Vector3		m_LockedPosition;
-		Quaternion	m_LockedRotation;
-#endif
-//forest-end:
 
         public HDRenderPipeline(HDRenderPipelineAsset asset)
         {
@@ -370,7 +363,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 //forest-end:
 
             // Keep track of the original msaa sample value
-            // TODO : Bind this directly to the debug menu instead of having an intermediate value
             m_MSAASamples = m_Asset ? m_Asset.currentPlatformRenderPipelineSettings.msaaSampleCount : MSAASamples.None;
 
             // Propagate it to the debug menu
@@ -924,13 +916,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Indices of render request to render before this one
             public List<int> dependsOnRenderRequestIndices;
             public CameraSettings cameraSettings;
-
-//forest-begin: Locked render camera
-#if UNITY_EDITOR
-			public Vector3 preLockedPosition;
-			public Quaternion preLockedRotation;
-#endif
-//forest-end:
         }
         struct HDCullingResults
         {
@@ -1131,20 +1116,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     // This is a root render request
                     rootRenderRequestIndices.Add(request.index);
 
-//forest-begin: Locked render camera
-#if UNITY_EDITOR
-                    request.preLockedPosition = camera.transform.position;
-                    request.preLockedRotation = camera.transform.rotation;
-
-                    if(!m_LockRenderCamera) {
-                        m_LockedPosition = camera.transform.position;
-                        m_LockedRotation = camera.transform.rotation;
-                    } else {
-                        camera.transform.position = m_LockedPosition;
-                        camera.transform.rotation = m_LockedRotation;
-                    }
-#endif
-//forest-end:
                     // Add visible probes to list
                     for (var i = 0; i < cullingResults.cullingResults.visibleReflectionProbes.Length; ++i)
                     {
@@ -1614,7 +1585,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 #endif
 //forest-end:
 
-            SetupCameraProperties(hdCamera, renderContext, cmd);
+            SetupCameraProperties(camera, renderContext, cmd);
 
             PushGlobalParams(hdCamera, cmd);
 
