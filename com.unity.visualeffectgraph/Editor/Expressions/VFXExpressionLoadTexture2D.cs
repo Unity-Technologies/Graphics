@@ -12,8 +12,8 @@ namespace UnityEditor.VFX
         {
         }
 
-        public VFXExpressionLoadTexture2D(VFXExpression texture, VFXExpression uv)
-            : base(Flags.InvalidOnCPU, new VFXExpression[2] { texture, uv})
+        public VFXExpressionLoadTexture2D(VFXExpression texture, VFXExpression location)
+            : base(Flags.InvalidOnCPU, new VFXExpression[2] { texture, location})
         {}
 
         sealed public override VFXExpressionOperation operation { get { return VFXExpressionOperation.None; } }
