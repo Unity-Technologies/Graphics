@@ -2210,10 +2210,6 @@ namespace UnityEngine.Rendering.HighDefinition
                         {
                             if (GetDirectionalLightData(cmd, hdCamera, gpuLightType, light, lightComponent, additionalLightData, lightIndex, shadowIndex, debugDisplaySettings, directionalLightcount, ref m_ScreenSpaceShadowIndex, isPbrSkyActive))
                             {
-//forest-begin: Horrible hack for passing sun shadow index to scattering.. (TODO: cleanup, there's now an official 'sun index' tracked for deferred directional shadows)
-                                if(directionalLightcount == 0)
-                                    Shader.SetGlobalInt("g_AtmosphericScatteringSunShadowIndex", m_lightList.directionalLights[0].shadowIndex);
-//forest-end:
                                 directionalLightcount++;
 
                                 // We make the light position camera-relative as late as possible in order
