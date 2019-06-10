@@ -350,7 +350,13 @@ float4 SampleGradient(float v,float u)
 float SampleCurve(float4 curveData,float u)
 {
     float uNorm = (u * curveData.x) + curveData.y;
+
+#if defined(SHADER_API_METAL)
+    // Workaround metal compiler crash that is caused by switch statement uint byte shift
+    switch(asint(curveData.w) >> 2)
+#else
     switch(asuint(curveData.w) >> 2)
+#endif
     {
         case 1: uNorm = HalfTexelOffset(frac(min(1.0f - 1e-10f,uNorm))); break; // clamp end. Dont clamp at 1 or else the frac will make it 0...
         case 2: uNorm = HalfTexelOffset(frac(max(0.0f,uNorm))); break; // clamp start

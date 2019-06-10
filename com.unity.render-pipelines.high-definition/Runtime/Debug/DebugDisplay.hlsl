@@ -31,6 +31,8 @@ float4 _DebugLightingMaterialValidatePureMetalColor;
 float4 _MousePixelCoord;  // xy unorm, zw norm
 float4 _MouseClickPixelCoord;  // xy unorm, zw norm
 float _DebugExposure;
+int _MatcapMixAlbedo;
+int _MatcapViewScale;
 uint _DebugContactShadowLightIndex;
 CBUFFER_END
 
@@ -46,6 +48,7 @@ StructuredBuffer<int2>  _DebugDepthPyramidOffsets;
 #define LUXMETER_COMPRESSION_RATIO  4
 
 TEXTURE2D(_DebugFont); // Debug font to write string in shader
+TEXTURE2D(_DebugMatCapTexture);
 
 void GetPropertiesDataDebug(uint paramId, inout float3 result, inout bool needLinearToSRGB)
 {

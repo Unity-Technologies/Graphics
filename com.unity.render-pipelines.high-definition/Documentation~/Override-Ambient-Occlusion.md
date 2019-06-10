@@ -16,9 +16,9 @@ The **Ambient Occlusion** override is a real-time, full-screen lighting effect a
 
 | **Property**                 | **Description**                                              |
 | ---------------------------- | ------------------------------------------------------------ |
-| **Intensity**                | Use this slider to set the strength of the ambient occlusion effect. |
-| **Thickness Modifier**       | Use this slider to modify the thickness of occluders. This increases the size of dark areas, but can potentially introduce dark halos around Meshes. |
-| **Direct Lighting Strength** | Use this slider to change how much the ambient lighting affects occlusion. |
+| **Intensity**                | Use the slider to set the strength of the ambient occlusion effect. |
+| **Thickness Modifier**       | Use the slider to modify the thickness of occluders. This increases the size of dark areas, but can potentially introduce dark halos around Meshes. |
+| **Direct Lighting Strength** | Use the slider to change how much the ambient lighting affects occlusion. |
 
 ## Details
 

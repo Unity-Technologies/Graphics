@@ -32,8 +32,7 @@ Shader "Hidden/HDRP/Deferred"
             #pragma vertex Vert
             #pragma fragment Frag
 
-            // Chose supported lighting architecture in case of deferred rendering
-            #pragma multi_compile _ LIGHTLOOP_DISABLE_TILE_AND_CLUSTER
+            #define LIGHTLOOP_DISABLE_TILE_AND_CLUSTER
 
             // Split lighting is utilized during the SSS pass.
             #pragma multi_compile _ OUTPUT_SPLIT_LIGHTING
@@ -127,7 +126,7 @@ Shader "Hidden/HDRP/Deferred"
                 // input.positionCS is SV_Position
                 float depth = LoadCameraDepth(input.positionCS.xy);
 
-                PositionInputs posInput = GetPositionInput_Stereo(input.positionCS.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V, uint2(input.positionCS.xy) / GetTileSize(), unity_StereoEyeIndex);
+                PositionInputs posInput = GetPositionInput(input.positionCS.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V, uint2(input.positionCS.xy) / GetTileSize());
                 float3 V = GetWorldSpaceNormalizeViewDir(posInput.positionWS);
 
                 BSDFData bsdfData;

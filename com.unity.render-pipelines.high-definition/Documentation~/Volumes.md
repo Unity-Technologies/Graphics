@@ -4,7 +4,7 @@ The High Definition Render Pipeline (HDRP) uses a Volume framework. Each Volume 
 
 You can add a __Volume__ component to any GameObject, including a Camera, although it is good practice to create a dedicated GameObject for each Volume. The Volume component itself contains no actual data itself and instead references a [Volume Profile](Volume-Profile.html) which contains the values to interpolate between. The Volume Profile contains default values for every property and hides them by default. To view or alter these properties, you must add [Volume Component overrides](Volume-Components.html), which are structures containing overrides for the default values, to the Volume Profile.
 
-Volumes also contain parameters that control how they interact with other volumes. A Scene can contain many Volumes. Volumes affect the Camera if they have __IsGlobal __enabled or they encapsulate the Camera within the bounds of their Collider.
+Volumes also contain parameters that control how they interact with other volumes. A Scene can contain many Volumes. Volumes affect the Camera if they have __IsGlobal__ enabled or they encapsulate the Camera within the bounds of their Collider.
 
 At run time, HDRP looks at all of the enabled Volumes attached to active GameObjects in the Scene and determines each Volume’s contribution to the final Scene settings. HDRP uses the Camera position and the Volume properties described above to calculate this contribution. It then uses all Volumes with a non-zero contribution to calculate interpolated final values for every property in all Volume Components.
 
@@ -16,7 +16,7 @@ Volumes can contain different combinations of Volume Components. For example, on
 
 | Property| Description |
 |:---|:---|
-| **Is Global** | Enable this checkbox to apply this Volume to the entire Scene, so the Volume has no boundaries.  |
+| **Is Global** | Enable the checkbox to apply this Volume to the entire Scene, so the Volume has no boundaries.  |
 | **Blend Distance** | The furthest distance from the Volume’s Collider that HDRP starts blending from. A value of 0 means HDRP applies this Volume’s overrides immediately upon entry. Disable the **Is Global** checkbox to expose this property. |
 | **Weight** | The amount of influence the Volume has on the Scene. HDRP applies this multiplier to the value it calculates using the Camera position and Blend Distance.  |
 | **Priority** | HDRP uses this value to determine which Volume it uses when Volumes have an equal amount of influence on the Scene. HDRP uses Volumes with higher priorities first. |

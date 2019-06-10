@@ -20,13 +20,13 @@ Only one Light can cast Contact Shadows at a time. This means that, if you have 
 
 | Property                  | Description                                                    |
 | :------------------------ | :----------------------------------------------------------- |
-| __Enable__                | Enable this checkbox to make HDRP process Contact Shadows for this [Volume](Volumes.html).       |
-| __Length__                | Use this slider to set the length of the rays, in meters, that HDRP uses for tracing. It also functions as the maximum distance at which the rays can captures details. |
-| __Distance Scale Factor__ | HDRP scales Contact Shadows up with distance. Use this slider to set the value that HDRP uses to dampen the scale to avoid biasing artifacts with distance. |
+| __Enable__                | Enable the checkbox to make HDRP process Contact Shadows for this [Volume](Volumes.html).       |
+| __Length__                | Use the slider to set the length of the rays, in meters, that HDRP uses for tracing. It also functions as the maximum distance at which the rays can captures details. |
+| __Distance Scale Factor__ | HDRP scales Contact Shadows up with distance. Use the slider to set the value that HDRP uses to dampen the scale to avoid biasing artifacts with distance. |
 | __Max Distance__          | The distance from the Camera, in Unity units, at which HDRP begins to fade Contact Shadows out to zero. |
 | __Fade Distance__         | The distance, in Unity units, over which HDRP fades Contact Shadows out when at the __Max Distance__. |
-| __Sample Count__          | Use this slider to set the number of samples HDRP uses for ray casting. Increasing this increases quality at the cost of performance. |
-| __Opacity__ |   Use this slider to set the opacity of the Contact Shadows. Lower values result in softer, less prominent shadows.   |
+| __Sample Count__          | Use the slider to set the number of samples HDRP uses for ray casting. Increasing this increases quality at the cost of performance. |
+| __Opacity__ |   Use the slider to set the opacity of the Contact Shadows. Lower values result in softer, less prominent shadows.   |
 
 ## Details
 

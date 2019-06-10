@@ -42,6 +42,7 @@ ${VFXBegin:VFXVertexAdditionalProcess}${VFXEnd}
 	#pragma fragment frag
 	float frag(ps_input i) : SV_Target0
 	{
+		VFXTransformPSInputs(i);
 		float alpha = VFXGetFragmentColor(i).a;
 #if HDRP_USE_BASE_COLOR_MAP_ALPHA
 		alpha *= VFXGetTextureColorWithProceduralUV(VFX_SAMPLER(baseColorMap),i,VFXCubeGetUV(i)).a;

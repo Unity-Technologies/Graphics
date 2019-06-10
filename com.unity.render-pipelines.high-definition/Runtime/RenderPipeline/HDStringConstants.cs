@@ -20,18 +20,18 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly string s_TransparentDepthPostpassStr = "TransparentDepthPostpass";
         public static readonly string s_MetaStr = "META";
         public static readonly string s_ShadowCasterStr = "ShadowCaster";
-        public static readonly string s_MeshDecalsMStr = "DBufferMesh_M";
-        public static readonly string s_MeshDecalsSStr = "DBufferMesh_S";
-        public static readonly string s_MeshDecalsMSStr = "DBufferMesh_MS";
-        public static readonly string s_MeshDecalsAOStr = "DBufferMesh_AO";
-        public static readonly string s_MeshDecalsMAOStr = "DBufferMesh_MAO";
-        public static readonly string s_MeshDecalsAOSStr = "DBufferMesh_AOS";
-        public static readonly string s_MeshDecalsMAOSStr = "DBufferMesh_MAOS";
-        public static readonly string s_MeshDecals3RTStr = "DBufferMesh_3RT";
-        public static readonly string s_ShaderGraphMeshDecals4RT = "ShaderGraph_DBufferMesh4RT";
-        public static readonly string s_ShaderGraphMeshDecals3RT = "ShaderGraph_DBufferMesh3RT";
-        public static readonly string s_MeshDecalsForwardEmissive = "Mesh_Emissive";
-        public static readonly string s_ShaderGraphMeshDecalForwardEmissive = "ShaderGraph_MeshEmissive";
+        public static readonly string s_MeshDecalsMStr = DecalSystem.s_MaterialDecalPassNames[(int)DecalSystem.MaterialDecalPass.DBufferMesh_M];
+        public static readonly string s_MeshDecalsSStr = DecalSystem.s_MaterialDecalPassNames[(int)DecalSystem.MaterialDecalPass.DBufferMesh_S];
+        public static readonly string s_MeshDecalsMSStr = DecalSystem.s_MaterialDecalPassNames[(int)DecalSystem.MaterialDecalPass.DBufferMesh_MS];
+        public static readonly string s_MeshDecalsAOStr = DecalSystem.s_MaterialDecalPassNames[(int)DecalSystem.MaterialDecalPass.DBufferMesh_AO];
+        public static readonly string s_MeshDecalsMAOStr = DecalSystem.s_MaterialDecalPassNames[(int)DecalSystem.MaterialDecalPass.DBufferMesh_MAO];
+        public static readonly string s_MeshDecalsAOSStr = DecalSystem.s_MaterialDecalPassNames[(int)DecalSystem.MaterialDecalPass.DBufferMesh_AOS];
+        public static readonly string s_MeshDecalsMAOSStr = DecalSystem.s_MaterialDecalPassNames[(int)DecalSystem.MaterialDecalPass.DBufferMesh_MAOS];
+        public static readonly string s_MeshDecals3RTStr = DecalSystem.s_MaterialDecalPassNames[(int)DecalSystem.MaterialDecalPass.DBufferMesh_3RT];
+        public static readonly string s_ShaderGraphMeshDecals4RT = DecalSystem.s_MaterialSGDecalPassNames[(int)DecalSystem.MaterialSGDecalPass.ShaderGraph_DBufferMesh4RT];
+        public static readonly string s_ShaderGraphMeshDecals3RT = DecalSystem.s_MaterialSGDecalPassNames[(int)DecalSystem.MaterialSGDecalPass.ShaderGraph_DBufferMesh3RT];
+        public static readonly string s_MeshDecalsForwardEmissive = DecalSystem.s_MaterialDecalPassNames[(int)DecalSystem.MaterialDecalPass.Mesh_Emissive];
+        public static readonly string s_ShaderGraphMeshDecalForwardEmissive = DecalSystem.s_MaterialSGDecalPassNames[(int)DecalSystem.MaterialSGDecalPass.ShaderGraph_MeshEmissive];
 
         // ShaderPass name
         public static readonly ShaderTagId s_EmptyName = new ShaderTagId(s_EmptyStr);
@@ -234,8 +234,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly int _LtcDisneyDiffuseMatrix = Shader.PropertyToID("_LtcDisneyDiffuseMatrix");
         public static readonly int _LtcMultiGGXFresnelDisneyDiffuse = Shader.PropertyToID("_LtcMultiGGXFresnelDisneyDiffuse");
 
-        public static readonly int _DeferredShadowTexture = Shader.PropertyToID("_DeferredShadowTexture");
-        public static readonly int _DeferredShadowTextureUAV = Shader.PropertyToID("_DeferredShadowTextureUAV");
+        public static readonly int _ScreenSpaceShadowsTexture = Shader.PropertyToID("_ScreenSpaceShadowsTexture");
+        public static readonly int _ContactShadowTexture = Shader.PropertyToID("_ContactShadowTexture");
+        public static readonly int _ContactShadowTextureUAV = Shader.PropertyToID("_ContactShadowTextureUAV");
         public static readonly int _DirectionalShadowIndex = Shader.PropertyToID("_DirectionalShadowIndex");
         public static readonly int _ContactShadowParamsParameters = Shader.PropertyToID("_ContactShadowParamsParameters");
         public static readonly int _ContactShadowParamsParameters2 = Shader.PropertyToID("_ContactShadowParamsParameters2");
@@ -290,8 +291,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly int _TaaFrameInfo = Shader.PropertyToID("_TaaFrameInfo");
         public static readonly int _TaaJitterStrength = Shader.PropertyToID("_TaaJitterStrength");
 
+        public static readonly int _XRViewCount = Shader.PropertyToID("_XRViewCount");
         public static readonly int _XRViewConstants = Shader.PropertyToID("_XRViewConstants");
-        public static readonly int _TextureWidthScaling = Shader.PropertyToID("_TextureWidthScaling"); // (2.0, 0.5) for SinglePassDoubleWide (stereo) and (1.0, 1.0) otherwise
 
         public static readonly int _DepthTexture                   = Shader.PropertyToID("_DepthTexture");
         public static readonly int _DepthValuesTexture             = Shader.PropertyToID("_DepthValuesTexture");
@@ -378,6 +379,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly int _ColorPickerFontColor = Shader.PropertyToID("_ColorPickerFontColor");
         public static readonly int _FalseColorEnabled = Shader.PropertyToID("_FalseColor");
         public static readonly int _FalseColorThresholds = Shader.PropertyToID("_FalseColorThresholds");
+
+        public static readonly int _DebugMatCapTexture = Shader.PropertyToID("_DebugMatCapTexture");
+        public static readonly int _MatcapViewScale = Shader.PropertyToID("_MatcapViewScale");
+        public static readonly int _MatcapMixAlbedo = Shader.PropertyToID("_MatcapMixAlbedo");
 
         public static readonly int _DebugFullScreenTexture = Shader.PropertyToID("_DebugFullScreenTexture");
         public static readonly int _BlitTexture = Shader.PropertyToID("_BlitTexture");
@@ -506,6 +511,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly int _RaytracingIntensityClamp        = Shader.PropertyToID("_RaytracingIntensityClamp");
         public static readonly int _RaytracingReflectionMinSmoothness   = Shader.PropertyToID("_RaytracingReflectionMinSmoothness");
         public static readonly int _RaytracingVSNormalTexture       = Shader.PropertyToID("_RaytracingVSNormalTexture");
+        public static readonly int _RaytracingReflectSky            = Shader.PropertyToID("_RaytracingReflectSky");
 
         // Area Shadows
         public static readonly int _RaytracedAreaShadow             = Shader.PropertyToID("_RaytracedAreaShadow");
@@ -518,12 +524,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly int _RaytracingDistanceBuffer        = Shader.PropertyToID("_RaytracingDistanceBuffer");
         public static readonly int _AreaShadowTexture               = Shader.PropertyToID("_AreaShadowTexture");
         public static readonly int _AreaShadowTextureRW             = Shader.PropertyToID("_AreaShadowTextureRW");
+        public static readonly int _AreaShadowHistory               = Shader.PropertyToID("_AreaShadowHistory");
         public static readonly int _AreaShadowHistoryRW             = Shader.PropertyToID("_AreaShadowHistoryRW");
         public static readonly int _AnalyticProbBuffer              = Shader.PropertyToID("_AnalyticProbBuffer");
         public static readonly int _AnalyticHistoryBuffer           = Shader.PropertyToID("_AnalyticHistoryBuffer");
 
         // Ambient occlusion
-        public static readonly int _AOHistorybufferRW               = Shader.PropertyToID("_AOHistorybufferRW");
+        public static readonly int _AOHistorybuffer                 = Shader.PropertyToID("_AOHistorybuffer");
         public static readonly int _RaytracingAOIntensity           = Shader.PropertyToID("_RaytracingAOIntensity");
 
         // Ray count
@@ -701,7 +708,73 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public static readonly int _LowResDepthTexture             = Shader.PropertyToID("_LowResDepthTexture");
         public static readonly int _LowResTransparent              = Shader.PropertyToID("_LowResTransparent");
+    }
 
+    // Shared material property names
+    public static class HDMaterialProperties
+    {
+        // Stencil properties
+        public const string kStencilRef = "_StencilRef";
+        public const string kStencilWriteMask = "_StencilWriteMask";
+        public const string kStencilRefDepth = "_StencilRefDepth";
+        public const string kStencilWriteMaskDepth = "_StencilWriteMaskDepth";
+        public const string kStencilRefGBuffer = "_StencilRefGBuffer";
+        public const string kStencilWriteMaskGBuffer = "_StencilWriteMaskGBuffer";
+        public const string kStencilRefMV = "_StencilRefMV";
+        public const string kStencilWriteMaskMV = "_StencilWriteMaskMV";
+        public const string kStencilRefDistortionVec = "_StencilRefDistortionVec";
+        public const string kStencilWriteMaskDistortionVec = "_StencilWriteMaskDistortionVec";
+        public const string kUseSplitLighting = "_RequireSplitLighting";
+        
+        public const string kZWrite = "_ZWrite";
+        public const string kTransparentCullMode = "_TransparentCullMode";
+        public const string kZTestTransparent = "_ZTestTransparent";
 
+        public const string kEmissiveColorMap = "_EmissiveColorMap";
+
+        public const string kSurfaceType = "_SurfaceType";
+        public const string kMaterialID = "_MaterialID";
+        public const string kTransmissionEnable = "_TransmissionEnable";
+        public const string kEnableDecals = "_SupportDecals";
+        public const string kSupportDecals = kEnableDecals;
+        public const string kEnableSSR = "_ReceivesSSR";
+
+        public const string kLayerCount = "_LayerCount";
+        
+        public const string kAlphaCutoffEnabled = "_AlphaCutoffEnable";
+        public const string kZTestGBuffer = "_ZTestGBuffer";
+        public const string kZTestDepthEqualForOpaque = "_ZTestDepthEqualForOpaque";
+        public const string kBlendMode = "_BlendMode";
+        public const string kEnableFogOnTransparent = "_EnableFogOnTransparent";
+        public const string kDistortionDepthTest = "_DistortionDepthTest";
+        public const string kDistortionEnable = "_DistortionEnable";
+        public const string kZTestModeDistortion = "_ZTestModeDistortion";
+        public const string kDistortionBlendMode = "_DistortionBlendMode";
+        public const string kTransparentWritingMotionVec = "_TransparentWritingMotionVec";
+        public const string kEnableBlendModePreserveSpecularLighting = "_EnableBlendModePreserveSpecularLighting";
+        public const string kEmissionColor = "_EmissionColor";
+        public const string kTransparentBackfaceEnable = "_TransparentBackfaceEnable";
+        public const string kDoubleSidedEnable = "_DoubleSidedEnable";
+        public const string kDoubleSidedNormalMode = "_DoubleSidedNormalMode";
+        public const string kDistortionOnly = "_DistortionOnly";
+        public const string kTransparentDepthPrepassEnable = "_TransparentDepthPrepassEnable";
+        public const string kTransparentDepthPostpassEnable = "_TransparentDepthPostpassEnable";
+
+        public const int kMaxLayerCount = 4;
+
+        public const string kUVBase = "_UVBase";
+        public const string kTexWorldScale = "_TexWorldScale";
+        public const string kUVMappingMask = "_UVMappingMask";
+        public const string kUVDetail = "_UVDetail";
+        public const string kUVDetailsMappingMask = "_UVDetailsMappingMask";
+        public const string kReceivesSSR = "_ReceivesSSR";
+    
+        public static readonly Color[] kLayerColors =
+        {
+            Color.white,
+            Color.red,
+            Color.green,
+            Color.blue
+        };
     }
 }

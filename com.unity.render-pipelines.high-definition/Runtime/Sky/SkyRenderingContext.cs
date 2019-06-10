@@ -181,7 +181,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 // Sun could influence the sky (like for procedural sky). We need to handle this possibility. If sun property change, then we need to update the sky
                 int hash = 13;
-                hash = hash * 23 + (light.GetHashCode() * 23 + light.transform.position.GetHashCode()) * 23 + light.transform.rotation.GetHashCode();
+                hash = hash * 23 + light.transform.position.GetHashCode();
+                hash = hash * 23 + light.transform.rotation.GetHashCode();
                 hash = hash * 23 + light.color.GetHashCode();
                 hash = hash * 23 + light.colorTemperature.GetHashCode();
                 hash = hash * 23 + light.intensity.GetHashCode();
@@ -232,8 +233,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 bool forceUpdate = (updateRequired || skyContext.updatedFramesRequired > 0 || m_NeedUpdate);
                 if (forceUpdate ||
-                    (skyContext.skySettings.updateMode == EnvironementUpdateMode.OnChanged && skyHash != skyContext.skyParametersHash) ||
-                    (skyContext.skySettings.updateMode == EnvironementUpdateMode.Realtime && skyContext.currentUpdateTime > skyContext.skySettings.updatePeriod.value))
+                    (skyContext.skySettings.updateMode == EnvironmentUpdateMode.OnChanged && skyHash != skyContext.skyParametersHash) ||
+                    (skyContext.skySettings.updateMode == EnvironmentUpdateMode.Realtime && skyContext.currentUpdateTime > skyContext.skySettings.updatePeriod.value))
                 {
                     using (new ProfilingSample(cmd, "Sky Environment Pass"))
                     {

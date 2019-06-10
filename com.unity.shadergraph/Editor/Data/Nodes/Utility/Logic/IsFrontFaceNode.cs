@@ -28,9 +28,9 @@ namespace UnityEditor.ShaderGraph
             RemoveSlotsNameNotMatching(new[] { OutputSlotId });
         }
 
-        public void GenerateNodeCode(ShaderGenerator visitor, GraphContext graphContext, GenerationMode generationMode)
+        public void GenerateNodeCode(ShaderStringBuilder sb, GraphContext graphContext, GenerationMode generationMode)
         {
-            visitor.AddShaderChunk(string.Format("{0} {1} = max(0, IN.{2});", precision, GetVariableNameForSlot(OutputSlotId), ShaderGeneratorNames.FaceSign), true);
+            sb.AppendLine(string.Format("$precision {0} = max(0, IN.{1});", GetVariableNameForSlot(OutputSlotId), ShaderGeneratorNames.FaceSign));
         }
 
 		public bool RequiresFaceSign(ShaderStageCapability stageCapability = ShaderStageCapability.Fragment)

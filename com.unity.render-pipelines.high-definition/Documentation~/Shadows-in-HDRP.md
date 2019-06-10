@@ -2,6 +2,8 @@
 
 The High Definition Render Pipeline’s [Lights](Light-Component.html) can cast shadows from one GameObject onto another. They emphasize the position and scale of GameObjects, which adds a degree of depth and realism to a Scene that could otherwise look flat.
 
+![](Images/HDRPFeatures-Shadows.png)
+
 ## Shadow map resolution
 
 The resolution of a Light’s shadow map determines the size of its shadow maps. The larger the shadow map, the more precise the shadows can be, and the better the High Definition Render Pipeline (HDRP) can capture small details in the shadow casting geometry. Rendering shadow maps at higher resolutions make them look sharper.
@@ -50,24 +52,13 @@ Find these settings under the **Shadows** section. If some of the property field
 
 Using high shadow bias values may result in light "leaking" through Meshes. This is where there is a visible gap between the shadow and its caster and leads to shadow shapes that do not accurately represent their casters.
 
-<a name=”ShadowFiltering”></a>
+<a name="ShadowFiltering"></a>
 
 ## Shadow filtering
 
 After HDRP captures a shadow map, it processes filtering on the map in order to decrease the aliasing effect that occurs on low resolution shadow maps. Different filters affect the perceived sharpness of shadows.
 
-To change which filter HDRP uses, change the **Filtering Quality** property in your Unity Project’s HDRP Asset. There are currently four filter quality presets for directional and punctual lights.
-
-<a name="FilteringQualities"></a>
-
-| **Filtering Quality** | **Algorithm**                                                |
-| --------------------- | ------------------------------------------------------------ |
-| **Low**               | **Point/Spot Lights**: Percentage Closer Filtering (PCF) 3x3 (4 taps).<br />**Directional Lights**: PCF Tent 5x5 (9 taps). |
-| **Medium**            | **Point/Spot Lights**: PCF 5x5 (9 taps).<br />**Directional Lights**: PCF Tent 5x5 (9 taps). |
-| **High**              | **Point/Spot/Directional Lights**: Percentage Closer Soft Shadow (PCSS). You can change the sample count to decrease the quality of these shadows. This decreases the resource intensity of this algorithm. To change the sample count for shadows cast by that Light, set the **Filter Sample Count** in the Inspector of each Light component. |
-| **Very High**         | **Point/Spot**: Use **High** for their **Filtering Quality**.<br />**Directional Lights**: Improve Moment Shadows. |
-
-The PCF algorithm applies a fixed size blur. PCSS and Improved Moment Shadows algorithms apply a different blur size depending on the distance between the shadowed pixel and the shadow caster. This results in a more realistic shadow, that is also more resource intensive to compute.
+To change which filter HDRP uses, change the **Filtering Quality** property in your Unity Project’s [HDRP Asset](HDRP-Asset.html). There are currently four filter quality presets for directional and punctual lights. For information on the available filter qualities, see the [Filtering Qualities table](HDRP-Asset.html#FilteringQualities). 
 
 ## Shadowmasks
 
@@ -87,14 +78,14 @@ To use shadowmasks in HDRP, you must enable shadowmask support in your Unity Pro
 
 For flexible lighting setups, HDRP allows you to choose how you want the shadowmasks to behave for each individual Light. You can change the behavior of the shadowmask by changing a Light’s **Shadowmask Mode**. Set the Light’s **Mode** to **Mixed** to expose **Shadowmask Mode** in the **Shadow Map** drop-down of the **Shadows** section. 
 
-<a name=”ShadowmaskModes”></a>
+<a name="ShadowmaskModes"></a>
 
 | **Shadowmask Mode**     | **Description**                                              |
 | ----------------------- | ------------------------------------------------------------ |
 | **Distance Shadowmask** | Makes the Light cast real-time shadows for all GameObjects when the distance between the Camera and the Light is less than a punctual light’s **Fade Distance**. See [below](#DirectionalLightEquivalentProperty) for the alternative distance property that Directional Lights use. When the distance between the Light and the Camera is greater than the **Fade Distance**, HDRP stops calculating real-time shadows for the Light. Instead, it uses shadowmasks for static GameObjects, and non-static GameObjects do not cast shadows. |
 | **Shadowmask**          | Makes the Light cast real-time shadows for non-static GameObjects only. It then combines these shadows with shadowmasks for static GameObjects when the distance between the Camera and the Light is less than the **Fade Distance**. When the distance between the Light and the Camera is greater than the **Fade Distance**, HDRP stops calculating real-time shadows for the Light. Instead, it uses shadowmasks for static GameObjects and non-static GameObjects do not cast shadows. |
 
-<a name=”DirectionalLightEquivalentProperty”></a>
+<a name="DirectionalLightEquivalentProperty"></a>
 
 Directional Lights do not use **Fade Distance**. Instead they use the **Max Distance** property located in the [HD Shadow Settings](Override-Shadows.html) of your Scene’s Volumes.
 
@@ -106,6 +97,6 @@ Directional Lights do not use **Fade Distance**. Instead they use the **Max Dist
 
 Contact Shadows are shadows that HDRP [ray marches](Glossary.html#RayMarching) in screen space, inside the depth buffer, at a close range. They provide small, detailed, shadows for details in geometry that shadow maps cannot usually capture.
 
-For details on how to enable and customize Contact Shadows, see the [Contact Shadows documentation](Override-Contact-Shadows.html).
+For details on how to enable and customize Contact Shadows, see the [Contact Shadows override documentation](Override-Contact-Shadows.html).
 
 Only one Light can cast Contact Shadows at a time. This means that, if you have more than one Light that casts Contact Shadows visible on the screen, only the dominant Light renders Contact Shadows. HDRP chooses the dominant Light using the screen space size of the Light’s bounding box. A Direction Light that casts Contact Shadows is always the dominant Light.

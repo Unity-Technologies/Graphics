@@ -96,6 +96,7 @@ struct LightData
     int tileCookie;
     int shadowIndex;
     int contactShadowMask;
+    int rayTracedAreaShadowIndex;
     float shadowDimmer;
     float volumetricShadowDimmer;
     int nonLightMappedOnly;

@@ -22,8 +22,8 @@ HDRP uses the [Volume](Volumes.html) framework to generate **Micro Shadows**, so
 
 | **Property** | **Description**                                              |
 | ------------ | ------------------------------------------------------------ |
-| **Enable**   | Enable this checkbox to make HDRP calculate micro shadows when this Volume affects the Camera. |
-| **Opacity**  | Use this slider to set the opacity of micro shadows for this Volume. |
+| **Enable**   | Enable the checkbox to make HDRP calculate micro shadows when this Volume affects the Camera. |
+| **Opacity**  | Use the slider to set the opacity of micro shadows for this Volume. |
 
 ## Details
 

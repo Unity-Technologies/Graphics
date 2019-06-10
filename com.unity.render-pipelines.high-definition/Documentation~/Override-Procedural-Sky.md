@@ -27,8 +27,5 @@ After you add a **Procedural Sky** override, you must set the Volume to use **Pr
 | **Ground Color**          | The color of the ground (the area below the horizon).        |
 | **Exposure**              | The exposure HDRP applies to the Scene as environmental light. HDRP calculates the environment light in your Scene using 2 to the power of your **Exposure** value. |
 | **Multiplier**            | The multiplier HDRP applies to the Scene as environmental light. HDRP multiplies the environment light in your Scene by this value. |
-| **Update Mode**           | The rate at which HDRP updates the sky environment (using Ambient and Reflection Probes). |
-| - **On Changed**          | HDRP updates the sky environment when one of its properties change. |
-| - **On Demand**           | HDPR waits for you to manually call for a sky environment update from a script. |
-| - **Realtime**            | HDRP updates the sky environment at regular intervals defined by the **Update Period**. |
-| - - **Update Period**     | The period (in seconds) at which HDRP updates the sky environment when you set the **Update Mode** to **Realtime**. Set the value to 0 if you want HDRP to update the sky environment every frame. |
+| **Update Mode**           | Controls the rate at which HDRP updates the sky environment (using Ambient and Reflection Probes).<br />&#8226; **On Changed**: Makes HDRP update the sky environment when one of the sky properties changes.<br />&#8226; **On Demand**: Makes HDRP wait until you manually call for a sky environment update from a script.<br />&#8226; **Realtime**: Makes HDRP update the sky environment at regular intervals defined by the **Update Period**. |
+| - **Update Period**       | The period (in seconds) at which HDRP updates the sky environment when you set the **Update Mode** to **Realtime**. Set the value to 0 if you want HDRP to update the sky environment every frame. |

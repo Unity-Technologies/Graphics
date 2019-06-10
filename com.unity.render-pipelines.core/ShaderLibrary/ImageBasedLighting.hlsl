@@ -125,7 +125,7 @@ real3 GetSpecularDominantDir(real3 N, real3 R, real perceptualRoughness, real Nd
 // Importance sampling BSDF functions
 // ----------------------------------------------------------------------------
 
-void SampleGGXDir2(real2   u,
+void SampleGGXDir(real2   u,
                   real3   V,
                   real3x3 localToWorld,
                   real    roughness,
@@ -133,8 +133,7 @@ void SampleGGXDir2(real2   u,
               out real    NdotL,
               out real    NdotH,
               out real    VdotH,
-              out real    LdotH,
-              bool     VeqN = false)
+                  bool    VeqN = false)
 {
     // GGX NDF sampling
     real cosTheta = sqrt(SafeDiv(1.0 - u.x, 1.0 + (roughness * roughness - 1.0) * u.x));
@@ -162,38 +161,24 @@ void SampleGGXDir2(real2   u,
     real3 localL = -localV + 2.0 * VdotH * localH;
     NdotL = localL.z;
 
-    LdotH = saturate(dot(localL, localH));
-
     L = mul(localL, localToWorld);
 }
 
-void SampleGGXDir(real2   u,
-                  real3   V,
-                  real3x3 localToWorld,
-                  real    roughness,
-              out real3   L,
-              out real    NdotL,
-              out real    NdotH,
-              out real    VdotH,
-                  bool     VeqN = false)
-{
-    float LdotH = 0.0f;
-    SampleGGXDir2(u, V, localToWorld, roughness, L, NdotL, NdotH, VdotH, LdotH, VeqN);
-}
-
 // Ref: "A Simpler and Exact Sampling Routine for the GGX Distribution of Visible Normals".
-// Note: this code will most likely fail if roughness is 0.
-void SampleVisibleAnisoGGXDir(real2 u, real3 V, real3x3 localToWorld,
-                              real roughnessT, real roughnessB,
-                              out real3 L,
-                              out real  NdotL,
-                              out real  NdotH,
-                              out real  VdotH,
-                                  bool  VeqN = false)
+void SampleVisibleAnisoGGXDir(real2 u,
+                              real3 V,
+                              real3x3 localToWorld,
+                              real roughnessT,
+                              real roughnessB,
+                          out real3 L,
+                          out real  NdotL,
+                          out real  NdotH,
+                          out real  VdotH,
+                              bool  VeqN = false)
 {
     real3 localV = mul(V, transpose(localToWorld));
 
-    // Construct an orthonormal basis around the stretched view direction.
+    // Construct an orthonormal basis around the stretched view direction
     real3x3 viewToLocal;
     if (VeqN)
     {
@@ -201,33 +186,47 @@ void SampleVisibleAnisoGGXDir(real2 u, real3 V, real3x3 localToWorld,
     }
     else
     {
-        // TODO: this code is tacky. We should make it cleaner.
+        // TODO: this code is tacky. We should make it cleaner
         viewToLocal[2] = normalize(real3(roughnessT * localV.x, roughnessB * localV.y, localV.z));
-        viewToLocal[0] = (viewToLocal[2].z < 0.9999) ? normalize(cross(viewToLocal[2], real3(0, 0, 1))) : real3(1, 0, 0);
-        viewToLocal[1] = cross(viewToLocal[0], viewToLocal[2]);
+        viewToLocal[0] = (viewToLocal[2].z < 0.9999) ? normalize(cross(real3(0, 0, 1), viewToLocal[2])) : real3(1, 0, 0);
+        viewToLocal[1] = cross(viewToLocal[2], viewToLocal[0]);
     }
 
-    // Compute a sample point with polar coordinates (r, phi).
+    // Compute a sample point with polar coordinates (r, phi)
     real r   = sqrt(u.x);
-    real b   = viewToLocal[2].z + 1;
-    real a   = rcp(b);
-    real c   = (u.y < a) ? u.y * b : 1 + (u.y * b - 1) / viewToLocal[2].z;
-    real phi = PI * c;
-    real p1  = r * cos(phi);
-    real p2  = r * sin(phi) * ((u.y < a) ? 1 : viewToLocal[2].z);
+    real phi = 2.0 * PI * u.y;
+    real t1  = r * cos(phi);
+    real t2  = r * sin(phi);
+    float s  = 0.5 * (1.0 + viewToLocal[2].z);
+    t2 = (1.0 - s) * sqrt(1.0 - t1 * t1) + s * t2;
 
-    // Unstretch.
-    real3 viewH = normalize(real3(roughnessT * p1, roughnessB * p2, sqrt(1 - p1 * p1 - p2 * p2)));
-    VdotH = viewH.z;
+    // Reproject onto hemisphere
+    real3 localH = t1 * viewToLocal[0] + t2 * viewToLocal[1] + sqrt(max(0.0, 1.0 - t1 * t1 - t2 * t2)) * viewToLocal[2];
 
-    real3 localH = mul(viewH, viewToLocal);
+    // Transform the normal back to the ellipsoid configuration
+    localH = normalize(real3(roughnessT * localH.x, roughnessB * localH.y, max(0.0, localH.z)));
+
     NdotH = localH.z;
+    VdotH = saturate(dot(localV, localH));
 
-    // Compute { localL = reflect(-localV, localH) }
-    real3 localL = -localV + 2 * VdotH * localH;
+    // Compute the reflection direction
+    real3 localL = 2.0 * VdotH * localH - localV;
     NdotL = localL.z;
 
     L = mul(localL, localToWorld);
+}
+
+void SampleVisibleGGXDir(real2 u,
+                         real3 V,
+                         real3x3 localToWorld,
+                         real roughness,
+                     out real3 L,
+                     out real  NdotL,
+                     out real  NdotH,
+                     out real  VdotH,
+                         bool  VeqN = false)
+{
+    SampleVisibleAnisoGGXDir(u, V, localToWorld, roughness, roughness, L, NdotL, NdotH, VdotH, VeqN);
 }
 
 // ref: http://blog.selfshadow.com/publications/s2012-shading-course/burley/s2012_pbs_disney_brdf_notes_v3.pdf p26

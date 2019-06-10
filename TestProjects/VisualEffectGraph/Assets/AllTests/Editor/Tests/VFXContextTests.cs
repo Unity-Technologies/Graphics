@@ -13,42 +13,42 @@ namespace UnityEditor.VFX.Test
     {
         private class ContextTestInit : VFXContext
         {
-            public ContextTestInit() : base(VFXContextType.kInit) {}
+            public ContextTestInit() : base(VFXContextType.Init) {}
         }
 
         private class ContextTestUpdate : VFXContext
         {
-            public ContextTestUpdate() : base(VFXContextType.kUpdate) {}
+            public ContextTestUpdate() : base(VFXContextType.Update) {}
         }
 
         private class ContextTestOutput : VFXContext
         {
-            public ContextTestOutput() : base(VFXContextType.kOutput) {}
+            public ContextTestOutput() : base(VFXContextType.Output) {}
         }
 
         private class ContextTestNone : VFXContext
         {
-            public ContextTestNone() : base(VFXContextType.kNone) {}
+            public ContextTestNone() : base(VFXContextType.None) {}
         }
 
         private class ContextTestInitAndUpdate : VFXContext
         {
-            public ContextTestInitAndUpdate() : base(VFXContextType.kInitAndUpdate) {}
+            public ContextTestInitAndUpdate() : base(VFXContextType.InitAndUpdate) {}
         }
 
         private class ContextTestAll : VFXContext
         {
-            public ContextTestAll() : base(VFXContextType.kAll) {}
+            public ContextTestAll() : base(VFXContextType.All) {}
         }
 
         private class ContextTestIn : VFXContext
         {
-            public ContextTestIn() : base(VFXContextType.kInit, VFXDataType.kNone, VFXDataType.kParticle) {}
+            public ContextTestIn() : base(VFXContextType.Init, VFXDataType.None, VFXDataType.Particle) {}
         }
 
         private class ContextTestOut : VFXContext
         {
-            public ContextTestOut() : base(VFXContextType.kOutput, VFXDataType.kParticle, VFXDataType.kNone) {}
+            public ContextTestOut() : base(VFXContextType.Output, VFXDataType.Particle, VFXDataType.None) {}
         }
 
         private void CheckContext(VFXContext context, VFXContextType expectedType)
@@ -59,9 +59,9 @@ namespace UnityEditor.VFX.Test
         [Test]
         public void ConstructWithAllTypes()
         {
-            CheckContext(ScriptableObject.CreateInstance<ContextTestInit>(), VFXContextType.kInit);
-            CheckContext(ScriptableObject.CreateInstance<ContextTestUpdate>(), VFXContextType.kUpdate);
-            CheckContext(ScriptableObject.CreateInstance<ContextTestOutput>(), VFXContextType.kOutput);
+            CheckContext(ScriptableObject.CreateInstance<ContextTestInit>(), VFXContextType.Init);
+            CheckContext(ScriptableObject.CreateInstance<ContextTestUpdate>(), VFXContextType.Update);
+            CheckContext(ScriptableObject.CreateInstance<ContextTestOutput>(), VFXContextType.Output);
 
             /*
              * //TEMP disable LogAssert.Expect, still failing running on katana

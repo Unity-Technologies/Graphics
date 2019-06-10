@@ -126,26 +126,6 @@ float4 SampleSkyTexture(float3 texCoord, float lod, int sliceIndex)
     return SAMPLE_TEXTURECUBE_ARRAY_LOD(_SkyTexture, s_trilinear_clamp_sampler, texCoord, sliceIndex, lod);
 }
 
-float2 TexCoordStereoOffset(float2 texCoord)
-{
-#if defined(UNITY_SINGLE_PASS_STEREO)
-    return texCoord + float2(unity_StereoEyeIndex * _ScreenSize.x, 0.0);
-#else
-    return texCoord;
-#endif
-}
-
-// In stereo, shadowmaps are generated only once for all eyes from the combined center view (original camera matrix)
-// For camera-relative code to work in stereo, we need to translate input position from eye-relative to camera-relative
-float3 StereoCameraRelativeEyeToCenter(float3 pos)
-{
-#if defined(USING_STEREO_MATRICES) && (SHADEROPTIONS_CAMERA_RELATIVE_RENDERING != 0)
-    return pos + _WorldSpaceCameraPosViewOffset;
-#else
-    return pos;
-#endif
-}
-
 // This function assumes the bitangent flip is encoded in tangentWS.w
 float3x3 BuildWorldToTangent(float4 tangentWS, float3 normalWS)
 {

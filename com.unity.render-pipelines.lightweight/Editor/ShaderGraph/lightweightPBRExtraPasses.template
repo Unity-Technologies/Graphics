@@ -242,7 +242,7 @@ ${VertexShader}
 
 	    // Vertex shader outputs defined by graph
 ${VertexShaderOutputs}
-        o.clipPos = MetaVertexPosition(v.vertex, uv1, uv1, unity_LightmapST);
+        o.clipPos = MetaVertexPosition(v.vertex, uv1, uv1, unity_LightmapST, unity_DynamicLightmapST);
 	    return o;
     }
 

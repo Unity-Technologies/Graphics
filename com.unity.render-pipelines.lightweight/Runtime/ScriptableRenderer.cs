@@ -1,7 +1,7 @@
 using System;
 using System.Diagnostics;
 using System.Collections.Generic;
-using System.Linq;
+using Unity.Collections;
 
 namespace UnityEngine.Rendering.LWRP
 {
@@ -20,6 +20,35 @@ namespace UnityEngine.Rendering.LWRP
     /// </summary>
     public abstract class ScriptableRenderer
     {
+        void SetShaderTimeValues(float time, float deltaTime, float smoothDeltaTime, CommandBuffer cmd = null)
+        {
+            // We make these parameters to mirror those described in `https://docs.unity3d.com/Manual/SL-UnityShaderVariables.html
+            float timeEights = time / 8f;
+            float timeFourth = time / 4f;
+            float timeHalf = time / 2f;
+
+            // Time values
+            Vector4 timeVector = time * new Vector4(1f / 20f, 1f, 2f, 3f);
+            Vector4 sinTimeVector = new Vector4(Mathf.Sin(timeEights), Mathf.Sin(timeFourth), Mathf.Sin(timeHalf), Mathf.Sin(time));
+            Vector4 cosTimeVector = new Vector4(Mathf.Cos(timeEights), Mathf.Cos(timeFourth), Mathf.Cos(timeHalf), Mathf.Cos(time));
+            Vector4 deltaTimeVector = new Vector4(deltaTime, 1f / deltaTime, smoothDeltaTime, 1f / smoothDeltaTime);
+
+            if (cmd == null)
+            {
+                Shader.SetGlobalVector(LightweightRenderPipeline.PerFrameBuffer._Time, timeVector);
+                Shader.SetGlobalVector(LightweightRenderPipeline.PerFrameBuffer._SinTime, sinTimeVector);
+                Shader.SetGlobalVector(LightweightRenderPipeline.PerFrameBuffer._CosTime, cosTimeVector);
+                Shader.SetGlobalVector(LightweightRenderPipeline.PerFrameBuffer.unity_DeltaTime, deltaTimeVector);
+            }
+            else
+            {
+                cmd.SetGlobalVector(LightweightRenderPipeline.PerFrameBuffer._Time, timeVector);
+                cmd.SetGlobalVector(LightweightRenderPipeline.PerFrameBuffer._SinTime, sinTimeVector);
+                cmd.SetGlobalVector(LightweightRenderPipeline.PerFrameBuffer._CosTime, cosTimeVector);
+                cmd.SetGlobalVector(LightweightRenderPipeline.PerFrameBuffer.unity_DeltaTime, deltaTimeVector);
+            }
+        }
+ 
         public RenderTargetIdentifier cameraColorTarget
         {
             get => m_CameraColorTarget;
@@ -39,6 +68,22 @@ namespace UnityEngine.Rendering.LWRP
         {
             get => m_ActiveRenderPassQueue;
         }
+
+        static class RenderPassBlock
+        {
+            // Executes render passes that are inputs to the main rendering
+            // but don't depend on camera state. They all render in monoscopic mode. f.ex, shadow maps.
+            public static readonly int BeforeRendering = 0;
+
+            // Main bulk of render pass execution. They required camera state to be properly set
+            // and when enabled they will render in stereo.
+            public static readonly int MainRendering = 1;
+
+            // Execute after Post-processing.
+            public static readonly int AfterRendering = 2;
+        }
+
+        const int k_RenderPassBlockCount = 3;
 
         List<ScriptableRenderPass> m_ActiveRenderPassQueue = new List<ScriptableRenderPass>(32);
         List<ScriptableRendererFeature> m_RendererFeatures = new List<ScriptableRendererFeature>(10);
@@ -65,6 +110,9 @@ namespace UnityEngine.Rendering.LWRP
         {
             foreach (var feature in data.rendererFeatures)
             {
+                if (feature == null)
+                    continue;
+
                 feature.Create();
                 m_RendererFeatures.Add(feature);
             }
@@ -133,10 +181,29 @@ namespace UnityEngine.Rendering.LWRP
 
             SortStable(m_ActiveRenderPassQueue);
 
+            // Cache the time for after the call to `SetupCameraProperties` and set the time variables in shader
+            // For now we set the time variables per camera, as we plan to remove `SetupCamearProperties`.
+            // Setting the time per frame would take API changes to pass the variable to each camera render.
+            // Once `SetupCameraProperties` is gone, the variable should be set higher in the call-stack.
+            float time = Time.time;
+            float deltaTime = Time.deltaTime;
+            float smoothDeltaTime = Time.smoothDeltaTime;
+            SetShaderTimeValues(time, deltaTime, smoothDeltaTime);
+
+            // Upper limits for each block. Each block will contains render passes with events below the limit.
+            NativeArray<RenderPassEvent> blockEventLimits = new NativeArray<RenderPassEvent>(k_RenderPassBlockCount, Allocator.Temp);
+            blockEventLimits[RenderPassBlock.BeforeRendering] = RenderPassEvent.BeforeRenderingPrepasses;
+            blockEventLimits[RenderPassBlock.MainRendering] = RenderPassEvent.AfterRenderingPostProcessing;
+            blockEventLimits[RenderPassBlock.AfterRendering] = (RenderPassEvent)Int32.MaxValue;
+
+            NativeArray<int> blockRanges = new NativeArray<int>(blockEventLimits.Length + 1, Allocator.Temp);
+            FillBlockRanges(blockEventLimits, blockRanges);
+            blockEventLimits.Dispose();
+
             // Before Render Block. This render blocks always execute in mono rendering.
             // Camera is not setup. Lights are not setup.
             // Used to render input textures like shadowmaps.
-            ExecuteBlock(RenderPassEvent.BeforeRendering, RenderPassEvent.BeforeRenderingPrepasses, context, ref renderingData);
+            ExecuteBlock(RenderPassBlock.BeforeRendering, blockRanges, context, ref renderingData);
 
             /// Configure shader variables and other unity properties that are required for rendering.
             /// * Setup Camera RenderTarget and Viewport
@@ -150,16 +217,21 @@ namespace UnityEngine.Rendering.LWRP
             context.SetupCameraProperties(camera, stereoEnabled);
             SetupLights(context, ref renderingData);
 
+            // Override time values from when `SetupCameraProperties` were called.
+            // They might be a frame behind.
+            // We can remove this after removing `SetupCameraProperties` as the values should be per frame, and not per camera.
+            SetShaderTimeValues(time, deltaTime, smoothDeltaTime);
+
             if (stereoEnabled)
                 BeginXRRendering(context, camera);
 
             // In this block main rendering executes.
-            ExecuteBlock(RenderPassEvent.BeforeRenderingPrepasses, RenderPassEvent.AfterRenderingPostProcessing, context, ref renderingData);
+            ExecuteBlock(RenderPassBlock.MainRendering, blockRanges, context, ref renderingData);
 
             DrawGizmos(context, camera, GizmoSubset.PreImageEffects);
 
             // In this block after rendering drawing happens, e.g, post processing, video player capture.
-            ExecuteBlock(RenderPassEvent.AfterRenderingPostProcessing, (RenderPassEvent)Int32.MaxValue, context, ref renderingData);
+            ExecuteBlock(RenderPassBlock.AfterRendering, blockRanges, context, ref renderingData);
 
             if (stereoEnabled)
                 EndXRRendering(context, camera);
@@ -167,6 +239,7 @@ namespace UnityEngine.Rendering.LWRP
             DrawGizmos(context, camera, GizmoSubset.PostImageEffects);
 
             InternalFinishRendering(context);
+            blockRanges.Dispose();
         }
 
         /// <summary>
@@ -250,18 +323,14 @@ namespace UnityEngine.Rendering.LWRP
             m_ActiveRenderPassQueue.Clear();
         }
 
-        void ExecuteBlock(RenderPassEvent startEvent, RenderPassEvent endEvent,
+        void ExecuteBlock(int blockIndex, NativeArray<int> blockRanges,
             ScriptableRenderContext context, ref RenderingData renderingData, bool submit = false)
         {
-            int currIndex = m_ActiveRenderPassQueue.FindIndex(x => (x.renderPassEvent >= startEvent && x.renderPassEvent < endEvent));
-            if (currIndex == -1)
-                return;
-
-            while (currIndex < m_ActiveRenderPassQueue.Count && m_ActiveRenderPassQueue[currIndex].renderPassEvent < endEvent)
+            int endIndex = blockRanges[blockIndex + 1];
+            for (int currIndex = blockRanges[blockIndex]; currIndex < endIndex; ++currIndex)
             {
                 var renderPass = m_ActiveRenderPassQueue[currIndex];
                 ExecuteRenderPass(context, renderPass, ref renderingData);
-                currIndex++;
             }
 
             if (submit)
@@ -335,7 +404,7 @@ namespace UnityEngine.Rendering.LWRP
             RenderBufferLoadAction colorLoadAction = clearFlag != ClearFlag.None ?
                 RenderBufferLoadAction.DontCare : RenderBufferLoadAction.Load;
 
-            RenderBufferLoadAction depthLoadAction = CoreUtils.HasFlag(clearFlag, ClearFlag.Depth) ?
+            RenderBufferLoadAction depthLoadAction = ((uint)clearFlag & (uint)ClearFlag.Depth) != 0 ?
                 RenderBufferLoadAction.DontCare : RenderBufferLoadAction.Load;
 
             TextureDimension dimension = (m_InsideStereoRenderBlock) ? XRGraphics.eyeTextureDesc.dimension : TextureDimension.Tex2D;
@@ -393,6 +462,27 @@ namespace UnityEngine.Rendering.LWRP
             if (UnityEditor.Handles.ShouldRenderGizmos())
                 context.DrawGizmos(camera, gizmoSubset);
 #endif
+        }
+
+        // Fill in render pass indices for each block. End index is startIndex + 1.
+        void FillBlockRanges(NativeArray<RenderPassEvent> blockEventLimits, NativeArray<int> blockRanges)
+        {
+            int currRangeIndex = 0;
+            int currRenderPass = 0;
+            blockRanges[currRangeIndex++] = 0;
+
+            // For each block, it finds the first render pass index that has an event
+            // higher than the block limit.
+            for (int i = 0; i < blockEventLimits.Length - 1; ++i)
+            {
+                while (currRenderPass < m_ActiveRenderPassQueue.Count &&
+                    m_ActiveRenderPassQueue[currRenderPass].renderPassEvent < blockEventLimits[i])
+                    currRenderPass++;
+
+                blockRanges[currRangeIndex++] = currRenderPass;
+            }
+
+            blockRanges[currRangeIndex] = m_ActiveRenderPassQueue.Count;
         }
 
         void InternalFinishRendering(ScriptableRenderContext context)

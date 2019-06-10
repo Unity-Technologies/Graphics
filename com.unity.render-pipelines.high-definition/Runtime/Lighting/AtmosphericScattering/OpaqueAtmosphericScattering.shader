@@ -39,7 +39,7 @@ Shader "Hidden/HDRP/OpaqueAtmosphericScattering"
 
         inline float4 AtmosphericScatteringCompute(Varyings input, float3 V, float depth)
         {
-            PositionInputs posInput = GetPositionInput_Stereo(input.positionCS.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V, unity_StereoEyeIndex);
+            PositionInputs posInput = GetPositionInput(input.positionCS.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
 
             if (depth == UNITY_RAW_FAR_CLIP_VALUE)
             {

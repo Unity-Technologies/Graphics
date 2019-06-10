@@ -1,5 +1,3 @@
-**Note:** While LWRP is in preview, this documentation might not reflect the end-result 100%, and is therefore subject to change.
-
 # Installing LWRP into an existing Project
 
 You can download and install the latest version of LWRP to your existing Project via the [Package Manager system](https://docs.unity3d.com/Packages/com.unity.package-manager-ui@1.8/manual/index.html). 

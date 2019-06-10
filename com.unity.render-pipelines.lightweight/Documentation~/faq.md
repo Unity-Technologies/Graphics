@@ -77,5 +77,13 @@ We’ve done this because the clear flags `Depth Only` and `Don’t Care` from t
 
 For these reasons, we're working on a solution where you can add a render pass with custom camera matrices and FOV. This way, we can provide an optimized workflow instead of creating a Camera object. We plan to expose this custom render pass in a future LWRP package.
 
+## What rendering space does LWRP work in?
 
+By default, LWRP uses a linear color space while rendering. You can also use a gamma color space, which is non-linear. To do so, toggle it in the Player Settings.
+
+
+
+## How do I extend LWRP with scriptable render pass?
+
+To create a scriptable render pass, you have to create a `ScriptableRendererFeature` script. This is because the scriptable render feature is a container that can have the pass in it. To create the scriptable render feature in the Editor, click on **Asset** > **Create** > **Rendering** > **Lightweight Render Pipeline** > **Renderer Feature**.
 

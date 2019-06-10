@@ -68,13 +68,13 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/AllTests/VFXTests/GraphicsTests/17_SoftParticles.unity
     guid: 7cee47a7259f65d40ac60c5954c583cd
-  - enabled: 0
+  - enabled: 1
     path: Assets/AllTests/VFXTests/GraphicsTests/19_Random.unity
     guid: 8eafa797342cff340a77c1ab544633a8
   - enabled: 1
     path: Assets/AllTests/VFXTests/GraphicsTests/20_SpawnerChaining.unity
     guid: e0c50bd7286de7b4b9c97f3f962b0933
-  - enabled: 1
+  - enabled: 0
     path: Assets/AllTests/VFXTests/GraphicsTests/21_DepthModules.unity
     guid: 810f6e5fbd289164eb3fe0ba8eb32588
   - enabled: 1
@@ -131,4 +131,12 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/AllTests/VFXTests/GraphicsTests/GradientMapped.unity
     guid: 56d69bce6c4697147823f3b5b3acd8ea
+    path: Assets/AllTests/VFXTests/GraphicsTests/SubgraphContexts.unity
+    guid: df4a078e6e8404b4d953f8cdc87c0aa8
+  - enabled: 1
+    path: Assets/AllTests/VFXTests/GraphicsTests/Jumping Cubes/Jumping Cubes.unity
+    guid: bd230f4e3e8da61488a3ef08fd491db0
+  - enabled: 1
+    path: Assets/AllTests/VFXTests/GraphicsTests/SubgraphEventTransmission/SubgraphEventTransmission.unity
+    guid: b6ef817208636da4bb6878ac1e08ffd8
   m_configObjects: {}

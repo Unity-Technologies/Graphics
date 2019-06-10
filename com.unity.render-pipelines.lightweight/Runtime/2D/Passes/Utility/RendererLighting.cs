@@ -11,7 +11,11 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         static readonly string k_SpriteLightKeyword = "SPRITE_LIGHT";
         static readonly string k_UsePointLightCookiesKeyword = "USE_POINT_LIGHT_COOKIES";
         static readonly string k_LightQualityFastKeyword = "LIGHT_QUALITY_FAST";
-        static readonly string[] k_UseLightOperationKeywords =
+        static readonly string k_UseNormalMap = "USE_NORMAL_MAP";
+        static readonly string k_UseAdditiveBlendingKeyword = "USE_ADDITIVE_BLENDING";
+        const int k_NumberOfLightMaterials = 1 << 5 + 3;  // 5 keywords +  volume bit, shape bit
+
+        static readonly string[] k_UseBlendStyleKeywords =
         {
             "USE_SHAPE_LIGHT_TYPE_0",
             "USE_SHAPE_LIGHT_TYPE_1",
@@ -19,8 +23,8 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             "USE_SHAPE_LIGHT_TYPE_3"
         };
 
-        static _2DRendererData s_RendererData;
-        static _2DLightOperationDescription[] s_LightOperations;
+        static Renderer2DData s_RendererData;
+        static Light2DBlendStyle[] s_BlendStyles;
         static RenderTargetHandle[] s_RenderTargets;
         static bool[] s_RenderTargetsDirty;
         static RenderTargetHandle s_NormalsTarget;
@@ -28,20 +32,20 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         static Texture s_FalloffLookupTexture;
         static Material[] s_LightMaterials;
 
-        static public void Setup(_2DRendererData rendererData)
+        static public void Setup(Renderer2DData rendererData)
         {
             s_RendererData = rendererData;
-            s_LightOperations = rendererData.lightOperations;
+            s_BlendStyles = rendererData.lightBlendStyles;
 
             if (s_RenderTargets == null)
             {
-                s_RenderTargets = new RenderTargetHandle[s_LightOperations.Length];
+                s_RenderTargets = new RenderTargetHandle[s_BlendStyles.Length];
                 s_RenderTargets[0].Init("_ShapeLightTexture0");
                 s_RenderTargets[1].Init("_ShapeLightTexture1");
                 s_RenderTargets[2].Init("_ShapeLightTexture2");
                 s_RenderTargets[3].Init("_ShapeLightTexture3");
 
-                s_RenderTargetsDirty = new bool[s_LightOperations.Length];
+                s_RenderTargetsDirty = new bool[s_BlendStyles.Length];
             }
 
             if (s_NormalsTarget.id == 0)
@@ -50,7 +54,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             // The array size should be determined by the number of 'feature bit' the material index has. See GetLightMaterialIndex().
             // Not all slots must be filled because certain combinations of the feature bits don't make sense (e.g. sprite bit on + shape bit off).
             if (s_LightMaterials == null)
-                s_LightMaterials = new Material[64];
+                s_LightMaterials = new Material[k_NumberOfLightMaterials];
         }
 
         static public void CreateRenderTextures(CommandBuffer cmd, Camera camera)
@@ -74,12 +78,12 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             descriptor.height = (int)(camera.pixelHeight);
             cmd.GetTemporaryRT(s_NormalsTarget.id, descriptor, FilterMode.Bilinear);
 
-            for (int i = 0; i < s_LightOperations.Length; ++i)
+            for (int i = 0; i < s_BlendStyles.Length; ++i)
             {
-                if (!s_LightOperations[i].enabled)
+                if (!s_BlendStyles[i].enabled)
                     continue;
 
-                float renderTextureScale = Mathf.Clamp(s_LightOperations[i].renderTextureScale, 0.01f, 1.0f);
+                float renderTextureScale = Mathf.Clamp(s_BlendStyles[i].renderTextureScale, 0.01f, 1.0f);
                 descriptor.width = (int)(camera.pixelWidth * renderTextureScale);
                 descriptor.height = (int)(camera.pixelHeight * renderTextureScale);
                 cmd.GetTemporaryRT(s_RenderTargets[i].id, descriptor, FilterMode.Bilinear);
@@ -89,9 +93,9 @@ namespace UnityEngine.Experimental.Rendering.LWRP
 
         static public void ReleaseRenderTextures(CommandBuffer cmd)
         {
-            for (int i = 0; i < s_LightOperations.Length; ++i)
+            for (int i = 0; i < s_BlendStyles.Length; ++i)
             {
-                if (!s_LightOperations[i].enabled)
+                if (!s_BlendStyles[i].enabled)
                     continue;
 
                 cmd.ReleaseTemporaryRT(s_RenderTargets[i].id);
@@ -100,16 +104,16 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             cmd.ReleaseTemporaryRT(s_NormalsTarget.id);
         }
 
-        static private bool RenderLightSet(Camera camera, int lightOpIndex, CommandBuffer cmdBuffer, int layerToRender, List<Light2D> lights)
+        static private bool RenderLightSet(Camera camera, int blendStyleIndex, CommandBuffer cmdBuffer, int layerToRender, List<Light2D> lights)
         {
             bool renderedAnyLight = false;
 
             foreach (var light in lights)
             {
-                if (light != null && light.lightType != Light2D.LightType.Global && light.lightOperationIndex == lightOpIndex && light.IsLitLayer(layerToRender) && light.IsLightVisible(camera))
+                if (light != null && light.lightType != Light2D.LightType.Global && light.blendStyleIndex == blendStyleIndex && light.IsLitLayer(layerToRender) && light.IsLightVisible(camera))
                 {
-                    Material shapeLightMaterial = GetLightMaterial(light, false);
-                    if (shapeLightMaterial != null)
+                    Material lightMaterial = GetLightMaterial(light, false);
+                    if (lightMaterial != null)
                     {
                         Mesh lightMesh = light.GetMesh();
                         if (lightMesh != null)
@@ -120,19 +124,25 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                             if (light.lightType == Light2D.LightType.Sprite && light.lightCookieSprite != null && light.lightCookieSprite.texture != null)
                                 cmdBuffer.SetGlobalTexture("_CookieTex", light.lightCookieSprite.texture);
 
-                            cmdBuffer.SetGlobalFloat("_FalloffCurve", light.falloffCurve);
+                            cmdBuffer.SetGlobalFloat("_FalloffIntensity", light.falloffIntensity);
+                            cmdBuffer.SetGlobalFloat("_FalloffDistance", light.shapeLightFalloffSize);
+                            cmdBuffer.SetGlobalVector("_FalloffOffset", light.shapeLightFalloffOffset);
+                            cmdBuffer.SetGlobalColor("_LightColor", light.intensity * light.color);
+                            cmdBuffer.SetGlobalFloat("_VolumeOpacity", light.volumeOpacity);
 
-                            if (!light.hasDirection)
-                            {
-                                cmdBuffer.DrawMesh(lightMesh, light.transform.localToWorldMatrix, shapeLightMaterial);
-                            }
-                            else
-                            {
+                            if(light.useNormalMap || light.lightType == Light2D.LightType.Point)
                                 RendererLighting.SetPointLightShaderGlobals(cmdBuffer, light);
-                                //Vector3 scale = new Vector3(2 * light.m_PointLightOuterRadius, 2 * light.m_PointLightOuterRadius, 1);
+
+                            // Light code could be combined...
+                            if (light.lightType == Light2D.LightType.Parametric || light.lightType == Light2D.LightType.Freeform || light.lightType == Light2D.LightType.Sprite)
+                            {
+                                cmdBuffer.DrawMesh(lightMesh, light.transform.localToWorldMatrix, lightMaterial);
+                            }
+                            else if(light.lightType == Light2D.LightType.Point)
+                            {
                                 Vector3 scale = new Vector3(light.pointLightOuterRadius, light.pointLightOuterRadius, light.pointLightOuterRadius);
                                 Matrix4x4 matrix = Matrix4x4.TRS(light.transform.position, Quaternion.identity, scale);
-                                cmdBuffer.DrawMesh(lightMesh, matrix, shapeLightMaterial);
+                                cmdBuffer.DrawMesh(lightMesh, matrix, lightMaterial);
                             }
                         }
                     }
@@ -142,7 +152,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             return renderedAnyLight;
         }
 
-        static private void RenderLightVolumeSet(Camera camera, int lightOpIndex, CommandBuffer cmdBuffer, int layerToRender, RenderTargetIdentifier renderTexture, List<Light2D> lights)
+        static private void RenderLightVolumeSet(Camera camera, int blendStyleIndex, CommandBuffer cmdBuffer, int layerToRender, RenderTargetIdentifier renderTexture, List<Light2D> lights)
         {
             if (lights.Count > 0)
             {
@@ -153,10 +163,10 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                     int topMostLayer = light.GetTopMostLitLayer();
                     if (layerToRender == topMostLayer)
                     {
-                        if (light != null && light.lightType != Light2D.LightType.Global && light.volumeOpacity > 0.0f && light.lightOperationIndex == lightOpIndex && light.IsLitLayer(layerToRender) && light.IsLightVisible(camera))
+                        if (light != null && light.lightType != Light2D.LightType.Global && light.volumeOpacity > 0.0f && light.blendStyleIndex == blendStyleIndex && light.IsLitLayer(layerToRender) && light.IsLightVisible(camera))
                         {
-                            Material shapeLightVolumeMaterial = GetLightMaterial(light, true);
-                            if (shapeLightVolumeMaterial != null)
+                            Material lightVolumeMaterial = GetLightMaterial(light, true);
+                            if (lightVolumeMaterial != null)
                             {
                                 Mesh lightMesh = light.GetMesh();
                                 if (lightMesh != null)
@@ -164,19 +174,26 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                                     if (light.lightType == Light2D.LightType.Sprite && light.lightCookieSprite != null && light.lightCookieSprite.texture != null)
                                         cmdBuffer.SetGlobalTexture("_CookieTex", light.lightCookieSprite.texture);
 
-                                    cmdBuffer.SetGlobalFloat("_FalloffCurve", light.falloffCurve);
+                                    cmdBuffer.SetGlobalFloat("_FalloffIntensity", light.falloffIntensity);
+                                    cmdBuffer.SetGlobalFloat("_FalloffDistance", light.shapeLightFalloffSize);
+                                    cmdBuffer.SetGlobalVector("_FalloffOffset", light.shapeLightFalloffOffset);
+                                    cmdBuffer.SetGlobalColor("_LightColor", light.intensity * light.color);
+                                    cmdBuffer.SetGlobalFloat("_VolumeOpacity", light.volumeOpacity);
 
-                                    if (!light.hasDirection)
-                                    {
-                                        cmdBuffer.DrawMesh(lightMesh, light.transform.localToWorldMatrix, shapeLightVolumeMaterial);
-                                    }
-                                    else
-                                    {
+                                    // Is this needed
+                                    if (light.useNormalMap || light.lightType == Light2D.LightType.Point)
                                         RendererLighting.SetPointLightShaderGlobals(cmdBuffer, light);
-                                        //Vector3 scale = new Vector3(2 * light.m_PointLightOuterRadius, 2 * light.m_PointLightOuterRadius, 1);
+
+                                    // Could be combined...
+                                    if (light.lightType == Light2D.LightType.Parametric || light.lightType == Light2D.LightType.Freeform || light.lightType == Light2D.LightType.Sprite)
+                                    {
+                                        cmdBuffer.DrawMesh(lightMesh, light.transform.localToWorldMatrix, lightVolumeMaterial);
+                                    }
+                                    else if (light.lightType == Light2D.LightType.Point)
+                                    {
                                         Vector3 scale = new Vector3(light.pointLightOuterRadius, light.pointLightOuterRadius, light.pointLightOuterRadius);
                                         Matrix4x4 matrix = Matrix4x4.TRS(light.transform.position, Quaternion.identity, scale);
-                                        cmdBuffer.DrawMesh(lightMesh, matrix, shapeLightVolumeMaterial);
+                                        cmdBuffer.DrawMesh(lightMesh, matrix, lightVolumeMaterial);
                                     }
                                 }
                             }
@@ -188,14 +205,25 @@ namespace UnityEngine.Experimental.Rendering.LWRP
 
         static public void SetShapeLightShaderGlobals(CommandBuffer cmdBuffer)
         {
-            for (int i = 0; i < s_LightOperations.Length; ++i)
+            for (int i = 0; i < s_BlendStyles.Length; ++i)
             {
-                if (!s_LightOperations[i].enabled)
-                    continue;
 
-                cmdBuffer.SetGlobalVector("_ShapeLightBlendFactors" + i, s_LightOperations[i].blendFactors);
-                cmdBuffer.SetGlobalVector("_ShapeLightMaskFilter" + i, s_LightOperations[i].maskTextureChannelFilter.mask);
-                cmdBuffer.SetGlobalVector("_ShapeLightInvertedFilter" + i, s_LightOperations[i].maskTextureChannelFilter.inverted);
+                if (i >= k_UseBlendStyleKeywords.Length)
+                    break;
+
+                string keyword = k_UseBlendStyleKeywords[i];
+                if (!s_BlendStyles[i].enabled)
+                {
+                    cmdBuffer.DisableShaderKeyword(keyword);
+                    continue;
+                } 
+                else
+                {
+                    cmdBuffer.EnableShaderKeyword(keyword);
+                    cmdBuffer.SetGlobalVector("_ShapeLightBlendFactors" + i, s_BlendStyles[i].blendFactors);
+                    cmdBuffer.SetGlobalVector("_ShapeLightMaskFilter" + i, s_BlendStyles[i].maskTextureChannelFilter.mask);
+                    cmdBuffer.SetGlobalVector("_ShapeLightInvertedFilter" + i, s_BlendStyles[i].maskTextureChannelFilter.inverted);
+                }
             }
 
             cmdBuffer.SetGlobalTexture("_FalloffLookup", GetFalloffLookupTexture());
@@ -246,8 +274,6 @@ namespace UnityEngine.Experimental.Rendering.LWRP
 
         static public void SetPointLightShaderGlobals(CommandBuffer cmdBuffer, Light2D light)
         {
-            cmdBuffer.SetGlobalColor("_LightColor", light.color * light.intensity);
-
             // This is used for the lookup texture
             Matrix4x4 lightInverseMatrix;
             Matrix4x4 lightNoRotInverseMatrix;
@@ -268,12 +294,25 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             cmdBuffer.SetGlobalFloat("_InnerAngleMult", 1 / (outerAngle - innerAngle));
             cmdBuffer.SetGlobalTexture("_LightLookup", GetLightLookupTexture());
             cmdBuffer.SetGlobalTexture("_FalloffLookup", GetFalloffLookupTexture());
-            cmdBuffer.SetGlobalFloat("_FalloffCurve", light.falloffCurve);
+            cmdBuffer.SetGlobalFloat("_FalloffIntensity", light.falloffIntensity);
 
             cmdBuffer.SetGlobalFloat("_LightZDistance", light.pointLightDistance);
 
             if (light.lightCookieSprite != null && light.lightCookieSprite.texture != null)
                 cmdBuffer.SetGlobalTexture("_PointLightCookieTex", light.lightCookieSprite.texture);
+        }
+
+        static public void ClearDirtyLighting(CommandBuffer cmdBuffer)
+        {
+            for (int i = 0; i < s_BlendStyles.Length; ++i)
+            {
+                if (s_RenderTargetsDirty[i])
+                {
+                    cmdBuffer.SetRenderTarget(s_RenderTargets[i].Identifier());
+                    cmdBuffer.ClearRenderTarget(false, true, Color.black);
+                    s_RenderTargetsDirty[i] = false;
+                }
+            }
         }
 
         static public void RenderNormals(ScriptableRenderContext renderContext, CullingResults cullResults, DrawingSettings drawSettings, FilteringSettings filterSettings)
@@ -290,40 +329,33 @@ namespace UnityEngine.Experimental.Rendering.LWRP
 
         static public void RenderLights(Camera camera, CommandBuffer cmdBuffer, int layerToRender)
         {
-            for (int i = 0; i < s_LightOperations.Length; ++i)
+            for (int i = 0; i < s_BlendStyles.Length; ++i)
             {
-                if (i >= k_UseLightOperationKeywords.Length)
-                    break;
 
-                string keyword = k_UseLightOperationKeywords[i];
-                if (s_LightOperations[i].enabled)
-                    cmdBuffer.EnableShaderKeyword(keyword);
-                else
-                {
-                    cmdBuffer.DisableShaderKeyword(keyword);
+                if (!s_BlendStyles[i].enabled)
                     continue;
-                }
 
-                string sampleName = "2D Lights - " + s_LightOperations[i].name;
+                string sampleName = s_BlendStyles[i].name;
                 cmdBuffer.BeginSample(sampleName);
 
                 cmdBuffer.SetRenderTarget(s_RenderTargets[i].Identifier());
 
+                bool rtDirty = false;
                 Color clearColor;
-                if (!Light2D.globalClearColors[i].TryGetValue(layerToRender, out clearColor))
-                    clearColor = s_LightOperations[i].globalColor;
+                if (!Light2DManager.GetGlobalColor(layerToRender, i, out clearColor))
+                    clearColor = Color.black;
+                else
+                    rtDirty = true;
 
-                //if (s_RenderTargetsDirty[i])
-                //    cmdBuffer.ClearRenderTarget(false, true, clearColor);
-                cmdBuffer.ClearRenderTarget(false, true, clearColor);
+                if (s_RenderTargetsDirty[i] || rtDirty)
+                    cmdBuffer.ClearRenderTarget(false, true, clearColor);
 
-
-                bool rtDirty = RenderLightSet(
+                rtDirty |= RenderLightSet(
                     camera,
                     i,
                     cmdBuffer,
                     layerToRender,
-                    Light2D.GetLightsByLightOperation(i)
+                    Light2D.GetLightsByBlendStyle(i)
                 );
 
                 s_RenderTargetsDirty[i] = rtDirty;
@@ -334,12 +366,12 @@ namespace UnityEngine.Experimental.Rendering.LWRP
 
         static public void RenderLightVolumes(Camera camera, CommandBuffer cmdBuffer, int layerToRender)
         {
-            for (int i = 0; i < s_LightOperations.Length; ++i)
+            for (int i = 0; i < s_BlendStyles.Length; ++i)
             {
-                if (!s_LightOperations[i].enabled)
+                if (!s_BlendStyles[i].enabled)
                     continue;
 
-                string sampleName = "2D Shape Light Volumes - " + s_LightOperations[i].name;
+                string sampleName = s_BlendStyles[i].name;
                 cmdBuffer.BeginSample(sampleName);
 
                 RenderLightVolumeSet(
@@ -348,7 +380,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                     cmdBuffer,
                     layerToRender,
                     s_RenderTargets[i].Identifier(),
-                    Light2D.GetLightsByLightOperation(i)                  
+                    Light2D.GetLightsByBlendStyle(i)                  
                 );
 
                 cmdBuffer.EndSample(sampleName);
@@ -368,15 +400,17 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             bitIndex++;
             uint shapeBit = light.IsShapeLight() ? 1u << bitIndex : 0u;
             bitIndex++;
-            uint additiveBit = (light.IsShapeLight() && light.shapeLightOverlapMode == Light2D.LightOverlapMode.Additive) ? 1u << bitIndex : 0u;
+            uint additiveBit = light.alphaBlendOnOverlap ? 0u : 1u << bitIndex;
             bitIndex++;
             uint spriteBit = light.lightType == Light2D.LightType.Sprite ? 1u << bitIndex : 0u;
             bitIndex++;
             uint pointCookieBit = (!light.IsShapeLight() && light.lightCookieSprite != null && light.lightCookieSprite.texture != null) ? 1u << bitIndex : 0u;
             bitIndex++;
             uint pointFastQualityBit = (!light.IsShapeLight() && light.pointLightQuality == Light2D.PointLightQuality.Fast) ? 1u << bitIndex : 0u;
+            bitIndex++;
+            uint useNormalMap = light.useNormalMap ? 1u << bitIndex : 0u;
 
-            return pointFastQualityBit | pointCookieBit | spriteBit | additiveBit | shapeBit | volumeBit;
+            return pointFastQualityBit | pointCookieBit | spriteBit | additiveBit | shapeBit | volumeBit | useNormalMap;
         }
 
         static Material CreateLightMaterial(Light2D light, bool isVolume)
@@ -387,12 +421,14 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             if (isVolume)
                 material = CoreUtils.CreateEngineMaterial(isShape ? s_RendererData.shapeLightVolumeShader : s_RendererData.pointLightVolumeShader);
             else
+            {
                 material = CoreUtils.CreateEngineMaterial(isShape ? s_RendererData.shapeLightShader : s_RendererData.pointLightShader);
 
-            if (!isVolume && isShape)
-            {
-                if (light.shapeLightOverlapMode == Light2D.LightOverlapMode.Additive)
+                if (!light.alphaBlendOnOverlap)
+                {
                     SetBlendModes(material, BlendMode.One, BlendMode.One);
+                    material.EnableKeyword(k_UseAdditiveBlendingKeyword);
+                }
                 else
                     SetBlendModes(material, BlendMode.SrcAlpha, BlendMode.OneMinusSrcAlpha);
             }
@@ -405,6 +441,9 @@ namespace UnityEngine.Experimental.Rendering.LWRP
 
             if (!isShape && light.pointLightQuality == Light2D.PointLightQuality.Fast)
                 material.EnableKeyword(k_LightQualityFastKeyword);
+
+            if (light.useNormalMap)
+                material.EnableKeyword(k_UseNormalMap);
 
             return material;
         }

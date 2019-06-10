@@ -18,7 +18,7 @@ To create a Diffusion Profile, navigate to __Assets > Create > Rendering > Diffu
 
 | Property| Description |
 |:---|:---|
-| **Texturing Mode** | Use the drop-down to select when HDRP applies the albedo of the Material.<br />**Post-Scatter**: HDRP applies the albedo to the Material after the subsurface scattering pass pass. This means that the contents of the texture are not blurred. Use this mode for scanned data and photographs that already contain some blur due to subsurface scattering. <br />**Pre- and Post-Scatter**: HDRP effectively blurs the albedo. This results in a softer, more natural look. |
+| **Texturing Mode** | Use the drop-down to select when HDRP applies the albedo of the Material.<br />&#8226; **Post-Scatter**: HDRP applies the albedo to the Material after the subsurface scattering pass pass. This means that the contents of the texture are not blurred. Use this mode for scanned data and photographs that already contain some blur due to subsurface scattering. <br />&#8226; **Pre- and Post-Scatter**: HDRP effectively blurs the albedo. This results in a softer, more natural look. |
 
 
 
@@ -26,7 +26,7 @@ To create a Diffusion Profile, navigate to __Assets > Create > Rendering > Diffu
 
 | Property| Description |
 |:---|:---|
-| **Transmission Mode** | Use the drop-down to select a method for calculating light transmission. <br />**Thick Object**: is for geometrically thick meshes.<br />**Thin Object**: is for thin, double-sided, geometry. |
+| **Transmission Mode** | Use the drop-down to select a method for calculating light transmission. <br />&#8226; **Thick Object**: is for geometrically thick meshes.<br />&#8226; **Thin Object**: is for thin, double-sided, geometry. |
 | **Transmission Tint** | Specifies a color to tint the translucent lighting. Unlike the Scattering Distance, its effect does not change depending on the distance below the surface. |
 | **Min-Max Thickness (mm)** | Sets the range of the thickness of the Mesh. Displays the minimum and maximum values of the Thickness Remap (mm) slider property below. |
 | **Thickness Remap (mm)** | Sets the range of the thickness. The Material’s Thickness Map modulates this value. |
