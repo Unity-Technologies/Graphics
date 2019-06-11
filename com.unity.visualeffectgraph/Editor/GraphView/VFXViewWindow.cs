@@ -29,13 +29,14 @@ namespace  UnityEditor.VFX.UI
                     {Event.KeyboardEvent("o"), view.FrameOrigin },
                     {Event.KeyboardEvent("^#>"), view.FramePrev },
                     {Event.KeyboardEvent("^>"), view.FrameNext },
-                    {Event.KeyboardEvent("#^r"), view.Resync},
                     {Event.KeyboardEvent("F7"), view.Compile},
                     {Event.KeyboardEvent("#d"), view.OutputToDot},
                     {Event.KeyboardEvent("^#d"), view.OutputToDotReduced},
                     {Event.KeyboardEvent("#c"), view.OutputToDotConstantFolding},
                     {Event.KeyboardEvent("^r"), view.ReinitComponents},
                     {Event.KeyboardEvent("F5"), view.ReinitComponents},
+                    {Event.KeyboardEvent("#^r"), view.ReinitAndPlayComponents},
+                    {Event.KeyboardEvent("#F5"), view.ReinitAndPlayComponents},
                 });
         }
 
