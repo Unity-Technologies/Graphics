@@ -67,21 +67,55 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public void SimulateVolume(CommandBuffer cmd)
         {
-            int kernel = _fluidSimVolumeCS.FindKernel("Simulate");
-
             foreach (var volume in _volumes)
             {
-                var inputVolumeTexture = volume.fluidSimTexture;
-                cmd.SetComputeTextureParam(_fluidSimVolumeCS, kernel, HDShaderIDs._InputVolumeTexture, inputVolumeTexture);
+                var initialSimTexture = volume.parameters.initialStateTexture;
+                if (initialSimTexture == null)
+                    continue;
 
                 const int threadTile = 4;
                 const int lessTile = threadTile - 1;
 
-                int dispatchX = (inputVolumeTexture.width  - lessTile) / threadTile;
-                int dispatchY = (inputVolumeTexture.height - lessTile) / threadTile;
-                int dispatchZ = (inputVolumeTexture.depth  - lessTile) / threadTile;
+                int dispatchX = (initialSimTexture.width  - lessTile) / threadTile;
+                int dispatchY = (initialSimTexture.height - lessTile) / threadTile;
+                int dispatchZ = (initialSimTexture.depth  - lessTile) / threadTile;
 
-                cmd.DispatchCompute(_fluidSimVolumeCS, kernel, dispatchX, dispatchY, dispatchZ);
+                if (volume.needToInitialize)
+                {
+                    var outputVolumeTexture = volume.fSimTexture;
+                    if (outputVolumeTexture == null)
+                        continue;
+
+                    var kernel = _fluidSimVolumeCS.FindKernel("InitialState");
+                    if (kernel == -1)
+                        continue;
+
+                    cmd.SetComputeTextureParam(_fluidSimVolumeCS, kernel, HDShaderIDs._InputVolumeTexture, initialSimTexture);
+                    cmd.SetComputeTextureParam(_fluidSimVolumeCS, kernel, HDShaderIDs._OutputVolumeTexture, outputVolumeTexture);
+
+                    cmd.DispatchCompute(_fluidSimVolumeCS, kernel, dispatchX, dispatchY, dispatchZ);
+                }
+                else
+                {
+                    var inputVolumeTexture = volume.fSimTexture;
+                    if (inputVolumeTexture == null)
+                        continue;
+
+                    var outputVolumeTexture = volume.bSimTexture;
+                    if (outputVolumeTexture == null)
+                        continue;
+
+                    var kernel = _fluidSimVolumeCS.FindKernel("Simulate");
+                    if (kernel == -1)
+                        continue;
+
+                    volume.SwapTexture();
+
+                    cmd.SetComputeTextureParam(_fluidSimVolumeCS, kernel, HDShaderIDs._InputVolumeTexture, inputVolumeTexture);
+                    cmd.SetComputeTextureParam(_fluidSimVolumeCS, kernel, HDShaderIDs._OutputVolumeTexture, outputVolumeTexture);
+
+                    cmd.DispatchCompute(_fluidSimVolumeCS, kernel, dispatchX, dispatchY, dispatchZ);
+                }
             }
         }
         public void CopyTextureToAtlas(CommandBuffer cmd)
@@ -91,15 +125,18 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             cmd.SetComputeTextureParam(_texture3DAtlasCS, kernel, HDShaderIDs._OutputVolumeAtlas, _volumeAtlas);
             foreach (var volume in _volumes)
             {
-                var inputVolumeTexture = volume.fluidSimTexture;
+                var inputVolumeTexture = volume.fSimTexture;
+                if (inputVolumeTexture == null)
+                    continue;
+
                 cmd.SetComputeTextureParam(_texture3DAtlasCS, kernel, HDShaderIDs._InputVolumeTexture, inputVolumeTexture);
 
                 const int threadTile = 4;
                 const int lessTile = threadTile - 1;
 
-                int dispatchX = (inputVolumeTexture.width  - lessTile) / threadTile;
-                int dispatchY = (inputVolumeTexture.height - lessTile) / threadTile;
-                int dispatchZ = (inputVolumeTexture.depth  - lessTile) / threadTile;
+                int dispatchX = (inputVolumeTexture.rt.width       - lessTile) / threadTile;
+                int dispatchY = (inputVolumeTexture.rt.height      - lessTile) / threadTile;
+                int dispatchZ = (inputVolumeTexture.rt.volumeDepth - lessTile) / threadTile;
 
                 cmd.DispatchCompute(_texture3DAtlasCS, kernel, dispatchX, dispatchY, dispatchZ);
             }

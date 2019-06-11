@@ -1,12 +1,19 @@
 
 // #pragma
-#pragma kernel Simulate
+#pragma kernel InitialState Simulate=InitialState INITIAL_STATE
+#pragma kernel Simulate     Simulate=Simulate     SIMULATE
 
-Texture3D<float4> Input;
-RWTexture3D<float4> Output;
+#define TILE_SIZE 4
 
-[numthreads(8,8,1)]
+Texture3D<float4> _InputVolumeTexture;
+RWTexture3D<float4> _OutputVolumeTexture;
+
+[numthreads(TILE_SIZE, TILE_SIZE, TILE_SIZE)]
 void Simulate(uint3 id : SV_DispatchThreadID)
 {
-    Output[id.xyz] = float4(id.x & id.y, (id.x & 15)/15.0, (id.y & 15)/15.0, 0.0);
+#ifdef INITIAL_STATE
+    _OutputVolumeTexture[id.xyz] = _InputVolumeTexture[id.xyz];
+#elif SIMULATE
+    _OutputVolumeTexture[id.xyz] = _InputVolumeTexture[id.xyz];
+#endif
 }

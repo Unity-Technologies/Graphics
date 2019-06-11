@@ -471,6 +471,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly int _VolumeBounds                   = Shader.PropertyToID("_VolumeBounds");
         public static readonly int _VolumeData                     = Shader.PropertyToID("_VolumeData");
         public static readonly int _InputVolumeTexture             = Shader.PropertyToID("_InputVolumeTexture"); //seongdae;fspm
+        public static readonly int _OutputVolumeTexture            = Shader.PropertyToID("_OutputVolumeTexture"); //seongdae;fspm
         public static readonly int _OutputVolumeAtlas              = Shader.PropertyToID("_OutputVolumeAtlas"); //seongdae;fspm
         public static readonly int _NumVisibleDensityVolumes       = Shader.PropertyToID("_NumVisibleDensityVolumes");
         public static readonly int _VolumeMaskAtlas                = Shader.PropertyToID("_VolumeMaskAtlas");
