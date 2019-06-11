@@ -47,10 +47,10 @@ real PerceptualRoughnessToMipmapLevel(real perceptualRoughness, real NdotR)
     real m = PerceptualRoughnessToRoughness(perceptualRoughness);
 
     // Remap to spec power. See eq. 21 in --> https://dl.dropboxusercontent.com/u/55891920/papers/mm_brdf.pdf
-    real n = (2.0 / max(FLT_EPS, m * m)) - 2.0;
+    real n = (2.0 / max(REAL_EPS, m * m)) - 2.0;
 
     // Remap from n_dot_h formulation to n_dot_r. See section "Pre-convolved Cube Maps vs Path Tracers" --> https://s3.amazonaws.com/docs.knaldtech.com/knald/1.0.0/lys_power_drops.html
-    n /= (4.0 * max(NdotR, FLT_EPS));
+    n /= (4.0 * max(NdotR, REAL_EPS));
 
     // remap back to square root of real roughness (0.25 include both the sqrt root of the conversion and sqrt for going from roughness to perceptualRoughness)
     perceptualRoughness = pow(2.0 / (n + 2.0), 0.25);
@@ -361,7 +361,7 @@ real4 IntegrateGGXAndDisneyDiffuseFGD(real NdotV, real roughness, uint sampleCou
     // Therefore, we don't really want to clamp NdotV here (else the lerp slope is wrong).
     // However, if NdotV is 0, the integral is 0, so that's not what we want, either.
     // Our runtime NdotV bias is quite large, so we use a smaller one here instead.
-    NdotV     = max(NdotV, FLT_EPS);
+    NdotV     = max(NdotV, REAL_EPS);
     real3 V   = real3(sqrt(1 - NdotV * NdotV), 0, NdotV);
     real4 acc = real4(0.0, 0.0, 0.0, 0.0);
 
@@ -743,7 +743,7 @@ real4 IntegrateLD_MIS(TEXTURECUBE_PARAM(envMap, sampler_envMap),
     }
 
     // Prevent NaNs arising from the division of 0 by 0.
-    cbsdfInt = max(cbsdfInt, FLT_EPS);
+    cbsdfInt = max(cbsdfInt, REAL_EPS);
 
     return real4(lightInt / cbsdfInt, 1.0);
 }

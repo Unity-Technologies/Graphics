@@ -32,12 +32,13 @@ namespace UnityEditor.VFX
 
         public VFXSubgraphContext():base(VFXContextType.Subgraph, VFXDataType.SpawnEvent, VFXDataType.None)
         {
-            OnGraphChanged += GraphParameterChanged;
+            
         }
 
         void GraphParameterChanged(VFXGraph graph)
         {
-            if (m_Subgraph == graph.GetResource().asset && GetParent() != null)
+            VisualEffectAsset asset = graph != null && graph.GetResource() != null ? graph.GetResource().asset : null;
+            if (m_Subgraph == asset && GetParent() != null)
                 RecreateCopy();
         }
 
@@ -92,6 +93,8 @@ namespace UnityEditor.VFX
         private new void OnEnable()
         {
             base.OnEnable();
+
+            OnGraphChanged += GraphParameterChanged;
             RecreateCopy();
         }
 
