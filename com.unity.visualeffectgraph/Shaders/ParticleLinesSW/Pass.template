@@ -7,6 +7,16 @@ ${VFXGeneratedBlockFunction}
 
 #pragma vertex vert
 
+float4 ClipOnNearPlane(float4 pos, float4 other)
+{
+	if (pos.w >= _ProjectionParams.y || other.w < _ProjectionParams.y)
+		return pos;
+		
+	// Project on near plane
+	float ratio = (_ProjectionParams.y - pos.w) / (other.w - pos.w);
+	return pos + (other - pos) * ratio;
+}
+
 VFX_VARYING_PS_INPUTS vert(uint id : SV_VertexID, uint instanceID : SV_InstanceID)
 {
 	uint index = (id >> 2) + instanceID * 2048;
@@ -31,9 +41,8 @@ VFX_VARYING_PS_INPUTS vert(uint id : SV_VertexID, uint instanceID : SV_InstanceI
 	float4 pos0 = TransformPositionVFXToClip(position);
 	float4 pos1 = TransformPositionVFXToClip(targetPosition);
 	
-	// Clip on near plane
-	pos0.w = max(1.0f, pos0.w);
-	pos1.w = max(1.0f, pos1.w);
+	pos0 = ClipOnNearPlane(pos0, pos1);
+	pos1 = ClipOnNearPlane(pos1, pos0);
 	
 	float2 ndcPos0 = pos0.xy / pos0.w;
 	float2 ndcPos1 = pos1.xy / pos1.w;
@@ -59,7 +68,7 @@ VFX_VARYING_PS_INPUTS vert(uint id : SV_VertexID, uint instanceID : SV_InstanceI
 	// If ever used we need the position in vfx space (we dont take into account the pixel offset)
 	float3 vPos = ((id >> 1) & 1) ? position : targetPosition;
 	
-	o.VFX_VARYING_POSCS = vPosArray[id & 3];;
+	o.VFX_VARYING_POSCS = vPosArray[id & 3];
 	
 	${VFXVertexCommonProcess}
 	${VFXVertexAdditionalProcess}
