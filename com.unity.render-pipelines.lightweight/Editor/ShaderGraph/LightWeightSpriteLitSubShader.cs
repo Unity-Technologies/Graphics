@@ -234,6 +234,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP
                 shaderProperties,
                 shaderKeywords,
                 mode,
+                masterNode,
                 vertexNodes,
                 vertexSlots);
 

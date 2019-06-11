@@ -1272,6 +1272,10 @@ namespace UnityEditor.ShaderGraph
                 {
                     for(int i = 0; i < keywordPermutations.Count; i++)
                     {
+                        activeNodeList.Clear();
+                        var slotIds = slots == null ? new int[0] : slots.Select(x => x.id);
+                        NodeUtils.DepthFirstCollectNodesFromNode(activeNodeList, rootNode, NodeUtils.IncludeSelf.Include, slotIds, keywordPermutations: keywordPermutations[i]);
+
                         string ifStatement = "#elif";
                         if(i == 0)
                             ifStatement = "#if";
@@ -1428,6 +1432,7 @@ namespace UnityEditor.ShaderGraph
             PropertyCollector shaderProperties,
             KeywordCollector shaderKeywords,
             GenerationMode mode,
+            AbstractMaterialNode rootNode,
             List<AbstractMaterialNode> nodes,
             List<MaterialSlot> slots,
             string graphInputStructName = "VertexDescriptionInputs",
@@ -1452,6 +1457,10 @@ namespace UnityEditor.ShaderGraph
                 {
                     for(int i = 0; i < keywordPermutations.Count; i++)
                     {
+                        nodes.Clear();
+                        var slotIds = slots == null ? new int[0] : slots.Select(x => x.id);
+                        NodeUtils.DepthFirstCollectNodesFromNode(nodes, rootNode, NodeUtils.IncludeSelf.Include, slotIds, keywordPermutations: keywordPermutations[i]);
+
                         string ifStatement = "#elif";
                         if(i == 0)
                             ifStatement = "#if";

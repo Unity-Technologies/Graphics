@@ -123,16 +123,29 @@ namespace UnityEditor.ShaderGraph
             {
                 case ShaderKeywordType.Boolean:
                 {
-                    var value = GetSlotValue(1 + permutation.Value, generationMode);
+                    var value = GetSlotValue(GetSlotIdForPermutation(permutation), generationMode);
                     sb.AppendLine(string.Format($"{outputSlot.concreteValueType.ToShaderString()} {GetVariableNameForSlot(OutputSlotId)} = {value};"));
                     break;
                 }
                 case ShaderKeywordType.Enum:
                 {
-                    var value = GetSlotValue(permutation.Key.entries[permutation.Value].id, generationMode);
+                    var value = GetSlotValue(GetSlotIdForPermutation(permutation), generationMode);
                     sb.AppendLine(string.Format($"{outputSlot.concreteValueType.ToShaderString()} {GetVariableNameForSlot(OutputSlotId)} = {value};"));
                     break;
                 }
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+        }
+
+        public int GetSlotIdForPermutation(KeyValuePair<ShaderKeyword, int> permutation)
+        {
+            switch(permutation.Key.keywordType)
+            {
+                case ShaderKeywordType.Boolean:
+                    return 1 + permutation.Value;
+                case ShaderKeywordType.Enum:
+                    return permutation.Key.entries[permutation.Value].id;
                 default:
                     throw new ArgumentOutOfRangeException();
             }

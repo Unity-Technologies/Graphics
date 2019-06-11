@@ -600,6 +600,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     sharedProperties,
                     sharedKeywords,
                     mode,
+                    masterNode,
                     vertexNodes,
                     vertexSlots,
                     vertexGraphInputStructName,
