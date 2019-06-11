@@ -1,12 +1,12 @@
 
 // #pragma
-#pragma kernel FluidSim
+#pragma kernel Simulate
 
 Texture3D<float4> Input;
 RWTexture3D<float4> Output;
 
 [numthreads(8,8,1)]
-void FluidSim (uint3 id : SV_DispatchThreadID)
+void Simulate(uint3 id : SV_DispatchThreadID)
 {
     Output[id.xyz] = float4(id.x & id.y, (id.x & 15)/15.0, (id.y & 15)/15.0, 0.0);
 }

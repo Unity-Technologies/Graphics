@@ -1496,6 +1496,19 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 VolumeManager.instance.Update(hdCamera.volumeAnchor, hdCamera.volumeLayerMask);
             }
 
+            //seongdae;fsmp
+            using (new ProfilingSample(cmd, "Fluid Simulation Volume Update", CustomSamplerId.VolumeUpdate.GetSampler()))
+            {
+                FluidSimVolumeManager.manager.SimulateVolume(cmd);
+                renderContext.ExecuteCommandBuffer(cmd);
+                cmd.Clear();
+
+                FluidSimVolumeManager.manager.CopyTextureToAtlas(cmd);
+                renderContext.ExecuteCommandBuffer(cmd);
+                cmd.Clear();
+            }
+            //seongdae;fspm
+
             // Do anything we need to do upon a new frame.
             // The NewFrame must be after the VolumeManager update and before Resize because it uses properties set in NewFrame
             m_LightLoop.NewFrame(hdCamera.frameSettings);

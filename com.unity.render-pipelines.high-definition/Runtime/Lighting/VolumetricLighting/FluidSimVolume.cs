@@ -44,19 +44,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     {
         public FluidSimVolumeArtistParameters parameters = new FluidSimVolumeArtistParameters();
 
-        private Texture3D primary = null;
-        private Texture3D secondary = null;
-
-        private Texture3D inputPM;
-        private Texture3D outputPM;
+        public Texture3D fluidSimTexture = null;
 
         private void Start()
         {
-            primary   = new Texture3D(128, 128, 128, DefaultFormat.HDR, TextureCreationFlags.None);
-            secondary = new Texture3D(128, 128, 128, DefaultFormat.HDR, TextureCreationFlags.None);
-
-            inputPM  = primary;
-            outputPM = secondary;
         }
 
         public FluidSimVolume()
@@ -75,6 +66,25 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         private void Update()
         {
+            bool recreate =
+                parameters.initialStateTexture != null && (
+                fluidSimTexture == null ||
+                parameters.initialStateTexture.width  != fluidSimTexture.width ||
+                parameters.initialStateTexture.height != fluidSimTexture.height ||
+                parameters.initialStateTexture.depth  != fluidSimTexture.depth);
+
+            if (recreate)
+            {
+                if (fluidSimTexture != null)
+                    DestroyImmediate(fluidSimTexture);
+
+                fluidSimTexture = new Texture3D(
+                    parameters.initialStateTexture.width,
+                    parameters.initialStateTexture.height,
+                    parameters.initialStateTexture.depth,
+                    TextureFormat.RGBA32,
+                    false);
+            }
         }
     }
 }
