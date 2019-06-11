@@ -30,6 +30,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed Decal mip level when using texture mip map streaming to avoid dropping to lowest permitted mip (now loading all mips)
 - Fixed deferred shading for XR single-pass instancing after lightloop refactor
 - Fixed cluster and material classification debug (material classification now works with compute as pixel shader lighting)
+- Fixed IOS Nan by adding a maximun epsilon definition REAL_EPS that uses HALF_EPS when fp16 are used
 - Removed unnecessary GC allocation in motion blur code
 - Fixed locked UI with advanded influence volume inspector for probes
 - Fixed invalid capture direction when rendering planar reflection probes
