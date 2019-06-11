@@ -203,6 +203,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 ? VolumetricLightingPreset.High
                 : VolumetricLightingPreset.Medium;
 
+            FluidSimVolumeManager.manager.Build(asset); //seongdae;fspm
+
             m_VolumeVoxelizationCS = asset.renderPipelineResources.shaders.volumeVoxelizationCS;
             m_VolumetricLightingCS = asset.renderPipelineResources.shaders.volumetricLightingCS;
 
@@ -770,20 +772,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // Compute texel spacing at the depth of 1 meter.
                 float unitDepthTexelSpacing = HDUtils.ComputZPlaneTexelSpacing(1.0f, vFoV, resolution.y);
 
-                Texture3D volumeAtlas = FluidSimVolumeManager.manager.volumeAtlas.GetAtlas();
+                Texture3D volumeAtlas = null;
                 Vector4 volumeAtlasDimensions = new Vector4(0.0f, 0.0f, 0.0f, 0.0f);
-
-                if (volumeAtlas != null)
-                {
-                    volumeAtlasDimensions.x = (float)volumeAtlas.width / volumeAtlas.depth; // 1 / number of textures
-                    volumeAtlasDimensions.y = volumeAtlas.width;
-                    volumeAtlasDimensions.z = volumeAtlas.depth;
-                    volumeAtlasDimensions.w = Mathf.Log(volumeAtlas.width, 2);              // Max LoD
-                }
-                else
-                {
-                    volumeAtlas = CoreUtils.blackVolumeTexture;
-                }
 
                 if(hdCamera.frameSettings.VolumeVoxelizationRunsAsync())
                 {

@@ -19,69 +19,68 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        public Texture3DAtlas volumeAtlas = null; //seongdae;fspm
+        private ComputeShader _fluidSimVolumeCS = null;
+        private ComputeShader _texture3DAtlasCS = null;
+
+        private List<FluidSimVolume> _volumes = null;
+
+        private RTHandleSystem.RTHandle _volumeAtlas = null;
         private bool atlasNeedsRefresh = false;
 
         //TODO: hardcoded size....:-(
-        public static int fluidSimVolumeTextureSize = 256; //seongdae;fspm
+        public static int fluidSimVolumeTextureSize = 256;
 
         private FluidSimVolumeManager()
         {
-            volumes = new List<FluidSimVolume>(); //seongdae;fspm
+            int res = 512;
 
-            volumeAtlas = new Texture3DAtlas(TextureFormat.RGBA32, fluidSimVolumeTextureSize); //seongdae;fspm
-
-            volumeAtlas.OnAtlasUpdated += FluidSimAtlasUpdated; //seongdae;fspm
+            _volumes = new List<FluidSimVolume>();
+            _volumeAtlas = RTHandles.Alloc(
+                res,
+                res,
+                res,
+                colorFormat: GraphicsFormat.R8G8B8A8_UNorm,
+                filterMode: FilterMode.Bilinear,
+                dimension: TextureDimension.Tex3D,
+                enableRandomWrite: true,
+                name: "VolumeAtlas");
         }
 
-        private List<FluidSimVolume> volumes = null; //seongdae;fspm
+        public void Build(HDRenderPipelineAsset asset)
+        {
+            _fluidSimVolumeCS = asset.renderPipelineResources.shaders.fluidSimVolumeCS;
+            _texture3DAtlasCS = asset.renderPipelineResources.shaders.texture3DAtlasCS;
+        }
 
         public void RegisterVolume(FluidSimVolume volume)
         {
-            volumes.Add(volume);
-
-            //volume.OnTextureUpdated += TriggerVolumeAtlasRefresh;
-
-            if (volume.parameters.initialStateTexture != null)
-            {
-                volumeAtlas.AddTexture(volume.parameters.initialStateTexture);
-            }
+            _volumes.Add(volume);
         }
 
         public void DeRegisterVolume(FluidSimVolume volume)
         {
-            if (volumes.Contains(volume))
+            if (_volumes.Contains(volume))
             {
-                volumes.Remove(volume);
+                _volumes.Remove(volume);
             }
-
-            //volume.OnTextureUpdated -= TriggerVolumeAtlasRefresh;
-
-            if (volume.parameters.initialStateTexture != null)
-            {
-                volumeAtlas.RemoveTexture(volume.parameters.initialStateTexture);
-            }
-
-            //Upon removal we have to refresh the texture list.
-            //TriggerVolumeAtlasRefresh();
         }
 
         public FluidSimVolume[] PrepareFluidSimVolumeData(CommandBuffer cmd, Camera currentCam, float time)
         {
-            return volumes.ToArray();
+            int kernel = _texture3DAtlasCS.FindKernel("");
+
+            foreach (var volume in _volumes)
+            {
+                cmd.SetComputeTextureParam(_texture3DAtlasCS, kernel, "", _volumeAtlas);
+            }
+            cmd.SetComputeTextureParam(_texture3DAtlasCS, kernel, "", _volumeAtlas);
+
+            return _volumes.ToArray();
         }
 
         public void TriggerVolumeAtlasRefresh()
         {
             atlasNeedsRefresh = true;
-        }
-
-        private void FluidSimAtlasUpdated()
-        {
-            foreach (FluidSimVolume volume in volumes)
-            {
-                volume.parameters.textureIndex = volumeAtlas.GetTextureIndex(volume.parameters.initialStateTexture);
-            }
         }
     }
 }
