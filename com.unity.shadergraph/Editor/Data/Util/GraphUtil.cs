@@ -1262,73 +1262,143 @@ namespace UnityEditor.ShaderGraph
 
             graph.CollectShaderProperties(shaderProperties, mode);
             graph.CollectShaderKeywords(shaderKeywords, mode);
+            var keywordPermutations = KeywordUtil.GetKeywordPermutations(shaderKeywords.keywords);
 
             surfaceDescriptionFunction.AppendLine(String.Format("{0} {1}(SurfaceDescriptionInputs IN)", surfaceDescriptionName, functionName), false);
             using (surfaceDescriptionFunction.BlockScope())
             {
                 surfaceDescriptionFunction.AppendLine("{0} surface = ({0})0;", surfaceDescriptionName);
-                foreach (var activeNode in activeNodeList)
+                if(keywordPermutations.Count > 0)
                 {
-                    if (activeNode is IGeneratesFunction functionNode)
+                    for(int i = 0; i < keywordPermutations.Count; i++)
                     {
-                        functionRegistry.builder.currentNode = activeNode;
-                        functionNode.GenerateNodeFunction(functionRegistry, graphContext, mode);
-                        functionRegistry.builder.ReplaceInCurrentMapping(PrecisionUtil.Token, activeNode.concretePrecision.ToShaderString());
-                    }
+                        string ifStatement = "#elif";
+                        if(i == 0)
+                            ifStatement = "#if";
+                        else if(i == keywordPermutations.Count - 1)
+                            ifStatement = ("#else");
 
-                    if (activeNode is IGeneratesBodyCode bodyNode)
-                    {
-                        surfaceDescriptionFunction.currentNode = activeNode;
-                        bodyNode.GenerateNodeCode(surfaceDescriptionFunction, graphContext, mode);
-                        surfaceDescriptionFunction.ReplaceInCurrentMapping(PrecisionUtil.Token, activeNode.concretePrecision.ToShaderString());
-                    }
-
-                    activeNode.CollectShaderProperties(shaderProperties, mode);
-                    activeNode.CollectShaderKeywords(shaderKeywords, mode);
-                }                
-
-                functionRegistry.builder.currentNode = null;
-                surfaceDescriptionFunction.currentNode = null;
-
-                if (rootNode is IMasterNode || rootNode is SubGraphOutputNode)
-                {
-                    var usedSlots = slots ?? rootNode.GetInputSlots<MaterialSlot>();
-                    foreach (var input in usedSlots)
-                    {
-                        if (input != null)
+                        string permutationString = i == keywordPermutations.Count - 1 ? string.Empty : KeywordUtil.GetKeywordPermutationString(keywordPermutations[i]);
+                        surfaceDescriptionFunction.AppendLine($"{ifStatement} {permutationString}");
+                        using (surfaceDescriptionFunction.BlockScope())
                         {
-                            var foundEdges = graph.GetEdges(input.slotReference).ToArray();
-                            var hlslName = NodeUtils.GetHLSLSafeName(input.shaderOutputName);
-                            if (rootNode is SubGraphOutputNode)
+                            foreach (var activeNode in activeNodeList)
                             {
-                                hlslName = $"{hlslName}_{input.id}";
-                            }
-                            if (foundEdges.Any())
-                            {
-                                surfaceDescriptionFunction.AppendLine("surface.{0} = {1};",
-                                    hlslName,
-                                    rootNode.GetSlotValue(input.id, mode, rootNode.concretePrecision));
-                            }
-                            else
-                            {
-                                surfaceDescriptionFunction.AppendLine("surface.{0} = {1};",
-                                    hlslName, input.GetDefaultValue(mode, rootNode.concretePrecision));
-                            }
+                                GenerateDescriptionForNode(activeNode, functionRegistry, surfaceDescriptionFunction,
+                                    shaderProperties, shaderKeywords, 
+                                    graph, graphContext, mode, keywordPermutations[i]);
+                            }                
+
+                            functionRegistry.builder.currentNode = null;
+                            surfaceDescriptionFunction.currentNode = null;
+
+                            GenerateSurfaceDescriptionRemap(graph, rootNode, slots, surfaceDescriptionFunction, mode);
+                        }
+                    }
+                    surfaceDescriptionFunction.AppendLine("#endif");
+                }
+                else
+                {
+                    foreach (var activeNode in activeNodeList)
+                    {
+                        GenerateDescriptionForNode(activeNode, functionRegistry, surfaceDescriptionFunction,
+                            shaderProperties, shaderKeywords, 
+                            graph, graphContext, mode);
+                    }                
+
+                    functionRegistry.builder.currentNode = null;
+                    surfaceDescriptionFunction.currentNode = null;
+
+                    GenerateSurfaceDescriptionRemap(graph, rootNode, slots, surfaceDescriptionFunction, mode);
+                }
+                surfaceDescriptionFunction.AppendLine("return surface;");
+            }
+        }
+
+        static void GenerateDescriptionForNode(
+            AbstractMaterialNode activeNode,
+            FunctionRegistry functionRegistry,
+            ShaderStringBuilder descriptionFunction,
+            PropertyCollector shaderProperties,
+            KeywordCollector shaderKeywords,
+            GraphData graph,
+            GraphContext graphContext,
+            GenerationMode mode,
+            List<KeyValuePair<ShaderKeyword, int>> keywordPermutations = null)
+        {
+            if (activeNode is IGeneratesFunction functionNode)
+            {
+                functionRegistry.builder.currentNode = activeNode;
+                functionNode.GenerateNodeFunction(functionRegistry, graphContext, mode);
+                functionRegistry.builder.ReplaceInCurrentMapping(PrecisionUtil.Token, activeNode.concretePrecision.ToShaderString());
+            }
+
+            if (activeNode is IGeneratesBodyCode bodyNode)
+            {
+                descriptionFunction.currentNode = activeNode;
+                bodyNode.GenerateNodeCode(descriptionFunction, graphContext, mode);
+                descriptionFunction.ReplaceInCurrentMapping(PrecisionUtil.Token, activeNode.concretePrecision.ToShaderString());
+            }
+
+            if(keywordPermutations != null)
+            {
+                if (activeNode is IGeneratesBranch branchNode)
+                {
+                    var keyword = graph.keywords.FirstOrDefault(x => x.guid == branchNode.keywordGuid);
+                    var keywordPermutation = keywordPermutations.Where(x => x.Key.guid == keyword.guid).FirstOrDefault();
+                    descriptionFunction.currentNode = activeNode;
+                    branchNode.GenerateBranchCode(descriptionFunction, keywordPermutation, mode);
+                    descriptionFunction.ReplaceInCurrentMapping(PrecisionUtil.Token, activeNode.concretePrecision.ToShaderString());
+                }
+            }
+
+            activeNode.CollectShaderProperties(shaderProperties, mode);
+            activeNode.CollectShaderKeywords(shaderKeywords, mode);
+        }
+
+        static void GenerateSurfaceDescriptionRemap(
+            GraphData graph,
+            AbstractMaterialNode rootNode, 
+            IEnumerable<MaterialSlot> slots,
+            ShaderStringBuilder surfaceDescriptionFunction,
+            GenerationMode mode)
+        {
+            if (rootNode is IMasterNode || rootNode is SubGraphOutputNode)
+            {
+                var usedSlots = slots ?? rootNode.GetInputSlots<MaterialSlot>();
+                foreach (var input in usedSlots)
+                {
+                    if (input != null)
+                    {
+                        var foundEdges = graph.GetEdges(input.slotReference).ToArray();
+                        var hlslName = NodeUtils.GetHLSLSafeName(input.shaderOutputName);
+                        if (rootNode is SubGraphOutputNode)
+                        {
+                            hlslName = $"{hlslName}_{input.id}";
+                        }
+                        if (foundEdges.Any())
+                        {
+                            surfaceDescriptionFunction.AppendLine("surface.{0} = {1};",
+                                hlslName,
+                                rootNode.GetSlotValue(input.id, mode, rootNode.concretePrecision));
+                        }
+                        else
+                        {
+                            surfaceDescriptionFunction.AppendLine("surface.{0} = {1};",
+                                hlslName, input.GetDefaultValue(mode, rootNode.concretePrecision));
                         }
                     }
                 }
-                else if (rootNode.hasPreview)
+            }
+            else if (rootNode.hasPreview)
+            {
+                var slot = rootNode.GetOutputSlots<MaterialSlot>().FirstOrDefault();
+                if (slot != null)
                 {
-                    var slot = rootNode.GetOutputSlots<MaterialSlot>().FirstOrDefault();
-                    if (slot != null)
-                    {
-                        var hlslSafeName = $"{NodeUtils.GetHLSLSafeName(slot.shaderOutputName)}_{slot.id}";
-                        surfaceDescriptionFunction.AppendLine("surface.{0} = {1};",
-                            hlslSafeName, rootNode.GetSlotValue(slot.id, mode, rootNode.concretePrecision));
-                    }
+                    var hlslSafeName = $"{NodeUtils.GetHLSLSafeName(slot.shaderOutputName)}_{slot.id}";
+                    surfaceDescriptionFunction.AppendLine("surface.{0} = {1};",
+                        hlslSafeName, rootNode.GetSlotValue(slot.id, mode, rootNode.concretePrecision));
                 }
-
-                surfaceDescriptionFunction.AppendLine("return surface;");
             }
         }
 
@@ -1371,42 +1441,74 @@ namespace UnityEditor.ShaderGraph
 
             graph.CollectShaderProperties(shaderProperties, mode);
             graph.CollectShaderKeywords(shaderKeywords, mode);
+            var keywordPermutations = KeywordUtil.GetKeywordPermutations(shaderKeywords.keywords);
 
             builder.AppendLine("{0} {1}({2} IN)", graphOutputStructName, functionName, graphInputStructName);
             using (builder.BlockScope())
             {
                 builder.AppendLine("{0} description = ({0})0;", graphOutputStructName);
-                foreach (var node in nodes)
-                {
-                    if (node is IGeneratesFunction generatesFunction)
-                    {
-                        functionRegistry.builder.currentNode = node;
-                        generatesFunction.GenerateNodeFunction(functionRegistry, graphContext, mode);
-                        functionRegistry.builder.ReplaceInCurrentMapping(PrecisionUtil.Token, node.concretePrecision.ToShaderString());
-                    }
 
-                    if (node is IGeneratesBodyCode generatesBodyCode)
+                if(keywordPermutations.Count > 0)
+                {
+                    for(int i = 0; i < keywordPermutations.Count; i++)
                     {
-                        builder.currentNode = node;
-                        generatesBodyCode.GenerateNodeCode(builder, graphContext, mode);
-                        builder.ReplaceInCurrentMapping(PrecisionUtil.Token, node.concretePrecision.ToShaderString());
+                        string ifStatement = "#elif";
+                        if(i == 0)
+                            ifStatement = "#if";
+                        else if(i == keywordPermutations.Count - 1)
+                            ifStatement = ("#else");
+
+                        string permutationString = i == keywordPermutations.Count - 1 ? string.Empty : KeywordUtil.GetKeywordPermutationString(keywordPermutations[i]);
+                        builder.AppendLine($"{ifStatement} {permutationString}");
+                        using (builder.BlockScope())
+                        {
+                            foreach (var node in nodes)
+                            {
+                                GenerateDescriptionForNode(node, functionRegistry, builder,
+                                    shaderProperties, shaderKeywords, 
+                                    graph, graphContext, mode);
+                            }
+
+                            functionRegistry.builder.currentNode = null;
+                            builder.currentNode = null; 
+
+                            if(slots.Count != 0)
+                            {
+                                foreach (var slot in slots)
+                                {
+                                    var isSlotConnected = slot.owner.owner.GetEdges(slot.slotReference).Any();
+                                    var slotName = NodeUtils.GetHLSLSafeName(slot.shaderOutputName);
+                                    var slotValue = isSlotConnected ? 
+                                        ((AbstractMaterialNode)slot.owner).GetSlotValue(slot.id, mode, slot.owner.concretePrecision) : slot.GetDefaultValue(mode, slot.owner.concretePrecision);
+                                    builder.AppendLine("description.{0} = {1};", slotName, slotValue);
+                                }
+                            }
+                        }
                     }
-                    node.CollectShaderProperties(shaderProperties, mode);
-                    node.CollectShaderKeywords(shaderKeywords, mode);
+                    builder.AppendLine("#endif");
                 }
-
-                functionRegistry.builder.currentNode = null;
-                builder.currentNode = null; 
-
-                if(slots.Count != 0)
+                else
                 {
-                    foreach (var slot in slots)
+                    foreach (var node in nodes)
                     {
-                        var isSlotConnected = slot.owner.owner.GetEdges(slot.slotReference).Any();
-                        var slotName = NodeUtils.GetHLSLSafeName(slot.shaderOutputName);
-                        var slotValue = isSlotConnected ? 
-                            ((AbstractMaterialNode)slot.owner).GetSlotValue(slot.id, mode, slot.owner.concretePrecision) : slot.GetDefaultValue(mode, slot.owner.concretePrecision);
-                        builder.AppendLine("description.{0} = {1};", slotName, slotValue);
+                        GenerateDescriptionForNode(node, functionRegistry, builder,
+                            shaderProperties, shaderKeywords, 
+                            graph, graphContext, mode);
+                    }
+
+                    functionRegistry.builder.currentNode = null;
+                    builder.currentNode = null; 
+
+                    if(slots.Count != 0)
+                    {
+                        foreach (var slot in slots)
+                        {
+                            var isSlotConnected = slot.owner.owner.GetEdges(slot.slotReference).Any();
+                            var slotName = NodeUtils.GetHLSLSafeName(slot.shaderOutputName);
+                            var slotValue = isSlotConnected ? 
+                                ((AbstractMaterialNode)slot.owner).GetSlotValue(slot.id, mode, slot.owner.concretePrecision) : slot.GetDefaultValue(mode, slot.owner.concretePrecision);
+                            builder.AppendLine("description.{0} = {1};", slotName, slotValue);
+                        }
                     }
                 }
 
