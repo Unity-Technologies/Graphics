@@ -4,7 +4,7 @@ If your Project uses shaders from the built-in render pipeline, and you want to 
 
 To upgrade built-in Shaders:
 
-1. Open your Project in Unity, and go to __Edit__ > __Render Pipeline__. 
+1. Open your Project in Unity, and go to __Edit__ > __Render Pipeline__ > **Lightweight Render Pipeline**. 
 2. According to your needs, select either __Upgrade Project Materials to LightweightRP Materials__ or __Upgrade Selected Materials to LightweightRP Materials__.
 
 **Note:** These changes cannot be undone. Backup your Project before you upgrade it.

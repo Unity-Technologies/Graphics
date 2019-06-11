@@ -185,7 +185,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             views.Add(xrView);
 
             // Validate memory limitations
-            Debug.Assert(views.Count <= TextureXR.kMaxSliceCount);
+            Debug.Assert(views.Count <= TextureXR.kMaxSlices);
         }
 
         internal void StartLegacyStereo(Camera camera, CommandBuffer cmd, ScriptableRenderContext renderContext)

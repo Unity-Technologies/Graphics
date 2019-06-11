@@ -84,7 +84,7 @@ namespace UnityEngine.Rendering.LWRP
 
         [SerializeField] RendererType m_RendererType = RendererType.ForwardRenderer;
         [SerializeField] internal ScriptableRendererData m_RendererData = null;
-        
+
         // General settings
         [SerializeField] bool m_RequireDepthTexture = false;
         [SerializeField] bool m_RequireOpaqueTexture = false;
@@ -415,7 +415,7 @@ namespace UnityEngine.Rendering.LWRP
             get { return m_ShaderVariantLogLevel; }
             set { m_ShaderVariantLogLevel = value; }
         }
-        
+
         public bool useSRPBatcher
         {
             get { return m_UseSRPBatcher; }
@@ -467,9 +467,17 @@ namespace UnityEngine.Rendering.LWRP
             get
             {
 #if UNITY_EDITOR
-                Shader defaultShader = scriptableRendererData.GetDefaultShader();
-                if (defaultShader != null)
-                    return defaultShader;
+                // TODO: When importing project, AssetPreviewUpdater:CreatePreviewForAsset will be called multiple time
+                // which in turns calls this property to get the default shader.
+                // The property should never return null as, when null, it loads the data using AssetDatabase.LoadAssetAtPath.
+                // However it seems there's an issue that LoadAssetAtPath will not load the asset in some cases. so adding the null check
+                // here to fix template tests.
+                if (scriptableRendererData != null)
+                {
+                    Shader defaultShader = scriptableRendererData.GetDefaultShader();
+                    if (defaultShader != null)
+                        return defaultShader;
+                }
 #endif
 
                 if (m_DefaultShader == null)

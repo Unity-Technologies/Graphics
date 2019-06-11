@@ -150,6 +150,7 @@ MonoBehaviour:
       isFptlEnabled: 0
   m_RenderPipelineResources: {fileID: 11400000, guid: 3ce144cff5783da45aa5d4fdc2da14b7,
     type: 2}
+  m_RenderPipelineRayTracingResources: {fileID: 0}
   m_RenderingPathDefaultCameraFrameSettings:
     bitDatas:
       data1: 68184207523613
@@ -195,6 +196,7 @@ MonoBehaviour:
     supportRuntimeDebugDisplay: 0
     supportDitheringCrossFade: 1
     supportRayTracing: 0
+    supportedRaytracingTier: 2
     lightLoopSettings:
       cookieSize: 128
       cookieTexArraySize: 16

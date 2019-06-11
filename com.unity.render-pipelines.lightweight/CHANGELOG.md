@@ -4,7 +4,16 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [6.7.0] - 2019-XX-XX
+## [6.8.0] - 2019-XX-XX
+### Added
+- Added a menu option to create a new `ScriptableRendererFeature` script. To do so in the Editor, click on Asset > Create > Rendering > Lightweight Render Pipeline > Renderer Feature.
+
+### Changed
+- Replaced beginCameraRendering callbacks by non obsolete implementation in Light2D
+- Updated `ScriptableRendererFeature` and `ScriptableRenderPass` API docs.
+- Fixed NullReference exception caused when trying to add a ScriptableRendererFeature.
+
+## [6.7.0] - 2019-05-16
 ### Added
 - Added SpeedTree Shaders.
 - Added two Shader Graph master nodes: Lit Sprite and Unlit Sprite. They only work with the 2D renderer.
@@ -33,6 +42,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - VR stereo matrices and vertex inputs are now set up on Vulkan. [case 1142952](https://fogbugz.unity3d.com/f/cases/1142952/).
 - Fixed the Material Upgrader so it's now run upon updating the LWRP package. [1148764](https://issuetracker.unity3d.com/product/unity/issues/guid/1148764/)
 - Fixed a NullReference exception when you create a new Lightweight Render Pipeline Asset. [case 1153388](https://issuetracker.unity3d.com/product/unity/issues/guid/1153388/) 
+- Fixed a case where built-in Shader time values could be out of sync with actual time. [case 1142495](https://fogbugz.unity3d.com/f/cases/1142495/)
 
 ## [6.6.0] - 2019-04-01
 ### Added

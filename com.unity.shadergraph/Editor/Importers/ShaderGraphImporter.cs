@@ -9,7 +9,7 @@ using UnityEditor.Graphing.Util;
 
 namespace UnityEditor.ShaderGraph
 {
-    [ScriptedImporter(25, Extension, 3)]
+    [ScriptedImporter(27, Extension, 3)]
     class ShaderGraphImporter : ScriptedImporter
     {
         public const string Extension = "shadergraph";
@@ -102,7 +102,7 @@ Shader ""Hidden/GraphErrorShader2""
             }
         }
 
-        static string GetShaderText(string path, out List<PropertyCollector.TextureInfo> configuredTextures, List<string> sourceAssetDependencyPaths, out GraphData graph)
+        internal static string GetShaderText(string path, out List<PropertyCollector.TextureInfo> configuredTextures, List<string> sourceAssetDependencyPaths, out GraphData graph)
         {
             graph = null;
             string shaderString = null;

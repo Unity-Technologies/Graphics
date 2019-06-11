@@ -29,6 +29,9 @@ For example, here’s the [HDRI sky](Override-HDRI-Sky.html) implementation of S
 
 ```
 [VolumeComponentMenu("Sky/HDRI Sky")]
+// SkyUniqueID does not need to be part of built-in HDRP SkyType enumeration.
+// This is only provided to track IDs used by HDRP natively. 
+// You can use any integer value.
 [SkyUniqueID((int)SkyType.HDRISky)]
 public class HDRISky : SkySettings
 {

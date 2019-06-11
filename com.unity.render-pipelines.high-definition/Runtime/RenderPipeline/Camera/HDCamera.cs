@@ -62,15 +62,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public bool colorPyramidHistoryIsValid = false;
         public bool volumetricHistoryIsValid   = false; // Contains garbage otherwise
         public int  colorPyramidHistoryMipCount = 0;
-        public VolumetricLightingSystem.VBufferParameters[] vBufferParams; // Double-buffered
-        
+        public VBufferParameters[] vBufferParams; // Double-buffered
+
         public bool sceneLightingWasDisabledForCamera = false;
 
         // XR multipass and instanced views are supported (see XRSystem)
         XRPass m_XRPass;
         public XRPass xr { get { return m_XRPass; } }
-        ViewConstants[] xrViewConstants;
-        ComputeBuffer   xrViewConstantsGpu;
+        public ViewConstants[] xrViewConstants;
+        ComputeBuffer xrViewConstantsGpu;
 
         // Recorder specific
         IEnumerator<Action<RenderTargetIdentifier, CommandBuffer>> m_RecorderCaptureActions;
@@ -128,9 +128,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         // Helper property to inform how many views are rendered simultaneously
         public int viewCount { get => Math.Max(1, xr.viewCount); }
-
-        // XRTODO: remove and replace occurences by viewCount
-        public int computePassCount { get => viewCount; }
 
         public bool clearDepth
         {
@@ -237,7 +234,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // That way you will never update an HDCamera and forget to update the dependent system.
         // NOTE: This function must be called only once per rendering (not frame, as a single camera can be rendered multiple times with different parameters during the same frame)
         // Otherwise, previous frame view constants will be wrong.
-        public void Update(FrameSettings currentFrameSettings, VolumetricLightingSystem vlSys, MSAASamples msaaSamples, XRPass xrPass)
+        public void Update(FrameSettings currentFrameSettings, HDRenderPipeline hdrp, MSAASamples msaaSamples, XRPass xrPass)
         {
             // store a shortcut on HDAdditionalCameraData (done here and not in the constructor as
             // we don't create HDCamera at every frame and user can change the HDAdditionalData later (Like when they create a new scene).
@@ -261,7 +258,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 {
                     // Reinit the system.
                     colorPyramidHistoryIsValid = false;
-                    vlSys.DeinitializePerCameraData(this);
+                    hdrp.DeinitializeVolumetricLightingPerCameraData(this);
 
                     // The history system only supports the "nuke all" option.
                     m_HistoryRTSystem.Dispose();
@@ -273,7 +270,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         colorPyramidHistoryIsValid = false;
                     }
 
-                    vlSys.InitializePerCameraData(this, numVolumetricBuffersRequired);
+                    hdrp.InitializeVolumetricLightingPerCameraData(this, numVolumetricBuffersRequired);
 
                     // Mark as init.
                     m_NumColorPyramidBuffersAllocated = numColorPyramidBuffersRequired;
@@ -325,10 +322,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             UpdateAllViewConstants();
             isFirstFrame = false;
 
-            if (vlSys != null)
-            {
-                vlSys.UpdatePerCameraData(this);
-            }
+            hdrp.UpdateVolumetricLightingPerCameraData(this);
 
             UpdateVolumeParameters();
 
@@ -494,7 +488,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
             }
 
-
             viewConstants.viewMatrix = gpuView;
             viewConstants.invViewMatrix = gpuView.inverse;
             viewConstants.projMatrix = gpuProj;
@@ -504,7 +497,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             viewConstants.nonJitteredViewProjMatrix = gpuNonJitteredProj * gpuView;
             viewConstants.worldSpaceCameraPos = cameraPosition;
             viewConstants.worldSpaceCameraPosViewOffset = Vector3.zero;
-            viewConstants.pixelCoordToViewDirWS = ComputePixelCoordToWorldSpaceViewDirectionMatrix(viewConstants);
+            viewConstants.pixelCoordToViewDirWS = ComputePixelCoordToWorldSpaceViewDirectionMatrix(viewConstants, screenSize);
 
             if (updatePreviousFrameConstants)
             {
@@ -605,6 +598,21 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 volumeAnchor = camera.transform;
         }
 
+        public void GetPixelCoordToViewDirWS(Vector4 resolution, ref Matrix4x4[] transforms)
+        {
+            if (xr.instancingEnabled)
+            {
+                for (int viewIndex = 0; viewIndex < viewCount; ++viewIndex)
+                {
+                    transforms[viewIndex] = ComputePixelCoordToWorldSpaceViewDirectionMatrix(xrViewConstants[viewIndex], resolution);
+                }
+            }
+            else
+            {
+                transforms[0] = ComputePixelCoordToWorldSpaceViewDirectionMatrix(mainViewConstants, resolution);
+            }
+        }
+
         // Stopgap method used to extract stereo combined matrix state.
         public void UpdateStereoDependentState(ref ScriptableCullingParameters cullingParams)
         {
@@ -670,7 +678,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             return proj;
         }
 
-        public Matrix4x4 ComputePixelCoordToWorldSpaceViewDirectionMatrix(ViewConstants viewConstants)
+        public Matrix4x4 ComputePixelCoordToWorldSpaceViewDirectionMatrix(ViewConstants viewConstants, Vector4 resolution)
         {
             // In XR mode, use a more generic matrix to account for asymmetry in the projection
             if (xr.enabled)
@@ -678,7 +686,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 var transform = Matrix4x4.Scale(new Vector3(-1.0f, -1.0f, -1.0f)) * viewConstants.invViewProjMatrix;
                 transform = transform * Matrix4x4.Scale(new Vector3(1.0f, -1.0f, 1.0f));
                 transform = transform * Matrix4x4.Translate(new Vector3(-1.0f, -1.0f, 0.0f));
-                transform = transform * Matrix4x4.Scale(new Vector3(2.0f * screenSize.z, 2.0f * screenSize.w, 1.0f));
+                transform = transform * Matrix4x4.Scale(new Vector3(2.0f * resolution.z, 2.0f * resolution.w, 1.0f));
 
                 return transform.transpose;
             }
@@ -691,7 +699,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             Vector2 lensShift = Vector2.zero;
 #endif
 
-            return HDUtils.ComputePixelCoordToWorldSpaceViewDirectionMatrix(verticalFoV, lensShift, screenSize, viewConstants.viewMatrix, false);
+            return HDUtils.ComputePixelCoordToWorldSpaceViewDirectionMatrix(verticalFoV, lensShift, resolution, viewConstants.viewMatrix, false);
         }
 
         // Warning: different views can use the same camera!
@@ -729,8 +737,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             frameIndex &= 1;
             var hdPipeline = (HDRenderPipeline)RenderPipelineManager.currentPipeline;
 
-            return rtHandleSystem.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: (GraphicsFormat)hdPipeline.currentPlatformRenderPipelineSettings.colorBufferFormat,
-                                        enableRandomWrite: true, useMipMap: true, autoGenerateMips: false, useDynamicScale: true, xrInstancing: true,
+            return rtHandleSystem.Alloc(Vector2.one, TextureXR.slices, colorFormat: (GraphicsFormat)hdPipeline.currentPlatformRenderPipelineSettings.colorBufferFormat,
+                                        dimension: TextureXR.dimension, enableRandomWrite: true, useMipMap: true, autoGenerateMips: false, useDynamicScale: true,
                                         name: string.Format("CameraColorBufferMipChain{0}", frameIndex));
         }
 
@@ -741,7 +749,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             HDCamera hdCamera;
 
             if (!s_Cameras.TryGetValue((camera, xrPass.multipassId), out hdCamera))
-            {
+        {
                 hdCamera = new HDCamera(camera);
                 s_Cameras.Add((camera, xrPass.multipassId), hdCamera);
             }
