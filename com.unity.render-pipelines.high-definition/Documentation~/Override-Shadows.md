@@ -8,7 +8,7 @@ The **Shadows** [Volume component override](Volume-Components.html) controls the
 
 The **Shadows** override comes as default when you create a **Scene Settings** GameObject (Menu: **GameObject > Rendering > Scene Settings**). You can also manually add a **Shadows** override to any [Volume](Volumes.html). To add **Shadows** to a Volume:
 
-1. Select the Volume component in the Scene or Hierarchy to view it in the Inspector.
+1. In the Scene or Hierarchy view, select the GameObject that contains the Volume component to view it in the Inspector.
 2. In the Inspector, navigate to **Add Override > Shadowing** and click on **Shadows**. You can now use the **Shadows** override to alter shadow settings for this Volume.
 
 ## Properties
