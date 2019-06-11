@@ -57,12 +57,14 @@ namespace UnityEditor.ShaderGraph
             List<KeyValuePair<ShaderKeyword, int>> currentPermutation = new List<KeyValuePair<ShaderKeyword, int>>();
             List<List<KeyValuePair<ShaderKeyword, int>>> results = new List<List<KeyValuePair<ShaderKeyword, int>>>();
             
+#if SHADERGRAPH_EXPLICITBRANCH
             for(int i = 0; i < keywords.Count; i++)
             {
                 currentPermutation.Add(new KeyValuePair<ShaderKeyword, int>(keywords[i], 0));
             }
             
             PermuteKeywords(keywords, currentPermutation, results, 0);
+#endif
             return results;
         }
 
