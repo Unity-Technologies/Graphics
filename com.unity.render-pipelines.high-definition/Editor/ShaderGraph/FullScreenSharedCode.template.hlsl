@@ -1,3 +1,5 @@
+// Fullscreen version of the SharedCode.template.hlsl, it contains adjusted surface description inputs for fullscreen passes
+
     FragInputs BuildFragInputs(VaryingsMeshToPS input)
     {
         FragInputs output;
@@ -19,6 +21,8 @@
         #if SHADER_STAGE_FRAGMENT
         $FragInputs.isFrontFace:        output.isFrontFace = IS_FRONT_VFACE(input.cullFace, true, false);
         #endif // SHADER_STAGE_FRAGMENT
+        
+        output.positionRWS = input.positionCS;
 
         return output;
     }
@@ -28,9 +32,11 @@
         SurfaceDescriptionInputs output;
         ZERO_INITIALIZE(SurfaceDescriptionInputs, output);
 
+        // float3 viewDirection = normalize(_WorldSpaceCameraPos - input.positionCS);
+
         $SurfaceDescriptionInputs.WorldSpaceNormal:          output.WorldSpaceNormal =            normalize(input.worldToTangent[2].xyz);
-        $SurfaceDescriptionInputs.ObjectSpaceNormal:         output.ObjectSpaceNormal =           mul(output.WorldSpaceNormal, (float3x3) UNITY_MATRIX_M);           // transposed multiplication by inverse matrix to handle normal scale
-        $SurfaceDescriptionInputs.ViewSpaceNormal:           output.ViewSpaceNormal =             mul(output.WorldSpaceNormal, (float3x3) UNITY_MATRIX_I_V);         // transposed multiplication by inverse matrix to handle normal scale
+        $SurfaceDescriptionInputs.ObjectSpaceNormal:         output.ObjectSpaceNormal =           mul(output.WorldSpaceNormal, (float3x3) UNITY_MATRIX_M);
+        $SurfaceDescriptionInputs.ViewSpaceNormal:           output.ViewSpaceNormal =             mul(output.WorldSpaceNormal, (float3x3) UNITY_MATRIX_I_V);
         $SurfaceDescriptionInputs.TangentSpaceNormal:        output.TangentSpaceNormal =          float3(0.0f, 0.0f, 1.0f);
         $SurfaceDescriptionInputs.WorldSpaceTangent:         output.WorldSpaceTangent =           input.worldToTangent[0].xyz;
         $SurfaceDescriptionInputs.ObjectSpaceTangent:        output.ObjectSpaceTangent =          TransformWorldToObjectDir(output.WorldSpaceTangent);
@@ -42,7 +48,7 @@
         $SurfaceDescriptionInputs.TangentSpaceBiTangent:     output.TangentSpaceBiTangent =       float3(0.0f, 1.0f, 0.0f);
         $SurfaceDescriptionInputs.WorldSpaceViewDirection:   output.WorldSpaceViewDirection =     normalize(viewWS);
         $SurfaceDescriptionInputs.ObjectSpaceViewDirection:  output.ObjectSpaceViewDirection =    TransformWorldToObjectDir(output.WorldSpaceViewDirection);
-        $SurfaceDescriptionInputs.ViewSpaceViewDirection:    output.ViewSpaceViewDirection =      TransformWorldToViewDir(output.WorldSpaceViewDirection);
+        $SurfaceDescriptionInputs.ViewSpaceViewDirection:    output.ViewSpaceViewDirection =      normalize(input.positionRWS);
         $SurfaceDescriptionInputs.TangentSpaceViewDirection: float3x3 tangentSpaceTransform =     float3x3(output.WorldSpaceTangent,output.WorldSpaceBiTangent,output.WorldSpaceNormal);
         $SurfaceDescriptionInputs.TangentSpaceViewDirection: output.TangentSpaceViewDirection =   mul(tangentSpaceTransform, output.WorldSpaceViewDirection);
         $SurfaceDescriptionInputs.WorldSpacePosition:        output.WorldSpacePosition =          GetAbsolutePositionWS(input.positionRWS);

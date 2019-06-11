@@ -453,6 +453,19 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     }
                 }
 
+                // HACK: remove this in the future
+                var mat = camera.camera.GetComponent<CustomFullScreenPass>()?.fullscreenPassMaterial;
+                if (mat != null)
+                {
+                    using (new ProfilingSample(cmd, "Custom FullScreen Pass", CustomSamplerId.FinalPost.GetSampler()))
+                    {
+                        var destination = m_Pool.Get(Vector2.one, k_ColorFormat);
+                        camera.SetupGlobalParams(cmd, 0, 0, 0);
+                        cmd.DrawProcedural(Matrix4x4.identity, mat, 0, MeshTopology.Triangles, 3);
+                        PoolSource(ref source, destination);
+                    }
+                }
+
                 // TODO: User effects go here
 
                 if (dynResHandler.DynamicResolutionEnabled() &&     // Dynamic resolution is on.

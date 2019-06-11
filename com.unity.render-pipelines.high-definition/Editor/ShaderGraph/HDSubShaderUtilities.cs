@@ -17,6 +17,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         HDLitShader,    // For Lit, LayeredLit, LitTesselation, LayeredLitTesselation
         HDUnlitShader,  // Unlit
         Opaque,         // Used by Terrain
+        FullScreen,    // Used for custom fullscreen passes
     }
 
     static class HDRPShaderStructs
