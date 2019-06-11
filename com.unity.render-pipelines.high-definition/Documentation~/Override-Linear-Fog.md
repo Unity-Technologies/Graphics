@@ -6,7 +6,7 @@ The High Definition Render Pipeline (HDRP) provides a type of [fog](HDRP-Feature
 
 **Linear Fog** uses the [Volume](Volumes.html) framework, so to enable and modify **Linear  Fog** properties, you must add a **Linear Fog** override to a [Volume](Volumes.html) in your Scene. To add **Linear Fog** to a Volume:
 
-1. Select the Volume component in the Scene or Hierarchy to view it in the Inspector.
+1. In the Scene or Hierarchy view, select the GameObject that contains the Volume component to view it in the Inspector.
 2. In the Inspector, navigate to **Add Override > Fog** and click on **Linear Fog**.
 
 After you add a **Linear Fog** override, you must set the Volume to use **Linear Fog**. The [Visual Environment](Override-Visual-Environment.html) override controls which type of fog the Volume uses. In the **Visual Environment** override, navigate to the **Fog** section and set the **Type** to **Linear Fog**. HDRP now renders **Linear Fog** for any Camera this Volume affects.

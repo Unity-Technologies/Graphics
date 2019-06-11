@@ -1093,16 +1093,30 @@ namespace UnityEditor.VFX.UI
             return EventPropagation.Stop;
         }
 
-        public EventPropagation ReinitComponents()
+        IEnumerable<VisualEffect> GetActiveComponents()
         {
             if (attachedComponent != null)
-            {
-                attachedComponent.Reinit();
-            }
+                yield return attachedComponent;
             else
             {
                 foreach (var component in UnityEngine.Experimental.VFX.VFXManager.GetComponents())
-                    component.Reinit();
+                    yield return component;
+            }
+        }
+
+        public EventPropagation ReinitComponents()
+        {
+            foreach (var component in GetActiveComponents())
+                component.Reinit();
+            return EventPropagation.Stop;
+        }
+
+        public EventPropagation ReinitAndPlayComponents()
+        {
+            foreach (var component in GetActiveComponents())
+            {
+                component.Reinit();
+                component.Play();
             }
             return EventPropagation.Stop;
         }
