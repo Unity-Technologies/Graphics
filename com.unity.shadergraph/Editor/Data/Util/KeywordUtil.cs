@@ -94,19 +94,28 @@ namespace UnityEditor.ShaderGraph
         public static string GetKeywordPermutationString(List<KeyValuePair<ShaderKeyword, int>> permutation)
         {
             StringBuilder sb = new StringBuilder();
+            bool appendAndFromPrevious = false;
             for(int i = 0; i < permutation.Count; i++)
-            {
+            {                
                 if(permutation[i].Key.keywordType == ShaderKeywordType.Enum)
                 {
-                    sb.Append($"defined({permutation[i].Key.referenceName}_{permutation[i].Key.entries[permutation[i].Value].referenceName})");
-                    if(i != permutation.Count - 1)
+                    if(appendAndFromPrevious)
                         sb.Append(" && ");
+                    
+                    sb.Append($"defined({permutation[i].Key.referenceName}_{permutation[i].Key.entries[permutation[i].Value].referenceName})");
+                    appendAndFromPrevious = true;
                 }
                 else if(permutation[i].Value == 0)
                 {
-                    sb.Append($"defined({permutation[i].Key.referenceName}_ON)");
-                    if(i != permutation.Count - 1)
+                    if(appendAndFromPrevious)
                         sb.Append(" && ");
+                    
+                    sb.Append($"defined({permutation[i].Key.referenceName}_ON)");
+                    appendAndFromPrevious = true;
+                }
+                else
+                {
+                    appendAndFromPrevious = false;
                 }
             }
             return sb.ToString();
