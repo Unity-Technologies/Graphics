@@ -9,6 +9,8 @@ namespace UnityEngine.Experimental.Rendering
     {
         static readonly ShaderTagId s_EmptyName = new ShaderTagId("");
 
+        public static readonly RendererList nullRendererList = new RendererList();
+
         public bool                 isValid { get; private set; }
         public CullingResults       cullingResult;
         public DrawingSettings      drawSettings;

@@ -125,11 +125,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (!m_SSSReuseGBufferMemory)
             {
                 RTHandles.Release(m_SSSColor);
-                }
+            }
             RTHandles.Release(m_SSSColorMSAA);
             RTHandles.Release(m_SSSCameraFilteringBuffer);
             RTHandles.Release(m_SSSHTile);
-            }
+        }
 
         void UpdateCurrentDiffusionProfileSettings()
         {
