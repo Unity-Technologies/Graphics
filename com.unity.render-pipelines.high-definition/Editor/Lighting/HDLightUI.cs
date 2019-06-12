@@ -543,7 +543,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             EditorGUILayout.PropertyField(serialized.serializedLightData.affectSpecular, s_Styles.affectSpecular);
             if (serialized.editorLightShape != LightShape.Directional)
             {
-                EditorGUILayout.PropertyField(serialized.serializedLightData.applyRangeAttenuation, s_Styles.applyRangeAttenuation);
+                if ((SpotLightShape)serialized.serializedLightData.spotLightShape.enumValueIndex != SpotLightShape.Box)
+                    EditorGUILayout.PropertyField(serialized.serializedLightData.applyRangeAttenuation, s_Styles.applyRangeAttenuation);
                 EditorGUILayout.PropertyField(serialized.serializedLightData.fadeDistance, s_Styles.fadeDistance);
             }
             EditorGUILayout.PropertyField(serialized.serializedLightData.lightDimmer, s_Styles.lightDimmer);
