@@ -426,8 +426,6 @@ namespace UnityEditor.Rendering
                 rect.x += EditorGUIUtility.labelWidth - 1f - 15f * EditorGUI.indentLevel;
                 rect.width -= EditorGUIUtility.labelWidth - 1f - 15f * EditorGUI.indentLevel;
             }
-            
-            EditorGUI.BeginChangeCheck();
             DrawVector3(rect, k_DrawVector6_Label, positive, min, max, false, colors == null ? null : new Color[] { colors[0], colors[1], colors[2] }, multiplicator);
 
             GUILayout.Space(EditorGUIUtility.standardVerticalSpacing);

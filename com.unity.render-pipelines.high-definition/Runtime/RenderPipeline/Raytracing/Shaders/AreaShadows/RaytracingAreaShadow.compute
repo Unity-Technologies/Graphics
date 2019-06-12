@@ -167,10 +167,9 @@ void RaytracingAreaShadowPrepass(uint2 groupThreadId : SV_GroupThreadID, uint2 g
     }
 
     // Evaluate the lighting
-    float3 diffuseLighting = float3(0.0, 0.0, 0.0);
-    float3 specularLighting = float3(0.0, 0.0, 0.0);
-    float NdotL = saturate(dot(bsdfData.normalWS, misOutput.dir));
-    BSDF(viewWS, misOutput.dir, NdotL, positionWS, preLightData, bsdfData, diffuseLighting, specularLighting);
+    CBSDF cbsdf = EvaluateBSDF(viewWS, misOutput.dir, preLightData, bsdfData);
+    float3 diffuseLighting = cbsdf.diffR;
+    float3 specularLighting = cbsdf.specR;
 
     // Combine the light color with the light cookie color (if any)
     float3 lightColor = lightData.color;
@@ -184,7 +183,7 @@ void RaytracingAreaShadowPrepass(uint2 groupThreadId : SV_GroupThreadID, uint2 g
 
     // Compute the MIS weight
     float misPDF = lerp(misOutput.lightPDF, misOutput.brdfPDF, misInput.brdfProb);
-    float3 radiance = misPDF > 0.0 ? (diffuseLighting + specularLighting) * NdotL / misPDF : 0.0;
+    float3 radiance = misPDF > 0.0 ? (diffuseLighting + specularLighting) / misPDF : 0.0;
 
     // Accumulate
     float3 Un = radiance;
@@ -308,10 +307,9 @@ void RaytracingAreaShadowNewSample(uint2 groupThreadId : SV_GroupThreadID, uint2
     }
 
     // Evaluate the lighting
-    float3 diffuseLighting = float3(0.0, 0.0, 0.0);
-    float3 specularLighting = float3(0.0, 0.0, 0.0);
-    float NdotL = saturate(dot(bsdfData.normalWS, misOutput.dir));
-    BSDF(viewWS, misOutput.dir, NdotL, positionWS, preLightData, bsdfData, diffuseLighting, specularLighting);
+    CBSDF cbsdf = EvaluateBSDF(viewWS, misOutput.dir, preLightData, bsdfData);
+    float3 diffuseLighting = cbsdf.diffR;
+    float3 specularLighting = cbsdf.specR;
 
     // Combine the light color with the light cookie color (if any)
     float3 lightColor = lightData.color;
@@ -325,7 +323,7 @@ void RaytracingAreaShadowNewSample(uint2 groupThreadId : SV_GroupThreadID, uint2
 
     // Compute the MIS weight
     float misPDF = lerp(misOutput.lightPDF, misOutput.brdfPDF, misInput.brdfProb);
-    float3 radiance = misPDF > 0.0 ? (diffuseLighting + specularLighting) * NdotL / misPDF : 0.0;
+    float3 radiance = misPDF > 0.0 ? (diffuseLighting + specularLighting) / misPDF : 0.0;
 
     // Accumulate
     float3 Un = radiance;

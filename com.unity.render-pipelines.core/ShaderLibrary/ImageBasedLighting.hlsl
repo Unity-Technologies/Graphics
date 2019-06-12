@@ -422,7 +422,7 @@ uint GetIBLRuntimeFilterSampleCount(uint mipLevel)
     {
         case 1: sampleCount = 21; break;
         case 2: sampleCount = 34; break;
-#ifdef SHADER_API_MOBILE
+#if defined(SHADER_API_MOBILE) || defined(SHADER_API_SWITCH)
         case 3: sampleCount = 34; break;
         case 4: sampleCount = 34; break;
         case 5: sampleCount = 34; break;
@@ -599,7 +599,7 @@ real4 IntegrateLDCharlie(TEXTURECUBE_PARAM(tex, sampl),
 
         // We are in the supposition that N == V
         float LdotV, NdotH, LdotH, invLenLV;
-        GetBSDFAngle(V, L, NdotL, NdotV, LdotV, NdotH, LdotH, NdotV, invLenLV);
+        GetBSDFAngle(V, L, NdotL, NdotV, LdotV, NdotH, LdotH, invLenLV);
 
         // BRDF data
         real F = 1;

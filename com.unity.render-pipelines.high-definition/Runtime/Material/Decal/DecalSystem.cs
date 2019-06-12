@@ -269,7 +269,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         // to work on Vulkan Mobile?
         // Core\CoreRP\ShaderLibrary\UnityInstancing.hlsl
-        // #if defined(SHADER_API_VULKAN) && defined(SHADER_API_MOBILE)
+        // #if (defined(SHADER_API_VULKAN) && defined(SHADER_API_MOBILE)) || defined(SHADER_API_SWITCH)
         //      #define UNITY_INSTANCED_ARRAY_SIZE  250
         private const int kDrawIndexedBatchSize = 250;
 
