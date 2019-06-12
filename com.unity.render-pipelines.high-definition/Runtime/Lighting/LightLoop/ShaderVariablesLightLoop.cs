@@ -58,11 +58,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public int _EnvSliceSize;
         public uint _CookieSizePOT; // Cookie size = 1 << _CookieSizePOT
 
-        // Uniform variables that defines if we shall be using the shadow area texture or not
-        public int _RaytracedAreaShadow;
-
         // Uniform variables that defines if we shall be using the raytraced indirect diffuse
         public int _RaytracedIndirectDiffuse;
+
+        // Value that stores the size of the array
+        public uint _ScreenSpaceShadowArraySize;
     }
 }
 

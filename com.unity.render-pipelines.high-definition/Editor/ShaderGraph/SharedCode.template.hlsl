@@ -16,8 +16,10 @@
         $FragInputs.texCoord2:          output.texCoord2 = input.texCoord2;
         $FragInputs.texCoord3:          output.texCoord3 = input.texCoord3;
         $FragInputs.color:              output.color = input.color;
-        #if SHADER_STAGE_FRAGMENT
-        $FragInputs.isFrontFace:        output.isFrontFace = IS_FRONT_VFACE(input.cullFace, true, false);       // TODO: SHADER_STAGE_FRAGMENT only
+        #if _DOUBLESIDED_ON && SHADER_STAGE_FRAGMENT
+        output.isFrontFace = IS_FRONT_VFACE(input.cullFace, true, false);
+        #elif SHADER_STAGE_FRAGMENT
+        $FragInputs.isFrontFace:        output.isFrontFace = IS_FRONT_VFACE(input.cullFace, true, false);
         #endif // SHADER_STAGE_FRAGMENT
 
         return output;
