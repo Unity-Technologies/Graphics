@@ -75,7 +75,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         TPScreenSpaceShadows,
         TPTileSettingsEnableTileAndCluster,
         TPForwardPass,
-        TPForwardTiledClusterpass,
         TPDisplayShadows,
         TPRenderDeferredLighting,
 

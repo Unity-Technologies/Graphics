@@ -222,9 +222,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             switch (serialized.editorLightShape)
             {
                 case LightShape.Directional:
-                    // Sun disk.
-                    EditorGUILayout.Slider(serialized.serializedLightData.sunDiskSize, 0f, 45f, s_Styles.sunDiskSize);
-                    EditorGUILayout.Slider(serialized.serializedLightData.sunHaloSize, 0f, 1f, s_Styles.sunHaloSize);
                     EditorGUILayout.PropertyField(serialized.serializedLightData.maxSmoothness, s_Styles.maxSmoothness);
                     break;
 
@@ -631,7 +628,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     {
                         EditorGUILayout.Slider(serialized.serializedShadowData.viewBiasScale, 0.0f, 15.0f, s_Styles.viewBiasScale);
                     }
-
                 }
 
             }
@@ -675,7 +671,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
                 }
 
-                EditorGUILayout.Slider(serialized.serializedShadowData.shadowDimmer, 0.0f, 1.0f, s_Styles.shadowDimmer);
+                // Dimmer and Tint don't have effect on baked shadow
+                if (!serialized.settings.isCompletelyBaked)
+                {
+                    EditorGUILayout.Slider(serialized.serializedShadowData.shadowDimmer, 0.0f, 1.0f, s_Styles.shadowDimmer);
+                    EditorGUILayout.PropertyField(serialized.serializedShadowData.shadowTint, s_Styles.shadowTint);
+                }                
 
                 if (serialized.settings.lightType.enumValueIndex != (int)LightType.Directional)
                 {
