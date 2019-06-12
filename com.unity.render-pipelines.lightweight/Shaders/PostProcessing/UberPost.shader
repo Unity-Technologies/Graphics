@@ -162,7 +162,7 @@ Shader "Hidden/Lightweight Render Pipeline/UberPost"
                 UNITY_BRANCH
                 if (BloomRGBM > 0)
                 {
-                    bloom.xyz = half4(DecodeRGBM(bloom), 1.0);
+                    bloom.xyz = DecodeRGBM(bloom);
                 }
 
                 bloom.xyz *= BloomIntensity;
