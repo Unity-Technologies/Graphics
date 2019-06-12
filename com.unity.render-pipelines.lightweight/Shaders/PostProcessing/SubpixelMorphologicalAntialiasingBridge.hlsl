@@ -15,7 +15,7 @@
     #define SMAA_PRESET_HIGH
 #endif
 
-TEXTURE2D(_InputTexture);
+TEXTURE2D(_ColorTexture);
 TEXTURE2D(_BlendTexture);
 TEXTURE2D(_AreaTexture);
 TEXTURE2D(_SearchTexture);
@@ -57,7 +57,7 @@ VaryingsEdge VertEdge(Attributes input)
 
 float4 FragEdge(VaryingsEdge input) : SV_Target
 {
-    return float4(SMAAColorEdgeDetectionPS(input.uv, input.offsets, _InputTexture), 0.0, 0.0);
+    return float4(SMAAColorEdgeDetectionPS(input.uv, input.offsets, _ColorTexture), 0.0, 0.0);
 }
 
 // ----------------------------------------------------------------------------------------
@@ -82,7 +82,7 @@ VaryingsBlend VertBlend(Attributes input)
 
 float4 FragBlend(VaryingsBlend input) : SV_Target
 {
-    return SMAABlendingWeightCalculationPS(input.uv, input.pixcoord, input.offsets, _InputTexture, _AreaTexture, _SearchTexture, 0);
+    return SMAABlendingWeightCalculationPS(input.uv, input.pixcoord, input.offsets, _ColorTexture, _AreaTexture, _SearchTexture, 0);
 }
 
 // ----------------------------------------------------------------------------------------
@@ -106,7 +106,7 @@ VaryingsNeighbor VertNeighbor(Attributes input)
 
 float4 FragNeighbor(VaryingsNeighbor input) : SV_Target
 {
-    return SMAANeighborhoodBlendingPS(input.uv, input.offset, _InputTexture, _BlendTexture);
+    return SMAANeighborhoodBlendingPS(input.uv, input.offset, _ColorTexture, _BlendTexture);
 }
 
 #endif // LIGHTWEIGHT_POSTPROCESSING_SMAA_BRIDGE
