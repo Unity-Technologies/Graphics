@@ -91,6 +91,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         SharedRTManager m_SharedRTManager = null;
         BlueNoise m_BlueNoise = null;
 
+        // Denoisers
+        HDSimpleDenoiser m_SimpleDenoiser = new HDSimpleDenoiser();
+
         // Ray-count manager data
         RayCountManager m_RayCountManager = new RayCountManager();
         public RayCountManager rayCountManager { get { return m_RayCountManager; } }
@@ -122,6 +125,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 RegisterEnvironment(environmentArray[envIdx]);
             }
+
+            // Init the simple denoiser
+            m_SimpleDenoiser.Init(rayTracingResources, m_SharedRTManager);
 
             // Init the ray count manager
             m_RayCountManager.Init(rayTracingResources, currentDebugDisplaySettings);
@@ -158,6 +164,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             // Clear the sub-scenes list
             m_SubScenes.Clear();
+
+            m_SimpleDenoiser.Release();
+
             m_RayCountManager.Release();
         }
 
@@ -682,6 +691,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public BlueNoise GetBlueNoiseManager()
         {
             return m_BlueNoise;
+        }
+
+        public HDSimpleDenoiser GetSimpleDenoiser()
+        {
+            return m_SimpleDenoiser;
         }
 
         public HDRenderPipeline GetRenderPipeline()

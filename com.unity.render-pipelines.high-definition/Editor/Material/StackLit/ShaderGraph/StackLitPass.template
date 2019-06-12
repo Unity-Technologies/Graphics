@@ -217,6 +217,11 @@ Pass
     $VaryingsMeshToPS.cullFace:             #define VARYINGS_NEED_CULLFACE
     $features.modifyMesh:                   #define HAVE_MESH_MODIFICATION
 
+// We need isFontFace when using double sided
+#if defined(_DOUBLESIDED_ON) && !defined(VARYINGS_NEED_CULLFACE)
+    #define VARYINGS_NEED_CULLFACE
+#endif
+
     //-------------------------------------------------------------------------------------
     // End Defines
     //-------------------------------------------------------------------------------------

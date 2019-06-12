@@ -38,11 +38,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public SerializedProperty minFilterSize;
             public SerializedProperty areaLightCookie;   // We can't use default light cookies because the cookie gets reset by some safety measure on C++ side... :/
             public SerializedProperty areaLightShadowCone;
+            public SerializedProperty useScreenSpaceShadows;
 #if ENABLE_RAYTRACING
             public SerializedProperty useRayTracedShadows;
             public SerializedProperty numRayTracingSamples;
             public SerializedProperty filterTracedShadow;
             public SerializedProperty filterSizeTraced;
+            public SerializedProperty sunLightConeAngle;
 #endif
             public SerializedProperty evsmExponent;
             public SerializedProperty evsmLightLeakBias;
@@ -137,11 +139,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     minFilterSize = o.Find(x => x.minFilterSize),
                     areaLightCookie = o.Find(x => x.areaLightCookie),
                     areaLightShadowCone = o.Find(x => x.areaLightShadowCone),
+                    useScreenSpaceShadows = o.Find(x => x.useScreenSpaceShadows),
 #if ENABLE_RAYTRACING
                     useRayTracedShadows = o.Find(x => x.useRayTracedShadows),
                     numRayTracingSamples = o.Find(x => x.numRayTracingSamples),
                     filterTracedShadow = o.Find(x => x.filterTracedShadow),
                     filterSizeTraced = o.Find(x => x.filterSizeTraced),
+                    sunLightConeAngle = o.Find(x => x.sunLightConeAngle),
 #endif
                     evsmExponent = o.Find(x => x.evsmExponent),
                     evsmVarianceBias = o.Find(x => x.evsmVarianceBias),

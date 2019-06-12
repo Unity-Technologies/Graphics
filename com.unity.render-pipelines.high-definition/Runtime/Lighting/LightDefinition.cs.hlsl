@@ -61,6 +61,7 @@ struct DirectionalLightData
     int tileCookie;
     float3 up;
     int shadowIndex;
+    int screenSpaceShadowIndex;
     float3 color;
     int contactShadowMask;
     float3 shadowTint;
@@ -95,7 +96,7 @@ struct LightData
     int tileCookie;
     int shadowIndex;
     int contactShadowMask;
-    int rayTracedAreaShadowIndex;
+    int screenSpaceShadowIndex;
     float3 shadowTint;
     float shadowDimmer;
     float volumetricShadowDimmer;

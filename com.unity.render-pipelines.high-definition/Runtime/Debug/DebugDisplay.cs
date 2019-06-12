@@ -18,12 +18,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         ScreenSpaceReflections,
         ContactShadows,
         ContactShadowsFade,
+        ScreenSpaceShadows,
         PreRefractionColorPyramid,
         DepthPyramid,
         FinalColorPyramid,
+        
         // Raytracing
         LightCluster,
-        RaytracedAreaShadow,
         IndirectDiffuse,
         PrimaryVisibility,
         MaxLightingFullScreenDebug,
@@ -87,6 +88,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public DecalsDebugSettings decalsDebugSettings = new DecalsDebugSettings();
             public MSAASamples msaaSamples = MSAASamples.None;
 
+            public uint screenSpaceShadowIndex = 0;
             // Raytracing
 #if ENABLE_RAYTRACING
             public bool countRays = false;
@@ -339,7 +341,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             return (debugLighting == DebugLightingMode.DiffuseLighting || debugLighting == DebugLightingMode.SpecularLighting || debugLighting == DebugLightingMode.VisualizeCascade) ||
                 (data.lightingDebugSettings.overrideAlbedo || data.lightingDebugSettings.overrideNormal || data.lightingDebugSettings.overrideSmoothness || data.lightingDebugSettings.overrideSpecularColor || data.lightingDebugSettings.overrideEmissiveColor) ||
                 (debugGBuffer == DebugViewGbuffer.BakeDiffuseLightingWithAlbedoPlusEmissive) ||
-                (data.fullScreenDebugMode == FullScreenDebugMode.PreRefractionColorPyramid || data.fullScreenDebugMode == FullScreenDebugMode.FinalColorPyramid || data.fullScreenDebugMode == FullScreenDebugMode.ScreenSpaceReflections || data.fullScreenDebugMode == FullScreenDebugMode.LightCluster || data.fullScreenDebugMode == FullScreenDebugMode.RaytracedAreaShadow || data.fullScreenDebugMode == FullScreenDebugMode.NanTracker);
+                (data.fullScreenDebugMode == FullScreenDebugMode.PreRefractionColorPyramid || data.fullScreenDebugMode == FullScreenDebugMode.FinalColorPyramid || data.fullScreenDebugMode == FullScreenDebugMode.ScreenSpaceReflections || data.fullScreenDebugMode == FullScreenDebugMode.LightCluster || data.fullScreenDebugMode == FullScreenDebugMode.ScreenSpaceShadows || data.fullScreenDebugMode == FullScreenDebugMode.NanTracker);
         }
 
         void RegisterDisplayStatsDebug()
@@ -477,6 +479,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             list.Add(new DebugUI.EnumField { displayName = "Lighting Debug Mode", getter = () => (int)data.lightingDebugSettings.debugLightingMode, setter = value => SetDebugLightingMode((DebugLightingMode)value), autoEnum = typeof(DebugLightingMode), onValueChanged = RefreshLightingDebug, getIndex = () => data.lightingDebugModeEnumIndex, setIndex = value => data.lightingDebugModeEnumIndex = value });
             list.Add(new DebugUI.BitField { displayName = "Light Hierarchy Debug Mode", getter = () => data.lightingDebugSettings.debugLightFilterMode, setter = value => SetDebugLightFilterMode((DebugLightFilterMode)value), enumType = typeof(DebugLightFilterMode), onValueChanged = RefreshLightingDebug, });
             list.Add(new DebugUI.EnumField { displayName = "Fullscreen Debug Mode", getter = () => (int)data.fullScreenDebugMode, setter = value => SetFullScreenDebugMode((FullScreenDebugMode)value), enumNames = s_LightingFullScreenDebugStrings, enumValues = s_LightingFullScreenDebugValues, onValueChanged = RefreshLightingDebug, getIndex = () => data.lightingFulscreenDebugModeEnumIndex, setIndex = value => data.lightingFulscreenDebugModeEnumIndex = value });
+            
+            if (data.fullScreenDebugMode == FullScreenDebugMode.ScreenSpaceShadows)
+            {
+                list.Add(new DebugUI.UIntField { displayName = "Screen Space Shadow Index", getter = () => data.screenSpaceShadowIndex, setter = value => data.screenSpaceShadowIndex = value, min = () => 0u, max = () => (uint)(RenderPipelineManager.currentPipeline as HDRenderPipeline).GetMaxScreenSpaceShadows() });
+            }
+            
             switch (data.fullScreenDebugMode)
             {
                 case FullScreenDebugMode.PreRefractionColorPyramid:

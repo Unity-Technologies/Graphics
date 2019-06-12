@@ -1,9 +1,12 @@
 // Temporal Filtering kernels
-#pragma kernel AOApplyTAA
-#pragma kernel AOCopyHistory
+#pragma kernel TemporalAccumulation         TEMPORAL_ACCUMULATION=TemporalAccumulation          HISTORY_IS_ARRAY
+#pragma kernel TemporalAccumulationArray    TEMPORAL_ACCUMULATION=TemporalAccumulationArray
 
-#pragma kernel AOBilateralFilterH   AOBilateralFilter=AOBilateralFilterH
-#pragma kernel AOBilateralFilterV   AOBilateralFilter=AOBilateralFilterV  FINAL_PASS
+#pragma kernel CopyHistory                  COPY_HISTORY=CopyHistory
+#pragma kernel CopyHistoryArray             COPY_HISTORY=CopyHistoryArray HISTORY_IS_ARRAY
+
+#pragma kernel BilateralFilterH   BilateralFilter=BilateralFilterH
+#pragma kernel BilateralFilterV   BilateralFilter=BilateralFilterV  FINAL_PASS
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
@@ -14,22 +17,27 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/TemporalAntialiasing.hlsl"
 
 // Tile size of this compute
-#define AMBIENT_OCCLUSION_TILE_SIZE 8
+#define SPATIO_TEMPORAL_TILE_SIZE 8
 
-// Input filter DATA
 TEXTURE2D_X(_DepthTexture);
-TEXTURE2D_X(_AOHistorybuffer);
+
 TEXTURE2D_X(_DenoiseInputTexture);
-int _RaytracingDenoiseRadius;
+int _DenoiserFilterRadius;
 
-// Output Filter Data
+#ifdef HISTORY_IS_ARRAY
+int _HistorySlot;
+Texture2DArray<float4> _Historybuffer;
+RWTexture2DArray<float> _DenoiseOutputTextureRW;
+#else
+TEXTURE2D_X(_Historybuffer);
 RW_TEXTURE2D_X(float, _DenoiseOutputTextureRW);
+#endif
 
-[numthreads(AMBIENT_OCCLUSION_TILE_SIZE, AMBIENT_OCCLUSION_TILE_SIZE, 1)]
-void AOApplyTAA(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
+[numthreads(SPATIO_TEMPORAL_TILE_SIZE, SPATIO_TEMPORAL_TILE_SIZE, 1)]
+void TEMPORAL_ACCUMULATION(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
 {
     // Fetch the current pixel coordinate
-    uint2 centerCoord = groupId * AMBIENT_OCCLUSION_TILE_SIZE + groupThreadId;
+    uint2 centerCoord = groupId * SPATIO_TEMPORAL_TILE_SIZE + groupThreadId;
 
     float depth = LOAD_TEXTURE2D_X(_DepthTexture, centerCoord).r;
     PositionInputs posInputs = GetPositionInput(centerCoord, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
@@ -43,7 +51,12 @@ void AOApplyTAA(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_Group
     float2 uv = posInputs.positionNDC;
 
     float color = Fetch4(_DenoiseInputTexture, uv, 0.0, _RTHandleScale.xy).x;
-    float history = Fetch4(_AOHistorybuffer, posInputs.positionNDC - velocity, 0.0, _RTHandleScaleHistory.xy).x;
+    #ifdef HISTORY_IS_ARRAY
+    float history = Fetch4Array(_Historybuffer, _HistorySlot, posInputs.positionNDC - velocity, 0.0, _RTHandleScaleHistory.xy).x;
+    #else
+    float history = Fetch4(_Historybuffer, posInputs.positionNDC - velocity, 0.0, _RTHandleScaleHistory.xy).x;
+    #endif
+
     float topLeft = Fetch4(_DenoiseInputTexture, uv, -RADIUS, _RTHandleScale.xy).x;
     float bottomRight = Fetch4(_DenoiseInputTexture, uv, RADIUS, _RTHandleScale.xy).x;
 
@@ -82,15 +95,19 @@ void AOApplyTAA(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_Group
     _DenoiseOutputTextureRW[COORD_TEXTURE2D_X(centerCoord)] = color;
 }
 
-[numthreads(AMBIENT_OCCLUSION_TILE_SIZE, AMBIENT_OCCLUSION_TILE_SIZE, 1)]
-void AOCopyHistory(uint3 dispatchThreadId : SV_DispatchThreadID)
+[numthreads(SPATIO_TEMPORAL_TILE_SIZE, SPATIO_TEMPORAL_TILE_SIZE, 1)]
+void COPY_HISTORY(uint3 dispatchThreadId : SV_DispatchThreadID)
 {
     UNITY_STEREO_ASSIGN_COMPUTE_EYE_INDEX(dispatchThreadId.z);
 
     if (any(dispatchThreadId.xy > uint2(_ScreenSize.xy)))
         return;  // Out of bounds, discard
 
+    #ifdef HISTORY_IS_ARRAY
+    _DenoiseOutputTextureRW[uint3(dispatchThreadId.xy, _HistorySlot)] = _DenoiseInputTexture[COORD_TEXTURE2D_X(dispatchThreadId.xy)].x;
+    #else
     _DenoiseOutputTextureRW[COORD_TEXTURE2D_X(dispatchThreadId.xy)] = _DenoiseInputTexture[COORD_TEXTURE2D_X(dispatchThreadId.xy)].x;
+    #endif
 }
 
 // ----------------------------------------------------------------------------
@@ -185,13 +202,13 @@ float ComputeBilateralWeight(BilateralData center, BilateralData tap)
 }
 
 // Separated bilateral filter (two passes, each with 2*Radius taps)
-[numthreads(AMBIENT_OCCLUSION_TILE_SIZE, AMBIENT_OCCLUSION_TILE_SIZE, 1)]
-void AOBilateralFilter(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
+[numthreads(SPATIO_TEMPORAL_TILE_SIZE, SPATIO_TEMPORAL_TILE_SIZE, 1)]
+void BilateralFilter(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
 {
     // Fetch the current pixel coordinate
-    uint2 centerCoord = groupId * AMBIENT_OCCLUSION_TILE_SIZE + groupThreadId;
+    uint2 centerCoord = groupId * SPATIO_TEMPORAL_TILE_SIZE + groupThreadId;
 
-    float aoSum = 0.0;
+    float colorSum = 0.0;
     float wSum = 0.0;
 
     #if FINAL_PASS
@@ -200,8 +217,8 @@ void AOBilateralFilter(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : S
     const uint2 passIncr = uint2(0, 1);
     #endif
 
-    const float sigma = 0.5 * _RaytracingDenoiseRadius;
-    const int effectiveRadius = min(sigma * 2.0, _RaytracingDenoiseRadius);
+    const float sigma = 0.5 * _DenoiserFilterRadius;
+    const int effectiveRadius = min(sigma * 2.0, _DenoiserFilterRadius);
 
     const BilateralData center = TapBilateralData(centerCoord);
 
@@ -211,11 +228,11 @@ void AOBilateralFilter(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : S
         // Compute the weight (skip computation for the center)
         const float w = r ? gaussian(r, sigma) * ComputeBilateralWeight(center, TapBilateralData(tapCoord)) : 1.0;
 
-        aoSum += LOAD_TEXTURE2D_X(_DenoiseInputTexture, tapCoord).x * w;
+        colorSum += LOAD_TEXTURE2D_X(_DenoiseInputTexture, tapCoord).x * w;
         wSum += w;
     }
 
     // Store the intermediate result
-    float ao = aoSum / wSum;
+    float ao = colorSum / wSum;
     _DenoiseOutputTextureRW[COORD_TEXTURE2D_X(centerCoord)] = ao;
 }

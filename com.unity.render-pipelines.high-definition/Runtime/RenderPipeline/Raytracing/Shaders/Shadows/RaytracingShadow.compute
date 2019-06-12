@@ -1,5 +1,8 @@
 #pragma kernel RaytracingAreaShadowPrepass
 #pragma kernel RaytracingAreaShadowNewSample
+#pragma kernel RaytracingDirectionalShadowSample
+#pragma kernel ClearShadowTexture
+#pragma kernel OutputShadowTexture
 
 // Given that the algorithm requires BSDF evaluation, we need to define this macro
 #define HAS_LIGHTLOOP
@@ -26,13 +29,13 @@
 // Raytracing includes
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/ShaderVariablesRaytracing.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingSampling.hlsl"
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/AreaShadows/SphericalQuad.hlsl"
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/AreaShadows/RaytracingMIS.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/Shadows/SphericalQuad.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/Shadows/RaytracingMIS.hlsl"
 
 #pragma only_renderers d3d11
 
 // Tile size of this compute
-#define RAYTRACING_AREA_SHADOW_TILE_SIZE 8
+#define RAYTRACING_SHADOW_TILE_SIZE 8
 
 // The target acceleration structure that we will evaluate the reflexion in
 TEXTURE2D_X(_DepthTexture);
@@ -46,13 +49,14 @@ RW_TEXTURE2D_X(float2, _RaytracedAreaShadowSample);
 RW_TEXTURE2D_X(float2, _RaytracedAreaShadowIntegration);
 RW_TEXTURE2D_X(float4, _RaytracingDirectionBuffer);
 RW_TEXTURE2D_X(float, _RaytracingDistanceBuffer);
+RWTexture2DArray<float>     _ScreenSpaceShadowsTextureRW;
 
 // Prepass that evaluates the data required for the ray tracing
-[numthreads(RAYTRACING_AREA_SHADOW_TILE_SIZE, RAYTRACING_AREA_SHADOW_TILE_SIZE, 1)]
+[numthreads(RAYTRACING_SHADOW_TILE_SIZE, RAYTRACING_SHADOW_TILE_SIZE, 1)]
 void RaytracingAreaShadowPrepass(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
 {
     // Compute the pixel position to process
-    uint2 currentCoord = groupId * RAYTRACING_AREA_SHADOW_TILE_SIZE + groupThreadId;
+    uint2 currentCoord = groupId * RAYTRACING_SHADOW_TILE_SIZE + groupThreadId;
 
     // The value -1.0 is used to identify an invalid pixel
     _AnalyticProbBuffer[COORD_TEXTURE2D_X(currentCoord)] = float2(-1.0, -1.0);
@@ -214,11 +218,11 @@ void RaytracingAreaShadowPrepass(uint2 groupThreadId : SV_GroupThreadID, uint2 g
 }
 
 // Prepass that evaluates the data required for the ray tracing
-[numthreads(RAYTRACING_AREA_SHADOW_TILE_SIZE, RAYTRACING_AREA_SHADOW_TILE_SIZE, 1)]
+[numthreads(RAYTRACING_SHADOW_TILE_SIZE, RAYTRACING_SHADOW_TILE_SIZE, 1)]
 void RaytracingAreaShadowNewSample(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
 {
     // Compute the pixel position to process
-    uint2 currentCoord = groupId * RAYTRACING_AREA_SHADOW_TILE_SIZE + groupThreadId;
+    uint2 currentCoord = groupId * RAYTRACING_SHADOW_TILE_SIZE + groupThreadId;
 
     // Read the depth value
     float depthValue  = LOAD_TEXTURE2D_X(_DepthTexture, currentCoord).x;
@@ -350,4 +354,72 @@ void RaytracingAreaShadowNewSample(uint2 groupThreadId : SV_GroupThreadID, uint2
 
     _RaytracingDirectionBuffer[COORD_TEXTURE2D_X(currentCoord)] = float4(rayDirection, 1.0f);
     _RaytracingDistanceBuffer[COORD_TEXTURE2D_X(currentCoord)] = rayDistance;
+}
+
+RW_TEXTURE2D_X(float, _RaytracedDirectionalShadowIntegration);
+
+[numthreads(RAYTRACING_SHADOW_TILE_SIZE, RAYTRACING_SHADOW_TILE_SIZE, 1)]
+void ClearShadowTexture(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
+{
+    // Compute the pixel position to process
+    uint2 currentCoord = groupId * RAYTRACING_SHADOW_TILE_SIZE + groupThreadId;
+    _RaytracedDirectionalShadowIntegration[COORD_TEXTURE2D_X(currentCoord)] = 0.0;
+}
+
+float _DirectionalLightAngle;
+
+// Prepass that evaluates the data required for the ray tracing
+[numthreads(RAYTRACING_SHADOW_TILE_SIZE, RAYTRACING_SHADOW_TILE_SIZE, 1)]
+void RaytracingDirectionalShadowSample(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
+{
+    // Compute the pixel position to process
+    uint2 currentCoord = groupId * RAYTRACING_SHADOW_TILE_SIZE + groupThreadId;
+
+    // Read the depth value
+    float depthValue = LOAD_TEXTURE2D_X(_DepthTexture, currentCoord).x;
+    if (depthValue == UNITY_RAW_FAR_CLIP_VALUE)
+        return;
+
+    // Compute the position input structure
+    PositionInputs posInput = GetPositionInput(currentCoord, _ScreenSize.zw, depthValue, UNITY_MATRIX_I_VP, GetWorldToViewMatrix(), 0);
+
+    // Decode the world space normal
+    NormalData normalData;
+    DecodeFromNormalBuffer(currentCoord, normalData);
+
+    // Convert this to a world space position
+    float3 positionWS = GetAbsolutePositionWS(posInput.positionWS);
+
+    // Fetch the data of the area light
+    DirectionalLightData lightData = _DirectionalLightDatas[_DirectionalShadowIndex];
+
+    // Get the scramblingValue of this pixel
+    uint2 scramblingValue = ScramblingValue(currentCoord.x, currentCoord.y);
+
+    // Compute the current sample index
+    int globalSampleIndex = _RaytracingFrameIndex * _RaytracingNumSamples + _RaytracingSampleIndex;
+
+    // Generate the new sample (follwing values of the sequence)
+    float2 noiseValue = float2(0.0, 0.0);
+    noiseValue.x = GetRaytracingNoiseSample(globalSampleIndex, 0, scramblingValue.x);
+    noiseValue.y = GetRaytracingNoiseSample(globalSampleIndex, 1, scramblingValue.y);
+
+    // Create the local ortho basis
+    float3x3 localToWorld = GetLocalFrame(-lightData.forward);
+
+    float3 localDir = SampleConeUniform(noiseValue.x, noiseValue.y, cos(_DirectionalLightAngle * 3.14 / 180.0));
+
+    float3 wsDir = mul(localDir, localToWorld); 
+    // Output the direction to the target uav
+    _RaytracingDirectionBuffer[COORD_TEXTURE2D_X(currentCoord)] = float4(wsDir, 1.0f);
+}
+
+int _RaytracingShadowSlot;
+
+[numthreads(RAYTRACING_SHADOW_TILE_SIZE, RAYTRACING_SHADOW_TILE_SIZE, 1)]
+void OutputShadowTexture(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
+{
+    // Compute the pixel position to process
+    uint2 currentCoord = groupId * RAYTRACING_SHADOW_TILE_SIZE + groupThreadId;
+    _ScreenSpaceShadowsTextureRW[uint3(currentCoord, _RaytracingShadowSlot)] = _RaytracedDirectionalShadowIntegration[COORD_TEXTURE2D_X(currentCoord)].x / (float) _RaytracingNumSamples;
 }
