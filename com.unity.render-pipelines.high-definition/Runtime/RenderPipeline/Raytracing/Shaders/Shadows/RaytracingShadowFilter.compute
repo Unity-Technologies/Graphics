@@ -36,7 +36,7 @@ RW_TEXTURE2D_X(float4, _DenoiseOutputTextureRW);
 TEXTURE2D_X(_AnalyticProbBuffer);
 
 // Output buffers
-RWTexture2DArray<float>     _AreaShadowTextureRW;
+RWTexture2DArray<float>     _ScreenSpaceShadowsTextureRW;
 RWTexture2DArray<float>     _AnalyticHistoryBuffer;
 Texture2DArray              _AreaShadowHistory;
 RWTexture2DArray<float2>    _AreaShadowHistoryRW;
@@ -412,7 +412,7 @@ void AREA_SHADOW_DENOISE(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId :
     {
         #if FINAL_PASS
         // Return the final ratio
-        _AreaShadowTextureRW[uint3(centerCoord, _RaytracingShadowSlot)] = 0.0;
+        _ScreenSpaceShadowsTextureRW[uint3(centerCoord, _RaytracingShadowSlot)] = 0.0;
         #else
         // Store the intermediate result
         _DenoiseOutputTextureRW[COORD_TEXTURE2D_X(centerCoord)] = float4(0.0, 0.0, -1.0, noiseEstimate);
@@ -431,7 +431,7 @@ void AREA_SHADOW_DENOISE(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId :
 
     #if FINAL_PASS
     // Return the final ratio
-    _AreaShadowTextureRW[uint3(centerCoord, _RaytracingShadowSlot)] = (wSum > 0.0 && SU.y / wSum > 0.0) ? saturate(SU.x / SU.y) : 1.0;
+    _ScreenSpaceShadowsTextureRW[uint3(centerCoord, _RaytracingShadowSlot)] = (wSum > 0.0 && SU.y / wSum > 0.0) ? saturate(SU.x / SU.y) : 1.0;
     #else
     // Store the intermediate result
     _DenoiseOutputTextureRW[COORD_TEXTURE2D_X(centerCoord)] = float4(SU / wSum, LOAD_TEXTURE2D_X(_DenoiseInputTexture, centerCoord).z, noiseEstimate);
@@ -446,6 +446,6 @@ void WriteShadowTextureDebug(uint2 groupThreadId : SV_GroupThreadID, uint2 group
     uint2 centerCoord = groupId * AREA_BILLATERAL_TILE_SIZE + groupThreadId;
 
     // Store the intermediate result
-    float shadowValue = _AreaShadowTextureRW[uint3(centerCoord, _RaytracingShadowSlot)];
+    float shadowValue = _ScreenSpaceShadowsTextureRW[uint3(centerCoord, _RaytracingShadowSlot)];
     _DenoiseOutputTextureRW[COORD_TEXTURE2D_X(centerCoord)] = float4(shadowValue, shadowValue, shadowValue, 1.0);
 }

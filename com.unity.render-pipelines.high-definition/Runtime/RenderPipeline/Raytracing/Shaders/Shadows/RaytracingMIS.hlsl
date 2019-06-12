@@ -1,6 +1,5 @@
-
 // Matrix used to move the samples from world space to local area light space in order to get the UV mapping values
-float4x4 _RaytracingAreaWorldToLocal;
+float4x4 _RaytracingLightWorldToLocal;
 
 struct MISSamplingInput
 {
@@ -116,7 +115,7 @@ bool GenerateMISSample(inout MISSamplingInput misInput, SphQuad squad, float3 vi
 
             // The next question is: This the sample point inside the triangle? To do that for the moment we move it to the local space of the light and see if its distance to the center of the light
             // is coherent with the dimensions of the light
-            float4 lsPoint = mul(_RaytracingAreaWorldToLocal, float4(misSamplingOutput.pos, 1.0)) * 2.0;
+            float4 lsPoint = mul(_RaytracingLightWorldToLocal, float4(misSamplingOutput.pos, 1.0)) * 2.0;
             validity = abs(lsPoint.x) < misInput.rectDimension.x && abs(lsPoint.y) < misInput.rectDimension.y;
             if (validity)
             {
@@ -138,7 +137,7 @@ bool GenerateMISSample(inout MISSamplingInput misInput, SphQuad squad, float3 vi
         // Compute the Light PDF
         misSamplingOutput.lightPDF = 1.0f / squad.S;
         // Compute the uv on the light
-        float4 lsPoint = mul(_RaytracingAreaWorldToLocal, float4(misSamplingOutput.pos, 1.0)) * 2.0;
+        float4 lsPoint = mul(_RaytracingLightWorldToLocal, float4(misSamplingOutput.pos, 1.0)) * 2.0;
         misSamplingOutput.sampleUV = float2((lsPoint.x + misInput.rectDimension.x) / (2.0 * misInput.rectDimension.x), (lsPoint.y + misInput.rectDimension.y) /  (2.0 * misInput.rectDimension.y));
     }
     return validity;

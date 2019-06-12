@@ -14,6 +14,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - You can now control ZTest, ZWrite, and CullMode for transparent Materials.
 - Materials that use Unlit Shaders or Unlit Master Node Shaders now cast shadows.
 - Added an option to enable the ztest on **After Post Process** materials when TAA is disabled.
+- Added a new SSAO (based on Ground Truth Ambient Occlusion algorithm) to replace the previous one. 
+- Added support for shadow tint on light
 
 ### Fixed
 - The correct preview is displayed when selecting multiple `PlanarReflectionProbe`s
@@ -43,6 +45,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Refactor the HDRenderPipeline and lightloop code to preprare for high level rendergraph
 - Removed the **Back Then Front Rendering** option in the fabric Master Node settings. Enabling this option previously did nothing.
 - Shader type Real translates to FP16 precision on Nintendo Switch.
+- Shader framework refactor: Introduce CBSDF, EvaluateBSDF, IsNonZeroBSDF to replace BSDF functions
+- Shader framework refactor:  GetBSDFAngles, LightEvaluation and SurfaceShading functions
+- Replace ComputeMicroShadowing by GetAmbientOcclusionForMicroShadowing
+- Rename WorldToTangent to TangentToWorld as it was incorrectly named
+- Remove SunDisk and Sun Halo size from directional light
+
 
 ## [6.7.0-preview] - 2019-05-21
 
