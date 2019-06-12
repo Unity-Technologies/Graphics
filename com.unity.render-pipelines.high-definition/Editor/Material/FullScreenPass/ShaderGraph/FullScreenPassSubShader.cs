@@ -74,7 +74,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 // Add tags at the SubShader level
                 int queue = (int)HDRenderQueue.Priority.Overlay;
-                HDSubShaderUtilities.AddTags(subShader, HDRenderPipeline.k_ShaderTagName, HDRenderTypeTags.PostProcess, queue);
+                HDSubShaderUtilities.AddTags(subShader, HDRenderPipeline.k_ShaderTagName, HDRenderTypeTags.FullScreen, queue);
 
                 // Assign define here based on opaque or transparent to save some variant
                 GenerateShaderPass(masterNode, m_FullScreenPassPass, mode, subShader, sourceAssetDependencyPaths);

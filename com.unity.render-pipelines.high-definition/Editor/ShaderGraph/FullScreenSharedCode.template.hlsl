@@ -1,3 +1,4 @@
+// TODO: this might actually not be needed
 // Fullscreen version of the SharedCode.template.hlsl, it contains adjusted surface description inputs for fullscreen passes
 
     FragInputs BuildFragInputs(VaryingsMeshToPS input)
@@ -21,9 +22,9 @@
         #if SHADER_STAGE_FRAGMENT
         $FragInputs.isFrontFace:        output.isFrontFace = IS_FRONT_VFACE(input.cullFace, true, false);
         #endif // SHADER_STAGE_FRAGMENT
-        
-        output.positionRWS = input.positionCS;
 
+        // $FragInputs.positionRWS:        output.positionRWS = float3(input.texCoord0.xy, -1);
+        
         return output;
     }
 
@@ -48,7 +49,7 @@
         $SurfaceDescriptionInputs.TangentSpaceBiTangent:     output.TangentSpaceBiTangent =       float3(0.0f, 1.0f, 0.0f);
         $SurfaceDescriptionInputs.WorldSpaceViewDirection:   output.WorldSpaceViewDirection =     normalize(viewWS);
         $SurfaceDescriptionInputs.ObjectSpaceViewDirection:  output.ObjectSpaceViewDirection =    TransformWorldToObjectDir(output.WorldSpaceViewDirection);
-        $SurfaceDescriptionInputs.ViewSpaceViewDirection:    output.ViewSpaceViewDirection =      normalize(input.positionRWS);
+        $SurfaceDescriptionInputs.ViewSpaceViewDirection:    output.ViewSpaceViewDirection =      TransformWorldToViewDir(output.WorldSpaceViewDirection);
         $SurfaceDescriptionInputs.TangentSpaceViewDirection: float3x3 tangentSpaceTransform =     float3x3(output.WorldSpaceTangent,output.WorldSpaceBiTangent,output.WorldSpaceNormal);
         $SurfaceDescriptionInputs.TangentSpaceViewDirection: output.TangentSpaceViewDirection =   mul(tangentSpaceTransform, output.WorldSpaceViewDirection);
         $SurfaceDescriptionInputs.WorldSpacePosition:        output.WorldSpacePosition =          GetAbsolutePositionWS(input.positionRWS);
@@ -70,6 +71,6 @@
     FragInputs UnpackVaryingsMeshToFragInputs(PackedVaryingsMeshToPS input)
     {
         UNITY_SETUP_INSTANCE_ID(input);
-        VaryingsMeshToPS unpacked= UnpackVaryingsMeshToPS(input);
+        VaryingsMeshToPS unpacked = UnpackVaryingsMeshToPS(input);
         return BuildFragInputs(unpacked);
     }

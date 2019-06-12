@@ -342,6 +342,26 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 {
                     // TODO: Do we want user effects before post?
 
+                    // HACK: remove this in the future
+                    var mat = camera.camera.GetComponent<CustomFullScreenPass>()?.fullscreenPassMaterial;
+                    if (mat != null)
+                    {
+                        using (new ProfilingSample(cmd, "Custom FullScreen Pass", CustomSamplerId.FinalPost.GetSampler()))
+                        {
+                            var destination = m_Pool.Get(Vector2.one, k_ColorFormat);
+                            int w = camera.actualWidth;
+                            int h = camera.actualHeight;
+
+                            camera.SetupGlobalParams(cmd, 0, 0, 0);
+                            cmd.SetRenderTarget(destination);
+                            cmd.SetViewport(new Rect(0, 0, w, h));
+                            var t = camera.camera.transform;
+                            var trs = Matrix4x4.TRS(t.position, t.rotation, Vector3.one);
+                            cmd.DrawProcedural(trs, mat, 0, MeshTopology.Triangles, 3, 1, null);
+                            PoolSource(ref source, destination);
+                        }
+                    }
+
                     // Temporal anti-aliasing goes first
                     bool taaEnabled = camera.antialiasing == AntialiasingMode.TemporalAntialiasing;
 
@@ -449,19 +469,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         if (bloomActive) m_Pool.Recycle(m_BloomTexture);
                         m_BloomTexture = null;
 
-                        PoolSource(ref source, destination);
-                    }
-                }
-
-                // HACK: remove this in the future
-                var mat = camera.camera.GetComponent<CustomFullScreenPass>()?.fullscreenPassMaterial;
-                if (mat != null)
-                {
-                    using (new ProfilingSample(cmd, "Custom FullScreen Pass", CustomSamplerId.FinalPost.GetSampler()))
-                    {
-                        var destination = m_Pool.Get(Vector2.one, k_ColorFormat);
-                        camera.SetupGlobalParams(cmd, 0, 0, 0);
-                        cmd.DrawProcedural(Matrix4x4.identity, mat, 0, MeshTopology.Triangles, 3);
                         PoolSource(ref source, destination);
                     }
                 }

@@ -93,9 +93,10 @@ $include("FullScreenSharedCode.template.hlsl")
         VaryingsType varyingsType;
         varyingsType.vmesh = VertMesh(inputMesh);
 
-        // Override inputs to draw a fullscreen quad:
+        // Patch datas for full screen quads
         varyingsType.vmesh.positionCS = GetFullScreenTriangleVertexPosition(vertexID);
-$AttributesMesh.uv0: varyingsType.vmesh.texCoord0.xy = GetNormalizedFullScreenTriangleTexCoord(vertexID);
+        $VaryingsMeshToPS.positionRWS: varyingsType.vmesh.positionRWS = TransformObjectToWorld(varyingsType.vmesh.positionCS); // float3(0, 0, 0); // TODO
+        $AttributesMesh.uv0: varyingsType.vmesh.texCoord0.xy = GetFullScreenTriangleTexCoord(vertexID);
 
         return PackVaryingsType(varyingsType);
     }
@@ -108,14 +109,17 @@ $ModifyDepth:   , out float outputDepth : SV_Depth
         UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(packedInput);
         FragInputs input = UnpackVaryingsMeshToFragInputs(packedInput.vmesh);
 
-        // Avoid division by 0
-        float3 V = float3(1.0, 1.0, 1.0);
+        // View direction:
+        // float3 V = float3(1.0, 1.0, 1.0);
+        float3 V = GetWorldSpaceNormalizeViewDir(input.positionRWS);
 
         SurfaceDescriptionInputs surfaceDescriptionInputs = FragInputsToSurfaceDescriptionInputs(input, V);
         SurfaceDescription surfaceDescription = SurfaceDescriptionFunction(surfaceDescriptionInputs);
 
         outputColor = float4(surfaceDescription.Color, 1.0);
         $ModifyDepth: outputDepth = surfaceDescription.Depth;
+
+        // outputColor = float4(V, 1);
     }
 
     ENDHLSL

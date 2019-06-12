@@ -75,13 +75,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         public override string documentationURL
         {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/HD-Post-Processing-Node"; }
+            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/HD-FullScreen-Pass-Node"; }
         }
         
         public sealed override void UpdateNodeAfterDeserialization()
         {
             base.UpdateNodeAfterDeserialization();
-            name = "Post Processing Master";
+            name = "FullScreen Pass Master";
 
             List<int> validSlots = new List<int>();
             if (MaterialTypeUsesSlotMask(SlotMask.Color))
