@@ -328,6 +328,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 using (new EditorGUI.DisabledGroupScope(true))
                     EditorGUILayout.LabelField(k_MultipleDifferenteValueMessage);
             }
+
+            EditorGUILayout.LabelField(k_ScreenSpaceShadowsTitle);
+            ++EditorGUI.indentLevel;
+            EditorGUILayout.PropertyField(serialized.renderPipelineSettings.hdShadowInitParams.supportScreenSpaceShadows, k_SupportScreenSpaceShadows);
+            using (new EditorGUI.DisabledGroupScope(!serialized.renderPipelineSettings.hdShadowInitParams.supportScreenSpaceShadows.boolValue))
+                EditorGUILayout.PropertyField(serialized.renderPipelineSettings.hdShadowInitParams.maxScreenSpaceShadows, k_MaxScreenSpaceShadows);
+            --EditorGUI.indentLevel;
         }
 
         static void Drawer_SectionDecalSettings(SerializedHDRenderPipelineAsset serialized, Editor owner)

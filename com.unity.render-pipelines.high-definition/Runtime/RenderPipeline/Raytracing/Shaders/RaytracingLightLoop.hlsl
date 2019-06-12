@@ -87,7 +87,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
             IsNonZeroBSDF(V, L, preLightData, bsdfData) &&
             !ShouldEvaluateThickObjectTransmission(V, L, preLightData, bsdfData, light.shadowIndex))
         {
-            context.shadowValue = GetDirectionalShadowAttenuation(lightLoopContext.shadowContext,
+            context.shadowValue = GetDirectionalShadowAttenuation(context.shadowContext,
                                                                   posInput.positionSS, posInput.positionWS, GetNormalForShadowBias(bsdfData),
                                                                   light.shadowIndex, L);
         }

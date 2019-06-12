@@ -541,7 +541,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 lightData.contactShadowMask = 0;
                 lightData.cookieIndex = -1;
                 lightData.shadowIndex = -1;
-                lightData.rayTracedAreaShadowIndex = -1;
+                lightData.screenSpaceShadowIndex = -1;
 
                 if (light != null && light.cookie != null)
                 {

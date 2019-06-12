@@ -113,7 +113,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         Shadow = 20,
         [FrameSettingsField(1, autoName: ContactShadows)]
         ContactShadows = 21,
-        [FrameSettingsField(1, autoName: ShadowMask)]
+        [FrameSettingsField(1, autoName: ScreenSpaceShadows, customOrderInGroup: 22)]
+        ScreenSpaceShadows = 34,
+        [FrameSettingsField(1, autoName: ShadowMask, customOrderInGroup: 23)]
         ShadowMask = 22,
         [FrameSettingsField(1, autoName: SSR)]
         SSR = 23,
@@ -441,6 +443,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             sanitazedFrameSettings.bitDatas[(int)FrameSettingsField.Shadow] &= !preview;
             sanitazedFrameSettings.bitDatas[(int)FrameSettingsField.ShadowMask] &= renderPipelineSettings.supportShadowMask && !preview;
             sanitazedFrameSettings.bitDatas[(int)FrameSettingsField.ContactShadows] &= !preview;
+            sanitazedFrameSettings.bitDatas[(int)FrameSettingsField.ScreenSpaceShadows] &= renderPipelineSettings.hdShadowInitParams.supportScreenSpaceShadows;
 
             //MSAA only supported in forward
             // TODO: The work will be implemented piecemeal to support all passes
