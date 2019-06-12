@@ -128,10 +128,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // Used internally to convert any light unit input into light intensity
         public LightUnit lightUnit = LightUnit.Lumen;
 
-        // Directional light only.
-        public float sunDiskSize = 1.0f;
-        public float sunHaloSize = 0.1f;
-
         // Not used for directional lights.
         public float fadeDistance = 10000.0f;
 
