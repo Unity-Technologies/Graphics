@@ -274,8 +274,10 @@ namespace UnityEngine.Rendering.LWRP
                 if (bloomActive)
                     cmd.ReleaseTemporaryRT(ShaderConstants._BloomMipUp[0]);
 
-                if (destination != -1)
+                if (source == m_Source.id && destination != -1)
                     cmd.ReleaseTemporaryRT(destination);
+                else if (destination != -1)
+                    cmd.ReleaseTemporaryRT(source);
             }
         }
 
