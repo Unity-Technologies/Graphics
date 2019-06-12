@@ -50,7 +50,7 @@
 #endif
 
     TEXTURE2D_X(            _SsrClearCoatMaskTexture);
-    StructuredBuffer<int2>  _SsrDepthPyramidMipLevelOffsets;
+    StructuredBuffer<int2>  _DepthPyramidMipLevelOffsets;
 
 CBUFFER_START(UnityScreenSpaceReflections)
     int   _SsrStencilExclusionValue;
@@ -214,7 +214,7 @@ void ScreenSpaceReflectionsTracing(uint3 dispatchThreadId : SV_DispatchThreadID)
         rayPos.xy += raySign.xy * satEdgeDist;
 
         int2 mipCoord  = (int2)rayPos.xy >> mipLevel;
-        int2 mipOffset = _SsrDepthPyramidMipLevelOffsets[mipLevel];
+        int2 mipOffset = _DepthPyramidMipLevelOffsets[mipLevel];
         // Bounds define 4 faces of a cube:
         // 2 walls in front of the ray, and a floor and a base below it.
         float4 bounds;

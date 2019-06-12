@@ -1768,7 +1768,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 if (hdCamera.frameSettings.SSAORunsAsync())
                 {
-                    void AsyncSSAODispatch(CommandBuffer asyncCmd) => m_AmbientOcclusionSystem.Dispatch(asyncCmd, hdCamera, m_SharedRTManager);
+                    void AsyncSSAODispatch(CommandBuffer asyncCmd) => m_AmbientOcclusionSystem.Dispatch(asyncCmd, hdCamera, m_SharedRTManager, m_FrameCount);
                     SSAOTask.Start(cmd, renderContext, AsyncSSAODispatch, !haveAsyncTaskWithShadows);
                     haveAsyncTaskWithShadows = true;
                 }
@@ -1965,8 +1965,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
 
 
-            // At this point, m_CameraColorBuffer has been filled by either debug views are regular rendering so we can push it here.
-            PushColorPickerDebugTexture(cmd, hdCamera, m_CameraColorBuffer);
+                // At this point, m_CameraColorBuffer has been filled by either debug views are regular rendering so we can push it here.
+                PushColorPickerDebugTexture(cmd, hdCamera, m_CameraColorBuffer);
 
                 aovRequest.PushCameraTexture(cmd, AOVBuffers.Color, hdCamera, m_CameraColorBuffer, aovBuffers);
             RenderPostProcess(cullingResults, hdCamera, target.id, renderContext, cmd);
@@ -3154,7 +3154,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._SsrHitPointTexture, m_SsrHitPointTexture);
                     cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._StencilTexture, m_SharedRTManager.GetStencilBufferCopy());
 
-                    cmd.SetComputeBufferParam(cs, kernel, HDShaderIDs._SsrDepthPyramidMipOffsets, info.GetOffsetBufferData(m_DepthPyramidMipLevelOffsetsBuffer));
+                    cmd.SetComputeBufferParam(cs, kernel, HDShaderIDs._DepthPyramidMipLevelOffsets, info.GetOffsetBufferData(m_DepthPyramidMipLevelOffsetsBuffer));
 
                     cmd.DispatchCompute(cs, kernel, HDUtils.DivRoundUp(w, 8), HDUtils.DivRoundUp(h, 8), hdCamera.viewCount);
                 }

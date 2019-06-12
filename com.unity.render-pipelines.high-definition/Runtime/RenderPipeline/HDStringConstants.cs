@@ -357,9 +357,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly int _SsrLightingTextureRW              = Shader.PropertyToID("_SsrLightingTextureRW");
         public static readonly int _SsrHitPointTexture                = Shader.PropertyToID("_SsrHitPointTexture");
         public static readonly int _SsrClearCoatMaskTexture           = Shader.PropertyToID("_SsrClearCoatMaskTexture");
-        public static readonly int _SsrDepthPyramidMipOffsets         = Shader.PropertyToID("_SsrDepthPyramidMipLevelOffsets");
         public static readonly int _SsrStencilExclusionValue          = Shader.PropertyToID("_SsrStencilExclusionValue");
         public static readonly int _SsrReflectsSky                    = Shader.PropertyToID("_SsrReflectsSky");
+
+        public static readonly int _DepthPyramidMipLevelOffsets       = Shader.PropertyToID("_DepthPyramidMipLevelOffsets");
 
 
         public static readonly int _ShadowMaskTexture = Shader.PropertyToID("_ShadowMaskTexture");
@@ -708,6 +709,19 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public static readonly int _LowResDepthTexture             = Shader.PropertyToID("_LowResDepthTexture");
         public static readonly int _LowResTransparent              = Shader.PropertyToID("_LowResTransparent");
+
+        public static readonly int _AOBufferSize                   = Shader.PropertyToID("_AOBufferSize");
+        public static readonly int _AOParams0                      = Shader.PropertyToID("_AOParams0");
+        public static readonly int _AOParams1                      = Shader.PropertyToID("_AOParams1");
+        public static readonly int _AOParams2                      = Shader.PropertyToID("_AOParams2");
+        public static readonly int _AOParams3                      = Shader.PropertyToID("_AOParams3");
+        public static readonly int _OcclusionTexture               = Shader.PropertyToID("_OcclusionTexture");
+        public static readonly int _BentNormalsTexture             = Shader.PropertyToID("_BentNormalsTexture");
+        public static readonly int _AOPackedData                   = Shader.PropertyToID("_AOPackedData");
+        public static readonly int _AOPackedHistory                = Shader.PropertyToID("_AOPackedHistory");
+        public static readonly int _AODepthToViewParams            = Shader.PropertyToID("_AODepthToViewParams");
+        public static readonly int _AOPackedBlurred                = Shader.PropertyToID("_AOPackedBlurred");
+        public static readonly int _AOOutputHistory                = Shader.PropertyToID("_AOOutputHistory");
     }
 
     // Shared material property names
