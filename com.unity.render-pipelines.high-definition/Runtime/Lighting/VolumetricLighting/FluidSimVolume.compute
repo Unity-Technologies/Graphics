@@ -5,6 +5,9 @@
 
 #define TILE_SIZE 4
 
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+
 Texture3D<float4> _InputVolumeTexture;
 RWTexture3D<float4> _OutputVolumeTexture;
 
@@ -17,14 +20,51 @@ void Simulate(uint3 id : SV_DispatchThreadID)
     uint _VolumeSize = 32;
     uint sizeHalf = _VolumeSize >> 1;
 
+    float volumeSize = (float)_VolumeSize;
+
     float3 vf = (float3)id.xyz - (float)sizeHalf;
-    vf = float3(vf.y / vf.z, -vf.x / vf.z, 0.0);
-    //vf = saturate(vf);
+    vf = float3(vf.y / vf.z, -vf.x / vf.z, 0.0) * 0.00001;
 
     int3 src = id.xyz;
     int3 dst = id.xyz;
-    dst = dst + vf;
 
-    _OutputVolumeTexture[src] = _InputVolumeTexture[dst];
+    float3 srcFloat = (float3)id.xyz + vf;
+
+    float3 inputUVW = srcFloat / volumeSize;
+    float3 input = SAMPLE_TEXTURE3D_LOD(_InputVolumeTexture, s_linear_clamp_sampler, inputUVW, 0).rgb;
+
+    _OutputVolumeTexture[dst] = float4(input, 0.0);
+
+#if 0
+    float3 weight0 = vf - floor(vf);
+    float3 weight1 = 1.0 - weight0;
+
+    float3 output000 = input * weight0.x;
+    float3 output001 = input * weight1.x;
+    float3 output010 = input * weight1.y;
+    float3 output011 = input * weight1.y;
+    float3 output100 = input * float3(weight0.x, weight0.y, weight1.z);
+    float3 output101 = input * float3(weight1.x, weight0.y, weight1.z);
+    float3 output110 = input * float3(weight0.x, weight1.y, weight1.z);
+    float3 output111 = input * weight1;
+
+    int3 dst000 = dst;
+    int3 dst001 = dst + int3(0, 0, 1);
+    int3 dst010 = dst + int3(0, 1, 0);
+    int3 dst011 = dst + int3(0, 1, 1);
+    int3 dst100 = dst + int3(1, 0, 0);
+    int3 dst101 = dst + int3(1, 0, 1);
+    int3 dst110 = dst + int3(1, 1, 0);
+    int3 dst111 = dst + int3(1, 1, 1);
+
+    _OutputVolumeTexture[dst000] = float4(output000, 1.0);
+    _OutputVolumeTexture[dst001] = float4(output001, 1.0);
+    _OutputVolumeTexture[dst010] = float4(output010, 1.0);
+    _OutputVolumeTexture[dst011] = float4(output011, 1.0);
+    _OutputVolumeTexture[dst100] = float4(output100, 1.0);
+    _OutputVolumeTexture[dst101] = float4(output101, 1.0);
+    _OutputVolumeTexture[dst110] = float4(output110, 1.0);
+    _OutputVolumeTexture[dst111] = float4(output111, 1.0);
+#endif
 #endif
 }
