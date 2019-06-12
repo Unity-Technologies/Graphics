@@ -276,7 +276,7 @@ namespace UnityEngine.Rendering.LWRP
 
                 if (source == m_Source.id && destination != -1)
                     cmd.ReleaseTemporaryRT(destination);
-                else if (destination != -1)
+                else if (source != -1)
                     cmd.ReleaseTemporaryRT(source);
             }
         }
