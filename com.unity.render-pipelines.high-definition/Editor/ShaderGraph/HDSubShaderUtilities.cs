@@ -1082,13 +1082,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         public static void AddDoubleSidedProperty(PropertyCollector collector, DoubleSidedMode mode = DoubleSidedMode.Enabled)
         {
+            var normalMode = ConvertDoubleSidedModeToDoubleSidedNormalMode(mode);
             collector.AddToggleProperty("_DoubleSidedEnable", mode != DoubleSidedMode.Disabled);
             collector.AddShaderProperty(new Vector1ShaderProperty{
                 enumNames = {"Flip", "Mirror", "None"}, // values will be 0, 1 and 2
                 floatType = FloatType.Enum,
                 overrideReferenceName = "_DoubleSidedNormalMode",
                 hidden = true,
-                value = (int)mode
+                value = (int)normalMode
             });
             collector.AddShaderProperty(new Vector4ShaderProperty{
                 overrideReferenceName = "_DoubleSidedConstants",
@@ -1164,6 +1165,21 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     return BlendMode.Alpha;
                 default:
                     throw new System.Exception("Unknown AlphaMode: " + alphaMode + ": can't convert to BlendMode.");
+            }
+        }
+
+        public static DoubleSidedNormalMode ConvertDoubleSidedModeToDoubleSidedNormalMode(DoubleSidedMode shaderGraphMode)
+        {
+            switch (shaderGraphMode)
+            {
+                case DoubleSidedMode.FlippedNormals:
+                    return DoubleSidedNormalMode.Flip;
+                case DoubleSidedMode.MirroredNormals:
+                    return DoubleSidedNormalMode.Mirror;
+                case DoubleSidedMode.Enabled:
+                case DoubleSidedMode.Disabled:
+                default:
+                    return DoubleSidedNormalMode.None;
             }
         }
     }
