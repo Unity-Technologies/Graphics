@@ -16,7 +16,7 @@
         "rendering",
 		"render",
 		"pipeline"
-    ]	
+    ],
 	"samples" : [
 		{
 			"displayName" : "Additional Post-processing Data",
