@@ -14,6 +14,17 @@ void Simulate(uint3 id : SV_DispatchThreadID)
 #ifdef INITIAL_STATE
     _OutputVolumeTexture[id.xyz] = _InputVolumeTexture[id.xyz];
 #elif SIMULATE
-    _OutputVolumeTexture[id.xyz] = _InputVolumeTexture[id.xyz];
+    uint _VolumeSize = 32;
+    uint sizeHalf = _VolumeSize >> 1;
+
+    float3 vf = (float3)id.xyz - (float)sizeHalf;
+    vf = float3(vf.y / vf.z, -vf.x / vf.z, 0.0);
+    //vf = saturate(vf);
+
+    int3 src = id.xyz;
+    int3 dst = id.xyz;
+    dst = dst + vf;
+
+    _OutputVolumeTexture[src] = _InputVolumeTexture[dst];
 #endif
 }

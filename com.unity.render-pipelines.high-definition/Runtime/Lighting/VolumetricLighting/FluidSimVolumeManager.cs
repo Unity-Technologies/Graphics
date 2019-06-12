@@ -24,7 +24,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         private List<FluidSimVolume> _volumes = null;
 
-        private RTHandleSystem.RTHandle _volumeAtlas = null;
+        public RTHandleSystem.RTHandle volumeAtlas = null;
         private bool atlasNeedsRefresh = false;
 
         //TODO: hardcoded size....:-(
@@ -35,7 +35,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             int res = 512;
 
             _volumes = new List<FluidSimVolume>();
-            _volumeAtlas = RTHandles.Alloc(
+            volumeAtlas = RTHandles.Alloc(
                 res,
                 res,
                 res,
@@ -43,7 +43,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 filterMode: FilterMode.Bilinear,
                 dimension: TextureDimension.Tex3D,
                 enableRandomWrite: true,
-                name: "VolumeAtlas");
+                name: "FluidSimVolumeAtlas");
         }
 
         public void Build(HDRenderPipelineAsset asset)
@@ -122,7 +122,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             int kernel = _texture3DAtlasCS.FindKernel("CopyTexture");
 
-            cmd.SetComputeTextureParam(_texture3DAtlasCS, kernel, HDShaderIDs._OutputVolumeAtlas, _volumeAtlas);
+            cmd.SetComputeTextureParam(_texture3DAtlasCS, kernel, HDShaderIDs._OutputVolumeAtlas, volumeAtlas);
             foreach (var volume in _volumes)
             {
                 var inputVolumeTexture = volume.fSimTexture;

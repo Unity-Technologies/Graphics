@@ -771,7 +771,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // Compute texel spacing at the depth of 1 meter.
                 float unitDepthTexelSpacing = HDUtils.ComputZPlaneTexelSpacing(1.0f, vFoV, resolution.y);
 
-                Texture3D volumeAtlas = null;
+                var volumeAtlas = FluidSimVolumeManager.manager.volumeAtlas;
                 Vector4 volumeAtlasDimensions = new Vector4(0.0f, 0.0f, 0.0f, 0.0f);
 
                 if(hdCamera.frameSettings.VolumeVoxelizationRunsAsync())
@@ -783,10 +783,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         cmd.SetComputeBufferParam(m_VolumeVoxelizationCS, kernel, HDShaderIDs.g_vBigTileLightList, lightLoop.GetBigTileLightList());
                 }
 
-                cmd.SetComputeTextureParam(m_VolumeVoxelizationCS, kernel, HDShaderIDs._VBufferDensity,  m_DensityBufferHandle);
-                cmd.SetComputeBufferParam( m_VolumeVoxelizationCS, kernel, HDShaderIDs._VolumeBounds,    s_VisibleFluidSimVolumeBoundsBuffer);
-                cmd.SetComputeBufferParam( m_VolumeVoxelizationCS, kernel, HDShaderIDs._VolumeData,      s_VisibleFluidSimVolumeDataBuffer);
-                cmd.SetComputeTextureParam(m_VolumeVoxelizationCS, kernel, HDShaderIDs._VolumeMaskAtlas, volumeAtlas);
+                cmd.SetComputeTextureParam(m_VolumeVoxelizationCS, kernel, HDShaderIDs._VBufferDensity,      m_DensityBufferHandle);
+                cmd.SetComputeBufferParam( m_VolumeVoxelizationCS, kernel, HDShaderIDs._VolumeBounds,        s_VisibleFluidSimVolumeBoundsBuffer);
+                cmd.SetComputeBufferParam( m_VolumeVoxelizationCS, kernel, HDShaderIDs._VolumeData,          s_VisibleFluidSimVolumeDataBuffer);
+                cmd.SetComputeTextureParam(m_VolumeVoxelizationCS, kernel, HDShaderIDs._FluidSimVolumeAtlas, volumeAtlas);
 
                 // TODO: set the constant buffer data only once.
                 cmd.SetComputeMatrixParam(m_VolumeVoxelizationCS, HDShaderIDs._VBufferCoordToViewDirWS,      transform);
