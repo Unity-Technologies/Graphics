@@ -84,6 +84,12 @@ MonoBehaviour:
       m_Tooltip: Define a bitmask to control which submeshes are rendered.
       m_Regex: 
       m_RegexMaxLength: 0
+    - m_Type: 8
+      m_Min: -Infinity
+      m_Max: Infinity
+      m_Tooltip: 
+      m_Regex: 
+      m_RegexMaxLength: 0
   m_Direction: 0
   m_LinkedSlots: []
 --- !u!114 &114009133779255842
@@ -433,6 +439,8 @@ MonoBehaviour:
   m_OutputFlowSlot:
   - link: []
   blendMode: 2
+  m_SubOutputs:
+  - {fileID: 8926484042661614553}
   cullMode: 2
   zWriteMode: 0
   zTestMode: 0
@@ -444,6 +452,7 @@ MonoBehaviour:
   indirectDraw: 0
   castShadows: 0
   preRefraction: 0
+  useExposureWeight: 0
   primitiveType: 1
   useGeometryShader: 0
 --- !u!114 &114125123753541676
@@ -552,6 +561,8 @@ MonoBehaviour:
   m_OutputFlowSlot:
   - link: []
   blendMode: 1
+  m_SubOutputs:
+  - {fileID: 8926484042661614550}
   cullMode: 0
   zWriteMode: 0
   zTestMode: 2
@@ -563,6 +574,7 @@ MonoBehaviour:
   indirectDraw: 0
   castShadows: 0
   preRefraction: 0
+  useExposureWeight: 0
   primitiveType: 1
   useGeometryShader: 0
 --- !u!114 &114140183320049540
@@ -2822,6 +2834,8 @@ MonoBehaviour:
   m_OutputFlowSlot:
   - link: []
   blendMode: 2
+  m_SubOutputs:
+  - {fileID: 8926484042661614554}
   cullMode: 1
   zWriteMode: 0
   zTestMode: 0
@@ -2833,6 +2847,7 @@ MonoBehaviour:
   indirectDraw: 0
   castShadows: 0
   preRefraction: 0
+  useExposureWeight: 0
   primitiveType: 1
   useGeometryShader: 0
 --- !u!114 &114671603926337860
@@ -2871,6 +2886,12 @@ MonoBehaviour:
       m_Min: -Infinity
       m_Max: Infinity
       m_Tooltip: Define a bitmask to control which submeshes are rendered.
+      m_Regex: 
+      m_RegexMaxLength: 0
+    - m_Type: 8
+      m_Min: -Infinity
+      m_Max: Infinity
+      m_Tooltip: 
       m_Regex: 
       m_RegexMaxLength: 0
   m_Direction: 0
@@ -3346,6 +3367,8 @@ MonoBehaviour:
   m_OutputFlowSlot:
   - link: []
   blendMode: 1
+  m_SubOutputs:
+  - {fileID: 8926484042661614551}
   cullMode: 1
   zWriteMode: 0
   zTestMode: 0
@@ -3357,6 +3380,7 @@ MonoBehaviour:
   indirectDraw: 0
   castShadows: 0
   preRefraction: 0
+  useExposureWeight: 0
 --- !u!114 &114774226291935560
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -3595,6 +3619,8 @@ MonoBehaviour:
   m_OutputFlowSlot:
   - link: []
   blendMode: 1
+  m_SubOutputs:
+  - {fileID: 8926484042661614549}
   cullMode: 0
   zWriteMode: 0
   zTestMode: 0
@@ -3606,6 +3632,7 @@ MonoBehaviour:
   indirectDraw: 0
   castShadows: 0
   preRefraction: 0
+  useExposureWeight: 0
   primitiveType: 1
   useGeometryShader: 0
 --- !u!114 &114819460324136256
@@ -4240,6 +4267,8 @@ MonoBehaviour:
   m_OutputFlowSlot:
   - link: []
   blendMode: 0
+  m_SubOutputs:
+  - {fileID: 8926484042661614552}
   cullMode: 2
   zWriteMode: 2
   zTestMode: 0
@@ -4251,6 +4280,7 @@ MonoBehaviour:
   indirectDraw: 0
   castShadows: 0
   preRefraction: 0
+  useExposureWeight: 0
 --- !u!114 &114924410589535930
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -5376,3 +5406,117 @@ MonoBehaviour:
     attributes: []
   m_Direction: 0
   m_LinkedSlots: []
+--- !u!114 &8926484042661614549
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 081ffb0090424ba4cb05370a42ead6b9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Parent: {fileID: 0}
+  m_Children: []
+  m_UIPosition: {x: 0, y: 0}
+  m_UICollapsed: 1
+  m_UISuperCollapsed: 0
+  opaqueRenderQueue: 0
+  transparentRenderQueue: 1
+--- !u!114 &8926484042661614550
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 081ffb0090424ba4cb05370a42ead6b9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Parent: {fileID: 0}
+  m_Children: []
+  m_UIPosition: {x: 0, y: 0}
+  m_UICollapsed: 1
+  m_UISuperCollapsed: 0
+  opaqueRenderQueue: 0
+  transparentRenderQueue: 1
+--- !u!114 &8926484042661614551
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 081ffb0090424ba4cb05370a42ead6b9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Parent: {fileID: 0}
+  m_Children: []
+  m_UIPosition: {x: 0, y: 0}
+  m_UICollapsed: 1
+  m_UISuperCollapsed: 0
+  opaqueRenderQueue: 0
+  transparentRenderQueue: 1
+--- !u!114 &8926484042661614552
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 081ffb0090424ba4cb05370a42ead6b9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Parent: {fileID: 0}
+  m_Children: []
+  m_UIPosition: {x: 0, y: 0}
+  m_UICollapsed: 1
+  m_UISuperCollapsed: 0
+  opaqueRenderQueue: 0
+  transparentRenderQueue: 1
+--- !u!114 &8926484042661614553
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 081ffb0090424ba4cb05370a42ead6b9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Parent: {fileID: 0}
+  m_Children: []
+  m_UIPosition: {x: 0, y: 0}
+  m_UICollapsed: 1
+  m_UISuperCollapsed: 0
+  opaqueRenderQueue: 0
+  transparentRenderQueue: 1
+--- !u!114 &8926484042661614554
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 081ffb0090424ba4cb05370a42ead6b9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Parent: {fileID: 0}
+  m_Children: []
+  m_UIPosition: {x: 0, y: 0}
+  m_UICollapsed: 1
+  m_UISuperCollapsed: 0
+  opaqueRenderQueue: 0
+  transparentRenderQueue: 1

@@ -531,6 +531,7 @@ MonoBehaviour:
   indirectDraw: 0
   castShadows: 0
   preRefraction: 0
+  useExposureWeight: 0
 --- !u!114 &18
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -941,6 +942,7 @@ MonoBehaviour:
   indirectDraw: 0
   castShadows: 0
   preRefraction: 0
+  useExposureWeight: 0
 --- !u!114 &30
 MonoBehaviour:
   m_ObjectHideFlags: 0
