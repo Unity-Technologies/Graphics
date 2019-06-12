@@ -38,7 +38,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public Func<object> customGetter;
             public Action<object> customSetter;
             public object overridedDefaultValue;
-            public GUIContent label => EditorGUIUtility.TrTextContent(attributes[field].displayedName);
+            public GUIContent label => EditorGUIUtility.TrTextContent(attributes[field].displayedName, attributes[field].tooltip);
             public bool IsOverrideableWithDependencies(SerializedFrameSettings serialized, FrameSettings defaultFrameSettings)
             {
                 FrameSettingsFieldAttribute attribute = attributes[field];

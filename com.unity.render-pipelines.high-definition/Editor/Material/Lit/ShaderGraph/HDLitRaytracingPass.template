@@ -99,15 +99,15 @@ Pass
         SurfaceDescriptionInputs output;
         ZERO_INITIALIZE(SurfaceDescriptionInputs, output);
 
-        $SurfaceDescriptionInputs.WorldSpaceNormal:          output.WorldSpaceNormal =            normalize(input.worldToTangent[2].xyz);
+        $SurfaceDescriptionInputs.WorldSpaceNormal:          output.WorldSpaceNormal =            normalize(input.tangentToWorld[2].xyz);
         $SurfaceDescriptionInputs.ObjectSpaceNormal:         output.ObjectSpaceNormal =           mul(output.WorldSpaceNormal, (float3x3) UNITY_MATRIX_M);           // transposed multiplication by inverse matrix to handle normal scale
         $SurfaceDescriptionInputs.ViewSpaceNormal:           output.ViewSpaceNormal =             mul(output.WorldSpaceNormal, (float3x3) UNITY_MATRIX_I_V);         // transposed multiplication by inverse matrix to handle normal scale
         $SurfaceDescriptionInputs.TangentSpaceNormal:        output.TangentSpaceNormal =          float3(0.0f, 0.0f, 1.0f);
-        $SurfaceDescriptionInputs.WorldSpaceTangent:         output.WorldSpaceTangent =           input.worldToTangent[0].xyz;
+        $SurfaceDescriptionInputs.WorldSpaceTangent:         output.WorldSpaceTangent =           input.tangentToWorld[0].xyz;
         $SurfaceDescriptionInputs.ObjectSpaceTangent:        output.ObjectSpaceTangent =          TransformWorldToObjectDir(output.WorldSpaceTangent);
         $SurfaceDescriptionInputs.ViewSpaceTangent:          output.ViewSpaceTangent =            TransformWorldToViewDir(output.WorldSpaceTangent);
         $SurfaceDescriptionInputs.TangentSpaceTangent:       output.TangentSpaceTangent =         float3(1.0f, 0.0f, 0.0f);
-        $SurfaceDescriptionInputs.WorldSpaceBiTangent:       output.WorldSpaceBiTangent =         input.worldToTangent[1].xyz;
+        $SurfaceDescriptionInputs.WorldSpaceBiTangent:       output.WorldSpaceBiTangent =         input.tangentToWorld[1].xyz;
         $SurfaceDescriptionInputs.ObjectSpaceBiTangent:      output.ObjectSpaceBiTangent =        TransformWorldToObjectDir(output.WorldSpaceBiTangent);
         $SurfaceDescriptionInputs.ViewSpaceBiTangent:        output.ViewSpaceBiTangent =          TransformWorldToViewDir(output.WorldSpaceBiTangent);
         $SurfaceDescriptionInputs.TangentSpaceBiTangent:     output.TangentSpaceBiTangent =       float3(0.0f, 1.0f, 0.0f);
@@ -144,7 +144,7 @@ Pass
         $SurfaceDescription.Metallic:                   surfaceData.metallic =                  surfaceDescription.Metallic;
         $SurfaceDescription.SubsurfaceMask:             surfaceData.subsurfaceMask =            surfaceDescription.SubsurfaceMask;
         $SurfaceDescription.Thickness:                  surfaceData.thickness =                 surfaceDescription.Thickness;
-        $SurfaceDescription.DiffusionProfileHash:           surfaceData.diffusionProfile =          SurfaceDescription.DiffusionProfileHash;
+        $SurfaceDescription.DiffusionProfileHash:       surfaceData.diffusionProfileHash =      surfaceDescription.DiffusionProfileHash;
         $SurfaceDescription.Specular:                   surfaceData.specularColor =             surfaceDescription.Specular;
         $SurfaceDescription.CoatMask:                   surfaceData.coatMask =                  surfaceDescription.CoatMask;
         $SurfaceDescription.Anisotropy:                 surfaceData.anisotropy =                surfaceDescription.Anisotropy;
@@ -207,8 +207,8 @@ Pass
         bentNormalWS = surfaceData.normalWS;
         $BentNormal: GetNormalWS(fragInputs, surfaceDescription.BentNormal, bentNormalWS, doubleSidedConstants);
 
-        surfaceData.tangentWS = normalize(fragInputs.worldToTangent[0].xyz);    // The tangent is not normalize in worldToTangent for mikkt. TODO: Check if it expected that we normalize with Morten. Tag: SURFACE_GRADIENT
-        $Tangent: surfaceData.tangentWS = TransformTangentToWorld(surfaceDescription.Tangent, fragInputs.worldToTangent);
+        surfaceData.tangentWS = normalize(fragInputs.tangentToWorld[0].xyz);    // The tangent is not normalize in tangentToWorld for mikkt. TODO: Check if it expected that we normalize with Morten. Tag: SURFACE_GRADIENT
+        $Tangent: surfaceData.tangentWS = TransformTangentToWorld(surfaceDescription.Tangent, fragInputs.tangentToWorld);
         surfaceData.tangentWS = Orthonormalize(surfaceData.tangentWS, surfaceData.normalWS);
 
         // By default we use the ambient occlusion with Tri-ace trick (apply outside) for specular occlusion.
@@ -223,7 +223,7 @@ Pass
 #endif
 
 #ifdef _ENABLE_GEOMETRIC_SPECULAR_AA
-        surfaceData.perceptualSmoothness = GeometricNormalFiltering(surfaceData.perceptualSmoothness, fragInputs.worldToTangent[2], surfaceDescription.SpecularAAScreenSpaceVariance, surfaceDescription.SpecularAAThreshold);
+        surfaceData.perceptualSmoothness = GeometricNormalFiltering(surfaceData.perceptualSmoothness, fragInputs.tangentToWorld[2], surfaceDescription.SpecularAAScreenSpaceVariance, surfaceDescription.SpecularAAThreshold);
 #endif
 
     }
@@ -249,7 +249,7 @@ Pass
 
         // Builtin Data
         // For back lighting we use the oposite vertex normal
-        InitBuiltinData(posInput, surfaceDescription.Alpha, bentNormalWS, -fragInputs.worldToTangent[2], fragInputs.texCoord1,  fragInputs.texCoord2, builtinData);
+        InitBuiltinData(posInput, surfaceDescription.Alpha, bentNormalWS, -fragInputs.tangentToWorld[2], fragInputs.texCoord1,  fragInputs.texCoord2, builtinData);
 
         $SurfaceDescription.Emission: builtinData.emissiveColor = surfaceDescription.Emission;
 

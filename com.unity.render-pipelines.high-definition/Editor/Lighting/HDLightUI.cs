@@ -222,9 +222,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             switch (serialized.editorLightShape)
             {
                 case LightShape.Directional:
-                    // Sun disk.
-                    EditorGUILayout.Slider(serialized.serializedLightData.sunDiskSize, 0f, 45f, s_Styles.sunDiskSize);
-                    EditorGUILayout.Slider(serialized.serializedLightData.sunHaloSize, 0f, 1f, s_Styles.sunHaloSize);
                     EditorGUILayout.PropertyField(serialized.serializedLightData.maxSmoothness, s_Styles.maxSmoothness);
                     break;
 
@@ -589,20 +586,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             using (new EditorGUI.DisabledScope(!newShadowsEnabled))
             {
+                {
 #if ENABLE_RAYTRACING
-                if(LightShape.Rectangle == serialized.editorLightShape)
-                {
-                    EditorGUILayout.PropertyField(serialized.serializedLightData.useRayTracedShadows, s_Styles.useRayTracedShadows);
-                    if(serialized.serializedLightData.useRayTracedShadows.boolValue)
+                    // For the moment, we only support screen space rasterized shadows for directional lights
+                    if (serialized.settings.lightType.enumValueIndex == (int)LightType.Directional)
                     {
-                        EditorGUILayout.PropertyField(serialized.serializedLightData.numRayTracingSamples, s_Styles.numRayTracingSamples);
-                        EditorGUILayout.PropertyField(serialized.serializedLightData.filterTracedShadow, s_Styles.filterTracedShadow);
-                        EditorGUILayout.PropertyField(serialized.serializedLightData.filterSizeTraced, s_Styles.filterSizeTraced);
+                        EditorGUILayout.PropertyField(serialized.serializedLightData.useScreenSpaceShadows, s_Styles.useScreenSpaceShadows);
                     }
-                }
-                if (!serialized.serializedLightData.useRayTracedShadows.boolValue || LightShape.Rectangle != serialized.editorLightShape)
 #endif
-                {
                     EditorGUILayout.DelayedIntField(serialized.serializedShadowData.resolution, s_Styles.shadowResolution);
                     EditorGUILayout.Slider(serialized.serializedLightData.shadowNearPlane, HDShadowUtils.k_MinShadowNearPlane, 10f, s_Styles.shadowNearPlane);
 
@@ -631,9 +622,35 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     {
                         EditorGUILayout.Slider(serialized.serializedShadowData.viewBiasScale, 0.0f, 15.0f, s_Styles.viewBiasScale);
                     }
-
+                }
+#if ENABLE_RAYTRACING
+                if(LightShape.Rectangle == serialized.editorLightShape)
+                {
+                    EditorGUILayout.PropertyField(serialized.serializedLightData.useRayTracedShadows, s_Styles.useRayTracedShadows);
+                    if(serialized.serializedLightData.useRayTracedShadows.boolValue)
+                    {
+                        EditorGUI.indentLevel++;
+                        EditorGUILayout.PropertyField(serialized.serializedLightData.numRayTracingSamples, s_Styles.numRayTracingSamples);
+                        EditorGUILayout.PropertyField(serialized.serializedLightData.filterTracedShadow, s_Styles.filterTracedShadow);
+                        EditorGUILayout.PropertyField(serialized.serializedLightData.filterSizeTraced, s_Styles.filterSizeTraced);
+                        EditorGUI.indentLevel--;
+                    }
                 }
 
+                if (serialized.settings.lightType.enumValueIndex == (int)LightType.Directional)
+                {
+                    EditorGUILayout.PropertyField(serialized.serializedLightData.useRayTracedShadows, s_Styles.useRayTracedShadows);
+                    if(serialized.serializedLightData.useRayTracedShadows.boolValue)
+                    {
+                        EditorGUI.indentLevel++;
+                        EditorGUILayout.PropertyField(serialized.serializedLightData.numRayTracingSamples, s_Styles.numRayTracingSamples);
+                        EditorGUILayout.PropertyField(serialized.serializedLightData.filterTracedShadow, s_Styles.filterTracedShadow);
+                        EditorGUILayout.PropertyField(serialized.serializedLightData.filterSizeTraced, s_Styles.filterSizeTraced);
+                        EditorGUILayout.PropertyField(serialized.serializedLightData.sunLightConeAngle, s_Styles.sunLightConeAngle);
+                        EditorGUI.indentLevel--;
+                    }
+                }
+#endif
             }
         }
 
@@ -675,7 +692,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
                 }
 
-                EditorGUILayout.Slider(serialized.serializedShadowData.shadowDimmer, 0.0f, 1.0f, s_Styles.shadowDimmer);
+                // Dimmer and Tint don't have effect on baked shadow
+                if (!serialized.settings.isCompletelyBaked)
+                {
+                    EditorGUILayout.Slider(serialized.serializedShadowData.shadowDimmer, 0.0f, 1.0f, s_Styles.shadowDimmer);
+                    EditorGUILayout.PropertyField(serialized.serializedShadowData.shadowTint, s_Styles.shadowTint);
+                }                
 
                 if (serialized.settings.lightType.enumValueIndex != (int)LightType.Directional)
                 {

@@ -196,7 +196,7 @@ EditorBuildSettings:
     guid: 6abac8c2689f0ed48b18d05bc496d5c4
   - enabled: 1
     path: Assets/GraphicTests/Scenes/2x_Lighting/2211_Probes_Specular.unity
-    guid: 39d1e1615890a9549ac33171a52cba4c
+    guid: e67192984ee3d6b44a17da02cda1f17a
   - enabled: 1
     path: Assets/GraphicTests/Scenes/2x_Lighting/2301_Shadow_Mask.unity
     guid: 1029947770f955b4290bbdd8b641f7f1
@@ -243,6 +243,15 @@ EditorBuildSettings:
     path: Assets/GraphicTests/Scenes/2x_Lighting/2551_SSR.unity
     guid: 62f2b88cccb280246a9211bbcf0c8245
   - enabled: 1
+    path: Assets/GraphicTests/Scenes/2x_Lighting/2601_SSAO_HalfRes.unity
+    guid: 7ac54351dc30c31478c8971edef2c924
+  - enabled: 1
+    path: Assets/GraphicTests/Scenes/2x_Lighting/2602_SSAO_FullRes.unity
+    guid: afb9d0b09509f784293f3fa6a218103e
+  - enabled: 1
+    path: Assets/GraphicTests/Scenes/3x_DebugView/3001_DebugView.unity
+    guid: 21522d96110c8dd41ab353d89fd740c3
+  - enabled: 1
     path: Assets/GraphicTests/Scenes/5x_SkyAndFog/5001_Fog_FogFallback.unity
     guid: d04c39af67e5e18449a44f6a7778862f
   - enabled: 1
@@ -251,9 +260,6 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/GraphicTests/Scenes/5x_SkyAndFog/5003_Fog_DensityVolumesShadows.unity
     guid: abfc0c0cd1816114e9696849bc9e6406
-  - enabled: 1
-    path: Assets/GraphicTests/Scenes/3x_DebugView/3001_DebugView.unity
-    guid: 21522d96110c8dd41ab353d89fd740c3
   - enabled: 1
     path: Assets/GraphicTests/Scenes/4x_PostProcessing/4001_Exposure.unity
     guid: f32cdac65dd17f847b4cdaaa85bb990a

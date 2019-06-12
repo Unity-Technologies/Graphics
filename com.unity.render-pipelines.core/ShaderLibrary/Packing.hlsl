@@ -40,7 +40,7 @@ real3 UnpackNormalOctRectEncode(real2 f)
     // Solve for {x, y, z} given {r, g}.
     real x = 0.5 + 0.5 * g - abs(r);
     real y = g - x;
-    real z = max(1.0 - abs(x) - abs(y), FLT_EPS); // EPS is absolutely crucial for anisotropy
+    real z = max(1.0 - abs(x) - abs(y), REAL_EPS); // EPS is absolutely crucial for anisotropy
 
     real3 p = real3(x, y, CopySign(z, r));
 

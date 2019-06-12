@@ -146,7 +146,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 "AttributesMesh.uv2",           // SHADERPASS_LIGHT_TRANSPORT always uses uv2
                 "AttributesMesh.uv3",           // DEBUG_DISPLAY
 
-                "FragInputs.worldToTangent",
+                "FragInputs.tangentToWorld",
                 "FragInputs.positionRWS",
                 "FragInputs.texCoord0",
                 "FragInputs.texCoord1",
@@ -191,7 +191,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 "AttributesMesh.uv2",           // SHADERPASS_LIGHT_TRANSPORT always uses uv2
                 "AttributesMesh.uv3",           // DEBUG_DISPLAY
 
-                "FragInputs.worldToTangent",
+                "FragInputs.tangentToWorld",
                 "FragInputs.positionRWS",
                 "FragInputs.texCoord0",
                 "FragInputs.texCoord1",
@@ -245,7 +245,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 "AttributesMesh.uv2",           // SHADERPASS_LIGHT_TRANSPORT always uses uv2
                 "AttributesMesh.uv3",           // DEBUG_DISPLAY
 
-                "FragInputs.worldToTangent",
+                "FragInputs.tangentToWorld",
                 "FragInputs.positionRWS",
                 "FragInputs.texCoord0",
                 "FragInputs.texCoord1",
