@@ -11,6 +11,13 @@
 		"com.unity.visualeffectgraph": "7.0.0",
 		"com.unity.ugui" : "1.0.0"
     },
+	"keywords":[
+        "graphics",
+        "performance",
+        "rendering",
+		"render",
+		"pipeline"
+    ],	
 	"samples" : [
 		{
 			"displayName" : "Additional Post-processing Data",
