@@ -132,10 +132,6 @@ namespace UnityEditor.ShaderGraph
                     sb.Append($"defined({permutation[i].Key.referenceName}_ON)");
                     appendAndFromPrevious = true;
                 }
-                else
-                {
-                    appendAndFromPrevious = false;
-                }
             }
             return sb.ToString();
         }

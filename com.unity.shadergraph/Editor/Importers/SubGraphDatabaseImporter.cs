@@ -233,12 +233,6 @@ namespace UnityEditor.ShaderGraph
             subGraphData.path = graph.path;
 
             var outputNode = (SubGraphOutputNode)graph.outputNode;
-            
-            subGraphData.outputs.Clear();
-            outputNode.GetInputSlots(subGraphData.outputs);
-            
-            List<AbstractMaterialNode> nodes = new List<AbstractMaterialNode>();
-            NodeUtils.DepthFirstCollectNodesFromNode(nodes, outputNode);
 
             subGraphData.effectiveShaderStage = ShaderStageCapability.All;
             foreach (var slot in subGraphData.outputs)
@@ -250,11 +244,21 @@ namespace UnityEditor.ShaderGraph
                     break;
                 }
             }
+            
+            subGraphData.outputs.Clear();
+            outputNode.GetInputSlots(subGraphData.outputs);
+            
+            List<AbstractMaterialNode> nodes = new List<AbstractMaterialNode>();
+            NodeUtils.DepthFirstCollectNodesFromNode(nodes, outputNode);
 
             subGraphData.requirements = ShaderGraphRequirements.FromNodes(nodes, subGraphData.effectiveShaderStage, false);
             subGraphData.inputs = graph.inputs.ToList();
             subGraphData.graphPrecision = graph.concretePrecision;
             subGraphData.outputPrecision = outputNode.concretePrecision;
+
+            KeywordCollector shaderKeywords = new KeywordCollector();
+            graph.CollectShaderKeywords(shaderKeywords, GenerationMode.ForReals);
+            var keywordPermutations = KeywordUtil.GetKeywordPermutations(shaderKeywords.keywords);
 
             foreach(var input in subGraphData.inputs)
             {
@@ -325,19 +329,53 @@ namespace UnityEditor.ShaderGraph
                 // now generate the function
                 using (sb.BlockScope())
                 {
-                    // Just grab the body from the active nodes
-                    foreach (var node in nodes)
+                    for(int i = 0; i < keywordPermutations.Count; i++)
                     {
-                        if (node is IGeneratesBodyCode)
+                        // If null there are no keywords
+                        if(keywordPermutations[i] != null)
                         {
-                            sb.currentNode = node;
-                            (node as IGeneratesBodyCode).GenerateNodeCode(sb, graphContext, GenerationMode.ForReals);
-                            sb.ReplaceInCurrentMapping(PrecisionUtil.Token, node.concretePrecision.ToShaderString());
+                            nodes.Clear();
+                            NodeUtils.DepthFirstCollectNodesFromNode(nodes, outputNode, keywordPermutations: keywordPermutations[i]);
+
+                            sb.AppendLine(KeywordUtil.GetKeywordPermutationString(keywordPermutations[i], i, keywordPermutations.Count));
+                            sb.IncreaseIndent();
+                        }
+
+                        // Just grab the body from the active nodes
+                        foreach (var node in nodes)
+                        {
+                            if (node is IGeneratesBodyCode)
+                            {
+                                sb.currentNode = node;
+                                (node as IGeneratesBodyCode).GenerateNodeCode(sb, graphContext, GenerationMode.ForReals);
+                                sb.ReplaceInCurrentMapping(PrecisionUtil.Token, node.concretePrecision.ToShaderString());
+                            }
+
+                            if(keywordPermutations[i] != null)
+                            {
+                                if (node is IGeneratesBranch branchNode)
+                                {
+                                    var keyword = graph.keywords.FirstOrDefault(x => x.guid == branchNode.keywordGuid);
+                                    var keywordPermutation = keywordPermutations[i].Where(x => x.Key.guid == keyword.guid).FirstOrDefault();
+                                    sb.currentNode = node;
+                                    branchNode.GenerateBranchCode(sb, keywordPermutation, GenerationMode.ForReals);
+                                    sb.ReplaceInCurrentMapping(PrecisionUtil.Token, node.concretePrecision.ToShaderString());
+                                }
+                            }
+                        }
+
+                        foreach (var slot in subGraphData.outputs)
+                            sb.AppendLine($"{slot.shaderOutputName}_{slot.id} = {outputNode.GetSlotValue(slot.id, GenerationMode.ForReals, subGraphData.outputPrecision)};");
+
+                        // If null there are no keywords
+                        if(keywordPermutations[i] != null)
+                        {
+                            sb.DecreaseIndent();
                         }
                     }
-
-                    foreach (var slot in subGraphData.outputs)
-                        sb.AppendLine($"{slot.shaderOutputName}_{slot.id} = {outputNode.GetSlotValue(slot.id, GenerationMode.ForReals, subGraphData.outputPrecision)};");
+                    // If first entry is null there are no keywords
+                    if(keywordPermutations[0] != null)
+                        sb.AppendLine("#endif");
                 }
             });
             
