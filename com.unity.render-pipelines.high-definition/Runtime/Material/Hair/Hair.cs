@@ -106,8 +106,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Anisotropic
             [SurfaceDataAttributes("", true)]
             public Vector3 hairStrandDirectionWS;
-            public float roughnessT;
-            public float roughnessB;
             public float anisotropy;
 
             // Kajiya kay

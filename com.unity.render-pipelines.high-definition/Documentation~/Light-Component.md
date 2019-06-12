@@ -87,8 +87,6 @@ These settings define the area this Light affects. Each Light **Type** has its o
 
 | **Property**                | **Description**                                              |
 | --------------------------- | ------------------------------------------------------------ |
-| **Sun Highlight Disk Size** | Defines the size of the sun disk’s highlight. The angle of the sun cone in degrees. |
-| **Sun Highlight Halo Size** | Defines the size of the halo which surrounds the sun disk.   |
 | **Max Smoothness**          | Allows you to alter the specular highlight. This allows you to avoid very sharp specular highlights that do not match the shape of the Light source. |
 
 #### Point Light
@@ -192,6 +190,7 @@ Unity exposes extra properties in the **Shadows** section depending on the **Mod
 | **- Edge Tolerance Normal** | Enable the checkbox to use the edge leak fix in normal mode. Uncheck this box to use the edge leak fix in view mode.<br />To expose this property, enable the [advanced properties](Advanced-Properties.html) for this section. |
 | **- Edge Tolerance**        | The threshold, between 0 and 1, which determines whether to apply the edge leak fix.<br />To expose this property, enable the [advanced properties](Advanced-Properties.html) for this section. |
 | **Dimmer**                  | Dims the shadows this Light casts so they become more faded and transparent.<br />To expose this property, enable the [advanced properties](Advanced-Properties.html) for this section. |
+| **Tint**                    | Tint the shadows this Light casts so they become colored and transparent.<br />To expose this property, enable the [advanced properties](Advanced-Properties.html) for this section. |
 | **Fade Distance**           | The distance, in meters, between the Camera and the Light at which shadows fade out. This property is available for **Spot** and **Point** Lights.<br />To expose this property, enable the [advanced properties](Advanced-Properties.html) for this section. |
 
 ##### High Filtering Quality properties

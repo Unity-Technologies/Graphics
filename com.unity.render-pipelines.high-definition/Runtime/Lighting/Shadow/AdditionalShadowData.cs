@@ -19,6 +19,7 @@ namespace UnityEngine.Experimental.Rendering
         public float volumetricShadowDimmer = 1.0f;
         public float shadowFadeDistance = 10000.0f;
         public bool contactShadows = false;
+        public Color shadowTint = Color.black;
         // bias control
         public float viewBiasMin = 0.5f;
         public float viewBiasMax = 10f;

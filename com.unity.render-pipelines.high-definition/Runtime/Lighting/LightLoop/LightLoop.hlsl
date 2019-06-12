@@ -14,7 +14,7 @@
 // LightLoop
 // ----------------------------------------------------------------------------
 
-void ApplyDebug(LightLoopContext lightLoopContext, PositionInputs posInput, BSDFData bsdfData, inout float3 diffuseLighting, inout float3 specularLighting)
+void ApplyDebug(LightLoopContext context, PositionInputs posInput, BSDFData bsdfData, inout float3 diffuseLighting, inout float3 specularLighting)
 {
 #ifdef DEBUG_DISPLAY
     if (_DebugLightingMode == DEBUGLIGHTINGMODE_DIFFUSE_LIGHTING)
@@ -49,15 +49,22 @@ void ApplyDebug(LightLoopContext lightLoopContext, PositionInputs posInput, BSDF
             real alpha;
             int cascadeCount;
 
-            int shadowSplitIndex = EvalShadow_GetSplitIndex(lightLoopContext.shadowContext, _DirectionalShadowIndex, posInput.positionWS, alpha, cascadeCount);
+            int shadowSplitIndex = EvalShadow_GetSplitIndex(context.shadowContext, _DirectionalShadowIndex, posInput.positionWS, alpha, cascadeCount);
             if (shadowSplitIndex >= 0)
             {
                 float shadow = 1.0;
                 if (_DirectionalShadowIndex >= 0)
                 {
+#if (SHADERPASS == SHADERPASS_FORWARD) || !defined(SCREEN_SPACE_SHADOWS)
                     DirectionalLightData light = _DirectionalLightDatas[_DirectionalShadowIndex];
-                    float3 shadowBiasNormal = GetNormalForShadowBias(bsdfData);
-                    shadow = EvaluateRuntimeSunShadow(lightLoopContext, posInput, light, shadowBiasNormal);
+
+                    float3 L = -light.forward;
+                    shadow = GetDirectionalShadowAttenuation(context.shadowContext,
+                                                             posInput.positionSS, posInput.positionWS, GetNormalForShadowBias(bsdfData),
+                                                             light.shadowIndex, L);
+#else
+                    shadow = GetScreenSpaceShadow(posInput);
+#endif
                 }
 
                 float3 cascadeShadowColor = lerp(s_CascadeColors[shadowSplitIndex], s_CascadeColors[shadowSplitIndex + 1], alpha);
@@ -121,37 +128,19 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
             DirectionalLightData light = _DirectionalLightDatas[_DirectionalShadowIndex];
 
             // TODO: this will cause us to load from the normal buffer first. Does this cause a performance problem?
-            // Also, the light direction is not consistent with the sun disk highlight hack, which modifies the light vector.
-            float3 L                = -light.forward;
-            float  NdotL            = dot(bsdfData.normalWS, L);
-            float3 shadowBiasNormal = GetNormalForShadowBias(bsdfData);
-            bool   evaluateShadows  = (NdotL > 0);
+            float3 L = -light.forward;
 
-        #ifdef MATERIAL_INCLUDE_TRANSMISSION
-            if (MaterialSupportsTransmission(bsdfData))
+            // Is it worth sampling the shadow map?
+            if ((light.lightDimmer > 0) && (light.shadowDimmer > 0) && // Note: Volumetric can have different dimmer, thus why we test it here
+                IsNonZeroBSDF(V, L, preLightData, bsdfData) &&
+                !ShouldEvaluateThickObjectTransmission(V, L, preLightData, bsdfData, light.shadowIndex))
             {
-                // We support some kind of transmission.
-                if (!HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_TRANSMISSION_MODE_THICK_THICKNESS))
-                {
-                    // We always evaluate shadows.
-                    evaluateShadows = true;
-
-                    // Care must be taken to bias in the direction of the light.
-                    shadowBiasNormal *= FastSign(dot(shadowBiasNormal, L));
-                }
-                else
-                {
-                    // We only evaluate shadows for reflection, transmission shadows are handled separately.
-                }
-            }
-        #endif
-
-            if (evaluateShadows)
-            {
-                context.shadowValue = EvaluateRuntimeSunShadow(context, posInput, light, shadowBiasNormal);
+                context.shadowValue = GetDirectionalShadowAttenuation(context.shadowContext,
+                                                                      posInput.positionSS, posInput.positionWS, GetNormalForShadowBias(bsdfData),
+                                                                      light.shadowIndex, L);
             }
 #else
-        context.shadowValue = GetScreenSpaceShadow(posInput);
+            context.shadowValue = GetScreenSpaceShadow(posInput);
 #endif
         }
     }

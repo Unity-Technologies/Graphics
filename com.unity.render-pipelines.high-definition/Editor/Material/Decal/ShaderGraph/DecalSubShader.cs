@@ -208,7 +208,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 "AttributesMesh.tangentOS",
                 "AttributesMesh.uv0",
 
-                "FragInputs.worldToTangent",
+                "FragInputs.tangentToWorld",
                 "FragInputs.positionRWS",
                 "FragInputs.texCoord0",
             },
@@ -279,7 +279,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 "AttributesMesh.tangentOS",     
                 "AttributesMesh.uv0",
 
-                "FragInputs.worldToTangent",
+                "FragInputs.tangentToWorld",
                 "FragInputs.positionRWS",
                 "FragInputs.texCoord0",
             },
@@ -351,7 +351,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 "AttributesMesh.tangentOS",
                 "AttributesMesh.uv0",
 
-                "FragInputs.worldToTangent",
+                "FragInputs.tangentToWorld",
                 "FragInputs.positionRWS",
                 "FragInputs.texCoord0",
             },
@@ -402,7 +402,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 "AttributesMesh.tangentOS",
                 "AttributesMesh.uv0",
 
-                "FragInputs.worldToTangent",
+                "FragInputs.tangentToWorld",
                 "FragInputs.positionRWS",
                 "FragInputs.texCoord0",
             },

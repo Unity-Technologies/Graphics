@@ -977,12 +977,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 lightData.shadowDimmer           = additionalShadowData.shadowDimmer;
                 lightData.volumetricShadowDimmer = additionalShadowData.volumetricShadowDimmer;
                 lightData.contactShadowMask      = GetContactShadowMask(additionalShadowData.contactShadows);
+                lightData.shadowTint             = new Vector3(additionalShadowData.shadowTint.r, additionalShadowData.shadowTint.g, additionalShadowData.shadowTint.b);
             }
             else
             {
                 lightData.shadowDimmer           = 1.0f;
                 lightData.volumetricShadowDimmer = 1.0f;
                 lightData.contactShadowMask      = 0;
+                lightData.shadowTint             = new Vector3(0.0f, 0.0f, 0.0f);
             }
 
             // fix up shadow information
@@ -1008,20 +1010,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // use -1 to say that we don't use shadow mask
                 lightData.shadowMaskSelector.x = -1.0f;
                 lightData.nonLightMappedOnly = 0;
-            }
-
-            // Sun disk.
-            {
-                var sunDiskAngle = additionalLightData.sunDiskSize;
-                var sunHaloSize  = additionalLightData.sunHaloSize;
-
-                var cosConeInnerHalfAngle = Mathf.Clamp(Mathf.Cos(sunDiskAngle * 0.5f * Mathf.Deg2Rad), 0.0f, 1.0f);
-                var cosConeOuterHalfAngle = Mathf.Clamp(Mathf.Cos(sunDiskAngle * 0.5f * (1 + sunHaloSize) * Mathf.Deg2Rad), 0.0f, 1.0f);
-
-                var val = Mathf.Max(0.0001f, (cosConeInnerHalfAngle - cosConeOuterHalfAngle));
-                lightData.angleScale = 1.0f / val;
-                lightData.angleOffset = -cosConeOuterHalfAngle * lightData.angleScale;
-
             }
 
             // Fallback to the first non shadow casting directional light.
@@ -1228,12 +1216,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 lightData.shadowDimmer           = shadowDistanceFade * additionalShadowData.shadowDimmer;
                 lightData.volumetricShadowDimmer = shadowDistanceFade * additionalShadowData.volumetricShadowDimmer;
                 lightData.contactShadowMask      = GetContactShadowMask(additionalShadowData.contactShadows);
+                lightData.shadowTint             = new Vector3(additionalShadowData.shadowTint.r, additionalShadowData.shadowTint.g, additionalShadowData.shadowTint.b);
             }
             else
             {
                 lightData.shadowDimmer           = 1.0f;
                 lightData.volumetricShadowDimmer = 1.0f;
                 lightData.contactShadowMask      = 0;
+                lightData.shadowTint = new Vector3(0.0f, 0.0f, 0.0f);
              }
 
 #if ENABLE_RAYTRACING

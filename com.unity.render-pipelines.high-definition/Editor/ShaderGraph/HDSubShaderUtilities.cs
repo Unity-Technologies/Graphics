@@ -106,8 +106,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public static Dependency[] dependencies = new Dependency[]
             {
                 new Dependency("FragInputs.positionRWS",        "VaryingsMeshToPS.positionRWS"),
-                new Dependency("FragInputs.worldToTangent",     "VaryingsMeshToPS.tangentWS"),
-                new Dependency("FragInputs.worldToTangent",     "VaryingsMeshToPS.normalWS"),
+                new Dependency("FragInputs.tangentToWorld",     "VaryingsMeshToPS.tangentWS"),
+                new Dependency("FragInputs.tangentToWorld",     "VaryingsMeshToPS.normalWS"),
                 new Dependency("FragInputs.texCoord0",          "VaryingsMeshToPS.texCoord0"),
                 new Dependency("FragInputs.texCoord1",          "VaryingsMeshToPS.texCoord1"),
                 new Dependency("FragInputs.texCoord2",          "VaryingsMeshToPS.texCoord2"),
@@ -155,15 +155,15 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             public static Dependency[] dependencies = new Dependency[]
             {
-                new Dependency("SurfaceDescriptionInputs.WorldSpaceNormal",          "FragInputs.worldToTangent"),
+                new Dependency("SurfaceDescriptionInputs.WorldSpaceNormal",          "FragInputs.tangentToWorld"),
                 new Dependency("SurfaceDescriptionInputs.ObjectSpaceNormal",         "SurfaceDescriptionInputs.WorldSpaceNormal"),
                 new Dependency("SurfaceDescriptionInputs.ViewSpaceNormal",           "SurfaceDescriptionInputs.WorldSpaceNormal"),
 
-                new Dependency("SurfaceDescriptionInputs.WorldSpaceTangent",         "FragInputs.worldToTangent"),
+                new Dependency("SurfaceDescriptionInputs.WorldSpaceTangent",         "FragInputs.tangentToWorld"),
                 new Dependency("SurfaceDescriptionInputs.ObjectSpaceTangent",        "SurfaceDescriptionInputs.WorldSpaceTangent"),
                 new Dependency("SurfaceDescriptionInputs.ViewSpaceTangent",          "SurfaceDescriptionInputs.WorldSpaceTangent"),
 
-                new Dependency("SurfaceDescriptionInputs.WorldSpaceBiTangent",       "FragInputs.worldToTangent"),
+                new Dependency("SurfaceDescriptionInputs.WorldSpaceBiTangent",       "FragInputs.tangentToWorld"),
                 new Dependency("SurfaceDescriptionInputs.ObjectSpaceBiTangent",      "SurfaceDescriptionInputs.WorldSpaceBiTangent"),
                 new Dependency("SurfaceDescriptionInputs.ViewSpaceBiTangent",        "SurfaceDescriptionInputs.WorldSpaceBiTangent"),
 
