@@ -65,7 +65,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         private int m_HistoryIndex = 0;
 
 #if ENABLE_RAYTRACING
-        public HDRaytracingManager m_RayTracingManager = new HDRaytracingManager();
+        public HDRaytracingManager m_RayTracingManager;
         readonly HDRaytracingAmbientOcclusion m_RaytracingAmbientOcclusion = new HDRaytracingAmbientOcclusion();
 #endif
 
@@ -155,15 +155,17 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 return;
             }
             else
-#if ENABLE_RAYTRACING
-            HDRaytracingEnvironment rtEnvironement = m_RayTracingManager.CurrentEnvironment();
-            if (rtEnvironement != null && rtEnvironement.raytracedAO)
-                m_RaytracingAmbientOcclusion.RenderAO(camera, cmd, m_AmbientOcclusionTex, renderContext, frameCount);
-            else
-#endif
             {
-                Dispatch(cmd, camera, sharedRTManager, frameCount);
-                PostDispatchWork(cmd, camera, sharedRTManager);
+#if ENABLE_RAYTRACING
+                HDRaytracingEnvironment rtEnvironement = m_RayTracingManager.CurrentEnvironment();
+                if (rtEnvironement != null && settings.enableRaytracing.value)
+                    m_RaytracingAmbientOcclusion.RenderAO(camera, cmd, m_AmbientOcclusionTex, renderContext, frameCount);
+                else
+#endif
+                {
+                    Dispatch(cmd, camera, sharedRTManager, frameCount);
+                    PostDispatchWork(cmd, camera, sharedRTManager);
+                }
             }
         }
 

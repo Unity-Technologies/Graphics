@@ -1,8 +1,8 @@
 fileFormatVersion: 2
-guid: 757ff50c499f3c44ba741a41c7ab8510
-ComputeShaderImporter:
+guid: 6f93cb4dc095de14993f8d2baa972d5b
+RayTracingShaderImporter:
   externalObjects: {}
-  currentAPIMask: 262148
+  currentAPIMask: 262144
   userData: 
   assetBundleName: 
   assetBundleVariant: 

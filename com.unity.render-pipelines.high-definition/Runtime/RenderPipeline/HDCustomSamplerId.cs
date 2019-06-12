@@ -11,7 +11,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         Forward,
         RenderSSAO,
         ResolveSSAO,
-        RenderShadows,
+        RenderShadowMaps,
         ScreenSpaceShadows,
         BuildLightList,
         BlitToFinalRT,

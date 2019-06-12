@@ -1630,7 +1630,6 @@ DirectLighting EvaluateBSDF_Rect(   LightLoopContext lightLoopContext,
 
     }
 
-#if RASTERIZED_AREA_LIGHT_SHADOWS || SUPPORTS_RAYTRACED_AREA_SHADOWS
     float  shadow = 1.0;
     float  shadowMask = 1.0;
 #ifdef SHADOWS_SHADOWMASK
@@ -1639,16 +1638,14 @@ DirectLighting EvaluateBSDF_Rect(   LightLoopContext lightLoopContext,
     shadow = shadowMask = (lightData.shadowMaskSelector.x >= 0.0) ? dot(BUILTIN_DATA_SHADOW_MASK, lightData.shadowMaskSelector) : 1.0;
 #endif
 
-#endif
-
-#if SUPPORTS_RAYTRACED_AREA_SHADOWS
-    if( (_RaytracedAreaShadow == 1 && lightData.rayTracedAreaShadowIndex >= 0))
+#if defined(SCREEN_SPACE_SHADOWS) && !defined(_SURFACE_TYPE_TRANSPARENT)
+    if (lightData.screenSpaceShadowIndex >= 0)
     {
-        shadow = LOAD_TEXTURE2D_ARRAY(_AreaShadowTexture, posInput.positionSS, lightData.rayTracedAreaShadowIndex).x;
+        shadow = GetScreenSpaceShadow(posInput, lightData.screenSpaceShadowIndex);
     }
     else
 #endif // ENABLE_RAYTRACING
-        if (lightData.shadowIndex != -1)
+    if (lightData.shadowIndex != -1)
     {
 #if RASTERIZED_AREA_LIGHT_SHADOWS
             // lightData.positionRWS now contains the Light vector. 
