@@ -65,6 +65,10 @@ namespace UnityEditor.ShaderGraph
             
             PermuteKeywords(keywords, currentPermutation, results, 0);
 #endif
+
+            if(results.Count == 0)
+                results.Add(null);
+
             return results;
         }
 
@@ -91,9 +95,24 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        public static string GetKeywordPermutationString(List<KeyValuePair<ShaderKeyword, int>> permutation)
+        public static string GetKeywordPermutationString(List<KeyValuePair<ShaderKeyword, int>> permutation, int permutationIndex, int permutationCount)
         {
             StringBuilder sb = new StringBuilder();
+
+            if(permutationIndex == 0)
+            {
+                sb.Append("#if ");
+            }
+            else if(permutationIndex == permutationCount - 1)
+            {
+                sb.Append("#else");
+                return sb.ToString();
+            }
+            else
+            {
+                sb.Append("#elif ");
+            }
+
             bool appendAndFromPrevious = false;
             for(int i = 0; i < permutation.Count; i++)
             {                

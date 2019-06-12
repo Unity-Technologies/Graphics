@@ -176,22 +176,6 @@ namespace UnityEngine.Rendering.LWRP
             var pixelNodes = ListPool<AbstractMaterialNode>.Get();
             NodeUtils.DepthFirstCollectNodesFromNode(pixelNodes, masterNode, NodeUtils.IncludeSelf.Include, pass.PixelShaderSlots);
 
-            // -------------------------------------
-            // Get Requirements
-
-            var vertexRequirements = ShaderGraphRequirements.FromNodes(vertexNodes, ShaderStageCapability.Vertex, false);
-            var pixelRequirements = ShaderGraphRequirements.FromNodes(pixelNodes, ShaderStageCapability.Fragment);
-            var graphRequirements = pixelRequirements.Union(vertexRequirements);
-            var surfaceRequirements = ShaderGraphRequirements.FromNodes(pixelNodes, ShaderStageCapability.Fragment, false);
-
-            var modelRequiements = ShaderGraphRequirements.none;
-            modelRequiements.requiresNormal |= k_PixelCoordinateSpace;
-            modelRequiements.requiresTangent |= k_PixelCoordinateSpace;
-            modelRequiements.requiresBitangent |= k_PixelCoordinateSpace;
-            modelRequiements.requiresPosition |= k_PixelCoordinateSpace;
-            modelRequiements.requiresViewDir |= k_PixelCoordinateSpace;
-            modelRequiements.requiresMeshUVs.Add(UVChannel.UV1);
-
             // ----------------------------------------------------- //
             //                START SHADER GENERATION                //
             // ----------------------------------------------------- //
@@ -210,46 +194,209 @@ namespace UnityEngine.Rendering.LWRP
             materialOptions.GetDepthWrite(zWriteBuilder);
 
             // -------------------------------------
-            // Generate defines
+            // Requirements
 
-            if (masterNode.IsSlotConnected(UnlitMasterNode.AlphaThresholdSlotId))
-                defines.AppendLine("#define _AlphaClip 1");
+            var vertexRequirements = ShaderGraphRequirements.FromNodes(vertexNodes, ShaderStageCapability.Vertex, false);
+            var pixelRequirements = ShaderGraphRequirements.FromNodes(pixelNodes, ShaderStageCapability.Fragment);
+            var graphRequirements = pixelRequirements.Union(vertexRequirements);
+            var surfaceRequirements = ShaderGraphRequirements.FromNodes(pixelNodes, ShaderStageCapability.Fragment, false);
 
-            if (masterNode.surfaceType == SurfaceType.Transparent && masterNode.alphaMode == AlphaMode.Premultiply)
-                defines.AppendLine("#define _ALPHAPREMULTIPLY_ON 1");
+            var modelRequiements = ShaderGraphRequirements.none;
+            modelRequiements.requiresNormal |= k_PixelCoordinateSpace;
+            modelRequiements.requiresTangent |= k_PixelCoordinateSpace;
+            modelRequiements.requiresBitangent |= k_PixelCoordinateSpace;
+            modelRequiements.requiresPosition |= k_PixelCoordinateSpace;
+            modelRequiements.requiresViewDir |= k_PixelCoordinateSpace;
+            modelRequiements.requiresMeshUVs.Add(UVChannel.UV1);
 
-            if (graphRequirements.requiresDepthTexture)
-                defines.AppendLine("#define REQUIRE_DEPTH_TEXTURE");
+            // ----------------------------------------------------- //
+            //                      INTERPOLATORS                    //
+            // ----------------------------------------------------- //
 
-            if (graphRequirements.requiresCameraOpaqueTexture)
-                defines.AppendLine("#define REQUIRE_OPAQUE_TEXTURE");
+            // -------------------------------------
+            // Prepare interpolator structs
+
+            vertexDescriptionInputStruct.AppendLine("struct VertexDescriptionInputs");
+            vertexDescriptionInputStruct.AppendLine("{");
+            vertexDescriptionInputStruct.IncreaseIndent();
+
+            surfaceDescriptionInputStruct.AppendLine("struct SurfaceDescriptionInputs");
+            surfaceDescriptionInputStruct.AppendLine("{");
+            surfaceDescriptionInputStruct.IncreaseIndent();
+
+            masterNode.owner.CollectShaderKeywords(shaderKeywords, mode);
+            var keywordPermutations = KeywordUtil.GetKeywordPermutations(shaderKeywords.keywords);
+
+            for(int i = 0; i < keywordPermutations.Count; i++)
+            {
+                // If null there are no keywords
+                if(keywordPermutations[i] != null)
+                {
+                    vertexNodes.Clear();
+                    pixelNodes.Clear();
+                    NodeUtils.DepthFirstCollectNodesFromNode(vertexNodes, masterNode, NodeUtils.IncludeSelf.Include, pass.VertexShaderSlots, keywordPermutations[i]);
+                    NodeUtils.DepthFirstCollectNodesFromNode(pixelNodes, masterNode, NodeUtils.IncludeSelf.Include, pass.PixelShaderSlots, keywordPermutations[i]);
+                }
+
+                var localVertexRequirements = ShaderGraphRequirements.FromNodes(vertexNodes, ShaderStageCapability.Vertex, false);
+                var localSurfaceRequirements = ShaderGraphRequirements.FromNodes(pixelNodes, ShaderStageCapability.Fragment, false);
+                var localPixelRequirements = ShaderGraphRequirements.FromNodes(pixelNodes, ShaderStageCapability.Fragment);
+
+                var localModelRequiements = ShaderGraphRequirements.none;
+                localModelRequiements.requiresNormal |= k_PixelCoordinateSpace;
+                localModelRequiements.requiresTangent |= k_PixelCoordinateSpace;
+                localModelRequiements.requiresBitangent |= k_PixelCoordinateSpace;
+                localModelRequiements.requiresPosition |= k_PixelCoordinateSpace;
+                localModelRequiements.requiresViewDir |= k_PixelCoordinateSpace;
+                localModelRequiements.requiresMeshUVs.Add(UVChannel.UV1);
+
+                // -------------------------------------
+                // Generate Input structure for Vertex Description function
+                // TODO - Vertex Description Input requirements are needed to exclude intermediate translation spaces
+
+                // If null there are no keywords
+                if(keywordPermutations[i] != null)
+                {
+                    vertexDescriptionInputStruct.AppendLine(KeywordUtil.GetKeywordPermutationString(keywordPermutations[i], i, keywordPermutations.Count));
+                    vertexDescriptionInputStruct.IncreaseIndent();
+                }
+
+                ShaderGenerator.GenerateSpaceTranslationSurfaceInputs(localVertexRequirements.requiresNormal, InterpolatorType.Normal, vertexDescriptionInputStruct);
+                ShaderGenerator.GenerateSpaceTranslationSurfaceInputs(localVertexRequirements.requiresTangent, InterpolatorType.Tangent, vertexDescriptionInputStruct);
+                ShaderGenerator.GenerateSpaceTranslationSurfaceInputs(localVertexRequirements.requiresBitangent, InterpolatorType.BiTangent, vertexDescriptionInputStruct);
+                ShaderGenerator.GenerateSpaceTranslationSurfaceInputs(localVertexRequirements.requiresViewDir, InterpolatorType.ViewDirection, vertexDescriptionInputStruct);
+                ShaderGenerator.GenerateSpaceTranslationSurfaceInputs(localVertexRequirements.requiresPosition, InterpolatorType.Position, vertexDescriptionInputStruct);
+
+                if (localVertexRequirements.requiresVertexColor)
+                    vertexDescriptionInputStruct.AppendLine("float4 {0};", ShaderGeneratorNames.VertexColor);
+
+                if (localVertexRequirements.requiresScreenPosition)
+                    vertexDescriptionInputStruct.AppendLine("float4 {0};", ShaderGeneratorNames.ScreenPosition);
+
+                foreach (var channel in localVertexRequirements.requiresMeshUVs.Distinct())
+                    vertexDescriptionInputStruct.AppendLine("half4 {0};", channel.GetUVName());
+
+                // If null there are no keywords
+                if(keywordPermutations[i] != null)
+                {
+                    vertexDescriptionInputStruct.DecreaseIndent();
+                }
+
+                // -------------------------------------
+                // Generate Input structure for Surface Description function
+                // Surface Description Input requirements are needed to exclude intermediate translation spaces
+
+                // If null there are no keywords
+                if(keywordPermutations[i] != null)
+                {
+                    surfaceDescriptionInputStruct.AppendLine(KeywordUtil.GetKeywordPermutationString(keywordPermutations[i], i, keywordPermutations.Count));
+                    surfaceDescriptionInputStruct.IncreaseIndent();
+                }
+
+                ShaderGenerator.GenerateSpaceTranslationSurfaceInputs(localSurfaceRequirements.requiresNormal, InterpolatorType.Normal, surfaceDescriptionInputStruct);
+                ShaderGenerator.GenerateSpaceTranslationSurfaceInputs(localSurfaceRequirements.requiresTangent, InterpolatorType.Tangent, surfaceDescriptionInputStruct);
+                ShaderGenerator.GenerateSpaceTranslationSurfaceInputs(localSurfaceRequirements.requiresBitangent, InterpolatorType.BiTangent, surfaceDescriptionInputStruct);
+                ShaderGenerator.GenerateSpaceTranslationSurfaceInputs(localSurfaceRequirements.requiresViewDir, InterpolatorType.ViewDirection, surfaceDescriptionInputStruct);
+                ShaderGenerator.GenerateSpaceTranslationSurfaceInputs(localSurfaceRequirements.requiresPosition, InterpolatorType.Position, surfaceDescriptionInputStruct);
+
+                if (localSurfaceRequirements.requiresVertexColor)
+                    surfaceDescriptionInputStruct.AppendLine("float4 {0};", ShaderGeneratorNames.VertexColor);
+
+                if (localSurfaceRequirements.requiresScreenPosition)
+                    surfaceDescriptionInputStruct.AppendLine("float4 {0};", ShaderGeneratorNames.ScreenPosition);
+
+                if (localSurfaceRequirements.requiresFaceSign)
+                    surfaceDescriptionInputStruct.AppendLine("float {0};", ShaderGeneratorNames.FaceSign);
+
+                foreach (var channel in localSurfaceRequirements.requiresMeshUVs.Distinct())
+                    surfaceDescriptionInputStruct.AppendLine("half4 {0};", channel.GetUVName());
+
+                // If null there are no keywords
+                if(keywordPermutations[i] != null)
+                {
+                    surfaceDescriptionInputStruct.DecreaseIndent();
+                }
+
+                // -------------------------------------
+                // Generate standard transformations
+                // This method ensures all required transform data is available in vertex and pixel stages
+
+                // If null there are no keywords
+                if(keywordPermutations[i] != null)
+                {
+                    string keywordPermutationString = KeywordUtil.GetKeywordPermutationString(keywordPermutations[i], i, keywordPermutations.Count);
+
+                    vertexOutputStruct.AppendLine(keywordPermutationString);
+                    vertexOutputStruct.IncreaseIndent();
+
+                    vertexShader.AppendLine(keywordPermutationString);
+                    vertexShader.IncreaseIndent();
+
+                    vertexShaderDescriptionInputs.AppendLine(keywordPermutationString);
+                    vertexShaderDescriptionInputs.IncreaseIndent();
+
+                    vertexShaderOutputs.AppendLine(keywordPermutationString);
+                    vertexShaderOutputs.IncreaseIndent();
+
+                    pixelShader.AppendLine(keywordPermutationString);
+                    pixelShader.IncreaseIndent();
+
+                    pixelShaderSurfaceInputs.AppendLine(keywordPermutationString);
+                    pixelShaderSurfaceInputs.IncreaseIndent();
+                }
+
+                ShaderGenerator.GenerateStandardTransforms(
+                    3,
+                    10,
+                    vertexOutputStruct,
+                    vertexShader,
+                    vertexShaderDescriptionInputs,
+                    vertexShaderOutputs,
+                    pixelShader,
+                    pixelShaderSurfaceInputs,
+                    localPixelRequirements,
+                    localSurfaceRequirements,
+                    localModelRequiements,
+                    localVertexRequirements,
+                    CoordinateSpace.World);
+
+                // If null there are no keywords
+                if(keywordPermutations[i] != null)
+                {
+                    vertexOutputStruct.DecreaseIndent();
+                    vertexShader.DecreaseIndent();
+                    vertexShaderDescriptionInputs.DecreaseIndent();
+                    vertexShaderOutputs.DecreaseIndent();
+                    pixelShader.DecreaseIndent();
+                    pixelShaderSurfaceInputs.DecreaseIndent();
+                }
+            }
+
+            // -------------------------------------
+            // Finalise interpolator structs
+
+            // If first entry is null there are no keywords
+            if(keywordPermutations[0] != null)
+            {
+                vertexDescriptionInputStruct.AppendLine("#endif");
+                surfaceDescriptionInputStruct.AppendLine("#endif");
+                vertexOutputStruct.AppendLine("#endif");
+                vertexShader.AppendLine("#endif");
+                vertexShaderDescriptionInputs.AppendLine("#endif");
+                vertexShaderOutputs.AppendLine("#endif");
+                pixelShader.AppendLine("#endif");
+                pixelShaderSurfaceInputs.AppendLine("#endif");
+            }
+
+            vertexDescriptionInputStruct.DecreaseIndent();
+            vertexDescriptionInputStruct.AppendLine("};");
+
+            surfaceDescriptionInputStruct.DecreaseIndent();
+            surfaceDescriptionInputStruct.AppendLine("};");
 
             // ----------------------------------------------------- //
             //                START VERTEX DESCRIPTION               //
             // ----------------------------------------------------- //
-
-            // -------------------------------------
-            // Generate Input structure for Vertex Description function
-            // TODO - Vertex Description Input requirements are needed to exclude intermediate translation spaces
-
-            vertexDescriptionInputStruct.AppendLine("struct VertexDescriptionInputs");
-            using (vertexDescriptionInputStruct.BlockSemicolonScope())
-            {
-                ShaderGenerator.GenerateSpaceTranslationSurfaceInputs(vertexRequirements.requiresNormal, InterpolatorType.Normal, vertexDescriptionInputStruct);
-                ShaderGenerator.GenerateSpaceTranslationSurfaceInputs(vertexRequirements.requiresTangent, InterpolatorType.Tangent, vertexDescriptionInputStruct);
-                ShaderGenerator.GenerateSpaceTranslationSurfaceInputs(vertexRequirements.requiresBitangent, InterpolatorType.BiTangent, vertexDescriptionInputStruct);
-                ShaderGenerator.GenerateSpaceTranslationSurfaceInputs(vertexRequirements.requiresViewDir, InterpolatorType.ViewDirection, vertexDescriptionInputStruct);
-                ShaderGenerator.GenerateSpaceTranslationSurfaceInputs(vertexRequirements.requiresPosition, InterpolatorType.Position, vertexDescriptionInputStruct);
-
-                if (vertexRequirements.requiresVertexColor)
-                    vertexDescriptionInputStruct.AppendLine("float4 {0};", ShaderGeneratorNames.VertexColor);
-
-                if (vertexRequirements.requiresScreenPosition)
-                    vertexDescriptionInputStruct.AppendLine("float4 {0};", ShaderGeneratorNames.ScreenPosition);
-
-                foreach (var channel in vertexRequirements.requiresMeshUVs.Distinct())
-                    vertexDescriptionInputStruct.AppendLine("half4 {0};", channel.GetUVName());
-            }
 
             // -------------------------------------
             // Generate Output structure for Vertex Description function
@@ -275,32 +422,6 @@ namespace UnityEngine.Rendering.LWRP
             // ----------------------------------------------------- //
 
             // -------------------------------------
-            // Generate Input structure for Surface Description function
-            // Surface Description Input requirements are needed to exclude intermediate translation spaces
-
-            surfaceDescriptionInputStruct.AppendLine("struct SurfaceDescriptionInputs");
-            using (surfaceDescriptionInputStruct.BlockSemicolonScope())
-            {
-                ShaderGenerator.GenerateSpaceTranslationSurfaceInputs(surfaceRequirements.requiresNormal, InterpolatorType.Normal, surfaceDescriptionInputStruct);
-                ShaderGenerator.GenerateSpaceTranslationSurfaceInputs(surfaceRequirements.requiresTangent, InterpolatorType.Tangent, surfaceDescriptionInputStruct);
-                ShaderGenerator.GenerateSpaceTranslationSurfaceInputs(surfaceRequirements.requiresBitangent, InterpolatorType.BiTangent, surfaceDescriptionInputStruct);
-                ShaderGenerator.GenerateSpaceTranslationSurfaceInputs(surfaceRequirements.requiresViewDir, InterpolatorType.ViewDirection, surfaceDescriptionInputStruct);
-                ShaderGenerator.GenerateSpaceTranslationSurfaceInputs(surfaceRequirements.requiresPosition, InterpolatorType.Position, surfaceDescriptionInputStruct);
-
-                if (surfaceRequirements.requiresVertexColor)
-                    surfaceDescriptionInputStruct.AppendLine("float4 {0};", ShaderGeneratorNames.VertexColor);
-
-                if (surfaceRequirements.requiresScreenPosition)
-                    surfaceDescriptionInputStruct.AppendLine("float4 {0};", ShaderGeneratorNames.ScreenPosition);
-
-                if (surfaceRequirements.requiresFaceSign)
-                    surfaceDescriptionInputStruct.AppendLine("float {0};", ShaderGeneratorNames.FaceSign);
-
-                foreach (var channel in surfaceRequirements.requiresMeshUVs.Distinct())
-                    surfaceDescriptionInputStruct.AppendLine("half4 {0};", channel.GetUVName());
-            }
-
-            // -------------------------------------
             // Generate Output structure for Surface Description function
 
             GraphUtil.GenerateSurfaceDescriptionStruct(surfaceDescriptionStruct, pixelSlots);
@@ -316,7 +437,6 @@ namespace UnityEngine.Rendering.LWRP
                 functionRegistry,
                 shaderProperties,
                 shaderKeywords,
-                pixelRequirements,
                 mode,
                 "PopulateSurfaceData",
                 "SurfaceDescription",
@@ -326,6 +446,21 @@ namespace UnityEngine.Rendering.LWRP
             // ----------------------------------------------------- //
             //           GENERATE VERTEX > PIXEL PIPELINE            //
             // ----------------------------------------------------- //
+
+            // -------------------------------------
+            // Generate defines
+
+            if (masterNode.IsSlotConnected(UnlitMasterNode.AlphaThresholdSlotId))
+                defines.AppendLine("#define _AlphaClip 1");
+
+            if (masterNode.surfaceType == SurfaceType.Transparent && masterNode.alphaMode == AlphaMode.Premultiply)
+                defines.AppendLine("#define _ALPHAPREMULTIPLY_ON 1");
+
+            if (graphRequirements.requiresDepthTexture)
+                defines.AppendLine("#define REQUIRE_DEPTH_TEXTURE");
+
+            if (graphRequirements.requiresCameraOpaqueTexture)
+                defines.AppendLine("#define REQUIRE_OPAQUE_TEXTURE");
 
             // -------------------------------------
             // Keyword declarations
@@ -341,25 +476,6 @@ namespace UnityEngine.Rendering.LWRP
             // Generate Input structure for Vertex shader
 
             GraphUtil.GenerateApplicationVertexInputs(vertexRequirements.Union(pixelRequirements.Union(modelRequiements)), vertexInputStruct);
-
-            // -------------------------------------
-            // Generate standard transformations
-            // This method ensures all required transform data is available in vertex and pixel stages
-
-            ShaderGenerator.GenerateStandardTransforms(
-                3,
-                10,
-                vertexOutputStruct,
-                vertexShader,
-                vertexShaderDescriptionInputs,
-                vertexShaderOutputs,
-                pixelShader,
-                pixelShaderSurfaceInputs,
-                pixelRequirements,
-                surfaceRequirements,
-                modelRequiements,
-                vertexRequirements,
-                CoordinateSpace.World);
 
             // -------------------------------------
             // Generate pixel shader surface remap

@@ -566,7 +566,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 functionRegistry,
                 sharedProperties,
                 sharedKeywords,
-                pixelRequirements,  // TODO : REMOVE UNUSED
                 mode,
                 pixelGraphEvalFunctionName,
                 pixelGraphOutputStructName,

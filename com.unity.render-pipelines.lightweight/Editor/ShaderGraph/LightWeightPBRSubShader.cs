@@ -351,7 +351,6 @@ namespace UnityEditor.Rendering.LWRP
                 functionRegistry,
                 shaderProperties,
                 shaderKeywords,
-                pixelRequirements,
                 mode,
                 "PopulateSurfaceData",
                 "SurfaceDescription",
