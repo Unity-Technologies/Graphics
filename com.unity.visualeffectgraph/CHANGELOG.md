@@ -5,6 +5,11 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## [5.17.0-preview] - 2019-XX-XX
+### Added
+- Add Exposure Weight for emissive in lit outputs
+
+### Fixed
+- Position (Circle) does not take the Center Z value into account [Case 1146850](https://issuetracker.unity3d.com/issues/blocks-position-circle-does-not-take-the-center-z-value-into-account)
 
 ## [5.16.1-preview] - 2019-05-22
 ### Changed

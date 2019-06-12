@@ -154,6 +154,12 @@ namespace UnityEditor.VFX
             public Color emissiveColor = Color.black;
         }
 
+        public class ExposureWeightProperties
+        {
+            [Tooltip("The proportion of emission to expose"), Range(0, 1)]
+            public float exposureWeight = 1.0f;
+        }
+
         protected override IEnumerable<VFXPropertyWithValue> inputProperties
         {
             get
@@ -183,6 +189,9 @@ namespace UnityEditor.VFX
 
                 if (((colorMode & ColorMode.Emissive) == 0) && useEmissive)
                     properties = properties.Concat(PropertiesFromType("EmissiveColorProperties"));
+
+                if ((colorMode & ColorMode.Emissive) != 0 || useEmissive || useEmissiveMap)
+                    properties = properties.Concat(PropertiesFromType("ExposureWeightProperties"));
 
                 return properties;
             }
@@ -244,6 +253,9 @@ namespace UnityEditor.VFX
 
             if (((colorMode & ColorMode.Emissive) == 0) && useEmissive)
                 yield return slotExpressions.First(o => o.name == "emissiveColor");
+
+            if ((colorMode & ColorMode.Emissive) != 0 || useEmissive || useEmissiveMap)
+                yield return slotExpressions.First(o => o.name == "exposureWeight");
         }
 
         public override IEnumerable<string> additionalDefines
