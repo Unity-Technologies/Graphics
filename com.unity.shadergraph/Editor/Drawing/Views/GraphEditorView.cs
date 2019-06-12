@@ -8,6 +8,7 @@ using UnityEditor.ShaderGraph.Drawing.Inspector;
 using Object = UnityEngine.Object;
 
 using UnityEditor.Experimental.GraphView;
+using UnityEditor.ShaderGraph.Drawing.Colors;
 using UnityEngine.UIElements;
 using Edge = UnityEditor.Experimental.GraphView.Edge;
 
@@ -23,10 +24,11 @@ namespace UnityEditor.ShaderGraph.Drawing
     }
 
     [Serializable]
-    class ToggleSettings
+    class UserViewSettings
     {
         public bool isBlackboardVisible = true;
         public bool isPreviewVisible = true;
+        public string colorProvider = NoColors.Title;
     }
 
     class GraphEditorView : VisualElement, IDisposable
@@ -40,14 +42,15 @@ namespace UnityEditor.ShaderGraph.Drawing
         SearchWindowProvider m_SearchWindowProvider;
         EdgeConnectorListener m_EdgeConnectorListener;
         BlackboardProvider m_BlackboardProvider;
+        ColorManager m_ColorManager;
 
         public BlackboardProvider blackboardProvider
         {
             get { return m_BlackboardProvider; }
         }
 
-        const string k_ToggleSettings = "UnityEditor.ShaderGraph.ToggleSettings";
-        ToggleSettings m_ToggleSettings;
+        const string k_UserViewSettings = "UnityEditor.ShaderGraph.ToggleSettings";
+        UserViewSettings m_UserViewSettings;
 
         const string k_FloatingWindowsLayoutKey = "UnityEditor.ShaderGraph.FloatingWindowsLayout2";
         FloatingWindowsLayout m_FloatingWindowsLayout;
@@ -81,6 +84,11 @@ namespace UnityEditor.ShaderGraph.Drawing
                 m_BlackboardProvider.assetName = value;
             }
         }
+        
+        public ColorManager colorManager
+        {
+            get => m_ColorManager;
+        }
 
         public GraphEditorView(EditorWindow editorWindow, GraphData graph, MessageManager messageManager)
         {
@@ -90,11 +98,9 @@ namespace UnityEditor.ShaderGraph.Drawing
             previewManager = new PreviewManager(graph, messageManager);
             previewManager.onPrimaryMasterChanged = OnPrimaryMasterChanged;
 
-            string serializedToggle = EditorUserSettings.GetConfigValue(k_ToggleSettings);
-            if (!string.IsNullOrEmpty(serializedToggle))
-            {
-                m_ToggleSettings = JsonUtility.FromJson<ToggleSettings>(serializedToggle);
-            }
+            var serializedSettings = EditorUserSettings.GetConfigValue(k_UserViewSettings);
+            m_UserViewSettings = JsonUtility.FromJson<UserViewSettings>(serializedSettings) ?? new UserViewSettings();
+            m_ColorManager = new ColorManager(m_UserViewSettings.colorProvider);
 
             string serializedWindowLayout = EditorUserSettings.GetConfigValue(k_FloatingWindowsLayoutKey);
             if (!string.IsNullOrEmpty(serializedWindowLayout))
@@ -122,6 +128,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
 
             previewManager.RenderPreviews();
+            var colorProviders = m_ColorManager.providerNames.ToArray();
             var toolbar = new IMGUIContainer(() =>
                 {
                     GUILayout.BeginHorizontal(EditorStyles.toolbar);
@@ -137,20 +144,45 @@ namespace UnityEditor.ShaderGraph.Drawing
                             showInProjectRequested();
                     }
 
+                    EditorGUI.BeginChangeCheck();
+                    GUILayout.Label("Precision");
+                    graph.concretePrecision = (ConcretePrecision)EditorGUILayout.EnumPopup(graph.concretePrecision, GUILayout.Width(100f));
+                    GUILayout.Space(4);
+                    if (EditorGUI.EndChangeCheck())
+                    {
+                        var nodeList = m_GraphView.Query<MaterialNodeView>().ToList();
+                        m_ColorManager.SetNodesDirty(nodeList);
+                        graph.ValidateGraph();
+                        m_ColorManager.UpdateNodeViews(nodeList);
+                        foreach (var node in graph.GetNodes<AbstractMaterialNode>())
+                        {
+                            node.Dirty(ModificationScope.Graph);
+                        }
+                    }
+
                     GUILayout.FlexibleSpace();
 
                     EditorGUI.BeginChangeCheck();
-                    m_ToggleSettings.isBlackboardVisible = GUILayout.Toggle(m_ToggleSettings.isBlackboardVisible, "Blackboard", EditorStyles.toolbarButton);
+                    GUILayout.Label("Color Mode");
+                    var newColorIdx = EditorGUILayout.Popup(m_ColorManager.activeIndex, colorProviders, GUILayout.Width(100f));
+                    GUILayout.Space(4);
+                    m_UserViewSettings.isBlackboardVisible = GUILayout.Toggle(m_UserViewSettings.isBlackboardVisible, "Blackboard", EditorStyles.toolbarButton);
 
                     GUILayout.Space(6);
 
-                    m_ToggleSettings.isPreviewVisible = GUILayout.Toggle(m_ToggleSettings.isPreviewVisible, "Main Preview", EditorStyles.toolbarButton);
+                    m_UserViewSettings.isPreviewVisible = GUILayout.Toggle(m_UserViewSettings.isPreviewVisible, "Main Preview", EditorStyles.toolbarButton);
                     if (EditorGUI.EndChangeCheck())
                     {
-                        m_MasterPreviewView.visible = m_ToggleSettings.isPreviewVisible;
-                        m_BlackboardProvider.blackboard.visible = m_ToggleSettings.isBlackboardVisible;
-                        string serializedToggleables = JsonUtility.ToJson(m_ToggleSettings);
-                        EditorUserSettings.SetConfigValue(k_ToggleSettings, serializedToggleables);
+                        if(newColorIdx != m_ColorManager.activeIndex)
+                        {
+                            m_ColorManager.SetActiveProvider(newColorIdx, m_GraphView.Query<MaterialNodeView>().ToList());
+                            m_UserViewSettings.colorProvider = m_ColorManager.activeProviderName;
+                        }
+                    
+                        m_MasterPreviewView.visible = m_UserViewSettings.isPreviewVisible;
+                        m_BlackboardProvider.blackboard.visible = m_UserViewSettings.isBlackboardVisible;
+                        var serializedViewSettings = JsonUtility.ToJson(m_UserViewSettings);
+                        EditorUserSettings.SetConfigValue(k_UserViewSettings, serializedViewSettings);
                     }
                     GUILayout.EndHorizontal();
                 });
@@ -173,12 +205,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 m_BlackboardProvider = new BlackboardProvider(graph);
                 m_GraphView.Add(m_BlackboardProvider.blackboard);
 
-                // Initialize toggle settings if it doesnt exist.
-                if (m_ToggleSettings == null)
-                {
-                    m_ToggleSettings = new ToggleSettings();
-                }
-                m_BlackboardProvider.blackboard.visible = m_ToggleSettings.isBlackboardVisible;
+                m_BlackboardProvider.blackboard.visible = m_UserViewSettings.isBlackboardVisible;
 
                 CreateMasterPreview();
 
@@ -221,7 +248,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             masterPreviewViewDraggable.OnDragFinished += UpdateSerializedWindowLayout;
             m_MasterPreviewView.previewResizeBorderFrame.OnResizeFinished += UpdateSerializedWindowLayout;
-            m_MasterPreviewView.visible = m_ToggleSettings.isPreviewVisible;
+            m_MasterPreviewView.visible = m_UserViewSettings.isPreviewVisible;
         }
 
         void OnKeyDown(KeyDownEvent evt)
@@ -609,9 +636,10 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
             else
             {
-                var materialNodeView = new MaterialNodeView { userData = materialNode };
+                var materialNodeView = new MaterialNodeView {userData = materialNode};
                 m_GraphView.AddElement(materialNodeView);
                 materialNodeView.Initialize(materialNode, m_PreviewManager, m_EdgeConnectorListener, graphView);
+                m_ColorManager.UpdateNodeView(materialNodeView);
                 nodeView = materialNodeView;
             }
 

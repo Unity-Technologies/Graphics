@@ -50,11 +50,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             var baseType = typeof(BaseShaderPreprocessor);
             var assembly = baseType.Assembly;
 
-            var types = assembly.GetTypes()
-                .Where(t => t.IsSubclassOf(baseType))
-                .Select(Activator.CreateInstance)
-                .Cast<BaseShaderPreprocessor>()
-                .ToList();
+            var types = AppDomain.CurrentDomain.GetAssemblies()
+                .SelectMany(a => a.GetTypes()
+                    .Where(t => t.IsSubclassOf(baseType))
+                    .Select(Activator.CreateInstance)
+                    .Cast<BaseShaderPreprocessor>()
+                ).ToList();
 
             return types;
         }

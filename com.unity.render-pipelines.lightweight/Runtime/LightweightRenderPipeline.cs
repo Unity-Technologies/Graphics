@@ -99,6 +99,8 @@ namespace UnityEngine.Rendering.LWRP
             Lightmapping.SetDelegate(lightsDelegate);
 
             CameraCaptureBridge.enabled = true;
+
+            RenderingUtils.ClearSystemInfoCache();
         }
 
         protected override void Dispose(bool disposing)
@@ -145,7 +147,11 @@ namespace UnityEngine.Rendering.LWRP
             var settings = asset;
             LWRPAdditionalCameraData additionalCameraData = null;
             if (camera.cameraType == CameraType.Game || camera.cameraType == CameraType.VR)
+#if UNITY_2019_3_OR_NEWER
+                camera.gameObject.TryGetComponent(out additionalCameraData);
+#else
                 additionalCameraData = camera.gameObject.GetComponent<LWRPAdditionalCameraData>();
+#endif
 
             InitializeCameraData(settings, camera, additionalCameraData, out var cameraData);
             SetupPerCameraShaderConstants(cameraData);
@@ -157,8 +163,8 @@ namespace UnityEngine.Rendering.LWRP
                 return;
             }
 
-            CommandBuffer cmd = CommandBufferPool.Get(camera.name);
-            using (new ProfilingSample(cmd, camera.name))
+            CommandBuffer cmd = CommandBufferPool.Get(k_RenderCameraTag);
+            using (new ProfilingSample(cmd, k_RenderCameraTag))
             {
                 renderer.Clear();
                 renderer.SetupCullingParameters(ref cullingParameters, ref cameraData);
@@ -216,6 +222,7 @@ namespace UnityEngine.Rendering.LWRP
 
             if (Camera.main == camera && camera.cameraType == CameraType.Game && camera.targetTexture == null)
             {
+#if ENABLE_VR
                 bool msaaSampleCountHasChanged = false;
                 int currentQualitySettingsSampleCount = QualitySettings.antiAliasing;
                 if (currentQualitySettingsSampleCount != msaaSamples &&
@@ -232,11 +239,18 @@ namespace UnityEngine.Rendering.LWRP
 
                 if (cameraData.isStereoEnabled && msaaSampleCountHasChanged)
                     XR.XRDevice.UpdateEyeTextureMSAASetting();
+#else
+                QualitySettings.antiAliasing = msaaSamples;
+#endif//ENABLE_VR
             }
-            
+
             cameraData.isSceneViewCamera = camera.cameraType == CameraType.SceneView;
             cameraData.isHdrEnabled = camera.allowHDR && settings.supportsHDR;
+#if UNITY_2019_3_OR_NEWER
+            camera.TryGetComponent(out cameraData.postProcessLayer);
+#else
             cameraData.postProcessLayer = camera.GetComponent<PostProcessLayer>();
+#endif
             cameraData.postProcessEnabled = cameraData.postProcessLayer != null && cameraData.postProcessLayer.isActiveAndEnabled;
 
             // Disables postprocessing in mobile VR. It's stable on mobile yet.
@@ -337,8 +351,15 @@ namespace UnityEngine.Rendering.LWRP
             for (int i = 0; i < visibleLights.Length; ++i)
             {
                 Light light = visibleLights[i].light;
-                LWRPAdditionalLightData data =
-                    (light != null) ? light.gameObject.GetComponent<LWRPAdditionalLightData>() : null;
+                LWRPAdditionalLightData data = null;
+                if (light != null)
+                {
+#if UNITY_2019_3_OR_NEWER
+                    light.gameObject.TryGetComponent(out data);
+#else
+                    data = light.gameObject.GetComponent<LWRPAdditionalLightData>();
+#endif
+                }
 
                 if (data && !data.usePipelineSettings)
                     m_ShadowBiasData.Add(new Vector4(light.shadowBias, light.shadowNormalBias, 0.0f, 0.0f));

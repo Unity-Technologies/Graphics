@@ -27,6 +27,11 @@ After you enable Light Layers, you can then use them to decouple Meshes from cer
 4. Click on a Mesh Renderer in the Hierarchy or the Scene view to view it in the Inspector.
 5. Use the **Rendering Layer Mask** drop-down to select which Light Layers affect this Mesh Renderer. When you enable Light Layers, a Light only affects a Mesh Renderer if they both use a matching Light Layer.
 
+## Shadow Light Layers
+
+When using light layers, the shadow casted by objects are bound to the light layers on them: for example you can't create an object that is not by a light but make this object cast shadows from this light unless you enabled light shadow layers.  
+By default the light layers and shadow layers are synchronized to have the same value so each object that receive light cast shadows, to decouple this behavior you can untick **Link Light Layer** in the shadow map settings. It allows you to modify the **Light Layer** mask below, then this mask will be used against the **Rendering Layer Mask** on **Mesh Renderers** to choose which object will cast shadows.
+
 ## Example scenario
 
 Using [cookies](https://docs.unity3d.com/Manual/Cookies.html) for light fixtures can sometimes have a negative visual effect on a bulb, such as self-shadowing or transmission contribution. You can use Light Layers to make a bulb Mesh not receive any light from the Light’s cookie, and instead receive light from a separate small Point Light.
