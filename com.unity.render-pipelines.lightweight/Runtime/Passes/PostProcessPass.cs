@@ -523,7 +523,7 @@ namespace UnityEngine.Rendering.LWRP
             // This is needed because Blit will reset viewproj matrices to identity and LW currently
             // relies on SetupCameraProperties instead of handling its own matrices.
             // TODO: We need get rid of SetupCameraProperties and setup camera matrices in LWRP
-            var proj = GL.GetGPUProjectionMatrix(camera.nonJitteredProjectionMatrix, true);
+            var proj = camera.nonJitteredProjectionMatrix;
             var view = camera.worldToCameraMatrix;
             var viewProj = proj * view;
 
