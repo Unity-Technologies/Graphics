@@ -351,7 +351,7 @@ void FillVolumetricDensityBuffer(PositionInputs posInput, uint tileIndex, Jitter
 #else
 float3 SampleFluidSimVolume(FluidSimVolumeEngineData volumeData, float3 voxelCenterNDC)
 {
-    float3 voxelCenterUVW = frac(voxelCenterNDC * (32.0 / 512.0));
+    float3 voxelCenterUVW = frac(voxelCenterNDC * (64.0 / 512.0));
 
     return SAMPLE_TEXTURE3D_LOD(_FluidSimVolumeAtlas, s_linear_repeat_sampler, voxelCenterUVW, 0).rgb;
 }

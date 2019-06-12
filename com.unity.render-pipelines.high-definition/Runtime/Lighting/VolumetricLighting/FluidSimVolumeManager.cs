@@ -76,9 +76,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 const int threadTile = 4;
                 const int lessTile = threadTile - 1;
 
-                int dispatchX = (initialSimTexture.width  - lessTile) / threadTile;
-                int dispatchY = (initialSimTexture.height - lessTile) / threadTile;
-                int dispatchZ = (initialSimTexture.depth  - lessTile) / threadTile;
+                int dispatchX = (initialSimTexture.width  + lessTile) / threadTile;
+                int dispatchY = (initialSimTexture.height + lessTile) / threadTile;
+                int dispatchZ = (initialSimTexture.depth  + lessTile) / threadTile;
 
                 if (volume.needToInitialize)
                 {
@@ -134,9 +134,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 const int threadTile = 4;
                 const int lessTile = threadTile - 1;
 
-                int dispatchX = (inputVolumeTexture.rt.width       - lessTile) / threadTile;
-                int dispatchY = (inputVolumeTexture.rt.height      - lessTile) / threadTile;
-                int dispatchZ = (inputVolumeTexture.rt.volumeDepth - lessTile) / threadTile;
+                int dispatchX = (inputVolumeTexture.rt.width       + lessTile) / threadTile;
+                int dispatchY = (inputVolumeTexture.rt.height      + lessTile) / threadTile;
+                int dispatchZ = (inputVolumeTexture.rt.volumeDepth + lessTile) / threadTile;
 
                 cmd.DispatchCompute(_texture3DAtlasCS, kernel, dispatchX, dispatchY, dispatchZ);
             }
