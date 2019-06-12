@@ -1,0 +1,98 @@
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ScreenSpaceLighting/GTAOCommon.hlsl"
+
+#pragma kernel AOUpsample
+
+RW_TEXTURE2D_X(float, _OcclusionTexture);
+TEXTURE2D_X_UINT(_AOPackedData);
+
+#define EPSILON 0.0001
+#define DELTA_SCALE 1
+
+#define BILATERAL 0
+#define NEAREST_DEPTH 1
+#define BOX 2
+
+#define UPSAMPLING_METHOD BOX
+
+// TODO: This pass really could really use some quality improvement. 
+
+[numthreads(8,8,1)]
+void AOUpsample(uint3 dispatchThreadId : SV_DispatchThreadID)
+{
+    UNITY_STEREO_ASSIGN_COMPUTE_EYE_INDEX(dispatchThreadId.z);
+ 
+    // Gather half res samples + depths.
+    float2 uv = (dispatchThreadId.xy + 0.5) * _ScreenSize.zw;
+    uint4 currDatas = GATHER_TEXTURE2D_X(_AOPackedData, s_linear_clamp_sampler, ClampAndScaleUVForBilinear(uv, _AOBufferSize.zw));
+    float4 currAOs, currDepths;
+    UnpackGatheredData(currDatas, currAOs, currDepths);
+
+    float final = 0;
+
+#if UPSAMPLING_METHOD == NEAREST_DEPTH
+
+    float2 fullResTexelSize = _ScreenSize.zw;
+    float2 halfResTexelSize = 2.0f * fullResTexelSize;
+
+    float4 lowResDepths = currDepths;
+
+    float fullResDepth = LoadCameraDepth(dispatchThreadId.xy);
+    float linearFullResDepth = LinearEyeDepth(fullResDepth, _ZBufferParams);
+
+    float minDiff = 1e12f;
+    float relativeDepthThresh = 0.1 * linearFullResDepth;
+
+    float2 nearestUV;
+    int countBelowThresh = 0;
+
+    float finalAO = currAOs[0];
+
+    [unroll]
+    for (int i = 0; i < 4; ++i)
+    {
+        float depthDiff = abs(linearFullResDepth - LinearEyeDepth(lowResDepths[i], _ZBufferParams));
+        if (depthDiff < minDiff)
+        {
+            minDiff = depthDiff;
+            finalAO = currAOs[i];
+        }
+        countBelowThresh += (depthDiff < relativeDepthThresh);
+    }
+
+    if (countBelowThresh == 4)
+    {
+        final = dot(0.25f, currAOs);
+    }
+    else
+    {
+        final = finalAO;
+    }
+#elif UPSAMPLING_METHOD == BILATERAL
+
+    // Get full res texture.
+    float fullResDepth = LoadCameraDepth(dispatchThreadId.xy);
+    float linearFullResDepth = LinearEyeDepth(fullResDepth, _ZBufferParams);
+
+    float totalWeight = 0;
+
+    // TODO: Use linear depth, consider storing it as linear.
+
+    [unroll]
+    for (int i = 0; i < 4; ++i)
+    {
+        float delta = abs(LinearEyeDepth(currDepths[i], _ZBufferParams) - linearFullResDepth);
+
+        float w =  0.25f * (DELTA_SCALE * delta + EPSILON);
+        totalWeight += w;
+        final += w * currAOs[i];
+    }
+    final /= totalWeight;
+
+#else
+    final = dot(currAOs, 0.25);
+
+#endif 
+
+    // Unpack
+    _OcclusionTexture[COORD_TEXTURE2D_X(dispatchThreadId.xy)] = 1.0 - pow(final, _AOIntensity);
+}
