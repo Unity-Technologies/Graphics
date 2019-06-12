@@ -82,7 +82,7 @@ bool GetSurfaceDataFromIntersection(FragInputs input, float3 V, PositionInputs p
     const float3 scale3 = float3(length(worldToObject[0]), length(worldToObject[1]), length(worldToObject[2]));
     const float coneWidthOS = rayCone.width * (scale3.x + scale3.y + scale3.z) / 3;
     const float uvArea = GetIntersectionTextureArea(intersectionVertex, _UVMappingMask, _BaseColorMap_ST.xy, _TexWorldScale);
-    const float baseLOD = computeBaseTextureLOD(V, input.worldToTangent[2], coneWidthOS, uvArea, intersectionVertex.triangleArea);
+    const float baseLOD = computeBaseTextureLOD(V, input.tangentToWorld[2], coneWidthOS, uvArea, intersectionVertex.triangleArea);
     #else
     const float baseLOD = 0;
     #endif
@@ -121,7 +121,7 @@ bool GetSurfaceDataFromIntersection(FragInputs input, float3 V, PositionInputs p
     float3 normalTS = UnpackNormalmapRGorAG(SAMPLE_TEXTURE2D_LOD(_NormalMap, sampler_NormalMap, uvBase, lod), _NormalScale);
     GetNormalWS(input, normalTS, surfaceData.normalWS, doubleSidedConstants);
     #else
-    surfaceData.normalWS = input.worldToTangent[2];
+    surfaceData.normalWS = input.tangentToWorld[2];
     #endif
 
     // Default smoothness
@@ -208,7 +208,7 @@ bool GetSurfaceDataFromIntersection(FragInputs input, float3 V, PositionInputs p
 #endif
 
     // Default tangentWS
-    surfaceData.tangentWS = normalize(input.worldToTangent[0].xyz);
+    surfaceData.tangentWS = normalize(input.tangentToWorld[0].xyz);
 
     // Transparency
 #if HAS_REFRACTION
@@ -234,7 +234,7 @@ bool GetSurfaceDataFromIntersection(FragInputs input, float3 V, PositionInputs p
     surfaceData.transmittanceMask = 0.0;
 #endif
 
-    InitBuiltinData(posInput, alpha, surfaceData.normalWS, -input.worldToTangent[2], input.texCoord1, input.texCoord2, builtinData);
+    InitBuiltinData(posInput, alpha, surfaceData.normalWS, -input.tangentToWorld[2], input.texCoord1, input.texCoord2, builtinData);
     builtinData.emissiveColor = _EmissiveColor * lerp(float3(1.0, 1.0, 1.0), surfaceData.baseColor.rgb, _AlbedoAffectEmissive);
 #if _EMISSIVE_COLOR_MAP
     #ifdef USE_RAY_CONE_LOD

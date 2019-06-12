@@ -241,7 +241,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly int _ContactShadowParamsParameters = Shader.PropertyToID("_ContactShadowParamsParameters");
         public static readonly int _ContactShadowParamsParameters2 = Shader.PropertyToID("_ContactShadowParamsParameters2");
         public static readonly int _DirectionalContactShadowSampleCount = Shader.PropertyToID("_SampleCount");
-        public static readonly int _MicroShadowingOpacity = Shader.PropertyToID("_MicroShadowOpacity");
+        public static readonly int _MicroShadowOpacity = Shader.PropertyToID("_MicroShadowOpacity");
         public static readonly int _ShadowClipPlanes = Shader.PropertyToID("_ShadowClipPlanes");
 
         public static readonly int _StencilMask = Shader.PropertyToID("_StencilMask");

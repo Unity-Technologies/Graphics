@@ -51,26 +51,23 @@
 #define MAX_CT_LOBE_COUNT 3
 #define CARPAINT2_LOBE_COUNT max(_CarPaint2_LobeCount,MAX_CT_LOBE_COUNT)
 
+//-----------------------------------------------------------------------------
+// Helper functions/variable specific to this material
+//-----------------------------------------------------------------------------
+
 float3 GetNormalForShadowBias(BSDFData bsdfData)
 {
     return bsdfData.geomNormalWS;
 }
 
-void ClampRoughness(inout BSDFData bsdfData, float minRoughness)
-{
-    // TODO
-}
-
-float ComputeMicroShadowing(BSDFData bsdfData, float NdotL)
+float GetAmbientOcclusionForMicroShadowing(BSDFData bsdfData)
 {
     return 1; // TODO
 }
 
-// No transmission support
-// #define MATERIAL_INCLUDE_TRANSMISSION
-bool MaterialSupportsTransmission(BSDFData bsdfData)
+void ClampRoughness(inout BSDFData bsdfData, float minRoughness)
 {
-    return false;
+    // TODO
 }
 
 //-----------------------------------------------------------------------------
@@ -120,7 +117,7 @@ void GetPBRValidatorDebug(SurfaceData surfaceData, inout float3 result)
 // This function is used to help with debugging and must be implemented by any lit material
 // Implementer must take into account what are the current override component and
 // adjust SurfaceData properties accordingdly
-void ApplyDebugToSurfaceData(float3x3 worldToTangent, inout SurfaceData surfaceData)
+void ApplyDebugToSurfaceData(float3x3 tangentToWorld, inout SurfaceData surfaceData)
 {
 #ifdef DEBUG_DISPLAY
     // NOTE: THe _Debug* uniforms come from /HDRP/Debug/DebugDisplay.hlsl
@@ -143,7 +140,7 @@ void ApplyDebugToSurfaceData(float3x3 worldToTangent, inout SurfaceData surfaceD
 
     if (overrideNormal)
     {
-        surfaceData.normalWS = worldToTangent[2];
+        surfaceData.normalWS = tangentToWorld[2];
     }
 
     if (_DebugFullScreenMode == FULLSCREENDEBUGMODE_VALIDATE_DIFFUSE_COLOR)
@@ -800,9 +797,17 @@ LightTransportData  GetLightTransportData(SurfaceData surfaceData, BuiltinData b
 // BSDF shared between directional light, punctual light and area light (reference)
 //-----------------------------------------------------------------------------
 
+// Same for all shading models.
+bool IsNonZeroBSDF(float3 V, float3 L, PreLightData preLightData, BSDFData bsdfData)
+{
+    float NdotL = dot(bsdfData.normalWS, L);
+
+    return NdotL > 0.0;
+}
+
 #ifdef _AXF_BRDF_TYPE_SVBRDF
 
-float3 ComputeWard(float3 H, float LdotH, float NdotL, float NdotV, float3 positionWS, PreLightData preLightData, BSDFData bsdfData)
+float3 ComputeWard(float3 H, float LdotH, float NdotL, float NdotV, PreLightData preLightData, BSDFData bsdfData)
 {
 
     // Evaluate Fresnel term
@@ -830,7 +835,7 @@ float3 ComputeWard(float3 H, float LdotH, float NdotL, float NdotV, float3 posit
     return bsdfData.specularColor * F * N;
 }
 
-float3  ComputeBlinnPhong(float3 H, float LdotH, float NdotL, float NdotV, float3 positionWS, PreLightData preLightData, BSDFData bsdfData)
+float3  ComputeBlinnPhong(float3 H, float LdotH, float NdotL, float NdotV, PreLightData preLightData, BSDFData bsdfData)
 {
     float2  exponents = exp2(bsdfData.roughness);
 
@@ -868,7 +873,7 @@ float3  ComputeBlinnPhong(float3 H, float LdotH, float NdotL, float NdotV, float
     return bsdfData.specularColor * N;
 }
 
-float3  ComputeCookTorrance(float3 H, float LdotH, float NdotL, float NdotV, float3 positionWS, PreLightData preLightData, BSDFData bsdfData)
+float3  ComputeCookTorrance(float3 H, float LdotH, float NdotL, float NdotV, PreLightData preLightData, BSDFData bsdfData)
 {
     float   NdotH = dot(H, bsdfData.normalWS);
     float   sqNdotH = Sq(NdotH);
@@ -887,7 +892,7 @@ float3  ComputeCookTorrance(float3 H, float LdotH, float NdotL, float NdotV, flo
     return bsdfData.specularColor * F * N * G;
 }
 
-float3  ComputeGGX(float3 H, float LdotH, float NdotL, float NdotV, float3 positionWS, PreLightData preLightData, BSDFData bsdfData)
+float3  ComputeGGX(float3 H, float LdotH, float NdotL, float NdotV, PreLightData preLightData, BSDFData bsdfData)
 {
     // Evaluate Fresnel term
     float3  F = F_Schlick(bsdfData.fresnelF0, LdotH);
@@ -914,7 +919,7 @@ float3  ComputeGGX(float3 H, float LdotH, float NdotL, float NdotV, float3 posit
     return bsdfData.specularColor * F * N * G;
 }
 
-float3  ComputePhong(float3 H, float LdotH, float NdotL, float NdotV, float3 positionWS, PreLightData preLightData, BSDFData bsdfData)
+float3  ComputePhong(float3 H, float LdotH, float NdotL, float NdotV, PreLightData preLightData, BSDFData bsdfData)
 {
     return 1000 * float3(1, 0, 1);
 }
@@ -922,9 +927,12 @@ float3  ComputePhong(float3 H, float LdotH, float NdotL, float NdotV, float3 pos
 
 // This function applies the BSDF. Assumes that NdotL is positive.
 //_AXF_BRDF_TYPE_SVBRDF version:
-void BSDF(  float3 viewWS_UnderCoat, float3 lightWS_UnderCoat, float NdotL, float3 positionWS, PreLightData preLightData, BSDFData bsdfData,
-            out float3 diffuseLighting, out float3 specularLighting)
+CBSDF EvaluateBSDF(float3 viewWS_UnderCoat, float3 lightWS_UnderCoat, PreLightData preLightData, BSDFData bsdfData)
 {
+    CBSDF cbsdf;
+    ZERO_INITIALIZE(CBSDF, cbsdf);
+
+    float NdotL;
 
     float3 viewWS_Clearcoat = viewWS_UnderCoat; // Keep copy before possible refraction by ComputeClearcoatReflectionAndExtinction_UsePreLightData
     float3 lightWS_Clearcoat = lightWS_UnderCoat;
@@ -969,19 +977,22 @@ void BSDF(  float3 viewWS_UnderCoat, float3 lightWS_UnderCoat, float NdotL, floa
     float3  specularTerm = float3(1, 0, 0);
     switch ((_SVBRDF_BRDFType >> 1) & 7)
     {
-    case 0: specularTerm = ComputeWard(H, LdotH, NdotL, NdotV, positionWS, preLightData, bsdfData); break;
-    case 1: specularTerm = ComputeBlinnPhong(H, LdotH, NdotL, NdotV, positionWS, preLightData, bsdfData); break;
-    case 2: specularTerm = ComputeCookTorrance(H, LdotH, NdotL, NdotV, positionWS, preLightData, bsdfData); break;
-    case 3: specularTerm = ComputeGGX(H, LdotH, NdotL, NdotV, positionWS, preLightData, bsdfData); break;
-    case 4: specularTerm = ComputePhong(H, LdotH, NdotL, NdotV, positionWS, preLightData, bsdfData); break;
+    case 0: specularTerm = ComputeWard(H, LdotH, NdotL, NdotV, preLightData, bsdfData); break;
+    case 1: specularTerm = ComputeBlinnPhong(H, LdotH, NdotL, NdotV, preLightData, bsdfData); break;
+    case 2: specularTerm = ComputeCookTorrance(H, LdotH, NdotL, NdotV, preLightData, bsdfData); break;
+    case 3: specularTerm = ComputeGGX(H, LdotH, NdotL, NdotV, preLightData, bsdfData); break;
+    case 4: specularTerm = ComputePhong(H, LdotH, NdotL, NdotV, preLightData, bsdfData); break;
     default:    // @TODO
         specularTerm = 1000 * float3(1, 0, 1);
         break;
     }
 
     // We don't multiply by 'bsdfData.diffuseColor' here. It's done only once in PostEvaluateBSDF().
-    diffuseLighting = clearcoatExtinction * diffuseTerm;
-    specularLighting = clearcoatExtinction * specularTerm + clearcoatReflectionLobe;
+    cbsdf.diffR = clearcoatExtinction * diffuseTerm * saturate(NdotL);
+    cbsdf.specR = (clearcoatExtinction * specularTerm + clearcoatReflectionLobe) * saturate(NdotL);
+
+    // We don't multiply by 'bsdfData.diffuseColor' here. It's done only once in PostEvaluateBSDF().
+    return cbsdf;
 }
 
 #elif defined(_AXF_BRDF_TYPE_CAR_PAINT)
@@ -1293,9 +1304,13 @@ float3  CarPaint_BTF(float thetaH, float thetaD, BSDFData bsdfData)
 
 // This function applies the BSDF. Assumes that NdotL is positive.
 // For _AXF_BRDF_TYPE_CAR_PAINT
-void BSDF(  float3 viewWS_UnderCoat, float3 lightWS_UnderCoat, float NdotL, float3 positionWS, PreLightData preLightData, BSDFData bsdfData,
-            out float3 diffuseLighting, out float3 specularLighting)
+CBSDF EvaluateBSDF(float3 viewWS_UnderCoat, float3 lightWS_UnderCoat, PreLightData preLightData, BSDFData bsdfData)
 {
+    CBSDF cbsdf;
+    ZERO_INITIALIZE(CBSDF, cbsdf);
+
+    float NdotL;
+
     float3 viewWS_Clearcoat = viewWS_UnderCoat; // Keep copy before possible refraction by ComputeClearcoatReflectionAndExtinction_UsePreLightData
     float3 lightWS_Clearcoat = lightWS_UnderCoat;
 
@@ -1346,9 +1361,11 @@ void BSDF(  float3 viewWS_UnderCoat, float3 lightWS_UnderCoat, float NdotL, floa
     //TODO_FLAKES
     specularTerm += CarPaint_BTF(thetaH, thetaD, bsdfData);
 
+    cbsdf.diffR = clearcoatExtinction * diffuseTerm * saturate(NdotL);
+    cbsdf.specR = (clearcoatExtinction * specularTerm + clearcoatReflectionLobe) * saturate(NdotL);
+
     // We don't multiply by 'bsdfData.diffuseColor' here. It's done only once in PostEvaluateBSDF().
-    diffuseLighting = clearcoatExtinction * diffuseTerm;
-    specularLighting = clearcoatExtinction * specularTerm + clearcoatReflectionLobe;
+    return cbsdf;
 }
 
 #else
@@ -1356,15 +1373,18 @@ void BSDF(  float3 viewWS_UnderCoat, float3 lightWS_UnderCoat, float NdotL, floa
 // No _AXF_BRDF_TYPE
 
 // This function applies the BSDF. Assumes that NdotL is positive.
-void    BSDF(float3 viewWS, float3 lightWS, float NdotL, float3 positionWS, PreLightData preLightData, BSDFData bsdfData,
-    out float3 diffuseLighting, out float3 specularLighting)
+CBSDF EvaluateBSDF(float3 viewWS_UnderCoat, float3 lightWS_UnderCoat, PreLightData preLightData, BSDFData bsdfData)
 {
+    CBSDF cbsdf;
+    ZERO_INITIALIZE(CBSDF, cbsdf);
 
-    float  diffuseTerm = Lambert();
+    float NdotL = dot(bsdfData.normalWS, lightWS_UnderCoat);
+    float diffuseTerm = Lambert();
+
+    cbsdf.diffR = diffuseTerm * saturate(NdotL);
 
     // We don't multiply by 'bsdfData.diffuseColor' here. It's done only once in PostEvaluateBSDF().
-    diffuseLighting = diffuseTerm;
-    specularLighting = 0;
+    return cbsdf;
 }
 
 #endif // _AXF_BRDF_TYPE_SVBRDF
@@ -1386,8 +1406,8 @@ DirectLighting EvaluateBSDF_Directional(LightLoopContext lightLoopContext,
                                         DirectionalLightData lightData, BSDFData bsdfData,
                                         BuiltinData builtinData)
 {
-    return ShadeSurface_Directional(lightLoopContext, posInput, builtinData, preLightData, lightData,
-                                    bsdfData, bsdfData.normalWS, V);
+    return ShadeSurface_Directional(lightLoopContext, posInput, builtinData,
+                                    preLightData, lightData, bsdfData, V);
 }
 
 //-----------------------------------------------------------------------------
@@ -1396,10 +1416,11 @@ DirectLighting EvaluateBSDF_Directional(LightLoopContext lightLoopContext,
 
 DirectLighting EvaluateBSDF_Punctual(LightLoopContext lightLoopContext,
                                      float3 V, PositionInputs posInput,
-                                     PreLightData preLightData, LightData lightData, BSDFData bsdfData, BuiltinData builtinData)
+                                     PreLightData preLightData, LightData lightData,
+                                     BSDFData bsdfData, BuiltinData builtinData)
 {
-    return ShadeSurface_Punctual(lightLoopContext, posInput, builtinData, preLightData, lightData,
-                                 bsdfData, bsdfData.normalWS, V);
+    return ShadeSurface_Punctual(lightLoopContext, posInput, builtinData,
+                                 preLightData, lightData, bsdfData, V);
 }
 
 //-----------------------------------------------------------------------------

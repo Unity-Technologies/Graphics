@@ -831,7 +831,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public void SetMicroShadowingSettings(CommandBuffer cmd)
         {
             MicroShadowing microShadowingSettings = VolumeManager.instance.stack.GetComponent<MicroShadowing>();
-            cmd.SetGlobalFloat(HDShaderIDs._MicroShadowingOpacity, microShadowingSettings.enable.value ? microShadowingSettings.opacity.value : 0.0f);
+            cmd.SetGlobalFloat(HDShaderIDs._MicroShadowOpacity, microShadowingSettings.enable.value ? microShadowingSettings.opacity.value : 0.0f);
         }
 
         public void ConfigureKeywords(bool enableBakeShadowMask, HDCamera hdCamera, CommandBuffer cmd)
@@ -3644,7 +3644,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 // Here we share GBuffer albedo buffer since it's not needed anymore
                 // Note: We bind the depth only if the ZTest for After Post Process is enabled. It is disabled by
-                // default so we're consistent in the behavior: no ZTest for Aftre Post Process materials).
+                // default so we're consistent in the behavior: no ZTest for After Post Process materials).
                 if (taaEnabled || !hdCamera.frameSettings.IsEnabled(FrameSettingsField.ZTestAfterPostProcessTAA))
                     HDUtils.SetRenderTarget(cmd, GetAfterPostProcessOffScreenBuffer(), clearFlag: ClearFlag.Color, clearColor: Color.black);
                 else

@@ -120,7 +120,7 @@ void PostEvaluateBSDFDebugDisplay(  AmbientOcclusionFactor aoFactor, BuiltinData
         switch (_DebugShadowMapMode)
         {
         case SHADOWMAPDEBUGMODE_SINGLE_SHADOW:
-            diffuseLighting = debugShadowAttenuation.xxx;
+            diffuseLighting = g_DebugShadowAttenuation.xxx;
             specularLighting = float3(0, 0, 0);
             break ;
         }
