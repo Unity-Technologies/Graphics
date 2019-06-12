@@ -2035,6 +2035,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // Render all type of transparent forward (unlit, lit, complex (hair...)) to keep the sorting between transparent objects.
                 RenderForward(cullingResults, hdCamera, renderContext, cmd, ForwardPass.Transparent);
 
+                RenderColorPyramid(hdCamera, cmd, true);
+
                 if (OnCameraPostRenderForward != null)
                 {
                     m_LightLoop.PushGlobalParamsClusteredLightList(hdCamera, cmd);
