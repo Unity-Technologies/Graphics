@@ -94,10 +94,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     if (kernel == -1)
                         continue;
 
-                    var fluidSimVolumeRes = new Vector3(fluidSimVolumeResX, fluidSimVolumeResY, fluidSimVolumeResZ);
-
-                    cmd.SetComputeVectorParam(_fluidSimVolumeCS, HDShaderIDs._FluidSimVolumeRes, fluidSimVolumeRes);
-
                     cmd.SetComputeTextureParam(_fluidSimVolumeCS, kernel, HDShaderIDs._InputVolumeTexture, initialSimTexture);
                     cmd.SetComputeTextureParam(_fluidSimVolumeCS, kernel, HDShaderIDs._OutputVolumeTexture, outputVolumeTexture);
 
@@ -108,20 +104,24 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     var inputVolumeTexture = volume.fSimTexture;
                     if (inputVolumeTexture == null)
                         continue;
-
+                
                     var outputVolumeTexture = volume.bSimTexture;
                     if (outputVolumeTexture == null)
                         continue;
-
+                
                     var kernel = _fluidSimVolumeCS.FindKernel("Simulate");
                     if (kernel == -1)
                         continue;
-
+                
                     volume.SwapTexture();
-
+                
+                    var fluidSimVolumeRes = new Vector3(fluidSimVolumeResX, fluidSimVolumeResY, fluidSimVolumeResZ);
+                
+                    cmd.SetComputeVectorParam(_fluidSimVolumeCS, HDShaderIDs._FluidSimVolumeRes, fluidSimVolumeRes);
+                
                     cmd.SetComputeTextureParam(_fluidSimVolumeCS, kernel, HDShaderIDs._InputVolumeTexture, inputVolumeTexture);
                     cmd.SetComputeTextureParam(_fluidSimVolumeCS, kernel, HDShaderIDs._OutputVolumeTexture, outputVolumeTexture);
-
+                
                     cmd.DispatchCompute(_fluidSimVolumeCS, kernel, dispatchX, dispatchY, dispatchZ);
                 }
             }
@@ -133,18 +133,26 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             cmd.SetComputeTextureParam(_texture3DAtlasCS, kernel, HDShaderIDs._OutputVolumeAtlas, volumeAtlas);
             foreach (var volume in _volumes)
             {
+                var initialSimTexture = volume.parameters.initialStateTexture;
+                if (initialSimTexture == null)
+                    continue;
+
                 var inputVolumeTexture = volume.fSimTexture;
                 if (inputVolumeTexture == null)
                     continue;
 
-                cmd.SetComputeTextureParam(_texture3DAtlasCS, kernel, HDShaderIDs._InputVolumeTexture, inputVolumeTexture);
+                int fluidSimVolumeResX = initialSimTexture.width;
+                int fluidSimVolumeResY = initialSimTexture.height;
+                int fluidSimVolumeResZ = initialSimTexture.depth;
 
                 const int threadTile = 4;
                 const int lessTile = threadTile - 1;
 
-                int dispatchX = (inputVolumeTexture.rt.width       + lessTile) / threadTile;
-                int dispatchY = (inputVolumeTexture.rt.height      + lessTile) / threadTile;
-                int dispatchZ = (inputVolumeTexture.rt.volumeDepth + lessTile) / threadTile;
+                int dispatchX = (fluidSimVolumeResX + lessTile) / threadTile;
+                int dispatchY = (fluidSimVolumeResY + lessTile) / threadTile;
+                int dispatchZ = (fluidSimVolumeResZ + lessTile) / threadTile;
+
+                cmd.SetComputeTextureParam(_texture3DAtlasCS, kernel, HDShaderIDs._InputVolumeTexture, inputVolumeTexture);
 
                 cmd.DispatchCompute(_texture3DAtlasCS, kernel, dispatchX, dispatchY, dispatchZ);
             }

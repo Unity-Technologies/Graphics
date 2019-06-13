@@ -35,12 +35,20 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             // todo : implement it!
 
-            data.volumeRes = new Vector3(
-                initialStateTexture.width,
-                initialStateTexture.height,
-                initialStateTexture.depth);
+            if (initialStateTexture != null)
+            {
+                data.volumeRes = new Vector3(
+                    initialStateTexture.width,
+                    initialStateTexture.height,
+                    initialStateTexture.depth);
 
-            data.textureIndex = textureIndex;
+                data.textureIndex = 0;
+            }
+            else
+            {
+                data.volumeRes = new Vector3(1.0f, 1.0f, 1.0f);
+                data.textureIndex = -1;
+            }
 
             return data;
         }
@@ -75,11 +83,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         private void OnEnable()
         {
+            needToInitialize = true;
             FluidSimVolumeManager.manager.RegisterVolume(this);
         }
 
         private void OnDisable()
         {
+            needToInitialize = false;
             FluidSimVolumeManager.manager.DeRegisterVolume(this);
         }
 
