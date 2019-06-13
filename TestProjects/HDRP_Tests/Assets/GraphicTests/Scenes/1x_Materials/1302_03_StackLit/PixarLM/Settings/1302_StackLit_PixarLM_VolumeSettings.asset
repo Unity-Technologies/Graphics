@@ -9,9 +9,8 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_GeneratorAsset: {fileID: 0}
   m_Script: {fileID: 11500000, guid: d7fd9488000d3734a9e00ee676215985, type: 3}
-  m_Name: 1402_StackLit_PixarLM_VolumeSettings_Baking
+  m_Name: 1302_StackLit_PixarLM_VolumeSettings
   m_EditorClassIdentifier: 
   components:
   - {fileID: 114527594671542966}
@@ -27,7 +26,6 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_GeneratorAsset: {fileID: 0}
   m_Script: {fileID: 11500000, guid: 0d7593b3a9277ac4696b20006c21dde2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
@@ -36,6 +34,9 @@ MonoBehaviour:
   skyType:
     m_OverrideState: 1
     m_Value: 2
+  skyAmbientMode:
+    m_OverrideState: 0
+    m_Value: 0
   fogType:
     m_OverrideState: 1
     m_Value: 2
@@ -48,7 +49,6 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_GeneratorAsset: {fileID: 0}
   m_Script: {fileID: 11500000, guid: 7ddcec8a8eb2d684d833ac8f5d26aebd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
@@ -66,34 +66,24 @@ MonoBehaviour:
   cascadeShadowSplit0:
     m_OverrideState: 1
     m_Value: 0.005
-    min: 0
-    max: 1
   cascadeShadowSplit1:
     m_OverrideState: 1
     m_Value: 0.015
-    min: 0
-    max: 1
   cascadeShadowSplit2:
     m_OverrideState: 1
     m_Value: 0.3
-    min: 0
-    max: 1
   cascadeShadowBorder0:
     m_OverrideState: 1
     m_Value: 0
-    min: 0
   cascadeShadowBorder1:
     m_OverrideState: 1
     m_Value: 0
-    min: 0
   cascadeShadowBorder2:
     m_OverrideState: 1
     m_Value: 0
-    min: 0
   cascadeShadowBorder3:
     m_OverrideState: 1
     m_Value: 0
-    min: 0
 --- !u!114 &114698408567805600
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -103,7 +93,6 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_GeneratorAsset: {fileID: 0}
   m_Script: {fileID: 11500000, guid: 2150ee00179b2f4418ea8b21a7e98eea, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
@@ -161,7 +150,6 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_GeneratorAsset: {fileID: 0}
   m_Script: {fileID: 11500000, guid: 3df29e7cc05fbec4aa43e06ea875565d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
@@ -228,4 +216,4 @@ MonoBehaviour:
     showEyeDropper: 1
   enableSunDisk:
     m_OverrideState: 1
-    m_Value: 0
+    m_Value: 1
