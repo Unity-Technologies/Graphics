@@ -595,7 +595,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                         EditorGUILayout.PropertyField(serialized.serializedLightData.useScreenSpaceShadows, s_Styles.useScreenSpaceShadows);
                     }
 #endif
-                    EditorGUILayout.DelayedIntField(serialized.serializedShadowData.resolution, s_Styles.shadowResolution);
+                    using (var change = new EditorGUI.ChangeCheckScope())
+                    {
+                        EditorGUILayout.DelayedIntField(serialized.serializedShadowData.resolution, s_Styles.shadowResolution);
+                        if (change.changed)
+                            serialized.serializedShadowData.resolution.intValue = Mathf.Max(HDShadowManager.k_MinShadowMapResolution, serialized.serializedShadowData.resolution.intValue);
+                    }
                     EditorGUILayout.Slider(serialized.serializedLightData.shadowNearPlane, HDShadowUtils.k_MinShadowNearPlane, 10f, s_Styles.shadowNearPlane);
 
                     if (serialized.settings.isMixed)
