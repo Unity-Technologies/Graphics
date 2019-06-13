@@ -8,7 +8,8 @@
     "dependencies": {
         "com.unity.render-pipelines.core": "6.8.0",
         "com.unity.shadergraph": "6.8.0",
-		"com.unity.ugui" : "1.0.0"
+        "com.unity.visualeffectgraph": "6.8.0-preview",
+        "com.unity.ugui" : "1.0.0"
     },
 	"keywords":[
         "graphics",

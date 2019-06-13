@@ -81,6 +81,8 @@ ${VFXEnd}
 #endif
 	)
 	{
+		VFXTransformPSInputs(i);
+		
 #ifdef WRITE_NORMAL_BUFFER		
 		${VFXComputeNormalWS}		
 		VFXComputePixelOutputToNormalBuffer(i,normalWS,uvData,outNormalBuffer);

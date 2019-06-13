@@ -665,6 +665,8 @@ MonoBehaviour:
   m_OutputFlowSlot:
   - link: []
   blendMode: 1
+  m_SubOutputs:
+  - {fileID: 0}
   cullMode: 0
   zWriteMode: 0
   zTestMode: 0
@@ -676,6 +678,7 @@ MonoBehaviour:
   indirectDraw: 0
   castShadows: 0
   preRefraction: 0
+  useExposureWeight: 0
   primitiveType: 1
   useGeometryShader: 0
 --- !u!114 &30

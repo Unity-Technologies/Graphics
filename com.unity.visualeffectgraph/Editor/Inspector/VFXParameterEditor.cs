@@ -16,7 +16,7 @@ using System.Reflection;
 
 [CustomEditor(typeof(VFXParameter), true)]
 [CanEditMultipleObjects]
-public class VFXParameterEditor : VFXSlotContainerEditor
+class VFXParameterEditor : VFXSlotContainerEditor
 {
     VFXViewController controller;
     protected new void OnEnable()

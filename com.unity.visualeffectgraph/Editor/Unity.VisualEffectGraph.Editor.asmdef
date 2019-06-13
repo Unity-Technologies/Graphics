@@ -30,6 +30,11 @@
             "name": "com.unity.render-pipelines.high-definition",
             "expression": "1.0.0",
             "define": "VFX_HAS_HDRP"
+        },
+        {
+            "name": "com.unity.render-pipelines.lightweight",
+            "expression": "1.0.0",
+            "define": "VFX_HAS_LWRP"
         }
     ]
 }
