@@ -10,6 +10,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 - Added a menu option to create a new `ScriptableRendererFeature` script. To do so in the Editor, click on Asset > Create > Rendering > Lightweight Render Pipeline > Renderer Feature.
 - Added documentation for SpeedTree Shaders in LWRP.
+- Added documentation overview for how Post Processing Version 2 works in LWRP.
+- Added documentation notes and FAQ entry on the 2D Renderer affecting the LWRP Asset.
 
 ### Changed
 - Replaced beginCameraRendering callbacks by non obsolete implementation in Light2D

@@ -8,6 +8,7 @@
   * [Shader stripping](shader-stripping.md)
   * [Built-in/LWRP comparison](lwrp-builtin-feature-comparison.md)
   * [Shading Models in LWRP](shading-model.md)
+  * [Post-processing in LWRP](integration-with-post-processing.md)
 * [Shaders in LWRP](shaders-in-lwrp.md)
   * [Lit](lit-shader.md)
   * [Simple Lit](simple-lit-shader.md)
