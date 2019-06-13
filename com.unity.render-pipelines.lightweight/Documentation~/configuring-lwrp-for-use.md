@@ -26,6 +26,6 @@ To create a Lightweight Render Pipeline Asset:
 To use the Lightweight Render Pipeline, you have to add the newly created LWRP Asset to your Graphics settings in Unity. If you don't, Unity still tries to use the built-in render pipeline.
 
 1. Navigate to __Edit__ > __Project Settings__ > __Graphics__. 
-2. In the __Render Pipeline Settings__ field, add the LWRP Asset you created earlier.
+2. In the __Scriptable Render Pipeline Settings__ field, add the LWRP Asset you created earlier.
 
 **Note:** When you add the LWRP Asset, the available settings in LWRP immediately changes. This is because you've effectively instructed Unity to use the LWRP specific settings instead of those for the built-in render pipeline.
