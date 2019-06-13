@@ -17,10 +17,12 @@ using System.Reflection;
 
 [CustomEditor(typeof(VFXContext), true)]
 [CanEditMultipleObjects]
-public class VFXContextEditor : VFXSlotContainerEditor
+class VFXContextEditor : VFXSlotContainerEditor
 {
     SerializedProperty spaceProperty;
     SerializedObject dataObject;
+
+    SerializedObject srpSubOutputObject;
 
     float m_Width;
 
@@ -34,7 +36,6 @@ public class VFXContextEditor : VFXSlotContainerEditor
         if (allData.Length > 0)
         {
             dataObject = new SerializedObject(allData);
-
             spaceProperty = dataObject.FindProperty("m_Space");
         }
         else
@@ -42,6 +43,9 @@ public class VFXContextEditor : VFXSlotContainerEditor
             dataObject = null;
             spaceProperty = null;
         }
+
+        UnityEngine.Object[] allSRPSubOutputs = targets.OfType<VFXAbstractRenderedOutput>().Select(t => t.subOutput).Where(t => t != null).ToArray();
+        srpSubOutputObject = allSRPSubOutputs.Length > 0 ? new SerializedObject(allSRPSubOutputs) : null;
 
         if (!serializedObject.isEditingMultipleObjects)
         {
@@ -63,6 +67,15 @@ public class VFXContextEditor : VFXSlotContainerEditor
             m_ViewController.useCount--;
             m_ViewController = null;
         }
+    }
+
+    protected override SerializedProperty FindProperty(VFXSetting setting)
+    {
+        if (setting.instance is VFXContext)
+            return serializedObject.FindProperty(setting.field.Name);
+        if (setting.instance is VFXSRPSubOutput)
+            return srpSubOutputObject.FindProperty(setting.field.Name);
+        throw new ArgumentException("VFXSetting is from an unexpected instance: " + setting.instance);
     }
 
     public override void DoInspectorGUI()
@@ -140,6 +153,9 @@ public class VFXContextEditor : VFXSlotContainerEditor
         if (dataObject != null)
             dataObject.Update();
 
+        if (srpSubOutputObject != null)
+            srpSubOutputObject.Update();
+
         if (m_ContextController != null && m_ContextController.letter != '\0')
         {
             GUILayout.Label(m_ContextController.letter.ToString(),Styles.letter);
@@ -147,15 +163,15 @@ public class VFXContextEditor : VFXSlotContainerEditor
 
         base.OnInspectorGUI();
 
-        if (dataObject != null)
-            if (dataObject.ApplyModifiedProperties())
+        bool invalidateContext = (dataObject != null && dataObject.ApplyModifiedProperties()) || (srpSubOutputObject != null && srpSubOutputObject.ApplyModifiedProperties());
+        if (invalidateContext)
+        {
+            foreach (VFXContext ctx in targets.OfType<VFXContext>())
             {
-                foreach (VFXContext ctx in targets.OfType<VFXContext>())
-                {
-                    // notify that something changed.
-                    ctx.Invalidate(VFXModel.InvalidationCause.kSettingChanged);
-                }
+                // notify that something changed.
+                ctx.Invalidate(VFXModel.InvalidationCause.kSettingChanged);
             }
+        }
 
         if (serializedObject.isEditingMultipleObjects) return; // Summary Only visible for single selection
 

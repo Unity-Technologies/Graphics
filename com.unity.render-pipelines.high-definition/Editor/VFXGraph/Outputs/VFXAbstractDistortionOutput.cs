@@ -4,8 +4,6 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Serialization;
-using UnityEditor.Experimental.VFX;
-using UnityEngine.Experimental.VFX;
 
 namespace UnityEditor.VFX
 {
@@ -26,7 +24,7 @@ namespace UnityEditor.VFX
         public class InputPropertiesDistortionScreenSpace
         {
             [Tooltip("Distortion Map: RG for Distortion (centered on .5 gray), B for Blur Mask.")]
-            public Texture2D distortionBlurMap;
+            public Texture2D distortionBlurMap = null;
             [Tooltip("Screen-Space Distortion Scale")]
             public Vector2 distortionScale = Vector2.one;
         }
@@ -34,11 +32,11 @@ namespace UnityEditor.VFX
         public class InputPropertiesDistortionNormalBased
         {
             [Tooltip("Normal Map")]
-            public Texture2D normalMap;
+            public Texture2D normalMap = null;
             [Tooltip("Smoothness Map (Alpha)")]
-            public Texture2D smoothnessMap;
+            public Texture2D smoothnessMap = null;
             [Tooltip("Alpha Mask (Alpha)")]
-            public Texture2D alphaMask;
+            public Texture2D alphaMask = null;
             [Tooltip("World-space Distortion Scale")]
             public float distortionScale = 1.0f;
         }
@@ -151,5 +149,7 @@ namespace UnityEditor.VFX
         {
             writer.WriteLine("Blend One One");
         }
+
+        protected override bool needsExposureWeight { get { return false; } }
     }
 }

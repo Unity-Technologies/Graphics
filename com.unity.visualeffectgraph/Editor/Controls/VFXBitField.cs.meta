@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+<<<<<<< HEAD:com.unity.visualeffectgraph/Editor/Controls/VFXBitField.cs.meta
+guid: 0daa71996db257a46828f9f9a0f04425
+=======
+guid: 0988d822755b93d4fb5ecc2c36b85661
+>>>>>>> master:TestProjects/ShaderGraph/Assets/CommonAssets/Editor/ShaderGraphParser.cs.meta
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

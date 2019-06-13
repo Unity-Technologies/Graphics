@@ -512,7 +512,7 @@ namespace UnityEditor.VFX
 
                         return new VFXEditorTaskDesc
                         {
-                            type = spawnerBlock.spawnerType,
+                            type = (UnityEngine.Experimental.VFX.VFXTaskType)spawnerBlock.spawnerType,
                             buffers = new VFXMapping[0],
                             values = cpuExpression.ToArray(),
                             parameters = contextData.parameters,

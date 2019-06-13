@@ -47,6 +47,7 @@ ${VFXEnd}
 #endif
 	, out float oDepth : SV_DepthLessEqual)
 	{
+		VFXTransformPSInputs(i);
 		float3 normalWS;
 		VFXClipSphereAndGetDepthOffsetAndNormal(oDepth, normalWS, i);		
 		

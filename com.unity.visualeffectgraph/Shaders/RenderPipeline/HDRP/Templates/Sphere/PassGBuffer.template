@@ -51,6 +51,7 @@ ${VFXEnd}
 	#pragma fragment frag
 	void frag(ps_input i, OUTPUT_GBUFFER(outGBuffer), out float oDepth : SV_DepthLessEqual)
 	{
+		VFXTransformPSInputs(i);
 		float3 normalWS;
 		VFXUVData uvData = (VFXUVData)0;
 		VFXClipSphereAndGetDepthOffsetAndNormal(oDepth, normalWS, i);		
