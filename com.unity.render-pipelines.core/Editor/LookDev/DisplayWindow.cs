@@ -15,8 +15,6 @@ namespace UnityEditor.Rendering.Experimental.LookDev
         void Repaint();
 
         event Action<Layout, SidePanel> OnLayoutChanged;
-
-        event Action OnRenderDocAcquisitionTriggered;
         
         event Action<IMouseEvent> OnMouseEventInView;
 
@@ -114,13 +112,6 @@ namespace UnityEditor.Rendering.Experimental.LookDev
         {
             add => OnLayoutChangedInternal += value;
             remove => OnLayoutChangedInternal -= value;
-        }
-
-        event Action OnRenderDocAcquisitionTriggeredInternal;
-        event Action IViewDisplayer.OnRenderDocAcquisitionTriggered
-        {
-            add => OnRenderDocAcquisitionTriggeredInternal += value;
-            remove => OnRenderDocAcquisitionTriggeredInternal -= value;
         }
 
         event Action<IMouseEvent> OnMouseEventInViewPortInternal;
@@ -245,18 +236,6 @@ namespace UnityEditor.Rendering.Experimental.LookDev
             //to complete
 
             toolbar.Add(new ToolbarSpacer() { flex = true });
-            if (UnityEditorInternal.RenderDoc.IsInstalled() && UnityEditorInternal.RenderDoc.IsLoaded())
-            {
-                var renderDocButton = new ToolbarButton(() => OnRenderDocAcquisitionTriggeredInternal?.Invoke())
-                {
-                    name = "renderdoc-content"
-                };
-                renderDocButton.Add(new Image() {
-                    image = CoreEditorUtils.LoadIcon(Style.k_IconFolder, "renderdoc")
-                });
-                renderDocButton.Add(new Label() { text = " Content" });
-                toolbar.Add(renderDocButton);
-            }
             toolbar.Add(sideToolbar);
             rootVisualElement.Add(toolbar);
         }
