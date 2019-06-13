@@ -92,8 +92,6 @@ namespace UnityEditor.Rendering.Experimental.LookDev
 
         Color m_AmbientColor = new Color(0.0f, 0.0f, 0.0f, 0.0f);
         
-        bool m_RenderDocAcquisitionRequested;
-
         public Compositer(
             IViewDisplayer displayer,
             Context contexts,
@@ -108,17 +106,12 @@ namespace UnityEditor.Rendering.Experimental.LookDev
                 new RenderingData() { stage = stages[ViewIndex.First], updater = contexts.GetViewContent(ViewIndex.First).camera },
                 new RenderingData() { stage = stages[ViewIndex.Second], updater = contexts.GetViewContent(ViewIndex.Second).camera }
             };
-
-            m_Displayer.OnRenderDocAcquisitionTriggered += RenderDocAcquisitionRequested;
+            
             EditorApplication.update += Render;
         }
-
-        void RenderDocAcquisitionRequested()
-            => m_RenderDocAcquisitionRequested = true;
         
         void CleanUp()
         {
-            m_Displayer.OnRenderDocAcquisitionTriggered -= RenderDocAcquisitionRequested;
             EditorApplication.update -= Render;
         }
         public void Dispose()
@@ -130,10 +123,6 @@ namespace UnityEditor.Rendering.Experimental.LookDev
 
         public void Render()
         {
-            //TODO: make integration EditorWindow agnostic!
-            if (UnityEditorInternal.RenderDoc.IsLoaded() && UnityEditorInternal.RenderDoc.IsSupported() && m_RenderDocAcquisitionRequested)
-                UnityEditorInternal.RenderDoc.BeginCaptureRenderDoc(m_Displayer as EditorWindow);
-
             using (new UnityEngine.Rendering.VolumeIsolationScope(true))
             {
                 switch (m_Contexts.layout.viewLayout)
@@ -155,15 +144,6 @@ namespace UnityEditor.Rendering.Experimental.LookDev
                         break;
                 }
             }
-            
-            //TODO: make integration EditorWindow agnostic!
-            if (UnityEditorInternal.RenderDoc.IsLoaded() && UnityEditorInternal.RenderDoc.IsSupported() && m_RenderDocAcquisitionRequested)
-                UnityEditorInternal.RenderDoc.EndCaptureRenderDoc(m_Displayer as EditorWindow);
-
-            //stating that RenderDoc do not need to acquire anymore should
-            //allows to gather both view and composition in render doc at once
-            //TODO: check this
-            m_RenderDocAcquisitionRequested = false;
         }
 
         void RenderSingleAndOutput(ViewIndex index)

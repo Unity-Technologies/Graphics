@@ -157,27 +157,6 @@ Image.unity-list-view__item:selected
     border-left-width: 0px;
 }
 
-#renderdoc-content
-{
-    flex: 1;
-    flex-direction: row;
-    max-width: 80px;
-    flex-shrink: 0;
-    min-width: 24px;
-}
-
-#renderdoc-content > Label
-{
-    -unity-text-align : middle-left;
-    min-width: 0px;
-}
-
-#renderdoc-content > Image
-{
-    flex-shrink: 0;
-    min-width: 16px;
-}
-
 /* /////////// */
 /* DRAG'N'DROP */
 /* /////////// */
