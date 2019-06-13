@@ -134,6 +134,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (!mat.HasProperty(diffusionProfile) || !mat.HasProperty(diffusionProfileAsset) || !mat.HasProperty(diffusionProfileHash))
                 return;
             
+            // We can't upgrade materials if the diffusion profile is null
+            if (mainProfile == null)
+                return;
+            
             // or if it already have been upgraded
             int index = mat.GetInt(diffusionProfile) - 1; // the index in the material is stored with +1 because 0 is none
             if (index < 0)

@@ -366,7 +366,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 viewportSize.y = Mathf.Round(viewportSize.y);
             }
 
-            viewportSize = Vector2.Max(viewportSize, new Vector2(16, 16));
+            viewportSize = Vector2.Max(viewportSize, new Vector2(HDShadowManager.k_MinShadowMapResolution, HDShadowManager.k_MinShadowMapResolution));
 
             // Update the directional shadow atlas size
             if (legacyLight.type == LightType.Directional)

@@ -45,15 +45,21 @@
 #define DEBUGVIEW_STACKLIT_SURFACEDATA_ANISOTROPY_A (1121)
 #define DEBUGVIEW_STACKLIT_SURFACEDATA_ANISOTROPY_B (1122)
 #define DEBUGVIEW_STACKLIT_SURFACEDATA_IRIDESCENCE_IOR (1123)
-#define DEBUGVIEW_STACKLIT_SURFACEDATA_IRIDESCENCE_THICKNESS (1124)
+#define DEBUGVIEW_STACKLIT_SURFACEDATA_IRIDESCENCE_LAYER_THICKNESS (1124)
 #define DEBUGVIEW_STACKLIT_SURFACEDATA_IRIDESCENCE_MASK (1125)
-#define DEBUGVIEW_STACKLIT_SURFACEDATA_COAT_SMOOTHNESS (1126)
-#define DEBUGVIEW_STACKLIT_SURFACEDATA_COAT_IOR (1127)
-#define DEBUGVIEW_STACKLIT_SURFACEDATA_COAT_THICKNESS (1128)
-#define DEBUGVIEW_STACKLIT_SURFACEDATA_COAT_EXTINCTION_COEFFICIENT (1129)
-#define DEBUGVIEW_STACKLIT_SURFACEDATA_DIFFUSION_PROFILE_HASH (1130)
-#define DEBUGVIEW_STACKLIT_SURFACEDATA_SUBSURFACE_MASK (1131)
-#define DEBUGVIEW_STACKLIT_SURFACEDATA_THICKNESS (1132)
+#define DEBUGVIEW_STACKLIT_SURFACEDATA_IRIDESCENCE_COAT_FIXUP_TIR (1126)
+#define DEBUGVIEW_STACKLIT_SURFACEDATA_IRIDESCENCE_COAT_FIXUP_TIR_CLAMP (1127)
+#define DEBUGVIEW_STACKLIT_SURFACEDATA_COAT_SMOOTHNESS (1128)
+#define DEBUGVIEW_STACKLIT_SURFACEDATA_COAT_MASK (1129)
+#define DEBUGVIEW_STACKLIT_SURFACEDATA_COAT_IOR (1130)
+#define DEBUGVIEW_STACKLIT_SURFACEDATA_COAT_THICKNESS (1131)
+#define DEBUGVIEW_STACKLIT_SURFACEDATA_COAT_EXTINCTION_COEFFICIENT (1132)
+#define DEBUGVIEW_STACKLIT_SURFACEDATA_DIFFUSION_PROFILE_HASH (1133)
+#define DEBUGVIEW_STACKLIT_SURFACEDATA_SUBSURFACE_MASK (1134)
+#define DEBUGVIEW_STACKLIT_SURFACEDATA_THICKNESS (1135)
+#define DEBUGVIEW_STACKLIT_SURFACEDATA_SPECULAR_OCCLUSION_FIXUP_VISIBILITY_RATIO_THRESHOLD (1136)
+#define DEBUGVIEW_STACKLIT_SURFACEDATA_SPECULAR_OCCLUSION_FIXUP_STRENGTH (1137)
+#define DEBUGVIEW_STACKLIT_SURFACEDATA_SPECULAR_OCCLUSION_FIXUP_MAX_ADDED_ROUGHNESS (1138)
 
 //
 // UnityEngine.Experimental.Rendering.HDPipeline.StackLit+BSDFData:  static fields
@@ -83,17 +89,23 @@
 #define DEBUGVIEW_STACKLIT_BSDFDATA_ANISOTROPY_B (1172)
 #define DEBUGVIEW_STACKLIT_BSDFDATA_COAT_ROUGHNESS (1173)
 #define DEBUGVIEW_STACKLIT_BSDFDATA_COAT_PERCEPTUAL_ROUGHNESS (1174)
-#define DEBUGVIEW_STACKLIT_BSDFDATA_COAT_IOR (1175)
-#define DEBUGVIEW_STACKLIT_BSDFDATA_COAT_THICKNESS (1176)
-#define DEBUGVIEW_STACKLIT_BSDFDATA_COAT_EXTINCTION (1177)
-#define DEBUGVIEW_STACKLIT_BSDFDATA_IRIDESCENCE_IOR (1178)
-#define DEBUGVIEW_STACKLIT_BSDFDATA_IRIDESCENCE_THICKNESS (1179)
-#define DEBUGVIEW_STACKLIT_BSDFDATA_IRIDESCENCE_MASK (1180)
-#define DEBUGVIEW_STACKLIT_BSDFDATA_DIFFUSION_PROFILE_INDEX (1181)
-#define DEBUGVIEW_STACKLIT_BSDFDATA_SUBSURFACE_MASK (1182)
-#define DEBUGVIEW_STACKLIT_BSDFDATA_THICKNESS (1183)
-#define DEBUGVIEW_STACKLIT_BSDFDATA_USE_THICK_OBJECT_MODE (1184)
-#define DEBUGVIEW_STACKLIT_BSDFDATA_TRANSMITTANCE (1185)
+#define DEBUGVIEW_STACKLIT_BSDFDATA_COAT_MASK (1175)
+#define DEBUGVIEW_STACKLIT_BSDFDATA_COAT_IOR (1176)
+#define DEBUGVIEW_STACKLIT_BSDFDATA_COAT_THICKNESS (1177)
+#define DEBUGVIEW_STACKLIT_BSDFDATA_COAT_EXTINCTION (1178)
+#define DEBUGVIEW_STACKLIT_BSDFDATA_IRIDESCENCE_IOR (1179)
+#define DEBUGVIEW_STACKLIT_BSDFDATA_IRIDESCENCE_THICKNESS (1180)
+#define DEBUGVIEW_STACKLIT_BSDFDATA_IRIDESCENCE_MASK (1181)
+#define DEBUGVIEW_STACKLIT_BSDFDATA_IRIDESCENCE_COAT_FIXUP_TIR (1182)
+#define DEBUGVIEW_STACKLIT_BSDFDATA_IRIDESCENCE_COAT_FIXUP_TIRCLAMP (1183)
+#define DEBUGVIEW_STACKLIT_BSDFDATA_DIFFUSION_PROFILE_INDEX (1184)
+#define DEBUGVIEW_STACKLIT_BSDFDATA_SUBSURFACE_MASK (1185)
+#define DEBUGVIEW_STACKLIT_BSDFDATA_THICKNESS (1186)
+#define DEBUGVIEW_STACKLIT_BSDFDATA_USE_THICK_OBJECT_MODE (1187)
+#define DEBUGVIEW_STACKLIT_BSDFDATA_TRANSMITTANCE (1188)
+#define DEBUGVIEW_STACKLIT_BSDFDATA_SO_FIXUP_VISIBILITY_RATIO_THRESHOLD (1189)
+#define DEBUGVIEW_STACKLIT_BSDFDATA_SO_FIXUP_STRENGTH_FACTOR (1190)
+#define DEBUGVIEW_STACKLIT_BSDFDATA_SO_FIXUP_MAX_ADDED_ROUGHNESS (1191)
 
 // Generated from UnityEngine.Experimental.Rendering.HDPipeline.StackLit+SurfaceData
 // PackingRules = Exact
@@ -121,13 +133,19 @@ struct SurfaceData
     float iridescenceIor;
     float iridescenceThickness;
     float iridescenceMask;
+    float iridescenceCoatFixupTIR;
+    float iridescenceCoatFixupTIRClamp;
     float coatPerceptualSmoothness;
+    float coatMask;
     float coatIor;
     float coatThickness;
     float3 coatExtinction;
     uint diffusionProfileHash;
     float subsurfaceMask;
     float thickness;
+    float soFixupVisibilityRatioThreshold;
+    float soFixupStrengthFactor;
+    float soFixupMaxAddedRoughness;
 };
 
 // Generated from UnityEngine.Experimental.Rendering.HDPipeline.StackLit+BSDFData
@@ -155,17 +173,23 @@ struct BSDFData
     float anisotropyB;
     float coatRoughness;
     float coatPerceptualRoughness;
+    float coatMask;
     float coatIor;
     float coatThickness;
     float3 coatExtinction;
     float iridescenceIor;
     float iridescenceThickness;
     float iridescenceMask;
+    float iridescenceCoatFixupTIR;
+    float iridescenceCoatFixupTIRClamp;
     uint diffusionProfileIndex;
     float subsurfaceMask;
     float thickness;
     bool useThickObjectMode;
     float3 transmittance;
+    float soFixupVisibilityRatioThreshold;
+    float soFixupStrengthFactor;
+    float soFixupMaxAddedRoughness;
 };
 
 //
@@ -249,14 +273,23 @@ void GetGeneratedSurfaceDataDebug(uint paramId, SurfaceData surfacedata, inout f
         case DEBUGVIEW_STACKLIT_SURFACEDATA_IRIDESCENCE_IOR:
             result = surfacedata.iridescenceIor.xxx;
             break;
-        case DEBUGVIEW_STACKLIT_SURFACEDATA_IRIDESCENCE_THICKNESS:
+        case DEBUGVIEW_STACKLIT_SURFACEDATA_IRIDESCENCE_LAYER_THICKNESS:
             result = surfacedata.iridescenceThickness.xxx;
             break;
         case DEBUGVIEW_STACKLIT_SURFACEDATA_IRIDESCENCE_MASK:
             result = surfacedata.iridescenceMask.xxx;
             break;
+        case DEBUGVIEW_STACKLIT_SURFACEDATA_IRIDESCENCE_COAT_FIXUP_TIR:
+            result = surfacedata.iridescenceCoatFixupTIR.xxx;
+            break;
+        case DEBUGVIEW_STACKLIT_SURFACEDATA_IRIDESCENCE_COAT_FIXUP_TIR_CLAMP:
+            result = surfacedata.iridescenceCoatFixupTIRClamp.xxx;
+            break;
         case DEBUGVIEW_STACKLIT_SURFACEDATA_COAT_SMOOTHNESS:
             result = surfacedata.coatPerceptualSmoothness.xxx;
+            break;
+        case DEBUGVIEW_STACKLIT_SURFACEDATA_COAT_MASK:
+            result = surfacedata.coatMask.xxx;
             break;
         case DEBUGVIEW_STACKLIT_SURFACEDATA_COAT_IOR:
             result = surfacedata.coatIor.xxx;
@@ -275,6 +308,15 @@ void GetGeneratedSurfaceDataDebug(uint paramId, SurfaceData surfacedata, inout f
             break;
         case DEBUGVIEW_STACKLIT_SURFACEDATA_THICKNESS:
             result = surfacedata.thickness.xxx;
+            break;
+        case DEBUGVIEW_STACKLIT_SURFACEDATA_SPECULAR_OCCLUSION_FIXUP_VISIBILITY_RATIO_THRESHOLD:
+            result = surfacedata.soFixupVisibilityRatioThreshold.xxx;
+            break;
+        case DEBUGVIEW_STACKLIT_SURFACEDATA_SPECULAR_OCCLUSION_FIXUP_STRENGTH:
+            result = surfacedata.soFixupStrengthFactor.xxx;
+            break;
+        case DEBUGVIEW_STACKLIT_SURFACEDATA_SPECULAR_OCCLUSION_FIXUP_MAX_ADDED_ROUGHNESS:
+            result = surfacedata.soFixupMaxAddedRoughness.xxx;
             break;
     }
 }
@@ -362,6 +404,9 @@ void GetGeneratedBSDFDataDebug(uint paramId, BSDFData bsdfdata, inout float3 res
         case DEBUGVIEW_STACKLIT_BSDFDATA_COAT_PERCEPTUAL_ROUGHNESS:
             result = bsdfdata.coatPerceptualRoughness.xxx;
             break;
+        case DEBUGVIEW_STACKLIT_BSDFDATA_COAT_MASK:
+            result = bsdfdata.coatMask.xxx;
+            break;
         case DEBUGVIEW_STACKLIT_BSDFDATA_COAT_IOR:
             result = bsdfdata.coatIor.xxx;
             break;
@@ -380,6 +425,12 @@ void GetGeneratedBSDFDataDebug(uint paramId, BSDFData bsdfdata, inout float3 res
         case DEBUGVIEW_STACKLIT_BSDFDATA_IRIDESCENCE_MASK:
             result = bsdfdata.iridescenceMask.xxx;
             break;
+        case DEBUGVIEW_STACKLIT_BSDFDATA_IRIDESCENCE_COAT_FIXUP_TIR:
+            result = bsdfdata.iridescenceCoatFixupTIR.xxx;
+            break;
+        case DEBUGVIEW_STACKLIT_BSDFDATA_IRIDESCENCE_COAT_FIXUP_TIRCLAMP:
+            result = bsdfdata.iridescenceCoatFixupTIRClamp.xxx;
+            break;
         case DEBUGVIEW_STACKLIT_BSDFDATA_DIFFUSION_PROFILE_INDEX:
             result = GetIndexColor(bsdfdata.diffusionProfileIndex);
             break;
@@ -394,6 +445,15 @@ void GetGeneratedBSDFDataDebug(uint paramId, BSDFData bsdfdata, inout float3 res
             break;
         case DEBUGVIEW_STACKLIT_BSDFDATA_TRANSMITTANCE:
             result = bsdfdata.transmittance;
+            break;
+        case DEBUGVIEW_STACKLIT_BSDFDATA_SO_FIXUP_VISIBILITY_RATIO_THRESHOLD:
+            result = bsdfdata.soFixupVisibilityRatioThreshold.xxx;
+            break;
+        case DEBUGVIEW_STACKLIT_BSDFDATA_SO_FIXUP_STRENGTH_FACTOR:
+            result = bsdfdata.soFixupStrengthFactor.xxx;
+            break;
+        case DEBUGVIEW_STACKLIT_BSDFDATA_SO_FIXUP_MAX_ADDED_ROUGHNESS:
+            result = bsdfdata.soFixupMaxAddedRoughness.xxx;
             break;
     }
 }

@@ -183,6 +183,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     public partial class HDShadowManager : IDisposable
     {
         public const int            k_DirectionalShadowCascadeCount = 4;
+        public const int            k_MinShadowMapResolution = 16;
 
         List<HDShadowData>          m_ShadowDatas = new List<HDShadowData>();
         HDShadowRequest[]           m_ShadowRequests;

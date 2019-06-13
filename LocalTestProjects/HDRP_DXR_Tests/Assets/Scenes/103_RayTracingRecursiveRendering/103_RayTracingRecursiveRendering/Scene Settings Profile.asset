@@ -44,6 +44,33 @@ MonoBehaviour:
   cascadeShadowBorder3:
     m_OverrideState: 1
     m_Value: 0
+--- !u!114 &-5282388557704554314
+MonoBehaviour:
+  m_ObjectHideFlags: 3
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 0}
+  m_Name: RecursiveRendering
+  m_EditorClassIdentifier: Unity.RenderPipelines.HighDefinition.Runtime:UnityEngine.Experimental.Rendering.HDPipeline:RecursiveRendering
+  active: 1
+  m_AdvancedMode: 0
+  enable:
+    m_OverrideState: 1
+    m_Value: 1
+  maxDepth:
+    m_OverrideState: 1
+    m_Value: 8
+    min: 1
+    max: 10
+  rayLength:
+    m_OverrideState: 0
+    m_Value: 10
+    min: 0
+    max: 50
 --- !u!114 &-4010664606289485424
 MonoBehaviour:
   m_ObjectHideFlags: 3
@@ -246,8 +273,8 @@ MonoBehaviour:
   - {fileID: 2943865517305467186}
   - {fileID: 8140916672878358342}
   - {fileID: -4010664606289485424}
-  - {fileID: 3522810541762545336}
   - {fileID: -3095400059584499379}
+  - {fileID: -5282388557704554314}
 --- !u!114 &2943865517305467186
 MonoBehaviour:
   m_ObjectHideFlags: 3
