@@ -8,13 +8,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 #if ENABLE_RAYTRACING
         // Reflection
         [Reload("Runtime/RenderPipeline/Raytracing/Shaders/RaytracingReflections.raytrace")]
-        public RaytracingShader reflectionRaytracing;
+        public RayTracingShader reflectionRaytracing;
         [Reload("Runtime/RenderPipeline/Raytracing/Shaders/RaytracingReflectionFilter.compute")]
         public ComputeShader reflectionBilateralFilterCS;
 
         // Shadows
         [Reload("Runtime/RenderPipeline/Raytracing/Shaders/Shadows/RaytracingShadow.raytrace")]
-        public RaytracingShader shadowRaytracingRT;
+        public RayTracingShader shadowRaytracingRT;
         [Reload("Runtime/RenderPipeline/Raytracing/Shaders/Shadows/RaytracingShadow.compute")]
         public ComputeShader shadowRaytracingCS;
         [Reload("Runtime/RenderPipeline/Raytracing/Shaders/Shadows/RaytracingShadowFilter.compute")]
@@ -22,7 +22,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         // Primary visibility
         [Reload("Runtime/RenderPipeline/Raytracing/Shaders/RaytracingRenderer.raytrace")]
-        public RaytracingShader forwardRaytracing;
+        public RayTracingShader forwardRaytracing;
         [Reload("Runtime/RenderPipeline/Raytracing/Shaders/RaytracingFlagMask.shader")]
         public Shader raytracingFlagMask;
 
@@ -34,13 +34,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         // Indirect Diffuse
         [Reload("Runtime/RenderPipeline/Raytracing/Shaders/RaytracingIndirectDiffuse.raytrace")]
-        public RaytracingShader indirectDiffuseRaytracing;
+        public RayTracingShader indirectDiffuseRaytracing;
         [Reload("Runtime/RenderPipeline/Raytracing/Shaders/IndirectDiffuseAccumulation.compute")]
-        public ComputeShader indirectDiffuseAccumulation;            
+        public ComputeShader indirectDiffuseAccumulation;
 
         // Ambient Occlusion
         [Reload("Runtime/RenderPipeline/Raytracing/Shaders/RaytracingAmbientOcclusion.raytrace")]
-        public RaytracingShader aoRaytracing;
+        public RayTracingShader aoRaytracing;
 
         // Denoising
         [Reload("Runtime/RenderPipeline/Raytracing/Shaders/Denoising/SimpleDenoiser.compute")]
