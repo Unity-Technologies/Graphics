@@ -27,6 +27,15 @@ namespace UnityEngine.Rendering.LWRP
             {
                 UnlitMasterNode.PositionSlotId
             },
+            Requirements = new ShaderGraphRequirements()
+            {
+                requiresNormal = LWRPSubShaderUtilities.k_PixelCoordinateSpace,
+                requiresTangent = LWRPSubShaderUtilities.k_PixelCoordinateSpace,
+                requiresBitangent = LWRPSubShaderUtilities.k_PixelCoordinateSpace,
+                requiresPosition = LWRPSubShaderUtilities.k_PixelCoordinateSpace,
+                requiresViewDir = LWRPSubShaderUtilities.k_PixelCoordinateSpace,
+                requiresMeshUVs = new List<UVChannel>() { UVChannel.UV1 },
+            },
             ExtraDefines = new List<string>(),
             OnGeneratePassImpl = (IMasterNode node, ref Pass pass, ref ShaderGraphRequirements requirements) =>
             {
@@ -55,6 +64,15 @@ namespace UnityEngine.Rendering.LWRP
             VertexShaderSlots = new List<int>()
             {
                 PBRMasterNode.PositionSlotId
+            },
+            Requirements = new ShaderGraphRequirements()
+            {
+                requiresNormal = LWRPSubShaderUtilities.k_PixelCoordinateSpace,
+                requiresTangent = LWRPSubShaderUtilities.k_PixelCoordinateSpace,
+                requiresBitangent = LWRPSubShaderUtilities.k_PixelCoordinateSpace,
+                requiresPosition = LWRPSubShaderUtilities.k_PixelCoordinateSpace,
+                requiresViewDir = LWRPSubShaderUtilities.k_PixelCoordinateSpace,
+                requiresMeshUVs = new List<UVChannel>() { UVChannel.UV1 },
             },
             ExtraDefines = new List<string>(),
             OnGeneratePassImpl = (IMasterNode node, ref Pass pass, ref ShaderGraphRequirements requirements) =>
@@ -90,8 +108,8 @@ namespace UnityEngine.Rendering.LWRP
             // Passes
             var passes = new Pass[] { m_UnlitPass, m_DepthShadowPass };
 
-            return LWRPSubShaderUtilities.GetSubShader<UnlitMasterNode>(unlitMasterNode, tags, options, passes, 
-                mode, sourceAssetDependencyPaths: sourceAssetDependencyPaths);
+            return LWRPSubShaderUtilities.GetSubShader<UnlitMasterNode>(unlitMasterNode, tags, options, 
+                passes, mode, sourceAssetDependencyPaths: sourceAssetDependencyPaths);
         }
 
         public bool IsPipelineCompatible(RenderPipelineAsset renderPipelineAsset)

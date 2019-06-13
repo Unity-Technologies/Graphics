@@ -33,6 +33,15 @@ namespace UnityEditor.Rendering.LWRP
             {
                 PBRMasterNode.PositionSlotId
             },
+            Requirements = new ShaderGraphRequirements()
+            {
+                requiresNormal = LWRPSubShaderUtilities.k_PixelCoordinateSpace,
+                requiresTangent = LWRPSubShaderUtilities.k_PixelCoordinateSpace,
+                requiresBitangent = LWRPSubShaderUtilities.k_PixelCoordinateSpace,
+                requiresPosition = LWRPSubShaderUtilities.k_PixelCoordinateSpace,
+                requiresViewDir = LWRPSubShaderUtilities.k_PixelCoordinateSpace,
+                requiresMeshUVs = new List<UVChannel>() { UVChannel.UV1 },
+            },
             ExtraDefines = new List<string>(),
             OnGeneratePassImpl = (IMasterNode node, ref Pass pass, ref ShaderGraphRequirements requirements) =>
             {
@@ -69,6 +78,15 @@ namespace UnityEditor.Rendering.LWRP
             VertexShaderSlots = new List<int>()
             {
                 PBRMasterNode.PositionSlotId
+            },
+            Requirements = new ShaderGraphRequirements()
+            {
+                requiresNormal = LWRPSubShaderUtilities.k_PixelCoordinateSpace,
+                requiresTangent = LWRPSubShaderUtilities.k_PixelCoordinateSpace,
+                requiresBitangent = LWRPSubShaderUtilities.k_PixelCoordinateSpace,
+                requiresPosition = LWRPSubShaderUtilities.k_PixelCoordinateSpace,
+                requiresViewDir = LWRPSubShaderUtilities.k_PixelCoordinateSpace,
+                requiresMeshUVs = new List<UVChannel>() { UVChannel.UV1 },
             },
             ExtraDefines = new List<string>(),
             OnGeneratePassImpl = (IMasterNode node, ref Pass pass, ref ShaderGraphRequirements requirements) =>
@@ -108,6 +126,15 @@ namespace UnityEditor.Rendering.LWRP
             {
                 PBRMasterNode.PositionSlotId
             },
+            Requirements = new ShaderGraphRequirements()
+            {
+                requiresNormal = LWRPSubShaderUtilities.k_PixelCoordinateSpace,
+                requiresTangent = LWRPSubShaderUtilities.k_PixelCoordinateSpace,
+                requiresBitangent = LWRPSubShaderUtilities.k_PixelCoordinateSpace,
+                requiresPosition = LWRPSubShaderUtilities.k_PixelCoordinateSpace,
+                requiresViewDir = LWRPSubShaderUtilities.k_PixelCoordinateSpace,
+                requiresMeshUVs = new List<UVChannel>() { UVChannel.UV1 },
+            },
             ExtraDefines = new List<string>(),
             OnGeneratePassImpl = (IMasterNode node, ref Pass pass, ref ShaderGraphRequirements requirements) =>
             {
@@ -145,6 +172,15 @@ namespace UnityEditor.Rendering.LWRP
             {
                 PBRMasterNode.PositionSlotId
             },
+            Requirements = new ShaderGraphRequirements()
+            {
+                requiresNormal = LWRPSubShaderUtilities.k_PixelCoordinateSpace,
+                requiresTangent = LWRPSubShaderUtilities.k_PixelCoordinateSpace,
+                requiresBitangent = LWRPSubShaderUtilities.k_PixelCoordinateSpace,
+                requiresPosition = LWRPSubShaderUtilities.k_PixelCoordinateSpace,
+                requiresViewDir = LWRPSubShaderUtilities.k_PixelCoordinateSpace,
+                requiresMeshUVs = new List<UVChannel>() { UVChannel.UV1 },
+            },
             ExtraDefines = new List<string>(),
             OnGeneratePassImpl = (IMasterNode node, ref Pass pass, ref ShaderGraphRequirements requirements) =>
             {
@@ -178,6 +214,15 @@ namespace UnityEditor.Rendering.LWRP
             VertexShaderSlots = new List<int>()
             {
                 PBRMasterNode.PositionSlotId
+            },
+            Requirements = new ShaderGraphRequirements()
+            {
+                requiresNormal = LWRPSubShaderUtilities.k_PixelCoordinateSpace,
+                requiresTangent = LWRPSubShaderUtilities.k_PixelCoordinateSpace,
+                requiresBitangent = LWRPSubShaderUtilities.k_PixelCoordinateSpace,
+                requiresPosition = LWRPSubShaderUtilities.k_PixelCoordinateSpace,
+                requiresViewDir = LWRPSubShaderUtilities.k_PixelCoordinateSpace,
+                requiresMeshUVs = new List<UVChannel>() { UVChannel.UV1 },
             },
             ExtraDefines = new List<string>(),
             OnGeneratePassImpl = (IMasterNode node, ref Pass pass, ref ShaderGraphRequirements requirements) =>
@@ -217,8 +262,8 @@ namespace UnityEditor.Rendering.LWRP
             var forward2DPass = pbrMasterNode.model == PBRMasterNode.Model.Metallic ? m_ForwardPassMetallic2D : m_ForwardPassSpecular2D;
             var passes = new Pass[] { forwardPass, m_DepthShadowPass, forward2DPass };
 
-            return LWRPSubShaderUtilities.GetSubShader<PBRMasterNode>(pbrMasterNode, tags, options, passes, 
-                mode, "UnityEditor.ShaderGraph.PBRMasterGUI", sourceAssetDependencyPaths);
+            return LWRPSubShaderUtilities.GetSubShader<PBRMasterNode>(pbrMasterNode, tags, options, 
+                passes, mode, "UnityEditor.ShaderGraph.PBRMasterGUI", sourceAssetDependencyPaths);
         }
 
         public bool IsPipelineCompatible(RenderPipelineAsset renderPipelineAsset)
