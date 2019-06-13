@@ -90,23 +90,19 @@ namespace UnityEditor.ShaderGraph
 
         public sealed override void UpdateNodeAfterDeserialization()
         {
-            AddSlot(new GradientMaterialSlot(OutputSlotId, kOutputSlotName, kOutputSlotName, SlotType.Output, 0));
+            AddSlot(new GradientMaterialSlot(OutputSlotId, kOutputSlotName, kOutputSlotName, SlotType.Output));
             RemoveSlotsNameNotMatching(new[] { OutputSlotId });
         }
 
-        public void GenerateNodeCode(ShaderGenerator visitor, GraphContext graphContext, GenerationMode generationMode)
+        public void GenerateNodeCode(ShaderStringBuilder sb, GraphContext graphContext, GenerationMode generationMode)
         {
             if (generationMode.IsPreview())
             {
-                visitor.AddShaderChunk(string.Format("Gradient {0} = {1};", 
-                    GetVariableNameForSlot(outputSlotId), 
-                    GradientUtils.GetGradientForPreview(GetVariableNameForNode())));
+                sb.AppendLine("Gradient {0} = {1};", GetVariableNameForSlot(outputSlotId), GradientUtils.GetGradientForPreview(GetVariableNameForNode()));
             }
             else
             {
-                visitor.AddShaderChunk(string.Format("Gradient {0} = {1}", 
-                    GetVariableNameForSlot(outputSlotId), 
-                    GradientUtils.GetGradientValue(gradient, precision, true, ";")));
+                sb.AppendLine("Gradient {0} = {1}", GetVariableNameForSlot(outputSlotId), GradientUtils.GetGradientValue(gradient, true, ";"));
             }
         }
 

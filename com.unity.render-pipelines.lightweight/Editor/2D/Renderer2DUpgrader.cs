@@ -55,7 +55,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP
             }
         }
 
-        [MenuItem("Edit/Render Pipeline/LWRP 2D Renderer/Upgrade Scene to 2D Renderer")]
+        [MenuItem("Edit/Render Pipeline/Lightweight Render Pipeline/2D Renderer/Upgrade Scene to 2D Renderer (Experimental)")]
         static void UpgradeSceneTo2DRenderer()
         {
             if (!EditorUtility.DisplayDialog("2D Renderer Upgrader", "The upgrade will change the material references of Sprite Renderers in currently open scene(s) to a lit material. You can't undo this operation. Make sure you save the scene(s) before proceeding.", "Proceed", "Cancel"))
@@ -71,7 +71,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP
             }
         }
 
-        [MenuItem("Edit/Render Pipeline/LWRP 2D Renderer/Upgrade Project to 2D Renderer")]
+        [MenuItem("Edit/Render Pipeline/Lightweight Render Pipeline/2D Renderer/Upgrade Project to 2D Renderer (Experimental)")]
         static void UpgradeProjectTo2DRenderer()
         {
             if (!EditorUtility.DisplayDialog("2D Renderer Upgrader", "The upgrade will search for all prefabs in your project that use Sprite Renderers and change the material references of those Sprite Renderers to a lit material. You can't undo this operation. It's highly recommended to backup your project before proceeding.", "Proceed", "Cancel"))

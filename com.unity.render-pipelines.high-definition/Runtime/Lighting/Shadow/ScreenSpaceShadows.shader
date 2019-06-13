@@ -43,7 +43,7 @@ Shader "Hidden/HDRP/ScreenSpaceShadows"
             if (depth == UNITY_RAW_FAR_CLIP_VALUE)
                 return 1.0f;
 
-            PositionInputs posInput = GetPositionInput_Stereo(input.positionCS.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V, unity_StereoEyeIndex);
+            PositionInputs posInput = GetPositionInput(input.positionCS.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
 
             // Init shadow context
             LightLoopContext context;

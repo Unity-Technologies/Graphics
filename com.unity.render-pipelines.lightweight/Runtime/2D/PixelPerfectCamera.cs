@@ -6,7 +6,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
     /// The Pixel Perfect Camera component ensures your pixel art remains crisp and clear at different resolutions, and stable in motion.
     /// </summary>
     [DisallowMultipleComponent]
-    [AddComponentMenu("Rendering/2D/Pixel Perfect Camera")]
+    [AddComponentMenu("Rendering/2D/Pixel Perfect Camera (Experimental)")]
     [RequireComponent(typeof(Camera))]
     public class PixelPerfectCamera : MonoBehaviour, IPixelPerfectCamera
     {

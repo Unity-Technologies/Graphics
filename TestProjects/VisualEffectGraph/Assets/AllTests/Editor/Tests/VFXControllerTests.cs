@@ -875,6 +875,30 @@ namespace UnityEditor.VFX.Test
             Assert.AreEqual(typeof(AABox), param.type);
             Assert.AreEqual(value, param.value);
         }
+
+        [Test]
+        public void Avoid_Loop_In_Flow_Input()
+        {
+            var spawner_A = ScriptableObject.CreateInstance<VFXBasicSpawner>();
+            var spawner_B = ScriptableObject.CreateInstance<VFXBasicSpawner>();
+            var spawner_C = ScriptableObject.CreateInstance<VFXBasicSpawner>();
+
+            spawner_B.LinkFrom(spawner_A);
+            spawner_C.LinkFrom(spawner_B);
+
+            m_ViewController.graph.AddChild(spawner_A);
+            m_ViewController.graph.AddChild(spawner_B);
+            m_ViewController.graph.AddChild(spawner_C);
+
+            m_ViewController.LightApplyChanges();
+
+            var flowAnchorController = m_ViewController.allChildren.OfType<VFXContextController>().SelectMany(o => o.flowInputAnchors.Concat(o.flowOutputAnchors));
+            var outputControllers = flowAnchorController.Where(o => o.owner == spawner_C && o.direction == Experimental.GraphView.Direction.Output).ToArray();
+            Assert.AreEqual(1, outputControllers.Length);
+
+            var compatiblePorts = m_ViewController.GetCompatiblePorts(outputControllers[0], null);
+            Assert.AreEqual(0, compatiblePorts.Count);
+        }
     }
 }
 #endif

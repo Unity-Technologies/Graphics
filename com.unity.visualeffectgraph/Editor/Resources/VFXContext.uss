@@ -68,7 +68,11 @@ VFXFlowAnchor.port.EdgeConnector.typemesh
 {
     --port-color: #0763eb;
 }
-
+VFXContextUI.inputTypenone.outputTypenone > #node-border
+{
+    --start-color: #777;
+    --end-color: #777;
+}
 /* spawner */
 
 VFXContextUI.inputTypespawnevent  > #node-border,VFXContextUI.inputTypeevent  > #node-border
@@ -86,11 +90,6 @@ VFXFlowAnchor.port.EdgeConnector.typespawnevent, VFXFlowAnchor.port.EdgeConnecto
 }
 
 /* event */
-
-VFXContextUI.typenone  > #node-border
-{
-    border-color: #27FFA0;
-}
 
 VFXContextUI > #selection-border
 {
@@ -190,9 +189,6 @@ VFXContextUI #footer #icon
 }
 
 VFXContextUI #block-container {
-    color:#8FC1DF;
-
-    font-size: 12px;
     margin-top: 0;
     margin-bottom: 0;
     padding-top: 2px;

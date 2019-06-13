@@ -4,7 +4,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP
 {
     class CreateSpriteLitShaderGraph
     {
-        [MenuItem("Assets/Create/Shader/2D Renderer/Lit Sprite Graph", false, 208)]
+        [MenuItem("Assets/Create/Shader/2D Renderer/Sprite Lit Graph (Experimental)", false, 208)]
         public static void CreateMaterialGraph()
         {
             GraphUtil.CreateNewGraph(new SpriteLitMasterNode());

@@ -8,7 +8,7 @@ using UnityEditor.ShaderGraph;
 namespace UnityEditor.Experimental.Rendering.LWRP
 {
     [Serializable]
-    [Title("Master", "Sprite lit")]
+    [Title("Master", "Sprite Lit (Experimental)")]
     class SpriteLitMasterNode : MasterNode<ISpriteLitSubShader>, IMayRequirePosition
     {
         public const string PositionName = "Position";
@@ -30,7 +30,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP
         public sealed override void UpdateNodeAfterDeserialization()
         {
             base.UpdateNodeAfterDeserialization();
-            name = "Lit Sprite Master";
+            name = "Sprite Lit Master";
 
             AddSlot(new PositionMaterialSlot(PositionSlotId, PositionName, PositionName, CoordinateSpace.Object, ShaderStageCapability.Vertex));
             AddSlot(new ColorRGBAMaterialSlot(ColorSlotId, ColorSlotName, ColorSlotName, SlotType.Input, Color.white, ShaderStageCapability.Fragment));
