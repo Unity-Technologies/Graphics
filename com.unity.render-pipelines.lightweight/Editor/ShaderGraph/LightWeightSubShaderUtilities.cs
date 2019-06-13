@@ -378,6 +378,7 @@ namespace UnityEngine.Rendering.LWRP
                 shaderProperties,
                 shaderKeywords,
                 mode,
+                masterNode,
                 vertexNodes,
                 vertexSlots);
 
@@ -401,7 +402,6 @@ namespace UnityEngine.Rendering.LWRP
                 functionRegistry,
                 shaderProperties,
                 shaderKeywords,
-                pixelRequirements,
                 mode,
                 "PopulateSurfaceData",
                 "SurfaceDescription",
