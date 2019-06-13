@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Initial Stadia platform support.
 - Added a menu option to create a new `ScriptableRendererFeature` script. To do so in the Editor, click on Asset > Create > Rendering > Lightweight Render Pipeline > Renderer Feature.
 - Added documentation for SpeedTree Shaders in LWRP.
+- Added the documentation page "Rendering in LWRP", which describes the forward rendering camera loop.
 
 ### Changed
 - Replaced beginCameraRendering callbacks by non obsolete implementation in Light2D
