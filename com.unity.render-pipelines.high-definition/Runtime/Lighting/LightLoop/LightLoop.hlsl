@@ -57,14 +57,13 @@ void ApplyDebug(LightLoopContext context, PositionInputs posInput, BSDFData bsdf
                         shadow = GetScreenSpaceShadow(posInput, light.screenSpaceShadowIndex);
                     }
                     else
-#else
+#endif
                     {
                         float3 L = -light.forward;
                         shadow = GetDirectionalShadowAttenuation(context.shadowContext,
                                                              posInput.positionSS, posInput.positionWS, GetNormalForShadowBias(bsdfData),
                                                              light.shadowIndex, L);
                     }
-#endif
                 }
 
                 float3 cascadeShadowColor = lerp(s_CascadeColors[shadowSplitIndex], s_CascadeColors[shadowSplitIndex + 1], alpha);
