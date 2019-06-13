@@ -41,7 +41,7 @@ namespace UnityEditor.VFX.Block
                 var arcSequencer = base.parameters.FirstOrDefault(o => o.name == "ArcSequencer").exp;
 
                 VFXExpression theta = null;
-                if (spawnMode == SpawnMode.Randomized)
+                if (spawnMode == SpawnMode.Random)
                     theta = arcCircle_arc * new VFXExpressionRandom(true);
                 else
                     theta = arcCircle_arc * arcSequencer;

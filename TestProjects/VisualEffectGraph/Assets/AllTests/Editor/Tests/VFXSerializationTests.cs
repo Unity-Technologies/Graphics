@@ -345,7 +345,7 @@ namespace UnityEditor.VFX.Test
         {
             Action<VisualEffectAsset> write = delegate(VisualEffectAsset asset)
             {
-                var builtIn = VFXLibrary.GetOperators().First(o => o.name == VFXExpressionOperation.TotalTime.ToString()).CreateInstance();
+                var builtIn = VFXLibrary.GetOperators().First(o => o.name == ObjectNames.NicifyVariableName(VFXExpressionOperation.TotalTime.ToString())).CreateInstance();
                 asset.GetResource().GetOrCreateGraph().AddChild(builtIn);
                 Assert.AreEqual(VFXExpressionOperation.TotalTime, builtIn.outputSlots[0].GetExpression().operation);
             };
@@ -366,7 +366,7 @@ namespace UnityEditor.VFX.Test
             {
                 var graph = asset.GetResource().GetOrCreateGraph();
                 var add = ScriptableObject.CreateInstance<Operator.Add>();
-                var builtIn = VFXLibrary.GetOperators().First(o => o.name == VFXExpressionOperation.TotalTime.ToString()).CreateInstance();
+                var builtIn = VFXLibrary.GetOperators().First(o => o.name == ObjectNames.NicifyVariableName(VFXExpressionOperation.TotalTime.ToString())).CreateInstance();
                 graph.AddChild(builtIn);
                 graph.AddChild(add);
                 add.inputSlots[0].Link(builtIn.outputSlots[0]);
