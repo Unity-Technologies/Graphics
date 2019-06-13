@@ -43,6 +43,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     [GenerateHLSL]
     public struct FluidSimVolumeEngineData
     {
+        public Vector3 volumeRes;
         public int textureIndex;
     }
     //seongdae;fspm

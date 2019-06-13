@@ -35,6 +35,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             // todo : implement it!
 
+            data.volumeRes = new Vector3(
+                initialStateTexture.width,
+                initialStateTexture.height,
+                initialStateTexture.depth);
+
+            data.textureIndex = textureIndex;
+
             return data;
         }
     }

@@ -24,6 +24,7 @@ struct DensityVolumeEngineData
 // PackingRules = Exact
 struct FluidSimVolumeEngineData
 {
+    float3 volumeRes;
     int textureIndex;
 };
 
@@ -73,6 +74,10 @@ float GetEndTimesRcpDistFadeLen(DensityVolumeEngineData value)
 //
 // Accessors for UnityEngine.Experimental.Rendering.HDPipeline.FluidSimVolumeEngineData
 //
+float3 GetVolumeRes(FluidSimVolumeEngineData value)
+{
+    return value.volumeRes;
+}
 int GetTextureIndex(FluidSimVolumeEngineData value)
 {
     return value.textureIndex;

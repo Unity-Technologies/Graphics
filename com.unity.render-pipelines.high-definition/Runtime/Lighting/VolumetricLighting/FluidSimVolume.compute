@@ -8,6 +8,10 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
 
+CBUFFER_START(_FluidSimVolume)
+float3 _FluidSimVolumeRes;
+CBUFFER_END
+
 Texture3D<float4> _InputVolumeTexture;
 RWTexture3D<float4> _OutputVolumeTexture;
 
@@ -17,25 +21,21 @@ void Simulate(uint3 id : SV_DispatchThreadID)
 #ifdef INITIAL_STATE
     _OutputVolumeTexture[id.xyz] = _InputVolumeTexture[id.xyz];
 #elif SIMULATE
-    uint _VolumeSize = 64;
-    uint sizeHalf = _VolumeSize >> 1;
-
-    float volumeSize = (float)_VolumeSize;
 
     float3 srcFloat = (float3)id.xyz + 0.5;
 
-    float3 vf = (srcFloat / volumeSize) * 2.0 - 1.0;
-    vf = float3(vf.y, -vf.x, 0.0) / vf.z;
+    float3 vf = (srcFloat / _FluidSimVolumeRes) - 0.5;
+    vf = float3(vf.y, -vf.x, 0.0) / max(0.5, vf.z);
+    //vf = vf * 0.1;
+    //vf = float3(0.1, 0.0, 0.0);
+    //vf = floor(vf);
 
     srcFloat += vf;
 
-    int3 src = id.xyz;
-    int3 dst = id.xyz;
+    float3 inputUVW = srcFloat / _FluidSimVolumeRes;
+    float3 input = SAMPLE_TEXTURE3D_LOD(_InputVolumeTexture, s_trilinear_clamp_sampler, inputUVW, 0).rgb;
 
-    float3 inputUVW = srcFloat / volumeSize;
-    float3 input = SAMPLE_TEXTURE3D_LOD(_InputVolumeTexture, s_linear_clamp_sampler, inputUVW, 0).rgb;
-
-    _OutputVolumeTexture[dst] = float4(input, 0.0);
+    _OutputVolumeTexture[id.xyz] = float4(input, 0.0);
 
 #if 0
     float3 weight0 = vf - floor(vf);
