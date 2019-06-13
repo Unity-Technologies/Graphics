@@ -543,7 +543,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             EditorGUILayout.PropertyField(serialized.serializedLightData.affectSpecular, s_Styles.affectSpecular);
             if (serialized.editorLightShape != LightShape.Directional)
             {
-                EditorGUILayout.PropertyField(serialized.serializedLightData.applyRangeAttenuation, s_Styles.applyRangeAttenuation);
+                if ((SpotLightShape)serialized.serializedLightData.spotLightShape.enumValueIndex != SpotLightShape.Box)
+                    EditorGUILayout.PropertyField(serialized.serializedLightData.applyRangeAttenuation, s_Styles.applyRangeAttenuation);
                 EditorGUILayout.PropertyField(serialized.serializedLightData.fadeDistance, s_Styles.fadeDistance);
             }
             EditorGUILayout.PropertyField(serialized.serializedLightData.lightDimmer, s_Styles.lightDimmer);
@@ -594,7 +595,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                         EditorGUILayout.PropertyField(serialized.serializedLightData.useScreenSpaceShadows, s_Styles.useScreenSpaceShadows);
                     }
 #endif
-                    EditorGUILayout.DelayedIntField(serialized.serializedShadowData.resolution, s_Styles.shadowResolution);
+                    using (var change = new EditorGUI.ChangeCheckScope())
+                    {
+                        EditorGUILayout.DelayedIntField(serialized.serializedShadowData.resolution, s_Styles.shadowResolution);
+                        if (change.changed)
+                            serialized.serializedShadowData.resolution.intValue = Mathf.Max(HDShadowManager.k_MinShadowMapResolution, serialized.serializedShadowData.resolution.intValue);
+                    }
                     EditorGUILayout.Slider(serialized.serializedLightData.shadowNearPlane, HDShadowUtils.k_MinShadowNearPlane, 10f, s_Styles.shadowNearPlane);
 
                     if (serialized.settings.isMixed)
