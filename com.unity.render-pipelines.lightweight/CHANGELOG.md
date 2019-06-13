@@ -9,11 +9,22 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [6.8.0] - 2019-06-12
 ### Added
 - Added a menu option to create a new `ScriptableRendererFeature` script. To do so in the Editor, click on Asset > Create > Rendering > Lightweight Render Pipeline > Renderer Feature.
+- Added documentation for SpeedTree Shaders in LWRP.
 
 ### Changed
 - Replaced beginCameraRendering callbacks by non obsolete implementation in Light2D
 - Updated `ScriptableRendererFeature` and `ScriptableRenderPass` API docs.
+
+### Fixed
 - Fixed NullReference exception caused when trying to add a ScriptableRendererFeature.
+- Fixed an issue that caused forward renderer resources to not load properly when you upgraded LWRP from an older version to 6.8.0. [case 1154925](https://issuetracker.unity3d.com/issues/lwrp-upgrading-lwrp-package-to-7-dot-0-0-breaks-forwardrenderdata-asset-in-resource-files)
+- Fixed GC spikes caused by LWRP allocating heap memory every frame.
+- Fixed distortion effect on particle unlit shader.
+- Fixed issue with certain LWRP shaders not showing when using forward/2D renderer.
+- Fixed the shadow resolve pass and the final pass, so they're not consuming unnecessary bandwidth. [case 1152439](https://issuetracker.unity3d.com/issues/lwrp-mobile-increased-memory-usage-and-extra-rendering-steps) 
+- Added missing page for 2D Lights in LWRP.
+- Fixed warnings for unsupported shadow map formats for GLES2 API.
+- Disabled shadows for devices that do not support shadow maps or depth textures.
 
 ## [6.7.0] - 2019-05-16
 ### Added
@@ -23,8 +34,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Changed
 - The 2D renderer and Light2D component received a number of improvements and are now ready to try as experimental features.
-
-### Changed
 - Updated the [Feature Comparison Table](lwrp-builtin-feature-comparison.md) to reflect the current state of LWRP features.
 
 ### Fixed
