@@ -44,7 +44,7 @@ Shader "Hidden/Lightweight Render Pipeline/Terrain/Lit-VT (Add Pass)"
 
             #pragma shader_feature_local _NORMALMAP
             #define TERRAIN_SPLAT_ADDPASS 1
-            #define VT_ON 1
+            #define VIRTUAL_TEXTURES_BUILT 1
 
             #include "Packages/com.unity.render-pipelines.lightweight/Shaders/Terrain/TerrainLitInput.hlsl"
             #include "Packages/com.unity.render-pipelines.lightweight/Shaders/Terrain/TerrainLitPasses.hlsl"

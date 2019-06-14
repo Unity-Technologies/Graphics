@@ -227,7 +227,7 @@ half4 SplatmapFragment(Varyings IN) : SV_TARGET
     half alpha = 1;
 #else
 
-#ifdef VT_ON
+#ifdef VIRTUAL_TEXTURES_ACTIVE
     StackInfo stackInfo = PrepareStack(IN.uvMainAndLM.xy, _TextureStack);
     half4 mixedDiffuse = SampleStack(stackInfo, _MainTex);
 

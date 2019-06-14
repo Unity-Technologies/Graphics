@@ -365,28 +365,46 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
 
 #if ENABLE_VIRTUALTEXTURES
-        public void ResolveVT(CommandBuffer cmd, GBufferManager gBufferManager, HDRenderPipelineAsset asset)
+        public void ResolveVT(CommandBuffer cmd, RTHandleSystem.RTHandle primary, RTHandleSystem.RTHandle secondary, HDRenderPipelineAsset asset)
         {
             using (new ProfilingSample(cmd, "VTFeedback Downsample", CustomSamplerId.VTFeedbackDownSample.GetSampler()))
             {
-                var handle = gBufferManager.GetVTFeedbackBuffer();
-                if (handle == null || lowresResolver == null)
+                if (lowresResolver == null)
                 {
                     return;
                 }
 
-                var cs = asset.renderPipelineResources.shaders.VTFeedbackDownsample;
-                int kernel = cs.FindKernel("KMain");
-                cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputTexture, handle.nameID);
-                cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, lowresResolver.nameID);
-                var resolveCounter = 0;
-                var startOffsetX = (resolveCounter % resolveScale);
-                var startOffsetY = (resolveCounter / resolveScale) % resolveScale;
-                cmd.SetComputeVectorParam(cs, HDShaderIDs._Params, new Vector4(resolveScale, startOffsetX, startOffsetY, /*unused*/-1));
-                var TGSize = 8;
-                cmd.DispatchCompute(cs, kernel, ((int)screenSize.x + (TGSize - 1)) / TGSize, ((int)screenSize.y + (TGSize - 1)) / TGSize, 1);
+                if (primary != null)
+                {
+                    var cs = asset.renderPipelineResources.shaders.VTFeedbackDownsample;
+                    int kernel = cs.FindKernel("KMain");
+                    cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputTexture, primary.nameID);
+                    cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, lowresResolver.nameID);
+                    var resolveCounter = 0;
+                    var startOffsetX = (resolveCounter % resolveScale);
+                    var startOffsetY = (resolveCounter / resolveScale) % resolveScale;
+                    cmd.SetComputeVectorParam(cs, HDShaderIDs._Params, new Vector4(resolveScale, startOffsetX, startOffsetY, /*unused*/-1));
+                    var TGSize = 8;
+                    cmd.DispatchCompute(cs, kernel, ((int)screenSize.x + (TGSize - 1)) / TGSize, ((int)screenSize.y + (TGSize - 1)) / TGSize, 1);
 
-                resolver.Process(lowresResolver.nameID, cmd);
+                    resolver.Process(lowresResolver.nameID, cmd);
+                }
+
+                if (secondary != null && secondary.m_EnableMSAA == false)
+                {
+                    var cs = asset.renderPipelineResources.shaders.VTFeedbackDownsample;
+                    int kernel = cs.FindKernel("KMain");
+                    cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputTexture, secondary.nameID);
+                    cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, lowresResolver.nameID);
+                    var resolveCounter = 0;
+                    var startOffsetX = (resolveCounter % resolveScale);
+                    var startOffsetY = (resolveCounter / resolveScale) % resolveScale;
+                    cmd.SetComputeVectorParam(cs, HDShaderIDs._Params, new Vector4(resolveScale, startOffsetX, startOffsetY, /*unused*/-1));
+                    var TGSize = 8;
+                    cmd.DispatchCompute(cs, kernel, ((int)screenSize.x + (TGSize - 1)) / TGSize, ((int)screenSize.y + (TGSize - 1)) / TGSize, 1);
+
+                    resolver.Process(lowresResolver.nameID, cmd);
+                }
             }
         }
 #endif

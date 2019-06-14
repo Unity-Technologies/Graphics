@@ -43,17 +43,7 @@ namespace UnityEditor.ShaderGraph
 
         public static void SetMaterialKeywords(Material material, Action<Material> shadingModelFunc = null, Action<Material> shaderFunc = null)
         {
-            if(material.HasProperty("_VirtualTexturing"))
-            {
-                if (material.GetFloat("_VirtualTexturing") == 0.0f || !StackStatus.AllStacksValid(material) )
-                {
-                    material.DisableKeyword("VT_ON");
-                }
-                else 
-                {
-                    material.EnableKeyword("VT_ON");
-                }
-            }
+            StackUtilities.SetMaterialKeywords(material);
         }
 
     }

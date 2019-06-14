@@ -120,8 +120,8 @@ Shader "Lightweight Render Pipeline/Lit"
 
             //--------------------------------------
             // Virtual Texturing
-            #pragma shader_feature_local VT_ON
-            //define VT_ON 1
+            #pragma shader_feature_local VIRTUAL_TEXTURES_BUILT
+            //define VIRTUAL_TEXTURES_BUILT 1
 
 
             #pragma vertex LitPassVertex
@@ -267,7 +267,7 @@ Shader "Lightweight Render Pipeline/Lit"
             // -------------------------------------
             // Unity defined keywords
             #pragma multi_compile_instancing
-            #pragma shader_feature_local VT_ON
+            #pragma shader_feature_local VIRTUAL_TEXTURES_BUILT
 
             #include "LitInput.hlsl"
 

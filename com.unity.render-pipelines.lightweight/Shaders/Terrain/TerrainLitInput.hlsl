@@ -38,7 +38,7 @@ CBUFFER_END
 
 TEXTURE2D(_MetallicTex);   SAMPLER(sampler_MetallicTex);
 
-#ifdef VT_ON
+#if VIRTUAL_TEXTURES_BUILT
 DECLARE_STACK_CB(_TextureStack);
 DECLARE_STACK(_TextureStack, _MainTex);
 #endif

@@ -10,6 +10,11 @@ namespace UnityEditor.ShaderGraph
 
     public class StackStatus
     {
+        /// <summary>
+        /// Update the keywords on a material to reflect the correct VT state.
+        /// </summary>
+        /// <param name="material">Material to update</param>
+        /// <param name="forceOff">Force VT off even if the material indiates it wants VT and VT assets are correctly build.</param>
         public static void UpdateMaterial(Material material, bool forceOff = false)
         {
             if (material.HasProperty("_VirtualTexturing") == false)
@@ -18,9 +23,28 @@ namespace UnityEditor.ShaderGraph
             bool enable = forceOff ? false : !(material.GetFloat("_VirtualTexturing") == 0.0f || !StackStatus.AllStacksValid(material));
                      
             if (enable)
-                material.EnableKeyword("VT_ON");
+                material.EnableKeyword("VIRTUAL_TEXTURES_BUILT");
             else
-                material.DisableKeyword("VT_ON");
+                material.DisableKeyword("VIRTUAL_TEXTURES_BUILT");
+        }
+
+        // Scans all materials and updates their VT status
+        // Note this may take a long time, don't over use this.
+        public static void UpdateAllMaterials(bool forceOff = false)
+        {
+            // disable VT on all materials
+            var matIds = AssetDatabase.FindAssets("t:Material");
+            for (int i = 0, length = matIds.Length; i < length; i++)
+            {
+                EditorUtility.DisplayProgressBar("Updating Materials", "Updating materials for VT changes...", (float)(i / matIds.Length));
+                var path = AssetDatabase.GUIDToAssetPath(matIds[i]);
+                var mat = AssetDatabase.LoadAssetAtPath<Material>(path);
+                if (mat != null)
+                {
+                    ShaderGraph.StackStatus.UpdateMaterial(mat, forceOff);
+                }
+            }
+            EditorUtility.ClearProgressBar();
         }
 
         public static bool AllStacksValid(Material material)

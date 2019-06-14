@@ -120,6 +120,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // MSAA Versions of regular textures
         RTHandleSystem.RTHandle m_CameraColorMSAABuffer;
         RTHandleSystem.RTHandle m_CameraSssDiffuseLightingMSAABuffer;
+        RTHandleSystem.RTHandle m_VTFeedbackBufferMSAA;
+        RTHandleSystem.RTHandle m_VTFeedbackBuffer;
 
         // The current MSAA count
         MSAASamples m_MSAASamples;
@@ -210,6 +212,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         RenderTargetIdentifier[] m_MRTTransparentMotionVec;
         RenderTargetIdentifier[] m_MRTWithSSS;
+        RenderTargetIdentifier[] m_MRTWithVTFeedback;
+
         string m_ForwardPassProfileName;
 
         Vector2Int m_PyramidSizeV2I = new Vector2Int();
@@ -362,8 +366,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Propagate it to the debug menu
             m_DebugDisplaySettings.data.msaaSamples = m_MSAASamples;
 
-            m_MRTWithSSS = new RenderTargetIdentifier[2 + m_SSSBufferManager.sssBufferCount];
-            m_MRTTransparentMotionVec = new RenderTargetIdentifier[2];
+            int additionalVtRenderTargets = 0;
+#if ENABLE_VIRTUALTEXTURES
+            additionalVtRenderTargets = 1;
+            Shader.EnableKeyword("VIRTUAL_TEXTURES_ENABLED");
+#else
+            Shader.DisableKeyword("VIRTUAL_TEXTURES_ENABLED");
+#endif
+            m_MRTWithVTFeedback = new RenderTargetIdentifier[1 + additionalVtRenderTargets];
+            m_MRTWithSSS = new RenderTargetIdentifier[2 + m_SSSBufferManager.sssBufferCount + additionalVtRenderTargets];
+            m_MRTTransparentMotionVec = new RenderTargetIdentifier[2 + additionalVtRenderTargets];
 #if ENABLE_RAYTRACING
             m_RayTracingManager.Init(m_Asset.currentPlatformRenderPipelineSettings, m_Asset.renderPipelineResources, m_Asset.renderPipelineRayTracingResources, m_BlueNoise, this, m_SharedRTManager, m_DebugDisplaySettings);
             m_RaytracingReflections.Init(m_Asset, m_SkyManager, m_RayTracingManager, m_SharedRTManager, m_GbufferManager);
@@ -477,6 +489,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 m_CameraColorMSAABuffer = RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GetColorBufferFormat(), bindTextureMS: true, enableMSAA: true, useDynamicScale: true, name: "CameraColorMSAA");
                 m_CameraSssDiffuseLightingMSAABuffer = RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GetColorBufferFormat(), bindTextureMS: true, enableMSAA: true, useDynamicScale: true, name: "CameraSSSDiffuseLightingMSAA");
+            }
+
+            // Allocate a VT feedback buffer when the one from the GBuffer can't be used.
+            if (settings.supportMSAA || settings.supportedLitShaderMode == RenderPipelineSettings.SupportedLitShaderMode.ForwardOnly)
+            {
+                m_VTFeedbackBuffer = RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GraphicsFormat.R8G8B8A8_UNorm, bindTextureMS: true, useDynamicScale: true, name: "VTFeedbackExtra");
+                if (settings.supportMSAA)
+                {
+                    m_VTFeedbackBufferMSAA = RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GraphicsFormat.R8G8B8A8_UNorm, bindTextureMS: true, enableMSAA: true, useDynamicScale: true, name: "VTFeedbackMSAA");
+                }
             }
         }
 
@@ -1640,13 +1662,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             RenderGBuffer(cullingResults, hdCamera, renderContext, cmd);
 
-#if ENABLE_VIRTUALTEXTURES
-            // Unbind the RT. TODO(ddebaets) there must be a better way right ?
-            HDUtils.SetRenderTarget(cmd, m_GbufferManager.GetGBuffer0RT(), m_SharedRTManager.GetDepthStencilBuffer());
-            hdCamera.ResolveVT(cmd, m_GbufferManager, m_Asset);
-            Experimental.VirtualTexturing.UpdateSystem();
-#endif
-
             // We can now bind the normal buffer to be use by any effect
             m_SharedRTManager.BindNormalBuffer(cmd);
 
@@ -1970,6 +1985,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 #endif
             }
 
+#if ENABLE_VIRTUALTEXTURES
+            // Unbind the RT. TODO(ddebaets) there must be a better way right ?
+            HDUtils.SetRenderTarget(cmd, m_GbufferManager.GetGBuffer0RT(), m_SharedRTManager.GetDepthStencilBuffer());
+            m_SharedRTManager.ResolveMSAAColor(cmd, hdCamera, m_VTFeedbackBufferMSAA, m_VTFeedbackBuffer);//FIXME: Refactor
+            hdCamera.ResolveVT(cmd, m_GbufferManager.GetVTFeedbackBuffer(), m_VTFeedbackBuffer, m_Asset);
+            Experimental.VirtualTexturing.UpdateSystem();
+#endif
 
             // At this point, m_CameraColorBuffer has been filled by either debug views are regular rendering so we can push it here.
             PushColorPickerDebugTexture(cmd, hdCamera, m_CameraColorBuffer);
@@ -2902,26 +2924,44 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                             if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA))
                             {
                                 m_MRTWithSSS[0] = m_CameraColorMSAABuffer; // Store the specular color
-                                m_MRTWithSSS[1] = m_CameraSssDiffuseLightingMSAABuffer;
+#if ENABLE_VIRTUALTEXTURES
+                                m_MRTWithSSS[1] = GetVTFeedbackBufferForForward();
+                                const int offset = 2;
+#else
+                                const int offset = 1;
+#endif
+                                m_MRTWithSSS[offset] = m_CameraSssDiffuseLightingMSAABuffer;
+
                                 for (int i = 0; i < m_SSSBufferManager.sssBufferCount; ++i)
                                 {
-                                    m_MRTWithSSS[i + 2] = m_SSSBufferManager.GetSSSBufferMSAA(i);
+                                    m_MRTWithSSS[i + offset + 1] = m_SSSBufferManager.GetSSSBufferMSAA(i);
                                 }
                             }
                             else
                             {
                                 m_MRTWithSSS[0] = m_CameraColorBuffer; // Store the specular color
-                                m_MRTWithSSS[1] = m_CameraSssDiffuseLightingBuffer;
+#if ENABLE_VIRTUALTEXTURES
+                                m_MRTWithSSS[1] = GetVTFeedbackBufferForForward();
+                                const int offset = 2;
+#else
+                                const int offset = 1;
+#endif
+                                m_MRTWithSSS[offset] = m_CameraSssDiffuseLightingBuffer;
+
                                 for (int i = 0; i < m_SSSBufferManager.sssBufferCount; ++i)
                                 {
-                                    m_MRTWithSSS[i + 2] = m_SSSBufferManager.GetSSSBuffer(i);
+                                    m_MRTWithSSS[i + offset + 1] = m_SSSBufferManager.GetSSSBuffer(i);
                                 }
                             }
                             HDUtils.SetRenderTarget(cmd, m_MRTWithSSS, m_SharedRTManager.GetDepthStencilBuffer(hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA)));
                         }
                         else
                         {
-                            HDUtils.SetRenderTarget(cmd, hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA) ? m_CameraColorMSAABuffer : m_CameraColorBuffer, m_SharedRTManager.GetDepthStencilBuffer(hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA)));
+                            m_MRTWithVTFeedback[0] = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA) ? m_CameraColorMSAABuffer : m_CameraColorBuffer;
+#if ENABLE_VIRTUALTEXTURES
+                            m_MRTWithVTFeedback[1] = GetVTFeedbackBufferForForward();
+#endif
+                            HDUtils.SetRenderTarget(cmd, m_MRTWithVTFeedback, m_SharedRTManager.GetDepthStencilBuffer(hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA)));
                         }
 
                         var passNames = hdCamera.frameSettings.litShaderMode == LitShaderMode.Forward
@@ -2932,17 +2972,34 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     }
                     else
                     {
+                        // If enabled in the shader settings the shader always outputs motion vector data. If we don't need it, mask out the render target writes here.
                         bool renderMotionVecForTransparent = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MotionVectors) && hdCamera.frameSettings.IsEnabled(FrameSettingsField.TransparentsWriteMotionVector);
+
+                        // Fixme: This is broken/not implemented if VT is on. The _ColorMaskTransparentVel is always applied to RT1 but depending on VT state this may be RT1 or RT2
+                        // the problem is while shader lab lets you set mask state from code it doesn't let you set mask RT index from code (or through defines or in any sort of "dynamic" way)
+                        // I.e. this is valid
+                        // ColorMask [_ColorMaskTransparentVel] 1
+                        // this not...
+                        // ColorMask [_ColorMaskTransparentVel] [_ColorMaskTransparentVelRtIndex]
+                        // In my option it's probably cleaner and more generically useful to allow the above
+                        // than jumping through lots and lots of hoops in HDRP code to ensure it's setup correctly
+                        // altough it seems some rather heavy lifting in c++ to to that as well (see ShaderState.h)
+
                         cmd.SetGlobalInt(HDShaderIDs._ColorMaskTransparentVel, renderMotionVecForTransparent ? (int)UnityEngine.Rendering.ColorWriteMask.All : 0);
 
                         m_MRTTransparentMotionVec[0] = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA) ? m_CameraColorMSAABuffer : m_CameraColorBuffer;
-                        m_MRTTransparentMotionVec[1] = renderMotionVecForTransparent ? m_SharedRTManager.GetMotionVectorsBuffer(hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA))
+#if ENABLE_VIRTUALTEXTURES
+                        m_MRTTransparentMotionVec[1] = GetVTFeedbackBufferForForward();
+                        const int offset = 2;
+#else
+                        const int offset = 1;
+#endif
+                        m_MRTTransparentMotionVec[offset] = renderMotionVecForTransparent ? m_SharedRTManager.GetMotionVectorsBuffer(hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA))
                             // It doesn't really matter what gets bound here since the color mask state set will prevent this from ever being written to. However, we still need to bind something
                             // to avoid warnings about unbound render targets. The following rendertarget could really be anything if renderVelocitiesForTransparent, here the normal buffer
                             // as it is guaranteed to exist and to have the same size.
                             // to avoid warnings about unbound render targets.
                             : m_SharedRTManager.GetNormalBuffer();
-
 
                         HDUtils.SetRenderTarget(cmd, m_MRTTransparentMotionVec, m_SharedRTManager.GetDepthStencilBuffer(hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA)));
                         if ((hdCamera.frameSettings.IsEnabled(FrameSettingsField.Decals)) && (DecalSystem.m_DecalDatasCount > 0)) // enable d-buffer flag value is being interpreted more like enable decals in general now that we have clustered
@@ -3554,6 +3611,26 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     }
                 }
 
+#if ENABLE_VIRTUALTEXTURES
+                // Clearing VT buffers ensure we never end up thinking stale date is still relevant for the current frame.
+                using (new ProfilingSample(cmd, "Clear VTFeedback Buffers", CustomSamplerId.VTFeedbackClear.GetSampler()))
+                {
+                    RTHandleSystem.RTHandle alreadyCleared = null;
+                    if (m_GbufferManager != null && m_GbufferManager.GetVTFeedbackBuffer() != null)
+                    {
+                        alreadyCleared = m_GbufferManager.GetVTFeedbackBuffer();
+                        HDUtils.SetRenderTarget(cmd, alreadyCleared, ClearFlag.Color, Color.white);
+
+                    }
+
+                    // If the forward buffer is different from the GBuffer clear it also
+                    if (GetVTFeedbackBufferForForward() != alreadyCleared)
+                    {
+                        HDUtils.SetRenderTarget(cmd, GetVTFeedbackBufferForForward(), ClearFlag.Color, Color.white);
+                    }
+                }
+#endif
+
                 // We don't need to clear the GBuffers as scene is rewrite and we are suppose to only access valid data (invalid data are tagged with stencil as StencilLightingUsage.NoLighting),
                 // This is to save some performance
                 if (hdCamera.frameSettings.litShaderMode == LitShaderMode.Deferred)
@@ -3704,6 +3781,26 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 var colorBuffer = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.ColorBufferMipChain);
                 VFX.VFXManager.SetCameraBuffer(hdCamera.camera, VFX.VFXCameraBufferTypes.Color, colorBuffer, 0, 0, hdCamera.actualWidth, hdCamera.actualHeight);
+            }
+        }
+
+        // GBuffer vt feedback is handled in  GBufferManager
+        RTHandleSystem.RTHandle GetVTFeedbackBufferForForward()
+        {
+            if (m_Asset.currentPlatformRenderPipelineSettings.supportMSAA || m_Asset.currentPlatformRenderPipelineSettings.supportedLitShaderMode == RenderPipelineSettings.SupportedLitShaderMode.ForwardOnly)
+            {
+                if (m_Asset.currentPlatformRenderPipelineSettings.supportMSAA)
+                {
+                    return m_VTFeedbackBufferMSAA;
+                }
+                else
+                {
+                    return m_VTFeedbackBuffer;
+                }
+            }
+            else
+            {
+                return m_GbufferManager.GetVTFeedbackBuffer();
             }
         }
     }

@@ -743,6 +743,10 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     surfaceData.materialFeatures |= MATERIALFEATUREFLAGS_LIT_TRANSMISSION;
 #endif
 
+    // VT Feedback
+    // TODO: properly
+    surfaceData.VTFeedback = surfaceData0.VTFeedback;
+
     // Init other parameters
     surfaceData.anisotropy = 0.0;
     surfaceData.specularColor = float3(0.0, 0.0, 0.0);

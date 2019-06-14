@@ -17,13 +17,13 @@ namespace UnityEditor.ShaderGraph
         public const string AlphaSlotName = "Alpha";
         public const string AlphaClipThresholdSlotName = "AlphaClipThreshold";
         public const string PositionName = "Position";
-        public const string FeedbackSlotName = "StreamingFeedback";
+        public const string FeedbackSlotName = "VTFeedback";
 
         public const int ColorSlotId = 0;
         public const int AlphaSlotId = 7;
         public const int AlphaThresholdSlotId = 8;
         public const int PositionSlotId = 9;
-        public const int FeedBackSlotId = 10;
+        public const int FeedBackSlotId = AggregateFeedbackNode.MasterNodeFeedbackInputSlotID;
 
         [SerializeField]
         SurfaceType m_SurfaceType;

@@ -56,7 +56,7 @@ Shader "Lightweight Render Pipeline/Terrain/Lit-VT"
             // Sample normal in pixel shader when doing instancing
             #pragma shader_feature_local _TERRAIN_INSTANCED_PERPIXEL_NORMAL
 
-            #define VT_ON 1
+            #define VIRTUAL_TEXTURES_BUILT 1
 
             #include "Packages/com.unity.render-pipelines.lightweight/Shaders/Terrain/TerrainLitInput.hlsl"
             #include "Packages/com.unity.render-pipelines.lightweight/Shaders/Terrain/TerrainLitPasses.hlsl"
@@ -131,7 +131,7 @@ Shader "Lightweight Render Pipeline/Terrain/Lit-VT"
             #pragma multi_compile_instancing
             #pragma instancing_options assumeuniformscaling nomatrices nolightprobe nolightmap
 
-            #define VT_ON 1
+            #define VIRTUAL_TEXTURES_BUILT 1
 
             #include "Packages/com.unity.render-pipelines.lightweight/Shaders/Terrain/TerrainLitInput.hlsl"
             #include "Packages/com.unity.render-pipelines.lightweight/Shaders/Terrain/TerrainLitPasses.hlsl"

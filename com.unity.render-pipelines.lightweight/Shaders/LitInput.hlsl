@@ -82,7 +82,7 @@ inline void InitializeStandardLitSurfaceData(float2 uv, out SurfaceData outSurfa
 
     float4 rawAlbedoAlpha = SampleStack(info, _BaseMap);
 #ifdef _NORMALMAP
-#ifdef VT_ON
+#ifdef VIRTUAL_TEXTURES_ACTIVE
     float3 normal = SampleStack_Normal(info, _BumpMap, _BumpScale);
 #else
 	float3 normal = SampleNormal(uv, TEXTURE2D_ARGS(_BumpMap, sampler_BumpMap), _BumpScale);
