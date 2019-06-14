@@ -293,7 +293,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             m_MaterialList.ForEach(material => material.Build(asset));
 
-            if(m_Asset.currentPlatformRenderPipelineSettings.lightLoopSettings.supportFabricConvolution)
+            if (m_Asset.currentPlatformRenderPipelineSettings.lightLoopSettings.supportFabricConvolution)
             {
                 m_IBLFilterArray = new IBLFilterBSDF[2];
                 m_IBLFilterArray[0] = new IBLFilterGGX(asset.renderPipelineResources, m_MipGenerator);
@@ -747,7 +747,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             bool resolutionChanged = (hdCamera.actualWidth != m_CurrentWidth) || (hdCamera.actualHeight != m_CurrentHeight);
 
-            if (resolutionChanged || LightLoopNeedResize(hdCamera))
+            if (resolutionChanged || LightLoopNeedResize(hdCamera, m_TileAndClusterData))
             {
                 if (m_CurrentWidth > 0 && m_CurrentHeight > 0)
                     LightLoopReleaseResolutionDependentBuffers();
@@ -1765,8 +1765,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                     void Callback()
                     {
-                        PushLightLoopGlobalParams(hdCamera, cmd);
-
+                        var globalParams = PrepareLightLoopGlobalParameters(hdCamera);
+                        PushLightLoopGlobalParams(globalParams, cmd);
                         // Run the contact shadow as they now need the light list
                         DispatchContactShadows();
                     }
@@ -2884,7 +2884,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                                             RendererList.Create(PrepareForwardOpaqueRendererList(cullResults, hdCamera)),
                                             renderTarget,
                                             m_SharedRTManager.GetDepthStencilBuffer(msaa),
-                                            useFptl ? s_LightList : s_PerVoxelLightLists,
+                                            useFptl ? m_TileAndClusterData.lightList : m_TileAndClusterData.perVoxelLightLists,
                                             true, renderContext, cmd);
             }
         }
@@ -2967,7 +2967,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                                             RendererList.Create(PrepareForwardTransparentRendererList(cullResults, hdCamera, preRefraction)),
                                             m_MRTTransparentMotionVec,
                                             m_SharedRTManager.GetDepthStencilBuffer(hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA)),
-                                            s_PerVoxelLightLists,
+                                            m_TileAndClusterData.perVoxelLightLists,
                                             false, renderContext, cmd);
             }
         }
