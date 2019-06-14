@@ -17,15 +17,15 @@ Depth Of Field includes some [advanced properties](Advanced-Properties.html) tha
 
 | **Property**       | **Description**                                              |
 | ------------------ | ------------------------------------------------------------ |
-| **Focus Mode**     | Use the drop-down to select the focusing mode.**Off**: Select this option to disable depth of field.**Use Physical Camera**: Select this option to use the physical Camera to set focusing properties for the depth of field effect. **Manual**: Select this option to use custom values to set the focus of the depth of field effect. |
-| **Focus Distance** | Set the distance to the focus point from the Camera. To expose this property, select **Use Physical Camera** from the **Focus Mode** drop-down. |
+| **Focus Mode**     | Use the drop-down to select the mode that HDRP uses to set the focus for the depth of field effect.<br />&#8226; **Off**: Select this option to disable depth of field.<br />&#8226; **Use Physical Camera**: Select this option to use the physical Camera to set focusing properties for the depth of field effect.<br />&#8226; **Manual**: Select this option to use custom values to set the focus of the depth of field effect. |
+| **Focus Distance** | Set the distance to the focus point from the Camera.<br />To make this property available, select **Use Physical Camera** from the **Focus Mode** drop-down. |
 
 ### Near Blur
 
 | **Property**     | **Description**                                              |
 | ---------------- | ------------------------------------------------------------ |
-| **Start**        | Set the distance from the Camera at which the near field blur begins to decrease in intensity. To expose this property, select **Manual** from the **Focus Mode** drop-down. |
-| **End**          | Set the distance from the Camera at which the near field does not blur anymore. To expose this property, select **Manual** from the **Focus Mode** drop-down. |
+| **Start**        | Set the distance from the Camera at which the near field blur begins to decrease in intensity.<br />To make this property available, select **Manual** from the **Focus Mode** drop-down. |
+| **End**          | Set the distance from the Camera at which the near field does not blur anymore.<br />To make this property available, select **Manual** from the **Focus Mode** drop-down. |
 | **Sample Count** | Set the number of samples to use for the near field. Lower values result in better performance at the cost of visual accuracy. |
 | **Max Radius**   | Set the maximum radius the near blur can reach.              |
 
@@ -33,8 +33,8 @@ Depth Of Field includes some [advanced properties](Advanced-Properties.html) tha
 
 | **Property**     | **Description**                                              |
 | ---------------- | ------------------------------------------------------------ |
-| **Start**        | Set the distance from the Camera at which the far field starts blurring. To expose this property, select **Manual** from the **Focus Mode** drop-down. |
-| **End**          | Set the distance from the Camera at which the far field blur reaches its maximum blur radius. To expose this property, select **Manual** from the **Focus Mode** drop-down. |
+| **Start**        | Set the distance from the Camera at which the far field starts blurring.<br />To make this property available, select **Manual** from the **Focus Mode** drop-down. |
+| **End**          | Set the distance from the Camera at which the far field blur reaches its maximum blur radius.<br />To make this property available, select **Manual** from the **Focus Mode** drop-down. |
 | **Sample Count** | Set the number of samples to use for the far field. Lower values result in better performance at the cost of visual accuracy. |
 | **Max Radius**   | Set the maximum radius the far blur can reach.               |
 
@@ -42,5 +42,5 @@ Depth Of Field includes some [advanced properties](Advanced-Properties.html) tha
 
 | **Property**               | **Description**                                              |
 | -------------------------- | ------------------------------------------------------------ |
-| **Resolution**             | Use the drop-down to set the resolution at which HDRP processes the Depth Of Field effect. If you target consoles that use a very high resolution (for example, 4k), select **Quarter,** because it is less resource intensive.**Quarter**: Uses quarter the screen resolution.**Half**: Uses half the screen resolution.To expose this property, enable the [advanced properties](Advanced-Properties.html). |
-| **High Quality Filtering** | Enable the checkbox to make HDRP use bicubic filtering instead of bilinear filtering. This increases the resource intensity of the Depth Of Field effect, but results in smoother visuals. To expose this property, enable the [advanced properties](Advanced-Properties.html). |
+| **Resolution**             | Use the drop-down to set the resolution at which HDRP processes the depth of field effect. If you target consoles that use a very high resolution (for example, 4k), select **Quarter,** because it is less resource intensive.<br />&#8226; **Quarter**: Uses quarter the screen resolution.<br />&#8226; **Half**: Uses half the screen resolution.<br />To make this property available, enable the [advanced properties](Advanced-Properties.html). |
+| **High Quality Filtering** | Enable the checkbox to make HDRP use bicubic filtering instead of bilinear filtering. This increases the resource intensity of the Depth Of Field effect, but results in smoother visuals.<br />To make this property available, enable the [advanced properties](Advanced-Properties.html). |

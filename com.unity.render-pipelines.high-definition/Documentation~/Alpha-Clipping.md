@@ -16,6 +16,6 @@ If you set your [Surface Type](Surface-Type.html) to **Transparent**, HDRP expos
 
 | Property                      | Description                                                  |
 | ----------------------------- | ------------------------------------------------------------ |
-| **Prepass Threshold**  | Use the slider to set the alpha value limit that HDRP uses for the Transparent depth prepass. This works in the same way as the main **Threshold** property described above.<br />To expose this property, enable the **Transparent Depth Prepass** checkbox. |
-| **Postpass Threshold** | Use the slider to set the alpha value limit that HDRP uses for the transparent depth postpass. This works in the same way as the main **Threshold** property described above.<br />To expose this property, enable the **Transparent Depth Postpass** checkbox. |
+| **Prepass Threshold**  | Use the slider to set the alpha value limit that HDRP uses for the Transparent depth prepass. This works in the same way as the main **Threshold** property described above.<br />To make this property available, enable the **Transparent Depth Prepass** checkbox. |
+| **Postpass Threshold** | Use the slider to set the alpha value limit that HDRP uses for the transparent depth postpass. This works in the same way as the main **Threshold** property described above.<br />To make this property available, enable the **Transparent Depth Postpass** checkbox. |
 
