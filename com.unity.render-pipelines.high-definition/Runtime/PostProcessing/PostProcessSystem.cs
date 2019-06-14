@@ -1444,7 +1444,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 Vector4 motionBlurParams2 = new Vector4(
                     m_MotionBlurSupportsScattering ? (sampleCount + (sampleCount & 1)) : sampleCount,
                     tileSize,
-                    0.0f,
+                    m_MotionBlur.depthComparisonExtent.value,
                     0.0f
                     );
 

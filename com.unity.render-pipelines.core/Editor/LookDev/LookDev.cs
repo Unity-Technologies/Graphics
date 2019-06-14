@@ -1,11 +1,11 @@
 using UnityEngine.Rendering;
-using UnityEngine.Rendering.LookDev;
+using UnityEngine.Rendering.Experimental.LookDev;
 
 using UnityEditor.UIElements;
 using UnityEditorInternal;
 using UnityEngine;
 
-namespace UnityEditor.Rendering.LookDev
+namespace UnityEditor.Rendering.Experimental.LookDev
 {
     /// <summary>
     /// Main entry point for scripting LookDev
@@ -15,13 +15,13 @@ namespace UnityEditor.Rendering.LookDev
         const string lastRenderingDataSavePath = "Library/LookDevConfig.asset";
 
         //TODO: ensure only one displayer at time for the moment
-        static IViewDisplayer s_Displayer;
+        static IViewDisplayer s_ViewDisplayer;
+        static IEnvironmentDisplayer s_EnvironmentDisplayer;
         static Compositer s_Compositor;
         static StageCache s_Stages;
-        static ComparisonGizmo s_Comparator;
         static Context s_CurrentContext;
 
-        static IDataProvider dataProvider
+        internal static IDataProvider dataProvider
             => RenderPipelineManager.currentPipeline as IDataProvider;
 
         public static Context currentContext
@@ -37,7 +37,7 @@ namespace UnityEditor.Rendering.LookDev
         public static EnvironmentLibrary currentEnvironmentLibrary { get; private set; }
 
         //[TODO: not compatible with multiple displayer. To rework if needed]
-        public static IViewDisplayer currentDisplayer => s_Displayer;
+        public static IViewDisplayer currentDisplayer => s_ViewDisplayer;
 
         public static bool open { get; private set; }
         
@@ -52,25 +52,17 @@ namespace UnityEditor.Rendering.LookDev
         static Context LoadConfigInternal(string path = lastRenderingDataSavePath)
         {
             var objs = InternalEditorUtility.LoadSerializedFileAndForget(path);
-            var last = (objs.Length > 0 ? objs[0] : null) as Context;
-            if (last != null && !last.Equals(null))
-            {
-                Context context = (Context)last;
-                //recompute non serialized computes states
-                context.layout.gizmoState.Init(); 
-                return context;
-            }
-            return null;
+            Context context = (objs.Length > 0 ? objs[0] : null) as Context;
+            if (context != null && !context.Equals(null))
+                context.Init();
+            return context;
         }
 
         public static void LoadConfig(string path = lastRenderingDataSavePath)
         {
             var last = LoadConfigInternal(path);
             if (last != null)
-            {
-                last.Validate();
                 currentContext = last;
-            }
         }
         
         public static void SaveConfig(string path = lastRenderingDataSavePath)
@@ -79,10 +71,11 @@ namespace UnityEditor.Rendering.LookDev
                 InternalEditorUtility.SaveToSerializedFileAndForget(new[] { currentContext }, path, true);
         }
 
-        //[MenuItem("Window/Experimental/Look Dev", false, -1)]
+        [MenuItem("Window/Experimental/Look Dev", false, 10000)]
         public static void Open()
         {
-            s_Displayer = EditorWindow.GetWindow<DisplayWindow>();
+            s_ViewDisplayer = EditorWindow.GetWindow<DisplayWindow>();
+            s_EnvironmentDisplayer = EditorWindow.GetWindow<DisplayWindow>();
             ConfigureLookDev(reloadWithTemporaryID: false);
         }
 
@@ -91,8 +84,9 @@ namespace UnityEditor.Rendering.LookDev
         static void OnEditorReload()
         {
             var windows = Resources.FindObjectsOfTypeAll<DisplayWindow>();
-            s_Displayer = windows.Length > 0 ? windows[0] : null;
-            open = s_Displayer != null;
+            s_ViewDisplayer = windows.Length > 0 ? windows[0] : null;
+            s_EnvironmentDisplayer = windows.Length > 0 ? windows[0] : null;
+            open = s_ViewDisplayer != null;
             if (open)
                 ConfigureLookDev(reloadWithTemporaryID: true);
         }
@@ -100,21 +94,26 @@ namespace UnityEditor.Rendering.LookDev
         static void ConfigureLookDev(bool reloadWithTemporaryID)
         {
             open = true;
-            LoadConfig();
+            if (s_CurrentContext == null || s_CurrentContext.Equals(null))
+                LoadConfig();
             WaitingSRPReloadForConfiguringRenderer(5, reloadWithTemporaryID: reloadWithTemporaryID);
         }
 
         static void WaitingSRPReloadForConfiguringRenderer(int maxAttempt, bool reloadWithTemporaryID, int attemptNumber = 0)
         {
             if (supported)
+            {
                 ConfigureRenderer(reloadWithTemporaryID);
+                LinkViewDisplayer();
+                LinkEnvironmentDisplayer();
+                ReloadStage(reloadWithTemporaryID);
+            }
             else if (attemptNumber < maxAttempt)
                 EditorApplication.delayCall +=
                     () => WaitingSRPReloadForConfiguringRenderer(maxAttempt, reloadWithTemporaryID, ++attemptNumber);
             else
             {
-                if (s_Displayer is EditorWindow)
-                    (s_Displayer as EditorWindow).Close();
+                (s_ViewDisplayer as EditorWindow)?.Close();
 
                 throw new System.Exception("LookDev is not supported by this Scriptable Render Pipeline: "
                     + (RenderPipelineManager.currentPipeline == null ? "No SRP in use" : RenderPipelineManager.currentPipeline.ToString()));
@@ -124,9 +123,12 @@ namespace UnityEditor.Rendering.LookDev
         static void ConfigureRenderer(bool reloadWithTemporaryID)
         {
             s_Stages = new StageCache(dataProvider, currentContext);
-            s_Comparator = new ComparisonGizmo(currentContext.layout.gizmoState, s_Displayer);
-            s_Compositor = new Compositer(s_Displayer, currentContext, dataProvider, s_Stages);
-            s_Displayer.OnClosed += () =>
+            s_Compositor = new Compositer(s_ViewDisplayer, currentContext, dataProvider, s_Stages);
+        }
+
+        static void LinkViewDisplayer()
+        {
+            s_ViewDisplayer.OnClosed += () =>
             {
                 s_Compositor?.Dispose();
                 s_Compositor = null;
@@ -140,20 +142,18 @@ namespace UnityEditor.Rendering.LookDev
                 open = false;
 
                 //free references for memory cleaning
-                s_Displayer = null;
+                s_ViewDisplayer = null;
                 s_Stages = null;
-                s_Comparator = null;
                 s_Compositor = null;
                 //currentContext = null;
-                currentEnvironmentLibrary = null;
             };
-            s_Displayer.OnLayoutChanged += (layout, envPanelOpen) =>
+            s_ViewDisplayer.OnLayoutChanged += (layout, envPanelOpen) =>
             {
                 currentContext.layout.viewLayout = layout;
-                currentContext.layout.showEnvironmentPanel = envPanelOpen;
+                currentContext.layout.showedSidePanel = envPanelOpen;
                 SaveConfig();
             };
-            s_Displayer.OnChangingObjectInView += (go, index, localPos) =>
+            s_ViewDisplayer.OnChangingObjectInView += (go, index, localPos) =>
             {
                 switch (index)
                 {
@@ -169,9 +169,8 @@ namespace UnityEditor.Rendering.LookDev
                         break;
                 }
             };
-            s_Displayer.OnChangingEnvironmentInView += (obj, index, localPos) =>
+            s_ViewDisplayer.OnChangingEnvironmentInView += (obj, index, localPos) =>
             {
-
                 switch (index)
                 {
                     case ViewCompositionIndex.First:
@@ -186,11 +185,14 @@ namespace UnityEditor.Rendering.LookDev
                         break;
                 }
             };
-            
-            StageReloader(reloadWithTemporaryID);
         }
 
-        static void StageReloader(bool reloadWithTemporaryID)
+        static void LinkEnvironmentDisplayer()
+        {
+            s_EnvironmentDisplayer.OnChangingEnvironmentLibrary += currentContext.UpdateEnvironmentLibrary;
+        }
+        
+        static void ReloadStage(bool reloadWithTemporaryID)
         {
             currentContext.GetViewContent(ViewIndex.First).LoadAll(reloadWithTemporaryID);
             ApplyContextChange(ViewIndex.First);
@@ -202,7 +204,7 @@ namespace UnityEditor.Rendering.LookDev
         {
             s_Stages.UpdateSceneObjects(index);
             s_Stages.UpdateSceneLighting(index, dataProvider);
-            s_Displayer.Repaint();
+            s_ViewDisplayer.Repaint();
         }
         
         /// <summary>Update the rendered element with element in the context</summary>
