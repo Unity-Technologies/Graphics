@@ -38,6 +38,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                         SetupMaterialKeywordsAndPassInternal(material);
                 }
             }
+
+            // We should always do this call at the end
+            materialEditor.serializedObject.ApplyModifiedProperties();
         }
 
         // We don't have any keyword/pass to setup currently for decal shader graphs
