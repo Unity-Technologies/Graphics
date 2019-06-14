@@ -78,6 +78,7 @@
   * [Multisampling Anti-Aliasing](MSAA)
 * Post-processing
   * [Post-processing in HDRP](Post-Processing-Main)
+  * [Effect Execution Order](Post-Processing-Execution-Order)
   * Effect List
     * [Bloom](Post-Processing-Bloom)
     * [Channel Mixer](Post-Processing-Channel-Mixer)

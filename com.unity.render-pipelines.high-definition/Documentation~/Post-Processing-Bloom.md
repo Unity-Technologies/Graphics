@@ -38,10 +38,10 @@ Bloom includes some [advanced properties](Advanced-Properties.html) that you mus
 
 | **Property**               | **Description**                                              |
 | -------------------------- | ------------------------------------------------------------ |
-| **Resolution**             | Use the drop-down to set the resolution at which HDRP processes the Bloom effect. If you target consoles that use a very high resolution (for example, 4k), select **Quarter,** because it is less resource-intensive.**Quarter**: Uses quarter the screen resolution.**Half**: Uses half the screen resolution.To expose this property, enable the [advanced properties](Advanced-Properties.html). |
-| **High Quality Filtering** | Enable the checkbox to make HDRP use bicubic filtering instead of bilinear filtering. This increases the resource intensity of the Bloom effect, but results in smoother visuals. To expose this property, enable the [advanced properties](Advanced-Properties.html). |
-| **Prefilter**              | Enable the checkbox to improve the stability of the Bloom effect, especially when you use a lower **Resolution**. To expose this property, enable the [advanced properties](Advanced-Properties.html). |
-| **Anamorphic**             | Enable the checkbox to make the bloom effect take the **Anamorphism** property of the Camera into account. This stretches the bloom horizontally or vertically like it would on anamorphic sensors. To expose this property, enable the [advanced properties](Advanced-Properties.html). |
+| **Resolution**             | Use the drop-down to set the resolution at which HDRP processes the Bloom effect. If you target consoles that use a very high resolution (for example, 4k), select **Quarter,** because it is less resource-intensive.<br />&#8226; **Quarter**: Uses quarter the screen resolution.<br />&#8226; **Half**: Uses half the screen resolution.To make this property available, enable the [advanced properties](Advanced-Properties.html). |
+| **High Quality Filtering** | Enable the checkbox to make HDRP use bicubic filtering instead of bilinear filtering. This increases the resource intensity of the Bloom effect, but results in smoother visuals.<br />To make this property available, enable the [advanced properties](Advanced-Properties.html). |
+| **Prefilter**              | Enable the checkbox to improve the stability of the Bloom effect, especially when you use a lower **Resolution**.<br />To make this property available, enable the [advanced properties](Advanced-Properties.html). |
+| **Anamorphic**             | Enable the checkbox to make the bloom effect take the **Anamorphism** property of the Camera into account. This stretches the bloom horizontally or vertically like it would on anamorphic sensors.<br />To make this property available, enable the [advanced properties](Advanced-Properties.html). |
 
 ## Details
 
