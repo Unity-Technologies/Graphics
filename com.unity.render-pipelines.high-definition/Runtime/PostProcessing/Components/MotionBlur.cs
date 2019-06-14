@@ -11,11 +11,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         [Tooltip("Sets the intensity of the motion blur effect. Acts as a multiplier for velocities.")]
         public MinFloatParameter intensity = new MinFloatParameter(0.0f, 0.0f);
         [Tooltip("Sets the maximum velocity, in pixels, for everything except Camera rotation. Larger values result in a wider blur for fast objects. Increasing this value can hamper performance.")]
-        public ClampedFloatParameter maximumVelocity = new ClampedFloatParameter(250.0f, 0.0f, 1500.0f);
+        public ClampedFloatParameter maximumVelocity = new ClampedFloatParameter(200.0f, 0.0f, 1500.0f);
         [Tooltip("Sets the minimum velocity, in pixels, that a GameObject must have to contribute to the motion blur effect.")]
         public ClampedFloatParameter minimumVelocity = new ClampedFloatParameter(2.0f, 0.0f, 64.0f);
         [Tooltip("Sets the maximum length, as a fraction of the screen's full resolution, that the velocity resulting from Camera rotation can have.")]
         public ClampedFloatParameter cameraRotationVelocityClamp = new ClampedFloatParameter(0.03f, 0.0f, 0.2f);
+
+        [Tooltip("Value used for the depth based weighting of samples. Tweak if unwanted leak of background onto foreground or viceversa is detected.")]
+        public ClampedFloatParameter depthComparisonExtent = new ClampedFloatParameter(1.0f, 0.0f, 20.0f);
+
 
         public bool IsActive()
         {
