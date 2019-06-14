@@ -197,7 +197,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         Texture2DArray  m_DefaultTexture2DArray;
         Cubemap         m_DefaultTextureCube;
 
-        class LightLoopTextureCaches
+        internal class LightLoopTextureCaches
         {
             // Structure for cookies used by directional and spotlights
             public TextureCache2D               cookieTexArray { get; private set; }
@@ -279,7 +279,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        class LightLoopLightData
+        internal class LightLoopLightData
         {
             public ComputeBuffer    directionalLightData { get; private set; }
             public ComputeBuffer    lightData { get; private set; }
@@ -400,8 +400,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        LightLoopTextureCaches m_TextureCaches = new LightLoopTextureCaches();
-        LightLoopLightData m_LightLoopLightData = new LightLoopLightData();
+        // TODO: Remove the internal
+        internal LightLoopTextureCaches m_TextureCaches = new LightLoopTextureCaches();
+        // TODO: Remove the internal
+        internal LightLoopLightData m_LightLoopLightData = new LightLoopLightData();
         TileAndClusterData m_TileAndClusterData = new TileAndClusterData();
 
         // For now we don't use shadow cascade borders.
