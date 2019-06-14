@@ -375,12 +375,30 @@ namespace UnityEditor.Rendering.HighDefinition.Drawing
                 });
             });
 
+            ps.Add(new PropertyRow(CreateLabel("Procedural Normal/Tangent", indentLevel)), (row) =>
+            {
+                row.Add(new EnumField(ProceduralNormalMode.Off), (field) =>
+                {
+                    field.value = m_Node.proceduralNormalMode;
+                    field.RegisterValueChangedCallback(ChangeProceduralNormalMode);
+                });
+            });
+
             ps.Add(new PropertyRow(CreateLabel("DOTS instancing", indentLevel)), (row) =>
             {
                 row.Add(new Toggle(), (toggle) =>
                 {
                     toggle.value = m_Node.dotsInstancing.isOn;
                     toggle.OnToggleChanged(ChangeDotsInstancing);
+                });
+            });
+
+            ps.Add(new PropertyRow(CreateLabel("Is For Terrain", indentLevel)), (row) =>
+            {
+                row.Add(new Toggle(), (toggle) =>
+                {
+                    toggle.value = m_Node.isForTerrain.isOn;
+                    toggle.OnToggleChanged(ChangeIsForTerrain);
                 });
             });
 
@@ -651,6 +669,23 @@ namespace UnityEditor.Rendering.HighDefinition.Drawing
             ToggleData td = m_Node.dotsInstancing;
             td.isOn = evt.newValue;
             m_Node.dotsInstancing = td;
+        }
+
+        void ChangeIsForTerrain(ChangeEvent<bool> evt)
+        {
+            m_Node.owner.owner.RegisterCompleteObjectUndo("Is For Terrain Change");
+            ToggleData td = m_Node.isForTerrain;
+            td.isOn = evt.newValue;
+            m_Node.isForTerrain = td;
+        }
+
+        void ChangeProceduralNormalMode(ChangeEvent<Enum> evt)
+        {
+            if (Equals(m_Node.proceduralNormalMode, evt.newValue))
+                return;
+
+            m_Node.owner.owner.RegisterCompleteObjectUndo("Procedural Normal Mode Change");
+            m_Node.proceduralNormalMode = (ProceduralNormalMode)evt.newValue;
         }
 
         void ChangeZWrite(ChangeEvent<bool> evt)

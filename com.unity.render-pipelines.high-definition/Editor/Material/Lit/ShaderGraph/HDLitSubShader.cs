@@ -792,10 +792,13 @@ namespace UnityEditor.Rendering.HighDefinition
 
             HDLitMasterNode masterNode = iMasterNode as HDLitMasterNode;
 
-            if (masterNode.dotsInstancing.isOn)
+            if (masterNode.isForTerrain.isOn)
             {
-                instancingOption.Add("#pragma instancing_options nolightprobe");
-                instancingOption.Add("#pragma instancing_options nolodfade");
+                instancingOption.Add("#pragma instancing_options assumeuniformscaling nomatrices nolightprobe nolightmap");
+            }
+            else if (masterNode.dotsInstancing.isOn)
+            {
+                instancingOption.Add("#pragma instancing_options nolightprobe nolodfade");
             }
             else
             {
@@ -805,6 +808,19 @@ namespace UnityEditor.Rendering.HighDefinition
             return instancingOption;
         }
 
+        private static List<string> GetLODFadeOptionsFromMasterNode(AbstractMaterialNode iMasterNode)
+        {
+            List<string> lodFadeOptions = new List<string>();
+
+            HDLitMasterNode masterNode = iMasterNode as HDLitMasterNode;
+
+            if (!masterNode.isForTerrain.isOn)
+            {
+                lodFadeOptions.Add("#pragma multi_compile _ LOD_FADE_CROSSFADE");
+            }
+
+            return lodFadeOptions;
+        }
 
         private static HashSet<string> GetActiveFieldsFromMasterNode(AbstractMaterialNode iMasterNode, Pass pass)
         {
@@ -1037,6 +1053,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 HashSet<string> activeFields = GetActiveFieldsFromMasterNode(masterNode, pass);
 
                 pass.ExtraInstancingOptions = GetInstancingOptionsFromMasterNode(masterNode);
+                pass.LODFadeOptions = GetLODFadeOptionsFromMasterNode(masterNode);
 
                 // use standard shader pass generation
                 bool vertexActive = masterNode.IsSlotConnected(HDLitMasterNode.PositionSlotId);

@@ -674,6 +674,38 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         [SerializeField]
+        bool m_IsForTerrain = false;
+        public ToggleData isForTerrain
+        {
+            get { return new ToggleData(m_IsForTerrain); }
+            set
+            {
+                if (m_IsForTerrain == value.isOn)
+                    return;
+
+                m_IsForTerrain = value.isOn;
+                UpdateNodeAfterDeserialization();
+                Dirty(ModificationScope.Graph);
+            }
+        }
+
+        [SerializeField]
+        ProceduralNormalMode m_ProceduralNormalMode = ProceduralNormalMode.Off;
+        public ProceduralNormalMode proceduralNormalMode
+        {
+            get { return m_ProceduralNormalMode; }
+            set
+            {
+                if (m_ProceduralNormalMode == value)
+                    return;
+
+                m_ProceduralNormalMode = value;
+                UpdateNodeAfterDeserialization();
+                Dirty(ModificationScope.Graph);
+            }
+        }
+
+        [SerializeField]
         bool m_ZWrite = false;
         public ToggleData zWrite
         {
@@ -743,7 +775,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public sealed override void UpdateNodeAfterDeserialization()
         {
             base.UpdateNodeAfterDeserialization();
-            name = "Lit Master";
+            name = m_IsForTerrain ? "Lit (Terrain) Master" : "Lit Master";
 
             List<int> validSlots = new List<int>();
             if (MaterialTypeUsesSlotMask(SlotMask.Position))

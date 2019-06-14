@@ -25,8 +25,7 @@ Pass
     //#pragma enable_d3d11_debug_symbols
 
     $splice(InstancingOptions)
-
-    #pragma multi_compile _ LOD_FADE_CROSSFADE
+    $splice(LODFadeOptions)
 
     #pragma shader_feature _SURFACE_TYPE_TRANSPARENT
     #pragma shader_feature_local _DOUBLESIDED_ON
@@ -232,9 +231,9 @@ $include("SharedCode.template.hlsl")
 #endif
 
 #ifdef _DOUBLESIDED_ON
-    float3 doubleSidedConstants = _DoubleSidedConstants.xyz;
+        float3 doubleSidedConstants = _DoubleSidedConstants.xyz;
 #else
-    float3 doubleSidedConstants = float3(1.0, 1.0, 1.0);
+        float3 doubleSidedConstants = float3(1.0, 1.0, 1.0);
 #endif
 
         // tangent-space normal
@@ -299,11 +298,10 @@ $include("SharedCode.template.hlsl")
 #endif
 
 #ifdef _DOUBLESIDED_ON
-    float3 doubleSidedConstants = _DoubleSidedConstants.xyz;
+        float3 doubleSidedConstants = _DoubleSidedConstants.xyz;
 #else
-    float3 doubleSidedConstants = float3(1.0, 1.0, 1.0);
+        float3 doubleSidedConstants = float3(1.0, 1.0, 1.0);
 #endif
-
         ApplyDoubleSidedFlipOrMirror(fragInputs, doubleSidedConstants);
 
         SurfaceDescriptionInputs surfaceDescriptionInputs = FragInputsToSurfaceDescriptionInputs(fragInputs, V);
