@@ -9,17 +9,8 @@ namespace UnityEngine.Experimental.Rendering.LWRP
 {
     public class Light2DReactorManager : MonoBehaviour
     {
-        internal struct MeshInfo
-        {
-            public Mesh mesh;
-            public NativeSlice<Vector3> vertices; // should these be native?
-            public NativeArray<ushort>  triangles;
-            public NativeSlice<Vector3> normals;
-            public int id;
-        }
-
         static GameObject m_LightReactorManagerGO;
-        static List<MeshInfo> m_MeshesToProcess;
+        static List<ShadowGenerationInfo> m_MeshesToProcess;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         static void AfterSceneLoaded()
@@ -36,7 +27,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         {
             if (renderable != null && mesh != null)
             {
-                MeshInfo meshInfo = new MeshInfo();
+                ShadowGenerationInfo meshInfo = new ShadowGenerationInfo();
                 meshInfo.mesh = mesh;
                 meshInfo.triangles = renderable.GetTriangles();
                 meshInfo.vertices = renderable.GetVertices();
@@ -44,7 +35,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                 meshInfo.id = renderable.GetId();
 
                 if (m_MeshesToProcess == null)
-                    m_MeshesToProcess = new List<MeshInfo>();
+                    m_MeshesToProcess = new List<ShadowGenerationInfo>();
 
                 m_MeshesToProcess.Add(meshInfo);
 

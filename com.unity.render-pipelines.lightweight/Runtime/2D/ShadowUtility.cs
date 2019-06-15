@@ -4,6 +4,7 @@ using UnityEngine;
 using System;
 using Unity.Collections;
 
+
 namespace UnityEngine.Experimental.Rendering.LWRP
 {
     internal class ShadowUtility
@@ -62,7 +63,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         }
 
 
-        internal static void PopulateVerticesPerObject(List<Light2DReactorManager.MeshInfo> meshesToProcess, NativeArray<int> vertexStartIndices, out int totalVertices, out int totalEdges)
+        internal static void PopulateVerticesPerObject(List<ShadowGenerationInfo> meshesToProcess, NativeArray<int> vertexStartIndices, out int totalVertices, out int totalEdges)
         {
             totalVertices = 0;
             totalEdges = 0;
@@ -74,22 +75,27 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             }
         }
 
-        internal static void PopulateEdgesToProcess(List<Light2DReactorManager.MeshInfo> meshesToProcess, int totalEdges, NativeArray<Edge> edgesToProcess)
+        internal static void PopulateEdgesToProcess(List<ShadowGenerationInfo> meshesToProcess, int totalEdges, NativeArray<Edge> edgesToProcess)
         {
             // May want to reconsider this code later so that we can better leverage native container functionality
             int edgeIndex = 0;
             for (int meshIndex = 0; meshIndex < meshesToProcess.Count; meshIndex++)
             {
-                Light2DReactorManager.MeshInfo currentMesh = meshesToProcess[meshIndex];
-                Vector3 normal = Vector3.forward; // currentMesh.mesh.normals[0];
+                ShadowGenerationInfo currentMesh = meshesToProcess[meshIndex];
                 for (int triIndex = 0; triIndex < totalEdges; triIndex += 3)
                 {
-
                     Edge edge0 = new Edge();
                     Edge edge1 = new Edge();
                     Edge edge2 = new Edge();
 
-                    
+                    Vector3 triVert0 = currentMesh.vertices[currentMesh.triangles[triIndex]];
+                    Vector3 triVert1 = currentMesh.vertices[currentMesh.triangles[triIndex+1]];
+                    Vector3 triVert2 = currentMesh.vertices[currentMesh.triangles[triIndex+2]];
+
+                    //Vector3 normal = -Vector3.forward;
+                    //Vector3 normal = Vector3.Normalize(Vector3.Cross(Vector3.Normalize(triVert1 - triVert0), Vector3.Normalize(triVert2 - triVert0)));
+                    Vector3 normal = Vector3.Normalize(Vector3.Cross(triVert1 - triVert0, triVert2 - triVert0));
+
                     edge0.objectIndex  = meshIndex;
                     edge0.AssignVertexIndices(currentMesh.triangles[triIndex], currentMesh.triangles[triIndex + 1]);
                     edge0.normal = normal;
@@ -127,77 +133,155 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             }
         }
 
-        static void AddLinkIndex(NativeArray<VertexLink> vertexLinks, int objectStartIndex, int vertexIndex, bool next)
+        static bool IsOutsideEdge(int edgeIndex, NativeArray<Edge> edgesToProcess)
         {
-            int vertexLinkIndex = objectStartIndex;
-            VertexLink link = vertexLinks[vertexLinkIndex];
-            
-            if (next)
-                link.nextVertex = vertexIndex;
-            else
-                link.previousVertex = vertexIndex;
+            int previousIndex = edgeIndex - 1;
+            int nextIndex = edgeIndex + 1;
+            int numberOfEdgesToProcess = edgesToProcess.Length;
+            Edge currentEdge = edgesToProcess[edgeIndex];
 
-            vertexLinks[vertexLinkIndex] = link;
+            return (previousIndex < 0 || (currentEdge.CompareTo(edgesToProcess[edgeIndex - 1]) != 0)) && (nextIndex >= numberOfEdgesToProcess || (currentEdge.CompareTo(edgesToProcess[edgeIndex + 1]) != 0));
         }
 
-        internal static void FindEdges(NativeArray<Edge> edgesToProcess, NativeArray<VertexLink> vertexLinks, NativeArray<int> vertexStartIndices)
-        {
-            InitializeVertexLinks(vertexLinks);
 
+        static void CountEdges(List<ShadowGenerationInfo> meshesToProcess, NativeArray<Edge> edgesToProcess)
+        {
+            for(int i=0;i<edgesToProcess.Length;i++)
+            {
+                if (IsOutsideEdge(i, edgesToProcess))
+                {
+                    Edge currentEdge = edgesToProcess[i];
+                    ShadowGenerationInfo info = meshesToProcess[currentEdge.objectIndex];
+                    info.numberOfOutsideEdges++;
+                    meshesToProcess[currentEdge.objectIndex] = info;
+                }
+            }
+        }
+
+        static void DebugDrawMesh(Mesh mesh, Color color, float time)
+        {
+            for(int i=0;i<mesh.triangles.Length;i+=3)
+            {
+                int idx0 = mesh.triangles[i];
+                int idx1 = mesh.triangles[i + 1];
+                int idx2 = mesh.triangles[i + 2];
+                Debug.DrawLine(mesh.vertices[idx0], mesh.vertices[idx1], color, time);
+                Debug.DrawLine(mesh.vertices[idx1], mesh.vertices[idx2], color, time);
+                Debug.DrawLine(mesh.vertices[idx2], mesh.vertices[idx0], color, time);
+            }
+        }
+
+        static void DebugDrawMesh(int triangleOffset, Mesh mesh, Color color, float time)
+        {
+            for (int i = triangleOffset; i < mesh.triangles.Length; i += 3)
+            {
+                int idx0 = mesh.triangles[i];
+                int idx1 = mesh.triangles[i + 1];
+                int idx2 = mesh.triangles[i + 2];
+                Debug.DrawLine(mesh.vertices[idx0], mesh.vertices[idx1], color, time);
+                Debug.DrawLine(mesh.vertices[idx1], mesh.vertices[idx2], color, time);
+                Debug.DrawLine(mesh.vertices[idx2], mesh.vertices[idx0], color, time);
+            }
+        }
+
+        static void CopyMeshToShadowMesh(ShadowGenerationInfo meshInfo)
+        {
+            int numberOfOutsideEdges = meshInfo.numberOfOutsideEdges;
+            int[] triangles = new int[meshInfo.triangles.Length + 3 * numberOfOutsideEdges];
+            Vector3[] vertices = new Vector3[meshInfo.vertices.Length + numberOfOutsideEdges];
+            Vector4[] tangents = new Vector4[meshInfo.vertices.Length + numberOfOutsideEdges];
+
+            for (int i = 0; i < meshInfo.vertices.Length; i++)
+            {
+                vertices[i] = meshInfo.vertices[i];
+                tangents[i] = Vector3.zero;
+            }
+
+            for (int i = 0; i < meshInfo.triangles.Length; i++)
+                triangles[i] = meshInfo.triangles[i];
+
+            meshInfo.mesh.vertices = vertices;
+            meshInfo.mesh.triangles = triangles;
+            meshInfo.mesh.tangents = tangents;
+            meshInfo.mesh.UploadMeshData(false);
+        }
+
+        static Vector3 GetTangentFromEdge(Vector3 vertex0, Vector3 vertex1, Vector3 normal, bool swapped)
+        {
+            Vector3 right;
+            if (swapped)
+                right = Vector3.Normalize(vertex0 - vertex1);
+            else
+                right = Vector3.Normalize(vertex1 - vertex0);
+
+            return Vector3.Cross(normal, right);
+        }
+
+        static void CreateHardShadowMeshes(List<ShadowGenerationInfo> meshesToProcess, NativeArray<Edge> edgesToProcess, NativeArray<int> vertexStartIndices)
+        {
+            int totalMeshesToProcess = meshesToProcess.Count;
+            int[] addVertIndices = new int[totalMeshesToProcess];
+            int[] addTriIndices = new int[totalMeshesToProcess];
+
+            // Copy the interior of the shadow mesh
+            for (int meshIndex = 0; meshIndex < totalMeshesToProcess; meshIndex++)
+            {
+                addVertIndices[meshIndex] = meshesToProcess[meshIndex].vertices.Length;
+                addTriIndices[meshIndex] = meshesToProcess[meshIndex].triangles.Length;
+
+                CopyMeshToShadowMesh(meshesToProcess[meshIndex]);
+                //DebugDrawMesh(meshesToProcess[meshIndex].mesh, Color.blue, 30f);
+            }
+
+            // Create the extra triangles needed
             int numberOfEdgesToProcess = edgesToProcess.Length;
             for (int i = 0; i < numberOfEdgesToProcess; i++)
             {
-                // Iterate through the edges to do not do anything with duplicates
-                int previousIndex = i - 1;
-                int nextIndex = i + 1;
-
-                Edge currentEdge = edgesToProcess[i];
-                if ((previousIndex < 0 || (currentEdge.CompareTo(edgesToProcess[i - 1]) != 0)) && (nextIndex >= numberOfEdgesToProcess || (currentEdge.CompareTo(edgesToProcess[i + 1]) != 0)))
+                if (IsOutsideEdge(i, edgesToProcess))
                 {
-                    int objectStartIndex = vertexStartIndices[currentEdge.objectIndex];
-                    AddLinkIndex(vertexLinks, objectStartIndex + currentEdge.vertexIndex0, currentEdge.vertexIndex1, true);
-                    AddLinkIndex(vertexLinks, objectStartIndex + currentEdge.vertexIndex1, currentEdge.vertexIndex0, false);
-                }
-            }
-        }
+                    Edge currentEdge = edgesToProcess[i];
+                    int objectIndex = currentEdge.objectIndex;
 
-        internal static void CalculateEdgeTangents(NativeArray<Edge> edgesToProcess, NativeArray<VertexLink> vertexLinks, NativeArray<int> vertexStartIndices)
-        {
-
-        }
-
-        static void DebugDrawEdgesAndTangents(List<Light2DReactorManager.MeshInfo> meshesToProcess, NativeArray<Edge> edgesToProcess)
-        {
-            int numberOfEdgesToProcess = edgesToProcess.Length;
-            for (int i=0;i<numberOfEdgesToProcess;i++)
-            {
-                Edge currentEdge = edgesToProcess[i];
-
-                int previousIndex = i - 1;
-                int nextIndex = i + 1;
-                if ((previousIndex < 0 || (currentEdge.CompareTo(edgesToProcess[i - 1]) != 0)) && (nextIndex >= numberOfEdgesToProcess || (currentEdge.CompareTo(edgesToProcess[i + 1]) != 0)))
-                {
-                    Light2DReactorManager.MeshInfo meshInfo = meshesToProcess[currentEdge.objectIndex];
+                    ShadowGenerationInfo meshInfo = meshesToProcess[objectIndex];
                     Vector3 vertex0 = meshInfo.vertices[currentEdge.vertexIndex0];
                     Vector3 vertex1 = meshInfo.vertices[currentEdge.vertexIndex1];
-                    Debug.DrawLine(vertex0, vertex1, Color.red, 30);
+                    Vector3 tangent = GetTangentFromEdge(vertex0, vertex1, currentEdge.normal, currentEdge.swapped);
 
-                    float tanLen = 0.2f;
-                    Vector3 right;
-                    if (currentEdge.swapped)
-                        right = Vector3.Normalize(vertex0 - vertex1);
-                    else
-                        right = Vector3.Normalize(vertex1 - vertex0);
+                    //float tanLen = 0.2f;
+                    //Debug.DrawLine(vertex0, vertex0 + tanLen * tangent, Color.red, 30);
+                    //Debug.DrawLine(vertex1, vertex1 + tanLen * tangent, Color.red, 30);
 
-                    Vector3 tangent = Vector3.Cross(Vector3.forward, right);
-                    Debug.DrawLine(vertex0, vertex0 + tanLen * tangent, Color.red, 30);
-                    Debug.DrawLine(vertex1, vertex1 + tanLen * tangent, Color.red, 30);
+                    // For each edge we need to add a vertex and triangle
+                    int newVertIndex = addVertIndices[objectIndex]++;
+                    int newTriIndex = addTriIndices[objectIndex];
+                    addTriIndices[objectIndex] += 3;
+
+
+                    // Add our triangle, vertex, and tangents
+                    Mesh mesh = meshInfo.mesh;
+                    Vector4 v4Tangent = new Vector4(tangent.x, tangent.y, tangent.z, 0);
+
+                    Vector3[] vertices = mesh.vertices;
+                    Vector4[] tangents = mesh.tangents;
+                    int[] triangles = mesh.triangles;
+
+                    vertices[newVertIndex] = vertex0;
+                    triangles[newTriIndex] = currentEdge.vertexIndex0;
+                    triangles[newTriIndex + 1] = newVertIndex;
+                    triangles[newTriIndex + 2] = currentEdge.vertexIndex1;
+                    tangents[newVertIndex] = v4Tangent;
+                    tangents[currentEdge.vertexIndex1] = v4Tangent;
+
+                    mesh.vertices = vertices;
+                    mesh.triangles = triangles;
+                    mesh.tangents = tangents;
                 }
             }
         }
 
 
-        internal static void ProcessMeshesForShadows(List<Light2DReactorManager.MeshInfo> meshesToProcess)
+
+        internal static void ProcessMeshesForShadows(List<ShadowGenerationInfo> meshesToProcess)
         {
             int totalVertices;
             int totalEdges;
@@ -207,19 +291,15 @@ namespace UnityEngine.Experimental.Rendering.LWRP
 
             NativeArray<Edge> edgesToProcess = new NativeArray<Edge>(totalEdges, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
             PopulateEdgesToProcess(meshesToProcess, totalEdges, edgesToProcess);
-
             SortEdges(edgesToProcess); // Can be multithreaded later as an optimization
+            CountEdges(meshesToProcess, edgesToProcess);
+            CreateHardShadowMeshes(meshesToProcess, edgesToProcess, vertexStartIndices);
 
-            NativeArray<VertexLink> vertexLinks = new NativeArray<VertexLink>(totalVertices, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
-            FindEdges(edgesToProcess, vertexLinks, vertexStartIndices);  // Can be multithreaded later as an optimization
-            CalculateEdgeTangents(edgesToProcess, vertexLinks, vertexStartIndices);  // Can be multithreaded later as an optimization
-
-            DebugDrawEdgesAndTangents(meshesToProcess, edgesToProcess);
+            //DebugDrawEdgesAndTangents(meshesToProcess, edgesToProcess);
 
             // Cleanup array allocations
             edgesToProcess.Dispose();
             vertexStartIndices.Dispose();
-            vertexLinks.Dispose();
 
             meshesToProcess.Clear();
         }
