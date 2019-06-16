@@ -245,11 +245,12 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                     ShadowGenerationInfo meshInfo = meshesToProcess[objectIndex];
                     Vector3 vertex0 = meshInfo.vertices[currentEdge.vertexIndex0];
                     Vector3 vertex1 = meshInfo.vertices[currentEdge.vertexIndex1];
-                    Vector3 tangent = GetTangentFromEdge(vertex0, vertex1, currentEdge.normal, currentEdge.swapped);
+                    //Vector3 tangent = GetTangentFromEdge(vertex0, vertex1, currentEdge.normal, currentEdge.swapped);
+                    Vector3 tangent = GetTangentFromEdge(vertex0, vertex1, -Vector3.forward, currentEdge.swapped);
 
-                    //float tanLen = 0.2f;
-                    //Debug.DrawLine(vertex0, vertex0 + tanLen * tangent, Color.red, 30);
-                    //Debug.DrawLine(vertex1, vertex1 + tanLen * tangent, Color.red, 30);
+                    float tanLen = 0.2f;
+                    Debug.DrawLine(vertex0, vertex0 + tanLen * tangent, Color.red, 30);
+                    Debug.DrawLine(vertex1, vertex1 + tanLen * tangent, Color.red, 30);
 
                     // For each edge we need to add a vertex and triangle
                     int newVertIndex = addVertIndices[objectIndex]++;
@@ -265,12 +266,25 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                     Vector4[] tangents = mesh.tangents;
                     int[] triangles = mesh.triangles;
 
-                    vertices[newVertIndex] = vertex0;
-                    triangles[newTriIndex] = currentEdge.vertexIndex0;
-                    triangles[newTriIndex + 1] = newVertIndex;
-                    triangles[newTriIndex + 2] = currentEdge.vertexIndex1;
+
                     tangents[newVertIndex] = v4Tangent;
-                    tangents[currentEdge.vertexIndex1] = v4Tangent;
+                    triangles[newTriIndex + 1] = newVertIndex;
+
+                    if (!currentEdge.swapped)
+                    {
+                        vertices[newVertIndex] = vertex0;
+                        tangents[currentEdge.vertexIndex1] = v4Tangent;
+                        triangles[newTriIndex] = currentEdge.vertexIndex0;
+                        triangles[newTriIndex + 2] = currentEdge.vertexIndex1;
+                    }
+                    else
+                    {
+                        vertices[newVertIndex] = vertex1;
+                        tangents[currentEdge.vertexIndex0] = v4Tangent;
+                        triangles[newTriIndex] = currentEdge.vertexIndex1;
+                        triangles[newTriIndex + 2] = currentEdge.vertexIndex0;
+                        
+                    }
 
                     mesh.vertices = vertices;
                     mesh.triangles = triangles;

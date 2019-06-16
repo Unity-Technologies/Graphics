@@ -68,39 +68,54 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                     Vector4 tan1 = tangents[tri1];
                     Vector4 tan2 = tangents[tri2];
 
-                    if (tan0.magnitude > 0 || tan1.magnitude > 0 || tan0.magnitude > 0)
-                    {
-                        Vector3 lightDir0 = Vector3.Normalize(LightTest.position - vert0);
-                        Vector3 lightDir1 = Vector3.Normalize(LightTest.position - vert1);
-                        Vector3 lightDir2 = Vector3.Normalize(LightTest.position - vert2);
+                    Color color = Color.blue;
+                    Color tanColor = Color.red;
 
-                        Color color = Color.blue;
-                        Color tanColor = Color.red;
-                        Color lightColor = Color.white;
+                    //Debug.DrawLine(vert0, vert1, color);
+                    //Debug.DrawLine(vert1, vert2, color);
+                    //Debug.DrawLine(vert2, vert0, color);
 
-                        float lightDistance = 5;
-                        float castsShadows = Mathf.Clamp01(Mathf.Ceil(Vector3.Dot(lightDir0, tan0)));
-                        if (castsShadows > 0)
-                            Debug.DrawLine(LightTest.position, vert0, lightColor);
-                        Debug.DrawLine(vert0, vert0 + new Vector3(tan0.x, tan0.y, tan0.z), tanColor);
-                        vert0 = vert0 + -lightDistance * lightDir0 * castsShadows;
+                    Debug.DrawLine(vert0, vert0 + new Vector3(tan0.x, tan0.y, tan0.z), color);
+                    Debug.DrawLine(vert1, vert1 + new Vector3(tan1.x, tan1.y, tan1.z), color);
+                    Debug.DrawLine(vert2, vert2 + new Vector3(tan2.x, tan2.y, tan2.z), color);
 
-                        castsShadows = Mathf.Clamp01(Mathf.Ceil(Vector3.Dot(lightDir1, tan1)));
-                        if (castsShadows > 0)
-                            Debug.DrawLine(LightTest.position, vert1, lightColor);
-                        Debug.DrawLine(vert1, vert1 + new Vector3(tan1.x, tan1.y, tan1.z), tanColor);
-                        vert1 = vert1 + -lightDistance * lightDir1 * castsShadows;
+                    //if (tan0.sqrMagnitude > 0 || tan1.sqrMagnitude > 0 || tan2.sqrMagnitude > 0)
+                    //{
+                    //    Vector3 lightDir0 = Vector3.Normalize(LightTest.position - vert0);
+                    //    Vector3 lightDir1 = Vector3.Normalize(LightTest.position - vert1);
+                    //    Vector3 lightDir2 = Vector3.Normalize(LightTest.position - vert2);
 
-                        castsShadows = Mathf.Clamp01(Mathf.Ceil(Vector3.Dot(lightDir2, tan2)));
-                        if (castsShadows > 0)
-                            Debug.DrawLine(LightTest.position, vert2, lightColor);
-                        Debug.DrawLine(vert2, vert2 + new Vector3(tan2.x, tan2.y, tan2.z), tanColor);
-                        vert2 = vert2 + -lightDistance * lightDir2 * castsShadows;
+                    //    Color lightColor = Color.white;
+                    //    Color colorOriginal = Color.green;
 
-                        Debug.DrawLine(vert0, vert1, color);
-                        Debug.DrawLine(vert1, vert2, color);
-                        Debug.DrawLine(vert2, vert0, color);
-                    }
+                    //    Debug.DrawLine(vert0, vert1, colorOriginal);
+                    //    Debug.DrawLine(vert1, vert2, colorOriginal);
+                    //    Debug.DrawLine(vert2, vert0, colorOriginal);
+
+
+                    //    float lightDistance = 5;
+                    //    float castsShadows = Mathf.Clamp01(Mathf.Ceil(Vector3.Dot(lightDir0, tan0)));
+                    //    if (castsShadows > 0)
+                    //        Debug.DrawLine(LightTest.position, vert0, lightColor);
+                    //    Debug.DrawLine(vert0, vert0 + new Vector3(tan0.x, tan0.y, tan0.z), tanColor);
+                    //    vert0 = vert0 + -lightDistance * lightDir0 * castsShadows;
+
+                    //    castsShadows = Mathf.Clamp01(Mathf.Ceil(Vector3.Dot(lightDir1, tan1)));
+                    //    if (castsShadows > 0)
+                    //        Debug.DrawLine(LightTest.position, vert1, lightColor);
+                    //    Debug.DrawLine(vert1, vert1 + new Vector3(tan1.x, tan1.y, tan1.z), tanColor);
+                    //    vert1 = vert1 + -lightDistance * lightDir1 * castsShadows;
+
+                    //    castsShadows = Mathf.Clamp01(Mathf.Ceil(Vector3.Dot(lightDir2, tan2)));
+                    //    if (castsShadows > 0)
+                    //        Debug.DrawLine(LightTest.position, vert2, lightColor);
+                    //    Debug.DrawLine(vert2, vert2 + new Vector3(tan2.x, tan2.y, tan2.z), tanColor);
+                    //    vert2 = vert2 + -lightDistance * lightDir2 * castsShadows;
+
+                    //    Debug.DrawLine(vert0, vert1, color);
+                    //    Debug.DrawLine(vert1, vert2, color);
+                    //    Debug.DrawLine(vert2, vert0, color);
+                    //}
                 }
             }
         }
