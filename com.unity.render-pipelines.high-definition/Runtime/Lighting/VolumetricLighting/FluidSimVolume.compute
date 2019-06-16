@@ -27,8 +27,8 @@ void Simulate(uint3 id : SV_DispatchThreadID)
     float3 pos = _SimulationBuffer0[id.xyz].xyz;
 
     float3 vf = (pos / _FluidSimVolumeRes) * 2.0 - 1.0;
-    //vf = float3(0.1, 0.0, 0.0);
-    vf = float3(vf.y, -vf.x, 0.0) / max(0.5, vf.z);
+    vf = float3(vf.y, -vf.x, 0.0) / vf.z;
+    //vf = float3(-vf.x / sqrt(vf.x * vf.x + vf.y * vf.y + 4), vf.y / sqrt(vf.x * vf.x + vf.y * vf.y + 4), 0.0);
 
     float3 outputPos = pos + vf;
 

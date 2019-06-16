@@ -13,9 +13,9 @@ RWTexture3D<float4> _OutputVolumeAtlas;
 void Texture3DAtlas(uint3 id : SV_DispatchThreadID)
 {
 #ifdef CLEAR
-    //_OutputVolumeAtlas[id.xyz] = float4(0.0, 0.0, 0.0, 0.0);
+    _OutputVolumeAtlas[id.xyz] = float4(0.0, 0.0, 0.0, 0.0);
 #else
-    float3 pos = _SimulationBuffer0[id.xyz];
+    float3 pos = _SimulationBuffer0[id.xyz].xyz;
     float3 weight = pos - floor(pos);
 
     uint3 output = (uint3)pos;
