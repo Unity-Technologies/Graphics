@@ -12,61 +12,23 @@ CBUFFER_START(_FluidSimVolume)
 float3 _FluidSimVolumeRes;
 CBUFFER_END
 
-Texture3D<float4> _InputVolumeTexture;
-RWTexture3D<float4> _OutputVolumeTexture;
+Texture3D<float4> _InitialStateVolumeTexture;
+RWTexture3D<float4> _SimulationBuffer0;
+RWTexture3D<float4> _SimulationBuffer1;
 
 [numthreads(TILE_SIZE, TILE_SIZE, TILE_SIZE)]
 void Simulate(uint3 id : SV_DispatchThreadID)
 {
 #ifdef INITIAL_STATE
-    _OutputVolumeTexture[id.xyz] = _InputVolumeTexture[id.xyz];
+    _SimulationBuffer0[id.xyz] = float4((float3)id.xyz, 0.0);
+    _SimulationBuffer1[id.xyz] = _InitialStateVolumeTexture[id.xyz];
 #elif SIMULATE
 
-    float3 srcFloat = (float3)id.xyz + 0.5;
+    float3 pos = _SimulationBuffer0[id.xyz].xyz;
 
-    float3 vf = (srcFloat / _FluidSimVolumeRes) - 0.5;
+    float3 vf = (pos / _FluidSimVolumeRes) * 2.0 - 1.0;
     vf = float3(vf.y, -vf.x, 0.0) / max(0.5, vf.z);
-    //vf = vf * 0.1;
-    //vf = float3(0.1, 0.0, 0.0);
-    //vf = floor(vf);
 
-    srcFloat += vf;
-
-    float3 inputUVW = srcFloat / _FluidSimVolumeRes;
-    float3 input = SAMPLE_TEXTURE3D_LOD(_InputVolumeTexture, s_trilinear_clamp_sampler, inputUVW, 0).rgb;
-
-    _OutputVolumeTexture[id.xyz] = float4(input, 0.0);
-
-#if 0
-    float3 weight0 = vf - floor(vf);
-    float3 weight1 = 1.0 - weight0;
-
-    float3 output000 = input * weight0.x;
-    float3 output001 = input * weight1.x;
-    float3 output010 = input * weight1.y;
-    float3 output011 = input * weight1.y;
-    float3 output100 = input * float3(weight0.x, weight0.y, weight1.z);
-    float3 output101 = input * float3(weight1.x, weight0.y, weight1.z);
-    float3 output110 = input * float3(weight0.x, weight1.y, weight1.z);
-    float3 output111 = input * weight1;
-
-    int3 dst000 = dst;
-    int3 dst001 = dst + int3(0, 0, 1);
-    int3 dst010 = dst + int3(0, 1, 0);
-    int3 dst011 = dst + int3(0, 1, 1);
-    int3 dst100 = dst + int3(1, 0, 0);
-    int3 dst101 = dst + int3(1, 0, 1);
-    int3 dst110 = dst + int3(1, 1, 0);
-    int3 dst111 = dst + int3(1, 1, 1);
-
-    _OutputVolumeTexture[dst000] = float4(output000, 1.0);
-    _OutputVolumeTexture[dst001] = float4(output001, 1.0);
-    _OutputVolumeTexture[dst010] = float4(output010, 1.0);
-    _OutputVolumeTexture[dst011] = float4(output011, 1.0);
-    _OutputVolumeTexture[dst100] = float4(output100, 1.0);
-    _OutputVolumeTexture[dst101] = float4(output101, 1.0);
-    _OutputVolumeTexture[dst110] = float4(output110, 1.0);
-    _OutputVolumeTexture[dst111] = float4(output111, 1.0);
-#endif
+    _SimulationBuffer0[id.xyz] += float4(vf, 0.0);
 #endif
 }

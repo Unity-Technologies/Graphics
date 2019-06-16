@@ -4,11 +4,17 @@
 
 #define TILE_SIZE 4
 
-Texture3D<float4> _InputVolumeTexture;
+Texture3D<float4> _SimulationBuffer0;
+Texture3D<float4> _SimulationBuffer1;
 RWTexture3D<float4> _OutputVolumeAtlas;
 
 [numthreads(TILE_SIZE, TILE_SIZE, TILE_SIZE)]
 void CopyTexture(uint3 id : SV_DispatchThreadID)
 {
-    _OutputVolumeAtlas[id.xyz] = _InputVolumeTexture[id.xyz];
+    float3 pos = _SimulationBuffer0[id.xyz];
+    float3 weight = pos - floor(pos);
+
+    uint3 output = (uint3)pos;
+
+    _OutputVolumeAtlas[output] = _SimulationBuffer1[id.xyz];
 }

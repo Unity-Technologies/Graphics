@@ -7,6 +7,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     public struct FluidSimVolumeArtistParameters
     {
         public Texture3D initialStateTexture;
+        public Texture3D vectorField;
 
         [SerializeField]
         public Vector3 positiveFade;
@@ -60,8 +61,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     {
         public FluidSimVolumeArtistParameters parameters = new FluidSimVolumeArtistParameters();
 
-        public RTHandleSystem.RTHandle fSimTexture = null;
-        public RTHandleSystem.RTHandle bSimTexture = null;
+        public RTHandleSystem.RTHandle simulationBuffer0 = null;
+        public RTHandleSystem.RTHandle simulationBuffer1 = null;
 
         public bool needToInitialize { get; private set; }
 
@@ -72,13 +73,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public FluidSimVolume()
         {
-        }
-
-        public void SwapTexture()
-        {
-            var temp = fSimTexture;
-            fSimTexture = bSimTexture;
-            bSimTexture = temp;
         }
 
         private void OnEnable()
@@ -97,21 +91,31 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             bool recreate =
                 parameters.initialStateTexture != null && (
-                fSimTexture == null ||
-                parameters.initialStateTexture.width  != fSimTexture.rt.width ||
-                parameters.initialStateTexture.height != fSimTexture.rt.height ||
-                parameters.initialStateTexture.depth  != fSimTexture.rt.volumeDepth);
+                simulationBuffer0 == null ||
+                parameters.initialStateTexture.width  != simulationBuffer0.rt.width ||
+                parameters.initialStateTexture.height != simulationBuffer0.rt.height ||
+                parameters.initialStateTexture.depth  != simulationBuffer0.rt.volumeDepth);
 
             if (recreate)
             {
                 needToInitialize = true;
 
-                if (fSimTexture != null)
-                    RTHandles.Release(fSimTexture);
-                if (bSimTexture != null)
-                    RTHandles.Release(bSimTexture);
+                if (simulationBuffer0 != null)
+                    RTHandles.Release(simulationBuffer0);
+                if (simulationBuffer1 != null)
+                    RTHandles.Release(simulationBuffer1);
 
-                fSimTexture = RTHandles.Alloc(
+                simulationBuffer0 = RTHandles.Alloc(
+                    parameters.initialStateTexture.width,
+                    parameters.initialStateTexture.height,
+                    parameters.initialStateTexture.depth,
+                    colorFormat: GraphicsFormat.R16G16B16A16_SFloat,
+                    filterMode: FilterMode.Bilinear,
+                    dimension: TextureDimension.Tex3D,
+                    enableRandomWrite: true,
+                    name: "SimulationBuffer0");
+
+                simulationBuffer1 = RTHandles.Alloc(
                     parameters.initialStateTexture.width,
                     parameters.initialStateTexture.height,
                     parameters.initialStateTexture.depth,
@@ -119,17 +123,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     filterMode: FilterMode.Bilinear,
                     dimension: TextureDimension.Tex3D,
                     enableRandomWrite: true,
-                    name: "SimTexture0");
-
-                bSimTexture = RTHandles.Alloc(
-                    parameters.initialStateTexture.width,
-                    parameters.initialStateTexture.height,
-                    parameters.initialStateTexture.depth,
-                    colorFormat: GraphicsFormat.R8G8B8A8_UNorm,
-                    filterMode: FilterMode.Bilinear,
-                    dimension: TextureDimension.Tex3D,
-                    enableRandomWrite: true,
-                    name: "SimTexture1");
+                    name: "SimulationBuffer1");
             }
             else
             {

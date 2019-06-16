@@ -86,41 +86,44 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 if (volume.needToInitialize)
                 {
-                    var outputVolumeTexture = volume.fSimTexture;
-                    if (outputVolumeTexture == null)
+                    var simulationBuffer0 = volume.simulationBuffer0;
+                    if (simulationBuffer0 == null)
+                        continue;
+
+                    var simulationBuffer1 = volume.simulationBuffer1;
+                    if (simulationBuffer1 == null)
                         continue;
 
                     var kernel = _fluidSimVolumeCS.FindKernel("InitialState");
                     if (kernel == -1)
                         continue;
 
-                    cmd.SetComputeTextureParam(_fluidSimVolumeCS, kernel, HDShaderIDs._InputVolumeTexture, initialSimTexture);
-                    cmd.SetComputeTextureParam(_fluidSimVolumeCS, kernel, HDShaderIDs._OutputVolumeTexture, outputVolumeTexture);
+                    cmd.SetComputeTextureParam(_fluidSimVolumeCS, kernel, HDShaderIDs._InitialStateVolumeTexture, initialSimTexture);
+                    cmd.SetComputeTextureParam(_fluidSimVolumeCS, kernel, HDShaderIDs._SimulationBuffer0, simulationBuffer0);
+                    cmd.SetComputeTextureParam(_fluidSimVolumeCS, kernel, HDShaderIDs._SimulationBuffer1, simulationBuffer1);
 
                     cmd.DispatchCompute(_fluidSimVolumeCS, kernel, dispatchX, dispatchY, dispatchZ);
                 }
                 else
                 {
-                    var inputVolumeTexture = volume.fSimTexture;
-                    if (inputVolumeTexture == null)
+                    var simulationBuffer0 = volume.simulationBuffer0;
+                    if (simulationBuffer0 == null)
                         continue;
-                
-                    var outputVolumeTexture = volume.bSimTexture;
-                    if (outputVolumeTexture == null)
+
+                    var simulationBuffer1= volume.simulationBuffer1;
+                    if (simulationBuffer1 == null)
                         continue;
                 
                     var kernel = _fluidSimVolumeCS.FindKernel("Simulate");
                     if (kernel == -1)
                         continue;
                 
-                    volume.SwapTexture();
-                
                     var fluidSimVolumeRes = new Vector3(fluidSimVolumeResX, fluidSimVolumeResY, fluidSimVolumeResZ);
                 
                     cmd.SetComputeVectorParam(_fluidSimVolumeCS, HDShaderIDs._FluidSimVolumeRes, fluidSimVolumeRes);
                 
-                    cmd.SetComputeTextureParam(_fluidSimVolumeCS, kernel, HDShaderIDs._InputVolumeTexture, inputVolumeTexture);
-                    cmd.SetComputeTextureParam(_fluidSimVolumeCS, kernel, HDShaderIDs._OutputVolumeTexture, outputVolumeTexture);
+                    cmd.SetComputeTextureParam(_fluidSimVolumeCS, kernel, HDShaderIDs._SimulationBuffer0, simulationBuffer0);
+                    cmd.SetComputeTextureParam(_fluidSimVolumeCS, kernel, HDShaderIDs._SimulationBuffer1, simulationBuffer1);
                 
                     cmd.DispatchCompute(_fluidSimVolumeCS, kernel, dispatchX, dispatchY, dispatchZ);
                 }
@@ -137,8 +140,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 if (initialSimTexture == null)
                     continue;
 
-                var inputVolumeTexture = volume.fSimTexture;
-                if (inputVolumeTexture == null)
+                var simulationBuffer0 = volume.simulationBuffer0;
+                if (simulationBuffer0 == null)
+                    continue;
+
+                var simulationBuffer1 = volume.simulationBuffer1;
+                if (simulationBuffer1 == null)
                     continue;
 
                 int fluidSimVolumeResX = initialSimTexture.width;
@@ -152,7 +159,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 int dispatchY = (fluidSimVolumeResY + lessTile) / threadTile;
                 int dispatchZ = (fluidSimVolumeResZ + lessTile) / threadTile;
 
-                cmd.SetComputeTextureParam(_texture3DAtlasCS, kernel, HDShaderIDs._InputVolumeTexture, inputVolumeTexture);
+                cmd.SetComputeTextureParam(_texture3DAtlasCS, kernel, HDShaderIDs._SimulationBuffer0, simulationBuffer0);
+                cmd.SetComputeTextureParam(_texture3DAtlasCS, kernel, HDShaderIDs._SimulationBuffer1, simulationBuffer1);
 
                 cmd.DispatchCompute(_texture3DAtlasCS, kernel, dispatchX, dispatchY, dispatchZ);
             }
