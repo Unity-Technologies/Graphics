@@ -585,6 +585,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 {
                     portInputView = new PortInputView(port.slot) { style = { position = Position.Absolute } };
                     m_PortInputContainer.Add(portInputView);
+                    SetPortInputPosition(port, portInputView);
                 }
                 
                 port.RegisterCallback<GeometryChangedEvent>(UpdatePortInput);

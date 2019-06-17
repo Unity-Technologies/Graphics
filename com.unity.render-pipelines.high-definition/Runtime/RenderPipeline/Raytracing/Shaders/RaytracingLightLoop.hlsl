@@ -66,9 +66,9 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
             out float3 specularLighting)
 {
     LightLoopContext context;
-    context.contactShadow    = 1.0f;
+    context.contactShadow    = 1.0;
     context.shadowContext    = InitShadowContext();
-    context.shadowValue      = 1.0f;
+    context.shadowValue      = 1.0;
     context.sampleReflection = 0;
 
     // Initialize the contactShadow and contactShadowFade fields
@@ -80,14 +80,16 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
         DirectionalLightData light = _DirectionalLightDatas[_DirectionalShadowIndex];
 
         // TODO: this will cause us to load from the normal buffer first. Does this cause a performance problem?
-        // Also, the light direction is not consistent with the sun disk highlight hack, which modifies the light vector.
-        float  NdotL            = dot(bsdfData.normalWS, -light.forward);
-        float3 shadowBiasNormal = GetNormalForShadowBias(bsdfData);
-        bool   evaluateShadows  = (NdotL > 0);
+        float3 L = -light.forward;
 
-        if (evaluateShadows)
+        // Is it worth sampling the shadow map?
+        if ((light.lightDimmer > 0) && (light.shadowDimmer > 0) && // Note: Volumetric can have different dimmer, thus why we test it here
+            IsNonZeroBSDF(V, L, preLightData, bsdfData) &&
+            !ShouldEvaluateThickObjectTransmission(V, L, preLightData, bsdfData, light.shadowIndex))
         {
-            context.shadowValue = EvaluateRuntimeSunShadow(context, posInput, light, shadowBiasNormal);
+            context.shadowValue = GetDirectionalShadowAttenuation(context.shadowContext,
+                                                                  posInput.positionSS, posInput.positionWS, GetNormalForShadowBias(bsdfData),
+                                                                  light.shadowIndex, L);
         }
     }
 

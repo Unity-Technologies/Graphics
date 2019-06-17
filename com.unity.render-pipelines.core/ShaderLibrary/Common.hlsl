@@ -112,6 +112,7 @@
 
 #define REAL_MIN HALF_MIN
 #define REAL_MAX HALF_MAX
+#define REAL_EPS HALF_EPS
 #define TEMPLATE_1_REAL TEMPLATE_1_HALF
 #define TEMPLATE_2_REAL TEMPLATE_2_HALF
 #define TEMPLATE_3_REAL TEMPLATE_3_HALF
@@ -133,6 +134,7 @@
 
 #define REAL_MIN FLT_MIN
 #define REAL_MAX FLT_MAX
+#define REAL_EPS FLT_EPS
 #define TEMPLATE_1_REAL TEMPLATE_1_FLT
 #define TEMPLATE_2_REAL TEMPLATE_2_FLT
 #define TEMPLATE_3_REAL TEMPLATE_3_FLT
@@ -196,7 +198,7 @@
 #endif
 
 // On everything but GCN consoles we error on cross-lane operations
-#ifndef SUPPORTS_WAVE_INTRINSICS
+#ifndef PLATFORM_SUPPORTS_WAVE_INTRINSICS
 #define WaveActiveAllTrue ERROR_ON_UNSUPPORTED_FUNCTION(WaveActiveAllTrue)
 #define WaveActiveAnyTrue ERROR_ON_UNSUPPORTED_FUNCTION(WaveActiveAnyTrue)
 #define WaveGetLaneIndex ERROR_ON_UNSUPPORTED_FUNCTION(WaveGetLaneIndex)

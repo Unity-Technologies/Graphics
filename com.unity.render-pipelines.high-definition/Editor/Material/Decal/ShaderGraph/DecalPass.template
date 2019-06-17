@@ -144,7 +144,7 @@ $include("SharedCode.template.hlsl")
         $SurfaceDescription.Normal:                     surfaceData.normalWS.xyz = mul((float3x3)normalToWorld, surfaceDescription.Normal);
     #elif (SHADERPASS == SHADERPASS_DBUFFER_MESH) || (SHADERPASS == SHADERPASS_FORWARD_PREVIEW)
         // We need to normalize as we use mikkt tangent space and this is expected (tangent space is not normalize)
-        $SurfaceDescription.Normal:                     surfaceData.normalWS.xyz = normalize(TransformTangentToWorld(surfaceDescription.Normal, fragInputs.worldToTangent));
+        $SurfaceDescription.Normal:                     surfaceData.normalWS.xyz = normalize(TransformTangentToWorld(surfaceDescription.Normal, fragInputs.tangentToWorld));
     #endif
         $SurfaceDescription.AlphaNormal:                surfaceData.normalWS.w = surfaceDescription.AlphaNormal * fadeFactor;
         if(surfaceData.normalWS.w > 0)
@@ -153,7 +153,7 @@ $include("SharedCode.template.hlsl")
         }
 #else
     #if (SHADERPASS == SHADERPASS_FORWARD_PREVIEW) // Default to vertex normal
-        $SurfaceDescription.Normal:                     surfaceData.normalWS.xyz = normalize(TransformTangentToWorld(float3(0.0, 0.0, 0.1), fragInputs.worldToTangent));
+        $SurfaceDescription.Normal:                     surfaceData.normalWS.xyz = normalize(TransformTangentToWorld(float3(0.0, 0.0, 0.1), fragInputs.tangentToWorld));
     #endif
 #endif
 
