@@ -2079,6 +2079,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     foreach (var material in m_MaterialList)
                         material.RenderInit(cmd);
                 }
+                using (new ProfilingSample(
+                    cmd, "HDRenderPipeline::Render Initialize Textures",
+                    CustomSamplerId.HDRenderPipelineRender.GetSampler())
+                )
+                {
+                    TextureXR.Initialize(cmd);
+                }
                 renderContext.ExecuteCommandBuffer(cmd);
                 CommandBufferPool.Release(cmd);
             }

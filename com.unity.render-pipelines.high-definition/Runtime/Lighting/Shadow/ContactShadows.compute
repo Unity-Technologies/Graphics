@@ -249,18 +249,18 @@ void DEFERRED_CONTACT_SHADOW_GENERIC(uint2 groupThreadId : SV_GroupThreadID, uin
 
                 LightData light = FetchLight(s_lightIdx); // Scalar load
 
-                if (light.contactShadowMask == 0)
-                    continue;
+                if (light.contactShadowMask != 0)
+                {
+                    // Compute light ray direction:
+                    float3 direction = normalize(light.positionRWS.xyz - posInput.positionWS);
 
-                // Compute light ray direction:
-                float3 direction = normalize(light.positionRWS.xyz - posInput.positionWS);
+                    bool occluded = ComputeContactShadow(posInput, direction, globalFade);
 
-                bool occluded = ComputeContactShadow(posInput, direction, globalFade);
-
-                // light.contactShadowMask contains one bit at the position of the contact shadow index that will
-                // be tested in the lightloop, so it insert 1 at the index of the contact shadow if there is a contact shadow
-                // we take full bits at one multiplied by contact shadow and filter the bit at the contact shadow index.
-                contactShadowMask |= light.contactShadowMask * occluded;
+                    // light.contactShadowMask contains one bit at the position of the contact shadow index that will
+                    // be tested in the lightloop, so it insert 1 at the index of the contact shadow if there is a contact shadow
+                    // we take full bits at one multiplied by contact shadow and filter the bit at the contact shadow index.
+                    contactShadowMask |= light.contactShadowMask * occluded;
+                }
             }
         }
 
