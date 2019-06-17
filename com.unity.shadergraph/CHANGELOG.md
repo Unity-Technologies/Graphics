@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 - Color Mode improves node visibility by coloring the title bar by Category, Precision, or custom colors.
 - You can now set the precision of a Shader Graph and individual nodes.
+- You can no longer directly connect slots with invalid types. When the graph detects that situation, it now doesn't break and gives an error instead.
 
 ## [6.7.0] - 2019-05-21
 ### Added
