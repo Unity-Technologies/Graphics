@@ -464,8 +464,8 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void UpdateTitle()
         {
-            if (node is SubGraphNode subGraphNode && subGraphNode.subGraphData != null)
-                title = subGraphNode.subGraphAsset.name;
+            if (node is SubGraphNode subGraphNode && subGraphNode.asset != null)
+                title = subGraphNode.asset.name;
             else
                 title = node.name;
         }
