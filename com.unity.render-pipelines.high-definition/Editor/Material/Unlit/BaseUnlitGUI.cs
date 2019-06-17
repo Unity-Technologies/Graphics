@@ -67,6 +67,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 material.SetOverrideTag("RenderType", alphaTestEnable ? "TransparentCutout" : "");
                 material.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.One);
                 material.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.Zero);
+                // Caution:  we need to setup One for src and Zero for Dst for all element as users could switch from transparent to Opaque and keep remaining value.
+                // Unity will disable Blending based on these default value.
+                // Note that for after postprocess we setup 0 in opacity inside the shaders, so we correctly end with 0 in opacity for the compositing pass
+                material.SetInt("_AlphaSrcBlend", (int)UnityEngine.Rendering.BlendMode.One);
+                material.SetInt("_AlphaDstBlend", (int)UnityEngine.Rendering.BlendMode.Zero);
                 material.SetInt(kZWrite, 1);
             }
             else
