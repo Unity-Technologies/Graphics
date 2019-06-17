@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added an option to enable the ztest on **After Post Process** materials when TAA is disabled.
 - Added a new SSAO (based on Ground Truth Ambient Occlusion algorithm) to replace the previous one. 
 - Added support for shadow tint on light
+- BeginCameraRendering and EndCameraRendering callbacks are now called with probes
 
 ### Fixed
 - The correct preview is displayed when selecting multiple `PlanarReflectionProbe`s
@@ -38,6 +39,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed invalid capture direction when rendering planar reflection probes
 - Fixed Decal HTILE optimization with platform not supporting texture atomatic (Disable it)
 - Fixed a crash in the build when the contact shadows are disabled
+- Fixed camera rendering callbacks order (endCameraRendering was being called before the actual rendering)
 
 ### Changed
 - Removed ScriptRuntimeVersion check in wizard.
