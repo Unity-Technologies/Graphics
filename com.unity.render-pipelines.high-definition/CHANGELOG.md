@@ -40,6 +40,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed Decal HTILE optimization with platform not supporting texture atomatic (Disable it)
 - Fixed a crash in the build when the contact shadows are disabled
 - Fixed camera rendering callbacks order (endCameraRendering was being called before the actual rendering)
+- Fixed issue with wrong opaque blending settings for After Postprocess
 
 ### Changed
 - Removed ScriptRuntimeVersion check in wizard.
