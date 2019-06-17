@@ -79,7 +79,9 @@ namespace UnityEditor.VFX.Test
             initContext.LinkTo(outputContext);
 
             var slotRate = constantRate.GetInputSlot(0);
-            var totalTime = VFXLibrary.GetOperators().First(o => o.name == VFXExpressionOperation.TotalTime.ToString()).CreateInstance();
+            string opName = ObjectNames.NicifyVariableName(VFXExpressionOperation.TotalTime.ToString());
+
+            var totalTime = VFXLibrary.GetOperators().First(o => o.name == opName).CreateInstance();
             slotRate.Link(totalTime.GetOutputSlot(0));
 
             spawnerContext.AddChild(constantRate);
