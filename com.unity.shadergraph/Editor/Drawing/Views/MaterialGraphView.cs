@@ -277,7 +277,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             SubGraphNode subgraphNode = selection.OfType<IShaderNodeView>().First().node as SubGraphNode;
 
-            var path = AssetDatabase.GetAssetPath(subgraphNode.subGraphAsset);
+            var path = AssetDatabase.GetAssetPath(subgraphNode.asset);
             ShaderGraphImporterEditor.ShowGraphEditWindow(path);
         }
 
@@ -425,12 +425,17 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         #region Drag and drop
 
-        static bool ValidateObjectForDrop(Object obj)
+        bool ValidateObjectForDrop(Object obj)
         {
-            return EditorUtility.IsPersistent(obj) && (obj is Texture2D || obj is Cubemap || obj is SubGraphAsset || obj is Texture2DArray || obj is Texture3D);
+            return EditorUtility.IsPersistent(obj) && (
+                obj is Texture2D ||
+                obj is Cubemap ||
+                obj is SubGraphAsset asset && !asset.descendents.Contains(graph.assetGuid) ||
+                obj is Texture2DArray ||
+                obj is Texture3D);
         }
 
-        static void OnDragUpdatedEvent(DragUpdatedEvent e)
+        void OnDragUpdatedEvent(DragUpdatedEvent e)
         {
             var selection = DragAndDrop.GetGenericData("DragSelection") as List<ISelectable>;
             bool dragging = false;
@@ -580,7 +585,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 var drawState = node.drawState;
                 drawState.position = new Rect(nodePosition, drawState.position.size);
                 node.drawState = drawState;
-                node.subGraphAsset = subGraphAsset;
+                node.asset = subGraphAsset;
                 graph.AddNode(node);
             }
 
