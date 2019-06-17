@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added an option to enable the ztest on **After Post Process** materials when TAA is disabled.
 - Added a new SSAO (based on Ground Truth Ambient Occlusion algorithm) to replace the previous one. 
 - Added support for shadow tint on light
+- Added single-pass instancing support with XR SDK
 
 ### Fixed
 - Fixed an issue with history buffers causing effects like TAA or auto exposure to flicker when more than one camera was visible in the editor

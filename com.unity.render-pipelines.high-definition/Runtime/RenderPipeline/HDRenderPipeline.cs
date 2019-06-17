@@ -1962,7 +1962,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
 
             // XR mirror view and blit do device
-            hdCamera.xr.StopLegacyStereo(camera, cmd, renderContext);
             hdCamera.xr.EndCamera(hdCamera, renderContext, cmd);
 
             // Send all required graphics buffer to client systems.

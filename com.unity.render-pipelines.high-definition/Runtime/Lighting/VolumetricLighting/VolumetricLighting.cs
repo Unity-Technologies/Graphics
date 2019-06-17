@@ -261,8 +261,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             int d = ComputeVBufferSliceCount(preset);
 
             // With stereo instancing, the VBuffer is doubled and split into 2 compartments for each eye
-            if (TextureXR.useTexArray && XRGraphics.stereoRenderingMode == XRGraphics.StereoRenderingMode.SinglePassInstanced)
-                d = d * 2;
+            if (TextureXR.useTexArray)
+                d = d * TextureXR.slices;
 
             return rtHandleSystem.Alloc(scaleFunc:         ComputeHistoryVBufferResolutionXY,
                 slices:            d,
@@ -287,8 +287,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             int d = ComputeVBufferSliceCount(preset);
 
             // With stereo instancing, the VBuffer is doubled and split into 2 compartments for each eye
-            if (TextureXR.useTexArray && XRGraphics.stereoRenderingMode == XRGraphics.StereoRenderingMode.SinglePassInstanced)
-                d = d * 2;
+            if (TextureXR.useTexArray)
+                d = d * TextureXR.slices;
 
             m_DensityBufferHandle = RTHandles.Alloc(scaleFunc:         ComputeVBufferResolutionXY,
                     slices:            d,

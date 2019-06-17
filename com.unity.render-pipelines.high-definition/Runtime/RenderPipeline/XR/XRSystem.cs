@@ -41,11 +41,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 Debug.Assert(framePasses.Count == 0, "XRSystem.ReleaseFrame() was not called!");
 
-                if (XRGraphics.enabled)
-                {
-                    Debug.Assert(XRGraphics.stereoRenderingMode != XRGraphics.StereoRenderingMode.SinglePass, "single-pass (double-wide) is not compatible with HDRP.");
-                    Debug.Assert(!xrSdkActive, "The legacy C++ stereo rendering path must be disabled with XR SDK! Go to Project Settings --> Player --> XR Settings");
-                }
+                //if (XRGraphics.enabled)
+                //{
+                //    Debug.Assert(XRGraphics.stereoRenderingMode != XRGraphics.StereoRenderingMode.SinglePass, "single-pass (double-wide) is not compatible with HDRP.");
+                //    Debug.Assert(!xrSdkActive, "The legacy C++ stereo rendering path must be disabled with XR SDK! Go to Project Settings --> Player --> XR Settings");
+                //}
             }
             
             foreach (var camera in cameras)
@@ -86,14 +86,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         bool RefreshXrSdk()
         {
-            TextureXR.maxViews = (XRGraphics.stereoRenderingMode == XRGraphics.StereoRenderingMode.SinglePassInstanced) ? 2 : 1;
-
 #if USE_XR_SDK
             SubsystemManager.GetInstances(displayList);
 
-            // XRTODO: bind cameras to XR displays (only display 0 is used for now)
             if (displayList.Count > 0)
             {
+                // XRTODO: bind cameras to XR displays (only display 0 is used for now)
+                if (displayList.Count > 1)
+                    throw new NotImplementedException();
+
                 display = displayList[0];
                 display.disableLegacyRenderer = true;
 
@@ -107,6 +108,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 display = null;
             }
 #endif
+
+            //TextureXR.maxViews = (XRGraphics.stereoRenderingMode == XRGraphics.StereoRenderingMode.SinglePassInstanced) ? 2 : 1;
 
             return false;
         }
@@ -145,7 +148,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 if (CanUseInstancing(camera, renderPass))
                 {
-                    // XRTODO: instanced views support with XR SDK
+                    var xrPass = XRPass.Create(renderPass, multipassId: framePasses.Count);
+
+                    for (int renderParamIndex = 0; renderParamIndex < renderPass.GetRenderParameterCount(); ++renderParamIndex)
+                    {
+                        renderPass.GetRenderParameter(camera, renderParamIndex, out var renderParam);
+                        xrPass.AddView(renderParam);
+                    }
+
+                    AddPassToFrame(camera, xrPass);
                 }
                 else
                 {
@@ -153,7 +164,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     {
                         renderPass.GetRenderParameter(camera, renderParamIndex, out var renderParam);
 
-                        var xrPass = XRPass.Create(renderPass);
+                        var xrPass = XRPass.Create(renderPass, multipassId: framePasses.Count);
                         xrPass.AddView(renderParam);
 
                         AddPassToFrame(camera, xrPass);
@@ -211,11 +222,22 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 #if USE_XR_SDK
         bool CanUseInstancing(Camera camera, XRDisplaySubsystem.XRRenderPass renderPass)
         {
-            // XRTODO: instanced views support with XR SDK
-            return false;
+            if (renderPass.renderTargetDesc.dimension != TextureDimension.Tex2DArray)
+                return false;
 
-            // check viewCount > 1, valid texture array format and valid slice index
-            // limit to 2 for now (until code fully fixed)
+            if (renderPass.GetRenderParameterCount() != 2 || renderPass.renderTargetDesc.volumeDepth != 2)
+                return false;
+
+            renderPass.GetRenderParameter(camera, 0, out var renderParam0);
+            renderPass.GetRenderParameter(camera, 1, out var renderParam1);
+
+            if (renderParam0.textureArraySlice != 0 || renderParam1.textureArraySlice != 1)
+                return false;
+
+            if (renderParam0.viewport != renderParam1.viewport)
+                return false;
+
+            return true;
         }
 #endif
     }
