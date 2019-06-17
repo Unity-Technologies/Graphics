@@ -5,7 +5,7 @@
 #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
 
 
-#define SKIP_PREPPING_IF_NOT_NEEDED defined(SUPPORTS_WAVE_INTRINSICS)
+#define SKIP_PREPPING_IF_NOT_NEEDED defined(PLATFORM_SUPPORTS_WAVE_INTRINSICS)
 
 
 

@@ -10,7 +10,7 @@
 
 #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
 
-#define USE_WAVE_INTRINSICS         defined(SUPPORTS_WAVE_INTRINSICS)
+#define USE_WAVE_INTRINSICS         defined(PLATFORM_SUPPORTS_WAVE_INTRINSICS)
 
 #ifdef SCATTERING
 #define TILE_SIZE                   16u
