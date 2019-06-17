@@ -47,14 +47,13 @@ namespace UnityEditor.VFX.Block
         public Mode mode;
 
         [VFXSetting]
-        public AxesPair axes;
+        public AxesPair axes = AxesPair.ZY;
         protected override IEnumerable<string> filteredOutSettings
         {
             get
             {
                 if (mode != Mode.Advanced)
                 {
-                    axes = AxesPair.ZY;
                     yield return "axes";
                 }
             }
@@ -95,8 +94,6 @@ namespace UnityEditor.VFX.Block
 
                     case Mode.Advanced:
                         {
-                            //yield return new VFXPropertyWithValue(new VFXProperty(typeof(DirectionType), "Front"), new DirectionType() { direction = Vector3.forward });
-                            //yield return new VFXPropertyWithValue(new VFXProperty(typeof(DirectionType), "Up"), new DirectionType() { direction = Vector3.up });
                             string axis1, axis2;
                             Vector3 vector1, vector2;
                             AxesPairToUI(axes, out axis1, out axis2);
@@ -185,12 +182,6 @@ axisY = cross(axisZ,axisX);
 uiAxis1, LeftHandedBasis(axes, uiAxis1, uiAxis2), LeftHandedBasis(ChangeSecond(axes), rotAxis1, rotAxis3));
                             return code;
                         }
-                        
-                    /*return @"
-                    axisZ = Front;
-                    axisX = normalize(cross(Up, axisZ));
-                    axisY = cross(axisZ, axisX);
-                    ";*/
 
                     case Mode.FixedAxis:
                         return @"
@@ -332,7 +323,7 @@ axisZ = cross(axisX,axisY);
 
         private AxesPair ChangeSecond(AxesPair axes)
         {
-            switch(axes)
+            switch (axes)
             {
                 case AxesPair.XY:
                     return AxesPair.XZ;
