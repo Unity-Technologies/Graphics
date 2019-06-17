@@ -110,10 +110,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     if (simulationBuffer0 == null)
                         continue;
 
-                    var simulationBuffer1= volume.simulationBuffer1;
-                    if (simulationBuffer1 == null)
+                    var vectorField = volume.parameters.vectorField;
+                    if (vectorField == null)
                         continue;
-                
+
                     var kernel = _fluidSimVolumeCS.FindKernel("Simulate");
                     if (kernel == -1)
                         continue;
@@ -121,9 +121,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     var fluidSimVolumeRes = new Vector3(fluidSimVolumeResX, fluidSimVolumeResY, fluidSimVolumeResZ);
                 
                     cmd.SetComputeVectorParam(_fluidSimVolumeCS, HDShaderIDs._FluidSimVolumeRes, fluidSimVolumeRes);
-                
+
+
+                    cmd.SetComputeTextureParam(_fluidSimVolumeCS, kernel, HDShaderIDs._VectorField, vectorField);
                     cmd.SetComputeTextureParam(_fluidSimVolumeCS, kernel, HDShaderIDs._SimulationBuffer0, simulationBuffer0);
-                    cmd.SetComputeTextureParam(_fluidSimVolumeCS, kernel, HDShaderIDs._SimulationBuffer1, simulationBuffer1);
                 
                     cmd.DispatchCompute(_fluidSimVolumeCS, kernel, dispatchX, dispatchY, dispatchZ);
                 }

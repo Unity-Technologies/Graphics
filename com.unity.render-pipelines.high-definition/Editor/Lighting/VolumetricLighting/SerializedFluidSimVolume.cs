@@ -6,6 +6,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
     {
         public SerializedProperty fluidSimParams;
         public SerializedProperty initialStateTexture;
+        public SerializedProperty vectorField;
 
         public SerializedProperty size;
 
@@ -28,6 +29,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             fluidSimParams = m_SerializedObject.FindProperty("parameters");
 
             initialStateTexture = fluidSimParams.FindPropertyRelative("initialStateTexture");
+            vectorField = fluidSimParams.FindPropertyRelative("vectorField");
 
             size = fluidSimParams.FindPropertyRelative("size");
 
