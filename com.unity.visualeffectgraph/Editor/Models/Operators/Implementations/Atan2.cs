@@ -7,7 +7,7 @@ namespace UnityEditor.VFX.Operator
     {
         public class InputProperties
         {
-            public float x = 0.0f;
+            public float x = 1.0f;
             public float y = 0.0f;
         }
 

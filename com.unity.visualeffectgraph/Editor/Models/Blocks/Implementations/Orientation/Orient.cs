@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.ComponentModel;
 using UnityEngine;
 
 namespace UnityEditor.VFX.Block
@@ -179,7 +180,7 @@ axisY = cross(axisZ,axisX);
 {2} = normalize({4});
 {1} = {5};
 ", rotAxis1, rotAxis2, rotAxis3,
-uiAxis1, LeftHandedBasis(axes, uiAxis1, uiAxis2), LeftHandedBasis(ChangeSecond(axes), rotAxis1, rotAxis3));
+uiAxis1, LeftHandedBasis(axes, uiAxis1, uiAxis2), LeftHandedBasis(GetSecondAxesPair(axes), rotAxis1, rotAxis3));
                             return code;
                         }
 
@@ -258,10 +259,7 @@ axisZ = cross(axisX,axisY);
                     axis3 = X;
                     break;
                 default:/* the axes FixedOrientation defaulted to: Front and Up */
-                    axis1 = Z;
-                    axis2 = Y;
-                    axis3 = X;
-                    break;
+                    throw new InvalidEnumArgumentException("Unsupported axes pair");
             }
         }
         private void AxesPairToUI(AxesPair pair, out string uiAxis1, out string uiAxis2)
@@ -302,9 +300,7 @@ axisZ = cross(axisX,axisY);
                     axis2 = Y;
                     break;
                 default:/* the axes FixedOrientation defaulted to: Front and Up */
-                    axis1 = Z;
-                    axis2 = Y;
-                    break;
+                    throw new InvalidEnumArgumentException("Unsupported axes pair");
             }
         }
 
@@ -321,7 +317,7 @@ axisZ = cross(axisX,axisY);
                 return "cross(" + axis2 + ", " + axis1 + ")";
         }
 
-        private AxesPair ChangeSecond(AxesPair axes)
+        private AxesPair GetSecondAxesPair(AxesPair axes)
         {
             switch (axes)
             {
@@ -338,10 +334,9 @@ axisZ = cross(axisX,axisY);
                 case AxesPair.XZ:
                     return AxesPair.XY;
                 default:
-                    return AxesPair.ZX;
+                    throw new InvalidEnumArgumentException("Unsupported axes pair");
             }
         }
-
 
     }
 }
