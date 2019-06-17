@@ -88,7 +88,7 @@ namespace UnityEditor.Rendering.LWRP
                 PBRMasterNode.EmissionSlotId,
                 PBRMasterNode.AlphaSlotId,
                 PBRMasterNode.AlphaThresholdSlotId,
-                PBRMasterNode.FeedbackSlotId,
+                PBRMasterNode.VTFeedbackSlotId,
             },
             VertexShaderSlots = new List<int>()
             {

@@ -56,6 +56,7 @@ Shader "Lightweight Render Pipeline/Unlit"
 
             //--------------------------------------
             // Virtual Texturing
+            #pragma multi_compile _ VIRTUAL_TEXTURES_ENABLED              
             #pragma shader_feature_local VIRTUAL_TEXTURES_BUILT
 
 
@@ -185,6 +186,8 @@ Shader "Lightweight Render Pipeline/Unlit"
             // -------------------------------------
             // Unity defined keywords
             #pragma multi_compile_instancing
+            #define RESOLVE_SCALE_OVERRIDE VT_ResolveConstantPatch
+            #pragma multi_compile _ VIRTUAL_TEXTURES_ENABLED            
             #pragma shader_feature_local VIRTUAL_TEXTURES_BUILT
 
             #include "LitInput.hlsl"

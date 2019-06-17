@@ -88,7 +88,7 @@ ${PixelShaderSurfaceInputs}
 		float Occlusion = 1;
 		float Alpha = 1;
 		float AlphaClipThreshold = 0;
-        float4 StreamingFeedback = float4(1, 1, 1, 1);
+        float4 VTFeedback = float4(1, 1, 1, 1);
 
 		// Surface description remap performed by graph
 ${PixelShaderSurfaceRemap}
@@ -96,7 +96,7 @@ ${PixelShaderSurfaceRemap}
  #if _AlphaClip
 		clip(Alpha - AlphaClipThreshold);
 #endif
-        return StreamingFeedback;
+        return VTFeedback;
     }
     ENDHLSL
 }
