@@ -41,7 +41,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
         }
 
-        bool showAffectTransparency => DecalSystem.IsHDRenderPipelineDecal((target as DecalProjectorComponent).m_Material.shader.name);
+        bool showAffectTransparency => DecalSystem.IsHDRenderPipelineDecal((target as DecalProjectorComponent).material.shader.name);
 
         bool showAffectTransparencyHaveMultipleDifferentValue
         {
@@ -49,10 +49,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 if (targets.Length < 2)
                     return false;
-                bool show = DecalSystem.IsHDRenderPipelineDecal((targets[0] as DecalProjectorComponent).m_Material.shader.name);
+                bool show = DecalSystem.IsHDRenderPipelineDecal((targets[0] as DecalProjectorComponent).material.shader.name);
                 for (int index = 0; index < targets.Length; ++index)
                 {
-                    if (DecalSystem.IsHDRenderPipelineDecal((targets[index] as DecalProjectorComponent).m_Material.shader.name) ^ show)
+                    if (DecalSystem.IsHDRenderPipelineDecal((targets[index] as DecalProjectorComponent).material.shader.name) ^ show)
                         return true;
                 }
                 return false;
@@ -142,7 +142,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             UnityEngine.Object[] materials = new UnityEngine.Object[targets.Length];
             for (int index = 0; index < targets.Length; ++index)
             {
-                materials[index] = (targets[index] as DecalProjectorComponent).m_Material;
+                materials[index] = (targets[index] as DecalProjectorComponent).material;
             }
             m_MaterialEditor = (MaterialEditor)CreateEditor(materials);
         }
@@ -164,8 +164,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 {
                     bool needToRefreshDecalProjector = false;
 
-                    handle.center = decalProjector.m_Offset;
-                    handle.size = decalProjector.m_Size;
+                    handle.center = decalProjector.offset;
+                    handle.size = decalProjector.size;
 
                     Vector3 boundsSizePreviousOS = handle.size;
                     Vector3 boundsMinPreviousOS = handle.size * -0.5f + handle.center;
@@ -179,8 +179,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                         // Adjust decal transform if handle changed.
                         Undo.RecordObject(decalProjector, "Decal Projector Change");
 
-                        decalProjector.m_Size = handle.size;
-                        decalProjector.m_Offset = handle.center;
+                        decalProjector.size = handle.size;
+                        decalProjector.offset = handle.center;
 
                         Vector3 boundsSizeCurrentOS = handle.size;
                         Vector3 boundsMinCurrentOS = handle.size * -0.5f + handle.center;
@@ -189,11 +189,15 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                         {
                             // Treat decal projector bounds as a crop tool, rather than a scale tool.
                             // Compute a new uv scale and bias terms to pin decal projection pixels in world space, irrespective of projector bounds.
-                            decalProjector.m_UVScale.x *= Mathf.Max(1e-5f, boundsSizeCurrentOS.x) / Mathf.Max(1e-5f, boundsSizePreviousOS.x);
-                            decalProjector.m_UVScale.y *= Mathf.Max(1e-5f, boundsSizeCurrentOS.y) / Mathf.Max(1e-5f, boundsSizePreviousOS.y);
+                            Vector2 uvScale = decalProjector.uvScale;
+                            uvScale.x *= Mathf.Max(1e-5f, boundsSizeCurrentOS.x) / Mathf.Max(1e-5f, boundsSizePreviousOS.x);
+                            uvScale.y *= Mathf.Max(1e-5f, boundsSizeCurrentOS.y) / Mathf.Max(1e-5f, boundsSizePreviousOS.y);
+                            decalProjector.uvScale = uvScale;
 
-                            decalProjector.m_UVBias.x += (boundsMinCurrentOS.x - boundsMinPreviousOS.x) / Mathf.Max(1e-5f, boundsSizeCurrentOS.x) * decalProjector.m_UVScale.x;
-                            decalProjector.m_UVBias.y += (boundsMinCurrentOS.y - boundsMinPreviousOS.y) / Mathf.Max(1e-5f, boundsSizeCurrentOS.y) * decalProjector.m_UVScale.y;
+                            Vector2 uvBias = decalProjector.uvBias;
+                            uvBias.x += (boundsMinCurrentOS.x - boundsMinPreviousOS.x) / Mathf.Max(1e-5f, boundsSizeCurrentOS.x) * decalProjector.uvScale.x;
+                            uvBias.y += (boundsMinCurrentOS.y - boundsMinPreviousOS.y) / Mathf.Max(1e-5f, boundsSizeCurrentOS.y) * decalProjector.uvScale.y;
+                            decalProjector.uvBias = uvBias;
                         }
 
                         if (PrefabUtility.IsPartOfNonAssetPrefabInstance(decalProjector))
@@ -206,7 +210,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     // It is also incompatible with pivot management]
                     // Automatically recenter our transform component if necessary.
                     // In order to correctly handle world-space snapping, we only perform this recentering when the user is no longer interacting with the gizmo.
-                    if ((GUIUtility.hotControl == 0) && (decalProjector.m_Offset != Vector3.zero))
+                    if ((GUIUtility.hotControl == 0) && (decalProjector.offset != Vector3.zero))
                     {
                         needToRefreshDecalProjector = true;
 
@@ -216,9 +220,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
                         // Re-center the transform to the center of the decal projector bounds,
                         // while maintaining the world-space coordinates of the decal projector boundings vertices.
-                        decalProjector.transform.Translate(decalProjector.m_Offset, Space.Self);
+                        decalProjector.transform.Translate(decalProjector.offset, Space.Self);
 
-                        decalProjector.m_Offset = Vector3.zero;
+                        decalProjector.offset = Vector3.zero;
                         if (PrefabUtility.IsPartOfNonAssetPrefabInstance(decalProjector))
                         {
                             PrefabUtility.RecordPrefabInstancePropertyModifications(decalProjector);
@@ -228,8 +232,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     if (needToRefreshDecalProjector)
                     {
                         // Smoothly update the decal image projected
-                        Matrix4x4 sizeOffset = Matrix4x4.Translate(decalProjector.offset) * Matrix4x4.Scale(decalProjector.size);
-                        DecalSystem.instance.UpdateCachedData(decalProjector.position, decalProjector.rotation, sizeOffset, decalProjector.m_DrawDistance, decalProjector.m_FadeScale, decalProjector.uvScaleBias, decalProjector.m_AffectsTransparency, decalProjector.Handle, decalProjector.gameObject.layer, decalProjector.m_FadeFactor);
+                        Matrix4x4 sizeOffset = Matrix4x4.Translate(decalProjector.decalOffset) * Matrix4x4.Scale(decalProjector.decalSize);
+                        DecalSystem.instance.UpdateCachedData(decalProjector.position, decalProjector.rotation, sizeOffset, decalProjector.drawDistance, decalProjector.fadeScale, decalProjector.uvScaleBias, decalProjector.affectsTransparency, decalProjector.Handle, decalProjector.gameObject.layer, decalProjector.fadeFactor);
                     }
                 }
             }
@@ -247,15 +251,15 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             //draw them scale independent
             using (new Handles.DrawingScope(Color.white, Matrix4x4.TRS(decalProjector.transform.position, decalProjector.transform.rotation, Vector3.one)))
             {
-                handle.center = decalProjector.m_Offset;
-                handle.size = decalProjector.m_Size;
+                handle.center = decalProjector.offset;
+                handle.size = decalProjector.size;
                 handle.DrawHull(editMode == k_EditShapePreservingUV || editMode == k_EditShapeWithoutPreservingUV);
 
                 int controlID = GUIUtility.GetControlID(handle.GetHashCode(), FocusType.Passive);
                 Quaternion arrowRotation = Quaternion.LookRotation(Vector3.down, Vector3.right);
-                float arrowSize = decalProjector.m_Size.z * 0.25f;
-                Vector3 pivot = decalProjector.m_Offset;
-                Vector3 projectedPivot = pivot + decalProjector.m_Size.z * 0.5f * Vector3.back;
+                float arrowSize = decalProjector.size.z * 0.25f;
+                Vector3 pivot = decalProjector.offset;
+                Vector3 projectedPivot = pivot + decalProjector.size.z * 0.5f * Vector3.back;
                 Handles.ArrowHandleCap(controlID, projectedPivot, Quaternion.identity, arrowSize, EventType.Repaint);
 
                 //[TODO: add editable pivot. Uncomment this when ready]
@@ -272,11 +276,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 Color face = Color.green;
                 face.a = 0.1f;
                 Vector2 size = new Vector2(
-                    (decalProjector.m_UVScale.x > 100000 || decalProjector.m_UVScale.x < -100000 ? 0f : 1f / decalProjector.m_UVScale.x) * decalProjector.m_Size.x,
-                    (decalProjector.m_UVScale.x > 100000 || decalProjector.m_UVScale.x < -100000 ? 0f : 1f / decalProjector.m_UVScale.y) * decalProjector.m_Size.y
+                    (decalProjector.uvScale.x > 100000 || decalProjector.uvScale.x < -100000 ? 0f : 1f / decalProjector.uvScale.x) * decalProjector.size.x,
+                    (decalProjector.uvScale.x > 100000 || decalProjector.uvScale.x < -100000 ? 0f : 1f / decalProjector.uvScale.y) * decalProjector.size.y
                     );
-                Vector2 start = (Vector2)projectedPivot - new Vector2(decalProjector.m_UVBias.x * size.x, decalProjector.m_UVBias.y * size.y);
-                using (new Handles.DrawingScope(face, Matrix4x4.TRS(decalProjector.transform.position - decalProjector.transform.rotation * (decalProjector.m_Size * 0.5f + decalProjector.m_Offset.z * Vector3.back), decalProjector.transform.rotation, Vector3.one)))
+                Vector2 start = (Vector2)projectedPivot - new Vector2(decalProjector.uvBias.x * size.x, decalProjector.uvBias.y * size.y);
+                using (new Handles.DrawingScope(face, Matrix4x4.TRS(decalProjector.transform.position - decalProjector.transform.rotation * (decalProjector.size * 0.5f + decalProjector.offset.z * Vector3.back), decalProjector.transform.rotation, Vector3.one)))
                 {
                     Handles.DrawSolidRectangleWithOutline(new Rect(start, size), face, Color.white);
                 }
@@ -362,7 +366,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 {
                     foreach(var decalProjector in targets)
                     {
-                        isDefaultMaterial |= (decalProjector as DecalProjectorComponent).m_Material == hdrp.GetDefaultDecalMaterial();
+                        isDefaultMaterial |= (decalProjector as DecalProjectorComponent).material == hdrp.GetDefaultDecalMaterial();
                     }
                 }
                 using (new EditorGUI.DisabledGroupScope(isDefaultMaterial))
