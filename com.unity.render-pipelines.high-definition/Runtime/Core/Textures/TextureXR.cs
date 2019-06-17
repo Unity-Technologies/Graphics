@@ -44,6 +44,12 @@ namespace UnityEngine.Experimental.Rendering
             }
         }
 
+        public static void Initialize(CommandBuffer cmd)
+        {
+            if (blackUIntTexture2DArray == null)
+                blackUIntTexture2DArray = CreateBlackUIntTextureArray(cmd);
+        }
+
         public static Texture GetClearTexture()
         {
             if (useTexArray)
@@ -154,32 +160,30 @@ namespace UnityEngine.Experimental.Rendering
             }
         }
 
-        static Texture m_BlackUIntTexture2DArray;
-        public static Texture blackUIntTexture2DArray
+        static Texture CreateBlackUIntTextureArray(CommandBuffer cmd)
         {
-            get
+            Texture blackUIntTexture2DArray = new RenderTexture(1, 1, 0, GraphicsFormat.R32_UInt)
             {
-                if (m_BlackUIntTexture2DArray == null)
-                {
-                    // Uint textures can't be used in Sampling operations so we can't use the Texture2DArray class because
-                    // it assumes that we will use the texture for sampling operations and crash because of invalid format.
-                    m_BlackUIntTexture2DArray = new RenderTexture(1, 1, 0, GraphicsFormat.R32_UInt)
-                    {
-                        dimension = TextureDimension.Tex2DArray,
-                        volumeDepth = kMaxSlices,
-                        useMipMap = false,
-                        autoGenerateMips = false,
-                        enableRandomWrite = true,
-                        name = "Black UInt Texture Array"
-                    };
+                dimension = TextureDimension.Tex2DArray,
+                volumeDepth = kMaxSlices,
+                useMipMap = false,
+                autoGenerateMips = false,
+                enableRandomWrite = true,
+                name = "Black UInt Texture Array"
+            };
 
-                    // Can't use CreateTexture2DArrayFromTexture2D here because we need to create the texture using GraphicsFormat
-                    for (int i = 0; i < kMaxSlices; ++i)
-                        Graphics.Blit(blackTexture2DArray, m_BlackUIntTexture2DArray as RenderTexture, i, i);
-                }
+            (blackUIntTexture2DArray as RenderTexture).Create();
 
-                return m_BlackUIntTexture2DArray;
+            // Can't use CreateTexture2DArrayFromTexture2D here because we need to create the texture using GraphicsFormat
+            for (int i = 0; i < kMaxSlices; ++i)
+            {
+                CoreUtils.SetRenderTarget(cmd, blackUIntTexture2DArray, ClearFlag.Color, Color.black, depthSlice: i);
             }
+
+            return blackUIntTexture2DArray;
         }
+
+        static Texture m_BlackUIntTexture2DArray;
+        public static Texture blackUIntTexture2DArray { get => m_BlackUIntTexture2DArray; private set => m_BlackUIntTexture2DArray = value; }
     }
 }

@@ -193,7 +193,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             cmd.SetGlobalInt(HDShaderIDs._AreaLightCountRT, lightCluster.GetAreaLightCount());
 
             // Note: Just in case, we rebind the directional light data (in case they were not)
-            cmd.SetGlobalBuffer(HDShaderIDs._DirectionalLightDatas, renderPipeline.directionalLightDatas);
+            cmd.SetGlobalBuffer(HDShaderIDs._DirectionalLightDatas, renderPipeline.m_LightLoopLightData.directionalLightData);
             cmd.SetGlobalInt(HDShaderIDs._DirectionalLightCount, renderPipeline.m_lightList.directionalLights.Count);
 
             // Set the data for the ray miss
