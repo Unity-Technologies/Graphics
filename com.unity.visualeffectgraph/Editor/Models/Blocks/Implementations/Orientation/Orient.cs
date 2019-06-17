@@ -178,7 +178,7 @@ axisY = cross(axisZ,axisX);
                             AxesPairToHLSL(axes, out rotAxis1, out rotAxis2, out rotAxis3);
                             AxesPairToUI(axes, out uiAxis1, out uiAxis2);
                             string code = string.Format(@"
-{0} = {3};
+{0} = normalize({3});
 {2} = normalize({4});
 {1} = {5};
 ", rotAxis1, rotAxis2, rotAxis3,
