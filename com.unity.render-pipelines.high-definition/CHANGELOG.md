@@ -38,6 +38,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed locked UI with advanded influence volume inspector for probes
 - Fixed invalid capture direction when rendering planar reflection probes
 - Fixed Decal HTILE optimization with platform not supporting texture atomatic (Disable it)
+- Fixed a crash in the build when the contact shadows are disabled
 
 ### Changed
 - Optimization: Reduce the group size of the deferred lighting pass from 16x16 to 8x8
