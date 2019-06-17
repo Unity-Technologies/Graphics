@@ -1,3 +1,5 @@
+using UnityEngine;
+
 namespace UnityEditor.VFX.Operator
 {
     [VFXInfo(category = "Math/Trigonometry")]
@@ -5,6 +7,7 @@ namespace UnityEditor.VFX.Operator
     {
         public class InputProperties
         {
+            [Range(-1.0f, 1.0f)]
             public float x = 0.0f;
         }
 
