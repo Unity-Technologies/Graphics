@@ -198,7 +198,7 @@
 #endif
 
 // On everything but GCN consoles we error on cross-lane operations
-#ifndef SUPPORTS_WAVE_INTRINSICS
+#ifndef PLATFORM_SUPPORTS_WAVE_INTRINSICS
 #define WaveActiveAllTrue ERROR_ON_UNSUPPORTED_FUNCTION(WaveActiveAllTrue)
 #define WaveActiveAnyTrue ERROR_ON_UNSUPPORTED_FUNCTION(WaveActiveAnyTrue)
 #define WaveGetLaneIndex ERROR_ON_UNSUPPORTED_FUNCTION(WaveGetLaneIndex)
