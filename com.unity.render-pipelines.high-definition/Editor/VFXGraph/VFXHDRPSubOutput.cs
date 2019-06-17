@@ -32,16 +32,19 @@ namespace UnityEditor.VFX
 
         public override string GetBlendModeStr()
         {
-            bool isLowRes = transparentRenderQueue == TransparentRenderQueue.LowResolution;
+            bool isOffscreen = transparentRenderQueue == TransparentRenderQueue.LowResolution || transparentRenderQueue == TransparentRenderQueue.AfterPostProcessing;
             bool isLit = owner is VFXAbstractParticleHDRPLitOutput;
             switch (owner.blendMode)
             {
                 case BlendMode.Additive:
-                    return string.Format("Blend {0} One {1}", isLit ? "One" : "SrcAlpha", isLowRes ? ", Zero One" : "");
+                    return string.Format("Blend {0} One {1}", isLit ? "One" : "SrcAlpha", isOffscreen ? ", Zero One" : "");
                 case BlendMode.Alpha:
-                    return string.Format("Blend {0} OneMinusSrcAlpha {1}", isLit ? "One" : "SrcAlpha", isLowRes ? ", Zero OneMinusSrcAlpha" : "");
+                    return string.Format("Blend {0} OneMinusSrcAlpha {1}", isLit ? "One" : "SrcAlpha", isOffscreen ? ", Zero OneMinusSrcAlpha" : "");
                 case BlendMode.AlphaPremultiplied:
-                    return string.Format("Blend One OneMinusSrcAlpha {0}", isLowRes ? ", Zero OneMinusSrcAlpha" : "");
+                    return string.Format("Blend One OneMinusSrcAlpha {0}", isOffscreen ? ", Zero OneMinusSrcAlpha" : "");
+                case BlendMode.Opaque:
+                case BlendMode.Masked:
+                    return opaqueRenderQueue == OpaqueRenderQueue.AfterPostProcessing ? "Blend One Zero, Zero Zero" : string.Empty; // Blend on for opaque in after post-process for correct compositing TODO Handle that in shader templates directly
                 default:
                     return string.Empty;
             }
