@@ -12,31 +12,31 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     [Serializable, VolumeComponentMenu("Post-processing/Bloom")]
     public sealed class Bloom : VolumeComponent, IPostProcessComponent
     {
-        [Tooltip("Strength of the bloom filter.")]
+        [Tooltip("Controls the strength of the bloom filter.")]
         public ClampedFloatParameter intensity = new ClampedFloatParameter(0f, 0f, 1f);
 
-        [Tooltip("Changes the extent of veiling effects.")]
+        [Tooltip("Controls the extent of the veiling effect.")]
         public ClampedFloatParameter scatter = new ClampedFloatParameter(0.7f, 0f, 1f);
 
-        [Tooltip("Global tint of the bloom filter.")]
+        [Tooltip("Specifies the tint of the bloom filter.")]
         public ColorParameter tint = new ColorParameter(Color.white, false, false, true);
 
-        [Tooltip("Dirtiness texture to add smudges or dust to the bloom effect.")]
+        [Tooltip("Specifies a Texture to add smudges or dust to the bloom effect.")]
         public TextureParameter dirtTexture = new TextureParameter(null);
 
-        [Tooltip("Amount of dirtiness.")]
+        [Tooltip("Controls the strength of the lens dirt.")]
         public MinFloatParameter dirtIntensity = new MinFloatParameter(0f, 0f);
 
-        [Tooltip("Use bicubic sampling instead of bilinear sampling for the upsampling passes. This is slightly more expensive but helps getting smoother visuals.")]
+        [Tooltip("When enabled, bloom uses bicubic sampling instead of bilinear sampling for the upsampling passes.")]
         public BoolParameter highQualityFiltering = new BoolParameter(true);
 
-        [Tooltip("The resolution at which the effect will be done. Quarter resolution is faster and recommended for very high screen resolution (e.g. 4K on consoles).")]
+        [Tooltip("Specifies the resolution at which HDRP processes the effect. Quarter resolution is less resource intensive.")]
         public BloomResolutionParameter resolution = new BloomResolutionParameter(BloomResolution.Half);
 
-        [Tooltip("Improves bloom stability with high anamorphism factors or when the resolution is set to Quarter.")]
+        [Tooltip("When enabled, bloom is more stable when you use high anamorphism factors or when you set the resolution to Quarter.")]
         public BoolParameter prefilter = new BoolParameter(false);
 
-        [Tooltip("If true, bloom will use the anamorphism parameter from the current physical camera into account.")]
+        [Tooltip("When enabled, bloom stretches horizontally depending on the current physical Camera's Anamorphism property value.")]
         public BoolParameter anamorphic = new BoolParameter(true);
 
         public bool IsActive()

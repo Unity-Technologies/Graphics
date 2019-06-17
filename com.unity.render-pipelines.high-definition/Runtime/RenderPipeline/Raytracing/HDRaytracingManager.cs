@@ -50,7 +50,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public LayerMask mask = -1;
 
             // The native acceleration structure that matches this sub-scene
-            public RaytracingAccelerationStructure accelerationStructure = null;
+            public RayTracingAccelerationStructure accelerationStructure = null;
 
             // Flag that tracks if the acceleration needs to be updated
             public bool needUpdate = false;
@@ -83,13 +83,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // This list tracks for each effect of the current layer mask index that is assigned to them
         int[] m_EffectsMaks = new int[HDRaytracingEnvironment.numRaytracingPasses];
 
-        // The HDRPAsset data that needs to be 
+        // The HDRPAsset data that needs to be
         RenderPipelineResources m_Resources = null;
         HDRenderPipelineRayTracingResources m_RTResources = null;
         RenderPipelineSettings m_Settings;
         HDRenderPipeline m_RenderPipeline = null;
         SharedRTManager m_SharedRTManager = null;
         BlueNoise m_BlueNoise = null;
+
+        // Denoisers
+        HDSimpleDenoiser m_SimpleDenoiser = new HDSimpleDenoiser();
 
         // Ray-count manager data
         RayCountManager m_RayCountManager = new RayCountManager();
@@ -122,6 +125,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 RegisterEnvironment(environmentArray[envIdx]);
             }
+
+            // Init the simple denoiser
+            m_SimpleDenoiser.Init(rayTracingResources, m_SharedRTManager);
 
             // Init the ray count manager
             m_RayCountManager.Init(rayTracingResources, currentDebugDisplaySettings);
@@ -158,6 +164,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             // Clear the sub-scenes list
             m_SubScenes.Clear();
+
+            m_SimpleDenoiser.Release();
+
             m_RayCountManager.Release();
         }
 
@@ -434,7 +443,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 subScene.targetRenderers = new List<Renderer>();
 
                 // Create the acceleration structure
-                subScene.accelerationStructure = new RaytracingAccelerationStructure();
+                subScene.accelerationStructure = new RayTracingAccelerationStructure();
 
                 // First of all let's process all the LOD groups
                 LODGroup[] lodGroupArray = UnityEngine.GameObject.FindObjectsOfType<LODGroup>();
@@ -643,7 +652,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        public RaytracingAccelerationStructure RequestAccelerationStructure(LayerMask layerMask)
+        public RayTracingAccelerationStructure RequestAccelerationStructure(LayerMask layerMask)
         {
             HDRayTracingSubScene currentSubScene = null;
             if (m_SubScenes.TryGetValue(layerMask.value, out currentSubScene))
@@ -682,6 +691,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public BlueNoise GetBlueNoiseManager()
         {
             return m_BlueNoise;
+        }
+
+        public HDSimpleDenoiser GetSimpleDenoiser()
+        {
+            return m_SimpleDenoiser;
         }
 
         public HDRenderPipeline GetRenderPipeline()

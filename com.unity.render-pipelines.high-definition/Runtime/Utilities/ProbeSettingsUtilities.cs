@@ -126,14 +126,22 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             var proxyMatrix = Matrix4x4.TRS(probePosition.proxyPosition, probePosition.proxyRotation, Vector3.one);
             var mirrorPosition = proxyMatrix.MultiplyPoint(settings.proxySettings.mirrorPositionProxySpace);
             var mirrorForward = proxyMatrix.MultiplyVector(settings.proxySettings.mirrorRotationProxySpace * Vector3.forward);
+            var reflectionMatrix = GeometryUtils.CalculateReflectionMatrix(mirrorPosition, mirrorForward);
 
             var worldToCameraRHS = GeometryUtils.CalculateWorldToCameraMatrixRHS(
                 probePosition.referencePosition,
-                //probePosition.referenceRotation
-                // The capture always look at the center of the probe influence
-                Quaternion.LookRotation(mirrorPosition - probePosition.referencePosition, Vector3.up)
+
+                // TODO: The capture camera should look at a better direction to only capture texels that
+                //   will actually be sampled.
+                //   The position it should look at is the center of the visible influence volume of the probe.
+                //   (visible influence volume: the intersection of the frustum with the probe's influence volume).
+                //   But this is not trivial to get.
+                //   So currently, only look in the mirrored direction of the reference. This will capture
+                //   more pixels than we want with a lesser resolution, but still work for most cases.
+
+                // Note: looking at the center of the influence volume don't work in all cases (see case 1157921)
+                probePosition.referenceRotation
             );
-            var reflectionMatrix = GeometryUtils.CalculateReflectionMatrix(mirrorPosition, mirrorForward);
             cameraPosition.worldToCameraMatrix = worldToCameraRHS * reflectionMatrix;
             // We must invert the culling because we performed a plane reflection
             cameraSettings.invertFaceCulling = true;

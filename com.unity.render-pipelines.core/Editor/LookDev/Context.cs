@@ -1,6 +1,7 @@
+using System;
 using UnityEngine;
 
-namespace UnityEditor.Rendering.LookDev
+namespace UnityEditor.Rendering.Experimental.LookDev
 {
     public enum ViewIndex
     {
@@ -26,9 +27,22 @@ namespace UnityEditor.Rendering.LookDev
         CustomCircular
     }
 
+    public enum SidePanel {
+        None = -1,
+        Environment,
+        Debug
+    }
+
     [System.Serializable]
     public class Context : ScriptableObject
     {
+        [SerializeField]
+        string environmentLibraryGUID = ""; //Empty GUID
+
+        /// <summary>The currently used Environment</summary>
+        public EnvironmentLibrary environmentLibrary { get; private set; }
+
+        /// <summary>The currently used layout</summary>
         [field: SerializeField]
         public LayoutContext layout { get; private set; } = new LayoutContext();
 
@@ -39,36 +53,59 @@ namespace UnityEditor.Rendering.LookDev
             new ViewContext()
         };
 
-        [SerializeField]
-        CameraState[] m_Cameras = new CameraState[2]
-        {
-            new CameraState(),
-            new CameraState()
-        };
-
         public ViewContext GetViewContent(ViewIndex index)
             => m_Views[(int)index];
 
-        public CameraState GetCameraState(ViewIndex index)
-            => m_Cameras[(int)index];
-
-        internal void Validate()
+        internal void Init()
         {
-            if (m_Views == null || m_Views.Length != 2)
+            LoadEnvironmentLibraryFromGUID();
+
+            //recompute non serialized computes states
+            layout.gizmoState.Init();
+        }
+
+        /// <summary>Update the environment used.</summary>
+        /// <param name="environmentOrCubemapAsset">
+        /// The new <see cref="Environment"/> to use.
+        /// Or the <see cref="Cubemap"/> to use to build a new one.
+        /// Other types will raise an ArgumentException.
+        /// </param>
+        public void UpdateEnvironmentLibrary(EnvironmentLibrary library)
+        {
+            environmentLibraryGUID = "";
+            environmentLibrary = null;
+            if (library == null || library.Equals(null))
+                return;
+
+            environmentLibraryGUID = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(library));
+            environmentLibrary = library;
+        }
+
+        void LoadEnvironmentLibraryFromGUID()
+        {
+            environmentLibrary = null;
+
+            GUID storedGUID;
+            GUID.TryParse(environmentLibraryGUID, out storedGUID);
+            if (storedGUID.Empty())
+                return;
+
+            string path = AssetDatabase.GUIDToAssetPath(environmentLibraryGUID);
+            environmentLibrary = AssetDatabase.LoadAssetAtPath<EnvironmentLibrary>(path);
+        }
+
+        public void SynchronizeCameraStates(ViewIndex baseCameraState)
+        {
+            switch(baseCameraState)
             {
-                m_Views = new ViewContext[2]
-                {
-                    new ViewContext(),
-                    new ViewContext()
-                };
-            }
-            if (m_Cameras == null || m_Cameras.Length != 2)
-            {
-                m_Cameras = new CameraState[2]
-                {
-                    new CameraState(),
-                    new CameraState()
-                };
+                case ViewIndex.First:
+                    m_Views[1].camera.SynchronizeFrom(m_Views[0].camera);
+                    break;
+                case ViewIndex.Second:
+                    m_Views[0].camera.SynchronizeFrom(m_Views[1].camera);
+                    break;
+                default:
+                    throw new System.ArgumentException("Unknow ViewIndex given in parameter.");
             }
         }
     }
@@ -77,7 +114,8 @@ namespace UnityEditor.Rendering.LookDev
     public class LayoutContext
     {
         public Layout viewLayout;
-        public bool showEnvironmentPanel;
+        public ViewIndex lastFocusedView = ViewIndex.First;
+        public SidePanel showedSidePanel;
 
         [SerializeField]
         internal ComparisonGizmoState gizmoState = new ComparisonGizmoState();
@@ -90,9 +128,23 @@ namespace UnityEditor.Rendering.LookDev
     [System.Serializable]
     public class ViewContext
     {
+        [field: SerializeField]
+        public CameraState camera { get; private set; } = new CameraState();
+
+
+        /// <summary>The currently viewed debugState</summary>
+        [field: SerializeField]
+        public DebugContext debug { get; private set; } = new DebugContext();
+
         //Environment asset, sub-asset (under a library) or cubemap
         [SerializeField]
         string environmentGUID = ""; //Empty GUID
+
+        /// <summary>
+        /// Check if an Environment is registered for this view.
+        /// The result will be accurate even if the Environment have not been reloaded yet.
+        /// </summary>
+        public bool hasEnvironment => !String.IsNullOrEmpty(environmentGUID);
 
         /// <summary>The currently used Environment</summary>
         public Environment environment { get; private set; }
@@ -105,6 +157,14 @@ namespace UnityEditor.Rendering.LookDev
         // So, only use it when reloading from script update.
         [SerializeField]
         int viewedObjecHierarchytInstanceID;
+
+        /// <summary>
+        /// Check if an Environment is registered for this view.
+        /// The result will be accurate even if the object have not been reloaded yet.
+        /// </summary>
+        public bool hasViewedObject =>
+            !String.IsNullOrEmpty(viewedObjectAssetGUID)
+            || viewedObjecHierarchytInstanceID != 0;
 
         /// <summary>Reference to the object given for instantiation.</summary>
         public GameObject viewedObjectReference { get; private set; }
@@ -132,8 +192,12 @@ namespace UnityEditor.Rendering.LookDev
             if (!(environmentOrCubemapAsset is Environment)
                 && !(environmentOrCubemapAsset is Cubemap))
                 throw new System.ArgumentException("Only Environment or Cubemap accepted for environmentOrCubemapAsset parameter");
-            
-            environmentGUID = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(environmentOrCubemapAsset));
+
+            string GUID;
+            long localIDInFile;
+            AssetDatabase.TryGetGUIDAndLocalFileIdentifier(environmentOrCubemapAsset, out GUID, out localIDInFile);
+            environmentGUID = $"{GUID},{localIDInFile}";
+
             if (environmentOrCubemapAsset is Environment)
                 environment = environmentOrCubemapAsset as Environment;
             else //Cubemap
@@ -148,15 +212,34 @@ namespace UnityEditor.Rendering.LookDev
             environment = null;
 
             GUID storedGUID;
-            GUID.TryParse(environmentGUID, out storedGUID);
+            string[] GUIDAndLocalIDInFile = environmentGUID.Split(new[] { ',' });
+            GUID.TryParse(GUIDAndLocalIDInFile[0], out storedGUID);
             if (storedGUID.Empty())
                 return;
+            long localIDInFile = GUIDAndLocalIDInFile.Length < 2 ? 0L : long.Parse(GUIDAndLocalIDInFile[1]);
 
-            string path = AssetDatabase.GUIDToAssetPath(environmentGUID);
-            environment = AssetDatabase.LoadAssetAtPath<Environment>(path);
+            string path = AssetDatabase.GUIDToAssetPath(GUIDAndLocalIDInFile[0]);
 
-            if (environment == null)
+            Type savedType = AssetDatabase.GetMainAssetTypeAtPath(path);
+            if (savedType == typeof(EnvironmentLibrary))
             {
+                object[] loaded = AssetDatabase.LoadAllAssetsAtPath(path);
+                for (int i = 0; i < loaded.Length; ++i)
+                {
+                    string garbage;
+                    long testedLocalIndex;
+                    if (AssetDatabase.TryGetGUIDAndLocalFileIdentifier((UnityEngine.Object)loaded[i], out garbage, out testedLocalIndex)
+                        && testedLocalIndex == localIDInFile)
+                    {
+                        environment = loaded[i] as Environment;
+                        break;
+                    }
+                }
+            }
+            else if (savedType == typeof(Environment))
+                environment = AssetDatabase.LoadAssetAtPath<Environment>(path);
+            else if (savedType == typeof(Cubemap))
+            { 
                 Cubemap cubemap = AssetDatabase.LoadAssetAtPath<Cubemap>(path);
                 environment = new Environment();
                 environment.sky.cubemap = cubemap;
@@ -209,9 +292,21 @@ namespace UnityEditor.Rendering.LookDev
 
         internal void CleanTemporaryObjectIndexes()
             => viewedObjecHierarchytInstanceID = 0;
+    }
 
-        //[TODO: add object position]
-        //[TODO: add camera frustum]
-        //[TODO: manage shadow and lights]
+
+    [System.Serializable]
+    public class DebugContext
+    {
+        ///// <summary>Display the debug grey balls</summary>
+        //public bool greyBalls;
+        
+        //[SerializeField]
+        //string colorChartGUID = ""; //Empty GUID
+        
+        ///// <summary>The currently used color chart</summary>
+        //public Texture2D colorChart { get; private set; }
+
+
     }
 }

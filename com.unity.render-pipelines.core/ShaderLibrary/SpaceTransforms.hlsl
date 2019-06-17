@@ -102,7 +102,7 @@ float3 TransformObjectToWorldNormal(float3 normalOS)
 #endif
 }
 
-real3x3 CreateWorldToTangent(real3 normal, real3 tangent, real flipSign)
+real3x3 CreateTangentToWorld(real3 normal, real3 tangent, real flipSign)
 {
     // For odd-negative scale transforms we need to flip the sign
     real sgn = flipSign * GetOddNegativeScale();
@@ -111,27 +111,31 @@ real3x3 CreateWorldToTangent(real3 normal, real3 tangent, real flipSign)
     return real3x3(tangent, bitangent, normal);
 }
 
-real3 TransformTangentToWorld(real3 dirTS, real3x3 worldToTangent)
+real3 TransformTangentToWorld(real3 dirTS, real3x3 tangentToWorld)
 {
-    // Use transpose transformation to go from tangent to world as the matrix is orthogonal
-    return mul(dirTS, worldToTangent);
+    // Note matrix is in row major convention with left multiplication as it is build on the fly
+    return mul(dirTS, tangentToWorld);
 }
 
-real3 TransformWorldToTangent(real3 dirWS, real3x3 worldToTangent)
+real3 TransformWorldToTangent(real3 dirWS, real3x3 tangentToWorld)
 {
-    return mul(worldToTangent, dirWS);
+    // Note matrix is in row major convention with left multiplication as it is build on the fly
+    // Use transpose transformation to go from "tangent to world" to "world to tangent" as the matrix is orthogonal
+    return mul(tangentToWorld, dirWS);
 }
 
-real3 TransformTangentToObject(real3 dirTS, real3x3 worldToTangent)
+real3 TransformTangentToObject(real3 dirTS, real3x3 tangentToWorld)
 {
-    // Use transpose transformation to go from tangent to world as the matrix is orthogonal
-    real3 normalWS = mul(dirTS, worldToTangent);
+    // Note matrix is in row major convention with left multiplication as it is build on the fly
+    real3 normalWS = mul(dirTS, tangentToWorld);
     return mul((real3x3)GetWorldToObjectMatrix(), normalWS);
 }
 
-real3 TransformObjectToTangent(real3 dirOS, real3x3 worldToTangent)
+real3 TransformObjectToTangent(real3 dirOS, real3x3 tangentToWorld)
 {
-    return mul(worldToTangent, TransformObjectToWorldDir(dirOS));
+    // Note matrix is in row major convention with left multiplication as it is build on the fly
+    // Use transpose transformation to go from "tangent to world" to "world to tangent" as the matrix is orthogonal
+    return mul(tangentToWorld, TransformObjectToWorldDir(dirOS));
 }
 
 #endif

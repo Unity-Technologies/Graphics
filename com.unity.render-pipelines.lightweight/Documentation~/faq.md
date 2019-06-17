@@ -81,9 +81,11 @@ For these reasons, we're working on a solution where you can add a render pass w
 
 By default, LWRP uses a linear color space while rendering. You can also use a gamma color space, which is non-linear. To do so, toggle it in the Player Settings.
 
-
-
 ## How do I extend LWRP with scriptable render pass?
 
 To create a scriptable render pass, you have to create a `ScriptableRendererFeature` script. This is because the scriptable render feature is a container that can have the pass in it. To create the scriptable render feature in the Editor, click on **Asset** > **Create** > **Rendering** > **Lightweight Render Pipeline** > **Renderer Feature**.
+
+##Why does Feature X not work in the LWRP Asset when I use the 2D Renderer?
+
+The 2D Renderer is an experimental feature. When it's enabled (menu: **Graphics Settings** > add the 2D Renderer Asset under **Scriptable Render Pipeline Settings**), it disables the options for 3D rendering. You can still configure the options, but they have no affect on your final product. We're working on a solution so that you can't configure them when the 2D Renderer is enabled.
 

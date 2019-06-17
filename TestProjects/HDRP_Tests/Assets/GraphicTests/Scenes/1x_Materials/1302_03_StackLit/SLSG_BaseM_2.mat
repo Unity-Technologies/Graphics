@@ -8,7 +8,7 @@ Material:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: SLSG_BaseM_2
-  m_Shader: {fileID: -6465566751694194690, guid: 5a682f5b16474d04f991850cb6bdbe82,
+  m_Shader: {fileID: -6465566751694194690, guid: 0bd3a7f12536b3d4dac160edc29274ae,
     type: 3}
   m_ShaderKeywords: _ANISOTROPY_FOR_AREA_LIGHTS _MATERIAL_FEATURE_ANISOTROPY _MATERIAL_FEATURE_COAT
     _MATERIAL_FEATURE_DUAL_SPECULAR_LOBE _MATERIAL_FEATURE_IRIDESCENCE _STACKLIT_DEBUG
@@ -306,7 +306,7 @@ Material:
     - Vector1_3D385304: 1.777
     - Vector1_43653F57: 0.331
     - Vector1_5EE01802: 0.338
-    - Vector1_632A1E97: 0.954
+    - Vector1_632A1E97: 0.865
     - Vector1_68902265: 1
     - Vector1_7CF2C304: 0.741
     - Vector1_867DA71E: 0.93
@@ -314,7 +314,7 @@ Material:
     - Vector1_C41F78F3: 0.652
     - Vector1_F3C0C9E7: 0.2
     - Vector1_F6FC54C8: 0.07
-    - Vector1_F8D1F01: 1.061
+    - Vector1_F8D1F01: 1.129
     - Vector1_FC7928FA: -0.733
     - _AORemapMax: 1
     - _AORemapMin: 0
