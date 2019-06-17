@@ -16,7 +16,7 @@
 
 // We perform scalarization only for forward rendering as for deferred loads will already be scalar since tiles will match waves and therefore all threads will read from the same tile. 
 // More info on scalarization: https://flashypixels.wordpress.com/2018/11/10/intro-to-gpu-scalarization-part-2-scalarize-all-the-lights/
-#define SCALARIZE_LIGHT_LOOP (defined(SUPPORTS_WAVE_INTRINSICS) && !defined(LIGHTLOOP_DISABLE_TILE_AND_CLUSTER) && SHADERPASS == SHADERPASS_FORWARD)
+#define SCALARIZE_LIGHT_LOOP (defined(PLATFORM_SUPPORTS_WAVE_INTRINSICS) && !defined(LIGHTLOOP_DISABLE_TILE_AND_CLUSTER) && SHADERPASS == SHADERPASS_FORWARD)
 
 #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
 
@@ -249,18 +249,18 @@ void DEFERRED_CONTACT_SHADOW_GENERIC(uint2 groupThreadId : SV_GroupThreadID, uin
 
                 LightData light = FetchLight(s_lightIdx); // Scalar load
 
-                if (light.contactShadowMask == 0)
-                    continue;
+                if (light.contactShadowMask != 0)
+                {
+                    // Compute light ray direction:
+                    float3 direction = normalize(light.positionRWS.xyz - posInput.positionWS);
 
-                // Compute light ray direction:
-                float3 direction = normalize(light.positionRWS.xyz - posInput.positionWS);
+                    bool occluded = ComputeContactShadow(posInput, direction, globalFade);
 
-                bool occluded = ComputeContactShadow(posInput, direction, globalFade);
-
-                // light.contactShadowMask contains one bit at the position of the contact shadow index that will
-                // be tested in the lightloop, so it insert 1 at the index of the contact shadow if there is a contact shadow
-                // we take full bits at one multiplied by contact shadow and filter the bit at the contact shadow index.
-                contactShadowMask |= light.contactShadowMask * occluded;
+                    // light.contactShadowMask contains one bit at the position of the contact shadow index that will
+                    // be tested in the lightloop, so it insert 1 at the index of the contact shadow if there is a contact shadow
+                    // we take full bits at one multiplied by contact shadow and filter the bit at the contact shadow index.
+                    contactShadowMask |= light.contactShadowMask * occluded;
+                }
             }
         }
 
