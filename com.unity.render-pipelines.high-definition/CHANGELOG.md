@@ -6,6 +6,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [6.9.0] - 2019-XX-XX
 
+### Fixed
+- Fixed issue with Low resolution transparency on PS4
+
 ## [6.8.0] - 2019-06-12
 
 ### Added
@@ -43,7 +46,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed a crash in the build when the contact shadows are disabled
 - Fixed camera rendering callbacks order (endCameraRendering was being called before the actual rendering)
 - Fixed issue with wrong opaque blending settings for After Postprocess
-- Fixed issue with Low resolution transparency on PS4
 
 ### Changed
 - Removed ScriptRuntimeVersion check in wizard.
