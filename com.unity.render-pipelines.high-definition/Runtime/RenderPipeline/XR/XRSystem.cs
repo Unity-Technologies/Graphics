@@ -223,7 +223,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             framePasses.Clear();
         }
 
-        void AddPassToFrame(Camera camera, XRPass xrPass)
+        internal void AddPassToFrame(Camera camera, XRPass xrPass)
         {
             framePasses.Add((camera, xrPass));
         }
