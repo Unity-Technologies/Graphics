@@ -332,6 +332,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             foreach (var shadowRequest in parameters.shadowRequests)
             {
+                if (shadowRequest.shouldUseCachedShadow)
+                    continue;
+
                 cmd.SetViewport(shadowRequest.atlasViewport);
 
                 cmd.SetGlobalFloat(HDShaderIDs._ZClip, shadowRequest.zClip ? 1.0f : 0.0f);

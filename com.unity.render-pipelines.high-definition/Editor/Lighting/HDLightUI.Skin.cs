@@ -84,6 +84,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public readonly GUIContent shadowDimmer = new GUIContent("Dimmer", "Dims the shadows this Light casts.");
             public readonly GUIContent shadowTint = new GUIContent("Tint", "Tint the shadows. This option affect dynamic shadows, contact shadows and shadow mask. It don't affect baked shadows.");
             public readonly GUIContent contactShadows = new GUIContent("Enable", "Enable support for Contact Shadows on this Light. This is better for lights with a lot of visible shadows.");
+            public readonly GUIContent shadowUpdateMode = new GUIContent("Update Mode", "Sets the frequency of update for the shadow map.");
+
 
             // Bias control
             public readonly GUIContent viewBiasMin = new GUIContent("View Bias");
