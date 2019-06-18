@@ -27,6 +27,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         public int GetPreviewPassIndex() { return 0; }
 
+        // In the full screen pass, the position require the texcoord0 to fetch the depth
+        static Dependency[] fullScreenPassDependencies = new Dependency[] {
+            new Dependency("FragInputs.positionRWS", "FragInputs.texCoord0"),
+        };
+
         private static HashSet<string> GetActiveFieldsFromMasterNode(FullScreenPassMasterNode masterNode, Pass pass)
         {
             var activeFields = new HashSet<string>();
@@ -47,7 +52,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 HashSet<string> activeFields = GetActiveFieldsFromMasterNode(masterNode, pass);
 
                 // use standard shader pass generation
-                return HDSubShaderUtilities.GenerateShaderPass(masterNode, pass, mode, activeFields, result, sourceAssetDependencyPaths, false);
+                return HDSubShaderUtilities.GenerateShaderPass(masterNode, pass, mode, activeFields, result, sourceAssetDependencyPaths, false, fullScreenPassDependencies);
             }
             else
             {

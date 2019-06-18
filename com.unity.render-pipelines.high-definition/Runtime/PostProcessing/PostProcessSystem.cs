@@ -355,9 +355,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                             camera.SetupGlobalParams(cmd, 0, 0, 0);
                             cmd.SetRenderTarget(destination);
                             cmd.SetViewport(new Rect(0, 0, w, h));
-                            var t = camera.camera.transform;
-                            var trs = Matrix4x4.TRS(t.position, t.rotation, Vector3.one);
-                            cmd.DrawProcedural(trs, mat, 0, MeshTopology.Triangles, 3, 1, null);
+                            var cameraTRS = Matrix4x4.TRS(Vector3.zero, camera.camera.transform.rotation, Vector3.one);
+                            cmd.DrawProcedural(cameraTRS, mat, 0, MeshTopology.Triangles, 3, 1, null);
                             PoolSource(ref source, destination);
                         }
                     }

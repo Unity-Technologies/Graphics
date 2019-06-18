@@ -39,6 +39,23 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         const SlotMask ColorDepthSlotMask = SlotMask.Color | SlotMask.Depth;
 
         [SerializeField]
+        SurfaceType m_SurfaceType;
+
+        public SurfaceType surfaceType
+        {
+            get { return m_SurfaceType; }
+            set
+            {
+                if (m_SurfaceType == value)
+                    return;
+
+                m_SurfaceType = value;
+                UpdateNodeAfterDeserialization();
+                Dirty(ModificationScope.Graph);
+            }
+        }
+
+        [SerializeField]
         bool m_ModifyDepth = false;
         public ToggleData modifyDepth
         {
@@ -51,6 +68,22 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 m_ModifyDepth = value.isOn;
                 UpdateNodeAfterDeserialization();
                 Dirty(ModificationScope.Topological);
+            }
+        }
+
+        [SerializeField]
+        AlphaMode m_AlphaMode;
+
+        public AlphaMode alphaMode
+        {
+            get { return m_AlphaMode; }
+            set
+            {
+                if (m_AlphaMode == value)
+                    return;
+
+                m_AlphaMode = value;
+                Dirty(ModificationScope.Graph);
             }
         }
 

@@ -23,8 +23,6 @@
         $FragInputs.isFrontFace:        output.isFrontFace = IS_FRONT_VFACE(input.cullFace, true, false);
         #endif // SHADER_STAGE_FRAGMENT
 
-        // $FragInputs.positionRWS:        output.positionRWS = float3(input.texCoord0.xy, -1);
-        
         return output;
     }
 
@@ -33,36 +31,55 @@
         SurfaceDescriptionInputs output;
         ZERO_INITIALIZE(SurfaceDescriptionInputs, output);
 
-        // float3 viewDirection = normalize(_WorldSpaceCameraPos - input.positionCS);
+        float3 positionViewSpace = float3(0, 0, 0);
+        float3 positionWorldSpace = float3(0, 0, 0);
+        
+        float3 viewDirectionWorldSpace = normalize(viewWS);
+        float3 viewDirectionViewSpace = normalize(TransformWorldToViewDir(viewDirectionWorldSpace));
 
+        // if we need the position RWS, we use the depth to get the world pixel position
+        $FragInputs.positionRWS: float depthDistance = LinearEyeDepth(SampleCameraDepth(input.texCoord0), _ZBufferParams);
+        $FragInputs.positionRWS: positionViewSpace = GetAbsolutePositionWS(depthDistance * viewDirectionViewSpace);
+        $FragInputs.positionRWS: positionWorldSpace = GetAbsolutePositionWS(depthDistance * viewDirectionWorldSpace);
+        
         $SurfaceDescriptionInputs.WorldSpaceNormal:          output.WorldSpaceNormal =            normalize(input.worldToTangent[2].xyz);
         $SurfaceDescriptionInputs.ObjectSpaceNormal:         output.ObjectSpaceNormal =           mul(output.WorldSpaceNormal, (float3x3) UNITY_MATRIX_M);
         $SurfaceDescriptionInputs.ViewSpaceNormal:           output.ViewSpaceNormal =             mul(output.WorldSpaceNormal, (float3x3) UNITY_MATRIX_I_V);
         $SurfaceDescriptionInputs.TangentSpaceNormal:        output.TangentSpaceNormal =          float3(0.0f, 0.0f, 1.0f);
+
         $SurfaceDescriptionInputs.WorldSpaceTangent:         output.WorldSpaceTangent =           input.worldToTangent[0].xyz;
         $SurfaceDescriptionInputs.ObjectSpaceTangent:        output.ObjectSpaceTangent =          TransformWorldToObjectDir(output.WorldSpaceTangent);
         $SurfaceDescriptionInputs.ViewSpaceTangent:          output.ViewSpaceTangent =            TransformWorldToViewDir(output.WorldSpaceTangent);
         $SurfaceDescriptionInputs.TangentSpaceTangent:       output.TangentSpaceTangent =         float3(1.0f, 0.0f, 0.0f);
+
         $SurfaceDescriptionInputs.WorldSpaceBiTangent:       output.WorldSpaceBiTangent =         input.worldToTangent[1].xyz;
         $SurfaceDescriptionInputs.ObjectSpaceBiTangent:      output.ObjectSpaceBiTangent =        TransformWorldToObjectDir(output.WorldSpaceBiTangent);
         $SurfaceDescriptionInputs.ViewSpaceBiTangent:        output.ViewSpaceBiTangent =          TransformWorldToViewDir(output.WorldSpaceBiTangent);
         $SurfaceDescriptionInputs.TangentSpaceBiTangent:     output.TangentSpaceBiTangent =       float3(0.0f, 1.0f, 0.0f);
-        $SurfaceDescriptionInputs.WorldSpaceViewDirection:   output.WorldSpaceViewDirection =     normalize(viewWS);
+
+        $SurfaceDescriptionInputs.WorldSpaceViewDirection:   output.WorldSpaceViewDirection =     viewDirectionWorldSpace;
         $SurfaceDescriptionInputs.ObjectSpaceViewDirection:  output.ObjectSpaceViewDirection =    TransformWorldToObjectDir(output.WorldSpaceViewDirection);
-        $SurfaceDescriptionInputs.ViewSpaceViewDirection:    output.ViewSpaceViewDirection =      TransformWorldToViewDir(output.WorldSpaceViewDirection);
+        $SurfaceDescriptionInputs.ViewSpaceViewDirection:    output.ViewSpaceViewDirection =      viewDirectionViewSpace;
         $SurfaceDescriptionInputs.TangentSpaceViewDirection: float3x3 tangentSpaceTransform =     float3x3(output.WorldSpaceTangent,output.WorldSpaceBiTangent,output.WorldSpaceNormal);
         $SurfaceDescriptionInputs.TangentSpaceViewDirection: output.TangentSpaceViewDirection =   mul(tangentSpaceTransform, output.WorldSpaceViewDirection);
-        $SurfaceDescriptionInputs.WorldSpacePosition:        output.WorldSpacePosition =          GetAbsolutePositionWS(input.positionRWS);
+
+        $SurfaceDescriptionInputs.WorldSpacePosition:        output.WorldSpacePosition =          positionWorldSpace;
         $SurfaceDescriptionInputs.ObjectSpacePosition:       output.ObjectSpacePosition =         TransformWorldToObject(input.positionRWS);
-        $SurfaceDescriptionInputs.ViewSpacePosition:         output.ViewSpacePosition =           TransformWorldToView(input.positionRWS);
+        $SurfaceDescriptionInputs.ViewSpacePosition:         output.ViewSpacePosition =           positionViewSpace;
         $SurfaceDescriptionInputs.TangentSpacePosition:      output.TangentSpacePosition =        float3(0.0f, 0.0f, 0.0f);
+
         $SurfaceDescriptionInputs.ScreenPosition:            output.ScreenPosition =              ComputeScreenPos(TransformWorldToHClip(input.positionRWS), _ProjectionParams.x);
+
         $SurfaceDescriptionInputs.uv0:                       output.uv0 =                         input.texCoord0;
         $SurfaceDescriptionInputs.uv1:                       output.uv1 =                         input.texCoord1;
         $SurfaceDescriptionInputs.uv2:                       output.uv2 =                         input.texCoord2;
         $SurfaceDescriptionInputs.uv3:                       output.uv3 =                         input.texCoord3;
+
         $SurfaceDescriptionInputs.VertexColor:               output.VertexColor =                 input.color;
+
         $SurfaceDescriptionInputs.FaceSign:                  output.FaceSign =                    input.isFrontFace;
+
+        // output.WorldSpacePosition = viewDirectionWorldSpace;
 
         return output;
     }

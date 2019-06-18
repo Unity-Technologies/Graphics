@@ -43,6 +43,15 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline.Drawing
                 });
             });
 
+            ps.Add(new PropertyRow(CreateLabel("Blending Mode", indentLevel)), (row) =>
+            {
+                row.Add(new EnumField(HDLitMasterNode.AlphaModeLit.Additive), (field) =>
+                {
+                    field.value = m_Node.alphaMode;
+                    field.RegisterValueChangedCallback(ChangeBlendMode);
+                });
+            });
+
             Add(ps);
         }
 
@@ -52,6 +61,19 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline.Drawing
             ToggleData td = m_Node.modifyDepth;
             td.isOn = evt.newValue;
             m_Node.modifyDepth = td;
+        }
+
+        void ChangeBlendMode(ChangeEvent<Enum> evt)
+        {
+            // Make sure the mapping is correct by handling each case.
+
+            AlphaMode alphaMode = (AlphaMode)evt.newValue;
+
+            if (Equals(m_Node.alphaMode, alphaMode))
+                return;
+
+            m_Node.owner.owner.RegisterCompleteObjectUndo("Alpha Mode Change");
+            m_Node.alphaMode = alphaMode;
         }
     }
 }

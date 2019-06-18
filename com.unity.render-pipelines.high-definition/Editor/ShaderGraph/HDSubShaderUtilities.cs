@@ -515,7 +515,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
     static class HDSubShaderUtilities
     {
-        public static bool GenerateShaderPass(AbstractMaterialNode masterNode, Pass pass, GenerationMode mode, HashSet<string> activeFields, ShaderGenerator result, List<string> sourceAssetDependencyPaths, bool vertexActive)
+        public static bool GenerateShaderPass(AbstractMaterialNode masterNode, Pass pass, GenerationMode mode, HashSet<string> activeFields, ShaderGenerator result, List<string> sourceAssetDependencyPaths, bool vertexActive, Dependency[] additionalDependencies = null)
         {
             string templatePath = Path.Combine(HDUtils.GetHDRenderPipelinePath(), "Editor/Material");
             string templateLocation = Path.Combine(Path.Combine(Path.Combine(templatePath, pass.MaterialName), "ShaderGraph"), pass.TemplateName);
@@ -630,6 +630,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             // Get property declarations
             sharedProperties.GetPropertiesDeclaration(shaderPropertyUniforms, mode, masterNode.owner.concretePrecision);
 
+            // Avoid null exceptions
+            if (additionalDependencies == null)
+                additionalDependencies = new Dependency[0];
+
             // propagate active field requirements using dependencies
             ShaderSpliceUtil.ApplyDependencies(
                 activeFields,
@@ -638,7 +642,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     HDRPShaderStructs.FragInputs.dependencies,
                     HDRPShaderStructs.VaryingsMeshToPS.standardDependencies,
                     HDRPShaderStructs.SurfaceDescriptionInputs.dependencies,
-                    HDRPShaderStructs.VertexDescriptionInputs.dependencies
+                    HDRPShaderStructs.VertexDescriptionInputs.dependencies,
+                    additionalDependencies,
                 });
 
             // debug output all active fields
