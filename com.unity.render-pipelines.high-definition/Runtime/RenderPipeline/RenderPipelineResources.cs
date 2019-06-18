@@ -137,6 +137,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public Shader blitCubeTextureFacePS;
             [Reload("Runtime/Material/LTCAreaLight/FilterAreaLightCookies.shader")]
             public Shader filterAreaLightCookiesPS;
+            [Reload("Runtime/Core/CoreResources/ClearUIntTextureArray.compute")]
+            public ComputeShader clearUIntTextureCS;
 
             // Shadow            
             [Reload("Runtime/Lighting/Shadow/ShadowClear.shader")]
