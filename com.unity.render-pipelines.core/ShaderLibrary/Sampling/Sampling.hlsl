@@ -13,14 +13,19 @@
 //-----------------------------------------------------------------------------
 
 // Transforms the unit vector from the spherical to the Cartesian (right-handed, Z up) coordinate.
+real3 SphericalToCartesian(real cosPhi, real sinPhi, real cosTheta)
+{
+    real sinTheta = SinFromCos(cosTheta);
+
+    return real3(real2(cosPhi, sinPhi) * sinTheta, cosTheta);
+}
+
 real3 SphericalToCartesian(real phi, real cosTheta)
 {
     real sinPhi, cosPhi;
     sincos(phi, sinPhi, cosPhi);
 
-    real sinTheta = sqrt(saturate(1.0 - cosTheta * cosTheta));
-
-    return real3(sinTheta * cosPhi, sinTheta * sinPhi, cosTheta);
+    return SphericalToCartesian(cosPhi, sinPhi, cosTheta);
 }
 
 // Converts Cartesian coordinates given in the right-handed coordinate system
@@ -271,6 +276,18 @@ void SampleDisk(real2   u,
 
     // pdf is inverse of area
     lightPdf = 1.0 / (PI * radius * radius);
+}
+
+// Solid angle cone sampling.
+// Takes the cosine of the aperture as an input.
+void SampleCone(real2 u, real cosHalfAngle,
+                out real3 dir, out real rcpPdf)
+{
+    real cosTheta = lerp(1, cosHalfAngle, u.x);
+    real phi      = TWO_PI * u.y;
+
+    dir    = SphericalToCartesian(phi, cosTheta);
+    rcpPdf = TWO_PI * (1 - cosHalfAngle);
 }
 
 #endif // UNITY_SAMPLING_INCLUDED

@@ -33,7 +33,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             Debug.Assert(hdCamera.frameSettings.IsEnabled(FrameSettingsField.AtmosphericScattering));
 
-            cmd.SetGlobalInt(HDShaderIDs._AtmosphericScatteringType, (int)type);
+            int pbrSkyAtmosphereFlag = 0;
+
+            var visualEnvironment = VolumeManager.instance.stack.GetComponent<VisualEnvironment>();
+            Debug.Assert(visualEnvironment != null);
+
+            // The PBR sky contributes to atmospheric scattering.
+            pbrSkyAtmosphereFlag = visualEnvironment.skyType.value == (int)SkyType.PhysicallyBased ? 128 : 0;
+
+            cmd.SetGlobalInt(HDShaderIDs._AtmosphericScatteringType, pbrSkyAtmosphereFlag | (int)type);
             cmd.SetGlobalFloat(HDShaderIDs._MaxFogDistance, maxFogDistance.value);
 
             // Fog Color
@@ -44,12 +52,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     }
 
     [GenerateHLSL]
-    public enum FogType
+    public enum FogType // 7 bits max, 8th bit is for the PBR sky atmosphere flag
     {
         None,
         Linear,
         Exponential,
-        Volumetric
+        Volumetric,
     }
 
     [GenerateHLSL]
