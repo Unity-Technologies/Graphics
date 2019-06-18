@@ -47,7 +47,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             [Optional]                                                              Vector4 texCoord3;
             [Optional]                                                              Vector4 color;
             [Semantic("CUSTOM_INSTANCE_ID")] [PreprocessorIf("UNITY_ANY_INSTANCING_ENABLED")] uint instanceID;
-            [Optional][Semantic("FRONT_FACE_SEMANTIC")][OverrideType("FRONT_FACE_TYPE")][PreprocessorIf("SHADER_STAGE_FRAGMENT")] bool cullFace;
+            [Semantic("FRONT_FACE_SEMANTIC")][OverrideType("FRONT_FACE_TYPE")][PreprocessorIf("defined(SHADER_STAGE_FRAGMENT) && defined(VARYINGS_NEED_CULLFACE)")] bool cullFace;
 
             public static Dependency[] tessellationDependencies = new Dependency[]
             {
@@ -106,8 +106,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public static Dependency[] dependencies = new Dependency[]
             {
                 new Dependency("FragInputs.positionRWS",        "VaryingsMeshToPS.positionRWS"),
-                new Dependency("FragInputs.worldToTangent",     "VaryingsMeshToPS.tangentWS"),
-                new Dependency("FragInputs.worldToTangent",     "VaryingsMeshToPS.normalWS"),
+                new Dependency("FragInputs.tangentToWorld",     "VaryingsMeshToPS.tangentWS"),
+                new Dependency("FragInputs.tangentToWorld",     "VaryingsMeshToPS.normalWS"),
                 new Dependency("FragInputs.texCoord0",          "VaryingsMeshToPS.texCoord0"),
                 new Dependency("FragInputs.texCoord1",          "VaryingsMeshToPS.texCoord1"),
                 new Dependency("FragInputs.texCoord2",          "VaryingsMeshToPS.texCoord2"),
@@ -155,15 +155,15 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             public static Dependency[] dependencies = new Dependency[]
             {
-                new Dependency("SurfaceDescriptionInputs.WorldSpaceNormal",          "FragInputs.worldToTangent"),
+                new Dependency("SurfaceDescriptionInputs.WorldSpaceNormal",          "FragInputs.tangentToWorld"),
                 new Dependency("SurfaceDescriptionInputs.ObjectSpaceNormal",         "SurfaceDescriptionInputs.WorldSpaceNormal"),
                 new Dependency("SurfaceDescriptionInputs.ViewSpaceNormal",           "SurfaceDescriptionInputs.WorldSpaceNormal"),
 
-                new Dependency("SurfaceDescriptionInputs.WorldSpaceTangent",         "FragInputs.worldToTangent"),
+                new Dependency("SurfaceDescriptionInputs.WorldSpaceTangent",         "FragInputs.tangentToWorld"),
                 new Dependency("SurfaceDescriptionInputs.ObjectSpaceTangent",        "SurfaceDescriptionInputs.WorldSpaceTangent"),
                 new Dependency("SurfaceDescriptionInputs.ViewSpaceTangent",          "SurfaceDescriptionInputs.WorldSpaceTangent"),
 
-                new Dependency("SurfaceDescriptionInputs.WorldSpaceBiTangent",       "FragInputs.worldToTangent"),
+                new Dependency("SurfaceDescriptionInputs.WorldSpaceBiTangent",       "FragInputs.tangentToWorld"),
                 new Dependency("SurfaceDescriptionInputs.ObjectSpaceBiTangent",      "SurfaceDescriptionInputs.WorldSpaceBiTangent"),
                 new Dependency("SurfaceDescriptionInputs.ViewSpaceBiTangent",        "SurfaceDescriptionInputs.WorldSpaceBiTangent"),
 
@@ -1082,13 +1082,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         public static void AddDoubleSidedProperty(PropertyCollector collector, DoubleSidedMode mode = DoubleSidedMode.Enabled)
         {
+            var normalMode = ConvertDoubleSidedModeToDoubleSidedNormalMode(mode);
             collector.AddToggleProperty("_DoubleSidedEnable", mode != DoubleSidedMode.Disabled);
             collector.AddShaderProperty(new Vector1ShaderProperty{
                 enumNames = {"Flip", "Mirror", "None"}, // values will be 0, 1 and 2
                 floatType = FloatType.Enum,
                 overrideReferenceName = "_DoubleSidedNormalMode",
                 hidden = true,
-                value = (int)mode
+                value = (int)normalMode
             });
             collector.AddShaderProperty(new Vector4ShaderProperty{
                 overrideReferenceName = "_DoubleSidedConstants",
@@ -1164,6 +1165,21 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     return BlendMode.Alpha;
                 default:
                     throw new System.Exception("Unknown AlphaMode: " + alphaMode + ": can't convert to BlendMode.");
+            }
+        }
+
+        public static DoubleSidedNormalMode ConvertDoubleSidedModeToDoubleSidedNormalMode(DoubleSidedMode shaderGraphMode)
+        {
+            switch (shaderGraphMode)
+            {
+                case DoubleSidedMode.FlippedNormals:
+                    return DoubleSidedNormalMode.Flip;
+                case DoubleSidedMode.MirroredNormals:
+                    return DoubleSidedNormalMode.Mirror;
+                case DoubleSidedMode.Enabled:
+                case DoubleSidedMode.Disabled:
+                default:
+                    return DoubleSidedNormalMode.None;
             }
         }
     }

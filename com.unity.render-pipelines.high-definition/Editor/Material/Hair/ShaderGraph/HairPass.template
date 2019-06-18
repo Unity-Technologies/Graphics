@@ -88,6 +88,11 @@ Pass
     $VaryingsMeshToPS.cullFace:             #define VARYINGS_NEED_CULLFACE
     $features.modifyMesh:                   #define HAVE_MESH_MODIFICATION
 
+// We need isFontFace when using double sided
+#if defined(_DOUBLESIDED_ON) && !defined(VARYINGS_NEED_CULLFACE)
+    #define VARYINGS_NEED_CULLFACE
+#endif
+
     //-------------------------------------------------------------------------------------
     // End Defines
     //-------------------------------------------------------------------------------------
@@ -106,9 +111,7 @@ Pass
 
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoopDef.hlsl"
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Hair/Hair.hlsl"
-    #define MATERIAL_INCLUDE_TRANSMISSION // temp hack
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoop.hlsl"
-    #undef  MATERIAL_INCLUDE_TRANSMISSION // temp hack
 #else
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Hair/Hair.hlsl"
 #endif
@@ -209,13 +212,13 @@ $include("SharedCode.template.hlsl")
         // Therefore, DefaultHairStrandTangent = -MeshCardBitangent.
         // Both the SurfaceData and the BSDFData store the hair tangent
         // (which represents the hair strand direction, root to tip).
-        surfaceData.hairStrandDirectionWS = -fragInputs.worldToTangent[1].xyz;
+        surfaceData.hairStrandDirectionWS = -fragInputs.tangentToWorld[1].xyz;
         // The hair strand direction texture contains tangent-space vectors.
         // We use the same convention for the texture, which means that
         // to get the default behavior (DefaultHairStrandTangent = -MeshCardBitangent),
         // the artist has to paint (0, -1, 0).
         // TODO: pending artist feedback...
-        $HairStrandDirection: surfaceData.hairStrandDirectionWS = TransformTangentToWorld(surfaceDescription.HairStrandDirection, fragInputs.worldToTangent);
+        $HairStrandDirection: surfaceData.hairStrandDirectionWS = TransformTangentToWorld(surfaceDescription.HairStrandDirection, fragInputs.tangentToWorld);
         // The original Kajiya-Kay BRDF model expects an orthonormal TN frame.
         // Since we use the tangent shift hack (http://web.engr.oregonstate.edu/~mjb/cs519/Projects/Papers/HairRendering.pdf),
         // we may as well not bother to orthonormalize anymore.
@@ -236,7 +239,7 @@ $include("SharedCode.template.hlsl")
         // We reflect this normal for transmitted GI.
         // For the highlight shift hack (along the tangent), we use the user-provided normal.
 
-        surfaceData.geomNormalWS = fragInputs.worldToTangent[2];
+        surfaceData.geomNormalWS = fragInputs.tangentToWorld[2];
 
         // tangent-space normal
         float3 normalTS = float3(0.0f, 0.0f, 1.0f);
@@ -280,7 +283,7 @@ $include("SharedCode.template.hlsl")
 #endif
 
 #ifdef _ENABLE_GEOMETRIC_SPECULAR_AA
-        surfaceData.perceptualSmoothness = GeometricNormalFiltering(surfaceData.perceptualSmoothness, fragInputs.worldToTangent[2], surfaceDescription.SpecularAAScreenSpaceVariance, surfaceDescription.SpecularAAThreshold);
+        surfaceData.perceptualSmoothness = GeometricNormalFiltering(surfaceData.perceptualSmoothness, fragInputs.tangentToWorld[2], surfaceDescription.SpecularAAScreenSpaceVariance, surfaceDescription.SpecularAAThreshold);
 #endif
 
 #ifdef DEBUG_DISPLAY
@@ -291,7 +294,7 @@ $include("SharedCode.template.hlsl")
 
         // We need to call ApplyDebugToSurfaceData after filling the surfarcedata and before filling builtinData
         // as it can modify attribute use for static lighting
-        ApplyDebugToSurfaceData(fragInputs.worldToTangent, surfaceData);
+        ApplyDebugToSurfaceData(fragInputs.tangentToWorld, surfaceData);
 #endif
     }
 
@@ -327,7 +330,7 @@ $include("SharedCode.template.hlsl")
     
         // Builtin Data
         // For back lighting we use the oposite vertex normal 
-        InitBuiltinData(posInput, surfaceDescription.Alpha, bentNormalWS, -fragInputs.worldToTangent[2], fragInputs.texCoord1, fragInputs.texCoord2, builtinData);
+        InitBuiltinData(posInput, surfaceDescription.Alpha, bentNormalWS, -fragInputs.tangentToWorld[2], fragInputs.texCoord1, fragInputs.texCoord2, builtinData);
 
         // override sampleBakedGI:
         $LightingGI: builtinData.bakeDiffuseLighting = surfaceDescription.BakedGI;

@@ -115,7 +115,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                         EmissiveIntensityUnit unit = (EmissiveIntensityUnit)emissiveIntensityUnit.floatValue;
 
                         if (unit == EmissiveIntensityUnit.Luminance)
-                            materialEditor.ShaderProperty(emissiveIntensity, Styles.emissiveIntensityText);
+                        {
+                            using (var change = new EditorGUI.ChangeCheckScope())
+                            {
+                                materialEditor.ShaderProperty(emissiveIntensity, Styles.emissiveIntensityText);
+                                if (change.changed)
+                                    emissiveIntensity.floatValue = Mathf.Max(0, emissiveIntensity.floatValue);
+                            }
+                        }
                         else
                         {
                             float evValue = LightUtils.ConvertLuminanceToEv(emissiveIntensity.floatValue);

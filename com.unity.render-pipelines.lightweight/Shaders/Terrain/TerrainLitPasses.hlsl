@@ -99,7 +99,7 @@ void SplatmapMix(Varyings IN, half4 defaultAlpha, out half4 splatControl, out ha
     splatControl = SAMPLE_TEXTURE2D(_Control, sampler_Control, IN.uvMainAndLM.xy);
     weight = dot(splatControl, 1.0h);
 
-#if !defined(SHADER_API_MOBILE) && defined(TERRAIN_SPLAT_ADDPASS)
+#if !defined(SHADER_API_MOBILE) &&!defined(SHADER_API_SWITCH) && defined(TERRAIN_SPLAT_ADDPASS)
     clip(weight == 0.0h ? -1.0h : 1.0h);
 #endif
 

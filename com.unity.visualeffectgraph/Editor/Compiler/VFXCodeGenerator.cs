@@ -197,9 +197,9 @@ namespace UnityEditor.VFX
                 int hash = 0;
                 foreach (var setting in settings)
                 {
-                    var value = setting.GetValue(block);
+                    var value = setting.value;
                     hash = (hash * 397) ^ value.GetHashCode();
-                    comment += string.Format("{0}:{1} ", setting.Name, value.ToString());
+                    comment += string.Format("{0}:{1} ", setting.field.Name, value.ToString());
                 }
                 functionName = string.Format("{0}_{1}", block.GetType().Name, hash.ToString("X"));
             }

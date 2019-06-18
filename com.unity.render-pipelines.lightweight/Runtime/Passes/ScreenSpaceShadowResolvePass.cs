@@ -20,6 +20,7 @@ namespace UnityEngine.Rendering.LWRP
         {
             m_RenderTextureDescriptor = baseDescriptor;
             m_RenderTextureDescriptor.depthBufferBits = 0;
+            m_RenderTextureDescriptor.msaaSamples = 1;
             m_RenderTextureDescriptor.colorFormat = RenderingUtils.SupportsRenderTextureFormat(RenderTextureFormat.R8)
                 ? RenderTextureFormat.R8
                 : RenderTextureFormat.ARGB32;
@@ -29,11 +30,6 @@ namespace UnityEngine.Rendering.LWRP
         {
             cmd.GetTemporaryRT(m_ScreenSpaceShadowmap.id, m_RenderTextureDescriptor, FilterMode.Bilinear);
 
-            // Note: The source isn't actually 'used', but there's an engine peculiarity (bug) that
-            // doesn't like null sources when trying to determine a stereo-ized blit.  So for proper
-            // stereo functionality, we use the screen-space shadow map as the source (until we have
-            // a better solution).
-            // An alternative would be DrawProcedural, but that would require further changes in the shader.
             RenderTargetIdentifier screenSpaceOcclusionTexture = m_ScreenSpaceShadowmap.Identifier();
             ConfigureTarget(screenSpaceOcclusionTexture);
             ConfigureClear(ClearFlag.All, Color.white);
@@ -51,15 +47,23 @@ namespace UnityEngine.Rendering.LWRP
             if (renderingData.lightData.mainLightIndex == -1)
                 return;
 
-            // This blit is troublesome. When MSAA is enabled it will render a fullscreen quad + store resolved MSAA + extra blit
-            // This consumes about 10MB of extra unnecessary bandwidth on boat attack.
-            // In order to avoid it we can do a cmd.DrawMesh instead, however because LWRP doesn't setup camera matrices itself,
-            // we would need to call an extra SetupCameraProperties here just to setup those matrices which is also troublesome.
-            // TODO: We need get rid of SetupCameraProperties and setup camera matrices in LWRP ASAP.
-            RenderTargetIdentifier screenSpaceOcclusionTexture = m_ScreenSpaceShadowmap.Identifier();
+            Camera camera = renderingData.cameraData.camera;
+            bool stereo = renderingData.cameraData.isStereoEnabled;
 
             CommandBuffer cmd = CommandBufferPool.Get(m_ProfilerTag);
-            Blit(cmd, screenSpaceOcclusionTexture, screenSpaceOcclusionTexture, m_ScreenSpaceShadowsMaterial);
+            if (!stereo)
+            {
+                cmd.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.identity);
+                cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, m_ScreenSpaceShadowsMaterial);
+                cmd.SetViewProjectionMatrices(camera.worldToCameraMatrix, camera.projectionMatrix);
+            }
+            else
+            {
+                // Avoid setting and restoring camera view and projection matrices when in stereo.
+                RenderTargetIdentifier screenSpaceOcclusionTexture = m_ScreenSpaceShadowmap.Identifier();
+                Blit(cmd, screenSpaceOcclusionTexture, screenSpaceOcclusionTexture, m_ScreenSpaceShadowsMaterial);
+            }
+
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
         }

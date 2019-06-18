@@ -63,6 +63,7 @@ namespace UnityEngine.Rendering.LWRP
 
             var templatePath = GetTemplatePath("lightweightUnlitPass.template");
             var extraPassesTemplatePath = GetTemplatePath("lightweightUnlitExtraPasses.template");
+
             if (!File.Exists(templatePath) || !File.Exists(extraPassesTemplatePath))
                 return string.Empty;
 

@@ -8,7 +8,7 @@ This override is useful in situations where you need to animate your lighting gl
 
 The **Indirect Lighting Controller** uses the [Volume](Volumes.html) framework, so to enable and modify **Indirect Lighting Controller** properties, you must add an **Indirect Lighting Controller** override to a [Volume](Volumes.html) in your Scene. To add **Indirect Lighting Controller** to a Volume:
 
-1. Select the Volume component in the Scene or Hierarchy to view it in the Inspector.
+1. In the Scene or Hierarchy view, select the GameObject that contains the Volume component to view it in the Inspector.
 2. In the Inspector, navigate to **Add Override > Lighting** and click on **Indirect Lighting Controller**. You can now use the **Indirect Lighting Controller** to control baked or precomputed indirect lighting.
 
 ## Properties

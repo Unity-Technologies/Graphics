@@ -82,6 +82,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             // Pre allocate the cluster with a dummy size
             m_LightCluster = new ComputeBuffer(1, sizeof(uint));
+            m_LightDataGPUArray = new ComputeBuffer(1, sizeof(uint));
         }
 
         public void ReleaseResources()
@@ -541,7 +542,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 lightData.contactShadowMask = 0;
                 lightData.cookieIndex = -1;
                 lightData.shadowIndex = -1;
-                lightData.rayTracedAreaShadowIndex = -1;
+                lightData.screenSpaceShadowIndex = -1;
 
                 if (light != null && light.cookie != null)
                 {
@@ -549,10 +550,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     switch (light.type)
                     {
                         case LightType.Spot:
-                            lightData.cookieIndex = m_RenderPipeline.cookieTexArray.FetchSlice(cmd, light.cookie);
+                            lightData.cookieIndex = m_RenderPipeline.m_TextureCaches.cookieTexArray.FetchSlice(cmd, light.cookie);
                             break;
                         case LightType.Point:
-                            lightData.cookieIndex = m_RenderPipeline.cubeCookieTexArray.FetchSlice(cmd, light.cookie);
+                            lightData.cookieIndex = m_RenderPipeline.m_TextureCaches.cubeCookieTexArray.FetchSlice(cmd, light.cookie);
                             break;
                     }
                 }
@@ -560,11 +561,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 {
                     // Projectors lights must always have a cookie texture.
                     // As long as the cache is a texture array and not an atlas, the 4x4 white texture will be rescaled to 128
-                    lightData.cookieIndex = m_RenderPipeline.cookieTexArray.FetchSlice(cmd, Texture2D.whiteTexture);
+                    lightData.cookieIndex = m_RenderPipeline.m_TextureCaches.cookieTexArray.FetchSlice(cmd, Texture2D.whiteTexture);
                 }
                 else if (lightData.lightType == GPULightType.Rectangle && additionalLightData.areaLightCookie != null)
                 {
-                    lightData.cookieIndex = m_RenderPipeline.areaLightCookieManager.FetchSlice(cmd, additionalLightData.areaLightCookie);
+                    lightData.cookieIndex = m_RenderPipeline.m_TextureCaches.areaLightCookieManager.FetchSlice(cmd, additionalLightData.areaLightCookie);
                 }
 
                 {

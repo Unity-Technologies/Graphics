@@ -18,6 +18,10 @@ In the LWRP, you can configure settings for:
 
 
 
+**Note:** If you have the experimental 2D Renderer enabled (menu: **Graphics Settings** > add the 2D Renderer Asset under **Scriptable Render Pipeline Settings**), some of the options related to 3D rendering in the LWRP Asset don't have any impact on your final app or game.
+
+
+
 ### General
 The __General__ settings control the core part of the pipeline rendered frame.
 
