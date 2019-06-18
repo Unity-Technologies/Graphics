@@ -15,7 +15,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Subgraphs
 - Move HDRP outputs to HDRP package + expose HDRP queue selection
 - Add exposure weight control for HDRP outputs
-- Added Atan2 node
+- Inverse trigonometric operators (atan, atan2, asin, acos)
 - Replaced Orient : Fixed rotation with new option Orient : Advanced
 
 ## [6.7.0-preview] - 2019-05-16

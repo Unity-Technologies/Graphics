@@ -258,7 +258,7 @@ axisZ = cross(axisX,axisY);
                     axis2 = Y;
                     axis3 = X;
                     break;
-                default:/* the axes FixedOrientation defaulted to: Front and Up */
+                default:
                     throw new InvalidEnumArgumentException("Unsupported axes pair");
             }
         }
@@ -273,7 +273,7 @@ axisZ = cross(axisX,axisY);
         private void AxesPairToVector(AxesPair pair, out Vector3 axis1, out Vector3 axis2)
         {
             Vector3 X = Vector3.right, Y = Vector3.up, Z = Vector3.forward;
-            switch (axes)
+            switch (pair)
             {
                 case AxesPair.XY:
                     axis1 = X;
@@ -299,7 +299,7 @@ axisZ = cross(axisX,axisY);
                     axis1 = Z;
                     axis2 = Y;
                     break;
-                default:/* the axes FixedOrientation defaulted to: Front and Up */
+                default:
                     throw new InvalidEnumArgumentException("Unsupported axes pair");
             }
         }
