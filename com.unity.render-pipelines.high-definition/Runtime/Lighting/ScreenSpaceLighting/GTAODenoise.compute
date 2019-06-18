@@ -5,6 +5,8 @@
 #pragma kernel GTAODenoise_Temporal                     TEMPORAL_DENOISE_KERNEL_NAME=GTAODenoise_Temporal         TEMPORAL  HALF_RES
 #pragma kernel GTAODenoise_Temporal_FullRes             TEMPORAL_DENOISE_KERNEL_NAME=GTAODenoise_Temporal_FullRes TEMPORAL  FULL_RES
 
+#pragma kernel GTAODenoise_CopyHistory HISTORY_COPY
+
 
 
 RW_TEXTURE2D_X(float3, _BentNormalsTexture);
@@ -255,3 +257,13 @@ void TEMPORAL_DENOISE_KERNEL_NAME(uint3 dispatchThreadId : SV_DispatchThreadID)
 #endif
 
 
+#ifdef HISTORY_COPY
+RW_TEXTURE2D_X(uint, _OutputTexture);
+TEXTURE2D_X_UINT(_InputTexture);
+
+[numthreads(8, 8, 1)]
+void GTAODenoise_CopyHistory(uint3 dispatchThreadId : SV_DispatchThreadID)
+{
+    _OutputTexture[COORD_TEXTURE2D_X(dispatchThreadId.xy)] = _InputTexture[COORD_TEXTURE2D_X(dispatchThreadId.xy)];
+}
+#endif
