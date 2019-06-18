@@ -312,26 +312,16 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             EditorGUILayout.PropertyField(m_Size, k_SizeContent);
             EditorGUILayout.PropertyField(m_MaterialProperty, k_MaterialContent);
-            EditorGUILayout.PropertyField(m_DrawDistanceProperty, k_DistanceContent);
 
             EditorGUI.BeginChangeCheck();
-            EditorGUI.showMixedValue = m_FadeScaleProperty.hasMultipleDifferentValues;
-            float fadeDistancePercent = m_FadeScaleProperty.floatValue * 100f;
-            fadeDistancePercent = EditorGUILayout.Slider(k_FadeScaleContent, fadeDistancePercent, 0f, 100f);
-            if (EditorGUI.EndChangeCheck())
-                m_FadeScaleProperty.floatValue = fadeDistancePercent * 0.01f;
-            EditorGUI.showMixedValue = false;
+            EditorGUILayout.PropertyField(m_DrawDistanceProperty, k_DistanceContent);
+            if (EditorGUI.EndChangeCheck() && m_DrawDistanceProperty.floatValue < 0f)
+                m_DrawDistanceProperty.floatValue = 0f;
 
+            EditorGUILayout.PropertyField(m_FadeScaleProperty, k_FadeScaleContent);
             EditorGUILayout.PropertyField(m_UVScaleProperty, k_UVScaleContent);
             EditorGUILayout.PropertyField(m_UVBiasProperty, k_UVBiasContent);
-
-            EditorGUI.BeginChangeCheck();
-            EditorGUI.showMixedValue = m_FadeFactor.hasMultipleDifferentValues;
-            float fadePercent = m_FadeFactor.floatValue * 100f;
-            fadePercent = EditorGUILayout.Slider(k_FadeFactorContent, fadePercent, 0f, 100f);
-            if (EditorGUI.EndChangeCheck())
-                m_FadeFactor.floatValue = fadePercent * 0.01f;
-            EditorGUI.showMixedValue = false;
+            EditorGUILayout.PropertyField(m_FadeFactor, k_FadeFactorContent);
 
             // only display the affects transparent property if material is HDRP/decal
             if (showAffectTransparencyHaveMultipleDifferentValue)

@@ -38,12 +38,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
             set
             {
-                m_DrawDistance = value;
+                m_DrawDistance = Mathf.Max(0f, value);
                 OnValidate();
             }
         }
 
         [SerializeField]
+        [Range(0,1)]
         private float m_FadeScale = 0.9f;
         public float fadeScale
         {
@@ -53,7 +54,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
             set
             {
-                m_FadeScale = value;
+                m_FadeScale = Mathf.Clamp01(value);
                 OnValidate();
             }
         }
@@ -134,6 +135,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
 
         [SerializeField]
+        [Range(0, 1)]
         private float m_FadeFactor = 1.0f;
         public float fadeFactor
         {
@@ -143,7 +145,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
             set
             {
-                m_FadeFactor = value;
+                m_FadeFactor = Mathf.Clamp01(value);
                 OnValidate();
             }
         }
