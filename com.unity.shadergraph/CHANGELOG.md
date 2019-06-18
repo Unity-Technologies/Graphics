@@ -22,6 +22,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - When you save a Shader Graph, all other Shader Graph windows no longer re-compile their preview Shaders.
 - Shader Graph UI now draws with correct styling for 2019.3.
 - When deleting edge connections to nodes with a preview error, input ports no longer draw in the wrong position.
+- Fixed an error involving deprecated components from VisualElements.
 
 ## [6.7.0-preview] - 2019-05-16
 ### Added
