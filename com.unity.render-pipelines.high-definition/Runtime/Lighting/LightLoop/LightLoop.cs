@@ -1974,7 +1974,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         if (additionalLightData.WillRenderShadowMap())
                         {
                             int shadowRequestCount;
-                            shadowIndex = additionalLightData.UpdateShadowRequest(hdCamera, m_ShadowManager, light, cullResults, lightIndex, out shadowRequestCount);
+                            shadowIndex = additionalLightData.UpdateShadowRequest(hdCamera, m_ShadowManager, light, cullResults, lightIndex, debugDisplaySettings.data.lightingDebugSettings, out shadowRequestCount);
 
 #if UNITY_EDITOR
                             if ((debugDisplaySettings.data.lightingDebugSettings.shadowDebugUseSelection
@@ -2045,7 +2045,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     }
 
                     // Update the compute buffer with the shadow request datas
-                    m_ShadowManager.PrepareGPUShadowDatas(cullResults, camera);
+                    m_ShadowManager.PrepareGPUShadowDatas(cullResults, hdCamera);
 
                     // Sanity check
                     Debug.Assert(m_lightList.directionalLights.Count == directionalLightcount);
