@@ -64,6 +64,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public ComputeShader deferredCS;
             [Reload("Lighting/Shadow/ScreenSpaceShadow.compute")]
             public ComputeShader screenSpaceShadowCS;
+            [Reload("Lighting/VolumetricLighting/FluidSimVolume.compute")] //seongdae;fspm
+            public ComputeShader fluidSimVolumeCS; //seongdae;fspm
+            [Reload("Lighting/VolumetricLighting/Texture3DAtlas.compute")] //seongdae;fspm
+            public ComputeShader texture3DAtlasCS; //seongdae;fspm
             [Reload("Lighting/VolumetricLighting/VolumeVoxelization.compute")]
             public ComputeShader volumeVoxelizationCS;
             [Reload("Lighting/VolumetricLighting/VolumetricLighting.compute")]

@@ -1523,6 +1523,19 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 VolumeManager.instance.Update(hdCamera.volumeAnchor, hdCamera.volumeLayerMask);
             }
 
+            //seongdae;fsmp
+            using (new ProfilingSample(cmd, "Fluid Simulation Volume Update", CustomSamplerId.VolumeUpdate.GetSampler()))
+            {
+                FluidSimVolumeManager.manager.SimulateVolume(cmd);
+                renderContext.ExecuteCommandBuffer(cmd);
+                cmd.Clear();
+
+                FluidSimVolumeManager.manager.CopyTextureToAtlas(cmd);
+                renderContext.ExecuteCommandBuffer(cmd);
+                cmd.Clear();
+            }
+            //seongdae;fspm
+
             // Do anything we need to do upon a new frame.
             // The NewFrame must be after the VolumeManager update and before Resize because it uses properties set in NewFrame
             m_LightLoop.NewFrame(hdCamera.frameSettings);
@@ -1546,6 +1559,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             // Frustum cull density volumes on the CPU. Can be performed as soon as the camera is set up.
             DensityVolumeList densityVolumes = m_VolumetricLightingSystem.PrepareVisibleDensityVolumeList(hdCamera, cmd, m_Time);
+            FluidSimVolumeList fluidSimVolumes = m_VolumetricLightingSystem.PrepareVisibleFluidSimVolumeList(hdCamera, cmd, m_Time); //seongdae;fspm
 
             // Note: Legacy Unity behave like this for ShadowMask
             // When you select ShadowMask in Lighting panel it recompile shaders on the fly with the SHADOW_MASK keyword.
@@ -1556,7 +1570,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             bool enableBakeShadowMask;
             using (new ProfilingSample(cmd, "TP_PrepareLightsForGPU", CustomSamplerId.TPPrepareLightsForGPU.GetSampler()))
             {
-                enableBakeShadowMask = m_LightLoop.PrepareLightsForGPU(cmd, hdCamera, cullingResults, hdProbeCullingResults, densityVolumes, m_DebugDisplaySettings);
+                //enableBakeShadowMask = m_LightLoop.PrepareLightsForGPU(cmd, hdCamera, cullingResults, hdProbeCullingResults, densityVolumes, m_DebugDisplaySettings); //seongdae;fspm;origin
+                enableBakeShadowMask = m_LightLoop.PrepareLightsForGPU(cmd, hdCamera, cullingResults, hdProbeCullingResults, densityVolumes, fluidSimVolumes, m_DebugDisplaySettings); //seongdae;fspm
             }
             // Configure all the keywords
             ConfigureKeywords(enableBakeShadowMask, hdCamera, cmd);
@@ -1756,7 +1771,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     haveAsyncTaskWithShadows = true;
 
                     void Callback(CommandBuffer asyncCmd)
-                        => m_VolumetricLightingSystem.VolumeVoxelizationPass(hdCamera, asyncCmd, m_FrameCount, densityVolumes, m_LightLoop);
+                        //=> m_VolumetricLightingSystem.VolumeVoxelizationPass(hdCamera, asyncCmd, m_FrameCount, densityVolumes, m_LightLoop); //seongdae;fspm;origin
+                    //seongdae;fspm
+                    {
+                        m_VolumetricLightingSystem.VolumeVoxelizationPass(hdCamera, asyncCmd, m_FrameCount, densityVolumes, m_LightLoop);
+                        m_VolumetricLightingSystem.VolumeVoxelizationPass(hdCamera, asyncCmd, m_FrameCount, fluidSimVolumes, m_LightLoop);
+                    }
+                    //seongdae;fspm
                 }
 
                 if (hdCamera.frameSettings.SSRRunsAsync())
@@ -1832,6 +1853,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 {
                     // Perform the voxelization step which fills the density 3D texture.
                     m_VolumetricLightingSystem.VolumeVoxelizationPass(hdCamera, cmd, m_FrameCount, densityVolumes, m_LightLoop);
+                    m_VolumetricLightingSystem.VolumeVoxelizationPass(hdCamera, cmd, m_FrameCount, fluidSimVolumes, m_LightLoop); //seongdae;fspm
                 }
 
                 // Render the volumetric lighting.

@@ -470,8 +470,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly int _VBufferSampleOffset            = Shader.PropertyToID("_VBufferSampleOffset");
         public static readonly int _VolumeBounds                   = Shader.PropertyToID("_VolumeBounds");
         public static readonly int _VolumeData                     = Shader.PropertyToID("_VolumeData");
+        public static readonly int _FluidSimVolumeRes              = Shader.PropertyToID("_FluidSimVolumeRes"); //seongdae;fspm
+        public static readonly int _InitialStateVolumeTexture      = Shader.PropertyToID("_InitialStateVolumeTexture"); //seongdae;fspm
+        public static readonly int _VectorField                    = Shader.PropertyToID("_VectorField"); //seongdae;fspm
+        public static readonly int _SimulationBuffer0              = Shader.PropertyToID("_SimulationBuffer0"); //seongdae;fspm
+        public static readonly int _SimulationBuffer1              = Shader.PropertyToID("_SimulationBuffer1"); //seongdae;fspm
+        public static readonly int _OutputVolumeAtlas              = Shader.PropertyToID("_OutputVolumeAtlas"); //seongdae;fspm
         public static readonly int _NumVisibleDensityVolumes       = Shader.PropertyToID("_NumVisibleDensityVolumes");
         public static readonly int _VolumeMaskAtlas                = Shader.PropertyToID("_VolumeMaskAtlas");
+        public static readonly int _FluidSimVolumeAtlas            = Shader.PropertyToID("_FluidSimVolumeAtlas"); //seongdae;fspm
         public static readonly int _VolumeMaskDimensions           = Shader.PropertyToID("_VolumeMaskDimensions");
 
         public static readonly int _EnableLightLayers              = Shader.PropertyToID("_EnableLightLayers");

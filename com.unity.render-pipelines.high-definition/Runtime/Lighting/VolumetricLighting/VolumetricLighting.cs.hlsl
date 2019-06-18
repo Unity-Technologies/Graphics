@@ -20,6 +20,14 @@ struct DensityVolumeEngineData
     float endTimesRcpDistFadeLen;
 };
 
+// Generated from UnityEngine.Experimental.Rendering.HDPipeline.FluidSimVolumeEngineData
+// PackingRules = Exact
+struct FluidSimVolumeEngineData
+{
+    float3 volumeRes;
+    int textureIndex;
+};
+
 //
 // Accessors for UnityEngine.Experimental.Rendering.HDPipeline.DensityVolumeEngineData
 //
@@ -62,6 +70,17 @@ float3 GetRcpNegFaceFade(DensityVolumeEngineData value)
 float GetEndTimesRcpDistFadeLen(DensityVolumeEngineData value)
 {
     return value.endTimesRcpDistFadeLen;
+}
+//
+// Accessors for UnityEngine.Experimental.Rendering.HDPipeline.FluidSimVolumeEngineData
+//
+float3 GetVolumeRes(FluidSimVolumeEngineData value)
+{
+    return value.volumeRes;
+}
+int GetTextureIndex(FluidSimVolumeEngineData value)
+{
+    return value.textureIndex;
 }
 
 #endif

@@ -18,5 +18,18 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             densityVolume.AddComponent<DensityVolume>();
         }
+        //seongdae;fspm
+        [MenuItem("GameObject/Rendering/FluidSim Volume", priority = CoreUtils.gameObjectMenuPriority)]
+        static void CreateFluidSimVolumeGameObject(MenuCommand menuCommand)
+        {
+            var parent = menuCommand.context as GameObject;
+            var fluidSimVolume = CoreEditorUtils.CreateGameObject(parent, "FluidSim Volume");
+            GameObjectUtility.SetParentAndAlign(fluidSimVolume, menuCommand.context as GameObject);
+            Undo.RegisterCreatedObjectUndo(fluidSimVolume, "Create " + fluidSimVolume.name);
+            Selection.activeObject = fluidSimVolume;
+
+            fluidSimVolume.AddComponent<FluidSimVolume>();
+        }
+        //seongdae;fspm
     }
 }
