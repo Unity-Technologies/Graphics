@@ -65,6 +65,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public readonly GUIContent displayAreaLightEmissiveMesh = new GUIContent("Display Emissive Mesh", "Generate an emissive mesh using the size, Color and Intensity of the Area Light.");
             public readonly GUIContent lightLayer = new GUIContent("Light Layer", "Specifies the current Light Layers that the Light affects. This Light illuminates corresponding Renderers with the same Light Layer flags.");
 
+  public readonly GUIContent interactsWithSky = new GUIContent("Interacts with the sky", "Check this option to make the light and the PBR sky affect one another.");
+
             public readonly GUIContent shape = new GUIContent("Type", "Specifies the current type of Light. Possible Light types are Directional, Spot, Point, Rectangle, and Tube.");
             public readonly GUIContent[] shapeNames;
             public readonly GUIContent enableSpotReflector = new GUIContent("Reflector", "When enabled, HDRP simulates a Spot Light with a reflector making the intensity of the Light more focused with a narrower angle. When disabled, the intensity is constent whatever the size of the cone.");
@@ -82,6 +84,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public readonly GUIContent shadowDimmer = new GUIContent("Dimmer", "Dims the shadows this Light casts.");
             public readonly GUIContent shadowTint = new GUIContent("Tint", "Tint the shadows. This option affect dynamic shadows, contact shadows and shadow mask. It don't affect baked shadows.");
             public readonly GUIContent contactShadows = new GUIContent("Enable", "Enable support for Contact Shadows on this Light. This is better for lights with a lot of visible shadows.");
+            public readonly GUIContent shadowUpdateMode = new GUIContent("Update Mode", "Sets the frequency of update for the shadow map.");
+
 
             // Bias control
             public readonly GUIContent viewBiasMin = new GUIContent("View Bias");

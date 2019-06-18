@@ -211,6 +211,19 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             cmd.SetGlobalFloat(HDShaderIDs._SkyTextureMipCount, mipCount);
         }
 
+        public void SetGlobalSkyData(CommandBuffer cmd)
+        {
+            var renderer = m_CurrentSky.renderer;
+            if (renderer != null && renderer.IsValid())
+            {
+                renderer.SetGlobalSkyData(cmd);
+            }
+            else
+            {
+                SkyRenderer.SetGlobalNeutralSkyData(cmd);
+            }
+        }
+
 #if UNITY_EDITOR
         ProceduralSky GetDefaultPreviewSkyInstance()
         {
@@ -401,7 +414,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_CurrentSkyRenderingContext.RenderSky(m_VisualSky, camera, sunLight, colorBuffer, depthBuffer, debugSettings, cmd);
         }
 
-        public void RenderOpaqueAtmosphericScattering(CommandBuffer cmd, HDCamera hdCamera, RTHandleSystem.RTHandle colorBuffer, RTHandleSystem.RTHandle depthBuffer,
+        public void RenderOpaqueAtmosphericScattering(CommandBuffer cmd, HDCamera hdCamera,
+                                                      RTHandleSystem.RTHandle colorBuffer,
+                                                      RTHandleSystem.RTHandle intermediateBuffer,
+                                                      RTHandleSystem.RTHandle depthBuffer,
                                                       Matrix4x4 pixelCoordToViewDirWS, bool isMSAA)
         {
             using (new ProfilingSample(cmd, "Opaque Atmospheric Scattering"))
@@ -409,7 +425,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // FIXME: 24B GC pressure
                 var propertyBlock = new MaterialPropertyBlock();
                 propertyBlock.SetMatrix(HDShaderIDs._PixelCoordToViewDirWS, pixelCoordToViewDirWS);
-                HDUtils.DrawFullScreen(cmd, m_OpaqueAtmScatteringMaterial, colorBuffer, depthBuffer, propertyBlock, isMSAA? 1 : 0);
+                if (isMSAA)
+                    propertyBlock.SetTexture(HDShaderIDs._ColorTextureMS, colorBuffer);
+                else
+                    propertyBlock.SetTexture(HDShaderIDs._ColorTexture,   colorBuffer);
+                // Color -> Intermediate.
+                HDUtils.DrawFullScreen(cmd, m_OpaqueAtmScatteringMaterial, intermediateBuffer, depthBuffer, propertyBlock, isMSAA? 1 : 0);
+                // Intermediate -> Color.
+                // Note: Blit does not support MSAA (and is probably slower).
+                cmd.CopyTexture(intermediateBuffer, colorBuffer);
             }
         }
 

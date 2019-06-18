@@ -62,6 +62,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             ShadowQuality = 1 << 8
         }
 
+        // That's not a real English word...
         enum Advanceable
         {
             General = 1 << 0,
@@ -210,6 +211,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     if (serialized.serializedLightData.linkLightLayers.boolValue && change.changed)
                         SyncLightAndShadowLayers(serialized, owner);
                 }
+            }
+
+            if (serialized.editorLightShape == LightShape.Directional)
+            {
+                serialized.serializedLightData.interactsWithSky.boolValue = EditorGUILayout.Toggle(s_Styles.interactsWithSky, serialized.serializedLightData.interactsWithSky.boolValue);
             }
         }
 
@@ -410,7 +416,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     intensity = LightUtils.ConvertEvToLux(intensity, serialized.serializedLightData.luxAtDistance.floatValue);
             }
             else  // For area lights
-            {               
+            {
                 if (oldLightUnit == LightUnit.Lumen && newLightUnit == LightUnit.Luminance)
                     intensity = LightUtils.ConvertAreaLightLumenToLuminance((LightTypeExtent)serialized.serializedLightData.lightTypeExtent.enumValueIndex, intensity, serialized.serializedLightData.shapeWidth.floatValue, serialized.serializedLightData.shapeHeight.floatValue);
                 if (oldLightUnit == LightUnit.Luminance && newLightUnit == LightUnit.Lumen)
@@ -447,7 +453,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 }
                 else
                     EditorGUILayout.PropertyField(serialized.settings.color, s_Styles.color);
-                
+
                 if (changes.changed && HDRenderPipelinePreferences.lightColorNormalization)
                     serialized.settings.color.colorValue = HDUtils.NormalizeColor(serialized.settings.color.colorValue);
             }
@@ -527,7 +533,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 EditorGUILayout.ObjectField( serialized.serializedLightData.areaLightCookie, s_Styles.areaLightCookie );
             }
-            
+
             if (EditorGUI.EndChangeCheck())
             {
                 serialized.needUpdateAreaLightEmissiveMeshComponents = true;
@@ -595,12 +601,18 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                         EditorGUILayout.PropertyField(serialized.serializedLightData.useScreenSpaceShadows, s_Styles.useScreenSpaceShadows);
                     }
 #endif
+                    if (!serialized.settings.isCompletelyBaked)
+                    {
+                        EditorGUILayout.PropertyField(serialized.serializedShadowData.shadowUpdateMode, s_Styles.shadowUpdateMode);
+                    }
+
                     using (var change = new EditorGUI.ChangeCheckScope())
                     {
                         EditorGUILayout.DelayedIntField(serialized.serializedShadowData.resolution, s_Styles.shadowResolution);
                         if (change.changed)
                             serialized.serializedShadowData.resolution.intValue = Mathf.Max(HDShadowManager.k_MinShadowMapResolution, serialized.serializedShadowData.resolution.intValue);
                     }
+
                     EditorGUILayout.Slider(serialized.serializedLightData.shadowNearPlane, HDShadowUtils.k_MinShadowNearPlane, 10f, s_Styles.shadowNearPlane);
 
                     if (serialized.settings.isMixed)

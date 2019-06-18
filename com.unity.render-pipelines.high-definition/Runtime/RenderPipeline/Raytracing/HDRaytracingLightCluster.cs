@@ -82,6 +82,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             // Pre allocate the cluster with a dummy size
             m_LightCluster = new ComputeBuffer(1, sizeof(uint));
+            m_LightDataGPUArray = new ComputeBuffer(1, sizeof(uint));
         }
 
         public void ReleaseResources()

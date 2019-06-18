@@ -3,7 +3,7 @@ using UnityEngine.Rendering;
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
     [VolumeComponentMenu("Sky/HDRI Sky")]
-    [SkyUniqueID((int)SkyType.HDRISky)]
+    [SkyUniqueID((int)SkyType.HDRI)]
     public class HDRISky : SkySettings
     {
         [Tooltip("Specify the cubemap HDRP uses to render the sky.")]
