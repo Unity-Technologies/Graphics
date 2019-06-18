@@ -944,7 +944,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             return new Vector3(light.finalColor.r, light.finalColor.g, light.finalColor.b);
         }
 
-        public bool GetDirectionalLightData(CommandBuffer cmd, HDCamera hdCamera, GPULightType gpuLightType, VisibleLight light, Light lightComponent, HDAdditionalLightData additionalLightData, AdditionalShadowData additionalShadowData, int lightIndex, int shadowIndex, DebugDisplaySettings debugDisplaySettings, int sortedIndex, ref int screenSpaceShadowIndex)
+        public bool GetDirectionalLightData(CommandBuffer cmd, HDCamera hdCamera, GPULightType gpuLightType, VisibleLight light, Light lightComponent, HDAdditionalLightData additionalLightData, AdditionalShadowData additionalShadowData, int lightIndex, int shadowIndex, DebugDisplaySettings debugDisplaySettings, int sortedIndex, ref int screenSpaceShadowIndex, bool isPbrSkyActive)
         {
             // Clamp light list to the maximum allowed lights on screen to avoid ComputeBuffer overflow
             if (m_lightList.directionalLights.Count >= m_MaxDirectionalLightsOnScreen)
@@ -1037,6 +1037,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 lightData.shadowMaskSelector.x = -1.0f;
                 lightData.nonLightMappedOnly = 0;
             }
+
+            lightData.interactsWithSky = isPbrSkyActive && additionalLightData.interactsWithSky ? 1 : 0;
+
 
             // Fallback to the first non shadow casting directional light.
             m_CurrentSunLight = m_CurrentSunLight == null ? lightComponent : m_CurrentSunLight;
@@ -1926,6 +1929,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     // And if needed rescale the whole atlas
                     m_ShadowManager.LayoutShadowMaps(debugDisplaySettings.data.lightingDebugSettings);
 
+                    bool isPbrSkyActive = false;
+
+                    var visualEnvironment = VolumeManager.instance.stack.GetComponent<VisualEnvironment>();
+                    Debug.Assert(visualEnvironment != null);
+
+                    isPbrSkyActive = (visualEnvironment.skyType.value == SkySettings.GetUniqueID<PhysicallyBasedSkySettings>());
+
                     // TODO: Refactor shadow management
                     // The good way of managing shadow:
                     // Here we sort everyone and we decide which light is important or not (this is the responsibility of the lightloop)
@@ -1964,7 +1974,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         if (additionalLightData.WillRenderShadowMap())
                         {
                             int shadowRequestCount;
-                            shadowIndex = additionalLightData.UpdateShadowRequest(hdCamera, m_ShadowManager, light, cullResults, lightIndex, out shadowRequestCount);
+                            shadowIndex = additionalLightData.UpdateShadowRequest(hdCamera, m_ShadowManager, light, cullResults, lightIndex, debugDisplaySettings.data.lightingDebugSettings, out shadowRequestCount);
 
 #if UNITY_EDITOR
                             if ((debugDisplaySettings.data.lightingDebugSettings.shadowDebugUseSelection
@@ -1980,7 +1990,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         // Directional rendering side, it is separated as it is always visible so no volume to handle here
                         if (gpuLightType == GPULightType.Directional)
                         {
-                            if (GetDirectionalLightData(cmd, hdCamera, gpuLightType, light, lightComponent, additionalLightData, additionalShadowData, lightIndex, shadowIndex, debugDisplaySettings, directionalLightcount, ref m_ScreenSpaceShadowIndex))
+                            if (GetDirectionalLightData(cmd, hdCamera, gpuLightType, light, lightComponent, additionalLightData, additionalShadowData, lightIndex, shadowIndex, debugDisplaySettings, directionalLightcount, ref m_ScreenSpaceShadowIndex, isPbrSkyActive))
                             {
                                 directionalLightcount++;
 
@@ -2035,7 +2045,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     }
 
                     // Update the compute buffer with the shadow request datas
-                    m_ShadowManager.PrepareGPUShadowDatas(cullResults, camera);
+                    m_ShadowManager.PrepareGPUShadowDatas(cullResults, hdCamera);
 
                     // Sanity check
                     Debug.Assert(m_lightList.directionalLights.Count == directionalLightcount);

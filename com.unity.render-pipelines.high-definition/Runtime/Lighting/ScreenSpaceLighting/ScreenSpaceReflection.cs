@@ -6,7 +6,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     [Serializable, VolumeComponentMenu("Lighting/Screen Space Reflection")]
     public class ScreenSpaceReflection : VolumeComponent
     {
-
         public ClampedFloatParameter depthBufferThickness = new ClampedFloatParameter(0.01f, 0, 1);
         public ClampedFloatParameter screenFadeDistance = new ClampedFloatParameter(0.1f, 0.0f, 1.0f);
         public ClampedFloatParameter minSmoothness = new ClampedFloatParameter(0.9f, 0.0f, 1.0f);
@@ -15,7 +14,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public IntParameter rayMaxIterations = new IntParameter(32);
 
-        [Tooltip("Enable raytraced reflections")]
+        [Tooltip("Enable ray traced reflections")]
         public BoolParameter enableRaytracing = new BoolParameter(false);
 
         [Tooltip("Controls the length of reflection rays.")]
@@ -24,22 +23,28 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         [Tooltip("Controls the clamp of intensity.")]
         public ClampedFloatParameter clampValue = new ClampedFloatParameter(1.0f, 0.001f, 10.0f);
 
-        // Tier 1 code
-        [Tooltip("Controls the history weight.")]
-        public ClampedFloatParameter temporalAccumulationWeight = new ClampedFloatParameter(0.1f, 0.001f, 1.0f);
-        
-        [Tooltip("Controls the size of the upscale radius")]
-        public IntParameter spatialFilterRadius = new ClampedIntParameter(4, 1, 6);
-
-        // Tier 2 code
-        [Tooltip("Number of samples for reflections.")]
-        public ClampedIntParameter numSamples = new ClampedIntParameter(1, 1, 32);
-
-        [Tooltip("Enable Filtering on the raytraced reflections.")]
+        [Tooltip("Enable Filtering on the ray traced reflections.")]
         public BoolParameter enableFilter = new BoolParameter(false);
 
         [Tooltip("Controls the size of the filter radius.")]
         public ClampedIntParameter filterRadius = new ClampedIntParameter(16, 1, 32);
+
+        // Tier 1 code
+        [Tooltip("Controls the size of the upscale radius")]
+        public IntParameter spatialFilterRadius = new ClampedIntParameter(4, 2, 6);
+
+        [Tooltip("Enables full resolution mode")]
+        public BoolParameter fullResolution = new BoolParameter(false);
+
+        [Tooltip("Enables deferred mode")]
+        public BoolParameter deferredMode = new BoolParameter(false);
+
+        [Tooltip("Enables ray binning")]
+        public BoolParameter rayBinning = new BoolParameter(false);
+
+        // Tier 2 code
+        [Tooltip("Number of samples for reflections.")]
+        public ClampedIntParameter numSamples = new ClampedIntParameter(1, 1, 32);
 
         static ScreenSpaceReflection s_Default = null;
         public static ScreenSpaceReflection @default

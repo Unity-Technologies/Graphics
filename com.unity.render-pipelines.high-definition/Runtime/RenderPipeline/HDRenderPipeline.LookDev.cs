@@ -63,7 +63,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
             else
             {
-                data.visualEnvironment.skyType.Override((int)SkyType.HDRISky);
+                data.visualEnvironment.skyType.Override((int)SkyType.HDRI);
                 data.sky.hdriSky.Override(sky.cubemap);
                 data.sky.rotation.Override(sky.longitudeOffset);
                 data.additionalCameraData.clearColorMode = HDAdditionalCameraData.ClearColorMode.Sky;
