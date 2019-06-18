@@ -6,6 +6,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [6.8.0] - 2019-06-18
 
+### Version Updated
+The version number for this package has increased due to a version update of a related graphics package.
+
 ## [6.7.0] - 2019-05-21
 
 ### Version Updated
