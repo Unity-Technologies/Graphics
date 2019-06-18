@@ -65,6 +65,12 @@ struct StackInfo
 	float4 resolveOutput;
 };
 
+#ifdef TEXTURESTACK_CLAMP
+    #define GR_LOOKUP Granite_Lookup_Clamp_Linear
+#else
+    #define GR_LOOKUP Granite_Lookup_Anisotropic
+#endif
+
 
 #define DECLARE_STACK_CB(stackName) \
     float4x4 stackName##_spaceparams[2];\
@@ -93,7 +99,7 @@ StackInfo PrepareVT_##stackName(float2 uv)\
 	translationTable.Sampler = sampler##stackName##_transtab;\
 \
 	StackInfo info;\
-	Granite_Lookup_Anisotropic(grCB, translationTable, uv, info.lookupData, info.resolveOutput);\
+    GR_LOOKUP(grCB, translationTable, uv, info.lookupData, info.resolveOutput);\
 	return info;\
 }
 

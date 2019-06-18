@@ -4,7 +4,6 @@
 #include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/Core.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/CommonMaterial.hlsl"
 #include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/SurfaceInput.hlsl"
-#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/TextureStack.hlsl"
 
 CBUFFER_START(_Terrain)
 half _Metallic0, _Metallic1, _Metallic2, _Metallic3;
@@ -38,10 +37,6 @@ CBUFFER_END
 
 TEXTURE2D(_MetallicTex);   SAMPLER(sampler_MetallicTex);
 
-#ifdef VT_ON
-DECLARE_STACK_CB(_TextureStack);
-DECLARE_STACK(_TextureStack, _MainTex);
-#endif
 
 half4 SampleMetallicSpecGloss(float2 uv, half albedoAlpha)
 {
