@@ -909,6 +909,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (!m_ValidAPI || cameras.Length == 0)
                 return;
 
+            DefaultSettings.GetOrCreateDefaultVolume();
+
             UnityEngine.Rendering.RenderPipeline.BeginFrameRendering(renderContext, cameras);
 
             // Check if we can speed up FrameSettings process by skiping history
