@@ -15,10 +15,10 @@ using UnityEngine.Experimental.XR;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
-    public partial class XRSystem
+    internal partial class XRSystem
     {
         // Valid empty pass when a camera is not using XR
-        public readonly XRPass emptyPass = new XRPass();
+        internal readonly XRPass emptyPass = new XRPass();
 
         // Store active passes and avoid allocating memory every frames
         List<(Camera, XRPass)> framePasses = new List<(Camera, XRPass)>();
@@ -34,26 +34,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             TextureXR.maxViews = GetMaxViews();
         }
 
-        // Compute the maximum number of views to allocate for texture arrays
+        // Compute the maximum number of views (slices) to allocate for texture arrays
         internal int GetMaxViews()
         {
             int maxViews = 1;
 
 #if USE_XR_SDK
-            // XRTODO(2019.3) : replace by API from XR SDK
             if (display != null)
             {
-                // The following code is not working because the display information is not yet available :/
-                //for (int renderPassIndex = 0; renderPassIndex < display.GetRenderPassCount(); ++renderPassIndex)
-                //{
-                //    display.GetRenderPass(renderPassIndex, out var renderPass);
-                //    if (renderPass.renderTargetDesc.dimension == TextureDimension.Tex2DArray)
-                //    {
-                //        maxViews = Math.Max(maxViews, renderPass.renderTargetDesc.volumeDepth);
-                //    }
-                //}
-
-                // Assume we have 2 slices until the API is ready
+                // XRTODO(2019.3) : replace by API from XR SDK, assume we have 2 slices until then
                 maxViews = 2;
             }
             else
@@ -234,7 +223,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             framePasses.Clear();
         }
 
-        internal void AddPassToFrame(Camera camera, XRPass xrPass)
+        void AddPassToFrame(Camera camera, XRPass xrPass)
         {
             framePasses.Add((camera, xrPass));
         }

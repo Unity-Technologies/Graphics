@@ -2,19 +2,16 @@ using UnityEngine.Rendering;
 
 namespace UnityEngine.Experimental.Rendering
 {
-    public static class TextureXR
+    internal static class TextureXR
     {
-        // Limit memory usage of default textures
-        public const int kMaxSlices = 2;
-
         // Property set by XRSystem
-        public static int maxViews { get; set; } = 1;
+        internal static int maxViews { private get; set; } = 1;
 
-        // Property accessed when allocating a render texture
-        public static int slices { get => maxViews; }
+        // Property accessed when allocating a render target
+        internal static int slices { get => maxViews; }
 
         // Must be in sync with shader define in TextureXR.hlsl
-        public static bool useTexArray
+        internal static bool useTexArray
         {
             get
             {
@@ -35,7 +32,7 @@ namespace UnityEngine.Experimental.Rendering
             }
         }
 
-        public static TextureDimension dimension
+        internal static TextureDimension dimension
         {
             get
             {
@@ -44,13 +41,13 @@ namespace UnityEngine.Experimental.Rendering
             }
         }
 
-        public static void Initialize(CommandBuffer cmd)
+        internal static void Initialize(CommandBuffer cmd)
         {
             if (blackUIntTexture2DArray == null)
                 blackUIntTexture2DArray = CreateBlackUIntTextureArray(cmd);
         }
 
-        public static Texture GetClearTexture()
+        internal static Texture GetClearTexture()
         {
             if (useTexArray)
                 return clearTexture2DArray;
@@ -58,7 +55,7 @@ namespace UnityEngine.Experimental.Rendering
             return clearTexture;
         }
 
-        public static Texture GetBlackTexture()
+        internal static Texture GetBlackTexture()
         {
             if (useTexArray)
                 return blackTexture2DArray;
@@ -66,7 +63,7 @@ namespace UnityEngine.Experimental.Rendering
             return Texture2D.blackTexture;
         }
 
-        public static Texture GetBlackUIntTexture()
+        internal static Texture GetBlackUIntTexture()
         {
             if (useTexArray)
                 return blackUIntTexture2DArray;
@@ -74,7 +71,7 @@ namespace UnityEngine.Experimental.Rendering
             return blackUIntTexture;
         }
 
-        public static Texture GetWhiteTexture()
+        internal static Texture GetWhiteTexture()
         {
             if (useTexArray)
                 return whiteTexture2DArray;
@@ -84,8 +81,8 @@ namespace UnityEngine.Experimental.Rendering
 
         private static Texture2DArray CreateTexture2DArrayFromTexture2D(Texture2D source, string name)
         {
-            Texture2DArray texArray = new Texture2DArray(source.width, source.height, kMaxSlices, source.format, false) { name = name };
-            for (int i = 0; i < kMaxSlices; ++i)
+            Texture2DArray texArray = new Texture2DArray(source.width, source.height, slices, source.format, false) { name = name };
+            for (int i = 0; i < slices; ++i)
                 Graphics.CopyTexture(source, 0, 0, texArray, i, 0);
 
             return texArray;
@@ -125,7 +122,7 @@ namespace UnityEngine.Experimental.Rendering
         }
 
         static Texture2DArray m_ClearTexture2DArray;
-        public static Texture2DArray clearTexture2DArray
+        internal static Texture2DArray clearTexture2DArray
         {
             get
             {
@@ -137,7 +134,7 @@ namespace UnityEngine.Experimental.Rendering
         }
 
         static Texture2DArray m_BlackTexture2DArray;
-        public static Texture2DArray blackTexture2DArray
+        internal static Texture2DArray blackTexture2DArray
         {
             get
             {
@@ -149,7 +146,7 @@ namespace UnityEngine.Experimental.Rendering
         }
 
         static Texture2DArray m_WhiteTexture2DArray;
-        public static Texture2DArray whiteTexture2DArray
+        internal static Texture2DArray whiteTexture2DArray
         {
             get
             {
@@ -165,7 +162,7 @@ namespace UnityEngine.Experimental.Rendering
             Texture blackUIntTexture2DArray = new RenderTexture(1, 1, 0, GraphicsFormat.R32_UInt)
             {
                 dimension = TextureDimension.Tex2DArray,
-                volumeDepth = kMaxSlices,
+                volumeDepth = slices,
                 useMipMap = false,
                 autoGenerateMips = false,
                 enableRandomWrite = true,
@@ -175,7 +172,7 @@ namespace UnityEngine.Experimental.Rendering
             (blackUIntTexture2DArray as RenderTexture).Create();
 
             // Can't use CreateTexture2DArrayFromTexture2D here because we need to create the texture using GraphicsFormat
-            for (int i = 0; i < kMaxSlices; ++i)
+            for (int i = 0; i < slices; ++i)
             {
                 CoreUtils.SetRenderTarget(cmd, blackUIntTexture2DArray, ClearFlag.Color, Color.black, depthSlice: i);
             }
@@ -184,6 +181,6 @@ namespace UnityEngine.Experimental.Rendering
         }
 
         static Texture m_BlackUIntTexture2DArray;
-        public static Texture blackUIntTexture2DArray { get => m_BlackUIntTexture2DArray; private set => m_BlackUIntTexture2DArray = value; }
+        internal static Texture blackUIntTexture2DArray { get => m_BlackUIntTexture2DArray; private set => m_BlackUIntTexture2DArray = value; }
     }
 }

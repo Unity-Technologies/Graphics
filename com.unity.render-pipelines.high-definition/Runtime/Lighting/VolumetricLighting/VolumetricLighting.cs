@@ -223,7 +223,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_xySeq = new Vector2[7];
             m_xySeqOffset = new Vector4();
 
-            m_PixelCoordToViewDirWS = new Matrix4x4[TextureXR.kMaxSlices];
+            m_PixelCoordToViewDirWS = new Matrix4x4[TextureXR.slices];
 
             CreateVolumetricLightingBuffers();
         }

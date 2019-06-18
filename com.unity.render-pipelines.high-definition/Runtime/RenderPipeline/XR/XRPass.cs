@@ -82,7 +82,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         // XRTODO(2019.3) : remove once XRE-445 is done
         // We need an intermediate target to render the mirror view
-        public RenderTexture tempRenderTexture { get; private set; } = null;
+        internal RenderTexture tempRenderTexture { get; private set; } = null;
 #if USE_XR_SDK
         RenderTextureDescriptor tempRenderTextureDesc;
 #endif
@@ -185,7 +185,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             views.Add(xrView);
 
             // Validate memory limitations
-            Debug.Assert(views.Count <= TextureXR.kMaxSlices);
+            Debug.Assert(views.Count <= TextureXR.slices);
         }
 
         internal void StartSinglePass(CommandBuffer cmd, Camera camera, ScriptableRenderContext renderContext)
@@ -215,7 +215,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     {
                         cmd.EnableShaderKeyword("STEREO_INSTANCING_ON");
 #if UNITY_2019_3_OR_NEWER
-                        cmd.SetInstanceMultiplier(2);
+                        //cmd.SetInstanceMultiplier(2);
 #endif
                     }
                     else
@@ -240,7 +240,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 {
                     cmd.DisableShaderKeyword("STEREO_INSTANCING_ON");
 #if UNITY_2019_3_OR_NEWER
-                    cmd.SetInstanceMultiplier(1);
+                    //cmd.SetInstanceMultiplier(1);
 #endif
                 }
             }
