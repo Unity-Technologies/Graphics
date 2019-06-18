@@ -188,7 +188,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             Debug.Assert(views.Count <= TextureXR.kMaxSlices);
         }
 
-        internal void StartLegacyStereo(Camera camera, CommandBuffer cmd, ScriptableRenderContext renderContext)
+        internal void StartSinglePass(CommandBuffer cmd, Camera camera, ScriptableRenderContext renderContext)
         {
             if (enabled)
             {
@@ -226,7 +226,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        internal void StopLegacyStereo(Camera camera, CommandBuffer cmd, ScriptableRenderContext renderContext)
+        internal void StopSinglePass(CommandBuffer cmd, Camera camera, ScriptableRenderContext renderContext)
         {
             if (enabled)
             {
@@ -246,7 +246,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        internal void EndCamera(HDCamera hdCamera, ScriptableRenderContext renderContext, CommandBuffer cmd)
+        internal void EndCamera(CommandBuffer cmd, HDCamera hdCamera, ScriptableRenderContext renderContext)
         {
             if (!enabled)
                 return;
@@ -286,11 +286,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     }
                 }
 
-                StopLegacyStereo(hdCamera.camera, cmd, renderContext);
+                StopSinglePass(cmd, hdCamera.camera, renderContext);
             }
             else
             {
-                StopLegacyStereo(hdCamera.camera, cmd, renderContext);
+                StopSinglePass(cmd, hdCamera.camera, renderContext);
 
                 // Pushes to XR headset and/or display mirror
                 if (legacyMultipassEnabled)

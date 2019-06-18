@@ -31,6 +31,39 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         internal XRSystem()
         {
             RefreshXrSdk();
+            TextureXR.maxViews = GetMaxViews();
+        }
+
+        // Compute the maximum number of views to allocate for texture arrays
+        internal int GetMaxViews()
+        {
+            int maxViews = 1;
+
+#if USE_XR_SDK
+            // XRTODO(2019.3) : replace by API from XR SDK
+            if (display != null)
+            {
+                // The following code is not working because the display information is not yet available :/
+                //for (int renderPassIndex = 0; renderPassIndex < display.GetRenderPassCount(); ++renderPassIndex)
+                //{
+                //    display.GetRenderPass(renderPassIndex, out var renderPass);
+                //    if (renderPass.renderTargetDesc.dimension == TextureDimension.Tex2DArray)
+                //    {
+                //        maxViews = Math.Max(maxViews, renderPass.renderTargetDesc.volumeDepth);
+                //    }
+                //}
+
+                // Assume we have 2 slices until the API is ready
+                maxViews = 2;
+            }
+            else
+#endif
+            {
+                if (XRGraphics.stereoRenderingMode == XRGraphics.StereoRenderingMode.SinglePassInstanced)
+                    maxViews = 2;
+            }
+
+            return maxViews;
         }
 
         internal List<(Camera, XRPass)> SetupFrame(Camera[] cameras)
@@ -38,15 +71,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             bool xrSdkActive = RefreshXrSdk();
 
             // Validate state
-            {
-                Debug.Assert(framePasses.Count == 0, "XRSystem.ReleaseFrame() was not called!");
-
-                //if (XRGraphics.enabled)
-                //{
-                //    Debug.Assert(XRGraphics.stereoRenderingMode != XRGraphics.StereoRenderingMode.SinglePass, "single-pass (double-wide) is not compatible with HDRP.");
-                //    Debug.Assert(!xrSdkActive, "The legacy C++ stereo rendering path must be disabled with XR SDK! Go to Project Settings --> Player --> XR Settings");
-                //}
-            }
+            Debug.Assert(framePasses.Count == 0, "XRSystem.ReleaseFrame() was not called!");
             
             foreach (var camera in cameras)
             {
@@ -98,9 +123,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 display = displayList[0];
                 display.disableLegacyRenderer = true;
 
-                // XRTODO: handle more than 2 instanced views
-                TextureXR.maxViews = 2;
-
                 return true;
             }
             else
@@ -108,8 +130,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 display = null;
             }
 #endif
-
-            //TextureXR.maxViews = (XRGraphics.stereoRenderingMode == XRGraphics.StereoRenderingMode.SinglePassInstanced) ? 2 : 1;
 
             return false;
         }

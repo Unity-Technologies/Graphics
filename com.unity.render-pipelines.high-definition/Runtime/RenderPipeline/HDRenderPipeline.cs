@@ -1591,7 +1591,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Configure all the keywords
             ConfigureKeywords(enableBakeShadowMask, hdCamera, cmd);
 
-            hdCamera.xr.StartLegacyStereo(camera, cmd, renderContext);
+            hdCamera.xr.StartSinglePass(cmd, camera, renderContext);
 
             ClearBuffers(hdCamera, cmd);
 
@@ -1635,14 +1635,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             RenderCameraMotionVectors(cullingResults, hdCamera, renderContext, cmd);
 
-            hdCamera.xr.StopLegacyStereo(camera, cmd, renderContext);
+            hdCamera.xr.StopSinglePass(cmd, camera, renderContext);
 
             // Caution: We require sun light here as some skies use the sun light to render, it means that UpdateSkyEnvironment must be called after PrepareLightsForGPU.
             // TODO: Try to arrange code so we can trigger this call earlier and use async compute here to run sky convolution during other passes (once we move convolution shader to compute).
             if(m_CurrentDebugDisplaySettings.GetDebugLightingMode() != DebugLightingMode.MatcapView)
                 UpdateSkyEnvironment(hdCamera, cmd);
 
-            hdCamera.xr.StartLegacyStereo(camera, cmd, renderContext);
+            hdCamera.xr.StartSinglePass(cmd, camera, renderContext);
 
 #if ENABLE_RAYTRACING
             bool raytracedIndirectDiffuse = m_RaytracingIndirectDiffuse.RenderIndirectDiffuse(hdCamera, cmd, renderContext, m_FrameCount);
@@ -1697,7 +1697,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
 #endif
 
-                hdCamera.xr.StopLegacyStereo(camera, cmd, renderContext);
+                hdCamera.xr.StopSinglePass(cmd, camera, renderContext);
 
                 var buildLightListTask = new HDGPUAsyncTask("Build light list", ComputeQueueType.Background);
                 // It is important that this task is in the same queue as the build light list due to dependency it has on it. If really need to move it, put an extra fence to make sure buildLightListTask has finished.
@@ -1861,7 +1861,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     SSRTask.End(cmd);
                 }
 
-                hdCamera.xr.StartLegacyStereo(camera, cmd, renderContext);
+                hdCamera.xr.StartSinglePass(cmd, camera, renderContext);
 
                 RenderDeferredLighting(hdCamera, cmd);
 
@@ -1962,7 +1962,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
 
             // XR mirror view and blit do device
-            hdCamera.xr.EndCamera(hdCamera, renderContext, cmd);
+            hdCamera.xr.EndCamera(cmd, hdCamera, renderContext);
 
             // Send all required graphics buffer to client systems.
             SendGraphicsBuffers(cmd, hdCamera);
