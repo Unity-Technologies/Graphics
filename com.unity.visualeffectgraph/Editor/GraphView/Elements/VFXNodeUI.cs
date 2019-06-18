@@ -149,7 +149,6 @@ namespace UnityEditor.VFX.UI
         {
             this.AddStyleSheetPath("VFXNode");
             AddToClassList("VFXNodeUI");
-            cacheAsBitmap = true;
 
             RegisterCallback<MouseEnterEvent>(OnMouseEnter);
             RegisterCallback<MouseLeaveEvent>(OnMouseLeave);

@@ -6,8 +6,8 @@ run_katana_metal:
     image: cds-ops/ubuntu-18.04-agent:latest
     flavor: b1.small
   commands:
-  - sudo apt-get update
-  - sudo apt-get install python3.6
+  #- sudo apt-get update
+  #- sudo apt-get --yes --force-yes install python3.6
   - python3 katana-ci/katana_launcher.py
   artifacts:
     logs.zip:
