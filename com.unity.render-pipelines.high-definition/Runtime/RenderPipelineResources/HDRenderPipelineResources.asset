@@ -85,6 +85,13 @@ MonoBehaviour:
     gradientSkyPS: {fileID: 4800000, guid: 2b5d4f1b26f03dc4a873b093e0c4adb1, type: 3}
     ambientProbeConvolutionCS: {fileID: 7200000, guid: 6d048f7b1bd45e840b4e79ec92639fa8,
       type: 3}
+    opticalDepthPrecomputationCS: {fileID: 7200000, guid: 0c0080935aaf586499a8802216a18912,
+      type: 3}
+    groundIrradiancePrecomputationCS: {fileID: 7200000, guid: eb6ae6f326207ee4d987a3e5adddf63a,
+      type: 3}
+    inScatteredRadiancePrecomputationCS: {fileID: 7200000, guid: 70c69d514688f8545855680760d77418,
+      type: 3}
+    pbrSkyPS: {fileID: 4800000, guid: a06934a4863e778498be65d8f865b7a4, type: 3}
     preIntegratedFGD_GGXDisneyDiffusePS: {fileID: 4800000, guid: 123f13d52852ef547b2962de4bd9eaad,
       type: 3}
     preIntegratedFGD_CharlieFabricLambertPS: {fileID: 4800000, guid: 3b3bf235775cf8b4baae7f3306787ab0,
@@ -98,6 +105,8 @@ MonoBehaviour:
     blitCubeTextureFacePS: {fileID: 4800000, guid: d850d0a2481878d4bbf17e5126b04163,
       type: 3}
     filterAreaLightCookiesPS: {fileID: 4800000, guid: c243aac96dda5fa40bed693ed5ba02c4,
+      type: 3}
+    clearUIntTextureCS: {fileID: 7200000, guid: d067ad4b88af51c498875426894aef76,
       type: 3}
     shadowClearPS: {fileID: 4800000, guid: e3cab24f27741f44d8af1e94d006267c, type: 3}
     evsmBlurCS: {fileID: 7200000, guid: fb36979473602464fa32deacb9630c08, type: 3}

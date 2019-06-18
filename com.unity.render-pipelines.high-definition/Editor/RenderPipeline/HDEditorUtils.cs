@@ -7,11 +7,39 @@ using UnityEditor.Rendering;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering.HDPipeline;
 using UnityEditor.ShaderGraph;
+using UnityEngine.UIElements;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
     public class HDEditorUtils
     {
+        const string EditorStyleSheetPath =
+            @"Packages/com.unity.render-pipelines.high-definition/Editor/HDRPEditor.uss";
+        const string EditorStyleLightSheetPath =
+            @"Packages/com.unity.render-pipelines.high-definition/Editor/HDRPEditorLight.uss";
+        const string EditorStyleDarkSheetPath =
+            @"Packages/com.unity.render-pipelines.high-definition/Editor/HDRPEditorDark.uss";
+
+        private static (StyleSheet, StyleSheet, StyleSheet) m_StyleSheets = (null, null, null);
+
+        static (StyleSheet, StyleSheet, StyleSheet) SpecificStyleSheets
+            => (m_StyleSheets.Item1) != null ? m_StyleSheets : (m_StyleSheets = (
+                AssetDatabase.LoadAssetAtPath<StyleSheet>(EditorStyleSheetPath),
+                AssetDatabase.LoadAssetAtPath<StyleSheet>(EditorStyleLightSheetPath),
+                AssetDatabase.LoadAssetAtPath<StyleSheet>(EditorStyleDarkSheetPath)
+            ));
+
+        public static void AddStyleSheets(VisualElement element)
+        {
+            element.styleSheets.Add(SpecificStyleSheets.Item1);
+            element.styleSheets.Add(
+                EditorGUIUtility.isProSkin
+                ? SpecificStyleSheets.Item3
+                : SpecificStyleSheets.Item2
+            );
+        }
+
+
         static readonly Action<SerializedProperty, GUIContent> k_DefaultDrawer = (p, l) => EditorGUILayout.PropertyField(p, l);
 
         delegate void MaterialResetter(Material material);

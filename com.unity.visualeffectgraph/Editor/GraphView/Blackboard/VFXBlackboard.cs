@@ -90,7 +90,6 @@ namespace  UnityEditor.VFX.UI
             m_DragIndicator.style.position = PositionType.Absolute;
             hierarchy.Add(m_DragIndicator);
 
-            cacheAsBitmap = true;
             SetDragIndicatorVisible(false);
 
             Resizer resizer = this.Query<Resizer>();

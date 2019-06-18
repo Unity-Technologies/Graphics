@@ -400,8 +400,8 @@ real RadToDeg(real rad)
 }
 
 // Square functions for cleaner code
-TEMPLATE_1_REAL(Sq, x, return x * x)
-TEMPLATE_1_INT(Sq, x, return x * x)
+TEMPLATE_1_REAL(Sq, x, return (x) * (x))
+TEMPLATE_1_INT(Sq, x, return (x) * (x))
 
 bool IsPower2(uint x)
 {
@@ -511,6 +511,7 @@ float FastSign(float s, bool ignoreNegZero = true)
 // Returns the new tangent (the normal is unaffected).
 real3 Orthonormalize(real3 tangent, real3 normal)
 {
+    // TODO: use SafeNormalize()?
     return normalize(tangent - dot(tangent, normal) * normal);
 }
 
@@ -758,6 +759,19 @@ float DecodeLogarithmicDepth(float d, float4 encodingParams)
     return encodingParams.x * exp2(d * encodingParams.y);
 }
 
+real4 CompositeOver(real4 front, real4 back)
+{
+    return front + (1 - front.a) * back;
+}
+
+void CompositeOver(real3 colorFront, real3 alphaFront,
+                   real3 colorBack,  real3 alphaBack,
+                   out real3 color,  out real3 alpha)
+{
+    color = colorFront + (1 - alphaFront) * colorBack;
+    alpha = alphaFront + (1 - alphaFront) * alphaBack;
+}
+
 // ----------------------------------------------------------------------------
 // Space transformations
 // ----------------------------------------------------------------------------
@@ -987,6 +1001,18 @@ real3 SafeNormalize(real3 inVec)
 real SafeDiv(real numer, real denom)
 {
     return (numer != denom) ? numer / denom : 1;
+}
+
+// Assumes that (0 <= x <= Pi).
+real SinFromCos(real cosX)
+{
+    return sqrt(saturate(1 - cosX * cosX));
+}
+
+// Dot product in spherical coordinates.
+real SphericalDot(real cosTheta1, real phi1, real cosTheta2, real phi2)
+{
+    return SinFromCos(cosTheta1) * SinFromCos(cosTheta2) * cos(phi1 - phi2) + cosTheta1 * cosTheta2;
 }
 
 // Generates a triangle in homogeneous clip space, s.t.

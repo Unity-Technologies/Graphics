@@ -1,7 +1,7 @@
 EnumConversionControlView {
     flex-direction: row;
-    padding-left: 8px;
-    padding-right: 8px;
+    padding-left: 5px;
+    padding-right: 5px;
     padding-top: 4px;
     padding-bottom: 4px;
 }

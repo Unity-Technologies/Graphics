@@ -117,6 +117,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public Shader gradientSkyPS;
             [Reload("Runtime/Sky/AmbientProbeConvolution.compute")]
             public ComputeShader ambientProbeConvolutionCS;
+            [Reload("Runtime/Sky/PbrSky/OpticalDepthPrecomputation.compute")]
+            public ComputeShader opticalDepthPrecomputationCS;
+            [Reload("Runtime/Sky/PbrSky/GroundIrradiancePrecomputation.compute")]
+            public ComputeShader groundIrradiancePrecomputationCS;
+            [Reload("Runtime/Sky/PbrSky/InScatteredRadiancePrecomputation.compute")]
+            public ComputeShader inScatteredRadiancePrecomputationCS;
+            [Reload("Runtime/Sky/PbrSky/PbrSky.shader")]
+            public Shader        pbrSkyPS;
 
             // Material
             [Reload("Runtime/Material/PreIntegratedFGD/PreIntegratedFGD_GGXDisneyDiffuse.shader")]
@@ -137,6 +145,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public Shader blitCubeTextureFacePS;
             [Reload("Runtime/Material/LTCAreaLight/FilterAreaLightCookies.shader")]
             public Shader filterAreaLightCookiesPS;
+            [Reload("Runtime/Core/CoreResources/ClearUIntTextureArray.compute")]
+            public ComputeShader clearUIntTextureCS;
 
             // Shadow            
             [Reload("Runtime/Lighting/Shadow/ShadowClear.shader")]
