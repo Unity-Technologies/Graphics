@@ -1006,11 +1006,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     dynResHandler.SetCurrentCameraRequest(cameraRequestedDynamicRes);
                     RTHandles.SetHardwareDynamicResolutionState(dynResHandler.HardwareDynamicResIsEnabled());
 
-                    // TODO: Very weird callbacks
-                    //  They are called at the beginning of a camera render, but the very same camera may not end its rendering
-                    //  for various reasons (full screen pass through, custom render, or just invalid parameters)
-                    //  and in that case the associated ending call is never called.
-                    UnityEngine.Rendering.RenderPipeline.BeginCameraRendering(renderContext, camera);
                     UnityEngine.Experimental.VFX.VFXManager.ProcessCamera(camera); //Visual Effect Graph is not yet a required package but calling this method when there isn't any VisualEffect component has no effect (but needed for Camera sorting in Visual Effect Graph context)
 
                     // Reset pooled variables
@@ -1062,7 +1057,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         // Submit render context and free pooled resources for this request
                         renderContext.Submit();
                         GenericPool<HDCullingResults>.Release(cullingResults);
-                        UnityEngine.Rendering.RenderPipeline.EndCameraRendering(renderContext, camera);
                         continue;
                     }
 
@@ -1130,8 +1124,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         if (!visibleInIndices.Contains(visibleInIndex))
                             visibleInIndices.Add(visibleInIndex);
                     }
-
-                    UnityEngine.Rendering.RenderPipeline.EndCameraRendering(renderContext, camera);
                 }
 
                 foreach (var probeToRenderAndDependencies in renderRequestIndicesWhereTheProbeIsVisible)
@@ -1432,8 +1424,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         )
                         {
                             cmd.SetInvertCulling(renderRequest.cameraSettings.invertFaceCulling);
+                            UnityEngine.Rendering.RenderPipeline.BeginCameraRendering(renderContext, renderRequest.hdCamera.camera);
                             ExecuteRenderRequest(renderRequest, renderContext, cmd, AOVRequestData.@default);
                             cmd.SetInvertCulling(false);
+                            UnityEngine.Rendering.RenderPipeline.EndCameraRendering(renderContext, renderRequest.hdCamera.camera);
                         }
 
                         {
@@ -2078,6 +2072,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                     foreach (var material in m_MaterialList)
                         material.RenderInit(cmd);
+                }
+                using (new ProfilingSample(
+                    cmd, "HDRenderPipeline::Render Initialize Textures",
+                    CustomSamplerId.HDRenderPipelineRender.GetSampler())
+                )
+                {
+                    TextureXR.Initialize(cmd, m_Asset.renderPipelineResources.shaders.clearUIntTextureCS);
                 }
                 renderContext.ExecuteCommandBuffer(cmd);
                 CommandBufferPool.Release(cmd);

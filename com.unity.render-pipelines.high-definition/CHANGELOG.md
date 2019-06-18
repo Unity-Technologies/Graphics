@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added an option to enable the ztest on **After Post Process** materials when TAA is disabled.
 - Added a new SSAO (based on Ground Truth Ambient Occlusion algorithm) to replace the previous one. 
 - Added support for shadow tint on light
+- BeginCameraRendering and EndCameraRendering callbacks are now called with probes
 
 ### Fixed
 - Fixed an issue with history buffers causing effects like TAA or auto exposure to flicker when more than one camera was visible in the editor
@@ -37,6 +38,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Removed unnecessary GC allocation in motion blur code
 - Fixed locked UI with advanded influence volume inspector for probes
 - Fixed invalid capture direction when rendering planar reflection probes
+- Fixed Decal HTILE optimization with platform not supporting texture atomatic (Disable it)
+- Fixed a crash in the build when the contact shadows are disabled
+- Fixed camera rendering callbacks order (endCameraRendering was being called before the actual rendering)
+- Fixed issue with wrong opaque blending settings for After Postprocess
 
 ### Changed
 - Optimization: Reduce the group size of the deferred lighting pass from 16x16 to 8x8

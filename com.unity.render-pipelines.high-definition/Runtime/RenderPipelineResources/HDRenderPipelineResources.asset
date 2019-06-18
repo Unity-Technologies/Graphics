@@ -99,6 +99,8 @@ MonoBehaviour:
       type: 3}
     filterAreaLightCookiesPS: {fileID: 4800000, guid: c243aac96dda5fa40bed693ed5ba02c4,
       type: 3}
+    clearUIntTextureCS: {fileID: 7200000, guid: d067ad4b88af51c498875426894aef76,
+      type: 3}
     shadowClearPS: {fileID: 4800000, guid: e3cab24f27741f44d8af1e94d006267c, type: 3}
     evsmBlurCS: {fileID: 7200000, guid: fb36979473602464fa32deacb9630c08, type: 3}
     debugHDShadowMapPS: {fileID: 4800000, guid: 93d40cc9a6e13994f86f576a624efa18,

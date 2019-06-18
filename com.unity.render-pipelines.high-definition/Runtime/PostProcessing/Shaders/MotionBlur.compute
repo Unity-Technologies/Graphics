@@ -190,7 +190,7 @@ void MotionBlurCS(uint3 dispatchThreadId : SV_DispatchThreadID)
     bool earlyOut = maxMotionVecLen <= _MinMotionVecThreshold;
     bool fastPath = minMotionVecLenInPixels > (_MinMaxMotionVecRatioForSlowPath * maxMotionVecLen);
 
-#if defined(SUPPORTS_WAVE_INTRINSICS)
+#if defined(PLATFORM_SUPPORTS_WAVE_INTRINSICS)
     earlyOut = WaveActiveAllTrue(earlyOut);
     fastPath = WaveActiveAllTrue(fastPath);
 #endif
