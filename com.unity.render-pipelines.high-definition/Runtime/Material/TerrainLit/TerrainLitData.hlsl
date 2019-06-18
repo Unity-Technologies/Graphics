@@ -206,11 +206,11 @@ void GetSurfaceAndBuiltinData(inout FragInputs input, float3 V, inout PositionIn
 #endif
 
 #if !defined(ENABLE_TERRAIN_PERPIXEL_NORMAL) || !defined(TERRAIN_PERPIXEL_NORMAL_OVERRIDE)
-    float3 normalTS = ConvertToNormalTS(terrainLitSurfaceData.normalData, input.worldToTangent[0], input.worldToTangent[1]);
+    normalTS = ConvertToNormalTS(terrainLitSurfaceData.normalData, input.tangentToWorld[0], input.tangentToWorld[1]);
 #if HAVE_DECALS
     if (_EnableDecals)
     {
-        ApplyDecalToTangentSpaceNormal(decalSurfaceData, input.worldToTangent[2], normalTS);
+        ApplyDecalToTangentSpaceNormal(decalSurfaceData, input.tangentToWorld[2], normalTS);
     }
 #endif
     GetNormalWS(input, normalTS, surfaceData.normalWS, float3(1.0, 1.0, 1.0));

@@ -205,7 +205,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     {
         DecalSurfaceData decalSurfaceData = GetDecalSurfaceData(posInput, alpha);
         ApplyDecalToSurfaceData(decalSurfaceData, surfaceData);
-        ApplyDecalToTangentSpaceNormal(decalSurfaceData, input.worldToTangent[2], normalTS);
+        ApplyDecalToTangentSpaceNormal(decalSurfaceData, input.tangentToWorld[2], normalTS);
     }
 #endif
     GetNormalWS(input, normalTS, surfaceData.normalWS, doubleSidedConstants);

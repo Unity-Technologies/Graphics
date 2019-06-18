@@ -8,10 +8,14 @@ DECLARE_DBUFFER_TEXTURE(_DBufferTexture);
 
 // Caution: We can't compute LOD inside a dynamic loop. The gradient are not accessible.
 // we need to find a way to calculate mips. For now just fetch first mip of the decals
-void ApplyBlendNormal(inout float4 dst, inout uint matMask, float2 texCoords, uint mapMask, float3x3 decalToWorld, float blend, float lod)
+void ApplyBlendNormal(inout float4 dst, inout uint matMask, float2 texCoords, uint mapMask, float3x3 normalToWorld, float blend, float lod)
 {
     float4 src;
-    src.xyz = mul(decalToWorld, UnpackNormalmapRGorAG(SAMPLE_TEXTURE2D_LOD(_DecalAtlas2D, _trilinear_clamp_sampler_DecalAtlas2D, texCoords, lod))) * 0.5f + 0.5f;
+    float2 deriv = UnpackDerivativeNormalRGorAG(SAMPLE_TEXTURE2D_LOD(_DecalAtlas2D, _trilinear_clamp_sampler_DecalAtlas2D, texCoords, lod));
+    float3x3 tNormalToWorld = transpose((float3x3)normalToWorld);
+    float3 decalXaxisWS = (tNormalToWorld)[0];
+    float3 decalYaxisWS = (tNormalToWorld)[1];
+    src.xyz = SurfaceGradientFromTBN(deriv, decalXaxisWS, decalYaxisWS) * 0.5f + 0.5f; 
     src.w = blend;
     dst.xyz = src.xyz * src.w + dst.xyz * (1.0f - src.w);
     dst.w = dst.w * (1.0f - src.w);
@@ -283,7 +287,6 @@ DecalSurfaceData GetDecalSurfaceData(PositionInputs posInput, inout float alpha)
             v_decalListOffset++;
             EvalDecalMask(posInput, positionRWSDdx, positionRWSDdy, s_decalData, DBuffer0, DBuffer1, DBuffer2, DBuffer3, mask, alpha);
         }
-
     }
 #else // _SURFACE_TYPE_TRANSPARENT
     #ifdef PLATFORM_SUPPORTS_TEXTURE_ATOMICS

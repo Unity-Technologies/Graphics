@@ -75,8 +75,8 @@ void GetSurfaceData(FragInputs input, float3 V, PositionInputs posInput, out Dec
     float3 decalXaxisWS = (tNormalToWorld)[0]; 
     float3 decalYaxisWS = (tNormalToWorld)[1];
 #elif (SHADERPASS == SHADERPASS_DBUFFER_MESH) || (SHADERPASS == SHADERPASS_FORWARD_EMISSIVE_MESH)
-    float3 decalXaxisWS = input.worldToTangent[0];
-    float3 decalYaxisWS = input.worldToTangent[1];
+    float3 decalXaxisWS = input.tangentToWorld[0];
+    float3 decalYaxisWS = input.tangentToWorld[1];
 #endif
     // consider oriented decal a volume bump map and use equation 2. in "Bump Mapping Unparametrized Surfaces on the GPU"
     // since the volume gradient is a linear operator. (eq. 2 is used in gbuffer pass)

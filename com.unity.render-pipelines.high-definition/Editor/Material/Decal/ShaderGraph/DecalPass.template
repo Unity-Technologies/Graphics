@@ -152,8 +152,8 @@ $include("SharedCode.template.hlsl")
         $SurfaceDescription.Normal:                     float3 decalXaxisWS = (tNormalToWorld)[0]; 
         $SurfaceDescription.Normal:                     float3 decalYaxisWS = (tNormalToWorld)[1];
     #elif (SHADERPASS == SHADERPASS_DBUFFER_MESH) || (SHADERPASS == SHADERPASS_FORWARD_PREVIEW)
-        $SurfaceDescription.Normal:                     float3 decalXaxisWS = fragInputs.worldToTangent[0];
-        $SurfaceDescription.Normal:                     float3 decalYaxisWS = fragInputs.worldToTangent[1];
+        $SurfaceDescription.Normal:                     float3 decalXaxisWS = fragInputs.tangentToWorld[0];
+        $SurfaceDescription.Normal:                     float3 decalYaxisWS = fragInputs.tangentToWorld[1];
     #endif
         $SurfaceDescription.Normal:                     surfaceData.normalWS.xyz = SurfaceGradientFromTBN(deriv, decalXaxisWS, decalYaxisWS);
         $SurfaceDescription.AlphaNormal:                surfaceData.normalWS.w = surfaceDescription.AlphaNormal * fadeFactor;
@@ -163,8 +163,8 @@ $include("SharedCode.template.hlsl")
         }
 #else
     #if (SHADERPASS == SHADERPASS_FORWARD_PREVIEW) // Default to vertex normal
-        $SurfaceDescription.Normal:                     float3 decalXaxisWS = fragInputs.worldToTangent[0];      
-        $SurfaceDescription.Normal:                     float3 decalYaxisWS = fragInputs.worldToTangent[1];
+        $SurfaceDescription.Normal:                     float3 decalXaxisWS = fragInputs.tangentToWorld[0];      
+        $SurfaceDescription.Normal:                     float3 decalYaxisWS = fragInputs.tangentToWorld[1];
         $SurfaceDescription.Normal:                     surfaceData.normalWS.xyz = SurfaceGradientFromTBN(float2(0, 0), decalXaxisWS, decalYaxisWS);
     #endif
 #endif
