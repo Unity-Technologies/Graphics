@@ -183,6 +183,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // Flag that tells us if the shadow should be screen space
         public bool useScreenSpaceShadows = false;
 
+        // Directional lights only.
+        public bool interactsWithSky = true;
+
 #if ENABLE_RAYTRACING
         public bool useRayTracedShadows = false;
         [Range(1, 32)]
@@ -395,7 +398,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 #endif
 
         // This offset shift the position of the spotlight used to approximate the area light shadows. The offset is the minimum such that the full
-        // area light shape is included in the cone spanned by the spot light. 
+        // area light shape is included in the cone spanned by the spot light.
         public static float GetAreaLightOffsetForShadows(Vector2 shapeSize, float coneAngle)
         {
             float rectangleDiagonal = shapeSize.magnitude;
@@ -703,7 +706,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 return useColorTemperatureProperty.boolValue;
             }
         }
-        
+
         public static bool IsAreaLight(SerializedProperty lightType)
         {
             return IsAreaLight((LightTypeExtent)lightType.enumValueIndex);
@@ -902,6 +905,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             data.displayLightIntensity = displayLightIntensity;
             data.displayAreaLightEmissiveMesh = displayAreaLightEmissiveMesh;
             data.needsIntensityUpdate_1_0 = needsIntensityUpdate_1_0;
+            data.interactsWithSky = interactsWithSky;
 
 #if UNITY_EDITOR
             data.timelineWorkaround = timelineWorkaround;

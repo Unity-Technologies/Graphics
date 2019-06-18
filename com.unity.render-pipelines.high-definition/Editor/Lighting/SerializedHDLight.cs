@@ -39,6 +39,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public SerializedProperty areaLightCookie;   // We can't use default light cookies because the cookie gets reset by some safety measure on C++ side... :/
             public SerializedProperty areaLightShadowCone;
             public SerializedProperty useScreenSpaceShadows;
+            public SerializedProperty interactsWithSky;
 #if ENABLE_RAYTRACING
             public SerializedProperty useRayTracedShadows;
             public SerializedProperty numRayTracingSamples;
@@ -125,7 +126,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     affectSpecular = o.Find(x => x.affectSpecular),
                     nonLightmappedOnly = o.Find(x => x.nonLightmappedOnly),
                     lightTypeExtent = o.Find(x => x.lightTypeExtent),
-                    spotLightShape = o.Find("m_SpotLightShape"),
+                    spotLightShape = o.Find("m_SpotLightShape"), // WTF?
                     shapeWidth = o.Find(x => x.shapeWidth),
                     shapeHeight = o.Find(x => x.shapeHeight),
                     aspectRatio = o.Find(x => x.aspectRatio),
@@ -140,6 +141,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     areaLightCookie = o.Find(x => x.areaLightCookie),
                     areaLightShadowCone = o.Find(x => x.areaLightShadowCone),
                     useScreenSpaceShadows = o.Find(x => x.useScreenSpaceShadows),
+                    interactsWithSky = o.Find(x => x.interactsWithSky),
 #if ENABLE_RAYTRACING
                     useRayTracedShadows = o.Find(x => x.useRayTracedShadows),
                     numRayTracingSamples = o.Find(x => x.numRayTracingSamples),

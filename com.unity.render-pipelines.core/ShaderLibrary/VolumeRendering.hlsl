@@ -12,9 +12,29 @@ real TransmittanceFromOpticalDepth(real opticalDepth)
     return exp(-opticalDepth);
 }
 
+real3 TransmittanceFromOpticalDepth(real3 opticalDepth)
+{
+    return exp(-opticalDepth);
+}
+
 real OpacityFromOpticalDepth(real opticalDepth)
 {
     return 1 - TransmittanceFromOpticalDepth(opticalDepth);
+}
+
+real3 OpacityFromOpticalDepth(real3 opticalDepth)
+{
+    return 1 - TransmittanceFromOpticalDepth(opticalDepth);
+}
+
+real OpticalDepthFromOpacity(real opacity)
+{
+    return -log(1 - opacity);
+}
+
+real3 OpticalDepthFromOpacity(real3 opacity)
+{
+    return -log(1 - opacity);
 }
 
 //
@@ -90,7 +110,7 @@ real TransmittanceHomogeneousMedium(real extinction, real intervalLength)
     return TransmittanceFromOpticalDepth(OpticalDepthHomogeneousMedium(extinction, intervalLength));
 }
 
-// Integral{a, b}{TransmittanceFromOpticalDepth(0, t - a) dt}.
+// Integral{a, b}{TransmittanceHomogeneousMedium(k, t - a) dt}.
 real TransmittanceIntegralHomogeneousMedium(real extinction, real intervalLength)
 {
     // Note: when multiplied by the extinction coefficient, it becomes
@@ -180,6 +200,12 @@ real IsotropicPhaseFunction()
     return INV_FOUR_PI;
 }
 
+real RayleighPhaseFunction(real cosTheta)
+{
+    real k = 3 / (16 * PI);
+    return k * (1 + cosTheta * cosTheta);
+}
+
 real HenyeyGreensteinPhasePartConstant(real anisotropy)
 {
     real g = anisotropy;
@@ -206,18 +232,28 @@ real CornetteShanksPhasePartConstant(real anisotropy)
 {
     real g = anisotropy;
 
-    return INV_FOUR_PI * 1.5 * (1 - g * g) / (2 + g * g);
+    return (3 / (8 * PI)) * (1 - g * g) / (2 + g * g);
 }
 
-real CornetteShanksPhasePartVarying(real anisotropy, real cosTheta)
+// Similar to the RayleighPhaseFunction.
+real CornetteShanksPhasePartSymmetrical(real cosTheta)
+{
+    real h = 1 + cosTheta * cosTheta;
+    return h;
+}
+
+real CornetteShanksPhasePartAsymmetrical(real anisotropy, real cosTheta)
 {
     real g = anisotropy;
     real x = 1 + g * g - 2 * g * cosTheta;
     real f = rsqrt(max(x, REAL_EPS)); // x^(-1/2)
-    real h = (1 + cosTheta * cosTheta);
+    return f * f * f;                 // x^(-3/2)
+}
 
-    // Note that this function is not perfectly isotropic for (g = 0).
-    return h * (f * f * f); // h * x^(-3/2)
+real CornetteShanksPhasePartVarying(real anisotropy, real cosTheta)
+{
+    return CornetteShanksPhasePartSymmetrical(cosTheta) *
+           CornetteShanksPhasePartAsymmetrical(anisotropy, cosTheta); // h * x^(-3/2)
 }
 
 // A better approximation of the Mie phase function.
@@ -249,8 +285,22 @@ void ImportanceSampleHomogeneousMedium(real rndVal, real extinction, real interv
     real x = 1 - exp(-extinction * intervalLength);
     real c = rcp(extinction);
 
+    // TODO: return 'rcpPdf' to support imperfect importance sampling...
     weight = x * c;
     offset = -log(1 - rndVal * x) * c;
+}
+
+void ImportanceSampleExponentialMedium(real rndVal, real extinction, real falloff,
+                                       out real offset, out real rcpPdf)
+{
+
+    // Extinction[t] = Extinction[0] * exp(-falloff * t).
+    real c = extinction;
+    real a = falloff;
+
+    // TODO: optimize...
+    offset = -log(1 - a / c * log(rndVal)) / a;
+    rcpPdf = rcp(c * exp(-a * offset) * exp(-c / a * (1 - exp(-a * offset))));
 }
 
 // Implements equiangular light sampling.
@@ -302,6 +352,19 @@ void ImportanceSamplePunctualLight(real rndVal, real3 lightPosition, real lightS
 
     // Remove the virtual light offset to obtain the real geometric distance.
     sqDist = max(sqDist - lightSqRadius, REAL_EPS);
+}
+
+// Returns the cosine.
+// Weight = Phase / Pdf = 1.
+real ImportanceSampleRayleighPhase(real rndVal)
+{
+    // real a = sqrt(16 * (rndVal - 1) * rndVal + 5);
+    // real b = -4 * rndVal + a + 2;
+    // real c = PositivePow(b, 0.33333333);
+    // return rcp(c) - c;
+
+    // Approximate...
+    return lerp(cos(PI * rndVal + PI), 2 * rndVal - 1, 0.5);
 }
 
 //
