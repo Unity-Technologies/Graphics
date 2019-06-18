@@ -136,7 +136,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                     // Apply the simple denoiser
                     HDSimpleDenoiser simpleDenoiser = m_RaytracingManager.GetSimpleDenoiser();
-                    simpleDenoiser.DenoiseBuffer(cmd, hdCamera, m_IntermediateBuffer, ambientOcclusionHistory, outputTexture, aoSettings.filterRadius.value);
+                    simpleDenoiser.DenoiseBuffer(cmd, hdCamera, m_IntermediateBuffer, ambientOcclusionHistory, outputTexture, aoSettings.filterRadius.value, singleChannel: true);
                 }
                 else
                 {

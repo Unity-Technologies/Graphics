@@ -325,6 +325,18 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             Shader.PropertyToID("_GBufferTexture7")
         };
 
+        public static readonly int[] _GBufferTextureRW =
+        {
+            Shader.PropertyToID("_GBufferTexture0RW"),
+            Shader.PropertyToID("_GBufferTexture1RW"),
+            Shader.PropertyToID("_GBufferTexture2RW"),
+            Shader.PropertyToID("_GBufferTexture3RW"),
+            Shader.PropertyToID("_GBufferTexture4RW"),
+            Shader.PropertyToID("_GBufferTexture5RW"),
+            Shader.PropertyToID("_GBufferTexture6RW"),
+            Shader.PropertyToID("_GBufferTexture7RW")
+        };
+
         public static readonly int[] _DBufferTexture =
         {
             Shader.PropertyToID("_DBufferTexture0"),
@@ -539,7 +551,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly int _RaytracingLightCluster          = Shader.PropertyToID("_RaytracingLightCluster");
 
         // Denoising
-        public static readonly int _Historybuffer                   = Shader.PropertyToID("_Historybuffer");
+        public static readonly int _HistoryBuffer                   = Shader.PropertyToID("_HistoryBuffer");
         public static readonly int _RaytracingDenoiseRadius         = Shader.PropertyToID("_RaytracingDenoiseRadius");
         public static readonly int _DenoiserFilterRadius            = Shader.PropertyToID("_DenoiserFilterRadius");
         public static readonly int _DenoiseInputTexture             = Shader.PropertyToID("_DenoiseInputTexture");
@@ -599,7 +611,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly int _RaytracedIndirectDiffuse        = Shader.PropertyToID("_RaytracedIndirectDiffuse");
         public static readonly int _IndirectDiffuseTexture          = Shader.PropertyToID("_IndirectDiffuseTexture");
         public static readonly int _IndirectDiffuseTextureRW        = Shader.PropertyToID("_IndirectDiffuseTextureRW");
-        public static readonly int _IndirectDiffuseHistorybufferRW  = Shader.PropertyToID("_IndirectDiffuseHistorybufferRW");
+
+        // Deferred Lighting
+        public static readonly int _RaytracingLitBufferRW           = Shader.PropertyToID("_RaytracingLitBufferRW");
+
+        // Ray binning
+        public static readonly int _RayBinResult                    = Shader.PropertyToID("_RayBinResult");
+        public static readonly int _RayBinSizeResult                = Shader.PropertyToID("_RayBinSizeResult");
+        public static readonly int _RayBinTileCountX                = Shader.PropertyToID("_RayBinTileCountX");
 #endif
         // Preintegrated texture name
         public static readonly int _PreIntegratedFGD_GGXDisneyDiffuse = Shader.PropertyToID("_PreIntegratedFGD_GGXDisneyDiffuse");
