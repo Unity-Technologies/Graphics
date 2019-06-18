@@ -9,9 +9,9 @@ namespace UnityEditor.ShaderGraph.UnitTests
     [TestFixture]
     internal class PrecisionTests
     {
-        static string kGraphName = "Packages/com.unity.shadergraph/Tests/Editor/Graphs/Precision.shadergraph";
+        static string kGraphName = "Assets/CommonAssets/Graphs/Precision.shadergraph";
         GraphData m_Graph;
-        
+
         Dictionary<string, PreviewNode> m_TestNodes = new Dictionary<string, PreviewNode>();
 
         [OneTimeSetUp]
