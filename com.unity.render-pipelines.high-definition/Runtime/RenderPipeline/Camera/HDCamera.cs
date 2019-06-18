@@ -872,7 +872,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Since recorder does not know about this, we need to send a texture of the right size.
             cmd.GetTemporaryRT(m_RecorderTempRT, actualWidth, actualHeight, 0, FilterMode.Point, input.rt.graphicsFormat);
 
-            var blitMaterial = HDUtils.GetBlitMaterial(TextureDimension.Tex2DArray);
+            var blitMaterial = HDUtils.GetBlitMaterial(input.rt.dimension);
 
             var rtHandleScale = RTHandles.rtHandleProperties.rtHandleScale;
             Vector2 viewportScale = new Vector2(rtHandleScale.x, rtHandleScale.y);
