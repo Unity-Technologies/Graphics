@@ -59,8 +59,8 @@ namespace UnityEditor.VFX.Block
         private VFXOperatorUtility.SequentialAddressingMode mode = VFXOperatorUtility.SequentialAddressingMode.Wrap;
 
         public override string name { get { return string.Format("Position : Sequential ({0})", shape); } }
-        public override VFXContextType compatibleContexts { get { return VFXContextType.kInitAndUpdateAndOutput; } }
-        public override VFXDataType compatibleData { get { return VFXDataType.kParticle; } }
+        public override VFXContextType compatibleContexts { get { return VFXContextType.InitAndUpdateAndOutput; } }
+        public override VFXDataType compatibleData { get { return VFXDataType.Particle; } }
 
         public class InputProperties
         {

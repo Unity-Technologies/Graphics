@@ -47,7 +47,6 @@
 #endif
 
 // Helper macros to handle XR instancing with Texture2DArray
-// Render textures allocated with the flag 'xrInstancing' used Texture2DArray where each slice is associated to an eye.
 // With single-pass stereo instancing, unity_StereoEyeIndex is used to select the eye in the current context.
 // Otherwise, the index is statically set to 0
 #if defined(USE_TEXTURE2D_X_AS_ARRAY)
@@ -78,6 +77,8 @@
     #define GATHER_RED_TEXTURE2D_X(textureName, samplerName, coord2)         GATHER_RED_TEXTURE2D(textureName, samplerName, float3(coord2, SLICE_ARRAY_INDEX))
     #define GATHER_GREEN_TEXTURE2D_X(textureName, samplerName, coord2)       GATHER_GREEN_TEXTURE2D(textureName, samplerName, float3(coord2, SLICE_ARRAY_INDEX))
 #else
+    #define SLICE_ARRAY_INDEX                                                0
+
     #define TEXTURE2D_X                                                      TEXTURE2D
     #define TEXTURE2D_X_PARAM                                                TEXTURE2D_PARAM
     #define TEXTURE2D_X_ARGS                                                 TEXTURE2D_ARGS

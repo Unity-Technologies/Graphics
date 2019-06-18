@@ -464,8 +464,8 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void UpdateTitle()
         {
-            if (node is SubGraphNode subGraphNode && subGraphNode.subGraphData != null)
-                title = subGraphNode.subGraphAsset.name;
+            if (node is SubGraphNode subGraphNode && subGraphNode.asset != null)
+                title = subGraphNode.asset.name;
             else
                 title = node.name;
         }
@@ -585,6 +585,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 {
                     portInputView = new PortInputView(port.slot) { style = { position = Position.Absolute } };
                     m_PortInputContainer.Add(portInputView);
+                    SetPortInputPosition(port, portInputView);
                 }
                 
                 port.RegisterCallback<GeometryChangedEvent>(UpdatePortInput);

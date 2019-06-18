@@ -18,6 +18,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - `Sampler State` properties and nodes now serialize correctly.
 - Labels in the Custom Port menu now use the correct coloring when using the Personal skin.
 - Fixed an error that occured when creating a Sub Graph from a selection containing a Group Node.
+- When you change a Sub Graph, Shader Graph windows now correctly reload.
+- When you save a Shader Graph, all other Shader Graph windows no longer re-compile their preview Shaders.
+- Shader Graph UI now draws with correct styling for 2019.3.
+- When deleting edge connections to nodes with a preview error, input ports no longer draw in the wrong position.
 
 ## [6.7.0-preview] - 2019-05-16
 ### Added

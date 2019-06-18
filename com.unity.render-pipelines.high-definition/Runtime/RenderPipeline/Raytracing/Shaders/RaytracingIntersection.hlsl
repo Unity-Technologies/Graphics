@@ -61,20 +61,20 @@ struct IntersectionVertex
 // Fetch the intersetion vertex data for the target vertex
 void FetchIntersectionVertex(uint vertexIndex, out IntersectionVertex outVertex)
 {
-    outVertex.positionOS = UnityRaytracingFetchVertexAttribute3(vertexIndex, kVertexAttributePosition);
-    outVertex.normalOS   = UnityRaytracingFetchVertexAttribute3(vertexIndex, kVertexAttributeNormal);
-    outVertex.tangentOS  = UnityRaytracingFetchVertexAttribute3(vertexIndex, kVertexAttributeTangent);
-    outVertex.texCoord0  = UnityRaytracingFetchVertexAttribute2(vertexIndex, kVertexAttributeTexCoord0);
-    outVertex.texCoord1  = UnityRaytracingFetchVertexAttribute2(vertexIndex, kVertexAttributeTexCoord1);
-    outVertex.texCoord2  = UnityRaytracingFetchVertexAttribute2(vertexIndex, kVertexAttributeTexCoord2);
-    outVertex.texCoord3  = UnityRaytracingFetchVertexAttribute2(vertexIndex, kVertexAttributeTexCoord3);
-    outVertex.color      = UnityRaytracingFetchVertexAttribute4(vertexIndex, kVertexAttributeColor);
+    outVertex.positionOS = UnityRayTracingFetchVertexAttribute3(vertexIndex, kVertexAttributePosition);
+    outVertex.normalOS   = UnityRayTracingFetchVertexAttribute3(vertexIndex, kVertexAttributeNormal);
+    outVertex.tangentOS  = UnityRayTracingFetchVertexAttribute3(vertexIndex, kVertexAttributeTangent);
+    outVertex.texCoord0  = UnityRayTracingFetchVertexAttribute2(vertexIndex, kVertexAttributeTexCoord0);
+    outVertex.texCoord1  = UnityRayTracingFetchVertexAttribute2(vertexIndex, kVertexAttributeTexCoord1);
+    outVertex.texCoord2  = UnityRayTracingFetchVertexAttribute2(vertexIndex, kVertexAttributeTexCoord2);
+    outVertex.texCoord3  = UnityRayTracingFetchVertexAttribute2(vertexIndex, kVertexAttributeTexCoord3);
+    outVertex.color      = UnityRayTracingFetchVertexAttribute4(vertexIndex, kVertexAttributeColor);
 }
 
 void GetCurrentIntersectionVertex(AttributeData attributeData, out IntersectionVertex outVertex)
 {
 	// Fetch the indices of the currentr triangle
-	uint3 triangleIndices = UnityRaytracingFetchTriangleIndices(PrimitiveIndex());
+	uint3 triangleIndices = UnityRayTracingFetchTriangleIndices(PrimitiveIndex());
 
 	// Fetch the 3 vertices
 	IntersectionVertex v0, v1, v2;

@@ -32,9 +32,31 @@
     border-radius: 2px;
 }
 
-.sticky-note, * .unity-text-field
+.sticky-note, * .unity-text-field , * .unity-text-field > .unity-base-text-field__input
 {
     background-color: #fcd76e;
+    padding-left:0;
+    padding-right:0;
+    padding-top:0;
+    padding-bottom:0;
+    font-size:20px;
+}
+
+.sticky-note, * .unity-text-field, .unity-base-text-field .unity-base-text-field__input
+{
+    border-left-width:0;
+    border-top-width:0;
+    border-bottom-width:0;
+    border-right-width:0;
+    -unity-text-align:top-left;
+}
+
+.unity-text-field:hover, .unity-base-text-field .unity-base-text-field__input:hover
+{
+    border-left-width:0;
+    border-top-width:0;
+    border-bottom-width:0;
+    border-right-width:0;
 }
 
 .sticky-note .resizer

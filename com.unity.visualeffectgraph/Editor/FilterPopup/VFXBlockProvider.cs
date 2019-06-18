@@ -1,11 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using UnityEngine;
-using UnityEngine.UIElements;
-using UnityEditor.Experimental;
-using UnityEditor.VFX.Block;
+using UnityEditor.Experimental.VFX;
 
 namespace UnityEditor.VFX.UI
 {
@@ -97,20 +94,51 @@ namespace UnityEditor.VFX.UI
         }
     }
 
-    class VFXBlockProvider : VFXAbstractProvider<VFXModelDescriptor<VFXBlock>>
+    class VFXBlockProvider : VFXAbstractProvider<VFXBlockProvider.Descriptor>
     {
+        public abstract class Descriptor
+        {
+            public abstract string category { get; }
+            public abstract string name { get; }
+        }
+
+        public class NewBlockDescriptor : Descriptor
+        {
+            public readonly VFXModelDescriptor<VFXBlock> newBlock;
+
+            public NewBlockDescriptor(VFXModelDescriptor<VFXBlock> newBlock)
+            {
+                this.newBlock = newBlock;
+            }
+            public override string category { get { return newBlock.info.category; } }
+            public override string name { get { return newBlock.name; } }
+        }
+
+        public class SubgraphBlockDescriptor : Descriptor
+        {
+            public readonly SubGraphCache.Item item;
+            public SubgraphBlockDescriptor(SubGraphCache.Item item)
+            {
+                this.item = item;
+            }
+
+            public override string category { get { return "Subgraph Block/"+item.category; } }
+            public override string name { get { return item.name; } }
+        }
+
+
         VFXContextController m_ContextController;
-        public VFXBlockProvider(VFXContextController context, Action<VFXModelDescriptor<VFXBlock>, Vector2> onAddBlock) : base(onAddBlock)
+        public VFXBlockProvider(VFXContextController context, Action<Descriptor, Vector2> onAddBlock) : base(onAddBlock)
         {
             m_ContextController = context;
         }
 
-        protected override string GetCategory(VFXModelDescriptor<VFXBlock> desc)
+        protected override string GetCategory(VFXBlockProvider.Descriptor desc)
         {
-            return desc.info.category;
+            return desc.category;
         }
 
-        protected override string GetName(VFXModelDescriptor<VFXBlock> desc)
+        protected override string GetName(VFXBlockProvider.Descriptor desc)
         {
             return desc.name;
         }
@@ -120,18 +148,28 @@ namespace UnityEditor.VFX.UI
             get {return "Block"; }
         }
 
-        protected override IEnumerable<VFXModelDescriptor<VFXBlock>> GetDescriptors()
+        protected override IEnumerable<VFXBlockProvider.Descriptor> GetDescriptors()
         {
             var blocks = new List<VFXModelDescriptor<VFXBlock>>(VFXLibrary.GetBlocks());
-            var filteredBlocks = blocks.Where(b => b.AcceptParent(m_ContextController.model)).ToList();
-            filteredBlocks.Sort((blockA, blockB) =>
+            var filteredBlocks = blocks.Where(b => b.AcceptParent(m_ContextController.model)).Select(t=> (Descriptor)new NewBlockDescriptor(t));
+
+
+            filteredBlocks = filteredBlocks.Concat(SubGraphCache.GetItems(typeof(VisualEffectSubgraphBlock)).Where(t=>
+                                (((SubGraphCache.AdditionalBlockInfo)t.additionalInfos).compatibleType & m_ContextController.model.contextType) != 0  &&
+                                (((SubGraphCache.AdditionalBlockInfo)t.additionalInfos).compatibleData & m_ContextController.model.ownedType) != 0
+                                ).Select(t=> (Descriptor)new SubgraphBlockDescriptor(t)));
+
+            var blockList = filteredBlocks.ToList();
+
+            blockList.Sort((blockA, blockB) =>
             {
-                var infoA = blockA.info;
-                var infoB = blockB.info;
+                var infoA = blockA;
+                var infoB = blockB;
                 int res = infoA.category.CompareTo(infoB.category);
                 return res != 0 ? res : blockA.name.CompareTo(blockB.name);
             });
-            return filteredBlocks;
+
+            return blockList;
         }
     }
 }

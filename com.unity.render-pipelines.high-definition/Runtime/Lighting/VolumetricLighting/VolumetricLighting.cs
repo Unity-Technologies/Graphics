@@ -223,7 +223,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_xySeq = new Vector2[7];
             m_xySeqOffset = new Vector4();
 
-            m_PixelCoordToViewDirWS = new Matrix4x4[TextureXR.kMaxSliceCount];
+            m_PixelCoordToViewDirWS = new Matrix4x4[TextureXR.kMaxSlices];
 
             CreateVolumetricLightingBuffers();
         }
@@ -612,7 +612,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     cmd.SetComputeIntParam(m_VolumeVoxelizationCS, HDShaderIDs._NumTileBigTileX, GetNumTileBigTileX(hdCamera));
                     cmd.SetComputeIntParam(m_VolumeVoxelizationCS, HDShaderIDs._NumTileBigTileY, GetNumTileBigTileY(hdCamera));
                     if (tiledLighting)
-                        cmd.SetComputeBufferParam(m_VolumeVoxelizationCS, kernel, HDShaderIDs.g_vBigTileLightList, GetBigTileLightList());
+                        cmd.SetComputeBufferParam(m_VolumeVoxelizationCS, kernel, HDShaderIDs.g_vBigTileLightList, m_TileAndClusterData.bigTileLightList);
                 }
 
                 cmd.SetComputeTextureParam(m_VolumeVoxelizationCS, kernel, HDShaderIDs._VBufferDensity,  m_DensityBufferHandle);

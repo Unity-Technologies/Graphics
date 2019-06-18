@@ -47,15 +47,13 @@
 #define DEBUGVIEW_HAIR_BSDFDATA_TRANSMITTANCE (1461)
 #define DEBUGVIEW_HAIR_BSDFDATA_RIM_TRANSMISSION_INTENSITY (1462)
 #define DEBUGVIEW_HAIR_BSDFDATA_HAIR_STRAND_DIRECTION_WS (1463)
-#define DEBUGVIEW_HAIR_BSDFDATA_ROUGHNESS_T (1464)
-#define DEBUGVIEW_HAIR_BSDFDATA_ROUGHNESS_B (1465)
-#define DEBUGVIEW_HAIR_BSDFDATA_ANISOTROPY (1466)
-#define DEBUGVIEW_HAIR_BSDFDATA_SECONDARY_PERCEPTUAL_ROUGHNESS (1467)
-#define DEBUGVIEW_HAIR_BSDFDATA_SECONDARY_SPECULAR_TINT (1468)
-#define DEBUGVIEW_HAIR_BSDFDATA_SPECULAR_EXPONENT (1469)
-#define DEBUGVIEW_HAIR_BSDFDATA_SECONDARY_SPECULAR_EXPONENT (1470)
-#define DEBUGVIEW_HAIR_BSDFDATA_SPECULAR_SHIFT (1471)
-#define DEBUGVIEW_HAIR_BSDFDATA_SECONDARY_SPECULAR_SHIFT (1472)
+#define DEBUGVIEW_HAIR_BSDFDATA_ANISOTROPY (1464)
+#define DEBUGVIEW_HAIR_BSDFDATA_SECONDARY_PERCEPTUAL_ROUGHNESS (1465)
+#define DEBUGVIEW_HAIR_BSDFDATA_SECONDARY_SPECULAR_TINT (1466)
+#define DEBUGVIEW_HAIR_BSDFDATA_SPECULAR_EXPONENT (1467)
+#define DEBUGVIEW_HAIR_BSDFDATA_SECONDARY_SPECULAR_EXPONENT (1468)
+#define DEBUGVIEW_HAIR_BSDFDATA_SPECULAR_SHIFT (1469)
+#define DEBUGVIEW_HAIR_BSDFDATA_SECONDARY_SPECULAR_SHIFT (1470)
 
 // Generated from UnityEngine.Experimental.Rendering.HDPipeline.Hair+SurfaceData
 // PackingRules = Exact
@@ -94,8 +92,6 @@ struct BSDFData
     float3 transmittance;
     float rimTransmissionIntensity;
     float3 hairStrandDirectionWS;
-    float roughnessT;
-    float roughnessB;
     float anisotropy;
     float secondaryPerceptualRoughness;
     float3 secondarySpecularTint;
@@ -218,12 +214,6 @@ void GetGeneratedBSDFDataDebug(uint paramId, BSDFData bsdfdata, inout float3 res
             break;
         case DEBUGVIEW_HAIR_BSDFDATA_HAIR_STRAND_DIRECTION_WS:
             result = bsdfdata.hairStrandDirectionWS * 0.5 + 0.5;
-            break;
-        case DEBUGVIEW_HAIR_BSDFDATA_ROUGHNESS_T:
-            result = bsdfdata.roughnessT.xxx;
-            break;
-        case DEBUGVIEW_HAIR_BSDFDATA_ROUGHNESS_B:
-            result = bsdfdata.roughnessB.xxx;
             break;
         case DEBUGVIEW_HAIR_BSDFDATA_ANISOTROPY:
             result = bsdfdata.anisotropy.xxx;

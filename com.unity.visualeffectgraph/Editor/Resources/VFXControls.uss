@@ -96,3 +96,29 @@ VFXStringFieldPushButton .unity-button
 {
     -unity-slice-right: 12;
 }
+
+VFX32BitField
+{
+    --bit-image:resource("VFX/bitfield-bit");
+    --bit-bkgnd-image:resource("VFX/bitfield-bkgnd");
+    
+}
+
+VFX32BitField > *
+{
+    position:absolute;
+    left:0px;
+    width:191px;
+    top:0px;
+    bottom:0px;
+    flex-direction:row;
+    align-items:stretch;
+}
+
+VFX32BitField > #tip
+{
+    right:0px;
+    width:auto;
+
+    -unity-text-align: middle-right;
+}

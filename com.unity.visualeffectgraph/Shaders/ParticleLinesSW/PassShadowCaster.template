@@ -35,6 +35,7 @@ ${VFXEnd}
 	#pragma fragment frag
 	float frag(ps_input i) : SV_TARGET
 	{
+		VFXTransformPSInputs(i);
 		float alpha = VFXGetFragmentColor(i);
 		VFXClipFragmentColor(alpha,i);
 		return 0;

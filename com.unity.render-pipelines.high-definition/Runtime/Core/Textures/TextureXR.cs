@@ -5,7 +5,13 @@ namespace UnityEngine.Experimental.Rendering
     public static class TextureXR
     {
         // Limit memory usage of default textures
-        public const int kMaxSliceCount = 2;
+        public const int kMaxSlices = 2;
+
+        // Property set by XRSystem
+        public static int maxViews { get; set; } = 1;
+
+        // Property accessed when allocating a render texture
+        public static int slices { get => maxViews; }
 
         // Must be in sync with shader define in TextureXR.hlsl
         public static bool useTexArray
@@ -29,26 +35,21 @@ namespace UnityEngine.Experimental.Rendering
             }
         }
 
-        public static VRTextureUsage OverrideRenderTexture(bool xrInstancing, ref TextureDimension dimension, ref int slices)
+        public static TextureDimension dimension
         {
-            // XRTODO: need to also check if stereo is enabled in camera!
-            if (xrInstancing && useTexArray)
+            get
             {
-                // TEXTURE2D_X macros will now expand to TEXTURE2D_ARRAY
-                dimension = TextureDimension.Tex2DArray;
-
-                // XR legacy single-pass stereo instancing (will be deprecated by XR SDK)
-                if (XRGraphics.stereoRenderingMode == XRGraphics.StereoRenderingMode.SinglePassInstanced)
-                {
-                    // Add a new dimension
-                    slices = slices * 2;
-
-                    // XRTODO: useful? if yes, add validation, asserts
-                    return XRGraphics.eyeTextureDesc.vrUsage;
-                }
+                // TEXTURE2D_X macros will now expand to TEXTURE2D or TEXTURE2D_ARRAY
+                return useTexArray ? TextureDimension.Tex2DArray : TextureDimension.Tex2D;
             }
+        }
 
-            return VRTextureUsage.None;
+        public static void Initialize(CommandBuffer cmd, ComputeShader clearR32_UIntShader)
+        {
+            if (blackUIntTexture2DArray == null)
+                blackUIntTexture2DArray = CreateBlackUIntTextureArray(cmd, clearR32_UIntShader);
+            if (blackUIntTexture == null)
+                blackUIntTexture = CreateBlackUintTexture(cmd, clearR32_UIntShader);
         }
 
         public static Texture GetClearTexture()
@@ -85,8 +86,8 @@ namespace UnityEngine.Experimental.Rendering
 
         private static Texture2DArray CreateTexture2DArrayFromTexture2D(Texture2D source, string name)
         {
-            Texture2DArray texArray = new Texture2DArray(source.width, source.height, kMaxSliceCount, source.format, false) { name = name };
-            for (int i = 0; i < kMaxSliceCount; ++i)
+            Texture2DArray texArray = new Texture2DArray(source.width, source.height, kMaxSlices, source.format, false) { name = name };
+            for (int i = 0; i < kMaxSlices; ++i)
                 Graphics.CopyTexture(source, 0, 0, texArray, i, 0);
 
             return texArray;
@@ -109,21 +110,7 @@ namespace UnityEngine.Experimental.Rendering
         }
 
         private static Texture m_BlackUIntTexture;
-        private static Texture blackUIntTexture
-        {
-            get
-            {
-                if (m_BlackUIntTexture == null)
-                {
-                    // Uint textures can't be used in Sampling operations so we can't use the Texture2D class because
-                    // it assumes that we will use the texture for sampling operations and crash because of invalid format.
-                    m_BlackUIntTexture = new RenderTexture(1, 1, 0, GraphicsFormat.R32_UInt) { name = "Black UInt Texture" };
-                    Graphics.Blit(Texture2D.blackTexture, m_BlackUIntTexture as RenderTexture);
-                }
-
-                return m_BlackUIntTexture;
-            }
-        }
+        public static Texture blackUIntTexture { get => m_BlackUIntTexture; private set => m_BlackUIntTexture = value; }
 
         static Texture2DArray m_ClearTexture2DArray;
         public static Texture2DArray clearTexture2DArray
@@ -161,32 +148,55 @@ namespace UnityEngine.Experimental.Rendering
             }
         }
 
-        static Texture m_BlackUIntTexture2DArray;
-        public static Texture blackUIntTexture2DArray
+        static Texture CreateBlackUIntTextureArray(CommandBuffer cmd, ComputeShader clearR32_UIntShader)
         {
-            get
+            RenderTexture blackUIntTexture2DArray = new RenderTexture(1, 1, 0, GraphicsFormat.R32_UInt)
             {
-                if (m_BlackUIntTexture2DArray == null)
-                {
-                    // Uint textures can't be used in Sampling operations so we can't use the Texture2DArray class because
-                    // it assumes that we will use the texture for sampling operations and crash because of invalid format.
-                    m_BlackUIntTexture2DArray = new RenderTexture(1, 1, 0, GraphicsFormat.R32_UInt)
-                    {
-                        dimension = TextureDimension.Tex2DArray,
-                        volumeDepth = kMaxSliceCount,
-                        useMipMap = false,
-                        autoGenerateMips = false,
-                        enableRandomWrite = true,
-                        name = "Black UInt Texture Array"
-                    };
+                dimension = TextureDimension.Tex2DArray,
+                volumeDepth = kMaxSlices,
+                useMipMap = false,
+                autoGenerateMips = false,
+                enableRandomWrite = true,
+                name = "Black UInt Texture Array"
+            };
 
-                    // Can't use CreateTexture2DArrayFromTexture2D here because we need to create the texture using GraphicsFormat
-                    for (int i = 0; i < kMaxSliceCount; ++i)
-                        Graphics.Blit(blackTexture2DArray, m_BlackUIntTexture2DArray as RenderTexture, i, i);
-                }
+            blackUIntTexture2DArray.Create();
 
-                return m_BlackUIntTexture2DArray;
-            }
+            // Workaround because we currently can't create a Texture2DArray using an R32_UInt format
+            // So we create a R32_UInt RenderTarget and clear it using a compute shader, because we can't
+            // Clear this type of target on metal devices (output type nor compatible: float4 vs uint)
+            int kernel = clearR32_UIntShader.FindKernel("ClearUIntTextureArray");
+            cmd.SetComputeTextureParam(clearR32_UIntShader, kernel, "_TargetArray", blackUIntTexture2DArray);
+            cmd.DispatchCompute(clearR32_UIntShader, kernel, 1, 1, kMaxSlices);
+
+            return blackUIntTexture2DArray as Texture;
         }
+
+        static Texture CreateBlackUintTexture(CommandBuffer cmd, ComputeShader clearR32_UIntShader)
+        {
+            RenderTexture blackUIntTexture2D = new RenderTexture(1, 1, 0, GraphicsFormat.R32_UInt)
+            {
+                dimension = TextureDimension.Tex2D,
+                volumeDepth = kMaxSlices,
+                useMipMap = false,
+                autoGenerateMips = false,
+                enableRandomWrite = true,
+                name = "Black UInt Texture Array"
+            };
+
+            blackUIntTexture2D.Create();
+
+            // Workaround because we currently can't create a Texture2DArray using an R32_UInt format
+            // So we create a R32_UInt RenderTarget and clear it using a compute shader, because we can't
+            // Clear this type of target on metal devices (output type nor compatible: float4 vs uint)
+            int kernel = clearR32_UIntShader.FindKernel("ClearUIntTexture");
+            cmd.SetComputeTextureParam(clearR32_UIntShader, kernel, "_Target", blackUIntTexture2D);
+            cmd.DispatchCompute(clearR32_UIntShader, kernel, 1, 1, kMaxSlices);
+
+            return blackUIntTexture2D as Texture;
+        }
+
+        static Texture m_BlackUIntTexture2DArray;
+        public static Texture blackUIntTexture2DArray { get => m_BlackUIntTexture2DArray; private set => m_BlackUIntTexture2DArray = value; }
     }
 }

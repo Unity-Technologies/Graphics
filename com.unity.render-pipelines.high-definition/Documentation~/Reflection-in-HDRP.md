@@ -21,7 +21,7 @@ To help you decide which techniques to use in your Unity Project, the following 
 
 To produce the highest quality reflections, HDRP uses the reflection technique that gives the best accuracy for each pixel, while ensuring it blends with all the other techniques. To do this, HDRP evaluates all lighting techniques until it reaches an overall **weight** of 1.
 
-- Screen space reflection drives its own weight.
+- Screen space reflection controls its own weight.
 - Reflection Probes have a **Weight** property which you can edit manually. This allows you set weights for overlapping Reflection Probes to blend them properly.
 - Sky reflection has a fixed weight of 1.
 

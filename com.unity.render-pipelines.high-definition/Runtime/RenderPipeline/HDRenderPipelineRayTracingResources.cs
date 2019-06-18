@@ -8,26 +8,21 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 #if ENABLE_RAYTRACING
         // Reflection
         [Reload("Runtime/RenderPipeline/Raytracing/Shaders/RaytracingReflections.raytrace")]
-        public RaytracingShader reflectionRaytracing;
-#endif
+        public RayTracingShader reflectionRaytracing;
         [Reload("Runtime/RenderPipeline/Raytracing/Shaders/RaytracingReflectionFilter.compute")]
         public ComputeShader reflectionBilateralFilterCS;
 
         // Shadows
-#if ENABLE_RAYTRACING
-        [Reload("Runtime/RenderPipeline/Raytracing/Shaders/AreaShadows/RaytracingAreaShadows.raytrace")]
-        public RaytracingShader areaShadowsRaytracingRT;
-#endif
-        [Reload("Runtime/RenderPipeline/Raytracing/Shaders/AreaShadows/RaytracingAreaShadow.compute")]
-        public ComputeShader areaShadowRaytracingCS;
-        [Reload("Runtime/RenderPipeline/Raytracing/Shaders/AreaShadows/AreaBilateralShadow.compute")]
-        public ComputeShader areaShadowFilterCS;
+        [Reload("Runtime/RenderPipeline/Raytracing/Shaders/Shadows/RaytracingShadow.raytrace")]
+        public RayTracingShader shadowRaytracingRT;
+        [Reload("Runtime/RenderPipeline/Raytracing/Shaders/Shadows/RaytracingShadow.compute")]
+        public ComputeShader shadowRaytracingCS;
+        [Reload("Runtime/RenderPipeline/Raytracing/Shaders/Shadows/RaytracingShadowFilter.compute")]
+        public ComputeShader shadowFilterCS;
 
         // Primary visibility
-#if ENABLE_RAYTRACING
         [Reload("Runtime/RenderPipeline/Raytracing/Shaders/RaytracingRenderer.raytrace")]
-        public RaytracingShader forwardRaytracing;
-#endif
+        public RayTracingShader forwardRaytracing;
         [Reload("Runtime/RenderPipeline/Raytracing/Shaders/RaytracingFlagMask.shader")]
         public Shader raytracingFlagMask;
 
@@ -38,25 +33,23 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public ComputeShader lightClusterDebugCS;
 
         // Indirect Diffuse
-#if ENABLE_RAYTRACING
         [Reload("Runtime/RenderPipeline/Raytracing/Shaders/RaytracingIndirectDiffuse.raytrace")]
-        public RaytracingShader indirectDiffuseRaytracing;
-#endif
+        public RayTracingShader indirectDiffuseRaytracing;
         [Reload("Runtime/RenderPipeline/Raytracing/Shaders/IndirectDiffuseAccumulation.compute")]
-        public ComputeShader indirectDiffuseAccumulation;            
+        public ComputeShader indirectDiffuseAccumulation;
 
         // Ambient Occlusion
-#if ENABLE_RAYTRACING
         [Reload("Runtime/RenderPipeline/Raytracing/Shaders/RaytracingAmbientOcclusion.raytrace")]
-        public RaytracingShader aoRaytracing;
-#endif
-        [Reload("Runtime/RenderPipeline/Raytracing/Shaders/RaytracingAmbientOcclusionFilter.compute")]
-        public ComputeShader raytracingAOFilterCS;
+        public RayTracingShader aoRaytracing;
+
+        // Denoising
+        [Reload("Runtime/RenderPipeline/Raytracing/Shaders/Denoising/SimpleDenoiser.compute")]
+        public ComputeShader simpleDenoiserCS;
 
         // Ray count
         [Reload("Runtime/RenderPipeline/Raytracing/Shaders/CountTracedRays.compute")]
         public ComputeShader countTracedRays;
-
+#endif
 
     #if UNITY_EDITOR
         [UnityEditor.CustomEditor(typeof(HDRenderPipelineRayTracingResources))]
