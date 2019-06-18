@@ -1,7 +1,7 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoop.cs.hlsl"
 
 // SCREEN_SPACE_SHADOWS needs to be defined in all cases in which they need to run. IMPORTANT: If this is activated, the light loop function WillRenderScreenSpaceShadows on C# MUST return true.
-#if SHADEROPTIONS_RAYTRACING
+#if SHADEROPTIONS_RAYTRACING && (SHADERPASS != SHADERPASS_RAYTRACING_INDIRECT)
 // TODO: This will need to be a multi_compile when we'll have them on compute shaders.
 #define SCREEN_SPACE_SHADOWS 1
 #endif

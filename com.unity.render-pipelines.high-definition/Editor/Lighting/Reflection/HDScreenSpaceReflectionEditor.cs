@@ -19,11 +19,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         SerializedDataParameter m_EnableRaytracing;
         SerializedDataParameter m_RayLength;
         SerializedDataParameter m_ClampValue;
-        SerializedDataParameter m_TemporalAccumulationWeight;
         SerializedDataParameter m_SpatialFilterRadius;
+        SerializedDataParameter m_FullResolution;
         SerializedDataParameter m_NumSamples;
         SerializedDataParameter m_EnableFilter;
         SerializedDataParameter m_FilterRadius;
+        SerializedDataParameter m_DeferredMode;
+        SerializedDataParameter m_RayBinning;
 
         public override void OnEnable()
         {
@@ -38,11 +40,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             m_EnableRaytracing              = Unpack(o.Find(x => x.enableRaytracing));
             m_RayLength                     = Unpack(o.Find(x => x.rayLength));
             m_ClampValue                    = Unpack(o.Find(x => x.clampValue));
-            m_TemporalAccumulationWeight    = Unpack(o.Find(x => x.temporalAccumulationWeight));
             m_SpatialFilterRadius           = Unpack(o.Find(x => x.spatialFilterRadius));
+            m_FullResolution                = Unpack(o.Find(x => x.fullResolution));
             m_NumSamples                    = Unpack(o.Find(x => x.numSamples));
             m_EnableFilter                  = Unpack(o.Find(x => x.enableFilter));
             m_FilterRadius                  = Unpack(o.Find(x => x.filterRadius));
+            m_DeferredMode                  = Unpack(o.Find(x => x.deferredMode));
+            m_RayBinning                    = Unpack(o.Find(x => x.rayBinning));
         }
 
         public override void OnInspectorGUI()
@@ -79,8 +83,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 {
                     case RenderPipelineSettings.RaytracingTier.Tier1:
                     {
-                        PropertyField(m_TemporalAccumulationWeight);
                         PropertyField(m_SpatialFilterRadius);
+                        PropertyField(m_FullResolution);
+                        PropertyField(m_EnableFilter);
+                        PropertyField(m_FilterRadius);
+                        PropertyField(m_DeferredMode);
+                        PropertyField(m_RayBinning);
                     }
                     break;
                     case RenderPipelineSettings.RaytracingTier.Tier2:

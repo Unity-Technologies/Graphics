@@ -8,7 +8,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 #if ENABLE_RAYTRACING
         // Reflection
         [Reload("Runtime/RenderPipeline/Raytracing/Shaders/RaytracingReflections.raytrace")]
-        public RayTracingShader reflectionRaytracing;
+        public RayTracingShader reflectionRaytracingRT;
+        [Reload("Runtime/RenderPipeline/Raytracing/Shaders/Reflections/RaytracingReflections.compute")]
+        public ComputeShader reflectionRaytracingCS;
         [Reload("Runtime/RenderPipeline/Raytracing/Shaders/RaytracingReflectionFilter.compute")]
         public ComputeShader reflectionBilateralFilterCS;
 
@@ -45,6 +47,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // Denoising
         [Reload("Runtime/RenderPipeline/Raytracing/Shaders/Denoising/SimpleDenoiser.compute")]
         public ComputeShader simpleDenoiserCS;
+
+        // Deferred Lighting
+        [Reload("Runtime/RenderPipeline/Raytracing/Shaders/Deferred/RaytracingGBuffer.raytrace")]
+        public RayTracingShader gBufferRaytracingRT;
+        [Reload("Runtime/RenderPipeline/Raytracing/Shaders/Deferred/RaytracingDeferred.compute")]
+        public ComputeShader deferredRaytracingCS;
+
+        // Ray Binning
+        [Reload("Runtime/RenderPipeline/Raytracing/Shaders/Common/RayBinning.compute")]
+        public ComputeShader rayBinningCS;
 
         // Ray count
         [Reload("Runtime/RenderPipeline/Raytracing/Shaders/CountTracedRays.compute")]
