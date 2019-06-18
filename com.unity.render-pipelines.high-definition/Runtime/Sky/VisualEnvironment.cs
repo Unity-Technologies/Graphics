@@ -7,9 +7,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     // This enum is just here to centralize UniqueID values for skies provided with HDRP
     public enum SkyType
     {
-        HDRISky = 1,
-        ProceduralSky = 2,
+        HDRI = 1,
+        Procedural = 2,
         Gradient = 3,
+        PhysicallyBased = 4,
     }
 
     public enum SkyAmbientMode
@@ -48,11 +49,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 return;
             }
 
+            // The PBR sky contributes to atmospheric scattering.
+            int pbrSkyAtmosphereFlag = skyType.value == (int)SkyType.PhysicallyBased ? 128 : 0;
+
             switch (fogType.value)
             {
                 case FogType.None:
                 {
-                    cmd.SetGlobalInt(HDShaderIDs._AtmosphericScatteringType, (int)FogType.None);
+                    cmd.SetGlobalInt(HDShaderIDs._AtmosphericScatteringType, pbrSkyAtmosphereFlag | (int)FogType.None);
                     break;
                 }
                 case FogType.Linear:

@@ -105,13 +105,17 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         AfterPostprocess = 17,
         [FrameSettingsField(0, autoName: LowResTransparent)]
         LowResTransparent = 18,
+        [FrameSettingsField(0, displayedName: "ZTest For After PostProcess", tooltip: "When enabled, Cameras that don't use TAA process a depth test for Materials in the AfterPostProcess rendering pass.")]
+        ZTestAfterPostProcessTAA = 19,
 
         //lighting settings from 20 to 39
         [FrameSettingsField(1, autoName: Shadow)]
         Shadow = 20,
         [FrameSettingsField(1, autoName: ContactShadows)]
         ContactShadows = 21,
-        [FrameSettingsField(1, autoName: ShadowMask)]
+        [FrameSettingsField(1, autoName: ScreenSpaceShadows, customOrderInGroup: 22)]
+        ScreenSpaceShadows = 34,
+        [FrameSettingsField(1, autoName: ShadowMask, customOrderInGroup: 23)]
         ShadowMask = 22,
         [FrameSettingsField(1, autoName: SSR)]
         SSR = 23,
@@ -220,6 +224,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 (uint)FrameSettingsField.Postprocess,
                 (uint)FrameSettingsField.AfterPostprocess,
                 (uint)FrameSettingsField.LowResTransparent,
+                (uint)FrameSettingsField.ZTestAfterPostProcessTAA,
                 (uint)FrameSettingsField.OpaqueObjects,
                 (uint)FrameSettingsField.TransparentObjects,
                 (uint)FrameSettingsField.RealtimePlanarReflection,
@@ -438,6 +443,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             sanitazedFrameSettings.bitDatas[(int)FrameSettingsField.Shadow] &= !preview;
             sanitazedFrameSettings.bitDatas[(int)FrameSettingsField.ShadowMask] &= renderPipelineSettings.supportShadowMask && !preview;
             sanitazedFrameSettings.bitDatas[(int)FrameSettingsField.ContactShadows] &= !preview;
+            sanitazedFrameSettings.bitDatas[(int)FrameSettingsField.ScreenSpaceShadows] &= renderPipelineSettings.hdShadowInitParams.supportScreenSpaceShadows;
 
             //MSAA only supported in forward
             // TODO: The work will be implemented piecemeal to support all passes

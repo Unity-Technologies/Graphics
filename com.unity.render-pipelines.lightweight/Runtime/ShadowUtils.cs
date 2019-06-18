@@ -28,7 +28,7 @@ namespace UnityEngine.Rendering.LWRP
 
         static ShadowUtils()
         {
-            m_ShadowmapFormat = RenderingUtils.SupportsRenderTextureFormat(RenderTextureFormat.Shadowmap)
+            m_ShadowmapFormat = RenderingUtils.SupportsRenderTextureFormat(RenderTextureFormat.Shadowmap) && (SystemInfo.graphicsDeviceType != GraphicsDeviceType.OpenGLES2)
                 ? RenderTextureFormat.Shadowmap
                 : RenderTextureFormat.Depth;
             m_ForceShadowPointSampling = SystemInfo.graphicsDeviceType == GraphicsDeviceType.Metal &&

@@ -58,9 +58,7 @@ Shader "Hidden/HDRP/ScreenSpaceShadows"
             DecodeFromNormalBuffer(posInput.positionSS.xy, normalData);
             float3 normalWS = normalData.normalWS;
 
-            // If NdotL < 0, we flip the normal in case it is used for the transmission.
-            normalWS *= FastSign(dot(normalWS, L));
-            
+            // Note: we use shading normal here and not GetNormalForShadowBias() as it is not available
             return GetDirectionalShadowAttenuation(context.shadowContext, posInput.positionSS.xy, posInput.positionWS, normalWS, _DirectionalShadowIndex, L);
         }
     ENDHLSL

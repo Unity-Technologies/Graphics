@@ -332,6 +332,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             foreach (var shadowRequest in parameters.shadowRequests)
             {
+                if (shadowRequest.shouldUseCachedShadow)
+                    continue;
+
                 cmd.SetViewport(shadowRequest.atlasViewport);
 
                 cmd.SetGlobalFloat(HDShaderIDs._ZClip, shadowRequest.zClip ? 1.0f : 0.0f);
@@ -372,7 +375,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             ComputeShader shadowBlurMomentsCS = parameters.evsmShadowBlurMomentsCS;
 
-            using (new ProfilingSample(cmd, "Render & Blur Moment Shadows", CustomSamplerId.RenderShadows.GetSampler()))
+            using (new ProfilingSample(cmd, "Render & Blur Moment Shadows", CustomSamplerId.RenderShadowMaps.GetSampler()))
             {
                 int generateAndBlurMomentsKernel = shadowBlurMomentsCS.FindKernel("ConvertAndBlur");
                 int blurMomentsKernel = shadowBlurMomentsCS.FindKernel("Blur");
@@ -397,7 +400,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 int requestIdx = 0;
                 foreach (var shadowRequest in parameters.shadowRequests)
                 {
-                    using (new ProfilingSample(cmd, "EVSM conversion and blur", CustomSamplerId.RenderShadows.GetSampler()))
+                    using (new ProfilingSample(cmd, "EVSM conversion and blur", CustomSamplerId.RenderShadowMaps.GetSampler()))
                     {
                         int downsampledWidth = Mathf.CeilToInt(shadowRequest.atlasViewport.width * 0.5f);
                         int downsampledHeight = Mathf.CeilToInt(shadowRequest.atlasViewport.height * 0.5f);
@@ -439,7 +442,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 {
                     if (finalAtlasTexture[i] != 0)
                     {
-                        using (new ProfilingSample(cmd, "Copy into main atlas.", CustomSamplerId.RenderShadows.GetSampler()))
+                        using (new ProfilingSample(cmd, "Copy into main atlas.", CustomSamplerId.RenderShadowMaps.GetSampler()))
                         {
                             var shadowRequest = parameters.shadowRequests[i];
                             int downsampledWidth = Mathf.CeilToInt(shadowRequest.atlasViewport.width * 0.5f);
@@ -470,7 +473,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             ComputeShader momentCS = parameters.imShadowBlurMomentsCS;
             if (momentCS == null) return;
 
-            using (new ProfilingSample(cmd, "Render Moment Shadows", CustomSamplerId.RenderShadows.GetSampler()))
+            using (new ProfilingSample(cmd, "Render Moment Shadows", CustomSamplerId.RenderShadowMaps.GetSampler()))
             {
                 int computeMomentKernel = momentCS.FindKernel("ComputeMomentShadows");
                 int summedAreaHorizontalKernel = momentCS.FindKernel("MomentSummedAreaTableHorizontal");

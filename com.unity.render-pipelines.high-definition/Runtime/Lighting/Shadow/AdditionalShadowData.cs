@@ -1,5 +1,12 @@
 namespace UnityEngine.Experimental.Rendering
 {
+    public enum ShadowUpdateMode
+    {
+        EveryFrame = 0,
+        OnEnable,
+        OnDemand
+    }
+
     [RequireComponent(typeof(Light))]
     public class AdditionalShadowData : MonoBehaviour
     {
@@ -19,6 +26,7 @@ namespace UnityEngine.Experimental.Rendering
         public float volumetricShadowDimmer = 1.0f;
         public float shadowFadeDistance = 10000.0f;
         public bool contactShadows = false;
+        public Color shadowTint = Color.black;
         // bias control
         public float viewBiasMin = 0.5f;
         public float viewBiasMax = 10f;
@@ -33,6 +41,8 @@ namespace UnityEngine.Experimental.Rendering
         public bool edgeToleranceNormal = false;
         [Range(0.0F, 1.0F)]
         public float edgeTolerance = 1.0f;
+
+        public ShadowUpdateMode shadowUpdateMode = ShadowUpdateMode.EveryFrame;
 
         [HideInInspector, SerializeField]
         private int shadowCascadeCount = 4;
@@ -76,6 +86,7 @@ namespace UnityEngine.Experimental.Rendering
             data.shadowAlgorithm = shadowAlgorithm;
             data.shadowVariant = shadowVariant;
             data.shadowPrecision = shadowPrecision;
+            data.shadowUpdateMode = shadowUpdateMode;
         }
     }
 

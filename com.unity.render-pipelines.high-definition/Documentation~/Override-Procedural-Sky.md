@@ -8,7 +8,7 @@ This sky is similar to the procedural sky in Unity’s built-in render pipeline.
 
 **Procedural Sky** uses the [Volume](Volumes.html) framework, so to enable and modify **Procedural Sky** properties, you must add a **Procedural Sky** override to a [Volume](Volumes.html) in your Scene. To add **Procedural Sky** to a Volume:
 
-1. Select the Volume component in the Scene or Hierarchy to view it in the Inspector.
+1. In the Scene or Hierarchy view, select the GameObject that contains the Volume component to view it in the Inspector.
 2. In the Inspector, navigate to **Add Override > Sky** and click on **Procedural Sky**.
 
 After you add a **Procedural Sky** override, you must set the Volume to use **Procedural  Sky**. The [Visual Environment](Override-Visual-Environment.html) override controls which type of sky the Volume uses. In the **Visual Environment** override, navigate to the **Sky** section and set the **Type** to **Procedural Sky**. HDRP now renders a **Procedural Sky** for any Camera this Volume affects.

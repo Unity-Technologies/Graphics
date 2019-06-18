@@ -56,8 +56,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public float   lightDimmer;
         public float   volumetricLightDimmer;   // Replaces 'lightDimer'
-        public float   angleScale;              // Sun disk highlight
-        public float   angleOffset;             // Sun disk highlight
 
         public Vector3 forward;
         public int     cookieIndex;             // -1 if unused (TODO: 16 bit)
@@ -68,10 +66,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public Vector3 up;                      // Rescaled by (2 / shapeHeight)
         public int     shadowIndex;             // -1 if unused (TODO: 16 bit)
 
+        public int     screenSpaceShadowIndex;
+
         public Vector3 color;
         public int     contactShadowMask;      // 0 if unused (TODO: 16 bit)
 
+        public Vector3 shadowTint;              // Use to tint shadow color
         public float   shadowDimmer;
+
         public float   volumetricShadowDimmer;  // Replaces 'shadowDimmer'
         public int     nonLightMappedOnly;      // Used with ShadowMask (TODO: use a bitfield)
         public float   minRoughness;            // Hack
@@ -80,6 +82,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public float   diffuseDimmer;
         public float   specularDimmer;
+        public int     interactsWithSky;        // bool...
     };
 
     [GenerateHLSL(PackingRules.Exact, false)]
@@ -113,7 +116,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public int     contactShadowMask;       // negative if unused (TODO: 16 bit)
 
         // TODO: Instead of doing this, we should pack the ray traced shadow index into the tile cookie for instance
-        public int     rayTracedAreaShadowIndex;
+        public int     screenSpaceShadowIndex;
+        
+        public Vector3 shadowTint;              // Use to tint shadow color
 
         public float   shadowDimmer;
         public float   volumetricShadowDimmer;  // Replaces 'shadowDimmer'

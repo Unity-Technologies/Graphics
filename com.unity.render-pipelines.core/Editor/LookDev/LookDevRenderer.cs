@@ -1,14 +1,15 @@
 using System;
 using UnityEngine;
-using UnityEngine.Rendering.LookDev;
-using IDataProvider = UnityEngine.Rendering.LookDev.IDataProvider;
+using UnityEngine.Rendering.Experimental.LookDev;
+using IDataProvider = UnityEngine.Rendering.Experimental.LookDev.IDataProvider;
 
-namespace UnityEditor.Rendering.LookDev
+namespace UnityEditor.Rendering.Experimental.LookDev
 {
     public class RenderingData
     {
         public bool resized;
         public Stage stage;
+        public ICameraUpdater updater;
         public Rect viewPort;
         public RenderTexture output;
     }
@@ -40,6 +41,7 @@ namespace UnityEditor.Rendering.LookDev
             var oldOutput = data.output;
             data.output = RenderTextureCache.UpdateSize(
                 data.output, data.viewPort, pixelPerfect, data.stage.camera);
+            data.updater?.UpdateCamera(data.stage.camera);
             data.stage.camera.enabled = true;
             data.resized = oldOutput != data.output;
         }

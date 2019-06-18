@@ -149,7 +149,6 @@ namespace UnityEditor.VFX.UI
         {
             this.AddStyleSheetPath("VFXNode");
             AddToClassList("VFXNodeUI");
-            cacheAsBitmap = true;
 
             RegisterCallback<MouseEnterEvent>(OnMouseEnter);
             RegisterCallback<MouseLeaveEvent>(OnMouseLeave);
@@ -211,7 +210,7 @@ namespace UnityEditor.VFX.UI
                 for (int i = 0; i < m_Settings.Count; ++i)
                 {
                     PropertyRM prop = m_Settings[i];
-                    if (prop != null && activeSettings.Any(s => s.Name == controller.settings[i].name))
+                    if (prop != null && activeSettings.Any(s => s.field.Name == controller.settings[i].name))
                     {
                         hasSettings = true;
                         settingsContainer.Add(prop);

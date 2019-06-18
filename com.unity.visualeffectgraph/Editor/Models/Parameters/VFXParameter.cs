@@ -58,6 +58,7 @@ namespace UnityEditor.VFX
                     {
                         var newSlot = VFXSlot.Create(new VFXProperty(outputSlots[0].property.type, "i"), VFXSlot.Direction.kInput);
                         newSlot.value = outputSlots[0].value;
+                        outputSlots[0].UnlinkAll(true);
                         RemoveSlot(outputSlots[0]);
                         AddSlot(newSlot);
 
@@ -73,6 +74,7 @@ namespace UnityEditor.VFX
                     {
                         var newSlot = VFXSlot.Create(new VFXProperty(inputSlots[0].property.type, "o"), VFXSlot.Direction.kOutput);
                         newSlot.value = inputSlots[0].value;
+                        inputSlots[0].UnlinkAll(true);
                         RemoveSlot(inputSlots[0]);
                         AddSlot(newSlot);
                         m_ExprSlots = outputSlots[0].GetVFXValueTypeSlots().ToArray();

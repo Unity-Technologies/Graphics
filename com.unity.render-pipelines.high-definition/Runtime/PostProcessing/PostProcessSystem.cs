@@ -91,6 +91,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         bool m_PostProcessEnabled;
         bool m_AnimatedMaterialsEnabled;
 
+        bool m_MotionBlurSupportsScattering;
+
         // Max guard band size is assumed to be 8 pixels
         const int k_RTGuardBandSize = 4;
 
@@ -150,6 +152,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_EmptyExposureTexture = RTHandles.Alloc(1, 1, colorFormat: k_ExposureFormat,
                 enableRandomWrite: true, name: "Empty EV100 Exposure"
             );
+
+            m_MotionBlurSupportsScattering = SystemInfo.IsFormatSupported(GraphicsFormat.R32_UInt, FormatUsage.LoadStore) && SystemInfo.IsFormatSupported(GraphicsFormat.R16_UInt, FormatUsage.LoadStore);
+            // TODO: Remove this line when atomic bug in HLSLcc is fixed.
+            m_MotionBlurSupportsScattering = m_MotionBlurSupportsScattering && (SystemInfo.graphicsDeviceType != GraphicsDeviceType.Vulkan);
+            // TODO: Write a version that uses structured buffer instead of texture to do atomic as Metal doesn't support atomics on textures.
+            m_MotionBlurSupportsScattering = m_MotionBlurSupportsScattering && (SystemInfo.graphicsDeviceType != GraphicsDeviceType.Metal);
 
             var tex = new Texture2D(1, 1, TextureFormat.RGHalf, false, true);
             tex.SetPixel(0, 0, new Color(1f, ColorUtils.ConvertExposureToEV100(1f), 0f, 0f));
@@ -1290,15 +1298,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             // -----------------------------------------------------------------------------
 
-            bool scattering = SystemInfo.IsFormatSupported(GraphicsFormat.R32_UInt, FormatUsage.LoadStore) && SystemInfo.IsFormatSupported(GraphicsFormat.R16_UInt, FormatUsage.LoadStore);
-            // TODO: Remove this line when atomic bug in HLSLcc is fixed.
-            scattering = scattering && (SystemInfo.graphicsDeviceType != GraphicsDeviceType.Vulkan);
-            // TODO: Write a version that uses structured buffer instead of texture to do atomic as Metal doesn't support atomics on textures.
-            scattering = scattering && (SystemInfo.graphicsDeviceType != GraphicsDeviceType.Metal);
-
             int tileSize = 32;
 
-            if (scattering)
+            if (m_MotionBlurSupportsScattering)
             {
                 tileSize = 16;
             }
@@ -1313,7 +1315,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             RTHandle maxTileNeigbourhood = m_Pool.Get(tileTexScale, GraphicsFormat.B10G11R11_UFloatPack32);
             RTHandle tileToScatterMax = null;
             RTHandle tileToScatterMin = null;
-            if (scattering)
+            if (m_MotionBlurSupportsScattering)
             {
                 tileToScatterMax = m_Pool.Get(tileTexScale, GraphicsFormat.R32_UInt);
                 tileToScatterMin = m_Pool.Get(tileTexScale, GraphicsFormat.R16_UInt);
@@ -1331,7 +1333,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             Vector4 motionBlurParams1 = new Vector4(
                 m_MotionBlur.intensity.value,
                 m_MotionBlur.maximumVelocity.value / screenMagnitude,
-                m_MotionBlur.tileMinMaxVelRatioForHighQuality.value,
+                0.25f, // min/max velocity ratio for high quality.
                 m_MotionBlur.cameraRotationVelocityClamp.value
             );
 
@@ -1368,7 +1370,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 // We store R11G11B10 with RG = Max vel and B = Min vel magnitude
                 cs = m_Resources.shaders.motionBlurTileGenCS;
-                if (scattering)
+                if (m_MotionBlurSupportsScattering)
                 {
                     kernel = cs.FindKernel("TileGenPass_Scattering");
                 }
@@ -1381,7 +1383,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 cmd.SetComputeVectorParam(cs, HDShaderIDs._MotionBlurParams, motionBlurParams0);
                 cmd.SetComputeVectorParam(cs, HDShaderIDs._MotionBlurParams1, motionBlurParams1);
 
-                if (scattering)
+                if (m_MotionBlurSupportsScattering)
                 {
                     cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._TileToScatterMax, tileToScatterMax);
                     cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._TileToScatterMin, tileToScatterMin);
@@ -1395,10 +1397,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // -----------------------------------------------------------------------------
             // Generate max tiles neigbhourhood
 
-            using (new ProfilingSample(cmd, scattering ? "Tile Scattering" :  "Tile Neighbourhood", CustomSamplerId.MotionBlurTileNeighbourhood.GetSampler()))
+            using (new ProfilingSample(cmd, m_MotionBlurSupportsScattering ? "Tile Scattering" :  "Tile Neighbourhood", CustomSamplerId.MotionBlurTileNeighbourhood.GetSampler()))
             {
                 cs = m_Resources.shaders.motionBlurTileGenCS;
-                if (scattering)
+                if (m_MotionBlurSupportsScattering)
                 {
                     kernel = cs.FindKernel("TileNeighbourhood_Scattering");
                 }
@@ -1409,7 +1411,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 cmd.SetComputeVectorParam(cs, HDShaderIDs._TileTargetSize, tileTargetSize);
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._TileMinMaxMotionVec, minMaxTileVel);
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._TileMaxNeighbourhood, maxTileNeigbourhood);
-                if (scattering)
+                if (m_MotionBlurSupportsScattering)
                 {
                     cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._TileToScatterMax, tileToScatterMax);
                     cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._TileToScatterMin, tileToScatterMin);
@@ -1424,7 +1426,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // -----------------------------------------------------------------------------
             // Merge min/max info spreaded above.
 
-            if (scattering)
+            if (m_MotionBlurSupportsScattering)
             {
                 kernel = cs.FindKernel("TileMinMaxMerge");
                 cmd.SetComputeVectorParam(cs, HDShaderIDs._TileTargetSize, tileTargetSize);
@@ -1440,9 +1442,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 uint sampleCount = (uint)m_MotionBlur.sampleCount.value;
                 Vector4 motionBlurParams2 = new Vector4(
-                    scattering ? (sampleCount + (sampleCount & 1)) : sampleCount,
+                    m_MotionBlurSupportsScattering ? (sampleCount + (sampleCount & 1)) : sampleCount,
                     tileSize,
-                    0.0f,
+                    m_MotionBlur.depthComparisonExtent.value,
                     0.0f
                     );
 
@@ -1471,7 +1473,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_Pool.Recycle(minMaxTileVel);
             m_Pool.Recycle(maxTileNeigbourhood);
             m_Pool.Recycle(preppedMotionVec);
-            if (scattering)
+            if (m_MotionBlurSupportsScattering)
             {
                 m_Pool.Recycle(tileToScatterMax);
                 m_Pool.Recycle(tileToScatterMin);

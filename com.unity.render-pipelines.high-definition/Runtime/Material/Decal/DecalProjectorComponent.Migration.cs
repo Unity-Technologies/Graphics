@@ -40,7 +40,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // Update decal system
                 if (decal.m_Handle != null)
                     DecalSystem.instance.RemoveDecal(decal.m_Handle);
-                Matrix4x4 sizeOffset = Matrix4x4.Translate(decal.offset) * Matrix4x4.Scale(decal.size);
+                Matrix4x4 sizeOffset = Matrix4x4.Translate(decal.decalOffset) * Matrix4x4.Scale(decal.decalSize);
                 decal.m_Handle = DecalSystem.instance.AddDecal(decal.position, decal.rotation, Vector3.one, sizeOffset, decal.m_DrawDistance, decal.m_FadeScale, decal.uvScaleBias, decal.m_AffectsTransparency, decal.m_Material, decal.gameObject.layer, decal.m_FadeFactor);
             })
         );
