@@ -6,7 +6,7 @@ The **Shadows Midtones Highlights** effect separately controls the shadows, midt
 
 **Shadows Midtones Highlights** uses the [Volume](Volumes.html) framework, so to enable and modify the shadows, midtones, or highlights of the render, you must add a **Shadows Midtones Highlights** override to a [Volume](Volumes.html) in your Scene. To add **Shadows Midtones Highlights** to a Volume:
 
-1. In the Scene or Hierarchy view, select the GameObject that contains the Volume component to view it in the Inspector.
+1. In the Scene or Hierarchy view, select a GameObject that contains a Volume component to view it in the Inspector.
 2. In the Inspector, navigate to **Add Override > Post-processing** and click on **Shadows Midtones Highlights**. HDRP now applies **Shadows Midtones Highlights** to any Camera this Volume affects.
 
 ## Properties

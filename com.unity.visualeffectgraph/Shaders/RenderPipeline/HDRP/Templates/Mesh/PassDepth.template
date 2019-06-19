@@ -32,6 +32,8 @@ Pass
 		float4 tangent : TEXCOORD4;
 		#endif
 		#endif
+
+		UNITY_VERTEX_OUTPUT_STEREO
 	};
 
 #define VFX_VARYING_PS_INPUTS ps_input
@@ -70,7 +72,8 @@ ${VFXEnd}
 	, out float4 outColor : SV_Target
 #endif
 	)
-	{	
+	{
+		UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i);
 		VFXTransformPSInputs(i);
 		
 #ifdef WRITE_NORMAL_BUFFER

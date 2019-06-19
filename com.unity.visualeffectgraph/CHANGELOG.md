@@ -15,6 +15,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Subgraphs
 - Move HDRP outputs to HDRP package + expose HDRP queue selection
 - Add exposure weight control for HDRP outputs
+- Shader macros for XR single-pass instancing
+- XR single-pass instancing support for indirect draws
 
 ## [6.7.0-preview] - 2019-05-16
 ### Added
