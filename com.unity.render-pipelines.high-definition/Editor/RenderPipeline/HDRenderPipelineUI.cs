@@ -511,24 +511,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
 
             // VT
-            EditorGUI.BeginChangeCheck();
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportsVirtualTexturing, k_SupportsVirtualTexturing );
-            if (EditorGUI.EndChangeCheck() )
-            {
-                // disable VT on all materials
-                var matIds = AssetDatabase.FindAssets("t:Material");
-                for (int i = 0, length = matIds.Length; i < length; i++)
-                {
-                    EditorUtility.DisplayProgressBar("Updating Materials", "Updating materials for VT changes...", (float)(i / matIds.Length));
-                    var path = AssetDatabase.GUIDToAssetPath(matIds[i]);
-                    var mat = AssetDatabase.LoadAssetAtPath<Material>(path);
-                    if (mat != null)
-                    {
-                        ShaderGraph.StackStatus.UpdateMaterial(mat, serialized.renderPipelineSettings.supportsVirtualTexturing.boolValue == false);
-                    }
-                }
-                EditorUtility.ClearProgressBar();
-            }
 
             EditorGUILayout.Space(); //to separate with following sub sections
         }

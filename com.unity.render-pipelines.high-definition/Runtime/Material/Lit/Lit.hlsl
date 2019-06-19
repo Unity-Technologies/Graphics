@@ -83,7 +83,7 @@ TEXTURE2D_X(_ShadowMaskTexture); // Alias for shadow mask, so we don't need to k
 #define GBUFFERMATERIAL_SHADOWMASK 0
 #endif
 
-#ifdef VT_ON
+#ifdef VIRTUAL_TEXTURES_ENABLED
 #define GBUFFERMATERIAL_VTFEEDBACK 1
 #else
 #define GBUFFERMATERIAL_VTFEEDBACK 0
@@ -93,14 +93,14 @@ TEXTURE2D_X(_ShadowMaskTexture); // Alias for shadow mask, so we don't need to k
 // Caution: This must be in sync with Lit.cs GetMaterialGBufferCount()
 #define GBUFFERMATERIAL_COUNT (4 + GBUFFERMATERIAL_LIGHT_LAYERS + GBUFFERMATERIAL_SHADOWMASK + GBUFFERMATERIAL_VTFEEDBACK)
 
-#if defined(VT_ON) && defined(LIGHT_LAYERS) && defined(SHADOWS_SHADOWMASK)
+#if defined(VIRTUAL_TEXTURES_ENABLED) && defined(LIGHT_LAYERS) && defined(SHADOWS_SHADOWMASK)
 #define OUT_GBUFFER_VTFEEDBACK outGBuffer4
 #define OUT_GBUFFER_LIGHT_LAYERS outGBuffer5
 #define OUT_GBUFFER_SHADOWMASK outGBuffer6
-#elif defined(VT_ON) && defined(LIGHT_LAYERS)
+#elif defined(VIRTUAL_TEXTURES_ENABLED) && defined(LIGHT_LAYERS)
 #define OUT_GBUFFER_VTFEEDBACK outGBuffer4
 #define OUT_GBUFFER_LIGHT_LAYERS outGBuffer5
-#elif defined(VT_ON) && defined(SHADOWS_SHADOWMASK)
+#elif defined(VIRTUAL_TEXTURES_ENABLED) && defined(SHADOWS_SHADOWMASK)
 #define OUT_GBUFFER_VTFEEDBACK outGBuffer4
 #define OUT_GBUFFER_SHADOWMASK outGBuffer5
 #elif defined(LIGHT_LAYERS) && defined(SHADOWS_SHADOWMASK)
@@ -110,7 +110,7 @@ TEXTURE2D_X(_ShadowMaskTexture); // Alias for shadow mask, so we don't need to k
 #define OUT_GBUFFER_LIGHT_LAYERS outGBuffer4
 #elif defined(SHADOWS_SHADOWMASK)
 #define OUT_GBUFFER_SHADOWMASK outGBuffer4
-#elif defined(VT_ON)
+#elif defined(VIRTUAL_TEXTURES_ENABLED)
 #define OUT_GBUFFER_VTFEEDBACK outGBuffer4
 #endif
 
@@ -686,8 +686,10 @@ void EncodeIntoGBuffer( SurfaceData surfaceData
     OUT_GBUFFER_SHADOWMASK = BUILTIN_DATA_SHADOW_MASK;
 #endif
 
-#ifdef VT_ON
+#if VIRTUAL_TEXTURES_ACTIVE
     OUT_GBUFFER_VTFEEDBACK = surfaceData.VTFeedback;
+#elif VIRTUAL_TEXTURES_ENABLED
+    OUT_GBUFFER_VTFEEDBACK = float4(1,1,1,1);
 #endif
 }
 

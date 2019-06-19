@@ -117,6 +117,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
 #if ENABLE_VIRTUALTEXTURES
         VTFeedbackDownSample,
+        VTFeedbackClear,
 #endif
         Max
     }

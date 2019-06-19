@@ -109,6 +109,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public GlobalDynamicResolutionSettings dynamicResolutionSettings;
         public GlobalLowResolutionTransparencySettings lowresTransparentSettings;
 
-        public bool supportsVirtualTexturing;
+        public bool supportsVirtualTexturing; // Note only ever use this var in ui's. To check if VT is on or not at run time, always use the C# define ENABLE_VIRTUALTEXTURES as both may be out of sync while the compile+domain reload happen
     }
 }

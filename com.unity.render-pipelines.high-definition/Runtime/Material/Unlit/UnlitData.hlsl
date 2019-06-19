@@ -13,6 +13,8 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     surfaceData.color = SAMPLE_TEXTURE2D(_UnlitColorMap, sampler_UnlitColorMap, unlitColorMapUv).rgb * _UnlitColor.rgb;
     float alpha = SAMPLE_TEXTURE2D(_UnlitColorMap, sampler_UnlitColorMap, unlitColorMapUv).a * _UnlitColor.a;
 
+    surfaceData.VTFeedback = float4(1,1,1,1);
+
 #ifdef _ALPHATEST_ON
     DoAlphaTest(alpha, _AlphaCutoff);
 #endif

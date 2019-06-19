@@ -7,7 +7,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
     {
         public override void OnGUI(MaterialEditor materialEditor, MaterialProperty[] props)
         {
+            EditorGUI.BeginChangeCheck();
             materialEditor.PropertiesDefaultGUI(props);
+            if (EditorGUI.EndChangeCheck())
+            {
+                ShaderGraph.StackUtilities.SetMaterialKeywords(materialEditor.targets);
+            }
+
+
             if (materialEditor.EmissionEnabledProperty())
             {
                 materialEditor.LightmapEmissionFlagsProperty(MaterialEditor.kMiniTextureFieldLabelIndentLevel, true, true);

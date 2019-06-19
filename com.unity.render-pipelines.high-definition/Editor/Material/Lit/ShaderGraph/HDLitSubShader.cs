@@ -66,6 +66,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 HDLitMasterNode.LightingSlotId,
                 HDLitMasterNode.BackLightingSlotId,
                 HDLitMasterNode.DepthOffsetSlotId,
+                HDLitMasterNode.VTFeedbackSlotId,
             },
             VertexShaderSlots = new List<int>()
             {
@@ -515,6 +516,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 HDLitMasterNode.LightingSlotId,
                 HDLitMasterNode.BackLightingSlotId,
                 HDLitMasterNode.DepthOffsetSlotId,
+                HDLitMasterNode.VTFeedbackSlotId,
             },
             VertexShaderSlots = new List<int>()
             {
@@ -1023,7 +1025,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 sourceAssetDependencyPaths.Add(AssetDatabase.GUIDToAssetPath("713ced4e6eef4a44799a4dd59041484b"));
             }
 
-            var masterNode = iMasterNode as HDLitMasterNode;
+            var masterNode = (iMasterNode as HDLitMasterNode);
+
+            // Do all work on a copy of the graph
+            masterNode = masterNode.owner.ScratchCopy().GetNodeFromGuid(masterNode.guid) as HDLitMasterNode;
+
+            // Inject VT feedback into graph
+            AggregateFeedbackNode.AutoInjectFeedbackNode(masterNode);
 
             var subShader = new ShaderGenerator();
             subShader.AddShaderChunk("SubShader", false);

@@ -102,6 +102,17 @@ namespace UnityEngine.Rendering.LWRP
             CameraCaptureBridge.enabled = true;
 
             RenderingUtils.ClearSystemInfoCache();
+
+            if (asset.usesVirtualTexturing)
+            {
+                Shader.EnableKeyword("VIRTUAL_TEXTURES_ENABLED");
+                Debug.Log("Enable VT keword");
+            }
+            else
+            {
+                Shader.DisableKeyword("VIRTUAL_TEXTURES_ENABLED");
+                Debug.Log("Disable VT keword");
+            }
         }
 
         protected override void Dispose(bool disposing)

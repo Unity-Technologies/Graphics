@@ -178,13 +178,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public override bool IsDefferedMaterial() { return true; }
 
-        protected void GetGBufferOptions(HDRenderPipelineAsset asset, out int gBufferCount, out bool supportShadowMask, out bool supportLightLayers, out bool supportsVirtualTexturing)
+        protected void GetGBufferOptions(HDRenderPipelineAsset asset, out int gBufferCount, out bool supportShadowMask, out bool supportLightLayers)
         {
             // Caution: This must be in sync with GBUFFERMATERIAL_COUNT definition in 
             supportShadowMask = asset.currentPlatformRenderPipelineSettings.supportShadowMask;
             supportLightLayers = asset.currentPlatformRenderPipelineSettings.supportLightLayers;
-            supportsVirtualTexturing = asset.currentPlatformRenderPipelineSettings.supportsVirtualTexturing;
-            gBufferCount = 4 + (supportShadowMask ? 1 : 0) + (supportLightLayers ? 1 : 0) + (supportsVirtualTexturing ? 1 : 0);
+            gBufferCount = 4 + (supportShadowMask ? 1 : 0) + (supportLightLayers ? 1 : 0);
+#if ENABLE_VIRTUALTEXTURES
+            gBufferCount++;
+#endif
         }
 
         // This must return the number of GBuffer to allocate
@@ -193,8 +195,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             int gBufferCount;
             bool unused0;
             bool unused1;
-            bool unused2;
-            GetGBufferOptions(asset, out gBufferCount, out unused0, out unused1, out unused2);
+            GetGBufferOptions(asset, out gBufferCount, out unused0, out unused1);
 
             return gBufferCount;
         }
@@ -204,8 +205,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             int gBufferCount;
             bool supportShadowMask;
             bool supportLightLayers;
-            bool supportsVirtualTexturing;
-            GetGBufferOptions(asset, out gBufferCount, out supportShadowMask, out supportLightLayers, out supportsVirtualTexturing);
+            GetGBufferOptions(asset, out gBufferCount, out supportShadowMask, out supportLightLayers);
 
             RTFormat = new GraphicsFormat[gBufferCount];
             gBufferUsage = new GBufferUsage[gBufferCount];
@@ -233,7 +233,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             int index = 4;
 
 #if ENABLE_VIRTUALTEXTURES
-            if (supportsVirtualTexturing)
             {
                 RTFormat[index] = GraphicsFormat.R8G8B8A8_UNorm;
                 gBufferUsage[index] = GBufferUsage.VTFeedback;

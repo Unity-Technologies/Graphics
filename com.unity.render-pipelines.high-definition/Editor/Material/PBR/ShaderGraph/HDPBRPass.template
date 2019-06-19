@@ -80,6 +80,7 @@ Pass
     // End Defines
     //-------------------------------------------------------------------------------------
 
+    #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/TextureStack.hlsl"
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
     #ifdef DEBUG_DISPLAY
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Debug/DebugDisplay.hlsl"
@@ -144,6 +145,7 @@ $include("SharedCode.template.hlsl")
         $SurfaceDescription.Occlusion:            surfaceData.ambientOcclusion =      surfaceDescription.Occlusion;
         $SurfaceDescription.Metallic:             surfaceData.metallic =              surfaceDescription.Metallic;
         $SurfaceDescription.Specular:             surfaceData.specularColor =         surfaceDescription.Specular;
+        $SurfaceDescription.VTFeedback:           surfaceData.VTFeedback =            surfaceDescription.VTFeedback;
 
         // These static material feature allow compile time optimization
         surfaceData.materialFeatures = MATERIALFEATUREFLAGS_LIT_STANDARD;

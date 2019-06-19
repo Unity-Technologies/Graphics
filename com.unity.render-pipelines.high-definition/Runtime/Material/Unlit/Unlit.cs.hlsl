@@ -8,6 +8,7 @@
 // UnityEngine.Experimental.Rendering.HDPipeline.Unlit+SurfaceData:  static fields
 //
 #define DEBUGVIEW_UNLIT_SURFACEDATA_COLOR (300)
+#define DEBUGVIEW_UNLIT_SURFACEDATA_VTFEEDBACK (301)
 
 //
 // UnityEngine.Experimental.Rendering.HDPipeline.Unlit+BSDFData:  static fields
@@ -19,6 +20,7 @@
 struct SurfaceData
 {
     float3 color;
+    float4 VTFeedback;
 };
 
 // Generated from UnityEngine.Experimental.Rendering.HDPipeline.Unlit+BSDFData
@@ -38,6 +40,9 @@ void GetGeneratedSurfaceDataDebug(uint paramId, SurfaceData surfacedata, inout f
         case DEBUGVIEW_UNLIT_SURFACEDATA_COLOR:
             result = surfacedata.color;
             needLinearToSRGB = true;
+            break;
+        case DEBUGVIEW_UNLIT_SURFACEDATA_VTFEEDBACK:
+            result = surfacedata.VTFeedback.xyz;
             break;
     }
 }

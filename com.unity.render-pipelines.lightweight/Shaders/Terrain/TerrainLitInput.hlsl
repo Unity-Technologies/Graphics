@@ -37,7 +37,6 @@ CBUFFER_END
 
 TEXTURE2D(_MetallicTex);   SAMPLER(sampler_MetallicTex);
 
-
 half4 SampleMetallicSpecGloss(float2 uv, half albedoAlpha)
 {
     half4 specGloss;

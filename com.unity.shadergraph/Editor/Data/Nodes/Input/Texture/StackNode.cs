@@ -136,6 +136,8 @@ namespace UnityEditor.ShaderGraph
                     break;
                 }
             }
+            bool feedbackConnected = IsSlotConnected(FeedbackSlotId); ;
+            anyConnected |= feedbackConnected;
 
             if (anyConnected)
             {
@@ -177,26 +179,14 @@ namespace UnityEditor.ShaderGraph
                 }
             }
 
-            if (IsSlotConnected(FeedbackSlotId))
+            if (feedbackConnected)
             {
-                string feedBackCode = string.Format("float4 {0} = ResolveStack({1}, {2}, {3});"
-                        , GetVariableNameForSlot(FeedbackSlotId)
-                        , GetSlotValue(UVInputId, generationMode)
-                        , stackName
-                        , "VT_ResolveConstantPatch");
-               sb.AppendLine(feedBackCode);
+                //TODO: Investigate if the feedback pass can use halfs
+                string feedBackCode = string.Format("float4 {0} = GetResolveOutput({1}_info);",
+                        GetVariableNameForSlot(FeedbackSlotId),
+                        stackName);
+                sb.AppendLine(feedBackCode);
             }
-        }
-
-        public void GenerateFeedbackCode(GenerationMode generationMode, string assignLValue, out string code)
-        {
-            string stackName = GetVariableNameForSlot(OutputSlotIds[0]) + "_stack";
-
-            code = string.Format("{0} = ResolveStack({1}, {2}, {3});"
-                    , assignLValue
-                    , GetSlotValue(UVInputId, generationMode)
-                    , stackName
-                    , "VT_ResolveConstantPatch");
         }
 
         public override void CollectShaderProperties(PropertyCollector properties, GenerationMode generationMode)
@@ -230,7 +220,8 @@ namespace UnityEditor.ShaderGraph
 
         public override void CollectShaderPragmas(PragmaCollector pragmas, GenerationMode generationMode)
         {
-            pragmas.AddShaderPragma(new ShaderFeaturePragma(new string[] { "VT_ON" }));
+            pragmas.AddShaderPragma(new MultiCompilePragma(new string[] { "_", "VIRTUAL_TEXTURES_ENABLED" }));
+            pragmas.AddShaderPragma(new ShaderFeatureLocalPragma(new string[] { "VIRTUAL_TEXTURES_BUILT" }));            
         }
 
         public bool RequiresMeshUV(UVChannel channel, ShaderStageCapability stageCapability)
@@ -427,6 +418,8 @@ namespace UnityEditor.ShaderGraph
 
         public override bool hasPreview { get { return false; } }
 
+        public const int MasterNodeFeedbackInputSlotID = 22021982;
+
         public AggregateFeedbackNode()
         {
             name = "Feedback Aggregate";
@@ -506,6 +499,13 @@ namespace UnityEditor.ShaderGraph
         public static AggregateFeedbackNode AutoInjectFeedbackNode(AbstractMaterialNode masterNode)
         {
             var stackNodes = GraphUtil.FindDownStreamNodesOfType<SampleStackNodeBase>(masterNode);
+
+            // Early out if there are no VT nodes in the graph
+            if ( stackNodes.Count <= 0 )
+            {
+                return null;
+            }
+
             var feedbackNode = new AggregateFeedbackNode();
             masterNode.owner.AddNode(feedbackNode);
 
@@ -515,6 +515,11 @@ namespace UnityEditor.ShaderGraph
             {
                 // Find feedback output slot on the vt node
                 var stackFeedbackOutputSlot = (node.FindOutputSlot<ISlot>(node.FeedbackSlotId)) as Vector4MaterialSlot;
+                if (stackFeedbackOutputSlot == null)
+                {
+                    Debug.LogWarning("Could not find the VT feedback output slot on the stack node.");
+                    return null;
+                }
 
                 // Create a new slot on the aggregate that is similar to the uv input slot
                 string name = "FeedIn_" + i;
@@ -527,8 +532,20 @@ namespace UnityEditor.ShaderGraph
             }
 
             // Add input to master node
-            var feedbackInputSlot = masterNode.FindInputSlot<ISlot>(PBRMasterNode.FeedbackSlotId);
+            var feedbackInputSlot = masterNode.FindInputSlot<ISlot>(MasterNodeFeedbackInputSlotID);
+            if ( feedbackInputSlot == null )
+            {
+                Debug.LogWarning("Could not find the VT feedback input slot on the master node.");
+                return null;
+            }
+
             var feedbackOutputSlot = feedbackNode.FindOutputSlot<ISlot>(AggregateFeedbackNode.AggregateOutputId);
+            if ( feedbackOutputSlot == null )
+            {
+                Debug.LogWarning("Could not find the VT feedback output slot on the aggregate node.");
+                return null;
+            }
+
             masterNode.owner.Connect(feedbackOutputSlot.slotReference, feedbackInputSlot.slotReference);
             masterNode.owner.ClearChanges();
 

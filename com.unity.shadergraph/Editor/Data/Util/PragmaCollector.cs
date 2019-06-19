@@ -53,6 +53,10 @@ namespace UnityEditor.ShaderGraph
     {
         public MultiCompilePragma(IEnumerable<string> options) : base("multi_compile", options)
         {
+            if ( options.Count() <  2)
+            {
+                throw new System.Exception("multi_compile needs at least 2 options, you probably need to use the empty '_' option.");
+            }
         }
 
         public override bool IsDuplicate(AbstractShaderPragma other)
@@ -70,6 +74,18 @@ namespace UnityEditor.ShaderGraph
         public override bool IsDuplicate(AbstractShaderPragma other)
         {
             return (other is ShaderFeaturePragma) && (other as ShaderFeaturePragma).arguments.SequenceEqual(arguments);
+        }
+    }
+
+    class ShaderFeatureLocalPragma : SimplePragma
+    {
+        public ShaderFeatureLocalPragma(IEnumerable<string> options) : base("shader_feature_local", options)
+        {
+        }
+
+        public override bool IsDuplicate(AbstractShaderPragma other)
+        {
+            return (other is ShaderFeatureLocalPragma) && (other as ShaderFeatureLocalPragma).arguments.SequenceEqual(arguments);
         }
     }
 

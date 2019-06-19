@@ -104,7 +104,7 @@ float3 ADD_IDX(GetNormalTS)(FragInputs input, LayerTexCoord layerTexCoord, float
 #ifdef _NORMALMAP_IDX
     #ifdef _NORMALMAP_TANGENT_SPACE_IDX
         //TODO(ddebaets) VT does not handle full range of normal map sampling/reconstruction so special case here...
-#ifdef VT_ON
+#if VIRTUAL_TEXTURES_ACTIVE
         normalTS = SampleStack_Normal(stackInfo, ADD_IDX(_NormalMap), ADD_IDX(_NormalScale));
 #else
         normalTS = SAMPLE_UVMAPPING_NORMALMAP(ADD_IDX(_NormalMap), SAMPLER_NORMALMAP_IDX, ADD_IDX(layerTexCoord.base), ADD_IDX(_NormalScale));
@@ -184,10 +184,13 @@ float3 ADD_IDX(GetBentNormalTS)(FragInputs input, LayerTexCoord layerTexCoord, f
 float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out SurfaceData surfaceData, out float3 normalTS, out float3 bentNormalTS)
 {
     // Prepare the VT stack for sampling
-    StackInfo stackInfo = PrepareStack(ADD_IDX(layerTexCoord.base).uv, ADD_IDX(_TextureStack));
+    StackInfo stackInfo = PrepareStack(UVMappingTo2D(ADD_IDX(layerTexCoord.base)), ADD_IDX(_TextureStack));    
     surfaceData.VTFeedback = GetResolveOutput(stackInfo);
-
+#if VIRTUAL_TEXTURES_ACTIVE
     const float4 baseColorValue = SampleStack(stackInfo, ADD_IDX(_BaseColorMap)); //SAMPLE_UVMAPPING_TEXTURE2D(ADD_IDX(_BaseColorMap), ADD_ZERO_IDX(sampler_BaseColorMap), ADD_IDX(layerTexCoord.base));
+#else
+    const float4 baseColorValue = SAMPLE_UVMAPPING_TEXTURE2D(ADD_IDX(_BaseColorMap), ADD_ZERO_IDX(sampler_BaseColorMap), ADD_IDX(layerTexCoord.base));
+#endif
     float alpha = baseColorValue.a * ADD_IDX(_BaseColor).a;
 
     // Perform alha test very early to save performance (a killed pixel will not sample textures)
@@ -208,7 +211,11 @@ float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out
 
 
 #ifdef _MASKMAP_IDX
+#if VIRTUAL_TEXTURES_ACTIVE  
     const float4 maskValue = SampleStack(stackInfo, ADD_IDX(_MaskMap)); //SAMPLE_UVMAPPING_TEXTURE2D(ADD_IDX(_MaskMap), SAMPLER_MASKMAP_IDX, ADD_IDX(layerTexCoord.base)).b;
+#else    
+    const float4 maskValue = SAMPLE_UVMAPPING_TEXTURE2D(ADD_IDX(_MaskMap), SAMPLER_MASKMAP_IDX, ADD_IDX(layerTexCoord.base));
+#endif    
 #endif
 
     float3 detailNormalTS = float3(0.0, 0.0, 0.0);

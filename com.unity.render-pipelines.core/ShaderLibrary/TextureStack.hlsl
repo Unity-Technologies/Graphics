@@ -19,7 +19,7 @@
 
 	In your CGPROGRAM code for each of the passes add:
 
-	    #pragma shader_feature_local VT_ON
+	    #pragma shader_feature_local VIRTUAL_TEXTURES_BUILT
 
     Then add the following to the PerMaterial constant buffer:
 
@@ -57,7 +57,18 @@
 
 */
 
-#ifdef VT_ON
+// A note about the on/off defines
+// VIRTUAL_TEXTURES_ENABLED current render pipeline is configured to use VT this is something even non vt materials may need to be aware of (e.g. different gbuffer layout used etc...)
+// VIRTUAL_TEXTURES_BUILT valid vt data has been build for the material the material can render with VT from a data point but not nececarry rendering using VT because RP may have it disabled
+// VIRTUAL_TEXTURES_ACTIVE vt data is built and enabled so the current shader should actively use VT sampling
+
+#if VIRTUAL_TEXTURES_ENABLED && VIRTUAL_TEXTURES_BUILT
+#define VIRTUAL_TEXTURES_ACTIVE 1
+#else
+#define VIRTUAL_TEXTURES_ACTIVE 0
+#endif
+
+#if VIRTUAL_TEXTURES_ACTIVE
 
 struct StackInfo
 {
@@ -69,6 +80,11 @@ struct StackInfo
     #define GR_LOOKUP Granite_Lookup_Clamp_Linear
 #else
     #define GR_LOOKUP Granite_Lookup_Anisotropic
+#endif
+
+// This can be used by certain resolver implementations to override screen space derivatives
+#ifndef RESOLVE_SCALE_OVERRIDE
+#define RESOLVE_SCALE_OVERRIDE float2(1,1)
 #endif
 
 
@@ -85,6 +101,10 @@ StackInfo PrepareVT_##stackName(float2 uv)\
 	GraniteStreamingTextureConstantBuffer textureParamBlock;\
 	textureParamBlock.data[0] = stackName##_atlasparams[0];\
 	textureParamBlock.data[1] = stackName##_atlasparams[1];\
+\
+    /* hack resolve scale into constant buffer here */\
+    stackName##_spaceparams[0][2][0] *= RESOLVE_SCALE_OVERRIDE.x;\
+    stackName##_spaceparams[0][3][0] *= RESOLVE_SCALE_OVERRIDE.y;\
 \
 	GraniteTilesetConstantBuffer graniteParamBlock;\
 	graniteParamBlock.data[0] = stackName##_spaceparams[0];\
@@ -116,6 +136,10 @@ float4 SampleVT_##layerSamplerName(StackInfo info)\
 	textureParamBlock.data[0] = stackName##_atlasparams[0];\
 	textureParamBlock.data[1] = stackName##_atlasparams[1];\
 \
+    /* hack resolve scale into constant buffer here */\
+    stackName##_spaceparams[0][2][0] *= RESOLVE_SCALE_OVERRIDE.x;\
+    stackName##_spaceparams[0][3][0] *= RESOLVE_SCALE_OVERRIDE.y;\
+\
 	GraniteTilesetConstantBuffer graniteParamBlock;\
 	graniteParamBlock.data[0] = stackName##_spaceparams[0];\
 	graniteParamBlock.data[1] = stackName##_spaceparams[1];\
@@ -138,15 +162,15 @@ float3 SampleVT_Normal_##layerSamplerName(StackInfo info, float scale)\
 }
 
 #define DECLARE_STACK_RESOLVE(stackName)\
-float4 ResolveVT_##stackName(float2 uv, float2 resolveConstantPatch)\
+float4 ResolveVT_##stackName(float2 uv)\
 {\
     GraniteStreamingTextureConstantBuffer textureParamBlock;\
     textureParamBlock.data[0] = stackName##_atlasparams[0];\
     textureParamBlock.data[1] = stackName##_atlasparams[1];\
 \
     /* hack resolve scale into constant buffer here */\
-    stackName##_spaceparams[0][2][0] *= resolveConstantPatch.x;\
-    stackName##_spaceparams[0][3][0] *= resolveConstantPatch.y;\
+    stackName##_spaceparams[0][2][0] *= RESOLVE_SCALE_OVERRIDE.x;\
+    stackName##_spaceparams[0][3][0] *= RESOLVE_SCALE_OVERRIDE.y;\
 \
     GraniteTilesetConstantBuffer graniteParamBlock;\
     graniteParamBlock.data[0] = stackName##_spaceparams[0];\
@@ -189,7 +213,7 @@ float4 ResolveVT_##stackName(float2 uv, float2 resolveConstantPatch)\
 #define SampleStack(info, textureName) SampleVT_##textureName(info)
 #define SampleStack_Normal(info, textureName, scale) SampleVT_Normal_##textureName(info, scale)
 #define GetResolveOutput(info) info.resolveOutput
-#define ResolveStack(uv, stackName, scale) ResolveVT_##stackName(uv, scale)
+#define ResolveStack(uv, stackName) ResolveVT_##stackName(uv)
 
 #else
 
@@ -224,6 +248,6 @@ StackInfo MakeStackInfo(float2 uv)
 
 // Resolve does nothing
 #define GetResolveOutput(info) float4(1,1,1,1)
-#define ResolveStack(uv, stackName, scale) float4(1,1,1,1)
+#define ResolveStack(uv, stackName) float4(1,1,1,1)
 
 #endif
