@@ -174,7 +174,7 @@ void EvalDecalMask(PositionInputs posInput, float3 positionRWSDdx, float3 positi
             mask = 0;	// diffuse will not get modified						
         }
 
-        float normalBlend = albedoBlend;
+        float normalBlend = (decalData.blendParams.x == 1.0f) ? 1.0f : albedoBlend;
         if ((decalData.maskScaleBias.x > 0) && (decalData.maskScaleBias.y > 0))
         {
             ApplyBlendMask(DBuffer2, DBuffer3, mask, sampleMask, DBUFFERHTILEBIT_MASK, albedoBlend, lodMask, decalData.normalToWorld[0][3], normalBlend, decalData.blendParams, decalData.scalingMAB, decalData.remappingAOS);
