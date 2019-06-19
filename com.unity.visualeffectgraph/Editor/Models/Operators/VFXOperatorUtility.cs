@@ -312,8 +312,7 @@ namespace UnityEditor.VFX
         {
             //theta = atan2(coord.y, coord.x)
             //distance = length(coord)
-            var components = ExtractComponents(coord).ToArray();
-            var theta = new VFXExpressionATan2(components[1], components[0]);
+            var theta = Atan2(coord);
             var distance = Length(coord);
             return new VFXExpression[] { theta, distance };
         }
@@ -608,6 +607,13 @@ namespace UnityEditor.VFX
             var m3 = new VFXExpressionCombine(zero,                 zero,       TwoExpression[VFXValueType.Float] * zNear * zFar / deltaZ,     zero);
 
             return new VFXExpressionVector4sToMatrix(m0, m1, m2, m3);
+        }
+
+        static public VFXExpression Atan2(VFXExpression coord)
+        {
+            var components = ExtractComponents(coord).ToArray();
+            var theta = new VFXExpressionATan2(components[1], components[0]);
+            return theta;
         }
     }
 }
