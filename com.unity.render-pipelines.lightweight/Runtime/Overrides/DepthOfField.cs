@@ -21,7 +21,7 @@ namespace UnityEngine.Rendering.LWRP
         [Tooltip("The distance at which the blurring will reach its maximum radius.")]
         public MinFloatParameter gaussianEnd = new MinFloatParameter(30f, 0f);
 
-        [Tooltip("The maximum radius of the gaussian blur.")]
+        [Tooltip("The maximum radius of the gaussian blur. Values above 1 may show under-sampling artifacts.")]
         public ClampedFloatParameter gaussianMaxRadius = new ClampedFloatParameter(1f, 0.5f, 1.5f);
 
         [Tooltip("Use higher quality sampling to reduce flickering and improve the overall blur smoothness.")]
