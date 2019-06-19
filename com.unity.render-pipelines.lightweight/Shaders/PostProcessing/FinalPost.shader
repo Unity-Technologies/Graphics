@@ -16,7 +16,7 @@ Shader "Hidden/Lightweight Render Pipeline/FinalPost"
         #include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/Core.hlsl"
         #include "Packages/com.unity.render-pipelines.lightweight/Shaders/PostProcessing/Common.hlsl"
 
-        TEXTURE2D(_MainTex);
+        TEXTURE2D_X(_MainTex);
         TEXTURE2D(_Grain_Texture);
         TEXTURE2D(_BlueNoise_Texture);
 
@@ -40,21 +40,23 @@ Shader "Hidden/Lightweight Render Pipeline/FinalPost"
         half3 Fetch(float2 coords, float2 offset)
         {
             float2 uv = coords + offset;
-            return SAMPLE_TEXTURE2D(_MainTex, sampler_LinearClamp, uv).xyz;
+            return SAMPLE_TEXTURE2D_X(_MainTex, sampler_LinearClamp, uv).xyz;
         }
 
         half3 Load(int2 icoords, int idx, int idy)
         {
             #if SHADER_API_GLES
             float2 uv = (icoords + int2(idx, idy)) * _MainTex_TexelSize.xy;
-            return SAMPLE_TEXTURE2D(_MainTex, sampler_LinearClamp, uv).xyz;
+            return SAMPLE_TEXTURE2D_X(_MainTex, sampler_LinearClamp, uv).xyz;
             #else
-            return LOAD_TEXTURE2D(_MainTex, clamp(icoords + int2(idx, idy), 0, _MainTex_TexelSize.zw - 1.0)).xyz;
+            return LOAD_TEXTURE2D_X(_MainTex, clamp(icoords + int2(idx, idy), 0, _MainTex_TexelSize.zw - 1.0)).xyz;
             #endif
         }
 
         half4 Frag(Varyings input) : SV_Target
         {
+            UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
+
             float2 positionNDC = input.uv;
             int2   positionSS  = input.uv * _MainTex_TexelSize.zw;
 

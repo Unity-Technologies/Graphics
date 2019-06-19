@@ -49,6 +49,7 @@ namespace UnityEngine.Rendering.LWRP
         RenderTargetIdentifier[] m_MRT2;
         Vector4[] m_BokehKernel;
         int m_BokehHash;
+        bool m_IsStereo;
 
         // True when this is the very last pass in the pipeline
         bool m_IsFinalPass;
@@ -163,9 +164,25 @@ namespace UnityEngine.Rendering.LWRP
             m_ResetHistory = false;
         }
 
+        RenderTextureDescriptor GetStereoCompatibleDescriptor()
+            => GetStereoCompatibleDescriptor(m_Descriptor.width, m_Descriptor.height, m_Descriptor.graphicsFormat);
+
+        RenderTextureDescriptor GetStereoCompatibleDescriptor(int width, int height, GraphicsFormat format)
+        {
+            // Inherit the VR setup from the camera descriptor
+            var desc = m_Descriptor;
+            desc.depthBufferBits = 0;
+            desc.msaaSamples = 1;
+            desc.width = width;
+            desc.height = height;
+            desc.graphicsFormat = format;
+            return desc;
+        }
+
         void Render(CommandBuffer cmd, ref RenderingData renderingData)
         {
             ref var cameraData = ref renderingData.cameraData;
+            m_IsStereo = renderingData.cameraData.isStereoEnabled;
 
             // Don't use these directly unless you have a good reason to, use GetSource() and
             // GetDestination() instead
@@ -179,11 +196,7 @@ namespace UnityEngine.Rendering.LWRP
             {
                 if (destination == -1)
                 {
-                    cmd.GetTemporaryRT(
-                        ShaderConstants._TempTarget, m_Descriptor.width, m_Descriptor.height,
-                        0, FilterMode.Bilinear, m_Descriptor.graphicsFormat
-                    );
-
+                    cmd.GetTemporaryRT(ShaderConstants._TempTarget, GetStereoCompatibleDescriptor(), FilterMode.Bilinear);
                     destination = ShaderConstants._TempTarget;
                 }
 
@@ -254,13 +267,13 @@ namespace UnityEngine.Rendering.LWRP
                 if (bloomActive)
                 {
                     using (new ProfilingSample(cmd, "Bloom"))
-                        SetupBloom(cameraData.camera, cmd, GetSource(), m_Materials.uber);
+                        SetupBloom(cmd, GetSource(), m_Materials.uber);
                 }
 
                 // Setup other effects constants
                 SetupLensDistortion(m_Materials.uber, cameraData.isSceneViewCamera);
                 SetupChromaticAberration(m_Materials.uber);
-                SetupVignette(cameraData.camera, m_Materials.uber);
+                SetupVignette(m_Materials.uber);
                 SetupColorGrading(cmd, ref renderingData, m_Materials.uber);
 
                 // Only apply dithering & grain if we're the final pass
@@ -281,6 +294,7 @@ namespace UnityEngine.Rendering.LWRP
 
         #region Sub-pixel Morphological Anti-aliasing
 
+        // TODO: XR isn't working with SMAA
         void DoSubpixelMorphologicalAntialiasing(ref CameraData cameraData, CommandBuffer cmd, int source, int destination)
         {
             var camera = cameraData.camera;
@@ -288,7 +302,7 @@ namespace UnityEngine.Rendering.LWRP
             const int kStencilBit = 64;
 
             // Globals
-            material.SetVector(ShaderConstants._Metrics, new Vector4(1f / camera.pixelWidth, 1f / camera.pixelHeight, camera.pixelWidth, camera.pixelHeight));
+            material.SetVector(ShaderConstants._Metrics, new Vector4(1f / m_Descriptor.width, 1f / m_Descriptor.height, m_Descriptor.width, m_Descriptor.height));
             material.SetTexture(ShaderConstants._AreaTexture, m_Data.textures.smaaAreaTex);
             material.SetTexture(ShaderConstants._SearchTexture, m_Data.textures.smaaSearchTex);
             material.SetInt(ShaderConstants._StencilRef, kStencilBit);
@@ -308,8 +322,8 @@ namespace UnityEngine.Rendering.LWRP
             }
 
             // Intermediate targets
-            cmd.GetTemporaryRT(ShaderConstants._EdgeTexture, camera.pixelWidth, camera.pixelHeight, 0, FilterMode.Point, GraphicsFormat.R8G8B8A8_UNorm);
-            cmd.GetTemporaryRT(ShaderConstants._BlendTexture, camera.pixelWidth, camera.pixelHeight, 0, FilterMode.Point, GraphicsFormat.R8G8B8A8_UNorm);
+            cmd.GetTemporaryRT(ShaderConstants._EdgeTexture, m_Descriptor.width, m_Descriptor.height, 0, FilterMode.Point, GraphicsFormat.R8G8B8A8_UNorm);
+            cmd.GetTemporaryRT(ShaderConstants._BlendTexture, m_Descriptor.width, m_Descriptor.height, 0, FilterMode.Point, GraphicsFormat.R8G8B8A8_UNorm);
 
             // Prepare for manual blit
             cmd.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.identity);
@@ -350,14 +364,15 @@ namespace UnityEngine.Rendering.LWRP
             if (m_DepthOfField.mode.value == DepthOfFieldMode.Gaussian)
                 DoGaussianDepthOfField(camera, cmd, source, destination);
             else if (m_DepthOfField.mode.value == DepthOfFieldMode.Bokeh)
-                DoBokehDepthOfField(camera, cmd, source, destination);
+                DoBokehDepthOfField(cmd, source, destination);
         }
 
+        // TODO: XR isn't working with Gaussian DOF
         void DoGaussianDepthOfField(Camera camera, CommandBuffer cmd, int source, int destination)
         {
             var material = m_Materials.gaussianDepthOfField;
-            int wh = camera.pixelWidth / 2;
-            int hh = camera.pixelHeight / 2;
+            int wh = m_Descriptor.width / 2;
+            int hh = m_Descriptor.height / 2;
             float farStart = m_DepthOfField.gaussianStart.value;
             float farEnd = Mathf.Max(farStart, m_DepthOfField.gaussianEnd.value);
 
@@ -371,10 +386,10 @@ namespace UnityEngine.Rendering.LWRP
             material.SetVector(ShaderConstants._CoCParams, new Vector3(farStart, farEnd, maxRadius));
 
             // Temporary textures
-            cmd.GetTemporaryRT(ShaderConstants._FullCoCTexture, camera.pixelWidth, camera.pixelHeight, 0, FilterMode.Bilinear, m_GaussianCoCFormat);
-            cmd.GetTemporaryRT(ShaderConstants._HalfCoCTexture, wh, hh, 0, FilterMode.Bilinear, m_GaussianCoCFormat);
-            cmd.GetTemporaryRT(ShaderConstants._PingTexture, wh, hh, 0, FilterMode.Bilinear, m_DefaultHDRFormat);
-            cmd.GetTemporaryRT(ShaderConstants._PongTexture, wh, hh, 0, FilterMode.Bilinear, m_DefaultHDRFormat);
+            cmd.GetTemporaryRT(ShaderConstants._FullCoCTexture, GetStereoCompatibleDescriptor(m_Descriptor.width, m_Descriptor.height, m_GaussianCoCFormat), FilterMode.Bilinear);
+            cmd.GetTemporaryRT(ShaderConstants._HalfCoCTexture, GetStereoCompatibleDescriptor(wh, hh, m_GaussianCoCFormat), FilterMode.Bilinear);
+            cmd.GetTemporaryRT(ShaderConstants._PingTexture, GetStereoCompatibleDescriptor(wh, hh, m_DefaultHDRFormat), FilterMode.Bilinear);
+            cmd.GetTemporaryRT(ShaderConstants._PongTexture, GetStereoCompatibleDescriptor(wh, hh, m_DefaultHDRFormat), FilterMode.Bilinear);
 
             // Compute CoC
             cmd.Blit(source, ShaderConstants._FullCoCTexture, material, 0);
@@ -383,13 +398,14 @@ namespace UnityEngine.Rendering.LWRP
             m_MRT2[0] = ShaderConstants._HalfCoCTexture;
             m_MRT2[1] = ShaderConstants._PingTexture;
 
-            cmd.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.identity);
-            cmd.SetViewport(camera.pixelRect);
+            //cmd.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.identity);
+            //cmd.SetViewport(camera.pixelRect);
             cmd.SetGlobalTexture(ShaderConstants._ColorTexture, source);
             cmd.SetGlobalTexture(ShaderConstants._FullCoCTexture, ShaderConstants._FullCoCTexture);
             cmd.SetRenderTarget(m_MRT2, ShaderConstants._HalfCoCTexture);
-            cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, material, 0, 1);
-            cmd.SetViewProjectionMatrices(camera.worldToCameraMatrix, camera.projectionMatrix);
+            cmd.Blit(null, (Texture)null, material, 1);
+            //cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, material, 0, 1);
+            //cmd.SetViewProjectionMatrices(camera.worldToCameraMatrix, camera.projectionMatrix);
 
             // Blur
             cmd.SetGlobalTexture(ShaderConstants._HalfCoCTexture, ShaderConstants._HalfCoCTexture);
@@ -458,18 +474,18 @@ namespace UnityEngine.Rendering.LWRP
             return Mathf.Min(0.05f, kRadiusInPixels / viewportHeight);
         }
 
-        void DoBokehDepthOfField(Camera camera, CommandBuffer cmd, int source, int destination)
+        void DoBokehDepthOfField(CommandBuffer cmd, int source, int destination)
         {
             var material = m_Materials.bokehDepthOfField;
-            int wh = camera.pixelWidth / 2;
-            int hh = camera.pixelHeight / 2;
+            int wh = m_Descriptor.width / 2;
+            int hh = m_Descriptor.height / 2;
 
             // "A Lens and Aperture Camera Model for Synthetic Image Generation" [Potmesil81]
             float F = m_DepthOfField.focalLength.value / 1000f;
             float A = m_DepthOfField.focalLength.value / m_DepthOfField.aperture.value;
             float P = m_DepthOfField.focusDistance.value;
             float maxCoC = (A * F) / (P - F);
-            float maxRadius = GetMaxBokehRadiusInPixels(camera.pixelHeight);
+            float maxRadius = GetMaxBokehRadiusInPixels(m_Descriptor.height);
             float rcpAspect = 1f / (wh / (float)hh);
 
             cmd.SetGlobalVector(ShaderConstants._CoCParams, new Vector4(P, maxCoC, maxRadius, rcpAspect));
@@ -485,9 +501,9 @@ namespace UnityEngine.Rendering.LWRP
             cmd.SetGlobalVectorArray(ShaderConstants._BokehKernel, m_BokehKernel);
 
             // Temporary textures
-            cmd.GetTemporaryRT(ShaderConstants._FullCoCTexture, camera.pixelWidth, camera.pixelHeight, 0, FilterMode.Bilinear, GraphicsFormat.R8_UNorm);
-            cmd.GetTemporaryRT(ShaderConstants._PingTexture, wh, hh, 0, FilterMode.Bilinear, GraphicsFormat.R16G16B16A16_SFloat);
-            cmd.GetTemporaryRT(ShaderConstants._PongTexture, wh, hh, 0, FilterMode.Bilinear, GraphicsFormat.R16G16B16A16_SFloat);
+            cmd.GetTemporaryRT(ShaderConstants._FullCoCTexture, GetStereoCompatibleDescriptor(m_Descriptor.width, m_Descriptor.height, GraphicsFormat.R8_UNorm), FilterMode.Bilinear);
+            cmd.GetTemporaryRT(ShaderConstants._PingTexture, GetStereoCompatibleDescriptor(wh, hh, GraphicsFormat.R16G16B16A16_SFloat), FilterMode.Bilinear);
+            cmd.GetTemporaryRT(ShaderConstants._PongTexture, GetStereoCompatibleDescriptor(wh, hh, GraphicsFormat.R16G16B16A16_SFloat), FilterMode.Bilinear);
 
             // Compute CoC
             cmd.Blit(source, ShaderConstants._FullCoCTexture, material, 0);
@@ -569,10 +585,10 @@ namespace UnityEngine.Rendering.LWRP
             cmd.Blit(source, destination, material);
         }
 
-        static Vector2 CalcViewExtents(Camera camera)
+        Vector2 CalcViewExtents(Camera camera)
         {
             float fovY = camera.fieldOfView * Mathf.Deg2Rad;
-            float aspect = camera.pixelWidth / (float)camera.pixelHeight;
+            float aspect = m_Descriptor.width / (float)m_Descriptor.height;
 
             float viewExtY = Mathf.Tan(0.5f * fovY);
             float viewExtX = aspect * viewExtY;
@@ -580,7 +596,7 @@ namespace UnityEngine.Rendering.LWRP
             return new Vector2(viewExtX, viewExtY);
         }
 
-        static Vector2 CalcCropExtents(Camera camera, float d)
+        Vector2 CalcCropExtents(Camera camera, float d)
         {
             // given
             //    S----------- E--X-------
@@ -620,11 +636,11 @@ namespace UnityEngine.Rendering.LWRP
 
         #region Bloom
 
-        void SetupBloom(Camera camera, CommandBuffer cmd, int source, Material uberMaterial)
+        void SetupBloom(CommandBuffer cmd, int source, Material uberMaterial)
         {
             // Start at half-res
-            int tw = camera.pixelWidth >> 1;
-            int th = camera.pixelHeight >> 1;
+            int tw = m_Descriptor.width >> 1;
+            int th = m_Descriptor.height >> 1;
 
             // Determine the iteration count
             int maxSize = Mathf.Max(tw, th);
@@ -644,8 +660,9 @@ namespace UnityEngine.Rendering.LWRP
             CoreUtils.SetKeyword(bloomMaterial, ShaderKeywordStrings.UseRGBM, m_UseRGBM);
 
             // Prefilter
-            cmd.GetTemporaryRT(ShaderConstants._BloomMipDown[0], tw, th, 0, FilterMode.Bilinear, m_DefaultHDRFormat);
-            cmd.GetTemporaryRT(ShaderConstants._BloomMipUp[0], tw, th, 0, FilterMode.Bilinear, m_DefaultHDRFormat);
+            var desc = GetStereoCompatibleDescriptor(tw, th, m_DefaultHDRFormat);
+            cmd.GetTemporaryRT(ShaderConstants._BloomMipDown[0], desc, FilterMode.Bilinear);
+            cmd.GetTemporaryRT(ShaderConstants._BloomMipUp[0], desc, FilterMode.Bilinear);
             cmd.Blit(source, ShaderConstants._BloomMipDown[0], bloomMaterial, 0);
 
             // Downsample - gaussian pyramid
@@ -657,8 +674,11 @@ namespace UnityEngine.Rendering.LWRP
                 int mipDown = ShaderConstants._BloomMipDown[i];
                 int mipUp = ShaderConstants._BloomMipUp[i];
 
-                cmd.GetTemporaryRT(mipDown, tw, th, 0, FilterMode.Bilinear, m_DefaultHDRFormat);
-                cmd.GetTemporaryRT(mipUp, tw, th, 0, FilterMode.Bilinear, m_DefaultHDRFormat);
+                desc.width = tw;
+                desc.height = th;
+
+                cmd.GetTemporaryRT(mipDown, desc, FilterMode.Bilinear);
+                cmd.GetTemporaryRT(mipUp, desc, FilterMode.Bilinear);
 
                 // Classic two pass gaussian blur - use mipUp as a temporary target
                 //   First pass does 2x downsampling + 9-tap gaussian
@@ -702,7 +722,7 @@ namespace UnityEngine.Rendering.LWRP
             // stretched or squashed
             var dirtTexture = m_Bloom.dirtTexture.value == null ? Texture2D.blackTexture : m_Bloom.dirtTexture.value;
             float dirtRatio = dirtTexture.width / (float)dirtTexture.height;
-            float screenRatio = camera.pixelWidth / (float)camera.pixelHeight;
+            float screenRatio = m_Descriptor.width / (float)m_Descriptor.height;
             var dirtScaleOffset = new Vector4(1f, 1f, 0f, 0f);
             float dirtIntensity = m_Bloom.dirtIntensity.value;
 
@@ -774,14 +794,14 @@ namespace UnityEngine.Rendering.LWRP
 
         #region Vignette
 
-        void SetupVignette(Camera camera, Material material)
+        void SetupVignette(Material material)
         {
             var color = m_Vignette.color.value;
             var center = m_Vignette.center.value;
 
             var v1 = new Vector4(
                 color.r, color.g, color.b,
-                m_Vignette.rounded.value ? camera.pixelWidth / (float)camera.pixelHeight : 1f
+                m_Vignette.rounded.value ? m_Descriptor.width / (float)m_Descriptor.height : 1f
             );
             var v2 = new Vector4(
                 center.x, center.y,

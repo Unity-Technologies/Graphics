@@ -12,7 +12,7 @@ Shader "Hidden/Lightweight Render Pipeline/PaniniProjection"
         #include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/Core.hlsl"
         #include "Packages/com.unity.render-pipelines.lightweight/Shaders/PostProcessing/Common.hlsl"
 
-        TEXTURE2D(_MainTex);
+        TEXTURE2D_X(_MainTex);
 
         float4 _Params;
 
@@ -101,6 +101,8 @@ Shader "Hidden/Lightweight Render Pipeline/PaniniProjection"
 
         half4 Frag(Varyings input) : SV_Target
         {
+            UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
+
             #if _GENERIC
             float2 proj_pos = Panini_Generic((2.0 * input.uv - 1.0) * _Params.xy * _Params.w, _Params.z);
             #else // _UNIT_DISTANCE
@@ -110,7 +112,7 @@ Shader "Hidden/Lightweight Render Pipeline/PaniniProjection"
             float2 proj_ndc = proj_pos / _Params.xy;
             float2 coords = proj_ndc * 0.5 + 0.5;
 
-            return SAMPLE_TEXTURE2D(_MainTex, sampler_LinearClamp, coords);
+            return SAMPLE_TEXTURE2D_X(_MainTex, sampler_LinearClamp, coords);
         }
 
     ENDHLSL

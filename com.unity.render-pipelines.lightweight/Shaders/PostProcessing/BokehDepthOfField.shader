@@ -19,11 +19,11 @@ Shader "Hidden/Lightweight Render Pipeline/BokehDepthOfField"
         // a small cost to the pre-filtering pass
         #define COC_LUMA_WEIGHTING      0
 
-        TEXTURE2D(_MainTex);
-        TEXTURE2D(_DofTexture);
-        TEXTURE2D(_FullCoCTexture);
+        TEXTURE2D_X(_MainTex);
+        TEXTURE2D_X(_DofTexture);
+        TEXTURE2D_X(_FullCoCTexture);
 
-        TEXTURE2D_FLOAT(_CameraDepthTexture);
+        TEXTURE2D_X_FLOAT(_CameraDepthTexture);
 
         float4 _MainTex_TexelSize;
         float4 _DofTexture_TexelSize;
@@ -37,7 +37,9 @@ Shader "Hidden/Lightweight Render Pipeline/BokehDepthOfField"
 
         half FragCoC(Varyings input) : SV_Target
         {
-            float depth = LOAD_TEXTURE2D(_CameraDepthTexture, _MainTex_TexelSize.zw * input.uv).x;
+            UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
+
+            float depth = LOAD_TEXTURE2D_X(_CameraDepthTexture, _MainTex_TexelSize.zw * input.uv).x;
             float linearEyeDepth = LinearEyeDepth(depth, _ZBufferParams);
 
             half coc = (1.0 - FocusDist / linearEyeDepth) * MaxCoC;
@@ -49,12 +51,14 @@ Shader "Hidden/Lightweight Render Pipeline/BokehDepthOfField"
 
         half4 FragPrefilter(Varyings input) : SV_Target
         {
+            UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
+
         #if SHADER_TARGET >= 45 && defined(PLATFORM_SUPPORT_GATHER)
 
             // Sample source colors
-            half4 cr = GATHER_RED_TEXTURE2D(_MainTex, sampler_LinearClamp, input.uv);
-            half4 cg = GATHER_GREEN_TEXTURE2D(_MainTex, sampler_LinearClamp, input.uv);
-            half4 cb = GATHER_BLUE_TEXTURE2D(_MainTex, sampler_LinearClamp, input.uv);
+            half4 cr = GATHER_RED_TEXTURE2D_X(_MainTex, sampler_LinearClamp, input.uv);
+            half4 cg = GATHER_GREEN_TEXTURE2D_X(_MainTex, sampler_LinearClamp, input.uv);
+            half4 cb = GATHER_BLUE_TEXTURE2D_X(_MainTex, sampler_LinearClamp, input.uv);
 
             half3 c0 = half3(cr.x, cg.x, cb.x);
             half3 c1 = half3(cr.y, cg.y, cb.y);
@@ -62,7 +66,7 @@ Shader "Hidden/Lightweight Render Pipeline/BokehDepthOfField"
             half3 c3 = half3(cr.w, cg.w, cb.w);
 
             // Sample CoCs
-            half4 cocs = GATHER_TEXTURE2D(_FullCoCTexture, sampler_LinearClamp, input.uv) * 2.0 - 1.0;
+            half4 cocs = GATHER_TEXTURE2D_X(_FullCoCTexture, sampler_LinearClamp, input.uv) * 2.0 - 1.0;
             half coc0 = cocs.x;
             half coc1 = cocs.y;
             half coc2 = cocs.z;
@@ -77,16 +81,16 @@ Shader "Hidden/Lightweight Render Pipeline/BokehDepthOfField"
             float2 uv3 = input.uv + duv.xy;
 
             // Sample source colors
-            half3 c0 = SAMPLE_TEXTURE2D(_MainTex, sampler_LinearClamp, uv0).xyz;
-            half3 c1 = SAMPLE_TEXTURE2D(_MainTex, sampler_LinearClamp, uv1).xyz;
-            half3 c2 = SAMPLE_TEXTURE2D(_MainTex, sampler_LinearClamp, uv2).xyz;
-            half3 c3 = SAMPLE_TEXTURE2D(_MainTex, sampler_LinearClamp, uv3).xyz;
+            half3 c0 = SAMPLE_TEXTURE2D_X(_MainTex, sampler_LinearClamp, uv0).xyz;
+            half3 c1 = SAMPLE_TEXTURE2D_X(_MainTex, sampler_LinearClamp, uv1).xyz;
+            half3 c2 = SAMPLE_TEXTURE2D_X(_MainTex, sampler_LinearClamp, uv2).xyz;
+            half3 c3 = SAMPLE_TEXTURE2D_X(_MainTex, sampler_LinearClamp, uv3).xyz;
 
             // Sample CoCs
-            half coc0 = SAMPLE_TEXTURE2D(_FullCoCTexture, sampler_LinearClamp, uv0).x * 2.0 - 1.0;
-            half coc1 = SAMPLE_TEXTURE2D(_FullCoCTexture, sampler_LinearClamp, uv1).x * 2.0 - 1.0;
-            half coc2 = SAMPLE_TEXTURE2D(_FullCoCTexture, sampler_LinearClamp, uv2).x * 2.0 - 1.0;
-            half coc3 = SAMPLE_TEXTURE2D(_FullCoCTexture, sampler_LinearClamp, uv3).x * 2.0 - 1.0;
+            half coc0 = SAMPLE_TEXTURE2D_X(_FullCoCTexture, sampler_LinearClamp, uv0).x * 2.0 - 1.0;
+            half coc1 = SAMPLE_TEXTURE2D_X(_FullCoCTexture, sampler_LinearClamp, uv1).x * 2.0 - 1.0;
+            half coc2 = SAMPLE_TEXTURE2D_X(_FullCoCTexture, sampler_LinearClamp, uv2).x * 2.0 - 1.0;
+            half coc3 = SAMPLE_TEXTURE2D_X(_FullCoCTexture, sampler_LinearClamp, uv3).x * 2.0 - 1.0;
 
         #endif
 
@@ -128,7 +132,7 @@ Shader "Hidden/Lightweight Render Pipeline/BokehDepthOfField"
             float dist = length(disp);
 
             float2 duv = float2(disp.x * RcpAspect, disp.y);
-            half4 samp = SAMPLE_TEXTURE2D(_MainTex, sampler_LinearClamp, uv + duv);
+            half4 samp = SAMPLE_TEXTURE2D_X(_MainTex, sampler_LinearClamp, uv + duv);
 
             // Compare CoC of the current sample and the center sample and select smaller one
             half farCoC = max(min(samp0.a, samp.a), 0.0);
@@ -149,7 +153,9 @@ Shader "Hidden/Lightweight Render Pipeline/BokehDepthOfField"
 
         half4 FragBlur(Varyings input) : SV_Target
         {
-            half4 samp0 = SAMPLE_TEXTURE2D(_MainTex, sampler_LinearClamp, input.uv);
+            UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
+
+            half4 samp0 = SAMPLE_TEXTURE2D_X(_MainTex, sampler_LinearClamp, input.uv);
 
             half4 farAcc = 0.0;  // Background: far field bokeh
             half4 nearAcc = 0.0; // Foreground: near field bokeh
@@ -180,26 +186,30 @@ Shader "Hidden/Lightweight Render Pipeline/BokehDepthOfField"
 
         half4 FragPostBlur(Varyings input) : SV_Target
         {
+            UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
+
             // 9-tap tent filter with 4 bilinear samples
             float4 duv = _MainTex_TexelSize.xyxy * float4(0.5, 0.5, -0.5, 0);
             half4 acc;
-            acc  = SAMPLE_TEXTURE2D(_MainTex, sampler_LinearClamp, input.uv - duv.xy);
-            acc += SAMPLE_TEXTURE2D(_MainTex, sampler_LinearClamp, input.uv - duv.zy);
-            acc += SAMPLE_TEXTURE2D(_MainTex, sampler_LinearClamp, input.uv + duv.zy);
-            acc += SAMPLE_TEXTURE2D(_MainTex, sampler_LinearClamp, input.uv + duv.xy);
+            acc  = SAMPLE_TEXTURE2D_X(_MainTex, sampler_LinearClamp, input.uv - duv.xy);
+            acc += SAMPLE_TEXTURE2D_X(_MainTex, sampler_LinearClamp, input.uv - duv.zy);
+            acc += SAMPLE_TEXTURE2D_X(_MainTex, sampler_LinearClamp, input.uv + duv.zy);
+            acc += SAMPLE_TEXTURE2D_X(_MainTex, sampler_LinearClamp, input.uv + duv.xy);
             return acc * 0.25;
         }
 
         half4 FragComposite(Varyings input) : SV_Target
         {
-            half4 dof = SAMPLE_TEXTURE2D(_DofTexture, sampler_LinearClamp, input.uv);
-            half coc = SAMPLE_TEXTURE2D(_FullCoCTexture, sampler_LinearClamp, input.uv).r;
+            UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
+
+            half4 dof = SAMPLE_TEXTURE2D_X(_DofTexture, sampler_LinearClamp, input.uv);
+            half coc = SAMPLE_TEXTURE2D_X(_FullCoCTexture, sampler_LinearClamp, input.uv).r;
             coc = (coc - 0.5) * 2.0 * MaxRadius;
 
             // Convert CoC to far field alpha value
             float ffa = smoothstep(_MainTex_TexelSize.y * 2.0, _MainTex_TexelSize.y * 4.0, coc);
 
-            half4 color = SAMPLE_TEXTURE2D(_MainTex, sampler_LinearClamp, input.uv);
+            half4 color = SAMPLE_TEXTURE2D_X(_MainTex, sampler_LinearClamp, input.uv);
 
         #if defined(UNITY_COLORSPACE_GAMMA)
             color = SRGBToLinear(color);

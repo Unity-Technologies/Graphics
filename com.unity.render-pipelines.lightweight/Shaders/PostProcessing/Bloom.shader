@@ -14,8 +14,8 @@ Shader "Hidden/Lightweight Render Pipeline/Bloom"
         #include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/Core.hlsl"
         #include "Packages/com.unity.render-pipelines.lightweight/Shaders/PostProcessing/Common.hlsl"
 
-        TEXTURE2D(_MainTex);
-        TEXTURE2D(_MainTexLowMip);
+        TEXTURE2D_X(_MainTex);
+        TEXTURE2D_X(_MainTexLowMip);
 
         float4 _MainTex_TexelSize;
         float4 _MainTexLowMip_TexelSize;
@@ -57,7 +57,8 @@ Shader "Hidden/Lightweight Render Pipeline/Bloom"
 
         half4 FragPrefilter(Varyings input) : SV_Target
         {
-            half3 color = SAMPLE_TEXTURE2D(_MainTex, sampler_LinearClamp, input.uv).xyz;
+            UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
+            half3 color = SAMPLE_TEXTURE2D_X(_MainTex, sampler_LinearClamp, input.uv).xyz;
 
         #if UNITY_COLORSPACE_GAMMA
             color = SRGBToLinear(color);
@@ -78,18 +79,19 @@ Shader "Hidden/Lightweight Render Pipeline/Bloom"
 
         half4 FragBlurH(Varyings input) : SV_Target
         {
+            UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
             float texelSize = _MainTex_TexelSize.x * 2.0;
 
             // 9-tap gaussian blur on the downsampled source
-            half3 c0 = DecodeHDR(SAMPLE_TEXTURE2D(_MainTex, sampler_LinearClamp, input.uv - float2(texelSize * 4.0, 0.0)));
-            half3 c1 = DecodeHDR(SAMPLE_TEXTURE2D(_MainTex, sampler_LinearClamp, input.uv - float2(texelSize * 3.0, 0.0)));
-            half3 c2 = DecodeHDR(SAMPLE_TEXTURE2D(_MainTex, sampler_LinearClamp, input.uv - float2(texelSize * 2.0, 0.0)));
-            half3 c3 = DecodeHDR(SAMPLE_TEXTURE2D(_MainTex, sampler_LinearClamp, input.uv - float2(texelSize * 1.0, 0.0)));
-            half3 c4 = DecodeHDR(SAMPLE_TEXTURE2D(_MainTex, sampler_LinearClamp, input.uv                               ));
-            half3 c5 = DecodeHDR(SAMPLE_TEXTURE2D(_MainTex, sampler_LinearClamp, input.uv + float2(texelSize * 1.0, 0.0)));
-            half3 c6 = DecodeHDR(SAMPLE_TEXTURE2D(_MainTex, sampler_LinearClamp, input.uv + float2(texelSize * 2.0, 0.0)));
-            half3 c7 = DecodeHDR(SAMPLE_TEXTURE2D(_MainTex, sampler_LinearClamp, input.uv + float2(texelSize * 3.0, 0.0)));
-            half3 c8 = DecodeHDR(SAMPLE_TEXTURE2D(_MainTex, sampler_LinearClamp, input.uv + float2(texelSize * 4.0, 0.0)));
+            half3 c0 = DecodeHDR(SAMPLE_TEXTURE2D_X(_MainTex, sampler_LinearClamp, input.uv - float2(texelSize * 4.0, 0.0)));
+            half3 c1 = DecodeHDR(SAMPLE_TEXTURE2D_X(_MainTex, sampler_LinearClamp, input.uv - float2(texelSize * 3.0, 0.0)));
+            half3 c2 = DecodeHDR(SAMPLE_TEXTURE2D_X(_MainTex, sampler_LinearClamp, input.uv - float2(texelSize * 2.0, 0.0)));
+            half3 c3 = DecodeHDR(SAMPLE_TEXTURE2D_X(_MainTex, sampler_LinearClamp, input.uv - float2(texelSize * 1.0, 0.0)));
+            half3 c4 = DecodeHDR(SAMPLE_TEXTURE2D_X(_MainTex, sampler_LinearClamp, input.uv                               ));
+            half3 c5 = DecodeHDR(SAMPLE_TEXTURE2D_X(_MainTex, sampler_LinearClamp, input.uv + float2(texelSize * 1.0, 0.0)));
+            half3 c6 = DecodeHDR(SAMPLE_TEXTURE2D_X(_MainTex, sampler_LinearClamp, input.uv + float2(texelSize * 2.0, 0.0)));
+            half3 c7 = DecodeHDR(SAMPLE_TEXTURE2D_X(_MainTex, sampler_LinearClamp, input.uv + float2(texelSize * 3.0, 0.0)));
+            half3 c8 = DecodeHDR(SAMPLE_TEXTURE2D_X(_MainTex, sampler_LinearClamp, input.uv + float2(texelSize * 4.0, 0.0)));
 
             half3 color = c0 * 0.01621622 + c1 * 0.05405405 + c2 * 0.12162162 + c3 * 0.19459459
                         + c4 * 0.22702703
@@ -100,14 +102,15 @@ Shader "Hidden/Lightweight Render Pipeline/Bloom"
 
         half4 FragBlurV(Varyings input) : SV_Target
         {
+            UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
             float texelSize = _MainTex_TexelSize.y;
 
             // Optimized bilinear 5-tap gaussian on the same-sized source (9-tap equivalent)
-            half3 c0 = DecodeHDR(SAMPLE_TEXTURE2D(_MainTex, sampler_LinearClamp, input.uv - float2(0.0, texelSize * 3.23076923)));
-            half3 c1 = DecodeHDR(SAMPLE_TEXTURE2D(_MainTex, sampler_LinearClamp, input.uv - float2(0.0, texelSize * 1.38461538)));
-            half3 c2 = DecodeHDR(SAMPLE_TEXTURE2D(_MainTex, sampler_LinearClamp, input.uv                                      ));
-            half3 c3 = DecodeHDR(SAMPLE_TEXTURE2D(_MainTex, sampler_LinearClamp, input.uv + float2(0.0, texelSize * 1.38461538)));
-            half3 c4 = DecodeHDR(SAMPLE_TEXTURE2D(_MainTex, sampler_LinearClamp, input.uv + float2(0.0, texelSize * 3.23076923)));
+            half3 c0 = DecodeHDR(SAMPLE_TEXTURE2D_X(_MainTex, sampler_LinearClamp, input.uv - float2(0.0, texelSize * 3.23076923)));
+            half3 c1 = DecodeHDR(SAMPLE_TEXTURE2D_X(_MainTex, sampler_LinearClamp, input.uv - float2(0.0, texelSize * 1.38461538)));
+            half3 c2 = DecodeHDR(SAMPLE_TEXTURE2D_X(_MainTex, sampler_LinearClamp, input.uv                                      ));
+            half3 c3 = DecodeHDR(SAMPLE_TEXTURE2D_X(_MainTex, sampler_LinearClamp, input.uv + float2(0.0, texelSize * 1.38461538)));
+            half3 c4 = DecodeHDR(SAMPLE_TEXTURE2D_X(_MainTex, sampler_LinearClamp, input.uv + float2(0.0, texelSize * 3.23076923)));
 
             half3 color = c0 * 0.07027027 + c1 * 0.31621622
                         + c2 * 0.22702703
@@ -118,12 +121,12 @@ Shader "Hidden/Lightweight Render Pipeline/Bloom"
 
         half3 Upsample(float2 uv)
         {
-            half3 highMip = DecodeHDR(SAMPLE_TEXTURE2D(_MainTex, sampler_LinearClamp, uv));
+            half3 highMip = DecodeHDR(SAMPLE_TEXTURE2D_X(_MainTex, sampler_LinearClamp, uv));
 
         #if _BLOOM_HQ
-            half3 lowMip = DecodeHDR(SampleTexture2DBicubic(TEXTURE2D_ARGS(_MainTexLowMip, sampler_LinearClamp), uv, _MainTexLowMip_TexelSize.zwxy, (1.0).xx, 0));
+            half3 lowMip = DecodeHDR(SampleTexture2DBicubic(TEXTURE2D_X_ARGS(_MainTexLowMip, sampler_LinearClamp), uv, _MainTexLowMip_TexelSize.zwxy, (1.0).xx, unity_StereoEyeIndex));
         #else
-            half3 lowMip = DecodeHDR(SAMPLE_TEXTURE2D(_MainTexLowMip, sampler_LinearClamp, uv));
+            half3 lowMip = DecodeHDR(SAMPLE_TEXTURE2D_X(_MainTexLowMip, sampler_LinearClamp, uv));
         #endif
 
             return lerp(highMip, lowMip, Scatter);
@@ -131,6 +134,7 @@ Shader "Hidden/Lightweight Render Pipeline/Bloom"
 
         half4 FragUpsample(Varyings input) : SV_Target
         {
+            UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
             half3 color = Upsample(input.uv);
             return EncodeHDR(color);
         }

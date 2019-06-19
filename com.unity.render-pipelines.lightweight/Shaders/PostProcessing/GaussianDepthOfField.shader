@@ -15,12 +15,12 @@ Shader "Hidden/Lightweight Render Pipeline/GaussianDepthOfField"
         #include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/Core.hlsl"
         #include "Packages/com.unity.render-pipelines.lightweight/Shaders/PostProcessing/Common.hlsl"
 
-        TEXTURE2D(_MainTex);
-        TEXTURE2D(_ColorTexture);
-        TEXTURE2D(_FullCoCTexture);
-        TEXTURE2D(_HalfCoCTexture);
+        TEXTURE2D_X(_MainTex);
+        TEXTURE2D_X(_ColorTexture);
+        TEXTURE2D_X(_FullCoCTexture);
+        TEXTURE2D_X(_HalfCoCTexture);
 
-        TEXTURE2D_FLOAT(_CameraDepthTexture);
+        TEXTURE2D_X_FLOAT(_CameraDepthTexture);
 
         float4 _MainTex_TexelSize;
         float4 _ColorTexture_TexelSize;
@@ -71,7 +71,9 @@ Shader "Hidden/Lightweight Render Pipeline/GaussianDepthOfField"
 
         half FragCoC(Varyings input) : SV_Target
         {
-            float depth = LOAD_TEXTURE2D(_CameraDepthTexture, _MainTex_TexelSize.zw * input.uv).x;
+            UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
+
+            float depth = LOAD_TEXTURE2D_X(_CameraDepthTexture, _MainTex_TexelSize.zw * input.uv).x;
             depth = LinearEyeDepth(depth, _ZBufferParams);
             half coc = (depth - FarStart) / (FarEnd - FarStart);
             return saturate(coc);
@@ -85,6 +87,8 @@ Shader "Hidden/Lightweight Render Pipeline/GaussianDepthOfField"
 
         PrefilterOutput FragPrefilter(Varyings input)
         {
+            UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
+
         #if _HIGH_QUALITY_SAMPLING
 
             // Use a rotated grid to minimize artifacts coming from horizontal and vertical boundaries
@@ -105,8 +109,8 @@ Shader "Hidden/Lightweight Render Pipeline/GaussianDepthOfField"
             for (int i = 0; i < kCount; i++)
             {
                 float2 tapCoord = _ColorTexture_TexelSize.xy * kTaps[i] + input.uv;
-                half3 tapColor = SAMPLE_TEXTURE2D(_ColorTexture, sampler_LinearClamp, tapCoord).xyz;
-                half coc = SAMPLE_TEXTURE2D(_FullCoCTexture, sampler_LinearClamp, tapCoord).x;
+                half3 tapColor = SAMPLE_TEXTURE2D_X(_ColorTexture, sampler_LinearClamp, tapCoord).xyz;
+                half coc = SAMPLE_TEXTURE2D_X(_FullCoCTexture, sampler_LinearClamp, tapCoord).x;
 
                 // Pre-multiply CoC to reduce bleeding of background blur on focused areas
                 colorAcc += tapColor * coc;
@@ -119,11 +123,11 @@ Shader "Hidden/Lightweight Render Pipeline/GaussianDepthOfField"
         #else
 
             // Bilinear sampling the coc is technically incorrect but we're aiming for speed here
-            half farCoC = SAMPLE_TEXTURE2D(_FullCoCTexture, sampler_LinearClamp, input.uv).x;
+            half farCoC = SAMPLE_TEXTURE2D_X(_FullCoCTexture, sampler_LinearClamp, input.uv).x;
 
             // Fast bilinear downscale of the source target and pre-multiply the CoC to reduce
             // bleeding of background blur on focused areas
-            half3 color = SAMPLE_TEXTURE2D(_ColorTexture, sampler_LinearClamp, input.uv).xyz;
+            half3 color = SAMPLE_TEXTURE2D_X(_ColorTexture, sampler_LinearClamp, input.uv).xyz;
             color *= farCoC;
 
         #endif
@@ -136,9 +140,11 @@ Shader "Hidden/Lightweight Render Pipeline/GaussianDepthOfField"
 
         half4 Blur(Varyings input, float2 dir, float premultiply)
         {
+            UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
+
             // Use the center CoC as radius
             int2 positionSS = int2(_MainTex_TexelSize.zw * input.uv);
-            half samp0CoC = LOAD_TEXTURE2D(_HalfCoCTexture, positionSS).x;
+            half samp0CoC = LOAD_TEXTURE2D_X(_HalfCoCTexture, positionSS).x;
 
             float2 offset = _MainTex_TexelSize.xy * dir * samp0CoC * MaxRadius;
             half4 acc = 0.0;
@@ -147,8 +153,8 @@ Shader "Hidden/Lightweight Render Pipeline/GaussianDepthOfField"
             for (int i = 0; i < kTapCount; i++)
             {
                 float2 sampCoord = input.uv + kOffsets[i] * offset;
-                half sampCoC = SAMPLE_TEXTURE2D(_HalfCoCTexture, sampler_LinearClamp, sampCoord).x;
-                half3 sampColor = SAMPLE_TEXTURE2D(_MainTex, sampler_LinearClamp, sampCoord).xyz;
+                half sampCoC = SAMPLE_TEXTURE2D_X(_HalfCoCTexture, sampler_LinearClamp, sampCoord).x;
+                half3 sampColor = SAMPLE_TEXTURE2D_X(_MainTex, sampler_LinearClamp, sampCoord).xyz;
 
                 // Weight & pre-multiply to limit bleeding on the focused area
                 half weight = saturate(1.0 - (samp0CoC - sampCoC));
@@ -171,13 +177,15 @@ Shader "Hidden/Lightweight Render Pipeline/GaussianDepthOfField"
 
         half4 FragComposite(Varyings input) : SV_Target
         {
-            half3 baseColor = LOAD_TEXTURE2D(_MainTex, _MainTex_TexelSize.zw * input.uv).xyz;
-            half coc = LOAD_TEXTURE2D(_FullCoCTexture, _MainTex_TexelSize.zw * input.uv).x;
+            UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
+
+            half3 baseColor = LOAD_TEXTURE2D_X(_MainTex, _MainTex_TexelSize.zw * input.uv).xyz;
+            half coc = LOAD_TEXTURE2D_X(_FullCoCTexture, _MainTex_TexelSize.zw * input.uv).x;
 
         #if _HIGH_QUALITY_SAMPLING
-            half3 farColor = SampleTexture2DBicubic(TEXTURE2D_ARGS(_ColorTexture, sampler_LinearClamp), input.uv, _ColorTexture_TexelSize.zwxy, 1.0, 0).xyz;
+            half3 farColor = SampleTexture2DBicubic(TEXTURE2D_X_ARGS(_ColorTexture, sampler_LinearClamp), input.uv, _ColorTexture_TexelSize.zwxy, 1.0, unity_StereoEyeIndex).xyz;
         #else
-            half3 farColor = SAMPLE_TEXTURE2D(_ColorTexture, sampler_LinearClamp, input.uv).xyz;
+            half3 farColor = SAMPLE_TEXTURE2D_X(_ColorTexture, sampler_LinearClamp, input.uv).xyz;
         #endif
 
             half3 dstColor = 0.0;

@@ -78,7 +78,9 @@ namespace UnityEngine.Rendering.LWRP
             int lutWidth = lutHeight * lutHeight;
             var format = hdr ? m_HdrLutFormat : m_LdrLutFormat;
             var material = hdr ? m_LutBuilderHdr : m_LutBuilderLdr;
-            cmd.GetTemporaryRT(m_InternalLut.id, lutWidth, lutHeight, 0, FilterMode.Bilinear, format);
+            var desc = new RenderTextureDescriptor(lutWidth, lutHeight, format, 0);
+            desc.vrUsage = VRTextureUsage.None; // We only need one for both eyes in VR
+            cmd.GetTemporaryRT(m_InternalLut.id, desc, FilterMode.Bilinear);
 
             // Prepare data
             var lmsColorBalance = ColorUtils.ColorBalanceToLMSCoeffs(m_WhiteBalance.temperature.value, m_WhiteBalance.tint.value);

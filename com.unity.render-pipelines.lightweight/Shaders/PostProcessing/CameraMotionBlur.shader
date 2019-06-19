@@ -12,8 +12,8 @@ Shader "Hidden/Lightweight Render Pipeline/CameraMotionBlur"
         #include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/Core.hlsl"
         #include "Packages/com.unity.render-pipelines.lightweight/Shaders/PostProcessing/Common.hlsl"
 
-        TEXTURE2D(_MainTex);
-        TEXTURE2D_FLOAT(_CameraDepthTexture);
+        TEXTURE2D_X(_MainTex);
+        TEXTURE2D_X_FLOAT(_CameraDepthTexture);
 
         float4x4 _ViewProjM;
         float4x4 _PrevViewProjM;
@@ -25,11 +25,15 @@ Shader "Hidden/Lightweight Render Pipeline/CameraMotionBlur"
         {
             float4 positionCS    : SV_POSITION;
             float4 uv            : TEXCOORD0;
+            UNITY_VERTEX_OUTPUT_STEREO
         };
 
         VaryingsCMB VertCMB(Attributes input)
         {
             VaryingsCMB output;
+            UNITY_SETUP_INSTANCE_ID(input);
+            UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
+
             output.positionCS = TransformObjectToHClip(input.positionOS.xyz);
 
             float4 projPos = output.positionCS * 0.5;
@@ -50,7 +54,7 @@ Shader "Hidden/Lightweight Render Pipeline/CameraMotionBlur"
         // Per-pixel camera velocity
         float2 GetCameraVelocity(float4 uv)
         {
-            float depth = SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, sampler_PointClamp, uv.xy);
+            float depth = SAMPLE_TEXTURE2D_X(_CameraDepthTexture, sampler_PointClamp, uv.xy).r;
 
         #if UNITY_REVERSED_Z
             depth = 1.0 - depth;
@@ -75,11 +79,13 @@ Shader "Hidden/Lightweight Render Pipeline/CameraMotionBlur"
         {
             float  offsetLength = (sampleNumber + 0.5) + (velocitySign * (randomVal - 0.5));
             float2 sampleUV = centerUV + (offsetLength * invSampleCount) * velocity * velocitySign;
-            return SAMPLE_TEXTURE2D(_MainTex, sampler_PointClamp, sampleUV).xyz;
+            return SAMPLE_TEXTURE2D_X(_MainTex, sampler_PointClamp, sampleUV).xyz;
         }
 
         half4 DoMotionBlur(VaryingsCMB input, int iterations)
         {
+            UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
+
             float2 velocity = GetCameraVelocity(input.uv) * _Intensity;
             float randomVal = InterleavedGradientNoise(input.uv.xy * _MainTex_TexelSize.zw, 0);
             float invSampleCount = rcp(iterations * 2.0);

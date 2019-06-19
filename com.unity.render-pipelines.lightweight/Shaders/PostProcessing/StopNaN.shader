@@ -15,11 +15,12 @@ Shader "Hidden/Lightweight Render Pipeline/Stop NaN"
 
         #define NAN_COLOR half3(0.0, 0.0, 0.0)
 
-        TEXTURE2D(_MainTex);
+        TEXTURE2D_X(_MainTex);
 
         half4 Frag(Varyings input) : SV_Target
         {
-            half3 color = SAMPLE_TEXTURE2D(_MainTex, sampler_PointClamp, input.uv).xyz;
+            UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
+            half3 color = SAMPLE_TEXTURE2D_X(_MainTex, sampler_PointClamp, input.uv).xyz;
 
             if (AnyIsNaN(color) || AnyIsInf(color))
                 color = NAN_COLOR;

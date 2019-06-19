@@ -27,8 +27,8 @@ Shader "Hidden/Lightweight Render Pipeline/UberPost"
             #endif
         #endif
 
-        TEXTURE2D(_MainTex);
-        TEXTURE2D(_Bloom_Texture);
+        TEXTURE2D_X(_MainTex);
+        TEXTURE2D_X(_Bloom_Texture);
         TEXTURE2D(_LensDirt_Texture);
         TEXTURE2D(_Grain_Texture);
         TEXTURE2D(_InternalLut);
@@ -115,6 +115,8 @@ Shader "Hidden/Lightweight Render Pipeline/UberPost"
 
         half4 Frag(Varyings input) : SV_Target
         {
+            UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
+
             float2 uv = input.uv;
             float2 uvDistorted = DistortUV(uv);
 
@@ -128,15 +130,15 @@ Shader "Hidden/Lightweight Render Pipeline/UberPost"
                 float2 end = uv - coords * dot(coords, coords) * ChromaAmount;
                 float2 delta = (end - uv) / 3.0;
 
-                half r = SAMPLE_TEXTURE2D(_MainTex, sampler_LinearClamp, uvDistorted                ).x;
-                half g = SAMPLE_TEXTURE2D(_MainTex, sampler_LinearClamp, DistortUV(delta + uv)      ).y;
-                half b = SAMPLE_TEXTURE2D(_MainTex, sampler_LinearClamp, DistortUV(delta * 2.0 + uv)).z;
+                half r = SAMPLE_TEXTURE2D_X(_MainTex, sampler_LinearClamp, uvDistorted                ).x;
+                half g = SAMPLE_TEXTURE2D_X(_MainTex, sampler_LinearClamp, DistortUV(delta + uv)      ).y;
+                half b = SAMPLE_TEXTURE2D_X(_MainTex, sampler_LinearClamp, DistortUV(delta * 2.0 + uv)).z;
 
                 color = half3(r, g, b);
             }
             #else
             {
-                color = SAMPLE_TEXTURE2D(_MainTex, sampler_LinearClamp, uvDistorted).xyz;
+                color = SAMPLE_TEXTURE2D_X(_MainTex, sampler_LinearClamp, uvDistorted).xyz;
             }
             #endif
 
@@ -150,9 +152,9 @@ Shader "Hidden/Lightweight Render Pipeline/UberPost"
             #if defined(BLOOM)
             {
                 #if _BLOOM_HQ
-                half4 bloom = SampleTexture2DBicubic(TEXTURE2D_ARGS(_Bloom_Texture, sampler_LinearClamp), uvDistorted, _Bloom_Texture_TexelSize.zwxy, (1.0).xx, 0);
+                half4 bloom = SampleTexture2DBicubic(TEXTURE2D_X_ARGS(_Bloom_Texture, sampler_LinearClamp), uvDistorted, _Bloom_Texture_TexelSize.zwxy, (1.0).xx, unity_StereoEyeIndex);
                 #else
-                half4 bloom = SAMPLE_TEXTURE2D(_Bloom_Texture, sampler_LinearClamp, uvDistorted);
+                half4 bloom = SAMPLE_TEXTURE2D_X(_Bloom_Texture, sampler_LinearClamp, uvDistorted);
                 #endif
 
                 #if UNITY_COLORSPACE_GAMMA
