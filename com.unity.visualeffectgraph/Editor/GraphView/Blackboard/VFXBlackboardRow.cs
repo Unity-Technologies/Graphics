@@ -27,8 +27,6 @@ namespace  UnityEditor.VFX.UI
             {
                 button.clickable.clicked += OnExpand;
             }
-
-            cacheAsBitmap = true;
         }
 
         void OnExpand()
