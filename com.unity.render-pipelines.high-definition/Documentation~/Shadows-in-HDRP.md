@@ -93,6 +93,20 @@ Directional Lights do not use **Fade Distance**. Instead they use the **Max Dist
 
 **Shadowmask** is more memory intensive because the Camera uses shadowmask textures for static GameObjects close to the Camera, requiring a larger resolution shadowmask texture.
 
+<a name="ShadowUpdateMode"></a>
+
+## Shadow Update Mode
+
+You can use **Update Mode** to specify the calculation method HDRP uses to update a [Light](Light-Component.html)'s shadow maps. The following Update Modes are available:
+
+| **Update Mode** | **Description**                                              |
+| --------------- | ------------------------------------------------------------ |
+| **Every Frame** | HDRP updates the shadow maps for the light every frame.      |
+| **On Enable**   | HDRP updates the shadow maps for the light whenever you enable the GameObject. |
+| **On Demand**   | HDRP updates the shadow maps for the light every time you request them. To do this, call the RequestShadowMapRendering() method in the Light's HDAdditionalLightData component. |
+
+**Note:** no matter what Update Mode a Light uses, if Unity resizes the content of the shadow atlas (due to shadow maps not fitting on the atlas at their original resolution), Unity also updates the shadow map to perform the required rescaling.
+
 ## Contact Shadows
 
 Contact Shadows are shadows that HDRP [ray marches](Glossary.html#RayMarching) in screen space, inside the depth buffer, at a close range. They provide small, detailed, shadows for details in geometry that shadow maps cannot usually capture.
