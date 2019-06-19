@@ -4,7 +4,6 @@ ChannelEnumControlView {
 
 ChannelEnumControlView > .unity-popup-field {
     width: 76px;
-    flex: 0;
     margin-left: 0;
     margin-right: 8px;
     margin-top: 4px;
@@ -12,8 +11,10 @@ ChannelEnumControlView > .unity-popup-field {
 }
 
 ChannelEnumControlView > Label {
-    width: 100px;
+    max-width: 100px;
+    width: 50px;
     margin-left: 8px;
     margin-right: 8px;
     -unity-text-align : middle-left;
+    flex-grow: 1;
 }

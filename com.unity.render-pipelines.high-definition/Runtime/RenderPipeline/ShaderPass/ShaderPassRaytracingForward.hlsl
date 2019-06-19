@@ -60,11 +60,11 @@ void ClosestHitForward(inout RayIntersection rayIntersection : SV_RayPayload, At
     if (rayIntersection.remainingDepth > 0 && dot(refractedDir, surfaceData.normalWS) < 0.0f)
     {
         // Make sure we apply ray bias on the right side of the surface
-        const float biasSign = sign(dot(fragInput.worldToTangent[2], refractedDir));
+        const float biasSign = sign(dot(fragInput.tangentToWorld[2], refractedDir));
 
         // Build the transmitted ray structure
         RayDesc transmittedRay;
-        transmittedRay.Origin = pointWSPos + biasSign * fragInput.worldToTangent[2] * _RaytracingRayBias;
+        transmittedRay.Origin = pointWSPos + biasSign * fragInput.tangentToWorld[2] * _RaytracingRayBias;
         transmittedRay.Direction = refractedDir;
         transmittedRay.TMin = 0;
         transmittedRay.TMax = _RaytracingRayMaxLength;
@@ -97,11 +97,11 @@ void ClosestHitForward(inout RayIntersection rayIntersection : SV_RayPayload, At
         float3 reflectedDir = reflect(rayIntersection.incidentDirection, surfaceData.normalWS);
 
         // Make sure we apply ray bias on the right side of the surface
-        const float biasSign = sign(dot(fragInput.worldToTangent[2], reflectedDir));
+        const float biasSign = sign(dot(fragInput.tangentToWorld[2], reflectedDir));
 
         // Build the reflected ray
         RayDesc reflectedRay;
-        reflectedRay.Origin = pointWSPos + biasSign * fragInput.worldToTangent[2] * _RaytracingRayBias;
+        reflectedRay.Origin = pointWSPos + biasSign * fragInput.tangentToWorld[2] * _RaytracingRayBias;
         reflectedRay.Direction = reflectedDir;
         reflectedRay.TMin = 0;
         reflectedRay.TMax = _RaytracingRayMaxLength;

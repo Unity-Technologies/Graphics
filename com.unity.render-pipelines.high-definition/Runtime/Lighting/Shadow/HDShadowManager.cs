@@ -151,7 +151,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             directionalShadowsDepthBits = k_DefaultShadowMapDepthBits,
             punctualLightShadowAtlas    = HDShadowAtlasInitParams.GetDefault(),
             areaLightShadowAtlas        = HDShadowAtlasInitParams.GetDefault(),
-			shadowQuality               = HDShadowQuality.Low
+			shadowQuality               = HDShadowQuality.Low,
+            supportScreenSpaceShadows   = false,
+            maxScreenSpaceShadows       = 2,
         };
 
         public const int k_DefaultShadowAtlasResolution = 4096;
@@ -165,6 +167,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public HDShadowAtlasInitParams punctualLightShadowAtlas;
         public HDShadowAtlasInitParams areaLightShadowAtlas;
+
+        // Screen space shadow data
+        public bool supportScreenSpaceShadows;
+        public int maxScreenSpaceShadows;
     }
 
     public class HDShadowResolutionRequest
@@ -177,6 +183,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     public partial class HDShadowManager : IDisposable
     {
         public const int            k_DirectionalShadowCascadeCount = 4;
+        public const int            k_MinShadowMapResolution = 16;
 
         List<HDShadowData>          m_ShadowDatas = new List<HDShadowData>();
         HDShadowRequest[]           m_ShadowRequests;
@@ -480,17 +487,17 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 return ;
 
             // Clear atlas render targets and draw shadows
-            using (new ProfilingSample(cmd, "Punctual Lights Shadows rendering", CustomSamplerId.RenderShadows.GetSampler()))
+            using (new ProfilingSample(cmd, "Punctual Lights Shadows rendering", CustomSamplerId.RenderShadowMaps.GetSampler()))
             {
                 m_Atlas.RenderShadows(cullResults, hdCamera.frameSettings, renderContext, cmd);
             }
 
-            using (new ProfilingSample(cmd, "Directional Light Shadows rendering", CustomSamplerId.RenderShadows.GetSampler()))
+            using (new ProfilingSample(cmd, "Directional Light Shadows rendering", CustomSamplerId.RenderShadowMaps.GetSampler()))
             {
                 m_CascadeAtlas.RenderShadows(cullResults, hdCamera.frameSettings, renderContext, cmd);
             }
 
-            using (new ProfilingSample(cmd, "Area Light Shadows rendering", CustomSamplerId.RenderShadows.GetSampler()))
+            using (new ProfilingSample(cmd, "Area Light Shadows rendering", CustomSamplerId.RenderShadowMaps.GetSampler()))
             {
                 m_AreaLightShadowAtlas.RenderShadows(cullResults, hdCamera.frameSettings, renderContext, cmd);
             }

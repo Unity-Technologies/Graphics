@@ -612,7 +612,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     cmd.SetComputeIntParam(m_VolumeVoxelizationCS, HDShaderIDs._NumTileBigTileX, GetNumTileBigTileX(hdCamera));
                     cmd.SetComputeIntParam(m_VolumeVoxelizationCS, HDShaderIDs._NumTileBigTileY, GetNumTileBigTileY(hdCamera));
                     if (tiledLighting)
-                        cmd.SetComputeBufferParam(m_VolumeVoxelizationCS, kernel, HDShaderIDs.g_vBigTileLightList, GetBigTileLightList());
+                        cmd.SetComputeBufferParam(m_VolumeVoxelizationCS, kernel, HDShaderIDs.g_vBigTileLightList, m_TileAndClusterData.bigTileLightList);
                 }
 
                 cmd.SetComputeTextureParam(m_VolumeVoxelizationCS, kernel, HDShaderIDs._VBufferDensity,  m_DensityBufferHandle);

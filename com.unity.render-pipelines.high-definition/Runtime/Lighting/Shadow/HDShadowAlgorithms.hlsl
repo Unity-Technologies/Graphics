@@ -400,13 +400,6 @@ float EvalShadow_CascadedDepth_Blend(HDShadowContext shadowContext, Texture2D te
     return shadow;
 }
 
-float EvalShadow_hash12(float2 pos)
-{
-    float3 p3  = frac(pos.xyx * float3(443.8975, 397.2973, 491.1871));
-           p3 += dot(p3, p3.yzx + 19.19);
-    return frac((p3.x + p3.y) * p3.z);
-}
-
 // TODO: optimize this using LinearEyeDepth() to avoid having to pass the shadowToWorld matrix
 float EvalShadow_SampleClosestDistance_Punctual(HDShadowData sd, Texture2D tex, SamplerState sampl, float3 positionWS, float3 L, float3 lightPositionWS)
 {

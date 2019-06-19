@@ -6,5 +6,5 @@ The **Geometric Specular AA** property allows you to perform geometric anti-alia
 
 | **Property**              | **Description**                                              |
 | ------------------------- | ------------------------------------------------------------ |
-| **Screen Space Variance** | Use the slider to set the strength of the geometric specular anti-aliasing effect between 0 and 1. Higher values produce a blurrier result with less aliasing. To expose this property, enable the **Geometric Specular AA** checkbox. |
-| **Threshold**             | Use the slider to set a maximum value for the offset that HDRP subtracts from the smoothness value to reduce artifacts. To expose this property, enable the **Geometric Specular AA** checkbox. |
+| **Screen Space Variance** | Use the slider to set the strength of the geometric specular anti-aliasing effect between 0 and 1. Higher values produce a blurrier result with less aliasing.<br />To make this property available, enable the **Geometric Specular AA** checkbox. |
+| **Threshold**             | Use the slider to set a maximum value for the offset that HDRP subtracts from the smoothness value to reduce artifacts.<br />To make this property available, enable the **Geometric Specular AA** checkbox. |

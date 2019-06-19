@@ -47,7 +47,7 @@ namespace UnityEditor.VFX.Block
             get
             {
                 string outSource = @"";
-                if (spawnMode == SpawnMode.Randomized)
+                if (spawnMode == SpawnMode.Random)
                 {
                     outSource += @"float3 u = RAND3;";
                     outSource += @"float arc = Torus_arc;";
