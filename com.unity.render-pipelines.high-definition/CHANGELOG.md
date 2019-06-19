@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added support for shadow tint on light
 - BeginCameraRendering and EndCameraRendering callbacks are now called with probes
 - Adding option to update shadow maps only On Enable and On Demand. 
+- Added option to allow a custom spot angle for spot light shadow maps. 
 - Added single-pass instancing support with XR SDK
 
 ### Fixed

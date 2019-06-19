@@ -72,7 +72,6 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
 
         public MasterPreviewView(PreviewManager previewManager, GraphData graph)
         {
-            cacheAsBitmap = true;
             style.overflow = Overflow.Hidden;
             m_PreviewManager = previewManager;
             m_Graph = graph;

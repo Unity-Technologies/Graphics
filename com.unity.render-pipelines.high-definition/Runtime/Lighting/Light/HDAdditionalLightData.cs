@@ -156,6 +156,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // Only for Punctual/Sphere/Disc
         public float shapeRadius = 0.0f;
 
+        // Custom spot angle for spotlight shadows
+        public bool useCustomSpotLightShadowCone = false;
+        public float customSpotLightShadowCone = 30.0f;
+
+
         // Only for Spot/Point - use to cheaply fake specular spherical area light
         // It is not 1 to make sure the highlight does not disappear.
         [Range(0.0f, 1.0f)]
@@ -533,8 +538,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                                 );
                                 break;
                             case LightType.Spot:
+                                float spotAngleForShadows = useCustomSpotLightShadowCone ? Math.Min(customSpotLightShadowCone, visibleLight.light.spotAngle)  : visibleLight.light.spotAngle;
                                 HDShadowUtils.ExtractSpotLightData(
-                                    hdCamera, legacyLight.type, spotLightShape, shadowNearPlane, aspectRatio, shapeWidth,
+                                    hdCamera, legacyLight.type, spotLightShape, spotAngleForShadows, shadowNearPlane, aspectRatio, shapeWidth,
                                     shapeHeight, visibleLight, viewportSize, m_ShadowData.normalBiasMax,
                                     out shadowRequest.view, out invViewProjection, out shadowRequest.deviceProjectionYFlip,
                                     out shadowRequest.deviceProjection, out shadowRequest.splitData

@@ -6,7 +6,7 @@ This effect tints different areas of the image based on luminance values, to hel
 
 **Split Toning** uses the [Volume](Volumes.html) framework, so to enable and modify **Split Toning** properties, you must add a **Split Toning** override to a [Volume](Volumes.html) in your Scene. To add **Split Toning** to a Volume:
 
-1. In the Scene or Hierarchy view, select the GameObject that contains the Volume component to view it in the Inspector.
+1. In the Scene or Hierarchy view, select a GameObject that contains a Volume component to view it in the Inspector.
 2. In the Inspector, navigate to **Add Override > Post-processing** and click on **Split Toning**. HDRP now applies **Split Toning** to any Camera this Volume affects.
 
 ## Properties

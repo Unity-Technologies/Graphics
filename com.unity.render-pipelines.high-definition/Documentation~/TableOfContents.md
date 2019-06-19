@@ -3,6 +3,7 @@
 * Getting started
   * [Getting Started with HDRP](Getting-started-with-HDRP)
   * [Upgrading to HDRP](Upgrading-To-HDRP)
+  * [Upgrading HDRP to a Later Unity Version](Upgrading-HDRP-Between-Major-Versions)
   * [Render Pipeline Wizard](Render-Pipeline-Wizard)
   * [Forward and Deferred Rendering](Forward-And-Deferred-Rendering)
   * [Exposing Advanced Properties](Advanced-Properties)
@@ -98,13 +99,7 @@
     * [White Balance](Post-Processing-White-Balance)
 * Debugging
   * [MatCap](MatCap)
-  * Render Pipeline Debug
-    * [Overview](Render-Pipeline-Debug-Overview)
-    * [Camera](Render-Pipeline-Debug-Camera)
-    * [Lighting](Render-Pipeline-Debug-Lighting)
-    * [Material](Render-Pipeline-Debug-Material)
-    * [Rendering](Render-Pipeline-Debug-Rendering)
-    * [Decals](Render-Pipeline-Debug-Decals)
+  * [Render Pipeline Debug Window](Render-Pipeline-Debug-Window)
 * Customizing HDRP
   * [Camera-relative Rendering](Camera-Relative-Rendering)
   * [Creating a Custom Sky ](Creating-a-Custom-Sky)

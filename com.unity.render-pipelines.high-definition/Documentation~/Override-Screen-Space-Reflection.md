@@ -8,7 +8,7 @@ To use SSR in your Scene, you must enable it for your Cameras. In the Inspector 
 
 HDRP uses the [Volume](Volumes.html) framework to calculate SSR, so to enable and modify SSR properties, you must add a **Screen Space Reflection** override to a [Volume](Volumes.html) in your Scene. To add **Screen Space Reflection** to a Volume:
 
-1. In the Scene or Hierarchy view, select the GameObject that contains the Volume component to view it in the Inspector.
+1. In the Scene or Hierarchy view, select a GameObject that contains a Volume component to view it in the Inspector.
 2. In the Inspector, navigate to **Add Override > Lighting** and click **Screen Space Reflection**. 
    HDRP now calculates SSR for any Camera this Volume affects.
 
