@@ -38,6 +38,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public SerializedProperty minFilterSize;
             public SerializedProperty areaLightCookie;   // We can't use default light cookies because the cookie gets reset by some safety measure on C++ side... :/
             public SerializedProperty areaLightShadowCone;
+            public SerializedProperty useCustomSpotLightShadowCone;
+            public SerializedProperty customSpotLightShadowCone;
             public SerializedProperty useScreenSpaceShadows;
             public SerializedProperty interactsWithSky;
 #if ENABLE_RAYTRACING
@@ -141,6 +143,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     minFilterSize = o.Find(x => x.minFilterSize),
                     areaLightCookie = o.Find(x => x.areaLightCookie),
                     areaLightShadowCone = o.Find(x => x.areaLightShadowCone),
+                    useCustomSpotLightShadowCone = o.Find(x => x.useCustomSpotLightShadowCone),
+                    customSpotLightShadowCone = o.Find(x => x.customSpotLightShadowCone),
                     useScreenSpaceShadows = o.Find(x => x.useScreenSpaceShadows),
                     interactsWithSky = o.Find(x => x.interactsWithSky),
 #if ENABLE_RAYTRACING
