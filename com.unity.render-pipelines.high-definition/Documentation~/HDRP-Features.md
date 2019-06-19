@@ -253,7 +253,7 @@ HDRP uses a physically-based Camera system that works seamlessly with the other 
 
 ### Render Pipeline Debugger
 
-The Render Pipeline Debugger contains many debugging and visualization tools to help you to understand and solve any issues quickly. For more information on the Render Pipeline Debugger, includings a description of how to use it, see the [Render Pipeline Debugger documentation](Render-Pipeline-Debugger.html).
+The Render Pipeline Debugger contains many debugging and visualization tools to help you to understand and solve any issues quickly. For more information on the Render Pipeline Debugger, includings a description of how to use it, see the [Render Pipeline Debugger documentation](Render-Pipeline-Debug-Window.html).
 
 ### Render Pipeline Wizard
 

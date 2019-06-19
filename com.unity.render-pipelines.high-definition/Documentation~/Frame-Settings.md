@@ -94,4 +94,4 @@ Note: These settings are for debugging purposes only so do not alter these value
 
 ## Debugging Frame Settings
 
-Frame Settings can be changed on the fly without altering the actual camera data by using the Render Pipeline Debug in the editor and the player. See the [corresponding page](Render-Pipeline-Debug-Camera.html).
+You can use the [Render Pipeline Debug Window](Render-Pipeline-Debug-Window.html) to temporarily change Frame Settings without altering the actual Camera data.
