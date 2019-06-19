@@ -398,14 +398,13 @@ namespace UnityEngine.Rendering.LWRP
             m_MRT2[0] = ShaderConstants._HalfCoCTexture;
             m_MRT2[1] = ShaderConstants._PingTexture;
 
-            //cmd.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.identity);
-            //cmd.SetViewport(camera.pixelRect);
+            cmd.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.identity);
+            cmd.SetViewport(camera.pixelRect);
             cmd.SetGlobalTexture(ShaderConstants._ColorTexture, source);
             cmd.SetGlobalTexture(ShaderConstants._FullCoCTexture, ShaderConstants._FullCoCTexture);
             cmd.SetRenderTarget(m_MRT2, ShaderConstants._HalfCoCTexture);
-            cmd.Blit(null, (Texture)null, material, 1);
-            //cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, material, 0, 1);
-            //cmd.SetViewProjectionMatrices(camera.worldToCameraMatrix, camera.projectionMatrix);
+            cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, material, 0, 1);
+            cmd.SetViewProjectionMatrices(camera.worldToCameraMatrix, camera.projectionMatrix);
 
             // Blur
             cmd.SetGlobalTexture(ShaderConstants._HalfCoCTexture, ShaderConstants._HalfCoCTexture);
