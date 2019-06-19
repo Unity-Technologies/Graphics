@@ -22,6 +22,8 @@ Pass
 		
 		float4 previousPos : TEXCOORD1;
 		float4 currentPos : TEXCOORD2;
+
+		UNITY_VERTEX_OUTPUT_STEREO
 	};
 	
 	struct ps_output
@@ -45,6 +47,7 @@ ${VFXEnd}
 	#pragma fragment frag
 	ps_output frag(ps_input i)
 	{
+		UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i);
 		VFXTransformPSInputs(i);
 		ps_output o = (ps_output)0;
 		float alpha = VFXGetFragmentColor(i).a;
