@@ -462,7 +462,12 @@ namespace UnityEditor.VFX
             var matrix = matrixReduce.Get<Matrix4x4>();
             var position = positionReduce.Get<Vector4>();
 
-            return VFXValue.Constant(matrix.MultiplyPoint(position));
+            var dstX = VFXOperatorUtility.Dot(VFXValue.Constant<Vector4>(matrix.GetRow((0))), VFXValue.Constant<Vector4>(position));
+            var dstY = VFXOperatorUtility.Dot(VFXValue.Constant<Vector4>(matrix.GetRow((1))), VFXValue.Constant<Vector4>(position));
+            var dstZ = VFXOperatorUtility.Dot(VFXValue.Constant<Vector4>(matrix.GetRow((2))), VFXValue.Constant<Vector4>(position));
+            var dstW = VFXOperatorUtility.Dot(VFXValue.Constant<Vector4>(matrix.GetRow((3))), VFXValue.Constant<Vector4>(position));
+
+            return new VFXExpressionCombine(dstX, dstY, dstZ, dstW);
         }
 
         public override string GetCodeString(string[] parents)
