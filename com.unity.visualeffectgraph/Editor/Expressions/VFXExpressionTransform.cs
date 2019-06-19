@@ -460,12 +460,12 @@ namespace UnityEditor.VFX
             var positionReduce = constParents[1];
 
             var matrix = matrixReduce.Get<Matrix4x4>();
-            var position = positionReduce.Get<Vector4>();
+            var position = VFXValue.Constant<Vector4>(positionReduce.Get<Vector4>());
 
-            var dstX = VFXOperatorUtility.Dot(VFXValue.Constant<Vector4>(matrix.GetRow((0))), VFXValue.Constant<Vector4>(position));
-            var dstY = VFXOperatorUtility.Dot(VFXValue.Constant<Vector4>(matrix.GetRow((1))), VFXValue.Constant<Vector4>(position));
-            var dstZ = VFXOperatorUtility.Dot(VFXValue.Constant<Vector4>(matrix.GetRow((2))), VFXValue.Constant<Vector4>(position));
-            var dstW = VFXOperatorUtility.Dot(VFXValue.Constant<Vector4>(matrix.GetRow((3))), VFXValue.Constant<Vector4>(position));
+            var dstX = VFXOperatorUtility.Dot(VFXValue.Constant<Vector4>(matrix.GetRow((0))), position);
+            var dstY = VFXOperatorUtility.Dot(VFXValue.Constant<Vector4>(matrix.GetRow((1))), position);
+            var dstZ = VFXOperatorUtility.Dot(VFXValue.Constant<Vector4>(matrix.GetRow((2))), position);
+            var dstW = VFXOperatorUtility.Dot(VFXValue.Constant<Vector4>(matrix.GetRow((3))), position);
 
             return new VFXExpressionCombine(dstX, dstY, dstZ, dstW);
         }
