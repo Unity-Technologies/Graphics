@@ -21,7 +21,7 @@ MonoBehaviour:
     x: 1504
     y: -208
     width: 398
-    height: 1264
+    height: 1277
 --- !u!114 &114350483966674976
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -105,6 +105,7 @@ VisualEffectResource:
     m_UpdateMode: 0
     m_PreWarmDeltaTime: 0.05
     m_PreWarmStepCount: 0
+    m_InitialEventName: OnPlay
   m_Systems: []
 --- !u!114 &8926484042661614538
 MonoBehaviour:
@@ -1116,7 +1117,6 @@ MonoBehaviour:
   sort: 0
   indirectDraw: 0
   castShadows: 0
-  preRefraction: 0
   useExposureWeight: 0
 --- !u!114 &8926484042661614611
 MonoBehaviour:
