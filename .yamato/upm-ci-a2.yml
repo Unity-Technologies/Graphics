@@ -21,7 +21,7 @@ projects:
     folder: VisualEffectGraph
 ---
 #turning off mac on this one for now so that all the macs don't start at once
-all_project_ci:
+all_a2_graphics:
   name: All A2 Graphics
   agent:
     name: whatever
