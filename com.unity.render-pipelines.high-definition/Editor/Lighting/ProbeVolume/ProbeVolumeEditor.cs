@@ -9,7 +9,7 @@ namespace UnityEditor.Rendering.HighDefinition
 {
     [CanEditMultipleObjects]
     [CustomEditor(typeof(ProbeVolume))]
-    class ProbeVolumeEditor : Editor
+    public class ProbeVolumeEditor : Editor
     {
         internal const EditMode.SceneViewEditMode k_EditShape = EditMode.SceneViewEditMode.ReflectionProbeBox;
         internal const EditMode.SceneViewEditMode k_EditBlend = EditMode.SceneViewEditMode.GridBox;
@@ -20,7 +20,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         SerializedProbeVolume m_SerializedProbeVolume;
 
-        void OnEnable()
+        protected void OnEnable()
         {
             m_SerializedProbeVolume = new SerializedProbeVolume(serializedObject);
 
@@ -92,7 +92,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
-        void OnSceneGUI()
+        protected void OnSceneGUI()
         {
             ProbeVolume probeVolume = target as ProbeVolume;
             HierarchicalBox shapeBox = shapeBoxes[probeVolume];
