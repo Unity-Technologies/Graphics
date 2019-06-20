@@ -155,15 +155,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Now let's do the deferred shading pass on the samples
             currentKernel = deferredRaytracingCS.FindKernel(halfResolution ? "RaytracingDeferredHalf" : "RaytracingDeferred");
 
-            LightCluster lightClusterSettings = VolumeManager.instance.stack.GetComponent<LightCluster>();
-
-            cmd.SetComputeBufferParam(deferredRaytracingCS, currentKernel, HDShaderIDs._RaytracingLightCluster, lightCluster.GetCluster());
-            cmd.SetComputeBufferParam(deferredRaytracingCS, currentKernel, HDShaderIDs._LightDatasRT, lightCluster.GetLightDatas());
-            cmd.SetComputeVectorParam(deferredRaytracingCS, HDShaderIDs._MinClusterPos, lightCluster.GetMinClusterPos());
-            cmd.SetComputeVectorParam(deferredRaytracingCS, HDShaderIDs._MaxClusterPos, lightCluster.GetMaxClusterPos());
-            cmd.SetComputeIntParam(deferredRaytracingCS, HDShaderIDs._LightPerCellCount, lightClusterSettings.maxNumLightsPercell.value);
-            cmd.SetComputeIntParam(deferredRaytracingCS, HDShaderIDs._PunctualLightCountRT, lightCluster.GetPunctualLightCount());
-            cmd.SetComputeIntParam(deferredRaytracingCS, HDShaderIDs._AreaLightCountRT, lightCluster.GetAreaLightCount());
+            // Bind the lightLoop data
+            lightCluster.BindLightClusterData(cmd);
 
             cmd.SetComputeTextureParam(deferredRaytracingCS, currentKernel, HDShaderIDs._DepthTexture, m_SharedRTManager.GetDepthStencilBuffer());
 

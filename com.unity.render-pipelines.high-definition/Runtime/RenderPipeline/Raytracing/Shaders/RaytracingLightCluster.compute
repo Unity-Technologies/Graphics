@@ -48,7 +48,7 @@ void RaytracingLightCluster(uint3 threadID : SV_GroupThreadID, uint3 groupId : S
 	uint cellIndex = targetCellIndex.z + targetCellIndex.y * 32 + targetCellIndex.x * 2048;
 
 	// The size of a cell data-wise
-	uint cellDataSize = _LightPerCellCount + 3;
+	uint cellDataSize = _LightPerCellCount + 4;
 
 	// Diagonal direction of the cluster
 	float3 bottomCorner = _MinClusterPos + float3(0.5f, 0.5f, 0.5f) * _ClusterCellSize;
@@ -56,15 +56,16 @@ void RaytracingLightCluster(uint3 threadID : SV_GroupThreadID, uint3 groupId : S
 	float3 cellCenterPosition = bottomCorner + (_MaxClusterPos - _MinClusterPos) * targetCellIndex / float3(64.0, 64.0, 32.0);
 
 	// The actual light count that intersects with this cell
-	uint actualLightCount = 0;
+	uint currentLightCount = 0;
 	uint punctualLightCount = 0;
 	uint areaLightCount = 0;
+	uint envLightCount = 0;
 
 	// Now let's loop through the lights and fill the cell's information
 	for(uint lightIdx = 0; lightIdx < _LightVolumeCount; ++lightIdx)
 	{
 		// If no more lights can fit, just skip
-		if(actualLightCount >= _LightPerCellCount) break;
+		if(currentLightCount >= _LightPerCellCount) break;
 
 		// Fetch the target light data
    		LightVolume currentLight = _LightVolumes[lightIdx];
@@ -73,43 +74,76 @@ void RaytracingLightCluster(uint3 threadID : SV_GroupThreadID, uint3 groupId : S
    		// if(_RaytracingLightCullResult[lightIdx] == 1) continue;
    		// if(_LightVolumes[lightIdx].active == 0) continue;
 
-   		float squareRange = currentLight.range * currentLight.range;
-		// So basically we need to flag this cell if one of the corners of the cell happens to be in the sphere
+   		//
 		bool intersects = false;
-		for(uint cIdx = 0; cIdx < 8; ++cIdx)
-		{
-			// Check if this corner is inside the shphere
-			float3 dir = currentLight.position - (cellCenterPosition + CornerSubDirections[cIdx] * _ClusterCellSize);
-			if(dot(dir, dir) <= squareRange)
+
+   		if (currentLight.shape == 0)
+   		{
+   			float squareRange = currentLight.range * currentLight.range;
+			// So basically we need to flag this cell if one of the corners of the cell happens to be in the sphere
+			for(uint cIdx = 0; cIdx < 8; ++cIdx)
 			{
-				intersects = true;
-				break;
+				// Check if this corner is inside the shphere
+				float3 dir = currentLight.position - (cellCenterPosition + CornerSubDirections[cIdx] * _ClusterCellSize);
+				if(dot(dir, dir) <= squareRange)
+				{
+					intersects = true;
+					break;
+				}
 			}
-		}
 
-		// One additional case that we need to check is: Is the light inside the cell?
-		if (!intersects) 
-		{	
-			float3 distanceToCenter = abs(cellCenterPosition - currentLight.position) * 2.0;
-			intersects = (distanceToCenter.x < _ClusterCellSize.x) && (distanceToCenter.y < _ClusterCellSize.y) && (distanceToCenter.z < _ClusterCellSize.z);
-		}
+			// One additional case that we need to check is: Is the light inside the cell?
+			if (!intersects) 
+			{	
+				float3 distanceToCenter = abs(cellCenterPosition - currentLight.position) * 2.0;
+				intersects = (distanceToCenter.x < _ClusterCellSize.x) && (distanceToCenter.y < _ClusterCellSize.y) && (distanceToCenter.z < _ClusterCellSize.z);
+			}
+   		}
+   		else
+   		{
+   			intersects =  true;
+   			for(uint cIdx = 0; cIdx < 3; ++cIdx)
+			{
+				// Check if this corner is inside the shphere
+				float minLightPos = currentLight.position[cIdx] - currentLight.range[cIdx];
+				float maxLightPos = currentLight.position[cIdx] + currentLight.range[cIdx];
+				float clusterMinPos = (cellCenterPosition[cIdx] - _ClusterCellSize[cIdx]);
+				float clusterMaxPos = (cellCenterPosition[cIdx] + _ClusterCellSize[cIdx]);
+				if (minLightPos > clusterMaxPos || maxLightPos < clusterMinPos)
+				{
+					intersects = false;
+					break;
+				}
+			}
+   		}
 
-		if(intersects)
+   		if(intersects)
 		{
 			// Flag this light in this cell and increase the light count
-			_RaytracingLightCluster[cellIndex * cellDataSize + 3 + actualLightCount] = lightIdx;
-			actualLightCount++;
+			_RaytracingLightCluster[cellIndex * cellDataSize + 4 + currentLightCount] = currentLight.lightIndex;
+			currentLightCount++;
 
 			// Also increase the matching light count
-			punctualLightCount = currentLight.lightType == 0 ? punctualLightCount + 1 : punctualLightCount;
-			areaLightCount = currentLight.lightType == 1 ? areaLightCount + 1 : areaLightCount;
+			if (currentLight.lightType == 0)
+			{
+				punctualLightCount++;
+			}
+			else if (currentLight.lightType == 1)
+			{
+				areaLightCount++;
+			}
+			else
+			{
+				envLightCount++;
+			}
 		}
 	}
 
 	// Set the light count for the cell
-	_RaytracingLightCluster[cellIndex * cellDataSize] = actualLightCount;
+	_RaytracingLightCluster[cellIndex * cellDataSize] = currentLightCount;
 	_RaytracingLightCluster[cellIndex * cellDataSize + 1] = punctualLightCount;
-	_RaytracingLightCluster[cellIndex * cellDataSize + 2] = areaLightCount + punctualLightCount;
+	_RaytracingLightCluster[cellIndex * cellDataSize + 2] = punctualLightCount + areaLightCount;
+	_RaytracingLightCluster[cellIndex * cellDataSize + 3] = areaLightCount + punctualLightCount + envLightCount;
 }
 
 
@@ -128,23 +162,22 @@ void RaytracingLightCull(uint2 threadID : SV_GroupThreadID, uint2 groupId : SV_G
 	// Fetch the target light data
 	LightVolume currentLight = _LightVolumes[targetLightIndex];
 
-	// Square range value of the light
-	float squareRange = currentLight.range * currentLight.range;
-
-	// So basically we need to flag this cell if one of the corners of the cell happens to be in the sphere
 	bool intersects = false;
-	for(uint cIdx = 0; cIdx < 8; ++cIdx)
+	/*
+	for(uint cIdx = 0; cIdx < 3; ++cIdx)
 	{
 		// Check if this corner is inside the shphere
-		float3 dir = currentLight.position - (_ClusterCenterPosition + CornerSubDirections[cIdx] * _ClusterDimension);
+		float3 minLightPos = currentLight.position - currentLight.shape[cIdx];
+		float3 maxLightPos = currentLight.position + currentLight.shape[cIdx];
+		float3 clusterMinPos = (_ClusterCenterPosition - CornerSubDirections[cIdx] * _ClusterDimension);
+		float3 clusterMinPos = (_ClusterCenterPosition + CornerSubDirections[cIdx] * _ClusterDimension);
 		if(dot(dir, dir) <= squareRange)
 		{
 			intersects = true;
 			break;
 		}
 	}
-
-	// Set the light count for the cell
+	*/
+	// Flag this light as culled or visible
 	_RaytracingLightCullResult[targetLightIndex] = intersects ? 0 : 1;
-	// _RaytracingLightCullResult[targetLightIndex] = intersects ? 0 : 1;
 }

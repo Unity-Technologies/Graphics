@@ -41,6 +41,7 @@ void ClosestHitForward(inout RayIntersection rayIntersection : SV_RayPayload, At
     float3 reflected = float3(0.0, 0.0, 0.0);
     float reflectedWeight = 0.0;
     float3 transmitted = float3(0.0, 0.0, 0.0);
+    float refractedWeight = 0.0;
 
     // The intersection will launch a refraction ray only if the object is transparent and is has the refraction flag
 #ifdef _SURFACE_TYPE_TRANSPARENT
@@ -86,6 +87,7 @@ void ClosestHitForward(inout RayIntersection rayIntersection : SV_RayPayload, At
 
         // Override the transmitted color
         transmitted = transmittedIntersection.color;
+        refractedWeight = 1.0;
     }
 #endif
 #endif
@@ -129,7 +131,7 @@ void ClosestHitForward(inout RayIntersection rayIntersection : SV_RayPayload, At
     // Run the lightloop
     float3 diffuseLighting;
     float3 specularLighting;
-    LightLoop(viewWS, posInput, preLightData, bsdfData, builtinData, reflectedWeight, reflected, transmitted, diffuseLighting, specularLighting);
+    LightLoop(viewWS, posInput, preLightData, bsdfData, builtinData, reflectedWeight, refractedWeight, reflected, transmitted, diffuseLighting, specularLighting);
 
     // Color display for the moment
     rayIntersection.color = diffuseLighting + specularLighting;
