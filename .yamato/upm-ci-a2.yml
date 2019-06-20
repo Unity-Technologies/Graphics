@@ -63,15 +63,7 @@ all_a2_graphics:
   {% for editor in editors %}
   {% for platform in platforms %}
   {% for testplatform in testplatforms %}
-#  {% if project.name == "VFXMain" or project.name == "HDRP" %}
-#    {% if testplatform.name == "Standalone" %}
-    #skip standalone for these projects
-#    {% else %}
-#    - {{ project.name }}_Windows64_{{ testplatform.name }}_a2
-#    {% endif %}  
-#  {% else %}
-    - .yamato/upm-ci-a2.yml#{{ project.name }}_{{ platform.name }}_{{ testplatform.name }}_a2 
-#  {% endif %}
+  - .yamato/upm-ci-a2.yml#{{ project.name }}_{{ platform.name }}_{{ testplatform.name }}_a2 
   {% endfor %}
   {% endfor %}
   {% endfor %}
