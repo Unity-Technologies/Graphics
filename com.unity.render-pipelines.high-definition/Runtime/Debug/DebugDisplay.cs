@@ -32,6 +32,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         MinRenderingFullScreenDebug,
         MotionVectors,
         NanTracker,
+        TransparencyOverdraw,
         MaxRenderingFullScreenDebug,
 
         //Material
@@ -85,6 +86,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public ColorPickerDebugSettings colorPickerDebugSettings = new ColorPickerDebugSettings();
             public FalseColorDebugSettings falseColorDebugSettings = new FalseColorDebugSettings();
             public DecalsDebugSettings decalsDebugSettings = new DecalsDebugSettings();
+            public TransparencyDebugSettings transparencyDebugSettings = new TransparencyDebugSettings();
             public MSAASamples msaaSamples = MSAASamples.None;
 
             // Raytracing
@@ -669,14 +671,28 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             var panel = DebugManager.instance.GetPanel(k_PanelLighting, true);
             panel.children.Add(m_DebugLightingItems);
         }
-
         public void RegisterRenderingDebug()
         {
             var widgetList = new List<DebugUI.Widget>();
 
             widgetList.AddRange(new DebugUI.Widget[]
             {
-                new DebugUI.EnumField { displayName = "Fullscreen Debug Mode", getter = () => (int)data.fullScreenDebugMode, setter = value => data.fullScreenDebugMode = (FullScreenDebugMode)value, enumNames = s_RenderingFullScreenDebugStrings, enumValues = s_RenderingFullScreenDebugValues, getIndex = () => data.renderingFulscreenDebugModeEnumIndex, setIndex = value => data.renderingFulscreenDebugModeEnumIndex = value },
+                new DebugUI.EnumField { displayName = "Fullscreen Debug Mode", getter = () => (int)data.fullScreenDebugMode, setter = value => data.fullScreenDebugMode = (FullScreenDebugMode)value, onValueChanged = RefreshRenderingDebug, enumNames = s_RenderingFullScreenDebugStrings, enumValues = s_RenderingFullScreenDebugValues, getIndex = () => data.renderingFulscreenDebugModeEnumIndex, setIndex = value => data.renderingFulscreenDebugModeEnumIndex = value },
+            });
+
+            if (data.fullScreenDebugMode == FullScreenDebugMode.TransparencyOverdraw)
+            {
+                widgetList.Add(new DebugUI.Container
+                {
+                    children =
+                    {
+                        new DebugUI.UIntField {displayName = "Max Pass count", getter = () => data.transparencyDebugSettings.maxPassCount, setter = value => data.transparencyDebugSettings.maxPassCount = value, min = () => 0, max = () => 200, incStep = 1}
+                    }
+                });
+            }
+
+            widgetList.AddRange(new DebugUI.Widget[]
+            {
                 new DebugUI.EnumField { displayName = "MipMaps", getter = () => (int)data.mipMapDebugSettings.debugMipMapMode, setter = value => SetMipMapMode((DebugMipMapMode)value), autoEnum = typeof(DebugMipMapMode), onValueChanged = RefreshRenderingDebug, getIndex = () => data.mipMapsEnumIndex, setIndex = value => data.mipMapsEnumIndex = value },
             });
 
