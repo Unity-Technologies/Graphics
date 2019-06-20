@@ -136,7 +136,7 @@ namespace UnityEngine.Rendering.HighDefinition
         //     }
         // }
 
-        private void Awake()
+        protected void Awake()
         {
             Migrate();
         }
@@ -166,21 +166,21 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        private void OnEnable()
+        protected void OnEnable()
         {
             ProbeVolumeManager.manager.RegisterVolume(this);
         }
 
-        private void OnDisable()
+        protected void OnDisable()
         {
             ProbeVolumeManager.manager.DeRegisterVolume(this);
         }
 
-        private void Update()
+        protected void Update()
         {
         }
 
-        private void OnValidate()
+        protected void OnValidate()
         {
             parameters.Constrain();
         }
