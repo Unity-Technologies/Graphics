@@ -29,7 +29,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         bool m_HasError;
 
         [NonSerialized]
-        HashSet<string> m_ChangedSubGraphs = new HashSet<string>();
+        public bool updatePreviewShaders = false;
 
         ColorSpace m_ColorSpace;
         RenderPipelineAsset m_RenderPipelineAsset;
@@ -133,37 +133,26 @@ namespace UnityEditor.ShaderGraph.Drawing
                 if (graphEditorView == null)
                 {
                     messageManager.ClearAll();
-                    materialGraph.messageManager = messageManager;
                     var asset = AssetDatabase.LoadAssetAtPath<Object>(AssetDatabase.GUIDToAssetPath(selectedGuid));
                     graphEditorView = new GraphEditorView(this, materialGraph, messageManager)
                     {
                         viewDataKey = selectedGuid,
                         assetName = asset.name.Split('/').Last()
                     };
+                    materialGraph.messageManager = messageManager;
                     m_ColorSpace = PlayerSettings.colorSpace;
                     m_RenderPipelineAsset = GraphicsSettings.renderPipelineAsset;
-                    graphObject.Validate();
                 }
 
-                if (m_ChangedSubGraphs.Count > 0 && graphObject != null && graphObject.graph != null)
+                if (updatePreviewShaders)
                 {
-                    foreach (var subGraphNode in graphObject.graph.GetNodes<SubGraphNode>())
-                    {
-                        subGraphNode.Reload(m_ChangedSubGraphs);
-                    }
-
-                    m_ChangedSubGraphs.Clear();
-                }
-
-                if (graphObject.wasUndoRedoPerformed)
-                {
-                    graphEditorView.HandleGraphChanges();
-                    graphObject.graph.ClearChanges();
-                    graphObject.HandleUndoRedo();
+                    m_GraphEditorView.UpdatePreviewShaders();
+                    updatePreviewShaders = false;
                 }
 
                 graphEditorView.HandleGraphChanges();
                 graphObject.graph.ClearChanges();
+                Repaint();
             }
             catch (Exception e)
             {
@@ -173,19 +162,6 @@ namespace UnityEditor.ShaderGraph.Drawing
                 Debug.LogException(e);
                 throw;
             }
-        }
-
-        public void ReloadSubGraphsOnNextUpdate(List<string> subGraphs)
-        {
-            foreach (var subGraph in subGraphs)
-            {
-                m_ChangedSubGraphs.Add(subGraph);
-            }
-        }
-
-        void OnEnable()
-        {
-            this.SetAntiAliasing(4);
         }
 
         void OnDisable()
@@ -226,24 +202,34 @@ namespace UnityEditor.ShaderGraph.Drawing
                 if (string.IsNullOrEmpty(path) || graphObject == null)
                     return;
 
-                UpdateShaderGraphOnDisk(path);
+                bool VCSEnabled = (VersionControl.Provider.enabled && VersionControl.Provider.isActive);
+                CheckoutIfValid(path, VCSEnabled);
+
+                if (m_GraphObject.graph.isSubGraph)
+                    UpdateAbstractSubgraphOnDisk(path);
+                else
+                    UpdateShaderGraphOnDisk(path);
 
                 graphObject.isDirty = false;
+                var windows = Resources.FindObjectsOfTypeAll<MaterialGraphEditWindow>();
+                foreach (var materialGraphEditWindow in windows)
+                {
+                    materialGraphEditWindow.Rebuild();
+                }
             }
         }
 
         public void ToSubGraph()
         {
-            var graphView = graphEditorView.graphView;
-
             var path = EditorUtility.SaveFilePanelInProject("Save Sub Graph", "New Shader Sub Graph", ShaderSubGraphImporter.Extension, "");
             path = path.Replace(Application.dataPath, "Assets");
             if (path.Length == 0)
                 return;
 
             graphObject.RegisterCompleteObjectUndo("Convert To Subgraph");
+            var graphView = graphEditorView.graphView;
 
-            var nodes = graphView.selection.OfType<IShaderNodeView>().Where(x => !(x.node is PropertyNode || x.node is SubGraphOutputNode)).Select(x => x.node).Where(x => x.allowedInSubGraph).ToArray();
+            var nodes = graphView.selection.OfType<IShaderNodeView>().Where(x => !(x.node is PropertyNode)).Select(x => x.node as AbstractMaterialNode).ToArray();
             var bounds = Rect.MinMaxRect(float.PositiveInfinity, float.PositiveInfinity, float.NegativeInfinity, float.NegativeInfinity);
             foreach (var node in nodes)
             {
@@ -262,9 +248,9 @@ namespace UnityEditor.ShaderGraph.Drawing
             var metaProperties = graphView.graph.properties.Where(x => propertyNodeGuids.Contains(x.guid));
 
             var copyPasteGraph = new CopyPasteGraph(
-                    graphView.graph.assetGuid,
+                    graphView.graph.guid,
                     graphView.selection.OfType<ShaderGroup>().Select(x => x.userData),
-                    graphView.selection.OfType<IShaderNodeView>().Where(x => !(x.node is PropertyNode || x.node is SubGraphOutputNode)).Select(x => x.node).Where(x => x.allowedInSubGraph).ToArray(),
+                    graphView.selection.OfType<IShaderNodeView>().Where(x => !(x.node is PropertyNode)).Select(x => x.node as AbstractMaterialNode),
                     graphView.selection.OfType<Edge>().Select(x => x.userData as IEdge),
                     graphView.selection.OfType<BlackboardField>().Select(x => x.userData as AbstractShaderProperty),
                     metaProperties);
@@ -283,16 +269,6 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
             subGraph.AddNode(subGraphOutputNode);
 
-            var groupGuidMap = new Dictionary<Guid, Guid>();
-            foreach (GroupData groupData in deserialized.groups)
-            {
-                var oldGuid = groupData.guid;
-                var newGuid = groupData.RewriteGuid();
-                groupGuidMap[oldGuid] = newGuid;
-                subGraph.CreateGroup(groupData);
-            }
-
-            List<Guid> groupGuids = new List<Guid>();
             var nodeGuidMap = new Dictionary<Guid, Guid>();
             foreach (var node in deserialized.GetNodes<AbstractMaterialNode>())
             {
@@ -302,19 +278,6 @@ namespace UnityEditor.ShaderGraph.Drawing
                 var drawState = node.drawState;
                 drawState.position = new Rect(drawState.position.position - middle, drawState.position.size);
                 node.drawState = drawState;
-
-                if (!groupGuids.Contains(node.groupGuid))
-                {
-                    groupGuids.Add(node.groupGuid);
-                }
-
-                // Checking if the group guid is also being copied.
-                // If not then nullify that guid
-                if (node.groupGuid != Guid.Empty)
-                {
-                    node.groupGuid = !groupGuidMap.ContainsKey(node.groupGuid) ? Guid.Empty : groupGuidMap[node.groupGuid];
-                }
-
                 subGraph.AddNode(node);
             }
 
@@ -392,21 +355,6 @@ namespace UnityEditor.ShaderGraph.Drawing
                     case ConcreteSlotValueType.Boolean:
                         prop = new BooleanShaderProperty();
                         break;
-                    case ConcreteSlotValueType.Matrix2:
-                        prop = new Matrix2ShaderProperty();
-                        break;
-                    case ConcreteSlotValueType.Matrix3:
-                        prop = new Matrix3ShaderProperty();
-                        break;
-                    case ConcreteSlotValueType.Matrix4:
-                        prop = new Matrix4ShaderProperty();
-                        break;
-                    case ConcreteSlotValueType.SamplerState:
-                        prop = new SamplerStateShaderProperty();
-                        break;
-                    case ConcreteSlotValueType.Gradient:
-                        prop = new GradientShaderProperty();
-                        break;
                     default:
                         throw new ArgumentOutOfRangeException();
                 }
@@ -416,8 +364,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     var materialGraph = (GraphData)graphObject.graph;
                     var fromPropertyNode = fromNode as PropertyNode;
                     var fromProperty = fromPropertyNode != null ? materialGraph.properties.FirstOrDefault(p => p.guid == fromPropertyNode.propertyGuid) : null;
-                    prop.displayName = fromProperty != null ? fromProperty.displayName : fromSlot.concreteValueType.ToString();
-
+                    prop.displayName = fromProperty != null ? fromProperty.displayName : fromNode.name;
                     subGraph.AddShaderProperty(prop);
                     var propNode = new PropertyNode();
                     {
@@ -439,7 +386,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
 
             var uniqueOutgoingEdges = externalInputSlots.GroupBy(
-                    edge => edge.outputSlot,
+                    edge => edge.inputSlot,
                     edge => edge,
                     (key, edges) => new { slot = key, edges = edges.ToList() });
 
@@ -447,10 +394,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             foreach (var group in uniqueOutgoingEdges)
             {
                 var outputNode = subGraph.outputNode as SubGraphOutputNode;
-
-                AbstractMaterialNode node = graphView.graph.GetNodeFromGuid(group.edges[0].outputSlot.nodeGuid);
-                MaterialSlot slot = node.FindSlot<MaterialSlot>(group.edges[0].outputSlot.slotId);
-                var slotId = outputNode.AddSlot(slot.concreteValueType);
+                var slotId = outputNode.AddSlot();
 
                 var inputSlotRef = new SlotReference(outputNode.guid, slotId);
 
@@ -461,10 +405,10 @@ namespace UnityEditor.ShaderGraph.Drawing
                 }
             }
 
-            if(FileUtilities.WriteShaderGraphToDisk(path, subGraph))
-                AssetDatabase.ImportAsset(path);
+            File.WriteAllText(path, EditorJsonUtility.ToJson(subGraph));
+            AssetDatabase.ImportAsset(path);
 
-            var loadedSubGraph = AssetDatabase.LoadAssetAtPath(path, typeof(SubGraphAsset)) as SubGraphAsset;
+            var loadedSubGraph = AssetDatabase.LoadAssetAtPath(path, typeof(MaterialSubGraphAsset)) as MaterialSubGraphAsset;
             if (loadedSubGraph == null)
                 return;
 
@@ -472,15 +416,8 @@ namespace UnityEditor.ShaderGraph.Drawing
             var ds = subGraphNode.drawState;
             ds.position = new Rect(middle - new Vector2(100f, 150f), Vector2.zero);
             subGraphNode.drawState = ds;
-
-            // Add the subgraph into the group if the nodes was all in the same group group
-            if (groupGuids.Count == 1)
-            {
-                subGraphNode.groupGuid = groupGuids[0];
-            }
-
             graphObject.graph.AddNode(subGraphNode);
-            subGraphNode.asset = loadedSubGraph;
+            subGraphNode.subGraphAsset = loadedSubGraph;
 
             foreach (var edgeMap in externalInputNeedingConnection)
             {
@@ -493,16 +430,42 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
 
             graphObject.graph.RemoveElements(
-                graphView.selection.OfType<IShaderNodeView>().Select(x => x.node).Where(x => x.allowedInSubGraph),
+                graphView.selection.OfType<IShaderNodeView>().Select(x => x.node as AbstractMaterialNode),
                 Enumerable.Empty<IEdge>(),
                 Enumerable.Empty<GroupData>());
             graphObject.graph.ValidateGraph();
         }
 
+        void UpdateAbstractSubgraphOnDisk(string path)
+        {
+            File.WriteAllText(path, EditorJsonUtility.ToJson(graphObject.graph, true));
+            AssetDatabase.ImportAsset(path);
+        }
+
         void UpdateShaderGraphOnDisk(string path)
         {
-            if(FileUtilities.WriteShaderGraphToDisk(path, graphObject.graph))
-                AssetDatabase.ImportAsset(path);
+            UpdateShaderGraphOnDisk(path, graphObject.graph);
+        }
+
+        static void UpdateShaderGraphOnDisk(string path, GraphData graph)
+        {
+            var shaderImporter = AssetImporter.GetAtPath(path) as ShaderGraphImporter;
+            if (shaderImporter == null)
+                return;
+
+            File.WriteAllText(path, EditorJsonUtility.ToJson(graph, true));
+            shaderImporter.SaveAndReimport();
+            AssetDatabase.ImportAsset(path);
+        }
+
+        private void Rebuild()
+        {
+            if (graphObject != null && graphObject.graph != null)
+            {
+                var subNodes = graphObject.graph.GetNodes<SubGraphNode>();
+                foreach (var node in subNodes)
+                    node.UpdateSlots();
+            }
         }
 
         public void Initialize(string assetGuid)
@@ -548,7 +511,6 @@ namespace UnityEditor.ShaderGraph.Drawing
                 graphObject = CreateInstance<GraphObject>();
                 graphObject.hideFlags = HideFlags.HideAndDontSave;
                 graphObject.graph = JsonUtility.FromJson<GraphData>(textGraph);
-                graphObject.graph.assetGuid = assetGuid;
                 graphObject.graph.isSubGraph = isSubGraph;
                 graphObject.graph.messageManager = messageManager;
                 graphObject.graph.OnEnable();
@@ -581,6 +543,25 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_FrameAllAfterLayout = false;
             foreach (var node in m_GraphObject.graph.GetNodes<AbstractMaterialNode>())
                 node.Dirty(ModificationScope.Node);
+        }
+
+        void CheckoutIfValid(string path, bool VCSEnabled)
+        {
+            if (VCSEnabled)
+            {
+                var asset = VersionControl.Provider.GetAssetByPath(path);
+                if (asset != null)
+                {
+                    if (VersionControl.Provider.CheckoutIsValid(asset))
+                    {
+                        var task = VersionControl.Provider.Checkout(asset, VersionControl.CheckoutMode.Both);
+                        task.Wait();
+
+                        if (!task.success)
+                            Debug.Log(task.text + " " + task.resultCode);
+                    }
+                }
+            }
         }
     }
 }

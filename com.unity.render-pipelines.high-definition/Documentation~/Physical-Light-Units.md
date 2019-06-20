@@ -2,41 +2,27 @@
 
 HDRP uses Physical Light Units (PLU) for its lighting. These units are based on real-life light measurements, like those you see on light bulb packaging or a photographic light meter.
 
-## Units
+### Candelas
 
-<a name="Candela"></a>
+The base unit of luminous intensity in the International System of Units. For reference, a common wax candle emits light with a luminous intensity of roughly 1 candela.
 
-#### Candela:
+### Lumens
 
-The base unit of [luminous intensity](Glossary.html#LuminousIntensity) in the International System of Units. For reference, a common wax candle emits light with a luminous intensity of roughly 1 candela.
+The unit of luminous flux. Measures the total quantity of visible light a source emits. A light source emitting 1 candela of luminous intensity from an area of 1 steradian has a luminous flux of 1 lumen.
 
-<a name="Lumen"></a>
+### Luminance
 
-#### Lumen:
+Measures the apparent brightness of light either emitted from a light source, or reflected off a surface, to the human eye. A light source that emits 1 candela of luminous intensity onto an area of 1 square meter has a luminance of 1 candela per square meter.
 
-The unit of [luminous flux](Glossary.html#LuminousFlux). Measures the total quantity of visible light a source emits. A light source emitting 1 [candela](#Candela) of luminous intensity from an area of 1 steradian has a luminous flux of 1 lumen.
+### Lux
 
-<a name="Lux"></a>
+The unit of illuminance. A light source that emits 1 lumen of luminous flux onto an area of 1 square meter has an illuminance of 1 lux.
 
-#### Lux (lumen per square meter):
+### Exposure value (EV)
 
-The unit of [illuminance](Glossary.html#Illuminance). A light source that emits 1 lumen of [luminous flux](Glossary.html#LuminousFlux) onto an area of 1 square meter has an illuminance of 1 lux.
+A value that represents a combination of a camera's shutter speed and f-number. It is essentially a measurement of exposure such that all combinations of shutter speed and f-number that yield the same level of exposure have the same EV. HDRP Lights can use Ev 100, which is Ev with a 100 International Standards Organisation (ISO) film.
 
-<a name="Luminance"></a>
-
-#### Luminance (candela per square meter):
-
-Measures the apparent brightness of light either emitted from a light source, or reflected off a surface, to the human eye. A light source that emits 1 candela of [luminous intensity](Glossary.html#LuminousIntensity) onto an area of 1 square meter has a luminance of 1 candela per square meter.
-
-<a name="EV"></a>
-
-#### Exposure value (EV):
-
-A value that represents a combination of a camera's shutter speed and f-number. It is essentially a measurement of exposure such that all combinations of shutter speed and f-number that yield the same level of exposure have the same EV. HDRP Lights can use **EV<sub>100</sub>**, which is EV with a 100 International Standards Organisation (ISO) film.
-
-## Light intensities
-
-### Natural
+## Natural light levels
 
 Light measurements from natural sources in different conditions:
 
@@ -49,7 +35,7 @@ Light measurements from natural sources in different conditions:
 | < 1               | Moonlight with a clear night sky.                 |
 | 0.002             | Starry night without moonlight. Includes airglow. |
 
-### Artificial
+## Artificial light intensities
 
 Approximate light measurements from artificial sources:
 
@@ -62,7 +48,7 @@ Approximate light measurements from artificial sources:
 | 800 - 1 200           | Ceiling lamp for a large brightly lit room.                  |
 | 1 000 - 40 000        | Bright street light.                                         |
 
-### Indoor
+## Indoor light levels
 
 Architects use these approximate values as a guide when designing rooms and buildings for functional use:
 

@@ -33,7 +33,7 @@ namespace UnityEditor.Rendering
 
         public bool isInAdvancedMode => m_AdvancedMode != null && m_AdvancedMode.boolValue;
 
-        protected Editor m_Inspector;
+        Editor m_Inspector;
         List<SerializedDataParameter> m_Parameters;
 
         static Dictionary<Type, VolumeParameterDrawer> s_ParameterDrawers;
@@ -55,9 +55,10 @@ namespace UnityEditor.Rendering
             s_ParameterDrawers.Clear();
 
             // Look for all the valid parameter drawers
-            var types = CoreUtils.GetAllTypesDerivedFrom<VolumeParameterDrawer>()
+            var types = CoreUtils.GetAllAssemblyTypes()
                 .Where(
-                    t => t.IsDefined(typeof(VolumeParameterDrawerAttribute), false)
+                    t => t.IsSubclassOf(typeof(VolumeParameterDrawer))
+                    && t.IsDefined(typeof(VolumeParameterDrawerAttribute), false)
                     && !t.IsAbstract
                     );
 
@@ -132,7 +133,7 @@ namespace UnityEditor.Rendering
 
         public virtual string GetDisplayTitle()
         {
-            return target.displayName == "" ? ObjectNames.NicifyVariableName(target.GetType().Name) : target.displayName;
+            return ObjectNames.NicifyVariableName(target.GetType().Name);
         }
 
         void TopRowFields()

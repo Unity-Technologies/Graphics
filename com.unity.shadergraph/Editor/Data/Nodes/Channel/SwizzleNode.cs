@@ -123,26 +123,30 @@ namespace UnityEditor.ShaderGraph
                 alphaChannel = TextureChannel.Red;
         }
 
-        public void GenerateNodeCode(ShaderStringBuilder sb, GraphContext graphContext, GenerationMode generationMode)
+        public void GenerateNodeCode(ShaderGenerator visitor, GraphContext graphContext, GenerationMode generationMode)
         {
             ValidateChannelCount();
-            var outputSlotType = FindOutputSlot<MaterialSlot>(OutputSlotId).concreteValueType.ToShaderString();
+            var outputSlotType = FindOutputSlot<MaterialSlot>(OutputSlotId).concreteValueType.ToString(precision);
             var outputName = GetVariableNameForSlot(OutputSlotId);
             var inputValue = GetSlotValue(InputSlotId, generationMode);
             var inputValueType = FindInputSlot<MaterialSlot>(InputSlotId).concreteValueType;
             if (inputValueType == ConcreteSlotValueType.Vector1)
-                sb.AppendLine(string.Format("{0} {1} = {2};", outputSlotType, outputName, inputValue));
+                visitor.AddShaderChunk(string.Format("{0} {1} = {2};", outputSlotType, outputName, inputValue), false);
             else if (generationMode == GenerationMode.ForReals)
-                sb.AppendLine("{0} {1} = {2}.{3}{4}{5}{6};",
+                visitor.AddShaderChunk(string.Format("{0} {1} = {2}.{3}{4}{5}{6};",
                         outputSlotType,
                         outputName,
                         inputValue,
                         s_ComponentList[m_RedChannel].ToString(CultureInfo.InvariantCulture),
                         s_ComponentList[m_GreenChannel].ToString(CultureInfo.InvariantCulture),
                         s_ComponentList[m_BlueChannel].ToString(CultureInfo.InvariantCulture),
-                        s_ComponentList[m_AlphaChannel].ToString(CultureInfo.InvariantCulture));
+                        s_ComponentList[m_AlphaChannel].ToString(CultureInfo.InvariantCulture)), false);
             else
-                sb.AppendLine("{0} {1} = {0}({3}[((int){2} >> 0) & 3], {3}[((int){2} >> 2) & 3], {3}[((int){2} >> 4) & 3], {3}[((int){2} >> 6) & 3]);", outputSlotType, outputName, GetVariableNameForNode(), inputValue);
+                visitor.AddShaderChunk(string.Format("{0} {1} = {0}({3}[((int){2} >> 0) & 3], {3}[((int){2} >> 2) & 3], {3}[((int){2} >> 4) & 3], {3}[((int){2} >> 6) & 3]);",
+                        outputSlotType,
+                        outputName,
+                        GetVariableNameForNode(), // Name of the uniform we encode swizzle values into
+                        inputValue), false);
         }
 
         public override void CollectShaderProperties(PropertyCollector properties, GenerationMode generationMode)

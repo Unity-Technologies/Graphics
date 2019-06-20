@@ -59,7 +59,7 @@ namespace UnityEditor.ShaderGraph
             m_ConcreteValueType = valueType;
         }
 
-        protected override string ConcreteSlotValueAsVariable()
+        protected override string ConcreteSlotValueAsVariable(AbstractMaterialNode.OutputPrecision precision)
         {
             var channelCount = (int)SlotValueHelper.GetMatrixDimension(concreteValueType);
             var values = "";
@@ -74,7 +74,7 @@ namespace UnityEditor.ShaderGraph
                     values += value.GetRow(r)[c];
                 }
             }
-            return string.Format("$precision{0}x{0}({1})", channelCount, values);
+            return string.Format("{0}{1}x{1}({2})", precision, channelCount, values);
         }
 
         public override void AddDefaultProperty(PropertyCollector properties, GenerationMode generationMode)

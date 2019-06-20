@@ -17,6 +17,7 @@ Shader "Hidden/HDRP/Sky/HDRISky"
     SAMPLER(sampler_Cubemap);
 
     float4   _SkyParam; // x exposure, y multiplier, zw rotation (cosPhi and sinPhi)
+    float4x4 _PixelCoordToViewDirWS; // Actually just 3x3, but Unity can only set 4x4
 
     struct Attributes
     {
@@ -41,7 +42,7 @@ Shader "Hidden/HDRP/Sky/HDRISky"
 
     float4 RenderSky(Varyings input, float exposure)
     {
-        float3 viewDirWS = GetSkyViewDirWS(input.positionCS.xy);
+        float3 viewDirWS = GetSkyViewDirWS(input.positionCS.xy, (float3x3)_PixelCoordToViewDirWS);
 
         // Reverse it to point into the scene
         float3 dir = -viewDirWS;

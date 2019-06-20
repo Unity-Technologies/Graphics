@@ -2,9 +2,6 @@ using UnityEditor.Experimental.Rendering.TestFramework;
 using NUnit.Framework;
 using System;
 using UnityEngine.Rendering;
-using System.Linq;
-using System.Collections.Generic;
-using System.Text;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline.Tests
 {
@@ -21,42 +18,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline.Tests
         }
 
         [Test]
-        public void NoDoubleBitIndex()
-        {
-            var values = Enum.GetValues(typeof(FrameSettingsField));
-            var singleValues = (values as IEnumerable<int>).Distinct();
-
-            //gathering helpful debug info
-            var messageDuplicates = new StringBuilder();
-            if (values.Length != singleValues.Count())
-            {
-                var names = Enum.GetNames(typeof(FrameSettingsField));
-                for (int i = 0; i < values.Length - 1; ++i)
-                {
-                    var a = values.GetValue(i);
-                    var b = values.GetValue(i + 1);
-                    if ((int)values.GetValue(i) == (int)values.GetValue(i + 1))
-                    {
-                        messageDuplicates.AppendFormat("{{ {0}: {1}, {2}", (int)values.GetValue(i), names[i], names[i + 1]);
-                        ++i;
-                        while (values.GetValue(i) == values.GetValue(i + 1))
-                        {
-                            if (values.GetValue(i) == values.GetValue(i + 1))
-                            {
-                                messageDuplicates.AppendFormat(", {0}", names[i + 1]);
-                                ++i;
-                            }
-                        }
-                        messageDuplicates.Append(" }, ");
-                    }
-                }
-            }
-
-            Assert.AreEqual(values.Length, singleValues.Count(), String.Format("Double bit index found: {0}\nNumber of bit index against number of distinct bit index:", messageDuplicates.ToString()));
-        }
-
-        // deactivate this test for template package making issue
-        //[Test]
         public void FrameSettingsAggregation()
         {
             for (int i = 0; i < 10; ++i)
@@ -98,7 +59,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline.Tests
                 var cam = go.AddComponent<Camera>();
 
                 var add = cam.GetComponent<HDAdditionalCameraData>() ?? cam.gameObject.AddComponent<HDAdditionalCameraData>();
-                Assert.True(add != null && !add.Equals(null));
+                Assert.NotNull(add);
 
                 add.renderingPathCustomFrameSettings = fs;
                 add.renderingPathCustomFrameSettingsOverrideMask = fso;
@@ -121,8 +82,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline.Tests
             }
         }
 
-        // deactivate this test for template package making issue
-        //[Test]
+        [Test]
         public void FrameSettingsHistoryAggregation()
         {
             for (int i = 0; i < 10; ++i)
@@ -164,7 +124,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline.Tests
                 var cam = go.AddComponent<Camera>();
 
                 var add = cam.GetComponent<HDAdditionalCameraData>() ?? cam.gameObject.AddComponent<HDAdditionalCameraData>();
-                Assert.True(add != null && !add.Equals(null));
+                Assert.NotNull(add);
 
                 add.renderingPathCustomFrameSettings = fs;
                 add.renderingPathCustomFrameSettingsOverrideMask = fso;
@@ -354,7 +314,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline.Tests
         };
 
         [Test, TestCaseSource(nameof(s_LegacyFrameSettingsDatas))]
-        public void MigrationTest(LegacyFrameSettings legacyFrameSettingsData)
+        public void Test(LegacyFrameSettings legacyFrameSettingsData)
         {
             using (new PrefabMigrationTests(
                 GetType().Name,

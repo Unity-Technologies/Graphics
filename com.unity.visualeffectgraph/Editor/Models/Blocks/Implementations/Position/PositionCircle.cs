@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 
 namespace UnityEditor.VFX.Block
@@ -30,44 +29,27 @@ namespace UnityEditor.VFX.Block
             }
         }
 
-
-        public override IEnumerable<VFXNamedExpression> parameters
-        {
-            get
-            {
-                var volumeFactor = base.parameters.FirstOrDefault(o => o.name == "volumeFactor").exp;
-                var arcCircle_arc = base.parameters.FirstOrDefault(o => o.name == "ArcCircle_arc").exp;
-                var arcCircleRadius = base.parameters.FirstOrDefault(o => o.name == "ArcCircle_circle_radius").exp;
-                var arcSequencer = base.parameters.FirstOrDefault(o => o.name == "ArcSequencer").exp;
-
-                VFXExpression theta = null;
-                if (spawnMode == SpawnMode.Randomized)
-                    theta = arcCircle_arc * new VFXExpressionRandom(true);
-                else
-                    theta = arcCircle_arc * arcSequencer;
-
-                var one = VFXOperatorUtility.OneExpression[UnityEngine.Experimental.VFX.VFXValueType.Float];
-
-                var rNorm = VFXOperatorUtility.Sqrt(volumeFactor + (one - volumeFactor) * new VFXExpressionRandom(true)) * arcCircleRadius;
-                var sinTheta = new VFXExpressionSin(theta);
-                var cosTheta = new VFXExpressionCos(theta);
-
-                yield return new VFXNamedExpression(rNorm, "rNorm");
-                yield return new VFXNamedExpression(sinTheta, "sinTheta");
-                yield return new VFXNamedExpression(cosTheta, "cosTheta");
-                yield return base.parameters.FirstOrDefault(o => o.name == "ArcCircle_circle_center");
-            }
-        }
-
         public override string source
         {
             get
             {
-                return @"
-direction = float3(sinTheta, cosTheta, 0.0f);
-position.xy += float2(sinTheta, cosTheta) * rNorm + ArcCircle_circle_center.xy;
-position.z += ArcCircle_circle_center.z;
+                string outSource = @"";
+                if (spawnMode == SpawnMode.Randomized)
+                    outSource += @"float theta = ArcCircle_arc * RAND;";
+                else
+                    outSource += @"float theta = ArcCircle_arc * ArcSequencer;";
+
+                outSource += @"
+float rNorm = sqrt(volumeFactor + (1 - volumeFactor) * RAND);
+
+float2 sincosTheta;
+sincos(theta, sincosTheta.x, sincosTheta.y);
+
+direction = float3(sincosTheta, 0.0f);
+position.xy += sincosTheta * rNorm * ArcCircle_circle_radius + ArcCircle_circle_center;
 ";
+
+                return outSource;
             }
         }
     }

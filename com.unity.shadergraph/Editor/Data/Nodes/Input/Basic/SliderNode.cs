@@ -57,12 +57,12 @@ namespace UnityEditor.ShaderGraph
             });
         }
 
-        public void GenerateNodeCode(ShaderStringBuilder sb, GraphContext graphContext, GenerationMode generationMode)
+        public void GenerateNodeCode(ShaderGenerator visitor, GraphContext graphContext, GenerationMode generationMode)
         {
             if (generationMode.IsPreview())
                 return;
 
-            sb.AppendLine(string.Format("$precision {0} = {1};", GetVariableNameForNode(), m_Value.x));
+            visitor.AddShaderChunk(precision + " " + GetVariableNameForNode() + " = " + m_Value.x + ";", true);
         }
 
         public override string GetVariableNameForSlot(int slotId)

@@ -88,7 +88,6 @@ Shader "Lightweight Render Pipeline/Unlit"
             half4 frag(Varyings input) : SV_Target
             {
                 UNITY_SETUP_INSTANCE_ID(input);
-                UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
                 half2 uv = input.uv;
                 half4 texColor = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, uv);
@@ -106,6 +105,7 @@ Shader "Lightweight Render Pipeline/Unlit"
             }
             ENDHLSL
         }
+
         Pass
         {
             Tags{"LightMode" = "DepthOnly"}
@@ -130,8 +130,8 @@ Shader "Lightweight Render Pipeline/Unlit"
             // GPU Instancing
             #pragma multi_compile_instancing
 
-            #include "Packages/com.unity.render-pipelines.lightweight/Shaders/UnlitInput.hlsl"
-            #include "Packages/com.unity.render-pipelines.lightweight/Shaders/DepthOnlyPass.hlsl"
+            #include "UnlitInput.hlsl"
+            #include "DepthOnlyPass.hlsl"
             ENDHLSL
         }
 
@@ -150,8 +150,8 @@ Shader "Lightweight Render Pipeline/Unlit"
             #pragma vertex LightweightVertexMeta
             #pragma fragment LightweightFragmentMetaUnlit
 
-            #include "Packages/com.unity.render-pipelines.lightweight/Shaders/UnlitInput.hlsl"
-            #include "Packages/com.unity.render-pipelines.lightweight/Shaders/UnlitMetaPass.hlsl"
+            #include "UnlitInput.hlsl"
+            #include "UnlitMetaPass.hlsl"
 
             ENDHLSL
         }

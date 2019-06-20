@@ -14,12 +14,6 @@ namespace UnityEditor.ShaderGraph
             get { return m_Guid; }
         }
 
-        public Guid RewriteGuid()
-        {
-            m_Guid = Guid.NewGuid();
-            return m_Guid;
-        }
-
         [SerializeField]
         string m_GuidSerialized;
 

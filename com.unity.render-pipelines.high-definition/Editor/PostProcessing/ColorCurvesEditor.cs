@@ -281,8 +281,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 }
 
                 // Curve area
+                var settings = m_CurveEditor.settings;
                 var rect = GUILayoutUtility.GetAspectRect(2f);
-                var innerRect = new RectOffset(10, 10, 10, 10).Remove(rect);
+                var innerRect = settings.padding.Remove(rect);
 
                 if (Event.current.type == EventType.Repaint)
                 {
@@ -327,14 +328,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 }
 
                 // Curve editor
-                using (new GUI.ClipScope(innerRect))
+                if (m_CurveEditor.OnGUI(rect))
                 {
-                    if (m_CurveEditor.OnGUI(new Rect(0, 0, innerRect.width - 1, innerRect.height - 1)))
-                    {
-                        Repaint();
-                        GUI.changed = true;
-                        MarkTextureCurveAsDirty(m_SelectedCurve.intValue);
-                    }
+                    Repaint();
+                    GUI.changed = true;
+                    MarkTextureCurveAsDirty(m_SelectedCurve.intValue);
                 }
 
                 if (Event.current.type == EventType.Repaint)

@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Text;
-using UnityEditor.Rendering;
 using UnityEditor.ShaderGraph;
 using UnityEngine;
 
@@ -8,18 +7,17 @@ namespace UnityEditor.Graphing.Util
 {
     class MessageManager
     {
-        protected Dictionary<object, Dictionary<Identifier, List<ShaderMessage>>> m_Messages =
+        Dictionary<object, Dictionary<Identifier, List<ShaderMessage>>> m_Messages =
             new Dictionary<object, Dictionary<Identifier, List<ShaderMessage>>>();
 
         Dictionary<Identifier, List<ShaderMessage>> m_Combined = new Dictionary<Identifier, List<ShaderMessage>>();
 
         public bool nodeMessagesChanged { get; private set; }
 
-        Dictionary<Identifier, List<ShaderMessage>> m_FoundMessages;
-
         public void AddOrAppendError(object errorProvider, Identifier nodeId, ShaderMessage error)
         {
-            if (!m_Messages.TryGetValue(errorProvider, out var messages))
+            Dictionary<Identifier, List<ShaderMessage>> messages;
+            if (!m_Messages.TryGetValue(errorProvider, out messages))
             {
                 messages = new Dictionary<Identifier, List<ShaderMessage>>();
                 m_Messages[errorProvider] = messages;
@@ -38,12 +36,6 @@ namespace UnityEditor.Graphing.Util
             nodeMessagesChanged = true;
         }
 
-        // Sort messages so errors come before warnings in the list
-        static int CompareMessages(ShaderMessage m1, ShaderMessage m2)
-        {
-            return m1.severity > m2.severity ? 1 : m2.severity > m1.severity ? -1 : 0;
-        }
-
         public IEnumerable<KeyValuePair<Identifier, List<ShaderMessage>>> GetNodeMessages()
         {
             var fixedNodes = new List<Identifier>();
@@ -52,12 +44,15 @@ namespace UnityEditor.Graphing.Util
             {
                 foreach (var messageList in messageMap.Value)
                 {
-                    if (!m_Combined.TryGetValue(messageList.Key, out var foundList))
+                    List<ShaderMessage> foundList;
+                    if (m_Combined.TryGetValue(messageList.Key, out foundList))
                     {
-                        foundList = new List<ShaderMessage>();
-                        m_Combined.Add(messageList.Key, foundList);
+                        foundList.AddRange(messageList.Value);
                     }
-                    foundList.AddRange(messageList.Value);
+                    else
+                    {
+                        m_Combined[messageList.Key] = messageList.Value;
+                    }
 
                     if (messageList.Value.Count == 0)
                     {
@@ -68,11 +63,6 @@ namespace UnityEditor.Graphing.Util
                 // If all the messages from a provider for a node are gone,
                 // we can now remove it from the list since that will be reported in m_Combined
                 fixedNodes.ForEach(nodeId => messageMap.Value.Remove(nodeId));
-            }
-
-            foreach (var nodeList in m_Combined)
-            {
-                nodeList.Value.Sort(CompareMessages);
             }
 
             nodeMessagesChanged = false;
@@ -89,25 +79,26 @@ namespace UnityEditor.Graphing.Util
 
         public void ClearAllFromProvider(object messageProvider)
         {
-            if (m_Messages.TryGetValue(messageProvider, out m_FoundMessages))
+            Dictionary<Identifier, List<ShaderMessage>> messageMap;
+            if (m_Messages.TryGetValue(messageProvider, out messageMap))
             {
-                foreach (var messageList in m_FoundMessages)
+                foreach (var messageList in messageMap)
                 {
                     nodeMessagesChanged |= messageList.Value.Count > 0;
                     messageList.Value.Clear();
                 }
-
-                m_FoundMessages = null;
             }
         }
 
         public void ClearNodesFromProvider(object messageProvider, IEnumerable<AbstractMaterialNode> nodes)
         {
-            if (m_Messages.TryGetValue(messageProvider, out m_FoundMessages))
+            Dictionary<Identifier,List<ShaderMessage>> messageMap;
+            if (m_Messages.TryGetValue(messageProvider, out messageMap))
             {
                 foreach (var node in nodes)
                 {
-                    if (m_FoundMessages.TryGetValue(node.tempId, out var messages))
+                    List<ShaderMessage> messages;
+                    if (messageMap.TryGetValue(node.tempId, out messages))
                     {
                         nodeMessagesChanged |= messages.Count > 0;
                         messages.Clear();
@@ -139,19 +130,6 @@ namespace UnityEditor.Graphing.Util
                 }
             }
             Debug.Log(output.ToString());
-        }
-
-        public static void Log(AbstractMaterialNode node, string path, ShaderMessage message, Object context)
-        {
-            var errString = $"{message.severity} in Graph at {path} at node {node.name}: {message.message}";
-            if (message.severity == ShaderCompilerMessageSeverity.Error)
-            {
-                Debug.LogError(errString, context);
-            }
-            else
-            {
-                Debug.LogWarning(errString, context);
-            }
         }
     }
 }

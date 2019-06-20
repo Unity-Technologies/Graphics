@@ -1,15 +1,15 @@
 // this produces an orthonormal basis of the tangent and bitangent WITHOUT vertex level tangent/bitangent for any UV including procedurally generated
 // method released with the demo for publication of "bump mapping unparametrized surfaces on the GPU"
 // http://mmikkelsen3d.blogspot.com/2011/07/derivative-maps.html
-void SurfaceGradientGenBasisTB(float3 nrmVertexNormal, float3 sigmaX, float3 sigmaY, float flipSign, float2 texST, out float3 vT, out float3 vB)
+void SurfaceGradientGenBasisTB(real3 nrmVertexNormal, real3 sigmaX, real3 sigmaY, real flipSign, real2 texST, out real3 vT, out real3 vB)
 {
-    float2 dSTdx = ddx_fine(texST), dSTdy = ddy_fine(texST);
+    real2 dSTdx = ddx_fine(texST), dSTdy = ddy_fine(texST);
 
-    float det = dot(dSTdx, float2(dSTdy.y, -dSTdy.x));
-    float sign_det = det < 0 ? -1 : 1;
+    real det = dot(dSTdx, real2(dSTdy.y, -dSTdy.x));
+    real sign_det = det < 0 ? -1 : 1;
 
     // invC0 represents (dXds, dYds); but we don't divide by determinant (scale by sign instead)
-    float2 invC0 = sign_det * float2(dSTdy.y, -dSTdx.y);
+    real2 invC0 = sign_det * real2(dSTdy.y, -dSTdx.y);
     vT = sigmaX * invC0.x + sigmaY * invC0.y;
     if (abs(det) > 0.0)
         vT = normalize(vT);
@@ -29,7 +29,7 @@ real3 SurfaceGradientFromTBN(real2 deriv, real3 vT, real3 vB)
 real3 SurfaceGradientFromPerturbedNormal(real3 nrmVertexNormal, real3 v)
 {
     real3 n = nrmVertexNormal;
-    real s = 1.0 / max(REAL_EPS, abs(dot(n, v)));
+    real s = 1.0 / max(FLT_EPS, abs(dot(n, v)));
     return s * (dot(n, v) * n - v);
 }
 
@@ -70,7 +70,7 @@ real2 ConvertTangentSpaceNormalToHeightMapGradient(real2 normalXY, real rcpNorma
 real2 UnpackDerivativeNormalRGB(real4 packedNormal, real scale = 1.0)
 {
     real3 vT   = packedNormal.rgb * 2.0 - 1.0; // Unsigned to signed
-    real  rcpZ = rcp(max(vT.z, REAL_EPS));      // Clamp to avoid INF
+    real  rcpZ = rcp(max(vT.z, FLT_EPS));      // Clamp to avoid INF
 
     return ConvertTangentSpaceNormalToHeightMapGradient(vT.xy, rcpZ, scale);
 }
@@ -79,7 +79,7 @@ real2 UnpackDerivativeNormalRGB(real4 packedNormal, real scale = 1.0)
 real2 UnpackDerivativeNormalAG(real4 packedNormal, real scale = 1.0)
 {
     real2 vT   = packedNormal.ag * 2.0 - 1.0;                      // Unsigned to signed
-    real  rcpZ = rsqrt(max(1 - Sq(vT.x) - Sq(vT.y), Sq(REAL_EPS))); // Clamp to avoid INF
+    real  rcpZ = rsqrt(max(1 - Sq(vT.x) - Sq(vT.y), Sq(FLT_EPS))); // Clamp to avoid INF
 
     return ConvertTangentSpaceNormalToHeightMapGradient(vT.xy, rcpZ, scale);
 }

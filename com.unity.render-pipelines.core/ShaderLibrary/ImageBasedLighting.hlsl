@@ -47,10 +47,10 @@ real PerceptualRoughnessToMipmapLevel(real perceptualRoughness, real NdotR)
     real m = PerceptualRoughnessToRoughness(perceptualRoughness);
 
     // Remap to spec power. See eq. 21 in --> https://dl.dropboxusercontent.com/u/55891920/papers/mm_brdf.pdf
-    real n = (2.0 / max(REAL_EPS, m * m)) - 2.0;
+    real n = (2.0 / max(FLT_EPS, m * m)) - 2.0;
 
     // Remap from n_dot_h formulation to n_dot_r. See section "Pre-convolved Cube Maps vs Path Tracers" --> https://s3.amazonaws.com/docs.knaldtech.com/knald/1.0.0/lys_power_drops.html
-    n /= (4.0 * max(NdotR, REAL_EPS));
+    n /= (4.0 * max(NdotR, FLT_EPS));
 
     // remap back to square root of real roughness (0.25 include both the sqrt root of the conversion and sqrt for going from roughness to perceptualRoughness)
     perceptualRoughness = pow(2.0 / (n + 2.0), 0.25);
@@ -70,10 +70,13 @@ real MipmapLevelToPerceptualRoughness(real mipmapLevel)
 // Anisotropic image based lighting
 //-----------------------------------------------------------------------------
 
-// T is the fiber axis (hair strand direction, root to tip).
-float3 ComputeViewFacingNormal(float3 V, float3 T)
+// Ref: Donald Revie - Implementing Fur Using Deferred Shading (GPU Pro 2)
+// The grain direction (e.g. hair or brush direction) is assumed to be orthogonal to the normal.
+// The returned normal is NOT normalized.
+real3 ComputeGrainNormal(real3 grainDir, real3 V)
 {
-    return Orthonormalize(V, T);
+    real3 B = cross(grainDir, V);
+    return cross(B, grainDir);
 }
 
 // Fake anisotropy by distorting the normal (non-negative anisotropy values only).
@@ -81,7 +84,7 @@ float3 ComputeViewFacingNormal(float3 V, float3 T)
 // Anisotropic ratio (0->no isotropic; 1->full anisotropy in tangent direction)
 real3 GetAnisotropicModifiedNormal(real3 grainDir, real3 N, real3 V, real anisotropy)
 {
-    real3 grainNormal = ComputeViewFacingNormal(V, grainDir);
+    real3 grainNormal = ComputeGrainNormal(grainDir, V);
     return normalize(lerp(N, grainNormal, anisotropy));
 }
 
@@ -125,7 +128,7 @@ real3 GetSpecularDominantDir(real3 N, real3 R, real perceptualRoughness, real Nd
 // Importance sampling BSDF functions
 // ----------------------------------------------------------------------------
 
-void SampleGGXDir(real2   u,
+void SampleGGXDir2(real2   u,
                   real3   V,
                   real3x3 localToWorld,
                   real    roughness,
@@ -133,7 +136,8 @@ void SampleGGXDir(real2   u,
               out real    NdotL,
               out real    NdotH,
               out real    VdotH,
-                  bool    VeqN = false)
+              out real    LdotH,
+              bool     VeqN = false)
 {
     // GGX NDF sampling
     real cosTheta = sqrt(SafeDiv(1.0 - u.x, 1.0 + (roughness * roughness - 1.0) * u.x));
@@ -161,24 +165,38 @@ void SampleGGXDir(real2   u,
     real3 localL = -localV + 2.0 * VdotH * localH;
     NdotL = localL.z;
 
+    LdotH = saturate(dot(localL, localH));
+
     L = mul(localL, localToWorld);
 }
 
+void SampleGGXDir(real2   u,
+                  real3   V,
+                  real3x3 localToWorld,
+                  real    roughness,
+              out real3   L,
+              out real    NdotL,
+              out real    NdotH,
+              out real    VdotH,
+                  bool     VeqN = false)
+{
+    float LdotH = 0.0f;
+    SampleGGXDir2(u, V, localToWorld, roughness, L, NdotL, NdotH, VdotH, LdotH, VeqN);
+}
+
 // Ref: "A Simpler and Exact Sampling Routine for the GGX Distribution of Visible Normals".
-void SampleVisibleAnisoGGXDir(real2 u,
-                              real3 V,
-                              real3x3 localToWorld,
-                              real roughnessT,
-                              real roughnessB,
-                          out real3 L,
-                          out real  NdotL,
-                          out real  NdotH,
-                          out real  VdotH,
-                              bool  VeqN = false)
+// Note: this code will most likely fail if roughness is 0.
+void SampleVisibleAnisoGGXDir(real2 u, real3 V, real3x3 localToWorld,
+                              real roughnessT, real roughnessB,
+                              out real3 L,
+                              out real  NdotL,
+                              out real  NdotH,
+                              out real  VdotH,
+                                  bool  VeqN = false)
 {
     real3 localV = mul(V, transpose(localToWorld));
 
-    // Construct an orthonormal basis around the stretched view direction
+    // Construct an orthonormal basis around the stretched view direction.
     real3x3 viewToLocal;
     if (VeqN)
     {
@@ -186,47 +204,33 @@ void SampleVisibleAnisoGGXDir(real2 u,
     }
     else
     {
-        // TODO: this code is tacky. We should make it cleaner
+        // TODO: this code is tacky. We should make it cleaner.
         viewToLocal[2] = normalize(real3(roughnessT * localV.x, roughnessB * localV.y, localV.z));
-        viewToLocal[0] = (viewToLocal[2].z < 0.9999) ? normalize(cross(real3(0, 0, 1), viewToLocal[2])) : real3(1, 0, 0);
-        viewToLocal[1] = cross(viewToLocal[2], viewToLocal[0]);
+        viewToLocal[0] = (viewToLocal[2].z < 0.9999) ? normalize(cross(viewToLocal[2], real3(0, 0, 1))) : real3(1, 0, 0);
+        viewToLocal[1] = cross(viewToLocal[0], viewToLocal[2]);
     }
 
-    // Compute a sample point with polar coordinates (r, phi)
+    // Compute a sample point with polar coordinates (r, phi).
     real r   = sqrt(u.x);
-    real phi = 2.0 * PI * u.y;
-    real t1  = r * cos(phi);
-    real t2  = r * sin(phi);
-    float s  = 0.5 * (1.0 + viewToLocal[2].z);
-    t2 = (1.0 - s) * sqrt(1.0 - t1 * t1) + s * t2;
+    real b   = viewToLocal[2].z + 1;
+    real a   = rcp(b);
+    real c   = (u.y < a) ? u.y * b : 1 + (u.y * b - 1) / viewToLocal[2].z;
+    real phi = PI * c;
+    real p1  = r * cos(phi);
+    real p2  = r * sin(phi) * ((u.y < a) ? 1 : viewToLocal[2].z);
 
-    // Reproject onto hemisphere
-    real3 localH = t1 * viewToLocal[0] + t2 * viewToLocal[1] + sqrt(max(0.0, 1.0 - t1 * t1 - t2 * t2)) * viewToLocal[2];
+    // Unstretch.
+    real3 viewH = normalize(real3(roughnessT * p1, roughnessB * p2, sqrt(1 - p1 * p1 - p2 * p2)));
+    VdotH = viewH.z;
 
-    // Transform the normal back to the ellipsoid configuration
-    localH = normalize(real3(roughnessT * localH.x, roughnessB * localH.y, max(0.0, localH.z)));
-
+    real3 localH = mul(viewH, viewToLocal);
     NdotH = localH.z;
-    VdotH = saturate(dot(localV, localH));
 
-    // Compute the reflection direction
-    real3 localL = 2.0 * VdotH * localH - localV;
+    // Compute { localL = reflect(-localV, localH) }
+    real3 localL = -localV + 2 * VdotH * localH;
     NdotL = localL.z;
 
     L = mul(localL, localToWorld);
-}
-
-void SampleVisibleGGXDir(real2 u,
-                         real3 V,
-                         real3x3 localToWorld,
-                         real roughness,
-                     out real3 L,
-                     out real  NdotL,
-                     out real  NdotH,
-                     out real  VdotH,
-                         bool  VeqN = false)
-{
-    SampleVisibleAnisoGGXDir(u, V, localToWorld, roughness, roughness, L, NdotL, NdotH, VdotH, VeqN);
 }
 
 // ref: http://blog.selfshadow.com/publications/s2012-shading-course/burley/s2012_pbs_disney_brdf_notes_v3.pdf p26
@@ -361,7 +365,7 @@ real4 IntegrateGGXAndDisneyDiffuseFGD(real NdotV, real roughness, uint sampleCou
     // Therefore, we don't really want to clamp NdotV here (else the lerp slope is wrong).
     // However, if NdotV is 0, the integral is 0, so that's not what we want, either.
     // Our runtime NdotV bias is quite large, so we use a smaller one here instead.
-    NdotV     = max(NdotV, REAL_EPS);
+    NdotV     = max(NdotV, FLT_EPS);
     real3 V   = real3(sqrt(1 - NdotV * NdotV), 0, NdotV);
     real4 acc = real4(0.0, 0.0, 0.0, 0.0);
 
@@ -422,7 +426,7 @@ uint GetIBLRuntimeFilterSampleCount(uint mipLevel)
     {
         case 1: sampleCount = 21; break;
         case 2: sampleCount = 34; break;
-#if defined(SHADER_API_MOBILE) || defined(SHADER_API_SWITCH)
+#ifdef SHADER_API_MOBILE
         case 3: sampleCount = 34; break;
         case 4: sampleCount = 34; break;
         case 5: sampleCount = 34; break;
@@ -439,7 +443,7 @@ uint GetIBLRuntimeFilterSampleCount(uint mipLevel)
 }
 
 // Ref: Listing 19 in "Moving Frostbite to PBR"
-real4 IntegrateLD(TEXTURECUBE_PARAM(tex, sampl),
+real4 IntegrateLD(TEXTURECUBE_ARGS(tex, sampl),
                    TEXTURE2D(ggxIblSamples),
                    real3 V,
                    real3 N,
@@ -555,7 +559,7 @@ real4 IntegrateLD(TEXTURECUBE_PARAM(tex, sampl),
     return real4(lightInt / cbsdfInt, 1.0);
 }
 
-real4 IntegrateLDCharlie(TEXTURECUBE_PARAM(tex, sampl),
+real4 IntegrateLDCharlie(TEXTURECUBE_ARGS(tex, sampl),
                    real3 V,
                    real3 N,
                    real roughness,
@@ -599,7 +603,7 @@ real4 IntegrateLDCharlie(TEXTURECUBE_PARAM(tex, sampl),
 
         // We are in the supposition that N == V
         float LdotV, NdotH, LdotH, invLenLV;
-        GetBSDFAngle(V, L, NdotL, NdotV, LdotV, NdotH, LdotH, invLenLV);
+        GetBSDFAngle(V, L, NdotL, NdotV, LdotV, NdotH, LdotH, NdotV, invLenLV);
 
         // BRDF data
         real F = 1;
@@ -665,7 +669,7 @@ uint BinarySearchRow(uint j, real needle, TEXTURE2D(haystack), uint n)
 }
 
 #if !defined SHADER_API_GLES
-real4 IntegrateLD_MIS(TEXTURECUBE_PARAM(envMap, sampler_envMap),
+real4 IntegrateLD_MIS(TEXTURECUBE_ARGS(envMap, sampler_envMap),
                        TEXTURE2D(marginalRowDensities),
                        TEXTURE2D(conditionalDensities),
                        real3 V,
@@ -743,7 +747,7 @@ real4 IntegrateLD_MIS(TEXTURECUBE_PARAM(envMap, sampler_envMap),
     }
 
     // Prevent NaNs arising from the division of 0 by 0.
-    cbsdfInt = max(cbsdfInt, REAL_EPS);
+    cbsdfInt = max(cbsdfInt, FLT_EPS);
 
     return real4(lightInt / cbsdfInt, 1.0);
 }

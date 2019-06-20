@@ -8,9 +8,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline.Tests
     public class CameraSettingsUtilitiesTests
     {
         Object m_ToClean;
-
-        // deactivate this test for template package making issue
-        //[Test]
+        
+        [Test]
         public void ApplySettings()
         {
             for (int i = 0; i < 10; ++i)
@@ -76,7 +75,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline.Tests
                 cam.ApplySettings(position);
 
                 var add = cam.GetComponent<HDAdditionalCameraData>();
-                Assert.True(add != null && !add.Equals(null));
+                Assert.NotNull(add);
 
                 // Position
                 switch (position.mode)

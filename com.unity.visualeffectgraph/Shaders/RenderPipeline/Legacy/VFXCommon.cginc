@@ -2,8 +2,6 @@
 
 Texture2D _CameraDepthTexture;
 
-void VFXTransformPSInputs(inout VFX_VARYING_PS_INPUTS input) {}
-
 float4 VFXTransformPositionWorldToClip(float3 posWS)
 {
     return UnityWorldToClipPos(posWS);
@@ -61,22 +59,12 @@ float4 VFXApplyShadowBias(float4 posCS)
     return UnityApplyLinearShadowBias(posCS);
 }
 
-void VFXApplyShadowBias(inout float4 posCS, inout float3 posWS, float3 normalWS)
-{
-    posCS = UnityApplyLinearShadowBias(posCS);
-}
-
-void VFXApplyShadowBias(inout float4 posCS, inout float3 posWS)
-{
-    posCS = UnityApplyLinearShadowBias(posCS);
-}
-
 float4 VFXApplyFog(float4 color,float4 posSS,float3 posWS)
 {
     return color; // TODO
 }
 
-float4 VFXApplyPreExposure(float4 color, VFX_VARYING_PS_INPUTS input)
+float4 VFXApplyPreExposure(float4 color)
 {
     return color;
 }

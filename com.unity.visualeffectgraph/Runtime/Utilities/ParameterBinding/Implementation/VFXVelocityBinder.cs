@@ -1,9 +1,12 @@
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
 using UnityEngine.Experimental.VFX;
 
-namespace UnityEngine.Experimental.VFX.Utility
+namespace UnityEngine.VFX.Utils
 {
-    [AddComponentMenu("VFX/Utilities/Parameters/VFX Velocity Binder")]
-    [VFXBinder("Transform/Velocity")]
+    [VFXBinder("Utility/Velocity")]
     public class VFXVelocityBinder : VFXBinderBase
     {
         public string Parameter { get { return (string)m_Parameter; } set { m_Parameter = value; } }
@@ -12,18 +15,12 @@ namespace UnityEngine.Experimental.VFX.Utility
         public ExposedParameter m_Parameter = "Velocity";
         public Transform Target;
 
-        private static readonly float invalidPreviousTime = -1.0f;
-        private float m_PreviousTime = invalidPreviousTime;
+        private float m_PreviousTime = -1.0f;
         private Vector3 m_PreviousPosition = Vector3.zero;
 
         public override bool IsValid(VisualEffect component)
         {
             return Target != null && component.HasVector3((int)m_Parameter);
-        }
-
-        public override void Reset()
-        {
-            m_PreviousTime = invalidPreviousTime;
         }
 
         public override void UpdateBinding(VisualEffect component)
@@ -37,12 +34,12 @@ namespace UnityEngine.Experimental.VFX.Utility
 #endif
             time = Time.time;
 
-            if (m_PreviousTime != invalidPreviousTime)
+            if (m_PreviousTime != -1.0f)
             {
                 var delta = Target.transform.position - m_PreviousPosition;
-                var deltaTime = time - m_PreviousTime;
-                if (Vector3.SqrMagnitude(delta) > Mathf.Epsilon && deltaTime > Mathf.Epsilon)
-                    velocity = delta / deltaTime;
+
+                if (Vector3.Magnitude(delta) > float.Epsilon)
+                    velocity = delta / (time - m_PreviousTime);
             }
 
             component.SetVector3((int)m_Parameter, velocity);

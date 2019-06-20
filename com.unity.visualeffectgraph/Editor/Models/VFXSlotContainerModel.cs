@@ -32,10 +32,6 @@ namespace UnityEditor.VFX
 
         void SetSettingValue(string name, object value);
 
-        object GetSettingValue(string name);
-
-        VFXSetting GetSetting(string name);
-
         void OnCopyLinksOtherSlot(VFXSlot mySlot, VFXSlot prevOtherSlot, VFXSlot newOtherSlot);
         void OnCopyLinksMySlot(VFXSlot myPrevSlot, VFXSlot myNewSlot, VFXSlot otherSlot);
 
@@ -190,7 +186,7 @@ namespace UnityEditor.VFX
             {
                 int nbRemoved = m_InputSlots.RemoveAll(c => c == null);// Remove bad references if any
                 if (nbRemoved > 0)
-                    Debug.LogWarning(String.Format("Remove {0} input slot(s) that couldnt be deserialized from {1} of type {2}", nbRemoved, name, GetType()));
+                    Debug.Log(String.Format("Remove {0} input slot(s) that couldnt be deserialized from {1} of type {2}", nbRemoved, name, GetType()));
             }
 
             if (m_OutputSlots == null)
@@ -202,7 +198,7 @@ namespace UnityEditor.VFX
             {
                 int nbRemoved = m_OutputSlots.RemoveAll(c => c == null);// Remove bad references if any
                 if (nbRemoved > 0)
-                    Debug.LogWarning(String.Format("Remove {0} output slot(s) that couldnt be deserialized from {1} of type {2}", nbRemoved, name, GetType()));
+                    Debug.Log(String.Format("Remove {0} output slot(s) that couldnt be deserialized from {1} of type {2}", nbRemoved, name, GetType()));
             }
         }
 
@@ -220,13 +216,13 @@ namespace UnityEditor.VFX
             SyncSlots(VFXSlot.Direction.kOutput, false);
         }
 
-        public override void CollectDependencies(HashSet<ScriptableObject> objs, bool ownedOnly = true)
+        public override void CollectDependencies(HashSet<ScriptableObject> objs)
         {
-            base.CollectDependencies(objs, ownedOnly);
+            base.CollectDependencies(objs);
             foreach (var slot in m_InputSlots.Concat(m_OutputSlots))
             {
                 objs.Add(slot);
-                slot.CollectDependencies(objs, ownedOnly);
+                slot.CollectDependencies(objs);
             }
         }
 

@@ -41,7 +41,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline.Tests
             {
                 new LegacyProbeData
                 {
-                    clearColorMode = (int)HDAdditionalCameraData.ClearColorMode.Color,
+                    clearColorMode = (int)HDAdditionalCameraData.ClearColorMode.BackgroundColor,
                     backgroundColorHDR = new Color(1.5f, 0.56234f, 62.523f, 0.123f),
                     clearDepth = false,
                     cullingMask = 101,

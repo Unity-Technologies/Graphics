@@ -1,4 +1,4 @@
-#if !UNITY_EDITOR_OSX || MAC_FORCE_TESTS
+﻿#if !UNITY_EDITOR_OSX || MAC_FORCE_TESTS
 using System;
 using NUnit.Framework;
 using UnityEngine;
@@ -25,7 +25,7 @@ namespace UnityEditor.VFX.Test
                 AssetDatabase.DeleteAsset(tempFilePath);
             }
 
-            var asset = VisualEffectAssetEditorUtility.CreateNewAsset(tempFilePath);
+            var asset = VisualEffectResource.CreateNewAsset(tempFilePath);
 
             VisualEffectResource resource = asset.GetResource(); // force resource creation
 
@@ -61,7 +61,7 @@ namespace UnityEditor.VFX.Test
 
             var basicInitialize = ScriptableObject.CreateInstance<VFXBasicInitialize>();
             var basicUpdate = ScriptableObject.CreateInstance<VFXBasicUpdate>();
-            var quadOutput = ScriptableObject.CreateInstance<VFXPlanarPrimitiveOutput>();
+            var quadOutput = ScriptableObject.CreateInstance<VFXQuadOutput>();
             quadOutput.SetSettingValue("blendMode", VFXAbstractParticleOutput.BlendMode.Additive);
 
             var setLifetime = ScriptableObject.CreateInstance<SetAttribute>(); //only needed to allocate a minimal attributeBuffer

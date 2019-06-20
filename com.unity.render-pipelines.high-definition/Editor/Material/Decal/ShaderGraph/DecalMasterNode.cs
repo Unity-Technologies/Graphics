@@ -49,10 +49,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         public const string MAOSOpacityDisplaySlotName = "MAOS Opacity";
         public const int MAOSOpacitySlotId = 8;
 
-        public const string EmissionSlotName = "Emission";
-        public const string EmissionDisplaySlotName = "Emission";
-        public const int EmissionSlotId = 9;
-
 
 
         // Just for convenience of doing simple masks. We could run out of bits of course.
@@ -68,11 +64,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             Metallic = 1 << MetallicSlotId,
             Occlusion = 1 << AmbientOcclusionSlotId,
             Smoothness = 1 << SmoothnessSlotId,
-            AlphaMAOS = 1 << MAOSOpacitySlotId,
-            Emission = 1 << EmissionSlotId
+            AlphaMAOS = 1 << MAOSOpacitySlotId
         }
 
-        const SlotMask decalParameter = SlotMask.Position | SlotMask.Albedo | SlotMask.AlphaAlbedo | SlotMask.Normal | SlotMask.AlphaNormal | SlotMask.Metallic | SlotMask.Occlusion | SlotMask.Smoothness | SlotMask.AlphaMAOS | SlotMask.Emission;
+        const SlotMask decalParameter = SlotMask.Position | SlotMask.Albedo | SlotMask.AlphaAlbedo | SlotMask.Normal | SlotMask.AlphaNormal | SlotMask.Metallic | SlotMask.Occlusion | SlotMask.Smoothness | SlotMask.AlphaMAOS;
         
 
         // This could also be a simple array. For now, catch any mismatched data.
@@ -114,7 +109,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             // Albedo
             if (MaterialTypeUsesSlotMask(SlotMask.Albedo))
             {
-                AddSlot(new ColorRGBMaterialSlot(AlbedoSlotId, AlbedoDisplaySlotName, AlbedoSlotName, SlotType.Input, Color.grey.gamma, ColorMode.Default, ShaderStageCapability.Fragment));
+                AddSlot(new ColorRGBMaterialSlot(AlbedoSlotId, AlbedoDisplaySlotName, AlbedoSlotName, SlotType.Input, Color.white, ColorMode.Default, ShaderStageCapability.Fragment));
                 validSlots.Add(AlbedoSlotId);
             }
 
@@ -161,18 +156,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 validSlots.Add(SmoothnessSlotId);
             }
 
+
             // Alpha MAOS
             if (MaterialTypeUsesSlotMask(SlotMask.AlphaMAOS))
             {
                 AddSlot(new Vector1MaterialSlot(MAOSOpacitySlotId, MAOSOpacityDisplaySlotName, MAOSOpacitySlotName, SlotType.Input, 1.0f, ShaderStageCapability.Fragment));
                 validSlots.Add(MAOSOpacitySlotId);
-            }
-
-            // Alpha MAOS
-            if (MaterialTypeUsesSlotMask(SlotMask.Emission))
-            {
-                AddSlot(new ColorRGBMaterialSlot(EmissionSlotId, EmissionDisplaySlotName, EmissionSlotName, SlotType.Input, Color.black, ColorMode.HDR, ShaderStageCapability.Fragment));
-                validSlots.Add(EmissionSlotId);
             }
 
             RemoveSlotsNameNotMatching(validSlots, true);
@@ -237,14 +226,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             drawOrder.overrideReferenceName = "_DrawOrder";
             drawOrder.displayName = "Draw Order";
             drawOrder.floatType = FloatType.Integer;
-            drawOrder.hidden = true;
             drawOrder.value = 0;
             collector.AddShaderProperty(drawOrder);
 
             Vector1ShaderProperty decalMeshDepthBias = new Vector1ShaderProperty();
             decalMeshDepthBias.overrideReferenceName = "_DecalMeshDepthBias";
             decalMeshDepthBias.displayName = "DecalMesh DepthBias";
-            decalMeshDepthBias.hidden = true;
             decalMeshDepthBias.floatType = FloatType.Default;
             decalMeshDepthBias.value = 0;
             collector.AddShaderProperty(decalMeshDepthBias);
@@ -328,22 +315,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         }
 
         [SerializeField]
-        bool m_AffectsEmission = true;
-
-        public ToggleData affectsEmission
-        {
-            get { return new ToggleData(m_AffectsEmission); }
-            set
-            {
-                if (m_AffectsEmission == value.isOn)
-                    return;
-                m_AffectsEmission = value.isOn;
-                Dirty(ModificationScope.Graph);
-            }
-        }
-
-
-        [SerializeField]
         int m_DrawOrder;
 
         public int drawOrder
@@ -357,5 +328,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 Dirty(ModificationScope.Graph);
             }
         }
+
     }
 }

@@ -2,14 +2,14 @@
 {
     background-image: resource("Builtin Skins/DarkSkin/Images/TextField.png");
 }
-.propertyrm .unity-toggle.indeterminate #unity-checkmark {
+.propertyrm .unity-toggle.indeterminate {
     background-image: resource("Builtin Skins/DarkSkin/Images/toggle mixed.png");
 }
 
-.propertyrm .unity-toggle.indeterminate:hover:active #unity-checkmark {
+.propertyrm .unity-toggle.indeterminate:hover:active {
     background-image: resource("Builtin Skins/DarkSkin/Images/toggle mixed act.png");
 }
 
-.propertyrm .unity-toggle.indeterminate:focus #unity-checkmark {
+.propertyrm .unity-toggle.indeterminate:focus {
     background-image: resource("Builtin Skins/DarkSkin/Images/toggle mixed focus.png");
 }

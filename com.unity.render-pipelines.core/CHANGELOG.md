@@ -4,29 +4,7 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [7.0.0-preview] - 2019-XX-XX
-### Added
-- First experimental version of the LookDev. Works with all SRP. Only branched on HDRP at the moment.
-
-## [6.7.0-preview] - 2019-05-16
-
-## [6.6.0] - 2019-04-01
-### Fixed
-- Fixed compile errors in XRGraphics.cs when ENABLE_VR is not defined
-
-## [6.5.0] - 2019-03-07
-
-## [6.4.0] - 2019-02-21
-### Added
-- Enabled support for CBUFFER on OpenGL Core and OpenGL ES 3 backends.
-
-## [6.3.0] - 2019-02-18
-
-## [6.2.0] - 2019-02-15
-
-## [6.1.0] - 2019-02-13
-
-## [6.0.0] - 2019-02-23
+## [6.0.0] - 2019-xx-xx
 ### Fixed
 - Fixed a typo in ERROR_ON_UNSUPPORTED_FUNCTION() that was causing the shader compiler to run out of memory in GLES2. [Case 1104271] (https://issuetracker.unity3d.com/issues/mobile-os-restarts-because-of-high-memory-usage-when-compiling-shaders-for-opengles2)
 

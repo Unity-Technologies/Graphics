@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Reflection;
 using UnityEditor.Rendering.LWRP.ShaderGUI;
 using UnityEngine;
 using UnityEngine.Rendering.LWRP;
@@ -16,32 +15,6 @@ namespace UnityEditor.Rendering.LWRP
                 return;
             }
             MaterialPostprocessor.s_CreatedAssets.Add(asset);
-        }
-    }
-
-    class MaterialReimporter : Editor
-    {
-        const string Key = "LWRP-material-upgrader";
-        
-        [InitializeOnLoadMethod]
-        static void ReimportAllMaterials()
-        {
-            //Check to see if the upgrader has been run for this project/LWRP version
-            PackageManager.PackageInfo lwrpInfo = PackageManager.PackageInfo.FindForAssembly(Assembly.GetAssembly(typeof(LightweightRenderPipeline)));
-            var lwrpVersion = lwrpInfo.version;
-            var curUpgradeVersion = PlayerPrefs.GetString(Key);
-
-            if (curUpgradeVersion != lwrpVersion)
-            {
-                string[] guids = AssetDatabase.FindAssets("t:material", null);
-
-                foreach (var asset in guids)
-                {
-                    var path = AssetDatabase.GUIDToAssetPath(asset);
-                    AssetDatabase.ImportAsset(path);
-                }
-                PlayerPrefs.SetString(Key, lwrpVersion);
-            }
         }
     }
 
@@ -63,6 +36,7 @@ namespace UnityEditor.Rendering.LWRP
                 }
 
                 var material = (Material)AssetDatabase.LoadAssetAtPath(asset, typeof(Material));
+                //var shaderGuid = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(material.shader));
                 if (!ShaderUtils.IsLWShader(material.shader))
                 {
                     continue;

@@ -41,9 +41,10 @@ namespace UnityEditor.Rendering
             m_Editors = new List<VolumeComponentEditor>();
 
             // Gets the list of all available component editors
-            var editorTypes = CoreUtils.GetAllTypesDerivedFrom<VolumeComponentEditor>()
+            var editorTypes = CoreUtils.GetAllAssemblyTypes()
                 .Where(
-                    t => t.IsDefined(typeof(VolumeComponentEditorAttribute), false)
+                    t => t.IsSubclassOf(typeof(VolumeComponentEditor))
+                    && t.IsDefined(typeof(VolumeComponentEditorAttribute), false)
                     && !t.IsAbstract
                     );
 
@@ -170,13 +171,13 @@ namespace UnityEditor.Rendering
                 if (m_Editors.Count > 0)
                     CoreEditorUtils.DrawSplitter();
                 else
-                    EditorGUILayout.HelpBox("This Volume Profile contains no overrides.", MessageType.Info);
+                    EditorGUILayout.HelpBox("No override set on this volume. Drop a component here or use the Add button.", MessageType.Info);
 
                 EditorGUILayout.Space();
 
                 using (var hscope = new EditorGUILayout.HorizontalScope())
                 {
-                    if (GUILayout.Button(EditorGUIUtility.TrTextContent("Add Override"), EditorStyles.miniButton))
+                    if (GUILayout.Button(EditorGUIUtility.TrTextContent("Add component overrides..."), EditorStyles.miniButton))
                     {
                         var r = hscope.rect;
                         var pos = new Vector2(r.x + r.width / 2f, r.yMax + 18f);
@@ -231,7 +232,7 @@ namespace UnityEditor.Rendering
             m_SerializedObject.Update();
 
             var component = CreateNewComponent(type);
-            Undo.RegisterCreatedObjectUndo(component, "Add Volume Override");
+            Undo.RegisterCreatedObjectUndo(component, "Add Volume Component");
 
             // Store this new effect as a subasset so we can reference it safely afterwards
             // Only when we're not dealing with an instantiated asset
@@ -316,7 +317,7 @@ namespace UnityEditor.Rendering
 
             // Create a new object
             var newComponent = CreateNewComponent(type);
-            Undo.RegisterCreatedObjectUndo(newComponent, "Reset Volume Overrides");
+            Undo.RegisterCreatedObjectUndo(newComponent, "Reset Volume Component");
 
             // Store this new effect as a subasset so we can reference it safely afterwards
             AssetDatabase.AddObjectToAsset(newComponent, asset);

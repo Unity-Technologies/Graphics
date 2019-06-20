@@ -1,7 +1,6 @@
 using System;
 using System.Linq;
 using UnityEngine;
-using UnityEngine.Experimental.VFX;
 
 namespace UnityEditor.VFX.Operator
 {
@@ -31,10 +30,8 @@ namespace UnityEditor.VFX.Operator
             VFXExpression farPlane = new VFXExpressionExtractFarPlaneFromMainCamera();
             VFXExpression aspectRatio = new VFXExpressionExtractAspectRatioFromMainCamera();
             VFXExpression pixelDimensions = new VFXExpressionExtractPixelDimensionsFromMainCamera();
-            VFXExpression depthBuffer = new VFXExpressionGetBufferFromMainCamera(VFXCameraBufferTypes.Depth);
-            VFXExpression colorBuffer = new VFXExpressionGetBufferFromMainCamera(VFXCameraBufferTypes.Color);
 
-            return new[] { matrix, fov, nearPlane, farPlane, aspectRatio, pixelDimensions, depthBuffer, colorBuffer };
+            return new[] { matrix, fov, nearPlane, farPlane, aspectRatio, pixelDimensions };
         }
     }
 }

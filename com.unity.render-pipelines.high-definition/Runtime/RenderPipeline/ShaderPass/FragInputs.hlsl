@@ -21,10 +21,10 @@ struct FragInputs
     // TODO: confirm with Morten following statement
     // Our TBN is orthogonal but is maybe not orthonormal in order to be compliant with external bakers (Like xnormal that use mikktspace).
     // (xnormal for example take into account the interpolation when baking the normal and normalizing the tangent basis could cause distortion).
-    // When using tangentToWorld with surface gradient, it doesn't normalize the tangent/bitangent vector (We instead use exact same scale as applied to interpolated vertex normal to avoid breaking compliance).
-    // this mean that any usage of tangentToWorld[1] or tangentToWorld[2] outside of the context of normal map (like for POM) must normalize the TBN (TCHECK if this make any difference ?)
-    // When not using surface gradient, each vector of tangentToWorld are normalize (TODO: Maybe they should not even in case of no surface gradient ? Ask Morten)
-    float3x3 tangentToWorld;
+    // When using worldToTangent with surface gradient, it doesn't normalize the tangent/bitangent vector (We instead use exact same scale as applied to interpolated vertex normal to avoid breaking compliance).
+    // this mean that any usage of worldToTangent[1] or worldToTangent[2] outside of the context of normal map (like for POM) must normalize the TBN (TCHECK if this make any difference ?)
+    // When not using surface gradient, each vector of worldToTangent are normalize (TODO: Maybe they should not even in case of no surface gradient ? Ask Morten)
+    float3x3 worldToTangent;
 
     // For two sided lighting
     bool isFrontFace;
@@ -47,13 +47,13 @@ void GetVaryingsDataDebug(uint paramId, FragInputs input, inout float3 result, i
         result = input.texCoord3.xyz;
         break;
     case DEBUGVIEWVARYING_VERTEX_TANGENT_WS:
-        result = input.tangentToWorld[0].xyz * 0.5 + 0.5;
+        result = input.worldToTangent[0].xyz * 0.5 + 0.5;
         break;
     case DEBUGVIEWVARYING_VERTEX_BITANGENT_WS:
-        result = input.tangentToWorld[1].xyz * 0.5 + 0.5;
+        result = input.worldToTangent[1].xyz * 0.5 + 0.5;
         break;
     case DEBUGVIEWVARYING_VERTEX_NORMAL_WS:
-        result = input.tangentToWorld[2].xyz * 0.5 + 0.5;
+        result = input.worldToTangent[2].xyz * 0.5 + 0.5;
         break;
     case DEBUGVIEWVARYING_VERTEX_COLOR:
         result = input.color.rgb; needLinearToSRGB = true;

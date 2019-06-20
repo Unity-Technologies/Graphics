@@ -23,7 +23,7 @@ namespace UnityEditor.VFX.Operator
 
         protected override sealed VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
-            return new VFXExpression[] { VFXOperatorUtility.BoxVolume(new VFXExpressionExtractScaleFromMatrix(inputExpression[0])) };
+            return new VFXExpression[] { VFXOperatorUtility.BoxVolume(inputExpression[2]) };
         }
     }
 }

@@ -34,7 +34,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             },
             RequiredFields = new List<string>()
             {
-                "FragInputs.tangentToWorld",
+                "FragInputs.worldToTangent",
                 "FragInputs.positionRWS",
                 "FragInputs.texCoord1",
                 "FragInputs.texCoord2"
@@ -60,14 +60,24 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             OnGeneratePassImpl = (IMasterNode node, ref Pass pass) =>
             {
                 var masterNode = node as PBRMasterNode;
-                GetStencilStateForGBuffer(true, false, ref pass);
+                pass.StencilOverride = new List<string>()
+                {
+                    "// Stencil setup",
+                    "Stencil",
+                    "{",
+                    "   WriteMask " + ((int)HDRenderPipeline.StencilBitMask.LightingMask).ToString(),
+                    "   Ref  " + ((int)StencilLightingUsage.RegularLighting).ToString(),
+                    "   Comp Always",
+                    "   Pass Replace",
+                    "}"
+                };
 
                 // When we have alpha test, we will force a depth prepass so we always bypass the clip instruction in the GBuffer
                 // Don't do it with debug display mode as it is possible there is no depth prepass in this case
                 // This remove is required otherwise the code generate several time the define...
                 pass.ExtraDefines.Remove("#ifndef DEBUG_DISPLAY\n#define SHADERPASS_GBUFFER_BYPASS_ALPHA_TEST\n#endif");
 
-                if (masterNode.surfaceType == UnityEditor.ShaderGraph.SurfaceType.Opaque &&
+                if (masterNode.surfaceType == SurfaceType.Opaque &&
                     (masterNode.IsSlotConnected(PBRMasterNode.AlphaThresholdSlotId) ||
                      masterNode.GetInputSlots<Vector1MaterialSlot>().First(x => x.id == PBRMasterNode.AlphaThresholdSlotId).value > 0.0f))
                 {
@@ -131,6 +141,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             BlendOverride = "Blend One Zero",
             ZWriteOverride = "ZWrite On",
             ColorMaskOverride = "ColorMask 0",
+            ExtraDefines = new List<string>()
+            {
+                "#define USE_LEGACY_UNITY_MATRIX_VARIABLES",
+            },
             Includes = new List<string>()
             {
                 "#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDepthOnly.hlsl\"",
@@ -158,7 +172,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             ExtraDefines = new List<string>()
             {
                 "#define SCENESELECTIONPASS",
-                "#pragma editor_sync_compilation",
             },
             Includes = new List<string>()
             {
@@ -173,7 +186,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 PBRMasterNode.PositionSlotId
             },
-            UseInPreview = false
+            UseInPreview = true
         };
 
         Pass m_PassDepthOnly = new Pass()
@@ -211,7 +224,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 "AttributesMesh.uv2",           // SHADERPASS_LIGHT_TRANSPORT always uses uv2
                 "AttributesMesh.uv3",           // DEBUG_DISPLAY
 
-                "FragInputs.tangentToWorld",
+                "FragInputs.worldToTangent",
                 "FragInputs.positionRWS",
                 "FragInputs.texCoord0",
                 "FragInputs.texCoord1",
@@ -223,13 +236,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 PBRMasterNode.PositionSlotId
             },
-            UseInPreview = true,
-
-            OnGeneratePassImpl = (IMasterNode node, ref Pass pass) =>
-            {
-                var masterNode = node as PBRMasterNode;
-                GetStencilStateForDepthOrMV(false, true, false, ref pass);
-            }
+            UseInPreview = false
         };
 
         Pass m_PassMotionVectors = new Pass()
@@ -238,15 +245,26 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             LightMode = "MotionVectors",
             TemplateName = "HDPBRPass.template",
             MaterialName = "PBR",
-            ShaderPassName = "SHADERPASS_MOTION_VECTORS",
+            ShaderPassName = "SHADERPASS_VELOCITY",
             ExtraDefines = HDSubShaderUtilities.s_ExtraDefinesDepthOrMotion,
             Includes = new List<string>()
             {
-                "#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassMotionVectors.hlsl\"",
+                "#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassVelocity.hlsl\"",
             },
             RequiredFields = new List<string>()
             {
                 "FragInputs.positionRWS",
+            },
+            StencilOverride = new List<string>()
+            {
+                "// If velocity pass (motion vectors) is enabled we tag the stencil so it don't perform CameraMotionVelocity",
+                "Stencil",
+                "{",
+                "   WriteMask 128",         // [_StencilWriteMaskMV]        (int) HDRenderPipeline.StencilBitMask.ObjectVelocity   // this requires us to pull in the HD Pipeline assembly...
+                "   Ref 128",               // [_StencilRefMV]
+                "   Comp Always",
+                "   Pass Replace",
+                "}"
             },
             PixelShaderSlots = new List<int>()
             {
@@ -259,13 +277,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 PBRMasterNode.PositionSlotId
             },
-            UseInPreview = false,
-
-            OnGeneratePassImpl = (IMasterNode node, ref Pass pass) =>
-            {
-                var masterNode = node as PBRMasterNode;
-                GetStencilStateForDepthOrMV(false, true, true, ref pass);
-            }
+            UseInPreview = false
         };
 
         Pass m_PassForward = new Pass()
@@ -282,22 +294,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             },
             RequiredFields = new List<string>()
             {
-                "FragInputs.tangentToWorld",
+                "FragInputs.worldToTangent",
                 "FragInputs.positionRWS",	// NOTE : world-space pos is necessary for any lighting pass
                 "FragInputs.texCoord1",
                 "FragInputs.texCoord2"
-            },
-            StencilOverride = new List<string>
-            {
-            
-                "// Stencil setup",
-                "Stencil",
-                "{",
-                string.Format("   WriteMask {0}", (int) HDRenderPipeline.StencilBitMask.LightingMask),
-                string.Format("   Ref  {0}", (int)StencilLightingUsage.RegularLighting),
-                "   Comp Always",
-                "   Pass Replace",
-                "}"
             },
             PixelShaderSlots = new List<int>()
             {
@@ -319,10 +319,21 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             OnGeneratePassImpl = (IMasterNode node, ref Pass pass) =>
             {
                 var masterNode = node as PBRMasterNode;
+                pass.StencilOverride = new List<string>()
+                {
+                    "// Stencil setup",
+                    "Stencil",
+                    "{",
+                    "   WriteMask " + ((int)HDRenderPipeline.StencilBitMask.LightingMask).ToString(),
+                    "   Ref  " + ((int)StencilLightingUsage.RegularLighting).ToString(),
+                    "   Comp Always",
+                    "   Pass Replace",
+                    "}"
+                };
 
                 pass.ExtraDefines.Remove("#ifndef DEBUG_DISPLAY\n#define SHADERPASS_FORWARD_BYPASS_ALPHA_TEST\n#endif");
 
-                if (masterNode.surfaceType == UnityEditor.ShaderGraph.SurfaceType.Opaque &&
+                if (masterNode.surfaceType == SurfaceType.Opaque &&
                     (masterNode.IsSlotConnected(PBRMasterNode.AlphaThresholdSlotId) ||
                      masterNode.GetInputSlots<Vector1MaterialSlot>().First(x => x.id == PBRMasterNode.AlphaThresholdSlotId).value > 0.0f))
                 {
@@ -335,62 +346,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 {
                     pass.ZTestOverride = null;
                 }
-            },
-            UseInPreview = true
-        };
-
-        // These functions are still required because for the PBR shader use hardcoded stencil and render queues
-        public static void GetStencilStateForGBuffer(bool receiveSSR, bool useSplitLighting, ref Pass pass)
-        {
-            int stencilWriteMask = (int)HDRenderPipeline.StencilBitMask.LightingMask;
-            int stencilRef = useSplitLighting ? (int)StencilLightingUsage.SplitLighting : (int)StencilLightingUsage.RegularLighting;
-
-            stencilWriteMask |= (int)HDRenderPipeline.StencilBitMask.DoesntReceiveSSR;
-            stencilRef |= !receiveSSR ? (int)HDRenderPipeline.StencilBitMask.DoesntReceiveSSR : 0;
-
-            stencilWriteMask |= (int)HDRenderPipeline.StencilBitMask.DecalsForwardOutputNormalBuffer;
-
-            pass.StencilOverride = new List<string>()
-            {
-                "// Stencil setup",
-                "Stencil",
-                "{",
-                string.Format("   WriteMask {0}", stencilWriteMask),
-                string.Format("   Ref  {0}", stencilRef),
-                "   Comp Always",
-                "   Pass Replace",
-                "}"
-            };
-        }
-
-        public static void GetStencilStateForDepthOrMV(bool receiveDecals, bool receiveSSR, bool useObjectMotionVector, ref Pass pass)
-        {
-            int stencilWriteMask = (int)HDRenderPipeline.StencilBitMask.DecalsForwardOutputNormalBuffer;
-            int stencilRef = receiveDecals ? (int)HDRenderPipeline.StencilBitMask.DecalsForwardOutputNormalBuffer : 0;
-
-            stencilWriteMask |= (int)HDRenderPipeline.StencilBitMask.DoesntReceiveSSR;
-            stencilRef |= !receiveSSR ? (int)HDRenderPipeline.StencilBitMask.DoesntReceiveSSR : 0;
-
-            stencilWriteMask |= useObjectMotionVector ? (int)HDRenderPipeline.StencilBitMask.ObjectMotionVectors : 0;
-            stencilRef |= useObjectMotionVector ? (int)HDRenderPipeline.StencilBitMask.ObjectMotionVectors : 0;
-
-            if (stencilWriteMask != 0)
-            {
-                pass.StencilOverride = new List<string>()
-                {
-                    "// Stencil setup",
-                    "Stencil",
-                    "{",
-                    string.Format("   WriteMask {0}", stencilWriteMask),
-                    string.Format("   Ref  {0}", stencilRef),
-                    "   Comp Always",
-                    "   Pass Replace",
-                    "}"
-                };
             }
-        }
-
-        public int GetPreviewPassIndex() { return 0; }
+        };
 
         private static HashSet<string> GetActiveFieldsFromMasterNode(AbstractMaterialNode iMasterNode, Pass pass)
         {
@@ -405,7 +362,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             if (masterNode.twoSided.isOn)
             {
                 activeFields.Add("DoubleSided");
-                if (pass.ShaderPassName != "SHADERPASS_MOTION_VECTORS")   // HACK to get around lack of a good interpolator dependency system
+                if (pass.ShaderPassName != "SHADERPASS_VELOCITY")   // HACK to get around lack of a good interpolator dependency system
                 {                                                   // we need to be able to build interpolators using multiple input structs
                                                                     // also: should only require isFrontFace if Normals are required...
                     activeFields.Add("DoubleSided.Mirror");         // TODO: change this depending on what kind of normal flip you want..
@@ -431,7 +388,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 activeFields.Add("AlphaTest");
             }
 
-            if (masterNode.surfaceType != UnityEditor.ShaderGraph.SurfaceType.Opaque)
+            if (masterNode.surfaceType != SurfaceType.Opaque)
             {
                 activeFields.Add("SurfaceType.Transparent");
 
@@ -455,7 +412,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             return activeFields;
         }
 
-        private static bool GenerateShaderPassLit(AbstractMaterialNode masterNode, Pass pass, GenerationMode mode, ShaderGenerator result, List<string> sourceAssetDependencyPaths)
+        private static bool GenerateShaderPassLit(AbstractMaterialNode masterNode, Pass pass, GenerationMode mode, SurfaceMaterialOptions materialOptions, ShaderGenerator result, List<string> sourceAssetDependencyPaths)
         {
             if (mode == GenerationMode.ForReals || pass.UseInPreview)
             {
@@ -466,27 +423,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
                 // use standard shader pass generation
                 bool vertexActive = masterNode.IsSlotConnected(PBRMasterNode.PositionSlotId);
-                return HDSubShaderUtilities.GenerateShaderPass(masterNode, pass, mode, activeFields, result, sourceAssetDependencyPaths, vertexActive);
+                return HDSubShaderUtilities.GenerateShaderPass(masterNode, pass, mode, materialOptions, activeFields, result, sourceAssetDependencyPaths, vertexActive);
             }
             else
             {
                 return false;
             }
-        }
-
-        void AddTags(ShaderGenerator generator, string pipeline, HDRenderTypeTags renderType, ShaderGraph.SurfaceType surfaceType)
-        {
-            string queue = surfaceType == ShaderGraph.SurfaceType.Opaque ? "Geometry" : "Transparent";
-            ShaderStringBuilder builder = new ShaderStringBuilder();
-            builder.AppendLine("Tags");
-            using (builder.BlockScope())
-            {
-                builder.AppendLine("\"RenderPipeline\"=\"{0}\"", pipeline);
-                builder.AppendLine("\"RenderType\"=\"{0}\"", renderType);
-                builder.AppendLine("\"Queue\"=\"{0}\"", queue);
-            }
-
-            generator.AddShaderChunk(builder.ToString());
         }
 
         public string GetSubshader(IMasterNode iMasterNode, GenerationMode mode, List<string> sourceAssetDependencyPaths = null)
@@ -505,31 +447,39 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             subShader.AddShaderChunk("{", true);
             subShader.Indent();
             {
+                HDMaterialTags materialTags = HDSubShaderUtilities.BuildMaterialTags(masterNode.surfaceType, 0, false);
+
                 // Add tags at the SubShader level
-                AddTags(subShader, HDRenderPipeline.k_ShaderTagName, HDRenderTypeTags.HDLitShader, masterNode.surfaceType);
+                {
+                    var tagsVisitor = new ShaderStringBuilder();
+                    materialTags.GetTags(tagsVisitor, HDRenderPipeline.k_ShaderTagName);
+                    subShader.AddShaderChunk(tagsVisitor.ToString(), false);
+                }
+
+                SurfaceMaterialOptions materialOptions = HDSubShaderUtilities.BuildMaterialOptions(masterNode.surfaceType, masterNode.alphaMode, masterNode.twoSided.isOn, false);
 
                 // generate the necessary shader passes
-                bool opaque = (masterNode.surfaceType == UnityEditor.ShaderGraph.SurfaceType.Opaque);
+                bool opaque = (masterNode.surfaceType == SurfaceType.Opaque);
 
-                GenerateShaderPassLit(masterNode, m_PassMETA, mode, subShader, sourceAssetDependencyPaths);
-                GenerateShaderPassLit(masterNode, m_PassShadowCaster, mode, subShader, sourceAssetDependencyPaths);
-                GenerateShaderPassLit(masterNode, m_SceneSelectionPass, mode, subShader, sourceAssetDependencyPaths);
+                GenerateShaderPassLit(masterNode, m_PassMETA, mode, materialOptions, subShader, sourceAssetDependencyPaths);
+                GenerateShaderPassLit(masterNode, m_PassShadowCaster, mode, materialOptions, subShader, sourceAssetDependencyPaths);
+                GenerateShaderPassLit(masterNode, m_SceneSelectionPass, mode, materialOptions, subShader, sourceAssetDependencyPaths);
 
                 if (opaque)
                 {
-                    GenerateShaderPassLit(masterNode, m_PassDepthOnly, mode, subShader, sourceAssetDependencyPaths);
-                    GenerateShaderPassLit(masterNode, m_PassGBuffer, mode, subShader, sourceAssetDependencyPaths);
-                    GenerateShaderPassLit(masterNode, m_PassMotionVectors, mode, subShader, sourceAssetDependencyPaths);
+                    GenerateShaderPassLit(masterNode, m_PassDepthOnly, mode, materialOptions, subShader, sourceAssetDependencyPaths);
+                    GenerateShaderPassLit(masterNode, m_PassGBuffer, mode, materialOptions, subShader, sourceAssetDependencyPaths);
+                    GenerateShaderPassLit(masterNode, m_PassMotionVectors, mode, materialOptions, subShader, sourceAssetDependencyPaths);
                 }
 
                 // Assign define here based on opaque or transparent to save some variant
                 m_PassForward.ExtraDefines = opaque ? HDSubShaderUtilities.s_ExtraDefinesForwardOpaque : HDSubShaderUtilities.s_ExtraDefinesForwardTransparent;
-                GenerateShaderPassLit(masterNode, m_PassForward, mode, subShader, sourceAssetDependencyPaths);
+                GenerateShaderPassLit(masterNode, m_PassForward, mode, materialOptions, subShader, sourceAssetDependencyPaths);
             }
             subShader.Deindent();
             subShader.AddShaderChunk("}", true);
 
-            subShader.AddShaderChunk(@"CustomEditor ""UnityEditor.Experimental.Rendering.HDPipeline.HDPBRLitGUI""");
+            subShader.AddShaderChunk(@"CustomEditor ""UnityEditor.Experimental.Rendering.HDPipeline.HDLitGUI""");
 
             return subShader.GetShaderString(0);
         }

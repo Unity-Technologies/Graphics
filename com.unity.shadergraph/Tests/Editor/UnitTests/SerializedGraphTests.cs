@@ -160,7 +160,8 @@ namespace UnityEditor.Graphing.UnitTests
             node.name = "Test Node";
             graph.AddNode(node);
             Assert.AreEqual(1, graph.GetNodes<AbstractMaterialNode>().Count());
-            Assert.Catch<InvalidOperationException>(() => graph.RemoveNode(node));
+
+            graph.RemoveNode(graph.GetNodes<AbstractMaterialNode>().FirstOrDefault());
             Assert.AreEqual(1, graph.GetNodes<AbstractMaterialNode>().Count());
         }
 

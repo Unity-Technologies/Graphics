@@ -36,14 +36,7 @@ Pass
 		// z: frame blending factor
 		nointerpolation float3 builtInInterpolants : TEXCOORD4;
 		#endif
-		#if USE_FLIPBOOK_MOTIONVECTORS
-		// x: motion vector scale u
-		// y: motion vector scale v
-		nointerpolation float2 builtInInterpolants2 : TEXCOORD5;
-		#endif
-		float3 posWS : TEXCOORD6;
-
-		UNITY_VERTEX_OUTPUT_STEREO
+		float3 posWS : TEXCOORD5;
 	};
 	
 	struct ps_output
@@ -59,7 +52,6 @@ ${VFXHDRPLitVaryingsMacros}
 #define VFX_VARYING_INVSOFTPARTICLEFADEDISTANCE builtInInterpolants.x
 #define VFX_VARYING_ALPHATHRESHOLD builtInInterpolants.y
 #define VFX_VARYING_FRAMEBLEND builtInInterpolants.z
-#define VFX_VARYING_MOTIONVECTORSCALE builtInInterpolants2.xy
 #define VFX_VARYING_NORMAL normal
 #if USE_NORMAL_MAP
 #define VFX_VARYING_TANGENT tangent
@@ -82,8 +74,6 @@ ${VFXEnd}
 #endif
 	)
 	{
-		UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i);
-		VFXTransformPSInputs(i);
 		${VFXComputeNormalWS}
 		outColor = VFXGetPixelOutputForward(i,normalWS,uvData);
 	}

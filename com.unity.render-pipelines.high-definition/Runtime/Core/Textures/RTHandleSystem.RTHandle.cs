@@ -21,8 +21,6 @@ namespace UnityEngine.Experimental.Rendering
             public bool                         useScaling { get; internal set; }
             public Vector2Int                   referenceSize {get; internal set; }
 
-            public RTHandleProperties           rtHandleProperties { get { return m_Owner.rtHandleProperties; } }
-
             public RenderTexture rt
             {
                 get

@@ -35,8 +35,6 @@ namespace UnityEngine.Experimental.Rendering.UI
 
             if (m_UIPanels == null)
                 m_UIPanels = new List<DebugUIHandlerPanel>();
-
-            DebugManager.instance.RegisterRootCanvas(this);
         }
 
         void Update()

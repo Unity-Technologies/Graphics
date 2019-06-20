@@ -2,7 +2,7 @@ using System;
 using System.Linq;
 using UnityEngine;
 
-namespace UnityEditor.Rendering.LWRP
+namespace UnityEditor.Experimental.Rendering
 {
     static class ShadowCascadeSplitGUI
     {

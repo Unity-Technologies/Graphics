@@ -15,6 +15,8 @@
 
 
 //-----------------------------------------------------------------------------
+#define CLEAR_COAT_ROUGHNESS 0.03
+#define CLEAR_COAT_PERCEPTUAL_ROUGHNESS RoughnessToPerceptualRoughness(CLEAR_COAT_ROUGHNESS)
 
 #define AUTO_PATCH_FOR_INCOMPLETE_BRDF_COLOR_TABLE // This requires importer version >= 0.1.5-preview or manually setting the diagonal clamping enable + scalings to offset the diagonal
 #define FLAKES_JUST_BTF
@@ -51,23 +53,26 @@
 #define MAX_CT_LOBE_COUNT 3
 #define CARPAINT2_LOBE_COUNT max(_CarPaint2_LobeCount,MAX_CT_LOBE_COUNT)
 
-//-----------------------------------------------------------------------------
-// Helper functions/variable specific to this material
-//-----------------------------------------------------------------------------
-
 float3 GetNormalForShadowBias(BSDFData bsdfData)
 {
     return bsdfData.geomNormalWS;
 }
 
-float GetAmbientOcclusionForMicroShadowing(BSDFData bsdfData)
+void ClampRoughness(inout BSDFData bsdfData, float minRoughness)
+{
+    // TODO
+}
+
+float ComputeMicroShadowing(BSDFData bsdfData, float NdotL)
 {
     return 1; // TODO
 }
 
-void ClampRoughness(inout BSDFData bsdfData, float minRoughness)
+// No transmission support
+// #define MATERIAL_INCLUDE_TRANSMISSION
+bool MaterialSupportsTransmission(BSDFData bsdfData)
 {
-    // TODO
+    return false;
 }
 
 //-----------------------------------------------------------------------------
@@ -117,7 +122,7 @@ void GetPBRValidatorDebug(SurfaceData surfaceData, inout float3 result)
 // This function is used to help with debugging and must be implemented by any lit material
 // Implementer must take into account what are the current override component and
 // adjust SurfaceData properties accordingdly
-void ApplyDebugToSurfaceData(float3x3 tangentToWorld, inout SurfaceData surfaceData)
+void ApplyDebugToSurfaceData(float3x3 worldToTangent, inout SurfaceData surfaceData)
 {
 #ifdef DEBUG_DISPLAY
     // NOTE: THe _Debug* uniforms come from /HDRP/Debug/DebugDisplay.hlsl
@@ -140,14 +145,14 @@ void ApplyDebugToSurfaceData(float3x3 tangentToWorld, inout SurfaceData surfaceD
 
     if (overrideNormal)
     {
-        surfaceData.normalWS = tangentToWorld[2];
+        surfaceData.normalWS = worldToTangent[2];
     }
 
     if (_DebugFullScreenMode == FULLSCREENDEBUGMODE_VALIDATE_DIFFUSE_COLOR)
     {
         surfaceData.diffuseColor = pbrDiffuseColorValidate(surfaceData.diffuseColor, surfaceData.specularColor, false, false).xyz;
     }
-    else if (_DebugFullScreenMode == FULLSCREENDEBUGMODE_VALIDATE_SPECULAR_COLOR)
+    else if (_DebugFullScreenMode == FULLSCREENDEBUGMODE_VALIDATE_SPECULAR_COLORs)
     {
         surfaceData.diffuseColor = pbrSpecularColorValidate(surfaceData.diffuseColor, surfaceData.specularColor, false, false).xyz;
     }
@@ -760,15 +765,10 @@ void ModifyBakedDiffuseLighting(float3 V, PositionInputs posInput, SurfaceData s
     BSDFData bsdfData = ConvertSurfaceDataToBSDFData(posInput.positionSS, surfaceData);
     PreLightData preLightData = GetPreLightData(V, posInput, bsdfData);
 
-    // Note: When baking reflection probes, we approximate the diffuse with the fresnel0
 #ifdef _AXF_BRDF_TYPE_SVBRDF
-    builtinData.bakeDiffuseLighting *= ReplaceDiffuseForReflectionPass(bsdfData.fresnelF0)
-        ? bsdfData.fresnelF0
-        : preLightData.diffuseFGD * bsdfData.diffuseColor;
+    builtinData.bakeDiffuseLighting *= preLightData.diffuseFGD * bsdfData.diffuseColor;
 #else
-    builtinData.bakeDiffuseLighting *= ReplaceDiffuseForReflectionPass(bsdfData.fresnelF0)
-        ? bsdfData.fresnelF0
-        : bsdfData.diffuseColor;
+    builtinData.bakeDiffuseLighting *= bsdfData.diffuseColor;
 #endif
     //TODO attenuate diffuse lighting for coat ie with (1.0 - preLightData.coatFGD)
 }
@@ -797,17 +797,9 @@ LightTransportData  GetLightTransportData(SurfaceData surfaceData, BuiltinData b
 // BSDF shared between directional light, punctual light and area light (reference)
 //-----------------------------------------------------------------------------
 
-// Same for all shading models.
-bool IsNonZeroBSDF(float3 V, float3 L, PreLightData preLightData, BSDFData bsdfData)
-{
-    float NdotL = dot(bsdfData.normalWS, L);
-
-    return NdotL > 0.0;
-}
-
 #ifdef _AXF_BRDF_TYPE_SVBRDF
 
-float3 ComputeWard(float3 H, float LdotH, float NdotL, float NdotV, PreLightData preLightData, BSDFData bsdfData)
+float3 ComputeWard(float3 H, float LdotH, float NdotL, float NdotV, float3 positionWS, PreLightData preLightData, BSDFData bsdfData)
 {
 
     // Evaluate Fresnel term
@@ -835,7 +827,7 @@ float3 ComputeWard(float3 H, float LdotH, float NdotL, float NdotV, PreLightData
     return bsdfData.specularColor * F * N;
 }
 
-float3  ComputeBlinnPhong(float3 H, float LdotH, float NdotL, float NdotV, PreLightData preLightData, BSDFData bsdfData)
+float3  ComputeBlinnPhong(float3 H, float LdotH, float NdotL, float NdotV, float3 positionWS, PreLightData preLightData, BSDFData bsdfData)
 {
     float2  exponents = exp2(bsdfData.roughness);
 
@@ -873,7 +865,7 @@ float3  ComputeBlinnPhong(float3 H, float LdotH, float NdotL, float NdotV, PreLi
     return bsdfData.specularColor * N;
 }
 
-float3  ComputeCookTorrance(float3 H, float LdotH, float NdotL, float NdotV, PreLightData preLightData, BSDFData bsdfData)
+float3  ComputeCookTorrance(float3 H, float LdotH, float NdotL, float NdotV, float3 positionWS, PreLightData preLightData, BSDFData bsdfData)
 {
     float   NdotH = dot(H, bsdfData.normalWS);
     float   sqNdotH = Sq(NdotH);
@@ -892,7 +884,7 @@ float3  ComputeCookTorrance(float3 H, float LdotH, float NdotL, float NdotV, Pre
     return bsdfData.specularColor * F * N * G;
 }
 
-float3  ComputeGGX(float3 H, float LdotH, float NdotL, float NdotV, PreLightData preLightData, BSDFData bsdfData)
+float3  ComputeGGX(float3 H, float LdotH, float NdotL, float NdotV, float3 positionWS, PreLightData preLightData, BSDFData bsdfData)
 {
     // Evaluate Fresnel term
     float3  F = F_Schlick(bsdfData.fresnelF0, LdotH);
@@ -919,7 +911,7 @@ float3  ComputeGGX(float3 H, float LdotH, float NdotL, float NdotV, PreLightData
     return bsdfData.specularColor * F * N * G;
 }
 
-float3  ComputePhong(float3 H, float LdotH, float NdotL, float NdotV, PreLightData preLightData, BSDFData bsdfData)
+float3  ComputePhong(float3 H, float LdotH, float NdotL, float NdotV, float3 positionWS, PreLightData preLightData, BSDFData bsdfData)
 {
     return 1000 * float3(1, 0, 1);
 }
@@ -927,12 +919,9 @@ float3  ComputePhong(float3 H, float LdotH, float NdotL, float NdotV, PreLightDa
 
 // This function applies the BSDF. Assumes that NdotL is positive.
 //_AXF_BRDF_TYPE_SVBRDF version:
-CBSDF EvaluateBSDF(float3 viewWS_UnderCoat, float3 lightWS_UnderCoat, PreLightData preLightData, BSDFData bsdfData)
+void BSDF(  float3 viewWS_UnderCoat, float3 lightWS_UnderCoat, float NdotL, float3 positionWS, PreLightData preLightData, BSDFData bsdfData,
+            out float3 diffuseLighting, out float3 specularLighting)
 {
-    CBSDF cbsdf;
-    ZERO_INITIALIZE(CBSDF, cbsdf);
-
-    float NdotL;
 
     float3 viewWS_Clearcoat = viewWS_UnderCoat; // Keep copy before possible refraction by ComputeClearcoatReflectionAndExtinction_UsePreLightData
     float3 lightWS_Clearcoat = lightWS_UnderCoat;
@@ -977,22 +966,19 @@ CBSDF EvaluateBSDF(float3 viewWS_UnderCoat, float3 lightWS_UnderCoat, PreLightDa
     float3  specularTerm = float3(1, 0, 0);
     switch ((_SVBRDF_BRDFType >> 1) & 7)
     {
-    case 0: specularTerm = ComputeWard(H, LdotH, NdotL, NdotV, preLightData, bsdfData); break;
-    case 1: specularTerm = ComputeBlinnPhong(H, LdotH, NdotL, NdotV, preLightData, bsdfData); break;
-    case 2: specularTerm = ComputeCookTorrance(H, LdotH, NdotL, NdotV, preLightData, bsdfData); break;
-    case 3: specularTerm = ComputeGGX(H, LdotH, NdotL, NdotV, preLightData, bsdfData); break;
-    case 4: specularTerm = ComputePhong(H, LdotH, NdotL, NdotV, preLightData, bsdfData); break;
+    case 0: specularTerm = ComputeWard(H, LdotH, NdotL, NdotV, positionWS, preLightData, bsdfData); break;
+    case 1: specularTerm = ComputeBlinnPhong(H, LdotH, NdotL, NdotV, positionWS, preLightData, bsdfData); break;
+    case 2: specularTerm = ComputeCookTorrance(H, LdotH, NdotL, NdotV, positionWS, preLightData, bsdfData); break;
+    case 3: specularTerm = ComputeGGX(H, LdotH, NdotL, NdotV, positionWS, preLightData, bsdfData); break;
+    case 4: specularTerm = ComputePhong(H, LdotH, NdotL, NdotV, positionWS, preLightData, bsdfData); break;
     default:    // @TODO
         specularTerm = 1000 * float3(1, 0, 1);
         break;
     }
 
     // We don't multiply by 'bsdfData.diffuseColor' here. It's done only once in PostEvaluateBSDF().
-    cbsdf.diffR = clearcoatExtinction * diffuseTerm * saturate(NdotL);
-    cbsdf.specR = (clearcoatExtinction * specularTerm + clearcoatReflectionLobe) * saturate(NdotL);
-
-    // We don't multiply by 'bsdfData.diffuseColor' here. It's done only once in PostEvaluateBSDF().
-    return cbsdf;
+    diffuseLighting = clearcoatExtinction * diffuseTerm;
+    specularLighting = clearcoatExtinction * specularTerm + clearcoatReflectionLobe;
 }
 
 #elif defined(_AXF_BRDF_TYPE_CAR_PAINT)
@@ -1304,13 +1290,9 @@ float3  CarPaint_BTF(float thetaH, float thetaD, BSDFData bsdfData)
 
 // This function applies the BSDF. Assumes that NdotL is positive.
 // For _AXF_BRDF_TYPE_CAR_PAINT
-CBSDF EvaluateBSDF(float3 viewWS_UnderCoat, float3 lightWS_UnderCoat, PreLightData preLightData, BSDFData bsdfData)
+void BSDF(  float3 viewWS_UnderCoat, float3 lightWS_UnderCoat, float NdotL, float3 positionWS, PreLightData preLightData, BSDFData bsdfData,
+            out float3 diffuseLighting, out float3 specularLighting)
 {
-    CBSDF cbsdf;
-    ZERO_INITIALIZE(CBSDF, cbsdf);
-
-    float NdotL;
-
     float3 viewWS_Clearcoat = viewWS_UnderCoat; // Keep copy before possible refraction by ComputeClearcoatReflectionAndExtinction_UsePreLightData
     float3 lightWS_Clearcoat = lightWS_UnderCoat;
 
@@ -1361,11 +1343,9 @@ CBSDF EvaluateBSDF(float3 viewWS_UnderCoat, float3 lightWS_UnderCoat, PreLightDa
     //TODO_FLAKES
     specularTerm += CarPaint_BTF(thetaH, thetaD, bsdfData);
 
-    cbsdf.diffR = clearcoatExtinction * diffuseTerm * saturate(NdotL);
-    cbsdf.specR = (clearcoatExtinction * specularTerm + clearcoatReflectionLobe) * saturate(NdotL);
-
     // We don't multiply by 'bsdfData.diffuseColor' here. It's done only once in PostEvaluateBSDF().
-    return cbsdf;
+    diffuseLighting = clearcoatExtinction * diffuseTerm;
+    specularLighting = clearcoatExtinction * specularTerm + clearcoatReflectionLobe;
 }
 
 #else
@@ -1373,18 +1353,15 @@ CBSDF EvaluateBSDF(float3 viewWS_UnderCoat, float3 lightWS_UnderCoat, PreLightDa
 // No _AXF_BRDF_TYPE
 
 // This function applies the BSDF. Assumes that NdotL is positive.
-CBSDF EvaluateBSDF(float3 viewWS_UnderCoat, float3 lightWS_UnderCoat, PreLightData preLightData, BSDFData bsdfData)
+void    BSDF(float3 viewWS, float3 lightWS, float NdotL, float3 positionWS, PreLightData preLightData, BSDFData bsdfData,
+    out float3 diffuseLighting, out float3 specularLighting)
 {
-    CBSDF cbsdf;
-    ZERO_INITIALIZE(CBSDF, cbsdf);
 
-    float NdotL = dot(bsdfData.normalWS, lightWS_UnderCoat);
-    float diffuseTerm = Lambert();
-
-    cbsdf.diffR = diffuseTerm * saturate(NdotL);
+    float  diffuseTerm = Lambert();
 
     // We don't multiply by 'bsdfData.diffuseColor' here. It's done only once in PostEvaluateBSDF().
-    return cbsdf;
+    diffuseLighting = diffuseTerm;
+    specularLighting = 0;
 }
 
 #endif // _AXF_BRDF_TYPE_SVBRDF
@@ -1406,8 +1383,8 @@ DirectLighting EvaluateBSDF_Directional(LightLoopContext lightLoopContext,
                                         DirectionalLightData lightData, BSDFData bsdfData,
                                         BuiltinData builtinData)
 {
-    return ShadeSurface_Directional(lightLoopContext, posInput, builtinData,
-                                    preLightData, lightData, bsdfData, V);
+    return ShadeSurface_Directional(lightLoopContext, posInput, builtinData, preLightData, lightData,
+                                    bsdfData, bsdfData.normalWS, V);
 }
 
 //-----------------------------------------------------------------------------
@@ -1416,11 +1393,10 @@ DirectLighting EvaluateBSDF_Directional(LightLoopContext lightLoopContext,
 
 DirectLighting EvaluateBSDF_Punctual(LightLoopContext lightLoopContext,
                                      float3 V, PositionInputs posInput,
-                                     PreLightData preLightData, LightData lightData,
-                                     BSDFData bsdfData, BuiltinData builtinData)
+                                     PreLightData preLightData, LightData lightData, BSDFData bsdfData, BuiltinData builtinData)
 {
-    return ShadeSurface_Punctual(lightLoopContext, posInput, builtinData,
-                                 preLightData, lightData, bsdfData, V);
+    return ShadeSurface_Punctual(lightLoopContext, posInput, builtinData, preLightData, lightData,
+                                 bsdfData, bsdfData.normalWS, V);
 }
 
 //-----------------------------------------------------------------------------
@@ -1926,7 +1902,7 @@ IndirectLighting EvaluateBSDF_ScreenSpaceReflection(PositionInputs posInput,
     ZERO_INITIALIZE(IndirectLighting, lighting);
 
     // TODO: this texture is sparse (mostly black). Can we avoid reading every texel? How about using Hi-S?
-    float4 ssrLighting = LOAD_TEXTURE2D_X(_SsrLightingTexture, posInput.positionSS);
+    float4 ssrLighting = LOAD_TEXTURE2D(_SsrLightingTexture, posInput.positionSS);
     float3 reflectanceFactor = 0.0;
     bool HasClearcoat = (_Flags & 0x2U);
 
@@ -1991,12 +1967,14 @@ float GetEnvMipLevel(EnvLightData lightData, float iblPerceptualRoughness)
 
     // TODO: We need to match the PerceptualRoughnessToMipmapLevel formula for planar, so we don't do this test (which is specific to our current lightloop)
     // Specific case for Texture2Ds, their convolution is a gaussian one and not a GGX one - So we use another roughness mip mapping.
+#if !defined(SHADER_API_METAL)
     if (IsEnvIndexTexture2D(lightData.envIndex))
     {
         // Empirical remapping
         iblMipLevel = PlanarPerceptualRoughnessToMipmapLevel(iblPerceptualRoughness, _ColorPyramidScale.z);
     }
     else
+#endif
     {
         iblMipLevel = PerceptualRoughnessToMipmapLevel(iblPerceptualRoughness);
     }

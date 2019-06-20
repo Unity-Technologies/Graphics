@@ -18,5 +18,11 @@
     "precompiledReferences": [],
     "autoReferenced": true,
     "defineConstraints": [],
-    "versionDefines": []
+    "versionDefines": [
+        {
+            "name": "com.unity.render-pipelines.lightweight",
+            "expression": "6.0.0",
+            "define": "LWRP_6_0_0_OR_NEWER"
+        }
+    ]
 }

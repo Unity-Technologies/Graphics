@@ -59,11 +59,9 @@ namespace UnityEditor.ShaderGraph
             RemoveSlotsNameNotMatching(new[] { kOutputSlotId });
         }
 
-        public void GenerateNodeCode(ShaderStringBuilder sb, GraphContext graphContext, GenerationMode generationMode)
+        public void GenerateNodeCode(ShaderGenerator visitor, GraphContext graphContext, GenerationMode generationMode)
         {
-            sb.AppendLine(string.Format("$precision {0} = {1};"
-                , GetVariableNameForNode()
-                , m_constantList[constant].ToString(CultureInfo.InvariantCulture)));
+            visitor.AddShaderChunk(precision + " " + GetVariableNameForNode() + " = " + m_constantList[constant].ToString(CultureInfo.InvariantCulture) + ";", true);
         }
 
         public override string GetVariableNameForSlot(int slotId)

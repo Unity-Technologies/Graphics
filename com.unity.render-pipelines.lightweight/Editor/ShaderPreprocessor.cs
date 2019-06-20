@@ -47,6 +47,9 @@ namespace UnityEditor.Rendering.LWRP
 
         bool StripUnusedShader(ShaderFeatures features, Shader shader, ShaderCompilerData compilerData)
         {
+            if (shader.name.Contains("Debug"))
+                return true;
+
             if (shader.name.Contains("HDRP"))
                 return true;
 

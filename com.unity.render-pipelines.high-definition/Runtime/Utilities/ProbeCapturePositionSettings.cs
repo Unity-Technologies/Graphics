@@ -9,8 +9,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         /// <summary>Default value.</summary>
         public static readonly ProbeCapturePositionSettings @default = new ProbeCapturePositionSettings(
             Vector3.zero, Quaternion.identity,
-            Vector3.zero, Quaternion.identity,
-            Matrix4x4.identity
+            Vector3.zero, Quaternion.identity
         );
 
         /// <summary>The proxy position.</summary>
@@ -20,36 +19,28 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         /// <summary>
         /// The reference position.
         ///
-        /// This additional information is used to compute the actual capture position. (usually, the viewer position) (<see cref="ProbeSettings.ProbeType"/>)
+        /// This additional information is used to compute the actual capture position. (<see cref="ProbeSettings.ProbeType"/>)
         /// </summary>
         public Vector3 referencePosition;
         /// <summary>
         /// The reference rotation.
         ///
-        /// This additional information is used to compute the actual capture position. (usually, the viewer rotation) (<see cref="ProbeSettings.ProbeType"/>)
+        /// This additional information is used to compute the actual capture position. (<see cref="ProbeSettings.ProbeType"/>)
         /// </summary>
         public Quaternion referenceRotation;
-
-        /// <summary>
-        /// The matrix for influence to world.
-        /// </summary>
-        public Matrix4x4 influenceToWorld;
 
         /// <summary>Create a new settings with only the probe transform.</summary>
         /// <param name="proxyPosition">The proxy position.</param>
         /// <param name="proxyRotation">The proxy rotation.</param>
-        /// <param name="influenceToWorld">Influence to world matrix</param>
         public ProbeCapturePositionSettings(
             Vector3 proxyPosition,
-            Quaternion proxyRotation,
-            Matrix4x4 influenceToWorld
+            Quaternion proxyRotation
         )
         {
             this.proxyPosition = proxyPosition;
             this.proxyRotation = proxyRotation;
             referencePosition = Vector3.zero;
             referenceRotation = Quaternion.identity;
-            this.influenceToWorld = influenceToWorld;
         }
 
         /// <summary>Create new settings.</summary>
@@ -57,20 +48,17 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         /// <param name="proxyRotation">The proxy rotation.</param>
         /// <param name="referencePosition">The reference position.</param>
         /// <param name="referenceRotation">The reference rotation.</param>
-        /// <param name="influenceToWorld">Influence to world matrix</param>
         public ProbeCapturePositionSettings(
             Vector3 proxyPosition,
             Quaternion proxyRotation,
             Vector3 referencePosition,
-            Quaternion referenceRotation,
-            Matrix4x4 influenceToWorld
+            Quaternion referenceRotation
         )
         {
             this.proxyPosition = proxyPosition;
             this.proxyRotation = proxyRotation;
             this.referencePosition = referencePosition;
             this.referenceRotation = referenceRotation;
-            this.influenceToWorld = influenceToWorld;
         }
 
         public static ProbeCapturePositionSettings ComputeFrom(HDProbe probe, Transform reference)
@@ -91,8 +79,20 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
             }
 
-            var result = ComputeFrom(probe, referencePosition, referenceRotation);
+            return ComputeFrom(probe, referencePosition, referenceRotation);
+        }
 
+        public static ProbeCapturePositionSettings ComputeFrom(
+            HDProbe probe,
+            Vector3 referencePosition, Quaternion referenceRotation
+        )
+        {
+            var result = new ProbeCapturePositionSettings();
+            var proxyToWorld = probe.proxyToWorld;
+            result.proxyPosition = proxyToWorld.GetColumn(3);
+            result.proxyRotation = proxyToWorld.rotation;
+            result.referencePosition = referencePosition;
+            result.referenceRotation = referenceRotation;
             return result;
         }
 
@@ -129,21 +129,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             HashUtilities.QuantisedVectorHash(ref euler, ref h2);
             HashUtilities.AppendHash(ref h2, ref h);
             return h;
-        }
-
-        static ProbeCapturePositionSettings ComputeFrom(
-            HDProbe probe,
-            Vector3 referencePosition, Quaternion referenceRotation
-        )
-        {
-            var result = new ProbeCapturePositionSettings();
-            var proxyToWorld = probe.proxyToWorld;
-            result.proxyPosition = proxyToWorld.GetColumn(3);
-            result.proxyRotation = proxyToWorld.rotation;
-            result.referencePosition = referencePosition;
-            result.referenceRotation = referenceRotation;
-            result.influenceToWorld = probe.influenceToWorld;
-            return result;
         }
     }
 }

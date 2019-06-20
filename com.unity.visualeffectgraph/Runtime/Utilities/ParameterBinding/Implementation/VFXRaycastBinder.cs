@@ -1,10 +1,12 @@
-#if VFX_HAS_PHYSICS
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
 using UnityEngine.Experimental.VFX;
 
-namespace UnityEngine.Experimental.VFX.Utility
+namespace UnityEngine.VFX.Utils
 {
-    [AddComponentMenu("VFX/Utilities/Parameters/VFX Raycast Binder")]
-    [VFXBinder("Physics/Raycast")]
+    [VFXBinder("Utility/Raycast")]
     public class VFXRaycastBinder : VFXBinderBase
     {
         public string TargetPosition { get { return (string)m_TargetPosition; } set { m_TargetPosition = value; UpdateSubParameters(); } }
@@ -57,9 +59,7 @@ namespace UnityEngine.Experimental.VFX.Utility
 
         public override bool IsValid(VisualEffect component)
         {
-            return component.HasVector3(m_TargetPosition_position) &&
-                component.HasVector3(m_TargetNormal_direction) &&
-                component.HasBool(m_TargetHit) && RaycastSource != null;
+            return component.HasVector3(m_TargetPosition_position) && component.HasVector3(m_TargetNormal_direction) && component.HasBool(m_TargetHit) && RaycastSource != null;
         }
 
         public override void UpdateBinding(VisualEffect component)
@@ -81,4 +81,3 @@ namespace UnityEngine.Experimental.VFX.Utility
         }
     }
 }
-#endif

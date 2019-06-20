@@ -6,7 +6,7 @@ using UnityEditor.Graphing;
 namespace UnityEditor.ShaderGraph
 {
     [Title("Input", "Texture", "Sampler State")]
-    class SamplerStateNode : AbstractMaterialNode, IPropertyFromNode
+    class SamplerStateNode : AbstractMaterialNode
     {
         [SerializeField]
         private TextureSamplerState.FilterMode m_filter = TextureSamplerState.FilterMode.Linear;
@@ -69,7 +69,7 @@ namespace UnityEditor.ShaderGraph
         {
             properties.AddShaderProperty(new SamplerStateShaderProperty()
             {
-                overrideReferenceName = string.Format("{0}_{1}_{2}", NodeUtils.GetHLSLSafeName(name), m_filter, m_wrap),
+                overrideReferenceName = GetVariableNameForNode(),
                 generatePropertyBlock = false,
 
                 value = new TextureSamplerState()
@@ -82,23 +82,10 @@ namespace UnityEditor.ShaderGraph
 
         public override string GetVariableNameForNode()
         {
-            return string.Format(@"{0}_{1}_{2}", NodeUtils.GetHLSLSafeName(name), 
-                Enum.GetName(typeof(TextureSamplerState.FilterMode), filter), 
-                Enum.GetName(typeof(TextureSamplerState.WrapMode), wrap));
+            string ss = NodeUtils.GetHLSLSafeName(name) + "_"
+                + Enum.GetName(typeof(TextureSamplerState.FilterMode), filter) + "_"
+                + Enum.GetName(typeof(TextureSamplerState.WrapMode), wrap) + "_sampler";
+            return ss;
         }
-
-        public AbstractShaderProperty AsShaderProperty()
-        {
-            return new SamplerStateShaderProperty 
-            { 
-                value = new TextureSamplerState()
-                {
-                    filter = this.filter,
-                    wrap = this.wrap
-                }
-            };
-        }
-
-        public int outputSlotId { get { return kOutputSlotId; } }
     }
 }

@@ -10,17 +10,15 @@ namespace UnityEditor.ShaderGraph
         bool m_Validate = false;
         ShaderStringBuilder m_Builder;
 
-        public FunctionRegistry(ShaderStringBuilder builder, bool validate = false)
+        public FunctionRegistry(ShaderStringBuilder builder)
         {
             m_Builder = builder;
-            m_Validate = validate;
         }
 
-        internal ShaderStringBuilder builder => m_Builder;
-
-        public Dictionary<string, string> sources => m_Sources;
-        
-        public List<string> names { get; } = new List<string>();
+        internal ShaderStringBuilder builder
+        {
+            get { return m_Builder; }
+        }
 
         public void ProvideFunction(string name, Action<ShaderStringBuilder> generator)
         {
@@ -37,8 +35,8 @@ namespace UnityEditor.ShaderGraph
                     if (source != existingSource)
                         Debug.LogErrorFormat(@"Function `{0}` has varying implementations:{1}{1}{2}{1}{1}{3}", name, Environment.NewLine, source, existingSource);
                 }
+                return;
             }
-            else
             {
                 builder.AppendNewLine();
                 var startIndex = builder.length;
@@ -47,8 +45,6 @@ namespace UnityEditor.ShaderGraph
                 var source = m_Validate ? builder.ToString(startIndex, length) : string.Empty;
                 m_Sources.Add(name, source);
             }
-
-            names.Add(name);
         }
     }
 }

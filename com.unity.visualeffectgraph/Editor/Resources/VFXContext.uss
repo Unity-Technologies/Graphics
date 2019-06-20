@@ -1,5 +1,5 @@
 VFXContextUI.graphElement {
-    font-size: 18px;
+    font-size:18;
     flex-direction: column;
     margin-top:0;
     padding-left:0;
@@ -10,19 +10,20 @@ VFXContextUI.graphElement {
 }
 VFXContextUI > #node-border
 {
-    width: 368px;
+    width:368;
     background-color:rgba(29,29,29,0.8);
-    border-radius: 8px;
-    border-left-width: 1px;
-    border-right-width: 1px;
-    border-top-width: 1px;
-    border-bottom-width: 1px;
-    padding-top : 5px;
-    padding-bottom : 5px;
-    margin-top : 19px;
-    margin-bottom : 19px;
-    margin-left: 3px;
-    margin-right: 3px;
+    border-radius:8;
+    border-left-width:1;
+    border-right-width:1;
+    border-top-width:1;
+    border-bottom-width:1;
+    padding-top : 5;
+    padding-bottom : 5;
+    margin-top : 19;
+    margin-bottom : 19;
+    marging-top:2;
+    margin-left:3;
+    margin-right:3;
 }
 
 VFXContextUI > #node-border.empty > #inside > #contents
@@ -68,11 +69,7 @@ VFXFlowAnchor.port.EdgeConnector.typemesh
 {
     --port-color: #0763eb;
 }
-VFXContextUI.inputTypenone.outputTypenone > #node-border
-{
-    --start-color: #777;
-    --end-color: #777;
-}
+
 /* spawner */
 
 VFXContextUI.inputTypespawnevent  > #node-border,VFXContextUI.inputTypeevent  > #node-border
@@ -91,21 +88,26 @@ VFXFlowAnchor.port.EdgeConnector.typespawnevent, VFXFlowAnchor.port.EdgeConnecto
 
 /* event */
 
+VFXContextUI.typenone  > #node-border
+{
+    border-color: #27FFA0;
+}
+
 VFXContextUI > #selection-border
 {
-    border-radius: 10px;
-    margin-top: 18px;
-    margin-bottom: 18px;
+    border-radius:10;
+    margin-top:18;
+    margin-bottom:18;
 }
 VFXContextUI #inside
 {
-    margin-left: 8px;
-    margin-right: 8px;
+    margin-left: 8;
+    margin-right:8;
 }
 
 VFXContextUI .extremity
 {
-    border-radius: 2px;
+    border-radius:2;
     justify-content:center;
     align-items:center;
     flex-direction:row;
@@ -121,7 +123,7 @@ VFXContextUI #HeaderContainer
 VFXContextUI #footer
 {
     flex-direction:row;
-    margin-bottom: 1px;
+    margin-bottom:1;
 }
 
 VFXContextUI #node-border > #inside > #title > #title-label
@@ -129,39 +131,39 @@ VFXContextUI #node-border > #inside > #title > #title-label
     -unity-text-align:middle-center;
 
     color:#c4c4c4;
-    font-size: 18px;
-    height: 24px;
+    font-size:18;
+    height:24;
 }
 VFXContextUI #footer #title-label
 {
-    font-size: 11px;
+    font-size:11;
     -unity-font-style: normal;
-    height: 16px;
+    height:16;
 }
 
 VFXContextUI #title #icon
 {
     --unity-image:resource("VFX/Execution");
-    margin-right: 6px;
+    margin-right:6;
 }
 
 VFXContextUI #header-space
 {
     position:absolute;
-    right: 5px;
-    top: 5px;
-    width: 48px;
-    height: 16px;
+    right:5;
+    top:5;
+    width:48;
+    height:16;
 }
 VFXContextUI > #node-border > #inside > #contents
 {
     margin-top : 0;
-    padding-top : 4px;
-    border-radius: 6px;
+    padding-top : 4;
+    border-radius:6;
     background-color: rgba(63,63,63,0.8);
-    margin-left: 1px;
-    margin-right: 1px;
-    font-size: 11px;
+    margin-left:1;
+    margin-right:1;
+    font-size:11;
 }
 VFXContextUI > #node-border > #inside > #contents > #settings
 {
@@ -189,10 +191,15 @@ VFXContextUI #footer #icon
 }
 
 VFXContextUI #block-container {
+    -unity-text-align:upper-center;
+
+    color:#8FC1DF;
+
+    font-size:12;
     margin-top: 0;
     margin-bottom: 0;
-    padding-top: 2px;
-    padding-bottom: 2px;
+    padding-top:2;
+    padding-bottom:2;
 }
 
 .flow-container
@@ -204,7 +211,7 @@ VFXContextUI #block-container {
     position: Absolute;
     left: 0;
     right: 0;
-    height: 28px;
+    height: 28;
 }
 
 #flow-outputs
@@ -213,32 +220,33 @@ VFXContextUI #block-container {
 }
 VFXContextUI #no-blocks
 {
-    border-left-width: 1px;
-    border-right-width: 1px;
-    border-bottom-width: 1px;
-    border-top-width: 1px;
+    border-left-width: 1;
+    border-right-width: 1;
+    border-bottom-width: 1;
+    border-top-width: 1;
     border-color: #393939;
     color: #393939;
-    height: 24px;
+    height: 24;
     -unity-text-align: middle-center;
-    border-radius: 8px;
+    border-radius:8;
 }
 
 VFXContextUI.graphElement #user-label
 {
-    border-top-width: 1px;
-    border-left-width: 1px;
-    border-right-width: 1px;
-    border-bottom-width: 1px;
-    margin-left: 12px;
-    margin-right: 12px;
-    margin-top: 1px;
-    margin-bottom: 1px;
+    border-top-width:1;
+    border-left-width:1;
+    border-right-width:1;
+    border-bottom-width:1;
+    border-top: 1;
+    border-left: 1;
+    border-right: 1;
+    border-bottom: 1;
+    margin-left:12;
+    margin-right:12;
+    margin-top:1;
+    margin-bottom:1;
     padding-left:0;
     padding-right:0;
-    color: #c4c4c4;
-    min-height: 24px;
-    white-space:normal;
 }
 
 #user-title
@@ -254,7 +262,7 @@ VFXContextUI.graphElement #user-label:hover
 
 * Label#user-label, * TextField#user-title-textfield
 {
-    -unity-font: resource("GraphView/DummyFont(LucidaGrande).ttf");
+    font:resource("GraphView/DummyFont(LucidaGrande).ttf");
 }
 
 TextField#user-title-textfield
@@ -263,48 +271,39 @@ TextField#user-title-textfield
     padding-right:0;
     padding-top:0;
     padding-bottom:0;
-    margin-left: 1px;
+    margin-left:1;
     margin-right:0;
-    margin-top: 2px;
+    margin-top:2;
     margin-bottom:0;
-    background-color:rgba(0,0,0,0);
-    position: Absolute;
-    min-height: 24px;
+    background-color:#000;
+    position-type:Absolute;
+    min-height:24;
 }
 
-TextField#user-title-textfield #unity-text-input
+#user-label, #user-title-textfield
 {
-    padding-left:0;
-    padding-right:0;
-    padding-top:0;
-    padding-bottom:0;
-    margin-left: 1px;
-    margin-right:0;
-    margin-top: 2px;
-    margin-bottom:0;
-    background-color:rgba(29,29,29,0.8);
-    background-image:none;
-    min-height: 24px;
-    font-size: 18px;
-    white-space: normal;
+    font-size:18;
+    word-wrap: true;
 }
 
 #user-label
 {
+    text-color:#c4c4c4;
+    min-height:24;
 }
 
 VFXContextUI.inputTypespawnevent #user-label
 {
-    color: #00ff8f;
+    text-color:#00ff8f;
 }
 VFXContextUI.inputTypeparticle #user-label
 {
-    color: #FFBC21;
+    text-color:#FFBC21;
 }
 
 #user-label.empty
 {
-    height : 4px;
+    height : 4;
     min-height:0;
 }
 

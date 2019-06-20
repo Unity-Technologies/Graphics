@@ -6,7 +6,7 @@ using System.Collections.Generic;
 namespace UnityEditor.ShaderGraph
 {
     [Title("Input", "Matrix", "Matrix 4x4")]
-    class Matrix4Node : AbstractMaterialNode, IGeneratesBodyCode, IPropertyFromNode
+    class Matrix4Node : AbstractMaterialNode, IGeneratesBodyCode
     {
         public const int OutputSlotId = 0;
         const string kOutputSlotName = "Out";
@@ -106,33 +106,35 @@ namespace UnityEditor.ShaderGraph
             });
         }
 
-        public void GenerateNodeCode(ShaderStringBuilder sb, GraphContext graphContext, GenerationMode generationMode)
+        public void GenerateNodeCode(ShaderGenerator visitor, GraphContext graphContext, GenerationMode generationMode)
         {
+            var sb = new ShaderStringBuilder();
             if (!generationMode.IsPreview())
             {
-                sb.AppendLine("$precision4 _{0}_m0 = $precision4 ({1}, {2}, {3}, {4});", GetVariableNameForNode(),
+                sb.AppendLine("{0}4 _{1}_m0 = {0}4 ({2}, {3}, {4}, {5});", precision, GetVariableNameForNode(),
                     NodeUtils.FloatToShaderValue(m_Row0.x),
                     NodeUtils.FloatToShaderValue(m_Row0.y),
                     NodeUtils.FloatToShaderValue(m_Row0.z),
                     NodeUtils.FloatToShaderValue(m_Row0.w));
-                sb.AppendLine("$precision4 _{0}_m1 = $precision4 ({1}, {2}, {3}, {4});", GetVariableNameForNode(),
+                sb.AppendLine("{0}4 _{1}_m1 = {0}4 ({2}, {3}, {4}, {5});", precision, GetVariableNameForNode(),
                     NodeUtils.FloatToShaderValue(m_Row1.x),
                     NodeUtils.FloatToShaderValue(m_Row1.y),
                     NodeUtils.FloatToShaderValue(m_Row1.z),
                     NodeUtils.FloatToShaderValue(m_Row1.w));
-                sb.AppendLine("$precision4 _{0}_m2 = $precision4 ({1}, {2}, {3}, {4});", GetVariableNameForNode(),
+                sb.AppendLine("{0}4 _{1}_m2 = {0}4 ({2}, {3}, {4}, {5});", precision, GetVariableNameForNode(),
                     NodeUtils.FloatToShaderValue(m_Row2.x),
                     NodeUtils.FloatToShaderValue(m_Row2.y),
                     NodeUtils.FloatToShaderValue(m_Row2.z),
                     NodeUtils.FloatToShaderValue(m_Row2.w));
-                sb.AppendLine("$precision4 _{0}_m3 = $precision4 ({1}, {2}, {3}, {4});", GetVariableNameForNode(),
+                sb.AppendLine("{0}4 _{1}_m3 = {0}4 ({2}, {3}, {4}, {5});", precision, GetVariableNameForNode(),
                     NodeUtils.FloatToShaderValue(m_Row3.x),
                     NodeUtils.FloatToShaderValue(m_Row3.y),
                     NodeUtils.FloatToShaderValue(m_Row3.z),
                     NodeUtils.FloatToShaderValue(m_Row3.w));
             }
-            sb.AppendLine("$precision4x4 {0} = $precision4x4 (_{0}_m0.x, _{0}_m0.y, _{0}_m0.z, _{0}_m0.w, _{0}_m1.x, _{0}_m1.y, _{0}_m1.z, _{0}_m1.w, _{0}_m2.x, _{0}_m2.y, _{0}_m2.z, _{0}_m2.w, _{0}_m3.x, _{0}_m3.y, _{0}_m3.z, _{0}_m3.w);",
-                GetVariableNameForNode());
+            sb.AppendLine("{0}4x4 {1} = {0}4x4 (_{1}_m0.x, _{1}_m0.y, _{1}_m0.z, _{1}_m0.w, _{1}_m1.x, _{1}_m1.y, _{1}_m1.z, _{1}_m1.w, _{1}_m2.x, _{1}_m2.y, _{1}_m2.z, _{1}_m2.w, _{1}_m3.x, _{1}_m3.y, _{1}_m3.z, _{1}_m3.w);",
+                precision, GetVariableNameForNode());
+            visitor.AddShaderChunk(sb.ToString(), false);
         }
 
         public override void CollectPreviewMaterialProperties(List<PreviewProperty> properties)
@@ -166,33 +168,5 @@ namespace UnityEditor.ShaderGraph
         {
             return GetVariableNameForNode();
         }
-
-        public AbstractShaderProperty AsShaderProperty()
-        {
-            return new Matrix4ShaderProperty
-            {
-                value = new Matrix4x4()
-                {
-                    m00 = row0.x,
-                    m01 = row0.y,
-                    m02 = row0.z,
-                    m03 = row0.w,
-                    m10 = row1.x,
-                    m11 = row1.y,
-                    m12 = row1.z,
-                    m13 = row1.w,
-                    m20 = row2.x,
-                    m21 = row2.y,
-                    m22 = row2.z,
-                    m23 = row2.w,
-                    m30 = row3.x,
-                    m31 = row3.y,
-                    m32 = row3.z,
-                    m33 = row3.w,
-                }
-            };
-        }
-
-        public int outputSlotId { get { return OutputSlotId; } }
     }
 }

@@ -9,8 +9,7 @@ namespace UnityEditor.Graphing
         Nothing = 0,
         Node = 1,
         Graph = 2,
-        Topological = 3,
-        Layout = 4
+        Topological = 3
     }
 
     delegate void OnNodeModified(AbstractMaterialNode node, ModificationScope scope);

@@ -2,7 +2,7 @@
 #error Undefine_SHADERPASS
 #endif
 
-#if (SHADERPASS == SHADERPASS_DBUFFER_MESH) || (SHADERPASS == SHADERPASS_FORWARD_EMISSIVE_MESH)
+#if (SHADERPASS == SHADERPASS_DBUFFER_MESH)
 #define ATTRIBUTES_NEED_NORMAL
 #define ATTRIBUTES_NEED_TANGENT // Always present as we require it also in case of anisotropic lighting
 #define ATTRIBUTES_NEED_TEXCOORD0

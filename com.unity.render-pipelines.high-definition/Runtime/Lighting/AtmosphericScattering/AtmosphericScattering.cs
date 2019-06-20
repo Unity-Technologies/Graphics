@@ -33,31 +33,23 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             Debug.Assert(hdCamera.frameSettings.IsEnabled(FrameSettingsField.AtmosphericScattering));
 
-            int physicallyBasedSkyAtmosphereFlag = 0;
-
-            var visualEnvironment = VolumeManager.instance.stack.GetComponent<VisualEnvironment>();
-            Debug.Assert(visualEnvironment != null);
-
-            // The PBR sky contributes to atmospheric scattering.
-            physicallyBasedSkyAtmosphereFlag = visualEnvironment.skyType.value == (int)SkyType.PhysicallyBased ? 128 : 0;
-
-            cmd.SetGlobalInt(HDShaderIDs._AtmosphericScatteringType, physicallyBasedSkyAtmosphereFlag | (int)type);
+            cmd.SetGlobalInt(HDShaderIDs._AtmosphericScatteringType, (int)type);
             cmd.SetGlobalFloat(HDShaderIDs._MaxFogDistance, maxFogDistance.value);
 
             // Fog Color
             cmd.SetGlobalFloat(m_ColorModeParam, (float)colorMode.value);
-            cmd.SetGlobalColor(m_FogColorDensityParam, new Color(color.value.r, color.value.g, color.value.b, density.value));
-            cmd.SetGlobalVector(m_MipFogParam, new Vector4(mipFogNear.value, mipFogFar.value, mipFogMaxMip.value, 0.0f));
+            cmd.SetGlobalColor(m_FogColorDensityParam, new Color(color.value.r, color.value.g, color.value.b, density));
+            cmd.SetGlobalVector(m_MipFogParam, new Vector4(mipFogNear, mipFogFar, mipFogMaxMip, 0.0f));
         }
     }
 
     [GenerateHLSL]
-    public enum FogType // 7 bits max, 8th bit is for the PBR sky atmosphere flag
+    public enum FogType
     {
         None,
         Linear,
         Exponential,
-        Volumetric,
+        Volumetric
     }
 
     [GenerateHLSL]

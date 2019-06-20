@@ -73,25 +73,21 @@ float4 EvaluateAtmosphericScattering(PositionInputs posInput, float3 V, float4 i
     float4 result = inputColor;
 
 #ifdef _ENABLE_FOG_ON_TRANSPARENT
-    float3 volColor, volOpacity;
-    EvaluateAtmosphericScattering(posInput, V, volColor, volOpacity); // Premultiplied alpha
+    float4 fog = EvaluateAtmosphericScattering(posInput, V); // Premultiplied alpha
 
     #if defined(_BLENDMODE_ALPHA)
         // Regular alpha blend need to multiply fog color by opacity (as we do src * src_a inside the shader)
-        // result.rgb = lerp(result.rgb, unpremul_volColor * result.a, volOpacity);
-        // result.rgb = result.rgb + volOpacity * (unpremul_volColor * result.a - result.rgb);
-        // result.rgb = result.rgb + volColor * result.a - result.rgb * volOpacity;
-        result.rgb = result.rgb * (1 - volOpacity) + volColor * result.a;
+        // result.rgb = lerp(result.rgb, unpremul_fog.rgb * result.a, fog.a);
+        // result.rgb = result.rgb + fog.a * (unpremul_fog.rgb * result.a - result.rgb);
+        // result.rgb = result.rgb + fog.rgb * result.a - result.rgb * fog.a;
+        result.rgb = result.rgb * (1 - fog.a) + fog.rgb * result.a;
     #elif defined(_BLENDMODE_ADD)
         // For additive, we just need to fade to black with fog density (black + background == background color == fog color)
-        result.rgb = result.rgb * (1.0 - volOpacity);
+        result.rgb = result.rgb * (1.0 - fog.a);
     #elif defined(_BLENDMODE_PRE_MULTIPLY)
         // For Pre-Multiplied Alpha Blend, we need to multiply fog color by src alpha to match regular alpha blending formula.
-        // result.rgb = lerp(result.rgb, unpremul_volColor * result.a, volOpacity);
-        result.rgb = result.rgb * (1 - volOpacity) + volColor * result.a;
-        // Note: this formula for color is correct, assuming we apply the Over operator afterwards
-        // (see the appendix in the Deep Compositing paper). But do we?
-        // Additionally, we do not modify the alpha here, which is most certainly WRONG.
+        // result.rgb = lerp(result.rgb, unpremul_fog.rgb * result.a, fog.a);
+        result.rgb = result.rgb * (1 - fog.a) + fog.rgb * result.a;
     #endif
 #else
     // Evaluation of fog for opaque objects is currently done in a full screen pass independent from any material parameters.

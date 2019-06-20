@@ -1,4 +1,3 @@
-
 using System;
 using UnityEditor.UIElements;
 using UnityEditor.Experimental.GraphView;
@@ -195,9 +194,9 @@ namespace UnityEditor.VFX.UI
             m_ParticleCount = this.Query<Label>("particle-count");
 
             Button button = this.Query<Button>("on-play-button");
-            button.clickable.clicked += () => SendEvent(VisualEffectAsset.PlayEventName);
+            button.clickable.clicked += () => SendEvent("OnPlay");
             button = this.Query<Button>("on-stop-button");
-            button.clickable.clicked += () => SendEvent(VisualEffectAsset.StopEventName);
+            button.clickable.clicked += () => SendEvent("OnStop");
 
             m_EventsContainer = this.Query("events-container");
 
@@ -516,38 +515,7 @@ namespace UnityEditor.VFX.UI
             UpdateEventList();
         }
 
-        static readonly string[] staticEventNames = new string[] { VisualEffectAsset.PlayEventName, VisualEffectAsset.StopEventName };
-
-
-        static bool IsDefaultEvent(string evt)
-        {
-            return evt == VisualEffectAsset.PlayEventName || evt == VisualEffectAsset.StopEventName || evt == VFXSubgraphContext.triggerEventName;
-        }
-
-        IEnumerable<String> GetEventNames()
-        {
-            foreach(var context in controller.contexts.Select(t => t.model).OfType<VFXContext>())
-            {
-                foreach (var name in RecurseGetEventNames(context))
-                    yield return name;
-            }
-        }
-        IEnumerable<String> RecurseGetEventNames(VFXContext context)
-        {
-            if (context is VFXBasicEvent)
-            {
-                if (!IsDefaultEvent(name))
-                    yield return (context as VFXBasicEvent).eventName;
-            }
-            else if( context is VFXSubgraphContext)
-            {
-                foreach( var subContext in (context as VFXSubgraphContext).subChildren.OfType<VFXContext>())
-                {
-                    foreach (var name in RecurseGetEventNames(subContext))
-                        yield return name;
-                }
-            }
-        }
+        static readonly string[] staticEventNames = new string[] {"OnPlay", "OnStop" };
 
         public void UpdateEventList()
         {
@@ -559,7 +527,7 @@ namespace UnityEditor.VFX.UI
             }
             else
             {
-                var eventNames = GetEventNames().ToArray();
+                var eventNames = controller.contexts.Select(t => t.model).OfType<VFXBasicEvent>().Select(t => t.eventName).Except(staticEventNames).Distinct().OrderBy(t => t).ToArray();
 
                 foreach (var removed in m_Events.Keys.Except(eventNames).ToArray())
                 {

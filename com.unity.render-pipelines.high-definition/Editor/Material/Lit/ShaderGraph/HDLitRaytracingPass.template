@@ -15,10 +15,6 @@ Pass
 
     //#pragma enable_d3d11_debug_symbols
 
-    #pragma shader_feature _SURFACE_TYPE_TRANSPARENT
-    #pragma shader_feature_local _DOUBLESIDED_ON
-    #pragma shader_feature_local _ _BLENDMODE_ALPHA _BLENDMODE_ADD _BLENDMODE_PRE_MULTIPLY
-
     //-------------------------------------------------------------------------------------
     // Variant Definitions (active field translations to HDRP defines)
     //-------------------------------------------------------------------------------------
@@ -28,6 +24,10 @@ Pass
     $Material.Iridescence:               #define _MATERIAL_FEATURE_IRIDESCENCE 1
     $Material.SpecularColor:             #define _MATERIAL_FEATURE_SPECULAR_COLOR 1
     $SurfaceType.Transparent:            #define _SURFACE_TYPE_TRANSPARENT 1
+    $BlendMode.Alpha:                    #define _BLENDMODE_ALPHA 1
+    $BlendMode.Add:                      #define _BLENDMODE_ADD 1
+    $BlendMode.Premultiply:              #define _BLENDMODE_PRE_MULTIPLY 1
+    $BlendMode.PreserveSpecular:         #define _BLENDMODE_PRESERVE_SPECULAR_LIGHTING 1
     $AlphaFog:                           #define _ENABLE_FOG_ON_TRANSPARENT 1
     $AmbientOcclusion:                   #define _AMBIENT_OCCLUSION 1
     $SpecularOcclusionFromAO:            #define _SPECULAR_OCCLUSION_FROM_AO 1
@@ -40,12 +40,13 @@ Pass
     $RefractionSphere:                   #define _REFRACTION_SPHERE 1
     $DisableDecals:                      #define _DISABLE_DECALS 1
     $DisableSSR:                         #define _DISABLE_SSR 1
+    $DoubleSided:                        #define _DOUBLESIDED_ON 1
 
     //-------------------------------------------------------------------------------------
     // End Variant Definitions
     //-------------------------------------------------------------------------------------
-
-    #pragma raytracing test
+    
+    #pragma raytracing test      
 
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 
@@ -65,26 +66,27 @@ Pass
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
 
-    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/ShaderVariablesRaytracing.hlsl"
-    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/ShaderVariablesRaytracingLightLoop.hlsl"
-
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingIntersection.hlsl"
-
-#if (SHADERPASS == SHADERPASS_RAYTRACING_INDIRECT) || (SHADERPASS == SHADERPASS_RAYTRACING_FORWARD)
+#if (SHADERPASS == SHADERPASS_RAYTRACING_REFLECTION)
+    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/ShaderVariablesRaytracingLightLoop.hlsl"
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/Lighting.hlsl"
+
     #define HAS_LIGHTLOOP
+
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoopDef.hlsl"
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.hlsl"
-    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitRaytracing.hlsl"
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingLightLoop.hlsl"
 #else
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.hlsl"
 #endif
 
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/MaterialUtilities.hlsl"
-    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/BuiltinUtilities.hlsl"
-    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingCommon.hlsl"
-    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderGraphFunctions.hlsl"
+    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingBuiltinData.hlsl"
+
+    bool IsGammaSpace()
+    {
+        return false;
+    }
 
     //-------------------------------------------------------------------------------------
     // Graph generated code
@@ -99,15 +101,15 @@ Pass
         SurfaceDescriptionInputs output;
         ZERO_INITIALIZE(SurfaceDescriptionInputs, output);
 
-        $SurfaceDescriptionInputs.WorldSpaceNormal:          output.WorldSpaceNormal =            normalize(input.tangentToWorld[2].xyz);
+        $SurfaceDescriptionInputs.WorldSpaceNormal:          output.WorldSpaceNormal =            normalize(input.worldToTangent[2].xyz);
         $SurfaceDescriptionInputs.ObjectSpaceNormal:         output.ObjectSpaceNormal =           mul(output.WorldSpaceNormal, (float3x3) UNITY_MATRIX_M);           // transposed multiplication by inverse matrix to handle normal scale
         $SurfaceDescriptionInputs.ViewSpaceNormal:           output.ViewSpaceNormal =             mul(output.WorldSpaceNormal, (float3x3) UNITY_MATRIX_I_V);         // transposed multiplication by inverse matrix to handle normal scale
         $SurfaceDescriptionInputs.TangentSpaceNormal:        output.TangentSpaceNormal =          float3(0.0f, 0.0f, 1.0f);
-        $SurfaceDescriptionInputs.WorldSpaceTangent:         output.WorldSpaceTangent =           input.tangentToWorld[0].xyz;
+        $SurfaceDescriptionInputs.WorldSpaceTangent:         output.WorldSpaceTangent =           input.worldToTangent[0].xyz;
         $SurfaceDescriptionInputs.ObjectSpaceTangent:        output.ObjectSpaceTangent =          TransformWorldToObjectDir(output.WorldSpaceTangent);
         $SurfaceDescriptionInputs.ViewSpaceTangent:          output.ViewSpaceTangent =            TransformWorldToViewDir(output.WorldSpaceTangent);
         $SurfaceDescriptionInputs.TangentSpaceTangent:       output.TangentSpaceTangent =         float3(1.0f, 0.0f, 0.0f);
-        $SurfaceDescriptionInputs.WorldSpaceBiTangent:       output.WorldSpaceBiTangent =         input.tangentToWorld[1].xyz;
+        $SurfaceDescriptionInputs.WorldSpaceBiTangent:       output.WorldSpaceBiTangent =         input.worldToTangent[1].xyz;
         $SurfaceDescriptionInputs.ObjectSpaceBiTangent:      output.ObjectSpaceBiTangent =        TransformWorldToObjectDir(output.WorldSpaceBiTangent);
         $SurfaceDescriptionInputs.ViewSpaceBiTangent:        output.ViewSpaceBiTangent =          TransformWorldToViewDir(output.WorldSpaceBiTangent);
         $SurfaceDescriptionInputs.TangentSpaceBiTangent:     output.TangentSpaceBiTangent =       float3(0.0f, 1.0f, 0.0f);
@@ -131,7 +133,7 @@ Pass
         return output;
     }
 
-    void BuildSurfaceData(FragInputs fragInputs, inout SurfaceDescription surfaceDescription, float3 V, IntersectionVertex intersectionVertex, RayCone rayCone, out SurfaceData surfaceData, out float3 bentNormalWS)
+    void BuildSurfaceData(FragInputs fragInputs, inout SurfaceDescription surfaceDescription, float3 V, IntersectionVertice intersectionVertice, RayCone rayCone, out SurfaceData surfaceData, out float3 bentNormalWS)
     {
         // setup defaults -- these are used if the graph doesn't output a value
         ZERO_INITIALIZE(SurfaceData, surfaceData);
@@ -144,27 +146,18 @@ Pass
         $SurfaceDescription.Metallic:                   surfaceData.metallic =                  surfaceDescription.Metallic;
         $SurfaceDescription.SubsurfaceMask:             surfaceData.subsurfaceMask =            surfaceDescription.SubsurfaceMask;
         $SurfaceDescription.Thickness:                  surfaceData.thickness =                 surfaceDescription.Thickness;
-        $SurfaceDescription.DiffusionProfileHash:       surfaceData.diffusionProfileHash =      surfaceDescription.DiffusionProfileHash;
+        $SurfaceDescription.DiffusionProfile:           surfaceData.diffusionProfile =          surfaceDescription.DiffusionProfile;
         $SurfaceDescription.Specular:                   surfaceData.specularColor =             surfaceDescription.Specular;
         $SurfaceDescription.CoatMask:                   surfaceData.coatMask =                  surfaceDescription.CoatMask;
         $SurfaceDescription.Anisotropy:                 surfaceData.anisotropy =                surfaceDescription.Anisotropy;
         $SurfaceDescription.IridescenceMask:            surfaceData.iridescenceMask =           surfaceDescription.IridescenceMask;
         $SurfaceDescription.IridescenceThickness:       surfaceData.iridescenceThickness =      surfaceDescription.IridescenceThickness;
 
-#ifdef _HAS_REFRACTION
-        $SurfaceDescription.RefractionIndex:            surfaceData.ior =                       surfaceDescription.RefractionIndex;
-        $SurfaceDescription.RefractionColor:            surfaceData.transmittanceColor =        surfaceDescription.RefractionColor;
-        $SurfaceDescription.RefractionDistance:         surfaceData.atDistance =                surfaceDescription.RefractionDistance;
-
-        surfaceData.transmittanceMask = (1.0 - surfaceDescription.Alpha);
-        surfaceDescription.Alpha = 1.0;
-#else
         surfaceData.ior = 1.0;
         surfaceData.transmittanceColor = float3(1.0, 1.0, 1.0);
         surfaceData.atDistance = 1.0;
         surfaceData.transmittanceMask = 0.0;
-#endif
-
+        
         // These static material feature allow compile time optimization
         surfaceData.materialFeatures = MATERIALFEATUREFLAGS_LIT_STANDARD;
 #ifdef _MATERIAL_FEATURE_SUBSURFACE_SCATTERING
@@ -191,11 +184,9 @@ Pass
         surfaceData.baseColor *= (1.0 - Max3(surfaceData.specularColor.r, surfaceData.specularColor.g, surfaceData.specularColor.b));
 #endif
 
-#ifdef _DOUBLESIDED_ON
-    float3 doubleSidedConstants = _DoubleSidedConstants.xyz;
-#else
-    float3 doubleSidedConstants = float3(1.0, 1.0, 1.0);
-#endif
+        float3 doubleSidedConstants = float3(1.0, 1.0, 1.0);
+        $DoubleSided.Flip:   doubleSidedConstants = float3(-1.0, -1.0, -1.0);
+        $DoubleSided.Mirror: doubleSidedConstants = float3( 1.0,  1.0, -1.0);
 
         // tangent-space normal
         float3 normalTS = float3(0.0f, 0.0f, 1.0f);
@@ -207,8 +198,8 @@ Pass
         bentNormalWS = surfaceData.normalWS;
         $BentNormal: GetNormalWS(fragInputs, surfaceDescription.BentNormal, bentNormalWS, doubleSidedConstants);
 
-        surfaceData.tangentWS = normalize(fragInputs.tangentToWorld[0].xyz);    // The tangent is not normalize in tangentToWorld for mikkt. TODO: Check if it expected that we normalize with Morten. Tag: SURFACE_GRADIENT
-        $Tangent: surfaceData.tangentWS = TransformTangentToWorld(surfaceDescription.Tangent, fragInputs.tangentToWorld);
+        surfaceData.tangentWS = normalize(fragInputs.worldToTangent[0].xyz);    // The tangent is not normalize in worldToTangent for mikkt. TODO: Check if it expected that we normalize with Morten. Tag: SURFACE_GRADIENT
+        $Tangent: surfaceData.tangentWS = TransformTangentToWorld(surfaceDescription.Tangent, fragInputs.worldToTangent);
         surfaceData.tangentWS = Orthonormalize(surfaceData.tangentWS, surfaceData.normalWS);
 
         // By default we use the ambient occlusion with Tri-ace trick (apply outside) for specular occlusion.
@@ -223,18 +214,16 @@ Pass
 #endif
 
 #ifdef _ENABLE_GEOMETRIC_SPECULAR_AA
-        surfaceData.perceptualSmoothness = GeometricNormalFiltering(surfaceData.perceptualSmoothness, fragInputs.tangentToWorld[2], surfaceDescription.SpecularAAScreenSpaceVariance, surfaceDescription.SpecularAAThreshold);
+        surfaceData.perceptualSmoothness = GeometricNormalFiltering(surfaceData.perceptualSmoothness, fragInputs.worldToTangent[2], surfaceDescription.SpecularAAScreenSpaceVariance, surfaceDescription.SpecularAAThreshold);
 #endif
 
     }
 
-    bool GetSurfaceDataFromIntersection(FragInputs fragInputs, float3 V, PositionInputs posInput, IntersectionVertex intersectionVertex, RayCone rayCone, out SurfaceData surfaceData, out BuiltinData builtinData)
+    bool GetSurfaceDataFromIntersection(FragInputs fragInputs, float3 V, PositionInputs posInput, IntersectionVertice intersectionVertice, RayCone rayCone, out SurfaceData surfaceData, out BuiltinData builtinData)
     {
-#ifdef _DOUBLESIDED_ON
-    float3 doubleSidedConstants = _DoubleSidedConstants.xyz;
-#else
-    float3 doubleSidedConstants = float3(1.0, 1.0, 1.0);
-#endif
+        float3 doubleSidedConstants = float3(1.0, 1.0, 1.0);
+        $DoubleSided.Flip:   doubleSidedConstants = float3(-1.0, -1.0, -1.0);
+        $DoubleSided.Mirror: doubleSidedConstants = float3( 1.0,  1.0, -1.0);
 
         ApplyDoubleSidedFlipOrMirror(fragInputs, doubleSidedConstants);
 
@@ -245,17 +234,11 @@ Pass
         $AlphaTest: if(surfaceDescription.Alpha < surfaceDescription.AlphaClipThreshold) return false;
 
         float3 bentNormalWS;
-        BuildSurfaceData(fragInputs, surfaceDescription, V, intersectionVertex, rayCone, surfaceData, bentNormalWS);
-
-#if defined(DEBUG_DISPLAY)
-        // We need to call ApplyDebugToSurfaceData after filling the surfarcedata and before filling builtinData
-        // as it can modify attribute use for static lighting
-        ApplyDebugToSurfaceData(fragInputs.tangentToWorld, surfaceData);
-#endif
+        BuildSurfaceData(fragInputs, surfaceDescription, V, intersectionVertice, rayCone, surfaceData, bentNormalWS);
 
         // Builtin Data
-        // For back lighting we use the oposite vertex normal
-        InitBuiltinData(posInput, surfaceDescription.Alpha, bentNormalWS, -fragInputs.tangentToWorld[2], fragInputs.texCoord1,  fragInputs.texCoord2, builtinData);
+        // For back lighting we use the oposite vertex normal 
+        InitBuiltinData(surfaceDescription.Alpha, bentNormalWS, -fragInputs.worldToTangent[2], fragInputs.positionRWS, fragInputs.texCoord1, builtinData);
 
         $SurfaceDescription.Emission: builtinData.emissiveColor = surfaceDescription.Emission;
 

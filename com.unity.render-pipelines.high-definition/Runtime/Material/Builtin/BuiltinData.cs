@@ -1,8 +1,6 @@
 //-----------------------------------------------------------------------------
 // structure definition
 //-----------------------------------------------------------------------------
-using UnityEngine.Experimental.Rendering.HDPipeline.Attributes;
-
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
     public class Builtin // Note: This particular class doesn't derive from RenderPipelineMaterial
@@ -16,7 +14,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         [GenerateHLSL(PackingRules.Exact, false, false, true, 100)]
         public struct BuiltinData
         {
-            [MaterialSharedPropertyMapping(MaterialSharedProperty.Alpha)]
             [SurfaceDataAttributes("Opacity")]
             public float opacity;
 
@@ -44,8 +41,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public Vector3 emissiveColor;
 
             // These is required for motion blur and temporalAA
-            [SurfaceDataAttributes("MotionVector")]
-            public Vector2 motionVector;
+            [SurfaceDataAttributes("Velocity")]
+            public Vector2 velocity;
 
             // Distortion
             [SurfaceDataAttributes("Distortion")]
@@ -83,7 +80,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             return GraphicsFormat.R8G8B8A8_UNorm;
         }
 
-        public static GraphicsFormat GetMotionVectorFormat()
+        public static GraphicsFormat GetVelocityBufferFormat()
         {
             return GraphicsFormat.R16G16_SFloat; // TODO: We should use 16bit normalized instead, better precision // RGInt
         }

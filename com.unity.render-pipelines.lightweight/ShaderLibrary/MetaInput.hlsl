@@ -2,7 +2,6 @@
 #define LIGHTWEIGHT_META_PASS_INCLUDED
 
 #include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/Lighting.hlsl"
-#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
 
 CBUFFER_START(UnityMetaPass)
 // x = use uv1 as raster position
@@ -28,12 +27,12 @@ struct MetaInput
 struct Attributes
 {
     float4 positionOS   : POSITION;
-    float3 normalOS     : NORMAL;
-    float2 uv0          : TEXCOORD0;
-    float2 uv1          : TEXCOORD1;
-    float2 uv2          : TEXCOORD2;
+    half3  normalOS     : NORMAL;
+    float2 uv           : TEXCOORD0;
+    float2 uvLM         : TEXCOORD1;
+    float2 uvDLM        : TEXCOORD2;
 #ifdef _TANGENT_TO_WORLD
-    float4 tangentOS     : TANGENT;
+    half4 tangentOS     : TANGENT;
 #endif
 };
 
@@ -43,18 +42,11 @@ struct Varyings
     float2 uv           : TEXCOORD0;
 };
 
-float4 MetaVertexPosition(float4 positionOS, float2 uv1, float2 uv2, float4 uv1ST, float4 uv2ST)
+float4 MetaVertexPosition(float4 positionOS, float2 uvLM, float2 uvDLM, float4 lightmapST)
 {
     if (unity_MetaVertexControl.x)
     {
-        positionOS.xy = uv1 * uv1ST.xy + uv1ST.zw;
-        // OpenGL right now needs to actually use incoming vertex position,
-        // so use it in a very dummy way
-        positionOS.z = positionOS.z > 0 ? REAL_MIN : 0.0f;
-    }
-    if (unity_MetaVertexControl.y)
-    {
-        positionOS.xy = uv2 * uv2ST.xy + uv2ST.zw;
+        positionOS.xy = uvLM * lightmapST.xy + lightmapST.zw;
         // OpenGL right now needs to actually use incoming vertex position,
         // so use it in a very dummy way
         positionOS.z = positionOS.z > 0 ? REAL_MIN : 0.0f;
@@ -77,13 +69,7 @@ half4 MetaFragment(MetaInput input)
     }
     if (unity_MetaFragmentControl.y)
     {
-        half3 emission;
-        if (unity_UseLinearSpace)
-            emission = input.Emission;
-        else
-            emission = LinearToSRGB(input.Emission);
-
-        res = half4(emission, 1.0);
+        res = half4(input.Emission, 1.0);
     }
     return res;
 }

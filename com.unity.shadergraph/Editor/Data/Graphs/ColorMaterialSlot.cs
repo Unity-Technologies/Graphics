@@ -29,9 +29,10 @@ namespace UnityEditor.ShaderGraph
             return new ColorRGBASlotControlView(this);
         }
 
-        protected override string ConcreteSlotValueAsVariable()
+        protected override string ConcreteSlotValueAsVariable(AbstractMaterialNode.OutputPrecision precision)
         {
-            return string.Format("IsGammaSpace() ? $precision4({0}, {1}, {2}, {3}) : $precision4 (SRGBToLinear($precision3({0}, {1}, {2})), {3})"
+            return string.Format("IsGammaSpace() ? {0}4({1}, {2}, {3}, {4}) : {0}4 (SRGBToLinear({0}3({1}, {2}, {3})), {4})"
+                , precision
                 , NodeUtils.FloatToShaderValue(value.x)
                 , NodeUtils.FloatToShaderValue(value.y)
                 , NodeUtils.FloatToShaderValue(value.z)

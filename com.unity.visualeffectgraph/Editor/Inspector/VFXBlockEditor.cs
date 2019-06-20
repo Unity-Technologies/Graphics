@@ -16,7 +16,7 @@ using System.Reflection;
 
 [CustomEditor(typeof(VFXBlock), true)]
 [CanEditMultipleObjects]
-class VFXBlockEditor : VFXSlotContainerEditor
+public class VFXBlockEditor : VFXSlotContainerEditor
 {
     public override void OnInspectorGUI()
     {

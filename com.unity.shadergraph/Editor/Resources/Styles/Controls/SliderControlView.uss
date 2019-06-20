@@ -1,12 +1,12 @@
 SliderControlView {
-    padding-left: 8px;
-    padding-right: 8px;
-    padding-top: 4px;
-    padding-bottom: 4px;
+    padding-left: 8;
+    padding-right: 8;
+    padding-top: 4;
+    padding-bottom: 4;
 }
 
 SliderControlView > #SliderPanel {
-    padding-bottom: 4px;
+    padding-bottom: 4;
     flex-direction: row;
     flex-grow: 1;
 }
@@ -15,16 +15,17 @@ SliderControlView > #SliderPanel {
 .unity-slider .unity-base-field__input {
     margin-left: 0;
     margin-right: 0;
+    flex-direction: row;
     flex-grow: 1;
-    min-width: 164px;
+    min-width: 164;
     overflow:visible;
 }
 
 SliderControlView > #SliderPanel > FloatField {
-    width: 40px;
+    width: 40;
     padding-right: 0;
     margin-right: 0;
-    -unity-text-align: middle-left;
+    text-alignment: middle-left;
 }
 
 SliderControlView > #FieldsPanel {
@@ -35,9 +36,9 @@ SliderControlView > #FieldsPanel {
 }
 
 SliderControlView > #FieldsPanel > Label {
-    -unity-text-align: middle-left;
-    margin-right: 8px;
-    padding-left: 4px;
+    text-alignment: middle-left;
+    margin-right: 8;
+    padding-left: 4;
 }
 
 SliderControlView > #FieldsPanel > FloatField {
@@ -46,6 +47,6 @@ SliderControlView > #FieldsPanel > FloatField {
     padding-right: 0;
     flex-direction: row;
     flex-grow: 1;
-    width: 40px;
-    -unity-text-align: middle-left;
+    width: 40;
+    text-alignment: middle-left;
 }

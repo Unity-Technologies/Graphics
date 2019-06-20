@@ -8,6 +8,9 @@ IndirectLighting EvaluateBSDF_RaytracedRefraction(LightLoopContext lightLoopCont
 #if HAS_REFRACTION
     float3 preLD = transmittedColor;
 
+    // Inverse pre-exposure
+    preLD *= GetInverseCurrentExposureMultiplier();
+
     // We use specularFGD as an approximation of the fresnel effect (that also handle smoothness)
     float3 F = preLightData.specularFGD;
     lighting.specularTransmitted = (1.0 - F) * preLD.rgb * preLightData.transparentTransmittance;

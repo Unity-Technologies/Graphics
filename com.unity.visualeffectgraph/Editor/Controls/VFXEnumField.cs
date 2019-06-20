@@ -12,9 +12,8 @@ namespace UnityEditor.VFX.UIElements
 
         void CreateButton()
         {
-            AddToClassList("unity-enum-field");
             m_DropDownButton = new Label();
-            m_DropDownButton.AddToClassList("unity-enum-field__input");
+            m_DropDownButton.AddToClassList("PopupButton");
             m_DropDownButton.AddManipulator(new DownClickable(OnClick));
         }
 
@@ -26,7 +25,7 @@ namespace UnityEditor.VFX.UIElements
             {
                 int valueInt = (int)System.Enum.Parse(m_EnumType, val);
 
-                menu.AddItem(new GUIContent(ObjectNames.NicifyVariableName(val)), valueInt == m_Value, ChangeValue, valueInt);
+                menu.AddItem(new GUIContent(val), valueInt == m_Value, ChangeValue, valueInt);
             }
             menu.DropDown(m_DropDownButton.worldBound);
         }
@@ -67,7 +66,7 @@ namespace UnityEditor.VFX.UIElements
 
         protected override void ValueToGUI(bool force)
         {
-            m_DropDownButton.text = ObjectNames.NicifyVariableName(System.Enum.GetName(m_EnumType, m_Value));
+            m_DropDownButton.text = System.Enum.GetName(m_EnumType, m_Value);
         }
     }
 }

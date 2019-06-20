@@ -267,8 +267,8 @@ float ApplyPerPixelDisplacement(FragInputs input, float3 V, inout LayerTexCoord 
         ppdParam.uv[3] = layerTexCoord.base3.uv;
 
         // Note: The TBN is not normalize as it is based on mikkt. We should normalize it, but POM is always use on simple enough surface that mean it is not required (save 2 normalize). Tag: SURFACE_GRADIENT
-        // Note: tangentToWorld is only define for UVSet0, so we expect that layer that use POM have UVSet0
-        float3 viewDirTS = isPlanar ? float3(uvXZ, V.y) : TransformWorldToTangent(V, input.tangentToWorld) * GetDisplacementObjectScale(false).xzy; // Switch from Y-up to Z-up (as we move to tangent space)
+        // Note: worldToTangent is only define for UVSet0, so we expect that layer that use POM have UVSet0
+        float3 viewDirTS = isPlanar ? float3(uvXZ, V.y) : TransformWorldToTangent(V, input.worldToTangent) * GetDisplacementObjectScale(false).xzy; // Switch from Y-up to Z-up (as we move to tangent space)
         NdotV = viewDirTS.z;
 
         // Transform the view vector into the UV space.

@@ -86,17 +86,18 @@ namespace UnityEditor.ShaderGraph
             RemoveSlotsNameNotMatching(new[] { kOutputSlotId });
         }
 
-        public void GenerateNodeCode(ShaderStringBuilder sb, GraphContext graphContext, GenerationMode generationMode)
+        public void GenerateNodeCode(ShaderGenerator visitor, GraphContext graphContext, GenerationMode generationMode)
         {
+            var sb = new ShaderStringBuilder();
             if (!generationMode.IsPreview())
             {
                 switch (material.type)
                 {
                     case DielectricMaterialType.Custom:
-                        sb.AppendLine("$precision _{0}_IOR = {1};", GetVariableNameForNode(), material.indexOfRefraction);
+                        sb.AppendLine("{0} _{1}_IOR = {2};", precision, GetVariableNameForNode(), material.indexOfRefraction);
                         break;
                     case DielectricMaterialType.Common:
-                        sb.AppendLine("$precision _{0}_Range = {1};", GetVariableNameForNode(), material.range);
+                        sb.AppendLine("{0} _{1}_Range = {2};", precision, GetVariableNameForNode(), material.range);
                         break;
                     default:
                         break;
@@ -105,15 +106,16 @@ namespace UnityEditor.ShaderGraph
             switch (material.type)
             {
                 case DielectricMaterialType.Common:
-                    sb.AppendLine("$precision {0} = lerp(0.034, 0.048, _{1}_Range);", GetVariableNameForSlot(kOutputSlotId), GetVariableNameForNode());
+                    sb.AppendLine("{0} {1} = lerp(0.034, 0.048, _{2}_Range);", precision, GetVariableNameForSlot(kOutputSlotId), GetVariableNameForNode());
                     break;
                 case DielectricMaterialType.Custom:
-                    sb.AppendLine("$precision {0} = pow(_{1}_IOR - 1, 2) / pow(_{1}_IOR + 1, 2);", GetVariableNameForSlot(kOutputSlotId), GetVariableNameForNode());
+                    sb.AppendLine("{0} {1} = pow(_{2}_IOR - 1, 2) / pow(_{2}_IOR + 1, 2);", precision, GetVariableNameForSlot(kOutputSlotId), GetVariableNameForNode());
                     break;
                 default:
-                    sb.AppendLine("$precision {0} = {1};", GetVariableNameForSlot(kOutputSlotId), m_MaterialList[material.type].ToString(CultureInfo.InvariantCulture));
+                    sb.AppendLine("{0} {1} = {2};", precision, GetVariableNameForSlot(kOutputSlotId), m_MaterialList[material.type].ToString(CultureInfo.InvariantCulture));
                     break;
             }
+            visitor.AddShaderChunk(sb.ToString(), false);
         }
 
         public override void CollectPreviewMaterialProperties(List<PreviewProperty> properties)

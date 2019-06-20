@@ -31,6 +31,7 @@ namespace UnityEditor.VFX
         {
             kStructureChanged,      // Model structure (hierarchy) has changed
             kParamChanged,          // Some parameter values have changed
+            kParamPropagated,       // Some parameter values have change and was propagated from the parents
             kSettingChanged,        // A setting value has changed
             kSpaceChanged,          // Space has been changed
             kConnectionChanged,     // Connection have changed
@@ -59,7 +60,7 @@ namespace UnityEditor.VFX
             {
                 int nbRemoved = m_Children.RemoveAll(c => c == null);// Remove bad references if any
                 if (nbRemoved > 0)
-                    Debug.LogWarning(String.Format("Remove {0} child(ren) that couldnt be deserialized from {1} of type {2}", nbRemoved, name, GetType()));
+                    Debug.Log(String.Format("Remove {0} child(ren) that couldnt be deserialized from {1} of type {2}", nbRemoved, name, GetType()));
             }
         }
 
@@ -69,12 +70,12 @@ namespace UnityEditor.VFX
         {
         }
 
-        public virtual void CollectDependencies(HashSet<ScriptableObject> objs, bool ownedOnly = true)
+        public virtual void CollectDependencies(HashSet<ScriptableObject> objs)
         {
             foreach (var child in children)
             {
                 objs.Add(child);
-                child.CollectDependencies(objs, ownedOnly);
+                child.CollectDependencies(objs);
             }
         }
 
@@ -231,16 +232,6 @@ namespace UnityEditor.VFX
             return m_Children.IndexOf(child);
         }
 
-        public object GetSettingValue(string name)
-        {
-            var setting = GetSetting(name);
-            if (setting.field == null)
-            {
-                throw new ArgumentException(string.Format("Unable to find field {0} in {1}", name, GetType().ToString()));
-            }
-            return setting.value;
-        }
-
         public void SetSettingValue(string name, object value)
         {
             SetSettingValue(name, value, true);
@@ -248,26 +239,21 @@ namespace UnityEditor.VFX
 
         protected void SetSettingValue(string name, object value, bool notify)
         {
-            var setting = GetSetting(name);
-            if (setting.field == null)
+            var field = GetType().GetField(name, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+            if (field == null)
             {
                 throw new ArgumentException(string.Format("Unable to find field {0} in {1}", name, GetType().ToString()));
             }
 
-            var currentValue = setting.value;
+            var currentValue = field.GetValue(this);
             if (currentValue != value)
             {
-                setting.field.SetValue(setting.instance, value);
+                field.SetValue(this, value);
                 if (notify)
                 {
                     Invalidate(InvalidationCause.kSettingChanged);
                 }
             }
-        }
-
-        public virtual VFXSetting GetSetting(string  name)
-        {
-            return new VFXSetting(GetType().GetField(name, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance), this);
         }
 
         public void Invalidate(InvalidationCause cause)
@@ -292,7 +278,7 @@ namespace UnityEditor.VFX
                 m_Parent.Invalidate(model, cause);
         }
 
-        public virtual IEnumerable<VFXSetting> GetSettings(bool listHidden, VFXSettingAttribute.VisibleFlags flags = VFXSettingAttribute.VisibleFlags.All)
+        public IEnumerable<FieldInfo> GetSettings(bool listHidden, VFXSettingAttribute.VisibleFlags flags = VFXSettingAttribute.VisibleFlags.All)
         {
             return GetType().GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance).Where(f =>
             {
@@ -306,7 +292,7 @@ namespace UnityEditor.VFX
                     return (attr.visibleFlags & flags) != 0 && !filteredOutSettings.Contains(f.Name);
                 }
                 return false;
-            }).Select(field => new VFXSetting(field,this));
+            });
         }
 
         static public VFXExpression ConvertSpace(VFXExpression input, VFXSlot targetSlot, VFXCoordinateSpace space)

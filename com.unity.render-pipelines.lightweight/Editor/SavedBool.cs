@@ -1,4 +1,6 @@
-namespace UnityEditor.Rendering
+using System;
+using UnityEngine;
+namespace UnityEditor.Experimental.Rendering
 {
     class SavedBool
     {

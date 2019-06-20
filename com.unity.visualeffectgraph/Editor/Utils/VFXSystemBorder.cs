@@ -76,12 +76,12 @@ namespace UnityEditor.VFX.UI
 
             this.AddStyleSheetPath("VFXSystemBorder");
 
+            this.cacheAsBitmap = false;
             this.style.overflow = Overflow.Visible;
 
             m_Title = this.Query<Label>("title");
             m_TitleField = this.Query<TextField>("title-field");
-
-            m_TitleField.style.display = DisplayStyle.None;
+            m_TitleField.visible = false;
 
             m_Title.RegisterCallback<MouseDownEvent>(OnTitleMouseDown);
 
@@ -107,9 +107,11 @@ namespace UnityEditor.VFX.UI
         {
             m_TitleField.RemoveFromClassList("empty");
             m_TitleField.value = m_Title.text;
-
-            m_TitleField.style.display = DisplayStyle.Flex;
+            m_TitleField.visible = true;
             UpdateTitleFieldRect();
+
+            m_TitleField.Q(TextField.textInputUssName).visible = false;
+            m_TitleField.Q(TextField.textInputUssName).visible = true;
             m_TitleField.Q(TextField.textInputUssName).Focus();
             m_TitleField.SelectAll();
         }
@@ -142,16 +144,16 @@ namespace UnityEditor.VFX.UI
             m_Title.parent.ChangeCoordinatesTo(m_TitleField.parent, rect);
 
 
-            m_TitleField.style.top = rect.yMin - 6;
-            m_TitleField.style.left = rect.xMin - 5;
-            m_TitleField.style.right = m_Title.resolvedStyle.marginRight + m_Title.resolvedStyle.borderRightWidth + 2;
+            m_TitleField.style.top = rect.yMin;
+            m_TitleField.style.left = rect.xMin;
+            m_TitleField.style.right = m_Title.resolvedStyle.marginRight + m_Title.resolvedStyle.borderRightWidth;
             m_TitleField.style.height = rect.height - m_Title.resolvedStyle.marginTop - m_Title.resolvedStyle.marginBottom;
         }
 
         void OnTitleBlur(FocusOutEvent e)
         {
             title = m_TitleField.value;
-            m_TitleField.style.display = DisplayStyle.None;
+            m_TitleField.visible = false;
 
             VFXView view = GetFirstAncestorOfType<VFXView>();
 

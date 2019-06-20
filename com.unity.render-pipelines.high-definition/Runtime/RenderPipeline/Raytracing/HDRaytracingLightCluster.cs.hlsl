@@ -9,11 +9,9 @@
 struct LightVolume
 {
     int active;
-    int shape;
     float3 position;
-    float3 range;
+    float range;
     uint lightType;
-    uint lightIndex;
 };
 
 

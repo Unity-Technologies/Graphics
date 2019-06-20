@@ -17,7 +17,7 @@ namespace UnityEditor.VFX.Test
                 public float f = 1.0f;
             }
 
-            public ContextTest() : base(VFXContextType.Init, VFXDataType.None, VFXDataType.Particle)
+            public ContextTest() : base(VFXContextType.kInit, VFXDataType.kNone, VFXDataType.kParticle)
             {}
         }
 
@@ -29,8 +29,8 @@ namespace UnityEditor.VFX.Test
                 public Vector2 v2 = new Vector2(3.0f, 4.0f);
             }
 
-            public override VFXContextType compatibleContexts   { get { return VFXContextType.All; } }
-            public override VFXDataType compatibleData          { get { return VFXDataType.Particle; } }
+            public override VFXContextType compatibleContexts   { get { return VFXContextType.kAll; } }
+            public override VFXDataType compatibleData          { get { return VFXDataType.kParticle; } }
         }
 
         private struct Graphs

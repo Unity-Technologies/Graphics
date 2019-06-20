@@ -38,7 +38,7 @@ Shader "Hidden/HDRP/CameraMotionVectors"
 
             float depth = LoadCameraDepth(input.positionCS.xy);
 
-            PositionInputs posInput = GetPositionInput(input.positionCS.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
+            PositionInputs posInput = GetPositionInput_Stereo(input.positionCS.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V, unity_StereoEyeIndex);
 
             float4 worldPos = float4(posInput.positionWS, 1.0);
             float4 prevPos = worldPos;
@@ -50,15 +50,17 @@ Shader "Hidden/HDRP/CameraMotionVectors"
             float2 positionCS = curClipPos.xy / curClipPos.w;
 
             // Convert from Clip space (-1..1) to NDC 0..1 space
-            float2 motionVector = (positionCS - previousPositionCS);
+            float2 velocity = (positionCS - previousPositionCS);
 #if UNITY_UV_STARTS_AT_TOP
-            motionVector.y = -motionVector.y;
+            velocity.y = -velocity.y;
 #endif
 
-            // Convert motionVector from Clip space (-1..1) to NDC 0..1 space
+            velocity.x = velocity.x * _TextureWidthScaling.y; // _TextureWidthScaling = (2.0, 0.5) for SinglePassDoubleWide (stereo) and (1.0, 1.0) otherwise
+
+            // Convert velocity from Clip space (-1..1) to NDC 0..1 space
             // Note it doesn't mean we don't have negative value, we store negative or positive offset in NDC space.
-            // Note: ((positionCS * 0.5 + 0.5) - (previousPositionCS * 0.5 + 0.5)) = (motionVector * 0.5)
-            EncodeMotionVector(motionVector * 0.5, outColor);
+            // Note: ((positionCS * 0.5 + 0.5) - (previousPositionCS * 0.5 + 0.5)) = (velocity * 0.5)
+            EncodeVelocity(velocity * 0.5, outColor);
         }
 
     ENDHLSL
@@ -69,14 +71,13 @@ Shader "Hidden/HDRP/CameraMotionVectors"
 
         Pass
         {
-            // We will perform camera motion vector only where there is no object motion vectors
+            // We will perform camera motion velocity only where there is no object velocity
             Stencil
             {
-                WriteMask 128
                 ReadMask 128
-                Ref  128 // StencilBitMask.ObjectMotionVectors
+                Ref  128 // StencilBitMask.ObjectVelocity
                 Comp NotEqual
-                Fail Zero   // We won't need the bit anymore.
+                Pass Keep
             }
 
             Cull Off ZWrite Off ZTest Always

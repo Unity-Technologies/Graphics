@@ -4,7 +4,7 @@ using UnityEngine;
 namespace UnityEditor.ShaderGraph
 {
     [Serializable]
-    class SerializableCubemap : ISerializationCallbackReceiver
+    class SerializableCubemap
     {
         [SerializeField]
         string m_SerializedCubemap;
@@ -32,32 +32,22 @@ namespace UnityEditor.ShaderGraph
                     var textureHelper = new CubemapHelper();
                     EditorJsonUtility.FromJsonOverwrite(m_SerializedCubemap, textureHelper);
                     m_SerializedCubemap = null;
-                    m_Guid = null;
+                    m_Guid = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(textureHelper.cubemap));
                     m_Cubemap = textureHelper.cubemap;
                 }
                 else if (!string.IsNullOrEmpty(m_Guid) && m_Cubemap == null)
                 {
                     m_Cubemap = AssetDatabase.LoadAssetAtPath<Cubemap>(AssetDatabase.GUIDToAssetPath(m_Guid));
-                    m_Guid = null;
                 }
 
                 return m_Cubemap;
             }
             set
             {
-                m_Cubemap = value;
-                m_Guid = null;
                 m_SerializedCubemap = null;
+                m_Guid = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(value));
+                m_Cubemap = value;
             }
-        }
-
-        public void OnBeforeSerialize()
-        {
-            m_SerializedCubemap = EditorJsonUtility.ToJson(new CubemapHelper { cubemap = cubemap }, false);
-        }
-
-        public void OnAfterDeserialize()
-        {
         }
     }
 }

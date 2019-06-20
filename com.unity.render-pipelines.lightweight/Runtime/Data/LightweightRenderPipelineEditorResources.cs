@@ -1,71 +1,79 @@
-using System;
+using UnityEngine.Serialization;
 
 namespace UnityEngine.Rendering.LWRP
 {
     public class LightweightRenderPipelineEditorResources : ScriptableObject
     {
-        [Serializable, ReloadGroup]
-        public sealed class ShaderResources
+        [FormerlySerializedAs("DefaultMaterial"),SerializeField]
+        Material m_LitMaterial = null;
+
+        [FormerlySerializedAs("DefaultParticleMaterial"),SerializeField]
+        Material m_ParticleLitMaterial = null;
+
+        [FormerlySerializedAs("DefaultTerrainMaterial"),SerializeField]
+        Material m_TerrainLitMaterial = null;
+
+        [FormerlySerializedAs("AutodeskInteractiveShader"), SerializeField]
+        private Shader m_AutodeskInteractiveShader = null;
+
+        [FormerlySerializedAs("AutodeskInteractiveTransparentShader"), SerializeField]
+        private Shader m_AutodeskInteractiveTransparentShader = null;
+
+        [FormerlySerializedAs("AutodeskInteractiveMaskedShader"), SerializeField]
+        private Shader m_AutodeskInteractiveMaskedShader = null;
+
+        [SerializeField]
+        private Shader m_TerrainDetailLitShader = null;
+
+        [SerializeField]
+        private Shader m_TerrainDetailGrassShader = null;
+
+        [SerializeField]
+        private Shader m_TerrainDetailGrassBillboardShader = null;
+
+        public Material litMaterial
         {
-            [Reload("Shaders/Autodesk Interactive/Autodesk Interactive.shadergraph")]
-            public Shader autodeskInteractivePS;
-
-            [Reload("Shaders/Autodesk Interactive/Autodesk Interactive Transparent.shadergraph")]
-            public Shader autodeskInteractiveTransparentPS;
-
-            [Reload("Shaders/Autodesk Interactive/Autodesk Interactive Masked.shadergraph")]
-            public Shader autodeskInteractiveMaskedPS;
-
-            [Reload("Shaders/Terrain/TerrainDetailLit.shader")]
-            public Shader terrainDetailLitPS;
-
-            [Reload("Shaders/Terrain/WavingGrass.shader")]
-            public Shader terrainDetailGrassPS;
-
-            [Reload("Shaders/Terrain/WavingGrassBillboard.shader")]
-            public Shader terrainDetailGrassBillboardPS;
-
-            [Reload("Shaders/Nature/SpeedTree7.shader")]
-            public Shader defaultSpeedTree7PS;
-
-            [Reload("Shaders/Nature/SpeedTree8.shader")]
-            public Shader defaultSpeedTree8PS;
+            get { return m_LitMaterial; }
         }
 
-        [Serializable, ReloadGroup]
-        public sealed class MaterialResources
+        public Material particleLitMaterial
         {
-            [Reload("Runtime/Materials/Lit.mat")]
-            public Material lit;
-
-            [Reload("Runtime/Materials/ParticlesLit.mat")]
-            public Material particleLit;
-
-            [Reload("Runtime/Materials/TerrainLit.mat")]
-            public Material terrainLit;
+            get { return m_ParticleLitMaterial; }
         }
 
-        public ShaderResources shaders;
-        public MaterialResources materials;
+        public Material terrainLitMaterial
+        {
+            get { return m_TerrainLitMaterial; }
+        }
+
+        public Shader autodeskInteractiveShader
+        {
+            get { return m_AutodeskInteractiveShader; }
+        }
+
+        public Shader autodeskInteractiveTransparentShader
+        {
+            get { return m_AutodeskInteractiveTransparentShader; }
+        }
+
+        public Shader autodeskInteractiveMaskedShader
+        {
+            get { return m_AutodeskInteractiveMaskedShader; }
+        }
+
+        public Shader terrainDetailLitShader
+        {
+            get { return m_TerrainDetailLitShader; }
+        }
+
+        public Shader terrainDetailGrassShader
+        {
+            get { return m_TerrainDetailGrassShader; }
+        }
+
+        public Shader terrainDetailGrassBillboardShader
+        {
+            get { return m_TerrainDetailGrassBillboardShader; }
+        }
     }
-
-#if UNITY_EDITOR
-    [UnityEditor.CustomEditor(typeof(LightweightRenderPipelineEditorResources))]
-    class LightweightRenderPipelineEditorResourcesEditor : UnityEditor.Editor
-    {
-        public override void OnInspectorGUI()
-        {
-            DrawDefaultInspector();
-
-            // Add a "Reload All" button in inspector when we are in developer's mode
-            if (UnityEditor.EditorPrefs.GetBool("DeveloperMode") && GUILayout.Button("Reload All"))
-            {
-                var resources = target as LightweightRenderPipelineEditorResources;
-                resources.materials = null;
-                resources.shaders = null;
-                ResourceReloader.ReloadAllNullIn(target, LightweightRenderPipelineAsset.packagePath);
-            }
-        }
-    }
-#endif
 }

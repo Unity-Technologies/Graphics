@@ -11,8 +11,6 @@ namespace UnityEditor.ShaderGraph
     [CustomEditor(typeof(ShaderGraphImporter))]
     class ShaderGraphImporterEditor : ScriptedImporterEditor
     {
-        protected override bool needsApplyRevert => false;
-
         public override void OnInspectorGUI()
         {
             if (GUILayout.Button("Open Shader Editor"))
@@ -21,8 +19,6 @@ namespace UnityEditor.ShaderGraph
                 Debug.Assert(importer != null, "importer != null");
                 ShowGraphEditWindow(importer.assetPath);
             }
-
-            ApplyRevertGUI();
         }
 
         internal static bool ShowGraphEditWindow(string path)
@@ -50,8 +46,8 @@ namespace UnityEditor.ShaderGraph
             if (!foundWindow)
             {
                 var window = CreateInstance<MaterialGraphEditWindow>();
-                window.Initialize(guid);
                 window.Show();
+                window.Initialize(guid);
             }
 
             return true;

@@ -22,7 +22,17 @@ RWTexture2D<float4> 				_DebutLightClusterTexture;
 
 uint GetTotalLightClusterCellCount(int cellIndex)
 {
-	return _RaytracingLightCluster[cellIndex * (_LightPerCellCount + 4) + 0];	
+	return _RaytracingLightCluster[cellIndex * (_LightPerCellCount + 3) + 0];	
+}
+
+uint GetPunctualLightClusterCellCount(int cellIndex)
+{
+	return _RaytracingLightCluster[cellIndex * (_LightPerCellCount + 3) + 1];	
+}
+
+uint GetAreaLightClusterCellCount(int cellIndex)
+{
+	return _RaytracingLightCluster[cellIndex * (_LightPerCellCount + 3) + 2];	
 }
 
 bool PointInsideCluster(float3 positionWS)
@@ -45,10 +55,11 @@ void DebugLightCluster(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : S
 {
 	// Fetch the current pixel coordinate
 	uint2 currentPixelCoordinate = groupId * DEBUG_LIGHT_CLUSTER_TILE_SIZE + groupThreadId;
+    currentPixelCoordinate.x = currentPixelCoordinate.x + (unity_StereoEyeIndex * _ScreenSize.x);
 
 	// Convert this to a world space position
     float depth = LoadCameraDepth(currentPixelCoordinate.xy);
-    PositionInputs posInput = GetPositionInput(currentPixelCoordinate, 1.0/ _ScreenSize.xy, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V, 0);
+    PositionInputs posInput = GetPositionInput(currentPixelCoordinate, 1.0/ _ScreenSize.xy, depth, _InvViewProjMatrix, _ViewMatrix, 0);
 	posInput.positionWS += _WorldSpaceCameraPos;
 
 	// If this position is outisde of the cluster, color is black

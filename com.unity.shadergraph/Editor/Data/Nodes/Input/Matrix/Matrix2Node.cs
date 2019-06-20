@@ -6,7 +6,7 @@ using System.Collections.Generic;
 namespace UnityEditor.ShaderGraph
 {
     [Title("Input", "Matrix", "Matrix 2x2")]
-    class Matrix2Node : AbstractMaterialNode, IGeneratesBodyCode, IPropertyFromNode
+    class Matrix2Node : AbstractMaterialNode, IGeneratesBodyCode
     {
         public const int OutputSlotId = 0;
         const string kOutputSlotName = "Out";
@@ -72,18 +72,21 @@ namespace UnityEditor.ShaderGraph
             });
         }
 
-        public void GenerateNodeCode(ShaderStringBuilder sb, GraphContext graphContext, GenerationMode generationMode)
+        public void GenerateNodeCode(ShaderGenerator visitor, GraphContext graphContext, GenerationMode generationMode)
         {
+            var sb = new ShaderStringBuilder();
             if (!generationMode.IsPreview())
             {
-                sb.AppendLine("$precision2 _{0}_m0 = $precision2 ({1}, {2});", GetVariableNameForNode(),
+                sb.AppendLine("{0}2 _{1}_m0 = {0}2 ({2}, {3});", precision, GetVariableNameForNode(),
                     NodeUtils.FloatToShaderValue(m_Row0.x),
                     NodeUtils.FloatToShaderValue(m_Row0.y));
-                sb.AppendLine("$precision2 _{0}_m1 = $precision2 ({1}, {2});", GetVariableNameForNode(),
+                sb.AppendLine("{0}2 _{1}_m1 = {0}2 ({2}, {3});", precision, GetVariableNameForNode(),
                     NodeUtils.FloatToShaderValue(m_Row1.x),
                     NodeUtils.FloatToShaderValue(m_Row1.y));
             }
-            sb.AppendLine("$precision2x2 {0} = $precision2x2 (_{0}_m0.x, _{0}_m0.y, _{0}_m1.x, _{0}_m1.y);", GetVariableNameForNode());
+            sb.AppendLine("{0}2x2 {1} = {0}2x2 (_{1}_m0.x, _{1}_m0.y, _{1}_m1.x, _{1}_m1.y);",
+                precision, GetVariableNameForNode());
+            visitor.AddShaderChunk(sb.ToString(), false);
         }
 
         public override void CollectPreviewMaterialProperties(List<PreviewProperty> properties)
@@ -105,33 +108,5 @@ namespace UnityEditor.ShaderGraph
         {
             return GetVariableNameForNode();
         }
-
-        public AbstractShaderProperty AsShaderProperty()
-        {
-            return new Matrix2ShaderProperty
-            {
-                value = new Matrix4x4()
-                {
-                    m00 = row0.x,
-                    m01 = row0.y,
-                    m02 = 0,
-                    m03 = 0,
-                    m10 = row1.x,
-                    m11 = row1.y,
-                    m12 = 0,
-                    m13 = 0,
-                    m20 = 0,
-                    m21 = 0,
-                    m22 = 0,
-                    m23 = 0,
-                    m30 = 0,
-                    m31 = 0,
-                    m32 = 0,
-                    m33 = 0,
-                }
-            };
-        }
-
-        public int outputSlotId { get { return OutputSlotId; } }
     }
 }

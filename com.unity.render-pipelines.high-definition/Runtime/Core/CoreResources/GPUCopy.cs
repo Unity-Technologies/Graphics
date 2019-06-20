@@ -27,7 +27,6 @@ namespace UnityEngine.Experimental.Rendering
             RenderTargetIdentifier source,
             int _target,
             RenderTargetIdentifier target,
-            int slices,
             int kernel8,
             int kernel1)
         {
@@ -79,7 +78,7 @@ namespace UnityEngine.Experimental.Rendering
                     var r = dispatch8Rect;
                     // Caution: passing parameters to SetComputeIntParams() via params generate 48B several times at each frame here !
                     cmd.SetComputeIntParams(m_Shader, _RectOffset, (int)r.x, (int)r.y);
-                    cmd.DispatchCompute(m_Shader, kernel8, (int)Mathf.Max(r.width / 8, 1), (int)Mathf.Max(r.height / 8, 1), slices);
+                    cmd.DispatchCompute(m_Shader, kernel8, (int)Mathf.Max(r.width / 8, 1), (int)Mathf.Max(r.height / 8, 1), 1);
                 }
 
                 for (int i = 0, c = dispatch1RectCount; i < c; ++i)
@@ -87,14 +86,14 @@ namespace UnityEngine.Experimental.Rendering
                     var r = dispatch1Rects[i];
                     // Caution: passing parameters to SetComputeIntParams() via params generate 48B several times at each frame here !
                     cmd.SetComputeIntParams(m_Shader, _RectOffset, (int)r.x, (int)r.y);
-                    cmd.DispatchCompute(m_Shader, kernel1, (int)Mathf.Max(r.width, 1), (int)Mathf.Max(r.height, 1), slices);
+                    cmd.DispatchCompute(m_Shader, kernel1, (int)Mathf.Max(r.width, 1), (int)Mathf.Max(r.height, 1), 1);
                 }
             }
         }
-        public void SampleCopyChannel_xyzw2x(CommandBuffer cmd, RTHandleSystem.RTHandle source, RTHandleSystem.RTHandle target, RectInt rect)
-        {
-            Debug.Assert(source.rt.volumeDepth == target.rt.volumeDepth);
-            SampleCopyChannel(cmd, rect, _Source4, source, _Result1, target, source.rt.volumeDepth, k_SampleKernel_xyzw2x_8, k_SampleKernel_xyzw2x_1);
-        }
+        public void SampleCopyChannel_xyzw2x(CommandBuffer cmd, RenderTargetIdentifier source, RenderTargetIdentifier target, RectInt rect)
+          {
+                 SampleCopyChannel(cmd, rect, _Source4, source, _Result1, target, k_SampleKernel_xyzw2x_8, k_SampleKernel_xyzw2x_1);
+          }
+
     }
 }

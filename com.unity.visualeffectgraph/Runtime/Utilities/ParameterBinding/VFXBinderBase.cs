@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Experimental.VFX;
 
-namespace UnityEngine.Experimental.VFX.Utility
+namespace UnityEngine.VFX.Utils
 {
     [ExecuteInEditMode, RequireComponent(typeof(VFXParameterBinder))]
     public abstract class VFXBinderBase : MonoBehaviour
@@ -11,11 +11,6 @@ namespace UnityEngine.Experimental.VFX.Utility
         protected VFXParameterBinder binder;
 
         public abstract bool IsValid(VisualEffect component);
-
-        public virtual void Reset()
-        {
-            //Optional method allowing potential manual state reset of binder
-        }
 
         protected virtual void Awake()
         {

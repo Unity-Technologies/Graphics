@@ -18,12 +18,12 @@ namespace UnityEditor.VFX.Test
 
         private class ContextTestSpawn : VFXContext
         {
-            public ContextTestSpawn() : base(VFXContextType.Init, VFXDataType.None, VFXDataType.SpawnEvent) {}
+            public ContextTestSpawn() : base(VFXContextType.kInit, VFXDataType.kNone, VFXDataType.kSpawnEvent) {}
         }
 
         private class ContextTestInit : VFXContext
         {
-            public ContextTestInit() : base(VFXContextType.Init, VFXDataType.SpawnEvent, VFXDataType.Particle) {}
+            public ContextTestInit() : base(VFXContextType.kInit, VFXDataType.kSpawnEvent, VFXDataType.kParticle) {}
             public override IEnumerable<VFXAttributeInfo> attributes
             {
                 get
@@ -36,7 +36,7 @@ namespace UnityEditor.VFX.Test
 
         private class ContextTestUpdate : VFXContext
         {
-            public ContextTestUpdate() : base(VFXContextType.Update, VFXDataType.Particle, VFXDataType.Particle) {}
+            public ContextTestUpdate() : base(VFXContextType.kUpdate, VFXDataType.kParticle, VFXDataType.kParticle) {}
             public override IEnumerable<VFXAttributeInfo> attributes
             {
                 get
@@ -50,7 +50,7 @@ namespace UnityEditor.VFX.Test
 
         private class ContextTestOutput : VFXContext
         {
-            public ContextTestOutput() : base(VFXContextType.Output, VFXDataType.Particle, VFXDataType.None) {}
+            public ContextTestOutput() : base(VFXContextType.kOutput, VFXDataType.kParticle, VFXDataType.kNone) {}
             public override IEnumerable<VFXAttributeInfo> attributes
             {
                 get

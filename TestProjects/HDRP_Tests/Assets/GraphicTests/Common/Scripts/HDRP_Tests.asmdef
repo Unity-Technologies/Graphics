@@ -4,15 +4,14 @@
         "Unity.RenderPipelines.Core.Runtime",
         "Unity.Postprocessing.Runtime",
         "Unity.RenderPipelines.HighDefinition.Runtime",
-        "UnityEngine.TestTools.Graphics",
-        "Unity.RenderPipelines.HighDefinition.Editor"
+        "UnityEngine.TestTools.Graphics"
     ],
+    "optionalUnityReferences": [],
     "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": false,
     "overrideReferences": false,
     "precompiledReferences": [],
     "autoReferenced": true,
-    "defineConstraints": [],
-    "versionDefines": []
+    "defineConstraints": []
 }

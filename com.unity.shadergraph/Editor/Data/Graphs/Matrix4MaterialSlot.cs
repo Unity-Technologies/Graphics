@@ -44,9 +44,9 @@ namespace UnityEditor.ShaderGraph
             set { m_Value = value; }
         }
 
-        protected override string ConcreteSlotValueAsVariable()
+        protected override string ConcreteSlotValueAsVariable(AbstractMaterialNode.OutputPrecision precision)
         {
-            return "$precision4x4 (1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1)";
+            return precision + "4x4 (1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1)";
         }
 
         public override void AddDefaultProperty(PropertyCollector properties, GenerationMode generationMode)
@@ -72,7 +72,7 @@ namespace UnityEditor.ShaderGraph
             var pp = new PreviewProperty(PropertyType.Matrix4)
             {
                 name = name,
-                matrixValue = value
+                vector4Value = new Vector4(value.GetRow(0).x, value.GetRow(0).y, value.GetRow(0).z, value.GetRow(0).w),
             };
             properties.Add(pp);
         }

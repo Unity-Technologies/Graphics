@@ -304,7 +304,8 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         public void Clear()
         {
-            m_Masks.Clear();
+            for (var i = 0; i < m_Masks.Count; i++)
+                m_Masks[i] = 0;
         }
 
         public bool Contains(int index)

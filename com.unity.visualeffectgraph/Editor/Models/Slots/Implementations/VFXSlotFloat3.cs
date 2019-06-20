@@ -7,9 +7,9 @@ namespace UnityEditor.VFX
     [VFXInfo(type = typeof(Vector3))]
     class VFXSlotFloat3 : VFXSlot
     {
-        static public bool CanConvertFromVector3(Type type)
+        sealed protected override bool CanConvertFrom(Type type)
         {
-            return type == typeof(Vector3)
+            return base.CanConvertFrom(type)
                 || type == typeof(float)
                 || type == typeof(uint)
                 || type == typeof(int)
@@ -20,18 +20,12 @@ namespace UnityEditor.VFX
                 || type == typeof(DirectionType);
         }
 
-        sealed protected override bool CanConvertFrom(Type type)
-        {
-            return base.CanConvertFrom(type)
-                || CanConvertFromVector3(type);
-        }
-
         sealed public override VFXValue DefaultExpression(VFXValue.Mode mode)
         {
             return new VFXValue<Vector3>(Vector3.zero, mode);
         }
 
-        static public VFXExpression ConvertExpressionToVector3(VFXExpression expression)
+        sealed protected override VFXExpression ConvertExpression(VFXExpression expression, VFXSlot sourceSlot)
         {
             if (expression.valueType == VFXValueType.Float3)
                 return expression;
@@ -57,11 +51,6 @@ namespace UnityEditor.VFX
             }
 
             throw new Exception("Unexpected type of expression " + expression + "valueType" + expression.valueType);
-        }
-
-        sealed protected override VFXExpression ConvertExpression(VFXExpression expression, VFXSlot sourceSlot)
-        {
-            return ConvertExpressionToVector3(expression);
         }
 
         sealed protected override VFXExpression ExpressionFromChildren(VFXExpression[] expr)

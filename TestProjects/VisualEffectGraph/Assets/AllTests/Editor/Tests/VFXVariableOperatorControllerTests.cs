@@ -1,4 +1,4 @@
-#if !UNITY_EDITOR_OSX || MAC_FORCE_TESTS
+﻿#if !UNITY_EDITOR_OSX || MAC_FORCE_TESTS
 using System;
 using NUnit.Framework;
 using UnityEngine;
@@ -37,7 +37,7 @@ namespace UnityEditor.VFX.Test
                 AssetDatabase.DeleteAsset(testAssetName);
             }
 
-            var asset = VisualEffectAssetEditorUtility.CreateNewAsset(testAssetName);
+            var asset = VisualEffectResource.CreateNewAsset(testAssetName);
             var resource = asset.GetResource(); // force resource creation
 
             m_ViewController = VFXViewController.GetController(resource);
@@ -177,7 +177,7 @@ namespace UnityEditor.VFX.Test
 
             var secondLink = m_ViewController.dataEdges.First(t => t.input == input && t.output == output);
 
-            m_ViewController.RemoveElement(secondLink,true);
+            m_ViewController.RemoveElement(secondLink);
 
             Assert.AreEqual(2, operatorModel.inputSlots.Count);
 

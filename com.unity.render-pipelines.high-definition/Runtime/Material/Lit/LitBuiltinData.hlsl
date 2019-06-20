@@ -2,8 +2,8 @@
 
 void GetBuiltinData(FragInputs input, float3 V, inout PositionInputs posInput, SurfaceData surfaceData, float alpha, float3 bentNormalWS, float depthOffset, out BuiltinData builtinData)
 {
-    // For back lighting we use the oposite vertex normal
-    InitBuiltinData(posInput, alpha, bentNormalWS, -input.tangentToWorld[2], input.texCoord1, input.texCoord2, builtinData);
+    // For back lighting we use the oposite vertex normal 
+    InitBuiltinData(alpha, bentNormalWS, -input.worldToTangent[2], input.positionRWS, input.texCoord1, input.texCoord2, builtinData);
 
     builtinData.emissiveColor = _EmissiveColor * lerp(float3(1.0, 1.0, 1.0), surfaceData.baseColor.rgb, _AlbedoAffectEmissive);
 #ifdef _EMISSIVE_COLOR_MAP
@@ -11,7 +11,7 @@ void GetBuiltinData(FragInputs input, float3 V, inout PositionInputs posInput, S
     // Use layer0 of LayerTexCoord to retrieve emissive color mapping information
     LayerTexCoord layerTexCoord;
     ZERO_INITIALIZE(LayerTexCoord, layerTexCoord);
-    layerTexCoord.vertexNormalWS = input.tangentToWorld[2].xyz;
+    layerTexCoord.vertexNormalWS = input.worldToTangent[2].xyz;
     layerTexCoord.triplanarWeights = ComputeTriplanarWeights(layerTexCoord.vertexNormalWS);
 
     int mappingType = UV_MAPPING_UVSET;

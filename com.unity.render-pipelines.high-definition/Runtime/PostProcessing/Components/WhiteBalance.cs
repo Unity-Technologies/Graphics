@@ -6,10 +6,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     [Serializable, VolumeComponentMenu("Post-processing/White Balance")]
     public sealed class WhiteBalance : VolumeComponent, IPostProcessComponent
     {
-        [Tooltip("Controls the color temperature HDRP uses for white balancing.")]
+        [Tooltip("Sets the white balance to a custom color temperature.")]
         public ClampedFloatParameter temperature = new ClampedFloatParameter(0f, -100, 100f);
 
-        [Tooltip("Controls the white balance color to compensate for a green or magenta tint.")]
+        [Tooltip("Sets the white balance to compensate for a green or magenta tint.")]
         public ClampedFloatParameter tint = new ClampedFloatParameter(0f, -100, 100f);
 
         public bool IsActive()

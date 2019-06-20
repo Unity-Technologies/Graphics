@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using UnityEngine;
+using UnityEditor.Graphing;
 using UnityEngine.Rendering;
 
 namespace UnityEditor.ShaderGraph
@@ -8,7 +8,5 @@ namespace UnityEditor.ShaderGraph
     {
         string GetShader(GenerationMode mode, string name, out List<PropertyCollector.TextureInfo> configuredTextures, List<string> sourceAssetDependencyPaths = null);
         bool IsPipelineCompatible(RenderPipelineAsset renderPipelineAsset);
-        ISubShader GetActiveSubShader();
-        void ProcessPreviewMaterial(Material material);
     }
 }

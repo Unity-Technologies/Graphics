@@ -9,8 +9,7 @@ namespace UnityEditor.ShaderGraph
     {
         public Matrix4ShaderProperty()
         {
-            displayName = "Matrix4x4";
-            value = Matrix4x4.identity;
+            displayName = "Matrix4";
         }
 
         public override PropertyType propertyType
@@ -18,13 +17,9 @@ namespace UnityEditor.ShaderGraph
             get { return PropertyType.Matrix4; }
         }
 
-        public override PreviewProperty GetPreviewMaterialProperty()
+        public override bool isBatchable
         {
-            return new PreviewProperty(PropertyType.Matrix4)
-            {
-                name = referenceName,
-                matrixValue = value
-            };
+            get { return true; }
         }
 
         public override AbstractMaterialNode ToConcreteNode()

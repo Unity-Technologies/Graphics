@@ -62,6 +62,7 @@ Shader "Lightweight Render Pipeline/Particles/Unlit"
             // Lightmode matches the ShaderPassName set in LightweightRenderPipeline.cs. SRPDefaultUnlit and passes with
             // no LightMode tag are also rendered by Lightweight Render Pipeline
             Name "ForwardLit"
+            Tags {"LightMode" = "LightweightForward"}
             
             BlendOp[_BlendOp]
             Blend[_SrcBlend][_DstBlend]
@@ -89,7 +90,6 @@ Shader "Lightweight Render Pipeline/Particles/Unlit"
             #pragma shader_feature _FLIPBOOKBLENDING_ON
             #pragma shader_feature _SOFTPARTICLES_ON
             #pragma shader_feature _FADING_ON
-            #pragma shader_feature _DISTORTION_ON
             
             // -------------------------------------
             // Unity defined keywords

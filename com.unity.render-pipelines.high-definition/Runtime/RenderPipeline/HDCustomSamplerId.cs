@@ -11,7 +11,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         Forward,
         RenderSSAO,
         ResolveSSAO,
-        RenderShadowMaps,
+        RenderShadows,
         ScreenSpaceShadows,
         BuildLightList,
         BlitToFinalRT,
@@ -23,7 +23,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         DBufferRender,
         DBufferPrepareDrawData,
         DBufferNormal,
-        DecalsForwardEmissive,
         DisplayDebugDecalsAtlas,
         DisplayDebugViewMaterial,
         DebugViewMaterialGBuffer,
@@ -35,8 +34,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         ForwardTransparentDepthPrepass,
         RenderForwardError,
         TransparentDepthPostpass,
-        ObjectsMotionVector,
-        CameraMotionVectors,
+        ObjectsVelocity,
+        CameraVelocity,
         ColorPyramid,
         DepthPyramid,
         PostProcessing,
@@ -75,19 +74,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         TPScreenSpaceShadows,
         TPTileSettingsEnableTileAndCluster,
         TPForwardPass,
+        TPForwardTiledClusterpass,
         TPDisplayShadows,
         TPRenderDeferredLighting,
 
         // Misc
         VolumeUpdate,
 
-        // Low res transparency
-        DownsampleDepth,
-        LowResTransparent,
-        UpsampleLowResTransparent,
-
         // Post-processing
-        StopNaNs,
         Exposure,
         TemporalAntialiasing,
         DepthOfField,
@@ -102,7 +96,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         DepthOfFieldPreCombine,
         DepthOfFieldCombine,
         MotionBlur,
-        MotionBlurMotionVecPrep,
+        MotionBlurVelocityPrep,
         MotionBlurTileMinMax,
         MotionBlurTileNeighbourhood,
         MotionBlurKernel,
@@ -111,7 +105,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         ColorGradingLUTBuilder,
         UberPost,
         FXAA,
-        SMAA,
         FinalPost,
 
         Max

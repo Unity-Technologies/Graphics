@@ -1,6 +1,8 @@
 using System;
+using UnityEngine.Rendering;
+using UnityEngine.Rendering.LWRP;
 
-namespace UnityEngine.Rendering.LWRP
+namespace UnityEngine.Experimental.Rendering.LWRP
 {
     /// <summary>
     /// Copy the given depth buffer into the given destination depth buffer.
@@ -16,12 +18,12 @@ namespace UnityEngine.Rendering.LWRP
         private RenderTargetHandle source { get; set; }
         private RenderTargetHandle destination { get; set; }
         Material m_CopyDepthMaterial;
-        const string m_ProfilerTag = "Copy Depth";
 
-        public CopyDepthPass(RenderPassEvent evt, Material copyDepthMaterial)
+        const string k_DepthCopyTag = "Copy Depth";
+
+        public CopyDepthPass(Material copyDepthMaterial)
         {
             m_CopyDepthMaterial = copyDepthMaterial;
-            renderPassEvent = evt;
         }
 
         /// <summary>
@@ -35,17 +37,8 @@ namespace UnityEngine.Rendering.LWRP
             this.destination = destination;
         }
 
-        public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
-        {
-            var descriptor = cameraTextureDescriptor;
-            descriptor.colorFormat = RenderTextureFormat.Depth;
-            descriptor.depthBufferBits = 32; //TODO: do we really need this. double check;
-            descriptor.msaaSamples = 1;
-            cmd.GetTemporaryRT(destination.id, descriptor, FilterMode.Point);
-        }
-
         /// <inheritdoc/>
-        public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
+        public override void Execute(ScriptableRenderer renderer, ScriptableRenderContext context, ref RenderingData renderingData)
         {
             if (m_CopyDepthMaterial == null)
             {
@@ -53,20 +46,26 @@ namespace UnityEngine.Rendering.LWRP
                 return;
             }
 
-            CommandBuffer cmd = CommandBufferPool.Get(m_ProfilerTag);
+            if (renderer == null)
+                throw new ArgumentNullException("renderer");
+            
+            CommandBuffer cmd = CommandBufferPool.Get(k_DepthCopyTag);
             RenderTargetIdentifier depthSurface = source.Identifier();
             RenderTargetIdentifier copyDepthSurface = destination.Identifier();
 
-            RenderTextureDescriptor descriptor = renderingData.cameraData.cameraTargetDescriptor;
-            int cameraSamples = descriptor.msaaSamples;
+            RenderTextureDescriptor descriptor = ScriptableRenderer.CreateRenderTextureDescriptor(ref renderingData.cameraData);
+            descriptor.colorFormat = RenderTextureFormat.Depth;
+            descriptor.depthBufferBits = 32; //TODO: fix this ;
+            descriptor.msaaSamples = 1;
+            descriptor.bindMS = false;
+            cmd.GetTemporaryRT(destination.id, descriptor, FilterMode.Point);
 
-            // TODO: we don't need a command buffer here. We can set these via Material.Set* API
             cmd.SetGlobalTexture("_CameraDepthAttachment", source.Identifier());
 
-            if (cameraSamples > 1)
+            if (renderingData.cameraData.msaaSamples > 1)
             {
                 cmd.DisableShaderKeyword(ShaderKeywordStrings.DepthNoMsaa);
-                if (cameraSamples == 4)
+                if (renderingData.cameraData.msaaSamples == 4)
                 {
                     cmd.DisableShaderKeyword(ShaderKeywordStrings.DepthMsaa2);
                     cmd.EnableShaderKeyword(ShaderKeywordStrings.DepthMsaa4);
@@ -76,37 +75,30 @@ namespace UnityEngine.Rendering.LWRP
                     cmd.EnableShaderKeyword(ShaderKeywordStrings.DepthMsaa2);
                     cmd.DisableShaderKeyword(ShaderKeywordStrings.DepthMsaa4);
                 }
-                
-                Blit(cmd, depthSurface, copyDepthSurface, m_CopyDepthMaterial);
+                cmd.Blit(depthSurface, copyDepthSurface, m_CopyDepthMaterial);
             }
             else
             {
                 cmd.EnableShaderKeyword(ShaderKeywordStrings.DepthNoMsaa);
                 cmd.DisableShaderKeyword(ShaderKeywordStrings.DepthMsaa2);
                 cmd.DisableShaderKeyword(ShaderKeywordStrings.DepthMsaa4);
-                CopyTexture(cmd, depthSurface, copyDepthSurface, m_CopyDepthMaterial);
+                ScriptableRenderer.CopyTexture(cmd, depthSurface, copyDepthSurface, m_CopyDepthMaterial);
             }
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
         }
-
-        void CopyTexture(CommandBuffer cmd, RenderTargetIdentifier source, RenderTargetIdentifier dest, Material material)
-        {
-            // TODO: In order to issue a copyTexture we need to also check if source and dest have same size
-            //if (SystemInfo.copyTextureSupport != CopyTextureSupport.None)
-            //    cmd.CopyTexture(source, dest);
-            //else
-            Blit(cmd, source, dest, material);
-        }
-
+        
         /// <inheritdoc/>
         public override void FrameCleanup(CommandBuffer cmd)
         {
             if (cmd == null)
                 throw new ArgumentNullException("cmd");
-
-            cmd.ReleaseTemporaryRT(destination.id);
-            destination = RenderTargetHandle.CameraTarget;
+            
+            if (destination != RenderTargetHandle.CameraTarget)
+            {
+                cmd.ReleaseTemporaryRT(destination.id);
+                destination = RenderTargetHandle.CameraTarget;
+            }
         }
     }
 }

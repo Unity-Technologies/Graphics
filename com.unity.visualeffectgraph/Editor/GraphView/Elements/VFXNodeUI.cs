@@ -149,6 +149,7 @@ namespace UnityEditor.VFX.UI
         {
             this.AddStyleSheetPath("VFXNode");
             AddToClassList("VFXNodeUI");
+            cacheAsBitmap = true;
 
             RegisterCallback<MouseEnterEvent>(OnMouseEnter);
             RegisterCallback<MouseLeaveEvent>(OnMouseLeave);
@@ -210,7 +211,7 @@ namespace UnityEditor.VFX.UI
                 for (int i = 0; i < m_Settings.Count; ++i)
                 {
                     PropertyRM prop = m_Settings[i];
-                    if (prop != null && activeSettings.Any(s => s.field.Name == controller.settings[i].name))
+                    if (prop != null && activeSettings.Any(s => s.Name == controller.settings[i].name))
                     {
                         hasSettings = true;
                         settingsContainer.Add(prop);
@@ -239,11 +240,16 @@ namespace UnityEditor.VFX.UI
             private set;
         }
 
+        protected virtual bool syncInput
+        {
+            get { return true; }
+        }
+
         void SyncAnchors()
         {
             Profiler.BeginSample("VFXNodeUI.SyncAnchors");
-
-            SyncAnchors(controller.inputPorts, inputContainer);
+            if (syncInput)
+                SyncAnchors(controller.inputPorts, inputContainer);
             SyncAnchors(controller.outputPorts, outputContainer);
             Profiler.EndSample();
         }
@@ -319,20 +325,6 @@ namespace UnityEditor.VFX.UI
             else
             {
                 RemoveFromClassList("superCollapsed");
-            }
-        }
-
-        public void AssetMoved()
-        {
-            title = controller.title;
-
-            foreach( var setting in m_Settings)
-            {
-                setting.UpdateGUI(true);
-            }
-            foreach( VFXEditableDataAnchor input in GetPorts(true,false).OfType<VFXEditableDataAnchor>())
-            {
-                input.AssetMoved();
             }
         }
 

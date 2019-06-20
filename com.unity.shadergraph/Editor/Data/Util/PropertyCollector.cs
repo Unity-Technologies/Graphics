@@ -13,19 +13,19 @@ namespace UnityEditor.ShaderGraph
             public bool modifiable;
         }
 
-        public readonly List<AbstractShaderProperty> properties = new List<AbstractShaderProperty>();
+        private readonly List<AbstractShaderProperty> m_Properties = new List<AbstractShaderProperty>();
 
         public void AddShaderProperty(AbstractShaderProperty chunk)
         {
-            if (properties.Any(x => x.referenceName == chunk.referenceName))
+            if (m_Properties.Any(x => x.referenceName == chunk.referenceName))
                 return;
-            properties.Add(chunk);
+            m_Properties.Add(chunk);
         }
 
         public string GetPropertiesBlock(int baseIndentLevel)
         {
             var sb = new StringBuilder();
-            foreach (var prop in properties.Where(x => x.generatePropertyBlock))
+            foreach (var prop in m_Properties.Where(x => x.generatePropertyBlock))
             {
                 for (var i = 0; i < baseIndentLevel; i++)
                 {
@@ -37,26 +37,24 @@ namespace UnityEditor.ShaderGraph
             return sb.ToString();
         }
 
-        public void GetPropertiesDeclaration(ShaderStringBuilder builder, GenerationMode mode, ConcretePrecision inheritedPrecision)
+        public string GetPropertiesDeclaration(int baseIndentLevel)
         {
-            foreach (var prop in properties)
-            {
-                prop.SetConcretePrecision(inheritedPrecision);
-            }
+            var builder = new ShaderStringBuilder(baseIndentLevel);
+            GetPropertiesDeclaration(builder);
+            return builder.ToString();
+        }
 
-            var batchAll = mode == GenerationMode.Preview;
+        public void GetPropertiesDeclaration(ShaderStringBuilder builder)
+        {
             builder.AppendLine("CBUFFER_START(UnityPerMaterial)");
-            foreach (var prop in properties.Where(n => batchAll || (n.generatePropertyBlock && n.isBatchable)))
+            foreach (var prop in m_Properties.Where(n => n.isBatchable && n.generatePropertyBlock))
             {
                 builder.AppendLine(prop.GetPropertyDeclarationString());
             }
             builder.AppendLine("CBUFFER_END");
             builder.AppendNewLine();
 
-            if (batchAll)
-                return;
-            
-            foreach (var prop in properties.Where(n => !n.isBatchable || !n.generatePropertyBlock))
+            foreach (var prop in m_Properties.Where(n => !n.isBatchable || !n.generatePropertyBlock))
             {
                 builder.AppendLine(prop.GetPropertyDeclarationString());
             }
@@ -66,7 +64,7 @@ namespace UnityEditor.ShaderGraph
         {
             var result = new List<TextureInfo>();
 
-            foreach (var prop in properties.OfType<TextureShaderProperty>())
+            foreach (var prop in m_Properties.OfType<TextureShaderProperty>())
             {
                 if (prop.referenceName != null)
                 {
@@ -80,7 +78,7 @@ namespace UnityEditor.ShaderGraph
                 }
             }
 
-            foreach (var prop in properties.OfType<Texture2DArrayShaderProperty>())
+            foreach (var prop in m_Properties.OfType<Texture2DArrayShaderProperty>())
             {
                 if (prop.referenceName != null)
                 {
@@ -94,7 +92,7 @@ namespace UnityEditor.ShaderGraph
                 }
             }
 
-            foreach (var prop in properties.OfType<Texture3DShaderProperty>())
+            foreach (var prop in m_Properties.OfType<Texture3DShaderProperty>())
             {
                 if (prop.referenceName != null)
                 {
@@ -108,7 +106,7 @@ namespace UnityEditor.ShaderGraph
                 }
             }
 
-            foreach (var prop in properties.OfType<CubemapShaderProperty>())
+            foreach (var prop in m_Properties.OfType<CubemapShaderProperty>())
             {
                 if (prop.referenceName != null)
                 {

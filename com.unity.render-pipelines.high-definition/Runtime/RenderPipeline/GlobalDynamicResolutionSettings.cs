@@ -6,7 +6,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     public enum DynamicResolutionType : byte
     {
         Software,
-        Hardware,   
+        //Hardware,   // Has lots of problems on platform. Disabling this while we investigate.
         //Temporal    // Not yet supported
     }
 
@@ -19,15 +19,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     }
 
     [Serializable]
-    public struct GlobalDynamicResolutionSettings
+    public class GlobalDynamicResolutionSettings
     {
         /// <summary>Default GlobalDynamicResolutionSettings</summary>
         public static readonly GlobalDynamicResolutionSettings @default = new GlobalDynamicResolutionSettings()
         {
             maxPercentage = 100.0f,
             minPercentage = 100.0f,
-            // It fall-backs to software when not supported, so it makes sense to have it on by default.
-            dynResType = DynamicResolutionType.Hardware,
+            dynResType = DynamicResolutionType.Software,
             upsampleFilter = DynamicResUpscaleFilter.CatmullRom,
             forcedPercentage = 100.0f
         };

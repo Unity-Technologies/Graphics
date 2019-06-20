@@ -7,7 +7,7 @@ VFXOperatorUI.node #middle
 
 VFXOperatorUI #title #edit
 {
-   width: 28px;
+   width:28;
    flex-direction:column;
    justify-content:center;
 }
@@ -15,14 +15,14 @@ VFXOperatorUI #title #edit
 VFXOperatorUI #title #edit #icon
 {
     background-image: resource("VFX/EditStolen");
-    width: 15px;
-    height: 14px;
+    width:15;
+    height:14;
     align-self:center;
 }
 
 OperandInfo *
 {
-    height: 16px;
+    height:16;
 }
 OperandInfo .unity-text-field
 {
@@ -32,7 +32,7 @@ OperandInfo .unity-text-field
 OperandInfo .PopupButton
 {
     flex:0 0 auto;
-    width: 55px;
+    width:55;
 }
 
 VFXUnifiedOperatorEdit OperandInfo .unity-label
@@ -41,7 +41,7 @@ VFXUnifiedOperatorEdit OperandInfo .unity-label
 }
 VFXUnifiedOperatorEdit OperandInfo .PopupButton
 {
-    width: 80px;
+    width:80;
 }
 
 #edit-container
@@ -65,8 +65,8 @@ VFXUnifiedOperatorEdit OperandInfo .PopupButton
 }
 .VFXUniformOperatorEdit#edit-container .unity-label
 {
-    margin-left: 8px;
-    margin-right: 8px;
+    margin-left:8;
+    margin-right:8;
 }
 
 
@@ -85,8 +85,8 @@ VFXOperatorUI.superCollapsed.VFXNodeUI.node #settings-divider, VFXOperatorUI.sup
 
 .VFXNodeUI.superCollapsed
 {
-height: 30px;
-width: -1px;
+height:30;
+width:-1;
 }
 
 .VFXNodeUI.VFXNodeUI.superCollapsed #settings
@@ -113,16 +113,16 @@ width: -1px;
     right:0;
     top:0;
     bottom:0;
-    height: -1px;
+    height:-1;
     margin-bottom:0;
-    border-bottom-left-radius: 2px;
-    border-bottom-right-radius: 2px;
+    border-bottom-left-radius:2;
+    border-bottom-right-radius:2;
 }
 .VFXNodeUI.node.superCollapsed #node-border > #title > .unity-label#title-label {
-    margin-bottom: 3px;
-    margin-top: 3px;
-    margin-left: 20px;
-    margin-right: 20px;
+    margin-bottom:3;
+    margin-top:3;
+    margin-left:20;
+    margin-right:20;
 }
 
 .VFXNodeUI.node.superCollapsed .mainContainer, .VFXNodeUI.superCollapsed #contents, .VFXNodeUI.superCollapsed #contents > #top
@@ -155,16 +155,16 @@ width: -1px;
     position:Absolute;
     top:0;
     bottom:0;
-    right: 1px;
+    right:1;
     flex-grow:0;
     flex:0 0 auto;
-    width: 20px;
+    width:20;
     background-color:rgba(0,0,0,0);
 }
 .VFXNodeUI.node.superCollapsed #right #output
 {
     align-self:flex-end;
-    width: 16px;
+    width:16;
 }
 
 .VFXNodeUI.superCollapsed #type
@@ -205,13 +205,13 @@ width: -1px;
 }
 .VFXNodeUI.superCollapsed.node .mainContainer #left
 {
-    width: 120px;
+    width:120;
 }
 .VFXNodeUI.superCollapsed.node .VFXDataAnchor
 {
     position:Absolute;
     left:0;
-    width: 16px;
+    width:16;
     top:0;
     bottom:0;
 }
@@ -219,7 +219,7 @@ width: -1px;
 {
     position:Absolute;
     right:0;
-    width: -1px;
+    width:-1;
     top:0;
     bottom:0;
 }

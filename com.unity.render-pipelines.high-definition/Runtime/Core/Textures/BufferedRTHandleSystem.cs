@@ -52,10 +52,6 @@ namespace UnityEngine.Experimental.Rendering
         RTHandleSystem m_RTHandleSystem = new RTHandleSystem();
         bool m_DisposedValue = false;
 
-        public int maxWidth { get { return m_RTHandleSystem.GetMaxWidth(); } }
-        public int maxHeight { get { return m_RTHandleSystem.GetMaxHeight(); } }
-        public RTHandleProperties rtHandleProperties { get { return m_RTHandleSystem.rtHandleProperties; } }
-
         /// <summary>
         /// Return the frame RT or null.
         /// </summary>
@@ -99,18 +95,22 @@ namespace UnityEngine.Experimental.Rendering
         }
 
         /// <summary>
-        /// Swap buffers Set the reference size for this RT Handle System (<see cref="RTHandleSystem.SetReferenceSize(int, int, bool, MSAASamples)"/>)
+        /// Set the reference size for this RT Handle System (<see cref="RTHandleSystem.SetReferenceSize(int, int, bool, MSAASamples)"/>)
         /// </summary>
         /// <param name="width">The width of the RTs of this buffer.</param>
         /// <param name="height">The height of the RTs of this buffer.</param>
         /// <param name="msaaSamples">Number of MSAA samples for this buffer.</param>
-        public void SwapAndSetReferenceSize(int width, int height, MSAASamples msaaSamples)
+        public void SetReferenceSize(int width, int height, MSAASamples msaaSamples)
         {
-            Swap();
             m_RTHandleSystem.SetReferenceSize(width, height, msaaSamples);
         }
 
-        void Swap()
+        /// <summary>
+        /// Swap the buffers.
+        ///
+        /// Take care that if the new current frame needs resizing, it will occurs during the this call.
+        /// </summary>
+        public void Swap()
         {
             foreach (var item in m_RTHandles)
             {

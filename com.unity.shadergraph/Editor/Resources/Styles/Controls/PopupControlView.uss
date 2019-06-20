@@ -1,19 +1,19 @@
 PopupControlView {
-    padding-top: 4px;
-    padding-bottom: 4px;
+    padding-top: 4;
+    padding-bottom: 4;
     flex-direction: row;
 }
 
 PopupControlView > PopupField {
-    width: 80px;
+    width: 80;
     flex: 1;
     margin-left: 0;
-    margin-right: 8px;
+    margin-right: 8;
 }
 
 PopupControlView > Label {
-    width: 94px;
-    margin-left: 8px;
-    margin-right: 8px;
-    -unity-text-align: middle-left;
+    width: 94;
+    margin-left: 8;
+    margin-right: 8;
+    text-alignment: middle-left;
 }

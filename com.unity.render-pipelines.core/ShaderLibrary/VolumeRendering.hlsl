@@ -12,29 +12,9 @@ real TransmittanceFromOpticalDepth(real opticalDepth)
     return exp(-opticalDepth);
 }
 
-real3 TransmittanceFromOpticalDepth(real3 opticalDepth)
-{
-    return exp(-opticalDepth);
-}
-
 real OpacityFromOpticalDepth(real opticalDepth)
 {
     return 1 - TransmittanceFromOpticalDepth(opticalDepth);
-}
-
-real3 OpacityFromOpticalDepth(real3 opticalDepth)
-{
-    return 1 - TransmittanceFromOpticalDepth(opticalDepth);
-}
-
-real OpticalDepthFromOpacity(real opacity)
-{
-    return -log(1 - opacity);
-}
-
-real3 OpticalDepthFromOpacity(real3 opacity)
-{
-    return -log(1 - opacity);
 }
 
 //
@@ -53,7 +33,7 @@ real4 LinearizeRGBA(real4 value)
     // We drop redundant negations.
     real a = value.a;
     real d = -log(1 - a);
-    real r = (a >= REAL_EPS) ? (d * rcp(a)) : 1; // Prevent numerical explosion
+    real r = (a >= FLT_EPS) ? (d * rcp(a)) : 1; // Prevent numerical explosion
     return real4(r * value.rgb, d);
 }
 
@@ -66,7 +46,7 @@ real4 LinearizeRGBD(real4 value)
     // We drop redundant negations.
     real d = value.a;
     real a = 1 - exp(-d);
-    real r = (a >= REAL_EPS) ? (d * rcp(a)) : 1; // Prevent numerical explosion
+    real r = (a >= FLT_EPS) ? (d * rcp(a)) : 1; // Prevent numerical explosion
     return real4(r * value.rgb, d);
 }
 
@@ -79,7 +59,7 @@ real4 DelinearizeRGBA(real4 value)
     // We drop redundant negations.
     real d = value.a;
     real a = 1 - exp(-d);
-    real i = (a >= REAL_EPS) ? (a * rcp(d)) : 1; // Prevent numerical explosion
+    real i = (a >= FLT_EPS) ? (a * rcp(d)) : 1; // Prevent numerical explosion
     return real4(i * value.rgb, a);
 }
 
@@ -92,7 +72,7 @@ real4 DelinearizeRGBD(real4 value)
     // We drop redundant negations.
     real d = value.a;
     real a = 1 - exp(-d);
-    real i = (a >= REAL_EPS) ? (a * rcp(d)) : 1; // Prevent numerical explosion
+    real i = (a >= FLT_EPS) ? (a * rcp(d)) : 1; // Prevent numerical explosion
     return real4(i * value.rgb, d);
 }
 
@@ -110,7 +90,7 @@ real TransmittanceHomogeneousMedium(real extinction, real intervalLength)
     return TransmittanceFromOpticalDepth(OpticalDepthHomogeneousMedium(extinction, intervalLength));
 }
 
-// Integral{a, b}{TransmittanceHomogeneousMedium(k, t - a) dt}.
+// Integral{a, b}{TransmittanceFromOpticalDepth(0, t - a) dt}.
 real TransmittanceIntegralHomogeneousMedium(real extinction, real intervalLength)
 {
     // Note: when multiplied by the extinction coefficient, it becomes
@@ -142,7 +122,7 @@ real OpticalDepthHeightFog(real baseExtinction, real baseHeight, real2 heightExp
     real H          = heightExponents.y;
     real rcpH       = heightExponents.x;
     real Z          = cosZenith;
-    real absZ       = max(abs(cosZenith), REAL_EPS);
+    real absZ       = max(abs(cosZenith), FLT_EPS);
     real rcpAbsZ    = rcp(absZ);
 
     real endHeight  = startHeight + intervalLength * Z;
@@ -163,10 +143,10 @@ real OpticalDepthHeightFog(real baseExtinction, real baseHeight, real2 heightExp
     real H          = heightExponents.y;
     real rcpH       = heightExponents.x;
     real Z          = cosZenith;
-    real absZ       = max(abs(cosZenith), REAL_EPS);
+    real absZ       = max(abs(cosZenith), FLT_EPS);
     real rcpAbsZ    = rcp(absZ);
 
-    real minHeight  = (Z >= 0) ? startHeight : -rcp(REAL_EPS);
+    real minHeight  = (Z >= 0) ? startHeight : -rcp(FLT_EPS);
     real h          = max(minHeight - baseHeight, 0);
 
     real homFogDist = max((baseHeight - minHeight) * rcpAbsZ, 0);
@@ -200,12 +180,6 @@ real IsotropicPhaseFunction()
     return INV_FOUR_PI;
 }
 
-real RayleighPhaseFunction(real cosTheta)
-{
-    real k = 3 / (16 * PI);
-    return k * (1 + cosTheta * cosTheta);
-}
-
 real HenyeyGreensteinPhasePartConstant(real anisotropy)
 {
     real g = anisotropy;
@@ -216,8 +190,7 @@ real HenyeyGreensteinPhasePartConstant(real anisotropy)
 real HenyeyGreensteinPhasePartVarying(real anisotropy, real cosTheta)
 {
     real g = anisotropy;
-    real x = 1 + g * g - 2 * g * cosTheta;
-    real f = rsqrt(max(x, REAL_EPS)); // x^(-1/2)
+    real f = rsqrt(saturate(1 + g * g - 2 * g * cosTheta)); // x^(-1/2)
 
     return f * f * f; // x^(-3/2)
 }
@@ -232,28 +205,17 @@ real CornetteShanksPhasePartConstant(real anisotropy)
 {
     real g = anisotropy;
 
-    return (3 / (8 * PI)) * (1 - g * g) / (2 + g * g);
-}
-
-// Similar to the RayleighPhaseFunction.
-real CornetteShanksPhasePartSymmetrical(real cosTheta)
-{
-    real h = 1 + cosTheta * cosTheta;
-    return h;
-}
-
-real CornetteShanksPhasePartAsymmetrical(real anisotropy, real cosTheta)
-{
-    real g = anisotropy;
-    real x = 1 + g * g - 2 * g * cosTheta;
-    real f = rsqrt(max(x, REAL_EPS)); // x^(-1/2)
-    return f * f * f;                 // x^(-3/2)
+    return INV_FOUR_PI * 1.5 * (1 - g * g) / (2 + g * g);
 }
 
 real CornetteShanksPhasePartVarying(real anisotropy, real cosTheta)
 {
-    return CornetteShanksPhasePartSymmetrical(cosTheta) *
-           CornetteShanksPhasePartAsymmetrical(anisotropy, cosTheta); // h * x^(-3/2)
+    real g = anisotropy;
+    real f = rsqrt(saturate(1 + g * g - 2 * g * cosTheta)); // x^(-1/2)
+    real h = (1 + cosTheta * cosTheta);
+
+    // Note that this function is not perfectly isotropic for (g = 0).
+    return h * (f * f * f); // h * x^(-3/2)
 }
 
 // A better approximation of the Mie phase function.
@@ -285,22 +247,8 @@ void ImportanceSampleHomogeneousMedium(real rndVal, real extinction, real interv
     real x = 1 - exp(-extinction * intervalLength);
     real c = rcp(extinction);
 
-    // TODO: return 'rcpPdf' to support imperfect importance sampling...
     weight = x * c;
     offset = -log(1 - rndVal * x) * c;
-}
-
-void ImportanceSampleExponentialMedium(real rndVal, real extinction, real falloff,
-                                       out real offset, out real rcpPdf)
-{
-
-    // Extinction[t] = Extinction[0] * exp(-falloff * t).
-    real c = extinction;
-    real a = falloff;
-
-    // TODO: optimize...
-    offset = -log(1 - a / c * log(rndVal)) / a;
-    rcpPdf = rcp(c * exp(-a * offset) * exp(-c / a * (1 - exp(-a * offset))));
 }
 
 // Implements equiangular light sampling.
@@ -318,7 +266,7 @@ void ImportanceSamplePunctualLight(real rndVal, real3 lightPosition, real lightS
     real  rayToLightSqDist      = originToLightSqDist - originToLightProjDist * originToLightProjDist;
 
     // Virtually offset the light to modify the PDF distribution.
-    real sqD  = max(rayToLightSqDist + lightSqRadius, REAL_EPS);
+    real sqD  = max(rayToLightSqDist + lightSqRadius, FLT_EPS);
     real rcpD = rsqrt(sqD);
     real d    = sqD * rcpD;
     real a    = tMin - originToLightProjDist;
@@ -351,20 +299,7 @@ void ImportanceSamplePunctualLight(real rndVal, real3 lightPosition, real lightS
     t      = originToLightProjDist + tRelative;
 
     // Remove the virtual light offset to obtain the real geometric distance.
-    sqDist = max(sqDist - lightSqRadius, REAL_EPS);
-}
-
-// Returns the cosine.
-// Weight = Phase / Pdf = 1.
-real ImportanceSampleRayleighPhase(real rndVal)
-{
-    // real a = sqrt(16 * (rndVal - 1) * rndVal + 5);
-    // real b = -4 * rndVal + a + 2;
-    // real c = PositivePow(b, 0.33333333);
-    // return rcp(c) - c;
-
-    // Approximate...
-    return lerp(cos(PI * rndVal + PI), 2 * rndVal - 1, 0.5);
+    sqDist = max(sqDist - lightSqRadius, FLT_EPS);
 }
 
 //
@@ -374,7 +309,7 @@ real ImportanceSampleRayleighPhase(real rndVal)
 // Absorption coefficient from Disney: http://blog.selfshadow.com/publications/s2015-shading-course/burley/s2015_pbs_disney_bsdf_notes.pdf
 real3 TransmittanceColorAtDistanceToAbsorption(real3 transmittanceColor, real atDistance)
 {
-    return -log(transmittanceColor + REAL_EPS) / max(atDistance, REAL_EPS);
+    return -log(transmittanceColor + FLT_EPS) / max(atDistance, FLT_EPS);
 }
 
 #endif // UNITY_VOLUME_RENDERING_INCLUDED

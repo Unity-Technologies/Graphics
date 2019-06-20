@@ -10,9 +10,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             None,
             First,
             SeparatePassThrough,
-            UpgradingFrameSettingsToStruct,
-            AddAfterPostProcessFrameSetting,
-            AddFrameSettingSpecularLighting
+            UpgradingFrameSettingsToStruct
         }
 
         [SerializeField, FormerlySerializedAs("version")]
@@ -45,19 +43,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 if (data.m_ObsoleteFrameSettings != null)
                     FrameSettings.MigrateFromClassVersion(ref data.m_ObsoleteFrameSettings, ref data.renderingPathCustomFrameSettings, ref data.renderingPathCustomFrameSettingsOverrideMask);
 #pragma warning restore 618
-            }),
-            MigrationStep.New(Version.AddAfterPostProcessFrameSetting, (HDAdditionalCameraData data) =>
-            {
-                FrameSettings.MigrateToAfterPostprocess(ref data.renderingPathCustomFrameSettings);
-            }),
-            MigrationStep.New(Version.AddFrameSettingSpecularLighting, (HDAdditionalCameraData data) =>
-                FrameSettings.MigrateToSpecularLighting(ref data.renderingPathCustomFrameSettings)
-            )
+            })
         );
 
         Version IVersionable<Version>.version { get => m_Version; set => m_Version = value; }
-
-        void Awake() => k_Migration.Migrate(this);
 
 #pragma warning disable 649 // Field never assigned
         [SerializeField, FormerlySerializedAs("renderingPath"), Obsolete("For Data Migration")]

@@ -197,8 +197,6 @@ namespace UnityEditor.VFX.UI
                 AddToClassList("hidden");
             }
 
-            UpdateCapColor();
-
 
             if (controller.direction == Direction.Output)
                 m_ConnectorText.text = controller.name;
@@ -211,6 +209,11 @@ namespace UnityEditor.VFX.UI
             VFXView view = graphView as VFXView;
             VFXDataEdge dataEdge = edge as VFXDataEdge;
             VFXDataEdgeController edgeController = new VFXDataEdgeController(dataEdge.input.controller, dataEdge.output.controller);
+
+            if (dataEdge.controller != null)
+            {
+                view.controller.RemoveElement(dataEdge.controller);
+            }
 
             view.controller.AddElement(edgeController);
         }

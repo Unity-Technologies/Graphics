@@ -32,7 +32,8 @@ Shader "Hidden/HDRP/Deferred"
             #pragma vertex Vert
             #pragma fragment Frag
 
-            #define LIGHTLOOP_DISABLE_TILE_AND_CLUSTER
+            // Chose supported lighting architecture in case of deferred rendering
+            #pragma multi_compile _ LIGHTLOOP_DISABLE_TILE_AND_CLUSTER
 
             // Split lighting is utilized during the SSS pass.
             #pragma multi_compile _ OUTPUT_SPLIT_LIGHTING
@@ -89,13 +90,11 @@ Shader "Hidden/HDRP/Deferred"
             struct Attributes
             {
                 uint vertexID : SV_VertexID;
-                UNITY_VERTEX_INPUT_INSTANCE_ID
             };
 
             struct Varyings
             {
                 float4 positionCS : SV_POSITION;
-                UNITY_VERTEX_OUTPUT_STEREO
             };
 
             struct Outputs
@@ -111,22 +110,18 @@ Shader "Hidden/HDRP/Deferred"
             Varyings Vert(Attributes input)
             {
                 Varyings output;
-                UNITY_SETUP_INSTANCE_ID(input);
-                UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
                 output.positionCS = GetFullScreenTriangleVertexPosition(input.vertexID);
                 return output;
             }
 
             Outputs Frag(Varyings input)
             {
-                UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
-
                 // This need to stay in sync with deferred.compute
 
                 // input.positionCS is SV_Position
                 float depth = LoadCameraDepth(input.positionCS.xy);
 
-                PositionInputs posInput = GetPositionInput(input.positionCS.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V, uint2(input.positionCS.xy) / GetTileSize());
+                PositionInputs posInput = GetPositionInput_Stereo(input.positionCS.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V, uint2(input.positionCS.xy) / GetTileSize(), unity_StereoEyeIndex);
                 float3 V = GetWorldSpaceNormalizeViewDir(posInput.positionWS);
 
                 BSDFData bsdfData;

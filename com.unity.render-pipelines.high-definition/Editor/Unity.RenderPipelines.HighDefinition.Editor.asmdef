@@ -4,10 +4,7 @@
         "Unity.RenderPipelines.HighDefinition.Runtime",
         "Unity.ShaderGraph.Editor",
         "Unity.RenderPipelines.Core.Runtime",
-        "Unity.RenderPipelines.Core.Editor",
-		"Unity.ugui",
-        "Unity.ugui.Editor",
-		"Unity.VisualEffectGraph.Editor"
+        "Unity.RenderPipelines.Core.Editor"
     ],
     "optionalUnityReferences": [],
     "includePlatforms": [

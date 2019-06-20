@@ -6,12 +6,9 @@ using System.Reflection;
 using Unity.Collections.LowLevel.Unsafe;
 using UnityEditor;
 using UnityEditor.Experimental.Rendering;
-using UnityEditor.Experimental.Rendering.HDPipeline;
-using UnityEditor.VersionControl;
 using UnityEngine.Assertions;
 using UnityEngine.Rendering;
 using UnityEngine.SceneManagement;
-using static UnityEditor.VersionControl.Provider;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
@@ -50,7 +47,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         Hash128[] m_StateHashes;
         HDProbeBakedState[] m_HDProbeBakedStates = new HDProbeBakedState[0];
         float m_DateSinceLastLegacyWarning = float.MinValue;
-        Dictionary<UnityEngine.Rendering.RenderPipeline, float> m_DateSinceLastInvalidSRPWarning
+        Dictionary<UnityEngine.Rendering.RenderPipeline, float> m_DateSinceLastInvalidSRPWarning 
             = new Dictionary<UnityEngine.Rendering.RenderPipeline, float>();
 
         HDBakedReflectionSystem() : base(1)
@@ -91,7 +88,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // On the C# side, we don't have non blocking asset import APIs, and we don't want to block the
             //   UI when the user is editing the world.
             //   So, we skip the baking when the user is editing any UI control.
-            if (GUIUtility.hotControl != 0)
+            if (GUIUtility.hotControl != 0) 
                 return;
 
             if (!IsCurrentSRPValid(out HDRenderPipeline hdPipeline))
@@ -218,11 +215,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                     var bakedTexturePath = HDBakingUtilities.GetBakedTextureFilePath(probe);
                     HDBakingUtilities.CreateParentDirectoryIfMissing(bakedTexturePath);
-                    Checkout(bakedTexturePath);
-                    // Checkout will make those file writeable, but this is not immediate,
-                    // so we retries when this fails.
-                    if (!HDEditorUtils.CopyFileWithRetryOnUnauthorizedAccess(cacheFile, bakedTexturePath))
-                        return;
+                    File.Copy(cacheFile, bakedTexturePath, true);
                 }
                 // AssetPipeline bug
                 // Sometimes, the baked texture reference is destroyed during 'AssetDatabase.StopAssetEditing()'
@@ -249,6 +242,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     var index = addIndices[i];
                     var instanceId = states[index].instanceID;
                     var probe = (HDProbe)EditorUtility.InstanceIDToObject(instanceId);
+                    var cacheFile = GetGICacheFileForHDProbe(states[index].probeBakingHash);
+
                     var bakedTexturePath = HDBakingUtilities.GetBakedTextureFilePath(probe);
                     var bakedTexture = AssetDatabase.LoadAssetAtPath<Texture>(bakedTexturePath);
                     Assert.IsNotNull(bakedTexture, "The baked texture was imported before, " +
@@ -478,14 +473,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             AssetDatabase.StopAssetEditing();
         }
 
-        static void Checkout(string targetFile)
-        {
-            if (Provider.isActive
-                && HDEditorUtils.IsAssetPath(targetFile)
-                && Provider.GetAssetByPath(targetFile) != null)
-                Provider.Checkout(targetFile, CheckoutMode.Both);
-        }
-
         internal static void AssignRenderData(HDProbe probe, string bakedTexturePath)
         {
             switch (probe.settings.type)
@@ -520,11 +507,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         var positionSettings = ProbeCapturePositionSettings.ComputeFrom(probe, null);
                         HDRenderUtilities.Render(probe.settings, positionSettings, cubeRT,
                             forceFlipY: true,
-                            forceInvertBackfaceCulling: true, // Cubemap have an RHS standard, so we need to invert the face culling
-                            (uint)StaticEditorFlags.ReflectionProbeStatic
+                            forceInvertBackfaceCulling: true // TODO: for an unknown reason, we need to invert the backface culling for baked reflection probes, Remove this
                         );
                         HDBakingUtilities.CreateParentDirectoryIfMissing(targetFile);
-                        Checkout(targetFile);
                         HDTextureUtilities.WriteTextureFileToDisk(cubeRT, targetFile);
                         break;
                     }
@@ -540,15 +525,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                             settings,
                             positionSettings,
                             planarRT,
-                            out var cameraSettings, out var cameraPositionSettings
+                            out CameraSettings cameraSettings, out CameraPositionSettings cameraPositionSettings
                         );
                         HDBakingUtilities.CreateParentDirectoryIfMissing(targetFile);
-                        Checkout(targetFile);
                         HDTextureUtilities.WriteTextureFileToDisk(planarRT, targetFile);
                         var renderData = new HDProbe.RenderData(cameraSettings, cameraPositionSettings);
-                        var targetRenderDataFile = targetFile + ".renderData";
-                        Checkout(targetRenderDataFile);
-                        HDBakingUtilities.TrySerializeToDisk(renderData, targetRenderDataFile);
+                        HDBakingUtilities.TrySerializeToDisk(renderData, targetFile + ".renderData");
                         break;
                     }
             }
@@ -564,16 +546,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         var importer = AssetImporter.GetAtPath(file) as TextureImporter;
                         if (importer == null)
                             return;
-                        var settings = new TextureImporterSettings();
-                        importer.ReadTextureSettings(settings);
-                        settings.sRGBTexture = false;
-                        settings.filterMode = FilterMode.Bilinear;
-                        settings.generateCubemap = TextureImporterGenerateCubemap.AutoCubemap;
-                        settings.cubemapConvolution = TextureImporterCubemapConvolution.None;
-                        settings.seamlessCubemap = false;
-                        settings.wrapMode = TextureWrapMode.Repeat;
-                        settings.aniso = 1;
-                        importer.SetTextureSettings(settings);
+                        importer.sRGBTexture = false;
+                        importer.filterMode = FilterMode.Bilinear;
+                        importer.generateCubemap = TextureImporterGenerateCubemap.AutoCubemap;
                         importer.mipmapEnabled = false;
                         importer.textureCompression = hd.currentPlatformRenderPipelineSettings.lightLoopSettings.reflectionCacheCompressed
                             ? TextureImporterCompression.Compressed

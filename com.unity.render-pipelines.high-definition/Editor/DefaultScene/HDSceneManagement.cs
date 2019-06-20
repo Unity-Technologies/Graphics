@@ -39,14 +39,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         static void NewSceneCreated(Scene scene, NewSceneSetup setup, NewSceneMode mode)
         {
-            if (!InHDRP())
+            if (!InHDRP() || HDProjectSettings.defaultScenePrefab == null)
                 return; // do not interfere outside of hdrp
-
-            if (HDProjectSettings.defaultScenePrefab == null)
-            {
-                Debug.LogWarning("Default Scene not set! Please run Wizard...");
-                return;
-            }
 
             if (setup == NewSceneSetup.DefaultGameObjects)
             {
@@ -115,12 +109,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
             public override void Action(int instanceId, string pathName, string resourceFile)
             {
-                if (HDProjectSettings.defaultScenePrefab == null)
-                {
-                    Debug.LogWarning("Default Scene not set! Please run Wizard...");
-                    return;
-                }
-
                 if (s_CreateEmptySceneAsset(pathName))
                 {
                     UnityEngine.Object sceneAsset = AssetDatabase.LoadAssetAtPath(pathName, typeof(SceneAsset));

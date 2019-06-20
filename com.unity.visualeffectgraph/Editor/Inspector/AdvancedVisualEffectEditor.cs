@@ -157,20 +157,18 @@ namespace UnityEditor.VFX
 
         protected override void AssetField()
         {
+            var component = (VisualEffect)target;
             using (new GUILayout.HorizontalScope())
             {
                 EditorGUILayout.PropertyField(m_VisualEffectAsset, Contents.assetPath);
 
-                GUI.enabled = ! m_VisualEffectAsset.hasMultipleDifferentValues && m_VisualEffectAsset.objectReferenceValue != null; // Enabled state will be kept for all content until the end of the inspectorGUI.
+                GUI.enabled = component.visualEffectAsset != null; // Enabled state will be kept for all content until the end of the inspectorGUI.
                 if (GUILayout.Button(Contents.openEditor, EditorStyles.miniButton, Styles.MiniButtonWidth))
                 {
                     VFXViewWindow window = EditorWindow.GetWindow<VFXViewWindow>();
 
-                    var asset = m_VisualEffectAsset.objectReferenceValue as VisualEffectAsset;
-
-                    window.LoadAsset(asset, targets.Length > 1 ? null : target as VisualEffect);
+                    window.LoadAsset(component.visualEffectAsset, component);
                 }
-                GUI.enabled = true;
             }
         }
 
@@ -178,7 +176,7 @@ namespace UnityEditor.VFX
         {
             EditMode.DoEditModeInspectorModeButton(
                 EditMode.SceneViewEditMode.Collider,
-                "Show Parameter Gizmos",
+                "Show Parameters",
                 EditorGUIUtility.IconContent("EditCollider"),
                 this
             );
@@ -236,23 +234,16 @@ namespace UnityEditor.VFX
 
             GUILayout.BeginHorizontal();
 
-
-            GUILayout.Space(overrideWidth);
-            // Make the label half the width to make the tooltip
-            EditorGUILayout.LabelField(GetGUIContent(name, tooltip), EditorStyles.boldLabel, GUILayout.Width(EditorGUIUtility.labelWidth));
-
-            GUILayout.FlexibleSpace();
-
-            // Toggle Button
             EditorGUI.BeginChangeCheck();
-            bool result = GUILayout.Toggle(m_GizmoedParameter == parameter, new GUIContent("Edit Gizmo"), EditorStyles.miniButton);
-
+            bool result = GUILayout.Toggle(m_GizmoedParameter == parameter, new GUIContent(Resources.Load<Texture2D>(EditorGUIUtility.pixelsPerPoint > 1 ? "VFX/gizmos@2x" : "VFX/gizmos")), GetCurrentSkin().button, GUILayout.Width(overrideWidth));
             if (EditorGUI.EndChangeCheck() && result)
             {
                 m_GizmoedParameter = parameter;
             }
 
-            //GUILayout.FlexibleSpace();
+            // Make the label half the width to make the tooltip
+            EditorGUILayout.LabelField(GetGUIContent(name, tooltip));
+            GUILayout.FlexibleSpace();
             GUILayout.EndHorizontal();
         }
 

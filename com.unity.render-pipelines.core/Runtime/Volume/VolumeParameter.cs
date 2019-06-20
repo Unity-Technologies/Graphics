@@ -149,7 +149,22 @@ namespace UnityEngine.Rendering
             return Equals((VolumeParameter<T>)obj);
         }
 
-        public static explicit operator T(VolumeParameter<T> prop) => prop.m_Value;
+        //
+        // Implicit conversion; assuming the following:
+        //
+        //   var myFloatProperty = new ParameterOverride<float> { value = 42f; };
+        //
+        // It allows for implicit casts:
+        //
+        //   float myFloat = myFloatProperty.value; // No implicit cast
+        //   float myFloat = myFloatProperty;       // Implicit cast
+        //
+        // For safety reason this is one-way only.
+        //
+        public static implicit operator T(VolumeParameter<T> prop)
+        {
+            return prop.m_Value;
+        }
     }
 
     //
@@ -166,13 +181,6 @@ namespace UnityEngine.Rendering
     public class BoolParameter : VolumeParameter<bool>
     {
         public BoolParameter(bool value, bool overrideState = false)
-            : base(value, overrideState) {}
-    }
-
-    [Serializable, DebuggerDisplay(k_DebuggerDisplay)]
-    public class LayerMaskParameter : VolumeParameter<LayerMask>
-    {
-        public LayerMaskParameter(LayerMask value, bool overrideState = false)
             : base(value, overrideState) {}
     }
 

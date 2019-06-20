@@ -3,6 +3,9 @@
 //-----------------------------------------------------------------------------
 // SurfaceData is defined in Hair.cs which generates Hair.cs.hlsl
 #include "Hair.cs.hlsl"
+// Those define allow to include desired SSS/Transmission functions
+#define MATERIAL_INCLUDE_SUBSURFACESCATTERING
+#define MATERIAL_INCLUDE_TRANSMISSION
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/SubsurfaceScattering/SubsurfaceScattering.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/NormalBuffer.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/VolumeRendering.hlsl"
@@ -22,30 +25,29 @@
 
 float3 GetNormalForShadowBias(BSDFData bsdfData)
 {
-#if _USE_LIGHT_FACING_NORMAL
-    // TODO: should probably bias towards the light for splines...
     return bsdfData.geomNormalWS;
-#else
-    return bsdfData.geomNormalWS;
-#endif
-}
-
-float GetAmbientOcclusionForMicroShadowing(BSDFData bsdfData)
-{
-    // Don't do micro shadow for hair, don't really make sense
-    return 1.0;
 }
 
 void ClampRoughness(inout BSDFData bsdfData, float minRoughness)
 {
-    bsdfData.perceptualRoughness = max(RoughnessToPerceptualRoughness(minRoughness), bsdfData.perceptualRoughness);
-    bsdfData.secondaryPerceptualRoughness = max(RoughnessToPerceptualRoughness(minRoughness), bsdfData.secondaryPerceptualRoughness);
+    bsdfData.roughnessT = max(minRoughness, bsdfData.roughnessT);
+    bsdfData.roughnessB = max(minRoughness, bsdfData.roughnessB);
+}
+
+float ComputeMicroShadowing(BSDFData bsdfData, float NdotL)
+{
+    return ComputeMicroShadowing(bsdfData.ambientOcclusion, NdotL, _MicroShadowOpacity);
+}
+
+bool MaterialSupportsTransmission(BSDFData bsdfData)
+{
+    return HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_HAIR_TRANSMISSION);
 }
 
 // This function is use to help with debugging and must be implemented by any lit material
 // Implementer must take into account what are the current override component and
 // adjust SurfaceData properties accordingdly
-void ApplyDebugToSurfaceData(float3x3 tangentToWorld, inout SurfaceData surfaceData)
+void ApplyDebugToSurfaceData(float3x3 worldToTangent, inout SurfaceData surfaceData)
 {
 #ifdef DEBUG_DISPLAY
     // NOTE: THe _Debug* uniforms come from /HDRP/Debug/DebugDisplay.hlsl
@@ -71,7 +73,7 @@ void ApplyDebugToSurfaceData(float3x3 tangentToWorld, inout SurfaceData surfaceD
 
     if (overrideNormal)
     {
-        surfaceData.normalWS = tangentToWorld[2];
+        surfaceData.normalWS = worldToTangent[2];
     }
 
     if (_DebugFullScreenMode == FULLSCREENDEBUGMODE_VALIDATE_DIFFUSE_COLOR)
@@ -112,14 +114,20 @@ NormalData ConvertSurfaceDataToNormalData(SurfaceData surfaceData)
     return normalData;
 }
 
+SSSData ConvertSurfaceDataToSSSData(SurfaceData surfaceData)
+{
+    SSSData sssData;
+
+    sssData.diffuseColor = surfaceData.diffuseColor;
+    sssData.subsurfaceMask = surfaceData.subsurfaceMask;
+    sssData.diffusionProfile = surfaceData.diffusionProfile;
+
+    return sssData;
+}
+
 //-----------------------------------------------------------------------------
 // conversion function for forward
 //-----------------------------------------------------------------------------
-
-float RoughnessToBlinnPhongSpecularExponent(float roughness)
-{
-    return clamp(2 * rcp(roughness * roughness) - 2, FLT_EPS, rcp(FLT_EPS));
-}
 
 BSDFData ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfaceData)
 {
@@ -139,9 +147,22 @@ BSDFData ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfaceData)
     bsdfData.perceptualRoughness = PerceptualSmoothnessToPerceptualRoughness(surfaceData.perceptualSmoothness);
 
     // This value will be override by the value in diffusion profile
-    bsdfData.fresnel0                 = DEFAULT_HAIR_SPECULAR_VALUE;
-    bsdfData.transmittance            = surfaceData.transmittance;
-    bsdfData.rimTransmissionIntensity = surfaceData.rimTransmissionIntensity;
+    bsdfData.fresnel0 = DEFAULT_HAIR_SPECULAR_VALUE;
+
+    // Note: we have ZERO_INITIALIZE the struct so bsdfData.anisotropy == 0.0
+    // Note: DIFFUSION_PROFILE_NEUTRAL_ID is 0
+
+    if (HasFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_HAIR_SUBSURFACE_SCATTERING))
+    {
+        // Assign profile id and overwrite fresnel0
+        FillMaterialSSS(surfaceData.diffusionProfile, surfaceData.subsurfaceMask, bsdfData);
+    }
+
+    if (HasFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_HAIR_TRANSMISSION))
+    {
+        // Assign profile id and overwrite fresnel0
+        FillMaterialTransmission(surfaceData.diffusionProfile, surfaceData.thickness, bsdfData);
+    }
 
     // This is the hair tangent (which represents the hair strand direction, root to tip).
     bsdfData.hairStrandDirectionWS = surfaceData.hairStrandDirectionWS;
@@ -155,11 +176,10 @@ BSDFData ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfaceData)
         bsdfData.specularShift = surfaceData.specularShift;
         bsdfData.secondarySpecularShift = surfaceData.secondarySpecularShift;
 
-        float roughness1 = PerceptualRoughnessToRoughness(bsdfData.perceptualRoughness);
-        float roughness2 = PerceptualRoughnessToRoughness(bsdfData.secondaryPerceptualRoughness);
-
-        bsdfData.specularExponent          = RoughnessToBlinnPhongSpecularExponent(roughness1);
-        bsdfData.secondarySpecularExponent = RoughnessToBlinnPhongSpecularExponent(roughness2);
+        // We can rewrite specExp from exp2(10 * (1.0 - roughness)) in order
+        // to remove the need to take the square root of sinTH
+        bsdfData.specularExponent = exp2(9.0 - 10.0 * PerceptualRoughnessToRoughness(bsdfData.perceptualRoughness));
+        bsdfData.secondarySpecularExponent = exp2(9.0 - 10.0 * PerceptualRoughnessToRoughness(bsdfData.secondaryPerceptualRoughness));
 
         bsdfData.anisotropy = 0.8; // For hair we fix the anisotropy
     }
@@ -241,26 +261,21 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, inout BSDFData b
     PreLightData preLightData;
     // Don't init to zero to allow to track warning about uninitialized data
 
-#if _USE_LIGHT_FACING_NORMAL
-    float3 N = ComputeViewFacingNormal(V, bsdfData.hairStrandDirectionWS);
-#else
     float3 N = bsdfData.normalWS;
-#endif
-
     preLightData.NdotV = dot(N, V);
-    float clampedNdotV = ClampNdotV(preLightData.NdotV);
+
+    float NdotV = ClampNdotV(preLightData.NdotV);
 
     float unused;
+    float3 iblN;
 
     if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_HAIR_KAJIYA_KAY))
     {
         // Note: For Kajiya hair we currently rely on a single cubemap sample instead of two, as in practice smoothness of both lobe aren't too far from each other.
         // and we take smoothness of the secondary lobe as it is often more rough (it is the colored one).
         preLightData.iblPerceptualRoughness = bsdfData.secondaryPerceptualRoughness;
-        // TODO: adjust for Blinn-Phong here?
-        GetPreIntegratedFGDGGXAndDisneyDiffuse(clampedNdotV, preLightData.iblPerceptualRoughness, bsdfData.fresnel0, preLightData.specularFGD, preLightData.diffuseFGD, unused);
+        GetPreIntegratedFGDGGXAndDisneyDiffuse(NdotV, preLightData.iblPerceptualRoughness, bsdfData.fresnel0, preLightData.specularFGD, preLightData.diffuseFGD, unused);
         // We used lambert for hair for now
-        // Note: this normalization term is wrong, correct one is (1/(Pi^2)).
         preLightData.diffuseFGD = 1.0;
     }
     else
@@ -270,11 +285,10 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, inout BSDFData b
         preLightData.diffuseFGD = 1.0;
     }
 
-    // Stretch hack... Copy-pasted from GGX, ALU-optimized for hair.
-    // float3 iblN = normalize(lerp(bsdfData.normalWS, N, bsdfData.anisotropy));
-    float3 iblN = N;
+    // perceptualRoughness is use as input and output here
+    GetGGXAnisotropicModifiedNormalAndRoughness(bsdfData.hairStrandDirectionWS, bsdfData.hairStrandDirectionWS, N, V, bsdfData.anisotropy, preLightData.iblPerceptualRoughness, iblN, preLightData.iblPerceptualRoughness);
+
     preLightData.iblR = reflect(-V, iblN);
-    preLightData.iblPerceptualRoughness *= saturate(1.2 - abs(bsdfData.anisotropy));
 
     return preLightData;
 }
@@ -293,9 +307,15 @@ void ModifyBakedDiffuseLighting(float3 V, PositionInputs posInput, SurfaceData s
     PreLightData preLightData = GetPreLightData(V, posInput, bsdfData);
 
     // Add GI transmission contribution to bakeDiffuseLighting, we then drop backBakeDiffuseLighting (i.e it is not used anymore, this save VGPR)
+    if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_HAIR_TRANSMISSION))
     {
-        // TODO: disabled until further notice (not clear how to handle occlusion).
-        //builtinData.bakeDiffuseLighting += builtinData.backBakeDiffuseLighting * bsdfData.transmittance;
+        builtinData.bakeDiffuseLighting += builtinData.backBakeDiffuseLighting * bsdfData.transmittance;
+    }
+
+    // For SSS we need to take into account the state of diffuseColor 
+    if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_HAIR_SUBSURFACE_SCATTERING))
+    {
+        bsdfData.diffuseColor = GetModifiedDiffuseColorForSSS(bsdfData);
     }
 
     // Premultiply (back) bake diffuse lighting information with diffuse pre-integration
@@ -328,83 +348,63 @@ LightTransportData GetLightTransportData(SurfaceData surfaceData, BuiltinData bu
 // BSDF share between directional light, punctual light and area light (reference)
 //-----------------------------------------------------------------------------
 
-bool IsNonZeroBSDF(float3 V, float3 L, PreLightData preLightData, BSDFData bsdfData)
+//http://web.engr.oregonstate.edu/~mjb/cs519/Projects/Papers/HairRendering.pdf
+float3 ShiftTangent(float3 T, float3 N, float shift)
 {
-    return true; // Due to either reflection or transmission being always active
+    return normalize(T + N * shift);
 }
 
-CBSDF EvaluateBSDF(float3 V, float3 L, PreLightData preLightData, BSDFData bsdfData)
+float3 D_KajiyaKay(float3 T, float3 H, float specularExponent)
 {
-    CBSDF cbsdf;
-    ZERO_INITIALIZE(CBSDF, cbsdf);
+    float TdotH = dot(T, H);
+    float sinTHSq = saturate(1.0 - (TdotH * TdotH));
 
-    float3 T = bsdfData.hairStrandDirectionWS;
-    float3 N = bsdfData.normalWS;
+    float dirAttn = saturate(TdotH + 1.0);
 
-#if _USE_LIGHT_FACING_NORMAL
-    // The Kajiya-Kay model has a "built-in" transmission, and the 'NdotL' is always positive.
-    float cosTL = dot(T, L);
-    float sinTL = sqrt(saturate(1.0 - cosTL * cosTL));
-    float NdotL = sinTL; // Corresponds to the cosine w.r.t. the light-facing normal
-#else
-    // Double-sided Lambert.
-    float NdotL = dot(N, L);
-#endif
+    return dirAttn * PositivePow(sinTHSq, specularExponent);
+}
 
-    float NdotV = preLightData.NdotV;
-    float clampedNdotV = ClampNdotV(NdotV);
-    float clampedNdotL = saturate(NdotL);
-
-    float LdotV, NdotH, LdotH, invLenLV;
-    GetBSDFAngle(V, L, NdotL, NdotV, LdotV, NdotH, LdotH, invLenLV);
+// This function apply BSDF. Assumes that NdotL is positive.
+void BSDF(  float3 V, float3 L, float NdotL, float3 positionWS, PreLightData preLightData, BSDFData bsdfData,
+            out float3 diffuseLighting,
+            out float3 specularLighting)
+{
+    float LdotV, NdotH, LdotH, NdotV, invLenLV;
+    GetBSDFAngle(V, L, NdotL, preLightData.NdotV, LdotV, NdotH, LdotH, NdotV, invLenLV);
 
     if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_HAIR_KAJIYA_KAY))
     {
-        float3 t1 = ShiftTangent(T, N, bsdfData.specularShift);
-        float3 t2 = ShiftTangent(T, N, bsdfData.secondarySpecularShift);
+        float3 t1 = ShiftTangent(bsdfData.hairStrandDirectionWS, bsdfData.normalWS, bsdfData.specularShift);
+        float3 t2 = ShiftTangent(bsdfData.hairStrandDirectionWS, bsdfData.normalWS, bsdfData.secondarySpecularShift);
 
         float3 H = (L + V) * invLenLV;
 
-        // Balancing energy between lobes, as well as between diffuse and specular is left to artists.
-        float3 hairSpec1 = bsdfData.specularTint          * D_KajiyaKay(t1, H, bsdfData.specularExponent);
+        float3 hairSpec1 = bsdfData.specularTint * D_KajiyaKay(t1, H, bsdfData.specularExponent);
         float3 hairSpec2 = bsdfData.secondarySpecularTint * D_KajiyaKay(t2, H, bsdfData.secondarySpecularExponent);
 
         float3 F = F_Schlick(bsdfData.fresnel0, LdotH);
+        specularLighting = F * (hairSpec1 + hairSpec2);
 
-    #if _USE_LIGHT_FACING_NORMAL
-        // See "Analytic Tangent Irradiance Environment Maps for Anisotropic Surfaces".
-        cbsdf.diffR = rcp(PI * PI) * clampedNdotL;
-        // Transmission is built into the model, and it's not exactly clear how to split it.
-        cbsdf.diffT = 0;
-    #else
-        // Double-sided Lambert.
-        cbsdf.diffR = Lambert() * clampedNdotL;
-    #endif
-        // Bypass the normal map...
-        float geomNdotV = dot(bsdfData.geomNormalWS, V);
-
-        // G = NdotL * NdotV.
-        cbsdf.specR = 0.25 * F * (hairSpec1 + hairSpec2) * clampedNdotL * saturate(geomNdotV * FLT_MAX);
-
-        // Yibing's and Morten's hybrid scatter model hack.
-        float scatterFresnel1 = pow(saturate(-LdotV), 9.0) * pow(saturate(1.0 - geomNdotV * geomNdotV), 12.0);
-        float scatterFresnel2 = saturate(PositivePow((1.0 - geomNdotV), 20.0));
-
-        cbsdf.specT = scatterFresnel1 + bsdfData.rimTransmissionIntensity * scatterFresnel2;
+        // Diffuse lighting
+        float diffuseTerm = Lambert();
+        diffuseLighting = diffuseTerm;
     }
-
-    return cbsdf;
+    else
+    {
+        specularLighting = float3(0.0, 0.0, 0.0);
+        diffuseLighting = float3(0.0, 0.0, 0.0);
+    }
 }
 
 //-----------------------------------------------------------------------------
 // Surface shading (all light types) below
 //-----------------------------------------------------------------------------
 
-// Hair used precomputed transmittance, no thick transmittance required
-#define MATERIAL_INCLUDE_PRECOMPUTED_TRANSMISSION
+#define USE_DIFFUSE_LAMBERT_BRDF
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightEvaluation.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/MaterialEvaluation.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/SurfaceShading.hlsl"
+#undef USE_DIFFUSE_LAMBERT_BRDF
 
 //-----------------------------------------------------------------------------
 // EvaluateBSDF_Directional
@@ -415,8 +415,8 @@ DirectLighting EvaluateBSDF_Directional(LightLoopContext lightLoopContext,
                                         DirectionalLightData lightData, BSDFData bsdfData,
                                         BuiltinData builtinData)
 {
-    return ShadeSurface_Directional(lightLoopContext, posInput, builtinData,
-                                    preLightData, lightData, bsdfData, V);
+    return ShadeSurface_Directional(lightLoopContext, posInput, builtinData, preLightData, lightData,
+                                    bsdfData, bsdfData.normalWS, V);
 }
 
 //-----------------------------------------------------------------------------
@@ -427,8 +427,8 @@ DirectLighting EvaluateBSDF_Punctual(LightLoopContext lightLoopContext,
                                      float3 V, PositionInputs posInput,
                                      PreLightData preLightData, LightData lightData, BSDFData bsdfData, BuiltinData builtinData)
 {
-    return ShadeSurface_Punctual(lightLoopContext, posInput, builtinData,
-                                 preLightData, lightData, bsdfData, V);
+    return ShadeSurface_Punctual(lightLoopContext, posInput, builtinData, preLightData, lightData,
+                                 bsdfData, bsdfData.normalWS, V);
 }
 
 //-----------------------------------------------------------------------------
@@ -491,7 +491,7 @@ IndirectLighting EvaluateBSDF_ScreenSpaceReflection(PositionInputs posInput,
     ZERO_INITIALIZE(IndirectLighting, lighting);
 
     // TODO: this texture is sparse (mostly black). Can we avoid reading every texel? How about using Hi-S?
-    float4 ssrLighting = LOAD_TEXTURE2D_X(_SsrLightingTexture, posInput.positionSS);
+    float4 ssrLighting = LOAD_TEXTURE2D(_SsrLightingTexture, posInput.positionSS);
 
     // Note: RGB is already premultiplied by A.
     // TODO: we should multiply all indirect lighting by the FGD value only ONCE.
@@ -544,12 +544,14 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
     float iblMipLevel;
     // TODO: We need to match the PerceptualRoughnessToMipmapLevel formula for planar, so we don't do this test (which is specific to our current lightloop)
     // Specific case for Texture2Ds, their convolution is a gaussian one and not a GGX one - So we use another roughness mip mapping.
+#if !defined(SHADER_API_METAL)
     if (IsEnvIndexTexture2D(lightData.envIndex))
     {
         // Empirical remapping
         iblMipLevel = PositivePow(preLightData.iblPerceptualRoughness, 0.8) * uint(max(_ColorPyramidScale.z - 1, 0));
     }
     else
+#endif
     {
         iblMipLevel = PerceptualRoughnessToMipmapLevel(preLightData.iblPerceptualRoughness);
     }
@@ -585,10 +587,15 @@ void PostEvaluateBSDF(  LightLoopContext lightLoopContext,
     GetScreenSpaceAmbientOcclusionMultibounce(posInput.positionSS, preLightData.NdotV, bsdfData.perceptualRoughness, bsdfData.ambientOcclusion, bsdfData.specularOcclusion, bsdfData.diffuseColor, bsdfData.fresnel0, aoFactor);
     ApplyAmbientOcclusionFactor(aoFactor, builtinData, lighting);
 
+    // Subsurface scattering mode
+    float3 modifiedDiffuseColor = GetModifiedDiffuseColorForSSS(bsdfData);
+
     // Apply the albedo to the direct diffuse lighting (only once). The indirect (baked)
     // diffuse lighting has already multiply the albedo in ModifyBakedDiffuseLighting().
-    diffuseLighting = bsdfData.diffuseColor * lighting.direct.diffuse + builtinData.bakeDiffuseLighting + builtinData.emissiveColor;
+    diffuseLighting = modifiedDiffuseColor * lighting.direct.diffuse + builtinData.bakeDiffuseLighting + builtinData.emissiveColor;
     specularLighting = lighting.direct.specular + lighting.indirect.specularReflected;
+
+    // TODO: Multiscattering for cloth?
 
 #ifdef DEBUG_DISPLAY
     PostEvaluateBSDFDebugDisplay(aoFactor, builtinData, lighting, bsdfData.diffuseColor, diffuseLighting, specularLighting);

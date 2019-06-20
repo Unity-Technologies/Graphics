@@ -4,9 +4,8 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Experimental.VFX;
 
-namespace UnityEngine.Experimental.VFX.Utility
+namespace UnityEngine.VFX.Utils
 {
-    [AddComponentMenu("VFX/Utilities/Parameters/VFX Plane Binder")]
     [VFXBinder("Utility/Plane")]
     public class VFXPlaneBinder : VFXBinderBase
     {

@@ -10,13 +10,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public fixed float _ShadowAtlasSize[4];
         [HLSLArray(0, typeof(Vector4))]
         public fixed float _CascadeShadowAtlasSize[4];
-        [HLSLArray(0, typeof(Vector4))]
-        public fixed float _AreaShadowAtlasSize[4];
 
         [HLSLArray(s_MaxEnv2DLight, typeof(Matrix4x4))]
         public fixed float _Env2DCaptureVP[s_MaxEnv2DLight * 4 * 4];
-        [HLSLArray(s_MaxEnv2DLight * 3, typeof(float))]
-        public fixed float _Env2DCaptureForward[s_MaxEnv2DLight * 3];
 
         public uint _DirectionalLightCount;
 
@@ -57,12 +53,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public int _EnvSliceSize;
         public uint _CookieSizePOT; // Cookie size = 1 << _CookieSizePOT
-
-        // Uniform variables that defines if we shall be using the raytraced indirect diffuse
-        public int _RaytracedIndirectDiffuse;
-
-        // Value that stores the size of the array
-        public uint _ScreenSpaceShadowArraySize;
     }
 }
 

@@ -74,37 +74,6 @@ float4 SampleTexture(VFXSampler2D s,float2 coords,float level = 0.0f)
     return s.t.SampleLevel(s.s,coords, level);
 }
 
-// Invert 3D transformation matrix (not perspective). Adapted from graphics gems 2.
-// Inverts upper left by calculating its determinant and multiplying it to the symmetric
-// adjust matrix of each element. Finally deals with the translation by transforming the
-// original translation using by the calculated inverse.
-//https://github.com/erich666/GraphicsGems/blob/master/gemsii/inverse.c
-float4x4 VFXInverseTRSMatrix(float4x4 input)
-{
-    float4x4 output = (float4x4)0;
-
-    //Fill output with cofactor
-    output._m00 = input._m11 * input._m22 - input._m21 * input._m12;
-    output._m01 = input._m21 * input._m02 - input._m01 * input._m22;
-    output._m02 = input._m01 * input._m12 - input._m11 * input._m02;
-    output._m10 = input._m20 * input._m12 - input._m10 * input._m22;
-    output._m11 = input._m00 * input._m22 - input._m20 * input._m02;
-    output._m12 = input._m10 * input._m02 - input._m00 * input._m12;
-    output._m20 = input._m10 * input._m21 - input._m20 * input._m11;
-    output._m21 = input._m20 * input._m01 - input._m00 * input._m21;
-    output._m22 = input._m00 * input._m11 - input._m10 * input._m01;
-
-    //Multiply by reciprocal determinant
-    float det = determinant((float3x3)input);
-    output *= rcp(det);
-
-    // Do the translation part
-    output._m03_m13_m23 = -mul((float3x3)output, input._m03_m13_m23);
-    output._m33 = 1.0f;
-
-    return output;
-}
-
 float4 SampleTexture(VFXSampler2DArray s,float2 coords,float slice,float level = 0.0f)
 {
     return s.t.SampleLevel(s.s,float3(coords,slice),level);
@@ -350,13 +319,7 @@ float4 SampleGradient(float v,float u)
 float SampleCurve(float4 curveData,float u)
 {
     float uNorm = (u * curveData.x) + curveData.y;
-
-#if defined(SHADER_API_METAL)
-    // Workaround metal compiler crash that is caused by switch statement uint byte shift
-    switch(asint(curveData.w) >> 2)
-#else
     switch(asuint(curveData.w) >> 2)
-#endif
     {
         case 1: uNorm = HalfTexelOffset(frac(min(1.0f - 1e-10f,uNorm))); break; // clamp end. Dont clamp at 1 or else the frac will make it 0...
         case 2: uNorm = HalfTexelOffset(frac(max(0.0f,uNorm))); break; // clamp start
@@ -459,13 +422,12 @@ struct VFXUVData
 {
     float4 uvs;
     float  blend;
-    float4 mvs;
 };
 
 float4 SampleTexture(VFXSampler2D s, VFXUVData uvData)
 {
-    float4 s0 = s.t.Sample(s.s, uvData.uvs.xy + uvData.mvs.xy);
-    float4 s1 = s.t.Sample(s.s, uvData.uvs.zw + uvData.mvs.zw);
+    float4 s0 = s.t.Sample(s.s, uvData.uvs.xy);
+    float4 s1 = s.t.Sample(s.s, uvData.uvs.zw);
     return lerp(s0, s1, uvData.blend);
 }
 

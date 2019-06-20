@@ -38,9 +38,6 @@ namespace UnityEditor.VFX.Operator
             }
         }
 
-        [SerializeField, VFXSetting]
-        private VFXOperatorUtility.SequentialAddressingMode mode = VFXOperatorUtility.SequentialAddressingMode.Wrap;
-
         protected override VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
             var index = inputExpression[0];
@@ -52,7 +49,7 @@ namespace UnityEditor.VFX.Operator
             var axisY = inputExpression[6];
             var axisZ = inputExpression[7];
 
-            return new[] { VFXOperatorUtility.Sequential3D(origin, axisX, axisY, axisZ, index, countX, countY, countZ, mode) };
+            return new[] { VFXOperatorUtility.Sequential3D(origin, axisX, axisY, axisZ, index, countX, countY, countZ) };
         }
     }
 }

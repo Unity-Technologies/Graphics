@@ -122,11 +122,11 @@ namespace UnityEditor.VFX.UIElements
         VisualElement CreateEyeDropper()
         {
             Texture2D eyeDropperIcon = EditorGUIUtility.IconContent("EyeDropper.Large").image as Texture2D;
-            var eyeDropper = new VisualElement();
+            VisualElement eyeDropper = new VisualElement();
 
             eyeDropper.style.backgroundImage = eyeDropperIcon;
-            eyeDropper.style.width = 20;
-            eyeDropper.style.height = 20;
+            eyeDropper.style.width = eyeDropperIcon.width;
+            eyeDropper.style.height = eyeDropperIcon.height;
 
             eyeDropper.RegisterCallback<MouseDownEvent>(OnEyeDropperStart);
 

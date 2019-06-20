@@ -121,7 +121,7 @@ namespace UnityEditor.VFX.UI
 
         void CleanupNameField()
         {
-            m_NameField.style.display = DisplayStyle.None;
+            m_NameField.visible = false;
         }
 
         public void SetSelectable()
@@ -142,7 +142,8 @@ namespace UnityEditor.VFX.UI
             m_NameField.Q("unity-text-input").RegisterCallback<FocusOutEvent>(e => { OnEditTextSucceded(); });
             m_NameField.Q("unity-text-input").RegisterCallback<KeyDownEvent>(OnTextFieldKeyPressed);
             m_Header.pickingMode = PickingMode.Position;
-            m_NameField.style.display = DisplayStyle.None;
+
+            m_NameField.visible = false;
         }
 
         void ToggleExpand()
@@ -190,7 +191,7 @@ namespace UnityEditor.VFX.UI
 
                 if (value)
                 {
-                    m_MainContainer.Insert(1,m_Header);
+                    m_MainContainer.Add(m_Header);
                 }
                 else
                 {
@@ -330,8 +331,8 @@ namespace UnityEditor.VFX.UI
         public void OpenTextEditor()
         {
             m_NameField.value = title;
-            m_NameField.style.display = DisplayStyle.Flex;
-            m_NameField.Q(TextField.textInputUssName).Focus();
+            m_NameField.visible = true;
+            m_NameField.Q("unity-text-input").Focus();
             m_NameField.SelectAll();
         }
 

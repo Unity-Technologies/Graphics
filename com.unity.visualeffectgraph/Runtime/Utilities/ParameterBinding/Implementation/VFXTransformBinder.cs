@@ -1,8 +1,11 @@
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
 using UnityEngine.Experimental.VFX;
 
-namespace UnityEngine.Experimental.VFX.Utility
+namespace UnityEngine.VFX.Utils
 {
-    [AddComponentMenu("VFX/Utilities/Parameters/VFX Transform Binder")]
     [VFXBinder("Transform/Transform")]
     public class VFXTransformBinder : VFXBinderBase
     {

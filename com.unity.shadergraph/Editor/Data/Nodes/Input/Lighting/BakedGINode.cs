@@ -5,14 +5,13 @@ using UnityEditor.ShaderGraph.Drawing.Controls;
 
 namespace UnityEditor.ShaderGraph
 {
-    [FormerName("UnityEditor.ShaderGraph.BakedGAbstractMaterialNode")]
     [FormerName("UnityEditor.ShaderGraph.LightProbeNode")]
     [Title("Input", "Lighting", "Baked GI")]
-    class BakedGINode : CodeFunctionNode
+    class BakedGAbstractMaterialNode : CodeFunctionNode
     {
         public override bool hasPreview { get { return false; } }
 
-        public BakedGINode()
+        public BakedGAbstractMaterialNode()
         {
             name = "Baked GI";
         }

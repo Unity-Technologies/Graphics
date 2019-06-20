@@ -36,7 +36,7 @@ namespace UnityEditor.VFX.UI
             {
                 if (portType != null)
                 {
-                    return VFXConverter.ConvertTo(owner.GetSettingValue(name), portType);
+                    return VFXConverter.ConvertTo(owner.GetType().GetField(name, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance).GetValue(owner), portType);
                 }
                 else
                 {
@@ -94,7 +94,7 @@ namespace UnityEditor.VFX.UI
         {
             get
             {
-                var customAttributes = owner.GetSetting(path).field.GetCustomAttributes(true);
+                var customAttributes = owner.GetType().GetField(path, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance).GetCustomAttributes(true);
                 return customAttributes;
             }
         }

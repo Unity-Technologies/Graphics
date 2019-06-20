@@ -46,7 +46,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             for (int gbufferIndex = 0; gbufferIndex < m_BufferCount; ++gbufferIndex)
             {
-                m_RTs[gbufferIndex] = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: rtFormat[gbufferIndex], dimension: TextureXR.dimension, useDynamicScale: true, name: string.Format("GBuffer{0}", gbufferIndex), enableRandomWrite: enableWrite[gbufferIndex]); 
+                m_RTs[gbufferIndex] = RTHandles.Alloc(Vector2.one, colorFormat: rtFormat[gbufferIndex], filterMode: FilterMode.Point, xrInstancing: true, useDynamicScale: true, name: string.Format("GBuffer{0}", gbufferIndex), enableRandomWrite: enableWrite[gbufferIndex]); 
                 m_RTIDs[gbufferIndex] = m_RTs[gbufferIndex].nameID;
                 m_TextureShaderIDs[gbufferIndex] = HDShaderIDs._GBufferTexture[gbufferIndex];
 
@@ -70,7 +70,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (m_LightLayers >= 0)
                 cmd.SetGlobalTexture(HDShaderIDs._LightLayersTexture, m_RTs[m_LightLayers]);
             else
-                cmd.SetGlobalTexture(HDShaderIDs._LightLayersTexture, TextureXR.GetWhiteTexture()); // This is never use but need to be bind as the read is inside a if
+                cmd.SetGlobalTexture(HDShaderIDs._LightLayersTexture, Texture2D.whiteTexture); // This is never use but need to be bind as the read is inside a if
         }
 
         // This function will setup the required render target array. This take into account if shadow mask and light layers are enabled or not.

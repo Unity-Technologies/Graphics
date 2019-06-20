@@ -48,8 +48,9 @@ namespace UnityEditor.VFX.UI
             titleContainer.Insert(1, m_EnableToggle);
 
             capabilities &= ~Capabilities.Ascendable;
-            capabilities |= Capabilities.Selectable | Capabilities.Droppable;
-            this.AddManipulator(new SelectionDropper());
+            capabilities |= Capabilities.Selectable;
+
+            //this.AddManipulator(new TrickleClickSelector());
 
             Profiler.EndSample();
             style.position = PositionType.Relative;
@@ -84,11 +85,6 @@ namespace UnityEditor.VFX.UI
                 inputContainer.SetEnabled(controller.model.enabled);
             if (settingsContainer != null)
                 settingsContainer.SetEnabled(controller.model.enabled);
-
-            if (!controller.model.isValid)
-                AddToClassList("invalid");
-            else
-                RemoveFromClassList("invalid");
         }
 
         public override bool superCollapsed

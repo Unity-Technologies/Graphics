@@ -51,5 +51,17 @@ namespace UnityEditor.ShaderGraph.Drawing
             if (styles.TryGetValue(k_OutputColorProperty, out outputValue))
                 m_OutputColor = outputValue;
         }
+
+        protected override void DrawEdge()
+        {
+            if (!UpdateEdgeControl())
+                return;
+
+            edgeControl.edgeWidth = edgeWidth;
+            edgeControl.inputColor = isGhostEdge ? ghostColor : (selected ? selectedColor : inputColor);
+            edgeControl.outputColor = isGhostEdge ? ghostColor : (selected ? selectedColor : outputColor);
+//            edgeControl.startCapColor = edgeControl.outputColor;
+//            edgeControl.endCapColor = edgeControl.inputColor;
+        }
     }
 }

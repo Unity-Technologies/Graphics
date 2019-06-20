@@ -24,8 +24,8 @@ Shader "Hidden/HDRP/DrawTransmittanceGraph"
 
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/CommonMaterial.hlsl"
+            #define USE_LEGACY_UNITY_MATRIX_VARIABLES
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/EditorShaderVariables.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/DiffusionProfile/DiffusionProfile.hlsl"
 
             //-------------------------------------------------------------------------------------
@@ -54,8 +54,7 @@ Shader "Hidden/HDRP/DrawTransmittanceGraph"
             Varyings Vert(Attributes input)
             {
                 Varyings output;
-                // We still use the legacy matrices in the editor GUI
-                output.vertex   = mul(unity_MatrixVP, float4(input.vertex, 1));
+                output.vertex   = TransformWorldToHClip(input.vertex);
                 output.texcoord = input.texcoord.xy;
                 return output;
             }

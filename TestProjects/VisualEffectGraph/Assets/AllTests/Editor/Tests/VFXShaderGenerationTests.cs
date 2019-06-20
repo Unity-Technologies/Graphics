@@ -22,7 +22,7 @@ namespace UnityEditor.VFX.Test
             {
                 AssetDatabase.DeleteAsset(tempFilePath);
             }
-            var asset = VisualEffectAssetEditorUtility.CreateNewAsset(tempFilePath);
+            var asset = VisualEffectResource.CreateNewAsset(tempFilePath);
 
             VisualEffectResource resource = asset.GetResource(); // force resource creation
 
@@ -92,6 +92,7 @@ namespace UnityEditor.VFX.Test
 
             foreach (var initBlock in initBlocks)
             {
+                graph.AddChild(initBlock);
                 initContext.AddChild(initBlock);
             }
 
@@ -125,7 +126,7 @@ namespace UnityEditor.VFX.Test
             {
                 get
                 {
-                    return VFXContextType.InitAndUpdate;
+                    return VFXContextType.kInitAndUpdate;
                 }
             }
 
@@ -133,7 +134,7 @@ namespace UnityEditor.VFX.Test
             {
                 get
                 {
-                    return VFXDataType.Particle;
+                    return VFXDataType.kParticle;
                 }
             }
 

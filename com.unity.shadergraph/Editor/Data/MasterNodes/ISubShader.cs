@@ -7,6 +7,5 @@ namespace UnityEditor.ShaderGraph
     {
         string GetSubshader(IMasterNode masterNode, GenerationMode mode, List<string> sourceAssetDependencyPaths = null);
         bool IsPipelineCompatible(RenderPipelineAsset renderPipelineAsset);
-        int GetPreviewPassIndex();
     }
 }

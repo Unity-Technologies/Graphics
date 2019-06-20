@@ -9,13 +9,7 @@ namespace UnityEditor.VFX
     {
         sealed protected override bool CanConvertFrom(Type type)
         {
-            return base.CanConvertFrom(type)
-                || VFXSlotFloat3.CanConvertFromVector3(type);
-        }
-
-        sealed protected override VFXExpression ConvertExpression(VFXExpression expression, VFXSlot sourceSlot)
-        {
-            return VFXSlotFloat3.ConvertExpressionToVector3(expression);
+            return base.CanConvertFrom(type) || type == typeof(Vector3) || type == typeof(Position) || type == typeof(DirectionType);
         }
 
         sealed public override VFXValue DefaultExpression(VFXValue.Mode mode)

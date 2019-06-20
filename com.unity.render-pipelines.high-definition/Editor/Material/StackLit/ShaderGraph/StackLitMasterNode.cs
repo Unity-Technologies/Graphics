@@ -8,11 +8,6 @@ using UnityEditor.ShaderGraph.Drawing.Controls;
 using UnityEngine;
 using UnityEngine.UIElements;
 using UnityEngine.Experimental.Rendering.HDPipeline;
-using UnityEditor.ShaderGraph.Drawing.Inspector;
-using UnityEngine.Rendering;
-
-// Include material common properties names
-using static UnityEngine.Experimental.Rendering.HDPipeline.HDMaterialProperties;
 
 //TODOTODO: 
 // clamp in shader code the ranged() properties
@@ -34,12 +29,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         public const string SubsurfaceMaskSlotName = "SubsurfaceMask";
         public const string ThicknessSlotName = "Thickness";
-        public const string DiffusionProfileHashSlotName = "DiffusionProfileHash";
+        public const string DiffusionProfileSlotName = "DiffusionProfile";
 
         public const string IridescenceMaskSlotName = "IridescenceMask";
         public const string IridescenceThicknessSlotName = "IridescenceThickness";
-        public const string IridescenceCoatFixupTIRSlotName = "IridescenceCoatFixupTIR";
-        public const string IridescenceCoatFixupTIRClampSlotName = "IridescenceCoatFixupTIRClamp";
 
         public const string SpecularColorSlotName = "SpecularColor";
         public const string MetallicSlotName = "Metallic";
@@ -63,7 +56,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         public const string CoatThicknessSlotName = "CoatThickness";
         public const string CoatExtinctionSlotName = "CoatExtinction";
         public const string CoatNormalSlotName = "CoatNormal";
-        public const string CoatMaskSlotName = "CoatMask";
 
         public const string LobeMixSlotName = "LobeMix";
         public const string HazinessSlotName = "Haziness";
@@ -73,15 +65,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         public const string BakedGISlotName = "BakedGI";
         public const string BakedBackGISlotName = "BakedBackGI";
 
-        // TODO: we would ideally need one value per lobe
-        //public const string SpecularOcclusionSlotName = "SpecularOcclusion";
-
-        public const string SOFixupVisibilityRatioThresholdSlotName = "SOConeFixupVisibilityThreshold";
-        public const string SOFixupStrengthFactorSlotName = "SOConeFixupStrength";
-        public const string SOFixupMaxAddedRoughnessSlotName = "SOConeFixupMaxAddedRoughness";
-
-        public const string DepthOffsetSlotName = "DepthOffset";
-
         public const int PositionSlotId = 0;
         public const int BaseColorSlotId = 1;
         public const int NormalSlotId = 2;
@@ -89,7 +72,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         public const int TangentSlotId = 4;
         public const int SubsurfaceMaskSlotId = 5;
         public const int ThicknessSlotId = 6;
-        public const int DiffusionProfileHashSlotId = 7;
+        public const int DiffusionProfileSlotId = 7;
         public const int IridescenceMaskSlotId = 8;
         public const int IridescenceThicknessSlotId = 9;
         public const int SpecularColorSlotId = 10;
@@ -122,24 +105,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         public const int LightingSlotId = 34;
         public const int BackLightingSlotId = 35;
 
-        public const int SOFixupVisibilityRatioThresholdSlotId = 36;
-        public const int SOFixupStrengthFactorSlotId = 37;
-        public const int SOFixupMaxAddedRoughnessSlotId = 38;
-
-        public const int CoatMaskSlotId = 39;
-        public const int IridescenceCoatFixupTIRSlotId = 40;
-        public const int IridescenceCoatFixupTIRClampSlotId = 41;
-
-        // TODO: we would ideally need one value per lobe
-        //public const int SpecularOcclusionSlotId = ; // for custom (external) SO replacing data based SO (which comes from DataBasedSOMode(dataAO, optional bent normal))
-
-        public const int DepthOffsetSlotId = 42;
-
         // In StackLit.hlsl engine side
         //public enum BaseParametrization
         //public enum DualSpecularLobeParametrization
 
-        // Available options for computing Vs (specular occlusion) based on:
+        // TODO: Add other available options for computing Vs based on:
         //
         // baked diffuse visibility (aka "data based AO") orientation 
         // (ie baked visibility cone (aka "bent visibility cone") orientation)
@@ -153,18 +123,24 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         // Vs (aka specular occlusion) calculation algo from baked diffuse values above and BSDF lobe properties
         // := {triACE - not tuned to account for bent normal, cone BSDF proxy intersection with bent cone, precise SPTD BSDF proxy lobe integration against the bent cone} }
         //
-        // Note that in Lit SSAO is used with triACE as a clamp value to combine it with the calculations done with the baked AO,
+        // Note that SSAO is used with triACE as a clamp value to combine it with the calculations done with the baked AO,
         // by doing a min(VsFromTriACE+SSAO, VsFromBakedVisibility).
-        // (See in particular Lit.hlsl:PostEvaluateBSDF(), MaterialEvaluation.hlsl:GetScreenSpaceAmbientOcclusionMultibounce(),
+        // This is true for Lit also, see in particular Lit.hlsl:PostEvaluateBSDF(), MaterialEvaluation.hlsl:GetScreenSpaceAmbientOcclusionMultibounce(),
         // where the handed bsdfData.specularOcclusion is data based (baked texture).
-        //
-        // In StackLit, we allow control of the SSAO based SO and also the data based one.
         //
         // Of the algos described above, we can narrow to these combined options:
         // { Off, NoBentNormalTriACE, *ConeCone, *SPTD }, where * is any combination of using the normal or the bentnormal with any of 3 choices to interpret the AO
         // measure for the cone aperture.
         //
-        // See also _DebugSpecularOcclusion.
+        // The bentnormal port can be used to always control baked visibility orientation,
+        // a SpecularOcclusionBaseMode enum could be { Off, TriACE, ConeCone, SPTD }
+        // and we could provide another enum for ConeCone and SPTD like 
+        // SpecularOcclusionBakedVisibilityMeasureMode = { uniform, cos weighted, cos bent weighted }
+        //
+        // These are the optional combinations that are available in the stacklit SO debug properties,
+        // see _DebugSpecularOcclusion.
+        // For now, we only allow an On / Off toggle, but it is easy to add two global defines in StackLit.hlsl
+        // to set specularOcclusionAlgorithm and bentVisibilityAlgorithm if these def (ifdef) are found.
         public enum SpecularOcclusionBaseMode
         {
             Off,
@@ -178,23 +154,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             UniformAO,
             CosWeightedAO,
             CosWeightedBentCorrectAO
-        }
-
-        // This is in case SSAO-based SO method requires it (the SSAO we have doesn't provide a direction)
-        public enum SpecularOcclusionAOConeDir
-        {
-            GeomNormal,
-            BentNormal,
-            ShadingNormal
-        }
-
-        // SO Bent cone fixup is only for methods using visibility cone and only for the data based SO:
-        public enum SpecularOcclusionConeFixupMethod
-        {
-            Off,
-            BoostBSDFRoughness,
-            TiltDirectionToGeomNormal,
-            BoostAndTilt,
         }
 
         // Don't support Multiply
@@ -597,138 +556,19 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
         }
 
-        //[SerializeField]
-        //bool m_SpecularOcclusion; // Main enable
-        //
-        //public ToggleData specularOcclusion
-        //{
-        //    get { return new ToggleData(m_SpecularOcclusion); }
-        //    set
-        //    {
-        //        if (m_SpecularOcclusion == value.isOn)
-        //            return;
-        //        m_SpecularOcclusion = value.isOn;
-        //        UpdateNodeAfterDeserialization();
-        //        Dirty(ModificationScope.Topological);
-        //    }
-        //}
-
+        // TODOTODO: Allow the combinations of the debug mode (fromAO, bentcone+cone, bentone+SPTD) ?
         [SerializeField]
-        SpecularOcclusionBaseMode m_ScreenSpaceSpecularOcclusionBaseMode = SpecularOcclusionBaseMode.DirectFromAO;
+        bool m_SpecularOcclusion;
 
-        public SpecularOcclusionBaseMode screenSpaceSpecularOcclusionBaseMode
+        public ToggleData specularOcclusion
         {
-            get { return m_ScreenSpaceSpecularOcclusionBaseMode; }
+            get { return new ToggleData(m_SpecularOcclusion); }
             set
             {
-                if (m_ScreenSpaceSpecularOcclusionBaseMode == value)
+                if (m_SpecularOcclusion == value.isOn)
                     return;
-
-                m_ScreenSpaceSpecularOcclusionBaseMode = value;
-                UpdateNodeAfterDeserialization();
-                Dirty(ModificationScope.Topological);
-            }
-        }
-
-        [SerializeField]
-        SpecularOcclusionBaseMode m_DataBasedSpecularOcclusionBaseMode = SpecularOcclusionBaseMode.SPTDIntegrationOfBentAO; // ie from baked AO + bentnormal
-
-        public SpecularOcclusionBaseMode dataBasedSpecularOcclusionBaseMode
-        {
-            get { return m_DataBasedSpecularOcclusionBaseMode; }
-            set
-            {
-                if (m_DataBasedSpecularOcclusionBaseMode == value)
-                    return;
-
-                m_DataBasedSpecularOcclusionBaseMode = value;
-                UpdateNodeAfterDeserialization();
-                Dirty(ModificationScope.Topological);
-            }
-        }
-
-        [SerializeField]
-        SpecularOcclusionAOConeSize m_ScreenSpaceSpecularOcclusionAOConeSize; // This is still provided to tweak the effect of SSAO on the SO.
-
-        public SpecularOcclusionAOConeSize screenSpaceSpecularOcclusionAOConeSize
-        {
-            get { return m_ScreenSpaceSpecularOcclusionAOConeSize; }
-            set
-            {
-                if (m_ScreenSpaceSpecularOcclusionAOConeSize == value)
-                    return;
-
-                m_ScreenSpaceSpecularOcclusionAOConeSize = value;
+                m_SpecularOcclusion = value.isOn;
                 Dirty(ModificationScope.Graph);
-            }
-        }
-
-        // See SpecularOcclusionAOConeDir for why we need this only for SSAO-based SO:
-        [SerializeField]
-        SpecularOcclusionAOConeDir m_ScreenSpaceSpecularOcclusionAOConeDir;
-
-        public SpecularOcclusionAOConeDir screenSpaceSpecularOcclusionAOConeDir
-        {
-            get { return m_ScreenSpaceSpecularOcclusionAOConeDir; }
-            set
-            {
-                if (m_ScreenSpaceSpecularOcclusionAOConeDir == value)
-                    return;
-
-                m_ScreenSpaceSpecularOcclusionAOConeDir = value;
-                UpdateNodeAfterDeserialization();
-                Dirty(ModificationScope.Topological);
-            }
-        }
-
-        [SerializeField]
-        SpecularOcclusionAOConeSize m_DataBasedSpecularOcclusionAOConeSize = SpecularOcclusionAOConeSize.CosWeightedBentCorrectAO; // Only for SO methods using visibility cones (ie ConeCone and SPTD)
-
-        public SpecularOcclusionAOConeSize dataBasedSpecularOcclusionAOConeSize
-        {
-            get { return m_DataBasedSpecularOcclusionAOConeSize; }
-            set
-            {
-                if (m_DataBasedSpecularOcclusionAOConeSize == value)
-                    return;
-
-                m_DataBasedSpecularOcclusionAOConeSize = value;
-                Dirty(ModificationScope.Graph);
-            }
-        }
-
-        // TODO: this needs to be per lobe, less useful to have custom input.
-        //[SerializeField]
-        //bool m_SpecularOcclusionIsCustom; // allow custom input port for SO (replaces the data based one)
-        //
-        //public ToggleData specularOcclusionIsCustom
-        //{
-        //    get { return new ToggleData(m_SpecularOcclusionIsCustom); }
-        //    set
-        //    {
-        //        if (m_SpecularOcclusionIsCustom == value.isOn)
-        //            return;
-        //        m_SpecularOcclusionIsCustom = value.isOn;
-        //        UpdateNodeAfterDeserialization();
-        //        Dirty(ModificationScope.Topological);
-        //    }
-        //}
-
-        // SO Bent cone fixup is only for methods using visibility cone and only for the data based SO:
-        [SerializeField]
-        SpecularOcclusionConeFixupMethod m_SpecularOcclusionConeFixupMethod;
-
-        public SpecularOcclusionConeFixupMethod specularOcclusionConeFixupMethod
-        {
-            get { return m_SpecularOcclusionConeFixupMethod; }
-            set
-            {
-                if (m_SpecularOcclusionConeFixupMethod == value)
-                    return;
-
-                m_SpecularOcclusionConeFixupMethod = value;
-                UpdateNodeAfterDeserialization();
-                Dirty(ModificationScope.Topological);
             }
         }
 
@@ -809,70 +649,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 Dirty(ModificationScope.Topological);
             }
         }
-        
-        [SerializeField]
-        bool m_depthOffset;
-
-        public ToggleData depthOffset
-        {
-            get { return new ToggleData(m_depthOffset); }
-            set
-            {
-                if (m_depthOffset == value.isOn)
-                    return;
-                m_depthOffset = value.isOn;
-                UpdateNodeAfterDeserialization();
-                Dirty(ModificationScope.Topological);
-            }
-        }
-        
-        [SerializeField]
-        bool m_ZWrite;
-
-        public ToggleData zWrite
-        {
-            get { return new ToggleData(m_ZWrite); }
-            set
-            {
-                if (m_ZWrite == value.isOn)
-                    return;
-                m_ZWrite = value.isOn;
-                UpdateNodeAfterDeserialization();
-                Dirty(ModificationScope.Topological);
-            }
-        }
-        
-        [SerializeField]
-        TransparentCullMode m_transparentCullMode = TransparentCullMode.Back;
-        public TransparentCullMode transparentCullMode
-        {
-            get => m_transparentCullMode;
-            set
-            {
-                if (m_transparentCullMode == value)
-                    return;
-
-                m_transparentCullMode = value;
-                UpdateNodeAfterDeserialization();
-                Dirty(ModificationScope.Graph);
-            }
-        }
-
-        [SerializeField]
-        CompareFunction m_ZTest = CompareFunction.LessEqual;
-        public CompareFunction zTest
-        {
-            get => m_ZTest;
-            set
-            {
-                if (m_ZTest == value)
-                    return;
-
-                m_ZTest = value;
-                UpdateNodeAfterDeserialization();
-                Dirty(ModificationScope.Graph);
-            }
-        }
 
         public StackLitMasterNode()
         {
@@ -887,25 +663,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         public bool HasDistortion()
         {
             return (surfaceType == SurfaceType.Transparent && distortion.isOn);
-        }
-
-        public static bool SpecularOcclusionModeUsesVisibilityCone(SpecularOcclusionBaseMode soMethod)
-        {
-            return (soMethod == SpecularOcclusionBaseMode.ConeConeFromBentAO
-                || soMethod == SpecularOcclusionBaseMode.SPTDIntegrationOfBentAO);
-        }
-
-        public bool SpecularOcclusionUsesBentNormal()
-        {
-            return (SpecularOcclusionModeUsesVisibilityCone(dataBasedSpecularOcclusionBaseMode)
-                    || (SpecularOcclusionModeUsesVisibilityCone(screenSpaceSpecularOcclusionBaseMode) 
-                        && screenSpaceSpecularOcclusionAOConeDir == SpecularOcclusionAOConeDir.BentNormal));
-        }
-
-        public static bool SpecularOcclusionConeFixupMethodModifiesRoughness(SpecularOcclusionConeFixupMethod soConeFixupMethod)
-        {
-            return (soConeFixupMethod == SpecularOcclusionConeFixupMethod.BoostBSDFRoughness
-                || soConeFixupMethod == SpecularOcclusionConeFixupMethod.BoostAndTilt);
         }
 
         public sealed override void UpdateNodeAfterDeserialization()
@@ -927,7 +684,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             AddSlot(new TangentMaterialSlot(TangentSlotId, TangentSlotName, TangentSlotName, CoordinateSpace.Tangent, ShaderStageCapability.Fragment));
             validSlots.Add(TangentSlotId);
 
-            AddSlot(new ColorRGBMaterialSlot(BaseColorSlotId, BaseColorSlotName, BaseColorSlotName, SlotType.Input, Color.grey.gamma, ColorMode.Default, ShaderStageCapability.Fragment));
+            AddSlot(new ColorRGBMaterialSlot(BaseColorSlotId, BaseColorSlotName, BaseColorSlotName, SlotType.Input, Color.white, ColorMode.Default, ShaderStageCapability.Fragment));
             validSlots.Add(BaseColorSlotId);
 
             if (baseParametrization == StackLit.BaseParametrization.BaseMetallic)
@@ -955,28 +712,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             AddSlot(new Vector1MaterialSlot(AmbientOcclusionSlotId, AmbientOcclusionSlotName, AmbientOcclusionSlotName, SlotType.Input, 1.0f, ShaderStageCapability.Fragment));
             validSlots.Add(AmbientOcclusionSlotId);
 
-            // TODO: we would ideally need one value per lobe
-            //if (specularOcclusion.isOn && specularOcclusionIsCustom.isOn)
-            //{
-            //
-            //    AddSlot(new Vector1MaterialSlot(SpecularOcclusionSlotId, SpecularOcclusionSlotName, SpecularOcclusionSlotName, SlotType.Input, 1.0f, ShaderStageCapability.Fragment))
-            //    validSlots.Add(SpecularOcclusionSlotId);
-            //}
-
-            if (SpecularOcclusionUsesBentNormal() && specularOcclusionConeFixupMethod != SpecularOcclusionConeFixupMethod.Off)
-            {
-                AddSlot(new Vector1MaterialSlot(SOFixupVisibilityRatioThresholdSlotId, SOFixupVisibilityRatioThresholdSlotName, SOFixupVisibilityRatioThresholdSlotName, SlotType.Input, 0.2f, ShaderStageCapability.Fragment));
-                validSlots.Add(SOFixupVisibilityRatioThresholdSlotId);
-                AddSlot(new Vector1MaterialSlot(SOFixupStrengthFactorSlotId, SOFixupStrengthFactorSlotName, SOFixupStrengthFactorSlotName, SlotType.Input, 1.0f, ShaderStageCapability.Fragment));
-                validSlots.Add(SOFixupStrengthFactorSlotId);
-
-                if (SpecularOcclusionConeFixupMethodModifiesRoughness(specularOcclusionConeFixupMethod))
-                {
-                    AddSlot(new Vector1MaterialSlot(SOFixupMaxAddedRoughnessSlotId, SOFixupMaxAddedRoughnessSlotName, SOFixupMaxAddedRoughnessSlotName, SlotType.Input, 0.2f, ShaderStageCapability.Fragment));
-                    validSlots.Add(SOFixupMaxAddedRoughnessSlotId);
-                }
-            }
-
             if (coat.isOn)
             {
                 AddSlot(new Vector1MaterialSlot(CoatSmoothnessSlotId, CoatSmoothnessSlotName, CoatSmoothnessSlotName, SlotType.Input, 1.0f, ShaderStageCapability.Fragment));
@@ -993,9 +728,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     AddSlot(new NormalMaterialSlot(CoatNormalSlotId, CoatNormalSlotName, CoatNormalSlotName, CoordinateSpace.Tangent, ShaderStageCapability.Fragment));
                     validSlots.Add(CoatNormalSlotId);
                 }
-
-                AddSlot(new Vector1MaterialSlot(CoatMaskSlotId, CoatMaskSlotName, CoatMaskSlotName, SlotType.Input, 1.0f, ShaderStageCapability.Fragment));
-                validSlots.Add(CoatMaskSlotId);
             }
 
             if (dualSpecularLobe.isOn)
@@ -1034,13 +766,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 validSlots.Add(IridescenceMaskSlotId);
                 AddSlot(new Vector1MaterialSlot(IridescenceThicknessSlotId, IridescenceThicknessSlotName, IridescenceThicknessSlotName, SlotType.Input, 0.0f, ShaderStageCapability.Fragment));
                 validSlots.Add(IridescenceThicknessSlotId);
-                if (coat.isOn)
-                {
-                    AddSlot(new Vector1MaterialSlot(IridescenceCoatFixupTIRSlotId, IridescenceCoatFixupTIRSlotName, IridescenceCoatFixupTIRSlotName, SlotType.Input, 0.0f, ShaderStageCapability.Fragment));
-                    validSlots.Add(IridescenceCoatFixupTIRSlotId);
-                    AddSlot(new Vector1MaterialSlot(IridescenceCoatFixupTIRClampSlotId, IridescenceCoatFixupTIRClampSlotName, IridescenceCoatFixupTIRClampSlotName, SlotType.Input, 0.0f, ShaderStageCapability.Fragment));
-                    validSlots.Add(IridescenceCoatFixupTIRClampSlotId);
-                }
             }
 
             if (subsurfaceScattering.isOn)
@@ -1057,8 +782,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             if (subsurfaceScattering.isOn || transmission.isOn)
             {
-                AddSlot(new DiffusionProfileInputMaterialSlot(DiffusionProfileHashSlotId, DiffusionProfileHashSlotName, DiffusionProfileHashSlotName, ShaderStageCapability.Fragment));
-                validSlots.Add(DiffusionProfileHashSlotId);
+                AddSlot(new DiffusionProfileInputMaterialSlot(DiffusionProfileSlotId, DiffusionProfileSlotName, DiffusionProfileSlotName, ShaderStageCapability.Fragment));
+                validSlots.Add(DiffusionProfileSlotId);
             }
 
             AddSlot(new Vector1MaterialSlot(AlphaSlotId, AlphaSlotName, AlphaSlotName, SlotType.Input, 1.0f, ShaderStageCapability.Fragment));
@@ -1097,12 +822,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 validSlots.Add(LightingSlotId);
                 AddSlot(new DefaultMaterialSlot(BackLightingSlotId, BakedBackGISlotName, BakedBackGISlotName, ShaderStageCapability.Fragment));
                 validSlots.Add(BackLightingSlotId);
-            }
-
-            if (depthOffset.isOn)
-            {
-                AddSlot(new Vector1MaterialSlot(DepthOffsetSlotId, DepthOffsetSlotName, DepthOffsetSlotName, SlotType.Input, 0.0f, ShaderStageCapability.Fragment));
-                validSlots.Add(DepthOffsetSlotId);
             }
 
             RemoveSlotsNameNotMatching(validSlots, true);
@@ -1166,25 +885,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             return subsurfaceScattering.isOn;
         }
 
-        public override void ProcessPreviewMaterial(Material previewMaterial)
-        {
-            // Fixup the material settings:
-            previewMaterial.SetFloat(kSurfaceType, (int)(SurfaceType)surfaceType);
-            previewMaterial.SetFloat(kDoubleSidedNormalMode, (int)doubleSidedMode);
-            previewMaterial.SetFloat(kDoubleSidedEnable, doubleSidedMode != DoubleSidedMode.Disabled ? 1.0f : 0.0f);
-            previewMaterial.SetFloat(kAlphaCutoffEnabled, alphaTest.isOn ? 1 : 0);
-            previewMaterial.SetFloat(kBlendMode, (int)HDSubShaderUtilities.ConvertAlphaModeToBlendMode(alphaMode));
-            previewMaterial.SetFloat(kEnableFogOnTransparent, transparencyFog.isOn ? 1.0f : 0.0f);
-            previewMaterial.SetFloat(kZTestTransparent, (int)zTest);
-            previewMaterial.SetFloat(kTransparentCullMode, (int)transparentCullMode);
-            previewMaterial.SetFloat(kZWrite, zWrite.isOn ? 1.0f : 0.0f);
-            // No sorting priority for shader graph preview
-            var renderingPass = surfaceType == SurfaceType.Opaque ? HDRenderQueue.RenderQueueType.Opaque : HDRenderQueue.RenderQueueType.Transparent;
-            previewMaterial.renderQueue = (int)HDRenderQueue.ChangeType(renderingPass, offset: 0, alphaTest: alphaTest.isOn);
-
-            StackLitGUI.SetupMaterialKeywordsAndPass(previewMaterial);
-        }
-
         public override void CollectShaderProperties(PropertyCollector collector, GenerationMode generationMode)
         {
             if (debug.isOn)
@@ -1240,21 +940,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 hidden = true,
                 value = new Color(1.0f, 1.0f, 1.0f, 1.0f)
             });
-
-            // Add all shader properties required by the inspector
-            HDSubShaderUtilities.AddStencilShaderProperties(collector, RequiresSplitLighting(), receiveSSR.isOn);
-            HDSubShaderUtilities.AddBlendingStatesShaderProperties(
-                collector,
-                surfaceType,
-                HDSubShaderUtilities.ConvertAlphaModeToBlendMode(alphaMode),
-                sortPriority,
-                zWrite.isOn,
-                transparentCullMode,
-                zTest,
-                false
-            );
-            HDSubShaderUtilities.AddAlphaCutoffShaderProperties(collector, alphaTest.isOn, false);
-            HDSubShaderUtilities.AddDoubleSidedProperty(collector, doubleSidedMode);
 
             base.CollectShaderProperties(collector, generationMode);
         }
