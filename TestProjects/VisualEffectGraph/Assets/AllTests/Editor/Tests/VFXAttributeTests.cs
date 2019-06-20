@@ -15,7 +15,7 @@ namespace UnityEditor.VFX.Test
     {
         private abstract class ContextTest : VFXContext
         {
-            protected ContextTest(VFXContextType type) : base(type, VFXDataType.kParticle, VFXDataType.kParticle)
+            protected ContextTest(VFXContextType type) : base(type, VFXDataType.Particle, VFXDataType.Particle)
             {}
 
             public override IEnumerable<VFXAttributeInfo> attributes
@@ -28,11 +28,11 @@ namespace UnityEditor.VFX.Test
 
         private class ContextTestInit : ContextTest
         {
-            public ContextTestInit() : base(VFXContextType.kInit) {}
+            public ContextTestInit() : base(VFXContextType.Init) {}
         }
         private class ContextTestOutput : ContextTest
         {
-            public ContextTestOutput() : base(VFXContextType.kOutput) {}
+            public ContextTestOutput() : base(VFXContextType.Output) {}
         }
 
         private VFXAttribute Attrib1 = new VFXAttribute("attrib1", VFXValueType.Float);
@@ -91,8 +91,8 @@ namespace UnityEditor.VFX.Test
 
         private class BlockTest : VFXBlock
         {
-            public override VFXContextType compatibleContexts { get { return VFXContextType.kNone; } }
-            public override VFXDataType compatibleData { get { return VFXDataType.kNone; } }
+            public override VFXContextType compatibleContexts { get { return VFXContextType.None; } }
+            public override VFXDataType compatibleData { get { return VFXDataType.None; } }
 
             public override IEnumerable<VFXAttributeInfo> attributes
             {
@@ -124,6 +124,36 @@ namespace UnityEditor.VFX.Test
             Assert.IsTrue(blockAttributes.Exists(a => a.Equals(new VFXAttributeInfo(VFXAttribute.Age, VFXAttributeMode.ReadWrite))));
             Assert.IsTrue(blockAttributes.Exists(a => a.Equals(new VFXAttributeInfo(VFXAttribute.Lifetime, VFXAttributeMode.Read))));
             Assert.IsTrue(blockAttributes.Exists(a => a.Equals(new VFXAttributeInfo(VFXAttribute.Mass, VFXAttributeMode.ReadWrite))));
+        }
+
+        [Test]
+        public void SetAttribute_Default_Value_Is_Taken_Into_Account_Alpha()
+        {
+            var setAttribute = ScriptableObject.CreateInstance<Block.SetAttribute>();
+            setAttribute.SetSettingValue("attribute", "alpha");
+
+            var alphaReference = (float)VFXAttribute.Alpha.value.GetContent();
+            Assert.AreNotEqual(0.0f, alphaReference);
+
+            var alphaValue = (float)setAttribute.inputSlots[0].value;
+            Assert.AreEqual(alphaReference, alphaValue);
+        }
+
+        [Test]
+        public void SetAttribute_Default_Value_Is_Taken_Into_Account_Scale()
+        {
+            var setAttribute = ScriptableObject.CreateInstance<Block.SetAttribute>();
+            setAttribute.SetSettingValue("attribute", "scale"); //variadic
+
+            var scaleReference = new Vector3((float)VFXAttribute.ScaleX.value.GetContent(), (float)VFXAttribute.ScaleY.value.GetContent(), (float)VFXAttribute.ScaleZ.value.GetContent());
+            Assert.AreNotEqual(0.0f, scaleReference.x);
+            Assert.AreNotEqual(0.0f, scaleReference.y);
+            Assert.AreNotEqual(0.0f, scaleReference.z);
+
+            var scaleValue = (Vector3)setAttribute.inputSlots[0].value;
+            Assert.AreEqual(scaleReference.x, scaleValue.x);
+            Assert.AreEqual(scaleReference.y, scaleValue.y);
+            Assert.AreEqual(scaleReference.z, scaleValue.z);
         }
     }
 }

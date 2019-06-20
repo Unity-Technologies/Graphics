@@ -6,12 +6,12 @@
 #pragma kernel KMainColor   MAIN=KMainColor     CTYPE=float3
 #pragma kernel KMainCoC     MAIN=KMainCoC       CTYPE=float
 
-RW_TEXTURE2D(CTYPE, _InputTexture);
+RW_TEXTURE2D_X(CTYPE, _InputTexture);
 
-RW_TEXTURE2D(CTYPE, _OutputMip1);
-RW_TEXTURE2D(CTYPE, _OutputMip2);
-RW_TEXTURE2D(CTYPE, _OutputMip3);
-RW_TEXTURE2D(CTYPE, _OutputMip4);
+RW_TEXTURE2D_X(CTYPE, _OutputMip1);
+RW_TEXTURE2D_X(CTYPE, _OutputMip2);
+RW_TEXTURE2D_X(CTYPE, _OutputMip3);
+RW_TEXTURE2D_X(CTYPE, _OutputMip4);
 
 groupshared CTYPE gs_cache[64];
 
@@ -29,19 +29,21 @@ CTYPE LoadPixel(uint index)
 
 // Generate four mips in one pass
 [numthreads(GROUP_SIZE, GROUP_SIZE, 1)]
-void MAIN(uint2 dispatchThreadId : SV_DispatchThreadID, uint groupIndex : SV_GroupIndex)
+void MAIN(uint3 dispatchThreadId : SV_DispatchThreadID, uint groupIndex : SV_GroupIndex)
 {
-    uint2 ul = dispatchThreadId << 1u;
+    UNITY_STEREO_ASSIGN_COMPUTE_EYE_INDEX(dispatchThreadId.z);
+
+    uint2 ul = dispatchThreadId.xy << 1u;
 
     // First mip
-    CTYPE color = _InputTexture[ul];
-    color += _InputTexture[ul + uint2(1u, 0u)];
-    color += _InputTexture[ul + uint2(0u, 1u)];
-    color += _InputTexture[ul + uint2(1u, 1u)];
+    CTYPE color = _InputTexture[COORD_TEXTURE2D_X(ul)];
+    color += _InputTexture[COORD_TEXTURE2D_X(ul + uint2(1u, 0u))];
+    color += _InputTexture[COORD_TEXTURE2D_X(ul + uint2(0u, 1u))];
+    color += _InputTexture[COORD_TEXTURE2D_X(ul + uint2(1u, 1u))];
     color *= 0.25;
     StorePixel(groupIndex, color);
 
-    _OutputMip1[dispatchThreadId] = color;
+    _OutputMip1[COORD_TEXTURE2D_X(dispatchThreadId.xy)] = color;
 
     GroupMemoryBarrierWithGroupSync();
 
@@ -54,7 +56,7 @@ void MAIN(uint2 dispatchThreadId : SV_DispatchThreadID, uint groupIndex : SV_Gro
         color *= 0.25;
         StorePixel(groupIndex, color);
 
-        _OutputMip2[dispatchThreadId / 2u] = color;
+        _OutputMip2[COORD_TEXTURE2D_X(dispatchThreadId.xy / 2u)] = color;
     }
 
     GroupMemoryBarrierWithGroupSync();
@@ -68,7 +70,7 @@ void MAIN(uint2 dispatchThreadId : SV_DispatchThreadID, uint groupIndex : SV_Gro
         color *= 0.25;
         StorePixel(groupIndex, color);
 
-        _OutputMip3[dispatchThreadId / 4u] = color;
+        _OutputMip3[COORD_TEXTURE2D_X(dispatchThreadId.xy / 4u)] = color;
     }
 
     GroupMemoryBarrierWithGroupSync();
@@ -81,6 +83,6 @@ void MAIN(uint2 dispatchThreadId : SV_DispatchThreadID, uint groupIndex : SV_Gro
         color += LoadPixel(groupIndex + 36u);
         color *= 0.25;
 
-        _OutputMip4[dispatchThreadId / 8u] = color;
+        _OutputMip4[COORD_TEXTURE2D_X(dispatchThreadId.xy / 8u)] = color;
     }
 }

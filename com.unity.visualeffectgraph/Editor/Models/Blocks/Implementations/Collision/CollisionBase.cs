@@ -26,8 +26,8 @@ namespace UnityEditor.VFX.Block
         [VFXSetting, Tooltip("Enable random bending of the collision normal to simulate collision with a rough surface.")]
         public bool roughSurface = false;
 
-        public override VFXContextType compatibleContexts { get { return VFXContextType.kUpdate; } }
-        public override VFXDataType compatibleData { get { return VFXDataType.kParticle; } }
+        public override VFXContextType compatibleContexts { get { return VFXContextType.Update; } }
+        public override VFXDataType compatibleData { get { return VFXDataType.Particle; } }
         public override IEnumerable<VFXAttributeInfo> attributes
         {
             get
@@ -161,7 +161,7 @@ namespace UnityEditor.VFX.Block
 
         public class RadiusProperties
         {
-            [Tooltip("How much to randomly adjust the normal after a collision.")]
+            [Tooltip("The radius of the particle used for collision detection.")]
             public float radius = 0.1f;
         }
     }

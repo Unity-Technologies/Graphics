@@ -50,8 +50,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 var newAsset = CreateInstance<RenderPipelineResources>();
                 newAsset.name = Path.GetFileName(pathName);
 
-                newAsset.Init();
-                
+                ResourceReloader.ReloadAllNullIn(newAsset, HDUtils.GetHDRenderPipelinePath());
+
                 AssetDatabase.CreateAsset(newAsset, pathName);
                 ProjectWindowUtil.ShowCreatedAsset(newAsset);
             }
@@ -65,6 +65,28 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, ScriptableObject.CreateInstance<DoCreateNewAssetHDRenderPipelineResources>(), "New HDRenderPipelineResources.asset", icon, null);
         }
 
+        class DoCreateNewAssetHDRenderPipelineRayTracingResources : ProjectWindowCallback.EndNameEditAction
+        {
+            public override void Action(int instanceId, string pathName, string resourceFile)
+            {
+                var newAsset = CreateInstance<HDRenderPipelineRayTracingResources>();
+                newAsset.name = Path.GetFileName(pathName);
+
+                ResourceReloader.ReloadAllNullIn(newAsset, HDUtils.GetHDRenderPipelinePath());
+
+                AssetDatabase.CreateAsset(newAsset, pathName);
+                ProjectWindowUtil.ShowCreatedAsset(newAsset);
+            }
+        }
+
+        // Hide: User aren't suppose to have to create it.
+        //[MenuItem("Assets/Create/Rendering/High Definition Render Pipeline Ray Tracing Resources", priority = CoreUtils.assetCreateMenuPriority1)]
+        static void CreateRenderPipelineRayTracingResources()
+        {
+            var icon = EditorGUIUtility.FindTexture("ScriptableObject Icon");
+            ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, ScriptableObject.CreateInstance<DoCreateNewAssetHDRenderPipelineRayTracingResources>(), "New HDRenderPipelineRayTracingResources.asset", icon, null);
+        }
+
         class DoCreateNewAssetHDRenderPipelineEditorResources : ProjectWindowCallback.EndNameEditAction
         {
             public override void Action(int instanceId, string pathName, string resourceFile)
@@ -72,7 +94,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 var newAsset = CreateInstance<HDRenderPipelineEditorResources>();
                 newAsset.name = Path.GetFileName(pathName);
 
-                newAsset.Init();
+                ResourceReloader.ReloadAllNullIn(newAsset, HDUtils.GetHDRenderPipelinePath());
 
                 AssetDatabase.CreateAsset(newAsset, pathName);
                 ProjectWindowUtil.ShowCreatedAsset(newAsset);

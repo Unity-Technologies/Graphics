@@ -74,19 +74,17 @@ namespace UnityEditor.ShaderGraph
             });
         }
 
-        public void GenerateNodeCode(ShaderGenerator visitor, GraphContext graphContext, GenerationMode generationMode)
+        public void GenerateNodeCode(ShaderStringBuilder sb, GraphContext graphContext, GenerationMode generationMode)
         {
             if (generationMode.IsPreview())
                 return;
 
-            visitor.AddShaderChunk(string.Format(
-                    @"{0}4 {1} = IsGammaSpace() ? {0}4({2}, {3}, {4}, {5}) : {0}4(SRGBToLinear({0}3({2}, {3}, {4})), {5});"
-                    , precision
-                    , GetVariableNameForNode()
-                    , NodeUtils.FloatToShaderValue(color.color.r)
-                    , NodeUtils.FloatToShaderValue(color.color.g)
-                    , NodeUtils.FloatToShaderValue(color.color.b)
-                    , NodeUtils.FloatToShaderValue(color.color.a)), true);
+            sb.AppendLine(@"$precision4 {0} = IsGammaSpace() ? $precision4({1}, {2}, {3}, {4}) : $precision4(SRGBToLinear($precision3({1}, {2}, {3})), {4});"
+                , GetVariableNameForNode()
+                , NodeUtils.FloatToShaderValue(color.color.r)
+                , NodeUtils.FloatToShaderValue(color.color.g)
+                , NodeUtils.FloatToShaderValue(color.color.b)
+                , NodeUtils.FloatToShaderValue(color.color.a));
         }
 
         public override string GetVariableNameForSlot(int slotId)

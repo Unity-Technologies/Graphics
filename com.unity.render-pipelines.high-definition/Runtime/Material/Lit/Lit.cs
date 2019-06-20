@@ -1,4 +1,5 @@
 using System;
+using UnityEngine.Experimental.Rendering.HDPipeline.Attributes;
 using UnityEngine.Rendering;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
@@ -33,19 +34,25 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public uint materialFeatures;
 
             // Standard
+            [MaterialSharedPropertyMapping(MaterialSharedProperty.Albedo)]
             [SurfaceDataAttributes("Base Color", false, true)]
             public Vector3 baseColor;
             [SurfaceDataAttributes("Specular Occlusion")]
             public float specularOcclusion;
 
+            [MaterialSharedPropertyMapping(MaterialSharedProperty.Normal)]
             [SurfaceDataAttributes(new string[] {"Normal", "Normal View Space"}, true)]
             public Vector3 normalWS;
+
+            [MaterialSharedPropertyMapping(MaterialSharedProperty.Smoothness)]
             [SurfaceDataAttributes("Smoothness")]
             public float perceptualSmoothness;
 
+            [MaterialSharedPropertyMapping(MaterialSharedProperty.AmbientOcclusion)]
             [SurfaceDataAttributes("Ambient Occlusion")]
             public float ambientOcclusion;
 
+            [MaterialSharedPropertyMapping(MaterialSharedProperty.Metal)]
             [SurfaceDataAttributes("Metallic")]
             public float metallic;
 
@@ -55,12 +62,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // MaterialFeature dependent attribute
 
             // Specular Color
+            [MaterialSharedPropertyMapping(MaterialSharedProperty.Specular)]
             [SurfaceDataAttributes("Specular Color", false, true)]
             public Vector3 specularColor;
 
             // SSS
-            [SurfaceDataAttributes("Diffusion Profile")]
-            public uint diffusionProfile;
+            [SurfaceDataAttributes("Diffusion Profile Hash")]
+            public uint diffusionProfileHash;
             [SurfaceDataAttributes("Subsurface Mask")]
             public float subsurfaceMask;
 
@@ -125,7 +133,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // SpecularColor fold into fresnel0
 
             // SSS
-            public uint diffusionProfile;
+            public uint diffusionProfileIndex;
             public float subsurfaceMask;
 
             // Transmission
@@ -199,16 +207,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             RTFormat[0] = GraphicsFormat.R8G8B8A8_SRGB; // Albedo sRGB / SSSBuffer
             gBufferUsage[0] = GBufferUsage.SubsurfaceScattering;
-            enableWrite[0] = false;
+            enableWrite[0] = true;
             RTFormat[1] = GraphicsFormat.R8G8B8A8_UNorm; // Normal Buffer
             gBufferUsage[1] = GBufferUsage.Normal;
             enableWrite[1] = true;                    // normal buffer is used as RWTexture to composite decals in forward
             RTFormat[2] = GraphicsFormat.R8G8B8A8_UNorm; // Data
             gBufferUsage[2] = GBufferUsage.None;
-            enableWrite[2] = false;
+            enableWrite[2] = true;
             RTFormat[3] = Builtin.GetLightingBufferFormat();
             gBufferUsage[3] = GBufferUsage.None;
-            enableWrite[3] = false;
+            enableWrite[3] = true;
 
             int index = 4;
 

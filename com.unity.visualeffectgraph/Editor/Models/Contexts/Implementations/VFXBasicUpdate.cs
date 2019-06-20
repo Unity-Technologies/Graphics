@@ -29,7 +29,7 @@ namespace UnityEditor.VFX
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), Tooltip("Destroy particles if age > lifetime")]
         public bool reapParticles = true;
 
-        public VFXBasicUpdate() : base(VFXContextType.kUpdate, VFXDataType.kParticle, VFXDataType.kParticle) {}
+        public VFXBasicUpdate() : base(VFXContextType.Update, VFXDataType.Particle, VFXDataType.Particle) {}
         public override string name { get { return "Update"; } }
         public override string codeGeneratorTemplate { get { return VisualEffectGraphPackageInfo.assetPackagePath + "/Shaders/VFXUpdate"; } }
         public override bool codeGeneratorCompute { get { return true; } }

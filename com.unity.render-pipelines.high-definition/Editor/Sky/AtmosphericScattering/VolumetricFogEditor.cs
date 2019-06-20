@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.Experimental.Rendering.HDPipeline;
 using UnityEditor.Rendering;
+using UnityEngine.Rendering;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
@@ -47,12 +48,25 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             PropertyField(m_GlobalLightProbeDimmer, s_GlobalLightProbeDimmerLabel);
             PropertyField(m_MaxFogDistance);
             PropertyField(m_EnableDistantFog,       s_EnableDistantFog);
+            
+            if (m_MeanHeight.value.floatValue < m_BaseHeight.value.floatValue)
+            {
+                m_MeanHeight.value.floatValue = m_BaseHeight.value.floatValue;
+                serializedObject.ApplyModifiedProperties();
+            }
 
             if (m_EnableDistantFog.value.boolValue)
             {
                 EditorGUI.indentLevel++;
                 base.OnInspectorGUI(); // Color
                 EditorGUI.indentLevel--;
+            }
+
+            if (!(GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset)
+                ?.currentPlatformRenderPipelineSettings.supportVolumetrics ?? false)
+            {
+                EditorGUILayout.Space();
+                EditorGUILayout.HelpBox("The current HDRP Asset does not support Volumetrics.", MessageType.Error, wide: true);
             }
         }
     }

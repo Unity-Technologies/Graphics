@@ -15,22 +15,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         static public HDAdditionalCameraData s_DefaultHDAdditionalCameraData { get { return ComponentSingleton<HDAdditionalCameraData>.instance; } }
         static public AdditionalShadowData s_DefaultAdditionalShadowData { get { return ComponentSingleton<AdditionalShadowData>.instance; } }
 
-        static Texture2D m_ClearTexture;
-        public static Texture2D clearTexture
-        {
-            get
-            {
-                if (m_ClearTexture == null)
-                {
-                    m_ClearTexture = new Texture2D(1, 1, TextureFormat.ARGB32, false) { name = "Clear Texture" };
-                    m_ClearTexture.SetPixel(0, 0, Color.clear);
-                    m_ClearTexture.Apply();
-                }
-
-                return m_ClearTexture;
-            }
-        }
-
         static Texture3D m_ClearTexture3D;
         public static Texture3D clearTexture3D
         {
@@ -47,12 +31,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        public static Material GetBlitMaterial()
+        public static Material GetBlitMaterial(TextureDimension dimension)
         {
             HDRenderPipeline hdPipeline = RenderPipelineManager.currentPipeline as HDRenderPipeline;
             if (hdPipeline != null)
             {
-                return hdPipeline.GetBlitMaterial();
+                return hdPipeline.GetBlitMaterial(dimension == TextureDimension.Tex2DArray);
             }
 
             return null;
@@ -67,7 +51,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 return hdPipelineAsset.currentPlatformRenderPipelineSettings;
             }
         }
-        public static int debugStep { get { return MousePositionDebug.instance.debugStep; } }
+        public static int debugStep => MousePositionDebug.instance.debugStep;
 
         static MaterialPropertyBlock s_PropertyBlock = new MaterialPropertyBlock();
 
@@ -108,10 +92,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         // Helper to help to display debug info on screen
         static float s_OverlayLineHeight = -1.0f;
-        public static void ResetOverlay()
-        {
-            s_OverlayLineHeight = -1.0f;
-        }
+        public static void ResetOverlay() => s_OverlayLineHeight = -1.0f;
 
         public static void NextOverlayCoord(ref float x, ref float y, float overlayWidth, float overlayHeight, HDCamera hdCamera)
         {
@@ -172,7 +153,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             return tanHalfVertFoV * (2.0f / resolutionY) * planeDepth;
         }
 
-        private static void SetViewportAndClear(CommandBuffer cmd, HDCamera camera, RTHandleSystem.RTHandle buffer, ClearFlag clearFlag, Color clearColor)
+        private static void SetViewportAndClear(CommandBuffer cmd, RTHandleSystem.RTHandle buffer, ClearFlag clearFlag, Color clearColor)
         {
             // Clearing a partial viewport currently does not go through the hardware clear.
             // Instead it goes through a quad rendered with a specific shader.
@@ -181,28 +162,26 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // We consider that the small loss in performance is acceptable in the editor.
             // A refactor of wireframe is needed before we can fix this properly (with not doing anything!)
 #if !UNITY_EDITOR
-            SetViewport(cmd, camera, buffer);
+            SetViewport(cmd, buffer);
 #endif
             CoreUtils.ClearRenderTarget(cmd, clearFlag, clearColor);
 #if UNITY_EDITOR
-            SetViewport(cmd, camera, buffer);
+            SetViewport(cmd, buffer);
 #endif
         }
 
         // This set of RenderTarget management methods is supposed to be used when rendering into a camera dependent render texture.
         // This will automatically set the viewport based on the camera size and the RTHandle scaling info.
-        public static void SetRenderTarget(CommandBuffer cmd, HDCamera camera, RTHandleSystem.RTHandle buffer, ClearFlag clearFlag, Color clearColor, int miplevel = 0, CubemapFace cubemapFace = CubemapFace.Unknown, int depthSlice = -1)
+        public static void SetRenderTarget(CommandBuffer cmd, RTHandleSystem.RTHandle buffer, ClearFlag clearFlag, Color clearColor, int miplevel = 0, CubemapFace cubemapFace = CubemapFace.Unknown, int depthSlice = -1)
         {
             cmd.SetRenderTarget(buffer, miplevel, cubemapFace, depthSlice);
-            SetViewportAndClear(cmd, camera, buffer, clearFlag, clearColor);
+            SetViewportAndClear(cmd, buffer, clearFlag, clearColor);
         }
 
-        public static void SetRenderTarget(CommandBuffer cmd, HDCamera camera, RTHandleSystem.RTHandle buffer, ClearFlag clearFlag = ClearFlag.None, int miplevel = 0, CubemapFace cubemapFace = CubemapFace.Unknown, int depthSlice = -1)
-        {
-            SetRenderTarget(cmd, camera, buffer, clearFlag, Color.clear, miplevel, cubemapFace, depthSlice);
-        }
+        public static void SetRenderTarget(CommandBuffer cmd, RTHandleSystem.RTHandle buffer, ClearFlag clearFlag = ClearFlag.None, int miplevel = 0, CubemapFace cubemapFace = CubemapFace.Unknown, int depthSlice = -1)
+            => SetRenderTarget(cmd, buffer, clearFlag, Color.clear, miplevel, cubemapFace, depthSlice);
 
-        public static void SetRenderTarget(CommandBuffer cmd, HDCamera camera, RTHandleSystem.RTHandle colorBuffer, RTHandleSystem.RTHandle depthBuffer, int miplevel = 0, CubemapFace cubemapFace = CubemapFace.Unknown, int depthSlice = -1)
+        public static void SetRenderTarget(CommandBuffer cmd, RTHandleSystem.RTHandle colorBuffer, RTHandleSystem.RTHandle depthBuffer, int miplevel = 0, CubemapFace cubemapFace = CubemapFace.Unknown, int depthSlice = -1)
         {
             int cw = colorBuffer.rt.width;
             int ch = colorBuffer.rt.height;
@@ -211,10 +190,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             Debug.Assert(cw == dw && ch == dh);
 
-            SetRenderTarget(cmd, camera, colorBuffer, depthBuffer, ClearFlag.None, Color.clear, miplevel, cubemapFace, depthSlice);
+            SetRenderTarget(cmd, colorBuffer, depthBuffer, ClearFlag.None, Color.clear, miplevel, cubemapFace, depthSlice);
         }
 
-        public static void SetRenderTarget(CommandBuffer cmd, HDCamera camera, RTHandleSystem.RTHandle colorBuffer, RTHandleSystem.RTHandle depthBuffer, ClearFlag clearFlag, int miplevel = 0, CubemapFace cubemapFace = CubemapFace.Unknown, int depthSlice = -1)
+        public static void SetRenderTarget(CommandBuffer cmd, RTHandleSystem.RTHandle colorBuffer, RTHandleSystem.RTHandle depthBuffer, ClearFlag clearFlag, int miplevel = 0, CubemapFace cubemapFace = CubemapFace.Unknown, int depthSlice = -1)
         {
             int cw = colorBuffer.rt.width;
             int ch = colorBuffer.rt.height;
@@ -223,10 +202,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             Debug.Assert(cw == dw && ch == dh);
 
-            SetRenderTarget(cmd, camera, colorBuffer, depthBuffer, clearFlag, Color.clear, miplevel, cubemapFace, depthSlice);
+            SetRenderTarget(cmd, colorBuffer, depthBuffer, clearFlag, Color.clear, miplevel, cubemapFace, depthSlice);
         }
 
-        public static void SetRenderTarget(CommandBuffer cmd, HDCamera camera, RTHandleSystem.RTHandle colorBuffer, RTHandleSystem.RTHandle depthBuffer, ClearFlag clearFlag, Color clearColor, int miplevel = 0, CubemapFace cubemapFace = CubemapFace.Unknown, int depthSlice = -1)
+        public static void SetRenderTarget(CommandBuffer cmd, RTHandleSystem.RTHandle colorBuffer, RTHandleSystem.RTHandle depthBuffer, ClearFlag clearFlag, Color clearColor, int miplevel = 0, CubemapFace cubemapFace = CubemapFace.Unknown, int depthSlice = -1)
         {
             int cw = colorBuffer.rt.width;
             int ch = colorBuffer.rt.height;
@@ -236,25 +215,25 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             Debug.Assert(cw == dw && ch == dh);
 
             CoreUtils.SetRenderTarget(cmd, colorBuffer, depthBuffer, miplevel, cubemapFace, depthSlice);
-            SetViewportAndClear(cmd, camera, colorBuffer, clearFlag, clearColor);
+            SetViewportAndClear(cmd, colorBuffer, clearFlag, clearColor);
         }
 
-        public static void SetRenderTarget(CommandBuffer cmd, HDCamera camera, RenderTargetIdentifier[] colorBuffers, RTHandleSystem.RTHandle depthBuffer)
+        public static void SetRenderTarget(CommandBuffer cmd, RenderTargetIdentifier[] colorBuffers, RTHandleSystem.RTHandle depthBuffer)
         {
             CoreUtils.SetRenderTarget(cmd, colorBuffers, depthBuffer, ClearFlag.None, Color.clear);
-            SetViewport(cmd, camera, depthBuffer);
+            SetViewport(cmd, depthBuffer);
         }
 
-        public static void SetRenderTarget(CommandBuffer cmd, HDCamera camera, RenderTargetIdentifier[] colorBuffers, RTHandleSystem.RTHandle depthBuffer, ClearFlag clearFlag = ClearFlag.None)
+        public static void SetRenderTarget(CommandBuffer cmd, RenderTargetIdentifier[] colorBuffers, RTHandleSystem.RTHandle depthBuffer, ClearFlag clearFlag = ClearFlag.None)
         {
             CoreUtils.SetRenderTarget(cmd, colorBuffers, depthBuffer); // Don't clear here, viewport needs to be set before we do.
-            SetViewportAndClear(cmd, camera, depthBuffer, clearFlag, Color.clear);
+            SetViewportAndClear(cmd, depthBuffer, clearFlag, Color.clear);
         }
 
-        public static void SetRenderTarget(CommandBuffer cmd, HDCamera camera, RenderTargetIdentifier[] colorBuffers, RTHandleSystem.RTHandle depthBuffer, ClearFlag clearFlag, Color clearColor)
+        public static void SetRenderTarget(CommandBuffer cmd, RenderTargetIdentifier[] colorBuffers, RTHandleSystem.RTHandle depthBuffer, ClearFlag clearFlag, Color clearColor)
         {
             cmd.SetRenderTarget(colorBuffers, depthBuffer);
-            SetViewportAndClear(cmd, camera, depthBuffer, clearFlag, clearColor);
+            SetViewportAndClear(cmd, depthBuffer, clearFlag, clearColor);
         }
 
         // Scaling viewport is done for auto-scaling render targets.
@@ -262,12 +241,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // When we render using a camera whose viewport is smaller than the RTHandles reference size (and thus smaller than the RT actual size), we need to set it explicitly (otherwise, native code will set the viewport at the size of the RT)
         // For auto-scaled RTs (like for example a half-resolution RT), we need to scale this viewport accordingly.
         // For non scaled RTs we just do nothing, the native code will set the viewport at the size of the RT anyway.
-        public static void SetViewport(CommandBuffer cmd, HDCamera camera, RTHandleSystem.RTHandle target)
+        public static void SetViewport(CommandBuffer cmd, RTHandleSystem.RTHandle target)
         {
             if (target.useScaling)
             {
-                Debug.Assert(camera != null, "Missing HDCamera when setting up Render Target with auto-scale and Viewport.");
-                Vector2Int scaledViewportSize = target.GetScaledSize(new Vector2Int(camera.actualWidth, camera.actualHeight));
+                Vector2Int scaledViewportSize = target.GetScaledSize(target.rtHandleProperties.currentViewportSize);
                 cmd.SetViewport(new Rect(0.0f, 0.0f, scaledViewportSize.x, scaledViewportSize.y));
             }
         }
@@ -278,89 +256,81 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             s_PropertyBlock.SetVector(HDShaderIDs._BlitScaleBias, scaleBiasTex);
             s_PropertyBlock.SetVector(HDShaderIDs._BlitScaleBiasRt, scaleBiasRT);
             s_PropertyBlock.SetFloat(HDShaderIDs._BlitMipLevel, mipLevelTex);
-            cmd.DrawProcedural(Matrix4x4.identity, GetBlitMaterial(), bilinear ? 3 : 2, MeshTopology.Quads, 4, 1, s_PropertyBlock);
+            cmd.DrawProcedural(Matrix4x4.identity, GetBlitMaterial(source.dimension), bilinear ? 3 : 2, MeshTopology.Quads, 4, 1, s_PropertyBlock);
         }
 
-        public static void BlitTexture(CommandBuffer cmd, RTHandleSystem.RTHandle source, RTHandleSystem.RTHandle destination, Vector4 scaleBias, float mipLevel, bool bilinear)
+        public static void BlitTexture(CommandBuffer cmd, RTHandleSystem.RTHandle source, Vector4 scaleBias, float mipLevel, bool bilinear)
         {
             s_PropertyBlock.SetTexture(HDShaderIDs._BlitTexture, source);
             s_PropertyBlock.SetVector(HDShaderIDs._BlitScaleBias, scaleBias);
             s_PropertyBlock.SetFloat(HDShaderIDs._BlitMipLevel, mipLevel);
-            cmd.DrawProcedural(Matrix4x4.identity, GetBlitMaterial(), bilinear ? 1 : 0, MeshTopology.Triangles, 3, 1, s_PropertyBlock);
+            cmd.DrawProcedural(Matrix4x4.identity, GetBlitMaterial(source.rt.dimension), bilinear ? 1 : 0, MeshTopology.Triangles, 3, 1, s_PropertyBlock);
         }
 
         // In the context of HDRP, the internal render targets used during the render loop are the same for all cameras, no matter the size of the camera.
         // It means that we can end up rendering inside a partial viewport for one of these "camera space" rendering.
         // In this case, we need to make sure than when we blit from one such camera texture to another, we only blit the necessary portion corresponding to the camera viewport.
         // Here, both source and destination are camera-scaled.
-        public static void BlitCameraTexture(CommandBuffer cmd, HDCamera camera, RTHandleSystem.RTHandle source, RTHandleSystem.RTHandle destination, float mipLevel = 0.0f, bool bilinear = false)
+        public static void BlitCameraTexture(CommandBuffer cmd, RTHandleSystem.RTHandle source, RTHandleSystem.RTHandle destination, float mipLevel = 0.0f, bool bilinear = false)
         {
+            Vector2 viewportScale = new Vector2(source.rtHandleProperties.rtHandleScale.x, source.rtHandleProperties.rtHandleScale.y);
             // Will set the correct camera viewport as well.
-            SetRenderTarget(cmd, camera, destination);
-            BlitTexture(cmd, source, destination, camera.viewportScale, mipLevel, bilinear);
+            SetRenderTarget(cmd, destination);
+            BlitTexture(cmd, source, viewportScale, mipLevel, bilinear);
         }
 
 
         // This case, both source and destination are camera-scaled but we want to override the scale/bias parameter.
-        public static void BlitCameraTexture(CommandBuffer cmd, HDCamera camera, RTHandleSystem.RTHandle source, RTHandleSystem.RTHandle destination, Vector4 scaleBias, float mipLevel = 0.0f, bool bilinear = false)
+        public static void BlitCameraTexture(CommandBuffer cmd, RTHandleSystem.RTHandle source, RTHandleSystem.RTHandle destination, Vector4 scaleBias, float mipLevel = 0.0f, bool bilinear = false)
         {
             // Will set the correct camera viewport as well.
-            SetRenderTarget(cmd, camera, destination);
-            BlitTexture(cmd, source, destination, scaleBias, mipLevel, bilinear);
+            SetRenderTarget(cmd, destination);
+            BlitTexture(cmd, source, scaleBias, mipLevel, bilinear);
         }
 
-        public static void BlitCameraTexture(CommandBuffer cmd, HDCamera camera, RTHandleSystem.RTHandle source, RTHandleSystem.RTHandle destination, Rect destViewport, float mipLevel = 0.0f, bool bilinear = false)
+        public static void BlitCameraTexture(CommandBuffer cmd, RTHandleSystem.RTHandle source, RTHandleSystem.RTHandle destination, Rect destViewport, float mipLevel = 0.0f, bool bilinear = false)
         {
-            SetRenderTarget(cmd, camera, destination);
+            Vector2 viewportScale = new Vector2(source.rtHandleProperties.rtHandleScale.x, source.rtHandleProperties.rtHandleScale.y);
+            SetRenderTarget(cmd, destination);
             cmd.SetViewport(destViewport);
-            BlitTexture(cmd, source, destination, camera.viewportScale, mipLevel, bilinear);
-        }
-
-        public static void BlitCameraTextureStereoDoubleWide(CommandBuffer cmd, RTHandleSystem.RTHandle source, RenderTargetIdentifier destination)
-        {
-            var mat = GetBlitMaterial();
-            mat.SetTexture(HDShaderIDs._BlitTexture, source);
-            mat.SetFloat(HDShaderIDs._BlitMipLevel, 0f);
-            mat.SetVector(HDShaderIDs._BlitScaleBiasRt, new Vector4(1f, 1f, 0f, 0f));
-            mat.SetVector(HDShaderIDs._BlitScaleBias, new Vector4(1f, 1f, 0f, 0f));
-            cmd.Blit(source, destination, mat, 1);
+            BlitTexture(cmd, source, viewportScale, mipLevel, bilinear);
         }
 
         // These method should be used to render full screen triangles sampling auto-scaling RTs.
         // This will set the proper viewport and UV scale.
-        public static void DrawFullScreen(CommandBuffer commandBuffer, HDCamera camera, Material material,
+        public static void DrawFullScreen(CommandBuffer commandBuffer, Material material,
             RTHandleSystem.RTHandle colorBuffer,
             MaterialPropertyBlock properties = null, int shaderPassId = 0)
         {
-            HDUtils.SetRenderTarget(commandBuffer, camera, colorBuffer);
-            commandBuffer.SetGlobalVector(HDShaderIDs._ScreenToTargetScale, camera.doubleBufferedViewportScale);
+            HDUtils.SetRenderTarget(commandBuffer, colorBuffer);
+            commandBuffer.SetGlobalVector(HDShaderIDs._RTHandleScale, colorBuffer.rtHandleProperties.rtHandleScale);
             commandBuffer.DrawProcedural(Matrix4x4.identity, material, shaderPassId, MeshTopology.Triangles, 3, 1, properties);
         }
 
-        public static void DrawFullScreen(CommandBuffer commandBuffer, HDCamera camera, Material material,
+        public static void DrawFullScreen(CommandBuffer commandBuffer, Material material,
             RTHandleSystem.RTHandle colorBuffer, RTHandleSystem.RTHandle depthStencilBuffer,
             MaterialPropertyBlock properties = null, int shaderPassId = 0)
         {
-            HDUtils.SetRenderTarget(commandBuffer, camera, colorBuffer, depthStencilBuffer);
-            commandBuffer.SetGlobalVector(HDShaderIDs._ScreenToTargetScale, camera.doubleBufferedViewportScale);
+            HDUtils.SetRenderTarget(commandBuffer, colorBuffer, depthStencilBuffer);
+            commandBuffer.SetGlobalVector(HDShaderIDs._RTHandleScale, colorBuffer.rtHandleProperties.rtHandleScale);
             commandBuffer.DrawProcedural(Matrix4x4.identity, material, shaderPassId, MeshTopology.Triangles, 3, 1, properties);
         }
 
-        public static void DrawFullScreen(CommandBuffer commandBuffer, HDCamera camera, Material material,
+        public static void DrawFullScreen(CommandBuffer commandBuffer, Material material,
             RenderTargetIdentifier[] colorBuffers, RTHandleSystem.RTHandle depthStencilBuffer,
             MaterialPropertyBlock properties = null, int shaderPassId = 0)
         {
-            HDUtils.SetRenderTarget(commandBuffer, camera, colorBuffers, depthStencilBuffer);
-            commandBuffer.SetGlobalVector(HDShaderIDs._ScreenToTargetScale, camera.doubleBufferedViewportScale);
+            HDUtils.SetRenderTarget(commandBuffer, colorBuffers, depthStencilBuffer);
+            commandBuffer.SetGlobalVector(HDShaderIDs._RTHandleScale, depthStencilBuffer.rtHandleProperties.rtHandleScale);
             commandBuffer.DrawProcedural(Matrix4x4.identity, material, shaderPassId, MeshTopology.Triangles, 3, 1, properties);
         }
 
-        public static void DrawFullScreen(CommandBuffer commandBuffer, HDCamera camera, Material material,
+        public static void DrawFullScreen(CommandBuffer commandBuffer, RTHandleProperties rtHandleProperties, Material material,
             RenderTargetIdentifier colorBuffer,
             MaterialPropertyBlock properties = null, int shaderPassId = 0)
         {
             CoreUtils.SetRenderTarget(commandBuffer, colorBuffer);
-            commandBuffer.SetGlobalVector(HDShaderIDs._ScreenToTargetScale, camera.doubleBufferedViewportScale);
+            commandBuffer.SetGlobalVector(HDShaderIDs._RTHandleScale, rtHandleProperties.rtHandleScale);
             commandBuffer.DrawProcedural(Matrix4x4.identity, material, shaderPassId, MeshTopology.Triangles, 3, 1, properties);
         }
 
@@ -376,14 +346,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             // We request the mouse post based on the type of the camera
             Vector2 mousePixelCoord = MousePositionDebug.instance.GetMousePosition(camera.screenSize.y, camera.camera.cameraType == CameraType.SceneView);
-            return new Vector4(mousePixelCoord.x, mousePixelCoord.y, camera.viewportScale.x * mousePixelCoord.x / camera.screenSize.x, camera.viewportScale.y * mousePixelCoord.y / camera.screenSize.y);
+            return new Vector4(mousePixelCoord.x, mousePixelCoord.y, RTHandles.rtHandleProperties.rtHandleScale.x * mousePixelCoord.x / camera.screenSize.x, RTHandles.rtHandleProperties.rtHandleScale.y * mousePixelCoord.y / camera.screenSize.y);
         }
 
         // Returns mouse click coordinates: (x,y) in pixels and (z,w) normalized inside the render target (not the viewport)
         public static Vector4 GetMouseClickCoordinates(HDCamera camera)
         {
             Vector2 mousePixelCoord = MousePositionDebug.instance.GetMouseClickPosition(camera.screenSize.y);
-            return new Vector4(mousePixelCoord.x, mousePixelCoord.y, camera.viewportScale.x * mousePixelCoord.x / camera.screenSize.x, camera.viewportScale.y * mousePixelCoord.y / camera.screenSize.y);
+            return new Vector4(mousePixelCoord.x, mousePixelCoord.y, RTHandles.rtHandleProperties.rtHandleScale.x * mousePixelCoord.x / camera.screenSize.x, RTHandles.rtHandleProperties.rtHandleScale.y * mousePixelCoord.y / camera.screenSize.y);
         }
 
         // This function check if camera is a CameraPreview, then check if this preview is a regular preview (i.e not a preview from the camera editor)
@@ -395,14 +365,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         // We need these at runtime for RenderPipelineResources upgrade
         public static string GetHDRenderPipelinePath()
-        {
-            return "Packages/com.unity.render-pipelines.high-definition/";
-        }
+            => "Packages/com.unity.render-pipelines.high-definition/";
 
         public static string GetCorePath()
-        {
-            return "Packages/com.unity.render-pipelines.core/";
-        }
+            => "Packages/com.unity.render-pipelines.core/";
 
         public struct PackedMipChainInfo
         {
@@ -482,10 +448,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        public static int DivRoundUp(int x, int y)
-        {
-            return (x + y - 1) / y;
-        }
+        public static int DivRoundUp(int x, int y) => (x + y - 1) / y;
 
         public static bool IsQuaternionValid(Quaternion q)
             => (q[0] * q[0] + q[1] * q[1] + q[2] * q[2] + q[3] * q[3]) > float.Epsilon;
@@ -499,8 +462,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     graphicDevice == GraphicsDeviceType.XboxOne ||
                     graphicDevice == GraphicsDeviceType.XboxOneD3D12 ||
                     graphicDevice == GraphicsDeviceType.Metal ||
-                    graphicDevice == GraphicsDeviceType.Vulkan ||
-                    graphicDevice == (GraphicsDeviceType)22 /*GraphicsDeviceType.Switch*/);
+                    graphicDevice == GraphicsDeviceType.Vulkan
+                    // Switch isn't supported currently (19.3)
+                    /* || graphicDevice == GraphicsDeviceType.Switch */);
         }
 
         public static void CheckRTCreated(RenderTexture rt)
@@ -536,10 +500,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 #if !UNITY_2019_2_OR_NEWER
                     buildTarget == UnityEditor.BuildTarget.StandaloneLinuxUniversal ||
 #endif
+#if UNITY_2019_3_OR_NEWER
+                    buildTarget == UnityEditor.BuildTarget.Stadia ||
+#endif
                     buildTarget == UnityEditor.BuildTarget.StandaloneOSX ||
                     buildTarget == UnityEditor.BuildTarget.WSAPlayer ||
                     buildTarget == UnityEditor.BuildTarget.XboxOne ||
                     buildTarget == UnityEditor.BuildTarget.PS4 ||
+                    buildTarget == UnityEditor.BuildTarget.iOS ||
                     buildTarget == UnityEditor.BuildTarget.Switch);
         }
 
@@ -570,6 +538,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 case UnityEditor.BuildTarget.StandaloneLinux64:
 #if !UNITY_2019_2_OR_NEWER
                 case UnityEditor.BuildTarget.StandaloneLinuxUniversal:
+#endif
+#if UNITY_2019_3_OR_NEWER
+                case UnityEditor.BuildTarget.Stadia:
 #endif
                     return OperatingSystemFamily.Linux;
                 default:
@@ -631,6 +602,69 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // In developer mode, we support a range of debug rendering that needs to occur after post processes.
             // In order to simplify writing them, we don't Y-flip in the post process pass but add a final blit at the end of the frame.
             return !Debug.isDebugBuild;
+        }
+
+        // These two convertion functions are used to store GUID assets inside materials,
+        // a unity asset GUID is exactly 16 bytes long which is also a Vector4 so by adding a
+        // Vector4 field inside the shader we can store references of an asset inside the material
+        // which is actually used to store the reference of the diffusion profile asset
+        public static Vector4 ConvertGUIDToVector4(string guid)
+        {
+            Vector4 vector;
+            byte[]  bytes = new byte[16];
+
+            for (int i = 0; i < 16; i++)
+                bytes[i] = byte.Parse(guid.Substring(i * 2, 2), System.Globalization.NumberStyles.HexNumber);
+
+            unsafe
+            {
+                fixed (byte * b = bytes)
+                    vector = *(Vector4 *)b;
+            }
+
+            return vector;
+        }
+
+        public static string ConvertVector4ToGUID(Vector4 vector)
+        {
+            System.Text.StringBuilder sb = new System.Text.StringBuilder();
+            unsafe
+            {
+                byte * v = (byte *)&vector;
+                for (int i = 0; i < 16; i++)
+                    sb.Append(v[i].ToString("x2"));
+                var guidBytes = new byte[16];
+                System.Runtime.InteropServices.Marshal.Copy((IntPtr)v, guidBytes, 0, 16);
+            }
+
+            return sb.ToString();
+        }
+
+        public static Color NormalizeColor(Color color)
+        {
+            Vector4 ldrColor = Vector4.Max(color, Vector4.one * 0.0001f);
+            color = (ldrColor / ColorUtils.Luminance(ldrColor));
+            color.a = 1;
+
+            return color;
+        }
+
+        public static void DrawRendererList(ScriptableRenderContext renderContext, CommandBuffer cmd, RendererList rendererList)
+        {
+            if (!rendererList.isValid)
+                throw new ArgumentException("Invalid renderer list provided to DrawRendererList");
+
+            // This is done here because DrawRenderers API lives outside command buffers so we need to make call this before doing any DrawRenders or things will be executed out of order
+            renderContext.ExecuteCommandBuffer(cmd);
+            cmd.Clear();
+
+            if (rendererList.stateBlock == null)
+                renderContext.DrawRenderers(rendererList.cullingResult, ref rendererList.drawSettings, ref rendererList.filteringSettings);
+            else
+            {
+                var renderStateBlock = rendererList.stateBlock.Value;
+                renderContext.DrawRenderers(rendererList.cullingResult, ref rendererList.drawSettings, ref rendererList.filteringSettings, ref renderStateBlock);
+            }
         }
     }
 }

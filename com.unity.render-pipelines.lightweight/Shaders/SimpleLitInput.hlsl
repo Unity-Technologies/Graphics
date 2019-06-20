@@ -14,7 +14,7 @@ CBUFFER_END
 
 TEXTURE2D(_SpecGlossMap);       SAMPLER(sampler_SpecGlossMap);
 
-half4 SampleSpecularSmoothness(half2 uv, half alpha, half4 specColor, TEXTURE2D_ARGS(specMap, sampler_specMap))
+half4 SampleSpecularSmoothness(half2 uv, half alpha, half4 specColor, TEXTURE2D_PARAM(specMap, sampler_specMap))
 {
     half4 specularSmoothness = half4(0.0h, 0.0h, 0.0h, 1.0h);
 #ifdef _SPECGLOSSMAP

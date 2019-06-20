@@ -2,7 +2,8 @@ using UnityEngine.Rendering;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
-    [SkyUniqueID((int)SkyType.ProceduralSky)]
+    [VolumeComponentMenu("Sky/Procedural Sky")]
+    [SkyUniqueID((int)SkyType.Procedural)]
     public class ProceduralSky : SkySettings
     {
         [Tooltip("Sets the size modifier of the sun disk.")]

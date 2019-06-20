@@ -56,7 +56,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             => ((ReflectionProbe)editorTarget).GetComponent<HDAdditionalReflectionData>();
         protected override SerializedHDReflectionProbe NewSerializedObject(SerializedObject so)
         {
-            var additionalData = CoreEditorUtils.GetAdditionalData<HDAdditionalReflectionData>(targets);
+            var additionalData = CoreEditorUtils.GetAdditionalData<HDAdditionalReflectionData>(so.targetObjects);
             var addSO = new SerializedObject(additionalData);
             return new SerializedHDReflectionProbe(so, addSO);
         }
@@ -83,7 +83,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 )
             }
         };
+
+        public ProbeSettingsOverride displayedAdvancedCaptureSettings => new ProbeSettingsOverride();
         ProbeSettingsOverride HDProbeUI.IProbeUISettingsProvider.overrideableCaptureSettings => new ProbeSettingsOverride();
+        public ProbeSettingsOverride overrideableAdvancedCaptureSettings => new ProbeSettingsOverride();
+
         ProbeSettingsOverride HDProbeUI.IProbeUISettingsProvider.displayedAdvancedSettings => new ProbeSettingsOverride
         {
             probe = ProbeSettingsFields.lightingLightLayer

@@ -28,7 +28,7 @@
 #define DEBUGVIEW_LIT_SURFACEDATA_METALLIC (1007)
 #define DEBUGVIEW_LIT_SURFACEDATA_COAT_MASK (1008)
 #define DEBUGVIEW_LIT_SURFACEDATA_SPECULAR_COLOR (1009)
-#define DEBUGVIEW_LIT_SURFACEDATA_DIFFUSION_PROFILE (1010)
+#define DEBUGVIEW_LIT_SURFACEDATA_DIFFUSION_PROFILE_HASH (1010)
 #define DEBUGVIEW_LIT_SURFACEDATA_SUBSURFACE_MASK (1011)
 #define DEBUGVIEW_LIT_SURFACEDATA_THICKNESS (1012)
 #define DEBUGVIEW_LIT_SURFACEDATA_TANGENT (1013)
@@ -54,7 +54,7 @@
 #define DEBUGVIEW_LIT_BSDFDATA_NORMAL_VIEW_SPACE (1056)
 #define DEBUGVIEW_LIT_BSDFDATA_PERCEPTUAL_ROUGHNESS (1057)
 #define DEBUGVIEW_LIT_BSDFDATA_COAT_MASK (1058)
-#define DEBUGVIEW_LIT_BSDFDATA_DIFFUSION_PROFILE (1059)
+#define DEBUGVIEW_LIT_BSDFDATA_DIFFUSION_PROFILE_INDEX (1059)
 #define DEBUGVIEW_LIT_BSDFDATA_SUBSURFACE_MASK (1060)
 #define DEBUGVIEW_LIT_BSDFDATA_THICKNESS (1061)
 #define DEBUGVIEW_LIT_BSDFDATA_USE_THICK_OBJECT_MODE (1062)
@@ -86,7 +86,7 @@ struct SurfaceData
     float metallic;
     float coatMask;
     float3 specularColor;
-    uint diffusionProfile;
+    uint diffusionProfileHash;
     float subsurfaceMask;
     float thickness;
     float3 tangentWS;
@@ -112,7 +112,7 @@ struct BSDFData
     float3 normalWS;
     float perceptualRoughness;
     float coatMask;
-    uint diffusionProfile;
+    uint diffusionProfileIndex;
     float subsurfaceMask;
     float thickness;
     bool useThickObjectMode;
@@ -170,8 +170,8 @@ void GetGeneratedSurfaceDataDebug(uint paramId, SurfaceData surfacedata, inout f
             result = surfacedata.specularColor;
             needLinearToSRGB = true;
             break;
-        case DEBUGVIEW_LIT_SURFACEDATA_DIFFUSION_PROFILE:
-            result = GetIndexColor(surfacedata.diffusionProfile);
+        case DEBUGVIEW_LIT_SURFACEDATA_DIFFUSION_PROFILE_HASH:
+            result = GetIndexColor(surfacedata.diffusionProfileHash);
             break;
         case DEBUGVIEW_LIT_SURFACEDATA_SUBSURFACE_MASK:
             result = surfacedata.subsurfaceMask.xxx;
@@ -247,8 +247,8 @@ void GetGeneratedBSDFDataDebug(uint paramId, BSDFData bsdfdata, inout float3 res
         case DEBUGVIEW_LIT_BSDFDATA_COAT_MASK:
             result = bsdfdata.coatMask.xxx;
             break;
-        case DEBUGVIEW_LIT_BSDFDATA_DIFFUSION_PROFILE:
-            result = GetIndexColor(bsdfdata.diffusionProfile);
+        case DEBUGVIEW_LIT_BSDFDATA_DIFFUSION_PROFILE_INDEX:
+            result = GetIndexColor(bsdfdata.diffusionProfileIndex);
             break;
         case DEBUGVIEW_LIT_BSDFDATA_SUBSURFACE_MASK:
             result = bsdfdata.subsurfaceMask.xxx;

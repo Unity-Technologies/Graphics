@@ -6,9 +6,9 @@
 
 #pragma kernel KMain
 
-TEXTURE2D(_InputTexture);
+TEXTURE2D_X(_InputTexture);
 
-RW_TEXTURE2D(float3, _OutputTexture);
+RW_TEXTURE2D_X(float3, _OutputTexture);
 
 SAMPLER(sampler_LinearClamp);
 
@@ -19,9 +19,10 @@ CBUFFER_END
 #define GROUP_SIZE 8
 
 [numthreads(GROUP_SIZE, GROUP_SIZE, 1)]
-void KMain(uint2 dispatchThreadId : SV_DispatchThreadID)
+void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
 {
-    PositionInputs posInputs = GetPositionInput(float2(dispatchThreadId), _TexelSize.zw, uint2(GROUP_SIZE, GROUP_SIZE));
+    UNITY_STEREO_ASSIGN_COMPUTE_EYE_INDEX(dispatchThreadId.z);
+    PositionInputs posInputs = GetPositionInput(float2(dispatchThreadId.xy), _TexelSize.zw, uint2(GROUP_SIZE, GROUP_SIZE));
     float2 uv = posInputs.positionNDC;
 
     // Use a rotated grid to minimize artifacts coming from horizontal and vertical boundaries
@@ -34,11 +35,11 @@ void KMain(uint2 dispatchThreadId : SV_DispatchThreadID)
         float2(-0.4, -0.9)
     };
 
-    float3 color0 = SAMPLE_TEXTURE2D_LOD(_InputTexture, sampler_LinearClamp, ClampAndScaleUVForBilinear(_TexelSize.zw * kTaps[0] + uv, _TexelSize.zw), 0.0).xyz;
-    float3 color1 = SAMPLE_TEXTURE2D_LOD(_InputTexture, sampler_LinearClamp, ClampAndScaleUVForBilinear(_TexelSize.zw * kTaps[1] + uv, _TexelSize.zw), 0.0).xyz;
-    float3 color2 = SAMPLE_TEXTURE2D_LOD(_InputTexture, sampler_LinearClamp, ClampAndScaleUVForBilinear(_TexelSize.zw * kTaps[2] + uv, _TexelSize.zw), 0.0).xyz;
-    float3 color3 = SAMPLE_TEXTURE2D_LOD(_InputTexture, sampler_LinearClamp, ClampAndScaleUVForBilinear(_TexelSize.zw * kTaps[3] + uv, _TexelSize.zw), 0.0).xyz;
-    float3 color4 = SAMPLE_TEXTURE2D_LOD(_InputTexture, sampler_LinearClamp, ClampAndScaleUVForBilinear(_TexelSize.zw * kTaps[4] + uv, _TexelSize.zw), 0.0).xyz;
+    float3 color0 = SAMPLE_TEXTURE2D_X_LOD(_InputTexture, sampler_LinearClamp, ClampAndScaleUVForBilinear(_TexelSize.zw * kTaps[0] + uv, _TexelSize.zw), 0.0).xyz;
+    float3 color1 = SAMPLE_TEXTURE2D_X_LOD(_InputTexture, sampler_LinearClamp, ClampAndScaleUVForBilinear(_TexelSize.zw * kTaps[1] + uv, _TexelSize.zw), 0.0).xyz;
+    float3 color2 = SAMPLE_TEXTURE2D_X_LOD(_InputTexture, sampler_LinearClamp, ClampAndScaleUVForBilinear(_TexelSize.zw * kTaps[2] + uv, _TexelSize.zw), 0.0).xyz;
+    float3 color3 = SAMPLE_TEXTURE2D_X_LOD(_InputTexture, sampler_LinearClamp, ClampAndScaleUVForBilinear(_TexelSize.zw * kTaps[3] + uv, _TexelSize.zw), 0.0).xyz;
+    float3 color4 = SAMPLE_TEXTURE2D_X_LOD(_InputTexture, sampler_LinearClamp, ClampAndScaleUVForBilinear(_TexelSize.zw * kTaps[4] + uv, _TexelSize.zw), 0.0).xyz;
 
     // Luma weighted average [Karis13]
     float w0 = 1.0 / (Luminance(color0) + 1.0);
@@ -58,7 +59,7 @@ void KMain(uint2 dispatchThreadId : SV_DispatchThreadID)
     float3 output = acc / wSum;
 
     // Guard bands
-    output *= all(dispatchThreadId < uint2(_TexelSize.xy));
+    output *= all(dispatchThreadId.xy < uint2(_TexelSize.xy));
 
-    _OutputTexture[posInputs.positionSS] = output;
+    _OutputTexture[COORD_TEXTURE2D_X(posInputs.positionSS)] = output;
 }

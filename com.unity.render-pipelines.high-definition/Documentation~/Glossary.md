@@ -7,11 +7,32 @@
 #### atmospheric scattering
 Atmospheric scattering is the phenomena that occurs when particles suspended in the atmosphere diffuse (or scatter) a portion of the light, passing through them, in all directions.
 
+<a name="Bokeh"></a>
+
+#### bokeh
+
+The effect that occurs when a camera renders an out-of-focus point of light.
+
+<a name="ChannelPacking"></a>
+
+#### channel packing
+A channel packed Texture is a Texture which has a separate grayscale image in each of its channels.
+
+<a name="f-number"></a>
+
+#### f-number
+
+The ratio of the focal length to the diameter of the camera lens.
 
 <a name="NyquistRate"></a>
 
 #### Nyquist rate:
 The minimum rate at which you can sample a real-world signal without introducing errors. This is equal to double the highest frequency of the real-world signal.
+
+<a name="PhysicallyBasedRendering"></a>
+
+#### physically-based rendering (PBR)
+PBR is an approach to rendering that emulates accurate lighting of real-world materials.
 
 <a name="RayMarching"></a>
 
@@ -21,12 +42,28 @@ An iterative ray intersection test where your ray marches back and forth until i
 <a name="TextureAtlas"></a>
 
 #### texture atlas:
-
 A texture atlas is a large texture containing several smaller textures packed together. HDRP uses texture atlases for shadow maps and decals.
 
 
 
-### Aliasing and anti-aliasing terms
+## Normal mapping
+
+<a name="TangentSpaceNormalMap"></a>
+#### tangent space normal map
+A type of [normal map](https://docs.unity3d.com/Manual/StandardShaderMaterialParameterNormalMap.html) in the UV space of the GameObject. You can use it on any Mesh, including deforming characters.
+
+<a name="ObjectSpaceNormalMap"></a>
+
+#### object space normal map
+This contains the same details as the tangent space normal map, but also includes orientation data. You can only use this type of normal map on a static Mesh that does not deform. This normal map type is less resource-intensive to process, because Unity does not need to make any transform calculations.
+
+<a name="BentNormalMap"></a>
+#### world space normal map
+HDRP uses the bent normal to prevent light leaking through the surface of a Mesh. In HDRP, bent normal maps can be in tangent space or object space.
+
+
+
+## Aliasing and anti-aliasing terms
 
 <a name="Aliasing"></a>
 
@@ -47,7 +84,7 @@ Refers to aliasing in digital samples of visual signals.
 <a name="TemporalAntiAliasing"></a>
 
 #### temporal anti-aliasing (TAA):
-An anti-aliasing technique that uses frames from a history buffer to smooth edged more effectively than fast approximate anti-aliasing. It is substantially better at smoothing edges in motion but requires motion vectors to do so.
+An anti-aliasing technique that uses frames from a history buffer to smooth edges more effectively than fast approximate anti-aliasing. It is substantially better at smoothing edges in motion but requires motion vectors to do so.
 
 
 
@@ -81,34 +118,4 @@ A function that describes a wave that represents the human eye’s relative sens
 <a name="PunctualLight"></a>
 #### punctual lights: 
 A light is considered to be punctual if it emits light from a single point. HDRPs Spot and Point Lights are punctual.
-
-<a name="LightIntensityUnits"></a>
-
-
-### Light intensity units
-
-<a name="Candela"></a>
-#### candela:
-The base unit of [luminous intensity](#LuminousIntensity) in the International System of Units. For reference, a common wax candle emits light with a luminous intensity of roughly 1 candela.
-
-<a name="Lumen"></a>
-#### lumen:
-The unit of [luminous flux](#LuminousFlux). Measures the total quantity of visible light a source emits. A light source emitting 1 [candela](#Candela) of luminous intensity from an area of 1 steradian has a luminous flux of 1 lumen.
-
-<a name="Lux"></a>
-#### lux (lumen per square meter):
-
-The unit of [illuminance](#Illuminance). A light source that emits 1 lumen of [luminous flux](#LuminousFlux) onto an area of 1 square meter has an illuminance of 1 lux.
-
-<a name="Luminance"></a>
-#### luminance (candela per square meter):
-
-Measures the apparent brightness of light either emitted from a light source, or reflected off a surface, to the human eye. A light source that emits 1 candela of [luminous intensity](#LuminousIntensity) onto an area of 1 square meter has a luminance of 1 candela per square meter.
-
-<a name="EV"></a>
-#### exposure value (EV):
-
-A value that represents a combination of a camera's shutter speed and f-number. It is essentially a measurement of exposure such that all combinations of shutter speed and f-number that yield the same level of exposure have the same EV. HDRP Lights can use **Ev 100**, which is EV with a 100 International Standards Organisation (ISO) film.
-
-
 

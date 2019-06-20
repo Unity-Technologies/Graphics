@@ -1,40 +1,92 @@
-namespace UnityEngine.Experimental.Rendering.LWRP
-{
-    //[CreateAssetMenu()]
-    public class ForwardRendererData : IRendererData
+#if UNITY_EDITOR
+using UnityEditor;
+using UnityEditor.ProjectWindowCallback;
+#endif
+using System;
+
+namespace UnityEngine.Rendering.LWRP
+{    
+    public class ForwardRendererData : ScriptableRendererData
     {
-        [SerializeField] Shader m_BlitShader = null;
-        [SerializeField] Shader m_CopyDepthShader = null;
-        [SerializeField] Shader m_ScreenSpaceShadowShader = null;
-        [SerializeField] Shader m_SamplingShader = null;
-
-        public override IRendererSetup Create()
+#if UNITY_EDITOR
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1812")]
+        internal class CreateForwardRendererAsset : EndNameEditAction
         {
-            return new ForwardRendererSetup(this);
+            public override void Action(int instanceId, string pathName, string resourceFile)
+            {
+                var instance = CreateInstance<ForwardRendererData>();
+                AssetDatabase.CreateAsset(instance, pathName);
+                ResourceReloader.ReloadAllNullIn(instance, LightweightRenderPipelineAsset.packagePath);
+                Selection.activeObject = instance;
+            }
         }
 
-        public Shader blitShader
+        [MenuItem("Assets/Create/Rendering/Lightweight Render Pipeline/Forward Renderer", priority = CoreUtils.assetCreateMenuPriority1)]
+        static void CreateForwardRendererData()
         {
-            get => m_BlitShader;
-            set => m_BlitShader = value;
+            ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, CreateInstance<CreateForwardRendererAsset>(), "CustomForwardRendererData.asset", null, null);
+        }
+#endif
+
+        [Serializable, ReloadGroup]
+        public sealed class ShaderResources
+        {
+            [SerializeField, Reload("Shaders/Utils/Blit.shader")]
+            public Shader blitPS;
+
+            [SerializeField, Reload("Shaders/Utils/CopyDepth.shader")]
+            public Shader copyDepthPS;
+
+            [SerializeField, Reload("Shaders/Utils/ScreenSpaceShadows.shader")]
+            public Shader screenSpaceShadowPS;
+        
+            [SerializeField, Reload("Shaders/Utils/Sampling.shader")]
+            public Shader samplingPS;
         }
 
-        public Shader copyDepthShader
+        public ShaderResources shaders = null;
+
+        [SerializeField] LayerMask m_OpaqueLayerMask = -1;
+        [SerializeField] LayerMask m_TransparentLayerMask = -1;
+
+        [SerializeField] StencilStateData m_DefaultStencilState = null;
+
+        protected override ScriptableRenderer Create()
         {
-            get => m_CopyDepthShader;
-            set => m_CopyDepthShader = value;
+#if UNITY_EDITOR
+            if (!Application.isPlaying)
+                ResourceReloader.ReloadAllNullIn(this, LightweightRenderPipelineAsset.packagePath);
+#endif
+            return new ForwardRenderer(this);
         }
 
-        public Shader screenSpaceShadowShader
-        {
-            get => m_ScreenSpaceShadowShader;
-            set => m_ScreenSpaceShadowShader = value;
-        }
+        internal LayerMask opaqueLayerMask => m_OpaqueLayerMask;
 
-        public Shader samplingShader
+        public LayerMask transparentLayerMask => m_TransparentLayerMask;
+
+        public StencilStateData defaultStencilState => m_DefaultStencilState;
+
+        protected override void OnEnable()
         {
-            get => m_SamplingShader;
-            set => m_SamplingShader = value;
+            base.OnEnable();
+
+            // Upon asset creation, OnEnable is called and `shaders` reference is not yet initialized
+            // We need to call the OnEnable for data migration when updating from old versions of LWRP that
+            // serialized resources in a different format. Early returning here when OnEnable is called
+            // upon asset creation is fine because we guarantee new assets get created with all resources initialized.
+            if (shaders == null)
+                return;
+
+#if UNITY_EDITOR
+            foreach (var shader in shaders.GetType().GetFields())
+            {
+                if (shader.GetValue(shaders) == null)
+                {
+                    ResourceReloader.ReloadAllNullIn(this, LightweightRenderPipelineAsset.packagePath);
+                    break;
+                }
+            }
+#endif
         }
     }
 }

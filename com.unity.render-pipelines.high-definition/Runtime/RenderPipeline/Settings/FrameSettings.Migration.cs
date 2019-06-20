@@ -352,5 +352,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             oldFrameSettingsFormat = null;
         }
 #pragma warning restore 618 // Type or member is obsolete
+        
+        internal static void MigrateToAfterPostprocess(ref FrameSettings cameraFrameSettings)
+        {
+            cameraFrameSettings.SetEnabled(FrameSettingsField.AfterPostprocess, true);
+        }
+
+        internal static void MigrateToSpecularLighting(ref FrameSettings cameraFrameSettings)
+            => cameraFrameSettings.SetEnabled(FrameSettingsField.SpecularLighting, true);
     }
 }

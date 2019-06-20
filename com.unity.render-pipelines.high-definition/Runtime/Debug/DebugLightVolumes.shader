@@ -25,11 +25,13 @@ Shader "Hidden/HDRP/DebugLightVolumes"
             struct AttributesDefault
             {
                 float3 positionOS : POSITION;
+                UNITY_VERTEX_INPUT_INSTANCE_ID
             };
 
             struct VaryingsDefault
             {
                 float4 positionCS : SV_POSITION;
+                UNITY_VERTEX_OUTPUT_STEREO
             };
 
             float3 _Range;
@@ -39,6 +41,8 @@ Shader "Hidden/HDRP/DebugLightVolumes"
             VaryingsDefault vert(AttributesDefault att)
             {
                 VaryingsDefault output;
+                UNITY_SETUP_INSTANCE_ID(att);
+                UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
 
                 float3 positionRWS = TransformObjectToWorld(att.positionOS.xyz * _Range + _Offset);
                 output.positionCS = TransformWorldToHClip(positionRWS);
@@ -48,6 +52,7 @@ Shader "Hidden/HDRP/DebugLightVolumes"
 
             void frag(VaryingsDefault varying, out float outLightCount : SV_Target0, out float4 outColorAccumulation : SV_Target1)
             {
+                UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(varying);
                 outLightCount = 1.0f;
                 outColorAccumulation = _Color;
             }
@@ -67,23 +72,27 @@ Shader "Hidden/HDRP/DebugLightVolumes"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Debug/DebugDisplay.hlsl"
 
-            TEXTURE2D(_BlitTexture);
+            TEXTURE2D_X(_BlitTexture);
             SamplerState sampler_PointClamp;
 
             struct Attributes
             {
                 uint vertexID : SV_VertexID;
+                UNITY_VERTEX_INPUT_INSTANCE_ID
             };
 
             struct Varyings
             {
                 float4 positionCS : SV_POSITION;
                 float2 texcoord   : TEXCOORD0;
+                UNITY_VERTEX_OUTPUT_STEREO
             };
 
             Varyings vert(Attributes input)
             {
                 Varyings output;
+                UNITY_SETUP_INSTANCE_ID(input);
+                UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
                 output.positionCS = GetFullScreenTriangleVertexPosition(input.vertexID);
                 output.texcoord   = GetNormalizedFullScreenTriangleTexCoord(input.vertexID);
                 return output;
@@ -91,7 +100,8 @@ Shader "Hidden/HDRP/DebugLightVolumes"
 
             float4 frag(Varyings input) : SV_Target
             {
-                return SAMPLE_TEXTURE2D_LOD(_BlitTexture, sampler_PointClamp, input.texcoord, 0);
+                UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
+                return SAMPLE_TEXTURE2D_X_LOD(_BlitTexture, sampler_PointClamp, input.texcoord, 0);
             }
             ENDHLSL
         }

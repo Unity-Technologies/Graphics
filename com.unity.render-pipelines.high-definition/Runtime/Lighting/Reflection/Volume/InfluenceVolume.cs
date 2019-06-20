@@ -213,5 +213,49 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         return Mathf.Max(0.0001f, sphereRadius) * Vector3.one;
             }
         }
+
+        /// <summary>
+        /// Compute the minimal FOV required to see the full influence volume from <paramref name="viewerPositionWS"/>
+        ///     while looking at <paramref name="lookAtPositionWS"/>.
+        /// </summary>
+        /// <returns></returns>
+        public float ComputeFOVAt(Vector3 viewerPositionWS, Vector3 lookAtPositionWS, Matrix4x4 influenceToWorld)
+        {
+            void GrowFOVToInclude(ref float fieldOfView, Vector3 positionWS)
+            {
+                var halfFOV = Vector3.Angle(lookAtPositionWS - viewerPositionWS, positionWS - viewerPositionWS);
+                fieldOfView = Mathf.Max(halfFOV * 2, fieldOfView);
+            }
+
+            float fov = 0;
+
+
+            switch (envShape)
+            {
+                case EnvShapeType.Box:
+                    GrowFOVToInclude(ref fov, influenceToWorld.MultiplyPoint(new Vector3(+boxSize.x, -boxSize.y, -boxSize.z)));
+                    GrowFOVToInclude(ref fov, influenceToWorld.MultiplyPoint(new Vector3(+boxSize.x, -boxSize.y, +boxSize.z)));
+                    GrowFOVToInclude(ref fov, influenceToWorld.MultiplyPoint(new Vector3(+boxSize.x, +boxSize.y, -boxSize.z)));
+                    GrowFOVToInclude(ref fov, influenceToWorld.MultiplyPoint(new Vector3(+boxSize.x, +boxSize.y, +boxSize.z)));
+                    GrowFOVToInclude(ref fov, influenceToWorld.MultiplyPoint(new Vector3(-boxSize.x, -boxSize.y, -boxSize.z)));
+                    GrowFOVToInclude(ref fov, influenceToWorld.MultiplyPoint(new Vector3(-boxSize.x, -boxSize.y, +boxSize.z)));
+                    GrowFOVToInclude(ref fov, influenceToWorld.MultiplyPoint(new Vector3(-boxSize.x, +boxSize.y, -boxSize.z)));
+                    GrowFOVToInclude(ref fov, influenceToWorld.MultiplyPoint(new Vector3(-boxSize.x, +boxSize.y, +boxSize.z)));
+                    break;
+                case EnvShapeType.Sphere:
+                    GrowFOVToInclude(ref fov, influenceToWorld.MultiplyPoint(new Vector3(+sphereRadius * 2, 0, 0)));
+                    GrowFOVToInclude(ref fov, influenceToWorld.MultiplyPoint(new Vector3(-sphereRadius * 2, 0, 0)));
+                    GrowFOVToInclude(ref fov, influenceToWorld.MultiplyPoint(new Vector3(0, +sphereRadius * 2, 0)));
+                    GrowFOVToInclude(ref fov, influenceToWorld.MultiplyPoint(new Vector3(0, -sphereRadius * 2, 0)));
+                    GrowFOVToInclude(ref fov, influenceToWorld.MultiplyPoint(new Vector3(0, 0, +sphereRadius * 2)));
+                    GrowFOVToInclude(ref fov, influenceToWorld.MultiplyPoint(new Vector3(0, 0, -sphereRadius * 2)));
+                    break;
+                default:
+                    fov = 90;
+                    break;
+            }
+
+            return fov;
+        }
     }
 }

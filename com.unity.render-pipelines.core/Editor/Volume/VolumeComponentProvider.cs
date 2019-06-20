@@ -49,7 +49,7 @@ namespace UnityEditor.Rendering
 
         public void CreateComponentTree(List<Element> tree)
         {
-            tree.Add(new GroupElement(0, "Volume Components"));
+            tree.Add(new GroupElement(0, "Volume Overrides"));
 
             var attrType = typeof(VolumeComponentMenu);
             var types = VolumeManager.instance.baseComponentTypes;

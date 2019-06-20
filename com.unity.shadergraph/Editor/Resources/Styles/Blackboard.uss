@@ -1,22 +1,22 @@
 .sgblackboard {
-    border-left-width: 1;
-    border-top-width: 1;
-    border-right-width: 1;
-    border-bottom-width: 1;
-    border-radius: 5;
+    border-left-width: 1px;
+    border-top-width: 1px;
+    border-right-width: 1px;
+    border-bottom-width: 1px;
+    border-radius: 5px;
     flex-direction: column;
     background-color: #2b2b2b;
     border-color: #191919;
-    min-width: 100;
-    min-height: 100;
+    min-width: 100px;
+    min-height: 100px;
 }
 
 .sgblackboard * {
-    font-size: 12;
+    font-size: 12px;
 }
 
 .sgblackboard.scrollable {
-    position-type: manual;
+    position: absolute;
 }
 
 .sgblackboard.selected {
@@ -29,11 +29,11 @@
 }
 
 .sgblackboard.scrollable > .mainContainer {
-    position-type: absolute;
-    position-top:0;
-    position-left:0;
-    position-right:0;
-    position-bottom:0;
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
 }
 
 .sgblackboard > .mainContainer > #content {
@@ -42,11 +42,11 @@
 }
 
 .sgblackboard.scrollable > .mainContainer > #content {
-    position-type: absolute;
-    position-top:0;
-    position-left:0;
-    position-right:0;
-    position-bottom:0;
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
     flex-direction: column;
     align-items: stretch;
 }
@@ -56,16 +56,16 @@
 }
 
 .sgblackboard > .mainContainer > #content > ScrollView #ContentView {
-    position-left:0;
-    position-right:0;
+    left: 0;
+    right: 0;
 }
 
 .sgblackboard > .mainContainer > #content > #contentContainer {
-    min-height: 50;
+    min-height: 50px;
     padding-left: 0;
     padding-top: 0;
     padding-right: 0;
-    padding-bottom: 6;
+    padding-bottom: 6px;
     flex-direction: column;
     align-items: stretch;
 }
@@ -74,13 +74,13 @@
     flex-direction: row;
     align-items: stretch;
     background-color: #393939;
-    border-bottom-width: 1;
+    border-bottom-width: 1px;
     border-color: #212121;
-    border-top-right-radius: 4;
-    border-top-left-radius: 4;
-    padding-left: 1;
-    padding-top: 4;
-    padding-bottom: 2;
+    border-top-right-radius: 4px;
+    border-top-left-radius: 4px;
+    padding-left: 1px;
+    padding-top: 4px;
+    padding-bottom: 2px;
 }
 
 .sgblackboard > .mainContainer > #content > #header > #labelContainer {
@@ -108,13 +108,13 @@
 }
 
 .sgblackboard > .mainContainer > #content > #header > #labelContainer > #titleLabel {
-    font-size : 14;
-    text-color: #c1c1c1;
+    font-size : 14px;
+    color: #c1c1c1;
 }
 
 .sgblackboard > .mainContainer > #content > #header > #labelContainer > #subTitleLabel {
-    font-size: 11;
-    text-color: #606060;
+    font-size: 11px;
+    color: #606060;
 }
 
 .sgblackboardSection {
@@ -130,18 +130,18 @@
 }
 
 .sgblackboardSection > .mainContainer > #sectionHeader > #sectionTitleLabel {
-    text-color: #606060;
-    font-size: 11;
+    color: #606060;
+    font-size: 11px;
 }
 
 .sgblackboardSection > #dragIndicator {
     background-color: #44C0FF;
-    min-height: 2;
+    min-height: 2px;
 }
 
 .sgblackboardRow {
-    padding-left: 4;
-    padding-right: 8;
+    padding-left: 4px;
+    padding-right: 8px;
 }
 
 .sgblackboardRow  > .mainContainer > #root > #itemRow {
@@ -161,10 +161,10 @@
 .sgblackboardRow > .mainContainer > #root > #itemRow > #expandButton {
     align-self: center;
     background-image: none;
-    border-left: 0;
-    border-top: 0;
-    border-right: 0;
-    border-bottom: 0;
+    border-left-width: 0;
+    border-top-width: 0;
+    border-right-width: 0;
+    border-bottom-width: 0;
     margin-left: 0;
     margin-top: 0;
     margin-right: 0;
@@ -176,18 +176,18 @@
 }
 
 .sgblackboardRow > .mainContainer > #root > #itemRow > #expandButton > #buttonImage {
-    image : resource("GraphView/Nodes/NodeChevronRight");
-    width: 12;
-    height: 12;
+    --unity-image : resource("GraphView/Nodes/NodeChevronRight");
+    width: 12px;
+    height: 12px;
 }
 
 .sgblackboardRow.expanded > .mainContainer > #root > #itemRow > #expandButton > #buttonImage {
-    image : resource("GraphView/Nodes/NodeChevronDown");
+    --unity-image : resource("GraphView/Nodes/NodeChevronDown");
 }
 
 .sgblackboardRow > .mainContainer > #root > #itemRow > #expandButton:hover > #buttonImage {
     background-color: #212121;
-    border-radius: 1;
+    border-radius: 1px;
 }
 
 .sgblackboardRow > .mainContainer > #root > #propertyViewContainer {
@@ -212,93 +212,92 @@
 }
 
 .sgblackboardField > .mainContainer > #textField {
-    position-type: absolute;
-    position-top:0;
-    position-left:0;
-    position-right:0;
-    position-bottom:0;
-    text-alignment:middle-left;
-    font-size:11;
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    -unity-text-align: middle-left;
+    font-size: 11px;
 }
 
 .sgblackboardField > .mainContainer > #contentItem > #typeLabel {
     flex: 1;
     flex: 1;
-    text-align: right;
-    text-alignment:middle-right;
-    text-color: #808080;
-    font-size:11;
+    -unity-text-align: middle-right;
+    color: #808080;
+    font-size: 11px;
 }
 
 .sgblackboardField > .mainContainer > #contentItem > #pill {
     flex-direction: row;
     align-items: stretch;
     background-color: #252525;
-    border-radius:40;
+    border-radius: 40px;
     border-color: #272727;
-    padding-left: 8;
-    padding-top: 3;
-    padding-bottom: 3;
-    padding-right: 8;
-    border-bottom-width: 1;
-    margin-left: 4;
-    margin-top: 2;
-    margin-bottom: 2;
+    padding-left: 8px;
+    padding-top: 3px;
+    padding-bottom: 3px;
+    padding-right: 8px;
+    border-bottom-width: 1px;
+    margin-left: 4px;
+    margin-top: 2px;
+    margin-bottom: 2px;
 }
 
 .sgblackboardField:hover > .mainContainer > #contentItem > #pill {
     border-color: rgba(68, 192, 255, 0.5);
-    border-left-width: 1;
-    border-top-width: 1;
-    border-right-width: 1;
-    border-bottom-width: 1;
-    padding-left: 7;
-    padding-top: 2;
-    padding-bottom: 3;
-    padding-right: 7;
+    border-left-width: 1px;
+    border-top-width: 1px;
+    border-right-width: 1px;
+    border-bottom-width: 1px;
+    padding-left: 7px;
+    padding-top: 2px;
+    padding-bottom: 3px;
+    padding-right: 7px;
 }
 
 .sgblackboardField.selected > .mainContainer > #contentItem > #pill {
     border-color: #44C0FF;
-    border-left-width: 2;
-    border-top-width: 2;
-    border-right-width: 2;
-    border-bottom-width: 2;
-    padding-left: 6;
-    padding-top: 1;
-    padding-bottom: 2;
-    padding-right: 7;
+    border-left-width: 2px;
+    border-top-width: 2px;
+    border-right-width: 2px;
+    border-bottom-width: 2px;
+    padding-left: 6px;
+    padding-top: 1px;
+    padding-bottom: 2px;
+    padding-right: 7px;
 }
 
 .sgblackboardField > .mainContainer > #contentItem > #pill > #borderItem {
-    position-type: absolute;
-    position-top: 0;
-    position-left: 1;
-    position-right: 1;
-    position-bottom: 1;
-    border-radius: 40;
+    position: absolute;
+    top: 0px;
+    left: 1px;
+    right: 1px;
+    bottom: 1px;
+    border-radius: 40px;
     background-color: #606061;
     border-color: #252525;
-    border-left-width: 1;
-    border-top-width: 1;
-    border-right-width: 1;
-    border-bottom-width: 1;
+    border-left-width: 1px;
+    border-top-width: 1px;
+    border-right-width: 1px;
+    border-bottom-width: 1px;
 }
 
 .sgblackboardField > .mainContainer > #contentItem > #pill > #backgroundItem {
-    position-type: absolute;
-    position-top:2;
-    position-left: 1;
-    position-right: 1;
-    position-bottom: 1;
-    border-radius: 40;
+    position: absolute;
+    top: 2px;
+    left: 1px;
+    right: 1px;
+    bottom: 1px;
+    border-radius: 40px;
     background-image: resource("GraphView/Nodes/BlackboardFieldPillBackground");
 }
 
 .sgblackboardField > .mainContainer > #contentItem > #pill > #iconItem {
     align-self: center;
-    width: 6;
-    height: 6;
+    width: 6px;
+    height: 6px;
 }
 
 .sgblackboardField.noIcon > .mainContainer > #contentItem > #pill > #iconItem {
@@ -307,5 +306,5 @@
 }
 
 .sgblackboardField > .mainContainer > #contentItem > #pill > #textLabel {
-    font-size: 11;
+    font-size: 11px;
 }

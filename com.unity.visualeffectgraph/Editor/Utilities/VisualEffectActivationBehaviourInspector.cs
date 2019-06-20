@@ -10,7 +10,7 @@ using UnityEditorInternal;
 using UnityEditor.VFX;
 using System.Collections.Generic;
 
-namespace UnityEditor.VFX.Utils
+namespace UnityEditor.Experimental.VFX.Utility
 {
     [CustomEditor(typeof(VisualEffectActivationClip))]
     public class VisualEffectActivationClipEditor : Editor

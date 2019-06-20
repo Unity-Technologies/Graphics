@@ -1,4 +1,4 @@
-real3 ADD_FUNC_SUFFIX(ADD_NORMAL_FUNC_SUFFIX(SampleUVMappingNormal))(TEXTURE2D_ARGS(textureName, samplerName), UVMapping uvMapping, real scale, real param)
+real3 ADD_FUNC_SUFFIX(ADD_NORMAL_FUNC_SUFFIX(SampleUVMappingNormal))(TEXTURE2D_PARAM(textureName, samplerName), UVMapping uvMapping, real scale, real param)
 {
     if (uvMapping.mappingType == UV_MAPPING_TRIPLANAR)
     {

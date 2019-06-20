@@ -11,7 +11,6 @@ namespace UnityEditor.ShaderGraph
             name = "Normal Reconstruct Z";
         }
 
-
         protected override MethodInfo GetFunctionToConvert()
         {
             return GetType().GetMethod("NormalReconstructZ", BindingFlags.Static | BindingFlags.NonPublic);
@@ -25,8 +24,8 @@ namespace UnityEditor.ShaderGraph
             return
                 @"
 {
-    {precision} reconstructZ = sqrt(1 - ( In.x * In.x + In.y * In.y));
-    {precision}3 normalVector = {precision}3(In.x, In.y, reconstructZ);
+    $precision reconstructZ = sqrt(1.0 - saturate(dot(In.xy, In.xy)));
+    $precision3 normalVector = $precision3(In.x, In.y, reconstructZ);
     Out = normalize(normalVector);
 }";
         }

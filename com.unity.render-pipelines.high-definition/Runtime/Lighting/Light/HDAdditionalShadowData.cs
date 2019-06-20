@@ -16,7 +16,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             shadowData.normalBiasMax        = 0.5f;
             shadowData.normalBiasScale      = 1.0f;
             shadowData.sampleBiasScale      = false;
-            shadowData.edgeLeakFixup        = true;
+            shadowData.edgeLeakFixup        = false;
             shadowData.edgeToleranceNormal  = true;
             shadowData.edgeTolerance        = 1.0f;
         }

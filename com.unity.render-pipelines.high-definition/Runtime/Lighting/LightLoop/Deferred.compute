@@ -31,6 +31,8 @@
 #pragma kernel Deferred_Indirect_Fptl_Variant24     SHADE_OPAQUE_ENTRY=Deferred_Indirect_Fptl_Variant24     USE_INDIRECT    VARIANT=24
 #pragma kernel Deferred_Indirect_Fptl_Variant25     SHADE_OPAQUE_ENTRY=Deferred_Indirect_Fptl_Variant25     USE_INDIRECT    VARIANT=25
 #pragma kernel Deferred_Indirect_Fptl_Variant26     SHADE_OPAQUE_ENTRY=Deferred_Indirect_Fptl_Variant26     USE_INDIRECT    VARIANT=26
+#pragma kernel Deferred_Indirect_Fptl_Variant27     SHADE_OPAQUE_ENTRY=Deferred_Indirect_Fptl_Variant27     USE_INDIRECT    VARIANT=27
+#pragma kernel Deferred_Indirect_Fptl_Variant28     SHADE_OPAQUE_ENTRY=Deferred_Indirect_Fptl_Variant28     USE_INDIRECT    VARIANT=28
 
 #pragma kernel Deferred_Indirect_ShadowMask_Fptl_Variant0       SHADE_OPAQUE_ENTRY=Deferred_Indirect_ShadowMask_Fptl_Variant0       USE_INDIRECT    SHADOWS_SHADOWMASK  VARIANT=0
 #pragma kernel Deferred_Indirect_ShadowMask_Fptl_Variant1       SHADE_OPAQUE_ENTRY=Deferred_Indirect_ShadowMask_Fptl_Variant1       USE_INDIRECT    SHADOWS_SHADOWMASK  VARIANT=1
@@ -59,20 +61,18 @@
 #pragma kernel Deferred_Indirect_ShadowMask_Fptl_Variant24      SHADE_OPAQUE_ENTRY=Deferred_Indirect_ShadowMask_Fptl_Variant24      USE_INDIRECT    SHADOWS_SHADOWMASK  VARIANT=24
 #pragma kernel Deferred_Indirect_ShadowMask_Fptl_Variant25      SHADE_OPAQUE_ENTRY=Deferred_Indirect_ShadowMask_Fptl_Variant25      USE_INDIRECT    SHADOWS_SHADOWMASK  VARIANT=25
 #pragma kernel Deferred_Indirect_ShadowMask_Fptl_Variant26      SHADE_OPAQUE_ENTRY=Deferred_Indirect_ShadowMask_Fptl_Variant26      USE_INDIRECT    SHADOWS_SHADOWMASK  VARIANT=26
+#pragma kernel Deferred_Indirect_ShadowMask_Fptl_Variant27      SHADE_OPAQUE_ENTRY=Deferred_Indirect_ShadowMask_Fptl_Variant27      USE_INDIRECT    SHADOWS_SHADOWMASK  VARIANT=27
+#pragma kernel Deferred_Indirect_ShadowMask_Fptl_Variant28      SHADE_OPAQUE_ENTRY=Deferred_Indirect_ShadowMask_Fptl_Variant28      USE_INDIRECT    SHADOWS_SHADOWMASK  VARIANT=28
 
 #ifdef DEBUG_DISPLAY
     // Don't care about this warning in debug
 #   pragma warning( disable : 4714 ) // sum of temp registers and indexable temp registers times 256 threads exceeds the recommended total 16384.  Performance may be reduced at kernel
 #endif
 
-#define UNITY_SINGLE_PASS_STEREO 1
-
 // deferred opaque always use FPTL
 #define USE_FPTL_LIGHTLIST 1
 
-//#pragma enable_d3d11_debug_symbols
-
-//#define ENABLE_RAYTRACING
+// #pragma enable_d3d11_debug_symbols
 
 //-------------------------------------------------------------------------------------
 // Include
@@ -90,10 +90,6 @@
 
 CBUFFER_START(UnityDeferredCompute)
     uint g_TileListOffset;
-    #ifdef ENABLE_RAYTRACING
-    // Uniform variables that defines if we shall be using the shadow area texture or not
-    int _RaytracedAreaShadow;
-    #endif
 CBUFFER_END
 
 #ifdef DEBUG_DISPLAY
@@ -123,33 +119,47 @@ CBUFFER_END
 // variable declaration
 //-------------------------------------------------------------------------------------
 
-RWTexture2D<float3> diffuseLightingUAV;
-RWTexture2D<float4> specularLightingUAV;
+RW_TEXTURE2D_X(float3, diffuseLightingUAV);
+RW_TEXTURE2D_X(float4, specularLightingUAV);
 
-
+#define GROUP_SIZE (TILE_SIZE_FPTL / 2) // 4x 8x8 groups per a 16x16 tile
 
 #ifdef USE_INDIRECT
 
 StructuredBuffer<uint> g_TileList;
 // Indirect
-[numthreads(TILE_SIZE_FPTL, TILE_SIZE_FPTL, 1)]
+[numthreads(GROUP_SIZE, GROUP_SIZE, 1)]
 void SHADE_OPAQUE_ENTRY(uint2 groupThreadId : SV_GroupThreadID, uint groupId : SV_GroupID)
 {
-    uint  tileIndex   = g_TileList[g_TileListOffset + groupId];
-    uint2 tileCoord   = uint2(tileIndex & 0x0000FFFF, tileIndex >> 16); // see builddispatchindirect.compute
-    uint2 pixelCoord  = tileCoord * GetTileSize() + groupThreadId;
+    uint  tileIndex   = g_TileList[g_TileListOffset + (groupId / 4)];
+    uint2 tileCoord   = uint2((tileIndex >> TILE_INDEX_SHIFT_X) & TILE_INDEX_MASK, (tileIndex >> TILE_INDEX_SHIFT_Y) & TILE_INDEX_MASK); // see builddispatchindirect.compute
+    uint2 pixelCoord  = tileCoord * GetTileSize()
+                      + uint2(groupId & 1, (groupId >> 1) & 1) * GROUP_SIZE
+                      + groupThreadId;
+
+    UNITY_STEREO_ASSIGN_COMPUTE_EYE_INDEX(tileIndex >> TILE_INDEX_SHIFT_EYE);
 
     uint screenWidth  = (uint)_ScreenSize.x;
     uint numTilesX    = (screenWidth + (TILE_SIZE_FPTL) - 1) / TILE_SIZE_FPTL;
-    uint featureFlags = TileVariantToFeatureFlags(VARIANT, tileCoord.x + tileCoord.y * numTilesX);
+    uint tileVariantIndex = tileCoord.x + tileCoord.y * numTilesX;
+
+#if defined(UNITY_STEREO_INSTANCING_ENABLED)
+    uint screenHeight = (uint)_ScreenSize.y;
+    uint numTilesY = (screenHeight + (TILE_SIZE_FPTL) - 1) / TILE_SIZE_FPTL;
+    tileVariantIndex += unity_StereoEyeIndex * numTilesX * numTilesY;
+#endif
+
+    uint featureFlags = TileVariantToFeatureFlags(VARIANT, tileVariantIndex);
 #else
 
 // Direct
-[numthreads(TILE_SIZE_FPTL, TILE_SIZE_FPTL, 1)]
-void SHADE_OPAQUE_ENTRY(uint2 dispatchThreadId : SV_DispatchThreadID, uint2 groupId : SV_GroupID)
+[numthreads(GROUP_SIZE, GROUP_SIZE, 1)]
+void SHADE_OPAQUE_ENTRY(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupId : SV_GroupID)
 {
-    uint2 tileCoord    = (TILE_SIZE_FPTL * groupId) / GetTileSize();
-	uint2 pixelCoord = TexCoordStereoOffset(dispatchThreadId);// +uint2((unity_StereoEyeIndex * _ScreenSize.x), 0);
+    UNITY_STEREO_ASSIGN_COMPUTE_EYE_INDEX(dispatchThreadId.z);
+
+    uint2 tileCoord    = (GROUP_SIZE * groupId) / GetTileSize();
+    uint2 pixelCoord   = dispatchThreadId.xy;
     uint  featureFlags = UINT_MAX;
 
 #endif
@@ -157,7 +167,7 @@ void SHADE_OPAQUE_ENTRY(uint2 dispatchThreadId : SV_DispatchThreadID, uint2 grou
     // This need to stay in sync with deferred.shader
 
     float depth = LoadCameraDepth(pixelCoord.xy);
-    PositionInputs posInput = GetPositionInput_Stereo(pixelCoord.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V, tileCoord, unity_StereoEyeIndex);
+    PositionInputs posInput = GetPositionInput(pixelCoord.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V, tileCoord);
 
     // For indirect case: we can still overlap inside a tile with the sky/background, reject it
     // Can't rely on stencil as we are in compute shader
@@ -183,11 +193,11 @@ void SHADE_OPAQUE_ENTRY(uint2 dispatchThreadId : SV_DispatchThreadID, uint2 grou
 
     if (_EnableSubsurfaceScattering != 0 && ShouldOutputSplitLighting(bsdfData))
     {
-        specularLightingUAV[pixelCoord] = float4(specularLighting, 1.0);
-        diffuseLightingUAV[pixelCoord]  = TagLightingForSSS(diffuseLighting);
+        specularLightingUAV[COORD_TEXTURE2D_X(pixelCoord)] = float4(specularLighting, 1.0);
+        diffuseLightingUAV[COORD_TEXTURE2D_X(pixelCoord)]  = TagLightingForSSS(diffuseLighting);
     }
     else
     {
-        specularLightingUAV[pixelCoord] = float4(diffuseLighting + specularLighting, 1.0);
+        specularLightingUAV[COORD_TEXTURE2D_X(pixelCoord)] = float4(diffuseLighting + specularLighting, 1.0);
     }
 }

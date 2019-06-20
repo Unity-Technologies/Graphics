@@ -35,6 +35,7 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/GeometricTools.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/VolumeRendering.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/TextureXR.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Core/Utilities/GeometryUtils.cs.hlsl"
 
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPass.cs.hlsl"
@@ -60,7 +61,7 @@ RW_TEXTURE3D(float4, _VBufferDensity); // RGB = sqrt(scattering), A = sqrt(extin
 
 // TODO: avoid creating another Constant Buffer...
 CBUFFER_START(UnityVolumetricLighting)
-    float4x4 _VBufferCoordToViewDirWS;          // Actually just 3x3, but Unity can only set 4x4
+    float4x4 _VBufferCoordToViewDirWS[XR_MAX_VIEWS];
 
     float    _VBufferUnitDepthTexelSpacing;
     uint     _NumVisibleDensityVolumes;
@@ -145,6 +146,8 @@ void FillVolumetricDensityBuffer(PositionInputs posInput, uint tileIndex, Jitter
     uint volumeCount, volumeStart;
 
 #ifdef USE_BIG_TILE_LIGHTLIST
+    // Offset for stereo rendering
+    tileIndex += unity_StereoEyeIndex * _NumTileBigTileX * _NumTileBigTileY;
 
     // The "big tile" list contains the number of objects contained within the tile followed by the
     // list of object indices. Note that while objects are already sorted by type, we don't know the
@@ -184,7 +187,7 @@ void FillVolumetricDensityBuffer(PositionInputs posInput, uint tileIndex, Jitter
 
     for (uint slice = 0; slice < _VBufferSliceCount; slice++)
     {
-        uint3 voxelCoord = uint3(posInput.positionSS, slice);
+        uint3 voxelCoord = uint3(posInput.positionSS, slice + _VBufferSliceCount * unity_StereoEyeIndex);
 
         float e1 = slice * de + de; // (slice + 1) / sliceCount
         float t1 = DecodeLogarithmicDepthGeneralized(e1, _VBufferDistanceDecodingParams);
@@ -247,9 +250,9 @@ void FillVolumetricDensityBuffer(PositionInputs posInput, uint tileIndex, Jitter
             minDiagPointBS = maxDiagPointBS = voxelCenterBS;
 
             bool  normalFwd  = dot(voxelAxisForwardBS, N) >= 0;
-            float mulForward = 0.5 * normalFwd ? dt : -dt;
-            float mulMin     = 0.5 * normalFwd ? t0 : t1;
-            float mulMax     = 0.5 * normalFwd ? t1 : t0;
+            float mulForward = 0.5 * (normalFwd ? dt : -dt);
+            float mulMin     = 0.5 * (normalFwd ? t0 : t1);
+            float mulMax     = 0.5 * (normalFwd ? t1 : t0);
 
             minDiagPointBS -= mulForward * voxelAxisForwardBS;
             maxDiagPointBS += mulForward * voxelAxisForwardBS;
@@ -328,11 +331,14 @@ void FillVolumetricDensityBuffer(PositionInputs posInput, uint tileIndex, Jitter
 }
 
 [numthreads(GROUP_SIZE_1D, GROUP_SIZE_1D, 1)]
-void VolumeVoxelization(uint2 groupId       : SV_GroupID,
-                        uint2 groupThreadId : SV_GroupThreadID)
+void VolumeVoxelization(uint3 dispatchThreadId : SV_DispatchThreadID,
+                        uint2 groupId          : SV_GroupID,
+                        uint2 groupThreadId    : SV_GroupThreadID)
 {
     // Perform compile-time checks.
     if (!IsPower2(VBUFFER_TILE_SIZE) || !IsPower2(TILE_SIZE_BIG_TILE)) return;
+
+    UNITY_STEREO_ASSIGN_COMPUTE_EYE_INDEX(dispatchThreadId.z);
 
     uint2 groupOffset = groupId * GROUP_SIZE_1D;
     uint2 voxelCoord  = groupOffset + groupThreadId;
@@ -353,7 +359,7 @@ void VolumeVoxelization(uint2 groupId       : SV_GroupID,
     float2 centerCoord = voxelCoord + float2(0.5, 0.5);
 
     // Compute a ray direction s.t. ViewSpace(rayDirWS).z = 1.
-    float3 rayDirWS       = mul(-float3(centerCoord, 1), (float3x3)_VBufferCoordToViewDirWS);
+    float3 rayDirWS       = mul(-float4(centerCoord, 1, 1), _VBufferCoordToViewDirWS[unity_StereoEyeIndex]).xyz;
     float3 rightDirWS     = cross(rayDirWS, U);
     float  rcpLenRayDir   = rsqrt(dot(rayDirWS, rayDirWS));
     float  rcpLenRightDir = rsqrt(dot(rightDirWS, rightDirWS));
@@ -370,6 +376,8 @@ void VolumeVoxelization(uint2 groupId       : SV_GroupID,
     ray.jitterDirWS = ray.centerDirWS; // TODO
 
     PositionInputs posInput = GetPositionInput(voxelCoord, _VBufferResolution.zw, tileCoord);
+
+    ApplyCameraRelativeXR(ray.originWS);
 
     FillVolumetricDensityBuffer(posInput, tileIndex, ray);
 }

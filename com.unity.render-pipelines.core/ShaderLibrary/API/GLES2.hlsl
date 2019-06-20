@@ -18,8 +18,6 @@
 #define CBUFFER_START(name)
 #define CBUFFER_END
 
-#define PLATFORM_THREAD_GROUP_OPTIMAL_SIZE 0		// cannot infer the optimal compute shader group size (GPU vendor not known).
-
 // flow control attributes
 #define UNITY_BRANCH
 #define UNITY_FLATTEN
@@ -94,23 +92,23 @@
 #define SAMPLER(samplerName)
 #define SAMPLER_CMP(samplerName)
 
-#define TEXTURE2D_ARGS(textureName, samplerName)                sampler2D textureName
-#define TEXTURE2D_ARRAY_ARGS(textureName, samplerName)          samplerCUBE textureName
-#define TEXTURECUBE_ARGS(textureName, samplerName)              samplerCUBE textureName
-#define TEXTURECUBE_ARRAY_ARGS(textureName, samplerName)        samplerCUBE textureName
-#define TEXTURE3D_ARGS(textureName, samplerName)                sampler3D textureName
-#define TEXTURE2D_SHADOW_ARGS(textureName, samplerName)         SHADOW2D_TEXTURE_AND_SAMPLER textureName
-#define TEXTURE2D_ARRAY_SHADOW_ARGS(textureName, samplerName)   SHADOWCUBE_TEXTURE_AND_SAMPLER textureName
-#define TEXTURECUBE_SHADOW_ARGS(textureName, samplerName)       SHADOWCUBE_TEXTURE_AND_SAMPLER textureName
+#define TEXTURE2D_PARAM(textureName, samplerName)                sampler2D textureName
+#define TEXTURE2D_ARRAY_PARAM(textureName, samplerName)          samplerCUBE textureName
+#define TEXTURECUBE_PARAM(textureName, samplerName)              samplerCUBE textureName
+#define TEXTURECUBE_ARRAY_PARAM(textureName, samplerName)        samplerCUBE textureName
+#define TEXTURE3D_PARAM(textureName, samplerName)                sampler3D textureName
+#define TEXTURE2D_SHADOW_PARAM(textureName, samplerName)         SHADOW2D_TEXTURE_AND_SAMPLER textureName
+#define TEXTURE2D_ARRAY_SHADOW_PARAM(textureName, samplerName)   SHADOWCUBE_TEXTURE_AND_SAMPLER textureName
+#define TEXTURECUBE_SHADOW_PARAM(textureName, samplerName)       SHADOWCUBE_TEXTURE_AND_SAMPLER textureName
 
-#define TEXTURE2D_PARAM(textureName, samplerName)               textureName
-#define TEXTURE2D_ARRAY_PARAM(textureName, samplerName)         textureName
-#define TEXTURECUBE_PARAM(textureName, samplerName)             textureName
-#define TEXTURECUBE_ARRAY_PARAM(textureName, samplerName)       textureName
-#define TEXTURE3D_PARAM(textureName, samplerName)               textureName
-#define TEXTURE2D_SHADOW_PARAM(textureName, samplerName)        textureName
-#define TEXTURE2D_ARRAY_SHADOW_PARAM(textureName, samplerName)  textureName
-#define TEXTURECUBE_SHADOW_PARAM(textureName, samplerName)      textureName
+#define TEXTURE2D_ARGS(textureName, samplerName)               textureName
+#define TEXTURE2D_ARRAY_ARGS(textureName, samplerName)         textureName
+#define TEXTURECUBE_ARGS(textureName, samplerName)             textureName
+#define TEXTURECUBE_ARRAY_ARGS(textureName, samplerName)       textureName
+#define TEXTURE3D_ARGS(textureName, samplerName)               textureName
+#define TEXTURE2D_SHADOW_ARGS(textureName, samplerName)        textureName
+#define TEXTURE2D_ARRAY_SHADOW_ARGS(textureName, samplerName)  textureName
+#define TEXTURECUBE_SHADOW_ARGS(textureName, samplerName)      textureName
 
 #define SAMPLE_TEXTURE2D(textureName, samplerName, coord2) tex2D(textureName, coord2)
 
@@ -122,7 +120,7 @@
 #endif
 
 #define SAMPLE_TEXTURE2D_BIAS(textureName, samplerName, coord2, bias)                       tex2Dbias(textureName, float4(coord2, 0, bias))
-#define SAMPLE_TEXTURE2D_GRAD(textureName, samplerName, coord2, ddx, ddy)                   SAMPLE_TEXTURE2D(textureName, coord2)
+#define SAMPLE_TEXTURE2D_GRAD(textureName, samplerName, coord2, ddx, ddy)                   SAMPLE_TEXTURE2D(textureName, samplerName, coord2)
 #define SAMPLE_TEXTURE2D_ARRAY(textureName, samplerName, coord2, index)                     ERROR_ON_UNSUPPORTED_FUNCTION(SAMPLE_TEXTURE2D_ARRAY)
 #define SAMPLE_TEXTURE2D_ARRAY_LOD(textureName, samplerName, coord2, index, lod)            ERROR_ON_UNSUPPORTED_FUNCTION(SAMPLE_TEXTURE2D_ARRAY_LOD)
 #define SAMPLE_TEXTURE2D_ARRAY_BIAS(textureName, samplerName, coord2, index, bias)          ERROR_ON_UNSUPPORTED_FUNCTION(SAMPLE_TEXTURE2D_ARRAY_BIAS)

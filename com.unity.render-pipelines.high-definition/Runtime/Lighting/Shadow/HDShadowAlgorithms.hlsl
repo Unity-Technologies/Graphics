@@ -3,7 +3,7 @@
 // The variant without resource parameters dynamically accesses the texture when sampling.
 
 // WARNINGS:
-// Keep in sync with HDShadowManager::GetDirectionaShadowAlgorithm()
+// Keep in sync with HDShadowManager::GetDirectionalShadowAlgorithm()
 // Be careful this require to update GetPunctualFilterWidthInTexels() in C# as well!
 
 // We can't use multi_compile for compute shaders so we force the shadow algorithm
@@ -28,7 +28,6 @@
 
 #ifdef SHADOW_VERY_HIGH
 #define PUNCTUAL_FILTER_ALGORITHM(sd, posSS, posTC, sampleBias, tex, samp) SampleShadow_PCSS(posTC, posSS, sd.shadowMapSize.xy * _ShadowAtlasSize.zw, sd.atlasOffset, sampleBias, sd.shadowFilterParams0.x, sd.shadowFilterParams0.w, asint(sd.shadowFilterParams0.y), asint(sd.shadowFilterParams0.z), tex, samp, s_point_clamp_sampler)
-#define USE_IMPROVED_MOMENT_SHADOWS
 #define DIRECTIONAL_FILTER_ALGORITHM(sd, posSS, posTC, sampleBias, tex, samp) SampleShadow_IMS(sd, posTC, sampleBias.x, sd.shadowFilterParams0.x, sd.shadowFilterParams0.y, sd.shadowFilterParams0.z)
 #endif
 
@@ -85,7 +84,7 @@ float3 EvalShadow_GetTexcoordsAtlas(HDShadowData sd, float2 atlasSizeRcp, float3
     posNDC = (perspProj && posCS.w != 0) ? (posCS.xyz / posCS.w) : posCS.xyz;
 
     // calc TCs
-    float3 posTC = float3(posNDC.xy * 0.5 + 0.5, posNDC.z);
+    float3 posTC = float3(saturate(posNDC.xy * 0.5 + 0.5), posNDC.z);
     posTC.xy = posTC.xy * sd.shadowMapSize.xy * atlasSizeRcp + sd.atlasOffset;
 
     return posTC;
@@ -263,9 +262,7 @@ float2 EvalShadow_SampleBias_Ortho(float3 normalWS)                             
 //
 float EvalShadow_PunctualDepth(HDShadowData sd, Texture2D tex, SamplerComparisonState samp, float2 positionSS, float3 positionWS, float3 normalWS, float3 L, float L_dist, bool perspective)
 {
-    /* in stereo, translate input position to the same space as shadows for proper sampling and bias */
-    positionWS = StereoCameraRelativeEyeToCenter(positionWS);
-
+    positionWS = positionWS + sd.cacheTranslationDelta.xyz;
     /* bias the world position */
     float recvBiasWeight = EvalShadow_ReceiverBiasWeight(sd, _ShadowAtlasSize.zw, sd.atlasOffset, sd.viewBias, sd.edgeTolerance, sd.flags, tex, samp, positionWS, normalWS, L, L_dist, perspective);
     positionWS = EvalShadow_ReceiverBias(sd.viewBias, sd.normalBias, positionWS, normalWS, L, L_dist, recvBiasWeight, perspective);
@@ -273,9 +270,42 @@ float EvalShadow_PunctualDepth(HDShadowData sd, Texture2D tex, SamplerComparison
     float3 posTC = EvalShadow_GetTexcoordsAtlas(sd, _ShadowAtlasSize.zw, positionWS, perspective);
     /* get the per sample bias */
     float2 sampleBias = EvalShadow_SampleBias_Persp(positionWS, normalWS, posTC);
+    
     /* sample the texture */
-    return PUNCTUAL_FILTER_ALGORITHM(sd, positionSS, posTC, sampleBias, tex, samp);
+    // We need to do the check on min/max coordinates because if the shadow spot angle is smaller than the actual cone, then we could have artifacts due to the clamp sampler.
+    float2 maxCoord = (sd.shadowMapSize.xy - 0.5f) * _ShadowAtlasSize.zw + sd.atlasOffset;
+    float2 minCoord = sd.atlasOffset;
+    return any(posTC > maxCoord || posTC < minCoord) ? 1.0f : PUNCTUAL_FILTER_ALGORITHM(sd, positionSS, posTC, sampleBias, tex, samp);
 }
+
+//
+//  Area light shadows
+//
+float EvalShadow_AreaDepth(HDShadowData sd, Texture2D tex, float2 positionSS, float3 positionWS, float3 normalWS, float3 L, float L_dist, bool perspective)
+{
+    positionWS = positionWS + sd.cacheTranslationDelta.xyz;
+
+    /* get shadowmap texcoords */
+    float3 posTC = EvalShadow_GetTexcoordsAtlas(sd, _AreaShadowAtlasSize.zw, positionWS, perspective);
+
+    int blurPassesScale = (1 + min(4, sd.shadowFilterParams0.w) * 4.0f);// This is needed as blurring might cause some leaks. It might be overclipping, but empirically is a good value. 
+    float2 maxCoord = (sd.shadowMapSize.xy - 0.5f * blurPassesScale) * _AreaShadowAtlasSize.zw + sd.atlasOffset;
+    float2 minCoord = sd.atlasOffset + _AreaShadowAtlasSize.zw * blurPassesScale;
+
+    if (any(posTC.xy > maxCoord || posTC.xy < minCoord))
+    {
+        return 1.0f;
+    }
+    else
+    {
+        float2 exponents = sd.shadowFilterParams0.xx;
+        float lightLeakBias = sd.shadowFilterParams0.y; 
+        float varianceBias = sd.shadowFilterParams0.z;
+        return SampleShadow_EVSM_1tap(posTC, lightLeakBias, varianceBias, exponents, false, tex, s_linear_clamp_sampler);
+
+    }
+}
+
 
 //
 //  Directional shadows (cascaded shadow map)
@@ -305,12 +335,17 @@ int EvalShadow_GetSplitIndex(HDShadowContext shadowContext, int index, float3 po
     }
     int shadowSplitIndex = i < _CascadeShadowCount ? i : -1;
 
-    float3 cascadeDir = dsd.cascadeDirection.xyz;
-    cascadeCount     = dsd.cascadeDirection.w;
-    float border      = dsd.cascadeBorders[shadowSplitIndex];
-          alpha      = border <= 0.0 ? 0.0 : saturate((relDistance - (1.0 - border)) / border);
-    float  cascDot    = dot(cascadeDir, wposDir);
-          alpha      = lerp(alpha, 0.0, saturate(-cascDot * 4.0));
+    cascadeCount = dsd.cascadeDirection.w;
+    float border = dsd.cascadeBorders[shadowSplitIndex];
+    alpha = border <= 0.0 ? 0.0 : saturate((relDistance - (1.0 - border)) / border);
+
+    // The above code will generate transitions on the whole cascade sphere boundary.
+    // It means that depending on the light and camera direction, sometimes the transition appears on the wrong side of the cascade
+    // To avoid that we attenuate the effect (lerp to 0.0) when view direction and cascade center to pixel vector face opposite directions.
+    // This way you only get fade out on the right side of the cascade.
+    float3 viewDir = GetWorldSpaceViewDir(positionWS);
+    float  cascDot = dot(viewDir, wposDir);
+    alpha = lerp(alpha, 0.0, saturate(cascDot * 4.0));
 
     return shadowSplitIndex;
 }
@@ -325,9 +360,6 @@ void LoadDirectionalShadowDatas(inout HDShadowData sd, HDShadowContext shadowCon
 
 float EvalShadow_CascadedDepth_Blend(HDShadowContext shadowContext, Texture2D tex, SamplerComparisonState samp, float2 positionSS, float3 positionWS, float3 normalWS, int index, float3 L)
 {
-    // In stereo, translate input position to the same space as shadows for proper sampling and bias
-    positionWS = StereoCameraRelativeEyeToCenter(positionWS);
-
     float   alpha;
     int     cascadeCount;
     float   shadow = 1.0;
@@ -337,7 +369,8 @@ float EvalShadow_CascadedDepth_Blend(HDShadowContext shadowContext, Texture2D te
     {
         HDShadowData sd = shadowContext.shadowDatas[index];
         LoadDirectionalShadowDatas(sd, shadowContext, index + shadowSplitIndex);
-    
+        positionWS = positionWS + sd.cacheTranslationDelta.xyz;
+
         /* normal based bias */
         float3 orig_pos = positionWS;
         float recvBiasWeight = EvalShadow_ReceiverBiasWeight(sd, _CascadeShadowAtlasSize.zw, sd.atlasOffset, sd.viewBias, sd.edgeTolerance, sd.flags, tex, samp, positionWS, normalWS, L, 1.0, false);
@@ -373,13 +406,6 @@ float EvalShadow_CascadedDepth_Blend(HDShadowContext shadowContext, Texture2D te
     }
 
     return shadow;
-}
-
-float EvalShadow_hash12(float2 pos)
-{
-    float3 p3  = frac(pos.xyx * float3(443.8975, 397.2973, 491.1871));
-           p3 += dot(p3, p3.yzx + 19.19);
-    return frac((p3.x + p3.y) * p3.z);
 }
 
 // TODO: optimize this using LinearEyeDepth() to avoid having to pass the shadowToWorld matrix

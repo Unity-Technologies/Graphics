@@ -2,6 +2,7 @@ using UnityEngine.Rendering;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
+    [VolumeComponentMenu("Sky/Gradient Sky")]
     [SkyUniqueID((int)SkyType.Gradient)]
     public class GradientSky : SkySettings
     {
@@ -25,7 +26,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             unchecked
             {
-                hash = 13;
                 hash = hash * 23 + bottom.GetHashCode();
                 hash = hash * 23 + top.GetHashCode();
                 hash = hash * 23 + middle.GetHashCode();

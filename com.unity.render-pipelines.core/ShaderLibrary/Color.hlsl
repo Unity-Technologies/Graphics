@@ -427,6 +427,16 @@ real3 LogCToLinear(real3 x)
 
 // Fast reversible tonemapper
 // http://gpuopen.com/optimized-reversible-tonemapper-for-resolve/
+real FastTonemapPerChannel(real c)
+{
+    return c * rcp(c + 1.0);
+}
+
+real2 FastTonemapPerChannel(real2 c)
+{
+    return c * rcp(c + 1.0);
+}
+
 real3 FastTonemap(real3 c)
 {
     return c * rcp(Max3(c.r, c.g, c.b) + 1.0);
@@ -447,6 +457,16 @@ real4 FastTonemap(real4 c, real w)
     return real4(FastTonemap(c.rgb, w), c.a);
 }
 
+real FastTonemapPerChannelInvert(real c)
+{
+    return c * rcp(1.0 - c);
+}
+
+real2 FastTonemapPerChannelInvert(real2 c)
+{
+    return c * rcp(1.0 - c);
+}
+
 real3 FastTonemapInvert(real3 c)
 {
     return c * rcp(1.0 - Max3(c.r, c.g, c.b));
@@ -460,7 +480,7 @@ real4 FastTonemapInvert(real4 c)
 #ifndef SHADER_API_GLES
 // 3D LUT grading
 // scaleOffset = (1 / lut_size, lut_size - 1)
-real3 ApplyLut3D(TEXTURE3D_ARGS(tex, samplerTex), real3 uvw, real2 scaleOffset)
+real3 ApplyLut3D(TEXTURE3D_PARAM(tex, samplerTex), real3 uvw, real2 scaleOffset)
 {    
     uvw.xyz = uvw.xyz * scaleOffset.yyy * scaleOffset.xxx + scaleOffset.xxx * 0.5;
     return SAMPLE_TEXTURE3D_LOD(tex, samplerTex, uvw, 0.0).rgb;
@@ -469,7 +489,7 @@ real3 ApplyLut3D(TEXTURE3D_ARGS(tex, samplerTex), real3 uvw, real2 scaleOffset)
 
 // 2D LUT grading
 // scaleOffset = (1 / lut_width, 1 / lut_height, lut_height - 1)
-real3 ApplyLut2D(TEXTURE2D_ARGS(tex, samplerTex), real3 uvw, real3 scaleOffset)
+real3 ApplyLut2D(TEXTURE2D_PARAM(tex, samplerTex), real3 uvw, real3 scaleOffset)
 {
     // Strip format where `height = sqrt(width)`
     uvw.z *= scaleOffset.z;

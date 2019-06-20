@@ -31,7 +31,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public static Settings defaultSettings => new Settings
             {
                 bounds = new Rect(0f, 0f, 1f, 1f),
-                padding = new RectOffset(10, 10, 10, 10),
+                padding = new RectOffset(0, 0, 0, 0),
                 selectionColor = Color.yellow,
                 curvePickingDistance = 6f,
                 keyTimeClampingDistance = 1e-4f
@@ -363,7 +363,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         EditorGUI.DrawRect(offset.Remove(hitRect), selectedColor * enabledFactor);
 
                         // Tangents
-                        if (isCurrentlySelectedCurve && (!state.onlyShowHandlesOnSelection || (state.onlyShowHandlesOnSelection && isCurrentlySelectedKeyframe)))
+                        if (length > 1 && isCurrentlySelectedCurve && (!state.onlyShowHandlesOnSelection || (state.onlyShowHandlesOnSelection && isCurrentlySelectedKeyframe)))
                         {
                             Handles.color = selectedColor * enabledFactor;
 
@@ -392,7 +392,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     }
 
                     // Tangent editing
-                    if (m_EditMode == EditMode.TangentEdit && e.type == EventType.MouseDrag && isCurrentlySelectedCurve && isCurrentlySelectedKeyframe)
+                    if (length > 1 && m_EditMode == EditMode.TangentEdit && e.type == EventType.MouseDrag && isCurrentlySelectedCurve && isCurrentlySelectedKeyframe)
                     {
                         bool alreadyBroken = !(Mathf.Approximately(keys[k].inTangent, keys[k].outTangent) || (float.IsInfinity(keys[k].inTangent) && float.IsInfinity(keys[k].outTangent)));
                         EditMoveTangent(animCurve, keys, k, m_TangentEditMode, e.shift || !(alreadyBroken || e.control));
@@ -430,7 +430,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     }
 
                     // Tangent selection & edit mode
-                    if (e.type == EventType.MouseDown && rect.Contains(e.mousePosition))
+                    if (e.type == EventType.MouseDown && length > 1 && rect.Contains(e.mousePosition))
                     {
                         if (inTangentHitRect.Contains(e.mousePosition) && (k > 0 || state.loopInBounds))
                         {
@@ -695,7 +695,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             float tangent;
 
             if (Mathf.Approximately(pos.x, 0f))
-                tangent = pos.y < 0f ? float.PositiveInfinity : float.NegativeInfinity;
+                tangent = float.PositiveInfinity;
             else
                 tangent = pos.y / pos.x;
 
@@ -744,7 +744,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 return new Vector3(1f, -tangent / ratio).normalized;
             }
 
-            return float.IsPositiveInfinity(tangent) ? Vector3.up : Vector3.down;
+            return Vector3.up; // Positive infinity
         }
 
         Vector3[] BezierSegment(Keyframe start, Keyframe end)
@@ -806,7 +806,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             float vn = curve.Evaluate(tn);
 
             if (Mathf.Approximately(tn, tp))
-                return (vn - vp > 0f) ? float.PositiveInfinity : float.NegativeInfinity;
+                return float.PositiveInfinity;
 
             return (vn - vp) / (tn - tp);
         }

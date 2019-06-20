@@ -14,7 +14,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         ForwardUnlit,
         DeferredLighting,
         DepthOnly,
-        Velocity,
+        MotionVectors,
         Distortion,
         LightTransport,
         Shadows,
@@ -22,6 +22,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         VolumeVoxelization,
         VolumetricLighting,
         DbufferProjector,
-        DbufferMesh
+        DbufferMesh,
+        ForwardEmissiveProjector,
+        ForwardEmissiveMesh,
+        Raytracing,
+        RaytracingIndirect,
+        RaytracingVisibility,
+        RaytracingForward,
+        RaytracingGBuffer,
     }
 }

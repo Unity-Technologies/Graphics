@@ -1,9 +1,10 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using UnityEditor.Graphing;
 
 namespace UnityEditor.ShaderGraph
 {
+    [Serializable]
     struct ShaderGraphRequirements
     {
         public NeededCoordinateSpace requiresNormal;
@@ -17,6 +18,7 @@ namespace UnityEditor.ShaderGraph
         public List<UVChannel> requiresMeshUVs;
         public bool requiresDepthTexture;
         public bool requiresCameraOpaqueTexture;
+        public bool requiresTime;
 
         public static ShaderGraphRequirements none
         {
@@ -51,6 +53,7 @@ namespace UnityEditor.ShaderGraph
             newReqs.requiresFaceSign = other.requiresFaceSign | requiresFaceSign;
             newReqs.requiresDepthTexture = other.requiresDepthTexture | requiresDepthTexture;
             newReqs.requiresCameraOpaqueTexture = other.requiresCameraOpaqueTexture | requiresCameraOpaqueTexture;
+            newReqs.requiresTime = other.requiresTime | requiresTime;
 
             newReqs.requiresMeshUVs = new List<UVChannel>();
             if (requiresMeshUVs != null)
@@ -73,6 +76,7 @@ namespace UnityEditor.ShaderGraph
             bool requiresFaceSign = nodes.OfType<IMayRequireFaceSign>().Any(x => x.RequiresFaceSign());
             bool requiresDepthTexture = nodes.OfType<IMayRequireDepthTexture>().Any(x => x.RequiresDepthTexture());
             bool requiresCameraOpaqueTexture = nodes.OfType<IMayRequireCameraOpaqueTexture>().Any(x => x.RequiresCameraOpaqueTexture());
+            bool requiresTime = nodes.OfType<IMayRequireTime>().Any(x => x.RequiresTime());
 
             var meshUV = new List<UVChannel>();
             for (int uvIndex = 0; uvIndex < ShaderGeneratorNames.UVCount; ++uvIndex)
@@ -111,7 +115,8 @@ namespace UnityEditor.ShaderGraph
                 requiresFaceSign = requiresFaceSign,
                 requiresMeshUVs = meshUV,
                 requiresDepthTexture = requiresDepthTexture,
-                requiresCameraOpaqueTexture = requiresCameraOpaqueTexture
+                requiresCameraOpaqueTexture = requiresCameraOpaqueTexture,
+                requiresTime = requiresTime
             };
 
             return reqs;

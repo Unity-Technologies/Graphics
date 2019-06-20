@@ -22,7 +22,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         public override bool HasPreviewGUI()
         {
-            foreach (PlanarReflectionProbe p in m_TypedTargets)
+            foreach (var p in m_TypedTargets)
             {
                 if (p.texture != null)
                     return true;
@@ -35,10 +35,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         public override void OnPreviewGUI(Rect r, GUIStyle background)
         {
             m_PreviewedTextures.Clear();
-            foreach (PlanarReflectionProbe p in m_TypedTargets)
-            {
+            foreach (var p in m_TypedTargets)
                 m_PreviewedTextures.Add(p.texture);
-            }
 
             var space = Vector2.one;
             var rowSize = Mathf.CeilToInt(Mathf.Sqrt(m_PreviewedTextures.Count));
@@ -82,7 +80,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
             base.DrawHandles(serialized, owner);
 
-            SceneViewOverlay_Window(EditorGUIUtility.TrTextContent("Planar Probe"), OnOverlayGUI, -100, target);
+            SceneViewOverlay_Window(EditorGUIUtility.TrTextContent(target.name), OnOverlayGUI, -100, target);
 
             if (serialized.probeSettings.mode.intValue != (int)ProbeSettings.Mode.Realtime)
             {
@@ -99,37 +97,29 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         void OnOverlayGUI(Object target, SceneView sceneView)
         {
-            var previewSize = new Rect();
-            foreach(PlanarReflectionProbe p in m_TypedTargets)
-            {
-                if (p.texture == null)
-                    continue;
+            var index = Array.IndexOf(m_TypedTargets, target);
+            if (index == -1)
+                return;
+            var p = m_TypedTargets[index];
+            if (p.texture == null)
+                return;
 
-                var factor = k_PreviewHeight / p.texture.height;
-
-                previewSize.x += p.texture.width * factor;
-                previewSize.y = k_PreviewHeight;
-            }
+            var factor = k_PreviewHeight / p.texture.height;
+            var previewSize = new Rect(p.texture.width * factor, k_PreviewHeight, 0, 0);
 
             // Get and reserve rect
-            Rect cameraRect = GUILayoutUtility.GetRect(previewSize.x, previewSize.y);
+            var cameraRect = GUILayoutUtility.GetRect(previewSize.x, previewSize.y);
 
             if (Event.current.type == EventType.Repaint)
             {
                 var c = new Rect(cameraRect);
-                foreach(PlanarReflectionProbe p in m_TypedTargets)
-                {
-                    if (p.texture == null)
-                        continue;
 
-                    var factor = k_PreviewHeight / p.texture.height;
+                c.width = p.texture.width * factor;
+                c.height = k_PreviewHeight;
+                Graphics.DrawTexture(c, p.texture, new Rect(0, 0, 1, 1), 0, 0, 0, 0, GUI.color, CameraEditorUtils.GUITextureBlit2SRGBMaterial);
 
-                    c.width = p.texture.width * factor;
-                    c.height = k_PreviewHeight;
-                    Graphics.DrawTexture(c, p.texture, new Rect(0, 0, 1, 1), 0, 0, 0, 0, GUI.color, CameraEditorUtils.GUITextureBlit2SRGBMaterial);
-
-                    c.x += c.width;
-                }
+                var fovRect = new Rect(c.x + 5, c.y + 2, c.width - 10, EditorGUIUtility.singleLineHeight);
+                GUI.TextField(fovRect, $"FOV: {p.renderData.fieldOfView:F2}°");
             }
         }
 
@@ -170,7 +160,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 InfluenceVolumeUI.HandleType.Base | InfluenceVolumeUI.HandleType.Influence
             );
 
-            DrawCapturePositionGizmo(probe);
+            if (e.showChromeGizmo)
+                DrawCapturePositionGizmo(probe);
         }
 
         static void DrawCapturePositionGizmo(PlanarReflectionProbe probe)
@@ -214,6 +205,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             k_PreviewMaterial.SetTexture("_MainTex", probe.texture);
             k_PreviewMaterial.SetMatrix("_CaptureVPMatrix", vp);
+            k_PreviewMaterial.SetFloat("_Exposure", 1.0f);
             k_PreviewMaterial.SetVector("_CameraPositionWS", new Vector4(cameraPositionWS.x, cameraPositionWS.y, -cameraPositionWS.z, 0));
             k_PreviewMaterial.SetVector("_CapturePositionWS", new Vector4(capturePositionWS.x, capturePositionWS.y, -capturePositionWS.z, 0));
             k_PreviewMaterial.SetPass(0);
@@ -230,8 +222,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         ProbeSettingsOverride HDProbeUI.IProbeUISettingsProvider.displayedCaptureSettings => new ProbeSettingsOverride
         {
-            probe = ProbeSettingsFields.proxyMirrorPositionProxySpace
-               | ProbeSettingsFields.proxyMirrorRotationProxySpace,
+            probe = ProbeSettingsFields.frustumFieldOfViewMode
+                | ProbeSettingsFields.frustumAutomaticScale
+                | ProbeSettingsFields.frustumViewerScale
+                | ProbeSettingsFields.frustumFixedValue,
             camera = new CameraSettingsOverride
             {
                 camera = (CameraSettingsFields)(-1) & ~(
@@ -240,17 +234,26 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                    | CameraSettingsFields.cullingInvertFaceCulling
                    | CameraSettingsFields.frustumMode
                    | CameraSettingsFields.frustumProjectionMatrix
+                   | CameraSettingsFields.frustumFieldOfView
                )
             }
         };
+
+        public ProbeSettingsOverride displayedAdvancedCaptureSettings => new ProbeSettingsOverride
+        {
+            probe = ProbeSettingsFields.proxyMirrorPositionProxySpace
+                    | ProbeSettingsFields.proxyMirrorRotationProxySpace,
+            camera = new CameraSettingsOverride()
+        };
+
         ProbeSettingsOverride HDProbeUI.IProbeUISettingsProvider.overrideableCaptureSettings => new ProbeSettingsOverride
         {
             probe = ProbeSettingsFields.none,
-            camera = new CameraSettingsOverride
-            {
-                camera = CameraSettingsFields.frustumFieldOfView
-            }
+            camera = new CameraSettingsOverride()
         };
+
+        public ProbeSettingsOverride overrideableAdvancedCaptureSettings { get; }
+
         ProbeSettingsOverride HDProbeUI.IProbeUISettingsProvider.displayedAdvancedSettings => new ProbeSettingsOverride
         {
             probe = ProbeSettingsFields.lightingLightLayer

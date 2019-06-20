@@ -264,7 +264,7 @@ namespace UnityEngine.Rendering
             RenderTargetIdentifier colorBuffer, RenderTargetIdentifier depthStencilBuffer,
             MaterialPropertyBlock properties = null, int shaderPassId = 0)
         {
-            commandBuffer.SetRenderTarget(colorBuffer, depthStencilBuffer);
+            commandBuffer.SetRenderTarget(colorBuffer, depthStencilBuffer, 0, CubemapFace.Unknown, -1);
             commandBuffer.DrawProcedural(Matrix4x4.identity, material, shaderPassId, MeshTopology.Triangles, 3, 1, properties);
         }
 
@@ -272,7 +272,7 @@ namespace UnityEngine.Rendering
             RenderTargetIdentifier[] colorBuffers, RenderTargetIdentifier depthStencilBuffer,
             MaterialPropertyBlock properties = null, int shaderPassId = 0)
         {
-            commandBuffer.SetRenderTarget(colorBuffers, depthStencilBuffer);
+            commandBuffer.SetRenderTarget(colorBuffers, depthStencilBuffer, 0, CubemapFace.Unknown, -1);
             commandBuffer.DrawProcedural(Matrix4x4.identity, material, shaderPassId, MeshTopology.Triangles, 3, 1, properties);
         }
 
@@ -415,6 +415,15 @@ namespace UnityEngine.Rendering
             return m_AssemblyTypes;
         }
 
+        public static IEnumerable<Type> GetAllTypesDerivedFrom<T>()
+        {
+#if UNITY_EDITOR && UNITY_2019_2_OR_NEWER
+            return UnityEditor.TypeCache.GetTypesDerivedFrom<T>();
+#else
+            return GetAllAssemblyTypes().Where(t => t.IsSubclassOf(typeof(T)));
+#endif
+        }
+
         public static void Destroy(params UnityObject[] objs)
         {
             if (objs == null)
@@ -498,6 +507,31 @@ namespace UnityEngine.Rendering
             DisplayUnsupportedMessage(msg);
         }
 
+        // Returns 'true' if "Post Processes" are enabled for the view associated with the given camera.
+        public static bool ArePostProcessesEnabled(Camera camera)
+        {
+            bool enabled = true;
+
+        #if UNITY_EDITOR
+            if (camera.cameraType == CameraType.SceneView)
+            {
+                enabled = false;
+
+                // Determine whether the "Post Processes" checkbox is checked for the current view.
+                foreach (UnityEditor.SceneView sv in UnityEditor.SceneView.sceneViews)
+                {
+                    if (sv.camera == camera && sv.sceneViewState.showImageEffects)
+                    {
+                        enabled = true;
+                        break;
+                    }
+                }
+            }
+        #endif
+
+            return enabled;
+        }
+
         // Returns 'true' if "Animated Materials" are enabled for the view associated with the given camera.
         public static  bool AreAnimatedMaterialsEnabled(Camera camera)
         {
@@ -555,6 +589,26 @@ namespace UnityEngine.Rendering
         #endif
 
             return animateMaterials;
+        }
+
+        public static bool IsSceneLightingDisabled(Camera camera)
+        {
+            bool disabled = false;
+#if UNITY_EDITOR
+            if (camera.cameraType == CameraType.SceneView)
+            {
+                // Determine whether the "No Scene Lighting" checkbox is checked for the current view.
+                foreach (UnityEditor.SceneView sv in UnityEditor.SceneView.sceneViews)
+                {
+                    if (sv.camera == camera && !sv.sceneLighting)
+                    {
+                        disabled = true;
+                        break;
+                    }
+                }
+            }
+#endif
+            return disabled;
         }
 
 #if UNITY_EDITOR

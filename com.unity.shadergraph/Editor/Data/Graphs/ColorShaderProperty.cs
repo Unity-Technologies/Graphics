@@ -52,6 +52,16 @@ namespace UnityEditor.ShaderGraph
             get { return true; }
         }
 
+        public override bool isExposable
+        {
+            get { return true; }
+        }
+
+        public override bool isRenamable
+        {
+            get { return true; }
+        }
+
         public override string GetPropertyBlockString()
         {
             if (!generatePropertyBlock)
@@ -81,7 +91,7 @@ namespace UnityEditor.ShaderGraph
 
         public override string GetPropertyDeclarationString(string delimiter = ";")
         {
-            return string.Format("float4 {0}{1}", referenceName, delimiter);
+            return string.Format("{0}4 {1}{2}", concretePrecision.ToShaderString(), referenceName, delimiter);
         }
 
         public override PreviewProperty GetPreviewMaterialProperty()

@@ -6,6 +6,12 @@ VFXUVData GetUVData(VFX_VARYING_PS_INPUTS i) // uvs are provided from interpolan
 #if USE_FLIPBOOK_INTERPOLATION && defined(VFX_VARYING_FRAMEBLEND)
     data.uvs.zw = i.VFX_VARYING_UV.zw;
     data.blend = i.VFX_VARYING_FRAMEBLEND;
+#if USE_FLIPBOOK_MOTIONVECTORS && defined(VFX_VARYING_MOTIONVECTORSCALE)
+    float2 mvPrev = -(SampleTexture(VFX_SAMPLER(motionVectorMap), data.uvs.xy).rg * 2 - 1) * i.VFX_VARYING_MOTIONVECTORSCALE * data.blend;
+    float2 mvNext = (SampleTexture(VFX_SAMPLER(motionVectorMap), data.uvs.zy).rg * 2 - 1) * i.VFX_VARYING_MOTIONVECTORSCALE * (1.0-data.blend);
+    data.mvs.xy = mvPrev;
+    data.mvs.zw = mvNext;
+#endif
 #endif
 #endif
     return data;
@@ -99,9 +105,13 @@ void VFXClipFragmentColor(float alpha,VFX_VARYING_PS_INPUTS i)
 
 float4 VFXApplyFog(float4 color,VFX_VARYING_PS_INPUTS i)
 {
-    #if USE_FOG && defined(VFX_VARYING_POSCS) && defined(VFX_VARYING_POSWS)
-    return VFXApplyFog(color,i.VFX_VARYING_POSCS,i.VFX_VARYING_POSWS);
+    #if USE_FOG && defined(VFX_VARYING_POSCS)
+        #if defined(VFX_VARYING_POSWS)
+            return VFXApplyFog(color, i.VFX_VARYING_POSCS, i.VFX_VARYING_POSWS);
+        #else
+            return VFXApplyFog(color, i.VFX_VARYING_POSCS, (float3)0); //Some pipeline (LWRP) doesn't require WorldPos
+        #endif
     #else
-    return color;
+        return color;
     #endif
 }

@@ -20,7 +20,7 @@ class RuntimeTests
         camera.Render();
         yield return null;
         
-        Assert.AreEqual(GraphicsSettings.lightsUseLinearIntensity, QualitySettings.activeColorSpace == ColorSpace.Linear,
+        Assert.AreEqual(QualitySettings.activeColorSpace == ColorSpace.Linear, GraphicsSettings.lightsUseLinearIntensity,
             "GraphicsSettings.lightsUseLinearIntensity must match active color space.");
 
         GraphicsSettings.renderPipelineAsset = prevAsset;
@@ -41,13 +41,13 @@ class RuntimeTests
         camera.Render();
         yield return null;
 
-        Assert.AreEqual(Shader.globalRenderPipeline, "LightweightPipeline", "Wrong render pipeline shader tag.");
+        Assert.AreEqual("LightweightPipeline", Shader.globalRenderPipeline, "Wrong render pipeline shader tag.");
 
         GraphicsSettings.renderPipelineAsset = null;
         camera.Render();
         yield return null;
 
-        Assert.AreEqual(Shader.globalRenderPipeline, "", "Render Pipeline shader tag is not restored.");
+        Assert.AreEqual("", Shader.globalRenderPipeline, "Render Pipeline shader tag is not restored.");
         GraphicsSettings.renderPipelineAsset = prevAsset;
 
         ScriptableObject.DestroyImmediate(asset);

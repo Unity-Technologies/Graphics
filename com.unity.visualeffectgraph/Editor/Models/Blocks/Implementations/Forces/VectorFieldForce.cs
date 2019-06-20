@@ -31,8 +31,8 @@ namespace UnityEditor.VFX.Block
         bool ConserveMagnitude = false;
 
         public override string name { get { return "Vector Field Force"; } }
-        public override VFXContextType compatibleContexts { get { return VFXContextType.kUpdate; } }
-        public override VFXDataType compatibleData { get { return VFXDataType.kParticle; } }
+        public override VFXContextType compatibleContexts { get { return VFXContextType.Update; } }
+        public override VFXDataType compatibleData { get { return VFXDataType.Particle; } }
 
         public override IEnumerable<VFXAttributeInfo> attributes
         {
