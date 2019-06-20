@@ -33,15 +33,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             Debug.Assert(hdCamera.frameSettings.IsEnabled(FrameSettingsField.AtmosphericScattering));
 
-            int pbrSkyAtmosphereFlag = 0;
+            int physicallyBasedSkyAtmosphereFlag = 0;
 
             var visualEnvironment = VolumeManager.instance.stack.GetComponent<VisualEnvironment>();
             Debug.Assert(visualEnvironment != null);
 
             // The PBR sky contributes to atmospheric scattering.
-            pbrSkyAtmosphereFlag = visualEnvironment.skyType.value == (int)SkyType.PhysicallyBased ? 128 : 0;
+            physicallyBasedSkyAtmosphereFlag = visualEnvironment.skyType.value == (int)SkyType.PhysicallyBased ? 128 : 0;
 
-            cmd.SetGlobalInt(HDShaderIDs._AtmosphericScatteringType, pbrSkyAtmosphereFlag | (int)type);
+            cmd.SetGlobalInt(HDShaderIDs._AtmosphericScatteringType, physicallyBasedSkyAtmosphereFlag | (int)type);
             cmd.SetGlobalFloat(HDShaderIDs._MaxFogDistance, maxFogDistance.value);
 
             // Fog Color
