@@ -93,6 +93,9 @@ namespace UnityEditor.VFX
             var subOutputsTypes = new HashSet<Type>(); // TODO For some reason constructor that takes a capacity does not exist
             for (int i = 0; i < m_SubOutputs.Count; ++i)
             {
+                if (m_SubOutputs[i] == null)
+                    continue;
+
                 Type subOutputType = m_SubOutputs[i].GetType();
                 if (subOutputsTypes.Contains(subOutputType))
                 {
