@@ -744,6 +744,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     break;
                 case LightShape.Spot:
                     serialized.settings.lightType.enumValueIndex = (int)LightType.Spot;
+                    serialized.settings.lightShape.enumValueIndex = serialized.serializedLightData.spotLightShape.enumValueIndex;
                     serialized.serializedLightData.lightTypeExtent.enumValueIndex = (int)LightTypeExtent.Punctual;
                     break;
                 case LightShape.Rectangle:
