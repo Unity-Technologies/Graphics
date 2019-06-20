@@ -1,5 +1,7 @@
 using System;
 
+// define ENABLE_BAKED_PLANAR to enable baked planar
+
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
     [ExecuteAlways]

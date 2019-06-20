@@ -21,6 +21,10 @@ namespace UnityEditor.ShaderGraph
             UpdateNodeAfterDeserialization();
         }
 
+        public override bool canSetPrecision
+        {
+            get { return false; }
+        }
 
         private void UpdateNode()
         {
@@ -79,9 +83,34 @@ namespace UnityEditor.ShaderGraph
                 AddSlot(new BooleanMaterialSlot(OutputSlotId, property.displayName, "Out", SlotType.Output, false));
                 RemoveSlotsNameNotMatching(new[] { OutputSlotId });
             }
+            else if (property is Matrix2ShaderProperty)
+            {
+                AddSlot(new Matrix2MaterialSlot(OutputSlotId, property.displayName, "Out", SlotType.Output));
+                RemoveSlotsNameNotMatching(new[] { OutputSlotId });
+            }
+            else if (property is Matrix3ShaderProperty)
+            {
+                AddSlot(new Matrix3MaterialSlot(OutputSlotId, property.displayName, "Out", SlotType.Output));
+                RemoveSlotsNameNotMatching(new[] { OutputSlotId });
+            }
+            else if (property is Matrix4ShaderProperty)
+            {
+                AddSlot(new Matrix4MaterialSlot(OutputSlotId, property.displayName, "Out", SlotType.Output));
+                RemoveSlotsNameNotMatching(new[] { OutputSlotId });
+            }
+            else if (property is SamplerStateShaderProperty)
+            {
+                AddSlot(new SamplerStateMaterialSlot(OutputSlotId, property.displayName, "Out", SlotType.Output));
+                RemoveSlotsNameNotMatching(new[] { OutputSlotId });
+            }
+            else if (property is GradientShaderProperty)
+            {
+                AddSlot(new GradientMaterialSlot(OutputSlotId, property.displayName, "Out", SlotType.Output));
+                RemoveSlotsNameNotMatching(new[] { OutputSlotId });
+            }
         }
 
-        public void GenerateNodeCode(ShaderGenerator visitor, GraphContext graphContext, GenerationMode generationMode)
+        public void GenerateNodeCode(ShaderStringBuilder sb, GraphContext graphContext, GenerationMode generationMode)
         {
             var graph = owner as GraphData;
             var property = graph.properties.FirstOrDefault(x => x.guid == propertyGuid);
@@ -90,51 +119,91 @@ namespace UnityEditor.ShaderGraph
 
             if (property is Vector1ShaderProperty)
             {
-                var result = string.Format("{0} {1} = {2};"
-                        , precision
+                var result = string.Format("$precision {0} = {1};"
                         , GetVariableNameForSlot(OutputSlotId)
                         , property.referenceName);
-                visitor.AddShaderChunk(result, true);
+                sb.AppendLine(result);
             }
             else if (property is Vector2ShaderProperty)
             {
-                var result = string.Format("{0}2 {1} = {2};"
-                        , precision
+                var result = string.Format("$precision2 {0} = {1};"
                         , GetVariableNameForSlot(OutputSlotId)
                         , property.referenceName);
-                visitor.AddShaderChunk(result, true);
+                sb.AppendLine(result);
             }
             else if (property is Vector3ShaderProperty)
             {
-                var result = string.Format("{0}3 {1} = {2};"
-                        , precision
+                var result = string.Format("$precision3 {0} = {1};"
                         , GetVariableNameForSlot(OutputSlotId)
                         , property.referenceName);
-                visitor.AddShaderChunk(result, true);
+                sb.AppendLine(result);
             }
             else if (property is Vector4ShaderProperty)
             {
-                var result = string.Format("{0}4 {1} = {2};"
-                        , precision
+                var result = string.Format("$precision4 {0} = {1};"
                         , GetVariableNameForSlot(OutputSlotId)
                         , property.referenceName);
-                visitor.AddShaderChunk(result, true);
+                sb.AppendLine(result);
             }
             else if (property is ColorShaderProperty)
             {
-                var result = string.Format("{0}4 {1} = {2};"
-                        , precision
+                var result = string.Format("$precision4 {0} = {1};"
                         , GetVariableNameForSlot(OutputSlotId)
                         , property.referenceName);
-                visitor.AddShaderChunk(result, true);
+                sb.AppendLine(result);
             }
             else if (property is BooleanShaderProperty)
             {
-                var result = string.Format("{0} {1} = {2};"
-                        , precision
+                var result = string.Format("$precision {0} = {1};"
                         , GetVariableNameForSlot(OutputSlotId)
                         , property.referenceName);
-                visitor.AddShaderChunk(result, true);
+                sb.AppendLine(result);
+            }
+            else if (property is Matrix2ShaderProperty)
+            {
+                var result = string.Format("$precision2x2 {0} = {1};"
+                        , GetVariableNameForSlot(OutputSlotId)
+                        , property.referenceName);
+                sb.AppendLine(result);
+            }
+            else if (property is Matrix3ShaderProperty)
+            {
+                var result = string.Format("$precision3x3 {0} = {1};"
+                        , GetVariableNameForSlot(OutputSlotId)
+                        , property.referenceName);
+                sb.AppendLine(result);
+            }
+            else if (property is Matrix4ShaderProperty)
+            {
+                var result = string.Format("$precision4x4 {0} = {1};"
+                        , GetVariableNameForSlot(OutputSlotId)
+                        , property.referenceName);
+                sb.AppendLine(result);
+            }
+            else if (property is SamplerStateShaderProperty)
+            {
+                SamplerStateShaderProperty samplerStateProperty = property as SamplerStateShaderProperty;
+                var result = string.Format("SamplerState {0} = {1};"
+                        , GetVariableNameForSlot(OutputSlotId)
+                        , samplerStateProperty.referenceName);
+                sb.AppendLine(result);
+            }
+            else if (property is GradientShaderProperty)
+            {
+                if(generationMode == GenerationMode.Preview)
+                {
+                    var result = string.Format("Gradient {0} = {1};"
+                        , GetVariableNameForSlot(OutputSlotId) 
+                        , GradientUtils.GetGradientForPreview(property.referenceName));
+                    sb.AppendLine(result);
+                }
+                else
+                {
+                    var result = string.Format("Gradient {0} = {1};"
+                        , GetVariableNameForSlot(OutputSlotId)
+                        , property.referenceName);
+                    sb.AppendLine(result);
+                }
             }
         }
 
@@ -198,6 +267,28 @@ namespace UnityEditor.ShaderGraph
         public void OnEnable()
         {
             UpdateNode();
+        }
+
+        public override bool ValidateConcretePrecision(ref string errorMessage)
+        {
+            // Get precision from Property
+            var property = owner.properties.FirstOrDefault(x => x.guid == propertyGuid);
+            if (property == null)
+                return true;
+
+            precision = property.precision;
+
+            // If Property has a precision override use that
+            if (precision != Precision.Inherit)
+            {
+                concretePrecision = precision.ToConcrete();
+                return false;
+            }
+            else
+            {
+                concretePrecision = owner.concretePrecision;
+                return false;
+            }
         }
     }
 }

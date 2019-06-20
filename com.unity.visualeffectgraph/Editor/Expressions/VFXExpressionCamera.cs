@@ -143,4 +143,19 @@ namespace UnityEditor.VFX
                 return VFXValue.Constant(CameraType.defaultValue.pixelDimensions);
         }
     }
+
+    class VFXExpressionGetBufferFromMainCamera : VFXExpression
+    {
+        public VFXExpressionGetBufferFromMainCamera(VFXCameraBufferTypes bufferType) : base(VFXExpression.Flags.InvalidOnGPU)
+        {
+            m_BufferType = bufferType;
+        }
+
+        public override VFXExpressionOperation operation { get { return VFXExpressionOperation.GetBufferFromMainCamera; }}
+        sealed protected override VFXExpression Evaluate(VFXExpression[] constParents) { return VFXValue.Constant<Texture2D>(null); }
+
+        protected override int[] additionnalOperands { get { return new int[] { (int)m_BufferType }; } }
+        private VFXCameraBufferTypes m_BufferType;
+    }
+
 }

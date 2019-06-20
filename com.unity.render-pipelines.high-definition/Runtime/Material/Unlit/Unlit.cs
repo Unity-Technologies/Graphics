@@ -1,5 +1,6 @@
 using UnityEngine;
 using System;
+using UnityEngine.Experimental.Rendering.HDPipeline.Attributes;
 
 //-----------------------------------------------------------------------------
 // structure definition
@@ -16,6 +17,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         [GenerateHLSL(PackingRules.Exact, false, false, true, 300)]
         public struct SurfaceData
         {
+            [MaterialSharedPropertyMapping(MaterialSharedProperty.Albedo)]
             [SurfaceDataAttributes("Color", false, true)]
             public Vector3 color;
         };

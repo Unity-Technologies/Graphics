@@ -228,6 +228,11 @@ namespace UnityEditor.Experimental.Rendering
         /// <summary>Draw the manipulable handles</summary>
         public void DrawHandle()
         {
+            Event evt = Event.current;
+            bool useHomothety = evt.shift;
+            bool useSymetry = evt.alt || evt.command;
+            // Note: snapping is handled natively on ctrl for each Slider1D
+
             for (int i = 0, count = m_ControlIDs.Length; i < count; ++i)
                 m_ControlIDs[i] = GUIUtility.GetControlID("HierarchicalBox".GetHashCode() + i, FocusType.Passive);
 
@@ -244,58 +249,58 @@ namespace UnityEditor.Experimental.Rendering
 
             EditorGUI.BeginChangeCheck();
             Slider1D(m_ControlIDs[(int)NamedFace.Left], ref leftPosition, Vector3.left, snapScale, GetHandleColor(NamedFace.Left));
-            if (EditorGUI.EndChangeCheck() && monoHandle)
+            if (EditorGUI.EndChangeCheck())
                 theChangedFace = NamedFace.Left;
 
             EditorGUI.BeginChangeCheck();
             Slider1D(m_ControlIDs[(int)NamedFace.Right], ref rightPosition, Vector3.right, snapScale, GetHandleColor(NamedFace.Right));
-            if (EditorGUI.EndChangeCheck() && monoHandle)
+            if (EditorGUI.EndChangeCheck())
                 theChangedFace = NamedFace.Right;
 
             EditorGUI.BeginChangeCheck();
             Slider1D(m_ControlIDs[(int)NamedFace.Top], ref topPosition, Vector3.up, snapScale, GetHandleColor(NamedFace.Top));
-            if (EditorGUI.EndChangeCheck() && monoHandle)
+            if (EditorGUI.EndChangeCheck())
                 theChangedFace = NamedFace.Top;
 
             EditorGUI.BeginChangeCheck();
             Slider1D(m_ControlIDs[(int)NamedFace.Bottom], ref bottomPosition, Vector3.down, snapScale, GetHandleColor(NamedFace.Bottom));
-            if (EditorGUI.EndChangeCheck() && monoHandle)
+            if (EditorGUI.EndChangeCheck())
                 theChangedFace = NamedFace.Bottom;
 
             EditorGUI.BeginChangeCheck();
             Slider1D(m_ControlIDs[(int)NamedFace.Front], ref frontPosition, Vector3.forward, snapScale, GetHandleColor(NamedFace.Front));
-            if (EditorGUI.EndChangeCheck() && monoHandle)
+            if (EditorGUI.EndChangeCheck())
                 theChangedFace = NamedFace.Front;
 
             EditorGUI.BeginChangeCheck();
             Slider1D(m_ControlIDs[(int)NamedFace.Back], ref backPosition, Vector3.back, snapScale, GetHandleColor(NamedFace.Back));
-            if (EditorGUI.EndChangeCheck() && monoHandle)
+            if (EditorGUI.EndChangeCheck())
                 theChangedFace = NamedFace.Back;
 
             if (EditorGUI.EndChangeCheck())
             {
-                if (monoHandle)
+                float delta = 0f;
+                switch (theChangedFace)
                 {
-                    float decal = 0f;
-                    switch (theChangedFace)
-                    {
-                        case NamedFace.Left: decal = (leftPosition - center - size.x * .5f * Vector3.left).x; break;
-                        case NamedFace.Right: decal = -(rightPosition - center - size.x * .5f * Vector3.right).x; break;
-                        case NamedFace.Top: decal = -(topPosition - center - size.y * .5f * Vector3.up).y; break;
-                        case NamedFace.Bottom: decal = (bottomPosition - center - size.y * .5f * Vector3.down).y; break;
-                        case NamedFace.Front: decal = -(frontPosition - center - size.z * .5f * Vector3.forward).z; break;
-                        case NamedFace.Back: decal = (backPosition - center - size.z * .5f * Vector3.back).z; break;
-                    }
-
-                    var tempSize = size - Vector3.one * decal;
+                    case NamedFace.Left: delta = (leftPosition - center - size.x * .5f * Vector3.left).x; break;
+                    case NamedFace.Right: delta = -(rightPosition - center - size.x * .5f * Vector3.right).x; break;
+                    case NamedFace.Top: delta = -(topPosition - center - size.y * .5f * Vector3.up).y; break;
+                    case NamedFace.Bottom: delta = (bottomPosition - center - size.y * .5f * Vector3.down).y; break;
+                    case NamedFace.Front: delta = -(frontPosition - center - size.z * .5f * Vector3.forward).z; break;
+                    case NamedFace.Back: delta = (backPosition - center - size.z * .5f * Vector3.back).z; break;
+                }
+                
+                if (monoHandle || useHomothety && useSymetry)
+                {
+                    var tempSize = size - Vector3.one * delta;
 
                     //ensure that the box face are still facing outside
                     for (int axis = 0; axis < 3; ++axis)
                     {
                         if (tempSize[axis] < 0)
                         {
-                            decal += tempSize[axis];
-                            tempSize = size - Vector3.one * decal;
+                            delta += tempSize[axis];
+                            tempSize = size - Vector3.one * delta;
                         }
                     }
 
@@ -313,6 +318,48 @@ namespace UnityEditor.Experimental.Rendering
                 }
                 else
                 {
+                    if (useSymetry)
+                    {
+                        switch (theChangedFace)
+                        {
+                            case NamedFace.Left: rightPosition.x -= delta; break;
+                            case NamedFace.Right: leftPosition.x += delta; break;
+                            case NamedFace.Top: bottomPosition.y += delta; break;
+                            case NamedFace.Bottom: topPosition.y -= delta; break;
+                            case NamedFace.Front: backPosition.z += delta; break;
+                            case NamedFace.Back: frontPosition.z -= delta; break;
+                        }
+                    }
+
+                    if (useHomothety)
+                    {
+                        float halfDelta = delta * 0.5f;
+                        switch (theChangedFace)
+                        {
+                            case NamedFace.Left:
+                            case NamedFace.Right:
+                                bottomPosition.y += halfDelta;
+                                topPosition.y -= halfDelta;
+                                backPosition.z += halfDelta;
+                                frontPosition.z -= halfDelta;
+                                break;
+                            case NamedFace.Top:
+                            case NamedFace.Bottom:
+                                rightPosition.x -= halfDelta;
+                                leftPosition.x += halfDelta;
+                                backPosition.z += halfDelta;
+                                frontPosition.z -= halfDelta;
+                                break;
+                            case NamedFace.Front:
+                            case NamedFace.Back:
+                                rightPosition.x -= halfDelta;
+                                leftPosition.x += halfDelta;
+                                bottomPosition.y += halfDelta;
+                                topPosition.y -= halfDelta;
+                                break;
+                        }
+                    }
+                    
                     var max = new Vector3(rightPosition.x, topPosition.y, frontPosition.z);
                     var min = new Vector3(leftPosition.x, bottomPosition.y, backPosition.z);
 

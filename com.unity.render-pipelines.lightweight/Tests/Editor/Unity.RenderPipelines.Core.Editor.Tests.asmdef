@@ -2,18 +2,23 @@
     "name": "Unity.RenderPipelines.Lightweight.Editor.Tests",
     "references": [
         "Unity.RenderPipelines.Lightweight.Runtime",
-        "Unity.RenderPipelines.Lightweight.Editor"
-    ],
-    "optionalUnityReferences": [
-        "TestAssemblies"
+        "Unity.RenderPipelines.Lightweight.Editor",
+        "Unity.RenderPipelines.Core.Runtime",
+        "UnityEngine.TestRunner",
+        "UnityEditor.TestRunner"
     ],
     "includePlatforms": [
         "Editor"
     ],
     "excludePlatforms": [],
     "allowUnsafeCode": true,
-    "overrideReferences": false,
-    "precompiledReferences": [],
-    "autoReferenced": true,
-    "defineConstraints": []
+    "overrideReferences": true,
+    "precompiledReferences": [
+        "nunit.framework.dll"
+    ],
+    "autoReferenced": false,
+    "defineConstraints": [
+        "UNITY_INCLUDE_TESTS"
+    ],
+    "versionDefines": []
 }

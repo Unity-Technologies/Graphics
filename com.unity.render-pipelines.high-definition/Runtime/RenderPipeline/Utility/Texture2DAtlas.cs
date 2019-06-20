@@ -153,8 +153,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     0,
                     MSAASamples.None,
                     false,
-                    false,
- 					xrInstancing: true);
+                    false);
 
             m_AtlasAllocator = new AtlasAllocator(width, height);
         }

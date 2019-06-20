@@ -1,4 +1,5 @@
 using System;
+using UnityEngine.Serialization;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
@@ -15,8 +16,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         /// <summary>Default GlobalPostProcessSettings</summary>
         public static readonly GlobalPostProcessSettings @default = new GlobalPostProcessSettings()
         {
-            m_LutSize = 32,
-            m_LutFormat = GradingLutFormat.ARGBHalf
+            lutSize = 32,
+            lutFormat = GradingLutFormat.ARGBHalf
         };
 
         // Note: A lut size of 16^3 is barely usable (noticeable color banding in highly contrasted
@@ -35,13 +36,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             set => m_LutSize = Mathf.Clamp(value, k_MinLutSize, k_MaxLutSize);
         }
 
-        [SerializeField]
-        GradingLutFormat m_LutFormat;
-
-        public GradingLutFormat lutFormat
-        {
-            get => m_LutFormat;
-            set => m_LutFormat = value;
-        }
+        [FormerlySerializedAs("m_LutFormat")]
+        public GradingLutFormat lutFormat;
     }
 }

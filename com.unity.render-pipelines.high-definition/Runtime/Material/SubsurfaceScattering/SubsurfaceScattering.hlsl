@@ -64,30 +64,30 @@ struct SSSData
 {
     float3 diffuseColor;
     float  subsurfaceMask;
-    uint   diffusionProfile;
+    uint   diffusionProfileIndex;
 };
 
 #define SSSBufferType0 float4 // Must match GBufferType0 in deferred
 
 // SSSBuffer texture declaration
-TEXTURE2D(_SSSBufferTexture0);
+TEXTURE2D_X(_SSSBufferTexture);
 
 // Note: The SSS buffer used here is sRGB
 void EncodeIntoSSSBuffer(SSSData sssData, uint2 positionSS, out SSSBufferType0 outSSSBuffer0)
 {
-    outSSSBuffer0 = float4(sssData.diffuseColor, PackFloatInt8bit(sssData.subsurfaceMask, sssData.diffusionProfile, 16));
+    outSSSBuffer0 = float4(sssData.diffuseColor, PackFloatInt8bit(sssData.subsurfaceMask, sssData.diffusionProfileIndex, 16));
 }
 
 // Note: The SSS buffer used here is sRGB
 void DecodeFromSSSBuffer(float4 sssBuffer, uint2 positionSS, out SSSData sssData)
 {
     sssData.diffuseColor = sssBuffer.rgb;
-    UnpackFloatInt8bit(sssBuffer.a, 16, sssData.subsurfaceMask, sssData.diffusionProfile);
+    UnpackFloatInt8bit(sssBuffer.a, 16, sssData.subsurfaceMask, sssData.diffusionProfileIndex);
 }
 
 void DecodeFromSSSBuffer(uint2 positionSS, out SSSData sssData)
 {
-    float4 sssBuffer = LOAD_TEXTURE2D(_SSSBufferTexture0, positionSS);
+    float4 sssBuffer = LOAD_TEXTURE2D_X(_SSSBufferTexture, positionSS);
     DecodeFromSSSBuffer(sssBuffer, positionSS, sssData);
 }
 
@@ -141,25 +141,34 @@ bool TestLightingForSSS(float3 subsurfaceLighting)
 //     (...)
 // }
 
-// Note: Transmission functions for light evaluation are included in LightEvaluation.hlsl file also based on the MATERIAL_INCLUDE_TRANSMISSION
-// For LightEvaluation.hlsl file it is required to define a BRDF for the transmission. Defining USE_DIFFUSE_LAMBERT_BRDF use Lambert, otherwise it use Disneydiffuse
-
+// Note: Transmission functions for light evaluation are also included in LightEvaluation.hlsl file based on the MATERIAL_INCLUDE_TRANSMISSION
 #define MATERIALFEATUREFLAGS_SSS_TRANSMISSION_START (1 << 16) // It should be safe to start these flags
 
 #define MATERIALFEATUREFLAGS_SSS_OUTPUT_SPLIT_LIGHTING         ((MATERIALFEATUREFLAGS_SSS_TRANSMISSION_START) << 0)
 #define MATERIALFEATUREFLAGS_SSS_TEXTURING_MODE_OFFSET FastLog2((MATERIALFEATUREFLAGS_SSS_TRANSMISSION_START) << 1) // Note: The texture mode is 2bit, thus go from '<< 1' to '<< 3'
-// Flags used as a shortcut to know if we have thin mode transmission
-#define MATERIALFEATUREFLAGS_TRANSMISSION_MODE_THIN_THICKNESS  ((MATERIALFEATUREFLAGS_SSS_TRANSMISSION_START) << 3)
+// Flags used as a shortcut to know if we have thick mode transmission
+// It is important to keep this flag pointing at the inverse of the current diffusion profile thickness mode, i.e. the
+// current diffusion profile thickness mode is thin because we don't want to sample shadows for the default profile
+// so this define is set to thick mode. It is important to keep it as is because when we initialize the BSDF datas
+// we assume that all neutral values including the thickness mode are 0 (so by default when we shade a material that
+// doesn't have transmission on a tile with the material feature transmission enabled, we don't evaluate the diffusion
+// profile because the thick flag is not set (for pixels that have transmission, we force the flags in a per-pixel
+// material feature)).
+#define MATERIALFEATUREFLAGS_TRANSMISSION_MODE_THICK_OBJECT     ((MATERIALFEATUREFLAGS_SSS_TRANSMISSION_START) << 3)
+
+// 15 degrees
+#define TRANSMISSION_WRAP_ANGLE (PI/12)
+#define TRANSMISSION_WRAP_LIGHT cos(PI/2 - TRANSMISSION_WRAP_ANGLE)
 
 #ifdef MATERIAL_INCLUDE_SUBSURFACESCATTERING
 
-void FillMaterialSSS(uint diffusionProfile, float subsurfaceMask, inout BSDFData bsdfData)
+void FillMaterialSSS(uint diffusionProfileIndex, float subsurfaceMask, inout BSDFData bsdfData)
 {
-    bsdfData.diffusionProfile = diffusionProfile;
-    bsdfData.fresnel0 = _TransmissionTintsAndFresnel0[diffusionProfile].a;
+    bsdfData.diffusionProfileIndex = diffusionProfileIndex;
+    bsdfData.fresnel0 = _TransmissionTintsAndFresnel0[diffusionProfileIndex].a;
     bsdfData.subsurfaceMask = subsurfaceMask;
     bsdfData.materialFeatures |= MATERIALFEATUREFLAGS_SSS_OUTPUT_SPLIT_LIGHTING;
-    bsdfData.materialFeatures |= GetSubsurfaceScatteringTexturingMode(diffusionProfile) << MATERIALFEATUREFLAGS_SSS_TEXTURING_MODE_OFFSET;
+    bsdfData.materialFeatures |= GetSubsurfaceScatteringTexturingMode(diffusionProfileIndex) << MATERIALFEATUREFLAGS_SSS_TEXTURING_MODE_OFFSET;
 }
 
 bool ShouldOutputSplitLighting(BSDFData bsdfData)
@@ -178,13 +187,13 @@ float3 GetModifiedDiffuseColorForSSS(BSDFData bsdfData)
 
 #ifdef MATERIAL_INCLUDE_TRANSMISSION
 
-// Assume that bsdfData.diffusionProfile is init
-void FillMaterialTransmission(uint diffusionProfile, float thickness, inout BSDFData bsdfData)
+// Assume that bsdfData.diffusionProfileIndex is init
+void FillMaterialTransmission(uint diffusionProfileIndex, float thickness, inout BSDFData bsdfData)
 {
-    bsdfData.diffusionProfile = diffusionProfile;
-    bsdfData.fresnel0 = _TransmissionTintsAndFresnel0[diffusionProfile].a;
+    bsdfData.diffusionProfileIndex = diffusionProfileIndex;
+    bsdfData.fresnel0 = _TransmissionTintsAndFresnel0[diffusionProfileIndex].a;
 
-    bsdfData.thickness = _ThicknessRemaps[diffusionProfile].x + _ThicknessRemaps[diffusionProfile].y * thickness;
+    bsdfData.thickness = _ThicknessRemaps[diffusionProfileIndex].x + _ThicknessRemaps[diffusionProfileIndex].y * thickness;
 
     // The difference between the thin and the regular (a.k.a. auto-thickness) modes is the following:
     // * in the thin object mode, we assume that the geometry is thin enough for us to safely share
@@ -196,15 +205,36 @@ void FillMaterialTransmission(uint diffusionProfile, float thickness, inout BSDF
     // the thickness using the distance to the closest occluder sampled from the shadow map.
     // If the distance is large, it may indicate that the closest occluder is not the back face of
     // the current object. That's not a problem, since large thickness will result in low intensity.
-    bool useThinObjectMode = IsBitSet(asuint(_TransmissionFlags), diffusionProfile);
+    bool useThickObjectMode = !IsBitSet(asuint(_TransmissionFlags), diffusionProfileIndex);
 
-    bsdfData.materialFeatures |= useThinObjectMode ? MATERIALFEATUREFLAGS_TRANSMISSION_MODE_THIN_THICKNESS : 0;
+    bsdfData.materialFeatures |= useThickObjectMode ? MATERIALFEATUREFLAGS_TRANSMISSION_MODE_THICK_OBJECT : 0;
 
     // Compute transmittance using baked thickness here. It may be overridden for direct lighting
     // in the auto-thickness mode (but is always used for indirect lighting).
-    bsdfData.transmittance = ComputeTransmittanceDisney(_ShapeParams[diffusionProfile].rgb,
-                                                        _TransmissionTintsAndFresnel0[diffusionProfile].rgb,
+    bsdfData.transmittance = ComputeTransmittanceDisney(_ShapeParams[diffusionProfileIndex].rgb,
+                                                        _TransmissionTintsAndFresnel0[diffusionProfileIndex].rgb,
                                                         bsdfData.thickness);
+}
+
+uint FindDiffusionProfileIndex(uint diffusionProfileHash)
+{
+    if (diffusionProfileHash == 0)
+        return 0;
+    
+    uint diffusionProfileIndex = 0;
+    uint i = 0;
+    
+    // Fetch the 4 bit index number by looking for the diffusion profile unique ID:
+    for (i = 0; i < _DiffusionProfileCount; i++)
+    {
+        if (asuint(_DiffusionProfileHashTable[i]) == diffusionProfileHash)
+        {
+            diffusionProfileIndex = i;
+            break;
+        }
+    }
+
+    return diffusionProfileIndex;
 }
 
 #endif

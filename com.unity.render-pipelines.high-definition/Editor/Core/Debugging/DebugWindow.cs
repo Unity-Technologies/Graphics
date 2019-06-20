@@ -88,15 +88,12 @@ namespace UnityEditor.Experimental.Rendering
 
         static void RebuildTypeMaps()
         {
-            var assemblyTypes = CoreUtils.GetAllAssemblyTypes();
-
             // Map states to widget (a single state can map to several widget types if the value to
             // serialize is the same)
             var attrType = typeof(DebugStateAttribute);
-            var stateTypes = assemblyTypes
+            var stateTypes = CoreUtils.GetAllTypesDerivedFrom<DebugState>()
                 .Where(
-                    t => t.IsSubclassOf(typeof(DebugState))
-                    && t.IsDefined(attrType, false)
+                    t => t.IsDefined(attrType, false)
                     && !t.IsAbstract
                     );
 
@@ -112,10 +109,9 @@ namespace UnityEditor.Experimental.Rendering
 
             // Drawers
             attrType = typeof(DebugUIDrawerAttribute);
-            var types = assemblyTypes
+            var types = CoreUtils.GetAllTypesDerivedFrom<DebugUIDrawer>()
                 .Where(
-                    t => t.IsSubclassOf(typeof(DebugUIDrawer))
-                    && t.IsDefined(attrType, false)
+                    t => t.IsDefined(attrType, false)
                     && !t.IsAbstract
                     );
 

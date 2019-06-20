@@ -1,4 +1,5 @@
 using System;
+using UnityEngine.Serialization;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
@@ -8,15 +9,45 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         [Serializable]
         public struct RenderData
         {
-            public Matrix4x4 worldToCameraRHS;
-            public Matrix4x4 projectionMatrix;
-            public Vector3 capturePosition;
+            [SerializeField, FormerlySerializedAs("worldToCameraRHS")]
+            Matrix4x4 m_WorldToCameraRHS;
+            [SerializeField, FormerlySerializedAs("projectionMatrix")]
+            Matrix4x4 m_ProjectionMatrix;
+            [SerializeField, FormerlySerializedAs("capturePosition")]
+            Vector3 m_CapturePosition;
+            Quaternion m_CaptureRotation;
+            float m_FieldOfView;
+
+            public Matrix4x4 worldToCameraRHS => m_WorldToCameraRHS;
+            public Matrix4x4 projectionMatrix => m_ProjectionMatrix;
+            public Vector3 capturePosition => m_CapturePosition;
+            public Quaternion captureRotation => m_CaptureRotation;
+            public float fieldOfView => m_FieldOfView;
 
             public RenderData(CameraSettings camera, CameraPositionSettings position)
+                : this(
+                    position.GetUsedWorldToCameraMatrix(),
+                    camera.frustum.GetUsedProjectionMatrix(),
+                    position.position,
+                    position.rotation,
+                    camera.frustum.fieldOfView
+                )
             {
-                worldToCameraRHS = position.GetUsedWorldToCameraMatrix();
-                projectionMatrix = camera.frustum.GetUsedProjectionMatrix();
-                capturePosition = position.position;
+            }
+
+            public RenderData(
+                Matrix4x4 worldToCameraRHS,
+                Matrix4x4 projectionMatrix,
+                Vector3 capturePosition,
+                Quaternion captureRotation,
+                float fov
+            )
+            {
+                m_WorldToCameraRHS = worldToCameraRHS;
+                m_ProjectionMatrix = projectionMatrix;
+                m_CapturePosition = capturePosition;
+                m_CaptureRotation = captureRotation;
+                m_FieldOfView = fov;
             }
         }
 
@@ -40,6 +71,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         RenderData m_BakedRenderData;
         [SerializeField]
         RenderData m_CustomRenderData;
+
+        // Only used in editor, but this data needs to be probe instance specific
+        // (Contains: UI section states)
+        [SerializeField]
+        uint m_EditorOnlyData;
 
         // Runtime Data
         RenderTexture m_RealtimeTexture;
@@ -221,7 +257,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             HDProbeSystem.UnregisterProbe(this);
 
             if (isActiveAndEnabled)
+            {
+                PrepareCulling();
                 HDProbeSystem.RegisterProbe(this);
+            }
         }
     }
 }

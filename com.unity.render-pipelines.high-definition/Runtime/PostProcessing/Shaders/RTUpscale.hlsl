@@ -4,44 +4,45 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Filtering.hlsl"
 
 
-float3 Sample(TEXTURE2D_ARGS(_InputTexture, _InputTextureSampler), float2 UV)
+float3 Sample(TEXTURE2D_X_PARAM(_InputTexture, _InputTextureSampler), float2 UV)
 {
     float2 ScaledUV = ClampAndScaleUVForPoint(UV);
-    return SAMPLE_TEXTURE2D_LOD(_InputTexture, _InputTextureSampler, ScaledUV, 0).xyz;
+    return SAMPLE_TEXTURE2D_X_LOD(_InputTexture, _InputTextureSampler, ScaledUV, 0).xyz;
 }
 
-float3 Nearest(TEXTURE2D(_InputTexture), float2 UV)
+float3 Nearest(TEXTURE2D_X(_InputTexture), float2 UV)
 {
-    return Sample(TEXTURE2D_PARAM(_InputTexture, s_point_clamp_sampler), UV);
+    return Sample(TEXTURE2D_X_ARGS(_InputTexture, s_point_clamp_sampler), UV);
 }
 
 
-float3 Bilinear(TEXTURE2D(_InputTexture), float2 UV)
+float3 Bilinear(TEXTURE2D_X(_InputTexture), float2 UV)
 {
-    return Sample(TEXTURE2D_PARAM(_InputTexture, s_linear_clamp_sampler), UV);
+    return Sample(TEXTURE2D_X_ARGS(_InputTexture, s_linear_clamp_sampler), UV);
 }
 
-float3 CatmullRomFourSamples(TEXTURE2D(_InputTexture), float2 UV)
+float3 CatmullRomFourSamples(TEXTURE2D_X(_InputTexture), float2 UV)
 {
-    float2 TexSize = _ScreenSize.xy * rcp(_ScreenToTargetScale.xy);
+    float2 TexSize = _ScreenSize.xy * rcp(_RTHandleScale.xy);
     float4 bicubicWnd = float4(TexSize, 1.0 / (TexSize));
 
-    return SampleTexture2DBicubic(  TEXTURE2D_PARAM(_InputTexture, s_linear_clamp_sampler),
-                                    UV * _ScreenToTargetScale.xy,
+    return SampleTexture2DBicubic(  TEXTURE2D_X_ARGS(_InputTexture, s_linear_clamp_sampler),
+                                    UV * _RTHandleScale.xy,
                                     bicubicWnd,
-                                    (1.0f - 0.5f * _ScreenSize.zw) * _ScreenToTargetScale.xy).xyz;
+                                    (1.0f - 0.5f * _ScreenSize.zw) * _RTHandleScale.xy,
+                                    unity_StereoEyeIndex).xyz;
 }
 
 
 
 // https://en.wikipedia.org/wiki/Lanczos_resampling
 // TODO: Revisit derivation.
-float3 Lanczos(TEXTURE2D(_InputTexture), float2 inUV)
+float3 Lanczos(TEXTURE2D_X(_InputTexture), float2 inUV)
 {
     // Lanczos 3
     const float a = 3.0;
 
-    float2 TexSize = _ScreenSize.xy * (_ScreenToTargetScale.xy); 
+    float2 TexSize = _ScreenSize.xy * (_RTHandleScale.xy);
     float2 TexelSize = rcp(TexSize);
     float2 texelLoc = inUV * TexSize;
     float2 center = floor(texelLoc - 0.5) + 0.5;
@@ -70,7 +71,7 @@ float3 Lanczos(TEXTURE2D(_InputTexture), float2 inUV)
     float2 UV2 = (center + 2) * TexelSize;
     float2 UV3 = (center + 3) * TexelSize;
 
-    // Find weights. 
+    // Find weights.
     float2 xMin1 = x - 1.0;
     float2 xMin2 = x - 2.0;
     float2 xMin3 = x - 3.0;
@@ -95,7 +96,7 @@ float3 Lanczos(TEXTURE2D(_InputTexture), float2 inUV)
 
 
     float4 accumulation = 0;
-    // Corners are dropped (similarly to what Jimenez suggested for Bicubic) 
+    // Corners are dropped (similarly to what Jimenez suggested for Bicubic)
     accumulation += float4(Bilinear(_InputTexture, float2(UV_2.x, UV0.y)), 1) * weight0.x * weight23.y;
     accumulation += float4(Bilinear(_InputTexture, float2(UV_1.x, UV_1.y)), 1) * weight1.x * weight1.y;
     accumulation += float4(Bilinear(_InputTexture, float2(UV_1.x, UV0.y)), 1) * weight1.x * weight23.y;

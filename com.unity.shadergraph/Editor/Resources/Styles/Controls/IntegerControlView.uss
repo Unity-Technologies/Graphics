@@ -1,21 +1,21 @@
 IntegerControlView {
     flex-direction: row;
-    padding-left: 8;
-    padding-right: 8;
-    padding-top: 4;
-    padding-bottom: 4;
+    padding-left: 8px;
+    padding-right: 8px;
+    padding-top: 4px;
+    padding-bottom: 4px;
 }
 
 .unity-base-field {
-    width: 100;
+    width: 100px;
     flex-grow: 1;
-    margin-top: 1;
-    margin-bottom: 1;
+    margin-top: 1px;
+    margin-bottom: 1px;
 }
 
 .unity-base-field__input{
     margin-left: 0;
     margin-right: 0;
-    text-alignment: middle-left;
+    -unity-text-align: middle-left;
 }
 

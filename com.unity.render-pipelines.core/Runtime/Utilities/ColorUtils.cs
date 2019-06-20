@@ -75,5 +75,9 @@ namespace UnityEngine.Rendering
 
         // Compute the required ISO to reach the target EV100
         public static float ComputeISO(float aperture, float shutterSpeed, float targetEV100) => ((aperture * aperture) * 100f) / (shutterSpeed * Mathf.Pow(2f, targetEV100));
+
+        public static uint ToHex(Color c) => ((uint)(c.a * 255) << 24) | ((uint)(c.r * 255) << 16) | ((uint)(c.g * 255) << 8) | (uint)(c.b * 255);
+
+        public static Color ToRGBA(uint hex) => new Color(((hex >> 16) & 0xff) / 255f, ((hex >>  8) & 0xff) / 255f, (hex & 0xff) / 255f, ((hex >> 24) & 0xff) / 255f);
     }
 }

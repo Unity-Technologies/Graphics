@@ -211,24 +211,31 @@ float SampleShadow_EVSM_1tap(float3 tcs, float lightLeakBias, float varianceBias
     float  depth      = tcs.z;
 #endif
 
-    float2 warpedDepth = ShadowMoments_WarpDepth(depth, evsmExponents);
 
     float4 moments = SAMPLE_TEXTURE2D_LOD(tex, samp, tcs.xy, 0.0);
-
-    // Derivate of warping at depth
-    float2 depthScale  = evsmExponents * warpedDepth;
-    float2 minVariance = depthScale * depthScale * varianceBias;
 
     UNITY_BRANCH
     if (fourMoments)
     {
+        float2 warpedDepth = ShadowMoments_WarpDepth(depth, evsmExponents);
+
+        // Derivate of warping at depth
+        float2 depthScale = evsmExponents * warpedDepth;
+        float2 minVariance = depthScale * depthScale * varianceBias;
+
         float posContrib = ShadowMoments_ChebyshevsInequality(moments.xz, warpedDepth.x, minVariance.x, lightLeakBias);
         float negContrib = ShadowMoments_ChebyshevsInequality(moments.yw, warpedDepth.y, minVariance.y, lightLeakBias);
         return min(posContrib, negContrib);
     }
     else
     {
-        return ShadowMoments_ChebyshevsInequality(moments.xy, warpedDepth.x, minVariance.x, lightLeakBias);
+        float warpedDepth = ShadowMoments_WarpDepth_PosOnlyBaseTwo(depth, evsmExponents.x);
+
+        // Derivate of warping at depth
+        float depthScale = evsmExponents.x * warpedDepth;
+        float minVariance = depthScale * depthScale * varianceBias;
+
+        return ShadowMoments_ChebyshevsInequality(moments.xy, warpedDepth, minVariance, lightLeakBias);
     }
 }
 

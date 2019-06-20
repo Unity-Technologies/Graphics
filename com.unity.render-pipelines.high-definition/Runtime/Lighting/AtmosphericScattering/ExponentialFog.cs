@@ -6,6 +6,7 @@ using UnityEngine.Rendering;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
+    [VolumeComponentMenu("Fog/Exponential Fog")]
     public class ExponentialFog : AtmosphericScattering
     {
         private readonly static int m_ExpFogParam = Shader.PropertyToID("_ExpFogParameters");
@@ -20,7 +21,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public override void PushShaderParameters(HDCamera hdCamera, CommandBuffer cmd)
         {
             PushShaderParametersCommon(hdCamera, cmd, FogType.Exponential);
-            cmd.SetGlobalVector(m_ExpFogParam, new Vector4(Mathf.Max(1e-6f, fogDistance), fogBaseHeight, fogHeightAttenuation, 0.0f));
+            cmd.SetGlobalVector(m_ExpFogParam, new Vector4(Mathf.Max(1e-6f, fogDistance.value), fogBaseHeight.value, fogHeightAttenuation.value, 0.0f));
         }
     }
 }

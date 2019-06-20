@@ -14,15 +14,9 @@ namespace UnityEditor.Rendering
 
         VolumeComponentListEditor m_ComponentList;
 
-        Volume actualTarget
-        {
-            get { return target as Volume; }
-        }
+        Volume actualTarget => target as Volume;
 
-        VolumeProfile profileRef
-        {
-            get { return actualTarget.HasInstantiatedProfile() ? actualTarget.profile : actualTarget.sharedProfile; }
-        }
+        VolumeProfile profileRef => actualTarget.HasInstantiatedProfile() ? actualTarget.profile : actualTarget.sharedProfile;
 
         void OnEnable()
         {
@@ -39,8 +33,7 @@ namespace UnityEditor.Rendering
 
         void OnDisable()
         {
-            if (m_ComponentList != null)
-                m_ComponentList.Clear();
+            m_ComponentList?.Clear();
         }
 
         void RefreshEffectListEditor(VolumeProfile asset)
@@ -59,6 +52,9 @@ namespace UnityEditor.Rendering
 
             if (!m_IsGlobal.boolValue) // Blend radius is not needed for global volumes
             {
+                if (actualTarget.GetComponent<Collider>() == null)
+                    EditorGUILayout.HelpBox("Add a Collider to this GameObject to set boundaries for the local Volume.", MessageType.Info);
+
                 EditorGUILayout.PropertyField(m_BlendRadius);
                 m_BlendRadius.floatValue = Mathf.Max(m_BlendRadius.floatValue, 0f);
             }
@@ -70,7 +66,7 @@ namespace UnityEditor.Rendering
             bool showCopy = m_Profile.objectReferenceValue != null;
             bool multiEdit = m_Profile.hasMultipleDifferentValues;
 
-            // The layout system breaks alignement when mixing inspector fields with custom layouted
+            // The layout system breaks alignment when mixing inspector fields with custom layout'd
             // fields, do the layout manually instead
             int buttonWidth = showCopy ? 45 : 60;
             float indentOffset = EditorGUI.indentLevel * 15f;
@@ -91,7 +87,7 @@ namespace UnityEditor.Rendering
             {
                 EditorGUI.BeginProperty(fieldRect, GUIContent.none, m_Profile);
 
-                VolumeProfile profile = null;
+                VolumeProfile profile;
 
                 if (actualTarget.HasInstantiatedProfile())
                     profile = (VolumeProfile)EditorGUI.ObjectField(fieldRect, actualTarget.profile, typeof(VolumeProfile), false);

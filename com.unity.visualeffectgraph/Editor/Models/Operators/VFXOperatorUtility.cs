@@ -69,26 +69,25 @@ namespace UnityEditor.VFX
         static public VFXExpression Saturate(VFXExpression input)
         {
             //Max(Min(x, 1.0f), 0.0f))
-            return Clamp(input, ZeroExpression[input.valueType], OneExpression[input.valueType]);
+            return new VFXExpressionSaturate(input);
         }
 
         static public VFXExpression Frac(VFXExpression input)
         {
             //x - floor(x)
-            return input - new VFXExpressionFloor(input);
+            return new VFXExpressionFrac(input);
         }
 
         static public VFXExpression Ceil(VFXExpression input)
         {
             // ceil(x) = -floor(-x)
-            return Negate(new VFXExpressionFloor(Negate(input)));
+            return new VFXExpressionCeil(input);
         }
 
         static public VFXExpression Round(VFXExpression input)
         {
             //x = floor(x + 0.5)
-            var half = HalfExpression[input.valueType];
-            return new VFXExpressionFloor(input + half);
+            return new VFXExpressionRound(input);
         }
 
         static public VFXExpression Log(VFXExpression input, VFXExpression _base)
@@ -514,12 +513,42 @@ namespace UnityEditor.VFX
         static public VFXExpression FixedRandom(VFXExpression hash, bool perElement)
         {
             VFXExpression seed = new VFXExpressionBitwiseXor(hash, VFXBuiltInExpression.SystemSeed);
-            return new VFXExpressionFixedRandom(seed, perElement);
+            if (perElement)
+                seed = new VFXExpressionBitwiseXor(new VFXAttributeExpression(VFXAttribute.ParticleId), seed);
+            return new VFXExpressionFixedRandom(seed);
         }
 
-        static public VFXExpression SequentialLine(VFXExpression start, VFXExpression end, VFXExpression index, VFXExpression count)
+        public enum SequentialAddressingMode
         {
-            VFXExpression dt = new VFXExpressionCastUintToFloat(VFXOperatorUtility.Modulo(index, count));
+            Wrap,
+            Clamp,
+            Mirror
+        };
+
+        static private VFXExpression ApplyAddressingMode(VFXExpression index, VFXExpression count, SequentialAddressingMode mode)
+        {
+            VFXExpression r = null;
+            if (mode == SequentialAddressingMode.Wrap)
+            {
+                r = VFXOperatorUtility.Modulo(index, count);
+            }
+            else if (mode == SequentialAddressingMode.Clamp)
+            {
+                r = VFXOperatorUtility.Clamp(index, ZeroExpression[VFXValueType.Uint32], count, false);
+            }
+            else if (mode == SequentialAddressingMode.Mirror)
+            {
+                var direction = VFXOperatorUtility.Modulo(index / count, VFXOperatorUtility.TwoExpression[VFXValueType.Uint32]);
+                var modulo = VFXOperatorUtility.Modulo(index, count);
+                r = VFXOperatorUtility.Lerp(modulo, count - modulo, direction);
+            }
+            return r;
+        }
+
+        static public VFXExpression SequentialLine(VFXExpression start, VFXExpression end, VFXExpression index, VFXExpression count, SequentialAddressingMode mode)
+        {
+            VFXExpression dt = ApplyAddressingMode(index, count, mode);
+            dt = new VFXExpressionCastUintToFloat(dt);
             var size = new VFXExpressionCastUintToFloat(count) - VFXOperatorUtility.OneExpression[VFXValueType.Float];
             size = new VFXExpressionMax(size, VFXOperatorUtility.OneExpression[VFXValueType.Float]);
             dt = dt / size ;
@@ -527,9 +556,10 @@ namespace UnityEditor.VFX
             return VFXOperatorUtility.Lerp(start, end, dt);
         }
 
-        static public VFXExpression SequentialCircle(VFXExpression center, VFXExpression radius, VFXExpression normal, VFXExpression up, VFXExpression index, VFXExpression count)
+        static public VFXExpression SequentialCircle(VFXExpression center, VFXExpression radius, VFXExpression normal, VFXExpression up, VFXExpression index, VFXExpression count, SequentialAddressingMode mode)
         {
-            VFXExpression dt = new VFXExpressionCastUintToFloat(VFXOperatorUtility.Modulo(index, count));
+            VFXExpression dt = ApplyAddressingMode(index, count, mode);
+            dt = new VFXExpressionCastUintToFloat(dt);
             dt = dt / new VFXExpressionCastUintToFloat(count);
 
             var cos = new VFXExpressionCos(dt * VFXOperatorUtility.TauExpression[VFXValueType.Float]) as VFXExpression;
@@ -543,9 +573,9 @@ namespace UnityEditor.VFX
             return center + (cos * up + sin * left) * radius;
         }
 
-        static public VFXExpression Sequential3D(VFXExpression origin, VFXExpression axisX, VFXExpression axisY, VFXExpression axisZ, VFXExpression index, VFXExpression countX, VFXExpression countY, VFXExpression countZ)
+        static public VFXExpression Sequential3D(VFXExpression origin, VFXExpression axisX, VFXExpression axisY, VFXExpression axisZ, VFXExpression index, VFXExpression countX, VFXExpression countY, VFXExpression countZ, SequentialAddressingMode mode)
         {
-            index = VFXOperatorUtility.Modulo(index, countX * countY * countZ);
+            index = ApplyAddressingMode(index, countX * countY * countZ, mode);
             var z = new VFXExpressionCastUintToFloat(VFXOperatorUtility.Modulo(index, countZ));
             var y = new VFXExpressionCastUintToFloat(VFXOperatorUtility.Modulo(index / countZ, countY));
             var x = new VFXExpressionCastUintToFloat(index / (countY * countZ));
@@ -578,22 +608,6 @@ namespace UnityEditor.VFX
             var m3 = new VFXExpressionCombine(zero,                 zero,       TwoExpression[VFXValueType.Float] * zNear * zFar / deltaZ,     zero);
 
             return new VFXExpressionVector4sToMatrix(m0, m1, m2, m3);
-        }
-
-        // TODO Use a dedicated expression for that
-        static public VFXExpression Transpose(VFXExpression matrix)
-        {
-            var m0 = new VFXExpressionMatrixToVector4s(matrix, VFXValue.Constant(0));
-            var m1 = new VFXExpressionMatrixToVector4s(matrix, VFXValue.Constant(1));
-            var m2 = new VFXExpressionMatrixToVector4s(matrix, VFXValue.Constant(2));
-            var m3 = new VFXExpressionMatrixToVector4s(matrix, VFXValue.Constant(3));
-
-            var n0 = new VFXExpressionCombine(m0.x, m1.x, m2.x, m3.x);
-            var n1 = new VFXExpressionCombine(m0.y, m1.y, m2.y, m3.y);
-            var n2 = new VFXExpressionCombine(m0.z, m1.z, m2.z, m3.z);
-            var n3 = new VFXExpressionCombine(m0.w, m1.w, m2.w, m3.w);
-
-            return new VFXExpressionVector4sToMatrix(n0, n1, n2, n3);
         }
     }
 }

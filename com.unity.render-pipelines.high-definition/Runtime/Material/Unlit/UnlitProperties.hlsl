@@ -32,6 +32,10 @@ float _DistortionBlurRemapMax;
 // TODO: Fix the code in legacy unity so we can customize the behavior for GI
 float3 _EmissionColor;
 
+// For raytracing indirect illumination effects, we need to be able to define if the emissive part of the material should contribute or not (mainly for area light sources in order to avoid double contribution)
+// By default, the emissive is contributing
+float _IncludeIndirectLighting;
+
 // Following two variables are feeded by the C++ Editor for Scene selection
 int _ObjectId;
 int _PassValue;

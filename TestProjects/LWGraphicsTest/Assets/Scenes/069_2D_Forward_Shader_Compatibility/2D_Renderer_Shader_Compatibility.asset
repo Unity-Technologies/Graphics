@@ -1,0 +1,56 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 11145981673336645838492a2d98e247, type: 3}
+  m_Name: 2D_Renderer_Shader_Compatibility
+  m_EditorClassIdentifier: 
+  m_RendererFeatures: []
+  m_HDREmulationScale: 1
+  m_LightBlendStyles:
+  - enabled: 1
+    name: Default
+    maskTextureChannel: 0
+    renderTextureScale: 1
+    blendMode: 1
+    customBlendFactors:
+      multiplicative: 0
+      additive: 0
+  - enabled: 0
+    name: Blend Style 1
+    maskTextureChannel: 0
+    renderTextureScale: 1
+    blendMode: 1
+    customBlendFactors:
+      multiplicative: 0
+      additive: 0
+  - enabled: 0
+    name: Blend Style 2
+    maskTextureChannel: 0
+    renderTextureScale: 1
+    blendMode: 1
+    customBlendFactors:
+      multiplicative: 0
+      additive: 0
+  - enabled: 0
+    name: Blend Style 3
+    maskTextureChannel: 0
+    renderTextureScale: 1
+    blendMode: 1
+    customBlendFactors:
+      multiplicative: 0
+      additive: 0
+  m_ShapeLightShader: {fileID: 4800000, guid: d79e1c784eaf80c4585c0be7391f757a, type: 3}
+  m_ShapeLightVolumeShader: {fileID: 4800000, guid: 7e60080c8cd24a2468cb08b4bfee5606,
+    type: 3}
+  m_PointLightShader: {fileID: 4800000, guid: e35a31e1679aeff489e202f5cc4853d5, type: 3}
+  m_PointLightVolumeShader: {fileID: 4800000, guid: c7d04ca57e5449d49ad9cee1c604bc26,
+    type: 3}
+  m_BlitShader: {fileID: 4800000, guid: c17132b1f77d20942aa75f8429c0f8bc, type: 3}

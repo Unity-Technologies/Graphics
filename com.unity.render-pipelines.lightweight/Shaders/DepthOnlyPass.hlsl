@@ -31,7 +31,9 @@ Varyings DepthOnlyVertex(Attributes input)
 
 half4 DepthOnlyFragment(Varyings input) : SV_TARGET
 {
-    Alpha(SampleAlbedoAlpha(input.uv, TEXTURE2D_PARAM(_BaseMap, sampler_BaseMap)).a, _BaseColor, _Cutoff);
+    UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
+                
+    Alpha(SampleAlbedoAlpha(input.uv, TEXTURE2D_ARGS(_BaseMap, sampler_BaseMap)).a, _BaseColor, _Cutoff);
     return 0;
 }
 #endif

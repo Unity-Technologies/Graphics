@@ -21,6 +21,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         public bool nodeNeedsRepositioning { get; set; }
         public SlotReference targetSlotReference { get; private set; }
         public Vector2 targetPosition { get; private set; }
+        private const string k_HiddenFolderName = "Hidden";
 
         public void Initialize(EditorWindow editorWindow, GraphData graph, GraphView graphView)
         {
@@ -75,23 +76,26 @@ namespace UnityEditor.ShaderGraph.Drawing
                 }
             }
 
-            if (!(m_Graph.isSubGraph))
+            foreach (var guid in AssetDatabase.FindAssets(string.Format("t:{0}", typeof(SubGraphAsset))))
             {
-                foreach (var guid in AssetDatabase.FindAssets(string.Format("t:{0}", typeof(MaterialSubGraphAsset))))
+                var asset = AssetDatabase.LoadAssetAtPath<SubGraphAsset>(AssetDatabase.GUIDToAssetPath(guid));
+                var node = new SubGraphNode { asset = asset };
+                var title = asset.path.Split('/').ToList();
+                
+                if (asset.descendents.Contains(m_Graph.assetGuid) || asset.assetGuid == m_Graph.assetGuid)
                 {
-                    var asset = AssetDatabase.LoadAssetAtPath<MaterialSubGraphAsset>(AssetDatabase.GUIDToAssetPath(guid));
-                    var node = new SubGraphNode { subGraphAsset = asset };
+                    continue;
+                }
 
-                    if (string.IsNullOrEmpty(asset.subGraph.path))
-                    {
-                        AddEntries(node, new string[1] { asset.name }, nodeEntries);
-                    }
-                    else
-                    {
-                        var title = asset.subGraph.path.Split('/').ToList();
-                        title.Add(asset.name);
-                        AddEntries(node, title.ToArray(), nodeEntries);
-                    }
+                if (string.IsNullOrEmpty(asset.path))
+                {
+                    AddEntries(node, new string[1] { asset.name }, nodeEntries);
+                }
+
+                else if (title[0] != k_HiddenFolderName)
+                {
+                    title.Add(asset.name);
+                    AddEntries(node, title.ToArray(), nodeEntries);
                 }
             }
 

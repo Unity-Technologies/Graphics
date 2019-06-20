@@ -1,10 +1,8 @@
 using System;
 using System.Collections.Generic;
-using UnityEditor.Experimental.Rendering;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.LWRP;
-using UnityEditor.Rendering;
 
 namespace UnityEditor.Rendering.LWRP
 {
@@ -14,7 +12,7 @@ namespace UnityEditor.Rendering.LWRP
         {
         }
         
-        [MenuItem("Edit/Render Pipeline/Upgrade Project Materials to LightweightRP Materials", priority = CoreUtils.editMenuPriority2)]
+        [MenuItem("Edit/Render Pipeline/Lightweight Render Pipeline/Upgrade Project Materials to LightweightRP Materials", priority = CoreUtils.editMenuPriority2)]
         private static void UpgradeProjectMaterials()
         {
             List<MaterialUpgrader> upgraders = new List<MaterialUpgrader>();
@@ -23,7 +21,7 @@ namespace UnityEditor.Rendering.LWRP
             MaterialUpgrader.UpgradeProjectFolder(upgraders, "Upgrade to LightweightRP Materials", MaterialUpgrader.UpgradeFlags.LogMessageWhenNoUpgraderFound);
         }
 
-        [MenuItem("Edit/Render Pipeline/Upgrade Selected Materials to LightweightRP Materials", priority = CoreUtils.editMenuPriority2)]
+        [MenuItem("Edit/Render Pipeline/Lightweight Render Pipeline/Upgrade Selected Materials to LightweightRP Materials", priority = CoreUtils.editMenuPriority2)]
         private static void UpgradeSelectedMaterials()
         {
             List<MaterialUpgrader> upgraders = new List<MaterialUpgrader>();

@@ -24,8 +24,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             // Base (copy from LightEditor.cs)
             public readonly GUIContent outterAngle = new GUIContent("Outter Angle", "Controls the angle, in degrees, at the base of a Spot Light's cone.");
-            public readonly GUIContent cookieSizeX = new GUIContent("Size X", "Controls the width of the Cookie mask currently assigned to the Light.");
-            public readonly GUIContent cookieSizeY = new GUIContent("Size Y", "Controls the height of the Cookie mask currently assigned to the Light.");
+            public readonly GUIContent cookieSizeX = new GUIContent("Size X", "Sets the width of the Cookie mask currently assigned to the Light.");
+            public readonly GUIContent cookieSizeY = new GUIContent("Size Y", "Sets the height of the Cookie mask currently assigned to the Light.");
             public readonly GUIContent shadowBias = new GUIContent("Bias", "Controls the distance at which HDRP pushes shadows away from the Light. Useful for avoiding false self-shadowing artifacts.");
             public readonly GUIContent shadowNormalBias = new GUIContent("Normal Bias", "Controls distance at which HDRP shrinks the shadow casting surfaces along the surface normal. Useful for avoiding false self-shadowing artifacts.");
             public readonly GUIContent shadowNearPlane = new GUIContent("Near Plane", "Controls the value for the active Camera's Near clipping Plane for rendering shadows. Currently clamped to 0.1 units or 1% of the lights range property, whichever is lower.");
@@ -65,8 +65,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public readonly GUIContent displayAreaLightEmissiveMesh = new GUIContent("Display Emissive Mesh", "Generate an emissive mesh using the size, Color and Intensity of the Area Light.");
             public readonly GUIContent lightLayer = new GUIContent("Light Layer", "Specifies the current Light Layers that the Light affects. This Light illuminates corresponding Renderers with the same Light Layer flags.");
 
-            public readonly GUIContent sunDiskSize = new GUIContent("Sun Highlight Disk Size", "Controls the size of the highlight of the sun disk which is the angle of the sun cone in degrees.");
-            public readonly GUIContent sunHaloSize = new GUIContent("Sun Highlight Halo Size", "Controls the size of the halo around the highlight of the sun disk.");
+  public readonly GUIContent interactsWithSky = new GUIContent("Interacts with the sky", "Check this option to make the light and the PBR sky affect one another.");
 
             public readonly GUIContent shape = new GUIContent("Type", "Specifies the current type of Light. Possible Light types are Directional, Spot, Point, Rectangle, and Tube.");
             public readonly GUIContent[] shapeNames;
@@ -83,7 +82,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public readonly GUIContent shadowResolution = new GUIContent("Resolution", "Sets the rendered resolution of the shadow maps. A higher resolution increases the fidelity of shadows at the cost of GPU performance and memory usage.");
             public readonly GUIContent shadowFadeDistance = new GUIContent("Fade Distance", "Sets the distance at which Shadows fade before HDRP culls them completely. This minimizes popping.");
             public readonly GUIContent shadowDimmer = new GUIContent("Dimmer", "Dims the shadows this Light casts.");
+            public readonly GUIContent shadowTint = new GUIContent("Tint", "Tint the shadows. This option affect dynamic shadows, contact shadows and shadow mask. It don't affect baked shadows.");
             public readonly GUIContent contactShadows = new GUIContent("Enable", "Enable support for Contact Shadows on this Light. This is better for lights with a lot of visible shadows.");
+            public readonly GUIContent shadowUpdateMode = new GUIContent("Update Mode", "Sets the frequency of update for the shadow map.");
+            public readonly GUIContent useCustomSpotLightShadowCone = new GUIContent("Custom Spot Angle", "If selected, the custom spot angle will be used for shadow map rendering.");
+            public readonly GUIContent customSpotLightShadowCone = new GUIContent("Shadow Angle", "Custom angle used for shadow map rendering.");
 
             // Bias control
             public readonly GUIContent viewBiasMin = new GUIContent("View Bias");
@@ -102,11 +105,28 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public readonly GUIContent blockerSampleCount = new GUIContent("Blocker Sample Count", "Sample count HDRP uses to determine the size of the blocker.");
             public readonly GUIContent filterSampleCount = new GUIContent("Filter Sample Count");
             public readonly GUIContent minFilterSize = new GUIContent("Minimal size of the filter");
+            public readonly GUIContent areaLightShadowCone = new GUIContent("Shadow Cone", "Aperture of the cone used for shadowing the area light.");
+            public readonly GUIContent useScreenSpaceShadows = new GUIContent("Screen Space Shadows", "Render screen space shadow.");
+#if ENABLE_RAYTRACING
+            public readonly GUIContent useRayTracedShadows = new GUIContent("Use Ray traced shadows", "If selected, ray traced shadows are used in place of rasterized ones");
+            public readonly GUIContent numRayTracingSamples = new GUIContent("Num samples", "This defines the number of samples that will be used to evaluate this shadow.");
+            public readonly GUIContent filterTracedShadow = new GUIContent("Enable filtering", "This defines if the ray traced shadow should be filtered.");
+            public readonly GUIContent filterSizeTraced = new GUIContent("Filter size", "This defines the size of the filter used for ray traced shadows.");
+            public readonly GUIContent sunLightConeAngle = new GUIContent("Sun angle", "This defines the size of the sun in the sky.");
+#endif
+            public readonly GUIContent evsmExponent = new GUIContent("EVSM Exponent", "Exponent used for depth warping. Increasing this could reduce light leak and result in a change in appearance of the shadow.");
+            public readonly GUIContent evsmLightLeakBias = new GUIContent("Light Leak Bias", "Increasing this value light leaking, but it eats up a bit of the softness of the shadow.");
+            public readonly GUIContent evsmVarianceBias = new GUIContent("Variance Bias", "Variance Bias for EVSM. This is to contrast numerical accuracy issues. ");
+            public readonly GUIContent evsmAdditionalBlurPasses = new GUIContent("Blur passes", "Increasing this will increase the softness of the shadow, but it will severely impact performance.");
 
             // Very high shadow settings
             public readonly GUIContent lightAngle = new GUIContent("Light Angle");
             public readonly GUIContent kernelSize = new GUIContent("Kernel size");
             public readonly GUIContent maxDepthBias = new GUIContent("Max Depth Bias");
+
+            // Layers
+            public readonly GUIContent linkLightAndShadowLayersText = new GUIContent("Link Light Layer", "When enabled, the Light Layer property specifies the light layers for both lighting and for shadows. When disabled, you can use the Light Layer property in the General section to specify the light layers for lighting and the Light Layer property in the Shadows section to specify the light layers for shadows.");
+            public readonly GUIContent shadowLayerMaskText = new GUIContent("Light Layer");
 
             // Settings
             public readonly GUIContent enableShadowMap = new GUIContent("Enable");

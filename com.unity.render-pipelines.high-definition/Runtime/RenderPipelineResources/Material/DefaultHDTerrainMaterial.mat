@@ -31,6 +31,7 @@ Material:
     - _EnableInstancedPerPixelNormal: 1
     - _EnableMotionVectorForVertexAnimation: 0
     - _HeightTransition: 0
+    - _ReceivesSSR: 1
     - _StencilRef: 2
     - _StencilRefMV: 128
     - _StencilWriteMask: 7

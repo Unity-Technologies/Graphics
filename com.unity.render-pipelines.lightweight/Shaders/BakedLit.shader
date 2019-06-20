@@ -31,6 +31,8 @@ Shader "Lightweight Render Pipeline/Baked Lit"
         Pass
         {
             Name "BakedLit"
+            Tags{ "LightMode" = "LightweightForward" }
+
             HLSLPROGRAM
             // Required to compile gles 2.0 with standard srp library
             #pragma prefer_hlslcc gles
@@ -107,6 +109,7 @@ Shader "Lightweight Render Pipeline/Baked Lit"
             half4 frag(Varyings input) : SV_Target
             {
                 UNITY_SETUP_INSTANCE_ID(input);
+                UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
                 half2 uv = input.uv0AndFogCoord.xy;
                 half4 texColor = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, uv);
@@ -119,7 +122,7 @@ Shader "Lightweight Render Pipeline/Baked Lit"
 #endif
 
     #if defined(_NORMALMAP)
-                half3 normalTS = SampleNormal(uv, TEXTURE2D_PARAM(_BumpMap, sampler_BumpMap)).xyz;
+                half3 normalTS = SampleNormal(uv, TEXTURE2D_ARGS(_BumpMap, sampler_BumpMap)).xyz;
                 half3 normalWS = TransformTangentToWorld(normalTS, half3x3(input.tangent, input.bitangent, input.normal));
     #else
                 half3 normalWS = input.normal;
@@ -180,6 +183,29 @@ Shader "Lightweight Render Pipeline/Baked Lit"
             #include "Packages/com.unity.render-pipelines.lightweight/Shaders/BakedLitInput.hlsl"
             #include "Packages/com.unity.render-pipelines.lightweight/Shaders/BakedLitMetaPass.hlsl"
 
+            ENDHLSL
+        }
+        Pass
+        {
+            Name "Lightweight2D"
+            Tags{ "LightMode" = "Lightweight2D" }
+
+            Blend[_SrcBlend][_DstBlend]
+            ZWrite[_ZWrite]
+            Cull[_Cull]
+
+            HLSLPROGRAM
+            // Required to compile gles 2.0 with standard srp library
+            #pragma prefer_hlslcc gles
+            #pragma exclude_renderers d3d11_9x
+
+            #pragma vertex vert
+            #pragma fragment frag
+            #pragma shader_feature _ALPHATEST_ON
+            #pragma shader_feature _ALPHAPREMULTIPLY_ON
+
+            #include "Packages/com.unity.render-pipelines.lightweight/Shaders/BakedLitInput.hlsl"
+            #include "Packages/com.unity.render-pipelines.lightweight/Shaders/Utils/Lightweight2D.hlsl"
             ENDHLSL
         }
     }

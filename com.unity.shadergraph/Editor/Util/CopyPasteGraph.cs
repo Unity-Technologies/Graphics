@@ -27,8 +27,8 @@ namespace UnityEditor.Graphing.Util
         [NonSerialized]
         HashSet<AbstractShaderProperty> m_MetaProperties = new HashSet<AbstractShaderProperty>();
 
-        [NonSerialized]
-        SerializableGuid m_SourceGraphGuid;
+        [SerializeField]
+        string m_SourceGraphGuid;
 
         [SerializeField]
         List<SerializationHelper.JSONSerializedElement> m_SerializableNodes = new List<SerializationHelper.JSONSerializedElement>();
@@ -42,14 +42,11 @@ namespace UnityEditor.Graphing.Util
         [SerializeField]
         List<SerializationHelper.JSONSerializedElement> m_SerializableMetaProperties = new List<SerializationHelper.JSONSerializedElement>();
 
-        [SerializeField]
-        SerializationHelper.JSONSerializedElement m_SerializeableSourceGraphGuid = new SerializationHelper.JSONSerializedElement();
-
         public CopyPasteGraph() {}
 
-        public CopyPasteGraph(Guid sourceGraphGuid, IEnumerable<GroupData> groups, IEnumerable<AbstractMaterialNode> nodes, IEnumerable<IEdge> edges, IEnumerable<AbstractShaderProperty> properties, IEnumerable<AbstractShaderProperty> metaProperties)
+        public CopyPasteGraph(string sourceGraphGuid, IEnumerable<GroupData> groups, IEnumerable<AbstractMaterialNode> nodes, IEnumerable<IEdge> edges, IEnumerable<AbstractShaderProperty> properties, IEnumerable<AbstractShaderProperty> metaProperties)
         {
-            m_SourceGraphGuid = new SerializableGuid(sourceGraphGuid);
+            m_SourceGraphGuid = sourceGraphGuid;
 
             foreach (var groupData in groups)
             {
@@ -58,6 +55,10 @@ namespace UnityEditor.Graphing.Util
 
             foreach (var node in nodes)
             {
+                if (!node.canCopyNode)
+                {
+                    throw new InvalidOperationException($"Cannot copy node {node.name} ({node.guid}).");
+                }
                 AddNode(node);
                 foreach (var edge in NodeUtils.GetAllEdges(node))
                     AddEdge(edge);
@@ -123,14 +124,13 @@ namespace UnityEditor.Graphing.Util
             get { return m_MetaProperties; }
         }
 
-        public Guid sourceGraphGuid
+        public string sourceGraphGuid
         {
-            get { return m_SourceGraphGuid.guid; }
+            get { return m_SourceGraphGuid; }
         }
 
         public void OnBeforeSerialize()
         {
-            m_SerializeableSourceGraphGuid = SerializationHelper.Serialize(m_SourceGraphGuid);
             m_SerializableNodes = SerializationHelper.Serialize<AbstractMaterialNode>(m_Nodes);
             m_SerializableEdges = SerializationHelper.Serialize<IEdge>(m_Edges);
             m_SerilaizeableProperties = SerializationHelper.Serialize<AbstractShaderProperty>(m_Properties);
@@ -139,8 +139,6 @@ namespace UnityEditor.Graphing.Util
 
         public void OnAfterDeserialize()
         {
-            m_SourceGraphGuid = SerializationHelper.Deserialize<SerializableGuid>(m_SerializeableSourceGraphGuid, GraphUtil.GetLegacyTypeRemapping());
-
             var nodes = SerializationHelper.Deserialize<AbstractMaterialNode>(m_SerializableNodes, GraphUtil.GetLegacyTypeRemapping());
             m_Nodes.Clear();
             foreach (var node in nodes)

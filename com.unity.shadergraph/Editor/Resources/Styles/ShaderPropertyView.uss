@@ -2,28 +2,28 @@ ShaderPropertyView {
     flex-direction: row;
     justify-content: space-between;
     align-items: center;
-    padding-top: 8;
-    padding-bottom: 4;
-    padding-left: 8;
-    padding-right: 8;
+    padding-top: 8px;
+    padding-bottom: 4px;
+    padding-left: 8px;
+    padding-right: 8px;
 }
 
 ShaderPropertyView > #displayName {
     flex: 1;
-    margin-right: 8;
+    margin-right: 8px;
 }
 
 ShaderPropertyView > #value {
     flex: 2;
-    margin-right: 8;
+    margin-right: 8px;
 }
 
 ShaderPropertyView > #remove {
-    font-size: 9;
+    font-size: 9px;
     padding-top: 0;
     padding-bottom: 0;
-    padding-left: 1;
-    padding-right: 1;
+    padding-left: 1px;
+    padding-right: 1px;
     margin-top: 0;
     margin-bottom: 0;
     margin-left: 0;

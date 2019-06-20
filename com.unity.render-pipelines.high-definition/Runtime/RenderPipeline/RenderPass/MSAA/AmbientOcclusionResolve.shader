@@ -8,8 +8,8 @@ Shader "Hidden/HDRP/AOResolve"
         //#pragma enable_d3d11_debug_symbols
 
         // Target multivalues textures
-        TEXTURE2D(_DepthValuesTexture);
-        TEXTURE2D(_MultiAmbientOcclusionTexture);
+        TEXTURE2D_X(_DepthValuesTexture);
+        TEXTURE2D_X(_MultiAmbientOcclusionTexture);
 
         struct Attributes
         {
@@ -42,13 +42,13 @@ Shader "Hidden/HDRP/AOResolve"
             int2 pixelCoords = int2(input.texcoord);
 
             // Read the multiple depth values
-            float4 depthValues = LOAD_TEXTURE2D(_DepthValuesTexture, pixelCoords);
+            float4 depthValues = LOAD_TEXTURE2D_X(_DepthValuesTexture, pixelCoords);
 
             // Compute the lerp value between the max and min ao values (and saturate in case maxdepth == mindepth)
             float lerpVal = saturate((depthValues.z - depthValues.y) / (depthValues.x - depthValues.y));
 
             // Fetch the AO values
-            float2 aoValues = LOAD_TEXTURE2D(_MultiAmbientOcclusionTexture, pixelCoords).xy;
+            float2 aoValues = LOAD_TEXTURE2D_X(_MultiAmbientOcclusionTexture, pixelCoords).xy;
 
             // Lerp between Both
             return lerp(aoValues.x, aoValues.y, lerpVal);

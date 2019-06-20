@@ -1,0 +1,10 @@
+{
+    "name": "Unity.Testing.VisualEffectGraph.Editor",
+    "references": [
+        "Unity.Testing.VisualEffectGraph"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": []
+}

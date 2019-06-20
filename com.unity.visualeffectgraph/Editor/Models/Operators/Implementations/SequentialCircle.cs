@@ -36,6 +36,9 @@ namespace UnityEditor.VFX.Operator
             }
         }
 
+        [SerializeField, VFXSetting]
+        private VFXOperatorUtility.SequentialAddressingMode mode = VFXOperatorUtility.SequentialAddressingMode.Wrap;
+
         protected override VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
             var index = inputExpression[0];
@@ -45,7 +48,7 @@ namespace UnityEditor.VFX.Operator
             var up = inputExpression[4];
             var radius = inputExpression[5];
 
-            return new[] { VFXOperatorUtility.SequentialCircle(center, radius, normal, up, index, count) };
+            return new[] { VFXOperatorUtility.SequentialCircle(center, radius, normal, up, index, count, mode) };
         }
     }
 }

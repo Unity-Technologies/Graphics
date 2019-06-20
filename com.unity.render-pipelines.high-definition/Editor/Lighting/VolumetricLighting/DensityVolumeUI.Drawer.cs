@@ -25,16 +25,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 ),
             CED.space,
             CED.FoldoutGroup(
-                Styles.k_VolumeHeader,
-                Expandable.Volume,
-                k_ExpandedState,
+                Styles.k_VolumeHeader, Expandable.Volume, k_ExpandedState,
                 Drawer_AdvancedSwitch,
                 Drawer_VolumeContent
                 ),
             CED.FoldoutGroup(
-                Styles.k_DensityMaskTextureHeader,
-                Expandable.DensityMaskTexture,
-                k_ExpandedState,
+                Styles.k_DensityMaskTextureHeader, Expandable.DensityMaskTexture, k_ExpandedState,
                 Drawer_DensityMaskTextureContent
                 )
             );
@@ -69,61 +65,94 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 GUILayout.FlexibleSpace();
 
-                bool advanced = serialized.advancedFade.boolValue;
+                bool advanced = serialized.editorAdvancedFade.boolValue;
                 advanced = GUILayout.Toggle(advanced, Styles.s_AdvancedModeContent, EditorStyles.miniButton, GUILayout.Width(60f), GUILayout.ExpandWidth(false));
-                foreach (var containedBox in DensityVolumeEditor.blendBoxes.Values)
+                DensityVolumeEditor.s_BlendBox.monoHandle = !advanced;
+                if (serialized.editorAdvancedFade.boolValue ^ advanced)
                 {
-                    containedBox.monoHandle = !advanced;
-                }
-                if (serialized.advancedFade.boolValue ^ advanced)
-                {
-                    serialized.advancedFade.boolValue = advanced;
+                    serialized.editorAdvancedFade.boolValue = advanced;
                 }
             }
         }
 
         static void Drawer_VolumeContent(SerializedDensityVolume serialized, Editor owner)
         {
+            //keep previous data as value are stored in percent 
+            Vector3 previousSize = serialized.size.vector3Value;
+            float previousUniformFade = serialized.editorUniformFade.floatValue;
+            Vector3 previousPositiveFade = serialized.editorPositiveFade.vector3Value;
+            Vector3 previousNegativeFade = serialized.editorNegativeFade.vector3Value;
+
             EditorGUI.BeginChangeCheck();
             EditorGUILayout.PropertyField(serialized.size, Styles.s_Size);
             if (EditorGUI.EndChangeCheck())
             {
-                Vector3 tmpClamp = serialized.size.vector3Value;
-                tmpClamp.x = Mathf.Max(0f, tmpClamp.x);
-                tmpClamp.y = Mathf.Max(0f, tmpClamp.y);
-                tmpClamp.z = Mathf.Max(0f, tmpClamp.z);
-                serialized.size.vector3Value = tmpClamp;
+                Vector3 newSize = serialized.size.vector3Value;
+                newSize.x = Mathf.Max(0f, newSize.x);
+                newSize.y = Mathf.Max(0f, newSize.y);
+                newSize.z = Mathf.Max(0f, newSize.z);
+                serialized.size.vector3Value = newSize;
+                
+                //update advanced mode blend
+                Vector3 newPositiveFade = new Vector3(
+                    newSize.x < 0.00001 ? 0 : previousPositiveFade.x * previousSize.x / newSize.x,
+                    newSize.y < 0.00001 ? 0 : previousPositiveFade.y * previousSize.y / newSize.y,
+                    newSize.z < 0.00001 ? 0 : previousPositiveFade.z * previousSize.z / newSize.z
+                    );
+                Vector3 newNegativeFade = new Vector3(
+                    newSize.x < 0.00001 ? 0 : previousNegativeFade.x * previousSize.x / newSize.x,
+                    newSize.y < 0.00001 ? 0 : previousNegativeFade.y * previousSize.y / newSize.y,
+                    newSize.z < 0.00001 ? 0 : previousNegativeFade.z * previousSize.z / newSize.z
+                    );
+                for (int axeIndex = 0; axeIndex < 3; ++axeIndex)
+                {
+                    if (newPositiveFade[axeIndex] + newNegativeFade[axeIndex] > 1)
+                    {
+                        float overValue = (newPositiveFade[axeIndex] + newNegativeFade[axeIndex] - 1f) * 0.5f;
+                        newPositiveFade[axeIndex] -= overValue;
+                        newNegativeFade[axeIndex] -= overValue;
+
+                        if (newPositiveFade[axeIndex] < 0)
+                        {
+                            newNegativeFade[axeIndex] += newPositiveFade[axeIndex];
+                            newPositiveFade[axeIndex] = 0f;
+                        }
+                        if (newNegativeFade[axeIndex] < 0)
+                        {
+                            newPositiveFade[axeIndex] += newNegativeFade[axeIndex];
+                            newNegativeFade[axeIndex] = 0f;
+                        }
+                    }
+                }
+                serialized.editorPositiveFade.vector3Value = newPositiveFade;
+                serialized.editorNegativeFade.vector3Value = newNegativeFade;
+
+                //update normal mode blend
+                float max = Mathf.Min(newSize.x, newSize.y, newSize.z) * 0.5f;
+                serialized.editorUniformFade.floatValue = Mathf.Clamp(serialized.editorUniformFade.floatValue, 0f, max);
             }
 
-            Vector3 s = serialized.size.vector3Value;
+            Vector3 serializedSize = serialized.size.vector3Value;
             EditorGUI.BeginChangeCheck();
-            if (serialized.advancedFade.boolValue)
+            if (serialized.editorAdvancedFade.hasMultipleDifferentValues)
             {
-                Vector3 positive = serialized.positiveFade.vector3Value;
-                positive.x *= s.x;
-                positive.y *= s.y;
-                positive.z *= s.z;
-                Vector3 negative = serialized.negativeFade.vector3Value;
-                negative.x *= s.x;
-                negative.y *= s.y;
-                negative.z *= s.z;
+                using (new EditorGUI.DisabledScope(true))
+                    EditorGUILayout.LabelField(Styles.s_BlendLabel, EditorGUIUtility.TrTextContent("Multiple values for Advanced mode"));
+            }
+            else if (serialized.editorAdvancedFade.boolValue)
+            {
                 EditorGUI.BeginChangeCheck();
-                CoreEditorUtils.DrawVector6(Styles.s_BlendLabel, ref positive, ref negative, Vector3.zero, s, InfluenceVolumeUI.k_HandlesColor);
+                CoreEditorUtils.DrawVector6(Styles.s_BlendLabel, serialized.editorPositiveFade, serialized.editorNegativeFade, Vector3.zero, serializedSize, InfluenceVolumeUI.k_HandlesColor, serialized.size);
                 if (EditorGUI.EndChangeCheck())
                 {
-                    positive.x /= s.x;
-                    positive.y /= s.y;
-                    positive.z /= s.z;
-                    negative.x /= s.x;
-                    negative.y /= s.y;
-                    negative.z /= s.z;
-
                     //forbid positive/negative box that doesn't intersect in inspector too
+                    Vector3 positive = serialized.editorPositiveFade.vector3Value;
+                    Vector3 negative = serialized.editorNegativeFade.vector3Value;
                     for (int axis = 0; axis < 3; ++axis)
                     {
                         if (positive[axis] > 1f - negative[axis])
                         {
-                            if (positive == serialized.positiveFade.vector3Value)
+                            if (positive == serialized.editorPositiveFade.vector3Value)
                             {
                                 negative[axis] = 1f - positive[axis];
                             }
@@ -133,36 +162,34 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                             }
                         }
                     }
-
-                    serialized.positiveFade.vector3Value = positive;
-                    serialized.negativeFade.vector3Value = negative;
+                    serialized.editorPositiveFade.vector3Value = positive;
+                    serialized.editorNegativeFade.vector3Value = negative;
                 }
             }
             else
             {
                 EditorGUI.BeginChangeCheck();
-                float distanceMax = Mathf.Min(s.x, s.y, s.z);
-                float uniformFadeDistance = serialized.uniformFade.floatValue * distanceMax;
-                uniformFadeDistance = EditorGUILayout.FloatField(Styles.s_BlendLabel, uniformFadeDistance);
+                EditorGUILayout.PropertyField(serialized.editorUniformFade, Styles.s_BlendLabel);
                 if (EditorGUI.EndChangeCheck())
                 {
-                    serialized.uniformFade.floatValue = Mathf.Clamp(uniformFadeDistance / distanceMax, 0f, 0.5f);
+                    float max = Mathf.Min(serializedSize.x, serializedSize.y, serializedSize.z) * 0.5f;
+                    serialized.editorUniformFade.floatValue = Mathf.Clamp(serialized.editorUniformFade.floatValue, 0f, max);
                 }
             }
             if (EditorGUI.EndChangeCheck())
             {
                 Vector3 posFade = new Vector3();
-                posFade.x = Mathf.Clamp01(serialized.positiveFade.vector3Value.x);
-                posFade.y = Mathf.Clamp01(serialized.positiveFade.vector3Value.y);
-                posFade.z = Mathf.Clamp01(serialized.positiveFade.vector3Value.z);
+                posFade.x = Mathf.Clamp01(serialized.editorPositiveFade.vector3Value.x);
+                posFade.y = Mathf.Clamp01(serialized.editorPositiveFade.vector3Value.y);
+                posFade.z = Mathf.Clamp01(serialized.editorPositiveFade.vector3Value.z);
 
                 Vector3 negFade = new Vector3();
-                negFade.x = Mathf.Clamp01(serialized.negativeFade.vector3Value.x);
-                negFade.y = Mathf.Clamp01(serialized.negativeFade.vector3Value.y);
-                negFade.z = Mathf.Clamp01(serialized.negativeFade.vector3Value.z);
+                negFade.x = Mathf.Clamp01(serialized.editorNegativeFade.vector3Value.x);
+                negFade.y = Mathf.Clamp01(serialized.editorNegativeFade.vector3Value.y);
+                negFade.z = Mathf.Clamp01(serialized.editorNegativeFade.vector3Value.z);
 
-                serialized.positiveFade.vector3Value = posFade;
-                serialized.negativeFade.vector3Value = negFade;
+                serialized.editorPositiveFade.vector3Value = posFade;
+                serialized.editorNegativeFade.vector3Value = negFade;
             }
 
             EditorGUILayout.PropertyField(serialized.invertFade, Styles.s_InvertFadeLabel);

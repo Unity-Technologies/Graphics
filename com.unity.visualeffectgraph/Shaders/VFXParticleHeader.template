@@ -28,4 +28,13 @@ CBUFFER_START(outputParams)
 	float systemSeed;
 CBUFFER_END
 
+// Helper macros to always use a valid instanceID
+#if defined(UNITY_STEREO_INSTANCING_ENABLED)
+	#define VFX_DECLARE_INSTANCE_ID     UNITY_VERTEX_INPUT_INSTANCE_ID
+	#define VFX_GET_INSTANCE_ID(i)      unity_InstanceID
+#else
+	#define VFX_DECLARE_INSTANCE_ID     uint instanceID : SV_InstanceID;
+	#define VFX_GET_INSTANCE_ID(i)      i.instanceID
+#endif
+
 ENDHLSL

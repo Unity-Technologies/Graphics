@@ -1,4 +1,3 @@
-//#define ENABLE_BAKED_PLANAR
 using System;
 using System.Collections.Generic;
 using UnityEditorInternal;
@@ -26,7 +25,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         internal interface IProbeUISettingsProvider
         {
             ProbeSettingsOverride displayedCaptureSettings { get; }
+            ProbeSettingsOverride displayedAdvancedCaptureSettings { get; }
             ProbeSettingsOverride overrideableCaptureSettings { get; }
+            ProbeSettingsOverride overrideableAdvancedCaptureSettings { get; }
             ProbeSettingsOverride displayedAdvancedSettings { get; }
             ProbeSettingsOverride overrideableAdvancedSettings { get; }
             Type customTextureType { get; }
@@ -139,7 +140,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
                     var targetMode = k_ToolbarMode[toolbar];
                     var mode = EditMode.editMode == targetMode ? EditMode.SceneViewEditMode.None : targetMode;
-                    EditMode.ChangeEditMode(mode, HDEditorUtils.GetBoundsGetter(owner)(), owner);
+                    EditorApplication.delayCall += () => EditMode.ChangeEditMode(mode, HDEditorUtils.GetBoundsGetter(owner)(), owner);
                     evt.Use();
                 }
             }
@@ -203,6 +204,16 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     serialized.probeSettings, owner,
                     serialized.probeSettingsOverride,
                     provider.displayedCaptureSettings, provider.overrideableCaptureSettings
+                );
+            }
+
+            public static void DrawAdvancedCaptureSettings(SerializedHDProbe serialized, Editor owner)
+            {
+                var provider = new TProvider();
+                ProbeSettingsUI.Draw(
+                    serialized.probeSettings, owner,
+                    serialized.probeSettingsOverride,
+                    provider.displayedAdvancedCaptureSettings, provider.overrideableAdvancedCaptureSettings
                 );
             }
 

@@ -74,8 +74,7 @@ float4 GetTessellationFactors(float3 p0, float3 p1, float3 p2, float3 n0, float3
 #if defined(SHADERPASS) && (SHADERPASS != SHADERPASS_SHADOWS)
     bool frustumCullCurrView = all(frustumCullEdgesMainView);
 #else
-    // 'unity_CameraWorldClipPlanes' are camera-relative rendering aware.
-    bool frustumCullCurrView = CullTriangleFrustum(p0, p1, p2, frustumEps, unity_CameraWorldClipPlanes, 4); // Do not test near/far planes
+    bool frustumCullCurrView = CullTriangleFrustum(p0, p1, p2, frustumEps, _ShadowFrustumPlanes, 4); // Do not test near/far planes
 #endif
 
     bool faceCull = false;
@@ -111,8 +110,8 @@ float4 GetTessellationFactors(float3 p0, float3 p1, float3 p2, float3 n0, float3
     if (_TessellationFactorTriangleSize > 0.0)
     {
         // return a value between 0 and 1
-        // Warning: '_ViewProjMatrix' is not the same as UNITY_MATRIX_VP for shadow views!
-        edgeTessFactors *= GetScreenSpaceTessFactor( p0, p1, p2, _ViewProjMatrix, _ScreenSize, _TessellationFactorTriangleSize); // Use primary camera view
+        // Warning: '_ViewProjMatrix' can be the viewproj matrix of the light when we render shadows, that's why we use _CameraViewProjMatrix instead
+        edgeTessFactors *= GetScreenSpaceTessFactor( p0, p1, p2, _CameraViewProjMatrix, _ScreenSize, _TessellationFactorTriangleSize); // Use primary camera view
     }
 
     // Distance based tessellation

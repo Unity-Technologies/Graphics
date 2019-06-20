@@ -79,6 +79,8 @@ namespace UnityEditor.Rendering.LWRP
             }
         };
 
+        public int GetPreviewPassIndex() { return 0; }
+
         public string GetSubshader(IMasterNode masterNode, GenerationMode mode, List<string> sourceAssetDependencyPaths = null)
         {
             if (sourceAssetDependencyPaths != null)
@@ -89,13 +91,16 @@ namespace UnityEditor.Rendering.LWRP
 
             var templatePath = GetTemplatePath("lightweightPBRForwardPass.template");
             var extraPassesTemplatePath = GetTemplatePath("lightweightPBRExtraPasses.template");
+            var lightweight2DPath = GetTemplatePath("lightweight2DPBRPass.template");
             if (!File.Exists(templatePath) || !File.Exists(extraPassesTemplatePath))
                 return string.Empty;
+
 
             if (sourceAssetDependencyPaths != null)
             {
                 sourceAssetDependencyPaths.Add(templatePath);
                 sourceAssetDependencyPaths.Add(extraPassesTemplatePath);
+                sourceAssetDependencyPaths.Add(lightweight2DPath);
 
                 var relativePath = "Packages/com.unity.render-pipelines.lightweight/";
                 var fullPath = Path.GetFullPath(relativePath);
@@ -105,6 +110,7 @@ namespace UnityEditor.Rendering.LWRP
 
             string forwardTemplate = File.ReadAllText(templatePath);
             string extraTemplate = File.ReadAllText(extraPassesTemplatePath);
+            string lightweight2DTemplate = File.ReadAllText(lightweight2DPath);
 
             var pbrMasterNode = masterNode as PBRMasterNode;
             var pass = pbrMasterNode.model == PBRMasterNode.Model.Metallic ? m_ForwardPassMetallic : m_ForwardPassSpecular;
@@ -131,6 +137,15 @@ namespace UnityEditor.Rendering.LWRP
                         m_DepthShadowPass,
                         mode,
                         materialOptions));
+
+                string txt = GetShaderPassFromTemplate(
+                        lightweight2DTemplate,
+                        pbrMasterNode,
+                        pass,
+                        mode,
+                        materialOptions);
+                subShader.AppendLines(txt);
+
             }
             subShader.Append("CustomEditor \"UnityEditor.ShaderGraph.PBRMasterGUI\"");
 
@@ -163,6 +178,7 @@ namespace UnityEditor.Rendering.LWRP
             // String builders
 
             var shaderProperties = new PropertyCollector();
+            var shaderPropertyUniforms = new ShaderStringBuilder(1);
             var functionBuilder = new ShaderStringBuilder(1);
             var functionRegistry = new FunctionRegistry(functionBuilder);
 
@@ -330,7 +346,7 @@ namespace UnityEditor.Rendering.LWRP
             // -------------------------------------
             // Generate Output structure for Surface Description function
 
-            GraphUtil.GenerateSurfaceDescriptionStruct(surfaceDescriptionStruct, pixelSlots, true);
+            GraphUtil.GenerateSurfaceDescriptionStruct(surfaceDescriptionStruct, pixelSlots);
 
             // -------------------------------------
             // Generate Surface Description function
@@ -352,6 +368,11 @@ namespace UnityEditor.Rendering.LWRP
             // ----------------------------------------------------- //
             //           GENERATE VERTEX > PIXEL PIPELINE            //
             // ----------------------------------------------------- //
+
+            // -------------------------------------
+            // Property uniforms
+
+            shaderProperties.GetPropertiesDeclaration(shaderPropertyUniforms, mode, masterNode.owner.concretePrecision);
 
             // -------------------------------------
             // Generate Input structure for Vertex shader
@@ -400,7 +421,7 @@ namespace UnityEditor.Rendering.LWRP
             // -------------------------------------
             // Combine Graph sections
 
-            graph.AppendLine(shaderProperties.GetPropertiesDeclaration(1));
+            graph.AppendLines(shaderPropertyUniforms.ToString());
 
             graph.AppendLine(vertexDescriptionInputStruct.ToString());
             graph.AppendLine(surfaceDescriptionInputStruct.ToString());

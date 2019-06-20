@@ -75,6 +75,16 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline.Drawing
                     toggle.RegisterValueChangedCallback(ChangeAffectsSmoothness);
                 });
             });
+
+            ps.Add(new PropertyRow(CreateLabel("Affects Emission", indentLevel)), (row) =>
+            {
+                row.Add(new Toggle(), (toggle) =>
+                {
+                    toggle.value = m_Node.affectsEmission.isOn;
+                    toggle.RegisterValueChangedCallback(ChangeAffectsEmission);
+                });
+            });
+
             Add(ps);
         }
 
@@ -117,5 +127,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline.Drawing
             td.isOn = evt.newValue;
             m_Node.affectsSmoothness = td;
         }
+
+        void ChangeAffectsEmission(ChangeEvent<bool> evt)
+        {
+            m_Node.owner.owner.RegisterCompleteObjectUndo("Affects Emission Change");
+            ToggleData td = m_Node.affectsEmission;
+            td.isOn = evt.newValue;
+            m_Node.affectsEmission = td;
+        }
+
     }
 }

@@ -10,7 +10,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             Initial,
             ProbeSettings,
             SeparatePassThrough,
-            UpgradeFrameSettingsToStruct
+            UpgradeFrameSettingsToStruct,
+            AddFrameSettingSpecularLighting
         }
 
         protected static readonly MigrationDescription<Version, HDProbe> k_Migration = MigrationDescription.New(
@@ -59,6 +60,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 if (data.m_ObsoleteFrameSettings != null)
                     FrameSettings.MigrateFromClassVersion(ref data.m_ProbeSettings.camera.m_ObsoleteFrameSettings, ref data.m_ProbeSettings.camera.renderingPathCustomFrameSettings, ref data.m_ProbeSettings.camera.renderingPathCustomFrameSettingsOverrideMask);
 #pragma warning restore 618
+            }),
+            MigrationStep.New(Version.AddFrameSettingSpecularLighting, (HDProbe data) =>
+            {
+                FrameSettings.MigrateToSpecularLighting(ref data.m_ProbeSettings.camera.renderingPathCustomFrameSettings);
             })
         );
 

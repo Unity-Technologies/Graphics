@@ -14,10 +14,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         const string msaaWarningMessage = "Manual MSAA target set with deferred rendering. This will lead to undefined behavior.";
 
-
-       static readonly GUIContent clearModeContent = EditorGUIUtility.TrTextContent("Clear Mode", "The Clear Mode HDRP Cameras use to clear the screen.");
-        static readonly GUIContent backgroundColorContent = EditorGUIUtility.TrTextContent("Background Color", "The color HDRP uses to clear the screen when you set Clear Mode to Background Color.");
-        static readonly GUIContent clearDepthContent = EditorGUIUtility.TrTextContent("Clear Depth", "The Camera clears the depth buffer before rendering.");
+        static readonly GUIContent clearModeContent = EditorGUIUtility.TrTextContent("Background Type", "Specifies the type of background the Camera applies when it clears the screen before rendering a frame.");
+        static readonly GUIContent backgroundColorContent = EditorGUIUtility.TrTextContent("Background Color", "The Background Color used to clear the screen when selecting Background Color before rendering.");
         static readonly GUIContent cullingMaskContent = EditorGUIUtility.TrTextContent("Culling Mask");
         static readonly GUIContent volumeLayerMaskContent = EditorGUIUtility.TrTextContent("Volume Layer Mask");
         static readonly GUIContent volumeAnchorOverrideContent = EditorGUIUtility.TrTextContent("Volume Anchor Override");
@@ -50,7 +48,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         static readonly GUIContent anamorphismContent = EditorGUIUtility.TrTextContent("Anamorphism");
 
         static readonly GUIContent antialiasingContent = EditorGUIUtility.TrTextContent("Anti-aliasing", "The anti-aliasing method to use.");
+        static readonly GUIContent SMAAQualityPresetContent = EditorGUIUtility.TrTextContent("SMAA Quality Preset", "The quality preset for SMAA, low has the best performance but worst quality, High has the highest quality but worst performance.");
+
         static readonly GUIContent ditheringContent = EditorGUIUtility.TrTextContent("Dithering", "Should we apply 8-bit dithering to the final render?");
+        static readonly GUIContent stopNaNsContent = EditorGUIUtility.TrTextContent("Stop NaNs", "Automatically replaces NaN/Inf in shaders by a black pixel to avoid breaking some effects. This will slightly affect performances and should only be used if you experience NaN issues that you can't fix.");
+
+        static readonly GUIContent allowDynResContent = EditorGUIUtility.TrTextContent("Allow Dynamic Resolution", "Whether to support dynamic resolution.");
 
         static readonly GUIContent viewportContent = EditorGUIUtility.TrTextContent("Viewport Rect", "Four values that indicate where on the screen HDRP draws this Camera view. Measured in Viewport Coordinates (values in the range of [0, 1]).");
         static readonly GUIContent depthContent = EditorGUIUtility.TrTextContent("Depth");
@@ -75,7 +78,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
             new GUIContent("No Anti-aliasing"),
             new GUIContent("Fast Approximate Anti-aliasing (FXAA)"),
-            new GUIContent("Temporal Anti-aliasing (TAA)")
+            new GUIContent("Temporal Anti-aliasing (TAA)"),
+            new GUIContent("Subpixel Morphological Anti-aliasing (SMAA)")
         };
     }
 }
