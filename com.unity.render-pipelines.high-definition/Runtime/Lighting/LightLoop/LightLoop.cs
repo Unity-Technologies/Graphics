@@ -154,7 +154,8 @@ namespace UnityEngine.Rendering.HighDefinition
             EnvironmentAndArea = 6,
             EnvironmentAndAreaAndPunctual = 7,
             Decal = 8,
-            DensityVolumes = 16
+            DensityVolumes = 16,
+            ProbeVolumes = 32
         };
 
     public partial class HDRenderPipeline

@@ -20,7 +20,8 @@
 #define LIGHTCATEGORY_ENV (2)
 #define LIGHTCATEGORY_DECAL (3)
 #define LIGHTCATEGORY_DENSITY_VOLUME (4)
-#define LIGHTCATEGORY_COUNT (5)
+#define LIGHTCATEGORY_PROBE_VOLUME (5)
+#define LIGHTCATEGORY_COUNT (6)
 
 //
 // UnityEngine.Rendering.HighDefinition.LightFeatureFlags:  static fields
