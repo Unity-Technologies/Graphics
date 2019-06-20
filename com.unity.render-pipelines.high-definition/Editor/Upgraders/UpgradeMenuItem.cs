@@ -13,159 +13,69 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
     public class UpgradeMenuItems
     {
-        // Remove a set of variables from the text file target by path
-        static void UpdateMaterialFile_RemoveLines(string path, string[] variableNames)
+        // Version 3
+
+        // Added RenderStates for shader graphs, we need to ovewrite the material prperties used for the rendering
+        // in these materials and synch them with the master node values (which are the shader default values, that's
+        // why we create a new material in this script).
+
+        // List of the render state properties to sync
+        static readonly string[] floatPropertiesToReset = {
+            kStencilRef, kStencilWriteMask,
+            kStencilRefDepth, kStencilWriteMaskDepth,
+            kStencilRefMV, kStencilWriteMaskMV,
+            kStencilRefDistortionVec, kStencilWriteMaskDistortionVec,
+            kStencilRefGBuffer, kStencilWriteMaskGBuffer, kZTestGBuffer,
+            kSurfaceType, kBlendMode, "_SrcBlend", "_DstBlend", "_AlphaSrcBlend", "_AlphaDstBlend",
+            kZWrite, "_CullMode", "_CullModeForward", kTransparentCullMode,
+            kZTestDepthEqualForOpaque,
+            kAlphaCutoffEnabled, "_AlphaCutoff",
+            "_TransparentSortPriority", "_UseShadowThreshold",
+            kDoubleSidedEnable, kDoubleSidedNormalMode,
+            kTransparentBackfaceEnable, kReceivesSSR, kUseSplitLighting
+        };
+
+        static readonly string[] vectorPropertiesToReset = {
+            "_DoubleSidedConstants",
+        };
+
+        // This upgrade functioncopy all the keywords needed for the BlendStates
+        // to be synced with their master node values, then it calls the HDRP material keyword reset function and finally
+        // it set the render queue of the material to match the one on the shader graph.
+        // It's required to sync the shader default properties with the material because when you create a new material,
+        // by default the Lit shader is assigned to it and so write all his properties into the material. It's a problem
+        // because now that the shader graphs uses these properties, the material properties don't match the shader settings.
+        // This function basically fix this.
+        static bool UpdateMaterial_ShaderGraphRenderStates(string path, Material mat)
         {
-            string[] readText = File.ReadAllLines(path);
-            List<string> writeText = new List<string>();
-
-            foreach (string line in readText)
+            // We only need to upgrade shadergraphs materials
+            if (GraphUtil.IsShaderGraph(mat.shader))
             {
-                bool found = false;
+                var defaultProperties = new Material(mat.shader);
 
-                foreach (string str in variableNames)
-                {
-                    if (line.Contains(str))
-                    {
-                        found = true;
-                    }
-                }
+                foreach (var floatToReset in floatPropertiesToReset)
+                    if (mat.HasProperty(floatToReset))
+                        mat.SetFloat(floatToReset, defaultProperties.GetFloat(floatToReset));
+                foreach (var vectorToReset in vectorPropertiesToReset)
+                    if (mat.HasProperty(vectorToReset))
+                        mat.SetVector(vectorToReset, defaultProperties.GetVector(vectorToReset));
 
-                if (!found)
-                    writeText.Add(line);
-            }
+                HDEditorUtils.ResetMaterialKeywords(mat);
 
-            File.WriteAllLines(path, writeText.ToArray());
+                mat.renderQueue = mat.shader.renderQueue;
 
-            return;
-        }
+                defaultProperties = null;
 
-        // It is a pity but if we call mat.GetFloat("_hdrpVersion"), this return the default value
-        // if the _hdrpVersion was not written. So older material that haven't been updated can't be detected.
-        // so for now we must check for _hdrpVersion in the .txt
-        // maybe in a far future we can rely on just mat.GetFloat("_hdrpVersion")
-        static float UpdateMaterial_GetVersion(string path, Material mat)
-        {
-            // Find the missing property in the file and update EmissiveColor
-            string[] readText = File.ReadAllLines(path);
-
-            foreach (string line in readText)
-            {
-                if (line.Contains("_HdrpVersion:"))
-                {
-                    int startPos = line.IndexOf(":") + 1;
-                    string sub = line.Substring(startPos);
-                    return float.Parse(sub);
-                }
-            }
-
-            // When _HdrpVersion don't exist we MUST create it, otherwise next call to
-            // mat.SetFloat("_HdrpVersion", value) will just put the default value instead of the value we pass!
-            // a call to GetFloat("_HdrpVersion") solve this.
-#pragma warning disable 219 // Silent warning
-            float unused = mat.GetFloat("_HdrpVersion");
-#pragma warning restore 219
-
-            return 0.0f;
-        }
-
-        // Version 1
-
-        // Update EmissiveColor after we remove EmissiveIntensity from all shaders in 2018.2
-        // Now EmissiveColor is HDR and it must be update to the value new EmissiveColor = old EmissiveColor * EmissiveIntensity
-        static bool UpdateMaterial_EmissiveColor_1(string path, Material mat)
-        {
-            // Find the missing property in the file and update EmissiveColor
-            string[] readText = File.ReadAllLines(path);
-
-            foreach (string line in readText)
-            {
-                if (line.Contains("_EmissiveIntensity:"))
-                {
-                    int startPos = line.IndexOf(":") + 1;
-                    string sub = line.Substring(startPos);
-                    float emissiveIntensity = float.Parse(sub);
-
-                    Color emissiveColor = Color.black;
-                    if (mat.HasProperty("_EmissiveColor"))
-                    {
-                        emissiveColor = mat.GetColor("_EmissiveColor");
-                    }
-
-                    emissiveColor *= emissiveIntensity;
-                    emissiveColor.a = 1.0f;
-                    mat.SetColor("_EmissiveColor", emissiveColor);
-                    // Also fix EmissionColor if needed (Allow to let HD handle GI, if black GI is disabled by legacy)
-                    mat.SetColor("_EmissionColor", Color.white);
-
-                    return true;
-                }
+                return true;
             }
 
             return false;
         }
 
-        static void UpdateMaterialFile_EmissiveColor_1(string path)
-        {
-            string[] variablesNames = new string[1];
-            variablesNames[0] = "_EmissiveIntensity:";
-            UpdateMaterialFile_RemoveLines(path, variablesNames);
-        }
-
-        // Version 2
-
-        // Update decal material after we added AO and metal selection. It was default to 0 and need to default to 4 now.
-        // Also we have rename _SupportDBuffer to _SupportDecals
-        static bool UpdateMaterial_Decals_2(string path, Material mat)
-        {
-            bool dirty = false;
-
-            if (mat.shader.name == "HDRP/Decal")
-            {
-                float maskBlendMode = mat.GetFloat("_MaskBlendMode");
-
-                if (maskBlendMode == 0.0f)
-                {
-                    mat.SetFloat("_MaskBlendMode", (float)Decal.MaskBlendFlags.Smoothness);
-                    dirty = true;
-                }
-            }
-            else
-            {
-                // Find the missing property in the file and update EmissiveColor
-                string[] readText = File.ReadAllLines(path);
-
-                foreach (string line in readText)
-                {
-                    if (line.Contains("_SupportDBuffer:"))
-                    {
-                        int startPos = line.IndexOf(":") + 1;
-                        string sub = line.Substring(startPos);
-                        float enableDecal = float.Parse(sub);
-                        mat.SetFloat("_SupportDecals", enableDecal);
-
-                        // Decal need to also update keywords _DISABLE_DECALS
-                        HDEditorUtils.ResetMaterialKeywords(mat);
-
-                        dirty = true;
-                    }
-                }
-            }
-
-            return dirty;
-        }
-
-        static void UpdateMaterialFile_Decals_2(string path)
-        {
-            string[] variablesNames = new string[1];
-            variablesNames[0] = "_SupportDBuffer:";
-            UpdateMaterialFile_RemoveLines(path, variablesNames);
-        }
-
         delegate bool UpdateMaterial(string path, Material mat);
         delegate void UpdateMaterialFile(string path);
 
-        static void UpdateMaterialToNewerVersion(string caption, float scriptVersion, UpdateMaterial updateMaterial, UpdateMaterialFile updateMaterialFile = null)
+        static void ProcessUpdateMaterial(string caption, float scriptVersion, UpdateMaterial updateMaterial, UpdateMaterialFile updateMaterialFile = null)
         {
             bool VCSEnabled = (UnityEditor.VersionControl.Provider.enabled && UnityEditor.VersionControl.Provider.isActive);
             var matIds = AssetDatabase.FindAssets("t:Material");
@@ -179,11 +89,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     var mat = AssetDatabase.LoadAssetAtPath<Material>(path);
 
                     EditorUtility.DisplayProgressBar(
-                        "Update material to new version " + caption + "...",
+                        "Update material " + caption + "...",
                         string.Format("{0} / {1} materials updated.", i, length),
                         i / (float)(length - 1));
-
-                    if (mat.shader.name == "HDRP/LitTessellation" ||
+                    
+                    bool isHDRPShader = mat.shader.name == "HDRP/LitTessellation" ||
                         mat.shader.name == "HDRP/Lit" ||
                         mat.shader.name == "HDRP/LayeredLit" ||
                         mat.shader.name == "HDRP/LayeredLitTessellation" ||
@@ -191,8 +101,20 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                         mat.shader.name == "HDRP/Unlit" ||
                         mat.shader.name == "HDRP/Fabric" ||
                         mat.shader.name == "HDRP/Decal" ||
-                        mat.shader.name == "HDRP/TerrainLit"
-                         )
+                        mat.shader.name == "HDRP/TerrainLit";
+                    
+                    if (mat.shader.IsShaderGraph())
+                    {
+                        var outputNodeType = GraphUtil.GetOutputNodeType(AssetDatabase.GetAssetPath(mat.shader));
+
+                        isHDRPShader |= outputNodeType == typeof(HDUnlitMasterNode);
+                        isHDRPShader |= outputNodeType == typeof(HDLitMasterNode);
+                        isHDRPShader |= outputNodeType == typeof(HairMasterNode);
+                        isHDRPShader |= outputNodeType == typeof(FabricMasterNode);
+                        isHDRPShader |= outputNodeType == typeof(StackLitMasterNode);
+                    }
+
+                    if (isHDRPShader)
                     {
                         // We don't handle embed material as we can't rewrite fbx files
                         if (Path.GetExtension(path).ToLower() == ".fbx")
@@ -200,18 +122,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                             continue;
                         }
 
-                        // Get current version
-                        float materialVersion = UpdateMaterial_GetVersion(path, mat);
+                        bool dirty = updateMaterial(path, mat);
 
-                        if (materialVersion < scriptVersion)
+                        // Checkout the file and tag it as dirty
+                        if (dirty)
                         {
-                            updateMaterial(path, mat);
-
-                            // Update version number to script number (so next script can upgrade correctly)
-                            mat.SetFloat("_HdrpVersion", scriptVersion);
-                            
-
-                            // Checkout the file and tag it as dirty
                             CoreEditorUtils.CheckOutFile(VCSEnabled, mat);
                             EditorUtility.SetDirty(mat);
                             materialFiles.Add(path);
@@ -277,64 +192,29 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             // Caution: When calling SaveAsset, Unity will update the material with latest addition at the same time, so for example
             // unity can add a supportDecal when executing script for version 1 whereas they only appear in version 2 because it is now part
             // of the shader. Most of the time this have no consequence, but we never know.
-            UpdateMaterialToNewerVersion("(EmissiveColor_1)", 1.0f, UpdateMaterial_EmissiveColor_1, UpdateMaterialFile_EmissiveColor_1);
-            UpdateMaterialToNewerVersion("(Decals_2)", 2.0f, UpdateMaterial_Decals_2, UpdateMaterialFile_Decals_2);
 
             // Caution: Version of latest script and default version in all HDRP shader must match 
 
             UpgradeSceneMaterials();
         }
 
-        static readonly string[] floatPropertiesToReset = {
-            kStencilRef, kStencilWriteMask,
-            kStencilRefDepth, kStencilWriteMaskDepth,
-            kStencilRefMV, kStencilWriteMaskMV,
-            kStencilRefDistortionVec, kStencilWriteMaskDistortionVec,
-            kStencilRefGBuffer, kStencilWriteMaskGBuffer, kZTestGBuffer,
-            kSurfaceType, kBlendMode, "_SrcBlend", "_DstBlend", "_AlphaSrcBlend", "_AlphaDstBlend",
-            kZWrite, "_CullMode", "_CullModeForward", kTransparentCullMode,
-            kZTestDepthEqualForOpaque,
-            kAlphaCutoffEnabled, "_AlphaCutoff",
-            "_TransparentSortPriority", "_UseShadowThreshold",
-            kDoubleSidedEnable, kDoubleSidedNormalMode,
-            kTransparentBackfaceEnable, kReceivesSSR, kUseSplitLighting
-        };
-
-        static readonly string[] vectorPropertiesToReset = {
-            "_DoubleSidedConstants",
-        };
-
-        // This upgrade function iterate over all loaded materials in the scene, copy all the keywords needed for the BlendStates
-        // to be synced with their master node values, then it calls the HDRP material keyword reset function and finally
-        // it set the render queue of the material to match the one on the shader graph.
-        // It's required to sync the shader default properties with the material because when you create a new material,
-        // by default the Lit shader is assigned to it and so write all his properties into the material. It's a problem
-        // because now that the shader graphs uses these properties, the material properties don't match the shader settings.
-        // This function basically fix this.
-        [MenuItem("Edit/Render Pipeline/Reset All ShaderGraph Scene Materials BlendStates")]
-        static public void UpgradeAllShaderGraphMaterialBlendStates()
+        [MenuItem("Edit/Render Pipeline/Reset All ShaderGraph Materials BlendStates (Project)")]
+        static public void UpgradeAllShaderGraphMaterialBlendStatesProject()
+        {
+            ProcessUpdateMaterial("(ShaderGraphRenderStates_3)", 3.0f, UpdateMaterial_ShaderGraphRenderStates);
+        }
+        
+        [MenuItem("Edit/Render Pipeline/Reset All ShaderGraph Materials BlendStates (Scene)")]
+        static public void UpgradeAllShaderGraphMaterialBlendStatesScene()
         {
             var materials = Resources.FindObjectsOfTypeAll< Material >();
 
             foreach (var mat in materials)
             {
-                if (GraphUtil.IsShaderGraph(mat.shader))
-                {
-                    var defaultProperties = new Material(mat.shader);
+                string path = AssetDatabase.GetAssetPath(mat);
 
-                    foreach (var floatToReset in floatPropertiesToReset)
-                        if (mat.HasProperty(floatToReset))
-                            mat.SetFloat(floatToReset, defaultProperties.GetFloat(floatToReset));
-                    foreach (var vectorToReset in vectorPropertiesToReset)
-                        if (mat.HasProperty(vectorToReset))
-                            mat.SetVector(vectorToReset, defaultProperties.GetVector(vectorToReset));
-
-                    HDEditorUtils.ResetMaterialKeywords(mat);
-
-                    mat.renderQueue = mat.shader.renderQueue;
-
-                    defaultProperties = null;
-                }
+                if (!string.IsNullOrEmpty(path))
+                    UpdateMaterial_ShaderGraphRenderStates(path, mat);
             }
         }
     }

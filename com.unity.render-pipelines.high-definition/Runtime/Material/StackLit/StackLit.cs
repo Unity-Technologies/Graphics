@@ -143,16 +143,22 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public float anisotropyB; // anisotropic ratio(0->no isotropic; 1->full anisotropy in tangent direction, -1->full anisotropy in bitangent direction)
 
             // Iridescence
-            [SurfaceDataAttributes("IridescenceIor")]
+            [SurfaceDataAttributes("Iridescence Ior")]
             public float iridescenceIor;
-            [SurfaceDataAttributes("IridescenceThickness")]
+            [SurfaceDataAttributes("Iridescence Layer Thickness")]
             public float iridescenceThickness;
             [SurfaceDataAttributes("Iridescence Mask")]
             public float iridescenceMask;
+            [SurfaceDataAttributes("Iridescence Coat Fixup TIR")]
+            public float iridescenceCoatFixupTIR;
+            [SurfaceDataAttributes("Iridescence Coat Fixup TIR Clamp")]
+            public float iridescenceCoatFixupTIRClamp;
 
             // Top interface and media (clearcoat)
             [SurfaceDataAttributes("Coat Smoothness")]
             public float coatPerceptualSmoothness;
+            [SurfaceDataAttributes("Coat mask")]
+            public float coatMask;
             [SurfaceDataAttributes("Coat IOR")]
             public float coatIor;
             [SurfaceDataAttributes("Coat Thickness")]
@@ -170,6 +176,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // + Diffusion Profile
             [SurfaceDataAttributes("Thickness")]
             public float thickness;
+
+            // Specular occlusion config: bent occlusion fixup
+            [SurfaceDataAttributes("Specular Occlusion Fixup Visibility Ratio Threshold")]
+            public float soFixupVisibilityRatioThreshold;
+            [SurfaceDataAttributes("Specular Occlusion Fixup Strength")]
+            public float soFixupStrengthFactor;
+            [SurfaceDataAttributes("Specular Occlusion Fixup Max Added Roughness")]
+            public float soFixupMaxAddedRoughness;
         };
 
         //-----------------------------------------------------------------------------
@@ -221,6 +235,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Top interface and media (clearcoat)
             public float coatRoughness;
             public float coatPerceptualRoughness;
+            public float coatMask;
             public float coatIor;
             public float coatThickness;
             public Vector3 coatExtinction;
@@ -229,6 +244,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public float iridescenceIor;
             public float iridescenceThickness;
             public float iridescenceMask;
+            public float iridescenceCoatFixupTIR;
+            public float iridescenceCoatFixupTIRClamp;
 
             // SSS
             public uint diffusionProfileIndex;
@@ -239,6 +256,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public float thickness;
             public bool useThickObjectMode; // Read from the diffusion profile
             public Vector3 transmittance;   // Precomputation of transmittance
+
+            // Specular occlusion config: bent occlusion fixup
+            public float soFixupVisibilityRatioThreshold;
+            public float soFixupStrengthFactor;
+            public float soFixupMaxAddedRoughness;
         };
 
         //-----------------------------------------------------------------------------

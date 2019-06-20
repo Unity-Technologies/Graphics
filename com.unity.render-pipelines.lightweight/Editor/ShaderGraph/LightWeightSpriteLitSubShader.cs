@@ -76,6 +76,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP
 
             string litPassTemplate = ReadTemplate("lightweightSpriteLitPass.template", sourceAssetDependencyPaths);
             string normalPassTemplate = ReadTemplate("lightweightSpriteNormalPass.template", sourceAssetDependencyPaths);
+            string forwardPassTemplate = ReadTemplate("lightweightSpriteForwardPass.template", sourceAssetDependencyPaths);
             var litMasterNode = masterNode as SpriteLitMasterNode;
 
             var litPass = m_LitPass;
@@ -102,6 +103,13 @@ namespace UnityEditor.Experimental.Rendering.LWRP
                 subShader.AppendLines(GetShaderPassFromTemplate(
                         false,
                         normalPassTemplate,
+                        litMasterNode,
+                        normalPass,
+                        mode,
+                        materialOptions));
+                subShader.AppendLines(GetShaderPassFromTemplate(
+                        false,
+                        forwardPassTemplate,
                         litMasterNode,
                         normalPass,
                         mode,

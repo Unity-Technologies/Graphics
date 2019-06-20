@@ -1,3 +1,5 @@
+#pragma only_renderers d3d11
+
 // Temporal Filtering kernels
 #pragma kernel TemporalAccumulation         TEMPORAL_ACCUMULATION=TemporalAccumulation          HISTORY_IS_ARRAY
 #pragma kernel TemporalAccumulationArray    TEMPORAL_ACCUMULATION=TemporalAccumulationArray

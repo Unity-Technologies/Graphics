@@ -6,7 +6,7 @@ To work with physically-based lighting and Materials, you need to set up the Sce
 
 **Exposure** uses the [Volume](Volumes.html) framework, so to enable and modify **Exposure** properties, you must add an **Exposure** override to a [Volume](Volumes.html) in your Scene. To add **Exposure** to a Volume:
 
-1. In the Scene or Hierarchy view, select the GameObject that contains the Volume component to view it in the Inspector.
+1. In the Scene or Hierarchy view, select a GameObject that contains a Volume component to view it in the Inspector.
 2. In the Inspector, go to **Add Override** and click on **Exposure**. HDRP now applies **Exposure** correction to any Camera this Volume affects.
 
 ## Properties
@@ -41,14 +41,16 @@ The human eye can function in both very dark and very bright areas. However, at 
 
 | **Property**            | **Description**                                              |
 | ----------------------- | ------------------------------------------------------------ |
-| **Metering Mode**       | Use the drop-down to select the metering method that HDRP uses to filter the luminance source. |
-| **Luminance Source**    | Use the drop-down to set the luminance source that HDRP uses to compute the current Scene exposure. HDRP does not currently support the **Lighting Buffer** option. |
-| **Compensation**        | The value that the Camera uses to compensate the automatically computed exposure value. This is useful if you want to over or under expose the Scene. |
+| **Metering Mode**       | Use the drop-down to select the metering method that HDRP uses to filter the luminance source. For information on the **Metering Mode**s available, see the [Using Automatic section](#UsingAutomatic). |
+| **Luminance Source**    | Use the drop-down to set the luminance source that HDRP uses to calculate the current Scene exposure. HDRP does not currently support the **Lighting Buffer** option. |
+| **Compensation**        | Set the value that the Camera uses to compensate the automatically calculated exposure value. This is useful if you want to over or under expose the Scene. |
 | **Limit Min**           | Set the minimum value that the Scene exposure can be set to. |
 | **Limit Max**           | Set the maximum value that the Scene exposure can be set to. |
 | **Mode**                | Use the drop-down to select the method that HDRP uses to change the exposure when the Camera moves from dark to light and vice versa:<br />&#8226; **Progressive**: The exposure changes over the period of time defined by the **Speed Dark to Light** and **Speed Light to Dark** property fields.<br />&#8226; **Fixed**: The exposure changes instantly. Note: The Scene view uses **Fixed**. |
-| **Speed Dark to Light** | The speed at which the exposure changes when the Camera moves from a dark area to a bright area. To expose this property, set the **Mode** to **Progressive**. |
-| **Speed Light to Dark** | The speed at which the exposure changes when the Camera moves from a bright area to a dark area. To expose this property, set the **Mode** to **Progressive**. |
+| **Speed Dark to Light** | Set the speed at which the exposure changes when the Camera moves from a dark area to a bright area.<br />This property only appears when you set the **Mode** to **Progressive**. |
+| **Speed Light to Dark** | Set the speed at which the exposure changes when the Camera moves from a bright area to a dark area.<br />This property only appears when you set the **Mode** to **Progressive**. |
+
+<a name="UsingAutomatic"></a>
 
 #### Using Automatic
 
@@ -81,7 +83,7 @@ The **Curve Mapping Mode** is a variant of [**Automatic**](#AutomaticProperties)
 
 | **Property**  | **Description**                                              |
 | ------------- | ------------------------------------------------------------ |
-| **Curve Map** | Use this curve to remap the scene exposure (x-axis) to the exposure you want (y-axis). |
+| **Curve Map** | Use the curve to remap the Scene exposure (x-axis) to the exposure you want (y-axis). |
 
 <a name=”UsePhysicalCameraProperties”></a>
 

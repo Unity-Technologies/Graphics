@@ -6,7 +6,7 @@ Volumetric fog is the most advanced implementation of fog available in the High 
 
 **Volumetric Fog** uses the [Volume](Volumes.html) framework, so to enable and modify **Volumetric Fog** properties, you must add an **Volumetric Fog** override to a [Volume](Volumes.html) in your Scene. To add **Volumetric Fog** to a Volume:
 
-1. In the Scene or Hierarchy view, select the GameObject that contains the Volume component to view it in the Inspector.
+1. In the Scene or Hierarchy view, select a GameObject that contains a Volume component to view it in the Inspector.
 2. In the Inspector, navigate to **Add Override > Fog** and click on **Volumetric Fog**.
 
 After you add an **Volumetric  Fog** override, you must set the Volume to use **Volumetric Fog**. The [Visual Environment](Override-Visual-Environment.html) override controls which type of fog the Volume uses. In the **Visual Environment** override, navigate to the **Fog** section and set the **Type** to **Volumetric Fog**. HDRP now renders **Volumetric Fog** for any Camera this Volume affects.
@@ -39,11 +39,11 @@ The __Volumetric Fog__ component of the active Volume controls the appearance of
 | **Global Light Probe Dimmer** | Reduces the intensity of the global Light Probe that the sky generates. |
 | **Max Fog Distance** | Controls the distance (in Unity units) when applying fog to the skybox or background. Also determines the range of the Distant Fog. For optimal results, set this to be larger than the Camera’s Far value for its Clipping Plane. Otherwise, a discrepancy occurs between the fog on the Scene’s GameObjects and on the skybox. Note that the Camera’s Far Clipping Plane is flat whereas HDRP applies fog within a sphere surrounding the Camera. |
 | **Distant Fog** | <a name="DistantFog"></a>Activates the fog with precomputed lighting behind the volumetric section of the Camera’s frustum. The fog stretches from the maximum Distance Range in the Volumetric Lighting Controller to the Max Fog Distance. |
-| **Color Mode** | Use the drop-down to select the mode HDRP uses to calculate the color of the fog.<br />&#8226; **Sky Color**: HDRP shades the fog with a color it samples from the sky cubemap and its mip maps.<br />&#8226; **Constant Color**: HDRP shades the fog with the color you set manually in the **Constant Color** field that appears when you select this option. |
-| **- Mip Fog Near**    | The distance (in meters) from the Camera that HDRP stops sampling the lowest resolution mip map for the fog color.<br />To expose this property, select **Sky Color** from the **Color Mode** drop-down. |
-| **- Mip Fog Far**     | The distance (in meters) from the Camera that HDRP starts sampling the highest resolution mip map for the fog color.<br />To expose this property, select **Sky Color** from the **Color Mode** drop-down. |
-| **- Mip Fog Max Mip** | Use the slider to set the maximum mip map that HDRP uses for the mip fog. This defines the mip map that HDRP samples for distances greater than **Mip Fog Far**.<br />To expose this property, select **Sky Color** from the **Color Mode** drop-down. |
-| **- Constant Color**  | Use the color picker to select the color of the fog.<br />To expose this property, select **Constant Color** from the **Color Mode** drop-down. |
+| **Color Mode** | Use the drop-down to select the mode HDRP uses to calculate the color of the fog.<br />&#8226; **Sky Color**: HDRP shades the fog with a color it samples from the sky cubemap and its mipmaps.<br />&#8226; **Constant Color**: HDRP shades the fog with the color you set manually in the **Constant Color** field that appears when you select this option. |
+| **- Mip Fog Near**    | The distance (in meters) from the Camera that HDRP stops sampling the lowest resolution mipmap for the fog color.<br />This property only appears when you select **Sky Color** from the **Color Mode** drop-down. |
+| **- Mip Fog Far**     | The distance (in meters) from the Camera that HDRP starts sampling the highest resolution mipmap for the fog color.<br />This property only appears when you select **Sky Color** from the **Color Mode** drop-down. |
+| **- Mip Fog Max Mip** | Use the slider to set the maximum mipmap that HDRP uses for the mip fog. This defines the mipmap that HDRP samples for distances greater than **Mip Fog Far**.<br />This property only appears when you select **Sky Color** from the **Color Mode** drop-down. |
+| **- Constant Color**  | Use the color picker to select the color of the fog.<br />This property only appears when you select **Constant Color** from the **Color Mode** drop-down. |
 
 
 

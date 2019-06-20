@@ -313,7 +313,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             if (!m_HistoryReady)
             {
-                cmd.Blit(m_PackedDataTex, m_PackedHistory[m_HistoryIndex]);
+                var kernel = cs.FindKernel("GTAODenoise_CopyHistory");
+                cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputTexture, m_PackedDataTex);
+                cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, m_PackedHistory[m_HistoryIndex]);
+                const int groupSizeX = 8;
+                const int groupSizeY = 8;
+                int threadGroupX = ((int)runningRes.x + (groupSizeX - 1)) / groupSizeX;
+                int threadGroupY = ((int)runningRes.y + (groupSizeY - 1)) / groupSizeY;
+                cmd.DispatchCompute(cs, kernel, threadGroupX, threadGroupY, camera.viewCount);
+
                 m_HistoryReady = true;
             }
 

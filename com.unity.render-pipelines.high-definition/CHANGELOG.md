@@ -4,7 +4,12 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [6.8.0-preview] - 2019-XX-XX
+## [6.9.0] - 2019-XX-XX
+
+### Fixed
+- Fixed issue with Low resolution transparency on PS4
+
+## [6.8.0] - 2019-06-12
 
 ### Added
 - `Fixed`, `Viewer`, and `Automatic` modes to compute the FOV used when rendering a `PlanarReflectionProbe`
@@ -16,6 +21,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added an option to enable the ztest on **After Post Process** materials when TAA is disabled.
 - Added a new SSAO (based on Ground Truth Ambient Occlusion algorithm) to replace the previous one. 
 - Added support for shadow tint on light
+- BeginCameraRendering and EndCameraRendering callbacks are now called with probes
 
 ### Fixed
 - The correct preview is displayed when selecting multiple `PlanarReflectionProbe`s
@@ -36,6 +42,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Removed unnecessary GC allocation in motion blur code
 - Fixed locked UI with advanded influence volume inspector for probes
 - Fixed invalid capture direction when rendering planar reflection probes
+- Fixed Decal HTILE optimization with platform not supporting texture atomatic (Disable it)
+- Fixed a crash in the build when the contact shadows are disabled
+- Fixed camera rendering callbacks order (endCameraRendering was being called before the actual rendering)
+- Fixed issue with wrong opaque blending settings for After Postprocess
 
 ### Changed
 - Removed ScriptRuntimeVersion check in wizard.

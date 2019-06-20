@@ -2,7 +2,7 @@
 
 // We perform scalarization only for forward rendering as for deferred loads will already be scalar since tiles will match waves and therefore all threads will read from the same tile. 
 // More info on scalarization: https://flashypixels.wordpress.com/2018/11/10/intro-to-gpu-scalarization-part-2-scalarize-all-the-lights/
-#define SCALARIZE_LIGHT_LOOP (defined(SUPPORTS_WAVE_INTRINSICS) && !defined(LIGHTLOOP_DISABLE_TILE_AND_CLUSTER) && SHADERPASS == SHADERPASS_FORWARD)
+#define SCALARIZE_LIGHT_LOOP (defined(PLATFORM_SUPPORTS_WAVE_INTRINSICS) && !defined(LIGHTLOOP_DISABLE_TILE_AND_CLUSTER) && SHADERPASS == SHADERPASS_FORWARD)
 
 //-----------------------------------------------------------------------------
 // LightLoop
@@ -57,14 +57,13 @@ void ApplyDebug(LightLoopContext context, PositionInputs posInput, BSDFData bsdf
                         shadow = GetScreenSpaceShadow(posInput, light.screenSpaceShadowIndex);
                     }
                     else
-#else
+#endif
                     {
                         float3 L = -light.forward;
                         shadow = GetDirectionalShadowAttenuation(context.shadowContext,
                                                              posInput.positionSS, posInput.positionWS, GetNormalForShadowBias(bsdfData),
                                                              light.shadowIndex, L);
                     }
-#endif
                 }
 
                 float3 cascadeShadowColor = lerp(s_CascadeColors[shadowSplitIndex], s_CascadeColors[shadowSplitIndex + 1], alpha);
