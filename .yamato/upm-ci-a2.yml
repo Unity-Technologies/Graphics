@@ -70,7 +70,7 @@ all_a2_graphics:
 #    - {{ project.name }}_Windows64_{{ testplatform.name }}_a2
 #    {% endif %}  
 #  {% else %}
-    - {{ project.name }}_{{ platform.name }}_{{ testplatform.name }}_a2 
+    - .yamato/upm-ci-a2.yml#{{ project.name }}_{{ platform.name }}_{{ testplatform.name }}_a2 
 #  {% endif %}
   {% endfor %}
   {% endfor %}
