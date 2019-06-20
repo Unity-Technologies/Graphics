@@ -11,7 +11,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 if (s_DefaultVolume != null && !s_DefaultVolume.Equals(null))
                 {
-                    Object.Destroy(s_DefaultVolume.gameObject);
+                    CoreUtils.Destroy(s_DefaultVolume.gameObject);
                     s_DefaultVolume = null;
                 }
             };
@@ -32,17 +32,17 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 s_DefaultVolume = go.AddComponent<Volume>();
                 s_DefaultVolume.isGlobal = true;
                 s_DefaultVolume.priority = float.MinValue;
-                s_DefaultVolume.profile = DefaultSettings.defaultVolumeProfile;
+                s_DefaultVolume.sharedProfile = DefaultSettings.defaultVolumeProfile;
             }
             if (
                 // In case the asset was deleted or the reference removed
-                s_DefaultVolume.profile == null || s_DefaultVolume.profile.Equals(null)
+                s_DefaultVolume.sharedProfile == null || s_DefaultVolume.sharedProfile.Equals(null)
                 #if UNITY_EDITOR
-                // In case the serialization recreated an empty volume profile
-                || !UnityEditor.AssetDatabase.Contains(s_DefaultVolume.profile)
+                // In case the serialization recreated an empty volume sharedProfile
+                || !UnityEditor.AssetDatabase.Contains(s_DefaultVolume.sharedProfile)
                 #endif
             )
-                s_DefaultVolume.profile = DefaultSettings.defaultVolumeProfile;
+                s_DefaultVolume.sharedProfile = DefaultSettings.defaultVolumeProfile;
 
             return s_DefaultVolume;
         }
