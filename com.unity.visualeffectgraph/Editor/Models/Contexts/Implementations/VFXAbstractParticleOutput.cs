@@ -90,9 +90,6 @@ namespace UnityEditor.VFX
         protected bool castShadows = false;
 
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]
-        protected bool preRefraction = false;
-
-        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]
         protected bool useExposureWeight = false;
 
         // IVFXSubRenderer interface
@@ -330,7 +327,6 @@ namespace UnityEditor.VFX
 
                 if (isBlendModeOpaque)
                 {
-                    yield return "preRefraction";
                     yield return "useSoftParticle";
                 }
 
