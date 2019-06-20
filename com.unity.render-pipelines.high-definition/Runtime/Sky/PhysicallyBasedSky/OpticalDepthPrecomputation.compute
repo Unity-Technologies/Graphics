@@ -2,7 +2,7 @@
 #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
 #pragma kernel main
 
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Sky/PbrSky/PbrSkyCommon.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Sky/PhysicallyBasedSky/PhysicallyBasedSkyCommon.hlsl"
 
 #define sec(x) rcp(cos(x))
 #define TABLE_SIZE uint2(PBRSKYCONFIG_OPTICAL_DEPTH_TABLE_SIZE_X, \

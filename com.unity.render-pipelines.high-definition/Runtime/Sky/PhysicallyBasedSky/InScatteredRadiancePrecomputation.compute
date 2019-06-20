@@ -6,7 +6,7 @@
 #pragma kernel MAIN_M main=MAIN_M MULTIPLE_SCATTERING_GATHER     SRC_MS
 #pragma kernel MAIN_A main=MAIN_A MULTIPLE_SCATTERING_ACCUMULATE
 
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Sky/PbrSky/PbrSkyCommon.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Sky/PhysicallyBasedSky/PhysicallyBasedSkyCommon.hlsl"
 
 #define TABLE_SIZE uint3(PBRSKYCONFIG_IN_SCATTERED_RADIANCE_TABLE_SIZE_X, \
                          PBRSKYCONFIG_IN_SCATTERED_RADIANCE_TABLE_SIZE_Y, \

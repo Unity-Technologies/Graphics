@@ -5,7 +5,7 @@
 #pragma kernel MAIN_S main=MAIN_S MULTIPLE_SCATTERING SRC_SS
 #pragma kernel MAIN_M main=MAIN_M MULTIPLE_SCATTERING SRC_MS
 
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Sky/PbrSky/PbrSkyCommon.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Sky/PhysicallyBasedSky/PhysicallyBasedSkyCommon.hlsl"
 
 #define TABLE_SIZE uint(PBRSKYCONFIG_GROUND_IRRADIANCE_TABLE_SIZE)
 
