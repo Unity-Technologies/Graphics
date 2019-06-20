@@ -24,7 +24,7 @@ projects:
 {% for editor in editors %}
 {% for platform in platforms %}
 {% for testplatform in testplatforms %}
-{{ project.name }}_{{ platform.name }}_{{ testplatform.name }}_{{ editor.version }}:
+{{ project.name }}_{{ platform.name }}_{{ testplatform.name }}_a2:
   name : A2 - Build and Test {{ project.name }} on {{ platform.name }}_{{ testplatform.name }} on version {{ editor.version }}
   agent:
     {% if testplatform.name == "editmode" and platform.name == "Windows64" %}
@@ -67,10 +67,10 @@ all_a2_graphics:
     {% if testplatform.name == "Standalone" %}
     #skip standalone for these projects
     {% else %}
-    - {{ project.name }}_Windows64_{{ testplatform.name }}_{{ editor.version }}
+    - {{ project.name }}_Windows64_{{ testplatform.name }}_a2
     {% endif %}  
   {% else %}
-    - {{ project.name }}_Windows64_{{ testplatform.name }}_{{ editor.version }}
+    - {{ project.name }}_Windows64_{{ testplatform.name }}_a2
   {% endif %}
   {% endfor %}
   {% endfor %}
