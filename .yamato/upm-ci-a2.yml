@@ -3,7 +3,7 @@ editors:
 platforms:
   - name: Windows64
     type: Unity::VM::GPU
-    image: sdet/gamecode_win10:latest
+    image: sdet/gamecode_win10:stable
     flavor: m1.large
 testplatforms:
   - name: Standalone
@@ -61,7 +61,7 @@ all_a2_graphics:
   dependencies:
   {% for project in projects %}
   {% for editor in editors %}
-  #{% for platform in platforms %}
+  {% for platform in platforms %}
   {% for testplatform in testplatforms %}
 #  {% if project.name == "VFXMain" or project.name == "HDRP" %}
 #    {% if testplatform.name == "Standalone" %}
@@ -70,12 +70,12 @@ all_a2_graphics:
 #    - {{ project.name }}_Windows64_{{ testplatform.name }}_a2
 #    {% endif %}  
 #  {% else %}
-    - {{ project.name }}_Windows64_{{ testplatform.name }}_a2 
+    - {{ project.name }}_{{ platform.name }}_{{ testplatform.name }}_a2 
 #  {% endif %}
   {% endfor %}
   {% endfor %}
   {% endfor %}
-  #{% endfor %}
+  {% endfor %}
   triggers:
     recurring:
     - branch: master
