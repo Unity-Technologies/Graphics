@@ -44,6 +44,10 @@ projects:
       {% else %}
       - cd TestProjects/{{ project.folder }} && utr/utr {{ testplatform.args }} --testproject=. --editor-location=.Editor --artifacts_path=upm-ci~/test-results || powershell -command "utr/utr {{ testplatform.args }} --testproject=. --editor-location=.Editor --artifacts_path=upm-ci~/test-results"
       {% endif %}
+{% endfor %}
+{% endfor %}
+{% endfor %}
+{% endfor %}
 
 all_a2_graphics:
   name: All A2 Graphics
