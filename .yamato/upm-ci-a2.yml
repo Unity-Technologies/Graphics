@@ -63,15 +63,15 @@ all_a2_graphics:
   {% for editor in editors %}
   #{% for platform in platforms %}
   {% for testplatform in testplatforms %}
-  {% if project.name == "VFXMain" or project.name == "HDRP" %}
-    {% if testplatform.name == "Standalone" %}
+#  {% if project.name == "VFXMain" or project.name == "HDRP" %}
+#    {% if testplatform.name == "Standalone" %}
     #skip standalone for these projects
-    {% else %}
-    - {{ project.name }}_Windows64_{{ testplatform.name }}_a2
-    {% endif %}  
-  {% else %}
-    - {{ project.name }}_Windows64_{{ testplatform.name }}_a2
-  {% endif %}
+#    {% else %}
+#    - {{ project.name }}_Windows64_{{ testplatform.name }}_a2
+#    {% endif %}  
+#  {% else %}
+    - {{ project.name }}_Windows64_{{ testplatform.name }}_a2 
+#  {% endif %}
   {% endfor %}
   {% endfor %}
   {% endfor %}
