@@ -1,5 +1,6 @@
 editors:
-  - version: a2/trunk-fix
+  - version: a2/dev
+  - version: a2/upgrade
 platforms:
   - name: Windows64
     type: Unity::VM::GPU
@@ -24,7 +25,7 @@ projects:
 {% for editor in editors %}
 {% for platform in platforms %}
 {% for testplatform in testplatforms %}
-{{ project.name }}_{{ platform.name }}_{{ testplatform.name }}_a2:
+{{ project.name }}_{{ platform.name }}_{{ testplatform.name }}_{{ editor.version }}:
   name : A2 - Build and Test {{ project.name }} on {{ platform.name }}_{{ testplatform.name }} on version {{ editor.version }}
   agent:
     {% if testplatform.name == "editmode" and platform.name == "Windows64" %}
@@ -63,7 +64,7 @@ all_a2_graphics:
   {% for editor in editors %}
   {% for platform in platforms %}
   {% for testplatform in testplatforms %}
-  - .yamato/upm-ci-a2.yml#{{ project.name }}_{{ platform.name }}_{{ testplatform.name }}_a2 
+  - .yamato/upm-ci-a2.yml#{{ project.name }}_{{ platform.name }}_{{ testplatform.name }}_{{ editor.version }} 
   {% endfor %}
   {% endfor %}
   {% endfor %}
