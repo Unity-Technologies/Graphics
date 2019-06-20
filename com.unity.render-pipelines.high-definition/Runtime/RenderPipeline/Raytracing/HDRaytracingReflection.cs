@@ -98,14 +98,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             float pixelSpreadAngle = Mathf.Atan(2.0f * Mathf.Tan(hdCamera.camera.fieldOfView * Mathf.PI / 360.0f) / Mathf.Min(hdCamera.actualWidth, hdCamera.actualHeight));
             cmd.SetRayTracingFloatParam(reflectionShader, HDShaderIDs._RaytracingPixelSpreadAngle, pixelSpreadAngle);
 
-            // LightLoop data
-            cmd.SetGlobalBuffer(HDShaderIDs._RaytracingLightCluster, lightCluster.GetCluster());
-            cmd.SetGlobalBuffer(HDShaderIDs._LightDatasRT, lightCluster.GetLightDatas());
-            cmd.SetGlobalVector(HDShaderIDs._MinClusterPos, lightCluster.GetMinClusterPos());
-            cmd.SetGlobalVector(HDShaderIDs._MaxClusterPos, lightCluster.GetMaxClusterPos());
-            cmd.SetGlobalInt(HDShaderIDs._LightPerCellCount, lightClusterSettings.maxNumLightsPercell.value);
-            cmd.SetGlobalInt(HDShaderIDs._PunctualLightCountRT, lightCluster.GetPunctualLightCount());
-            cmd.SetGlobalInt(HDShaderIDs._AreaLightCountRT, lightCluster.GetAreaLightCount());
+            // Bind the lightLoop data
+            lightCluster.BindLightClusterData(cmd);
 
             // Note: Just in case, we rebind the directional light data (in case they were not)
             cmd.SetGlobalBuffer(HDShaderIDs._DirectionalLightDatas, m_LightLoopLightData.directionalLightData);
@@ -185,7 +179,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
                 // Evaluate the deferred lighting
                 cmd.SetGlobalInt(HDShaderIDs._RaytracingReflectSky, settings.reflectSky.value ? 1 : 0);
-                RenderRaytracingDeferredLighting(cmd, hdCamera, rtEnvironment, m_ReflIntermediateTexture1, settings.rayBinning.value, rtEnvironment.reflLayerMask, settings.rayLength.value, m_ReflIntermediateTexture0, disableSpecularLighting: true, halfResolution: !settings.fullResolution.value);
+                RenderRaytracingDeferredLighting(cmd, hdCamera, rtEnvironment, m_ReflIntermediateTexture1, settings.rayBinning.value, rtEnvironment.reflLayerMask, settings.rayLength.value, m_ReflIntermediateTexture0, disableSpecularLighting: false, halfResolution: !settings.fullResolution.value);
             }
             else
             {
@@ -194,9 +188,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 // Set the data for the ray miss
                 cmd.SetRayTracingTextureParam(reflectionShaderRT, HDShaderIDs._SkyTexture, m_SkyManager.skyReflection);
-
-                // Force to disable specular lighting
-                cmd.SetGlobalInt(HDShaderIDs._EnableSpecularLighting, 0);
 
                 // Run the computation
                 if (settings.fullResolution.value)
@@ -208,9 +199,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     // Run the computation
                     cmd.DispatchRays(reflectionShaderRT, m_RayGenReflectionHalfResName, (uint)(hdCamera.actualWidth / 2), (uint)(hdCamera.actualHeight / 2), 1);
                 }
-
-                // Restore the previous state of specular lighting
-                cmd.SetGlobalInt(HDShaderIDs._EnableSpecularLighting, hdCamera.frameSettings.IsEnabled(FrameSettingsField.SpecularLighting) ? 1 : 0);
             }
 
             using (new ProfilingSample(cmd, "Filter Reflection", CustomSamplerId.RaytracingFilterReflection.GetSampler()))
@@ -288,14 +276,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Bind all the required data for ray tracing
             BindRayTracedReflectionData(cmd, hdCamera, rtEnvironment, reflectionShader, settings, lightClusterSettings);
 
-            // Force to disable specular lighting
-            cmd.SetGlobalInt(HDShaderIDs._EnableSpecularLighting, 0);
-
             // Run the computation
             cmd.DispatchRays(reflectionShader, m_RayGenIntegrationName, (uint)hdCamera.actualWidth, (uint)hdCamera.actualHeight, 1);
-
-            // Restore the previous state of specular lighting
-            cmd.SetGlobalInt(HDShaderIDs._EnableSpecularLighting, hdCamera.frameSettings.IsEnabled(FrameSettingsField.SpecularLighting) ? 1 : 0);
 
             using (new ProfilingSample(cmd, "Filter Reflection", CustomSamplerId.RaytracingFilterReflection.GetSampler()))
             {
