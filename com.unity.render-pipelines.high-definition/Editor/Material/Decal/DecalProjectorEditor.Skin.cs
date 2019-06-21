@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
-    public partial class DecalProjectorComponentEditor
+    partial class DecalProjectorEditor
     {
         const string k_EditShapePreservingUVTooltip = "Modify Decal size preserving UV positions. They will be stretched.\nIn addition to customizable shortcut, you can press shift to quickly swap between preserving and not preserving UV.";
         const string k_EditShapeWithoutPreservingUVTooltip = "Modify Decal volume without preserving UV positions. They will be cropped.\nIn addition to customizable shortcut, you can press shift to quickly swap between preserving and not preserving UV.";
