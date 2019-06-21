@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added support for shadow tint on light
 - BeginCameraRendering and EndCameraRendering callbacks are now called with probes
 - Adding option to update shadow maps only On Enable and On Demand. 
+- Shader Graphs that use time-dependent vertex modification now generate correct motion vectors.
 
 ### Fixed
 - Fixed an issue with history buffers causing effects like TAA or auto exposure to flicker when more than one camera was visible in the editor
@@ -58,6 +59,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Replace ComputeMicroShadowing by GetAmbientOcclusionForMicroShadowing
 - Rename WorldToTangent to TangentToWorld as it was incorrectly named
 - Remove SunDisk and Sun Halo size from directional light
+- Remove all obsolete wind code from shader
 
 
 ## [6.7.0-preview] - 2019-05-16
