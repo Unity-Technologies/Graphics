@@ -228,7 +228,11 @@ namespace UnityEngine.Rendering.LWRP
             // Depth of Field
             if (m_DepthOfField.IsActive() && !cameraData.isSceneViewCamera)
             {
-                using (new ProfilingSample(cmd, "Depth Of Field"))
+                var markerName = m_DepthOfField.mode.value == DepthOfFieldMode.Gaussian
+                    ? "Gaussian Depth of Field"
+                    : "Bokeh Depth of Field";
+
+                using (new ProfilingSample(cmd, markerName))
                 {
                     DoDepthOfField(cameraData.camera, cmd, GetSource(), GetDestination());
                     Swap();
