@@ -8,6 +8,11 @@ float3 _LightDirection;
 
 void VFXTransformPSInputs(inout VFX_VARYING_PS_INPUTS input) {}
 
+float4 VFXTransformFinalColor(float4 color)
+{
+	return color;
+}
+
 float3 GetCurrentViewPosition()
 {
     return UNITY_MATRIX_I_V._14_24_34;

@@ -10,6 +10,18 @@ void VFXTransformPSInputs(inout VFX_VARYING_PS_INPUTS input)
 #endif
 }
 
+float4 VFXTransformFinalColor(float4 color)
+{
+#ifdef DEBUG_DISPLAY
+	if (_DebugFullScreenMode == FULLSCREENDEBUGMODE_TRANSPARENCY_OVERDRAW)
+    {
+        color = float4(0.01, 0.01, 0.01, 1.0);
+    }
+	//color = float4(0.01, 0.01, 0.01, 1.0);
+#endif
+	return color;
+}
+
 float4 VFXTransformPositionWorldToClip(float3 posWS)
 {
 #if VFX_WORLD_SPACE

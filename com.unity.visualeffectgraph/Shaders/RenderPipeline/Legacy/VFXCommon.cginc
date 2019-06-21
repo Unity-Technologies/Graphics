@@ -9,6 +9,11 @@ float4 VFXTransformPositionWorldToClip(float3 posWS)
     return UnityWorldToClipPos(posWS);
 }
 
+float4 VFXTransformFinalColor(float4 color)
+{
+	return color;
+}
+
 float4 VFXTransformPositionObjectToClip(float3 posOS)
 {
     return UnityObjectToClipPos(posOS);
