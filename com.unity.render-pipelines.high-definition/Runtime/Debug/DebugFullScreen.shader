@@ -32,6 +32,8 @@ Shader "Hidden/HDRP/DebugFullScreen"
             CBUFFER_END
 
             TEXTURE2D_X(_DebugFullScreenTexture);
+            TEXTURE2D_X(_DebugTransparencyLowRes);
+
 
             struct Attributes
             {
@@ -272,11 +274,16 @@ Shader "Hidden/HDRP/DebugFullScreen"
 
             if (_FullScreenDebugMode == FULLSCREENDEBUGMODE_TRANSPARENCY_OVERDRAW)
             {
-                float4 color = SAMPLE_TEXTURE2D_X(_DebugFullScreenTexture, s_point_clamp_sampler, input.texcoord);
                 const float c = 0.01;
-                float factor = color.r;
-                color.rgb = HsvToRgb(float3(0.66 * saturate(1.0 - (1.0 / maxPassCount) * ( (factor - c) / c) ), 1.0, 1.0));
-                return factor == 0 ? float4(0.0, 0.0, 0.0, 0.0) : color;
+                const float lowResWeight = 0.25;
+                float4 color = float4(0.0, 0.0, 0.0, 0.0);
+
+                float highRes = SAMPLE_TEXTURE2D_X(_DebugFullScreenTexture, s_point_clamp_sampler, input.texcoord).r;
+                float lowRes = SAMPLE_TEXTURE2D_X(_DebugTransparencyLowRes, s_point_clamp_sampler, input.texcoord).r;
+                float normalizedFactor = ((highRes.r - c) + lowResWeight * (lowRes.r - c)) / c;
+                if ((highRes + lowRes > 0.0001))
+                    color.rgb = HsvToRgb(float3(0.66 * saturate(1.0 - (1.0 / maxPassCount) * normalizedFactor), 1.0, 1.0));// 
+                return color;
             }
 
             return float4(0.0, 0.0, 0.0, 0.0);

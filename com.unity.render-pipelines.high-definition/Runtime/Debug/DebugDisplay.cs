@@ -675,10 +675,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             var widgetList = new List<DebugUI.Widget>();
 
-            widgetList.AddRange(new DebugUI.Widget[]
-            {
-                new DebugUI.EnumField { displayName = "Fullscreen Debug Mode", getter = () => (int)data.fullScreenDebugMode, setter = value => data.fullScreenDebugMode = (FullScreenDebugMode)value, onValueChanged = RefreshRenderingDebug, enumNames = s_RenderingFullScreenDebugStrings, enumValues = s_RenderingFullScreenDebugValues, getIndex = () => data.renderingFulscreenDebugModeEnumIndex, setIndex = value => data.renderingFulscreenDebugModeEnumIndex = value },
-            });
+            widgetList.Add(
+                new DebugUI.EnumField { displayName = "Fullscreen Debug Mode", getter = () => (int)data.fullScreenDebugMode, setter = value => data.fullScreenDebugMode = (FullScreenDebugMode)value, onValueChanged = RefreshRenderingDebug, enumNames = s_RenderingFullScreenDebugStrings, enumValues = s_RenderingFullScreenDebugValues, getIndex = () => data.renderingFulscreenDebugModeEnumIndex, setIndex = value => data.renderingFulscreenDebugModeEnumIndex = value }
+            );
 
             if (data.fullScreenDebugMode == FullScreenDebugMode.TransparencyOverdraw)
             {
@@ -686,7 +685,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 {
                     children =
                     {
-                        new DebugUI.UIntField {displayName = "Max Pass count", getter = () => data.transparencyDebugSettings.maxPassCount, setter = value => data.transparencyDebugSettings.maxPassCount = value, min = () => 0, max = () => 200, incStep = 1}
+                        new DebugUI.UIntField {displayName = "Max Pass count", getter = () => data.transparencyDebugSettings.maxPassCount, setter = value => data.transparencyDebugSettings.maxPassCount = value, min = () => 1, max = () => 200, incStep = 1}
                     }
                 });
             }
