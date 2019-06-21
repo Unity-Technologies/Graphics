@@ -554,16 +554,16 @@
 #if defined(SMAA_HLSL_4) || defined(SMAA_HLSL_4_1)
 //SamplerState LinearSampler { Filter = MIN_MAG_LINEAR_MIP_POINT; AddressU = Clamp; AddressV = Clamp; };
 //SamplerState PointSampler { Filter = MIN_MAG_MIP_POINT; AddressU = Clamp; AddressV = Clamp; };
-#define SMAATexture2D(tex) TEXTURE2D(tex)
+#define SMAATexture2D(tex) TEXTURE2D_X(tex)
 #define SMAATexture2D_Non_Array(tex) Texture2D tex
 #define SMAATexturePass2D(tex) tex
-#define SMAASampleLevelZero(tex, coord) SAMPLE_TEXTURE2D_LOD(tex, LinearSampler, coord, 0)
+#define SMAASampleLevelZero(tex, coord) SAMPLE_TEXTURE2D_X_LOD(tex, LinearSampler, coord, 0)
 #define SMAASampleLevelZeroNoRescale(tex, coord) tex.SampleLevel(LinearSampler, coord, 0)
-#define SMAASampleLevelZeroPoint(tex, coord) SAMPLE_TEXTURE2D_LOD(tex, PointSampler, coord, 0) 
-#define SMAASampleLevelZeroOffset(tex, coord, offset) SAMPLE_TEXTURE2D_LOD(tex, LinearSampler, coord + offset * SMAA_RT_METRICS.xy, 0)
-#define SMAASample(tex, coord) SAMPLE_TEXTURE2D(tex, LinearSampler, coord)
-#define SMAASamplePoint(tex, coord) SAMPLE_TEXTURE2D(tex, PointSampler, coord)
-#define SMAASampleOffset(tex, coord, offset) SAMPLE_TEXTURE2D(tex, LinearSampler, coord + offset * SMAA_RT_METRICS.xy)
+#define SMAASampleLevelZeroPoint(tex, coord) SAMPLE_TEXTURE2D_X_LOD(tex, PointSampler, coord, 0) 
+#define SMAASampleLevelZeroOffset(tex, coord, offset) SAMPLE_TEXTURE2D_X_LOD(tex, LinearSampler, coord + offset * SMAA_RT_METRICS.xy, 0)
+#define SMAASample(tex, coord) SAMPLE_TEXTURE2D_X(tex, LinearSampler, coord)
+#define SMAASamplePoint(tex, coord) SAMPLE_TEXTURE2D_X(tex, PointSampler, coord)
+#define SMAASampleOffset(tex, coord, offset) SAMPLE_TEXTURE2D_X(tex, LinearSampler, coord + offset * SMAA_RT_METRICS.xy)
 #define SMAA_FLATTEN [flatten]
 #define SMAA_BRANCH [branch]
 #define SMAATexture2DMS2(tex) Texture2DMS<float4, 2> tex

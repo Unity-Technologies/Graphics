@@ -15,8 +15,8 @@
     #define SMAA_PRESET_HIGH
 #endif
 
-TEXTURE2D(_ColorTexture);
-TEXTURE2D(_BlendTexture);
+TEXTURE2D_X(_ColorTexture);
+TEXTURE2D_X(_BlendTexture);
 TEXTURE2D(_AreaTexture);
 TEXTURE2D(_SearchTexture);
 
@@ -44,6 +44,7 @@ struct VaryingsEdge
     float4 positionCS    : SV_POSITION;
     float2 uv            : TEXCOORD0;
     float4 offsets[3]    : TEXCOORD1;
+    UNITY_VERTEX_OUTPUT_STEREO
 };
 
 VaryingsEdge VertEdge(Attributes input)
@@ -57,6 +58,7 @@ VaryingsEdge VertEdge(Attributes input)
 
 float4 FragEdge(VaryingsEdge input) : SV_Target
 {
+    UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
     return float4(SMAAColorEdgeDetectionPS(input.uv, input.offsets, _ColorTexture), 0.0, 0.0);
 }
 
@@ -69,6 +71,7 @@ struct VaryingsBlend
     float2 uv            : TEXCOORD0;
     float2 pixcoord      : TEXCOORD1;
     float4 offsets[3]    : TEXCOORD2;
+    UNITY_VERTEX_OUTPUT_STEREO
 };
 
 VaryingsBlend VertBlend(Attributes input)
@@ -82,6 +85,7 @@ VaryingsBlend VertBlend(Attributes input)
 
 float4 FragBlend(VaryingsBlend input) : SV_Target
 {
+    UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
     return SMAABlendingWeightCalculationPS(input.uv, input.pixcoord, input.offsets, _ColorTexture, _AreaTexture, _SearchTexture, 0);
 }
 
@@ -93,6 +97,7 @@ struct VaryingsNeighbor
     float4 positionCS    : SV_POSITION;
     float2 uv            : TEXCOORD0;
     float4 offset        : TEXCOORD1;
+    UNITY_VERTEX_OUTPUT_STEREO
 };
 
 VaryingsNeighbor VertNeighbor(Attributes input)
@@ -106,6 +111,7 @@ VaryingsNeighbor VertNeighbor(Attributes input)
 
 float4 FragNeighbor(VaryingsNeighbor input) : SV_Target
 {
+    UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
     return SMAANeighborhoodBlendingPS(input.uv, input.offset, _ColorTexture, _BlendTexture);
 }
 
