@@ -87,7 +87,7 @@ float4 Frag(PackedVaryingsToPS packedInput) : SV_Target
 
     if (_DebugFullScreenMode == FULLSCREENDEBUGMODE_TRANSPARENCY_OVERDRAW)
     {
-        float3 result = float3(0.01, 0.01, 0.01);
+        float3 result = float3(TRANSPARENCY_OVERDRAW_R, TRANSPARENCY_OVERDRAW_G, TRANSPARENCY_OVERDRAW_B);
         outColor = float4(result, outColor.a);
     }
 

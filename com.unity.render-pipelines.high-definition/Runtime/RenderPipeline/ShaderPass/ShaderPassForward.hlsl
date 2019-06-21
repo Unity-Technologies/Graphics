@@ -167,6 +167,11 @@ void Frag(PackedVaryingsToPS packedInput,
 
             outColor = float4(result, 1.0f);
         }
+        else if (_DebugFullScreenMode == FULLSCREENDEBUGMODE_TRANSPARENCY_OVERDRAW)
+        {
+            float3 result = float3(TRANSPARENCY_OVERDRAW_R, TRANSPARENCY_OVERDRAW_G, TRANSPARENCY_OVERDRAW_B);
+            outColor = float4(result, outColor.a);
+        }
         else
 #endif
         {
@@ -223,12 +228,4 @@ void Frag(PackedVaryingsToPS packedInput,
 #ifdef _DEPTHOFFSET_ON
     outputDepth = posInput.deviceDepth;
 #endif
-#ifdef DEBUG_DISPLAY
-    if (_DebugFullScreenMode == FULLSCREENDEBUGMODE_TRANSPARENCY_OVERDRAW)
-    {
-        float3 result = float3(0.01, 0.01, 0.01);
-        outColor = float4(result, outColor.a);
-    }
-#endif
-    //outColor = float4(0.83, 0.69, 0.22, 1.0);
 }

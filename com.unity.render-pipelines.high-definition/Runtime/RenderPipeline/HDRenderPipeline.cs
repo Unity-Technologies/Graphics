@@ -2824,6 +2824,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_DebugFullScreen.SetFloat("maxPassCount", (float)m_DebugDisplaySettings.data.transparencyDebugSettings.maxPassCount);
                 var rendererList = RendererList.Create(CreateTransparentRendererListDesc(cull, hdCamera.camera, passNames/*, stateBlock: stateBlock*/));
                 DrawTransparentRendererList(renderContext, cmd, hdCamera.frameSettings, rendererList);
+                rendererList = RendererList.Create(CreateTransparentRendererListDesc(cull, hdCamera.camera, passNames, renderQueueRange: HDRenderQueue.k_RenderQueue_AfterPostProcessTransparent));
+                DrawTransparentRendererList(renderContext, cmd, hdCamera.frameSettings, rendererList);
                 PushFullScreenDebugTexture(hdCamera, cmd, m_CameraColorBuffer, FullScreenDebugMode.TransparencyOverdraw);
                 
                 HDUtils.SetRenderTarget(cmd, m_CameraColorBuffer, m_SharedRTManager.GetDepthStencilBuffer(), clearFlag: ClearFlag.Color, clearColor: Color.black);
