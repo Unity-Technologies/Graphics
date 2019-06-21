@@ -6,8 +6,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [6.9.0] - 2019-XX-XX
 
+### Added
+- Shader Graphs that use time-dependent vertex modification now generate correct motion vectors.
+
 ### Fixed
 - Fixed issue with Low resolution transparency on PS4
+
+### Changed
+- Remove all obsolete wind code from shader
 
 ## [6.8.0] - 2019-06-12
 

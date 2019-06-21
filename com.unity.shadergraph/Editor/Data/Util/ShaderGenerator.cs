@@ -688,6 +688,11 @@ namespace UnityEditor.ShaderGraph
             foreach (var channel in pixelRequirements.requiresMeshUVs.Distinct())
                 pixelShaderSurfaceInputs.AppendLine("surfaceInput.{0} = {0};", ShaderGeneratorNames.GetUVName(channel));
 
+            if (pixelRequirements.requiresTime)
+            {
+                pixelShaderSurfaceInputs.AppendLine("surfaceInput.{0} = _TimeParameters;", ShaderGeneratorNames.TimeParameters);
+            }
+
             // ----------------------------------------------------- //
             //                START VERTEX DESCRIPTION               //
             // ----------------------------------------------------- //
@@ -715,6 +720,11 @@ namespace UnityEditor.ShaderGraph
 
             foreach (var channel in vertexRequirements.requiresMeshUVs.Distinct())
                 vertexShaderDescriptionInputs.AppendLine("vdi.{0} = {0};", channel.GetUVName(), (int)channel);
+
+            if (vertexRequirements.requiresTime)
+            {
+                vertexShaderDescriptionInputs.AppendLine("vdi.{0} = _TimeParameters;", ShaderGeneratorNames.TimeParameters);
+            }
         }
 
         public enum Dimension
