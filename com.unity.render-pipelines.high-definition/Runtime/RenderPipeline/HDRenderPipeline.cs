@@ -2820,14 +2820,17 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 }*/
                 };
+
+                // High res transparent, draw result available in m_DebugFullScreenTempBuffer
                 var passNames = m_Asset.currentPlatformRenderPipelineSettings.supportTransparentBackface ? m_AllTransparentPassNames : m_TransparentNoBackfaceNames;
-                m_DebugFullScreen.SetFloat("maxPassCount", (float)m_DebugDisplaySettings.data.transparencyDebugSettings.maxPassCount);
+                m_DebugFullScreenPropertyBlock.SetFloat(HDShaderIDs._MaxPassCount, (float)m_DebugDisplaySettings.data.transparencyDebugSettings.maxPassCount);
                 var rendererList = RendererList.Create(CreateTransparentRendererListDesc(cull, hdCamera.camera, passNames/*, stateBlock: stateBlock*/));
                 DrawTransparentRendererList(renderContext, cmd, hdCamera.frameSettings, rendererList);
                 rendererList = RendererList.Create(CreateTransparentRendererListDesc(cull, hdCamera.camera, passNames, renderQueueRange: HDRenderQueue.k_RenderQueue_AfterPostProcessTransparent));
                 DrawTransparentRendererList(renderContext, cmd, hdCamera.frameSettings, rendererList);
                 PushFullScreenDebugTexture(hdCamera, cmd, m_CameraColorBuffer, FullScreenDebugMode.TransparencyOverdraw);
-                
+
+                // Low res transparent, draw result available in m_DebugTranparencyLowRes
                 HDUtils.SetRenderTarget(cmd, m_CameraColorBuffer, m_SharedRTManager.GetDepthStencilBuffer(), clearFlag: ClearFlag.Color, clearColor: Color.black);
                 rendererList = RendererList.Create(CreateTransparentRendererListDesc(cull, hdCamera.camera, passNames, renderQueueRange: HDRenderQueue.k_RenderQueue_LowTransparent));
                 DrawTransparentRendererList(renderContext, cmd, hdCamera.frameSettings, rendererList);
