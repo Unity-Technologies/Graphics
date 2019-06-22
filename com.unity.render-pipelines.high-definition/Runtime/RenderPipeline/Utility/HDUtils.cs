@@ -462,8 +462,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     graphicDevice == GraphicsDeviceType.XboxOne ||
                     graphicDevice == GraphicsDeviceType.XboxOneD3D12 ||
                     graphicDevice == GraphicsDeviceType.Metal ||
-                    graphicDevice == GraphicsDeviceType.Vulkan ||
-                    graphicDevice == (GraphicsDeviceType)22 /*GraphicsDeviceType.Switch*/);
+                    graphicDevice == GraphicsDeviceType.Vulkan
+                    // Switch isn't supported currently (19.3)
+                    /* || graphicDevice == GraphicsDeviceType.Switch */);
         }
 
         public static void CheckRTCreated(RenderTexture rt)

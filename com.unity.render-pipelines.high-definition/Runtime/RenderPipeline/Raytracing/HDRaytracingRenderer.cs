@@ -142,6 +142,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Check the validity of the state before computing the effect
             bool invalidState = rtEnvironment == null || !recursiveSettings.enable.value
                 || forwardShader == null || raytracingMask == null
+                || renderPipeline.asset.currentPlatformRenderPipelineSettings.supportedRaytracingTier == RenderPipelineSettings.RaytracingTier.Tier1
                 || m_PipelineResources.textures.owenScrambledTex == null || m_PipelineResources.textures.scramblingTex == null;
 
             // If any resource or game-object is missing We stop right away

@@ -944,7 +944,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             return new Vector3(light.finalColor.r, light.finalColor.g, light.finalColor.b);
         }
 
-        public bool GetDirectionalLightData(CommandBuffer cmd, HDCamera hdCamera, GPULightType gpuLightType, VisibleLight light, Light lightComponent, HDAdditionalLightData additionalLightData, AdditionalShadowData additionalShadowData, int lightIndex, int shadowIndex, DebugDisplaySettings debugDisplaySettings, int sortedIndex, ref int screenSpaceShadowIndex, bool isPbrSkyActive)
+        public bool GetDirectionalLightData(CommandBuffer cmd, HDCamera hdCamera, GPULightType gpuLightType, VisibleLight light, Light lightComponent, HDAdditionalLightData additionalLightData, AdditionalShadowData additionalShadowData, int lightIndex, int shadowIndex, DebugDisplaySettings debugDisplaySettings, int sortedIndex, ref int screenSpaceShadowIndex, bool isPysicallyBasedSkyActive)
         {
             // Clamp light list to the maximum allowed lights on screen to avoid ComputeBuffer overflow
             if (m_lightList.directionalLights.Count >= m_MaxDirectionalLightsOnScreen)
@@ -1038,7 +1038,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 lightData.nonLightMappedOnly = 0;
             }
 
-            lightData.interactsWithSky = isPbrSkyActive && additionalLightData.interactsWithSky ? 1 : 0;
+            lightData.interactsWithSky = isPysicallyBasedSkyActive && additionalLightData.interactsWithSky ? 1 : 0;
 
 
             // Fallback to the first non shadow casting directional light.
@@ -1473,7 +1473,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        public bool GetEnvLightData(CommandBuffer cmd, HDCamera hdCamera, HDProbe probe, DebugDisplaySettings debugDisplaySettings)
+        public bool GetEnvLightData(CommandBuffer cmd, HDCamera hdCamera, HDProbe probe, DebugDisplaySettings debugDisplaySettings, ref EnvLightData envLightData)
         {
             Camera camera = hdCamera.camera;
 
@@ -1546,9 +1546,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (envIndex == int.MinValue)
                 return false;
 
-            // Build light data
-            var envLightData = new EnvLightData();
-
             InfluenceVolume influence = probe.influenceVolume;
             envLightData.lightLayers = probe.lightLayersAsUInt;
             envLightData.influenceShapeType = influence.envShape;
@@ -1590,7 +1587,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             envLightData.proxyForward = proxyToWorld.GetColumn(2).normalized;
             envLightData.proxyPositionRWS = proxyToWorld.GetColumn(3);
 
-            m_lightList.envLights.Add(envLightData);
             return true;
         }
 
@@ -1929,12 +1925,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     // And if needed rescale the whole atlas
                     m_ShadowManager.LayoutShadowMaps(debugDisplaySettings.data.lightingDebugSettings);
 
-                    bool isPbrSkyActive = false;
+                    bool isPysicallyBasedSkyActive = false;
 
                     var visualEnvironment = VolumeManager.instance.stack.GetComponent<VisualEnvironment>();
                     Debug.Assert(visualEnvironment != null);
 
-                    isPbrSkyActive = (visualEnvironment.skyType.value == SkySettings.GetUniqueID<PhysicallyBasedSkySettings>());
+                    isPysicallyBasedSkyActive = (visualEnvironment.skyType.value == SkySettings.GetUniqueID<PhysicallyBasedSkySettings>());
 
                     // TODO: Refactor shadow management
                     // The good way of managing shadow:
@@ -1990,7 +1986,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         // Directional rendering side, it is separated as it is always visible so no volume to handle here
                         if (gpuLightType == GPULightType.Directional)
                         {
-                            if (GetDirectionalLightData(cmd, hdCamera, gpuLightType, light, lightComponent, additionalLightData, additionalShadowData, lightIndex, shadowIndex, debugDisplaySettings, directionalLightcount, ref m_ScreenSpaceShadowIndex, isPbrSkyActive))
+                            if (GetDirectionalLightData(cmd, hdCamera, gpuLightType, light, lightComponent, additionalLightData, additionalShadowData, lightIndex, shadowIndex, debugDisplaySettings, directionalLightcount, ref m_ScreenSpaceShadowIndex, isPysicallyBasedSkyActive))
                             {
                                 directionalLightcount++;
 
@@ -2161,24 +2157,22 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                         var probeWrapper = SelectProbe(probe, planarProbe);
 
-                        if (GetEnvLightData(cmd, hdCamera, probeWrapper, debugDisplaySettings))
+                        EnvLightData envLightData = new EnvLightData();
+                        if (GetEnvLightData(cmd, hdCamera, probeWrapper, debugDisplaySettings, ref envLightData))
                         {
+                            // it has been filled
+                            m_lightList.envLights.Add(envLightData);
+
                             GetEnvLightVolumeDataAndBound(probeWrapper, lightVolumeType, worldToView);
                             if (hdCamera.xr.instancingEnabled)
                                 GetEnvLightVolumeDataAndBound(probeWrapper, lightVolumeType, rightEyeWorldToView, Camera.StereoscopicEye.Right);
 
                             // We make the light position camera-relative as late as possible in order
                             // to allow the preceding code to work with the absolute world space coordinates.
-                            if (ShaderConfig.s_CameraRelativeRendering != 0)
-                            {
-                                // Caution: 'EnvLightData.positionRWS' is camera-relative after this point.
-                                int last = m_lightList.envLights.Count - 1;
-                                EnvLightData envLightData = m_lightList.envLights[last];
-                                envLightData.capturePositionRWS -= camPosWS;
-                                envLightData.influencePositionRWS -= camPosWS;
-                                envLightData.proxyPositionRWS -= camPosWS;
-                                m_lightList.envLights[last] = envLightData;
-                            }
+                            UpdateEnvLighCameraRelativetData(ref envLightData, camPosWS);
+
+                            int last = m_lightList.envLights.Count - 1;
+                            m_lightList.envLights[last] = envLightData;
                         }
                     }
                 }
@@ -2252,6 +2246,17 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
 
             return m_enableBakeShadowMask;
+        }
+
+        public void UpdateEnvLighCameraRelativetData(ref EnvLightData envLightData, Vector3 camPosWS)
+        {
+            if (ShaderConfig.s_CameraRelativeRendering != 0)
+            {
+                // Caution: 'EnvLightData.positionRWS' is camera-relative after this point.
+                envLightData.capturePositionRWS -= camPosWS;
+                envLightData.influencePositionRWS -= camPosWS;
+                envLightData.proxyPositionRWS -= camPosWS;
+            }
         }
 
         static float CalculateProbeLogVolume(Bounds bounds)

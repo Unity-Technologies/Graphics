@@ -262,7 +262,7 @@ float2 EvalShadow_SampleBias_Ortho(float3 normalWS)                             
 //
 float EvalShadow_PunctualDepth(HDShadowData sd, Texture2D tex, SamplerComparisonState samp, float2 positionSS, float3 positionWS, float3 normalWS, float3 L, float L_dist, bool perspective)
 {
-    positionWS = positionWS + sd.cacheTranslationDelta;
+    positionWS = positionWS + sd.cacheTranslationDelta.xyz;
     /* bias the world position */
     float recvBiasWeight = EvalShadow_ReceiverBiasWeight(sd, _ShadowAtlasSize.zw, sd.atlasOffset, sd.viewBias, sd.edgeTolerance, sd.flags, tex, samp, positionWS, normalWS, L, L_dist, perspective);
     positionWS = EvalShadow_ReceiverBias(sd.viewBias, sd.normalBias, positionWS, normalWS, L, L_dist, recvBiasWeight, perspective);
@@ -270,8 +270,12 @@ float EvalShadow_PunctualDepth(HDShadowData sd, Texture2D tex, SamplerComparison
     float3 posTC = EvalShadow_GetTexcoordsAtlas(sd, _ShadowAtlasSize.zw, positionWS, perspective);
     /* get the per sample bias */
     float2 sampleBias = EvalShadow_SampleBias_Persp(positionWS, normalWS, posTC);
+    
     /* sample the texture */
-    return PUNCTUAL_FILTER_ALGORITHM(sd, positionSS, posTC, sampleBias, tex, samp);
+    // We need to do the check on min/max coordinates because if the shadow spot angle is smaller than the actual cone, then we could have artifacts due to the clamp sampler.
+    float2 maxCoord = (sd.shadowMapSize.xy - 0.5f) * _ShadowAtlasSize.zw + sd.atlasOffset;
+    float2 minCoord = sd.atlasOffset;
+    return any(posTC > maxCoord || posTC < minCoord) ? 1.0f : PUNCTUAL_FILTER_ALGORITHM(sd, positionSS, posTC, sampleBias, tex, samp);
 }
 
 //
@@ -279,7 +283,7 @@ float EvalShadow_PunctualDepth(HDShadowData sd, Texture2D tex, SamplerComparison
 //
 float EvalShadow_AreaDepth(HDShadowData sd, Texture2D tex, float2 positionSS, float3 positionWS, float3 normalWS, float3 L, float L_dist, bool perspective)
 {
-    positionWS = positionWS + sd.cacheTranslationDelta;
+    positionWS = positionWS + sd.cacheTranslationDelta.xyz;
 
     /* get shadowmap texcoords */
     float3 posTC = EvalShadow_GetTexcoordsAtlas(sd, _AreaShadowAtlasSize.zw, positionWS, perspective);
@@ -365,7 +369,7 @@ float EvalShadow_CascadedDepth_Blend(HDShadowContext shadowContext, Texture2D te
     {
         HDShadowData sd = shadowContext.shadowDatas[index];
         LoadDirectionalShadowDatas(sd, shadowContext, index + shadowSplitIndex);
-        positionWS = positionWS + sd.cacheTranslationDelta;
+        positionWS = positionWS + sd.cacheTranslationDelta.xyz;
 
         /* normal based bias */
         float3 orig_pos = positionWS;

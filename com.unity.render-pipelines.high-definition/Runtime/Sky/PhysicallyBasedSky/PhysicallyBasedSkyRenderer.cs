@@ -102,7 +102,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             s_OpticalDepthPrecomputationCS        = hdrpResources.shaders.opticalDepthPrecomputationCS;
             s_GroundIrradiancePrecomputationCS    = hdrpResources.shaders.groundIrradiancePrecomputationCS;
             s_InScatteredRadiancePrecomputationCS = hdrpResources.shaders.inScatteredRadiancePrecomputationCS;
-            s_PbrSkyMaterial                      = CoreUtils.CreateEngineMaterial(hdrpResources.shaders.pbrSkyPS);
+            s_PbrSkyMaterial                      = CoreUtils.CreateEngineMaterial(hdrpResources.shaders.physicallyBasedSkyPS);
             s_PbrSkyMaterialProperties            = new MaterialPropertyBlock();
 
             Debug.Assert(s_OpticalDepthPrecomputationCS        != null);
