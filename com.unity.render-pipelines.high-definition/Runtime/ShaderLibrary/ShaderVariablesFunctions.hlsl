@@ -3,24 +3,6 @@
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/SpaceTransforms.hlsl"
 
-// This function always return the absolute position in WS
-float3 GetAbsolutePositionWS(float3 positionRWS)
-{
-#if (SHADEROPTIONS_CAMERA_RELATIVE_RENDERING != 0)
-    positionRWS += _WorldSpaceCameraPos;
-#endif
-    return positionRWS;
-}
-
-// This function return the camera relative position in WS
-float3 GetCameraRelativePositionWS(float3 positionWS)
-{
-#if (SHADEROPTIONS_CAMERA_RELATIVE_RENDERING != 0)
-    positionWS -= _WorldSpaceCameraPos;
-#endif
-    return positionWS;
-}
-
 // Return absolute world position of current object
 float3 GetObjectAbsolutePositionWS()
 {

@@ -11,14 +11,14 @@
 RW_TEXTURE2D(float2, _OpticalDepthTable); // of TABLE_SIZE
 
 // For (chi == Pi/2).
-// We use the following (very good) approximation:
-// "Approximation to the Chapman Grazing-Incidence Function for Atmospheric Scattering" by C. Schueler.
+// This is an exact solution.
 float ChapmanHorizontal(float x)
 {
+    float k = sqrt(PI * 0.5) * 0.5;
     float r = rsqrt(x);
     float s = x * r; // sqrt(x)
 
-    return 0.62665707 * (r + 2 * s);
+    return k * (r + 2 * s);
 }
 
 // For (chi < Pi/2).

@@ -47,6 +47,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue with wrong opaque blending settings for After Postprocess
 - Fixed issue with Low resolution transparency on PS4
 - Fixed a memory leak on volume profiles
+- Fixed The Parallax Occlusion Mappping node in shader graph and it's UV input slot
+- Fixed lighting with XR single-pass instancing by disabling deferred tiles
 
 ### Changed
 - Optimization: Reduce the group size of the deferred lighting pass from 16x16 to 8x8
