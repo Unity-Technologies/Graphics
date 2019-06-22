@@ -239,15 +239,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         [Serializable, ReloadGroup]
         public sealed class MaterialResources
         {
-            // Defaults
-            [Reload("Runtime/RenderPipelineResources/Material/DefaultHDMaterial.mat")]
-            public Material defaultDiffuseMat;
-            [Reload("Runtime/RenderPipelineResources/Material/DefaultHDMirrorMaterial.mat")]
-            public Material defaultMirrorMat;
-            [Reload("Runtime/RenderPipelineResources/Material/DefaultHDDecalMaterial.mat")]
-            public Material defaultDecalMat;
-            [Reload("Runtime/RenderPipelineResources/Material/DefaultHDTerrainMaterial.mat")]
-            public Material defaultTerrainMat;
         }
 
         [Serializable, ReloadGroup]
