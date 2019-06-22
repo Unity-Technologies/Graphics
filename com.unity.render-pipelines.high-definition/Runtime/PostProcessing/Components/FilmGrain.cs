@@ -18,7 +18,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         Custom
     }
 
-    [Serializable, VolumeComponentMenu("Post-processing/FilmGrain")]
+    [Serializable, VolumeComponentMenu("Post-processing/Film Grain")]
     public sealed class FilmGrain : VolumeComponent, IPostProcessComponent
     {
         [Tooltip("Specifies the type of grain to use. Select a preset or select \"Custom\" to provide your own Texture.")]
