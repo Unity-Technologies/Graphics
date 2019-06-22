@@ -486,6 +486,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             sanitazedFrameSettings.bitDatas[(int)FrameSettingsField.VolumeVoxelizationsAsync] &= async;
 
             // XRTODO: fix indirect deferred pass with instancing
+            sanitazedFrameSettings.bitDatas[(int)FrameSettingsField.DeferredTile] &= !stereoInstancing;
             sanitazedFrameSettings.bitDatas[(int)FrameSettingsField.ComputeLightEvaluation] &= !stereoInstancing;
 
             // Deferred opaque are always using Fptl. Forward opaque can use Fptl or Cluster, transparent use cluster.
