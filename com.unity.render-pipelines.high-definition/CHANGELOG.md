@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Fixed
 - Fixed issue with Low resolution transparency on PS4
+- Fixed The Parallax Occlusion Mappping node in shader graph and it's UV input slot
 
 ### Changed
 - Remove all obsolete wind code from shader
