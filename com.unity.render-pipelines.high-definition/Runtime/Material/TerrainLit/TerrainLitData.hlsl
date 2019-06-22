@@ -70,7 +70,7 @@ float4 ConstructTerrainTangent(float3 normal, float3 positiveZ)
     return float4(tangent, -1);
 }
 
-AttributesMesh ApplyMeshModification(AttributesMesh input)
+AttributesMesh ApplyMeshModification(AttributesMesh input, float3 timeParameters)
 {
 #ifdef UNITY_INSTANCING_ENABLED
     float2 patchVertex = input.positionOS.xy;

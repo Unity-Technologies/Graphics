@@ -152,6 +152,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             [Optional] Vector4 uv3;
             [Optional] Vector4 VertexColor;
             [Optional] float FaceSign;
+            [Optional] Vector3 TimeParameters;
 
             public static Dependency[] dependencies = new Dependency[]
             {
@@ -225,6 +226,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             [Optional] Vector4 uv2;
             [Optional] Vector4 uv3;
             [Optional] Vector4 VertexColor;
+            [Optional] Vector3 TimeParameters;
 
             public static Dependency[] dependencies = new Dependency[]
             {                                                                       // TODO: NOCHECKIN: these dependencies are not correct for vertex pass
@@ -354,6 +356,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 activeFields.Add("VertexDescriptionInputs." + channel.GetUVName());
             }
+
+            if (requirements.requiresTime)
+            {
+                activeFields.Add("VertexDescriptionInputs.TimeParameters");
+            }
         }
 
         // TODO: move this out of HDRPShaderStructs
@@ -452,6 +459,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             foreach (var channel in requirements.requiresMeshUVs.Distinct())
             {
                 activeFields.Add("SurfaceDescriptionInputs." + channel.GetUVName());
+            }
+
+            if (requirements.requiresTime)
+            {
+                activeFields.Add("SurfaceDescriptionInputs.TimeParameters");
             }
         }
 
