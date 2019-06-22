@@ -57,6 +57,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         [Reload("Runtime/RenderPipeline/Raytracing/Shaders/CountTracedRays.compute")]
         public ComputeShader countTracedRays;
 
+        // Path Tracing
+#if ENABLE_RAYTRACING
+        [Reload("Runtime/RenderPipeline/PathTracing/Shaders/PathTracer.raytrace")]
+        public RaytracingShader pathTracing;
+#endif
 
     #if UNITY_EDITOR
         [UnityEditor.CustomEditor(typeof(HDRenderPipelineRayTracingResources))]

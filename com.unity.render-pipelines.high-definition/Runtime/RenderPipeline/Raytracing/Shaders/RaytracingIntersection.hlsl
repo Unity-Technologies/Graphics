@@ -22,7 +22,14 @@ struct RayIntersection
 	// Cone representation of the ray
 	RayCone cone;
 	// The remaining available depth for the current Ray
-	uint    remainingDepth;
+	uint 	remainingDepth;
+
+	// Used by path tracing:
+
+	// Pixel scrambling
+	uint2 	pixelScrambling;
+	// Max roughness (encountered along the path)
+	float 	maxRoughness;
 };
 
 struct AttributeData

@@ -232,16 +232,14 @@ void SampleVisibleGGXDir(real2 u,
 // ref: http://blog.selfshadow.com/publications/s2012-shading-course/burley/s2012_pbs_disney_brdf_notes_v3.pdf p26
 void SampleAnisoGGXDir(real2 u,
                        real3 V,
-                       real3 N,
-                       real3 tangentX,
-                       real3 tangentY,
+                       real3x3 localToWorld,
                        real  roughnessT,
                        real  roughnessB,
                    out real3 H,
                    out real3 L)
 {
     // AnisoGGX NDF sampling
-    H = sqrt(u.x / (1.0 - u.x)) * (roughnessT * cos(TWO_PI * u.y) * tangentX + roughnessB * sin(TWO_PI * u.y) * tangentY) + N;
+    H = sqrt(u.x / (1.0 - u.x)) * (roughnessT * cos(TWO_PI * u.y) * localToWorld[0] + roughnessB * sin(TWO_PI * u.y) * localToWorld[1]) + localToWorld[2];
     H = normalize(H);
 
     // Convert sample from half angle to incident angle
@@ -318,17 +316,13 @@ void ImportanceSampleAnisoGGX(real2   u,
                           out real    NdotL,
                           out real    weightOverPdf)
 {
-    real3 tangentX = localToWorld[0];
-    real3 tangentY = localToWorld[1];
-    real3 N        = localToWorld[2];
-
     real3 H;
-    SampleAnisoGGXDir(u, V, N, tangentX, tangentY, roughnessT, roughnessB, H, L);
+    SampleAnisoGGXDir(u, V, localToWorld, roughnessT, roughnessB, H, L);
 
-    real NdotH = saturate(dot(N, H));
+    real NdotH = saturate(dot(localToWorld[2], H));
     // Note: since L and V are symmetric around H, LdotH == VdotH
     VdotH = saturate(dot(V, H));
-    NdotL = saturate(dot(N, L));
+    NdotL = saturate(dot(localToWorld[2], L));
 
     // Importance sampling weight for each sample
     // pdf = D(H) * (N.H) / (4 * (L.H))
@@ -340,10 +334,10 @@ void ImportanceSampleAnisoGGX(real2   u,
     // F is apply outside the function
 
     // For anisotropy we must not saturate these values
-    real TdotV = dot(tangentX, V);
-    real BdotV = dot(tangentY, V);
-    real TdotL = dot(tangentX, L);
-    real BdotL = dot(tangentY, L);
+    real TdotV = dot(localToWorld[0], V);
+    real BdotV = dot(localToWorld[0], V);
+    real TdotL = dot(localToWorld[1], L);
+    real BdotL = dot(localToWorld[1], L);
 
     real Vis = V_SmithJointGGXAniso(TdotV, BdotV, NdotV, TdotL, BdotL, NdotL, roughnessT, roughnessB);
     weightOverPdf = 4.0 * Vis * NdotL * VdotH / NdotH;
