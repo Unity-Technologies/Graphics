@@ -179,7 +179,7 @@ void main(uint3 dispatchThreadId : SV_DispatchThreadID)
         // and (n = 2) when looking up.
         // TODO: use exponential media importance sampling...
         float n  = pow(2, -NdotV);
-        float x  = pow((i + 1) * rcp(numSamples), n); // TODO: Cranley-Patterson Rotation
+        float x  = pow(abs((i + 1) * rcp(numSamples)), n); // TODO: Cranley-Patterson Rotation
         float t1 = tMin + (tMax - tMin) * x;
         float dt = t1 - t0;
 
@@ -281,7 +281,8 @@ void main(uint3 dispatchThreadId : SV_DispatchThreadID)
             float3x3 frame = GetLocalFrame(V); // Orientation around V is arbitrary, so maybe Cranley-Patterson Rotation is not needed
 
             // Note that this direction is likely no longer in the V-N plane.
-            float3 V1 = SphericalToCartesian(phi, cosTheta);
+            // Must add a fudge factor here, otherwise Unity's shader compiler does not work correctly...
+            float3 V1 = SphericalToCartesian(phi, cosTheta + FLT_EPS);
                    V1 = mul(V1, frame);
 
             // TODO: solve in spherical coords?
@@ -348,7 +349,7 @@ void main(uint3 dispatchThreadId : SV_DispatchThreadID)
         // and (n = 2) when looking up.
         // TODO: use exponential media importance sampling...
         float n  = pow(2, -NdotV);
-        float x  = pow((i + 1) * rcp(numSamples), n); // TODO: Cranley-Patterson Rotation
+        float x  = pow(abs((i + 1) * rcp(numSamples)), n); // TODO: Cranley-Patterson Rotation
         float t1 = tMax * x;
         float dt = t1 - t0;
 
