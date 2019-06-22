@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Initial Stadia platform support.
 - Added a menu option to create a new `ScriptableRendererFeature` script. To do so in the Editor, click on Asset > Create > Rendering > Lightweight Render Pipeline > Renderer Feature.
 - Added documentation for SpeedTree Shaders in LWRP.
+- Added extended features to LWRP Terrain Shader, so terrain assets can be forward-compatible with HDRP.
+- Enabled per-layer advanced or legacy-mode blending in LWRP Terrain Shader. 
 - Added the documentation page "Rendering in LWRP", which describes the forward rendering camera loop.
 - Added documentation overview for how Post Processing Version 2 works in LWRP.
 - Added documentation notes and FAQ entry on the 2D Renderer affecting the LWRP Asset.
@@ -29,6 +31,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added missing page for 2D Lights in LWRP.
 - Fixed warnings for unsupported shadow map formats for GLES2 API.
 - Disabled shadows for devices that do not support shadow maps or depth textures.
+- Fixed support for LWRP per-pixel terrain. [case 1110520](https://fogbugz.unity3d.com/f/cases/1110520)
+- Fixed some basic UI/usability issues with LWRP terrain Materials (use of warnings and modal value changes).
 
 ## [6.7.0] - 2019-05-16
 ### Added

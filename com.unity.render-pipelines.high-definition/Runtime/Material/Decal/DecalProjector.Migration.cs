@@ -5,7 +5,7 @@ using UnityEngine.Rendering;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
-    public partial class DecalProjectorComponent : IVersionable<DecalProjectorComponent.Version>
+    public partial class DecalProjector : IVersionable<DecalProjector.Version>
     {
         enum Version
         {
@@ -13,8 +13,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             UseZProjectionAxisAndScaleIndependance
         }
 
-        static readonly MigrationDescription<Version, DecalProjectorComponent> k_Migration = MigrationDescription.New(
-            MigrationStep.New(Version.UseZProjectionAxisAndScaleIndependance, (DecalProjectorComponent decal) =>
+        static readonly MigrationDescription<Version, DecalProjector> k_Migration = MigrationDescription.New(
+            MigrationStep.New(Version.UseZProjectionAxisAndScaleIndependance, (DecalProjector decal) =>
             {
                 // Update size for scale independence
                 decal.m_Size.Scale(decal.transform.lossyScale);

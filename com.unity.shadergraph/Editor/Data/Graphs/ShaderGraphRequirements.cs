@@ -76,7 +76,7 @@ namespace UnityEditor.ShaderGraph
             bool requiresFaceSign = nodes.OfType<IMayRequireFaceSign>().Any(x => x.RequiresFaceSign());
             bool requiresDepthTexture = nodes.OfType<IMayRequireDepthTexture>().Any(x => x.RequiresDepthTexture());
             bool requiresCameraOpaqueTexture = nodes.OfType<IMayRequireCameraOpaqueTexture>().Any(x => x.RequiresCameraOpaqueTexture());
-            bool requiresTime = nodes.OfType<IMayRequireTime>().Any(x => x.RequiresTime());
+            bool requiresTime = nodes.Any(x => x.RequiresTime());
 
             var meshUV = new List<UVChannel>();
             for (int uvIndex = 0; uvIndex < ShaderGeneratorNames.UVCount; ++uvIndex)

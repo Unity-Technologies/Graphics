@@ -9,7 +9,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 #if UNITY_EDITOR
     [CanEditMultipleObjects]
 #endif
-    public partial class DecalProjectorComponent : MonoBehaviour
+    public partial class DecalProjector : MonoBehaviour
     {
         internal static readonly Quaternion k_MinusYtoZRotation = Quaternion.Euler(-90, 0, 0);
 
@@ -272,4 +272,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             return true;
         }
     }
+
+
+    [Obsolete("DecalProjectorComponent have been renamed DecalProjector for API alignment", true)]
+    public sealed class DecalProjectorComponent { }
 }

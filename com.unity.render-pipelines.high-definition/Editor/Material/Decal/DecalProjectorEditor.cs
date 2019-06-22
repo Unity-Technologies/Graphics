@@ -10,9 +10,9 @@ using System;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
-    [CustomEditor(typeof(DecalProjectorComponent))]
+    [CustomEditor(typeof(DecalProjector))]
     [CanEditMultipleObjects]
-    public partial class DecalProjectorComponentEditor : Editor
+    partial class DecalProjectorEditor : Editor
     {
         MaterialEditor m_MaterialEditor = null;
         SerializedProperty m_MaterialProperty;
@@ -41,7 +41,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
         }
 
-        bool showAffectTransparency => DecalSystem.IsHDRenderPipelineDecal((target as DecalProjectorComponent).material.shader.name);
+        bool showAffectTransparency => DecalSystem.IsHDRenderPipelineDecal((target as DecalProjector).material.shader.name);
 
         bool showAffectTransparencyHaveMultipleDifferentValue
         {
@@ -49,10 +49,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 if (targets.Length < 2)
                     return false;
-                bool show = DecalSystem.IsHDRenderPipelineDecal((targets[0] as DecalProjectorComponent).material.shader.name);
+                bool show = DecalSystem.IsHDRenderPipelineDecal((targets[0] as DecalProjector).material.shader.name);
                 for (int index = 0; index < targets.Length; ++index)
                 {
-                    if (DecalSystem.IsHDRenderPipelineDecal((targets[index] as DecalProjectorComponent).material.shader.name) ^ show)
+                    if (DecalSystem.IsHDRenderPipelineDecal((targets[index] as DecalProjector).material.shader.name) ^ show)
                         return true;
                 }
                 return false;
@@ -110,7 +110,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             UpdateMaterialEditor();
             foreach (var decalProjector in targets)
             {
-                (decalProjector as DecalProjectorComponent).OnMaterialChange += UpdateMaterialEditor;
+                (decalProjector as DecalProjector).OnMaterialChange += UpdateMaterialEditor;
             }
 
             // Fetch serialized properties
@@ -128,7 +128,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
             foreach (var decalProjector in targets)
             {
-                (decalProjector as DecalProjectorComponent).OnMaterialChange -= UpdateMaterialEditor;
+                (decalProjector as DecalProjector).OnMaterialChange -= UpdateMaterialEditor;
             }
             s_Owner = null;
         }
@@ -142,7 +142,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             UnityEngine.Object[] materials = new UnityEngine.Object[targets.Length];
             for (int index = 0; index < targets.Length; ++index)
             {
-                materials[index] = (targets[index] as DecalProjectorComponent).material;
+                materials[index] = (targets[index] as DecalProjector).material;
             }
             m_MaterialEditor = (MaterialEditor)CreateEditor(materials);
         }
@@ -156,7 +156,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         void DrawHandles()
         {
             //Note: each target need to be handled individually to allow multi edition
-            DecalProjectorComponent decalProjector = target as DecalProjectorComponent;
+            DecalProjector decalProjector = target as DecalProjector;
 
             if (editMode == k_EditShapePreservingUV || editMode == k_EditShapeWithoutPreservingUV)
             {
@@ -246,7 +246,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         }
 
         [DrawGizmo(GizmoType.Selected | GizmoType.Active)]
-        static void DrawGizmosSelected(DecalProjectorComponent decalProjector, GizmoType gizmoType)
+        static void DrawGizmosSelected(DecalProjector decalProjector, GizmoType gizmoType)
         {
             //draw them scale independent
             using (new Handles.DrawingScope(Color.white, Matrix4x4.TRS(decalProjector.transform.position, decalProjector.transform.rotation, Vector3.one)))
@@ -339,7 +339,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 foreach (var decalProjector in targets)
                 {
-                    (decalProjector as DecalProjectorComponent).OnValidate();
+                    (decalProjector as DecalProjector).OnValidate();
                 }
             }
 
@@ -356,7 +356,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 {
                     foreach(var decalProjector in targets)
                     {
-                        isDefaultMaterial |= (decalProjector as DecalProjectorComponent).material == hdrp.GetDefaultDecalMaterial();
+                        isDefaultMaterial |= (decalProjector as DecalProjector).material == hdrp.GetDefaultDecalMaterial();
                     }
                 }
                 using (new EditorGUI.DisabledGroupScope(isDefaultMaterial))
@@ -370,11 +370,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         [Shortcut("HDRP/Decal: Handle changing size stretching UV", typeof(SceneView), KeyCode.Keypad1, ShortcutModifiers.Action)]
         static void EnterEditModeWithoutPreservingUV(ShortcutArguments args) =>
-            ChangeEditMode(k_EditShapeWithoutPreservingUV, (s_Owner as DecalProjectorComponentEditor).GetBoundsGetter(), s_Owner);
+            ChangeEditMode(k_EditShapeWithoutPreservingUV, (s_Owner as DecalProjectorEditor).GetBoundsGetter(), s_Owner);
 
         [Shortcut("HDRP/Decal: Handle changing size cropping UV", typeof(SceneView), KeyCode.Keypad2, ShortcutModifiers.Action)]
         static void EnterEditModePreservingUV(ShortcutArguments args) =>
-            ChangeEditMode(k_EditShapePreservingUV, (s_Owner as DecalProjectorComponentEditor).GetBoundsGetter(), s_Owner);
+            ChangeEditMode(k_EditShapePreservingUV, (s_Owner as DecalProjectorEditor).GetBoundsGetter(), s_Owner);
 
         //[TODO: add editable pivot. Uncomment this when ready]
         //[Shortcut("HDRP/Decal: Handle changing pivot position while preserving UV position", typeof(SceneView), KeyCode.Keypad3, ShortcutModifiers.Action)]
@@ -395,7 +395,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     break;
             }
             if (targetMode != SceneViewEditMode.None)
-                ChangeEditMode(targetMode, (s_Owner as DecalProjectorComponentEditor).GetBoundsGetter(), s_Owner);
+                ChangeEditMode(targetMode, (s_Owner as DecalProjectorEditor).GetBoundsGetter(), s_Owner);
         }
 
         [Shortcut("HDRP/Decal: Stop Editing", typeof(SceneView), KeyCode.Keypad0, ShortcutModifiers.Action)]
