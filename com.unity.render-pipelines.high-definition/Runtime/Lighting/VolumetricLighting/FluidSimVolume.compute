@@ -10,6 +10,7 @@
 
 CBUFFER_START(_FluidSimVolume)
 float3 _FluidSimVolumeRes;
+float _VectorFieldSpeed;
 CBUFFER_END
 
 #ifdef INITIAL_STATE
@@ -33,6 +34,7 @@ void Simulate(uint3 id : SV_DispatchThreadID)
     float3 vfUVW = (pos / _FluidSimVolumeRes);
 
     float3 vf = SAMPLE_TEXTURE3D_LOD(_VectorField, s_linear_clamp_sampler, vfUVW, 0).rgb;
+    vf *= (unity_DeltaTime * _VectorFieldSpeed);
     //float3 vf = (pos / _FluidSimVolumeRes) * 2.0 - 1.0;
     //vf = float3(vf.y, -vf.x, 0.0) / vf.z;
 

@@ -219,12 +219,18 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     serialized.distanceFadeEnd.floatValue   = distanceFadeEnd;
                 }
             }
+            // Connon properties
+            {
+                EditorGUILayout.PropertyField(serialized.loopTime, Styles.s_LoopTimeLabel);
+            }
         }
 
         static void Drawer_TransitVectorFieldContent(SerializedFluidSimVolume serialized, Editor owner)
         {
             EditorGUILayout.PropertyField(serialized.initialStateTexture, Styles.s_InitialStateTextureLabel);
             EditorGUILayout.PropertyField(serialized.vectorField, Styles.s_VectorFieldLabel);
+            EditorGUILayout.PropertyField(serialized.vectorFieldSpeed, Styles.s_VectorFieldSpeedLabel);
+            EditorGUILayout.PropertyField(serialized.numVectorFields, Styles.s_NumVectorFields);
             //EditorGUILayout.PropertyField(serialized.textureScroll, Styles.s_TextureScrollLabel);
             //EditorGUILayout.PropertyField(serialized.textureTile, Styles.s_TextureTileLabel);
         }

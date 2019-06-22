@@ -8,6 +8,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     {
         public Texture3D initialStateTexture;
         public Texture3D vectorField;
+        public float vectorFieldSpeed;
+        public int numVectorFields;
+        public float loopTime;
 
         [SerializeField]
         public Vector3 positiveFade;
@@ -29,6 +32,30 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public float distanceFadeEnd;
 
         public int textureIndex;
+
+        public FluidSimVolumeArtistParameters(int anything)
+        {
+            initialStateTexture = null;
+            vectorField = null;
+            vectorFieldSpeed = 1.0f;
+            numVectorFields = 1;
+            loopTime = 0.0f;
+
+            size = Vector3.one;
+
+            positiveFade = Vector3.zero;
+            negativeFade = Vector3.zero;
+
+            distanceFadeStart = 10000;
+            distanceFadeEnd = 10000;
+
+            m_EditorPositiveFade = Vector3.zero;
+            m_EditorNegativeFade = Vector3.zero;
+            m_EditorUniformFade = 0;
+            m_EditorAdvancedFade = false;
+
+            textureIndex = -1;
+        }
 
         public FluidSimVolumeEngineData ConvertToEngineData()
         {
@@ -59,12 +86,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     [AddComponentMenu("Rendering/Fluid Simulation Volume", 1200)]
     public class FluidSimVolume : MonoBehaviour
     {
-        public FluidSimVolumeArtistParameters parameters = new FluidSimVolumeArtistParameters();
+        public FluidSimVolumeArtistParameters parameters = new FluidSimVolumeArtistParameters(-1);
 
         public RTHandleSystem.RTHandle simulationBuffer0 = null;
         public RTHandleSystem.RTHandle simulationBuffer1 = null;
 
         public bool needToInitialize { get; private set; }
+
+        private float _playingTime = 0.0f;
 
         private void Start()
         {
@@ -128,6 +157,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             else
             {
                 needToInitialize = false;
+            }
+
+            if (parameters.loopTime > 0.0)
+            {
+                _playingTime += Time.deltaTime;
+                if (_playingTime >= parameters.loopTime)
+                {
+                    _playingTime = 0.0f;
+                    needToInitialize = true;
+                }
             }
         }
     }

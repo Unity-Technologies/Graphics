@@ -473,6 +473,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly int _FluidSimVolumeRes              = Shader.PropertyToID("_FluidSimVolumeRes"); //seongdae;fspm
         public static readonly int _InitialStateVolumeTexture      = Shader.PropertyToID("_InitialStateVolumeTexture"); //seongdae;fspm
         public static readonly int _VectorField                    = Shader.PropertyToID("_VectorField"); //seongdae;fspm
+        public static readonly int _VectorFieldSpeed               = Shader.PropertyToID("_VectorFieldSpeed"); //seongdae;fspm
         public static readonly int _SimulationBuffer0              = Shader.PropertyToID("_SimulationBuffer0"); //seongdae;fspm
         public static readonly int _SimulationBuffer1              = Shader.PropertyToID("_SimulationBuffer1"); //seongdae;fspm
         public static readonly int _OutputVolumeAtlas              = Shader.PropertyToID("_OutputVolumeAtlas"); //seongdae;fspm
