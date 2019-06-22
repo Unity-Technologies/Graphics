@@ -118,7 +118,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         Low = 0,
         Medium = 1,
         High = 2,
-        VeryHigh = 3,
     }
 
     public enum DirectionalShadowAlgorithm
@@ -250,10 +249,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 case HDShadowQuality.High:
                 {
                     return DirectionalShadowAlgorithm.PCSS;
-                }
-                case HDShadowQuality.VeryHigh:
-                {
-                    return DirectionalShadowAlgorithm.IMS;
                 }
             };
             return DirectionalShadowAlgorithm.PCF5x5;
@@ -390,12 +385,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             data.shadowFilterParams0.w = shadowRequest.minFilterSize;
 
             var hdAsset = (GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset);
-            if (hdAsset.currentPlatformRenderPipelineSettings.hdShadowInitParams.shadowQuality == HDShadowQuality.VeryHigh && shadowRequest.lightType == (int)LightType.Directional)
-            {
-                data.shadowFilterParams0.x = shadowRequest.kernelSize;
-                data.shadowFilterParams0.y = shadowRequest.lightAngle;
-                data.shadowFilterParams0.z = shadowRequest.maxDepthBias;
-            }
 
             if (atlas.HasBlurredEVSM())
             {

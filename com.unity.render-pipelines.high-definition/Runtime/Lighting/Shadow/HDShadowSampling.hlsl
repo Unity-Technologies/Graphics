@@ -290,6 +290,12 @@ float SampleShadow_PCSS(float3 tcs, float2 posSS, float2 scale, float2 offset, f
     return PCSS(tcs, filterSize, scale, offset, sampleBias, sampleJitter, tex, compSamp, filterSampleCount);
 }
 
-#ifdef SHADOW_VERY_HIGH
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/Shadow/HDIMS.hlsl"
-#endif
+// Note this is currently not available as an option, but is left here to show what needs including if IMS is to be used.
+// Also, please note that the UI for the IMS parameters has been deleted, but the parameters are still in the relevant data structures. 
+// To make use of IMS, please make sure GetDirectionalShadowAlgorithm returns DirectionalShadowAlgorithm.IMS and that there is a UI for the parameters kernelSize, lightAngle and maxDepthBias
+// These parameters need to be set in the shadowData.shadowFilterParams0 as follow: 
+//  shadowData.shadowFilterParams0.x = shadowRequest.kernelSize;
+//  shadowData.shadowFilterParams0.y = shadowRequest.lightAngle;
+//  shadowData.shadowFilterParams0.z = shadowRequest.maxDepthBias;
+
+// #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/Shadow/HDIMS.hlsl"

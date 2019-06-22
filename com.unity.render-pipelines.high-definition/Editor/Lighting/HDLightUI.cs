@@ -134,10 +134,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                             CED.Conditional((serialized, owner) => GetAdvanced(Advanceable.Shadow, serialized, owner) && k_ExpandedState[Expandable.ShadowMap],
                                 CED.Group(GroupOption.Indent, DrawShadowMapAdvancedContent)),
                             CED.space,
-                            // Very High setting
-                            CED.Conditional((serialized, owner) => HasShadowQualitySettingsUI(HDShadowQuality.VeryHigh, serialized, owner),
-                                CED.FoldoutGroup(s_Styles.veryHighShadowQualitySubHeader, Expandable.ShadowQuality, k_ExpandedState, FoldoutOption.SubFoldout | FoldoutOption.Indent, DrawVeryHighShadowSettingsContent)),
-                            // High setting
                             CED.Conditional((serialized, owner) => HasShadowQualitySettingsUI(HDShadowQuality.High, serialized, owner),
                                 CED.FoldoutGroup(s_Styles.highShadowQualitySubHeader, Expandable.ShadowQuality, k_ExpandedState, FoldoutOption.SubFoldout | FoldoutOption.Indent, DrawHighShadowSettingsContent)),
                             CED.Conditional((serialized, owner) => HasShadowQualitySettingsUI(HDShadowQuality.Medium, serialized, owner),
@@ -805,17 +801,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             // Draw shadow settings using the current shadow algorithm
             HDShadowInitParameters hdShadowInitParameters = (GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset).currentPlatformRenderPipelineSettings.hdShadowInitParams;
             LightType lightType = (LightType)serialized.settings.lightType.enumValueIndex;
-
-            if (hdShadowInitParameters.shadowQuality == HDShadowQuality.VeryHigh)
-            {
-                // For very high settings shadow punctial lights we do not use the Very high settings but rather the High
-                if (quality == HDShadowQuality.High && lightType != LightType.Directional)
-                    return true;
-                // Only the directional can access the very high shadow settings
-                else if (quality == HDShadowQuality.VeryHigh && lightType == LightType.Directional)
-                    return true;
-                return false;
-            }
 
             return hdShadowInitParameters.shadowQuality == quality;
         }

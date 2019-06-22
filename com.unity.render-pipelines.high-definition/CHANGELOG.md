@@ -62,7 +62,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Remove SunDisk and Sun Halo size from directional light
 - Remove all obsolete wind code from shader
 - Renamed DecalProjectorComponent into DecalProjector for API alignment.
-
+- Remove very high quality shadow option
 
 ## [6.7.0-preview] - 2019-05-16
 
