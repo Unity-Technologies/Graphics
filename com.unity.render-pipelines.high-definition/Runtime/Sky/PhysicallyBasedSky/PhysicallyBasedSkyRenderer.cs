@@ -186,11 +186,22 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             return (3.0f / (8.0f * Mathf.PI)) * (1.0f - g * g) / (2.0f + g * g);
         }
 
+        static float ComputeScaleHeight(float layerDepth)
+        {
+            // Exp[-d / s] = 0.001
+            // -d / s = Log[0.001]
+            // s = d / -Log[0.001]
+            return layerDepth * 0.144765f;
+        }
+
         // For both precomputation and runtime lighting passes.
         void UpdateGlobalConstantBuffer(CommandBuffer cmd)
         {
-            float R = m_Settings.planetaryRadius.value;
-            float H = m_Settings.ComputeAtmosphericDepth();
+
+            float R    = m_Settings.planetaryRadius.value;
+            float H    = Mathf.Max(m_Settings.airMaxAltitude.value, m_Settings.aerosolMaxAltitude.value);
+            float airS = ComputeScaleHeight(m_Settings.airMaxAltitude.value);
+            float aerS = ComputeScaleHeight(m_Settings.aerosolMaxAltitude.value);
 
             cmd.SetGlobalFloat( HDShaderIDs._PlanetaryRadius,           R);
             cmd.SetGlobalFloat( HDShaderIDs._RcpPlanetaryRadius,        1.0f / R);
@@ -201,10 +212,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             cmd.SetGlobalFloat( HDShaderIDs._AerosolAnisotropy,         m_Settings.aerosolAnisotropy.value);
             cmd.SetGlobalFloat( HDShaderIDs._AerosolPhasePartConstant,  CornetteShanksPhasePartConstant(m_Settings.aerosolAnisotropy.value));
 
-            cmd.SetGlobalFloat( HDShaderIDs._AirDensityFalloff,         m_Settings.airDensityFalloff.value);
-            cmd.SetGlobalFloat( HDShaderIDs._AirScaleHeight,            1.0f / m_Settings.airDensityFalloff.value);
-            cmd.SetGlobalFloat( HDShaderIDs._AerosolDensityFalloff,     m_Settings.aerosolDensityFalloff.value);
-            cmd.SetGlobalFloat( HDShaderIDs._AerosolScaleHeight,        1.0f / m_Settings.airDensityFalloff.value);
+            cmd.SetGlobalFloat( HDShaderIDs._AirDensityFalloff,         1.0f / airS);
+            cmd.SetGlobalFloat( HDShaderIDs._AirScaleHeight,            airS);
+            cmd.SetGlobalFloat( HDShaderIDs._AerosolDensityFalloff,     1.0f / aerS);
+            cmd.SetGlobalFloat( HDShaderIDs._AerosolScaleHeight,        aerS);
 
             cmd.SetGlobalVector(HDShaderIDs._AirSeaLevelExtinction,     m_Settings.airThickness.value     * 0.001f); // Convert to 1/km
             cmd.SetGlobalFloat( HDShaderIDs._AerosolSeaLevelExtinction, m_Settings.aerosolThickness.value * 0.001f); // Convert to 1/km

@@ -259,8 +259,8 @@ namespace UnityEditor.ShaderGraph
             {
                 return m_transforms[(int)from, (int)to];
             }
-            var distance = new int[4];
-            var prev = new CoordinateSpace ? [4];
+            var distance = new int[5];
+            var prev = new CoordinateSpace ? [5];
             var queue = new List<CoordinateSpace>();
             foreach (var space in Enum.GetValues(typeof(CoordinateSpace)))
             {
@@ -318,11 +318,12 @@ namespace UnityEditor.ShaderGraph
         {
             if (m_transforms == null)
             {
-                m_transforms = new TransformDesc[4, 4][];
+                m_transforms = new TransformDesc[5, 5][];
                 m_transforms[(int)CoordinateSpace.Object, (int)CoordinateSpace.Object] = new TransformDesc[] {};
                 m_transforms[(int)CoordinateSpace.View, (int)CoordinateSpace.View] = new TransformDesc[] {};
                 m_transforms[(int)CoordinateSpace.World, (int)CoordinateSpace.World] = new TransformDesc[] {};
                 m_transforms[(int)CoordinateSpace.Tangent, (int)CoordinateSpace.Tangent] = new TransformDesc[] {};
+                m_transforms[(int)CoordinateSpace.AbsoluteWorld, (int)CoordinateSpace.AbsoluteWorld] = new TransformDesc[] {};
                 m_transforms[(int)CoordinateSpace.Object, (int)CoordinateSpace.World]
                     = new TransformDesc[] {new TransformDesc(MatrixNames.Model)};
                 m_transforms[(int)CoordinateSpace.View, (int)CoordinateSpace.World]
@@ -435,6 +436,9 @@ namespace UnityEditor.ShaderGraph
 
             if ((neededSpaces & NeededCoordinateSpace.Tangent) > 0)
                 builder.AppendLine(format, CoordinateSpace.Tangent.ToVariableName(interpolatorType));
+            
+            if ((neededSpaces & NeededCoordinateSpace.AbsoluteWorld) > 0)
+                builder.AppendLine(format, CoordinateSpace.AbsoluteWorld.ToVariableName(interpolatorType));
         }
 
         public static void GenerateStandardTransforms(
@@ -796,6 +800,12 @@ namespace UnityEditor.ShaderGraph
                     CoordinateSpace.Tangent.ToVariableName(type),
                     ConvertBetweenSpace(from.ToVariableName(type), from, CoordinateSpace.Tangent, inputType, from),
                     DimensionToSwizzle(dimension));
+
+            if ((neededSpaces & NeededCoordinateSpace.AbsoluteWorld) > 0 && from != CoordinateSpace.AbsoluteWorld)
+               pixelShader.AppendLine("float{0} {1} = GetAbsolutePositionWS({2}).{3};", DimensionToString(dimension),
+                   CoordinateSpace.AbsoluteWorld.ToVariableName(type),
+                   CoordinateSpace.World.ToVariableName(type),
+                   DimensionToSwizzle(dimension));
         }
 
         public static string GetPreviewSubShader(AbstractMaterialNode node, ShaderGraphRequirements shaderGraphRequirements)
