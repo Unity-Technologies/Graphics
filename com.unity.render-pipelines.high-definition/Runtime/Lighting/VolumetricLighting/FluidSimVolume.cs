@@ -18,6 +18,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public Texture3D initialVectorField;
         [NonSerialized]
         public Texture3D vectorField;
+        [NonSerialized]
+        public Texture3D vectorFieldLast;
         [SerializeField]
         public float vectorFieldSpeed;
         [SerializeField]
@@ -27,6 +29,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public Texture3D initialDensityTexture;
         [NonSerialized]
         public Texture3D DensityTexture;
+        [NonSerialized]
+        public Texture3D DensityTextureLast;
         [SerializeField]
         public int numDensityTextures;
 
@@ -59,11 +63,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             initialStateTexture = null;
             initialVectorField = null;
             vectorField = null;
+            vectorFieldLast = null;
             vectorFieldSpeed = 1.0f;
             numVectorFields = 1;
 
             initialDensityTexture = null;
             DensityTexture = null;
+            DensityTextureLast = null;
             numDensityTextures = 1;
 
             size = Vector3.one;
@@ -88,19 +94,32 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             // todo : implement it!
 
-            if (initialStateTexture != null)
-            {
-                data.volumeRes = new Vector3(
-                    initialStateTexture.width,
-                    initialStateTexture.height,
-                    initialStateTexture.depth);
+            data.volumeRes = new Vector3(1.0f, 1.0f, 1.0f);
+            data.textureIndex = -1;
 
-                data.textureIndex = 0;
+            if (workflow == (int)FluidSimVolume.Workflow.VectorField)
+            {
+                if (initialStateTexture != null)
+                {
+                    data.volumeRes = new Vector3(
+                        initialStateTexture.width,
+                        initialStateTexture.height,
+                        initialStateTexture.depth);
+
+                    data.textureIndex = 0;
+                }
             }
             else
             {
-                data.volumeRes = new Vector3(1.0f, 1.0f, 1.0f);
-                data.textureIndex = -1;
+                if (initialDensityTexture != null)
+                {
+                    data.volumeRes = new Vector3(
+                        initialDensityTexture.width,
+                        initialDensityTexture.height,
+                        initialDensityTexture.depth);
+
+                    data.textureIndex = 0;
+                }
             }
 
             return data;
@@ -124,6 +143,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public bool needToInitialize { get; private set; }
 
+        public float frameBlend { get; private set; }
+
         private List<Texture3D> _volumeTexList = new List<Texture3D>();
 
         private float _playingTime = 0.0f;
@@ -136,7 +157,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         private void Start()
         {
             needToInitialize = true;
-            UpdateVolumeTexList();
+            UpdateVolumeTexList(parameters.workflow == (int)Workflow.VectorField);
         }
 
         public FluidSimVolume()
@@ -146,7 +167,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         private void OnEnable()
         {
             needToInitialize = true;
-            UpdateVolumeTexList();
+            UpdateVolumeTexList(parameters.workflow == (int)Workflow.VectorField);
             FluidSimVolumeManager.manager.RegisterVolume(this);
         }
 
@@ -157,9 +178,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             FluidSimVolumeManager.manager.DeRegisterVolume(this);
         }
 
-        private void LoadVolumeTexturesBundles()
+        private void LoadVolumeTexturesBundles(bool vfWorkflow)
         {
-            if (parameters.workflow == (int)Workflow.VectorField)
+            if (vfWorkflow)
             {
                 if (_vectorFieldBundles == null)
                     _vectorFieldBundles = AssetBundle.LoadFromFile("Assets/VolumeTextures/vectorfields");
@@ -172,20 +193,21 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
         private void UnloadVectorFieldBundles()
         {
-            if (_vectorFieldBundles != null)
+            if (_vectorFieldBundles != null || _animatedDensityBundles != null)
             {
                 AssetBundle.UnloadAllAssetBundles(true);
                 _vectorFieldBundles = null;
+                _animatedDensityBundles = null;
             }
         }
-        private void UpdateVolumeTexList()
+        public void UpdateVolumeTexList(bool vfWorkflow)
         {
-            LoadVolumeTexturesBundles();
+            LoadVolumeTexturesBundles(vfWorkflow);
 
-            bool vfWorkflow = parameters.workflow == (int)Workflow.VectorField;
+            var initialTexture = vfWorkflow ? parameters.initialVectorField : parameters.initialDensityTexture;
 
             var numVolumeTexs = vfWorkflow ? parameters.numVectorFields : parameters.numDensityTextures;
-            var volumeTexName = vfWorkflow ? parameters.initialVectorField.name : parameters.initialDensityTexture.name;
+            var volumeTexName = initialTexture != null ? initialTexture.name : "";
 
             volumeTexName = volumeTexName.Substring(0, volumeTexName.Length - 1);
 
@@ -273,10 +295,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
         private void UpdateMultipleVectorFields()
         {
+            float frameTime = 1.0f;
+
             if (parameters.numVectorFields >= 2)
             {
                 _frameElapsedTime += Time.deltaTime;
-                if (_frameElapsedTime >= 1.0f)
+                if (_frameElapsedTime >= frameTime)
                 {
                     _frameElapsedTime = 0.0f;
                     _frameIndex++;
@@ -284,27 +308,29 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         _frameIndex = 0;
                 }
 
-                if (_frameIndex == 0)
-                {
-                    parameters.vectorField = parameters.initialVectorField;
-                }
-                else
-                {
-                    parameters.vectorField = _volumeTexList[_frameIndex - 1];
-                }
+                frameBlend = _frameElapsedTime / frameTime;
+
+                parameters.vectorFieldLast = parameters.vectorField;
+                parameters.vectorField = _frameIndex == 0 ? parameters.initialVectorField : _volumeTexList[_frameIndex - 1];
+
                 //Debug.Log("VectorFieldName: " + parameters.vectorField.name);
             }
             else
             {
-                parameters.vectorField = parameters.initialVectorField;
+                frameBlend = 0.0f;
+
+                parameters.vectorFieldLast = parameters.initialVectorField;
+                parameters.vectorField     = parameters.initialVectorField;
             }
         }
         private void UpdateMultipleAnimatedDensities()
         {
+            float frameTime = 1.0f;
+
             if (parameters.numDensityTextures >= 2)
             {
                 _frameElapsedTime += Time.deltaTime;
-                if (_frameElapsedTime >= 1.0f)
+                if (_frameElapsedTime >= frameTime)
                 {
                     _frameElapsedTime = 0.0f;
                     _frameIndex++;
@@ -312,18 +338,17 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         _frameIndex = 0;
                 }
 
-                if (_frameIndex == 0)
-                {
-                    parameters.DensityTexture = parameters.initialDensityTexture;
-                }
-                else
-                {
-                    parameters.DensityTexture = _volumeTexList[_frameIndex - 1];
-                }
+                frameBlend = _frameElapsedTime / frameTime;
+
+                parameters.DensityTextureLast = parameters.DensityTexture;
+                parameters.DensityTexture = _frameIndex == 0 ? parameters.initialDensityTexture : _volumeTexList[_frameIndex - 1];
             }
             else
             {
-                parameters.DensityTexture = parameters.initialDensityTexture;
+                frameBlend = 0.0f;
+
+                parameters.DensityTextureLast = parameters.initialDensityTexture;
+                parameters.DensityTexture     = parameters.initialDensityTexture;
             }
         }
     }

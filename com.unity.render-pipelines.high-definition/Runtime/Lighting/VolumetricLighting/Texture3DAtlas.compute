@@ -1,12 +1,24 @@
 
 // #pragma
-#pragma kernel ClearTexture Texture3DAtlas=ClearTexture CLEAR
-#pragma kernel CopyTexture  Texture3DAtlas=CopyTexture
+#pragma kernel ClearTexture    Texture3DAtlas=ClearTexture CLEAR
+#pragma kernel CopySimulation  Texture3DAtlas=CopySimulation COPY_SIMULATION
+#pragma kernel CopyAnimDensity Texture3DAtlas=CopyAnimDensity COPY_ANIM_DENSITY
+
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 
 #define TILE_SIZE 4
 
+CBUFFER_START(_FluidSimVolume)
+float _FrameBlend;
+CBUFFER_END
+
+#ifdef COPY_SIMULATION
 Texture3D<float4> _SimulationBuffer0;
 Texture3D<float4> _SimulationBuffer1;
+#elif COPY_ANIM_DENSITY
+Texture3D<float4> _AnimDensityTexture0;
+Texture3D<float4> _AnimDensityTexture1;
+#endif
 RWTexture3D<float4> _OutputVolumeAtlas;
 
 [numthreads(TILE_SIZE, TILE_SIZE, TILE_SIZE)]
@@ -14,12 +26,14 @@ void Texture3DAtlas(uint3 id : SV_DispatchThreadID)
 {
 #ifdef CLEAR
     _OutputVolumeAtlas[id.xyz] = float4(0.0, 0.0, 0.0, 0.0);
-#else
+#elif COPY_SIMULATION
     float3 pos = _SimulationBuffer0[id.xyz].xyz;
     float3 weight = pos - floor(pos);
 
     uint3 output = (uint3)pos;
 
     _OutputVolumeAtlas[output] = _SimulationBuffer1[id.xyz];
+#elif COPY_ANIM_DENSITY
+    _OutputVolumeAtlas[id.xyz] = lerp(_AnimDensityTexture0[id.xyz], _AnimDensityTexture1[id.xyz], _FrameBlend);
 #endif
 }

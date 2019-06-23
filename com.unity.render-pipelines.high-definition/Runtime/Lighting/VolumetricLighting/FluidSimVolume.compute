@@ -11,12 +11,14 @@
 CBUFFER_START(_FluidSimVolume)
 float3 _FluidSimVolumeRes;
 float _VectorFieldSpeed;
+float _FrameBlend;
 CBUFFER_END
 
 #ifdef INITIAL_STATE
 Texture3D<float4> _InitialStateVolumeTexture;
 #elif SIMULATE
-Texture3D<float4> _VectorField;
+Texture3D<float4> _VectorField0;
+Texture3D<float4> _VectorField1;
 #endif
 
 RWTexture3D<float4> _SimulationBuffer0;
@@ -33,8 +35,10 @@ void Simulate(uint3 id : SV_DispatchThreadID)
     float3 pos = _SimulationBuffer0[id.xyz].xyz;
     float3 vfUVW = (pos / _FluidSimVolumeRes);
 
-    float3 vf = SAMPLE_TEXTURE3D_LOD(_VectorField, s_linear_clamp_sampler, vfUVW, 0).rgb;
-    vf *= (unity_DeltaTime * _VectorFieldSpeed);
+    float3 vf0 = SAMPLE_TEXTURE3D_LOD(_VectorField0, s_linear_clamp_sampler, vfUVW, 0).rgb;
+    float3 vf1 = SAMPLE_TEXTURE3D_LOD(_VectorField1, s_linear_clamp_sampler, vfUVW, 0).rgb;
+    
+    float3 vf = lerp(vf0, vf1, _FrameBlend) * (unity_DeltaTime * _VectorFieldSpeed);
     //float3 vf = (pos / _FluidSimVolumeRes) * 2.0 - 1.0;
     //vf = float3(vf.y, -vf.x, 0.0) / vf.z;
 

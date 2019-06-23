@@ -222,8 +222,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             // Connon properties
             {
                 var workflowEnum = (FluidSimVolume.Workflow)serialized.workflow.intValue;
-                workflowEnum = (FluidSimVolume.Workflow)EditorGUILayout.EnumPopup(workflowEnum);
-                serialized.workflow.intValue = (int)workflowEnum;
+                var workflowEnumNew = (FluidSimVolume.Workflow)EditorGUILayout.EnumPopup(workflowEnum);
+                serialized.workflow.intValue = (int)workflowEnumNew;
+
+                if (workflowEnum != workflowEnumNew)
+                    ((FluidSimVolume)owner.target).UpdateVolumeTexList(workflowEnumNew == FluidSimVolume.Workflow.VectorField);
 
                 EditorGUILayout.PropertyField(serialized.loopTime, Styles.s_LoopTimeLabel);
             }
