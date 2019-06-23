@@ -228,7 +228,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         static void Drawer_TransitVectorFieldContent(SerializedFluidSimVolume serialized, Editor owner)
         {
             EditorGUILayout.PropertyField(serialized.initialStateTexture, Styles.s_InitialStateTextureLabel);
-            EditorGUILayout.PropertyField(serialized.vectorField, Styles.s_VectorFieldLabel);
+            EditorGUILayout.PropertyField(serialized.initialVectorField, Styles.s_InitialVectorFieldLabel);
             EditorGUILayout.PropertyField(serialized.vectorFieldSpeed, Styles.s_VectorFieldSpeedLabel);
             EditorGUILayout.PropertyField(serialized.numVectorFields, Styles.s_NumVectorFields);
             //EditorGUILayout.PropertyField(serialized.textureScroll, Styles.s_TextureScrollLabel);

@@ -20,7 +20,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public static readonly GUIContent s_MeanFreePathLabel = new GUIContent("Fog Distance", "Density at the base of the fog. Determines how far you can see through the fog in meters.");
             public static readonly GUIContent s_InitialStateTextureLabel = new GUIContent("Initial State Texture", "");
             public static readonly GUIContent s_LoopTimeLabel = new GUIContent("LoopTime", "");
-            public static readonly GUIContent s_VectorFieldLabel = new GUIContent("Vector Field", "");
+            public static readonly GUIContent s_InitialVectorFieldLabel = new GUIContent("Initial Vector Field", "");
             public static readonly GUIContent s_VectorFieldSpeedLabel = new GUIContent("Vector Field Speed", "");
             public static readonly GUIContent s_NumVectorFields = new GUIContent("Number of Vector Fields", "");
             public static readonly GUIContent s_BlendLabel = new GUIContent("Blend Distance", "Interior distance from the Size where the fog fades in completely.");

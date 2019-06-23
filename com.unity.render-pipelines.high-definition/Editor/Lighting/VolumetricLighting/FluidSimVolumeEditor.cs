@@ -1,3 +1,4 @@
+using System.IO;
 using UnityEditorInternal;
 using UnityEngine.Experimental.Rendering.HDPipeline;
 
@@ -37,6 +38,17 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             FluidSimVolumeUI.Inspector.Draw(m_SerializedFluidSimVolume, this);
 
             m_SerializedFluidSimVolume.Apply();
+        }
+
+        [MenuItem("Assets/Build VolumeTextures AssetBundle")]
+        static void BuildAssetBundle()
+        {
+            string assetBundleDirectory = "Assets/VolumeTextures";
+
+            if (!Directory.Exists(assetBundleDirectory))
+                Directory.CreateDirectory(assetBundleDirectory);
+
+            BuildPipeline.BuildAssetBundles(assetBundleDirectory, BuildAssetBundleOptions.None, BuildTarget.StandaloneOSX);
         }
     }
 }
