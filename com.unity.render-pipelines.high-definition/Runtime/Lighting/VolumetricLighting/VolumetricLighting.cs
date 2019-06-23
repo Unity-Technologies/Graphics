@@ -147,6 +147,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public VolumetricLightingPreset preset = VolumetricLightingPreset.Off;
 
+        static ComputeShader          m_VolumetricShadowMapCS     = null; //seongdae;fspm
+
         static ComputeShader          m_VolumeVoxelizationCS      = null;
         static ComputeShader          m_VolumetricLightingCS      = null;
 
@@ -165,6 +167,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         static ComputeBuffer          s_VisibleVolumeDataBuffer   = null;
         static ComputeBuffer          s_VisibleFluidSimVolumeBoundsBuffer = null; //seongdae;fspm
         static ComputeBuffer          s_VisibleFluidSimVolumeDataBuffer   = null; //seongdae;fspm
+
+        RTHandleSystem.RTHandle       m_VShadowMapBufferHandle; //seongdae;fspm
 
         // These two buffers do not depend on the frameID and are therefore shared by all views.
         RTHandleSystem.RTHandle       m_DensityBufferHandle;
@@ -205,6 +209,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 : VolumetricLightingPreset.Medium;
 
             FluidSimVolumeManager.manager.Build(asset); //seongdae;fspm
+
+            m_VolumetricShadowMapCS = asset.renderPipelineResources.shaders.volumetricShadowMapCS; //seongdae;fspm
 
             m_VolumeVoxelizationCS = asset.renderPipelineResources.shaders.volumeVoxelizationCS;
             m_VolumetricLightingCS = asset.renderPipelineResources.shaders.volumetricLightingCS;
@@ -287,6 +293,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // With stereo instancing, the VBuffer is doubled and split into 2 compartments for each eye
             if (TextureXR.useTexArray && XRGraphics.stereoRenderingMode == XRGraphics.StereoRenderingMode.SinglePassInstanced)
                 d = d * 2;
+
+            //seongdae;fspm
+            m_VShadowMapBufferHandle = RTHandles.Alloc(128, 128, 128,
+                    dimension:         TextureDimension.Tex3D,
+                    colorFormat:       GraphicsFormat.R8_UNorm,
+                    enableRandomWrite: true,
+                    name:              "VShadowMap");
+            //seongdae;fspm
 
             m_DensityBufferHandle = RTHandles.Alloc(scaleFunc:         ComputeVBufferResolutionXY,
                     slices:            d,
@@ -371,6 +385,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         void DestroyBuffers()
         {
+            //seongdae;fspm
+            if (m_VShadowMapBufferHandle != null)
+                RTHandles.Release(m_VShadowMapBufferHandle);
+            //seongdae;fspm
             if (m_DensityBufferHandle != null)
                 RTHandles.Release(m_DensityBufferHandle);
             if (m_LightingBufferHandle != null)
@@ -717,6 +735,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         cmd.SetComputeBufferParam(m_VolumeVoxelizationCS, kernel, HDShaderIDs.g_vBigTileLightList, lightLoop.GetBigTileLightList());
                 }
 
+                cmd.SetComputeTextureParam(m_VolumeVoxelizationCS, kernel, HDShaderIDs._VShadowMapBuffer, m_VShadowMapBufferHandle); //seongdae;fspm
+
                 cmd.SetComputeTextureParam(m_VolumeVoxelizationCS, kernel, HDShaderIDs._VBufferDensity,  m_DensityBufferHandle);
                 cmd.SetComputeBufferParam( m_VolumeVoxelizationCS, kernel, HDShaderIDs._VolumeBounds,    s_VisibleVolumeBoundsBuffer);
                 cmd.SetComputeBufferParam( m_VolumeVoxelizationCS, kernel, HDShaderIDs._VolumeData,      s_VisibleVolumeDataBuffer);
@@ -737,6 +757,27 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
 
         //seongdae;fspm
+        public void VolumetricShadowMapPass(HDCamera hdCamera, CommandBuffer cmd, uint frameIndex, FluidSimVolumeList fluidSimVolumes)
+        {
+            if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.Volumetrics))
+                return;
+
+            var visualEnvironment = VolumeManager.instance.stack.GetComponent<VisualEnvironment>();
+            if (visualEnvironment.fogType.value != FogType.Volumetric)
+                return;
+
+            const int threadTile = 4;
+            const int lessTile = threadTile - 1;
+
+            using (new ProfilingSample(cmd, "Volumetric Shadow Map"))
+            {
+                int w = (128 + lessTile) / threadTile;
+                int kernel = m_VolumetricShadowMapCS.FindKernel("VolumetricShadowMap");
+
+                cmd.SetComputeTextureParam(m_VolumetricShadowMapCS, kernel, HDShaderIDs._VShadowMapBuffer, m_VShadowMapBufferHandle);
+                cmd.DispatchCompute(m_VolumetricShadowMapCS, kernel, w, w, w);
+            }
+        }
         public void VolumeVoxelizationPass(HDCamera hdCamera, CommandBuffer cmd, uint frameIndex, FluidSimVolumeList fluidSimVolumes, LightLoop lightLoop)
         {
             if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.Volumetrics))

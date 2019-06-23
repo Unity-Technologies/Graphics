@@ -1,0 +1,16 @@
+﻿
+// #pragma
+#pragma kernel VolumetricShadowMap VolumetricShadowMapMain=VolumetricShadowMap
+
+RWTexture3D<float> _VShadowMapBuffer;
+
+[numthreads(4, 4, 4)]
+void VolumetricShadowMap(uint3 id : SV_DispatchThreadID)
+{
+    float mag = 24.0;
+    
+    uint3 voxelCoord = id.xyz;
+    float3 positionWS = (((float3)voxelCoord - 64.0) / 128.0) * mag;
+
+    _VShadowMapBuffer[voxelCoord] = 0.0;
+}

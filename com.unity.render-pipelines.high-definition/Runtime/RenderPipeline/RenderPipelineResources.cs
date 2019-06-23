@@ -68,6 +68,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public ComputeShader fluidSimVolumeCS; //seongdae;fspm
             [Reload("Lighting/VolumetricLighting/Texture3DAtlas.compute")] //seongdae;fspm
             public ComputeShader texture3DAtlasCS; //seongdae;fspm
+            [Reload("Lighting/VolumetricLighting/VolumetricShadowMap.compute")] //seongdae;fspm
+            public ComputeShader volumetricShadowMapCS; //seongdae;fspm
             [Reload("Lighting/VolumetricLighting/VolumeVoxelization.compute")]
             public ComputeShader volumeVoxelizationCS;
             [Reload("Lighting/VolumetricLighting/VolumetricLighting.compute")]

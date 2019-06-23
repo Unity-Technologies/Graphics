@@ -1852,6 +1852,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 else
                 {
                     // Perform the voxelization step which fills the density 3D texture.
+                    //m_VolumetricLightingSystem.VolumetricShadowMapPass(hdCamera, cmd, m_FrameCount, densityVolumes); //seongdae;fspm
+                    m_VolumetricLightingSystem.VolumetricShadowMapPass(hdCamera, cmd, m_FrameCount, fluidSimVolumes); //seongdae;fspm
                     m_VolumetricLightingSystem.VolumeVoxelizationPass(hdCamera, cmd, m_FrameCount, densityVolumes, m_LightLoop);
                     m_VolumetricLightingSystem.VolumeVoxelizationPass(hdCamera, cmd, m_FrameCount, fluidSimVolumes, m_LightLoop); //seongdae;fspm
                 }
