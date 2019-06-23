@@ -221,6 +221,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
             // Connon properties
             {
+                var workflowEnum = (FluidSimVolume.Workflow)serialized.workflow.intValue;
+                workflowEnum = (FluidSimVolume.Workflow)EditorGUILayout.EnumPopup(workflowEnum);
+                serialized.workflow.intValue = (int)workflowEnum;
+
                 EditorGUILayout.PropertyField(serialized.loopTime, Styles.s_LoopTimeLabel);
             }
         }
@@ -236,6 +240,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         }
         static void Drawer_AnimatedDensityContent(SerializedFluidSimVolume serialized, Editor owner)
         {
+            EditorGUILayout.PropertyField(serialized.initialDensityTexture, Styles.s_InitialDensityTextureLabel);
+            EditorGUILayout.PropertyField(serialized.numDensityTextures, Styles.s_NumDensityTextures);
             //EditorGUILayout.PropertyField(serialized.volumeTexture, Styles.s_VolumeTextureLabel);
             //EditorGUILayout.PropertyField(serialized.textureScroll, Styles.s_TextureScrollLabel);
             //EditorGUILayout.PropertyField(serialized.textureTile, Styles.s_TextureTileLabel);

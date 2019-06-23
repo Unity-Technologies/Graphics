@@ -8,6 +8,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     public struct FluidSimVolumeArtistParameters
     {
         [SerializeField]
+        public int workflow;
+        [SerializeField]
+        public float loopTime;
+
+        [SerializeField]
         public Texture3D initialStateTexture;
         [SerializeField]
         public Texture3D initialVectorField;
@@ -17,8 +22,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public float vectorFieldSpeed;
         [SerializeField]
         public int numVectorFields;
+
         [SerializeField]
-        public float loopTime;
+        public Texture3D initialDensityTexture;
+        [NonSerialized]
+        public Texture3D DensityTexture;
+        [SerializeField]
+        public int numDensityTextures;
 
         [SerializeField]
         public Vector3 positiveFade;
@@ -43,12 +53,18 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public FluidSimVolumeArtistParameters(int anything)
         {
+            workflow = (int)FluidSimVolume.Workflow.VectorField;
+            loopTime = 0.0f;
+
             initialStateTexture = null;
             initialVectorField = null;
             vectorField = null;
             vectorFieldSpeed = 1.0f;
             numVectorFields = 1;
-            loopTime = 0.0f;
+
+            initialDensityTexture = null;
+            DensityTexture = null;
+            numDensityTextures = 1;
 
             size = Vector3.one;
 
@@ -95,6 +111,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     [AddComponentMenu("Rendering/Fluid Simulation Volume", 1200)]
     public class FluidSimVolume : MonoBehaviour
     {
+        public enum Workflow
+        {
+            VectorField,
+            AnimatedDensity,
+        }
+
         public FluidSimVolumeArtistParameters parameters = new FluidSimVolumeArtistParameters(-1);
 
         public RTHandleSystem.RTHandle simulationBuffer0 = null;
@@ -105,10 +127,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         private List<Texture3D> _volumeTexList = new List<Texture3D>();
 
         private float _playingTime = 0.0f;
-        private float _vectorFieldElapsedTime = 0.0f;
-        private int _vectorFieldIndex = 0;
+        private float _frameElapsedTime = 0.0f;
+        private int   _frameIndex = 0;
 
         private AssetBundle _vectorFieldBundles = null;
+        private AssetBundle _animatedDensityBundles = null;
 
         private void Start()
         {
@@ -134,10 +157,18 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             FluidSimVolumeManager.manager.DeRegisterVolume(this);
         }
 
-        private void LoadVectorFieldBundles()
+        private void LoadVolumeTexturesBundles()
         {
-            if (_vectorFieldBundles == null)
-                _vectorFieldBundles = AssetBundle.LoadFromFile("Assets/VolumeTextures/vectorfields");
+            if (parameters.workflow == (int)Workflow.VectorField)
+            {
+                if (_vectorFieldBundles == null)
+                    _vectorFieldBundles = AssetBundle.LoadFromFile("Assets/VolumeTextures/vectorfields");
+            }
+            else
+            {
+                if (_animatedDensityBundles == null)
+                    _animatedDensityBundles = AssetBundle.LoadFromFile("Assets/VolumeTextures/animdensities");
+            }
         }
         private void UnloadVectorFieldBundles()
         {
@@ -149,22 +180,27 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
         private void UpdateVolumeTexList()
         {
-            LoadVectorFieldBundles();
+            LoadVolumeTexturesBundles();
 
-            // todo : can get from vector fields or animated density.
-            var numVolumeTexs = parameters.numVectorFields;
-            var volumeTexName = parameters.initialVectorField.name;
+            bool vfWorkflow = parameters.workflow == (int)Workflow.VectorField;
+
+            var numVolumeTexs = vfWorkflow ? parameters.numVectorFields : parameters.numDensityTextures;
+            var volumeTexName = vfWorkflow ? parameters.initialVectorField.name : parameters.initialDensityTexture.name;
+
             volumeTexName = volumeTexName.Substring(0, volumeTexName.Length - 1);
 
             //Debug.Log(volumeTexName);
 
             _volumeTexList.Clear();
 
+            var res    = vfWorkflow ? parameters.initialVectorField.width  : parameters.initialDensityTexture.width;
+            var format = vfWorkflow ? parameters.initialVectorField.format : parameters.initialDensityTexture.format;
+            var ext = vfWorkflow ? ".vf" : ".asset";
+
             for (int i = 1; i < numVolumeTexs; i++)
             {
-                var res = parameters.initialVectorField.width;
-                var format = parameters.initialVectorField.format;
-                var volumeTex = _vectorFieldBundles.LoadAsset<Texture3D>(volumeTexName + i + ".vf");
+                var textureName = volumeTexName + i + ext;
+                var volumeTex = _vectorFieldBundles.LoadAsset<Texture3D>(textureName);
 
                 _volumeTexList.Add(volumeTex);
             }
@@ -172,87 +208,122 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         private void Update()
         {
-            bool recreate =
+            _playingTime += Time.deltaTime;
+
+            RecreateSimulationBuffersIfNeeded();
+
+            UpdateLoopTime();
+
+            if (parameters.workflow == (int)Workflow.VectorField)
+                UpdateMultipleVectorFields();
+            else
+                UpdateMultipleAnimatedDensities();
+        }
+
+        private void RecreateSimulationBuffersIfNeeded()
+        {
+            bool needToRecreate =
                 parameters.initialStateTexture != null && (
                 simulationBuffer0 == null ||
                 parameters.initialStateTexture.width  != simulationBuffer0.rt.width ||
                 parameters.initialStateTexture.height != simulationBuffer0.rt.height ||
                 parameters.initialStateTexture.depth  != simulationBuffer0.rt.volumeDepth);
 
-            if (recreate)
+            if (needToRecreate)
             {
                 needToInitialize = true;
-                RecreateSimulationBuffers();
+
+                if (simulationBuffer0 != null)
+                    RTHandles.Release(simulationBuffer0);
+                if (simulationBuffer1 != null)
+                    RTHandles.Release(simulationBuffer1);
+
+                simulationBuffer0 = RTHandles.Alloc(
+                    parameters.initialStateTexture.width,
+                    parameters.initialStateTexture.height,
+                    parameters.initialStateTexture.depth,
+                    colorFormat: GraphicsFormat.R16G16B16A16_SFloat,
+                    filterMode: FilterMode.Bilinear,
+                    dimension: TextureDimension.Tex3D,
+                    enableRandomWrite: true,
+                    name: "SimulationBuffer0");
+
+                simulationBuffer1 = RTHandles.Alloc(
+                    parameters.initialStateTexture.width,
+                    parameters.initialStateTexture.height,
+                    parameters.initialStateTexture.depth,
+                    colorFormat: GraphicsFormat.R8G8B8A8_UNorm,
+                    filterMode: FilterMode.Bilinear,
+                    dimension: TextureDimension.Tex3D,
+                    enableRandomWrite: true,
+                    name: "SimulationBuffer1");
             }
             else
             {
                 needToInitialize = false;
             }
-
-            _playingTime += Time.deltaTime;
-
+        }
+        private void UpdateLoopTime()
+        {
             if (parameters.loopTime > 0.0 && _playingTime >= parameters.loopTime)
             {
                 _playingTime = 0.0f;
                 needToInitialize = true;
             }
-
-            UpdateMultipleVectorFields();
-        }
-
-        private void RecreateSimulationBuffers()
-        {
-            if (simulationBuffer0 != null)
-                RTHandles.Release(simulationBuffer0);
-            if (simulationBuffer1 != null)
-                RTHandles.Release(simulationBuffer1);
-
-            simulationBuffer0 = RTHandles.Alloc(
-                parameters.initialStateTexture.width,
-                parameters.initialStateTexture.height,
-                parameters.initialStateTexture.depth,
-                colorFormat: GraphicsFormat.R16G16B16A16_SFloat,
-                filterMode: FilterMode.Bilinear,
-                dimension: TextureDimension.Tex3D,
-                enableRandomWrite: true,
-                name: "SimulationBuffer0");
-
-            simulationBuffer1 = RTHandles.Alloc(
-                parameters.initialStateTexture.width,
-                parameters.initialStateTexture.height,
-                parameters.initialStateTexture.depth,
-                colorFormat: GraphicsFormat.R8G8B8A8_UNorm,
-                filterMode: FilterMode.Bilinear,
-                dimension: TextureDimension.Tex3D,
-                enableRandomWrite: true,
-                name: "SimulationBuffer1");
         }
         private void UpdateMultipleVectorFields()
         {
             if (parameters.numVectorFields >= 2)
             {
-                _vectorFieldElapsedTime += Time.deltaTime;
-                if (_vectorFieldElapsedTime >= 1.0f)
+                _frameElapsedTime += Time.deltaTime;
+                if (_frameElapsedTime >= 1.0f)
                 {
-                    _vectorFieldElapsedTime = 0.0f;
-                    _vectorFieldIndex++;
-                    if (_vectorFieldIndex >= parameters.numVectorFields)
-                        _vectorFieldIndex = 0;
+                    _frameElapsedTime = 0.0f;
+                    _frameIndex++;
+                    if (_frameIndex >= parameters.numVectorFields)
+                        _frameIndex = 0;
                 }
 
-                if (_vectorFieldIndex == 0)
+                if (_frameIndex == 0)
                 {
                     parameters.vectorField = parameters.initialVectorField;
                 }
                 else
                 {
-                    parameters.vectorField = _volumeTexList[_vectorFieldIndex - 1];
+                    parameters.vectorField = _volumeTexList[_frameIndex - 1];
                 }
                 //Debug.Log("VectorFieldName: " + parameters.vectorField.name);
             }
             else
             {
                 parameters.vectorField = parameters.initialVectorField;
+            }
+        }
+        private void UpdateMultipleAnimatedDensities()
+        {
+            if (parameters.numDensityTextures >= 2)
+            {
+                _frameElapsedTime += Time.deltaTime;
+                if (_frameElapsedTime >= 1.0f)
+                {
+                    _frameElapsedTime = 0.0f;
+                    _frameIndex++;
+                    if (_frameIndex >= parameters.numDensityTextures)
+                        _frameIndex = 0;
+                }
+
+                if (_frameIndex == 0)
+                {
+                    parameters.DensityTexture = parameters.initialDensityTexture;
+                }
+                else
+                {
+                    parameters.DensityTexture = _volumeTexList[_frameIndex - 1];
+                }
+            }
+            else
+            {
+                parameters.DensityTexture = parameters.initialDensityTexture;
             }
         }
     }
