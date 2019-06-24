@@ -428,7 +428,7 @@ namespace UnityEngine.Rendering.LWRP
         [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
         void SetupDebugRendering(ScriptableRenderContext context)
         {
-            debugMaterialMask = DebugMaterialMask.NONE;
+            debugMaterialMask = DebugDisplaySettings.Instance.materialSettings.debugMaterialMaskData;
             uint debugMaterialMaskInt = (uint) debugMaterialMask;
             
             var cmd = CommandBufferPool.Get("");
