@@ -2,6 +2,13 @@ namespace UnityEngine.Rendering.LWRP
 {
     internal class ForwardRenderer : ScriptableRenderer
     {
+        enum FullScreenDebugMode
+        {
+            None = -1,
+            Depth = 0,
+            ShadowsOnly = 1,
+        }
+
         const int k_DepthStencilBufferBits = 32;
         const string k_CreateCameraTextures = "Create Camera Texture";
 
@@ -18,6 +25,7 @@ namespace UnityEngine.Rendering.LWRP
         PostProcessPass m_PostProcessPass;
         FinalBlitPass m_FinalBlitPass;
         CapturePass m_CapturePass;
+        DebugPass m_DebugPass;
 
 #if UNITY_EDITOR
         SceneViewDepthCopyPass m_SceneViewDepthCopyPass;
@@ -33,9 +41,12 @@ namespace UnityEngine.Rendering.LWRP
         ForwardLights m_ForwardLights;
         StencilState m_DefaultStencilState;
 
+        FullScreenDebugMode fullScreenDebugMode { get; set; } = FullScreenDebugMode.None;
+
         public ForwardRenderer(ForwardRendererData data) : base(data)
         {
             Material blitMaterial = CoreUtils.CreateEngineMaterial(data.shaders.blitPS);
+            Material fullScreenDebugMaterial = CoreUtils.CreateEngineMaterial(data.shaders.fullScreenDebugPS);
             Material copyDepthMaterial = CoreUtils.CreateEngineMaterial(data.shaders.copyDepthPS);
             Material samplingMaterial = CoreUtils.CreateEngineMaterial(data.shaders.samplingPS);
             Material screenspaceShadowsMaterial = CoreUtils.CreateEngineMaterial(data.shaders.screenSpaceShadowPS);
@@ -63,6 +74,7 @@ namespace UnityEngine.Rendering.LWRP
             m_PostProcessPass = new PostProcessPass(RenderPassEvent.BeforeRenderingPostProcessing);
             m_CapturePass = new CapturePass(RenderPassEvent.AfterRendering);
             m_FinalBlitPass = new FinalBlitPass(RenderPassEvent.AfterRendering, blitMaterial);
+            m_DebugPass = new DebugPass(RenderPassEvent.AfterRendering, fullScreenDebugMaterial);
 
 #if UNITY_EDITOR
             m_SceneViewDepthCopyPass = new SceneViewDepthCopyPass(RenderPassEvent.AfterRendering + 9, copyDepthMaterial);
@@ -235,6 +247,28 @@ namespace UnityEngine.Rendering.LWRP
                     m_FinalBlitPass.Setup(cameraTargetDescriptor, m_ActiveCameraColorAttachment);
                     EnqueuePass(m_FinalBlitPass);
                 }
+            }
+
+            fullScreenDebugMode = FullScreenDebugMode.ShadowsOnly;
+            if (fullScreenDebugMode != FullScreenDebugMode.None)
+            {
+                RenderTargetHandle debugBuffer = new RenderTargetHandle(); 
+
+                switch (fullScreenDebugMode)
+                {
+                    case FullScreenDebugMode.Depth:
+                        debugBuffer = m_DepthTexture;
+                        break;
+                    case FullScreenDebugMode.ShadowsOnly:
+                        debugBuffer.Init("_ScreenSpaceShadowmapTexture");
+                        break;
+                    default:
+                        debugBuffer = m_OpaqueColor;
+                        break;
+                }
+
+                m_DebugPass.Setup(cameraTargetDescriptor, debugBuffer, (int)fullScreenDebugMode);
+                EnqueuePass(m_DebugPass);
             }
 
 #if UNITY_EDITOR

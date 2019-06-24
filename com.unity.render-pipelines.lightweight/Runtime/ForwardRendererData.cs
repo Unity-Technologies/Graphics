@@ -34,6 +34,9 @@ namespace UnityEngine.Rendering.LWRP
             [SerializeField, Reload("Shaders/Utils/Blit.shader")]
             public Shader blitPS;
 
+            [SerializeField, Reload("Shaders/Utils/FullScreenDebug.shader")]
+            public Shader fullScreenDebugPS;
+
             [SerializeField, Reload("Shaders/Utils/CopyDepth.shader")]
             public Shader copyDepthPS;
 
