@@ -438,10 +438,9 @@ namespace UnityEngine.Rendering.LWRP
         void SetupDebugRendering(ScriptableRenderContext context)
         {
             debugMaterialMask = DebugDisplaySettings.Instance.materialSettings.debugMaterialMaskData;
-            uint debugMaterialMaskInt = (uint) debugMaterialMask;
             
             var cmd = CommandBufferPool.Get("");
-            unsafe { cmd.SetGlobalFloat(m_DebugMaterialMaskId, *(float*)&debugMaterialMaskInt);}
+            cmd.SetGlobalFloat(m_DebugMaterialMaskId, (int)debugMaterialMask);
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
         }

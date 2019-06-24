@@ -5,15 +5,14 @@ using UnityEngine.Rendering.PostProcessing;
 
 namespace UnityEngine.Rendering.LWRP
 {
-    [Flags]
     public enum DebugMaterialMask
     {
-        NONE = 0,
-        ALBEDO = 1 << 0,
-        ALPHA = 1 << 1,
-        SMOOTHNESS = 1 << 2,
-        OCCLUSION = 1 << 3,
-        EMISSION = 1 << 4,
+        None,
+        Albedo,
+        Alpha,
+        Smoothnes,
+        AmbientOcclusion,
+        Emission,
     }
     
     public static class RenderingUtils
@@ -165,7 +164,7 @@ namespace UnityEngine.Rendering.LWRP
         internal static void RenderObjectWithDebug(ScriptableRenderContext context, ref CullingResults cullResults,
             Camera camera, FilteringSettings filterSettings, SortingCriteria sortFlags, DebugMaterialMask debugMaterialMask)
         {
-            if (debugMaterialMask == DebugMaterialMask.NONE)
+            if (debugMaterialMask == DebugMaterialMask.None)
                 return;
             
             SortingSettings sortingSettings = new SortingSettings(camera) { criteria = sortFlags };

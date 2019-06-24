@@ -3,13 +3,13 @@
 
 #include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/Lighting.hlsl"
         
-#define DEBUG_BASE_COLOR 0
-#define DEBUG_BASE_ALPHA 1
-#define DEBUG_BASE_SMOOTHNESS 2
-#define DEBUG_BASE_OCCLUSION 3
-#define DEBUG_BASE_EMISSION 4
+#define DEBUG_BASE_COLOR 1
+#define DEBUG_BASE_ALPHA 2
+#define DEBUG_BASE_SMOOTHNESS 3
+#define DEBUG_BASE_OCCLUSION 4
+#define DEBUG_BASE_EMISSION 5
 
-float _DebugMaterialMask;
+int _DebugMaterialMask;
 
 struct Attributes
 {
@@ -141,19 +141,19 @@ half4 LitPassFragment(Varyings input) : SV_Target
     InitializeInputData(input, surfaceData.normalTS, inputData);
 
     half3 color = half3(0.0, 0.0, 0.0);
-    if (IsBitSet(asuint(_DebugMaterialMask), DEBUG_BASE_COLOR))
+    if (_DebugMaterialMask == DEBUG_BASE_COLOR)
         color = surfaceData.albedo;
     
-    if (IsBitSet(asuint(_DebugMaterialMask), DEBUG_BASE_ALPHA))
+    if (_DebugMaterialMask == DEBUG_BASE_ALPHA)
         color = surfaceData.alpha.xxx;
     
-    if (IsBitSet(asuint(_DebugMaterialMask), DEBUG_BASE_SMOOTHNESS))
+    if (_DebugMaterialMask == DEBUG_BASE_SMOOTHNESS)
         color = surfaceData.smoothness.xxx;
     
-    if (IsBitSet(asuint(_DebugMaterialMask), DEBUG_BASE_OCCLUSION))
+    if (_DebugMaterialMask == DEBUG_BASE_OCCLUSION)
         color = surfaceData.occlusion.xxx;
     
-    if (IsBitSet(asuint(_DebugMaterialMask), DEBUG_BASE_EMISSION))
+    if (_DebugMaterialMask == DEBUG_BASE_EMISSION)
         color = surfaceData.emission;
     
     return half4(color, 1.0);

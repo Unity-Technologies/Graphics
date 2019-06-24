@@ -49,7 +49,7 @@ namespace UnityEngine.Rendering.LWRP
                     : SortingCriteria.CommonTransparent;
                 var drawSettings = CreateDrawingSettings(m_ShaderTagIdList, ref renderingData, sortFlags);
 
-                if (debugMaterialMask != DebugMaterialMask.NONE)
+                if (debugMaterialMask != DebugMaterialMask.None)
                 {
                     RenderingUtils.RenderObjectWithDebug(context, ref renderingData.cullResults, camera,
                         m_FilteringSettings, SortingCriteria.None, debugMaterialMask);
