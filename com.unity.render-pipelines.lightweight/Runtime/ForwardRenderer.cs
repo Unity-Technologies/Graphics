@@ -194,9 +194,7 @@ namespace UnityEngine.Rendering.LWRP
                 EnqueuePass(m_ScreenSpaceShadowResolvePass);
             }
 
-            bool showCascades = DebugDisplaySettings.Instance.Test.m_Boolean;
-            //showCascades = false;
-            if(showCascades )
+            if(DebugDisplaySettings.Instance.Lighting.m_LightingDebugMode==DebugDisplaySettingsLighting.LightingDebugMode.ShadowCascades )
             {
                 EnqueuePass(m_DebugShowShadowCascadesPass);
 #if UNITY_EDITOR
@@ -238,7 +236,7 @@ namespace UnityEngine.Rendering.LWRP
                 EnqueuePass(m_RenderTransparentForwardPass);
             }
 
-            bool afterRenderExists = (renderingData.cameraData.captureActions != null || hasAfterRendering) && !showCascades;
+            bool afterRenderExists = renderingData.cameraData.captureActions != null || hasAfterRendering;
 
             // if we have additional filters
             // we need to stay in a RT
@@ -266,7 +264,7 @@ namespace UnityEngine.Rendering.LWRP
             }
             else
             {
-                if (postProcessEnabled && !showCascades)
+                if (postProcessEnabled)
                 {
                     m_PostProcessPass.Setup(cameraTargetDescriptor, m_ActiveCameraColorAttachment, RenderTargetHandle.CameraTarget);
                     EnqueuePass(m_PostProcessPass);
