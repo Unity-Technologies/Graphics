@@ -211,11 +211,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
                 else if (instancingEnabled)
                 {
-                    if (viewCount == 2)
+                    if (viewCount <= TextureXR.slices)
                     {
                         cmd.EnableShaderKeyword("STEREO_INSTANCING_ON");
 #if UNITY_2019_3_OR_NEWER
-                        //cmd.SetInstanceMultiplier(2);
+                        cmd.SetInstanceMultiplier((uint)viewCount);
 #endif
                     }
                     else
@@ -240,7 +240,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 {
                     cmd.DisableShaderKeyword("STEREO_INSTANCING_ON");
 #if UNITY_2019_3_OR_NEWER
-                    //cmd.SetInstanceMultiplier(1);
+                    cmd.SetInstanceMultiplier(1);
 #endif
                 }
             }
