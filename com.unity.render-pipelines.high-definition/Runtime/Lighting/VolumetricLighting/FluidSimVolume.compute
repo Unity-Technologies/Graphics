@@ -38,12 +38,14 @@ void Simulate(uint3 id : SV_DispatchThreadID)
     float3 vf0 = SAMPLE_TEXTURE3D_LOD(_VectorField0, s_linear_clamp_sampler, vfUVW, 0).rgb;
     float3 vf1 = SAMPLE_TEXTURE3D_LOD(_VectorField1, s_linear_clamp_sampler, vfUVW, 0).rgb;
     
-    float3 vf = lerp(vf0, vf1, _FrameBlend) * (unity_DeltaTime * _VectorFieldSpeed);
+    float3 vf = lerp(vf0, vf1, _FrameBlend);
+    vf *= (unity_DeltaTime.x * _VectorFieldSpeed);
     //float3 vf = (pos / _FluidSimVolumeRes) * 2.0 - 1.0;
     //vf = float3(vf.y, -vf.x, 0.0) / vf.z;
 
     float3 outputPos = pos + vf;
 
     _SimulationBuffer0[id.xyz] = float4(outputPos, 0.0);
+    //_SimulationBuffer1[id.xyz] = float4(vf, 0.0);
 #endif
 }

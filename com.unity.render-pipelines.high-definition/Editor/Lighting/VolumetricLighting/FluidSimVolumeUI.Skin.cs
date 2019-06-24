@@ -24,9 +24,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public static readonly GUIContent s_InitialVectorFieldLabel = new GUIContent("Initial Vector Field", "");
             public static readonly GUIContent s_VectorFieldSpeedLabel = new GUIContent("Vector Field Speed", "");
             public static readonly GUIContent s_NumVectorFields = new GUIContent("Number of Vector Fields", "");
+            public static readonly GUIContent s_VfFrameTime = new GUIContent("Frame Time", "");
 
             public static readonly GUIContent s_InitialDensityTextureLabel = new GUIContent("Initial Density Texture", "");
             public static readonly GUIContent s_NumDensityTextures = new GUIContent("Number of Density Textures", "");
+            public static readonly GUIContent s_AdFrameTime = new GUIContent("Frame Time", "");
 
             public static readonly GUIContent s_BlendLabel = new GUIContent("Blend Distance", "Interior distance from the Size where the fog fades in completely.");
             public static readonly GUIContent s_AdvancedModeContent = new GUIContent("Advanced", "Exposes advanced parameters.");

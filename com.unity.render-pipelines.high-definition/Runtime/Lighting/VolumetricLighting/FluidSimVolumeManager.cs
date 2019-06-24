@@ -110,26 +110,37 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     if (simulationBuffer0 == null)
                         continue;
 
-                    var vectorFieldLast = volume.parameters.vectorFieldLast;
+                    var simulationBuffer1 = volume.simulationBuffer1;
+                    if (simulationBuffer1 == null)
+                        continue;
+
                     var vectorField = volume.parameters.vectorField;
                     if (vectorField == null)
+                        continue;
+
+                    var vectorFieldNext = volume.parameters.vectorFieldNext;
+                    if (vectorFieldNext == null)
                         continue;
 
                     var kernel = _fluidSimVolumeCS.FindKernel("Simulate");
                     if (kernel == -1)
                         continue;
-                
+
+                    //Debug.Log("FBlend: " + volume.frameBlend + "][ ComputeShader: " + vectorField.name + ",  " + vectorFieldLast.name);
+                    //Debug.Log("ComputeShader: " + vectorField.name + ",  " + vectorFieldNext.name);
+
                     var fluidSimVolumeRes = new Vector3(fluidSimVolumeResX, fluidSimVolumeResY, fluidSimVolumeResZ);
                     var vectorFieldSpeed = volume.parameters.vectorFieldSpeed;
                 
                     cmd.SetComputeVectorParam(_fluidSimVolumeCS, HDShaderIDs._FluidSimVolumeRes, fluidSimVolumeRes);
                     cmd.SetComputeTextureParam(_fluidSimVolumeCS, kernel, HDShaderIDs._VectorField0, vectorField);
-                    cmd.SetComputeTextureParam(_fluidSimVolumeCS, kernel, HDShaderIDs._VectorField1, vectorFieldLast);
+                    cmd.SetComputeTextureParam(_fluidSimVolumeCS, kernel, HDShaderIDs._VectorField1, vectorFieldNext);
                     cmd.SetComputeFloatParam(_fluidSimVolumeCS, HDShaderIDs._VectorFieldSpeed, vectorFieldSpeed);
                     cmd.SetComputeFloatParam(_fluidSimVolumeCS, HDShaderIDs._FrameBlend, volume.frameBlend);
 
                     cmd.SetComputeTextureParam(_fluidSimVolumeCS, kernel, HDShaderIDs._SimulationBuffer0, simulationBuffer0);
-                
+                    cmd.SetComputeTextureParam(_fluidSimVolumeCS, kernel, HDShaderIDs._SimulationBuffer1, simulationBuffer1);
+
                     cmd.DispatchCompute(_fluidSimVolumeCS, kernel, dispatchX, dispatchY, dispatchZ);
                 }
             }
@@ -185,8 +196,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     if (initialDensityTexture == null)
                         continue;
 
-                    var densityTexture0 = volume.parameters.DensityTexture;
-                    if (densityTexture0 == null)
+                    var densityTexture = volume.parameters.DensityTexture;
+                    if (densityTexture == null)
+                        continue;
+
+                    var densityTextureNext = volume.parameters.DensityTextureNext;
+                    if (densityTextureNext == null)
                         continue;
 
                     int fluidSimVolumeResX = initialDensityTexture.width;
@@ -198,8 +213,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     int dispatchZ = (fluidSimVolumeResZ + lessTile) / threadTile;
 
                     cmd.SetComputeFloatParam(_texture3DAtlasCS, HDShaderIDs._FrameBlend, volume.frameBlend);
-                    cmd.SetComputeTextureParam(_texture3DAtlasCS, kernel2, HDShaderIDs._AnimDensityTexture0, densityTexture0);
-                    cmd.SetComputeTextureParam(_texture3DAtlasCS, kernel2, HDShaderIDs._AnimDensityTexture1, densityTexture0);
+                    cmd.SetComputeTextureParam(_texture3DAtlasCS, kernel2, HDShaderIDs._AnimDensityTexture0, densityTexture);
+                    cmd.SetComputeTextureParam(_texture3DAtlasCS, kernel2, HDShaderIDs._AnimDensityTexture1, densityTextureNext);
 
                     cmd.DispatchCompute(_texture3DAtlasCS, kernel0, dispatchX, dispatchY, dispatchZ);
                     cmd.DispatchCompute(_texture3DAtlasCS, kernel2, dispatchX, dispatchY, dispatchZ);

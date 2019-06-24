@@ -226,7 +226,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 serialized.workflow.intValue = (int)workflowEnumNew;
 
                 if (workflowEnum != workflowEnumNew)
-                    ((FluidSimVolume)owner.target).UpdateVolumeTexList(workflowEnumNew == FluidSimVolume.Workflow.VectorField);
+                    ((FluidSimVolume)owner.target).NotifyToUpdateVolumeTexList();
 
                 EditorGUILayout.PropertyField(serialized.loopTime, Styles.s_LoopTimeLabel);
             }
@@ -234,20 +234,56 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         static void Drawer_TransitVectorFieldContent(SerializedFluidSimVolume serialized, Editor owner)
         {
+            var workflowEnum = (FluidSimVolume.Workflow)serialized.workflow.intValue;
+
+            float vfFrameTime = serialized.vfFrameTime.floatValue;
+            vfFrameTime = Mathf.Max(0.0001f, vfFrameTime);
+            serialized.vfFrameTime.floatValue = vfFrameTime;
+
+            bool propertiesChanged = false;
+
             EditorGUILayout.PropertyField(serialized.initialStateTexture, Styles.s_InitialStateTextureLabel);
+            EditorGUI.BeginChangeCheck();
             EditorGUILayout.PropertyField(serialized.initialVectorField, Styles.s_InitialVectorFieldLabel);
+            propertiesChanged |= EditorGUI.EndChangeCheck();
             EditorGUILayout.PropertyField(serialized.vectorFieldSpeed, Styles.s_VectorFieldSpeedLabel);
+            EditorGUI.BeginChangeCheck();
             EditorGUILayout.PropertyField(serialized.numVectorFields, Styles.s_NumVectorFields);
+            propertiesChanged |= EditorGUI.EndChangeCheck();
+            EditorGUILayout.PropertyField(serialized.vfFrameTime, Styles.s_VfFrameTime);
             //EditorGUILayout.PropertyField(serialized.textureScroll, Styles.s_TextureScrollLabel);
             //EditorGUILayout.PropertyField(serialized.textureTile, Styles.s_TextureTileLabel);
+
+            //if (propertiesChanged)
+            //    Debug.Log("Changed.");
+
+            if (propertiesChanged)
+                ((FluidSimVolume)owner.target).NotifyToUpdateVolumeTexList();
         }
         static void Drawer_AnimatedDensityContent(SerializedFluidSimVolume serialized, Editor owner)
         {
+            var workflowEnum = (FluidSimVolume.Workflow)serialized.workflow.intValue;
+
+            float adFrameTime = serialized.adFrameTime.floatValue;
+            adFrameTime = Mathf.Max(0.0001f, adFrameTime);
+            serialized.adFrameTime.floatValue = adFrameTime;
+
+            bool propertiesChanged = false;
+
+            EditorGUI.BeginChangeCheck();
             EditorGUILayout.PropertyField(serialized.initialDensityTexture, Styles.s_InitialDensityTextureLabel);
             EditorGUILayout.PropertyField(serialized.numDensityTextures, Styles.s_NumDensityTextures);
+            propertiesChanged |= EditorGUI.EndChangeCheck();
+            EditorGUILayout.PropertyField(serialized.adFrameTime, Styles.s_AdFrameTime);
             //EditorGUILayout.PropertyField(serialized.volumeTexture, Styles.s_VolumeTextureLabel);
             //EditorGUILayout.PropertyField(serialized.textureScroll, Styles.s_TextureScrollLabel);
             //EditorGUILayout.PropertyField(serialized.textureTile, Styles.s_TextureTileLabel);
+
+            //if (propertiesChanged)
+            //    Debug.Log("Changed.");
+
+            if (propertiesChanged)
+                ((FluidSimVolume)owner.target).NotifyToUpdateVolumeTexList();
         }
     }
 }

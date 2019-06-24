@@ -12,9 +12,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         public SerializedProperty initialVectorField;
         public SerializedProperty vectorFieldSpeed;
         public SerializedProperty numVectorFields;
+        public SerializedProperty vfFrameTime;
 
         public SerializedProperty initialDensityTexture;
         public SerializedProperty numDensityTextures;
+        public SerializedProperty adFrameTime;
 
         public SerializedProperty size;
 
@@ -42,9 +44,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             initialVectorField = fluidSimParams.FindPropertyRelative("initialVectorField");
             vectorFieldSpeed = fluidSimParams.FindPropertyRelative("vectorFieldSpeed");
             numVectorFields = fluidSimParams.FindPropertyRelative("numVectorFields");
+            vfFrameTime = fluidSimParams.FindPropertyRelative("vfFrameTime");
 
             initialDensityTexture = fluidSimParams.FindPropertyRelative("initialDensityTexture");
             numDensityTextures = fluidSimParams.FindPropertyRelative("numDensityTextures");
+            adFrameTime = fluidSimParams.FindPropertyRelative("adFrameTime");
 
             size = fluidSimParams.FindPropertyRelative("size");
 

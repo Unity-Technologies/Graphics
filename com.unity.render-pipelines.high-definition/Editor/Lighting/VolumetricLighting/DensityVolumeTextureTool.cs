@@ -147,12 +147,26 @@ namespace UnityEditor.Experimental.Rendering
         //seongdae;fspm
         private void BuildMultipleVolumeTextures()
         {
+            var sourceTextureAssetPath = AssetDatabase.GetAssetPath(sourceTexture);
+            var extIndex = sourceTextureAssetPath.LastIndexOf('.') + 1;
+            var sourceTextureExt = sourceTextureAssetPath.Substring(extIndex, sourceTextureAssetPath.Length - extIndex);
+
+            //Debug.Log(sourceTextureExt);
+
             for (int t = 0; t < numTextures; t++)
             {
-                var sourceTextureName = sourceTexture.name.Substring(0, sourceTexture.name.Length - 1);
+                var sourceTextureName = sourceTexture.name.Substring(0, sourceTexture.name.Length - 1) + t;
+                var sourceTexturePath = assetDirectory + "/" + sourceTextureName + "." + sourceTextureExt;
+                var sourceTextureToUse = sourceTexture;
+
+                //Debug.Log(sourceTexturePath);
+                //Debug.Log(AssetDatabase.GetAssetPath(sourceTexture));
+
+                if (t > 0)
+                    sourceTextureToUse = AssetDatabase.LoadAssetAtPath<Texture2D>(sourceTexturePath);
 
                 //Check if the object we want to create is already in the AssetDatabase
-                string volumeTextureAssetPath = assetDirectory + "/" + sourceTextureName + t + "_Texture3D.asset";
+                string volumeTextureAssetPath = assetDirectory + "/" + sourceTextureName + "_Texture3D.asset";
                 bool createNewAsset = false;
 
                 Texture3D volumeTexture = AssetDatabase.LoadAssetAtPath(volumeTextureAssetPath, typeof(Texture3D)) as Texture3D;
@@ -183,7 +197,7 @@ namespace UnityEditor.Experimental.Rendering
                 {
                     for (int j = 0; j < xTiles; j++)
                     {
-                        Color[] sourceTile = sourceTexture.GetPixels(j * tileSize, i * tileSize, tileSize, tileSize);
+                        Color[] sourceTile = sourceTextureToUse.GetPixels(j * tileSize, i * tileSize, tileSize, tileSize);
                         Array.Resize(ref colorArray, colorArray.Length + sourceTile.Length);
                         Array.Copy(sourceTile, 0, colorArray, colorArray.Length - sourceTile.Length, sourceTile.Length);
                     }
