@@ -28,10 +28,11 @@ RWTexture3D<float4> _SimulationBuffer1;
 void Simulate(uint3 id : SV_DispatchThreadID)
 {
 #ifdef INITIAL_STATE
-    _SimulationBuffer0[id.xyz] = float4((float3)id.xyz, 0.0);
+    float3 startPos = (float3)id.xyz;
+    
+    _SimulationBuffer0[id.xyz] = float4(startPos, 0.0);
     _SimulationBuffer1[id.xyz] = _InitialStateVolumeTexture[id.xyz];
 #elif SIMULATE
-
     float3 pos = _SimulationBuffer0[id.xyz].xyz;
     float3 vfUVW = (pos / _FluidSimVolumeRes);
 
@@ -46,6 +47,5 @@ void Simulate(uint3 id : SV_DispatchThreadID)
     float3 outputPos = pos + vf;
 
     _SimulationBuffer0[id.xyz] = float4(outputPos, 0.0);
-    //_SimulationBuffer1[id.xyz] = float4(vf, 0.0);
 #endif
 }

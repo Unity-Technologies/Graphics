@@ -64,8 +64,8 @@
 //--------------------------------------------------------------------------------------------------
 
 #ifndef FLUID_SIM //seongdae;fspm
-StructuredBuffer<OrientedBBox>            _VolumeBounds;
-StructuredBuffer<DensityVolumeEngineData> _VolumeData;
+StructuredBuffer<OrientedBBox>             _VolumeBounds;
+StructuredBuffer<DensityVolumeEngineData>  _VolumeData;
 #else //seongdae;fspm
 StructuredBuffer<OrientedBBox>             _VolumeBounds;
 StructuredBuffer<FluidSimVolumeEngineData> _VolumeData;
@@ -350,12 +350,12 @@ void FillVolumetricDensityBuffer(PositionInputs posInput, uint tileIndex, Jitter
 }
 //seongdae;fspm
 #else
-float3 SampleFluidSimVolume(FluidSimVolumeEngineData volumeData, float3 voxelCenterNDC)
+float4 SampleFluidSimVolume(FluidSimVolumeEngineData volumeData, float3 voxelCenterNDC)
 {
     // todo : sync atlas resolution
     float3 voxelCenterUVW = frac(voxelCenterNDC * (volumeData.volumeRes / 512.0));
 
-    return SAMPLE_TEXTURE3D_LOD(_FluidSimVolumeAtlas, s_linear_repeat_sampler, voxelCenterUVW, 0).rgb;
+    return SAMPLE_TEXTURE3D_LOD(_FluidSimVolumeAtlas, s_linear_repeat_sampler, voxelCenterUVW, 0);
 }
 
 void FillVolumetricDensityBuffer(PositionInputs posInput, uint tileIndex, JitteredRay ray)
@@ -520,14 +520,15 @@ void FillVolumetricDensityBuffer(PositionInputs posInput, uint tileIndex, Jitter
                 float dist = t;
 
                 float3 fluidSimScattering = 0;
+                float  fluidSimExtinction = 0;
 
                 if (_VolumeData[volumeIndex].textureIndex != -1)
                 {
-                    fluidSimScattering = SampleFluidSimVolume(_VolumeData[volumeIndex], voxelCenterNDC);
+                    float4 density = SampleFluidSimVolume(_VolumeData[volumeIndex], voxelCenterNDC);
+                    fluidSimScattering = density.xyz;
+                    fluidSimExtinction = dot(density.xyz, 0.3333) + density.w;
                 }
-
-                float fluidSimExtinction = max(fluidSimScattering.x, max(fluidSimScattering.y, fluidSimScattering.z));
-
+                
                 voxelScattering += fluidSimScattering;
                 voxelExtinction += fluidSimExtinction;
             }

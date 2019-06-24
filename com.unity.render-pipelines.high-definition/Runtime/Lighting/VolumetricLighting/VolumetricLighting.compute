@@ -68,6 +68,8 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPass.cs.hlsl"
 #define SHADERPASS SHADERPASS_VOLUMETRIC_LIGHTING
 
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/VolumetricLighting/VShadowMapVariables.hlsl" //seongdae;fspm
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/VolumetricLighting/VShadowMapUtils.hlsl" //seongdae;fspm
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/VolumetricLighting/VolumetricLighting.cs.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/VolumetricLighting/VBuffer.hlsl"
 
@@ -198,6 +200,12 @@ VoxelLighting EvaluateVoxelLightingDirectional(LightLoopContext context, uint fe
         float3 color; float attenuation;
         EvaluateLight_Directional(context, posInput, light, unused, L, L, NdotL,
                                   color, attenuation);
+                                  
+        //seongdae;fspm
+        float vAttenuation = 1.0;
+        EvaluateVolumetricAttenuation_Directional(posInput.positionWS, L, 8, vAttenuation);
+        attenuation *= vAttenuation;
+        //seongdae;fspm
 
         // Important:
         // Ideally, all scattering calculations should use the jittered versions
