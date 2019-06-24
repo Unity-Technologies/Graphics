@@ -1,6 +1,7 @@
 
 using System;
 using System.Collections.Generic;
+using UnityEngine;
 using UnityEngine.Experimental.Rendering;
 
 namespace UnityEditor.Rendering
@@ -11,6 +12,11 @@ namespace UnityEditor.Rendering
         private DebugDisplaySettings m_Settings;
         
         private DebugDisplaySettingsTest m_DisplaySettingsTest;
+
+        private void Reset()
+        {
+            m_Settings?.Reset();
+        }
 
         public void RegisterDebug(DebugDisplaySettings settings)
         {
@@ -39,20 +45,28 @@ namespace UnityEditor.Rendering
 
         public void UnregisterDebug()
         {
-            foreach(IDebugDisplaySettingsPanelDisposable disposablePanel in m_DisposablePanels)
+            DebugManager debugManager = DebugManager.instance;
+
+            foreach(IDebugDisplaySettingsPanelDisposable disposableSettingsPanel in m_DisposablePanels)
             {
-                disposablePanel.Dispose();
+                DebugUI.Widget[] panelWidgets = disposableSettingsPanel.Widgets;
+                string panelId = disposableSettingsPanel.PanelName;
+                DebugUI.Panel panel = debugManager.GetPanel(panelId, true);
+                ObservableList<DebugUI.Widget> panelChildren = panel.children;
+
+                disposableSettingsPanel.Dispose();
+                panelChildren.Remove(panelWidgets);
             }
 
             m_DisposablePanels = null;
 
-            DebugManager.instance.UnregisterData(this);
+            debugManager.UnregisterData(this);
         }
 
         #region IDebugData
         public Action GetReset()
         {
-            return () => m_Settings.Reset();
+            return Reset;
         }
         #endregion
     }

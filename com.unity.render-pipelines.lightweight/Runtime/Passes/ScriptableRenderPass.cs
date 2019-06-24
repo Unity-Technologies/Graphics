@@ -32,7 +32,8 @@ namespace UnityEngine.Rendering.LWRP
     public abstract class ScriptableRenderPass
     {
         public RenderPassEvent renderPassEvent { get; set; }
-
+        public DebugMaterialMask debugMaterialMask { get; set; }
+        
         public RenderTargetIdentifier colorAttachment
         {
             get => m_ColorAttachment;
