@@ -5,14 +5,17 @@ using UnityEngine.Rendering.PostProcessing;
 
 namespace UnityEngine.Rendering.LWRP
 {
-    public enum DebugMaterialMask
+    public enum DebugMaterialIndex
     {
         None,
-        Albedo,
+        Unlit,
+        Diffuse,
+        Specular,
         Alpha,
         Smoothnes,
         AmbientOcclusion,
         Emission,
+        NormalWorldSpace,
     }
     
     public static class RenderingUtils
@@ -162,9 +165,9 @@ namespace UnityEngine.Rendering.LWRP
 
         [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
         internal static void RenderObjectWithDebug(ScriptableRenderContext context, ref CullingResults cullResults,
-            Camera camera, FilteringSettings filterSettings, SortingCriteria sortFlags, DebugMaterialMask debugMaterialMask)
+            Camera camera, FilteringSettings filterSettings, SortingCriteria sortFlags, DebugMaterialIndex debugMaterialIndex)
         {
-            if (debugMaterialMask == DebugMaterialMask.None)
+            if (debugMaterialIndex == DebugMaterialIndex.None)
                 return;
             
             SortingSettings sortingSettings = new SortingSettings(camera) { criteria = sortFlags };

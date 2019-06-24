@@ -14,7 +14,7 @@ namespace UnityEngine.Rendering.LWRP
 
         const int k_DepthStencilBufferBits = 32;
         const string k_CreateCameraTextures = "Create Camera Texture";
-        int m_DebugMaterialMaskId;
+        int m_DebugMaterialIndexId;
 
         DepthOnlyPass m_DepthPrepass;
         MainLightShadowCasterPass m_MainLightShadowCasterPass;
@@ -50,7 +50,7 @@ namespace UnityEngine.Rendering.LWRP
 
         public ForwardRenderer(ForwardRendererData data) : base(data)
         {
-            m_DebugMaterialMaskId = Shader.PropertyToID("_DebugMaterialMask");
+            m_DebugMaterialIndexId = Shader.PropertyToID("_DebugMaterialIndex");
             
             Material blitMaterial = CoreUtils.CreateEngineMaterial(data.shaders.blitPS);
             Material fullScreenDebugMaterial = CoreUtils.CreateEngineMaterial(data.shaders.fullScreenDebugPS);
@@ -437,10 +437,10 @@ namespace UnityEngine.Rendering.LWRP
         [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
         void SetupDebugRendering(ScriptableRenderContext context)
         {
-            debugMaterialMask = DebugDisplaySettings.Instance.materialSettings.debugMaterialMaskData;
+            debugMaterialIndex = DebugDisplaySettings.Instance.materialSettings.DebugMaterialIndexData;
             
             var cmd = CommandBufferPool.Get("");
-            cmd.SetGlobalFloat(m_DebugMaterialMaskId, (int)debugMaterialMask);
+            cmd.SetGlobalFloat(m_DebugMaterialIndexId, (int)debugMaterialIndex);
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
         }

@@ -7,7 +7,7 @@ namespace UnityEditor.Rendering
 {
     public class DebugMaterialSettings : IDebugDisplaySettingsData
     {
-        public DebugMaterialMask debugMaterialMaskData;
+        public DebugMaterialIndex DebugMaterialIndexData;
         
         private class SettingsPanel : IDebugDisplaySettingsPanelDisposable
         {
@@ -23,7 +23,7 @@ namespace UnityEditor.Rendering
             
             public SettingsPanel(DebugMaterialSettings data)
             {
-                AddWidget(new DebugUI.EnumField { displayName = "Material Override", autoEnum = typeof(DebugMaterialMask), getter = () => (int)data.debugMaterialMaskData, setter = (value) => {}, getIndex = () => (int)data.debugMaterialMaskData, setIndex = (value) => data.debugMaterialMaskData = (DebugMaterialMask)value});
+                AddWidget(new DebugUI.EnumField { displayName = "Material Override", autoEnum = typeof(DebugMaterialIndex), getter = () => (int)data.DebugMaterialIndexData, setter = (value) => {}, getIndex = () => (int)data.DebugMaterialIndexData, setIndex = (value) => data.DebugMaterialIndexData = (DebugMaterialIndex)value});
             }
 
             public void Dispose()
