@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph.Drawing.Colors;
@@ -44,6 +45,8 @@ namespace UnityEditor.ShaderGraph
         public Identifier tempId { get; set; }
 
         public GraphData owner { get; set; }
+
+        public GraphElement container { get; set; }
 
         OnNodeModified m_OnModified;
 

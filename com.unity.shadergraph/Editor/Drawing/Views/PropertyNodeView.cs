@@ -16,6 +16,7 @@ namespace UnityEditor.ShaderGraph
         {
             styleSheets.Add(Resources.Load<StyleSheet>("Styles/PropertyNodeView"));
             this.node = node;
+            node.container = this;
             viewDataKey = node.guid.ToString();
             userData = node;
 
