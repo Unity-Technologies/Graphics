@@ -13,6 +13,7 @@ namespace UnityEditor.Rendering
         public static DebugDisplaySettings Instance => s_Instance.Value;
 
         public DebugDisplaySettingsTest Test { get; private set; }
+        public DebugMaterialSettings materialSettings { get; private set; }
         
         private DebugDisplaySettingsTest m_DisplaySettingsTest;
 
@@ -32,6 +33,8 @@ namespace UnityEditor.Rendering
             m_Settings.Clear();
 
             Test = Add(new DebugDisplaySettingsTest());
+            materialSettings = Add(new DebugMaterialSettings());
+
         }
 
         public void ForEach(Action<IDebugDisplaySettingsData> onExecute)
