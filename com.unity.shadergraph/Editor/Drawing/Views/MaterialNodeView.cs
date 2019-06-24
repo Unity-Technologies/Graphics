@@ -54,6 +54,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             m_ConnectorListener = connectorListener;
             node = inNode;
+            inNode.container = this;
             viewDataKey = node.guid.ToString();
             UpdateTitle();
 
@@ -195,6 +196,26 @@ namespace UnityEditor.ShaderGraph.Drawing
                 m_ButtonContainer.Add(m_CollapseButton);
                 m_TitleContainer.Add(m_ButtonContainer);
             }
+
+            this.RegisterCallback<MouseDownEvent>(OnMouseDown);
+        }
+
+        void OnMouseDown(MouseDownEvent evt)
+        {
+            if (!evt.altKey)
+                return;
+
+            var activeNodeList = ListPool<AbstractMaterialNode>.Get();
+            NodeUtils.DepthFirstCollectNodesFromNode(activeNodeList, node);
+
+            var selection = node.container.GetFirstAncestorOfType<ISelection>();
+            selection.ClearSelection();
+            foreach (var abstractMaterialNode in activeNodeList)
+            {
+                abstractMaterialNode.container?.Select((VisualElement)selection, true);
+            }
+
+            evt.StopPropagation();
         }
 
         public void AttachMessage(string errString, ShaderCompilerMessageSeverity severity)
