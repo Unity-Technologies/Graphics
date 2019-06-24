@@ -1,11 +1,11 @@
 using System;
 using Unity.Collections;
+using UnityEditor.Rendering;
 #if UNITY_EDITOR
-using UnityEditor;
 using UnityEditor.Rendering.LWRP;
 #endif
-using UnityEngine.Rendering.PostProcessing;
 using UnityEngine.Experimental.GlobalIllumination;
+
 using Lightmapping = UnityEngine.Experimental.GlobalIllumination.Lightmapping;
 
 namespace UnityEngine.Rendering.LWRP
@@ -72,6 +72,8 @@ namespace UnityEngine.Rendering.LWRP
                 return GraphicsSettings.renderPipelineAsset as LightweightRenderPipelineAsset;
             }
         }
+        
+        private DebugDisplaySettings m_DebugDisplaySettings = new DebugDisplaySettings();
 
         public LightweightRenderPipeline(LightweightRenderPipelineAsset asset)
         {
@@ -101,10 +103,14 @@ namespace UnityEngine.Rendering.LWRP
             CameraCaptureBridge.enabled = true;
 
             RenderingUtils.ClearSystemInfoCache();
+
+            m_DebugDisplaySettings.RegisterDebug();
         }
 
         protected override void Dispose(bool disposing)
         {
+            m_DebugDisplaySettings.UnregisterDebug();
+            
             base.Dispose(disposing);
             Shader.globalRenderPipeline = "";
             SupportedRenderingFeatures.active = new SupportedRenderingFeatures();
