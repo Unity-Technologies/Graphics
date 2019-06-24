@@ -14,6 +14,7 @@ namespace UnityEditor.Rendering
 
         public DebugDisplaySettingsTest Test { get; private set; }
         public DebugMaterialSettings materialSettings { get; private set; }
+        public DebugDisplaySettingsLighting Lighting { get; private set; }
         
         private DebugDisplaySettingsTest m_DisplaySettingsTest;
 
@@ -34,7 +35,7 @@ namespace UnityEditor.Rendering
 
             Test = Add(new DebugDisplaySettingsTest());
             materialSettings = Add(new DebugMaterialSettings());
-
+            Lighting = Add(new DebugDisplaySettingsLighting());
         }
 
         public void ForEach(Action<IDebugDisplaySettingsData> onExecute)
