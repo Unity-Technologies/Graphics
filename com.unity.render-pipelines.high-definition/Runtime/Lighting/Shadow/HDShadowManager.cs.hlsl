@@ -29,7 +29,8 @@ struct HDShadowData
     float3 normalBias;
     float _padding;
     float4 shadowFilterParams0;
-    float4 cacheTranslationDelta;
+    float3 cacheTranslationDelta;
+    float _padding1;
     float4x4 shadowToWorld;
 };
 
@@ -101,9 +102,13 @@ float4 GetShadowFilterParams0(HDShadowData value)
 {
     return value.shadowFilterParams0;
 }
-float4 GetCacheTranslationDelta(HDShadowData value)
+float3 GetCacheTranslationDelta(HDShadowData value)
 {
     return value.cacheTranslationDelta;
+}
+float Get_padding1(HDShadowData value)
+{
+    return value._padding1;
 }
 float4x4 GetShadowToWorld(HDShadowData value)
 {
