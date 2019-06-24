@@ -15,7 +15,7 @@ float4 VFXTransformFinalColor(float4 color)
 #ifdef DEBUG_DISPLAY
 	if (_DebugFullScreenMode == FULLSCREENDEBUGMODE_TRANSPARENCY_OVERDRAW)
     {
-        color = float4(TRANSPARENCY_OVERDRAW_R, TRANSPARENCY_OVERDRAW_G, TRANSPARENCY_OVERDRAW_B, color.a);
+        color = _DebugTransparencyOverdrawWeight * float4(TRANSPARENCY_OVERDRAW_R, TRANSPARENCY_OVERDRAW_G, TRANSPARENCY_OVERDRAW_B, TRANSPARENCY_OVERDRAW_A);
     }
 
 #endif

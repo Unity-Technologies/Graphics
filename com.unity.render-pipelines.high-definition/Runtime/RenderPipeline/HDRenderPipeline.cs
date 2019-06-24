@@ -200,7 +200,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         internal DebugDisplaySettings m_CurrentDebugDisplaySettings;
         RTHandleSystem.RTHandle m_DebugColorPickerBuffer;
         RTHandleSystem.RTHandle m_DebugFullScreenTempBuffer;
-        RTHandleSystem.RTHandle m_DebugTranparencyLowRes;
         // This target is only used in Dev builds as an intermediate destination for post process and where debug rendering will be done.
         RTHandleSystem.RTHandle m_IntermediateAfterPostProcessBuffer;
         bool m_FullScreenDebugPushed;
@@ -470,7 +469,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 m_DebugColorPickerBuffer = RTHandles.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, useDynamicScale: true, name: "DebugColorPicker");
                 m_DebugFullScreenTempBuffer = RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, useDynamicScale: true, name: "DebugFullScreen");
-                m_DebugTranparencyLowRes = RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, useDynamicScale: true, name: "DebugTransparencyLowRes");
                 m_IntermediateAfterPostProcessBuffer = RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GetColorBufferFormat(), useDynamicScale: true, name: "AfterPostProcess"); // Needs to be FP16 because output target might be HDR
             }
 
@@ -504,7 +502,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             RTHandles.Release(m_DebugColorPickerBuffer);
             RTHandles.Release(m_DebugFullScreenTempBuffer);
-            RTHandles.Release(m_DebugTranparencyLowRes);
             RTHandles.Release(m_IntermediateAfterPostProcessBuffer);
 
             RTHandles.Release(m_CameraColorMSAABuffer);
@@ -2800,6 +2797,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 //CoreUtils.SetKeyword(cmd, "DEBUG_DISPLAY", m_CurrentDebugDisplaySettings.IsDebugDisplayEnabled());
                 var stateBlock = new RenderStateBlock
                 {
+                    mask = RenderStateMask.Blend,
                     blendState = new BlendState
                     {
                         blendState0 = new RenderTargetBlendState
@@ -2810,7 +2808,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                             destinationAlphaBlendMode = BlendMode.One,
                             sourceAlphaBlendMode = BlendMode.One,
                             colorBlendOperation = BlendOp.Add,
-                            alphaBlendOperation = BlendOp.Add
+                            alphaBlendOperation = BlendOp.Add,
+                            writeMask = ColorWriteMask.All
                         }
                     }/*,
                 depthState = new DepthState
@@ -2821,20 +2820,21 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }*/
                 };
 
-                // High res transparent, draw result available in m_DebugFullScreenTempBuffer
+                // High res transparent objects, drawing in m_DebugFullScreenTempBuffer
+                cmd.SetGlobalFloat(HDShaderIDs._DebugTransparencyOverdrawWeight, 1.0f);
+
                 var passNames = m_Asset.currentPlatformRenderPipelineSettings.supportTransparentBackface ? m_AllTransparentPassNames : m_TransparentNoBackfaceNames;
-                m_DebugFullScreenPropertyBlock.SetFloat(HDShaderIDs._MaxPassCount, (float)m_DebugDisplaySettings.data.transparencyDebugSettings.maxPassCount);
-                var rendererList = RendererList.Create(CreateTransparentRendererListDesc(cull, hdCamera.camera, passNames/*, stateBlock: stateBlock*/));
+                m_DebugFullScreenPropertyBlock.SetFloat(HDShaderIDs._MaxPassCount, (float)m_DebugDisplaySettings.data.transparencyDebugSettings.maxPixelCost);
+                var rendererList = RendererList.Create(CreateTransparentRendererListDesc(cull, hdCamera.camera, passNames, stateBlock: stateBlock));
                 DrawTransparentRendererList(renderContext, cmd, hdCamera.frameSettings, rendererList);
-                rendererList = RendererList.Create(CreateTransparentRendererListDesc(cull, hdCamera.camera, passNames, renderQueueRange: HDRenderQueue.k_RenderQueue_AfterPostProcessTransparent));
+                rendererList = RendererList.Create(CreateTransparentRendererListDesc(cull, hdCamera.camera, passNames, renderQueueRange: HDRenderQueue.k_RenderQueue_AfterPostProcessTransparent, stateBlock: stateBlock));
+                DrawTransparentRendererList(renderContext, cmd, hdCamera.frameSettings, rendererList);
+
+                // Low res transparent objects, copying result m_DebugTranparencyLowRes
+                cmd.SetGlobalFloat(HDShaderIDs._DebugTransparencyOverdrawWeight, 0.25f);
+                rendererList = RendererList.Create(CreateTransparentRendererListDesc(cull, hdCamera.camera, passNames, renderQueueRange: HDRenderQueue.k_RenderQueue_LowTransparent, stateBlock: stateBlock));
                 DrawTransparentRendererList(renderContext, cmd, hdCamera.frameSettings, rendererList);
                 PushFullScreenDebugTexture(hdCamera, cmd, m_CameraColorBuffer, FullScreenDebugMode.TransparencyOverdraw);
-
-                // Low res transparent, draw result available in m_DebugTranparencyLowRes
-                HDUtils.SetRenderTarget(cmd, m_CameraColorBuffer, m_SharedRTManager.GetDepthStencilBuffer(), clearFlag: ClearFlag.Color, clearColor: Color.black);
-                rendererList = RendererList.Create(CreateTransparentRendererListDesc(cull, hdCamera.camera, passNames, renderQueueRange: HDRenderQueue.k_RenderQueue_LowTransparent));
-                DrawTransparentRendererList(renderContext, cmd, hdCamera.frameSettings, rendererList);
-                HDUtils.BlitCameraTexture(cmd, m_CameraColorBuffer, m_DebugTranparencyLowRes);
 
                 // weighted sum of m_DebugFullScreenTempBuffer and m_DebugTranparencyLowRes done in DebugFullScreen.shader
 
@@ -3468,7 +3468,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 {
                     m_FullScreenDebugPushed = false;
                     m_DebugFullScreenPropertyBlock.SetTexture(HDShaderIDs._DebugFullScreenTexture, m_DebugFullScreenTempBuffer);
-                    m_DebugFullScreenPropertyBlock.SetTexture(HDShaderIDs._DebugTransparencyLowRes, m_DebugTranparencyLowRes);
                     m_DebugFullScreenPropertyBlock.SetFloat(HDShaderIDs._FullScreenDebugMode, (float)m_CurrentDebugDisplaySettings.data.fullScreenDebugMode);
                     HDUtils.PackedMipChainInfo info = m_SharedRTManager.GetDepthBufferMipChainInfo();
                     m_DebugFullScreenPropertyBlock.SetInt(HDShaderIDs._DebugDepthPyramidMip, (int)(m_CurrentDebugDisplaySettings.data.fullscreenDebugMip * info.mipLevelCount));

@@ -20,6 +20,7 @@ int _ColorPickerMode; // Match enum ColorPickerDebugMode
 int _DebugStep;
 int _DebugDepthPyramidMip;
 int _DebugFullScreenMode;
+float _DebugTransparencyOverdrawWeight;
 float4 _DebugLightingAlbedo; // x == bool override, yzw = albedo for diffuse
 float4 _DebugLightingSmoothness; // x == bool override, y == override value
 float4 _DebugLightingNormal; // x == bool override

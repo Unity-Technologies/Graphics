@@ -28,11 +28,10 @@ Shader "Hidden/HDRP/DebugFullScreen"
 
             CBUFFER_START(UnityDebug)
             float _FullScreenDebugMode;
-            float maxPassCount;
+            float _MaxPassCount;
             CBUFFER_END
 
             TEXTURE2D_X(_DebugFullScreenTexture);
-            TEXTURE2D_X(_DebugTransparencyLowRes);
 
 
             struct Attributes
@@ -274,15 +273,11 @@ Shader "Hidden/HDRP/DebugFullScreen"
 
             if (_FullScreenDebugMode == FULLSCREENDEBUGMODE_TRANSPARENCY_OVERDRAW)
             {
-                const float c = 0.01;
-                const float lowResWeight = 0.25;
                 float4 color = float4(0.0, 0.0, 0.0, 0.0);
 
-                float highRes = SAMPLE_TEXTURE2D_X(_DebugFullScreenTexture, s_point_clamp_sampler, input.texcoord).r;
-                float lowRes = SAMPLE_TEXTURE2D_X(_DebugTransparencyLowRes, s_point_clamp_sampler, input.texcoord).r;
-                float normalizedFactor = ((highRes.r - c) + lowResWeight * (lowRes.r - c)) / c;
-                if ((highRes + lowRes > 0.0001))
-                    color.rgb = HsvToRgb(float3(0.66 * saturate(1.0 - (1.0 / maxPassCount) * normalizedFactor), 1.0, 1.0));// 
+                float pixelCost = SAMPLE_TEXTURE2D_X(_DebugFullScreenTexture, s_point_clamp_sampler, input.texcoord).r;
+                if ((pixelCost > 0.001))
+                    color.rgb = HsvToRgb(float3(0.66 * saturate(1.0 - (1.0 / _MaxPassCount) * pixelCost), 1.0, 1.0));// 
                 return color;
             }
 

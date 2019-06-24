@@ -198,6 +198,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly int _DebugLightingMaterialValidateLowColor = Shader.PropertyToID("_DebugLightingMaterialValidateLowColor");
         public static readonly int _DebugLightingMaterialValidatePureMetalColor = Shader.PropertyToID("_DebugLightingMaterialValidatePureMetalColor");
         public static readonly int _DebugFullScreenMode = Shader.PropertyToID("_DebugFullScreenMode");
+        public static readonly int _DebugTransparencyOverdrawWeight = Shader.PropertyToID("_DebugTransparencyOverdrawWeight");
 
         public static readonly int _UseTileLightList = Shader.PropertyToID("_UseTileLightList");
 
@@ -385,7 +386,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly int _MatcapMixAlbedo = Shader.PropertyToID("_MatcapMixAlbedo");
 
         public static readonly int _DebugFullScreenTexture = Shader.PropertyToID("_DebugFullScreenTexture");
-        public static readonly int _DebugTransparencyLowRes = Shader.PropertyToID("_DebugTransparencyLowRes");
         public static readonly int _BlitTexture = Shader.PropertyToID("_BlitTexture");
         public static readonly int _BlitScaleBias = Shader.PropertyToID("_BlitScaleBias");
         public static readonly int _BlitMipLevel = Shader.PropertyToID("_BlitMipLevel");

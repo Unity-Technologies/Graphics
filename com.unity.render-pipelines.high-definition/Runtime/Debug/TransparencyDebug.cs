@@ -4,6 +4,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
     public class TransparencyDebugSettings
     {
-        public uint maxPassCount = 10;
+        public float maxPixelCost = 10.0f;
     }
 }

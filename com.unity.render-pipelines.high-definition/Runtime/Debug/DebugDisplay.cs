@@ -685,7 +685,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 {
                     children =
                     {
-                        new DebugUI.UIntField {displayName = "Max Pass count", getter = () => data.transparencyDebugSettings.maxPassCount, setter = value => data.transparencyDebugSettings.maxPassCount = value, min = () => 1, max = () => 200, incStep = 1}
+                        new DebugUI.FloatField {displayName = "Max Pixel Cost", getter = () => data.transparencyDebugSettings.maxPixelCost, setter = value => data.transparencyDebugSettings.maxPixelCost = value, min = () => 0.25f, incStep = 1}
                     }
                 });
             }

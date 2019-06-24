@@ -1,10 +1,10 @@
 #ifndef UNITY_DEBUG_INCLUDED
 #define UNITY_DEBUG_INCLUDED
 
-#define TRANSPARENCY_OVERDRAW_R 0.01
+#define TRANSPARENCY_OVERDRAW_R 1.0
 #define TRANSPARENCY_OVERDRAW_G 0.01
 #define TRANSPARENCY_OVERDRAW_B 0.01
-#define TRANSPARENCY_OVERDRAW_A 0.01
+#define TRANSPARENCY_OVERDRAW_A 1.0
 
 // Given an enum (represented by an int here), return a color.
 // Use for DebugView of enum
