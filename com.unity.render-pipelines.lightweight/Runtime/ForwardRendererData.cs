@@ -5,7 +5,8 @@ using UnityEditor.ProjectWindowCallback;
 using System;
 
 namespace UnityEngine.Rendering.LWRP
-{    
+{
+    [Serializable, ReloadGroup]
     public class ForwardRendererData : ScriptableRendererData
     {
 #if UNITY_EDITOR
@@ -31,18 +32,21 @@ namespace UnityEngine.Rendering.LWRP
         [Serializable, ReloadGroup]
         public sealed class ShaderResources
         {
-            [SerializeField, Reload("Shaders/Utils/Blit.shader")]
+            [Reload("Shaders/Utils/Blit.shader")]
             public Shader blitPS;
 
-            [SerializeField, Reload("Shaders/Utils/CopyDepth.shader")]
+            [Reload("Shaders/Utils/CopyDepth.shader")]
             public Shader copyDepthPS;
 
-            [SerializeField, Reload("Shaders/Utils/ScreenSpaceShadows.shader")]
+            [Reload("Shaders/Utils/ScreenSpaceShadows.shader")]
             public Shader screenSpaceShadowPS;
         
-            [SerializeField, Reload("Shaders/Utils/Sampling.shader")]
+            [Reload("Shaders/Utils/Sampling.shader")]
             public Shader samplingPS;
         }
+
+        [Reload("Runtime/Data/PostProcessData.asset")]
+        public PostProcessData postProcessData;
 
         public ShaderResources shaders = null;
 
@@ -78,14 +82,7 @@ namespace UnityEngine.Rendering.LWRP
                 return;
 
 #if UNITY_EDITOR
-            foreach (var shader in shaders.GetType().GetFields())
-            {
-                if (shader.GetValue(shaders) == null)
-                {
-                    ResourceReloader.ReloadAllNullIn(this, LightweightRenderPipelineAsset.packagePath);
-                    break;
-                }
-            }
+            ResourceReloader.ReloadAllNullIn(this, LightweightRenderPipelineAsset.packagePath);
 #endif
         }
     }

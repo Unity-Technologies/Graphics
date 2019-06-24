@@ -3,6 +3,7 @@ using UnityEngine.Rendering.LWRP;
 
 namespace UnityEngine.Experimental.Rendering.LWRP
 {
+    // TODO: Add post-processing support
     internal class Renderer2D : ScriptableRenderer
     {
         Render2DLightingPass m_Render2DLightingPass;
@@ -13,7 +14,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         public Renderer2D(Renderer2DData data) : base(data)
         {
             m_Render2DLightingPass = new Render2DLightingPass(data);
-            m_PostProcessPass = new PostProcessPass(RenderPassEvent.BeforeRenderingPostProcessing);
+            //m_PostProcessPass = new PostProcessPass(RenderPassEvent.BeforeRenderingPostProcessing);
             m_FinalBlitPass = new FinalBlitPass(RenderPassEvent.AfterRendering, CoreUtils.CreateEngineMaterial(data.blitShader));
         }
 
@@ -22,7 +23,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             ref CameraData cameraData = ref renderingData.cameraData;
             m_ColorTargetHandle = RenderTargetHandle.CameraTarget;
             PixelPerfectCamera ppc = cameraData.camera.GetComponent<PixelPerfectCamera>();
-            bool postProcessEnabled = renderingData.cameraData.postProcessEnabled;
+            bool postProcessEnabled = renderingData.cameraData.isPostProcessEnabled;
             bool useOffscreenColorTexture = (ppc != null && ppc.useOffscreenRT) || postProcessEnabled || cameraData.isHdrEnabled || cameraData.isSceneViewCamera || !cameraData.isDefaultViewport;
 
             if (useOffscreenColorTexture)
@@ -38,8 +39,8 @@ namespace UnityEngine.Experimental.Rendering.LWRP
 
             if (postProcessEnabled)
             {
-                m_PostProcessPass.Setup(cameraData.cameraTargetDescriptor, m_ColorTargetHandle, m_ColorTargetHandle);
-                EnqueuePass(m_PostProcessPass);
+                //m_PostProcessPass.Setup(cameraData.cameraTargetDescriptor, m_ColorTargetHandle, m_ColorTargetHandle);
+                //EnqueuePass(m_PostProcessPass);
             }
 
             if (useOffscreenColorTexture)
