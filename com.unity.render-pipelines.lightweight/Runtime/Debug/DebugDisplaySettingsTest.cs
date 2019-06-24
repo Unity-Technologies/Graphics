@@ -15,7 +15,7 @@ namespace UnityEditor.Rendering
             Third
         }
         
-        private bool m_Boolean;
+        public bool m_Boolean;
         private TestEnum m_Enum;
         private Color m_Color;
         private float m_Float;
