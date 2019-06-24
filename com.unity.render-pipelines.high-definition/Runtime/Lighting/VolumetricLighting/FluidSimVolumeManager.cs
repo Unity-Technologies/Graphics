@@ -25,20 +25,17 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         private List<FluidSimVolume> _volumes = null;
 
         public RTHandleSystem.RTHandle volumeAtlas = null;
-        private bool atlasNeedsRefresh = false;
 
         //TODO: hardcoded size....:-(
-        public static int fluidSimVolumeTextureSize = 256;
+        public static int fluidSimVolumeTextureSize = 512;
 
         private FluidSimVolumeManager()
         {
-            int res = 512;
-
             _volumes = new List<FluidSimVolume>();
             volumeAtlas = RTHandles.Alloc(
-                res,
-                res,
-                res,
+                fluidSimVolumeTextureSize,
+                fluidSimVolumeTextureSize,
+                fluidSimVolumeTextureSize,
                 colorFormat: GraphicsFormat.R8G8B8A8_UNorm,
                 filterMode: FilterMode.Bilinear,
                 dimension: TextureDimension.Tex3D,
@@ -213,11 +210,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public FluidSimVolume[] PrepareFluidSimVolumeData(CommandBuffer cmd, Camera currentCam, float time)
         {
             return _volumes.ToArray();
-        }
-
-        public void TriggerVolumeAtlasRefresh()
-        {
-            atlasNeedsRefresh = true;
         }
     }
 }

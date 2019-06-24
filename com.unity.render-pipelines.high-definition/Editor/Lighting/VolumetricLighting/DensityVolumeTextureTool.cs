@@ -12,10 +12,12 @@ namespace UnityEditor.Experimental.Rendering
         private string assetDirectory;
 
         private int tileSize = 0;
+        private int numTextures = 1; //seongdae;fspm
 
         private static GUIContent windowTitle = new GUIContent("Create Density Volume Texture");
         private static GUIContent textureLabel = new GUIContent("Slice Texture");
         private static GUIContent tileSizeLabel = new GUIContent("Texture Slice Size", "Dimensions for the 3D Texture in pixels.  Width, Height and Depth are all the same size");
+        private static GUIContent textureCountLabel = new GUIContent("Texture Count"); //seongdae;fspm
         private static GUIContent createLabel = new GUIContent("Create 3D Texture");
 
         [MenuItem("Window/Rendering/Density Volume Texture Tool")]
@@ -41,6 +43,8 @@ namespace UnityEditor.Experimental.Rendering
             sourceTexture = ( EditorGUILayout.ObjectField((UnityEngine.Object)sourceTexture, typeof(Texture2D), false, null) as Texture2D);
             EditorGUI.indentLevel--;
             tileSize = EditorGUILayout.IntField(tileSizeLabel, tileSize);
+            numTextures = EditorGUILayout.IntField(textureCountLabel, numTextures); //seongdae;fspm
+            numTextures = Mathf.Max(1, numTextures); //seongdae;fspm
 
             bool validData = (sourceTexture != null && IsTileSizeValid());
             bool create = false;
@@ -78,6 +82,9 @@ namespace UnityEditor.Experimental.Rendering
                     importer.SaveAndReimport();
                 }
 
+                if (numTextures > 1) //seongdae;fspm
+                    BuildMultipleVolumeTextures(); //seongdae;fspm
+                else //seongdae;fspm
                 BuildVolumeTexture();
             }
         }
@@ -136,5 +143,67 @@ namespace UnityEditor.Experimental.Rendering
                 DensityVolumeManager.manager.TriggerVolumeAtlasRefresh();  
             }
         }
+
+        //seongdae;fspm
+        private void BuildMultipleVolumeTextures()
+        {
+            for (int t = 0; t < numTextures; t++)
+            {
+                var sourceTextureName = sourceTexture.name.Substring(0, sourceTexture.name.Length - 1);
+
+                //Check if the object we want to create is already in the AssetDatabase
+                string volumeTextureAssetPath = assetDirectory + "/" + sourceTextureName + t + "_Texture3D.asset";
+                bool createNewAsset = false;
+
+                Texture3D volumeTexture = AssetDatabase.LoadAssetAtPath(volumeTextureAssetPath, typeof(Texture3D)) as Texture3D;
+
+                //If we already have the asset then we are just updating it. make sure it's the right size.
+                if (!volumeTexture || volumeTexture.width != tileSize || volumeTexture.height != tileSize || volumeTexture.depth != tileSize)
+                {
+                    volumeTexture = new Texture3D(tileSize, tileSize, tileSize, sourceTexture.format, false);
+                    volumeTexture.filterMode = sourceTexture.filterMode;
+                    volumeTexture.mipMapBias = 0;
+                    volumeTexture.anisoLevel = 0;
+                    volumeTexture.wrapMode = sourceTexture.wrapMode;
+                    volumeTexture.wrapModeU = sourceTexture.wrapModeU;
+                    volumeTexture.wrapModeV = sourceTexture.wrapModeV;
+                    volumeTexture.wrapModeW = sourceTexture.wrapModeW;
+
+                    createNewAsset = true;
+                }
+
+                //Only need to do this since CopyTexture is currently broken on D3D11
+                //Proper fix on it's way for 18.3 or 19.1
+                Color[] colorArray = new Color[0];
+
+                int yTiles = sourceTexture.height / tileSize;
+                int xTiles = sourceTexture.width / tileSize;
+
+                for (int i = yTiles - 1; i >= 0; i--)
+                {
+                    for (int j = 0; j < xTiles; j++)
+                    {
+                        Color[] sourceTile = sourceTexture.GetPixels(j * tileSize, i * tileSize, tileSize, tileSize);
+                        Array.Resize(ref colorArray, colorArray.Length + sourceTile.Length);
+                        Array.Copy(sourceTile, 0, colorArray, colorArray.Length - sourceTile.Length, sourceTile.Length);
+                    }
+                }
+
+                volumeTexture.SetPixels(colorArray);
+                volumeTexture.Apply();
+
+                if (createNewAsset)
+                {
+                    AssetDatabase.CreateAsset(volumeTexture, volumeTextureAssetPath);
+                }
+                else
+                {
+                    AssetDatabase.SaveAssets();
+                    //Asset can be currently used by Density Volume Manager so trigger refresh
+                    DensityVolumeManager.manager.TriggerVolumeAtlasRefresh();
+                }
+            }
+        }
+        //seongdae;fspm
     }
 }
