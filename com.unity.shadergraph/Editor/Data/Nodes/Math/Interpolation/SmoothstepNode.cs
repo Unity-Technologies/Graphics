@@ -1,4 +1,6 @@
 using System.Reflection;
+using UnityEditor.ShaderGraph.Hlsl;
+using static UnityEditor.ShaderGraph.Hlsl.Intrinsics;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -16,17 +18,14 @@ namespace UnityEditor.ShaderGraph
             return GetType().GetMethod("Unity_Smoothstep", BindingFlags.Static | BindingFlags.NonPublic);
         }
 
-        static string Unity_Smoothstep(
-            [Slot(0, Binding.None, 0, 0, 0, 0)] DynamicDimensionVector Edge1,
-            [Slot(1, Binding.None, 1, 1, 1, 1)] DynamicDimensionVector Edge2,
-            [Slot(2, Binding.None, 0, 0, 0, 0)] DynamicDimensionVector In,
-            [Slot(3, Binding.None)] out DynamicDimensionVector Out)
+        [HlslCodeGen]
+        static void Unity_Smoothstep(
+            [Slot(0, Binding.None, 0, 0, 0, 0)] [AnyDimension] Float4 Edge1,
+            [Slot(1, Binding.None, 1, 1, 1, 1)] [AnyDimension] Float4 Edge2,
+            [Slot(2, Binding.None, 0, 0, 0, 0)] [AnyDimension] Float4 In,
+            [Slot(3, Binding.None)] [AnyDimension] out Float4 Out)
         {
-            return
-                @"
-{
-    Out = smoothstep(Edge1, Edge2, In);
-}";
+            Out = smoothstep(Edge1, Edge2, In);
         }
     }
 }

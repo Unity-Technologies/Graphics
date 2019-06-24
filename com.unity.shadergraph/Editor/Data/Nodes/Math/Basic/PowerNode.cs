@@ -1,4 +1,6 @@
 using System.Reflection;
+using UnityEditor.ShaderGraph.Hlsl;
+using static UnityEditor.ShaderGraph.Hlsl.Intrinsics;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -16,17 +18,13 @@ namespace UnityEditor.ShaderGraph
             return GetType().GetMethod("Unity_Power", BindingFlags.Static | BindingFlags.NonPublic);
         }
 
-        static string Unity_Power(
-            [Slot(0, Binding.None, 0, 0, 0, 0)] DynamicDimensionVector A,
-            [Slot(1, Binding.None, 2, 2, 2, 2)] DynamicDimensionVector B,
-            [Slot(2, Binding.None)] out DynamicDimensionVector Out)
+        [HlslCodeGen]
+        static void Unity_Power(
+            [Slot(0, Binding.None, 0, 0, 0, 0)] [AnyDimension] Float4 A,
+            [Slot(1, Binding.None, 2, 2, 2, 2)] [AnyDimension] Float4 B,
+            [Slot(2, Binding.None)] [AnyDimension] out Float4 Out)
         {
-            return
-                @"
-{
-    Out = pow(A, B);
-}
-";
+            Out = pow(A, B);
         }
     }
 }

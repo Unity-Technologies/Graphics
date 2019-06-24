@@ -1,5 +1,6 @@
 using System.Reflection;
-using UnityEngine;
+using UnityEditor.ShaderGraph.Hlsl;
+using static UnityEditor.ShaderGraph.Hlsl.Intrinsics;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -11,23 +12,18 @@ namespace UnityEditor.ShaderGraph
             name = "Dot Product";
         }
 
-
         protected override MethodInfo GetFunctionToConvert()
         {
             return GetType().GetMethod("Unity_DotProduct", BindingFlags.Static | BindingFlags.NonPublic);
         }
 
-        static string Unity_DotProduct(
-            [Slot(0, Binding.None, 0, 0, 0, 0)] DynamicDimensionVector A,
-            [Slot(1, Binding.None, 0, 1, 0, 0)] DynamicDimensionVector B,
-            [Slot(2, Binding.None)] out Vector1 Out)
+        [HlslCodeGen]
+        static void Unity_DotProduct(
+            [Slot(0, Binding.None, 0, 0, 0, 0)] [AnyDimension] Float4 A,
+            [Slot(1, Binding.None, 0, 1, 0, 0)] [AnyDimension] Float4 B,
+            [Slot(2, Binding.None)] out Float Out)
         {
-            return
-                @"
-{
-    Out = dot(A, B);
-}
-";
+            Out = dot(A, B);
         }
     }
 }

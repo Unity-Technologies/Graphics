@@ -1,5 +1,6 @@
 using System.Reflection;
-using UnityEngine;
+using UnityEditor.ShaderGraph.Hlsl;
+using static UnityEditor.ShaderGraph.Hlsl.Intrinsics;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -11,24 +12,18 @@ namespace UnityEditor.ShaderGraph
             name = "Cross Product";
         }
 
-
         protected override MethodInfo GetFunctionToConvert()
         {
             return GetType().GetMethod("Unity_CrossProduct", BindingFlags.Static | BindingFlags.NonPublic);
         }
 
-        static string Unity_CrossProduct(
-            [Slot(0, Binding.None, 0, 0, 0, 0)] Vector3 A,
-            [Slot(1, Binding.None, 0, 1, 0, 0)] Vector3 B,
-            [Slot(2, Binding.None)] out Vector3 Out)
+        [HlslCodeGen]
+        static void Unity_CrossProduct(
+            [Slot(0, Binding.None, 0, 0, 0, 0)] Float3 A,
+            [Slot(1, Binding.None, 0, 1, 0, 0)] Float3 B,
+            [Slot(2, Binding.None)] out Float3 Out)
         {
-            Out = Vector3.zero;
-            return
-                @"
-{
-    Out = cross(A, B);
-}
-";
+            Out = cross(A, B);
         }
     }
 }

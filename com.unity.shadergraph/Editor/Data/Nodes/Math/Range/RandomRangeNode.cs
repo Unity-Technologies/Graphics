@@ -1,5 +1,7 @@
 using UnityEngine;
 using System.Reflection;
+using UnityEditor.ShaderGraph.Hlsl;
+using static UnityEditor.ShaderGraph.Hlsl.Intrinsics;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -17,18 +19,15 @@ namespace UnityEditor.ShaderGraph
             return GetType().GetMethod("Unity_RandomRange", BindingFlags.Static | BindingFlags.NonPublic);
         }
 
-        static string Unity_RandomRange(
-            [Slot(0, Binding.None)] Vector2 Seed,
-            [Slot(1, Binding.None)] Vector1 Min,
-            [Slot(2, Binding.None, 1, 1, 1, 1)] Vector1 Max,
-            [Slot(3, Binding.None)] out Vector1 Out)
+        [HlslCodeGen]
+        static void Unity_RandomRange(
+            [Slot(0, Binding.None)] Float2 Seed,
+            [Slot(1, Binding.None)] [AnyDimension] Float4 Min,
+            [Slot(2, Binding.None, 1, 1, 1, 1)] [AnyDimension] Float4 Max,
+            [Slot(3, Binding.None)] [AnyDimension] out Float4 Out)
         {
-            return
-                @"
-{
-     $precision randomno =  frac(sin(dot(Seed, $precision2(12.9898, 78.233)))*43758.5453);
-     Out = lerp(Min, Max, randomno);
-}";
+            Float randomno = frac(sin(dot(Seed, Float2(12.9898f, 78.233f)))) * 43758.5453;
+            Out = lerp(Min, Max, randomno);
         }
     }
 }

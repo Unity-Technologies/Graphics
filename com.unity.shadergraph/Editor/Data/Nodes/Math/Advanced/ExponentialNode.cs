@@ -2,6 +2,8 @@ using System.Reflection;
 using UnityEngine;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph.Drawing.Controls;
+using UnityEditor.ShaderGraph.Hlsl;
+using static UnityEditor.ShaderGraph.Hlsl.Intrinsics;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -48,28 +50,20 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        static string Unity_Exponential(
-            [Slot(0, Binding.None)] DynamicDimensionVector In,
-            [Slot(1, Binding.None)] out DynamicDimensionVector Out)
+        [HlslCodeGen]
+        static void Unity_Exponential(
+            [Slot(0, Binding.None)] [AnyDimension] Float4 In,
+            [Slot(1, Binding.None)] [AnyDimension] out Float4 Out)
         {
-            return
-                @"
-{
-    Out = exp(In);
-}
-";
+            Out = exp(In);
         }
 
-        static string Unity_Exponential2(
-            [Slot(0, Binding.None)] DynamicDimensionVector In,
-            [Slot(1, Binding.None)] out DynamicDimensionVector Out)
+        [HlslCodeGen]
+        static void Unity_Exponential2(
+            [Slot(0, Binding.None)] [AnyDimension] Float4 In,
+            [Slot(1, Binding.None)] [AnyDimension] out Float4 Out)
         {
-            return
-                @"
-{
-    Out = exp2(In);
-}
-";
+            Out = exp2(In);
         }
     }
 }

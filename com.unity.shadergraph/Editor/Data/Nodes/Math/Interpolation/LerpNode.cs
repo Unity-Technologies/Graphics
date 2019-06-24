@@ -1,5 +1,6 @@
 using System.Reflection;
 using UnityEditor.ShaderGraph.Hlsl;
+using static UnityEditor.ShaderGraph.Hlsl.Intrinsics;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -24,7 +25,7 @@ namespace UnityEditor.ShaderGraph
             [Slot(2, Binding.None, 0, 0, 0, 0)][AnyDimension] Float4 T,
             [Slot(3, Binding.None)][AnyDimension] out Float4 Out)
         {
-            Out = A * (1 - T) + B * T;
+            Out = lerp(A, B, T);
         }
     }
 }

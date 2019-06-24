@@ -1,5 +1,6 @@
 using System.Reflection;
-using UnityEngine;
+using UnityEditor.ShaderGraph.Hlsl;
+using static UnityEditor.ShaderGraph.Hlsl.Intrinsics;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -17,16 +18,12 @@ namespace UnityEditor.ShaderGraph
             return GetType().GetMethod("Unity_DDY", BindingFlags.Static | BindingFlags.NonPublic);
         }
 
-        static string Unity_DDY(
-            [Slot(0, Binding.None)] DynamicDimensionVector In,
-            [Slot(1, Binding.None)] out DynamicDimensionVector Out)
+        [HlslCodeGen]
+        static void Unity_DDY(
+            [Slot(0, Binding.None)] [AnyDimension] Float4 In,
+            [Slot(1, Binding.None)] [AnyDimension] out Float4 Out)
         {
-            return
-                @"
-{
-    Out = ddy(In);
-}
-";
+            Out = ddy(In);
         }
     }
 }

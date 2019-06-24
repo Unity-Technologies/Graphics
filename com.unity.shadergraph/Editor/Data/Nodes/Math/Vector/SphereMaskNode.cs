@@ -1,5 +1,6 @@
-﻿using System.Reflection;
-using UnityEngine;
+using System.Reflection;
+using UnityEditor.ShaderGraph.Hlsl;
+using static UnityEditor.ShaderGraph.Hlsl.Intrinsics;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -11,25 +12,20 @@ namespace UnityEditor.ShaderGraph
             name = "Sphere Mask";
         }
 
-
         protected override MethodInfo GetFunctionToConvert()
         {
             return GetType().GetMethod("SphereMask", BindingFlags.Static | BindingFlags.NonPublic);
         }
 
-        static string SphereMask(
-            [Slot(0, Binding.None)] DynamicDimensionVector Coords,
-            [Slot(1, Binding.None, 0.5f, 0.5f, 0.5f, 0.5f)] DynamicDimensionVector Center,
-            [Slot(2, Binding.None, 0.1f, 0.1f, 0.1f, 0.1f)] Vector1 Radius,
-            [Slot(3, Binding.None, 0.8f, 0.8f, 0.8f, 0.8f)] Vector1 Hardness,
-            [Slot(4, Binding.None)] out DynamicDimensionVector Out)
+        [HlslCodeGen]
+        static void SphereMask(
+            [Slot(0, Binding.None)] [AnyDimension] Float4 Coords,
+            [Slot(1, Binding.None, 0.5f, 0.5f, 0.5f, 0.5f)] [AnyDimension] Float4 Center,
+            [Slot(2, Binding.None, 0.1f, 0.1f, 0.1f, 0.1f)] Float Radius,
+            [Slot(3, Binding.None, 0.8f, 0.8f, 0.8f, 0.8f)] Float Hardness,
+            [Slot(4, Binding.None)] [AnyDimension] out Float4 Out)
         {
-            return
-                @"
-{
-	Out = 1 - saturate((distance(Coords, Center) - Radius) / (1 - Hardness));
-}
-";
+            Out = 1 - saturate((distance(Coords, Center) - Radius) / (1 - Hardness));
         }
     }
 }

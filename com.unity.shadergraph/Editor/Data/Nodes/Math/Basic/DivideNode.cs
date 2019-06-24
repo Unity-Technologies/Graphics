@@ -1,4 +1,5 @@
 using System.Reflection;
+using UnityEditor.ShaderGraph.Hlsl;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -16,16 +17,13 @@ namespace UnityEditor.ShaderGraph
             return GetType().GetMethod("Unity_Divide", BindingFlags.Static | BindingFlags.NonPublic);
         }
 
-        static string Unity_Divide(
-            [Slot(0, Binding.None, 0, 0, 0, 0)] DynamicDimensionVector A,
-            [Slot(1, Binding.None, 2, 2, 2, 2)] DynamicDimensionVector B,
-            [Slot(2, Binding.None)] out DynamicDimensionVector Out)
+        [HlslCodeGen]
+        static void Unity_Divide(
+            [Slot(0, Binding.None, 0, 0, 0, 0)] [AnyDimension] Float4 A,
+            [Slot(1, Binding.None, 2, 2, 2, 2)] [AnyDimension] Float4 B,
+            [Slot(2, Binding.None)] [AnyDimension] out Float4 Out)
         {
-            return @"
-{
-    Out = A / B;
-}
-";
+            Out = A / B;
         }
     }
 }

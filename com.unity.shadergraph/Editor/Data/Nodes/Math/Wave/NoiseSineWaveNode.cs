@@ -1,5 +1,6 @@
-﻿using UnityEngine;
 using System.Reflection;
+using UnityEditor.ShaderGraph.Hlsl;
+using static UnityEditor.ShaderGraph.Hlsl.Intrinsics;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -11,27 +12,22 @@ namespace UnityEditor.ShaderGraph
             name = "Noise Sine Wave";
         }
 
-
         protected override MethodInfo GetFunctionToConvert()
         {
             return GetType().GetMethod("NoiseSineWave", BindingFlags.Static | BindingFlags.NonPublic);
         }
 
-        static string NoiseSineWave(
-            [Slot(0, Binding.None)] DynamicDimensionVector In,
-            [Slot(1, Binding.None, -0.5f, 0.5f, 1, 1)] Vector2 MinMax,
-            [Slot(2, Binding.None)] out DynamicDimensionVector Out)
+        [HlslCodeGen]
+        static void NoiseSineWave(
+            [Slot(0, Binding.None)] [AnyDimension] Float4 In,
+            [Slot(1, Binding.None, -0.5f, 0.5f, 1, 1)] Float2 MinMax,
+            [Slot(2, Binding.None)] [AnyDimension] out Float4 Out)
         {
-            return
-                @"
-{
-    $precision sinIn = sin(In);
-    $precision sinInOffset = sin(In + 1.0);
-    $precision randomno =  frac(sin((sinIn - sinInOffset) * (12.9898 + 78.233))*43758.5453);
-    $precision noise = lerp(MinMax.x, MinMax.y, randomno);
-    Out = sinIn + noise;
-}
-";
+            var sinIn = sin(In);
+            var sinInOffset = sin(In + 1.0);
+            var randomno = frac(sin((sinIn - sinInOffset) * (12.9898 + 78.233)) * 43758.5453);
+            var noise = lerp(MinMax.x, MinMax.y, randomno);
+            Out = sinIn + noise;
         }
     }
 }

@@ -1,4 +1,6 @@
 using System.Reflection;
+using UnityEditor.ShaderGraph.Hlsl;
+using static UnityEditor.ShaderGraph.Hlsl.Intrinsics;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -10,23 +12,18 @@ namespace UnityEditor.ShaderGraph
             name = "Distance";
         }
 
-
         protected override MethodInfo GetFunctionToConvert()
         {
             return GetType().GetMethod("Unity_Distance", BindingFlags.Static | BindingFlags.NonPublic);
         }
 
-        static string Unity_Distance(
-            [Slot(0, Binding.None)] DynamicDimensionVector A,
-            [Slot(1, Binding.None)] DynamicDimensionVector B,
-            [Slot(2, Binding.None)] out Vector1 Out)
+        [HlslCodeGen]
+        static void Unity_Distance(
+            [Slot(0, Binding.None)] [AnyDimension] Float4 A,
+            [Slot(1, Binding.None)] [AnyDimension] Float4 B,
+            [Slot(2, Binding.None)] out Float Out)
         {
-            return
-                @"
-{
-    Out = distance(A, B);
-}
-";
+            Out = distance(A, B);
         }
     }
 }

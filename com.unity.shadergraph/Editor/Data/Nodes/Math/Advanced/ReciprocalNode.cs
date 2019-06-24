@@ -2,6 +2,8 @@ using System.Reflection;
 using UnityEngine;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph.Drawing.Controls;
+using UnityEditor.ShaderGraph.Hlsl;
+using static UnityEditor.ShaderGraph.Hlsl.Intrinsics;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -48,28 +50,20 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        static string Unity_Reciprocal(
-            [Slot(0, Binding.None, 1, 1, 1, 1)] DynamicDimensionVector In,
-            [Slot(1, Binding.None)] out DynamicDimensionVector Out)
+        [HlslCodeGen]
+        static void Unity_Reciprocal(
+            [Slot(0, Binding.None, 1, 1, 1, 1)] [AnyDimension] Float4 In,
+            [Slot(1, Binding.None)] [AnyDimension] out Float4 Out)
         {
-            return
-                @"
-{
-    Out = 1.0/In;
-}
-";
+            Out = 1.0 / In;
         }
 
-        static string Unity_Reciprocal_Fast(
-            [Slot(0, Binding.None, 1, 1, 1, 1)] DynamicDimensionVector In,
-            [Slot(1, Binding.None)] out DynamicDimensionVector Out)
+        [HlslCodeGen]
+        static void Unity_Reciprocal_Fast(
+            [Slot(0, Binding.None, 1, 1, 1, 1)] [AnyDimension] Float4 In,
+            [Slot(1, Binding.None)] [AnyDimension] out Float4 Out)
         {
-            return
-                @"
-{
-    Out = rcp(In);
-}
-";
+            Out = rcp(In);
         }
     }
 }

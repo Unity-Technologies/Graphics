@@ -1,4 +1,6 @@
 using System.Reflection;
+using UnityEditor.ShaderGraph.Hlsl;
+using static UnityEditor.ShaderGraph.Hlsl.Intrinsics;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -16,17 +18,14 @@ namespace UnityEditor.ShaderGraph
             return GetType().GetMethod("Unity_Clamp", BindingFlags.Static | BindingFlags.NonPublic);
         }
 
-        static string Unity_Clamp(
-            [Slot(0, Binding.None)] DynamicDimensionVector In,
-            [Slot(1, Binding.None)] DynamicDimensionVector Min,
-            [Slot(2, Binding.None, 1, 1, 1, 1)] DynamicDimensionVector Max,
-            [Slot(3, Binding.None)] out DynamicDimensionVector Out)
+        [HlslCodeGen]
+        static void Unity_Clamp(
+            [Slot(0, Binding.None)] [AnyDimension] Float4 In,
+            [Slot(1, Binding.None)] [AnyDimension] Float4 Min,
+            [Slot(2, Binding.None, 1, 1, 1, 1)] [AnyDimension] Float4 Max,
+            [Slot(3, Binding.None)] [AnyDimension] out Float4 Out)
         {
-            return
-                @"
-{
-    Out = clamp(In, Min, Max);
-}";
+            Out = clamp(In, Min, Max);
         }
     }
 }

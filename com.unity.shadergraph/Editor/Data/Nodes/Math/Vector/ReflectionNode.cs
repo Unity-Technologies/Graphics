@@ -1,5 +1,6 @@
 using System.Reflection;
-using UnityEngine;
+using UnityEditor.ShaderGraph.Hlsl;
+using static UnityEditor.ShaderGraph.Hlsl.Intrinsics;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -11,21 +12,18 @@ namespace UnityEditor.ShaderGraph
             name = "Reflection";
         }
 
-
         protected override MethodInfo GetFunctionToConvert()
         {
             return GetType().GetMethod("Unity_Reflection", BindingFlags.Static | BindingFlags.NonPublic);
         }
 
-        static string Unity_Reflection(
-            [Slot(0, Binding.None, 0, 0, 0, 0)] DynamicDimensionVector In,
-            [Slot(1, Binding.None, 0, 1, 0, 0)] DynamicDimensionVector Normal,
-            [Slot(2, Binding.None)] out DynamicDimensionVector Out)
+        [HlslCodeGen]
+        static void Unity_Reflection(
+            [Slot(0, Binding.None, 0, 0, 0, 0)] [AnyDimension] Float4 In,
+            [Slot(1, Binding.None, 0, 1, 0, 0)] [AnyDimension] Float4 Normal,
+            [Slot(2, Binding.None)] [AnyDimension] out Float4 Out)
         {
-            return @"
-{
-    Out = reflect(In, Normal);
-}";
+            Out = reflect(In, Normal);
         }
     }
 }

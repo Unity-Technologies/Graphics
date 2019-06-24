@@ -1,4 +1,6 @@
 using System.Reflection;
+using UnityEditor.ShaderGraph.Hlsl;
+using static UnityEditor.ShaderGraph.Hlsl.Intrinsics;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -16,17 +18,13 @@ namespace UnityEditor.ShaderGraph
             return GetType().GetMethod("Unity_Step", BindingFlags.Static | BindingFlags.NonPublic);
         }
 
-        static string Unity_Step(
-            [Slot(0, Binding.None, 1, 1, 1, 1)] DynamicDimensionVector Edge,
-            [Slot(1, Binding.None, 0, 0, 0, 0)] DynamicDimensionVector In,
-            [Slot(2, Binding.None)] out DynamicDimensionVector Out)
+        [HlslCodeGen]
+        static void Unity_Step(
+            [Slot(0, Binding.None, 1, 1, 1, 1)] [AnyDimension] Float4 Edge,
+            [Slot(1, Binding.None, 0, 0, 0, 0)] [AnyDimension] Float4 In,
+            [Slot(2, Binding.None)] [AnyDimension] out Float4 Out)
         {
-            return
-                @"
-{
-    Out = step(Edge, In);
-}
-";
+            Out = step(Edge, In);
         }
     }
 }

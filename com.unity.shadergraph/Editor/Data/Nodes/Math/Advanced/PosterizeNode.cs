@@ -1,4 +1,6 @@
 using System.Reflection;
+using UnityEditor.ShaderGraph.Hlsl;
+using static UnityEditor.ShaderGraph.Hlsl.Intrinsics;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -10,23 +12,18 @@ namespace UnityEditor.ShaderGraph
             name = "Posterize";
         }
 
-
         protected override MethodInfo GetFunctionToConvert()
         {
             return GetType().GetMethod("Unity_Posterize", BindingFlags.Static | BindingFlags.NonPublic);
         }
 
-        static string Unity_Posterize(
-            [Slot(0, Binding.None, 0, 0, 0, 0)] DynamicDimensionVector In,
-            [Slot(1, Binding.None, 4, 4, 4, 4)] DynamicDimensionVector Steps,
-            [Slot(2, Binding.None)] out DynamicDimensionVector Out)
+        [HlslCodeGen]
+        static void Unity_Posterize(
+            [Slot(0, Binding.None, 0, 0, 0, 0)] [AnyDimension] Float4 In,
+            [Slot(1, Binding.None, 4, 4, 4, 4)] [AnyDimension] Float4 Steps,
+            [Slot(2, Binding.None)] [AnyDimension] out Float4 Out)
         {
-            return
-                @"
-{
-    Out = floor(In / (1 / Steps)) * (1 / Steps);
-}
-";
+            Out = floor(In / (1 / Steps)) * (1 / Steps);
         }
     }
 }

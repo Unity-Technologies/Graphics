@@ -39,6 +39,36 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
+        private static void Intrinsic1(StringBuilder sb, string func, string returnType = "")
+        {
+            for (int components = 1; components <= 4; ++components)
+            {
+                var typeName = ValueTypeName(components);
+                sb.Append($"\t\tpublic static {(returnType == "" ? typeName : returnType)} {func}({typeName} x)\n");
+                sb.Append($"\t\t\t=> new {(returnType == "" ? typeName : returnType)}() {{ Code = $\"{func}({{x.Code}})\" }};\n\n");
+            }
+        }
+
+        private static void Intrinsic2(StringBuilder sb, string func, string returnType = "")
+        {
+            for (int components = 1; components <= 4; ++components)
+            {
+                var typeName = ValueTypeName(components);
+                sb.Append($"\t\tpublic static {(returnType == "" ? typeName : returnType)} {func}({typeName} x, {typeName} y)\n");
+                sb.Append($"\t\t\t=> new {(returnType == "" ? typeName : returnType)}() {{ Code = $\"{func}({{x.Code}}, {{y.Code}})\" }};\n\n");
+            }
+        }
+
+        private static void Intrinsic3(StringBuilder sb, string func, string returnType = "")
+        {
+            for (int components = 1; components <= 4; ++components)
+            {
+                var typeName = ValueTypeName(components);
+                sb.Append($"\t\tpublic static {(returnType == "" ? typeName : returnType)} {func}({typeName} x, {typeName} y, {typeName} z)\n");
+                sb.Append($"\t\t\t=> new {(returnType == "" ? typeName : returnType)}() {{ Code = $\"{func}({{x.Code}}, {{y.Code}}, {{z.Code}})\" }};\n\n");
+            }
+        }
+
         [MenuItem("Tools/SG/GenerateCs")]
         public static void Generate()
         {
@@ -70,7 +100,7 @@ namespace UnityEditor.ShaderGraph
                         {
                             var otherTypeName = ValueTypeName(j);
                             sb.Append($"\t\tpublic static implicit operator {otherTypeName}(Float x)\n");
-                            sb.Append($"\t\t\t=> new {otherTypeName}() {{ Code = $\"({{x.Code}}.{String.Concat(Enumerable.Repeat("x", j))}\" }};\n");
+                            sb.Append($"\t\t\t=> new {otherTypeName}() {{ Code = $\"({{x.Code}}).{String.Concat(Enumerable.Repeat("x", j))}\" }};\n");
                             sb.Append("\n");
                         }
                     }
@@ -90,11 +120,17 @@ namespace UnityEditor.ShaderGraph
                         sb.Append("\t\t}\n\n");
                     }
 
+                    sb.Append($"\t\tpublic static {typeName} operator-({typeName} v)\n");
+                    sb.Append($"\t\t\t=> new {typeName}() {{ Code = $\"-({{v.Code}})\" }};\n\n");
+
                     sb.Append($"\t\tpublic static implicit operator {typeName} (float v)\n");
                     sb.Append($"\t\t\t=> new {typeName}() {{ Code = $\"({{v}}).{String.Concat(Enumerable.Repeat("x", i))}\" }};\n\n");
 
                     sb.Append($"\t\tpublic static implicit operator {typeName} (int v)\n");
                     sb.Append($"\t\t\t=> new {typeName}() {{ Code = $\"({{v}}.0f).{String.Concat(Enumerable.Repeat("x", i))}\" }};\n\n");
+
+                    sb.Append($"\t\tpublic static implicit operator {typeName} (double v)\n");
+                    sb.Append($"\t\t\t=> new {typeName}() {{ Code = $\"({{(float)v}}).{String.Concat(Enumerable.Repeat("x", i))}\" }};\n\n");
 
                     sb.Append($"\t\tpublic static {typeName} operator+({typeName} x, {typeName} y)\n");
                     sb.Append($"\t\t\t=> new {typeName}() {{ Code = $\"({{x.Code}}) + ({{y.Code}})\" }};\n");
@@ -115,29 +151,72 @@ namespace UnityEditor.ShaderGraph
                     sb.Append("\n");
                 }
 
-                for (int i = 1; i <= 3; ++i)
-                {
-                    var typeName = AnyVectorTypeName(i);
-                    sb.Append($"\tpublic struct {typeName}\n");
-                    sb.Append("\t{\n");
-                    sb.Append($"\t\tpublic string Code;\n\n");
+                // intrinsics
+                sb.Append("\tpublic static class Intrinsics\n");
+                sb.Append("\t{\n");
 
-                    sb.Append($"\t\tpublic static {typeName} operator+({typeName} x, {typeName} y)\n");
-                    sb.Append($"\t\t\t=> new {typeName}() {{ Code = $\"({{x.Code}}) + ({{y.Code}})\" }};\n");
-                    sb.Append("\n");
-                    sb.Append($"\t\tpublic static {typeName} operator-({typeName} x, {typeName} y)\n");
-                    sb.Append($"\t\t\t=> new {typeName}() {{ Code = $\"({{x.Code}}) - ({{y.Code}})\" }};\n");
-                    sb.Append("\n");
-                    sb.Append($"\t\tpublic static {typeName} operator*({typeName} x, {typeName} y)\n");
-                    sb.Append($"\t\t\t=> new {typeName}() {{ Code = $\"({{x.Code}}) * ({{y.Code}})\" }};\n");
-                    sb.Append("\n");
-                    sb.Append($"\t\tpublic static {typeName} operator/({typeName} x, {typeName} y)\n");
-                    sb.Append($"\t\t\t=> new {typeName}() {{ Code = $\"({{x.Code}}) / ({{y.Code}})\" }};\n");
-                    sb.Append("\n");
+                sb.Append("\t\tpublic static Float Float(float x)\n");
+                sb.Append("\t\t\t=> new Float() { Code = $\"{x}\" };\n\n");
 
-                    sb.Append("\t}\n");
-                    sb.Append("\n");
-                }
+                sb.Append("\t\tpublic static Float2 Float2(float x, float y)\n");
+                sb.Append("\t\t\t=> new Float2() { Code = $\"float2({x}, {y})\" };\n\n");
+
+                sb.Append("\t\tpublic static Float3 Float3(float x, float y, float z)\n");
+                sb.Append("\t\t\t=> new Float3() { Code = $\"float3({x}, {y}, {z})\" };\n\n");
+
+                sb.Append("\t\tpublic static Float4 Float4(float x, float y, float z, float w)\n");
+                sb.Append("\t\t\t=> new Float4() { Code = $\"float4({x}, {y}, {z}, {w})\" };\n\n");
+
+                Intrinsic1(sb, "abs");
+                Intrinsic1(sb, "acos");
+                Intrinsic1(sb, "asin");
+                Intrinsic1(sb, "atan");
+                Intrinsic2(sb, "atan2");
+                Intrinsic1(sb, "ceil");
+                Intrinsic3(sb, "clamp");
+                Intrinsic1(sb, "cos");
+                Intrinsic1(sb, "cosh");
+
+                sb.Append("\t\tpublic static Float3 cross(Float3 x, Float3 y)\n");
+                sb.Append("\t\t\t=> new Float3() { Code = $\"cross({x.Code}, {y.Code})\" };\n\n");
+
+                Intrinsic1(sb, "ddx");
+                Intrinsic1(sb, "ddy");
+                Intrinsic1(sb, "degrees");
+                Intrinsic2(sb, "distance", "Float");
+                Intrinsic2(sb, "dot", "Float");
+                Intrinsic1(sb, "exp");
+                Intrinsic1(sb, "exp2");
+                Intrinsic1(sb, "floor");
+                Intrinsic2(sb, "fmod");
+                Intrinsic1(sb, "frac");
+                Intrinsic1(sb, "length", "Float");
+                Intrinsic3(sb, "lerp");
+                Intrinsic1(sb, "log");
+                Intrinsic1(sb, "log10");
+                Intrinsic1(sb, "log2");
+                Intrinsic2(sb, "max");
+                Intrinsic2(sb, "min");
+                Intrinsic1(sb, "normalize");
+                Intrinsic2(sb, "pow");
+                Intrinsic1(sb, "radians");
+                Intrinsic2(sb, "reflect");
+                Intrinsic2(sb, "refract");
+                Intrinsic1(sb, "rcp");
+                Intrinsic1(sb, "round");
+                Intrinsic1(sb, "rsqrt");
+                Intrinsic1(sb, "saturate");
+                Intrinsic1(sb, "sign");
+                Intrinsic1(sb, "sin");
+                Intrinsic1(sb, "sinh");
+                Intrinsic3(sb, "smoothstep");
+                Intrinsic1(sb, "sqrt");
+                Intrinsic2(sb, "step");
+                Intrinsic1(sb, "tan");
+                Intrinsic1(sb, "tanh");
+                Intrinsic1(sb, "trunc");
+
+                sb.Append("\t}\n");
 
                 sb.Append("}\n");
 

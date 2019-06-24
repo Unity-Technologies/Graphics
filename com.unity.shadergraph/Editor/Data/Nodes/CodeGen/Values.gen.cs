@@ -12,19 +12,25 @@ namespace UnityEditor.ShaderGraph.Hlsl
         }
 
         public static implicit operator Float2(Float x)
-            => new Float2() { Code = $"({x.Code}.xx" };
+            => new Float2() { Code = $"({x.Code}).xx" };
 
         public static implicit operator Float3(Float x)
-            => new Float3() { Code = $"({x.Code}.xxx" };
+            => new Float3() { Code = $"({x.Code}).xxx" };
 
         public static implicit operator Float4(Float x)
-            => new Float4() { Code = $"({x.Code}.xxxx" };
+            => new Float4() { Code = $"({x.Code}).xxxx" };
+
+        public static Float operator-(Float v)
+            => new Float() { Code = $"-({v.Code})" };
 
         public static implicit operator Float (float v)
             => new Float() { Code = $"({v}).x" };
 
         public static implicit operator Float (int v)
             => new Float() { Code = $"({v}.0f).x" };
+
+        public static implicit operator Float (double v)
+            => new Float() { Code = $"({(float)v}).x" };
 
         public static Float operator+(Float x, Float y)
             => new Float() { Code = $"({x.Code}) + ({y.Code})" };
@@ -62,11 +68,17 @@ namespace UnityEditor.ShaderGraph.Hlsl
             Code = other.Code;
         }
 
+        public static Float2 operator-(Float2 v)
+            => new Float2() { Code = $"-({v.Code})" };
+
         public static implicit operator Float2 (float v)
             => new Float2() { Code = $"({v}).xx" };
 
         public static implicit operator Float2 (int v)
             => new Float2() { Code = $"({v}.0f).xx" };
+
+        public static implicit operator Float2 (double v)
+            => new Float2() { Code = $"({(float)v}).xx" };
 
         public static Float2 operator+(Float2 x, Float2 y)
             => new Float2() { Code = $"({x.Code}) + ({y.Code})" };
@@ -182,11 +194,17 @@ namespace UnityEditor.ShaderGraph.Hlsl
             Code = other.Code;
         }
 
+        public static Float3 operator-(Float3 v)
+            => new Float3() { Code = $"-({v.Code})" };
+
         public static implicit operator Float3 (float v)
             => new Float3() { Code = $"({v}).xxx" };
 
         public static implicit operator Float3 (int v)
             => new Float3() { Code = $"({v}.0f).xxx" };
+
+        public static implicit operator Float3 (double v)
+            => new Float3() { Code = $"({(float)v}).xxx" };
 
         public static Float3 operator+(Float3 x, Float3 y)
             => new Float3() { Code = $"({x.Code}) + ({y.Code})" };
@@ -584,11 +602,17 @@ namespace UnityEditor.ShaderGraph.Hlsl
                 return ".xyzw";
         }
 
+        public static Float4 operator-(Float4 v)
+            => new Float4() { Code = $"-({v.Code})" };
+
         public static implicit operator Float4 (float v)
             => new Float4() { Code = $"({v}).xxxx" };
 
         public static implicit operator Float4 (int v)
             => new Float4() { Code = $"({v}.0f).xxxx" };
+
+        public static implicit operator Float4 (double v)
+            => new Float4() { Code = $"({(float)v}).xxxx" };
 
         public static Float4 operator+(Float4 x, Float4 y)
             => new Float4() { Code = $"({x.Code}) + ({y.Code})" };
@@ -1624,59 +1648,551 @@ namespace UnityEditor.ShaderGraph.Hlsl
 
     }
 
-    public struct AnyFloat
+    public static class Intrinsics
     {
-        public string Code;
+        public static Float Float(float x)
+            => new Float() { Code = $"{x}" };
 
-        public static AnyFloat operator+(AnyFloat x, AnyFloat y)
-            => new AnyFloat() { Code = $"({x.Code}) + ({y.Code})" };
+        public static Float2 Float2(float x, float y)
+            => new Float2() { Code = $"float2({x}, {y})" };
 
-        public static AnyFloat operator-(AnyFloat x, AnyFloat y)
-            => new AnyFloat() { Code = $"({x.Code}) - ({y.Code})" };
+        public static Float3 Float3(float x, float y, float z)
+            => new Float3() { Code = $"float3({x}, {y}, {z})" };
 
-        public static AnyFloat operator*(AnyFloat x, AnyFloat y)
-            => new AnyFloat() { Code = $"({x.Code}) * ({y.Code})" };
+        public static Float4 Float4(float x, float y, float z, float w)
+            => new Float4() { Code = $"float4({x}, {y}, {z}, {w})" };
 
-        public static AnyFloat operator/(AnyFloat x, AnyFloat y)
-            => new AnyFloat() { Code = $"({x.Code}) / ({y.Code})" };
+        public static Float abs(Float x)
+            => new Float() { Code = $"abs({x.Code})" };
+
+        public static Float2 abs(Float2 x)
+            => new Float2() { Code = $"abs({x.Code})" };
+
+        public static Float3 abs(Float3 x)
+            => new Float3() { Code = $"abs({x.Code})" };
+
+        public static Float4 abs(Float4 x)
+            => new Float4() { Code = $"abs({x.Code})" };
+
+        public static Float acos(Float x)
+            => new Float() { Code = $"acos({x.Code})" };
+
+        public static Float2 acos(Float2 x)
+            => new Float2() { Code = $"acos({x.Code})" };
+
+        public static Float3 acos(Float3 x)
+            => new Float3() { Code = $"acos({x.Code})" };
+
+        public static Float4 acos(Float4 x)
+            => new Float4() { Code = $"acos({x.Code})" };
+
+        public static Float asin(Float x)
+            => new Float() { Code = $"asin({x.Code})" };
+
+        public static Float2 asin(Float2 x)
+            => new Float2() { Code = $"asin({x.Code})" };
+
+        public static Float3 asin(Float3 x)
+            => new Float3() { Code = $"asin({x.Code})" };
+
+        public static Float4 asin(Float4 x)
+            => new Float4() { Code = $"asin({x.Code})" };
+
+        public static Float atan(Float x)
+            => new Float() { Code = $"atan({x.Code})" };
+
+        public static Float2 atan(Float2 x)
+            => new Float2() { Code = $"atan({x.Code})" };
+
+        public static Float3 atan(Float3 x)
+            => new Float3() { Code = $"atan({x.Code})" };
+
+        public static Float4 atan(Float4 x)
+            => new Float4() { Code = $"atan({x.Code})" };
+
+        public static Float atan2(Float x, Float y)
+            => new Float() { Code = $"atan2({x.Code}, {y.Code})" };
+
+        public static Float2 atan2(Float2 x, Float2 y)
+            => new Float2() { Code = $"atan2({x.Code}, {y.Code})" };
+
+        public static Float3 atan2(Float3 x, Float3 y)
+            => new Float3() { Code = $"atan2({x.Code}, {y.Code})" };
+
+        public static Float4 atan2(Float4 x, Float4 y)
+            => new Float4() { Code = $"atan2({x.Code}, {y.Code})" };
+
+        public static Float ceil(Float x)
+            => new Float() { Code = $"ceil({x.Code})" };
+
+        public static Float2 ceil(Float2 x)
+            => new Float2() { Code = $"ceil({x.Code})" };
+
+        public static Float3 ceil(Float3 x)
+            => new Float3() { Code = $"ceil({x.Code})" };
+
+        public static Float4 ceil(Float4 x)
+            => new Float4() { Code = $"ceil({x.Code})" };
+
+        public static Float clamp(Float x, Float y, Float z)
+            => new Float() { Code = $"clamp({x.Code}, {y.Code}, {z.Code})" };
+
+        public static Float2 clamp(Float2 x, Float2 y, Float2 z)
+            => new Float2() { Code = $"clamp({x.Code}, {y.Code}, {z.Code})" };
+
+        public static Float3 clamp(Float3 x, Float3 y, Float3 z)
+            => new Float3() { Code = $"clamp({x.Code}, {y.Code}, {z.Code})" };
+
+        public static Float4 clamp(Float4 x, Float4 y, Float4 z)
+            => new Float4() { Code = $"clamp({x.Code}, {y.Code}, {z.Code})" };
+
+        public static Float cos(Float x)
+            => new Float() { Code = $"cos({x.Code})" };
+
+        public static Float2 cos(Float2 x)
+            => new Float2() { Code = $"cos({x.Code})" };
+
+        public static Float3 cos(Float3 x)
+            => new Float3() { Code = $"cos({x.Code})" };
+
+        public static Float4 cos(Float4 x)
+            => new Float4() { Code = $"cos({x.Code})" };
+
+        public static Float cosh(Float x)
+            => new Float() { Code = $"cosh({x.Code})" };
+
+        public static Float2 cosh(Float2 x)
+            => new Float2() { Code = $"cosh({x.Code})" };
+
+        public static Float3 cosh(Float3 x)
+            => new Float3() { Code = $"cosh({x.Code})" };
+
+        public static Float4 cosh(Float4 x)
+            => new Float4() { Code = $"cosh({x.Code})" };
+
+        public static Float3 cross(Float3 x, Float3 y)
+            => new Float3() { Code = $"cross({x.Code}, {y.Code})" };
+
+        public static Float ddx(Float x)
+            => new Float() { Code = $"ddx({x.Code})" };
+
+        public static Float2 ddx(Float2 x)
+            => new Float2() { Code = $"ddx({x.Code})" };
+
+        public static Float3 ddx(Float3 x)
+            => new Float3() { Code = $"ddx({x.Code})" };
+
+        public static Float4 ddx(Float4 x)
+            => new Float4() { Code = $"ddx({x.Code})" };
+
+        public static Float ddy(Float x)
+            => new Float() { Code = $"ddy({x.Code})" };
+
+        public static Float2 ddy(Float2 x)
+            => new Float2() { Code = $"ddy({x.Code})" };
+
+        public static Float3 ddy(Float3 x)
+            => new Float3() { Code = $"ddy({x.Code})" };
+
+        public static Float4 ddy(Float4 x)
+            => new Float4() { Code = $"ddy({x.Code})" };
+
+        public static Float degrees(Float x)
+            => new Float() { Code = $"degrees({x.Code})" };
+
+        public static Float2 degrees(Float2 x)
+            => new Float2() { Code = $"degrees({x.Code})" };
+
+        public static Float3 degrees(Float3 x)
+            => new Float3() { Code = $"degrees({x.Code})" };
+
+        public static Float4 degrees(Float4 x)
+            => new Float4() { Code = $"degrees({x.Code})" };
+
+        public static Float distance(Float x, Float y)
+            => new Float() { Code = $"distance({x.Code}, {y.Code})" };
+
+        public static Float distance(Float2 x, Float2 y)
+            => new Float() { Code = $"distance({x.Code}, {y.Code})" };
+
+        public static Float distance(Float3 x, Float3 y)
+            => new Float() { Code = $"distance({x.Code}, {y.Code})" };
+
+        public static Float distance(Float4 x, Float4 y)
+            => new Float() { Code = $"distance({x.Code}, {y.Code})" };
+
+        public static Float dot(Float x, Float y)
+            => new Float() { Code = $"dot({x.Code}, {y.Code})" };
+
+        public static Float dot(Float2 x, Float2 y)
+            => new Float() { Code = $"dot({x.Code}, {y.Code})" };
+
+        public static Float dot(Float3 x, Float3 y)
+            => new Float() { Code = $"dot({x.Code}, {y.Code})" };
+
+        public static Float dot(Float4 x, Float4 y)
+            => new Float() { Code = $"dot({x.Code}, {y.Code})" };
+
+        public static Float exp(Float x)
+            => new Float() { Code = $"exp({x.Code})" };
+
+        public static Float2 exp(Float2 x)
+            => new Float2() { Code = $"exp({x.Code})" };
+
+        public static Float3 exp(Float3 x)
+            => new Float3() { Code = $"exp({x.Code})" };
+
+        public static Float4 exp(Float4 x)
+            => new Float4() { Code = $"exp({x.Code})" };
+
+        public static Float exp2(Float x)
+            => new Float() { Code = $"exp2({x.Code})" };
+
+        public static Float2 exp2(Float2 x)
+            => new Float2() { Code = $"exp2({x.Code})" };
+
+        public static Float3 exp2(Float3 x)
+            => new Float3() { Code = $"exp2({x.Code})" };
+
+        public static Float4 exp2(Float4 x)
+            => new Float4() { Code = $"exp2({x.Code})" };
+
+        public static Float floor(Float x)
+            => new Float() { Code = $"floor({x.Code})" };
+
+        public static Float2 floor(Float2 x)
+            => new Float2() { Code = $"floor({x.Code})" };
+
+        public static Float3 floor(Float3 x)
+            => new Float3() { Code = $"floor({x.Code})" };
+
+        public static Float4 floor(Float4 x)
+            => new Float4() { Code = $"floor({x.Code})" };
+
+        public static Float fmod(Float x, Float y)
+            => new Float() { Code = $"fmod({x.Code}, {y.Code})" };
+
+        public static Float2 fmod(Float2 x, Float2 y)
+            => new Float2() { Code = $"fmod({x.Code}, {y.Code})" };
+
+        public static Float3 fmod(Float3 x, Float3 y)
+            => new Float3() { Code = $"fmod({x.Code}, {y.Code})" };
+
+        public static Float4 fmod(Float4 x, Float4 y)
+            => new Float4() { Code = $"fmod({x.Code}, {y.Code})" };
+
+        public static Float frac(Float x)
+            => new Float() { Code = $"frac({x.Code})" };
+
+        public static Float2 frac(Float2 x)
+            => new Float2() { Code = $"frac({x.Code})" };
+
+        public static Float3 frac(Float3 x)
+            => new Float3() { Code = $"frac({x.Code})" };
+
+        public static Float4 frac(Float4 x)
+            => new Float4() { Code = $"frac({x.Code})" };
+
+        public static Float length(Float x)
+            => new Float() { Code = $"length({x.Code})" };
+
+        public static Float length(Float2 x)
+            => new Float() { Code = $"length({x.Code})" };
+
+        public static Float length(Float3 x)
+            => new Float() { Code = $"length({x.Code})" };
+
+        public static Float length(Float4 x)
+            => new Float() { Code = $"length({x.Code})" };
+
+        public static Float lerp(Float x, Float y, Float z)
+            => new Float() { Code = $"lerp({x.Code}, {y.Code}, {z.Code})" };
+
+        public static Float2 lerp(Float2 x, Float2 y, Float2 z)
+            => new Float2() { Code = $"lerp({x.Code}, {y.Code}, {z.Code})" };
+
+        public static Float3 lerp(Float3 x, Float3 y, Float3 z)
+            => new Float3() { Code = $"lerp({x.Code}, {y.Code}, {z.Code})" };
+
+        public static Float4 lerp(Float4 x, Float4 y, Float4 z)
+            => new Float4() { Code = $"lerp({x.Code}, {y.Code}, {z.Code})" };
+
+        public static Float log(Float x)
+            => new Float() { Code = $"log({x.Code})" };
+
+        public static Float2 log(Float2 x)
+            => new Float2() { Code = $"log({x.Code})" };
+
+        public static Float3 log(Float3 x)
+            => new Float3() { Code = $"log({x.Code})" };
+
+        public static Float4 log(Float4 x)
+            => new Float4() { Code = $"log({x.Code})" };
+
+        public static Float log10(Float x)
+            => new Float() { Code = $"log10({x.Code})" };
+
+        public static Float2 log10(Float2 x)
+            => new Float2() { Code = $"log10({x.Code})" };
+
+        public static Float3 log10(Float3 x)
+            => new Float3() { Code = $"log10({x.Code})" };
+
+        public static Float4 log10(Float4 x)
+            => new Float4() { Code = $"log10({x.Code})" };
+
+        public static Float log2(Float x)
+            => new Float() { Code = $"log2({x.Code})" };
+
+        public static Float2 log2(Float2 x)
+            => new Float2() { Code = $"log2({x.Code})" };
+
+        public static Float3 log2(Float3 x)
+            => new Float3() { Code = $"log2({x.Code})" };
+
+        public static Float4 log2(Float4 x)
+            => new Float4() { Code = $"log2({x.Code})" };
+
+        public static Float max(Float x, Float y)
+            => new Float() { Code = $"max({x.Code}, {y.Code})" };
+
+        public static Float2 max(Float2 x, Float2 y)
+            => new Float2() { Code = $"max({x.Code}, {y.Code})" };
+
+        public static Float3 max(Float3 x, Float3 y)
+            => new Float3() { Code = $"max({x.Code}, {y.Code})" };
+
+        public static Float4 max(Float4 x, Float4 y)
+            => new Float4() { Code = $"max({x.Code}, {y.Code})" };
+
+        public static Float min(Float x, Float y)
+            => new Float() { Code = $"min({x.Code}, {y.Code})" };
+
+        public static Float2 min(Float2 x, Float2 y)
+            => new Float2() { Code = $"min({x.Code}, {y.Code})" };
+
+        public static Float3 min(Float3 x, Float3 y)
+            => new Float3() { Code = $"min({x.Code}, {y.Code})" };
+
+        public static Float4 min(Float4 x, Float4 y)
+            => new Float4() { Code = $"min({x.Code}, {y.Code})" };
+
+        public static Float normalize(Float x)
+            => new Float() { Code = $"normalize({x.Code})" };
+
+        public static Float2 normalize(Float2 x)
+            => new Float2() { Code = $"normalize({x.Code})" };
+
+        public static Float3 normalize(Float3 x)
+            => new Float3() { Code = $"normalize({x.Code})" };
+
+        public static Float4 normalize(Float4 x)
+            => new Float4() { Code = $"normalize({x.Code})" };
+
+        public static Float pow(Float x, Float y)
+            => new Float() { Code = $"pow({x.Code}, {y.Code})" };
+
+        public static Float2 pow(Float2 x, Float2 y)
+            => new Float2() { Code = $"pow({x.Code}, {y.Code})" };
+
+        public static Float3 pow(Float3 x, Float3 y)
+            => new Float3() { Code = $"pow({x.Code}, {y.Code})" };
+
+        public static Float4 pow(Float4 x, Float4 y)
+            => new Float4() { Code = $"pow({x.Code}, {y.Code})" };
+
+        public static Float radians(Float x)
+            => new Float() { Code = $"radians({x.Code})" };
+
+        public static Float2 radians(Float2 x)
+            => new Float2() { Code = $"radians({x.Code})" };
+
+        public static Float3 radians(Float3 x)
+            => new Float3() { Code = $"radians({x.Code})" };
+
+        public static Float4 radians(Float4 x)
+            => new Float4() { Code = $"radians({x.Code})" };
+
+        public static Float reflect(Float x, Float y)
+            => new Float() { Code = $"reflect({x.Code}, {y.Code})" };
+
+        public static Float2 reflect(Float2 x, Float2 y)
+            => new Float2() { Code = $"reflect({x.Code}, {y.Code})" };
+
+        public static Float3 reflect(Float3 x, Float3 y)
+            => new Float3() { Code = $"reflect({x.Code}, {y.Code})" };
+
+        public static Float4 reflect(Float4 x, Float4 y)
+            => new Float4() { Code = $"reflect({x.Code}, {y.Code})" };
+
+        public static Float refract(Float x, Float y)
+            => new Float() { Code = $"refract({x.Code}, {y.Code})" };
+
+        public static Float2 refract(Float2 x, Float2 y)
+            => new Float2() { Code = $"refract({x.Code}, {y.Code})" };
+
+        public static Float3 refract(Float3 x, Float3 y)
+            => new Float3() { Code = $"refract({x.Code}, {y.Code})" };
+
+        public static Float4 refract(Float4 x, Float4 y)
+            => new Float4() { Code = $"refract({x.Code}, {y.Code})" };
+
+        public static Float rcp(Float x)
+            => new Float() { Code = $"rcp({x.Code})" };
+
+        public static Float2 rcp(Float2 x)
+            => new Float2() { Code = $"rcp({x.Code})" };
+
+        public static Float3 rcp(Float3 x)
+            => new Float3() { Code = $"rcp({x.Code})" };
+
+        public static Float4 rcp(Float4 x)
+            => new Float4() { Code = $"rcp({x.Code})" };
+
+        public static Float round(Float x)
+            => new Float() { Code = $"round({x.Code})" };
+
+        public static Float2 round(Float2 x)
+            => new Float2() { Code = $"round({x.Code})" };
+
+        public static Float3 round(Float3 x)
+            => new Float3() { Code = $"round({x.Code})" };
+
+        public static Float4 round(Float4 x)
+            => new Float4() { Code = $"round({x.Code})" };
+
+        public static Float rsqrt(Float x)
+            => new Float() { Code = $"rsqrt({x.Code})" };
+
+        public static Float2 rsqrt(Float2 x)
+            => new Float2() { Code = $"rsqrt({x.Code})" };
+
+        public static Float3 rsqrt(Float3 x)
+            => new Float3() { Code = $"rsqrt({x.Code})" };
+
+        public static Float4 rsqrt(Float4 x)
+            => new Float4() { Code = $"rsqrt({x.Code})" };
+
+        public static Float saturate(Float x)
+            => new Float() { Code = $"saturate({x.Code})" };
+
+        public static Float2 saturate(Float2 x)
+            => new Float2() { Code = $"saturate({x.Code})" };
+
+        public static Float3 saturate(Float3 x)
+            => new Float3() { Code = $"saturate({x.Code})" };
+
+        public static Float4 saturate(Float4 x)
+            => new Float4() { Code = $"saturate({x.Code})" };
+
+        public static Float sign(Float x)
+            => new Float() { Code = $"sign({x.Code})" };
+
+        public static Float2 sign(Float2 x)
+            => new Float2() { Code = $"sign({x.Code})" };
+
+        public static Float3 sign(Float3 x)
+            => new Float3() { Code = $"sign({x.Code})" };
+
+        public static Float4 sign(Float4 x)
+            => new Float4() { Code = $"sign({x.Code})" };
+
+        public static Float sin(Float x)
+            => new Float() { Code = $"sin({x.Code})" };
+
+        public static Float2 sin(Float2 x)
+            => new Float2() { Code = $"sin({x.Code})" };
+
+        public static Float3 sin(Float3 x)
+            => new Float3() { Code = $"sin({x.Code})" };
+
+        public static Float4 sin(Float4 x)
+            => new Float4() { Code = $"sin({x.Code})" };
+
+        public static Float sinh(Float x)
+            => new Float() { Code = $"sinh({x.Code})" };
+
+        public static Float2 sinh(Float2 x)
+            => new Float2() { Code = $"sinh({x.Code})" };
+
+        public static Float3 sinh(Float3 x)
+            => new Float3() { Code = $"sinh({x.Code})" };
+
+        public static Float4 sinh(Float4 x)
+            => new Float4() { Code = $"sinh({x.Code})" };
+
+        public static Float smoothstep(Float x, Float y, Float z)
+            => new Float() { Code = $"smoothstep({x.Code}, {y.Code}, {z.Code})" };
+
+        public static Float2 smoothstep(Float2 x, Float2 y, Float2 z)
+            => new Float2() { Code = $"smoothstep({x.Code}, {y.Code}, {z.Code})" };
+
+        public static Float3 smoothstep(Float3 x, Float3 y, Float3 z)
+            => new Float3() { Code = $"smoothstep({x.Code}, {y.Code}, {z.Code})" };
+
+        public static Float4 smoothstep(Float4 x, Float4 y, Float4 z)
+            => new Float4() { Code = $"smoothstep({x.Code}, {y.Code}, {z.Code})" };
+
+        public static Float sqrt(Float x)
+            => new Float() { Code = $"sqrt({x.Code})" };
+
+        public static Float2 sqrt(Float2 x)
+            => new Float2() { Code = $"sqrt({x.Code})" };
+
+        public static Float3 sqrt(Float3 x)
+            => new Float3() { Code = $"sqrt({x.Code})" };
+
+        public static Float4 sqrt(Float4 x)
+            => new Float4() { Code = $"sqrt({x.Code})" };
+
+        public static Float step(Float x, Float y)
+            => new Float() { Code = $"step({x.Code}, {y.Code})" };
+
+        public static Float2 step(Float2 x, Float2 y)
+            => new Float2() { Code = $"step({x.Code}, {y.Code})" };
+
+        public static Float3 step(Float3 x, Float3 y)
+            => new Float3() { Code = $"step({x.Code}, {y.Code})" };
+
+        public static Float4 step(Float4 x, Float4 y)
+            => new Float4() { Code = $"step({x.Code}, {y.Code})" };
+
+        public static Float tan(Float x)
+            => new Float() { Code = $"tan({x.Code})" };
+
+        public static Float2 tan(Float2 x)
+            => new Float2() { Code = $"tan({x.Code})" };
+
+        public static Float3 tan(Float3 x)
+            => new Float3() { Code = $"tan({x.Code})" };
+
+        public static Float4 tan(Float4 x)
+            => new Float4() { Code = $"tan({x.Code})" };
+
+        public static Float tanh(Float x)
+            => new Float() { Code = $"tanh({x.Code})" };
+
+        public static Float2 tanh(Float2 x)
+            => new Float2() { Code = $"tanh({x.Code})" };
+
+        public static Float3 tanh(Float3 x)
+            => new Float3() { Code = $"tanh({x.Code})" };
+
+        public static Float4 tanh(Float4 x)
+            => new Float4() { Code = $"tanh({x.Code})" };
+
+        public static Float trunc(Float x)
+            => new Float() { Code = $"trunc({x.Code})" };
+
+        public static Float2 trunc(Float2 x)
+            => new Float2() { Code = $"trunc({x.Code})" };
+
+        public static Float3 trunc(Float3 x)
+            => new Float3() { Code = $"trunc({x.Code})" };
+
+        public static Float4 trunc(Float4 x)
+            => new Float4() { Code = $"trunc({x.Code})" };
 
     }
-
-    public struct AnyFloat2
-    {
-        public string Code;
-
-        public static AnyFloat2 operator+(AnyFloat2 x, AnyFloat2 y)
-            => new AnyFloat2() { Code = $"({x.Code}) + ({y.Code})" };
-
-        public static AnyFloat2 operator-(AnyFloat2 x, AnyFloat2 y)
-            => new AnyFloat2() { Code = $"({x.Code}) - ({y.Code})" };
-
-        public static AnyFloat2 operator*(AnyFloat2 x, AnyFloat2 y)
-            => new AnyFloat2() { Code = $"({x.Code}) * ({y.Code})" };
-
-        public static AnyFloat2 operator/(AnyFloat2 x, AnyFloat2 y)
-            => new AnyFloat2() { Code = $"({x.Code}) / ({y.Code})" };
-
-    }
-
-    public struct AnyFloat3
-    {
-        public string Code;
-
-        public static AnyFloat3 operator+(AnyFloat3 x, AnyFloat3 y)
-            => new AnyFloat3() { Code = $"({x.Code}) + ({y.Code})" };
-
-        public static AnyFloat3 operator-(AnyFloat3 x, AnyFloat3 y)
-            => new AnyFloat3() { Code = $"({x.Code}) - ({y.Code})" };
-
-        public static AnyFloat3 operator*(AnyFloat3 x, AnyFloat3 y)
-            => new AnyFloat3() { Code = $"({x.Code}) * ({y.Code})" };
-
-        public static AnyFloat3 operator/(AnyFloat3 x, AnyFloat3 y)
-            => new AnyFloat3() { Code = $"({x.Code}) / ({y.Code})" };
-
-    }
-
 }
 
