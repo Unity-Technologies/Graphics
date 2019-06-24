@@ -11,6 +11,7 @@ namespace UnityEditor.Rendering
         {
             None,
             ShadowCascades,
+            LightOnly
             // TODO new mode
         }
         

@@ -32,6 +32,7 @@ namespace UnityEngine.Rendering.LWRP
         DebugPass m_DebugPass;
 
         DebugShowShadowCascadesPass m_DebugShowShadowCascadesPass;
+        DebugShowLightOnly m_DebugShowLightOnly;
 
 #if UNITY_EDITOR
         SceneViewDepthCopyPass m_SceneViewDepthCopyPass;
@@ -83,6 +84,7 @@ namespace UnityEngine.Rendering.LWRP
             m_DebugPass = new DebugPass(RenderPassEvent.AfterRendering, fullScreenDebugMaterial);
 
             m_DebugShowShadowCascadesPass = new DebugShowShadowCascadesPass("[Debug] Show Shadow Cascades", true, RenderPassEvent.BeforeRenderingOpaques, RenderQueueRange.opaque, data.opaqueLayerMask, m_DefaultStencilState, stencilData.stencilReference);
+            m_DebugShowLightOnly = new DebugShowLightOnly("[Debug] Show Light Detail", true, RenderPassEvent.BeforeRenderingOpaques, RenderQueueRange.opaque, data.opaqueLayerMask, m_DefaultStencilState, stencilData.stencilReference);
 
 #if UNITY_EDITOR
             m_SceneViewDepthCopyPass = new SceneViewDepthCopyPass(RenderPassEvent.AfterRendering + 9, copyDepthMaterial);
@@ -192,9 +194,18 @@ namespace UnityEngine.Rendering.LWRP
                 EnqueuePass(m_ScreenSpaceShadowResolvePass);
             }
 
-            if(DebugDisplaySettings.Instance.Lighting.m_LightingDebugMode==DebugDisplaySettingsLighting.LightingDebugMode.ShadowCascades )
+            if(DebugDisplaySettings.Instance.Lighting.m_LightingDebugMode!=DebugDisplaySettingsLighting.LightingDebugMode.None )
             {
-                EnqueuePass(m_DebugShowShadowCascadesPass);
+                if(DebugDisplaySettings.Instance.Lighting.m_LightingDebugMode==DebugDisplaySettingsLighting.LightingDebugMode.ShadowCascades )
+                {
+                    EnqueuePass(m_DebugShowShadowCascadesPass);
+                }
+
+                if (DebugDisplaySettings.Instance.Lighting.m_LightingDebugMode == DebugDisplaySettingsLighting.LightingDebugMode.LightOnly)
+                {
+                    EnqueuePass(m_DebugShowLightOnly);
+                }
+
 #if UNITY_EDITOR
                 if (renderingData.cameraData.isSceneViewCamera)
                 {

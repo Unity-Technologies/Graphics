@@ -90,6 +90,15 @@ inline void InitializeStandardLitSurfaceData(float2 uv, out SurfaceData outSurfa
     outSurfaceData.normalTS = SampleNormal(uv, TEXTURE2D_ARGS(_BumpMap, sampler_BumpMap), _BumpScale);
     outSurfaceData.occlusion = SampleOcclusion(uv);
     outSurfaceData.emission = SampleEmission(uv, _EmissionColor.rgb, TEXTURE2D_ARGS(_EmissionMap, sampler_EmissionMap));
+
+#if defined(_DEBUG_SHOW_LIGHT_DETAIL)
+    outSurfaceData.albedo = half3(1.0h, 1.0h, 1.0h);
+    outSurfaceData.metallic = 0.0;
+    outSurfaceData.specular = half3(0.0h, 0.0h, 0.0h);
+    outSurfaceData.smoothness = 0.0;
+    outSurfaceData.occlusion = 0.0;
+    outSurfaceData.emission = half3(0.0h, 0.0h, 0.0h);
+#endif
 }
 
 #endif // LIGHTWEIGHT_INPUT_SURFACE_PBR_INCLUDED
