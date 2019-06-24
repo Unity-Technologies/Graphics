@@ -58,5 +58,11 @@ namespace UnityEngine.Rendering.LWRP
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
         }
+
+        public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
+        {
+            //base.Configure(cmd, cameraTextureDescriptor);
+            ConfigureTarget(BuiltinRenderTextureType.CameraTarget);
+        }
     }
 }

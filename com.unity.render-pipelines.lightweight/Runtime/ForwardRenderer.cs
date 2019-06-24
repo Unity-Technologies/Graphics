@@ -181,8 +181,17 @@ namespace UnityEngine.Rendering.LWRP
             if(showCascades )
             {
                 EnqueuePass(m_DebugShowShadowCascadesPass);
+#if UNITY_EDITOR
+                if (renderingData.cameraData.isSceneViewCamera)
+                {
+                    m_SceneViewDepthCopyPass.Setup(m_DepthTexture);
+                    EnqueuePass(m_SceneViewDepthCopyPass);
+                }
+#endif
+                return;
             }
-            else
+
+
             {
                 EnqueuePass(m_RenderOpaqueForwardPass);
 
