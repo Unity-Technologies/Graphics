@@ -249,7 +249,7 @@ namespace UnityEngine.Rendering.LWRP
                 }
             }
 
-            fullScreenDebugMode = FullScreenDebugMode.ShadowsOnly;
+            //fullScreenDebugMode = FullScreenDebugMode.ShadowsOnly;
             if (fullScreenDebugMode != FullScreenDebugMode.None)
             {
                 RenderTargetHandle debugBuffer = new RenderTargetHandle(); 
