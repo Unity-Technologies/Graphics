@@ -76,6 +76,9 @@ namespace UnityEditor.ShaderGraph.Drawing
         public override void BuildContextualMenu(ContextualMenuPopulateEvent evt)
         {
             base.BuildContextualMenu(evt);
+
+            InitializePrecisionSubMenu(evt);
+
             if (evt.target is GraphView || evt.target is Node)
             {
                 evt.menu.AppendAction("Convert To Sub-graph", ConvertToSubgraph, ConvertToSubgraphStatus);
@@ -175,7 +178,33 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
         }
 
-        void ChangeCustomNodeColor(DropdownMenuAction menuAction)
+        private void InitializePrecisionSubMenu(ContextualMenuPopulateEvent evt)
+        {
+            // Default the menu buttons to disabled
+            DropdownMenuAction.Status inheritPrecisionAction = DropdownMenuAction.Status.Disabled;
+            DropdownMenuAction.Status floatPrecisionAction = DropdownMenuAction.Status.Disabled;
+            DropdownMenuAction.Status halfPrecisionAction = DropdownMenuAction.Status.Disabled;
+
+            // Check which precisions are available to switch to
+            foreach (MaterialNodeView selectedNode in selection.Where(x => x is MaterialNodeView).Select(x => x as MaterialNodeView))
+            {
+                if (selectedNode.node.precision != Precision.Inherit)
+                    inheritPrecisionAction = DropdownMenuAction.Status.Normal;
+                if (selectedNode.node.precision != Precision.Float)
+                    floatPrecisionAction = DropdownMenuAction.Status.Normal;
+                if (selectedNode.node.precision != Precision.Half)
+                    halfPrecisionAction = DropdownMenuAction.Status.Normal;
+            }
+
+            // Create the menu options
+            evt.menu.AppendAction("Precision/Inherit", _ => SetNodePrecisionOnSelection(Precision.Inherit), (a) => inheritPrecisionAction);
+            evt.menu.AppendAction("Precision/Float", _ => SetNodePrecisionOnSelection(Precision.Float), (a) => floatPrecisionAction);
+            evt.menu.AppendAction("Precision/Half", _ => SetNodePrecisionOnSelection(Precision.Half), (a) => halfPrecisionAction);
+
+            evt.menu.AppendSeparator();
+        }
+
+            void ChangeCustomNodeColor(DropdownMenuAction menuAction)
         {
             // Color Picker is internal :(
             var t = typeof(EditorWindow).Assembly.GetTypes().FirstOrDefault(ty => ty.Name == "ColorPicker");
@@ -246,6 +275,27 @@ namespace UnityEditor.ShaderGraph.Drawing
                     group.RemoveElement(node);
                 }
             }
+        }
+
+        //TODO: @samuel.hardin
+        public void SetNodePrecisionOnSelection(Precision inPrecision)
+        {
+            var editorView = GetFirstAncestorOfType<GraphEditorView>();
+
+            graph.owner.RegisterCompleteObjectUndo("Set Precisions");
+            //editorView.colorManager.SetNodesDirty(selection);
+
+            foreach (MaterialNodeView selectedNode in selection.Where(x => x is MaterialNodeView).Select(x => x as MaterialNodeView))
+            {
+                if (selectedNode.node.canSetPrecision)
+                {
+                    string err = "";
+                    selectedNode.node.precision = inPrecision;
+                    selectedNode.node.ValidateConcretePrecision(ref err);
+                }
+            }
+
+            //editorView.colorManager.UpdateNodeViews(selection);
         }
 
         void CollapsePreviews(DropdownMenuAction action)
