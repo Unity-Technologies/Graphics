@@ -1193,7 +1193,7 @@ namespace UnityEditor.ShaderGraph
 
             if (requirements.requiresTime)
             {
-                sb.AppendLine($"{variableName}.{ShaderGeneratorNames.TimeParameters} = {ShaderGeneratorNames.TimeParameters};");
+                sb.AppendLine($"{variableName}.{ShaderGeneratorNames.TimeParameters} = IN.{ShaderGeneratorNames.TimeParameters};");
             }
         }
 
