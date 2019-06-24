@@ -16,7 +16,7 @@ namespace UnityEditor.ShaderGraph
         Texture3D,
         Cubemap,
         Gradient,
-        DynamicVector,
+        //DynamicVector,
         Vector4,
         Vector3,
         Vector2,
@@ -45,6 +45,23 @@ namespace UnityEditor.ShaderGraph
 
     static class SlotValueHelper
     {
+        public static int GetChannelCount(this SlotValueType type)
+        {
+            switch (type)
+            {
+                case SlotValueType.Vector4:
+                    return 4;
+                case SlotValueType.Vector3:
+                    return 3;
+                case SlotValueType.Vector2:
+                    return 2;
+                case SlotValueType.Vector1:
+                    return 1;
+                default:
+                    return 0;
+            }
+        }
+
         public static int GetChannelCount(this ConcreteSlotValueType type)
         {
             switch (type)
@@ -117,6 +134,43 @@ namespace UnityEditor.ShaderGraph
         {
             string precisionString = concretePrecision.ToShaderString();
             return type.ToShaderString(precisionString);
+        }
+
+        public static string ToShaderString(this SlotValueType type, string precisionToken = PrecisionUtil.Token)
+        {
+            switch (type)
+            {
+                case SlotValueType.Boolean:
+                    return precisionToken;
+                case SlotValueType.Vector1:
+                    return precisionToken;
+                case SlotValueType.Vector2:
+                    return precisionToken + "2";
+                case SlotValueType.Vector3:
+                    return precisionToken + "3";
+                case SlotValueType.Vector4:
+                    return precisionToken + "4";
+                case SlotValueType.Texture2D:
+                    return "Texture2D";
+                case SlotValueType.Texture2DArray:
+                    return "Texture2DArray";
+                case SlotValueType.Texture3D:
+                    return "Texture3D";
+                case SlotValueType.Cubemap:
+                    return "TextureCube";
+                case SlotValueType.Gradient:
+                    return "Gradient";
+                case SlotValueType.Matrix2:
+                    return precisionToken + "2x2";
+                case SlotValueType.Matrix3:
+                    return precisionToken + "3x3";
+                case SlotValueType.Matrix4:
+                    return precisionToken + "4x4";
+                case SlotValueType.SamplerState:
+                    return "SamplerState";
+                default:
+                    return "Error";
+            }
         }
 
         public static string ToShaderString(this ConcreteSlotValueType type, string precisionToken = PrecisionUtil.Token)

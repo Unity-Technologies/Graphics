@@ -1,4 +1,5 @@
 using System.Reflection;
+using UnityEditor.ShaderGraph.Hlsl;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -15,17 +16,13 @@ namespace UnityEditor.ShaderGraph
             return GetType().GetMethod("Unity_Add", BindingFlags.Static | BindingFlags.NonPublic);
         }
 
-        static string Unity_Add(
-            [Slot(0, Binding.None)] DynamicDimensionVector A,
-            [Slot(1, Binding.None)] DynamicDimensionVector B,
-            [Slot(2, Binding.None)] out DynamicDimensionVector Out)
+        [HlslCodeGen]
+        static void Unity_Add(
+            [Slot(0, Binding.None)] [AnyDimension] Float4 A,
+            [Slot(1, Binding.None)] [AnyDimension] Float4 B,
+            [Slot(2, Binding.None)] [AnyDimension] out Float4 Out)
         {
-            return
-                @"
-{
-    Out = A + B;
-}
-";
+            Out = A + B;
         }
     }
 }

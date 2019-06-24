@@ -60,12 +60,8 @@ namespace UnityEditor.ShaderGraph
                 });
         }
 
-        public override SlotValueType valueType { get { return SlotValueType.Dynamic; } }
-
-        public override ConcreteSlotValueType concreteValueType
-        {
-            get { return m_ConcreteValueType; }
-        }
+        public override SlotValueType valueType => SlotValueType.Dynamic;
+        public override ConcreteSlotValueType concreteValueType => m_ConcreteValueType;
 
         public void SetConcreteType(ConcreteSlotValueType valueType)
         {

@@ -408,8 +408,9 @@ namespace UnityEditor.ShaderGraph
             var isInError = false;
             var errorMessage = k_validationErrorMessage;
 
-            var dynamicInputSlotsToCompare = DictionaryPool<DynamicVectorMaterialSlot, ConcreteSlotValueType>.Get();
-            var skippedDynamicSlots = ListPool<DynamicVectorMaterialSlot>.Get();
+            var skippedDynamicSlots = ListPool<IDynamicDimensionSlot>.Get();
+
+            var dynamicInputGroupType = DictionaryPool<string, ConcreteSlotValueType>.Get();
 
             var dynamicMatrixInputSlotsToCompare = DictionaryPool<DynamicMatrixMaterialSlot, ConcreteSlotValueType>.Get();
             var skippedDynamicMatrixSlots = ListPool<DynamicMatrixMaterialSlot>.Get();
@@ -424,8 +425,8 @@ namespace UnityEditor.ShaderGraph
                 var edges = owner.GetEdges(inputSlot.slotReference).ToList();
                 if (!edges.Any())
                 {
-                    if (inputSlot is DynamicVectorMaterialSlot)
-                        skippedDynamicSlots.Add(inputSlot as DynamicVectorMaterialSlot);
+                    if (inputSlot is IDynamicDimensionSlot dynamicSlot && dynamicSlot.isDynamic)
+                        skippedDynamicSlots.Add(dynamicSlot);
                     if (inputSlot is DynamicMatrixMaterialSlot)
                         skippedDynamicMatrixSlots.Add(inputSlot as DynamicMatrixMaterialSlot);
                     continue;
@@ -451,9 +452,23 @@ namespace UnityEditor.ShaderGraph
                 // dynamic input... depends on output from other node.
                 // we need to compare ALL dynamic inputs to make sure they
                 // are compatible.
-                if (inputSlot is DynamicVectorMaterialSlot)
+                if (inputSlot is IDynamicDimensionSlot dynamic && dynamic.isDynamic)
                 {
-                    dynamicInputSlotsToCompare.Add((DynamicVectorMaterialSlot)inputSlot, outputConcreteType);
+                    if (dynamicInputGroupType.TryGetValue(dynamic.dynamicDimensionGroup, out var type))
+                    {
+                        if (type != outputConcreteType)
+                        {
+                            inputSlot.hasError = true;
+                            errorMessage = $"ERROR: Type {outputConcreteType} is not allowed in dynamic dimension group '{dynamic.dynamicDimensionGroup}'";
+                            continue;
+                        }
+                    }
+                    else
+                    {
+                        dynamicInputGroupType.Add(dynamic.dynamicDimensionGroup, outputConcreteType);
+                    }
+
+                    dynamic.SetConcreteType(outputConcreteType);
                     continue;
                 }
                 else if (inputSlot is DynamicMatrixMaterialSlot)
@@ -467,13 +482,11 @@ namespace UnityEditor.ShaderGraph
                     inputSlot.hasError = true;
             }
 
-            // we can now figure out the dynamic slotType
-            // from here set all the
-            var dynamicType = ConvertDynamicInputTypeToConcrete(dynamicInputSlotsToCompare.Values);
-            foreach (var dynamicKvP in dynamicInputSlotsToCompare)
-                dynamicKvP.Key.SetConcreteType(dynamicType);
             foreach (var skippedSlot in skippedDynamicSlots)
-                skippedSlot.SetConcreteType(dynamicType);
+            {
+                if (dynamicInputGroupType.TryGetValue(skippedSlot.dynamicDimensionGroup, out var type))
+                    skippedSlot.SetConcreteType(type);
+            }
 
             // and now dynamic matrices
             var dynamicMatrixType = ConvertDynamicMatrixInputTypeToConcrete(dynamicMatrixInputSlotsToCompare.Values);
@@ -502,9 +515,10 @@ namespace UnityEditor.ShaderGraph
                     continue;
                 }
 
-                if (outputSlot is DynamicVectorMaterialSlot)
+                if (outputSlot is IDynamicDimensionSlot dynamic && dynamic.isDynamic)
                 {
-                    (outputSlot as DynamicVectorMaterialSlot).SetConcreteType(dynamicType);
+                    if (dynamicInputGroupType.TryGetValue(dynamic.dynamicDimensionGroup, out var type))
+                        dynamic.SetConcreteType(type);
                     continue;
                 }
                 else if (outputSlot is DynamicMatrixMaterialSlot)
@@ -531,8 +545,8 @@ namespace UnityEditor.ShaderGraph
                 ++version;
             }
 
-            ListPool<DynamicVectorMaterialSlot>.Release(skippedDynamicSlots);
-            DictionaryPool<DynamicVectorMaterialSlot, ConcreteSlotValueType>.Release(dynamicInputSlotsToCompare);
+            ListPool<IDynamicDimensionSlot>.Release(skippedDynamicSlots);
+            DictionaryPool<string, ConcreteSlotValueType>.Release(dynamicInputGroupType);
 
             ListPool<DynamicMatrixMaterialSlot>.Release(skippedDynamicMatrixSlots);
             DictionaryPool<DynamicMatrixMaterialSlot, ConcreteSlotValueType>.Release(dynamicMatrixInputSlotsToCompare);

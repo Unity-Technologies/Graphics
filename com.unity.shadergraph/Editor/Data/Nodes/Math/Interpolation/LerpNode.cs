@@ -1,4 +1,5 @@
 using System.Reflection;
+using UnityEditor.ShaderGraph.Hlsl;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -16,17 +17,14 @@ namespace UnityEditor.ShaderGraph
             return GetType().GetMethod("Unity_Lerp", BindingFlags.Static | BindingFlags.NonPublic);
         }
 
-        static string Unity_Lerp(
-            [Slot(0, Binding.None, 0, 0, 0, 0)] DynamicDimensionVector A,
-            [Slot(1, Binding.None, 1, 1, 1, 1)] DynamicDimensionVector B,
-            [Slot(2, Binding.None, 0, 0, 0, 0)] DynamicDimensionVector T,
-            [Slot(3, Binding.None)] out DynamicDimensionVector Out)
+        [HlslCodeGen]
+        static void Unity_Lerp(
+            [Slot(0, Binding.None, 0, 0, 0, 0)][AnyDimension] Float4 A,
+            [Slot(1, Binding.None, 1, 1, 1, 1)][AnyDimension] Float4 B,
+            [Slot(2, Binding.None, 0, 0, 0, 0)][AnyDimension] Float4 T,
+            [Slot(3, Binding.None)][AnyDimension] out Float4 Out)
         {
-            return
-                @"
-{
-    Out = lerp(A, B, T);
-}";
+            Out = A * (1 - T) + B * T;
         }
     }
 }

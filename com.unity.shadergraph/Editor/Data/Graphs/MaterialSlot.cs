@@ -113,7 +113,7 @@ namespace UnityEditor.ShaderGraph
             return m_DisplayName;
         }
 
-        public static MaterialSlot CreateMaterialSlot(SlotValueType type, int slotId, string displayName, string shaderOutputName, SlotType slotType, Vector4 defaultValue, ShaderStageCapability shaderStageCapability = ShaderStageCapability.All, bool hidden = false)
+        public static MaterialSlot CreateMaterialSlot(SlotValueType type, int slotId, string displayName, string shaderOutputName, SlotType slotType, Vector4 defaultValue, ShaderStageCapability shaderStageCapability = ShaderStageCapability.All, bool hidden = false, string dynamicDimensionGroup = null)
         {
             switch (type)
             {
@@ -147,14 +147,14 @@ namespace UnityEditor.ShaderGraph
                     return slotType == SlotType.Input
                         ? new GradientInputMaterialSlot(slotId, displayName, shaderOutputName, shaderStageCapability, hidden)
                         : new GradientMaterialSlot(slotId, displayName, shaderOutputName, slotType, shaderStageCapability, hidden);
-                case SlotValueType.DynamicVector:
-                    return new DynamicVectorMaterialSlot(slotId, displayName, shaderOutputName, slotType, defaultValue, shaderStageCapability, hidden);
+                //case SlotValueType.DynamicVector:
+                //    return new DynamicVectorMaterialSlot(slotId, displayName, shaderOutputName, slotType, defaultValue, shaderStageCapability, hidden);
                 case SlotValueType.Vector4:
-                    return new Vector4MaterialSlot(slotId, displayName, shaderOutputName, slotType, defaultValue, shaderStageCapability, hidden: hidden);
+                    return new Vector4MaterialSlot(slotId, displayName, shaderOutputName, slotType, defaultValue, shaderStageCapability, hidden: hidden, dynamicDimensionGroup: dynamicDimensionGroup);
                 case SlotValueType.Vector3:
-                    return new Vector3MaterialSlot(slotId, displayName, shaderOutputName, slotType, defaultValue, shaderStageCapability, hidden: hidden);
+                    return new Vector3MaterialSlot(slotId, displayName, shaderOutputName, slotType, defaultValue, shaderStageCapability, hidden: hidden, dynamicDimensionGroup: dynamicDimensionGroup);
                 case SlotValueType.Vector2:
-                    return new Vector2MaterialSlot(slotId, displayName, shaderOutputName, slotType, defaultValue, shaderStageCapability, hidden: hidden);
+                    return new Vector2MaterialSlot(slotId, displayName, shaderOutputName, slotType, defaultValue, shaderStageCapability, hidden: hidden, dynamicDimensionGroup: dynamicDimensionGroup);
                 case SlotValueType.Vector1:
                     return new Vector1MaterialSlot(slotId, displayName, shaderOutputName, slotType, defaultValue.x, shaderStageCapability, hidden: hidden);
                 case SlotValueType.Dynamic:
@@ -273,7 +273,7 @@ namespace UnityEditor.ShaderGraph
                     return inputType == SlotValueType.Cubemap;
                 case SlotValueType.Gradient:
                     return inputType == SlotValueType.Gradient;
-                case SlotValueType.DynamicVector:
+                //case SlotValueType.DynamicVector:
                 case SlotValueType.Vector4:
                 case SlotValueType.Vector3:
                 case SlotValueType.Vector2:
@@ -282,7 +282,7 @@ namespace UnityEditor.ShaderGraph
                         || inputType == SlotValueType.Vector3
                         || inputType == SlotValueType.Vector2
                         || inputType == SlotValueType.Vector1
-                        || inputType == SlotValueType.DynamicVector
+                        //|| inputType == SlotValueType.DynamicVector
                         || inputType == SlotValueType.Dynamic;
                 case SlotValueType.Dynamic:
                     return inputType == SlotValueType.Matrix4
@@ -293,7 +293,7 @@ namespace UnityEditor.ShaderGraph
                         || inputType == SlotValueType.Vector3
                         || inputType == SlotValueType.Vector2
                         || inputType == SlotValueType.Vector1
-                        || inputType == SlotValueType.DynamicVector
+                        //|| inputType == SlotValueType.DynamicVector
                         || inputType == SlotValueType.Dynamic;
                 case SlotValueType.Boolean:
                     return inputType == SlotValueType.Boolean;

@@ -774,7 +774,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     foreach (var edgeView in anchorView.connections)
                     {
                         var targetSlot = edgeView.input.GetSlot();
-                        if (targetSlot.valueType == SlotValueType.DynamicVector || targetSlot.valueType == SlotValueType.DynamicMatrix || targetSlot.valueType == SlotValueType.Dynamic)
+                        if (targetSlot is IDynamicDimensionSlot dynamic && dynamic.isDynamic)
                         {
                             var connectedNodeView = edgeView.input.node;
                             if (connectedNodeView != null && !nodeViews.Contains((IShaderNodeView)connectedNodeView))
@@ -788,7 +788,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 foreach (var anchorView in nodeView.inputContainer.Children().OfType<Port>())
                 {
                     var targetSlot = anchorView.GetSlot();
-                    if (targetSlot.valueType != SlotValueType.DynamicVector)
+                    if (!(targetSlot is IDynamicDimensionSlot dynamic && dynamic.isDynamic))
                         continue;
                     foreach (var edgeView in anchorView.connections)
                     {

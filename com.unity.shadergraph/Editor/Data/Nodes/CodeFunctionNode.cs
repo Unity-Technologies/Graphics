@@ -20,6 +20,12 @@ namespace UnityEditor.ShaderGraph
         , IMayRequirePosition
         , IMayRequireVertexColor
     {
+        [AttributeUsage(AttributeTargets.Method, AllowMultiple = false)]
+        public class HlslCodeGenAttribute : Attribute
+        {
+        }
+
+
         [NonSerialized]
         private List<SlotAttribute> m_Slots = new List<SlotAttribute>();
 
@@ -150,19 +156,19 @@ namespace UnityEditor.ShaderGraph
             {
                 return SlotValueType.Boolean;
             }
-            if (t == typeof(Vector1))
+            if (t == typeof(Vector1) || t == typeof(Hlsl.Float))
             {
                 return SlotValueType.Vector1;
             }
-            if (t == typeof(Vector2))
+            if (t == typeof(Vector2) || t == typeof(Hlsl.Float2))
             {
                 return SlotValueType.Vector2;
             }
-            if (t == typeof(Vector3))
+            if (t == typeof(Vector3) || t == typeof(Hlsl.Float3))
             {
                 return SlotValueType.Vector3;
             }
-            if (t == typeof(Vector4))
+            if (t == typeof(Vector4) || t == typeof(Hlsl.Float4))
             {
                 return SlotValueType.Vector4;
             }
@@ -204,7 +210,7 @@ namespace UnityEditor.ShaderGraph
             }
             if (t == typeof(DynamicDimensionVector))
             {
-                return SlotValueType.DynamicVector;
+                return SlotValueType.Vector4;
             }
             if (t == typeof(Matrix4x4))
             {
@@ -232,8 +238,17 @@ namespace UnityEditor.ShaderGraph
             if (method == null)
                 throw new ArgumentException("Mapped method is null on node" + this);
 
-            if (method.ReturnType != typeof(string))
-                throw new ArgumentException("Mapped function should return string");
+            bool isHlslCodeGen = method.GetCustomAttribute<HlslCodeGenAttribute>() != null;
+            if (isHlslCodeGen)
+            {
+                if (method.ReturnType != typeof(void))
+                    throw new ArgumentException("Hlsl mapped function should return void");
+            }
+            else
+            {
+                if (method.ReturnType != typeof(string))
+                    throw new ArgumentException("Mapped function should return string");
+            }
 
             // validate no duplicates
             var slotAtributes = method.GetParameters().Select(GetSlotAttribute).ToList();
@@ -265,7 +280,9 @@ namespace UnityEditor.ShaderGraph
                             par.IsOut ? SlotType.Output : SlotType.Input,
                             attribute.defaultValue ?? Vector4.zero,
                             shaderStageCapability: attribute.stageCapability,
-                            hidden: attribute.hidden);
+                            hidden: attribute.hidden,
+                            dynamicDimensionGroup: par.GetCustomAttribute<Hlsl.AnyDimensionAttribute>()?.Group
+                            );
                 else
                     s = CreateBoundSlot(attribute.binding, attribute.slotId, name, par.Name, attribute.stageCapability, attribute.hidden);
                 slots.Add(s);
@@ -346,7 +363,10 @@ namespace UnityEditor.ShaderGraph
             GetOutputSlots(s_TempSlots);
             foreach (var outSlot in s_TempSlots)
             {
-                sb.AppendLine(outSlot.concreteValueType.ToShaderString() + " " + GetVariableNameForSlot(outSlot.id) + ";");
+                if (outSlot is IDynamicDimensionSlot dynamic && dynamic.isDynamic && dynamic.IsShrank)
+                    sb.AppendLine($"{outSlot.valueType.ToShaderString()} tmpOut{GetVariableNameForSlot(outSlot.id)};");
+                else
+                    sb.AppendLine(outSlot.concreteValueType.ToShaderString() + " " + GetVariableNameForSlot(outSlot.id) + ";");
             }
 
             string call = GetFunctionName() + "(";
@@ -363,21 +383,35 @@ namespace UnityEditor.ShaderGraph
                 first = false;
 
                 if (slot.isInputSlot)
-                    call += GetSlotValue(slot.id, generationMode);
+                {
+                    if (slot is IDynamicDimensionSlot dynamic && dynamic.isDynamic && dynamic.IsShrank)
+                        call += $"{slot.valueType.ToShaderString()}({GetSlotValue(slot.id, generationMode)}{String.Concat(Enumerable.Repeat(", 0", slot.valueType.GetChannelCount() - slot.concreteValueType.GetChannelCount()))})";
+                    else
+                        call += GetSlotValue(slot.id, generationMode);
+                }
                 else
+                {
+                    if (slot is IDynamicDimensionSlot dynamic && dynamic.isDynamic && dynamic.IsShrank)
+                        call += "tmpOut";
                     call += GetVariableNameForSlot(slot.id);
+                }
             }
             call += ");";
-
             sb.AppendLine(call);
+
+            s_TempSlots.Clear();
+            GetOutputSlots(s_TempSlots);
+            foreach (var outSlot in s_TempSlots)
+            {
+                if (outSlot is IDynamicDimensionSlot dynamic && dynamic.isDynamic && dynamic.IsShrank)
+                    sb.AppendLine($"{outSlot.concreteValueType.ToShaderString()} {GetVariableNameForSlot(outSlot.id)} = tmpOut{GetVariableNameForSlot(outSlot.id)}.{String.Concat("xyzw".Take(outSlot.concreteValueType.GetChannelCount()))};");
+            }
         }
 
         private string GetFunctionName()
         {
             var function = GetFunctionToConvert();
-            return function.Name + (function.IsStatic ? string.Empty : "_" + GuidEncoder.Encode(guid)) + "_" + concretePrecision.ToShaderString()
-                + (this.GetSlots<DynamicVectorMaterialSlot>().Select(s => NodeUtils.GetSlotDimension(s.concreteValueType)).FirstOrDefault() ?? "")
-                + (this.GetSlots<DynamicMatrixMaterialSlot>().Select(s => NodeUtils.GetSlotDimension(s.concreteValueType)).FirstOrDefault() ?? "");
+            return function.Name + (function.IsStatic ? string.Empty : "_" + GuidEncoder.Encode(guid)) + "_" + concretePrecision.ToShaderString();
         }
 
         private string GetFunctionHeader()
@@ -398,7 +432,7 @@ namespace UnityEditor.ShaderGraph
                 if (slot.isOutputSlot)
                     header += "out ";
 
-                header += slot.concreteValueType.ToShaderString() + " " + slot.shaderOutputName;
+                header += slot.valueType.ToShaderString() + " " + slot.shaderOutputName;
             }
 
             header += ")";
@@ -413,10 +447,51 @@ namespace UnityEditor.ShaderGraph
         private string GetFunctionBody(MethodInfo info)
         {
             var args = new List<object>();
-            foreach (var param in info.GetParameters())
-                args.Add(GetDefault(param.ParameterType));
+            var parms = info.GetParameters();
+            foreach (var param in parms)
+            {
+                var arg = GetDefault(param.ParameterType);
+                if (param.ParameterType == typeof(Hlsl.Float))
+                {
+                    arg = new Hlsl.Float() { Code = param.Name };
+                }
+                else if (param.ParameterType == typeof(Hlsl.Float2))
+                {
+                    arg = new Hlsl.Float2() { Code = param.Name };
+                }
+                else if (param.ParameterType == typeof(Hlsl.Float3))
+                {
+                    arg = new Hlsl.Float3() { Code = param.Name };
+                }
+                else if (param.ParameterType == typeof(Hlsl.Float4))
+                {
+                    arg = new Hlsl.Float4() { Code = param.Name };
+                }
+                args.Add(arg);
+            }
 
-            var result = info.Invoke(this, args.ToArray()) as string;
+            var argsArray = args.ToArray();
+            var result = info.Invoke(this, argsArray) as string;
+
+            if (info.GetCustomAttribute<HlslCodeGenAttribute>() != null)
+            {
+                result += "{" + Environment.NewLine;
+                for (int i = 0; i < args.Count; ++i)
+                {
+                    if (info.GetParameters()[i].IsOut)
+                    {
+                        if (argsArray[i]?.GetType() == typeof(Hlsl.Float))
+                            result += parms[i].Name + " = " + ((Hlsl.Float)argsArray[i]).Code + ";" + Environment.NewLine;
+                        else if (argsArray[i]?.GetType() == typeof(Hlsl.Float2))
+                            result += parms[i].Name + " = " + ((Hlsl.Float2)argsArray[i]).Code + ";" + Environment.NewLine;
+                        else if (argsArray[i]?.GetType() == typeof(Hlsl.Float3))
+                            result += parms[i].Name + " = " + ((Hlsl.Float3)argsArray[i]).Code + ";" + Environment.NewLine;
+                        else if (argsArray[i]?.GetType() == typeof(Hlsl.Float4))
+                            result += parms[i].Name + " = " + ((Hlsl.Float4)argsArray[i]).Code + ";" + Environment.NewLine;
+                    }
+                }
+                result += "}" + Environment.NewLine;
+            }
 
             if (string.IsNullOrEmpty(result))
                 return string.Empty;
