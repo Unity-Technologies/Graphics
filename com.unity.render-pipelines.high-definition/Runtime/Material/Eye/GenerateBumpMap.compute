@@ -18,7 +18,7 @@ void CSMain (uint3 id : SV_DispatchThreadID)
     for (int i = 0; i < 100; ++i)
     {
         uint3 seed = uint3(id.xy + (33191 * i), (i* 46351  + (id.x + id.y)));
-        float2 randVals = GenerateHashedRandomFloat(seed);
+        float3 randVals = GenerateHashedRandomFloat(seed);
 
         float2 currUVs = id.xy / _MapRes;
 
