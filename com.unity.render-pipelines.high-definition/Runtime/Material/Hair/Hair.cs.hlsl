@@ -8,6 +8,7 @@
 // UnityEngine.Experimental.Rendering.HDPipeline.Hair+MaterialFeatureFlags:  static fields
 //
 #define MATERIALFEATUREFLAGS_HAIR_KAJIYA_KAY (1)
+#define MATERIALFEATUREFLAGS_HAIR_MARSCHNER (2)
 
 //
 // UnityEngine.Experimental.Rendering.HDPipeline.Hair+SurfaceData:  static fields

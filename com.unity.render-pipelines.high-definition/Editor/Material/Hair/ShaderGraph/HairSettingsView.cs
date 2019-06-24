@@ -43,6 +43,15 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline.Drawing
                 });
             });
 
+            ps.Add(new PropertyRow(CreateLabel("Material Type", indentLevel)), (row) =>
+            {
+                row.Add(new EnumField(HairMasterNode.MaterialType.KajiyaKay), (field) =>
+                {
+                    field.value = m_Node.materialType;
+                    field.RegisterValueChangedCallback(ChangeMaterialType);
+                });
+            });
+
             if (m_Node.surfaceType == SurfaceType.Transparent)
             {
                 ++indentLevel;
@@ -249,6 +258,15 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline.Drawing
 
             m_Node.owner.owner.RegisterCompleteObjectUndo("Surface Type Change");
             m_Node.surfaceType = (SurfaceType)evt.newValue;
+        }
+
+        void ChangeMaterialType(ChangeEvent<Enum> evt)
+        {
+            if (Equals(m_Node.materialType, evt.newValue))
+                return;
+
+            m_Node.owner.owner.RegisterCompleteObjectUndo("Material Type Change");
+            m_Node.materialType = (HairMasterNode.MaterialType)evt.newValue;
         }
 
         void ChangeDoubleSidedMode(ChangeEvent<Enum> evt)
