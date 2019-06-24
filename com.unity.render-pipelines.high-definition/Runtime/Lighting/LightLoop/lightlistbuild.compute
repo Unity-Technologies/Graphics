@@ -32,8 +32,8 @@
 
 uniform int g_iNrVisibLights;
 uniform uint2 g_viDimensions;
-uniform float4x4 g_mInvScrProjectionArr[2];
-uniform float4x4 g_mScrProjectionArr[2];
+uniform float4x4 g_mInvScrProjectionArr[XR_MAX_VIEWS];
+uniform float4x4 g_mScrProjectionArr[XR_MAX_VIEWS];
 uniform uint g_isOrthographic;
 uniform int _EnvLightIndexShift;
 uniform int _DecalIndexShift;

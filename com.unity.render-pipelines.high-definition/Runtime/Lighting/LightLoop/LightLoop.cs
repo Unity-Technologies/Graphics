@@ -442,8 +442,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             public List<SFiniteLightBound> bounds;
             public List<LightVolumeData> lightVolumes;
-            public List<SFiniteLightBound> rightEyeBounds;
-            public List<LightVolumeData> rightEyeLightVolumes;
+
+            public List<List<SFiniteLightBound>> xrBounds;
+            public List<List<LightVolumeData>> xrLightVolumes;
 
             public void Clear()
             {
@@ -455,8 +456,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 bounds.Clear();
                 lightVolumes.Clear();
-                rightEyeBounds.Clear();
-                rightEyeLightVolumes.Clear();
+
+                //xrBounds.Clear();
+                //xrLightVolumes.Clear();
+
+                for (int i = 0; i < TextureXR.slices; ++i)
+                {
+                    xrBounds[i].Clear();
+                    xrLightVolumes[i].Clear();
+                }
             }
 
             public void Allocate()
@@ -468,8 +476,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 bounds = new List<SFiniteLightBound>();
                 lightVolumes = new List<LightVolumeData>();
 
-                rightEyeBounds = new List<SFiniteLightBound>();
-                rightEyeLightVolumes = new List<LightVolumeData>();
+                xrBounds = new List<List<SFiniteLightBound>>();
+                xrLightVolumes = new List<List<LightVolumeData>>();
+
+                for (int i = 0; i < TextureXR.slices; ++i)
+                {
+                    xrBounds.Add(new List<SFiniteLightBound>());
+                    xrLightVolumes.Add(new List<LightVolumeData>());
+                }
             }
         }
 
@@ -1292,8 +1306,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         // TODO: we should be able to do this calculation only with LightData without VisibleLight light, but for now pass both
         public void GetLightVolumeDataAndBound(LightCategory lightCategory, GPULightType gpuLightType, LightVolumeType lightVolumeType,
-            VisibleLight light, LightData lightData, Vector3 lightDimensions, Matrix4x4 worldToView,
-            Camera.StereoscopicEye eyeIndex = Camera.StereoscopicEye.Left)
+            VisibleLight light, LightData lightData, Vector3 lightDimensions, Matrix4x4 worldToView, int viewIndex)
         {
             // Then Culling side
             var range = lightDimensions.z;
@@ -1461,15 +1474,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 Debug.Assert(false, "TODO: encountered an unknown GPULightType.");
             }
 
-            if (eyeIndex == Camera.StereoscopicEye.Left)
+            if (viewIndex == 0)
             {
                 m_lightList.bounds.Add(bound);
                 m_lightList.lightVolumes.Add(lightVolumeData);
             }
             else
             {
-                m_lightList.rightEyeBounds.Add(bound);
-                m_lightList.rightEyeLightVolumes.Add(lightVolumeData);
+                m_lightList.xrBounds[viewIndex].Add(bound);
+                m_lightList.xrLightVolumes[viewIndex].Add(lightVolumeData);
             }
         }
 
@@ -1594,7 +1607,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             return true;
         }
 
-        public void GetEnvLightVolumeDataAndBound(HDProbe probe, LightVolumeType lightVolumeType, Matrix4x4 worldToView, Camera.StereoscopicEye eyeIndex = Camera.StereoscopicEye.Left)
+        public void GetEnvLightVolumeDataAndBound(HDProbe probe, LightVolumeType lightVolumeType, Matrix4x4 worldToView, int viewIndex)
         {
             var bound = new SFiniteLightBound();
             var lightVolumeData = new LightVolumeData();
@@ -1654,19 +1667,19 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
             }
 
-            if (eyeIndex == Camera.StereoscopicEye.Left)
+            if (viewIndex == 0)
             {
                 m_lightList.bounds.Add(bound);
                 m_lightList.lightVolumes.Add(lightVolumeData);
             }
             else
             {
-                m_lightList.rightEyeBounds.Add(bound);
-                m_lightList.rightEyeLightVolumes.Add(lightVolumeData);
+                m_lightList.xrBounds[viewIndex].Add(bound);
+                m_lightList.xrLightVolumes[viewIndex].Add(lightVolumeData);
             }
         }
 
-        public void AddBoxVolumeDataAndBound(OrientedBBox obb, LightCategory category, LightFeatureFlags featureFlags, Matrix4x4 worldToView, bool xrInstancingEnabled)
+        public void AddBoxVolumeDataAndBound(OrientedBBox obb, LightCategory category, LightFeatureFlags featureFlags, Matrix4x4 worldToView, int viewIndex)
         {
             var bound      = new SFiniteLightBound();
             var volumeData = new LightVolumeData();
@@ -1699,14 +1712,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             volumeData.boxInnerDist = extents - k_BoxCullingExtentThreshold; // We have no blend range, but the culling code needs a small EPS value for some reason???
             volumeData.boxInvRange.Set(1.0f / k_BoxCullingExtentThreshold.x, 1.0f / k_BoxCullingExtentThreshold.y, 1.0f / k_BoxCullingExtentThreshold.z);
 
-            m_lightList.bounds.Add(bound);
-            m_lightList.lightVolumes.Add(volumeData);
-
-            // XRTODO: use rightEyeWorldToView here too?
-            if (xrInstancingEnabled)
+            if (viewIndex == 0)
             {
-                m_lightList.rightEyeBounds.Add(bound);
-                m_lightList.rightEyeLightVolumes.Add(volumeData);
+                m_lightList.bounds.Add(bound);
+                m_lightList.lightVolumes.Add(volumeData);
+            }
+            else
+            {
+                m_lightList.xrBounds[viewIndex].Add(bound);
+                m_lightList.xrLightVolumes[viewIndex].Add(volumeData);
             }
         }
 
@@ -1789,15 +1803,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 // camera.worldToCameraMatrix is RHS and Unity's transforms are LHS, we need to flip it to work with transforms
                 var worldToView = s_FlipMatrixLHSRHS * viewMatrix;
-                var rightEyeWorldToView = Matrix4x4.identity;
-
-                if (hdCamera.xr.instancingEnabled)
-                {
-                    if (hdCamera.xr.viewCount == 2)
-                        rightEyeWorldToView = s_FlipMatrixLHSRHS * hdCamera.xr.GetViewMatrix(1);
-                    else
-                        throw new NotImplementedException();
-                }
 
                 // We must clear the shadow requests before checking if they are any visible light because we would have requests from the last frame executed in the case where we don't see any lights
                 m_ShadowManager.Clear();
@@ -2026,10 +2031,20 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                                     break;
                             }
 
-                            // Then culling side. Must be call in this order as we pass the created Light data to the function
-                            GetLightVolumeDataAndBound(lightCategory, gpuLightType, lightVolumeType, light, m_lightList.lights[m_lightList.lights.Count - 1], lightDimensions, worldToView);
                             if (hdCamera.xr.instancingEnabled)
-                                GetLightVolumeDataAndBound(lightCategory, gpuLightType, lightVolumeType, light, m_lightList.lights[m_lightList.lights.Count - 1], lightDimensions, rightEyeWorldToView, Camera.StereoscopicEye.Right);
+                            {
+                                for (int viewIndex = 0; viewIndex < hdCamera.xr.viewCount; ++viewIndex)
+                                {
+                                    var xrWorldToView = s_FlipMatrixLHSRHS * hdCamera.xr.GetViewMatrix(viewIndex);
+                                    GetLightVolumeDataAndBound(lightCategory, gpuLightType, lightVolumeType, light, m_lightList.lights[m_lightList.lights.Count - 1], lightDimensions, xrWorldToView, viewIndex);
+                                }
+                            }
+                            else
+                            {
+                                // Then culling side. Must be call in this order as we pass the created Light data to the function
+                                GetLightVolumeDataAndBound(lightCategory, gpuLightType, lightVolumeType, light, m_lightList.lights[m_lightList.lights.Count - 1], lightDimensions, worldToView, 0);
+                            }
+                            
 
                             // We make the light position camera-relative as late as possible in order
                             // to allow the preceding code to work with the absolute world space coordinates.
@@ -2163,9 +2178,18 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                         if (GetEnvLightData(cmd, hdCamera, probeWrapper, debugDisplaySettings))
                         {
-                            GetEnvLightVolumeDataAndBound(probeWrapper, lightVolumeType, worldToView);
                             if (hdCamera.xr.instancingEnabled)
-                                GetEnvLightVolumeDataAndBound(probeWrapper, lightVolumeType, rightEyeWorldToView, Camera.StereoscopicEye.Right);
+                            {
+                                for (int viewIndex = 0; viewIndex < hdCamera.xr.viewCount; ++viewIndex)
+                                {
+                                    var xrWorldToView = s_FlipMatrixLHSRHS * hdCamera.xr.GetViewMatrix(viewIndex);
+                                    GetEnvLightVolumeDataAndBound(probeWrapper, lightVolumeType, xrWorldToView, viewIndex);
+                                }
+                            }
+                            else
+                            {
+                                GetEnvLightVolumeDataAndBound(probeWrapper, lightVolumeType, worldToView, 0);
+                            }
 
                             // We make the light position camera-relative as late as possible in order
                             // to allow the preceding code to work with the absolute world space coordinates.
@@ -2190,11 +2214,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         m_lightList.bounds.Add(DecalSystem.m_Bounds[i]);
                         m_lightList.lightVolumes.Add(DecalSystem.m_LightVolumes[i]);
 
-                        if (hdCamera.xr.instancingEnabled)
-                        {
-                            m_lightList.rightEyeBounds.Add(DecalSystem.m_Bounds[i]);
-                            m_lightList.rightEyeLightVolumes.Add(DecalSystem.m_LightVolumes[i]);
-                        }
+                        // TODO
                     }
                 }
 
@@ -2213,7 +2233,19 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 {
                     // Density volumes are not lights and therefore should not affect light classification.
                     LightFeatureFlags featureFlags = 0;
-                    AddBoxVolumeDataAndBound(densityVolumes.bounds[i], LightCategory.DensityVolume, featureFlags, worldToViewCR, hdCamera.xr.instancingEnabled);
+                    
+                    if (hdCamera.xr.instancingEnabled)
+                    {
+                        for (int viewIndex = 0; viewIndex < hdCamera.xr.viewCount; ++viewIndex)
+                        {
+                            var xrWorldToView = s_FlipMatrixLHSRHS * hdCamera.xr.GetViewMatrix(viewIndex);
+                            AddBoxVolumeDataAndBound(densityVolumes.bounds[i], LightCategory.DensityVolume, featureFlags, worldToViewCR, viewIndex);
+                        }
+                    }
+                    else
+                    {
+                        AddBoxVolumeDataAndBound(densityVolumes.bounds[i], LightCategory.DensityVolume, featureFlags, worldToViewCR, 0);
+                    }
                 }
 
                 m_TotalLightCount = m_lightList.lights.Count + m_lightList.envLights.Count + decalDatasCount + m_densityVolumeCount;
@@ -2222,14 +2254,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 if (hdCamera.xr.instancingEnabled)
                 {
-                    // TODO: Proper decal + stereo cull management
+                    // XRTODO: Proper decal + stereo cull management
+                    // XRTODO: GC considerations?
+                    for (int viewIndex = 1; viewIndex < hdCamera.xr.viewCount; ++viewIndex) // Watch out: it starts at 1 !
+                    {
+                        Debug.Assert(m_lightList.xrBounds[viewIndex].Count == m_TotalLightCount);
+                        Debug.Assert(m_lightList.xrLightVolumes[viewIndex].Count == m_TotalLightCount);
 
-                    Debug.Assert(m_lightList.rightEyeBounds.Count == m_TotalLightCount);
-                    Debug.Assert(m_lightList.rightEyeLightVolumes.Count == m_TotalLightCount);
-
-                    // TODO: GC considerations?
-                    m_lightList.bounds.AddRange(m_lightList.rightEyeBounds);
-                    m_lightList.lightVolumes.AddRange(m_lightList.rightEyeLightVolumes);
+                        m_lightList.bounds.AddRange(m_lightList.xrBounds[viewIndex]);
+                    }
                 }
 
                 UpdateDataBuffers();

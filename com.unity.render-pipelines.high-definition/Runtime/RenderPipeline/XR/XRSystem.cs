@@ -37,19 +37,19 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // Compute the maximum number of views (slices) to allocate for texture arrays
         internal int GetMaxViews()
         {
-            int maxViews = 1;
+            int maxViews = 64;
 
 #if USE_XR_SDK
             if (display != null)
             {
                 // XRTODO(2019.3) : replace by API from XR SDK, assume we have 2 slices until then
-                maxViews = 2;
+                maxViews = 64;
             }
             else
 #endif
             {
-                if (XRGraphics.stereoRenderingMode == XRGraphics.StereoRenderingMode.SinglePassInstanced)
-                    maxViews = 2;
+                //if (XRGraphics.stereoRenderingMode == XRGraphics.StereoRenderingMode.SinglePassInstanced)
+                //    maxViews = 2;
             }
 
             return maxViews;
@@ -234,17 +234,17 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (renderPass.renderTargetDesc.dimension != TextureDimension.Tex2DArray)
                 return false;
 
-            if (renderPass.GetRenderParameterCount() != 2 || renderPass.renderTargetDesc.volumeDepth != 2)
-                return false;
+            //if (renderPass.GetRenderParameterCount() != 2 || renderPass.renderTargetDesc.volumeDepth != 2)
+            //    return false;
 
-            renderPass.GetRenderParameter(camera, 0, out var renderParam0);
-            renderPass.GetRenderParameter(camera, 1, out var renderParam1);
+            //renderPass.GetRenderParameter(camera, 0, out var renderParam0);
+            //renderPass.GetRenderParameter(camera, 1, out var renderParam1);
 
-            if (renderParam0.textureArraySlice != 0 || renderParam1.textureArraySlice != 1)
-                return false;
+            //if (renderParam0.textureArraySlice != 0 || renderParam1.textureArraySlice != 1)
+            //    return false;
 
-            if (renderParam0.viewport != renderParam1.viewport)
-                return false;
+            //if (renderParam0.viewport != renderParam1.viewport)
+            //    return false;
 
             return true;
         }

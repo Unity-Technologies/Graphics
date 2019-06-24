@@ -1,6 +1,7 @@
 #pragma kernel BigTileLightListGen
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/TextureXR.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoop.cs.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightingConvexHullUtils.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/SortingComputeUtils.hlsl"
@@ -20,8 +21,8 @@
 uniform int g_iNrVisibLights;
 uniform uint2 g_viDimensions;
 
-uniform float4x4 g_mInvScrProjectionArr[2];
-uniform float4x4 g_mScrProjectionArr[2];
+uniform float4x4 g_mInvScrProjectionArr[XR_MAX_VIEWS];
+uniform float4x4 g_mScrProjectionArr[XR_MAX_VIEWS];
 
 uniform float g_fNearPlane;
 uniform float g_fFarPlane;
@@ -50,7 +51,7 @@ groupshared uint lightOffs;
 // Only usage of that constant.
 float GetLinearDepth(float2 pixXY, float zDptBufSpace)    // 0 is near 1 is far
 {
-	float4x4 g_mInvScrProjection = g_mInvScrProjectionArr[0];
+	float4x4 g_mInvScrProjection = g_mInvScrProjectionArr[unity_StereoEyeIndex];
 
 #ifdef USE_OBLIQUE_MODE
 	float2 res2 = mul(g_mInvScrProjection, float4(pixXY, zDptBufSpace, 1.0)).zw;

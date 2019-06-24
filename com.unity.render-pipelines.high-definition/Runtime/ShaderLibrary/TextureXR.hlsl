@@ -10,7 +10,7 @@
 // XRTODO: update supported platforms based on Unity version (for required C++ fixes)
 
 // XRTODO: consolidate with TextureXR.cs
-#define XR_MAX_VIEWS 2
+#define XR_MAX_VIEWS 64
 
 // Must be in sync with C# with property useTexArray in TextureXR.cs
 #if (defined(SHADER_API_D3D11) && !defined(SHADER_API_XBOXONE)) || defined(SHADER_API_PSSL) || defined(SHADER_API_VULKAN)

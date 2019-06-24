@@ -157,8 +157,9 @@
                 unity_InstanceID = unity_BaseInstanceID + (inputInstanceID >> 1);
             #else
                 // stereo eye index is automatically figured out from the instance ID
-                unity_StereoEyeIndex = inputInstanceID & 0x01;
-                unity_InstanceID = unity_BaseInstanceID + (inputInstanceID >> 1);
+                // XRTODO: expose the max num of views (currently locked to 256)
+                unity_StereoEyeIndex = inputInstanceID & 0xFF;
+                unity_InstanceID = unity_BaseInstanceID + (inputInstanceID >> 8);
             #endif
         #else
             unity_InstanceID = inputInstanceID + unity_BaseInstanceID;
