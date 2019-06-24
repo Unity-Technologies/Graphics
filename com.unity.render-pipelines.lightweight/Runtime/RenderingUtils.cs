@@ -1,9 +1,21 @@
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using UnityEngine.Rendering.PostProcessing;
 
 namespace UnityEngine.Rendering.LWRP
 {
+    [Flags]
+    public enum DebugMaterialMask
+    {
+        NONE = 0,
+        ALBEDO = 1 << 0,
+        ALPHA = 1 << 1,
+        SMOOTHNESS = 1 << 2,
+        OCCLUSION = 1 << 3,
+        EMISSION = 1 << 4,
+    }
+    
     public static class RenderingUtils
     {
         static int m_PostProcessingTemporaryTargetId = Shader.PropertyToID("_TemporaryColorTexture");
@@ -17,7 +29,9 @@ namespace UnityEngine.Rendering.LWRP
             new ShaderTagId("VertexLMRGBM"),
             new ShaderTagId("VertexLM"),
         };
-
+        
+        static ShaderTagId m_DebugMaterialId = new ShaderTagId("DebugMaterial");
+        
         static Mesh s_FullscreenMesh = null;
         public static Mesh fullscreenMesh
         {
@@ -63,7 +77,7 @@ namespace UnityEngine.Rendering.LWRP
                 return m_PostProcessRenderContext;
             }
         }
-
+        
         static Material s_ErrorMaterial;
         static Material errorMaterial
         {
@@ -145,6 +159,22 @@ namespace UnityEngine.Rendering.LWRP
                 errorSettings.SetShaderPassName(i, m_LegacyShaderPassNames[i]);
 
             context.DrawRenderers(cullResults, ref errorSettings, ref filterSettings);
+        }
+
+        [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
+        internal static void RenderObjectWithDebug(ScriptableRenderContext context, ref CullingResults cullResults,
+            Camera camera, FilteringSettings filterSettings, SortingCriteria sortFlags, DebugMaterialMask debugMaterialMask)
+        {
+            if (debugMaterialMask == DebugMaterialMask.NONE)
+                return;
+            
+            SortingSettings sortingSettings = new SortingSettings(camera) { criteria = sortFlags };
+            DrawingSettings debugSettings = new DrawingSettings(m_DebugMaterialId, sortingSettings)
+            {
+                perObjectData = PerObjectData.None,
+            };
+
+            context.DrawRenderers(cullResults, ref debugSettings, ref filterSettings);   
         }
 
         // Caches render texture format support. SystemInfo.SupportsRenderTextureFormat allocates memory due to boxing.

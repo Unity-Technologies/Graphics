@@ -240,7 +240,37 @@ Shader "Lightweight Render Pipeline/Lit"
             ENDHLSL
         }
 
+        Pass
+        {
+            Name "DebugMaterial"
+            Tags { "LightMode" = "DebugMaterial" }
+            
+            Blend[_SrcBlend][_DstBlend]
+            ZWrite[_ZWrite]
+            Cull[_Cull]
 
+            HLSLPROGRAM
+            // Required to compile gles 2.0 with standard SRP library
+            // All shaders must be compiled with HLSLcc and currently only gles is not using HLSLcc by default
+            #pragma prefer_hlslcc gles
+            #pragma exclude_renderers d3d11_9x
+            #pragma target 2.0
+            
+            #pragma shader_feature _NORMALMAP
+            #pragma shader_feature _ALPHATEST_ON
+            #pragma shader_feature _ALPHAPREMULTIPLY_ON
+            #pragma shader_feature _EMISSION
+            #pragma shader_feature _METALLICSPECGLOSSMAP
+            #pragma shader_feature _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
+            #pragma shader_feature _OCCLUSIONMAP
+            
+            #pragma vertex LitPassVertex
+            #pragma fragment LitPassFragment
+
+            #include "LitInput.hlsl"
+            #include "LitDebugPass.hlsl"
+            ENDHLSL
+        }
     }
     FallBack "Hidden/InternalErrorShader"
     CustomEditor "UnityEditor.Rendering.LWRP.ShaderGUI.LitShader"

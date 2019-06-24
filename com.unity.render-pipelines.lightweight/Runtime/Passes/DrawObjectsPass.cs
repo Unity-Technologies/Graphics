@@ -44,15 +44,29 @@ namespace UnityEngine.Rendering.LWRP
                 cmd.Clear();
 
                 Camera camera = renderingData.cameraData.camera;
-                var sortFlags = (m_IsOpaque) ? renderingData.cameraData.defaultOpaqueSortFlags : SortingCriteria.CommonTransparent;
+                var sortFlags = (m_IsOpaque)
+                    ? renderingData.cameraData.defaultOpaqueSortFlags
+                    : SortingCriteria.CommonTransparent;
                 var drawSettings = CreateDrawingSettings(m_ShaderTagIdList, ref renderingData, sortFlags);
-                context.DrawRenderers(renderingData.cullResults, ref drawSettings, ref m_FilteringSettings, ref m_RenderStateBlock);
 
-                // Render objects that did not match any shader pass with error shader
-                RenderingUtils.RenderObjectsWithError(context, ref renderingData.cullResults, camera, m_FilteringSettings, SortingCriteria.None);
+                if (debugMaterialMask != DebugMaterialMask.NONE)
+                {
+                    RenderingUtils.RenderObjectWithDebug(context, ref renderingData.cullResults, camera,
+                        m_FilteringSettings, SortingCriteria.None, debugMaterialMask);
+                }
+                else
+                {
+                    context.DrawRenderers(renderingData.cullResults, ref drawSettings, ref m_FilteringSettings,
+                        ref m_RenderStateBlock);
+
+                    // Render objects that did not match any shader pass with error shader
+                    RenderingUtils.RenderObjectsWithError(context, ref renderingData.cullResults, camera,
+                        m_FilteringSettings, SortingCriteria.None);
+                }
+
+                context.ExecuteCommandBuffer(cmd);
+                CommandBufferPool.Release(cmd);
             }
-            context.ExecuteCommandBuffer(cmd);
-            CommandBufferPool.Release(cmd);
         }
     }
 }

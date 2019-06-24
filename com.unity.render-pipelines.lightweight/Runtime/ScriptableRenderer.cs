@@ -59,6 +59,8 @@ namespace UnityEngine.Rendering.LWRP
             get => m_CameraDepthTarget;
         }
 
+        public DebugMaterialMask debugMaterialMask { get; set; }
+
         protected List<ScriptableRendererFeature> rendererFeatures
         {
             get => m_RendererFeatures;
@@ -68,7 +70,7 @@ namespace UnityEngine.Rendering.LWRP
         {
             get => m_ActiveRenderPassQueue;
         }
-
+        
         static class RenderPassBlock
         {
             // Executes render passes that are inputs to the main rendering
@@ -330,6 +332,7 @@ namespace UnityEngine.Rendering.LWRP
             for (int currIndex = blockRanges[blockIndex]; currIndex < endIndex; ++currIndex)
             {
                 var renderPass = m_ActiveRenderPassQueue[currIndex];
+                renderPass.debugMaterialMask = debugMaterialMask;
                 ExecuteRenderPass(context, renderPass, ref renderingData);
             }
 

@@ -1,4 +1,5 @@
 using UnityEditor.Rendering;
+using System.Diagnostics;
 
 namespace UnityEngine.Rendering.LWRP
 {
@@ -13,6 +14,7 @@ namespace UnityEngine.Rendering.LWRP
 
         const int k_DepthStencilBufferBits = 32;
         const string k_CreateCameraTextures = "Create Camera Texture";
+        int m_DebugMaterialMaskId;
 
         DepthOnlyPass m_DepthPrepass;
         MainLightShadowCasterPass m_MainLightShadowCasterPass;
@@ -49,6 +51,8 @@ namespace UnityEngine.Rendering.LWRP
 
         public ForwardRenderer(ForwardRendererData data) : base(data)
         {
+            m_DebugMaterialMaskId = Shader.PropertyToID("_DebugMaterialMask");
+            
             Material blitMaterial = CoreUtils.CreateEngineMaterial(data.shaders.blitPS);
             Material fullScreenDebugMaterial = CoreUtils.CreateEngineMaterial(data.shaders.fullScreenDebugPS);
             Material copyDepthMaterial = CoreUtils.CreateEngineMaterial(data.shaders.copyDepthPS);
@@ -97,6 +101,8 @@ namespace UnityEngine.Rendering.LWRP
 
         public override void Setup(ScriptableRenderContext context, ref RenderingData renderingData)
         {
+            SetupDebugRendering(context);
+                
             Camera camera = renderingData.cameraData.camera;
             RenderTextureDescriptor cameraTargetDescriptor = renderingData.cameraData.cameraTargetDescriptor;
 
@@ -418,6 +424,18 @@ namespace UnityEngine.Rendering.LWRP
             //bool msaaDepthResolve = msaaEnabledForCamera && SystemInfo.supportsMultisampledTextures != 0;
             bool msaaDepthResolve = false;
             return supportsDepthCopy || msaaDepthResolve;
+        }
+
+        [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
+        void SetupDebugRendering(ScriptableRenderContext context)
+        {
+            debugMaterialMask = DebugMaterialMask.NONE;
+            uint debugMaterialMaskInt = (uint) debugMaterialMask;
+            
+            var cmd = CommandBufferPool.Get("");
+            unsafe { cmd.SetGlobalFloat(m_DebugMaterialMaskId, *(float*)&debugMaterialMaskInt);}
+            context.ExecuteCommandBuffer(cmd);
+            CommandBufferPool.Release(cmd);
         }
     }
 }
