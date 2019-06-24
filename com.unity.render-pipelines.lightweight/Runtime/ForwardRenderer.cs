@@ -9,7 +9,7 @@ namespace UnityEngine.Rendering.LWRP
         {
             None = 0,
             Depth = 1,
-            ShadowsOnly = 2,
+            MainLightShadowsOnly = 2,
         }
 
         const int k_DepthStencilBufferBits = 32;
@@ -285,7 +285,7 @@ namespace UnityEngine.Rendering.LWRP
                     case FullScreenDebugMode.Depth:
                         debugBuffer = m_DepthTexture;
                         break;
-                    case FullScreenDebugMode.ShadowsOnly:
+                    case FullScreenDebugMode.MainLightShadowsOnly:
                         debugBuffer.Init("_ScreenSpaceShadowmapTexture");
                         break;
                     default:

@@ -28,7 +28,7 @@ Shader "Hidden/Lightweight Render Pipeline/FullScreenDebug"
             #endif
 
             #define DEBUG_MODE_DEPTH (1)
-            #define DEBUG_MODE_SHADOWS_ONLY (2)
+            #define DEBUG_MODE_MAIN_LIGHT_SHADOWS_ONLY (2)
 
             struct Attributes
             {
@@ -62,7 +62,7 @@ Shader "Hidden/Lightweight Render Pipeline/FullScreenDebug"
                     col = LinearToSRGB(col);
                 #endif
 
-                if (_DebugMode == DEBUG_MODE_DEPTH || _DebugMode == DEBUG_MODE_SHADOWS_ONLY)
+                if (_DebugMode == DEBUG_MODE_DEPTH || _DebugMode == DEBUG_MODE_MAIN_LIGHT_SHADOWS_ONLY)
                 {
                     col.rgb = col.rrr;
                     col.a = 1.0f;
