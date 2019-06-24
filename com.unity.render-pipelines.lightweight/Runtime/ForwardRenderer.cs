@@ -4,11 +4,11 @@ namespace UnityEngine.Rendering.LWRP
 {
     internal class ForwardRenderer : ScriptableRenderer
     {
-        enum FullScreenDebugMode
+        internal enum FullScreenDebugMode
         {
-            None = -1,
-            Depth = 0,
-            ShadowsOnly = 1,
+            None = 0,
+            Depth = 1,
+            ShadowsOnly = 2,
         }
 
         const int k_DepthStencilBufferBits = 32;
@@ -44,8 +44,6 @@ namespace UnityEngine.Rendering.LWRP
 
         ForwardLights m_ForwardLights;
         StencilState m_DefaultStencilState;
-
-        FullScreenDebugMode fullScreenDebugMode { get; set; } = FullScreenDebugMode.None;
 
         public ForwardRenderer(ForwardRendererData data) : base(data)
         {
@@ -272,10 +270,11 @@ namespace UnityEngine.Rendering.LWRP
                 }
             }
 
-            //fullScreenDebugMode = FullScreenDebugMode.ShadowsOnly;
+            var fullScreenDebugMode = DebugDisplaySettings.Instance.Test.m_Enum;
+
             if (fullScreenDebugMode != FullScreenDebugMode.None)
             {
-                RenderTargetHandle debugBuffer = new RenderTargetHandle(); 
+                RenderTargetHandle debugBuffer = new RenderTargetHandle();
 
                 switch (fullScreenDebugMode)
                 {

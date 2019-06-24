@@ -27,8 +27,8 @@ Shader "Hidden/Lightweight Render Pipeline/FullScreenDebug"
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
             #endif
 
-            #define DEBUG_MODE_DEPTH (0)
-            #define DEBUG_MODE_SHADOWS_ONLY (1)
+            #define DEBUG_MODE_DEPTH (1)
+            #define DEBUG_MODE_SHADOWS_ONLY (2)
 
             struct Attributes
             {
