@@ -14,6 +14,8 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/LTCAreaLight/LTCAreaLight.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/PreIntegratedFGD/PreIntegratedFGD.hlsl"
 
+#include "HairMarschner.hlsl"
+
 #define DEFAULT_HAIR_SPECULAR_VALUE 0.0465 // Hair is IOR 1.55
 
 //-----------------------------------------------------------------------------
