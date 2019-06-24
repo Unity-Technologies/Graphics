@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -10,8 +11,8 @@ namespace UnityEditor.ShaderGraph
         private static string ValueTypeName(int componentCount)
             => componentCount == 1 ? "Float" : $"Float{componentCount}";
 
-        private static string AnyVectorTypeName(int minComponentCount)
-            => minComponentCount == 1 ? "AnyFloat" : $"AnyFloat{minComponentCount}";
+        private static string HlslTypeName(int componentCount)
+            => componentCount == 1 ? "float" : $"float{componentCount}";
 
         private static char SwizzleComponentName(int v)
             => v == 3 ? 'w' : (char)('x' + v);
@@ -37,6 +38,45 @@ namespace UnityEditor.ShaderGraph
                     sb.Append("\n");
                 }
             }
+        }
+
+        private static void GenerateConstructor(StringBuilder sb, List<int> stack)
+        {
+            int components = stack.Sum();
+            var typeName = ValueTypeName(components);
+            sb.Append($"\t\tpublic static {typeName} {typeName}(");
+            for (int v = 0; v < stack.Count; ++v)
+                sb.Append($"{ValueTypeName(stack[v])} v{v}{(v != stack.Count - 1 ? ", " : "")}");
+            sb.Append(")\n");
+            sb.Append($"\t\t\t=> new {typeName}() {{ Code = $\"{HlslTypeName(components)}(");
+            for (int v = 0; v < stack.Count; ++v)
+                sb.Append($"{{v{v}.Code}}{(v != stack.Count - 1 ? ", " : "")}");
+            sb.Append(")\" };\n\n");
+        }
+
+        private static void GenerateConstructosRecurse(StringBuilder sb, int components, List<int> stack)
+        {
+            if (components == 0)
+            {
+                if (stack.Count > 1)
+                    GenerateConstructor(sb, stack);
+            }
+            else
+            {
+                for (int i = components; i >= 1; --i)
+                {
+                    stack.Add(i);
+                    GenerateConstructosRecurse(sb, components - i, stack);
+                    stack.RemoveAt(stack.Count - 1);
+                }
+            }
+        }
+
+        private static void GenerateConstructors(StringBuilder sb)
+        {
+            var stack = new List<int>(4);
+            for (int components = 2; components <= 4; ++components)
+                GenerateConstructosRecurse(sb, components, stack);
         }
 
         private static void Intrinsic1(StringBuilder sb, string func, string returnType = "")
@@ -155,17 +195,8 @@ namespace UnityEditor.ShaderGraph
                 sb.Append("\tpublic static class Intrinsics\n");
                 sb.Append("\t{\n");
 
-                sb.Append("\t\tpublic static Float Float(float x)\n");
-                sb.Append("\t\t\t=> new Float() { Code = $\"{x}\" };\n\n");
-
-                sb.Append("\t\tpublic static Float2 Float2(float x, float y)\n");
-                sb.Append("\t\t\t=> new Float2() { Code = $\"float2({x}, {y})\" };\n\n");
-
-                sb.Append("\t\tpublic static Float3 Float3(float x, float y, float z)\n");
-                sb.Append("\t\t\t=> new Float3() { Code = $\"float3({x}, {y}, {z})\" };\n\n");
-
-                sb.Append("\t\tpublic static Float4 Float4(float x, float y, float z, float w)\n");
-                sb.Append("\t\t\t=> new Float4() { Code = $\"float4({x}, {y}, {z}, {w})\" };\n\n");
+                // Constructors
+                GenerateConstructors(sb);
 
                 Intrinsic1(sb, "abs");
                 Intrinsic1(sb, "acos");
@@ -190,6 +221,7 @@ namespace UnityEditor.ShaderGraph
                 Intrinsic1(sb, "floor");
                 Intrinsic2(sb, "fmod");
                 Intrinsic1(sb, "frac");
+                Intrinsic1(sb, "fwidth");
                 Intrinsic1(sb, "length", "Float");
                 Intrinsic3(sb, "lerp");
                 Intrinsic1(sb, "log");

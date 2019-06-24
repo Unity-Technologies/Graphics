@@ -1650,17 +1650,38 @@ namespace UnityEditor.ShaderGraph.Hlsl
 
     public static class Intrinsics
     {
-        public static Float Float(float x)
-            => new Float() { Code = $"{x}" };
+        public static Float2 Float2(Float v0, Float v1)
+            => new Float2() { Code = $"float2({v0.Code}, {v1.Code})" };
 
-        public static Float2 Float2(float x, float y)
-            => new Float2() { Code = $"float2({x}, {y})" };
+        public static Float3 Float3(Float2 v0, Float v1)
+            => new Float3() { Code = $"float3({v0.Code}, {v1.Code})" };
 
-        public static Float3 Float3(float x, float y, float z)
-            => new Float3() { Code = $"float3({x}, {y}, {z})" };
+        public static Float3 Float3(Float v0, Float2 v1)
+            => new Float3() { Code = $"float3({v0.Code}, {v1.Code})" };
 
-        public static Float4 Float4(float x, float y, float z, float w)
-            => new Float4() { Code = $"float4({x}, {y}, {z}, {w})" };
+        public static Float3 Float3(Float v0, Float v1, Float v2)
+            => new Float3() { Code = $"float3({v0.Code}, {v1.Code}, {v2.Code})" };
+
+        public static Float4 Float4(Float3 v0, Float v1)
+            => new Float4() { Code = $"float4({v0.Code}, {v1.Code})" };
+
+        public static Float4 Float4(Float2 v0, Float2 v1)
+            => new Float4() { Code = $"float4({v0.Code}, {v1.Code})" };
+
+        public static Float4 Float4(Float2 v0, Float v1, Float v2)
+            => new Float4() { Code = $"float4({v0.Code}, {v1.Code}, {v2.Code})" };
+
+        public static Float4 Float4(Float v0, Float3 v1)
+            => new Float4() { Code = $"float4({v0.Code}, {v1.Code})" };
+
+        public static Float4 Float4(Float v0, Float2 v1, Float v2)
+            => new Float4() { Code = $"float4({v0.Code}, {v1.Code}, {v2.Code})" };
+
+        public static Float4 Float4(Float v0, Float v1, Float2 v2)
+            => new Float4() { Code = $"float4({v0.Code}, {v1.Code}, {v2.Code})" };
+
+        public static Float4 Float4(Float v0, Float v1, Float v2, Float v3)
+            => new Float4() { Code = $"float4({v0.Code}, {v1.Code}, {v2.Code}, {v3.Code})" };
 
         public static Float abs(Float x)
             => new Float() { Code = $"abs({x.Code})" };
@@ -1892,6 +1913,18 @@ namespace UnityEditor.ShaderGraph.Hlsl
 
         public static Float4 frac(Float4 x)
             => new Float4() { Code = $"frac({x.Code})" };
+
+        public static Float fwidth(Float x)
+            => new Float() { Code = $"fwidth({x.Code})" };
+
+        public static Float2 fwidth(Float2 x)
+            => new Float2() { Code = $"fwidth({x.Code})" };
+
+        public static Float3 fwidth(Float3 x)
+            => new Float3() { Code = $"fwidth({x.Code})" };
+
+        public static Float4 fwidth(Float4 x)
+            => new Float4() { Code = $"fwidth({x.Code})" };
 
         public static Float length(Float x)
             => new Float() { Code = $"length({x.Code})" };
