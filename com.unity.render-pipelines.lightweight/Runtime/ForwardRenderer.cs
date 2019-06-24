@@ -1,3 +1,5 @@
+using UnityEditor.Rendering;
+
 namespace UnityEngine.Rendering.LWRP
 {
     internal class ForwardRenderer : ScriptableRenderer
@@ -18,6 +20,8 @@ namespace UnityEngine.Rendering.LWRP
         PostProcessPass m_PostProcessPass;
         FinalBlitPass m_FinalBlitPass;
         CapturePass m_CapturePass;
+
+        DebugShowShadowCascadesPass m_DebugShowShadowCascadesPass;
 
 #if UNITY_EDITOR
         SceneViewDepthCopyPass m_SceneViewDepthCopyPass;
@@ -63,6 +67,8 @@ namespace UnityEngine.Rendering.LWRP
             m_PostProcessPass = new PostProcessPass(RenderPassEvent.BeforeRenderingPostProcessing);
             m_CapturePass = new CapturePass(RenderPassEvent.AfterRendering);
             m_FinalBlitPass = new FinalBlitPass(RenderPassEvent.AfterRendering, blitMaterial);
+
+            m_DebugShowShadowCascadesPass = new DebugShowShadowCascadesPass("[Debug] Show Shadow Cascades", true, RenderPassEvent.BeforeRenderingOpaques, RenderQueueRange.opaque, data.opaqueLayerMask, m_DefaultStencilState, stencilData.stencilReference);
 
 #if UNITY_EDITOR
             m_SceneViewDepthCopyPass = new SceneViewDepthCopyPass(RenderPassEvent.AfterRendering + 9, copyDepthMaterial);
@@ -170,34 +176,42 @@ namespace UnityEngine.Rendering.LWRP
                 EnqueuePass(m_ScreenSpaceShadowResolvePass);
             }
 
-            EnqueuePass(m_RenderOpaqueForwardPass);
-
-            if (hasOpaquePostProcess)
-                m_OpaquePostProcessPass.Setup(cameraTargetDescriptor, m_ActiveCameraColorAttachment, m_ActiveCameraColorAttachment);
-
-            if (camera.clearFlags == CameraClearFlags.Skybox && RenderSettings.skybox != null)
-                EnqueuePass(m_DrawSkyboxPass);
-
-            // If a depth texture was created we necessarily need to copy it, otherwise we could have render it to a renderbuffer
-            if (createDepthTexture)
+            bool showCascades = DebugDisplaySettings.Instance.Test.m_Boolean;
+            //showCascades = false;
+            if(showCascades )
             {
-                m_CopyDepthPass.Setup(m_ActiveCameraDepthAttachment, m_DepthTexture);
-                EnqueuePass(m_CopyDepthPass);
+                EnqueuePass(m_DebugShowShadowCascadesPass);
+            }
+            else
+            {
+                EnqueuePass(m_RenderOpaqueForwardPass);
+
+                if (hasOpaquePostProcess)
+                    m_OpaquePostProcessPass.Setup(cameraTargetDescriptor, m_ActiveCameraColorAttachment, m_ActiveCameraColorAttachment);
+
+                if (camera.clearFlags == CameraClearFlags.Skybox && RenderSettings.skybox != null)
+                    EnqueuePass(m_DrawSkyboxPass);
+
+                // If a depth texture was created we necessarily need to copy it, otherwise we could have render it to a renderbuffer
+                if (createDepthTexture)
+                {
+                    m_CopyDepthPass.Setup(m_ActiveCameraDepthAttachment, m_DepthTexture);
+                    EnqueuePass(m_CopyDepthPass);
+                }
+
+                if (renderingData.cameraData.requiresOpaqueTexture)
+                {
+                    // TODO: Downsampling method should be store in the renderer isntead of in the asset.
+                    // We need to migrate this data to renderer. For now, we query the method in the active asset.
+                    Downsampling downsamplingMethod = LightweightRenderPipeline.asset.opaqueDownsampling;
+                    m_CopyColorPass.Setup(m_ActiveCameraColorAttachment.Identifier(), m_OpaqueColor, downsamplingMethod);
+                    EnqueuePass(m_CopyColorPass);
+                }
+
+                EnqueuePass(m_RenderTransparentForwardPass);
             }
 
-            if (renderingData.cameraData.requiresOpaqueTexture)
-            {
-                // TODO: Downsampling method should be store in the renderer isntead of in the asset.
-                // We need to migrate this data to renderer. For now, we query the method in the active asset.
-                Downsampling downsamplingMethod = LightweightRenderPipeline.asset.opaqueDownsampling;
-                m_CopyColorPass.Setup(m_ActiveCameraColorAttachment.Identifier(), m_OpaqueColor, downsamplingMethod);
-                EnqueuePass(m_CopyColorPass);
-            }
-
-            EnqueuePass(m_RenderTransparentForwardPass);
-
-            bool afterRenderExists = renderingData.cameraData.captureActions != null ||
-                                     hasAfterRendering;
+            bool afterRenderExists = (renderingData.cameraData.captureActions != null || hasAfterRendering) && !showCascades;
 
             // if we have additional filters
             // we need to stay in a RT
@@ -225,7 +239,7 @@ namespace UnityEngine.Rendering.LWRP
             }
             else
             {
-                if (postProcessEnabled)
+                if (postProcessEnabled && !showCascades)
                 {
                     m_PostProcessPass.Setup(cameraTargetDescriptor, m_ActiveCameraColorAttachment, RenderTargetHandle.CameraTarget);
                     EnqueuePass(m_PostProcessPass);
