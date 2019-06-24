@@ -2,7 +2,7 @@
 using UnityEngine;
 using UnityEngine.Playables;
 using UnityEngine.Timeline;
-using UnityEngine.Experimental.VFX;
+using UnityEngine.VFX;
 
 [TrackColor(0.5990566f, 0.9038978f, 1f)]
 [TrackClipType(typeof(VisualEffectActivationClip))]

@@ -3,8 +3,8 @@ using System;
 using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Experimental.VFX;
-using UnityEditor.Experimental.VFX;
+using UnityEngine.VFX;
+using UnityEditor.VFX;
 
 namespace UnityEditor.VFX
 {
