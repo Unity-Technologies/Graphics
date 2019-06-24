@@ -19,14 +19,11 @@
 #define DEBUGVIEW_EYE_SURFACEDATA_NORMAL_VIEW_SPACE (1303)
 #define DEBUGVIEW_EYE_SURFACEDATA_GEOMETRIC_NORMAL (1304)
 #define DEBUGVIEW_EYE_SURFACEDATA_GEOMETRIC_NORMAL_VIEW_SPACE (1305)
-#define DEBUGVIEW_EYE_SURFACEDATA_SMOOTHNESS (1306)
-#define DEBUGVIEW_EYE_SURFACEDATA_AMBIENT_OCCLUSION (1307)
-#define DEBUGVIEW_EYE_SURFACEDATA_SPECULAR_TINT (1308)
-#define DEBUGVIEW_EYE_SURFACEDATA_DIFFUSION_PROFILE_HASH (1309)
-#define DEBUGVIEW_EYE_SURFACEDATA_SUBSURFACE_MASK (1310)
-#define DEBUGVIEW_EYE_SURFACEDATA_THICKNESS (1311)
-#define DEBUGVIEW_EYE_SURFACEDATA_TANGENT (1312)
-#define DEBUGVIEW_EYE_SURFACEDATA_ANISOTROPY (1313)
+#define DEBUGVIEW_EYE_SURFACEDATA_IRIS_SMOOTHNESS (1306)
+#define DEBUGVIEW_EYE_SURFACEDATA_SCLERA_SMOOTHNESS (1307)
+#define DEBUGVIEW_EYE_SURFACEDATA_AMBIENT_OCCLUSION (1308)
+#define DEBUGVIEW_EYE_SURFACEDATA_SPECULAR_TINT (1309)
+#define DEBUGVIEW_EYE_SURFACEDATA_CORNEA_HEIGHT (1310)
 
 //
 // UnityEngine.Experimental.Rendering.HDPipeline.Eye+BSDFData:  static fields
@@ -40,17 +37,9 @@
 #define DEBUGVIEW_EYE_BSDFDATA_NORMAL_VIEW_SPACE (1356)
 #define DEBUGVIEW_EYE_BSDFDATA_GEOMETRIC_NORMAL (1357)
 #define DEBUGVIEW_EYE_BSDFDATA_GEOMETRIC_NORMAL_VIEW_SPACE (1358)
-#define DEBUGVIEW_EYE_BSDFDATA_PERCEPTUAL_ROUGHNESS (1359)
-#define DEBUGVIEW_EYE_BSDFDATA_DIFFUSION_PROFILE_INDEX (1360)
-#define DEBUGVIEW_EYE_BSDFDATA_SUBSURFACE_MASK (1361)
-#define DEBUGVIEW_EYE_BSDFDATA_THICKNESS (1362)
-#define DEBUGVIEW_EYE_BSDFDATA_USE_THICK_OBJECT_MODE (1363)
-#define DEBUGVIEW_EYE_BSDFDATA_TRANSMITTANCE (1364)
-#define DEBUGVIEW_EYE_BSDFDATA_TANGENT_WS (1365)
-#define DEBUGVIEW_EYE_BSDFDATA_BITANGENT_WS (1366)
-#define DEBUGVIEW_EYE_BSDFDATA_ROUGHNESS_T (1367)
-#define DEBUGVIEW_EYE_BSDFDATA_ROUGHNESS_B (1368)
-#define DEBUGVIEW_EYE_BSDFDATA_ANISOTROPY (1369)
+#define DEBUGVIEW_EYE_BSDFDATA_IRIS_ROUGHNESS (1359)
+#define DEBUGVIEW_EYE_BSDFDATA_SCLERA_ROUGHNESS (1360)
+#define DEBUGVIEW_EYE_BSDFDATA_CORNEA_HEIGHT (1361)
 
 // Generated from UnityEngine.Experimental.Rendering.HDPipeline.Eye+SurfaceData
 // PackingRules = Exact
@@ -60,14 +49,11 @@ struct SurfaceData
     float specularOcclusion;
     float3 normalWS;
     float3 geomNormalWS;
-    float perceptualSmoothness;
+    float irisSmoothness;
+    float scleraSmoothness;
     float ambientOcclusion;
     float3 specularColor;
-    uint diffusionProfileHash;
-    float subsurfaceMask;
-    float thickness;
-    float3 tangentWS;
-    float anisotropy;
+    float corneaHeight;
 };
 
 // Generated from UnityEngine.Experimental.Rendering.HDPipeline.Eye+BSDFData
@@ -81,17 +67,9 @@ struct BSDFData
     float specularOcclusion;
     float3 normalWS;
     float3 geomNormalWS;
-    float perceptualRoughness;
-    uint diffusionProfileIndex;
-    float subsurfaceMask;
-    float thickness;
-    bool useThickObjectMode;
-    float3 transmittance;
-    float3 tangentWS;
-    float3 bitangentWS;
-    float roughnessT;
-    float roughnessB;
-    float anisotropy;
+    float irisRoughness;
+    float scleraRoughness;
+    float corneaHeight;
 };
 
 //
@@ -120,8 +98,11 @@ void GetGeneratedSurfaceDataDebug(uint paramId, SurfaceData surfacedata, inout f
         case DEBUGVIEW_EYE_SURFACEDATA_GEOMETRIC_NORMAL_VIEW_SPACE:
             result = surfacedata.geomNormalWS * 0.5 + 0.5;
             break;
-        case DEBUGVIEW_EYE_SURFACEDATA_SMOOTHNESS:
-            result = surfacedata.perceptualSmoothness.xxx;
+        case DEBUGVIEW_EYE_SURFACEDATA_IRIS_SMOOTHNESS:
+            result = surfacedata.irisSmoothness.xxx;
+            break;
+        case DEBUGVIEW_EYE_SURFACEDATA_SCLERA_SMOOTHNESS:
+            result = surfacedata.scleraSmoothness.xxx;
             break;
         case DEBUGVIEW_EYE_SURFACEDATA_AMBIENT_OCCLUSION:
             result = surfacedata.ambientOcclusion.xxx;
@@ -130,20 +111,8 @@ void GetGeneratedSurfaceDataDebug(uint paramId, SurfaceData surfacedata, inout f
             result = surfacedata.specularColor;
             needLinearToSRGB = true;
             break;
-        case DEBUGVIEW_EYE_SURFACEDATA_DIFFUSION_PROFILE_HASH:
-            result = GetIndexColor(surfacedata.diffusionProfileHash);
-            break;
-        case DEBUGVIEW_EYE_SURFACEDATA_SUBSURFACE_MASK:
-            result = surfacedata.subsurfaceMask.xxx;
-            break;
-        case DEBUGVIEW_EYE_SURFACEDATA_THICKNESS:
-            result = surfacedata.thickness.xxx;
-            break;
-        case DEBUGVIEW_EYE_SURFACEDATA_TANGENT:
-            result = surfacedata.tangentWS * 0.5 + 0.5;
-            break;
-        case DEBUGVIEW_EYE_SURFACEDATA_ANISOTROPY:
-            result = surfacedata.anisotropy.xxx;
+        case DEBUGVIEW_EYE_SURFACEDATA_CORNEA_HEIGHT:
+            result = surfacedata.corneaHeight.xxx;
             break;
     }
 }
@@ -183,38 +152,14 @@ void GetGeneratedBSDFDataDebug(uint paramId, BSDFData bsdfdata, inout float3 res
         case DEBUGVIEW_EYE_BSDFDATA_GEOMETRIC_NORMAL_VIEW_SPACE:
             result = bsdfdata.geomNormalWS * 0.5 + 0.5;
             break;
-        case DEBUGVIEW_EYE_BSDFDATA_PERCEPTUAL_ROUGHNESS:
-            result = bsdfdata.perceptualRoughness.xxx;
+        case DEBUGVIEW_EYE_BSDFDATA_IRIS_ROUGHNESS:
+            result = bsdfdata.irisRoughness.xxx;
             break;
-        case DEBUGVIEW_EYE_BSDFDATA_DIFFUSION_PROFILE_INDEX:
-            result = GetIndexColor(bsdfdata.diffusionProfileIndex);
+        case DEBUGVIEW_EYE_BSDFDATA_SCLERA_ROUGHNESS:
+            result = bsdfdata.scleraRoughness.xxx;
             break;
-        case DEBUGVIEW_EYE_BSDFDATA_SUBSURFACE_MASK:
-            result = bsdfdata.subsurfaceMask.xxx;
-            break;
-        case DEBUGVIEW_EYE_BSDFDATA_THICKNESS:
-            result = bsdfdata.thickness.xxx;
-            break;
-        case DEBUGVIEW_EYE_BSDFDATA_USE_THICK_OBJECT_MODE:
-            result = (bsdfdata.useThickObjectMode) ? float3(1.0, 1.0, 1.0) : float3(0.0, 0.0, 0.0);
-            break;
-        case DEBUGVIEW_EYE_BSDFDATA_TRANSMITTANCE:
-            result = bsdfdata.transmittance;
-            break;
-        case DEBUGVIEW_EYE_BSDFDATA_TANGENT_WS:
-            result = bsdfdata.tangentWS * 0.5 + 0.5;
-            break;
-        case DEBUGVIEW_EYE_BSDFDATA_BITANGENT_WS:
-            result = bsdfdata.bitangentWS * 0.5 + 0.5;
-            break;
-        case DEBUGVIEW_EYE_BSDFDATA_ROUGHNESS_T:
-            result = bsdfdata.roughnessT.xxx;
-            break;
-        case DEBUGVIEW_EYE_BSDFDATA_ROUGHNESS_B:
-            result = bsdfdata.roughnessB.xxx;
-            break;
-        case DEBUGVIEW_EYE_BSDFDATA_ANISOTROPY:
-            result = bsdfdata.anisotropy.xxx;
+        case DEBUGVIEW_EYE_BSDFDATA_CORNEA_HEIGHT:
+            result = bsdfdata.corneaHeight.xxx;
             break;
     }
 }

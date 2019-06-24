@@ -31,20 +31,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             },
             PixelShaderSlots = new List<int>()
             {
-                EyeMasterNode.AlbedoSlotId,
                 EyeMasterNode.SpecularOcclusionSlotId,
-                EyeMasterNode.NormalSlotId,
-                EyeMasterNode.SmoothnessSlotId,
                 EyeMasterNode.AmbientOcclusionSlotId,
-                EyeMasterNode.SpecularColorSlotId,
-                EyeMasterNode.DiffusionProfileHashSlotId,
-                EyeMasterNode.SubsurfaceMaskSlotId,
-                EyeMasterNode.ThicknessSlotId,
-                EyeMasterNode.TangentSlotId,
-                EyeMasterNode.AnisotropySlotId,
-                EyeMasterNode.EmissionSlotId,
-                EyeMasterNode.AlphaSlotId,
-                EyeMasterNode.AlphaClipThresholdSlotId,
+                EyeMasterNode.EyeProfileHashSlotId,
             },
             VertexShaderSlots = new List<int>()
             {
@@ -71,9 +60,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             },
             PixelShaderSlots = new List<int>()
             {
-                EyeMasterNode.AlphaSlotId,
-                EyeMasterNode.AlphaClipThresholdSlotId,
-                EyeMasterNode.DepthOffsetSlotId,
             },
             VertexShaderSlots = new List<int>()
             {
@@ -101,9 +87,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             },
             PixelShaderSlots = new List<int>()
             {
-                EyeMasterNode.AlphaSlotId,
-                EyeMasterNode.AlphaClipThresholdSlotId,
-                EyeMasterNode.DepthOffsetSlotId,
             },
             VertexShaderSlots = new List<int>()
             {
@@ -129,11 +112,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             },
             PixelShaderSlots = new List<int>()
             {
-                EyeMasterNode.NormalSlotId,
-                EyeMasterNode.SmoothnessSlotId,
-                EyeMasterNode.AlphaSlotId,
-                EyeMasterNode.AlphaClipThresholdSlotId,
-                EyeMasterNode.DepthOffsetSlotId,
             },
 
             RequiredFields = new List<string>()
@@ -201,11 +179,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             },
             PixelShaderSlots = new List<int>()
             {
-                EyeMasterNode.NormalSlotId,
-                EyeMasterNode.SmoothnessSlotId,
-                EyeMasterNode.AlphaSlotId,
-                EyeMasterNode.AlphaClipThresholdSlotId,
-                EyeMasterNode.DepthOffsetSlotId,
             },
             VertexShaderSlots = new List<int>()
             {
@@ -255,24 +228,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             },
             PixelShaderSlots = new List<int>()
             {
-                EyeMasterNode.AlbedoSlotId,
                 EyeMasterNode.SpecularOcclusionSlotId,
-                EyeMasterNode.NormalSlotId,
-                EyeMasterNode.BentNormalSlotId,
-                EyeMasterNode.SmoothnessSlotId,
                 EyeMasterNode.AmbientOcclusionSlotId,
-                EyeMasterNode.SpecularColorSlotId,
-                EyeMasterNode.DiffusionProfileHashSlotId,
-                EyeMasterNode.SubsurfaceMaskSlotId,
-                EyeMasterNode.ThicknessSlotId,
-                EyeMasterNode.TangentSlotId,
-                EyeMasterNode.AnisotropySlotId,
-                EyeMasterNode.EmissionSlotId,
-                EyeMasterNode.AlphaSlotId,
-                EyeMasterNode.AlphaClipThresholdSlotId,
-                EyeMasterNode.LightingSlotId,
-                EyeMasterNode.BackLightingSlotId,
-                EyeMasterNode.DepthOffsetSlotId,
+                EyeMasterNode.EyeProfileHashSlotId,
             },
             VertexShaderSlots = new List<int>()
             {
@@ -288,17 +246,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
                 pass.ExtraDefines.Remove("#ifndef DEBUG_DISPLAY\n#define SHADERPASS_FORWARD_BYPASS_ALPHA_TEST\n#endif");                
 
-                if (masterNode.surfaceType == SurfaceType.Opaque)
                 {
-                    if (masterNode.alphaTest.isOn)
-                    {
-                        // In case of opaque we don't want to perform the alpha test, it is done in depth prepass and we use depth equal for ztest (setup from UI)
-                        // Don't do it with debug display mode as it is possible there is no depth prepass in this case
-                        pass.ExtraDefines.Add("#ifndef DEBUG_DISPLAY\n#define SHADERPASS_FORWARD_BYPASS_ALPHA_TEST\n#endif");
-                        pass.ZTestOverride = "ZTest Equal";
-                    }
-                    else
-                        pass.ZTestOverride = null;
+                    pass.ZTestOverride = null;
                 }
             }
         };
@@ -315,16 +264,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 return activeFields;
             }
 
-            if (masterNode.doubleSidedMode != DoubleSidedMode.Disabled)
-            {
-                if (pass.ShaderPassName != "SHADERPASS_MOTION_VECTORS")   // HACK to get around lack of a good interpolator dependency system
-                {                                                   // we need to be able to build interpolators using multiple input structs
-                                                                    // also: should only require isFrontFace if Normals are required...
-                    // Important: the following is used in SharedCode.template.hlsl for determining the normal flip mode
-                    activeFields.Add("FragInputs.isFrontFace");
-                }
-            }
-
             switch (masterNode.materialType)
             {
                 case EyeMasterNode.MaterialType.EyeGames:
@@ -338,60 +277,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     break;
             }
 
-            if (masterNode.alphaTest.isOn)
-            {
-                if (pass.PixelShaderUsesSlot(EyeMasterNode.AlphaClipThresholdSlotId))
-                {
-                    activeFields.Add("AlphaTest");
-                }
-            }
-
-            if (masterNode.surfaceType != SurfaceType.Opaque)
-            {
-                if (masterNode.transparencyFog.isOn)
-                {
-                    activeFields.Add("AlphaFog");
-                }
-
-                if (masterNode.blendPreserveSpecular.isOn)
-                {
-                    activeFields.Add("BlendMode.PreserveSpecular");
-                }
-            }
-
-            if (!masterNode.receiveDecals.isOn)
-            {
-                activeFields.Add("DisableDecals");
-            }
-
             if (!masterNode.receiveSSR.isOn)
             {
                 activeFields.Add("DisableSSR");
-            }
-
-            if (masterNode.energyConservingSpecular.isOn)
-            {
-                activeFields.Add("Specular.EnergyConserving");
-            }
-
-            if (masterNode.transmission.isOn)
-            {
-                activeFields.Add("Material.Transmission");
-            }
-
-            if (masterNode.subsurfaceScattering.isOn && masterNode.surfaceType != SurfaceType.Transparent)
-            {
-                activeFields.Add("Material.SubsurfaceScattering");
-            }
-
-            if (masterNode.IsSlotConnected(EyeMasterNode.BentNormalSlotId) && pass.PixelShaderUsesSlot(EyeMasterNode.BentNormalSlotId))
-            {
-                activeFields.Add("BentNormal");
-            }
-
-            if (masterNode.IsSlotConnected(EyeMasterNode.TangentSlotId) && pass.PixelShaderUsesSlot(EyeMasterNode.TangentSlotId))
-            {
-                activeFields.Add("Tangent");
             }
 
             switch (masterNode.specularOcclusionMode)
@@ -422,22 +310,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 }
             }
 
-            if (masterNode.IsSlotConnected(EyeMasterNode.LightingSlotId) && pass.PixelShaderUsesSlot(EyeMasterNode.LightingSlotId))
-            {
-                activeFields.Add("LightingGI");
-            }
-            if (masterNode.IsSlotConnected(EyeMasterNode.BackLightingSlotId) && pass.PixelShaderUsesSlot(EyeMasterNode.BackLightingSlotId))
-            {
-                activeFields.Add("BackLightingGI");
-            }
-
-            if (masterNode.depthOffset.isOn && pass.PixelShaderUsesSlot(EyeMasterNode.DepthOffsetSlotId))
-                activeFields.Add("DepthOffset");
-
             return activeFields;
         }
 
-        private static bool GenerateShaderPassLit(EyeMasterNode masterNode, Pass pass, GenerationMode mode, ShaderGenerator result, List<string> sourceAssetDependencyPaths)
+        private static bool GenerateShaderPassEye(EyeMasterNode masterNode, Pass pass, GenerationMode mode, ShaderGenerator result, List<string> sourceAssetDependencyPaths)
         {
             if (mode == GenerationMode.ForReals || pass.UseInPreview)
             {
@@ -474,24 +350,24 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             subShader.Indent();
             {
                 // generate the necessary shader passes
-                bool opaque = (masterNode.surfaceType == SurfaceType.Opaque);
-                bool transparent = !opaque;
+                bool opaque = true;
+                bool transparent = false;
 
                 // Add tags at the SubShader level
-                var renderingPass = masterNode.surfaceType == SurfaceType.Opaque ? HDRenderQueue.RenderQueueType.Opaque : HDRenderQueue.RenderQueueType.Transparent;
-                int queue = HDRenderQueue.ChangeType(renderingPass, masterNode.sortPriority, masterNode.alphaTest.isOn);
+                var renderingPass = HDRenderQueue.RenderQueueType.Opaque;
+                int queue = HDRenderQueue.ChangeType(renderingPass, 0, false);
                 HDSubShaderUtilities.AddTags(subShader, HDRenderPipeline.k_ShaderTagName, HDRenderTypeTags.HDLitShader, queue);
 
-                GenerateShaderPassLit(masterNode, m_PassMETA, mode, subShader, sourceAssetDependencyPaths);
-                GenerateShaderPassLit(masterNode, m_SceneSelectionPass, mode, subShader, sourceAssetDependencyPaths);
-                GenerateShaderPassLit(masterNode, m_PassShadowCaster, mode, subShader, sourceAssetDependencyPaths);
+                GenerateShaderPassEye(masterNode, m_PassMETA, mode, subShader, sourceAssetDependencyPaths);
+                GenerateShaderPassEye(masterNode, m_SceneSelectionPass, mode, subShader, sourceAssetDependencyPaths);
+                GenerateShaderPassEye(masterNode, m_PassShadowCaster, mode, subShader, sourceAssetDependencyPaths);
 
-                GenerateShaderPassLit(masterNode, m_PassDepthForwardOnly, mode, subShader, sourceAssetDependencyPaths);
-                GenerateShaderPassLit(masterNode, m_PassMotionVectors, mode, subShader, sourceAssetDependencyPaths);
+                GenerateShaderPassEye(masterNode, m_PassDepthForwardOnly, mode, subShader, sourceAssetDependencyPaths);
+                GenerateShaderPassEye(masterNode, m_PassMotionVectors, mode, subShader, sourceAssetDependencyPaths);
 
                 // Assign define here based on opaque or transparent to save some variant
-                m_PassForwardOnly.ExtraDefines = opaque ? HDSubShaderUtilities.s_ExtraDefinesForwardOpaque : HDSubShaderUtilities.s_ExtraDefinesForwardTransparent;
-                GenerateShaderPassLit(masterNode, m_PassForwardOnly, mode, subShader, sourceAssetDependencyPaths);
+                m_PassForwardOnly.ExtraDefines = HDSubShaderUtilities.s_ExtraDefinesForwardOpaque;
+                GenerateShaderPassEye(masterNode, m_PassForwardOnly, mode, subShader, sourceAssetDependencyPaths);
             }
             subShader.Deindent();
             subShader.AddShaderChunk("}", true);

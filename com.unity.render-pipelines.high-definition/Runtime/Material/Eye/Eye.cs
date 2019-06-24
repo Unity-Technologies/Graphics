@@ -41,8 +41,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public Vector3 geomNormalWS;
 
             [MaterialSharedPropertyMapping(MaterialSharedProperty.Smoothness)]
-            [SurfaceDataAttributes("Smoothness")]
-            public float perceptualSmoothness;
+            [SurfaceDataAttributes("Iris Smoothness")]
+            public float irisSmoothness;
+
+            [MaterialSharedPropertyMapping(MaterialSharedProperty.Smoothness)]
+            [SurfaceDataAttributes("Sclera Smoothness")]
+            public float scleraSmoothness;
 
             [MaterialSharedPropertyMapping(MaterialSharedProperty.AmbientOcclusion)]
             [SurfaceDataAttributes("Ambient Occlusion")]
@@ -53,24 +57,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             [SurfaceDataAttributes("Specular Tint", false, true)]
             public Vector3 specularColor;
 
-            // MaterialFeature dependent attribute
-
-            // SSS
-            [SurfaceDataAttributes("Diffusion Profile Hash")]
-            public uint diffusionProfileHash;
-            [SurfaceDataAttributes("Subsurface Mask")]
-            public float subsurfaceMask;
-
             // Transmission
-            // + Diffusion Profile
-            [SurfaceDataAttributes("Thickness")]
-            public float thickness;
-
-            // Anisotropic
-            [SurfaceDataAttributes("Tangent", true)]
-            public Vector3 tangentWS;
-            [SurfaceDataAttributes("Anisotropy")]
-            public float anisotropy; // anisotropic ratio(0->no isotropic; 1->full anisotropy in tangent direction, -1->full anisotropy in bitangent direction)
+            [SurfaceDataAttributes("Cornea Height")]
+            public float corneaHeight;
         }
 
         //-----------------------------------------------------------------------------
@@ -95,29 +84,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             [SurfaceDataAttributes(new string[] { "Geometric Normal", "Geometric Normal View Space" }, true)]
             public Vector3 geomNormalWS;
 
-            public float perceptualRoughness;
+            public float irisRoughness;
+            public float scleraRoughness;
 
-            // MaterialFeature dependent attribute
-
-            // SSS
-            public uint diffusionProfileIndex;
-            public float subsurfaceMask;
-
-            // Transmission
-            // + Diffusion Profile
-            public float thickness;
-            public bool useThickObjectMode; // Read from the diffusion profile
-            public Vector3 transmittance;   // Precomputation of transmittance
-
-            // Anisotropic
-            [SurfaceDataAttributes("", true)]
-            public Vector3 tangentWS;
-            [SurfaceDataAttributes("", true)]
-            public Vector3 bitangentWS;
-            public float roughnessT;
-            public float roughnessB;
-            public float anisotropy;
-        };
+            public float corneaHeight;
+        }
 
         //-----------------------------------------------------------------------------
         // Init precomputed textures
