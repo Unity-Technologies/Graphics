@@ -43,6 +43,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         Material m_CopyDepth;
         Material m_DownsampleDepthMaterial;
         Material m_UpsampleTransparency;
+        Material m_GenerateEyeNormals;
+
         GPUCopy m_GPUCopy;
         MipGenerator m_MipGenerator;
         BlueNoise m_BlueNoise;
@@ -93,6 +95,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         RTHandle m_CameraColorMSAABuffer;
         RTHandle m_OpaqueAtmosphericScatteringMSAABuffer;  // Necessary to perform dual-source (polychromatic alpha) blending which is not supported by Unity
         RTHandle m_CameraSssDiffuseLightingMSAABuffer;
+
+        const int eyeNormalSize = 512;
+        RTHandle m_EyeNormals; // TODO: This should be part of the profile as we'll have one per eye type
+
 
         // The current MSAA count
         MSAASamples m_MSAASamples;
@@ -286,6 +292,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_CopyDepth = CoreUtils.CreateEngineMaterial(asset.renderPipelineResources.shaders.copyDepthBufferPS);
             m_DownsampleDepthMaterial = CoreUtils.CreateEngineMaterial(asset.renderPipelineResources.shaders.downsampleDepthPS);
             m_UpsampleTransparency = CoreUtils.CreateEngineMaterial(asset.renderPipelineResources.shaders.upsampleTransparentPS);
+            m_GenerateEyeNormals = CoreUtils.CreateEngineMaterial(asset.renderPipelineResources.shaders.generateEyeNormals); 
 
             m_ApplyDistortionMaterial = CoreUtils.CreateEngineMaterial(asset.renderPipelineResources.shaders.applyDistortionPS);
 
@@ -434,6 +441,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_DistortionBuffer = RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: Builtin.GetDistortionBufferFormat(), useDynamicScale: true, name: "Distortion");
 
             m_ContactShadowBuffer = RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GraphicsFormat.R32_UInt, enableRandomWrite: true, useDynamicScale: true, name: "ContactShadowsBuffer");
+
+            m_EyeNormals = RTHandles.Alloc(eyeNormalSize, eyeNormalSize, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite: true, useDynamicScale: true, name: "EyeNormals");
+
 
             if (m_Asset.currentPlatformRenderPipelineSettings.lowresTransparentSettings.enabled)
             {
@@ -684,6 +694,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             CoreUtils.Destroy(m_ErrorMaterial);
             CoreUtils.Destroy(m_DownsampleDepthMaterial);
             CoreUtils.Destroy(m_UpsampleTransparency);
+            CoreUtils.Destroy(m_GenerateEyeNormals);
 
             CleanupSubsurfaceScattering();
             m_SharedRTManager.Cleanup();
@@ -1870,6 +1881,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 RenderDeferredLighting(hdCamera, cmd);
 
+                    // TODO_HW19: This should be done on demand and not every frame when the profile settings change.
+                    RenderNormalMapForEye(hdCamera, cmd);
+
                 RenderForwardOpaque(cullingResults, hdCamera, renderContext, cmd);
 
                 m_SharedRTManager.ResolveMSAAColor(cmd, hdCamera, m_CameraSssDiffuseLightingMSAABuffer, m_CameraSssDiffuseLightingBuffer);
@@ -2441,6 +2455,18 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             return result;
         }
 
+
+        void RenderNormalMapForEye(HDCamera hdCamera, CommandBuffer cmd)
+        {
+            HDUtils.SetRenderTarget(cmd, m_EyeNormals);
+            m_GenerateEyeNormals.SetTexture(HDShaderIDs._OutputTexture, m_EyeNormals);
+            m_GenerateEyeNormals.SetInt(HDShaderIDs._EyeMapSize, eyeNormalSize);
+            cmd.SetGlobalTexture(HDShaderIDs._OwenScrambledTexture, m_Asset.renderPipelineResources.textures.owenScrambledTex);
+            cmd.SetGlobalTexture(HDShaderIDs._ScramblingTexture, m_Asset.renderPipelineResources.textures.scramblingTex);
+
+            cmd.DrawProcedural(Matrix4x4.identity, m_GenerateEyeNormals, 0, MeshTopology.Triangles, 3, 1, null);
+        }
+
         protected static void DrawOpaqueRendererList(in ScriptableRenderContext renderContext, CommandBuffer cmd, in FrameSettings frameSettings, RendererList rendererList)
         {
             if (!frameSettings.IsEnabled(FrameSettingsField.OpaqueObjects))
@@ -2674,6 +2700,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_GbufferManager.BindBufferAsTextures(cmd);
             }
         }
+
 
         void RenderDBuffer(HDCamera hdCamera, CommandBuffer cmd, ScriptableRenderContext renderContext, CullingResults cullResults)
         {
