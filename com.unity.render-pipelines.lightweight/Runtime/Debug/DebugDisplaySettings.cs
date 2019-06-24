@@ -5,63 +5,41 @@ using UnityEngine.Experimental.Rendering;
 
 namespace UnityEditor.Rendering
 {
-    public class DebugDisplaySettings : IDebugData
+    public class DebugDisplaySettings
     {
-        private IEnumerable<IDebugDisplaySettingsData> m_Data;
-        private IEnumerable<IDebugDisplaySettingsPanelDisposable> m_DisposablePanels;
+        private readonly HashSet<IDebugDisplaySettingsData> m_Settings = new HashSet<IDebugDisplaySettingsData>();
+        
+        private static readonly Lazy<DebugDisplaySettings> s_Instance = new Lazy<DebugDisplaySettings>(() => new DebugDisplaySettings());
+        public static DebugDisplaySettings Instance => s_Instance.Value;
+
+        public DebugDisplaySettingsTest Test { get; private set; }
         
         private DebugDisplaySettingsTest m_DisplaySettingsTest;
 
-        private IEnumerable<IDebugDisplaySettingsData> InitialiseData()
+        private TData Add<TData>(TData newData) where TData: IDebugDisplaySettingsData
         {
-            HashSet<IDebugDisplaySettingsData> newData = new HashSet<IDebugDisplaySettingsData>();
-
-            newData.Add(new DebugDisplaySettingsTest());
-
+            m_Settings.Add(newData);
             return newData;
         }
 
-        public void RegisterDebug()
+        public DebugDisplaySettings()
         {
-            DebugManager debugManager = DebugManager.instance;
-            List<IDebugDisplaySettingsPanelDisposable> panels = new List<IDebugDisplaySettingsPanelDisposable>();
-            
-            debugManager.RegisterData(this);
-            
-            m_Data = InitialiseData();
-            m_DisposablePanels = panels;
+            Reset();
+        }
 
-            foreach(IDebugDisplaySettingsData data in m_Data)
+        public void Reset()
+        {
+            m_Settings.Clear();
+
+            Test = Add(new DebugDisplaySettingsTest());
+        }
+
+        public void ForEach(Action<IDebugDisplaySettingsData> onExecute)
+        {
+            foreach(IDebugDisplaySettingsData setting in m_Settings)
             {
-                IDebugDisplaySettingsPanelDisposable disposableSettingsPanel = data.CreatePanel();
-                DebugUI.Widget[] panelWidgets = disposableSettingsPanel.Widgets;
-                string panelId = disposableSettingsPanel.PanelName;
-                DebugUI.Panel panel = debugManager.GetPanel(panelId, true);
-                ObservableList<DebugUI.Widget> panelChildren = panel.children;
-
-                panels.Add(disposableSettingsPanel);
-                panelChildren.Add(panelWidgets);
+                onExecute(setting);
             }
         }
-
-        public void UnregisterDebug()
-        {
-            foreach(IDebugDisplaySettingsPanelDisposable disposablePanel in m_DisposablePanels)
-            {
-                disposablePanel.Dispose();
-            }
-
-            m_Data = null;
-            m_DisposablePanels = null;
-
-            DebugManager.instance.UnregisterData(this);
-        }
-
-        #region IDebugData
-        public Action GetReset()
-        {
-            return () => m_Data = InitialiseData();
-        }
-        #endregion
     }
 }

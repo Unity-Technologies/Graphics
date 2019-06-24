@@ -73,7 +73,7 @@ namespace UnityEngine.Rendering.LWRP
             }
         }
         
-        private DebugDisplaySettings m_DebugDisplaySettings = new DebugDisplaySettings();
+        private DebugDisplaySettingsUI m_DebugDisplaySettingsUI = new DebugDisplaySettingsUI();
 
         public LightweightRenderPipeline(LightweightRenderPipelineAsset asset)
         {
@@ -104,12 +104,12 @@ namespace UnityEngine.Rendering.LWRP
 
             RenderingUtils.ClearSystemInfoCache();
 
-            m_DebugDisplaySettings.RegisterDebug();
+            m_DebugDisplaySettingsUI.RegisterDebug(DebugDisplaySettings.Instance);
         }
 
         protected override void Dispose(bool disposing)
         {
-            m_DebugDisplaySettings.UnregisterDebug();
+            m_DebugDisplaySettingsUI.UnregisterDebug();
             
             base.Dispose(disposing);
             Shader.globalRenderPipeline = "";
