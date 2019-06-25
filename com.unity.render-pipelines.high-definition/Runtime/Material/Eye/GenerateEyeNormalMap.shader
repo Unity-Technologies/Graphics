@@ -44,7 +44,7 @@ Shader "Hidden/HDRP/GenerateEyeNormals"
 
             float finalNoise = 0.0f;
             float sum = 0;
-            float someParameterControllingNoiseWidth = 10.0f    ;
+            float someParameterControllingNoiseWidth = 4.0f;
             for (int i = 0; i < iterations; ++i)
             {
                 float3 randVals;

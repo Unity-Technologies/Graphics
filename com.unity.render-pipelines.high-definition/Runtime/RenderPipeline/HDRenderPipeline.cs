@@ -851,6 +851,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 cmd.SetGlobalTexture("_EyeMask", m_EyeProfileManager.currentProfile.maskTexture.value);
             }
             cmd.SetGlobalInt("_EyeRefraction", m_EyeProfileManager.currentProfile.enableRefraction.value ? 1 : 0);
+            cmd.SetGlobalFloat("_ExtentSlider", m_EyeProfileManager.currentProfile.sliderExtent.value);
         }
 
         void CopyDepthBufferIfNeeded(CommandBuffer cmd)

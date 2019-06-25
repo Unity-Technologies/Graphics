@@ -144,11 +144,35 @@ $include("SharedCode.template.hlsl")
     int _EyeRefraction;
     SAMPLER(s_linear_clamp);
     TEXTURE2D(_EyeNormal);
+    float _ExtentSlider;
     
     float2 TransformToUVSpace(float3 positionOS)
     {
         return float2(-positionOS.x + 0.5, positionOS.y + 0.5);
     }
+
+    float blahFunction(float radius, float maxRadius)
+    {
+
+        return radius > maxRadius ? 0.0 : 1.0 - smoothstep(0.0, maxRadius, radius);
+        return radius > maxRadius ? 0.0 : 1.0 - (pow(1/(0.5 * maxRadius) * radius - 1.0, 2.0));
+    }
+
+    float2 displaceIris(float2 uv, float maxRadius, float pupilRadius, float extent)
+    {
+        float2 rescaled = uv * 2.0 - 1.0;
+        float radius = length(rescaled);
+        float theta = atan2(rescaled.y, rescaled.x) * (0.5/PI) + 0.5;
+        theta = theta * 2.0 * PI - PI;
+        float radiusRemapped = clamp(radius/maxRadius, 0.0, 1.0);
+        float finalRadius = radius + extent * blahFunction(radius, maxRadius);
+        //finalRadius = clamp(finalRadius, pupilRadius / 3, maxRadius);
+        float2 finalUV = float2(sin(theta) * finalRadius, cos(theta) * finalRadius) * 0.5 + 0.5;
+        //finalUV.xy = saturate(finalUV.xy);
+
+        return finalUV;
+    }
+
     void BuildSurfaceData(FragInputs fragInputs, inout SurfaceDescription surfaceDescription, float3 V, PositionInputs posInput, out SurfaceData surfaceData, out float3 bentNormalWS)
     {
         // setup defaults -- these are used if the graph doesn't output a value
@@ -188,14 +212,16 @@ $include("SharedCode.template.hlsl")
             }
         }
 
+        texcoord.xy = displaceIris(texcoord.xy, 0.12 * 2, 0.04, _ExtentSlider);
 
         surfaceData.baseColor = _EyeTexture.Sample(s_linear_clamp, texcoord.xy);
-        surfaceData.irisSmoothness = 0.99;
-        surfaceData.scleraSmoothness = 0.99;
+        surfaceData.baseColor = float3(texcoord.xy, 0.0);
+        surfaceData.irisSmoothness = 0.9;
+        surfaceData.scleraSmoothness = 0.9;
         float3 doubleSidedConstants = float3(1.0, 1.0, 1.0);
 
         // tangent-space normal
-        float3 normalTS = float3(0.0f, 0.0f, 1.0f);
+        float3 normalTS = lerp(_EyeMask.Sample(s_linear_clamp, fragInputs.texCoord0.xy), float3(0.0f, 0.0f, 1.0f),  surfaceData.mask);
         $SurfaceDescription.Normal: normalTS = surfaceDescription.Normal;
 
         // Override, TODO this should use profile index to pickup the right texture
