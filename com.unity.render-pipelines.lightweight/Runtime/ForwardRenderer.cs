@@ -285,7 +285,7 @@ namespace UnityEngine.Rendering.LWRP
                 }
             }
 
-            var fullScreenDebugMode = DebugDisplaySettings.Instance.Test.m_Enum;
+            var fullScreenDebugMode = DebugDisplaySettings.Instance.buffer.FullScreenDebugMode;
 
             if (fullScreenDebugMode != FullScreenDebugMode.None)
             {

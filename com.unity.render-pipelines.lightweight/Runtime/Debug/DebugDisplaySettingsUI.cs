@@ -11,8 +11,6 @@ namespace UnityEditor.Rendering
         private IEnumerable<IDebugDisplaySettingsPanelDisposable> m_DisposablePanels;
         private DebugDisplaySettings m_Settings;
         
-        private DebugDisplaySettingsTest m_DisplaySettingsTest;
-
         private void Reset()
         {
             m_Settings?.Reset();

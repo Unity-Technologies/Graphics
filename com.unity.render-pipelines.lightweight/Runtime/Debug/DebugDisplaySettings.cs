@@ -12,11 +12,11 @@ namespace UnityEditor.Rendering
         private static readonly Lazy<DebugDisplaySettings> s_Instance = new Lazy<DebugDisplaySettings>(() => new DebugDisplaySettings());
         public static DebugDisplaySettings Instance => s_Instance.Value;
 
-        public DebugDisplaySettingsTest Test { get; private set; }
+        public DebugDisplaySettingsBuffer buffer { get; private set; }
         public DebugMaterialSettings materialSettings { get; private set; }
         public DebugDisplaySettingsLighting Lighting { get; private set; }
         
-        private DebugDisplaySettingsTest m_DisplaySettingsTest;
+        private DebugDisplaySettingsBuffer m_DisplaySettingsBuffer;
 
         private TData Add<TData>(TData newData) where TData: IDebugDisplaySettingsData
         {
@@ -33,7 +33,7 @@ namespace UnityEditor.Rendering
         {
             m_Settings.Clear();
 
-            Test = Add(new DebugDisplaySettingsTest());
+            buffer = Add(new DebugDisplaySettingsBuffer());
             materialSettings = Add(new DebugMaterialSettings());
             Lighting = Add(new DebugDisplaySettingsLighting());
         }
