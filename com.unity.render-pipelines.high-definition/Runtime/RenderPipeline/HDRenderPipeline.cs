@@ -96,7 +96,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         RTHandle m_OpaqueAtmosphericScatteringMSAABuffer;  // Necessary to perform dual-source (polychromatic alpha) blending which is not supported by Unity
         RTHandle m_CameraSssDiffuseLightingMSAABuffer;
 
-        const int eyeNormalSize = 512;
+        const int eyeNormalSize = 2048;
         RTHandle m_EyeNormals; // TODO: This should be part of the profile as we'll have one per eye type
 
 
@@ -836,13 +836,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_SkyManager.SetGlobalSkyData(cmd);
             }
 
-            // TODO_HW19: This should be done on demand and not every frame when the profile settings change.
-            RenderNormalMapForEye(hdCamera, cmd);
 
             if (m_EyeProfileManager.currentProfile != null && m_EyeProfileManager.currentProfile.albedoTexture.value != null)
             {
                 cmd.SetGlobalTexture("_EyeTexture", m_EyeProfileManager.currentProfile.albedoTexture.value);
             }
+
+            // TODO_HW19: This should be done on demand and not every frame when the profile settings change.
+            RenderNormalMapForEye(hdCamera, cmd);
 
             cmd.SetGlobalTexture(HDShaderIDs._EyeNormal, m_EyeNormals);
 
