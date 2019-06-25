@@ -17,6 +17,8 @@ namespace UnityEngine.Rendering.LWRP
         bool m_IsMobileOrSwitch;
         Rect m_PixelRect;
         int m_DebugMode;
+        float m_NearPlane; 
+        float m_FarPlane;
 
         public DebugPass(RenderPassEvent evt, Material blitMaterial)
         {
@@ -31,7 +33,8 @@ namespace UnityEngine.Rendering.LWRP
         /// <param name="colorHandle"></param>
         /// <param name="clearBlitTarget"></param>
         /// <param name="pixelRect"></param>
-        public void Setup(RenderTextureDescriptor baseDescriptor, RenderTargetHandle colorHandle, int debugMode, bool clearBlitTarget = false, Rect pixelRect = new Rect())
+        public void Setup(RenderTextureDescriptor baseDescriptor, RenderTargetHandle colorHandle, int debugMode, 
+            float nearPlane, float farPlane, bool clearBlitTarget = false, Rect pixelRect = new Rect())
         {
             m_Source = colorHandle;
             m_TargetDimension = baseDescriptor.dimension;
@@ -39,6 +42,8 @@ namespace UnityEngine.Rendering.LWRP
             m_IsMobileOrSwitch = Application.isMobilePlatform || Application.platform == RuntimePlatform.Switch;
             m_PixelRect = pixelRect;
             m_DebugMode = debugMode;
+            m_NearPlane = nearPlane;
+            m_FarPlane = farPlane;
         }
 
         /// <inheritdoc/>
@@ -81,6 +86,8 @@ namespace UnityEngine.Rendering.LWRP
             {
                 cmd.SetGlobalTexture("_BlitTex", m_Source.Identifier());
                 cmd.SetGlobalInt("_DebugMode", m_DebugMode);
+                cmd.SetGlobalFloat("_NearPlane", m_NearPlane);
+                cmd.SetGlobalFloat("_FarPlane", m_FarPlane);
 
                 // TODO: Final blit pass should always blit to backbuffer. The first time we do we don't need to Load contents to tile.
                 // We need to keep in the pipeline of first render pass to each render target to propertly set load/store actions.

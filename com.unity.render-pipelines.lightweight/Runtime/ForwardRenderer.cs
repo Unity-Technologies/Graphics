@@ -304,7 +304,8 @@ namespace UnityEngine.Rendering.LWRP
                         break;
                 }
 
-                m_DebugPass.Setup(cameraTargetDescriptor, debugBuffer, (int)fullScreenDebugMode);
+                m_DebugPass.Setup(cameraTargetDescriptor, debugBuffer, (int)fullScreenDebugMode, 
+                    renderingData.cameraData.camera.nearClipPlane, renderingData.cameraData.camera.farClipPlane);
                 EnqueuePass(m_DebugPass);
             }
 

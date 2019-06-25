@@ -45,6 +45,8 @@ Shader "Hidden/Lightweight Render Pipeline/FullScreenDebug"
             TEXTURE2D(_BlitTex);
             SAMPLER(sampler_BlitTex);
             int _DebugMode;
+            float _NearPlane;
+            float _FarPlane;
 
             Varyings Vertex(Attributes input)
             {
@@ -61,8 +63,15 @@ Shader "Hidden/Lightweight Render Pipeline/FullScreenDebug"
                 #ifdef _LINEAR_TO_SRGB_CONVERSION
                     col = LinearToSRGB(col);
                 #endif
-
-                if (_DebugMode == DEBUG_MODE_DEPTH || _DebugMode == DEBUG_MODE_MAIN_LIGHT_SHADOWS_ONLY)
+                
+                if (_DebugMode == DEBUG_MODE_DEPTH)
+                {
+                    half linearDepth = _FarPlane / (_FarPlane - _NearPlane) * (1.0f - (_NearPlane / col.r));
+                    col.rgb = linearDepth.rrr;
+                    col.a = 1.0f;
+                    return col;
+                }
+                else if (_DebugMode == DEBUG_MODE_MAIN_LIGHT_SHADOWS_ONLY)
                 {
                     col.rgb = col.rrr;
                     col.a = 1.0f;
