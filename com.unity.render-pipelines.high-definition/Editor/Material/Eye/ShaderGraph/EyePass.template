@@ -209,6 +209,11 @@ $include("SharedCode.template.hlsl")
         bentNormalWS = surfaceData.normalWS;
         $BentNormal: GetNormalWS(fragInputs, surfaceDescription.BentNormal, bentNormalWS, doubleSidedConstants);
 
+        float3 irisNormalWS = float3(0.0f, 0.0f, 1.0f);
+        $SurfaceDescription.IrisNormal: irisNormalWS = surfaceDescription.IrisNormal;
+        // compute world space normal
+        GetNormalWS(fragInputs, irisNormalWS, surfaceData.irisNormalWS, doubleSidedConstants);
+
         surfaceData.geomNormalWS = fragInputs.tangentToWorld[2];
 
         surfaceData.tangentWS = normalize(fragInputs.tangentToWorld[0].xyz);    // The tangent is not normalize in tangentToWorld for mikkt. TODO: Check if it expected that we normalize with Morten. Tag: SURFACE_GRADIENT

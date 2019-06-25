@@ -45,6 +45,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 EyeMasterNode.EmissionSlotId,
                 EyeMasterNode.AlphaSlotId,
                 EyeMasterNode.AlphaClipThresholdSlotId,
+                EyeMasterNode.IrisNormalSlotId,
             },
             VertexShaderSlots = new List<int>()
             {
@@ -273,6 +274,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 EyeMasterNode.LightingSlotId,
                 EyeMasterNode.BackLightingSlotId,
                 EyeMasterNode.DepthOffsetSlotId,
+                EyeMasterNode.IrisNormalSlotId,
             },
             VertexShaderSlots = new List<int>()
             {

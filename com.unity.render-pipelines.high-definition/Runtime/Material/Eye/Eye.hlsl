@@ -132,6 +132,7 @@ BSDFData ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfaceData)
     bsdfData.diffuseColor = surfaceData.baseColor;
     bsdfData.specularOcclusion = surfaceData.specularOcclusion;
     bsdfData.normalWS = surfaceData.normalWS;
+    bsdfData.irisNormalWS = surfaceData.irisNormalWS;
     bsdfData.geomNormalWS = surfaceData.geomNormalWS;
     bsdfData.perceptualRoughness = PerceptualSmoothnessToPerceptualRoughness(surfaceData.perceptualSmoothness);
 
@@ -338,8 +339,10 @@ CBSDF EvaluateBSDF(float3 V, float3 L, PreLightData preLightData, BSDFData bsdfD
  
 #endif
 
+    // Use iris normal map for diffuse
+    N = bsdfData.irisNormalWS;
     // Refract Light (Only in the Cornea part)
-   // L = -refract(-L, N, 1.0 / 1.35);
+    // L = -refract(-L, N, 1.0 / 1.35);
 
     NdotL = dot(N, L);
     clampedNdotL = saturate(NdotL);
