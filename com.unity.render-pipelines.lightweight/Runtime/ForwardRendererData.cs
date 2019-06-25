@@ -49,6 +49,15 @@ namespace UnityEngine.Rendering.LWRP
 
         public ShaderResources shaders = null;
 
+        [Serializable, ReloadGroup]
+        public sealed class TextureResources
+        {
+            [SerializeField, Reload("Textures/numberFont.png")]
+            public Texture2D NumberFont;
+        }
+
+        public TextureResources textures = null;
+
         [SerializeField] LayerMask m_OpaqueLayerMask = -1;
         [SerializeField] LayerMask m_TransparentLayerMask = -1;
 
@@ -87,6 +96,18 @@ namespace UnityEngine.Rendering.LWRP
                 {
                     ResourceReloader.ReloadAllNullIn(this, LightweightRenderPipelineAsset.packagePath);
                     break;
+                }
+            }
+
+            if (textures != null)
+            {
+                foreach (var texture in textures.GetType().GetFields())
+                {
+                    if (texture.GetValue(textures) == null)
+                    {
+                        ResourceReloader.ReloadAllNullIn(this, LightweightRenderPipelineAsset.packagePath);
+                        break;
+                    }
                 }
             }
 #endif
