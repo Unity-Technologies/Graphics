@@ -176,6 +176,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         readonly SkyManager m_SkyManager = new SkyManager();
         readonly AmbientOcclusionSystem m_AmbientOcclusionSystem;
+        readonly EyeProfileDataManager m_EyeProfileManager;
 
         // Debugging
         MaterialPropertyBlock m_SharedPropertyBlock = new MaterialPropertyBlock();
@@ -280,6 +281,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_SharedRTManager.Build(asset);
             m_PostProcessSystem = new PostProcessSystem(asset);
             m_AmbientOcclusionSystem = new AmbientOcclusionSystem(asset);
+            m_EyeProfileManager = new EyeProfileDataManager();
 
             // Initialize various compute shader resources
             m_SsrTracingKernel      = m_ScreenSpaceReflectionsCS.FindKernel("ScreenSpaceReflectionsTracing");
@@ -2458,13 +2460,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         void RenderNormalMapForEye(HDCamera hdCamera, CommandBuffer cmd)
         {
-            HDUtils.SetRenderTarget(cmd, m_EyeNormals);
-            m_GenerateEyeNormals.SetTexture(HDShaderIDs._OutputTexture, m_EyeNormals);
-            m_GenerateEyeNormals.SetInt(HDShaderIDs._EyeMapSize, eyeNormalSize);
-            cmd.SetGlobalTexture(HDShaderIDs._OwenScrambledTexture, m_Asset.renderPipelineResources.textures.owenScrambledTex);
-            cmd.SetGlobalTexture(HDShaderIDs._ScramblingTexture, m_Asset.renderPipelineResources.textures.scramblingTex);
+            EyeDataInfo currProfile = VolumeManager.instance.stack.GetComponent<EyeDataInfo>();
 
-            cmd.DrawProcedural(Matrix4x4.identity, m_GenerateEyeNormals, 0, MeshTopology.Triangles, 3, 1, null);
+            m_EyeProfileManager.currentProfile = currProfile;
+            m_EyeProfileManager.UpdateProfileGeneratedData(cmd, m_GenerateEyeNormals, m_EyeNormals, eyeNormalSize, m_Asset.renderPipelineResources.textures.scramblingTex);
         }
 
         protected static void DrawOpaqueRendererList(in ScriptableRenderContext renderContext, CommandBuffer cmd, in FrameSettings frameSettings, RendererList rendererList)
