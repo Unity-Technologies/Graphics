@@ -193,10 +193,17 @@ $include("SharedCode.template.hlsl")
         $SurfaceDescription.Thickness:                  surfaceData.thickness =                 surfaceDescription.Thickness;
         $SurfaceDescription.Anisotropy:                 surfaceData.anisotropy =                surfaceDescription.Anisotropy;
 
+        // These static material feature allow compile time optimization
+        surfaceData.materialFeatures = 0;
+
+#ifdef _MATERIAL_FEATURE_SUBSURFACE_SCATTERING
+        surfaceData.materialFeatures |= MATERIALFEATUREFLAGS_EYE_SUBSURFACE_SCATTERING;
+#endif
+
 #ifdef _DOUBLESIDED_ON
-    float3 doubleSidedConstants = _DoubleSidedConstants.xyz;
+        float3 doubleSidedConstants = _DoubleSidedConstants.xyz;
 #else
-    float3 doubleSidedConstants = float3(1.0, 1.0, 1.0);
+        float3 doubleSidedConstants = float3(1.0, 1.0, 1.0);
 #endif
 
         // tangent-space normal

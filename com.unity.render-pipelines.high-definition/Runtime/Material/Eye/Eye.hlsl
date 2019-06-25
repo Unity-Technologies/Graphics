@@ -5,7 +5,6 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Eye/Eye.cs.hlsl"
 // Those define allow to include desired SSS/Transmission functions
 #define MATERIAL_INCLUDE_SUBSURFACESCATTERING
-#define MATERIAL_INCLUDE_TRANSMISSION
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/SubsurfaceScattering/SubsurfaceScattering.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/NormalBuffer.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/VolumeRendering.hlsl"
@@ -129,6 +128,8 @@ BSDFData ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfaceData)
     BSDFData bsdfData;
     ZERO_INITIALIZE(BSDFData, bsdfData);
 
+    bsdfData.materialFeatures = surfaceData.materialFeatures;
+
     bsdfData.diffuseColor = surfaceData.baseColor;
     bsdfData.specularOcclusion = surfaceData.specularOcclusion;
     bsdfData.normalWS = surfaceData.normalWS;
@@ -146,19 +147,12 @@ BSDFData ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfaceData)
     // The UI is in charge of setuping the constrain, not the code. So if users is forward only and want unleash power, it is easy to unleash by some UI change
     
     bsdfData.diffusionProfileIndex = FindDiffusionProfileIndex(surfaceData.diffusionProfileHash);
-/*
-    if (HasFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_FABRIC_SUBSURFACE_SCATTERING))
+
+    if (HasFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_EYE_SUBSURFACE_SCATTERING))
     {
         // Assign profile id and overwrite fresnel0
         FillMaterialSSS(bsdfData.diffusionProfileIndex, surfaceData.subsurfaceMask, bsdfData);
     }
-
-    if (HasFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_FABRIC_TRANSMISSION))
-    {
-        // Assign profile id and overwrite fresnel0
-        FillMaterialTransmission(bsdfData.diffusionProfileIndex, surfaceData.thickness, bsdfData);
-    }
-    */
 
     // After the fill material SSS data has operated, in the case of the fabric we force the value of the fresnel0 term
     bsdfData.fresnel0 = IorToFresnel0(1.35);
@@ -255,7 +249,14 @@ void ModifyBakedDiffuseLighting(float3 V, PositionInputs posInput, SurfaceData s
     BSDFData bsdfData = ConvertSurfaceDataToBSDFData(posInput.positionSS, surfaceData);
     PreLightData preLightData = GetPreLightData(V, posInput, bsdfData);
 
-    // Premultiply (back) bake diffuse lighting information with diffuse pre-integration
+    // For SSS we need to take into account the state of diffuseColor
+    if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_EYE_SUBSURFACE_SCATTERING))
+    {
+        bsdfData.diffuseColor = GetModifiedDiffuseColorForSSS(bsdfData);
+    }
+
+    // Premultiply (back) bake diffuse lighting information with DisneyDiffuse pre-integration
+    // Note: When baking reflection probes, we approximate the diffuse with the fresnel0
     builtinData.bakeDiffuseLighting *= preLightData.diffuseFGD * bsdfData.diffuseColor;
 }
 
@@ -315,42 +316,15 @@ CBSDF EvaluateBSDF(float3 V, float3 L, PreLightData preLightData, BSDFData bsdfD
 
     cbsdf.specR = F * DV * clampedNdotL;
 
-#if 0
-    // Do view and light refraction vector
-
-    // Eye geometry must be centered at origin in object space, planar uv mapped along Z, and look straight down +Z.
-    const float3 irisPlaneNormalOS = float3(0.0, 0.0, 1.0);
-    const float3 irisPlaneOriginOS = irisPlaneNormalOS * _EyeCorneaRadiusStart;
-
-    // If eye geometry is passing into the positive half-space of our iris plane, it must be the cornea geometry.
-    // Refract view ray based on human cornea index of refraction, and intersect it with the iris plane.
-    float irisPlaneDistance = dot(irisPlaneNormalOS, surfacePositionOS - irisPlaneOriginOS);
-    if (irisPlaneDistance > 0.0)
-    {
-        float3 refractedViewDirectionOS = refract(viewDirectionOS, surfaceNormalOS, _EyeCorneaIndexOfRefractionRatio);
-
-        float cosA = -dot(irisPlaneNormalOS, refractedViewDirectionOS);
-        float irisDistance = (irisPlaneDistance / cosA) + _EyeIrisPlaneOffset;
-        float3 irisPositionOS = surfacePositionOS + irisDistance * refractedViewDirectionOS;
-
-        uv1 = irisPositionOS.xy * uvFromOSScale + uvFromOSBias;
-    }
-
- 
-#endif
-
     // Use iris normal map for diffuse
-    N = bsdfData.irisNormalWS;
+
     // Refract Light (Only in the Cornea part)
     // L = -refract(-L, N, 1.0 / 1.35);
 
-    NdotL = dot(N, L);
-    clampedNdotL = saturate(NdotL);
+    N = bsdfData.irisNormalWS;
+    clampedNdotL = saturate(dot(N, L));
 
-    float diffTerm = Lambert() * (1 - F);
-
-    // The compiler should optimize these. Can revisit later if necessary.
-    cbsdf.diffR = diffTerm * clampedNdotL;
+    cbsdf.diffR = Lambert() * clampedNdotL * (1 - F);
 
     // We don't multiply by 'bsdfData.diffuseColor' here. It's done only once in PostEvaluateBSDF().
     return cbsdf;
@@ -488,9 +462,6 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
     IndirectLighting lighting;
     ZERO_INITIALIZE(IndirectLighting, lighting);
 
-    if (GPUImageBasedLightingType == GPUIMAGEBASEDLIGHTINGTYPE_REFRACTION)
-        return lighting;
-
     float3 envLighting;
     float3 positionWS = posInput.positionWS;
     float weight = 1.0;
@@ -500,13 +471,15 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
     // Note: using influenceShapeType and projectionShapeType instead of (lightData|proxyData).shapeType allow to make compiler optimization in case the type is know (like for sky)
     EvaluateLight_EnvIntersection(positionWS, bsdfData.normalWS, lightData, influenceShapeType, R, weight);
 
+    float3 F = preLightData.specularFGD;
+
     float iblMipLevel;
     // TODO: We need to match the PerceptualRoughnessToMipmapLevel formula for planar, so we don't do this test (which is specific to our current lightloop)
     // Specific case for Texture2Ds, their convolution is a gaussian one and not a GGX one - So we use another roughness mip mapping.
     if (IsEnvIndexTexture2D(lightData.envIndex))
     {
         // Empirical remapping
-        iblMipLevel = PositivePow(preLightData.iblPerceptualRoughness, 0.8) * uint(max(_ColorPyramidScale.z - 1, 0));
+        iblMipLevel = PlanarPerceptualRoughnessToMipmapLevel(preLightData.iblPerceptualRoughness, _ColorPyramidScale.z);
     }
     else
     {
@@ -516,10 +489,11 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
     float4 preLD = SampleEnv(lightLoopContext, lightData.envIndex, R, iblMipLevel);
     weight *= preLD.a; // Used by planar reflection to discard pixel
 
-    envLighting = preLightData.specularFGD * preLD.rgb;
+    envLighting = F * preLD.rgb;
 
     UpdateLightingHierarchyWeights(hierarchyWeight, weight);
     envLighting *= weight * lightData.multiplier;
+
     lighting.specularReflected = envLighting;
 
     return lighting;
@@ -545,8 +519,6 @@ void PostEvaluateBSDF(  LightLoopContext lightLoopContext,
     // diffuse lighting has already multiply the albedo in ModifyBakedDiffuseLighting().
     diffuseLighting = modifiedDiffuseColor * lighting.direct.diffuse + builtinData.bakeDiffuseLighting + builtinData.emissiveColor;
     specularLighting = lighting.direct.specular + lighting.indirect.specularReflected;
-
-    // TODO: Multiscattering for cloth?
 
 #ifdef DEBUG_DISPLAY
     PostEvaluateBSDFDebugDisplay(aoFactor, builtinData, lighting, bsdfData.diffuseColor, diffuseLighting, specularLighting);

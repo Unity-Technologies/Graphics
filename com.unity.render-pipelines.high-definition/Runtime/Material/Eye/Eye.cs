@@ -14,7 +14,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public enum MaterialFeatureFlags
         {
             EyeGames = 1 << 0,
-            EyeCinematics = 1 << 1
+            EyeCinematics = 1 << 1,
+            EyeSubsurfaceScattering = 1 << 2,
         };
 
         //-----------------------------------------------------------------------------
@@ -25,6 +26,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         [GenerateHLSL(PackingRules.Exact, false, false, true, 1300)]
         public struct SurfaceData
         {
+            [SurfaceDataAttributes("MaterialFeatures")]
+            public uint materialFeatures;
+
             // Standard
             [MaterialSharedPropertyMapping(MaterialSharedProperty.Albedo)]
             [SurfaceDataAttributes("Base Color", false, true)]
