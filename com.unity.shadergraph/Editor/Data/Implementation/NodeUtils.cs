@@ -177,6 +177,9 @@ namespace UnityEditor.Graphing
             if (node is SampleTexture2DNode || node is SampleTexture3DNode || node is SampleTexture2DArrayNode || node is SampleTexture2DLODNode || node is SampleCubemapNode || node is SampleGradient)
                 return false;
 
+            if (node is IsFrontFaceNode)
+                return false;
+
             return true;
         }
 
