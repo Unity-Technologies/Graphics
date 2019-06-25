@@ -51,7 +51,7 @@ namespace UnityEngine.Rendering.LWRP
 
                 if (debugMaterialIndex != DebugMaterialIndex.None)
                 {
-                    RenderingUtils.RenderObjectWithDebug(context, ref renderingData.cullResults, camera,
+                    RenderingUtils.RenderObjectWithDebug(context, ref renderingData, camera,
                         m_FilteringSettings, SortingCriteria.None, debugMaterialIndex);
                 }
                 else
