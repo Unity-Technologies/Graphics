@@ -202,15 +202,23 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void OnMouseDown(MouseDownEvent evt)
         {
-            if (!evt.altKey)
+            if (!evt.altKey && !evt.shiftKey)
                 return;
 
-            var activeNodeList = ListPool<AbstractMaterialNode>.Get();
-            NodeUtils.DepthFirstCollectNodesFromNode(activeNodeList, node);
-
-            var selection = node.container.GetFirstAncestorOfType<ISelection>();
+            var selection = this.node.container.GetFirstAncestorOfType<ISelection>();
             selection.ClearSelection();
-            foreach (var abstractMaterialNode in activeNodeList)
+
+            var nodeList = ListPool<AbstractMaterialNode>.Get();
+            if (evt.altKey)
+            {
+                NodeUtils.DepthFirstCollectNodesFromNode(nodeList, this.node);
+            }
+            else if (evt.shiftKey)
+            {
+                NodeUtils.DepthFirstCollectStaticNodesFromNode(nodeList, this.node);
+            }
+
+            foreach (var abstractMaterialNode in nodeList)
             {
                 abstractMaterialNode.container?.Select((VisualElement)selection, true);
             }

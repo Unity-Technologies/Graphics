@@ -111,6 +111,56 @@ namespace UnityEditor.Graphing
                 nodeList.Add(node);
         }
 
+        public static bool DepthFirstCollectStaticNodesFromNode<T>(List<T> nodeList, T node, IncludeSelf includeSelf = IncludeSelf.Include, List<int> slotIds = null)
+            where T : AbstractMaterialNode
+        {
+            // no where to start
+            if (node == null)
+                return false;
+
+            // already added this node
+            if (nodeList.Contains(node))
+                return false;
+
+            IEnumerable<int> ids;
+            if (slotIds == null)
+                ids = node.GetInputSlots<ISlot>().Select(x => x.id);
+            else
+                ids = node.GetInputSlots<ISlot>().Where(x => slotIds.Contains(x.id)).Select(x => x.id);
+
+            bool isStatic = true;
+            foreach (var slot in ids)
+            {
+                foreach (var edge in node.owner.GetEdges(node.GetSlotReference(slot)))
+                {
+                    var outputNode = node.owner.GetNodeFromGuid(edge.outputSlot.nodeGuid) as T;
+                    if (outputNode != null)
+                    {
+                        var temp = DepthFirstCollectStaticNodesFromNode(nodeList, outputNode);
+                        isStatic &= temp;
+                    }
+                }
+            }
+
+            if (!isStatic || !IsNodeStatic(node))
+            {
+                return false;
+            }
+
+            if (includeSelf == IncludeSelf.Include)
+                nodeList.Add(node);
+
+            return true;
+        }
+
+        static bool IsNodeStatic(AbstractMaterialNode node)
+        {
+            if (node is GeometryNode)
+                return false;
+
+            return true;
+        }
+
         public static void CollectNodesNodeFeedsInto(List<AbstractMaterialNode> nodeList, AbstractMaterialNode node, IncludeSelf includeSelf = IncludeSelf.Include)
         {
             if (node == null)
