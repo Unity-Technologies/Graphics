@@ -165,7 +165,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         private void Start()
         {
             needToInitialize = true;
-            //UpdateVolumeTexList();
+            _needToUpdateVolumeTexList = true;
         }
 
         public FluidSimVolume()
@@ -175,14 +175,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         private void OnEnable()
         {
             needToInitialize = true;
-            //UpdateVolumeTexList();
+            _needToUpdateVolumeTexList = true;
             FluidSimVolumeManager.manager.RegisterVolume(this);
         }
 
         private void OnDisable()
         {
             needToInitialize = false;
-            //UnloadVectorFieldBundles();
+            _needToUpdateVolumeTexList = true;
             FluidSimVolumeManager.manager.DeRegisterVolume(this);
         }
 
@@ -269,16 +269,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             UpdateLoopTime();
 
-            if (parameters.workflow == (int)Workflow.VectorField)
-                UpdateMultipleVectorFields();
-            else
-                UpdateMultipleAnimatedDensities();
-
             if (_needToUpdateVolumeTexList)
             {
                 UpdateVolumeTexList();
                 _needToUpdateVolumeTexList = false;
             }
+
+            if (parameters.workflow == (int)Workflow.VectorField)
+                UpdateMultipleVectorFields();
+            else
+                UpdateMultipleAnimatedDensities();
         }
 
         private void RecreateSimulationBuffersIfNeeded()
