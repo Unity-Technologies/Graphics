@@ -122,7 +122,7 @@ namespace UnityEditor.ShaderGraph
             {
                 if (normalMapSpace == NormalMapSpace.Tangent)
                 {
-                    visitor.AddShaderChunk(string.Format("{0}.rgb = UnpackNormalmapRGorAG({0});", GetVariableNameForSlot(OutputSlotRGBAId)), true);
+                    visitor.AddShaderChunk(string.Format("{0}.rgb = UnpackNormalmap({0});", GetVariableNameForSlot(OutputSlotRGBAId)), true);
                 }
                 else
                 {

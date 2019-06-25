@@ -190,6 +190,15 @@ real3 UnpackNormalmapRGorAG(real4 packedNormal, real scale = 1.0)
     return UnpackNormalAG(packedNormal, scale);
 }
 
+real3 UnpackNormalmap(real4 packedNormal, real scale = 1.0)
+{
+#if defined(UNITY_NO_DXT5nm)
+    return UnpackNormalRGB(packedNormal, scale);
+#else
+    return UnpackNormalmapRGorAG(packedNormal, scale);
+#endif
+}
+
 //-----------------------------------------------------------------------------
 // HDR packing
 //-----------------------------------------------------------------------------
