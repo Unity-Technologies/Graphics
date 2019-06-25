@@ -15,6 +15,7 @@
 int _DebugMaterialIndex;
 
 #define DEBUG_LIGHTING_SHADOW_CASCADES 1
+#define DEBUG_LIGHTING_LIGHT_ONLY 2
 int _DebugLightingIndex;
 
 struct Attributes
@@ -183,13 +184,29 @@ half3 ShadowCascadeColor(Varyings input, InputData inputData, SurfaceData surfac
     return debugColor;
 }
 
+void InitializeStandardLitSurfaceData_ForLightOnlyDebugMode(float2 uv, out SurfaceData outSurfaceData)
+{
+    half4 albedoAlpha = SampleAlbedoAlpha(uv, TEXTURE2D_ARGS(_BaseMap, sampler_BaseMap));
+    outSurfaceData.alpha = Alpha(albedoAlpha.a, _BaseColor, _Cutoff);
+    outSurfaceData.normalTS = SampleNormal(uv, TEXTURE2D_ARGS(_BumpMap, sampler_BumpMap), _BumpScale);
+    outSurfaceData.albedo = half3(1.0h, 1.0h, 1.0h);
+    outSurfaceData.metallic = 0.0;
+    outSurfaceData.specular = half3(0.0h, 0.0h, 0.0h);
+    outSurfaceData.smoothness = 0.0;
+    outSurfaceData.occlusion = 0.0;
+    outSurfaceData.emission = half3(0.0h, 0.0h, 0.0h);
+}
+
 half4 LitPassFragment(Varyings input) : SV_Target
 {
     UNITY_SETUP_INSTANCE_ID(input);
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
     SurfaceData surfaceData;
-    InitializeStandardLitSurfaceData(input.uv, surfaceData);
+    if (_DebugLightingIndex == DEBUG_LIGHTING_LIGHT_ONLY)
+        InitializeStandardLitSurfaceData_ForLightOnlyDebugMode(input.uv, surfaceData);
+    else
+        InitializeStandardLitSurfaceData(input.uv, surfaceData);
 
     InputData inputData;
     InitializeInputData(input, surfaceData.normalTS, inputData);
@@ -223,13 +240,16 @@ half4 LitPassFragment(Varyings input) : SV_Target
         color.rgb = inputData.normalWS.xyz * 0.5 + 0.5;
         
     if (_DebugMaterialIndex == DEBUG_NORMAL_TANGENT_SPACE)
-        color = surfaceData.normalTS.xyz * 0.5 + 0.5;
+        color.rgb = surfaceData.normalTS.xyz * 0.5 + 0.5;
 
     if (_DebugLightingIndex == DEBUG_LIGHTING_SHADOW_CASCADES)
     {
         color.rgb = ShadowCascadeColor(input, inputData, surfaceData);
         color.a = surfaceData.alpha;
     }
+
+    if (_DebugLightingIndex == DEBUG_LIGHTING_LIGHT_ONLY)
+        color = LightweightFragmentPBR(inputData, surfaceData.albedo, surfaceData.metallic, surfaceData.specular, surfaceData.smoothness, surfaceData.occlusion, surfaceData.emission, surfaceData.alpha);
 
     return color;
 }

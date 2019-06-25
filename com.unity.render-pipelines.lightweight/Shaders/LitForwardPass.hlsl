@@ -123,37 +123,6 @@ Varyings LitPassVertex(Attributes input)
     return output;
 }
 
-#if defined(_DEBUG_SHOW_SHADOW_CASCADES)
-
-#if 0
-// TODO: Set of colors that should still provide contrast for the Color-blind
-const half4 Purple = half4(156.0 / 255.0, 79.0 / 255.0, 255.0 / 255.0, 1.0); // #9C4FFF 
-const half4 Red = half4(203.0 / 255.0, 48.0 / 255.0, 34.0 / 255.0, 1.0) ; // #CB3022
-const half4 Green = half4(8.0 / 255.0, 215.0 / 255.0, 139.0 / 255.0, 1.0) ; // #08D78B
-const half4 YellowGreen = half4(151.0 / 255.0, 209.0 / 255.0, 61.0 / 255.0, 1.0) ; // #97D13D
-const half4 Blue = half4(75.0 / 255.0, 146.0 / 255.0, 243.0 / 255.0, 1.0) ; // #4B92F3
-const half4 OrangeBrown = half4(219.0 / 255.0, 119.0 / 255.0, 59.0 / 255.0, 1.0) ; // #4B92F3
-const half4 Gray = half4(174.0 / 255.0, 174.0 / 255.0, 174.0 / 255.0, 1.0) ; // #AEAEAE   
-#endif
-
-half4 GetShadowCascadeColor(float4 shadowCoord, float3 positionWS)
-{
-    Light mainLight = GetMainLight(shadowCoord);
-    half cascadeIndex = ComputeCascadeIndex(positionWS);
-
-    half4 cascadeColors[] =
-    {
-        half4(0.1, 0.1, 0.9, 1.0),  // blue
-        half4(0.1, 0.9, 0.1, 1.0),  // green
-        half4(0.9, 0.9, 0.1, 1.0),  // yellow
-        half4(0.9, 0.1, 0.1, 1.0),  // red
-    };
-
-    return cascadeColors[cascadeIndex];
-}
-
-#endif
-
 // Used in Standard (Physically Based) shader
 half4 LitPassFragment(Varyings input) : SV_Target
 {
@@ -165,24 +134,6 @@ half4 LitPassFragment(Varyings input) : SV_Target
 
     InputData inputData;
     InitializeInputData(input, surfaceData.normalTS, inputData);
-
-#if defined(_DEBUG_SHOW_SHADOW_CASCADES)
-    half4 shadowCascadeColor = GetShadowCascadeColor(inputData.shadowCoord, input.positionWS);
-
-    // part adapted from LightweightFragmentPBR:
-
-    BRDFData brdfData;
-    InitializeBRDFData(shadowCascadeColor.rgb, 0.0, 0.0, 1.0, surfaceData.alpha, brdfData);
-
-    Light mainLight = GetMainLight(inputData.shadowCoord);
-    mainLight.color = shadowCascadeColor.rgb;
-    MixRealtimeAndBakedGI(mainLight, inputData.normalWS, inputData.bakedGI, half4(0, 0, 0, 0));
-
-    half3 debugColor = GlobalIllumination(brdfData, inputData.bakedGI, surfaceData.occlusion, inputData.normalWS, inputData.viewDirectionWS);
-    debugColor += LightingPhysicallyBased(brdfData, mainLight, inputData.normalWS, inputData.viewDirectionWS);
-
-    return half4(debugColor, 1.0);
-#endif
 
     half4 color = LightweightFragmentPBR(inputData, surfaceData.albedo, surfaceData.metallic, surfaceData.specular, surfaceData.smoothness, surfaceData.occlusion, surfaceData.emission, surfaceData.alpha);
     color.rgb = MixFog(color.rgb, inputData.fogCoord);

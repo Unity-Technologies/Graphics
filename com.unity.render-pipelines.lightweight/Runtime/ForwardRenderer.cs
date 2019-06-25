@@ -33,8 +33,6 @@ namespace UnityEngine.Rendering.LWRP
         CapturePass m_CapturePass;
         DebugPass m_DebugPass;
 
-        DebugShowLightOnly m_DebugShowLightOnly;
-
 #if UNITY_EDITOR
         SceneViewDepthCopyPass m_SceneViewDepthCopyPass;
 #endif
@@ -84,8 +82,6 @@ namespace UnityEngine.Rendering.LWRP
             m_CapturePass = new CapturePass(RenderPassEvent.AfterRendering);
             m_FinalBlitPass = new FinalBlitPass(RenderPassEvent.AfterRendering, blitMaterial);
             m_DebugPass = new DebugPass(RenderPassEvent.AfterRendering, fullScreenDebugMaterial);
-
-            m_DebugShowLightOnly = new DebugShowLightOnly("[Debug] Show Light Detail", true, RenderPassEvent.BeforeRenderingOpaques, RenderQueueRange.opaque, data.opaqueLayerMask, m_DefaultStencilState, stencilData.stencilReference);
 
 #if UNITY_EDITOR
             m_SceneViewDepthCopyPass = new SceneViewDepthCopyPass(RenderPassEvent.AfterRendering + 9, copyDepthMaterial);
@@ -195,52 +191,31 @@ namespace UnityEngine.Rendering.LWRP
                 EnqueuePass(m_ScreenSpaceShadowResolvePass);
             }
 
-#if false // TODO re-enable light-only mode
-            if(DebugDisplaySettings.Instance.Lighting.m_LightingDebugMode!=LightingDebugMode.None )
+            EnqueuePass(m_RenderOpaqueForwardPass);
+
+            if (hasOpaquePostProcess)
+                m_OpaquePostProcessPass.Setup(cameraTargetDescriptor, m_ActiveCameraColorAttachment, m_ActiveCameraColorAttachment);
+
+            if (camera.clearFlags == CameraClearFlags.Skybox && RenderSettings.skybox != null)
+                EnqueuePass(m_DrawSkyboxPass);
+
+            // If a depth texture was created we necessarily need to copy it, otherwise we could have render it to a renderbuffer
+            if (createDepthTexture)
             {
-                if (DebugDisplaySettings.Instance.Lighting.m_LightingDebugMode == LightingDebugMode.LightOnly)
-                {
-                    EnqueuePass(m_DebugShowLightOnly);
-                }
-
-#if UNITY_EDITOR
-                if (renderingData.cameraData.isSceneViewCamera)
-                {
-                    m_SceneViewDepthCopyPass.Setup(m_DepthTexture);
-                    EnqueuePass(m_SceneViewDepthCopyPass);
-                }
-#endif
-                return;
+                m_CopyDepthPass.Setup(m_ActiveCameraDepthAttachment, m_DepthTexture);
+                EnqueuePass(m_CopyDepthPass);
             }
-#endif
 
+            if (renderingData.cameraData.requiresOpaqueTexture)
             {
-                EnqueuePass(m_RenderOpaqueForwardPass);
-
-                if (hasOpaquePostProcess)
-                    m_OpaquePostProcessPass.Setup(cameraTargetDescriptor, m_ActiveCameraColorAttachment, m_ActiveCameraColorAttachment);
-
-                if (camera.clearFlags == CameraClearFlags.Skybox && RenderSettings.skybox != null)
-                    EnqueuePass(m_DrawSkyboxPass);
-
-                // If a depth texture was created we necessarily need to copy it, otherwise we could have render it to a renderbuffer
-                if (createDepthTexture)
-                {
-                    m_CopyDepthPass.Setup(m_ActiveCameraDepthAttachment, m_DepthTexture);
-                    EnqueuePass(m_CopyDepthPass);
-                }
-
-                if (renderingData.cameraData.requiresOpaqueTexture)
-                {
-                    // TODO: Downsampling method should be store in the renderer isntead of in the asset.
-                    // We need to migrate this data to renderer. For now, we query the method in the active asset.
-                    Downsampling downsamplingMethod = LightweightRenderPipeline.asset.opaqueDownsampling;
-                    m_CopyColorPass.Setup(m_ActiveCameraColorAttachment.Identifier(), m_OpaqueColor, downsamplingMethod);
-                    EnqueuePass(m_CopyColorPass);
-                }
-
-                EnqueuePass(m_RenderTransparentForwardPass);
+                // TODO: Downsampling method should be store in the renderer isntead of in the asset.
+                // We need to migrate this data to renderer. For now, we query the method in the active asset.
+                Downsampling downsamplingMethod = LightweightRenderPipeline.asset.opaqueDownsampling;
+                m_CopyColorPass.Setup(m_ActiveCameraColorAttachment.Identifier(), m_OpaqueColor, downsamplingMethod);
+                EnqueuePass(m_CopyColorPass);
             }
+
+            EnqueuePass(m_RenderTransparentForwardPass);
 
             bool afterRenderExists = renderingData.cameraData.captureActions != null || hasAfterRendering;
 
