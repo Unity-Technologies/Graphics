@@ -84,7 +84,7 @@ Varyings LitPassVertexSimple(Attributes input)
     VertexNormalInputs normalInput = GetVertexNormalInputs(input.normalOS, input.tangentOS);
     half3 viewDirWS = GetCameraPositionWS() - vertexInput.positionWS;
     half3 vertexLight = VertexLighting(vertexInput.positionWS, normalInput.normalWS);
-    half fogFactor = ComputeFogFactor(vertexInput.positionCS.z);
+    half fogFactor = ComputeFogFactor(vertexInput);
 
     output.uv = TRANSFORM_TEX(input.texcoord, _BaseMap);
     output.posWS.xyz = vertexInput.positionWS;

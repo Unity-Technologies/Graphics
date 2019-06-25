@@ -83,7 +83,7 @@ void InitializeVertData(GrassVertexInput input, inout GrassVertexOutput vertData
     OUTPUT_SH(vertData.normal, vertData.vertexSH);
 
     half3 vertexLight = VertexLighting(vertexInput.positionWS, vertData.normal.xyz);
-    half fogFactor = ComputeFogFactor(vertexInput.positionCS.z);
+    half fogFactor = ComputeFogFactor(vertexInput);
     vertData.fogFactorAndVertexLight = half4(fogFactor, vertexLight);
 
 #ifdef _MAIN_LIGHT_SHADOWS

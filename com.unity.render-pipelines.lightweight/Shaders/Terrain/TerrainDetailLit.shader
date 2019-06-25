@@ -100,7 +100,7 @@ Shader "Hidden/TerrainEngine/Details/LightweightPipeline/Vertexlit"
                 output.LightingFog.xyz = diffuseColor;
                 
                 // Fog factor
-                output.LightingFog.w = ComputeFogFactor(output.PositionCS.z);
+                output.LightingFog.w = ComputeFogFactor(vertexInput);
                 
                 return output;
             }

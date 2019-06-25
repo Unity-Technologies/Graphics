@@ -76,7 +76,7 @@ SpeedTreeVertexOutput SpeedTree7Vert(SpeedTreeVertexInput input)
     half3 normalWS = input.normal; // Already calculated in world space. Can probably get rid of the world space transform in GetVertexPositionInputs too.
 
     half3 vertexLight = VertexLighting(vertexInput.positionWS, normalWS);
-    half fogFactor = ComputeFogFactor(vertexInput.positionCS.z);
+    half fogFactor = ComputeFogFactor(vertexInput);
     output.fogFactorAndVertexLight = half4(fogFactor, vertexLight);
 
     half3 viewDirWS = GetCameraPositionWS() - vertexInput.positionWS;

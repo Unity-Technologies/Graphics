@@ -51,6 +51,7 @@ Shader "Lightweight Render Pipeline/Unlit"
             #pragma multi_compile_instancing
 
             #include "UnlitInput.hlsl"
+            #include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/Fog.hlsl"
 
             struct Attributes
             {
@@ -80,7 +81,7 @@ Shader "Lightweight Render Pipeline/Unlit"
                 VertexPositionInputs vertexInput = GetVertexPositionInputs(input.positionOS.xyz);
                 output.vertex = vertexInput.positionCS;
                 output.uv = TRANSFORM_TEX(input.uv, _BaseMap);
-                output.fogCoord = ComputeFogFactor(vertexInput.positionCS.z);
+                output.fogCoord = ComputeFogFactor(vertexInput);
                 
                 return output;
             }

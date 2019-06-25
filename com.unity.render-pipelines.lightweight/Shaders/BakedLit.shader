@@ -92,7 +92,7 @@ Shader "Lightweight Render Pipeline/Baked Lit"
                 VertexPositionInputs vertexInput = GetVertexPositionInputs(input.positionOS.xyz);
                 output.vertex = vertexInput.positionCS;
                 output.uv0AndFogCoord.xy = TRANSFORM_TEX(input.uv, _BaseMap);
-                output.uv0AndFogCoord.z = ComputeFogFactor(vertexInput.positionCS.z);
+                output.uv0AndFogCoord.z = ComputeFogFactor(vertexInput);
 
                 VertexNormalInputs normalInput = GetVertexNormalInputs(input.normalOS, input.tangentOS);
                 output.normal = normalInput.normalWS;

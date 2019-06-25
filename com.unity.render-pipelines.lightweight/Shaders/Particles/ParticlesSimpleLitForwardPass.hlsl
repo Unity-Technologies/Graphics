@@ -117,7 +117,7 @@ VaryingsParticle ParticlesLitVertex(AttributesParticle input)
     OUTPUT_SH(output.normalWS.xyz, output.vertexSH);
 
     output.positionWS.xyz = vertexInput.positionWS.xyz;
-    output.positionWS.w = ComputeFogFactor(vertexInput.positionCS.z);
+    output.positionWS.w = ComputeFogFactor(vertexInput);
     output.clipPos = vertexInput.positionCS;
     output.color = input.color;
     

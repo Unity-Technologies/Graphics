@@ -102,7 +102,7 @@ VaryingsParticle vertParticleUnlit(AttributesParticle input)
 
     // position ws is used to compute eye depth in vertFading
     output.positionWS.xyz = vertexInput.positionWS;
-    output.positionWS.w = ComputeFogFactor(vertexInput.positionCS.z);
+    output.positionWS.w = ComputeFogFactor(vertexInput);
     output.clipPos = vertexInput.positionCS;
     output.color = input.color;
     

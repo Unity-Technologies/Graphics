@@ -88,7 +88,7 @@ ${VertexShaderOutputs}
 	    OUTPUT_SH(lwWNormal, o.vertexSH);
 
 	    half3 vertexLight = VertexLighting(vertexInput.positionWS, lwWNormal);
-	    half fogFactor = ComputeFogFactor(vertexInput.positionCS.z);
+	    half fogFactor = ComputeFogFactor(vertexInput);
 	    o.fogFactorAndVertexLight = half4(fogFactor, vertexLight);
 	    o.clipPos = vertexInput.positionCS;
 

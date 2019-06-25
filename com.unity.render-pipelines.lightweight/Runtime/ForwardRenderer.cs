@@ -6,6 +6,7 @@ namespace UnityEngine.Rendering.LWRP
         const string k_CreateCameraTextures = "Create Camera Texture";
 
         VolumeBlendingPass m_VolumeBlendingPass;
+        EnvironmentPass m_EnvironmentPass;
         ColorGradingLutPass m_ColorGradingLutPass;
         DepthOnlyPass m_DepthPrepass;
         MainLightShadowCasterPass m_MainLightShadowCasterPass;
@@ -55,6 +56,7 @@ namespace UnityEngine.Rendering.LWRP
             // Note: Since all custom render passes inject first and we have stable sort,
             // we inject the builtin passes in the before events.
             m_VolumeBlendingPass = new VolumeBlendingPass(RenderPassEvent.BeforeRendering);
+            m_EnvironmentPass = new EnvironmentPass(RenderPassEvent.BeforeRendering);
             m_MainLightShadowCasterPass = new MainLightShadowCasterPass(RenderPassEvent.BeforeRenderingShadows);
             m_AdditionalLightsShadowCasterPass = new AdditionalLightsShadowCasterPass(RenderPassEvent.BeforeRenderingShadows);
             m_DepthPrepass = new DepthOnlyPass(RenderPassEvent.BeforeRenderingPrepasses, RenderQueueRange.opaque, data.opaqueLayerMask);
@@ -91,6 +93,7 @@ namespace UnityEngine.Rendering.LWRP
             RenderTextureDescriptor cameraTargetDescriptor = renderingData.cameraData.cameraTargetDescriptor;
 
             EnqueuePass(m_VolumeBlendingPass);
+            EnqueuePass(m_EnvironmentPass);
 
             // Special path for depth only offscreen cameras. Only write opaques + transparents. 
             bool isOffscreenDepthTexture = camera.targetTexture != null && camera.targetTexture.format == RenderTextureFormat.Depth;

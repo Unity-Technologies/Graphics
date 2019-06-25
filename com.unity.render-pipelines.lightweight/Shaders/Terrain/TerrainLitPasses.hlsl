@@ -256,7 +256,7 @@ Varyings SplatmapVert(Attributes v)
     o.viewDir = viewDirWS;
     o.vertexSH = SampleSH(o.normal);
 #endif
-    o.fogFactorAndVertexLight.x = ComputeFogFactor(Attributes.positionCS.z);
+    o.fogFactorAndVertexLight.x = ComputeFogFactor(Attributes);
     o.fogFactorAndVertexLight.yzw = VertexLighting(Attributes.positionWS, o.normal.xyz);
     o.positionWS = Attributes.positionWS;
     o.clipPos = Attributes.positionCS;

@@ -210,7 +210,7 @@ SpeedTreeVertexOutput SpeedTree8Vert(SpeedTreeVertexInput input)
     half3 normalWS = TransformObjectToWorldNormal(input.normal);
     
     half3 vertexLight = VertexLighting(vertexInput.positionWS, normalWS);
-    half fogFactor = ComputeFogFactor(vertexInput.positionCS.z);
+    half fogFactor = ComputeFogFactor(vertexInput);
     output.fogFactorAndVertexLight = half4(fogFactor, vertexLight);
 
     half3 viewDirWS = GetCameraPositionWS() - vertexInput.positionWS;
