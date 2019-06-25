@@ -11,6 +11,7 @@
 #define DEBUG_OCCLUSION 6
 #define DEBUG_EMISSION 7
 #define DEBUG_NORMAL_WORLD_SPACE 8
+#define DEBUG_NORMAL_TANGENT_SPACE 9
 
 int _DebugMaterialIndex;
 
@@ -157,7 +158,7 @@ half4 LitPassFragment(Varyings input) : SV_Target
         color = brdfData.specular;
     
     if (_DebugMaterialIndex == DEBUG_ALPHA)
-        color = surfaceData.alpha.xxx;
+        color = (1.0 - surfaceData.alpha).xxx;
     
     if (_DebugMaterialIndex == DEBUG_SMOOTHNESS)
         color = surfaceData.smoothness.xxx;
@@ -170,6 +171,9 @@ half4 LitPassFragment(Varyings input) : SV_Target
         
     if (_DebugMaterialIndex == DEBUG_NORMAL_WORLD_SPACE)
         color = inputData.normalWS.xyz * 0.5 + 0.5;
+        
+    if (_DebugMaterialIndex == DEBUG_NORMAL_TANGENT_SPACE)
+        color = surfaceData.normalTS.xyz * 0.5 + 0.5;
     
     return half4(color, 1.0);
 }

@@ -16,6 +16,7 @@ namespace UnityEngine.Rendering.LWRP
         AmbientOcclusion,
         Emission,
         NormalWorldSpace,
+        NormalTangentSpace,
     }
     
     public static class RenderingUtils
