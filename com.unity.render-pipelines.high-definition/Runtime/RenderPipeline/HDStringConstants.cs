@@ -788,6 +788,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly int _AODepthToViewParams            = Shader.PropertyToID("_AODepthToViewParams");
         public static readonly int _AOPackedBlurred                = Shader.PropertyToID("_AOPackedBlurred");
         public static readonly int _AOOutputHistory                = Shader.PropertyToID("_AOOutputHistory");
+
+        public static readonly int _EyeMapSize = Shader.PropertyToID("_MapRes");
+
     }
 
     // Shared material property names
