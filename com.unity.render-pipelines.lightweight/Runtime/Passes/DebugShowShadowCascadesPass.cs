@@ -16,8 +16,22 @@ namespace UnityEngine.Rendering.LWRP
         string m_ProfilerTag;
         bool m_IsOpaque;
 
-        Material debugMaterial = new Material(Shader.Find("Lightweight Render Pipeline/Debug Show Shadow Cascades"));
-        //Material debugMaterial = new Material(Shader.Find("Lightweight Render Pipeline/Lit"));
+        Material m_DebugMaterial;
+        public Material debugMaterial
+        {
+            get
+            {
+                // Need to use lazy evaluation here since the old material can be unloaded (i.e. when changing scene)...
+                if(m_DebugMaterial == null)
+                {
+                    Shader shader = Shader.Find("Lightweight Render Pipeline/Debug Show Shadow Cascades");
+                    
+                    m_DebugMaterial = new Material(shader);
+                }
+
+                return m_DebugMaterial;
+            }
+        }
 
         public DebugShowShadowCascadesPass(string profilerTag, bool opaque, RenderPassEvent evt, RenderQueueRange renderQueueRange, LayerMask layerMask, StencilState stencilState, int stencilReference)
         {
