@@ -189,7 +189,7 @@ $include("SharedCode.template.hlsl")
         }
 
 
-        surfaceData.baseColor = _EyeTexture.Sample(s_point_clamp, texcoord.xy) * _EyeNormal.Sample(s_point_clamp, texcoord.xy);
+        surfaceData.baseColor = _EyeTexture.Sample(s_point_clamp, texcoord.xy);
         surfaceData.irisSmoothness = 0.99;
         surfaceData.scleraSmoothness = 0.99;
         float3 doubleSidedConstants = float3(1.0, 1.0, 1.0);

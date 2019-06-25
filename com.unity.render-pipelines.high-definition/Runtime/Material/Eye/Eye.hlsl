@@ -522,8 +522,8 @@ void PostEvaluateBSDF(  LightLoopContext lightLoopContext,
                         PreLightData preLightData, BSDFData bsdfData, BuiltinData builtinData, AggregateLighting lighting,
                         out float3 diffuseLighting, out float3 specularLighting)
 {
-    diffuseLighting = bsdfData.diffuseColor;
-    specularLighting = float3(0.0, 0.0, 0.0);//lighting.direct.specular;
+    diffuseLighting = lighting.direct.diffuse * bsdfData.diffuseColor;
+    specularLighting = lighting.direct.specular;
 }
 
 #endif // #ifdef HAS_LIGHTLOOP
