@@ -40,20 +40,19 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             [SurfaceDataAttributes(new string[] { "Geometric Normal", "Geometric Normal View Space" }, true)]
             public Vector3 geomNormalWS;
 
-            [MaterialSharedPropertyMapping(MaterialSharedProperty.Smoothness)]
+            [SurfaceDataAttributes("Eye Mask")]
+            public float mask;
+
             [SurfaceDataAttributes("Iris Smoothness")]
             public float irisSmoothness;
 
-            [MaterialSharedPropertyMapping(MaterialSharedProperty.Smoothness)]
             [SurfaceDataAttributes("Sclera Smoothness")]
             public float scleraSmoothness;
 
-            [MaterialSharedPropertyMapping(MaterialSharedProperty.AmbientOcclusion)]
             [SurfaceDataAttributes("Ambient Occlusion")]
             public float ambientOcclusion;
 
             // Specular Tint
-            [MaterialSharedPropertyMapping(MaterialSharedProperty.Specular)]
             [SurfaceDataAttributes("Specular Tint", false, true)]
             public Vector3 specularColor;
 
@@ -86,6 +85,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             public float irisRoughness;
             public float scleraRoughness;
+            
+            public float eyeMask;
 
             public float corneaHeight;
         }

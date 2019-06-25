@@ -222,18 +222,16 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
             // Add all shader properties required by the inspector
             HDSubShaderUtilities.AddStencilShaderProperties(collector, false, receiveSSR.isOn);
-            /*
             HDSubShaderUtilities.AddBlendingStatesShaderProperties(
                 collector,
-                surfaceType,
-                HDSubShaderUtilities.ConvertAlphaModeToBlendMode(alphaMode),
+                SurfaceType.Opaque,
+                HDSubShaderUtilities.ConvertAlphaModeToBlendMode(AlphaMode.Alpha),
                 0,
                 true,
-                transparentCullMode,
-                zTest,
+                TransparentCullMode.Back,
+                CompareFunction.Equal,
                 false
             );
-            */
             HDSubShaderUtilities.AddAlphaCutoffShaderProperties(collector, false, false);
             HDSubShaderUtilities.AddDoubleSidedProperty(collector, DoubleSidedMode.Disabled);
 

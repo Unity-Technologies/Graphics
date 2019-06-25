@@ -19,11 +19,12 @@
 #define DEBUGVIEW_EYE_SURFACEDATA_NORMAL_VIEW_SPACE (1303)
 #define DEBUGVIEW_EYE_SURFACEDATA_GEOMETRIC_NORMAL (1304)
 #define DEBUGVIEW_EYE_SURFACEDATA_GEOMETRIC_NORMAL_VIEW_SPACE (1305)
-#define DEBUGVIEW_EYE_SURFACEDATA_IRIS_SMOOTHNESS (1306)
-#define DEBUGVIEW_EYE_SURFACEDATA_SCLERA_SMOOTHNESS (1307)
-#define DEBUGVIEW_EYE_SURFACEDATA_AMBIENT_OCCLUSION (1308)
-#define DEBUGVIEW_EYE_SURFACEDATA_SPECULAR_TINT (1309)
-#define DEBUGVIEW_EYE_SURFACEDATA_CORNEA_HEIGHT (1310)
+#define DEBUGVIEW_EYE_SURFACEDATA_EYE_MASK (1306)
+#define DEBUGVIEW_EYE_SURFACEDATA_IRIS_SMOOTHNESS (1307)
+#define DEBUGVIEW_EYE_SURFACEDATA_SCLERA_SMOOTHNESS (1308)
+#define DEBUGVIEW_EYE_SURFACEDATA_AMBIENT_OCCLUSION (1309)
+#define DEBUGVIEW_EYE_SURFACEDATA_SPECULAR_TINT (1310)
+#define DEBUGVIEW_EYE_SURFACEDATA_CORNEA_HEIGHT (1311)
 
 //
 // UnityEngine.Experimental.Rendering.HDPipeline.Eye+BSDFData:  static fields
@@ -39,7 +40,8 @@
 #define DEBUGVIEW_EYE_BSDFDATA_GEOMETRIC_NORMAL_VIEW_SPACE (1358)
 #define DEBUGVIEW_EYE_BSDFDATA_IRIS_ROUGHNESS (1359)
 #define DEBUGVIEW_EYE_BSDFDATA_SCLERA_ROUGHNESS (1360)
-#define DEBUGVIEW_EYE_BSDFDATA_CORNEA_HEIGHT (1361)
+#define DEBUGVIEW_EYE_BSDFDATA_EYE_MASK (1361)
+#define DEBUGVIEW_EYE_BSDFDATA_CORNEA_HEIGHT (1362)
 
 // Generated from UnityEngine.Experimental.Rendering.HDPipeline.Eye+SurfaceData
 // PackingRules = Exact
@@ -49,6 +51,7 @@ struct SurfaceData
     float specularOcclusion;
     float3 normalWS;
     float3 geomNormalWS;
+    float mask;
     float irisSmoothness;
     float scleraSmoothness;
     float ambientOcclusion;
@@ -69,6 +72,7 @@ struct BSDFData
     float3 geomNormalWS;
     float irisRoughness;
     float scleraRoughness;
+    float eyeMask;
     float corneaHeight;
 };
 
@@ -97,6 +101,9 @@ void GetGeneratedSurfaceDataDebug(uint paramId, SurfaceData surfacedata, inout f
             break;
         case DEBUGVIEW_EYE_SURFACEDATA_GEOMETRIC_NORMAL_VIEW_SPACE:
             result = surfacedata.geomNormalWS * 0.5 + 0.5;
+            break;
+        case DEBUGVIEW_EYE_SURFACEDATA_EYE_MASK:
+            result = surfacedata.mask.xxx;
             break;
         case DEBUGVIEW_EYE_SURFACEDATA_IRIS_SMOOTHNESS:
             result = surfacedata.irisSmoothness.xxx;
@@ -157,6 +164,9 @@ void GetGeneratedBSDFDataDebug(uint paramId, BSDFData bsdfdata, inout float3 res
             break;
         case DEBUGVIEW_EYE_BSDFDATA_SCLERA_ROUGHNESS:
             result = bsdfdata.scleraRoughness.xxx;
+            break;
+        case DEBUGVIEW_EYE_BSDFDATA_EYE_MASK:
+            result = bsdfdata.eyeMask.xxx;
             break;
         case DEBUGVIEW_EYE_BSDFDATA_CORNEA_HEIGHT:
             result = bsdfdata.corneaHeight.xxx;
