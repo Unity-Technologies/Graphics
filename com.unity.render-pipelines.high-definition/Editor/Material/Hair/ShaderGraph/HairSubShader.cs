@@ -456,6 +456,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 case HairMasterNode.MaterialType.KajiyaKay:
                     activeFields.Add("Material.KajiyaKay");
                     break;
+                case HairMasterNode.MaterialType.Marschner:
+                    activeFields.Add("Material.Marschner");
+                    break;
 
                 default:
                     UnityEngine.Debug.LogError("Unknown material type: " + masterNode.materialType);

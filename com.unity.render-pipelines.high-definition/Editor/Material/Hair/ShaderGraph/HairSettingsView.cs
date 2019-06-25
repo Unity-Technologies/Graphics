@@ -239,6 +239,15 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline.Drawing
                 });
             });
 
+            ps.Add(new PropertyRow(CreateLabel("Material Type", indentLevel)), (row) =>
+            {
+                row.Add(new EnumField(HairMasterNode.MaterialType.KajiyaKay), (field) =>
+                {
+                    field.value = m_Node.materialType;
+                    field.RegisterValueChangedCallback(ChangeMaterialType);
+                });
+            });
+
             Add(ps);
         }
 
@@ -428,6 +437,15 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline.Drawing
 
             m_Node.owner.owner.RegisterCompleteObjectUndo("ZTest Change");
             m_Node.zTest = (CompareFunction)evt.newValue;
+        }
+
+        void ChangeMaterialType(ChangeEvent<Enum> evt)
+        {
+            if (Equals(m_Node.materialType, evt.newValue))
+                return;
+
+            m_Node.owner.owner.RegisterCompleteObjectUndo("Material Type Change");
+            m_Node.materialType = (HairMasterNode.MaterialType)evt.newValue;
         }
 
         public AlphaMode GetAlphaMode(HairMasterNode.AlphaModeLit alphaModeLit)

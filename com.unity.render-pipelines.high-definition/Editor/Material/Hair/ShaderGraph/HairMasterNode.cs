@@ -106,7 +106,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         public enum MaterialType
         {
-            KajiyaKay
+            KajiyaKay, 
+            Marschner,
         }
 
         // Don't support Multiply
@@ -153,6 +154,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                                             | SlotMask.Transmittance | SlotMask.RimTransmissionIntensity | SlotMask.Smoothness | SlotMask.Occlusion | SlotMask.Alpha | SlotMask.AlphaClipThreshold | SlotMask.AlphaClipThresholdDepthPrepass
                                                 | SlotMask.AlphaClipThresholdDepthPostpass | SlotMask.SpecularTint | SlotMask.SpecularShift | SlotMask.SecondarySpecularTint | SlotMask.SecondarySmoothness | SlotMask.SecondarySpecularShift | SlotMask.AlphaClipThresholdShadow | SlotMask.BakedGI | SlotMask.DepthOffset;
 
+       const SlotMask MarschnerSlotMask = SlotMask.Position | SlotMask.Albedo | SlotMask.Normal | SlotMask.SpecularOcclusion | SlotMask.BentNormal | SlotMask.HairStrandDirection | SlotMask.Slot6
+                                            | SlotMask.Transmittance | SlotMask.RimTransmissionIntensity | SlotMask.Smoothness | SlotMask.Occlusion | SlotMask.Alpha | SlotMask.AlphaClipThreshold | SlotMask.AlphaClipThresholdDepthPrepass
+                                                | SlotMask.AlphaClipThresholdDepthPostpass | SlotMask.SpecularTint | SlotMask.SpecularShift | SlotMask.SecondarySpecularTint | SlotMask.SecondarySmoothness | SlotMask.SecondarySpecularShift | SlotMask.AlphaClipThresholdShadow | SlotMask.BakedGI | SlotMask.DepthOffset;
+
         // This could also be a simple array. For now, catch any mismatched data.
         SlotMask GetActiveSlotMask()
         {
@@ -160,6 +165,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 case MaterialType.KajiyaKay:
                     return KajiyaKaySlotMask;
+                case MaterialType.Marschner:
+                    return MarschnerSlotMask;
                 default:
                     return KajiyaKaySlotMask;
             }
