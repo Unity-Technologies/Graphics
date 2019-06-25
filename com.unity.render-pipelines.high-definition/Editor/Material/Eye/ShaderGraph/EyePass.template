@@ -151,16 +151,22 @@ $include("SharedCode.template.hlsl")
         return float2(-positionOS.x + 0.5, positionOS.y + 0.5);
     }
 
-    float blahFunction(float radius, float maxRadius)
+    float blahFunction(float radius, float maxRadius, float textureRadius)
     {
-        return radius > maxRadius || radius < 0.01 ? 0.0 : lerp(maxRadius - 0.04, 0.0, radius/maxRadius);
+        return radius > maxRadius || radius < 0.01 ? 0.0 : lerp(maxRadius - 0.08, 0.0, radius/maxRadius);
     }
 
-    float2 displaceIris(float2 uv, float maxRadius, float pupilRadius, float extent)
+    float blahFunction2(float radius, float maxRadius, float minRadius, float textureRadius)
+    {
+            return radius > maxRadius || radius < minRadius ? 0.0 : lerp(textureRadius - minRadius, 0,  (radius - minRadius)/(maxRadius - minRadius));
+    }
+
+    float2 displaceIris(float2 uv, float maxRadius, float textureRadius, float minRadius, float extent)
     {
         float2 rescaled = uv * 2.0 - 1.0;
         float radius = length(rescaled);
-        float finalRadius = radius - extent * blahFunction(radius, maxRadius);
+        float finalRadius = radius - extent * (extent > 0.0 ? blahFunction(radius, maxRadius, textureRadius) : blahFunction2(radius, maxRadius, minRadius, textureRadius));
+
         finalRadius = saturate(finalRadius);
         float2 finalUV = (rescaled / radius * finalRadius) * 0.5 + 0.5;
         return finalUV;
@@ -205,7 +211,7 @@ $include("SharedCode.template.hlsl")
             }
         }
 
-        texcoord.xy = displaceIris(texcoord.xy, 0.15 * 2, 0.04, _ExtentSlider);
+        texcoord.xy = displaceIris(texcoord.xy, 0.15 * 2, 0.04 * 2, 0.01, _ExtentSlider);
 
         surfaceData.baseColor = _EyeTexture.Sample(s_linear_clamp, texcoord.xy);
         //surfaceData.baseColor = float3(texcoord.xy, 0.0);
