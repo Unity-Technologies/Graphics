@@ -232,18 +232,18 @@ namespace UnityEditor.ShaderGraph.Drawing
         static readonly StyleColor noColor = new StyleColor(StyleKeyword.Null);
         public void SetColor(Color color)
         {
-            m_TitleContainer.style.borderColor = color;
+            m_TitleContainer.style.borderBottomColor = color;
         }
         
         public void ResetColor()
         {
-            m_TitleContainer.style.borderColor = noColor;
+            m_TitleContainer.style.borderBottomColor = noColor;
         }
 
 
         public Color GetColor()
         {
-            return m_TitleContainer.resolvedStyle.borderColor;
+            return m_TitleContainer.resolvedStyle.borderBottomColor;
         }
 
         void OnGeometryChanged(GeometryChangedEvent evt)
