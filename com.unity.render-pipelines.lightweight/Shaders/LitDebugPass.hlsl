@@ -18,6 +18,7 @@ int _DebugMaterialIndex;
 #define DEBUG_LIGHTING_SHADOW_CASCADES 1
 #define DEBUG_LIGHTING_LIGHT_ONLY 2
 #define DEBUG_LIGHTING_LIGHT_DETAIL 3
+#define DEBUG_LIGHTING_REFLECTIONS 4
 int _DebugLightingIndex;
 
 struct Attributes
@@ -190,22 +191,6 @@ half3 ShadowCascadeColor(Varyings input, InputData inputData, SurfaceData surfac
     return debugColor;
 }
 
-void InitializeStandardLitSurfaceData_ForLightOnlyDebugMode(float2 uv, out SurfaceData outSurfaceData)
-{
-    half4 albedoAlpha = SampleAlbedoAlpha(uv, TEXTURE2D_ARGS(_BaseMap, sampler_BaseMap));
-    outSurfaceData.alpha = Alpha(albedoAlpha.a, _BaseColor, _Cutoff);
-    if (_DebugLightingIndex == DEBUG_LIGHTING_LIGHT_DETAIL)
-        outSurfaceData.normalTS = SampleNormal(uv, TEXTURE2D_ARGS(_BumpMap, sampler_BumpMap), _BumpScale);
-    else
-        outSurfaceData.normalTS = half3(0.0h, 0.0h, 1.0h);
-    outSurfaceData.albedo = half3(1.0h, 1.0h, 1.0h);
-    outSurfaceData.metallic = 0.0;
-    outSurfaceData.specular = half3(0.0h, 0.0h, 0.0h);
-    outSurfaceData.smoothness = 0.0;
-    outSurfaceData.occlusion = 0.0;
-    outSurfaceData.emission = half3(0.0h, 0.0h, 0.0h);
-}
-
 #ifdef DEBUG_LIGHTING_COMPLEXITY
 sampler2D _DebugNumberTexture;
 half4 LightingComplexity(Varyings input)
@@ -246,10 +231,23 @@ half4 LitPassFragment(Varyings input) : SV_Target
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
     SurfaceData surfaceData;
+    InitializeStandardLitSurfaceData(input.uv, surfaceData);
     if (_DebugLightingIndex == DEBUG_LIGHTING_LIGHT_ONLY || _DebugLightingIndex == DEBUG_LIGHTING_LIGHT_DETAIL)
-        InitializeStandardLitSurfaceData_ForLightOnlyDebugMode(input.uv, surfaceData);
-    else
-        InitializeStandardLitSurfaceData(input.uv, surfaceData);
+    {
+        surfaceData.albedo = half3(1.0h, 1.0h, 1.0h);
+        surfaceData.metallic = 0.0;
+        surfaceData.specular = half3(0.0h, 0.0h, 0.0h);
+        surfaceData.smoothness = 0.0;
+        surfaceData.occlusion = 0.0;
+        surfaceData.emission = half3(0.0h, 0.0h, 0.0h);
+    }
+    if (_DebugLightingIndex == DEBUG_LIGHTING_LIGHT_ONLY || _DebugLightingIndex == DEBUG_LIGHTING_REFLECTIONS)
+        surfaceData.normalTS = half3(0.0h, 0.0h, 1.0h);
+    if (_DebugLightingIndex == DEBUG_LIGHTING_REFLECTIONS)
+    {
+        surfaceData.albedo = half3(0.0h, 0.0h, 0.0h);
+        surfaceData.smoothness = 1.0;
+    }
 
     InputData inputData;
     InitializeInputData(input, surfaceData.normalTS, inputData);
@@ -291,7 +289,9 @@ half4 LitPassFragment(Varyings input) : SV_Target
         color.a = surfaceData.alpha;
     }
 
-    if (_DebugLightingIndex == DEBUG_LIGHTING_LIGHT_ONLY || _DebugLightingIndex == DEBUG_LIGHTING_LIGHT_DETAIL)
+    if (_DebugLightingIndex == DEBUG_LIGHTING_LIGHT_ONLY
+     || _DebugLightingIndex == DEBUG_LIGHTING_LIGHT_DETAIL
+     || _DebugLightingIndex == DEBUG_LIGHTING_REFLECTIONS)
         color = LightweightFragmentPBR(inputData, surfaceData.albedo, surfaceData.metallic, surfaceData.specular, surfaceData.smoothness, surfaceData.occlusion, surfaceData.emission, surfaceData.alpha);
 
     if (_DebugMaterialIndex == DEBUG_LIGHTING_COMPLEXITY)

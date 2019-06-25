@@ -27,6 +27,7 @@ namespace UnityEngine.Rendering.LWRP
         ShadowCascades,
         LightOnly,
         LightDetail,
+        Reflections,
     }
 
     public static class RenderingUtils

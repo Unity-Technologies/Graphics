@@ -268,7 +268,10 @@ Shader "Lightweight Render Pipeline/Lit"
             #define _ADDITIONAL_LIGHTS
             #define _MAIN_LIGHT_SHADOWS
             #define _MAIN_LIGHT_SHADOWS_CASCADE
-            #define _ENVIRONMENTREFLECTIONS_OFF // we disable cubemap reflections, too distracting (in TemplateLWRP for ex.)
+            #pragma multi_compile _ _DEBUG_ENVIRONMENTREFLECTIONS_OFF
+            #ifdef _DEBUG_ENVIRONMENTREFLECTIONS_OFF
+                #define _ENVIRONMENTREFLECTIONS_OFF
+            #endif
 
             #pragma vertex LitPassVertex
             #pragma fragment LitPassFragment

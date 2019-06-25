@@ -52,6 +52,12 @@ namespace UnityEngine.Rendering.LWRP
 
                 if (lightingDebugMode != LightingDebugMode.None || debugMaterialIndex != DebugMaterialIndex.None)
                 {
+                    if(lightingDebugMode == LightingDebugMode.ShadowCascades)
+                        // we disable cubemap reflections, too distracting (in TemplateLWRP for ex.)
+                        cmd.EnableShaderKeyword("_DEBUG_ENVIRONMENTREFLECTIONS_OFF");
+                    else
+                        cmd.DisableShaderKeyword("_DEBUG_ENVIRONMENTREFLECTIONS_OFF");
+
                     RenderingUtils.RenderObjectWithDebug(context, ref renderingData, camera,
                         m_FilteringSettings, SortingCriteria.None);
                 }
