@@ -164,7 +164,7 @@ namespace UnityEngine.Rendering.LWRP
         }
 
         [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
-        internal static void RenderObjectWithDebug(ScriptableRenderContext context, ref CullingResults cullResults,
+        internal static void RenderObjectWithDebug(ScriptableRenderContext context, ref RenderingData renderingData,
             Camera camera, FilteringSettings filterSettings, SortingCriteria sortFlags, DebugMaterialIndex debugMaterialIndex)
         {
             if (debugMaterialIndex == DebugMaterialIndex.None)
@@ -173,10 +173,12 @@ namespace UnityEngine.Rendering.LWRP
             SortingSettings sortingSettings = new SortingSettings(camera) { criteria = sortFlags };
             DrawingSettings debugSettings = new DrawingSettings(m_DebugMaterialId, sortingSettings)
             {
-                perObjectData = PerObjectData.None,
+                perObjectData = renderingData.perObjectData,
+                enableInstancing = true,
+                mainLightIndex = renderingData.lightData.mainLightIndex,
+                enableDynamicBatching = renderingData.supportsDynamicBatching,
             };
-
-            context.DrawRenderers(cullResults, ref debugSettings, ref filterSettings);   
+            context.DrawRenderers(renderingData.cullResults, ref debugSettings, ref filterSettings);   
         }
 
         // Caches render texture format support. SystemInfo.SupportsRenderTextureFormat allocates memory due to boxing.
