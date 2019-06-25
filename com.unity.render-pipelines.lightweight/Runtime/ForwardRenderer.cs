@@ -143,7 +143,7 @@ namespace UnityEngine.Rendering.LWRP
             // If camera requires depth and there's no depth pre-pass we create a depth texture that can be read
             // later by effect requiring it.
             bool createDepthTexture = renderingData.cameraData.requiresDepthTexture && !requiresDepthPrepass;
-            bool postProcessEnabled = renderingData.cameraData.postProcessEnabled;
+            bool postProcessEnabled = renderingData.cameraData.postProcessEnabled && !DebugDisplaySettings.Instance.buffer.PostProcessingDisabled;
             bool hasOpaquePostProcess = postProcessEnabled &&
                 renderingData.cameraData.postProcessLayer.HasOpaqueOnlyEffects(RenderingUtils.postProcessRenderContext);
 
