@@ -140,6 +140,7 @@ $features.modifyMesh:   $include("VertexAnimation.template.hlsl")
 
 $include("SharedCode.template.hlsl")
     TEXTURE2D(_EyeTexture);
+    TEXTURE2D(_EyeNormal);
 SAMPLER(s_point_clamp);
     
     float2 TransformToUVSpace(float3 positionOS)
@@ -169,9 +170,9 @@ SAMPLER(s_point_clamp);
         float dist = height  / cosAlpha;
         float3 offsetW = dist * refractedW;
         float2 offsetL = mul(offsetW, (float3x2) GetWorldToObjectMatrix());
-        texcoord += (float2(-mask, mask) * offsetL);
+        //texcoord += (float2(-mask, mask) * offsetL);
 
-        surfaceData.baseColor = _EyeTexture.Sample(s_point_clamp, texcoord.xy);
+        surfaceData.baseColor = _EyeNormal.Sample(s_point_clamp, texcoord.xy).xyz * _EyeTexture.Sample(s_point_clamp, texcoord.xy).xyz;
         //surfaceData.baseColor = float3(fragInputs.texCoord0.x, 0.0, 0.0);
         surfaceData.irisSmoothness = 0.99;
         surfaceData.scleraSmoothness = 0.99;
@@ -181,6 +182,9 @@ SAMPLER(s_point_clamp);
         float3 normalTS = float3(0.0f, 0.0f, 1.0f);
         $SurfaceDescription.Normal: normalTS = surfaceDescription.Normal;
 
+        // Override, TODO this should use profile index to pickup the right texture
+        normalTS = _EyeNormal.Sample(s_point_clamp, texcoord.xy);
+ 
         // compute world space normal
         GetNormalWS(fragInputs, normalTS, surfaceData.normalWS, doubleSidedConstants);
 

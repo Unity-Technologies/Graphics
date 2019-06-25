@@ -56,9 +56,9 @@ Shader "Hidden/HDRP/GenerateEyeNormals"
 
                 randVals.xy *= _MapRes * 2 * PI;
 
-                float px = input.positionCS.x - randVals.x;
+                float px = (float)input.positionCS.x - randVals.x;
                 px *= px;
-                float py = input.positionCS.y - randVals.y;
+                float py = (float)input.positionCS.y - randVals.y;
                 py *= py;
                 sum += sin(sqrt(px + py) * 1.0f / (2.08f + someParameterControllingNoiseWidth * randVals.z));
             }

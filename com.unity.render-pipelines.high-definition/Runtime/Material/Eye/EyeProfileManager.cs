@@ -22,14 +22,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 generateNormalMat.SetInt(HDShaderIDs._EyeMapSize, eyeNormalSize);
 
                 //TODO: SET OUTSIDE.
-                cmd.SetGlobalTexture(HDShaderIDs._ScramblingTexture, noiseTex);
+                cmd.SetGlobalTexture(HDShaderIDs._OwenScrambledTexture, noiseTex);
 
                 cmd.DrawProcedural(Matrix4x4.identity, generateNormalMat, 0, MeshTopology.Triangles, 3, 1, null);
 
           //      currentProfile.ToggleUpdateDone();
             }
-
-            cmd.SetGlobalTexture(HDShaderIDs._EyeNormal, normal);
         }
     }
 }

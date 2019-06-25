@@ -444,7 +444,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             m_ContactShadowBuffer = RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GraphicsFormat.R32_UInt, enableRandomWrite: true, useDynamicScale: true, name: "ContactShadowsBuffer");
 
-            m_EyeNormals = RTHandles.Alloc(eyeNormalSize, eyeNormalSize, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite: true, useDynamicScale: true, name: "EyeNormals");
+            m_EyeNormals = RTHandles.Alloc(eyeNormalSize, eyeNormalSize, TextureXR.slices, filterMode: FilterMode.Point, colorFormat: GraphicsFormat.R8G8B8A8_SNorm, dimension: TextureXR.dimension, useDynamicScale: false, enableRandomWrite: false, name: "EyessNormals");
 
 
             if (m_Asset.currentPlatformRenderPipelineSettings.lowresTransparentSettings.enabled)
@@ -503,6 +503,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             RTHandles.Release(m_CameraColorMSAABuffer);
             RTHandles.Release(m_OpaqueAtmosphericScatteringMSAABuffer);
             RTHandles.Release(m_CameraSssDiffuseLightingMSAABuffer);
+
+            RTHandles.Release(m_EyeNormals);
+
         }
 
         bool SetRenderingFeatures()
@@ -833,10 +836,23 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_SkyManager.SetGlobalSkyData(cmd);
             }
 
-            var settings = VolumeManager.instance.stack.GetComponent<EyeProfileManager>();
-            if(settings.albedoTexture.value != null)
+            // TODO_HW19: This should be done on demand and not every frame when the profile settings change.
+            RenderNormalMapForEye(hdCamera, cmd);
+
+            if (m_EyeProfileManager.currentProfile != null && m_EyeProfileManager.currentProfile.albedoTexture.value != null)
             {
-                cmd.SetGlobalTexture("_EyeTexture", settings.albedoTexture.value);
+                HDUtils.SetRenderTarget(cmd, m_EyeNormals);
+                m_GenerateEyeNormals.SetInt(HDShaderIDs._EyeMapSize, eyeNormalSize);
+
+                //TODO: SET OUTSIDE.
+                cmd.SetGlobalTexture(HDShaderIDs._OwenScrambledTexture, m_Asset.renderPipelineResources.textures.owenScrambledTex);
+
+                cmd.DrawProcedural(Matrix4x4.identity, m_GenerateEyeNormals, 0, MeshTopology.Triangles, 3, 1, null);
+
+                cmd.SetGlobalTexture("_EyeTexture", m_EyeProfileManager.currentProfile.albedoTexture.value);
+
+                cmd.SetGlobalTexture(HDShaderIDs._EyeNormal, m_EyeNormals);
+
             }
         }
 
@@ -1587,7 +1603,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             Resize(hdCamera);
             m_PostProcessSystem.BeginFrame(cmd, hdCamera);
 
-            ApplyDebugDisplaySettings(hdCamera, cmd);
+
+
+                ApplyDebugDisplaySettings(hdCamera, cmd);
             m_SkyManager.UpdateCurrentSkySettings(hdCamera);
 
             SetupCameraProperties(hdCamera, renderContext, cmd);
@@ -1852,6 +1870,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     VolumeVoxelizationPass(hdCamera, cmd, m_FrameCount, densityVolumes);
                 }
 
+
                 // Render the volumetric lighting.
                 // The pass requires the volume properties, the light list and the shadows, and can run async.
                 VolumetricLightingPass(hdCamera, cmd, m_FrameCount);
@@ -1889,8 +1908,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 RenderDeferredLighting(hdCamera, cmd);
 
-                    // TODO_HW19: This should be done on demand and not every frame when the profile settings change.
-                    RenderNormalMapForEye(hdCamera, cmd);
 
                 RenderForwardOpaque(cullingResults, hdCamera, renderContext, cmd);
 
@@ -2469,7 +2486,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             EyeDataInfo currProfile = VolumeManager.instance.stack.GetComponent<EyeDataInfo>();
 
             m_EyeProfileManager.currentProfile = currProfile;
-            m_EyeProfileManager.UpdateProfileGeneratedData(cmd, m_GenerateEyeNormals, m_EyeNormals, eyeNormalSize, m_Asset.renderPipelineResources.textures.scramblingTex);
+            m_EyeProfileManager.UpdateProfileGeneratedData(cmd, m_GenerateEyeNormals, m_EyeNormals, eyeNormalSize, m_Asset.renderPipelineResources.textures.owenScrambledTex);
         }
 
         protected static void DrawOpaqueRendererList(in ScriptableRenderContext renderContext, CommandBuffer cmd, in FrameSettings frameSettings, RendererList rendererList)
