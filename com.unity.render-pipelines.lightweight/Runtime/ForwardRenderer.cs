@@ -16,7 +16,7 @@ namespace UnityEngine.Rendering.LWRP
         const string k_CreateCameraTextures = "Create Camera Texture";
         int m_DebugMaterialIndexId;
 
-        int m_DebugLightingIndexId = 0;
+        int m_DebugLightingIndexId;
 
         DepthOnlyPass m_DepthPrepass;
         MainLightShadowCasterPass m_MainLightShadowCasterPass;
@@ -52,6 +52,7 @@ namespace UnityEngine.Rendering.LWRP
         public ForwardRenderer(ForwardRendererData data) : base(data)
         {
             m_DebugMaterialIndexId = Shader.PropertyToID("_DebugMaterialIndex");
+            m_DebugLightingIndexId = Shader.PropertyToID("_DebugLightingIndex");
             m_NumberFontTexture = data.textures.NumberFont;
             
             Material blitMaterial = CoreUtils.CreateEngineMaterial(data.shaders.blitPS);
