@@ -164,6 +164,24 @@ BSDFData ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfaceData)
         bsdfData.anisotropy = 0.8; // For hair we fix the anisotropy
     }
 
+    // Marschner
+    if (HasFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_HAIR_MARSCHNER))
+    {
+        bsdfData.secondaryPerceptualRoughness = PerceptualSmoothnessToPerceptualRoughness(surfaceData.secondaryPerceptualSmoothness);        
+        bsdfData.specularTint = surfaceData.specularTint;
+        bsdfData.secondarySpecularTint = surfaceData.secondarySpecularTint;
+        bsdfData.specularShift = surfaceData.specularShift;
+        bsdfData.secondarySpecularShift = surfaceData.secondarySpecularShift;
+
+        float roughness1 = PerceptualRoughnessToRoughness(bsdfData.perceptualRoughness);
+        float roughness2 = PerceptualRoughnessToRoughness(bsdfData.secondaryPerceptualRoughness);
+
+        bsdfData.specularExponent          = RoughnessToBlinnPhongSpecularExponent(roughness1);
+        bsdfData.secondarySpecularExponent = RoughnessToBlinnPhongSpecularExponent(roughness2);
+
+        bsdfData.anisotropy = 0.8; // For hair we fix the anisotropy
+    }
+
     ApplyDebugToBSDFData(bsdfData);
 
     return bsdfData;
@@ -261,6 +279,12 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, inout BSDFData b
         GetPreIntegratedFGDGGXAndDisneyDiffuse(clampedNdotV, preLightData.iblPerceptualRoughness, bsdfData.fresnel0, preLightData.specularFGD, preLightData.diffuseFGD, unused);
         // We used lambert for hair for now
         // Note: this normalization term is wrong, correct one is (1/(Pi^2)).
+        preLightData.diffuseFGD = 1.0;
+    }
+    else if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_HAIR_MARSCHNER))
+    {
+        preLightData.iblPerceptualRoughness = bsdfData.secondaryPerceptualRoughness;
+        preLightData.specularFGD = 0.0;
         preLightData.diffuseFGD = 1.0;
     }
     else
@@ -391,6 +415,23 @@ CBSDF EvaluateBSDF(float3 V, float3 L, PreLightData preLightData, BSDFData bsdfD
         float scatterFresnel2 = saturate(PositivePow((1.0 - geomNdotV), 20.0));
 
         cbsdf.specT = scatterFresnel1 + bsdfData.rimTransmissionIntensity * scatterFresnel2;
+    }
+
+    else if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_HAIR_MARSCHNER))
+    {
+        // Double-sided Lambert.
+        //cbsdf.diffR = Lambert() * clampedNdotL;
+        float3 S = 0;
+        for( uint p = 0; p < 3; p++ )
+        {
+            float Mp = 0.10f;
+            float3 Np = 0.10f;
+            float3 Sp = Mp * Np;
+            S += Sp;
+        }
+        cbsdf.diffR = bsdfData.diffuseColor;// * S;
+        cbsdf.specR = 0.25f;
+        cbsdf.specT = 0.0f;
     }
 
     return cbsdf;
@@ -559,7 +600,8 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
 
     envLighting = preLightData.specularFGD * preLD.rgb;
 
-    if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_HAIR_KAJIYA_KAY))
+    if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_HAIR_KAJIYA_KAY) || 
+        HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_HAIR_MARSCHNER))
     {
         // We tint the HDRI with the secondary lob specular as it is more representatative of indirect lighting on hair.
         envLighting *= bsdfData.secondarySpecularTint;

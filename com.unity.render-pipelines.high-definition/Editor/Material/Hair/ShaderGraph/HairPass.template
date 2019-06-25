@@ -37,8 +37,7 @@ Pass
     // Variant Definitions (active field translations to HDRP defines)
     //-------------------------------------------------------------------------------------
     $Material.KajiyaKay:                #define _MATERIAL_FEATURE_HAIR_KAJIYA_KAY 1
-    // TODO jennifer
-    $Material.Maschner:                 #define _MATERIAL_FEATURE_HAIR_KAJIYA_KAY 1
+    $Material.Marschner:                #define _MATERIAL_FEATURE_HAIR_MARSCHNER 1
     $AlphaFog:                          #define _ENABLE_FOG_ON_TRANSPARENT 1
     $Occlusion:                         #define _OCCLUSION 1
     $SpecularOcclusionFromAO:           #define _SPECULAR_OCCLUSION_FROM_AO 1
@@ -199,6 +198,10 @@ $include("SharedCode.template.hlsl")
         // Transform the preprocess macro into a material feature
 #ifdef _MATERIAL_FEATURE_HAIR_KAJIYA_KAY
         surfaceData.materialFeatures |= MATERIALFEATUREFLAGS_HAIR_KAJIYA_KAY;
+#endif
+
+#ifdef _MATERIAL_FEATURE_HAIR_MARSCHNER
+        surfaceData.materialFeatures |= MATERIALFEATUREFLAGS_HAIR_MARSCHNER;
 #endif
 
 #ifdef _DOUBLESIDED_ON
