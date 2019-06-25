@@ -11,7 +11,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 if (s_DefaultVolume != null && !s_DefaultVolume.Equals(null))
                 {
-                    Object.Destroy(s_DefaultVolume.gameObject);
+                    //Object.Destroy(s_DefaultVolume.gameObject);
                     s_DefaultVolume = null;
                 }
             };
