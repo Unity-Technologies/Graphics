@@ -153,23 +153,16 @@ $include("SharedCode.template.hlsl")
 
     float blahFunction(float radius, float maxRadius)
     {
-
-        return radius > maxRadius ? 0.0 : 1.0 - smoothstep(0.0, maxRadius, radius);
-        return radius > maxRadius ? 0.0 : 1.0 - (pow(1/(0.5 * maxRadius) * radius - 1.0, 2.0));
+        return radius > maxRadius || radius < 0.01 ? 0.0 : lerp(maxRadius - 0.04, 0.0, radius/maxRadius);
     }
 
     float2 displaceIris(float2 uv, float maxRadius, float pupilRadius, float extent)
     {
         float2 rescaled = uv * 2.0 - 1.0;
         float radius = length(rescaled);
-        float theta = atan2(rescaled.y, rescaled.x) * (0.5/PI) + 0.5;
-        theta = theta * 2.0 * PI - PI;
-        float radiusRemapped = clamp(radius/maxRadius, 0.0, 1.0);
-        float finalRadius = radius + extent * blahFunction(radius, maxRadius);
-        //finalRadius = clamp(finalRadius, pupilRadius / 3, maxRadius);
-        float2 finalUV = float2(sin(theta) * finalRadius, cos(theta) * finalRadius) * 0.5 + 0.5;
-        //finalUV.xy = saturate(finalUV.xy);
-
+        float finalRadius = radius - extent * blahFunction(radius, maxRadius);
+        finalRadius = saturate(finalRadius);
+        float2 finalUV = (rescaled / radius * finalRadius) * 0.5 + 0.5;
         return finalUV;
     }
 
@@ -212,10 +205,10 @@ $include("SharedCode.template.hlsl")
             }
         }
 
-        texcoord.xy = displaceIris(texcoord.xy, 0.12 * 2, 0.04, _ExtentSlider);
+        texcoord.xy = displaceIris(texcoord.xy, 0.15 * 2, 0.04, _ExtentSlider);
 
         surfaceData.baseColor = _EyeTexture.Sample(s_linear_clamp, texcoord.xy);
-        surfaceData.baseColor = float3(texcoord.xy, 0.0);
+        //surfaceData.baseColor = float3(texcoord.xy, 0.0);
         surfaceData.irisSmoothness = 0.9;
         surfaceData.scleraSmoothness = 0.9;
         float3 doubleSidedConstants = float3(1.0, 1.0, 1.0);
