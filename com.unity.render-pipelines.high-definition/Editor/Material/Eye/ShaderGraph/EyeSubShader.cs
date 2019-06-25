@@ -36,7 +36,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 EyeMasterNode.NormalSlotId,
                 EyeMasterNode.SmoothnessSlotId,
                 EyeMasterNode.AmbientOcclusionSlotId,
-                EyeMasterNode.SpecularColorSlotId,
+                EyeMasterNode.RefractionMaskSlotId,
                 EyeMasterNode.DiffusionProfileHashSlotId,
                 EyeMasterNode.SubsurfaceMaskSlotId,
                 EyeMasterNode.ThicknessSlotId,
@@ -45,6 +45,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 EyeMasterNode.EmissionSlotId,
                 EyeMasterNode.AlphaSlotId,
                 EyeMasterNode.AlphaClipThresholdSlotId,
+                EyeMasterNode.IrisNormalSlotId,
             },
             VertexShaderSlots = new List<int>()
             {
@@ -261,7 +262,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 EyeMasterNode.BentNormalSlotId,
                 EyeMasterNode.SmoothnessSlotId,
                 EyeMasterNode.AmbientOcclusionSlotId,
-                EyeMasterNode.SpecularColorSlotId,
+                EyeMasterNode.RefractionMaskSlotId,
                 EyeMasterNode.DiffusionProfileHashSlotId,
                 EyeMasterNode.SubsurfaceMaskSlotId,
                 EyeMasterNode.ThicknessSlotId,
@@ -273,6 +274,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 EyeMasterNode.LightingSlotId,
                 EyeMasterNode.BackLightingSlotId,
                 EyeMasterNode.DepthOffsetSlotId,
+                EyeMasterNode.IrisNormalSlotId,
             },
             VertexShaderSlots = new List<int>()
             {

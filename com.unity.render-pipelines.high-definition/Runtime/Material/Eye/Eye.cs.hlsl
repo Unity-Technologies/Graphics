@@ -9,24 +9,27 @@
 //
 #define MATERIALFEATUREFLAGS_EYE_GAMES (1)
 #define MATERIALFEATUREFLAGS_EYE_CINEMATICS (2)
+#define MATERIALFEATUREFLAGS_EYE_SUBSURFACE_SCATTERING (4)
 
 //
 // UnityEngine.Experimental.Rendering.HDPipeline.Eye+SurfaceData:  static fields
 //
-#define DEBUGVIEW_EYE_SURFACEDATA_BASE_COLOR (1300)
-#define DEBUGVIEW_EYE_SURFACEDATA_SPECULAR_OCCLUSION (1301)
-#define DEBUGVIEW_EYE_SURFACEDATA_NORMAL (1302)
-#define DEBUGVIEW_EYE_SURFACEDATA_NORMAL_VIEW_SPACE (1303)
-#define DEBUGVIEW_EYE_SURFACEDATA_GEOMETRIC_NORMAL (1304)
-#define DEBUGVIEW_EYE_SURFACEDATA_GEOMETRIC_NORMAL_VIEW_SPACE (1305)
-#define DEBUGVIEW_EYE_SURFACEDATA_SMOOTHNESS (1306)
-#define DEBUGVIEW_EYE_SURFACEDATA_AMBIENT_OCCLUSION (1307)
-#define DEBUGVIEW_EYE_SURFACEDATA_SPECULAR_TINT (1308)
-#define DEBUGVIEW_EYE_SURFACEDATA_DIFFUSION_PROFILE_HASH (1309)
-#define DEBUGVIEW_EYE_SURFACEDATA_SUBSURFACE_MASK (1310)
-#define DEBUGVIEW_EYE_SURFACEDATA_THICKNESS (1311)
-#define DEBUGVIEW_EYE_SURFACEDATA_TANGENT (1312)
-#define DEBUGVIEW_EYE_SURFACEDATA_ANISOTROPY (1313)
+#define DEBUGVIEW_EYE_SURFACEDATA_MATERIAL_FEATURES (1300)
+#define DEBUGVIEW_EYE_SURFACEDATA_BASE_COLOR (1301)
+#define DEBUGVIEW_EYE_SURFACEDATA_SPECULAR_OCCLUSION (1302)
+#define DEBUGVIEW_EYE_SURFACEDATA_NORMAL (1303)
+#define DEBUGVIEW_EYE_SURFACEDATA_NORMAL_VIEW_SPACE (1304)
+#define DEBUGVIEW_EYE_SURFACEDATA_IRIS_NORMAL_WS (1305)
+#define DEBUGVIEW_EYE_SURFACEDATA_GEOMETRIC_NORMAL (1306)
+#define DEBUGVIEW_EYE_SURFACEDATA_GEOMETRIC_NORMAL_VIEW_SPACE (1307)
+#define DEBUGVIEW_EYE_SURFACEDATA_SMOOTHNESS (1308)
+#define DEBUGVIEW_EYE_SURFACEDATA_AMBIENT_OCCLUSION (1309)
+#define DEBUGVIEW_EYE_SURFACEDATA_REFRACTION_MASK (1310)
+#define DEBUGVIEW_EYE_SURFACEDATA_DIFFUSION_PROFILE_HASH (1311)
+#define DEBUGVIEW_EYE_SURFACEDATA_SUBSURFACE_MASK (1312)
+#define DEBUGVIEW_EYE_SURFACEDATA_THICKNESS (1313)
+#define DEBUGVIEW_EYE_SURFACEDATA_TANGENT (1314)
+#define DEBUGVIEW_EYE_SURFACEDATA_ANISOTROPY (1315)
 
 //
 // UnityEngine.Experimental.Rendering.HDPipeline.Eye+BSDFData:  static fields
@@ -34,35 +37,39 @@
 #define DEBUGVIEW_EYE_BSDFDATA_MATERIAL_FEATURES (1350)
 #define DEBUGVIEW_EYE_BSDFDATA_DIFFUSE_COLOR (1351)
 #define DEBUGVIEW_EYE_BSDFDATA_FRESNEL0 (1352)
-#define DEBUGVIEW_EYE_BSDFDATA_AMBIENT_OCCLUSION (1353)
-#define DEBUGVIEW_EYE_BSDFDATA_SPECULAR_OCCLUSION (1354)
-#define DEBUGVIEW_EYE_BSDFDATA_NORMAL_WS (1355)
-#define DEBUGVIEW_EYE_BSDFDATA_NORMAL_VIEW_SPACE (1356)
-#define DEBUGVIEW_EYE_BSDFDATA_GEOMETRIC_NORMAL (1357)
-#define DEBUGVIEW_EYE_BSDFDATA_GEOMETRIC_NORMAL_VIEW_SPACE (1358)
-#define DEBUGVIEW_EYE_BSDFDATA_PERCEPTUAL_ROUGHNESS (1359)
-#define DEBUGVIEW_EYE_BSDFDATA_DIFFUSION_PROFILE_INDEX (1360)
-#define DEBUGVIEW_EYE_BSDFDATA_SUBSURFACE_MASK (1361)
-#define DEBUGVIEW_EYE_BSDFDATA_THICKNESS (1362)
-#define DEBUGVIEW_EYE_BSDFDATA_USE_THICK_OBJECT_MODE (1363)
-#define DEBUGVIEW_EYE_BSDFDATA_TRANSMITTANCE (1364)
-#define DEBUGVIEW_EYE_BSDFDATA_TANGENT_WS (1365)
-#define DEBUGVIEW_EYE_BSDFDATA_BITANGENT_WS (1366)
-#define DEBUGVIEW_EYE_BSDFDATA_ROUGHNESS_T (1367)
-#define DEBUGVIEW_EYE_BSDFDATA_ROUGHNESS_B (1368)
-#define DEBUGVIEW_EYE_BSDFDATA_ANISOTROPY (1369)
+#define DEBUGVIEW_EYE_BSDFDATA_REFRACTION_MASK (1353)
+#define DEBUGVIEW_EYE_BSDFDATA_AMBIENT_OCCLUSION (1354)
+#define DEBUGVIEW_EYE_BSDFDATA_SPECULAR_OCCLUSION (1355)
+#define DEBUGVIEW_EYE_BSDFDATA_NORMAL_WS (1356)
+#define DEBUGVIEW_EYE_BSDFDATA_NORMAL_VIEW_SPACE (1357)
+#define DEBUGVIEW_EYE_BSDFDATA_IRIS_NORMAL_WS (1358)
+#define DEBUGVIEW_EYE_BSDFDATA_GEOMETRIC_NORMAL (1359)
+#define DEBUGVIEW_EYE_BSDFDATA_GEOMETRIC_NORMAL_VIEW_SPACE (1360)
+#define DEBUGVIEW_EYE_BSDFDATA_PERCEPTUAL_ROUGHNESS (1361)
+#define DEBUGVIEW_EYE_BSDFDATA_DIFFUSION_PROFILE_INDEX (1362)
+#define DEBUGVIEW_EYE_BSDFDATA_SUBSURFACE_MASK (1363)
+#define DEBUGVIEW_EYE_BSDFDATA_THICKNESS (1364)
+#define DEBUGVIEW_EYE_BSDFDATA_USE_THICK_OBJECT_MODE (1365)
+#define DEBUGVIEW_EYE_BSDFDATA_TRANSMITTANCE (1366)
+#define DEBUGVIEW_EYE_BSDFDATA_TANGENT_WS (1367)
+#define DEBUGVIEW_EYE_BSDFDATA_BITANGENT_WS (1368)
+#define DEBUGVIEW_EYE_BSDFDATA_ROUGHNESS_T (1369)
+#define DEBUGVIEW_EYE_BSDFDATA_ROUGHNESS_B (1370)
+#define DEBUGVIEW_EYE_BSDFDATA_ANISOTROPY (1371)
 
 // Generated from UnityEngine.Experimental.Rendering.HDPipeline.Eye+SurfaceData
 // PackingRules = Exact
 struct SurfaceData
 {
+    uint materialFeatures;
     float3 baseColor;
     float specularOcclusion;
     float3 normalWS;
+    float3 irisNormalWS;
     float3 geomNormalWS;
     float perceptualSmoothness;
     float ambientOcclusion;
-    float3 specularColor;
+    float3 refractionMask;
     uint diffusionProfileHash;
     float subsurfaceMask;
     float thickness;
@@ -77,9 +84,11 @@ struct BSDFData
     uint materialFeatures;
     float3 diffuseColor;
     float3 fresnel0;
+    float3 refractionMask;
     float ambientOcclusion;
     float specularOcclusion;
     float3 normalWS;
+    float3 irisNormalWS;
     float3 geomNormalWS;
     float perceptualRoughness;
     uint diffusionProfileIndex;
@@ -101,6 +110,9 @@ void GetGeneratedSurfaceDataDebug(uint paramId, SurfaceData surfacedata, inout f
 {
     switch (paramId)
     {
+        case DEBUGVIEW_EYE_SURFACEDATA_MATERIAL_FEATURES:
+            result = GetIndexColor(surfacedata.materialFeatures);
+            break;
         case DEBUGVIEW_EYE_SURFACEDATA_BASE_COLOR:
             result = surfacedata.baseColor;
             needLinearToSRGB = true;
@@ -114,6 +126,9 @@ void GetGeneratedSurfaceDataDebug(uint paramId, SurfaceData surfacedata, inout f
         case DEBUGVIEW_EYE_SURFACEDATA_NORMAL_VIEW_SPACE:
             result = surfacedata.normalWS * 0.5 + 0.5;
             break;
+        case DEBUGVIEW_EYE_SURFACEDATA_IRIS_NORMAL_WS:
+            result = surfacedata.irisNormalWS;
+            break;
         case DEBUGVIEW_EYE_SURFACEDATA_GEOMETRIC_NORMAL:
             result = surfacedata.geomNormalWS * 0.5 + 0.5;
             break;
@@ -126,8 +141,8 @@ void GetGeneratedSurfaceDataDebug(uint paramId, SurfaceData surfacedata, inout f
         case DEBUGVIEW_EYE_SURFACEDATA_AMBIENT_OCCLUSION:
             result = surfacedata.ambientOcclusion.xxx;
             break;
-        case DEBUGVIEW_EYE_SURFACEDATA_SPECULAR_TINT:
-            result = surfacedata.specularColor;
+        case DEBUGVIEW_EYE_SURFACEDATA_REFRACTION_MASK:
+            result = surfacedata.refractionMask;
             needLinearToSRGB = true;
             break;
         case DEBUGVIEW_EYE_SURFACEDATA_DIFFUSION_PROFILE_HASH:
@@ -165,6 +180,9 @@ void GetGeneratedBSDFDataDebug(uint paramId, BSDFData bsdfdata, inout float3 res
         case DEBUGVIEW_EYE_BSDFDATA_FRESNEL0:
             result = bsdfdata.fresnel0;
             break;
+        case DEBUGVIEW_EYE_BSDFDATA_REFRACTION_MASK:
+            result = bsdfdata.refractionMask;
+            break;
         case DEBUGVIEW_EYE_BSDFDATA_AMBIENT_OCCLUSION:
             result = bsdfdata.ambientOcclusion.xxx;
             break;
@@ -176,6 +194,9 @@ void GetGeneratedBSDFDataDebug(uint paramId, BSDFData bsdfdata, inout float3 res
             break;
         case DEBUGVIEW_EYE_BSDFDATA_NORMAL_VIEW_SPACE:
             result = bsdfdata.normalWS * 0.5 + 0.5;
+            break;
+        case DEBUGVIEW_EYE_BSDFDATA_IRIS_NORMAL_WS:
+            result = bsdfdata.irisNormalWS;
             break;
         case DEBUGVIEW_EYE_BSDFDATA_GEOMETRIC_NORMAL:
             result = bsdfdata.geomNormalWS * 0.5 + 0.5;

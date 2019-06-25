@@ -14,7 +14,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public enum MaterialFeatureFlags
         {
             EyeGames = 1 << 0,
-            EyeCinematics = 1 << 1
+            EyeCinematics = 1 << 1,
+            EyeSubsurfaceScattering = 1 << 2,
         };
 
         //-----------------------------------------------------------------------------
@@ -25,6 +26,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         [GenerateHLSL(PackingRules.Exact, false, false, true, 1300)]
         public struct SurfaceData
         {
+            [SurfaceDataAttributes("MaterialFeatures")]
+            public uint materialFeatures;
+
             // Standard
             [MaterialSharedPropertyMapping(MaterialSharedProperty.Albedo)]
             [SurfaceDataAttributes("Base Color", false, true)]
@@ -36,6 +40,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             [MaterialSharedPropertyMapping(MaterialSharedProperty.Normal)]
             [SurfaceDataAttributes(new string[] { "Normal", "Normal View Space" }, true)]
             public Vector3 normalWS;
+
+            public Vector3 irisNormalWS;
 
             [SurfaceDataAttributes(new string[] { "Geometric Normal", "Geometric Normal View Space" }, true)]
             public Vector3 geomNormalWS;
@@ -50,10 +56,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             // Specular Tint
             [MaterialSharedPropertyMapping(MaterialSharedProperty.Specular)]
-            [SurfaceDataAttributes("Specular Tint", false, true)]
-            public Vector3 specularColor;
-
-            // MaterialFeature dependent attribute
+            [SurfaceDataAttributes("refractionMask", false, true)]
+            public Vector3 refractionMask;
 
             // SSS
             [SurfaceDataAttributes("Diffusion Profile Hash")]
@@ -85,12 +89,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             [SurfaceDataAttributes("", false, true)]
             public Vector3 diffuseColor;
             public Vector3 fresnel0;
+            public Vector3 refractionMask;
 
             public float ambientOcclusion;
             public float specularOcclusion;
 
             [SurfaceDataAttributes(new string[] { "Normal WS", "Normal View Space" }, true)]
             public Vector3 normalWS;
+
+            public Vector3 irisNormalWS;
 
             [SurfaceDataAttributes(new string[] { "Geometric Normal", "Geometric Normal View Space" }, true)]
             public Vector3 geomNormalWS;
