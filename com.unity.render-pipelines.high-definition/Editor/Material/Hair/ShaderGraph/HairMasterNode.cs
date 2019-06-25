@@ -105,7 +105,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         public const string DepthOffsetSlotName = "DepthOffset";
         public const int DepthOffsetSlotId = 26;
 
-        public const string IndexOfRefractionSlotName = "IOR";
+        public const string IndexOfRefractionSlotName = "IndexOfRefraction";
         public const int IndexOfRefractionSlotId = 27;
 
         public enum MaterialType

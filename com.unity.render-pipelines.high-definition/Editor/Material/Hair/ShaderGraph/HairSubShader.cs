@@ -588,6 +588,16 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 }
             }
 
+            if (pass.PixelShaderUsesSlot(HairMasterNode.IndexOfRefractionSlotId))
+            {
+                var iorSlot = masterNode.FindSlot<Vector1MaterialSlot>(HairMasterNode.IndexOfRefractionSlotId);
+
+                if (masterNode.materialType == HairMasterNode.MaterialType.Marschner)
+                {
+                    activeFields.Add("IndexOfRefraction");
+                }
+            }
+
             if (masterNode.IsSlotConnected(HairMasterNode.LightingSlotId) && pass.PixelShaderUsesSlot(HairMasterNode.LightingSlotId))
             {
                 activeFields.Add("LightingGI");
