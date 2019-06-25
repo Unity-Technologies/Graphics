@@ -304,8 +304,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 d = d * 2;
 
             //seongdae;fspm
-            m_VShadowMapRes = 64;
-            m_VShadowMapMag = 32.0f;
+            m_VShadowMapRes = 48;
+            m_VShadowMapMag = 24.0f;
             m_VShadowMapBufferHandle = RTHandles.Alloc(
                     m_VShadowMapRes,
                     m_VShadowMapRes,
@@ -451,7 +451,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 case VolumetricLightingPreset.Medium:
                     return 64;
                 case VolumetricLightingPreset.High:
-                    return 256; //seongdae;fspm
+                    return 96; //seongdae;fspm
                 case VolumetricLightingPreset.Off:
                     return 0;
                 default:

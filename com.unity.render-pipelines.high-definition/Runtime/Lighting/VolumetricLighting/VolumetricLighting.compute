@@ -201,8 +201,7 @@ VoxelLighting EvaluateVoxelLightingDirectional(LightLoopContext context, uint fe
         EvaluateLight_Directional(context, posInput, light, unused, L, L, NdotL,
                                   color, attenuation);
                                   
-        EvaluateTransmittance_Directional(posInput.positionWS, L, 4.0, 12,
-                                          attenuation); //seongdae;fspm
+        EvaluateTransmittance(posInput.positionWS, L, rndVal, 8.0, 12, attenuation); //seongdae;fspm
 
         // Important:
         // Ideally, all scattering calculations should use the jittered versions
@@ -318,6 +317,8 @@ VoxelLighting EvaluateVoxelLightingLocal(LightLoopContext context, uint featureF
                 EvaluateLight_Punctual(context, posInput, light, unused,
                                        L, L, NdotL, lightToSample, distances,
                                        color, attenuation);
+
+                EvaluateTransmittance(posInput.positionWS, L, rndVal, dist, 8, attenuation); //seongdae;fspm
 
                 // Important:
                 // Ideally, all scattering calculations should use the jittered versions

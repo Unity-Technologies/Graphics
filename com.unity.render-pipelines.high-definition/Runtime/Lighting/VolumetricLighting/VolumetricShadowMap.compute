@@ -41,7 +41,6 @@ float4 SampleFluidSimVolume(FluidSimVolumeEngineData volumeData, float3 voxelCen
 {
     // todo : sync atlas resolution
     float3 voxelCenterUVW = frac(voxelCenterNDC * (volumeData.volumeRes / 512.0));
-    voxelCenterUVW = voxelCenterNDC * 0.07;
 
     return SAMPLE_TEXTURE3D_LOD(_FluidSimVolumeAtlas, s_linear_repeat_sampler, voxelCenterUVW, 0);
 }
@@ -54,8 +53,8 @@ void VolumetricShadowMap(uint3 id : SV_DispatchThreadID)
     uint  vshadowMapHalfRes = _VShadowMapRes / 2;
     float vshadowMapRes = (float)_VShadowMapRes;
     
-    uint3  voxelCoord = id.xyz;
-    float3 voxelCenterWS = (((float3)voxelCoord - vshadowMapHalfRes) / vshadowMapRes) * _VShadowMapMag;
+    float3 voxelCoord = id.xyz + 0.5;
+    float3 voxelCenterWS = ((voxelCoord - vshadowMapHalfRes) / vshadowMapRes) * _VShadowMapMag;
     
     // in LightLoop, these are dependent on Tile Lightlist. but here is not using it
     uint volumeCount = _NumVisibleDensityVolumes;
@@ -102,5 +101,5 @@ void VolumetricShadowMap(uint3 id : SV_DispatchThreadID)
         }
     }
 
-    _VShadowMapBuffer[voxelCoord] = voxelExtinction * 10.0;
+    _VShadowMapBuffer[id.xyz] = voxelExtinction;
 }
