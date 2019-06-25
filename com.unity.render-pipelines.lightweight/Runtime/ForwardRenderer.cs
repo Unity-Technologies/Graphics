@@ -16,7 +16,7 @@ namespace UnityEngine.Rendering.LWRP
         const string k_CreateCameraTextures = "Create Camera Texture";
         int m_DebugMaterialIndexId;
 
-        int m_DebugLightingIndexId;
+        int m_DebugLightingIndexId = 0;
 
         DepthOnlyPass m_DepthPrepass;
         MainLightShadowCasterPass m_MainLightShadowCasterPass;
@@ -47,10 +47,12 @@ namespace UnityEngine.Rendering.LWRP
         ForwardLights m_ForwardLights;
         StencilState m_DefaultStencilState;
 
+        Texture2D m_NumberFontTexture;
+
         public ForwardRenderer(ForwardRendererData data) : base(data)
         {
             m_DebugMaterialIndexId = Shader.PropertyToID("_DebugMaterialIndex");
-            m_DebugLightingIndexId = Shader.PropertyToID("_DebugLightingIndex");
+            m_NumberFontTexture = data.textures.NumberFont;
             
             Material blitMaterial = CoreUtils.CreateEngineMaterial(data.shaders.blitPS);
             Material fullScreenDebugMaterial = CoreUtils.CreateEngineMaterial(data.shaders.fullScreenDebugPS);
@@ -416,6 +418,7 @@ namespace UnityEngine.Rendering.LWRP
             var cmd = CommandBufferPool.Get("");
             cmd.SetGlobalFloat(m_DebugMaterialIndexId, (int)debugMaterialIndex);
             cmd.SetGlobalFloat(m_DebugLightingIndexId, (int)lightingDebugMode);
+            cmd.SetGlobalTexture("_DebugNumberTexture", m_NumberFontTexture);
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
         }

@@ -19,6 +19,7 @@ namespace UnityEditor.Rendering.LWRP
         SerializedProperty m_DefaultStencilState;
 
         SerializedProperty m_Shaders;
+        SerializedProperty m_Textures;
 
         private void OnEnable()
         {
@@ -27,6 +28,7 @@ namespace UnityEditor.Rendering.LWRP
             m_DefaultStencilState = serializedObject.FindProperty("m_DefaultStencilState");
 
             m_Shaders = serializedObject.FindProperty("shaders");
+            m_Textures = serializedObject.FindProperty("textures");
         }
 
         public override void OnInspectorGUI()
@@ -54,11 +56,13 @@ namespace UnityEditor.Rendering.LWRP
             {
                 EditorGUILayout.Space();
                 EditorGUILayout.PropertyField(m_Shaders, true);
+                EditorGUILayout.PropertyField(m_Textures, true);
 
                 if (GUILayout.Button("Reload All"))
                 {
                     var resources = target as ForwardRendererData;
                     resources.shaders = null;
+                    resources.textures = null;
                     ResourceReloader.ReloadAllNullIn(target, LightweightRenderPipelineAsset.packagePath);
                 }
             }

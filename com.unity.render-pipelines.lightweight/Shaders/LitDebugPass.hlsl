@@ -12,6 +12,7 @@
 #define DEBUG_EMISSION 7
 #define DEBUG_NORMAL_WORLD_SPACE 8
 #define DEBUG_NORMAL_TANGENT_SPACE 9
+#define DEBUG_LIGHTING_COMPLEXITY 10
 int _DebugMaterialIndex;
 
 #define DEBUG_LIGHTING_SHADOW_CASCADES 1
@@ -50,6 +51,9 @@ struct Varyings
 
 #if defined(_MAIN_LIGHT_SHADOWS)
     float4 shadowCoord              : TEXCOORD7;
+#endif
+#ifdef DEBUG_LIGHTING_COMPLEXITY
+    float4 ndc                      : TEXCOORD8;
 #endif
 
     float4 positionCS               : SV_POSITION;
@@ -132,6 +136,7 @@ Varyings LitPassVertex(Attributes input)
 #endif
 
     output.positionCS = vertexInput.positionCS;
+    output.ndc = output.positionCS;
 
     return output;
 }
@@ -197,6 +202,39 @@ void InitializeStandardLitSurfaceData_ForLightOnlyDebugMode(float2 uv, out Surfa
     outSurfaceData.emission = half3(0.0h, 0.0h, 0.0h);
 }
 
+#ifdef DEBUG_LIGHTING_COMPLEXITY
+sampler2D _DebugNumberTexture;
+half4 LightingComplexity(Varyings input)
+{
+    half4 lut[5] = {
+            half4(0, 1, 0, 0),
+            half4(0.25, 0.75, 0, 0),
+            half4(0.498, 0.5019, 0.0039, 0),
+            half4(0.749, 0.247, 0, 0),
+            half4(1, 0, 0, 0)
+    };
+
+    unsigned int numLights = clamp(GetAdditionalLightsCount(), 0, 4);
+    half4 fc = lut[numLights];
+
+    float2 ndc = saturate((input.ndc.xy / input.ndc.w) * 0.5 + 0.5);
+
+#if UNITY_UV_STARTS_AT_TOP
+    if(_ProjectionParams.x < 0)
+        ndc.y = 1.0 - ndc.y;
+#endif
+
+    const float invNumChar = 1.0 / 10.0f;
+    ndc.x *= 5.0;
+    ndc.y *= 15.0;
+    ndc.x = fmod(ndc.x, invNumChar) + (numLights * invNumChar);
+
+    fc *= tex2D(_DebugNumberTexture, ndc.xy);
+
+    return fc;
+}
+#endif
+
 half4 LitPassFragment(Varyings input) : SV_Target
 {
     UNITY_SETUP_INSTANCE_ID(input);
@@ -250,6 +288,9 @@ half4 LitPassFragment(Varyings input) : SV_Target
 
     if (_DebugLightingIndex == DEBUG_LIGHTING_LIGHT_ONLY)
         color = LightweightFragmentPBR(inputData, surfaceData.albedo, surfaceData.metallic, surfaceData.specular, surfaceData.smoothness, surfaceData.occlusion, surfaceData.emission, surfaceData.alpha);
+
+    if (_DebugMaterialIndex == DEBUG_LIGHTING_COMPLEXITY)
+        color = LightingComplexity(input);
 
     return color;
 }

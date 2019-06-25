@@ -18,6 +18,7 @@ namespace UnityEngine.Rendering.LWRP
         Emission,
         NormalWorldSpace,
         NormalTangentSpace,
+        LightingComplexity,
     }
 
     public enum LightingDebugMode
