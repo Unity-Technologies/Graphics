@@ -268,18 +268,18 @@ namespace UnityEngine.Rendering.LWRP
 
             if (fullScreenDebugMode != FullScreenDebugMode.None)
             {
-                RenderTargetHandle debugBuffer = new RenderTargetHandle();
+                RenderTargetIdentifier debugBuffer;
 
                 switch (fullScreenDebugMode)
                 {
                     case FullScreenDebugMode.Depth:
-                        debugBuffer = m_DepthTexture;
+                        debugBuffer = m_DepthTexture.Identifier();
                         break;
                     case FullScreenDebugMode.MainLightShadowsOnly:
-                        debugBuffer.Init("_ScreenSpaceShadowmapTexture");
+                        debugBuffer = new RenderTargetIdentifier("_ScreenSpaceShadowmapTexture");
                         break;
                     default:
-                        debugBuffer = m_OpaqueColor;
+                        debugBuffer = m_OpaqueColor.Identifier();
                         break;
                 }
 

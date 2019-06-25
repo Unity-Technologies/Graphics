@@ -10,7 +10,7 @@ namespace UnityEngine.Rendering.LWRP
     internal class DebugPass : ScriptableRenderPass
     {
         const string m_ProfilerTag = "Debug Pass";
-        RenderTargetHandle m_Source;
+        RenderTargetIdentifier m_Source;
         Material m_BlitMaterial;
         TextureDimension m_TargetDimension;
         bool m_ClearBlitTarget;
@@ -33,10 +33,10 @@ namespace UnityEngine.Rendering.LWRP
         /// <param name="colorHandle"></param>
         /// <param name="clearBlitTarget"></param>
         /// <param name="pixelRect"></param>
-        public void Setup(RenderTextureDescriptor baseDescriptor, RenderTargetHandle colorHandle, int debugMode, 
+        public void Setup(RenderTextureDescriptor baseDescriptor, RenderTargetIdentifier colorIdentifier, int debugMode, 
             float nearPlane, float farPlane, bool clearBlitTarget = false, Rect pixelRect = new Rect())
         {
-            m_Source = colorHandle;
+            m_Source = colorIdentifier;
             m_TargetDimension = baseDescriptor.dimension;
             m_ClearBlitTarget = clearBlitTarget;
             m_IsMobileOrSwitch = Application.isMobilePlatform || Application.platform == RuntimePlatform.Switch;
@@ -84,7 +84,7 @@ namespace UnityEngine.Rendering.LWRP
             //}
             //else
             {
-                cmd.SetGlobalTexture("_BlitTex", m_Source.Identifier());
+                cmd.SetGlobalTexture("_BlitTex", m_Source);
                 cmd.SetGlobalInt("_DebugMode", m_DebugMode);
                 cmd.SetGlobalFloat("_NearPlane", m_NearPlane);
                 cmd.SetGlobalFloat("_FarPlane", m_FarPlane);
