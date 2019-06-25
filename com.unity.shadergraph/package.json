@@ -6,6 +6,7 @@
 	"unityRelease": "0a3",
     "displayName": "Shader Graph",
     "dependencies": {
-        "com.unity.render-pipelines.core": "7.0.0"
+        "com.unity.render-pipelines.core": "7.0.0",
+        "com.unity.mathematics": "1.0.1"
     }
 }
