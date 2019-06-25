@@ -15,6 +15,8 @@ namespace UnityEditor.ShaderGraph
         protected static List<IEdge> s_TempEdges = new List<IEdge>();
         protected static List<PreviewProperty> s_TempPreviewProperties = new List<PreviewProperty>();
 
+        public (int slotId, object value)[] Constants;
+
         [NonSerialized]
         private Guid m_Guid;
 

@@ -5,6 +5,8 @@ using System.Reflection;
 using JetBrains.Annotations;
 using UnityEngine;
 using UnityEditor.Graphing;
+using UnityEditor.ShaderGraph.Hlsl;
+using static UnityEditor.ShaderGraph.Hlsl.Intrinsics;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -357,8 +359,132 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
+        private void EvaluateConstant(MethodInfo function)
+        {
+            Constants = null;
+
+            var parms = function.GetParameters();
+            var args = new object[parms.Length];
+            int outputCount = 0;
+
+            s_TempSlots.Clear();
+            GetSlots(s_TempSlots);
+
+            foreach (var slot in s_TempSlots)
+            {
+                if (!slot.isInputSlot)
+                {
+                    ++outputCount;
+                    continue;
+                }
+
+                var parmIndex = Array.FindIndex(parms, e => e.GetCustomAttribute<SlotAttribute>().slotId == slot.id);
+                if (parmIndex < 0)
+                    return;
+
+                var edges = owner.GetEdges(slot.slotReference).ToArray();
+                if (edges.Any())
+                {
+                    var fromSocketRef = edges[0].outputSlot;
+                    var fromNode = owner.GetNodeFromGuid<AbstractMaterialNode>(fromSocketRef.nodeGuid);
+                    if (fromNode.Constants == null)
+                        return; // not a constant
+
+                    var constantIndex = Array.FindIndex(fromNode.Constants, e => e.slotId == fromSocketRef.slotId);
+                    if (constantIndex < 0 || fromNode.Constants[constantIndex].value == null)
+                        return; // not a constant
+
+                    var value = fromNode.Constants[constantIndex].value;
+                    if (slot is Vector2MaterialSlot)
+                    {
+                        if (value is Float f1)
+                            args[parmIndex] = Float2(f1, 0);
+                    }
+                    else if (slot is Vector3MaterialSlot)
+                    {
+                        if (value is Float f1)
+                            args[parmIndex] = Float3(f1, 0, 0);
+                        else if (value is Float2 f2)
+                            args[parmIndex] = Float3(f2, 0);
+                    }
+                    else if (slot is Vector4MaterialSlot)
+                    {
+                        if (value is Float f1)
+                            args[parmIndex] = Float4(f1, 0, 0, 0);
+                        else if (value is Float2 f2)
+                            args[parmIndex] = Float4(f2, 0, 0);
+                        else if (value is Float3 f3)
+                            args[parmIndex] = Float4(f3, 0);
+                    }
+
+                    if (args[parmIndex] == null)
+                        args[parmIndex] = fromNode.Constants[constantIndex].value;
+                }
+                else
+                {
+                    // Default
+                    if (slot is Vector1MaterialSlot vec1Slot)
+                        args[parmIndex] = Float(vec1Slot.value);
+                    else if (slot is Vector2MaterialSlot vec2Slot)
+                        args[parmIndex] = Float2(vec2Slot.value.x, vec2Slot.value.y);
+                    else if (slot is Vector3MaterialSlot vec3Slot)
+                        args[parmIndex] = Float3(vec3Slot.value.x, vec3Slot.value.y, vec3Slot.value.z);
+                    else if (slot is Vector4MaterialSlot vec4Slot)
+                        args[parmIndex] = Float4(vec4Slot.value.x, vec4Slot.value.y, vec4Slot.value.z, vec4Slot.value.w);
+                    else
+                        return;
+                }
+            }
+
+            function.Invoke(null, args);
+
+            var constants = new (int slotId, object value)[outputCount];
+            outputCount = 0;
+            foreach (var slot in s_TempSlots)
+            {
+                if (slot.isInputSlot)
+                    continue;
+
+                var parmIndex = Array.FindIndex(parms, e => e.GetCustomAttribute<SlotAttribute>().slotId == slot.id);
+                if (parmIndex < 0)
+                    continue;
+
+                if (args[parmIndex] == null)
+                    return;
+
+                var value = args[parmIndex];
+                if (slot.concreteValueType == ConcreteSlotValueType.Vector1)
+                {
+                    if (value is Float2 f2)
+                        value = f2.x;
+                    else if (value is Float3 f3)
+                        value = f3.x;
+                    else if (value is Float4 f4)
+                        value = f4.x;
+                }
+                else if (slot.concreteValueType == ConcreteSlotValueType.Vector2)
+                {
+                    if (value is Float3 f3)
+                        value = f3.xy;
+                    else if (value is Float4 f4)
+                        value = f4.xy;
+                }
+                else if (slot.concreteValueType == ConcreteSlotValueType.Vector3)
+                {
+                    if (value is Float4 f4)
+                        value = f4.xyz;
+                }
+
+                constants[outputCount++] = (slot.id, value);
+            }
+
+            Constants = constants;
+        }
+
         public void GenerateNodeCode(ShaderStringBuilder sb, GraphContext graphContext, GenerationMode generationMode)
         {
+            EvaluateConstant(GetFunctionToConvert());
+
             s_TempSlots.Clear();
             GetOutputSlots(s_TempSlots);
             foreach (var outSlot in s_TempSlots)
@@ -451,21 +577,21 @@ namespace UnityEditor.ShaderGraph
             foreach (var param in parms)
             {
                 var arg = GetDefault(param.ParameterType);
-                if (param.ParameterType == typeof(Hlsl.Float))
+                if (param.ParameterType == typeof(Float))
                 {
-                    arg = new Hlsl.Float() { Code = param.Name };
+                    arg = new Float() { Code = param.Name, Value = null };
                 }
-                else if (param.ParameterType == typeof(Hlsl.Float2))
+                else if (param.ParameterType == typeof(Float2))
                 {
-                    arg = new Hlsl.Float2() { Code = param.Name };
+                    arg = new Float2() { Code = param.Name, Value = null };
                 }
-                else if (param.ParameterType == typeof(Hlsl.Float3))
+                else if (param.ParameterType == typeof(Float3))
                 {
-                    arg = new Hlsl.Float3() { Code = param.Name };
+                    arg = new Float3() { Code = param.Name, Value = null };
                 }
-                else if (param.ParameterType == typeof(Hlsl.Float4))
+                else if (param.ParameterType == typeof(Float4))
                 {
-                    arg = new Hlsl.Float4() { Code = param.Name };
+                    arg = new Float4() { Code = param.Name, Value = null };
                 }
                 args.Add(arg);
             }
@@ -480,14 +606,14 @@ namespace UnityEditor.ShaderGraph
                 {
                     if (info.GetParameters()[i].IsOut)
                     {
-                        if (argsArray[i]?.GetType() == typeof(Hlsl.Float))
-                            result += parms[i].Name + " = " + ((Hlsl.Float)argsArray[i]).Code + ";" + Environment.NewLine;
-                        else if (argsArray[i]?.GetType() == typeof(Hlsl.Float2))
-                            result += parms[i].Name + " = " + ((Hlsl.Float2)argsArray[i]).Code + ";" + Environment.NewLine;
-                        else if (argsArray[i]?.GetType() == typeof(Hlsl.Float3))
-                            result += parms[i].Name + " = " + ((Hlsl.Float3)argsArray[i]).Code + ";" + Environment.NewLine;
-                        else if (argsArray[i]?.GetType() == typeof(Hlsl.Float4))
-                            result += parms[i].Name + " = " + ((Hlsl.Float4)argsArray[i]).Code + ";" + Environment.NewLine;
+                        if (argsArray[i] is Float f1)
+                            result += parms[i].Name + " = " + f1.Code + ";" + Environment.NewLine;
+                        else if (argsArray[i] is Float2 f2)
+                            result += parms[i].Name + " = " + f2.Code + ";" + Environment.NewLine;
+                        else if (argsArray[i] is Float3 f3)
+                            result += parms[i].Name + " = " + f3.Code + ";" + Environment.NewLine;
+                        else if (argsArray[i] is Float4 f4)
+                            result += parms[i].Name + " = " + f4.Code + ";" + Environment.NewLine;
                     }
                 }
                 result += "}" + Environment.NewLine;

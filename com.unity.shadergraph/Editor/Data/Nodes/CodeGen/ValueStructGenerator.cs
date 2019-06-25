@@ -78,22 +78,38 @@ namespace UnityEditor.ShaderGraph
         {
             int components = stack.Sum();
             var typeName = ValueTypeName(components);
+            var hlslTypeName = HlslTypeName(components);
             sb.Append($"\t\tpublic static {typeName} {typeName}(");
             for (int v = 0; v < stack.Count; ++v)
                 sb.Append($"{ValueTypeName(stack[v])} v{v}{(v != stack.Count - 1 ? ", " : "")}");
             sb.Append(")\n");
-            sb.Append($"\t\t\t=> new {typeName}() {{ Code = $\"{HlslTypeName(components)}(");
-            for (int v = 0; v < stack.Count; ++v)
-                sb.Append($"{{v{v}.Code}}{(v != stack.Count - 1 ? ", " : "")}");
-            sb.Append(")\" };\n\n");
+            if (stack.Count == 1)
+            {
+                sb.Append("\t\t\t=> v0;\n\n");
+            }
+            else
+            {
+                sb.Append($"\t\t\t=> new {typeName}() {{ Code = ");
+                sb.Append($"$\"{hlslTypeName}(");
+                for (int v = 0; v < stack.Count; ++v)
+                    sb.Append($"{{v{v}.Code}}{(v != stack.Count - 1 ? ", " : "")}");
+                sb.Append(")\"");
+                sb.Append(", Value = ");
+                for (int v = 0; v < stack.Count; ++v)
+                    sb.Append($"{(v != 0 ? " && " : "")}v{v}.Value != null");
+                sb.Append($" ? {hlslTypeName}(");
+                for (int v = 0; v < stack.Count; ++v)
+                    sb.Append($"{(v != 0 ? ", " : "")}v{v}.Value.Value");
+                sb.Append($") : Hlsl.{typeName}.Null");
+                sb.Append(" };\n\n");
+            }
         }
 
         private static void GenerateConstructosRecurse(StringBuilder sb, int components, List<int> stack)
         {
             if (components == 0)
             {
-                if (stack.Count > 1)
-                    GenerateConstructor(sb, stack);
+                GenerateConstructor(sb, stack);
             }
             else
             {
@@ -109,7 +125,7 @@ namespace UnityEditor.ShaderGraph
         private static void GenerateConstructors(StringBuilder sb)
         {
             var stack = new List<int>(4);
-            for (int components = 2; components <= 4; ++components)
+            for (int components = 1; components <= 4; ++components)
                 GenerateConstructosRecurse(sb, components, stack);
         }
 
@@ -262,7 +278,7 @@ namespace UnityEditor.ShaderGraph
                 Intrinsic1(sb, "cosh");
 
                 sb.Append("\t\tpublic static Float3 cross(Float3 x, Float3 y)\n");
-                sb.Append("\t\t\t=> new Float3() { Code = $\"cross({x.Code}, {y.Code})\" };\n\n");
+                sb.Append("\t\t\t=> new Float3() { Code = $\"cross({x.Code}, {y.Code})\", Value = x.Value != null && y.Value != null ? math.cross(x.Value.Value, y.Value.Value) : Hlsl.Float3.Null };\n\n");
 
                 Intrinsic1(sb, "ddx", evaluator: "x.Value != null ? 0 : {0}.Null");
                 Intrinsic1(sb, "ddy", evaluator: "x.Value != null ? 0 : {0}.Null");

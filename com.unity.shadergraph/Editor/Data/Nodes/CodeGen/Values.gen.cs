@@ -1648,38 +1648,50 @@ namespace UnityEditor.ShaderGraph.Hlsl
 
     public static class Intrinsics
     {
+        public static Float Float(Float v0)
+            => v0;
+
+        public static Float2 Float2(Float2 v0)
+            => v0;
+
         public static Float2 Float2(Float v0, Float v1)
-            => new Float2() { Code = $"float2({v0.Code}, {v1.Code})" };
+            => new Float2() { Code = $"float2({v0.Code}, {v1.Code})", Value = v0.Value != null && v1.Value != null ? float2(v0.Value.Value, v1.Value.Value) : Hlsl.Float2.Null };
+
+        public static Float3 Float3(Float3 v0)
+            => v0;
 
         public static Float3 Float3(Float2 v0, Float v1)
-            => new Float3() { Code = $"float3({v0.Code}, {v1.Code})" };
+            => new Float3() { Code = $"float3({v0.Code}, {v1.Code})", Value = v0.Value != null && v1.Value != null ? float3(v0.Value.Value, v1.Value.Value) : Hlsl.Float3.Null };
 
         public static Float3 Float3(Float v0, Float2 v1)
-            => new Float3() { Code = $"float3({v0.Code}, {v1.Code})" };
+            => new Float3() { Code = $"float3({v0.Code}, {v1.Code})", Value = v0.Value != null && v1.Value != null ? float3(v0.Value.Value, v1.Value.Value) : Hlsl.Float3.Null };
 
         public static Float3 Float3(Float v0, Float v1, Float v2)
-            => new Float3() { Code = $"float3({v0.Code}, {v1.Code}, {v2.Code})" };
+            => new Float3() { Code = $"float3({v0.Code}, {v1.Code}, {v2.Code})", Value = v0.Value != null && v1.Value != null && v2.Value != null ? float3(v0.Value.Value, v1.Value.Value, v2.Value.Value) : Hlsl.Float3.Null };
+
+        public static Float4 Float4(Float4 v0)
+            => v0;
 
         public static Float4 Float4(Float3 v0, Float v1)
-            => new Float4() { Code = $"float4({v0.Code}, {v1.Code})" };
+            => new Float4() { Code = $"float4({v0.Code}, {v1.Code})", Value = v0.Value != null && v1.Value != null ? float4(v0.Value.Value, v1.Value.Value) : Hlsl.Float4.Null };
 
         public static Float4 Float4(Float2 v0, Float2 v1)
-            => new Float4() { Code = $"float4({v0.Code}, {v1.Code})" };
+            => new Float4() { Code = $"float4({v0.Code}, {v1.Code})", Value = v0.Value != null && v1.Value != null ? float4(v0.Value.Value, v1.Value.Value) : Hlsl.Float4.Null };
 
         public static Float4 Float4(Float2 v0, Float v1, Float v2)
-            => new Float4() { Code = $"float4({v0.Code}, {v1.Code}, {v2.Code})" };
+            => new Float4() { Code = $"float4({v0.Code}, {v1.Code}, {v2.Code})", Value = v0.Value != null && v1.Value != null && v2.Value != null ? float4(v0.Value.Value, v1.Value.Value, v2.Value.Value) : Hlsl.Float4.Null };
 
         public static Float4 Float4(Float v0, Float3 v1)
-            => new Float4() { Code = $"float4({v0.Code}, {v1.Code})" };
+            => new Float4() { Code = $"float4({v0.Code}, {v1.Code})", Value = v0.Value != null && v1.Value != null ? float4(v0.Value.Value, v1.Value.Value) : Hlsl.Float4.Null };
 
         public static Float4 Float4(Float v0, Float2 v1, Float v2)
-            => new Float4() { Code = $"float4({v0.Code}, {v1.Code}, {v2.Code})" };
+            => new Float4() { Code = $"float4({v0.Code}, {v1.Code}, {v2.Code})", Value = v0.Value != null && v1.Value != null && v2.Value != null ? float4(v0.Value.Value, v1.Value.Value, v2.Value.Value) : Hlsl.Float4.Null };
 
         public static Float4 Float4(Float v0, Float v1, Float2 v2)
-            => new Float4() { Code = $"float4({v0.Code}, {v1.Code}, {v2.Code})" };
+            => new Float4() { Code = $"float4({v0.Code}, {v1.Code}, {v2.Code})", Value = v0.Value != null && v1.Value != null && v2.Value != null ? float4(v0.Value.Value, v1.Value.Value, v2.Value.Value) : Hlsl.Float4.Null };
 
         public static Float4 Float4(Float v0, Float v1, Float v2, Float v3)
-            => new Float4() { Code = $"float4({v0.Code}, {v1.Code}, {v2.Code}, {v3.Code})" };
+            => new Float4() { Code = $"float4({v0.Code}, {v1.Code}, {v2.Code}, {v3.Code})", Value = v0.Value != null && v1.Value != null && v2.Value != null && v3.Value != null ? float4(v0.Value.Value, v1.Value.Value, v2.Value.Value, v3.Value.Value) : Hlsl.Float4.Null };
 
         public static Hlsl.Float abs(Hlsl.Float x)
             => new Hlsl.Float() { Code = $"abs({x.Code})", Value = x.Value != null ? math.abs(x.Value.Value) : Hlsl.Float.Null };
@@ -1790,7 +1802,7 @@ namespace UnityEditor.ShaderGraph.Hlsl
             => new Hlsl.Float4() { Code = $"cosh({x.Code})", Value = x.Value != null ? math.cosh(x.Value.Value) : Hlsl.Float4.Null };
 
         public static Float3 cross(Float3 x, Float3 y)
-            => new Float3() { Code = $"cross({x.Code}, {y.Code})" };
+            => new Float3() { Code = $"cross({x.Code}, {y.Code})", Value = x.Value != null && y.Value != null ? math.cross(x.Value.Value, y.Value.Value) : Hlsl.Float3.Null };
 
         public static Hlsl.Float ddx(Hlsl.Float x)
             => new Hlsl.Float() { Code = $"ddx({x.Code})", Value = x.Value != null ? 0 : Hlsl.Float.Null };
