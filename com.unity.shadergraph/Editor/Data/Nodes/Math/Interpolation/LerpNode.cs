@@ -12,7 +12,6 @@ namespace UnityEditor.ShaderGraph
             name = "Lerp";
         }
 
-
         protected override MethodInfo GetFunctionToConvert()
         {
             return GetType().GetMethod("Unity_Lerp", BindingFlags.Static | BindingFlags.NonPublic);

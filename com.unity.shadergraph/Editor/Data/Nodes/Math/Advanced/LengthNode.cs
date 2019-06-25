@@ -12,7 +12,6 @@ namespace UnityEditor.ShaderGraph
             name = "Length";
         }
 
-
         protected override MethodInfo GetFunctionToConvert()
         {
             return GetType().GetMethod("Unity_Length", BindingFlags.Static | BindingFlags.NonPublic);

@@ -12,7 +12,6 @@ namespace UnityEditor.ShaderGraph
             name = "Sine";
         }
 
-
         protected override MethodInfo GetFunctionToConvert()
         {
             return GetType().GetMethod("Unity_Sine", BindingFlags.Static | BindingFlags.NonPublic);

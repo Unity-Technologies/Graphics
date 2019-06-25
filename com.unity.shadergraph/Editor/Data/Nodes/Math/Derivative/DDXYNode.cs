@@ -12,7 +12,6 @@ namespace UnityEditor.ShaderGraph
             name = "DDXY";
         }
 
-
         protected override MethodInfo GetFunctionToConvert()
         {
             return GetType().GetMethod("Unity_DDXY", BindingFlags.Static | BindingFlags.NonPublic);

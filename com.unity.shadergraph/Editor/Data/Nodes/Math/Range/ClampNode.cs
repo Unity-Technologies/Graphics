@@ -12,7 +12,6 @@ namespace UnityEditor.ShaderGraph
             name = "Clamp";
         }
 
-
         protected override MethodInfo GetFunctionToConvert()
         {
             return GetType().GetMethod("Unity_Clamp", BindingFlags.Static | BindingFlags.NonPublic);

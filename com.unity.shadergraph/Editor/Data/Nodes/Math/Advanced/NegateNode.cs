@@ -11,7 +11,6 @@ namespace UnityEditor.ShaderGraph
             name = "Negate";
         }
 
-
         protected override MethodInfo GetFunctionToConvert()
         {
             return GetType().GetMethod("Unity_Negate", BindingFlags.Static | BindingFlags.NonPublic);

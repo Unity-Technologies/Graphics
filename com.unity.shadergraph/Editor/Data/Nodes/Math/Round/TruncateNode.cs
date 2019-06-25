@@ -12,7 +12,6 @@ namespace UnityEditor.ShaderGraph
             name = "Truncate";
         }
 
-
         protected override MethodInfo GetFunctionToConvert()
         {
             return GetType().GetMethod("Unity_Truncate", BindingFlags.Static | BindingFlags.NonPublic);

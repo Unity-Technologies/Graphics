@@ -12,7 +12,6 @@ namespace UnityEditor.ShaderGraph
             name = "Hyperbolic Tangent";
         }
 
-
         protected override MethodInfo GetFunctionToConvert()
         {
             return GetType().GetMethod("Unity_HyperbolicTangent", BindingFlags.Static | BindingFlags.NonPublic);

@@ -12,7 +12,6 @@ namespace UnityEditor.ShaderGraph
             name = "Tangent";
         }
 
-
         protected override MethodInfo GetFunctionToConvert()
         {
             return GetType().GetMethod("Unity_Tangent", BindingFlags.Static | BindingFlags.NonPublic);

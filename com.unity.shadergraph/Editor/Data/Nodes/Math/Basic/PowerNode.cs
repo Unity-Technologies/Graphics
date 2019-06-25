@@ -12,7 +12,6 @@ namespace UnityEditor.ShaderGraph
             name = "Power";
         }
 
-
         protected override MethodInfo GetFunctionToConvert()
         {
             return GetType().GetMethod("Unity_Power", BindingFlags.Static | BindingFlags.NonPublic);

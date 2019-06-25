@@ -12,7 +12,6 @@ namespace UnityEditor.ShaderGraph
             name = "Smoothstep";
         }
 
-
         protected override MethodInfo GetFunctionToConvert()
         {
             return GetType().GetMethod("Unity_Smoothstep", BindingFlags.Static | BindingFlags.NonPublic);

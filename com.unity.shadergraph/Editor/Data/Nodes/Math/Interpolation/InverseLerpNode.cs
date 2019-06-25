@@ -11,7 +11,6 @@ namespace UnityEditor.ShaderGraph
             name = "Inverse Lerp";
         }
 
-
         protected override MethodInfo GetFunctionToConvert()
         {
             return GetType().GetMethod("Unity_InverseLerp", BindingFlags.Static | BindingFlags.NonPublic);

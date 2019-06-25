@@ -12,7 +12,6 @@ namespace UnityEditor.ShaderGraph
             name = "Floor";
         }
 
-
         protected override MethodInfo GetFunctionToConvert()
         {
             return GetType().GetMethod("Unity_Floor", BindingFlags.Static | BindingFlags.NonPublic);

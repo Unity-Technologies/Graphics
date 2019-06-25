@@ -12,7 +12,6 @@ namespace UnityEditor.ShaderGraph
             name = "Modulo";
         }
 
-
         protected override MethodInfo GetFunctionToConvert()
         {
             return GetType().GetMethod("Unity_Modulo", BindingFlags.Static | BindingFlags.NonPublic);

@@ -12,7 +12,6 @@ namespace UnityEditor.ShaderGraph
             name = "Degrees To Radians";
         }
 
-
         protected override MethodInfo GetFunctionToConvert()
         {
             return GetType().GetMethod("Unity_DegreesToRadians", BindingFlags.Static | BindingFlags.NonPublic);

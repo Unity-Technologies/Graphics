@@ -12,7 +12,6 @@ namespace UnityEditor.ShaderGraph
             name = "Step";
         }
 
-
         protected override MethodInfo GetFunctionToConvert()
         {
             return GetType().GetMethod("Unity_Step", BindingFlags.Static | BindingFlags.NonPublic);

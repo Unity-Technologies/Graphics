@@ -12,7 +12,6 @@ namespace UnityEditor.ShaderGraph
             name = "Arccosine";
         }
 
-
         protected override MethodInfo GetFunctionToConvert()
         {
             return GetType().GetMethod("Unity_Arccosine", BindingFlags.Static | BindingFlags.NonPublic);

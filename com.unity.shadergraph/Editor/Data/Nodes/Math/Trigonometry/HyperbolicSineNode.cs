@@ -12,7 +12,6 @@ namespace UnityEditor.ShaderGraph
             name = "Hyperbolic Sine";
         }
 
-
         protected override MethodInfo GetFunctionToConvert()
         {
             return GetType().GetMethod("Unity_HyperbolicSine", BindingFlags.Static | BindingFlags.NonPublic);

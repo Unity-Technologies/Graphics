@@ -267,9 +267,7 @@ namespace UnityEditor.ShaderGraph
                 var name = GraphUtil.ConvertCamelCase(par.Name, true);
 
                 MaterialSlot s;
-                if (attribute.binding == Binding.None && !par.IsOut && par.ParameterType == typeof(Color))
-                    s = new ColorRGBAMaterialSlot(attribute.slotId, name, par.Name, SlotType.Input, attribute.defaultValue ?? Vector4.zero, stageCapability: attribute.stageCapability, hidden: attribute.hidden);
-                else if (attribute.binding == Binding.None && !par.IsOut && par.ParameterType == typeof(ColorRGBA))
+                if (attribute.binding == Binding.None && !par.IsOut && (par.ParameterType == typeof(Color) || par.ParameterType == typeof(ColorRGBA)))
                     s = new ColorRGBAMaterialSlot(attribute.slotId, name, par.Name, SlotType.Input, attribute.defaultValue ?? Vector4.zero, stageCapability: attribute.stageCapability, hidden: attribute.hidden);
                 else if (attribute.binding == Binding.None && !par.IsOut && par.ParameterType == typeof(ColorRGB))
                     s = new ColorRGBMaterialSlot(attribute.slotId, name, par.Name, SlotType.Input, attribute.defaultValue ?? Vector4.zero, ColorMode.Default, stageCapability: attribute.stageCapability, hidden: attribute.hidden);

@@ -12,7 +12,6 @@ namespace UnityEditor.ShaderGraph
             name = "Saturate";
         }
 
-
         protected override MethodInfo GetFunctionToConvert()
         {
             return GetType().GetMethod("Unity_Saturate", BindingFlags.Static | BindingFlags.NonPublic);

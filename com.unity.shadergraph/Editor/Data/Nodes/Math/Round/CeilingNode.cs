@@ -12,7 +12,6 @@ namespace UnityEditor.ShaderGraph
             name = "Ceiling";
         }
 
-
         protected override MethodInfo GetFunctionToConvert()
         {
             return GetType().GetMethod("Unity_Ceiling", BindingFlags.Static | BindingFlags.NonPublic);

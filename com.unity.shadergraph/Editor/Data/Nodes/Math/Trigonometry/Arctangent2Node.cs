@@ -12,7 +12,6 @@ namespace UnityEditor.ShaderGraph
             name = "Arctangent2";
         }
 
-
         protected override MethodInfo GetFunctionToConvert()
         {
             return GetType().GetMethod("Unity_Arctangent2", BindingFlags.Static | BindingFlags.NonPublic);

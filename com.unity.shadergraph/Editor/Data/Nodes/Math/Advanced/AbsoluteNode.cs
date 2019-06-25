@@ -12,7 +12,6 @@ namespace UnityEditor.ShaderGraph
             name = "Absolute";
         }
 
-
         protected override MethodInfo GetFunctionToConvert()
         {
             return GetType().GetMethod("Unity_Absolute", BindingFlags.Static | BindingFlags.NonPublic);

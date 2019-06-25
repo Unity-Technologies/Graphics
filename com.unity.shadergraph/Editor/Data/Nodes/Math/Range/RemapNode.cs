@@ -12,7 +12,6 @@ namespace UnityEditor.ShaderGraph
             name = "Remap";
         }
 
-
         protected override MethodInfo GetFunctionToConvert()
         {
             return GetType().GetMethod("Unity_Remap", BindingFlags.Static | BindingFlags.NonPublic);

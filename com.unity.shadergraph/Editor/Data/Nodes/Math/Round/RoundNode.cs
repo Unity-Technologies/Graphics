@@ -12,7 +12,6 @@ namespace UnityEditor.ShaderGraph
             name = "Round";
         }
 
-
         protected override MethodInfo GetFunctionToConvert()
         {
             return GetType().GetMethod("Unity_Round", BindingFlags.Static | BindingFlags.NonPublic);

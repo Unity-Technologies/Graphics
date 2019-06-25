@@ -1,4 +1,3 @@
-using UnityEngine;
 using System.Reflection;
 using UnityEditor.ShaderGraph.Hlsl;
 using static UnityEditor.ShaderGraph.Hlsl.Intrinsics;
@@ -12,7 +11,6 @@ namespace UnityEditor.ShaderGraph
         {
             name = "Random Range";
         }
-
 
         protected override MethodInfo GetFunctionToConvert()
         {

@@ -12,7 +12,6 @@ namespace UnityEditor.ShaderGraph
             name = "Hyperbolic Cosine";
         }
 
-
         protected override MethodInfo GetFunctionToConvert()
         {
             return GetType().GetMethod("Unity_HyperbolicCosine", BindingFlags.Static | BindingFlags.NonPublic);
