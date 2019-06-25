@@ -7,6 +7,8 @@ using UnityEngine.Rendering;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
+    using RTHandle = RTHandleSystem.RTHandle;
+
     [Serializable]
     public enum SkyResolution
     {
@@ -27,13 +29,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
     public class BuiltinSkyParameters
     {
-        public Matrix4x4                pixelCoordToViewDirMatrix;
-        public Vector4                  screenSize;
-        public CommandBuffer            commandBuffer;
-        public Light                    sunLight;
-        public RTHandleSystem.RTHandle  colorBuffer;
-        public RTHandleSystem.RTHandle  depthBuffer;
-        public HDCamera                 hdCamera;
+        public Matrix4x4        pixelCoordToViewDirMatrix;
+        public Vector4          screenSize;
+        public CommandBuffer    commandBuffer;
+        public Light            sunLight;
+        public RTHandle         colorBuffer;
+        public RTHandle         depthBuffer;
+        public HDCamera         hdCamera;
 
         public DebugDisplaySettings debugSettings;
 
@@ -409,15 +411,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        public void RenderSky(HDCamera camera, Light sunLight, RTHandleSystem.RTHandle colorBuffer, RTHandleSystem.RTHandle depthBuffer, DebugDisplaySettings debugSettings, CommandBuffer cmd)
+        public void RenderSky(HDCamera camera, Light sunLight, RTHandle colorBuffer, RTHandle depthBuffer, DebugDisplaySettings debugSettings, CommandBuffer cmd)
         {
             m_CurrentSkyRenderingContext.RenderSky(m_VisualSky, camera, sunLight, colorBuffer, depthBuffer, debugSettings, cmd);
         }
 
         public void RenderOpaqueAtmosphericScattering(CommandBuffer cmd, HDCamera hdCamera,
-                                                      RTHandleSystem.RTHandle colorBuffer,
-                                                      RTHandleSystem.RTHandle intermediateBuffer,
-                                                      RTHandleSystem.RTHandle depthBuffer,
+                                                      RTHandle colorBuffer,
+                                                      RTHandle intermediateBuffer,
+                                                      RTHandle depthBuffer,
                                                       Matrix4x4 pixelCoordToViewDirWS, bool isMSAA)
         {
             using (new ProfilingSample(cmd, "Opaque Atmospheric Scattering"))
