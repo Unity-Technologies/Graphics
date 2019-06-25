@@ -48,15 +48,23 @@ namespace UnityEngine.Rendering.LWRP
                 var sortFlags = (m_IsOpaque)
                     ? renderingData.cameraData.defaultOpaqueSortFlags
                     : SortingCriteria.CommonTransparent;
-                var drawSettings = CreateDrawingSettings(m_ShaderTagIdList, ref renderingData, sortFlags);
-
-                if (lightingDebugMode != LightingDebugMode.None || debugMaterialIndex != DebugMaterialIndex.None)
+                
+                bool isMaterialDebugActive = lightingDebugMode != LightingDebugMode.None ||
+                                             debugMaterialIndex != DebugMaterialIndex.None;
+                bool isReplacementDebugActive = DebugDisplaySettings.Instance.buffer.FullScreenDebugMode ==
+                                                FullScreenDebugMode.Overdraw;
+                if (isMaterialDebugActive || isReplacementDebugActive)
                 {
+                    DebugReplacementPassType debugPassType =
+                        (isMaterialDebugActive) ? DebugReplacementPassType.None : DebugReplacementPassType.Overdraw;
+                        
                     RenderingUtils.RenderObjectWithDebug(context, ref renderingData, camera,
-                        m_FilteringSettings, SortingCriteria.None);
+                        debugPassType, m_FilteringSettings, sortFlags);
                 }
                 else
                 {
+                    var drawSettings = CreateDrawingSettings(m_ShaderTagIdList, ref renderingData, sortFlags);
+
                     context.DrawRenderers(renderingData.cullResults, ref drawSettings, ref m_FilteringSettings,
                         ref m_RenderStateBlock);
 

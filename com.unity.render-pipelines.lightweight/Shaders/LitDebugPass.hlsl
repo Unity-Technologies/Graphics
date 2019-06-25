@@ -223,7 +223,7 @@ half4 LitPassFragment(Varyings input) : SV_Target
         color.rgb = inputData.normalWS.xyz * 0.5 + 0.5;
         
     if (_DebugMaterialIndex == DEBUG_NORMAL_TANGENT_SPACE)
-        color = surfaceData.normalTS.xyz * 0.5 + 0.5;
+        color.rgb = surfaceData.normalTS.xyz * 0.5 + 0.5;
 
     if (_DebugLightingIndex == DEBUG_LIGHTING_SHADOW_CASCADES)
     {

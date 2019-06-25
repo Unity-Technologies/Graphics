@@ -3,15 +3,16 @@ using System.Diagnostics;
 
 namespace UnityEngine.Rendering.LWRP
 {
+    internal enum FullScreenDebugMode
+    {
+        None,
+        Depth,
+        MainLightShadowsOnly,
+        Overdraw,
+    }
+    
     internal class ForwardRenderer : ScriptableRenderer
     {
-        internal enum FullScreenDebugMode
-        {
-            None = 0,
-            Depth = 1,
-            MainLightShadowsOnly = 2,
-        }
-
         const int k_DepthStencilBufferBits = 32;
         const string k_CreateCameraTextures = "Create Camera Texture";
         int m_DebugMaterialIndexId;
@@ -107,9 +108,11 @@ namespace UnityEngine.Rendering.LWRP
             Camera camera = renderingData.cameraData.camera;
             RenderTextureDescriptor cameraTargetDescriptor = renderingData.cameraData.cameraTargetDescriptor;
 
+            var fullScreenDebugMode = DebugDisplaySettings.Instance.buffer.FullScreenDebugMode;
+            
             // Special path for depth only offscreen cameras. Only write opaques + transparents. 
             bool isOffscreenDepthTexture = camera.targetTexture != null && camera.targetTexture.format == RenderTextureFormat.Depth;
-            if (isOffscreenDepthTexture)
+            if (isOffscreenDepthTexture || fullScreenDebugMode == FullScreenDebugMode.Overdraw)
             {
                 ConfigureCameraTarget(BuiltinRenderTextureType.CameraTarget, BuiltinRenderTextureType.CameraTarget);
 
@@ -117,11 +120,14 @@ namespace UnityEngine.Rendering.LWRP
                     rendererFeatures[i].AddRenderPasses(this, ref renderingData);
 
                 EnqueuePass(m_RenderOpaqueForwardPass);
-                EnqueuePass(m_DrawSkyboxPass);
+                
+                if (camera.clearFlags == CameraClearFlags.Skybox && RenderSettings.skybox != null)
+                    EnqueuePass(m_DrawSkyboxPass);
+                
                 EnqueuePass(m_RenderTransparentForwardPass);
                 return;
             }
-
+            
             bool mainLightShadows = m_MainLightShadowCasterPass.Setup(ref renderingData);
             bool additionalLightShadows = m_AdditionalLightsShadowCasterPass.Setup(ref renderingData);
             bool resolveShadowsInScreenSpace = mainLightShadows && renderingData.shadowData.requiresScreenSpaceShadowResolve;
@@ -281,8 +287,6 @@ namespace UnityEngine.Rendering.LWRP
                     EnqueuePass(m_FinalBlitPass);
                 }
             }
-
-            var fullScreenDebugMode = DebugDisplaySettings.Instance.buffer.FullScreenDebugMode;
 
             if (fullScreenDebugMode != FullScreenDebugMode.None)
             {
