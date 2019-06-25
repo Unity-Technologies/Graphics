@@ -42,7 +42,7 @@ void ClampRoughness(inout BSDFData bsdfData, float minRoughness)
 // Assume bsdfData.normalWS is init
 void FillMaterialAnisotropy(float anisotropy, float3 tangentWS, float3 bitangentWS, inout BSDFData bsdfData)
 {
-    bsdfData.anisotropy = anisotropy;
+    bsdfData.anisotropy = 0;
     bsdfData.tangentWS = tangentWS;
     bsdfData.bitangentWS = bitangentWS;
 }
@@ -163,6 +163,8 @@ BSDFData ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfaceData)
     bsdfData.fresnel0 = IorToFresnel0(1.35);
 
     bsdfData.refractionMask = surfaceData.refractionMask;
+
+    ConvertAnisotropyToRoughness(bsdfData.perceptualRoughness, bsdfData.anisotropy, bsdfData.roughnessT, bsdfData.roughnessB);
 
     ApplyDebugToBSDFData(bsdfData);
 
