@@ -790,6 +790,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly int _AOOutputHistory                = Shader.PropertyToID("_AOOutputHistory");
 
         public static readonly int _EyeMapSize = Shader.PropertyToID("_MapRes");
+        public static readonly int _EyeNormal = Shader.PropertyToID("_EyeNormal");
+
 
     }
 

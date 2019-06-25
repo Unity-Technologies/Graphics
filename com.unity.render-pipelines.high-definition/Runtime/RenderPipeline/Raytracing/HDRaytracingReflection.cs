@@ -70,7 +70,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Inject the ray-tracing sampling data
             cmd.SetRayTracingTextureParam(reflectionShader, HDShaderIDs._OwenScrambledTexture, m_Asset.renderPipelineResources.textures.owenScrambledTex);
             cmd.SetRayTracingTextureParam(reflectionShader, HDShaderIDs._ScramblingTexture, m_Asset.renderPipelineResources.textures.scramblingTex);
-
+            
             // Global reflection parameters
             cmd.SetRayTracingFloatParams(reflectionShader, HDShaderIDs._RaytracingIntensityClamp, settings.clampValue.value);
             cmd.SetRayTracingFloatParams(reflectionShader, HDShaderIDs._RaytracingReflectionMinSmoothness, settings.minSmoothness.value);

@@ -176,6 +176,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         readonly SkyManager m_SkyManager = new SkyManager();
         readonly AmbientOcclusionSystem m_AmbientOcclusionSystem;
+        readonly EyeProfileDataManager m_EyeProfileManager;
 
         // Debugging
         MaterialPropertyBlock m_SharedPropertyBlock = new MaterialPropertyBlock();
@@ -280,6 +281,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_SharedRTManager.Build(asset);
             m_PostProcessSystem = new PostProcessSystem(asset);
             m_AmbientOcclusionSystem = new AmbientOcclusionSystem(asset);
+            m_EyeProfileManager = new EyeProfileDataManager();
 
             // Initialize various compute shader resources
             m_SsrTracingKernel      = m_ScreenSpaceReflectionsCS.FindKernel("ScreenSpaceReflectionsTracing");
@@ -442,7 +444,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             m_ContactShadowBuffer = RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GraphicsFormat.R32_UInt, enableRandomWrite: true, useDynamicScale: true, name: "ContactShadowsBuffer");
 
-            m_EyeNormals = RTHandles.Alloc(eyeNormalSize, eyeNormalSize, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite: true, useDynamicScale: true, name: "EyeNormals");
+            m_EyeNormals = RTHandles.Alloc(eyeNormalSize, eyeNormalSize, filterMode: FilterMode.Point, colorFormat: GraphicsFormat.R8G8B8A8_SNorm, useDynamicScale: false, enableRandomWrite: false, name: "EyessNormals");
 
 
             if (m_Asset.currentPlatformRenderPipelineSettings.lowresTransparentSettings.enabled)
@@ -501,6 +503,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             RTHandles.Release(m_CameraColorMSAABuffer);
             RTHandles.Release(m_OpaqueAtmosphericScatteringMSAABuffer);
             RTHandles.Release(m_CameraSssDiffuseLightingMSAABuffer);
+
+            RTHandles.Release(m_EyeNormals);
+
         }
 
         bool SetRenderingFeatures()
@@ -831,16 +836,21 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_SkyManager.SetGlobalSkyData(cmd);
             }
 
-            var settings = VolumeManager.instance.stack.GetComponent<EyeProfileManager>();
-            if(settings.albedoTexture.value != null)
+            // TODO_HW19: This should be done on demand and not every frame when the profile settings change.
+            RenderNormalMapForEye(hdCamera, cmd);
+
+            if (m_EyeProfileManager.currentProfile != null && m_EyeProfileManager.currentProfile.albedoTexture.value != null)
             {
-                cmd.SetGlobalTexture("_EyeTexture", settings.albedoTexture.value);
+                cmd.SetGlobalTexture("_EyeTexture", m_EyeProfileManager.currentProfile.albedoTexture.value);
             }
-            if(settings.maskTexture.value != null)
+
+            cmd.SetGlobalTexture(HDShaderIDs._EyeNormal, m_EyeNormals);
+
+            if(m_EyeProfileManager.currentProfile.maskTexture.value != null)
             {
-                cmd.SetGlobalTexture("_EyeMask", settings.maskTexture.value);
+                cmd.SetGlobalTexture("_EyeMask", m_EyeProfileManager.currentProfile.maskTexture.value);
             }
-            cmd.SetGlobalInt("_EyeRefraction", settings.enableRefraction.value ? 1 : 0);
+            cmd.SetGlobalInt("_EyeRefraction", m_EyeProfileManager.currentProfile.enableRefraction.value ? 1 : 0);
         }
 
         void CopyDepthBufferIfNeeded(CommandBuffer cmd)
@@ -1590,7 +1600,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             Resize(hdCamera);
             m_PostProcessSystem.BeginFrame(cmd, hdCamera);
 
-            ApplyDebugDisplaySettings(hdCamera, cmd);
+
+
+                ApplyDebugDisplaySettings(hdCamera, cmd);
             m_SkyManager.UpdateCurrentSkySettings(hdCamera);
 
             SetupCameraProperties(hdCamera, renderContext, cmd);
@@ -1855,6 +1867,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     VolumeVoxelizationPass(hdCamera, cmd, m_FrameCount, densityVolumes);
                 }
 
+
                 // Render the volumetric lighting.
                 // The pass requires the volume properties, the light list and the shadows, and can run async.
                 VolumetricLightingPass(hdCamera, cmd, m_FrameCount);
@@ -1892,8 +1905,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 RenderDeferredLighting(hdCamera, cmd);
 
-                    // TODO_HW19: This should be done on demand and not every frame when the profile settings change.
-                    RenderNormalMapForEye(hdCamera, cmd);
 
                 RenderForwardOpaque(cullingResults, hdCamera, renderContext, cmd);
 
@@ -2469,13 +2480,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         void RenderNormalMapForEye(HDCamera hdCamera, CommandBuffer cmd)
         {
-            HDUtils.SetRenderTarget(cmd, m_EyeNormals);
-            m_GenerateEyeNormals.SetTexture(HDShaderIDs._OutputTexture, m_EyeNormals);
-            m_GenerateEyeNormals.SetInt(HDShaderIDs._EyeMapSize, eyeNormalSize);
-            cmd.SetGlobalTexture(HDShaderIDs._OwenScrambledTexture, m_Asset.renderPipelineResources.textures.owenScrambledTex);
-            cmd.SetGlobalTexture(HDShaderIDs._ScramblingTexture, m_Asset.renderPipelineResources.textures.scramblingTex);
+            EyeDataInfo currProfile = VolumeManager.instance.stack.GetComponent<EyeDataInfo>();
 
-            cmd.DrawProcedural(Matrix4x4.identity, m_GenerateEyeNormals, 0, MeshTopology.Triangles, 3, 1, null);
+            m_EyeProfileManager.currentProfile = currProfile;
+            m_EyeProfileManager.UpdateProfileGeneratedData(cmd, m_GenerateEyeNormals, m_EyeNormals, eyeNormalSize, m_Asset.renderPipelineResources.textures.owenScrambledTex);
         }
 
         protected static void DrawOpaqueRendererList(in ScriptableRenderContext renderContext, CommandBuffer cmd, in FrameSettings frameSettings, RendererList rendererList)

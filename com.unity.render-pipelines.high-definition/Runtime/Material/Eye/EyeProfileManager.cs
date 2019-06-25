@@ -4,26 +4,29 @@ using UnityEngine.Rendering;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
-    [Serializable, VolumeComponentMenu("EyeProfileManager")]
-    public sealed class EyeProfileManager : VolumeComponent
+    using RTHandle = RTHandleSystem.RTHandle;
+
+    public class EyeProfileDataManager
     {
-        public TextureParameter albedoTexture = new TextureParameter(null);
-        public TextureParameter maskTexture = new TextureParameter(null);
+        public EyeDataInfo currentProfile = new EyeDataInfo();
 
-        public BoolParameter useCustomNormalMap = new BoolParameter(false);
-        public BoolParameter useCustomRoughness = new BoolParameter(false);
-        public BoolParameter enableRefraction = new BoolParameter(false);
-
-        public ClampedFloatParameter bumpiness = new ClampedFloatParameter(1.0f, 0.0f, 5.0f);
-
-        // optional
-        public TextureParameter normalTexture = new TextureParameter(null);
-        public TextureParameter roguhnessTexture = new TextureParameter(null);
-
-
-        public bool IsActive()
+        // TODO: Most of the inputs should either live on the profile or in the manager, not passed through.
+        // This logic should be on the profile in a final version.
+        public void UpdateProfileGeneratedData(CommandBuffer cmd, Material generateNormalMat, RTHandle normal, int eyeNormalSize, Texture2D noiseTex)
         {
-            return true;
+           // if(currentProfile.NeedsUpdating())
+            {
+                HDUtils.SetRenderTarget(cmd, normal);
+                generateNormalMat.SetTexture(HDShaderIDs._OutputTexture, normal);
+                generateNormalMat.SetInt(HDShaderIDs._EyeMapSize, eyeNormalSize);
+
+                //TODO: SET OUTSIDE.
+                cmd.SetGlobalTexture(HDShaderIDs._OwenScrambledTexture, noiseTex);
+
+                cmd.DrawProcedural(Matrix4x4.identity, generateNormalMat, 0, MeshTopology.Triangles, 3, 1, null);
+
+          //      currentProfile.ToggleUpdateDone();
+            }
         }
     }
 }

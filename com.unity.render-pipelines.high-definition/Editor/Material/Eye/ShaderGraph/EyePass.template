@@ -143,6 +143,7 @@ $include("SharedCode.template.hlsl")
     TEXTURE2D(_EyeMask);
     int _EyeRefraction;
     SAMPLER(s_point_clamp);
+    TEXTURE2D(_EyeNormal);
     
     float2 TransformToUVSpace(float3 positionOS)
     {
@@ -161,7 +162,6 @@ $include("SharedCode.template.hlsl")
         surfaceData.mask = mask;
         float2 texcoord = fragInputs.texCoord0.xy;
         float3 positionOS = mul(GetWorldToObjectMatrix(), fragInputs.positionRWS + _WorldSpaceCameraPos);
-        //float height = positionOS.z + 0.5 > 0.10087 ? 0.0 : positionOS.z + 0.5;
         float height = - positionOS.z + 0.5 > 0.10087 ? 0.0 : - positionOS.z + 0.5 ;
 
         if (_EyeRefraction)
@@ -189,8 +189,7 @@ $include("SharedCode.template.hlsl")
         }
 
 
-        surfaceData.baseColor = _EyeTexture.Sample(s_point_clamp, texcoord.xy);
-        //surfaceData.baseColor = GetWorldToObjectMatrix()[2].xyz;
+        surfaceData.baseColor = _EyeTexture.Sample(s_point_clamp, texcoord.xy) * _EyeNormal.Sample(s_point_clamp, texcoord.xy);
         surfaceData.irisSmoothness = 0.99;
         surfaceData.scleraSmoothness = 0.99;
         float3 doubleSidedConstants = float3(1.0, 1.0, 1.0);
@@ -199,6 +198,9 @@ $include("SharedCode.template.hlsl")
         float3 normalTS = float3(0.0f, 0.0f, 1.0f);
         $SurfaceDescription.Normal: normalTS = surfaceDescription.Normal;
 
+        // Override, TODO this should use profile index to pickup the right texture
+        normalTS = _EyeNormal.Sample(s_point_clamp, texcoord.xy);
+ 
         // compute world space normal
         GetNormalWS(fragInputs, normalTS, surfaceData.normalWS, doubleSidedConstants);
 
