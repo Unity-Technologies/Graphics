@@ -1,7 +1,9 @@
 using System.Reflection;
-using UnityEditor.ShaderGraph.Drawing.Controls;
 using UnityEngine;
+using UnityEditor.ShaderGraph.Drawing.Controls;
 using UnityEditor.Graphing;
+using UnityEditor.ShaderGraph.Hlsl;
+using static UnityEditor.ShaderGraph.Hlsl.Intrinsics;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -41,161 +43,128 @@ namespace UnityEditor.ShaderGraph
                 BindingFlags.Static | BindingFlags.NonPublic);
         }
 
-        static string Unity_Blend_Burn(
-            [Slot(0, Binding.None)] DynamicDimensionVector Base,
-            [Slot(1, Binding.None)] DynamicDimensionVector Blend,
-            [Slot(3, Binding.None, 1, 1, 1, 1)] Vector1 Opacity,
-            [Slot(2, Binding.None)] out DynamicDimensionVector Out)
+        [HlslCodeGen]
+        static void Unity_Blend_Burn(
+            [Slot(0, Binding.None)] [AnyDimension] Float4 Base,
+            [Slot(1, Binding.None)] [AnyDimension] Float4 Blend,
+            [Slot(3, Binding.None, 1, 1, 1, 1)] Float Opacity,
+            [Slot(2, Binding.None)] [AnyDimension] out Float4 Out)
         {
-            return
-                @"
-{
-    Out =  1.0 - (1.0 - Blend)/(Base + 0.000000000001);
-    Out = lerp(Base, Out, Opacity);
-}";
+            Out = 1.0 - (1.0 - Blend) / (Base + 0.000000000001);
+            Out = lerp(Base, Out, Opacity);
         }
 
-        static string Unity_Blend_Darken(
-            [Slot(0, Binding.None)] DynamicDimensionVector Base,
-            [Slot(1, Binding.None)] DynamicDimensionVector Blend,
-            [Slot(3, Binding.None, 1, 1, 1, 1)] Vector1 Opacity,
-            [Slot(2, Binding.None)] out DynamicDimensionVector Out)
+        [HlslCodeGen]
+        static void Unity_Blend_Darken(
+            [Slot(0, Binding.None)] [AnyDimension] Float4 Base,
+            [Slot(1, Binding.None)] [AnyDimension] Float4 Blend,
+            [Slot(3, Binding.None, 1, 1, 1, 1)] Float Opacity,
+            [Slot(2, Binding.None)] [AnyDimension] out Float4 Out)
         {
-            return
-                @"
-{
-    Out = min(Blend, Base);
-    Out = lerp(Base, Out, Opacity);
-}";
+            Out = min(Blend, Base);
+            Out = lerp(Base, Out, Opacity);
         }
 
-        static string Unity_Blend_Difference(
-            [Slot(0, Binding.None)] DynamicDimensionVector Base,
-            [Slot(1, Binding.None)] DynamicDimensionVector Blend,
-            [Slot(3, Binding.None, 1, 1, 1, 1)] Vector1 Opacity,
-            [Slot(2, Binding.None)] out DynamicDimensionVector Out)
+        [HlslCodeGen]
+        static void Unity_Blend_Difference(
+            [Slot(0, Binding.None)] [AnyDimension] Float4 Base,
+            [Slot(1, Binding.None)] [AnyDimension] Float4 Blend,
+            [Slot(3, Binding.None, 1, 1, 1, 1)] Float Opacity,
+            [Slot(2, Binding.None)] [AnyDimension] out Float4 Out)
         {
-            return
-                @"
-{
-    Out = abs(Blend - Base);
-    Out = lerp(Base, Out, Opacity);
-}";
+            Out = abs(Blend - Base);
+            Out = lerp(Base, Out, Opacity);
         }
 
-        static string Unity_Blend_Dodge(
-            [Slot(0, Binding.None)] DynamicDimensionVector Base,
-            [Slot(1, Binding.None)] DynamicDimensionVector Blend,
-            [Slot(3, Binding.None, 1, 1, 1, 1)] Vector1 Opacity,
-            [Slot(2, Binding.None)] out DynamicDimensionVector Out)
+        [HlslCodeGen]
+        static void Unity_Blend_Dodge(
+            [Slot(0, Binding.None)] [AnyDimension] Float4 Base,
+            [Slot(1, Binding.None)] [AnyDimension] Float4 Blend,
+            [Slot(3, Binding.None, 1, 1, 1, 1)] Float Opacity,
+            [Slot(2, Binding.None)] [AnyDimension] Float4 Out)
         {
-            return
-                @"
-{
-    Out = Base / (1.0 - clamp(Blend, 0.000001, 0.999999));
-    Out = lerp(Base, Out, Opacity);
-}";
+            Out = Base / (1.0 - clamp(Blend, 0.000001, 0.999999));
+            Out = lerp(Base, Out, Opacity);
         }
 
-        static string Unity_Blend_Divide(
-            [Slot(0, Binding.None)] DynamicDimensionVector Base,
-            [Slot(1, Binding.None)] DynamicDimensionVector Blend,
-            [Slot(3, Binding.None, 1, 1, 1, 1)] Vector1 Opacity,
-            [Slot(2, Binding.None)] out DynamicDimensionVector Out)
+        [HlslCodeGen]
+        static void Unity_Blend_Divide(
+            [Slot(0, Binding.None)] [AnyDimension] Float4 Base,
+            [Slot(1, Binding.None)] [AnyDimension] Float4 Blend,
+            [Slot(3, Binding.None, 1, 1, 1, 1)] Float Opacity,
+            [Slot(2, Binding.None)] [AnyDimension] out Float4 Out)
         {
-            return
-                @"
-{
-    Out = Base / (Blend + 0.000000000001);
-    Out = lerp(Base, Out, Opacity);
-}";
+            Out = Base / (Blend + 0.000000000001);
+            Out = lerp(Base, Out, Opacity);
         }
 
-        static string Unity_Blend_Exclusion(
-            [Slot(0, Binding.None)] DynamicDimensionVector Base,
-            [Slot(1, Binding.None)] DynamicDimensionVector Blend,
-            [Slot(3, Binding.None, 1, 1, 1, 1)] Vector1 Opacity,
-            [Slot(2, Binding.None)] out DynamicDimensionVector Out)
+        [HlslCodeGen]
+        static void Unity_Blend_Exclusion(
+            [Slot(0, Binding.None)] [AnyDimension] Float4 Base,
+            [Slot(1, Binding.None)] [AnyDimension] Float4 Blend,
+            [Slot(3, Binding.None, 1, 1, 1, 1)] Float Opacity,
+            [Slot(2, Binding.None)] [AnyDimension] out Float4 Out)
         {
-            return
-                @"
-{
-    Out = Blend + Base - (2.0 * Blend * Base);
-    Out = lerp(Base, Out, Opacity);
-}";
+            Out = Blend + Base - (2.0 * Blend * Base);
+            Out = lerp(Base, Out, Opacity);
         }
 
-        static string Unity_Blend_HardLight(
-            [Slot(0, Binding.None)] DynamicDimensionVector Base,
-            [Slot(1, Binding.None)] DynamicDimensionVector Blend,
-            [Slot(3, Binding.None, 1, 1, 1, 1)] Vector1 Opacity,
-            [Slot(2, Binding.None)] out DynamicDimensionVector Out)
+        [HlslCodeGen]
+        static void Unity_Blend_HardLight(
+            [Slot(0, Binding.None)] [AnyDimension] Float4 Base,
+            [Slot(1, Binding.None)] [AnyDimension] Float4 Blend,
+            [Slot(3, Binding.None, 1, 1, 1, 1)] Float Opacity,
+            [Slot(2, Binding.None)] [AnyDimension] out Float4 Out)
         {
-            return
-                @"
-{
-    $precision{slot2dimension} result1 = 1.0 - 2.0 * (1.0 - Base) * (1.0 - Blend);
-    $precision{slot2dimension} result2 = 2.0 * Base * Blend;
-    $precision{slot2dimension} zeroOrOne = step(Blend, 0.5);
-    Out = result2 * zeroOrOne + (1 - zeroOrOne) * result1;
-    Out = lerp(Base, Out, Opacity);
-}";
+            var result1 = 1.0 - 2.0 * (1.0 - Base) * (1.0 - Blend);
+            var result2 = 2.0 * Base * Blend;
+            var zeroOrOne = step(Blend, 0.5);
+            Out = result2 * zeroOrOne + (1 - zeroOrOne) * result1;
+            Out = lerp(Base, Out, Opacity);
         }
 
-        static string Unity_Blend_HardMix(
-            [Slot(0, Binding.None)] DynamicDimensionVector Base,
-            [Slot(1, Binding.None)] DynamicDimensionVector Blend,
-            [Slot(3, Binding.None, 1, 1, 1, 1)] Vector1 Opacity,
-            [Slot(2, Binding.None)] out DynamicDimensionVector Out)
+        [HlslCodeGen]
+        static void Unity_Blend_HardMix(
+            [Slot(0, Binding.None)] [AnyDimension] Float4 Base,
+            [Slot(1, Binding.None)] [AnyDimension] Float4 Blend,
+            [Slot(3, Binding.None, 1, 1, 1, 1)] Float Opacity,
+            [Slot(2, Binding.None)] [AnyDimension] out Float4 Out)
         {
-            return
-                @"
-{
-    Out = step(1 - Base, Blend);
-    Out = lerp(Base, Out, Opacity);
-}";
+            Out = step(1 - Base, Blend);
+            Out = lerp(Base, Out, Opacity);
         }
 
-        static string Unity_Blend_Lighten(
-            [Slot(0, Binding.None)] DynamicDimensionVector Base,
-            [Slot(1, Binding.None)] DynamicDimensionVector Blend,
-            [Slot(3, Binding.None, 1, 1, 1, 1)] Vector1 Opacity,
-            [Slot(2, Binding.None)] out DynamicDimensionVector Out)
+        [HlslCodeGen]
+        static void Unity_Blend_Lighten(
+            [Slot(0, Binding.None)] [AnyDimension] Float4 Base,
+            [Slot(1, Binding.None)] [AnyDimension] Float4 Blend,
+            [Slot(3, Binding.None, 1, 1, 1, 1)] Float Opacity,
+            [Slot(2, Binding.None)] [AnyDimension] out Float4 Out)
         {
-            return
-                @"
-{
-    Out = max(Blend, Base);
-    Out = lerp(Base, Out, Opacity);
-}";
+            Out = max(Blend, Base);
+            Out = lerp(Base, Out, Opacity);
         }
 
-        static string Unity_Blend_LinearBurn(
-            [Slot(0, Binding.None)] DynamicDimensionVector Base,
-            [Slot(1, Binding.None)] DynamicDimensionVector Blend,
-            [Slot(3, Binding.None, 1, 1, 1, 1)] Vector1 Opacity,
-            [Slot(2, Binding.None)] out DynamicDimensionVector Out)
+        [HlslCodeGen]
+        static void Unity_Blend_LinearBurn(
+            [Slot(0, Binding.None)] [AnyDimension] Float4 Base,
+            [Slot(1, Binding.None)] [AnyDimension] Float4 Blend,
+            [Slot(3, Binding.None, 1, 1, 1, 1)] Float Opacity,
+            [Slot(2, Binding.None)] [AnyDimension] out Float4 Out)
         {
-            return
-                @"
-{
-    Out = Base + Blend - 1.0;
-    Out = lerp(Base, Out, Opacity);
-}";
+            Out = Base + Blend - 1.0;
+            Out = lerp(Base, Out, Opacity);
         }
 
-        static string Unity_Blend_LinearDodge(
-            [Slot(0, Binding.None)] DynamicDimensionVector Base,
-            [Slot(1, Binding.None)] DynamicDimensionVector Blend,
-            [Slot(3, Binding.None, 1, 1, 1, 1)] Vector1 Opacity,
-            [Slot(2, Binding.None)] out DynamicDimensionVector Out)
+        [HlslCodeGen]
+        static void Unity_Blend_LinearDodge(
+            [Slot(0, Binding.None)] [AnyDimension] Float4 Base,
+            [Slot(1, Binding.None)] [AnyDimension] Float4 Blend,
+            [Slot(3, Binding.None, 1, 1, 1, 1)] Float Opacity,
+            [Slot(2, Binding.None)] [AnyDimension] out Float4 Out)
         {
-            return
-                @"
-{
-    Out = Base + Blend;
-    Out = lerp(Base, Out, Opacity);
-}";
+            Out = Base + Blend;
+            Out = lerp(Base, Out, Opacity);
         }
 
         static string Unity_Blend_LinearLight(
@@ -212,160 +181,125 @@ namespace UnityEditor.ShaderGraph
 }";
         }
 
-        static string Unity_Blend_LinearLightAddSub(
-            [Slot(0, Binding.None)] DynamicDimensionVector Base,
-            [Slot(1, Binding.None)] DynamicDimensionVector Blend,
-            [Slot(3, Binding.None, 1, 1, 1, 1)] Vector1 Opacity,
-            [Slot(2, Binding.None)] out DynamicDimensionVector Out)
+        [HlslCodeGen]
+        static void Unity_Blend_LinearLightAddSub(
+            [Slot(0, Binding.None)] [AnyDimension] Float4 Base,
+            [Slot(1, Binding.None)] [AnyDimension] Float4 Blend,
+            [Slot(3, Binding.None, 1, 1, 1, 1)] Float Opacity,
+            [Slot(2, Binding.None)] [AnyDimension] out Float4 Out)
         {
-            return
-                @"
-{
-    Out = Blend + 2.0 * Base - 1.0;
-    Out = lerp(Base, Out, Opacity);
-}";
+            Out = Blend + 2.0 * Base - 1.0;
+            Out = lerp(Base, Out, Opacity);
         }
 
-        static string Unity_Blend_Multiply(
-            [Slot(0, Binding.None)] DynamicDimensionVector Base,
-            [Slot(1, Binding.None)] DynamicDimensionVector Blend,
-            [Slot(3, Binding.None, 1, 1, 1, 1)] Vector1 Opacity,
-            [Slot(2, Binding.None)] out DynamicDimensionVector Out)
+        [HlslCodeGen]
+        static void Unity_Blend_Multiply(
+            [Slot(0, Binding.None)] [AnyDimension] Float4 Base,
+            [Slot(1, Binding.None)] [AnyDimension] Float4 Blend,
+            [Slot(3, Binding.None, 1, 1, 1, 1)] Float Opacity,
+            [Slot(2, Binding.None)] [AnyDimension] out Float4 Out)
         {
-            return
-                @"
-{
-    Out = Base * Blend;
-    Out = lerp(Base, Out, Opacity);
-}";
+            Out = Base * Blend;
+            Out = lerp(Base, Out, Opacity);
         }
 
-        static string Unity_Blend_Negation(
-            [Slot(0, Binding.None)] DynamicDimensionVector Base,
-            [Slot(1, Binding.None)] DynamicDimensionVector Blend,
-            [Slot(3, Binding.None, 1, 1, 1, 1)] Vector1 Opacity,
-            [Slot(2, Binding.None)] out DynamicDimensionVector Out)
+        [HlslCodeGen]
+        static void Unity_Blend_Negation(
+            [Slot(0, Binding.None)] [AnyDimension] Float4 Base,
+            [Slot(1, Binding.None)] [AnyDimension] Float4 Blend,
+            [Slot(3, Binding.None, 1, 1, 1, 1)] Float Opacity,
+            [Slot(2, Binding.None)] [AnyDimension] out Float4 Out)
         {
-            return
-                @"
-{
-    Out = 1.0 - abs(1.0 - Blend - Base);
-    Out = lerp(Base, Out, Opacity);
-}";
+            Out = 1.0 - abs(1.0 - Blend - Base);
+            Out = lerp(Base, Out, Opacity);
         }
 
-        static string Unity_Blend_Screen(
-            [Slot(0, Binding.None)] DynamicDimensionVector Base,
-            [Slot(1, Binding.None)] DynamicDimensionVector Blend,
-            [Slot(3, Binding.None, 1, 1, 1, 1)] Vector1 Opacity,
-            [Slot(2, Binding.None)] out DynamicDimensionVector Out)
+        [HlslCodeGen]
+        static void Unity_Blend_Screen(
+            [Slot(0, Binding.None)] [AnyDimension] Float4 Base,
+            [Slot(1, Binding.None)] [AnyDimension] Float4 Blend,
+            [Slot(3, Binding.None, 1, 1, 1, 1)] Float Opacity,
+            [Slot(2, Binding.None)] [AnyDimension] out Float4 Out)
         {
-            return
-                @"
-{
-    Out = 1.0 - (1.0 - Blend) * (1.0 - Base);
-    Out = lerp(Base, Out, Opacity);
-}";
+            Out = 1.0 - (1.0 - Blend) * (1.0 - Base);
+            Out = lerp(Base, Out, Opacity);
         }
 
-        static string Unity_Blend_Overlay(
-            [Slot(0, Binding.None)] DynamicDimensionVector Base,
-            [Slot(1, Binding.None)] DynamicDimensionVector Blend,
-            [Slot(3, Binding.None, 1, 1, 1, 1)] Vector1 Opacity,
-            [Slot(2, Binding.None)] out DynamicDimensionVector Out)
+        [HlslCodeGen]
+        static void Unity_Blend_Overlay(
+            [Slot(0, Binding.None)] [AnyDimension] Float4 Base,
+            [Slot(1, Binding.None)] [AnyDimension] Float4 Blend,
+            [Slot(3, Binding.None, 1, 1, 1, 1)] Float Opacity,
+            [Slot(2, Binding.None)] [AnyDimension] out Float4 Out)
         {
-            return
-                @"
-{
-    $precision{slot2dimension} result1 = 1.0 - 2.0 * (1.0 - Base) * (1.0 - Blend);
-    $precision{slot2dimension} result2 = 2.0 * Base * Blend;
-    $precision{slot2dimension} zeroOrOne = step(Base, 0.5);
-    Out = result2 * zeroOrOne + (1 - zeroOrOne) * result1;
-    Out = lerp(Base, Out, Opacity);
-}
-";
+            var result1 = 1.0 - 2.0 * (1.0 - Base) * (1.0 - Blend);
+            var result2 = 2.0 * Base * Blend;
+            var zeroOrOne = step(Base, 0.5);
+            Out = result2 * zeroOrOne + (1 - zeroOrOne) * result1;
+            Out = lerp(Base, Out, Opacity);
         }
 
-        static string Unity_Blend_PinLight(
-            [Slot(0, Binding.None)] DynamicDimensionVector Base,
-            [Slot(1, Binding.None)] DynamicDimensionVector Blend,
-            [Slot(3, Binding.None, 1, 1, 1, 1)] Vector1 Opacity,
-            [Slot(2, Binding.None)] out DynamicDimensionVector Out)
+        [HlslCodeGen]
+        static void Unity_Blend_PinLight(
+            [Slot(0, Binding.None)] [AnyDimension] Float4 Base,
+            [Slot(1, Binding.None)] [AnyDimension] Float4 Blend,
+            [Slot(3, Binding.None, 1, 1, 1, 1)] Float Opacity,
+            [Slot(2, Binding.None)] [AnyDimension] out Float4 Out)
         {
-            return
-                @"
-{
-    $precision{slot2dimension} check = step (0.5, Blend);
-    $precision{slot2dimension} result1 = check * max(2.0 * (Base - 0.5), Blend);
-    Out = result1 + (1.0 - check) * min(2.0 * Base, Blend);
-    Out = lerp(Base, Out, Opacity);
-}
-";
+            var check = step(0.5, Blend);
+            var result1 = check * max(2.0 * (Base - 0.5), Blend);
+            Out = result1 + (1.0 - check) * min(2.0 * Base, Blend);
+            Out = lerp(Base, Out, Opacity);
         }
 
-        static string Unity_Blend_SoftLight(
-            [Slot(0, Binding.None)] DynamicDimensionVector Base,
-            [Slot(1, Binding.None)] DynamicDimensionVector Blend,
-            [Slot(3, Binding.None, 1, 1, 1, 1)] Vector1 Opacity,
-            [Slot(2, Binding.None)] out DynamicDimensionVector Out)
+        [HlslCodeGen]
+        static void Unity_Blend_SoftLight(
+            [Slot(0, Binding.None)] [AnyDimension] Float4 Base,
+            [Slot(1, Binding.None)] [AnyDimension] Float4 Blend,
+            [Slot(3, Binding.None, 1, 1, 1, 1)] Float Opacity,
+            [Slot(2, Binding.None)] [AnyDimension] out Float4 Out)
         {
-            return
-                @"
-{
-    $precision{slot2dimension} result1 = 2.0 * Base * Blend + Base * Base * (1.0 - 2.0 * Blend);
-    $precision{slot2dimension} result2 = sqrt(Base) * (2.0 * Blend - 1.0) + 2.0 * Base * (1.0 - Blend);
-    $precision{slot2dimension} zeroOrOne = step(0.5, Blend);
-    Out = result2 * zeroOrOne + (1 - zeroOrOne) * result1;
-    Out = lerp(Base, Out, Opacity);
-}
-";
+            var result1 = 2.0 * Base * Blend + Base * Base * (1.0 - 2.0 * Blend);
+            var result2 = sqrt(Base) * (2.0 * Blend - 1.0) + 2.0 * Base * (1.0 - Blend);
+            var zeroOrOne = step(0.5, Blend);
+            Out = result2 * zeroOrOne + (1 - zeroOrOne) * result1;
+            Out = lerp(Base, Out, Opacity);
         }
 
-        static string Unity_Blend_VividLight(
-            [Slot(0, Binding.None)] DynamicDimensionVector Base,
-            [Slot(1, Binding.None)] DynamicDimensionVector Blend,
-            [Slot(3, Binding.None, 1, 1, 1, 1)] Vector1 Opacity,
-            [Slot(2, Binding.None)] out DynamicDimensionVector Out)
+        [HlslCodeGen]
+        static void Unity_Blend_VividLight(
+            [Slot(0, Binding.None)] [AnyDimension] Float4 Base,
+            [Slot(1, Binding.None)] [AnyDimension] Float4 Blend,
+            [Slot(3, Binding.None, 1, 1, 1, 1)] Float Opacity,
+            [Slot(2, Binding.None)] [AnyDimension] out Float4 Out)
         {
-            return
-                @"
-{
-    Base = clamp(Base, 0.000001, 0.999999);
-    $precision{slot2dimension} result1 = 1.0 - (1.0 - Blend) / (2.0 * Base);
-    $precision{slot2dimension} result2 = Blend / (2.0 * (1.0 - Base));
-    $precision{slot2dimension} zeroOrOne = step(0.5, Base);
-    Out = result2 * zeroOrOne + (1 - zeroOrOne) * result1;
-    Out = lerp(Base, Out, Opacity);
-}
-";
+            Base = clamp(Base, 0.000001, 0.999999);
+            var result1 = 1.0 - (1.0 - Blend) / (2.0 * Base);
+            var result2 = Blend / (2.0 * (1.0 - Base));
+            var zeroOrOne = step(0.5, Base);
+            Out = result2 * zeroOrOne + (1 - zeroOrOne) * result1;
+            Out = lerp(Base, Out, Opacity);
         }
 
-        static string Unity_Blend_Subtract(
-            [Slot(0, Binding.None)] DynamicDimensionVector Base,
-            [Slot(1, Binding.None)] DynamicDimensionVector Blend,
-            [Slot(3, Binding.None, 1, 1, 1, 1)] Vector1 Opacity,
-            [Slot(2, Binding.None)] out DynamicDimensionVector Out)
+        [HlslCodeGen]
+        static void Unity_Blend_Subtract(
+            [Slot(0, Binding.None)] [AnyDimension] Float4 Base,
+            [Slot(1, Binding.None)] [AnyDimension] Float4 Blend,
+            [Slot(3, Binding.None, 1, 1, 1, 1)] Float Opacity,
+            [Slot(2, Binding.None)] [AnyDimension] out Float4 Out)
         {
-            return
-                @"
-{
-    Out = Base - Blend;
-    Out = lerp(Base, Out, Opacity);
-}
-";
+            Out = Base - Blend;
+            Out = lerp(Base, Out, Opacity);
         }
 
-        static string Unity_Blend_Overwrite(
-            [Slot(0, Binding.None)] DynamicDimensionVector Base,
-            [Slot(1, Binding.None)] DynamicDimensionVector Blend,
-            [Slot(3, Binding.None, 1, 1, 1, 1)] Vector1 Opacity,
-            [Slot(2, Binding.None)] out DynamicDimensionVector Out)
+        [HlslCodeGen]
+        static void Unity_Blend_Overwrite(
+            [Slot(0, Binding.None)] [AnyDimension] Float4 Base,
+            [Slot(1, Binding.None)] [AnyDimension] Float4 Blend,
+            [Slot(3, Binding.None, 1, 1, 1, 1)] Float Opacity,
+            [Slot(2, Binding.None)] [AnyDimension] out Float4 Out)
         {
-            return
-                @"
-{
-    Out = lerp(Base, Blend, Opacity);
-}";
+            Out = lerp(Base, Blend, Opacity);
         }
     }
 }

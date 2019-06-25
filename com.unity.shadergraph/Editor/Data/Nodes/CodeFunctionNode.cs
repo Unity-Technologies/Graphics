@@ -512,7 +512,12 @@ namespace UnityEditor.ShaderGraph
                 if (slot.isInputSlot)
                 {
                     if (slot is IDynamicDimensionSlot dynamic && dynamic.isDynamic && dynamic.IsShrank)
-                        call += $"{slot.valueType.ToShaderString()}({GetSlotValue(slot.id, generationMode)}{String.Concat(Enumerable.Repeat(", 0", slot.valueType.GetChannelCount() - slot.concreteValueType.GetChannelCount()))})";
+                    {
+                        if (slot.concreteValueType != ConcreteSlotValueType.Vector1)
+                            call += $"{slot.valueType.ToShaderString()}({GetSlotValue(slot.id, generationMode)}{String.Concat(Enumerable.Repeat(", 0", slot.valueType.GetChannelCount() - slot.concreteValueType.GetChannelCount()))})";
+                        else
+                            call += $"{GetSlotValue(slot.id, generationMode)}";
+                    }
                     else
                         call += GetSlotValue(slot.id, generationMode);
                 }

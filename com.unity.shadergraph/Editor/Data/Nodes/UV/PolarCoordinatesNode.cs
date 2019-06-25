@@ -1,5 +1,6 @@
 using System.Reflection;
-using UnityEngine;
+using UnityEditor.ShaderGraph.Hlsl;
+using static UnityEditor.ShaderGraph.Hlsl.Intrinsics;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -11,29 +12,23 @@ namespace UnityEditor.ShaderGraph
             name = "Polar Coordinates";
         }
 
-
         protected override MethodInfo GetFunctionToConvert()
         {
             return GetType().GetMethod("Unity_PolarCoordinates", BindingFlags.Static | BindingFlags.NonPublic);
         }
 
-        static string Unity_PolarCoordinates(
-            [Slot(0, Binding.MeshUV0)] Vector2 UV,
-            [Slot(1, Binding.None, 0.5f, 0.5f, 0.5f, 0.5f)] Vector2 Center,
-            [Slot(2, Binding.None, 1.0f, 1.0f, 1.0f, 1.0f)] Vector1 RadialScale,
-            [Slot(3, Binding.None, 1.0f, 1.0f, 1.0f, 1.0f)] Vector1 LengthScale,
-            [Slot(4, Binding.None)] out Vector2 Out)
+        [HlslCodeGen]
+        static void Unity_PolarCoordinates(
+            [Slot(0, Binding.MeshUV0)] Float2 UV,
+            [Slot(1, Binding.None, 0.5f, 0.5f, 0.5f, 0.5f)] Float2 Center,
+            [Slot(2, Binding.None, 1.0f, 1.0f, 1.0f, 1.0f)] Float RadialScale,
+            [Slot(3, Binding.None, 1.0f, 1.0f, 1.0f, 1.0f)] Float LengthScale,
+            [Slot(4, Binding.None)] out Float2 Out)
         {
-            Out = Vector2.zero;
-            return
-                @"
-{
-    $precision2 delta = UV - Center;
-    $precision radius = length(delta) * 2 * RadialScale;
-    $precision angle = atan2(delta.x, delta.y) * 1.0/6.28 * LengthScale;
-    Out = $precision2(radius, angle);
-}
-";
+            var delta = UV - Center;
+            var radius = length(delta) * 2 * RadialScale;
+            var angle = atan2(delta.x, delta.y) * 1.0 / 6.28 * LengthScale;
+            Out = Float2(radius, angle);
         }
     }
 }

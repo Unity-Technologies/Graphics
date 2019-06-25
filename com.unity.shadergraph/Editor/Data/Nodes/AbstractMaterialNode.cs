@@ -463,9 +463,17 @@ namespace UnityEditor.ShaderGraph
                     {
                         if (type != outputConcreteType)
                         {
-                            inputSlot.hasError = true;
-                            errorMessage = $"ERROR: Type {outputConcreteType} is not allowed in dynamic dimension group '{dynamic.dynamicDimensionGroup}'";
-                            continue;
+                            if (outputConcreteType != ConcreteSlotValueType.Vector1 && type != ConcreteSlotValueType.Vector1)
+                            {
+                                inputSlot.hasError = true;
+                                errorMessage = $"ERROR: Type {outputConcreteType} is not allowed in dynamic dimension group '{dynamic.dynamicDimensionGroup}'";
+                                continue;
+                            }
+                            else if (type == ConcreteSlotValueType.Vector1)
+                            {
+                                // update the dictionary to the bigger vector
+                                dynamicInputGroupType[dynamic.dynamicDimensionGroup] = outputConcreteType;
+                            }
                         }
                     }
                     else

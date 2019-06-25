@@ -1,5 +1,5 @@
 using System.Reflection;
-using UnityEngine;
+using UnityEditor.ShaderGraph.Hlsl;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -11,25 +11,19 @@ namespace UnityEditor.ShaderGraph
             name = "Tiling And Offset";
         }
 
-
         protected override MethodInfo GetFunctionToConvert()
         {
             return GetType().GetMethod("Unity_TilingAndOffset", BindingFlags.Static | BindingFlags.NonPublic);
         }
 
-        static string Unity_TilingAndOffset(
-            [Slot(0, Binding.MeshUV0)] Vector2 UV,
-            [Slot(1, Binding.None, 1f, 1f, 1f, 1f)] Vector2 Tiling,
-            [Slot(2, Binding.None, 0f, 0f, 0f, 0f)] Vector2 Offset,
-            [Slot(3, Binding.None)] out Vector2 Out)
+        [HlslCodeGen]
+        static void Unity_TilingAndOffset(
+            [Slot(0, Binding.MeshUV0)] Float2 UV,
+            [Slot(1, Binding.None, 1f, 1f, 1f, 1f)] Float2 Tiling,
+            [Slot(2, Binding.None, 0f, 0f, 0f, 0f)] Float2 Offset,
+            [Slot(3, Binding.None)] out Float2 Out)
         {
-            Out = Vector2.zero;
-            return
-                @"
-{
-    Out = UV * Tiling + Offset;
-}
-";
+            Out = UV * Tiling + Offset;
         }
     }
 }

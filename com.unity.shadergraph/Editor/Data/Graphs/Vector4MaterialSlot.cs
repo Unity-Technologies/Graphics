@@ -82,7 +82,7 @@ namespace UnityEditor.ShaderGraph
             AbstractShaderProperty property;
             if (m_ConcreteValueType == ConcreteSlotValueType.Vector1)
                 property = new Vector1ShaderProperty() { value = value.x };
-            if (m_ConcreteValueType == ConcreteSlotValueType.Vector2)
+            else if (m_ConcreteValueType == ConcreteSlotValueType.Vector2)
                 property = new Vector2ShaderProperty() { value = new Vector2(value.x, value.y) };
             else if (m_ConcreteValueType == ConcreteSlotValueType.Vector3)
                 property = new Vector3ShaderProperty() { value = new Vector3(value.x, value.y, value.z) };

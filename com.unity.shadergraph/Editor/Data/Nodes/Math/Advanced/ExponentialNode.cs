@@ -21,7 +21,6 @@ namespace UnityEditor.ShaderGraph
             name = "Exponential";
         }
 
-
         [SerializeField]
         private ExponentialBase m_ExponentialBase = ExponentialBase.BaseE;
 
