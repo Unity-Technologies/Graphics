@@ -12,8 +12,10 @@
 #define DEBUG_EMISSION 7
 #define DEBUG_NORMAL_WORLD_SPACE 8
 #define DEBUG_NORMAL_TANGENT_SPACE 9
-
 int _DebugMaterialIndex;
+
+#define DEBUG_LIGHTING_SHADOW_CASCADES 1
+int _DebugLightingIndex;
 
 struct Attributes
 {
@@ -30,7 +32,7 @@ struct Varyings
     float2 uv                       : TEXCOORD0;
     DECLARE_LIGHTMAP_OR_SH(lightmapUV, vertexSH, 1);
 
-#ifdef _ADDITIONAL_LIGHTS
+#if defined(_ADDITIONAL_LIGHTS)
     float3 positionWS               : TEXCOORD2;
 #endif
 
@@ -45,7 +47,7 @@ struct Varyings
 
     half4 fogFactorAndVertexLight   : TEXCOORD6; // x: fogFactor, yzw: vertex light
 
-#ifdef _MAIN_LIGHT_SHADOWS
+#if defined(_MAIN_LIGHT_SHADOWS)
     float4 shadowCoord              : TEXCOORD7;
 #endif
 
@@ -58,7 +60,7 @@ void InitializeInputData(Varyings input, half3 normalTS, out InputData inputData
 {
     inputData = (InputData)0;
 
-#ifdef _ADDITIONAL_LIGHTS
+#if defined(_ADDITIONAL_LIGHTS)
     inputData.positionWS = input.positionWS;
 #endif
 
@@ -75,7 +77,7 @@ void InitializeInputData(Varyings input, half3 normalTS, out InputData inputData
     viewDirWS = SafeNormalize(viewDirWS);
 
     inputData.viewDirectionWS = viewDirWS;
-#if defined(_MAIN_LIGHT_SHADOWS) && !defined(_RECEIVE_SHADOWS_OFF)
+#if (defined(_MAIN_LIGHT_SHADOWS) && !defined(_RECEIVE_SHADOWS_OFF))
     inputData.shadowCoord = input.shadowCoord;
 #else
     inputData.shadowCoord = float4(0, 0, 0, 0);
@@ -120,17 +122,65 @@ Varyings LitPassVertex(Attributes input)
 
     output.fogFactorAndVertexLight = half4(fogFactor, vertexLight);
 
-#ifdef _ADDITIONAL_LIGHTS
+#if defined(_ADDITIONAL_LIGHTS)
     output.positionWS = vertexInput.positionWS;
 #endif
 
-#if defined(_MAIN_LIGHT_SHADOWS) && !defined(_RECEIVE_SHADOWS_OFF)
+#if (defined(_MAIN_LIGHT_SHADOWS) && !defined(_RECEIVE_SHADOWS_OFF))
     output.shadowCoord = GetShadowCoord(vertexInput);
 #endif
 
     output.positionCS = vertexInput.positionCS;
 
     return output;
+}
+
+
+
+#if 0
+// TODO: Set of colors that should still provide contrast for the Color-blind
+const half4 Purple = half4(156.0 / 255.0, 79.0 / 255.0, 255.0 / 255.0, 1.0); // #9C4FFF 
+const half4 Red = half4(203.0 / 255.0, 48.0 / 255.0, 34.0 / 255.0, 1.0) ; // #CB3022
+const half4 Green = half4(8.0 / 255.0, 215.0 / 255.0, 139.0 / 255.0, 1.0) ; // #08D78B
+const half4 YellowGreen = half4(151.0 / 255.0, 209.0 / 255.0, 61.0 / 255.0, 1.0) ; // #97D13D
+const half4 Blue = half4(75.0 / 255.0, 146.0 / 255.0, 243.0 / 255.0, 1.0) ; // #4B92F3
+const half4 OrangeBrown = half4(219.0 / 255.0, 119.0 / 255.0, 59.0 / 255.0, 1.0) ; // #4B92F3
+const half4 Gray = half4(174.0 / 255.0, 174.0 / 255.0, 174.0 / 255.0, 1.0) ; // #AEAEAE   
+#endif
+
+half4 GetShadowCascadeColor(float4 shadowCoord, float3 positionWS)
+{
+    Light mainLight = GetMainLight(shadowCoord);
+    half cascadeIndex = ComputeCascadeIndex(positionWS);
+
+    half4 cascadeColors[] =
+    {
+        half4(0.1, 0.1, 0.9, 1.0), // blue
+        half4(0.1, 0.9, 0.1, 1.0), // green
+        half4(0.9, 0.9, 0.1, 1.0), // yellow
+        half4(0.9, 0.1, 0.1, 1.0), // red
+    };
+
+    return cascadeColors[cascadeIndex];
+}
+
+half3 ShadowCascadeColor(Varyings input, InputData inputData, SurfaceData surfaceData)
+{
+    half4 shadowCascadeColor = GetShadowCascadeColor(inputData.shadowCoord, input.positionWS);
+
+    // part adapted from LightweightFragmentPBR:
+
+    BRDFData brdfData;
+    InitializeBRDFData(shadowCascadeColor.rgb, 0.0, 0.0, 1.0, surfaceData.alpha, brdfData);
+
+    Light mainLight = GetMainLight(inputData.shadowCoord);
+    mainLight.color = shadowCascadeColor.rgb;
+    MixRealtimeAndBakedGI(mainLight, inputData.normalWS, inputData.bakedGI, half4(0, 0, 0, 0));
+
+    half3 debugColor = GlobalIllumination(brdfData, inputData.bakedGI, surfaceData.occlusion, inputData.normalWS, inputData.viewDirectionWS);
+    debugColor += LightingPhysicallyBased(brdfData, mainLight, inputData.normalWS, inputData.viewDirectionWS);
+
+    return debugColor;
 }
 
 half4 LitPassFragment(Varyings input) : SV_Target
@@ -147,34 +197,40 @@ half4 LitPassFragment(Varyings input) : SV_Target
     BRDFData brdfData;
     InitializeBRDFData(surfaceData.albedo, surfaceData.metallic, surfaceData.specular, surfaceData.smoothness, surfaceData.alpha, brdfData);
 
-    half3 color = half3(0.0, 0.0, 0.0);
+    half4 color = half4(0.0, 0.0, 0.0, 1.0);
     if (_DebugMaterialIndex == DEBUG_UNLIT)
-        color = surfaceData.albedo;
+        color.rgb = surfaceData.albedo;
         
     if (_DebugMaterialIndex == DEBUG_DIFFUSE)
-        color = brdfData.diffuse;
+        color.rgb = brdfData.diffuse;
         
     if (_DebugMaterialIndex == DEBUG_SPECULAR)
-        color = brdfData.specular;
+        color.rgb = brdfData.specular;
     
     if (_DebugMaterialIndex == DEBUG_ALPHA)
-        color = (1.0 - surfaceData.alpha).xxx;
+        color.rgb = (1.0 - surfaceData.alpha).xxx;
     
     if (_DebugMaterialIndex == DEBUG_SMOOTHNESS)
-        color = surfaceData.smoothness.xxx;
+        color.rgb = surfaceData.smoothness.xxx;
     
     if (_DebugMaterialIndex == DEBUG_OCCLUSION)
-        color = surfaceData.occlusion.xxx;
+        color.rgb = surfaceData.occlusion.xxx;
     
     if (_DebugMaterialIndex == DEBUG_EMISSION)
-        color = surfaceData.emission;
+        color.rgb = surfaceData.emission;
         
     if (_DebugMaterialIndex == DEBUG_NORMAL_WORLD_SPACE)
-        color = inputData.normalWS.xyz * 0.5 + 0.5;
+        color.rgb = inputData.normalWS.xyz * 0.5 + 0.5;
         
     if (_DebugMaterialIndex == DEBUG_NORMAL_TANGENT_SPACE)
         color = surfaceData.normalTS.xyz * 0.5 + 0.5;
-    
-    return half4(color, 1.0);
+
+    if (_DebugLightingIndex == DEBUG_LIGHTING_SHADOW_CASCADES)
+    {
+        color.rgb = ShadowCascadeColor(input, inputData, surfaceData);
+        color.a = surfaceData.alpha;
+    }
+
+    return color;
 }
 #endif

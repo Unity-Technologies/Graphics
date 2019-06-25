@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using UnityEditor.Rendering;
 
 namespace UnityEngine.Rendering.LWRP
 {
@@ -49,10 +50,10 @@ namespace UnityEngine.Rendering.LWRP
                     : SortingCriteria.CommonTransparent;
                 var drawSettings = CreateDrawingSettings(m_ShaderTagIdList, ref renderingData, sortFlags);
 
-                if (debugMaterialIndex != DebugMaterialIndex.None)
+                if (lightingDebugMode != LightingDebugMode.None || debugMaterialIndex != DebugMaterialIndex.None)
                 {
                     RenderingUtils.RenderObjectWithDebug(context, ref renderingData, camera,
-                        m_FilteringSettings, SortingCriteria.None, debugMaterialIndex);
+                        m_FilteringSettings, SortingCriteria.None);
                 }
                 else
                 {

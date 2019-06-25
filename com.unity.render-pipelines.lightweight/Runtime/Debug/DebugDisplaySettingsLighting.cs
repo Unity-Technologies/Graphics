@@ -1,18 +1,11 @@
 
 using UnityEngine.Experimental.Rendering;
+using UnityEngine.Rendering.LWRP;
 
 namespace UnityEditor.Rendering
 {
     public class DebugDisplaySettingsLighting : IDebugDisplaySettingsData
     {
-        public enum LightingDebugMode
-        {
-            None,
-            ShadowCascades,
-            LightOnly
-            // TODO new mode
-        }
-        
         public LightingDebugMode m_LightingDebugMode;
 
         private class SettingsPanel : DebugDisplaySettingsPanel

@@ -16,6 +16,8 @@ namespace UnityEngine.Rendering.LWRP
         const string k_CreateCameraTextures = "Create Camera Texture";
         int m_DebugMaterialIndexId;
 
+        int m_DebugLightingIndexId;
+
         DepthOnlyPass m_DepthPrepass;
         MainLightShadowCasterPass m_MainLightShadowCasterPass;
         AdditionalLightsShadowCasterPass m_AdditionalLightsShadowCasterPass;
@@ -31,7 +33,6 @@ namespace UnityEngine.Rendering.LWRP
         CapturePass m_CapturePass;
         DebugPass m_DebugPass;
 
-        DebugShowShadowCascadesPass m_DebugShowShadowCascadesPass;
         DebugShowLightOnly m_DebugShowLightOnly;
 
 #if UNITY_EDITOR
@@ -51,6 +52,7 @@ namespace UnityEngine.Rendering.LWRP
         public ForwardRenderer(ForwardRendererData data) : base(data)
         {
             m_DebugMaterialIndexId = Shader.PropertyToID("_DebugMaterialIndex");
+            m_DebugLightingIndexId = Shader.PropertyToID("_DebugLightingIndex");
             
             Material blitMaterial = CoreUtils.CreateEngineMaterial(data.shaders.blitPS);
             Material fullScreenDebugMaterial = CoreUtils.CreateEngineMaterial(data.shaders.fullScreenDebugPS);
@@ -83,7 +85,6 @@ namespace UnityEngine.Rendering.LWRP
             m_FinalBlitPass = new FinalBlitPass(RenderPassEvent.AfterRendering, blitMaterial);
             m_DebugPass = new DebugPass(RenderPassEvent.AfterRendering, fullScreenDebugMaterial);
 
-            m_DebugShowShadowCascadesPass = new DebugShowShadowCascadesPass("[Debug] Show Shadow Cascades", true, RenderPassEvent.BeforeRenderingOpaques, RenderQueueRange.opaque, data.opaqueLayerMask, m_DefaultStencilState, stencilData.stencilReference);
             m_DebugShowLightOnly = new DebugShowLightOnly("[Debug] Show Light Detail", true, RenderPassEvent.BeforeRenderingOpaques, RenderQueueRange.opaque, data.opaqueLayerMask, m_DefaultStencilState, stencilData.stencilReference);
 
 #if UNITY_EDITOR
@@ -194,14 +195,10 @@ namespace UnityEngine.Rendering.LWRP
                 EnqueuePass(m_ScreenSpaceShadowResolvePass);
             }
 
-            if(DebugDisplaySettings.Instance.Lighting.m_LightingDebugMode!=DebugDisplaySettingsLighting.LightingDebugMode.None )
+#if false // TODO re-enable light-only mode
+            if(DebugDisplaySettings.Instance.Lighting.m_LightingDebugMode!=LightingDebugMode.None )
             {
-                if(DebugDisplaySettings.Instance.Lighting.m_LightingDebugMode==DebugDisplaySettingsLighting.LightingDebugMode.ShadowCascades )
-                {
-                    EnqueuePass(m_DebugShowShadowCascadesPass);
-                }
-
-                if (DebugDisplaySettings.Instance.Lighting.m_LightingDebugMode == DebugDisplaySettingsLighting.LightingDebugMode.LightOnly)
+                if (DebugDisplaySettings.Instance.Lighting.m_LightingDebugMode == LightingDebugMode.LightOnly)
                 {
                     EnqueuePass(m_DebugShowLightOnly);
                 }
@@ -215,7 +212,7 @@ namespace UnityEngine.Rendering.LWRP
 #endif
                 return;
             }
-
+#endif
 
             {
                 EnqueuePass(m_RenderOpaqueForwardPass);
@@ -439,9 +436,11 @@ namespace UnityEngine.Rendering.LWRP
         void SetupDebugRendering(ScriptableRenderContext context)
         {
             debugMaterialIndex = DebugDisplaySettings.Instance.materialSettings.DebugMaterialIndexData;
-            
+            lightingDebugMode = DebugDisplaySettings.Instance.Lighting.m_LightingDebugMode;
+
             var cmd = CommandBufferPool.Get("");
             cmd.SetGlobalFloat(m_DebugMaterialIndexId, (int)debugMaterialIndex);
+            cmd.SetGlobalFloat(m_DebugLightingIndexId, (int)lightingDebugMode);
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
         }

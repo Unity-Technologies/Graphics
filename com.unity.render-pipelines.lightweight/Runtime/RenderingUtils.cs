@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using UnityEditor.Rendering;
 using UnityEngine.Rendering.PostProcessing;
 
 namespace UnityEngine.Rendering.LWRP
@@ -18,7 +19,14 @@ namespace UnityEngine.Rendering.LWRP
         NormalWorldSpace,
         NormalTangentSpace,
     }
-    
+
+    public enum LightingDebugMode
+    {
+        None,
+        ShadowCascades,
+        LightOnly,
+    }
+
     public static class RenderingUtils
     {
         static int m_PostProcessingTemporaryTargetId = Shader.PropertyToID("_TemporaryColorTexture");
@@ -166,12 +174,10 @@ namespace UnityEngine.Rendering.LWRP
 
         [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
         internal static void RenderObjectWithDebug(ScriptableRenderContext context, ref RenderingData renderingData,
-            Camera camera, FilteringSettings filterSettings, SortingCriteria sortFlags, DebugMaterialIndex debugMaterialIndex)
+            Camera camera, FilteringSettings filterSettings, SortingCriteria sortFlags)
         {
-            if (debugMaterialIndex == DebugMaterialIndex.None)
-                return;
-            
             SortingSettings sortingSettings = new SortingSettings(camera) { criteria = sortFlags };
+
             DrawingSettings debugSettings = new DrawingSettings(m_DebugMaterialId, sortingSettings)
             {
                 perObjectData = renderingData.perObjectData,

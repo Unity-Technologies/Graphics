@@ -263,7 +263,13 @@ Shader "Lightweight Render Pipeline/Lit"
             #pragma shader_feature _METALLICSPECGLOSSMAP
             #pragma shader_feature _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
             #pragma shader_feature _OCCLUSIONMAP
-            
+
+            // defines for shadow cascades mode
+            #define _ADDITIONAL_LIGHTS
+            #define _MAIN_LIGHT_SHADOWS
+            #define _MAIN_LIGHT_SHADOWS_CASCADE
+            #define _ENVIRONMENTREFLECTIONS_OFF // we disable cubemap reflections, too distracting (in TemplateLWRP for ex.)
+
             #pragma vertex LitPassVertex
             #pragma fragment LitPassFragment
 
