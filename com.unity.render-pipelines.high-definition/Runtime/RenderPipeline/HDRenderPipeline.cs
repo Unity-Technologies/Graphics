@@ -196,11 +196,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         RenderTargetIdentifier[] mMRTSingle = new RenderTargetIdentifier[1];
         string m_ForwardPassProfileName;
 
-        Vector2Int m_PyramidSizeV2I = new Vector2Int();
-        Vector4 m_PyramidSizeV4F = new Vector4();
-        Vector4 m_PyramidScaleLod = new Vector4();
-        Vector4 m_PyramidScale = new Vector4();
-
         public Material GetBlitMaterial(bool useTexArray) { return useTexArray ? m_BlitTexArray : m_Blit; }
 
         ComputeBuffer m_DepthPyramidMipLevelOffsetsBuffer = null;
@@ -1600,6 +1595,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Configure all the keywords
             ConfigureKeywords(enableBakeShadowMask, hdCamera, cmd);
 
+            // Caution: We require sun light here as some skies use the sun light to render, it means that UpdateSkyEnvironment must be called after PrepareLightsForGPU.
+            // TODO: Try to arrange code so we can trigger this call earlier and use async compute here to run sky convolution during other passes (once we move convolution shader to compute).
+            if (m_CurrentDebugDisplaySettings.GetDebugLightingMode() != DebugLightingMode.MatcapView)
+                UpdateSkyEnvironment(hdCamera, cmd);
+
             hdCamera.xr.StartLegacyStereo(camera, cmd, renderContext);
 
             ClearBuffers(hdCamera, cmd);
@@ -1639,15 +1639,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
 
             RenderCameraMotionVectors(cullingResults, hdCamera, renderContext, cmd);
-
-            hdCamera.xr.StopLegacyStereo(camera, cmd, renderContext);
-
-            // Caution: We require sun light here as some skies use the sun light to render, it means that UpdateSkyEnvironment must be called after PrepareLightsForGPU.
-            // TODO: Try to arrange code so we can trigger this call earlier and use async compute here to run sky convolution during other passes (once we move convolution shader to compute).
-            if(m_CurrentDebugDisplaySettings.GetDebugLightingMode() != DebugLightingMode.MatcapView)
-                UpdateSkyEnvironment(hdCamera, cmd);
-
-            hdCamera.xr.StartLegacyStereo(camera, cmd, renderContext);
 
 #if ENABLE_RAYTRACING
             bool raytracedIndirectDiffuse = m_RaytracingIndirectDiffuse.RenderIndirectDiffuse(hdCamera, cmd, renderContext, m_FrameCount);
@@ -2835,8 +2826,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.Decals))
                 return;
 
-            using (new ProfilingSample(cmd, "DecalsForwardEmissive", CustomSamplerId.DecalsForwardEmissive.GetSampler()))
+            using (new ProfilingSample(cmd, "ForwardEmissive", CustomSamplerId.DecalsForwardEmissive.GetSampler()))
             {
+                bool msaa = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA);
+                HDUtils.SetRenderTarget(cmd, msaa ? m_CameraColorMSAABuffer : m_CameraColorBuffer, m_SharedRTManager.GetDepthStencilBuffer(msaa));
                 HDUtils.DrawRendererList(renderContext, cmd, RendererList.Create(PrepareForwardEmissiveRendererList(cullResults, hdCamera)));
                 DecalSystem.instance.RenderForwardEmissive(cmd);
             }
@@ -2890,9 +2883,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Necessary to perform dual-source (polychromatic alpha) blending which is not supported by Unity.
             // We load from the color buffer, perform blending manually, and store to the atmospheric scattering buffer.
             // Then we perform a copy from the atmospheric scattering buffer back to the color buffer.
-            var colorBuffer = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA) ? m_CameraColorMSAABuffer : m_CameraColorBuffer;
-            var intermediateBuffer = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA) ? m_OpaqueAtmosphericScatteringMSAABuffer : m_OpaqueAtmosphericScatteringBuffer;
-            var depthBuffer = m_SharedRTManager.GetDepthStencilBuffer(hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA));
+            bool msaaEnabled = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA);
+            var colorBuffer = msaaEnabled ? m_CameraColorMSAABuffer : m_CameraColorBuffer;
+            var intermediateBuffer = msaaEnabled ? m_OpaqueAtmosphericScatteringMSAABuffer : m_OpaqueAtmosphericScatteringBuffer;
+            var depthBuffer = m_SharedRTManager.GetDepthStencilBuffer(msaaEnabled);
 
             var visualEnv = VolumeManager.instance.stack.GetComponent<VisualEnvironment>();
             m_SkyManager.RenderSky(hdCamera, GetCurrentSunLight(), colorBuffer, depthBuffer, m_CurrentDebugDisplaySettings, cmd);
@@ -3291,16 +3285,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             using (new ProfilingSample(cmd, "Color Gaussian MIP Chain", CustomSamplerId.ColorPyramid.GetSampler()))
             {
-                m_PyramidSizeV2I.Set(hdCamera.actualWidth, hdCamera.actualHeight);
-                lodCount = m_MipGenerator.RenderColorGaussianPyramid(cmd, m_PyramidSizeV2I, m_CameraColorBuffer, currentColorPyramid);
+                Vector2Int pyramidSizeV2I = new Vector2Int(hdCamera.actualWidth, hdCamera.actualHeight);
+                lodCount = m_MipGenerator.RenderColorGaussianPyramid(cmd, pyramidSizeV2I, m_CameraColorBuffer, currentColorPyramid);
                 hdCamera.colorPyramidHistoryMipCount = lodCount;
             }
 
             float scaleX = hdCamera.actualWidth / (float)currentColorPyramid.rt.width;
             float scaleY = hdCamera.actualHeight / (float)currentColorPyramid.rt.height;
-            m_PyramidSizeV4F.Set(hdCamera.actualWidth, hdCamera.actualHeight, 1f / hdCamera.actualWidth, 1f / hdCamera.actualHeight);
-            m_PyramidScaleLod.Set(scaleX, scaleY, lodCount, 0.0f);
-            m_PyramidScale.Set(scaleX, scaleY, 0f, 0f);
+            Vector4 pyramidScaleLod = new Vector4(scaleX, scaleY, lodCount, 0.0f);
+            Vector4 pyramidScale = new Vector4(scaleX, scaleY, 0f, 0f);
             // Warning! Danger!
             // The color pyramid scale is only correct for the most detailed MIP level.
             // For the other MIP levels, due to truncation after division by 2, a row or
@@ -3309,9 +3302,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // unless the scale is 1 (and it will not be 1 if the texture was resized
             // and is of greater size compared to the viewport).
             cmd.SetGlobalTexture(HDShaderIDs._ColorPyramidTexture, currentColorPyramid);
-            cmd.SetGlobalVector(HDShaderIDs._ColorPyramidSize, m_PyramidSizeV4F);
-            cmd.SetGlobalVector(HDShaderIDs._ColorPyramidScale, m_PyramidScaleLod);
-            PushFullScreenDebugTextureMip(hdCamera, cmd, currentColorPyramid, lodCount, m_PyramidScale, isPreRefraction ? FullScreenDebugMode.PreRefractionColorPyramid : FullScreenDebugMode.FinalColorPyramid);
+            cmd.SetGlobalVector(HDShaderIDs._ColorPyramidScale, pyramidScaleLod);
+            PushFullScreenDebugTextureMip(hdCamera, cmd, currentColorPyramid, lodCount, pyramidScale, isPreRefraction ? FullScreenDebugMode.PreRefractionColorPyramid : FullScreenDebugMode.FinalColorPyramid);
         }
 
         void GenerateDepthPyramid(HDCamera hdCamera, CommandBuffer cmd, FullScreenDebugMode debugMode)
@@ -3327,13 +3319,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             float scaleX = hdCamera.actualWidth / (float)m_SharedRTManager.GetDepthTexture().rt.width;
             float scaleY = hdCamera.actualHeight / (float)m_SharedRTManager.GetDepthTexture().rt.height;
-            m_PyramidSizeV4F.Set(hdCamera.actualWidth, hdCamera.actualHeight, 1f / hdCamera.actualWidth, 1f / hdCamera.actualHeight);
-            m_PyramidScaleLod.Set(scaleX, scaleY, mipCount, 0.0f);
-            m_PyramidScale.Set(scaleX, scaleY, 0f, 0f);
+            Vector4 pyramidScaleLod = new Vector4(scaleX, scaleY, mipCount, 0.0f);
+            Vector4 pyramidScale = new Vector4(scaleX, scaleY, 0f, 0f);
             cmd.SetGlobalTexture(HDShaderIDs._DepthPyramidTexture, m_SharedRTManager.GetDepthTexture());
-            cmd.SetGlobalVector(HDShaderIDs._DepthPyramidSize, m_PyramidSizeV4F);
-            cmd.SetGlobalVector(HDShaderIDs._DepthPyramidScale, m_PyramidScaleLod);
-            PushFullScreenDebugTextureMip(hdCamera, cmd, m_SharedRTManager.GetDepthTexture(), mipCount, m_PyramidScale, debugMode);
+            cmd.SetGlobalVector(HDShaderIDs._DepthPyramidScale, pyramidScaleLod);
+            PushFullScreenDebugTextureMip(hdCamera, cmd, m_SharedRTManager.GetDepthTexture(), mipCount, pyramidScale, debugMode);
         }
 
         void DownsampleDepthForLowResTransparency(HDCamera hdCamera, CommandBuffer cmd)
