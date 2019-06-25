@@ -21,22 +21,12 @@ namespace UnityEngine.Rendering.LWRP
             renderPassEvent = evt;
         }
 
-//        public void Setup()
-//        {
-//        }
-
         public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
         {
             var desc = cameraTextureDescriptor;
             desc.msaaSamples = 1;
             desc.depthBufferBits = 0;
             cmd.GetTemporaryRT(m_Destination.id, desc, FilterMode.Point);
-        }
-
-        public bool CanRunOnTile()
-        {
-            // Check builtin & user effects here
-            return false;
         }
 
         /// <inheritdoc/>
@@ -58,7 +48,7 @@ namespace UnityEngine.Rendering.LWRP
             CommandBufferPool.Release(cmd);
         }
 
-        #region Sub-pixel Morphological Anti-aliasing
+        #region Fog
         
         void DoFogSetup()
         {
@@ -66,16 +56,38 @@ namespace UnityEngine.Rendering.LWRP
             {
                 case FogType.Linear:
                     Shader.EnableKeyword("FOG_LINEAR");
+                    Shader.DisableKeyword("FOG_EXP2");
+                    Shader.DisableKeyword("FOG_EXP");
                     break;
                 case FogType.Exp2:
+                    Shader.DisableKeyword("FOG_LINEAR");
                     Shader.EnableKeyword("FOG_EXP2");
+                    Shader.DisableKeyword("FOG_EXP");
                     break;
                 case FogType.Height:
+                    Shader.DisableKeyword("FOG_LINEAR");
+                    Shader.DisableKeyword("FOG_EXP2");
+                    Shader.EnableKeyword("FOG_EXP");
+                    break;
+            }
+
+            switch (m_Fog.colorType.value)
+            {
+                case FogColorType.Color:
+                    Shader.DisableKeyword("FOGMAP");
+                    break;
+                case FogColorType.Gradient:
+                    Shader.DisableKeyword("FOGMAP");
+                    break;
+                case FogColorType.CubeMap:
+                    Shader.EnableKeyword("FOGMAP");
+                    Shader.SetGlobalTexture("_FogMap", m_Fog.cubemap.value);
                     break;
             }
             
             Shader.SetGlobalColor(ShaderConstants._FogColor, m_Fog.fogColor.value);
-            var fogParams = new Vector4(m_Fog.density.value, 0, 0, 0);
+            
+            var fogParams = new Vector4(m_Fog.density.value, 0, m_Fog.nearFog.value, m_Fog.farFog.value);
             Shader.SetGlobalVector(ShaderConstants._FogParams, fogParams);
         }
 

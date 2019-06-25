@@ -28,6 +28,7 @@ ${ZWrite}
     #pragma multi_compile _ DIRLIGHTMAP_COMBINED
     #pragma multi_compile _ LIGHTMAP_ON
     #pragma multi_compile_fog
+    #pragma multi_compile _ FOGMAP
 
     //--------------------------------------
     // GPU Instancing
@@ -160,7 +161,11 @@ ${PixelShaderSurfaceRemap}
 			Alpha);
 
 		// Computes fog factor per-vertex
+#ifdef FOGMAP
+    	color.rgb = MixFogDir(color.rgb, IN.fogFactorAndVertexLight.x, inputData.viewDirectionWS);
+#else
     	color.rgb = MixFog(color.rgb, IN.fogFactorAndVertexLight.x);
+#endif
 
 #if _AlphaClip
 		clip(Alpha - AlphaClipThreshold);

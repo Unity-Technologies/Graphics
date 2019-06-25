@@ -135,7 +135,11 @@ half4 LitPassFragment(Varyings input) : SV_Target
 
     half4 color = LightweightFragmentPBR(inputData, surfaceData.albedo, surfaceData.metallic, surfaceData.specular, surfaceData.smoothness, surfaceData.occlusion, surfaceData.emission, surfaceData.alpha);
 
+#ifdef FOGMAP
+    color.rgb = MixFogDir(color.rgb, inputData.fogCoord, inputData.viewDirectionWS);
+#else
     color.rgb = MixFog(color.rgb, inputData.fogCoord);
+#endif
     return color;
 }
 

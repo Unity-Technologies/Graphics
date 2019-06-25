@@ -22,17 +22,19 @@ namespace UnityEngine.Rendering.LWRP
         // Density
         [Tooltip("The type of fog to use.")]
         public FogTypeParameter type = new FogTypeParameter(FogType.Linear);
-        
-        public ColorParameter fogColor = new ColorParameter(Color.white, true, false, true);
+
         public FloatParameter density = new FloatParameter(0.005f);
-        
+
         public FloatParameter nearFog = new FloatParameter(5f);
         public FloatParameter farFog = new FloatParameter(50f);
-        
+
         // Coloring
+
         [Tooltip("The coloring of the fog.")]
         public FogColorTypeParameter colorType = new FogColorTypeParameter(FogColorType.Color);
-        //public CubemapParameter cubemap = new CubemapParameter();
+
+        public ColorParameter fogColor = new ColorParameter(Color.white, true, false, true);
+        public NoInterpCubemapParameter cubemap = new NoInterpCubemapParameter(null);
     }
 
     [Serializable]

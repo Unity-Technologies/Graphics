@@ -16,6 +16,7 @@ namespace UnityEditor.Rendering.LWRP
         // Color settings
         SerializedDataParameter m_ColorType;
         SerializedDataParameter m_Color;
+        SerializedDataParameter m_Cubemap;
         
         public override void OnEnable()
         {
@@ -31,6 +32,7 @@ namespace UnityEditor.Rendering.LWRP
             // Color Settings
             m_ColorType = Unpack(o.Find(x => x.colorType));
             m_Color = Unpack(o.Find(x => x.fogColor));
+            m_Cubemap = Unpack(o.Find(x => x.cubemap));
         }
 
         public override void OnInspectorGUI()
@@ -63,7 +65,7 @@ namespace UnityEditor.Rendering.LWRP
             }
             else if (m_ColorType.value.intValue == (int) FogColorType.CubeMap)
             {
-                // Do the things
+                PropertyField(m_Cubemap);
             }
         }
     }

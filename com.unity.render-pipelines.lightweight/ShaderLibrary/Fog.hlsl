@@ -8,7 +8,10 @@
 CBUFFER_START(_PerCamera)
 float3 _FogColor;
 float4 _FogParams;
+float4 _FogMap_HDR;
 CBUFFER_END
+
+TEXTURECUBE(_FogMap);       SAMPLER(sampler_FogMap);
 
 real ComputeFogFactor(VertexPositionInputs vertInputs)
 {
@@ -39,7 +42,7 @@ half3 MixFogColor(real3 fragColor, real3 fogColor, real fogFactor)
     // fogFactor = density*z compute at vertex
     fogFactor = saturate(exp2(-fogFactor*fogFactor));
 #endif
-    fragColor = lerp(_FogColor, fragColor, fogFactor);
+    fragColor = lerp(fogColor, fragColor, fogFactor);
 #endif
 
     return fragColor;
@@ -47,7 +50,16 @@ half3 MixFogColor(real3 fragColor, real3 fogColor, real fogFactor)
 
 half3 MixFog(real3 fragColor, real fogFactor)
 {
-    return MixFogColor(fragColor, unity_FogColor.rgb, fogFactor);
+    return MixFogColor(fragColor, _FogColor, fogFactor);
+}
+
+half3 MixFogDir(real3 fragColor, real fogFactor, real3 dir)
+{
+    float3 fogCube = SAMPLE_TEXTURECUBE_LOD(_FogMap, sampler_FogMap, dir, 0);
+#if !defined(UNITY_USE_NATIVE_HDR)
+    fogCube = DecodeHDREnvironment(half4(fogCube, 1), _FogMap_HDR);
+#endif
+    return MixFogColor(fragColor, fogCube.rgb, fogFactor);
 }
 
 #endif //LIGHTWEIGHT_FOG_INCLUDED
