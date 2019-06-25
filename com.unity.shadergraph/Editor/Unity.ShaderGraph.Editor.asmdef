@@ -1,10 +1,16 @@
 {
     "name": "Unity.ShaderGraph.Editor",
-    "references": [],
-    "optionalUnityReferences": [],
+    "references": [
+        "GUID:d8b63aba1907145bea998dd612889d6b"
+    ],
     "includePlatforms": [
         "Editor"
     ],
     "excludePlatforms": [],
-    "allowUnsafeCode": false
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": []
 }

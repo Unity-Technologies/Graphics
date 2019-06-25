@@ -3,9 +3,34 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using Unity.Mathematics;
 
 namespace UnityEditor.ShaderGraph
 {
+    public static class MathUtils
+    {
+        public static float normalize(float v) => v == 0 ? float.PositiveInfinity : 1;
+        public static float2 normalize(float2 v) => math.normalize(v);
+        public static float3 normalize(float3 v) => math.normalize(v);
+        public static float4 normalize(float4 v) => math.normalize(v);
+
+        public static float reflect(float i, float n) => i - 2f * n * (i * n);
+        public static float2 reflect(float2 i, float2 n) => math.reflect(i, n);
+        public static float3 reflect(float3 i, float3 n) => math.reflect(i, n);
+        public static float4 reflect(float4 i, float4 n) => math.reflect(i, n);
+
+        public static float refract(float i, float n, float eta)
+        {
+            float ni = n * i;
+            float k = 1.0f - eta * eta * (1.0f - ni * ni);
+            return math.select(0.0f, eta * i - (eta * ni + math.sqrt(k)) * n, k >= 0);
+        }
+
+        public static float2 refract(float2 i, float2 n, float eta) => math.refract(i, n, eta);
+        public static float3 refract(float3 i, float3 n, float eta) => math.refract(i, n, eta);
+        public static float4 refract(float4 i, float4 n, float eta) => math.refract(i, n, eta);
+    }
+
     public static class ValueStructGenerator
     {
         private static string ValueTypeName(int componentCount)
@@ -15,7 +40,7 @@ namespace UnityEditor.ShaderGraph
             => componentCount == 1 ? "float" : $"float{componentCount}";
 
         private static char SwizzleComponentName(int v)
-            => v == 3 ? 'w' : (char)('x' + v);
+            => "xyzw"[v];
 
         private static string SwizzleName(char[] swizzleNames, int componentCount)
             => String.Concat(Enumerable.Take(swizzleNames, componentCount).Reverse());
@@ -34,7 +59,16 @@ namespace UnityEditor.ShaderGraph
                     swizzleName[3] = SwizzleComponentName((i / maxComponents / maxComponents / maxComponents) % maxComponents);
                     var swizzle = SwizzleName(swizzleName, swizzleComponents);
                     sb.Append($"\t\tpublic {typeName} {swizzle}\n");
-                    sb.Append($"\t\t\t=> new {typeName}() {{ Code = $\"({{Code}}).{swizzle}\" }};\n");
+                    sb.Append($"\t\t\t=> new {typeName}() {{ Code = $\"({{Code}}).{swizzle}\"");
+                    if (maxComponents == 1)
+                    {
+                        // We don't have .x, .xx, .xxx, .xxxx on float.
+                        sb.Append($", Value = Value != null ? {(swizzleComponents != 1 ? "float" + swizzleComponents : "")}(Value.Value) : {typeName}.Null }};\n");
+                    }
+                    else
+                    {
+                        sb.Append($", Value = Value?.{swizzle} }};\n");
+                    }
                     sb.Append("\n");
                 }
             }
@@ -79,33 +113,50 @@ namespace UnityEditor.ShaderGraph
                 GenerateConstructosRecurse(sb, components, stack);
         }
 
-        private static void Intrinsic1(StringBuilder sb, string func, string returnType = "")
+        private static string GetIntrinsicTypeName(int components, int fixToFloat1, int index)
         {
+            return "Hlsl." + ((fixToFloat1 & (1 << index)) == 0 ? ValueTypeName(components) : "Float");
+        }
+
+        private static void Intrinsic1(StringBuilder sb, string func, int fixToFloat1 = 0, string evaluator = null)
+        {
+            if (evaluator == null)
+                evaluator = $"x.Value != null ? math.{func}(x.Value.Value) : {{0}}.Null";
             for (int components = 1; components <= 4; ++components)
             {
-                var typeName = ValueTypeName(components);
-                sb.Append($"\t\tpublic static {(returnType == "" ? typeName : returnType)} {func}({typeName} x)\n");
-                sb.Append($"\t\t\t=> new {(returnType == "" ? typeName : returnType)}() {{ Code = $\"{func}({{x.Code}})\" }};\n\n");
+                var returnType = GetIntrinsicTypeName(components, fixToFloat1, 0);
+                var paramType0 = GetIntrinsicTypeName(components, fixToFloat1, 1);
+                sb.Append($"\t\tpublic static {returnType} {func}({paramType0} x)\n");
+                sb.Append($"\t\t\t=> new {returnType}() {{ Code = $\"{func}({{x.Code}})\", Value = {String.Format(evaluator, returnType)} }};\n\n");
             }
         }
 
-        private static void Intrinsic2(StringBuilder sb, string func, string returnType = "")
+        private static void Intrinsic2(StringBuilder sb, string func, int fixToFloat1 = 0, string evaluator = null)
         {
+            if (evaluator == null)
+                evaluator = $"x.Value != null && y.Value != null ? math.{func}(x.Value.Value, y.Value.Value) : {{0}}.Null";
             for (int components = 1; components <= 4; ++components)
             {
-                var typeName = ValueTypeName(components);
-                sb.Append($"\t\tpublic static {(returnType == "" ? typeName : returnType)} {func}({typeName} x, {typeName} y)\n");
-                sb.Append($"\t\t\t=> new {(returnType == "" ? typeName : returnType)}() {{ Code = $\"{func}({{x.Code}}, {{y.Code}})\" }};\n\n");
+                var returnType = GetIntrinsicTypeName(components, fixToFloat1, 0);
+                var paramType0 = GetIntrinsicTypeName(components, fixToFloat1, 1);
+                var paramType1 = GetIntrinsicTypeName(components, fixToFloat1, 2);
+                sb.Append($"\t\tpublic static {returnType} {func}({paramType0} x, {paramType1} y)\n");
+                sb.Append($"\t\t\t=> new {returnType}() {{ Code = $\"{func}({{x.Code}}, {{y.Code}})\", Value = {String.Format(evaluator, returnType)} }};\n\n");
             }
         }
 
-        private static void Intrinsic3(StringBuilder sb, string func, string returnType = "")
+        private static void Intrinsic3(StringBuilder sb, string func, int fixToFloat1 = 0, string evaluator = null)
         {
+            if (evaluator == null)
+                evaluator = $"x.Value != null && y.Value != null && z.Value != null ? math.{func}(x.Value.Value, y.Value.Value, z.Value.Value) : {{0}}.Null";
             for (int components = 1; components <= 4; ++components)
             {
-                var typeName = ValueTypeName(components);
-                sb.Append($"\t\tpublic static {(returnType == "" ? typeName : returnType)} {func}({typeName} x, {typeName} y, {typeName} z)\n");
-                sb.Append($"\t\t\t=> new {(returnType == "" ? typeName : returnType)}() {{ Code = $\"{func}({{x.Code}}, {{y.Code}}, {{z.Code}})\" }};\n\n");
+                var returnType = GetIntrinsicTypeName(components, fixToFloat1, 0);
+                var paramType0 = GetIntrinsicTypeName(components, fixToFloat1, 1);
+                var paramType1 = GetIntrinsicTypeName(components, fixToFloat1, 2);
+                var paramType2 = GetIntrinsicTypeName(components, fixToFloat1, 3);
+                sb.Append($"\t\tpublic static {returnType} {func}({paramType0} x, {paramType1} y, {paramType2} z)\n");
+                sb.Append($"\t\t\t=> new {returnType}() {{ Code = $\"{func}({{x.Code}}, {{y.Code}}, {{z.Code}})\", Value = {String.Format(evaluator, returnType)} }};\n\n");
             }
         }
 
@@ -118,29 +169,29 @@ namespace UnityEditor.ShaderGraph
             {
                 var sb = new StringBuilder();
                 sb.Append("// Auto-generated by Tools/SG/GenerateCs menu. DO NOT hand edit.\n");
+                sb.Append("using Unity.Mathematics;\n");
+                sb.Append("using static Unity.Mathematics.math;\n");
                 sb.Append("namespace UnityEditor.ShaderGraph.Hlsl\n");
                 sb.Append("{\n");
 
                 for (int i = 1; i <= 4; ++i)
                 {
                     var typeName = ValueTypeName(i);
+                    var hlslTypeName = HlslTypeName(i);
                     sb.Append($"\tpublic struct {typeName}\n");
                     sb.Append("\t{\n");
-                    sb.Append($"\t\tpublic string Code;\n\n");
-
-                    sb.Append("\t\t// C# doesn't allow overloading operator=...\n");
-                    sb.Append($"\t\tpublic void AssignFrom({typeName} other)\n");
-                    sb.Append("\t\t{\n");
-                    sb.Append("\t\t\tCode = other.Code;\n");
-                    sb.Append("\t\t}\n\n");
+                    sb.Append($"\t\tpublic string Code;\n");
+                    sb.Append($"\t\tpublic {hlslTypeName}? Value;\n");
+                    sb.Append($"\t\tpublic static readonly {hlslTypeName}? Null = null;\n\n");
 
                     if (i == 1)
                     {
                         for (int j = 2; j <= 4; ++j)
                         {
                             var otherTypeName = ValueTypeName(j);
+                            var otherHlslTypeName = HlslTypeName(j);
                             sb.Append($"\t\tpublic static implicit operator {otherTypeName}(Float x)\n");
-                            sb.Append($"\t\t\t=> new {otherTypeName}() {{ Code = $\"({{x.Code}}).{String.Concat(Enumerable.Repeat("x", j))}\" }};\n");
+                            sb.Append($"\t\t\t=> new {otherTypeName}() {{ Code = $\"({{x.Code}}).{String.Concat(Enumerable.Repeat("x", j))}\", Value = x.Value != null ? {otherHlslTypeName}(x.Value.Value) : {otherTypeName}.Null }};\n");
                             sb.Append("\n");
                         }
                     }
@@ -161,31 +212,33 @@ namespace UnityEditor.ShaderGraph
                     }
 
                     sb.Append($"\t\tpublic static {typeName} operator-({typeName} v)\n");
-                    sb.Append($"\t\t\t=> new {typeName}() {{ Code = $\"-({{v.Code}})\" }};\n\n");
+                    sb.Append($"\t\t\t=> new {typeName}() {{ Code = $\"-({{v.Code}})\", Value = v.Value != null ? -v.Value.Value : Null }};\n\n");
 
                     sb.Append($"\t\tpublic static implicit operator {typeName} (float v)\n");
-                    sb.Append($"\t\t\t=> new {typeName}() {{ Code = $\"({{v}}).{String.Concat(Enumerable.Repeat("x", i))}\" }};\n\n");
+                    sb.Append($"\t\t\t=> new {typeName}() {{ Code = $\"({{v}}).{String.Concat(Enumerable.Repeat("x", i))}\", Value = {(i != 1 ? hlslTypeName : "")}(v) }};\n\n");
 
                     sb.Append($"\t\tpublic static implicit operator {typeName} (int v)\n");
-                    sb.Append($"\t\t\t=> new {typeName}() {{ Code = $\"({{v}}.0f).{String.Concat(Enumerable.Repeat("x", i))}\" }};\n\n");
+                    sb.Append($"\t\t\t=> new {typeName}() {{ Code = $\"({{v}}.0f).{String.Concat(Enumerable.Repeat("x", i))}\", Value = {(i != 1 ? hlslTypeName : "")}(v) }};\n\n");
 
                     sb.Append($"\t\tpublic static implicit operator {typeName} (double v)\n");
-                    sb.Append($"\t\t\t=> new {typeName}() {{ Code = $\"({{(float)v}}).{String.Concat(Enumerable.Repeat("x", i))}\" }};\n\n");
+                    sb.Append($"\t\t\t=> new {typeName}() {{ Code = $\"({{(float)v}}).{String.Concat(Enumerable.Repeat("x", i))}\", Value = {(i != 1 ? hlslTypeName : "")}((float)v) }};\n\n");
 
                     sb.Append($"\t\tpublic static {typeName} operator+({typeName} x, {typeName} y)\n");
-                    sb.Append($"\t\t\t=> new {typeName}() {{ Code = $\"({{x.Code}}) + ({{y.Code}})\" }};\n");
+                    sb.Append($"\t\t\t=> new {typeName}() {{ Code = $\"({{x.Code}}) + ({{y.Code}})\", Value = x.Value != null && y.Value != null ? x.Value.Value + y.Value.Value : Null }};\n");
                     sb.Append("\n");
                     sb.Append($"\t\tpublic static {typeName} operator-({typeName} x, {typeName} y)\n");
-                    sb.Append($"\t\t\t=> new {typeName}() {{ Code = $\"({{x.Code}}) - ({{y.Code}})\" }};\n");
+                    sb.Append($"\t\t\t=> new {typeName}() {{ Code = $\"({{x.Code}}) - ({{y.Code}})\", Value = x.Value != null && y.Value != null ? x.Value.Value - y.Value.Value : Null }};\n");
                     sb.Append("\n");
                     sb.Append($"\t\tpublic static {typeName} operator*({typeName} x, {typeName} y)\n");
-                    sb.Append($"\t\t\t=> new {typeName}() {{ Code = $\"({{x.Code}}) * ({{y.Code}})\" }};\n");
+                    sb.Append($"\t\t\t=> new {typeName}() {{ Code = $\"({{x.Code}}) * ({{y.Code}})\", Value = x.Value != null && y.Value != null ? x.Value.Value * y.Value.Value : Null }};\n");
                     sb.Append("\n");
                     sb.Append($"\t\tpublic static {typeName} operator/({typeName} x, {typeName} y)\n");
-                    sb.Append($"\t\t\t=> new {typeName}() {{ Code = $\"({{x.Code}}) / ({{y.Code}})\" }};\n");
+                    sb.Append($"\t\t\t=> new {typeName}() {{ Code = $\"({{x.Code}}) / ({{y.Code}})\", Value = x.Value != null && y.Value != null ? x.Value.Value / y.Value.Value : Null }};\n");
                     sb.Append("\n");
 
+                    sb.Append("\t\t#region Swizzles\n\n");
                     GenerateSwizzle(sb, i);
+                    sb.Append("\t\t#endregion\n");
 
                     sb.Append("\t}\n");
                     sb.Append("\n");
@@ -211,29 +264,29 @@ namespace UnityEditor.ShaderGraph
                 sb.Append("\t\tpublic static Float3 cross(Float3 x, Float3 y)\n");
                 sb.Append("\t\t\t=> new Float3() { Code = $\"cross({x.Code}, {y.Code})\" };\n\n");
 
-                Intrinsic1(sb, "ddx");
-                Intrinsic1(sb, "ddy");
+                Intrinsic1(sb, "ddx", evaluator: "x.Value != null ? 0 : {0}.Null");
+                Intrinsic1(sb, "ddy", evaluator: "x.Value != null ? 0 : {0}.Null");
                 Intrinsic1(sb, "degrees");
-                Intrinsic2(sb, "distance", "Float");
-                Intrinsic2(sb, "dot", "Float");
+                Intrinsic2(sb, "distance", fixToFloat1: 1);
+                Intrinsic2(sb, "dot", fixToFloat1: 1);
                 Intrinsic1(sb, "exp");
                 Intrinsic1(sb, "exp2");
                 Intrinsic1(sb, "floor");
                 Intrinsic2(sb, "fmod");
                 Intrinsic1(sb, "frac");
-                Intrinsic1(sb, "fwidth");
-                Intrinsic1(sb, "length", "Float");
+                Intrinsic1(sb, "fwidth", evaluator: "x.Value != null ? 0 : {0}.Null");
+                Intrinsic1(sb, "length", fixToFloat1: 1);
                 Intrinsic3(sb, "lerp");
                 Intrinsic1(sb, "log");
                 Intrinsic1(sb, "log10");
                 Intrinsic1(sb, "log2");
                 Intrinsic2(sb, "max");
                 Intrinsic2(sb, "min");
-                Intrinsic1(sb, "normalize");
+                Intrinsic1(sb, "normalize", evaluator: "x.Value != null ? MathUtils.normalize(x.Value.Value) : {0}.Null");
                 Intrinsic2(sb, "pow");
                 Intrinsic1(sb, "radians");
-                Intrinsic2(sb, "reflect");
-                Intrinsic2(sb, "refract");
+                Intrinsic2(sb, "reflect", evaluator: "x.Value != null && y.Value != null ? MathUtils.reflect(x.Value.Value, y.Value.Value) : {0}.Null");
+                Intrinsic3(sb, "refract", fixToFloat1: 8, evaluator: "x.Value != null && y.Value != null && z.Value != null ? MathUtils.refract(x.Value.Value, y.Value.Value, z.Value.Value) : {0}.Null");
                 Intrinsic1(sb, "rcp");
                 Intrinsic1(sb, "round");
                 Intrinsic1(sb, "rsqrt");
