@@ -836,6 +836,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 cmd.SetGlobalTexture("_EyeTexture", settings.albedoTexture.value);
             }
+            if(settings.maskTexture.value != null)
+            {
+                cmd.SetGlobalTexture("_EyeMask", settings.maskTexture.value);
+            }
+            cmd.SetGlobalInt("_EyeRefraction", settings.enableRefraction.value ? 1 : 0);
         }
 
         void CopyDepthBufferIfNeeded(CommandBuffer cmd)

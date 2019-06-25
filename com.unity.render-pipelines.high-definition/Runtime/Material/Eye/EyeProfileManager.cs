@@ -12,6 +12,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public BoolParameter useCustomNormalMap = new BoolParameter(false);
         public BoolParameter useCustomRoughness = new BoolParameter(false);
+        public BoolParameter enableRefraction = new BoolParameter(false);
 
         public ClampedFloatParameter bumpiness = new ClampedFloatParameter(1.0f, 0.0f, 5.0f);
 

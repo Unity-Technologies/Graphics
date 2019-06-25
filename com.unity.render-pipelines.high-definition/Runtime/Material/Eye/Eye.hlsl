@@ -115,6 +115,7 @@ BSDFData ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfaceData)
     bsdfData.scleraRoughness = PerceptualSmoothnessToPerceptualRoughness(surfaceData.scleraSmoothness);
 
     bsdfData.ambientOcclusion = surfaceData.ambientOcclusion;
+    bsdfData.eyeMask = surfaceData.mask;
 
     // After the fill material SSS data has operated, in the case of the fabric we force the value of the fresnel0 term
     bsdfData.fresnel0 = 0.04;
@@ -182,6 +183,13 @@ struct PreLightData
 {
     float NdotV;        // Could be negative due to normal mapping, use ClampNdotV()
     float partLambdaV;
+
+    float3 specularFGD;              // Store preintegrated BSDF for both specular and diffuse
+    float  diffuseFGD;
+
+    // IBL
+    float3 iblR;                     // Reflected specular direction, used for IBL in EvaluateBSDF_Env()
+    float  iblPerceptualRoughness;
 };
 
 // This function is call to precompute heavy calculation before lightloop
@@ -191,7 +199,18 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, inout BSDFData b
     float3 N = bsdfData.normalWS;
     preLightData.NdotV = dot(N, V);
     float clampedNdotV = ClampNdotV(preLightData.NdotV);
-    preLightData.partLambdaV = GetSmithJointGGXPartLambdaV(clampedNdotV, bsdfData.irisRoughness);
+    float realRoughness = lerp(bsdfData.scleraRoughness, bsdfData.irisRoughness, bsdfData.eyeMask);
+    preLightData.partLambdaV = GetSmithJointGGXPartLambdaV(clampedNdotV, realRoughness);
+
+    float3 iblN;
+    {
+        preLightData.partLambdaV = GetSmithJointGGXPartLambdaV(clampedNdotV, realRoughness);
+        iblN = N;
+    }
+    preLightData.iblR = reflect(-V, iblN);
+    float specularReflectivity;
+    GetPreIntegratedFGDGGXAndDisneyDiffuse(clampedNdotV, preLightData.iblPerceptualRoughness, bsdfData.fresnel0, preLightData.specularFGD, preLightData.diffuseFGD, specularReflectivity);
+
     return preLightData;
 }
 
@@ -261,11 +280,12 @@ CBSDF EvaluateBSDF(float3 V, float3 L, PreLightData preLightData, BSDFData bsdfD
 
     float3 F = F_Schlick(bsdfData.fresnel0, LdotH);
     // We use abs(NdotL) to handle the none case of double sided
-    float DV = DV_SmithJointGGX(NdotH, abs(NdotL), clampedNdotV, bsdfData.irisRoughness, preLightData.partLambdaV);
+    float realRoughness = lerp(bsdfData.scleraRoughness, bsdfData.irisRoughness, bsdfData.eyeMask);
+    float DV = DV_SmithJointGGX(NdotH, abs(NdotL), clampedNdotV, realRoughness, preLightData.partLambdaV);
 
      float3 specTerm = F * DV;
 
-    float diffTerm = DisneyDiffuse(clampedNdotV, abs(NdotL), LdotV, bsdfData.irisRoughness);
+    float diffTerm = DisneyDiffuse(clampedNdotV, abs(NdotL), LdotV, realRoughness);
 
     // The compiler should optimize these. Can revisit later if necessary.
     cbsdf.diffR = diffTerm * clampedNdotL;
@@ -395,6 +415,101 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
 {
     IndirectLighting lighting;
     ZERO_INITIALIZE(IndirectLighting, lighting);
+#if !HAS_REFRACTION
+    if (GPUImageBasedLightingType == GPUIMAGEBASEDLIGHTINGTYPE_REFRACTION)
+        return lighting;
+#endif
+
+    float3 envLighting;
+    float3 positionWS = posInput.positionWS;
+    float weight = 1.0;
+
+#ifdef LIT_DISPLAY_REFERENCE_IBL
+
+    envLighting = IntegrateSpecularGGXIBLRef(lightLoopContext, V, preLightData, lightData, bsdfData);
+
+    // TODO: Do refraction reference (is it even possible ?)
+    // TODO: handle clear coat
+
+
+//    #ifdef USE_DIFFUSE_LAMBERT_BRDF
+//    envLighting += IntegrateLambertIBLRef(lightData, V, bsdfData);
+//    #else
+//    envLighting += IntegrateDisneyDiffuseIBLRef(lightLoopContext, V, preLightData, lightData, bsdfData);
+//    #endif
+
+#else
+
+    float3 R = preLightData.iblR;
+
+#if HAS_REFRACTION
+    if (GPUImageBasedLightingType == GPUIMAGEBASEDLIGHTINGTYPE_REFRACTION)
+    {
+        positionWS = preLightData.transparentPositionWS;
+        R = preLightData.transparentRefractV;
+    }
+    else
+#endif
+    {
+        if (!IsEnvIndexTexture2D(lightData.envIndex)) // ENVCACHETYPE_CUBEMAP
+        {
+            R = GetSpecularDominantDir(bsdfData.normalWS, R, preLightData.iblPerceptualRoughness, ClampNdotV(preLightData.NdotV));
+            // When we are rough, we tend to see outward shifting of the reflection when at the boundary of the projection volume
+            // Also it appear like more sharp. To avoid these artifact and at the same time get better match to reference we lerp to original unmodified reflection.
+            // Formula is empirical.
+            float roughness = PerceptualRoughnessToRoughness(preLightData.iblPerceptualRoughness);
+            R = lerp(R, preLightData.iblR, saturate(smoothstep(0, 1, roughness * roughness)));
+        }
+    }
+
+    // Note: using influenceShapeType and projectionShapeType instead of (lightData|proxyData).shapeType allow to make compiler optimization in case the type is know (like for sky)
+    EvaluateLight_EnvIntersection(positionWS, bsdfData.normalWS, lightData, influenceShapeType, R, weight);
+
+    float3 F = preLightData.specularFGD;
+
+    float iblMipLevel;
+    // TODO: We need to match the PerceptualRoughnessToMipmapLevel formula for planar, so we don't do this test (which is specific to our current lightloop)
+    // Specific case for Texture2Ds, their convolution is a gaussian one and not a GGX one - So we use another roughness mip mapping.
+    if (IsEnvIndexTexture2D(lightData.envIndex))
+    {
+        // Empirical remapping
+        iblMipLevel = PlanarPerceptualRoughnessToMipmapLevel(preLightData.iblPerceptualRoughness, _ColorPyramidScale.z);
+    }
+    else
+    {
+        iblMipLevel = PerceptualRoughnessToMipmapLevel(preLightData.iblPerceptualRoughness);
+    }
+
+    float4 preLD = SampleEnv(lightLoopContext, lightData.envIndex, R, iblMipLevel);
+    weight *= preLD.a; // Used by planar reflection to discard pixel
+
+    if (GPUImageBasedLightingType == GPUIMAGEBASEDLIGHTINGTYPE_REFLECTION)
+    {
+        envLighting = F * preLD.rgb;
+    }
+#if HAS_REFRACTION
+    else
+    {
+        // No clear coat support with refraction
+
+        // specular transmisted lighting is the remaining of the reflection (let's use this approx)
+        // With refraction, we don't care about the clear coat value, only about the Fresnel, thus why we use 'envLighting ='
+        envLighting = (1.0 - F) * preLD.rgb * preLightData.transparentTransmittance;
+    }
+#endif
+
+#endif // LIT_DISPLAY_REFERENCE_IBL
+
+    UpdateLightingHierarchyWeights(hierarchyWeight, weight);
+    envLighting *= weight * lightData.multiplier;
+
+    if (GPUImageBasedLightingType == GPUIMAGEBASEDLIGHTINGTYPE_REFLECTION)
+        lighting.specularReflected = envLighting;
+#if HAS_REFRACTION
+    else
+        lighting.specularTransmitted = envLighting * preLightData.transparentTransmittance;
+#endif
+
     return lighting;
 }
 

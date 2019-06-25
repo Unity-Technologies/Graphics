@@ -140,11 +140,13 @@ $features.modifyMesh:   $include("VertexAnimation.template.hlsl")
 
 $include("SharedCode.template.hlsl")
     TEXTURE2D(_EyeTexture);
-SAMPLER(s_point_clamp);
+    TEXTURE2D(_EyeMask);
+    int _EyeRefraction;
+    SAMPLER(s_point_clamp);
     
     float2 TransformToUVSpace(float3 positionOS)
     {
-        return float2(0.5 - positionOS.x, positionOS.z + 0.5);
+        return float2(-positionOS.x + 0.5, positionOS.y + 0.5);
     }
     void BuildSurfaceData(FragInputs fragInputs, inout SurfaceDescription surfaceDescription, float3 V, PositionInputs posInput, out SurfaceData surfaceData, out float3 bentNormalWS)
     {
@@ -155,24 +157,40 @@ SAMPLER(s_point_clamp);
         $SurfaceDescription.SpecularOcclusion:          surfaceData.specularOcclusion =         surfaceDescription.SpecularOcclusion;
         $SurfaceDescription.Occlusion:                  surfaceData.ambientOcclusion =          surfaceDescription.Occlusion;
 
-        float mask = length(fragInputs.texCoord0.xy * 2.0 - 1.0) < 0.425 ? 1.0 : 0.0;
+        float mask = _EyeMask.Sample(s_point_clamp, fragInputs.texCoord0.xy);
+        surfaceData.mask = mask;
         float2 texcoord = fragInputs.texCoord0.xy;
-
         float3 positionOS = mul(GetWorldToObjectMatrix(), fragInputs.positionRWS + _WorldSpaceCameraPos);
-        float n = 1.0/1.4;
-        float w = 1.4 * dot( fragInputs.tangentToWorld[2], V );
-        float k = sqrt( 1.0 + ( w - n ) * ( w + n ) );
-        //float3 refractedW = ( w - k ) * fragInputs.tangentToWorld[2] - n * V;
-        float3 refractedW = refract(-V, fragInputs.tangentToWorld[2], n);
-        float cosAlpha = dot(GetWorldToObjectMatrix()[2].xyz, -refractedW);
-        float height = max(positionOS.y + 0.5 + 0.0108, 0.0);
-        float dist = height  / cosAlpha;
-        float3 offsetW = dist * refractedW;
-        float2 offsetL = mul(offsetW, (float3x2) GetWorldToObjectMatrix());
-        texcoord += (float2(-mask, mask) * offsetL);
+        //float height = positionOS.z + 0.5 > 0.10087 ? 0.0 : positionOS.z + 0.5;
+        float height = - positionOS.z + 0.5 > 0.10087 ? 0.0 : - positionOS.z + 0.5 ;
+
+        if (_EyeRefraction)
+        {
+            if(true)
+            {
+                float n = 1.0/1.4;
+                //float w = 1.4 * dot( fragInputs.tangentToWorld[2], V );
+                //float k = sqrt( 1.0 + ( w - n ) * ( w + n ) );
+                //float3 refractedW = ( w - k ) * fragInputs.tangentToWorld[2] - n * V;
+                float3 refractedW = refract(-V, fragInputs.tangentToWorld[2], n);
+                float cosAlpha = dot(GetWorldToObjectMatrix()[2].xyz, -refractedW);
+                float dist = height  / cosAlpha;
+                float3 offsetW = dist * refractedW;
+                float2 offsetL = (mul(offsetW, (float3x2) GetWorldToObjectMatrix()));
+                texcoord += (float2(mask, -mask) * offsetL);
+            }
+            else
+            {
+                float2 viewL = mul(V, (float3x2) GetWorldToObjectMatrix());
+                float2 offset = height * viewL;
+                offset.x = -offset.x;
+                texcoord -= 0.1 * offset;
+            }
+        }
+
 
         surfaceData.baseColor = _EyeTexture.Sample(s_point_clamp, texcoord.xy);
-        //surfaceData.baseColor = float3(fragInputs.texCoord0.x, 0.0, 0.0);
+        //surfaceData.baseColor = GetWorldToObjectMatrix()[2].xyz;
         surfaceData.irisSmoothness = 0.99;
         surfaceData.scleraSmoothness = 0.99;
         float3 doubleSidedConstants = float3(1.0, 1.0, 1.0);
