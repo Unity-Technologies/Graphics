@@ -7,7 +7,6 @@ namespace UnityEngine.Rendering.LWRP
         Linear,
         Exp2,
         Height,
-        
     }
 
     public enum FogColorType
@@ -20,11 +19,9 @@ namespace UnityEngine.Rendering.LWRP
     [Serializable, VolumeComponentMenu("Environment/Fog")]
     public sealed class Fog : VolumeComponent
     {
+        // Density
         [Tooltip("The type of fog to use.")]
         public FogTypeParameter type = new FogTypeParameter(FogType.Linear);
-        
-        [Tooltip("The coloring of the fog.")]
-        public FogColorTypeParameter colorType = new FogColorTypeParameter(FogColorType.Color);
         
         public ColorParameter fogColor = new ColorParameter(Color.white, true, false, true);
         public FloatParameter density = new FloatParameter(0.005f);
@@ -32,6 +29,10 @@ namespace UnityEngine.Rendering.LWRP
         public FloatParameter nearFog = new FloatParameter(5f);
         public FloatParameter farFog = new FloatParameter(50f);
         
+        // Coloring
+        [Tooltip("The coloring of the fog.")]
+        public FogColorTypeParameter colorType = new FogColorTypeParameter(FogColorType.Color);
+        //public CubemapParameter cubemap = new CubemapParameter();
     }
 
     [Serializable]

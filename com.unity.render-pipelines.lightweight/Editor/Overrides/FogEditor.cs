@@ -7,12 +7,16 @@ namespace UnityEditor.Rendering.LWRP
     sealed class FogEditor : VolumeComponentEditor
     {
         SerializedDataParameter m_Type;
-
+        // Linear Fog settings
         SerializedDataParameter m_NearFog;
         SerializedDataParameter m_FarFog;
-        
+        // Exponential Fog settings
         SerializedDataParameter m_Density;
 
+        // Color settings
+        SerializedDataParameter m_ColorType;
+        SerializedDataParameter m_Color;
+        
         public override void OnEnable()
         {
             var o = new PropertyFetcher<Fog>(serializedObject);
@@ -23,6 +27,10 @@ namespace UnityEditor.Rendering.LWRP
             m_FarFog = Unpack(o.Find(x => x.farFog));
             // Exponential 2 Settings
             m_Density = Unpack(o.Find(x => x.density));
+            
+            // Color Settings
+            m_ColorType = Unpack(o.Find(x => x.colorType));
+            m_Color = Unpack(o.Find(x => x.fogColor));
         }
 
         public override void OnInspectorGUI()
@@ -41,6 +49,21 @@ namespace UnityEditor.Rendering.LWRP
             {
                 PropertyField(m_Density);
                 m_Density.value.floatValue = Mathf.Max(m_Density.value.floatValue, 0);
+            }
+            
+            PropertyField(m_ColorType);
+
+            if (m_ColorType.value.intValue == (int) FogColorType.Color)
+            {
+                PropertyField(m_Color);
+            }
+            else if (m_ColorType.value.intValue == (int) FogColorType.Gradient)
+            {
+                // Do the things
+            }
+            else if (m_ColorType.value.intValue == (int) FogColorType.CubeMap)
+            {
+                // Do the things
             }
         }
     }
