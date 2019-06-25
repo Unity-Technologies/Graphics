@@ -832,6 +832,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 m_SkyManager.SetGlobalSkyData(cmd);
             }
+
+            var settings = VolumeManager.instance.stack.GetComponent<EyeProfileManager>();
+            if(settings.albedoTexture.value != null)
+            {
+                cmd.SetGlobalTexture("_EyeTexture", settings.albedoTexture.value);
+            }
         }
 
         void CopyDepthBufferIfNeeded(CommandBuffer cmd)

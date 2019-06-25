@@ -139,7 +139,13 @@ Pass
 $features.modifyMesh:   $include("VertexAnimation.template.hlsl")
 
 $include("SharedCode.template.hlsl")
-
+    TEXTURE2D(_EyeTexture);
+SAMPLER(s_point_clamp);
+    
+    float2 TransformToUVSpace(float3 positionOS)
+    {
+        return float2(0.5 - positionOS.x, positionOS.z + 0.5);
+    }
     void BuildSurfaceData(FragInputs fragInputs, inout SurfaceDescription surfaceDescription, float3 V, PositionInputs posInput, out SurfaceData surfaceData, out float3 bentNormalWS)
     {
         // setup defaults -- these are used if the graph doesn't output a value
@@ -148,7 +154,27 @@ $include("SharedCode.template.hlsl")
         // copy across graph values, if defined
         $SurfaceDescription.SpecularOcclusion:          surfaceData.specularOcclusion =         surfaceDescription.SpecularOcclusion;
         $SurfaceDescription.Occlusion:                  surfaceData.ambientOcclusion =          surfaceDescription.Occlusion;
-        
+
+        float mask = length(fragInputs.texCoord0.xy * 2.0 - 1.0) < 0.425 ? 1.0 : 0.0;
+        float2 texcoord = fragInputs.texCoord0.xy;
+
+        float3 positionOS = mul(GetWorldToObjectMatrix(), fragInputs.positionRWS + _WorldSpaceCameraPos);
+        float n = 1.0/1.4;
+        float w = 1.4 * dot( fragInputs.tangentToWorld[2], V );
+        float k = sqrt( 1.0 + ( w - n ) * ( w + n ) );
+        //float3 refractedW = ( w - k ) * fragInputs.tangentToWorld[2] - n * V;
+        float3 refractedW = refract(-V, fragInputs.tangentToWorld[2], n);
+        float cosAlpha = dot(GetWorldToObjectMatrix()[2].xyz, -refractedW);
+        float height = max(positionOS.y + 0.5 + 0.0108, 0.0);
+        float dist = height  / cosAlpha;
+        float3 offsetW = dist * refractedW;
+        float2 offsetL = mul(offsetW, (float3x2) GetWorldToObjectMatrix());
+        texcoord += (float2(-mask, mask) * offsetL);
+
+        surfaceData.baseColor = _EyeTexture.Sample(s_point_clamp, texcoord.xy);
+        //surfaceData.baseColor = float3(fragInputs.texCoord0.x, 0.0, 0.0);
+        surfaceData.irisSmoothness = 0.99;
+        surfaceData.scleraSmoothness = 0.99;
         float3 doubleSidedConstants = float3(1.0, 1.0, 1.0);
 
         // tangent-space normal
@@ -162,10 +188,6 @@ $include("SharedCode.template.hlsl")
         $BentNormal: GetNormalWS(fragInputs, surfaceDescription.BentNormal, bentNormalWS, doubleSidedConstants);
 
         surfaceData.geomNormalWS = fragInputs.tangentToWorld[2];
-
-        surfaceData.tangentWS = normalize(fragInputs.tangentToWorld[0].xyz);    // The tangent is not normalize in tangentToWorld for mikkt. TODO: Check if it expected that we normalize with Morten. Tag: SURFACE_GRADIENT
-        $Tangent: surfaceData.tangentWS = TransformTangentToWorld(surfaceDescription.Tangent, fragInputs.tangentToWorld);
-        surfaceData.tangentWS = Orthonormalize(surfaceData.tangentWS, surfaceData.normalWS);
 
         // By default we use the ambient occlusion with Tri-ace trick (apply outside) for specular occlusion.
         // If user provide bent normal then we process a better term
