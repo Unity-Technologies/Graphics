@@ -20,6 +20,12 @@ namespace UnityEngine.Rendering.LWRP
         NormalTangentSpace,
         LightingComplexity,
     }
+    
+    public enum DebugReplacementPassType
+    {
+        None,
+        Overdraw,
+    }
 
     public enum LightingDebugMode
     {
@@ -43,9 +49,26 @@ namespace UnityEngine.Rendering.LWRP
             new ShaderTagId("VertexLMRGBM"),
             new ShaderTagId("VertexLM"),
         };
+
+        static List<ShaderTagId> m_DebugShaderPassNames = new List<ShaderTagId>()
+        {
+            new ShaderTagId("DebugMaterial"),
+            new ShaderTagId("LightweightForward"),
+        };
         
-        static ShaderTagId m_DebugMaterialId = new ShaderTagId("DebugMaterial");
-        
+        static Material m_ReplacementMaterial;
+
+        private static Material replacementMaterial
+        {
+            get
+            {
+                if (m_ReplacementMaterial == null)
+                    m_ReplacementMaterial = new Material(Shader.Find("Hidden/Lightweight Render Pipeline/Debug/Replacement"));
+
+                return m_ReplacementMaterial;
+            }
+        }
+            
         static Mesh s_FullscreenMesh = null;
         public static Mesh fullscreenMesh
         {
@@ -177,17 +200,25 @@ namespace UnityEngine.Rendering.LWRP
 
         [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
         internal static void RenderObjectWithDebug(ScriptableRenderContext context, ref RenderingData renderingData,
-            Camera camera, FilteringSettings filterSettings, SortingCriteria sortFlags)
+            Camera camera, DebugReplacementPassType debugReplacementPassType, FilteringSettings filterSettings, SortingCriteria sortFlags)
         {
             SortingSettings sortingSettings = new SortingSettings(camera) { criteria = sortFlags };
 
-            DrawingSettings debugSettings = new DrawingSettings(m_DebugMaterialId, sortingSettings)
+            DrawingSettings debugSettings = new DrawingSettings(m_DebugShaderPassNames[(int)debugReplacementPassType], sortingSettings)
             {
                 perObjectData = renderingData.perObjectData,
                 enableInstancing = true,
                 mainLightIndex = renderingData.lightData.mainLightIndex,
                 enableDynamicBatching = renderingData.supportsDynamicBatching,
             };
+            if (debugReplacementPassType != DebugReplacementPassType.None)
+            {
+                debugSettings.overrideMaterial = replacementMaterial;
+                
+                // First index does not use replacement, so we subtract one.
+                debugSettings.overrideMaterialPassIndex = (int)debugReplacementPassType - 1;
+            }
+
             context.DrawRenderers(renderingData.cullResults, ref debugSettings, ref filterSettings);   
         }
 
