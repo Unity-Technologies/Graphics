@@ -120,7 +120,7 @@ namespace UnityEditor.Graphing
 
             // already added this node
             if (nodeList.Contains(node))
-                return false;
+                return true;
 
             IEnumerable<int> ids;
             if (slotIds == null)
@@ -129,9 +129,11 @@ namespace UnityEditor.Graphing
                 ids = node.GetInputSlots<ISlot>().Where(x => slotIds.Contains(x.id)).Select(x => x.id);
 
             bool isStatic = true;
-            foreach (var slot in ids)
+            foreach (var slotId in ids)
             {
-                foreach (var edge in node.owner.GetEdges(node.GetSlotReference(slot)))
+                isStatic &= IsSlotStatic(node.FindSlot<ISlot>(slotId));
+
+                foreach (var edge in node.owner.GetEdges(node.GetSlotReference(slotId)))
                 {
                     var outputNode = node.owner.GetNodeFromGuid(edge.outputSlot.nodeGuid) as T;
                     if (outputNode != null)
@@ -153,9 +155,26 @@ namespace UnityEditor.Graphing
             return true;
         }
 
+        static bool IsSlotStatic(ISlot slot)
+        {
+            if (slot is UVMaterialSlot)
+                return false;
+
+            if (slot is Texture3DMaterialSlot || slot is Texture2DMaterialSlot || slot is Texture2DArrayMaterialSlot)
+                return false;
+
+            if (slot is SpaceMaterialSlot)
+                return false;
+
+            return true;
+        }
+
         static bool IsNodeStatic(AbstractMaterialNode node)
         {
-            if (node is GeometryNode)
+            if (node is GeometryNode || node is VertexColorNode || node is UVNode)
+                return false;
+
+            if (node is SampleTexture2DNode || node is SampleTexture3DNode || node is SampleTexture2DArrayNode || node is SampleTexture2DLODNode || node is SampleCubemapNode || node is SampleGradient)
                 return false;
 
             return true;
