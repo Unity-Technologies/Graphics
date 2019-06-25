@@ -214,7 +214,8 @@ half4 LightingComplexity(Varyings input)
             half4(1, 0, 0, 0)
     };
 
-    unsigned int numLights = clamp(GetAdditionalLightsCount(), 0, 4);
+    // Assume a main light and add 1 to the additional lights.
+    unsigned int numLights = clamp(GetAdditionalLightsCount()+1, 0, 4);
     half4 fc = lut[numLights];
 
     float2 ndc = saturate((input.ndc.xy / input.ndc.w) * 0.5 + 0.5);
