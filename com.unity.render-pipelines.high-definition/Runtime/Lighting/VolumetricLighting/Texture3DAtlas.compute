@@ -1,8 +1,9 @@
 
 // #pragma
-#pragma kernel ClearTexture    Texture3DAtlas=ClearTexture CLEAR
-#pragma kernel CopySimulation  Texture3DAtlas=CopySimulation COPY_SIMULATION
+#pragma kernel ClearTexture    Texture3DAtlas=ClearTexture    CLEAR
+#pragma kernel CopySimulation  Texture3DAtlas=CopySimulation  COPY_SIMULATION
 #pragma kernel CopyAnimDensity Texture3DAtlas=CopyAnimDensity COPY_ANIM_DENSITY
+#pragma kernel CopyVShadowMap  Texture3DAtlas=CopyVShadowMap  COPY_VSHADOWMAP
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 
@@ -18,6 +19,8 @@ Texture3D<float4> _SimulationBuffer1;
 #elif COPY_ANIM_DENSITY
 Texture3D<float4> _AnimDensityTexture0;
 Texture3D<float4> _AnimDensityTexture1;
+#elif COPY_VSHADOWMAP
+Texture3D<float> _VShadowMapBuffer;
 #endif
 RWTexture3D<float4> _OutputVolumeAtlas;
 
@@ -35,5 +38,7 @@ void Texture3DAtlas(uint3 id : SV_DispatchThreadID)
     _OutputVolumeAtlas[output] = _SimulationBuffer1[id.xyz];
 #elif COPY_ANIM_DENSITY
     _OutputVolumeAtlas[id.xyz] = lerp(_AnimDensityTexture0[id.xyz], _AnimDensityTexture1[id.xyz], _FrameBlend);
+#elif COPY_VSHADOWMAP
+    _OutputVolumeAtlas[id.xyz] = _VShadowMapBuffer[id.xyz];
 #endif
 }

@@ -201,11 +201,8 @@ VoxelLighting EvaluateVoxelLightingDirectional(LightLoopContext context, uint fe
         EvaluateLight_Directional(context, posInput, light, unused, L, L, NdotL,
                                   color, attenuation);
                                   
-        //seongdae;fspm
-        float vAttenuation = 1.0;
-        EvaluateVolumetricAttenuation_Directional(posInput.positionWS, L, 8, vAttenuation);
-        attenuation *= vAttenuation;
-        //seongdae;fspm
+        EvaluateTransmittance_Directional(posInput.positionWS, L, 4.0, 12,
+                                          attenuation); //seongdae;fspm
 
         // Important:
         // Ideally, all scattering calculations should use the jittered versions

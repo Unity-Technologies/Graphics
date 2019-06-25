@@ -31,7 +31,8 @@ void Simulate(uint3 id : SV_DispatchThreadID)
     float3 startPos = (float3)id.xyz;
     
     _SimulationBuffer0[id.xyz] = float4(startPos, 0.0);
-    _SimulationBuffer1[id.xyz] = _InitialStateVolumeTexture[id.xyz];
+    _SimulationBuffer1[id.xyz] = float4(1.0, 1.0, 1.0, 0.0);
+    //_SimulationBuffer1[id.xyz] = _InitialStateVolumeTexture[id.xyz];
 #elif SIMULATE
     float3 pos = _SimulationBuffer0[id.xyz].xyz;
     float3 vfUVW = (pos / _FluidSimVolumeRes);

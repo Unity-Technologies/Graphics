@@ -3,6 +3,7 @@
 #pragma kernel VolumetricShadowMap         VolumetricShadowMap=VolumetricShadowMap
 #pragma kernel VolumetricShadowMapFluidSim VolumetricShadowMap=VolumetricShadowMapFluidSim FLUID_SIM
 
+#define TILE_SIZE 4
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/GeometricTools.hlsl"
@@ -16,13 +17,13 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/VolumetricLighting/VShadowMapVariables.hlsl"
 
 
-CBUFFER_START(UnityVolumetricLighting)
-    uint     _NumVisibleDensityVolumes;
+CBUFFER_START(UnityVShadowMap)
+    uint _NumVisibleDensityVolumes;
 CBUFFER_END
 
 #ifndef FLUID_SIM
-StructuredBuffer<OrientedBBox>            _VolumeBounds;
-StructuredBuffer<DensityVolumeEngineData> _VolumeData;
+StructuredBuffer<OrientedBBox>             _VolumeBounds;
+StructuredBuffer<DensityVolumeEngineData>  _VolumeData;
 #else // FLUID_SIM
 StructuredBuffer<OrientedBBox>             _VolumeBounds;
 StructuredBuffer<FluidSimVolumeEngineData> _VolumeData;
@@ -40,13 +41,14 @@ float4 SampleFluidSimVolume(FluidSimVolumeEngineData volumeData, float3 voxelCen
 {
     // todo : sync atlas resolution
     float3 voxelCenterUVW = frac(voxelCenterNDC * (volumeData.volumeRes / 512.0));
+    voxelCenterUVW = voxelCenterNDC * 0.07;
 
     return SAMPLE_TEXTURE3D_LOD(_FluidSimVolumeAtlas, s_linear_repeat_sampler, voxelCenterUVW, 0);
 }
 #endif // FLUID_SIM
 
 
-[numthreads(4, 4, 4)]
+[numthreads(TILE_SIZE, TILE_SIZE, TILE_SIZE)]
 void VolumetricShadowMap(uint3 id : SV_DispatchThreadID)
 {
     uint  vshadowMapHalfRes = _VShadowMapRes / 2;
@@ -58,6 +60,9 @@ void VolumetricShadowMap(uint3 id : SV_DispatchThreadID)
     // in LightLoop, these are dependent on Tile Lightlist. but here is not using it
     uint volumeCount = _NumVisibleDensityVolumes;
     uint volumeStart = 0;
+    
+    float3 voxelScattering = 0.0;
+    float  voxelExtinction = 0.0;
     
     for (uint volumeOffset = 0; volumeOffset < volumeCount; volumeOffset++)
     {
@@ -84,21 +89,18 @@ void VolumetricShadowMap(uint3 id : SV_DispatchThreadID)
         {
             float3 voxelCenterNDC = saturate(voxelCenterCS * 0.5 + 0.5);
 
-            float3 volumeScattering = 0;
-            float  volumeExtinction = 0;
-
             if (_VolumeData[volumeIndex].textureIndex != -1)
             {
             #ifndef FLUID_SIM
             #else // FLUID_SIM
                 float4 density = SampleFluidSimVolume(_VolumeData[volumeIndex], voxelCenterNDC);
             
-                volumeScattering = density.xyz;
-                volumeExtinction = dot(volumeScattering, 0.3333) + density.w;
+                voxelScattering = density.xyz;
+                voxelExtinction = dot(voxelScattering, 0.3333) + density.w;
             #endif // FLUID_SIM
             }
         }
     }
 
-    _VShadowMapBuffer[voxelCoord] = -((voxelCenterWS.y / _VShadowMapMag) - 0.5);
+    _VShadowMapBuffer[voxelCoord] = voxelExtinction * 10.0;
 }

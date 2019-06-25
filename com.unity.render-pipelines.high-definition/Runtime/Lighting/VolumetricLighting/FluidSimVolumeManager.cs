@@ -19,6 +19,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
+        private const int threadTile = 4;
+        private const int lessTile = threadTile - 1;
+
         private ComputeShader _fluidSimVolumeCS = null;
         private ComputeShader _texture3DAtlasCS = null;
 
@@ -27,6 +30,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public RTHandleSystem.RTHandle volumeAtlas = null;
 
         //TODO: hardcoded size....:-(
+        // need to sync this with in VolumeVoxelization.compute and VolumetricShadowMap.compute
         public static int fluidSimVolumeTextureSize = 512;
 
         private FluidSimVolumeManager()
@@ -76,9 +80,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 int fluidSimVolumeResX = initialSimTexture.width;
                 int fluidSimVolumeResY = initialSimTexture.height;
                 int fluidSimVolumeResZ = initialSimTexture.depth;
-
-                const int threadTile = 4;
-                const int lessTile = threadTile - 1;
 
                 int dispatchX = (fluidSimVolumeResX + lessTile) / threadTile;
                 int dispatchY = (fluidSimVolumeResY + lessTile) / threadTile;
@@ -145,18 +146,25 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
             }
         }
+        public void ClearTexture3DAtlas(CommandBuffer cmd)
+        {
+            int kernel = _texture3DAtlasCS.FindKernel("ClearTexture");
+
+            int dispatchX = (512 + lessTile) / threadTile;
+            int dispatchY = (512 + lessTile) / threadTile;
+            int dispatchZ = (512 + lessTile) / threadTile;
+
+            cmd.SetComputeTextureParam(_texture3DAtlasCS, kernel, HDShaderIDs._OutputVolumeAtlas, volumeAtlas);
+
+            cmd.DispatchCompute(_texture3DAtlasCS, kernel, dispatchX, dispatchY, dispatchZ);
+        }
         public void CopyTextureToAtlas(CommandBuffer cmd)
         {
-            int kernel0 = _texture3DAtlasCS.FindKernel("ClearTexture");
-            int kernel1 = _texture3DAtlasCS.FindKernel("CopySimulation");
-            int kernel2 = _texture3DAtlasCS.FindKernel("CopyAnimDensity");
-
-            const int threadTile = 4;
-            const int lessTile = threadTile - 1;
+            int kernel0 = _texture3DAtlasCS.FindKernel("CopySimulation");
+            int kernel1 = _texture3DAtlasCS.FindKernel("CopyAnimDensity");
 
             cmd.SetComputeTextureParam(_texture3DAtlasCS, kernel0, HDShaderIDs._OutputVolumeAtlas, volumeAtlas);
             cmd.SetComputeTextureParam(_texture3DAtlasCS, kernel1, HDShaderIDs._OutputVolumeAtlas, volumeAtlas);
-            cmd.SetComputeTextureParam(_texture3DAtlasCS, kernel2, HDShaderIDs._OutputVolumeAtlas, volumeAtlas);
 
             foreach (var volume in _volumes)
             {
@@ -183,11 +191,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     int dispatchY = (fluidSimVolumeResY + lessTile) / threadTile;
                     int dispatchZ = (fluidSimVolumeResZ + lessTile) / threadTile;
 
-                    cmd.SetComputeTextureParam(_texture3DAtlasCS, kernel1, HDShaderIDs._SimulationBuffer0, simulationBuffer0);
-                    cmd.SetComputeTextureParam(_texture3DAtlasCS, kernel1, HDShaderIDs._SimulationBuffer1, simulationBuffer1);
+                    cmd.SetComputeTextureParam(_texture3DAtlasCS, kernel0, HDShaderIDs._SimulationBuffer0, simulationBuffer0);
+                    cmd.SetComputeTextureParam(_texture3DAtlasCS, kernel0, HDShaderIDs._SimulationBuffer1, simulationBuffer1);
 
                     cmd.DispatchCompute(_texture3DAtlasCS, kernel0, dispatchX, dispatchY, dispatchZ);
-                    cmd.DispatchCompute(_texture3DAtlasCS, kernel1, dispatchX, dispatchY, dispatchZ);
                 }
                 else
                 {
@@ -213,11 +220,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     int dispatchZ = (fluidSimVolumeResZ + lessTile) / threadTile;
 
                     cmd.SetComputeFloatParam(_texture3DAtlasCS, HDShaderIDs._FrameBlend, volume.frameBlend);
-                    cmd.SetComputeTextureParam(_texture3DAtlasCS, kernel2, HDShaderIDs._AnimDensityTexture0, densityTexture);
-                    cmd.SetComputeTextureParam(_texture3DAtlasCS, kernel2, HDShaderIDs._AnimDensityTexture1, densityTextureNext);
+                    cmd.SetComputeTextureParam(_texture3DAtlasCS, kernel1, HDShaderIDs._AnimDensityTexture0, densityTexture);
+                    cmd.SetComputeTextureParam(_texture3DAtlasCS, kernel1, HDShaderIDs._AnimDensityTexture1, densityTextureNext);
 
-                    cmd.DispatchCompute(_texture3DAtlasCS, kernel0, dispatchX, dispatchY, dispatchZ);
-                    cmd.DispatchCompute(_texture3DAtlasCS, kernel2, dispatchX, dispatchY, dispatchZ);
+                    cmd.DispatchCompute(_texture3DAtlasCS, kernel1, dispatchX, dispatchY, dispatchZ);
                 }
             }
         }

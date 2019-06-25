@@ -1530,6 +1530,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 renderContext.ExecuteCommandBuffer(cmd);
                 cmd.Clear();
 
+                FluidSimVolumeManager.manager.ClearTexture3DAtlas(cmd);
+                renderContext.ExecuteCommandBuffer(cmd);
+                cmd.Clear();
+
                 FluidSimVolumeManager.manager.CopyTextureToAtlas(cmd);
                 renderContext.ExecuteCommandBuffer(cmd);
                 cmd.Clear();
@@ -1771,9 +1775,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     haveAsyncTaskWithShadows = true;
 
                     void Callback(CommandBuffer asyncCmd)
-                        //=> m_VolumetricLightingSystem.VolumeVoxelizationPass(hdCamera, asyncCmd, m_FrameCount, densityVolumes, m_LightLoop); //seongdae;fspm;origin
+                    //=> m_VolumetricLightingSystem.VolumeVoxelizationPass(hdCamera, asyncCmd, m_FrameCount, densityVolumes, m_LightLoop); //seongdae;fspm;origin
                     //seongdae;fspm
                     {
+                        //m_VolumetricLightingSystem.VolumetricShadowMapPass(hdCamera, asyncCmd, m_FrameCount, densityVolumes); //seongdae;fspm
+                        m_VolumetricLightingSystem.VolumetricShadowMapPass(hdCamera, asyncCmd, m_FrameCount, fluidSimVolumes); //seongdae;fspm
                         m_VolumetricLightingSystem.VolumeVoxelizationPass(hdCamera, asyncCmd, m_FrameCount, densityVolumes, m_LightLoop);
                         m_VolumetricLightingSystem.VolumeVoxelizationPass(hdCamera, asyncCmd, m_FrameCount, fluidSimVolumes, m_LightLoop);
                     }
@@ -1854,6 +1860,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     // Perform the voxelization step which fills the density 3D texture.
                     //m_VolumetricLightingSystem.VolumetricShadowMapPass(hdCamera, cmd, m_FrameCount, densityVolumes); //seongdae;fspm
                     m_VolumetricLightingSystem.VolumetricShadowMapPass(hdCamera, cmd, m_FrameCount, fluidSimVolumes); //seongdae;fspm
+                    //m_VolumetricLightingSystem.VisualizeVolumetricShadowMapPass(hdCamera, cmd); //seongdae;fspm
                     m_VolumetricLightingSystem.VolumeVoxelizationPass(hdCamera, cmd, m_FrameCount, densityVolumes, m_LightLoop);
                     m_VolumetricLightingSystem.VolumeVoxelizationPass(hdCamera, cmd, m_FrameCount, fluidSimVolumes, m_LightLoop); //seongdae;fspm
                 }
@@ -3012,12 +3019,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 HDUtils.SetRenderTarget(cmd, hdCamera, m_SharedRTManager.GetDepthStencilBuffer());
                 RenderTransparentRenderList(cullResults, hdCamera, renderContext, cmd, m_TransparentDepthPostpassNames);
 
-                #if ENABLE_RAYTRACING
+#if ENABLE_RAYTRACING
                 // If there is a ray-tracing environment and the feature is enabled we want to push these objects to the transparent postpass (they are not rendered in the first call because they are not in the generic transparent render queue)
                 HDRaytracingEnvironment currentEnv = m_RayTracingManager.CurrentEnvironment();
                 if (currentEnv != null && currentEnv.raytracedObjects)
                     RenderTransparentRenderList(cullResults, hdCamera, renderContext, cmd, m_TransparentDepthPostpassNames, inRenderQueueRange : HDRenderQueue.k_RenderQueue_AllTransparentRaytracing);
-                #endif
+#endif
             }
         }
 
