@@ -56,7 +56,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             [SurfaceDataAttributes("Hair Strand Direction", true)]
             public Vector3 hairStrandDirectionWS;
 
-            // Kajiya kay
+            // Kajiya kay (also used as R-only smoothness on Marschner
             [SurfaceDataAttributes("Secondary Smoothness")]
             public float secondaryPerceptualSmoothness;
 
@@ -73,6 +73,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             [SurfaceDataAttributes("Secondary Specular Shift")]
             public float secondarySpecularShift;
+
+            // Marschner-specific
+            [SurfaceDataAttributes("Azimuthal Smoothness")]
+            public float azimuthalSmoothness;
+
+            [SurfaceDataAttributes("Index Of Refraction")]
+            public float indexOfRefraction;
         };
 
         //-----------------------------------------------------------------------------
@@ -116,6 +123,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public float secondarySpecularExponent;
             public float specularShift;
             public float secondarySpecularShift;
+
+            // Marschner
+            public float azimuthalPerceptualRoughness;
+            public float indexOfRefraction;
         };
 
 
