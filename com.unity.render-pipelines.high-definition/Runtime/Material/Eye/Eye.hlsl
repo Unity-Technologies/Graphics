@@ -201,7 +201,7 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, inout BSDFData b
     float clampedNdotV = ClampNdotV(preLightData.NdotV);
     float realRoughness = lerp(bsdfData.scleraRoughness, bsdfData.irisRoughness, bsdfData.eyeMask);
     preLightData.partLambdaV = GetSmithJointGGXPartLambdaV(clampedNdotV, realRoughness);
-
+    preLightData.iblPerceptualRoughness = realRoughness;
     float3 iblN;
     {
         preLightData.partLambdaV = GetSmithJointGGXPartLambdaV(clampedNdotV, realRoughness);
@@ -388,6 +388,15 @@ IndirectLighting EvaluateBSDF_ScreenSpaceReflection(PositionInputs posInput,
 {
     IndirectLighting lighting;
     ZERO_INITIALIZE(IndirectLighting, lighting);
+
+    // TODO: this texture is sparse (mostly black). Can we avoid reading every texel? How about using Hi-S?
+    float4 ssrLighting = LOAD_TEXTURE2D_X(_SsrLightingTexture, posInput.positionSS);
+
+    // Note: RGB is already premultiplied by A.
+    // TODO: we should multiply all indirect lighting by the FGD value only ONCE.
+    lighting.specularReflected = ssrLighting.rgb /* * ssrLighting.a */ * preLightData.specularFGD;
+    reflectionHierarchyWeight  = ssrLighting.a;
+
     return lighting;
 }
 
@@ -523,7 +532,7 @@ void PostEvaluateBSDF(  LightLoopContext lightLoopContext,
                         out float3 diffuseLighting, out float3 specularLighting)
 {
     diffuseLighting = lighting.direct.diffuse * bsdfData.diffuseColor;
-    specularLighting = lighting.direct.specular;
+    specularLighting = lighting.direct.specular + lighting.indirect.specularReflected;
 }
 
 #endif // #ifdef HAS_LIGHTLOOP
