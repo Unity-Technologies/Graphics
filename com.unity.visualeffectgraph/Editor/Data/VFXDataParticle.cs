@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using UnityEngine;
-using UnityEditor.Experimental.VFX;
-using UnityEngine.Experimental.VFX;
+using UnityEditor.VFX;
+using UnityEngine.VFX;
 
 namespace UnityEditor.VFX
 {
@@ -548,7 +548,7 @@ namespace UnityEditor.VFX
                 var contextData = contextToCompiledData[context];
 
                 var taskDesc = new VFXEditorTaskDesc();
-                taskDesc.type = (UnityEngine.Experimental.VFX.VFXTaskType)context.taskType;
+                taskDesc.type = (UnityEngine.VFX.VFXTaskType)context.taskType;
 
                 bufferMappings.Clear();
 

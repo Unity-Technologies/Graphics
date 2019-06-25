@@ -101,7 +101,31 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         Distortion = 14,
         [FrameSettingsField(0, autoName: Postprocess)]
         Postprocess = 15,
-        [FrameSettingsField(0, autoName: AfterPostprocess, customOrderInGroup: 15)]
+        [FrameSettingsField(0, displayedName: "Stop NaN", positiveDependencies: new[] { Postprocess }, customOrderInGroup: 15)]
+        StopNaN = 80,
+        [FrameSettingsField(0, autoName: DepthOfField, positiveDependencies: new[] { Postprocess }, customOrderInGroup: 15)]
+        DepthOfField = 81,
+        [FrameSettingsField(0, autoName: MotionBlur, positiveDependencies: new[] { Postprocess }, customOrderInGroup: 15)]
+        MotionBlur = 82,
+        [FrameSettingsField(0, autoName: PaniniProjection, positiveDependencies: new[] { Postprocess }, customOrderInGroup: 15)]
+        PaniniProjection = 83,
+        [FrameSettingsField(0, autoName: Bloom, positiveDependencies: new[] { Postprocess }, customOrderInGroup: 15)]
+        Bloom = 84,
+        [FrameSettingsField(0, autoName: LensDistortion, positiveDependencies: new[] { Postprocess }, customOrderInGroup: 15)]
+        LensDistortion = 85,
+        [FrameSettingsField(0, autoName: ChromaticAberration, positiveDependencies: new[] { Postprocess }, customOrderInGroup: 15)]
+        ChromaticAberration = 86,
+        [FrameSettingsField(0, autoName: Vignette, positiveDependencies: new[] { Postprocess }, customOrderInGroup: 15)]
+        Vignette = 87,
+        [FrameSettingsField(0, autoName: ColorGrading, positiveDependencies: new[] { Postprocess }, customOrderInGroup: 15)]
+        ColorGrading = 88,
+        [FrameSettingsField(0, autoName: FilmGrain, positiveDependencies: new[] { Postprocess }, customOrderInGroup: 15)]
+        FilmGrain = 89,
+        [FrameSettingsField(0, autoName: Dithering, positiveDependencies: new[] { Postprocess }, customOrderInGroup: 15)]
+        Dithering = 90,
+        [FrameSettingsField(0, autoName: Antialiasing, positiveDependencies: new[] { Postprocess }, customOrderInGroup: 15)]
+        Antialiasing = 91,
+        [FrameSettingsField(0, autoName: AfterPostprocess, customOrderInGroup: 16)]
         AfterPostprocess = 17,
         [FrameSettingsField(0, autoName: LowResTransparent)]
         LowResTransparent = 18,
@@ -222,6 +246,18 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 (uint)FrameSettingsField.RoughRefraction, // Depends on DepthPyramid - If not enable, just do a copy of the scene color (?) - how to disable rough refraction ?
                 (uint)FrameSettingsField.Distortion,
                 (uint)FrameSettingsField.Postprocess,
+                (uint)FrameSettingsField.StopNaN,
+                (uint)FrameSettingsField.DepthOfField,
+                (uint)FrameSettingsField.MotionBlur,
+                (uint)FrameSettingsField.PaniniProjection,
+                (uint)FrameSettingsField.Bloom,
+                (uint)FrameSettingsField.LensDistortion,
+                (uint)FrameSettingsField.ChromaticAberration,
+                (uint)FrameSettingsField.Vignette,
+                (uint)FrameSettingsField.ColorGrading,
+                (uint)FrameSettingsField.FilmGrain,
+                (uint)FrameSettingsField.Dithering,
+                (uint)FrameSettingsField.Antialiasing,
                 (uint)FrameSettingsField.AfterPostprocess,
                 (uint)FrameSettingsField.LowResTransparent,
                 (uint)FrameSettingsField.ZTestAfterPostProcessTAA,
@@ -486,6 +522,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             sanitazedFrameSettings.bitDatas[(int)FrameSettingsField.VolumeVoxelizationsAsync] &= async;
 
             // XRTODO: fix indirect deferred pass with instancing
+            sanitazedFrameSettings.bitDatas[(int)FrameSettingsField.DeferredTile] &= !stereoInstancing;
             sanitazedFrameSettings.bitDatas[(int)FrameSettingsField.ComputeLightEvaluation] &= !stereoInstancing;
 
             // Deferred opaque are always using Fptl. Forward opaque can use Fptl or Cluster, transparent use cluster.

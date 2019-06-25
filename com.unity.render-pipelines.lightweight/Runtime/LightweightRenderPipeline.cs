@@ -21,6 +21,7 @@ namespace UnityEngine.Rendering.LWRP
             public static int _SinTime;
             public static int _CosTime;
             public static int unity_DeltaTime;
+            public static int _TimeParameters;
         }
 
         static internal class PerCameraBuffer
@@ -84,6 +85,7 @@ namespace UnityEngine.Rendering.LWRP
             PerFrameBuffer._SinTime = Shader.PropertyToID("_SinTime");
             PerFrameBuffer._CosTime = Shader.PropertyToID("_CosTime");
             PerFrameBuffer.unity_DeltaTime = Shader.PropertyToID("unity_DeltaTime");
+            PerFrameBuffer._TimeParameters = Shader.PropertyToID("_TimeParameters");
 
             PerCameraBuffer._InvCameraViewProj = Shader.PropertyToID("_InvCameraViewProj");
             PerCameraBuffer._ScreenParams = Shader.PropertyToID("_ScreenParams");
@@ -130,7 +132,7 @@ namespace UnityEngine.Rendering.LWRP
             {
                 BeginCameraRendering(renderContext, camera);
 
-                UnityEngine.Experimental.VFX.VFXManager.ProcessCamera(camera); //Visual Effect Graph is not yet a required package but calling this method when there isn't any VisualEffect component has no effect (but needed for Camera sorting in Visual Effect Graph context)
+                VFX.VFXManager.ProcessCamera(camera); //Visual Effect Graph is not yet a required package but calling this method when there isn't any VisualEffect component has no effect (but needed for Camera sorting in Visual Effect Graph context)
                 RenderSingleCamera(renderContext, camera);
 
                 EndCameraRendering(renderContext, camera);

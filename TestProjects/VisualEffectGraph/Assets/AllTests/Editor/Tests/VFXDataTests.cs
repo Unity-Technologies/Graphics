@@ -2,7 +2,7 @@
 using System;
 using NUnit.Framework;
 using UnityEngine;
-using UnityEngine.Experimental.VFX;
+using UnityEngine.VFX;
 using UnityEngine.TestTools;
 using System.Collections.Generic;
 

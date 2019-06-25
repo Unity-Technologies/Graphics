@@ -150,7 +150,8 @@ float4 EvaluateLight_Directional(LightLoopContext lightLoopContext, PositionInpu
             }
             else
             {
-                return 0; // Kill the light
+                // return 0; // Kill the light. This generates a warning, so can't early out. :-(
+                oDepth = FLT_INF;
             }
         }
     }

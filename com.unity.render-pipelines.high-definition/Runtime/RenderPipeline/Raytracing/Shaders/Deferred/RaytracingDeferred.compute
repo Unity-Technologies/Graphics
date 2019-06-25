@@ -89,7 +89,7 @@ void RAYTRACING_DEFERRED(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId :
 
     float3 diffuseLighting;
     float3 specularLighting;
-    LightLoop(V, posInput, preLightData, bsdfData, builtinData, 0.0, float3(0.0, 0.0, 0.0),  float3(0.0, 0.0, 0.0), diffuseLighting, specularLighting);
+    LightLoop(V, posInput, preLightData, bsdfData, builtinData, 0.0, 0.0, float3(0.0, 0.0, 0.0),  float3(0.0, 0.0, 0.0), diffuseLighting, specularLighting);
 
     float3 finalColor = (diffuseLighting + specularLighting) * GetCurrentExposureMultiplier();
     _RaytracingLitBufferRW[COORD_TEXTURE2D_X(currentCoord)] = float4(finalColor, 0.0);

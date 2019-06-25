@@ -264,6 +264,15 @@ EditorBuildSettings:
     path: Assets/GraphicTests/Scenes/5x_SkyAndFog/5003_Fog_DensityVolumesShadows.unity
     guid: abfc0c0cd1816114e9696849bc9e6406
   - enabled: 1
+    path: Assets/GraphicTests/Scenes/5x_SkyAndFog/5004_Pbr_Sky_High_Altitude.unity
+    guid: 3ac6122326e687b439415cfacaf7d48e
+  - enabled: 1
+    path: Assets/GraphicTests/Scenes/5x_SkyAndFog/5005_Pbr_Sky_Med_Altitude.unity
+    guid: da48472b200e13f438a16366737c777c
+  - enabled: 1
+    path: Assets/GraphicTests/Scenes/5x_SkyAndFog/5006_Pbr_Sky_Low_Altitude.unity
+    guid: 064c94d540e5d9248a6c4d43a6d1f1e8
+  - enabled: 1
     path: Assets/GraphicTests/Scenes/4x_PostProcessing/4001_Exposure.unity
     guid: f32cdac65dd17f847b4cdaaa85bb990a
   - enabled: 1
@@ -359,7 +368,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/GraphicTests/Scenes/8x_ShaderGraph/8204_CustomSpecOcclusion.unity
     guid: ea4b63b16805d5d40a81ed8842d96847
-  - enabled: 1
+  - enabled: 0
     path: Assets/GraphicTests/Scenes/8x_ShaderGraph/8205_SceneDepthColorNodes.unity
     guid: 17a399a27d6d4504cb53093dcadfe715
   - enabled: 0

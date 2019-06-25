@@ -261,14 +261,24 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                                 break;
                             case SpotLightShape.Cone:
                                 // Cone spot projector
+                                EditorGUI.BeginChangeCheck();
                                 EditorGUILayout.Slider(serialized.settings.spotAngle, 1f, 179f, s_Styles.outterAngle);
+                                if(EditorGUI.EndChangeCheck())
+                                {
+                                    serialized.serializedLightData.customSpotLightShadowCone.floatValue = Math.Min(serialized.serializedLightData.customSpotLightShadowCone.floatValue, serialized.settings.spotAngle.floatValue);
+                                }
                                 EditorGUILayout.Slider(serialized.serializedLightData.spotInnerPercent, 0f, 100f, s_Styles.spotInnerPercent);
                                 EditorGUILayout.PropertyField(serialized.serializedLightData.shapeRadius, s_Styles.lightRadius);
                                 EditorGUILayout.PropertyField(serialized.serializedLightData.maxSmoothness, s_Styles.maxSmoothness);
                                 break;
                             case SpotLightShape.Pyramid:
                                 // pyramid spot projector
+                                EditorGUI.BeginChangeCheck();
                                 serialized.settings.DrawSpotAngle();
+                                if (EditorGUI.EndChangeCheck())
+                                {
+                                    serialized.serializedLightData.customSpotLightShadowCone.floatValue = Math.Min(serialized.serializedLightData.customSpotLightShadowCone.floatValue, serialized.settings.spotAngle.floatValue);
+                                }
                                 EditorGUILayout.Slider(serialized.serializedLightData.aspectRatio, 0.05f, 20.0f, s_Styles.aspectRatioPyramid);
                                 EditorGUILayout.PropertyField(serialized.serializedLightData.shapeRadius, s_Styles.lightRadius);
                                 EditorGUILayout.PropertyField(serialized.serializedLightData.maxSmoothness, s_Styles.maxSmoothness);
@@ -708,6 +718,18 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                         EditorGUI.indentLevel--;
                     }
 
+                    if(serialized.editorLightShape == LightShape.Spot)
+                    {
+                        var spotLightShape = (SpotLightShape)serialized.serializedLightData.spotLightShape.enumValueIndex;
+                        if(spotLightShape != SpotLightShape.Box)
+                        {
+                            EditorGUILayout.PropertyField(serialized.serializedLightData.useCustomSpotLightShadowCone, s_Styles.useCustomSpotLightShadowCone);
+                            if(serialized.serializedLightData.useCustomSpotLightShadowCone.boolValue)
+                            {
+                                EditorGUILayout.Slider(serialized.serializedLightData.customSpotLightShadowCone, 1.0f, serialized.settings.spotAngle.floatValue, s_Styles.customSpotLightShadowCone);
+                            }
+                        }
+                    }
                 }
 
                 // Dimmer and Tint don't have effect on baked shadow

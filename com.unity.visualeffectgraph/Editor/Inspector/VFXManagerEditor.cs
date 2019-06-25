@@ -5,10 +5,9 @@ using System.Collections.Generic;
 
 using UnityEditor;
 using UnityEngine;
-using UnityEngine.Experimental.VFX;
+using UnityEngine.VFX;
 using UnityEngine.Rendering;
 using UnityEditor.Callbacks;
-using UnityEditor.Experimental.VFX;
 using UnityEditor.VFX;
 using UnityEditor.VFX.UI;
 

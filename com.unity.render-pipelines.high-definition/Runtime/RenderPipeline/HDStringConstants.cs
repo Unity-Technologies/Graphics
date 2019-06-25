@@ -202,12 +202,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public static readonly int _UseTileLightList = Shader.PropertyToID("_UseTileLightList");
 
-        public static readonly int _FrameCount     = Shader.PropertyToID("_FrameCount");
-        public static readonly int _Time           = Shader.PropertyToID("_Time");
-        public static readonly int _LastTime       = Shader.PropertyToID("_LastTime");
-        public static readonly int _SinTime        = Shader.PropertyToID("_SinTime");
-        public static readonly int _CosTime        = Shader.PropertyToID("_CosTime");
-        public static readonly int unity_DeltaTime = Shader.PropertyToID("unity_DeltaTime");
+        public static readonly int _FrameCount          = Shader.PropertyToID("_FrameCount");
+        public static readonly int _Time                = Shader.PropertyToID("_Time");
+        public static readonly int _SinTime             = Shader.PropertyToID("_SinTime");
+        public static readonly int _CosTime             = Shader.PropertyToID("_CosTime");
+        public static readonly int unity_DeltaTime      = Shader.PropertyToID("unity_DeltaTime");
+        public static readonly int _TimeParameters      = Shader.PropertyToID("_TimeParameters");
+        public static readonly int _LastTimeParameters  = Shader.PropertyToID("_LastTimeParameters");        
 
         public static readonly int _EnvLightSkyEnabled = Shader.PropertyToID("_EnvLightSkyEnabled");
         public static readonly int _AmbientOcclusionParam = Shader.PropertyToID("_AmbientOcclusionParam");
@@ -546,8 +547,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly int _MaxClusterPos                   = Shader.PropertyToID("_MaxClusterPos");
         public static readonly int _LightPerCellCount               = Shader.PropertyToID("_LightPerCellCount");
         public static readonly int _LightDatasRT                    = Shader.PropertyToID("_LightDatasRT");
+        public static readonly int _EnvLightDatasRT                 = Shader.PropertyToID("_EnvLightDatasRT");
         public static readonly int _PunctualLightCountRT            = Shader.PropertyToID("_PunctualLightCountRT");
         public static readonly int _AreaLightCountRT                = Shader.PropertyToID("_AreaLightCountRT");
+        public static readonly int _EnvLightCountRT                 = Shader.PropertyToID("_EnvLightCountRT");
         public static readonly int _RaytracingLightCluster          = Shader.PropertyToID("_RaytracingLightCluster");
 
         // Denoising

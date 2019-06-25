@@ -117,14 +117,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public Shader gradientSkyPS;
             [Reload("Runtime/Sky/AmbientProbeConvolution.compute")]
             public ComputeShader ambientProbeConvolutionCS;
-            [Reload("Runtime/Sky/PbrSky/OpticalDepthPrecomputation.compute")]
+            [Reload("Runtime/Sky/PhysicallyBasedSky/OpticalDepthPrecomputation.compute")]
             public ComputeShader opticalDepthPrecomputationCS;
-            [Reload("Runtime/Sky/PbrSky/GroundIrradiancePrecomputation.compute")]
+            [Reload("Runtime/Sky/PhysicallyBasedSky/GroundIrradiancePrecomputation.compute")]
             public ComputeShader groundIrradiancePrecomputationCS;
-            [Reload("Runtime/Sky/PbrSky/InScatteredRadiancePrecomputation.compute")]
+            [Reload("Runtime/Sky/PhysicallyBasedSky/InScatteredRadiancePrecomputation.compute")]
             public ComputeShader inScatteredRadiancePrecomputationCS;
-            [Reload("Runtime/Sky/PbrSky/PbrSky.shader")]
-            public Shader        pbrSkyPS;
+            [Reload("Runtime/Sky/PhysicallyBasedSky/PhysicallyBasedSky.shader")]
+            public Shader        physicallyBasedSkyPS;
 
             // Material
             [Reload("Runtime/Material/PreIntegratedFGD/PreIntegratedFGD_GGXDisneyDiffuse.shader")]
@@ -247,15 +247,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         [Serializable, ReloadGroup]
         public sealed class MaterialResources
         {
-            // Defaults
-            [Reload("Runtime/RenderPipelineResources/Material/DefaultHDMaterial.mat")]
-            public Material defaultDiffuseMat;
-            [Reload("Runtime/RenderPipelineResources/Material/DefaultHDMirrorMaterial.mat")]
-            public Material defaultMirrorMat;
-            [Reload("Runtime/RenderPipelineResources/Material/DefaultHDDecalMaterial.mat")]
-            public Material defaultDecalMat;
-            [Reload("Runtime/RenderPipelineResources/Material/DefaultHDTerrainMaterial.mat")]
-            public Material defaultTerrainMat;
         }
 
         [Serializable, ReloadGroup]
