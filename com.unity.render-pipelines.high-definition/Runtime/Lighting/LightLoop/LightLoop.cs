@@ -2262,6 +2262,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         Debug.Assert(m_lightList.xrLightVolumes[viewIndex].Count == m_TotalLightCount);
 
                         m_lightList.bounds.AddRange(m_lightList.xrBounds[viewIndex]);
+                        m_lightList.lightVolumes.AddRange(m_lightList.xrLightVolumes[viewIndex]);
                     }
                 }
 
