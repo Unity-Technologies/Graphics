@@ -361,6 +361,9 @@ namespace UnityEditor.ShaderGraph
         {
             Constants = null;
 
+            if (function.GetCustomAttribute<HlslCodeGenAttribute>() == null)
+                return;
+
             var parms = function.GetParameters();
             var args = new object[parms.Length];
             int outputCount = 0;
