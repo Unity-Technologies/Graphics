@@ -40,7 +40,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         public const string HairStrandDirectionSlotName = "HairStrandDirection";
         public const int HairStrandDirectionSlotId = 5;
 
-        public const int UnusedSlot6 = 6;
+        public const string AzimuthalSmoothnessSlotName = "AzimuthalSmoothness";
+        public const int AzimuthalSmoothnessSlotId = 6;
 
         public const string TransmittanceSlotName = "Transmittance";
         public const int TransmittanceSlotId = 7;
@@ -104,9 +105,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         public const string DepthOffsetSlotName = "DepthOffset";
         public const int DepthOffsetSlotId = 26;
 
+        public const string IndexOfRefractionSlotName = "IOR";
+        public const int IndexOfRefractionSlotId = 27;
+
         public enum MaterialType
         {
-            KajiyaKay
+            KajiyaKay,
+            Marschner
         }
 
         // Don't support Multiply
@@ -128,7 +133,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             SpecularOcclusion = 1 << SpecularOcclusionSlotId,
             BentNormal = 1 << BentNormalSlotId,
             HairStrandDirection = 1 << HairStrandDirectionSlotId,
-            Slot6 = 1 << UnusedSlot6,
+            AzimuthalSmoothness = 1 << AzimuthalSmoothnessSlotId,
             Transmittance = 1 << TransmittanceSlotId,
             RimTransmissionIntensity = 1 << RimTransmissionIntensitySlotId,
             Smoothness = 1 << SmoothnessSlotId,
@@ -147,11 +152,16 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             BakedGI = 1 << LightingSlotId,
             BakedBackGI = 1 << BackLightingSlotId,
             DepthOffset = 1 << DepthOffsetSlotId,
+            IndexOfRefraction = 1 << IndexOfRefractionSlotId,
         }
 
-        const SlotMask KajiyaKaySlotMask = SlotMask.Position | SlotMask.Albedo | SlotMask.Normal | SlotMask.SpecularOcclusion | SlotMask.BentNormal | SlotMask.HairStrandDirection | SlotMask.Slot6
+        const SlotMask KajiyaKaySlotMask = SlotMask.Position | SlotMask.Albedo | SlotMask.Normal | SlotMask.SpecularOcclusion | SlotMask.BentNormal | SlotMask.HairStrandDirection
                                             | SlotMask.Transmittance | SlotMask.RimTransmissionIntensity | SlotMask.Smoothness | SlotMask.Occlusion | SlotMask.Alpha | SlotMask.AlphaClipThreshold | SlotMask.AlphaClipThresholdDepthPrepass
                                                 | SlotMask.AlphaClipThresholdDepthPostpass | SlotMask.SpecularTint | SlotMask.SpecularShift | SlotMask.SecondarySpecularTint | SlotMask.SecondarySmoothness | SlotMask.SecondarySpecularShift | SlotMask.AlphaClipThresholdShadow | SlotMask.BakedGI | SlotMask.DepthOffset;
+
+        const SlotMask MarschnerSlotMask = SlotMask.Position | SlotMask.Normal | SlotMask.SpecularOcclusion | SlotMask.SpecularTint | SlotMask.SpecularShift | SlotMask.HairStrandDirection | SlotMask.AzimuthalSmoothness
+                                            | SlotMask.Smoothness | SlotMask.Occlusion | SlotMask.Alpha | SlotMask.AlphaClipThreshold | SlotMask.AlphaClipThresholdDepthPrepass | SlotMask.AlphaClipThresholdDepthPostpass
+                                            | SlotMask.BentNormal | SlotMask.AlphaClipThresholdShadow | SlotMask.BakedGI | SlotMask.DepthOffset | SlotMask.SecondarySmoothness | SlotMask.Albedo | SlotMask.IndexOfRefraction;
 
         // This could also be a simple array. For now, catch any mismatched data.
         SlotMask GetActiveSlotMask()
@@ -160,6 +170,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 case MaterialType.KajiyaKay:
                     return KajiyaKaySlotMask;
+                case MaterialType.Marschner:
+                    return MarschnerSlotMask;
                 default:
                     return KajiyaKaySlotMask;
             }
@@ -630,6 +642,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 AddSlot(new Vector3MaterialSlot(HairStrandDirectionSlotId, HairStrandDirectionSlotName, HairStrandDirectionSlotName, SlotType.Input, new Vector3(0, -1, 0), ShaderStageCapability.Fragment));
                 validSlots.Add(HairStrandDirectionSlotId);
             }
+            if (MaterialTypeUsesSlotMask(SlotMask.AzimuthalSmoothness))
+            {
+                AddSlot(new Vector1MaterialSlot(AzimuthalSmoothnessSlotId, AzimuthalSmoothnessSlotName, AzimuthalSmoothnessSlotName, SlotType.Input, 0.5f, ShaderStageCapability.Fragment));
+                validSlots.Add(AzimuthalSmoothnessSlotId);
+            }
             if (MaterialTypeUsesSlotMask(SlotMask.Emission))
             {
                 AddSlot(new ColorRGBMaterialSlot(EmissionSlotId, EmissionSlotName, EmissionSlotName, SlotType.Input, Color.black, ColorMode.HDR, ShaderStageCapability.Fragment));
@@ -687,6 +704,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 AddSlot(new Vector1MaterialSlot(SecondarySmoothnessSlotId, SecondarySmoothnessSlotName, SecondarySmoothnessSlotName, SlotType.Input, 0.5f, ShaderStageCapability.Fragment));
                 validSlots.Add(SecondarySmoothnessSlotId);
+            }
+            if (MaterialTypeUsesSlotMask(SlotMask.IndexOfRefraction))
+            {
+                AddSlot(new Vector1MaterialSlot(IndexOfRefractionSlotId, IndexOfRefractionSlotName, IndexOfRefractionSlotName, SlotType.Input, 1.55f, ShaderStageCapability.Fragment));
+                validSlots.Add(IndexOfRefractionSlotId);
             }
             if (MaterialTypeUsesSlotMask(SlotMask.SecondarySpecularShift))
             {

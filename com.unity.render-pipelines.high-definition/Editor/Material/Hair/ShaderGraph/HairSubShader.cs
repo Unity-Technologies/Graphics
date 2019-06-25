@@ -36,6 +36,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 HairMasterNode.SpecularOcclusionSlotId,
                 HairMasterNode.BentNormalSlotId,
                 HairMasterNode.HairStrandDirectionSlotId,
+                HairMasterNode.AzimuthalSmoothnessSlotId,
                 HairMasterNode.TransmittanceSlotId,
                 HairMasterNode.RimTransmissionIntensitySlotId,
                 HairMasterNode.SmoothnessSlotId,
@@ -50,6 +51,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 HairMasterNode.SecondarySpecularTintSlotId,
                 HairMasterNode.SecondarySmoothnessSlotId,
                 HairMasterNode.SecondarySpecularShiftSlotId,
+                HairMasterNode.IndexOfRefractionSlotId,
             },
             VertexShaderSlots = new List<int>()
             {
@@ -287,6 +289,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 HairMasterNode.SpecularOcclusionSlotId,
                 HairMasterNode.BentNormalSlotId,
                 HairMasterNode.HairStrandDirectionSlotId,
+                HairMasterNode.AzimuthalSmoothnessSlotId,
                 HairMasterNode.TransmittanceSlotId,
                 HairMasterNode.RimTransmissionIntensitySlotId,
                 HairMasterNode.SmoothnessSlotId,
@@ -302,6 +305,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 HairMasterNode.SecondarySmoothnessSlotId,
                 HairMasterNode.SecondarySpecularShiftSlotId,
                 HairMasterNode.DepthOffsetSlotId,
+                HairMasterNode.IndexOfRefractionSlotId,
             },
             VertexShaderSlots = new List<int>()
             {
@@ -354,6 +358,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 HairMasterNode.SpecularOcclusionSlotId,
                 HairMasterNode.BentNormalSlotId,
                 HairMasterNode.HairStrandDirectionSlotId,
+                HairMasterNode.AzimuthalSmoothnessSlotId,
                 HairMasterNode.TransmittanceSlotId,
                 HairMasterNode.RimTransmissionIntensitySlotId,
                 HairMasterNode.SmoothnessSlotId,
@@ -371,6 +376,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 HairMasterNode.LightingSlotId,
                 HairMasterNode.BackLightingSlotId,
                 HairMasterNode.DepthOffsetSlotId,
+                HairMasterNode.IndexOfRefractionSlotId,
             },
             VertexShaderSlots = new List<int>()
             {
@@ -455,6 +461,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 case HairMasterNode.MaterialType.KajiyaKay:
                     activeFields.Add("Material.KajiyaKay");
+                    break;
+
+                case HairMasterNode.MaterialType.Marschner:
+                    activeFields.Add("Material.Marschner");
                     break;
 
                 default:
