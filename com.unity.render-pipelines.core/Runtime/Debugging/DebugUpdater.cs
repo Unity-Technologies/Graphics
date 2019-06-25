@@ -15,13 +15,19 @@ namespace UnityEngine.Experimental.Rendering
 
         void Update()
         {
-            DebugManager.instance.UpdateActions();
+            DebugManager debugManager = DebugManager.instance;
+            
+            debugManager.UpdateActions();
 
-            if (DebugManager.instance.GetAction(DebugAction.EnableDebugMenu) != 0.0f)
-                DebugManager.instance.displayRuntimeUI = !DebugManager.instance.displayRuntimeUI;
-
-            if (DebugManager.instance.displayRuntimeUI && DebugManager.instance.GetAction(DebugAction.ResetAll) != 0.0f)
-                DebugManager.instance.Reset();
+            if (debugManager.GetAction(DebugAction.EnableDebugMenu) != 0.0f)
+            {
+                debugManager.displayRuntimeUI = !debugManager.displayRuntimeUI;
+            }
+            
+            if (debugManager.displayRuntimeUI && debugManager.GetAction(DebugAction.ResetAll) != 0.0f)
+            {
+                debugManager.Reset();
+            }
         }
     }
 }
