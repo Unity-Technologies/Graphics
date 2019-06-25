@@ -50,10 +50,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             // Specular Tint
             [MaterialSharedPropertyMapping(MaterialSharedProperty.Specular)]
-            [SurfaceDataAttributes("Specular Tint", false, true)]
-            public Vector3 specularColor;
-
-            // MaterialFeature dependent attribute
+            [SurfaceDataAttributes("refractionMask", false, true)]
+            public Vector3 refractionMask;
 
             // SSS
             [SurfaceDataAttributes("Diffusion Profile Hash")]
@@ -85,6 +83,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             [SurfaceDataAttributes("", false, true)]
             public Vector3 diffuseColor;
             public Vector3 fresnel0;
+            public Vector3 refractionMask;
 
             public float ambientOcclusion;
             public float specularOcclusion;

@@ -187,30 +187,11 @@ $include("SharedCode.template.hlsl")
         $SurfaceDescription.SpecularOcclusion:          surfaceData.specularOcclusion =         surfaceDescription.SpecularOcclusion;
         $SurfaceDescription.Smoothness:                 surfaceData.perceptualSmoothness =      surfaceDescription.Smoothness;
         $SurfaceDescription.Occlusion:                  surfaceData.ambientOcclusion =          surfaceDescription.Occlusion;
-        $SurfaceDescription.Specular:                   surfaceData.specularColor =             surfaceDescription.Specular;
+        $SurfaceDescription.RefractionMask:             surfaceData.refractionMask =            surfaceDescription.RefractionMask;
         $SurfaceDescription.DiffusionProfileHash:       surfaceData.diffusionProfileHash =      asuint(surfaceDescription.DiffusionProfileHash);
         $SurfaceDescription.SubsurfaceMask:             surfaceData.subsurfaceMask =            surfaceDescription.SubsurfaceMask;
         $SurfaceDescription.Thickness:                  surfaceData.thickness =                 surfaceDescription.Thickness;
         $SurfaceDescription.Anisotropy:                 surfaceData.anisotropy =                surfaceDescription.Anisotropy;
-        
-        // These static material feature allow compile time optimization
-        surfaceData.materialFeatures = 0;
-
-
-#ifdef _MATERIAL_FEATURE_SUBSURFACE_SCATTERING
-        surfaceData.materialFeatures |= MATERIALFEATUREFLAGS_FABRIC_SUBSURFACE_SCATTERING;
-#endif
-
-#ifdef _MATERIAL_FEATURE_TRANSMISSION
-        surfaceData.materialFeatures |= MATERIALFEATUREFLAGS_FABRIC_TRANSMISSION;
-#endif
-
-
-#if defined (_ENERGY_CONSERVING_SPECULAR)
-        // Require to have setup baseColor
-        // Reproduce the energy conservation done in legacy Unity. Not ideal but better for compatibility and users can unchek it
-        surfaceData.baseColor *= (1.0 - Max3(surfaceData.specularColor.r, surfaceData.specularColor.g, surfaceData.specularColor.b));
-#endif
 
 #ifdef _DOUBLESIDED_ON
     float3 doubleSidedConstants = _DoubleSidedConstants.xyz;
