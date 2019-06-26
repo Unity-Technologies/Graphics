@@ -2,6 +2,7 @@ using System;
 using System.Diagnostics;
 using System.Collections.Generic;
 using Unity.Collections;
+using UnityEditor.Rendering;
 
 namespace UnityEngine.Rendering.LWRP
 {
@@ -364,9 +365,13 @@ namespace UnityEngine.Rendering.LWRP
                 m_FirstCameraRenderPassExecuted = true;
 
                 Camera camera = cameraData.camera;
-                ClearFlag clearFlag = GetCameraClearFlag(camera.clearFlags);
+                
+                bool debug = DebugDisplaySettings.Instance.buffer.FullScreenDebugMode == FullScreenDebugMode.Overdraw;
+                Color clearColor = (debug) ? Color.black : camera.backgroundColor;
+
+                ClearFlag clearFlag = ClearFlag.All;//GetCameraClearFlag(camera.clearFlags);
                 SetRenderTarget(cmd, m_CameraColorTarget, m_CameraDepthTarget, clearFlag,
-                    CoreUtils.ConvertSRGBToActiveColorSpace(camera.backgroundColor));
+                    CoreUtils.ConvertSRGBToActiveColorSpace(clearColor));
 
                 context.ExecuteCommandBuffer(cmd);
                 cmd.Clear();

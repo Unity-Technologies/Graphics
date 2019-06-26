@@ -59,7 +59,7 @@ namespace UnityEngine.Rendering.LWRP
         
         static Material m_ReplacementMaterial;
 
-        private static Material replacementMaterial
+        internal static Material replacementMaterial
         {
             get
             {

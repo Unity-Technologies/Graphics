@@ -1,3 +1,5 @@
+using UnityEditor.Rendering;
+
 namespace UnityEngine.Rendering.LWRP
 {
     /// <summary>
@@ -15,7 +17,21 @@ namespace UnityEngine.Rendering.LWRP
         /// <inheritdoc/>
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
-            context.DrawSkybox(renderingData.cameraData.camera);
+            var fullScreenDebugMode = DebugDisplaySettings.Instance.buffer.FullScreenDebugMode;
+            if (fullScreenDebugMode == FullScreenDebugMode.Overdraw)
+            {
+                Material skyboxMaterial = RenderSettings.skybox;
+                RenderSettings.skybox = RenderingUtils.replacementMaterial;
+                context.Submit();
+                context.DrawSkybox(renderingData.cameraData.camera);
+                context.Submit();
+                RenderSettings.skybox = skyboxMaterial;
+            }
+            else
+            {
+                context.DrawSkybox(renderingData.cameraData.camera);
+            }
+            
         }
     }
 }
