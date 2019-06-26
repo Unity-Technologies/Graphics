@@ -419,6 +419,7 @@ void BSDF(  float3 V, float3 L, float NdotL, float3 positionWS, PreLightData pre
 
 // Here we need to make sure
 #define USE_DIFFUSE_LAMBERT_BRDF
+//#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Random.hlsl" //seongdae;fspm
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightEvaluation.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/MaterialEvaluation.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightTransmittanceVariables.hlsl" //seongdae;fspm

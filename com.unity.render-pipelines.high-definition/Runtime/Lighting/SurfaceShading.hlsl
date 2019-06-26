@@ -84,7 +84,10 @@ DirectLighting ShadeSurface_Directional(LightLoopContext lightLoopContext,
                               color, attenuation);
                               
     #ifdef ENABLE_LIGHT_TRANSMITTANCE
-    EvaluateLightTransmittance(posInput.positionWS, L, 0.0, 8.0, 6, attenuation); //seongdae;fspm
+    float perPixelRandomOffset = GenerateHashedRandomFloat(posInput.positionSS);
+    float rndVal = frac(perPixelRandomOffset + 0.5);
+    
+    EvaluateLightTransmittance(posInput.positionWS, L, rndVal, 8.0, 6, attenuation); //seongdae;fspm
     #endif
 
     // TODO: transmittance contributes to attenuation, how can we use it for early-out?
@@ -241,7 +244,10 @@ DirectLighting ShadeSurface_Punctual(LightLoopContext lightLoopContext,
                            color, attenuation);
     
     #ifdef ENABLE_LIGHT_TRANSMITTANCE
-    EvaluateLightTransmittance(posInput.positionWS, L, 0.0, distances.x, 6, attenuation); //seongdae;fspm
+    float perPixelRandomOffset = GenerateHashedRandomFloat(posInput.positionSS);
+    float rndVal = frac(perPixelRandomOffset + 0.5);
+    
+    EvaluateLightTransmittance(posInput.positionWS, L, rndVal, distances.x, 6, attenuation); //seongdae;fspm
     #endif
 
     // TODO: transmittance contributes to attenuation, how can we use it for early-out?

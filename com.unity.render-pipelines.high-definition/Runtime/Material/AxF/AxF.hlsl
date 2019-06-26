@@ -1373,6 +1373,7 @@ void    BSDF(float3 viewWS, float3 lightWS, float NdotL, float3 positionWS, PreL
 // Surface shading (all light types) below
 //-----------------------------------------------------------------------------
 
+//#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Random.hlsl" //seongdae;fspm
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightEvaluation.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/MaterialEvaluation.hlsl"
 //#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightTransmittanceVariables.hlsl" //seongdae;fspm
