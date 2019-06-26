@@ -2,7 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Text;
 using JetBrains.Annotations;
+using Mono.Cecil;
+using Mono.Cecil.Cil;
 using UnityEngine;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph.Hlsl;
@@ -576,53 +579,280 @@ namespace UnityEditor.ShaderGraph
             return type.IsValueType ? Activator.CreateInstance(type) : null;
         }
 
-        private string GetFunctionBody(MethodInfo info)
+        private string GenOp(string expr, bool parenthesis)
+            => parenthesis ? $"({expr})" : expr;
+
+        private string Il2Hlsl(MethodInfo methodInfo)
         {
-            var args = new List<object>();
-            var parms = info.GetParameters();
-            foreach (var param in parms)
+            if (methodInfo.GetCustomAttribute<HlslCodeGenAttribute>() == null)
             {
-                var arg = GetDefault(param.ParameterType);
-                if (param.ParameterType == typeof(Float))
-                {
-                    arg = new Float() { Code = param.Name, Value = null };
-                }
-                else if (param.ParameterType == typeof(Float2))
-                {
-                    arg = new Float2() { Code = param.Name, Value = null };
-                }
-                else if (param.ParameterType == typeof(Float3))
-                {
-                    arg = new Float3() { Code = param.Name, Value = null };
-                }
-                else if (param.ParameterType == typeof(Float4))
-                {
-                    arg = new Float4() { Code = param.Name, Value = null };
-                }
-                args.Add(arg);
+                return null;
             }
 
-            var argsArray = args.ToArray();
-            var result = info.Invoke(this, argsArray) as string;
-
-            if (info.GetCustomAttribute<HlslCodeGenAttribute>() != null)
+            var hlsl = new StringBuilder();
+            var curOpExpr = new StringBuilder();
+            using (var thisModule = ModuleDefinition.ReadModule(Assembly.GetExecutingAssembly().Location, new ReaderParameters(ReadingMode.Immediate)))
             {
-                result += "{" + Environment.NewLine;
-                for (int i = 0; i < args.Count; ++i)
+                //var hlslCodeGenAttribute = thisModule.Types.FirstOrDefault(t => t.Name == nameof(HlslCodeGenAttribute));
+                var thisType = thisModule.Types.FirstOrDefault(t => t.FullName == GetType().FullName);
+
+                string MonoTypeToHlslType(string monoTypeName)
                 {
-                    if (info.GetParameters()[i].IsOut)
+                    if (monoTypeName == typeof(Float).FullName)
+                        return "float";
+                    else if (monoTypeName == typeof(Float2).FullName)
+                        return "float2";
+                    else if (monoTypeName == typeof(Float3).FullName)
+                        return "float3";
+                    else
+                        return "float4";
+                }
+
+                var voidType = thisModule.TypeSystem.Void;
+                var method = thisType?.Methods.FirstOrDefault(m => m.Name == methodInfo.Name);
+                if (method != null)
+                {
+                    var evalStack = new Stack<(string expr, int order)>();
+                    var argIds = new string[method.Parameters.Count];
+                    for (int i = 0; i < method.Parameters.Count; ++i)
+                        argIds[i] = method.Parameters[i].Name;
+                    var variablesDeclared = new bool[method.Body.Variables.Count];
+
+                    foreach (var il in method.Body.Instructions)
                     {
-                        if (argsArray[i] is Float f1)
-                            result += parms[i].Name + " = " + f1.Code + ";" + Environment.NewLine;
-                        else if (argsArray[i] is Float2 f2)
-                            result += parms[i].Name + " = " + f2.Code + ";" + Environment.NewLine;
-                        else if (argsArray[i] is Float3 f3)
-                            result += parms[i].Name + " = " + f3.Code + ";" + Environment.NewLine;
-                        else if (argsArray[i] is Float4 f4)
-                            result += parms[i].Name + " = " + f4.Code + ";" + Environment.NewLine;
+                        var opCode = il.OpCode;
+                        if (opCode == OpCodes.Ldarg_0)
+                        {
+                            evalStack.Push((argIds[0], 0));
+                        }
+                        else if (opCode == OpCodes.Ldarg_1)
+                        {
+                            evalStack.Push((argIds[1], 0));
+                        }
+                        else if (opCode == OpCodes.Ldarg_2)
+                        {
+                            evalStack.Push((argIds[2], 0));
+                        }
+                        else if (opCode == OpCodes.Ldarg_3)
+                        {
+                            evalStack.Push((argIds[3], 0));
+                        }
+                        else if (opCode == OpCodes.Ldarg_S || opCode == OpCodes.Ldarga_S)
+                        {
+                            evalStack.Push((argIds[(il.Operand as ParameterReference).Index], 0));
+                        }
+                        else if (opCode == OpCodes.Ldc_R4 || opCode == OpCodes.Ldc_R8)
+                        {
+                            evalStack.Push((il.Operand.ToString(), 0));
+                        }
+                        else if (opCode == OpCodes.Ldloc_0)
+                        {
+                            evalStack.Push(("__V0", 0));
+                        }
+                        else if (opCode == OpCodes.Ldloc_1)
+                        {
+                            evalStack.Push(("__V1", 0));
+                        }
+                        else if (opCode == OpCodes.Ldloc_2)
+                        {
+                            evalStack.Push(("__V2", 0));
+                        }
+                        else if (opCode == OpCodes.Ldloc_3)
+                        {
+                            evalStack.Push(("__V3", 0));
+                        }
+                        else if (opCode == OpCodes.Ldloc_S || opCode == OpCodes.Ldloca_S)
+                        {
+                            evalStack.Push(($"__V{(il.Operand as VariableReference).Index}", 0));
+                        }
+                        else if (opCode == OpCodes.Stloc_0)
+                        {
+                            string rhs = evalStack.Pop().expr;
+                            hlsl.Append($"{(variablesDeclared[0] ? "" : MonoTypeToHlslType(method.Body.Variables[0].VariableType.FullName)) + " "}__V0 = {rhs};\n");
+                            variablesDeclared[0] = true;
+                        }
+                        else if (opCode == OpCodes.Stloc_1)
+                        {
+                            string rhs = evalStack.Pop().expr;
+                            hlsl.Append($"{(variablesDeclared[1] ? "" : MonoTypeToHlslType(method.Body.Variables[1].VariableType.FullName)) + " "}__V1 = {rhs};\n");
+                            variablesDeclared[1] = true;
+                        }
+                        else if (opCode == OpCodes.Stloc_2)
+                        {
+                            string rhs = evalStack.Pop().expr;
+                            hlsl.Append($"{(variablesDeclared[2] ? "" : MonoTypeToHlslType(method.Body.Variables[2].VariableType.FullName)) + " "}__V2 = {rhs};\n");
+                            variablesDeclared[2] = true;
+                        }
+                        else if (opCode == OpCodes.Stloc_3)
+                        {
+                            string rhs = evalStack.Pop().expr;
+                            hlsl.Append($"{(variablesDeclared[3] ? "" : MonoTypeToHlslType(method.Body.Variables[3].VariableType.FullName)) + " "}__V3 = {rhs};\n");
+                            variablesDeclared[3] = true;
+                        }
+                        else if (opCode == OpCodes.Stloc_S)
+                        {
+                            string rhs = evalStack.Pop().expr;
+                            var index = (il.Operand as VariableReference).Index;
+                            hlsl.Append($"{(variablesDeclared[index] ? "" : MonoTypeToHlslType(method.Body.Variables[index].VariableType.FullName)) + " "}__V{index} = {rhs};\n");
+                            variablesDeclared[index] = true;
+                        }
+                        else if (opCode == OpCodes.Starg_S)
+                        {
+                            string rhs = evalStack.Pop().expr;
+                            hlsl.Append($"{(il.Operand as ParameterReference).Name} = {rhs};\n");
+                        }
+                        else if (opCode == OpCodes.Stobj)
+                        {
+                            string rhs = evalStack.Pop().expr;
+                            string lhs = evalStack.Pop().expr;
+                            hlsl.Append($"{lhs} = {rhs};\n");
+                        }
+                        else if (opCode == OpCodes.Call)
+                        {
+                            if (!(il.Operand is MethodDefinition))
+                            {
+                                hlsl.Append($"\n Error parsing at: {il.Offset}\n");
+                                return hlsl.ToString();
+                            }
+
+                            var func = il.Operand as MethodDefinition;
+                            if (func.Name.Substring(0, 3) == "op_")
+                            {
+                                var funcName = func.Name.Substring(3);
+                                if (funcName == "Implicit")
+                                {
+                                    continue;
+                                }
+                                else if (funcName == "UnaryNegation")
+                                {
+                                    if (evalStack.Count < 2)
+                                    {
+                                        hlsl.Append($"\n Error parsing at: {il.Offset}\n");
+                                        return hlsl.ToString();
+                                    }
+
+                                    var (op, order) = evalStack.Pop();
+                                    evalStack.Push(($"-{GenOp(op, order > 0)}", 0));
+                                }
+                                else
+                                {
+                                    if (evalStack.Count < 2)
+                                    {
+                                        hlsl.Append($"\n Error parsing at: {il.Offset}\n");
+                                        return hlsl.ToString();
+                                    }
+
+                                    string op;
+                                    int order;
+                                    switch (func.Name.Substring(3))
+                                    {
+                                        case "Addition": op = "+"; order = 2; break;
+                                        case "Subtraction": op = "-"; order = 2; break;
+                                        case "Multiply": op = "*"; order = 1; break;
+                                        case "Division": op = "/"; order = 1; break;
+                                        default:
+                                            {
+                                                hlsl.Append($"\n Error parsing at: {il.Offset}: Unknown op {func.Name.Substring(3)}\n");
+                                                return hlsl.ToString();
+                                            }
+                                    }
+                                    var (op2, order2) = evalStack.Pop();
+                                    var (op1, order1) = evalStack.Pop();
+                                    evalStack.Push(($"{GenOp(op1, order1 > order)} {op} {GenOp(op2, order2 > order)}", order));
+                                }
+                            }
+                            else if (func.IsGetter && func.Name.Substring(0, 4) == "get_")
+                            {
+                                var swizzle = func.Name.Substring(4);
+                                if (swizzle.Length > 4 || swizzle.Any(s => s > 'z' || s < 'w'))
+                                {
+                                    hlsl.Append($"\n Error parsing at: {il.Offset}: Unknown swizzle {swizzle}\n");
+                                    return hlsl.ToString();
+                                }
+                                var (op, order) = evalStack.Pop();
+                                evalStack.Push(($"{GenOp(op, order > 0)}.{swizzle}", 0));
+                            }
+                            else
+                            {
+                                curOpExpr.Append($"{func.Name}(");
+                                bool first = true;
+                                foreach (var (op, order) in evalStack.Take(func.Parameters.Count).Reverse())
+                                {
+                                    if (!first)
+                                        curOpExpr.Append($", {op}");
+                                    else
+                                        curOpExpr.Append($"{op}");
+                                    evalStack.Pop();
+                                    first = false;
+                                }
+                                curOpExpr.Append(")");
+                                evalStack.Push((curOpExpr.ToString(), 0));
+                                curOpExpr.Clear();
+                            }
+                        }
                     }
                 }
-                result += "}" + Environment.NewLine;
+            }
+
+            return hlsl.ToString();
+        }
+
+        private string GetFunctionBody(MethodInfo info)
+        {
+            var result = Il2Hlsl(info);
+
+            if (result == null)
+            {
+                var args = new List<object>();
+                var parms = info.GetParameters();
+                foreach (var param in parms)
+                {
+                    var arg = GetDefault(param.ParameterType);
+                    if (param.ParameterType == typeof(Float))
+                    {
+                        arg = new Float() { Code = param.Name, Value = null };
+                    }
+                    else if (param.ParameterType == typeof(Float2))
+                    {
+                        arg = new Float2() { Code = param.Name, Value = null };
+                    }
+                    else if (param.ParameterType == typeof(Float3))
+                    {
+                        arg = new Float3() { Code = param.Name, Value = null };
+                    }
+                    else if (param.ParameterType == typeof(Float4))
+                    {
+                        arg = new Float4() { Code = param.Name, Value = null };
+                    }
+                    args.Add(arg);
+                }
+
+                var argsArray = args.ToArray();
+                result = info.Invoke(this, argsArray) as string;
+
+                if (info.GetCustomAttribute<HlslCodeGenAttribute>() != null)
+                {
+                    result += "{" + Environment.NewLine;
+                    for (int i = 0; i < args.Count; ++i)
+                    {
+                        if (info.GetParameters()[i].IsOut)
+                        {
+                            if (argsArray[i] is Float f1)
+                                result += parms[i].Name + " = " + f1.Code + ";" + Environment.NewLine;
+                            else if (argsArray[i] is Float2 f2)
+                                result += parms[i].Name + " = " + f2.Code + ";" + Environment.NewLine;
+                            else if (argsArray[i] is Float3 f3)
+                                result += parms[i].Name + " = " + f3.Code + ";" + Environment.NewLine;
+                            else if (argsArray[i] is Float4 f4)
+                                result += parms[i].Name + " = " + f4.Code + ";" + Environment.NewLine;
+                        }
+                    }
+                    result += "}" + Environment.NewLine;
+                }
+            }
+            else
+            {
+                result = "{\t" + result + "}\n";
             }
 
             if (string.IsNullOrEmpty(result))
