@@ -165,13 +165,9 @@ BSDFData ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfaceData)
 
         bsdfData.anisotropy = 0.8; // For hair we fix the anisotropy
     }
-    else if (HasFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_HAIR_MARSCHNER))
+    // Overide values we use for Marschner model
+    if (HasFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_HAIR_MARSCHNER))
     {
-        bsdfData.secondaryPerceptualRoughness = PerceptualSmoothnessToPerceptualRoughness(surfaceData.secondaryPerceptualSmoothness);        
-        bsdfData.specularTint = surfaceData.specularTint;
-        bsdfData.specularShift = surfaceData.specularShift;
-        bsdfData.secondarySpecularShift = surfaceData.secondarySpecularShift;
-        bsdfData.anisotropy = 0.8; // For hair we fix the anisotropy
         bsdfData.azimuthalPerceptualRoughness = PerceptualSmoothnessToRoughness(surfaceData.azimuthalSmoothness);
         bsdfData.indexOfRefraction = surfaceData.indexOfRefraction;
     }

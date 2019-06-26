@@ -159,10 +159,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                                             | SlotMask.Transmittance | SlotMask.RimTransmissionIntensity | SlotMask.Smoothness | SlotMask.Occlusion | SlotMask.Alpha | SlotMask.AlphaClipThreshold | SlotMask.AlphaClipThresholdDepthPrepass
                                                 | SlotMask.AlphaClipThresholdDepthPostpass | SlotMask.SpecularTint | SlotMask.SpecularShift | SlotMask.SecondarySpecularTint | SlotMask.SecondarySmoothness | SlotMask.SecondarySpecularShift | SlotMask.AlphaClipThresholdShadow | SlotMask.BakedGI | SlotMask.DepthOffset;
 
-        const SlotMask MarschnerSlotMask = SlotMask.Position | SlotMask.Normal | SlotMask.SpecularOcclusion | SlotMask.SpecularTint | SlotMask.SpecularShift | SlotMask.HairStrandDirection | SlotMask.AzimuthalSmoothness
-                                            | SlotMask.Smoothness | SlotMask.Occlusion | SlotMask.Alpha | SlotMask.AlphaClipThreshold | SlotMask.AlphaClipThresholdDepthPrepass | SlotMask.AlphaClipThresholdDepthPostpass
-                                            | SlotMask.BentNormal | SlotMask.AlphaClipThresholdShadow | SlotMask.BakedGI | SlotMask.DepthOffset | SlotMask.SecondarySmoothness | SlotMask.Albedo | SlotMask.IndexOfRefraction
-                                            | SlotMask.Transmittance | SlotMask.RimTransmissionIntensity;
+        const SlotMask MarschnerSlotMask = KajiyaKaySlotMask | SlotMask.AzimuthalSmoothness | SlotMask.IndexOfRefraction;
 
         // This could also be a simple array. For now, catch any mismatched data.
         SlotMask GetActiveSlotMask()
