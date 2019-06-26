@@ -37,6 +37,9 @@ namespace UnityEngine.Rendering.LWRP
             [SerializeField, Reload("Shaders/Utils/FullScreenDebug.shader")]
             public Shader fullScreenDebugPS;
 
+            [SerializeField, Reload("Shaders/DebugReplacement.shader")]
+            public Shader debugReplacementPS;
+
             [SerializeField, Reload("Shaders/Utils/CopyDepth.shader")]
             public Shader copyDepthPS;
 
