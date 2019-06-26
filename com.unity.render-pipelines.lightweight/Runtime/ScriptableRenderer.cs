@@ -180,6 +180,8 @@ namespace UnityEngine.Rendering.LWRP
         /// <param name="renderingData">Current render state information.</param>
         public void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
+            bool debug = DebugDisplaySettings.Instance.buffer.FullScreenDebugMode == FullScreenDebugMode.Overdraw;
+                
             Camera camera = renderingData.cameraData.camera;
             ClearRenderState(context);
 
@@ -232,7 +234,8 @@ namespace UnityEngine.Rendering.LWRP
             // In this block main rendering executes.
             ExecuteBlock(RenderPassBlock.MainRendering, blockRanges, context, ref renderingData);
 
-            DrawGizmos(context, camera, GizmoSubset.PreImageEffects);
+            if (!debug)
+                DrawGizmos(context, camera, GizmoSubset.PreImageEffects);
 
             // In this block after rendering drawing happens, e.g, post processing, video player capture.
             ExecuteBlock(RenderPassBlock.AfterRendering, blockRanges, context, ref renderingData);
@@ -240,7 +243,8 @@ namespace UnityEngine.Rendering.LWRP
             if (stereoEnabled)
                 EndXRRendering(context, camera);
 
-            DrawGizmos(context, camera, GizmoSubset.PostImageEffects);
+            if (!debug)
+                DrawGizmos(context, camera, GizmoSubset.PostImageEffects);
 
             InternalFinishRendering(context);
             blockRanges.Dispose();

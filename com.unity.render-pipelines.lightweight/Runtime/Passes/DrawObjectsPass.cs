@@ -48,12 +48,13 @@ namespace UnityEngine.Rendering.LWRP
                 var sortFlags = (m_IsOpaque)
                     ? renderingData.cameraData.defaultOpaqueSortFlags
                     : SortingCriteria.CommonTransparent;
-                
-                bool isMaterialDebugActive = lightingDebugMode != LightingDebugMode.None ||
-                                             debugMaterialIndex != DebugMaterialIndex.None;
 
                 var fullScreenDebugMode = DebugDisplaySettings.Instance.buffer.FullScreenDebugMode;
-                bool isReplacementDebugActive = fullScreenDebugMode == FullScreenDebugMode.Overdraw || fullScreenDebugMode == FullScreenDebugMode.Wireframe || fullScreenDebugMode == FullScreenDebugMode.SolidWireframe;
+                bool isMaterialDebugActive = lightingDebugMode != LightingDebugMode.None ||
+                                             debugMaterialIndex != DebugMaterialIndex.None;
+                bool isReplacementDebugActive = fullScreenDebugMode == FullScreenDebugMode.Overdraw ||
+                                                fullScreenDebugMode == FullScreenDebugMode.Wireframe ||
+                                                fullScreenDebugMode == FullScreenDebugMode.SolidWireframe;
                 if (isMaterialDebugActive || isReplacementDebugActive)
                 {
                     if(lightingDebugMode == LightingDebugMode.ShadowCascades)
@@ -61,6 +62,8 @@ namespace UnityEngine.Rendering.LWRP
                         cmd.EnableShaderKeyword("_DEBUG_ENVIRONMENTREFLECTIONS_OFF");
                     else
                         cmd.DisableShaderKeyword("_DEBUG_ENVIRONMENTREFLECTIONS_OFF");
+                    context.ExecuteCommandBuffer(cmd);
+                    cmd.Clear();
 
                     DebugReplacementPassType debugPassType;
                     
@@ -84,9 +87,9 @@ namespace UnityEngine.Rendering.LWRP
                                 break;
                         }
                     }
-                    
-                    RenderingUtils.RenderObjectWithDebug(context, ref renderingData, camera,
-                        debugPassType, m_FilteringSettings, sortFlags);
+                        
+                    RenderingUtils.RenderObjectWithDebug(context, debugPassType, ref renderingData,
+                        m_FilteringSettings, sortFlags);
                 }
                 else
                 {

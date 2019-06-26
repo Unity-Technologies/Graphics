@@ -203,10 +203,10 @@ namespace UnityEngine.Rendering.LWRP
         }
 
         [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
-        internal static void RenderObjectWithDebug(ScriptableRenderContext context, ref RenderingData renderingData,
-            Camera camera, DebugReplacementPassType debugReplacementPassType, FilteringSettings filterSettings, SortingCriteria sortFlags)
+        internal static void RenderObjectWithDebug(ScriptableRenderContext context, DebugReplacementPassType debugReplacementPassType, ref RenderingData renderingData,
+            FilteringSettings filterSettings, SortingCriteria sortingCriteria)
         {
-            SortingSettings sortingSettings = new SortingSettings(camera) { criteria = sortFlags };
+            SortingSettings sortingSettings = new SortingSettings(renderingData.cameraData.camera) { criteria = sortingCriteria };
 
             DrawingSettings debugSettings = new DrawingSettings(m_DebugShaderPassNames[debugReplacementPassType == DebugReplacementPassType.None ? 0 : 1], sortingSettings)
             {
@@ -240,12 +240,12 @@ namespace UnityEngine.Rendering.LWRP
                 {
                     replacementMaterial.SetColor("_DebugColor", Color.white);
                     context.DrawRenderers(renderingData.cullResults, ref debugSettings, ref filterSettings);
-                    context.Submit();
-
+                    
                     rsBlock.rasterState = new RasterState(CullMode.Back, -1, -1, true);
                     rsBlock.mask = RenderStateMask.Raster;
                 }
                 
+                context.Submit();
                 GL.wireframe = true;
                 replacementMaterial.SetColor("_DebugColor", Color.black);
             }

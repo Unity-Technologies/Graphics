@@ -111,26 +111,68 @@ namespace UnityEngine.Rendering.LWRP
             Camera camera = renderingData.cameraData.camera;
             RenderTextureDescriptor cameraTargetDescriptor = renderingData.cameraData.cameraTargetDescriptor;
 
+            for (int i = 0; i < rendererFeatures.Count; ++i)
+            {
+                rendererFeatures[i].AddRenderPasses(this, ref renderingData);
+            }
+
+            int count = activeRenderPassQueue.Count;
+            for (int i = count - 1; i >= 0; i--)
+            {
+                if(activeRenderPassQueue[i] == null)
+                    activeRenderPassQueue.RemoveAt(i);
+            }
+            
             var fullScreenDebugMode = DebugDisplaySettings.Instance.buffer.FullScreenDebugMode;
             
             // Special path for depth only offscreen cameras. Only write opaques + transparents. 
             bool isOffscreenDepthTexture = camera.targetTexture != null && camera.targetTexture.format == RenderTextureFormat.Depth;
-            if (isOffscreenDepthTexture || fullScreenDebugMode == FullScreenDebugMode.Overdraw || fullScreenDebugMode == FullScreenDebugMode.Wireframe || fullScreenDebugMode == FullScreenDebugMode.SolidWireframe)
+            bool overdraw = fullScreenDebugMode == FullScreenDebugMode.Overdraw;
+            bool wireframe = fullScreenDebugMode == FullScreenDebugMode.Wireframe ||
+                             fullScreenDebugMode == FullScreenDebugMode.SolidWireframe;
+            if (isOffscreenDepthTexture || overdraw || wireframe)
             {
-                CreateCameraRenderTarget(context, ref renderingData.cameraData);
-                ConfigureCameraTarget(m_ActiveCameraColorAttachment.Identifier(), BuiltinRenderTextureType.CameraTarget);
-                
-                for (int i = 0; i < rendererFeatures.Count; ++i)
-                    rendererFeatures[i].AddRenderPasses(this, ref renderingData);
+                m_ActiveCameraColorAttachment = RenderTargetHandle.CameraTarget;
+                m_ActiveCameraDepthAttachment = RenderTargetHandle.CameraTarget;
+                if (overdraw)
+                {
+                    m_ActiveCameraColorAttachment = m_CameraColorAttachment;
+                    m_ActiveCameraDepthAttachment = m_CameraDepthAttachment;
 
+                    CreateCameraRenderTarget(context, ref renderingData.cameraData);
+                    ConfigureCameraTarget(m_ActiveCameraColorAttachment.Identifier(),
+                        BuiltinRenderTextureType.CameraTarget);
+                }
+
+                if (renderingData.cameraData.isSceneViewCamera)
+                {
+                    m_DepthPrepass.Setup(cameraTargetDescriptor, m_DepthTexture);
+                    EnqueuePass(m_DepthPrepass);
+                }
+                
                 EnqueuePass(m_RenderOpaqueForwardPass);
 
                 if (camera.clearFlags == CameraClearFlags.Skybox && RenderSettings.skybox != null)
+                {
                     EnqueuePass(m_DrawSkyboxPass);
+                }
+
+                EnqueuePass(m_RenderTransparentForwardPass);
+
+                if (m_CameraColorAttachment != RenderTargetHandle.CameraTarget)
+                {
+                    m_FinalBlitPass.Setup(cameraTargetDescriptor, m_ActiveCameraColorAttachment);
+                    EnqueuePass(m_FinalBlitPass);
+                }
+
+#if UNITY_EDITOR
+                if (renderingData.cameraData.isSceneViewCamera)
+                {
+                    m_SceneViewDepthCopyPass.Setup(m_DepthTexture);
+                    EnqueuePass(m_SceneViewDepthCopyPass);
+                }
+#endif
                 
-                //EnqueuePass(m_RenderTransparentForwardPass);
-                m_FinalBlitPass.Setup(cameraTargetDescriptor, m_ActiveCameraColorAttachment);
-                EnqueuePass(m_FinalBlitPass);
                 return;
             }
             
@@ -176,17 +218,6 @@ namespace UnityEngine.Rendering.LWRP
             if (Camera.main == camera && camera.cameraType == CameraType.Game && camera.targetTexture == null)
                 SetupBackbufferFormat(backbufferMsaaSamples, renderingData.cameraData.isStereoEnabled);
             
-            for (int i = 0; i < rendererFeatures.Count; ++i)
-            {
-                rendererFeatures[i].AddRenderPasses(this, ref renderingData);
-            }
-
-            int count = activeRenderPassQueue.Count;
-            for (int i = count - 1; i >= 0; i--)
-            {
-                if(activeRenderPassQueue[i] == null)
-                    activeRenderPassQueue.RemoveAt(i);
-            }
             bool hasAfterRendering = activeRenderPassQueue.Find(x => x.renderPassEvent == RenderPassEvent.AfterRendering) != null;
 
             if (mainLightShadows)

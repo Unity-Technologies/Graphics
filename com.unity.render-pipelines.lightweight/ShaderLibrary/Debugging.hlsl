@@ -32,16 +32,14 @@ struct DebugData
     InputData inputData;
 };
 
-#if 0
 // TODO: Set of colors that should still provide contrast for the Color-blind
-const half4 Purple = half4(156.0 / 255.0, 79.0 / 255.0, 255.0 / 255.0, 1.0); // #9C4FFF
-const half4 Red = half4(203.0 / 255.0, 48.0 / 255.0, 34.0 / 255.0, 1.0) ; // #CB3022
-const half4 Green = half4(8.0 / 255.0, 215.0 / 255.0, 139.0 / 255.0, 1.0) ; // #08D78B
-const half4 YellowGreen = half4(151.0 / 255.0, 209.0 / 255.0, 61.0 / 255.0, 1.0) ; // #97D13D
-const half4 Blue = half4(75.0 / 255.0, 146.0 / 255.0, 243.0 / 255.0, 1.0) ; // #4B92F3
-const half4 OrangeBrown = half4(219.0 / 255.0, 119.0 / 255.0, 59.0 / 255.0, 1.0) ; // #4B92F3
-const half4 Gray = half4(174.0 / 255.0, 174.0 / 255.0, 174.0 / 255.0, 1.0) ; // #AEAEAE
-#endif
+#define kPurpleColor half4(156.0 / 255.0, 79.0 / 255.0, 255.0 / 255.0, 1.0) // #9C4FFF 
+#define kRedColor half4(203.0 / 255.0, 48.0 / 255.0, 34.0 / 255.0, 1.0) // #CB3022
+#define kGreenColor = half4(8.0 / 255.0, 215.0 / 255.0, 139.0 / 255.0, 1.0) // #08D78B
+#define kYellowGreenColor = half4(151.0 / 255.0, 209.0 / 255.0, 61.0 / 255.0, 1.0) // #97D13D
+#define kBlueColor = half4(75.0 / 255.0, 146.0 / 255.0, 243.0 / 255.0, 1.0) // #4B92F3
+#define kOrangeBrownColor = half4(219.0 / 255.0, 119.0 / 255.0, 59.0 / 255.0, 1.0) // #4B92F3
+#define kGrayColor = half4(174.0 / 255.0, 174.0 / 255.0, 174.0 / 255.0, 1.0) // #AEAEAE   
 
 half4 GetShadowCascadeColor(float4 shadowCoord, float3 positionWS)
 {
@@ -145,25 +143,25 @@ SurfaceData CalculateSurfaceDataForDebug(SurfaceData surfaceData)
         surfaceData.occlusion = 0.0;
         surfaceData.emission = half3(0.0h, 0.0h, 0.0h);
     }
-
+    
     if (_DebugLightingIndex == DEBUG_LIGHTING_LIGHT_ONLY || _DebugLightingIndex == DEBUG_LIGHTING_REFLECTIONS)
     {
         surfaceData.normalTS = half3(0.0h, 0.0h, 1.0h);
     }
-
+    
     if (_DebugLightingIndex == DEBUG_LIGHTING_REFLECTIONS)
     {
         surfaceData.albedo = half3(0.0h, 0.0h, 0.0h);
         surfaceData.smoothness = 1.0;
     }
-
+    
     if (_DebugLightingIndex == DEBUG_LIGHTING_REFLECTIONS_WITH_SMOOTHNESS)
     {
         surfaceData.albedo = half3(0.0h, 0.0h, 0.0h);
         surfaceData.metallic = 1.0;
         surfaceData.emission = half3(0.0h, 0.0h, 0.0h);
     }
-
+    
     return surfaceData;
 }
 
@@ -173,34 +171,34 @@ half4 CalculateColorForDebug(DebugData debugData)
     InputData inputData = debugData.inputData;
     half4 color = half4(0.0, 0.0, 0.0, 1.0);
     BRDFData brdfData;
-
+    
     InitializeBRDFData(surfaceData.albedo, surfaceData.metallic, surfaceData.specular, surfaceData.smoothness, surfaceData.alpha, brdfData);
-
+    
     // Debug materials...
     if (_DebugMaterialIndex == DEBUG_UNLIT)
         color.rgb = surfaceData.albedo;
-
+        
     if (_DebugMaterialIndex == DEBUG_DIFFUSE)
         color.rgb = brdfData.diffuse;
-
+        
     if (_DebugMaterialIndex == DEBUG_SPECULAR)
         color.rgb = brdfData.specular;
-
+    
     if (_DebugMaterialIndex == DEBUG_ALPHA)
         color.rgb = (1.0 - surfaceData.alpha).xxx;
-
+    
     if (_DebugMaterialIndex == DEBUG_SMOOTHNESS)
         color.rgb = surfaceData.smoothness.xxx;
-
+    
     if (_DebugMaterialIndex == DEBUG_OCCLUSION)
         color.rgb = surfaceData.occlusion.xxx;
-
+    
     if (_DebugMaterialIndex == DEBUG_EMISSION)
         color.rgb = surfaceData.emission;
-
+        
     if (_DebugMaterialIndex == DEBUG_NORMAL_WORLD_SPACE)
         color.rgb = inputData.normalWS.xyz * 0.5 + 0.5;
-
+        
     if (_DebugMaterialIndex == DEBUG_NORMAL_TANGENT_SPACE)
         color.rgb = surfaceData.normalTS.xyz * 0.5 + 0.5;
 
@@ -225,7 +223,7 @@ half4 CalculateColorForDebug(DebugData debugData)
     {
         color = LightweightFragmentPBR(inputData, surfaceData.albedo, surfaceData.metallic, surfaceData.specular, surfaceData.smoothness, surfaceData.occlusion, surfaceData.emission, surfaceData.alpha);
     }
-
+    
     return color;
 }
 

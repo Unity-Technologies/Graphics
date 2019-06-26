@@ -1,4 +1,4 @@
-Shader "Hidden/Lightweight Render Pipeline/Debug/Replacement"
+﻿Shader "Hidden/Lightweight Render Pipeline/Debug/Replacement"
 {
     SubShader
     {
@@ -9,7 +9,6 @@ Shader "Hidden/Lightweight Render Pipeline/Debug/Replacement"
             Tags {"LightMode" = "LightweightForward"}
             
             Blend One One
-            ZTest LEqual
             ZWrite On
             Cull Back
             
@@ -24,6 +23,7 @@ Shader "Hidden/Lightweight Render Pipeline/Debug/Replacement"
             #pragma fragment frag
 
             #include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/Core.hlsl"
+            #include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/Debugging.hlsl"
             
             struct Attributes
             {
@@ -35,7 +35,7 @@ Shader "Hidden/Lightweight Render Pipeline/Debug/Replacement"
                 float4 positionCS : SV_POSITION;
             };
             
-            Varyings vert(Attributes IN)
+            Varyings vert(Attributes IN) : SV_POSITION
             {
                 Varyings OUT;
                 OUT.positionCS = TransformObjectToHClip(IN.positionOS.xyz); 
@@ -44,7 +44,7 @@ Shader "Hidden/Lightweight Render Pipeline/Debug/Replacement"
             
             half4 frag(Varyings IN) : SV_Target
             {
-                return half4(0.1, 0.1, 0.1, 1.0);
+                return kRedColor * half4(0.1, 0.1, 0.1, 1.0);
             }
 
             ENDHLSL
