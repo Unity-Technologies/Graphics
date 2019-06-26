@@ -622,7 +622,7 @@ namespace UnityEditor.ShaderGraph
         {
             foreach (var prop in properties)
             {
-                if(generationMode == GenerationMode.Preview && prop.propertyType == PropertyType.Gradient)
+                if(generationMode.IsPreview() && prop.propertyType == PropertyType.Gradient)
                 {
                     GradientShaderProperty gradientProperty = prop as GradientShaderProperty;
                     GradientUtils.GetGradientPropertiesForPreview(collector, gradientProperty.referenceName, gradientProperty.value);
