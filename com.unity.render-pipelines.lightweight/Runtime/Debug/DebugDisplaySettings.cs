@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine.Experimental.Rendering;
+using UnityEngine.Rendering.LWRP;
 
 namespace UnityEditor.Rendering
 {
@@ -14,6 +15,7 @@ namespace UnityEditor.Rendering
 
         public DebugDisplaySettingsBuffer buffer { get; private set; }
         public DebugMaterialSettings materialSettings { get; private set; }
+        public DebugDisplaySettingsRendering renderingSettings { get; private set; }
         public DebugDisplaySettingsLighting Lighting { get; private set; }
         
         private DebugDisplaySettingsBuffer m_DisplaySettingsBuffer;
@@ -35,6 +37,7 @@ namespace UnityEditor.Rendering
 
             buffer = Add(new DebugDisplaySettingsBuffer());
             materialSettings = Add(new DebugMaterialSettings());
+            renderingSettings = Add(new DebugDisplaySettingsRendering());
             Lighting = Add(new DebugDisplaySettingsLighting());
         }
 
