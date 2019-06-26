@@ -19,8 +19,9 @@ namespace UnityEngine.Rendering.LWRP
         NormalWorldSpace,
         NormalTangentSpace,
         LightingComplexity,
+		LOD
     }
-    
+
     public enum DebugReplacementPassType
     {
         None,
@@ -57,7 +58,7 @@ namespace UnityEngine.Rendering.LWRP
             new ShaderTagId("DebugMaterial"),
             new ShaderTagId("LightweightForward"),
         };
-        
+
         static Material m_ReplacementMaterial;
 
         internal static Material replacementMaterial
@@ -70,7 +71,7 @@ namespace UnityEngine.Rendering.LWRP
                 return m_ReplacementMaterial;
             }
         }
-            
+
         static Mesh s_FullscreenMesh = null;
         public static Mesh fullscreenMesh
         {
@@ -116,7 +117,7 @@ namespace UnityEngine.Rendering.LWRP
                 return m_PostProcessRenderContext;
             }
         }
-        
+
         static Material s_ErrorMaterial;
         static Material errorMaterial
         {
@@ -216,7 +217,7 @@ namespace UnityEngine.Rendering.LWRP
             if (debugReplacementPassType != DebugReplacementPassType.None)
             {
                 debugSettings.overrideMaterial = replacementMaterial;
-                
+
                 // First index does not use replacement, so we subtract one.
                 debugSettings.overrideMaterialPassIndex = (int)debugReplacementPassType - 1;
             }
