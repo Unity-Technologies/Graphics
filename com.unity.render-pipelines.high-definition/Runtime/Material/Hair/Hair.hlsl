@@ -172,7 +172,7 @@ BSDFData ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfaceData)
         bsdfData.specularShift = surfaceData.specularShift;
         bsdfData.secondarySpecularShift = surfaceData.secondarySpecularShift;
         bsdfData.anisotropy = 0.8; // For hair we fix the anisotropy
-        bsdfData.azimuthalPerceptualRoughness = PerceptualSmoothnessToRoughness(surfaceData.azimuthalSmoothness);
+        bsdfData.azimuthalPerceptualRoughness = PerceptualSmoothnessToPerceptualRoughness(surfaceData.azimuthalSmoothness);
         bsdfData.indexOfRefraction = surfaceData.indexOfRefraction;
     }
 
@@ -280,7 +280,7 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, inout BSDFData b
         N = ComputeViewFacingNormal(V, bsdfData.hairStrandDirectionWS);
         preLightData.iblPerceptualRoughness = bsdfData.perceptualRoughness;
         preLightData.specularFGD = 0.0;
-        preLightData.diffuseFGD = 0.0;
+        preLightData.diffuseFGD = 1.0;
     }
 
     // Stretch hack... Copy-pasted from GGX, ALU-optimized for hair.
@@ -413,25 +413,29 @@ CBSDF EvaluateBSDF(float3 V, float3 L, PreLightData preLightData, BSDFData bsdfD
     else if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_HAIR_MARSCHNER))
     {
         // Get a normal aligned with the view vector so we know PhiI should be zero
-        float3 hairNorm = SafeNormalize(V - T * dot(V, T));
-        hairNorm.x = -min(-hairNorm.x, 0);
-        hairNorm.y = -min(-hairNorm.y, 0);
-        hairNorm.z = -min(-hairNorm.z, 0);
-        //float3 hairNorm = N;
+        //float3 hairNorm = SafeNormalize(V - T * dot(V, T));
+        float3 hairNorm = N;
         float thetaI, thetaL, phiI, phiL;
         ComputeHairRelativeAngles(V, T, hairNorm, thetaI, phiI);
         ComputeHairRelativeAngles(L, T, hairNorm, thetaL, phiL);
         float phiD = abs(phiL - phiI);
         float3 Fres = HairFresnelAllLobes(bsdfData.indexOfRefraction, phiD);
         
-        cbsdf.diffR = float3(0, 0, 0);
-        cbsdf.diffT = float3(0, 0, 0);
         // R
         cbsdf.specR = Fres.xxx * evalMTerm(thetaI, 0.5 * (thetaI + thetaL), bsdfData.perceptualRoughness, bsdfData.specularShift) * evalNTermR(phiD * 0.5, bsdfData.azimuthalPerceptualRoughness);
         // TRT
         cbsdf.specR += bsdfData.specularTint * bsdfData.specularTint * Fres.zzz * evalMTerm(thetaI, 0.5 * (thetaI + thetaL), bsdfData.secondaryPerceptualRoughness, -bsdfData.specularShift) * evalNTermTRT(phiD * 0.5, bsdfData.azimuthalPerceptualRoughness);
         // TT
         cbsdf.specT = bsdfData.specularTint * Fres.yyy * evalMTerm(thetaI, 0.5 * (thetaI + thetaL), bsdfData.secondaryPerceptualRoughness, 0) * evalNTermTT(phiD * 0.5, bsdfData.azimuthalPerceptualRoughness);
+        
+        cbsdf.specR *= evalHairCosTerm(thetaL, thetaI);
+        
+        // What you see below is an extraordinarily hacky and legendarily moronic way of faking
+        // a multiple scattering effect.  Good boys and girls should not duplicate what you see
+        // below, and it should always be held up as a scarlet letter of how to be foolish.
+        // That said, it is here because it sometimes looks okay, and that's really all there is to it.
+        float3 diffAlb = bsdfData.specularTint * (2.0 - bsdfData.specularTint);
+        cbsdf.diffR = diffAlb * PI * evalMTerm(thetaI, 0.5 * (thetaI + thetaL), lerp(bsdfData.secondaryPerceptualRoughness, 1.0, 1-Fres.y), 0) * evalNTermTRT(phiD * 0.5, lerp(bsdfData.azimuthalPerceptualRoughness, 1.0, 1-Fres.y));
     }
 
     return cbsdf;
