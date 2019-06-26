@@ -5,16 +5,16 @@ namespace UnityEngine.Rendering.LWRP
 {
     internal enum FullScreenDebugMode
     {
-        None,
-        Depth,
-        MainLightShadowsOnly,
-        Overdraw,
-        Wireframe,
-        SolidWireframe,
-        AdditionalLightsShadowMap,
-        MainLightShadowMap,
+        None = 0,
+        Depth = 1,
+        MainLightShadowsOnly = 2,
+        Overdraw = 3,
+        Wireframe = 4,
+        AdditionalLightsShadowMap = 5,
+        MainLightShadowMap = 6,
+        SolidWireframe = 7
     }
-    
+
     internal class ForwardRenderer : ScriptableRenderer
     {
         const int k_DepthStencilBufferBits = 32;
