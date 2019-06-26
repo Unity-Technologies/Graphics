@@ -13,7 +13,14 @@ namespace UnityEditor.Rendering
         
         private void Reset()
         {
-            m_Settings?.Reset();
+            if(m_Settings != null)
+            {
+                m_Settings.Reset();
+                
+                // TODO: Tear the UI down and re-create it for now - this is horrible, so reset it instead.
+                UnregisterDebug();
+                RegisterDebug(m_Settings);
+            }
         }
 
         public void RegisterDebug(DebugDisplaySettings settings)

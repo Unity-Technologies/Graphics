@@ -29,6 +29,10 @@ Shader "Hidden/Lightweight Render Pipeline/FullScreenDebug"
 
             #define DEBUG_MODE_DEPTH (1)
             #define DEBUG_MODE_MAIN_LIGHT_SHADOWS_ONLY (2)
+            //#define DEBUG_MODE_OVERDRAW (3)
+            //#define DEBUG_MODE_WIRE (4)
+            #define DEBUG_MODE_ADDITIONAL_LIGHTS_SHADOW_MAP (5)
+            #define DEBUG_MODE_MAIN_LIGHT_SHADOW_MAP (6)
 
             struct Attributes
             {
@@ -72,6 +76,18 @@ Shader "Hidden/Lightweight Render Pipeline/FullScreenDebug"
                     return col;
                 }
                 else if (_DebugMode == DEBUG_MODE_MAIN_LIGHT_SHADOWS_ONLY)
+                {
+                    col.rgb = col.rrr;
+                    col.a = 1.0f;
+                    return col;
+                }
+                else if (_DebugMode == DEBUG_MODE_ADDITIONAL_LIGHTS_SHADOW_MAP)
+                {
+                    col.rgb = col.rrr;
+                    col.a = 1.0f;
+                    return col;
+                }
+                else if (_DebugMode == DEBUG_MODE_MAIN_LIGHT_SHADOW_MAP)
                 {
                     col.rgb = col.rrr;
                     col.a = 1.0f;

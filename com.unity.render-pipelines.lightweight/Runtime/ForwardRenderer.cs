@@ -10,7 +10,9 @@ namespace UnityEngine.Rendering.LWRP
         MainLightShadowsOnly,
         Overdraw,
         Wireframe,
-        SolidWireframe
+        SolidWireframe,
+        AdditionalLightsShadowMap,
+        MainLightShadowMap,
     }
     
     internal class ForwardRenderer : ScriptableRenderer
@@ -271,9 +273,10 @@ namespace UnityEngine.Rendering.LWRP
                 }
             }
 
-            if (fullScreenDebugMode != FullScreenDebugMode.None)
+            if (fullScreenDebugMode != FullScreenDebugMode.None )
             {
                 RenderTargetIdentifier debugBuffer;
+                Rect pixelRect = new Rect();
 
                 switch (fullScreenDebugMode)
                 {
@@ -283,13 +286,21 @@ namespace UnityEngine.Rendering.LWRP
                     case FullScreenDebugMode.MainLightShadowsOnly:
                         debugBuffer = new RenderTargetIdentifier("_ScreenSpaceShadowmapTexture");
                         break;
+                    case FullScreenDebugMode.AdditionalLightsShadowMap:
+                        debugBuffer = m_AdditionalLightsShadowCasterPass.m_AdditionalLightsShadowmapTexture;
+                        pixelRect = new Rect(0, 0.5f * camera.pixelHeight, 0.5f * camera.pixelHeight, 0.5f * camera.pixelHeight);
+                        break;
+                    case FullScreenDebugMode.MainLightShadowMap:
+                        debugBuffer = m_MainLightShadowCasterPass.m_MainLightShadowmapTexture;
+                        pixelRect = new Rect(0, 0.5f * camera.pixelHeight, 0.5f * camera.pixelHeight, 0.5f * camera.pixelHeight);
+                        break;
                     default:
                         debugBuffer = m_OpaqueColor.Identifier();
                         break;
                 }
 
                 m_DebugPass.Setup(cameraTargetDescriptor, debugBuffer, (int)fullScreenDebugMode, 
-                    renderingData.cameraData.camera.nearClipPlane, renderingData.cameraData.camera.farClipPlane);
+                    renderingData.cameraData.camera.nearClipPlane, renderingData.cameraData.camera.farClipPlane, false, pixelRect);
                 EnqueuePass(m_DebugPass);
             }
 
