@@ -113,13 +113,15 @@ namespace UnityEditor.Graphing
 
         public static void CollectStaticNodesFromNode<T>(List<T> allNodeList, List<T> subRootNodeList, T node) where T : AbstractMaterialNode
         {
-            if (DepthFirstCollectStaticNodesFromNode(allNodeList, subRootNodeList, node))
+            if (DepthFirstCollectStaticNodesFromNode(allNodeList, subRootNodeList, node, out var hasChild) && hasChild)
                 subRootNodeList.Add(node);
         }
 
-        public static bool DepthFirstCollectStaticNodesFromNode<T>(List<T> allNodeList, List<T> subRootNodeList, T node, IncludeSelf includeSelf = IncludeSelf.Include, List<int> slotIds = null)
+        public static bool DepthFirstCollectStaticNodesFromNode<T>(List<T> allNodeList, List<T> subRootNodeList, T node, out bool nodeHasChild, IncludeSelf includeSelf = IncludeSelf.Include, List<int> slotIds = null)
             where T : AbstractMaterialNode
         {
+            nodeHasChild = false;
+
             // no where to start
             if (node == null)
                 return false;
@@ -146,8 +148,9 @@ namespace UnityEditor.Graphing
                     var outputNode = node.owner.GetNodeFromGuid(edge.outputSlot.nodeGuid) as T;
                     if (outputNode != null)
                     {
-                        var temp = DepthFirstCollectStaticNodesFromNode(allNodeList, subRootNodeList, outputNode);
-                        if (!childNodes.ContainsKey(outputNode))
+                        nodeHasChild = true;
+                        var temp = DepthFirstCollectStaticNodesFromNode(allNodeList, subRootNodeList, outputNode, out var outputNodeHasChild);
+                        if (outputNodeHasChild && !childNodes.ContainsKey(outputNode))
                             childNodes.Add(outputNode, temp);
                         isStatic &= temp;
                     }
