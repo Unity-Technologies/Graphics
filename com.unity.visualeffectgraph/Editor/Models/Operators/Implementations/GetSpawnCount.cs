@@ -15,6 +15,6 @@ class GetSpawnCount : VFXOperator
 
     protected override VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
     {
-        return new VFXExpression[] { new VFXExpressionCastFloatToUint(new VFXAttributeExpression(new VFXAttribute("spawnCount", UnityEngine.Experimental.VFX.VFXValueType.Float), VFXAttributeLocation.Source))  };
+        return new VFXExpression[] { new VFXExpressionCastFloatToUint(new VFXAttributeExpression(new VFXAttribute("spawnCount", UnityEngine.VFX.VFXValueType.Float), VFXAttributeLocation.Source))  };
     }
 }

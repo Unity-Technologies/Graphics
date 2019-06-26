@@ -29,6 +29,11 @@ The ratio of the focal length to the diameter of the camera lens.
 #### Nyquist rate:
 The minimum rate at which you can sample a real-world signal without introducing errors. This is equal to double the highest frequency of the real-world signal.
 
+<a name="PhysicallyBasedRendering"></a>
+
+#### physically-based rendering (PBR)
+PBR is an approach to rendering that emulates accurate lighting of real-world materials.
+
 <a name="RayMarching"></a>
 
 #### ray marching:
@@ -37,12 +42,28 @@ An iterative ray intersection test where your ray marches back and forth until i
 <a name="TextureAtlas"></a>
 
 #### texture atlas:
-
 A texture atlas is a large texture containing several smaller textures packed together. HDRP uses texture atlases for shadow maps and decals.
 
 
 
-### Aliasing and anti-aliasing terms
+## Normal mapping
+
+<a name="TangentSpaceNormalMap"></a>
+#### tangent space normal map
+A type of [normal map](https://docs.unity3d.com/Manual/StandardShaderMaterialParameterNormalMap.html) in the UV space of the GameObject. You can use it on any Mesh, including deforming characters.
+
+<a name="ObjectSpaceNormalMap"></a>
+
+#### object space normal map
+This contains the same details as the tangent space normal map, but also includes orientation data. You can only use this type of normal map on a static Mesh that does not deform. This normal map type is less resource-intensive to process, because Unity does not need to make any transform calculations.
+
+<a name="BentNormalMap"></a>
+#### world space normal map
+HDRP uses the bent normal to prevent light leaking through the surface of a Mesh. In HDRP, bent normal maps can be in tangent space or object space.
+
+
+
+## Aliasing and anti-aliasing terms
 
 <a name="Aliasing"></a>
 

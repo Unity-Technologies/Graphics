@@ -76,7 +76,6 @@ namespace UnityEditor.VFX.UI
 
             this.AddStyleSheetPath("VFXSystemBorder");
 
-            this.cacheAsBitmap = false;
             this.style.overflow = Overflow.Visible;
 
             m_Title = this.Query<Label>("title");

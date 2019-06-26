@@ -15,7 +15,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
     public class HDRenderPipelineMenuItems
     {
         // Function used only to check performance of data with and without tessellation
-        [MenuItem("Internal/HDRP/Test/Remove tessellation materials (not reversible)")]
+        //[MenuItem("Internal/HDRP/Test/Remove tessellation materials (not reversible)")]
         static void RemoveTessellationMaterials()
         {
             var materials = Resources.FindObjectsOfTypeAll<Material>();
@@ -126,7 +126,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, ScriptableObject.CreateInstance<DoCreateNewAssetDiffusionProfileSettings>(), "New Diffusion Profile.asset", icon, null);
         }
 
-        [MenuItem("Internal/HDRP/Add \"Additional Light-shadow Data\" (if not present)")]
+        //[MenuItem("Internal/HDRP/Add \"Additional Light-shadow Data\" (if not present)")]
         static void AddAdditionalLightData()
         {
             var lights = UnityObject.FindObjectsOfType(typeof(Light)) as Light[];
@@ -145,7 +145,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
         }
 
-        [MenuItem("Internal/HDRP/Add \"Additional Camera Data\" (if not present)")]
+        //[MenuItem("Internal/HDRP/Add \"Additional Camera Data\" (if not present)")]
         static void AddAdditionalCameraData()
         {
             var cameras = UnityObject.FindObjectsOfType(typeof(Camera)) as Camera[];
@@ -159,7 +159,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         }
 
         // This script is a helper for the artists to re-synchronize all layered materials
-        [MenuItem("Internal/HDRP/Synchronize all Layered materials")]
+        //[MenuItem("Internal/HDRP/Synchronize all Layered materials")]
         static void SynchronizeAllLayeredMaterial()
         {
             var materials = Resources.FindObjectsOfTypeAll<Material>();

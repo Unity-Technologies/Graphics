@@ -187,7 +187,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     if (m_CurrentSunLightAdditionalLightData.filterTracedShadow)
                     {
                         HDSimpleDenoiser simpleDenoiser = m_RayTracingManager.GetSimpleDenoiser();
-                        simpleDenoiser.DenoiseBuffer(cmd, hdCamera, m_DenoiseBuffer0, shadowHistoryArray, m_DenoiseBuffer1, m_CurrentSunLightAdditionalLightData.filterSizeTraced, slotIndex: m_CurrentSunLightDirectionalLightData.screenSpaceShadowIndex);
+                        simpleDenoiser.DenoiseBuffer(cmd, hdCamera, m_DenoiseBuffer0, shadowHistoryArray, m_DenoiseBuffer1, m_CurrentSunLightAdditionalLightData.filterSizeTraced, singleChannel: true, slotIndex: m_CurrentSunLightDirectionalLightData.screenSpaceShadowIndex);
                     }
                     else
                     {

@@ -144,6 +144,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             [Optional] Vector3 ViewSpacePosition;
             [Optional] Vector3 WorldSpacePosition;
             [Optional] Vector3 TangentSpacePosition;
+            [Optional] Vector3 AbsoluteWorldSpacePosition;
 
             [Optional] Vector4 ScreenPosition;
             [Optional] Vector4 uv0;
@@ -152,6 +153,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             [Optional] Vector4 uv3;
             [Optional] Vector4 VertexColor;
             [Optional] float FaceSign;
+            [Optional] Vector3 TimeParameters;
 
             public static Dependency[] dependencies = new Dependency[]
             {
@@ -168,6 +170,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 new Dependency("SurfaceDescriptionInputs.ViewSpaceBiTangent",        "SurfaceDescriptionInputs.WorldSpaceBiTangent"),
 
                 new Dependency("SurfaceDescriptionInputs.WorldSpacePosition",        "FragInputs.positionRWS"),
+                new Dependency("SurfaceDescriptionInputs.AbsoluteWorldSpacePosition","FragInputs.positionRWS"),
                 new Dependency("SurfaceDescriptionInputs.ObjectSpacePosition",       "FragInputs.positionRWS"),
                 new Dependency("SurfaceDescriptionInputs.ViewSpacePosition",         "FragInputs.positionRWS"),
 
@@ -218,6 +221,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             [Optional] Vector3 ViewSpacePosition;
             [Optional] Vector3 WorldSpacePosition;
             [Optional] Vector3 TangentSpacePosition;
+            [Optional] Vector3 AbsoluteWorldSpacePosition;
 
             [Optional] Vector4 ScreenPosition;
             [Optional] Vector4 uv0;
@@ -225,6 +229,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             [Optional] Vector4 uv2;
             [Optional] Vector4 uv3;
             [Optional] Vector4 VertexColor;
+            [Optional] Vector3 TimeParameters;
 
             public static Dependency[] dependencies = new Dependency[]
             {                                                                       // TODO: NOCHECKIN: these dependencies are not correct for vertex pass
@@ -243,6 +248,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
                 new Dependency("VertexDescriptionInputs.ObjectSpacePosition",       "AttributesMesh.positionOS"),
                 new Dependency("VertexDescriptionInputs.WorldSpacePosition",        "AttributesMesh.positionOS"),
+                new Dependency("VertexDescriptionInputs.AbsoluteWorldSpacePosition","AttributesMesh.positionOS"),
                 new Dependency("VertexDescriptionInputs.ViewSpacePosition",         "VertexDescriptionInputs.WorldSpacePosition"),
 
                 new Dependency("VertexDescriptionInputs.WorldSpaceViewDirection",   "VertexDescriptionInputs.WorldSpacePosition"),
@@ -348,11 +354,19 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
                 if ((requirements.requiresPosition & NeededCoordinateSpace.Tangent) > 0)
                     activeFields.Add("VertexDescriptionInputs.TangentSpacePosition");
+
+                if ((requirements.requiresPosition & NeededCoordinateSpace.AbsoluteWorld) > 0)
+                    activeFields.Add("VertexDescriptionInputs.AbsoluteWorldSpacePosition");
             }
 
             foreach (var channel in requirements.requiresMeshUVs.Distinct())
             {
                 activeFields.Add("VertexDescriptionInputs." + channel.GetUVName());
+            }
+
+            if (requirements.requiresTime)
+            {
+                activeFields.Add("VertexDescriptionInputs.TimeParameters");
             }
         }
 
@@ -447,11 +461,19 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
                 if ((requirements.requiresPosition & NeededCoordinateSpace.Tangent) > 0)
                     activeFields.Add("SurfaceDescriptionInputs.TangentSpacePosition");
+                
+                if ((requirements.requiresPosition & NeededCoordinateSpace.AbsoluteWorld) > 0)
+                    activeFields.Add("SurfaceDescriptionInputs.AbsoluteWorldSpacePosition");
             }
 
             foreach (var channel in requirements.requiresMeshUVs.Distinct())
             {
                 activeFields.Add("SurfaceDescriptionInputs." + channel.GetUVName());
+            }
+
+            if (requirements.requiresTime)
+            {
+                activeFields.Add("SurfaceDescriptionInputs.TimeParameters");
             }
         }
 

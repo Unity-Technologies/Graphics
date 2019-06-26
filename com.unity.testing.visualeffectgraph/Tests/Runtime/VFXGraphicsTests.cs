@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Collections;
 using UnityEngine;
-using UnityEngine.Experimental.VFX;
+using UnityEngine.VFX;
 using UnityEngine.TestTools;
 using UnityEngine.TestTools.Graphics;
 using UnityEngine.Rendering;
@@ -33,11 +33,11 @@ namespace UnityEngine.VFX.Test
         public void Init()
         {
             m_previousCaptureFrameRate = Time.captureFramerate;
-            m_previousFixedTimeStep = UnityEngine.Experimental.VFX.VFXManager.fixedTimeStep;
-            m_previousMaxDeltaTime = UnityEngine.Experimental.VFX.VFXManager.maxDeltaTime;
+            m_previousFixedTimeStep = UnityEngine.VFX.VFXManager.fixedTimeStep;
+            m_previousMaxDeltaTime = UnityEngine.VFX.VFXManager.maxDeltaTime;
             Time.captureFramerate = captureFrameRate;
-            UnityEngine.Experimental.VFX.VFXManager.fixedTimeStep = frequency;
-            UnityEngine.Experimental.VFX.VFXManager.maxDeltaTime = frequency;
+            UnityEngine.VFX.VFXManager.fixedTimeStep = frequency;
+            UnityEngine.VFX.VFXManager.maxDeltaTime = frequency;
         }
 
         static readonly string[] ExcludedTestsButKeepLoadScene =
@@ -166,8 +166,8 @@ namespace UnityEngine.VFX.Test
         public void TearDown()
         {
             Time.captureFramerate = m_previousCaptureFrameRate;
-            UnityEngine.Experimental.VFX.VFXManager.fixedTimeStep = m_previousFixedTimeStep;
-            UnityEngine.Experimental.VFX.VFXManager.maxDeltaTime = m_previousMaxDeltaTime;
+            UnityEngine.VFX.VFXManager.fixedTimeStep = m_previousFixedTimeStep;
+            UnityEngine.VFX.VFXManager.maxDeltaTime = m_previousMaxDeltaTime;
 #if UNITY_EDITOR
             UnityEditor.TestTools.Graphics.ResultsUtility.ExtractImagesFromTestProperties(TestContext.CurrentContext.Test);
 #endif

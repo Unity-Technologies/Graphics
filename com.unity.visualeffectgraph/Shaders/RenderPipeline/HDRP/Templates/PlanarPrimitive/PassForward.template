@@ -48,6 +48,8 @@ Pass
 		float2 bentFactors : TEXCOORD6;
 		#endif
 		float3 posWS : TEXCOORD7;
+
+		UNITY_VERTEX_OUTPUT_STEREO
 	};
 	
 ${VFXHDRPLitVaryingsMacros}	
@@ -83,6 +85,7 @@ ${VFXEnd}
 	#endif
 	)
 	{
+		UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i);
 		VFXTransformPSInputs(i);
 		${VFXComputeNormalWS}
 		outColor = VFXGetPixelOutputForward(i,normalWS,uvData);

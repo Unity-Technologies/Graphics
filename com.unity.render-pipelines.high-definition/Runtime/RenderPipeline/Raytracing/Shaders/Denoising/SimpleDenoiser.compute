@@ -1,14 +1,21 @@
 #pragma only_renderers d3d11
 
 // Temporal Filtering kernels
-#pragma kernel TemporalAccumulation         TEMPORAL_ACCUMULATION=TemporalAccumulation          HISTORY_IS_ARRAY
-#pragma kernel TemporalAccumulationArray    TEMPORAL_ACCUMULATION=TemporalAccumulationArray
+#pragma kernel TemporalAccumulationSingle       TEMPORAL_ACCUMULATION_SINGLE=TemporalAccumulationSingle          SINGLE_CHANNEL HISTORY_IS_ARRAY
+#pragma kernel TemporalAccumulationSingleArray  TEMPORAL_ACCUMULATION_SINGLE=TemporalAccumulationSingleArray     SINGLE_CHANNEL     
 
-#pragma kernel CopyHistory                  COPY_HISTORY=CopyHistory
-#pragma kernel CopyHistoryArray             COPY_HISTORY=CopyHistoryArray HISTORY_IS_ARRAY
+#pragma kernel TemporalAccumulationColor    TEMPORAL_ACCUMULATION_COLOR=TemporalAccumulationColor      HISTORY_IS_ARRAY
 
-#pragma kernel BilateralFilterH   BilateralFilter=BilateralFilterH
-#pragma kernel BilateralFilterV   BilateralFilter=BilateralFilterV  FINAL_PASS
+#pragma kernel CopyHistorySingle            COPY_HISTORY=CopyHistorySingle SINGLE_CHANNEL
+#pragma kernel CopyHistorySingleArray       COPY_HISTORY=CopyHistorySingleArray HISTORY_IS_ARRAY SINGLE_CHANNEL
+
+#pragma kernel CopyHistoryColor             COPY_HISTORY=CopyHistoryColor
+
+#pragma kernel BilateralFilterHSingle       BILATERAL_FILTER=BilateralFilterHSingle     SINGLE_CHANNEL
+#pragma kernel BilateralFilterVSingle       BILATERAL_FILTER=BilateralFilterVSingle     FINAL_PASS SINGLE_CHANNEL
+
+#pragma kernel BilateralFilterHColor        BILATERAL_FILTER=BilateralFilterHColor
+#pragma kernel BilateralFilterVColor        BILATERAL_FILTER=BilateralFilterVColor     FINAL_PASS
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
@@ -28,15 +35,23 @@ int _DenoiserFilterRadius;
 
 #ifdef HISTORY_IS_ARRAY
 int _HistorySlot;
-Texture2DArray<float4> _Historybuffer;
-RWTexture2DArray<float> _DenoiseOutputTextureRW;
+Texture2DArray<float4> _HistoryBuffer;
 #else
-TEXTURE2D_X(_Historybuffer);
-RW_TEXTURE2D_X(float, _DenoiseOutputTextureRW);
+TEXTURE2D_X(_HistoryBuffer);
+#endif
+
+#if SINGLE_CHANNEL
+    #ifdef HISTORY_IS_ARRAY
+    RWTexture2DArray<float> _DenoiseOutputTextureRW;
+    #else
+    RW_TEXTURE2D_X(float, _DenoiseOutputTextureRW);
+    #endif
+#else
+    RW_TEXTURE2D_X(float4, _DenoiseOutputTextureRW);
 #endif
 
 [numthreads(SPATIO_TEMPORAL_TILE_SIZE, SPATIO_TEMPORAL_TILE_SIZE, 1)]
-void TEMPORAL_ACCUMULATION(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
+void TEMPORAL_ACCUMULATION_SINGLE(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
 {
     // Fetch the current pixel coordinate
     uint2 centerCoord = groupId * SPATIO_TEMPORAL_TILE_SIZE + groupThreadId;
@@ -54,9 +69,9 @@ void TEMPORAL_ACCUMULATION(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId
 
     float color = Fetch4(_DenoiseInputTexture, uv, 0.0, _RTHandleScale.xy).x;
     #ifdef HISTORY_IS_ARRAY
-    float history = Fetch4Array(_Historybuffer, _HistorySlot, posInputs.positionNDC - velocity, 0.0, _RTHandleScaleHistory.xy).x;
+    float history = Fetch4Array(_HistoryBuffer, _HistorySlot, posInputs.positionNDC - velocity, 0.0, _RTHandleScaleHistory.xy).x;
     #else
-    float history = Fetch4(_Historybuffer, posInputs.positionNDC - velocity, 0.0, _RTHandleScaleHistory.xy).x;
+    float history = Fetch4(_HistoryBuffer, posInputs.positionNDC - velocity, 0.0, _RTHandleScaleHistory.xy).x;
     #endif
 
     float topLeft = Fetch4(_DenoiseInputTexture, uv, -RADIUS, _RTHandleScale.xy).x;
@@ -98,6 +113,63 @@ void TEMPORAL_ACCUMULATION(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId
 }
 
 [numthreads(SPATIO_TEMPORAL_TILE_SIZE, SPATIO_TEMPORAL_TILE_SIZE, 1)]
+void TEMPORAL_ACCUMULATION_COLOR(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
+{
+    // Fetch the current pixel coordinate
+    uint2 centerCoord = groupId * SPATIO_TEMPORAL_TILE_SIZE + groupThreadId;
+
+    float depth = LOAD_TEXTURE2D_X(_DepthTexture, centerCoord).r;
+    PositionInputs posInputs = GetPositionInput(centerCoord, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
+
+    float2 closest = GetClosestFragment(posInputs);
+
+    float2 velocity;
+    DecodeMotionVector(LOAD_TEXTURE2D_X(_CameraMotionVectorsTexture, closest), velocity);
+    float velocityLength = length(velocity);
+
+    float2 uv = posInputs.positionNDC;
+
+    float3 color = Fetch(_DenoiseInputTexture, uv, 0.0, _RTHandleScale.xy);
+    float3 history = Fetch(_HistoryBuffer, posInputs.positionNDC - velocity, 0.0, _RTHandleScaleHistory.xy);
+    float3 topLeft = Fetch(_DenoiseInputTexture, uv, -RADIUS, _RTHandleScale.xy);
+    float3 bottomRight = Fetch(_DenoiseInputTexture, uv, RADIUS, _RTHandleScale.xy);
+
+    float3 corners = 4.0 * (topLeft + bottomRight) - 2.0 * color;
+
+    color = clamp(color, 0.0, CLAMP_MAX);
+
+    float3 average = Map((corners + color) / 7.0);
+
+    topLeft = Map(topLeft);
+    bottomRight = Map(bottomRight);
+    color = Map(color);
+
+    float colorLuma = Luminance(color);
+    float averageLuma = Luminance(average);
+    float nudge = lerp(4.0, 0.25, saturate(velocityLength * 100.0)) * abs(averageLuma - colorLuma);
+
+    float3 minimum = min(bottomRight, topLeft) - nudge;
+    float3 maximum = max(topLeft, bottomRight) + nudge;
+
+    history = Map(history);
+
+    // Clip history samples
+    history = ClipToAABB(history, minimum, maximum);
+
+    // Blend color & history
+    // Feedback weight from unbiased luminance diff (Timothy Lottes)
+    float historyLuma = Luminance(history);
+    float diff = abs(colorLuma - historyLuma) / Max3(colorLuma, historyLuma, 0.2);
+    float weight = 1.0 - diff;
+    float feedback = lerp(FEEDBACK_MIN, FEEDBACK_MAX, weight * weight);
+
+    color = Unmap(lerp(color, history, feedback));
+    color = clamp(color, 0.0, CLAMP_MAX);
+
+    _DenoiseOutputTextureRW[COORD_TEXTURE2D_X(centerCoord)] = float4(color, LOAD_TEXTURE2D_X(_DenoiseInputTexture, centerCoord).w);
+}
+
+[numthreads(SPATIO_TEMPORAL_TILE_SIZE, SPATIO_TEMPORAL_TILE_SIZE, 1)]
 void COPY_HISTORY(uint3 dispatchThreadId : SV_DispatchThreadID)
 {
     UNITY_STEREO_ASSIGN_COMPUTE_EYE_INDEX(dispatchThreadId.z);
@@ -106,9 +178,13 @@ void COPY_HISTORY(uint3 dispatchThreadId : SV_DispatchThreadID)
         return;  // Out of bounds, discard
 
     #ifdef HISTORY_IS_ARRAY
-    _DenoiseOutputTextureRW[uint3(dispatchThreadId.xy, _HistorySlot)] = _DenoiseInputTexture[COORD_TEXTURE2D_X(dispatchThreadId.xy)].x;
+        #ifdef SINGLE_CHANNEL
+        _DenoiseOutputTextureRW[uint3(dispatchThreadId.xy, _HistorySlot)] = _DenoiseInputTexture[COORD_TEXTURE2D_X(dispatchThreadId.xy)].x;
+        #else
+        _DenoiseOutputTextureRW[uint3(dispatchThreadId.xy, _HistorySlot)] = _DenoiseInputTexture[COORD_TEXTURE2D_X(dispatchThreadId.xy)];
+        #endif
     #else
-    _DenoiseOutputTextureRW[COORD_TEXTURE2D_X(dispatchThreadId.xy)] = _DenoiseInputTexture[COORD_TEXTURE2D_X(dispatchThreadId.xy)].x;
+        _DenoiseOutputTextureRW[COORD_TEXTURE2D_X(dispatchThreadId.xy)] = _DenoiseInputTexture[COORD_TEXTURE2D_X(dispatchThreadId.xy)];
     #endif
 }
 
@@ -205,12 +281,17 @@ float ComputeBilateralWeight(BilateralData center, BilateralData tap)
 
 // Separated bilateral filter (two passes, each with 2*Radius taps)
 [numthreads(SPATIO_TEMPORAL_TILE_SIZE, SPATIO_TEMPORAL_TILE_SIZE, 1)]
-void BilateralFilter(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
+void BILATERAL_FILTER(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
 {
     // Fetch the current pixel coordinate
     uint2 centerCoord = groupId * SPATIO_TEMPORAL_TILE_SIZE + groupThreadId;
 
+    #if SINGLE_CHANNEL
     float colorSum = 0.0;
+    #else
+    float3 colorSum = float3(0.0, 0.0, 0.0);
+    #endif
+
     float wSum = 0.0;
 
     #if FINAL_PASS
@@ -230,11 +311,20 @@ void BilateralFilter(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_
         // Compute the weight (skip computation for the center)
         const float w = r ? gaussian(r, sigma) * ComputeBilateralWeight(center, TapBilateralData(tapCoord)) : 1.0;
 
+        #if SINGLE_CHANNEL
         colorSum += LOAD_TEXTURE2D_X(_DenoiseInputTexture, tapCoord).x * w;
+        #else
+        colorSum += LOAD_TEXTURE2D_X(_DenoiseInputTexture, tapCoord).xyz * w;
+        #endif
         wSum += w;
     }
 
     // Store the intermediate result
-    float ao = colorSum / wSum;
-    _DenoiseOutputTextureRW[COORD_TEXTURE2D_X(centerCoord)] = ao;
+    #if SINGLE_CHANNEL
+    float finalColor = colorSum / wSum;
+    _DenoiseOutputTextureRW[COORD_TEXTURE2D_X(centerCoord)] = finalColor;
+    #else
+    float3 finalColor = colorSum / wSum;
+    _DenoiseOutputTextureRW[COORD_TEXTURE2D_X(centerCoord)] = float4(finalColor, 1.0);
+    #endif
 }

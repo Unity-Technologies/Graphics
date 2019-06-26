@@ -14,7 +14,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         VolumetricLightingController()
         {
-            displayName = "Volumetric fog quality";
+            displayName = "Volumetric Fog Quality";
         }        
     }
 } // UnityEngine.Experimental.Rendering.HDPipeline

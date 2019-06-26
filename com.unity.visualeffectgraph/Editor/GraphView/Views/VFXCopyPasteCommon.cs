@@ -2,7 +2,7 @@ using System;
 using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEditor.Experimental.VFX;
+using UnityEditor.VFX;
 using UnityEngine.UIElements;
 using System.Reflection;
 using UnityObject = UnityEngine.Object;

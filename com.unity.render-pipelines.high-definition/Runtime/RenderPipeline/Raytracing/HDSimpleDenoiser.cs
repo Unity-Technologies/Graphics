@@ -24,8 +24,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             m_SharedRTManager = sharedRTManager;
 
-            m_IntermediateBuffer0 = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R16_SFloat, dimension: TextureXR.dimension, enableRandomWrite: true, useDynamicScale: true, useMipMap: false, autoGenerateMips: false, name: "IntermediateBuffer0");
-            m_IntermediateBuffer1 = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R16_SFloat, dimension: TextureXR.dimension, enableRandomWrite: true, useDynamicScale: true, useMipMap: false, autoGenerateMips: false, name: "IntermediateBuffer1");
+            m_IntermediateBuffer0 = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, dimension: TextureXR.dimension, enableRandomWrite: true, useDynamicScale: true, useMipMap: false, autoGenerateMips: false, name: "IntermediateBuffer0");
+            m_IntermediateBuffer1 = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, dimension: TextureXR.dimension, enableRandomWrite: true, useDynamicScale: true, useMipMap: false, autoGenerateMips: false, name: "IntermediateBuffer1");
         }
 
         public void Release()
@@ -34,7 +34,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             RTHandles.Release(m_IntermediateBuffer0);
         }
 
-        public void DenoiseBuffer(CommandBuffer cmd, HDCamera hdCamera, RTHandleSystem.RTHandle noisySignal, RTHandleSystem.RTHandle historySignal, RTHandleSystem.RTHandle outputSingal, int kernelSize, int slotIndex = -1)
+        public void DenoiseBuffer(CommandBuffer cmd, HDCamera hdCamera, RTHandleSystem.RTHandle noisySignal, RTHandleSystem.RTHandle historySignal, RTHandleSystem.RTHandle outputSingal, int kernelSize, bool singleChannel = true, int slotIndex = -1)
         {
             // Texture dimensions
             int texWidth = hdCamera.actualWidth;
@@ -46,21 +46,30 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             int numTilesY = (texHeight + (areaTileSize - 1)) / areaTileSize;
 
             int m_KernelFilter = 0;
-            if (slotIndex < 0)
+
+            if (singleChannel)
             {
-                m_KernelFilter = m_SimpleDenoiserCS.FindKernel("TemporalAccumulation");
+               if (slotIndex < 0)
+                {
+                    m_KernelFilter = m_SimpleDenoiserCS.FindKernel("TemporalAccumulationSingle");
+                }
+                else
+                {
+                    m_KernelFilter = m_SimpleDenoiserCS.FindKernel("TemporalAccumulationSingleArray");
+                }
             }
             else
             {
-                m_KernelFilter = m_SimpleDenoiserCS.FindKernel("TemporalAccumulationArray");
+                m_KernelFilter = m_SimpleDenoiserCS.FindKernel("TemporalAccumulationColor");
             }
+ 
 
             // Apply a vectorized temporal filtering pass and store it back in the denoisebuffer0 with the analytic value in the third channel
             var historyScale = new Vector2(hdCamera.actualWidth / (float)historySignal.rt.width, hdCamera.actualHeight / (float)historySignal.rt.height);
             cmd.SetComputeVectorParam(m_SimpleDenoiserCS, HDShaderIDs._RTHandleScaleHistory, historyScale);
 
             cmd.SetComputeTextureParam(m_SimpleDenoiserCS, m_KernelFilter, HDShaderIDs._DenoiseInputTexture, noisySignal);
-            cmd.SetComputeTextureParam(m_SimpleDenoiserCS, m_KernelFilter, HDShaderIDs._Historybuffer, historySignal);
+            cmd.SetComputeTextureParam(m_SimpleDenoiserCS, m_KernelFilter, HDShaderIDs._HistoryBuffer, historySignal);
             cmd.SetComputeTextureParam(m_SimpleDenoiserCS, m_KernelFilter, HDShaderIDs._DepthTexture, m_SharedRTManager.GetDepthStencilBuffer());
             cmd.SetComputeTextureParam(m_SimpleDenoiserCS, m_KernelFilter, HDShaderIDs._DenoiseOutputTextureRW, m_IntermediateBuffer0);
             cmd.DispatchCompute(m_SimpleDenoiserCS, m_KernelFilter, numTilesX, numTilesY, 1);
@@ -68,17 +77,17 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Output the new history
             if (slotIndex < 0)
             {
-                m_KernelFilter = m_SimpleDenoiserCS.FindKernel("CopyHistory");
+                m_KernelFilter = m_SimpleDenoiserCS.FindKernel(singleChannel ? "CopyHistorySingle" : "CopyHistoryColor");
             }
             else
             {
-                m_KernelFilter = m_SimpleDenoiserCS.FindKernel("CopyHistoryArray");
+                m_KernelFilter = m_SimpleDenoiserCS.FindKernel(singleChannel ? "CopyHistorySingleArray" : "CopyHistoryColorArray");
             }
             cmd.SetComputeTextureParam(m_SimpleDenoiserCS, m_KernelFilter, HDShaderIDs._DenoiseInputTexture, m_IntermediateBuffer0);
             cmd.SetComputeTextureParam(m_SimpleDenoiserCS, m_KernelFilter, HDShaderIDs._DenoiseOutputTextureRW, historySignal);
             cmd.DispatchCompute(m_SimpleDenoiserCS, m_KernelFilter, numTilesX, numTilesY, 1);
 
-            m_KernelFilter = m_SimpleDenoiserCS.FindKernel("BilateralFilterH");
+            m_KernelFilter = m_SimpleDenoiserCS.FindKernel(singleChannel ? "BilateralFilterHSingle" : "BilateralFilterHColor");
 
             // Horizontal pass of the bilateral filter
             cmd.SetComputeIntParam(m_SimpleDenoiserCS, HDShaderIDs._DenoiserFilterRadius, kernelSize);
@@ -88,7 +97,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             cmd.SetComputeTextureParam(m_SimpleDenoiserCS, m_KernelFilter, HDShaderIDs._DenoiseOutputTextureRW, m_IntermediateBuffer1);
             cmd.DispatchCompute(m_SimpleDenoiserCS, m_KernelFilter, numTilesX, numTilesY, 1);
 
-            m_KernelFilter = m_SimpleDenoiserCS.FindKernel("BilateralFilterV");
+            m_KernelFilter = m_SimpleDenoiserCS.FindKernel(singleChannel ? "BilateralFilterVSingle" : "BilateralFilterVColor");
 
             // Horizontal pass of the bilateral filter
             cmd.SetComputeIntParam(m_SimpleDenoiserCS, HDShaderIDs._DenoiserFilterRadius, kernelSize);

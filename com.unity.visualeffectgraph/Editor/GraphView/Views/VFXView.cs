@@ -1,5 +1,3 @@
-
-
 //#define OLD_COPY_PASTE
 using System;
 using System.Collections;
@@ -9,8 +7,8 @@ using System.Linq;
 using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 using UnityEngine.Rendering;
-using UnityEditor.Experimental.VFX;
-using UnityEngine.Experimental.VFX;
+using UnityEditor.VFX;
+using UnityEngine.VFX;
 using UnityEngine.UIElements;
 using UnityEngine.Profiling;
 using System.Reflection;
@@ -1099,7 +1097,7 @@ namespace UnityEditor.VFX.UI
                 yield return attachedComponent;
             else
             {
-                foreach (var component in UnityEngine.Experimental.VFX.VFXManager.GetComponents())
+                foreach (var component in UnityEngine.VFX.VFXManager.GetComponents())
                     yield return component;
             }
         }

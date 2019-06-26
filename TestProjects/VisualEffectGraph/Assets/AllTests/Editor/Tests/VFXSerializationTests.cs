@@ -5,8 +5,8 @@ using System.Linq;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEditor.VFX.Block.Test;
-using UnityEngine.Experimental.VFX;
-using UnityEditor.Experimental.VFX;
+using UnityEngine.VFX;
+using UnityEditor.VFX;
 
 
 using Object = UnityEngine.Object;
