@@ -33,10 +33,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public Vector3 baseColor;
 
             [MaterialSharedPropertyMapping(MaterialSharedProperty.Normal)]
-            [SurfaceDataAttributes(new string[] { "Normal", "Cornea Normal View Space" }, true)]
+            [SurfaceDataAttributes(new string[] { "Normal", "Normal View Space" }, true)]
             public Vector3 normalWS;
 
-            [SurfaceDataAttributes(new string[] { "Iris Normal", " Iris Normal View Space" }, true)]
+            [SurfaceDataAttributes(new string[] { "Iris Normal", "Iris Normal View Space" }, true)]
             public Vector3 irisNormalWS;
 
             [SurfaceDataAttributes(new string[] { "Geometric Normal", "Geometric Normal View Space" }, true)]
@@ -95,6 +95,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             [SurfaceDataAttributes(new string[] { "Normal WS", "Normal View Space" }, true)]
             public Vector3 normalWS; // Specular normal
 
+            [SurfaceDataAttributes(new string[] { "Diffuse Normal WS", "Diffuse Normal View Space" }, true)]
             public Vector3 diffuseNormalWS;
 
             [SurfaceDataAttributes(new string[] { "Geometric Normal", "Geometric Normal View Space" }, true)]

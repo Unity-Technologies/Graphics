@@ -172,12 +172,54 @@ BSDFData ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfaceData)
 void GetSurfaceDataDebug(uint paramId, SurfaceData surfaceData, inout float3 result, inout bool needLinearToSRGB)
 {
     GetGeneratedSurfaceDataDebug(paramId, surfaceData, result, needLinearToSRGB);
+
+    // Overide debug value output to be more readable
+    switch (paramId)
+    {
+        case DEBUGVIEW_EYE_SURFACEDATA_MATERIAL_FEATURES:
+            result = (surfaceData.materialFeatures.xxx) / 255.0; // Aloow to read with color picker debug mode
+            break;
+        case DEBUGVIEW_EYE_SURFACEDATA_NORMAL_VIEW_SPACE:
+            // Convert to view space
+            result = TransformWorldToViewDir(surfaceData.normalWS) * 0.5 + 0.5;
+            break;
+        case DEBUGVIEW_EYE_SURFACEDATA_IRIS_NORMAL_VIEW_SPACE:
+            result = TransformWorldToViewDir(surfaceData.irisNormalWS) * 0.5 + 0.5;
+            break;
+        case DEBUGVIEW_EYE_SURFACEDATA_GEOMETRIC_NORMAL_VIEW_SPACE:
+            result = TransformWorldToViewDir(surfaceData.geomNormalWS) * 0.5 + 0.5;
+            break;
+        case DEBUGVIEW_EYE_SURFACEDATA_SCLERA_IOR:
+            result = saturate((surfaceData.scleraIOR - 1.0) / 1.5).xxx;
+            break;
+        case DEBUGVIEW_EYE_SURFACEDATA_CORNEA_IOR:
+            result = saturate((surfaceData.corneaIOR - 1.0) / 1.5).xxx;
+            break;
+    }
 }
 
 // This function call the generated debug function and allow to override the debug output if needed
 void GetBSDFDataDebug(uint paramId, BSDFData bsdfData, inout float3 result, inout bool needLinearToSRGB)
 {
     GetGeneratedBSDFDataDebug(paramId, bsdfData, result, needLinearToSRGB);
+
+    // Overide debug value output to be more readable
+    switch (paramId)
+    {
+        case DEBUGVIEW_EYE_BSDFDATA_MATERIAL_FEATURES:
+            result = (bsdfData.materialFeatures.xxx) / 255.0; // Aloow to read with color picker debug mode
+            break;
+        case DEBUGVIEW_EYE_BSDFDATA_NORMAL_VIEW_SPACE:
+            // Convert to view space
+            result = TransformWorldToViewDir(bsdfData.normalWS) * 0.5 + 0.5;
+            break;
+        case DEBUGVIEW_EYE_BSDFDATA_DIFFUSE_NORMAL_VIEW_SPACE:
+            result = TransformWorldToViewDir(bsdfData.diffuseNormalWS) * 0.5 + 0.5;
+            break;
+        case DEBUGVIEW_EYE_BSDFDATA_GEOMETRIC_NORMAL_VIEW_SPACE:
+            result = TransformWorldToViewDir(bsdfData.geomNormalWS) * 0.5 + 0.5;
+            break;
+    }
 }
 
 void GetPBRValidatorDebug(SurfaceData surfaceData, inout float3 result)
