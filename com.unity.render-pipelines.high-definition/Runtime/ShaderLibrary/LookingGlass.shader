@@ -1,4 +1,4 @@
-﻿Shader "Hidden/HDRP/LookingGlass"
+Shader "Hidden/HDRP/LookingGlass"
 {
     HLSLINCLUDE
 
@@ -9,7 +9,8 @@
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
 
         TEXTURE2D_ARRAY(_MainTex);
-        SamplerState sampler_LinearClamp;
+        //SamplerState sampler_LinearClamp;
+        SamplerState sampler_PointClamp;
 
 		// LookingGlass
 		uniform float pitch;
@@ -49,7 +50,7 @@
 				//col[subpixel] = UNITY_SAMPLE_TEX2DARRAY(_MainTex, float3(i.uv.xy, view))[subpixel];
 				//col[subpixel] = textureName.Sample(_MainTex, float3(viewUV, subpixel));
 
-				col[subpixel] = SAMPLE_TEXTURE2D_ARRAY(_MainTex, sampler_LinearClamp, input.texcoord.xy, view)[subpixel];
+				col[subpixel] = SAMPLE_TEXTURE2D_ARRAY(_MainTex, sampler_PointClamp, input.texcoord.xy, view)[subpixel];
 			}
 			return col;
 		}

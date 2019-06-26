@@ -4,6 +4,11 @@ using UnityEngine.Serialization;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
+    public struct Hw19
+    {
+        public static float scale = 0.2f;
+    };
+
     // RenderPipelineSettings define settings that can't be change during runtime. It is equivalent to the GraphicsSettings of Unity (Tiers + shader variant removal).
     // This allow to allocate resource or not for a given feature.
     // FrameSettings control within a frame what is enable or not(enableShadow, enableStereo, enableDistortion...).
