@@ -40,6 +40,13 @@ namespace UnityEngine.Rendering.LWRP
         ReflectionsWithSmoothness,
     }
 
+    public enum DebugOverlayMode
+    {
+        None,
+        HiglightNanInfNegative,
+        HighlightOutsideOfRange,
+    }
+
     public static class RenderingUtils
     {
         static int m_PostProcessingTemporaryTargetId = Shader.PropertyToID("_TemporaryColorTexture");
