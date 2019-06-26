@@ -30,7 +30,6 @@ namespace UnityEditor.ShaderGraph
         {
         }
 
-
         [NonSerialized]
         private List<SlotAttribute> m_Slots = new List<SlotAttribute>();
 
@@ -621,7 +620,15 @@ namespace UnityEditor.ShaderGraph
                     foreach (var il in method.Body.Instructions)
                     {
                         var opCode = il.OpCode;
-                        if (opCode == OpCodes.Ldarg_0)
+                        if (opCode == OpCodes.Nop)
+                        {
+                        }
+                        else if (opCode == OpCodes.Ret)
+                        {
+                            if (il.Next != null)
+                                hlsl.Append("return;\n");
+                        }
+                        else if (opCode == OpCodes.Ldarg_0)
                         {
                             evalStack.Push((argIds[0], 0));
                         }
@@ -641,9 +648,49 @@ namespace UnityEditor.ShaderGraph
                         {
                             evalStack.Push((argIds[(il.Operand as ParameterReference).Index], 0));
                         }
-                        else if (opCode == OpCodes.Ldc_R4 || opCode == OpCodes.Ldc_R8)
+                        else if (opCode == OpCodes.Ldc_R4 || opCode == OpCodes.Ldc_R8 || opCode == OpCodes.Ldc_I4 || opCode == OpCodes.Ldc_I4_S || opCode == OpCodes.Ldc_I8)
                         {
                             evalStack.Push((il.Operand.ToString(), 0));
+                        }
+                        else if (opCode == OpCodes.Ldc_I4_0)
+                        {
+                            evalStack.Push(("0", 0));
+                        }
+                        else if (opCode == OpCodes.Ldc_I4_1)
+                        {
+                            evalStack.Push(("1", 0));
+                        }
+                        else if (opCode == OpCodes.Ldc_I4_2)
+                        {
+                            evalStack.Push(("2", 0));
+                        }
+                        else if (opCode == OpCodes.Ldc_I4_3)
+                        {
+                            evalStack.Push(("3", 0));
+                        }
+                        else if (opCode == OpCodes.Ldc_I4_4)
+                        {
+                            evalStack.Push(("4", 0));
+                        }
+                        else if (opCode == OpCodes.Ldc_I4_5)
+                        {
+                            evalStack.Push(("5", 0));
+                        }
+                        else if (opCode == OpCodes.Ldc_I4_6)
+                        {
+                            evalStack.Push(("6", 0));
+                        }
+                        else if (opCode == OpCodes.Ldc_I4_7)
+                        {
+                            evalStack.Push(("7", 0));
+                        }
+                        else if (opCode == OpCodes.Ldc_I4_8)
+                        {
+                            evalStack.Push(("8", 0));
+                        }
+                        else if (opCode == OpCodes.Ldc_I4_M1)
+                        {
+                            evalStack.Push(("-1", 0));
                         }
                         else if (opCode == OpCodes.Ldloc_0)
                         {
@@ -774,7 +821,10 @@ namespace UnityEditor.ShaderGraph
                             }
                             else
                             {
-                                curOpExpr.Append($"{func.Name}(");
+                                if (func.Name == "Float" || func.Name == "Float2" || func.Name == "Float3" || func.Name == "Float4")
+                                    curOpExpr.Append($"f{func.Name.Substring(1)}(");
+                                else
+                                    curOpExpr.Append($"{func.Name}(");
                                 bool first = true;
                                 foreach (var (op, order) in evalStack.Take(func.Parameters.Count).Reverse())
                                 {
@@ -790,6 +840,11 @@ namespace UnityEditor.ShaderGraph
                                 curOpExpr.Clear();
                             }
                         }
+                        else
+                        {
+                            hlsl.Append($"\n Error parsing at: {il.Offset}: Unsupported OpCode {opCode}\n");
+                            return hlsl.ToString();
+                        }
                     }
                 }
             }
@@ -804,55 +859,14 @@ namespace UnityEditor.ShaderGraph
             if (result == null)
             {
                 var args = new List<object>();
-                var parms = info.GetParameters();
-                foreach (var param in parms)
-                {
-                    var arg = GetDefault(param.ParameterType);
-                    if (param.ParameterType == typeof(Float))
-                    {
-                        arg = new Float() { Code = param.Name, Value = null };
-                    }
-                    else if (param.ParameterType == typeof(Float2))
-                    {
-                        arg = new Float2() { Code = param.Name, Value = null };
-                    }
-                    else if (param.ParameterType == typeof(Float3))
-                    {
-                        arg = new Float3() { Code = param.Name, Value = null };
-                    }
-                    else if (param.ParameterType == typeof(Float4))
-                    {
-                        arg = new Float4() { Code = param.Name, Value = null };
-                    }
-                    args.Add(arg);
-                }
+                foreach (var param in info.GetParameters())
+                    args.Add(GetDefault(param.ParameterType));
 
-                var argsArray = args.ToArray();
-                result = info.Invoke(this, argsArray) as string;
-
-                if (info.GetCustomAttribute<HlslCodeGenAttribute>() != null)
-                {
-                    result += "{" + Environment.NewLine;
-                    for (int i = 0; i < args.Count; ++i)
-                    {
-                        if (info.GetParameters()[i].IsOut)
-                        {
-                            if (argsArray[i] is Float f1)
-                                result += parms[i].Name + " = " + f1.Code + ";" + Environment.NewLine;
-                            else if (argsArray[i] is Float2 f2)
-                                result += parms[i].Name + " = " + f2.Code + ";" + Environment.NewLine;
-                            else if (argsArray[i] is Float3 f3)
-                                result += parms[i].Name + " = " + f3.Code + ";" + Environment.NewLine;
-                            else if (argsArray[i] is Float4 f4)
-                                result += parms[i].Name + " = " + f4.Code + ";" + Environment.NewLine;
-                        }
-                    }
-                    result += "}" + Environment.NewLine;
-                }
+                result = info.Invoke(this, args.ToArray()) as string;
             }
             else
             {
-                result = "{\t" + result + "}\n";
+                result = "{\t\n" + result + "}\n";
             }
 
             if (string.IsNullOrEmpty(result))

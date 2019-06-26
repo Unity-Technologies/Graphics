@@ -5,583 +5,579 @@ namespace UnityEditor.ShaderGraph.Hlsl
 {
     public struct Float
     {
-        public string Code;
         public float? Value;
         public static readonly float? Null = null;
 
         public static implicit operator Float2(Float x)
-            => new Float2() { Code = $"({x.Code}).xx", Value = x.Value != null ? float2(x.Value.Value) : Float2.Null };
+            => new Float2() { Value = x.Value != null ? float2(x.Value.Value) : Float2.Null };
 
         public static implicit operator Float3(Float x)
-            => new Float3() { Code = $"({x.Code}).xxx", Value = x.Value != null ? float3(x.Value.Value) : Float3.Null };
+            => new Float3() { Value = x.Value != null ? float3(x.Value.Value) : Float3.Null };
 
         public static implicit operator Float4(Float x)
-            => new Float4() { Code = $"({x.Code}).xxxx", Value = x.Value != null ? float4(x.Value.Value) : Float4.Null };
+            => new Float4() { Value = x.Value != null ? float4(x.Value.Value) : Float4.Null };
 
         public static Float operator-(Float v)
-            => new Float() { Code = $"-({v.Code})", Value = v.Value != null ? -v.Value.Value : Null };
+            => new Float() { Value = v.Value != null ? -v.Value.Value : Null };
 
         public static implicit operator Float (float v)
-            => new Float() { Code = $"({v}).x", Value = (v) };
+            => new Float() { Value = (v) };
 
         public static implicit operator Float (int v)
-            => new Float() { Code = $"({v}.0f).x", Value = (v) };
+            => new Float() { Value = (v) };
 
         public static implicit operator Float (double v)
-            => new Float() { Code = $"({(float)v}).x", Value = ((float)v) };
+            => new Float() { Value = ((float)v) };
 
         public static Float operator+(Float x, Float y)
-            => new Float() { Code = $"({x.Code}) + ({y.Code})", Value = x.Value != null && y.Value != null ? x.Value.Value + y.Value.Value : Null };
+            => new Float() { Value = x.Value != null && y.Value != null ? x.Value.Value + y.Value.Value : Null };
 
         public static Float operator-(Float x, Float y)
-            => new Float() { Code = $"({x.Code}) - ({y.Code})", Value = x.Value != null && y.Value != null ? x.Value.Value - y.Value.Value : Null };
+            => new Float() { Value = x.Value != null && y.Value != null ? x.Value.Value - y.Value.Value : Null };
 
         public static Float operator*(Float x, Float y)
-            => new Float() { Code = $"({x.Code}) * ({y.Code})", Value = x.Value != null && y.Value != null ? x.Value.Value * y.Value.Value : Null };
+            => new Float() { Value = x.Value != null && y.Value != null ? x.Value.Value * y.Value.Value : Null };
 
         public static Float operator/(Float x, Float y)
-            => new Float() { Code = $"({x.Code}) / ({y.Code})", Value = x.Value != null && y.Value != null ? x.Value.Value / y.Value.Value : Null };
+            => new Float() { Value = x.Value != null && y.Value != null ? x.Value.Value / y.Value.Value : Null };
 
         #region Swizzles
 
         public Float x
-            => new Float() { Code = $"({Code}).x", Value = Value != null ? (Value.Value) : Float.Null };
+            => new Float() { Value =Value != null ? (Value.Value) : Float.Null };
 
         public Float2 xx
-            => new Float2() { Code = $"({Code}).xx", Value = Value != null ? float2(Value.Value) : Float2.Null };
+            => new Float2() { Value =Value != null ? float2(Value.Value) : Float2.Null };
 
         public Float3 xxx
-            => new Float3() { Code = $"({Code}).xxx", Value = Value != null ? float3(Value.Value) : Float3.Null };
+            => new Float3() { Value =Value != null ? float3(Value.Value) : Float3.Null };
 
         public Float4 xxxx
-            => new Float4() { Code = $"({Code}).xxxx", Value = Value != null ? float4(Value.Value) : Float4.Null };
+            => new Float4() { Value =Value != null ? float4(Value.Value) : Float4.Null };
 
         #endregion
     }
 
     public struct Float2
     {
-        public string Code;
         public float2? Value;
         public static readonly float2? Null = null;
 
         public static Float2 operator-(Float2 v)
-            => new Float2() { Code = $"-({v.Code})", Value = v.Value != null ? -v.Value.Value : Null };
+            => new Float2() { Value = v.Value != null ? -v.Value.Value : Null };
 
         public static implicit operator Float2 (float v)
-            => new Float2() { Code = $"({v}).xx", Value = float2(v) };
+            => new Float2() { Value = float2(v) };
 
         public static implicit operator Float2 (int v)
-            => new Float2() { Code = $"({v}.0f).xx", Value = float2(v) };
+            => new Float2() { Value = float2(v) };
 
         public static implicit operator Float2 (double v)
-            => new Float2() { Code = $"({(float)v}).xx", Value = float2((float)v) };
+            => new Float2() { Value = float2((float)v) };
 
         public static Float2 operator+(Float2 x, Float2 y)
-            => new Float2() { Code = $"({x.Code}) + ({y.Code})", Value = x.Value != null && y.Value != null ? x.Value.Value + y.Value.Value : Null };
+            => new Float2() { Value = x.Value != null && y.Value != null ? x.Value.Value + y.Value.Value : Null };
 
         public static Float2 operator-(Float2 x, Float2 y)
-            => new Float2() { Code = $"({x.Code}) - ({y.Code})", Value = x.Value != null && y.Value != null ? x.Value.Value - y.Value.Value : Null };
+            => new Float2() { Value = x.Value != null && y.Value != null ? x.Value.Value - y.Value.Value : Null };
 
         public static Float2 operator*(Float2 x, Float2 y)
-            => new Float2() { Code = $"({x.Code}) * ({y.Code})", Value = x.Value != null && y.Value != null ? x.Value.Value * y.Value.Value : Null };
+            => new Float2() { Value = x.Value != null && y.Value != null ? x.Value.Value * y.Value.Value : Null };
 
         public static Float2 operator/(Float2 x, Float2 y)
-            => new Float2() { Code = $"({x.Code}) / ({y.Code})", Value = x.Value != null && y.Value != null ? x.Value.Value / y.Value.Value : Null };
+            => new Float2() { Value = x.Value != null && y.Value != null ? x.Value.Value / y.Value.Value : Null };
 
         #region Swizzles
 
         public Float x
-            => new Float() { Code = $"({Code}).x", Value = Value?.x };
+            => new Float() { Value =Value?.x };
 
         public Float y
-            => new Float() { Code = $"({Code}).y", Value = Value?.y };
+            => new Float() { Value =Value?.y };
 
         public Float2 xx
-            => new Float2() { Code = $"({Code}).xx", Value = Value?.xx };
+            => new Float2() { Value =Value?.xx };
 
         public Float2 xy
-            => new Float2() { Code = $"({Code}).xy", Value = Value?.xy };
+            => new Float2() { Value =Value?.xy };
 
         public Float2 yx
-            => new Float2() { Code = $"({Code}).yx", Value = Value?.yx };
+            => new Float2() { Value =Value?.yx };
 
         public Float2 yy
-            => new Float2() { Code = $"({Code}).yy", Value = Value?.yy };
+            => new Float2() { Value =Value?.yy };
 
         public Float3 xxx
-            => new Float3() { Code = $"({Code}).xxx", Value = Value?.xxx };
+            => new Float3() { Value =Value?.xxx };
 
         public Float3 xxy
-            => new Float3() { Code = $"({Code}).xxy", Value = Value?.xxy };
+            => new Float3() { Value =Value?.xxy };
 
         public Float3 xyx
-            => new Float3() { Code = $"({Code}).xyx", Value = Value?.xyx };
+            => new Float3() { Value =Value?.xyx };
 
         public Float3 xyy
-            => new Float3() { Code = $"({Code}).xyy", Value = Value?.xyy };
+            => new Float3() { Value =Value?.xyy };
 
         public Float3 yxx
-            => new Float3() { Code = $"({Code}).yxx", Value = Value?.yxx };
+            => new Float3() { Value =Value?.yxx };
 
         public Float3 yxy
-            => new Float3() { Code = $"({Code}).yxy", Value = Value?.yxy };
+            => new Float3() { Value =Value?.yxy };
 
         public Float3 yyx
-            => new Float3() { Code = $"({Code}).yyx", Value = Value?.yyx };
+            => new Float3() { Value =Value?.yyx };
 
         public Float3 yyy
-            => new Float3() { Code = $"({Code}).yyy", Value = Value?.yyy };
+            => new Float3() { Value =Value?.yyy };
 
         public Float4 xxxx
-            => new Float4() { Code = $"({Code}).xxxx", Value = Value?.xxxx };
+            => new Float4() { Value =Value?.xxxx };
 
         public Float4 xxxy
-            => new Float4() { Code = $"({Code}).xxxy", Value = Value?.xxxy };
+            => new Float4() { Value =Value?.xxxy };
 
         public Float4 xxyx
-            => new Float4() { Code = $"({Code}).xxyx", Value = Value?.xxyx };
+            => new Float4() { Value =Value?.xxyx };
 
         public Float4 xxyy
-            => new Float4() { Code = $"({Code}).xxyy", Value = Value?.xxyy };
+            => new Float4() { Value =Value?.xxyy };
 
         public Float4 xyxx
-            => new Float4() { Code = $"({Code}).xyxx", Value = Value?.xyxx };
+            => new Float4() { Value =Value?.xyxx };
 
         public Float4 xyxy
-            => new Float4() { Code = $"({Code}).xyxy", Value = Value?.xyxy };
+            => new Float4() { Value =Value?.xyxy };
 
         public Float4 xyyx
-            => new Float4() { Code = $"({Code}).xyyx", Value = Value?.xyyx };
+            => new Float4() { Value =Value?.xyyx };
 
         public Float4 xyyy
-            => new Float4() { Code = $"({Code}).xyyy", Value = Value?.xyyy };
+            => new Float4() { Value =Value?.xyyy };
 
         public Float4 yxxx
-            => new Float4() { Code = $"({Code}).yxxx", Value = Value?.yxxx };
+            => new Float4() { Value =Value?.yxxx };
 
         public Float4 yxxy
-            => new Float4() { Code = $"({Code}).yxxy", Value = Value?.yxxy };
+            => new Float4() { Value =Value?.yxxy };
 
         public Float4 yxyx
-            => new Float4() { Code = $"({Code}).yxyx", Value = Value?.yxyx };
+            => new Float4() { Value =Value?.yxyx };
 
         public Float4 yxyy
-            => new Float4() { Code = $"({Code}).yxyy", Value = Value?.yxyy };
+            => new Float4() { Value =Value?.yxyy };
 
         public Float4 yyxx
-            => new Float4() { Code = $"({Code}).yyxx", Value = Value?.yyxx };
+            => new Float4() { Value =Value?.yyxx };
 
         public Float4 yyxy
-            => new Float4() { Code = $"({Code}).yyxy", Value = Value?.yyxy };
+            => new Float4() { Value =Value?.yyxy };
 
         public Float4 yyyx
-            => new Float4() { Code = $"({Code}).yyyx", Value = Value?.yyyx };
+            => new Float4() { Value =Value?.yyyx };
 
         public Float4 yyyy
-            => new Float4() { Code = $"({Code}).yyyy", Value = Value?.yyyy };
+            => new Float4() { Value =Value?.yyyy };
 
         #endregion
     }
 
     public struct Float3
     {
-        public string Code;
         public float3? Value;
         public static readonly float3? Null = null;
 
         public static Float3 operator-(Float3 v)
-            => new Float3() { Code = $"-({v.Code})", Value = v.Value != null ? -v.Value.Value : Null };
+            => new Float3() { Value = v.Value != null ? -v.Value.Value : Null };
 
         public static implicit operator Float3 (float v)
-            => new Float3() { Code = $"({v}).xxx", Value = float3(v) };
+            => new Float3() { Value = float3(v) };
 
         public static implicit operator Float3 (int v)
-            => new Float3() { Code = $"({v}.0f).xxx", Value = float3(v) };
+            => new Float3() { Value = float3(v) };
 
         public static implicit operator Float3 (double v)
-            => new Float3() { Code = $"({(float)v}).xxx", Value = float3((float)v) };
+            => new Float3() { Value = float3((float)v) };
 
         public static Float3 operator+(Float3 x, Float3 y)
-            => new Float3() { Code = $"({x.Code}) + ({y.Code})", Value = x.Value != null && y.Value != null ? x.Value.Value + y.Value.Value : Null };
+            => new Float3() { Value = x.Value != null && y.Value != null ? x.Value.Value + y.Value.Value : Null };
 
         public static Float3 operator-(Float3 x, Float3 y)
-            => new Float3() { Code = $"({x.Code}) - ({y.Code})", Value = x.Value != null && y.Value != null ? x.Value.Value - y.Value.Value : Null };
+            => new Float3() { Value = x.Value != null && y.Value != null ? x.Value.Value - y.Value.Value : Null };
 
         public static Float3 operator*(Float3 x, Float3 y)
-            => new Float3() { Code = $"({x.Code}) * ({y.Code})", Value = x.Value != null && y.Value != null ? x.Value.Value * y.Value.Value : Null };
+            => new Float3() { Value = x.Value != null && y.Value != null ? x.Value.Value * y.Value.Value : Null };
 
         public static Float3 operator/(Float3 x, Float3 y)
-            => new Float3() { Code = $"({x.Code}) / ({y.Code})", Value = x.Value != null && y.Value != null ? x.Value.Value / y.Value.Value : Null };
+            => new Float3() { Value = x.Value != null && y.Value != null ? x.Value.Value / y.Value.Value : Null };
 
         #region Swizzles
 
         public Float x
-            => new Float() { Code = $"({Code}).x", Value = Value?.x };
+            => new Float() { Value =Value?.x };
 
         public Float y
-            => new Float() { Code = $"({Code}).y", Value = Value?.y };
+            => new Float() { Value =Value?.y };
 
         public Float z
-            => new Float() { Code = $"({Code}).z", Value = Value?.z };
+            => new Float() { Value =Value?.z };
 
         public Float2 xx
-            => new Float2() { Code = $"({Code}).xx", Value = Value?.xx };
+            => new Float2() { Value =Value?.xx };
 
         public Float2 xy
-            => new Float2() { Code = $"({Code}).xy", Value = Value?.xy };
+            => new Float2() { Value =Value?.xy };
 
         public Float2 xz
-            => new Float2() { Code = $"({Code}).xz", Value = Value?.xz };
+            => new Float2() { Value =Value?.xz };
 
         public Float2 yx
-            => new Float2() { Code = $"({Code}).yx", Value = Value?.yx };
+            => new Float2() { Value =Value?.yx };
 
         public Float2 yy
-            => new Float2() { Code = $"({Code}).yy", Value = Value?.yy };
+            => new Float2() { Value =Value?.yy };
 
         public Float2 yz
-            => new Float2() { Code = $"({Code}).yz", Value = Value?.yz };
+            => new Float2() { Value =Value?.yz };
 
         public Float2 zx
-            => new Float2() { Code = $"({Code}).zx", Value = Value?.zx };
+            => new Float2() { Value =Value?.zx };
 
         public Float2 zy
-            => new Float2() { Code = $"({Code}).zy", Value = Value?.zy };
+            => new Float2() { Value =Value?.zy };
 
         public Float2 zz
-            => new Float2() { Code = $"({Code}).zz", Value = Value?.zz };
+            => new Float2() { Value =Value?.zz };
 
         public Float3 xxx
-            => new Float3() { Code = $"({Code}).xxx", Value = Value?.xxx };
+            => new Float3() { Value =Value?.xxx };
 
         public Float3 xxy
-            => new Float3() { Code = $"({Code}).xxy", Value = Value?.xxy };
+            => new Float3() { Value =Value?.xxy };
 
         public Float3 xxz
-            => new Float3() { Code = $"({Code}).xxz", Value = Value?.xxz };
+            => new Float3() { Value =Value?.xxz };
 
         public Float3 xyx
-            => new Float3() { Code = $"({Code}).xyx", Value = Value?.xyx };
+            => new Float3() { Value =Value?.xyx };
 
         public Float3 xyy
-            => new Float3() { Code = $"({Code}).xyy", Value = Value?.xyy };
+            => new Float3() { Value =Value?.xyy };
 
         public Float3 xyz
-            => new Float3() { Code = $"({Code}).xyz", Value = Value?.xyz };
+            => new Float3() { Value =Value?.xyz };
 
         public Float3 xzx
-            => new Float3() { Code = $"({Code}).xzx", Value = Value?.xzx };
+            => new Float3() { Value =Value?.xzx };
 
         public Float3 xzy
-            => new Float3() { Code = $"({Code}).xzy", Value = Value?.xzy };
+            => new Float3() { Value =Value?.xzy };
 
         public Float3 xzz
-            => new Float3() { Code = $"({Code}).xzz", Value = Value?.xzz };
+            => new Float3() { Value =Value?.xzz };
 
         public Float3 yxx
-            => new Float3() { Code = $"({Code}).yxx", Value = Value?.yxx };
+            => new Float3() { Value =Value?.yxx };
 
         public Float3 yxy
-            => new Float3() { Code = $"({Code}).yxy", Value = Value?.yxy };
+            => new Float3() { Value =Value?.yxy };
 
         public Float3 yxz
-            => new Float3() { Code = $"({Code}).yxz", Value = Value?.yxz };
+            => new Float3() { Value =Value?.yxz };
 
         public Float3 yyx
-            => new Float3() { Code = $"({Code}).yyx", Value = Value?.yyx };
+            => new Float3() { Value =Value?.yyx };
 
         public Float3 yyy
-            => new Float3() { Code = $"({Code}).yyy", Value = Value?.yyy };
+            => new Float3() { Value =Value?.yyy };
 
         public Float3 yyz
-            => new Float3() { Code = $"({Code}).yyz", Value = Value?.yyz };
+            => new Float3() { Value =Value?.yyz };
 
         public Float3 yzx
-            => new Float3() { Code = $"({Code}).yzx", Value = Value?.yzx };
+            => new Float3() { Value =Value?.yzx };
 
         public Float3 yzy
-            => new Float3() { Code = $"({Code}).yzy", Value = Value?.yzy };
+            => new Float3() { Value =Value?.yzy };
 
         public Float3 yzz
-            => new Float3() { Code = $"({Code}).yzz", Value = Value?.yzz };
+            => new Float3() { Value =Value?.yzz };
 
         public Float3 zxx
-            => new Float3() { Code = $"({Code}).zxx", Value = Value?.zxx };
+            => new Float3() { Value =Value?.zxx };
 
         public Float3 zxy
-            => new Float3() { Code = $"({Code}).zxy", Value = Value?.zxy };
+            => new Float3() { Value =Value?.zxy };
 
         public Float3 zxz
-            => new Float3() { Code = $"({Code}).zxz", Value = Value?.zxz };
+            => new Float3() { Value =Value?.zxz };
 
         public Float3 zyx
-            => new Float3() { Code = $"({Code}).zyx", Value = Value?.zyx };
+            => new Float3() { Value =Value?.zyx };
 
         public Float3 zyy
-            => new Float3() { Code = $"({Code}).zyy", Value = Value?.zyy };
+            => new Float3() { Value =Value?.zyy };
 
         public Float3 zyz
-            => new Float3() { Code = $"({Code}).zyz", Value = Value?.zyz };
+            => new Float3() { Value =Value?.zyz };
 
         public Float3 zzx
-            => new Float3() { Code = $"({Code}).zzx", Value = Value?.zzx };
+            => new Float3() { Value =Value?.zzx };
 
         public Float3 zzy
-            => new Float3() { Code = $"({Code}).zzy", Value = Value?.zzy };
+            => new Float3() { Value =Value?.zzy };
 
         public Float3 zzz
-            => new Float3() { Code = $"({Code}).zzz", Value = Value?.zzz };
+            => new Float3() { Value =Value?.zzz };
 
         public Float4 xxxx
-            => new Float4() { Code = $"({Code}).xxxx", Value = Value?.xxxx };
+            => new Float4() { Value =Value?.xxxx };
 
         public Float4 xxxy
-            => new Float4() { Code = $"({Code}).xxxy", Value = Value?.xxxy };
+            => new Float4() { Value =Value?.xxxy };
 
         public Float4 xxxz
-            => new Float4() { Code = $"({Code}).xxxz", Value = Value?.xxxz };
+            => new Float4() { Value =Value?.xxxz };
 
         public Float4 xxyx
-            => new Float4() { Code = $"({Code}).xxyx", Value = Value?.xxyx };
+            => new Float4() { Value =Value?.xxyx };
 
         public Float4 xxyy
-            => new Float4() { Code = $"({Code}).xxyy", Value = Value?.xxyy };
+            => new Float4() { Value =Value?.xxyy };
 
         public Float4 xxyz
-            => new Float4() { Code = $"({Code}).xxyz", Value = Value?.xxyz };
+            => new Float4() { Value =Value?.xxyz };
 
         public Float4 xxzx
-            => new Float4() { Code = $"({Code}).xxzx", Value = Value?.xxzx };
+            => new Float4() { Value =Value?.xxzx };
 
         public Float4 xxzy
-            => new Float4() { Code = $"({Code}).xxzy", Value = Value?.xxzy };
+            => new Float4() { Value =Value?.xxzy };
 
         public Float4 xxzz
-            => new Float4() { Code = $"({Code}).xxzz", Value = Value?.xxzz };
+            => new Float4() { Value =Value?.xxzz };
 
         public Float4 xyxx
-            => new Float4() { Code = $"({Code}).xyxx", Value = Value?.xyxx };
+            => new Float4() { Value =Value?.xyxx };
 
         public Float4 xyxy
-            => new Float4() { Code = $"({Code}).xyxy", Value = Value?.xyxy };
+            => new Float4() { Value =Value?.xyxy };
 
         public Float4 xyxz
-            => new Float4() { Code = $"({Code}).xyxz", Value = Value?.xyxz };
+            => new Float4() { Value =Value?.xyxz };
 
         public Float4 xyyx
-            => new Float4() { Code = $"({Code}).xyyx", Value = Value?.xyyx };
+            => new Float4() { Value =Value?.xyyx };
 
         public Float4 xyyy
-            => new Float4() { Code = $"({Code}).xyyy", Value = Value?.xyyy };
+            => new Float4() { Value =Value?.xyyy };
 
         public Float4 xyyz
-            => new Float4() { Code = $"({Code}).xyyz", Value = Value?.xyyz };
+            => new Float4() { Value =Value?.xyyz };
 
         public Float4 xyzx
-            => new Float4() { Code = $"({Code}).xyzx", Value = Value?.xyzx };
+            => new Float4() { Value =Value?.xyzx };
 
         public Float4 xyzy
-            => new Float4() { Code = $"({Code}).xyzy", Value = Value?.xyzy };
+            => new Float4() { Value =Value?.xyzy };
 
         public Float4 xyzz
-            => new Float4() { Code = $"({Code}).xyzz", Value = Value?.xyzz };
+            => new Float4() { Value =Value?.xyzz };
 
         public Float4 xzxx
-            => new Float4() { Code = $"({Code}).xzxx", Value = Value?.xzxx };
+            => new Float4() { Value =Value?.xzxx };
 
         public Float4 xzxy
-            => new Float4() { Code = $"({Code}).xzxy", Value = Value?.xzxy };
+            => new Float4() { Value =Value?.xzxy };
 
         public Float4 xzxz
-            => new Float4() { Code = $"({Code}).xzxz", Value = Value?.xzxz };
+            => new Float4() { Value =Value?.xzxz };
 
         public Float4 xzyx
-            => new Float4() { Code = $"({Code}).xzyx", Value = Value?.xzyx };
+            => new Float4() { Value =Value?.xzyx };
 
         public Float4 xzyy
-            => new Float4() { Code = $"({Code}).xzyy", Value = Value?.xzyy };
+            => new Float4() { Value =Value?.xzyy };
 
         public Float4 xzyz
-            => new Float4() { Code = $"({Code}).xzyz", Value = Value?.xzyz };
+            => new Float4() { Value =Value?.xzyz };
 
         public Float4 xzzx
-            => new Float4() { Code = $"({Code}).xzzx", Value = Value?.xzzx };
+            => new Float4() { Value =Value?.xzzx };
 
         public Float4 xzzy
-            => new Float4() { Code = $"({Code}).xzzy", Value = Value?.xzzy };
+            => new Float4() { Value =Value?.xzzy };
 
         public Float4 xzzz
-            => new Float4() { Code = $"({Code}).xzzz", Value = Value?.xzzz };
+            => new Float4() { Value =Value?.xzzz };
 
         public Float4 yxxx
-            => new Float4() { Code = $"({Code}).yxxx", Value = Value?.yxxx };
+            => new Float4() { Value =Value?.yxxx };
 
         public Float4 yxxy
-            => new Float4() { Code = $"({Code}).yxxy", Value = Value?.yxxy };
+            => new Float4() { Value =Value?.yxxy };
 
         public Float4 yxxz
-            => new Float4() { Code = $"({Code}).yxxz", Value = Value?.yxxz };
+            => new Float4() { Value =Value?.yxxz };
 
         public Float4 yxyx
-            => new Float4() { Code = $"({Code}).yxyx", Value = Value?.yxyx };
+            => new Float4() { Value =Value?.yxyx };
 
         public Float4 yxyy
-            => new Float4() { Code = $"({Code}).yxyy", Value = Value?.yxyy };
+            => new Float4() { Value =Value?.yxyy };
 
         public Float4 yxyz
-            => new Float4() { Code = $"({Code}).yxyz", Value = Value?.yxyz };
+            => new Float4() { Value =Value?.yxyz };
 
         public Float4 yxzx
-            => new Float4() { Code = $"({Code}).yxzx", Value = Value?.yxzx };
+            => new Float4() { Value =Value?.yxzx };
 
         public Float4 yxzy
-            => new Float4() { Code = $"({Code}).yxzy", Value = Value?.yxzy };
+            => new Float4() { Value =Value?.yxzy };
 
         public Float4 yxzz
-            => new Float4() { Code = $"({Code}).yxzz", Value = Value?.yxzz };
+            => new Float4() { Value =Value?.yxzz };
 
         public Float4 yyxx
-            => new Float4() { Code = $"({Code}).yyxx", Value = Value?.yyxx };
+            => new Float4() { Value =Value?.yyxx };
 
         public Float4 yyxy
-            => new Float4() { Code = $"({Code}).yyxy", Value = Value?.yyxy };
+            => new Float4() { Value =Value?.yyxy };
 
         public Float4 yyxz
-            => new Float4() { Code = $"({Code}).yyxz", Value = Value?.yyxz };
+            => new Float4() { Value =Value?.yyxz };
 
         public Float4 yyyx
-            => new Float4() { Code = $"({Code}).yyyx", Value = Value?.yyyx };
+            => new Float4() { Value =Value?.yyyx };
 
         public Float4 yyyy
-            => new Float4() { Code = $"({Code}).yyyy", Value = Value?.yyyy };
+            => new Float4() { Value =Value?.yyyy };
 
         public Float4 yyyz
-            => new Float4() { Code = $"({Code}).yyyz", Value = Value?.yyyz };
+            => new Float4() { Value =Value?.yyyz };
 
         public Float4 yyzx
-            => new Float4() { Code = $"({Code}).yyzx", Value = Value?.yyzx };
+            => new Float4() { Value =Value?.yyzx };
 
         public Float4 yyzy
-            => new Float4() { Code = $"({Code}).yyzy", Value = Value?.yyzy };
+            => new Float4() { Value =Value?.yyzy };
 
         public Float4 yyzz
-            => new Float4() { Code = $"({Code}).yyzz", Value = Value?.yyzz };
+            => new Float4() { Value =Value?.yyzz };
 
         public Float4 yzxx
-            => new Float4() { Code = $"({Code}).yzxx", Value = Value?.yzxx };
+            => new Float4() { Value =Value?.yzxx };
 
         public Float4 yzxy
-            => new Float4() { Code = $"({Code}).yzxy", Value = Value?.yzxy };
+            => new Float4() { Value =Value?.yzxy };
 
         public Float4 yzxz
-            => new Float4() { Code = $"({Code}).yzxz", Value = Value?.yzxz };
+            => new Float4() { Value =Value?.yzxz };
 
         public Float4 yzyx
-            => new Float4() { Code = $"({Code}).yzyx", Value = Value?.yzyx };
+            => new Float4() { Value =Value?.yzyx };
 
         public Float4 yzyy
-            => new Float4() { Code = $"({Code}).yzyy", Value = Value?.yzyy };
+            => new Float4() { Value =Value?.yzyy };
 
         public Float4 yzyz
-            => new Float4() { Code = $"({Code}).yzyz", Value = Value?.yzyz };
+            => new Float4() { Value =Value?.yzyz };
 
         public Float4 yzzx
-            => new Float4() { Code = $"({Code}).yzzx", Value = Value?.yzzx };
+            => new Float4() { Value =Value?.yzzx };
 
         public Float4 yzzy
-            => new Float4() { Code = $"({Code}).yzzy", Value = Value?.yzzy };
+            => new Float4() { Value =Value?.yzzy };
 
         public Float4 yzzz
-            => new Float4() { Code = $"({Code}).yzzz", Value = Value?.yzzz };
+            => new Float4() { Value =Value?.yzzz };
 
         public Float4 zxxx
-            => new Float4() { Code = $"({Code}).zxxx", Value = Value?.zxxx };
+            => new Float4() { Value =Value?.zxxx };
 
         public Float4 zxxy
-            => new Float4() { Code = $"({Code}).zxxy", Value = Value?.zxxy };
+            => new Float4() { Value =Value?.zxxy };
 
         public Float4 zxxz
-            => new Float4() { Code = $"({Code}).zxxz", Value = Value?.zxxz };
+            => new Float4() { Value =Value?.zxxz };
 
         public Float4 zxyx
-            => new Float4() { Code = $"({Code}).zxyx", Value = Value?.zxyx };
+            => new Float4() { Value =Value?.zxyx };
 
         public Float4 zxyy
-            => new Float4() { Code = $"({Code}).zxyy", Value = Value?.zxyy };
+            => new Float4() { Value =Value?.zxyy };
 
         public Float4 zxyz
-            => new Float4() { Code = $"({Code}).zxyz", Value = Value?.zxyz };
+            => new Float4() { Value =Value?.zxyz };
 
         public Float4 zxzx
-            => new Float4() { Code = $"({Code}).zxzx", Value = Value?.zxzx };
+            => new Float4() { Value =Value?.zxzx };
 
         public Float4 zxzy
-            => new Float4() { Code = $"({Code}).zxzy", Value = Value?.zxzy };
+            => new Float4() { Value =Value?.zxzy };
 
         public Float4 zxzz
-            => new Float4() { Code = $"({Code}).zxzz", Value = Value?.zxzz };
+            => new Float4() { Value =Value?.zxzz };
 
         public Float4 zyxx
-            => new Float4() { Code = $"({Code}).zyxx", Value = Value?.zyxx };
+            => new Float4() { Value =Value?.zyxx };
 
         public Float4 zyxy
-            => new Float4() { Code = $"({Code}).zyxy", Value = Value?.zyxy };
+            => new Float4() { Value =Value?.zyxy };
 
         public Float4 zyxz
-            => new Float4() { Code = $"({Code}).zyxz", Value = Value?.zyxz };
+            => new Float4() { Value =Value?.zyxz };
 
         public Float4 zyyx
-            => new Float4() { Code = $"({Code}).zyyx", Value = Value?.zyyx };
+            => new Float4() { Value =Value?.zyyx };
 
         public Float4 zyyy
-            => new Float4() { Code = $"({Code}).zyyy", Value = Value?.zyyy };
+            => new Float4() { Value =Value?.zyyy };
 
         public Float4 zyyz
-            => new Float4() { Code = $"({Code}).zyyz", Value = Value?.zyyz };
+            => new Float4() { Value =Value?.zyyz };
 
         public Float4 zyzx
-            => new Float4() { Code = $"({Code}).zyzx", Value = Value?.zyzx };
+            => new Float4() { Value =Value?.zyzx };
 
         public Float4 zyzy
-            => new Float4() { Code = $"({Code}).zyzy", Value = Value?.zyzy };
+            => new Float4() { Value =Value?.zyzy };
 
         public Float4 zyzz
-            => new Float4() { Code = $"({Code}).zyzz", Value = Value?.zyzz };
+            => new Float4() { Value =Value?.zyzz };
 
         public Float4 zzxx
-            => new Float4() { Code = $"({Code}).zzxx", Value = Value?.zzxx };
+            => new Float4() { Value =Value?.zzxx };
 
         public Float4 zzxy
-            => new Float4() { Code = $"({Code}).zzxy", Value = Value?.zzxy };
+            => new Float4() { Value =Value?.zzxy };
 
         public Float4 zzxz
-            => new Float4() { Code = $"({Code}).zzxz", Value = Value?.zzxz };
+            => new Float4() { Value =Value?.zzxz };
 
         public Float4 zzyx
-            => new Float4() { Code = $"({Code}).zzyx", Value = Value?.zzyx };
+            => new Float4() { Value =Value?.zzyx };
 
         public Float4 zzyy
-            => new Float4() { Code = $"({Code}).zzyy", Value = Value?.zzyy };
+            => new Float4() { Value =Value?.zzyy };
 
         public Float4 zzyz
-            => new Float4() { Code = $"({Code}).zzyz", Value = Value?.zzyz };
+            => new Float4() { Value =Value?.zzyz };
 
         public Float4 zzzx
-            => new Float4() { Code = $"({Code}).zzzx", Value = Value?.zzzx };
+            => new Float4() { Value =Value?.zzzx };
 
         public Float4 zzzy
-            => new Float4() { Code = $"({Code}).zzzy", Value = Value?.zzzy };
+            => new Float4() { Value =Value?.zzzy };
 
         public Float4 zzzz
-            => new Float4() { Code = $"({Code}).zzzz", Value = Value?.zzzz };
+            => new Float4() { Value =Value?.zzzz };
 
         #endregion
     }
 
     public struct Float4
     {
-        public string Code;
         public float4? Value;
         public static readonly float4? Null = null;
 
@@ -598,1050 +594,1050 @@ namespace UnityEditor.ShaderGraph.Hlsl
         }
 
         public static Float4 operator-(Float4 v)
-            => new Float4() { Code = $"-({v.Code})", Value = v.Value != null ? -v.Value.Value : Null };
+            => new Float4() { Value = v.Value != null ? -v.Value.Value : Null };
 
         public static implicit operator Float4 (float v)
-            => new Float4() { Code = $"({v}).xxxx", Value = float4(v) };
+            => new Float4() { Value = float4(v) };
 
         public static implicit operator Float4 (int v)
-            => new Float4() { Code = $"({v}.0f).xxxx", Value = float4(v) };
+            => new Float4() { Value = float4(v) };
 
         public static implicit operator Float4 (double v)
-            => new Float4() { Code = $"({(float)v}).xxxx", Value = float4((float)v) };
+            => new Float4() { Value = float4((float)v) };
 
         public static Float4 operator+(Float4 x, Float4 y)
-            => new Float4() { Code = $"({x.Code}) + ({y.Code})", Value = x.Value != null && y.Value != null ? x.Value.Value + y.Value.Value : Null };
+            => new Float4() { Value = x.Value != null && y.Value != null ? x.Value.Value + y.Value.Value : Null };
 
         public static Float4 operator-(Float4 x, Float4 y)
-            => new Float4() { Code = $"({x.Code}) - ({y.Code})", Value = x.Value != null && y.Value != null ? x.Value.Value - y.Value.Value : Null };
+            => new Float4() { Value = x.Value != null && y.Value != null ? x.Value.Value - y.Value.Value : Null };
 
         public static Float4 operator*(Float4 x, Float4 y)
-            => new Float4() { Code = $"({x.Code}) * ({y.Code})", Value = x.Value != null && y.Value != null ? x.Value.Value * y.Value.Value : Null };
+            => new Float4() { Value = x.Value != null && y.Value != null ? x.Value.Value * y.Value.Value : Null };
 
         public static Float4 operator/(Float4 x, Float4 y)
-            => new Float4() { Code = $"({x.Code}) / ({y.Code})", Value = x.Value != null && y.Value != null ? x.Value.Value / y.Value.Value : Null };
+            => new Float4() { Value = x.Value != null && y.Value != null ? x.Value.Value / y.Value.Value : Null };
 
         #region Swizzles
 
         public Float x
-            => new Float() { Code = $"({Code}).x", Value = Value?.x };
+            => new Float() { Value =Value?.x };
 
         public Float y
-            => new Float() { Code = $"({Code}).y", Value = Value?.y };
+            => new Float() { Value =Value?.y };
 
         public Float z
-            => new Float() { Code = $"({Code}).z", Value = Value?.z };
+            => new Float() { Value =Value?.z };
 
         public Float w
-            => new Float() { Code = $"({Code}).w", Value = Value?.w };
+            => new Float() { Value =Value?.w };
 
         public Float2 xx
-            => new Float2() { Code = $"({Code}).xx", Value = Value?.xx };
+            => new Float2() { Value =Value?.xx };
 
         public Float2 xy
-            => new Float2() { Code = $"({Code}).xy", Value = Value?.xy };
+            => new Float2() { Value =Value?.xy };
 
         public Float2 xz
-            => new Float2() { Code = $"({Code}).xz", Value = Value?.xz };
+            => new Float2() { Value =Value?.xz };
 
         public Float2 xw
-            => new Float2() { Code = $"({Code}).xw", Value = Value?.xw };
+            => new Float2() { Value =Value?.xw };
 
         public Float2 yx
-            => new Float2() { Code = $"({Code}).yx", Value = Value?.yx };
+            => new Float2() { Value =Value?.yx };
 
         public Float2 yy
-            => new Float2() { Code = $"({Code}).yy", Value = Value?.yy };
+            => new Float2() { Value =Value?.yy };
 
         public Float2 yz
-            => new Float2() { Code = $"({Code}).yz", Value = Value?.yz };
+            => new Float2() { Value =Value?.yz };
 
         public Float2 yw
-            => new Float2() { Code = $"({Code}).yw", Value = Value?.yw };
+            => new Float2() { Value =Value?.yw };
 
         public Float2 zx
-            => new Float2() { Code = $"({Code}).zx", Value = Value?.zx };
+            => new Float2() { Value =Value?.zx };
 
         public Float2 zy
-            => new Float2() { Code = $"({Code}).zy", Value = Value?.zy };
+            => new Float2() { Value =Value?.zy };
 
         public Float2 zz
-            => new Float2() { Code = $"({Code}).zz", Value = Value?.zz };
+            => new Float2() { Value =Value?.zz };
 
         public Float2 zw
-            => new Float2() { Code = $"({Code}).zw", Value = Value?.zw };
+            => new Float2() { Value =Value?.zw };
 
         public Float2 wx
-            => new Float2() { Code = $"({Code}).wx", Value = Value?.wx };
+            => new Float2() { Value =Value?.wx };
 
         public Float2 wy
-            => new Float2() { Code = $"({Code}).wy", Value = Value?.wy };
+            => new Float2() { Value =Value?.wy };
 
         public Float2 wz
-            => new Float2() { Code = $"({Code}).wz", Value = Value?.wz };
+            => new Float2() { Value =Value?.wz };
 
         public Float2 ww
-            => new Float2() { Code = $"({Code}).ww", Value = Value?.ww };
+            => new Float2() { Value =Value?.ww };
 
         public Float3 xxx
-            => new Float3() { Code = $"({Code}).xxx", Value = Value?.xxx };
+            => new Float3() { Value =Value?.xxx };
 
         public Float3 xxy
-            => new Float3() { Code = $"({Code}).xxy", Value = Value?.xxy };
+            => new Float3() { Value =Value?.xxy };
 
         public Float3 xxz
-            => new Float3() { Code = $"({Code}).xxz", Value = Value?.xxz };
+            => new Float3() { Value =Value?.xxz };
 
         public Float3 xxw
-            => new Float3() { Code = $"({Code}).xxw", Value = Value?.xxw };
+            => new Float3() { Value =Value?.xxw };
 
         public Float3 xyx
-            => new Float3() { Code = $"({Code}).xyx", Value = Value?.xyx };
+            => new Float3() { Value =Value?.xyx };
 
         public Float3 xyy
-            => new Float3() { Code = $"({Code}).xyy", Value = Value?.xyy };
+            => new Float3() { Value =Value?.xyy };
 
         public Float3 xyz
-            => new Float3() { Code = $"({Code}).xyz", Value = Value?.xyz };
+            => new Float3() { Value =Value?.xyz };
 
         public Float3 xyw
-            => new Float3() { Code = $"({Code}).xyw", Value = Value?.xyw };
+            => new Float3() { Value =Value?.xyw };
 
         public Float3 xzx
-            => new Float3() { Code = $"({Code}).xzx", Value = Value?.xzx };
+            => new Float3() { Value =Value?.xzx };
 
         public Float3 xzy
-            => new Float3() { Code = $"({Code}).xzy", Value = Value?.xzy };
+            => new Float3() { Value =Value?.xzy };
 
         public Float3 xzz
-            => new Float3() { Code = $"({Code}).xzz", Value = Value?.xzz };
+            => new Float3() { Value =Value?.xzz };
 
         public Float3 xzw
-            => new Float3() { Code = $"({Code}).xzw", Value = Value?.xzw };
+            => new Float3() { Value =Value?.xzw };
 
         public Float3 xwx
-            => new Float3() { Code = $"({Code}).xwx", Value = Value?.xwx };
+            => new Float3() { Value =Value?.xwx };
 
         public Float3 xwy
-            => new Float3() { Code = $"({Code}).xwy", Value = Value?.xwy };
+            => new Float3() { Value =Value?.xwy };
 
         public Float3 xwz
-            => new Float3() { Code = $"({Code}).xwz", Value = Value?.xwz };
+            => new Float3() { Value =Value?.xwz };
 
         public Float3 xww
-            => new Float3() { Code = $"({Code}).xww", Value = Value?.xww };
+            => new Float3() { Value =Value?.xww };
 
         public Float3 yxx
-            => new Float3() { Code = $"({Code}).yxx", Value = Value?.yxx };
+            => new Float3() { Value =Value?.yxx };
 
         public Float3 yxy
-            => new Float3() { Code = $"({Code}).yxy", Value = Value?.yxy };
+            => new Float3() { Value =Value?.yxy };
 
         public Float3 yxz
-            => new Float3() { Code = $"({Code}).yxz", Value = Value?.yxz };
+            => new Float3() { Value =Value?.yxz };
 
         public Float3 yxw
-            => new Float3() { Code = $"({Code}).yxw", Value = Value?.yxw };
+            => new Float3() { Value =Value?.yxw };
 
         public Float3 yyx
-            => new Float3() { Code = $"({Code}).yyx", Value = Value?.yyx };
+            => new Float3() { Value =Value?.yyx };
 
         public Float3 yyy
-            => new Float3() { Code = $"({Code}).yyy", Value = Value?.yyy };
+            => new Float3() { Value =Value?.yyy };
 
         public Float3 yyz
-            => new Float3() { Code = $"({Code}).yyz", Value = Value?.yyz };
+            => new Float3() { Value =Value?.yyz };
 
         public Float3 yyw
-            => new Float3() { Code = $"({Code}).yyw", Value = Value?.yyw };
+            => new Float3() { Value =Value?.yyw };
 
         public Float3 yzx
-            => new Float3() { Code = $"({Code}).yzx", Value = Value?.yzx };
+            => new Float3() { Value =Value?.yzx };
 
         public Float3 yzy
-            => new Float3() { Code = $"({Code}).yzy", Value = Value?.yzy };
+            => new Float3() { Value =Value?.yzy };
 
         public Float3 yzz
-            => new Float3() { Code = $"({Code}).yzz", Value = Value?.yzz };
+            => new Float3() { Value =Value?.yzz };
 
         public Float3 yzw
-            => new Float3() { Code = $"({Code}).yzw", Value = Value?.yzw };
+            => new Float3() { Value =Value?.yzw };
 
         public Float3 ywx
-            => new Float3() { Code = $"({Code}).ywx", Value = Value?.ywx };
+            => new Float3() { Value =Value?.ywx };
 
         public Float3 ywy
-            => new Float3() { Code = $"({Code}).ywy", Value = Value?.ywy };
+            => new Float3() { Value =Value?.ywy };
 
         public Float3 ywz
-            => new Float3() { Code = $"({Code}).ywz", Value = Value?.ywz };
+            => new Float3() { Value =Value?.ywz };
 
         public Float3 yww
-            => new Float3() { Code = $"({Code}).yww", Value = Value?.yww };
+            => new Float3() { Value =Value?.yww };
 
         public Float3 zxx
-            => new Float3() { Code = $"({Code}).zxx", Value = Value?.zxx };
+            => new Float3() { Value =Value?.zxx };
 
         public Float3 zxy
-            => new Float3() { Code = $"({Code}).zxy", Value = Value?.zxy };
+            => new Float3() { Value =Value?.zxy };
 
         public Float3 zxz
-            => new Float3() { Code = $"({Code}).zxz", Value = Value?.zxz };
+            => new Float3() { Value =Value?.zxz };
 
         public Float3 zxw
-            => new Float3() { Code = $"({Code}).zxw", Value = Value?.zxw };
+            => new Float3() { Value =Value?.zxw };
 
         public Float3 zyx
-            => new Float3() { Code = $"({Code}).zyx", Value = Value?.zyx };
+            => new Float3() { Value =Value?.zyx };
 
         public Float3 zyy
-            => new Float3() { Code = $"({Code}).zyy", Value = Value?.zyy };
+            => new Float3() { Value =Value?.zyy };
 
         public Float3 zyz
-            => new Float3() { Code = $"({Code}).zyz", Value = Value?.zyz };
+            => new Float3() { Value =Value?.zyz };
 
         public Float3 zyw
-            => new Float3() { Code = $"({Code}).zyw", Value = Value?.zyw };
+            => new Float3() { Value =Value?.zyw };
 
         public Float3 zzx
-            => new Float3() { Code = $"({Code}).zzx", Value = Value?.zzx };
+            => new Float3() { Value =Value?.zzx };
 
         public Float3 zzy
-            => new Float3() { Code = $"({Code}).zzy", Value = Value?.zzy };
+            => new Float3() { Value =Value?.zzy };
 
         public Float3 zzz
-            => new Float3() { Code = $"({Code}).zzz", Value = Value?.zzz };
+            => new Float3() { Value =Value?.zzz };
 
         public Float3 zzw
-            => new Float3() { Code = $"({Code}).zzw", Value = Value?.zzw };
+            => new Float3() { Value =Value?.zzw };
 
         public Float3 zwx
-            => new Float3() { Code = $"({Code}).zwx", Value = Value?.zwx };
+            => new Float3() { Value =Value?.zwx };
 
         public Float3 zwy
-            => new Float3() { Code = $"({Code}).zwy", Value = Value?.zwy };
+            => new Float3() { Value =Value?.zwy };
 
         public Float3 zwz
-            => new Float3() { Code = $"({Code}).zwz", Value = Value?.zwz };
+            => new Float3() { Value =Value?.zwz };
 
         public Float3 zww
-            => new Float3() { Code = $"({Code}).zww", Value = Value?.zww };
+            => new Float3() { Value =Value?.zww };
 
         public Float3 wxx
-            => new Float3() { Code = $"({Code}).wxx", Value = Value?.wxx };
+            => new Float3() { Value =Value?.wxx };
 
         public Float3 wxy
-            => new Float3() { Code = $"({Code}).wxy", Value = Value?.wxy };
+            => new Float3() { Value =Value?.wxy };
 
         public Float3 wxz
-            => new Float3() { Code = $"({Code}).wxz", Value = Value?.wxz };
+            => new Float3() { Value =Value?.wxz };
 
         public Float3 wxw
-            => new Float3() { Code = $"({Code}).wxw", Value = Value?.wxw };
+            => new Float3() { Value =Value?.wxw };
 
         public Float3 wyx
-            => new Float3() { Code = $"({Code}).wyx", Value = Value?.wyx };
+            => new Float3() { Value =Value?.wyx };
 
         public Float3 wyy
-            => new Float3() { Code = $"({Code}).wyy", Value = Value?.wyy };
+            => new Float3() { Value =Value?.wyy };
 
         public Float3 wyz
-            => new Float3() { Code = $"({Code}).wyz", Value = Value?.wyz };
+            => new Float3() { Value =Value?.wyz };
 
         public Float3 wyw
-            => new Float3() { Code = $"({Code}).wyw", Value = Value?.wyw };
+            => new Float3() { Value =Value?.wyw };
 
         public Float3 wzx
-            => new Float3() { Code = $"({Code}).wzx", Value = Value?.wzx };
+            => new Float3() { Value =Value?.wzx };
 
         public Float3 wzy
-            => new Float3() { Code = $"({Code}).wzy", Value = Value?.wzy };
+            => new Float3() { Value =Value?.wzy };
 
         public Float3 wzz
-            => new Float3() { Code = $"({Code}).wzz", Value = Value?.wzz };
+            => new Float3() { Value =Value?.wzz };
 
         public Float3 wzw
-            => new Float3() { Code = $"({Code}).wzw", Value = Value?.wzw };
+            => new Float3() { Value =Value?.wzw };
 
         public Float3 wwx
-            => new Float3() { Code = $"({Code}).wwx", Value = Value?.wwx };
+            => new Float3() { Value =Value?.wwx };
 
         public Float3 wwy
-            => new Float3() { Code = $"({Code}).wwy", Value = Value?.wwy };
+            => new Float3() { Value =Value?.wwy };
 
         public Float3 wwz
-            => new Float3() { Code = $"({Code}).wwz", Value = Value?.wwz };
+            => new Float3() { Value =Value?.wwz };
 
         public Float3 www
-            => new Float3() { Code = $"({Code}).www", Value = Value?.www };
+            => new Float3() { Value =Value?.www };
 
         public Float4 xxxx
-            => new Float4() { Code = $"({Code}).xxxx", Value = Value?.xxxx };
+            => new Float4() { Value =Value?.xxxx };
 
         public Float4 xxxy
-            => new Float4() { Code = $"({Code}).xxxy", Value = Value?.xxxy };
+            => new Float4() { Value =Value?.xxxy };
 
         public Float4 xxxz
-            => new Float4() { Code = $"({Code}).xxxz", Value = Value?.xxxz };
+            => new Float4() { Value =Value?.xxxz };
 
         public Float4 xxxw
-            => new Float4() { Code = $"({Code}).xxxw", Value = Value?.xxxw };
+            => new Float4() { Value =Value?.xxxw };
 
         public Float4 xxyx
-            => new Float4() { Code = $"({Code}).xxyx", Value = Value?.xxyx };
+            => new Float4() { Value =Value?.xxyx };
 
         public Float4 xxyy
-            => new Float4() { Code = $"({Code}).xxyy", Value = Value?.xxyy };
+            => new Float4() { Value =Value?.xxyy };
 
         public Float4 xxyz
-            => new Float4() { Code = $"({Code}).xxyz", Value = Value?.xxyz };
+            => new Float4() { Value =Value?.xxyz };
 
         public Float4 xxyw
-            => new Float4() { Code = $"({Code}).xxyw", Value = Value?.xxyw };
+            => new Float4() { Value =Value?.xxyw };
 
         public Float4 xxzx
-            => new Float4() { Code = $"({Code}).xxzx", Value = Value?.xxzx };
+            => new Float4() { Value =Value?.xxzx };
 
         public Float4 xxzy
-            => new Float4() { Code = $"({Code}).xxzy", Value = Value?.xxzy };
+            => new Float4() { Value =Value?.xxzy };
 
         public Float4 xxzz
-            => new Float4() { Code = $"({Code}).xxzz", Value = Value?.xxzz };
+            => new Float4() { Value =Value?.xxzz };
 
         public Float4 xxzw
-            => new Float4() { Code = $"({Code}).xxzw", Value = Value?.xxzw };
+            => new Float4() { Value =Value?.xxzw };
 
         public Float4 xxwx
-            => new Float4() { Code = $"({Code}).xxwx", Value = Value?.xxwx };
+            => new Float4() { Value =Value?.xxwx };
 
         public Float4 xxwy
-            => new Float4() { Code = $"({Code}).xxwy", Value = Value?.xxwy };
+            => new Float4() { Value =Value?.xxwy };
 
         public Float4 xxwz
-            => new Float4() { Code = $"({Code}).xxwz", Value = Value?.xxwz };
+            => new Float4() { Value =Value?.xxwz };
 
         public Float4 xxww
-            => new Float4() { Code = $"({Code}).xxww", Value = Value?.xxww };
+            => new Float4() { Value =Value?.xxww };
 
         public Float4 xyxx
-            => new Float4() { Code = $"({Code}).xyxx", Value = Value?.xyxx };
+            => new Float4() { Value =Value?.xyxx };
 
         public Float4 xyxy
-            => new Float4() { Code = $"({Code}).xyxy", Value = Value?.xyxy };
+            => new Float4() { Value =Value?.xyxy };
 
         public Float4 xyxz
-            => new Float4() { Code = $"({Code}).xyxz", Value = Value?.xyxz };
+            => new Float4() { Value =Value?.xyxz };
 
         public Float4 xyxw
-            => new Float4() { Code = $"({Code}).xyxw", Value = Value?.xyxw };
+            => new Float4() { Value =Value?.xyxw };
 
         public Float4 xyyx
-            => new Float4() { Code = $"({Code}).xyyx", Value = Value?.xyyx };
+            => new Float4() { Value =Value?.xyyx };
 
         public Float4 xyyy
-            => new Float4() { Code = $"({Code}).xyyy", Value = Value?.xyyy };
+            => new Float4() { Value =Value?.xyyy };
 
         public Float4 xyyz
-            => new Float4() { Code = $"({Code}).xyyz", Value = Value?.xyyz };
+            => new Float4() { Value =Value?.xyyz };
 
         public Float4 xyyw
-            => new Float4() { Code = $"({Code}).xyyw", Value = Value?.xyyw };
+            => new Float4() { Value =Value?.xyyw };
 
         public Float4 xyzx
-            => new Float4() { Code = $"({Code}).xyzx", Value = Value?.xyzx };
+            => new Float4() { Value =Value?.xyzx };
 
         public Float4 xyzy
-            => new Float4() { Code = $"({Code}).xyzy", Value = Value?.xyzy };
+            => new Float4() { Value =Value?.xyzy };
 
         public Float4 xyzz
-            => new Float4() { Code = $"({Code}).xyzz", Value = Value?.xyzz };
+            => new Float4() { Value =Value?.xyzz };
 
         public Float4 xyzw
-            => new Float4() { Code = $"({Code}).xyzw", Value = Value?.xyzw };
+            => new Float4() { Value =Value?.xyzw };
 
         public Float4 xywx
-            => new Float4() { Code = $"({Code}).xywx", Value = Value?.xywx };
+            => new Float4() { Value =Value?.xywx };
 
         public Float4 xywy
-            => new Float4() { Code = $"({Code}).xywy", Value = Value?.xywy };
+            => new Float4() { Value =Value?.xywy };
 
         public Float4 xywz
-            => new Float4() { Code = $"({Code}).xywz", Value = Value?.xywz };
+            => new Float4() { Value =Value?.xywz };
 
         public Float4 xyww
-            => new Float4() { Code = $"({Code}).xyww", Value = Value?.xyww };
+            => new Float4() { Value =Value?.xyww };
 
         public Float4 xzxx
-            => new Float4() { Code = $"({Code}).xzxx", Value = Value?.xzxx };
+            => new Float4() { Value =Value?.xzxx };
 
         public Float4 xzxy
-            => new Float4() { Code = $"({Code}).xzxy", Value = Value?.xzxy };
+            => new Float4() { Value =Value?.xzxy };
 
         public Float4 xzxz
-            => new Float4() { Code = $"({Code}).xzxz", Value = Value?.xzxz };
+            => new Float4() { Value =Value?.xzxz };
 
         public Float4 xzxw
-            => new Float4() { Code = $"({Code}).xzxw", Value = Value?.xzxw };
+            => new Float4() { Value =Value?.xzxw };
 
         public Float4 xzyx
-            => new Float4() { Code = $"({Code}).xzyx", Value = Value?.xzyx };
+            => new Float4() { Value =Value?.xzyx };
 
         public Float4 xzyy
-            => new Float4() { Code = $"({Code}).xzyy", Value = Value?.xzyy };
+            => new Float4() { Value =Value?.xzyy };
 
         public Float4 xzyz
-            => new Float4() { Code = $"({Code}).xzyz", Value = Value?.xzyz };
+            => new Float4() { Value =Value?.xzyz };
 
         public Float4 xzyw
-            => new Float4() { Code = $"({Code}).xzyw", Value = Value?.xzyw };
+            => new Float4() { Value =Value?.xzyw };
 
         public Float4 xzzx
-            => new Float4() { Code = $"({Code}).xzzx", Value = Value?.xzzx };
+            => new Float4() { Value =Value?.xzzx };
 
         public Float4 xzzy
-            => new Float4() { Code = $"({Code}).xzzy", Value = Value?.xzzy };
+            => new Float4() { Value =Value?.xzzy };
 
         public Float4 xzzz
-            => new Float4() { Code = $"({Code}).xzzz", Value = Value?.xzzz };
+            => new Float4() { Value =Value?.xzzz };
 
         public Float4 xzzw
-            => new Float4() { Code = $"({Code}).xzzw", Value = Value?.xzzw };
+            => new Float4() { Value =Value?.xzzw };
 
         public Float4 xzwx
-            => new Float4() { Code = $"({Code}).xzwx", Value = Value?.xzwx };
+            => new Float4() { Value =Value?.xzwx };
 
         public Float4 xzwy
-            => new Float4() { Code = $"({Code}).xzwy", Value = Value?.xzwy };
+            => new Float4() { Value =Value?.xzwy };
 
         public Float4 xzwz
-            => new Float4() { Code = $"({Code}).xzwz", Value = Value?.xzwz };
+            => new Float4() { Value =Value?.xzwz };
 
         public Float4 xzww
-            => new Float4() { Code = $"({Code}).xzww", Value = Value?.xzww };
+            => new Float4() { Value =Value?.xzww };
 
         public Float4 xwxx
-            => new Float4() { Code = $"({Code}).xwxx", Value = Value?.xwxx };
+            => new Float4() { Value =Value?.xwxx };
 
         public Float4 xwxy
-            => new Float4() { Code = $"({Code}).xwxy", Value = Value?.xwxy };
+            => new Float4() { Value =Value?.xwxy };
 
         public Float4 xwxz
-            => new Float4() { Code = $"({Code}).xwxz", Value = Value?.xwxz };
+            => new Float4() { Value =Value?.xwxz };
 
         public Float4 xwxw
-            => new Float4() { Code = $"({Code}).xwxw", Value = Value?.xwxw };
+            => new Float4() { Value =Value?.xwxw };
 
         public Float4 xwyx
-            => new Float4() { Code = $"({Code}).xwyx", Value = Value?.xwyx };
+            => new Float4() { Value =Value?.xwyx };
 
         public Float4 xwyy
-            => new Float4() { Code = $"({Code}).xwyy", Value = Value?.xwyy };
+            => new Float4() { Value =Value?.xwyy };
 
         public Float4 xwyz
-            => new Float4() { Code = $"({Code}).xwyz", Value = Value?.xwyz };
+            => new Float4() { Value =Value?.xwyz };
 
         public Float4 xwyw
-            => new Float4() { Code = $"({Code}).xwyw", Value = Value?.xwyw };
+            => new Float4() { Value =Value?.xwyw };
 
         public Float4 xwzx
-            => new Float4() { Code = $"({Code}).xwzx", Value = Value?.xwzx };
+            => new Float4() { Value =Value?.xwzx };
 
         public Float4 xwzy
-            => new Float4() { Code = $"({Code}).xwzy", Value = Value?.xwzy };
+            => new Float4() { Value =Value?.xwzy };
 
         public Float4 xwzz
-            => new Float4() { Code = $"({Code}).xwzz", Value = Value?.xwzz };
+            => new Float4() { Value =Value?.xwzz };
 
         public Float4 xwzw
-            => new Float4() { Code = $"({Code}).xwzw", Value = Value?.xwzw };
+            => new Float4() { Value =Value?.xwzw };
 
         public Float4 xwwx
-            => new Float4() { Code = $"({Code}).xwwx", Value = Value?.xwwx };
+            => new Float4() { Value =Value?.xwwx };
 
         public Float4 xwwy
-            => new Float4() { Code = $"({Code}).xwwy", Value = Value?.xwwy };
+            => new Float4() { Value =Value?.xwwy };
 
         public Float4 xwwz
-            => new Float4() { Code = $"({Code}).xwwz", Value = Value?.xwwz };
+            => new Float4() { Value =Value?.xwwz };
 
         public Float4 xwww
-            => new Float4() { Code = $"({Code}).xwww", Value = Value?.xwww };
+            => new Float4() { Value =Value?.xwww };
 
         public Float4 yxxx
-            => new Float4() { Code = $"({Code}).yxxx", Value = Value?.yxxx };
+            => new Float4() { Value =Value?.yxxx };
 
         public Float4 yxxy
-            => new Float4() { Code = $"({Code}).yxxy", Value = Value?.yxxy };
+            => new Float4() { Value =Value?.yxxy };
 
         public Float4 yxxz
-            => new Float4() { Code = $"({Code}).yxxz", Value = Value?.yxxz };
+            => new Float4() { Value =Value?.yxxz };
 
         public Float4 yxxw
-            => new Float4() { Code = $"({Code}).yxxw", Value = Value?.yxxw };
+            => new Float4() { Value =Value?.yxxw };
 
         public Float4 yxyx
-            => new Float4() { Code = $"({Code}).yxyx", Value = Value?.yxyx };
+            => new Float4() { Value =Value?.yxyx };
 
         public Float4 yxyy
-            => new Float4() { Code = $"({Code}).yxyy", Value = Value?.yxyy };
+            => new Float4() { Value =Value?.yxyy };
 
         public Float4 yxyz
-            => new Float4() { Code = $"({Code}).yxyz", Value = Value?.yxyz };
+            => new Float4() { Value =Value?.yxyz };
 
         public Float4 yxyw
-            => new Float4() { Code = $"({Code}).yxyw", Value = Value?.yxyw };
+            => new Float4() { Value =Value?.yxyw };
 
         public Float4 yxzx
-            => new Float4() { Code = $"({Code}).yxzx", Value = Value?.yxzx };
+            => new Float4() { Value =Value?.yxzx };
 
         public Float4 yxzy
-            => new Float4() { Code = $"({Code}).yxzy", Value = Value?.yxzy };
+            => new Float4() { Value =Value?.yxzy };
 
         public Float4 yxzz
-            => new Float4() { Code = $"({Code}).yxzz", Value = Value?.yxzz };
+            => new Float4() { Value =Value?.yxzz };
 
         public Float4 yxzw
-            => new Float4() { Code = $"({Code}).yxzw", Value = Value?.yxzw };
+            => new Float4() { Value =Value?.yxzw };
 
         public Float4 yxwx
-            => new Float4() { Code = $"({Code}).yxwx", Value = Value?.yxwx };
+            => new Float4() { Value =Value?.yxwx };
 
         public Float4 yxwy
-            => new Float4() { Code = $"({Code}).yxwy", Value = Value?.yxwy };
+            => new Float4() { Value =Value?.yxwy };
 
         public Float4 yxwz
-            => new Float4() { Code = $"({Code}).yxwz", Value = Value?.yxwz };
+            => new Float4() { Value =Value?.yxwz };
 
         public Float4 yxww
-            => new Float4() { Code = $"({Code}).yxww", Value = Value?.yxww };
+            => new Float4() { Value =Value?.yxww };
 
         public Float4 yyxx
-            => new Float4() { Code = $"({Code}).yyxx", Value = Value?.yyxx };
+            => new Float4() { Value =Value?.yyxx };
 
         public Float4 yyxy
-            => new Float4() { Code = $"({Code}).yyxy", Value = Value?.yyxy };
+            => new Float4() { Value =Value?.yyxy };
 
         public Float4 yyxz
-            => new Float4() { Code = $"({Code}).yyxz", Value = Value?.yyxz };
+            => new Float4() { Value =Value?.yyxz };
 
         public Float4 yyxw
-            => new Float4() { Code = $"({Code}).yyxw", Value = Value?.yyxw };
+            => new Float4() { Value =Value?.yyxw };
 
         public Float4 yyyx
-            => new Float4() { Code = $"({Code}).yyyx", Value = Value?.yyyx };
+            => new Float4() { Value =Value?.yyyx };
 
         public Float4 yyyy
-            => new Float4() { Code = $"({Code}).yyyy", Value = Value?.yyyy };
+            => new Float4() { Value =Value?.yyyy };
 
         public Float4 yyyz
-            => new Float4() { Code = $"({Code}).yyyz", Value = Value?.yyyz };
+            => new Float4() { Value =Value?.yyyz };
 
         public Float4 yyyw
-            => new Float4() { Code = $"({Code}).yyyw", Value = Value?.yyyw };
+            => new Float4() { Value =Value?.yyyw };
 
         public Float4 yyzx
-            => new Float4() { Code = $"({Code}).yyzx", Value = Value?.yyzx };
+            => new Float4() { Value =Value?.yyzx };
 
         public Float4 yyzy
-            => new Float4() { Code = $"({Code}).yyzy", Value = Value?.yyzy };
+            => new Float4() { Value =Value?.yyzy };
 
         public Float4 yyzz
-            => new Float4() { Code = $"({Code}).yyzz", Value = Value?.yyzz };
+            => new Float4() { Value =Value?.yyzz };
 
         public Float4 yyzw
-            => new Float4() { Code = $"({Code}).yyzw", Value = Value?.yyzw };
+            => new Float4() { Value =Value?.yyzw };
 
         public Float4 yywx
-            => new Float4() { Code = $"({Code}).yywx", Value = Value?.yywx };
+            => new Float4() { Value =Value?.yywx };
 
         public Float4 yywy
-            => new Float4() { Code = $"({Code}).yywy", Value = Value?.yywy };
+            => new Float4() { Value =Value?.yywy };
 
         public Float4 yywz
-            => new Float4() { Code = $"({Code}).yywz", Value = Value?.yywz };
+            => new Float4() { Value =Value?.yywz };
 
         public Float4 yyww
-            => new Float4() { Code = $"({Code}).yyww", Value = Value?.yyww };
+            => new Float4() { Value =Value?.yyww };
 
         public Float4 yzxx
-            => new Float4() { Code = $"({Code}).yzxx", Value = Value?.yzxx };
+            => new Float4() { Value =Value?.yzxx };
 
         public Float4 yzxy
-            => new Float4() { Code = $"({Code}).yzxy", Value = Value?.yzxy };
+            => new Float4() { Value =Value?.yzxy };
 
         public Float4 yzxz
-            => new Float4() { Code = $"({Code}).yzxz", Value = Value?.yzxz };
+            => new Float4() { Value =Value?.yzxz };
 
         public Float4 yzxw
-            => new Float4() { Code = $"({Code}).yzxw", Value = Value?.yzxw };
+            => new Float4() { Value =Value?.yzxw };
 
         public Float4 yzyx
-            => new Float4() { Code = $"({Code}).yzyx", Value = Value?.yzyx };
+            => new Float4() { Value =Value?.yzyx };
 
         public Float4 yzyy
-            => new Float4() { Code = $"({Code}).yzyy", Value = Value?.yzyy };
+            => new Float4() { Value =Value?.yzyy };
 
         public Float4 yzyz
-            => new Float4() { Code = $"({Code}).yzyz", Value = Value?.yzyz };
+            => new Float4() { Value =Value?.yzyz };
 
         public Float4 yzyw
-            => new Float4() { Code = $"({Code}).yzyw", Value = Value?.yzyw };
+            => new Float4() { Value =Value?.yzyw };
 
         public Float4 yzzx
-            => new Float4() { Code = $"({Code}).yzzx", Value = Value?.yzzx };
+            => new Float4() { Value =Value?.yzzx };
 
         public Float4 yzzy
-            => new Float4() { Code = $"({Code}).yzzy", Value = Value?.yzzy };
+            => new Float4() { Value =Value?.yzzy };
 
         public Float4 yzzz
-            => new Float4() { Code = $"({Code}).yzzz", Value = Value?.yzzz };
+            => new Float4() { Value =Value?.yzzz };
 
         public Float4 yzzw
-            => new Float4() { Code = $"({Code}).yzzw", Value = Value?.yzzw };
+            => new Float4() { Value =Value?.yzzw };
 
         public Float4 yzwx
-            => new Float4() { Code = $"({Code}).yzwx", Value = Value?.yzwx };
+            => new Float4() { Value =Value?.yzwx };
 
         public Float4 yzwy
-            => new Float4() { Code = $"({Code}).yzwy", Value = Value?.yzwy };
+            => new Float4() { Value =Value?.yzwy };
 
         public Float4 yzwz
-            => new Float4() { Code = $"({Code}).yzwz", Value = Value?.yzwz };
+            => new Float4() { Value =Value?.yzwz };
 
         public Float4 yzww
-            => new Float4() { Code = $"({Code}).yzww", Value = Value?.yzww };
+            => new Float4() { Value =Value?.yzww };
 
         public Float4 ywxx
-            => new Float4() { Code = $"({Code}).ywxx", Value = Value?.ywxx };
+            => new Float4() { Value =Value?.ywxx };
 
         public Float4 ywxy
-            => new Float4() { Code = $"({Code}).ywxy", Value = Value?.ywxy };
+            => new Float4() { Value =Value?.ywxy };
 
         public Float4 ywxz
-            => new Float4() { Code = $"({Code}).ywxz", Value = Value?.ywxz };
+            => new Float4() { Value =Value?.ywxz };
 
         public Float4 ywxw
-            => new Float4() { Code = $"({Code}).ywxw", Value = Value?.ywxw };
+            => new Float4() { Value =Value?.ywxw };
 
         public Float4 ywyx
-            => new Float4() { Code = $"({Code}).ywyx", Value = Value?.ywyx };
+            => new Float4() { Value =Value?.ywyx };
 
         public Float4 ywyy
-            => new Float4() { Code = $"({Code}).ywyy", Value = Value?.ywyy };
+            => new Float4() { Value =Value?.ywyy };
 
         public Float4 ywyz
-            => new Float4() { Code = $"({Code}).ywyz", Value = Value?.ywyz };
+            => new Float4() { Value =Value?.ywyz };
 
         public Float4 ywyw
-            => new Float4() { Code = $"({Code}).ywyw", Value = Value?.ywyw };
+            => new Float4() { Value =Value?.ywyw };
 
         public Float4 ywzx
-            => new Float4() { Code = $"({Code}).ywzx", Value = Value?.ywzx };
+            => new Float4() { Value =Value?.ywzx };
 
         public Float4 ywzy
-            => new Float4() { Code = $"({Code}).ywzy", Value = Value?.ywzy };
+            => new Float4() { Value =Value?.ywzy };
 
         public Float4 ywzz
-            => new Float4() { Code = $"({Code}).ywzz", Value = Value?.ywzz };
+            => new Float4() { Value =Value?.ywzz };
 
         public Float4 ywzw
-            => new Float4() { Code = $"({Code}).ywzw", Value = Value?.ywzw };
+            => new Float4() { Value =Value?.ywzw };
 
         public Float4 ywwx
-            => new Float4() { Code = $"({Code}).ywwx", Value = Value?.ywwx };
+            => new Float4() { Value =Value?.ywwx };
 
         public Float4 ywwy
-            => new Float4() { Code = $"({Code}).ywwy", Value = Value?.ywwy };
+            => new Float4() { Value =Value?.ywwy };
 
         public Float4 ywwz
-            => new Float4() { Code = $"({Code}).ywwz", Value = Value?.ywwz };
+            => new Float4() { Value =Value?.ywwz };
 
         public Float4 ywww
-            => new Float4() { Code = $"({Code}).ywww", Value = Value?.ywww };
+            => new Float4() { Value =Value?.ywww };
 
         public Float4 zxxx
-            => new Float4() { Code = $"({Code}).zxxx", Value = Value?.zxxx };
+            => new Float4() { Value =Value?.zxxx };
 
         public Float4 zxxy
-            => new Float4() { Code = $"({Code}).zxxy", Value = Value?.zxxy };
+            => new Float4() { Value =Value?.zxxy };
 
         public Float4 zxxz
-            => new Float4() { Code = $"({Code}).zxxz", Value = Value?.zxxz };
+            => new Float4() { Value =Value?.zxxz };
 
         public Float4 zxxw
-            => new Float4() { Code = $"({Code}).zxxw", Value = Value?.zxxw };
+            => new Float4() { Value =Value?.zxxw };
 
         public Float4 zxyx
-            => new Float4() { Code = $"({Code}).zxyx", Value = Value?.zxyx };
+            => new Float4() { Value =Value?.zxyx };
 
         public Float4 zxyy
-            => new Float4() { Code = $"({Code}).zxyy", Value = Value?.zxyy };
+            => new Float4() { Value =Value?.zxyy };
 
         public Float4 zxyz
-            => new Float4() { Code = $"({Code}).zxyz", Value = Value?.zxyz };
+            => new Float4() { Value =Value?.zxyz };
 
         public Float4 zxyw
-            => new Float4() { Code = $"({Code}).zxyw", Value = Value?.zxyw };
+            => new Float4() { Value =Value?.zxyw };
 
         public Float4 zxzx
-            => new Float4() { Code = $"({Code}).zxzx", Value = Value?.zxzx };
+            => new Float4() { Value =Value?.zxzx };
 
         public Float4 zxzy
-            => new Float4() { Code = $"({Code}).zxzy", Value = Value?.zxzy };
+            => new Float4() { Value =Value?.zxzy };
 
         public Float4 zxzz
-            => new Float4() { Code = $"({Code}).zxzz", Value = Value?.zxzz };
+            => new Float4() { Value =Value?.zxzz };
 
         public Float4 zxzw
-            => new Float4() { Code = $"({Code}).zxzw", Value = Value?.zxzw };
+            => new Float4() { Value =Value?.zxzw };
 
         public Float4 zxwx
-            => new Float4() { Code = $"({Code}).zxwx", Value = Value?.zxwx };
+            => new Float4() { Value =Value?.zxwx };
 
         public Float4 zxwy
-            => new Float4() { Code = $"({Code}).zxwy", Value = Value?.zxwy };
+            => new Float4() { Value =Value?.zxwy };
 
         public Float4 zxwz
-            => new Float4() { Code = $"({Code}).zxwz", Value = Value?.zxwz };
+            => new Float4() { Value =Value?.zxwz };
 
         public Float4 zxww
-            => new Float4() { Code = $"({Code}).zxww", Value = Value?.zxww };
+            => new Float4() { Value =Value?.zxww };
 
         public Float4 zyxx
-            => new Float4() { Code = $"({Code}).zyxx", Value = Value?.zyxx };
+            => new Float4() { Value =Value?.zyxx };
 
         public Float4 zyxy
-            => new Float4() { Code = $"({Code}).zyxy", Value = Value?.zyxy };
+            => new Float4() { Value =Value?.zyxy };
 
         public Float4 zyxz
-            => new Float4() { Code = $"({Code}).zyxz", Value = Value?.zyxz };
+            => new Float4() { Value =Value?.zyxz };
 
         public Float4 zyxw
-            => new Float4() { Code = $"({Code}).zyxw", Value = Value?.zyxw };
+            => new Float4() { Value =Value?.zyxw };
 
         public Float4 zyyx
-            => new Float4() { Code = $"({Code}).zyyx", Value = Value?.zyyx };
+            => new Float4() { Value =Value?.zyyx };
 
         public Float4 zyyy
-            => new Float4() { Code = $"({Code}).zyyy", Value = Value?.zyyy };
+            => new Float4() { Value =Value?.zyyy };
 
         public Float4 zyyz
-            => new Float4() { Code = $"({Code}).zyyz", Value = Value?.zyyz };
+            => new Float4() { Value =Value?.zyyz };
 
         public Float4 zyyw
-            => new Float4() { Code = $"({Code}).zyyw", Value = Value?.zyyw };
+            => new Float4() { Value =Value?.zyyw };
 
         public Float4 zyzx
-            => new Float4() { Code = $"({Code}).zyzx", Value = Value?.zyzx };
+            => new Float4() { Value =Value?.zyzx };
 
         public Float4 zyzy
-            => new Float4() { Code = $"({Code}).zyzy", Value = Value?.zyzy };
+            => new Float4() { Value =Value?.zyzy };
 
         public Float4 zyzz
-            => new Float4() { Code = $"({Code}).zyzz", Value = Value?.zyzz };
+            => new Float4() { Value =Value?.zyzz };
 
         public Float4 zyzw
-            => new Float4() { Code = $"({Code}).zyzw", Value = Value?.zyzw };
+            => new Float4() { Value =Value?.zyzw };
 
         public Float4 zywx
-            => new Float4() { Code = $"({Code}).zywx", Value = Value?.zywx };
+            => new Float4() { Value =Value?.zywx };
 
         public Float4 zywy
-            => new Float4() { Code = $"({Code}).zywy", Value = Value?.zywy };
+            => new Float4() { Value =Value?.zywy };
 
         public Float4 zywz
-            => new Float4() { Code = $"({Code}).zywz", Value = Value?.zywz };
+            => new Float4() { Value =Value?.zywz };
 
         public Float4 zyww
-            => new Float4() { Code = $"({Code}).zyww", Value = Value?.zyww };
+            => new Float4() { Value =Value?.zyww };
 
         public Float4 zzxx
-            => new Float4() { Code = $"({Code}).zzxx", Value = Value?.zzxx };
+            => new Float4() { Value =Value?.zzxx };
 
         public Float4 zzxy
-            => new Float4() { Code = $"({Code}).zzxy", Value = Value?.zzxy };
+            => new Float4() { Value =Value?.zzxy };
 
         public Float4 zzxz
-            => new Float4() { Code = $"({Code}).zzxz", Value = Value?.zzxz };
+            => new Float4() { Value =Value?.zzxz };
 
         public Float4 zzxw
-            => new Float4() { Code = $"({Code}).zzxw", Value = Value?.zzxw };
+            => new Float4() { Value =Value?.zzxw };
 
         public Float4 zzyx
-            => new Float4() { Code = $"({Code}).zzyx", Value = Value?.zzyx };
+            => new Float4() { Value =Value?.zzyx };
 
         public Float4 zzyy
-            => new Float4() { Code = $"({Code}).zzyy", Value = Value?.zzyy };
+            => new Float4() { Value =Value?.zzyy };
 
         public Float4 zzyz
-            => new Float4() { Code = $"({Code}).zzyz", Value = Value?.zzyz };
+            => new Float4() { Value =Value?.zzyz };
 
         public Float4 zzyw
-            => new Float4() { Code = $"({Code}).zzyw", Value = Value?.zzyw };
+            => new Float4() { Value =Value?.zzyw };
 
         public Float4 zzzx
-            => new Float4() { Code = $"({Code}).zzzx", Value = Value?.zzzx };
+            => new Float4() { Value =Value?.zzzx };
 
         public Float4 zzzy
-            => new Float4() { Code = $"({Code}).zzzy", Value = Value?.zzzy };
+            => new Float4() { Value =Value?.zzzy };
 
         public Float4 zzzz
-            => new Float4() { Code = $"({Code}).zzzz", Value = Value?.zzzz };
+            => new Float4() { Value =Value?.zzzz };
 
         public Float4 zzzw
-            => new Float4() { Code = $"({Code}).zzzw", Value = Value?.zzzw };
+            => new Float4() { Value =Value?.zzzw };
 
         public Float4 zzwx
-            => new Float4() { Code = $"({Code}).zzwx", Value = Value?.zzwx };
+            => new Float4() { Value =Value?.zzwx };
 
         public Float4 zzwy
-            => new Float4() { Code = $"({Code}).zzwy", Value = Value?.zzwy };
+            => new Float4() { Value =Value?.zzwy };
 
         public Float4 zzwz
-            => new Float4() { Code = $"({Code}).zzwz", Value = Value?.zzwz };
+            => new Float4() { Value =Value?.zzwz };
 
         public Float4 zzww
-            => new Float4() { Code = $"({Code}).zzww", Value = Value?.zzww };
+            => new Float4() { Value =Value?.zzww };
 
         public Float4 zwxx
-            => new Float4() { Code = $"({Code}).zwxx", Value = Value?.zwxx };
+            => new Float4() { Value =Value?.zwxx };
 
         public Float4 zwxy
-            => new Float4() { Code = $"({Code}).zwxy", Value = Value?.zwxy };
+            => new Float4() { Value =Value?.zwxy };
 
         public Float4 zwxz
-            => new Float4() { Code = $"({Code}).zwxz", Value = Value?.zwxz };
+            => new Float4() { Value =Value?.zwxz };
 
         public Float4 zwxw
-            => new Float4() { Code = $"({Code}).zwxw", Value = Value?.zwxw };
+            => new Float4() { Value =Value?.zwxw };
 
         public Float4 zwyx
-            => new Float4() { Code = $"({Code}).zwyx", Value = Value?.zwyx };
+            => new Float4() { Value =Value?.zwyx };
 
         public Float4 zwyy
-            => new Float4() { Code = $"({Code}).zwyy", Value = Value?.zwyy };
+            => new Float4() { Value =Value?.zwyy };
 
         public Float4 zwyz
-            => new Float4() { Code = $"({Code}).zwyz", Value = Value?.zwyz };
+            => new Float4() { Value =Value?.zwyz };
 
         public Float4 zwyw
-            => new Float4() { Code = $"({Code}).zwyw", Value = Value?.zwyw };
+            => new Float4() { Value =Value?.zwyw };
 
         public Float4 zwzx
-            => new Float4() { Code = $"({Code}).zwzx", Value = Value?.zwzx };
+            => new Float4() { Value =Value?.zwzx };
 
         public Float4 zwzy
-            => new Float4() { Code = $"({Code}).zwzy", Value = Value?.zwzy };
+            => new Float4() { Value =Value?.zwzy };
 
         public Float4 zwzz
-            => new Float4() { Code = $"({Code}).zwzz", Value = Value?.zwzz };
+            => new Float4() { Value =Value?.zwzz };
 
         public Float4 zwzw
-            => new Float4() { Code = $"({Code}).zwzw", Value = Value?.zwzw };
+            => new Float4() { Value =Value?.zwzw };
 
         public Float4 zwwx
-            => new Float4() { Code = $"({Code}).zwwx", Value = Value?.zwwx };
+            => new Float4() { Value =Value?.zwwx };
 
         public Float4 zwwy
-            => new Float4() { Code = $"({Code}).zwwy", Value = Value?.zwwy };
+            => new Float4() { Value =Value?.zwwy };
 
         public Float4 zwwz
-            => new Float4() { Code = $"({Code}).zwwz", Value = Value?.zwwz };
+            => new Float4() { Value =Value?.zwwz };
 
         public Float4 zwww
-            => new Float4() { Code = $"({Code}).zwww", Value = Value?.zwww };
+            => new Float4() { Value =Value?.zwww };
 
         public Float4 wxxx
-            => new Float4() { Code = $"({Code}).wxxx", Value = Value?.wxxx };
+            => new Float4() { Value =Value?.wxxx };
 
         public Float4 wxxy
-            => new Float4() { Code = $"({Code}).wxxy", Value = Value?.wxxy };
+            => new Float4() { Value =Value?.wxxy };
 
         public Float4 wxxz
-            => new Float4() { Code = $"({Code}).wxxz", Value = Value?.wxxz };
+            => new Float4() { Value =Value?.wxxz };
 
         public Float4 wxxw
-            => new Float4() { Code = $"({Code}).wxxw", Value = Value?.wxxw };
+            => new Float4() { Value =Value?.wxxw };
 
         public Float4 wxyx
-            => new Float4() { Code = $"({Code}).wxyx", Value = Value?.wxyx };
+            => new Float4() { Value =Value?.wxyx };
 
         public Float4 wxyy
-            => new Float4() { Code = $"({Code}).wxyy", Value = Value?.wxyy };
+            => new Float4() { Value =Value?.wxyy };
 
         public Float4 wxyz
-            => new Float4() { Code = $"({Code}).wxyz", Value = Value?.wxyz };
+            => new Float4() { Value =Value?.wxyz };
 
         public Float4 wxyw
-            => new Float4() { Code = $"({Code}).wxyw", Value = Value?.wxyw };
+            => new Float4() { Value =Value?.wxyw };
 
         public Float4 wxzx
-            => new Float4() { Code = $"({Code}).wxzx", Value = Value?.wxzx };
+            => new Float4() { Value =Value?.wxzx };
 
         public Float4 wxzy
-            => new Float4() { Code = $"({Code}).wxzy", Value = Value?.wxzy };
+            => new Float4() { Value =Value?.wxzy };
 
         public Float4 wxzz
-            => new Float4() { Code = $"({Code}).wxzz", Value = Value?.wxzz };
+            => new Float4() { Value =Value?.wxzz };
 
         public Float4 wxzw
-            => new Float4() { Code = $"({Code}).wxzw", Value = Value?.wxzw };
+            => new Float4() { Value =Value?.wxzw };
 
         public Float4 wxwx
-            => new Float4() { Code = $"({Code}).wxwx", Value = Value?.wxwx };
+            => new Float4() { Value =Value?.wxwx };
 
         public Float4 wxwy
-            => new Float4() { Code = $"({Code}).wxwy", Value = Value?.wxwy };
+            => new Float4() { Value =Value?.wxwy };
 
         public Float4 wxwz
-            => new Float4() { Code = $"({Code}).wxwz", Value = Value?.wxwz };
+            => new Float4() { Value =Value?.wxwz };
 
         public Float4 wxww
-            => new Float4() { Code = $"({Code}).wxww", Value = Value?.wxww };
+            => new Float4() { Value =Value?.wxww };
 
         public Float4 wyxx
-            => new Float4() { Code = $"({Code}).wyxx", Value = Value?.wyxx };
+            => new Float4() { Value =Value?.wyxx };
 
         public Float4 wyxy
-            => new Float4() { Code = $"({Code}).wyxy", Value = Value?.wyxy };
+            => new Float4() { Value =Value?.wyxy };
 
         public Float4 wyxz
-            => new Float4() { Code = $"({Code}).wyxz", Value = Value?.wyxz };
+            => new Float4() { Value =Value?.wyxz };
 
         public Float4 wyxw
-            => new Float4() { Code = $"({Code}).wyxw", Value = Value?.wyxw };
+            => new Float4() { Value =Value?.wyxw };
 
         public Float4 wyyx
-            => new Float4() { Code = $"({Code}).wyyx", Value = Value?.wyyx };
+            => new Float4() { Value =Value?.wyyx };
 
         public Float4 wyyy
-            => new Float4() { Code = $"({Code}).wyyy", Value = Value?.wyyy };
+            => new Float4() { Value =Value?.wyyy };
 
         public Float4 wyyz
-            => new Float4() { Code = $"({Code}).wyyz", Value = Value?.wyyz };
+            => new Float4() { Value =Value?.wyyz };
 
         public Float4 wyyw
-            => new Float4() { Code = $"({Code}).wyyw", Value = Value?.wyyw };
+            => new Float4() { Value =Value?.wyyw };
 
         public Float4 wyzx
-            => new Float4() { Code = $"({Code}).wyzx", Value = Value?.wyzx };
+            => new Float4() { Value =Value?.wyzx };
 
         public Float4 wyzy
-            => new Float4() { Code = $"({Code}).wyzy", Value = Value?.wyzy };
+            => new Float4() { Value =Value?.wyzy };
 
         public Float4 wyzz
-            => new Float4() { Code = $"({Code}).wyzz", Value = Value?.wyzz };
+            => new Float4() { Value =Value?.wyzz };
 
         public Float4 wyzw
-            => new Float4() { Code = $"({Code}).wyzw", Value = Value?.wyzw };
+            => new Float4() { Value =Value?.wyzw };
 
         public Float4 wywx
-            => new Float4() { Code = $"({Code}).wywx", Value = Value?.wywx };
+            => new Float4() { Value =Value?.wywx };
 
         public Float4 wywy
-            => new Float4() { Code = $"({Code}).wywy", Value = Value?.wywy };
+            => new Float4() { Value =Value?.wywy };
 
         public Float4 wywz
-            => new Float4() { Code = $"({Code}).wywz", Value = Value?.wywz };
+            => new Float4() { Value =Value?.wywz };
 
         public Float4 wyww
-            => new Float4() { Code = $"({Code}).wyww", Value = Value?.wyww };
+            => new Float4() { Value =Value?.wyww };
 
         public Float4 wzxx
-            => new Float4() { Code = $"({Code}).wzxx", Value = Value?.wzxx };
+            => new Float4() { Value =Value?.wzxx };
 
         public Float4 wzxy
-            => new Float4() { Code = $"({Code}).wzxy", Value = Value?.wzxy };
+            => new Float4() { Value =Value?.wzxy };
 
         public Float4 wzxz
-            => new Float4() { Code = $"({Code}).wzxz", Value = Value?.wzxz };
+            => new Float4() { Value =Value?.wzxz };
 
         public Float4 wzxw
-            => new Float4() { Code = $"({Code}).wzxw", Value = Value?.wzxw };
+            => new Float4() { Value =Value?.wzxw };
 
         public Float4 wzyx
-            => new Float4() { Code = $"({Code}).wzyx", Value = Value?.wzyx };
+            => new Float4() { Value =Value?.wzyx };
 
         public Float4 wzyy
-            => new Float4() { Code = $"({Code}).wzyy", Value = Value?.wzyy };
+            => new Float4() { Value =Value?.wzyy };
 
         public Float4 wzyz
-            => new Float4() { Code = $"({Code}).wzyz", Value = Value?.wzyz };
+            => new Float4() { Value =Value?.wzyz };
 
         public Float4 wzyw
-            => new Float4() { Code = $"({Code}).wzyw", Value = Value?.wzyw };
+            => new Float4() { Value =Value?.wzyw };
 
         public Float4 wzzx
-            => new Float4() { Code = $"({Code}).wzzx", Value = Value?.wzzx };
+            => new Float4() { Value =Value?.wzzx };
 
         public Float4 wzzy
-            => new Float4() { Code = $"({Code}).wzzy", Value = Value?.wzzy };
+            => new Float4() { Value =Value?.wzzy };
 
         public Float4 wzzz
-            => new Float4() { Code = $"({Code}).wzzz", Value = Value?.wzzz };
+            => new Float4() { Value =Value?.wzzz };
 
         public Float4 wzzw
-            => new Float4() { Code = $"({Code}).wzzw", Value = Value?.wzzw };
+            => new Float4() { Value =Value?.wzzw };
 
         public Float4 wzwx
-            => new Float4() { Code = $"({Code}).wzwx", Value = Value?.wzwx };
+            => new Float4() { Value =Value?.wzwx };
 
         public Float4 wzwy
-            => new Float4() { Code = $"({Code}).wzwy", Value = Value?.wzwy };
+            => new Float4() { Value =Value?.wzwy };
 
         public Float4 wzwz
-            => new Float4() { Code = $"({Code}).wzwz", Value = Value?.wzwz };
+            => new Float4() { Value =Value?.wzwz };
 
         public Float4 wzww
-            => new Float4() { Code = $"({Code}).wzww", Value = Value?.wzww };
+            => new Float4() { Value =Value?.wzww };
 
         public Float4 wwxx
-            => new Float4() { Code = $"({Code}).wwxx", Value = Value?.wwxx };
+            => new Float4() { Value =Value?.wwxx };
 
         public Float4 wwxy
-            => new Float4() { Code = $"({Code}).wwxy", Value = Value?.wwxy };
+            => new Float4() { Value =Value?.wwxy };
 
         public Float4 wwxz
-            => new Float4() { Code = $"({Code}).wwxz", Value = Value?.wwxz };
+            => new Float4() { Value =Value?.wwxz };
 
         public Float4 wwxw
-            => new Float4() { Code = $"({Code}).wwxw", Value = Value?.wwxw };
+            => new Float4() { Value =Value?.wwxw };
 
         public Float4 wwyx
-            => new Float4() { Code = $"({Code}).wwyx", Value = Value?.wwyx };
+            => new Float4() { Value =Value?.wwyx };
 
         public Float4 wwyy
-            => new Float4() { Code = $"({Code}).wwyy", Value = Value?.wwyy };
+            => new Float4() { Value =Value?.wwyy };
 
         public Float4 wwyz
-            => new Float4() { Code = $"({Code}).wwyz", Value = Value?.wwyz };
+            => new Float4() { Value =Value?.wwyz };
 
         public Float4 wwyw
-            => new Float4() { Code = $"({Code}).wwyw", Value = Value?.wwyw };
+            => new Float4() { Value =Value?.wwyw };
 
         public Float4 wwzx
-            => new Float4() { Code = $"({Code}).wwzx", Value = Value?.wwzx };
+            => new Float4() { Value =Value?.wwzx };
 
         public Float4 wwzy
-            => new Float4() { Code = $"({Code}).wwzy", Value = Value?.wwzy };
+            => new Float4() { Value =Value?.wwzy };
 
         public Float4 wwzz
-            => new Float4() { Code = $"({Code}).wwzz", Value = Value?.wwzz };
+            => new Float4() { Value =Value?.wwzz };
 
         public Float4 wwzw
-            => new Float4() { Code = $"({Code}).wwzw", Value = Value?.wwzw };
+            => new Float4() { Value =Value?.wwzw };
 
         public Float4 wwwx
-            => new Float4() { Code = $"({Code}).wwwx", Value = Value?.wwwx };
+            => new Float4() { Value =Value?.wwwx };
 
         public Float4 wwwy
-            => new Float4() { Code = $"({Code}).wwwy", Value = Value?.wwwy };
+            => new Float4() { Value =Value?.wwwy };
 
         public Float4 wwwz
-            => new Float4() { Code = $"({Code}).wwwz", Value = Value?.wwwz };
+            => new Float4() { Value =Value?.wwwz };
 
         public Float4 wwww
-            => new Float4() { Code = $"({Code}).wwww", Value = Value?.wwww };
+            => new Float4() { Value =Value?.wwww };
 
         #endregion
     }
@@ -1655,586 +1651,586 @@ namespace UnityEditor.ShaderGraph.Hlsl
             => v0;
 
         public static Float2 Float2(Float v0, Float v1)
-            => new Float2() { Code = $"float2({v0.Code}, {v1.Code})", Value = v0.Value != null && v1.Value != null ? float2(v0.Value.Value, v1.Value.Value) : Hlsl.Float2.Null };
+            => new Float2() { Value = v0.Value != null && v1.Value != null ? float2(v0.Value.Value, v1.Value.Value) : Hlsl.Float2.Null };
 
         public static Float3 Float3(Float3 v0)
             => v0;
 
         public static Float3 Float3(Float2 v0, Float v1)
-            => new Float3() { Code = $"float3({v0.Code}, {v1.Code})", Value = v0.Value != null && v1.Value != null ? float3(v0.Value.Value, v1.Value.Value) : Hlsl.Float3.Null };
+            => new Float3() { Value = v0.Value != null && v1.Value != null ? float3(v0.Value.Value, v1.Value.Value) : Hlsl.Float3.Null };
 
         public static Float3 Float3(Float v0, Float2 v1)
-            => new Float3() { Code = $"float3({v0.Code}, {v1.Code})", Value = v0.Value != null && v1.Value != null ? float3(v0.Value.Value, v1.Value.Value) : Hlsl.Float3.Null };
+            => new Float3() { Value = v0.Value != null && v1.Value != null ? float3(v0.Value.Value, v1.Value.Value) : Hlsl.Float3.Null };
 
         public static Float3 Float3(Float v0, Float v1, Float v2)
-            => new Float3() { Code = $"float3({v0.Code}, {v1.Code}, {v2.Code})", Value = v0.Value != null && v1.Value != null && v2.Value != null ? float3(v0.Value.Value, v1.Value.Value, v2.Value.Value) : Hlsl.Float3.Null };
+            => new Float3() { Value = v0.Value != null && v1.Value != null && v2.Value != null ? float3(v0.Value.Value, v1.Value.Value, v2.Value.Value) : Hlsl.Float3.Null };
 
         public static Float4 Float4(Float4 v0)
             => v0;
 
         public static Float4 Float4(Float3 v0, Float v1)
-            => new Float4() { Code = $"float4({v0.Code}, {v1.Code})", Value = v0.Value != null && v1.Value != null ? float4(v0.Value.Value, v1.Value.Value) : Hlsl.Float4.Null };
+            => new Float4() { Value = v0.Value != null && v1.Value != null ? float4(v0.Value.Value, v1.Value.Value) : Hlsl.Float4.Null };
 
         public static Float4 Float4(Float2 v0, Float2 v1)
-            => new Float4() { Code = $"float4({v0.Code}, {v1.Code})", Value = v0.Value != null && v1.Value != null ? float4(v0.Value.Value, v1.Value.Value) : Hlsl.Float4.Null };
+            => new Float4() { Value = v0.Value != null && v1.Value != null ? float4(v0.Value.Value, v1.Value.Value) : Hlsl.Float4.Null };
 
         public static Float4 Float4(Float2 v0, Float v1, Float v2)
-            => new Float4() { Code = $"float4({v0.Code}, {v1.Code}, {v2.Code})", Value = v0.Value != null && v1.Value != null && v2.Value != null ? float4(v0.Value.Value, v1.Value.Value, v2.Value.Value) : Hlsl.Float4.Null };
+            => new Float4() { Value = v0.Value != null && v1.Value != null && v2.Value != null ? float4(v0.Value.Value, v1.Value.Value, v2.Value.Value) : Hlsl.Float4.Null };
 
         public static Float4 Float4(Float v0, Float3 v1)
-            => new Float4() { Code = $"float4({v0.Code}, {v1.Code})", Value = v0.Value != null && v1.Value != null ? float4(v0.Value.Value, v1.Value.Value) : Hlsl.Float4.Null };
+            => new Float4() { Value = v0.Value != null && v1.Value != null ? float4(v0.Value.Value, v1.Value.Value) : Hlsl.Float4.Null };
 
         public static Float4 Float4(Float v0, Float2 v1, Float v2)
-            => new Float4() { Code = $"float4({v0.Code}, {v1.Code}, {v2.Code})", Value = v0.Value != null && v1.Value != null && v2.Value != null ? float4(v0.Value.Value, v1.Value.Value, v2.Value.Value) : Hlsl.Float4.Null };
+            => new Float4() { Value = v0.Value != null && v1.Value != null && v2.Value != null ? float4(v0.Value.Value, v1.Value.Value, v2.Value.Value) : Hlsl.Float4.Null };
 
         public static Float4 Float4(Float v0, Float v1, Float2 v2)
-            => new Float4() { Code = $"float4({v0.Code}, {v1.Code}, {v2.Code})", Value = v0.Value != null && v1.Value != null && v2.Value != null ? float4(v0.Value.Value, v1.Value.Value, v2.Value.Value) : Hlsl.Float4.Null };
+            => new Float4() { Value = v0.Value != null && v1.Value != null && v2.Value != null ? float4(v0.Value.Value, v1.Value.Value, v2.Value.Value) : Hlsl.Float4.Null };
 
         public static Float4 Float4(Float v0, Float v1, Float v2, Float v3)
-            => new Float4() { Code = $"float4({v0.Code}, {v1.Code}, {v2.Code}, {v3.Code})", Value = v0.Value != null && v1.Value != null && v2.Value != null && v3.Value != null ? float4(v0.Value.Value, v1.Value.Value, v2.Value.Value, v3.Value.Value) : Hlsl.Float4.Null };
+            => new Float4() { Value = v0.Value != null && v1.Value != null && v2.Value != null && v3.Value != null ? float4(v0.Value.Value, v1.Value.Value, v2.Value.Value, v3.Value.Value) : Hlsl.Float4.Null };
 
         public static Hlsl.Float abs(Hlsl.Float x)
-            => new Hlsl.Float() { Code = $"abs({x.Code})", Value = x.Value != null ? math.abs(x.Value.Value) : Hlsl.Float.Null };
+            => new Hlsl.Float() { Value = x.Value != null ? math.abs(x.Value.Value) : Hlsl.Float.Null };
 
         public static Hlsl.Float2 abs(Hlsl.Float2 x)
-            => new Hlsl.Float2() { Code = $"abs({x.Code})", Value = x.Value != null ? math.abs(x.Value.Value) : Hlsl.Float2.Null };
+            => new Hlsl.Float2() { Value = x.Value != null ? math.abs(x.Value.Value) : Hlsl.Float2.Null };
 
         public static Hlsl.Float3 abs(Hlsl.Float3 x)
-            => new Hlsl.Float3() { Code = $"abs({x.Code})", Value = x.Value != null ? math.abs(x.Value.Value) : Hlsl.Float3.Null };
+            => new Hlsl.Float3() { Value = x.Value != null ? math.abs(x.Value.Value) : Hlsl.Float3.Null };
 
         public static Hlsl.Float4 abs(Hlsl.Float4 x)
-            => new Hlsl.Float4() { Code = $"abs({x.Code})", Value = x.Value != null ? math.abs(x.Value.Value) : Hlsl.Float4.Null };
+            => new Hlsl.Float4() { Value = x.Value != null ? math.abs(x.Value.Value) : Hlsl.Float4.Null };
 
         public static Hlsl.Float acos(Hlsl.Float x)
-            => new Hlsl.Float() { Code = $"acos({x.Code})", Value = x.Value != null ? math.acos(x.Value.Value) : Hlsl.Float.Null };
+            => new Hlsl.Float() { Value = x.Value != null ? math.acos(x.Value.Value) : Hlsl.Float.Null };
 
         public static Hlsl.Float2 acos(Hlsl.Float2 x)
-            => new Hlsl.Float2() { Code = $"acos({x.Code})", Value = x.Value != null ? math.acos(x.Value.Value) : Hlsl.Float2.Null };
+            => new Hlsl.Float2() { Value = x.Value != null ? math.acos(x.Value.Value) : Hlsl.Float2.Null };
 
         public static Hlsl.Float3 acos(Hlsl.Float3 x)
-            => new Hlsl.Float3() { Code = $"acos({x.Code})", Value = x.Value != null ? math.acos(x.Value.Value) : Hlsl.Float3.Null };
+            => new Hlsl.Float3() { Value = x.Value != null ? math.acos(x.Value.Value) : Hlsl.Float3.Null };
 
         public static Hlsl.Float4 acos(Hlsl.Float4 x)
-            => new Hlsl.Float4() { Code = $"acos({x.Code})", Value = x.Value != null ? math.acos(x.Value.Value) : Hlsl.Float4.Null };
+            => new Hlsl.Float4() { Value = x.Value != null ? math.acos(x.Value.Value) : Hlsl.Float4.Null };
 
         public static Hlsl.Float asin(Hlsl.Float x)
-            => new Hlsl.Float() { Code = $"asin({x.Code})", Value = x.Value != null ? math.asin(x.Value.Value) : Hlsl.Float.Null };
+            => new Hlsl.Float() { Value = x.Value != null ? math.asin(x.Value.Value) : Hlsl.Float.Null };
 
         public static Hlsl.Float2 asin(Hlsl.Float2 x)
-            => new Hlsl.Float2() { Code = $"asin({x.Code})", Value = x.Value != null ? math.asin(x.Value.Value) : Hlsl.Float2.Null };
+            => new Hlsl.Float2() { Value = x.Value != null ? math.asin(x.Value.Value) : Hlsl.Float2.Null };
 
         public static Hlsl.Float3 asin(Hlsl.Float3 x)
-            => new Hlsl.Float3() { Code = $"asin({x.Code})", Value = x.Value != null ? math.asin(x.Value.Value) : Hlsl.Float3.Null };
+            => new Hlsl.Float3() { Value = x.Value != null ? math.asin(x.Value.Value) : Hlsl.Float3.Null };
 
         public static Hlsl.Float4 asin(Hlsl.Float4 x)
-            => new Hlsl.Float4() { Code = $"asin({x.Code})", Value = x.Value != null ? math.asin(x.Value.Value) : Hlsl.Float4.Null };
+            => new Hlsl.Float4() { Value = x.Value != null ? math.asin(x.Value.Value) : Hlsl.Float4.Null };
 
         public static Hlsl.Float atan(Hlsl.Float x)
-            => new Hlsl.Float() { Code = $"atan({x.Code})", Value = x.Value != null ? math.atan(x.Value.Value) : Hlsl.Float.Null };
+            => new Hlsl.Float() { Value = x.Value != null ? math.atan(x.Value.Value) : Hlsl.Float.Null };
 
         public static Hlsl.Float2 atan(Hlsl.Float2 x)
-            => new Hlsl.Float2() { Code = $"atan({x.Code})", Value = x.Value != null ? math.atan(x.Value.Value) : Hlsl.Float2.Null };
+            => new Hlsl.Float2() { Value = x.Value != null ? math.atan(x.Value.Value) : Hlsl.Float2.Null };
 
         public static Hlsl.Float3 atan(Hlsl.Float3 x)
-            => new Hlsl.Float3() { Code = $"atan({x.Code})", Value = x.Value != null ? math.atan(x.Value.Value) : Hlsl.Float3.Null };
+            => new Hlsl.Float3() { Value = x.Value != null ? math.atan(x.Value.Value) : Hlsl.Float3.Null };
 
         public static Hlsl.Float4 atan(Hlsl.Float4 x)
-            => new Hlsl.Float4() { Code = $"atan({x.Code})", Value = x.Value != null ? math.atan(x.Value.Value) : Hlsl.Float4.Null };
+            => new Hlsl.Float4() { Value = x.Value != null ? math.atan(x.Value.Value) : Hlsl.Float4.Null };
 
         public static Hlsl.Float atan2(Hlsl.Float x, Hlsl.Float y)
-            => new Hlsl.Float() { Code = $"atan2({x.Code}, {y.Code})", Value = x.Value != null && y.Value != null ? math.atan2(x.Value.Value, y.Value.Value) : Hlsl.Float.Null };
+            => new Hlsl.Float() { Value = x.Value != null && y.Value != null ? math.atan2(x.Value.Value, y.Value.Value) : Hlsl.Float.Null };
 
         public static Hlsl.Float2 atan2(Hlsl.Float2 x, Hlsl.Float2 y)
-            => new Hlsl.Float2() { Code = $"atan2({x.Code}, {y.Code})", Value = x.Value != null && y.Value != null ? math.atan2(x.Value.Value, y.Value.Value) : Hlsl.Float2.Null };
+            => new Hlsl.Float2() { Value = x.Value != null && y.Value != null ? math.atan2(x.Value.Value, y.Value.Value) : Hlsl.Float2.Null };
 
         public static Hlsl.Float3 atan2(Hlsl.Float3 x, Hlsl.Float3 y)
-            => new Hlsl.Float3() { Code = $"atan2({x.Code}, {y.Code})", Value = x.Value != null && y.Value != null ? math.atan2(x.Value.Value, y.Value.Value) : Hlsl.Float3.Null };
+            => new Hlsl.Float3() { Value = x.Value != null && y.Value != null ? math.atan2(x.Value.Value, y.Value.Value) : Hlsl.Float3.Null };
 
         public static Hlsl.Float4 atan2(Hlsl.Float4 x, Hlsl.Float4 y)
-            => new Hlsl.Float4() { Code = $"atan2({x.Code}, {y.Code})", Value = x.Value != null && y.Value != null ? math.atan2(x.Value.Value, y.Value.Value) : Hlsl.Float4.Null };
+            => new Hlsl.Float4() { Value = x.Value != null && y.Value != null ? math.atan2(x.Value.Value, y.Value.Value) : Hlsl.Float4.Null };
 
         public static Hlsl.Float ceil(Hlsl.Float x)
-            => new Hlsl.Float() { Code = $"ceil({x.Code})", Value = x.Value != null ? math.ceil(x.Value.Value) : Hlsl.Float.Null };
+            => new Hlsl.Float() { Value = x.Value != null ? math.ceil(x.Value.Value) : Hlsl.Float.Null };
 
         public static Hlsl.Float2 ceil(Hlsl.Float2 x)
-            => new Hlsl.Float2() { Code = $"ceil({x.Code})", Value = x.Value != null ? math.ceil(x.Value.Value) : Hlsl.Float2.Null };
+            => new Hlsl.Float2() { Value = x.Value != null ? math.ceil(x.Value.Value) : Hlsl.Float2.Null };
 
         public static Hlsl.Float3 ceil(Hlsl.Float3 x)
-            => new Hlsl.Float3() { Code = $"ceil({x.Code})", Value = x.Value != null ? math.ceil(x.Value.Value) : Hlsl.Float3.Null };
+            => new Hlsl.Float3() { Value = x.Value != null ? math.ceil(x.Value.Value) : Hlsl.Float3.Null };
 
         public static Hlsl.Float4 ceil(Hlsl.Float4 x)
-            => new Hlsl.Float4() { Code = $"ceil({x.Code})", Value = x.Value != null ? math.ceil(x.Value.Value) : Hlsl.Float4.Null };
+            => new Hlsl.Float4() { Value = x.Value != null ? math.ceil(x.Value.Value) : Hlsl.Float4.Null };
 
         public static Hlsl.Float clamp(Hlsl.Float x, Hlsl.Float y, Hlsl.Float z)
-            => new Hlsl.Float() { Code = $"clamp({x.Code}, {y.Code}, {z.Code})", Value = x.Value != null && y.Value != null && z.Value != null ? math.clamp(x.Value.Value, y.Value.Value, z.Value.Value) : Hlsl.Float.Null };
+            => new Hlsl.Float() { Value = x.Value != null && y.Value != null && z.Value != null ? math.clamp(x.Value.Value, y.Value.Value, z.Value.Value) : Hlsl.Float.Null };
 
         public static Hlsl.Float2 clamp(Hlsl.Float2 x, Hlsl.Float2 y, Hlsl.Float2 z)
-            => new Hlsl.Float2() { Code = $"clamp({x.Code}, {y.Code}, {z.Code})", Value = x.Value != null && y.Value != null && z.Value != null ? math.clamp(x.Value.Value, y.Value.Value, z.Value.Value) : Hlsl.Float2.Null };
+            => new Hlsl.Float2() { Value = x.Value != null && y.Value != null && z.Value != null ? math.clamp(x.Value.Value, y.Value.Value, z.Value.Value) : Hlsl.Float2.Null };
 
         public static Hlsl.Float3 clamp(Hlsl.Float3 x, Hlsl.Float3 y, Hlsl.Float3 z)
-            => new Hlsl.Float3() { Code = $"clamp({x.Code}, {y.Code}, {z.Code})", Value = x.Value != null && y.Value != null && z.Value != null ? math.clamp(x.Value.Value, y.Value.Value, z.Value.Value) : Hlsl.Float3.Null };
+            => new Hlsl.Float3() { Value = x.Value != null && y.Value != null && z.Value != null ? math.clamp(x.Value.Value, y.Value.Value, z.Value.Value) : Hlsl.Float3.Null };
 
         public static Hlsl.Float4 clamp(Hlsl.Float4 x, Hlsl.Float4 y, Hlsl.Float4 z)
-            => new Hlsl.Float4() { Code = $"clamp({x.Code}, {y.Code}, {z.Code})", Value = x.Value != null && y.Value != null && z.Value != null ? math.clamp(x.Value.Value, y.Value.Value, z.Value.Value) : Hlsl.Float4.Null };
+            => new Hlsl.Float4() { Value = x.Value != null && y.Value != null && z.Value != null ? math.clamp(x.Value.Value, y.Value.Value, z.Value.Value) : Hlsl.Float4.Null };
 
         public static Hlsl.Float cos(Hlsl.Float x)
-            => new Hlsl.Float() { Code = $"cos({x.Code})", Value = x.Value != null ? math.cos(x.Value.Value) : Hlsl.Float.Null };
+            => new Hlsl.Float() { Value = x.Value != null ? math.cos(x.Value.Value) : Hlsl.Float.Null };
 
         public static Hlsl.Float2 cos(Hlsl.Float2 x)
-            => new Hlsl.Float2() { Code = $"cos({x.Code})", Value = x.Value != null ? math.cos(x.Value.Value) : Hlsl.Float2.Null };
+            => new Hlsl.Float2() { Value = x.Value != null ? math.cos(x.Value.Value) : Hlsl.Float2.Null };
 
         public static Hlsl.Float3 cos(Hlsl.Float3 x)
-            => new Hlsl.Float3() { Code = $"cos({x.Code})", Value = x.Value != null ? math.cos(x.Value.Value) : Hlsl.Float3.Null };
+            => new Hlsl.Float3() { Value = x.Value != null ? math.cos(x.Value.Value) : Hlsl.Float3.Null };
 
         public static Hlsl.Float4 cos(Hlsl.Float4 x)
-            => new Hlsl.Float4() { Code = $"cos({x.Code})", Value = x.Value != null ? math.cos(x.Value.Value) : Hlsl.Float4.Null };
+            => new Hlsl.Float4() { Value = x.Value != null ? math.cos(x.Value.Value) : Hlsl.Float4.Null };
 
         public static Hlsl.Float cosh(Hlsl.Float x)
-            => new Hlsl.Float() { Code = $"cosh({x.Code})", Value = x.Value != null ? math.cosh(x.Value.Value) : Hlsl.Float.Null };
+            => new Hlsl.Float() { Value = x.Value != null ? math.cosh(x.Value.Value) : Hlsl.Float.Null };
 
         public static Hlsl.Float2 cosh(Hlsl.Float2 x)
-            => new Hlsl.Float2() { Code = $"cosh({x.Code})", Value = x.Value != null ? math.cosh(x.Value.Value) : Hlsl.Float2.Null };
+            => new Hlsl.Float2() { Value = x.Value != null ? math.cosh(x.Value.Value) : Hlsl.Float2.Null };
 
         public static Hlsl.Float3 cosh(Hlsl.Float3 x)
-            => new Hlsl.Float3() { Code = $"cosh({x.Code})", Value = x.Value != null ? math.cosh(x.Value.Value) : Hlsl.Float3.Null };
+            => new Hlsl.Float3() { Value = x.Value != null ? math.cosh(x.Value.Value) : Hlsl.Float3.Null };
 
         public static Hlsl.Float4 cosh(Hlsl.Float4 x)
-            => new Hlsl.Float4() { Code = $"cosh({x.Code})", Value = x.Value != null ? math.cosh(x.Value.Value) : Hlsl.Float4.Null };
+            => new Hlsl.Float4() { Value = x.Value != null ? math.cosh(x.Value.Value) : Hlsl.Float4.Null };
 
         public static Float3 cross(Float3 x, Float3 y)
-            => new Float3() { Code = $"cross({x.Code}, {y.Code})", Value = x.Value != null && y.Value != null ? math.cross(x.Value.Value, y.Value.Value) : Hlsl.Float3.Null };
+            => new Float3() { Value = x.Value != null && y.Value != null ? math.cross(x.Value.Value, y.Value.Value) : Hlsl.Float3.Null };
 
         public static Hlsl.Float ddx(Hlsl.Float x)
-            => new Hlsl.Float() { Code = $"ddx({x.Code})", Value = x.Value != null ? 0 : Hlsl.Float.Null };
+            => new Hlsl.Float() { Value = x.Value != null ? 0 : Hlsl.Float.Null };
 
         public static Hlsl.Float2 ddx(Hlsl.Float2 x)
-            => new Hlsl.Float2() { Code = $"ddx({x.Code})", Value = x.Value != null ? 0 : Hlsl.Float2.Null };
+            => new Hlsl.Float2() { Value = x.Value != null ? 0 : Hlsl.Float2.Null };
 
         public static Hlsl.Float3 ddx(Hlsl.Float3 x)
-            => new Hlsl.Float3() { Code = $"ddx({x.Code})", Value = x.Value != null ? 0 : Hlsl.Float3.Null };
+            => new Hlsl.Float3() { Value = x.Value != null ? 0 : Hlsl.Float3.Null };
 
         public static Hlsl.Float4 ddx(Hlsl.Float4 x)
-            => new Hlsl.Float4() { Code = $"ddx({x.Code})", Value = x.Value != null ? 0 : Hlsl.Float4.Null };
+            => new Hlsl.Float4() { Value = x.Value != null ? 0 : Hlsl.Float4.Null };
 
         public static Hlsl.Float ddy(Hlsl.Float x)
-            => new Hlsl.Float() { Code = $"ddy({x.Code})", Value = x.Value != null ? 0 : Hlsl.Float.Null };
+            => new Hlsl.Float() { Value = x.Value != null ? 0 : Hlsl.Float.Null };
 
         public static Hlsl.Float2 ddy(Hlsl.Float2 x)
-            => new Hlsl.Float2() { Code = $"ddy({x.Code})", Value = x.Value != null ? 0 : Hlsl.Float2.Null };
+            => new Hlsl.Float2() { Value = x.Value != null ? 0 : Hlsl.Float2.Null };
 
         public static Hlsl.Float3 ddy(Hlsl.Float3 x)
-            => new Hlsl.Float3() { Code = $"ddy({x.Code})", Value = x.Value != null ? 0 : Hlsl.Float3.Null };
+            => new Hlsl.Float3() { Value = x.Value != null ? 0 : Hlsl.Float3.Null };
 
         public static Hlsl.Float4 ddy(Hlsl.Float4 x)
-            => new Hlsl.Float4() { Code = $"ddy({x.Code})", Value = x.Value != null ? 0 : Hlsl.Float4.Null };
+            => new Hlsl.Float4() { Value = x.Value != null ? 0 : Hlsl.Float4.Null };
 
         public static Hlsl.Float degrees(Hlsl.Float x)
-            => new Hlsl.Float() { Code = $"degrees({x.Code})", Value = x.Value != null ? math.degrees(x.Value.Value) : Hlsl.Float.Null };
+            => new Hlsl.Float() { Value = x.Value != null ? math.degrees(x.Value.Value) : Hlsl.Float.Null };
 
         public static Hlsl.Float2 degrees(Hlsl.Float2 x)
-            => new Hlsl.Float2() { Code = $"degrees({x.Code})", Value = x.Value != null ? math.degrees(x.Value.Value) : Hlsl.Float2.Null };
+            => new Hlsl.Float2() { Value = x.Value != null ? math.degrees(x.Value.Value) : Hlsl.Float2.Null };
 
         public static Hlsl.Float3 degrees(Hlsl.Float3 x)
-            => new Hlsl.Float3() { Code = $"degrees({x.Code})", Value = x.Value != null ? math.degrees(x.Value.Value) : Hlsl.Float3.Null };
+            => new Hlsl.Float3() { Value = x.Value != null ? math.degrees(x.Value.Value) : Hlsl.Float3.Null };
 
         public static Hlsl.Float4 degrees(Hlsl.Float4 x)
-            => new Hlsl.Float4() { Code = $"degrees({x.Code})", Value = x.Value != null ? math.degrees(x.Value.Value) : Hlsl.Float4.Null };
+            => new Hlsl.Float4() { Value = x.Value != null ? math.degrees(x.Value.Value) : Hlsl.Float4.Null };
 
         public static Hlsl.Float distance(Hlsl.Float x, Hlsl.Float y)
-            => new Hlsl.Float() { Code = $"distance({x.Code}, {y.Code})", Value = x.Value != null && y.Value != null ? math.distance(x.Value.Value, y.Value.Value) : Hlsl.Float.Null };
+            => new Hlsl.Float() { Value = x.Value != null && y.Value != null ? math.distance(x.Value.Value, y.Value.Value) : Hlsl.Float.Null };
 
         public static Hlsl.Float distance(Hlsl.Float2 x, Hlsl.Float2 y)
-            => new Hlsl.Float() { Code = $"distance({x.Code}, {y.Code})", Value = x.Value != null && y.Value != null ? math.distance(x.Value.Value, y.Value.Value) : Hlsl.Float.Null };
+            => new Hlsl.Float() { Value = x.Value != null && y.Value != null ? math.distance(x.Value.Value, y.Value.Value) : Hlsl.Float.Null };
 
         public static Hlsl.Float distance(Hlsl.Float3 x, Hlsl.Float3 y)
-            => new Hlsl.Float() { Code = $"distance({x.Code}, {y.Code})", Value = x.Value != null && y.Value != null ? math.distance(x.Value.Value, y.Value.Value) : Hlsl.Float.Null };
+            => new Hlsl.Float() { Value = x.Value != null && y.Value != null ? math.distance(x.Value.Value, y.Value.Value) : Hlsl.Float.Null };
 
         public static Hlsl.Float distance(Hlsl.Float4 x, Hlsl.Float4 y)
-            => new Hlsl.Float() { Code = $"distance({x.Code}, {y.Code})", Value = x.Value != null && y.Value != null ? math.distance(x.Value.Value, y.Value.Value) : Hlsl.Float.Null };
+            => new Hlsl.Float() { Value = x.Value != null && y.Value != null ? math.distance(x.Value.Value, y.Value.Value) : Hlsl.Float.Null };
 
         public static Hlsl.Float dot(Hlsl.Float x, Hlsl.Float y)
-            => new Hlsl.Float() { Code = $"dot({x.Code}, {y.Code})", Value = x.Value != null && y.Value != null ? math.dot(x.Value.Value, y.Value.Value) : Hlsl.Float.Null };
+            => new Hlsl.Float() { Value = x.Value != null && y.Value != null ? math.dot(x.Value.Value, y.Value.Value) : Hlsl.Float.Null };
 
         public static Hlsl.Float dot(Hlsl.Float2 x, Hlsl.Float2 y)
-            => new Hlsl.Float() { Code = $"dot({x.Code}, {y.Code})", Value = x.Value != null && y.Value != null ? math.dot(x.Value.Value, y.Value.Value) : Hlsl.Float.Null };
+            => new Hlsl.Float() { Value = x.Value != null && y.Value != null ? math.dot(x.Value.Value, y.Value.Value) : Hlsl.Float.Null };
 
         public static Hlsl.Float dot(Hlsl.Float3 x, Hlsl.Float3 y)
-            => new Hlsl.Float() { Code = $"dot({x.Code}, {y.Code})", Value = x.Value != null && y.Value != null ? math.dot(x.Value.Value, y.Value.Value) : Hlsl.Float.Null };
+            => new Hlsl.Float() { Value = x.Value != null && y.Value != null ? math.dot(x.Value.Value, y.Value.Value) : Hlsl.Float.Null };
 
         public static Hlsl.Float dot(Hlsl.Float4 x, Hlsl.Float4 y)
-            => new Hlsl.Float() { Code = $"dot({x.Code}, {y.Code})", Value = x.Value != null && y.Value != null ? math.dot(x.Value.Value, y.Value.Value) : Hlsl.Float.Null };
+            => new Hlsl.Float() { Value = x.Value != null && y.Value != null ? math.dot(x.Value.Value, y.Value.Value) : Hlsl.Float.Null };
 
         public static Hlsl.Float exp(Hlsl.Float x)
-            => new Hlsl.Float() { Code = $"exp({x.Code})", Value = x.Value != null ? math.exp(x.Value.Value) : Hlsl.Float.Null };
+            => new Hlsl.Float() { Value = x.Value != null ? math.exp(x.Value.Value) : Hlsl.Float.Null };
 
         public static Hlsl.Float2 exp(Hlsl.Float2 x)
-            => new Hlsl.Float2() { Code = $"exp({x.Code})", Value = x.Value != null ? math.exp(x.Value.Value) : Hlsl.Float2.Null };
+            => new Hlsl.Float2() { Value = x.Value != null ? math.exp(x.Value.Value) : Hlsl.Float2.Null };
 
         public static Hlsl.Float3 exp(Hlsl.Float3 x)
-            => new Hlsl.Float3() { Code = $"exp({x.Code})", Value = x.Value != null ? math.exp(x.Value.Value) : Hlsl.Float3.Null };
+            => new Hlsl.Float3() { Value = x.Value != null ? math.exp(x.Value.Value) : Hlsl.Float3.Null };
 
         public static Hlsl.Float4 exp(Hlsl.Float4 x)
-            => new Hlsl.Float4() { Code = $"exp({x.Code})", Value = x.Value != null ? math.exp(x.Value.Value) : Hlsl.Float4.Null };
+            => new Hlsl.Float4() { Value = x.Value != null ? math.exp(x.Value.Value) : Hlsl.Float4.Null };
 
         public static Hlsl.Float exp2(Hlsl.Float x)
-            => new Hlsl.Float() { Code = $"exp2({x.Code})", Value = x.Value != null ? math.exp2(x.Value.Value) : Hlsl.Float.Null };
+            => new Hlsl.Float() { Value = x.Value != null ? math.exp2(x.Value.Value) : Hlsl.Float.Null };
 
         public static Hlsl.Float2 exp2(Hlsl.Float2 x)
-            => new Hlsl.Float2() { Code = $"exp2({x.Code})", Value = x.Value != null ? math.exp2(x.Value.Value) : Hlsl.Float2.Null };
+            => new Hlsl.Float2() { Value = x.Value != null ? math.exp2(x.Value.Value) : Hlsl.Float2.Null };
 
         public static Hlsl.Float3 exp2(Hlsl.Float3 x)
-            => new Hlsl.Float3() { Code = $"exp2({x.Code})", Value = x.Value != null ? math.exp2(x.Value.Value) : Hlsl.Float3.Null };
+            => new Hlsl.Float3() { Value = x.Value != null ? math.exp2(x.Value.Value) : Hlsl.Float3.Null };
 
         public static Hlsl.Float4 exp2(Hlsl.Float4 x)
-            => new Hlsl.Float4() { Code = $"exp2({x.Code})", Value = x.Value != null ? math.exp2(x.Value.Value) : Hlsl.Float4.Null };
+            => new Hlsl.Float4() { Value = x.Value != null ? math.exp2(x.Value.Value) : Hlsl.Float4.Null };
 
         public static Hlsl.Float floor(Hlsl.Float x)
-            => new Hlsl.Float() { Code = $"floor({x.Code})", Value = x.Value != null ? math.floor(x.Value.Value) : Hlsl.Float.Null };
+            => new Hlsl.Float() { Value = x.Value != null ? math.floor(x.Value.Value) : Hlsl.Float.Null };
 
         public static Hlsl.Float2 floor(Hlsl.Float2 x)
-            => new Hlsl.Float2() { Code = $"floor({x.Code})", Value = x.Value != null ? math.floor(x.Value.Value) : Hlsl.Float2.Null };
+            => new Hlsl.Float2() { Value = x.Value != null ? math.floor(x.Value.Value) : Hlsl.Float2.Null };
 
         public static Hlsl.Float3 floor(Hlsl.Float3 x)
-            => new Hlsl.Float3() { Code = $"floor({x.Code})", Value = x.Value != null ? math.floor(x.Value.Value) : Hlsl.Float3.Null };
+            => new Hlsl.Float3() { Value = x.Value != null ? math.floor(x.Value.Value) : Hlsl.Float3.Null };
 
         public static Hlsl.Float4 floor(Hlsl.Float4 x)
-            => new Hlsl.Float4() { Code = $"floor({x.Code})", Value = x.Value != null ? math.floor(x.Value.Value) : Hlsl.Float4.Null };
+            => new Hlsl.Float4() { Value = x.Value != null ? math.floor(x.Value.Value) : Hlsl.Float4.Null };
 
         public static Hlsl.Float fmod(Hlsl.Float x, Hlsl.Float y)
-            => new Hlsl.Float() { Code = $"fmod({x.Code}, {y.Code})", Value = x.Value != null && y.Value != null ? math.fmod(x.Value.Value, y.Value.Value) : Hlsl.Float.Null };
+            => new Hlsl.Float() { Value = x.Value != null && y.Value != null ? math.fmod(x.Value.Value, y.Value.Value) : Hlsl.Float.Null };
 
         public static Hlsl.Float2 fmod(Hlsl.Float2 x, Hlsl.Float2 y)
-            => new Hlsl.Float2() { Code = $"fmod({x.Code}, {y.Code})", Value = x.Value != null && y.Value != null ? math.fmod(x.Value.Value, y.Value.Value) : Hlsl.Float2.Null };
+            => new Hlsl.Float2() { Value = x.Value != null && y.Value != null ? math.fmod(x.Value.Value, y.Value.Value) : Hlsl.Float2.Null };
 
         public static Hlsl.Float3 fmod(Hlsl.Float3 x, Hlsl.Float3 y)
-            => new Hlsl.Float3() { Code = $"fmod({x.Code}, {y.Code})", Value = x.Value != null && y.Value != null ? math.fmod(x.Value.Value, y.Value.Value) : Hlsl.Float3.Null };
+            => new Hlsl.Float3() { Value = x.Value != null && y.Value != null ? math.fmod(x.Value.Value, y.Value.Value) : Hlsl.Float3.Null };
 
         public static Hlsl.Float4 fmod(Hlsl.Float4 x, Hlsl.Float4 y)
-            => new Hlsl.Float4() { Code = $"fmod({x.Code}, {y.Code})", Value = x.Value != null && y.Value != null ? math.fmod(x.Value.Value, y.Value.Value) : Hlsl.Float4.Null };
+            => new Hlsl.Float4() { Value = x.Value != null && y.Value != null ? math.fmod(x.Value.Value, y.Value.Value) : Hlsl.Float4.Null };
 
         public static Hlsl.Float frac(Hlsl.Float x)
-            => new Hlsl.Float() { Code = $"frac({x.Code})", Value = x.Value != null ? math.frac(x.Value.Value) : Hlsl.Float.Null };
+            => new Hlsl.Float() { Value = x.Value != null ? math.frac(x.Value.Value) : Hlsl.Float.Null };
 
         public static Hlsl.Float2 frac(Hlsl.Float2 x)
-            => new Hlsl.Float2() { Code = $"frac({x.Code})", Value = x.Value != null ? math.frac(x.Value.Value) : Hlsl.Float2.Null };
+            => new Hlsl.Float2() { Value = x.Value != null ? math.frac(x.Value.Value) : Hlsl.Float2.Null };
 
         public static Hlsl.Float3 frac(Hlsl.Float3 x)
-            => new Hlsl.Float3() { Code = $"frac({x.Code})", Value = x.Value != null ? math.frac(x.Value.Value) : Hlsl.Float3.Null };
+            => new Hlsl.Float3() { Value = x.Value != null ? math.frac(x.Value.Value) : Hlsl.Float3.Null };
 
         public static Hlsl.Float4 frac(Hlsl.Float4 x)
-            => new Hlsl.Float4() { Code = $"frac({x.Code})", Value = x.Value != null ? math.frac(x.Value.Value) : Hlsl.Float4.Null };
+            => new Hlsl.Float4() { Value = x.Value != null ? math.frac(x.Value.Value) : Hlsl.Float4.Null };
 
         public static Hlsl.Float fwidth(Hlsl.Float x)
-            => new Hlsl.Float() { Code = $"fwidth({x.Code})", Value = x.Value != null ? 0 : Hlsl.Float.Null };
+            => new Hlsl.Float() { Value = x.Value != null ? 0 : Hlsl.Float.Null };
 
         public static Hlsl.Float2 fwidth(Hlsl.Float2 x)
-            => new Hlsl.Float2() { Code = $"fwidth({x.Code})", Value = x.Value != null ? 0 : Hlsl.Float2.Null };
+            => new Hlsl.Float2() { Value = x.Value != null ? 0 : Hlsl.Float2.Null };
 
         public static Hlsl.Float3 fwidth(Hlsl.Float3 x)
-            => new Hlsl.Float3() { Code = $"fwidth({x.Code})", Value = x.Value != null ? 0 : Hlsl.Float3.Null };
+            => new Hlsl.Float3() { Value = x.Value != null ? 0 : Hlsl.Float3.Null };
 
         public static Hlsl.Float4 fwidth(Hlsl.Float4 x)
-            => new Hlsl.Float4() { Code = $"fwidth({x.Code})", Value = x.Value != null ? 0 : Hlsl.Float4.Null };
+            => new Hlsl.Float4() { Value = x.Value != null ? 0 : Hlsl.Float4.Null };
 
         public static Hlsl.Float length(Hlsl.Float x)
-            => new Hlsl.Float() { Code = $"length({x.Code})", Value = x.Value != null ? math.length(x.Value.Value) : Hlsl.Float.Null };
+            => new Hlsl.Float() { Value = x.Value != null ? math.length(x.Value.Value) : Hlsl.Float.Null };
 
         public static Hlsl.Float length(Hlsl.Float2 x)
-            => new Hlsl.Float() { Code = $"length({x.Code})", Value = x.Value != null ? math.length(x.Value.Value) : Hlsl.Float.Null };
+            => new Hlsl.Float() { Value = x.Value != null ? math.length(x.Value.Value) : Hlsl.Float.Null };
 
         public static Hlsl.Float length(Hlsl.Float3 x)
-            => new Hlsl.Float() { Code = $"length({x.Code})", Value = x.Value != null ? math.length(x.Value.Value) : Hlsl.Float.Null };
+            => new Hlsl.Float() { Value = x.Value != null ? math.length(x.Value.Value) : Hlsl.Float.Null };
 
         public static Hlsl.Float length(Hlsl.Float4 x)
-            => new Hlsl.Float() { Code = $"length({x.Code})", Value = x.Value != null ? math.length(x.Value.Value) : Hlsl.Float.Null };
+            => new Hlsl.Float() { Value = x.Value != null ? math.length(x.Value.Value) : Hlsl.Float.Null };
 
         public static Hlsl.Float lerp(Hlsl.Float x, Hlsl.Float y, Hlsl.Float z)
-            => new Hlsl.Float() { Code = $"lerp({x.Code}, {y.Code}, {z.Code})", Value = x.Value != null && y.Value != null && z.Value != null ? math.lerp(x.Value.Value, y.Value.Value, z.Value.Value) : Hlsl.Float.Null };
+            => new Hlsl.Float() { Value = x.Value != null && y.Value != null && z.Value != null ? math.lerp(x.Value.Value, y.Value.Value, z.Value.Value) : Hlsl.Float.Null };
 
         public static Hlsl.Float2 lerp(Hlsl.Float2 x, Hlsl.Float2 y, Hlsl.Float2 z)
-            => new Hlsl.Float2() { Code = $"lerp({x.Code}, {y.Code}, {z.Code})", Value = x.Value != null && y.Value != null && z.Value != null ? math.lerp(x.Value.Value, y.Value.Value, z.Value.Value) : Hlsl.Float2.Null };
+            => new Hlsl.Float2() { Value = x.Value != null && y.Value != null && z.Value != null ? math.lerp(x.Value.Value, y.Value.Value, z.Value.Value) : Hlsl.Float2.Null };
 
         public static Hlsl.Float3 lerp(Hlsl.Float3 x, Hlsl.Float3 y, Hlsl.Float3 z)
-            => new Hlsl.Float3() { Code = $"lerp({x.Code}, {y.Code}, {z.Code})", Value = x.Value != null && y.Value != null && z.Value != null ? math.lerp(x.Value.Value, y.Value.Value, z.Value.Value) : Hlsl.Float3.Null };
+            => new Hlsl.Float3() { Value = x.Value != null && y.Value != null && z.Value != null ? math.lerp(x.Value.Value, y.Value.Value, z.Value.Value) : Hlsl.Float3.Null };
 
         public static Hlsl.Float4 lerp(Hlsl.Float4 x, Hlsl.Float4 y, Hlsl.Float4 z)
-            => new Hlsl.Float4() { Code = $"lerp({x.Code}, {y.Code}, {z.Code})", Value = x.Value != null && y.Value != null && z.Value != null ? math.lerp(x.Value.Value, y.Value.Value, z.Value.Value) : Hlsl.Float4.Null };
+            => new Hlsl.Float4() { Value = x.Value != null && y.Value != null && z.Value != null ? math.lerp(x.Value.Value, y.Value.Value, z.Value.Value) : Hlsl.Float4.Null };
 
         public static Hlsl.Float log(Hlsl.Float x)
-            => new Hlsl.Float() { Code = $"log({x.Code})", Value = x.Value != null ? math.log(x.Value.Value) : Hlsl.Float.Null };
+            => new Hlsl.Float() { Value = x.Value != null ? math.log(x.Value.Value) : Hlsl.Float.Null };
 
         public static Hlsl.Float2 log(Hlsl.Float2 x)
-            => new Hlsl.Float2() { Code = $"log({x.Code})", Value = x.Value != null ? math.log(x.Value.Value) : Hlsl.Float2.Null };
+            => new Hlsl.Float2() { Value = x.Value != null ? math.log(x.Value.Value) : Hlsl.Float2.Null };
 
         public static Hlsl.Float3 log(Hlsl.Float3 x)
-            => new Hlsl.Float3() { Code = $"log({x.Code})", Value = x.Value != null ? math.log(x.Value.Value) : Hlsl.Float3.Null };
+            => new Hlsl.Float3() { Value = x.Value != null ? math.log(x.Value.Value) : Hlsl.Float3.Null };
 
         public static Hlsl.Float4 log(Hlsl.Float4 x)
-            => new Hlsl.Float4() { Code = $"log({x.Code})", Value = x.Value != null ? math.log(x.Value.Value) : Hlsl.Float4.Null };
+            => new Hlsl.Float4() { Value = x.Value != null ? math.log(x.Value.Value) : Hlsl.Float4.Null };
 
         public static Hlsl.Float log10(Hlsl.Float x)
-            => new Hlsl.Float() { Code = $"log10({x.Code})", Value = x.Value != null ? math.log10(x.Value.Value) : Hlsl.Float.Null };
+            => new Hlsl.Float() { Value = x.Value != null ? math.log10(x.Value.Value) : Hlsl.Float.Null };
 
         public static Hlsl.Float2 log10(Hlsl.Float2 x)
-            => new Hlsl.Float2() { Code = $"log10({x.Code})", Value = x.Value != null ? math.log10(x.Value.Value) : Hlsl.Float2.Null };
+            => new Hlsl.Float2() { Value = x.Value != null ? math.log10(x.Value.Value) : Hlsl.Float2.Null };
 
         public static Hlsl.Float3 log10(Hlsl.Float3 x)
-            => new Hlsl.Float3() { Code = $"log10({x.Code})", Value = x.Value != null ? math.log10(x.Value.Value) : Hlsl.Float3.Null };
+            => new Hlsl.Float3() { Value = x.Value != null ? math.log10(x.Value.Value) : Hlsl.Float3.Null };
 
         public static Hlsl.Float4 log10(Hlsl.Float4 x)
-            => new Hlsl.Float4() { Code = $"log10({x.Code})", Value = x.Value != null ? math.log10(x.Value.Value) : Hlsl.Float4.Null };
+            => new Hlsl.Float4() { Value = x.Value != null ? math.log10(x.Value.Value) : Hlsl.Float4.Null };
 
         public static Hlsl.Float log2(Hlsl.Float x)
-            => new Hlsl.Float() { Code = $"log2({x.Code})", Value = x.Value != null ? math.log2(x.Value.Value) : Hlsl.Float.Null };
+            => new Hlsl.Float() { Value = x.Value != null ? math.log2(x.Value.Value) : Hlsl.Float.Null };
 
         public static Hlsl.Float2 log2(Hlsl.Float2 x)
-            => new Hlsl.Float2() { Code = $"log2({x.Code})", Value = x.Value != null ? math.log2(x.Value.Value) : Hlsl.Float2.Null };
+            => new Hlsl.Float2() { Value = x.Value != null ? math.log2(x.Value.Value) : Hlsl.Float2.Null };
 
         public static Hlsl.Float3 log2(Hlsl.Float3 x)
-            => new Hlsl.Float3() { Code = $"log2({x.Code})", Value = x.Value != null ? math.log2(x.Value.Value) : Hlsl.Float3.Null };
+            => new Hlsl.Float3() { Value = x.Value != null ? math.log2(x.Value.Value) : Hlsl.Float3.Null };
 
         public static Hlsl.Float4 log2(Hlsl.Float4 x)
-            => new Hlsl.Float4() { Code = $"log2({x.Code})", Value = x.Value != null ? math.log2(x.Value.Value) : Hlsl.Float4.Null };
+            => new Hlsl.Float4() { Value = x.Value != null ? math.log2(x.Value.Value) : Hlsl.Float4.Null };
 
         public static Hlsl.Float max(Hlsl.Float x, Hlsl.Float y)
-            => new Hlsl.Float() { Code = $"max({x.Code}, {y.Code})", Value = x.Value != null && y.Value != null ? math.max(x.Value.Value, y.Value.Value) : Hlsl.Float.Null };
+            => new Hlsl.Float() { Value = x.Value != null && y.Value != null ? math.max(x.Value.Value, y.Value.Value) : Hlsl.Float.Null };
 
         public static Hlsl.Float2 max(Hlsl.Float2 x, Hlsl.Float2 y)
-            => new Hlsl.Float2() { Code = $"max({x.Code}, {y.Code})", Value = x.Value != null && y.Value != null ? math.max(x.Value.Value, y.Value.Value) : Hlsl.Float2.Null };
+            => new Hlsl.Float2() { Value = x.Value != null && y.Value != null ? math.max(x.Value.Value, y.Value.Value) : Hlsl.Float2.Null };
 
         public static Hlsl.Float3 max(Hlsl.Float3 x, Hlsl.Float3 y)
-            => new Hlsl.Float3() { Code = $"max({x.Code}, {y.Code})", Value = x.Value != null && y.Value != null ? math.max(x.Value.Value, y.Value.Value) : Hlsl.Float3.Null };
+            => new Hlsl.Float3() { Value = x.Value != null && y.Value != null ? math.max(x.Value.Value, y.Value.Value) : Hlsl.Float3.Null };
 
         public static Hlsl.Float4 max(Hlsl.Float4 x, Hlsl.Float4 y)
-            => new Hlsl.Float4() { Code = $"max({x.Code}, {y.Code})", Value = x.Value != null && y.Value != null ? math.max(x.Value.Value, y.Value.Value) : Hlsl.Float4.Null };
+            => new Hlsl.Float4() { Value = x.Value != null && y.Value != null ? math.max(x.Value.Value, y.Value.Value) : Hlsl.Float4.Null };
 
         public static Hlsl.Float min(Hlsl.Float x, Hlsl.Float y)
-            => new Hlsl.Float() { Code = $"min({x.Code}, {y.Code})", Value = x.Value != null && y.Value != null ? math.min(x.Value.Value, y.Value.Value) : Hlsl.Float.Null };
+            => new Hlsl.Float() { Value = x.Value != null && y.Value != null ? math.min(x.Value.Value, y.Value.Value) : Hlsl.Float.Null };
 
         public static Hlsl.Float2 min(Hlsl.Float2 x, Hlsl.Float2 y)
-            => new Hlsl.Float2() { Code = $"min({x.Code}, {y.Code})", Value = x.Value != null && y.Value != null ? math.min(x.Value.Value, y.Value.Value) : Hlsl.Float2.Null };
+            => new Hlsl.Float2() { Value = x.Value != null && y.Value != null ? math.min(x.Value.Value, y.Value.Value) : Hlsl.Float2.Null };
 
         public static Hlsl.Float3 min(Hlsl.Float3 x, Hlsl.Float3 y)
-            => new Hlsl.Float3() { Code = $"min({x.Code}, {y.Code})", Value = x.Value != null && y.Value != null ? math.min(x.Value.Value, y.Value.Value) : Hlsl.Float3.Null };
+            => new Hlsl.Float3() { Value = x.Value != null && y.Value != null ? math.min(x.Value.Value, y.Value.Value) : Hlsl.Float3.Null };
 
         public static Hlsl.Float4 min(Hlsl.Float4 x, Hlsl.Float4 y)
-            => new Hlsl.Float4() { Code = $"min({x.Code}, {y.Code})", Value = x.Value != null && y.Value != null ? math.min(x.Value.Value, y.Value.Value) : Hlsl.Float4.Null };
+            => new Hlsl.Float4() { Value = x.Value != null && y.Value != null ? math.min(x.Value.Value, y.Value.Value) : Hlsl.Float4.Null };
 
         public static Hlsl.Float normalize(Hlsl.Float x)
-            => new Hlsl.Float() { Code = $"normalize({x.Code})", Value = x.Value != null ? MathUtils.normalize(x.Value.Value) : Hlsl.Float.Null };
+            => new Hlsl.Float() { Value = x.Value != null ? MathUtils.normalize(x.Value.Value) : Hlsl.Float.Null };
 
         public static Hlsl.Float2 normalize(Hlsl.Float2 x)
-            => new Hlsl.Float2() { Code = $"normalize({x.Code})", Value = x.Value != null ? MathUtils.normalize(x.Value.Value) : Hlsl.Float2.Null };
+            => new Hlsl.Float2() { Value = x.Value != null ? MathUtils.normalize(x.Value.Value) : Hlsl.Float2.Null };
 
         public static Hlsl.Float3 normalize(Hlsl.Float3 x)
-            => new Hlsl.Float3() { Code = $"normalize({x.Code})", Value = x.Value != null ? MathUtils.normalize(x.Value.Value) : Hlsl.Float3.Null };
+            => new Hlsl.Float3() { Value = x.Value != null ? MathUtils.normalize(x.Value.Value) : Hlsl.Float3.Null };
 
         public static Hlsl.Float4 normalize(Hlsl.Float4 x)
-            => new Hlsl.Float4() { Code = $"normalize({x.Code})", Value = x.Value != null ? MathUtils.normalize(x.Value.Value) : Hlsl.Float4.Null };
+            => new Hlsl.Float4() { Value = x.Value != null ? MathUtils.normalize(x.Value.Value) : Hlsl.Float4.Null };
 
         public static Hlsl.Float pow(Hlsl.Float x, Hlsl.Float y)
-            => new Hlsl.Float() { Code = $"pow({x.Code}, {y.Code})", Value = x.Value != null && y.Value != null ? math.pow(x.Value.Value, y.Value.Value) : Hlsl.Float.Null };
+            => new Hlsl.Float() { Value = x.Value != null && y.Value != null ? math.pow(x.Value.Value, y.Value.Value) : Hlsl.Float.Null };
 
         public static Hlsl.Float2 pow(Hlsl.Float2 x, Hlsl.Float2 y)
-            => new Hlsl.Float2() { Code = $"pow({x.Code}, {y.Code})", Value = x.Value != null && y.Value != null ? math.pow(x.Value.Value, y.Value.Value) : Hlsl.Float2.Null };
+            => new Hlsl.Float2() { Value = x.Value != null && y.Value != null ? math.pow(x.Value.Value, y.Value.Value) : Hlsl.Float2.Null };
 
         public static Hlsl.Float3 pow(Hlsl.Float3 x, Hlsl.Float3 y)
-            => new Hlsl.Float3() { Code = $"pow({x.Code}, {y.Code})", Value = x.Value != null && y.Value != null ? math.pow(x.Value.Value, y.Value.Value) : Hlsl.Float3.Null };
+            => new Hlsl.Float3() { Value = x.Value != null && y.Value != null ? math.pow(x.Value.Value, y.Value.Value) : Hlsl.Float3.Null };
 
         public static Hlsl.Float4 pow(Hlsl.Float4 x, Hlsl.Float4 y)
-            => new Hlsl.Float4() { Code = $"pow({x.Code}, {y.Code})", Value = x.Value != null && y.Value != null ? math.pow(x.Value.Value, y.Value.Value) : Hlsl.Float4.Null };
+            => new Hlsl.Float4() { Value = x.Value != null && y.Value != null ? math.pow(x.Value.Value, y.Value.Value) : Hlsl.Float4.Null };
 
         public static Hlsl.Float radians(Hlsl.Float x)
-            => new Hlsl.Float() { Code = $"radians({x.Code})", Value = x.Value != null ? math.radians(x.Value.Value) : Hlsl.Float.Null };
+            => new Hlsl.Float() { Value = x.Value != null ? math.radians(x.Value.Value) : Hlsl.Float.Null };
 
         public static Hlsl.Float2 radians(Hlsl.Float2 x)
-            => new Hlsl.Float2() { Code = $"radians({x.Code})", Value = x.Value != null ? math.radians(x.Value.Value) : Hlsl.Float2.Null };
+            => new Hlsl.Float2() { Value = x.Value != null ? math.radians(x.Value.Value) : Hlsl.Float2.Null };
 
         public static Hlsl.Float3 radians(Hlsl.Float3 x)
-            => new Hlsl.Float3() { Code = $"radians({x.Code})", Value = x.Value != null ? math.radians(x.Value.Value) : Hlsl.Float3.Null };
+            => new Hlsl.Float3() { Value = x.Value != null ? math.radians(x.Value.Value) : Hlsl.Float3.Null };
 
         public static Hlsl.Float4 radians(Hlsl.Float4 x)
-            => new Hlsl.Float4() { Code = $"radians({x.Code})", Value = x.Value != null ? math.radians(x.Value.Value) : Hlsl.Float4.Null };
+            => new Hlsl.Float4() { Value = x.Value != null ? math.radians(x.Value.Value) : Hlsl.Float4.Null };
 
         public static Hlsl.Float reflect(Hlsl.Float x, Hlsl.Float y)
-            => new Hlsl.Float() { Code = $"reflect({x.Code}, {y.Code})", Value = x.Value != null && y.Value != null ? MathUtils.reflect(x.Value.Value, y.Value.Value) : Hlsl.Float.Null };
+            => new Hlsl.Float() { Value = x.Value != null && y.Value != null ? MathUtils.reflect(x.Value.Value, y.Value.Value) : Hlsl.Float.Null };
 
         public static Hlsl.Float2 reflect(Hlsl.Float2 x, Hlsl.Float2 y)
-            => new Hlsl.Float2() { Code = $"reflect({x.Code}, {y.Code})", Value = x.Value != null && y.Value != null ? MathUtils.reflect(x.Value.Value, y.Value.Value) : Hlsl.Float2.Null };
+            => new Hlsl.Float2() { Value = x.Value != null && y.Value != null ? MathUtils.reflect(x.Value.Value, y.Value.Value) : Hlsl.Float2.Null };
 
         public static Hlsl.Float3 reflect(Hlsl.Float3 x, Hlsl.Float3 y)
-            => new Hlsl.Float3() { Code = $"reflect({x.Code}, {y.Code})", Value = x.Value != null && y.Value != null ? MathUtils.reflect(x.Value.Value, y.Value.Value) : Hlsl.Float3.Null };
+            => new Hlsl.Float3() { Value = x.Value != null && y.Value != null ? MathUtils.reflect(x.Value.Value, y.Value.Value) : Hlsl.Float3.Null };
 
         public static Hlsl.Float4 reflect(Hlsl.Float4 x, Hlsl.Float4 y)
-            => new Hlsl.Float4() { Code = $"reflect({x.Code}, {y.Code})", Value = x.Value != null && y.Value != null ? MathUtils.reflect(x.Value.Value, y.Value.Value) : Hlsl.Float4.Null };
+            => new Hlsl.Float4() { Value = x.Value != null && y.Value != null ? MathUtils.reflect(x.Value.Value, y.Value.Value) : Hlsl.Float4.Null };
 
         public static Hlsl.Float refract(Hlsl.Float x, Hlsl.Float y, Hlsl.Float z)
-            => new Hlsl.Float() { Code = $"refract({x.Code}, {y.Code}, {z.Code})", Value = x.Value != null && y.Value != null && z.Value != null ? MathUtils.refract(x.Value.Value, y.Value.Value, z.Value.Value) : Hlsl.Float.Null };
+            => new Hlsl.Float() { Value = x.Value != null && y.Value != null && z.Value != null ? MathUtils.refract(x.Value.Value, y.Value.Value, z.Value.Value) : Hlsl.Float.Null };
 
         public static Hlsl.Float2 refract(Hlsl.Float2 x, Hlsl.Float2 y, Hlsl.Float z)
-            => new Hlsl.Float2() { Code = $"refract({x.Code}, {y.Code}, {z.Code})", Value = x.Value != null && y.Value != null && z.Value != null ? MathUtils.refract(x.Value.Value, y.Value.Value, z.Value.Value) : Hlsl.Float2.Null };
+            => new Hlsl.Float2() { Value = x.Value != null && y.Value != null && z.Value != null ? MathUtils.refract(x.Value.Value, y.Value.Value, z.Value.Value) : Hlsl.Float2.Null };
 
         public static Hlsl.Float3 refract(Hlsl.Float3 x, Hlsl.Float3 y, Hlsl.Float z)
-            => new Hlsl.Float3() { Code = $"refract({x.Code}, {y.Code}, {z.Code})", Value = x.Value != null && y.Value != null && z.Value != null ? MathUtils.refract(x.Value.Value, y.Value.Value, z.Value.Value) : Hlsl.Float3.Null };
+            => new Hlsl.Float3() { Value = x.Value != null && y.Value != null && z.Value != null ? MathUtils.refract(x.Value.Value, y.Value.Value, z.Value.Value) : Hlsl.Float3.Null };
 
         public static Hlsl.Float4 refract(Hlsl.Float4 x, Hlsl.Float4 y, Hlsl.Float z)
-            => new Hlsl.Float4() { Code = $"refract({x.Code}, {y.Code}, {z.Code})", Value = x.Value != null && y.Value != null && z.Value != null ? MathUtils.refract(x.Value.Value, y.Value.Value, z.Value.Value) : Hlsl.Float4.Null };
+            => new Hlsl.Float4() { Value = x.Value != null && y.Value != null && z.Value != null ? MathUtils.refract(x.Value.Value, y.Value.Value, z.Value.Value) : Hlsl.Float4.Null };
 
         public static Hlsl.Float rcp(Hlsl.Float x)
-            => new Hlsl.Float() { Code = $"rcp({x.Code})", Value = x.Value != null ? math.rcp(x.Value.Value) : Hlsl.Float.Null };
+            => new Hlsl.Float() { Value = x.Value != null ? math.rcp(x.Value.Value) : Hlsl.Float.Null };
 
         public static Hlsl.Float2 rcp(Hlsl.Float2 x)
-            => new Hlsl.Float2() { Code = $"rcp({x.Code})", Value = x.Value != null ? math.rcp(x.Value.Value) : Hlsl.Float2.Null };
+            => new Hlsl.Float2() { Value = x.Value != null ? math.rcp(x.Value.Value) : Hlsl.Float2.Null };
 
         public static Hlsl.Float3 rcp(Hlsl.Float3 x)
-            => new Hlsl.Float3() { Code = $"rcp({x.Code})", Value = x.Value != null ? math.rcp(x.Value.Value) : Hlsl.Float3.Null };
+            => new Hlsl.Float3() { Value = x.Value != null ? math.rcp(x.Value.Value) : Hlsl.Float3.Null };
 
         public static Hlsl.Float4 rcp(Hlsl.Float4 x)
-            => new Hlsl.Float4() { Code = $"rcp({x.Code})", Value = x.Value != null ? math.rcp(x.Value.Value) : Hlsl.Float4.Null };
+            => new Hlsl.Float4() { Value = x.Value != null ? math.rcp(x.Value.Value) : Hlsl.Float4.Null };
 
         public static Hlsl.Float round(Hlsl.Float x)
-            => new Hlsl.Float() { Code = $"round({x.Code})", Value = x.Value != null ? math.round(x.Value.Value) : Hlsl.Float.Null };
+            => new Hlsl.Float() { Value = x.Value != null ? math.round(x.Value.Value) : Hlsl.Float.Null };
 
         public static Hlsl.Float2 round(Hlsl.Float2 x)
-            => new Hlsl.Float2() { Code = $"round({x.Code})", Value = x.Value != null ? math.round(x.Value.Value) : Hlsl.Float2.Null };
+            => new Hlsl.Float2() { Value = x.Value != null ? math.round(x.Value.Value) : Hlsl.Float2.Null };
 
         public static Hlsl.Float3 round(Hlsl.Float3 x)
-            => new Hlsl.Float3() { Code = $"round({x.Code})", Value = x.Value != null ? math.round(x.Value.Value) : Hlsl.Float3.Null };
+            => new Hlsl.Float3() { Value = x.Value != null ? math.round(x.Value.Value) : Hlsl.Float3.Null };
 
         public static Hlsl.Float4 round(Hlsl.Float4 x)
-            => new Hlsl.Float4() { Code = $"round({x.Code})", Value = x.Value != null ? math.round(x.Value.Value) : Hlsl.Float4.Null };
+            => new Hlsl.Float4() { Value = x.Value != null ? math.round(x.Value.Value) : Hlsl.Float4.Null };
 
         public static Hlsl.Float rsqrt(Hlsl.Float x)
-            => new Hlsl.Float() { Code = $"rsqrt({x.Code})", Value = x.Value != null ? math.rsqrt(x.Value.Value) : Hlsl.Float.Null };
+            => new Hlsl.Float() { Value = x.Value != null ? math.rsqrt(x.Value.Value) : Hlsl.Float.Null };
 
         public static Hlsl.Float2 rsqrt(Hlsl.Float2 x)
-            => new Hlsl.Float2() { Code = $"rsqrt({x.Code})", Value = x.Value != null ? math.rsqrt(x.Value.Value) : Hlsl.Float2.Null };
+            => new Hlsl.Float2() { Value = x.Value != null ? math.rsqrt(x.Value.Value) : Hlsl.Float2.Null };
 
         public static Hlsl.Float3 rsqrt(Hlsl.Float3 x)
-            => new Hlsl.Float3() { Code = $"rsqrt({x.Code})", Value = x.Value != null ? math.rsqrt(x.Value.Value) : Hlsl.Float3.Null };
+            => new Hlsl.Float3() { Value = x.Value != null ? math.rsqrt(x.Value.Value) : Hlsl.Float3.Null };
 
         public static Hlsl.Float4 rsqrt(Hlsl.Float4 x)
-            => new Hlsl.Float4() { Code = $"rsqrt({x.Code})", Value = x.Value != null ? math.rsqrt(x.Value.Value) : Hlsl.Float4.Null };
+            => new Hlsl.Float4() { Value = x.Value != null ? math.rsqrt(x.Value.Value) : Hlsl.Float4.Null };
 
         public static Hlsl.Float saturate(Hlsl.Float x)
-            => new Hlsl.Float() { Code = $"saturate({x.Code})", Value = x.Value != null ? math.saturate(x.Value.Value) : Hlsl.Float.Null };
+            => new Hlsl.Float() { Value = x.Value != null ? math.saturate(x.Value.Value) : Hlsl.Float.Null };
 
         public static Hlsl.Float2 saturate(Hlsl.Float2 x)
-            => new Hlsl.Float2() { Code = $"saturate({x.Code})", Value = x.Value != null ? math.saturate(x.Value.Value) : Hlsl.Float2.Null };
+            => new Hlsl.Float2() { Value = x.Value != null ? math.saturate(x.Value.Value) : Hlsl.Float2.Null };
 
         public static Hlsl.Float3 saturate(Hlsl.Float3 x)
-            => new Hlsl.Float3() { Code = $"saturate({x.Code})", Value = x.Value != null ? math.saturate(x.Value.Value) : Hlsl.Float3.Null };
+            => new Hlsl.Float3() { Value = x.Value != null ? math.saturate(x.Value.Value) : Hlsl.Float3.Null };
 
         public static Hlsl.Float4 saturate(Hlsl.Float4 x)
-            => new Hlsl.Float4() { Code = $"saturate({x.Code})", Value = x.Value != null ? math.saturate(x.Value.Value) : Hlsl.Float4.Null };
+            => new Hlsl.Float4() { Value = x.Value != null ? math.saturate(x.Value.Value) : Hlsl.Float4.Null };
 
         public static Hlsl.Float sign(Hlsl.Float x)
-            => new Hlsl.Float() { Code = $"sign({x.Code})", Value = x.Value != null ? math.sign(x.Value.Value) : Hlsl.Float.Null };
+            => new Hlsl.Float() { Value = x.Value != null ? math.sign(x.Value.Value) : Hlsl.Float.Null };
 
         public static Hlsl.Float2 sign(Hlsl.Float2 x)
-            => new Hlsl.Float2() { Code = $"sign({x.Code})", Value = x.Value != null ? math.sign(x.Value.Value) : Hlsl.Float2.Null };
+            => new Hlsl.Float2() { Value = x.Value != null ? math.sign(x.Value.Value) : Hlsl.Float2.Null };
 
         public static Hlsl.Float3 sign(Hlsl.Float3 x)
-            => new Hlsl.Float3() { Code = $"sign({x.Code})", Value = x.Value != null ? math.sign(x.Value.Value) : Hlsl.Float3.Null };
+            => new Hlsl.Float3() { Value = x.Value != null ? math.sign(x.Value.Value) : Hlsl.Float3.Null };
 
         public static Hlsl.Float4 sign(Hlsl.Float4 x)
-            => new Hlsl.Float4() { Code = $"sign({x.Code})", Value = x.Value != null ? math.sign(x.Value.Value) : Hlsl.Float4.Null };
+            => new Hlsl.Float4() { Value = x.Value != null ? math.sign(x.Value.Value) : Hlsl.Float4.Null };
 
         public static Hlsl.Float sin(Hlsl.Float x)
-            => new Hlsl.Float() { Code = $"sin({x.Code})", Value = x.Value != null ? math.sin(x.Value.Value) : Hlsl.Float.Null };
+            => new Hlsl.Float() { Value = x.Value != null ? math.sin(x.Value.Value) : Hlsl.Float.Null };
 
         public static Hlsl.Float2 sin(Hlsl.Float2 x)
-            => new Hlsl.Float2() { Code = $"sin({x.Code})", Value = x.Value != null ? math.sin(x.Value.Value) : Hlsl.Float2.Null };
+            => new Hlsl.Float2() { Value = x.Value != null ? math.sin(x.Value.Value) : Hlsl.Float2.Null };
 
         public static Hlsl.Float3 sin(Hlsl.Float3 x)
-            => new Hlsl.Float3() { Code = $"sin({x.Code})", Value = x.Value != null ? math.sin(x.Value.Value) : Hlsl.Float3.Null };
+            => new Hlsl.Float3() { Value = x.Value != null ? math.sin(x.Value.Value) : Hlsl.Float3.Null };
 
         public static Hlsl.Float4 sin(Hlsl.Float4 x)
-            => new Hlsl.Float4() { Code = $"sin({x.Code})", Value = x.Value != null ? math.sin(x.Value.Value) : Hlsl.Float4.Null };
+            => new Hlsl.Float4() { Value = x.Value != null ? math.sin(x.Value.Value) : Hlsl.Float4.Null };
 
         public static Hlsl.Float sinh(Hlsl.Float x)
-            => new Hlsl.Float() { Code = $"sinh({x.Code})", Value = x.Value != null ? math.sinh(x.Value.Value) : Hlsl.Float.Null };
+            => new Hlsl.Float() { Value = x.Value != null ? math.sinh(x.Value.Value) : Hlsl.Float.Null };
 
         public static Hlsl.Float2 sinh(Hlsl.Float2 x)
-            => new Hlsl.Float2() { Code = $"sinh({x.Code})", Value = x.Value != null ? math.sinh(x.Value.Value) : Hlsl.Float2.Null };
+            => new Hlsl.Float2() { Value = x.Value != null ? math.sinh(x.Value.Value) : Hlsl.Float2.Null };
 
         public static Hlsl.Float3 sinh(Hlsl.Float3 x)
-            => new Hlsl.Float3() { Code = $"sinh({x.Code})", Value = x.Value != null ? math.sinh(x.Value.Value) : Hlsl.Float3.Null };
+            => new Hlsl.Float3() { Value = x.Value != null ? math.sinh(x.Value.Value) : Hlsl.Float3.Null };
 
         public static Hlsl.Float4 sinh(Hlsl.Float4 x)
-            => new Hlsl.Float4() { Code = $"sinh({x.Code})", Value = x.Value != null ? math.sinh(x.Value.Value) : Hlsl.Float4.Null };
+            => new Hlsl.Float4() { Value = x.Value != null ? math.sinh(x.Value.Value) : Hlsl.Float4.Null };
 
         public static Hlsl.Float smoothstep(Hlsl.Float x, Hlsl.Float y, Hlsl.Float z)
-            => new Hlsl.Float() { Code = $"smoothstep({x.Code}, {y.Code}, {z.Code})", Value = x.Value != null && y.Value != null && z.Value != null ? math.smoothstep(x.Value.Value, y.Value.Value, z.Value.Value) : Hlsl.Float.Null };
+            => new Hlsl.Float() { Value = x.Value != null && y.Value != null && z.Value != null ? math.smoothstep(x.Value.Value, y.Value.Value, z.Value.Value) : Hlsl.Float.Null };
 
         public static Hlsl.Float2 smoothstep(Hlsl.Float2 x, Hlsl.Float2 y, Hlsl.Float2 z)
-            => new Hlsl.Float2() { Code = $"smoothstep({x.Code}, {y.Code}, {z.Code})", Value = x.Value != null && y.Value != null && z.Value != null ? math.smoothstep(x.Value.Value, y.Value.Value, z.Value.Value) : Hlsl.Float2.Null };
+            => new Hlsl.Float2() { Value = x.Value != null && y.Value != null && z.Value != null ? math.smoothstep(x.Value.Value, y.Value.Value, z.Value.Value) : Hlsl.Float2.Null };
 
         public static Hlsl.Float3 smoothstep(Hlsl.Float3 x, Hlsl.Float3 y, Hlsl.Float3 z)
-            => new Hlsl.Float3() { Code = $"smoothstep({x.Code}, {y.Code}, {z.Code})", Value = x.Value != null && y.Value != null && z.Value != null ? math.smoothstep(x.Value.Value, y.Value.Value, z.Value.Value) : Hlsl.Float3.Null };
+            => new Hlsl.Float3() { Value = x.Value != null && y.Value != null && z.Value != null ? math.smoothstep(x.Value.Value, y.Value.Value, z.Value.Value) : Hlsl.Float3.Null };
 
         public static Hlsl.Float4 smoothstep(Hlsl.Float4 x, Hlsl.Float4 y, Hlsl.Float4 z)
-            => new Hlsl.Float4() { Code = $"smoothstep({x.Code}, {y.Code}, {z.Code})", Value = x.Value != null && y.Value != null && z.Value != null ? math.smoothstep(x.Value.Value, y.Value.Value, z.Value.Value) : Hlsl.Float4.Null };
+            => new Hlsl.Float4() { Value = x.Value != null && y.Value != null && z.Value != null ? math.smoothstep(x.Value.Value, y.Value.Value, z.Value.Value) : Hlsl.Float4.Null };
 
         public static Hlsl.Float sqrt(Hlsl.Float x)
-            => new Hlsl.Float() { Code = $"sqrt({x.Code})", Value = x.Value != null ? math.sqrt(x.Value.Value) : Hlsl.Float.Null };
+            => new Hlsl.Float() { Value = x.Value != null ? math.sqrt(x.Value.Value) : Hlsl.Float.Null };
 
         public static Hlsl.Float2 sqrt(Hlsl.Float2 x)
-            => new Hlsl.Float2() { Code = $"sqrt({x.Code})", Value = x.Value != null ? math.sqrt(x.Value.Value) : Hlsl.Float2.Null };
+            => new Hlsl.Float2() { Value = x.Value != null ? math.sqrt(x.Value.Value) : Hlsl.Float2.Null };
 
         public static Hlsl.Float3 sqrt(Hlsl.Float3 x)
-            => new Hlsl.Float3() { Code = $"sqrt({x.Code})", Value = x.Value != null ? math.sqrt(x.Value.Value) : Hlsl.Float3.Null };
+            => new Hlsl.Float3() { Value = x.Value != null ? math.sqrt(x.Value.Value) : Hlsl.Float3.Null };
 
         public static Hlsl.Float4 sqrt(Hlsl.Float4 x)
-            => new Hlsl.Float4() { Code = $"sqrt({x.Code})", Value = x.Value != null ? math.sqrt(x.Value.Value) : Hlsl.Float4.Null };
+            => new Hlsl.Float4() { Value = x.Value != null ? math.sqrt(x.Value.Value) : Hlsl.Float4.Null };
 
         public static Hlsl.Float step(Hlsl.Float x, Hlsl.Float y)
-            => new Hlsl.Float() { Code = $"step({x.Code}, {y.Code})", Value = x.Value != null && y.Value != null ? math.step(x.Value.Value, y.Value.Value) : Hlsl.Float.Null };
+            => new Hlsl.Float() { Value = x.Value != null && y.Value != null ? math.step(x.Value.Value, y.Value.Value) : Hlsl.Float.Null };
 
         public static Hlsl.Float2 step(Hlsl.Float2 x, Hlsl.Float2 y)
-            => new Hlsl.Float2() { Code = $"step({x.Code}, {y.Code})", Value = x.Value != null && y.Value != null ? math.step(x.Value.Value, y.Value.Value) : Hlsl.Float2.Null };
+            => new Hlsl.Float2() { Value = x.Value != null && y.Value != null ? math.step(x.Value.Value, y.Value.Value) : Hlsl.Float2.Null };
 
         public static Hlsl.Float3 step(Hlsl.Float3 x, Hlsl.Float3 y)
-            => new Hlsl.Float3() { Code = $"step({x.Code}, {y.Code})", Value = x.Value != null && y.Value != null ? math.step(x.Value.Value, y.Value.Value) : Hlsl.Float3.Null };
+            => new Hlsl.Float3() { Value = x.Value != null && y.Value != null ? math.step(x.Value.Value, y.Value.Value) : Hlsl.Float3.Null };
 
         public static Hlsl.Float4 step(Hlsl.Float4 x, Hlsl.Float4 y)
-            => new Hlsl.Float4() { Code = $"step({x.Code}, {y.Code})", Value = x.Value != null && y.Value != null ? math.step(x.Value.Value, y.Value.Value) : Hlsl.Float4.Null };
+            => new Hlsl.Float4() { Value = x.Value != null && y.Value != null ? math.step(x.Value.Value, y.Value.Value) : Hlsl.Float4.Null };
 
         public static Hlsl.Float tan(Hlsl.Float x)
-            => new Hlsl.Float() { Code = $"tan({x.Code})", Value = x.Value != null ? math.tan(x.Value.Value) : Hlsl.Float.Null };
+            => new Hlsl.Float() { Value = x.Value != null ? math.tan(x.Value.Value) : Hlsl.Float.Null };
 
         public static Hlsl.Float2 tan(Hlsl.Float2 x)
-            => new Hlsl.Float2() { Code = $"tan({x.Code})", Value = x.Value != null ? math.tan(x.Value.Value) : Hlsl.Float2.Null };
+            => new Hlsl.Float2() { Value = x.Value != null ? math.tan(x.Value.Value) : Hlsl.Float2.Null };
 
         public static Hlsl.Float3 tan(Hlsl.Float3 x)
-            => new Hlsl.Float3() { Code = $"tan({x.Code})", Value = x.Value != null ? math.tan(x.Value.Value) : Hlsl.Float3.Null };
+            => new Hlsl.Float3() { Value = x.Value != null ? math.tan(x.Value.Value) : Hlsl.Float3.Null };
 
         public static Hlsl.Float4 tan(Hlsl.Float4 x)
-            => new Hlsl.Float4() { Code = $"tan({x.Code})", Value = x.Value != null ? math.tan(x.Value.Value) : Hlsl.Float4.Null };
+            => new Hlsl.Float4() { Value = x.Value != null ? math.tan(x.Value.Value) : Hlsl.Float4.Null };
 
         public static Hlsl.Float tanh(Hlsl.Float x)
-            => new Hlsl.Float() { Code = $"tanh({x.Code})", Value = x.Value != null ? math.tanh(x.Value.Value) : Hlsl.Float.Null };
+            => new Hlsl.Float() { Value = x.Value != null ? math.tanh(x.Value.Value) : Hlsl.Float.Null };
 
         public static Hlsl.Float2 tanh(Hlsl.Float2 x)
-            => new Hlsl.Float2() { Code = $"tanh({x.Code})", Value = x.Value != null ? math.tanh(x.Value.Value) : Hlsl.Float2.Null };
+            => new Hlsl.Float2() { Value = x.Value != null ? math.tanh(x.Value.Value) : Hlsl.Float2.Null };
 
         public static Hlsl.Float3 tanh(Hlsl.Float3 x)
-            => new Hlsl.Float3() { Code = $"tanh({x.Code})", Value = x.Value != null ? math.tanh(x.Value.Value) : Hlsl.Float3.Null };
+            => new Hlsl.Float3() { Value = x.Value != null ? math.tanh(x.Value.Value) : Hlsl.Float3.Null };
 
         public static Hlsl.Float4 tanh(Hlsl.Float4 x)
-            => new Hlsl.Float4() { Code = $"tanh({x.Code})", Value = x.Value != null ? math.tanh(x.Value.Value) : Hlsl.Float4.Null };
+            => new Hlsl.Float4() { Value = x.Value != null ? math.tanh(x.Value.Value) : Hlsl.Float4.Null };
 
         public static Hlsl.Float trunc(Hlsl.Float x)
-            => new Hlsl.Float() { Code = $"trunc({x.Code})", Value = x.Value != null ? math.trunc(x.Value.Value) : Hlsl.Float.Null };
+            => new Hlsl.Float() { Value = x.Value != null ? math.trunc(x.Value.Value) : Hlsl.Float.Null };
 
         public static Hlsl.Float2 trunc(Hlsl.Float2 x)
-            => new Hlsl.Float2() { Code = $"trunc({x.Code})", Value = x.Value != null ? math.trunc(x.Value.Value) : Hlsl.Float2.Null };
+            => new Hlsl.Float2() { Value = x.Value != null ? math.trunc(x.Value.Value) : Hlsl.Float2.Null };
 
         public static Hlsl.Float3 trunc(Hlsl.Float3 x)
-            => new Hlsl.Float3() { Code = $"trunc({x.Code})", Value = x.Value != null ? math.trunc(x.Value.Value) : Hlsl.Float3.Null };
+            => new Hlsl.Float3() { Value = x.Value != null ? math.trunc(x.Value.Value) : Hlsl.Float3.Null };
 
         public static Hlsl.Float4 trunc(Hlsl.Float4 x)
-            => new Hlsl.Float4() { Code = $"trunc({x.Code})", Value = x.Value != null ? math.trunc(x.Value.Value) : Hlsl.Float4.Null };
+            => new Hlsl.Float4() { Value = x.Value != null ? math.trunc(x.Value.Value) : Hlsl.Float4.Null };
 
     }
 }
