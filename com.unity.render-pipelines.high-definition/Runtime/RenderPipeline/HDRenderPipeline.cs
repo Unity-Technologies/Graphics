@@ -26,7 +26,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         readonly DBufferManager m_DbufferManager;
         readonly SharedRTManager m_SharedRTManager = new SharedRTManager();
         readonly PostProcessSystem m_PostProcessSystem;
-        readonly XRSystem m_XRSystem = new XRSystem();
+        readonly XRSystem m_XRSystem;
 
         public bool frameSettingsHistoryEnabled = false;
 
@@ -246,6 +246,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // TODO: Might want to initialize to at least the window resolution to avoid un-necessary re-alloc in the player
             RTHandles.Initialize(1, 1, m_Asset.currentPlatformRenderPipelineSettings.supportMSAA, m_Asset.currentPlatformRenderPipelineSettings.msaaSampleCount);
 
+            m_XRSystem = new XRSystem(asset.renderPipelineResources.shaders.LookingGlassPS);
             m_GPUCopy = new GPUCopy(asset.renderPipelineResources.shaders.copyChannelCS);
 
             m_MipGenerator = new MipGenerator(m_Asset);
@@ -1004,7 +1005,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     bool cameraRequestedDynamicRes = false;
                     if (camera.GetComponent<HDAdditionalCameraData>() != null)
                     {
-                        cameraRequestedDynamicRes = camera.GetComponent<HDAdditionalCameraData>().allowDynamicResolution;
+                        cameraRequestedDynamicRes = true; // camera.GetComponent<HDAdditionalCameraData>().allowDynamicResolution;
 
                         // We are in a case where the platform does not support hw dynamic resolution, so we force the software fallback.
                         // TODO: Expose the graphics caps info on whether the platform supports hw dynamic resolution or not.
@@ -1949,6 +1950,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 aovRequest.PushCameraTexture(cmd, AOVBuffers.Color, hdCamera, m_CameraColorBuffer, aovBuffers);
             RenderPostProcess(cullingResults, hdCamera, target.id, renderContext, cmd);
+
+
+                bool useLookingGlass = true; // hdCamera.camera.GetComponent<LookingGlass.Holoplay>() != null;
+            if (useLookingGlass)
+                m_XRSystem.RenderLookingGlass(cmd, hdCamera, m_IntermediateAfterPostProcessBuffer);
+            else
 
             // In developer build, we always render post process in m_AfterPostProcessBuffer at (0,0) in which we will then render debug.
             // Because of this, we need another blit here to the final render target at the right viewport.
