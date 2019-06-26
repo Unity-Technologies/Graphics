@@ -2,6 +2,8 @@ using System.Reflection;
 using UnityEngine;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph.Drawing.Controls;
+using UnityEditor.ShaderGraph.Hlsl;
+using static UnityEditor.ShaderGraph.Hlsl.Intrinsics;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -49,34 +51,24 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        static string Unity_NormalBlend(
-            [Slot(0, Binding.None, 0, 0, 1, 0)] Vector3 A,
-            [Slot(1, Binding.None, 0, 0, 1, 0)] Vector3 B,
-            [Slot(2, Binding.None)] out Vector3 Out)
+        [HlslCodeGen]
+        static void Unity_NormalBlend(
+            [Slot(0, Binding.None, 0, 0, 1, 0)] Float3 A,
+            [Slot(1, Binding.None, 0, 0, 1, 0)] Float3 B,
+            [Slot(2, Binding.None)] out Float3 Out)
         {
-            Out = Vector3.one;
-
-            return @"
-{
-    Out = normalize($precision3(A.rg + B.rg, A.b * B.b));
-}
-";
+            Out = normalize(Float3(A.xy + B.xy, A.z * B.z));
         }
 
-        static string Unity_NormalBlend_Reoriented(
-            [Slot(0, Binding.None, 0, 0, 1, 0)] Vector3 A,
-            [Slot(1, Binding.None, 0, 0, 1, 0)] Vector3 B,
-            [Slot(2, Binding.None)] out Vector3 Out)
+        [HlslCodeGen]
+        static void Unity_NormalBlend_Reoriented(
+            [Slot(0, Binding.None, 0, 0, 1, 0)] Float3 A,
+            [Slot(1, Binding.None, 0, 0, 1, 0)] Float3 B,
+            [Slot(2, Binding.None)] out Float3 Out)
         {
-            Out = Vector3.one;
-            return
-                @"
-{
-	$precision3 t = A.xyz + $precision3(0.0, 0.0, 1.0);
-	$precision3 u = B.xyz * $precision3(-1.0, -1.0, 1.0);
-	Out = (t / t.z) * dot(t, u) - u;
-}
-";
+            var t = A + Float3(0.0, 0.0, 1.0);
+	        var u = B * Float3(-1.0, -1.0, 1.0);
+            Out = (t / t.z) * dot(t, u) - u;
         }
     }
 }

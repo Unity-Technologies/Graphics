@@ -1,5 +1,6 @@
 using System.Reflection;
-using UnityEngine;
+using UnityEditor.ShaderGraph.Hlsl;
+using static UnityEditor.ShaderGraph.Hlsl.Intrinsics;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -17,18 +18,13 @@ namespace UnityEditor.ShaderGraph
             return GetType().GetMethod("Unity_NormalStrength", BindingFlags.Static | BindingFlags.NonPublic);
         }
 
-        static string Unity_NormalStrength(
-            [Slot(0, Binding.None, 0, 0, 1, 0)] Vector3 In,
-            [Slot(1, Binding.None, 1, 1, 1, 1)] Vector1 Strength,
-            [Slot(2, Binding.None)] out Vector3 Out)
+        [HlslCodeGen]
+        static void Unity_NormalStrength(
+            [Slot(0, Binding.None, 0, 0, 1, 0)] Float3 In,
+            [Slot(1, Binding.None, 1, 1, 1, 1)] Float Strength,
+            [Slot(2, Binding.None)] out Float3 Out)
         {
-            Out = Vector3.up;
-            return
-                @"
-{
-    Out = $precision3(In.rg * Strength, lerp(1, In.b, saturate(Strength)));
-}
-";
+            Out = Float3(In.xy * Strength, lerp(1, In.z, saturate(Strength)));
         }
     }
 }

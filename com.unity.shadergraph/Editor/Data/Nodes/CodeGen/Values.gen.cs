@@ -44,17 +44,22 @@ namespace UnityEditor.ShaderGraph.Hlsl
         #region Swizzles
 
         public Float x
-            => new Float() { Value =Value != null ? (Value.Value) : Float.Null };
-
+        {
+            get => this;
+            set => this = value;
+        }
         public Float2 xx
-            => new Float2() { Value =Value != null ? float2(Value.Value) : Float2.Null };
-
+        {
+            get => new Float2() { Value = Value != null ? float2(Value.Value) : Float2.Null };
+        }
         public Float3 xxx
-            => new Float3() { Value =Value != null ? float3(Value.Value) : Float3.Null };
-
+        {
+            get => new Float3() { Value = Value != null ? float3(Value.Value) : Float3.Null };
+        }
         public Float4 xxxx
-            => new Float4() { Value =Value != null ? float4(Value.Value) : Float4.Null };
-
+        {
+            get => new Float4() { Value = Value != null ? float4(Value.Value) : Float4.Null };
+        }
         #endregion
     }
 
@@ -90,95 +95,135 @@ namespace UnityEditor.ShaderGraph.Hlsl
         #region Swizzles
 
         public Float x
-            => new Float() { Value =Value?.x };
-
+        {
+            get => new Float() { Value = Value?.x };
+            set
+            {
+                if (Value != null) Value = value.Value != null ? float2(value.Value.Value, Value.Value.y) : Float2.Null;
+            }
+        }
         public Float y
-            => new Float() { Value =Value?.y };
-
+        {
+            get => new Float() { Value = Value?.y };
+            set
+            {
+                if (Value != null) Value = value.Value != null ? float2(Value.Value.x, value.Value.Value) : Float2.Null;
+            }
+        }
         public Float2 xx
-            => new Float2() { Value =Value?.xx };
-
+        {
+            get => new Float2() { Value = Value?.xx };
+        }
         public Float2 xy
-            => new Float2() { Value =Value?.xy };
-
+        {
+            get => this;
+            set => this = value;
+        }
         public Float2 yx
-            => new Float2() { Value =Value?.yx };
-
+        {
+            get => new Float2() { Value = Value?.yx };
+            set => Value = value.Value?.yx;
+        }
         public Float2 yy
-            => new Float2() { Value =Value?.yy };
-
+        {
+            get => new Float2() { Value = Value?.yy };
+        }
         public Float3 xxx
-            => new Float3() { Value =Value?.xxx };
-
+        {
+            get => new Float3() { Value = Value?.xxx };
+        }
         public Float3 xxy
-            => new Float3() { Value =Value?.xxy };
-
+        {
+            get => new Float3() { Value = Value?.xxy };
+        }
         public Float3 xyx
-            => new Float3() { Value =Value?.xyx };
-
+        {
+            get => new Float3() { Value = Value?.xyx };
+        }
         public Float3 xyy
-            => new Float3() { Value =Value?.xyy };
-
+        {
+            get => new Float3() { Value = Value?.xyy };
+        }
         public Float3 yxx
-            => new Float3() { Value =Value?.yxx };
-
+        {
+            get => new Float3() { Value = Value?.yxx };
+        }
         public Float3 yxy
-            => new Float3() { Value =Value?.yxy };
-
+        {
+            get => new Float3() { Value = Value?.yxy };
+        }
         public Float3 yyx
-            => new Float3() { Value =Value?.yyx };
-
+        {
+            get => new Float3() { Value = Value?.yyx };
+        }
         public Float3 yyy
-            => new Float3() { Value =Value?.yyy };
-
+        {
+            get => new Float3() { Value = Value?.yyy };
+        }
         public Float4 xxxx
-            => new Float4() { Value =Value?.xxxx };
-
+        {
+            get => new Float4() { Value = Value?.xxxx };
+        }
         public Float4 xxxy
-            => new Float4() { Value =Value?.xxxy };
-
+        {
+            get => new Float4() { Value = Value?.xxxy };
+        }
         public Float4 xxyx
-            => new Float4() { Value =Value?.xxyx };
-
+        {
+            get => new Float4() { Value = Value?.xxyx };
+        }
         public Float4 xxyy
-            => new Float4() { Value =Value?.xxyy };
-
+        {
+            get => new Float4() { Value = Value?.xxyy };
+        }
         public Float4 xyxx
-            => new Float4() { Value =Value?.xyxx };
-
+        {
+            get => new Float4() { Value = Value?.xyxx };
+        }
         public Float4 xyxy
-            => new Float4() { Value =Value?.xyxy };
-
+        {
+            get => new Float4() { Value = Value?.xyxy };
+        }
         public Float4 xyyx
-            => new Float4() { Value =Value?.xyyx };
-
+        {
+            get => new Float4() { Value = Value?.xyyx };
+        }
         public Float4 xyyy
-            => new Float4() { Value =Value?.xyyy };
-
+        {
+            get => new Float4() { Value = Value?.xyyy };
+        }
         public Float4 yxxx
-            => new Float4() { Value =Value?.yxxx };
-
+        {
+            get => new Float4() { Value = Value?.yxxx };
+        }
         public Float4 yxxy
-            => new Float4() { Value =Value?.yxxy };
-
+        {
+            get => new Float4() { Value = Value?.yxxy };
+        }
         public Float4 yxyx
-            => new Float4() { Value =Value?.yxyx };
-
+        {
+            get => new Float4() { Value = Value?.yxyx };
+        }
         public Float4 yxyy
-            => new Float4() { Value =Value?.yxyy };
-
+        {
+            get => new Float4() { Value = Value?.yxyy };
+        }
         public Float4 yyxx
-            => new Float4() { Value =Value?.yyxx };
-
+        {
+            get => new Float4() { Value = Value?.yyxx };
+        }
         public Float4 yyxy
-            => new Float4() { Value =Value?.yyxy };
-
+        {
+            get => new Float4() { Value = Value?.yyxy };
+        }
         public Float4 yyyx
-            => new Float4() { Value =Value?.yyyx };
-
+        {
+            get => new Float4() { Value = Value?.yyyx };
+        }
         public Float4 yyyy
-            => new Float4() { Value =Value?.yyyy };
-
+        {
+            get => new Float4() { Value = Value?.yyyy };
+        }
         #endregion
     }
 
@@ -214,365 +259,527 @@ namespace UnityEditor.ShaderGraph.Hlsl
         #region Swizzles
 
         public Float x
-            => new Float() { Value =Value?.x };
-
+        {
+            get => new Float() { Value = Value?.x };
+            set
+            {
+                if (Value != null) Value = value.Value != null ? float3(value.Value.Value, Value.Value.yz) : Float3.Null;
+            }
+        }
         public Float y
-            => new Float() { Value =Value?.y };
-
+        {
+            get => new Float() { Value = Value?.y };
+            set
+            {
+                if (Value != null) Value = value.Value != null ? float3(Value.Value.x, value.Value.Value, Value.Value.z) : Float3.Null;
+            }
+        }
         public Float z
-            => new Float() { Value =Value?.z };
-
+        {
+            get => new Float() { Value = Value?.z };
+            set
+            {
+                if (Value != null) Value = value.Value != null ? float3(Value.Value.xy, value.Value.Value) : Float3.Null;
+            }
+        }
         public Float2 xx
-            => new Float2() { Value =Value?.xx };
-
+        {
+            get => new Float2() { Value = Value?.xx };
+        }
         public Float2 xy
-            => new Float2() { Value =Value?.xy };
-
+        {
+            get => new Float2() { Value = Value?.xy };
+            set
+            {
+                if (Value != null) Value = value.Value != null ? float3(value.Value.Value, Value.Value.z) : Float3.Null;
+            }
+        }
         public Float2 xz
-            => new Float2() { Value =Value?.xz };
-
+        {
+            get => new Float2() { Value = Value?.xz };
+            set
+            {
+                if (Value != null) Value = value.Value != null ? float3(value.Value.Value.x, Value.Value.y, value.Value.Value.y) : Float3.Null;
+            }
+        }
         public Float2 yx
-            => new Float2() { Value =Value?.yx };
-
+        {
+            get => new Float2() { Value = Value?.yx };
+            set
+            {
+                if (Value != null) Value = value.Value != null ? float3(value.Value.Value.yx, Value.Value.z) : Float3.Null;
+            }
+        }
         public Float2 yy
-            => new Float2() { Value =Value?.yy };
-
+        {
+            get => new Float2() { Value = Value?.yy };
+        }
         public Float2 yz
-            => new Float2() { Value =Value?.yz };
-
+        {
+            get => new Float2() { Value = Value?.yz };
+            set
+            {
+                if (Value != null) Value = value.Value != null ? float3(Value.Value.x, value.Value.Value) : Float3.Null;
+            }
+        }
         public Float2 zx
-            => new Float2() { Value =Value?.zx };
-
+        {
+            get => new Float2() { Value = Value?.zx };
+            set
+            {
+                if (Value != null) Value = value.Value != null ? float3(value.Value.Value.y, Value.Value.y, value.Value.Value.x) : Float3.Null;
+            }
+        }
         public Float2 zy
-            => new Float2() { Value =Value?.zy };
-
+        {
+            get => new Float2() { Value = Value?.zy };
+            set
+            {
+                if (Value != null) Value = value.Value != null ? float3(Value.Value.x, value.Value.Value.yx) : Float3.Null;
+            }
+        }
         public Float2 zz
-            => new Float2() { Value =Value?.zz };
-
+        {
+            get => new Float2() { Value = Value?.zz };
+        }
         public Float3 xxx
-            => new Float3() { Value =Value?.xxx };
-
+        {
+            get => new Float3() { Value = Value?.xxx };
+        }
         public Float3 xxy
-            => new Float3() { Value =Value?.xxy };
-
+        {
+            get => new Float3() { Value = Value?.xxy };
+        }
         public Float3 xxz
-            => new Float3() { Value =Value?.xxz };
-
+        {
+            get => new Float3() { Value = Value?.xxz };
+        }
         public Float3 xyx
-            => new Float3() { Value =Value?.xyx };
-
+        {
+            get => new Float3() { Value = Value?.xyx };
+        }
         public Float3 xyy
-            => new Float3() { Value =Value?.xyy };
-
+        {
+            get => new Float3() { Value = Value?.xyy };
+        }
         public Float3 xyz
-            => new Float3() { Value =Value?.xyz };
-
+        {
+            get => this;
+            set => this = value;
+        }
         public Float3 xzx
-            => new Float3() { Value =Value?.xzx };
-
+        {
+            get => new Float3() { Value = Value?.xzx };
+        }
         public Float3 xzy
-            => new Float3() { Value =Value?.xzy };
-
+        {
+            get => new Float3() { Value = Value?.xzy };
+            set => Value = value.Value?.xzy;
+        }
         public Float3 xzz
-            => new Float3() { Value =Value?.xzz };
-
+        {
+            get => new Float3() { Value = Value?.xzz };
+        }
         public Float3 yxx
-            => new Float3() { Value =Value?.yxx };
-
+        {
+            get => new Float3() { Value = Value?.yxx };
+        }
         public Float3 yxy
-            => new Float3() { Value =Value?.yxy };
-
+        {
+            get => new Float3() { Value = Value?.yxy };
+        }
         public Float3 yxz
-            => new Float3() { Value =Value?.yxz };
-
+        {
+            get => new Float3() { Value = Value?.yxz };
+            set => Value = value.Value?.yxz;
+        }
         public Float3 yyx
-            => new Float3() { Value =Value?.yyx };
-
+        {
+            get => new Float3() { Value = Value?.yyx };
+        }
         public Float3 yyy
-            => new Float3() { Value =Value?.yyy };
-
+        {
+            get => new Float3() { Value = Value?.yyy };
+        }
         public Float3 yyz
-            => new Float3() { Value =Value?.yyz };
-
+        {
+            get => new Float3() { Value = Value?.yyz };
+        }
         public Float3 yzx
-            => new Float3() { Value =Value?.yzx };
-
+        {
+            get => new Float3() { Value = Value?.yzx };
+            set => Value = value.Value?.zxy;
+        }
         public Float3 yzy
-            => new Float3() { Value =Value?.yzy };
-
+        {
+            get => new Float3() { Value = Value?.yzy };
+        }
         public Float3 yzz
-            => new Float3() { Value =Value?.yzz };
-
+        {
+            get => new Float3() { Value = Value?.yzz };
+        }
         public Float3 zxx
-            => new Float3() { Value =Value?.zxx };
-
+        {
+            get => new Float3() { Value = Value?.zxx };
+        }
         public Float3 zxy
-            => new Float3() { Value =Value?.zxy };
-
+        {
+            get => new Float3() { Value = Value?.zxy };
+            set => Value = value.Value?.yzx;
+        }
         public Float3 zxz
-            => new Float3() { Value =Value?.zxz };
-
+        {
+            get => new Float3() { Value = Value?.zxz };
+        }
         public Float3 zyx
-            => new Float3() { Value =Value?.zyx };
-
+        {
+            get => new Float3() { Value = Value?.zyx };
+            set => Value = value.Value?.zyx;
+        }
         public Float3 zyy
-            => new Float3() { Value =Value?.zyy };
-
+        {
+            get => new Float3() { Value = Value?.zyy };
+        }
         public Float3 zyz
-            => new Float3() { Value =Value?.zyz };
-
+        {
+            get => new Float3() { Value = Value?.zyz };
+        }
         public Float3 zzx
-            => new Float3() { Value =Value?.zzx };
-
+        {
+            get => new Float3() { Value = Value?.zzx };
+        }
         public Float3 zzy
-            => new Float3() { Value =Value?.zzy };
-
+        {
+            get => new Float3() { Value = Value?.zzy };
+        }
         public Float3 zzz
-            => new Float3() { Value =Value?.zzz };
-
+        {
+            get => new Float3() { Value = Value?.zzz };
+        }
         public Float4 xxxx
-            => new Float4() { Value =Value?.xxxx };
-
+        {
+            get => new Float4() { Value = Value?.xxxx };
+        }
         public Float4 xxxy
-            => new Float4() { Value =Value?.xxxy };
-
+        {
+            get => new Float4() { Value = Value?.xxxy };
+        }
         public Float4 xxxz
-            => new Float4() { Value =Value?.xxxz };
-
+        {
+            get => new Float4() { Value = Value?.xxxz };
+        }
         public Float4 xxyx
-            => new Float4() { Value =Value?.xxyx };
-
+        {
+            get => new Float4() { Value = Value?.xxyx };
+        }
         public Float4 xxyy
-            => new Float4() { Value =Value?.xxyy };
-
+        {
+            get => new Float4() { Value = Value?.xxyy };
+        }
         public Float4 xxyz
-            => new Float4() { Value =Value?.xxyz };
-
+        {
+            get => new Float4() { Value = Value?.xxyz };
+        }
         public Float4 xxzx
-            => new Float4() { Value =Value?.xxzx };
-
+        {
+            get => new Float4() { Value = Value?.xxzx };
+        }
         public Float4 xxzy
-            => new Float4() { Value =Value?.xxzy };
-
+        {
+            get => new Float4() { Value = Value?.xxzy };
+        }
         public Float4 xxzz
-            => new Float4() { Value =Value?.xxzz };
-
+        {
+            get => new Float4() { Value = Value?.xxzz };
+        }
         public Float4 xyxx
-            => new Float4() { Value =Value?.xyxx };
-
+        {
+            get => new Float4() { Value = Value?.xyxx };
+        }
         public Float4 xyxy
-            => new Float4() { Value =Value?.xyxy };
-
+        {
+            get => new Float4() { Value = Value?.xyxy };
+        }
         public Float4 xyxz
-            => new Float4() { Value =Value?.xyxz };
-
+        {
+            get => new Float4() { Value = Value?.xyxz };
+        }
         public Float4 xyyx
-            => new Float4() { Value =Value?.xyyx };
-
+        {
+            get => new Float4() { Value = Value?.xyyx };
+        }
         public Float4 xyyy
-            => new Float4() { Value =Value?.xyyy };
-
+        {
+            get => new Float4() { Value = Value?.xyyy };
+        }
         public Float4 xyyz
-            => new Float4() { Value =Value?.xyyz };
-
+        {
+            get => new Float4() { Value = Value?.xyyz };
+        }
         public Float4 xyzx
-            => new Float4() { Value =Value?.xyzx };
-
+        {
+            get => new Float4() { Value = Value?.xyzx };
+        }
         public Float4 xyzy
-            => new Float4() { Value =Value?.xyzy };
-
+        {
+            get => new Float4() { Value = Value?.xyzy };
+        }
         public Float4 xyzz
-            => new Float4() { Value =Value?.xyzz };
-
+        {
+            get => new Float4() { Value = Value?.xyzz };
+        }
         public Float4 xzxx
-            => new Float4() { Value =Value?.xzxx };
-
+        {
+            get => new Float4() { Value = Value?.xzxx };
+        }
         public Float4 xzxy
-            => new Float4() { Value =Value?.xzxy };
-
+        {
+            get => new Float4() { Value = Value?.xzxy };
+        }
         public Float4 xzxz
-            => new Float4() { Value =Value?.xzxz };
-
+        {
+            get => new Float4() { Value = Value?.xzxz };
+        }
         public Float4 xzyx
-            => new Float4() { Value =Value?.xzyx };
-
+        {
+            get => new Float4() { Value = Value?.xzyx };
+        }
         public Float4 xzyy
-            => new Float4() { Value =Value?.xzyy };
-
+        {
+            get => new Float4() { Value = Value?.xzyy };
+        }
         public Float4 xzyz
-            => new Float4() { Value =Value?.xzyz };
-
+        {
+            get => new Float4() { Value = Value?.xzyz };
+        }
         public Float4 xzzx
-            => new Float4() { Value =Value?.xzzx };
-
+        {
+            get => new Float4() { Value = Value?.xzzx };
+        }
         public Float4 xzzy
-            => new Float4() { Value =Value?.xzzy };
-
+        {
+            get => new Float4() { Value = Value?.xzzy };
+        }
         public Float4 xzzz
-            => new Float4() { Value =Value?.xzzz };
-
+        {
+            get => new Float4() { Value = Value?.xzzz };
+        }
         public Float4 yxxx
-            => new Float4() { Value =Value?.yxxx };
-
+        {
+            get => new Float4() { Value = Value?.yxxx };
+        }
         public Float4 yxxy
-            => new Float4() { Value =Value?.yxxy };
-
+        {
+            get => new Float4() { Value = Value?.yxxy };
+        }
         public Float4 yxxz
-            => new Float4() { Value =Value?.yxxz };
-
+        {
+            get => new Float4() { Value = Value?.yxxz };
+        }
         public Float4 yxyx
-            => new Float4() { Value =Value?.yxyx };
-
+        {
+            get => new Float4() { Value = Value?.yxyx };
+        }
         public Float4 yxyy
-            => new Float4() { Value =Value?.yxyy };
-
+        {
+            get => new Float4() { Value = Value?.yxyy };
+        }
         public Float4 yxyz
-            => new Float4() { Value =Value?.yxyz };
-
+        {
+            get => new Float4() { Value = Value?.yxyz };
+        }
         public Float4 yxzx
-            => new Float4() { Value =Value?.yxzx };
-
+        {
+            get => new Float4() { Value = Value?.yxzx };
+        }
         public Float4 yxzy
-            => new Float4() { Value =Value?.yxzy };
-
+        {
+            get => new Float4() { Value = Value?.yxzy };
+        }
         public Float4 yxzz
-            => new Float4() { Value =Value?.yxzz };
-
+        {
+            get => new Float4() { Value = Value?.yxzz };
+        }
         public Float4 yyxx
-            => new Float4() { Value =Value?.yyxx };
-
+        {
+            get => new Float4() { Value = Value?.yyxx };
+        }
         public Float4 yyxy
-            => new Float4() { Value =Value?.yyxy };
-
+        {
+            get => new Float4() { Value = Value?.yyxy };
+        }
         public Float4 yyxz
-            => new Float4() { Value =Value?.yyxz };
-
+        {
+            get => new Float4() { Value = Value?.yyxz };
+        }
         public Float4 yyyx
-            => new Float4() { Value =Value?.yyyx };
-
+        {
+            get => new Float4() { Value = Value?.yyyx };
+        }
         public Float4 yyyy
-            => new Float4() { Value =Value?.yyyy };
-
+        {
+            get => new Float4() { Value = Value?.yyyy };
+        }
         public Float4 yyyz
-            => new Float4() { Value =Value?.yyyz };
-
+        {
+            get => new Float4() { Value = Value?.yyyz };
+        }
         public Float4 yyzx
-            => new Float4() { Value =Value?.yyzx };
-
+        {
+            get => new Float4() { Value = Value?.yyzx };
+        }
         public Float4 yyzy
-            => new Float4() { Value =Value?.yyzy };
-
+        {
+            get => new Float4() { Value = Value?.yyzy };
+        }
         public Float4 yyzz
-            => new Float4() { Value =Value?.yyzz };
-
+        {
+            get => new Float4() { Value = Value?.yyzz };
+        }
         public Float4 yzxx
-            => new Float4() { Value =Value?.yzxx };
-
+        {
+            get => new Float4() { Value = Value?.yzxx };
+        }
         public Float4 yzxy
-            => new Float4() { Value =Value?.yzxy };
-
+        {
+            get => new Float4() { Value = Value?.yzxy };
+        }
         public Float4 yzxz
-            => new Float4() { Value =Value?.yzxz };
-
+        {
+            get => new Float4() { Value = Value?.yzxz };
+        }
         public Float4 yzyx
-            => new Float4() { Value =Value?.yzyx };
-
+        {
+            get => new Float4() { Value = Value?.yzyx };
+        }
         public Float4 yzyy
-            => new Float4() { Value =Value?.yzyy };
-
+        {
+            get => new Float4() { Value = Value?.yzyy };
+        }
         public Float4 yzyz
-            => new Float4() { Value =Value?.yzyz };
-
+        {
+            get => new Float4() { Value = Value?.yzyz };
+        }
         public Float4 yzzx
-            => new Float4() { Value =Value?.yzzx };
-
+        {
+            get => new Float4() { Value = Value?.yzzx };
+        }
         public Float4 yzzy
-            => new Float4() { Value =Value?.yzzy };
-
+        {
+            get => new Float4() { Value = Value?.yzzy };
+        }
         public Float4 yzzz
-            => new Float4() { Value =Value?.yzzz };
-
+        {
+            get => new Float4() { Value = Value?.yzzz };
+        }
         public Float4 zxxx
-            => new Float4() { Value =Value?.zxxx };
-
+        {
+            get => new Float4() { Value = Value?.zxxx };
+        }
         public Float4 zxxy
-            => new Float4() { Value =Value?.zxxy };
-
+        {
+            get => new Float4() { Value = Value?.zxxy };
+        }
         public Float4 zxxz
-            => new Float4() { Value =Value?.zxxz };
-
+        {
+            get => new Float4() { Value = Value?.zxxz };
+        }
         public Float4 zxyx
-            => new Float4() { Value =Value?.zxyx };
-
+        {
+            get => new Float4() { Value = Value?.zxyx };
+        }
         public Float4 zxyy
-            => new Float4() { Value =Value?.zxyy };
-
+        {
+            get => new Float4() { Value = Value?.zxyy };
+        }
         public Float4 zxyz
-            => new Float4() { Value =Value?.zxyz };
-
+        {
+            get => new Float4() { Value = Value?.zxyz };
+        }
         public Float4 zxzx
-            => new Float4() { Value =Value?.zxzx };
-
+        {
+            get => new Float4() { Value = Value?.zxzx };
+        }
         public Float4 zxzy
-            => new Float4() { Value =Value?.zxzy };
-
+        {
+            get => new Float4() { Value = Value?.zxzy };
+        }
         public Float4 zxzz
-            => new Float4() { Value =Value?.zxzz };
-
+        {
+            get => new Float4() { Value = Value?.zxzz };
+        }
         public Float4 zyxx
-            => new Float4() { Value =Value?.zyxx };
-
+        {
+            get => new Float4() { Value = Value?.zyxx };
+        }
         public Float4 zyxy
-            => new Float4() { Value =Value?.zyxy };
-
+        {
+            get => new Float4() { Value = Value?.zyxy };
+        }
         public Float4 zyxz
-            => new Float4() { Value =Value?.zyxz };
-
+        {
+            get => new Float4() { Value = Value?.zyxz };
+        }
         public Float4 zyyx
-            => new Float4() { Value =Value?.zyyx };
-
+        {
+            get => new Float4() { Value = Value?.zyyx };
+        }
         public Float4 zyyy
-            => new Float4() { Value =Value?.zyyy };
-
+        {
+            get => new Float4() { Value = Value?.zyyy };
+        }
         public Float4 zyyz
-            => new Float4() { Value =Value?.zyyz };
-
+        {
+            get => new Float4() { Value = Value?.zyyz };
+        }
         public Float4 zyzx
-            => new Float4() { Value =Value?.zyzx };
-
+        {
+            get => new Float4() { Value = Value?.zyzx };
+        }
         public Float4 zyzy
-            => new Float4() { Value =Value?.zyzy };
-
+        {
+            get => new Float4() { Value = Value?.zyzy };
+        }
         public Float4 zyzz
-            => new Float4() { Value =Value?.zyzz };
-
+        {
+            get => new Float4() { Value = Value?.zyzz };
+        }
         public Float4 zzxx
-            => new Float4() { Value =Value?.zzxx };
-
+        {
+            get => new Float4() { Value = Value?.zzxx };
+        }
         public Float4 zzxy
-            => new Float4() { Value =Value?.zzxy };
-
+        {
+            get => new Float4() { Value = Value?.zzxy };
+        }
         public Float4 zzxz
-            => new Float4() { Value =Value?.zzxz };
-
+        {
+            get => new Float4() { Value = Value?.zzxz };
+        }
         public Float4 zzyx
-            => new Float4() { Value =Value?.zzyx };
-
+        {
+            get => new Float4() { Value = Value?.zzyx };
+        }
         public Float4 zzyy
-            => new Float4() { Value =Value?.zzyy };
-
+        {
+            get => new Float4() { Value = Value?.zzyy };
+        }
         public Float4 zzyz
-            => new Float4() { Value =Value?.zzyz };
-
+        {
+            get => new Float4() { Value = Value?.zzyz };
+        }
         public Float4 zzzx
-            => new Float4() { Value =Value?.zzzx };
-
+        {
+            get => new Float4() { Value = Value?.zzzx };
+        }
         public Float4 zzzy
-            => new Float4() { Value =Value?.zzzy };
-
+        {
+            get => new Float4() { Value = Value?.zzzy };
+        }
         public Float4 zzzz
-            => new Float4() { Value =Value?.zzzz };
-
+        {
+            get => new Float4() { Value = Value?.zzzz };
+        }
         #endregion
     }
 
@@ -620,1025 +827,1549 @@ namespace UnityEditor.ShaderGraph.Hlsl
         #region Swizzles
 
         public Float x
-            => new Float() { Value =Value?.x };
-
+        {
+            get => new Float() { Value = Value?.x };
+            set
+            {
+                if (Value != null) Value = value.Value != null ? float4(value.Value.Value, Value.Value.yzw) : Float4.Null;
+            }
+        }
         public Float y
-            => new Float() { Value =Value?.y };
-
+        {
+            get => new Float() { Value = Value?.y };
+            set
+            {
+                if (Value != null) Value = value.Value != null ? float4(Value.Value.x, value.Value.Value, Value.Value.zw) : Float4.Null;
+            }
+        }
         public Float z
-            => new Float() { Value =Value?.z };
-
+        {
+            get => new Float() { Value = Value?.z };
+            set
+            {
+                if (Value != null) Value = value.Value != null ? float4(Value.Value.xy, value.Value.Value, Value.Value.w) : Float4.Null;
+            }
+        }
         public Float w
-            => new Float() { Value =Value?.w };
-
+        {
+            get => new Float() { Value = Value?.w };
+            set
+            {
+                if (Value != null) Value = value.Value != null ? float4(Value.Value.xyz, value.Value.Value) : Float4.Null;
+            }
+        }
         public Float2 xx
-            => new Float2() { Value =Value?.xx };
-
+        {
+            get => new Float2() { Value = Value?.xx };
+        }
         public Float2 xy
-            => new Float2() { Value =Value?.xy };
-
+        {
+            get => new Float2() { Value = Value?.xy };
+            set
+            {
+                if (Value != null) Value = value.Value != null ? float4(value.Value.Value, Value.Value.zw) : Float4.Null;
+            }
+        }
         public Float2 xz
-            => new Float2() { Value =Value?.xz };
-
+        {
+            get => new Float2() { Value = Value?.xz };
+            set
+            {
+                if (Value != null) Value = value.Value != null ? float4(value.Value.Value.x, Value.Value.y, value.Value.Value.y, Value.Value.w) : Float4.Null;
+            }
+        }
         public Float2 xw
-            => new Float2() { Value =Value?.xw };
-
+        {
+            get => new Float2() { Value = Value?.xw };
+            set
+            {
+                if (Value != null) Value = value.Value != null ? float4(value.Value.Value.x, Value.Value.yz, value.Value.Value.y) : Float4.Null;
+            }
+        }
         public Float2 yx
-            => new Float2() { Value =Value?.yx };
-
+        {
+            get => new Float2() { Value = Value?.yx };
+            set
+            {
+                if (Value != null) Value = value.Value != null ? float4(value.Value.Value.yx, Value.Value.zw) : Float4.Null;
+            }
+        }
         public Float2 yy
-            => new Float2() { Value =Value?.yy };
-
+        {
+            get => new Float2() { Value = Value?.yy };
+        }
         public Float2 yz
-            => new Float2() { Value =Value?.yz };
-
+        {
+            get => new Float2() { Value = Value?.yz };
+            set
+            {
+                if (Value != null) Value = value.Value != null ? float4(Value.Value.x, value.Value.Value, Value.Value.w) : Float4.Null;
+            }
+        }
         public Float2 yw
-            => new Float2() { Value =Value?.yw };
-
+        {
+            get => new Float2() { Value = Value?.yw };
+            set
+            {
+                if (Value != null) Value = value.Value != null ? float4(Value.Value.x, value.Value.Value.x, Value.Value.z, value.Value.Value.y) : Float4.Null;
+            }
+        }
         public Float2 zx
-            => new Float2() { Value =Value?.zx };
-
+        {
+            get => new Float2() { Value = Value?.zx };
+            set
+            {
+                if (Value != null) Value = value.Value != null ? float4(value.Value.Value.y, Value.Value.y, value.Value.Value.x, Value.Value.w) : Float4.Null;
+            }
+        }
         public Float2 zy
-            => new Float2() { Value =Value?.zy };
-
+        {
+            get => new Float2() { Value = Value?.zy };
+            set
+            {
+                if (Value != null) Value = value.Value != null ? float4(Value.Value.x, value.Value.Value.yx, Value.Value.w) : Float4.Null;
+            }
+        }
         public Float2 zz
-            => new Float2() { Value =Value?.zz };
-
+        {
+            get => new Float2() { Value = Value?.zz };
+        }
         public Float2 zw
-            => new Float2() { Value =Value?.zw };
-
+        {
+            get => new Float2() { Value = Value?.zw };
+            set
+            {
+                if (Value != null) Value = value.Value != null ? float4(Value.Value.xy, value.Value.Value) : Float4.Null;
+            }
+        }
         public Float2 wx
-            => new Float2() { Value =Value?.wx };
-
+        {
+            get => new Float2() { Value = Value?.wx };
+            set
+            {
+                if (Value != null) Value = value.Value != null ? float4(value.Value.Value.y, Value.Value.yz, value.Value.Value.x) : Float4.Null;
+            }
+        }
         public Float2 wy
-            => new Float2() { Value =Value?.wy };
-
+        {
+            get => new Float2() { Value = Value?.wy };
+            set
+            {
+                if (Value != null) Value = value.Value != null ? float4(Value.Value.x, value.Value.Value.y, Value.Value.z, value.Value.Value.x) : Float4.Null;
+            }
+        }
         public Float2 wz
-            => new Float2() { Value =Value?.wz };
-
+        {
+            get => new Float2() { Value = Value?.wz };
+            set
+            {
+                if (Value != null) Value = value.Value != null ? float4(Value.Value.xy, value.Value.Value.yx) : Float4.Null;
+            }
+        }
         public Float2 ww
-            => new Float2() { Value =Value?.ww };
-
+        {
+            get => new Float2() { Value = Value?.ww };
+        }
         public Float3 xxx
-            => new Float3() { Value =Value?.xxx };
-
+        {
+            get => new Float3() { Value = Value?.xxx };
+        }
         public Float3 xxy
-            => new Float3() { Value =Value?.xxy };
-
+        {
+            get => new Float3() { Value = Value?.xxy };
+        }
         public Float3 xxz
-            => new Float3() { Value =Value?.xxz };
-
+        {
+            get => new Float3() { Value = Value?.xxz };
+        }
         public Float3 xxw
-            => new Float3() { Value =Value?.xxw };
-
+        {
+            get => new Float3() { Value = Value?.xxw };
+        }
         public Float3 xyx
-            => new Float3() { Value =Value?.xyx };
-
+        {
+            get => new Float3() { Value = Value?.xyx };
+        }
         public Float3 xyy
-            => new Float3() { Value =Value?.xyy };
-
+        {
+            get => new Float3() { Value = Value?.xyy };
+        }
         public Float3 xyz
-            => new Float3() { Value =Value?.xyz };
-
+        {
+            get => new Float3() { Value = Value?.xyz };
+            set
+            {
+                if (Value != null) Value = value.Value != null ? float4(value.Value.Value, Value.Value.w) : Float4.Null;
+            }
+        }
         public Float3 xyw
-            => new Float3() { Value =Value?.xyw };
-
+        {
+            get => new Float3() { Value = Value?.xyw };
+            set
+            {
+                if (Value != null) Value = value.Value != null ? float4(value.Value.Value.xy, Value.Value.z, value.Value.Value.z) : Float4.Null;
+            }
+        }
         public Float3 xzx
-            => new Float3() { Value =Value?.xzx };
-
+        {
+            get => new Float3() { Value = Value?.xzx };
+        }
         public Float3 xzy
-            => new Float3() { Value =Value?.xzy };
-
+        {
+            get => new Float3() { Value = Value?.xzy };
+            set
+            {
+                if (Value != null) Value = value.Value != null ? float4(value.Value.Value.xzy, Value.Value.w) : Float4.Null;
+            }
+        }
         public Float3 xzz
-            => new Float3() { Value =Value?.xzz };
-
+        {
+            get => new Float3() { Value = Value?.xzz };
+        }
         public Float3 xzw
-            => new Float3() { Value =Value?.xzw };
-
+        {
+            get => new Float3() { Value = Value?.xzw };
+            set
+            {
+                if (Value != null) Value = value.Value != null ? float4(value.Value.Value.x, Value.Value.y, value.Value.Value.yz) : Float4.Null;
+            }
+        }
         public Float3 xwx
-            => new Float3() { Value =Value?.xwx };
-
+        {
+            get => new Float3() { Value = Value?.xwx };
+        }
         public Float3 xwy
-            => new Float3() { Value =Value?.xwy };
-
+        {
+            get => new Float3() { Value = Value?.xwy };
+            set
+            {
+                if (Value != null) Value = value.Value != null ? float4(value.Value.Value.xz, Value.Value.z, value.Value.Value.y) : Float4.Null;
+            }
+        }
         public Float3 xwz
-            => new Float3() { Value =Value?.xwz };
-
+        {
+            get => new Float3() { Value = Value?.xwz };
+            set
+            {
+                if (Value != null) Value = value.Value != null ? float4(value.Value.Value.x, Value.Value.y, value.Value.Value.zy) : Float4.Null;
+            }
+        }
         public Float3 xww
-            => new Float3() { Value =Value?.xww };
-
+        {
+            get => new Float3() { Value = Value?.xww };
+        }
         public Float3 yxx
-            => new Float3() { Value =Value?.yxx };
-
+        {
+            get => new Float3() { Value = Value?.yxx };
+        }
         public Float3 yxy
-            => new Float3() { Value =Value?.yxy };
-
+        {
+            get => new Float3() { Value = Value?.yxy };
+        }
         public Float3 yxz
-            => new Float3() { Value =Value?.yxz };
-
+        {
+            get => new Float3() { Value = Value?.yxz };
+            set
+            {
+                if (Value != null) Value = value.Value != null ? float4(value.Value.Value.yxz, Value.Value.w) : Float4.Null;
+            }
+        }
         public Float3 yxw
-            => new Float3() { Value =Value?.yxw };
-
+        {
+            get => new Float3() { Value = Value?.yxw };
+            set
+            {
+                if (Value != null) Value = value.Value != null ? float4(value.Value.Value.yx, Value.Value.z, value.Value.Value.z) : Float4.Null;
+            }
+        }
         public Float3 yyx
-            => new Float3() { Value =Value?.yyx };
-
+        {
+            get => new Float3() { Value = Value?.yyx };
+        }
         public Float3 yyy
-            => new Float3() { Value =Value?.yyy };
-
+        {
+            get => new Float3() { Value = Value?.yyy };
+        }
         public Float3 yyz
-            => new Float3() { Value =Value?.yyz };
-
+        {
+            get => new Float3() { Value = Value?.yyz };
+        }
         public Float3 yyw
-            => new Float3() { Value =Value?.yyw };
-
+        {
+            get => new Float3() { Value = Value?.yyw };
+        }
         public Float3 yzx
-            => new Float3() { Value =Value?.yzx };
-
+        {
+            get => new Float3() { Value = Value?.yzx };
+            set
+            {
+                if (Value != null) Value = value.Value != null ? float4(value.Value.Value.zxy, Value.Value.w) : Float4.Null;
+            }
+        }
         public Float3 yzy
-            => new Float3() { Value =Value?.yzy };
-
+        {
+            get => new Float3() { Value = Value?.yzy };
+        }
         public Float3 yzz
-            => new Float3() { Value =Value?.yzz };
-
+        {
+            get => new Float3() { Value = Value?.yzz };
+        }
         public Float3 yzw
-            => new Float3() { Value =Value?.yzw };
-
+        {
+            get => new Float3() { Value = Value?.yzw };
+            set
+            {
+                if (Value != null) Value = value.Value != null ? float4(Value.Value.x, value.Value.Value) : Float4.Null;
+            }
+        }
         public Float3 ywx
-            => new Float3() { Value =Value?.ywx };
-
+        {
+            get => new Float3() { Value = Value?.ywx };
+            set
+            {
+                if (Value != null) Value = value.Value != null ? float4(value.Value.Value.zx, Value.Value.z, value.Value.Value.y) : Float4.Null;
+            }
+        }
         public Float3 ywy
-            => new Float3() { Value =Value?.ywy };
-
+        {
+            get => new Float3() { Value = Value?.ywy };
+        }
         public Float3 ywz
-            => new Float3() { Value =Value?.ywz };
-
+        {
+            get => new Float3() { Value = Value?.ywz };
+            set
+            {
+                if (Value != null) Value = value.Value != null ? float4(Value.Value.x, value.Value.Value.xzy) : Float4.Null;
+            }
+        }
         public Float3 yww
-            => new Float3() { Value =Value?.yww };
-
+        {
+            get => new Float3() { Value = Value?.yww };
+        }
         public Float3 zxx
-            => new Float3() { Value =Value?.zxx };
-
+        {
+            get => new Float3() { Value = Value?.zxx };
+        }
         public Float3 zxy
-            => new Float3() { Value =Value?.zxy };
-
+        {
+            get => new Float3() { Value = Value?.zxy };
+            set
+            {
+                if (Value != null) Value = value.Value != null ? float4(value.Value.Value.yzx, Value.Value.w) : Float4.Null;
+            }
+        }
         public Float3 zxz
-            => new Float3() { Value =Value?.zxz };
-
+        {
+            get => new Float3() { Value = Value?.zxz };
+        }
         public Float3 zxw
-            => new Float3() { Value =Value?.zxw };
-
+        {
+            get => new Float3() { Value = Value?.zxw };
+            set
+            {
+                if (Value != null) Value = value.Value != null ? float4(value.Value.Value.y, Value.Value.y, value.Value.Value.xz) : Float4.Null;
+            }
+        }
         public Float3 zyx
-            => new Float3() { Value =Value?.zyx };
-
+        {
+            get => new Float3() { Value = Value?.zyx };
+            set
+            {
+                if (Value != null) Value = value.Value != null ? float4(value.Value.Value.zyx, Value.Value.w) : Float4.Null;
+            }
+        }
         public Float3 zyy
-            => new Float3() { Value =Value?.zyy };
-
+        {
+            get => new Float3() { Value = Value?.zyy };
+        }
         public Float3 zyz
-            => new Float3() { Value =Value?.zyz };
-
+        {
+            get => new Float3() { Value = Value?.zyz };
+        }
         public Float3 zyw
-            => new Float3() { Value =Value?.zyw };
-
+        {
+            get => new Float3() { Value = Value?.zyw };
+            set
+            {
+                if (Value != null) Value = value.Value != null ? float4(Value.Value.x, value.Value.Value.yxz) : Float4.Null;
+            }
+        }
         public Float3 zzx
-            => new Float3() { Value =Value?.zzx };
-
+        {
+            get => new Float3() { Value = Value?.zzx };
+        }
         public Float3 zzy
-            => new Float3() { Value =Value?.zzy };
-
+        {
+            get => new Float3() { Value = Value?.zzy };
+        }
         public Float3 zzz
-            => new Float3() { Value =Value?.zzz };
-
+        {
+            get => new Float3() { Value = Value?.zzz };
+        }
         public Float3 zzw
-            => new Float3() { Value =Value?.zzw };
-
+        {
+            get => new Float3() { Value = Value?.zzw };
+        }
         public Float3 zwx
-            => new Float3() { Value =Value?.zwx };
-
+        {
+            get => new Float3() { Value = Value?.zwx };
+            set
+            {
+                if (Value != null) Value = value.Value != null ? float4(value.Value.Value.z, Value.Value.y, value.Value.Value.xy) : Float4.Null;
+            }
+        }
         public Float3 zwy
-            => new Float3() { Value =Value?.zwy };
-
+        {
+            get => new Float3() { Value = Value?.zwy };
+            set
+            {
+                if (Value != null) Value = value.Value != null ? float4(Value.Value.x, value.Value.Value.zxy) : Float4.Null;
+            }
+        }
         public Float3 zwz
-            => new Float3() { Value =Value?.zwz };
-
+        {
+            get => new Float3() { Value = Value?.zwz };
+        }
         public Float3 zww
-            => new Float3() { Value =Value?.zww };
-
+        {
+            get => new Float3() { Value = Value?.zww };
+        }
         public Float3 wxx
-            => new Float3() { Value =Value?.wxx };
-
+        {
+            get => new Float3() { Value = Value?.wxx };
+        }
         public Float3 wxy
-            => new Float3() { Value =Value?.wxy };
-
+        {
+            get => new Float3() { Value = Value?.wxy };
+            set
+            {
+                if (Value != null) Value = value.Value != null ? float4(value.Value.Value.yz, Value.Value.z, value.Value.Value.x) : Float4.Null;
+            }
+        }
         public Float3 wxz
-            => new Float3() { Value =Value?.wxz };
-
+        {
+            get => new Float3() { Value = Value?.wxz };
+            set
+            {
+                if (Value != null) Value = value.Value != null ? float4(value.Value.Value.y, Value.Value.y, value.Value.Value.zx) : Float4.Null;
+            }
+        }
         public Float3 wxw
-            => new Float3() { Value =Value?.wxw };
-
+        {
+            get => new Float3() { Value = Value?.wxw };
+        }
         public Float3 wyx
-            => new Float3() { Value =Value?.wyx };
-
+        {
+            get => new Float3() { Value = Value?.wyx };
+            set
+            {
+                if (Value != null) Value = value.Value != null ? float4(value.Value.Value.zy, Value.Value.z, value.Value.Value.x) : Float4.Null;
+            }
+        }
         public Float3 wyy
-            => new Float3() { Value =Value?.wyy };
-
+        {
+            get => new Float3() { Value = Value?.wyy };
+        }
         public Float3 wyz
-            => new Float3() { Value =Value?.wyz };
-
+        {
+            get => new Float3() { Value = Value?.wyz };
+            set
+            {
+                if (Value != null) Value = value.Value != null ? float4(Value.Value.x, value.Value.Value.yzx) : Float4.Null;
+            }
+        }
         public Float3 wyw
-            => new Float3() { Value =Value?.wyw };
-
+        {
+            get => new Float3() { Value = Value?.wyw };
+        }
         public Float3 wzx
-            => new Float3() { Value =Value?.wzx };
-
+        {
+            get => new Float3() { Value = Value?.wzx };
+            set
+            {
+                if (Value != null) Value = value.Value != null ? float4(value.Value.Value.z, Value.Value.y, value.Value.Value.yx) : Float4.Null;
+            }
+        }
         public Float3 wzy
-            => new Float3() { Value =Value?.wzy };
-
+        {
+            get => new Float3() { Value = Value?.wzy };
+            set
+            {
+                if (Value != null) Value = value.Value != null ? float4(Value.Value.x, value.Value.Value.zyx) : Float4.Null;
+            }
+        }
         public Float3 wzz
-            => new Float3() { Value =Value?.wzz };
-
+        {
+            get => new Float3() { Value = Value?.wzz };
+        }
         public Float3 wzw
-            => new Float3() { Value =Value?.wzw };
-
+        {
+            get => new Float3() { Value = Value?.wzw };
+        }
         public Float3 wwx
-            => new Float3() { Value =Value?.wwx };
-
+        {
+            get => new Float3() { Value = Value?.wwx };
+        }
         public Float3 wwy
-            => new Float3() { Value =Value?.wwy };
-
+        {
+            get => new Float3() { Value = Value?.wwy };
+        }
         public Float3 wwz
-            => new Float3() { Value =Value?.wwz };
-
+        {
+            get => new Float3() { Value = Value?.wwz };
+        }
         public Float3 www
-            => new Float3() { Value =Value?.www };
-
+        {
+            get => new Float3() { Value = Value?.www };
+        }
         public Float4 xxxx
-            => new Float4() { Value =Value?.xxxx };
-
+        {
+            get => new Float4() { Value = Value?.xxxx };
+        }
         public Float4 xxxy
-            => new Float4() { Value =Value?.xxxy };
-
+        {
+            get => new Float4() { Value = Value?.xxxy };
+        }
         public Float4 xxxz
-            => new Float4() { Value =Value?.xxxz };
-
+        {
+            get => new Float4() { Value = Value?.xxxz };
+        }
         public Float4 xxxw
-            => new Float4() { Value =Value?.xxxw };
-
+        {
+            get => new Float4() { Value = Value?.xxxw };
+        }
         public Float4 xxyx
-            => new Float4() { Value =Value?.xxyx };
-
+        {
+            get => new Float4() { Value = Value?.xxyx };
+        }
         public Float4 xxyy
-            => new Float4() { Value =Value?.xxyy };
-
+        {
+            get => new Float4() { Value = Value?.xxyy };
+        }
         public Float4 xxyz
-            => new Float4() { Value =Value?.xxyz };
-
+        {
+            get => new Float4() { Value = Value?.xxyz };
+        }
         public Float4 xxyw
-            => new Float4() { Value =Value?.xxyw };
-
+        {
+            get => new Float4() { Value = Value?.xxyw };
+        }
         public Float4 xxzx
-            => new Float4() { Value =Value?.xxzx };
-
+        {
+            get => new Float4() { Value = Value?.xxzx };
+        }
         public Float4 xxzy
-            => new Float4() { Value =Value?.xxzy };
-
+        {
+            get => new Float4() { Value = Value?.xxzy };
+        }
         public Float4 xxzz
-            => new Float4() { Value =Value?.xxzz };
-
+        {
+            get => new Float4() { Value = Value?.xxzz };
+        }
         public Float4 xxzw
-            => new Float4() { Value =Value?.xxzw };
-
+        {
+            get => new Float4() { Value = Value?.xxzw };
+        }
         public Float4 xxwx
-            => new Float4() { Value =Value?.xxwx };
-
+        {
+            get => new Float4() { Value = Value?.xxwx };
+        }
         public Float4 xxwy
-            => new Float4() { Value =Value?.xxwy };
-
+        {
+            get => new Float4() { Value = Value?.xxwy };
+        }
         public Float4 xxwz
-            => new Float4() { Value =Value?.xxwz };
-
+        {
+            get => new Float4() { Value = Value?.xxwz };
+        }
         public Float4 xxww
-            => new Float4() { Value =Value?.xxww };
-
+        {
+            get => new Float4() { Value = Value?.xxww };
+        }
         public Float4 xyxx
-            => new Float4() { Value =Value?.xyxx };
-
+        {
+            get => new Float4() { Value = Value?.xyxx };
+        }
         public Float4 xyxy
-            => new Float4() { Value =Value?.xyxy };
-
+        {
+            get => new Float4() { Value = Value?.xyxy };
+        }
         public Float4 xyxz
-            => new Float4() { Value =Value?.xyxz };
-
+        {
+            get => new Float4() { Value = Value?.xyxz };
+        }
         public Float4 xyxw
-            => new Float4() { Value =Value?.xyxw };
-
+        {
+            get => new Float4() { Value = Value?.xyxw };
+        }
         public Float4 xyyx
-            => new Float4() { Value =Value?.xyyx };
-
+        {
+            get => new Float4() { Value = Value?.xyyx };
+        }
         public Float4 xyyy
-            => new Float4() { Value =Value?.xyyy };
-
+        {
+            get => new Float4() { Value = Value?.xyyy };
+        }
         public Float4 xyyz
-            => new Float4() { Value =Value?.xyyz };
-
+        {
+            get => new Float4() { Value = Value?.xyyz };
+        }
         public Float4 xyyw
-            => new Float4() { Value =Value?.xyyw };
-
+        {
+            get => new Float4() { Value = Value?.xyyw };
+        }
         public Float4 xyzx
-            => new Float4() { Value =Value?.xyzx };
-
+        {
+            get => new Float4() { Value = Value?.xyzx };
+        }
         public Float4 xyzy
-            => new Float4() { Value =Value?.xyzy };
-
+        {
+            get => new Float4() { Value = Value?.xyzy };
+        }
         public Float4 xyzz
-            => new Float4() { Value =Value?.xyzz };
-
+        {
+            get => new Float4() { Value = Value?.xyzz };
+        }
         public Float4 xyzw
-            => new Float4() { Value =Value?.xyzw };
-
+        {
+            get => this;
+            set => this = value;
+        }
         public Float4 xywx
-            => new Float4() { Value =Value?.xywx };
-
+        {
+            get => new Float4() { Value = Value?.xywx };
+        }
         public Float4 xywy
-            => new Float4() { Value =Value?.xywy };
-
+        {
+            get => new Float4() { Value = Value?.xywy };
+        }
         public Float4 xywz
-            => new Float4() { Value =Value?.xywz };
-
+        {
+            get => new Float4() { Value = Value?.xywz };
+            set => Value = value.Value?.xywz;
+        }
         public Float4 xyww
-            => new Float4() { Value =Value?.xyww };
-
+        {
+            get => new Float4() { Value = Value?.xyww };
+        }
         public Float4 xzxx
-            => new Float4() { Value =Value?.xzxx };
-
+        {
+            get => new Float4() { Value = Value?.xzxx };
+        }
         public Float4 xzxy
-            => new Float4() { Value =Value?.xzxy };
-
+        {
+            get => new Float4() { Value = Value?.xzxy };
+        }
         public Float4 xzxz
-            => new Float4() { Value =Value?.xzxz };
-
+        {
+            get => new Float4() { Value = Value?.xzxz };
+        }
         public Float4 xzxw
-            => new Float4() { Value =Value?.xzxw };
-
+        {
+            get => new Float4() { Value = Value?.xzxw };
+        }
         public Float4 xzyx
-            => new Float4() { Value =Value?.xzyx };
-
+        {
+            get => new Float4() { Value = Value?.xzyx };
+        }
         public Float4 xzyy
-            => new Float4() { Value =Value?.xzyy };
-
+        {
+            get => new Float4() { Value = Value?.xzyy };
+        }
         public Float4 xzyz
-            => new Float4() { Value =Value?.xzyz };
-
+        {
+            get => new Float4() { Value = Value?.xzyz };
+        }
         public Float4 xzyw
-            => new Float4() { Value =Value?.xzyw };
-
+        {
+            get => new Float4() { Value = Value?.xzyw };
+            set => Value = value.Value?.xzyw;
+        }
         public Float4 xzzx
-            => new Float4() { Value =Value?.xzzx };
-
+        {
+            get => new Float4() { Value = Value?.xzzx };
+        }
         public Float4 xzzy
-            => new Float4() { Value =Value?.xzzy };
-
+        {
+            get => new Float4() { Value = Value?.xzzy };
+        }
         public Float4 xzzz
-            => new Float4() { Value =Value?.xzzz };
-
+        {
+            get => new Float4() { Value = Value?.xzzz };
+        }
         public Float4 xzzw
-            => new Float4() { Value =Value?.xzzw };
-
+        {
+            get => new Float4() { Value = Value?.xzzw };
+        }
         public Float4 xzwx
-            => new Float4() { Value =Value?.xzwx };
-
+        {
+            get => new Float4() { Value = Value?.xzwx };
+        }
         public Float4 xzwy
-            => new Float4() { Value =Value?.xzwy };
-
+        {
+            get => new Float4() { Value = Value?.xzwy };
+            set => Value = value.Value?.xwyz;
+        }
         public Float4 xzwz
-            => new Float4() { Value =Value?.xzwz };
-
+        {
+            get => new Float4() { Value = Value?.xzwz };
+        }
         public Float4 xzww
-            => new Float4() { Value =Value?.xzww };
-
+        {
+            get => new Float4() { Value = Value?.xzww };
+        }
         public Float4 xwxx
-            => new Float4() { Value =Value?.xwxx };
-
+        {
+            get => new Float4() { Value = Value?.xwxx };
+        }
         public Float4 xwxy
-            => new Float4() { Value =Value?.xwxy };
-
+        {
+            get => new Float4() { Value = Value?.xwxy };
+        }
         public Float4 xwxz
-            => new Float4() { Value =Value?.xwxz };
-
+        {
+            get => new Float4() { Value = Value?.xwxz };
+        }
         public Float4 xwxw
-            => new Float4() { Value =Value?.xwxw };
-
+        {
+            get => new Float4() { Value = Value?.xwxw };
+        }
         public Float4 xwyx
-            => new Float4() { Value =Value?.xwyx };
-
+        {
+            get => new Float4() { Value = Value?.xwyx };
+        }
         public Float4 xwyy
-            => new Float4() { Value =Value?.xwyy };
-
+        {
+            get => new Float4() { Value = Value?.xwyy };
+        }
         public Float4 xwyz
-            => new Float4() { Value =Value?.xwyz };
-
+        {
+            get => new Float4() { Value = Value?.xwyz };
+            set => Value = value.Value?.xzwy;
+        }
         public Float4 xwyw
-            => new Float4() { Value =Value?.xwyw };
-
+        {
+            get => new Float4() { Value = Value?.xwyw };
+        }
         public Float4 xwzx
-            => new Float4() { Value =Value?.xwzx };
-
+        {
+            get => new Float4() { Value = Value?.xwzx };
+        }
         public Float4 xwzy
-            => new Float4() { Value =Value?.xwzy };
-
+        {
+            get => new Float4() { Value = Value?.xwzy };
+            set => Value = value.Value?.xwzy;
+        }
         public Float4 xwzz
-            => new Float4() { Value =Value?.xwzz };
-
+        {
+            get => new Float4() { Value = Value?.xwzz };
+        }
         public Float4 xwzw
-            => new Float4() { Value =Value?.xwzw };
-
+        {
+            get => new Float4() { Value = Value?.xwzw };
+        }
         public Float4 xwwx
-            => new Float4() { Value =Value?.xwwx };
-
+        {
+            get => new Float4() { Value = Value?.xwwx };
+        }
         public Float4 xwwy
-            => new Float4() { Value =Value?.xwwy };
-
+        {
+            get => new Float4() { Value = Value?.xwwy };
+        }
         public Float4 xwwz
-            => new Float4() { Value =Value?.xwwz };
-
+        {
+            get => new Float4() { Value = Value?.xwwz };
+        }
         public Float4 xwww
-            => new Float4() { Value =Value?.xwww };
-
+        {
+            get => new Float4() { Value = Value?.xwww };
+        }
         public Float4 yxxx
-            => new Float4() { Value =Value?.yxxx };
-
+        {
+            get => new Float4() { Value = Value?.yxxx };
+        }
         public Float4 yxxy
-            => new Float4() { Value =Value?.yxxy };
-
+        {
+            get => new Float4() { Value = Value?.yxxy };
+        }
         public Float4 yxxz
-            => new Float4() { Value =Value?.yxxz };
-
+        {
+            get => new Float4() { Value = Value?.yxxz };
+        }
         public Float4 yxxw
-            => new Float4() { Value =Value?.yxxw };
-
+        {
+            get => new Float4() { Value = Value?.yxxw };
+        }
         public Float4 yxyx
-            => new Float4() { Value =Value?.yxyx };
-
+        {
+            get => new Float4() { Value = Value?.yxyx };
+        }
         public Float4 yxyy
-            => new Float4() { Value =Value?.yxyy };
-
+        {
+            get => new Float4() { Value = Value?.yxyy };
+        }
         public Float4 yxyz
-            => new Float4() { Value =Value?.yxyz };
-
+        {
+            get => new Float4() { Value = Value?.yxyz };
+        }
         public Float4 yxyw
-            => new Float4() { Value =Value?.yxyw };
-
+        {
+            get => new Float4() { Value = Value?.yxyw };
+        }
         public Float4 yxzx
-            => new Float4() { Value =Value?.yxzx };
-
+        {
+            get => new Float4() { Value = Value?.yxzx };
+        }
         public Float4 yxzy
-            => new Float4() { Value =Value?.yxzy };
-
+        {
+            get => new Float4() { Value = Value?.yxzy };
+        }
         public Float4 yxzz
-            => new Float4() { Value =Value?.yxzz };
-
+        {
+            get => new Float4() { Value = Value?.yxzz };
+        }
         public Float4 yxzw
-            => new Float4() { Value =Value?.yxzw };
-
+        {
+            get => new Float4() { Value = Value?.yxzw };
+            set => Value = value.Value?.yxzw;
+        }
         public Float4 yxwx
-            => new Float4() { Value =Value?.yxwx };
-
+        {
+            get => new Float4() { Value = Value?.yxwx };
+        }
         public Float4 yxwy
-            => new Float4() { Value =Value?.yxwy };
-
+        {
+            get => new Float4() { Value = Value?.yxwy };
+        }
         public Float4 yxwz
-            => new Float4() { Value =Value?.yxwz };
-
+        {
+            get => new Float4() { Value = Value?.yxwz };
+            set => Value = value.Value?.yxwz;
+        }
         public Float4 yxww
-            => new Float4() { Value =Value?.yxww };
-
+        {
+            get => new Float4() { Value = Value?.yxww };
+        }
         public Float4 yyxx
-            => new Float4() { Value =Value?.yyxx };
-
+        {
+            get => new Float4() { Value = Value?.yyxx };
+        }
         public Float4 yyxy
-            => new Float4() { Value =Value?.yyxy };
-
+        {
+            get => new Float4() { Value = Value?.yyxy };
+        }
         public Float4 yyxz
-            => new Float4() { Value =Value?.yyxz };
-
+        {
+            get => new Float4() { Value = Value?.yyxz };
+        }
         public Float4 yyxw
-            => new Float4() { Value =Value?.yyxw };
-
+        {
+            get => new Float4() { Value = Value?.yyxw };
+        }
         public Float4 yyyx
-            => new Float4() { Value =Value?.yyyx };
-
+        {
+            get => new Float4() { Value = Value?.yyyx };
+        }
         public Float4 yyyy
-            => new Float4() { Value =Value?.yyyy };
-
+        {
+            get => new Float4() { Value = Value?.yyyy };
+        }
         public Float4 yyyz
-            => new Float4() { Value =Value?.yyyz };
-
+        {
+            get => new Float4() { Value = Value?.yyyz };
+        }
         public Float4 yyyw
-            => new Float4() { Value =Value?.yyyw };
-
+        {
+            get => new Float4() { Value = Value?.yyyw };
+        }
         public Float4 yyzx
-            => new Float4() { Value =Value?.yyzx };
-
+        {
+            get => new Float4() { Value = Value?.yyzx };
+        }
         public Float4 yyzy
-            => new Float4() { Value =Value?.yyzy };
-
+        {
+            get => new Float4() { Value = Value?.yyzy };
+        }
         public Float4 yyzz
-            => new Float4() { Value =Value?.yyzz };
-
+        {
+            get => new Float4() { Value = Value?.yyzz };
+        }
         public Float4 yyzw
-            => new Float4() { Value =Value?.yyzw };
-
+        {
+            get => new Float4() { Value = Value?.yyzw };
+        }
         public Float4 yywx
-            => new Float4() { Value =Value?.yywx };
-
+        {
+            get => new Float4() { Value = Value?.yywx };
+        }
         public Float4 yywy
-            => new Float4() { Value =Value?.yywy };
-
+        {
+            get => new Float4() { Value = Value?.yywy };
+        }
         public Float4 yywz
-            => new Float4() { Value =Value?.yywz };
-
+        {
+            get => new Float4() { Value = Value?.yywz };
+        }
         public Float4 yyww
-            => new Float4() { Value =Value?.yyww };
-
+        {
+            get => new Float4() { Value = Value?.yyww };
+        }
         public Float4 yzxx
-            => new Float4() { Value =Value?.yzxx };
-
+        {
+            get => new Float4() { Value = Value?.yzxx };
+        }
         public Float4 yzxy
-            => new Float4() { Value =Value?.yzxy };
-
+        {
+            get => new Float4() { Value = Value?.yzxy };
+        }
         public Float4 yzxz
-            => new Float4() { Value =Value?.yzxz };
-
+        {
+            get => new Float4() { Value = Value?.yzxz };
+        }
         public Float4 yzxw
-            => new Float4() { Value =Value?.yzxw };
-
+        {
+            get => new Float4() { Value = Value?.yzxw };
+            set => Value = value.Value?.zxyw;
+        }
         public Float4 yzyx
-            => new Float4() { Value =Value?.yzyx };
-
+        {
+            get => new Float4() { Value = Value?.yzyx };
+        }
         public Float4 yzyy
-            => new Float4() { Value =Value?.yzyy };
-
+        {
+            get => new Float4() { Value = Value?.yzyy };
+        }
         public Float4 yzyz
-            => new Float4() { Value =Value?.yzyz };
-
+        {
+            get => new Float4() { Value = Value?.yzyz };
+        }
         public Float4 yzyw
-            => new Float4() { Value =Value?.yzyw };
-
+        {
+            get => new Float4() { Value = Value?.yzyw };
+        }
         public Float4 yzzx
-            => new Float4() { Value =Value?.yzzx };
-
+        {
+            get => new Float4() { Value = Value?.yzzx };
+        }
         public Float4 yzzy
-            => new Float4() { Value =Value?.yzzy };
-
+        {
+            get => new Float4() { Value = Value?.yzzy };
+        }
         public Float4 yzzz
-            => new Float4() { Value =Value?.yzzz };
-
+        {
+            get => new Float4() { Value = Value?.yzzz };
+        }
         public Float4 yzzw
-            => new Float4() { Value =Value?.yzzw };
-
+        {
+            get => new Float4() { Value = Value?.yzzw };
+        }
         public Float4 yzwx
-            => new Float4() { Value =Value?.yzwx };
-
+        {
+            get => new Float4() { Value = Value?.yzwx };
+            set => Value = value.Value?.wxyz;
+        }
         public Float4 yzwy
-            => new Float4() { Value =Value?.yzwy };
-
+        {
+            get => new Float4() { Value = Value?.yzwy };
+        }
         public Float4 yzwz
-            => new Float4() { Value =Value?.yzwz };
-
+        {
+            get => new Float4() { Value = Value?.yzwz };
+        }
         public Float4 yzww
-            => new Float4() { Value =Value?.yzww };
-
+        {
+            get => new Float4() { Value = Value?.yzww };
+        }
         public Float4 ywxx
-            => new Float4() { Value =Value?.ywxx };
-
+        {
+            get => new Float4() { Value = Value?.ywxx };
+        }
         public Float4 ywxy
-            => new Float4() { Value =Value?.ywxy };
-
+        {
+            get => new Float4() { Value = Value?.ywxy };
+        }
         public Float4 ywxz
-            => new Float4() { Value =Value?.ywxz };
-
+        {
+            get => new Float4() { Value = Value?.ywxz };
+            set => Value = value.Value?.zxwy;
+        }
         public Float4 ywxw
-            => new Float4() { Value =Value?.ywxw };
-
+        {
+            get => new Float4() { Value = Value?.ywxw };
+        }
         public Float4 ywyx
-            => new Float4() { Value =Value?.ywyx };
-
+        {
+            get => new Float4() { Value = Value?.ywyx };
+        }
         public Float4 ywyy
-            => new Float4() { Value =Value?.ywyy };
-
+        {
+            get => new Float4() { Value = Value?.ywyy };
+        }
         public Float4 ywyz
-            => new Float4() { Value =Value?.ywyz };
-
+        {
+            get => new Float4() { Value = Value?.ywyz };
+        }
         public Float4 ywyw
-            => new Float4() { Value =Value?.ywyw };
-
+        {
+            get => new Float4() { Value = Value?.ywyw };
+        }
         public Float4 ywzx
-            => new Float4() { Value =Value?.ywzx };
-
+        {
+            get => new Float4() { Value = Value?.ywzx };
+            set => Value = value.Value?.wxzy;
+        }
         public Float4 ywzy
-            => new Float4() { Value =Value?.ywzy };
-
+        {
+            get => new Float4() { Value = Value?.ywzy };
+        }
         public Float4 ywzz
-            => new Float4() { Value =Value?.ywzz };
-
+        {
+            get => new Float4() { Value = Value?.ywzz };
+        }
         public Float4 ywzw
-            => new Float4() { Value =Value?.ywzw };
-
+        {
+            get => new Float4() { Value = Value?.ywzw };
+        }
         public Float4 ywwx
-            => new Float4() { Value =Value?.ywwx };
-
+        {
+            get => new Float4() { Value = Value?.ywwx };
+        }
         public Float4 ywwy
-            => new Float4() { Value =Value?.ywwy };
-
+        {
+            get => new Float4() { Value = Value?.ywwy };
+        }
         public Float4 ywwz
-            => new Float4() { Value =Value?.ywwz };
-
+        {
+            get => new Float4() { Value = Value?.ywwz };
+        }
         public Float4 ywww
-            => new Float4() { Value =Value?.ywww };
-
+        {
+            get => new Float4() { Value = Value?.ywww };
+        }
         public Float4 zxxx
-            => new Float4() { Value =Value?.zxxx };
-
+        {
+            get => new Float4() { Value = Value?.zxxx };
+        }
         public Float4 zxxy
-            => new Float4() { Value =Value?.zxxy };
-
+        {
+            get => new Float4() { Value = Value?.zxxy };
+        }
         public Float4 zxxz
-            => new Float4() { Value =Value?.zxxz };
-
+        {
+            get => new Float4() { Value = Value?.zxxz };
+        }
         public Float4 zxxw
-            => new Float4() { Value =Value?.zxxw };
-
+        {
+            get => new Float4() { Value = Value?.zxxw };
+        }
         public Float4 zxyx
-            => new Float4() { Value =Value?.zxyx };
-
+        {
+            get => new Float4() { Value = Value?.zxyx };
+        }
         public Float4 zxyy
-            => new Float4() { Value =Value?.zxyy };
-
+        {
+            get => new Float4() { Value = Value?.zxyy };
+        }
         public Float4 zxyz
-            => new Float4() { Value =Value?.zxyz };
-
+        {
+            get => new Float4() { Value = Value?.zxyz };
+        }
         public Float4 zxyw
-            => new Float4() { Value =Value?.zxyw };
-
+        {
+            get => new Float4() { Value = Value?.zxyw };
+            set => Value = value.Value?.yzxw;
+        }
         public Float4 zxzx
-            => new Float4() { Value =Value?.zxzx };
-
+        {
+            get => new Float4() { Value = Value?.zxzx };
+        }
         public Float4 zxzy
-            => new Float4() { Value =Value?.zxzy };
-
+        {
+            get => new Float4() { Value = Value?.zxzy };
+        }
         public Float4 zxzz
-            => new Float4() { Value =Value?.zxzz };
-
+        {
+            get => new Float4() { Value = Value?.zxzz };
+        }
         public Float4 zxzw
-            => new Float4() { Value =Value?.zxzw };
-
+        {
+            get => new Float4() { Value = Value?.zxzw };
+        }
         public Float4 zxwx
-            => new Float4() { Value =Value?.zxwx };
-
+        {
+            get => new Float4() { Value = Value?.zxwx };
+        }
         public Float4 zxwy
-            => new Float4() { Value =Value?.zxwy };
-
+        {
+            get => new Float4() { Value = Value?.zxwy };
+            set => Value = value.Value?.ywxz;
+        }
         public Float4 zxwz
-            => new Float4() { Value =Value?.zxwz };
-
+        {
+            get => new Float4() { Value = Value?.zxwz };
+        }
         public Float4 zxww
-            => new Float4() { Value =Value?.zxww };
-
+        {
+            get => new Float4() { Value = Value?.zxww };
+        }
         public Float4 zyxx
-            => new Float4() { Value =Value?.zyxx };
-
+        {
+            get => new Float4() { Value = Value?.zyxx };
+        }
         public Float4 zyxy
-            => new Float4() { Value =Value?.zyxy };
-
+        {
+            get => new Float4() { Value = Value?.zyxy };
+        }
         public Float4 zyxz
-            => new Float4() { Value =Value?.zyxz };
-
+        {
+            get => new Float4() { Value = Value?.zyxz };
+        }
         public Float4 zyxw
-            => new Float4() { Value =Value?.zyxw };
-
+        {
+            get => new Float4() { Value = Value?.zyxw };
+            set => Value = value.Value?.zyxw;
+        }
         public Float4 zyyx
-            => new Float4() { Value =Value?.zyyx };
-
+        {
+            get => new Float4() { Value = Value?.zyyx };
+        }
         public Float4 zyyy
-            => new Float4() { Value =Value?.zyyy };
-
+        {
+            get => new Float4() { Value = Value?.zyyy };
+        }
         public Float4 zyyz
-            => new Float4() { Value =Value?.zyyz };
-
+        {
+            get => new Float4() { Value = Value?.zyyz };
+        }
         public Float4 zyyw
-            => new Float4() { Value =Value?.zyyw };
-
+        {
+            get => new Float4() { Value = Value?.zyyw };
+        }
         public Float4 zyzx
-            => new Float4() { Value =Value?.zyzx };
-
+        {
+            get => new Float4() { Value = Value?.zyzx };
+        }
         public Float4 zyzy
-            => new Float4() { Value =Value?.zyzy };
-
+        {
+            get => new Float4() { Value = Value?.zyzy };
+        }
         public Float4 zyzz
-            => new Float4() { Value =Value?.zyzz };
-
+        {
+            get => new Float4() { Value = Value?.zyzz };
+        }
         public Float4 zyzw
-            => new Float4() { Value =Value?.zyzw };
-
+        {
+            get => new Float4() { Value = Value?.zyzw };
+        }
         public Float4 zywx
-            => new Float4() { Value =Value?.zywx };
-
+        {
+            get => new Float4() { Value = Value?.zywx };
+            set => Value = value.Value?.wyxz;
+        }
         public Float4 zywy
-            => new Float4() { Value =Value?.zywy };
-
+        {
+            get => new Float4() { Value = Value?.zywy };
+        }
         public Float4 zywz
-            => new Float4() { Value =Value?.zywz };
-
+        {
+            get => new Float4() { Value = Value?.zywz };
+        }
         public Float4 zyww
-            => new Float4() { Value =Value?.zyww };
-
+        {
+            get => new Float4() { Value = Value?.zyww };
+        }
         public Float4 zzxx
-            => new Float4() { Value =Value?.zzxx };
-
+        {
+            get => new Float4() { Value = Value?.zzxx };
+        }
         public Float4 zzxy
-            => new Float4() { Value =Value?.zzxy };
-
+        {
+            get => new Float4() { Value = Value?.zzxy };
+        }
         public Float4 zzxz
-            => new Float4() { Value =Value?.zzxz };
-
+        {
+            get => new Float4() { Value = Value?.zzxz };
+        }
         public Float4 zzxw
-            => new Float4() { Value =Value?.zzxw };
-
+        {
+            get => new Float4() { Value = Value?.zzxw };
+        }
         public Float4 zzyx
-            => new Float4() { Value =Value?.zzyx };
-
+        {
+            get => new Float4() { Value = Value?.zzyx };
+        }
         public Float4 zzyy
-            => new Float4() { Value =Value?.zzyy };
-
+        {
+            get => new Float4() { Value = Value?.zzyy };
+        }
         public Float4 zzyz
-            => new Float4() { Value =Value?.zzyz };
-
+        {
+            get => new Float4() { Value = Value?.zzyz };
+        }
         public Float4 zzyw
-            => new Float4() { Value =Value?.zzyw };
-
+        {
+            get => new Float4() { Value = Value?.zzyw };
+        }
         public Float4 zzzx
-            => new Float4() { Value =Value?.zzzx };
-
+        {
+            get => new Float4() { Value = Value?.zzzx };
+        }
         public Float4 zzzy
-            => new Float4() { Value =Value?.zzzy };
-
+        {
+            get => new Float4() { Value = Value?.zzzy };
+        }
         public Float4 zzzz
-            => new Float4() { Value =Value?.zzzz };
-
+        {
+            get => new Float4() { Value = Value?.zzzz };
+        }
         public Float4 zzzw
-            => new Float4() { Value =Value?.zzzw };
-
+        {
+            get => new Float4() { Value = Value?.zzzw };
+        }
         public Float4 zzwx
-            => new Float4() { Value =Value?.zzwx };
-
+        {
+            get => new Float4() { Value = Value?.zzwx };
+        }
         public Float4 zzwy
-            => new Float4() { Value =Value?.zzwy };
-
+        {
+            get => new Float4() { Value = Value?.zzwy };
+        }
         public Float4 zzwz
-            => new Float4() { Value =Value?.zzwz };
-
+        {
+            get => new Float4() { Value = Value?.zzwz };
+        }
         public Float4 zzww
-            => new Float4() { Value =Value?.zzww };
-
+        {
+            get => new Float4() { Value = Value?.zzww };
+        }
         public Float4 zwxx
-            => new Float4() { Value =Value?.zwxx };
-
+        {
+            get => new Float4() { Value = Value?.zwxx };
+        }
         public Float4 zwxy
-            => new Float4() { Value =Value?.zwxy };
-
+        {
+            get => new Float4() { Value = Value?.zwxy };
+            set => Value = value.Value?.zwxy;
+        }
         public Float4 zwxz
-            => new Float4() { Value =Value?.zwxz };
-
+        {
+            get => new Float4() { Value = Value?.zwxz };
+        }
         public Float4 zwxw
-            => new Float4() { Value =Value?.zwxw };
-
+        {
+            get => new Float4() { Value = Value?.zwxw };
+        }
         public Float4 zwyx
-            => new Float4() { Value =Value?.zwyx };
-
+        {
+            get => new Float4() { Value = Value?.zwyx };
+            set => Value = value.Value?.wzxy;
+        }
         public Float4 zwyy
-            => new Float4() { Value =Value?.zwyy };
-
+        {
+            get => new Float4() { Value = Value?.zwyy };
+        }
         public Float4 zwyz
-            => new Float4() { Value =Value?.zwyz };
-
+        {
+            get => new Float4() { Value = Value?.zwyz };
+        }
         public Float4 zwyw
-            => new Float4() { Value =Value?.zwyw };
-
+        {
+            get => new Float4() { Value = Value?.zwyw };
+        }
         public Float4 zwzx
-            => new Float4() { Value =Value?.zwzx };
-
+        {
+            get => new Float4() { Value = Value?.zwzx };
+        }
         public Float4 zwzy
-            => new Float4() { Value =Value?.zwzy };
-
+        {
+            get => new Float4() { Value = Value?.zwzy };
+        }
         public Float4 zwzz
-            => new Float4() { Value =Value?.zwzz };
-
+        {
+            get => new Float4() { Value = Value?.zwzz };
+        }
         public Float4 zwzw
-            => new Float4() { Value =Value?.zwzw };
-
+        {
+            get => new Float4() { Value = Value?.zwzw };
+        }
         public Float4 zwwx
-            => new Float4() { Value =Value?.zwwx };
-
+        {
+            get => new Float4() { Value = Value?.zwwx };
+        }
         public Float4 zwwy
-            => new Float4() { Value =Value?.zwwy };
-
+        {
+            get => new Float4() { Value = Value?.zwwy };
+        }
         public Float4 zwwz
-            => new Float4() { Value =Value?.zwwz };
-
+        {
+            get => new Float4() { Value = Value?.zwwz };
+        }
         public Float4 zwww
-            => new Float4() { Value =Value?.zwww };
-
+        {
+            get => new Float4() { Value = Value?.zwww };
+        }
         public Float4 wxxx
-            => new Float4() { Value =Value?.wxxx };
-
+        {
+            get => new Float4() { Value = Value?.wxxx };
+        }
         public Float4 wxxy
-            => new Float4() { Value =Value?.wxxy };
-
+        {
+            get => new Float4() { Value = Value?.wxxy };
+        }
         public Float4 wxxz
-            => new Float4() { Value =Value?.wxxz };
-
+        {
+            get => new Float4() { Value = Value?.wxxz };
+        }
         public Float4 wxxw
-            => new Float4() { Value =Value?.wxxw };
-
+        {
+            get => new Float4() { Value = Value?.wxxw };
+        }
         public Float4 wxyx
-            => new Float4() { Value =Value?.wxyx };
-
+        {
+            get => new Float4() { Value = Value?.wxyx };
+        }
         public Float4 wxyy
-            => new Float4() { Value =Value?.wxyy };
-
+        {
+            get => new Float4() { Value = Value?.wxyy };
+        }
         public Float4 wxyz
-            => new Float4() { Value =Value?.wxyz };
-
+        {
+            get => new Float4() { Value = Value?.wxyz };
+            set => Value = value.Value?.yzwx;
+        }
         public Float4 wxyw
-            => new Float4() { Value =Value?.wxyw };
-
+        {
+            get => new Float4() { Value = Value?.wxyw };
+        }
         public Float4 wxzx
-            => new Float4() { Value =Value?.wxzx };
-
+        {
+            get => new Float4() { Value = Value?.wxzx };
+        }
         public Float4 wxzy
-            => new Float4() { Value =Value?.wxzy };
-
+        {
+            get => new Float4() { Value = Value?.wxzy };
+            set => Value = value.Value?.ywzx;
+        }
         public Float4 wxzz
-            => new Float4() { Value =Value?.wxzz };
-
+        {
+            get => new Float4() { Value = Value?.wxzz };
+        }
         public Float4 wxzw
-            => new Float4() { Value =Value?.wxzw };
-
+        {
+            get => new Float4() { Value = Value?.wxzw };
+        }
         public Float4 wxwx
-            => new Float4() { Value =Value?.wxwx };
-
+        {
+            get => new Float4() { Value = Value?.wxwx };
+        }
         public Float4 wxwy
-            => new Float4() { Value =Value?.wxwy };
-
+        {
+            get => new Float4() { Value = Value?.wxwy };
+        }
         public Float4 wxwz
-            => new Float4() { Value =Value?.wxwz };
-
+        {
+            get => new Float4() { Value = Value?.wxwz };
+        }
         public Float4 wxww
-            => new Float4() { Value =Value?.wxww };
-
+        {
+            get => new Float4() { Value = Value?.wxww };
+        }
         public Float4 wyxx
-            => new Float4() { Value =Value?.wyxx };
-
+        {
+            get => new Float4() { Value = Value?.wyxx };
+        }
         public Float4 wyxy
-            => new Float4() { Value =Value?.wyxy };
-
+        {
+            get => new Float4() { Value = Value?.wyxy };
+        }
         public Float4 wyxz
-            => new Float4() { Value =Value?.wyxz };
-
+        {
+            get => new Float4() { Value = Value?.wyxz };
+            set => Value = value.Value?.zywx;
+        }
         public Float4 wyxw
-            => new Float4() { Value =Value?.wyxw };
-
+        {
+            get => new Float4() { Value = Value?.wyxw };
+        }
         public Float4 wyyx
-            => new Float4() { Value =Value?.wyyx };
-
+        {
+            get => new Float4() { Value = Value?.wyyx };
+        }
         public Float4 wyyy
-            => new Float4() { Value =Value?.wyyy };
-
+        {
+            get => new Float4() { Value = Value?.wyyy };
+        }
         public Float4 wyyz
-            => new Float4() { Value =Value?.wyyz };
-
+        {
+            get => new Float4() { Value = Value?.wyyz };
+        }
         public Float4 wyyw
-            => new Float4() { Value =Value?.wyyw };
-
+        {
+            get => new Float4() { Value = Value?.wyyw };
+        }
         public Float4 wyzx
-            => new Float4() { Value =Value?.wyzx };
-
+        {
+            get => new Float4() { Value = Value?.wyzx };
+            set => Value = value.Value?.wyzx;
+        }
         public Float4 wyzy
-            => new Float4() { Value =Value?.wyzy };
-
+        {
+            get => new Float4() { Value = Value?.wyzy };
+        }
         public Float4 wyzz
-            => new Float4() { Value =Value?.wyzz };
-
+        {
+            get => new Float4() { Value = Value?.wyzz };
+        }
         public Float4 wyzw
-            => new Float4() { Value =Value?.wyzw };
-
+        {
+            get => new Float4() { Value = Value?.wyzw };
+        }
         public Float4 wywx
-            => new Float4() { Value =Value?.wywx };
-
+        {
+            get => new Float4() { Value = Value?.wywx };
+        }
         public Float4 wywy
-            => new Float4() { Value =Value?.wywy };
-
+        {
+            get => new Float4() { Value = Value?.wywy };
+        }
         public Float4 wywz
-            => new Float4() { Value =Value?.wywz };
-
+        {
+            get => new Float4() { Value = Value?.wywz };
+        }
         public Float4 wyww
-            => new Float4() { Value =Value?.wyww };
-
+        {
+            get => new Float4() { Value = Value?.wyww };
+        }
         public Float4 wzxx
-            => new Float4() { Value =Value?.wzxx };
-
+        {
+            get => new Float4() { Value = Value?.wzxx };
+        }
         public Float4 wzxy
-            => new Float4() { Value =Value?.wzxy };
-
+        {
+            get => new Float4() { Value = Value?.wzxy };
+            set => Value = value.Value?.zwyx;
+        }
         public Float4 wzxz
-            => new Float4() { Value =Value?.wzxz };
-
+        {
+            get => new Float4() { Value = Value?.wzxz };
+        }
         public Float4 wzxw
-            => new Float4() { Value =Value?.wzxw };
-
+        {
+            get => new Float4() { Value = Value?.wzxw };
+        }
         public Float4 wzyx
-            => new Float4() { Value =Value?.wzyx };
-
+        {
+            get => new Float4() { Value = Value?.wzyx };
+            set => Value = value.Value?.wzyx;
+        }
         public Float4 wzyy
-            => new Float4() { Value =Value?.wzyy };
-
+        {
+            get => new Float4() { Value = Value?.wzyy };
+        }
         public Float4 wzyz
-            => new Float4() { Value =Value?.wzyz };
-
+        {
+            get => new Float4() { Value = Value?.wzyz };
+        }
         public Float4 wzyw
-            => new Float4() { Value =Value?.wzyw };
-
+        {
+            get => new Float4() { Value = Value?.wzyw };
+        }
         public Float4 wzzx
-            => new Float4() { Value =Value?.wzzx };
-
+        {
+            get => new Float4() { Value = Value?.wzzx };
+        }
         public Float4 wzzy
-            => new Float4() { Value =Value?.wzzy };
-
+        {
+            get => new Float4() { Value = Value?.wzzy };
+        }
         public Float4 wzzz
-            => new Float4() { Value =Value?.wzzz };
-
+        {
+            get => new Float4() { Value = Value?.wzzz };
+        }
         public Float4 wzzw
-            => new Float4() { Value =Value?.wzzw };
-
+        {
+            get => new Float4() { Value = Value?.wzzw };
+        }
         public Float4 wzwx
-            => new Float4() { Value =Value?.wzwx };
-
+        {
+            get => new Float4() { Value = Value?.wzwx };
+        }
         public Float4 wzwy
-            => new Float4() { Value =Value?.wzwy };
-
+        {
+            get => new Float4() { Value = Value?.wzwy };
+        }
         public Float4 wzwz
-            => new Float4() { Value =Value?.wzwz };
-
+        {
+            get => new Float4() { Value = Value?.wzwz };
+        }
         public Float4 wzww
-            => new Float4() { Value =Value?.wzww };
-
+        {
+            get => new Float4() { Value = Value?.wzww };
+        }
         public Float4 wwxx
-            => new Float4() { Value =Value?.wwxx };
-
+        {
+            get => new Float4() { Value = Value?.wwxx };
+        }
         public Float4 wwxy
-            => new Float4() { Value =Value?.wwxy };
-
+        {
+            get => new Float4() { Value = Value?.wwxy };
+        }
         public Float4 wwxz
-            => new Float4() { Value =Value?.wwxz };
-
+        {
+            get => new Float4() { Value = Value?.wwxz };
+        }
         public Float4 wwxw
-            => new Float4() { Value =Value?.wwxw };
-
+        {
+            get => new Float4() { Value = Value?.wwxw };
+        }
         public Float4 wwyx
-            => new Float4() { Value =Value?.wwyx };
-
+        {
+            get => new Float4() { Value = Value?.wwyx };
+        }
         public Float4 wwyy
-            => new Float4() { Value =Value?.wwyy };
-
+        {
+            get => new Float4() { Value = Value?.wwyy };
+        }
         public Float4 wwyz
-            => new Float4() { Value =Value?.wwyz };
-
+        {
+            get => new Float4() { Value = Value?.wwyz };
+        }
         public Float4 wwyw
-            => new Float4() { Value =Value?.wwyw };
-
+        {
+            get => new Float4() { Value = Value?.wwyw };
+        }
         public Float4 wwzx
-            => new Float4() { Value =Value?.wwzx };
-
+        {
+            get => new Float4() { Value = Value?.wwzx };
+        }
         public Float4 wwzy
-            => new Float4() { Value =Value?.wwzy };
-
+        {
+            get => new Float4() { Value = Value?.wwzy };
+        }
         public Float4 wwzz
-            => new Float4() { Value =Value?.wwzz };
-
+        {
+            get => new Float4() { Value = Value?.wwzz };
+        }
         public Float4 wwzw
-            => new Float4() { Value =Value?.wwzw };
-
+        {
+            get => new Float4() { Value = Value?.wwzw };
+        }
         public Float4 wwwx
-            => new Float4() { Value =Value?.wwwx };
-
+        {
+            get => new Float4() { Value = Value?.wwwx };
+        }
         public Float4 wwwy
-            => new Float4() { Value =Value?.wwwy };
-
+        {
+            get => new Float4() { Value = Value?.wwwy };
+        }
         public Float4 wwwz
-            => new Float4() { Value =Value?.wwwz };
-
+        {
+            get => new Float4() { Value = Value?.wwwz };
+        }
         public Float4 wwww
-            => new Float4() { Value =Value?.wwww };
-
+        {
+            get => new Float4() { Value = Value?.wwww };
+        }
         #endregion
     }
 

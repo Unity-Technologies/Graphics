@@ -603,8 +603,14 @@ namespace UnityEditor.ShaderGraph
                         return "float2";
                     else if (monoTypeName == typeof(Float3).FullName)
                         return "float3";
-                    else
+                    else if (monoTypeName == typeof(Float4).FullName)
                         return "float4";
+                    else if (monoTypeName == typeof(float).FullName || monoTypeName == typeof(double).FullName)
+                        return "float";
+                    else if (monoTypeName == typeof(int).FullName)
+                        return "int";
+                    else
+                        return "Error type name";
                 }
 
                 var voidType = thisModule.TypeSystem.Void;
@@ -754,6 +760,12 @@ namespace UnityEditor.ShaderGraph
                             string lhs = evalStack.Pop().expr;
                             hlsl.Append($"{lhs} = {rhs};\n");
                         }
+                        else if (opCode == OpCodes.Mul)
+                        {
+                            var (op2, order2) = evalStack.Pop();
+                            var (op1, order1) = evalStack.Pop();
+                            evalStack.Push(($"{GenOp(op1, order1 > 1)} * {GenOp(op2, order2 > 1)}", 1));
+                        }
                         else if (opCode == OpCodes.Call)
                         {
                             if (!(il.Operand is MethodDefinition))
@@ -819,6 +831,18 @@ namespace UnityEditor.ShaderGraph
                                 var (op, order) = evalStack.Pop();
                                 evalStack.Push(($"{GenOp(op, order > 0)}.{swizzle}", 0));
                             }
+                            else if (func.IsSetter && func.Name.Substring(0, 4) == "set_")
+                            {
+                                var swizzle = func.Name.Substring(4);
+                                if (swizzle.Length > 4 || swizzle.Any(s => s > 'z' || s < 'w'))
+                                {
+                                    hlsl.Append($"\n Error parsing at: {il.Offset}: Unknown swizzle {swizzle}\n");
+                                    return hlsl.ToString();
+                                }
+                                var op = evalStack.Pop().expr;
+                                var inst = evalStack.Pop().expr;
+                                hlsl.Append($"{inst}.{swizzle} = {op};\n");
+                            }
                             else
                             {
                                 if (func.Name == "Float" || func.Name == "Float2" || func.Name == "Float3" || func.Name == "Float4")
@@ -839,6 +863,10 @@ namespace UnityEditor.ShaderGraph
                                 evalStack.Push((curOpExpr.ToString(), 0));
                                 curOpExpr.Clear();
                             }
+                        }
+                        else if (opCode == OpCodes.Dup)
+                        {
+                            evalStack.Push(evalStack.Peek());
                         }
                         else
                         {

@@ -45,6 +45,18 @@ namespace UnityEditor.ShaderGraph
         private static string SwizzleName(char[] swizzleNames, int componentCount)
             => String.Concat(Enumerable.Take(swizzleNames, componentCount).Reverse());
 
+        private static bool SwizzleIsMasking(string swizzle)
+        {
+            var mask = new bool[4];
+            foreach (var c in swizzle)
+            {
+                if (mask[c - 'w'])
+                    return false;
+                mask[c - 'w'] = true;
+            }
+            return true;
+        }
+
         private static void GenerateSwizzle(StringBuilder sb, int maxComponents)
         {
             var swizzleName = new char[4];
@@ -59,17 +71,114 @@ namespace UnityEditor.ShaderGraph
                     swizzleName[3] = SwizzleComponentName((i / maxComponents / maxComponents / maxComponents) % maxComponents);
                     var swizzle = SwizzleName(swizzleName, swizzleComponents);
                     sb.Append($"\t\tpublic {typeName} {swizzle}\n");
-                    sb.Append($"\t\t\t=> new {typeName}() {{ Value =");
-                    if (maxComponents == 1)
+                    sb.Append($"\t\t{{\n\t\t\tget => ");
+                    if (swizzleComponents == maxComponents && swizzle == "xyzw".Substring(0, swizzleComponents))
                     {
-                        // We don't have .x, .xx, .xxx, .xxxx on float.
-                        sb.Append($"Value != null ? {(swizzleComponents != 1 ? "float" + swizzleComponents : "")}(Value.Value) : {typeName}.Null }};\n");
+                        sb.Append("this;\n");
                     }
                     else
                     {
-                        sb.Append($"Value?.{swizzle} }};\n");
+                        sb.Append($"new {typeName}() {{ Value = ");
+                        var hlslCtor = swizzleComponents != 1 ? "float" + swizzleComponents : "";
+                        if (maxComponents == 1)
+                        {
+                            // We don't have .x, .xx, .xxx, .xxxx on float.
+                            sb.Append($"Value != null ? {hlslCtor}(Value.Value) : {typeName}.Null }};\n");
+                        }
+                        else
+                        {
+                            sb.Append($"Value?.{swizzle} }};\n");
+                        }
                     }
-                    sb.Append("\n");
+                    if (SwizzleIsMasking(swizzle))
+                    {
+                        sb.Append("\t\t\tset");
+
+                        if (swizzleComponents == maxComponents)
+                        {
+                            // this.swizzle = value => this = value.inverseSwizzle
+                            if (swizzle == "x" || swizzle == "xy" || swizzle == "xyz" || swizzle == "xyzw")
+                            {
+                                sb.Append(" => this = value;\n");
+                            }
+                            else
+                            {
+                                sb.Append(" => Value = value.Value?.");
+                                for (int dst = 0; dst < maxComponents; ++dst)
+                                {
+                                    char x = "xyzw"[dst];
+                                    for (int src = 0; src < swizzle.Length; ++src)
+                                    {
+                                        if (swizzle[src] == x)
+                                        {
+                                            sb.Append("xyzw"[src]);
+                                            break;
+                                        }
+                                    }
+                                }
+                                sb.Append(";\n");
+                            }
+                        }
+                        else
+                        {
+                            sb.Append($"\n\t\t\t{{\n\t\t\t\tif (Value != null) Value = value.Value != null ? float{maxComponents}(");
+
+                            bool firstArg = true;
+                            string selfSwizzle = "";
+                            string otherSwizzle = "";
+                            for (int dst = 0; dst < maxComponents; ++dst)
+                            {
+                                char cur = "xyzw"[dst];
+
+                                bool fromOther = false;
+                                for (int src = 0; src < swizzle.Length; ++src)
+                                {
+                                    if (swizzle[src] == cur)
+                                    {
+                                        otherSwizzle += "xyzw"[src];
+                                        fromOther = true;
+                                        break;
+                                    }
+                                }
+
+                                if (fromOther)
+                                {
+                                    if (selfSwizzle != "")
+                                    {
+                                        sb.Append($"{(firstArg ? "" : ", ")}Value.Value.{selfSwizzle}");
+                                        selfSwizzle = "";
+                                        firstArg = false;
+                                    }
+                                }
+                                else
+                                {
+                                    selfSwizzle += cur;
+                                    if (otherSwizzle != "")
+                                    {
+                                        sb.Append($"{(firstArg ? "" : ", ")}value.Value.Value{(otherSwizzle == "xyzw".Substring(0, swizzleComponents) ? "" : "." + otherSwizzle)}");
+                                        otherSwizzle = "";
+                                        firstArg = false;
+                                    }
+                                }
+                            }
+
+                            if (selfSwizzle != "")
+                            {
+                                sb.Append($"{(firstArg ? "" : ", ")}Value.Value.{selfSwizzle}");
+                                selfSwizzle = "";
+                                firstArg = false;
+                            }
+                            if (otherSwizzle != "")
+                            {
+                                sb.Append($"{(firstArg ? "" : ", ")}value.Value.Value{(otherSwizzle == "xyzw".Substring(0, swizzleComponents) ? "" : "." + otherSwizzle)}");
+                                otherSwizzle = "";
+                                firstArg = false;
+                            }
+
+                            sb.Append($") : {ValueTypeName(maxComponents)}.Null;\n\t\t\t}}\n");
+                        }
+                    }
+                    sb.Append("\t\t}\n");
                 }
             }
         }
