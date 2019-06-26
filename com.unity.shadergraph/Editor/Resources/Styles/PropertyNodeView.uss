@@ -6,3 +6,7 @@ PropertyNodeView.hovered #selection-border{
     border-top-width: 2px;
     border-bottom-width: 2px;
 }
+
+PropertyNodeView:checked {
+    background-color: rgb(40, 143, 117);
+}

@@ -9,6 +9,10 @@ MaterialNodeView.master {
     min-width: 200px;
 }
 
+MaterialNodeView:checked {
+    background-color: rgb(40, 143, 117);
+}
+
 MaterialNodeView #collapsible-area {
     width: 0;
     height: 0;
