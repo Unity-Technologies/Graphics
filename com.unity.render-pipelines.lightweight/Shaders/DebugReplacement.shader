@@ -77,6 +77,8 @@ Shader "Hidden/Lightweight Render Pipeline/Debug/Replacement"
                 float4 positionCS : SV_POSITION;
             };
 
+            float3 _DebugColor;
+
             Varyings vert(Attributes IN)
             {
                 Varyings OUT;
@@ -86,7 +88,7 @@ Shader "Hidden/Lightweight Render Pipeline/Debug/Replacement"
 
             half4 frag(Varyings IN) : SV_Target
             {
-                return half4(0.0, 0.0, 0.0, 1.0);
+                return half4(_DebugColor, 1.0);
             }
 
             ENDHLSL

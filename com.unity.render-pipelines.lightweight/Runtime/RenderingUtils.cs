@@ -25,7 +25,8 @@ namespace UnityEngine.Rendering.LWRP
     {
         None,
         Overdraw,
-        Wireframe
+        Wireframe,
+        SolidWireframe
     }
 
     public enum LightingDebugMode
@@ -213,23 +214,44 @@ namespace UnityEngine.Rendering.LWRP
                 mainLightIndex = renderingData.lightData.mainLightIndex,
                 enableDynamicBatching = renderingData.supportsDynamicBatching,
             };
+
             if (debugReplacementPassType != DebugReplacementPassType.None)
             {
                 debugSettings.overrideMaterial = replacementMaterial;
                 
-                // First index does not use replacement, so we subtract one.
-                debugSettings.overrideMaterialPassIndex = (int)debugReplacementPassType - 1;
+                switch (debugReplacementPassType)
+                {
+                    case DebugReplacementPassType.Overdraw:
+                        debugSettings.overrideMaterialPassIndex = 0;
+                        break;
+                    case DebugReplacementPassType.Wireframe:
+                    case DebugReplacementPassType.SolidWireframe:
+                        debugSettings.overrideMaterialPassIndex = 1;
+                        break;
+                }
             }
 
-            if (debugReplacementPassType == DebugReplacementPassType.Wireframe)
+            RenderStateBlock rsBlock = new RenderStateBlock();
+            bool wireframe = debugReplacementPassType == DebugReplacementPassType.Wireframe || debugReplacementPassType == DebugReplacementPassType.SolidWireframe;
+            if (wireframe)
             {
-                context.Submit();
+                if (debugReplacementPassType == DebugReplacementPassType.SolidWireframe)
+                {
+                    replacementMaterial.SetColor("_DebugColor", Color.white);
+                    context.DrawRenderers(renderingData.cullResults, ref debugSettings, ref filterSettings);
+                    context.Submit();
+
+                    rsBlock.rasterState = new RasterState(CullMode.Back, -1, -1, true);
+                    rsBlock.mask = RenderStateMask.Raster;
+                }
+                
                 GL.wireframe = true;
+                replacementMaterial.SetColor("_DebugColor", Color.black);
             }
 
-            context.DrawRenderers(renderingData.cullResults, ref debugSettings, ref filterSettings);
+            context.DrawRenderers(renderingData.cullResults, ref debugSettings, ref filterSettings, ref rsBlock);
 
-            if (debugReplacementPassType == DebugReplacementPassType.Wireframe)
+            if (wireframe)
             {
                 context.Submit();
                 GL.wireframe = false;

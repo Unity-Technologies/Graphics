@@ -53,7 +53,7 @@ namespace UnityEngine.Rendering.LWRP
                                              debugMaterialIndex != DebugMaterialIndex.None;
 
                 var fullScreenDebugMode = DebugDisplaySettings.Instance.buffer.FullScreenDebugMode;
-                bool isReplacementDebugActive = fullScreenDebugMode == FullScreenDebugMode.Overdraw || fullScreenDebugMode == FullScreenDebugMode.Wireframe;
+                bool isReplacementDebugActive = fullScreenDebugMode == FullScreenDebugMode.Overdraw || fullScreenDebugMode == FullScreenDebugMode.Wireframe || fullScreenDebugMode == FullScreenDebugMode.SolidWireframe;
                 if (isMaterialDebugActive || isReplacementDebugActive)
                 {
                     if(lightingDebugMode == LightingDebugMode.ShadowCascades)
@@ -75,6 +75,9 @@ namespace UnityEngine.Rendering.LWRP
                                 break;
                             case FullScreenDebugMode.Wireframe:
                                 debugPassType = DebugReplacementPassType.Wireframe;
+                                break;
+                            case FullScreenDebugMode.SolidWireframe:
+                                debugPassType = DebugReplacementPassType.SolidWireframe;
                                 break;
                             default:
                                 debugPassType = DebugReplacementPassType.None;

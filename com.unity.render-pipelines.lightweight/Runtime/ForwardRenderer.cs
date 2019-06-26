@@ -9,7 +9,8 @@ namespace UnityEngine.Rendering.LWRP
         Depth,
         MainLightShadowsOnly,
         Overdraw,
-        Wireframe
+        Wireframe,
+        SolidWireframe
     }
     
     internal class ForwardRenderer : ScriptableRenderer
@@ -112,7 +113,7 @@ namespace UnityEngine.Rendering.LWRP
             
             // Special path for depth only offscreen cameras. Only write opaques + transparents. 
             bool isOffscreenDepthTexture = camera.targetTexture != null && camera.targetTexture.format == RenderTextureFormat.Depth;
-            if (isOffscreenDepthTexture || fullScreenDebugMode == FullScreenDebugMode.Overdraw || fullScreenDebugMode == FullScreenDebugMode.Wireframe)
+            if (isOffscreenDepthTexture || fullScreenDebugMode == FullScreenDebugMode.Overdraw || fullScreenDebugMode == FullScreenDebugMode.Wireframe || fullScreenDebugMode == FullScreenDebugMode.SolidWireframe)
             {
                 CreateCameraRenderTarget(context, ref renderingData.cameraData);
                 ConfigureCameraTarget(m_ActiveCameraColorAttachment.Identifier(), BuiltinRenderTextureType.CameraTarget);
