@@ -20,7 +20,7 @@ float PseudoFresnel(float f0, float angle)
     float t = min(angle, HALF_PI);
     float Schlick = pow(1.0 - cos(t), lerp(3.5, 5.5, f0));
     float dipFunc = sin(PI * Schlick);
-    return f0 + (1-f0) * Schlick;
+    return f0 * (1 - dipFunc) + (1-f0) * Schlick;
 }
 
 // "eta" in this case is the ratio of the IORs of the entering and exiting
@@ -61,7 +61,7 @@ float3 HairFresnelAllLobes(float IOR, float phiD)
     // It's the same approach used in Sadeghi's "artist-friendly" Marschner
     // model.
     float3 fresValues;
-    fresValues.x = AirToHair * cos(phiD * 0.5);
+    fresValues.x = AirToHair;
     fresValues.y = (1.0 - AirToHair) * (1.0 - HairToAir);
     fresValues.z = (1.0 - AirToHair) * HairToAir * (1.0 - HairToAir);
     
@@ -99,8 +99,8 @@ float inverseLogisticCDF(float u, float stdDev)
 
 float evalHairCosTerm(float thetaL, float thetaI)
 {
-    // TODO
-    return 1;            
+    float cosThetaH = cos((thetaL - thetaI) * 0.5);
+    return cos(thetaL) / (cosThetaH * cosThetaH);
 }
 
 // Functions below are just for evaluating the lobes.  These still need
@@ -122,7 +122,7 @@ float evalNTermR(float phiH, float azimWidth)
 
 float evalNTermTT(float phiH, float azimWidth)
 {
-    return unitNormLogistic(phiH - HALF_PI, azimWidth, -HALF_PI, HALF_PI);
+    return unitNormLogistic(HALF_PI - phiH, azimWidth, -HALF_PI, HALF_PI);
 }
 
 float evalNTermTRT(float phiH, float azimWidth)
