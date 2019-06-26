@@ -69,10 +69,13 @@ namespace UnityEditor.ShaderGraph
             return null;
         }
 
+        public static List<AbstractMaterialNode> s_SubRootNodeList = null;
+
         public string GetShader(GenerationMode mode, string outputName, out List<PropertyCollector.TextureInfo> configuredTextures, List<string> sourceAssetDependencyPaths = null)
         {
             var activeNodeList = ListPool<AbstractMaterialNode>.Get();
-            NodeUtils.DepthFirstCollectNodesFromNode(activeNodeList, this);
+            s_SubRootNodeList = ListPool<AbstractMaterialNode>.Get();
+            NodeUtils.CollectNodesFromNode(activeNodeList, false, s_SubRootNodeList, this);
 
             var shaderProperties = new PropertyCollector();
 
@@ -102,6 +105,8 @@ namespace UnityEditor.ShaderGraph
                 finalShader.AppendLine(@"FallBack ""Hidden/InternalErrorShader""");
             }
             configuredTextures = shaderProperties.GetConfiguredTexutres();
+
+            s_SubRootNodeList = null;
             return finalShader.ToString();
         }
 
