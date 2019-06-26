@@ -134,11 +134,10 @@ BSDFData ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfaceData)
     bsdfData.normalWS = surfaceData.normalWS;
     bsdfData.diffuseNormalWS = surfaceData.irisNormalWS;
     bsdfData.geomNormalWS = surfaceData.geomNormalWS;
-    float scleraPerceptualRoughness = PerceptualSmoothnessToPerceptualRoughness(surfaceData.perceptualSmoothness);
-    float corneaPerceptualRoughness = PerceptualSmoothnessToPerceptualRoughness(surfaceData.corneaPerceptualSmoothness);
 
-    bsdfData.perceptualRoughness = lerp(scleraPerceptualRoughness, corneaPerceptualRoughness, surfaceData.mask.y);
-    bsdfData.fresnel0 = IorToFresnel0(lerp(surfaceData.scleraIOR, surfaceData.corneaIOR, surfaceData.mask.y)).xxx;
+    bsdfData.perceptualRoughness = PerceptualSmoothnessToPerceptualRoughness(lerp(surfaceData.perceptualSmoothness, surfaceData.corneaPerceptualSmoothness, surfaceData.mask.x));
+    
+    bsdfData.fresnel0 = IorToFresnel0(lerp(surfaceData.scleraIOR, surfaceData.corneaIOR, surfaceData.mask.x)).xxx;
     bsdfData.ambientOcclusion = surfaceData.ambientOcclusion;
 
     bsdfData.mask = surfaceData.mask;
