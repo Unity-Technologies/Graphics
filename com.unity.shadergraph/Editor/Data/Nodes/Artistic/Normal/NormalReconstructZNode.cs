@@ -1,5 +1,6 @@
-﻿using System.Reflection;
-using UnityEngine;
+using System.Reflection;
+using UnityEditor.ShaderGraph.Hlsl;
+using static UnityEditor.ShaderGraph.Hlsl.Intrinsics;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -16,18 +17,14 @@ namespace UnityEditor.ShaderGraph
             return GetType().GetMethod("NormalReconstructZ", BindingFlags.Static | BindingFlags.NonPublic);
         }
 
-        static string NormalReconstructZ(
-            [Slot(0, Binding.None)] Vector2 In,
-            [Slot(2, Binding.None, ShaderStageCapability.Fragment)] out Vector3 Out)
+        [HlslCodeGen]
+        static void NormalReconstructZ(
+            [Slot(0, Binding.None)] Float2 In,
+            [Slot(2, Binding.None, ShaderStageCapability.Fragment)] out Float3 Out)
         {
-            Out = Vector3.zero;
-            return
-                @"
-{
-    $precision reconstructZ = sqrt(1.0 - saturate(dot(In.xy, In.xy)));
-    $precision3 normalVector = $precision3(In.x, In.y, reconstructZ);
-    Out = normalize(normalVector);
-}";
+            var reconstructZ = sqrt(1.0 - saturate(dot(In, In)));
+            var normalVector = Float3(In, reconstructZ);
+            Out = normalize(normalVector);
         }
     }
 }

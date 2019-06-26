@@ -45,6 +45,18 @@ namespace UnityEditor.ShaderGraph
         private static string SwizzleName(char[] swizzleNames, int componentCount)
             => String.Concat(Enumerable.Take(swizzleNames, componentCount).Reverse());
 
+        private static bool SwizzleIsMasking(string swizzle)
+        {
+            var mask = new bool[4];
+            foreach (var c in swizzle)
+            {
+                if (mask[c - 'w'])
+                    return false;
+                mask[c - 'w'] = true;
+            }
+            return true;
+        }
+
         private static void GenerateSwizzle(StringBuilder sb, int maxComponents)
         {
             var swizzleName = new char[4];
@@ -59,17 +71,114 @@ namespace UnityEditor.ShaderGraph
                     swizzleName[3] = SwizzleComponentName((i / maxComponents / maxComponents / maxComponents) % maxComponents);
                     var swizzle = SwizzleName(swizzleName, swizzleComponents);
                     sb.Append($"\t\tpublic {typeName} {swizzle}\n");
-                    sb.Append($"\t\t\t=> new {typeName}() {{ Code = $\"({{Code}}).{swizzle}\"");
-                    if (maxComponents == 1)
+                    sb.Append($"\t\t{{\n\t\t\tget => ");
+                    if (swizzleComponents == maxComponents && swizzle == "xyzw".Substring(0, swizzleComponents))
                     {
-                        // We don't have .x, .xx, .xxx, .xxxx on float.
-                        sb.Append($", Value = Value != null ? {(swizzleComponents != 1 ? "float" + swizzleComponents : "")}(Value.Value) : {typeName}.Null }};\n");
+                        sb.Append("this;\n");
                     }
                     else
                     {
-                        sb.Append($", Value = Value?.{swizzle} }};\n");
+                        sb.Append($"new {typeName}() {{ Value = ");
+                        var hlslCtor = swizzleComponents != 1 ? "float" + swizzleComponents : "";
+                        if (maxComponents == 1)
+                        {
+                            // We don't have .x, .xx, .xxx, .xxxx on float.
+                            sb.Append($"Value != null ? {hlslCtor}(Value.Value) : {typeName}.Null }};\n");
+                        }
+                        else
+                        {
+                            sb.Append($"Value?.{swizzle} }};\n");
+                        }
                     }
-                    sb.Append("\n");
+                    if (SwizzleIsMasking(swizzle))
+                    {
+                        sb.Append("\t\t\tset");
+
+                        if (swizzleComponents == maxComponents)
+                        {
+                            // this.swizzle = value => this = value.inverseSwizzle
+                            if (swizzle == "x" || swizzle == "xy" || swizzle == "xyz" || swizzle == "xyzw")
+                            {
+                                sb.Append(" => this = value;\n");
+                            }
+                            else
+                            {
+                                sb.Append(" => Value = value.Value?.");
+                                for (int dst = 0; dst < maxComponents; ++dst)
+                                {
+                                    char x = "xyzw"[dst];
+                                    for (int src = 0; src < swizzle.Length; ++src)
+                                    {
+                                        if (swizzle[src] == x)
+                                        {
+                                            sb.Append("xyzw"[src]);
+                                            break;
+                                        }
+                                    }
+                                }
+                                sb.Append(";\n");
+                            }
+                        }
+                        else
+                        {
+                            sb.Append($"\n\t\t\t{{\n\t\t\t\tif (Value != null) Value = value.Value != null ? float{maxComponents}(");
+
+                            bool firstArg = true;
+                            string selfSwizzle = "";
+                            string otherSwizzle = "";
+                            for (int dst = 0; dst < maxComponents; ++dst)
+                            {
+                                char cur = "xyzw"[dst];
+
+                                bool fromOther = false;
+                                for (int src = 0; src < swizzle.Length; ++src)
+                                {
+                                    if (swizzle[src] == cur)
+                                    {
+                                        otherSwizzle += "xyzw"[src];
+                                        fromOther = true;
+                                        break;
+                                    }
+                                }
+
+                                if (fromOther)
+                                {
+                                    if (selfSwizzle != "")
+                                    {
+                                        sb.Append($"{(firstArg ? "" : ", ")}Value.Value.{selfSwizzle}");
+                                        selfSwizzle = "";
+                                        firstArg = false;
+                                    }
+                                }
+                                else
+                                {
+                                    selfSwizzle += cur;
+                                    if (otherSwizzle != "")
+                                    {
+                                        sb.Append($"{(firstArg ? "" : ", ")}value.Value.Value{(otherSwizzle == "xyzw".Substring(0, swizzleComponents) ? "" : "." + otherSwizzle)}");
+                                        otherSwizzle = "";
+                                        firstArg = false;
+                                    }
+                                }
+                            }
+
+                            if (selfSwizzle != "")
+                            {
+                                sb.Append($"{(firstArg ? "" : ", ")}Value.Value.{selfSwizzle}");
+                                selfSwizzle = "";
+                                firstArg = false;
+                            }
+                            if (otherSwizzle != "")
+                            {
+                                sb.Append($"{(firstArg ? "" : ", ")}value.Value.Value{(otherSwizzle == "xyzw".Substring(0, swizzleComponents) ? "" : "." + otherSwizzle)}");
+                                otherSwizzle = "";
+                                firstArg = false;
+                            }
+
+                            sb.Append($") : {ValueTypeName(maxComponents)}.Null;\n\t\t\t}}\n");
+                        }
+                    }
+                    sb.Append("\t\t}\n");
                 }
             }
         }
@@ -89,12 +198,7 @@ namespace UnityEditor.ShaderGraph
             }
             else
             {
-                sb.Append($"\t\t\t=> new {typeName}() {{ Code = ");
-                sb.Append($"$\"{hlslTypeName}(");
-                for (int v = 0; v < stack.Count; ++v)
-                    sb.Append($"{{v{v}.Code}}{(v != stack.Count - 1 ? ", " : "")}");
-                sb.Append(")\"");
-                sb.Append(", Value = ");
+                sb.Append($"\t\t\t=> new {typeName}() {{ Value = ");
                 for (int v = 0; v < stack.Count; ++v)
                     sb.Append($"{(v != 0 ? " && " : "")}v{v}.Value != null");
                 sb.Append($" ? {hlslTypeName}(");
@@ -143,7 +247,7 @@ namespace UnityEditor.ShaderGraph
                 var returnType = GetIntrinsicTypeName(components, fixToFloat1, 0);
                 var paramType0 = GetIntrinsicTypeName(components, fixToFloat1, 1);
                 sb.Append($"\t\tpublic static {returnType} {func}({paramType0} x)\n");
-                sb.Append($"\t\t\t=> new {returnType}() {{ Code = $\"{func}({{x.Code}})\", Value = {String.Format(evaluator, returnType)} }};\n\n");
+                sb.Append($"\t\t\t=> new {returnType}() {{ Value = {String.Format(evaluator, returnType)} }};\n\n");
             }
         }
 
@@ -157,7 +261,7 @@ namespace UnityEditor.ShaderGraph
                 var paramType0 = GetIntrinsicTypeName(components, fixToFloat1, 1);
                 var paramType1 = GetIntrinsicTypeName(components, fixToFloat1, 2);
                 sb.Append($"\t\tpublic static {returnType} {func}({paramType0} x, {paramType1} y)\n");
-                sb.Append($"\t\t\t=> new {returnType}() {{ Code = $\"{func}({{x.Code}}, {{y.Code}})\", Value = {String.Format(evaluator, returnType)} }};\n\n");
+                sb.Append($"\t\t\t=> new {returnType}() {{ Value = {String.Format(evaluator, returnType)} }};\n\n");
             }
         }
 
@@ -172,7 +276,7 @@ namespace UnityEditor.ShaderGraph
                 var paramType1 = GetIntrinsicTypeName(components, fixToFloat1, 2);
                 var paramType2 = GetIntrinsicTypeName(components, fixToFloat1, 3);
                 sb.Append($"\t\tpublic static {returnType} {func}({paramType0} x, {paramType1} y, {paramType2} z)\n");
-                sb.Append($"\t\t\t=> new {returnType}() {{ Code = $\"{func}({{x.Code}}, {{y.Code}}, {{z.Code}})\", Value = {String.Format(evaluator, returnType)} }};\n\n");
+                sb.Append($"\t\t\t=> new {returnType}() {{ Value = {String.Format(evaluator, returnType)} }};\n\n");
             }
         }
 
@@ -196,7 +300,6 @@ namespace UnityEditor.ShaderGraph
                     var hlslTypeName = HlslTypeName(i);
                     sb.Append($"\tpublic struct {typeName}\n");
                     sb.Append("\t{\n");
-                    sb.Append($"\t\tpublic string Code;\n");
                     sb.Append($"\t\tpublic {hlslTypeName}? Value;\n");
                     sb.Append($"\t\tpublic static readonly {hlslTypeName}? Null = null;\n\n");
 
@@ -207,7 +310,7 @@ namespace UnityEditor.ShaderGraph
                             var otherTypeName = ValueTypeName(j);
                             var otherHlslTypeName = HlslTypeName(j);
                             sb.Append($"\t\tpublic static implicit operator {otherTypeName}(Float x)\n");
-                            sb.Append($"\t\t\t=> new {otherTypeName}() {{ Code = $\"({{x.Code}}).{String.Concat(Enumerable.Repeat("x", j))}\", Value = x.Value != null ? {otherHlslTypeName}(x.Value.Value) : {otherTypeName}.Null }};\n");
+                            sb.Append($"\t\t\t=> new {otherTypeName}() {{ Value = x.Value != null ? {otherHlslTypeName}(x.Value.Value) : {otherTypeName}.Null }};\n");
                             sb.Append("\n");
                         }
                     }
@@ -228,28 +331,28 @@ namespace UnityEditor.ShaderGraph
                     }
 
                     sb.Append($"\t\tpublic static {typeName} operator-({typeName} v)\n");
-                    sb.Append($"\t\t\t=> new {typeName}() {{ Code = $\"-({{v.Code}})\", Value = v.Value != null ? -v.Value.Value : Null }};\n\n");
+                    sb.Append($"\t\t\t=> new {typeName}() {{ Value = v.Value != null ? -v.Value.Value : Null }};\n\n");
 
                     sb.Append($"\t\tpublic static implicit operator {typeName} (float v)\n");
-                    sb.Append($"\t\t\t=> new {typeName}() {{ Code = $\"({{v}}).{String.Concat(Enumerable.Repeat("x", i))}\", Value = {(i != 1 ? hlslTypeName : "")}(v) }};\n\n");
+                    sb.Append($"\t\t\t=> new {typeName}() {{ Value = {(i != 1 ? hlslTypeName : "")}(v) }};\n\n");
 
                     sb.Append($"\t\tpublic static implicit operator {typeName} (int v)\n");
-                    sb.Append($"\t\t\t=> new {typeName}() {{ Code = $\"({{v}}.0f).{String.Concat(Enumerable.Repeat("x", i))}\", Value = {(i != 1 ? hlslTypeName : "")}(v) }};\n\n");
+                    sb.Append($"\t\t\t=> new {typeName}() {{ Value = {(i != 1 ? hlslTypeName : "")}(v) }};\n\n");
 
                     sb.Append($"\t\tpublic static implicit operator {typeName} (double v)\n");
-                    sb.Append($"\t\t\t=> new {typeName}() {{ Code = $\"({{(float)v}}).{String.Concat(Enumerable.Repeat("x", i))}\", Value = {(i != 1 ? hlslTypeName : "")}((float)v) }};\n\n");
+                    sb.Append($"\t\t\t=> new {typeName}() {{ Value = {(i != 1 ? hlslTypeName : "")}((float)v) }};\n\n");
 
                     sb.Append($"\t\tpublic static {typeName} operator+({typeName} x, {typeName} y)\n");
-                    sb.Append($"\t\t\t=> new {typeName}() {{ Code = $\"({{x.Code}}) + ({{y.Code}})\", Value = x.Value != null && y.Value != null ? x.Value.Value + y.Value.Value : Null }};\n");
+                    sb.Append($"\t\t\t=> new {typeName}() {{ Value = x.Value != null && y.Value != null ? x.Value.Value + y.Value.Value : Null }};\n");
                     sb.Append("\n");
                     sb.Append($"\t\tpublic static {typeName} operator-({typeName} x, {typeName} y)\n");
-                    sb.Append($"\t\t\t=> new {typeName}() {{ Code = $\"({{x.Code}}) - ({{y.Code}})\", Value = x.Value != null && y.Value != null ? x.Value.Value - y.Value.Value : Null }};\n");
+                    sb.Append($"\t\t\t=> new {typeName}() {{ Value = x.Value != null && y.Value != null ? x.Value.Value - y.Value.Value : Null }};\n");
                     sb.Append("\n");
                     sb.Append($"\t\tpublic static {typeName} operator*({typeName} x, {typeName} y)\n");
-                    sb.Append($"\t\t\t=> new {typeName}() {{ Code = $\"({{x.Code}}) * ({{y.Code}})\", Value = x.Value != null && y.Value != null ? x.Value.Value * y.Value.Value : Null }};\n");
+                    sb.Append($"\t\t\t=> new {typeName}() {{ Value = x.Value != null && y.Value != null ? x.Value.Value * y.Value.Value : Null }};\n");
                     sb.Append("\n");
                     sb.Append($"\t\tpublic static {typeName} operator/({typeName} x, {typeName} y)\n");
-                    sb.Append($"\t\t\t=> new {typeName}() {{ Code = $\"({{x.Code}}) / ({{y.Code}})\", Value = x.Value != null && y.Value != null ? x.Value.Value / y.Value.Value : Null }};\n");
+                    sb.Append($"\t\t\t=> new {typeName}() {{ Value = x.Value != null && y.Value != null ? x.Value.Value / y.Value.Value : Null }};\n");
                     sb.Append("\n");
 
                     sb.Append("\t\t#region Swizzles\n\n");
@@ -278,7 +381,7 @@ namespace UnityEditor.ShaderGraph
                 Intrinsic1(sb, "cosh");
 
                 sb.Append("\t\tpublic static Float3 cross(Float3 x, Float3 y)\n");
-                sb.Append("\t\t\t=> new Float3() { Code = $\"cross({x.Code}, {y.Code})\", Value = x.Value != null && y.Value != null ? math.cross(x.Value.Value, y.Value.Value) : Hlsl.Float3.Null };\n\n");
+                sb.Append("\t\t\t=> new Float3() { Value = x.Value != null && y.Value != null ? math.cross(x.Value.Value, y.Value.Value) : Hlsl.Float3.Null };\n\n");
 
                 Intrinsic1(sb, "ddx", evaluator: "x.Value != null ? 0 : {0}.Null");
                 Intrinsic1(sb, "ddy", evaluator: "x.Value != null ? 0 : {0}.Null");
