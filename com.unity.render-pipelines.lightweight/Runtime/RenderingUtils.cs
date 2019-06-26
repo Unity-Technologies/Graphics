@@ -208,7 +208,7 @@ namespace UnityEngine.Rendering.LWRP
             SortingSettings sortingSettings = new SortingSettings(renderingData.cameraData.camera) { criteria = sortingCriteria };
 
             DrawingSettings debugSettings = new DrawingSettings(m_DebugShaderPassNames[
-                (overrideMaterial) ? 0 : 1], sortingSettings)
+                (overrideMaterial) ? 1 : 0], sortingSettings)
             {
                 perObjectData = renderingData.perObjectData,
                 enableInstancing = true,
