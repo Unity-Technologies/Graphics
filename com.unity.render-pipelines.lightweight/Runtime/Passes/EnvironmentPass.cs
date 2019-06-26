@@ -37,7 +37,7 @@ namespace UnityEngine.Rendering.LWRP
             m_Fog        = stack.GetComponent<Fog>();
 
             var cmd = CommandBufferPool.Get(k_SetupEnvironmentTag);
-            
+
             // Do Fog stuff
             using (new ProfilingSample(cmd, "Fog Setup"))
             {
@@ -49,22 +49,27 @@ namespace UnityEngine.Rendering.LWRP
         }
 
         #region Fog
-        
+
         void DoFogSetup()
         {
+            var fogParams = default(Vector4);
+            
             switch (m_Fog.type.value)
             {
                 case FogType.Linear:
+                    fogParams = new Vector4(m_Fog.density.value, 0, m_Fog.nearFog.value, m_Fog.farFog.value);
                     Shader.EnableKeyword("FOG_LINEAR");
                     Shader.DisableKeyword("FOG_EXP2");
                     Shader.DisableKeyword("FOG_EXP");
                     break;
                 case FogType.Exp2:
+                    fogParams = new Vector4(m_Fog.density.value, 0, m_Fog.nearFog.value, m_Fog.farFog.value);
                     Shader.DisableKeyword("FOG_LINEAR");
                     Shader.EnableKeyword("FOG_EXP2");
                     Shader.DisableKeyword("FOG_EXP");
                     break;
                 case FogType.Height:
+                    fogParams = new Vector4(m_Fog.height.value, m_Fog.heightFalloff.value, m_Fog.distanceOffset.value, m_Fog.distanceFalloff.value);
                     Shader.DisableKeyword("FOG_LINEAR");
                     Shader.DisableKeyword("FOG_EXP2");
                     Shader.EnableKeyword("FOG_EXP");
@@ -84,10 +89,8 @@ namespace UnityEngine.Rendering.LWRP
                     Shader.SetGlobalTexture("_FogMap", m_Fog.cubemap.value);
                     break;
             }
-            
+
             Shader.SetGlobalColor(ShaderConstants._FogColor, m_Fog.fogColor.value);
-            
-            var fogParams = new Vector4(m_Fog.density.value, 0, m_Fog.nearFog.value, m_Fog.farFog.value);
             Shader.SetGlobalVector(ShaderConstants._FogParams, fogParams);
         }
 

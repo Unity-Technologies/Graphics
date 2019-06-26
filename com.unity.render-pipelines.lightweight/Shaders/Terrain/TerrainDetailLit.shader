@@ -37,6 +37,7 @@ Shader "Hidden/TerrainEngine/Details/LightweightPipeline/Vertexlit"
             // Unity defined keywords
             #pragma multi_compile _ LIGHTMAP_ON
             #pragma multi_compile_fog
+            #pragma multi_compile _ FOGMAP
             
             #include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/Core.hlsl"
             #include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/Lighting.hlsl"
@@ -118,7 +119,12 @@ Shader "Hidden/TerrainEngine/Details/LightweightPipeline/Vertexlit"
                 half4 color = 1.0;
                 color.rgb = input.Color.rgb * tex.rgb * lighting;
     
-                color.rgb = MixFog(color.rgb, input.LightingFog.w);
+                half3 viewPosition = half3(0.0, 0.0, 0.0);
+            #ifdef FOGMAP
+                //viewPosition = mul(input.PositionCS, (float3x3)UNITY_MATRIX_I_VP).xyz;// TODO
+            #endif
+    
+                color.rgb = MixFog(color.rgb, input.LightingFog.w, viewPosition, input.PositionCS.z);
     
                 return color;
             }

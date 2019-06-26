@@ -49,6 +49,7 @@ Shader "Lightweight Render Pipeline/Baked Lit"
             #pragma multi_compile _ DIRLIGHTMAP_COMBINED
             #pragma multi_compile _ LIGHTMAP_ON
             #pragma multi_compile_fog
+            #pragma multi_compile _ FOGMAP
             #pragma multi_compile_instancing
 
             // Lighting include is needed because of GI
@@ -129,7 +130,13 @@ Shader "Lightweight Render Pipeline/Baked Lit"
     #endif
                 normalWS = NormalizeNormalPerPixel(normalWS);
                 color *= SAMPLE_GI(input.lightmapUV, input.vertexSH, normalWS);
-                color = MixFog(color, input.uv0AndFogCoord.z);
+                
+                half3 viewPosition = half3(0.0, 0.0, 0.0);
+            #ifdef FOGMAP
+                viewPosition = mul(_InvCameraViewProj, input.vertex).xyz;
+            #endif
+                
+                color = MixFog(color, input.uv0AndFogCoord.z, viewPosition, input.vertex.z);
 
                 return half4(color, alpha);
             }

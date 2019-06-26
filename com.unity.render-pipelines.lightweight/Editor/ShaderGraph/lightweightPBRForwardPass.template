@@ -161,11 +161,7 @@ ${PixelShaderSurfaceRemap}
 			Alpha);
 
 		// Computes fog factor per-vertex
-#ifdef FOGMAP
-    	color.rgb = MixFogDir(color.rgb, IN.fogFactorAndVertexLight.x, inputData.viewDirectionWS, IN.clipPos.z);
-#else
-    	color.rgb = MixFog(color.rgb, IN.fogFactorAndVertexLight.x);
-#endif
+    	color.rgb = MixFog(color.rgb, IN.fogFactorAndVertexLight.x, inputData.viewDirectionWS, IN.clipPos.z);
 
 #if _AlphaClip
 		clip(Alpha - AlphaClipThreshold);

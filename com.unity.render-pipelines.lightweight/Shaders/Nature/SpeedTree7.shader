@@ -42,6 +42,7 @@ Shader "Lightweight Render Pipeline/Nature/SpeedTree7"
             #pragma multi_compile _ _SHADOWS_SOFT
             #pragma multi_compile_vertex LOD_FADE_PERCENTAGE
             #pragma multi_compile_fog
+            #pragma multi_compile _ FOGMAP
 
             #pragma multi_compile_instancing
             #pragma instancing_options assumeuniformscaling maxcount:50

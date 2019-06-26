@@ -112,6 +112,7 @@ Shader "Lightweight Render Pipeline/Particles/Lit"
             // -------------------------------------
             // Unity defined keywords
             #pragma multi_compile_fog
+            #pragma multi_compile _ FOGMAP
 
             #pragma vertex ParticlesLitVertex
             #pragma fragment ParticlesLitFragment

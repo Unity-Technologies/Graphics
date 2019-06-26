@@ -179,13 +179,13 @@ void HeightBasedSplatModify(inout half4 splatControl, in half4 masks[4])
 }
 #endif
 
-void SplatmapFinalColor(inout half4 color, half fogCoord)
+void SplatmapFinalColor(inout half4 color, half fogCoord, real3 viewDirection, real z)
 {
     color.rgb *= color.a;
     #ifdef TERRAIN_SPLAT_ADDPASS
         color.rgb = MixFogColor(color.rgb, half3(0,0,0), fogCoord);
     #else
-        color.rgb = MixFog(color.rgb, fogCoord);
+        color.rgb = MixFog(color.rgb, fogCoord, viewDirection, z);
     #endif
 }
 
@@ -339,7 +339,7 @@ half4 SplatmapFragment(Varyings IN) : SV_TARGET
     InitializeInputData(IN, normalTS, inputData);
     half4 color = LightweightFragmentPBR(inputData, albedo, metallic, half3(0.0h, 0.0h, 0.0h), smoothness, occlusion, /* emission */ half3(0, 0, 0), alpha);
 
-    SplatmapFinalColor(color, inputData.fogCoord);
+    SplatmapFinalColor(color, inputData.fogCoord, inputData.viewDirectionWS, IN.clipPos.z);
 
     return half4(color.rgb, 1.0h);
 }

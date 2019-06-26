@@ -136,7 +136,7 @@ half4 LitPassFragmentSimple(Varyings input) : SV_Target
     InitializeInputData(input, normalTS, inputData);
 
     half4 color = LightweightFragmentBlinnPhong(inputData, diffuse, specular, smoothness, emission, alpha);
-    color.rgb = MixFog(color.rgb, inputData.fogCoord);
+    color.rgb = MixFog(color.rgb, inputData.fogCoord, inputData.viewDirectionWS, input.positionCS.z);
     return color;
 };
 

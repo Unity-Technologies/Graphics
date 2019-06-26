@@ -374,7 +374,7 @@ half4 SpeedTree8Frag(SpeedTreeFragmentInput input) : SV_Target
     InitializeInputData(input, normalTs, inputData);
 
     half4 color = LightweightFragmentPBR(inputData, albedo, metallic, specular, smoothness, occlusion, emission, alpha);
-    color.rgb = MixFog(color.rgb, inputData.fogCoord);
+    color.rgb = MixFog(color.rgb, inputData.fogCoord, inputData.viewDirectionWS, input.interpolated.clipPos.z);
     return color;
 }
 

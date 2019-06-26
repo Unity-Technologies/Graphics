@@ -24,6 +24,7 @@ SubShader
 		#pragma multi_compile _ _HARD_SHADOWS _SHADOWS_SOFT _HARD_SHADOWS_CASCADES _SHADOWS_SOFT_CASCADES
 		#pragma multi_compile _ _VERTEX_LIGHTS
 		#pragma multi_compile_fog
+		#pragma multi_compile _ FOGMAP
 		#pragma multi_compile_instancing
 
         #pragma vertex Vertex

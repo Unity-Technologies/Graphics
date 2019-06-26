@@ -48,6 +48,7 @@ Shader "Lightweight Render Pipeline/Unlit"
             // -------------------------------------
             // Unity defined keywords
             #pragma multi_compile_fog
+            #pragma multi_compile _ FOGMAP
             #pragma multi_compile_instancing
 
             #include "UnlitInput.hlsl"
@@ -101,7 +102,12 @@ Shader "Lightweight Render Pipeline/Unlit"
                 color *= alpha;
 #endif
 
-                color = MixFog(color, input.fogCoord);
+                half3 viewPosition = half3(0.0, 0.0, 0.0);
+            #ifdef FOGMAP
+                viewPosition = mul(_InvCameraViewProj, input.vertex).xyz;
+            #endif
+
+                color = MixFog(color, input.fogCoord, viewPosition, input.vertex.z);
 
                 return half4(color, alpha);
             }

@@ -142,7 +142,7 @@ half4 SpeedTree7Frag(SpeedTreeVertexOutput input) : SV_Target
     #endif
 
     half4 color = LightweightFragmentBlinnPhong(inputData, diffuseColor.rgb, half4(0, 0, 0, 0), 0, 0, diffuse.a);
-    color.rgb = MixFog(color.rgb, inputData.fogCoord);
+    color.rgb = MixFog(color.rgb, inputData.fogCoord, inputData.viewDirectionWS, input.clipPos.z);
 
     return color;
 }
