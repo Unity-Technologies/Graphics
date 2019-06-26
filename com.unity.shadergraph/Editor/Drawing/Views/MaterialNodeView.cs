@@ -349,6 +349,10 @@ namespace UnityEditor.ShaderGraph.Drawing
                     _ => canViewShader ? DropdownMenuAction.Status.Normal : DropdownMenuAction.Status.Hidden,
                     GenerationMode.ForReals);
 
+                evt.menu.AppendAction("Show Optimized Generated Code", ShowGeneratedCode,
+                    _ => canViewShader ? DropdownMenuAction.Status.Normal : DropdownMenuAction.Status.Hidden,
+                    GenerationMode.ForRealsAndOptimized);
+
                 if (Unsupported.IsDeveloperMode())
                 {
                     evt.menu.AppendAction("Show Preview Code", ShowGeneratedCode,
@@ -380,8 +384,13 @@ namespace UnityEditor.ShaderGraph.Drawing
             string name = GetFirstAncestorOfType<GraphEditorView>().assetName;
             var mode = (GenerationMode)action.userData;
 
-            string path = String.Format("Temp/GeneratedFromGraph-{0}-{1}-{2}{3}.shader", SanitizeName(name),
-                SanitizeName(node.name), node.guid, mode == GenerationMode.Preview ? "-Preview" : "");
+            string path = String.Format("Temp/GeneratedFromGraph-{0}-{1}-{2}{3}{4}.shader",
+                SanitizeName(name),
+                SanitizeName(node.name),
+                node.guid,
+                mode.IsPreview() ? "-Preview" : "",
+                mode.IsOptimized() ? "-Optimized" : "");
+
             if (GraphUtil.WriteToFile(path, ConvertToShader(mode)))
                 GraphUtil.OpenFile(path);
         }
