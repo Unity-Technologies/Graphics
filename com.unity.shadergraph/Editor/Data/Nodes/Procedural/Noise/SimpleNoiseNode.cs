@@ -1,4 +1,3 @@
-using System.Reflection;
 using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
@@ -9,12 +8,6 @@ namespace UnityEditor.ShaderGraph
         public NoiseNode()
         {
             name = "Simple Noise";
-        }
-
-
-        protected override MethodInfo GetFunctionToConvert()
-        {
-            return GetType().GetMethod("Unity_SimpleNoise", BindingFlags.Static | BindingFlags.NonPublic);
         }
 
         static string Unity_SimpleNoise(

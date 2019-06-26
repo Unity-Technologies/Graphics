@@ -11,15 +11,9 @@ namespace UnityEditor.ShaderGraph
             name = "Any";
         }
 
-
         public override bool hasPreview
         {
             get { return false; }
-        }
-
-        protected override MethodInfo GetFunctionToConvert()
-        {
-            return GetType().GetMethod("Unity_Any", BindingFlags.Static | BindingFlags.NonPublic);
         }
 
         static string Unity_Any(

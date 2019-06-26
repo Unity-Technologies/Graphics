@@ -11,12 +11,6 @@ namespace UnityEditor.ShaderGraph
             name = "Branch";
         }
 
-
-        protected override MethodInfo GetFunctionToConvert()
-        {
-            return GetType().GetMethod("Unity_Branch", BindingFlags.Static | BindingFlags.NonPublic);
-        }
-
         static string Unity_Branch(
             [Slot(0, Binding.None)] Boolean Predicate,
             [Slot(1, Binding.None, 1, 1, 1, 1)] DynamicDimensionVector True,

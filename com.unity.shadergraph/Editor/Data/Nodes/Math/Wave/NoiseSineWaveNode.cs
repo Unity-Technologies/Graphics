@@ -1,4 +1,3 @@
-using System.Reflection;
 using UnityEditor.ShaderGraph.Hlsl;
 using static UnityEditor.ShaderGraph.Hlsl.Intrinsics;
 
@@ -10,11 +9,6 @@ namespace UnityEditor.ShaderGraph
         public NoiseSineWaveNode()
         {
             name = "Noise Sine Wave";
-        }
-
-        protected override MethodInfo GetFunctionToConvert()
-        {
-            return GetType().GetMethod("NoiseSineWave", BindingFlags.Static | BindingFlags.NonPublic);
         }
 
         [HlslCodeGen]

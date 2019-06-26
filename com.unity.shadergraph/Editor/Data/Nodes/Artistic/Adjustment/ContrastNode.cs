@@ -1,5 +1,5 @@
-using System.Reflection;
-using UnityEngine;
+using UnityEditor.ShaderGraph.Hlsl;
+using static UnityEditor.ShaderGraph.Hlsl.Intrinsics;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -11,23 +11,14 @@ namespace UnityEditor.ShaderGraph
             name = "Contrast";
         }
 
-        protected override MethodInfo GetFunctionToConvert()
+        [HlslCodeGen]
+        static void Unity_Contrast(
+            [Slot(0, Binding.None)] Float3 In,
+            [Slot(1, Binding.None, 1, 1, 1, 1)] Float Contrast,
+            [Slot(2, Binding.None)] out Float3 Out)
         {
-            return GetType().GetMethod("Unity_Contrast", BindingFlags.Static | BindingFlags.NonPublic);
-        }
-
-        static string Unity_Contrast(
-            [Slot(0, Binding.None)] Vector3 In,
-            [Slot(1, Binding.None, 1, 1, 1, 1)] Vector1 Contrast,
-            [Slot(2, Binding.None)] out Vector3 Out)
-        {
-            Out = Vector2.zero;
-            return
-                @"
-{
-    $precision midpoint = pow(0.5, 2.2);
-    Out =  (In - midpoint) * Contrast + midpoint;
-}";
+            var midpoint = pow(0.5, 2.2);
+            Out = (In - midpoint) * Contrast + midpoint;
         }
     }
 }

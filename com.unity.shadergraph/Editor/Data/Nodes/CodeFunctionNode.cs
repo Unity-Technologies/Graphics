@@ -148,7 +148,16 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        protected abstract MethodInfo GetFunctionToConvert();
+        protected virtual MethodInfo GetFunctionToConvert()
+        {
+            var method = GetType().GetMethods(BindingFlags.Static).FirstOrDefault(m =>
+                m.ReturnType == typeof(void) && m.GetCustomAttribute<HlslCodeGenAttribute>() != null
+                || m.ReturnType == typeof(string) && m.GetCustomAttribute<HlslCodeGenAttribute>() == null);
+            if (method != null)
+                return method;
+            else
+                throw new InvalidOperationException($"Cannot find an HLSL function! Either override {nameof(GetFunctionToConvert)} or provide a static function with HlslCodeGen attribute.");
+        }
 
         private static SlotValueType ConvertTypeToSlotValueType(ParameterInfo p)
         {

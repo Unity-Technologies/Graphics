@@ -1,4 +1,3 @@
-using System.Reflection;
 using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
@@ -10,11 +9,6 @@ namespace UnityEditor.ShaderGraph
         {
             name = "Dither";
             UpdateNodeAfterDeserialization();
-        }
-
-        protected override MethodInfo GetFunctionToConvert()
-        {
-            return GetType().GetMethod("Unity_Dither", BindingFlags.Static | BindingFlags.NonPublic);
         }
 
         static string Unity_Dither(

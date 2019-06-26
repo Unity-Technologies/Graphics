@@ -1,6 +1,3 @@
-using System.Reflection;
-using UnityEngine;
-
 namespace UnityEditor.ShaderGraph
 {
     [Title("Utility", "Logic", "Or")]
@@ -11,15 +8,9 @@ namespace UnityEditor.ShaderGraph
             name = "Or";
         }
 
-
         public override bool hasPreview
         {
             get { return false; }
-        }
-
-        protected override MethodInfo GetFunctionToConvert()
-        {
-            return GetType().GetMethod("Unity_Or", BindingFlags.Static | BindingFlags.NonPublic);
         }
 
         static string Unity_Or(

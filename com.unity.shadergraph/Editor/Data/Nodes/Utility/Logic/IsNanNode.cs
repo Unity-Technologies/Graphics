@@ -1,6 +1,3 @@
-using System.Reflection;
-using UnityEngine;
-
 namespace UnityEditor.ShaderGraph
 {
     [Title("Utility", "Logic", "Is NaN")]
@@ -15,11 +12,6 @@ namespace UnityEditor.ShaderGraph
         public override bool hasPreview
         {
             get { return false; }
-        }
-
-        protected override MethodInfo GetFunctionToConvert()
-        {
-            return GetType().GetMethod("Unity_IsNaN", BindingFlags.Static | BindingFlags.NonPublic);
         }
 
         static string Unity_IsNaN(
