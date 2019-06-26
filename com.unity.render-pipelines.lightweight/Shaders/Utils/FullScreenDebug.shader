@@ -83,7 +83,7 @@ Shader "Hidden/Lightweight Render Pipeline/FullScreenDebug"
                 }
                 else if (_DebugMode == DEBUG_MODE_ADDITIONAL_LIGHTS_SHADOW_MAP)
                 {
-                    col.rgb = 30.0 * col.rrr;
+                    col.rgb = col.rrr;
                     col.a = 1.0f;
                     return col;
                 }
