@@ -34,6 +34,7 @@ namespace UnityEngine.Rendering.LWRP
         public RenderPassEvent renderPassEvent { get; set; }
         public DebugMaterialIndex debugMaterialIndex { get; set; }
         public LightingDebugMode lightingDebugMode { get; set; }
+        public int pbrLightingDebugModeMask { get; set; }
 
         public RenderTargetIdentifier colorAttachment
         {

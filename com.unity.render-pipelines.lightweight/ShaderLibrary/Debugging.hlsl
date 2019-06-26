@@ -26,6 +26,13 @@ int _DebugMaterialIndex;
 #define DEBUG_LIGHTING_REFLECTIONS_WITH_SMOOTHNESS 5
 int _DebugLightingIndex;
 
+#define DEBUG_PBR_LIGHTING_ENABLE_GI 0
+#define DEBUG_PBR_LIGHTING_ENABLE_PBR_LIGHTING 1
+#define DEBUG_PBR_LIGHTING_ENABLE_ADDITIONAL_LIGHTS 2
+#define DEBUG_PBR_LIGHTING_ENABLE_VERTEX_LIGHTING 3
+#define DEBUG_PBR_LIGHTING_ENABLE_EMISSION 4
+int _DebugPBRLightingMask;
+
 struct DebugData
 {
     SurfaceData surfaceData;
@@ -165,6 +172,44 @@ SurfaceData CalculateSurfaceDataForDebug(SurfaceData surfaceData)
     return surfaceData;
 }
 
+half4 LightweightFragmentPBRDebug(InputData inputData, half3 albedo, half metallic, half3 specular,
+    half smoothness, half occlusion, half3 emission, half alpha, int disableMask = 0)
+{
+    BRDFData brdfData;
+    InitializeBRDFData(albedo, metallic, specular, smoothness, alpha, brdfData);
+
+    Light mainLight = GetMainLight(inputData.shadowCoord);
+    MixRealtimeAndBakedGI(mainLight, inputData.normalWS, inputData.bakedGI, half4(0, 0, 0, 0));
+    
+    half3 color = 0;
+    if (IsBitSet(disableMask, DEBUG_PBR_LIGHTING_ENABLE_GI))
+        color += GlobalIllumination(brdfData, inputData.bakedGI, occlusion, inputData.normalWS, inputData.viewDirectionWS);
+    
+    if (IsBitSet(disableMask, DEBUG_PBR_LIGHTING_ENABLE_PBR_LIGHTING))
+        color += LightingPhysicallyBased(brdfData, mainLight, inputData.normalWS, inputData.viewDirectionWS);
+
+#ifdef _ADDITIONAL_LIGHTS
+    if (IsBitSet(disableMask, DEBUG_PBR_LIGHTING_ENABLE_ADDITIONAL_LIGHTS))
+    {
+        int pixelLightCount = GetAdditionalLightsCount();
+        for (int i = 0; i < pixelLightCount; ++i)
+        {
+            Light light = GetAdditionalLight(i, inputData.positionWS);
+            color += LightingPhysicallyBased(brdfData, light, inputData.normalWS, inputData.viewDirectionWS);
+        }
+    }
+#endif
+
+#ifdef _ADDITIONAL_LIGHTS_VERTEX
+    if (IsBitSet(disableMask, DEBUG_PBR_LIGHTING_ENABLE_VERTEX_LIGHTING))
+        color += inputData.vertexLighting * brdfData.diffuse;
+#endif
+
+    if (IsBitSet(disableMask, DEBUG_PBR_LIGHTING_ENABLE_EMISSION)) 
+        color += emission;
+    return half4(color, alpha);
+}
+
 half4 CalculateColorForDebug(DebugData debugData)
 {
     SurfaceData surfaceData = debugData.surfaceData;
@@ -214,16 +259,21 @@ half4 CalculateColorForDebug(DebugData debugData)
         color.rgb = ShadowCascadeColor(debugData);
         color.a = surfaceData.alpha;
     }
-
-    if (_DebugLightingIndex == DEBUG_LIGHTING_LIGHT_ONLY
+    else if (_DebugLightingIndex == DEBUG_LIGHTING_LIGHT_ONLY
      || _DebugLightingIndex == DEBUG_LIGHTING_LIGHT_DETAIL
      || _DebugLightingIndex == DEBUG_LIGHTING_REFLECTIONS
      || _DebugLightingIndex == DEBUG_LIGHTING_REFLECTIONS_WITH_SMOOTHNESS
      || _DebugMaterialIndex == DEBUG_LOD)
     {
-        color = LightweightFragmentPBR(inputData, surfaceData.albedo, surfaceData.metallic, surfaceData.specular, surfaceData.smoothness, surfaceData.occlusion, surfaceData.emission, surfaceData.alpha);
+        color = LightweightFragmentPBR(inputData, surfaceData.albedo, surfaceData.metallic, surfaceData.specular, 
+            surfaceData.smoothness, surfaceData.occlusion, surfaceData.emission, surfaceData.alpha);
     }
     
+    if (_DebugPBRLightingMask != 0)
+    {
+        color = LightweightFragmentPBRDebug(inputData, surfaceData.albedo, surfaceData.metallic, surfaceData.specular, 
+            surfaceData.smoothness, surfaceData.occlusion, surfaceData.emission, surfaceData.alpha, _DebugPBRLightingMask);
+    }
     return color;
 }
 

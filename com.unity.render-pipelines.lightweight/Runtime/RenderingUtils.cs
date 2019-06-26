@@ -40,6 +40,17 @@ namespace UnityEngine.Rendering.LWRP
         ReflectionsWithSmoothness,
     }
 
+    [Flags]
+    public enum PBRLightingDebugMode
+    {
+        None,
+        GI = 0x1,
+        PBRLight = 0x2,
+        AdditionalLights = 0x4,
+        VertexLighting = 0x8,
+        Emission = 0x10,
+    }
+
     public static class RenderingUtils
     {
         static int m_PostProcessingTemporaryTargetId = Shader.PropertyToID("_TemporaryColorTexture");

@@ -51,7 +51,8 @@ namespace UnityEngine.Rendering.LWRP
 
                 var fullScreenDebugMode = DebugDisplaySettings.Instance.buffer.FullScreenDebugMode;
                 bool isMaterialDebugActive = lightingDebugMode != LightingDebugMode.None ||
-                                             debugMaterialIndex != DebugMaterialIndex.None;
+                                             debugMaterialIndex != DebugMaterialIndex.None || 
+                                             pbrLightingDebugModeMask != 0;
                 bool isReplacementDebugActive = fullScreenDebugMode == FullScreenDebugMode.Overdraw ||
                                                 fullScreenDebugMode == FullScreenDebugMode.Wireframe ||
                                                 fullScreenDebugMode == FullScreenDebugMode.SolidWireframe;

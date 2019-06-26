@@ -22,6 +22,7 @@ namespace UnityEngine.Rendering.LWRP
         int m_DebugMaterialIndexId;
 
         int m_DebugLightingIndexId;
+        int m_DebugPBRLightingMask;
 
         DepthOnlyPass m_DepthPrepass;
         MainLightShadowCasterPass m_MainLightShadowCasterPass;
@@ -58,6 +59,7 @@ namespace UnityEngine.Rendering.LWRP
         {
             m_DebugMaterialIndexId = Shader.PropertyToID("_DebugMaterialIndex");
             m_DebugLightingIndexId = Shader.PropertyToID("_DebugLightingIndex");
+            m_DebugPBRLightingMask = Shader.PropertyToID("_DebugPBRLightingMask");
             m_NumberFontTexture = data.textures.NumberFont;
             
             Material blitMaterial = CoreUtils.CreateEngineMaterial(data.shaders.blitPS);
@@ -466,10 +468,13 @@ namespace UnityEngine.Rendering.LWRP
         {
             debugMaterialIndex = DebugDisplaySettings.Instance.materialSettings.DebugMaterialIndexData;
             lightingDebugMode = DebugDisplaySettings.Instance.Lighting.m_LightingDebugMode;
+            PBRLightingDebugMode pbrLightingDebugMode = DebugDisplaySettings.Instance.Lighting.m_PBRLightingDebugMode;
+            pbrLightingDebugModeMask = (int) pbrLightingDebugMode;
 
             var cmd = CommandBufferPool.Get("");
             cmd.SetGlobalFloat(m_DebugMaterialIndexId, (int)debugMaterialIndex);
             cmd.SetGlobalFloat(m_DebugLightingIndexId, (int)lightingDebugMode);
+            cmd.SetGlobalInt(m_DebugPBRLightingMask, (int)pbrLightingDebugModeMask);
             cmd.SetGlobalTexture("_DebugNumberTexture", m_NumberFontTexture);
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);

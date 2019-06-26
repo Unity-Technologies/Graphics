@@ -62,6 +62,7 @@ namespace UnityEngine.Rendering.LWRP
 
         public DebugMaterialIndex debugMaterialIndex { get; set; }
         public LightingDebugMode lightingDebugMode { get; set; }
+        public int pbrLightingDebugModeMask { get; set; }
         
         protected List<ScriptableRendererFeature> rendererFeatures
         {
@@ -340,6 +341,7 @@ namespace UnityEngine.Rendering.LWRP
                 var renderPass = m_ActiveRenderPassQueue[currIndex];
                 renderPass.debugMaterialIndex = debugMaterialIndex;
                 renderPass.lightingDebugMode = lightingDebugMode;
+                renderPass.pbrLightingDebugModeMask = pbrLightingDebugModeMask;
                 ExecuteRenderPass(context, renderPass, ref renderingData);
             }
 
