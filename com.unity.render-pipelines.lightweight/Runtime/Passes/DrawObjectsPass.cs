@@ -49,13 +49,11 @@ namespace UnityEngine.Rendering.LWRP
                     ? renderingData.cameraData.defaultOpaqueSortFlags
                     : SortingCriteria.CommonTransparent;
 
-                var fullScreenDebugMode = DebugDisplaySettings.Instance.renderingSettings.fullScreenDebugMode;
+                var sceneOverrideMode = DebugDisplaySettings.Instance.renderingSettings.sceneOverrides;
                 bool isMaterialDebugActive = lightingDebugMode != LightingDebugMode.None ||
                                              debugMaterialIndex != DebugMaterialIndex.None;
-                bool isReplacementDebugActive = fullScreenDebugMode == FullScreenDebugMode.Overdraw ||
-                                                fullScreenDebugMode == FullScreenDebugMode.Wireframe ||
-                                                fullScreenDebugMode == FullScreenDebugMode.SolidWireframe;
-                if (isMaterialDebugActive || isReplacementDebugActive)
+                bool isSceneOverrideActive = sceneOverrideMode != SceneOverrides.None;
+                if (isMaterialDebugActive || isSceneOverrideActive)
                 {
                     if(lightingDebugMode == LightingDebugMode.ShadowCascades)
                         // we disable cubemap reflections, too distracting (in TemplateLWRP for ex.)
@@ -65,31 +63,10 @@ namespace UnityEngine.Rendering.LWRP
                     context.ExecuteCommandBuffer(cmd);
                     cmd.Clear();
 
-                    DebugReplacementPassType debugPassType;
-                    
-                    if (isMaterialDebugActive)
-                        debugPassType = DebugReplacementPassType.None;
-                    else
-                    {
-                        switch(fullScreenDebugMode)
-                        {
-                            case FullScreenDebugMode.Overdraw:
-                                debugPassType = DebugReplacementPassType.Overdraw;
-                                break;
-                            case FullScreenDebugMode.Wireframe:
-                                debugPassType = DebugReplacementPassType.Wireframe;
-                                break;
-                            case FullScreenDebugMode.SolidWireframe:
-                                debugPassType = DebugReplacementPassType.SolidWireframe;
-                                break;
-                            default:
-                                debugPassType = DebugReplacementPassType.None;
-                                break;
-                        }
-                    }
+                    bool overrideMaterial = isSceneOverrideActive;
                         
-                    RenderingUtils.RenderObjectWithDebug(context, debugPassType, ref renderingData,
-                        m_FilteringSettings, sortFlags);
+                    RenderingUtils.RenderObjectWithDebug(context, ref renderingData,
+                        m_FilteringSettings, sortFlags, overrideMaterial);
                 }
                 else
                 {

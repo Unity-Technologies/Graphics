@@ -180,7 +180,8 @@ namespace UnityEngine.Rendering.LWRP
         /// <param name="renderingData">Current render state information.</param>
         public void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
-            bool debug = DebugDisplaySettings.Instance.renderingSettings.fullScreenDebugMode == FullScreenDebugMode.Overdraw;
+            // Disable Gizmos when using scene overrides. Gizmos break some effects like Overdraw debug.
+            bool drawGizmos = DebugDisplaySettings.Instance.renderingSettings.sceneOverrides != SceneOverrides.None;
                 
             Camera camera = renderingData.cameraData.camera;
             ClearRenderState(context);
@@ -234,7 +235,7 @@ namespace UnityEngine.Rendering.LWRP
             // In this block main rendering executes.
             ExecuteBlock(RenderPassBlock.MainRendering, blockRanges, context, ref renderingData);
 
-            if (!debug)
+            if (drawGizmos)
                 DrawGizmos(context, camera, GizmoSubset.PreImageEffects);
 
             // In this block after rendering drawing happens, e.g, post processing, video player capture.
@@ -243,7 +244,7 @@ namespace UnityEngine.Rendering.LWRP
             if (stereoEnabled)
                 EndXRRendering(context, camera);
 
-            if (!debug)
+            if (drawGizmos)
                 DrawGizmos(context, camera, GizmoSubset.PostImageEffects);
 
             InternalFinishRendering(context);
@@ -370,10 +371,10 @@ namespace UnityEngine.Rendering.LWRP
 
                 Camera camera = cameraData.camera;
                 
-                bool debug = DebugDisplaySettings.Instance.renderingSettings.fullScreenDebugMode == FullScreenDebugMode.Overdraw;
-                Color clearColor = (debug) ? Color.black : camera.backgroundColor;
+                bool overdrawDebugMode = DebugDisplaySettings.Instance.renderingSettings.sceneOverrides == SceneOverrides.Overdraw;
+                Color clearColor = (overdrawDebugMode) ? Color.black : camera.backgroundColor;
 
-                ClearFlag clearFlag = ClearFlag.All;//GetCameraClearFlag(camera.clearFlags);
+                ClearFlag clearFlag = GetCameraClearFlag(camera.clearFlags);
                 SetRenderTarget(cmd, m_CameraColorTarget, m_CameraDepthTarget, clearFlag,
                     CoreUtils.ConvertSRGBToActiveColorSpace(clearColor));
 

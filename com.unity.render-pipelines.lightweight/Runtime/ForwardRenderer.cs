@@ -3,18 +3,6 @@ using System.Diagnostics;
 
 namespace UnityEngine.Rendering.LWRP
 {
-    internal enum FullScreenDebugMode
-    {
-        None = 0,
-        Depth = 1,
-        MainLightShadowsOnly = 2,
-        Overdraw = 3,
-        Wireframe = 4,
-        AdditionalLightsShadowMap = 5,
-        MainLightShadowMap = 6,
-        SolidWireframe = 7
-    }
-
     internal class ForwardRenderer : ScriptableRenderer
     {
         const int k_DepthStencilBufferBits = 32;
@@ -122,19 +110,17 @@ namespace UnityEngine.Rendering.LWRP
                 if(activeRenderPassQueue[i] == null)
                     activeRenderPassQueue.RemoveAt(i);
             }
-            
-            var fullScreenDebugMode = DebugDisplaySettings.Instance.renderingSettings.fullScreenDebugMode;
+
+            SceneOverrides sceneOverride = DebugDisplaySettings.Instance.renderingSettings.sceneOverrides;
             
             // Special path for depth only offscreen cameras. Only write opaques + transparents. 
             bool isOffscreenDepthTexture = camera.targetTexture != null && camera.targetTexture.format == RenderTextureFormat.Depth;
-            bool overdraw = fullScreenDebugMode == FullScreenDebugMode.Overdraw;
-            bool wireframe = fullScreenDebugMode == FullScreenDebugMode.Wireframe ||
-                             fullScreenDebugMode == FullScreenDebugMode.SolidWireframe;
-            if (isOffscreenDepthTexture || overdraw || wireframe)
+            bool sceneOverrideEnabled = sceneOverride != SceneOverrides.None;
+            if (isOffscreenDepthTexture || sceneOverrideEnabled)
             {
                 m_ActiveCameraColorAttachment = RenderTargetHandle.CameraTarget;
                 m_ActiveCameraDepthAttachment = RenderTargetHandle.CameraTarget;
-                if (overdraw)
+                if (sceneOverride == SceneOverrides.Overdraw)
                 {
                     m_ActiveCameraColorAttachment = m_CameraColorAttachment;
                     m_ActiveCameraDepthAttachment = m_CameraDepthAttachment;
@@ -304,6 +290,7 @@ namespace UnityEngine.Rendering.LWRP
                 }
             }
 
+            var fullScreenDebugMode = DebugDisplaySettings.Instance.renderingSettings.fullScreenDebugMode;
             if (fullScreenDebugMode != FullScreenDebugMode.None )
             {
                 RenderTargetIdentifier debugBuffer;

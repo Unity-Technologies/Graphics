@@ -17,8 +17,8 @@ namespace UnityEngine.Rendering.LWRP
         /// <inheritdoc/>
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
-            var fullScreenDebugMode = DebugDisplaySettings.Instance.renderingSettings.fullScreenDebugMode;
-            if (fullScreenDebugMode == FullScreenDebugMode.Overdraw)
+            var sceneOverrideMode = DebugDisplaySettings.Instance.renderingSettings.sceneOverrides;
+            if (sceneOverrideMode == SceneOverrides.Overdraw)
             {
                 Material skyboxMaterial = RenderSettings.skybox;
                 RenderSettings.skybox = RenderingUtils.replacementMaterial;
