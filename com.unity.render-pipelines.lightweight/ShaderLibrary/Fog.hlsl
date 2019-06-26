@@ -1,6 +1,8 @@
 #ifndef LIGHTWEIGHT_FOG_INCLUDED
 #define LIGHTWEIGHT_FOG_INCLUDED
 
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/EntityLighting.hlsl"
+
 ///////////////////////////////////////////////////////////////////////////////
 //                      Constant Buffers                                     //
 ///////////////////////////////////////////////////////////////////////////////
@@ -53,9 +55,13 @@ half3 MixFog(real3 fragColor, real fogFactor)
     return MixFogColor(fragColor, _FogColor, fogFactor);
 }
 
-half3 MixFogDir(real3 fragColor, real fogFactor, real3 dir)
+half3 MixFogDir(real3 fragColor, real fogFactor, real3 dir, float clipz)
 {
-    float3 fogCube = SAMPLE_TEXTURECUBE_LOD(_FogMap, sampler_FogMap, dir, 0);
+// float z_eye = gl_ProjectionMatrix[3].z/(-z_ndc - gl_ProjectionMatrix[2].z);
+// UNITY_MATRIX_P[3].z/(-UNITY_Z_0_FAR_FROM_CLIPSPACE(clipz) - UNITY_MATRIX_P[2].z);
+    half depth = (1-pow(Linear01Depth(clipz, _ZBufferParams), 0.5h)) * 7.0;
+    dir.z = -dir.z;
+    float3 fogCube = SAMPLE_TEXTURECUBE_LOD(_FogMap, sampler_FogMap, dir, depth);
 #if !defined(UNITY_USE_NATIVE_HDR)
     fogCube = DecodeHDREnvironment(half4(fogCube, 1), _FogMap_HDR);
 #endif
