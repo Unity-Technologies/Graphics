@@ -186,8 +186,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         private void OnDisable()
         {
             needToInitialize = false;
-            _needToUpdateVolumeTexList = true;
+            _needToUpdateVolumeTexList = false;
             FluidSimVolumeManager.manager.DeRegisterVolume(this);
+
+            UnloadVolumeTexBundles();
+        }
+
+        private void OnDestroy()
+        {
+            UnloadVolumeTexBundles();
         }
 
         private void LoadVolumeTexturesBundles(bool vfWorkflow)
@@ -197,7 +204,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (_animatedDensityBundles == null)
                 _animatedDensityBundles = AssetBundle.LoadFromFile("Assets/VolumeTextures/animdensities");
         }
-        private void UnloadVectorFieldBundles()
+        private void UnloadVolumeTexBundles()
         {
             if (_vectorFieldBundles != null || _animatedDensityBundles != null)
             {
@@ -241,7 +248,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     break;
                 }
 
-                //Debug.Log("Loaded: " + volumeTex.name);
+                Debug.Log("Loaded: " + volumeTex.name);
 
                 _volumeTexList.Add(volumeTex);
             }
