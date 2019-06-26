@@ -5,8 +5,12 @@ namespace UnityEditor.Rendering
 {
     public class DebugDisplaySettingsRendering : IDebugDisplaySettingsData
     {
+        internal FullScreenDebugMode fullScreenDebugMode { get; private set; } = FullScreenDebugMode.None;
+        internal bool enablePostProcessing { get; private set; } = true;
+
         public bool enableMsaa { get; private set; } = true;
         public bool enableHDR { get; private set; } = true;
+        
         
         private class SettingsPanel : DebugDisplaySettingsPanel
         {
@@ -14,6 +18,8 @@ namespace UnityEditor.Rendering
             
             public SettingsPanel(DebugDisplaySettingsRendering data)
             {
+                AddWidget(new DebugUI.EnumField { displayName = "Full Screen Modes", autoEnum = typeof(FullScreenDebugMode), getter = () => (int)data.fullScreenDebugMode, setter = (value) => {}, getIndex = () => (int)data.fullScreenDebugMode, setIndex = (value) => data.fullScreenDebugMode = (FullScreenDebugMode)value});
+                AddWidget(new DebugUI.BoolField { displayName = "Post-processing", getter = () => data.enablePostProcessing, setter = (value) => data.enablePostProcessing = value });
                 AddWidget(new DebugUI.BoolField { displayName = "MSAA", getter = () => data.enableMsaa, setter = (value) => data.enableMsaa = value });
                 AddWidget(new DebugUI.BoolField { displayName = "HDR", getter = () => data.enableHDR, setter = (value) => data.enableHDR = value });
             }
@@ -26,7 +32,7 @@ namespace UnityEditor.Rendering
 
         public bool IsEnabled()
         {
-            return enableMsaa || enableHDR;
+            return enableMsaa || enableHDR || enablePostProcessing || fullScreenDebugMode != FullScreenDebugMode.None;
         }
     }
 }

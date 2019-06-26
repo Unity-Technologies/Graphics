@@ -49,7 +49,7 @@ namespace UnityEngine.Rendering.LWRP
                     ? renderingData.cameraData.defaultOpaqueSortFlags
                     : SortingCriteria.CommonTransparent;
 
-                var fullScreenDebugMode = DebugDisplaySettings.Instance.buffer.FullScreenDebugMode;
+                var fullScreenDebugMode = DebugDisplaySettings.Instance.renderingSettings.fullScreenDebugMode;
                 bool isMaterialDebugActive = lightingDebugMode != LightingDebugMode.None ||
                                              debugMaterialIndex != DebugMaterialIndex.None;
                 bool isReplacementDebugActive = fullScreenDebugMode == FullScreenDebugMode.Overdraw ||

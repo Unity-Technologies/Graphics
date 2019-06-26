@@ -123,7 +123,7 @@ namespace UnityEngine.Rendering.LWRP
                     activeRenderPassQueue.RemoveAt(i);
             }
             
-            var fullScreenDebugMode = DebugDisplaySettings.Instance.buffer.FullScreenDebugMode;
+            var fullScreenDebugMode = DebugDisplaySettings.Instance.renderingSettings.fullScreenDebugMode;
             
             // Special path for depth only offscreen cameras. Only write opaques + transparents. 
             bool isOffscreenDepthTexture = camera.targetTexture != null && camera.targetTexture.format == RenderTextureFormat.Depth;
@@ -199,7 +199,7 @@ namespace UnityEngine.Rendering.LWRP
             // If camera requires depth and there's no depth pre-pass we create a depth texture that can be read
             // later by effect requiring it.
             bool createDepthTexture = renderingData.cameraData.requiresDepthTexture && !requiresDepthPrepass;
-            bool postProcessEnabled = renderingData.cameraData.postProcessEnabled && !DebugDisplaySettings.Instance.buffer.PostProcessingDisabled;
+            bool postProcessEnabled = renderingData.cameraData.postProcessEnabled;
             bool hasOpaquePostProcess = postProcessEnabled &&
                 renderingData.cameraData.postProcessLayer.HasOpaqueOnlyEffects(RenderingUtils.postProcessRenderContext);
 

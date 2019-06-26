@@ -522,6 +522,9 @@ namespace UnityEngine.Rendering.LWRP
                 if (!renderingSettings.enableHDR)
                     cameraData.isHdrEnabled = false;
 
+                if (!renderingSettings.enablePostProcessing)
+                    cameraData.postProcessEnabled = false;
+
                 renderingData.cameraData.cameraTargetDescriptor = 
                     CreateRenderTextureDescriptor(cameraData.camera, cameraData.renderScale,
                     cameraData.isStereoEnabled, cameraData.isHdrEnabled, msaaSamples);

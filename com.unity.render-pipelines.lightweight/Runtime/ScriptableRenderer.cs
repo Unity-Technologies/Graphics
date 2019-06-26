@@ -180,7 +180,7 @@ namespace UnityEngine.Rendering.LWRP
         /// <param name="renderingData">Current render state information.</param>
         public void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
-            bool debug = DebugDisplaySettings.Instance.buffer.FullScreenDebugMode == FullScreenDebugMode.Overdraw;
+            bool debug = DebugDisplaySettings.Instance.renderingSettings.fullScreenDebugMode == FullScreenDebugMode.Overdraw;
                 
             Camera camera = renderingData.cameraData.camera;
             ClearRenderState(context);
@@ -370,7 +370,7 @@ namespace UnityEngine.Rendering.LWRP
 
                 Camera camera = cameraData.camera;
                 
-                bool debug = DebugDisplaySettings.Instance.buffer.FullScreenDebugMode == FullScreenDebugMode.Overdraw;
+                bool debug = DebugDisplaySettings.Instance.renderingSettings.fullScreenDebugMode == FullScreenDebugMode.Overdraw;
                 Color clearColor = (debug) ? Color.black : camera.backgroundColor;
 
                 ClearFlag clearFlag = ClearFlag.All;//GetCameraClearFlag(camera.clearFlags);
