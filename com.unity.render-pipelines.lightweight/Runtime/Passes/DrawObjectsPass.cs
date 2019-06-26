@@ -51,8 +51,9 @@ namespace UnityEngine.Rendering.LWRP
                 
                 bool isMaterialDebugActive = lightingDebugMode != LightingDebugMode.None ||
                                              debugMaterialIndex != DebugMaterialIndex.None;
-                bool isReplacementDebugActive = DebugDisplaySettings.Instance.buffer.FullScreenDebugMode ==
-                                                FullScreenDebugMode.Overdraw;
+
+                var fullScreenDebugMode = DebugDisplaySettings.Instance.buffer.FullScreenDebugMode;
+                bool isReplacementDebugActive = fullScreenDebugMode == FullScreenDebugMode.Overdraw || fullScreenDebugMode == FullScreenDebugMode.Wireframe;
                 if (isMaterialDebugActive || isReplacementDebugActive)
                 {
                     if(lightingDebugMode == LightingDebugMode.ShadowCascades)
@@ -61,9 +62,26 @@ namespace UnityEngine.Rendering.LWRP
                     else
                         cmd.DisableShaderKeyword("_DEBUG_ENVIRONMENTREFLECTIONS_OFF");
 
-                    DebugReplacementPassType debugPassType =
-                        (isMaterialDebugActive) ? DebugReplacementPassType.None : DebugReplacementPassType.Overdraw;
-                        
+                    DebugReplacementPassType debugPassType;
+                    
+                    if (isMaterialDebugActive)
+                        debugPassType = DebugReplacementPassType.None;
+                    else
+                    {
+                        switch(fullScreenDebugMode)
+                        {
+                            case FullScreenDebugMode.Overdraw:
+                                debugPassType = DebugReplacementPassType.Overdraw;
+                                break;
+                            case FullScreenDebugMode.Wireframe:
+                                debugPassType = DebugReplacementPassType.Wireframe;
+                                break;
+                            default:
+                                debugPassType = DebugReplacementPassType.None;
+                                break;
+                        }
+                    }
+                    
                     RenderingUtils.RenderObjectWithDebug(context, ref renderingData, camera,
                         debugPassType, m_FilteringSettings, sortFlags);
                 }

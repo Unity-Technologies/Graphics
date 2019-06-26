@@ -25,6 +25,7 @@ namespace UnityEngine.Rendering.LWRP
     {
         None,
         Overdraw,
+        Wireframe
     }
 
     public enum LightingDebugMode
@@ -205,7 +206,7 @@ namespace UnityEngine.Rendering.LWRP
         {
             SortingSettings sortingSettings = new SortingSettings(camera) { criteria = sortFlags };
 
-            DrawingSettings debugSettings = new DrawingSettings(m_DebugShaderPassNames[(int)debugReplacementPassType], sortingSettings)
+            DrawingSettings debugSettings = new DrawingSettings(m_DebugShaderPassNames[debugReplacementPassType == DebugReplacementPassType.None ? 0 : 1], sortingSettings)
             {
                 perObjectData = renderingData.perObjectData,
                 enableInstancing = true,
@@ -220,7 +221,19 @@ namespace UnityEngine.Rendering.LWRP
                 debugSettings.overrideMaterialPassIndex = (int)debugReplacementPassType - 1;
             }
 
-            context.DrawRenderers(renderingData.cullResults, ref debugSettings, ref filterSettings);   
+            if (debugReplacementPassType == DebugReplacementPassType.Wireframe)
+            {
+                context.Submit();
+                GL.wireframe = true;
+            }
+
+            context.DrawRenderers(renderingData.cullResults, ref debugSettings, ref filterSettings);
+
+            if (debugReplacementPassType == DebugReplacementPassType.Wireframe)
+            {
+                context.Submit();
+                GL.wireframe = false;
+            }
         }
 
         // Caches render texture format support. SystemInfo.SupportsRenderTextureFormat allocates memory due to boxing.
