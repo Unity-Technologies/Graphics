@@ -161,7 +161,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         const SlotMask MarschnerSlotMask = SlotMask.Position | SlotMask.Normal | SlotMask.SpecularOcclusion | SlotMask.SpecularTint | SlotMask.SpecularShift | SlotMask.HairStrandDirection | SlotMask.AzimuthalSmoothness
                                             | SlotMask.Smoothness | SlotMask.Occlusion | SlotMask.Alpha | SlotMask.AlphaClipThreshold | SlotMask.AlphaClipThresholdDepthPrepass | SlotMask.AlphaClipThresholdDepthPostpass
-                                            | SlotMask.BentNormal | SlotMask.AlphaClipThresholdShadow | SlotMask.BakedGI | SlotMask.DepthOffset | SlotMask.SecondarySmoothness | SlotMask.Albedo | SlotMask.IndexOfRefraction;
+                                            | SlotMask.BentNormal | SlotMask.AlphaClipThresholdShadow | SlotMask.BakedGI | SlotMask.DepthOffset | SlotMask.SecondarySmoothness | SlotMask.Albedo | SlotMask.IndexOfRefraction
+                                            | SlotMask.Transmittance | SlotMask.RimTransmissionIntensity;
 
         // This could also be a simple array. For now, catch any mismatched data.
         SlotMask GetActiveSlotMask()
