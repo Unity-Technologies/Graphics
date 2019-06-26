@@ -114,17 +114,20 @@ namespace UnityEngine.Rendering.LWRP
             bool isOffscreenDepthTexture = camera.targetTexture != null && camera.targetTexture.format == RenderTextureFormat.Depth;
             if (isOffscreenDepthTexture || fullScreenDebugMode == FullScreenDebugMode.Overdraw || fullScreenDebugMode == FullScreenDebugMode.Wireframe)
             {
-                ConfigureCameraTarget(BuiltinRenderTextureType.CameraTarget, BuiltinRenderTextureType.CameraTarget);
-
+                CreateCameraRenderTarget(context, ref renderingData.cameraData);
+                ConfigureCameraTarget(m_ActiveCameraColorAttachment.Identifier(), BuiltinRenderTextureType.CameraTarget);
+                
                 for (int i = 0; i < rendererFeatures.Count; ++i)
                     rendererFeatures[i].AddRenderPasses(this, ref renderingData);
 
                 EnqueuePass(m_RenderOpaqueForwardPass);
-                
+
                 if (camera.clearFlags == CameraClearFlags.Skybox && RenderSettings.skybox != null)
                     EnqueuePass(m_DrawSkyboxPass);
                 
-                EnqueuePass(m_RenderTransparentForwardPass);
+                //EnqueuePass(m_RenderTransparentForwardPass);
+                m_FinalBlitPass.Setup(cameraTargetDescriptor, m_ActiveCameraColorAttachment);
+                EnqueuePass(m_FinalBlitPass);
                 return;
             }
             

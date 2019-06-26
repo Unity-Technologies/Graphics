@@ -8,6 +8,11 @@ Shader "Hidden/Lightweight Render Pipeline/Debug/Replacement"
         {
             Tags {"LightMode" = "LightweightForward"}
             
+            Blend One One
+            ZTest LEqual
+            ZWrite On
+            Cull Back
+            
             HLSLPROGRAM
             // Required to compile gles 2.0 with standard SRP library
             // All shaders must be compiled with HLSLcc and currently only gles is not using HLSLcc by default
@@ -39,7 +44,7 @@ Shader "Hidden/Lightweight Render Pipeline/Debug/Replacement"
             
             half4 frag(Varyings IN) : SV_Target
             {
-                return half4(1.0, 0.0, 0.0, 1.0);
+                return half4(0.1, 0.1, 0.1, 1.0);
             }
 
             ENDHLSL

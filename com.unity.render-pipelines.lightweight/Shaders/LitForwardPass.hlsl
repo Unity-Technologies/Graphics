@@ -117,7 +117,6 @@ Varyings LitPassVertex(Attributes input)
 #if defined(_MAIN_LIGHT_SHADOWS) && !defined(_RECEIVE_SHADOWS_OFF)
     output.shadowCoord = GetShadowCoord(vertexInput);
 #endif
-
     output.positionCS = vertexInput.positionCS;
 
     return output;
