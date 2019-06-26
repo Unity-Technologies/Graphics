@@ -211,18 +211,21 @@ namespace UnityEditor.ShaderGraph.Drawing
             var allNodeList = ListPool<AbstractMaterialNode>.Get();
             var subRootNodeList = ListPool<AbstractMaterialNode>.Get();
 
-            List<AbstractMaterialNode> nodeListToHighlight = allNodeList;    
+            List<AbstractMaterialNode> nodeListToHighlight = allNodeList;
+
+            bool staticOnly = false;
             if (evt.altKey)
             {
-                NodeUtils.DepthFirstCollectNodesFromNode(allNodeList, this.node);
                 nodeListToHighlight = allNodeList;
             }
             else if (evt.shiftKey)
             {
-                NodeUtils.CollectStaticNodesFromNode(allNodeList, subRootNodeList, this.node);
+                staticOnly = true;
                 if (evt.button == 1) // Use right click to highlight the sub root nodes.
                     nodeListToHighlight = subRootNodeList;
             }
+
+            NodeUtils.CollectNodesFromNode(allNodeList, staticOnly, subRootNodeList, this.node);
 
             foreach (var abstractMaterialNode in nodeListToHighlight)
             {

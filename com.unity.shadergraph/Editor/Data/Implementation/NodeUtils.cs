@@ -111,13 +111,13 @@ namespace UnityEditor.Graphing
                 nodeList.Add(node);
         }
 
-        public static void CollectStaticNodesFromNode<T>(List<T> allNodeList, List<T> subRootNodeList, T node) where T : AbstractMaterialNode
+        public static void CollectNodesFromNode<T>(List<T> allNodeList, bool staticOnly, List<T> subRootNodeList, T node) where T : AbstractMaterialNode
         {
-            if (DepthFirstCollectStaticNodesFromNode(allNodeList, subRootNodeList, node, out var hasChild) && hasChild)
+            if (DepthFirstCollectNodesFromNode(allNodeList, staticOnly, subRootNodeList, node, out var hasChild) && hasChild)
                 subRootNodeList.Add(node);
         }
 
-        public static bool DepthFirstCollectStaticNodesFromNode<T>(List<T> allNodeList, List<T> subRootNodeList, T node, out bool nodeHasChild, IncludeSelf includeSelf = IncludeSelf.Include, List<int> slotIds = null)
+        public static bool DepthFirstCollectNodesFromNode<T>(List<T> allNodeList, bool staticOnly, List<T> subRootNodeList, T node, out bool nodeHasChild, IncludeSelf includeSelf = IncludeSelf.Include, List<int> slotIds = null)
             where T : AbstractMaterialNode
         {
             nodeHasChild = false;
@@ -149,7 +149,7 @@ namespace UnityEditor.Graphing
                     if (outputNode != null)
                     {
                         nodeHasChild = true;
-                        var temp = DepthFirstCollectStaticNodesFromNode(allNodeList, subRootNodeList, outputNode, out var outputNodeHasChild);
+                        var temp = DepthFirstCollectNodesFromNode(allNodeList, staticOnly, subRootNodeList, outputNode, out var outputNodeHasChild);
                         if (outputNodeHasChild && !childNodes.ContainsKey(outputNode))
                             childNodes.Add(outputNode, temp);
                         isStatic &= temp;
@@ -164,7 +164,9 @@ namespace UnityEditor.Graphing
                     if (child.Value)
                         subRootNodeList.Add(child.Key);
                 }
-                return false;
+
+                if (staticOnly)
+                    return false;
             }
 
             if (includeSelf == IncludeSelf.Include)
