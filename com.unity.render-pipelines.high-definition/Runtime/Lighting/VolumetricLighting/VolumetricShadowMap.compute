@@ -1,9 +1,13 @@
 ﻿
 // #pragma
-#pragma kernel VolumetricShadowMap         VolumetricShadowMap=VolumetricShadowMap
-#pragma kernel VolumetricShadowMapFluidSim VolumetricShadowMap=VolumetricShadowMapFluidSim FLUID_SIM
+#pragma kernel VolumetricShadowMap               VolumetricShadowMap=VolumetricShadowMap
+#pragma kernel VolumetricShadowMapFluidSim       VolumetricShadowMap=VolumetricShadowMapFluidSim FLUID_SIM
+
+#pragma kernel VolumetricShadowMapReproj         VolumetricShadowMap=VolumetricShadowMapReproj         ENABLE_REPROJECTION
+#pragma kernel VolumetricShadowMapReprojFluidSim VolumetricShadowMap=VolumetricShadowMapReprojFluidSim ENABLE_REPROJECTION FLUID_SIM
 
 #define TILE_SIZE 4
+//#define SOFT_VOXELIZATION
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/GeometricTools.hlsl"
@@ -18,7 +22,9 @@
 
 
 CBUFFER_START(UnityVShadowMap)
-    uint _NumVisibleDensityVolumes;
+    uint   _NumVisibleDensityVolumes;
+    uint   _VBufferLightingHistoryIsValid;
+    float4 _VBufferSampleOffset;
 CBUFFER_END
 
 #ifndef FLUID_SIM
@@ -29,8 +35,32 @@ StructuredBuffer<OrientedBBox>             _VolumeBounds;
 StructuredBuffer<FluidSimVolumeEngineData> _VolumeData;
 #endif // FLUID_SIM
 
+static const float Noise4[4][4][4] =
+{
+     0.0, 48.0, 12.0, 60.0,
+    32.0, 16.0, 44.0, 28.0,
+     8.0, 56.0,  4.0, 52.0,
+    40.0, 24.0, 36.0, 20.0,
+    
+     3.0, 51.0, 15.0, 63.0,
+    35.0, 19.0, 47.0, 13.0,
+    11.0, 59.0,  7.0, 55.0,
+    43.0, 27.0, 39.0, 23.0,
+    
+     2.0, 50.0, 14.0, 62.0,
+    34.0, 18.0, 46.0, 30.0,
+    10.0, 58.0,  6.0, 54.0,
+    42.0, 26.0, 38.0, 22.0,
+    
+     1.0, 49.0, 13.0, 61.0,
+    33.0, 17.0, 45.0, 29.0,
+     9.0, 57.0,  5.0, 53.0,
+    41.0, 25.0, 37.0, 21.0,
+};
+
 TEXTURE3D(_VolumeMaskAtlas);
 TEXTURE3D(_FluidSimVolumeAtlas);
+TEXTURE3D(_VShadowMapBufferHistory);
 
 RWTexture3D<float> _VShadowMapBuffer;
 
@@ -53,7 +83,17 @@ void VolumetricShadowMap(uint3 id : SV_DispatchThreadID)
     uint  vshadowMapHalfRes = _VShadowMapRes / 2;
     float vshadowMapRes = (float)_VShadowMapRes;
     
-    float3 voxelCoord = id.xyz + 0.5;
+    #ifdef ENABLE_REPROJECTION
+    uint frameIndex = (uint)_VBufferSampleOffset.w;    
+    uint3 ni = (id.xyz + frameIndex) % 4;
+    float3 coordOffset = Noise4[ni.x][ni.y][ni.z] / 64.0;
+    #else 
+    uint3 ni = id.xyz % 4;
+    float3 coordOffset = Noise4[ni.x][ni.y][ni.z] / 64.0;
+    #endif
+    
+    float3 voxelCoordNonJittered = id.xyz + 0.5;
+    float3 voxelCoord = voxelCoordNonJittered + coordOffset;
     float3 voxelCenterWS = ((voxelCoord - vshadowMapHalfRes) / vshadowMapRes) * _VShadowMapMag;
     
     // in LightLoop, these are dependent on Tile Lightlist. but here is not using it
@@ -77,7 +117,7 @@ void VolumetricShadowMap(uint3 id : SV_DispatchThreadID)
         const float3 voxelCenterCS = (voxelCenterBS * rcp(obbExtents));
         
         // not use SOFT_VOXELIZATION
-    #if SOFT_VOXELIZATION
+    #ifdef SOFT_VOXELIZATION
     #else // SOFT_VOXELIZATION
         bool overlap = Max3(abs(voxelCenterCS.x), abs(voxelCenterCS.y), abs(voxelCenterCS.z)) <= 1;
 
@@ -104,6 +144,18 @@ void VolumetricShadowMap(uint3 id : SV_DispatchThreadID)
             }
         }
     }
+    
+    #ifdef ENABLE_REPROJECTION
+    bool reprojSuccess = _VBufferLightingHistoryIsValid != 0;
+    if (reprojSuccess)
+    {
+        float3 voxelCenterNonJitteredWS = ((voxelCoordNonJittered - vshadowMapHalfRes) / vshadowMapRes) * _VShadowMapMag;
+    
+        float3 historyUVW = (voxelCenterNonJitteredWS + _PrevCamPosRWS) / _VShadowMapMag + 0.5;
+        float voxelExtinctionHistory = SAMPLE_TEXTURE3D_LOD(_VShadowMapBufferHistory, s_linear_repeat_sampler, historyUVW, 0).x;
+        voxelExtinction = lerp(voxelExtinction, voxelExtinctionHistory, 0.99);
+    }
+    #endif
 
     _VShadowMapBuffer[id.xyz] = voxelExtinction;
 }

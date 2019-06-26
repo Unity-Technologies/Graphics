@@ -473,6 +473,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly int _VShadowMapRes                  = Shader.PropertyToID("_VShadowMapRes"); //seongdae;fspm
         public static readonly int _VShadowMapMag                  = Shader.PropertyToID("_VShadowMapMag"); //seongdae;fspm
         public static readonly int _VShadowMapBuffer               = Shader.PropertyToID("_VShadowMapBuffer"); //seongdae;fspm
+        public static readonly int _VShadowMapBufferHistory        = Shader.PropertyToID("_VShadowMapBufferHistory"); //seongdae;fspm
         public static readonly int _FluidSimVolumeRes              = Shader.PropertyToID("_FluidSimVolumeRes"); //seongdae;fspm
         public static readonly int _InitialStateVolumeTexture      = Shader.PropertyToID("_InitialStateVolumeTexture"); //seongdae;fspm
         public static readonly int _VectorField0                   = Shader.PropertyToID("_VectorField0"); //seongdae;fspm
