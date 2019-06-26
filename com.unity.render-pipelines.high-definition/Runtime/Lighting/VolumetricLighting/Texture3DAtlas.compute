@@ -20,7 +20,7 @@ Texture3D<float4> _SimulationBuffer1;
 Texture3D<float4> _AnimDensityTexture0;
 Texture3D<float4> _AnimDensityTexture1;
 #elif COPY_VSHADOWMAP
-Texture3D<float> _VShadowMapBuffer;
+Texture3D<float4> _VShadowMapBuffer;
 #endif
 RWTexture3D<float4> _OutputVolumeAtlas;
 
