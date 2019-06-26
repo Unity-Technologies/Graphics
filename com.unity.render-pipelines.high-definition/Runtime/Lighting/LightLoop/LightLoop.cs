@@ -2786,8 +2786,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
+        //public void RenderDeferredLighting(HDCamera hdCamera, CommandBuffer cmd, DebugDisplaySettings debugDisplaySettings,
+        //    RenderTargetIdentifier[] colorBuffers, RenderTargetIdentifier depthStencilBuffer, RenderTargetIdentifier depthTexture,
+        //    LightingPassOptions options)
         public void RenderDeferredLighting(HDCamera hdCamera, CommandBuffer cmd, DebugDisplaySettings debugDisplaySettings,
-            RenderTargetIdentifier[] colorBuffers, RenderTargetIdentifier depthStencilBuffer, RenderTargetIdentifier depthTexture,
+            RenderTargetIdentifier[] colorBuffers, RenderTargetIdentifier depthStencilBuffer, RenderTargetIdentifier depthTexture, RenderTargetIdentifier vshadowMapBuffer, //seongdae;fspm
+            int vShadowMapRes, float vShadowMapMag, //seongdae;fspm
             LightingPassOptions options)
         {
             cmd.SetGlobalBuffer(HDShaderIDs.g_vLightListGlobal, s_LightList);
@@ -2852,6 +2856,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         // TODO: Is it possible to setup this outside the loop ? Can figure out how, get this: Property (specularLightingUAV) at kernel index (21) is not set
                         cmd.SetComputeTextureParam(deferredComputeShader, kernel, HDShaderIDs.specularLightingUAV, colorBuffers[0]);
                         cmd.SetComputeTextureParam(deferredComputeShader, kernel, HDShaderIDs.diffuseLightingUAV,  colorBuffers[1]);
+
+                        cmd.SetComputeIntParam(deferredComputeShader, HDShaderIDs._VShadowMapRes, vShadowMapRes); //seongdae;fspm
+                        cmd.SetComputeFloatParam(deferredComputeShader, HDShaderIDs._VShadowMapMag, vShadowMapMag); //seongdae;fspm
+                        cmd.SetComputeTextureParam(deferredComputeShader, kernel, HDShaderIDs._VShadowMapBuffer, vshadowMapBuffer); //seongdae;fspm
 
                         // always do deferred lighting in blocks of 16x16 (not same as tiled light size)
 

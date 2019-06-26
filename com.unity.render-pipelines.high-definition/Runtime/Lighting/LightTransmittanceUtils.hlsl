@@ -1,13 +1,12 @@
-#ifndef UNITY_VOLUMETRIC_SHADOWMAP_UTILS_INCLUDED
-#define UNITY_VOLUMETRIC_SHADOWMAP_UTILS_INCLUDED
+#ifndef UNITY_LIGHT_TRANSMITTANCE_UTILS_INCLUDED
+#define UNITY_LIGHT_TRANSMITTANCE_UTILS_INCLUDED
 
-#define ENABLE_TRANSMITTANCE
+#define ENABLE_LIGHT_TRANSMITTANCE
 
 TEXTURE3D_HALF(_VShadowMapBuffer);
 
-void EvaluateTransmittance(float3 positionWS, float3 directionWS, float randomOffset, float length, uint step, inout float attenuation)
+void EvaluateLightTransmittance(float3 positionWS, float3 directionWS, float randomOffset, float length, uint step, inout float attenuation)
 {
-#ifdef ENABLE_TRANSMITTANCE
     float stepLength = length / (float)step;
     float sampleOffset = randomOffset * stepLength;
     
@@ -31,9 +30,6 @@ void EvaluateTransmittance(float3 positionWS, float3 directionWS, float randomOf
     }
     
     attenuation *= transmittance;
-#else // ENABLE_TRANSMITTANCE
-    attenuation *= 1.0;
-#endif // ENABLE_TRANSMITTANCE
 }
 
-#endif // UNITY_VOLUMETRIC_SHADOWMAP_UTILS_INCLUDED
+#endif // UNITY_LIGHT_TRANSMITTANCE_UTILS_INCLUDED

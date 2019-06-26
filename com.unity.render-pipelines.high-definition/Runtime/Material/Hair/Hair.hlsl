@@ -427,6 +427,8 @@ CBxDF EvaluateCBxDF(float3 V, float3 L, float NdotL, PreLightData preLightData, 
 #define USE_DIFFUSE_LAMBERT_BRDF
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightEvaluation.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/MaterialEvaluation.hlsl"
+//#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightTransmittanceVariables.hlsl" //seongdae;fspm
+//#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightTransmittanceUtils.hlsl" //seongdae;fspm
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/SurfaceShading.hlsl"
 #undef USE_DIFFUSE_LAMBERT_BRDF
 

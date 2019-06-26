@@ -13,8 +13,8 @@
 #define SHADERPASS SHADERPASS_VOLUME_VOXELIZATION
 
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightTransmittanceVariables.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/VolumetricLighting/VolumetricLighting.cs.hlsl"
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/VolumetricLighting/VShadowMapVariables.hlsl"
 
 
 CBUFFER_START(UnityVShadowMap)

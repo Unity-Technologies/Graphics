@@ -175,6 +175,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         RTHandleSystem.RTHandle       m_VShadowMapBufferHandle;
 
         // temporal var for debug
+        public int   vShadowMapRes { get { return m_VShadowMapRes; } }
+        public float vShadowMapMag { get { return m_VShadowMapMag; } }
         public RTHandleSystem.RTHandle vShadowMapBufferHandle { get { return m_VShadowMapBufferHandle;  } }
         //seongdae;fspm
 

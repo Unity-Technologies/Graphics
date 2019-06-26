@@ -1375,6 +1375,8 @@ void    BSDF(float3 viewWS, float3 lightWS, float NdotL, float3 positionWS, PreL
 
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightEvaluation.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/MaterialEvaluation.hlsl"
+//#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightTransmittanceVariables.hlsl" //seongdae;fspm
+//#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightTransmittanceUtils.hlsl" //seongdae;fspm
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/SurfaceShading.hlsl"
 
 //-----------------------------------------------------------------------------

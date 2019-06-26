@@ -2816,13 +2816,25 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // Output split lighting for materials asking for it (masked in the stencil buffer)
                 options.outputSplitLighting = true;
 
-                m_LightLoop.RenderDeferredLighting(hdCamera, cmd, m_CurrentDebugDisplaySettings, m_MRTCache2, m_SharedRTManager.GetDepthStencilBuffer(), depthTexture, options);
+                //seongdae;fspm
+                //m_LightLoop.RenderDeferredLighting(hdCamera, cmd, m_CurrentDebugDisplaySettings, m_MRTCache2, m_SharedRTManager.GetDepthStencilBuffer(), depthTexture, options);
+                m_LightLoop.RenderDeferredLighting(hdCamera, cmd, m_CurrentDebugDisplaySettings,
+                    m_MRTCache2, m_SharedRTManager.GetDepthStencilBuffer(), depthTexture, m_VolumetricLightingSystem.vShadowMapBufferHandle,
+                    m_VolumetricLightingSystem.vShadowMapRes, m_VolumetricLightingSystem.vShadowMapMag,
+                    options);
+                //seongdae;fspm
             }
 
             // Output combined lighting for all the other materials.
             options.outputSplitLighting = false;
 
-            m_LightLoop.RenderDeferredLighting(hdCamera, cmd, m_CurrentDebugDisplaySettings, m_MRTCache2, m_SharedRTManager.GetDepthStencilBuffer(), depthTexture, options);
+            //seongdae;fspm
+            //m_LightLoop.RenderDeferredLighting(hdCamera, cmd, m_CurrentDebugDisplaySettings, m_MRTCache2, m_SharedRTManager.GetDepthStencilBuffer(), depthTexture, options);
+            m_LightLoop.RenderDeferredLighting(hdCamera, cmd, m_CurrentDebugDisplaySettings,
+                m_MRTCache2, m_SharedRTManager.GetDepthStencilBuffer(), depthTexture, m_VolumetricLightingSystem.vShadowMapBufferHandle,
+                m_VolumetricLightingSystem.vShadowMapRes, m_VolumetricLightingSystem.vShadowMapMag,
+                options);
+            //seongdae;fspm
         }
 
         void UpdateSkyEnvironment(HDCamera hdCamera, CommandBuffer cmd)
