@@ -225,6 +225,7 @@ ${Graph}
         DECLARE_LIGHTMAP_OR_SH(lightmapUV, vertexSH, 0);
 		half4 fogFactorAndVertexLight : TEXCOORD1; // x: fogFactor, yzw: vertex light
     	float4 shadowCoord            : TEXCOORD2;
+    	//float4 ndc                    : TEXCOORD0;
 
 		// Interpolators defined by graph
 ${VertexOutputStruct}
@@ -334,9 +335,10 @@ ${PixelShaderSurfaceRemap}
         surfaceData.alpha = Alpha;
         
         DebugData debugData;
-        debugData.ndc = IN.clipPos; 
-    
-        return CalculateColorForDebug(surfaceData, inputData, debugData);
+        debugData.inputData = inputData;
+        debugData.surfaceData = CalculateSurfaceDataForDebug(surfaceData);
+
+        return CalculateColorForDebug(debugData);
      }
 
 	ENDHLSL

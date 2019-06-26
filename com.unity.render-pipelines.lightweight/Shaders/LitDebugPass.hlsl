@@ -37,9 +37,6 @@ struct Varyings
 #if defined(_MAIN_LIGHT_SHADOWS)
     float4 shadowCoord              : TEXCOORD7;
 #endif
-#ifdef DEBUG_LIGHTING_COMPLEXITY
-    float4 ndc                      : TEXCOORD8;
-#endif
 
     float4 positionCS               : SV_POSITION;
     UNITY_VERTEX_INPUT_INSTANCE_ID
@@ -121,26 +118,22 @@ Varyings LitPassVertex(Attributes input)
 #endif
 
     output.positionCS = vertexInput.positionCS;
-    output.ndc = output.positionCS;
-
+ 
     return output;
 }
 
 half4 LitPassFragment(Varyings input) : SV_Target
 {
+    DebugData debugData;
+
     UNITY_SETUP_INSTANCE_ID(input);
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
-    SurfaceData surfaceData;
-    InitializeStandardLitSurfaceData(input.uv, surfaceData);
-    UpdateSurfaceDataForDebug(surfaceData);
+    InitializeStandardLitSurfaceData(input.uv, debugData.surfaceData);
+    debugData.surfaceData = CalculateSurfaceDataForDebug(debugData.surfaceData);
 
-    InputData inputData;
-    InitializeInputData(input, surfaceData.normalTS, inputData);
-    
-    DebugData debugData;
-    debugData.ndc = input.ndc;
-    
-    return CalculateColorForDebug(surfaceData, inputData, debugData);
+    InitializeInputData(input, debugData.surfaceData.normalTS, debugData.inputData);
+        
+    return CalculateColorForDebug(debugData);
 }
 #endif

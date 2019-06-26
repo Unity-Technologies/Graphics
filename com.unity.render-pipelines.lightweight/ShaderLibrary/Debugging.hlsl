@@ -26,7 +26,8 @@ int _DebugLightingIndex;
 
 struct DebugData
 {
-    float4 ndc;
+    SurfaceData surfaceData;
+    InputData inputData;
 };
 
 #if 0
@@ -56,8 +57,10 @@ half4 GetShadowCascadeColor(float4 shadowCoord, float3 positionWS)
     return cascadeColors[cascadeIndex];
 }
 
-half3 ShadowCascadeColor(DebugData debugData, InputData inputData, SurfaceData surfaceData)
+half3 ShadowCascadeColor(DebugData debugData)
 {
+    InputData inputData = debugData.inputData;
+    SurfaceData surfaceData = debugData.surfaceData;
     half4 shadowCascadeColor = GetShadowCascadeColor(inputData.shadowCoord, inputData.positionWS);
 
     // part adapted from LightweightFragmentPBR:
@@ -76,7 +79,7 @@ half3 ShadowCascadeColor(DebugData debugData, InputData inputData, SurfaceData s
 }
 
 sampler2D _DebugNumberTexture;
-half4 LightingComplexity(DebugData debugData)
+half4 LightingComplexity(InputData inputData)
 {
     half4 lut[5] = {
             half4(0, 1, 0, 0),
@@ -90,7 +93,8 @@ half4 LightingComplexity(DebugData debugData)
     unsigned int numLights = clamp(GetAdditionalLightsCount()+1, 0, 4);
     half4 fc = lut[numLights];
 
-    float2 ndc = saturate((debugData.ndc.xy / debugData.ndc.w) * 0.5 + 0.5);
+    float4 clipPos = TransformWorldToHClip(inputData.positionWS);
+    float2 ndc = saturate((clipPos.xy / clipPos.w) * 0.5 + 0.5);
 
 #if UNITY_UV_STARTS_AT_TOP
     if(_ProjectionParams.x < 0)
@@ -107,7 +111,7 @@ half4 LightingComplexity(DebugData debugData)
     return fc;
 }
 
-void UpdateSurfaceDataForDebug(inout SurfaceData surfaceData)
+SurfaceData CalculateSurfaceDataForDebug(SurfaceData surfaceData)
 {
     if (_DebugLightingIndex == DEBUG_LIGHTING_LIGHT_ONLY || _DebugLightingIndex == DEBUG_LIGHTING_LIGHT_DETAIL)
     {
@@ -136,14 +140,18 @@ void UpdateSurfaceDataForDebug(inout SurfaceData surfaceData)
         surfaceData.metallic = 1.0;
         surfaceData.emission = half3(0.0h, 0.0h, 0.0h);
     }
+    
+    return surfaceData;
 }
 
-half4 CalculateColorForDebug(SurfaceData surfaceData, InputData inputData, DebugData debugData)
+half4 CalculateColorForDebug(DebugData debugData)
 {
-    BRDFData brdfData;
-    InitializeBRDFData(surfaceData.albedo, surfaceData.metallic, surfaceData.specular, surfaceData.smoothness, surfaceData.alpha, brdfData);
-
+    SurfaceData surfaceData = debugData.surfaceData;
+    InputData inputData = debugData.inputData;
     half4 color = half4(0.0, 0.0, 0.0, 1.0);
+    BRDFData brdfData;
+    
+    InitializeBRDFData(surfaceData.albedo, surfaceData.metallic, surfaceData.specular, surfaceData.smoothness, surfaceData.alpha, brdfData);
     
     // Debug materials...
     if (_DebugMaterialIndex == DEBUG_UNLIT)
@@ -174,12 +182,12 @@ half4 CalculateColorForDebug(SurfaceData surfaceData, InputData inputData, Debug
         color.rgb = surfaceData.normalTS.xyz * 0.5 + 0.5;
 
     if (_DebugMaterialIndex == DEBUG_LIGHTING_COMPLEXITY)
-        color = LightingComplexity(debugData);
+        color = LightingComplexity(inputData);
 
     // Debug lighting...
     if (_DebugLightingIndex == DEBUG_LIGHTING_SHADOW_CASCADES)
     {
-        color.rgb = ShadowCascadeColor(debugData, inputData, surfaceData);
+        color.rgb = ShadowCascadeColor(debugData);
         color.a = surfaceData.alpha;
     }
 
