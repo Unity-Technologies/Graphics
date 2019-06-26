@@ -298,11 +298,28 @@ ${PixelShaderSurfaceInputs}
 
 		// Surface description remap performed by graph
 ${PixelShaderSurfaceRemap}
+
+        DebugData debugData;
 		InputData inputData;
+        SurfaceData surfaceData;
+
+        // Calculate (and update) the surface data...
+        surfaceData.albedo = Albedo;
+        surfaceData.specular = Specular;
+        surfaceData.metallic = Metallic;
+        surfaceData.smoothness = Smoothness;
+        surfaceData.normalTS = Normal;
+        surfaceData.emission = Emission;
+        surfaceData.occlusion = Occlusion;
+        surfaceData.alpha = Alpha;
+
+        debugData.surfaceData = CalculateSurfaceDataForDebug(surfaceData);
+
+        // Calculate the input data...
 		inputData.positionWS = WorldSpacePosition;
 
 #ifdef _NORMALMAP
-	    inputData.normalWS = normalize(TransformTangentToWorld(Normal, half3x3(WorldSpaceTangent, WorldSpaceBiTangent, WorldSpaceNormal)));
+	    inputData.normalWS = normalize(TransformTangentToWorld(debugData.surfaceData.normalTS, half3x3(WorldSpaceTangent, WorldSpaceBiTangent, WorldSpaceNormal)));
 #else
     #if !SHADER_HINT_NICE_QUALITY
         inputData.normalWS = WorldSpaceNormal;
@@ -323,21 +340,10 @@ ${PixelShaderSurfaceRemap}
 	    inputData.fogCoord = IN.fogFactorAndVertexLight.x;
 	    inputData.vertexLighting = IN.fogFactorAndVertexLight.yzw;
 	    inputData.bakedGI = SAMPLE_GI(IN.lightmapUV, IN.vertexSH, inputData.normalWS);
-
-        SurfaceData surfaceData;
-        surfaceData.albedo = Albedo;
-        surfaceData.specular = Specular;
-        surfaceData.metallic = Metallic;
-        surfaceData.smoothness = Smoothness;
-        surfaceData.normalTS = Normal;
-        surfaceData.emission = Emission;
-        surfaceData.occlusion = Occlusion;
-        surfaceData.alpha = Alpha;
         
-        DebugData debugData;
         debugData.inputData = inputData;
-        debugData.surfaceData = CalculateSurfaceDataForDebug(surfaceData);
 
+        // Finally, calculate the color to use...
         return CalculateColorForDebug(debugData);
      }
 
