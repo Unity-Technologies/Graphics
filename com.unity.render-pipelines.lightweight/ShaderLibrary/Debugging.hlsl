@@ -30,16 +30,14 @@ struct DebugData
     InputData inputData;
 };
 
-#if 0
 // TODO: Set of colors that should still provide contrast for the Color-blind
-const half4 Purple = half4(156.0 / 255.0, 79.0 / 255.0, 255.0 / 255.0, 1.0); // #9C4FFF 
-const half4 Red = half4(203.0 / 255.0, 48.0 / 255.0, 34.0 / 255.0, 1.0) ; // #CB3022
-const half4 Green = half4(8.0 / 255.0, 215.0 / 255.0, 139.0 / 255.0, 1.0) ; // #08D78B
-const half4 YellowGreen = half4(151.0 / 255.0, 209.0 / 255.0, 61.0 / 255.0, 1.0) ; // #97D13D
-const half4 Blue = half4(75.0 / 255.0, 146.0 / 255.0, 243.0 / 255.0, 1.0) ; // #4B92F3
-const half4 OrangeBrown = half4(219.0 / 255.0, 119.0 / 255.0, 59.0 / 255.0, 1.0) ; // #4B92F3
-const half4 Gray = half4(174.0 / 255.0, 174.0 / 255.0, 174.0 / 255.0, 1.0) ; // #AEAEAE   
-#endif
+#define kPurpleColor half4(156.0 / 255.0, 79.0 / 255.0, 255.0 / 255.0, 1.0) // #9C4FFF 
+#define kRedColor half4(203.0 / 255.0, 48.0 / 255.0, 34.0 / 255.0, 1.0) // #CB3022
+#define kGreenColor = half4(8.0 / 255.0, 215.0 / 255.0, 139.0 / 255.0, 1.0) // #08D78B
+#define kYellowGreenColor = half4(151.0 / 255.0, 209.0 / 255.0, 61.0 / 255.0, 1.0) // #97D13D
+#define kBlueColor = half4(75.0 / 255.0, 146.0 / 255.0, 243.0 / 255.0, 1.0) // #4B92F3
+#define kOrangeBrownColor = half4(219.0 / 255.0, 119.0 / 255.0, 59.0 / 255.0, 1.0) // #4B92F3
+#define kGrayColor = half4(174.0 / 255.0, 174.0 / 255.0, 174.0 / 255.0, 1.0) // #AEAEAE   
 
 half4 GetShadowCascadeColor(float4 shadowCoord, float3 positionWS)
 {

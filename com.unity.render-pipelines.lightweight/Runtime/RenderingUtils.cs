@@ -200,10 +200,10 @@ namespace UnityEngine.Rendering.LWRP
         }
 
         [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
-        internal static void RenderObjectWithDebug(ScriptableRenderContext context, ref RenderingData renderingData,
-            Camera camera, DebugReplacementPassType debugReplacementPassType, FilteringSettings filterSettings, SortingCriteria sortFlags)
+        internal static void RenderObjectWithDebug(ScriptableRenderContext context, DebugReplacementPassType debugReplacementPassType, ref RenderingData renderingData,
+            FilteringSettings filterSettings, SortingCriteria sortingCriteria)
         {
-            SortingSettings sortingSettings = new SortingSettings(camera) { criteria = sortFlags };
+            SortingSettings sortingSettings = new SortingSettings(renderingData.cameraData.camera) { criteria = sortingCriteria };
 
             DrawingSettings debugSettings = new DrawingSettings(m_DebugShaderPassNames[(int)debugReplacementPassType], sortingSettings)
             {

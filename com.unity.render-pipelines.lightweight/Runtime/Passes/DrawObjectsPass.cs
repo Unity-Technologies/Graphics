@@ -34,7 +34,7 @@ namespace UnityEngine.Rendering.LWRP
                 m_RenderStateBlock.stencilState = stencilState;
             }
         }
-
+        
         /// <inheritdoc/>
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
@@ -60,19 +60,19 @@ namespace UnityEngine.Rendering.LWRP
                         cmd.EnableShaderKeyword("_DEBUG_ENVIRONMENTREFLECTIONS_OFF");
                     else
                         cmd.DisableShaderKeyword("_DEBUG_ENVIRONMENTREFLECTIONS_OFF");
+                    context.ExecuteCommandBuffer(cmd);
+                    cmd.Clear();
 
                     DebugReplacementPassType debugPassType =
                         (isMaterialDebugActive) ? DebugReplacementPassType.None : DebugReplacementPassType.Overdraw;
                         
-                    RenderingUtils.RenderObjectWithDebug(context, ref renderingData, camera,
-                        debugPassType, m_FilteringSettings, sortFlags);
+                    RenderingUtils.RenderObjectWithDebug(context, debugPassType, ref renderingData,
+                        m_FilteringSettings, sortFlags);
                 }
                 else
                 {
                     var drawSettings = CreateDrawingSettings(m_ShaderTagIdList, ref renderingData, sortFlags);
-
-                    context.DrawRenderers(renderingData.cullResults, ref drawSettings, ref m_FilteringSettings,
-                        ref m_RenderStateBlock);
+                    context.DrawRenderers(renderingData.cullResults, ref drawSettings, ref m_FilteringSettings);
 
                     // Render objects that did not match any shader pass with error shader
                     RenderingUtils.RenderObjectsWithError(context, ref renderingData.cullResults, camera,

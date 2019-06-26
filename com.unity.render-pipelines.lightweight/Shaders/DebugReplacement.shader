@@ -9,7 +9,6 @@
             Tags {"LightMode" = "LightweightForward"}
             
             Blend One One
-            ZTest LEqual
             ZWrite On
             Cull Back
             
@@ -24,6 +23,7 @@
             #pragma fragment frag
 
             #include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/Core.hlsl"
+            #include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/Debugging.hlsl"
             
             struct Attributes
             {
@@ -44,7 +44,7 @@
             
             half4 frag(Varyings IN) : SV_Target
             {
-                return half4(0.1, 0.1, 0.1, 1.0);
+                return kRedColor * half4(0.1, 0.1, 0.1, 1.0);
             }
 
             ENDHLSL
