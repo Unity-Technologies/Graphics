@@ -18,7 +18,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             public static readonly GUIContent s_Size = new GUIContent("Size", "Modify the size of this Density Volume. This is independent of the Transform's Scale.");
             public static readonly GUIContent s_MeanFreePathLabel = new GUIContent("Fog Distance", "Density at the base of the fog. Determines how far you can see through the fog in meters.");
+            public static readonly GUIContent s_Workflow = new GUIContent("Workflow", "");
             public static readonly GUIContent s_LoopTimeLabel = new GUIContent("LoopTime", "");
+            public static readonly GUIContent s_VolumetricShadowingLabel = new GUIContent("Volumetric Shadowing", "");
 
             public static readonly GUIContent s_InitialStateTextureLabel = new GUIContent("Initial State Texture", "");
             public static readonly GUIContent s_InitialVectorFieldLabel = new GUIContent("Initial Vector Field", "");

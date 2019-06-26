@@ -221,14 +221,16 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
             // Connon properties
             {
+                EditorGUILayout.Separator();
                 var workflowEnum = (FluidSimVolume.Workflow)serialized.workflow.intValue;
-                var workflowEnumNew = (FluidSimVolume.Workflow)EditorGUILayout.EnumPopup(workflowEnum);
+                var workflowEnumNew = (FluidSimVolume.Workflow)EditorGUILayout.EnumPopup(Styles.s_Workflow, workflowEnum);
                 serialized.workflow.intValue = (int)workflowEnumNew;
 
                 if (workflowEnum != workflowEnumNew)
                     ((FluidSimVolume)owner.target).NotifyToUpdateVolumeTexList();
 
                 EditorGUILayout.PropertyField(serialized.loopTime, Styles.s_LoopTimeLabel);
+                EditorGUILayout.PropertyField(serialized.volumetricShadowing, Styles.s_VolumetricShadowingLabel);
             }
         }
 

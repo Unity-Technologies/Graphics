@@ -11,6 +11,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public int workflow;
         [SerializeField]
         public float loopTime;
+        [SerializeField]
+        public bool volumetricShadowing;
 
         [SerializeField]
         public Texture3D initialStateTexture;
@@ -63,6 +65,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             workflow = (int)FluidSimVolume.Workflow.VectorField;
             loopTime = 0.0f;
+            volumetricShadowing = true;
 
             initialStateTexture = null;
             initialVectorField = null;
@@ -101,6 +104,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // todo : implement it!
 
             data.volumeRes = new Vector3(1.0f, 1.0f, 1.0f);
+            data.volumetricShadowing = volumetricShadowing ? 1 : 0;
             data.textureIndex = -1;
 
             if (workflow == (int)FluidSimVolume.Workflow.VectorField)

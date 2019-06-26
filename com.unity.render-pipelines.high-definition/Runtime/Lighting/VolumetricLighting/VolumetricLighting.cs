@@ -20,6 +20,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public float   rcpDistFadeLen;
         public Vector3 rcpNegFaceFade;
         public float   endTimesRcpDistFadeLen;
+        public int     volumetricShadowing; //seongdae;fspm
 
         public static DensityVolumeEngineData GetNeutralValues()
         {
@@ -35,6 +36,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             data.invertFade    = 0;
             data.rcpDistFadeLen         = 0;
             data.endTimesRcpDistFadeLen = 1;
+            data.volumetricShadowing = 1; //seongdae;fspm
 
             return data;
         }
@@ -45,6 +47,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     {
         public Vector3 volumeRes;
         public int textureIndex;
+        public int volumetricShadowing;
     }
     //seongdae;fspm
 

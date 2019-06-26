@@ -18,6 +18,7 @@ struct DensityVolumeEngineData
     float rcpDistFadeLen;
     float3 rcpNegFaceFade;
     float endTimesRcpDistFadeLen;
+    int volumetricShadowing;
 };
 
 // Generated from UnityEngine.Experimental.Rendering.HDPipeline.FluidSimVolumeEngineData
@@ -26,6 +27,7 @@ struct FluidSimVolumeEngineData
 {
     float3 volumeRes;
     int textureIndex;
+    int volumetricShadowing;
 };
 
 //
@@ -71,6 +73,10 @@ float GetEndTimesRcpDistFadeLen(DensityVolumeEngineData value)
 {
     return value.endTimesRcpDistFadeLen;
 }
+int GetVolumetricShadowing(DensityVolumeEngineData value)
+{
+    return value.volumetricShadowing;
+}
 //
 // Accessors for UnityEngine.Experimental.Rendering.HDPipeline.FluidSimVolumeEngineData
 //
@@ -81,6 +87,10 @@ float3 GetVolumeRes(FluidSimVolumeEngineData value)
 int GetTextureIndex(FluidSimVolumeEngineData value)
 {
     return value.textureIndex;
+}
+int GetVolumetricShadowing(FluidSimVolumeEngineData value)
+{
+    return value.volumetricShadowing;
 }
 
 #endif

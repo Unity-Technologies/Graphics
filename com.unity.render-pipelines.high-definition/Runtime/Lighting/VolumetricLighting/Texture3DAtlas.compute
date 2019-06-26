@@ -37,7 +37,9 @@ void Texture3DAtlas(uint3 id : SV_DispatchThreadID)
 
     _OutputVolumeAtlas[output] = _SimulationBuffer1[id.xyz];
 #elif COPY_ANIM_DENSITY
-    _OutputVolumeAtlas[id.xyz] = lerp(_AnimDensityTexture0[id.xyz], _AnimDensityTexture1[id.xyz], _FrameBlend);
+    float4 density = lerp(_AnimDensityTexture0[id.xyz], _AnimDensityTexture1[id.xyz], _FrameBlend);
+    _OutputVolumeAtlas[id.xyz] = density;
+    //_OutputVolumeAtlas[id.xyz] = float4(density.xyz, 0.0);
 #elif COPY_VSHADOWMAP
     _OutputVolumeAtlas[id.xyz] = _VShadowMapBuffer[id.xyz];
 #endif

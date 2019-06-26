@@ -7,6 +7,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         public SerializedProperty fluidSimParams;
         public SerializedProperty workflow;
         public SerializedProperty loopTime;
+        public SerializedProperty volumetricShadowing;
 
         public SerializedProperty initialStateTexture;
         public SerializedProperty initialVectorField;
@@ -39,6 +40,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             fluidSimParams = m_SerializedObject.FindProperty("parameters");
             workflow = fluidSimParams.FindPropertyRelative("workflow");
             loopTime = fluidSimParams.FindPropertyRelative("loopTime");
+            volumetricShadowing = fluidSimParams.FindPropertyRelative("volumetricShadowing");
 
             initialStateTexture = fluidSimParams.FindPropertyRelative("initialStateTexture");
             initialVectorField = fluidSimParams.FindPropertyRelative("initialVectorField");

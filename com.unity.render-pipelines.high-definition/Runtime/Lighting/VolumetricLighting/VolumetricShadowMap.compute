@@ -87,8 +87,12 @@ void VolumetricShadowMap(uint3 id : SV_DispatchThreadID)
         if (overlapFraction > 0)
         {
             float3 voxelCenterNDC = saturate(voxelCenterCS * 0.5 + 0.5);
+            
+            bool useVolumetricShadowing =
+                _VolumeData[volumeIndex].textureIndex != -1 &&
+                _VolumeData[volumeIndex].volumetricShadowing == 1;
 
-            if (_VolumeData[volumeIndex].textureIndex != -1)
+            if (useVolumetricShadowing)
             {
             #ifndef FLUID_SIM
             #else // FLUID_SIM
