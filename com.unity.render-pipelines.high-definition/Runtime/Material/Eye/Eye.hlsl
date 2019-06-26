@@ -281,7 +281,7 @@ CBSDF EvaluateBSDF(float3 V, float3 L, PreLightData preLightData, BSDFData bsdfD
     float3 F = F_Schlick(bsdfData.fresnel0, LdotH);
     // We use abs(NdotL) to handle the none case of double sided
     float realRoughness = lerp(bsdfData.scleraRoughness, bsdfData.irisRoughness, bsdfData.eyeMask);
-    float DV = DV_SmithJointGGX(NdotH, abs(NdotL), clampedNdotV, realRoughness, preLightData.partLambdaV);
+    float DV = DV_SmithJointGGX(NdotH, abs(NdotL), clampedNdotV, bsdfData.scleraRoughness, preLightData.partLambdaV);
 
      float3 specTerm = F * DV;
 
@@ -531,8 +531,8 @@ void PostEvaluateBSDF(  LightLoopContext lightLoopContext,
                         PreLightData preLightData, BSDFData bsdfData, BuiltinData builtinData, AggregateLighting lighting,
                         out float3 diffuseLighting, out float3 specularLighting)
 {
-    diffuseLighting = lighting.direct.diffuse * bsdfData.diffuseColor;
-    specularLighting = lighting.direct.specular + lighting.indirect.specularReflected;
+    diffuseLighting = bsdfData.diffuseColor;
+    specularLighting = 0.0;
 }
 
 #endif // #ifdef HAS_LIGHTLOOP

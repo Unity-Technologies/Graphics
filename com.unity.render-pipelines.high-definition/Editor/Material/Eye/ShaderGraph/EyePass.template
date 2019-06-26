@@ -151,24 +151,45 @@ $include("SharedCode.template.hlsl")
         return float2(-positionOS.x + 0.5, positionOS.y + 0.5);
     }
 
-    float blahFunction(float radius, float maxRadius, float textureRadius)
+    float ComputeExtension(float radius, float maxRadius, float minRadius, float pupilRadius)
     {
-        return radius > maxRadius || radius < 0.01 ? 0.0 : lerp(maxRadius - 0.08, 0.0, radius/maxRadius);
+        // If we are past the max radius, or below the min radius, we do not do anything.
+        // Otherwise, the displacement is maximum at the center and minimum at max radius
+        return radius > maxRadius || radius < minRadius ? 0.0 : lerp(maxRadius - pupilRadius, 0.0, radius/maxRadius);
     }
 
-    float blahFunction2(float radius, float maxRadius, float minRadius, float textureRadius)
+    float ComputeContraction(float radius, float maxRadius, float minRadius, float textureRadius)
     {
-            return radius > maxRadius || radius < minRadius ? 0.0 : lerp(textureRadius - minRadius, 0,  (radius - minRadius)/(maxRadius - minRadius));
+        // If we are past the max radius, or below a safe threshold, we do not do anything.
+        // Otherwise, the displacement is maximum at the center and minimum at max radius
+        return radius > maxRadius || radius < minRadius ? 0.0 : lerp(textureRadius - minRadius, 0,  (radius - minRadius)/(maxRadius - minRadius));
     }
 
-    float2 displaceIris(float2 uv, float maxRadius, float textureRadius, float minRadius, float extent)
+    float2 DisplaceIris(float2 uv, float irisRadius, float pupilRadius, float maxExtent, float maxContraction, float extent)
     {
-        float2 rescaled = uv * 2.0 - 1.0;
-        float radius = length(rescaled);
-        float finalRadius = radius - extent * (extent > 0.0 ? blahFunction(radius, maxRadius, textureRadius) : blahFunction2(radius, maxRadius, minRadius, textureRadius));
+        // Rescale the uvs into the [-1,1] space
+        float2 rescaledUV = uv * 2.0 - 1.0;
 
+        // Rescale the radiuses
+        float rescaledIrisRadius = irisRadius * 2.0;
+        float rescaledPupilRadius = pupilRadius * 2.0;
+
+        // Compute the min and max radiuses for extension
+        float maxRadius = (rescaledIrisRadius - rescaledPupilRadius) * maxExtent + rescaledPupilRadius;
+        float minRadius = clamp(rescaledPupilRadius * (1.0 - maxContraction), 0.0, 1e-2);
+
+        // Compute the radius of the current pixel
+        float radius = length(rescaledUV);
+
+        // Evaluate the radius after displacement
+        float finalRadius = radius - extent * (extent > 0.0 ? ComputeExtension(radius, maxRadius, minRadius, rescaledPupilRadius) : ComputeContraction(radius, maxRadius, minRadius, rescaledPupilRadius));
+
+        // Make sure we are not going below 0
         finalRadius = saturate(finalRadius);
-        float2 finalUV = (rescaled / radius * finalRadius) * 0.5 + 0.5;
+
+        // Rescale the radius and move back to the [0, 1] space
+        float2 finalUV = (rescaledUV / radius * finalRadius) * 0.5 + 0.5;
+
         return finalUV;
     }
 
@@ -211,7 +232,17 @@ $include("SharedCode.template.hlsl")
             }
         }
 
-        texcoord.xy = displaceIris(texcoord.xy, 0.15 * 2, 0.04 * 2, 0.01, _ExtentSlider);
+        // The radius of the pupil in texture space (this is considering that the iris is in the middle of the eye texture)
+        float pupilRadius = 0.04;
+        // The radius of the iris in texture space (this is considering that the iris is in the middle of the eye texture) otherwise it would be on the edges
+        float irisRadius = 0.16;
+        // The max extent of the pupil [0,1]
+        float maxExtent = 0.9;
+        // The max contraction of the pupil [0,1]
+        float maxContraction = 0.9;
+        // texcoord.xy is the uv coords of the eye texture in the [0,1]^2 space
+        // _ExtentSlider is a slider that goes from [-1,1] and controls extension and contraction
+        texcoord.xy = DisplaceIris(texcoord.xy, irisRadius, pupilRadius, maxExtent, maxContraction, _ExtentSlider);
 
         surfaceData.baseColor = _EyeTexture.Sample(s_linear_clamp, texcoord.xy);
         //surfaceData.baseColor = float3(texcoord.xy, 0.0);

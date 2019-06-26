@@ -40,7 +40,7 @@ Shader "Hidden/HDRP/GenerateEyeNormals"
             return dot(linearRgb, real3(0.2126729, 0.7151522, 0.0721750));
         }
 
-#define VEINS 0 
+#define VEINS 1 
         float4 Frag(Varyings input) : SV_Target
         {
             UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
