@@ -111,7 +111,13 @@ namespace UnityEditor.Graphing
                 nodeList.Add(node);
         }
 
-        public static bool DepthFirstCollectStaticNodesFromNode<T>(List<T> nodeList, T node, IncludeSelf includeSelf = IncludeSelf.Include, List<int> slotIds = null)
+        public static void CollectStaticNodesFromNode<T>(List<T> allNodeList, List<T> subRootNodeList, T node) where T : AbstractMaterialNode
+        {
+            if (DepthFirstCollectStaticNodesFromNode(allNodeList, subRootNodeList, node))
+                subRootNodeList.Add(node);
+        }
+
+        public static bool DepthFirstCollectStaticNodesFromNode<T>(List<T> allNodeList, List<T> subRootNodeList, T node, IncludeSelf includeSelf = IncludeSelf.Include, List<int> slotIds = null)
             where T : AbstractMaterialNode
         {
             // no where to start
@@ -119,7 +125,7 @@ namespace UnityEditor.Graphing
                 return false;
 
             // already added this node
-            if (nodeList.Contains(node))
+            if (allNodeList.Contains(node))
                 return true;
 
             IEnumerable<int> ids;
@@ -128,7 +134,9 @@ namespace UnityEditor.Graphing
             else
                 ids = node.GetInputSlots<ISlot>().Where(x => slotIds.Contains(x.id)).Select(x => x.id);
 
-            bool isStatic = true;
+            var childNodes = new Dictionary<T, bool>();
+
+            bool isStatic = IsNodeStatic(node);
             foreach (var slotId in ids)
             {
                 isStatic &= IsSlotStatic(node.FindSlot<ISlot>(slotId));
@@ -138,19 +146,26 @@ namespace UnityEditor.Graphing
                     var outputNode = node.owner.GetNodeFromGuid(edge.outputSlot.nodeGuid) as T;
                     if (outputNode != null)
                     {
-                        var temp = DepthFirstCollectStaticNodesFromNode(nodeList, outputNode);
+                        var temp = DepthFirstCollectStaticNodesFromNode(allNodeList, subRootNodeList, outputNode);
+                        if (!childNodes.ContainsKey(outputNode))
+                            childNodes.Add(outputNode, temp);
                         isStatic &= temp;
                     }
                 }
             }
 
-            if (!isStatic || !IsNodeStatic(node))
+            if (!isStatic)
             {
+                foreach (var child in childNodes)
+                {
+                    if (child.Value)
+                        subRootNodeList.Add(child.Key);
+                }
                 return false;
             }
 
             if (includeSelf == IncludeSelf.Include)
-                nodeList.Add(node);
+                allNodeList.Add(node);
 
             return true;
         }
