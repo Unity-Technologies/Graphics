@@ -34,6 +34,7 @@ namespace UnityEngine.Rendering.LWRP
         LightOnly,
         LightDetail,
         Reflections,
+        ReflectionsWithSmoothness,
     }
 
     public static class RenderingUtils

@@ -19,6 +19,7 @@ int _DebugMaterialIndex;
 #define DEBUG_LIGHTING_LIGHT_ONLY 2
 #define DEBUG_LIGHTING_LIGHT_DETAIL 3
 #define DEBUG_LIGHTING_REFLECTIONS 4
+#define DEBUG_LIGHTING_REFLECTIONS_WITH_SMOOTHNESS 5
 int _DebugLightingIndex;
 
 struct Attributes
@@ -248,6 +249,11 @@ half4 LitPassFragment(Varyings input) : SV_Target
         surfaceData.albedo = half3(0.0h, 0.0h, 0.0h);
         surfaceData.smoothness = 1.0;
     }
+    if (_DebugLightingIndex == DEBUG_LIGHTING_REFLECTIONS_WITH_SMOOTHNESS)
+    {
+        surfaceData.albedo = half3(0.0h, 0.0h, 0.0h);
+        surfaceData.metallic = 1.0;
+    }
 
     InputData inputData;
     InitializeInputData(input, surfaceData.normalTS, inputData);
@@ -291,7 +297,8 @@ half4 LitPassFragment(Varyings input) : SV_Target
 
     if (_DebugLightingIndex == DEBUG_LIGHTING_LIGHT_ONLY
      || _DebugLightingIndex == DEBUG_LIGHTING_LIGHT_DETAIL
-     || _DebugLightingIndex == DEBUG_LIGHTING_REFLECTIONS)
+     || _DebugLightingIndex == DEBUG_LIGHTING_REFLECTIONS
+     || _DebugLightingIndex == DEBUG_LIGHTING_REFLECTIONS_WITH_SMOOTHNESS)
         color = LightweightFragmentPBR(inputData, surfaceData.albedo, surfaceData.metallic, surfaceData.specular, surfaceData.smoothness, surfaceData.occlusion, surfaceData.emission, surfaceData.alpha);
 
     if (_DebugMaterialIndex == DEBUG_LIGHTING_COMPLEXITY)
