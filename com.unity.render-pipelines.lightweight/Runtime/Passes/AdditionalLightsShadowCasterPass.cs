@@ -19,7 +19,8 @@ namespace UnityEngine.Rendering.LWRP
 
         const int k_ShadowmapBufferBits = 16;
         private RenderTargetHandle m_AdditionalLightsShadowmap;
-        RenderTexture m_AdditionalLightsShadowmapTexture;
+        //public RenderTargetHandle AdditionalLightsShadowmap { get{ return m_AdditionalLightsShadowmap; } }
+        public RenderTexture m_AdditionalLightsShadowmapTexture;
 
         int m_ShadowmapWidth;
         int m_ShadowmapHeight;
@@ -118,12 +119,14 @@ namespace UnityEngine.Rendering.LWRP
                 }
             }
 
+            m_AdditionalLightsShadowmapTexture = ShadowUtils.GetTemporaryShadowTexture(m_ShadowmapWidth, m_ShadowmapHeight, k_ShadowmapBufferBits);
+
             return anyShadows;
         }
 
         public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
         {
-            m_AdditionalLightsShadowmapTexture = ShadowUtils.GetTemporaryShadowTexture(m_ShadowmapWidth, m_ShadowmapHeight, k_ShadowmapBufferBits);
+            //m_AdditionalLightsShadowmapTexture = ShadowUtils.GetTemporaryShadowTexture(m_ShadowmapWidth, m_ShadowmapHeight, k_ShadowmapBufferBits);
             ConfigureTarget(new RenderTargetIdentifier(m_AdditionalLightsShadowmapTexture));
             ConfigureClear(ClearFlag.All, Color.black);
         }

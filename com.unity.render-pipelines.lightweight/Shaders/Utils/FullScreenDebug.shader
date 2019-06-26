@@ -29,6 +29,9 @@ Shader "Hidden/Lightweight Render Pipeline/FullScreenDebug"
 
             #define DEBUG_MODE_DEPTH (1)
             #define DEBUG_MODE_MAIN_LIGHT_SHADOWS_ONLY (2)
+            //#define DEBUG_MODE_OVERDRAW (3)
+            #define DEBUG_MODE_ADDITIONAL_LIGHTS_SHADOW_MAP (4)
+            #define DEBUG_MODE_MAIN_LIGHT_SHADOW_MAP (5)
 
             struct Attributes
             {
@@ -74,6 +77,23 @@ Shader "Hidden/Lightweight Render Pipeline/FullScreenDebug"
                 else if (_DebugMode == DEBUG_MODE_MAIN_LIGHT_SHADOWS_ONLY)
                 {
                     col.rgb = col.rrr;
+                    col.a = 1.0f;
+                    return col;
+                }
+                else if (_DebugMode == DEBUG_MODE_ADDITIONAL_LIGHTS_SHADOW_MAP)
+                {
+                    col.rgb = 30.0 * col.rrr;
+                    //col.rgb = half3(1.0, 1.0, 0.0);
+                    col.a = 1.0f;
+                    return col;
+                }
+                else if (_DebugMode == DEBUG_MODE_MAIN_LIGHT_SHADOW_MAP)
+                {
+                    //float linearDepth = Linear01DepthFromNear(col.r, _ZBufferParam);
+                    //half linearDepth = _FarPlane / (_FarPlane - _NearPlane) * (1.0f - (_NearPlane / col.r));
+                    col.rgb = col.rrr;
+                    //col.rgb = half3(linearDepth, linearDepth, linearDepth);
+                    //col.rgb = half3(0.0, 1.0, 0.0);
                     col.a = 1.0f;
                     return col;
                 }
