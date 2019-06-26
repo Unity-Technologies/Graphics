@@ -26,7 +26,8 @@ float3 ComputeSunLightDirection(DirectionalLightData lightData, float3 N, float3
 float3 PreEvaluateDirectionalLightTransmission(BSDFData bsdfData, inout DirectionalLightData light,
                                                inout float3 N, inout float NdotL)
 {
-    float3 transmittance = 0.0;
+    //float3 transmittance = 0.0;
+    float3 transmittance = 1.0; //seongdae;fspm
 
 #ifdef MATERIAL_INCLUDE_TRANSMISSION
     if (MaterialSupportsTransmission(bsdfData))
@@ -82,13 +83,15 @@ DirectLighting ShadeSurface_Directional(LightLoopContext lightLoopContext,
     float3 color; float attenuation;
     EvaluateLight_Directional(lightLoopContext, posInput, light, builtinData, N, L, NdotL,
                               color, attenuation);
-                              
+    
+    //seongdae;fspm                                                    
     #ifdef ENABLE_LIGHT_TRANSMITTANCE
     float perPixelRandomOffset = GenerateHashedRandomFloat(posInput.positionSS);
     float rndVal = frac(perPixelRandomOffset + 0.5);
     
-    EvaluateLightTransmittance(posInput.positionWS, L, rndVal, 8.0, 6, attenuation); //seongdae;fspm
+    EvaluateLightTransmittance(posInput.positionWS, L, rndVal, 8.0, 6, transmittance);
     #endif
+    //seongdae;fspm
 
     // TODO: transmittance contributes to attenuation, how can we use it for early-out?
     if (attenuation > 0)
@@ -107,7 +110,8 @@ DirectLighting ShadeSurface_Directional(LightLoopContext lightLoopContext,
         if (surfaceReflection)
         {
             attenuation *= ComputeMicroShadowing(bsdfData, NdotL);
-            float intensity = attenuation * NdotL;
+            //float intensity = attenuation * NdotL;
+            float3 intensity = transmittance * attenuation * NdotL;
 
             lighting.diffuse  = diffuseBsdf  * (intensity * light.diffuseDimmer);
             lighting.specular = specularBsdf * (intensity * light.specularDimmer);
@@ -116,12 +120,14 @@ DirectLighting ShadeSurface_Directional(LightLoopContext lightLoopContext,
         {
              // Apply wrapped lighting to better handle thin objects at grazing angles.
             float wrapNdotL = ComputeWrappedDiffuseLighting(NdotL, TRANSMISSION_WRAP_LIGHT);
-            float intensity = attenuation * wrapNdotL;
+            //float intensity = attenuation * wrapNdotL;
+            float3 intensity = transmittance * attenuation * wrapNdotL;
 
             // We use diffuse lighting for accumulation since it is going to be blurred during the SSS pass.
             // Note: Disney's LdoV term in 'diffuseBsdf' does not hold a meaningful value
             // in the context of transmission, but we keep it unaltered for performance reasons.
-            lighting.diffuse  = transmittance * (diffuseBsdf * (intensity * light.diffuseDimmer));
+            //lighting.diffuse  = transmittance * (diffuseBsdf * (intensity * light.diffuseDimmer));
+            lighting.diffuse  = (diffuseBsdf * (intensity * light.diffuseDimmer));
             lighting.specular = 0; // No spec trans, the compiler should optimize
         }
 
@@ -151,7 +157,8 @@ float3 PreEvaluatePunctualLightTransmission(LightLoopContext lightLoopContext,
                                             inout LightData light, float distFrontFaceToLight,
                                             inout float3 N, float3 L, inout float NdotL)
 {
-    float3 transmittance = 0;
+    //float3 transmittance = 0;
+    float3 transmittance = 1.0; //seongdae;fspm
 
 #ifdef MATERIAL_INCLUDE_TRANSMISSION
     if (MaterialSupportsTransmission(bsdfData))
@@ -242,13 +249,15 @@ DirectLighting ShadeSurface_Punctual(LightLoopContext lightLoopContext,
     float3 color; float attenuation;
     EvaluateLight_Punctual(lightLoopContext, posInput, light, builtinData, N, L, NdotL, lightToSample, distances,
                            color, attenuation);
-    
+                           
+    //seongdae;fspm
     #ifdef ENABLE_LIGHT_TRANSMITTANCE
     float perPixelRandomOffset = GenerateHashedRandomFloat(posInput.positionSS);
     float rndVal = frac(perPixelRandomOffset + 0.5);
     
-    EvaluateLightTransmittance(posInput.positionWS, L, rndVal, distances.x, 6, attenuation); //seongdae;fspm
+    EvaluateLightTransmittance(posInput.positionWS, L, rndVal, distances.x, 6, transmittance);
     #endif
+    //seongdae;fspm
 
     // TODO: transmittance contributes to attenuation, how can we use it for early-out?
     if (attenuation > 0)
@@ -263,7 +272,8 @@ DirectLighting ShadeSurface_Punctual(LightLoopContext lightLoopContext,
 
         if (surfaceReflection)
         {
-            float intensity = attenuation * NdotL;
+            //float intensity = attenuation * NdotL;
+            float3 intensity = transmittance * attenuation * NdotL; //seongdae;fspm
 
             lighting.diffuse  = diffuseBsdf  * (intensity * light.diffuseDimmer);
             lighting.specular = specularBsdf * (intensity * light.specularDimmer);
@@ -272,12 +282,14 @@ DirectLighting ShadeSurface_Punctual(LightLoopContext lightLoopContext,
         {
              // Apply wrapped lighting to better handle thin objects at grazing angles.
             float wrapNdotL = ComputeWrappedDiffuseLighting(NdotL, TRANSMISSION_WRAP_LIGHT);
-            float intensity = attenuation * wrapNdotL;
+            //float intensity = attenuation * wrapNdotL;
+            float3 intensity = transmittance * attenuation * wrapNdotL; //seongdae;
 
             // We use diffuse lighting for accumulation since it is going to be blurred during the SSS pass.
             // Note: Disney's LdoV term in 'diffuseBsdf' does not hold a meaningful value
             // in the context of transmission, but we keep it unaltered for performance reasons.
-            lighting.diffuse  = transmittance * (diffuseBsdf * (intensity * light.diffuseDimmer));
+            //lighting.diffuse  = transmittance * (diffuseBsdf * (intensity * light.diffuseDimmer));
+            lighting.diffuse  = (diffuseBsdf * (intensity * light.diffuseDimmer)); //seongdae;fspm
             lighting.specular = 0; // No spec trans, the compiler should optimize
         }
 

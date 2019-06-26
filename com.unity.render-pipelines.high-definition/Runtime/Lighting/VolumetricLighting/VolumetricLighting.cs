@@ -313,7 +313,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             //seongdae;fspm
             m_VShadowMapRes = 128;
             m_VShadowMapMag = 32.0f;
-            m_VShadowMapFormat = GraphicsFormat.R16_SFloat;
+            m_VShadowMapFormat = GraphicsFormat.R8G8B8A8_UNorm;
             m_VShadowMapBuffer0Handle = RTHandles.Alloc(
                     m_VShadowMapRes,
                     m_VShadowMapRes,

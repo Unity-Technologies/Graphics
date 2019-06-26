@@ -248,7 +248,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     break;
                 }
 
-                Debug.Log("Loaded: " + volumeTex.name);
+                //Debug.Log("Loaded: " + volumeTex.name);
 
                 _volumeTexList.Add(volumeTex);
             }

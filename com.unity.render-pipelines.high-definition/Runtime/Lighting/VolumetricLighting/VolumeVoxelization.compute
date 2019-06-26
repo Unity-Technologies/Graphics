@@ -75,7 +75,6 @@ TEXTURE3D(_VolumeMaskAtlas);
 TEXTURE3D(_FluidSimVolumeAtlas); //seongdae;fspm
 
 RW_TEXTURE3D(float4, _VBufferDensity); // RGB = sqrt(scattering), A = sqrt(extinction)
-RW_TEXTURE3D(float, _VShadowMapBuffer); //seongdae;fspm
 
 // TODO: avoid creating another Constant Buffer...
 CBUFFER_START(UnityVolumetricLighting)

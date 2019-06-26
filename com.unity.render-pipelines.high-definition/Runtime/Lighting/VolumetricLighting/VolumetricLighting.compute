@@ -201,9 +201,12 @@ VoxelLighting EvaluateVoxelLightingDirectional(LightLoopContext context, uint fe
         EvaluateLight_Directional(context, posInput, light, unused, L, L, NdotL,
                                   color, attenuation);
         
+        //seongdae;fspm
+        float3 transmittance = 1.0;
         #ifdef ENABLE_LIGHT_TRANSMITTANCE                          
-        EvaluateLightTransmittance(posInput.positionWS, L, rndVal, 8.0, 12, attenuation); //seongdae;fspm
+        EvaluateLightTransmittance(posInput.positionWS, L, rndVal, 8.0, 12, transmittance);
         #endif
+        //seongdae;fspm
 
         // Important:
         // Ideally, all scattering calculations should use the jittered versions
@@ -223,7 +226,8 @@ VoxelLighting EvaluateVoxelLightingDirectional(LightLoopContext context, uint fe
         float intensity = light.volumetricLightDimmer * attenuation * weight;
 
         // Compute the amount of in-scattered radiance.
-        lighting.radianceNoPhase  += intensity * color;
+        //lighting.radianceNoPhase  += intensity * color;
+        lighting.radianceNoPhase  += intensity * transmittance * color; //seongdae;fspm
         lighting.radianceComplete += phase * intensity * color;
     }
 
@@ -320,9 +324,12 @@ VoxelLighting EvaluateVoxelLightingLocal(LightLoopContext context, uint featureF
                                        L, L, NdotL, lightToSample, distances,
                                        color, attenuation);
                                        
+                //seongdae;fspm
+                float3 transmittance = 1.0;
                 #ifdef ENABLE_LIGHT_TRANSMITTANCE
-                EvaluateLightTransmittance(posInput.positionWS, L, rndVal, dist, 8, attenuation); //seongdae;fspm
+                EvaluateLightTransmittance(posInput.positionWS, L, rndVal, dist, 8, transmittance);
                 #endif
+                //seongdae;fspm
 
                 // Important:
                 // Ideally, all scattering calculations should use the jittered versions
@@ -345,7 +352,8 @@ VoxelLighting EvaluateVoxelLightingLocal(LightLoopContext context, uint featureF
                 intensity *= TransmittanceHomogeneousMedium(extinction, t - t0);
 
                 // Compute the amount of in-scattered radiance.
-                lighting.radianceNoPhase  += intensity * color;
+                //lighting.radianceNoPhase  += intensity * color;
+                lighting.radianceNoPhase  += intensity * transmittance * color; //seongdae;fspm
                 lighting.radianceComplete += phase * intensity * color;
             }
         }
