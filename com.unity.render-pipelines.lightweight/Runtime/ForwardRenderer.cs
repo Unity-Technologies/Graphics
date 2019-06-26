@@ -283,11 +283,11 @@ namespace UnityEngine.Rendering.LWRP
                         break;
                     case FullScreenDebugMode.AdditionalLightsShadowMap:
                         debugBuffer = m_AdditionalLightsShadowCasterPass.m_AdditionalLightsShadowmapTexture;
-                        //pixelRect = ;
+                        pixelRect = new Rect(0, 0.5f * camera.pixelHeight, 0.5f * camera.pixelHeight, 0.5f * camera.pixelHeight);
                         break;
                     case FullScreenDebugMode.MainLightShadowMap:
                         debugBuffer = m_MainLightShadowCasterPass.m_MainLightShadowmapTexture;
-                        pixelRect = new Rect(0, 0, 100, 100);
+                        pixelRect = new Rect(0, 0.5f * camera.pixelHeight, 0.5f * camera.pixelHeight, 0.5f * camera.pixelHeight);
                         break;
                     default:
                         debugBuffer = m_OpaqueColor.Identifier();
