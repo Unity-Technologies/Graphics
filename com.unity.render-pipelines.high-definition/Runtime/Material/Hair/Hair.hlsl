@@ -167,7 +167,6 @@ BSDFData ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfaceData)
     }
     else if (HasFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_HAIR_MARSCHNER))
     {
-        //bsdfData.perceptualRoughness = PerceptualSmoothnessToRoughness(surfaceData.perceptualSmoothness);
         bsdfData.secondaryPerceptualRoughness = PerceptualSmoothnessToPerceptualRoughness(surfaceData.secondaryPerceptualSmoothness);        
         bsdfData.specularTint = surfaceData.specularTint;
         bsdfData.specularShift = surfaceData.specularShift;
@@ -431,7 +430,6 @@ CBSDF EvaluateBSDF(float3 V, float3 L, PreLightData preLightData, BSDFData bsdfD
         cbsdf.specR = Fres.xxx * evalMTerm(thetaI, 0.5 * (thetaI + thetaL), bsdfData.perceptualRoughness, bsdfData.specularShift) * evalNTermR(phiD * 0.5, bsdfData.azimuthalPerceptualRoughness);
         // TRT
         cbsdf.specR += bsdfData.specularTint * bsdfData.specularTint * Fres.zzz * evalMTerm(thetaI, 0.5 * (thetaI + thetaL), bsdfData.secondaryPerceptualRoughness, -bsdfData.specularShift) * evalNTermTRT(phiD * 0.5, bsdfData.azimuthalPerceptualRoughness);
-        //cbsdf.specR += 0.25 * bsdfData.specularTint * bsdfData.specularTint * Fres.xxx * evalMTerm(thetaI, 0.5 * (thetaI + thetaL), bsdfData.secondaryPerceptualRoughness, -bsdfData.specularShift) * evalNTermTRT(phiD * 0.5, bsdfData.azimuthalPerceptualRoughness);
         // TT
         cbsdf.specT = bsdfData.specularTint * Fres.yyy * evalMTerm(thetaI, 0.5 * (thetaI + thetaL), bsdfData.secondaryPerceptualRoughness, 0) * evalNTermTT(phiD * 0.5, bsdfData.azimuthalPerceptualRoughness);
     }
