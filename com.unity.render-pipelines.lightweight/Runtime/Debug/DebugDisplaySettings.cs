@@ -15,6 +15,7 @@ namespace UnityEditor.Rendering
         public DebugDisplaySettingsBuffer buffer { get; private set; }
         public DebugMaterialSettings materialSettings { get; private set; }
         public DebugDisplaySettingsLighting Lighting { get; private set; }
+        public DebugDisplaySettingsOverlay Overlay { get; private set; }
         
         private DebugDisplaySettingsBuffer m_DisplaySettingsBuffer;
 
@@ -36,6 +37,7 @@ namespace UnityEditor.Rendering
             buffer = Add(new DebugDisplaySettingsBuffer());
             materialSettings = Add(new DebugMaterialSettings());
             Lighting = Add(new DebugDisplaySettingsLighting());
+            Overlay = Add(new DebugDisplaySettingsOverlay());
         }
 
         public void ForEach(Action<IDebugDisplaySettingsData> onExecute)
