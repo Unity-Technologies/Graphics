@@ -9,13 +9,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
     public class Eye : RenderPipelineMaterial
     {
-
         [GenerateHLSL(PackingRules.Exact)]
         public enum MaterialFeatureFlags
         {
-            EyeGames = 1 << 0,
-            EyeCinematics = 1 << 1,
-            EyeSubsurfaceScattering = 1 << 2,
+            EyeCinematic = 1 << 0,
+            EyeSubsurfaceScattering = 1 << 1,
         };
 
         //-----------------------------------------------------------------------------
@@ -34,48 +32,49 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             [SurfaceDataAttributes("Base Color", false, true)]
             public Vector3 baseColor;
 
-            [SurfaceDataAttributes("Specular Occlusion")]
-            public float specularOcclusion;
-
             [MaterialSharedPropertyMapping(MaterialSharedProperty.Normal)]
-            [SurfaceDataAttributes(new string[] { "Normal", "Normal View Space" }, true)]
+            [SurfaceDataAttributes(new string[] { "Normal", "Cornea Normal View Space" }, true)]
             public Vector3 normalWS;
 
+            [SurfaceDataAttributes(new string[] { "Iris Normal", " Iris Normal View Space" }, true)]
             public Vector3 irisNormalWS;
 
             [SurfaceDataAttributes(new string[] { "Geometric Normal", "Geometric Normal View Space" }, true)]
             public Vector3 geomNormalWS;
 
             [MaterialSharedPropertyMapping(MaterialSharedProperty.Smoothness)]
-            [SurfaceDataAttributes("Smoothness")]
+            [SurfaceDataAttributes("Sclera Smoothness")]
             public float perceptualSmoothness;
+
+            [MaterialSharedPropertyMapping(MaterialSharedProperty.Smoothness)]
+            [SurfaceDataAttributes("Cornea Smoothness")]
+            public float corneaPerceptualSmoothness;
 
             [MaterialSharedPropertyMapping(MaterialSharedProperty.AmbientOcclusion)]
             [SurfaceDataAttributes("Ambient Occlusion")]
             public float ambientOcclusion;
 
-            // Specular Tint
+            [SurfaceDataAttributes("Specular Occlusion")]
+            public float specularOcclusion;
+
             [MaterialSharedPropertyMapping(MaterialSharedProperty.Specular)]
-            [SurfaceDataAttributes("refractionMask", false, true)]
-            public Vector3 refractionMask;
+            [SurfaceDataAttributes("Sclera IOR", false, true)]
+            public float scleraIOR;
+
+            [MaterialSharedPropertyMapping(MaterialSharedProperty.Specular)]
+            [SurfaceDataAttributes("Cornea IOR", false, true)]
+            public float corneaIOR;
+
+            [SurfaceDataAttributes("Mask", false, true)]
+            public Vector3 mask; // Sclera, Cornea, Pupil
 
             // SSS
             [SurfaceDataAttributes("Diffusion Profile Hash")]
             public uint diffusionProfileHash;
+
             [SurfaceDataAttributes("Subsurface Mask")]
             public float subsurfaceMask;
-
-            // Transmission
-            // + Diffusion Profile
-            [SurfaceDataAttributes("Thickness")]
-            public float thickness;
-
-            // Anisotropic
-            [SurfaceDataAttributes("Tangent", true)]
-            public Vector3 tangentWS;
-            [SurfaceDataAttributes("Anisotropy")]
-            public float anisotropy; // anisotropic ratio(0->no isotropic; 1->full anisotropy in tangent direction, -1->full anisotropy in bitangent direction)
-        }
+       }
 
         //-----------------------------------------------------------------------------
         // BSDFData
@@ -89,20 +88,21 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             [SurfaceDataAttributes("", false, true)]
             public Vector3 diffuseColor;
             public Vector3 fresnel0;
-            public Vector3 refractionMask;
 
             public float ambientOcclusion;
             public float specularOcclusion;
 
             [SurfaceDataAttributes(new string[] { "Normal WS", "Normal View Space" }, true)]
-            public Vector3 normalWS;
+            public Vector3 normalWS; // Specular normal
 
-            public Vector3 irisNormalWS;
+            public Vector3 diffuseNormalWS;
 
             [SurfaceDataAttributes(new string[] { "Geometric Normal", "Geometric Normal View Space" }, true)]
             public Vector3 geomNormalWS;
 
             public float perceptualRoughness;
+
+            public Vector3 mask; // cornea, sclera, pupil
 
             // MaterialFeature dependent attribute
 
@@ -110,20 +110,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public uint diffusionProfileIndex;
             public float subsurfaceMask;
 
-            // Transmission
-            // + Diffusion Profile
-            public float thickness;
-            public bool useThickObjectMode; // Read from the diffusion profile
-            public Vector3 transmittance;   // Precomputation of transmittance
-
-            // Anisotropic
-            [SurfaceDataAttributes("", true)]
-            public Vector3 tangentWS;
-            [SurfaceDataAttributes("", true)]
-            public Vector3 bitangentWS;
-            public float roughnessT;
-            public float roughnessB;
-            public float anisotropy;
+            public float roughness;
         };
 
         //-----------------------------------------------------------------------------
@@ -132,27 +119,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public Eye() {}
 
-        public override void Build(HDRenderPipelineAsset hdAsset)
-        {
-            //PreIntegratedFGD.instance.Build(PreIntegratedFGD.FGDIndex.FGD_CharlieAndEyeLambert);
-            //LTCAreaLight.instance.Build();
-        }
-
-        public override void Cleanup()
-        {
-            //PreIntegratedFGD.instance.Cleanup(PreIntegratedFGD.FGDIndex.FGD_CharlieAndEyeLambert);
-            //LTCAreaLight.instance.Cleanup();
-        }
-
-        public override void RenderInit(CommandBuffer cmd)
-        {
-            //PreIntegratedFGD.instance.RenderInit(PreIntegratedFGD.FGDIndex.FGD_CharlieAndEyeLambert, cmd);
-        }
-
-        public override void Bind(CommandBuffer cmd)
-        {
-            //PreIntegratedFGD.instance.Bind(cmd, PreIntegratedFGD.FGDIndex.FGD_CharlieAndEyeLambert);
-            //LTCAreaLight.instance.Bind(cmd);
-        }
+        // Reuse GGX textures
     }
 }

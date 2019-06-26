@@ -148,18 +148,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline.Drawing
                 });
             });
 
-            ps.Add(new PropertyRow(CreateLabel("Energy Conserving Specular", indentLevel)), (row) =>
-            {
-                row.Add(new Toggle(), (toggle) =>
-                {
-                    toggle.value = m_Node.energyConservingSpecular.isOn;
-                    toggle.OnToggleChanged(ChangeEnergyConservingSpecular);
-                });
-            });
-
             ps.Add(new PropertyRow(CreateLabel("Material Type", indentLevel)), (row) =>
             {
-                row.Add(new EnumField(EyeMasterNode.MaterialType.EyeGames), (field) =>
+                row.Add(new EnumField(EyeMasterNode.MaterialType.Eye), (field) =>
                 {
                     field.value = m_Node.materialType;
                     field.RegisterValueChangedCallback(ChangeMaterialType);
@@ -177,15 +168,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline.Drawing
                     });
                 });
             }
-
-            ps.Add(new PropertyRow(CreateLabel("Transmission", indentLevel)), (row) =>
-            {
-                row.Add(new Toggle(), (toggle) =>
-                {
-                    toggle.value = m_Node.transmission.isOn;
-                    toggle.OnToggleChanged(ChangeTransmission);
-                });
-            });
 
             ps.Add(new PropertyRow(CreateLabel("Receive Decals", indentLevel)), (row) =>
             {
@@ -260,14 +242,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline.Drawing
 
             m_Node.owner.owner.RegisterCompleteObjectUndo("Material Type Change");
             m_Node.materialType = (EyeMasterNode.MaterialType)evt.newValue;
-        }
-
-        void ChangeTransmission(ChangeEvent<bool> evt)
-        {
-            m_Node.owner.owner.RegisterCompleteObjectUndo("Transmission Change");
-            ToggleData td = m_Node.transmission;
-            td.isOn = evt.newValue;
-            m_Node.transmission = td;
         }
 
         void ChangeSubsurfaceScattering(ChangeEvent<bool> evt)
@@ -363,14 +337,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline.Drawing
             ToggleData td = m_Node.receiveSSR;
             td.isOn = evt.newValue;
             m_Node.receiveSSR = td;
-        }
-
-        void ChangeEnergyConservingSpecular(ChangeEvent<bool> evt)
-        {
-            m_Node.owner.owner.RegisterCompleteObjectUndo("Energy Conserving Specular Change");
-            ToggleData td = m_Node.energyConservingSpecular;
-            td.isOn = evt.newValue;
-            m_Node.energyConservingSpecular = td;
         }
 
         void ChangeSpecularOcclusionMode(ChangeEvent<Enum> evt)

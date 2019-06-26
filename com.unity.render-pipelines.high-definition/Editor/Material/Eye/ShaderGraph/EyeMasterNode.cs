@@ -35,61 +35,60 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         public const string NormalSlotName = "Normal";
         public const int NormalSlotId = 3;
 
-        public const string SmoothnessSlotName = "Smoothness";
-        public const int SmoothnessSlotId = 4;
+        public const string IrisNormalSlotName = "IrisNormal";
+        public const int IrisNormalSlotId = 4;
+
+        public const string SmoothnessSlotName = "ScleraSmoothness";
+        public const int SmoothnessSlotId = 5;
+
+        public const string CorneaSmoothnessSlotName = "CorneaSmoothness";
+        public const int CorneaSmoothnessSlotId = 6;
+
+        public const string ScleraIORSlotName = "ScleraIOR";
+        public const int ScleraIORSlotId = 7;
+
+        public const string CorneaIORSlotName = "CorneaIOR";
+        public const int CorneaIORSlotId = 8;
 
         public const string AmbientOcclusionSlotName = "Occlusion";
         public const string AmbientOcclusionDisplaySlotName = "AmbientOcclusion";
-        public const int AmbientOcclusionSlotId = 5;
+        public const int AmbientOcclusionSlotId = 9;
 
-        public const string RefractionMaskSlotName = "RefractionMask";
-        public const string RefractionMaskDisplaySlotName = "RefractionMask";
-        public const int RefractionMaskSlotId = 6;
+        public const string MaskSlotName = "Mask";
+        public const int MaskSlotId = 10;
 
         public const string DiffusionProfileHashSlotName = "DiffusionProfileHash";
-        public const int DiffusionProfileHashSlotId = 7;
+        public const int DiffusionProfileHashSlotId = 11;
 
         public const string SubsurfaceMaskSlotName = "SubsurfaceMask";
-        public const int SubsurfaceMaskSlotId = 8;
-
-        public const string ThicknessSlotName = "Thickness";
-        public const int ThicknessSlotId = 9;
-
-        public const string TangentSlotName = "Tangent";
-        public const int TangentSlotId = 10;
-
-        public const string AnisotropySlotName = "Anisotropy";
-        public const int AnisotropySlotId = 11;
+        public const int SubsurfaceMaskSlotId = 12;
 
         public const string EmissionSlotName = "Emission";
-        public const int EmissionSlotId = 12;
+        public const int EmissionSlotId = 13;
 
         public const string AlphaSlotName = "Alpha";
-        public const int AlphaSlotId = 13;
+        public const int AlphaSlotId = 14;
 
         public const string AlphaClipThresholdSlotName = "AlphaClipThreshold";
-        public const int AlphaClipThresholdSlotId = 14;
+        public const int AlphaClipThresholdSlotId = 15;
 
         public const string BentNormalSlotName = "BentNormal";
-        public const int BentNormalSlotId = 15;
+        public const int BentNormalSlotId = 16;
         
-        public const int LightingSlotId = 16;
+        public const int LightingSlotId = 17;
         public const string BakedGISlotName = "BakedGI";
 
-        public const int BackLightingSlotId = 17;
+        public const int BackLightingSlotId = 18;
         public const string BakedBackGISlotName = "BakedBackGI";
 
-        public const int DepthOffsetSlotId = 18;
+        public const int DepthOffsetSlotId = 19;
         public const string DepthOffsetSlotName = "DepthOffset";
-
-        public const int IrisNormalSlotId = 19;
-        public const string IrisNormalSlotName = "IrisNormal";
         
 
         public enum MaterialType
         {
-            EyeGames,
-            EyeCinematics
+            Eye,
+            EyeCinematic
         }
 
         // Don't support Multiply
@@ -109,14 +108,15 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             Albedo = 1 << AlbedoSlotId,
             SpecularOcclusion = 1 << SpecularOcclusionSlotId,
             Normal = 1 << NormalSlotId,
+            IrisNormal = 1 << IrisNormalSlotId,
             Smoothness = 1 << SmoothnessSlotId,
+            CorneaSmoothness = 1 << CorneaSmoothnessSlotId,
+            ScleraIOR = 1 << ScleraIORSlotId,
+            CorneaIOR = 1 << CorneaIORSlotId,
             Occlusion = 1 << AmbientOcclusionSlotId,
-            RefractionMask = 1 << RefractionMaskSlotId,
+            Mask = 1 << MaskSlotId,
             DiffusionProfile = 1 << DiffusionProfileHashSlotId,
             SubsurfaceMask = 1 << SubsurfaceMaskSlotId,
-            Thickness = 1 << ThicknessSlotId,
-            Tangent = 1 << TangentSlotId,
-            Anisotropy = 1 << AnisotropySlotId,
             Emission = 1 << EmissionSlotId,
             Alpha = 1 << AlphaSlotId,
             AlphaClipThreshold = 1 << AlphaClipThresholdSlotId,
@@ -124,22 +124,21 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             BakedGI = 1 << LightingSlotId,
             BakedBackGI = 1 << BackLightingSlotId,
             DepthOffset = 1 << DepthOffsetSlotId,
-            IrisNormal = 1 << IrisNormalSlotId
         }
 
-        const SlotMask EyeGamesSlotMask = SlotMask.IrisNormal | SlotMask.Position | SlotMask.Albedo | SlotMask.SpecularOcclusion | SlotMask.Normal | SlotMask.Smoothness | SlotMask.Occlusion | SlotMask.RefractionMask | SlotMask.DiffusionProfile | SlotMask.SubsurfaceMask | SlotMask.Thickness | SlotMask.Emission | SlotMask.Alpha | SlotMask.AlphaClipThreshold | SlotMask.BentNormal | SlotMask.BakedGI | SlotMask.DepthOffset;
-        const SlotMask EyeCinematicsSlotMask = SlotMask.IrisNormal | SlotMask.Position | SlotMask.Albedo | SlotMask.SpecularOcclusion | SlotMask.Normal | SlotMask.Smoothness | SlotMask.Occlusion | SlotMask.RefractionMask | SlotMask.DiffusionProfile | SlotMask.SubsurfaceMask | SlotMask.Thickness | SlotMask.Tangent | SlotMask.Anisotropy | SlotMask.Emission | SlotMask.Alpha | SlotMask.AlphaClipThreshold | SlotMask.BentNormal | SlotMask.BakedGI | SlotMask.DepthOffset;
+        const SlotMask EyeSlotMask = SlotMask.Position | SlotMask.Albedo | SlotMask.SpecularOcclusion | SlotMask.Normal | SlotMask.IrisNormal | SlotMask.Smoothness | SlotMask.CorneaSmoothness | SlotMask.ScleraIOR | SlotMask.CorneaIOR | SlotMask.Occlusion | SlotMask.Mask | SlotMask.DiffusionProfile | SlotMask.SubsurfaceMask | SlotMask.Emission | SlotMask.Alpha | SlotMask.AlphaClipThreshold | SlotMask.BentNormal | SlotMask.BakedGI | SlotMask.DepthOffset;
+        const SlotMask EyeCinematicSlotMask = EyeSlotMask;
 
         // This could also be a simple array. For now, catch any mismatched data.
         SlotMask GetActiveSlotMask()
         {
             switch (materialType)
             {
-                case MaterialType.EyeGames:
-                    return EyeGamesSlotMask;
+                case MaterialType.Eye:
+                    return EyeSlotMask;
 
-                case MaterialType.EyeCinematics:
-                    return EyeCinematicsSlotMask;
+                case MaterialType.EyeCinematic:
+                    return EyeCinematicSlotMask;
 
                 default:
                     return SlotMask.None;
@@ -340,40 +339,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
         }
 
-
         [SerializeField]
-        bool m_EnergyConservingSpecular = true;
-
-        public ToggleData energyConservingSpecular
-        {
-            get { return new ToggleData(m_EnergyConservingSpecular); }
-            set
-            {
-                if (m_EnergyConservingSpecular == value.isOn)
-                    return;
-                m_EnergyConservingSpecular = value.isOn;
-                Dirty(ModificationScope.Graph);
-            }
-        }
-
-        [SerializeField]
-        bool m_Transmission = false;
-
-        public ToggleData transmission
-        {
-            get { return new ToggleData(m_Transmission); }
-            set
-            {
-                if (m_Transmission == value.isOn)
-                    return;
-                m_Transmission = value.isOn;
-                UpdateNodeAfterDeserialization();
-                Dirty(ModificationScope.Graph);
-            }
-        }
-
-        [SerializeField]
-        bool m_SubsurfaceScattering = false;
+        bool m_SubsurfaceScattering = true;
 
         public ToggleData subsurfaceScattering
         {
@@ -494,8 +461,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
             get { return null; }
         }
-
-
+ 
         public sealed override void UpdateNodeAfterDeserialization()
         {
             base.UpdateNodeAfterDeserialization();
@@ -548,8 +514,29 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             // Smoothness
             if (MaterialTypeUsesSlotMask(SlotMask.Smoothness))
             {
-                AddSlot(new Vector1MaterialSlot(SmoothnessSlotId, SmoothnessSlotName, SmoothnessSlotName, SlotType.Input, 0.5f, ShaderStageCapability.Fragment));
+                AddSlot(new Vector1MaterialSlot(SmoothnessSlotId, SmoothnessSlotName, SmoothnessSlotName, SlotType.Input, 0.9f, ShaderStageCapability.Fragment));
                 validSlots.Add(SmoothnessSlotId);
+            }
+
+            // Cornea Smoothness
+            if (MaterialTypeUsesSlotMask(SlotMask.CorneaSmoothness))
+            {
+                AddSlot(new Vector1MaterialSlot(CorneaSmoothnessSlotId, CorneaSmoothnessSlotName, CorneaSmoothnessSlotName, SlotType.Input, 0.95f, ShaderStageCapability.Fragment));
+                validSlots.Add(CorneaSmoothnessSlotId);
+            }
+
+            // Sclera IOR
+            if (MaterialTypeUsesSlotMask(SlotMask.ScleraIOR))
+            {
+                AddSlot(new Vector1MaterialSlot(ScleraIORSlotId, ScleraIORSlotName, ScleraIORSlotName, SlotType.Input, 1.4f, ShaderStageCapability.Fragment));
+                validSlots.Add(ScleraIORSlotId);
+            }
+
+            // Cornea IOR
+            if (MaterialTypeUsesSlotMask(SlotMask.CorneaIOR))
+            {
+                AddSlot(new Vector1MaterialSlot(CorneaIORSlotId, CorneaIORSlotName, CorneaIORSlotName, SlotType.Input, 1.336f, ShaderStageCapability.Fragment));
+                validSlots.Add(CorneaIORSlotId);
             }
 
             // Ambient Occlusion
@@ -559,15 +546,15 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 validSlots.Add(AmbientOcclusionSlotId);
             }
 
-            // Specular Color
-            if (MaterialTypeUsesSlotMask(SlotMask.RefractionMask))
+            // Mask
+            if (MaterialTypeUsesSlotMask(SlotMask.Mask))
             {
-                AddSlot(new ColorRGBMaterialSlot(RefractionMaskSlotId, RefractionMaskDisplaySlotName, RefractionMaskSlotName, SlotType.Input, new Color(0.2f,0.2f,0.2f,1.0f), ColorMode.Default, ShaderStageCapability.Fragment));
-                validSlots.Add(RefractionMaskSlotId);
+                AddSlot(new ColorRGBMaterialSlot(MaskSlotId, MaskSlotName, MaskSlotName, SlotType.Input, new Color(1.0f,0.0f,0.0f,1.0f), ColorMode.Default, ShaderStageCapability.Fragment));
+                validSlots.Add(MaskSlotId);
             }
 
             // Diffusion Profile
-            if (MaterialTypeUsesSlotMask(SlotMask.DiffusionProfile) && (subsurfaceScattering.isOn || transmission.isOn))
+            if (MaterialTypeUsesSlotMask(SlotMask.DiffusionProfile) && subsurfaceScattering.isOn)
             {
                 AddSlot(new DiffusionProfileInputMaterialSlot(DiffusionProfileHashSlotId, DiffusionProfileHashSlotName, DiffusionProfileHashSlotName, ShaderStageCapability.Fragment));
                 validSlots.Add(DiffusionProfileHashSlotId);
@@ -578,27 +565,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 AddSlot(new Vector1MaterialSlot(SubsurfaceMaskSlotId, SubsurfaceMaskSlotName, SubsurfaceMaskSlotName, SlotType.Input, 1.0f, ShaderStageCapability.Fragment));
                 validSlots.Add(SubsurfaceMaskSlotId);
-            }
-
-            // Thickness
-            if (MaterialTypeUsesSlotMask(SlotMask.Thickness) &&  transmission.isOn)
-            {
-                AddSlot(new Vector1MaterialSlot(ThicknessSlotId, ThicknessSlotName, ThicknessSlotName, SlotType.Input, 1.0f, ShaderStageCapability.Fragment));
-                validSlots.Add(ThicknessSlotId);
-            }
-
-            // Tangent
-            if (MaterialTypeUsesSlotMask(SlotMask.Tangent))
-            {
-                AddSlot(new TangentMaterialSlot(TangentSlotId, TangentSlotName, TangentSlotName, CoordinateSpace.Tangent, ShaderStageCapability.Fragment));
-                validSlots.Add(TangentSlotId);
-            }
-
-            // Anisotropy
-            if (MaterialTypeUsesSlotMask(SlotMask.Anisotropy))
-            {
-                AddSlot(new Vector1MaterialSlot(AnisotropySlotId, AnisotropySlotName, AnisotropySlotName, SlotType.Input, 0.8f, ShaderStageCapability.Fragment));
-                validSlots.Add(AnisotropySlotId);
             }
 
             // Emission Normal

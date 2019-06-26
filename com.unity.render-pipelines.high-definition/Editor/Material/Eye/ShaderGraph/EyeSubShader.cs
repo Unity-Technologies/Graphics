@@ -34,18 +34,18 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 EyeMasterNode.AlbedoSlotId,
                 EyeMasterNode.SpecularOcclusionSlotId,
                 EyeMasterNode.NormalSlotId,
+                EyeMasterNode.IrisNormalSlotId,
                 EyeMasterNode.SmoothnessSlotId,
+                EyeMasterNode.CorneaSmoothnessSlotId,
+                EyeMasterNode.ScleraIORSlotId,
+                EyeMasterNode.CorneaIORSlotId,
                 EyeMasterNode.AmbientOcclusionSlotId,
-                EyeMasterNode.RefractionMaskSlotId,
+                EyeMasterNode.MaskSlotId,
                 EyeMasterNode.DiffusionProfileHashSlotId,
                 EyeMasterNode.SubsurfaceMaskSlotId,
-                EyeMasterNode.ThicknessSlotId,
-                EyeMasterNode.TangentSlotId,
-                EyeMasterNode.AnisotropySlotId,
                 EyeMasterNode.EmissionSlotId,
                 EyeMasterNode.AlphaSlotId,
-                EyeMasterNode.AlphaClipThresholdSlotId,
-                EyeMasterNode.IrisNormalSlotId,
+                EyeMasterNode.AlphaClipThresholdSlotId,   
             },
             VertexShaderSlots = new List<int>()
             {
@@ -259,22 +259,21 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 EyeMasterNode.AlbedoSlotId,
                 EyeMasterNode.SpecularOcclusionSlotId,
                 EyeMasterNode.NormalSlotId,
-                EyeMasterNode.BentNormalSlotId,
+                EyeMasterNode.IrisNormalSlotId,
                 EyeMasterNode.SmoothnessSlotId,
+                EyeMasterNode.CorneaSmoothnessSlotId,
+                EyeMasterNode.ScleraIORSlotId,
+                EyeMasterNode.CorneaIORSlotId,
                 EyeMasterNode.AmbientOcclusionSlotId,
-                EyeMasterNode.RefractionMaskSlotId,
+                EyeMasterNode.MaskSlotId,
                 EyeMasterNode.DiffusionProfileHashSlotId,
                 EyeMasterNode.SubsurfaceMaskSlotId,
-                EyeMasterNode.ThicknessSlotId,
-                EyeMasterNode.TangentSlotId,
-                EyeMasterNode.AnisotropySlotId,
                 EyeMasterNode.EmissionSlotId,
                 EyeMasterNode.AlphaSlotId,
                 EyeMasterNode.AlphaClipThresholdSlotId,
                 EyeMasterNode.LightingSlotId,
                 EyeMasterNode.BackLightingSlotId,
                 EyeMasterNode.DepthOffsetSlotId,
-                EyeMasterNode.IrisNormalSlotId,
             },
             VertexShaderSlots = new List<int>()
             {
@@ -329,11 +328,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             switch (masterNode.materialType)
             {
-                case EyeMasterNode.MaterialType.EyeGames:
-                    activeFields.Add("Material.EyeGames");
+                case EyeMasterNode.MaterialType.Eye:
+                    activeFields.Add("Material.Eye");
                     break;
-                case EyeMasterNode.MaterialType.EyeCinematics:
-                    activeFields.Add("Material.EyeCinematics");
+                case EyeMasterNode.MaterialType.EyeCinematic:
+                    activeFields.Add("Material.EyeCinematic");
                     break;
                 default:
                     UnityEngine.Debug.LogError("Unknown material type: " + masterNode.materialType);
@@ -371,16 +370,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 activeFields.Add("DisableSSR");
             }
 
-            if (masterNode.energyConservingSpecular.isOn)
-            {
-                activeFields.Add("Specular.EnergyConserving");
-            }
-
-            if (masterNode.transmission.isOn)
-            {
-                activeFields.Add("Material.Transmission");
-            }
-
             if (masterNode.subsurfaceScattering.isOn && masterNode.surfaceType != SurfaceType.Transparent)
             {
                 activeFields.Add("Material.SubsurfaceScattering");
@@ -389,11 +378,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             if (masterNode.IsSlotConnected(EyeMasterNode.BentNormalSlotId) && pass.PixelShaderUsesSlot(EyeMasterNode.BentNormalSlotId))
             {
                 activeFields.Add("BentNormal");
-            }
-
-            if (masterNode.IsSlotConnected(EyeMasterNode.TangentSlotId) && pass.PixelShaderUsesSlot(EyeMasterNode.TangentSlotId))
-            {
-                activeFields.Add("Tangent");
             }
 
             switch (masterNode.specularOcclusionMode)
@@ -439,7 +423,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             return activeFields;
         }
 
-        private static bool GenerateShaderPassLit(EyeMasterNode masterNode, Pass pass, GenerationMode mode, ShaderGenerator result, List<string> sourceAssetDependencyPaths)
+        private static bool GenerateShaderPassEye(EyeMasterNode masterNode, Pass pass, GenerationMode mode, ShaderGenerator result, List<string> sourceAssetDependencyPaths)
         {
             if (mode == GenerationMode.ForReals || pass.UseInPreview)
             {
@@ -463,7 +447,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             if (sourceAssetDependencyPaths != null)
             {
                 // EyeSubShader.cs
-                sourceAssetDependencyPaths.Add(AssetDatabase.GUIDToAssetPath("059cc3132f0336e40886300f3d2d7f12"));
+                sourceAssetDependencyPaths.Add(AssetDatabase.GUIDToAssetPath("a6c6137838fa5da44a84ef8b04b4eae2"));
                 // HDSubShaderUtilities.cs
                 sourceAssetDependencyPaths.Add(AssetDatabase.GUIDToAssetPath("713ced4e6eef4a44799a4dd59041484b"));
             }
@@ -484,16 +468,16 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 int queue = HDRenderQueue.ChangeType(renderingPass, masterNode.sortPriority, masterNode.alphaTest.isOn);
                 HDSubShaderUtilities.AddTags(subShader, HDRenderPipeline.k_ShaderTagName, HDRenderTypeTags.HDLitShader, queue);
 
-                GenerateShaderPassLit(masterNode, m_PassMETA, mode, subShader, sourceAssetDependencyPaths);
-                GenerateShaderPassLit(masterNode, m_SceneSelectionPass, mode, subShader, sourceAssetDependencyPaths);
-                GenerateShaderPassLit(masterNode, m_PassShadowCaster, mode, subShader, sourceAssetDependencyPaths);
+                GenerateShaderPassEye(masterNode, m_PassMETA, mode, subShader, sourceAssetDependencyPaths);
+                GenerateShaderPassEye(masterNode, m_SceneSelectionPass, mode, subShader, sourceAssetDependencyPaths);
+                GenerateShaderPassEye(masterNode, m_PassShadowCaster, mode, subShader, sourceAssetDependencyPaths);
 
-                GenerateShaderPassLit(masterNode, m_PassDepthForwardOnly, mode, subShader, sourceAssetDependencyPaths);
-                GenerateShaderPassLit(masterNode, m_PassMotionVectors, mode, subShader, sourceAssetDependencyPaths);
+                GenerateShaderPassEye(masterNode, m_PassDepthForwardOnly, mode, subShader, sourceAssetDependencyPaths);
+                GenerateShaderPassEye(masterNode, m_PassMotionVectors, mode, subShader, sourceAssetDependencyPaths);
 
                 // Assign define here based on opaque or transparent to save some variant
                 m_PassForwardOnly.ExtraDefines = opaque ? HDSubShaderUtilities.s_ExtraDefinesForwardOpaque : HDSubShaderUtilities.s_ExtraDefinesForwardTransparent;
-                GenerateShaderPassLit(masterNode, m_PassForwardOnly, mode, subShader, sourceAssetDependencyPaths);
+                GenerateShaderPassEye(masterNode, m_PassForwardOnly, mode, subShader, sourceAssetDependencyPaths);
             }
             subShader.Deindent();
             subShader.AddShaderChunk("}", true);

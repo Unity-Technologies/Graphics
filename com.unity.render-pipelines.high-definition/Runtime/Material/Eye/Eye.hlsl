@@ -34,16 +34,7 @@ float GetAmbientOcclusionForMicroShadowing(BSDFData bsdfData)
 
 void ClampRoughness(inout BSDFData bsdfData, float minRoughness)
 {
-    bsdfData.roughnessT = max(minRoughness, bsdfData.roughnessT);
-    bsdfData.roughnessB = max(minRoughness, bsdfData.roughnessB);
-}
-
-// Assume bsdfData.normalWS is init
-void FillMaterialAnisotropy(float anisotropy, float3 tangentWS, float3 bitangentWS, inout BSDFData bsdfData)
-{
-    bsdfData.anisotropy = 0;
-    bsdfData.tangentWS = tangentWS;
-    bsdfData.bitangentWS = bitangentWS;
+    bsdfData.roughness = max(minRoughness, bsdfData.roughness);
 }
 
 // This function is use to help with debugging and must be implemented by any lit material
@@ -52,8 +43,6 @@ void FillMaterialAnisotropy(float anisotropy, float3 tangentWS, float3 bitangent
 void ApplyDebugToSurfaceData(float3x3 tangentToWorld, inout SurfaceData surfaceData)
 {
 #ifdef DEBUG_DISPLAY
-    // NOTE: THe _Debug* uniforms come from /HDRP/Debug/DebugDisplay.hlsl
-
     // Override value if requested by user
     // this can be use also in case of debug lighting mode like diffuse only
     bool overrideAlbedo = _DebugLightingAlbedo.x != 0.0;
@@ -75,6 +64,16 @@ void ApplyDebugToSurfaceData(float3x3 tangentToWorld, inout SurfaceData surfaceD
     if (overrideNormal)
     {
         surfaceData.normalWS = tangentToWorld[2];
+    }
+
+    // PBR validator isn't supported
+    if (_DebugFullScreenMode == FULLSCREENDEBUGMODE_VALIDATE_DIFFUSE_COLOR)
+    {
+        surfaceData.baseColor = float3(1.0, 0.0, 1.0);
+    }
+    else if (_DebugFullScreenMode == FULLSCREENDEBUGMODE_VALIDATE_SPECULAR_COLOR)
+    {
+        surfaceData.baseColor = float3(1.0, 0.0, 1.0);
     }
 
 #endif
@@ -133,11 +132,16 @@ BSDFData ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfaceData)
     bsdfData.diffuseColor = surfaceData.baseColor;
     bsdfData.specularOcclusion = surfaceData.specularOcclusion;
     bsdfData.normalWS = surfaceData.normalWS;
-    bsdfData.irisNormalWS = surfaceData.irisNormalWS;
+    bsdfData.diffuseNormalWS = surfaceData.irisNormalWS;
     bsdfData.geomNormalWS = surfaceData.geomNormalWS;
-    bsdfData.perceptualRoughness = PerceptualSmoothnessToPerceptualRoughness(surfaceData.perceptualSmoothness);
+    float scleraPerceptualRoughness = PerceptualSmoothnessToPerceptualRoughness(surfaceData.perceptualSmoothness);
+    float corneaPerceptualRoughness = PerceptualSmoothnessToPerceptualRoughness(surfaceData.corneaPerceptualSmoothness);
 
+    bsdfData.perceptualRoughness = lerp(scleraPerceptualRoughness, corneaPerceptualRoughness, surfaceData.mask.y);
+    bsdfData.fresnel0 = IorToFresnel0(lerp(surfaceData.scleraIOR, surfaceData.corneaIOR, surfaceData.mask.y)).xxx;
     bsdfData.ambientOcclusion = surfaceData.ambientOcclusion;
+
+    bsdfData.mask = surfaceData.mask;
 
     // Note: we have ZERO_INITIALIZE the struct so bsdfData.anisotropy == 0.0
     // Note: DIFFUSION_PROFILE_NEUTRAL_ID is 0
@@ -145,7 +149,7 @@ BSDFData ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfaceData)
     // In forward everything is statically know and we could theorically cumulate all the material features. So the code reflect it.
     // However in practice we keep parity between deferred and forward, so we should constrain the various features.
     // The UI is in charge of setuping the constrain, not the code. So if users is forward only and want unleash power, it is easy to unleash by some UI change
-    
+
     bsdfData.diffusionProfileIndex = FindDiffusionProfileIndex(surfaceData.diffusionProfileHash);
 
     if (HasFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_EYE_SUBSURFACE_SCATTERING))
@@ -154,12 +158,7 @@ BSDFData ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfaceData)
         FillMaterialSSS(bsdfData.diffusionProfileIndex, surfaceData.subsurfaceMask, bsdfData);
     }
 
-    // After the fill material SSS data has operated, in the case of the fabric we force the value of the fresnel0 term
-    bsdfData.fresnel0 = IorToFresnel0(1.35);
-
-    bsdfData.refractionMask = surfaceData.refractionMask;
-
-    ConvertAnisotropyToRoughness(bsdfData.perceptualRoughness, bsdfData.anisotropy, bsdfData.roughnessT, bsdfData.roughnessB);
+    bsdfData.roughness = ClampRoughnessForAnalyticalLights(PerceptualRoughnessToRoughness(bsdfData.perceptualRoughness));
 
     ApplyDebugToBSDFData(bsdfData);
 
@@ -228,7 +227,7 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, inout BSDFData b
     preLightData.diffuseFGD = 1.0;
 
     float3 iblN;
-    preLightData.partLambdaV = GetSmithJointGGXPartLambdaV(clampedNdotV, bsdfData.roughnessT);
+    preLightData.partLambdaV = GetSmithJointGGXPartLambdaV(clampedNdotV, bsdfData.roughness);
     iblN = N;
 
     preLightData.iblR = reflect(-V, iblN);
@@ -312,16 +311,13 @@ CBSDF EvaluateBSDF(float3 V, float3 L, PreLightData preLightData, BSDFData bsdfD
 
     float3 F = F_Schlick(bsdfData.fresnel0, LdotH);
     // We use abs(NdotL) to handle the none case of double sided
-    float DV = DV_SmithJointGGX(NdotH, abs(NdotL), clampedNdotV, bsdfData.roughnessT, preLightData.partLambdaV);
+    float DV = DV_SmithJointGGX(NdotH, abs(NdotL), clampedNdotV, bsdfData.roughness, preLightData.partLambdaV);
 
     cbsdf.specR = F * DV * clampedNdotL;
 
-    // Use iris normal map for diffuse
+    // Use diffuse normal map for diffuse
 
-    // Refract Light (Only in the Cornea part)
-    // L = -refract(-L, N, 1.0 / 1.35);
-
-    N = bsdfData.irisNormalWS;
+    N = bsdfData.diffuseNormalWS;
     clampedNdotL = saturate(dot(N, L));
 
     cbsdf.diffR = Lambert() * clampedNdotL * (1 - F);
@@ -443,7 +439,7 @@ IndirectLighting EvaluateBSDF_ScreenspaceRefraction(LightLoopContext lightLoopCo
     IndirectLighting lighting;
     ZERO_INITIALIZE(IndirectLighting, lighting);
 
-    // TODO
+    // No refraction
 
     return lighting;
 }

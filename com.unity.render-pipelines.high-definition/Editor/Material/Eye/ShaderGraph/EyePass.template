@@ -36,16 +36,12 @@ Pass
     //-------------------------------------------------------------------------------------
     // Variant Definitions (active field translations to HDRP defines)
     //-------------------------------------------------------------------------------------
-    $Material.CottonWool:               #define _MATERIAL_FEATURE_COTTON_WOOL 1
-    $Material.Transmission:             #define _MATERIAL_FEATURE_TRANSMISSION 1
+    $Material.EyeCinematic:             #define _MATERIAL_FEATURE_EYE_CINEMATIC 1
     $Material.SubsurfaceScattering:     #define _MATERIAL_FEATURE_SUBSURFACE_SCATTERING 1
     $AlphaFog:                          #define _ENABLE_FOG_ON_TRANSPARENT 1
-    $Occlusion:                         #define _OCCLUSION 1
     $SpecularOcclusionFromAO:           #define _SPECULAR_OCCLUSION_FROM_AO 1
     $SpecularOcclusionFromAOBentNormal: #define _SPECULAR_OCCLUSION_FROM_AO_BENT_NORMAL 1
     $SpecularOcclusionCustom:           #define _SPECULAR_OCCLUSION_CUSTOM 1
-    $Specular.EnergyConserving:         #define _ENERGY_CONSERVING_SPECULAR 1
-    $Specular.AA:                       #define _ENABLE_GEOMETRIC_SPECULAR_AA 1
     $DisableDecals:                     #define _DISABLE_DECALS 1
     $DisableSSR:                        #define _DISABLE_SSR 1
     $DepthOffset:                       #define _DEPTHOFFSET_ON 1
@@ -186,17 +182,18 @@ $include("SharedCode.template.hlsl")
         $SurfaceDescription.Albedo:                     surfaceData.baseColor =                 surfaceDescription.Albedo;
         $SurfaceDescription.SpecularOcclusion:          surfaceData.specularOcclusion =         surfaceDescription.SpecularOcclusion;
         $SurfaceDescription.Smoothness:                 surfaceData.perceptualSmoothness =      surfaceDescription.Smoothness;
-        $SurfaceDescription.Occlusion:                  surfaceData.ambientOcclusion =          surfaceDescription.Occlusion;
-        $SurfaceDescription.RefractionMask:             surfaceData.refractionMask =            surfaceDescription.RefractionMask;
+        $SurfaceDescription.CorneaSmoothness:           surfaceData.corneaPerceptualSmoothness = surfaceDescription.CorneaSmoothness;
+        $SurfaceDescription.Occlusion:                  surfaceData.ambientOcclusion            = surfaceDescription.Occlusion;
+        $SurfaceDescription.ScleraIOR:                  surfaceData.scleraIOR                   = surfaceDescription.ScleraIOR;
+        $SurfaceDescription.CorneaIOR:                  surfaceData.corneaIOR                   = surfaceDescription.CorneaIOR;
+        $SurfaceDescription.Mask:                       surfaceData.mask =                      surfaceDescription.Mask;
         $SurfaceDescription.DiffusionProfileHash:       surfaceData.diffusionProfileHash =      asuint(surfaceDescription.DiffusionProfileHash);
         $SurfaceDescription.SubsurfaceMask:             surfaceData.subsurfaceMask =            surfaceDescription.SubsurfaceMask;
-        $SurfaceDescription.Thickness:                  surfaceData.thickness =                 surfaceDescription.Thickness;
-        $SurfaceDescription.Anisotropy:                 surfaceData.anisotropy =                surfaceDescription.Anisotropy;
 
         // These static material feature allow compile time optimization
         surfaceData.materialFeatures = 0;
 
-#ifdef _MATERIAL_FEATURE_SUBSURFACE_SCATTERING
+# ifdef _MATERIAL_FEATURE_SUBSURFACE_SCATTERING
         surfaceData.materialFeatures |= MATERIALFEATUREFLAGS_EYE_SUBSURFACE_SCATTERING;
 #endif
 
@@ -207,25 +204,26 @@ $include("SharedCode.template.hlsl")
 #endif
 
         // tangent-space normal
-        float3 normalTS = float3(0.0f, 0.0f, 1.0f);
-        $SurfaceDescription.Normal: normalTS = surfaceDescription.Normal;
+        float3 normalTS = float3(0.0, 0.0, 1.0);
+        // Take into account cornea mask here (easier to handle it in tangent space)
+        // Cornea is smooth (vertex normal) otherwise use provided normal
+        $SurfaceDescription.Normal: normalTS = lerp(surfaceDescription.Normal, normalTS, surfaceData.mask.x);
 
         // compute world space normal
         GetNormalWS(fragInputs, normalTS, surfaceData.normalWS, doubleSidedConstants);
 
-        bentNormalWS = surfaceData.normalWS;
+        float3 irisNormalTS = float3(0.0, 0.0, 1.0);
+        // Take into account cornea mask here (easier to handle it in tangent space)
+        // sclera used same normal and iris used specific normal
+        $SurfaceDescription.IrisNormal: irisNormalTS = lerp(surfaceDescription.IrisNormal, normalTS, surfaceData.mask.y);
+
+        // compute world space normal
+        GetNormalWS(fragInputs, irisNormalTS, surfaceData.irisNormalWS, doubleSidedConstants);
+
+        bentNormalWS = surfaceData.normalWS; // TODO: Manu, use perturbed normal for iris
         $BentNormal: GetNormalWS(fragInputs, surfaceDescription.BentNormal, bentNormalWS, doubleSidedConstants);
 
-        float3 irisNormalWS = float3(0.0f, 0.0f, 1.0f);
-        $SurfaceDescription.IrisNormal: irisNormalWS = surfaceDescription.IrisNormal;
-        // compute world space normal
-        GetNormalWS(fragInputs, irisNormalWS, surfaceData.irisNormalWS, doubleSidedConstants);
-
         surfaceData.geomNormalWS = fragInputs.tangentToWorld[2];
-
-        surfaceData.tangentWS = normalize(fragInputs.tangentToWorld[0].xyz);    // The tangent is not normalize in tangentToWorld for mikkt. TODO: Check if it expected that we normalize with Morten. Tag: SURFACE_GRADIENT
-        $Tangent: surfaceData.tangentWS = TransformTangentToWorld(surfaceDescription.Tangent, fragInputs.tangentToWorld);
-        surfaceData.tangentWS = Orthonormalize(surfaceData.tangentWS, surfaceData.normalWS);
 
         // By default we use the ambient occlusion with Tri-ace trick (apply outside) for specular occlusion.
         // If user provide bent normal then we process a better term
