@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - You can now access ShaderGraph blend states from the Material UI (for example, **Surface Type**, **Sorting Priority**, and **Blending Mode**). This change may break Materials that use a ShaderGraph, to fix them, select **Edit > Render Pipeline > Reset all ShaderGraph Scene Materials BlendStates**. This syncs the blendstates of you ShaderGraph master nodes with the Material properties.
 - You can now control ZTest, ZWrite, and CullMode for transparent Materials.
 - Materials that use Unlit Shaders or Unlit Master Node Shaders now cast shadows.
+- Debug mode `Transparency overdraw`, allowing to see an "heat map" of pixel shader invocations for transparent objects (including VFX)
 
 ### Fixed
 - Fixed an issue with history buffers causing effects like TAA or auto exposure to flicker when more than one camera was visible in the editor
