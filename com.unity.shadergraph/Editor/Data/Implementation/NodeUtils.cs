@@ -156,6 +156,7 @@ namespace UnityEditor.Graphing
                     }
                 }
             }
+            node.isStatic = isStatic;
 
             if (!isStatic)
             {

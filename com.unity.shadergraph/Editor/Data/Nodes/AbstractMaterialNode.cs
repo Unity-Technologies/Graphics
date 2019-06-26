@@ -50,6 +50,8 @@ namespace UnityEditor.ShaderGraph
 
         public GraphElement container { get; set; }
 
+        public bool isStatic { get; set; }
+
         OnNodeModified m_OnModified;
 
         public void RegisterCallback(OnNodeModified callback)
