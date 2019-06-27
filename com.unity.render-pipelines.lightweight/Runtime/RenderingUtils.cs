@@ -13,7 +13,7 @@ namespace UnityEngine.Rendering.LWRP
         Diffuse,
         Specular,
         Alpha,
-        Smoothnes,
+        Smoothness,
         AmbientOcclusion,
         Emission,
         NormalWorldSpace,
