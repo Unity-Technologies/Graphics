@@ -53,9 +53,10 @@ namespace UnityEngine.Rendering.LWRP
                 bool isMaterialDebugActive = lightingDebugMode != LightingDebugMode.None ||
                                              debugMaterialIndex != DebugMaterialIndex.None || 
                                              pbrLightingDebugModeMask != (int)PBRLightingDebugMode.None;
-                bool isReplacementDebugActive = fullScreenDebugMode == FullScreenDebugMode.Overdraw ||
-                                                fullScreenDebugMode == FullScreenDebugMode.Wireframe ||
-                                                fullScreenDebugMode == FullScreenDebugMode.SolidWireframe;
+                SceneOverrides sceneOverrides = DebugDisplaySettings.Instance.renderingSettings.sceneOverrides;
+                bool isReplacementDebugActive = sceneOverrides == SceneOverrides.Overdraw ||
+                                                sceneOverrides == SceneOverrides.Wireframe ||
+                                                sceneOverrides == SceneOverrides.SolidWireframe;
                 bool isSceneOverrideActive = sceneOverrideMode != SceneOverrides.None;
                 if (isMaterialDebugActive || isSceneOverrideActive)
                 {
