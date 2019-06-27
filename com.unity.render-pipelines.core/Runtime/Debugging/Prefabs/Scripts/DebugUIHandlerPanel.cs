@@ -7,6 +7,7 @@ namespace UnityEngine.Experimental.Rendering.UI
         public Text nameLabel;
         public ScrollRect scrollRect;
         public RectTransform viewport;
+        public DebugUIHandlerCanvas Canvas;
 
         RectTransform m_ScrollTransform;
         RectTransform m_ContentTransform;
@@ -24,12 +25,22 @@ namespace UnityEngine.Experimental.Rendering.UI
         internal void SetPanel(DebugUI.Panel panel)
         {
             m_Panel = panel;
-            nameLabel.text = "< " + panel.displayName + " >";
+            nameLabel.text = panel.displayName;
         }
 
         internal DebugUI.Panel GetPanel()
         {
             return m_Panel;
+        }
+
+        public void SelectNextItem()
+        {
+            Canvas.SelectNextPanel();
+        }
+
+        public void SelectPreviousItem()
+        {
+            Canvas.SelectPreviousPanel();   
         }
 
         // TODO: Jumps around with foldouts and the likes, fix me
