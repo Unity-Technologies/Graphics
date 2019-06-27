@@ -5,6 +5,7 @@ namespace UnityEngine.Rendering.LWRP
 {
     public enum FogType
     {
+        Off,
         Linear,
         Exp2,
         Height,
@@ -12,9 +13,9 @@ namespace UnityEngine.Rendering.LWRP
 
     public enum FogColorType
     {
-        Color,
-        Gradient,
-        CubeMap,
+        Color = 0,
+        //Gradient = 1,
+        CubeMap = 2,
     }
 
     [Serializable, VolumeComponentMenu("Environment/Fog")]
@@ -31,16 +32,14 @@ namespace UnityEngine.Rendering.LWRP
         public FloatParameter farFog = new FloatParameter(50f);
 
         // Height fog
-        public FloatParameter height = new FloatParameter(0.5f);
-        public FloatParameter heightFalloff = new FloatParameter(50f);
-        public FloatParameter distanceOffset = new FloatParameter(5f);
-        public FloatParameter distanceFalloff = new FloatParameter(25f);
+        public FloatParameter heightOffset = new FloatParameter(0.0f);
 
         // Coloring
         public FogColorTypeParameter colorType = new FogColorTypeParameter(FogColorType.Color);
 
         public ColorParameter fogColor = new ColorParameter(Color.white, true, false, true);
-        public NoInterpCubemapParameter cubemap = new NoInterpCubemapParameter(null);
+        public CubemapParameter cubemap = new CubemapParameter(null);
+        public ClampedFloatParameter rotation = new ClampedFloatParameter(0f, -180f, 180);
     }
 
     [Serializable]

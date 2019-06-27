@@ -11,11 +11,21 @@ CBUFFER_START(_PerCamera)
 float3 _FogColor;
 float4 _FogParams;
 float4 _FogMap_HDR;
+float _Rotation;
 CBUFFER_END
 
 #ifdef FOGMAP
 TEXTURECUBE(_FogMap);       SAMPLER(sampler_FogMap);
 #endif
+
+float3 RotateAroundYInDegrees (float3 vertex, float degrees)
+{
+    float alpha = degrees * 3.1 / 180.0;
+    float sina, cosa;
+    sincos(alpha, sina, cosa);
+    float2x2 m = float2x2(cosa, -sina, sina, cosa);
+    return float3(mul(m, vertex.xz), vertex.y).xzy;
+}
 
 real ComputeFogFactor(VertexPositionInputs vertInputs)
 {
@@ -30,11 +40,9 @@ real ComputeFogFactor(VertexPositionInputs vertInputs)
     // -density * vertInputs.positionCS.z computed at vertex
     return real(_FogParams.x * clipZ_01);
 #elif defined(FOG_EXP)
-//_FogParams.x = height; _FogParams.y = falloff; _FogParams.z = distanceOffset; _FogParams.w = distanceFalloff;
-    float height = min(_WorldSpaceCameraPos.y,vertInputs.positionWS.y);
-    float heightFactor = saturate((_FogParams.x+_FogParams.y-height)/_FogParams.y);
-    float distanceFactor = saturate((clipZ_01-_FogParams.z)/_FogParams.w);
-    return real(1-(heightFactor*distanceFactor));
+    half height = (1-pow(saturate((vertInputs.positionWS.y - _FogParams.z) * 0.01), 0.25));
+    half distance = _FogParams.x * length(vertInputs.positionWS - _WorldSpaceCameraPos);
+    return 1-saturate(height * distance);
 #else
     return 0.0h;
 #endif
@@ -46,7 +54,8 @@ half3 MixFogColor(real3 fragColor, real3 fogColor, real fogFactor)
 #if defined(FOG_EXP)
     // factor = exp(-density*z)
     // fogFactor = density*z compute at vertex
-    //fogFactor = pow(fogFactor,2);
+    //fogFactor = saturate(exp2(-fogFactor));
+    //fragColor = lerp(fragColor, fogColor, fogFactor);
 #elif defined(FOG_EXP2)
     // factor = exp(-(density*z)^2)
     // fogFactor = density*z compute at vertex
@@ -60,8 +69,9 @@ half3 MixFogColor(real3 fragColor, real3 fogColor, real fogFactor)
 half3 MipFog(real3 viewDirection, float z)
 {
 #ifdef FOGMAP
-    half depth = (1-pow(Linear01Depth(z, _ZBufferParams), 0.5h)) * 7.0;
+    half depth = (1-pow(Linear01Depth(z, _ZBufferParams), 0.5h)) * _FogParams.y;
     viewDirection.z = -viewDirection.z; // flip to match skybox
+    viewDirection = RotateAroundYInDegrees(viewDirection, _Rotation);
     half3 color = SAMPLE_TEXTURECUBE_LOD(_FogMap, sampler_FogMap, viewDirection, depth);
 #if !defined(UNITY_USE_NATIVE_HDR)
     color = DecodeHDREnvironment(half4(color, 1), _FogMap_HDR);

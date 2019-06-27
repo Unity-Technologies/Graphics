@@ -17,11 +17,9 @@ namespace UnityEditor.Rendering.LWRP
         SerializedDataParameter m_ColorType;
         SerializedDataParameter m_Color;
         SerializedDataParameter m_Cubemap;
+        SerializedDataParameter m_Rotation;
 
-        SerializedDataParameter m_Height;
-        SerializedDataParameter m_HeightFalloff;
-        SerializedDataParameter m_DistanceOffset;
-        SerializedDataParameter m_DistanceFalloff;
+        SerializedDataParameter m_HeightOffset;
 
         public override void OnEnable()
         {
@@ -38,12 +36,10 @@ namespace UnityEditor.Rendering.LWRP
             m_ColorType = Unpack(o.Find(x => x.colorType));
             m_Color = Unpack(o.Find(x => x.fogColor));
             m_Cubemap = Unpack(o.Find(x => x.cubemap));
+            m_Rotation = Unpack(o.Find(x => x.rotation));
 
             // Height Fog Settings
-            m_Height = Unpack(o.Find(x => x.height));
-            m_HeightFalloff = Unpack(o.Find(x => x.heightFalloff));
-            m_DistanceOffset = Unpack(o.Find(x => x.distanceOffset));
-            m_DistanceFalloff = Unpack(o.Find(x => x.distanceFalloff));
+            m_HeightOffset = Unpack(o.Find(x => x.heightOffset));
         }
 
         public override void OnInspectorGUI()
@@ -65,27 +61,28 @@ namespace UnityEditor.Rendering.LWRP
             }
             else if (m_Type.value.intValue == (int)FogType.Height)
             {
-                PropertyField(m_Height);
-                PropertyField(m_HeightFalloff);
-                m_HeightFalloff.value.floatValue = Mathf.Max(m_HeightFalloff.value.floatValue, 0);
-                PropertyField(m_DistanceOffset);
-                PropertyField(m_DistanceFalloff);
-                m_DistanceFalloff.value.floatValue = Mathf.Max(m_DistanceFalloff.value.floatValue, 0);
+                PropertyField(m_Density);
+                m_Density.value.floatValue = Mathf.Max(m_Density.value.floatValue, 0);
+                PropertyField(m_HeightOffset);
             }
 
-            PropertyField(m_ColorType);
+            if (m_Type.value.intValue != (int) FogType.Off)
+            {
+                PropertyField(m_ColorType);
 
-            if (m_ColorType.value.intValue == (int) FogColorType.Color)
-            {
-                PropertyField(m_Color);
-            }
-            else if (m_ColorType.value.intValue == (int) FogColorType.Gradient)
-            {
-                // Do the things
-            }
-            else if (m_ColorType.value.intValue == (int) FogColorType.CubeMap)
-            {
-                PropertyField(m_Cubemap);
+                if (m_ColorType.value.intValue == (int) FogColorType.Color)
+                {
+                    PropertyField(m_Color);
+                }
+                /*else if (m_ColorType.value.intValue == (int) FogColorType.Gradient)
+                {
+                    // Do the things
+                }*/
+                else if (m_ColorType.value.intValue == (int) FogColorType.CubeMap)
+                {
+                    PropertyField(m_Cubemap);
+                    PropertyField(m_Rotation);
+                }
             }
         }
     }
