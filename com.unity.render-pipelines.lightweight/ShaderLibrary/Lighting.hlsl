@@ -525,8 +525,10 @@ half3 VertexLighting(float3 positionWS, half3 normalWS)
 
 #if defined(_DEBUG_SHADER)
 
-half4 CalculateDebugShadowCascadeColor(float4 shadowCoord, float3 positionWS)
+half4 CalculateDebugShadowCascadeColor(InputData inputData)
 {
+    float4 shadowCoord = inputData.shadowCoord;
+    float3 positionWS = inputData.positionWS;
     Light mainLight = GetMainLight(shadowCoord);
     half cascadeIndex = ComputeCascadeIndex(positionWS);
 
@@ -598,6 +600,10 @@ half4 LightweightFragmentPBR(InputData inputData, SurfaceData surfaceData)
     if(_DebugMaterialIndex == DEBUG_LIGHTING_COMPLEXITY)
     {
         return CalculateDebugLightingComplexityColor(inputData);
+    }
+    else if(_DebugLightingIndex == DEBUG_LIGHTING_SHADOW_CASCADES)
+    {
+        surfaceData.albedo = CalculateDebugShadowCascadeColor(inputData);
     }
     else
     {
