@@ -3,18 +3,6 @@ using System.Diagnostics;
 
 namespace UnityEngine.Rendering.LWRP
 {
-    internal enum FullScreenDebugMode
-    {
-        None = 0,
-        Depth = 1,
-        MainLightShadowsOnly = 2,
-        Overdraw = 3,
-        Wireframe = 4,
-        AdditionalLightsShadowMap = 5,
-        MainLightShadowMap = 6,
-        SolidWireframe = 7
-    }
-
     internal class ForwardRenderer : ScriptableRenderer
     {
         const int k_DepthStencilBufferBits = 32;
@@ -22,6 +10,13 @@ namespace UnityEngine.Rendering.LWRP
         int m_DebugMaterialIndexId;
         int m_DebugLightingIndexId;
         int m_DebugVertexAttributesIndexId;
+        int m_DebugPBRLightingMask;
+        int m_DebugValidationIndexId;
+        int m_DebugAlbedoMinLuminance;
+        int m_DebugAlbedoMaxLuminance;
+        int m_DebugAlbedoSaturationTolerance;
+        int m_DebugAlbedoHueTolerance;
+        int m_DebugAlbedoCompareColor;
 
         DepthOnlyPass m_DepthPrepass;
         MainLightShadowCasterPass m_MainLightShadowCasterPass;
@@ -59,6 +54,14 @@ namespace UnityEngine.Rendering.LWRP
             m_DebugMaterialIndexId = Shader.PropertyToID("_DebugMaterialIndex");
             m_DebugLightingIndexId = Shader.PropertyToID("_DebugLightingIndex");
             m_DebugVertexAttributesIndexId = Shader.PropertyToID("_DebugAttributesIndex");
+            m_DebugPBRLightingMask = Shader.PropertyToID("_DebugPBRLightingMask");
+            m_DebugValidationIndexId = Shader.PropertyToID("_DebugValidationIndex");
+            m_DebugAlbedoMinLuminance = Shader.PropertyToID("_AlbedoMinLuminance");
+            m_DebugAlbedoMaxLuminance = Shader.PropertyToID("_AlbedoMaxLuminance");
+            m_DebugAlbedoSaturationTolerance = Shader.PropertyToID("_AlbedoSaturationTolerance");
+            m_DebugAlbedoHueTolerance = Shader.PropertyToID("_AlbedoHueTolerance");
+            m_DebugAlbedoCompareColor = Shader.PropertyToID("_AlbedoCompareColor");
+
             m_NumberFontTexture = data.textures.NumberFont;
 
             Material blitMaterial = CoreUtils.CreateEngineMaterial(data.shaders.blitPS);
@@ -125,17 +128,16 @@ namespace UnityEngine.Rendering.LWRP
             }
 
             var fullScreenDebugMode = DebugDisplaySettings.Instance.buffer.FullScreenDebugMode;
-
             // Special path for depth only offscreen cameras. Only write opaques + transparents.
+            SceneOverrides sceneOverride = DebugDisplaySettings.Instance.renderingSettings.sceneOverrides;
+
             bool isOffscreenDepthTexture = camera.targetTexture != null && camera.targetTexture.format == RenderTextureFormat.Depth;
-            bool overdraw = fullScreenDebugMode == FullScreenDebugMode.Overdraw;
-            bool wireframe = fullScreenDebugMode == FullScreenDebugMode.Wireframe ||
-                             fullScreenDebugMode == FullScreenDebugMode.SolidWireframe;
-            if (isOffscreenDepthTexture || overdraw || wireframe)
+            bool sceneOverrideEnabled = sceneOverride != SceneOverrides.None;
+            if (isOffscreenDepthTexture || sceneOverrideEnabled)
             {
                 m_ActiveCameraColorAttachment = RenderTargetHandle.CameraTarget;
                 m_ActiveCameraDepthAttachment = RenderTargetHandle.CameraTarget;
-                if (overdraw)
+                if (sceneOverride == SceneOverrides.Overdraw)
                 {
                     m_ActiveCameraColorAttachment = m_CameraColorAttachment;
                     m_ActiveCameraDepthAttachment = m_CameraDepthAttachment;
@@ -200,7 +202,7 @@ namespace UnityEngine.Rendering.LWRP
             // If camera requires depth and there's no depth pre-pass we create a depth texture that can be read
             // later by effect requiring it.
             bool createDepthTexture = renderingData.cameraData.requiresDepthTexture && !requiresDepthPrepass;
-            bool postProcessEnabled = renderingData.cameraData.postProcessEnabled && !DebugDisplaySettings.Instance.buffer.PostProcessingDisabled;
+            bool postProcessEnabled = renderingData.cameraData.postProcessEnabled;
             bool hasOpaquePostProcess = postProcessEnabled &&
                 renderingData.cameraData.postProcessLayer.HasOpaqueOnlyEffects(RenderingUtils.postProcessRenderContext);
 
@@ -305,6 +307,7 @@ namespace UnityEngine.Rendering.LWRP
                 }
             }
 
+            var fullScreenDebugMode = DebugDisplaySettings.Instance.renderingSettings.fullScreenDebugMode;
             if (fullScreenDebugMode != FullScreenDebugMode.None )
             {
                 RenderTargetIdentifier debugBuffer;
@@ -468,11 +471,22 @@ namespace UnityEngine.Rendering.LWRP
             debugMaterialIndex = DebugDisplaySettings.Instance.materialSettings.DebugMaterialIndexData;
             lightingDebugMode = DebugDisplaySettings.Instance.Lighting.m_LightingDebugMode;
             attributeDebugIndex = DebugDisplaySettings.Instance.materialSettings.VertexAttributeDebugIndexData;
+            PBRLightingDebugMode pbrLightingDebugMode = DebugDisplaySettings.Instance.Lighting.m_PBRLightingDebugMode;
+            pbrLightingDebugModeMask = (int) pbrLightingDebugMode;
 
             var cmd = CommandBufferPool.Get("");
             cmd.SetGlobalFloat(m_DebugMaterialIndexId, (int)debugMaterialIndex);
             cmd.SetGlobalFloat(m_DebugLightingIndexId, (int)lightingDebugMode);
 			cmd.SetGlobalFloat(m_DebugVertexAttributesIndexId, (int)attributeDebugIndex);
+            cmd.SetGlobalInt(m_DebugPBRLightingMask, (int)pbrLightingDebugModeMask);
+            cmd.SetGlobalInt(m_DebugValidationIndexId, (int)DebugDisplaySettings.Instance.Validation.validationMode);
+            
+            cmd.SetGlobalFloat(m_DebugAlbedoMinLuminance, DebugDisplaySettings.Instance.Validation.AlbedoMinLuminance);
+            cmd.SetGlobalFloat(m_DebugAlbedoMaxLuminance, DebugDisplaySettings.Instance.Validation.AlbedoMaxLuminance);
+            cmd.SetGlobalFloat(m_DebugAlbedoSaturationTolerance, DebugDisplaySettings.Instance.Validation.AlbedoSaturationTolerance);
+            cmd.SetGlobalFloat(m_DebugAlbedoHueTolerance, DebugDisplaySettings.Instance.Validation.AlbedoHueTolerance);
+            cmd.SetGlobalColor(m_DebugAlbedoCompareColor, DebugDisplaySettings.Instance.Validation.AlbedoCompareColor);
+
             cmd.SetGlobalTexture("_DebugNumberTexture", m_NumberFontTexture);
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);

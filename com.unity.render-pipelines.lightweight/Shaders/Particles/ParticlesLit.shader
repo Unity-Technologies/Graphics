@@ -143,6 +143,64 @@ Shader "Lightweight Render Pipeline/Particles/Lit"
             #include "Packages/com.unity.render-pipelines.lightweight/Shaders/Utils/Lightweight2D.hlsl"
             ENDHLSL
         }
+        
+        Pass
+        {
+            // Lightmode matches the ShaderPassName set in LightweightRenderPipeline.cs. SRPDefaultUnlit and passes with
+            // no LightMode tag are also rendered by Lightweight Render Pipeline
+            Name "DebugMaterial"
+            Tags {"LightMode" = "DebugMaterial"}
+            
+            BlendOp[_BlendOp]
+            Blend[_SrcBlend][_DstBlend]
+            ZWrite[_ZWrite]
+            Cull[_Cull]
+            
+            HLSLPROGRAM
+            // Required to compile gles 2.0 with standard SRP library
+            // All shaders must be compiled with HLSLcc and currently only gles is not using HLSLcc by default
+            #pragma prefer_hlslcc gles
+            #pragma exclude_renderers d3d11_9x
+            #pragma target 2.0
+
+            // -------------------------------------
+            // Material Keywords
+            #pragma shader_feature _NORMALMAP
+            #pragma shader_feature _EMISSION
+            #pragma shader_feature _METALLICSPECGLOSSMAP
+            #pragma shader_feature _RECEIVE_SHADOWS_OFF
+            
+            // -------------------------------------
+            // Particle Keywords
+            #pragma shader_feature _ _ALPHAPREMULTIPLY_ON _ALPHAMODULATE_ON
+            #pragma shader_feature _ALPHATEST_ON
+            #pragma shader_feature _ _COLOROVERLAY_ON _COLORCOLOR_ON _COLORADDSUBDIFF_ON
+            #pragma shader_feature _FLIPBOOKBLENDING_ON
+            #pragma shader_feature _SOFTPARTICLES_ON
+            #pragma shader_feature _FADING_ON
+            #pragma shader_feature _DISTORTION_ON
+            
+            // -------------------------------------
+            // Lightweight Pipeline keywords
+            #pragma multi_compile _ _MAIN_LIGHT_SHADOWS
+            #pragma multi_compile _ _MAIN_LIGHT_SHADOWS_CASCADE
+            #pragma multi_compile _ _ADDITIONAL_LIGHTS_VERTEX _ADDITIONAL_LIGHTS
+            #pragma multi_compile _ _ADDITIONAL_LIGHT_SHADOWS
+            #pragma multi_compile _ _SHADOWS_SOFT
+
+            // -------------------------------------
+            // Unity defined keywords
+            #pragma multi_compile_fog
+
+            #pragma vertex ParticlesLitVertex
+            #pragma fragment ParticlesLitFragment
+            
+            #define _DEBUG_SHADER
+
+            #include "Packages/com.unity.render-pipelines.lightweight/Shaders/Particles/ParticlesLitInput.hlsl"
+            #include "Packages/com.unity.render-pipelines.lightweight/Shaders/Particles/ParticlesLitForwardPass.hlsl"
+            ENDHLSL
+        }
     }
 
     Fallback "Lightweight Render Pipeline/Particles/SimpleLit"

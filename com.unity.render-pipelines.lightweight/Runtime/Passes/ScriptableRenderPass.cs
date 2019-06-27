@@ -35,6 +35,7 @@ namespace UnityEngine.Rendering.LWRP
         public DebugMaterialIndex debugMaterialIndex { get; set; }
         public LightingDebugMode lightingDebugMode { get; set; }
         public VertexAttributeDebugMode attributeDebugIndex { get; set; }
+        public int pbrLightingDebugModeMask { get; set; }
 
         public RenderTargetIdentifier colorAttachment
         {

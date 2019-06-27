@@ -24,6 +24,15 @@ struct InputData
     half    fogCoord;
     half3   vertexLighting;
     half3   bakedGI;
+    half3   normalTS;
+    #if defined(LIGHTMAP_ON)
+    half2   lightmapUV;
+    #else
+    float3  vertexSH;
+    #endif
+    #if defined(_NORMALMAP)
+    half3x3 tangentMatrixWS;
+    #endif
 };
 
 ///////////////////////////////////////////////////////////////////////////////

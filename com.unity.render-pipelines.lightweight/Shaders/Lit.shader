@@ -263,8 +263,14 @@ Shader "Lightweight Render Pipeline/Lit"
             #pragma shader_feature _METALLICSPECGLOSSMAP
             #pragma shader_feature _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
             #pragma shader_feature _OCCLUSIONMAP
+            
+            // -------------------------------------
+            // Unity defined keywords
+            #pragma multi_compile _ DIRLIGHTMAP_COMBINED
+            #pragma multi_compile _ LIGHTMAP_ON
 
             // defines for shadow cascades mode
+            #define _DEBUG_SHADER
             #define _ADDITIONAL_LIGHTS
             #define _MAIN_LIGHT_SHADOWS
             #define _MAIN_LIGHT_SHADOWS_CASCADE
@@ -277,7 +283,7 @@ Shader "Lightweight Render Pipeline/Lit"
             #pragma fragment LitPassFragment
 
             #include "LitInput.hlsl"
-            #include "LitDebugPass.hlsl"
+            #include "LitForwardPass.hlsl"
             ENDHLSL
         }
     }

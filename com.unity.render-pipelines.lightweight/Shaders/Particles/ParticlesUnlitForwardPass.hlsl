@@ -59,8 +59,8 @@ void InitializeInputData(VaryingsParticle input, half3 normalTS, out InputData o
 
 #ifdef _NORMALMAP
     half3 viewDirWS = half3(input.normalWS.w, input.tangentWS.w, input.bitangentWS.w);
-    output.normalWS = TransformTangentToWorld(normalTS,
-        half3x3(input.tangentWS.xyz, input.bitangentWS.xyz, input.normalWS.xyz));
+    output.tangentMatrixWS = half3x3(input.tangentWS.xyz, input.bitangentWS.xyz, input.normalWS.xyz);
+    output.normalWS = TransformTangentToWorld(normalTS, output.tangentMatrixWS);
 #else
     half3 viewDirWS = input.viewDirWS;
     output.normalWS = input.normalWS;
@@ -83,6 +83,7 @@ void InitializeInputData(VaryingsParticle input, half3 normalTS, out InputData o
     output.fogCoord = (half)input.positionWS.w;
     output.vertexLighting = half3(0.0h, 0.0h, 0.0h);
     output.bakedGI = SampleSHPixel(input.vertexSH, output.normalWS);
+    output.normalTS = normalTS;
 }
 
 ///////////////////////////////////////////////////////////////////////////////

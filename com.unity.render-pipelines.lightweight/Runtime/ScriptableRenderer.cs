@@ -64,6 +64,8 @@ namespace UnityEngine.Rendering.LWRP
         public LightingDebugMode lightingDebugMode { get; set; }
         public VertexAttributeDebugMode attributeDebugIndex { get; set; }
 
+        public int pbrLightingDebugModeMask { get; set; }
+
         protected List<ScriptableRendererFeature> rendererFeatures
         {
             get => m_RendererFeatures;
@@ -181,7 +183,8 @@ namespace UnityEngine.Rendering.LWRP
         /// <param name="renderingData">Current render state information.</param>
         public void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
-            bool debug = DebugDisplaySettings.Instance.buffer.FullScreenDebugMode == FullScreenDebugMode.Overdraw;
+            // Disable Gizmos when using scene overrides. Gizmos break some effects like Overdraw debug.
+            bool drawGizmos = DebugDisplaySettings.Instance.renderingSettings.sceneOverrides == SceneOverrides.None;
 
             Camera camera = renderingData.cameraData.camera;
             ClearRenderState(context);
@@ -235,7 +238,7 @@ namespace UnityEngine.Rendering.LWRP
             // In this block main rendering executes.
             ExecuteBlock(RenderPassBlock.MainRendering, blockRanges, context, ref renderingData);
 
-            if (!debug)
+            if (drawGizmos)
                 DrawGizmos(context, camera, GizmoSubset.PreImageEffects);
 
             // In this block after rendering drawing happens, e.g, post processing, video player capture.
@@ -244,7 +247,7 @@ namespace UnityEngine.Rendering.LWRP
             if (stereoEnabled)
                 EndXRRendering(context, camera);
 
-            if (!debug)
+            if (drawGizmos)
                 DrawGizmos(context, camera, GizmoSubset.PostImageEffects);
 
             InternalFinishRendering(context);
@@ -342,6 +345,7 @@ namespace UnityEngine.Rendering.LWRP
                 renderPass.debugMaterialIndex = debugMaterialIndex;
                 renderPass.lightingDebugMode = lightingDebugMode;
                 renderPass.attributeDebugIndex = attributeDebugIndex;
+                renderPass.pbrLightingDebugModeMask = pbrLightingDebugModeMask;
                 ExecuteRenderPass(context, renderPass, ref renderingData);
             }
 
@@ -372,12 +376,16 @@ namespace UnityEngine.Rendering.LWRP
 
                 Camera camera = cameraData.camera;
 
-                bool debug = DebugDisplaySettings.Instance.buffer.FullScreenDebugMode == FullScreenDebugMode.Overdraw;
-                Color clearColor = (debug) ? Color.black : camera.backgroundColor;
+                Color clearColor = CoreUtils.ConvertSRGBToActiveColorSpace(camera.backgroundColor);
+                ClearFlag clearFlag = GetCameraClearFlag(camera.clearFlags);
 
-                ClearFlag clearFlag = ClearFlag.All;//GetCameraClearFlag(camera.clearFlags);
-                SetRenderTarget(cmd, m_CameraColorTarget, m_CameraDepthTarget, clearFlag,
-                    CoreUtils.ConvertSRGBToActiveColorSpace(clearColor));
+                bool overdrawDebugMode = DebugDisplaySettings.Instance.renderingSettings.sceneOverrides == SceneOverrides.Overdraw;
+                if (overdrawDebugMode)
+                {
+                    clearColor = Color.black;
+                    clearFlag = ClearFlag.All;
+                }
+                SetRenderTarget(cmd, m_CameraColorTarget, m_CameraDepthTarget, clearFlag, clearColor);
 
                 context.ExecuteCommandBuffer(cmd);
                 cmd.Clear();

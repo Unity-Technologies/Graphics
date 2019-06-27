@@ -1,3 +1,5 @@
+using UnityEditor.Rendering;
+
 namespace UnityEngine.Rendering.LWRP
 {
     /// <summary>
@@ -17,10 +19,16 @@ namespace UnityEngine.Rendering.LWRP
         bool m_IsMobileOrSwitch;
         Rect m_PixelRect;
 
+        int m_RangeMinId;
+        int m_InverseRangeSizeId;
+
         public FinalBlitPass(RenderPassEvent evt, Material blitMaterial)
         {
             m_BlitMaterial = blitMaterial;
             renderPassEvent = evt;
+
+            m_RangeMinId = Shader.PropertyToID("_RangeMinimum");
+            m_InverseRangeSizeId = Shader.PropertyToID("_RangeMaximum");
         }
 
         /// <summary>
@@ -53,6 +61,27 @@ namespace UnityEngine.Rendering.LWRP
 
             CommandBuffer cmd = CommandBufferPool.Get(m_ProfilerTag);
 
+            if (DebugDisplaySettings.Instance.Validation.validationMode==DebugValidationMode.HiglightNanInfNegative)
+                cmd.EnableShaderKeyword("_DEBUG_HIGHLIGHT_NAN_INF_NEGATIVE_PIXELS");
+            else
+                cmd.DisableShaderKeyword("_DEBUG_HIGHLIGHT_NAN_INF_NEGATIVE_PIXELS");
+
+            if (DebugDisplaySettings.Instance.Validation.validationMode == DebugValidationMode.HighlightOutsideOfRange)
+            {
+                cmd.EnableShaderKeyword("_DEBUG_HIGHLIGHT_PIXELS_OUTSIDE_RANGE");
+                cmd.SetGlobalFloat(m_RangeMinId, DebugDisplaySettings.Instance.Validation.RangeMin);
+                cmd.SetGlobalFloat(m_InverseRangeSizeId, DebugDisplaySettings.Instance.Validation.RangeMax);
+
+                if(DebugDisplaySettings.Instance.Validation.AlsoHighlightAlphaOutsideRange)
+                    cmd.EnableShaderKeyword("_DEBUG_HIGHLIGHT_ALPHA_OUTSIDE_RANGE");
+                else
+                    cmd.DisableShaderKeyword("_DEBUG_HIGHLIGHT_ALPHA_OUTSIDE_RANGE");
+            }
+            else
+            {
+                cmd.DisableShaderKeyword("_DEBUG_HIGHLIGHT_PIXELS_OUTSIDE_RANGE");
+            }
+
             if (requiresSRGBConvertion)
                 cmd.EnableShaderKeyword(ShaderKeywordStrings.LinearToSRGBConversion);
             else
@@ -64,7 +93,8 @@ namespace UnityEngine.Rendering.LWRP
                 cmd.DisableShaderKeyword(ShaderKeywordStrings.KillAlpha);
 
             ref CameraData cameraData = ref renderingData.cameraData;
-            if (cameraData.isStereoEnabled || cameraData.isSceneViewCamera || cameraData.isDefaultViewport)
+            if ( (cameraData.isStereoEnabled || cameraData.isSceneViewCamera || cameraData.isDefaultViewport)
+                && (DebugDisplaySettings.Instance.Validation.validationMode==DebugValidationMode.None) )
             {
                 // This set render target is necessary so we change the LOAD state to DontCare.
                 cmd.SetRenderTarget(BuiltinRenderTextureType.CameraTarget, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);

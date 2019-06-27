@@ -329,6 +329,7 @@ namespace UnityEngine.Rendering.LWRP
                 Application.platform == RuntimePlatform.Android ||
                 Application.platform == RuntimePlatform.tvOS;
             renderingData.killAlphaInFinalBlit = !Graphics.preserveFramebufferAlpha && platformNeedsToKillAlpha;
+            CheckAndApplyDebugSettings(ref renderingData);
         }
 
         static void InitializeShadowData(LightweightRenderPipelineAsset settings, NativeArray<VisibleLight> visibleLights, bool mainLightCastShadows, bool additionalLightsCastShadows, out ShadowData shadowData)
@@ -505,6 +506,29 @@ namespace UnityEngine.Rendering.LWRP
             Matrix4x4 viewProjMatrix = projMatrix * viewMatrix;
             Matrix4x4 invViewProjMatrix = Matrix4x4.Inverse(viewProjMatrix);
             Shader.SetGlobalMatrix(PerCameraBuffer._InvCameraViewProj, invViewProjMatrix);
+        }
+
+        static void CheckAndApplyDebugSettings(ref RenderingData renderingData)
+        {
+            DebugDisplaySettingsRendering renderingSettings = DebugDisplaySettings.Instance.renderingSettings;
+            if (renderingSettings.IsEnabled())
+            {
+                ref CameraData cameraData = ref renderingData.cameraData;
+
+                int msaaSamples = renderingData.cameraData.cameraTargetDescriptor.msaaSamples;
+                if (!renderingSettings.enableMsaa)
+                    msaaSamples = 1;
+
+                if (!renderingSettings.enableHDR)
+                    cameraData.isHdrEnabled = false;
+
+                if (!renderingSettings.enablePostProcessing)
+                    cameraData.postProcessEnabled = false;
+
+                renderingData.cameraData.cameraTargetDescriptor = 
+                    CreateRenderTextureDescriptor(cameraData.camera, cameraData.renderScale,
+                    cameraData.isStereoEnabled, cameraData.isHdrEnabled, msaaSamples);
+            }
         }
 
         static Lightmapping.RequestLightsDelegate lightsDelegate = (Light[] requests, NativeArray<LightDataGI> lightsOutput) =>

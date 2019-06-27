@@ -13,7 +13,7 @@ namespace UnityEngine.Rendering.LWRP
         Diffuse,
         Specular,
         Alpha,
-        Smoothnes,
+        Smoothness,
         AmbientOcclusion,
         Emission,
         NormalWorldSpace,
@@ -52,6 +52,24 @@ namespace UnityEngine.Rendering.LWRP
 		Tangent,
 		Normal,
 	}
+    [Flags]
+    public enum PBRLightingDebugMode
+    {
+        None,
+        GI = 0x1,
+        PBRLight = 0x2,
+        AdditionalLights = 0x4,
+        VertexLighting = 0x8,
+        Emission = 0x10,
+    }
+
+    public enum DebugValidationMode
+    {
+        None,
+        HiglightNanInfNegative,
+        HighlightOutsideOfRange,
+        ValidateAlbedo,
+    }
 
     public static class RenderingUtils
     {
@@ -216,12 +234,13 @@ namespace UnityEngine.Rendering.LWRP
         }
 
         [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
-        internal static void RenderObjectWithDebug(ScriptableRenderContext context, DebugReplacementPassType debugReplacementPassType, ref RenderingData renderingData,
-            FilteringSettings filterSettings, SortingCriteria sortingCriteria)
+        internal static void RenderObjectWithDebug(ScriptableRenderContext context, ref RenderingData renderingData,
+            FilteringSettings filterSettings, SortingCriteria sortingCriteria, bool overrideMaterial)
         {
             SortingSettings sortingSettings = new SortingSettings(renderingData.cameraData.camera) { criteria = sortingCriteria };
 
-            DrawingSettings debugSettings = new DrawingSettings(m_DebugShaderPassNames[debugReplacementPassType == DebugReplacementPassType.None ? 0 : 1], sortingSettings)
+            DrawingSettings debugSettings = new DrawingSettings(m_DebugShaderPassNames[
+                (overrideMaterial) ? 1 : 0], sortingSettings)
             {
                 perObjectData = renderingData.perObjectData,
                 enableInstancing = true,
@@ -229,49 +248,52 @@ namespace UnityEngine.Rendering.LWRP
                 enableDynamicBatching = renderingData.supportsDynamicBatching,
             };
 
-            if (debugReplacementPassType != DebugReplacementPassType.None)
+            if (overrideMaterial)
             {
                 debugSettings.overrideMaterial = replacementMaterial;
-
-                switch (debugReplacementPassType)
+                var sceneOverrideMode = DebugDisplaySettings.Instance.renderingSettings.sceneOverrides;
+                switch (sceneOverrideMode)
                 {
-                    case DebugReplacementPassType.Overdraw:
+                    case SceneOverrides.Overdraw:
                         debugSettings.overrideMaterialPassIndex = 0;
                         break;
-                    case DebugReplacementPassType.Wireframe:
-                    case DebugReplacementPassType.SolidWireframe:
+                    case SceneOverrides.Wireframe:
+                    case SceneOverrides.SolidWireframe:
                         debugSettings.overrideMaterialPassIndex = 1;
                         break;
                     case DebugReplacementPassType.Attributes:
                         debugSettings.overrideMaterialPassIndex = 2;
                         break;
                 }
-            }
 
-            RenderStateBlock rsBlock = new RenderStateBlock();
-            bool wireframe = debugReplacementPassType == DebugReplacementPassType.Wireframe || debugReplacementPassType == DebugReplacementPassType.SolidWireframe;
-            if (wireframe)
-            {
-                if (debugReplacementPassType == DebugReplacementPassType.SolidWireframe)
+                RenderStateBlock rsBlock = new RenderStateBlock();
+                bool wireframe = sceneOverrideMode == SceneOverrides.Wireframe || sceneOverrideMode == SceneOverrides.SolidWireframe;
+                if (wireframe)
                 {
-                    replacementMaterial.SetColor("_DebugColor", Color.white);
-                    context.DrawRenderers(renderingData.cullResults, ref debugSettings, ref filterSettings);
+                    if (sceneOverrideMode == SceneOverrides.SolidWireframe)
+                    {
+                        replacementMaterial.SetColor("_DebugColor", Color.white);
+                        context.DrawRenderers(renderingData.cullResults, ref debugSettings, ref filterSettings);
 
-                    rsBlock.rasterState = new RasterState(CullMode.Back, -1, -1, true);
-                    rsBlock.mask = RenderStateMask.Raster;
+                        rsBlock.rasterState = new RasterState(CullMode.Back, -1, -1, true);
+                        rsBlock.mask = RenderStateMask.Raster;
+                    }
+
+                    context.Submit();
+                    GL.wireframe = true;
+                    replacementMaterial.SetColor("_DebugColor", Color.black);
                 }
+                context.DrawRenderers(renderingData.cullResults, ref debugSettings, ref filterSettings, ref rsBlock);
 
-                context.Submit();
-                GL.wireframe = true;
-                replacementMaterial.SetColor("_DebugColor", Color.black);
+                if (wireframe)
+                {
+                    context.Submit();
+                    GL.wireframe = false;
+                }
             }
-
-            context.DrawRenderers(renderingData.cullResults, ref debugSettings, ref filterSettings, ref rsBlock);
-
-            if (wireframe)
+            else
             {
-                context.Submit();
-                GL.wireframe = false;
+                context.DrawRenderers(renderingData.cullResults, ref debugSettings, ref filterSettings);
             }
         }
 

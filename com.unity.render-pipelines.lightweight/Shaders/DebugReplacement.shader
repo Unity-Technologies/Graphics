@@ -1,4 +1,4 @@
-﻿Shader "Hidden/Lightweight Render Pipeline/Debug/Replacement"
+Shader "Hidden/Lightweight Render Pipeline/Debug/Replacement"
 {
     SubShader
     {
@@ -34,8 +34,8 @@
             {
                 float4 positionCS : SV_POSITION;
             };
-
-            Varyings vert(Attributes IN) : SV_POSITION
+            
+            Varyings vert(Attributes IN)
             {
                 Varyings OUT;
                 OUT.positionCS = TransformObjectToHClip(IN.positionOS.xyz);

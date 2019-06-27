@@ -291,6 +291,15 @@ void InitializeInputData(SpeedTreeFragmentInput input, half3 normalTS, out Input
     inputData.fogCoord = input.interpolated.fogFactorAndVertexLight.x;
     inputData.vertexLighting = input.interpolated.fogFactorAndVertexLight.yzw;
     inputData.bakedGI = half3(0, 0, 0); // No GI currently.
+    inputData.normalTS = normalTS;
+    #if defined(LIGHTMAP_ON)
+    inputData.lightmapUV = input.lightmapUV;
+    #else
+    inputData.vertexSH = 0;
+    #endif
+    #if defined(_NORMALMAP)
+    inputData.tangentMatrixWS = half3x3(input.interpolated.tangentWS.xyz, input.interpolated.bitangentWS.xyz, input.interpolated.normalWS.xyz);
+    #endif
 }
 
 half4 SpeedTree8Frag(SpeedTreeFragmentInput input) : SV_Target
@@ -372,8 +381,10 @@ half4 SpeedTree8Frag(SpeedTreeFragmentInput input) : SV_Target
 
     InputData inputData;
     InitializeInputData(input, normalTs, inputData);
+    
+    SurfaceData surfaceData = CreateSurfaceData(albedo, metallic, specular, smoothness, occlusion, emission, alpha, normalTs);
 
-    half4 color = LightweightFragmentPBR(inputData, albedo, metallic, specular, smoothness, occlusion, emission, alpha);
+    half4 color = LightweightFragmentPBR(inputData, surfaceData);
     color.rgb = MixFog(color.rgb, inputData.fogCoord);
     return color;
 }
