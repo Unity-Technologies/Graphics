@@ -111,7 +111,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         public enum MaterialType
         {
             KajiyaKay,
-            Marschner
+            Marschner,
+            MarschnerB,
         }
 
         // Don't support Multiply

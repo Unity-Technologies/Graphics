@@ -22,6 +22,21 @@
 // Helper functions/variable specific to this material
 //-----------------------------------------------------------------------------
 
+bool UseHairMarschnerB()
+{
+    bool ret = false;
+#ifdef _MATERIAL_FEATURE_HAIR_MARSCHNER_B
+    ret = true;
+#endif
+    return ret;
+}
+
+bool TestDebugFlagNum(uint num)
+{
+    return HasFlag(_DebugFlags, (1<<num));
+}
+
+
 float3 GetNormalForShadowBias(BSDFData bsdfData)
 {
 #if _USE_LIGHT_FACING_NORMAL
@@ -149,7 +164,8 @@ BSDFData ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfaceData)
     bsdfData.hairStrandDirectionWS = surfaceData.hairStrandDirectionWS;
 
     // Kajiya kay
-    if (HasFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_HAIR_KAJIYA_KAY))
+    if (HasFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_HAIR_KAJIYA_KAY)
+        || UseHairMarschnerB())
     {
         bsdfData.secondaryPerceptualRoughness = PerceptualSmoothnessToPerceptualRoughness(surfaceData.secondaryPerceptualSmoothness);        
         bsdfData.specularTint = surfaceData.specularTint;
@@ -165,9 +181,13 @@ BSDFData ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfaceData)
 
         bsdfData.anisotropy = 0.8; // For hair we fix the anisotropy
     }
-    // Overide values we use for Marschner model
-    if (HasFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_HAIR_MARSCHNER))
+    else if (HasFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_HAIR_MARSCHNER))
     {
+        bsdfData.secondaryPerceptualRoughness = PerceptualSmoothnessToPerceptualRoughness(surfaceData.secondaryPerceptualSmoothness);        
+        bsdfData.specularTint = surfaceData.specularTint;
+        bsdfData.specularShift = surfaceData.specularShift;
+        bsdfData.secondarySpecularShift = surfaceData.secondarySpecularShift;
+        bsdfData.anisotropy = 0.8; // For hair we fix the anisotropy
         bsdfData.azimuthalPerceptualRoughness = PerceptualSmoothnessToPerceptualRoughness(surfaceData.azimuthalSmoothness);
         bsdfData.indexOfRefraction = surfaceData.indexOfRefraction;
     }
@@ -260,7 +280,8 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, inout BSDFData b
 
     float unused;
 
-    if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_HAIR_KAJIYA_KAY))
+    if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_HAIR_KAJIYA_KAY)
+        || UseHairMarschnerB())
     {
         // Note: For Kajiya hair we currently rely on a single cubemap sample instead of two, as in practice smoothness of both lobe aren't too far from each other.
         // and we take smoothness of the secondary lobe as it is often more rough (it is the colored one).
@@ -349,11 +370,15 @@ CBSDF EvaluateBSDF(float3 V, float3 L, PreLightData preLightData, BSDFData bsdfD
 
     float3 T = bsdfData.hairStrandDirectionWS;
     float3 N = bsdfData.normalWS;
-    
-    // To account for normal maps, we re-orthogonalize and compute
-    // a new tangent.
-    float3 bT = cross(N, T);
-    T = SafeNormalize(cross(bT, N));
+
+    if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_HAIR_MARSCHNER))
+    {
+        // To account for normal maps, we re-orthogonalize and compute
+        // a new tangent.
+        float3 bT = cross(N, T);
+        T = SafeNormalize(cross(bT, N));
+    }
+
 
 #if _USE_LIGHT_FACING_NORMAL
     // The Kajiya-Kay model has a "built-in" transmission, and the 'NdotL' is always positive.
@@ -372,7 +397,8 @@ CBSDF EvaluateBSDF(float3 V, float3 L, PreLightData preLightData, BSDFData bsdfD
     float LdotV, NdotH, LdotH, invLenLV;
     GetBSDFAngle(V, L, NdotL, NdotV, LdotV, NdotH, LdotH, invLenLV);
 
-    if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_HAIR_KAJIYA_KAY))
+    if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_HAIR_KAJIYA_KAY)
+        || UseHairMarschnerB())
     {
         float3 t1 = ShiftTangent(T, N, bsdfData.specularShift);
         float3 t2 = ShiftTangent(T, N, bsdfData.secondarySpecularShift);
@@ -600,7 +626,8 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
 
     envLighting = preLightData.specularFGD * preLD.rgb;
 
-    if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_HAIR_KAJIYA_KAY))
+    if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_HAIR_KAJIYA_KAY)
+        || UseHairMarschnerB())
     {
         // We tint the HDRI with the secondary lob specular as it is more representatative of indirect lighting on hair.
         envLighting *= bsdfData.secondarySpecularTint;
