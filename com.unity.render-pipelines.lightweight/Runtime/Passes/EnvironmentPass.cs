@@ -15,10 +15,14 @@ namespace UnityEngine.Rendering.LWRP
 
         // Builtin effects settings
         Fog m_Fog;
+        Sky m_Sky;
 
-        public EnvironmentPass(RenderPassEvent evt)
+        PhysicalSky m_PhysicalSky;
+
+        public EnvironmentPass(RenderPassEvent evt, PhysicalSky physicalSky)
         {
             renderPassEvent = evt;
+            m_PhysicalSky = physicalSky;
         }
 
         public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
@@ -35,8 +39,8 @@ namespace UnityEngine.Rendering.LWRP
             // Start by pre-fetching all builtin effect settings we need
             var stack = VolumeManager.instance.stack;
             m_Fog        = stack.GetComponent<Fog>();
-            
             //ebug.Log(m_Fog.cubemap.value.name);
+            m_Sky        = stack.GetComponent<Sky>();
 
             var cmd = CommandBufferPool.Get(k_SetupEnvironmentTag);
 
@@ -44,6 +48,12 @@ namespace UnityEngine.Rendering.LWRP
             using (new ProfilingSample(cmd, "Fog Setup"))
             {
                 DoFogSetup();
+            }
+
+            // Do Sky stuff
+            using (new ProfilingSample(cmd, "Sky Setup"))
+            {
+                DoSkySetup(renderingData.cameraData.camera);
             }
 
             context.ExecuteCommandBuffer(cmd);
@@ -103,6 +113,34 @@ namespace UnityEngine.Rendering.LWRP
                 Shader.DisableKeyword("FOG_EXP2");
                 Shader.DisableKeyword("FOG_EXP");
             }
+        }
+
+        #endregion
+
+        #region Sky
+
+        void DoSkySetup(Camera camera)
+        {
+            if (m_PhysicalSky != null)
+            {
+                m_PhysicalSky.m_IsEnabled = (m_Sky.type.value == SkyType.Bruneton);
+
+                if (m_PhysicalSky.m_IsEnabled)
+                {
+                    m_PhysicalSky.m_BrunetonParams.m_mieScattering = m_Sky.mieScattering.value;
+                    m_PhysicalSky.m_BrunetonParams.m_raleightScattering = m_Sky.raleightScattering.value;
+                    m_PhysicalSky.m_BrunetonParams.m_ozoneDensity = m_Sky.ozoneDensity.value;
+                    m_PhysicalSky.m_BrunetonParams.m_phase = m_Sky.phase.value;
+                    m_PhysicalSky.m_BrunetonParams.m_fogAmount = m_Sky.fogAmount.value;
+                    m_PhysicalSky.m_BrunetonParams.m_sunSize = m_Sky.sunSize.value;
+                    m_PhysicalSky.m_BrunetonParams.m_sunEdge = m_Sky.sunEdge.value;
+                    m_PhysicalSky.m_BrunetonParams.m_exposure = m_Sky.exposure.value;
+
+                    m_PhysicalSky.UpdateParameters();
+
+                    m_PhysicalSky.m_Model.BindGlobal(camera, null, null);
+                }
+        }
         }
 
         #endregion

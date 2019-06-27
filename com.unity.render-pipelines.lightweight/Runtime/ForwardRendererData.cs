@@ -48,6 +48,9 @@ namespace UnityEngine.Rendering.LWRP
         [Reload("Runtime/Data/PostProcessData.asset")]
         public PostProcessData postProcessData;
 
+        [Reload("Runtime/Data/PhysicalSkyData.asset")]
+        public PhysicalSkyData physicalSkyData;
+
         public ShaderResources shaders = null;
 
         [SerializeField] LayerMask m_OpaqueLayerMask = -1;

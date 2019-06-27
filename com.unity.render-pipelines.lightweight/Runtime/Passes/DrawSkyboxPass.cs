@@ -1,3 +1,7 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine.Rendering.LWRP;
+
 namespace UnityEngine.Rendering.LWRP
 {
     /// <summary>
@@ -7,15 +11,21 @@ namespace UnityEngine.Rendering.LWRP
     /// </summary>
     internal class DrawSkyboxPass : ScriptableRenderPass
     {
-        public DrawSkyboxPass(RenderPassEvent evt)
+        PhysicalSky m_PhysicalSky;
+
+        public DrawSkyboxPass(RenderPassEvent evt, PhysicalSky physicalSky)
         {
             renderPassEvent = evt;
+            m_PhysicalSky = physicalSky;
         }
 
         /// <inheritdoc/>
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
-            context.DrawSkybox(renderingData.cameraData.camera);
+            if (m_PhysicalSky != null && m_PhysicalSky.IsEnabled())
+                m_PhysicalSky.DrawSkybox(context, renderingData.cameraData.camera);
+            else
+                context.DrawSkybox(renderingData.cameraData.camera);
         }
     }
 }

@@ -37,6 +37,7 @@ namespace UnityEngine.Rendering.LWRP
 
         ForwardLights m_ForwardLights;
         StencilState m_DefaultStencilState;
+        PhysicalSky m_PhysicalSky;
 
         public ForwardRenderer(ForwardRendererData data) : base(data)
         {
@@ -53,10 +54,12 @@ namespace UnityEngine.Rendering.LWRP
             m_DefaultStencilState.SetFailOperation(stencilData.failOperation);
             m_DefaultStencilState.SetZFailOperation(stencilData.zFailOperation);
 
+            m_PhysicalSky = new PhysicalSky(data.physicalSkyData);
+
             // Note: Since all custom render passes inject first and we have stable sort,
             // we inject the builtin passes in the before events.
             m_VolumeBlendingPass = new VolumeBlendingPass(RenderPassEvent.BeforeRendering);
-            m_EnvironmentPass = new EnvironmentPass(RenderPassEvent.BeforeRendering);
+            m_EnvironmentPass = new EnvironmentPass(RenderPassEvent.BeforeRendering, m_PhysicalSky);
             m_MainLightShadowCasterPass = new MainLightShadowCasterPass(RenderPassEvent.BeforeRenderingShadows);
             m_AdditionalLightsShadowCasterPass = new AdditionalLightsShadowCasterPass(RenderPassEvent.BeforeRenderingShadows);
             m_DepthPrepass = new DepthOnlyPass(RenderPassEvent.BeforeRenderingPrepasses, RenderQueueRange.opaque, data.opaqueLayerMask);
@@ -64,7 +67,7 @@ namespace UnityEngine.Rendering.LWRP
             m_ColorGradingLutPass = new ColorGradingLutPass(RenderPassEvent.BeforeRenderingOpaques, data.postProcessData);
             m_RenderOpaqueForwardPass = new DrawObjectsPass("Render Opaques", true, RenderPassEvent.BeforeRenderingOpaques, RenderQueueRange.opaque, data.opaqueLayerMask, m_DefaultStencilState, stencilData.stencilReference);
             m_CopyDepthPass = new CopyDepthPass(RenderPassEvent.BeforeRenderingOpaques, copyDepthMaterial);
-            m_DrawSkyboxPass = new DrawSkyboxPass(RenderPassEvent.BeforeRenderingSkybox);
+            m_DrawSkyboxPass = new DrawSkyboxPass(RenderPassEvent.BeforeRenderingSkybox, m_PhysicalSky);
             m_CopyColorPass = new CopyColorPass(RenderPassEvent.BeforeRenderingTransparents, samplingMaterial);
             m_RenderTransparentForwardPass = new DrawObjectsPass("Render Transparents", false, RenderPassEvent.BeforeRenderingTransparents, RenderQueueRange.transparent, data.transparentLayerMask, m_DefaultStencilState, stencilData.stencilReference);
             m_PostProcessPass = new PostProcessPass(RenderPassEvent.BeforeRenderingPostProcessing, data.postProcessData);

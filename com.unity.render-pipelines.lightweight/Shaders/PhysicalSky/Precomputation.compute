@@ -1,0 +1,188 @@
+
+#define NUM_THREADS 8
+#define COMPUTE_SHADER
+
+#include "Definitions.cginc"
+#include "UtilityFunctions.cginc"
+#include "TransmittanceFunctions.cginc"
+#include "ScatteringFunctions.cginc"
+#include "IrradianceFunctions.cginc"
+
+float4 blend;
+int layer;
+int scatteringOrder;
+
+RWTexture2D<float4> transmittanceWrite;
+Texture2D<float4> transmittanceRead;
+
+RWTexture2D<float4> irradianceWrite;
+Texture2D<float4> irradianceRead;
+
+RWTexture3D<float4> scatteringWrite;
+Texture3D<float4> scatteringRead;
+
+RWTexture3D<float4> singleMieScatteringWrite;
+Texture3D<float4> singleMieScatteringRead;
+
+Texture3D<float4> singleRayleighScatteringRead;
+Texture3D<float4> multipleScatteringRead;
+
+RWTexture2D<float4> deltaIrradianceWrite;
+RWTexture3D<float4> deltaRayleighScatteringWrite;
+RWTexture3D<float4> deltaMieScatteringWrite;
+RWTexture3D<float4> deltaScatteringDensityWrite;
+Texture3D<float4> deltaScatteringDensityRead;
+RWTexture3D<float4> deltaMultipleScatteringWrite;
+
+#pragma kernel ComputeTransmittance
+[numthreads(NUM_THREADS,NUM_THREADS,1)]
+void ComputeTransmittance(uint3 id : SV_DispatchThreadID) 
+{
+
+    float2 gl_FragCoord = id.xy + float2(0.5,0.5);
+
+    transmittanceWrite[id.xy] = float4(ComputeTransmittanceToTopAtmosphereBoundaryTexture(gl_FragCoord), 1);
+
+}
+
+#pragma kernel ComputeDirectIrradiance
+[numthreads(NUM_THREADS,NUM_THREADS,1)]
+void ComputeDirectIrradiance(uint3 id : SV_DispatchThreadID)
+{
+
+    float2 gl_FragCoord = id.xy + float2(0.5,0.5);
+
+    deltaIrradianceWrite[id.xy] = float4(ComputeDirectIrradianceTexture(transmittanceRead, gl_FragCoord), 1);
+
+    irradianceWrite[id.xy] = float4(0,0,0,1);
+
+    if(blend[1] == 1)
+		irradianceWrite[id.xy] += irradianceRead[id.xy];
+	
+}
+
+#pragma kernel ComputeSingleScattering
+[numthreads(NUM_THREADS,NUM_THREADS,1)]
+void ComputeSingleScattering(uint3 id : SV_DispatchThreadID)
+{
+
+    id.z = layer;
+    float3 gl_FragCoord = id + float3(0.5,0.5,0.5);
+
+    float3 deltaRayleigh, deltaMie;
+    ComputeSingleScatteringTexture(transmittanceRead, gl_FragCoord, deltaRayleigh, deltaMie);
+
+    deltaRayleighScatteringWrite[id] = float4(deltaRayleigh, 1);
+
+    deltaMieScatteringWrite[id] = float4(deltaMie, 1);
+
+    scatteringWrite[id] = float4(RadianceToLuminance(deltaRayleigh), RadianceToLuminance(deltaMie).r);
+
+    singleMieScatteringWrite[id] = float4(RadianceToLuminance(deltaMie), 1);
+
+    if(blend[2] == 1)
+		scatteringWrite[id] += scatteringRead[id];
+
+    if(blend[3] == 1)
+		singleMieScatteringWrite[id] += singleMieScatteringRead[id];
+}
+
+#pragma kernel ComputeScatteringDensity
+[numthreads(NUM_THREADS,NUM_THREADS,1)]
+void ComputeScatteringDensity(uint3 id : SV_DispatchThreadID)
+{
+    id.z = layer;
+    float3 gl_FragCoord = id + float3(0.5,0.5,0.5);
+
+    float3 scattering_density = ComputeScatteringDensityTexture(transmittanceRead, singleRayleighScatteringRead,
+                                singleMieScatteringRead, multipleScatteringRead,
+                                irradianceRead, gl_FragCoord, scatteringOrder);
+
+    deltaScatteringDensityWrite[id] = float4(scattering_density, 1);
+}
+
+#pragma kernel ComputeIndirectIrradiance
+[numthreads(NUM_THREADS, NUM_THREADS, 1)]
+void ComputeIndirectIrradiance(uint3 id : SV_DispatchThreadID)
+{
+    float2 gl_FragCoord = id.xy + float2(0.5,0.5);
+
+    float3 delta_irradiance = ComputeIndirectIrradianceTexture(
+                              singleRayleighScatteringRead,
+                              singleMieScatteringRead, multipleScatteringRead,
+                              gl_FragCoord, scatteringOrder);
+
+    float3 irradiance = RadianceToLuminance(delta_irradiance);
+
+    deltaIrradianceWrite[id.xy] = float4(delta_irradiance, 1);
+
+    irradianceWrite[id.xy] = float4(irradiance, 1);
+
+    if(blend[1] == 1)
+		irradianceWrite[id.xy] += irradianceRead[id.xy];
+}
+
+#pragma kernel ComputeMultipleScattering
+[numthreads(NUM_THREADS, NUM_THREADS, 1)]
+void ComputeMultipleScattering(uint3 id : SV_DispatchThreadID)
+{
+    id.z = layer;
+    float3 gl_FragCoord = id + float3(0.5,0.5,0.5);
+
+    float nu;
+    float3 delta_multiple_scattering = ComputeMultipleScatteringTexture(
+          								transmittanceRead, deltaScatteringDensityRead,
+          								gl_FragCoord, nu);
+
+    deltaMultipleScatteringWrite[id] = float4(delta_multiple_scattering, 1);
+
+    scatteringWrite[id] = float4(RadianceToLuminance(delta_multiple_scattering) / RayleighPhaseFunction(nu), 0.0);
+
+    if(blend[1] == 1)
+		scatteringWrite[id] += scatteringRead[id];
+
+}
+
+RWTexture2D<float4> targetWrite2D;
+RWTexture3D<float4> targetWrite3D;
+RWTexture2D<float4> targetRead2D;
+RWTexture3D<float4> targetRead3D;
+
+#pragma kernel CopySlizeFromTex3D
+[numthreads(NUM_THREADS, NUM_THREADS, 1)]
+void CopySlizeFromTex3D(uint3 id : SV_DispatchThreadID)
+{
+    id.z = layer;
+    targetWrite2D[id.xy] = float4(targetRead3D[id].rgb, 1);
+}
+
+#pragma kernel CopyTex2D
+[numthreads(NUM_THREADS, NUM_THREADS, 1)]
+void CopyTex2D(uint3 id : SV_DispatchThreadID)
+{
+	targetWrite2D[id.xy] = targetRead2D[id.xy];
+}
+
+#pragma kernel CopyTex3D
+[numthreads(NUM_THREADS, NUM_THREADS, NUM_THREADS)]
+void CopyTex3D(uint3 id : SV_DispatchThreadID)
+{
+	targetWrite3D[id] = targetRead3D[id];
+}
+
+#pragma kernel ClearTex2D
+[numthreads(NUM_THREADS, NUM_THREADS, 1)]
+void ClearTex2D(uint3 id : SV_DispatchThreadID)
+{
+    targetWrite2D[id.xy] = float4(0,0,0,0);
+}
+
+#pragma kernel ClearTex3D
+[numthreads(NUM_THREADS, NUM_THREADS, NUM_THREADS)]
+void ClearTex3D(uint3 id : SV_DispatchThreadID)
+{
+    targetWrite3D[id] = float4(0,0,0,0);
+}
+
+
+

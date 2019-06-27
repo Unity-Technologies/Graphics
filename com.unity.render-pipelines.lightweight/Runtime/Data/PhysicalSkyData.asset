@@ -1,0 +1,17 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a67a8a6fb03861d419b2af9def16f33f, type: 3}
+  m_Name: PhysicalSkyData
+  m_EditorClassIdentifier: 
+  shaders:
+    precomputationCS: {fileID: 7200000, guid: e336ec9f71d4869489642432e886987d, type: 3}
+    renderSkyPS: {fileID: 4800000, guid: be4097ffbb0e1074fb1bdedfedcc468b, type: 3}
