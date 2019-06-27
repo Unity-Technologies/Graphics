@@ -578,7 +578,7 @@ half4 CalculateDebugLightingComplexityColor(InputData inputData)
 
 bool IsLightingFeatureEnabled(uint bitIndex)
 {
-    return IsBitSet(_DebugPBRLightingMask, bitIndex);
+    return (_DebugPBRLightingMask == 0) || IsBitSet(_DebugPBRLightingMask, bitIndex);
 }
 
 #else
