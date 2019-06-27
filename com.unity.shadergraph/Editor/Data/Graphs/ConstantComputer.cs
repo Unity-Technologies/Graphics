@@ -9,7 +9,7 @@ using Unity.Mathematics;
 
 namespace UnityEditor.ShaderGraph
 {
-    class ConstantComputer
+    public class ConstantComputer
     {
         struct Arg
         {
@@ -28,12 +28,38 @@ namespace UnityEditor.ShaderGraph
         private float4[] m_Vecs;
         private (Color, int)[] m_Colors;
 
-        private (string name, int index)[] m_Inputs;
-        private (string name, int index)[] m_Outputs;
+        private (string name, bool isFloat, int index)[] m_Inputs;
+        private (string name, bool isFloat, int index)[] m_Outputs;
+
+        public IEnumerable<(string name, bool isFloat)> InputNames
+        {
+            get
+            {
+                foreach (var e in m_Inputs)
+                    yield return (e.name, e.isFloat);
+            }
+        }
+
+        public IEnumerable<(string name, bool isFloat)> OutputNames
+        {
+            get
+            {
+                foreach (var e in m_Outputs)
+                    yield return (e.name, e.isFloat);
+            }
+        }
+
+        public void SetInput(string name, float value)
+        {
+            var index = Array.FindIndex(m_Inputs, i => i.name == name && i.isFloat);
+            if (index < 0)
+                throw new ArgumentException($"Input name {name} is not found.");
+            m_Vecs[m_Inputs[index].index] = value;
+        }
 
         public void SetInput(string name, Vector4 value)
         {
-            var index = Array.FindIndex(m_Inputs, i => i.name == name);
+            var index = Array.FindIndex(m_Inputs, i => i.name == name && !i.isFloat);
             if (index < 0)
                 throw new ArgumentException($"Input name {name} is not found.");
             m_Vecs[m_Inputs[index].index] = value;
@@ -92,7 +118,7 @@ namespace UnityEditor.ShaderGraph
         private static AbstractShaderProperty GetShaderPropertyFromNode(PropertyNode node)
             => node.owner.properties.FirstOrDefault(x => x.guid == node.propertyGuid);
 
-        public static ConstantComputer Gather(AbstractMaterialNode root)
+        internal static ConstantComputer Gather(AbstractMaterialNode root)
         {
             Debug.Assert(root.isStatic);
             Debug.Assert(root is TimeNode || root is PropertyNode || root is CodeFunctionNode);
@@ -104,8 +130,8 @@ namespace UnityEditor.ShaderGraph
             var instructions = new List<Instruction>(nodes.Count);
             var vecs = new List<float4>();
             var colors = new List<(Color color, int index)>();
-            var inputs = new List<(string name, int index)>();
-            var outputs = new List<(string name, int index)>();
+            var inputs = new List<(string name, bool isFloat, int index)>();
+            var outputs = new List<(string name, bool isFloat, int index)>();
 
             foreach (var node in nodes.OfType<CodeFunctionNode>())
             {
@@ -150,16 +176,23 @@ namespace UnityEditor.ShaderGraph
                             if (fromNode is PropertyNode || fromNode is TimeNode)
                             {
                                 string inputName;
+                                bool isFloat;
                                 if (fromNode is PropertyNode propertyNode)
+                                {
                                     inputName = GetShaderPropertyFromNode(propertyNode).referenceName;
+                                    isFloat = GetShaderPropertyFromNode(propertyNode).propertyType == PropertyType.Vector1;
+                                }
                                 else
+                                {
                                     inputName = fromNode.GetVariableNameForSlot(edge.outputSlot.slotId);
+                                    isFloat = true;
+                                }
 
                                 var inputIndex = inputs.FindIndex(i => i.name == inputName);
                                 if (inputIndex < 0)
                                 {
                                     inputIndex = inputs.Count;
-                                    inputs.Add((inputName, vecs.Count));
+                                    inputs.Add((inputName, isFloat, vecs.Count));
                                     vecs.Add(float4.zero);
                                 }
                                 arg.index = inputs[inputIndex].index;
@@ -213,7 +246,7 @@ namespace UnityEditor.ShaderGraph
                         outputArgs.Add(arg);
 
                         if (node == root)
-                            outputs.Add((node.GetVariableNameForSlot(slotId), arg.index));
+                            outputs.Add((node.GetVariableNameForSlot(slotId), slot.concreteValueType == ConcreteSlotValueType.Vector1, arg.index));
                     }
                 }
 
