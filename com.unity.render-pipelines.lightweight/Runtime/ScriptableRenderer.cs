@@ -65,7 +65,6 @@ namespace UnityEngine.Rendering.LWRP
         public VertexAttributeDebugMode attributeDebugIndex { get; set; }
 
         public int pbrLightingDebugModeMask { get; set; }
-        public DebugMipInfo debugMipInfo { get; set; }
 
         protected List<ScriptableRendererFeature> rendererFeatures
         {
@@ -347,7 +346,6 @@ namespace UnityEngine.Rendering.LWRP
                 renderPass.lightingDebugMode = lightingDebugMode;
                 renderPass.attributeDebugIndex = attributeDebugIndex;
                 renderPass.pbrLightingDebugModeMask = pbrLightingDebugModeMask;
-                renderPass.mipInfoMode = debugMipInfo;
                 ExecuteRenderPass(context, renderPass, ref renderingData);
             }
 

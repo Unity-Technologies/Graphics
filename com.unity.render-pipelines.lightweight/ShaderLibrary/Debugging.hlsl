@@ -3,11 +3,6 @@
 #define LIGHTWEIGHT_DEBUGGING_INCLUDED
 
 #include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/SurfaceInput.hlsl"
-#if defined(_DEBUG_SHADER)
-TEXTURE2D(_MainTex);
-SAMPLER(sampler_MainTex);
-float4 _MainTex_TexelSize;
-#endif
 
 #define DEBUG_UNLIT 1
 #define DEBUG_DIFFUSE 2
@@ -21,14 +16,7 @@ float4 _MainTex_TexelSize;
 #define DEBUG_LIGHTING_COMPLEXITY 10
 #define DEBUG_LOD 11
 #define DEBUG_METALLIC 12
-#define DEBUG_MIP_INFO 13
-
-
-#define DEBUG_MIP_COUNT 1
-#define DEBUG_MIP_LEVEL 2
-#define DEBUG_MIP_RATIO 3
 int _DebugMaterialIndex;
-int _DebugMipIndex;
 
 #define DEBUG_LIGHTING_SHADOW_CASCADES 1
 #define DEBUG_LIGHTING_LIGHT_ONLY 2
@@ -73,10 +61,9 @@ struct DebugData
 {
     half3 brdfDiffuse;
     half3 brdfSpecular;
-    float2 uv;
 };
 
-// Set of colors that should still provide contrast for the Color-blind
+// TODO: Set of colors that should still provide contrast for the Color-blind
 #define kPurpleColor half4(156.0 / 255.0, 79.0 / 255.0, 255.0 / 255.0, 1.0) // #9C4FFF
 #define kRedColor half4(203.0 / 255.0, 48.0 / 255.0, 34.0 / 255.0, 1.0) // #CB3022
 #define kGreenColor = half4(8.0 / 255.0, 215.0 / 255.0, 139.0 / 255.0, 1.0) // #08D78B
@@ -87,13 +74,12 @@ struct DebugData
 
 half4 GetShadowCascadeColor(float4 shadowCoord, float3 positionWS);
 
-DebugData CreateDebugData(half3 brdfDiffuse, half3 brdfSpecular, float2 uv)
+DebugData CreateDebugData(half3 brdfDiffuse, half3 brdfSpecular)
 {
     DebugData debugData;
 
     debugData.brdfDiffuse = brdfDiffuse;
     debugData.brdfSpecular = brdfSpecular;
-    debugData.uv = uv;
 
     return debugData;
 }
@@ -133,26 +119,6 @@ float4 GetLODDebugColor()
 half LinearRgbToLuminance(half3 linearRgb)
 {
     return dot(linearRgb, half3(0.2126729f, 0.7151522f, 0.0721750f));
-}
-
-half4 GetTextNumber(uint numberValue, float3 positionWS)
-{
-    float4 clipPos = TransformWorldToHClip(positionWS);
-    float2 ndc = saturate((clipPos.xy / clipPos.w) * 0.5 + 0.5);
-
-#if UNITY_UV_STARTS_AT_TOP
-    if (_ProjectionParams.x < 0)
-        ndc.y = 1.0 - ndc.y;
-#endif
-
-    // There are currently 10 characters in the font texture, 0-9.
-    const float invNumChar = 1.0 / 10.0f;
-    // The following are hardcoded scales that make the font size readable.
-    ndc.x *= 5.0;
-    ndc.y *= 15.0;
-    ndc.x = fmod(ndc.x, invNumChar) + (numberValue * invNumChar);
-
-    return tex2D(_DebugNumberTexture, ndc.xy);
 }
 
 half3 UnityMeta_RGBToHSVHelper(float offset, half dominantColor, half colorone, half colortwo)
@@ -207,61 +173,6 @@ half3 UnityMeta_RGBToHSV(half3 rgbColor)
     //when red is highest valued
     else
         return UnityMeta_RGBToHSVHelper(0.0, rgbColor.r, rgbColor.g, rgbColor.b);
-}
-
-float GetMipMapLevel(float2 nonNormalizedUVCoordinate)
-{
-    // The OpenGL Graphics System: A Specification 4.2
-    //  - chapter 3.9.11, equation 3.21
-    float2 dx_vtc = ddx(nonNormalizedUVCoordinate);
-    float2 dy_vtc = ddy(nonNormalizedUVCoordinate);
-    float delta_max_sqr = max(dot(dx_vtc, dx_vtc), dot(dy_vtc, dy_vtc));
-    return 0.5 * log2(delta_max_sqr);
-}
-
-half4 GetMipLevelDebugColor(InputData inputData, float2 uv)
-{
-    half4 lut[5] = {
-        half4(0, 1, 0, 0),
-        half4(0.25, 0.75, 0, 0),
-        half4(0.498, 0.5019, 0.0039, 0),
-        half4(0.749, 0.247, 0, 0),
-        half4(1, 0, 0, 0)
-    };
-
-    uint mipLevel = clamp(GetMipMapLevel(uv * _MainTex_TexelSize.zw), 0, 9);
-    half4 fc = lut[mipLevel] * 0.1;
-    fc *= GetTextNumber(mipLevel, inputData.positionWS) * 10.0;
-
-    return SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, uv) + fc;
-}
-
-half4 GetMipCountDebugColor(InputData inputData, float2 uv)
-{
-    half4 lut[5] = {
-        half4(0, 1, 0, 0),
-        half4(0.25, 0.75, 0, 0),
-        half4(0.498, 0.5019, 0.0039, 0),
-        half4(0.749, 0.247, 0, 0),
-        half4(1, 0, 0, 0)
-    };
-
-    uint mipCount = clamp(GetMipCount(_MainTex), 0, 5);
-    half4 fc = lut[mipCount] * 0.3;
-    fc *= GetTextNumber(mipCount, inputData.positionWS) * 2.0;
-
-    return SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, uv) + fc;
-}
-
-half4 GetMipInfoColor(InputData inputData, float2 uv)
-{
-    if (_DebugMipIndex == DEBUG_MIP_COUNT)
-        return GetMipCountDebugColor(inputData, uv);
-
-    if (_DebugMipIndex == DEBUG_MIP_LEVEL)
-        return GetMipLevelDebugColor(inputData, uv);
-
-    return half4(0, 0, 0, 0);
 }
 
 bool UpdateSurfaceAndInputDataForDebug(inout SurfaceData surfaceData, inout InputData inputData)
@@ -359,12 +270,6 @@ bool CalculateColorForDebugMaterial(InputData inputData, SurfaceData surfaceData
 {
     color = half4(0.0, 0.0, 0.0, 1.0);
 
-    if (_DebugMipIndex != 0)
-    {
-        color = GetMipInfoColor(inputData, debugData.uv);
-        return true;
-    }
-
     // Debug materials...
     switch(_DebugMaterialIndex)
     {
@@ -406,15 +311,14 @@ bool CalculateColorForDebugMaterial(InputData inputData, SurfaceData surfaceData
         case DEBUG_LOD:
             surfaceData.albedo = GetLODDebugColor().rgb;
             return true;
-        
+
         case DEBUG_METALLIC:
             color.rgb = surfaceData.metallic.xxx;
             return true;
 
         default:
             return false;
-            
-    }    
+    }
 }
 
 bool CalculateColorForDebug(InputData inputData, SurfaceData surfaceData, DebugData debugData, out half4 color)

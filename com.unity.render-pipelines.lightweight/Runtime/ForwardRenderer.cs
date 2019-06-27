@@ -11,7 +11,6 @@ namespace UnityEngine.Rendering.LWRP
         int m_DebugLightingIndexId;
         int m_DebugVertexAttributesIndexId;
         int m_DebugPBRLightingMask;
-        int m_DebugMipIndexId;
         int m_DebugValidationIndexId;
         int m_DebugAlbedoMinLuminance;
         int m_DebugAlbedoMaxLuminance;
@@ -56,7 +55,6 @@ namespace UnityEngine.Rendering.LWRP
             m_DebugLightingIndexId = Shader.PropertyToID("_DebugLightingIndex");
             m_DebugVertexAttributesIndexId = Shader.PropertyToID("_DebugAttributesIndex");
             m_DebugPBRLightingMask = Shader.PropertyToID("_DebugPBRLightingMask");
-            m_DebugMipIndexId = Shader.PropertyToID("_DebugMipIndex");
             m_DebugValidationIndexId = Shader.PropertyToID("_DebugValidationIndex");
             m_DebugAlbedoMinLuminance = Shader.PropertyToID("_AlbedoMinLuminance");
             m_DebugAlbedoMaxLuminance = Shader.PropertyToID("_AlbedoMaxLuminance");
@@ -474,14 +472,12 @@ namespace UnityEngine.Rendering.LWRP
             attributeDebugIndex = DebugDisplaySettings.Instance.materialSettings.VertexAttributeDebugIndexData;
             PBRLightingDebugMode pbrLightingDebugMode = DebugDisplaySettings.Instance.Lighting.m_PBRLightingDebugMode;
             pbrLightingDebugModeMask = (int) pbrLightingDebugMode;
-            debugMipInfo = DebugDisplaySettings.Instance.renderingSettings.mipInfoDebugMode;
 
             var cmd = CommandBufferPool.Get("");
             cmd.SetGlobalFloat(m_DebugMaterialIndexId, (int)debugMaterialIndex);
             cmd.SetGlobalFloat(m_DebugLightingIndexId, (int)lightingDebugMode);
 			cmd.SetGlobalFloat(m_DebugVertexAttributesIndexId, (int)attributeDebugIndex);
             cmd.SetGlobalInt(m_DebugPBRLightingMask, (int)pbrLightingDebugModeMask);
-            cmd.SetGlobalInt(m_DebugMipIndexId, (int)debugMipInfo);
             cmd.SetGlobalInt(m_DebugValidationIndexId, (int)DebugDisplaySettings.Instance.Validation.validationMode);
 
             cmd.SetGlobalFloat(m_DebugAlbedoMinLuminance, DebugDisplaySettings.Instance.Validation.AlbedoMinLuminance);
