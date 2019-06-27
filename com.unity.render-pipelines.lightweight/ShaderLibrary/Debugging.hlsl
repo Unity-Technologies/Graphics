@@ -39,14 +39,14 @@ struct DebugData
     InputData inputData;
 };
 
-// TODO: Set of colors that should still provide contrast for the Color-blind
+// Set of colors that should still provide contrast for the Color-blind
 #define kPurpleColor half4(156.0 / 255.0, 79.0 / 255.0, 255.0 / 255.0, 1.0) // #9C4FFF 
 #define kRedColor half4(203.0 / 255.0, 48.0 / 255.0, 34.0 / 255.0, 1.0) // #CB3022
-#define kGreenColor = half4(8.0 / 255.0, 215.0 / 255.0, 139.0 / 255.0, 1.0) // #08D78B
-#define kYellowGreenColor = half4(151.0 / 255.0, 209.0 / 255.0, 61.0 / 255.0, 1.0) // #97D13D
-#define kBlueColor = half4(75.0 / 255.0, 146.0 / 255.0, 243.0 / 255.0, 1.0) // #4B92F3
-#define kOrangeBrownColor = half4(219.0 / 255.0, 119.0 / 255.0, 59.0 / 255.0, 1.0) // #4B92F3
-#define kGrayColor = half4(174.0 / 255.0, 174.0 / 255.0, 174.0 / 255.0, 1.0) // #AEAEAE   
+#define kGreenColor half4(8.0 / 255.0, 215.0 / 255.0, 139.0 / 255.0, 1.0) // #08D78B
+#define kYellowGreenColor half4(151.0 / 255.0, 209.0 / 255.0, 61.0 / 255.0, 1.0) // #97D13D
+#define kBlueColor half4(75.0 / 255.0, 146.0 / 255.0, 243.0 / 255.0, 1.0) // #4B92F3
+#define kOrangeBrownColor half4(219.0 / 255.0, 119.0 / 255.0, 59.0 / 255.0, 1.0) // #4B92F3
+#define kGrayColor half4(174.0 / 255.0, 174.0 / 255.0, 174.0 / 255.0, 1.0) // #AEAEAE   
 
 half4 GetShadowCascadeColor(float4 shadowCoord, float3 positionWS)
 {
@@ -55,10 +55,10 @@ half4 GetShadowCascadeColor(float4 shadowCoord, float3 positionWS)
 
     half4 cascadeColors[] =
     {
-        half4(0.1, 0.1, 0.9, 1.0), // blue
-        half4(0.1, 0.9, 0.1, 1.0), // green
-        half4(0.9, 0.9, 0.1, 1.0), // yellow
-        half4(0.9, 0.1, 0.1, 1.0), // red
+        kBlueColor,
+        kGreenColor,
+        kYellowGreenColor,
+        kRedColor,
     };
 
     return cascadeColors[cascadeIndex];
@@ -251,7 +251,7 @@ half4 CalculateColorForDebug(DebugData debugData)
         color = LightingComplexity(inputData);
 
     if (_DebugMaterialIndex == DEBUG_LOD)
-        surfaceData.albedo = GetLODDebugColor();
+        surfaceData.albedo = GetLODDebugColor().rgb;
 
     // Debug lighting...
     if (_DebugLightingIndex == DEBUG_LIGHTING_SHADOW_CASCADES)

@@ -7,23 +7,24 @@ namespace UnityEditor.Rendering.LWRP
     {
         static bool RejectDrawMode(SceneView.CameraMode cameraMode)
         {
-//            if (cameraMode.drawMode == DrawCameraMode.TexturedWire ||
-//                cameraMode.drawMode == DrawCameraMode.ShadowCascades ||
-//                cameraMode.drawMode == DrawCameraMode.RenderPaths ||
-//                cameraMode.drawMode == DrawCameraMode.AlphaChannel ||
-//                cameraMode.drawMode == DrawCameraMode.Overdraw ||
-//                cameraMode.drawMode == DrawCameraMode.Mipmaps ||
-//                cameraMode.drawMode == DrawCameraMode.SpriteMask ||
-//                cameraMode.drawMode == DrawCameraMode.DeferredDiffuse ||
-//                cameraMode.drawMode == DrawCameraMode.DeferredSpecular ||
-//                cameraMode.drawMode == DrawCameraMode.DeferredSmoothness ||
-//                cameraMode.drawMode == DrawCameraMode.DeferredNormal ||
-//                cameraMode.drawMode == DrawCameraMode.ValidateAlbedo ||
-//                cameraMode.drawMode == DrawCameraMode.ValidateMetalSpecular ||
-//                cameraMode.drawMode == DrawCameraMode.ShadowMasks ||
-//                cameraMode.drawMode == DrawCameraMode.LightOverlap
-//            )
-//            return false;
+            if (cameraMode.drawMode == DrawCameraMode.Wireframe ||
+                cameraMode.drawMode == DrawCameraMode.TexturedWire ||
+                cameraMode.drawMode == DrawCameraMode.ShadowCascades ||
+                cameraMode.drawMode == DrawCameraMode.RenderPaths ||
+                cameraMode.drawMode == DrawCameraMode.AlphaChannel ||
+                cameraMode.drawMode == DrawCameraMode.Overdraw ||
+                cameraMode.drawMode == DrawCameraMode.Mipmaps ||
+                cameraMode.drawMode == DrawCameraMode.SpriteMask ||
+                cameraMode.drawMode == DrawCameraMode.DeferredDiffuse ||
+                cameraMode.drawMode == DrawCameraMode.DeferredSpecular ||
+                cameraMode.drawMode == DrawCameraMode.DeferredSmoothness ||
+                cameraMode.drawMode == DrawCameraMode.DeferredNormal ||
+                cameraMode.drawMode == DrawCameraMode.ValidateAlbedo ||
+                cameraMode.drawMode == DrawCameraMode.ValidateMetalSpecular ||
+                cameraMode.drawMode == DrawCameraMode.ShadowMasks ||
+                cameraMode.drawMode == DrawCameraMode.LightOverlap
+            )
+            return false;
 
             return true;
         }
