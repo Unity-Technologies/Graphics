@@ -74,6 +74,7 @@ namespace UnityEngine.Rendering.LWRP
                 }
                 else
                 {
+                    bool isShaderComplexityActive = debugMaterialIndex == DebugMaterialIndex.ShaderComplexity;
                     if (isShaderComplexityActive)
                         cmd.EnableShaderKeyword("_DEBUG_SHOW_LIT_COMPLEXITY");
                     else
