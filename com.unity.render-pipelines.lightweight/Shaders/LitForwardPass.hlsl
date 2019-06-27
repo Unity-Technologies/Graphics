@@ -73,6 +73,19 @@ void InitializeInputData(Varyings input, half3 normalTS, out InputData inputData
     inputData.fogCoord = input.fogFactorAndVertexLight.x;
     inputData.vertexLighting = input.fogFactorAndVertexLight.yzw;
     inputData.bakedGI = SAMPLE_GI(input.lightmapUV, input.vertexSH, inputData.normalWS);
+    inputData.normalTS = normalTS;
+    
+    #if defined(_DEBUG_SHADER)
+    #if defined(LIGHTMAP_ON)
+    inputData.lightmapUV = input.lightmapUV;
+    #else
+    inputData.vertexSH = input.vertexSH;
+    #endif
+    #if defined(_NORMALMAP)
+    inputData.tangentWS = input.tangentWS.xyz;
+    inputData.bitangentWS = input.bitangentWS.xyz;
+    #endif
+    #endif 
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -134,7 +147,7 @@ half4 LitPassFragment(Varyings input) : SV_Target
     InputData inputData;
     InitializeInputData(input, surfaceData.normalTS, inputData);
 
-    half4 color = LightweightFragmentPBR(inputData, surfaceData.albedo, surfaceData.metallic, surfaceData.specular, surfaceData.smoothness, surfaceData.occlusion, surfaceData.emission, surfaceData.alpha);
+    half4 color = LightweightFragmentPBR(inputData, surfaceData);
     color.rgb = MixFog(color.rgb, inputData.fogCoord);
     return color;
 }

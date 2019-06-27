@@ -6,6 +6,10 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/ImageBasedLighting.hlsl"
 #include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/Core.hlsl"
 #include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/Shadows.hlsl"
+#include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/SurfaceInput.hlsl"
+#if defined(_DEBUG_SHADER)
+#include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/Debugging.hlsl"
+#endif
 
 // If lightmap is not defined than we evaluate GI (ambient + probes) from SH
 // We might do it fully or partially in vertex to save shader ALU
@@ -248,6 +252,14 @@ inline void InitializeBRDFData(half3 albedo, half metallic, half3 specular, half
     outBRDFData.diffuse *= alpha;
     alpha = alpha * oneMinusReflectivity + reflectivity;
 #endif
+}
+
+inline BRDFData CreateBRDFData(SurfaceData surfaceData)
+{
+    BRDFData brdfData;
+
+    InitializeBRDFData(surfaceData.albedo, surfaceData.metallic, surfaceData.specular, surfaceData.smoothness, surfaceData.alpha, brdfData);
+    return brdfData;
 }
 
 half3 EnvironmentBRDF(BRDFData brdfData, half3 indirectDiffuse, half3 indirectSpecular, half fresnelTerm)
@@ -502,36 +514,152 @@ half3 VertexLighting(float3 positionWS, half3 normalWS)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+//                         Debug Functions                                   //
+///////////////////////////////////////////////////////////////////////////////
+
+#define DEBUG_PBR_LIGHTING_ENABLE_GI 0
+#define DEBUG_PBR_LIGHTING_ENABLE_PBR_LIGHTING 1
+#define DEBUG_PBR_LIGHTING_ENABLE_ADDITIONAL_LIGHTS 2
+#define DEBUG_PBR_LIGHTING_ENABLE_VERTEX_LIGHTING 3
+#define DEBUG_PBR_LIGHTING_ENABLE_EMISSION 4
+
+#if defined(_DEBUG_SHADER)
+
+half4 CalculateDebugShadowCascadeColor(float4 shadowCoord, float3 positionWS)
+{
+    Light mainLight = GetMainLight(shadowCoord);
+    half cascadeIndex = ComputeCascadeIndex(positionWS);
+
+    half4 cascadeColors[] =
+    {
+        kBlueColor,
+        kGreenColor,
+        kYellowGreenColor,
+        kRedColor,
+    };
+
+    return cascadeColors[cascadeIndex];
+}
+
+int _DebugPBRLightingMask;
+sampler2D _DebugNumberTexture;
+
+half4 CalculateDebugLightingComplexityColor(InputData inputData)
+{
+    half4 lut[5] = {
+            half4(0, 1, 0, 0),
+            half4(0.25, 0.75, 0, 0),
+            half4(0.498, 0.5019, 0.0039, 0),
+            half4(0.749, 0.247, 0, 0),
+            half4(1, 0, 0, 0)
+    };
+
+    // Assume a main light and add 1 to the additional lights.
+    unsigned int numLights = clamp(GetAdditionalLightsCount()+1, 0, 4);
+    half4 fc = lut[numLights];
+
+    float4 clipPos = TransformWorldToHClip(inputData.positionWS);
+    float2 ndc = saturate((clipPos.xy / clipPos.w) * 0.5 + 0.5);
+
+#if UNITY_UV_STARTS_AT_TOP
+    if(_ProjectionParams.x < 0)
+        ndc.y = 1.0 - ndc.y;
+#endif
+
+    const float invNumChar = 1.0 / 10.0f;
+    ndc.x *= 5.0;
+    ndc.y *= 15.0;
+    ndc.x = fmod(ndc.x, invNumChar) + (numLights * invNumChar);
+
+    fc *= tex2D(_DebugNumberTexture, ndc.xy);
+
+    return fc;
+}
+
+bool IsLightingFeatureEnabled(uint bitIndex)
+{
+    return IsBitSet(_DebugPBRLightingMask, bitIndex);
+}
+
+#else
+bool IsLightingFeatureEnabled(uint bitIndex)
+{
+    return true;
+}
+#endif
+
+///////////////////////////////////////////////////////////////////////////////
 //                      Fragment Functions                                   //
 //       Used by ShaderGraph and others builtin renderers                    //
 ///////////////////////////////////////////////////////////////////////////////
-half4 LightweightFragmentPBR(InputData inputData, half3 albedo, half metallic, half3 specular,
-    half smoothness, half occlusion, half3 emission, half alpha)
+half4 LightweightFragmentPBR(InputData inputData, SurfaceData surfaceData)
 {
-    BRDFData brdfData;
-    InitializeBRDFData(albedo, metallic, specular, smoothness, alpha, brdfData);
+#if defined(_DEBUG_SHADER)
+    if(_DebugMaterialIndex == DEBUG_LIGHTING_COMPLEXITY)
+    {
+        return CalculateDebugLightingComplexityColor(inputData);
+    }
+    else
+    {
+        if(UpdateSurfaceAndInputDataForDebug(surfaceData, inputData))
+        {
+            //inputData.bakedGI = SAMPLE_GI(inputData.lightmapUV, inputData.vertexSH, inputData.normalWS);
+        }
+    }
+    
+    BRDFData brdfData = CreateBRDFData(surfaceData);
+    DebugData debugData = CreateDebugData(brdfData.diffuse, brdfData.specular);
+    half4 debugColor;
+    
+    if(CalculateColorForDebug(inputData, surfaceData, debugData, debugColor))
+    {
+        return debugColor;
+    }
+#else
+    BRDFData brdfData = CreateBRDFData(surfaceData);
+#endif
 
     Light mainLight = GetMainLight(inputData.shadowCoord);
     MixRealtimeAndBakedGI(mainLight, inputData.normalWS, inputData.bakedGI, half4(0, 0, 0, 0));
 
-    half3 color = GlobalIllumination(brdfData, inputData.bakedGI, occlusion, inputData.normalWS, inputData.viewDirectionWS);
-    color += LightingPhysicallyBased(brdfData, mainLight, inputData.normalWS, inputData.viewDirectionWS);
+    half3 color = 0;
+    
+    if(IsLightingFeatureEnabled(DEBUG_PBR_LIGHTING_ENABLE_GI))
+        color += GlobalIllumination(brdfData, inputData.bakedGI, surfaceData.occlusion, inputData.normalWS, inputData.viewDirectionWS);
+        
+    if(IsLightingFeatureEnabled(DEBUG_PBR_LIGHTING_ENABLE_PBR_LIGHTING))
+        color += LightingPhysicallyBased(brdfData, mainLight, inputData.normalWS, inputData.viewDirectionWS);
 
 #ifdef _ADDITIONAL_LIGHTS
-    int pixelLightCount = GetAdditionalLightsCount();
-    for (int i = 0; i < pixelLightCount; ++i)
+    if(IsLightingFeatureEnabled(DEBUG_PBR_LIGHTING_ENABLE_ADDITIONAL_LIGHTS))
     {
-        Light light = GetAdditionalLight(i, inputData.positionWS);
-        color += LightingPhysicallyBased(brdfData, light, inputData.normalWS, inputData.viewDirectionWS);
+        int pixelLightCount = GetAdditionalLightsCount();
+        for (int i = 0; i < pixelLightCount; ++i)
+        {
+            Light light = GetAdditionalLight(i, inputData.positionWS);
+            color += LightingPhysicallyBased(brdfData, light, inputData.normalWS, inputData.viewDirectionWS);
+        }
     }
 #endif
 
 #ifdef _ADDITIONAL_LIGHTS_VERTEX
-    color += inputData.vertexLighting * brdfData.diffuse;
+    if(IsLightingFeatureEnabled(DEBUG_PBR_LIGHTING_ENABLE_VERTEX_LIGHTING))
+        color += inputData.vertexLighting * brdfData.diffuse;
 #endif
 
-    color += emission;
-    return half4(color, alpha);
+    if(IsLightingFeatureEnabled(DEBUG_PBR_LIGHTING_ENABLE_EMISSION))
+        color += surfaceData.emission;
+        
+    return half4(color, surfaceData.alpha);
+}
+
+half4 LightweightFragmentPBR(InputData inputData, half3 albedo, half metallic, half3 specular,
+    half smoothness, half occlusion, half3 emission, half alpha)
+{
+    half3 normalTS = inputData.normalTS;
+    SurfaceData surfaceData = CreateSurfaceData(albedo, metallic, specular, smoothness, occlusion, emission, alpha, normalTS);
+    
+    return LightweightFragmentPBR(inputData, surfaceData);
 }
 
 half4 LightweightFragmentBlinnPhong(InputData inputData, half3 diffuse, half4 specularGloss, half smoothness, half3 emission, half alpha)

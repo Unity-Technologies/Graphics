@@ -2,7 +2,6 @@
 #ifndef LIGHTWEIGHT_DEBUGGING_INCLUDED
 #define LIGHTWEIGHT_DEBUGGING_INCLUDED
 
-#include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/Lighting.hlsl"
 #include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/SurfaceInput.hlsl"
 
 #define DEBUG_UNLIT 1
@@ -26,18 +25,21 @@ int _DebugMaterialIndex;
 #define DEBUG_LIGHTING_REFLECTIONS_WITH_SMOOTHNESS 5
 int _DebugLightingIndex;
 
-#define DEBUG_PBR_LIGHTING_ENABLE_GI 0
-#define DEBUG_PBR_LIGHTING_ENABLE_PBR_LIGHTING 1
-#define DEBUG_PBR_LIGHTING_ENABLE_ADDITIONAL_LIGHTS 2
-#define DEBUG_PBR_LIGHTING_ENABLE_VERTEX_LIGHTING 3
-#define DEBUG_PBR_LIGHTING_ENABLE_EMISSION 4
-int _DebugPBRLightingMask;
-
 struct DebugData
 {
-    SurfaceData surfaceData;
-    InputData inputData;
+    half3 brdfDiffuse;
+    half3 brdfSpecular;
 };
+
+DebugData CreateDebugData(half3 brdfDiffuse, half3 brdfSpecular)
+{
+    DebugData debugData;
+    
+    debugData.brdfDiffuse = brdfDiffuse;
+    debugData.brdfSpecular = brdfSpecular;
+    
+    return debugData;
+}
 
 // Set of colors that should still provide contrast for the Color-blind
 #define kPurpleColor half4(156.0 / 255.0, 79.0 / 255.0, 255.0 / 255.0, 1.0) // #9C4FFF 
@@ -48,21 +50,6 @@ struct DebugData
 #define kOrangeBrownColor half4(219.0 / 255.0, 119.0 / 255.0, 59.0 / 255.0, 1.0) // #4B92F3
 #define kGrayColor half4(174.0 / 255.0, 174.0 / 255.0, 174.0 / 255.0, 1.0) // #AEAEAE   
 
-half4 GetShadowCascadeColor(float4 shadowCoord, float3 positionWS)
-{
-    Light mainLight = GetMainLight(shadowCoord);
-    half cascadeIndex = ComputeCascadeIndex(positionWS);
-
-    half4 cascadeColors[] =
-    {
-        kBlueColor,
-        kGreenColor,
-        kYellowGreenColor,
-        kRedColor,
-    };
-
-    return cascadeColors[cascadeIndex];
-}
 
 float4 GetLODDebugColor()
 {
@@ -85,62 +72,10 @@ float4 GetLODDebugColor()
     return float4(0,0,0,0);
 }
 
-half3 ShadowCascadeColor(DebugData debugData)
+bool UpdateSurfaceAndInputDataForDebug(inout SurfaceData surfaceData, inout InputData inputData)
 {
-    InputData inputData = debugData.inputData;
-    SurfaceData surfaceData = debugData.surfaceData;
-    half4 shadowCascadeColor = GetShadowCascadeColor(inputData.shadowCoord, inputData.positionWS);
-
-    // part adapted from LightweightFragmentPBR:
-
-    BRDFData brdfData;
-    InitializeBRDFData(shadowCascadeColor.rgb, 0.0, 0.0, 1.0, surfaceData.alpha, brdfData);
-
-    Light mainLight = GetMainLight(inputData.shadowCoord);
-    mainLight.color = shadowCascadeColor.rgb;
-    MixRealtimeAndBakedGI(mainLight, inputData.normalWS, inputData.bakedGI, half4(0, 0, 0, 0));
-
-    half3 debugColor = GlobalIllumination(brdfData, inputData.bakedGI, surfaceData.occlusion, inputData.normalWS, inputData.viewDirectionWS);
-    debugColor += LightingPhysicallyBased(brdfData, mainLight, inputData.normalWS, inputData.viewDirectionWS);
-
-    return debugColor;
-}
-
-sampler2D _DebugNumberTexture;
-half4 LightingComplexity(InputData inputData)
-{
-    half4 lut[5] = {
-            half4(0, 1, 0, 0),
-            half4(0.25, 0.75, 0, 0),
-            half4(0.498, 0.5019, 0.0039, 0),
-            half4(0.749, 0.247, 0, 0),
-            half4(1, 0, 0, 0)
-    };
-
-    // Assume a main light and add 1 to the additional lights.
-    unsigned int numLights = clamp(GetAdditionalLightsCount()+1, 0, 4);
-    half4 fc = lut[numLights];
-
-    float4 clipPos = TransformWorldToHClip(inputData.positionWS);
-    float2 ndc = saturate((clipPos.xy / clipPos.w) * 0.5 + 0.5);
-
-#if UNITY_UV_STARTS_AT_TOP
-    if(_ProjectionParams.x < 0)
-        ndc.y = 1.0 - ndc.y;
-#endif
-
-    const float invNumChar = 1.0 / 10.0f;
-    ndc.x *= 5.0;
-    ndc.y *= 15.0;
-    ndc.x = fmod(ndc.x, invNumChar) + (numLights * invNumChar);
-
-    fc *= tex2D(_DebugNumberTexture, ndc.xy);
-
-    return fc;
-}
-
-SurfaceData CalculateSurfaceDataForDebug(SurfaceData surfaceData)
-{
+    bool changed = false;
+    
     if (_DebugLightingIndex == DEBUG_LIGHTING_LIGHT_ONLY || _DebugLightingIndex == DEBUG_LIGHTING_LIGHT_DETAIL)
     {
         surfaceData.albedo = half3(1.0h, 1.0h, 1.0h);
@@ -149,17 +84,29 @@ SurfaceData CalculateSurfaceDataForDebug(SurfaceData surfaceData)
         surfaceData.smoothness = 0.0;
         surfaceData.occlusion = 0.0;
         surfaceData.emission = half3(0.0h, 0.0h, 0.0h);
+        changed = true;
     }
     
     if (_DebugLightingIndex == DEBUG_LIGHTING_LIGHT_ONLY || _DebugLightingIndex == DEBUG_LIGHTING_REFLECTIONS)
     {
-        surfaceData.normalTS = half3(0.0h, 0.0h, 1.0h);
+        half3 normalTS = half3(0.0h, 0.0h, 1.0h);
+        #if defined(_NORMALMAP)
+        half3 tangentWS = inputData.tangentWS;
+        half3 bitangentWS = inputData.bitangentWS;
+        half3 normalWS = inputData.normalWS;
+        inputData.normalWS = TransformTangentToWorld(normalTS, half3x3(tangentWS, bitangentWS, normalWS));
+        #else
+        inputData.normalWS = TransformObjectToWorldDir(normalTS);
+        #endif
+        surfaceData.normalTS = normalTS;
+        changed = true;
     }
     
     if (_DebugLightingIndex == DEBUG_LIGHTING_REFLECTIONS)
     {
         surfaceData.albedo = half3(0.0h, 0.0h, 0.0h);
         surfaceData.smoothness = 1.0;
+        changed = true;
     }
     
     if (_DebugLightingIndex == DEBUG_LIGHTING_REFLECTIONS_WITH_SMOOTHNESS)
@@ -167,114 +114,62 @@ SurfaceData CalculateSurfaceDataForDebug(SurfaceData surfaceData)
         surfaceData.albedo = half3(0.0h, 0.0h, 0.0h);
         surfaceData.metallic = 1.0;
         surfaceData.emission = half3(0.0h, 0.0h, 0.0h);
+        changed = true;
     }
     
-    return surfaceData;
+    return changed;
 }
 
-half4 LightweightFragmentPBRDebug(InputData inputData, half3 albedo, half metallic, half3 specular,
-    half smoothness, half occlusion, half3 emission, half alpha, int disableMask = 0)
+bool CalculateColorForDebug(InputData inputData, SurfaceData surfaceData, DebugData debugData, out half4 color)
 {
-    BRDFData brdfData;
-    InitializeBRDFData(albedo, metallic, specular, smoothness, alpha, brdfData);
-
-    Light mainLight = GetMainLight(inputData.shadowCoord);
-    MixRealtimeAndBakedGI(mainLight, inputData.normalWS, inputData.bakedGI, half4(0, 0, 0, 0));
-    
-    half3 color = 0;
-    if (IsBitSet(disableMask, DEBUG_PBR_LIGHTING_ENABLE_GI))
-        color += GlobalIllumination(brdfData, inputData.bakedGI, occlusion, inputData.normalWS, inputData.viewDirectionWS);
-    
-    if (IsBitSet(disableMask, DEBUG_PBR_LIGHTING_ENABLE_PBR_LIGHTING))
-        color += LightingPhysicallyBased(brdfData, mainLight, inputData.normalWS, inputData.viewDirectionWS);
-
-#ifdef _ADDITIONAL_LIGHTS
-    if (IsBitSet(disableMask, DEBUG_PBR_LIGHTING_ENABLE_ADDITIONAL_LIGHTS))
-    {
-        int pixelLightCount = GetAdditionalLightsCount();
-        for (int i = 0; i < pixelLightCount; ++i)
-        {
-            Light light = GetAdditionalLight(i, inputData.positionWS);
-            color += LightingPhysicallyBased(brdfData, light, inputData.normalWS, inputData.viewDirectionWS);
-        }
-    }
-#endif
-
-#ifdef _ADDITIONAL_LIGHTS_VERTEX
-    if (IsBitSet(disableMask, DEBUG_PBR_LIGHTING_ENABLE_VERTEX_LIGHTING))
-        color += inputData.vertexLighting * brdfData.diffuse;
-#endif
-
-    if (IsBitSet(disableMask, DEBUG_PBR_LIGHTING_ENABLE_EMISSION)) 
-        color += emission;
-    return half4(color, alpha);
-}
-
-half4 CalculateColorForDebug(DebugData debugData)
-{
-    SurfaceData surfaceData = debugData.surfaceData;
-    InputData inputData = debugData.inputData;
-    half4 color = half4(0.0, 0.0, 0.0, 1.0);
-    BRDFData brdfData;
-    
-    InitializeBRDFData(surfaceData.albedo, surfaceData.metallic, surfaceData.specular, surfaceData.smoothness, surfaceData.alpha, brdfData);
+    color = half4(0.0, 0.0, 0.0, 1.0);
     
     // Debug materials...
-    if (_DebugMaterialIndex == DEBUG_UNLIT)
-        color.rgb = surfaceData.albedo;
-        
-    if (_DebugMaterialIndex == DEBUG_DIFFUSE)
-        color.rgb = brdfData.diffuse;
-        
-    if (_DebugMaterialIndex == DEBUG_SPECULAR)
-        color.rgb = brdfData.specular;
-    
-    if (_DebugMaterialIndex == DEBUG_ALPHA)
-        color.rgb = (1.0 - surfaceData.alpha).xxx;
-    
-    if (_DebugMaterialIndex == DEBUG_SMOOTHNESS)
-        color.rgb = surfaceData.smoothness.xxx;
-    
-    if (_DebugMaterialIndex == DEBUG_OCCLUSION)
-        color.rgb = surfaceData.occlusion.xxx;
-    
-    if (_DebugMaterialIndex == DEBUG_EMISSION)
-        color.rgb = surfaceData.emission;
-        
-    if (_DebugMaterialIndex == DEBUG_NORMAL_WORLD_SPACE)
-        color.rgb = inputData.normalWS.xyz * 0.5 + 0.5;
-        
-    if (_DebugMaterialIndex == DEBUG_NORMAL_TANGENT_SPACE)
-        color.rgb = surfaceData.normalTS.xyz * 0.5 + 0.5;
-
-    if (_DebugMaterialIndex == DEBUG_LIGHTING_COMPLEXITY)
-        color = LightingComplexity(inputData);
-
-    if (_DebugMaterialIndex == DEBUG_LOD)
-        surfaceData.albedo = GetLODDebugColor().rgb;
-
-    // Debug lighting...
-    if (_DebugLightingIndex == DEBUG_LIGHTING_SHADOW_CASCADES)
+    switch(_DebugMaterialIndex)
     {
-        color.rgb = ShadowCascadeColor(debugData);
-        color.a = surfaceData.alpha;
-    }
-    else if (_DebugLightingIndex == DEBUG_LIGHTING_LIGHT_ONLY
-     || _DebugLightingIndex == DEBUG_LIGHTING_LIGHT_DETAIL
-     || _DebugLightingIndex == DEBUG_LIGHTING_REFLECTIONS
-     || _DebugLightingIndex == DEBUG_LIGHTING_REFLECTIONS_WITH_SMOOTHNESS
-     || _DebugMaterialIndex == DEBUG_LOD)
-    {
-        color = LightweightFragmentPBR(inputData, surfaceData.albedo, surfaceData.metallic, surfaceData.specular, 
-            surfaceData.smoothness, surfaceData.occlusion, surfaceData.emission, surfaceData.alpha);
-    }
+        case DEBUG_UNLIT:
+            color.rgb = surfaceData.albedo;
+            return true;
+
+        case DEBUG_DIFFUSE:
+            color.rgb = debugData.brdfDiffuse;
+            return true;
+        
+        case DEBUG_SPECULAR:
+            color.rgb = debugData.brdfSpecular;
+            return true;
     
-    if (_DebugPBRLightingMask != 0)
-    {
-        color = LightweightFragmentPBRDebug(inputData, surfaceData.albedo, surfaceData.metallic, surfaceData.specular, 
-            surfaceData.smoothness, surfaceData.occlusion, surfaceData.emission, surfaceData.alpha, _DebugPBRLightingMask);
+        case DEBUG_ALPHA:
+            color.rgb = (1.0 - surfaceData.alpha).xxx;
+            return true;
+    
+        case DEBUG_SMOOTHNESS:
+            color.rgb = surfaceData.smoothness.xxx;
+            return true;
+    
+        case DEBUG_OCCLUSION:
+            color.rgb = surfaceData.occlusion.xxx;
+            return true;
+    
+        case DEBUG_EMISSION:
+            color.rgb = surfaceData.emission;
+            return true;
+        
+        case DEBUG_NORMAL_WORLD_SPACE:
+            color.rgb = inputData.normalWS.xyz * 0.5 + 0.5;
+            return true;
+        
+        case DEBUG_NORMAL_TANGENT_SPACE:
+            color.rgb = surfaceData.normalTS.xyz * 0.5 + 0.5;
+            return true;
+
+        case DEBUG_LOD:
+            surfaceData.albedo = GetLODDebugColor().rgb;
+            return true;
+
+        default:
+            return false;
     }
-    return color;
 }
 
 #endif
