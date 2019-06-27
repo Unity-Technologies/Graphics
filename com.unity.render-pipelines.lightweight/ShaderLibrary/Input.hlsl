@@ -33,9 +33,9 @@ struct InputData
     #if defined(_NORMALMAP)
     half3x3 tangentMatrixWS;
     #endif
-    #if defined(_DEBUG_SHADER)
+    //#if defined(_DEBUG_SHADER)
     float2 uv;
-    #endif
+    //#endif
 };
 
 ///////////////////////////////////////////////////////////////////////////////

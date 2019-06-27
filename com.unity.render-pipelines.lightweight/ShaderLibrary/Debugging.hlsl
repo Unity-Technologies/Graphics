@@ -307,6 +307,9 @@ bool UpdateSurfaceAndInputDataForDebug(inout SurfaceData surfaceData, inout Inpu
         surfaceData.emission = half3(0.0h, 0.0h, 0.0h);
         changed = true;
     }
+
+    inputData.uv = float2(0.0, 0.0);
+
     return changed;
 }
 
