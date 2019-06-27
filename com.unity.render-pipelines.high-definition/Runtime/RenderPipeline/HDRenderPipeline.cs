@@ -439,7 +439,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             m_ContactShadowBuffer = RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GraphicsFormat.R32_UInt, enableRandomWrite: true, useDynamicScale: true, name: "ContactShadowsBuffer");
 
-            m_PupilLuminanceBuffer = RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GraphicsFormat.R32G32B32A32_SFloat, enableRandomWrite: true, useMipMap: false, useDynamicScale: true, name: "PupilLuminanceBuffer");
+            m_PupilLuminanceBuffer = RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GraphicsFormat.R16_SFloat, enableRandomWrite: true, useMipMap: false, useDynamicScale: true, name: "PupilLuminanceBuffer");
 
             if (m_Asset.currentPlatformRenderPipelineSettings.lowresTransparentSettings.enabled)
             {

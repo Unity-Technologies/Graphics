@@ -13,14 +13,12 @@ Shader "Hidden/HDRP/PupilSizeEstimation"
     // Supported shadow modes per light type
     #pragma multi_compile SHADOW_LOW SHADOW_MEDIUM SHADOW_HIGH SHADOW_VERY_HIGH
 
-    #define LIGHTLOOP_DISABLE_TILE_AND_CLUSTER
-
-    // #define USE_CLUSTERED_LIGHTLIST // There is not FPTL lighting when using transparent
+    #define USE_CLUSTERED_LIGHTLIST // There is not FPTL lighting when using transparent
 
     #define SHADERPASS SHADERPASS_FORWARD
     #define HAS_LIGHTLOOP
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoopDef.hlsl"
-    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/SimpleLit.hlsl"
+    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.hlsl"
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoop.hlsl"
 
     TEXTURE2D_X(_DepthTexture);
@@ -48,12 +46,10 @@ Shader "Hidden/HDRP/PupilSizeEstimation"
         return output;
     }
 
-    float3 Frag(Varyings input) : SV_Target
+
+    float Frag(Varyings input) : SV_Target
     {
         UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
-
-        // Output luminance
-        float luminance = 0.0;
 
         // Get distortion values
         float depthValue = LOAD_TEXTURE2D_X(_DepthTexture, input.positionCS.xy);
@@ -86,7 +82,7 @@ Shader "Hidden/HDRP/PupilSizeEstimation"
         builtinData.shadowMask1 = 1.0;
         builtinData.shadowMask2 = 1.0;
         builtinData.shadowMask3 = 1.0;
-        builtinData.bakeDiffuseLighting = SAMPLE_TEXTURECUBE_ARRAY_LOD(_SkyTexture, s_trilinear_clamp_sampler, normalData.normalWS, 0.0, UNITY_SPECCUBE_LOD_STEPS).xyz;
+        builtinData.bakeDiffuseLighting = SAMPLE_TEXTURECUBE_ARRAY_LOD(_SkyTexture, s_trilinear_clamp_sampler, normalData.normalWS, 0.0, UNITY_SPECCUBE_LOD_STEPS - 1).xyz;
         
         PreLightData preLightData = GetPreLightData(V, posInput, bsdfData);
 
@@ -94,7 +90,8 @@ Shader "Hidden/HDRP/PupilSizeEstimation"
         float3 diffuseLighting;
         float3 specularLighting;
         LightLoop(V, posInput, preLightData, bsdfData, builtinData, featureFlags, diffuseLighting, specularLighting);
-        return Luminance(diffuseLighting);
+        float luminance = Luminance(diffuseLighting);
+        return luminance / (1 + luminance);
 
     }
     ENDHLSL
