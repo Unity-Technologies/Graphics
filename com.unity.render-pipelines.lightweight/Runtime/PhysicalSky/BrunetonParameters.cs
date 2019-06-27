@@ -14,6 +14,7 @@ namespace UnityEngine.Rendering.LWRP
         public float m_fogAmount;
         public float m_sunSize;
         public float m_sunEdge;
+        public float m_lengthUnitInMeters;
         public float m_exposure;
 
         static public BrunetonParameters MakeDefault()
@@ -27,6 +28,7 @@ namespace UnityEngine.Rendering.LWRP
             ret.m_sunSize = 1.0f;
             ret.m_sunEdge = 1.0f;
             ret.m_exposure = 10.0f;
+            ret.m_lengthUnitInMeters = 100.0f;
             return ret;
         }
 

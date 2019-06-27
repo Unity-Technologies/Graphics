@@ -69,7 +69,7 @@
 #define ScatteringCoefficient float
 #define InverseSolidAngle float
 #define LuminousIntensity float
-#define Luminance float
+#define Luminance_t float 
 #define Illuminance float
 
 /*
@@ -159,8 +159,8 @@ static const SpectralRadiance watt_per_square_meter_per_sr_per_nm = watt / (m2 *
 static const SpectralRadianceDensity watt_per_cubic_meter_per_sr_per_nm = watt / (m3 * sr * nm);
 static const LuminousIntensity cd = lm / sr;
 static const LuminousIntensity kcd = 1000.0 * cd;
-static const Luminance cd_per_square_meter = cd / m2;
-static const Luminance kcd_per_square_meter = kcd / m2;
+static const Luminance_t cd_per_square_meter = cd / m2;
+static const Luminance_t kcd_per_square_meter = kcd / m2;
 
 /*
  * Atmosphere parameters

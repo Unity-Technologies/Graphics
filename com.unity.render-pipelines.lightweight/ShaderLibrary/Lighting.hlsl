@@ -8,6 +8,31 @@
 #include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/Shadows.hlsl"
 #include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/Fog.hlsl"
 
+#define PHYSICAL_SKY
+#if defined(PHYSICAL_SKY)
+#include "Packages/com.unity.render-pipelines.lightweight/Shaders/PhysicalSky/Definitions.cginc"
+#include "Packages/com.unity.render-pipelines.lightweight/Shaders/PhysicalSky/UtilityFunctions.cginc"
+#include "Packages/com.unity.render-pipelines.lightweight/Shaders/PhysicalSky/TransmittanceFunctions.cginc"
+#include "Packages/com.unity.render-pipelines.lightweight/Shaders/PhysicalSky/ScatteringFunctions.cginc"
+#include "Packages/com.unity.render-pipelines.lightweight/Shaders/PhysicalSky/IrradianceFunctions.cginc"
+#include "Packages/com.unity.render-pipelines.lightweight/Shaders/PhysicalSky/RenderingFunctions.cginc"
+
+float sky_exposure;
+float3 white_point; // (kc)  
+float3 earth_center;
+float3 sun_direction;
+float fog_amount;
+float sun_size;
+float sun_edge;
+
+sampler2D transmittance_texture;
+sampler2D irradiance_texture;
+sampler3D scattering_texture;
+sampler3D single_mie_scattering_texture;
+
+#endif
+
+
 // If lightmap is not defined than we evaluate GI (ambient + probes) from SH
 // We might do it fully or partially in vertex to save shader ALU
 #if !defined(LIGHTMAP_ON)
@@ -502,6 +527,39 @@ half3 VertexLighting(float3 positionWS, half3 normalWS)
     return vertexLightColor;
 }
 
+#if defined(PHYSICAL_SKY)
+RadianceSpectrum GetSolarRadiance() 
+{
+	return solar_irradiance / (PI * sun_angular_radius * sun_angular_radius);
+}
+
+IrradianceSpectrum GetSunAndSkyIrradiance(
+	Position p, Direction normal, Direction sun_direction,
+	out IrradianceSpectrum sky_irradiance) 
+{
+	return GetSunAndSkyIrradiance(transmittance_texture,
+		irradiance_texture, p, normal, sun_direction, sky_irradiance);
+}
+
+RadianceSpectrum GetSkyRadianceToPoint(
+	Position camera, Position _point, Length shadow_length,
+	Direction sun_direction, out DimensionlessSpectrum transmittance) 
+{
+	return GetSkyRadianceToPoint(transmittance_texture,
+		scattering_texture, single_mie_scattering_texture,
+		camera, _point, shadow_length, sun_direction, transmittance);
+}
+
+RadianceSpectrum GetSkyRadiance(
+	Position camera, Direction view_ray, Length shadow_length,
+	Direction sun_direction, out DimensionlessSpectrum transmittance) 
+{
+	return GetSkyRadiance(transmittance_texture,
+		scattering_texture, single_mie_scattering_texture,
+		camera, view_ray, shadow_length, sun_direction, transmittance);
+}
+#endif
+
 ///////////////////////////////////////////////////////////////////////////////
 //                      Fragment Functions                                   //
 //       Used by ShaderGraph and others builtin renderers                    //
@@ -516,7 +574,28 @@ half4 LightweightFragmentPBR(InputData inputData, half3 albedo, half metallic, h
     MixRealtimeAndBakedGI(mainLight, inputData.normalWS, inputData.bakedGI, half4(0, 0, 0, 0));
 
     half3 color = GlobalIllumination(brdfData, inputData.bakedGI, occlusion, inputData.normalWS, inputData.viewDirectionWS);
-    color += LightingPhysicallyBased(brdfData, mainLight, inputData.normalWS, inputData.viewDirectionWS);
+    float3 sun_contribution =LightingPhysicallyBased(brdfData, mainLight, inputData.normalWS, inputData.viewDirectionWS);
+
+#if defined(PHYSICAL_SKY)
+    {    
+ 	    float3 _point = inputData.positionWS;
+    	float3 normal = inputData.normalWS;
+        float3 camera = _WorldSpaceCameraPos;
+        float3 sky_irradiance;
+    	float3 sun_irradiance = GetSunAndSkyIrradiance(_point - earth_center, normal, sun_direction, sky_irradiance);
+
+        float3 irradiance = albedo *(1.f/PI) * (sun_irradiance + sky_irradiance);
+
+        float3 transmittance;
+    	float3 in_scatter = fog_amount * GetSkyRadianceToPoint(camera - earth_center, _point - earth_center, 0.f, sun_direction, transmittance);
+
+        color = (color + sun_contribution + irradiance) * transmittance;
+        in_scatter = in_scatter * sky_exposure; // same as RenderSky.shader
+        color += in_scatter;
+    }
+#else
+    color += sun_contribution;
+#endif
 
 #ifdef _ADDITIONAL_LIGHTS
     int pixelLightCount = GetAdditionalLightsCount();

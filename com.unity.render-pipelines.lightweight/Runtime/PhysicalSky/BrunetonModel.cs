@@ -262,7 +262,8 @@ namespace UnityEngine.Rendering.LWRP
             bool kDoWhiteBalance = false;
             float kSunAngularRadius = 0.00935f / 2.0f;
             float kBottomRadius = 6360000.0f;
-            float kLengthUnitInMeters = 1000.0f;
+//(kc)            float kLengthUnitInMeters = 1000.0f;
+            float kLengthUnitInMeters = 50.0f;
             LUMINANCE kUseLuminance = LUMINANCE.NONE;
 
             double[] kSolarIrradiance = new double[]
@@ -354,7 +355,7 @@ namespace UnityEngine.Rendering.LWRP
             model.AbsorptionExtinction = absorption_extinction;
             model.GroundAlbedo = ground_albedo;
             model.MaxSunZenithAngle = max_sun_zenith_angle;
-            model.LengthUnitInMeters = kLengthUnitInMeters;
+            model.LengthUnitInMeters = brunetonParams.m_lengthUnitInMeters;
             model.SunSize = (double)brunetonParams.m_sunSize;
             model.SunEdge = (double)brunetonParams.m_sunEdge;
             model.SunDir = Vector3.up;

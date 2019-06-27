@@ -22,13 +22,10 @@ namespace UnityEngine.Rendering.LWRP
         public FloatParameter fogAmount = new FloatParameter(1.0f);
         public FloatParameter sunSize = new FloatParameter(1.0f);
         public FloatParameter sunEdge = new FloatParameter(1.0f);
+        [Tooltip("One world space unit measured to real world units (meters)")]
+        public FloatParameter LengthUnitInMeters = new FloatParameter(100.0f);
 
         public FloatParameter exposure = new FloatParameter(10.0f);
-        
-        // Coloring
-        [Tooltip("The coloring of the fog.")]
-        public FogColorTypeParameter colorType = new FogColorTypeParameter(FogColorType.Color);
-        //public CubemapParameter cubemap = new CubemapParameter();
     }
 
     [Serializable]

@@ -298,27 +298,14 @@
 				// Normalized view direction vector.
 				float3 view_direction = normalize(IN.view_ray);
 
-	            // Hack to fade out light shafts when the Sun is very close to the horizon.
-	            float lightshaft_fadein_hack = smoothstep(0.02, 0.04, dot(normalize(camera - earth_center), sun_direction));
-
-	            // Compute the distance between the view ray line and the sphere center,
+	            // Compute the distance between the view ray line and the earth sphere center,
 	            // and the distance between the camera and the intersection of the view
-	            // ray with the sphere (or NaN if there is no intersection).
-	            float3 p = camera - kSphereCenter;
+	            // ray with the earth sphere (or NaN if there is no intersection).
+	            float3 p = camera - earth_center;
 	            float p_dot_v = dot(p, view_direction);
 	            float p_dot_p = dot(p, p);
-	            float ray_sphere_center_squared_distance = p_dot_p - p_dot_v * p_dot_v;
-	            float distance_to_intersection = -p_dot_v - sqrt(kSphereRadius * kSphereRadius - ray_sphere_center_squared_distance);
-
-	            // Compute the radiance reflected by the sphere, if the ray intersects it.
-	            float sphere_alpha = 0.0;
-	            float3 sphere_radiance = float3(0,0,0);
-
-	            p = camera - earth_center;
-	            p_dot_v = dot(p, view_direction);
-	            p_dot_p = dot(p, p);
 	            float ray_earth_center_squared_distance = p_dot_p - p_dot_v * p_dot_v;
-	            distance_to_intersection = -p_dot_v - sqrt(earth_center.y * earth_center.y - ray_earth_center_squared_distance);
+	            float distance_to_intersection = -p_dot_v - sqrt(earth_center.y * earth_center.y - ray_earth_center_squared_distance);
 
 	            // Compute the radiance reflected by the ground, if the ray intersects it.
 	            float ground_alpha = 0.0;
@@ -346,14 +333,15 @@
 
 	            float renormalized_angle_to_sun = dot(view_direction, sun_direction) - sun_size.y;
 	            float sun_gradient = (renormalized_angle_to_sun * sun_edge) / sun_size.x;
-        		radiance += transmittance * GetSolarRadiance() * saturate(sun_gradient) * 1000.0; 
+        		radiance += transmittance * GetSolarRadiance() * max(0.0, sun_gradient);
 
 	            radiance = lerp(radiance, ground_radiance, ground_alpha);
-	            radiance = lerp(radiance, sphere_radiance, sphere_alpha);
 
-	            radiance = pow(float3(1,1,1) - exp(-radiance / white_point * sky_exposure), 1.0 / 2.2);
+	            // Use exposure to convert radiance to LDR RGB value. The problem is we HDR values!
+//	            radiance = 1.0 - exp(-radiance / white_point * sky_exposure);
 
-	            col.rgb = radiance;
+	            // Rely on tonemapping operator later to bring back to LDR RGB values.
+	            col.rgb = radiance / white_point * sky_exposure;
 
 	            return float4(col,1);
 	        }

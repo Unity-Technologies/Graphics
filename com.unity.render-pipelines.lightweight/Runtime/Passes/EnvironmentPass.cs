@@ -139,6 +139,7 @@ namespace UnityEngine.Rendering.LWRP
                     m_PhysicalSky.m_BrunetonParams.m_sunSize = m_Sky.sunSize.value;
                     m_PhysicalSky.m_BrunetonParams.m_sunEdge = m_Sky.sunEdge.value;
                     m_PhysicalSky.m_BrunetonParams.m_exposure = m_Sky.exposure.value;
+                    m_PhysicalSky.m_BrunetonParams.m_lengthUnitInMeters = m_Sky.LengthUnitInMeters.value;
 
                     m_PhysicalSky.UpdateParameters();
 

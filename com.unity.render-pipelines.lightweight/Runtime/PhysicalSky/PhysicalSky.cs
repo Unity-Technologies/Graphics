@@ -45,10 +45,12 @@ namespace UnityEngine.Rendering.LWRP
             m_ActiveBrunetonParams.m_sunSize = m_BrunetonParams.m_sunSize;
             m_ActiveBrunetonParams.m_sunEdge = m_BrunetonParams.m_sunEdge;
             m_ActiveBrunetonParams.m_exposure = m_BrunetonParams.m_exposure;
+            m_ActiveBrunetonParams.m_lengthUnitInMeters = m_BrunetonParams.m_lengthUnitInMeters;
 
             m_Model.FogAmount = m_ActiveBrunetonParams.m_fogAmount; // Not ideal: need refactoring
             m_Model.SunSize = m_ActiveBrunetonParams.m_sunSize; // Not ideal: need refactoring
             m_Model.SunEdge = m_ActiveBrunetonParams.m_sunEdge; // Not ideal: need refactoring
+            m_Model.LengthUnitInMeters = m_ActiveBrunetonParams.m_lengthUnitInMeters; // Not ideal: need refactoring
             m_Model.Exposure = m_ActiveBrunetonParams.m_exposure; // Not ideal: need refactoring
         }
 
