@@ -991,7 +991,9 @@ namespace UnityEditor.ShaderGraph
             // Get Slot and Node lists
 
             var activeNodeList = ListPool<AbstractMaterialNode>.Get();
-            NodeUtils.DepthFirstCollectNodesFromNode(activeNodeList, node);
+            var subRootNodeList = ListPool<AbstractMaterialNode>.Get();
+            NodeUtils.CollectNodesFromNode(activeNodeList, false, subRootNodeList, node);
+            graph.subRootNodeList = subRootNodeList;
 
             var slots = new List<MaterialSlot>();
             if (node is IMasterNode || node is SubGraphOutputNode)
@@ -1136,6 +1138,9 @@ namespace UnityEditor.ShaderGraph
             ShaderSourceMap sourceMap;
             results.shader = finalShader.ToString(out sourceMap);
             results.sourceMap = sourceMap;
+
+
+            graph.subRootNodeList = null;
             return results;
         }
 
