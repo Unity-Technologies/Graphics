@@ -19,8 +19,8 @@ namespace UnityEngine.Rendering.LWRP
         NormalWorldSpace,
         NormalTangentSpace,
         LightingComplexity,
-		LOD,
         Metallic,
+        LOD,
     }
 
     public enum DebugReplacementPassType
@@ -70,6 +70,14 @@ namespace UnityEngine.Rendering.LWRP
         HiglightNanInfNegative,
         HighlightOutsideOfRange,
         ValidateAlbedo,
+    }
+
+    public enum DebugMipInfo
+    {
+        None,
+        Count,
+        Level,
+        Ratio
     }
 
     public static class RenderingUtils
