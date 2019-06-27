@@ -269,6 +269,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public void NotifyToUpdateVolumeTexList()
         {
+            _playingTime = parameters.loopTime;
             _needToUpdateVolumeTexList = true;
         }
 

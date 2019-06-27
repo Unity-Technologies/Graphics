@@ -189,7 +189,7 @@ void VolumetricShadowMap(uint3 id : SV_DispatchThreadID)
     
         float3 historyUVW = (voxelCenterNonJitteredWS + _PrevCamPosRWS) / _VShadowMapMag + 0.5;
         float4 voxelDensityHistory = SAMPLE_TEXTURE3D_LOD(_VShadowMapBufferHistory, s_linear_repeat_sampler, historyUVW, 0);
-        voxelDensity = lerp(voxelDensity, voxelDensityHistory, 0.75);
+        voxelDensity = lerp(voxelDensity, voxelDensityHistory, 0.95);
     }
     #endif
 
