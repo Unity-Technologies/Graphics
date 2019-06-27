@@ -120,9 +120,9 @@ float evalNTermR(float phiH, float azimWidth)
     return unitNormLogistic(phiH, azimWidth, -HALF_PI, HALF_PI);
 }
 
-float evalNTermTT(float phiH, float azimWidth)
+float evalNTermTT(float phiD, float azimWidth)
 {
-    return unitNormLogistic(HALF_PI - phiH, azimWidth, -HALF_PI, HALF_PI);
+    return unitNormLogistic(PI - phiD, azimWidth, -PI, PI);
 }
 
 float evalNTermTRT(float phiH, float azimWidth)

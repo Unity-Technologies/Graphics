@@ -426,15 +426,19 @@ CBSDF EvaluateBSDF(float3 V, float3 L, PreLightData preLightData, BSDFData bsdfD
         // TRT
         cbsdf.specR += bsdfData.specularTint * bsdfData.specularTint * Fres.zzz * evalMTerm(thetaI, 0.5 * (thetaI + thetaL), bsdfData.secondaryPerceptualRoughness, -bsdfData.specularShift) * evalNTermTRT(phiD * 0.5, bsdfData.azimuthalPerceptualRoughness);
         // TT
-        cbsdf.specT = bsdfData.specularTint * Fres.yyy * evalMTerm(thetaI, 0.5 * (thetaI + thetaL), bsdfData.secondaryPerceptualRoughness, 0) * evalNTermTT(phiD * 0.5, bsdfData.azimuthalPerceptualRoughness);
+        cbsdf.specT = bsdfData.specularTint * Fres.yyy * evalMTerm(thetaI, 0.5 * (thetaI + thetaL), bsdfData.secondaryPerceptualRoughness, 0) * evalNTermTT(phiD, bsdfData.azimuthalPerceptualRoughness);
         
         cbsdf.specR *= evalHairCosTerm(thetaL, thetaI);
+        cbsdf.specT *= evalHairCosTerm(-thetaL, thetaI);
         
         // What you see below is an extraordinarily hacky and legendarily moronic way of faking
         // a multiple scattering effect.  Good boys and girls should not duplicate what you see
         // below, and it should always be held up as a scarlet letter of how to be foolish.
         // That said, it is here because it sometimes looks okay, and that's really all there is to it.
-        float3 diffAlb = bsdfData.specularTint * (2.0 - bsdfData.specularTint);
+        // The assumed albedo here is that the likelihood of transmission and reflection and multi-transmission is
+        // based on their respective shares of the Fresnel components.
+        float3 diffAlb = Fres.xxx + bsdfData.specularTint * Fres.y + bsdfData.specularTint * bsdfData.specularTint * Fres.z;
+        diffAlb /= dot(Fres.xyz, 1);
         cbsdf.diffR = diffAlb * PI * evalMTerm(thetaI, 0.5 * (thetaI + thetaL), lerp(bsdfData.secondaryPerceptualRoughness, 1.0, 1-Fres.y), 0) * evalNTermTRT(phiD * 0.5, lerp(bsdfData.azimuthalPerceptualRoughness, 1.0, 1-Fres.y));
     }
 

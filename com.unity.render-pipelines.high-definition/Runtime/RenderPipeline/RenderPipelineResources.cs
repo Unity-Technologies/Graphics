@@ -135,6 +135,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public Shader preIntegratedFGD_WardPS;
             [Reload("Runtime/Material/AxF/PreIntegratedFGD_CookTorrance.shader")]
             public Shader preIntegratedFGD_CookTorrancePS;
+            [Reload("Runtime/Material/Hair/PreIntegratedFGD_Marschner.shader")]
+            public Shader preIntegratedFGD_MarschnerPS;
 
             // Utilities / Core
             [Reload("Runtime/Core/CoreResources/EncodeBC6H.compute")]
