@@ -71,25 +71,26 @@ struct DebugData
 #define kOrangeBrownColor = half4(219.0 / 255.0, 119.0 / 255.0, 59.0 / 255.0, 1.0) // #4B92F3
 #define kGrayColor = half4(174.0 / 255.0, 174.0 / 255.0, 174.0 / 255.0, 1.0) // #AEAEAE
 
-half4 GetShadowCascadeColor(float4 shadowCoord, float3 positionWS)
+half4 GetShadowCascadeColor(float4 shadowCoord, float3 positionWS);
+
 DebugData CreateDebugData(half3 brdfDiffuse, half3 brdfSpecular)
 {
     DebugData debugData;
-    
+
     debugData.brdfDiffuse = brdfDiffuse;
     debugData.brdfSpecular = brdfSpecular;
-    
+
     return debugData;
 }
 
 // Set of colors that should still provide contrast for the Color-blind
-#define kPurpleColor half4(156.0 / 255.0, 79.0 / 255.0, 255.0 / 255.0, 1.0) // #9C4FFF 
+#define kPurpleColor half4(156.0 / 255.0, 79.0 / 255.0, 255.0 / 255.0, 1.0) // #9C4FFF
 #define kRedColor half4(203.0 / 255.0, 48.0 / 255.0, 34.0 / 255.0, 1.0) // #CB3022
 #define kGreenColor half4(8.0 / 255.0, 215.0 / 255.0, 139.0 / 255.0, 1.0) // #08D78B
 #define kYellowGreenColor half4(151.0 / 255.0, 209.0 / 255.0, 61.0 / 255.0, 1.0) // #97D13D
 #define kBlueColor half4(75.0 / 255.0, 146.0 / 255.0, 243.0 / 255.0, 1.0) // #4B92F3
 #define kOrangeBrownColor half4(219.0 / 255.0, 119.0 / 255.0, 59.0 / 255.0, 1.0) // #4B92F3
-#define kGrayColor half4(174.0 / 255.0, 174.0 / 255.0, 174.0 / 255.0, 1.0) // #AEAEAE   
+#define kGrayColor half4(174.0 / 255.0, 174.0 / 255.0, 174.0 / 255.0, 1.0) // #AEAEAE
 
 float4 GetLODDebugColor()
 {
@@ -176,7 +177,7 @@ half3 UnityMeta_RGBToHSV(half3 rgbColor)
 bool UpdateSurfaceAndInputDataForDebug(inout SurfaceData surfaceData, inout InputData inputData)
 {
     bool changed = false;
-    
+
     if (_DebugLightingIndex == DEBUG_LIGHTING_LIGHT_ONLY || _DebugLightingIndex == DEBUG_LIGHTING_LIGHT_DETAIL)
     {
         surfaceData.albedo = half3(1.0h, 1.0h, 1.0h);
@@ -267,7 +268,7 @@ bool CalculateValidationColorForDebug(InputData inputData, SurfaceData surfaceDa
 bool CalculateColorForDebugMaterial(InputData inputData, SurfaceData surfaceData, DebugData debugData, out half4 color)
 {
     color = half4(0.0, 0.0, 0.0, 1.0);
-    
+
     // Debug materials...
     switch(_DebugMaterialIndex)
     {
@@ -278,31 +279,31 @@ bool CalculateColorForDebugMaterial(InputData inputData, SurfaceData surfaceData
         case DEBUG_DIFFUSE:
             color.rgb = debugData.brdfDiffuse;
             return true;
-        
+
         case DEBUG_SPECULAR:
             color.rgb = debugData.brdfSpecular;
             return true;
-    
+
         case DEBUG_ALPHA:
             color.rgb = (1.0 - surfaceData.alpha).xxx;
             return true;
-    
+
         case DEBUG_SMOOTHNESS:
             color.rgb = surfaceData.smoothness.xxx;
             return true;
-    
+
         case DEBUG_OCCLUSION:
             color.rgb = surfaceData.occlusion.xxx;
             return true;
-    
+
         case DEBUG_EMISSION:
             color.rgb = surfaceData.emission;
             return true;
-        
+
         case DEBUG_NORMAL_WORLD_SPACE:
             color.rgb = inputData.normalWS.xyz * 0.5 + 0.5;
             return true;
-        
+
         case DEBUG_NORMAL_TANGENT_SPACE:
             color.rgb = surfaceData.normalTS.xyz * 0.5 + 0.5;
             return true;

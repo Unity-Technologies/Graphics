@@ -127,7 +127,6 @@ namespace UnityEngine.Rendering.LWRP
                     activeRenderPassQueue.RemoveAt(i);
             }
 
-            var fullScreenDebugMode = DebugDisplaySettings.Instance.buffer.FullScreenDebugMode;
             // Special path for depth only offscreen cameras. Only write opaques + transparents.
             SceneOverrides sceneOverride = DebugDisplaySettings.Instance.renderingSettings.sceneOverrides;
 
@@ -480,7 +479,7 @@ namespace UnityEngine.Rendering.LWRP
 			cmd.SetGlobalFloat(m_DebugVertexAttributesIndexId, (int)attributeDebugIndex);
             cmd.SetGlobalInt(m_DebugPBRLightingMask, (int)pbrLightingDebugModeMask);
             cmd.SetGlobalInt(m_DebugValidationIndexId, (int)DebugDisplaySettings.Instance.Validation.validationMode);
-            
+
             cmd.SetGlobalFloat(m_DebugAlbedoMinLuminance, DebugDisplaySettings.Instance.Validation.AlbedoMinLuminance);
             cmd.SetGlobalFloat(m_DebugAlbedoMaxLuminance, DebugDisplaySettings.Instance.Validation.AlbedoMaxLuminance);
             cmd.SetGlobalFloat(m_DebugAlbedoSaturationTolerance, DebugDisplaySettings.Instance.Validation.AlbedoSaturationTolerance);

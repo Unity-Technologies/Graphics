@@ -261,12 +261,14 @@ namespace UnityEngine.Rendering.LWRP
                     case SceneOverrides.SolidWireframe:
                         debugSettings.overrideMaterialPassIndex = 1;
                         break;
-                    case DebugReplacementPassType.Attributes:
-                        debugSettings.overrideMaterialPassIndex = 2;
-                        break;
                 }
 
-                RenderStateBlock rsBlock = new RenderStateBlock();
+                if (DebugDisplaySettings.Instance.materialSettings.VertexAttributeDebugIndexData != VertexAttributeDebugMode.None)
+                {
+                    debugSettings.overrideMaterialPassIndex = 2;
+                }
+
+                    RenderStateBlock rsBlock = new RenderStateBlock();
                 bool wireframe = sceneOverrideMode == SceneOverrides.Wireframe || sceneOverrideMode == SceneOverrides.SolidWireframe;
                 if (wireframe)
                 {

@@ -19,7 +19,7 @@ namespace UnityEditor.Rendering
         Wireframe,
         SolidWireframe,
     }
-    
+
     public class DebugDisplaySettingsRendering : IDebugDisplaySettingsData
     {
         internal FullScreenDebugMode fullScreenDebugMode { get; private set; } = FullScreenDebugMode.None;
@@ -28,12 +28,12 @@ namespace UnityEditor.Rendering
 
         public bool enableMsaa { get; private set; } = true;
         public bool enableHDR { get; private set; } = true;
-        
-        
+
+
         private class SettingsPanel : DebugDisplaySettingsPanel
         {
             public override string PanelName => "Rendering";
-            
+
             public SettingsPanel(DebugDisplaySettingsRendering data)
             {
                 AddWidget(new DebugUI.EnumField { displayName = "Full Screen Modes", autoEnum = typeof(FullScreenDebugMode), getter = () => (int)data.fullScreenDebugMode, setter = (value) => {}, getIndex = () => (int)data.fullScreenDebugMode, setIndex = (value) => data.fullScreenDebugMode = (FullScreenDebugMode)value});
@@ -51,7 +51,7 @@ namespace UnityEditor.Rendering
 
         public bool IsEnabled()
         {
-            return enableMsaa || enableHDR || enablePostProcessing || 
+            return enableMsaa || enableHDR || enablePostProcessing ||
                    fullScreenDebugMode != FullScreenDebugMode.None ||
                     sceneOverrides != SceneOverrides.None;
         }
