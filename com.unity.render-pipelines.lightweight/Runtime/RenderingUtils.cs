@@ -43,7 +43,7 @@ namespace UnityEngine.Rendering.LWRP
         Emission = 0x10,
     }
 
-    public enum DebugOverlayMode
+    public enum DebugValidationMode
     {
         None,
         HiglightNanInfNegative,
