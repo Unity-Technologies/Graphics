@@ -190,6 +190,8 @@ BSDFData ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfaceData)
         bsdfData.anisotropy = 0.8; // For hair we fix the anisotropy
         bsdfData.azimuthalPerceptualRoughness = PerceptualSmoothnessToPerceptualRoughness(surfaceData.azimuthalSmoothness);
         bsdfData.indexOfRefraction = surfaceData.indexOfRefraction;
+        bsdfData.ttAzimuthalPerceptualRoughness = PerceptualSmoothnessToPerceptualRoughness(surfaceData.ttAzimuthalSmoothness);
+
     }
 
     ApplyDebugToBSDFData(bsdfData);
@@ -448,7 +450,7 @@ CBSDF EvaluateBSDF(float3 V, float3 L, PreLightData preLightData, BSDFData bsdfD
         // TRT
         cbsdf.specR += bsdfData.specularTint * bsdfData.specularTint * Fres.zzz * evalMTerm(thetaI, 0.5 * (thetaI + thetaL), bsdfData.secondaryPerceptualRoughness, -bsdfData.specularShift) * evalNTermTRT(phiD * 0.5, bsdfData.azimuthalPerceptualRoughness);
         // TT
-        cbsdf.specT = bsdfData.specularTint * Fres.yyy * evalMTerm(thetaI, 0.5 * (thetaI + thetaL), bsdfData.secondaryPerceptualRoughness, 0) * evalNTermTT(phiD, bsdfData.azimuthalPerceptualRoughness);
+        cbsdf.specT = bsdfData.specularTint * Fres.yyy * evalMTerm(thetaI, 0.5 * (thetaI + thetaL), bsdfData.secondaryPerceptualRoughness, 0) * evalNTermTT(phiD, bsdfData.ttAzimuthalPerceptualRoughness);
         
         cbsdf.specR *= evalHairCosTerm(thetaL, thetaI);
         cbsdf.specT *= evalHairCosTerm(-thetaL, thetaI);
@@ -460,8 +462,8 @@ CBSDF EvaluateBSDF(float3 V, float3 L, PreLightData preLightData, BSDFData bsdfD
         // The assumed albedo here is that the likelihood of transmission and reflection and multi-transmission is
         // based on their respective shares of the Fresnel components.
         float3 diffAlb = Fres.xxx + bsdfData.specularTint * Fres.y + bsdfData.specularTint * bsdfData.specularTint * Fres.z;
-        diffAlb /= dot(Fres.xyz, 1);
-        cbsdf.diffR = diffAlb * PI * evalMTerm(thetaI, 0.5 * (thetaI + thetaL), lerp(bsdfData.secondaryPerceptualRoughness, 1.0, 1-Fres.y), 0) * evalNTermTRT(phiD * 0.5, lerp(bsdfData.azimuthalPerceptualRoughness, 1.0, 1-Fres.y));
+        //diffAlb /= dot(Fres.xyz, 1);
+        cbsdf.diffR = diffAlb * PI * evalMTerm(thetaI, 0.5 * (thetaI + thetaL), lerp(bsdfData.secondaryPerceptualRoughness, 1.0, 1-Fres.y), 0) * evalNTermTRT(phiD * 0.5, lerp(bsdfData.ttAzimuthalPerceptualRoughness, 1.0, 1-Fres.z));
     }
 
     return cbsdf;

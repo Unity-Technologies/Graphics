@@ -196,6 +196,7 @@ $include("SharedCode.template.hlsl")
 
         $SurfaceDescription.AzimuthalSmoothness:            surfaceData.azimuthalSmoothness =           surfaceDescription.AzimuthalSmoothness;
         $SurfaceDescription.IndexOfRefraction:              surfaceData.indexOfRefraction =             surfaceDescription.IndexOfRefraction;
+        $SurfaceDescription.TTAzimuthalSmoothness:          surfaceData.ttAzimuthalSmoothness =         surfaceDescription.TTAzimuthalSmoothness;
      
         // These static material feature allow compile time optimization
         surfaceData.materialFeatures = 0;
