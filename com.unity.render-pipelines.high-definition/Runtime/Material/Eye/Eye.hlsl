@@ -353,9 +353,7 @@ LightTransportData GetLightTransportData(SurfaceData surfaceData, BuiltinData bu
 
 bool IsNonZeroBSDF(float3 V, float3 L, PreLightData preLightData, BSDFData bsdfData)
 {
-    float NdotL = dot(bsdfData.normalWS, L);
-
-    return NdotL > 0.0;
+    return true; // In order to get cqustic effect and concavity
 }
 
 // This function apply BSDF. Assumes that NdotL is positive.
@@ -417,13 +415,36 @@ DirectLighting EvaluateBSDF_Directional(LightLoopContext lightLoopContext,
 // EvaluateBSDF_Punctual (supports spot, point and projector lights)
 //-----------------------------------------------------------------------------
 
+float ComputePunctualCaustic(float3 V, float3 positionWS, float3 lightPosWS, BSDFData bsdfData)
+{
+    float3 pos = TransformWorldToObject(positionWS);
+
+    float3 normal = normalize(TransformWorldToObjectDir(bsdfData.normalWS));
+    float3 lightPos = TransformWorldToObject(lightPosWS);
+    float3 lightDir = normalize(lightPos);
+
+    // Completely heuristic!
+    float causticSclera = pow(2.0 * saturate(-dot(normal.xy, lightDir.xy)), 20);
+   // float alphaSclera = pos.z < 1.05 ? saturate(1.0 - smoothStep((pos.z - 0.95) * 10)) : 0.01;
+
+    float causticIris = 2.0 * pow(saturate(dot(-normalize(pos.xy), lightDir.xy)), 2);
+    //float alphaIris = pos.z > 1.05 ? 1.0 : 0.0;
+
+    //return causticSclera * alphaSclera + causticIris * alphaIris;
+    return causticSclera * min(bsdfData.mask.y, 1 - bsdfData.mask.y) + causticIris * bsdfData.mask.x;
+}
+
 DirectLighting EvaluateBSDF_Punctual(LightLoopContext lightLoopContext,
                                      float3 V, PositionInputs posInput,
                                      PreLightData preLightData, LightData lightData,
                                      BSDFData bsdfData, BuiltinData builtinData)
 {
-    return ShadeSurface_Punctual(lightLoopContext, posInput, builtinData,
-                                 preLightData, lightData, bsdfData, V);
+    DirectLighting dl = ShadeSurface_Punctual(  lightLoopContext, posInput, builtinData,
+                                                preLightData, lightData, bsdfData, V);
+
+    dl.diffuse *= 1.0 + ComputePunctualCaustic(V, posInput.positionWS, lightData.positionRWS, bsdfData);
+
+    return dl;
 }
 
 //-----------------------------------------------------------------------------
