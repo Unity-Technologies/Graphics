@@ -48,7 +48,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (display != null)
             {
                 // XRTODO(2019.3) : replace by API from XR SDK, assume we have 2 slices until then
-                maxViews = 64;
+                maxViews = 2;
             }
             else
 #endif
@@ -83,30 +83,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 if (ProcessDebugMode(xrEnabled, camera))
                     continue;
 
-                var lookingGlass = camera.GetComponent<LookingGlass.Holoplay>();
-                if (lookingGlass != null)
-                {
-                    var matrices = lookingGlass.GetMatrices();
-                    var xrPass = XRPass.Create(multipassId: framePasses.Count);
-
-                    // Forced to 32 views
-                    int numViews = Math.Max(GetMaxViews(), lookingGlass.quiltSettings.numViews);
-
-                    for (int i = 0; i < numViews; ++i)
-                    {
-                        var vp = new Rect(0, 0, lookingGlass.cal.screenWidth, lookingGlass.cal.screenHeight);
-
-                        int matIndex = Math.Min(i, lookingGlass.quiltSettings.numViews - 1);
-                        Debug.Assert(matIndex < matrices.projectionMatrices.Count);
-                        Debug.Assert(matIndex < matrices.viewMatrices.Count);
-                        xrPass.AddView(matrices.projectionMatrices[matIndex], matrices.viewMatrices[matIndex], vp);
-                    }
-
-                    AddPassToFrame(camera, xrPass);
-
-                    continue;
-                }
-
                 if (xrEnabled && xrSupported)
                 {
                     if (xrSdkActive)
@@ -120,7 +96,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
                 else
                 {
-                    AddPassToFrame(camera, emptyPass);
+                    LookingGlass.Holoplay lookingGlass = camera.GetComponent<LookingGlass.Holoplay>();
+                    if (xrSupported && lookingGlass != null)
+                    {
+                        CreateLayoutFromLookingGlass(camera, lookingGlass);
+                    }
+                    else
+                    {
+                        AddPassToFrame(camera, emptyPass);
+                    }
                 }
             }
 
@@ -131,23 +115,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             using (new ProfilingSample(cmd, "Looking Glass"))
             {
-
-
-                //Vector4 scaleBias = new Vector4(blitParam.srcRect.width, blitParam.srcRect.height, blitParam.srcRect.x, blitParam.srcRect.y);
-                //Vector4 scaleBiasRT = new Vector4(blitParam.destRect.width, blitParam.destRect.height, blitParam.destRect.x, blitParam.destRect.y);
-
-                //lookingGlassProperty.SetTexture(Shader.PropertyToID("_MainTex"), sourceTexture);
-
-                lookingGlassProperty.SetTexture("_MainTex", sourceTexture);
-                //mirrorViewMaterialProperty.SetVector(HDShaderIDs._BlitScaleBias, scaleBias);
-                //mirrorViewMaterialProperty.SetVector(HDShaderIDs._BlitScaleBiasRt, scaleBiasRT);
-                //mirrorViewMaterialProperty.SetInt(HDShaderIDs._BlitTexArraySlice, blitParam.srcTexArraySlice);
-
-                //int shaderPass = (blitParam.srcTex.dimension == TextureDimension.Tex2DArray) ? 1 : 0;
-                //cmd.DrawProcedural(Matrix4x4.identity, lookingGlassMaterial, 0, MeshTopology.Triangles, 3, 1, lookingGlassProperty);
-
-                //HDUtils.DrawFullScreen(cmd, parameters.viewport, lookingGlassMaterial, destination, propertyBlock, 0);
-
                 var lookingGlass = hdCamera.camera.GetComponent<LookingGlass.Holoplay>();
                 if (lookingGlass == null)
                     return;
@@ -156,6 +123,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 var cal = lookingGlass.cal;
                 {
+                    lookingGlassProperty.SetTexture("_MainTex", sourceTexture);
                     lookingGlassProperty.SetFloat("pitch", cal.pitch);
                     lookingGlassProperty.SetFloat("slope", cal.slope);
                     lookingGlassProperty.SetFloat("center", cal.center);
@@ -168,10 +136,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         lookingGlass.quiltSettings.viewColumns * lookingGlass.quiltSettings.viewRows
                     ));
                 }
-
-                //lookingGlass.PassSettingsToMaterial(lookingGlassMaterial, lookingGlass.quiltSettings);
-
-                //cmd.SetGlobalVector(HDShaderIDs._ScreenSize, hdCamera.screenSize);
 
                 cmd.DrawProcedural(Matrix4x4.identity, lookingGlassMaterial, 0, MeshTopology.Quads, 4, 1, lookingGlassProperty);
             }
@@ -260,6 +224,27 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
             }
 #endif
+        }
+
+        void CreateLayoutFromLookingGlass(Camera camera, LookingGlass.Holoplay lookingGlass)
+        {
+            var matrices = lookingGlass.GetMatrices();
+            var xrPass = XRPass.Create(multipassId: framePasses.Count);
+
+            // Forced to 32 views
+            int numViews = Math.Max(GetMaxViews(), lookingGlass.quiltSettings.numViews);
+
+            for (int i = 0; i < numViews; ++i)
+            {
+                var vp = new Rect(0, 0, lookingGlass.cal.screenWidth, lookingGlass.cal.screenHeight);
+
+                int matIndex = Math.Min(i, lookingGlass.quiltSettings.numViews - 1);
+                Debug.Assert(matIndex < matrices.projectionMatrices.Count);
+                Debug.Assert(matIndex < matrices.viewMatrices.Count);
+                xrPass.AddView(matrices.projectionMatrices[matIndex], matrices.viewMatrices[matIndex], vp);
+            }
+
+            AddPassToFrame(camera, xrPass);
         }
 
         internal bool GetCullingParameters(Camera camera, XRPass xrPass, out ScriptableCullingParameters cullingParams)
