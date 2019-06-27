@@ -602,6 +602,10 @@ namespace UnityEditor.ShaderGraph
                         {
                             evalStack.Push(($"__V{(il.Operand as VariableReference).Index}", 0));
                         }
+                        else if (opCode == OpCodes.Ldobj)
+                        {
+                            // pops the address from the stack and load the value into it - we don't care as all vars are values.
+                        }
                         else if (opCode == OpCodes.Stloc_0)
                         {
                             string rhs = evalStack.Pop().expr;

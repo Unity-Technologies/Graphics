@@ -192,16 +192,19 @@ namespace UnityEditor.Graphing
 
         static bool IsNodeStatic(AbstractMaterialNode node)
         {
-            if (node is IMasterNode || node is GeometryNode || node is VertexColorNode || node is UVNode)
-                return false;
+            if (node is PropertyNode
+                || node is TimeNode
+                || node is ColorNode)
+                return true;
 
-            if (node is SampleTexture2DNode || node is SampleTexture3DNode || node is SampleTexture2DArrayNode || node is SampleTexture2DLODNode || node is SampleCubemapNode || node is SampleGradient)
-                return false;
+            if (node is CodeFunctionNode codeFunctionNode)
+            {
+                var method = codeFunctionNode.Method;
+                if (method.GetCustomAttributes(typeof(CodeFunctionNode.HlslCodeGenAttribute), false).Any())
+                    return true;
+            }
 
-            if (node is IsFrontFaceNode)
-                return false;
-
-            return true;
+            return false;
         }
 
         public static void CollectNodesNodeFeedsInto(List<AbstractMaterialNode> nodeList, AbstractMaterialNode node, IncludeSelf includeSelf = IncludeSelf.Include)
