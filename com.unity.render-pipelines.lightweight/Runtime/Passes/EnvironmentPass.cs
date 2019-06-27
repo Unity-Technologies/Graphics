@@ -49,6 +49,9 @@ namespace UnityEngine.Rendering.LWRP
             {
                 DoFogSetup();
             }
+            //Shader.DisableKeyword("FOG_LINEAR");
+            //Shader.DisableKeyword("FOG_EXP2");
+            //Shader.DisableKeyword("FOG_EXP");
 
             // Do Sky stuff
             using (new ProfilingSample(cmd, "Sky Setup"))
@@ -81,7 +84,7 @@ namespace UnityEngine.Rendering.LWRP
                         Shader.DisableKeyword("FOG_EXP");
                         break;
                     case FogType.Height:
-                        fogParams = new Vector4(m_Fog.density.value, m_Fog.cubemap.value.mipmapCount, m_Fog.heightOffset.value, 0);
+                        fogParams.z = m_Fog.heightOffset.value;
                         Shader.DisableKeyword("FOG_LINEAR");
                         Shader.DisableKeyword("FOG_EXP2");
                         Shader.EnableKeyword("FOG_EXP");
@@ -112,6 +115,7 @@ namespace UnityEngine.Rendering.LWRP
                 Shader.DisableKeyword("FOG_LINEAR");
                 Shader.DisableKeyword("FOG_EXP2");
                 Shader.DisableKeyword("FOG_EXP");
+                Shader.DisableKeyword("FOGMAP");
             }
         }
 

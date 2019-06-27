@@ -22,7 +22,7 @@ namespace UnityEngine.Rendering.LWRP
     public sealed class Fog : VolumeComponent
     {
         // Density type
-        public FogTypeParameter type = new FogTypeParameter(FogType.Linear);
+        public FogTypeParameter type = new FogTypeParameter(FogType.Off);
 
         // Exp fog
         public FloatParameter density = new FloatParameter(0.005f);

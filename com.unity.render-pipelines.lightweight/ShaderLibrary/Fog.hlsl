@@ -27,6 +27,15 @@ float3 RotateAroundYInDegrees (float3 vertex, float degrees)
     return float3(mul(m, vertex.xz), vertex.y).xzy;
 }
 
+real HeightBasedFog(real3 positionWS)
+{
+    half heightMin = min(_WorldSpaceCameraPos.y, positionWS.y);
+    half height = (1-pow(saturate((heightMin - _FogParams.z) * 0.01h), 0.25h));
+    //half height = (1-pow(saturate((vertInputs.positionWS.y - _FogParams.z) * 0.01), 0.25));
+    half distance = _FogParams.x * length( positionWS - _WorldSpaceCameraPos);
+    return 1-saturate(height * distance);
+}
+
 real ComputeFogFactor(VertexPositionInputs vertInputs)
 {
     float clipZ_01 = UNITY_Z_0_FAR_FROM_CLIPSPACE(vertInputs.positionCS.z);
@@ -41,35 +50,7 @@ real ComputeFogFactor(VertexPositionInputs vertInputs)
     return real(_FogParams.x * clipZ_01);
 #elif defined(FOG_EXP)
 
-/*
-float ComputeVolumetricFog( in float3 cameraToWorldPos )
-{
-// NOTE: cVolFogHeightDensityAtViewer = exp( -cHeightFalloff *
-cViewPos.z );
-float fogInt = length( cameraToWorldPos ) * cVolFogHeightDensityAtViewer;
-const float cSlopeThreshold = 0.01;
-if( abs( cameraToWorldPos.z ) > cSlopeThreshold )
-{
-     float t = cHeightFalloff * cameraToWorldPos.z;
-     fogInt *= ( 1.0 - exp( -t ) ) / t;
-}
-   return exp( -cGlobalDensity * fogInt );
-}
-*/
-/*
-half3 cameraToWorldPos = vertInputs.positionWS - _WorldSpaceCameraPos;
-half fogInt = length( cameraToWorldPos ) * exp(-_FogParams.z * clipZ_01z);
-const half slopeThreshold = 0.01h;
-if(abs(_WorldSpaceCameraPos.y) > slopeThreshold)
-{
-    half t = _FogParams.x * cameraToWorldPos.y;
-    fogInt *= ( 1.0 - exp( -t ) ) / t;
-}
-return exp( -1.5 * fogInt);
-*/
-    half height = (1-pow(saturate((vertInputs.positionWS.y - _FogParams.z) * 0.01), 0.25));
-    half distance = _FogParams.x * length(vertInputs.positionWS - _WorldSpaceCameraPos);
-    return 1-saturate(height * distance);
+    return HeightBasedFog(vertInputs.positionWS);
     
 #else
     return 0.0h;
@@ -102,7 +83,7 @@ half3 MipFog(real3 viewDirection, float z)
     viewDirection = RotateAroundYInDegrees(viewDirection, _Rotation);
     half3 color = SAMPLE_TEXTURECUBE_LOD(_FogMap, sampler_FogMap, viewDirection, depth);
 #if !defined(UNITY_USE_NATIVE_HDR)
-    color = DecodeHDREnvironment(half4(color, 1), _FogMap_HDR) * 2.0;
+    color = DecodeHDREnvironment(half4(color, 1), _FogMap_HDR);// * 2.0;
 #endif
 #else
     half3 color = half3(1, 0, 0);
