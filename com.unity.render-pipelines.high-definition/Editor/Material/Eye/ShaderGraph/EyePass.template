@@ -224,7 +224,7 @@ $include("SharedCode.template.hlsl")
         // compute world space normal
         GetNormalWS(fragInputs, irisNormalTS, surfaceData.irisNormalWS, doubleSidedConstants);
 
-        bentNormalWS = surfaceData.normalWS; // TODO: Manu, use perturbed normal for iris
+        bentNormalWS = surfaceData.irisNormalWS; // Use diffuse normal (iris) to fetch GI, unless users provide explicit bent normal
         $BentNormal: GetNormalWS(fragInputs, surfaceDescription.BentNormal, bentNormalWS, doubleSidedConstants);
 
         surfaceData.geomNormalWS = fragInputs.tangentToWorld[2];
