@@ -1,3 +1,5 @@
+using UnityEngine.EventSystems;
+
 namespace UnityEngine.Experimental.Rendering
 {
     public class DebugUpdater : MonoBehaviour
@@ -10,6 +12,13 @@ namespace UnityEngine.Experimental.Rendering
 
             var go = new GameObject { name = "[Debug Updater]" };
             go.AddComponent<DebugUpdater>();
+
+            var es = GameObject.FindObjectOfType<EventSystem>();
+            if(es == null)
+            {
+                go.AddComponent<EventSystem>();
+                go.AddComponent<StandaloneInputModule>();
+            }
             DontDestroyOnLoad(go);
         }
 
