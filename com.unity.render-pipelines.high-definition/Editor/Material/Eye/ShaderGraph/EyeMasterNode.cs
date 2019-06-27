@@ -38,7 +38,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         public const string IrisNormalSlotName = "IrisNormal";
         public const int IrisNormalSlotId = 4;
 
-        public const string SmoothnessSlotName = "ScleraSmoothness";
+        public const string SmoothnessSlotName = "Smoothness";
+        public const string SmoothnessDisplaySlotName = "ScleraSmoothness";
         public const int SmoothnessSlotId = 5;
 
         public const string CorneaSmoothnessSlotName = "CorneaSmoothness";
