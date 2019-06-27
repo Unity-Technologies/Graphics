@@ -577,7 +577,7 @@ bool IsLightingFeatureEnabled(uint bitIndex)
 #endif
 
 ///////////////////////////////////////////////////////////////////////////////
-//                      Fragment Functions                                   //
+//                      PBR Fragment Functions                               //
 //       Used by ShaderGraph and others builtin renderers                    //
 ///////////////////////////////////////////////////////////////////////////////
 #if defined(_DEBUG_SHADER)
@@ -679,6 +679,10 @@ half4 LightweightFragmentPBR(InputData inputData, half3 albedo, half metallic, h
     return LightweightFragmentPBR(inputData, surfaceData);
 }
 
+///////////////////////////////////////////////////////////////////////////////
+//                    Phong Fragment Functions                               //
+//       Used by ShaderGraph and others builtin renderers                    //
+///////////////////////////////////////////////////////////////////////////////
 half4 LightweightFragmentBlinnPhong(InputData inputData, half3 diffuse, half4 specularGloss, half smoothness, half3 emission, half alpha)
 {
     Light mainLight = GetMainLight(inputData.shadowCoord);
@@ -711,4 +715,5 @@ half4 LightweightFragmentBlinnPhong(InputData inputData, half3 diffuse, half4 sp
 
     return half4(finalColor, alpha);
 }
+
 #endif
