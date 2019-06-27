@@ -57,18 +57,11 @@ void InitializeInputData(GrassVertexOutput input, out InputData inputData)
     inputData.vertexLighting = input.fogFactorAndVertexLight.yzw;
     inputData.bakedGI = SAMPLE_GI(input.lightmapUV, input.vertexSH, inputData.normalWS);
     inputData.normalTS = input.normal;
-    
-    #if defined(_DEBUG_SHADER)
     #if defined(LIGHTMAP_ON)
     inputData.lightmapUV = input.lightmapUV;
     #else
     inputData.vertexSH = input.vertexSH;
     #endif
-    #if defined(_NORMALMAP)
-    inputData.tangentWS = input.tangentWS.xyz;
-    inputData.bitangentWS = input.bitangentWS.xyz;
-    #endif
-    #endif 
 }
 
 void InitializeVertData(GrassVertexInput input, inout GrassVertexOutput vertData)

@@ -25,17 +25,13 @@ struct InputData
     half3   vertexLighting;
     half3   bakedGI;
     half3   normalTS;
-    
-    #if defined(_DEBUG_SHADER)
     #if defined(LIGHTMAP_ON)
     half2   lightmapUV;
     #else
     float3  vertexSH;
     #endif
     #if defined(_NORMALMAP)
-    half3   tangentWS;
-    half3   bitangentWS;
-    #endif
+    half3x3 tangentMatrixWS;
     #endif
 };
 

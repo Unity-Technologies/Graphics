@@ -91,13 +91,11 @@ bool UpdateSurfaceAndInputDataForDebug(inout SurfaceData surfaceData, inout Inpu
     {
         half3 normalTS = half3(0.0h, 0.0h, 1.0h);
         #if defined(_NORMALMAP)
-        half3 tangentWS = inputData.tangentWS;
-        half3 bitangentWS = inputData.bitangentWS;
-        half3 normalWS = inputData.normalWS;
-        inputData.normalWS = TransformTangentToWorld(normalTS, half3x3(tangentWS, bitangentWS, normalWS));
+        inputData.normalWS = TransformTangentToWorld(normalTS, inputData.tangentMatrixWS);
         #else
         inputData.normalWS = TransformObjectToWorldDir(normalTS);
         #endif
+        inputData.normalTS = normalTS;
         surfaceData.normalTS = normalTS;
         changed = true;
     }

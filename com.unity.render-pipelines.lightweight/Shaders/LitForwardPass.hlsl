@@ -54,8 +54,8 @@ void InitializeInputData(Varyings input, half3 normalTS, out InputData inputData
 
 #ifdef _NORMALMAP
     half3 viewDirWS = half3(input.normalWS.w, input.tangentWS.w, input.bitangentWS.w);
-    inputData.normalWS = TransformTangentToWorld(normalTS,
-        half3x3(input.tangentWS.xyz, input.bitangentWS.xyz, input.normalWS.xyz));
+    inputData.tangentMatrixWS = half3x3(input.tangentWS.xyz, input.bitangentWS.xyz, input.normalWS.xyz);
+    inputData.normalWS = TransformTangentToWorld(normalTS, inputData.tangentMatrixWS);
 #else
     half3 viewDirWS = input.viewDirWS;
     inputData.normalWS = input.normalWS;
@@ -74,18 +74,11 @@ void InitializeInputData(Varyings input, half3 normalTS, out InputData inputData
     inputData.vertexLighting = input.fogFactorAndVertexLight.yzw;
     inputData.bakedGI = SAMPLE_GI(input.lightmapUV, input.vertexSH, inputData.normalWS);
     inputData.normalTS = normalTS;
-    
-    #if defined(_DEBUG_SHADER)
     #if defined(LIGHTMAP_ON)
     inputData.lightmapUV = input.lightmapUV;
     #else
     inputData.vertexSH = input.vertexSH;
     #endif
-    #if defined(_NORMALMAP)
-    inputData.tangentWS = input.tangentWS.xyz;
-    inputData.bitangentWS = input.bitangentWS.xyz;
-    #endif
-    #endif 
 }
 
 ///////////////////////////////////////////////////////////////////////////////

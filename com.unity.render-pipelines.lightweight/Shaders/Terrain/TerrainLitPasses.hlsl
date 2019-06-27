@@ -60,7 +60,8 @@ void InitializeInputData(Varyings IN, half3 normalTS, out InputData input)
 
 #if defined(_NORMALMAP) && !defined(ENABLE_TERRAIN_PERPIXEL_NORMAL)
     half3 viewDirWS = half3(IN.normal.w, IN.tangent.w, IN.bitangent.w);
-    input.normalWS = TransformTangentToWorld(normalTS, half3x3(IN.tangent.xyz, IN.bitangent.xyz, IN.normal.xyz));
+    input.tangentMatrixWS = half3x3(input.tangentWS.xyz, input.bitangentWS.xyz, input.normalWS.xyz);
+    input.normalWS = TransformTangentToWorld(normalTS, input.tangentMatrixWS);
     SH = SampleSH(input.normalWS.xyz);
 #elif defined(ENABLE_TERRAIN_PERPIXEL_NORMAL)
     half3 viewDirWS = IN.viewDir;
@@ -91,6 +92,12 @@ void InitializeInputData(Varyings IN, half3 normalTS, out InputData input)
     input.vertexLighting = IN.fogFactorAndVertexLight.yzw;
 
     input.bakedGI = SAMPLE_GI(IN.uvMainAndLM.zw, SH, input.normalWS);
+    input.normalTS = normalTS;
+    #if defined(LIGHTMAP_ON)
+    input.lightmapUV = IN.uvMainAndLM.zw;
+    #else
+    input.vertexSH = SH;
+    #endif
 }
 
 #ifndef TERRAIN_SPLAT_BASEPASS

@@ -292,18 +292,14 @@ void InitializeInputData(SpeedTreeFragmentInput input, half3 normalTS, out Input
     inputData.vertexLighting = input.interpolated.fogFactorAndVertexLight.yzw;
     inputData.bakedGI = half3(0, 0, 0); // No GI currently.
     inputData.normalTS = normalTS;
-    
-    #if defined(_DEBUG_SHADER)
     #if defined(LIGHTMAP_ON)
     inputData.lightmapUV = input.lightmapUV;
     #else
-    inputData.vertexSH = input.vertexSH;
+    inputData.vertexSH = 0;
     #endif
     #if defined(_NORMALMAP)
-    inputData.tangentWS = input.tangentWS.xyz;
-    inputData.bitangentWS = input.bitangentWS.xyz;
+    output.tangentMatrixWS = half3x3(input.tangentWS.xyz, input.bitangentWS.xyz, input.normalWS.xyz);
     #endif
-    #endif 
 }
 
 half4 SpeedTree8Frag(SpeedTreeFragmentInput input) : SV_Target
