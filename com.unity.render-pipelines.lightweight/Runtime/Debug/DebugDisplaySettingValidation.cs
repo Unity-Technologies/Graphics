@@ -35,6 +35,13 @@ namespace UnityEditor.Rendering
 
         AlbedoDebugValidationPresetData[] _albedoDebugValidationPresetData = new AlbedoDebugValidationPresetData[]
         {
+            new AlbedoDebugValidationPresetData()
+            {
+                name = "Default Luminance",
+                color = new Color(127f / 255f, 127f / 255f, 127f / 255f),
+                minLuminance = 0.01f,
+                maxLuminance = 0.90f
+            },
             // colors taken from http://www.babelcolor.com/index_htm_files/ColorChecker_RGB_and_spectra.xls
             new AlbedoDebugValidationPresetData()
             {
@@ -157,7 +164,7 @@ namespace UnityEditor.Rendering
         public float AlbedoMaxLuminance = 0.90f;
         public float AlbedoSaturationTolerance = 0.214f;
         public float AlbedoHueTolerance = 0.104f;
-        public Color AlbedoCompareColor = new Color(127, 127, 127, 255);
+        public Color AlbedoCompareColor = new Color(127f/255f, 127f/255f, 127f/255f, 255f/255f);
 
         private class SettingsPanel : DebugDisplaySettingsPanel
         {
