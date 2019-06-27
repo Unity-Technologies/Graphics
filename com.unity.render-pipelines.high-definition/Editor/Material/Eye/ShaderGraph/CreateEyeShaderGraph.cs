@@ -6,7 +6,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
     static class CreateEyeShaderGraph
     {
-        [MenuItem("Assets/Create/Shader/HDRP/Eye Graph", false, 208)]
+        [MenuItem("Assets/Create/Shader/HDRP/Eye Graph (Experimental)", false, 208)]
         public static void CreateMaterialGraph()
         {
             GraphUtil.CreateNewGraph(new EyeMasterNode());
