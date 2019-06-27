@@ -19,8 +19,8 @@ namespace UnityEngine.Rendering.LWRP
         NormalWorldSpace,
         NormalTangentSpace,
         LightingComplexity,
-        Metallic,
         LOD,
+        Metallic,
     }
 
     public enum DebugReplacementPassType
