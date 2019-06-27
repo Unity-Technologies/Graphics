@@ -4,48 +4,58 @@ using UnityEditor.ShaderGraph;
 [ExecuteInEditMode]
 class ConstantUpdater : MonoBehaviour
 {
-    ConstantComputer m_ConstantComputer;
-    Shader m_ConstantComputerShader;
+    [System.NonSerialized] ConstantComputer m_ConstantComputer;
+    [System.NonSerialized] private Material m_Material;
 
-    private void OnPreRender()
+    public Object ComputerAsset = null;
+
+    private void OnWillRenderObject()
     {
-        var material = GetComponent<Renderer>().sharedMaterial;
-        var shader = material != null ? material.shader : null;
-        if (m_ConstantComputerShader != shader)
+        if (ComputerAsset == null)
+            return;
+
+        if (m_Material == null)
         {
-            m_ConstantComputer = null;
-            // TODO: rebuild constant computer...
-            m_ConstantComputerShader = shader;
+            var path = UnityEditor.AssetDatabase.GetAssetPath(ComputerAsset);
+            var jsonString = System.IO.File.ReadAllText(path);
+            if (string.IsNullOrEmpty(jsonString))
+                return;
+
+            m_ConstantComputer = JsonUtility.FromJson<ConstantComputer>(jsonString);
+            m_ConstantComputer.ResolveMethodNames();
+            m_Material = GetComponent<Renderer>().sharedMaterial;
         }
 
-        if (m_ConstantComputer == null)
+        if (m_Material == null || m_ConstantComputer == null)
             return;
 
         foreach (var (inputName, isFloat) in m_ConstantComputer.InputNames)
         {
-            if (material.HasProperty(inputName))
+            if (!isFloat)
             {
-                if (!isFloat)
-                {
-                    m_ConstantComputer.SetInput(inputName, material.GetVector(inputName));
-                }
+                if (m_Material.HasProperty(inputName))
+                    m_ConstantComputer.SetInput(inputName, m_Material.GetVector(inputName));
+            }
+            else
+            {
+                float value;
+                if (inputName == "_SinTime.w")
+                    value = Mathf.Sin(Time.time);
+                else if (inputName == "_CosTime.w")
+                    value = Mathf.Cos(Time.time);
+                else if (inputName == "unity_DeltaTime.x")
+                    value = Time.deltaTime;
+                else if (inputName == "unity_DeltaTime.z")
+                    value = 1f / Time.deltaTime;
+                else if (inputName == "_Time.y")
+                    value = Time.time;
                 else
                 {
-                    float value;
-                    if (inputName == "_SinTime.w")
-                        value = Mathf.Sin(Time.time);
-                    else if (inputName == "_CosTime.w")
-                        value = Mathf.Cos(Time.time);
-                    else if (inputName == "unity_DeltaTime.x")
-                        value = Time.deltaTime;
-                    else if (inputName == "unity_DeltaTime.z")
-                        value = 1f / Time.deltaTime;
-                    else if (inputName == "_Time.y")
-                        value = Time.time;
-                    else
-                        value = material.GetFloat(inputName);
-                    m_ConstantComputer.SetInput(inputName, value);
+                    if (!m_Material.HasProperty(inputName))
+                        continue;
+                    value = m_Material.GetFloat(inputName);
                 }
+                m_ConstantComputer.SetInput(inputName, value);
             }
         }
 
@@ -54,9 +64,9 @@ class ConstantUpdater : MonoBehaviour
         foreach (var (outputName, isFloat) in m_ConstantComputer.OutputNames)
         {
             if (isFloat)
-                material.SetFloat(outputName, m_ConstantComputer.GetOutput(outputName).x);
+                m_Material.SetFloat(outputName, m_ConstantComputer.GetOutput(outputName).x);
             else
-                material.SetVector(outputName, m_ConstantComputer.GetOutput(outputName));
+                m_Material.SetVector(outputName, m_ConstantComputer.GetOutput(outputName));
         }
     }
 }
