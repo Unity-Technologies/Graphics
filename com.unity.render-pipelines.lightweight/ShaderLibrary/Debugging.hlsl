@@ -15,6 +15,7 @@
 #define DEBUG_NORMAL_TANGENT_SPACE 9
 #define DEBUG_LIGHTING_COMPLEXITY 10
 #define DEBUG_LOD 11
+#define DEBUG_METALLIC 12
 int _DebugMaterialIndex;
 
 #define DEBUG_LIGHTING_SHADOW_CASCADES 1
@@ -254,7 +255,7 @@ bool CalculateValidationColorForDebug(InputData inputData, SurfaceData surfaceDa
             }
             else
             {
-                color = half4(value, value, value, 0);
+                color = half4(value, value, value, 1.0);
             }
         }
         return true;
@@ -309,6 +310,10 @@ bool CalculateColorForDebugMaterial(InputData inputData, SurfaceData surfaceData
             return true;
         case DEBUG_LOD:
             surfaceData.albedo = GetLODDebugColor().rgb;
+            return true;
+
+        case DEBUG_METALLIC:
+            color.rgb = surfaceData.metallic.xxx;
             return true;
 
         default:
