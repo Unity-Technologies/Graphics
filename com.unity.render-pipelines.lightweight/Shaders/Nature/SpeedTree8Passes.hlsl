@@ -298,7 +298,7 @@ void InitializeInputData(SpeedTreeFragmentInput input, half3 normalTS, out Input
     inputData.vertexSH = 0;
     #endif
     #if defined(_NORMALMAP)
-    output.tangentMatrixWS = half3x3(input.tangentWS.xyz, input.bitangentWS.xyz, input.normalWS.xyz);
+    inputData.tangentMatrixWS = half3x3(input.interpolated.tangentWS.xyz, input.interpolated.bitangentWS.xyz, input.interpolated.normalWS.xyz);
     #endif
 }
 
