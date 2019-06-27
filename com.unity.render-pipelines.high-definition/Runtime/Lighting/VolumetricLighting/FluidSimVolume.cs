@@ -399,10 +399,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 frameBlend = _frameElapsedTime / frameTime;
 
-                int frameIndexNext = Mathf.Min(_frameIndex + 1, _volumeTexList.Count);
-
-                parameters.DensityTexture     = _frameIndex == 0 ? parameters.initialDensityTexture : _volumeTexList[_frameIndex - 1];
-                parameters.DensityTextureNext = _volumeTexList[frameIndexNext - 1];
+                parameters.DensityTexture     = _frameIndex == 0                    ? parameters.initialDensityTexture : _volumeTexList[_frameIndex - 1];
+                parameters.DensityTextureNext = _frameIndex == _volumeTexList.Count ? parameters.initialDensityTexture : _volumeTexList[_frameIndex];
 
                 //Debug.Log("FrameIndex: " + _frameIndex + ", " + "Anim Densities: " + parameters.DensityTexture.name);
             }
