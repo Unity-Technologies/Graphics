@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Instructions:
   - methodName: Unity_Add
-    typeName: UnityEditor.ShaderGraph.AddNode
+    typeName: UnityEditor.ShaderGraph.MultiplyVectorNode
     inputs:
     - type: 3
       index: 0
@@ -23,7 +23,37 @@ MonoBehaviour:
     outputs:
     - type: 3
       index: 2
+  - methodName: Unity_Sine
+    typeName: UnityEditor.ShaderGraph.SineNode
+    inputs:
+    - type: 3
+      index: 2
+    outputs:
+    - type: 3
+      index: 3
+  - methodName: Unity_Add
+    typeName: UnityEditor.ShaderGraph.AddNode
+    inputs:
+    - type: 3
+      index: 3
+    - type: 3
+      index: 4
+    outputs:
+    - type: 3
+      index: 5
   m_Vecs:
+  - x: 0
+    y: 0
+    z: 0
+    w: 0
+  - x: 10
+    y: 0
+    z: 0
+    w: 0
+  - x: 0
+    y: 0
+    z: 0
+    w: 0
   - x: 0
     y: 0
     z: 0
@@ -38,13 +68,10 @@ MonoBehaviour:
     w: 0
   m_Colors: []
   m_Inputs:
-  - name: _SinTime.w
+  - name: _Time.y
     isFloat: 1
     index: 0
-  - name: Vector2_A9D21D46
-    isFloat: 0
-    index: 1
   m_Outputs:
   - name: _Add_6766B4B5_Out_2
-    isFloat: 0
-    index: 2
+    isFloat: 1
+    index: 5

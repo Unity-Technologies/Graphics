@@ -1237,7 +1237,7 @@ namespace UnityEditor.ShaderGraph
             var constantComputer = ConstantComputer.Gather(node);
             var assetPath = AssetDatabase.GUIDToAssetPath(node.owner.assetGuid);
 
-            AssetDatabase.CreateAsset(constantComputer, Path.Combine(Path.GetDirectoryName(assetPath), node.guid.ToString()));
+            AssetDatabase.CreateAsset(constantComputer, Path.Combine(Path.GetDirectoryName(assetPath), node.guid.ToString() + ".asset"));
         }
 
         static void ConvertToShaderProperty(ISlot slot, PropertyCollector shaderProperties, GenerationMode mode)

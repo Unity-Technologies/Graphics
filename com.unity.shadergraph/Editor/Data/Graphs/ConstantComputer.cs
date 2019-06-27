@@ -59,22 +59,6 @@ namespace UnityEditor.ShaderGraph
         [SerializeField]
         private Property[] m_Outputs;
 
-        public void ResolveMethodNames()
-        {
-            for (int i = 0; i < m_Instructions.Length; ++i)
-            {
-                ref var inst = ref m_Instructions[i];
-                if (inst.method == null)
-                {
-                    inst.method = Type.GetType(inst.typeName).GetMethod(inst.methodName, BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
-                    if (inst.method == null)
-                        throw new Exception($"Cannot resolve method {inst.typeName}.{inst.method}");
-                    inst.typeName = null;
-                    inst.methodName = null;
-                }
-            }
-        }
-
         public IEnumerable<(string name, bool isFloat)> InputNames
         {
             get
@@ -111,6 +95,17 @@ namespace UnityEditor.ShaderGraph
 
         public void Execute()
         {
+            for (int i = 0; i < m_Instructions.Length; ++i)
+            {
+                ref var inst = ref m_Instructions[i];
+                if (inst.method == null)
+                {
+                    inst.method = Type.GetType(inst.typeName).GetMethod(inst.methodName, BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
+                    if (inst.method == null)
+                        throw new Exception($"Cannot resolve method {inst.typeName}.{inst.method}");
+                }
+            }
+
             var isgamma = PlayerSettings.colorSpace == ColorSpace.Gamma;
             foreach (var colorProperty in m_Colors)
             {

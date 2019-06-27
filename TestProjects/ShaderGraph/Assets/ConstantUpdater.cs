@@ -1,40 +1,30 @@
 using UnityEngine;
 using UnityEditor.ShaderGraph;
 
-[ExecuteInEditMode]
+//[ExecuteInEditMode]
 class ConstantUpdater : MonoBehaviour
 {
-    [System.NonSerialized] ConstantComputer m_ConstantComputer;
-    [System.NonSerialized] private Material m_Material;
-
-    public Object ComputerAsset = null;
+    public ConstantComputer ConstantComputer = null;
 
     private void OnWillRenderObject()
     {
-        if (ComputerAsset == null)
+        if (ConstantComputer == null)
             return;
 
-        if (m_Material == null)
-        {
-            var path = UnityEditor.AssetDatabase.GetAssetPath(ComputerAsset);
-            var jsonString = System.IO.File.ReadAllText(path);
-            if (string.IsNullOrEmpty(jsonString))
-                return;
-
-            m_ConstantComputer = JsonUtility.FromJson<ConstantComputer>(jsonString);
-            m_ConstantComputer.ResolveMethodNames();
-            m_Material = GetComponent<Renderer>().sharedMaterial;
-        }
-
-        if (m_Material == null || m_ConstantComputer == null)
+        var renderer = GetComponent<Renderer>();
+        if (renderer == null)
             return;
 
-        foreach (var (inputName, isFloat) in m_ConstantComputer.InputNames)
+        var material = renderer.sharedMaterial;
+        if (material == null)
+            return;
+
+        foreach (var (inputName, isFloat) in ConstantComputer.InputNames)
         {
             if (!isFloat)
             {
-                if (m_Material.HasProperty(inputName))
-                    m_ConstantComputer.SetInput(inputName, m_Material.GetVector(inputName));
+                if (material.HasProperty(inputName))
+                    ConstantComputer.SetInput(inputName, material.GetVector(inputName));
             }
             else
             {
@@ -51,22 +41,22 @@ class ConstantUpdater : MonoBehaviour
                     value = Time.time;
                 else
                 {
-                    if (!m_Material.HasProperty(inputName))
+                    if (!material.HasProperty(inputName))
                         continue;
-                    value = m_Material.GetFloat(inputName);
+                    value = material.GetFloat(inputName);
                 }
-                m_ConstantComputer.SetInput(inputName, value);
+                ConstantComputer.SetInput(inputName, value);
             }
         }
 
-        m_ConstantComputer.Execute();
+        ConstantComputer.Execute();
 
-        foreach (var (outputName, isFloat) in m_ConstantComputer.OutputNames)
+        foreach (var (outputName, isFloat) in ConstantComputer.OutputNames)
         {
             if (isFloat)
-                m_Material.SetFloat(outputName, m_ConstantComputer.GetOutput(outputName).x);
+                material.SetFloat(outputName, ConstantComputer.GetOutput(outputName).x);
             else
-                m_Material.SetVector(outputName, m_ConstantComputer.GetOutput(outputName));
+                material.SetVector(outputName, ConstantComputer.GetOutput(outputName));
         }
     }
 }
