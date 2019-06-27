@@ -38,6 +38,7 @@ namespace UnityEngine.Rendering.LWRP
             this.depthAttachmentHandle = depthAttachmentHandle;
             baseDescriptor.colorFormat = RenderTextureFormat.Depth;
             baseDescriptor.depthBufferBits = kDepthBufferBits;
+            baseDescriptor.stencilFormat = UnityEngine.Experimental.Rendering.GraphicsFormat.R8_UInt;
 
             // Depth-Only pass don't use MSAA
             baseDescriptor.msaaSamples = 1;

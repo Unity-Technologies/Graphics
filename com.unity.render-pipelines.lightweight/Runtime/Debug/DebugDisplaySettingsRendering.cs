@@ -1,4 +1,4 @@
-﻿using UnityEngine.Experimental.Rendering;
+using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering.LWRP;
 
 namespace UnityEditor.Rendering
@@ -10,6 +10,7 @@ namespace UnityEditor.Rendering
         MainLightShadowsOnly,
         AdditionalLightsShadowMap,
         MainLightShadowMap,
+        Stencil
     }
 
     internal enum SceneOverrides

@@ -1,3 +1,5 @@
+using UnityEditor.Rendering;
+
 namespace UnityEngine.Rendering.LWRP
 {
     /// <summary>
@@ -16,7 +18,7 @@ namespace UnityEngine.Rendering.LWRP
         bool m_ClearBlitTarget;
         bool m_IsMobileOrSwitch;
         Rect m_PixelRect;
-        int m_DebugMode;
+        FullScreenDebugMode m_DebugMode;
         float m_NearPlane; 
         float m_FarPlane;
 
@@ -33,7 +35,7 @@ namespace UnityEngine.Rendering.LWRP
         /// <param name="colorHandle"></param>
         /// <param name="clearBlitTarget"></param>
         /// <param name="pixelRect"></param>
-        public void Setup(RenderTextureDescriptor baseDescriptor, RenderTargetIdentifier colorIdentifier, int debugMode, 
+        public void Setup(RenderTextureDescriptor baseDescriptor, RenderTargetIdentifier colorIdentifier, FullScreenDebugMode debugMode, 
             float nearPlane, float farPlane, bool clearBlitTarget = false, Rect pixelRect = new Rect())
         {
             m_Source = colorIdentifier;
@@ -84,8 +86,12 @@ namespace UnityEngine.Rendering.LWRP
             //}
             //else
             {
-                cmd.SetGlobalTexture("_BlitTex", m_Source);
-                cmd.SetGlobalInt("_DebugMode", m_DebugMode);
+                if (m_DebugMode == FullScreenDebugMode.Stencil)
+                    cmd.SetGlobalTexture("_BlitTexInt", m_Source, RenderTextureSubElement.Stencil);
+                else
+                    cmd.SetGlobalTexture("_BlitTex", m_Source);
+
+                cmd.SetGlobalInt("_DebugMode", (int)m_DebugMode);
                 cmd.SetGlobalFloat("_NearPlane", m_NearPlane);
                 cmd.SetGlobalFloat("_FarPlane", m_FarPlane);
 

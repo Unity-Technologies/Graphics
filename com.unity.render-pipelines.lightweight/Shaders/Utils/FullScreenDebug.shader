@@ -29,10 +29,9 @@ Shader "Hidden/Lightweight Render Pipeline/FullScreenDebug"
 
             #define DEBUG_MODE_DEPTH (1)
             #define DEBUG_MODE_MAIN_LIGHT_SHADOWS_ONLY (2)
-            //#define DEBUG_MODE_OVERDRAW (3)
-            //#define DEBUG_MODE_WIRE (4)
-            #define DEBUG_MODE_ADDITIONAL_LIGHTS_SHADOW_MAP (5)
-            #define DEBUG_MODE_MAIN_LIGHT_SHADOW_MAP (6)
+            #define DEBUG_MODE_ADDITIONAL_LIGHTS_SHADOW_MAP (3)
+            #define DEBUG_MODE_MAIN_LIGHT_SHADOW_MAP (4)
+            #define DEBUG_MODE_STENCIL (5)
 
             struct Attributes
             {
@@ -48,6 +47,10 @@ Shader "Hidden/Lightweight Render Pipeline/FullScreenDebug"
 
             TEXTURE2D(_BlitTex);
             SAMPLER(sampler_BlitTex);
+
+            Texture2D<uint3> _BlitTexInt;
+            float4 _BlitTexInt_TexelSize;
+            
             int _DebugMode;
             float _NearPlane;
             float _FarPlane;
@@ -92,6 +95,14 @@ Shader "Hidden/Lightweight Render Pipeline/FullScreenDebug"
                     col.rgb = col.rrr;
                     col.a = 1.0f;
                     return col;
+                }
+                else if (_DebugMode == DEBUG_MODE_STENCIL)
+                {
+                    uint3 stencil = LOAD_TEXTURE2D(_BlitTexInt, input.uv * _BlitTexInt_TexelSize.zw);
+                    float4 final;
+                    final.rgb = stencil.ggg / 255.0f;
+                    final.a = 1.0f;
+                    return final;
                 }
                 else
                 {

@@ -328,12 +328,16 @@ namespace UnityEngine.Rendering.LWRP
                         debugBuffer = m_MainLightShadowCasterPass.m_MainLightShadowmapTexture;
                         pixelRect = new Rect(0, 0.5f * camera.pixelHeight, 0.5f * camera.pixelHeight, 0.5f * camera.pixelHeight);
                         break;
+                    case FullScreenDebugMode.Stencil:
+                        //debugBuffer = m_ActiveCameraColorAttachment.Identifier();
+                        debugBuffer = m_DepthTexture.Identifier();
+                        break;
                     default:
                         debugBuffer = m_OpaqueColor.Identifier();
                         break;
                 }
 
-                m_DebugPass.Setup(cameraTargetDescriptor, debugBuffer, (int)fullScreenDebugMode,
+                m_DebugPass.Setup(cameraTargetDescriptor, debugBuffer, fullScreenDebugMode,
                     renderingData.cameraData.camera.nearClipPlane, renderingData.cameraData.camera.farClipPlane, false, pixelRect);
                 EnqueuePass(m_DebugPass);
             }
@@ -385,6 +389,10 @@ namespace UnityEngine.Rendering.LWRP
                 bool useDepthRenderBuffer = m_ActiveCameraDepthAttachment == RenderTargetHandle.CameraTarget;
                 var colorDescriptor = descriptor;
                 colorDescriptor.depthBufferBits = (useDepthRenderBuffer) ? k_DepthStencilBufferBits : 0;
+
+                if (colorDescriptor.depthBufferBits != 0)
+                    colorDescriptor.stencilFormat = UnityEngine.Experimental.Rendering.GraphicsFormat.R8_UInt;
+
                 cmd.GetTemporaryRT(m_ActiveCameraColorAttachment.id, colorDescriptor, FilterMode.Bilinear);
             }
 
@@ -393,6 +401,7 @@ namespace UnityEngine.Rendering.LWRP
                 var depthDescriptor = descriptor;
                 depthDescriptor.colorFormat = RenderTextureFormat.Depth;
                 depthDescriptor.depthBufferBits = k_DepthStencilBufferBits;
+                depthDescriptor.stencilFormat = UnityEngine.Experimental.Rendering.GraphicsFormat.R8_UInt;
                 depthDescriptor.bindMS = msaaSamples > 1 && !SystemInfo.supportsMultisampleAutoResolve && (SystemInfo.supportsMultisampledTextures != 0);
                 cmd.GetTemporaryRT(m_ActiveCameraDepthAttachment.id, depthDescriptor, FilterMode.Point);
             }

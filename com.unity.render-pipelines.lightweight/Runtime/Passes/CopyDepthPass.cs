@@ -40,6 +40,7 @@ namespace UnityEngine.Rendering.LWRP
             var descriptor = cameraTextureDescriptor;
             descriptor.colorFormat = RenderTextureFormat.Depth;
             descriptor.depthBufferBits = 32; //TODO: do we really need this. double check;
+            descriptor.stencilFormat = UnityEngine.Experimental.Rendering.GraphicsFormat.R8_UInt;
             descriptor.msaaSamples = 1;
             cmd.GetTemporaryRT(destination.id, descriptor, FilterMode.Point);
         }
