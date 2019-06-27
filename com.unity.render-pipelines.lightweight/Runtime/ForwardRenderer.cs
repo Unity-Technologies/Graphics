@@ -8,9 +8,14 @@ namespace UnityEngine.Rendering.LWRP
         const int k_DepthStencilBufferBits = 32;
         const string k_CreateCameraTextures = "Create Camera Texture";
         int m_DebugMaterialIndexId;
-
         int m_DebugLightingIndexId;
         int m_DebugPBRLightingMask;
+        int m_DebugValidationIndexId;
+        int m_DebugAlbedoMinLuminance;
+        int m_DebugAlbedoMaxLuminance;
+        int m_DebugAlbedoSaturationTolerance;
+        int m_DebugAlbedoHueTolerance;
+        int m_DebugAlbedoCompareColor;
 
         DepthOnlyPass m_DepthPrepass;
         MainLightShadowCasterPass m_MainLightShadowCasterPass;
@@ -48,6 +53,13 @@ namespace UnityEngine.Rendering.LWRP
             m_DebugMaterialIndexId = Shader.PropertyToID("_DebugMaterialIndex");
             m_DebugLightingIndexId = Shader.PropertyToID("_DebugLightingIndex");
             m_DebugPBRLightingMask = Shader.PropertyToID("_DebugPBRLightingMask");
+            m_DebugValidationIndexId = Shader.PropertyToID("_DebugValidationIndex");
+            m_DebugAlbedoMinLuminance = Shader.PropertyToID("_AlbedoMinLuminance");
+            m_DebugAlbedoMaxLuminance = Shader.PropertyToID("_AlbedoMaxLuminance");
+            m_DebugAlbedoSaturationTolerance = Shader.PropertyToID("_AlbedoSaturationTolerance");
+            m_DebugAlbedoHueTolerance = Shader.PropertyToID("_AlbedoHueTolerance");
+            m_DebugAlbedoCompareColor = Shader.PropertyToID("_AlbedoCompareColor");
+
             m_NumberFontTexture = data.textures.NumberFont;
             
             Material blitMaterial = CoreUtils.CreateEngineMaterial(data.shaders.blitPS);
@@ -462,6 +474,14 @@ namespace UnityEngine.Rendering.LWRP
             cmd.SetGlobalFloat(m_DebugMaterialIndexId, (int)debugMaterialIndex);
             cmd.SetGlobalFloat(m_DebugLightingIndexId, (int)lightingDebugMode);
             cmd.SetGlobalInt(m_DebugPBRLightingMask, (int)pbrLightingDebugModeMask);
+            cmd.SetGlobalInt(m_DebugValidationIndexId, (int)DebugDisplaySettings.Instance.Validation.validationMode);
+            
+            cmd.SetGlobalFloat(m_DebugAlbedoMinLuminance, DebugDisplaySettings.Instance.Validation.AlbedoMinLuminance);
+            cmd.SetGlobalFloat(m_DebugAlbedoMaxLuminance, DebugDisplaySettings.Instance.Validation.AlbedoMaxLuminance);
+            cmd.SetGlobalFloat(m_DebugAlbedoSaturationTolerance, DebugDisplaySettings.Instance.Validation.AlbedoSaturationTolerance);
+            cmd.SetGlobalFloat(m_DebugAlbedoHueTolerance, DebugDisplaySettings.Instance.Validation.AlbedoHueTolerance);
+            cmd.SetGlobalColor(m_DebugAlbedoCompareColor, DebugDisplaySettings.Instance.Validation.AlbedoCompareColor);
+
             cmd.SetGlobalTexture("_DebugNumberTexture", m_NumberFontTexture);
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);

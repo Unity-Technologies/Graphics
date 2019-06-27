@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using UnityEditor.Rendering;
 using UnityEngine.Rendering.LWRP;
 using UnityEngine.Rendering;
 
@@ -97,8 +98,31 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                     context.ExecuteCommandBuffer(cmd);
                 }
 
-                context.DrawRenderers(renderingData.cullResults, ref drawingSettings, ref m_FilteringSettings,
-                    ref m_RenderStateBlock);
+                var sceneOverrideMode = DebugDisplaySettings.Instance.renderingSettings.sceneOverrides;
+                bool isMaterialDebugActive = lightingDebugMode != LightingDebugMode.None ||
+                                             debugMaterialIndex != DebugMaterialIndex.None || 
+                                             pbrLightingDebugModeMask != (int)PBRLightingDebugMode.None;
+                bool isSceneOverrideActive = sceneOverrideMode != SceneOverrides.None;
+                if (isMaterialDebugActive || isSceneOverrideActive)
+                {
+                    if(lightingDebugMode == LightingDebugMode.ShadowCascades)
+                        // we disable cubemap reflections, too distracting (in TemplateLWRP for ex.)
+                        cmd.EnableShaderKeyword("_DEBUG_ENVIRONMENTREFLECTIONS_OFF");
+                    else
+                        cmd.DisableShaderKeyword("_DEBUG_ENVIRONMENTREFLECTIONS_OFF");
+                    context.ExecuteCommandBuffer(cmd);
+                    cmd.Clear();
+
+                    bool overrideMaterial = isSceneOverrideActive;
+                        
+                    RenderingUtils.RenderObjectWithDebug(context, ref renderingData,
+                        m_FilteringSettings, sortingCriteria, overrideMaterial);
+                }
+                else
+                {
+                    context.DrawRenderers(renderingData.cullResults, ref drawingSettings, ref m_FilteringSettings,
+                        ref m_RenderStateBlock);
+                }
 
                 if (m_CameraSettings.overrideCamera && m_CameraSettings.restoreCamera)
                 {

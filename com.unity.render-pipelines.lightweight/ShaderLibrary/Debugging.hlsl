@@ -36,6 +36,18 @@ int _DebugPBRLightingMask;
 
 sampler2D _DebugNumberTexture;
 
+#define DEBUG_VALIDATION_NONE 0
+//#define DEBUG_VALIDATION_HIGHLIGHT_NAN_INFINITE_NEGATIVE 1
+//#define DEBUG_VALIDATION_HIGHLIGHT_OUTSIDE_RANGE 2
+#define DEBUG_VALIDATION_ALBEDO 3
+#define DEBUG_VALIDATION_METAL 4
+int _DebugValidationIndex;
+half _AlbedoMinLuminance = 0.01;
+half _AlbedoMaxLuminance = 0.90;
+half _AlbedoSaturationTolerance = 0.214;
+half _AlbedoHueTolerance = 0.104;
+half3 _AlbedoCompareColor = half3(0.5, 0.5, 0.5);
+
 struct DebugData
 {
     half3 brdfDiffuse;
@@ -61,7 +73,6 @@ DebugData CreateDebugData(half3 brdfDiffuse, half3 brdfSpecular)
 #define kOrangeBrownColor half4(219.0 / 255.0, 119.0 / 255.0, 59.0 / 255.0, 1.0) // #4B92F3
 #define kGrayColor half4(174.0 / 255.0, 174.0 / 255.0, 174.0 / 255.0, 1.0) // #AEAEAE   
 
-
 float4 GetLODDebugColor()
 {
     if (IsBitSet(unity_LODFade.z, 0))
@@ -81,6 +92,67 @@ float4 GetLODDebugColor()
     if (IsBitSet(unity_LODFade.z, 7))
         return float4(0.7749016f, 0.6368624f, 0.0250984f, 1.0f);
     return float4(0,0,0,0);
+}
+
+// Convert rgb to luminance
+// with rgb in linear space with sRGB primaries and D65 white point
+half LinearRgbToLuminance(half3 linearRgb)
+{
+    return dot(linearRgb, half3(0.2126729f, 0.7151522f, 0.0721750f));
+}
+
+half3 UnityMeta_RGBToHSVHelper(float offset, half dominantColor, half colorone, half colortwo)
+{
+    half H, S, V;
+    V = dominantColor;
+
+    if (V != 0.0)
+    {
+        half small = 0.0;
+        if (colorone > colortwo)
+            small = colortwo;
+        else
+            small = colorone;
+
+        half diff = V - small;
+
+        if (diff != 0)
+        {
+            S = diff / V;
+            H = offset + ((colorone - colortwo) / diff);
+        }
+        else
+        {
+            S = 0;
+            H = offset + (colorone - colortwo);
+        }
+
+        H /= 6.0;
+
+        if (H < 6.0)
+        {
+            H += 1.0;
+        }
+    }
+    else
+    {
+        S = 0;
+        H = 0;
+    }
+    return half3(H, S, V);
+}
+
+half3 UnityMeta_RGBToHSV(half3 rgbColor)
+{
+    // when blue is highest valued
+    if ((rgbColor.b > rgbColor.g) && (rgbColor.b > rgbColor.r))
+        return UnityMeta_RGBToHSVHelper(4.0, rgbColor.b, rgbColor.r, rgbColor.g);
+    //when green is highest valued
+    else if (rgbColor.g > rgbColor.r)
+        return UnityMeta_RGBToHSVHelper(2.0, rgbColor.g, rgbColor.b, rgbColor.r);
+    //when red is highest valued
+    else
+        return UnityMeta_RGBToHSVHelper(0.0, rgbColor.r, rgbColor.g, rgbColor.b);
 }
 
 bool UpdateSurfaceAndInputDataForDebug(inout SurfaceData surfaceData, inout InputData inputData)
@@ -130,7 +202,52 @@ bool UpdateSurfaceAndInputDataForDebug(inout SurfaceData surfaceData, inout Inpu
     return changed;
 }
 
-bool CalculateColorForDebug(InputData inputData, SurfaceData surfaceData, DebugData debugData, out half4 color)
+bool CalculateValidationColorForDebug(InputData inputData, SurfaceData surfaceData, DebugData debugData, out half4 color)
+{
+    if (_DebugValidationIndex == DEBUG_VALIDATION_ALBEDO)
+    {
+        half value = LinearRgbToLuminance(surfaceData.albedo);
+
+        if (_AlbedoMinLuminance > value)
+        {
+             color = half4(1.0f, 0.0f, 0.0f, 1.0f);
+        }
+        else if (_AlbedoMaxLuminance < value)
+        {
+             color = half4(0.0f, 1.0f, 0.0f, 1.0f);
+        }
+        else
+        {
+            half3 hsv = UnityMeta_RGBToHSV(surfaceData.albedo);
+            half hue = hsv.r;
+            half sat = hsv.g;
+
+            half3 compHSV = UnityMeta_RGBToHSV(_AlbedoCompareColor.rgb);
+            half compHue = compHSV.r;
+            half compSat = compHSV.g;
+
+            if ((compSat - _AlbedoSaturationTolerance > sat) || ((compHue - _AlbedoHueTolerance > hue) && (compHue - _AlbedoHueTolerance + 1.0 > hue)))
+            {
+                color = half4(1.0f, 0.0f, 0.0f, 1.0f);
+            }
+            else if ((sat > compSat + _AlbedoSaturationTolerance) || ((hue > compHue + _AlbedoHueTolerance) && (hue > compHue + _AlbedoHueTolerance - 1.0)))
+            {
+                color = half4(0.0f, 1.0f, 0.0f, 1.0f);
+            }
+            else
+            {
+                color = half4(value, value, value, 0);
+            }
+        }
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+}
+
+bool CalculateColorForDebugMaterial(InputData inputData, SurfaceData surfaceData, DebugData debugData, out half4 color)
 {
     color = half4(0.0, 0.0, 0.0, 1.0);
     
@@ -179,6 +296,22 @@ bool CalculateColorForDebug(InputData inputData, SurfaceData surfaceData, DebugD
 
         default:
             return false;
+    }
+}
+
+bool CalculateColorForDebug(InputData inputData, SurfaceData surfaceData, DebugData debugData, out half4 color)
+{
+    if(CalculateColorForDebugMaterial(inputData, surfaceData, debugData, color))
+    {
+        return true;
+    }
+    else if(CalculateValidationColorForDebug(inputData, surfaceData, debugData, color))
+    {
+        return true;
+    }
+    else
+    {
+        return false;
     }
 }
 

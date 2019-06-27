@@ -50,9 +50,11 @@ namespace UnityEngine.Rendering.LWRP
                     : SortingCriteria.CommonTransparent;
 
                 var sceneOverrideMode = DebugDisplaySettings.Instance.renderingSettings.sceneOverrides;
+                var validationMode = DebugDisplaySettings.Instance.Validation.validationMode;
                 bool isMaterialDebugActive = lightingDebugMode != LightingDebugMode.None ||
                                              debugMaterialIndex != DebugMaterialIndex.None || 
-                                             pbrLightingDebugModeMask != (int)PBRLightingDebugMode.None;
+                                             pbrLightingDebugModeMask != (int)PBRLightingDebugMode.None ||
+                                             validationMode == DebugValidationMode.ValidateAlbedo;
                 bool isSceneOverrideActive = sceneOverrideMode != SceneOverrides.None;
                 if (isMaterialDebugActive || isSceneOverrideActive)
                 {

@@ -372,13 +372,16 @@ namespace UnityEngine.Rendering.LWRP
                 m_FirstCameraRenderPassExecuted = true;
 
                 Camera camera = cameraData.camera;
+                Color clearColor = CoreUtils.ConvertSRGBToActiveColorSpace(camera.backgroundColor);
+                ClearFlag clearFlag = GetCameraClearFlag(camera.clearFlags);
                 
                 bool overdrawDebugMode = DebugDisplaySettings.Instance.renderingSettings.sceneOverrides == SceneOverrides.Overdraw;
-                Color clearColor = (overdrawDebugMode) ? Color.black : camera.backgroundColor;
-
-                ClearFlag clearFlag = GetCameraClearFlag(camera.clearFlags);
-                SetRenderTarget(cmd, m_CameraColorTarget, m_CameraDepthTarget, clearFlag,
-                    CoreUtils.ConvertSRGBToActiveColorSpace(clearColor));
+                if (overdrawDebugMode)
+                {
+                    clearColor = Color.black;
+                    clearFlag = ClearFlag.All;
+                }
+                SetRenderTarget(cmd, m_CameraColorTarget, m_CameraDepthTarget, clearFlag, clearColor);
 
                 context.ExecuteCommandBuffer(cmd);
                 cmd.Clear();

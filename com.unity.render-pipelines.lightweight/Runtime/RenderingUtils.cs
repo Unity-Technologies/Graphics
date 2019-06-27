@@ -48,6 +48,7 @@ namespace UnityEngine.Rendering.LWRP
         None,
         HiglightNanInfNegative,
         HighlightOutsideOfRange,
+        ValidateAlbedo,
     }
 
     public static class RenderingUtils
