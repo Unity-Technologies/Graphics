@@ -517,12 +517,6 @@ half3 VertexLighting(float3 positionWS, half3 normalWS)
 //                         Debug Functions                                   //
 ///////////////////////////////////////////////////////////////////////////////
 
-#define DEBUG_PBR_LIGHTING_ENABLE_GI 0
-#define DEBUG_PBR_LIGHTING_ENABLE_PBR_LIGHTING 1
-#define DEBUG_PBR_LIGHTING_ENABLE_ADDITIONAL_LIGHTS 2
-#define DEBUG_PBR_LIGHTING_ENABLE_VERTEX_LIGHTING 3
-#define DEBUG_PBR_LIGHTING_ENABLE_EMISSION 4
-
 #if defined(_DEBUG_SHADER)
 
 half4 CalculateDebugShadowCascadeColor(InputData inputData)
@@ -542,9 +536,6 @@ half4 CalculateDebugShadowCascadeColor(InputData inputData)
 
     return cascadeColors[cascadeIndex];
 }
-
-int _DebugPBRLightingMask;
-sampler2D _DebugNumberTexture;
 
 half4 CalculateDebugLightingComplexityColor(InputData inputData)
 {
@@ -583,20 +574,15 @@ bool IsLightingFeatureEnabled(uint bitIndex)
     return (_DebugPBRLightingMask == 0) || IsBitSet(_DebugPBRLightingMask, bitIndex);
 }
 
-#else
-bool IsLightingFeatureEnabled(uint bitIndex)
-{
-    return true;
-}
 #endif
 
 ///////////////////////////////////////////////////////////////////////////////
 //                      Fragment Functions                                   //
 //       Used by ShaderGraph and others builtin renderers                    //
 ///////////////////////////////////////////////////////////////////////////////
+#if defined(_DEBUG_SHADER)
 half4 LightweightFragmentPBR(InputData inputData, SurfaceData surfaceData)
 {
-#if defined(_DEBUG_SHADER)
     if(_DebugMaterialIndex == DEBUG_LIGHTING_COMPLEXITY)
     {
         return CalculateDebugLightingComplexityColor(inputData);
@@ -621,9 +607,6 @@ half4 LightweightFragmentPBR(InputData inputData, SurfaceData surfaceData)
     {
         return debugColor;
     }
-#else
-    BRDFData brdfData = CreateBRDFData(surfaceData);
-#endif
 
     Light mainLight = GetMainLight(inputData.shadowCoord);
     MixRealtimeAndBakedGI(mainLight, inputData.normalWS, inputData.bakedGI, half4(0, 0, 0, 0));
@@ -658,6 +641,34 @@ half4 LightweightFragmentPBR(InputData inputData, SurfaceData surfaceData)
         
     return half4(color, surfaceData.alpha);
 }
+#else
+half4 LightweightFragmentPBR(InputData inputData, SurfaceData surfaceData)
+{
+    BRDFData brdfData = CreateBRDFData(surfaceData);
+    Light mainLight = GetMainLight(inputData.shadowCoord);
+    MixRealtimeAndBakedGI(mainLight, inputData.normalWS, inputData.bakedGI, half4(0, 0, 0, 0));
+
+    half3 color = 0;
+    color += GlobalIllumination(brdfData, inputData.bakedGI, surfaceData.occlusion, inputData.normalWS, inputData.viewDirectionWS);
+    color += LightingPhysicallyBased(brdfData, mainLight, inputData.normalWS, inputData.viewDirectionWS);
+
+#ifdef _ADDITIONAL_LIGHTS
+    int pixelLightCount = GetAdditionalLightsCount();
+    for (int i = 0; i < pixelLightCount; ++i)
+    {
+        Light light = GetAdditionalLight(i, inputData.positionWS);
+        color += LightingPhysicallyBased(brdfData, light, inputData.normalWS, inputData.viewDirectionWS);
+    }
+#endif
+
+#ifdef _ADDITIONAL_LIGHTS_VERTEX
+    color += inputData.vertexLighting * brdfData.diffuse;
+#endif
+
+    color += surfaceData.emission;
+    return half4(color, surfaceData.alpha);
+}
+#endif
 
 half4 LightweightFragmentPBR(InputData inputData, half3 albedo, half metallic, half3 specular,
     half smoothness, half occlusion, half3 emission, half alpha)
