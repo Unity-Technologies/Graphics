@@ -46,7 +46,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             [SurfaceDataAttributes("Sclera Smoothness")]
             public float perceptualSmoothness;
 
-            [MaterialSharedPropertyMapping(MaterialSharedProperty.Smoothness)]
             [SurfaceDataAttributes("Cornea Smoothness")]
             public float corneaPerceptualSmoothness;
 
@@ -61,7 +60,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             [SurfaceDataAttributes("Sclera IOR", false, true)]
             public float scleraIOR;
 
-            [MaterialSharedPropertyMapping(MaterialSharedProperty.Specular)]
             [SurfaceDataAttributes("Cornea IOR", false, true)]
             public float corneaIOR;
 

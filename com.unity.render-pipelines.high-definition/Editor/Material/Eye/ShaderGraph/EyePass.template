@@ -209,7 +209,7 @@ $include("SharedCode.template.hlsl")
         float3 normalTS = float3(0.0, 0.0, 1.0);
         // Take into account cornea mask here (easier to handle it in tangent space)
         // Cornea is smooth (vertex normal) otherwise use provided normal
-        $SurfaceDescription.Normal: normalTS = lerp(surfaceDescription.Normal, normalTS, surfaceData.mask.x);
+        $SurfaceDescription.Normal: normalTS = normalize(lerp(surfaceDescription.Normal, normalTS, surfaceData.mask.x));
 
         // compute world space normal
         GetNormalWS(fragInputs, normalTS, surfaceData.normalWS, doubleSidedConstants);
@@ -217,7 +217,7 @@ $include("SharedCode.template.hlsl")
         float3 irisNormalTS = float3(0.0, 0.0, 1.0);
         // Take into account cornea mask here (easier to handle it in tangent space)
         // sclera used same normal and iris used specific normal
-        $SurfaceDescription.IrisNormal: irisNormalTS = lerp(surfaceDescription.IrisNormal, normalTS, surfaceData.mask.y);
+        $SurfaceDescription.IrisNormal: irisNormalTS = normalize(lerp(normalTS, surfaceDescription.IrisNormal, surfaceData.mask.x));
 
         // compute world space normal
         GetNormalWS(fragInputs, irisNormalTS, surfaceData.irisNormalWS, doubleSidedConstants);
