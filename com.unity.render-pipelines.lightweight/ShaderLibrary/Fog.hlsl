@@ -40,9 +40,37 @@ real ComputeFogFactor(VertexPositionInputs vertInputs)
     // -density * vertInputs.positionCS.z computed at vertex
     return real(_FogParams.x * clipZ_01);
 #elif defined(FOG_EXP)
+
+/*
+float ComputeVolumetricFog( in float3 cameraToWorldPos )
+{
+// NOTE: cVolFogHeightDensityAtViewer = exp( -cHeightFalloff *
+cViewPos.z );
+float fogInt = length( cameraToWorldPos ) * cVolFogHeightDensityAtViewer;
+const float cSlopeThreshold = 0.01;
+if( abs( cameraToWorldPos.z ) > cSlopeThreshold )
+{
+     float t = cHeightFalloff * cameraToWorldPos.z;
+     fogInt *= ( 1.0 - exp( -t ) ) / t;
+}
+   return exp( -cGlobalDensity * fogInt );
+}
+*/
+/*
+half3 cameraToWorldPos = vertInputs.positionWS - _WorldSpaceCameraPos;
+half fogInt = length( cameraToWorldPos ) * exp(-_FogParams.z * clipZ_01z);
+const half slopeThreshold = 0.01h;
+if(abs(_WorldSpaceCameraPos.y) > slopeThreshold)
+{
+    half t = _FogParams.x * cameraToWorldPos.y;
+    fogInt *= ( 1.0 - exp( -t ) ) / t;
+}
+return exp( -1.5 * fogInt);
+*/
     half height = (1-pow(saturate((vertInputs.positionWS.y - _FogParams.z) * 0.01), 0.25));
     half distance = _FogParams.x * length(vertInputs.positionWS - _WorldSpaceCameraPos);
     return 1-saturate(height * distance);
+    
 #else
     return 0.0h;
 #endif
@@ -74,7 +102,7 @@ half3 MipFog(real3 viewDirection, float z)
     viewDirection = RotateAroundYInDegrees(viewDirection, _Rotation);
     half3 color = SAMPLE_TEXTURECUBE_LOD(_FogMap, sampler_FogMap, viewDirection, depth);
 #if !defined(UNITY_USE_NATIVE_HDR)
-    color = DecodeHDREnvironment(half4(color, 1), _FogMap_HDR);
+    color = DecodeHDREnvironment(half4(color, 1), _FogMap_HDR) * 2.0;
 #endif
 #else
     half3 color = half3(1, 0, 0);

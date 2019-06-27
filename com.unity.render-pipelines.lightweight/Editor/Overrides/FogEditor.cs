@@ -18,6 +18,7 @@ namespace UnityEditor.Rendering.LWRP
         SerializedDataParameter m_Color;
         SerializedDataParameter m_Cubemap;
         SerializedDataParameter m_Rotation;
+        SerializedDataParameter m_Exposure;
 
         SerializedDataParameter m_HeightOffset;
 
@@ -37,6 +38,7 @@ namespace UnityEditor.Rendering.LWRP
             m_Color = Unpack(o.Find(x => x.fogColor));
             m_Cubemap = Unpack(o.Find(x => x.cubemap));
             m_Rotation = Unpack(o.Find(x => x.rotation));
+            m_Exposure = Unpack(o.Find(x => x.exposure));
 
             // Height Fog Settings
             m_HeightOffset = Unpack(o.Find(x => x.heightOffset));
@@ -81,6 +83,7 @@ namespace UnityEditor.Rendering.LWRP
                 else if (m_ColorType.value.intValue == (int) FogColorType.CubeMap)
                 {
                     PropertyField(m_Cubemap);
+                    PropertyField(m_Exposure);
                     PropertyField(m_Rotation);
                 }
             }

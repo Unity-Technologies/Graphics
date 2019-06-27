@@ -40,6 +40,7 @@ namespace UnityEngine.Rendering.LWRP
         public ColorParameter fogColor = new ColorParameter(Color.white, true, false, true);
         public CubemapParameter cubemap = new CubemapParameter(null);
         public ClampedFloatParameter rotation = new ClampedFloatParameter(0f, -180f, 180);
+        public ClampedFloatParameter exposure = new ClampedFloatParameter(1f, 0.01f, 10f);
     }
 
     [Serializable]
