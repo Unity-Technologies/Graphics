@@ -530,13 +530,13 @@ DirectLighting EvaluateBSDF_Rect(   LightLoopContext lightLoopContext,
 
             // Note: We don't have the same normal for diffuse and specular
             // Rotate the endpoints into the local coordinate system.
-            lightVerts = mul(lightVerts, transpose(preLightData.orthoBasisViewDiffuseNormal));
+            float4x3 lightVertsDiff  = mul(lightVerts, transpose(preLightData.orthoBasisViewDiffuseNormal));
 
             float3 ltcValue;
 
             // Evaluate the diffuse part
             // Polygon irradiance in the transformed configuration.
-            float4x3 LD = mul(lightVerts, preLightData.ltcTransformDiffuse);
+            float4x3 LD = mul(lightVertsDiff, preLightData.ltcTransformDiffuse);
             ltcValue = PolygonIrradiance(LD);
             ltcValue *= lightData.diffuseDimmer;
 
@@ -553,10 +553,10 @@ DirectLighting EvaluateBSDF_Rect(   LightLoopContext lightLoopContext,
             lighting.diffuse = preLightData.diffuseFGD * ltcValue;
 
             // Evaluate the specular part
-            lightVerts = mul(lightVerts, transpose(preLightData.orthoBasisViewNormal));
+            float4x3 lightVertsSpec = mul(lightVerts, transpose(preLightData.orthoBasisViewNormal));
 
             // Polygon irradiance in the transformed configuration.
-            float4x3 LS = mul(lightVerts, preLightData.ltcTransformSpecular);
+            float4x3 LS = mul(lightVertsSpec, preLightData.ltcTransformSpecular);
             ltcValue = PolygonIrradiance(LS);
             ltcValue *= lightData.specularDimmer;
 

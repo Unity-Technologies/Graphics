@@ -108,10 +108,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         public const string IndexOfRefractionSlotName = "IndexOfRefraction";
         public const int IndexOfRefractionSlotId = 27;
 
+        public const string TTAzimuthalSmoothnessSlotName = "TTAzimuthalSmoothness";
+        public const int TTAzimuthalSmoothnessSlotId = 28;
+
         public enum MaterialType
         {
             KajiyaKay,
-            Marschner
+            Marschner,
+            MarschnerB,
         }
 
         // Don't support Multiply
@@ -153,16 +157,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             BakedBackGI = 1 << BackLightingSlotId,
             DepthOffset = 1 << DepthOffsetSlotId,
             IndexOfRefraction = 1 << IndexOfRefractionSlotId,
+            TTAzimuthalSmoothness = 1 << TTAzimuthalSmoothnessSlotId,
         }
 
         const SlotMask KajiyaKaySlotMask = SlotMask.Position | SlotMask.Albedo | SlotMask.Normal | SlotMask.SpecularOcclusion | SlotMask.BentNormal | SlotMask.HairStrandDirection
                                             | SlotMask.Transmittance | SlotMask.RimTransmissionIntensity | SlotMask.Smoothness | SlotMask.Occlusion | SlotMask.Alpha | SlotMask.AlphaClipThreshold | SlotMask.AlphaClipThresholdDepthPrepass
                                                 | SlotMask.AlphaClipThresholdDepthPostpass | SlotMask.SpecularTint | SlotMask.SpecularShift | SlotMask.SecondarySpecularTint | SlotMask.SecondarySmoothness | SlotMask.SecondarySpecularShift | SlotMask.AlphaClipThresholdShadow | SlotMask.BakedGI | SlotMask.DepthOffset;
 
-        const SlotMask MarschnerSlotMask = SlotMask.Position | SlotMask.Normal | SlotMask.SpecularOcclusion | SlotMask.SpecularTint | SlotMask.SpecularShift | SlotMask.HairStrandDirection | SlotMask.AzimuthalSmoothness
-                                            | SlotMask.Smoothness | SlotMask.Occlusion | SlotMask.Alpha | SlotMask.AlphaClipThreshold | SlotMask.AlphaClipThresholdDepthPrepass | SlotMask.AlphaClipThresholdDepthPostpass
-                                            | SlotMask.BentNormal | SlotMask.AlphaClipThresholdShadow | SlotMask.BakedGI | SlotMask.DepthOffset | SlotMask.SecondarySmoothness | SlotMask.Albedo | SlotMask.IndexOfRefraction
-                                            | SlotMask.Transmittance | SlotMask.RimTransmissionIntensity;
+        const SlotMask MarschnerSlotMask = KajiyaKaySlotMask | SlotMask.AzimuthalSmoothness | SlotMask.IndexOfRefraction | SlotMask.TTAzimuthalSmoothness;
 
         // This could also be a simple array. For now, catch any mismatched data.
         SlotMask GetActiveSlotMask()
@@ -710,6 +712,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 AddSlot(new Vector1MaterialSlot(IndexOfRefractionSlotId, IndexOfRefractionSlotName, IndexOfRefractionSlotName, SlotType.Input, 1.55f, ShaderStageCapability.Fragment));
                 validSlots.Add(IndexOfRefractionSlotId);
+            }
+            if (MaterialTypeUsesSlotMask(SlotMask.TTAzimuthalSmoothness))
+            {
+                AddSlot(new Vector1MaterialSlot(TTAzimuthalSmoothnessSlotId, TTAzimuthalSmoothnessSlotName, TTAzimuthalSmoothnessSlotName, SlotType.Input, 0.75f, ShaderStageCapability.Fragment));
+                validSlots.Add(TTAzimuthalSmoothnessSlotId);
             }
             if (MaterialTypeUsesSlotMask(SlotMask.SecondarySpecularShift))
             {
