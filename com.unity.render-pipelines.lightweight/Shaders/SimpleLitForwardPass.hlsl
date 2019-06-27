@@ -71,6 +71,9 @@ void InitializeInputData(Varyings input, half3 normalTS, out InputData inputData
     #else
     inputData.vertexSH = input.vertexSH;
     #endif
+    #if defined(_DEBUG_SHADER)
+    inputData.uv = input.uv;
+    #endif
 }
 
 ///////////////////////////////////////////////////////////////////////////////

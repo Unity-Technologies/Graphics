@@ -40,7 +40,9 @@ TEXTURE2D(_Mask2);
 TEXTURE2D(_Mask3);
 #endif
 
+#if !defined(_DEBUG_SHADER)
 TEXTURE2D(_MainTex);            SAMPLER(sampler_MainTex);
+#endif
 TEXTURE2D(_SpecGlossMap);       SAMPLER(sampler_SpecGlossMap);
 
 CBUFFER_START(UnityPerMaterial)
