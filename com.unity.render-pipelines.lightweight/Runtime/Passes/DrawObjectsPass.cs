@@ -52,7 +52,9 @@ namespace UnityEngine.Rendering.LWRP
                 var sceneOverrideMode = DebugDisplaySettings.Instance.renderingSettings.sceneOverrides;
                 bool isMaterialDebugActive = lightingDebugMode != LightingDebugMode.None ||
                                              debugMaterialIndex != DebugMaterialIndex.None || 
-                                             pbrLightingDebugModeMask != (int)PBRLightingDebugMode.None;
+                                             pbrLightingDebugModeMask != (int)PBRLightingDebugMode.None ||
+                                             mipInfoMode != DebugMipInfo.None;
+
                 bool isSceneOverrideActive = sceneOverrideMode != SceneOverrides.None;
                 if (isMaterialDebugActive || isSceneOverrideActive)
                 {

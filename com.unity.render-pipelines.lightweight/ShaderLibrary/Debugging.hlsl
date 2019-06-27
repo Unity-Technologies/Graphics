@@ -4,6 +4,9 @@
 
 #include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/Lighting.hlsl"
 #include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/SurfaceInput.hlsl"
+TEXTURE2D(_MainTex);            SAMPLER(sampler_MainTex);
+float4 _MainTex_TexelSize;
+
 
 #define DEBUG_UNLIT 1
 #define DEBUG_DIFFUSE 2
@@ -16,8 +19,14 @@
 #define DEBUG_NORMAL_TANGENT_SPACE 9
 #define DEBUG_LIGHTING_COMPLEXITY 10
 #define DEBUG_LOD 11
+#define DEBUG_MIP_INFO 12
+
+#define DEBUG_MIP_COUNT 1
+#define DEBUG_MIP_LEVEL 2
+#define DEBUG_MIP_RATIO 3
 
 int _DebugMaterialIndex;
+int _DebugMipIndex;
 
 #define DEBUG_LIGHTING_SHADOW_CASCADES 1
 #define DEBUG_LIGHTING_LIGHT_ONLY 2
@@ -37,6 +46,7 @@ struct DebugData
 {
     SurfaceData surfaceData;
     InputData inputData;
+    float2 uv;
 };
 
 // Set of colors that should still provide contrast for the Color-blind
@@ -107,6 +117,26 @@ half3 ShadowCascadeColor(DebugData debugData)
 }
 
 sampler2D _DebugNumberTexture;
+half4 GetTextNumber(uint numberValue, float3 positionWS)
+{
+    float4 clipPos = TransformWorldToHClip(positionWS);
+    float2 ndc = saturate((clipPos.xy / clipPos.w) * 0.5 + 0.5);
+
+#if UNITY_UV_STARTS_AT_TOP
+    if (_ProjectionParams.x < 0)
+        ndc.y = 1.0 - ndc.y;
+#endif
+
+    // There are currently 10 characters in the font texture, 0-9.
+    const float invNumChar = 1.0 / 10.0f;
+    // The following are hardcoded scales that make the font size readable.
+    ndc.x *= 5.0;
+    ndc.y *= 15.0;
+    ndc.x = fmod(ndc.x, invNumChar) + (numberValue * invNumChar);
+
+    return tex2D(_DebugNumberTexture, ndc.xy);
+}
+
 half4 LightingComplexity(InputData inputData)
 {
     half4 lut[5] = {
@@ -118,25 +148,68 @@ half4 LightingComplexity(InputData inputData)
     };
 
     // Assume a main light and add 1 to the additional lights.
-    unsigned int numLights = clamp(GetAdditionalLightsCount()+1, 0, 4);
+    uint numLights = clamp(GetAdditionalLightsCount()+1, 0, 4);
     half4 fc = lut[numLights];
-
-    float4 clipPos = TransformWorldToHClip(inputData.positionWS);
-    float2 ndc = saturate((clipPos.xy / clipPos.w) * 0.5 + 0.5);
-
-#if UNITY_UV_STARTS_AT_TOP
-    if(_ProjectionParams.x < 0)
-        ndc.y = 1.0 - ndc.y;
-#endif
-
-    const float invNumChar = 1.0 / 10.0f;
-    ndc.x *= 5.0;
-    ndc.y *= 15.0;
-    ndc.x = fmod(ndc.x, invNumChar) + (numLights * invNumChar);
-
-    fc *= tex2D(_DebugNumberTexture, ndc.xy);
+    fc *= GetTextNumber(numLights, inputData.positionWS);
 
     return fc;
+}
+
+float GetMipMapLevel(float2 nonNormalizedUVCoordinate)
+{
+    // The OpenGL Graphics System: A Specification 4.2
+    //  - chapter 3.9.11, equation 3.21
+
+    float2  dx_vtc = ddx(nonNormalizedUVCoordinate);
+    float2  dy_vtc = ddy(nonNormalizedUVCoordinate);
+    float delta_max_sqr = max(dot(dx_vtc, dx_vtc), dot(dy_vtc, dy_vtc));
+
+    return 0.5 * log2(delta_max_sqr);
+}
+
+half4 GetMipLevelDebugColor(InputData inputData, float2 uv)
+{
+    half4 lut[5] = {
+        half4(0, 1, 0, 0),
+        half4(0.25, 0.75, 0, 0),
+        half4(0.498, 0.5019, 0.0039, 0),
+        half4(0.749, 0.247, 0, 0),
+        half4(1, 0, 0, 0)
+    };
+
+    uint mipLevel = clamp(GetMipMapLevel(uv * _MainTex_TexelSize.zw), 0, 9);
+    half4 fc = lut[mipLevel] * 0.1;
+    fc *= GetTextNumber(mipLevel, inputData.positionWS) * 10.0;
+
+    return SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, uv) + fc;
+}
+
+half4 GetMipCountDebugColor(InputData inputData, float2 uv)
+{
+    half4 lut[5] = {
+        half4(0, 1, 0, 0),
+        half4(0.25, 0.75, 0, 0),
+        half4(0.498, 0.5019, 0.0039, 0),
+        half4(0.749, 0.247, 0, 0),
+        half4(1, 0, 0, 0)
+    };
+
+    uint mipCount = clamp(GetMipCount(_MainTex), 0, 5);
+    half4 fc = lut[mipCount] * 0.3;
+    fc *= GetTextNumber(mipCount, inputData.positionWS) * 2.0;
+
+    return SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, uv) + fc;
+}
+
+half4 GetMipInfoColor(InputData inputData, float2 uv)
+{
+    if (_DebugMipIndex == DEBUG_MIP_COUNT)
+        return GetMipCountDebugColor(inputData, uv);
+
+    if (_DebugMipIndex == DEBUG_MIP_LEVEL)
+        return GetMipLevelDebugColor(inputData, uv);
+
+    return half4(0, 0, 0, 0);
 }
 
 SurfaceData CalculateSurfaceDataForDebug(SurfaceData surfaceData)
@@ -252,6 +325,9 @@ half4 CalculateColorForDebug(DebugData debugData)
 
     if (_DebugMaterialIndex == DEBUG_LOD)
         surfaceData.albedo = GetLODDebugColor().rgb;
+
+    if (_DebugMipIndex != 0)
+        color = GetMipInfoColor(inputData, debugData.uv);
 
     // Debug lighting...
     if (_DebugLightingIndex == DEBUG_LIGHTING_SHADOW_CASCADES)

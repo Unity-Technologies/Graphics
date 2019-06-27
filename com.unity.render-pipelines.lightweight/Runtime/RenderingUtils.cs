@@ -19,7 +19,7 @@ namespace UnityEngine.Rendering.LWRP
         NormalWorldSpace,
         NormalTangentSpace,
         LightingComplexity,
-		LOD
+		LOD,
     }
 
     public enum LightingDebugMode
@@ -48,6 +48,14 @@ namespace UnityEngine.Rendering.LWRP
         None,
         HiglightNanInfNegative,
         HighlightOutsideOfRange,
+    }
+
+    public enum DebugMipInfo
+    {
+        None,
+        Count,
+        Level,
+        Ratio
     }
 
     public static class RenderingUtils

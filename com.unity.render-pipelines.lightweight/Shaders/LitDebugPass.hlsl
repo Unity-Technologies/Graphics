@@ -131,6 +131,7 @@ half4 LitPassFragment(Varyings input) : SV_Target
 
     InitializeStandardLitSurfaceData(input.uv, debugData.surfaceData);
     debugData.surfaceData = CalculateSurfaceDataForDebug(debugData.surfaceData);
+    debugData.uv = input.uv;
 
     InitializeInputData(input, debugData.surfaceData.normalTS, debugData.inputData);
         
