@@ -39,6 +39,7 @@ struct Varyings
 #endif
 
     float4 positionCS               : SV_POSITION;
+
     UNITY_VERTEX_INPUT_INSTANCE_ID
     UNITY_VERTEX_OUTPUT_STEREO
 };
@@ -86,7 +87,6 @@ Varyings LitPassVertex(Attributes input)
     UNITY_SETUP_INSTANCE_ID(input);
     UNITY_TRANSFER_INSTANCE_ID(input, output);
     UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
-
     VertexPositionInputs vertexInput = GetVertexPositionInputs(input.positionOS.xyz);
     VertexNormalInputs normalInput = GetVertexNormalInputs(input.normalOS, input.tangentOS);
     half3 viewDirWS = GetCameraPositionWS() - vertexInput.positionWS;
@@ -103,7 +103,7 @@ Varyings LitPassVertex(Attributes input)
     output.normalWS = NormalizeNormalPerVertex(normalInput.normalWS);
     output.viewDirWS = viewDirWS;
 #endif
-    
+
     OUTPUT_LIGHTMAP_UV(input.lightmapUV, unity_LightmapST, output.lightmapUV);
     OUTPUT_SH(output.normalWS.xyz, output.vertexSH);
 
@@ -118,7 +118,6 @@ Varyings LitPassVertex(Attributes input)
 #endif
 
     output.positionCS = vertexInput.positionCS;
- 
     return output;
 }
 
@@ -133,7 +132,7 @@ half4 LitPassFragment(Varyings input) : SV_Target
     debugData.surfaceData = CalculateSurfaceDataForDebug(debugData.surfaceData);
 
     InitializeInputData(input, debugData.surfaceData.normalTS, debugData.inputData);
-        
+
     return CalculateColorForDebug(debugData);
 }
 #endif

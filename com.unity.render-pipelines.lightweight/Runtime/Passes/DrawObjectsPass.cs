@@ -54,7 +54,8 @@ namespace UnityEngine.Rendering.LWRP
                                              debugMaterialIndex != DebugMaterialIndex.None;
                 bool isReplacementDebugActive = fullScreenDebugMode == FullScreenDebugMode.Overdraw ||
                                                 fullScreenDebugMode == FullScreenDebugMode.Wireframe ||
-                                                fullScreenDebugMode == FullScreenDebugMode.SolidWireframe;
+                                                fullScreenDebugMode == FullScreenDebugMode.SolidWireframe ||
+                                                attributeDebugIndex != VertexAttributeDebugMode.None;
                 if (isMaterialDebugActive || isReplacementDebugActive)
                 {
                     if(lightingDebugMode == LightingDebugMode.ShadowCascades)
@@ -66,7 +67,7 @@ namespace UnityEngine.Rendering.LWRP
                     cmd.Clear();
 
                     DebugReplacementPassType debugPassType;
-                    
+
                     if (isMaterialDebugActive)
                         debugPassType = DebugReplacementPassType.None;
                     else
@@ -87,7 +88,12 @@ namespace UnityEngine.Rendering.LWRP
                                 break;
                         }
                     }
-                        
+
+                    if (attributeDebugIndex != VertexAttributeDebugMode.None)
+                    {
+                        debugPassType = DebugReplacementPassType.Attributes;
+                    }
+
                     RenderingUtils.RenderObjectWithDebug(context, debugPassType, ref renderingData,
                         m_FilteringSettings, sortFlags);
                 }

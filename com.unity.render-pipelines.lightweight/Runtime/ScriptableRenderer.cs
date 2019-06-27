@@ -9,12 +9,12 @@ namespace UnityEngine.Rendering.LWRP
     /// <summary>
     ///  Class <c>ScriptableRenderer</c> implements a rendering strategy. It describes how culling and lighting works and
     /// the effects supported.
-    /// 
+    ///
     ///  A renderer can be used for all cameras or be overridden on a per-camera basis. It will implement light culling and setup
     /// and describe a list of <c>ScriptableRenderPass</c> to execute in a frame. The renderer can be extended to support more effect with additional
     ///  <c>ScriptableRendererFeature</c>. Resources for the renderer are serialized in <c>ScriptableRendererData</c>.
-    /// 
-    /// he renderer resources are serialized in <c>ScriptableRendererData</c>. 
+    ///
+    /// he renderer resources are serialized in <c>ScriptableRendererData</c>.
     /// <seealso cref="ScriptableRendererData"/>
     /// <seealso cref="ScriptableRendererFeature"/>
     /// <seealso cref="ScriptableRenderPass"/>
@@ -49,7 +49,7 @@ namespace UnityEngine.Rendering.LWRP
                 cmd.SetGlobalVector(LightweightRenderPipeline.PerFrameBuffer.unity_DeltaTime, deltaTimeVector);
             }
         }
- 
+
         public RenderTargetIdentifier cameraColorTarget
         {
             get => m_CameraColorTarget;
@@ -62,7 +62,8 @@ namespace UnityEngine.Rendering.LWRP
 
         public DebugMaterialIndex debugMaterialIndex { get; set; }
         public LightingDebugMode lightingDebugMode { get; set; }
-        
+        public VertexAttributeDebugMode attributeDebugIndex { get; set; }
+
         protected List<ScriptableRendererFeature> rendererFeatures
         {
             get => m_RendererFeatures;
@@ -72,7 +73,7 @@ namespace UnityEngine.Rendering.LWRP
         {
             get => m_ActiveRenderPassQueue;
         }
-        
+
         static class RenderPassBlock
         {
             // Executes render passes that are inputs to the main rendering
@@ -94,7 +95,7 @@ namespace UnityEngine.Rendering.LWRP
         RenderTargetIdentifier m_CameraColorTarget;
         RenderTargetIdentifier m_CameraDepthTarget;
         bool m_FirstCameraRenderPassExecuted = false;
-        
+
         const string k_ClearRenderStateTag = "Clear Render State";
         const string k_SetRenderTarget = "Set RenderTarget";
         const string k_ReleaseResourcesTag = "Release Resources";
@@ -109,7 +110,7 @@ namespace UnityEngine.Rendering.LWRP
             m_ActiveColorAttachment = colorAttachment;
             m_ActiveDepthAttachment = depthAttachment;
         }
-        
+
         public ScriptableRenderer(ScriptableRendererData data)
         {
             foreach (var feature in data.rendererFeatures)
@@ -145,7 +146,7 @@ namespace UnityEngine.Rendering.LWRP
         public abstract void Setup(ScriptableRenderContext context, ref RenderingData renderingData);
 
         /// <summary>
-        /// Override this method to implement the lighting setup for the renderer. You can use this to 
+        /// Override this method to implement the lighting setup for the renderer. You can use this to
         /// compute and upload light CBUFFER for example.
         /// </summary>
         /// <param name="context">Use this render context to issue any draw commands during execution.</param>
@@ -181,7 +182,7 @@ namespace UnityEngine.Rendering.LWRP
         public void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             bool debug = DebugDisplaySettings.Instance.buffer.FullScreenDebugMode == FullScreenDebugMode.Overdraw;
-                
+
             Camera camera = renderingData.cameraData.camera;
             ClearRenderState(context);
 
@@ -269,7 +270,7 @@ namespace UnityEngine.Rendering.LWRP
 #if UNITY_EDITOR
             // We need public API to tell if FrameDebugger is active and enabled. In that case
             // we want to force a clear to see properly the drawcall stepping.
-            // For now, to fix FrameDebugger in Editor, we force a clear. 
+            // For now, to fix FrameDebugger in Editor, we force a clear.
             cameraClearFlags = CameraClearFlags.SolidColor;
 #endif
 
@@ -340,6 +341,7 @@ namespace UnityEngine.Rendering.LWRP
                 var renderPass = m_ActiveRenderPassQueue[currIndex];
                 renderPass.debugMaterialIndex = debugMaterialIndex;
                 renderPass.lightingDebugMode = lightingDebugMode;
+                renderPass.attributeDebugIndex = attributeDebugIndex;
                 ExecuteRenderPass(context, renderPass, ref renderingData);
             }
 
@@ -357,7 +359,7 @@ namespace UnityEngine.Rendering.LWRP
             ref CameraData cameraData = ref renderingData.cameraData;
 
             // When render pass doesn't call ConfigureTarget we assume it's expected to render to camera target
-            // which might be backbuffer or the framebuffer render textures. 
+            // which might be backbuffer or the framebuffer render textures.
             if (!renderPass.overrideCameraTarget)
             {
                 passColorAttachment = m_CameraColorTarget;
@@ -369,7 +371,7 @@ namespace UnityEngine.Rendering.LWRP
                 m_FirstCameraRenderPassExecuted = true;
 
                 Camera camera = cameraData.camera;
-                
+
                 bool debug = DebugDisplaySettings.Instance.buffer.FullScreenDebugMode == FullScreenDebugMode.Overdraw;
                 Color clearColor = (debug) ? Color.black : camera.backgroundColor;
 

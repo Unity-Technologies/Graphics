@@ -27,7 +27,8 @@ namespace UnityEngine.Rendering.LWRP
         None,
         Overdraw,
         Wireframe,
-        SolidWireframe
+        SolidWireframe,
+        Attributes,
     }
 
     public enum LightingDebugMode
@@ -39,6 +40,18 @@ namespace UnityEngine.Rendering.LWRP
         Reflections,
         ReflectionsWithSmoothness,
     }
+
+	public enum VertexAttributeDebugMode
+	{
+        None,
+		Texcoord0,
+		Texcoord1,
+		Texcoord2,
+		Texcoord3,
+        Color,
+		Tangent,
+		Normal,
+	}
 
     public static class RenderingUtils
     {
@@ -229,6 +242,9 @@ namespace UnityEngine.Rendering.LWRP
                     case DebugReplacementPassType.SolidWireframe:
                         debugSettings.overrideMaterialPassIndex = 1;
                         break;
+                    case DebugReplacementPassType.Attributes:
+                        debugSettings.overrideMaterialPassIndex = 2;
+                        break;
                 }
             }
 
@@ -240,11 +256,11 @@ namespace UnityEngine.Rendering.LWRP
                 {
                     replacementMaterial.SetColor("_DebugColor", Color.white);
                     context.DrawRenderers(renderingData.cullResults, ref debugSettings, ref filterSettings);
-                    
+
                     rsBlock.rasterState = new RasterState(CullMode.Back, -1, -1, true);
                     rsBlock.mask = RenderStateMask.Raster;
                 }
-                
+
                 context.Submit();
                 GL.wireframe = true;
                 replacementMaterial.SetColor("_DebugColor", Color.black);

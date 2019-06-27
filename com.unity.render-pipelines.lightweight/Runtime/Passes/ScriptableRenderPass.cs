@@ -34,6 +34,7 @@ namespace UnityEngine.Rendering.LWRP
         public RenderPassEvent renderPassEvent { get; set; }
         public DebugMaterialIndex debugMaterialIndex { get; set; }
         public LightingDebugMode lightingDebugMode { get; set; }
+        public VertexAttributeDebugMode attributeDebugIndex { get; set; }
 
         public RenderTargetIdentifier colorAttachment
         {
@@ -114,7 +115,7 @@ namespace UnityEngine.Rendering.LWRP
         }
 
         /// <summary>
-        /// This method is called by the renderer before executing the render pass. 
+        /// This method is called by the renderer before executing the render pass.
         /// Override this method if you need to to configure render targets and their clear state, and to create temporary render target textures.
         /// If a render pass doesn't override this method, this render pass renders to the active Camera's render target.
         /// You should never call CommandBuffer.SetRenderTarget. Instead call <c>ConfigureTarget</c> and <c>ConfigureClear</c>.
