@@ -114,7 +114,8 @@ namespace UnityEditor.Experimental.Rendering
 
             //Only need to do this since CopyTexture is currently broken on D3D11
             //Proper fix on it's way for 18.3 or 19.1
-            Color [] colorArray = new Color[0];
+            //Color [] colorArray = new Color[0];
+            Color[] colorArray = new Color[tileSize * tileSize * tileSize]; //seongdae;fspm
 
             int yTiles = sourceTexture.height / tileSize;
             int xTiles = sourceTexture.width / tileSize;
@@ -124,8 +125,10 @@ namespace UnityEditor.Experimental.Rendering
                 for (int j = 0; j < xTiles; j++)
                 {
                     Color [] sourceTile = sourceTexture.GetPixels(j * tileSize, i * tileSize, tileSize, tileSize);
-                    Array.Resize(ref colorArray, colorArray.Length + sourceTile.Length);
-                    Array.Copy(sourceTile, 0, colorArray, colorArray.Length - sourceTile.Length, sourceTile.Length);
+                    //Array.Resize(ref colorArray, colorArray.Length + sourceTile.Length);
+                    //Array.Copy(sourceTile, 0, colorArray, colorArray.Length - sourceTile.Length, sourceTile.Length);
+                    int colorIndex = sourceTile.Length * (j + (xTiles - 1 - i) * xTiles); //seongdae;fspm
+                    Array.Copy(sourceTile, 0, colorArray, colorIndex, sourceTile.Length); //seongdae;fspm
                 }
             }
 
