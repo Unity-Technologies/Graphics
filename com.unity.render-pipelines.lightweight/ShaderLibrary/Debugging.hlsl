@@ -3,6 +3,10 @@
 #define LIGHTWEIGHT_DEBUGGING_INCLUDED
 
 #include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/SurfaceInput.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Debug.hlsl"
+
+float4 _BaseMap_TexelSize;
+float4 _BaseMap_MipInfo;
 
 #define DEBUG_UNLIT 1
 #define DEBUG_DIFFUSE 2
@@ -40,8 +44,15 @@ int _DebugAttributesIndex;
 #define DEBUG_PBR_LIGHTING_ENABLE_ADDITIONAL_LIGHTS 2
 #define DEBUG_PBR_LIGHTING_ENABLE_VERTEX_LIGHTING 3
 #define DEBUG_PBR_LIGHTING_ENABLE_EMISSION 4
-
 int _DebugPBRLightingMask;
+
+#define DEBUG_MIPMAPMODE_NONE 0
+#define DEBUG_MIPMAPMODE_MIP_RATIO 1
+#define DEBUG_MIPMAPMODE_MIP_COUNT 2
+#define DEBUG_MIPMAPMODE_MIP_COUNT_REDUCTION 3
+//#define DEBUG_MIPMAPMODE_STREAMING_MIP_BUDGET 4
+//#define DEBUG_MIPMAPMODE_STREAMING_MIP 5
+int _DebugMipIndex;
 
 sampler2D _DebugNumberTexture;
 
@@ -61,6 +72,7 @@ struct DebugData
 {
     half3 brdfDiffuse;
     half3 brdfSpecular;
+    float2 uv;
 };
 
 // TODO: Set of colors that should still provide contrast for the Color-blind
@@ -74,12 +86,13 @@ struct DebugData
 
 half4 GetShadowCascadeColor(float4 shadowCoord, float3 positionWS);
 
-DebugData CreateDebugData(half3 brdfDiffuse, half3 brdfSpecular)
+DebugData CreateDebugData(half3 brdfDiffuse, half3 brdfSpecular, float2 uv)
 {
     DebugData debugData;
 
     debugData.brdfDiffuse = brdfDiffuse;
     debugData.brdfSpecular = brdfSpecular;
+    debugData.uv = uv;
 
     return debugData;
 }
@@ -221,12 +234,38 @@ bool UpdateSurfaceAndInputDataForDebug(inout SurfaceData surfaceData, inout Inpu
     return changed;
 }
 
+float3 GetTextureDataDebug(uint paramId, float2 uv, Texture2D tex, float4 texelSize, float4 mipInfo, float3 originalColor)
+{
+    float3 outColor = originalColor;
+
+    switch (paramId)
+    {
+    case DEBUG_MIPMAPMODE_MIP_RATIO:
+        outColor = GetDebugMipColorIncludingMipReduction(originalColor, tex, texelSize, uv, mipInfo);
+        break;
+    case DEBUG_MIPMAPMODE_MIP_COUNT:
+        outColor = GetDebugMipCountColor(originalColor, tex);
+        break;
+    case DEBUG_MIPMAPMODE_MIP_COUNT_REDUCTION:
+        outColor = GetDebugMipReductionColor(tex, mipInfo);
+        break;
+    //case DEBUG_MIPMAPMODE_STREAMING_MIP_BUDGET:
+    //    outColor = GetDebugStreamingMipColor(tex, mipInfo);
+    //    break;
+    //case DEBUG_MIPMAPMODE_STREAMING_MIP:
+    //    outColor = GetDebugStreamingMipColorBlended(originalColor, tex, mipInfo);
+    //    break;
+    }
+
+    return outColor;
+}
+
+
 bool CalculateValidationColorForDebug(InputData inputData, SurfaceData surfaceData, DebugData debugData, out half4 color)
 {
     if (_DebugValidationIndex == DEBUG_VALIDATION_ALBEDO)
     {
         half value = LinearRgbToLuminance(surfaceData.albedo);
-
         if (_AlbedoMinLuminance > value)
         {
              color = half4(1.0f, 0.0f, 0.0f, 1.0f);
@@ -260,10 +299,20 @@ bool CalculateValidationColorForDebug(InputData inputData, SurfaceData surfaceDa
         }
         return true;
     }
-    else
+    
+    return false;
+}
+
+bool CalculateValidationColorForMipMaps(InputData inputData, SurfaceData surfaceData, DebugData debugData, out half4 color)
+{
+    if (_DebugMipIndex > 0)
     {
-        return false;
+        half3 debugCol = GetTextureDataDebug(_DebugMipIndex, debugData.uv, _BaseMap, _BaseMap_TexelSize, _BaseMap_MipInfo, surfaceData.albedo);
+        color = half4(debugCol, 1.0f);
+        return true;
     }
+    
+    return false;
 }
 
 bool CalculateColorForDebugMaterial(InputData inputData, SurfaceData surfaceData, DebugData debugData, out half4 color)
@@ -328,6 +377,10 @@ bool CalculateColorForDebug(InputData inputData, SurfaceData surfaceData, DebugD
         return true;
     }
     else if(CalculateValidationColorForDebug(inputData, surfaceData, debugData, color))
+    {
+        return true;
+    }
+    else if(CalculateValidationColorForMipMaps(inputData, surfaceData, debugData, color))
     {
         return true;
     }
