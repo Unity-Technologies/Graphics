@@ -69,19 +69,20 @@ namespace UnityEditor.ShaderGraph
             return null;
         }
 
-        public static List<AbstractMaterialNode> s_SubRootNodeList = null;
-
         public string GetShader(GenerationMode mode, string outputName, out List<PropertyCollector.TextureInfo> configuredTextures, List<string> sourceAssetDependencyPaths = null)
         {
             var activeNodeList = ListPool<AbstractMaterialNode>.Get();
-            s_SubRootNodeList = ListPool<AbstractMaterialNode>.Get();
-            NodeUtils.CollectNodesFromNode(activeNodeList, false, s_SubRootNodeList, this);
+            var subRootNodeList = ListPool<AbstractMaterialNode>.Get();
+            NodeUtils.CollectNodesFromNode(activeNodeList, false, subRootNodeList, this);
 
             var shaderProperties = new PropertyCollector();
 
             var abstractMaterialGraph = owner as GraphData;
             if (abstractMaterialGraph != null)
+            {
                 abstractMaterialGraph.CollectShaderProperties(shaderProperties, mode);
+                abstractMaterialGraph.subRootNodeList = subRootNodeList;
+            }
 
             foreach (var activeNode in activeNodeList.OfType<AbstractMaterialNode>())
                 activeNode.CollectShaderProperties(shaderProperties, mode);
@@ -106,7 +107,6 @@ namespace UnityEditor.ShaderGraph
             }
             configuredTextures = shaderProperties.GetConfiguredTexutres();
 
-            s_SubRootNodeList = null;
             return finalShader.ToString();
         }
 

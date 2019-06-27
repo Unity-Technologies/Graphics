@@ -23,6 +23,8 @@ namespace UnityEditor.ShaderGraph
         [NonSerialized]
         List<AbstractShaderProperty> m_Properties = new List<AbstractShaderProperty>();
 
+        public List<AbstractMaterialNode> subRootNodeList = new List<AbstractMaterialNode>();
+
         public IEnumerable<AbstractShaderProperty> properties
         {
             get { return m_Properties; }

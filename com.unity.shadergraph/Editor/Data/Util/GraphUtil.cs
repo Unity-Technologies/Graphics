@@ -1210,6 +1210,30 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
+        static void HandleStaticNode(GraphData graph, AbstractMaterialNode node, PropertyCollector shaderProperties, GenerationMode mode)
+        {
+            if (graph.subRootNodeList == null || !graph.subRootNodeList.Contains(node))
+                return;
+
+            IEnumerable<int> ids = node.GetOutputSlots<ISlot>().Select(x => x.id);
+            foreach (var slotId in ids)
+            {
+                var slot = node.FindSlot<ISlot>(slotId);
+                ConvertToShaderProperty(slot, shaderProperties, GenerationMode.Preview);
+            }
+
+            node.CollectShaderProperties(shaderProperties, mode);
+        }
+
+        static void ConvertToShaderProperty(ISlot slot, PropertyCollector shaderProperties, GenerationMode mode)
+        {
+            var materialSlot = slot as MaterialSlot;
+            materialSlot?.AddDefaultProperty(shaderProperties, mode);
+
+            AbstractShaderProperty added = shaderProperties.properties.Last();
+            added.generatePropertyBlock = true;
+        }
+
         public static void GenerateSurfaceDescriptionFunction(
             List<AbstractMaterialNode> activeNodeList,
             AbstractMaterialNode rootNode,
@@ -1239,7 +1263,10 @@ namespace UnityEditor.ShaderGraph
                 foreach (var activeNode in activeNodeList)
                 {
                     if (activeNode.isStatic)
+                    {
+                        HandleStaticNode(graph, activeNode, shaderProperties, mode);
                         continue;
+                    }
 
                     if (activeNode is IGeneratesFunction functionNode)
                     {
