@@ -26,6 +26,7 @@ namespace UnityEditor.ShaderGraph
 
         private Instruction[] m_Instructions;
         private float4[] m_Vecs;
+        private (Color, int)[] m_Colors;
 
         private (string name, int index)[] m_Inputs;
         private (string name, int index)[] m_Outputs;
@@ -40,6 +41,13 @@ namespace UnityEditor.ShaderGraph
 
         public void Execute()
         {
+            var isgamma = PlayerSettings.colorSpace == ColorSpace.Gamma;
+            foreach (var (color, index) in m_Colors)
+            {
+                var vec = isgamma ? color : color.linear;
+                m_Vecs[index] = math.float4(vec.r, vec.g, vec.b, vec.a);
+            }
+
             foreach (var inst in m_Instructions)
             {
                 var args = new object[inst.inputs.Length + inst.outputs.Length];
@@ -95,139 +103,134 @@ namespace UnityEditor.ShaderGraph
             var nodeGuidToInstructionIndex = new Dictionary<Guid, int>();
             var instructions = new List<Instruction>(nodes.Count);
             var vecs = new List<float4>();
+            var colors = new List<(Color color, int index)>();
             var inputs = new List<(string name, int index)>();
             var outputs = new List<(string name, int index)>();
 
-            foreach (var node in nodes)
+            foreach (var node in nodes.OfType<CodeFunctionNode>())
             {
-                if (node is PropertyNode propertyNode)
+                // Code function node
+                var func = node.Method;
+                if (func.GetCustomAttribute<CodeFunctionNode.HlslCodeGenAttribute>() == null)
+                    throw new Exception("Unity can only create ConstantComputer from HlslCodeGen function nodes.");
+
+                var inputArgs = new List<Arg>();
+                var outputArgs = new List<Arg>();
+
+                var slots = new List<MaterialSlot>();
+                node.GetSlots(slots);
+                foreach (var param in func.GetParameters())
                 {
-                    // one of the input node
-                    var shaderProperty = GetShaderPropertyFromNode(propertyNode);
-                    if (inputs.FindIndex(i => i.name == shaderProperty.referenceName) >= 0)
+                    var arg = new Arg();
+                    var paramType = param.ParameterType;
+                    if (paramType.IsByRef)
+                        paramType = paramType.GetElementType();
+                    if (paramType == typeof(Float))
+                        arg.type = 0;
+                    else if (paramType == typeof(Float2))
+                        arg.type = 1;
+                    else if (paramType == typeof(Float3))
+                        arg.type = 2;
+                    else if (paramType == typeof(Float4))
+                        arg.type = 3;
+
+                    var slotId = param.GetCustomAttribute<CodeFunctionNode.SlotAttribute>().slotId;
+                    var slot = slots.Find(s => s.id == slotId);
+                    var edge = node.owner.GetEdges(slot.slotReference).FirstOrDefault();
+                    if (edge == null && param.IsOut)
                         continue;
 
-                    int index = vecs.Count;
-                    vecs.Add(float4.zero);
-                    inputs.Add((shaderProperty.referenceName, index));
-                }
-                else if (node is TimeNode timeNode)
-                {
-                    // Time input node
-                }
-                else if (node is CodeFunctionNode codeFunctionNode)
-                {
-                    // Code function node
-                    var func = codeFunctionNode.Method;
-                    if (func.GetCustomAttribute<CodeFunctionNode.HlslCodeGenAttribute>() == null)
-                        throw new Exception("Unity can only create ConstantComputer from HlslCodeGen function nodes.");
-
-                    var inputArgs = new List<Arg>();
-                    var outputArgs = new List<Arg>();
-
-                    var slots = new List<MaterialSlot>();
-                    node.GetSlots(slots);
-                    foreach (var param in func.GetParameters())
+                    if (!param.IsOut)
                     {
-                        var arg = new Arg();
-                        var paramType = param.ParameterType;
-                        if (paramType.IsByRef)
-                            paramType = paramType.GetElementType();
-                        if (paramType == typeof(Float))
-                            arg.type = 0;
-                        else if (paramType == typeof(Float2))
-                            arg.type = 1;
-                        else if (paramType == typeof(Float3))
-                            arg.type = 2;
-                        else if (paramType == typeof(Float4))
-                            arg.type = 3;
-
-                        var slotId = param.GetCustomAttribute<CodeFunctionNode.SlotAttribute>().slotId;
-                        var slot = slots.Find(s => s.id == slotId);
-                        var edge = node.owner.GetEdges(slot.slotReference).FirstOrDefault();
-                        if (edge == null && param.IsOut)
-                            continue;
-
-                        if (!param.IsOut)
+                        // input
+                        if (edge != null)
                         {
-                            // input
-                            if (edge != null)
+                            var fromNode = node.owner.GetNodeFromGuid<AbstractMaterialNode>(edge.outputSlot.nodeGuid);
+                            Debug.Assert(nodes.Contains(fromNode));
+                            if (fromNode is PropertyNode || fromNode is TimeNode)
                             {
-                                var fromNode = node.owner.GetNodeFromGuid<AbstractMaterialNode>(edge.outputSlot.nodeGuid);
-                                Debug.Assert(nodes.Contains(fromNode));
-                                if (fromNode is PropertyNode fromPropertyNode)
-                                {
-                                    var shaderProperty = GetShaderPropertyFromNode(fromPropertyNode);
-                                    var inputIndex = inputs.FindIndex(i => i.name == shaderProperty.referenceName);
-                                    arg.index = inputs[inputIndex].index;
-                                }
-                                else if (fromNode is TimeNode)
-                                {
-                                }
+                                string inputName;
+                                if (fromNode is PropertyNode propertyNode)
+                                    inputName = GetShaderPropertyFromNode(propertyNode).referenceName;
                                 else
+                                    inputName = fromNode.GetVariableNameForSlot(edge.outputSlot.slotId);
+
+                                var inputIndex = inputs.FindIndex(i => i.name == inputName);
+                                if (inputIndex < 0)
                                 {
-                                    arg.index = -1;
-                                    var fromFuncNode = fromNode as CodeFunctionNode;
-                                    var fromInstruction = instructions[nodeGuidToInstructionIndex[fromNode.guid]];
-                                    var fromParams = fromInstruction.method.GetParameters();
-                                    for (int i = 0; i < fromParams.Length; ++i)
-                                    {
-                                        if (fromParams[i].GetCustomAttribute<CodeFunctionNode.SlotAttribute>().slotId == edge.outputSlot.slotId)
-                                        {
-                                            arg.index = fromInstruction.outputs[i - fromInstruction.inputs.Length].index;
-                                            break;
-                                        }
-                                    }
-                                    Debug.Assert(arg.index != -1);
+                                    inputIndex = inputs.Count;
+                                    inputs.Add((inputName, vecs.Count));
+                                    vecs.Add(float4.zero);
                                 }
+                                arg.index = inputs[inputIndex].index;
+                            }
+                            else if (fromNode is ColorNode colorNode)
+                            {
+                                arg.index = vecs.Count;
+                                vecs.Add(float4.zero);
+                                colors.Add((colorNode.color.color, arg.index));
                             }
                             else
                             {
-                                // default
-                                arg.index = vecs.Count;
-                                if (slot is Vector1MaterialSlot vec1Slot)
-                                    vecs.Add(math.float4(vec1Slot.value));
-                                else if (slot is Vector2MaterialSlot vec2Slot)
-                                    vecs.Add(math.float4(vec2Slot.value, 0, 0));
-                                else if (slot is Vector3MaterialSlot vec3Slot)
-                                    vecs.Add(math.float4(vec3Slot.value, 0));
-                                else if (slot is Vector4MaterialSlot vec4Slot)
-                                    vecs.Add(math.float4(vec4Slot.value));
-                                else
-                                    Debug.Assert(false);
+                                arg.index = -1;
+                                var fromFuncNode = fromNode as CodeFunctionNode;
+                                var fromInstruction = instructions[nodeGuidToInstructionIndex[fromNode.guid]];
+                                var fromParams = fromInstruction.method.GetParameters();
+                                for (int i = 0; i < fromParams.Length; ++i)
+                                {
+                                    if (fromParams[i].GetCustomAttribute<CodeFunctionNode.SlotAttribute>().slotId == edge.outputSlot.slotId)
+                                    {
+                                        arg.index = fromInstruction.outputs[i - fromInstruction.inputs.Length].index;
+                                        break;
+                                    }
+                                }
+                                Debug.Assert(arg.index != -1);
                             }
-                            inputArgs.Add(arg);
                         }
                         else
                         {
-                            // output
+                            // default
+                            // TODO: deduplicate by hashing the value
                             arg.index = vecs.Count;
-                            vecs.Add(float4.zero);
-                            outputArgs.Add(arg);
-
-                            if (node == root)
-                                outputs.Add((node.GetVariableNameForSlot(slotId), arg.index));
+                            if (slot is Vector1MaterialSlot vec1Slot)
+                                vecs.Add(math.float4(vec1Slot.value));
+                            else if (slot is Vector2MaterialSlot vec2Slot)
+                                vecs.Add(math.float4(vec2Slot.value, 0, 0));
+                            else if (slot is Vector3MaterialSlot vec3Slot)
+                                vecs.Add(math.float4(vec3Slot.value, 0));
+                            else if (slot is Vector4MaterialSlot vec4Slot)
+                                vecs.Add(math.float4(vec4Slot.value));
+                            else
+                                Debug.Assert(false);
                         }
+                        inputArgs.Add(arg);
                     }
-
-                    var instruction = new Instruction()
+                    else
                     {
-                        method = codeFunctionNode.Method,
-                        inputs = inputArgs.ToArray(),
-                        outputs = outputArgs.ToArray()
-                    };
-                    instructions.Add(instruction);
+                        // output
+                        arg.index = vecs.Count;
+                        vecs.Add(float4.zero);
+                        outputArgs.Add(arg);
+
+                        if (node == root)
+                            outputs.Add((node.GetVariableNameForSlot(slotId), arg.index));
+                    }
                 }
-                else
+
+                var instruction = new Instruction()
                 {
-                    throw new Exception("Unknonw node");
-                }
+                    method = node.Method,
+                    inputs = inputArgs.ToArray(),
+                    outputs = outputArgs.ToArray()
+                };
+                instructions.Add(instruction);
             }
 
             var constantComputer = new ConstantComputer()
             {
                 m_Instructions = instructions.ToArray(),
                 m_Vecs = vecs.ToArray(),
+                m_Colors = colors.ToArray(),
                 m_Inputs = inputs.ToArray(),
                 m_Outputs = outputs.ToArray()
             };
