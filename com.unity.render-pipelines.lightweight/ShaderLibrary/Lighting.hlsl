@@ -600,7 +600,7 @@ half4 LightweightFragmentPBR(InputData inputData, SurfaceData surfaceData)
     }
     
     BRDFData brdfData = CreateBRDFData(surfaceData);
-    DebugData debugData = CreateDebugData(brdfData.diffuse, brdfData.specular);
+    DebugData debugData = CreateDebugData(brdfData.diffuse, brdfData.specular, inputData.uv);
     half4 debugColor;
     
     if(CalculateColorForDebug(inputData, surfaceData, debugData, debugColor))

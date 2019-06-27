@@ -54,7 +54,9 @@ namespace UnityEngine.Rendering.LWRP
                 bool isMaterialDebugActive = lightingDebugMode != LightingDebugMode.None ||
                                              debugMaterialIndex != DebugMaterialIndex.None || 
                                              pbrLightingDebugModeMask != (int)PBRLightingDebugMode.None ||
+                                             mipInfoMode != DebugMipInfo.None ||
                                              validationMode == DebugValidationMode.ValidateAlbedo;
+
                 bool isSceneOverrideActive = sceneOverrideMode != SceneOverrides.None;
                 if (isMaterialDebugActive || isSceneOverrideActive)
                 {
