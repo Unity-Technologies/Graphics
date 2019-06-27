@@ -227,8 +227,9 @@ VoxelLighting EvaluateVoxelLightingDirectional(LightLoopContext context, uint fe
 
         // Compute the amount of in-scattered radiance.
         //lighting.radianceNoPhase  += intensity * color;
+        //lighting.radianceComplete += phase * intensity * color;
         lighting.radianceNoPhase  += intensity * transmittance * color; //seongdae;fspm
-        lighting.radianceComplete += phase * intensity * color;
+        lighting.radianceComplete += phase * transmittance * intensity * color; //seongdae;fspm
     }
 
     return lighting;
@@ -353,8 +354,9 @@ VoxelLighting EvaluateVoxelLightingLocal(LightLoopContext context, uint featureF
 
                 // Compute the amount of in-scattered radiance.
                 //lighting.radianceNoPhase  += intensity * color;
+                //lighting.radianceComplete += phase * intensity * color;
                 lighting.radianceNoPhase  += intensity * transmittance * color; //seongdae;fspm
-                lighting.radianceComplete += phase * intensity * color;
+                lighting.radianceComplete += phase * intensity * transmittance * color; //seongdae;fspm
             }
         }
 

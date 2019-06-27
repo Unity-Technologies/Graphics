@@ -528,8 +528,8 @@ void FillVolumetricDensityBuffer(PositionInputs posInput, uint tileIndex, Jitter
                     fluidSimExtinction = dot(density.xyz, 0.3333) + density.w;
                 }
                 
-                voxelScattering += fluidSimScattering;
-                voxelExtinction += fluidSimExtinction;
+                voxelScattering += overlapFraction * fluidSimScattering;
+                voxelExtinction += overlapFraction * fluidSimExtinction;
             }
         }
 
