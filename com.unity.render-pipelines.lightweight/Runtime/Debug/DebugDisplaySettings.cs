@@ -15,7 +15,7 @@ namespace UnityEditor.Rendering
         public DebugMaterialSettings materialSettings { get; private set; }
         public DebugDisplaySettingsRendering renderingSettings { get; private set; }
         public DebugDisplaySettingsLighting Lighting { get; private set; }
-        public DebugDisplaySettingsOverlay Overlay { get; private set; }
+        public DebugDisplaySettingsValidation Validation { get; private set; }
         
         private TData Add<TData>(TData newData) where TData: IDebugDisplaySettingsData
         {
@@ -35,7 +35,7 @@ namespace UnityEditor.Rendering
             materialSettings = Add(new DebugMaterialSettings());
             renderingSettings = Add(new DebugDisplaySettingsRendering());
             Lighting = Add(new DebugDisplaySettingsLighting());
-            Overlay = Add(new DebugDisplaySettingsOverlay());
+            Validation = Add(new DebugDisplaySettingsValidation());
         }
 
         public void ForEach(Action<IDebugDisplaySettingsData> onExecute)

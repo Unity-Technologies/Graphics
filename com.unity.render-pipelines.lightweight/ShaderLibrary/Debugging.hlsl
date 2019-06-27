@@ -106,6 +106,7 @@ bool UpdateSurfaceAndInputDataForDebug(inout SurfaceData surfaceData, inout Inpu
     {
         surfaceData.albedo = half3(0.0h, 0.0h, 0.0h);
         surfaceData.smoothness = 1.0;
+        surfaceData.emission = half3(0.0h, 0.0h, 0.0h);
         changed = true;
     }
     

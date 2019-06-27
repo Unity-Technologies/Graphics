@@ -13,7 +13,7 @@ namespace UnityEngine.Rendering.LWRP
         Diffuse,
         Specular,
         Alpha,
-        Smoothnes,
+        Smoothness,
         AmbientOcclusion,
         Emission,
         NormalWorldSpace,
@@ -43,7 +43,7 @@ namespace UnityEngine.Rendering.LWRP
         Emission = 0x10,
     }
 
-    public enum DebugOverlayMode
+    public enum DebugValidationMode
     {
         None,
         HiglightNanInfNegative,
