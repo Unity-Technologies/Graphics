@@ -8,8 +8,7 @@
 #include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/Shadows.hlsl"
 #include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/Fog.hlsl"
 
-#define PHYSICAL_SKY
-#if defined(PHYSICAL_SKY)
+#ifdef PHYSICAL_SKY
 #include "Packages/com.unity.render-pipelines.lightweight/Shaders/PhysicalSky/Definitions.cginc"
 #include "Packages/com.unity.render-pipelines.lightweight/Shaders/PhysicalSky/UtilityFunctions.cginc"
 #include "Packages/com.unity.render-pipelines.lightweight/Shaders/PhysicalSky/TransmittanceFunctions.cginc"
@@ -18,7 +17,7 @@
 #include "Packages/com.unity.render-pipelines.lightweight/Shaders/PhysicalSky/RenderingFunctions.cginc"
 
 float sky_exposure;
-float3 white_point; // (kc)  
+float3 white_point;
 float3 earth_center;
 float3 sun_direction;
 float fog_amount;
@@ -527,7 +526,7 @@ half3 VertexLighting(float3 positionWS, half3 normalWS)
     return vertexLightColor;
 }
 
-#if defined(PHYSICAL_SKY)
+#ifdef PHYSICAL_SKY
 RadianceSpectrum GetSolarRadiance() 
 {
 	return solar_irradiance / (PI * sun_angular_radius * sun_angular_radius);
@@ -576,8 +575,8 @@ half4 LightweightFragmentPBR(InputData inputData, half3 albedo, half metallic, h
     half3 color = GlobalIllumination(brdfData, inputData.bakedGI, occlusion, inputData.normalWS, inputData.viewDirectionWS);
     float3 sun_contribution =LightingPhysicallyBased(brdfData, mainLight, inputData.normalWS, inputData.viewDirectionWS);
 
-#if defined(PHYSICAL_SKY)
-    {    
+#ifdef PHYSICAL_SKY
+    {
  	    float3 _point = inputData.positionWS;
     	float3 normal = inputData.normalWS;
         float3 camera = _WorldSpaceCameraPos;
@@ -590,7 +589,7 @@ half4 LightweightFragmentPBR(InputData inputData, half3 albedo, half metallic, h
     	float3 in_scatter = fog_amount * GetSkyRadianceToPoint(camera - earth_center, _point - earth_center, 0.f, sun_direction, transmittance);
 
         color = (color + sun_contribution + irradiance) * transmittance;
-        in_scatter = in_scatter * sky_exposure; // same as RenderSky.shader
+        in_scatter = in_scatter / white_point * sky_exposure; // same as RenderSky.shader
         color += in_scatter;
     }
 #else

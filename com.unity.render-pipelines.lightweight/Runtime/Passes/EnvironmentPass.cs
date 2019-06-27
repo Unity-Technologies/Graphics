@@ -144,8 +144,14 @@ namespace UnityEngine.Rendering.LWRP
                     m_PhysicalSky.UpdateParameters();
 
                     m_PhysicalSky.m_Model.BindGlobal(camera, null, null);
+
+                    Shader.EnableKeyword("PHYSICAL_SKY");
                 }
-        }
+                else
+                    Shader.DisableKeyword("PHYSICAL_SKY");
+            }
+            else
+                Shader.DisableKeyword("PHYSICAL_SKY");
         }
 
         #endregion

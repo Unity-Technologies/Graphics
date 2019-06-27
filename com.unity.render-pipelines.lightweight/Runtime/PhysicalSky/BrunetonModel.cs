@@ -262,8 +262,6 @@ namespace UnityEngine.Rendering.LWRP
             bool kDoWhiteBalance = false;
             float kSunAngularRadius = 0.00935f / 2.0f;
             float kBottomRadius = 6360000.0f;
-//(kc)            float kLengthUnitInMeters = 1000.0f;
-            float kLengthUnitInMeters = 50.0f;
             LUMINANCE kUseLuminance = LUMINANCE.NONE;
 
             double[] kSolarIrradiance = new double[]
