@@ -160,6 +160,7 @@ SurfaceData CalculateSurfaceDataForDebug(SurfaceData surfaceData)
     {
         surfaceData.albedo = half3(0.0h, 0.0h, 0.0h);
         surfaceData.smoothness = 1.0;
+        surfaceData.emission = half3(0.0h, 0.0h, 0.0h);
     }
     
     if (_DebugLightingIndex == DEBUG_LIGHTING_REFLECTIONS_WITH_SMOOTHNESS)
