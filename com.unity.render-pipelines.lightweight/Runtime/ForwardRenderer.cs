@@ -9,7 +9,9 @@ namespace UnityEngine.Rendering.LWRP
         const string k_CreateCameraTextures = "Create Camera Texture";
         int m_DebugMaterialIndexId;
         int m_DebugLightingIndexId;
+        int m_DebugVertexAttributesIndexId;
         int m_DebugPBRLightingMask;
+        int m_DebugMipIndexId;
         int m_DebugValidationIndexId;
         int m_DebugAlbedoMinLuminance;
         int m_DebugAlbedoMaxLuminance;
@@ -52,7 +54,9 @@ namespace UnityEngine.Rendering.LWRP
         {
             m_DebugMaterialIndexId = Shader.PropertyToID("_DebugMaterialIndex");
             m_DebugLightingIndexId = Shader.PropertyToID("_DebugLightingIndex");
+            m_DebugVertexAttributesIndexId = Shader.PropertyToID("_DebugAttributesIndex");
             m_DebugPBRLightingMask = Shader.PropertyToID("_DebugPBRLightingMask");
+            m_DebugMipIndexId = Shader.PropertyToID("_DebugMipIndex");
             m_DebugValidationIndexId = Shader.PropertyToID("_DebugValidationIndex");
             m_DebugAlbedoMinLuminance = Shader.PropertyToID("_AlbedoMinLuminance");
             m_DebugAlbedoMaxLuminance = Shader.PropertyToID("_AlbedoMaxLuminance");
@@ -61,7 +65,7 @@ namespace UnityEngine.Rendering.LWRP
             m_DebugAlbedoCompareColor = Shader.PropertyToID("_AlbedoCompareColor");
 
             m_NumberFontTexture = data.textures.NumberFont;
-            
+
             Material blitMaterial = CoreUtils.CreateEngineMaterial(data.shaders.blitPS);
             Material fullScreenDebugMaterial = CoreUtils.CreateEngineMaterial(data.shaders.fullScreenDebugPS);
             Material copyDepthMaterial = CoreUtils.CreateEngineMaterial(data.shaders.copyDepthPS);
@@ -109,7 +113,7 @@ namespace UnityEngine.Rendering.LWRP
         public override void Setup(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             SetupDebugRendering(context);
-                
+
             Camera camera = renderingData.cameraData.camera;
             RenderTextureDescriptor cameraTargetDescriptor = renderingData.cameraData.cameraTargetDescriptor;
 
@@ -125,9 +129,9 @@ namespace UnityEngine.Rendering.LWRP
                     activeRenderPassQueue.RemoveAt(i);
             }
 
+            // Special path for depth only offscreen cameras. Only write opaques + transparents.
             SceneOverrides sceneOverride = DebugDisplaySettings.Instance.renderingSettings.sceneOverrides;
-            
-            // Special path for depth only offscreen cameras. Only write opaques + transparents. 
+
             bool isOffscreenDepthTexture = camera.targetTexture != null && camera.targetTexture.format == RenderTextureFormat.Depth;
             bool sceneOverrideEnabled = sceneOverride != SceneOverrides.None;
             if (isOffscreenDepthTexture || sceneOverrideEnabled)
@@ -149,7 +153,7 @@ namespace UnityEngine.Rendering.LWRP
                     m_DepthPrepass.Setup(cameraTargetDescriptor, m_DepthTexture);
                     EnqueuePass(m_DepthPrepass);
                 }
-                
+
                 EnqueuePass(m_RenderOpaqueForwardPass);
 
                 if (camera.clearFlags == CameraClearFlags.Skybox && RenderSettings.skybox != null)
@@ -172,14 +176,14 @@ namespace UnityEngine.Rendering.LWRP
                     EnqueuePass(m_SceneViewDepthCopyPass);
                 }
 #endif
-                
+
                 return;
             }
-            
+
             bool mainLightShadows = m_MainLightShadowCasterPass.Setup(ref renderingData);
             bool additionalLightShadows = m_AdditionalLightsShadowCasterPass.Setup(ref renderingData);
             bool resolveShadowsInScreenSpace = mainLightShadows && renderingData.shadowData.requiresScreenSpaceShadowResolve;
-            
+
             // Depth prepass is generated in the following cases:
             // - We resolve shadows in screen space
             // - Scene view camera always requires a depth texture. We do a depth pre-pass to simplify it and it shouldn't matter much for editor.
@@ -206,18 +210,18 @@ namespace UnityEngine.Rendering.LWRP
             m_ActiveCameraColorAttachment = (createColorTexture) ? m_CameraColorAttachment : RenderTargetHandle.CameraTarget;
             m_ActiveCameraDepthAttachment = (createDepthTexture) ? m_CameraDepthAttachment : RenderTargetHandle.CameraTarget;
             bool intermediateRenderTexture = createColorTexture || createDepthTexture;
-            
+
             if (intermediateRenderTexture)
                 CreateCameraRenderTarget(context, ref renderingData.cameraData);
-            
+
             ConfigureCameraTarget(m_ActiveCameraColorAttachment.Identifier(), m_ActiveCameraDepthAttachment.Identifier());
 
             // if rendering to intermediate render texture we don't have to create msaa backbuffer
             int backbufferMsaaSamples = (intermediateRenderTexture) ? 1 : cameraTargetDescriptor.msaaSamples;
-            
+
             if (Camera.main == camera && camera.cameraType == CameraType.Game && camera.targetTexture == null)
                 SetupBackbufferFormat(backbufferMsaaSamples, renderingData.cameraData.isStereoEnabled);
-            
+
             bool hasAfterRendering = activeRenderPassQueue.Find(x => x.renderPassEvent == RenderPassEvent.AfterRendering) != null;
 
             if (mainLightShadows)
@@ -331,7 +335,7 @@ namespace UnityEngine.Rendering.LWRP
                         break;
                 }
 
-                m_DebugPass.Setup(cameraTargetDescriptor, debugBuffer, (int)fullScreenDebugMode, 
+                m_DebugPass.Setup(cameraTargetDescriptor, debugBuffer, (int)fullScreenDebugMode,
                     renderingData.cameraData.camera.nearClipPlane, renderingData.cameraData.camera.farClipPlane, false, pixelRect);
                 EnqueuePass(m_DebugPass);
             }
@@ -422,7 +426,7 @@ namespace UnityEngine.Rendering.LWRP
             QualitySettings.antiAliasing = msaaSamples;
 #endif
         }
-        
+
         bool RequiresIntermediateColorTexture(ref RenderingData renderingData, RenderTextureDescriptor baseDescriptor)
         {
             ref CameraData cameraData = ref renderingData.cameraData;
@@ -467,20 +471,24 @@ namespace UnityEngine.Rendering.LWRP
         {
             debugMaterialIndex = DebugDisplaySettings.Instance.materialSettings.DebugMaterialIndexData;
             lightingDebugMode = DebugDisplaySettings.Instance.Lighting.m_LightingDebugMode;
+            attributeDebugIndex = DebugDisplaySettings.Instance.materialSettings.VertexAttributeDebugIndexData;
             PBRLightingDebugMode pbrLightingDebugMode = DebugDisplaySettings.Instance.Lighting.m_PBRLightingDebugMode;
             pbrLightingDebugModeMask = (int) pbrLightingDebugMode;
+            debugMipInfo = DebugDisplaySettings.Instance.renderingSettings.mipInfoDebugMode;
 
             var cmd = CommandBufferPool.Get("");
             cmd.SetGlobalFloat(m_DebugMaterialIndexId, (int)debugMaterialIndex);
             cmd.SetGlobalFloat(m_DebugLightingIndexId, (int)lightingDebugMode);
+			cmd.SetGlobalFloat(m_DebugVertexAttributesIndexId, (int)attributeDebugIndex);
             cmd.SetGlobalInt(m_DebugPBRLightingMask, (int)pbrLightingDebugModeMask);
+            cmd.SetGlobalInt(m_DebugMipIndexId, (int)debugMipInfo);
             cmd.SetGlobalInt(m_DebugValidationIndexId, (int)DebugDisplaySettings.Instance.Validation.validationMode);
-            
+
             cmd.SetGlobalFloat(m_DebugAlbedoMinLuminance, DebugDisplaySettings.Instance.Validation.AlbedoMinLuminance);
             cmd.SetGlobalFloat(m_DebugAlbedoMaxLuminance, DebugDisplaySettings.Instance.Validation.AlbedoMaxLuminance);
             cmd.SetGlobalFloat(m_DebugAlbedoSaturationTolerance, DebugDisplaySettings.Instance.Validation.AlbedoSaturationTolerance);
             cmd.SetGlobalFloat(m_DebugAlbedoHueTolerance, DebugDisplaySettings.Instance.Validation.AlbedoHueTolerance);
-            cmd.SetGlobalColor(m_DebugAlbedoCompareColor, DebugDisplaySettings.Instance.Validation.AlbedoCompareColor);
+            cmd.SetGlobalColor(m_DebugAlbedoCompareColor, DebugDisplaySettings.Instance.Validation.AlbedoCompareColor.linear);
 
             cmd.SetGlobalTexture("_DebugNumberTexture", m_NumberFontTexture);
             context.ExecuteCommandBuffer(cmd);

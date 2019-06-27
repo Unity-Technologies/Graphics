@@ -51,10 +51,14 @@ namespace UnityEngine.Rendering.LWRP
 
                 var sceneOverrideMode = DebugDisplaySettings.Instance.renderingSettings.sceneOverrides;
                 var validationMode = DebugDisplaySettings.Instance.Validation.validationMode;
+                var attributeDebugIndex = DebugDisplaySettings.Instance.materialSettings.VertexAttributeDebugIndexData;
                 bool isMaterialDebugActive = lightingDebugMode != LightingDebugMode.None ||
-                                             debugMaterialIndex != DebugMaterialIndex.None || 
+                                             debugMaterialIndex != DebugMaterialIndex.None ||
                                              pbrLightingDebugModeMask != (int)PBRLightingDebugMode.None ||
-                                             validationMode == DebugValidationMode.ValidateAlbedo;
+                                             mipInfoMode != DebugMipInfo.None ||
+                                             validationMode == DebugValidationMode.ValidateAlbedo ||
+	                                     attributeDebugIndex != VertexAttributeDebugMode.None;
+
                 bool isSceneOverrideActive = sceneOverrideMode != SceneOverrides.None;
                 if (isMaterialDebugActive || isSceneOverrideActive)
                 {
@@ -65,9 +69,8 @@ namespace UnityEngine.Rendering.LWRP
                         cmd.DisableShaderKeyword("_DEBUG_ENVIRONMENTREFLECTIONS_OFF");
                     context.ExecuteCommandBuffer(cmd);
                     cmd.Clear();
+                    bool overrideMaterial = isSceneOverrideActive || attributeDebugIndex != VertexAttributeDebugMode.None;
 
-                    bool overrideMaterial = isSceneOverrideActive;
-                        
                     RenderingUtils.RenderObjectWithDebug(context, ref renderingData,
                         m_FilteringSettings, sortFlags, overrideMaterial);
                 }

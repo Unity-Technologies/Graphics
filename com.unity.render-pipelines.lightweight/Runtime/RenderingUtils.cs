@@ -19,7 +19,17 @@ namespace UnityEngine.Rendering.LWRP
         NormalWorldSpace,
         NormalTangentSpace,
         LightingComplexity,
-		LOD
+        LOD,
+        Metallic,
+    }
+
+    public enum DebugReplacementPassType
+    {
+        None,
+        Overdraw,
+        Wireframe,
+        SolidWireframe,
+        Attributes,
     }
 
     public enum LightingDebugMode
@@ -32,6 +42,17 @@ namespace UnityEngine.Rendering.LWRP
         ReflectionsWithSmoothness,
     }
 
+	public enum VertexAttributeDebugMode
+	{
+        None,
+		Texcoord0,
+		Texcoord1,
+		Texcoord2,
+		Texcoord3,
+        Color,
+		Tangent,
+		Normal,
+	}
     [Flags]
     public enum PBRLightingDebugMode
     {
@@ -49,6 +70,14 @@ namespace UnityEngine.Rendering.LWRP
         HiglightNanInfNegative,
         HighlightOutsideOfRange,
         ValidateAlbedo,
+    }
+
+    public enum DebugMipInfo
+    {
+        None,
+        Count,
+        Level,
+        Ratio
     }
 
     public static class RenderingUtils
@@ -231,7 +260,7 @@ namespace UnityEngine.Rendering.LWRP
             if (overrideMaterial)
             {
                 debugSettings.overrideMaterial = replacementMaterial;
-                var sceneOverrideMode = DebugDisplaySettings.Instance.renderingSettings.sceneOverrides; 
+                var sceneOverrideMode = DebugDisplaySettings.Instance.renderingSettings.sceneOverrides;
                 switch (sceneOverrideMode)
                 {
                     case SceneOverrides.Overdraw:
@@ -242,21 +271,25 @@ namespace UnityEngine.Rendering.LWRP
                         debugSettings.overrideMaterialPassIndex = 1;
                         break;
                 }
-                
-                RenderStateBlock rsBlock = new RenderStateBlock();
+
+                if (DebugDisplaySettings.Instance.materialSettings.VertexAttributeDebugIndexData != VertexAttributeDebugMode.None)
+                {
+                    debugSettings.overrideMaterialPassIndex = 2;
+                }
+
+                    RenderStateBlock rsBlock = new RenderStateBlock();
                 bool wireframe = sceneOverrideMode == SceneOverrides.Wireframe || sceneOverrideMode == SceneOverrides.SolidWireframe;
                 if (wireframe)
                 {
-                    
                     if (sceneOverrideMode == SceneOverrides.SolidWireframe)
                     {
                         replacementMaterial.SetColor("_DebugColor", Color.white);
                         context.DrawRenderers(renderingData.cullResults, ref debugSettings, ref filterSettings);
-                    
+
                         rsBlock.rasterState = new RasterState(CullMode.Back, -1, -1, true);
                         rsBlock.mask = RenderStateMask.Raster;
                     }
-                
+
                     context.Submit();
                     GL.wireframe = true;
                     replacementMaterial.SetColor("_DebugColor", Color.black);
@@ -272,7 +305,7 @@ namespace UnityEngine.Rendering.LWRP
             else
             {
                 context.DrawRenderers(renderingData.cullResults, ref debugSettings, ref filterSettings);
-            }       
+            }
         }
 
         // Caches render texture format support. SystemInfo.SupportsRenderTextureFormat allocates memory due to boxing.
