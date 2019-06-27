@@ -444,7 +444,6 @@ CBSDF EvaluateBSDF(float3 V, float3 L, PreLightData preLightData, BSDFData bsdfD
         ComputeHairRelativeAngles(L, T, hairNorm, thetaL, phiL);
         float phiD = abs(phiL - phiI);
         float3 Fres = HairFresnelAllLobes(bsdfData.indexOfRefraction, phiD);
-        
         // R
         cbsdf.specR = Fres.xxx * evalMTerm(thetaI, 0.5 * (thetaI + thetaL), bsdfData.perceptualRoughness, bsdfData.specularShift) * evalNTermR(phiD * 0.5, bsdfData.azimuthalPerceptualRoughness);
         // TRT
@@ -462,8 +461,8 @@ CBSDF EvaluateBSDF(float3 V, float3 L, PreLightData preLightData, BSDFData bsdfD
         // The assumed albedo here is that the likelihood of transmission and reflection and multi-transmission is
         // based on their respective shares of the Fresnel components.
         float3 diffAlb = Fres.xxx + bsdfData.specularTint * Fres.y + bsdfData.specularTint * bsdfData.specularTint * Fres.z;
-        //diffAlb /= dot(Fres.xyz, 1);
-        cbsdf.diffR = diffAlb * PI * evalMTerm(thetaI, 0.5 * (thetaI + thetaL), lerp(bsdfData.secondaryPerceptualRoughness, 1.0, 1-Fres.y), 0) * evalNTermTRT(phiD * 0.5, lerp(bsdfData.ttAzimuthalPerceptualRoughness, 1.0, 1-Fres.z));
+        diffAlb /= dot(Fres.xyz, 1);
+        cbsdf.diffR = diffAlb * evalMTerm(thetaI, 0.5 * (thetaI + thetaL), lerp(bsdfData.secondaryPerceptualRoughness, 1.0, 1-Fres.z), 0) * evalNTermTRT(phiD, lerp(bsdfData.ttAzimuthalPerceptualRoughness, 1.0, 1-Fres.z));
     }
 
     return cbsdf;
