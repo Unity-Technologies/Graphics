@@ -10,7 +10,7 @@ using Unity.Mathematics;
 namespace UnityEditor.ShaderGraph
 {
     [Serializable]
-    public class ConstantComputer
+    public class ConstantComputer : ScriptableObject
     {
         [Serializable]
         struct Arg
@@ -306,14 +306,13 @@ namespace UnityEditor.ShaderGraph
                 nodeGuidToInstructionIndex.Add(node.guid, instructions.Count - 1);
             }
 
-            var constantComputer = new ConstantComputer()
-            {
-                m_Instructions = instructions.ToArray(),
-                m_Vecs = vecs.ToArray(),
-                m_Colors = colors.ToArray(),
-                m_Inputs = inputs.ToArray(),
-                m_Outputs = outputs.ToArray()
-            };
+            var constantComputer = ScriptableObject.CreateInstance<ConstantComputer>();
+            constantComputer.m_Instructions = instructions.ToArray();
+            constantComputer.m_Vecs = vecs.ToArray();
+            constantComputer.m_Colors = colors.ToArray();
+            constantComputer.m_Inputs = inputs.ToArray();
+            constantComputer.m_Outputs = outputs.ToArray();
+
             return constantComputer;
         }
     }
