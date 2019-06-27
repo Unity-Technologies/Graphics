@@ -23,6 +23,17 @@ namespace UnityEngine.Experimental.Rendering
             {
                 debugManager.displayRuntimeUI = !debugManager.displayRuntimeUI;
             }
+            else
+            {
+                if (Input.touchCount == 3)
+                {
+                    foreach (var touch in Input.touches)
+                    {
+                        if (touch.phase == TouchPhase.Began)
+                            debugManager.displayRuntimeUI = !debugManager.displayRuntimeUI;
+                    }
+                }
+            }
             
             if (debugManager.displayRuntimeUI && debugManager.GetAction(DebugAction.ResetAll) != 0.0f)
             {
