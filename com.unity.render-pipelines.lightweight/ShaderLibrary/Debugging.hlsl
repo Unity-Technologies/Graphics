@@ -111,7 +111,7 @@ float4 GetLODDebugColor()
         return float4(0.4486272f, 0.4078432f, 0.0501960f, 1.0f);
     if (IsBitSet(unity_LODFade.z, 7))
         return float4(0.7749016f, 0.6368624f, 0.0250984f, 1.0f);
-    return float4(0,0,0,0);
+    return float4(0.2,0.2,0.2,1);
 }
 
 // Convert rgb to luminance
@@ -309,9 +309,8 @@ bool CalculateColorForDebugMaterial(InputData inputData, SurfaceData surfaceData
             color.rgb = surfaceData.normalTS.xyz * 0.5 + 0.5;
             return true;
         case DEBUG_LOD:
-            surfaceData.albedo = GetLODDebugColor().rgb;
+            color.rgb = GetLODDebugColor().rgb;
             return true;
-
         case DEBUG_METALLIC:
             color.rgb = surfaceData.metallic.xxx;
             return true;

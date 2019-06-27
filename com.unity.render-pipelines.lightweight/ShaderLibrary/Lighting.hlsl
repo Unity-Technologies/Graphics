@@ -381,7 +381,7 @@ half3 SampleLightmap(float2 lightmapUV, half3 normalWS)
     // However, lightweight pipeline already transformed those coords in vertex. We pass half4(1, 1, 0, 0) and
     // the compiler will optimize the transform away.
     half4 transformCoords = half4(1, 1, 0, 0);
-        
+
 #ifdef DIRLIGHTMAP_COMBINED
     return SampleDirectionalLightmap(TEXTURE2D_ARGS(unity_Lightmap, samplerunity_Lightmap),
         TEXTURE2D_ARGS(unity_LightmapInd, samplerunity_Lightmap),
@@ -583,6 +583,10 @@ bool IsLightingFeatureEnabled(uint bitIndex)
 #if defined(_DEBUG_SHADER)
 half4 LightweightFragmentPBR(InputData inputData, SurfaceData surfaceData)
 {
+    BRDFData brdfData = CreateBRDFData(surfaceData);
+    DebugData debugData = CreateDebugData(brdfData.diffuse, brdfData.specular);
+    half4 debugColor;
+    half3 color = 0;
     if(_DebugMaterialIndex == DEBUG_LIGHTING_COMPLEXITY)
     {
         return CalculateDebugLightingComplexityColor(inputData);
@@ -591,6 +595,10 @@ half4 LightweightFragmentPBR(InputData inputData, SurfaceData surfaceData)
     {
         surfaceData.albedo = CalculateDebugShadowCascadeColor(inputData);
     }
+    else if (CalculateColorForDebug(inputData, surfaceData, debugData, debugColor) && _DebugMaterialIndex == DEBUG_LOD)
+    {
+        surfaceData.albedo = debugColor;
+    }
     else
     {
         if(UpdateSurfaceAndInputDataForDebug(surfaceData, inputData))
@@ -598,12 +606,9 @@ half4 LightweightFragmentPBR(InputData inputData, SurfaceData surfaceData)
             //inputData.bakedGI = SAMPLE_GI(inputData.lightmapUV, inputData.vertexSH, inputData.normalWS);
         }
     }
-    
-    BRDFData brdfData = CreateBRDFData(surfaceData);
-    DebugData debugData = CreateDebugData(brdfData.diffuse, brdfData.specular);
-    half4 debugColor;
-    
-    if(CalculateColorForDebug(inputData, surfaceData, debugData, debugColor))
+ brdfData = CreateBRDFData(surfaceData);
+
+    if (CalculateColorForDebug(inputData, surfaceData, debugData, debugColor) && _DebugMaterialIndex != DEBUG_LOD)
     {
         return debugColor;
     }
@@ -611,11 +616,11 @@ half4 LightweightFragmentPBR(InputData inputData, SurfaceData surfaceData)
     Light mainLight = GetMainLight(inputData.shadowCoord);
     MixRealtimeAndBakedGI(mainLight, inputData.normalWS, inputData.bakedGI, half4(0, 0, 0, 0));
 
-    half3 color = 0;
-    
+
+
     if(IsLightingFeatureEnabled(DEBUG_PBR_LIGHTING_ENABLE_GI))
         color += GlobalIllumination(brdfData, inputData.bakedGI, surfaceData.occlusion, inputData.normalWS, inputData.viewDirectionWS);
-        
+
     if(IsLightingFeatureEnabled(DEBUG_PBR_LIGHTING_ENABLE_PBR_LIGHTING))
         color += LightingPhysicallyBased(brdfData, mainLight, inputData.normalWS, inputData.viewDirectionWS);
 
@@ -638,7 +643,7 @@ half4 LightweightFragmentPBR(InputData inputData, SurfaceData surfaceData)
 
     if(IsLightingFeatureEnabled(DEBUG_PBR_LIGHTING_ENABLE_EMISSION))
         color += surfaceData.emission;
-        
+
     return half4(color, surfaceData.alpha);
 }
 #else
@@ -675,7 +680,7 @@ half4 LightweightFragmentPBR(InputData inputData, half3 albedo, half metallic, h
 {
     half3 normalTS = inputData.normalTS;
     SurfaceData surfaceData = CreateSurfaceData(albedo, metallic, specular, smoothness, occlusion, emission, alpha, normalTS);
-    
+
     return LightweightFragmentPBR(inputData, surfaceData);
 }
 
