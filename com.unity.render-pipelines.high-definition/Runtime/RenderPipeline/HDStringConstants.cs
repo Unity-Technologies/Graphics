@@ -470,6 +470,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly int _VBufferSampleOffset            = Shader.PropertyToID("_VBufferSampleOffset");
         public static readonly int _VolumeBounds                   = Shader.PropertyToID("_VolumeBounds");
         public static readonly int _VolumeData                     = Shader.PropertyToID("_VolumeData");
+        public static readonly int _Halton2                        = Shader.PropertyToID("_Halton2"); //seongdae;fspm
+        public static readonly int _Halton3                        = Shader.PropertyToID("_Halton3"); //seongdae;fspm
+        public static readonly int _Halton5                        = Shader.PropertyToID("_Halton5"); //seongdae;fspm
         public static readonly int _VShadowMapRes                  = Shader.PropertyToID("_VShadowMapRes"); //seongdae;fspm
         public static readonly int _VShadowMapMag                  = Shader.PropertyToID("_VShadowMapMag"); //seongdae;fspm
         public static readonly int _VShadowMapBuffer               = Shader.PropertyToID("_VShadowMapBuffer"); //seongdae;fspm

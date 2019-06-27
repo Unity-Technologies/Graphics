@@ -751,11 +751,25 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 int numVisibleFluidSimVolumes = m_VisibleFluidSimVolumeBounds.Count;
                 var volumeAtlas = FluidSimVolumeManager.manager.volumeAtlas;
 
+                float[] halton2 = new float[8];
+                float[] halton3 = new float[8];
+                float[] halton5 = new float[8];
+
+                for (int i = 0; i < 8; i++)
+                {
+                    halton2[i] = HaltonSequence.Get(i + 1, 2);
+                    halton3[i] = HaltonSequence.Get(i + 1, 3);
+                    halton5[i] = HaltonSequence.Get(i + 1, 5);
+                }
+
                 cmd.SetComputeIntParam(m_VShadowMapCS, HDShaderIDs._VShadowMapRes, m_VShadowMapRes);
                 cmd.SetComputeFloatParam(m_VShadowMapCS, HDShaderIDs._VShadowMapMag, m_VShadowMapMag);
 
                 cmd.SetComputeIntParam(m_VShadowMapCS, HDShaderIDs._NumVisibleDensityVolumes, numVisibleFluidSimVolumes);
                 cmd.SetComputeVectorParam(m_VShadowMapCS, HDShaderIDs._VBufferSampleOffset, m_xySeqOffset);
+                cmd.SetComputeFloatParams(m_VShadowMapCS, HDShaderIDs._Halton2, halton2);
+                cmd.SetComputeFloatParams(m_VShadowMapCS, HDShaderIDs._Halton3, halton3);
+                cmd.SetComputeFloatParams(m_VShadowMapCS, HDShaderIDs._Halton5, halton5);
                 cmd.SetComputeBufferParam(m_VShadowMapCS, kernel, HDShaderIDs._VolumeBounds, s_VisibleFluidSimVolumeBoundsBuffer);
                 cmd.SetComputeBufferParam(m_VShadowMapCS, kernel, HDShaderIDs._VolumeData, s_VisibleFluidSimVolumeDataBuffer);
                 cmd.SetComputeTextureParam(m_VShadowMapCS, kernel, HDShaderIDs._FluidSimVolumeAtlas, volumeAtlas);
