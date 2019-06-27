@@ -359,6 +359,21 @@ bool IsNonZeroBSDF(float3 V, float3 L, PreLightData preLightData, BSDFData bsdfD
 // This function apply BSDF. Assumes that NdotL is positive.
 CBSDF EvaluateBSDF(float3 V, float3 L, PreLightData preLightData, BSDFData bsdfData)
 {
+    // There are multiple transparent layers occuring near the surface of the human eye,
+    // each with unique BSDF properties
+    //
+    // 0: Fluids (tears)
+    // 1: Cornea (lens) surface
+    // 2: Cornea (lens) fluids
+    // 3: Iris surface / sclera surface
+    //
+    // For simplicity and performance, We simplify down to two distinct layers we would like to shade:
+    // Layer 0 (Specular Only): Surface fluids and cornea (lens).
+    // Layer 1 (Diffuse Only): Sclera and iris (post cornea refraction).
+    //
+    // This is a reasonable approximation, as the index of refraction of layers 0-2 are highly similar,
+    // and roughness of layers 0-2 are highly similar (and very low), and layers 0-2 are all highly transparent
+
     CBSDF cbsdf;
     ZERO_INITIALIZE(CBSDF, cbsdf);
 
@@ -431,7 +446,7 @@ float ComputePunctualCaustic(float3 V, float3 positionWS, float3 lightPosWS, BSD
     //float alphaIris = pos.z > 1.05 ? 1.0 : 0.0;
 
     //return causticSclera * alphaSclera + causticIris * alphaIris;
-    return causticSclera * min(bsdfData.mask.y, 1 - bsdfData.mask.y) + causticIris * bsdfData.mask.x;
+    return causticSclera * min(bsdfData.mask.x, 1 - bsdfData.mask.x) + causticIris * (bsdfData.mask.x >= 0.99);
 }
 
 DirectLighting EvaluateBSDF_Punctual(LightLoopContext lightLoopContext,
