@@ -188,7 +188,6 @@ $include("SharedCode.template.hlsl")
         $SurfaceDescription.CorneaIOR:                  surfaceData.corneaIOR                   = surfaceDescription.CorneaIOR;
         $SurfaceDescription.Mask:                       surfaceData.mask =                      surfaceDescription.Mask;
         $SurfaceDescription.DiffusionProfileHash:       surfaceData.diffusionProfileHash =      asuint(surfaceDescription.DiffusionProfileHash);
-        $SurfaceDescription.SubsurfaceMask:             surfaceData.subsurfaceMask =            surfaceDescription.SubsurfaceMask;
 
         // These static material feature allow compile time optimization
         surfaceData.materialFeatures = 0;
@@ -202,6 +201,9 @@ $include("SharedCode.template.hlsl")
 #else
         float3 doubleSidedConstants = float3(1.0, 1.0, 1.0);
 #endif
+
+        // Setup 0 in cornea for SSS mask
+        $SurfaceDescription.SubsurfaceMask: surfaceData.subsurfaceMask = lerp(surfaceDescription.SubsurfaceMask, 0, surfaceData.mask.x);
 
         // tangent-space normal
         float3 normalTS = float3(0.0, 0.0, 1.0);

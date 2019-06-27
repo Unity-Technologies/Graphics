@@ -172,12 +172,54 @@ BSDFData ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfaceData)
 void GetSurfaceDataDebug(uint paramId, SurfaceData surfaceData, inout float3 result, inout bool needLinearToSRGB)
 {
     GetGeneratedSurfaceDataDebug(paramId, surfaceData, result, needLinearToSRGB);
+
+    // Overide debug value output to be more readable
+    switch (paramId)
+    {
+        case DEBUGVIEW_EYE_SURFACEDATA_MATERIAL_FEATURES:
+            result = (surfaceData.materialFeatures.xxx) / 255.0; // Aloow to read with color picker debug mode
+            break;
+        case DEBUGVIEW_EYE_SURFACEDATA_NORMAL_VIEW_SPACE:
+            // Convert to view space
+            result = TransformWorldToViewDir(surfaceData.normalWS) * 0.5 + 0.5;
+            break;
+        case DEBUGVIEW_EYE_SURFACEDATA_IRIS_NORMAL_VIEW_SPACE:
+            result = TransformWorldToViewDir(surfaceData.irisNormalWS) * 0.5 + 0.5;
+            break;
+        case DEBUGVIEW_EYE_SURFACEDATA_GEOMETRIC_NORMAL_VIEW_SPACE:
+            result = TransformWorldToViewDir(surfaceData.geomNormalWS) * 0.5 + 0.5;
+            break;
+        case DEBUGVIEW_EYE_SURFACEDATA_SCLERA_IOR:
+            result = saturate((surfaceData.scleraIOR - 1.0) / 1.5).xxx;
+            break;
+        case DEBUGVIEW_EYE_SURFACEDATA_CORNEA_IOR:
+            result = saturate((surfaceData.corneaIOR - 1.0) / 1.5).xxx;
+            break;
+    }
 }
 
 // This function call the generated debug function and allow to override the debug output if needed
 void GetBSDFDataDebug(uint paramId, BSDFData bsdfData, inout float3 result, inout bool needLinearToSRGB)
 {
     GetGeneratedBSDFDataDebug(paramId, bsdfData, result, needLinearToSRGB);
+
+    // Overide debug value output to be more readable
+    switch (paramId)
+    {
+        case DEBUGVIEW_EYE_BSDFDATA_MATERIAL_FEATURES:
+            result = (bsdfData.materialFeatures.xxx) / 255.0; // Aloow to read with color picker debug mode
+            break;
+        case DEBUGVIEW_EYE_BSDFDATA_NORMAL_VIEW_SPACE:
+            // Convert to view space
+            result = TransformWorldToViewDir(bsdfData.normalWS) * 0.5 + 0.5;
+            break;
+        case DEBUGVIEW_EYE_BSDFDATA_DIFFUSE_NORMAL_VIEW_SPACE:
+            result = TransformWorldToViewDir(bsdfData.diffuseNormalWS) * 0.5 + 0.5;
+            break;
+        case DEBUGVIEW_EYE_BSDFDATA_GEOMETRIC_NORMAL_VIEW_SPACE:
+            result = TransformWorldToViewDir(bsdfData.geomNormalWS) * 0.5 + 0.5;
+            break;
+    }
 }
 
 void GetPBRValidatorDebug(SurfaceData surfaceData, inout float3 result)
@@ -205,6 +247,13 @@ struct PreLightData
 
     float3 specularFGD;              // Store preintegrated BSDF for both specular and diffuse
     float  diffuseFGD;
+
+    // Area lights (17 VGPRs)
+    // TODO: 'orthoBasisViewNormal' is just a rotation around the normal and should thus be just 1x VGPR.
+    float3x3 orthoBasisViewDiffuseNormal;
+    float3x3 orthoBasisViewNormal;   // Right-handed view-dependent orthogonal basis around the normal (6x VGPRs)
+    float3x3 ltcTransformDiffuse;    // Inverse transformation for Lambertian or Disney Diffuse        (4x VGPRs)
+    float3x3 ltcTransformSpecular;   // Inverse transformation for GGX                                 (4x VGPRs)
 };
 
 // This function is call to precompute heavy calculation before lightloop
@@ -230,6 +279,24 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, inout BSDFData b
     iblN = N;
 
     preLightData.iblR = reflect(-V, iblN);
+
+    // Area light
+    // UVs for sampling the LUTs
+    float theta = FastACosPos(clampedNdotV); // For Area light - UVs for sampling the LUTs
+    float2 uv = Remap01ToHalfTexelCoord(float2(bsdfData.perceptualRoughness, theta * INV_HALF_PI), LTC_LUT_SIZE);
+
+    // Note we load the matrix transpose (avoid to have to transpose it in shader)
+    preLightData.ltcTransformDiffuse = k_identity3x3;
+
+    // Get the inverse LTC matrix for GGX
+    // Note we load the matrix transpose (avoid to have to transpose it in shader)
+    preLightData.ltcTransformSpecular      = 0.0;
+    preLightData.ltcTransformSpecular._m22 = 1.0;
+    preLightData.ltcTransformSpecular._m00_m02_m11_m20 = SAMPLE_TEXTURE2D_ARRAY_LOD(_LtcData, s_linear_clamp_sampler, uv, LTC_GGX_MATRIX_INDEX, 0);
+
+    // Construct a right-handed view-dependent orthogonal basis around the normal
+    preLightData.orthoBasisViewDiffuseNormal = GetOrthoBasisViewNormal(V, bsdfData.diffuseNormalWS, preLightData.NdotV);
+    preLightData.orthoBasisViewNormal = GetOrthoBasisViewNormal(V, N, preLightData.NdotV);
 
     return preLightData;
 }
@@ -286,9 +353,7 @@ LightTransportData GetLightTransportData(SurfaceData surfaceData, BuiltinData bu
 
 bool IsNonZeroBSDF(float3 V, float3 L, PreLightData preLightData, BSDFData bsdfData)
 {
-    float NdotL = dot(bsdfData.normalWS, L);
-
-    return NdotL > 0.0;
+    return true; // In order to get cqustic effect and concavity
 }
 
 // This function apply BSDF. Assumes that NdotL is positive.
@@ -350,13 +415,36 @@ DirectLighting EvaluateBSDF_Directional(LightLoopContext lightLoopContext,
 // EvaluateBSDF_Punctual (supports spot, point and projector lights)
 //-----------------------------------------------------------------------------
 
+float ComputePunctualCaustic(float3 V, float3 positionWS, float3 lightPosWS, BSDFData bsdfData)
+{
+    float3 pos = TransformWorldToObject(positionWS);
+
+    float3 normal = normalize(TransformWorldToObjectDir(bsdfData.normalWS));
+    float3 lightPos = TransformWorldToObject(lightPosWS);
+    float3 lightDir = normalize(lightPos);
+
+    // Completely heuristic!
+    float causticSclera = pow(2.0 * saturate(-dot(normal.xy, lightDir.xy)), 20);
+   // float alphaSclera = pos.z < 1.05 ? saturate(1.0 - smoothStep((pos.z - 0.95) * 10)) : 0.01;
+
+    float causticIris = 2.0 * pow(saturate(dot(-normalize(pos.xy), lightDir.xy)), 2);
+    //float alphaIris = pos.z > 1.05 ? 1.0 : 0.0;
+
+    //return causticSclera * alphaSclera + causticIris * alphaIris;
+    return causticSclera * min(bsdfData.mask.y, 1 - bsdfData.mask.y) + causticIris * bsdfData.mask.x;
+}
+
 DirectLighting EvaluateBSDF_Punctual(LightLoopContext lightLoopContext,
                                      float3 V, PositionInputs posInput,
                                      PreLightData preLightData, LightData lightData,
                                      BSDFData bsdfData, BuiltinData builtinData)
 {
-    return ShadeSurface_Punctual(lightLoopContext, posInput, builtinData,
-                                 preLightData, lightData, bsdfData, V);
+    DirectLighting dl = ShadeSurface_Punctual(  lightLoopContext, posInput, builtinData,
+                                                preLightData, lightData, bsdfData, V);
+
+    dl.diffuse *= 1.0 + ComputePunctualCaustic(V, posInput.positionWS, lightData.positionRWS, bsdfData);
+
+    return dl;
 }
 
 //-----------------------------------------------------------------------------
@@ -386,7 +474,156 @@ DirectLighting EvaluateBSDF_Rect(   LightLoopContext lightLoopContext,
     DirectLighting lighting;
     ZERO_INITIALIZE(DirectLighting, lighting);
 
-    // TODO
+    float3 positionWS = posInput.positionWS;
+
+    float3 unL = lightData.positionRWS - positionWS;
+
+    if (dot(lightData.forward, unL) < 0.0001)
+    {
+
+        // Rotate the light direction into the light space.
+        float3x3 lightToWorld = float3x3(lightData.right, lightData.up, -lightData.forward);
+        unL = mul(unL, transpose(lightToWorld));
+
+        // TODO: This could be precomputed.
+        float halfWidth = lightData.size.x * 0.5;
+        float halfHeight = lightData.size.y * 0.5;
+
+        // Define the dimensions of the attenuation volume.
+        // TODO: This could be precomputed.
+        float range = lightData.range;
+        float3 invHalfDim = rcp(float3(range + halfWidth,
+                                    range + halfHeight,
+                                    range));
+
+        // Compute the light attenuation.
+#ifdef ELLIPSOIDAL_ATTENUATION
+        // The attenuation volume is an axis-aligned ellipsoid s.t.
+        // r1 = (r + w / 2), r2 = (r + h / 2), r3 = r.
+        float intensity = EllipsoidalDistanceAttenuation(unL, invHalfDim,
+                                                        lightData.rangeAttenuationScale,
+                                                        lightData.rangeAttenuationBias);
+#else
+        // The attenuation volume is an axis-aligned box s.t.
+        // hX = (r + w / 2), hY = (r + h / 2), hZ = r.
+        float intensity = BoxDistanceAttenuation(unL, invHalfDim,
+                                                lightData.rangeAttenuationScale,
+                                                lightData.rangeAttenuationBias);
+#endif
+
+        // Terminate if the shaded point is too far away.
+        if (intensity != 0.0)
+        {
+            lightData.diffuseDimmer *= intensity;
+            lightData.specularDimmer *= intensity;
+
+            // Translate the light s.t. the shaded point is at the origin of the coordinate system.
+            lightData.positionRWS -= positionWS;
+
+            float4x3 lightVerts;
+
+            // TODO: some of this could be precomputed.
+            lightVerts[0] = lightData.positionRWS + lightData.right * halfWidth + lightData.up * halfHeight;
+            lightVerts[1] = lightData.positionRWS + lightData.right * halfWidth + lightData.up * -halfHeight;
+            lightVerts[2] = lightData.positionRWS + lightData.right * -halfWidth + lightData.up * -halfHeight;
+            lightVerts[3] = lightData.positionRWS + lightData.right * -halfWidth + lightData.up * halfHeight;
+
+            // Note: We don't have the same normal for diffuse and specular
+            // Rotate the endpoints into the local coordinate system.
+            float4x3 lightVertsDiff  = mul(lightVerts, transpose(preLightData.orthoBasisViewDiffuseNormal));
+
+            float3 ltcValue;
+
+            // Evaluate the diffuse part
+            // Polygon irradiance in the transformed configuration.
+            float4x3 LD = mul(lightVertsDiff, preLightData.ltcTransformDiffuse);
+            ltcValue = PolygonIrradiance(LD);
+            ltcValue *= lightData.diffuseDimmer;
+
+            // Only apply cookie if there is one
+            if (lightData.cookieIndex >= 0)
+            {
+                // Compute the cookie data for the diffuse term
+                float3 formFactorD = PolygonFormFactor(LD);
+                ltcValue *= SampleAreaLightCookie(lightData.cookieIndex, LD, formFactorD);
+            }
+
+            // We don't multiply by 'bsdfData.diffuseColor' here. It's done only once in PostEvaluateBSDF().
+            // See comment for specular magnitude, it apply to diffuse as well
+            lighting.diffuse = preLightData.diffuseFGD * ltcValue;
+
+            // Evaluate the specular part
+            float4x3 lightVertsSpec = mul(lightVerts, transpose(preLightData.orthoBasisViewNormal));
+
+            // Polygon irradiance in the transformed configuration.
+            float4x3 LS = mul(lightVertsSpec, preLightData.ltcTransformSpecular);
+            ltcValue = PolygonIrradiance(LS);
+            ltcValue *= lightData.specularDimmer;
+
+            // Only apply cookie if there is one
+            if (lightData.cookieIndex >= 0)
+            {
+                // Compute the cookie data for the specular term
+                float3 formFactorS = PolygonFormFactor(LS);
+                ltcValue *= SampleAreaLightCookie(lightData.cookieIndex, LS, formFactorS);
+            }
+
+            // We need to multiply by the magnitude of the integral of the BRDF
+            // ref: http://advances.realtimerendering.com/s2016/s2016_ltc_fresnel.pdf
+            // This value is what we store in specularFGD, so reuse it
+            lighting.specular += preLightData.specularFGD * ltcValue;
+
+            // Save ALU by applying 'lightData.color' only once.
+            lighting.diffuse *= lightData.color;
+            lighting.specular *= lightData.color;
+
+#ifdef DEBUG_DISPLAY
+            if (_DebugLightingMode == DEBUGLIGHTINGMODE_LUX_METER)
+            {
+                // Only lighting, not BSDF
+                // Apply area light on lambert then multiply by PI to cancel Lambert
+                lighting.diffuse = PolygonIrradiance(mul(lightVerts, k_identity3x3));
+                lighting.diffuse *= PI * lightData.diffuseDimmer;
+            }
+#endif
+        }
+
+    }
+
+    float shadow = 1.0;
+    float shadowMask = 1.0;
+#ifdef SHADOWS_SHADOWMASK
+    // shadowMaskSelector.x is -1 if there is no shadow mask
+    // Note that we override shadow value (in case we don't have any dynamic shadow)
+    shadow = shadowMask = (lightData.shadowMaskSelector.x >= 0.0) ? dot(BUILTIN_DATA_SHADOW_MASK, lightData.shadowMaskSelector) : 1.0;
+#endif
+
+#if defined(SCREEN_SPACE_SHADOWS) && !defined(_SURFACE_TYPE_TRANSPARENT)
+    if (lightData.screenSpaceShadowIndex >= 0)
+    {
+        shadow = GetScreenSpaceShadow(posInput, lightData.screenSpaceShadowIndex);
+    }
+    else
+#endif // ENABLE_RAYTRACING
+    if (lightData.shadowIndex != -1)
+    {
+#if RASTERIZED_AREA_LIGHT_SHADOWS
+            // lightData.positionRWS now contains the Light vector. 
+            shadow = GetAreaLightAttenuation(lightLoopContext.shadowContext, posInput.positionSS, posInput.positionWS, bsdfData.normalWS, lightData.shadowIndex, normalize(lightData.positionRWS), length(lightData.positionRWS));
+#ifdef SHADOWS_SHADOWMASK
+            // See comment for punctual light shadow mask
+            shadow = lightData.nonLightMappedOnly ? min(shadowMask, shadow) : shadow;
+#endif
+        shadow = lerp(shadowMask, shadow, lightData.shadowDimmer);
+
+#endif
+    }
+
+#if RASTERIZED_AREA_LIGHT_SHADOWS || SUPPORTS_RAYTRACED_AREA_SHADOWS
+    float3 shadowColor = ComputeShadowColor(shadow, lightData.shadowTint);
+    lighting.diffuse *= shadowColor;
+    lighting.specular *= shadowColor;
+#endif
 
     return lighting;
 }

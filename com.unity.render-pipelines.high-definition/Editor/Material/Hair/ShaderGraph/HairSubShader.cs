@@ -466,6 +466,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 case HairMasterNode.MaterialType.Marschner:
                     activeFields.Add("Material.Marschner");
                     break;
+                case HairMasterNode.MaterialType.MarschnerB:
+                    activeFields.Add("Material.MarschnerB");
+                    break;
 
                 default:
                     UnityEngine.Debug.LogError("Unknown material type: " + masterNode.materialType);
@@ -588,6 +591,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 }
             }
 
+            // TODO: Removeme, this predicate is not needed, open slots inputs are added automatically as
+            // $SurfaceDescription.(SlotName)
             if (pass.PixelShaderUsesSlot(HairMasterNode.IndexOfRefractionSlotId))
             {
                 var iorSlot = masterNode.FindSlot<Vector1MaterialSlot>(HairMasterNode.IndexOfRefractionSlotId);
