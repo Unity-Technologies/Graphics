@@ -1,4 +1,3 @@
-using System.Reflection;
 using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
@@ -9,11 +8,6 @@ namespace UnityEditor.ShaderGraph
         public ReplaceColorNode()
         {
             name = "Replace Color";
-        }
-
-        protected override MethodInfo GetFunctionToConvert()
-        {
-            return GetType().GetMethod("Unity_ReplaceColor", BindingFlags.Static | BindingFlags.NonPublic);
         }
 
         static string Unity_ReplaceColor(

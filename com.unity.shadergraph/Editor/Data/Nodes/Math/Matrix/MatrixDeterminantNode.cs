@@ -1,6 +1,3 @@
-using System.Reflection;
-using UnityEngine;
-
 namespace UnityEditor.ShaderGraph
 {
     [Title("Math", "Matrix", "Matrix Determinant")]
@@ -9,12 +6,6 @@ namespace UnityEditor.ShaderGraph
         public MatrixDeterminantNode()
         {
             name = "Matrix Determinant";
-        }
-
-
-        protected override MethodInfo GetFunctionToConvert()
-        {
-            return GetType().GetMethod("Unity_MatrixDeterminant", BindingFlags.Static | BindingFlags.NonPublic);
         }
 
         static string Unity_MatrixDeterminant(

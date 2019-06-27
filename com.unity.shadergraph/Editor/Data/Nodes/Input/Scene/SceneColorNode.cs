@@ -1,4 +1,3 @@
-using System.Reflection;
 using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
@@ -19,12 +18,6 @@ namespace UnityEditor.ShaderGraph
         }
 
         public override bool hasPreview { get { return false; } }
-
-
-        protected override MethodInfo GetFunctionToConvert()
-        {
-            return GetType().GetMethod("Unity_SceneColor", BindingFlags.Static | BindingFlags.NonPublic);
-        }
 
         static string Unity_SceneColor(
             [Slot(0, Binding.ScreenPosition)] Vector4 UV,

@@ -1,4 +1,3 @@
-using System.Reflection;
 using UnityEditor.ShaderGraph.Hlsl;
 
 namespace UnityEditor.ShaderGraph
@@ -9,12 +8,6 @@ namespace UnityEditor.ShaderGraph
         public SubtractNode()
         {
             name = "Subtract";
-        }
-
-
-        protected override MethodInfo GetFunctionToConvert()
-        {
-            return GetType().GetMethod("Unity_Subtract", BindingFlags.Static | BindingFlags.NonPublic);
         }
 
         [HlslCodeGen]

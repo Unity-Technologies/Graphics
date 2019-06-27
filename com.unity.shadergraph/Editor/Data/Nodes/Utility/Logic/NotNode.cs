@@ -1,6 +1,3 @@
-using System.Reflection;
-using UnityEngine;
-
 namespace UnityEditor.ShaderGraph
 {
     [Title("Utility", "Logic", "Not")]
@@ -11,15 +8,9 @@ namespace UnityEditor.ShaderGraph
             name = "Not";
         }
 
-
         public override bool hasPreview
         {
             get { return false; }
-        }
-
-        protected override MethodInfo GetFunctionToConvert()
-        {
-            return GetType().GetMethod("Unity_Not", BindingFlags.Static | BindingFlags.NonPublic);
         }
 
         static string Unity_Not(

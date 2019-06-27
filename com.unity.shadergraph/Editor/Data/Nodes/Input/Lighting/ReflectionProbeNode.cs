@@ -1,4 +1,3 @@
-using System.Reflection;
 using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
@@ -11,13 +10,7 @@ namespace UnityEditor.ShaderGraph
             name = "Reflection Probe";
         }
 
-
         public override bool hasPreview { get { return false; } }
-
-        protected override MethodInfo GetFunctionToConvert()
-        {
-            return GetType().GetMethod("Unity_ReflectionProbe", BindingFlags.Static | BindingFlags.NonPublic);
-        }
 
         static string Unity_ReflectionProbe(
             [Slot(0, Binding.ObjectSpaceViewDirection)] Vector3 ViewDir,

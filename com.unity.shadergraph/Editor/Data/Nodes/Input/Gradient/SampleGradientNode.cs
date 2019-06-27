@@ -1,4 +1,3 @@
-using System.Reflection;
 using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
@@ -14,11 +13,6 @@ namespace UnityEditor.ShaderGraph
         public override bool hasPreview
         {
             get { return true; }
-        }
-
-        protected override MethodInfo GetFunctionToConvert()
-        {
-            return GetType().GetMethod("Unity_SampleGradient", BindingFlags.Static | BindingFlags.NonPublic);
         }
 
         static string Unity_SampleGradient(

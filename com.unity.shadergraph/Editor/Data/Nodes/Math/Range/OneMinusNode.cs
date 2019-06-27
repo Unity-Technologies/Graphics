@@ -1,4 +1,3 @@
-using System.Reflection;
 using UnityEditor.ShaderGraph.Hlsl;
 
 namespace UnityEditor.ShaderGraph
@@ -9,11 +8,6 @@ namespace UnityEditor.ShaderGraph
         public OneMinusNode()
         {
             name = "One Minus";
-        }
-
-        protected override MethodInfo GetFunctionToConvert()
-        {
-            return GetType().GetMethod("Unity_OneMinus", BindingFlags.Static | BindingFlags.NonPublic);
         }
 
         [HlslCodeGen]

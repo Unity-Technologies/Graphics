@@ -1,5 +1,5 @@
-using System.Reflection;
-using UnityEngine;
+using UnityEditor.ShaderGraph.Hlsl;
+using static UnityEditor.ShaderGraph.Hlsl.Intrinsics;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -11,23 +11,13 @@ namespace UnityEditor.ShaderGraph
             name = "Saturation";
         }
 
-        protected override MethodInfo GetFunctionToConvert()
+        static void Unity_Saturation(
+            [Slot(0, Binding.None)] Float3 In,
+            [Slot(1, Binding.None, 1, 1, 1, 1)] Float Saturation,
+            [Slot(2, Binding.None)] out Float3 Out)
         {
-            return GetType().GetMethod("Unity_Saturation", BindingFlags.Static | BindingFlags.NonPublic);
-        }
-
-        static string Unity_Saturation(
-            [Slot(0, Binding.None)] Vector3 In,
-            [Slot(1, Binding.None, 1, 1, 1, 1)] Vector1 Saturation,
-            [Slot(2, Binding.None)] out Vector3 Out)
-        {
-            Out = Vector3.zero;
-            return @"
-{
-    $precision luma = dot(In, $precision3(0.2126729, 0.7151522, 0.0721750));
-    Out =  luma.xxx + Saturation.xxx * (In - luma.xxx);
-}
-";
+            var luma = dot(In, Float3(0.2126729, 0.7151522, 0.0721750));
+            Out = luma.xxx + Saturation.xxx * (In - luma.xxx);
         }
     }
 }

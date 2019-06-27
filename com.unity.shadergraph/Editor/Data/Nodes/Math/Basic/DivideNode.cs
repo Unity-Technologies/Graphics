@@ -1,4 +1,3 @@
-using System.Reflection;
 using UnityEditor.ShaderGraph.Hlsl;
 
 namespace UnityEditor.ShaderGraph
@@ -9,11 +8,6 @@ namespace UnityEditor.ShaderGraph
         public DivideNode()
         {
             name = "Divide";
-        }
-
-        protected override MethodInfo GetFunctionToConvert()
-        {
-            return GetType().GetMethod("Unity_Divide", BindingFlags.Static | BindingFlags.NonPublic);
         }
 
         [HlslCodeGen]

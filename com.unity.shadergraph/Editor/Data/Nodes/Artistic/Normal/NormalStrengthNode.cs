@@ -1,4 +1,3 @@
-using System.Reflection;
 using UnityEditor.ShaderGraph.Hlsl;
 using static UnityEditor.ShaderGraph.Hlsl.Intrinsics;
 
@@ -10,12 +9,6 @@ namespace UnityEditor.ShaderGraph
         public NormalStrengthNode()
         {
             name = "Normal Strength";
-        }
-
-
-        protected override MethodInfo GetFunctionToConvert()
-        {
-            return GetType().GetMethod("Unity_NormalStrength", BindingFlags.Static | BindingFlags.NonPublic);
         }
 
         [HlslCodeGen]

@@ -1,4 +1,3 @@
-using System.Reflection;
 using UnityEditor.ShaderGraph.Hlsl;
 using static UnityEditor.ShaderGraph.Hlsl.Intrinsics;
 
@@ -15,11 +14,6 @@ namespace UnityEditor.ShaderGraph
         public override PreviewMode previewMode
         {
             get { return PreviewMode.Preview3D; }
-        }
-
-        protected override MethodInfo GetFunctionToConvert()
-        {
-            return GetType().GetMethod("Unity_FresnelEffect", BindingFlags.Static | BindingFlags.NonPublic);
         }
 
         [HlslCodeGen]

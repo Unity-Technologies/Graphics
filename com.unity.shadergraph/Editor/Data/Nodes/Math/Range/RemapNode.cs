@@ -1,5 +1,3 @@
-using System.Reflection;
-using UnityEngine;
 using UnityEditor.ShaderGraph.Hlsl;
 
 namespace UnityEditor.ShaderGraph
@@ -10,11 +8,6 @@ namespace UnityEditor.ShaderGraph
         public RemapNode()
         {
             name = "Remap";
-        }
-
-        protected override MethodInfo GetFunctionToConvert()
-        {
-            return GetType().GetMethod("Unity_Remap", BindingFlags.Static | BindingFlags.NonPublic);
         }
 
         [HlslCodeGen]

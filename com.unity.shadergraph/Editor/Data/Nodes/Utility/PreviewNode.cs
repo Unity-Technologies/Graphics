@@ -1,5 +1,5 @@
-using System.Reflection;
 using UnityEngine;
+using UnityEditor.ShaderGraph.Hlsl;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -40,22 +40,12 @@ namespace UnityEditor.ShaderGraph
             m_Height = 208f;
         }
 
-
-        protected override MethodInfo GetFunctionToConvert()
+        [HlslCodeGen]
+        static void Unity_Preview(
+            [Slot(0, Binding.None)] [AnyDimension] Float4 In,
+            [Slot(1, Binding.None)] [AnyDimension] out Float4 Out)
         {
-            return GetType().GetMethod("Unity_Preview", BindingFlags.Static | BindingFlags.NonPublic);
-        }
-
-        static string Unity_Preview(
-            [Slot(0, Binding.None)] DynamicDimensionVector In,
-            [Slot(1, Binding.None)] out DynamicDimensionVector Out)
-        {
-            return
-                @"
-{
-    Out = In;
-}
-";
+            Out = In;
         }
     }
 }

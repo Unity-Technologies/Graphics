@@ -1,4 +1,3 @@
-using System.Reflection;
 using UnityEditor.ShaderGraph.Hlsl;
 using static UnityEditor.ShaderGraph.Hlsl.Intrinsics;
 
@@ -10,11 +9,6 @@ namespace UnityEditor.ShaderGraph
         public SineNode()
         {
             name = "Sine";
-        }
-
-        protected override MethodInfo GetFunctionToConvert()
-        {
-            return GetType().GetMethod("Unity_Sine", BindingFlags.Static | BindingFlags.NonPublic);
         }
 
         [HlslCodeGen]

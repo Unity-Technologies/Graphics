@@ -1,4 +1,3 @@
-using System.Reflection;
 using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
@@ -9,11 +8,6 @@ namespace UnityEditor.ShaderGraph
         public ColorMaskNode()
         {
             name = "Color Mask";
-        }
-
-        protected override MethodInfo GetFunctionToConvert()
-        {
-            return GetType().GetMethod("Unity_ColorMask", BindingFlags.Static | BindingFlags.NonPublic);
         }
 
         static string Unity_ColorMask(
