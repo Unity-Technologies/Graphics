@@ -9,26 +9,36 @@ using Unity.Mathematics;
 
 namespace UnityEditor.ShaderGraph
 {
+    [Serializable]
     class ConstantComputer
     {
+        [Serializable]
         struct Arg
         {
             public int type; // 0 - 3
             public int index;
         }
 
+        [Serializable]
         struct Instruction
         {
-            public MethodInfo method;
+            [NonSerialized] public MethodInfo method;
+            public string methodName;
+            public string typeName;
             public Arg[] inputs;
             public Arg[] outputs;
         }
 
+        [SerializeField]
         private Instruction[] m_Instructions;
+        [SerializeField]
         private float4[] m_Vecs;
+        [SerializeField]
         private (Color, int)[] m_Colors;
 
+        [SerializeField]
         private (string name, int index)[] m_Inputs;
+        [SerializeField]
         private (string name, int index)[] m_Outputs;
 
         public void SetInput(string name, Vector4 value)
@@ -220,10 +230,13 @@ namespace UnityEditor.ShaderGraph
                 var instruction = new Instruction()
                 {
                     method = node.Method,
+                    methodName = node.Method.Name,
+                    typeName = node.Method.DeclaringType?.FullName,
                     inputs = inputArgs.ToArray(),
                     outputs = outputArgs.ToArray()
                 };
                 instructions.Add(instruction);
+                nodeGuidToInstructionIndex.Add(node.guid, instructions.Count - 1);
             }
 
             var constantComputer = new ConstantComputer()

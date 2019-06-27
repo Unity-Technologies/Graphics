@@ -1220,6 +1220,8 @@ namespace UnityEditor.ShaderGraph
             if (graph.subRootNodeList == null || !graph.subRootNodeList.Contains(node))
                 return;
 
+            SaveConstantComputer(node);
+
             IEnumerable<int> ids = node.GetOutputSlots<ISlot>().Select(x => x.id);
             foreach (var slotId in ids)
             {
@@ -1228,6 +1230,17 @@ namespace UnityEditor.ShaderGraph
             }
 
             node.CollectShaderProperties(shaderProperties, mode);
+        }
+
+        static void SaveConstantComputer(AbstractMaterialNode node)
+        {
+            var constantComputer = ConstantComputer.Gather(node);
+            var jsonString = JsonUtility.ToJson(constantComputer);
+
+            var jsonFilePath = Path.Combine(Application.persistentDataPath, node.guid.ToString());
+            if (File.Exists(jsonFilePath))
+                File.Delete(jsonFilePath);
+            File.WriteAllText(jsonFilePath, jsonString);
         }
 
         static void ConvertToShaderProperty(ISlot slot, PropertyCollector shaderProperties, GenerationMode mode)
