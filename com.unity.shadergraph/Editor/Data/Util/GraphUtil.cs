@@ -1267,8 +1267,9 @@ namespace UnityEditor.ShaderGraph
                 surfaceDescriptionFunction.AppendLine("{0} surface = ({0})0;", surfaceDescriptionName);
                 foreach (var activeNode in activeNodeList)
                 {
-                    if (activeNode.isStatic)
+                    if (activeNode.isStatic && !(activeNode is PropertyNode))
                     {
+                        // TODO: Workaround by checking if the node is ProperyNode, should mark the node as skippable in the future.
                         HandleStaticNode(graph, activeNode, shaderProperties, mode);
                         continue;
                     }
@@ -1379,8 +1380,12 @@ namespace UnityEditor.ShaderGraph
                 builder.AppendLine("{0} description = ({0})0;", graphOutputStructName);
                 foreach (var node in nodes)
                 {
-                    if (node.isStatic)
+                    if (node.isStatic && !(node is PropertyNode))
+                    {
+                        // TODO: Workaround by checking if the node is ProperyNode, should mark the node as skippable in the future.
+                        HandleStaticNode(graph, node, shaderProperties, mode);
                         continue;
+                    }
 
                     if (node is IGeneratesFunction generatesFunction)
                     {
