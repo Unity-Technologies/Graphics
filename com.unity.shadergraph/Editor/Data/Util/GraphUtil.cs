@@ -992,8 +992,10 @@ namespace UnityEditor.ShaderGraph
 
             var activeNodeList = ListPool<AbstractMaterialNode>.Get();
             var subRootNodeList = ListPool<AbstractMaterialNode>.Get();
+
             NodeUtils.CollectNodesFromNode(activeNodeList, false, subRootNodeList, node);
-            graph.subRootNodeList = subRootNodeList;
+            if (mode == GenerationMode.ForReals || mode == GenerationMode.ForRealsAndOptimized)
+                graph.subRootNodeList = subRootNodeList;
 
             var slots = new List<MaterialSlot>();
             if (node is IMasterNode || node is SubGraphOutputNode)
@@ -1277,7 +1279,8 @@ namespace UnityEditor.ShaderGraph
                 surfaceDescriptionFunction.AppendLine("{0} surface = ({0})0;", surfaceDescriptionName);
                 foreach (var activeNode in activeNodeList)
                 {
-                    if (activeNode.isStatic && !(activeNode is PropertyNode || activeNode is ColorNode || activeNode is TimeNode))
+                    if ((mode == GenerationMode.ForReals || mode == GenerationMode.ForRealsAndOptimized)
+                        && activeNode.isStatic && activeNode is CodeFunctionNode)
                     {
                         // TODO: Workaround by checking if the node is ProperyNode, should mark the node as skippable in the future.
                         HandleStaticNode(graph, activeNode, shaderProperties, mode);
@@ -1390,7 +1393,8 @@ namespace UnityEditor.ShaderGraph
                 builder.AppendLine("{0} description = ({0})0;", graphOutputStructName);
                 foreach (var node in nodes)
                 {
-                    if (node.isStatic && !(node is PropertyNode || node is ColorNode || node is TimeNode))
+                    if ((mode == GenerationMode.ForReals || mode == GenerationMode.ForRealsAndOptimized)
+                        && node.isStatic && node is CodeFunctionNode)
                     {
                         // TODO: Workaround by checking if the node is ProperyNode, should mark the node as skippable in the future.
                         HandleStaticNode(graph, node, shaderProperties, mode);

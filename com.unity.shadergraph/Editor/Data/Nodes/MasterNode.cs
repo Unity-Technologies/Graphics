@@ -81,7 +81,8 @@ namespace UnityEditor.ShaderGraph
             if (abstractMaterialGraph != null)
             {
                 abstractMaterialGraph.CollectShaderProperties(shaderProperties, mode);
-                abstractMaterialGraph.subRootNodeList = subRootNodeList;
+                if (mode == GenerationMode.ForReals || mode == GenerationMode.ForRealsAndOptimized)
+                    abstractMaterialGraph.subRootNodeList = subRootNodeList;
             }
 
             foreach (var activeNode in activeNodeList.OfType<AbstractMaterialNode>())

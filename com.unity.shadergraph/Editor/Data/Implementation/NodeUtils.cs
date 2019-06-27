@@ -128,7 +128,7 @@ namespace UnityEditor.Graphing
 
             // already added this node
             if (allNodeList.Contains(node))
-                return true;
+                return node.isStatic;
 
             IEnumerable<int> ids;
             if (slotIds == null)

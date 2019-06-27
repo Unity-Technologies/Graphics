@@ -11,7 +11,7 @@ namespace UnityEditor.ShaderGraph
         }
 
         [HlslCodeGen]
-        static void Unity_Add(
+        static void Unity_MultiplySimple(
             [Slot(0, Binding.None)] [AnyDimension] Float4 A,
             [Slot(1, Binding.None)] [AnyDimension] Float4 B,
             [Slot(2, Binding.None)] [AnyDimension] out Float4 Out)
