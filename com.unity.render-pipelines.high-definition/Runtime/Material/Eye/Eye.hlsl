@@ -413,6 +413,20 @@ CBSDF EvaluateBSDF(float3 V, float3 L, PreLightData preLightData, BSDFData bsdfD
 # include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/MaterialEvaluation.hlsl"
 # include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/SurfaceShading.hlsl"
 
+float ComputeCaustic(float3 V, float3 positionOS, float3 lightDirOS, BSDFData bsdfData)
+{
+    if (bsdfData.mask.x < 0.001)
+    {
+        return 0.0;
+    }
+
+    // Completely heuristic!
+    float causticIris = 2.0 * pow(saturate(dot(-normalize(positionOS.xy), lightDirOS.xy)), 2);
+    float causticSclera = clamp(2000.0 * pow(saturate(dot(-normalize(positionOS.xy), lightDirOS.xy)), 20), 0, 100);
+
+    return causticSclera * (1.0 - bsdfData.mask.x) + causticIris * bsdfData.mask.x;
+}
+
 //-----------------------------------------------------------------------------
 // EvaluateBSDF_Directional
 //-----------------------------------------------------------------------------
@@ -422,32 +436,20 @@ DirectLighting EvaluateBSDF_Directional(LightLoopContext lightLoopContext,
                                         DirectionalLightData lightData, BSDFData bsdfData,
                                         BuiltinData builtinData)
 {
-    return ShadeSurface_Directional(lightLoopContext, posInput, builtinData,
+    DirectLighting dl = ShadeSurface_Directional(lightLoopContext, posInput, builtinData,
                                     preLightData, lightData, bsdfData, V);
+
+    float3 positionOS = TransformWorldToObject(posInput.positionWS);
+    float3 lightDirOS = TransformWorldToObjectDir(-lightData.forward);
+    // Atteunate the caustic value for directional as it is stronger than for other light
+    dl.diffuse *= 1.0 + 0.5 * ComputeCaustic(V, positionOS, lightDirOS, bsdfData);
+
+    return dl;
 }
 
 //-----------------------------------------------------------------------------
 // EvaluateBSDF_Punctual (supports spot, point and projector lights)
 //-----------------------------------------------------------------------------
-
-float ComputePunctualCaustic(float3 V, float3 positionWS, float3 lightPosWS, BSDFData bsdfData)
-{
-    float3 pos = TransformWorldToObject(positionWS);
-
-    float3 normal = normalize(TransformWorldToObjectDir(bsdfData.normalWS));
-    float3 lightPos = TransformWorldToObject(lightPosWS);
-    float3 lightDir = normalize(lightPos);
-
-    // Completely heuristic!
-    float causticSclera = pow(2.0 * saturate(-dot(normal.xy, lightDir.xy)), 20);
-   // float alphaSclera = pos.z < 1.05 ? saturate(1.0 - smoothStep((pos.z - 0.95) * 10)) : 0.01;
-
-    float causticIris = 2.0 * pow(saturate(dot(-normalize(pos.xy), lightDir.xy)), 2);
-    //float alphaIris = pos.z > 1.05 ? 1.0 : 0.0;
-
-    //return causticSclera * alphaSclera + causticIris * alphaIris;
-    return causticSclera * min(bsdfData.mask.x, 1 - bsdfData.mask.x) + causticIris * (bsdfData.mask.x >= 0.99);
-}
 
 DirectLighting EvaluateBSDF_Punctual(LightLoopContext lightLoopContext,
                                      float3 V, PositionInputs posInput,
@@ -457,7 +459,10 @@ DirectLighting EvaluateBSDF_Punctual(LightLoopContext lightLoopContext,
     DirectLighting dl = ShadeSurface_Punctual(  lightLoopContext, posInput, builtinData,
                                                 preLightData, lightData, bsdfData, V);
 
-    dl.diffuse *= 1.0 + ComputePunctualCaustic(V, posInput.positionWS, lightData.positionRWS, bsdfData);
+    float3 positionOS = TransformWorldToObject(posInput.positionWS);
+    float3 lightPosOS = TransformWorldToObject(lightData.positionRWS);
+    float3 lightDirOS = normalize(lightPosOS);
+    dl.diffuse *= 1.0 + ComputeCaustic(V, positionOS, lightDirOS, bsdfData);
 
     return dl;
 }
