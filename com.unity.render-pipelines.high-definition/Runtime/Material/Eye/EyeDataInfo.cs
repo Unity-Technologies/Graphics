@@ -6,7 +6,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     [Serializable, VolumeComponentMenu("EyeDataInfo")]
     public sealed class EyeDataInfo : VolumeComponent
     {
-        public TextureParameter albedoTexture = new TextureParameter(null);
+        public TextureParameter scleraTexture = new TextureParameter(null);
+        public TextureParameter irisTexture = new TextureParameter(null);
         public TextureParameter maskTexture = new TextureParameter(null);
         public BoolParameter useCustomNormalMap = new BoolParameter(false);
         public BoolParameter enableRefraction = new BoolParameter(false);

@@ -139,7 +139,8 @@ Pass
 $features.modifyMesh:   $include("VertexAnimation.template.hlsl")
 
 $include("SharedCode.template.hlsl")
-    TEXTURE2D(_EyeTexture);
+    TEXTURE2D(_ScleraTexture);
+    TEXTURE2D(_IrisTexture);
     TEXTURE2D(_EyeMask);
     int _EyeRefraction;
     SAMPLER(s_linear_clamp);
@@ -193,6 +194,16 @@ $include("SharedCode.template.hlsl")
         return finalUV;
     }
 
+    float3 ComposeScleraAndIris(float2 uv, float irisIsoLine)
+    {
+        const float rescaledIrisIsoLine = irisIsoLine * 2;
+        float normalizedUV = (uv.xy * 2.0 - 1.0);
+        float3 scleraColor = _ScleraTexture.Sample(s_linear_clamp, uv.xy);
+        float4 irisColor = _IrisTexture.Sample(s_linear_clamp, ((uv.xy * 2.0 - 1.0) / rescaledIrisIsoLine)* 0.5 + 0.5);
+        return lerp(scleraColor, irisColor.xyz, irisColor.w);
+    }
+
+
     void BuildSurfaceData(FragInputs fragInputs, inout SurfaceDescription surfaceDescription, float3 V, PositionInputs posInput, out SurfaceData surfaceData, out float3 bentNormalWS)
     {
         // setup defaults -- these are used if the graph doesn't output a value
@@ -235,16 +246,17 @@ $include("SharedCode.template.hlsl")
         // The radius of the pupil in texture space (this is considering that the iris is in the middle of the eye texture)
         float pupilRadius = 0.04;
         // The radius of the iris in texture space (this is considering that the iris is in the middle of the eye texture) otherwise it would be on the edges
-        float irisRadius = 0.16;
+        float irisRadius = 0.191;
         // The max extent of the pupil [0,1]
-        float maxExtent = 0.9;
+        float maxExtent = 1.0;
         // The max contraction of the pupil [0,1]
         float maxContraction = 0.9;
         // texcoord.xy is the uv coords of the eye texture in the [0,1]^2 space
         // _ExtentSlider is a slider that goes from [-1,1] and controls extension and contraction
         texcoord.xy = DisplaceIris(texcoord.xy, irisRadius, pupilRadius, maxExtent, maxContraction, _ExtentSlider);
 
-        surfaceData.baseColor = _EyeTexture.Sample(s_linear_clamp, texcoord.xy);
+        surfaceData.baseColor = ComposeScleraAndIris(texcoord.xy, 0.191);
+
         //surfaceData.baseColor = float3(texcoord.xy, 0.0);
         surfaceData.irisSmoothness = 0.9;
         surfaceData.scleraSmoothness = 0.9;

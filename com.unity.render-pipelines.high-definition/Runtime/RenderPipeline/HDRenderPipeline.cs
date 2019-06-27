@@ -837,9 +837,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
 
 
-            if (m_EyeProfileManager.currentProfile != null && m_EyeProfileManager.currentProfile.albedoTexture.value != null)
+            if (m_EyeProfileManager.currentProfile != null && m_EyeProfileManager.currentProfile.scleraTexture.value != null)
             {
-                cmd.SetGlobalTexture("_EyeTexture", m_EyeProfileManager.currentProfile.albedoTexture.value);
+                cmd.SetGlobalTexture("_ScleraTexture", m_EyeProfileManager.currentProfile.scleraTexture.value);
+            }
+
+            if (m_EyeProfileManager.currentProfile != null && m_EyeProfileManager.currentProfile.irisTexture.value != null)
+            {
+                cmd.SetGlobalTexture("_IrisTexture", m_EyeProfileManager.currentProfile.irisTexture.value);
             }
 
             // TODO_HW19: This should be done on demand and not every frame when the profile settings change.
