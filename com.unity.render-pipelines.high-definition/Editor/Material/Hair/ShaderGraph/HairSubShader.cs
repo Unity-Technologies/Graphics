@@ -52,6 +52,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 HairMasterNode.SecondarySmoothnessSlotId,
                 HairMasterNode.SecondarySpecularShiftSlotId,
                 HairMasterNode.IndexOfRefractionSlotId,
+                HairMasterNode.TTAzimuthalSmoothnessSlotId,
             },
             VertexShaderSlots = new List<int>()
             {
@@ -306,6 +307,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 HairMasterNode.SecondarySpecularShiftSlotId,
                 HairMasterNode.DepthOffsetSlotId,
                 HairMasterNode.IndexOfRefractionSlotId,
+                HairMasterNode.TTAzimuthalSmoothnessSlotId,
             },
             VertexShaderSlots = new List<int>()
             {
@@ -377,6 +379,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 HairMasterNode.BackLightingSlotId,
                 HairMasterNode.DepthOffsetSlotId,
                 HairMasterNode.IndexOfRefractionSlotId,
+                HairMasterNode.TTAzimuthalSmoothnessSlotId,
             },
             VertexShaderSlots = new List<int>()
             {
@@ -465,6 +468,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
                 case HairMasterNode.MaterialType.Marschner:
                     activeFields.Add("Material.Marschner");
+                    break;
+                case HairMasterNode.MaterialType.MarschnerB:
+                    activeFields.Add("Material.MarschnerB");
                     break;
 
                 default:
@@ -585,16 +591,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 if (connected || occlusionSlot.value != occlusionSlot.defaultValue)
                 {
                     activeFields.Add("AmbientOcclusion");
-                }
-            }
-
-            if (pass.PixelShaderUsesSlot(HairMasterNode.IndexOfRefractionSlotId))
-            {
-                var iorSlot = masterNode.FindSlot<Vector1MaterialSlot>(HairMasterNode.IndexOfRefractionSlotId);
-
-                if (masterNode.materialType == HairMasterNode.MaterialType.Marschner)
-                {
-                    activeFields.Add("IndexOfRefraction");
                 }
             }
 

@@ -32,6 +32,7 @@
 #define DEBUGVIEW_HAIR_SURFACEDATA_SECONDARY_SPECULAR_SHIFT (1416)
 #define DEBUGVIEW_HAIR_SURFACEDATA_AZIMUTHAL_SMOOTHNESS (1417)
 #define DEBUGVIEW_HAIR_SURFACEDATA_INDEX_OF_REFRACTION (1418)
+#define DEBUGVIEW_HAIR_SURFACEDATA_TT_AZIMUTHAL_SMOOTHNESS (1419)
 
 //
 // UnityEngine.Experimental.Rendering.HDPipeline.Hair+BSDFData:  static fields
@@ -59,6 +60,7 @@
 #define DEBUGVIEW_HAIR_BSDFDATA_SECONDARY_SPECULAR_SHIFT (1470)
 #define DEBUGVIEW_HAIR_BSDFDATA_AZIMUTHAL_PERCEPTUAL_ROUGHNESS (1471)
 #define DEBUGVIEW_HAIR_BSDFDATA_INDEX_OF_REFRACTION (1472)
+#define DEBUGVIEW_HAIR_BSDFDATA_TT_AZIMUTHAL_PERCEPTUAL_ROUGHNESS (1473)
 
 // Generated from UnityEngine.Experimental.Rendering.HDPipeline.Hair+SurfaceData
 // PackingRules = Exact
@@ -81,6 +83,7 @@ struct SurfaceData
     float secondarySpecularShift;
     float azimuthalSmoothness;
     float indexOfRefraction;
+    float ttAzimuthalSmoothness;
 };
 
 // Generated from UnityEngine.Experimental.Rendering.HDPipeline.Hair+BSDFData
@@ -108,6 +111,7 @@ struct BSDFData
     float secondarySpecularShift;
     float azimuthalPerceptualRoughness;
     float indexOfRefraction;
+    float ttAzimuthalPerceptualRoughness;
 };
 
 //
@@ -176,6 +180,9 @@ void GetGeneratedSurfaceDataDebug(uint paramId, SurfaceData surfacedata, inout f
             break;
         case DEBUGVIEW_HAIR_SURFACEDATA_INDEX_OF_REFRACTION:
             result = surfacedata.indexOfRefraction.xxx;
+            break;
+        case DEBUGVIEW_HAIR_SURFACEDATA_TT_AZIMUTHAL_SMOOTHNESS:
+            result = surfacedata.ttAzimuthalSmoothness.xxx;
             break;
     }
 }
@@ -256,6 +263,9 @@ void GetGeneratedBSDFDataDebug(uint paramId, BSDFData bsdfdata, inout float3 res
             break;
         case DEBUGVIEW_HAIR_BSDFDATA_INDEX_OF_REFRACTION:
             result = bsdfdata.indexOfRefraction.xxx;
+            break;
+        case DEBUGVIEW_HAIR_BSDFDATA_TT_AZIMUTHAL_PERCEPTUAL_ROUGHNESS:
+            result = bsdfdata.ttAzimuthalPerceptualRoughness.xxx;
             break;
     }
 }

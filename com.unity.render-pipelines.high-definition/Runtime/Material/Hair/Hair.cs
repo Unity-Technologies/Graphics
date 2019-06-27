@@ -80,6 +80,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             [SurfaceDataAttributes("Index Of Refraction")]
             public float indexOfRefraction;
+
+            [SurfaceDataAttributes("TT Azimuthal Smoothness")]
+            public float ttAzimuthalSmoothness;
         };
 
         //-----------------------------------------------------------------------------
@@ -127,6 +130,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Marschner
             public float azimuthalPerceptualRoughness;
             public float indexOfRefraction;
+            public float ttAzimuthalPerceptualRoughness;
         };
 
 

@@ -135,6 +135,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public Shader preIntegratedFGD_WardPS;
             [Reload("Runtime/Material/AxF/PreIntegratedFGD_CookTorrance.shader")]
             public Shader preIntegratedFGD_CookTorrancePS;
+            [Reload("Runtime/Material/Hair/PreIntegratedFGD_Marschner.shader")]
+            public Shader preIntegratedFGD_MarschnerPS;
 
             // Utilities / Core
             [Reload("Runtime/Core/CoreResources/EncodeBC6H.compute")]
@@ -229,6 +231,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public Shader clearBlackPS;
             [Reload("Runtime/PostProcessing/Shaders/SubpixelMorphologicalAntialiasing.shader")]
             public Shader SMAAPS;
+
+            // Eye
+            [Reload("Runtime/Lighting/Eye/PupilSizeEstimation.shader")]
+            public Shader pupilSizeEstimation;
 
             // Iterator to retrieve all compute shaders in reflection so we don't have to keep a list of
             // used compute shaders up to date (prefer editor-only usage)
