@@ -11,6 +11,7 @@ namespace UnityEditor.ShaderGraph
             name = "Saturation";
         }
 
+        [HlslCodeGen]
         static void Unity_Saturation(
             [Slot(0, Binding.None)] Float3 In,
             [Slot(1, Binding.None, 1, 1, 1, 1)] Float Saturation,

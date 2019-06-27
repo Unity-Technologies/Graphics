@@ -1,0 +1,237 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
+using UnityEngine;
+using UnityEditor.ShaderGraph.Hlsl;
+using static UnityEditor.ShaderGraph.Hlsl.Intrinsics;
+using Unity.Mathematics;
+
+namespace UnityEditor.ShaderGraph
+{
+    class ConstantComputer
+    {
+        struct Arg
+        {
+            public int type; // 0 - 3
+            public int index;
+        }
+
+        struct Instruction
+        {
+            public MethodInfo method;
+            public Arg[] inputs;
+            public Arg[] outputs;
+        }
+
+        private Instruction[] m_Instructions;
+        private float4[] m_Vecs;
+
+        private (string name, int index)[] m_Inputs;
+        private (string name, int index)[] m_Outputs;
+
+        public void SetInput(string name, Vector4 value)
+        {
+            var index = Array.FindIndex(m_Inputs, i => i.name == name);
+            if (index < 0)
+                throw new ArgumentException($"Input name {name} is not found.");
+            m_Vecs[m_Inputs[index].index] = value;
+        }
+
+        public void Execute()
+        {
+            foreach (var inst in m_Instructions)
+            {
+                var args = new object[inst.inputs.Length + inst.outputs.Length];
+                for (int i = 0; i < inst.inputs.Length; ++i)
+                {
+                    var arg = inst.inputs[i];
+                    var vec = m_Vecs[arg.index];
+                    if (arg.type == 0)
+                        args[i] = Float(vec.x);
+                    else if (arg.type == 1)
+                        args[i] = Float2(vec.x, vec.y);
+                    else if (arg.type == 2)
+                        args[i] = Float3(vec.x, vec.y, vec.z);
+                    else if (arg.type == 3)
+                        args[i] = Float4(vec.x, vec.y, vec.z, vec.w);
+                }
+                inst.method.Invoke(null, args);
+                for (int i = 0; i < inst.outputs.Length; ++i)
+                {
+                    var arg = inst.outputs[i];
+                    var outVar = args[i + inst.inputs.Length];
+                    if (arg.type == 0)
+                        m_Vecs[arg.index] = math.float4(((Float)outVar).Value.Value, 0, 0, 0);
+                    else if (arg.type == 1)
+                        m_Vecs[arg.index] = math.float4(((Float2)outVar).Value.Value, 0, 0);
+                    else if (arg.type == 2)
+                        m_Vecs[arg.index] = math.float4(((Float3)outVar).Value.Value, 0);
+                    else if (arg.type == 3)
+                        m_Vecs[arg.index] = ((Float4)outVar).Value.Value;
+                }
+            }
+        }
+
+        public Vector4 GetOutput(string name)
+        {
+            var index = Array.FindIndex(m_Outputs, i => i.name == name);
+            if (index < 0)
+                throw new ArgumentException($"Output name {name} is not found.");
+            return m_Vecs[m_Outputs[index].index];
+        }
+
+        private static AbstractShaderProperty GetShaderPropertyFromNode(PropertyNode node)
+            => node.owner.properties.FirstOrDefault(x => x.guid == node.propertyGuid);
+
+        public static ConstantComputer Gather(AbstractMaterialNode root)
+        {
+            Debug.Assert(root.isStatic);
+            Debug.Assert(root is TimeNode || root is PropertyNode || root is CodeFunctionNode);
+
+            var nodes = new List<AbstractMaterialNode>();
+            Graphing.NodeUtils.DepthFirstCollectNodesFromNode(nodes, root);
+
+            var nodeGuidToInstructionIndex = new Dictionary<Guid, int>();
+            var instructions = new List<Instruction>(nodes.Count);
+            var vecs = new List<float4>();
+            var inputs = new List<(string name, int index)>();
+            var outputs = new List<(string name, int index)>();
+
+            foreach (var node in nodes)
+            {
+                if (node is PropertyNode propertyNode)
+                {
+                    // one of the input node
+                    var shaderProperty = GetShaderPropertyFromNode(propertyNode);
+                    if (inputs.FindIndex(i => i.name == shaderProperty.referenceName) >= 0)
+                        continue;
+
+                    int index = vecs.Count;
+                    vecs.Add(float4.zero);
+                    inputs.Add((shaderProperty.referenceName, index));
+                }
+                else if (node is TimeNode timeNode)
+                {
+                    // Time input node
+                }
+                else if (node is CodeFunctionNode codeFunctionNode)
+                {
+                    // Code function node
+                    var func = codeFunctionNode.Method;
+                    if (func.GetCustomAttribute<CodeFunctionNode.HlslCodeGenAttribute>() == null)
+                        throw new Exception("Unity can only create ConstantComputer from HlslCodeGen function nodes.");
+
+                    var inputArgs = new List<Arg>();
+                    var outputArgs = new List<Arg>();
+
+                    var slots = new List<MaterialSlot>();
+                    node.GetSlots(slots);
+                    foreach (var param in func.GetParameters())
+                    {
+                        var arg = new Arg();
+                        var paramType = param.ParameterType;
+                        if (paramType.IsByRef)
+                            paramType = paramType.GetElementType();
+                        if (paramType == typeof(Float))
+                            arg.type = 0;
+                        else if (paramType == typeof(Float2))
+                            arg.type = 1;
+                        else if (paramType == typeof(Float3))
+                            arg.type = 2;
+                        else if (paramType == typeof(Float4))
+                            arg.type = 3;
+
+                        var slotId = param.GetCustomAttribute<CodeFunctionNode.SlotAttribute>().slotId;
+                        var slot = slots.Find(s => s.id == slotId);
+                        var edge = node.owner.GetEdges(slot.slotReference).FirstOrDefault();
+                        if (edge == null && param.IsOut)
+                            continue;
+
+                        if (!param.IsOut)
+                        {
+                            // input
+                            if (edge != null)
+                            {
+                                var fromNode = node.owner.GetNodeFromGuid<AbstractMaterialNode>(edge.outputSlot.nodeGuid);
+                                Debug.Assert(nodes.Contains(fromNode));
+                                if (fromNode is PropertyNode fromPropertyNode)
+                                {
+                                    var shaderProperty = GetShaderPropertyFromNode(fromPropertyNode);
+                                    var inputIndex = inputs.FindIndex(i => i.name == shaderProperty.referenceName);
+                                    arg.index = inputs[inputIndex].index;
+                                }
+                                else if (fromNode is TimeNode)
+                                {
+                                }
+                                else
+                                {
+                                    arg.index = -1;
+                                    var fromFuncNode = fromNode as CodeFunctionNode;
+                                    var fromInstruction = instructions[nodeGuidToInstructionIndex[fromNode.guid]];
+                                    var fromParams = fromInstruction.method.GetParameters();
+                                    for (int i = 0; i < fromParams.Length; ++i)
+                                    {
+                                        if (fromParams[i].GetCustomAttribute<CodeFunctionNode.SlotAttribute>().slotId == edge.outputSlot.slotId)
+                                        {
+                                            arg.index = fromInstruction.outputs[i - fromInstruction.inputs.Length].index;
+                                            break;
+                                        }
+                                    }
+                                    Debug.Assert(arg.index != -1);
+                                }
+                            }
+                            else
+                            {
+                                // default
+                                arg.index = vecs.Count;
+                                if (slot is Vector1MaterialSlot vec1Slot)
+                                    vecs.Add(math.float4(vec1Slot.value));
+                                else if (slot is Vector2MaterialSlot vec2Slot)
+                                    vecs.Add(math.float4(vec2Slot.value, 0, 0));
+                                else if (slot is Vector3MaterialSlot vec3Slot)
+                                    vecs.Add(math.float4(vec3Slot.value, 0));
+                                else if (slot is Vector4MaterialSlot vec4Slot)
+                                    vecs.Add(math.float4(vec4Slot.value));
+                                else
+                                    Debug.Assert(false);
+                            }
+                            inputArgs.Add(arg);
+                        }
+                        else
+                        {
+                            // output
+                            arg.index = vecs.Count;
+                            vecs.Add(float4.zero);
+                            outputArgs.Add(arg);
+
+                            if (node == root)
+                                outputs.Add((node.GetVariableNameForSlot(slotId), arg.index));
+                        }
+                    }
+
+                    var instruction = new Instruction()
+                    {
+                        method = codeFunctionNode.Method,
+                        inputs = inputArgs.ToArray(),
+                        outputs = outputArgs.ToArray()
+                    };
+                    instructions.Add(instruction);
+                }
+                else
+                {
+                    throw new Exception("Unknonw node");
+                }
+            }
+
+            var constantComputer = new ConstantComputer()
+            {
+                m_Instructions = instructions.ToArray(),
+                m_Vecs = vecs.ToArray(),
+                m_Inputs = inputs.ToArray(),
+                m_Outputs = outputs.ToArray()
+            };
+            return constantComputer;
+        }
+    }
+}
