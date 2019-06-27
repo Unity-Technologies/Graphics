@@ -123,7 +123,17 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             ZWriteOverride = "ZWrite On",
             CullOverride = HDSubShaderUtilities.defaultCullMode,
             ExtraDefines = HDSubShaderUtilities.s_ExtraDefinesForwardMaterialDepthOrMotion,
-            
+            StencilOverride = new List<string>()
+            {
+                "// Stencil setup",
+                "Stencil",
+                "{",
+                string.Format("   WriteMask {0}", (int)HDRenderPipeline.StencilBitMask.SMAA),  
+                string.Format("   Ref  {0}", (int)HDRenderPipeline.StencilBitMask.SMAA),
+                "   Comp Always",
+                "   Pass Replace",
+                "}"
+            },
             Includes = new List<string>()
             {
                 "#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDepthOnly.hlsl\"",
@@ -160,13 +170,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 EyeMasterNode.PositionSlotId
             },
-            UseInPreview = true,
-
-            OnGeneratePassImpl = (IMasterNode node, ref Pass pass) =>
-            {
-                var masterNode = node as EyeMasterNode;
-                HDSubShaderUtilities.SetStencilStateForDepth(ref pass);
-            }           
+            UseInPreview = true,       
         };
 
         Pass m_PassMotionVectors = new Pass()

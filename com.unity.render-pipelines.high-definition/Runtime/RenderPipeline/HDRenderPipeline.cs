@@ -54,6 +54,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         int m_SsrReprojectionKernel = -1;
 
         Material m_ApplyDistortionMaterial;
+        Material m_PupilSizeEstimation;
 
         Material m_CameraMotionVectorsMaterial;
         Material m_DecalNormalBufferMaterial;
@@ -77,6 +78,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         // 'm_CameraColorBuffer' does not contain diffuse lighting of SSS materials until the SSS pass. It is stored within 'm_CameraSssDiffuseLightingBuffer'.
         RTHandle m_CameraColorBuffer;
+        RTHandle m_PupilLuminanceBuffer;
         RTHandle m_OpaqueAtmosphericScatteringBuffer; // Necessary to perform dual-source (polychromatic alpha) blending which is not supported by Unity
         RTHandle m_CameraSssDiffuseLightingBuffer;
 
@@ -289,6 +291,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             m_ApplyDistortionMaterial = CoreUtils.CreateEngineMaterial(asset.renderPipelineResources.shaders.applyDistortionPS);
 
+            m_PupilSizeEstimation = CoreUtils.CreateEngineMaterial(asset.renderPipelineResources.shaders.pupilSizeEstimation);
+
             InitializeDebugMaterials();
             XRDebugMenu.Reset();
 
@@ -435,6 +439,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             m_ContactShadowBuffer = RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GraphicsFormat.R32_UInt, enableRandomWrite: true, useDynamicScale: true, name: "ContactShadowsBuffer");
 
+            m_PupilLuminanceBuffer = RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GraphicsFormat.R32G32B32A32_SFloat, enableRandomWrite: true, useMipMap: false, useDynamicScale: true, name: "PupilLuminanceBuffer");
+
             if (m_Asset.currentPlatformRenderPipelineSettings.lowresTransparentSettings.enabled)
             {
                 // We need R16G16B16A16_SFloat as we need a proper alpha channel for compositing.
@@ -470,7 +476,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_DbufferManager.DestroyBuffers();
             m_MipGenerator.Release();
             m_XRSystem.ClearAll();
-
+            
+            RTHandles.Release(m_PupilLuminanceBuffer);
             RTHandles.Release(m_CameraColorBuffer);
             RTHandles.Release(m_OpaqueAtmosphericScatteringBuffer);
             RTHandles.Release(m_CameraSssDiffuseLightingBuffer);
@@ -669,7 +676,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             DecalSystem.instance.Cleanup();
 
             m_MaterialList.ForEach(material => material.Cleanup());
-
+            
+            CoreUtils.Destroy(m_PupilSizeEstimation);
             CoreUtils.Destroy(m_CameraMotionVectorsMaterial);
             CoreUtils.Destroy(m_DecalNormalBufferMaterial);
 
@@ -1870,6 +1878,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 RenderDeferredLighting(hdCamera, cmd);
 
+                EvaluatePupilLightIntensity(cmd, hdCamera);
+
                 RenderForwardOpaque(cullingResults, hdCamera, renderContext, cmd);
 
                 m_SharedRTManager.ResolveMSAAColor(cmd, hdCamera, m_CameraSssDiffuseLightingMSAABuffer, m_CameraSssDiffuseLightingBuffer);
@@ -2619,6 +2629,17 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 HDUtils.DrawRendererList(renderContext, cmd, rayTracingTransparentRL);
             }
 #endif
+        }
+        void EvaluatePupilLightIntensity(CommandBuffer cmd, HDCamera hdCamera)
+        {
+            using (new ProfilingSample(cmd, "Estimate Pupil Size", CustomSamplerId.PupilSizeEstimation.GetSampler()))
+            {
+                HDUtils.SetRenderTarget(cmd, m_PupilLuminanceBuffer, m_SharedRTManager.GetDepthStencilBuffer(), clearFlag: ClearFlag.Color, clearColor: Color.black);
+                m_PupilSizeEstimation.SetTexture(HDShaderIDs._DepthTexture, m_SharedRTManager.GetDepthTexture());
+                HDUtils.DrawFullScreen(cmd, m_PupilSizeEstimation, m_PupilLuminanceBuffer, m_SharedRTManager.GetDepthStencilBuffer(), null, 0);
+                cmd.SetGlobalTexture("_PupilLightIntensity", m_PupilLuminanceBuffer);
+                (RenderPipelineManager.currentPipeline as HDRenderPipeline).PushFullScreenDebugTexture(hdCamera, cmd, m_PupilLuminanceBuffer, FullScreenDebugMode.IndirectDiffuse);
+            }
         }
 
         // RenderDepthPrepass render both opaque and opaque alpha tested based on engine configuration.

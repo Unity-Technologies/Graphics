@@ -17,6 +17,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         BlitToFinalRT,
         Distortion,
         ApplyDistortion,
+        PupilSizeEstimation,
         DepthPrepass,
         TransparentDepthPrepass,
         GBuffer,
