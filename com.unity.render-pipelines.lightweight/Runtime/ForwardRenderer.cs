@@ -17,6 +17,7 @@ namespace UnityEngine.Rendering.LWRP
         int m_DebugAlbedoSaturationTolerance;
         int m_DebugAlbedoHueTolerance;
         int m_DebugAlbedoCompareColor;
+        int m_DebugMipIndexId;
 
         DepthOnlyPass m_DepthPrepass;
         MainLightShadowCasterPass m_MainLightShadowCasterPass;
@@ -61,6 +62,8 @@ namespace UnityEngine.Rendering.LWRP
             m_DebugAlbedoSaturationTolerance = Shader.PropertyToID("_AlbedoSaturationTolerance");
             m_DebugAlbedoHueTolerance = Shader.PropertyToID("_AlbedoHueTolerance");
             m_DebugAlbedoCompareColor = Shader.PropertyToID("_AlbedoCompareColor");
+            m_DebugMipIndexId = Shader.PropertyToID("_DebugMipIndex");
+
 
             m_NumberFontTexture = data.textures.NumberFont;
 
@@ -472,12 +475,14 @@ namespace UnityEngine.Rendering.LWRP
             attributeDebugIndex = DebugDisplaySettings.Instance.materialSettings.VertexAttributeDebugIndexData;
             PBRLightingDebugMode pbrLightingDebugMode = DebugDisplaySettings.Instance.Lighting.m_PBRLightingDebugMode;
             pbrLightingDebugModeMask = (int) pbrLightingDebugMode;
+            debugMipInfo = DebugDisplaySettings.Instance.renderingSettings.mipInfoDebugMode;
 
             var cmd = CommandBufferPool.Get("");
             cmd.SetGlobalFloat(m_DebugMaterialIndexId, (int)debugMaterialIndex);
             cmd.SetGlobalFloat(m_DebugLightingIndexId, (int)lightingDebugMode);
 			cmd.SetGlobalFloat(m_DebugVertexAttributesIndexId, (int)attributeDebugIndex);
             cmd.SetGlobalInt(m_DebugPBRLightingMask, (int)pbrLightingDebugModeMask);
+            cmd.SetGlobalInt(m_DebugMipIndexId, (int)debugMipInfo);
             cmd.SetGlobalInt(m_DebugValidationIndexId, (int)DebugDisplaySettings.Instance.Validation.validationMode);
 
             cmd.SetGlobalFloat(m_DebugAlbedoMinLuminance, DebugDisplaySettings.Instance.Validation.AlbedoMinLuminance);

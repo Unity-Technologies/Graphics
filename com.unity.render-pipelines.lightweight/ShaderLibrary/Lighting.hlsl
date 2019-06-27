@@ -606,7 +606,7 @@ half4 LightweightFragmentPBR(InputData inputData, SurfaceData surfaceData)
             //inputData.bakedGI = SAMPLE_GI(inputData.lightmapUV, inputData.vertexSH, inputData.normalWS);
         }
     }
- brdfData = CreateBRDFData(surfaceData);
+    brdfData = CreateBRDFData(surfaceData);
 
     if (CalculateColorForDebug(inputData, surfaceData, debugData, debugColor) && _DebugMaterialIndex != DEBUG_LOD)
     {
