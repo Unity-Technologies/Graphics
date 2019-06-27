@@ -1235,14 +1235,9 @@ namespace UnityEditor.ShaderGraph
         static void SaveConstantComputer(AbstractMaterialNode node)
         {
             var constantComputer = ConstantComputer.Gather(node);
-            var jsonString = JsonUtility.ToJson(constantComputer);
-
             var assetPath = AssetDatabase.GUIDToAssetPath(node.owner.assetGuid);
 
-            var jsonFilePath = Path.Combine(Path.GetDirectoryName(assetPath), node.guid.ToString());
-            if (File.Exists(jsonFilePath))
-                File.Delete(jsonFilePath);
-            File.WriteAllText(jsonFilePath, jsonString);
+            AssetDatabase.CreateAsset(constantComputer, Path.Combine(Path.GetDirectoryName(assetPath), node.guid.ToString()));
         }
 
         static void ConvertToShaderProperty(ISlot slot, PropertyCollector shaderProperties, GenerationMode mode)
