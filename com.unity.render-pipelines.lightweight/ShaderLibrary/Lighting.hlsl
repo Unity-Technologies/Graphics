@@ -526,7 +526,7 @@ half4 CalculateDebugShadowCascadeColor(InputData inputData)
     Light mainLight = GetMainLight(shadowCoord);
     half cascadeIndex = ComputeCascadeIndex(positionWS);
 
-    half4 cascadeColors[] =
+    float4 cascadeColors[] =
     {
         kBlueColor,
         kGreenColor,
@@ -534,22 +534,22 @@ half4 CalculateDebugShadowCascadeColor(InputData inputData)
         kRedColor,
     };
 
-    return cascadeColors[cascadeIndex];
+    return (half4)(cascadeColors[cascadeIndex]);
 }
 
 half4 CalculateDebugLightingComplexityColor(InputData inputData)
 {
-    half4 lut[5] = {
-            half4(0, 1, 0, 0),
-            half4(0.25, 0.75, 0, 0),
-            half4(0.498, 0.5019, 0.0039, 0),
-            half4(0.749, 0.247, 0, 0),
-            half4(1, 0, 0, 0)
+    float4 lut[5] = {
+            float4(0, 1, 0, 0),
+            float4(0.25, 0.75, 0, 0),
+            float4(0.498, 0.5019, 0.0039, 0),
+            float4(0.749, 0.247, 0, 0),
+            float4(1, 0, 0, 0)
     };
 
     // Assume a main light and add 1 to the additional lights.
     unsigned int numLights = clamp(GetAdditionalLightsCount()+1, 0, 4);
-    half4 fc = lut[numLights];
+    half4 fc = (half4)(lut[numLights]);
 
     float4 clipPos = TransformWorldToHClip(inputData.positionWS);
     float2 ndc = saturate((clipPos.xy / clipPos.w) * 0.5 + 0.5);
