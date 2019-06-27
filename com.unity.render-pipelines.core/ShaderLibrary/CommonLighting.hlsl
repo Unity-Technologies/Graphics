@@ -295,6 +295,12 @@ real ComputeWrappedDiffuseLighting(real NdotL, real w)
     return saturate((NdotL + w) / ((1 + w) * (1 + w)));
 }
 
+// Jimenez variant for eye
+real ComputeWrappedPowerDiffuseLighting(real NdotL, real w, real p)
+{
+    return pow(saturate((NdotL + w) / (1 + w)), p) * (p + 1) / (w * 2 + 2);
+}
+
 // Ref: The Technical Art of Uncharted 4 - Brinck and Maximov 2016
 real ComputeMicroShadowing(real AO, real NdotL, real opacity)
 {

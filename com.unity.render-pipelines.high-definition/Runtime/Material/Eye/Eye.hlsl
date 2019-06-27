@@ -397,7 +397,7 @@ CBSDF EvaluateBSDF(float3 V, float3 L, PreLightData preLightData, BSDFData bsdfD
     // Use diffuse normal map for diffuse
 
     N = bsdfData.diffuseNormalWS;
-    clampedNdotL = saturate(dot(N, L));
+    clampedNdotL = ComputeWrappedPowerDiffuseLighting(dot(N, L), PI / 12.0, 2.0);
 
     cbsdf.diffR = Lambert() * clampedNdotL * (1 - F);
 
@@ -424,7 +424,7 @@ float ComputeCaustic(float3 V, float3 positionOS, float3 lightDirOS, BSDFData bs
     float causticIris = 2.0 * pow(saturate(dot(-normalize(positionOS.xy), lightDirOS.xy)), 2);
     float causticSclera = clamp(2000.0 * pow(saturate(dot(-normalize(positionOS.xy), lightDirOS.xy)), 20), 0, 100);
 
-    return causticSclera * (1.0 - bsdfData.mask.x) + causticIris * bsdfData.mask.x;
+    return causticSclera * min(bsdfData.mask.x, (1.0 - bsdfData.mask.x)) + causticIris * bsdfData.mask.x;
 }
 
 //-----------------------------------------------------------------------------
