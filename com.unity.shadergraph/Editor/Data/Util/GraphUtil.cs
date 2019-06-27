@@ -1237,7 +1237,9 @@ namespace UnityEditor.ShaderGraph
             var constantComputer = ConstantComputer.Gather(node);
             var jsonString = JsonUtility.ToJson(constantComputer);
 
-            var jsonFilePath = Path.Combine(Application.persistentDataPath, node.guid.ToString());
+            var assetPath = AssetDatabase.GUIDToAssetPath(node.owner.assetGuid);
+
+            var jsonFilePath = Path.Combine(Path.GetDirectoryName(assetPath), node.guid.ToString());
             if (File.Exists(jsonFilePath))
                 File.Delete(jsonFilePath);
             File.WriteAllText(jsonFilePath, jsonString);

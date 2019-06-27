@@ -29,17 +29,35 @@ namespace UnityEditor.ShaderGraph
             public Arg[] outputs;
         }
 
-        [SerializeField]
-        private Instruction[] m_Instructions;
-        [SerializeField]
-        private float4[] m_Vecs;
-        [SerializeField]
-        private (Color, int)[] m_Colors;
+        [Serializable]
+        struct ColorProperty
+        {
+            public Color color;
+            public int index;
+        }
+
+        [Serializable]
+        struct Property
+        {
+            public string name;
+            public bool isFloat;
+            public int index;
+        }
 
         [SerializeField]
-        private (string name, bool isFloat, int index)[] m_Inputs;
+        private Instruction[] m_Instructions;
+
         [SerializeField]
-        private (string name, bool isFloat, int index)[] m_Outputs;
+        private float4[] m_Vecs;
+
+        [SerializeField]
+        private ColorProperty[] m_Colors;
+
+        [SerializeField]
+        private Property[] m_Inputs;
+
+        [SerializeField]
+        private Property[] m_Outputs;
 
         public IEnumerable<(string name, bool isFloat)> InputNames
         {
@@ -78,10 +96,10 @@ namespace UnityEditor.ShaderGraph
         public void Execute()
         {
             var isgamma = PlayerSettings.colorSpace == ColorSpace.Gamma;
-            foreach (var (color, index) in m_Colors)
+            foreach (var colorProperty in m_Colors)
             {
-                var vec = isgamma ? color : color.linear;
-                m_Vecs[index] = math.float4(vec.r, vec.g, vec.b, vec.a);
+                var vec = isgamma ? colorProperty.color : colorProperty.color.linear;
+                m_Vecs[colorProperty.index] = math.float4(vec.r, vec.g, vec.b, vec.a);
             }
 
             foreach (var inst in m_Instructions)
@@ -139,9 +157,9 @@ namespace UnityEditor.ShaderGraph
             var nodeGuidToInstructionIndex = new Dictionary<Guid, int>();
             var instructions = new List<Instruction>(nodes.Count);
             var vecs = new List<float4>();
-            var colors = new List<(Color color, int index)>();
-            var inputs = new List<(string name, bool isFloat, int index)>();
-            var outputs = new List<(string name, bool isFloat, int index)>();
+            var colors = new List<ColorProperty>();
+            var inputs = new List<Property>();
+            var outputs = new List<Property>();
 
             foreach (var node in nodes.OfType<CodeFunctionNode>())
             {
@@ -202,7 +220,7 @@ namespace UnityEditor.ShaderGraph
                                 if (inputIndex < 0)
                                 {
                                     inputIndex = inputs.Count;
-                                    inputs.Add((inputName, isFloat, vecs.Count));
+                                    inputs.Add(new Property() { name = inputName, isFloat = isFloat, index = vecs.Count});
                                     vecs.Add(float4.zero);
                                 }
                                 arg.index = inputs[inputIndex].index;
@@ -211,7 +229,7 @@ namespace UnityEditor.ShaderGraph
                             {
                                 arg.index = vecs.Count;
                                 vecs.Add(float4.zero);
-                                colors.Add((colorNode.color.color, arg.index));
+                                colors.Add(new ColorProperty() { color = colorNode.color.color, index = arg.index });
                             }
                             else
                             {
@@ -256,7 +274,7 @@ namespace UnityEditor.ShaderGraph
                         outputArgs.Add(arg);
 
                         if (node == root)
-                            outputs.Add((node.GetVariableNameForSlot(slotId), slot.concreteValueType == ConcreteSlotValueType.Vector1, arg.index));
+                            outputs.Add(new Property() { name = node.GetVariableNameForSlot(slotId), isFloat = slot.concreteValueType == ConcreteSlotValueType.Vector1, index = arg.index });
                     }
                 }
 
