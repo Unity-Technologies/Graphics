@@ -584,9 +584,10 @@ bool IsLightingFeatureEnabled(uint bitIndex)
 half4 LightweightFragmentPBR(InputData inputData, SurfaceData surfaceData)
 {
     BRDFData brdfData = CreateBRDFData(surfaceData);
-    DebugData debugData = CreateDebugData(brdfData.diffuse, brdfData.specular);
+    DebugData debugData = CreateDebugData(brdfData.diffuse, brdfData.specular, inputData.uv);
     half4 debugColor;
     half3 color = 0;
+
     if(_DebugMaterialIndex == DEBUG_LIGHTING_COMPLEXITY)
     {
         return CalculateDebugLightingComplexityColor(inputData);
