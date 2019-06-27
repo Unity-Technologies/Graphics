@@ -86,6 +86,8 @@ namespace UnityEngine.Rendering.LWRP
 
         public static readonly string LinearToSRGBConversion = "_LINEAR_TO_SRGB_CONVERSION";
         public static readonly string KillAlpha = "_KILL_ALPHA";
+		
+        public static readonly string DebugShowLitComplexity = "_DEBUG_SHOW_LIT_COMPLEXITY";
     }
 
     public sealed partial class LightweightRenderPipeline

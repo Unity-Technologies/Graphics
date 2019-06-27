@@ -53,7 +53,7 @@ namespace UnityEngine.Rendering.LWRP
                 var validationMode = DebugDisplaySettings.Instance.Validation.validationMode;
                 var attributeDebugIndex = DebugDisplaySettings.Instance.materialSettings.VertexAttributeDebugIndexData;
                 bool isMaterialDebugActive = lightingDebugMode != LightingDebugMode.None ||
-                                             debugMaterialIndex != DebugMaterialIndex.None ||
+                                             (debugMaterialIndex != DebugMaterialIndex.None && debugMaterialIndex != DebugMaterialIndex.ShaderComplexity) || 
                                              pbrLightingDebugModeMask != (int)PBRLightingDebugMode.None ||
                                              validationMode == DebugValidationMode.ValidateAlbedo ||
 											 attributeDebugIndex != VertexAttributeDebugMode.None;
@@ -74,6 +74,11 @@ namespace UnityEngine.Rendering.LWRP
                 }
                 else
                 {
+                    if (isShaderComplexityActive)
+                        cmd.EnableShaderKeyword("_DEBUG_SHOW_LIT_COMPLEXITY");
+                    else
+                        cmd.DisableShaderKeyword("_DEBUG_SHOW_LIT_COMPLEXITY");
+
                     var drawSettings = CreateDrawingSettings(m_ShaderTagIdList, ref renderingData, sortFlags);
 
                     context.DrawRenderers(renderingData.cullResults, ref drawSettings, ref m_FilteringSettings,

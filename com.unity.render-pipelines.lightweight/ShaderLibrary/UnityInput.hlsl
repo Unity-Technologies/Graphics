@@ -98,6 +98,8 @@ float4x4 unity_ObjectToWorld;
 float4x4 unity_WorldToObject;
 float4 unity_LODFade; // x is the fade value ranging within [0,1]. y is x quantized into 16 levels
 half4 unity_WorldTransformParams; // w is usually 1.0, or -1.0 for odd-negative scale transforms
+float4 unity_RenderingLayer;
+float4 unity_ShaderComplexity;
 
 // Light Indices block feature
 // These are set internally by the engine upon request by RendererConfiguration.

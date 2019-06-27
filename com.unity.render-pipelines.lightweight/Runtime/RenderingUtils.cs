@@ -21,6 +21,7 @@ namespace UnityEngine.Rendering.LWRP
         LightingComplexity,
 		LOD,
         Metallic,
+		ShaderComplexity,
     }
 
     public enum DebugReplacementPassType

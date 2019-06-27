@@ -3,6 +3,11 @@
 
 #include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/Lighting.hlsl"
 
+#if defined(_DEBUG_SHOW_LIT_COMPLEXITY)
+#include "Packages/com.unity.render-pipelines.lightweight/Shaders/ShaderComplexity.hlsl"
+#endif
+
+
 struct Attributes
 {
     float4 positionOS   : POSITION;
@@ -142,7 +147,12 @@ half4 LitPassFragment(Varyings input) : SV_Target
 
     half4 color = LightweightFragmentPBR(inputData, surfaceData);
     color.rgb = MixFog(color.rgb, inputData.fogCoord);
+    
+#if defined(_DEBUG_SHOW_LIT_COMPLEXITY)
+    return OutputShaderComplexityColor(color);
+#else
     return color;
+#endif
 }
 
 #endif
