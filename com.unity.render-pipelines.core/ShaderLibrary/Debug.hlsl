@@ -173,7 +173,7 @@ float3 GetDebugMipCountColor(float3 originalColor, Texture2D tex)
     uint mipCount = GetMipCount(tex);
 
     float4 mipColor = GetSimpleMipCountColor(mipCount);
-    return lerp(originalColor, mipColor.rgb, mipColor.a);
+    return mipColor;//lerp(originalColor, mipColor.rgb, mipColor.a);
 }
 
 float3 GetDebugStreamingMipColor(Texture2D tex, float4 mipInfo)

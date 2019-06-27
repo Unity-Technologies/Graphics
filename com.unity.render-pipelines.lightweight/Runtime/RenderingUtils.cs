@@ -76,9 +76,9 @@ namespace UnityEngine.Rendering.LWRP
     public enum DebugMipInfo
     {
         None,
-        Ratio,
+        Level,
         Count,
-        CountReduction,
+        //CountReduction,
         //StreamingMipBudget,
         //StreamingMip,
     }
