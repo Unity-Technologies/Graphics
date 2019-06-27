@@ -1267,7 +1267,7 @@ namespace UnityEditor.ShaderGraph
                 surfaceDescriptionFunction.AppendLine("{0} surface = ({0})0;", surfaceDescriptionName);
                 foreach (var activeNode in activeNodeList)
                 {
-                    if (activeNode.isStatic && !(activeNode is PropertyNode))
+                    if (activeNode.isStatic && !(activeNode is PropertyNode || activeNode is ColorNode))
                     {
                         // TODO: Workaround by checking if the node is ProperyNode, should mark the node as skippable in the future.
                         HandleStaticNode(graph, activeNode, shaderProperties, mode);

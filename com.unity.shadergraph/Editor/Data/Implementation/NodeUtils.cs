@@ -173,7 +173,7 @@ namespace UnityEditor.Graphing
             if (includeSelf == IncludeSelf.Include)
                 allNodeList.Add(node);
 
-            return true;
+            return isStatic;
         }
 
         static bool IsSlotStatic(ISlot slot)
@@ -192,7 +192,7 @@ namespace UnityEditor.Graphing
 
         static bool IsNodeStatic(AbstractMaterialNode node)
         {
-            if (node is GeometryNode || node is VertexColorNode || node is UVNode)
+            if (node is IMasterNode || node is GeometryNode || node is VertexColorNode || node is UVNode)
                 return false;
 
             if (node is SampleTexture2DNode || node is SampleTexture3DNode || node is SampleTexture2DArrayNode || node is SampleTexture2DLODNode || node is SampleCubemapNode || node is SampleGradient)
