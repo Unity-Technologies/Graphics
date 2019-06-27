@@ -14,7 +14,7 @@ namespace UnityEditor.Rendering
             DarkSoil,
             WornAsphalt,
             DryClaySoil,
-            GreenGlass,
+            GreenGrass,
             OldConcrete,
             RedClayTile,
             DrySand,
@@ -162,8 +162,21 @@ namespace UnityEditor.Rendering
 
         public float AlbedoMinLuminance = 0.01f;
         public float AlbedoMaxLuminance = 0.90f;
-        public float AlbedoSaturationTolerance = 0.214f;
-        public float AlbedoHueTolerance = 0.104f;
+
+        float _albedoHueTolerance = 0.104f;
+        public float AlbedoHueTolerance
+        {
+            get { return _albedoDebugValidationPreset==AlbedoDebugValidationPreset.DefaultLuminance ? 1.0f : _albedoHueTolerance; }
+            set { _albedoHueTolerance = value; }
+        }
+
+        float _albedoSaturationTolerance = 0.214f;
+        public float AlbedoSaturationTolerance
+        {
+            get { return _albedoDebugValidationPreset == AlbedoDebugValidationPreset.DefaultLuminance ? 1.0f : _albedoSaturationTolerance; }
+            set { _albedoSaturationTolerance = value; }
+        }
+
         public Color AlbedoCompareColor = new Color(127f/255f, 127f/255f, 127f/255f, 255f/255f);
 
         private class SettingsPanel : DebugDisplaySettingsPanel
@@ -180,8 +193,8 @@ namespace UnityEditor.Rendering
                 AddWidget(new DebugUI.EnumField { displayName = "Albedo Luminance Validation Preset", autoEnum = typeof(AlbedoDebugValidationPreset), getter = () => (int)data.albedoDebugValidationPreset, setter = (value) => {}, getIndex = () => (int)data.albedoDebugValidationPreset, setIndex = (value) => data.albedoDebugValidationPreset = (AlbedoDebugValidationPreset)value});
                 AddWidget(new DebugUI.FloatField { displayName = "Albedo Min Luminance", getter = () => data.AlbedoMinLuminance, setter = (value) => data.AlbedoMinLuminance = value});
                 AddWidget(new DebugUI.FloatField { displayName = "Albedo Max Luminance", getter = () => data.AlbedoMaxLuminance, setter = (value) => data.AlbedoMaxLuminance = value});
-                AddWidget(new DebugUI.FloatField { displayName = "Albedo Saturation Tolerance", getter = () => data.AlbedoSaturationTolerance, setter = (value) => data.AlbedoSaturationTolerance = value});
                 AddWidget(new DebugUI.FloatField { displayName = "Albedo Hue Tolerance", getter = () => data.AlbedoHueTolerance, setter = (value) => data.AlbedoHueTolerance = value});
+                AddWidget(new DebugUI.FloatField { displayName = "Albedo Saturation Tolerance", getter = () => data.AlbedoSaturationTolerance, setter = (value) => data.AlbedoSaturationTolerance = value});
             }
         }
 

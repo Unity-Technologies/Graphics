@@ -236,7 +236,7 @@ bool CalculateValidationColorForDebug(InputData inputData, SurfaceData surfaceDa
             }
             else
             {
-                color = half4(value, value, value, 0);
+                color = half4(value, value, value, 1.0);
             }
         }
         return true;
