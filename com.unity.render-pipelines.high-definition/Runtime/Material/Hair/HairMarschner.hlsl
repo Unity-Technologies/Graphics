@@ -18,7 +18,10 @@ float PseudoFresnel(float f0, float angle)
 {
     // This will be meaningful for the critical angle limits
     float t = min(angle, HALF_PI);
-    float Schlick = pow(1.0 - cos(t), lerp(3.5, 5.5, f0));
+    //float Schlick = pow(1.0 - cos(t), lerp(3.5, 5.5, f0));
+    // Technically, the lerping power one is closer to ground truth, but I'm 
+    // getting weird degeneracies with non-integer exponents.
+    float Schlick = pow(1.0 - cos(t), 5.0);
     float dipFunc = sin(PI * Schlick);
     return f0 * (1 - dipFunc) + (1-f0) * Schlick;
 }
