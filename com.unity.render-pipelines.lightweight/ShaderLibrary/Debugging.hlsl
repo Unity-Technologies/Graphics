@@ -269,7 +269,7 @@ float GetMipMapLevel(float2 nonNormalizedUVCoordinate)
 
 half4 GetMipLevelDebugColor(InputData inputData, float2 texelSize, float2 uv)
 {
-    half4 lut[10] = {
+    float4 lut[10] = {
         kPurpleColor,
         kRedColor,
         kGreenColor,
@@ -277,13 +277,13 @@ half4 GetMipLevelDebugColor(InputData inputData, float2 texelSize, float2 uv)
         kBlueColor,
         kOrangeBrownColor,
         kGrayColor,
-        half4(1, 1, 1, 0),
-        half4(0.8, 0.3, 0.7, 0),
-        half4(0.8, 0.7, 0.3, 0),
+        float4(1, 1, 1, 0),
+        float4(0.8, 0.3, 0.7, 0),
+        float4(0.8, 0.7, 0.3, 0),
     };
 
     uint mipLevel = clamp(GetMipMapLevel(uv * texelSize), 0, 9);
-    half4 fc = lut[mipLevel] * 0.8;
+    half4 fc = (half4)(lut[mipLevel]) * 0.8;
     fc *= GetTextNumber(mipLevel, inputData.positionWS);
 
     return SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, uv) * 0.2 + fc;
