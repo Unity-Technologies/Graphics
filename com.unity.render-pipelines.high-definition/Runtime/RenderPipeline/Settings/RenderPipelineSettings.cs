@@ -6,7 +6,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
     public struct Hw19
     {
-        public static float scale = 0.2f;
+        public static float scale = 1.0f;
     };
 
     // RenderPipelineSettings define settings that can't be change during runtime. It is equivalent to the GraphicsSettings of Unity (Tiers + shader variant removal).

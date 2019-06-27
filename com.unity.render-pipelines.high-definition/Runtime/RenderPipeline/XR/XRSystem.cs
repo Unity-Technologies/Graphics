@@ -42,7 +42,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // Compute the maximum number of views (slices) to allocate for texture arrays
         internal int GetMaxViews()
         {
-            int maxViews = 32;
+            int maxViews = 8; // hardcoded in shader UnityInstancing.hlsl
 
 #if USE_XR_SDK
             if (display != null)
@@ -121,6 +121,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 cmd.SetRenderTarget(BuiltinRenderTextureType.CameraTarget);
 
+                if (hdCamera.xr.multipassId == 0)
+                    cmd.ClearRenderTarget(false, true, Color.black);
+
                 var cal = lookingGlass.cal;
                 {
                     lookingGlassProperty.SetTexture("_MainTex", sourceTexture);
@@ -128,6 +131,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     lookingGlassProperty.SetFloat("slope", cal.slope);
                     lookingGlassProperty.SetFloat("center", cal.center);
                     lookingGlassProperty.SetFloat("subpixelSize", 1f / (cal.screenWidth * 3f));
+
+                    //lookingGlassProperty.SetInt("multipassId", hdCamera.xr.multipassId);
+                    lookingGlassProperty.SetFloat("viewRangeMin", hdCamera.xr.multipassId * GetMaxViews());
+                    lookingGlassProperty.SetFloat("viewRangeMax", (hdCamera.xr.multipassId + 1) * GetMaxViews() - 1);
 
                     lookingGlassProperty.SetVector("tile", new Vector4(
                         lookingGlass.quiltSettings.viewColumns,
@@ -229,22 +236,26 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         void CreateLayoutFromLookingGlass(Camera camera, LookingGlass.Holoplay lookingGlass)
         {
             var matrices = lookingGlass.GetMatrices();
-            var xrPass = XRPass.Create(multipassId: framePasses.Count);
+            int lgPasses = matrices.projectionMatrices.Count / GetMaxViews();
 
-            // Forced to 32 views
-            int numViews = Math.Max(GetMaxViews(), lookingGlass.quiltSettings.numViews);
-
-            for (int i = 0; i < numViews; ++i)
+            for (int p = 0; p < lgPasses; ++p)
             {
-                var vp = new Rect(0, 0, lookingGlass.cal.screenWidth, lookingGlass.cal.screenHeight);
+                var xrPass = XRPass.Create(multipassId: framePasses.Count);
 
-                int matIndex = Math.Min(i, lookingGlass.quiltSettings.numViews - 1);
-                Debug.Assert(matIndex < matrices.projectionMatrices.Count);
-                Debug.Assert(matIndex < matrices.viewMatrices.Count);
-                xrPass.AddView(matrices.projectionMatrices[matIndex], matrices.viewMatrices[matIndex], vp);
+                for (int v = 0; v < GetMaxViews(); ++v)
+                {
+                    var vp = new Rect(0, 0, lookingGlass.cal.screenWidth, lookingGlass.cal.screenHeight);
+
+                    //int matIndex = Math.Min(p * lgViews + v, lookingGlass.quiltSettings.numViews - 1);
+                    int matIndex = p * GetMaxViews() + v;
+                    Debug.Assert(matIndex < matrices.projectionMatrices.Count);
+                    Debug.Assert(matIndex < matrices.viewMatrices.Count);
+                    xrPass.AddView(matrices.projectionMatrices[matIndex], matrices.viewMatrices[matIndex], vp);
+                }
+
+                AddPassToFrame(camera, xrPass);
             }
-
-            AddPassToFrame(camera, xrPass);
+           
         }
 
         internal bool GetCullingParameters(Camera camera, XRPass xrPass, out ScriptableCullingParameters cullingParams)

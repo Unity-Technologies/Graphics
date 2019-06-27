@@ -137,7 +137,7 @@ void CSVFXIndirectArgs(uint3 id : SV_DispatchThreadID)
 
         // XR single-pass instancing support (same data as above but instanceCount is multiplied by the number of instanced views)
         outputIndirectArgs[indexOutput + 5] = args.x;
-        outputIndirectArgs[indexOutput + 6] = args.y * ((data.type != 0xffffffff) ? 32 : 1);
+        outputIndirectArgs[indexOutput + 6] = args.y * ((data.type != 0xffffffff) ? 8 : 1);
         outputIndirectArgs[indexOutput + 7] = args.z;
         outputIndirectArgs[indexOutput + 8] = args.w;
         // next uint (StartInstance) set to 0 at initialization

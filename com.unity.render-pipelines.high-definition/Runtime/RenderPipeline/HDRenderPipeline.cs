@@ -1951,6 +1951,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 aovRequest.PushCameraTexture(cmd, AOVBuffers.Color, hdCamera, m_CameraColorBuffer, aovBuffers);
             RenderPostProcess(cullingResults, hdCamera, target.id, renderContext, cmd);
 
+            // XR mirror view and blit do device
+            hdCamera.xr.EndCamera(cmd, hdCamera, renderContext);
 
             bool useLookingGlass = hdCamera.camera.GetComponent<LookingGlass.Holoplay>() != null;
             if (useLookingGlass)
@@ -1971,10 +1973,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
 
                 aovRequest.PushCameraTexture(cmd, AOVBuffers.Output, hdCamera, m_IntermediateAfterPostProcessBuffer, aovBuffers);
-            }
 
-            // XR mirror view and blit do device
-            hdCamera.xr.EndCamera(cmd, hdCamera, renderContext);
+                // XR mirror view and blit do device
+                hdCamera.xr.EndCamera(cmd, hdCamera, renderContext);
+            }
 
             // Send all required graphics buffer to client systems.
             SendGraphicsBuffers(cmd, hdCamera);

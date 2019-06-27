@@ -18,6 +18,8 @@ Shader "Hidden/HDRP/LookingGlass"
 		uniform float center;
 		uniform float subpixelSize;
 		uniform float4 tile;
+        uniform float viewRangeMin;
+        uniform float viewRangeMax;
 
 		struct Attributes
 		{
@@ -50,7 +52,8 @@ Shader "Hidden/HDRP/LookingGlass"
 				//col[subpixel] = UNITY_SAMPLE_TEX2DARRAY(_MainTex, float3(i.uv.xy, view))[subpixel];
 				//col[subpixel] = textureName.Sample(_MainTex, float3(viewUV, subpixel));
 
-				col[subpixel] = SAMPLE_TEXTURE2D_ARRAY(_MainTex, sampler_PointClamp, input.texcoord.xy, view)[subpixel];
+                if (view >= viewRangeMin && view <= viewRangeMax)
+				    col[subpixel] = SAMPLE_TEXTURE2D_ARRAY(_MainTex, sampler_PointClamp, input.texcoord.xy, view - viewRangeMin)[subpixel];
 			}
 			return col;
 		}
@@ -77,7 +80,8 @@ Shader "Hidden/HDRP/LookingGlass"
 
         Pass
         {
-            ZWrite Off ZTest Always Blend Off Cull Off
+            ZWrite Off ZTest Always Cull Off
+            Blend One One
 
             HLSLPROGRAM
                 #pragma vertex VertQuad
