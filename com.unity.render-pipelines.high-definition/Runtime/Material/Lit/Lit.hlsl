@@ -2,8 +2,6 @@
 // Includes
 //-----------------------------------------------------------------------------
 
-#define LIGHTLOOP_DISABLE_TILE_AND_CLUSTER
-
 // SurfaceData is define in Lit.cs which generate Lit.cs.hlsl
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.cs.hlsl"
 // Those define allow to include desired SSS/Transmission functions
