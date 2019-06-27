@@ -3,6 +3,10 @@
 #define LIGHTWEIGHT_DEBUGGING_INCLUDED
 
 #include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/SurfaceInput.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Debug.hlsl"
+
+float4 _BaseMap_TexelSize;
+float4 _BaseMap_MipInfo;
 
 #define DEBUG_UNLIT 1
 #define DEBUG_DIFFUSE 2
@@ -40,8 +44,15 @@ int _DebugAttributesIndex;
 #define DEBUG_PBR_LIGHTING_ENABLE_ADDITIONAL_LIGHTS 2
 #define DEBUG_PBR_LIGHTING_ENABLE_VERTEX_LIGHTING 3
 #define DEBUG_PBR_LIGHTING_ENABLE_EMISSION 4
-
 int _DebugPBRLightingMask;
+
+#define DEBUG_MIPMAPMODE_NONE 0
+#define DEBUG_MIPMAPMODE_MIP_LEVEL 1
+#define DEBUG_MIPMAPMODE_MIP_COUNT 2
+#define DEBUG_MIPMAPMODE_MIP_COUNT_REDUCTION 3
+//#define DEBUG_MIPMAPMODE_STREAMING_MIP_BUDGET 4
+//#define DEBUG_MIPMAPMODE_STREAMING_MIP 5
+int _DebugMipIndex;
 
 sampler2D _DebugNumberTexture;
 
@@ -61,6 +72,7 @@ struct DebugData
 {
     half3 brdfDiffuse;
     half3 brdfSpecular;
+    float2 uv;
 };
 
 // TODO: Set of colors that should still provide contrast for the Color-blind
@@ -74,12 +86,13 @@ struct DebugData
 
 half4 GetShadowCascadeColor(float4 shadowCoord, float3 positionWS);
 
-DebugData CreateDebugData(half3 brdfDiffuse, half3 brdfSpecular)
+DebugData CreateDebugData(half3 brdfDiffuse, half3 brdfSpecular, float2 uv)
 {
     DebugData debugData;
 
     debugData.brdfDiffuse = brdfDiffuse;
     debugData.brdfSpecular = brdfSpecular;
+    debugData.uv = uv;
 
     return debugData;
 }
@@ -111,7 +124,7 @@ float4 GetLODDebugColor()
         return float4(0.4486272f, 0.4078432f, 0.0501960f, 1.0f);
     if (IsBitSet(unity_LODFade.z, 7))
         return float4(0.7749016f, 0.6368624f, 0.0250984f, 1.0f);
-    return float4(0,0,0,0);
+    return float4(0.2,0.2,0.2,1);
 }
 
 // Convert rgb to luminance
@@ -221,12 +234,104 @@ bool UpdateSurfaceAndInputDataForDebug(inout SurfaceData surfaceData, inout Inpu
     return changed;
 }
 
+//sampler2D _DebugNumberTexture;
+half4 GetTextNumber(uint numberValue, float3 positionWS)
+{
+    float4 clipPos = TransformWorldToHClip(positionWS);
+    float2 ndc = saturate((clipPos.xy / clipPos.w) * 0.5 + 0.5);
+
+#if UNITY_UV_STARTS_AT_TOP
+    if (_ProjectionParams.x < 0)
+        ndc.y = 1.0 - ndc.y;
+#endif
+
+    // There are currently 10 characters in the font texture, 0-9.
+    const float invNumChar = 1.0 / 10.0f;
+    // The following are hardcoded scales that make the font size readable.
+    ndc.x *= 5.0;
+    ndc.y *= 15.0;
+    ndc.x = fmod(ndc.x, invNumChar) + (numberValue * invNumChar);
+
+    return tex2D(_DebugNumberTexture, ndc.xy);
+}
+
+float GetMipMapLevel(float2 nonNormalizedUVCoordinate)
+{
+    // The OpenGL Graphics System: A Specification 4.2
+    //  - chapter 3.9.11, equation 3.21
+
+    float2  dx_vtc = ddx(nonNormalizedUVCoordinate);
+    float2  dy_vtc = ddy(nonNormalizedUVCoordinate);
+    float delta_max_sqr = max(dot(dx_vtc, dx_vtc), dot(dy_vtc, dy_vtc));
+
+    return 0.5 * log2(delta_max_sqr);
+}
+
+half4 GetMipLevelDebugColor(InputData inputData, float2 texelSize, float2 uv)
+{
+    half4 lut[10] = {
+        kPurpleColor,
+        kRedColor,
+        kGreenColor,
+        kYellowGreenColor,
+        kBlueColor,
+        kOrangeBrownColor,
+        kGrayColor,
+        half4(1, 1, 1, 0),
+        half4(0.8, 0.3, 0.7, 0),
+        half4(0.8, 0.7, 0.3, 0),
+    };
+
+    uint mipLevel = clamp(GetMipMapLevel(uv * texelSize), 0, 9);
+    half4 fc = lut[mipLevel] * 0.8;
+    fc *= GetTextNumber(mipLevel, inputData.positionWS);
+
+    return SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, uv) * 0.2 + fc;
+}
+
+half4 GetMipCountDebugColor(InputData inputData, float2 uv)
+{
+    const uint maxMips = 9;
+    uint mipCount = clamp(GetMipCount(_BaseMap), 0, maxMips);
+    half4 fc = lerp(half4(1, 0, 0, 1), half4(1,1,1,1), mipCount / maxMips) * 0.8;
+    fc *= GetTextNumber(mipCount, inputData.positionWS) * 2.0;
+
+    return SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, uv) * 0.2 + fc;
+    return fc;
+}
+
+float3 GetTextureDataDebug(InputData inputData, uint paramId, float2 uv, float4 texelSize, float4 mipInfo, float3 originalColor)
+{
+    float3 outColor = originalColor;
+
+    switch (paramId)
+    {
+    case DEBUG_MIPMAPMODE_MIP_LEVEL:
+        outColor = GetMipLevelDebugColor(inputData, texelSize.zw, uv);
+        break;
+    case DEBUG_MIPMAPMODE_MIP_COUNT:
+        outColor = GetMipCountDebugColor(inputData, uv);
+        break;
+    case DEBUG_MIPMAPMODE_MIP_COUNT_REDUCTION:
+        //outColor = GetDebugMipReductionColor(_BaseMap, mipInfo);
+        break;
+    //case DEBUG_MIPMAPMODE_STREAMING_MIP_BUDGET:
+    //    outColor = GetDebugStreamingMipColor(tex, mipInfo);
+    //    break;
+    //case DEBUG_MIPMAPMODE_STREAMING_MIP:
+    //    outColor = GetDebugStreamingMipColorBlended(originalColor, tex, mipInfo);
+    //    break;
+    }
+
+    return outColor;
+}
+
+
 bool CalculateValidationColorForDebug(InputData inputData, SurfaceData surfaceData, DebugData debugData, out half4 color)
 {
     if (_DebugValidationIndex == DEBUG_VALIDATION_ALBEDO)
     {
         half value = LinearRgbToLuminance(surfaceData.albedo);
-
         if (_AlbedoMinLuminance > value)
         {
              color = half4(1.0f, 0.0f, 0.0f, 1.0f);
@@ -260,10 +365,20 @@ bool CalculateValidationColorForDebug(InputData inputData, SurfaceData surfaceDa
         }
         return true;
     }
-    else
+    
+    return false;
+}
+
+bool CalculateValidationColorForMipMaps(InputData inputData, SurfaceData surfaceData, DebugData debugData, out half4 color)
+{
+    if (_DebugMipIndex > 0)
     {
-        return false;
+        half3 debugCol = GetTextureDataDebug(inputData, _DebugMipIndex, debugData.uv, _BaseMap_TexelSize, _BaseMap_MipInfo, surfaceData.albedo);
+        color = half4(debugCol, 1.0f);
+        return true;
     }
+    
+    return false;
 }
 
 bool CalculateColorForDebugMaterial(InputData inputData, SurfaceData surfaceData, DebugData debugData, out half4 color)
@@ -309,9 +424,8 @@ bool CalculateColorForDebugMaterial(InputData inputData, SurfaceData surfaceData
             color.rgb = surfaceData.normalTS.xyz * 0.5 + 0.5;
             return true;
         case DEBUG_LOD:
-            surfaceData.albedo = GetLODDebugColor().rgb;
+            color.rgb = GetLODDebugColor().rgb;
             return true;
-
         case DEBUG_METALLIC:
             color.rgb = surfaceData.metallic.xxx;
             return true;
@@ -328,6 +442,10 @@ bool CalculateColorForDebug(InputData inputData, SurfaceData surfaceData, DebugD
         return true;
     }
     else if(CalculateValidationColorForDebug(inputData, surfaceData, debugData, color))
+    {
+        return true;
+    }
+    else if(CalculateValidationColorForMipMaps(inputData, surfaceData, debugData, color))
     {
         return true;
     }

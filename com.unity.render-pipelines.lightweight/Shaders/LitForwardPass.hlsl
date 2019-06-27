@@ -145,6 +145,9 @@ half4 LitPassFragment(Varyings input) : SV_Target
     InputData inputData;
     InitializeInputData(input, surfaceData.normalTS, inputData);
 
+#if defined(_DEBUG_SHADER)
+    inputData.uv = input.uv;
+#endif
     half4 color = LightweightFragmentPBR(inputData, surfaceData);
     color.rgb = MixFog(color.rgb, inputData.fogCoord);
     

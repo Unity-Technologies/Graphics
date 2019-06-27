@@ -54,6 +54,7 @@ namespace UnityEngine.Rendering.LWRP
 		Tangent,
 		Normal,
 	}
+
     [Flags]
     public enum PBRLightingDebugMode
     {
@@ -71,6 +72,16 @@ namespace UnityEngine.Rendering.LWRP
         HiglightNanInfNegative,
         HighlightOutsideOfRange,
         ValidateAlbedo,
+    }
+
+    public enum DebugMipInfo
+    {
+        None,
+        Level,
+        Count,
+        //CountReduction,
+        //StreamingMipBudget,
+        //StreamingMip,
     }
 
     public static class RenderingUtils
