@@ -27,10 +27,8 @@ int _TwoSided;
     int _PassValue;
 #endif
 
-#if !defined(_DEBUG_SHADER)
 TEXTURE2D(_MainTex);
 SAMPLER(sampler_MainTex);
-#endif
 
 #ifdef EFFECT_EXTRA_TEX
     sampler2D _ExtraTex;

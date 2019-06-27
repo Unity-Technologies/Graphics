@@ -62,8 +62,6 @@ void InitializeInputData(GrassVertexOutput input, out InputData inputData)
     #else
     inputData.vertexSH = input.vertexSH;
     #endif
-
-    inputData.uv = float2(0.0, 0.0);
 }
 
 void InitializeVertData(GrassVertexInput input, inout GrassVertexOutput vertData)

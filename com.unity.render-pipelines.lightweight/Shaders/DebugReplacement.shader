@@ -22,8 +22,6 @@ Shader "Hidden/Lightweight Render Pipeline/Debug/Replacement"
             #pragma vertex vert
             #pragma fragment frag
 
-            #define _DEBUG_SHADER
-
             #include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/Core.hlsl"
             #include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/Debugging.hlsl"
 
@@ -67,9 +65,7 @@ Shader "Hidden/Lightweight Render Pipeline/Debug/Replacement"
             #pragma vertex vert
             #pragma fragment frag
 
-            #define _DEBUG_SHADER
             #include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/Core.hlsl"
-            #include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/Debugging.hlsl"
 
             struct Attributes
             {
@@ -113,7 +109,6 @@ Shader "Hidden/Lightweight Render Pipeline/Debug/Replacement"
             #pragma vertex vert
             #pragma fragment frag
 
-            #define _DEBUG_SHADER
             #include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/Core.hlsl"
             #include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/Debugging.hlsl"
 

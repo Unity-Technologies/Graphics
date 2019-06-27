@@ -300,8 +300,6 @@ void InitializeInputData(SpeedTreeFragmentInput input, half3 normalTS, out Input
     #if defined(_NORMALMAP)
     inputData.tangentMatrixWS = half3x3(input.interpolated.tangentWS.xyz, input.interpolated.bitangentWS.xyz, input.interpolated.normalWS.xyz);
     #endif
-
-    inputData.uv = float2(0.0, 0.0);
 }
 
 half4 SpeedTree8Frag(SpeedTreeFragmentInput input) : SV_Target
