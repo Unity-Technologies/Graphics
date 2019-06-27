@@ -150,7 +150,7 @@ namespace UnityEditor.ShaderGraph
 
         protected virtual MethodInfo GetFunctionToConvert()
         {
-            var method = GetType().GetMethods(BindingFlags.Static).FirstOrDefault(m =>
+            var method = GetType().GetMethods(BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic).FirstOrDefault(m =>
                 m.ReturnType == typeof(void) && m.GetCustomAttribute<HlslCodeGenAttribute>() != null
                 || m.ReturnType == typeof(string) && m.GetCustomAttribute<HlslCodeGenAttribute>() == null);
             if (method != null)
