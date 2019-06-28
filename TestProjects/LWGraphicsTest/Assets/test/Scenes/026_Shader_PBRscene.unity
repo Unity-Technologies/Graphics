@@ -133,6 +133,7 @@ GameObject:
   - component: {fileID: 127203767}
   - component: {fileID: 127203766}
   - component: {fileID: 127203765}
+  - component: {fileID: 127203768}
   m_Layer: 0
   m_Name: Sphere (5)
   m_TagString: Untagged
@@ -214,6 +215,33 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 127203763}
   m_Mesh: {fileID: 10207, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!205 &127203768
+LODGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 127203763}
+  serializedVersion: 2
+  m_LocalReferencePoint: {x: 0, y: -0.00000011920929, z: 0}
+  m_Size: 1.0000007
+  m_FadeMode: 0
+  m_AnimateCrossFading: 0
+  m_LastLODIsBillboard: 0
+  m_LODs:
+  - screenRelativeHeight: 0.6
+    fadeTransitionWidth: 0
+    renderers:
+    - renderer: {fileID: 127203765}
+  - screenRelativeHeight: 0.3
+    fadeTransitionWidth: 0
+    renderers:
+    - renderer: {fileID: 127203765}
+  - screenRelativeHeight: 0.1
+    fadeTransitionWidth: 0
+    renderers:
+    - renderer: {fileID: 127203765}
+  m_Enabled: 1
 --- !u!1 &129641013
 GameObject:
   m_ObjectHideFlags: 0
@@ -226,6 +254,7 @@ GameObject:
   - component: {fileID: 129641017}
   - component: {fileID: 129641016}
   - component: {fileID: 129641015}
+  - component: {fileID: 129641018}
   m_Layer: 0
   m_Name: Sphere (9)
   m_TagString: Untagged
@@ -307,6 +336,33 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 129641013}
   m_Mesh: {fileID: 10207, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!205 &129641018
+LODGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 129641013}
+  serializedVersion: 2
+  m_LocalReferencePoint: {x: -0.00000011920929, y: -0.00000023841858, z: 0}
+  m_Size: 1.0000005
+  m_FadeMode: 0
+  m_AnimateCrossFading: 0
+  m_LastLODIsBillboard: 0
+  m_LODs:
+  - screenRelativeHeight: 0.6
+    fadeTransitionWidth: 0
+    renderers:
+    - renderer: {fileID: 129641015}
+  - screenRelativeHeight: 0.3
+    fadeTransitionWidth: 0
+    renderers:
+    - renderer: {fileID: 129641015}
+  - screenRelativeHeight: 0.1
+    fadeTransitionWidth: 0
+    renderers:
+    - renderer: {fileID: 129641015}
+  m_Enabled: 1
 --- !u!1 &176402377
 GameObject:
   m_ObjectHideFlags: 0
@@ -413,6 +469,7 @@ GameObject:
   - component: {fileID: 179835081}
   - component: {fileID: 179835080}
   - component: {fileID: 179835079}
+  - component: {fileID: 179835082}
   m_Layer: 0
   m_Name: Sphere (3)
   m_TagString: Untagged
@@ -494,6 +551,37 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 179835077}
   m_Mesh: {fileID: 10207, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!205 &179835082
+LODGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 179835077}
+  serializedVersion: 2
+  m_LocalReferencePoint: {x: -0.00000023841858, y: 0.00000011920929, z: 0.00000047683716}
+  m_Size: 1
+  m_FadeMode: 0
+  m_AnimateCrossFading: 0
+  m_LastLODIsBillboard: 0
+  m_LODs:
+  - screenRelativeHeight: 0.7244682
+    fadeTransitionWidth: 0
+    renderers:
+    - renderer: {fileID: 179835079}
+  - screenRelativeHeight: 0.45777
+    fadeTransitionWidth: 0
+    renderers:
+    - renderer: {fileID: 179835079}
+  - screenRelativeHeight: 0.21533316
+    fadeTransitionWidth: 0
+    renderers:
+    - renderer: {fileID: 179835079}
+  - screenRelativeHeight: 0.1
+    fadeTransitionWidth: 0
+    renderers:
+    - renderer: {fileID: 179835079}
+  m_Enabled: 1
 --- !u!1 &265002575
 GameObject:
   m_ObjectHideFlags: 0
@@ -549,6 +637,7 @@ GameObject:
   - component: {fileID: 308806161}
   - component: {fileID: 308806160}
   - component: {fileID: 308806159}
+  - component: {fileID: 308806162}
   m_Layer: 0
   m_Name: Sphere (6)
   m_TagString: Untagged
@@ -630,6 +719,37 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 308806157}
   m_Mesh: {fileID: 10207, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!205 &308806162
+LODGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 308806157}
+  serializedVersion: 2
+  m_LocalReferencePoint: {x: 0.00000008940697, y: 0, z: -0.000000014901161}
+  m_Size: 1.0000002
+  m_FadeMode: 0
+  m_AnimateCrossFading: 0
+  m_LastLODIsBillboard: 0
+  m_LODs:
+  - screenRelativeHeight: 0.6999194
+    fadeTransitionWidth: 0
+    renderers:
+    - renderer: {fileID: 308806159}
+  - screenRelativeHeight: 0.40800488
+    fadeTransitionWidth: 0
+    renderers:
+    - renderer: {fileID: 308806159}
+  - screenRelativeHeight: 0.24321984
+    fadeTransitionWidth: 0
+    renderers:
+    - renderer: {fileID: 308806159}
+  - screenRelativeHeight: 0.09316691
+    fadeTransitionWidth: 0
+    renderers:
+    - renderer: {fileID: 308806159}
+  m_Enabled: 1
 --- !u!1 &667095568
 GameObject:
   m_ObjectHideFlags: 0
@@ -642,6 +762,7 @@ GameObject:
   - component: {fileID: 667095572}
   - component: {fileID: 667095571}
   - component: {fileID: 667095570}
+  - component: {fileID: 667095573}
   m_Layer: 0
   m_Name: Sphere (8)
   m_TagString: Untagged
@@ -767,6 +888,37 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d58be1978bb1c6a488ca2d56ab886266, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!205 &667095573
+LODGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 667095568}
+  serializedVersion: 2
+  m_LocalReferencePoint: {x: 0.000000014901161, y: 0.00000023841858, z: 0.000000014901161}
+  m_Size: 1.0000005
+  m_FadeMode: 0
+  m_AnimateCrossFading: 0
+  m_LastLODIsBillboard: 0
+  m_LODs:
+  - screenRelativeHeight: 0.70479536
+    fadeTransitionWidth: 0
+    renderers:
+    - renderer: {fileID: 667095570}
+  - screenRelativeHeight: 0.46965986
+    fadeTransitionWidth: 0
+    renderers:
+    - renderer: {fileID: 667095570}
+  - screenRelativeHeight: 0.19424067
+    fadeTransitionWidth: 0
+    renderers:
+    - renderer: {fileID: 667095570}
+  - screenRelativeHeight: 0.1
+    fadeTransitionWidth: 0
+    renderers:
+    - renderer: {fileID: 667095570}
+  m_Enabled: 1
 --- !u!1 &734944103
 GameObject:
   m_ObjectHideFlags: 0
@@ -779,6 +931,7 @@ GameObject:
   - component: {fileID: 734944107}
   - component: {fileID: 734944106}
   - component: {fileID: 734944105}
+  - component: {fileID: 734944108}
   m_Layer: 0
   m_Name: Sphere
   m_TagString: Untagged
@@ -860,6 +1013,37 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 734944103}
   m_Mesh: {fileID: 10207, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!205 &734944108
+LODGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 734944103}
+  serializedVersion: 2
+  m_LocalReferencePoint: {x: 0, y: 0, z: 0}
+  m_Size: 1.0000005
+  m_FadeMode: 0
+  m_AnimateCrossFading: 0
+  m_LastLODIsBillboard: 0
+  m_LODs:
+  - screenRelativeHeight: 0.6
+    fadeTransitionWidth: 0
+    renderers:
+    - renderer: {fileID: 734944105}
+  - screenRelativeHeight: 0.40800488
+    fadeTransitionWidth: 0
+    renderers:
+    - renderer: {fileID: 734944105}
+  - screenRelativeHeight: 0.16939615
+    fadeTransitionWidth: 0
+    renderers:
+    - renderer: {fileID: 734944105}
+  - screenRelativeHeight: 0.09674993
+    fadeTransitionWidth: 0
+    renderers:
+    - renderer: {fileID: 734944105}
+  m_Enabled: 1
 --- !u!1001 &1000022675
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -933,6 +1117,7 @@ GameObject:
   - component: {fileID: 1102936776}
   - component: {fileID: 1102936775}
   - component: {fileID: 1102936774}
+  - component: {fileID: 1102936777}
   m_Layer: 0
   m_Name: Sphere (2)
   m_TagString: Untagged
@@ -1014,6 +1199,37 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1102936772}
   m_Mesh: {fileID: 10207, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!205 &1102936777
+LODGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1102936772}
+  serializedVersion: 2
+  m_LocalReferencePoint: {x: -0.00000011920929, y: -0.000000059604645, z: -0.000000014901161}
+  m_Size: 1.0000001
+  m_FadeMode: 0
+  m_AnimateCrossFading: 0
+  m_LastLODIsBillboard: 0
+  m_LODs:
+  - screenRelativeHeight: 0.73440593
+    fadeTransitionWidth: 0
+    renderers:
+    - renderer: {fileID: 1102936774}
+  - screenRelativeHeight: 0.40060222
+    fadeTransitionWidth: 0
+    renderers:
+    - renderer: {fileID: 1102936774}
+  - screenRelativeHeight: 0.27279666
+    fadeTransitionWidth: 0
+    renderers:
+    - renderer: {fileID: 1102936774}
+  - screenRelativeHeight: 0.1
+    fadeTransitionWidth: 0
+    renderers:
+    - renderer: {fileID: 1102936774}
+  m_Enabled: 1
 --- !u!1 &1146448375
 GameObject:
   m_ObjectHideFlags: 0
@@ -1026,6 +1242,7 @@ GameObject:
   - component: {fileID: 1146448379}
   - component: {fileID: 1146448378}
   - component: {fileID: 1146448377}
+  - component: {fileID: 1146448380}
   m_Layer: 0
   m_Name: Sphere (4)
   m_TagString: Untagged
@@ -1107,6 +1324,33 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1146448375}
   m_Mesh: {fileID: 10207, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!205 &1146448380
+LODGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1146448375}
+  serializedVersion: 2
+  m_LocalReferencePoint: {x: 0, y: 0.00000023841858, z: 0}
+  m_Size: 1.0000007
+  m_FadeMode: 0
+  m_AnimateCrossFading: 0
+  m_LastLODIsBillboard: 0
+  m_LODs:
+  - screenRelativeHeight: 0.6
+    fadeTransitionWidth: 0
+    renderers:
+    - renderer: {fileID: 1146448377}
+  - screenRelativeHeight: 0.3
+    fadeTransitionWidth: 0
+    renderers:
+    - renderer: {fileID: 1146448377}
+  - screenRelativeHeight: 0.1
+    fadeTransitionWidth: 0
+    renderers:
+    - renderer: {fileID: 1146448377}
+  m_Enabled: 1
 --- !u!1 &1508650435
 GameObject:
   m_ObjectHideFlags: 0
@@ -1119,6 +1363,7 @@ GameObject:
   - component: {fileID: 1508650439}
   - component: {fileID: 1508650438}
   - component: {fileID: 1508650437}
+  - component: {fileID: 1508650440}
   m_Layer: 0
   m_Name: Sphere (7)
   m_TagString: Untagged
@@ -1200,6 +1445,45 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1508650435}
   m_Mesh: {fileID: 10207, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!205 &1508650440
+LODGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1508650435}
+  serializedVersion: 2
+  m_LocalReferencePoint: {x: 0, y: 0, z: -0.00000011920929}
+  m_Size: 1.0000005
+  m_FadeMode: 0
+  m_AnimateCrossFading: 0
+  m_LastLODIsBillboard: 0
+  m_LODs:
+  - screenRelativeHeight: 0.7697207
+    fadeTransitionWidth: 0
+    renderers:
+    - renderer: {fileID: 1508650437}
+  - screenRelativeHeight: 0.57025474
+    fadeTransitionWidth: 0
+    renderers:
+    - renderer: {fileID: 1508650437}
+  - screenRelativeHeight: 0.40800488
+    fadeTransitionWidth: 0
+    renderers:
+    - renderer: {fileID: 1508650437}
+  - screenRelativeHeight: 0.24035512
+    fadeTransitionWidth: 0
+    renderers:
+    - renderer: {fileID: 1508650437}
+  - screenRelativeHeight: 0.12068739
+    fadeTransitionWidth: 0
+    renderers:
+    - renderer: {fileID: 1508650437}
+  - screenRelativeHeight: 0.040407516
+    fadeTransitionWidth: 0
+    renderers:
+    - renderer: {fileID: 1508650437}
+  m_Enabled: 1
 --- !u!1 &1575290808
 GameObject:
   m_ObjectHideFlags: 0
@@ -1212,6 +1496,7 @@ GameObject:
   - component: {fileID: 1575290812}
   - component: {fileID: 1575290811}
   - component: {fileID: 1575290810}
+  - component: {fileID: 1575290813}
   m_Layer: 0
   m_Name: Sphere (12)
   m_TagString: Untagged
@@ -1293,6 +1578,33 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1575290808}
   m_Mesh: {fileID: 10207, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!205 &1575290813
+LODGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1575290808}
+  serializedVersion: 2
+  m_LocalReferencePoint: {x: 0, y: 0, z: 0}
+  m_Size: 1.0000007
+  m_FadeMode: 0
+  m_AnimateCrossFading: 0
+  m_LastLODIsBillboard: 0
+  m_LODs:
+  - screenRelativeHeight: 0.6
+    fadeTransitionWidth: 0
+    renderers:
+    - renderer: {fileID: 1575290810}
+  - screenRelativeHeight: 0.3
+    fadeTransitionWidth: 0
+    renderers:
+    - renderer: {fileID: 1575290810}
+  - screenRelativeHeight: 0.1
+    fadeTransitionWidth: 0
+    renderers:
+    - renderer: {fileID: 1575290810}
+  m_Enabled: 1
 --- !u!1 &1698914881
 GameObject:
   m_ObjectHideFlags: 0
@@ -1305,6 +1617,7 @@ GameObject:
   - component: {fileID: 1698914885}
   - component: {fileID: 1698914884}
   - component: {fileID: 1698914883}
+  - component: {fileID: 1698914886}
   m_Layer: 0
   m_Name: Sphere (11)
   m_TagString: Untagged
@@ -1386,6 +1699,33 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1698914881}
   m_Mesh: {fileID: 10207, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!205 &1698914886
+LODGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1698914881}
+  serializedVersion: 2
+  m_LocalReferencePoint: {x: 0, y: 0, z: -0.000000059604645}
+  m_Size: 1.0000005
+  m_FadeMode: 0
+  m_AnimateCrossFading: 0
+  m_LastLODIsBillboard: 0
+  m_LODs:
+  - screenRelativeHeight: 0.6
+    fadeTransitionWidth: 0
+    renderers:
+    - renderer: {fileID: 1698914883}
+  - screenRelativeHeight: 0.3
+    fadeTransitionWidth: 0
+    renderers:
+    - renderer: {fileID: 1698914883}
+  - screenRelativeHeight: 0.1
+    fadeTransitionWidth: 0
+    renderers:
+    - renderer: {fileID: 1698914883}
+  m_Enabled: 1
 --- !u!1 &1751559073
 GameObject:
   m_ObjectHideFlags: 0
@@ -1509,6 +1849,7 @@ GameObject:
   - component: {fileID: 1922509596}
   - component: {fileID: 1922509595}
   - component: {fileID: 1922509594}
+  - component: {fileID: 1922509597}
   m_Layer: 0
   m_Name: Sphere (10)
   m_TagString: Untagged
@@ -1590,6 +1931,45 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1922509592}
   m_Mesh: {fileID: 10207, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!205 &1922509597
+LODGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1922509592}
+  serializedVersion: 2
+  m_LocalReferencePoint: {x: -0.00000023841858, y: 0, z: 0}
+  m_Size: 1.0000002
+  m_FadeMode: 0
+  m_AnimateCrossFading: 0
+  m_LastLODIsBillboard: 0
+  m_LODs:
+  - screenRelativeHeight: 0.8006496
+    fadeTransitionWidth: 0
+    renderers:
+    - renderer: {fileID: 1922509594}
+  - screenRelativeHeight: 0.5924374
+    fadeTransitionWidth: 0
+    renderers:
+    - renderer: {fileID: 1922509594}
+  - screenRelativeHeight: 0.41547516
+    fadeTransitionWidth: 0
+    renderers:
+    - renderer: {fileID: 1922509594}
+  - screenRelativeHeight: 0.2819993
+    fadeTransitionWidth: 0
+    renderers:
+    - renderer: {fileID: 1922509594}
+  - screenRelativeHeight: 0.16700464
+    fadeTransitionWidth: 0
+    renderers:
+    - renderer: {fileID: 1922509594}
+  - screenRelativeHeight: 0.09140076
+    fadeTransitionWidth: 0
+    renderers:
+    - renderer: {fileID: 1922509594}
+  m_Enabled: 1
 --- !u!1 &1971611380
 GameObject:
   m_ObjectHideFlags: 0
@@ -1693,6 +2073,7 @@ GameObject:
   - component: {fileID: 2024053726}
   - component: {fileID: 2024053725}
   - component: {fileID: 2024053724}
+  - component: {fileID: 2024053727}
   m_Layer: 0
   m_Name: Sphere (1)
   m_TagString: Untagged
@@ -1774,3 +2155,34 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2024053722}
   m_Mesh: {fileID: 10207, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!205 &2024053727
+LODGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2024053722}
+  serializedVersion: 2
+  m_LocalReferencePoint: {x: 0.00000023841858, y: 0, z: -0.00000023841858}
+  m_Size: 1.0000005
+  m_FadeMode: 0
+  m_AnimateCrossFading: 0
+  m_LastLODIsBillboard: 0
+  m_LODs:
+  - screenRelativeHeight: 0.6
+    fadeTransitionWidth: 0
+    renderers:
+    - renderer: {fileID: 2024053724}
+  - screenRelativeHeight: 0.33364877
+    fadeTransitionWidth: 0
+    renderers:
+    - renderer: {fileID: 2024053724}
+  - screenRelativeHeight: 0.19424067
+    fadeTransitionWidth: 0
+    renderers:
+    - renderer: {fileID: 2024053724}
+  - screenRelativeHeight: 0.1
+    fadeTransitionWidth: 0
+    renderers:
+    - renderer: {fileID: 2024053724}
+  m_Enabled: 1
