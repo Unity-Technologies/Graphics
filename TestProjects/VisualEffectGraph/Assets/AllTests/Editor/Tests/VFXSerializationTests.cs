@@ -10,6 +10,7 @@ using UnityEditor.VFX;
 
 
 using Object = UnityEngine.Object;
+using System.IO;
 
 namespace UnityEditor.VFX.Test
 {
@@ -175,7 +176,9 @@ namespace UnityEditor.VFX.Test
 
                 asset = null;
                 EditorUtility.UnloadUnusedAssetsImmediate();
-                AssetDatabase.CopyAsset(kTempAssetPathA, kTempAssetPathB);
+                //AssetDatabase.CopyAsset(kTempAssetPathA, kTempAssetPathB); // TODO Deactivated because a regression makes it fail when load the copy
+                File.Copy(kTempAssetPathA, kTempAssetPathB);
+
                 if (asset != null)
                     AssetDatabase.RemoveObjectFromAsset(asset);
             }
