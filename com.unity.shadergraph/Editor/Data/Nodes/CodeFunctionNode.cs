@@ -8,8 +8,7 @@ using Mono.Cecil;
 using Mono.Cecil.Cil;
 using UnityEngine;
 using UnityEditor.Graphing;
-using UnityEditor.ShaderGraph.Hlsl;
-using static UnityEditor.ShaderGraph.Hlsl.Intrinsics;
+using UnityEngine.ShaderGraph.Hlsl;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -171,19 +170,19 @@ namespace UnityEditor.ShaderGraph
             {
                 return SlotValueType.Boolean;
             }
-            if (t == typeof(Vector1) || t == typeof(Hlsl.Float))
+            if (t == typeof(Vector1) || t == typeof(Float))
             {
                 return SlotValueType.Vector1;
             }
-            if (t == typeof(Vector2) || t == typeof(Hlsl.Float2))
+            if (t == typeof(Vector2) || t == typeof(Float2))
             {
                 return SlotValueType.Vector2;
             }
-            if (t == typeof(Vector3) || t == typeof(Hlsl.Float3))
+            if (t == typeof(Vector3) || t == typeof(Float3))
             {
                 return SlotValueType.Vector3;
             }
-            if (t == typeof(Vector4) || t == typeof(Hlsl.Float4))
+            if (t == typeof(Vector4) || t == typeof(Float4))
             {
                 return SlotValueType.Vector4;
             }
@@ -294,7 +293,7 @@ namespace UnityEditor.ShaderGraph
                             attribute.defaultValue ?? Vector4.zero,
                             shaderStageCapability: attribute.stageCapability,
                             hidden: attribute.hidden,
-                            dynamicDimensionGroup: par.GetCustomAttribute<Hlsl.AnyDimensionAttribute>()?.Group
+                            dynamicDimensionGroup: par.GetCustomAttribute<AnyDimensionAttribute>()?.Group
                             );
                 else
                     s = CreateBoundSlot(attribute.binding, attribute.slotId, name, par.Name, attribute.stageCapability, attribute.hidden);
@@ -476,7 +475,6 @@ namespace UnityEditor.ShaderGraph
             var curOpExpr = new StringBuilder();
             using (var thisModule = ModuleDefinition.ReadModule(Assembly.GetExecutingAssembly().Location, new ReaderParameters(ReadingMode.Immediate)))
             {
-                //var hlslCodeGenAttribute = thisModule.Types.FirstOrDefault(t => t.Name == nameof(HlslCodeGenAttribute));
                 var thisType = thisModule.Types.FirstOrDefault(t => t.FullName == GetType().FullName);
 
                 string MonoTypeToHlslType(string monoTypeName)
@@ -498,16 +496,16 @@ namespace UnityEditor.ShaderGraph
                 }
 
                 var voidType = thisModule.TypeSystem.Void;
-                var method = thisType?.Methods.FirstOrDefault(m => m.Name == methodInfo.Name);
-                if (method != null)
+                var genMethod = thisType?.Methods.FirstOrDefault(m => m.Name == methodInfo.Name);
+                if (genMethod != null)
                 {
                     var evalStack = new Stack<(string expr, int order)>();
-                    var argIds = new string[method.Parameters.Count];
-                    for (int i = 0; i < method.Parameters.Count; ++i)
-                        argIds[i] = method.Parameters[i].Name;
-                    var variablesDeclared = new bool[method.Body.Variables.Count];
+                    var argIds = new string[genMethod.Parameters.Count];
+                    for (int i = 0; i < genMethod.Parameters.Count; ++i)
+                        argIds[i] = genMethod.Parameters[i].Name;
+                    var variablesDeclared = new bool[genMethod.Body.Variables.Count];
 
-                    foreach (var il in method.Body.Instructions)
+                    foreach (var il in genMethod.Body.Instructions)
                     {
                         var opCode = il.OpCode;
                         if (opCode == OpCodes.Nop)
@@ -609,32 +607,32 @@ namespace UnityEditor.ShaderGraph
                         else if (opCode == OpCodes.Stloc_0)
                         {
                             string rhs = evalStack.Pop().expr;
-                            hlsl.Append($"{(variablesDeclared[0] ? "" : MonoTypeToHlslType(method.Body.Variables[0].VariableType.FullName)) + " "}__V0 = {rhs};\n");
+                            hlsl.Append($"{(variablesDeclared[0] ? "" : MonoTypeToHlslType(genMethod.Body.Variables[0].VariableType.FullName)) + " "}__V0 = {rhs};\n");
                             variablesDeclared[0] = true;
                         }
                         else if (opCode == OpCodes.Stloc_1)
                         {
                             string rhs = evalStack.Pop().expr;
-                            hlsl.Append($"{(variablesDeclared[1] ? "" : MonoTypeToHlslType(method.Body.Variables[1].VariableType.FullName)) + " "}__V1 = {rhs};\n");
+                            hlsl.Append($"{(variablesDeclared[1] ? "" : MonoTypeToHlslType(genMethod.Body.Variables[1].VariableType.FullName)) + " "}__V1 = {rhs};\n");
                             variablesDeclared[1] = true;
                         }
                         else if (opCode == OpCodes.Stloc_2)
                         {
                             string rhs = evalStack.Pop().expr;
-                            hlsl.Append($"{(variablesDeclared[2] ? "" : MonoTypeToHlslType(method.Body.Variables[2].VariableType.FullName)) + " "}__V2 = {rhs};\n");
+                            hlsl.Append($"{(variablesDeclared[2] ? "" : MonoTypeToHlslType(genMethod.Body.Variables[2].VariableType.FullName)) + " "}__V2 = {rhs};\n");
                             variablesDeclared[2] = true;
                         }
                         else if (opCode == OpCodes.Stloc_3)
                         {
                             string rhs = evalStack.Pop().expr;
-                            hlsl.Append($"{(variablesDeclared[3] ? "" : MonoTypeToHlslType(method.Body.Variables[3].VariableType.FullName)) + " "}__V3 = {rhs};\n");
+                            hlsl.Append($"{(variablesDeclared[3] ? "" : MonoTypeToHlslType(genMethod.Body.Variables[3].VariableType.FullName)) + " "}__V3 = {rhs};\n");
                             variablesDeclared[3] = true;
                         }
                         else if (opCode == OpCodes.Stloc_S)
                         {
                             string rhs = evalStack.Pop().expr;
                             var index = (il.Operand as VariableReference).Index;
-                            hlsl.Append($"{(variablesDeclared[index] ? "" : MonoTypeToHlslType(method.Body.Variables[index].VariableType.FullName)) + " "}__V{index} = {rhs};\n");
+                            hlsl.Append($"{(variablesDeclared[index] ? "" : MonoTypeToHlslType(genMethod.Body.Variables[index].VariableType.FullName)) + " "}__V{index} = {rhs};\n");
                             variablesDeclared[index] = true;
                         }
                         else if (opCode == OpCodes.Starg_S)
@@ -656,21 +654,22 @@ namespace UnityEditor.ShaderGraph
                         }
                         else if (opCode == OpCodes.Call)
                         {
-                            if (!(il.Operand is MethodDefinition))
+                            if (!(il.Operand is MethodReference))
                             {
                                 hlsl.Append($"\n Error parsing at: {il.Offset}\n");
                                 return hlsl.ToString();
                             }
 
-                            var func = il.Operand as MethodDefinition;
-                            if (func.Name.Substring(0, 3) == "op_")
+                            var methodRef = il.Operand as MethodReference;
+                            var methodName = methodRef.Name;
+                            if (methodName.StartsWith("op_"))
                             {
-                                var funcName = func.Name.Substring(3);
-                                if (funcName == "Implicit")
+                                var opName = methodName.Substring(3);
+                                if (opName == "Implicit")
                                 {
                                     continue;
                                 }
-                                else if (funcName == "UnaryNegation")
+                                else if (opName == "UnaryNegation")
                                 {
                                     if (evalStack.Count < 2)
                                     {
@@ -691,7 +690,7 @@ namespace UnityEditor.ShaderGraph
 
                                     string op;
                                     int order;
-                                    switch (func.Name.Substring(3))
+                                    switch (opName)
                                     {
                                         case "Addition": op = "+"; order = 2; break;
                                         case "Subtraction": op = "-"; order = 2; break;
@@ -699,7 +698,7 @@ namespace UnityEditor.ShaderGraph
                                         case "Division": op = "/"; order = 1; break;
                                         default:
                                             {
-                                                hlsl.Append($"\n Error parsing at: {il.Offset}: Unknown op {func.Name.Substring(3)}\n");
+                                                hlsl.Append($"\n Error parsing at: {il.Offset}: Unknown op {opName}\n");
                                                 return hlsl.ToString();
                                             }
                                     }
@@ -708,9 +707,9 @@ namespace UnityEditor.ShaderGraph
                                     evalStack.Push(($"{GenOp(op1, order1 > order)} {op} {GenOp(op2, order2 > order)}", order));
                                 }
                             }
-                            else if (func.IsGetter && func.Name.Substring(0, 4) == "get_")
+                            else if (methodName.StartsWith("get_"))
                             {
-                                var swizzle = func.Name.Substring(4);
+                                var swizzle = methodName.Substring(4);
                                 if (swizzle.Length > 4 || swizzle.Any(s => s > 'z' || s < 'w'))
                                 {
                                     hlsl.Append($"\n Error parsing at: {il.Offset}: Unknown swizzle {swizzle}\n");
@@ -719,9 +718,9 @@ namespace UnityEditor.ShaderGraph
                                 var (op, order) = evalStack.Pop();
                                 evalStack.Push(($"{GenOp(op, order > 0)}.{swizzle}", 0));
                             }
-                            else if (func.IsSetter && func.Name.Substring(0, 4) == "set_")
+                            else if (methodName.StartsWith("set_"))
                             {
-                                var swizzle = func.Name.Substring(4);
+                                var swizzle = methodName.Substring(4);
                                 if (swizzle.Length > 4 || swizzle.Any(s => s > 'z' || s < 'w'))
                                 {
                                     hlsl.Append($"\n Error parsing at: {il.Offset}: Unknown swizzle {swizzle}\n");
@@ -733,12 +732,12 @@ namespace UnityEditor.ShaderGraph
                             }
                             else
                             {
-                                if (func.Name == "Float" || func.Name == "Float2" || func.Name == "Float3" || func.Name == "Float4")
-                                    curOpExpr.Append($"f{func.Name.Substring(1)}(");
+                                if (methodName == "Float" || methodName == "Float2" || methodName == "Float3" || methodName == "Float4")
+                                    curOpExpr.Append($"f{methodName.Substring(1)}(");
                                 else
-                                    curOpExpr.Append($"{func.Name}(");
+                                    curOpExpr.Append($"{methodName}(");
                                 bool first = true;
-                                foreach (var (op, order) in evalStack.Take(func.Parameters.Count).Reverse())
+                                foreach (var (op, order) in evalStack.Take(methodRef.Parameters.Count).Reverse())
                                 {
                                     if (!first)
                                         curOpExpr.Append($", {op}");

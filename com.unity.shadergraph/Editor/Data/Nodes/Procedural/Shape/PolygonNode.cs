@@ -1,5 +1,5 @@
-using UnityEditor.ShaderGraph.Hlsl;
-using static UnityEditor.ShaderGraph.Hlsl.Intrinsics;
+using UnityEngine.ShaderGraph.Hlsl;
+using static UnityEngine.ShaderGraph.Hlsl.Intrinsics;
 
 namespace UnityEditor.ShaderGraph
 {

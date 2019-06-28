@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using UnityEngine;
 using UnityEditor.Graphing;
+using UnityEngine.ShaderGraph.Hlsl;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -126,7 +127,7 @@ namespace UnityEditor.ShaderGraph
                         , property.referenceName);
                 sb.AppendLine(result);
 
-                Constants = new[] { (OutputSlotId, (object)new Hlsl.Float() { Value = property.defaultValue.x }) };
+                Constants = new[] { (OutputSlotId, (object)new Float() { Value = property.defaultValue.x }) };
             }
             else if (property is Vector2ShaderProperty)
             {
@@ -135,7 +136,7 @@ namespace UnityEditor.ShaderGraph
                         , property.referenceName);
                 sb.AppendLine(result);
 
-                Constants = new[] { (OutputSlotId, (object)new Hlsl.Float2() { Value = Unity.Mathematics.math.float2(property.defaultValue.x, property.defaultValue.y) }) };
+                Constants = new[] { (OutputSlotId, (object)new Float2() { Value = Unity.Mathematics.math.float2(property.defaultValue.x, property.defaultValue.y) }) };
             }
             else if (property is Vector3ShaderProperty)
             {
@@ -144,7 +145,7 @@ namespace UnityEditor.ShaderGraph
                         , property.referenceName);
                 sb.AppendLine(result);
 
-                Constants = new[] { (OutputSlotId, (object)new Hlsl.Float3() { Value = Unity.Mathematics.math.float3(property.defaultValue.x, property.defaultValue.y, property.defaultValue.z) }) };
+                Constants = new[] { (OutputSlotId, (object)new Float3() { Value = Unity.Mathematics.math.float3(property.defaultValue.x, property.defaultValue.y, property.defaultValue.z) }) };
             }
             else if (property is Vector4ShaderProperty)
             {
@@ -153,7 +154,7 @@ namespace UnityEditor.ShaderGraph
                         , property.referenceName);
                 sb.AppendLine(result);
 
-                Constants = new[] { (OutputSlotId, (object)new Hlsl.Float4() { Value = Unity.Mathematics.math.float4(property.defaultValue.x, property.defaultValue.y, property.defaultValue.z, property.defaultValue.w) }) };
+                Constants = new[] { (OutputSlotId, (object)new Float4() { Value = Unity.Mathematics.math.float4(property.defaultValue.x, property.defaultValue.y, property.defaultValue.z, property.defaultValue.w) }) };
             }
             else if (property is ColorShaderProperty)
             {

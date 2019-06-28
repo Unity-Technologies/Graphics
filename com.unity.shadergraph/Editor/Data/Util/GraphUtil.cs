@@ -13,6 +13,9 @@ using System.Reflection;
 using UnityEditor.ProjectWindowCallback;
 using UnityEngine;
 using Object = System.Object;
+using UnityEngine.ShaderGraph;
+using UnityEngine.ShaderGraph.Hlsl;
+using Unity.Mathematics;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -1234,9 +1237,167 @@ namespace UnityEditor.ShaderGraph
             node.CollectShaderProperties(shaderProperties, mode);
         }
 
+        private static AbstractShaderProperty GetShaderPropertyFromNode(PropertyNode node)
+            => node.owner.properties.FirstOrDefault(x => x.guid == node.propertyGuid);
+
+        private static ConstantComputer CreateConstantComputer(AbstractMaterialNode root)
+        {
+            Debug.Assert(root.isStatic);
+            Debug.Assert(root is TimeNode || root is PropertyNode || root is CodeFunctionNode);
+
+            var nodes = new List<AbstractMaterialNode>();
+            Graphing.NodeUtils.DepthFirstCollectNodesFromNode(nodes, root);
+
+            var nodeGuidToInstructionIndex = new Dictionary<Guid, int>();
+            var instructions = new List<ConstantComputer.Instruction>(nodes.Count);
+            var vecs = new List<float4>();
+            var colors = new List<ConstantComputer.ColorProperty>();
+            var inputs = new List<ConstantComputer.Property>();
+            var outputs = new List<ConstantComputer.Property>();
+
+            foreach (var node in nodes.OfType<CodeFunctionNode>())
+            {
+                // Code function node
+                var func = node.Method;
+                if (func.GetCustomAttribute<CodeFunctionNode.HlslCodeGenAttribute>() == null)
+                    throw new Exception("Unity can only create ConstantComputer from HlslCodeGen function nodes.");
+
+                var inputArgs = new List<ConstantComputer.Arg>();
+                var outputArgs = new List<ConstantComputer.Arg>();
+
+                var slots = new List<MaterialSlot>();
+                node.GetSlots(slots);
+                foreach (var param in func.GetParameters())
+                {
+                    var arg = new ConstantComputer.Arg();
+                    var paramType = param.ParameterType;
+                    if (paramType.IsByRef)
+                        paramType = paramType.GetElementType();
+                    if (paramType == typeof(Float))
+                        arg.type = 0;
+                    else if (paramType == typeof(Float2))
+                        arg.type = 1;
+                    else if (paramType == typeof(Float3))
+                        arg.type = 2;
+                    else if (paramType == typeof(Float4))
+                        arg.type = 3;
+
+                    var slotId = param.GetCustomAttribute<CodeFunctionNode.SlotAttribute>().slotId;
+                    var slot = slots.Find(s => s.id == slotId);
+                    var edge = node.owner.GetEdges(slot.slotReference).FirstOrDefault();
+                    if (edge == null && param.IsOut)
+                        continue;
+
+                    if (!param.IsOut)
+                    {
+                        // input
+                        if (edge != null)
+                        {
+                            var fromNode = node.owner.GetNodeFromGuid<AbstractMaterialNode>(edge.outputSlot.nodeGuid);
+                            Debug.Assert(nodes.Contains(fromNode));
+                            if (fromNode is PropertyNode || fromNode is TimeNode)
+                            {
+                                string inputName;
+                                bool isFloat;
+                                if (fromNode is PropertyNode propertyNode)
+                                {
+                                    inputName = GetShaderPropertyFromNode(propertyNode).referenceName;
+                                    isFloat = GetShaderPropertyFromNode(propertyNode).propertyType == PropertyType.Vector1;
+                                }
+                                else
+                                {
+                                    inputName = fromNode.GetVariableNameForSlot(edge.outputSlot.slotId);
+                                    isFloat = true;
+                                }
+
+                                var inputIndex = inputs.FindIndex(i => i.name == inputName);
+                                if (inputIndex < 0)
+                                {
+                                    inputIndex = inputs.Count;
+                                    inputs.Add(new ConstantComputer.Property() { name = inputName, isFloat = isFloat, index = vecs.Count});
+                                    vecs.Add(float4.zero);
+                                }
+                                arg.index = inputs[inputIndex].index;
+                            }
+                            else if (fromNode is ColorNode colorNode)
+                            {
+                                arg.index = vecs.Count;
+                                vecs.Add(float4.zero);
+                                colors.Add(new ConstantComputer.ColorProperty() { color = colorNode.color.color, index = arg.index });
+                            }
+                            else
+                            {
+                                arg.index = -1;
+                                var fromFuncNode = fromNode as CodeFunctionNode;
+                                var fromInstruction = instructions[nodeGuidToInstructionIndex[fromNode.guid]];
+                                var fromParams = fromInstruction.method.GetParameters();
+                                for (int i = 0; i < fromParams.Length; ++i)
+                                {
+                                    if (fromParams[i].GetCustomAttribute<CodeFunctionNode.SlotAttribute>().slotId == edge.outputSlot.slotId)
+                                    {
+                                        arg.index = fromInstruction.outputs[i - fromInstruction.inputs.Length].index;
+                                        break;
+                                    }
+                                }
+                                Debug.Assert(arg.index != -1);
+                            }
+                        }
+                        else
+                        {
+                            // default
+                            // TODO: deduplicate by hashing the value
+                            arg.index = vecs.Count;
+                            if (slot is Vector1MaterialSlot vec1Slot)
+                                vecs.Add(math.float4(vec1Slot.value));
+                            else if (slot is Vector2MaterialSlot vec2Slot)
+                                vecs.Add(math.float4(vec2Slot.value, 0, 0));
+                            else if (slot is Vector3MaterialSlot vec3Slot)
+                                vecs.Add(math.float4(vec3Slot.value, 0));
+                            else if (slot is Vector4MaterialSlot vec4Slot)
+                                vecs.Add(math.float4(vec4Slot.value));
+                            else
+                                Debug.Assert(false);
+                        }
+                        inputArgs.Add(arg);
+                    }
+                    else
+                    {
+                        // output
+                        arg.index = vecs.Count;
+                        vecs.Add(float4.zero);
+                        outputArgs.Add(arg);
+
+                        if (node == root)
+                            outputs.Add(new ConstantComputer.Property() { name = node.GetVariableNameForSlot(slotId), isFloat = slot.concreteValueType == ConcreteSlotValueType.Vector1, index = arg.index });
+                    }
+                }
+
+                var instruction = new ConstantComputer.Instruction()
+                {
+                    method = node.Method,
+                    methodName = node.Method.Name,
+                    typeName = node.Method.DeclaringType?.FullName,
+                    inputs = inputArgs.ToArray(),
+                    outputs = outputArgs.ToArray()
+                };
+                instructions.Add(instruction);
+                nodeGuidToInstructionIndex.Add(node.guid, instructions.Count - 1);
+            }
+
+            var constantComputer = ScriptableObject.CreateInstance<ConstantComputer>();
+            constantComputer.Construct(
+                instructions.ToArray(),
+                vecs.ToArray(),
+                colors.ToArray(),
+                inputs.ToArray(),
+                outputs.ToArray());
+
+            return constantComputer;
+        }
+
         static void SaveConstantComputer(AbstractMaterialNode node)
         {
-            var constantComputer = ConstantComputer.Gather(node);
+            var constantComputer = CreateConstantComputer(node);
             var assetPath = AssetDatabase.GUIDToAssetPath(node.owner.assetGuid);
 
             AssetDatabase.CreateAsset(constantComputer, Path.Combine(Path.GetDirectoryName(assetPath), node.guid.ToString() + ".asset"));

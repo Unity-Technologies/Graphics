@@ -1,8 +1,8 @@
 using UnityEngine;
-using UnityEditor.ShaderGraph;
+using UnityEngine.ShaderGraph;
 
-//[ExecuteInEditMode]
-class ConstantUpdater : MonoBehaviour
+[ExecuteInEditMode]
+public class ConstantUpdater : MonoBehaviour
 {
     public ConstantComputer ConstantComputer = null;
 
