@@ -413,6 +413,9 @@ CBSDF EvaluateBSDF(float3 V, float3 L, PreLightData preLightData, BSDFData bsdfD
 # include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/MaterialEvaluation.hlsl"
 # include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/SurfaceShading.hlsl"
 
+// for Rotate function only
+# include "Packages/com.unity.render-pipelines.core/ShaderLibrary/GeometricTools.hlsl"
+
 float ComputeCaustic(float3 V, float3 positionOS, float3 lightDirOS, BSDFData bsdfData)
 {
     if (bsdfData.mask.x < 0.001)
@@ -439,10 +442,33 @@ DirectLighting EvaluateBSDF_Directional(LightLoopContext lightLoopContext,
     DirectLighting dl = ShadeSurface_Directional(lightLoopContext, posInput, builtinData,
                                     preLightData, lightData, bsdfData, V);
 
+#if 1
     float3 positionOS = TransformWorldToObject(posInput.positionWS);
     float3 lightDirOS = TransformWorldToObjectDir(-lightData.forward);
     // Atteunate the caustic value for directional as it is stronger than for other light
     dl.diffuse *= 1.0 + 0.5 * ComputeCaustic(V, positionOS, lightDirOS, bsdfData);
+#else
+    // This is a test coming from Heretic demo. It is way more expensive
+    // and is sometimes better, sometime not than code above and don't support caustic.
+    // Let here for experiment
+
+    // Evaluate a second time the light but for a different position and for diffuse only.
+    float3 L = normalize(lightData.positionRWS - posInput.positionWS);
+    float3 refractL = -refract(-L, bsdfData.geomNormalWS, 1 / 1.336);
+
+    float3 axis = normalize(cross(L, refractL));
+    float angle = lerp(0.0, acos(dot(L, refractL)), bsdfData.mask.x);
+
+    lightData.positionRWS = Rotate(posInput.positionWS, lightData.positionRWS, axis, angle);
+    lightData.forward = Rotate(float3(0, 0, 0), lightData.forward, axis, angle);
+    lightData.right = Rotate(float3(0, 0, 0), lightData.right, axis, angle);
+    lightData.up = Rotate(float3(0, 0, 0), lightData.up, axis, angle);
+
+    DirectLighting dlIris = ShadeSurface_Directional(lightLoopContext, posInput, builtinData,
+                                                     preLightData, lightData, bsdfData, V);
+
+    dl.diffuse = lerp(dl.diffuse, dlIris.diffuse, bsdfData.mask.x);
+#endif
 
     return dl;
 }
@@ -517,16 +543,16 @@ DirectLighting EvaluateBSDF_Rect(   LightLoopContext lightLoopContext,
                                     range));
 
         // Compute the light attenuation.
-#ifdef ELLIPSOIDAL_ATTENUATION
+# ifdef ELLIPSOIDAL_ATTENUATION
         // The attenuation volume is an axis-aligned ellipsoid s.t.
         // r1 = (r + w / 2), r2 = (r + h / 2), r3 = r.
         float intensity = EllipsoidalDistanceAttenuation(unL, invHalfDim,
                                                         lightData.rangeAttenuationScale,
                                                         lightData.rangeAttenuationBias);
 #else
-        // The attenuation volume is an axis-aligned box s.t.
-        // hX = (r + w / 2), hY = (r + h / 2), hZ = r.
-        float intensity = BoxDistanceAttenuation(unL, invHalfDim,
+    // The attenuation volume is an axis-aligned box s.t.
+    // hX = (r + w / 2), hY = (r + h / 2), hZ = r.
+    float intensity = BoxDistanceAttenuation(unL, invHalfDim,
                                                 lightData.rangeAttenuationScale,
                                                 lightData.rangeAttenuationBias);
 #endif
