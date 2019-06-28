@@ -136,7 +136,7 @@ BSDFData ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfaceData)
     bsdfData.geomNormalWS = surfaceData.geomNormalWS;
 
     bsdfData.perceptualRoughness = PerceptualSmoothnessToPerceptualRoughness(lerp(surfaceData.perceptualSmoothness, surfaceData.corneaPerceptualSmoothness, surfaceData.mask.x));
-    
+
     bsdfData.fresnel0 = IorToFresnel0(lerp(surfaceData.scleraIOR, surfaceData.corneaIOR, surfaceData.mask.x)).xxx;
     bsdfData.ambientOcclusion = surfaceData.ambientOcclusion;
 
@@ -423,9 +423,9 @@ float ComputeCaustic(float3 V, float3 positionOS, float3 lightDirOS, BSDFData bs
         return 0.0;
     }
 
-    // Completely heuristic!
+    // Totally empirical!..
     float causticIris = 2.0 * pow(saturate(dot(-normalize(positionOS.xy), lightDirOS.xy)), 2);
-    float causticSclera = clamp(2000.0 * pow(saturate(dot(-normalize(positionOS.xy), lightDirOS.xy)), 20), 0, 100);
+    float causticSclera = min(2000.0 * pow(saturate(dot(-normalize(positionOS.xy), lightDirOS.xy)), 20), 100.0);
 
     return causticSclera * min(bsdfData.mask.x, (1.0 - bsdfData.mask.x)) + causticIris * bsdfData.mask.x;
 }
@@ -654,7 +654,7 @@ DirectLighting EvaluateBSDF_Rect(   LightLoopContext lightLoopContext,
     if (lightData.shadowIndex != -1)
     {
 #if RASTERIZED_AREA_LIGHT_SHADOWS
-            // lightData.positionRWS now contains the Light vector. 
+            // lightData.positionRWS now contains the Light vector.
             shadow = GetAreaLightAttenuation(lightLoopContext.shadowContext, posInput.positionSS, posInput.positionWS, bsdfData.normalWS, lightData.shadowIndex, normalize(lightData.positionRWS), length(lightData.positionRWS));
 #ifdef SHADOWS_SHADOWMASK
             // See comment for punctual light shadow mask
