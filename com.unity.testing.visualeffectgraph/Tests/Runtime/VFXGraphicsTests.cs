@@ -146,7 +146,7 @@ namespace UnityEngine.VFX.Test
                     if (!ExcludedTestsButKeepLoadScene.Any(o => testCase.ScenePath.Contains(o)) &&
                         !(SystemInfo.graphicsDeviceType == GraphicsDeviceType.Metal && UnstableMetalTests.Any(o => testCase.ScenePath.Contains(o))))
                     {
-                        ImageAssert.AreEqual(testCase.ReferenceImage, actual, new ImageComparisonSettings() { AverageCorrectnessThreshold = 10e-5f });
+                        ImageAssert.AreEqual(testCase.ReferenceImage, actual, new ImageComparisonSettings() { AverageCorrectnessThreshold = 30e-5f });
                     }
                     else
                     {

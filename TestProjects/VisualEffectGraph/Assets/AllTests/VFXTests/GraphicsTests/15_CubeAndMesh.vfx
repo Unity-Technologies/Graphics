@@ -1884,6 +1884,7 @@ MonoBehaviour:
   m_OutputSlots: []
   m_Disabled: 0
   mode: 2
+  axes: 4
 --- !u!114 &114626334562317016
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -3069,7 +3070,6 @@ MonoBehaviour:
   sort: 0
   indirectDraw: 0
   castShadows: 0
-  preRefraction: 0
   useExposureWeight: 0
   useRimLight: 1
   useNormalMap: 1
@@ -3269,6 +3269,7 @@ VisualEffectResource:
     m_UpdateMode: 0
     m_PreWarmDeltaTime: 0.05
     m_PreWarmStepCount: 0
+    m_InitialEventName: OnPlay
   m_Systems: []
 --- !u!114 &8926484042661614528
 MonoBehaviour:

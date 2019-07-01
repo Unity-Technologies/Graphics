@@ -5,7 +5,7 @@ namespace UnityEditor.VFX.Block
     [VFXInfo(category = "Collision")]
     class CollisionAABox : CollisionBase
     {
-        public override string name { get { return "Collider (AABox)"; } }
+        public override string name { get { return "Collide with AABox"; } }
 
         public class InputProperties
         {
