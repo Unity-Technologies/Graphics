@@ -8,7 +8,7 @@ namespace UnityEditor.VFX.Block
     [VFXInfo(category = "Collision")]
     class CollisionPlane : CollisionBase
     {
-        public override string name { get { return "Collider (Plane)"; } }
+        public override string name { get { return "Collide with Plane"; } }
 
         public class InputProperties
         {

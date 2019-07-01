@@ -47,7 +47,7 @@ namespace UnityEditor.VFX.Block
                 VFXExpression height = inputSlots[0][3].GetExpression();
                 VFXExpression tanSlope = (radius1 - radius0) / height;
                 VFXExpression slope = new VFXExpressionATan(tanSlope);
-                if (spawnMode == SpawnMode.Randomized)
+                if (spawnMode == SpawnMode.Random)
                     yield return new VFXNamedExpression(radius1 / tanSlope, "fullConeHeight");
                 yield return new VFXNamedExpression(new VFXExpressionCombine(new VFXExpression[] { new VFXExpressionSin(slope), new VFXExpressionCos(slope) }), "sincosSlope");
             }
@@ -67,7 +67,7 @@ namespace UnityEditor.VFX.Block
             {
                 string outSource = "";
 
-                if (spawnMode == SpawnMode.Randomized)
+                if (spawnMode == SpawnMode.Random)
                     outSource += @"float theta = Cone_arc * RAND;";
                 else
                     outSource += @"float theta = Cone_arc * ArcSequencer;";
@@ -89,7 +89,7 @@ float hNorm = 0.0f;
 float3 base = float3(pos * Cone_radius0, 0.0f);
 ";
                 }
-                else if (spawnMode == SpawnMode.Randomized)
+                else if (spawnMode == SpawnMode.Random)
                 {
                     outSource += @"
 float heightFactor = pow(Cone_radius0 / Cone_radius1, 3.0f);
