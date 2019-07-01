@@ -8,8 +8,10 @@ using Unity.Jobs;
 using Unity.TestProtocol;
 using Unity.TestProtocol.Messages;
 using UnityEditor;
-using UnityEngine;
+using UnityEngine.TestTools.Constraints;
+using Is = UnityEngine.TestTools.Constraints.Is;
 using UnityEngine.Networking.PlayerConnection;
+using UnityEngine;
 
 namespace UnityEngine.TestTools.Graphics
 {
@@ -71,7 +73,7 @@ namespace UnityEngine.TestTools.Graphics
                         camera.targetTexture = null;
                     }
 
-					// only proceed the test on the last renderered frame
+					// only proceed the test on the last rendered frame
 					if (dummyRenderedFrameCount == i)
 					{
 						actual = new Texture2D(width, height, format, false);
@@ -158,6 +160,8 @@ namespace UnityEngine.TestTools.Graphics
                         diffImage.SetPixels32(diffPixelsArray, 0);
                         diffImage.Apply(false);
 
+                        TestContext.CurrentContext.Test.Properties.Set("DiffImage", Convert.ToBase64String(diffImage.EncodeToPNG()) );
+
                         failedImageMessage.DiffImage = diffImage.EncodeToPNG();
                         failedImageMessage.ExpectedImage = expected.EncodeToPNG();
                         throw;
@@ -172,9 +176,35 @@ namespace UnityEngine.TestTools.Graphics
 #else
                 PlayerConnection.instance.Send(FailedImageMessage.MessageId, failedImageMessage.Serialize());
 #endif
+                TestContext.CurrentContext.Test.Properties.Set("Image", Convert.ToBase64String(actual.EncodeToPNG()));
                 throw;
             }
         }
+
+        /// <summary>
+        /// Render an image from the given camera and check if it allocated memory while doing so.
+        /// </summary>
+        /// <param name="camera">The camera to render from.</param>
+        /// <param name="width"> width of the image to be rendered</param>
+        /// <param name="height"> height of the image to be rendered</param>
+        public static void AllocatesMemory(Camera camera, int width, int height)
+        {
+            if (camera == null)
+                throw new ArgumentNullException(nameof(camera));
+
+            var rt = RenderTexture.GetTemporary(width, height, 24);
+            try
+            {
+                camera.targetTexture = rt;
+                Assert.That(() => { camera.Render(); }, Is.Not.AllocatingGCMemory());
+                camera.targetTexture = null;
+            }
+            finally
+            {
+                RenderTexture.ReleaseTemporary(rt);
+            }
+        }
+
 
         struct ComputeDiffJob : IJobParallelFor
         {

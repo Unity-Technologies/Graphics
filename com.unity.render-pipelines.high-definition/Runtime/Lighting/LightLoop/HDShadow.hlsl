@@ -16,21 +16,22 @@
 
 # include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/Shadow/HDShadowContext.hlsl"
 
+// normalWS is the vertex normal if available or shading normal use to bias the shadow position
 float GetDirectionalShadowAttenuation(HDShadowContext shadowContext, float2 positionSS, float3 positionWS, float3 normalWS, int shadowDataIndex, float3 L)
 {
+    // If NdotL < 0, we flip the normal in case it is used for the transmission to correctly bias shadow position
+    normalWS *= FastSign(dot(normalWS, L));
     return EvalShadow_CascadedDepth_Blend(shadowContext, _ShadowmapCascadeAtlas, s_linear_clamp_compare_sampler, positionSS, positionWS, normalWS, shadowDataIndex, L);
-}
-
-float GetDirectionalShadowAttenuation(HDShadowContext shadowContext, float3 positionWS, float3 normalWS, int shadowDataIndex, float3 L, float2 positionSS)
-{
-    return GetDirectionalShadowAttenuation(shadowContext, positionSS, positionWS, normalWS, shadowDataIndex, L);
 }
 
 float GetPunctualShadowAttenuation(HDShadowContext shadowContext, float2 positionSS, float3 positionWS, float3 normalWS, int shadowDataIndex, float3 L, float L_dist, bool pointLight, bool perspecive)
 {
-#if (defined(SUPPORTS_WAVE_INTRINSICS) && !defined(LIGHTLOOP_DISABLE_TILE_AND_CLUSTER))
+#if (defined(PLATFORM_SUPPORTS_WAVE_INTRINSICS) && !defined(LIGHTLOOP_DISABLE_TILE_AND_CLUSTER))
     shadowDataIndex = WaveReadLaneFirst(shadowDataIndex);
 #endif
+
+    // If NdotL < 0, we flip the normal in case it is used for the transmission to correctly bias shadow position
+    normalWS *= FastSign(dot(normalWS, L));
 
     // Note: Here we assume that all the shadow map cube faces have been added contiguously in the buffer to retreive the shadow information
     HDShadowData sd = shadowContext.shadowDatas[shadowDataIndex];
@@ -46,14 +47,9 @@ float GetPunctualShadowAttenuation(HDShadowContext shadowContext, float2 positio
     return EvalShadow_PunctualDepth(sd, _ShadowmapAtlas, s_linear_clamp_compare_sampler, positionSS, positionWS, normalWS, L, L_dist, perspecive);
 }
 
-float GetPunctualShadowAttenuation(HDShadowContext shadowContext, float3 positionWS, float3 normalWS, int shadowDataIndex, float3 L, float L_dist, float2 positionSS, bool pointLight, bool perspecive)
-{
-    return GetPunctualShadowAttenuation(shadowContext, positionSS, positionWS, normalWS, shadowDataIndex, L, L_dist, pointLight, perspecive);
-}
-
 float GetPunctualShadowClosestDistance(HDShadowContext shadowContext, SamplerState sampl, real3 positionWS, int shadowDataIndex, float3 L, float3 lightPositionWS, bool pointLight)
 {
-#if (defined(SUPPORTS_WAVE_INTRINSICS) && !defined(LIGHTLOOP_DISABLE_TILE_AND_CLUSTER))
+#if (defined(PLATFORM_SUPPORTS_WAVE_INTRINSICS) && !defined(LIGHTLOOP_DISABLE_TILE_AND_CLUSTER))
     shadowDataIndex = WaveReadLaneFirst(shadowDataIndex);
 #endif
 

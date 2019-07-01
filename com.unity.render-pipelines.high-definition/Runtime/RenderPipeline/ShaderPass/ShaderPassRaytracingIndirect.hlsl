@@ -5,12 +5,12 @@
 void ClosestHitMain(inout RayIntersection rayIntersection : SV_RayPayload, AttributeData attributeData : SV_IntersectionAttributes)
 {
 	// The first thing that we should do is grab the intersection vertice
-    IntersectionVertice currentvertex;
-    GetCurrentIntersectionVertice(attributeData, currentvertex);
+    IntersectionVertex currentvertex;
+    GetCurrentIntersectionVertex(attributeData, currentvertex);
 
     // Build the Frag inputs from the intersection vertice
     FragInputs fragInput;
-    BuildFragInputsFromIntersection(currentvertex, rayIntersection, fragInput);
+    BuildFragInputsFromIntersection(currentvertex, rayIntersection.incidentDirection, fragInput);
 
     // Compute the view vector
     float3 viewWS = -rayIntersection.incidentDirection;
@@ -19,7 +19,7 @@ void ClosestHitMain(inout RayIntersection rayIntersection : SV_RayPayload, Attri
     float travelDistance = length(GetAbsolutePositionWS(fragInput.positionRWS) - rayIntersection.origin);
     rayIntersection.t = travelDistance;
     rayIntersection.cone.width += travelDistance * rayIntersection.cone.spreadAngle;
-    
+
     PositionInputs posInput;
     posInput.positionWS = fragInput.positionRWS;
     posInput.positionSS = uint2(0, 0);
@@ -45,7 +45,7 @@ void ClosestHitMain(inout RayIntersection rayIntersection : SV_RayPayload, Attri
     // Run the lightloop
     float3 diffuseLighting;
     float3 specularLighting;
-    LightLoop(viewWS, posInput, preLightData, bsdfData, builtinData, 0.0, float3(0.0, 0.0, 0.0),  float3(0.0, 0.0, 0.0), diffuseLighting, specularLighting);
+    LightLoop(viewWS, posInput, preLightData, bsdfData, builtinData, 0.0, 0.0, float3(0.0, 0.0, 0.0),  float3(0.0, 0.0, 0.0), diffuseLighting, specularLighting);
 
     // Color display for the moment
     #ifdef DIFFUSE_LIGHTING_ONLY
@@ -65,12 +65,12 @@ void ClosestHitMain(inout RayIntersection rayIntersection : SV_RayPayload, Attri
 void AnyHitMain(inout RayIntersection rayIntersection : SV_RayPayload, AttributeData attributeData : SV_IntersectionAttributes)
 {
     // The first thing that we should do is grab the intersection vertice
-    IntersectionVertice currentvertex;
-    GetCurrentIntersectionVertice(attributeData, currentvertex);
+    IntersectionVertex currentvertex;
+    GetCurrentIntersectionVertex(attributeData, currentvertex);
 
     // Build the Frag inputs from the intersection vertice
     FragInputs fragInput;
-    BuildFragInputsFromIntersection(currentvertex, rayIntersection, fragInput);
+    BuildFragInputsFromIntersection(currentvertex, rayIntersection.incidentDirection, fragInput);
 
     // Compute the view vector
     float3 viewWS = -rayIntersection.incidentDirection;

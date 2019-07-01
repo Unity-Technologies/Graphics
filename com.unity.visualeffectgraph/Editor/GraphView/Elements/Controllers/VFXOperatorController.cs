@@ -27,8 +27,12 @@ namespace UnityEditor.VFX.UI
             return anchor;
         }
 
-        public VFXOperatorController(VFXModel model, VFXViewController viewController) : base(model, viewController)
+        public VFXOperatorController(VFXOperator model, VFXViewController viewController) : base(model, viewController)
         {
+            if( model is VFXSubgraphOperator)
+            {
+                model.ResyncSlots(false);
+            }
         }
 
         public new VFXOperator model
@@ -70,7 +74,7 @@ namespace UnityEditor.VFX.UI
 
     class VFXVariableOperatorController : VFXOperatorController
     {
-        public VFXVariableOperatorController(VFXModel model, VFXViewController viewController) : base(model, viewController)
+        public VFXVariableOperatorController(VFXOperator model, VFXViewController viewController) : base(model, viewController)
         {
         }
 
@@ -100,7 +104,7 @@ namespace UnityEditor.VFX.UI
 
     class VFXUnifiedOperatorControllerBase<T> : VFXVariableOperatorController where T : VFXOperatorNumeric, IVFXOperatorNumericUnified
     {
-        public VFXUnifiedOperatorControllerBase(VFXModel model, VFXViewController viewController) : base(model, viewController)
+        public VFXUnifiedOperatorControllerBase(VFXOperator model, VFXViewController viewController) : base(model, viewController)
         {
         }
 
@@ -126,13 +130,13 @@ namespace UnityEditor.VFX.UI
     }
     class VFXUnifiedOperatorController : VFXUnifiedOperatorControllerBase<VFXOperatorNumericUnified>
     {
-        public VFXUnifiedOperatorController(VFXModel model, VFXViewController viewController) : base(model, viewController)
+        public VFXUnifiedOperatorController(VFXOperator model, VFXViewController viewController) : base(model, viewController)
         {
         }
     }
     class VFXUnifiedConstraintOperatorController : VFXUnifiedOperatorController
     {
-        public VFXUnifiedConstraintOperatorController(VFXModel model, VFXViewController viewController) : base(model, viewController)
+        public VFXUnifiedConstraintOperatorController(VFXOperator model, VFXViewController viewController) : base(model, viewController)
         {
         }
 
@@ -229,7 +233,7 @@ namespace UnityEditor.VFX.UI
 
     class VFXCascadedOperatorController : VFXUnifiedOperatorControllerBase<VFXOperatorNumericCascadedUnified>
     {
-        public VFXCascadedOperatorController(VFXModel model, VFXViewController viewController) : base(model, viewController)
+        public VFXCascadedOperatorController(VFXOperator model, VFXViewController viewController) : base(model, viewController)
         {
         }
 
@@ -243,9 +247,9 @@ namespace UnityEditor.VFX.UI
             newInputs.Add(m_UpcommingDataAnchor);
         }
 
-        public override void OnEdgeGoingToBeRemoved(VFXDataAnchorController myInput)
+        public override void OnEdgeFromInputGoingToBeRemoved(VFXDataAnchorController myInput)
         {
-            base.OnEdgeGoingToBeRemoved(myInput);
+            base.OnEdgeFromInputGoingToBeRemoved(myInput);
 
             RemoveOperand(myInput);
         }
@@ -273,7 +277,7 @@ namespace UnityEditor.VFX.UI
 
     class VFXUniformOperatorController<T> : VFXVariableOperatorController where T : VFXOperatorDynamicOperand, IVFXOperatorUniform
     {
-        public VFXUniformOperatorController(VFXModel model, VFXViewController viewController) : base(model, viewController)
+        public VFXUniformOperatorController(VFXOperator model, VFXViewController viewController) : base(model, viewController)
         {
         }
 
@@ -313,14 +317,14 @@ namespace UnityEditor.VFX.UI
 
     class VFXNumericUniformOperatorController : VFXUniformOperatorController<VFXOperatorNumericUniform>
     {
-        public VFXNumericUniformOperatorController(VFXModel model, VFXViewController viewController) : base(model, viewController)
+        public VFXNumericUniformOperatorController(VFXOperator model, VFXViewController viewController) : base(model, viewController)
         {
         }
     }
 
     class VFXBranchOperatorController : VFXUniformOperatorController<Branch>
     {
-        public VFXBranchOperatorController(VFXModel model, VFXViewController viewController) : base(model, viewController)
+        public VFXBranchOperatorController(VFXOperator model, VFXViewController viewController) : base(model, viewController)
         {
         }
     }

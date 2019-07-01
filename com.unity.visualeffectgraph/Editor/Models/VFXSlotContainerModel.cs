@@ -4,7 +4,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reflection;
 using UnityEngine;
-using UnityEngine.Experimental.VFX;
+using UnityEngine.VFX;
 using Object = UnityEngine.Object;
 
 namespace UnityEditor.VFX
@@ -31,6 +31,10 @@ namespace UnityEditor.VFX
         void Invalidate(VFXModel model, VFXModel.InvalidationCause cause);
 
         void SetSettingValue(string name, object value);
+
+        object GetSettingValue(string name);
+
+        VFXSetting GetSetting(string name);
 
         void OnCopyLinksOtherSlot(VFXSlot mySlot, VFXSlot prevOtherSlot, VFXSlot newOtherSlot);
         void OnCopyLinksMySlot(VFXSlot myPrevSlot, VFXSlot myNewSlot, VFXSlot otherSlot);
@@ -216,13 +220,13 @@ namespace UnityEditor.VFX
             SyncSlots(VFXSlot.Direction.kOutput, false);
         }
 
-        public override void CollectDependencies(HashSet<ScriptableObject> objs)
+        public override void CollectDependencies(HashSet<ScriptableObject> objs, bool ownedOnly = true)
         {
-            base.CollectDependencies(objs);
+            base.CollectDependencies(objs, ownedOnly);
             foreach (var slot in m_InputSlots.Concat(m_OutputSlots))
             {
                 objs.Add(slot);
-                slot.CollectDependencies(objs);
+                slot.CollectDependencies(objs, ownedOnly);
             }
         }
 

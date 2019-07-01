@@ -162,9 +162,9 @@ $include("SharedCode.template.hlsl")
         // compute world space normal
         GetNormalWS(fragInputs, normalTS, surfaceData.normalWS, doubleSidedConstants);
 
-        surfaceData.geomNormalWS = fragInputs.worldToTangent[2];
+        surfaceData.geomNormalWS = fragInputs.tangentToWorld[2];
 
-        surfaceData.tangentWS = normalize(fragInputs.worldToTangent[0].xyz);    // The tangent is not normalize in worldToTangent for mikkt. TODO: Check if it expected that we normalize with Morten. Tag: SURFACE_GRADIENT
+        surfaceData.tangentWS = normalize(fragInputs.tangentToWorld[0].xyz);    // The tangent is not normalize in tangentToWorld for mikkt. TODO: Check if it expected that we normalize with Morten. Tag: SURFACE_GRADIENT
         surfaceData.tangentWS = Orthonormalize(surfaceData.tangentWS, surfaceData.normalWS);
 
         // By default we use the ambient occlusion with Tri-ace trick (apply outside) for specular occlusion.
@@ -188,7 +188,7 @@ $include("SharedCode.template.hlsl")
 
         // We need to call ApplyDebugToSurfaceData after filling the surfarcedata and before filling builtinData
         // as it can modify attribute use for static lighting
-        ApplyDebugToSurfaceData(fragInputs.worldToTangent, surfaceData);
+        ApplyDebugToSurfaceData(fragInputs.tangentToWorld, surfaceData);
 #endif
     }
 
@@ -216,7 +216,7 @@ $include("SharedCode.template.hlsl")
 
         // Builtin Data
         // For back lighting we use the oposite vertex normal 
-        InitBuiltinData(posInput, surfaceDescription.Alpha, surfaceData.normalWS, -fragInputs.worldToTangent[2], fragInputs.texCoord1, fragInputs.texCoord2, builtinData);
+        InitBuiltinData(posInput, surfaceDescription.Alpha, surfaceData.normalWS, -fragInputs.tangentToWorld[2], fragInputs.texCoord1, fragInputs.texCoord2, builtinData);
 
         $SurfaceDescription.Emission: builtinData.emissiveColor = surfaceDescription.Emission;
 

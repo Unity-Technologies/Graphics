@@ -1,4 +1,4 @@
-# Shader Graoh Window
+# Shader Graph Window
 
 ## Description
 
@@ -14,6 +14,9 @@ The title bar at the top of the **Shader Graph Window** contains actions that ca
 |:------------|:------------|
 | Save Asset | Saves the graph to update the [Shader Graph Asset](index.md) |
 | Show In Project | Hightlights the [Shader Graph Asset](index.md) in the [Project Window](https://docs.unity3d.com/Manual/ProjectView.html) |
+| Color Mode | Provides the drop down menu to select a [Color Mode](Color-Modes.md) for the graph. |
+| Blackboard | Toggles visibility of the [Blackboard](Blackboard.md). |
+| Master Preview | Toggles visbility of the [Master Preview](Master-Preview.md). |
 
 ## Workspace
 

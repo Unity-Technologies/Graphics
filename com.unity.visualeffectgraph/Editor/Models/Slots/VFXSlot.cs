@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using UnityEngine;
-using UnityEngine.Experimental.VFX;
+using UnityEngine.VFX;
 using System.Reflection;
 
 namespace UnityEditor.VFX
@@ -1008,7 +1008,7 @@ namespace UnityEditor.VFX
             return exp;
         }
 
-        private void SetOutExpression(VFXExpression exp, HashSet<VFXSlot> toInvalidate, VFXCoordinateSpace convertToSpace = (VFXCoordinateSpace)int.MaxValue)
+        public void SetOutExpression(VFXExpression exp, HashSet<VFXSlot> toInvalidate, VFXCoordinateSpace convertToSpace = (VFXCoordinateSpace)int.MaxValue)
         {
             exp = VFXPropertyAttribute.ApplyToExpressionGraph(m_Property.attributes, exp);
             if (convertToSpace != (VFXCoordinateSpace)int.MaxValue)

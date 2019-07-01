@@ -18,6 +18,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         Texture2DArray m_TextureArray16L;
         Texture2DArray m_TextureArray16RGB;
 
+        static readonly System.Random m_Random = new System.Random();
+
         public BlueNoise(HDRenderPipelineAsset asset)
         {
             var resources = asset.renderPipelineResources.textures;
@@ -37,12 +39,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public Texture2D GetRandom16L()
         {
-            return textures16L[(int)(Random.value * (textures16L.Length - 1))];
+            return textures16L[(int)(m_Random.NextDouble() * (textures16L.Length - 1))];
         }
 
         public Texture2D GetRandom16RGB()
         {
-            return textures16RGB[(int)(Random.value * (textures16RGB.Length - 1))];
+            return textures16RGB[(int)(m_Random.NextDouble() * (textures16RGB.Length - 1))];
         }
 
         static void InitTextures(int size, TextureFormat format, Texture2D[] sourceTextures, out Texture2D[] destination, out Texture2DArray destinationArray)

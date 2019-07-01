@@ -223,7 +223,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_xySeq = new Vector2[7];
             m_xySeqOffset = new Vector4();
 
-            m_PixelCoordToViewDirWS = new Matrix4x4[TextureXR.kMaxSliceCount];
+            m_PixelCoordToViewDirWS = new Matrix4x4[TextureXR.kMaxSlices];
 
             CreateVolumetricLightingBuffers();
         }
@@ -447,11 +447,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             cmd.SetGlobalVectorArray(HDShaderIDs._AmbientProbeCoeffs, m_PackedCoeffs);
         }
 
-        float CornetteShanksPhasePartConstant(float anisotropy)
+        static float CornetteShanksPhasePartConstant(float anisotropy)
         {
             float g = anisotropy;
 
-            return (1.0f / (4.0f * Mathf.PI)) * 1.5f * (1.0f - g * g) / (2.0f + g * g);
+            return (3.0f / (8.0f * Mathf.PI)) * (1.0f - g * g) / (2.0f + g * g);
         }
 
         public void PushVolumetricLightingGlobalParams(HDCamera hdCamera, CommandBuffer cmd, int frameIndex)
@@ -612,7 +612,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     cmd.SetComputeIntParam(m_VolumeVoxelizationCS, HDShaderIDs._NumTileBigTileX, GetNumTileBigTileX(hdCamera));
                     cmd.SetComputeIntParam(m_VolumeVoxelizationCS, HDShaderIDs._NumTileBigTileY, GetNumTileBigTileY(hdCamera));
                     if (tiledLighting)
-                        cmd.SetComputeBufferParam(m_VolumeVoxelizationCS, kernel, HDShaderIDs.g_vBigTileLightList, GetBigTileLightList());
+                        cmd.SetComputeBufferParam(m_VolumeVoxelizationCS, kernel, HDShaderIDs.g_vBigTileLightList, m_TileAndClusterData.bigTileLightList);
                 }
 
                 cmd.SetComputeTextureParam(m_VolumeVoxelizationCS, kernel, HDShaderIDs._VBufferDensity,  m_DensityBufferHandle);
@@ -630,7 +630,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 int h = (int)resolution.y;
 
                 // The shader defines GROUP_SIZE_1D = 8.
-                cmd.DispatchCompute(m_VolumeVoxelizationCS, kernel, (w + 7) / 8, (h + 7) / 8, hdCamera.computePassCount);
+                cmd.DispatchCompute(m_VolumeVoxelizationCS, kernel, (w + 7) / 8, (h + 7) / 8, hdCamera.viewCount);
             }
         }
 
@@ -742,7 +742,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 int h = (int)resolution.y;
 
                 // The shader defines GROUP_SIZE_1D = 8.
-                cmd.DispatchCompute(m_VolumetricLightingCS, kernel, (w + 7) / 8, (h + 7) / 8, hdCamera.computePassCount);
+                cmd.DispatchCompute(m_VolumetricLightingCS, kernel, (w + 7) / 8, (h + 7) / 8, hdCamera.viewCount);
             }
         }
     } // class VolumetricLightingModule

@@ -196,7 +196,7 @@
     #elif defined(UNITY_MAX_INSTANCE_COUNT)
         #define UNITY_INSTANCED_ARRAY_SIZE  UNITY_MAX_INSTANCE_COUNT
     #else
-        #if defined(SHADER_API_VULKAN) && defined(SHADER_API_MOBILE)
+        #if (defined(SHADER_API_VULKAN) && defined(SHADER_API_MOBILE)) || defined(SHADER_API_SWITCH)
             #define UNITY_INSTANCED_ARRAY_SIZE  250
         #else
             #define UNITY_INSTANCED_ARRAY_SIZE  500

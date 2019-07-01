@@ -14,8 +14,9 @@ namespace UnityEngine.Rendering.LWRP
         Material m_BlitMaterial;
         TextureDimension m_TargetDimension;
         bool m_ClearBlitTarget;
+        bool m_IsMobileOrSwitch;
         Rect m_PixelRect;
-        
+
         public FinalBlitPass(RenderPassEvent evt, Material blitMaterial)
         {
             m_BlitMaterial = blitMaterial;
@@ -34,6 +35,7 @@ namespace UnityEngine.Rendering.LWRP
             m_Source = colorHandle;
             m_TargetDimension = baseDescriptor.dimension;
             m_ClearBlitTarget = clearBlitTarget;
+            m_IsMobileOrSwitch = Application.isMobilePlatform || Application.platform == RuntimePlatform.Switch;
             m_PixelRect = pixelRect;
         }
 
@@ -64,6 +66,13 @@ namespace UnityEngine.Rendering.LWRP
             ref CameraData cameraData = ref renderingData.cameraData;
             if (cameraData.isStereoEnabled || cameraData.isSceneViewCamera || cameraData.isDefaultViewport)
             {
+                // This set render target is necessary so we change the LOAD state to DontCare.
+                cmd.SetRenderTarget(BuiltinRenderTextureType.CameraTarget, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
+
+                // Clearing render target is cost free on mobile and it avoid tile loading
+                if (m_IsMobileOrSwitch)
+                    cmd.ClearRenderTarget(true, true, Color.black);
+                
                 cmd.Blit(m_Source.Identifier(), BuiltinRenderTextureType.CameraTarget);
             }
             else
@@ -76,7 +85,7 @@ namespace UnityEngine.Rendering.LWRP
                 SetRenderTarget(
                     cmd,
                     BuiltinRenderTextureType.CameraTarget,
-                    RenderBufferLoadAction.Load,
+                    m_ClearBlitTarget ? RenderBufferLoadAction.DontCare : RenderBufferLoadAction.Load,
                     RenderBufferStoreAction.Store,
                     m_ClearBlitTarget ? ClearFlag.Color : ClearFlag.None,
                     Color.black,

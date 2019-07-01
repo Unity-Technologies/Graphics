@@ -317,6 +317,12 @@ namespace UnityEditor.ShaderGraph
             return stageCapability == ShaderStageCapability.All || candidateStage == stageCapability;
         }
 
+        public string GetDefaultValue(GenerationMode generationMode, ConcretePrecision concretePrecision)
+        {
+            string defaultValue = GetDefaultValue(generationMode);
+            return defaultValue.Replace(PrecisionUtil.Token, concretePrecision.ToShaderString());
+        }
+
         public virtual string GetDefaultValue(GenerationMode generationMode)
         {
             var matOwner = owner as AbstractMaterialNode;
@@ -326,10 +332,10 @@ namespace UnityEditor.ShaderGraph
             if (generationMode.IsPreview())
                 return matOwner.GetVariableNameForSlot(id);
 
-            return ConcreteSlotValueAsVariable(matOwner.precision);
+            return ConcreteSlotValueAsVariable();
         }
 
-        protected virtual string ConcreteSlotValueAsVariable(AbstractMaterialNode.OutputPrecision precision)
+        protected virtual string ConcreteSlotValueAsVariable()
         {
             return "error";
         }

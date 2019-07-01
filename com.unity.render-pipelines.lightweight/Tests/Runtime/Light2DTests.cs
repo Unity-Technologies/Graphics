@@ -30,7 +30,7 @@ namespace UnityEngine.Rendering.LWRP.Tests
         [Test]
         public void SetupCullingSetsBoundingSpheresAndCullingIndices()
         {
-            Light2D.SetupCulling(Camera.main);
+            Light2D.SetupCulling(default(ScriptableRenderContext), Camera.main);
 
             Assert.NotNull(Light2DManager.boundingSpheres);
             Assert.AreEqual(1024, Light2DManager.boundingSpheres.Length);
@@ -102,7 +102,7 @@ namespace UnityEngine.Rendering.LWRP.Tests
             var camera = m_TestObject1.AddComponent<Camera>();
             var light = m_TestObject2.AddComponent<Light2D>();
             light.transform.position = camera.transform.position;
-            Light2D.SetupCulling(camera);
+            Light2D.SetupCulling(default(ScriptableRenderContext), camera);
 
             yield return null;
 
@@ -115,7 +115,7 @@ namespace UnityEngine.Rendering.LWRP.Tests
             var camera = m_TestObject1.AddComponent<Camera>();
             var light = m_TestObject2.AddComponent<Light2D>();
             light.transform.position = camera.transform.position + new Vector3(9999.0f, 0.0f, 0.0f);
-            Light2D.SetupCulling(camera);
+            Light2D.SetupCulling(default(ScriptableRenderContext), camera);
 
             yield return null;
 

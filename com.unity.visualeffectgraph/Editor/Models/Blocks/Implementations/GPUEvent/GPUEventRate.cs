@@ -1,7 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Experimental.VFX;
+using UnityEngine.VFX;
 
 namespace UnityEditor.VFX.Block
 {
@@ -18,8 +18,8 @@ namespace UnityEditor.VFX.Block
         protected Mode mode = Mode.OverTime;
 
         public override string name { get { return string.Format("Trigger Event Rate ({0})", ObjectNames.NicifyVariableName(mode.ToString())); } }
-        public override VFXContextType compatibleContexts { get { return VFXContextType.kUpdate; } }
-        public override VFXDataType compatibleData { get { return VFXDataType.kParticle; } }
+        public override VFXContextType compatibleContexts { get { return VFXContextType.Update; } }
+        public override VFXDataType compatibleData { get { return VFXDataType.Particle; } }
 
         public override IEnumerable<VFXAttributeInfo> attributes
         {

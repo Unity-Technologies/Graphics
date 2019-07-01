@@ -33,7 +33,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             MaterialUpgrader.UpgradeSelection(GetHDUpgraders(), "Upgrade to HD Material");
         }
 
-        [MenuItem("Edit/Render Pipeline/Upgrade Scene Light Intensity for High Definition", priority = CoreUtils.editMenuPriority2)]
+        [MenuItem("Edit/Render Pipeline/Upgrade Unity Builtin Scene Light Intensity for High Definition", priority = CoreUtils.editMenuPriority2)]
         static void UpgradeLights()
         {
             Light[] lights = Light.GetLights(LightType.Directional, 0);

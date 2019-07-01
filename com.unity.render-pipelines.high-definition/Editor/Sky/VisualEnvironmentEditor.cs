@@ -46,7 +46,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
                 foreach (KeyValuePair<int, Type> kvp in skyTypesDict)
                 {
-                    m_SkyClassNames.Add(new GUIContent(ObjectNames.NicifyVariableName(kvp.Value.Name.ToString())));
+                    string name = ObjectNames.NicifyVariableName(kvp.Value.Name.ToString());
+                    name = name.Replace("Settings", ""); // remove Settings if it was in the class name
+                    m_SkyClassNames.Add(new GUIContent(name));
                     m_SkyUniqueIDs.Add(kvp.Key);
                 }
             }

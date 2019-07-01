@@ -29,7 +29,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         bool m_HasError;
 
         [NonSerialized]
-        public bool updatePreviewShaders = false;
+        HashSet<string> m_ChangedSubGraphs = new HashSet<string>();
 
         ColorSpace m_ColorSpace;
         RenderPipelineAsset m_RenderPipelineAsset;
@@ -145,17 +145,21 @@ namespace UnityEditor.ShaderGraph.Drawing
                     graphObject.Validate();
                 }
 
+                if (m_ChangedSubGraphs.Count > 0 && graphObject != null && graphObject.graph != null)
+                {
+                    foreach (var subGraphNode in graphObject.graph.GetNodes<SubGraphNode>())
+                    {
+                        subGraphNode.Reload(m_ChangedSubGraphs);
+                    }
+
+                    m_ChangedSubGraphs.Clear();
+                }
+
                 if (graphObject.wasUndoRedoPerformed)
                 {
                     graphEditorView.HandleGraphChanges();
                     graphObject.graph.ClearChanges();
                     graphObject.HandleUndoRedo();
-                }
-
-                if (updatePreviewShaders)
-                {
-                    m_GraphEditorView.UpdatePreviewShaders();
-                    updatePreviewShaders = false;
                 }
 
                 graphEditorView.HandleGraphChanges();
@@ -168,6 +172,14 @@ namespace UnityEditor.ShaderGraph.Drawing
                 graphObject = null;
                 Debug.LogException(e);
                 throw;
+            }
+        }
+
+        public void ReloadSubGraphsOnNextUpdate(List<string> subGraphs)
+        {
+            foreach (var subGraph in subGraphs)
+            {
+                m_ChangedSubGraphs.Add(subGraph);
             }
         }
 
@@ -214,17 +226,9 @@ namespace UnityEditor.ShaderGraph.Drawing
                 if (string.IsNullOrEmpty(path) || graphObject == null)
                     return;
 
-                bool VCSEnabled = (VersionControl.Provider.enabled && VersionControl.Provider.isActive);
-                CheckoutIfValid(path, VCSEnabled);
-
-                    UpdateShaderGraphOnDisk(path);
+                UpdateShaderGraphOnDisk(path);
 
                 graphObject.isDirty = false;
-                var windows = Resources.FindObjectsOfTypeAll<MaterialGraphEditWindow>();
-                foreach (var materialGraphEditWindow in windows)
-                {
-                    materialGraphEditWindow.Rebuild();
-                }
             }
         }
 
@@ -279,6 +283,16 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
             subGraph.AddNode(subGraphOutputNode);
 
+            var groupGuidMap = new Dictionary<Guid, Guid>();
+            foreach (GroupData groupData in deserialized.groups)
+            {
+                var oldGuid = groupData.guid;
+                var newGuid = groupData.RewriteGuid();
+                groupGuidMap[oldGuid] = newGuid;
+                subGraph.CreateGroup(groupData);
+            }
+
+            List<Guid> groupGuids = new List<Guid>();
             var nodeGuidMap = new Dictionary<Guid, Guid>();
             foreach (var node in deserialized.GetNodes<AbstractMaterialNode>())
             {
@@ -288,6 +302,19 @@ namespace UnityEditor.ShaderGraph.Drawing
                 var drawState = node.drawState;
                 drawState.position = new Rect(drawState.position.position - middle, drawState.position.size);
                 node.drawState = drawState;
+
+                if (!groupGuids.Contains(node.groupGuid))
+                {
+                    groupGuids.Add(node.groupGuid);
+                }
+
+                // Checking if the group guid is also being copied.
+                // If not then nullify that guid
+                if (node.groupGuid != Guid.Empty)
+                {
+                    node.groupGuid = !groupGuidMap.ContainsKey(node.groupGuid) ? Guid.Empty : groupGuidMap[node.groupGuid];
+                }
+
                 subGraph.AddNode(node);
             }
 
@@ -434,8 +461,8 @@ namespace UnityEditor.ShaderGraph.Drawing
                 }
             }
 
-            File.WriteAllText(path, EditorJsonUtility.ToJson(subGraph));
-            AssetDatabase.ImportAsset(path);
+            if(FileUtilities.WriteShaderGraphToDisk(path, subGraph))
+                AssetDatabase.ImportAsset(path);
 
             var loadedSubGraph = AssetDatabase.LoadAssetAtPath(path, typeof(SubGraphAsset)) as SubGraphAsset;
             if (loadedSubGraph == null)
@@ -445,8 +472,15 @@ namespace UnityEditor.ShaderGraph.Drawing
             var ds = subGraphNode.drawState;
             ds.position = new Rect(middle - new Vector2(100f, 150f), Vector2.zero);
             subGraphNode.drawState = ds;
+
+            // Add the subgraph into the group if the nodes was all in the same group group
+            if (groupGuids.Count == 1)
+            {
+                subGraphNode.groupGuid = groupGuids[0];
+            }
+
             graphObject.graph.AddNode(subGraphNode);
-            subGraphNode.subGraphAsset = loadedSubGraph;
+            subGraphNode.asset = loadedSubGraph;
 
             foreach (var edgeMap in externalInputNeedingConnection)
             {
@@ -467,18 +501,8 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void UpdateShaderGraphOnDisk(string path)
         {
-            File.WriteAllText(path, EditorJsonUtility.ToJson(graphObject.graph, true));
-            AssetDatabase.ImportAsset(path);
-        }
-
-        private void Rebuild()
-        {
-            if (graphObject != null && graphObject.graph != null)
-            {
-                var subNodes = graphObject.graph.GetNodes<SubGraphNode>();
-                foreach (var node in subNodes)
-                    node.UpdateSlots();
-            }
+            if(FileUtilities.WriteShaderGraphToDisk(path, graphObject.graph))
+                AssetDatabase.ImportAsset(path);
         }
 
         public void Initialize(string assetGuid)
@@ -557,25 +581,6 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_FrameAllAfterLayout = false;
             foreach (var node in m_GraphObject.graph.GetNodes<AbstractMaterialNode>())
                 node.Dirty(ModificationScope.Node);
-        }
-
-        void CheckoutIfValid(string path, bool VCSEnabled)
-        {
-            if (VCSEnabled)
-            {
-                var asset = VersionControl.Provider.GetAssetByPath(path);
-                if (asset != null)
-                {
-                    if (VersionControl.Provider.CheckoutIsValid(asset))
-                    {
-                        var task = VersionControl.Provider.Checkout(asset, VersionControl.CheckoutMode.Both);
-                        task.Wait();
-
-                        if (!task.success)
-                            Debug.Log(task.text + " " + task.resultCode);
-                    }
-                }
-            }
         }
     }
 }

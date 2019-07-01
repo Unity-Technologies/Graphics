@@ -100,9 +100,9 @@ namespace UnityEditor.ShaderGraph
             return
                 @"
 {
-    {precision}3 linearRGBLo = In / 12.92;
-    {precision}3 linearRGBHi = pow(max(abs((In + 0.055) / 1.055), 1.192092896e-07), {precision}3(2.4, 2.4, 2.4));
-    Out = {precision}3(In <= 0.04045) ? linearRGBLo : linearRGBHi;
+    $precision3 linearRGBLo = In / 12.92;
+    $precision3 linearRGBHi = pow(max(abs((In + 0.055) / 1.055), 1.192092896e-07), $precision3(2.4, 2.4, 2.4));
+    Out = $precision3(In <= 0.04045) ? linearRGBLo : linearRGBHi;
 }
 ";
         }
@@ -115,12 +115,12 @@ namespace UnityEditor.ShaderGraph
             return
                 @"
 {
-    {precision}4 K = {precision}4(0.0, -1.0 / 3.0, 2.0 / 3.0, -1.0);
-    {precision}4 P = lerp({precision}4(In.bg, K.wz), {precision}4(In.gb, K.xy), step(In.b, In.g));
-    {precision}4 Q = lerp({precision}4(P.xyw, In.r), {precision}4(In.r, P.yzx), step(P.x, In.r));
-    {precision} D = Q.x - min(Q.w, Q.y);
-    {precision}  E = 1e-10;
-    Out = {precision}3(abs(Q.z + (Q.w - Q.y)/(6.0 * D + E)), D / (Q.x + E), Q.x);
+    $precision4 K = $precision4(0.0, -1.0 / 3.0, 2.0 / 3.0, -1.0);
+    $precision4 P = lerp($precision4(In.bg, K.wz), $precision4(In.gb, K.xy), step(In.b, In.g));
+    $precision4 Q = lerp($precision4(P.xyw, In.r), $precision4(In.r, P.yzx), step(P.x, In.r));
+    $precision D = Q.x - min(Q.w, Q.y);
+    $precision  E = 1e-10;
+    Out = $precision3(abs(Q.z + (Q.w - Q.y)/(6.0 * D + E)), D / (Q.x + E), Q.x);
 }
 ";
         }
@@ -133,9 +133,9 @@ namespace UnityEditor.ShaderGraph
             return
                 @"
 {
-    {precision}3 sRGBLo = In * 12.92;
-    {precision}3 sRGBHi = (pow(max(abs(In), 1.192092896e-07), {precision}3(1.0 / 2.4, 1.0 / 2.4, 1.0 / 2.4)) * 1.055) - 0.055;
-    Out = {precision}3(In <= 0.0031308) ? sRGBLo : sRGBHi;
+    $precision3 sRGBLo = In * 12.92;
+    $precision3 sRGBHi = (pow(max(abs(In), 1.192092896e-07), $precision3(1.0 / 2.4, 1.0 / 2.4, 1.0 / 2.4)) * 1.055) - 0.055;
+    Out = $precision3(In <= 0.0031308) ? sRGBLo : sRGBHi;
 }
 ";
         }
@@ -161,15 +161,15 @@ namespace UnityEditor.ShaderGraph
             return
                 @"
 {
-    {precision}3 sRGBLo = In * 12.92;
-    {precision}3 sRGBHi = (pow(max(abs(In), 1.192092896e-07), {precision}3(1.0 / 2.4, 1.0 / 2.4, 1.0 / 2.4)) * 1.055) - 0.055;
-    {precision}3 Linear = {precision}3(In <= 0.0031308) ? sRGBLo : sRGBHi;
-    {precision}4 K = {precision}4(0.0, -1.0 / 3.0, 2.0 / 3.0, -1.0);
-    {precision}4 P = lerp({precision}4(Linear.bg, K.wz), {precision}4(Linear.gb, K.xy), step(Linear.b, Linear.g));
-    {precision}4 Q = lerp({precision}4(P.xyw, Linear.r), {precision}4(Linear.r, P.yzx), step(P.x, Linear.r));
-    {precision} D = Q.x - min(Q.w, Q.y);
-    {precision}  E = 1e-10;
-    Out = {precision}3(abs(Q.z + (Q.w - Q.y)/(6.0 * D + E)), D / (Q.x + E), Q.x);
+    $precision3 sRGBLo = In * 12.92;
+    $precision3 sRGBHi = (pow(max(abs(In), 1.192092896e-07), $precision3(1.0 / 2.4, 1.0 / 2.4, 1.0 / 2.4)) * 1.055) - 0.055;
+    $precision3 Linear = $precision3(In <= 0.0031308) ? sRGBLo : sRGBHi;
+    $precision4 K = $precision4(0.0, -1.0 / 3.0, 2.0 / 3.0, -1.0);
+    $precision4 P = lerp($precision4(Linear.bg, K.wz), $precision4(Linear.gb, K.xy), step(Linear.b, Linear.g));
+    $precision4 Q = lerp($precision4(P.xyw, Linear.r), $precision4(Linear.r, P.yzx), step(P.x, Linear.r));
+    $precision D = Q.x - min(Q.w, Q.y);
+    $precision  E = 1e-10;
+    Out = $precision3(abs(Q.z + (Q.w - Q.y)/(6.0 * D + E)), D / (Q.x + E), Q.x);
 }
 ";
         }
@@ -182,8 +182,8 @@ namespace UnityEditor.ShaderGraph
             return
                 @"
 {
-    {precision}4 K = {precision}4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);
-    {precision}3 P = abs(frac(In.xxx + K.xyz) * 6.0 - K.www);
+    $precision4 K = $precision4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);
+    $precision3 P = abs(frac(In.xxx + K.xyz) * 6.0 - K.www);
     Out = In.z * lerp(K.xxx, saturate(P - K.xxx), In.y);
 }
 ";
@@ -197,12 +197,12 @@ namespace UnityEditor.ShaderGraph
             return
                 @"
 {
-    {precision}4 K = {precision}4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);
-    {precision}3 P = abs(frac(In.xxx + K.xyz) * 6.0 - K.www);
-    {precision}3 RGB = In.z * lerp(K.xxx, saturate(P - K.xxx), In.y);
-    {precision}3 linearRGBLo = RGB / 12.92;
-    {precision}3 linearRGBHi = pow(max(abs((RGB + 0.055) / 1.055), 1.192092896e-07), {precision}3(2.4, 2.4, 2.4));
-    Out = {precision}3(RGB <= 0.04045) ? linearRGBLo : linearRGBHi;
+    $precision4 K = $precision4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);
+    $precision3 P = abs(frac(In.xxx + K.xyz) * 6.0 - K.www);
+    $precision3 RGB = In.z * lerp(K.xxx, saturate(P - K.xxx), In.y);
+    $precision3 linearRGBLo = RGB / 12.92;
+    $precision3 linearRGBHi = pow(max(abs((RGB + 0.055) / 1.055), 1.192092896e-07), $precision3(2.4, 2.4, 2.4));
+    Out = $precision3(RGB <= 0.04045) ? linearRGBLo : linearRGBHi;
 }
 ";
         }

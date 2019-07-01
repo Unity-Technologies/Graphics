@@ -207,7 +207,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
         }
 
-        public void HandleGraphChanges()
+        public bool HandleGraphChanges()
         {
             if (m_Graph.didActiveOutputNodeChange)
             {
@@ -248,6 +248,8 @@ namespace UnityEditor.ShaderGraph.Drawing
                     m_RefreshTimedNodes = true;
                 }
             }
+
+            return m_NodesToUpdate.Count > 0;
         }
 
         List<PreviewProperty> m_PreviewProperties = new List<PreviewProperty>();
@@ -404,6 +406,9 @@ namespace UnityEditor.ShaderGraph.Drawing
                     renderData.shaderData.isCompiling = false;
                     CheckForErrors(renderData.shaderData);
                     m_NodesToDraw.Add(renderData.shaderData.node);
+
+                    var masterNode = renderData.shaderData.node as IMasterNode;
+                    masterNode?.ProcessPreviewMaterial(renderData.shaderData.mat);
                 }
             }
 
