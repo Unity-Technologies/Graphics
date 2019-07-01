@@ -2,8 +2,8 @@
 using System;
 using NUnit.Framework;
 using UnityEngine;
-using UnityEngine.Experimental.VFX;
-using UnityEditor.Experimental.VFX;
+using UnityEngine.VFX;
+using UnityEditor.VFX;
 using UnityEditor;
 using UnityEngine.TestTools;
 using System.Linq;
@@ -44,19 +44,19 @@ namespace UnityEditor.VFX.Test
         public void Init()
         {
             m_previousCaptureFrameRate = Time.captureFramerate;
-            m_previousFixedTimeStep = UnityEngine.Experimental.VFX.VFXManager.fixedTimeStep;
-            m_previousMaxDeltaTime = UnityEngine.Experimental.VFX.VFXManager.maxDeltaTime;
+            m_previousFixedTimeStep = UnityEngine.VFX.VFXManager.fixedTimeStep;
+            m_previousMaxDeltaTime = UnityEngine.VFX.VFXManager.maxDeltaTime;
             Time.captureFramerate = 10;
-            UnityEngine.Experimental.VFX.VFXManager.fixedTimeStep = 0.1f;
-            UnityEngine.Experimental.VFX.VFXManager.maxDeltaTime = 0.1f;
+            UnityEngine.VFX.VFXManager.fixedTimeStep = 0.1f;
+            UnityEngine.VFX.VFXManager.maxDeltaTime = 0.1f;
         }
 
         [TearDown]
         public void CleanUp()
         {
             Time.captureFramerate = m_previousCaptureFrameRate;
-            UnityEngine.Experimental.VFX.VFXManager.fixedTimeStep = m_previousFixedTimeStep;
-            UnityEngine.Experimental.VFX.VFXManager.maxDeltaTime = m_previousMaxDeltaTime;
+            UnityEngine.VFX.VFXManager.fixedTimeStep = m_previousFixedTimeStep;
+            UnityEngine.VFX.VFXManager.maxDeltaTime = m_previousMaxDeltaTime;
             AssetDatabase.DeleteAsset(tempFilePath);
         }
 

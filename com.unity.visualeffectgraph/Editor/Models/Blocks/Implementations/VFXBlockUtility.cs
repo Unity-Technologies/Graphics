@@ -46,8 +46,8 @@ namespace UnityEditor.VFX.Block
             switch (mode)
             {
                 case RandomMode.Off: return "";
-                case RandomMode.PerComponent: return "Random";
-                case RandomMode.Uniform: return "Random";
+                case RandomMode.PerComponent: return "Random (Per-component)";
+                case RandomMode.Uniform: return "Random (Uniform)";
                 default: throw new ArgumentException();
             }
         }

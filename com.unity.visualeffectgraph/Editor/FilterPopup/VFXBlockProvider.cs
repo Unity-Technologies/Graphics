@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using UnityEditor.Experimental.VFX;
+using UnityEditor.VFX;
 
 namespace UnityEditor.VFX.UI
 {

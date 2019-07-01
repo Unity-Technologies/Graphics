@@ -22,5 +22,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 || gamma != defaultState
                 || gain != defaultState;
         }
+
+        LiftGammaGain() => displayName = "Lift, Gamma, Gain";
     }
 }
