@@ -3,7 +3,7 @@ using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UIElements;
-using UnityEditor.Experimental.VFX;
+using UnityEditor.VFX;
 
 using NodeID = System.UInt32;
 
@@ -230,6 +230,24 @@ namespace UnityEditor.VFX.UI
             }
         }
 
+        void PasteSubOutputs(VFXAbstractRenderedOutput output, ref Context src)
+        {
+            if (src.subOutputs == null)
+                return;
+
+            var newSubOutputs = new List<VFXSRPSubOutput>(src.subOutputs.Length);
+            for (int i = 0; i < src.subOutputs.Length; ++i)
+            {
+                if (src.subOutputs[i].type != null)
+                {
+                    newSubOutputs.Add((VFXSRPSubOutput)ScriptableObject.CreateInstance(src.subOutputs[i].type));
+                    PasteModelSettings(newSubOutputs[i], src.subOutputs[i].settings, src.subOutputs[i].type);
+                }
+            }
+
+            output.InitSubOutputs(newSubOutputs);
+        }
+
         VFXContext PasteContext(VFXViewController controller, ref Context context)
         {
             VFXContext newContext = PasteAndInitializeNode<VFXContext>(controller, ref context.node);
@@ -241,6 +259,9 @@ namespace UnityEditor.VFX.UI
             }
 
             newContext.label = context.label;
+
+            if (newContext is VFXAbstractRenderedOutput)
+                PasteSubOutputs((VFXAbstractRenderedOutput)newContext, ref context);
 
             List<VFXBlock> blocks = new List<VFXBlock>();
             foreach (var block in context.blocks)

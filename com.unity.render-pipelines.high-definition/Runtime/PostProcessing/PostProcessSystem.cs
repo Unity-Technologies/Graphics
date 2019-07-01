@@ -77,6 +77,21 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         ColorCurves m_Curves;
         FilmGrain m_FilmGrain;
 
+        // Prefetched frame settings (updated on every frame)
+        bool m_ExposureControlFS;
+        bool m_StopNaNFS;
+        bool m_DepthOfFieldFS;
+        bool m_MotionBlurFS;
+        bool m_PaniniProjectionFS;
+        bool m_BloomFS;
+        bool m_ChromaticAberrationFS;
+        bool m_LensDistortionFS;
+        bool m_VignetteFS;
+        bool m_ColorGradingFS;
+        bool m_FilmGrainFS;
+        bool m_DitheringFS;
+        bool m_AntialiasingFS;
+
         // Physical camera ref
         HDPhysicalCamera m_PhysicalCamera;
         static readonly HDPhysicalCamera m_DefaultPhysicalCamera = new HDPhysicalCamera();
@@ -98,6 +113,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         // Uber feature map to workaround the lack of multi_compile in compute shaders
         readonly Dictionary<int, string> m_UberPostFeatureMap = new Dictionary<int, string>();
+
+        readonly System.Random m_Random;
 
         public PostProcessSystem(HDRenderPipelineAsset hdAsset)
         {
@@ -167,6 +184,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             // Initialize our target pool to ease RT management
             m_Pool = new TargetPool();
+
+            // Use a custom RNG, we don't want to mess with the Unity one that the users might be
+            // relying on (breaks determinism in their code)
+            m_Random = new System.Random();
 
             // Misc targets
             m_TempTexture1024 = RTHandles.Alloc(
@@ -248,8 +269,25 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_Curves                    = stack.GetComponent<ColorCurves>();
             m_FilmGrain                 = stack.GetComponent<FilmGrain>();
 
+            // Prefetch frame settings - these aren't free to pull so we want to do it only once
+            // per frame
+            var frameSettings = camera.frameSettings;
+            m_ExposureControlFS     = frameSettings.IsEnabled(FrameSettingsField.ExposureControl);
+            m_StopNaNFS             = frameSettings.IsEnabled(FrameSettingsField.StopNaN);
+            m_DepthOfFieldFS        = frameSettings.IsEnabled(FrameSettingsField.DepthOfField);
+            m_MotionBlurFS          = frameSettings.IsEnabled(FrameSettingsField.MotionBlur);
+            m_PaniniProjectionFS    = frameSettings.IsEnabled(FrameSettingsField.PaniniProjection);
+            m_BloomFS               = frameSettings.IsEnabled(FrameSettingsField.Bloom);
+            m_ChromaticAberrationFS = frameSettings.IsEnabled(FrameSettingsField.ChromaticAberration);
+            m_LensDistortionFS      = frameSettings.IsEnabled(FrameSettingsField.LensDistortion);
+            m_VignetteFS            = frameSettings.IsEnabled(FrameSettingsField.Vignette);
+            m_ColorGradingFS        = frameSettings.IsEnabled(FrameSettingsField.ColorGrading);
+            m_FilmGrainFS           = frameSettings.IsEnabled(FrameSettingsField.FilmGrain);
+            m_DitheringFS           = frameSettings.IsEnabled(FrameSettingsField.Dithering);
+            m_AntialiasingFS        = frameSettings.IsEnabled(FrameSettingsField.Antialiasing);
+
             // Handle fixed exposure & disabled pre-exposure by forcing an exposure multiplier of 1
-            if (!camera.frameSettings.IsEnabled(FrameSettingsField.ExposureControl))
+            if (!m_ExposureControlFS)
             {
                 cmd.SetGlobalTexture(HDShaderIDs._ExposureTexture, m_EmptyExposureTexture);
                 cmd.SetGlobalTexture(HDShaderIDs._PrevExposureTexture, m_EmptyExposureTexture);
@@ -310,7 +348,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     }
 
                     // Optional NaN killer before post-processing kicks in
-                    bool stopNaNs = camera.stopNaNs;
+                    bool stopNaNs = camera.stopNaNs && m_StopNaNFS;
 
                 #if UNITY_EDITOR
                     if (isSceneView)
@@ -330,7 +368,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 // Dynamic exposure - will be applied in the next frame
                 // Not considered as a post-process so it's not affected by its enabled state
-                if (!IsExposureFixed() && camera.frameSettings.IsEnabled(FrameSettingsField.ExposureControl))
+                if (!IsExposureFixed() && m_ExposureControlFS)
                 {
                     using (new ProfilingSample(cmd, "Dynamic Exposure", CustomSamplerId.Exposure.GetSampler()))
                     {
@@ -343,30 +381,35 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     // TODO: Do we want user effects before post?
 
                     // Temporal anti-aliasing goes first
-                    bool taaEnabled = camera.antialiasing == AntialiasingMode.TemporalAntialiasing;
+                    bool taaEnabled = false;
 
-                    if (taaEnabled)
+                    if (m_AntialiasingFS)
                     {
-                        using (new ProfilingSample(cmd, "Temporal Anti-aliasing", CustomSamplerId.TemporalAntialiasing.GetSampler()))
+                        taaEnabled = camera.antialiasing == AntialiasingMode.TemporalAntialiasing;
+
+                        if (taaEnabled)
                         {
-                            var destination = m_Pool.Get(Vector2.one, k_ColorFormat);
-                            DoTemporalAntialiasing(cmd, camera, source, destination);
-                            PoolSource(ref source, destination);
+                            using (new ProfilingSample(cmd, "Temporal Anti-aliasing", CustomSamplerId.TemporalAntialiasing.GetSampler()))
+                            {
+                                var destination = m_Pool.Get(Vector2.one, k_ColorFormat);
+                                DoTemporalAntialiasing(cmd, camera, source, destination);
+                                PoolSource(ref source, destination);
+                            }
                         }
-                    }
-                    else if (camera.antialiasing == AntialiasingMode.SubpixelMorphologicalAntiAliasing)
-                    {
-                        using (new ProfilingSample(cmd, "SMAA", CustomSamplerId.SMAA.GetSampler()))
+                        else if (camera.antialiasing == AntialiasingMode.SubpixelMorphologicalAntiAliasing)
                         {
-                            var destination = m_Pool.Get(Vector2.one, k_ColorFormat);
-                            DoSMAA(cmd, camera, source, destination, depthBuffer);
-                            PoolSource(ref source, destination);
+                            using (new ProfilingSample(cmd, "SMAA", CustomSamplerId.SMAA.GetSampler()))
+                            {
+                                var destination = m_Pool.Get(Vector2.one, k_ColorFormat);
+                                DoSMAA(cmd, camera, source, destination, depthBuffer);
+                                PoolSource(ref source, destination);
+                            }
                         }
                     }
 
                     // Depth of Field is done right after TAA as it's easier to just re-project the CoC
                     // map rather than having to deal with all the implications of doing it before TAA
-                    if (m_DepthOfField.IsActive() && !isSceneView)
+                    if (m_DepthOfField.IsActive() && !isSceneView && m_DepthOfFieldFS)
                     {
                         using (new ProfilingSample(cmd, "Depth of Field", CustomSamplerId.DepthOfField.GetSampler()))
                         {
@@ -378,7 +421,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                     // Motion blur after depth of field for aesthetic reasons (better to see motion
                     // blurred bokeh rather than out of focus motion blur)
-                    if (m_MotionBlur.IsActive() && m_AnimatedMaterialsEnabled && !m_ResetHistory)
+                    if (m_MotionBlur.IsActive() && m_AnimatedMaterialsEnabled && !m_ResetHistory && m_MotionBlurFS)
                     {
                         using (new ProfilingSample(cmd, "Motion Blur", CustomSamplerId.MotionBlur.GetSampler()))
                         {
@@ -392,7 +435,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     // done and before bloom kicks in
                     // This is one effect that would benefit from an overscan mode or supersampling in
                     // HDRP to reduce the amount of resolution lost at the center of the screen
-                    if (m_PaniniProjection.IsActive() && !isSceneView)
+                    if (m_PaniniProjection.IsActive() && !isSceneView && m_PaniniProjectionFS)
                     {
                         using (new ProfilingSample(cmd, "Panini Projection", CustomSamplerId.PaniniProjection.GetSampler()))
                         {
@@ -412,7 +455,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         int kernel = GetUberKernel(cs, featureFlags);
 
                         // Generate the bloom texture
-                        bool bloomActive = m_Bloom.IsActive();
+                        bool bloomActive = m_Bloom.IsActive() && m_BloomFS;
 
                         if (bloomActive)
                         {
@@ -456,7 +499,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // TODO: User effects go here
 
                 if (dynResHandler.DynamicResolutionEnabled() &&     // Dynamic resolution is on.
-                    camera.antialiasing == AntialiasingMode.FastApproximateAntialiasing)
+                    camera.antialiasing == AntialiasingMode.FastApproximateAntialiasing &&
+                    m_AntialiasingFS)
                 {
                     using (new ProfilingSample(cmd, "FXAA", CustomSamplerId.FXAA.GetSampler()))
                     {
@@ -497,13 +541,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             var flags = UberPostFeatureFlags.None;
 
-            if (m_ChromaticAberration.IsActive())
+            if (m_ChromaticAberration.IsActive() && m_ChromaticAberrationFS)
                 flags |= UberPostFeatureFlags.ChromaticAberration;
 
-            if (m_Vignette.IsActive())
+            if (m_Vignette.IsActive() && m_VignetteFS)
                 flags |= UberPostFeatureFlags.Vignette;
 
-            if (m_LensDistortion.IsActive() && !isSceneView)
+            if (m_LensDistortion.IsActive() && !isSceneView && m_LensDistortionFS)
                 flags |= UberPostFeatureFlags.LensDistortion;
 
             return flags;
@@ -1943,7 +1987,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             float postExposureLinear = Mathf.Pow(2f, m_ColorAdjustments.postExposure.value);
 
             // Setup the uber shader
-            var logLutSettings = new Vector4(1f / m_LutSize, m_LutSize - 1f, postExposureLinear, 0f);
+            var logLutSettings = new Vector4(1f / m_LutSize, m_LutSize - 1f, postExposureLinear, m_ColorGradingFS ? 1f : 0f);
             cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._LogLut3D, m_InternalLogLut);
             cmd.SetComputeVectorParam(cs, HDShaderIDs._LogLut3D_Params, logLutSettings);
         }
@@ -2075,6 +2119,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         #endregion
 
         #region SMAA
+
         void DoSMAA(CommandBuffer cmd, HDCamera camera, RTHandle source, RTHandle destination, RTHandle depthBuffer)
         {
             RTHandle SMAAEdgeTex = m_Pool.Get(Vector2.one, GraphicsFormat.R8G8B8A8_UNorm);
@@ -2130,6 +2175,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_Pool.Recycle(SMAAEdgeTex);
             m_Pool.Recycle(SMAABlendTex);
         }
+
         #endregion
 
         #region Final Pass
@@ -2163,10 +2209,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             if (m_PostProcessEnabled)
             {
-                if (camera.antialiasing == AntialiasingMode.FastApproximateAntialiasing && !dynamicResIsOn)
+                if (camera.antialiasing == AntialiasingMode.FastApproximateAntialiasing && !dynamicResIsOn && m_AntialiasingFS)
                     m_FinalPassMaterial.EnableKeyword("FXAA");
 
-                if (m_FilmGrain.IsActive())
+                if (m_FilmGrain.IsActive() && m_FilmGrainFS)
                 {
                     var texture = m_FilmGrain.texture.value;
 
@@ -2179,8 +2225,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         int offsetX = 0;
                         int offsetY = 0;
                         #else
-                        int offsetX = (int)(Random.value * texture.width);
-                        int offsetY = (int)(Random.value * texture.height);
+                        int offsetX = (int)(m_Random.NextDouble() * texture.width);
+                        int offsetY = (int)(m_Random.NextDouble() * texture.height);
                         #endif
 
                         m_FinalPassMaterial.EnableKeyword("GRAIN");
@@ -2190,7 +2236,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     }
                 }
 
-                if (camera.dithering)
+                if (camera.dithering && m_DitheringFS)
                 {
                     var blueNoiseTexture = blueNoise.textureArray16L;
 
