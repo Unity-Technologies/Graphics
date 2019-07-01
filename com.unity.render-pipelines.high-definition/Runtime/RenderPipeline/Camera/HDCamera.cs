@@ -64,6 +64,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public int  colorPyramidHistoryMipCount = 0;
         public VBufferParameters[] vBufferParams; // Double-buffered
 
+        float m_AmbientOcclusionResolutionScale = 0.0f; // Factor used to track if history should be reallocated for Ambient Occlusion
+
         public bool sceneLightingWasDisabledForCamera = false;
 
         // XR multipass and instanced views are supported (see XRSystem)
@@ -858,6 +860,28 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             m_HistoryRTSystem.AllocBuffer(id, (rts, i) => allocator(camera.name, i, rts), bufferCount);
             return m_HistoryRTSystem.GetFrameRT(id, 0);
+        }
+
+        public void AllocateAmbientOcclusionHistoryBuffer(float scaleFactor)
+        {
+            if (scaleFactor != m_AmbientOcclusionResolutionScale)
+            {
+                ReleaseHistoryFrameRT((int)HDCameraFrameHistoryType.AmbientOcclusion);
+
+                RTHandleSystem.RTHandle Allocator(string id, int frameIndex, RTHandleSystem rtHandleSystem)
+                {
+                    return rtHandleSystem.Alloc(Vector2.one * scaleFactor, TextureXR.slices, filterMode: FilterMode.Point, colorFormat: GraphicsFormat.R32_UInt, dimension: TextureXR.dimension, useDynamicScale: true, enableRandomWrite: true, name: string.Format("AO Packed history_{0}", frameIndex));
+                }
+
+                AllocHistoryFrameRT((int)HDCameraFrameHistoryType.AmbientOcclusion, Allocator, 2);
+
+                m_AmbientOcclusionResolutionScale = scaleFactor;
+            }
+        }
+
+        public void ReleaseHistoryFrameRT(int id)
+        {
+            m_HistoryRTSystem.ReleaseBuffer(id);
         }
 
         void ReleaseHistoryBuffer()
