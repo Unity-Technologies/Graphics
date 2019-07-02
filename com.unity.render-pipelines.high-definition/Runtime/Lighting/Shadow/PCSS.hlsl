@@ -101,7 +101,7 @@ real PenumbraSize(real Reciever, real Blocker)
     return abs((Reciever - Blocker) / Blocker);
 }
 
-bool BlockerSearch(inout real averageBlockerDepth, inout real numBlockers, real lightArea, real3 coord, real2 sampleJitter, real2 sampleBias, ShadowContext shadowContext, float slice, uint texIdx, uint sampIdx, int sampleCount)
+bool BlockerSearch(inout real averageBlockerDepth, inout real numBlockers, real lightArea, real3 coord, real2 sampleJitter, ShadowContext shadowContext, float slice, uint texIdx, uint sampIdx, int sampleCount)
 {
     real blockerSum = 0.0;
 
@@ -117,7 +117,7 @@ bool BlockerSearch(inout real averageBlockerDepth, inout real numBlockers, real 
 
         real shadowMapDepth = SampleShadow_T2DA(shadowContext, texIdx, sampIdx, coord.xy + offset, slice).x;
 
-        if (COMPARE_DEVICE_DEPTH_CLOSER(shadowMapDepth, coord.z + dot(sampleBias, offset)))
+        if (COMPARE_DEVICE_DEPTH_CLOSER(shadowMapDepth, coord.z))
         {
             blockerSum  += shadowMapDepth;
             numBlockers += 1.0;
@@ -128,7 +128,7 @@ bool BlockerSearch(inout real averageBlockerDepth, inout real numBlockers, real 
     return numBlockers >= 1;
 }
 
-bool BlockerSearch(inout real averageBlockerDepth, inout real numBlockers, real lightArea, real3 coord, float slice, real2 sampleJitter, real2 sampleBias, Texture2DArray shadowMap, SamplerState PointSampler, int sampleCount)
+bool BlockerSearch(inout real averageBlockerDepth, inout real numBlockers, real lightArea, real3 coord, float slice, real2 sampleJitter, Texture2DArray shadowMap, SamplerState PointSampler, int sampleCount)
 {
     real blockerSum = 0.0;
     real sampleCountInverse = rcp((real)sampleCount);
@@ -143,7 +143,7 @@ bool BlockerSearch(inout real averageBlockerDepth, inout real numBlockers, real 
 
         real shadowMapDepth = SAMPLE_TEXTURE2D_ARRAY_LOD(shadowMap, PointSampler, coord.xy + offset, slice, 0.0).x;
 
-        if (COMPARE_DEVICE_DEPTH_CLOSER(shadowMapDepth, coord.z + dot(sampleBias, offset)))
+        if (COMPARE_DEVICE_DEPTH_CLOSER(shadowMapDepth, coord.z))
         {
             blockerSum  += shadowMapDepth;
             numBlockers += 1.0;
@@ -154,7 +154,7 @@ bool BlockerSearch(inout real averageBlockerDepth, inout real numBlockers, real 
     return numBlockers >= 1;
 }
 
-real PCSS(real3 coord, real filterRadius, real4 scaleOffset, float slice, real2 sampleBias, real2 sampleJitter, ShadowContext shadowContext, uint texIdx, uint sampIdx, int sampleCount)
+real PCSS(real3 coord, real filterRadius, real4 scaleOffset, float slice, real2 sampleJitter, ShadowContext shadowContext, uint texIdx, uint sampIdx, int sampleCount)
 {
     real UMin = scaleOffset.z;
     real UMax = scaleOffset.z + scaleOffset.x;
@@ -182,13 +182,13 @@ real PCSS(real3 coord, real filterRadius, real4 scaleOffset, float slice, real2 
         if (U <= UMin || U >= UMax || V <= VMin || V >= VMax)
             sum += SampleCompShadow_T2DA(shadowContext, texIdx, sampIdx, real3(coord.xy, coord.z), slice).r;
         else
-            sum += SampleCompShadow_T2DA(shadowContext, texIdx, sampIdx, real3(U, V, coord.z + dot(sampleBias, offset)), slice).r;
+            sum += SampleCompShadow_T2DA(shadowContext, texIdx, sampIdx, real3(U, V, coord.z), slice).r;
     }
 
     return sum / sampleCount;
 }
 
-real PCSS(real3 coord, real filterRadius, real4 scaleOffset, float slice, real2 sampleBias, real2 sampleJitter, Texture2DArray shadowMap, SamplerComparisonState compSampler, int sampleCount)
+real PCSS(real3 coord, real filterRadius, real4 scaleOffset, float slice, real2 sampleJitter, Texture2DArray shadowMap, SamplerComparisonState compSampler, int sampleCount)
 {
     real UMin = scaleOffset.z;
     real UMax = scaleOffset.z + scaleOffset.x;
@@ -216,7 +216,7 @@ real PCSS(real3 coord, real filterRadius, real4 scaleOffset, float slice, real2 
         if (U <= UMin || U >= UMax || V <= VMin || V >= VMax)
             sum += SAMPLE_TEXTURE2D_ARRAY_SHADOW(shadowMap, compSampler, real3(coord.xy, coord.z), slice).r;
         else
-            sum += SAMPLE_TEXTURE2D_ARRAY_SHADOW(shadowMap, compSampler, real3(U, V, coord.z + dot(sampleBias, offset)), slice).r;
+            sum += SAMPLE_TEXTURE2D_ARRAY_SHADOW(shadowMap, compSampler, real3(U, V, coord.z), slice).r;
     }
 
     return sum / sampleCount;

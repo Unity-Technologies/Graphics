@@ -98,7 +98,7 @@ real PenumbraSize(real Reciever, real Blocker)
     return abs((Reciever - Blocker) / Blocker);
 }
 
-bool BlockerSearch(inout real averageBlockerDepth, inout real numBlockers, real lightArea, real3 coord, real2 sampleJitter, real2 sampleBias, Texture2D shadowMap, SamplerState pointSampler, int sampleCount)
+bool BlockerSearch(inout real averageBlockerDepth, inout real numBlockers, real lightArea, real3 coord, real2 sampleJitter, Texture2D shadowMap, SamplerState pointSampler, int sampleCount)
 {
     real blockerSum = 0.0;
     real sampleCountInverse = rcp((real)sampleCount);
@@ -113,7 +113,7 @@ bool BlockerSearch(inout real averageBlockerDepth, inout real numBlockers, real 
 
         real shadowMapDepth = SAMPLE_TEXTURE2D_LOD(shadowMap, pointSampler, coord.xy + offset, 0.0).x;
 
-        if (COMPARE_DEVICE_DEPTH_CLOSER(shadowMapDepth, coord.z + dot(sampleBias, offset)))
+        if (COMPARE_DEVICE_DEPTH_CLOSER(shadowMapDepth, coord.z))
         {
             blockerSum  += shadowMapDepth;
             numBlockers += 1.0;
@@ -124,7 +124,7 @@ bool BlockerSearch(inout real averageBlockerDepth, inout real numBlockers, real 
     return numBlockers >= 1;
 }
 
-real PCSS(real3 coord, real filterRadius, real2 scale, real2 offset, real2 sampleBias, real2 sampleJitter, Texture2D shadowMap, SamplerComparisonState compSampler, int sampleCount)
+real PCSS(real3 coord, real filterRadius, real2 scale, real2 offset, real2 sampleJitter, Texture2D shadowMap, SamplerComparisonState compSampler, int sampleCount)
 {
     real UMin = offset.x;
     real UMax = offset.x + scale.x;
@@ -154,7 +154,7 @@ real PCSS(real3 coord, real filterRadius, real2 scale, real2 offset, real2 sampl
         if (U <= UMin || U >= UMax || V <= VMin || V >= VMax)
             sum += SAMPLE_TEXTURE2D_SHADOW(shadowMap, compSampler, real3(coord.xy, coord.z)).r;
         else
-            sum += SAMPLE_TEXTURE2D_SHADOW(shadowMap, compSampler, real3(U, V, coord.z + dot(sampleBias, offset))).r;
+            sum += SAMPLE_TEXTURE2D_SHADOW(shadowMap, compSampler, real3(U, V, coord.z)).r;
     }
 
     return sum / sampleCount;

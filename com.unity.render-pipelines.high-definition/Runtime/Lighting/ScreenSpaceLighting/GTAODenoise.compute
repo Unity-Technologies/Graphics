@@ -9,8 +9,6 @@
 
 
 
-RW_TEXTURE2D_X(float3, _BentNormalsTexture);
-
 TEXTURE2D_X_UINT(_AOPackedData);
 
 #ifdef SPATIAL
