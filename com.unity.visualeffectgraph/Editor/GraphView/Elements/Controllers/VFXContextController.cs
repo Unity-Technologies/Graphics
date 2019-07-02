@@ -1,7 +1,7 @@
 using UnityEditor.Experimental.GraphView;
 using UnityEngine.UIElements;
 using UnityEngine;
-using UnityEditor.Experimental.VFX;
+using UnityEditor.VFX;
 using System.Collections.Generic;
 using System.Linq;
 using System;
@@ -112,7 +112,7 @@ namespace UnityEditor.VFX.UI
             if (model is VFXSubgraphContext)
             {
                 SyncFlowAnchors();
-                model.ResyncSlots(false);
+                model.ResyncSlots(true);
             }
         }
 

@@ -9,7 +9,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
     public class AmbientOcclusionEditor : VolumeComponentEditor
     {
         SerializedDataParameter m_Intensity;
-        SerializedDataParameter m_ThicknessModifier;
+        SerializedDataParameter m_StepCount;
+        SerializedDataParameter m_Radius;
+        SerializedDataParameter m_FullResolution;
+        SerializedDataParameter m_MaximumRadiusInPixels;
         SerializedDataParameter m_DirectLightingStrength;
 
         SerializedDataParameter m_EnableRaytracing;
@@ -23,7 +26,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             var o = new PropertyFetcher<AmbientOcclusion>(serializedObject);
 
             m_Intensity = Unpack(o.Find(x => x.intensity));
-            m_ThicknessModifier = Unpack(o.Find(x => x.thicknessModifier));
+            m_StepCount = Unpack(o.Find(x => x.stepCount));
+            m_Radius = Unpack(o.Find(x => x.radius));
+            m_FullResolution = Unpack(o.Find(x => x.fullResolution));
+            m_MaximumRadiusInPixels = Unpack(o.Find(x => x.maximumRadiusInPixels));
+
             m_DirectLightingStrength = Unpack(o.Find(x => x.directLightingStrength));
 
             m_EnableRaytracing = Unpack(o.Find(x => x.enableRaytracing));
@@ -44,7 +51,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
 
             PropertyField(m_Intensity);
-            PropertyField(m_ThicknessModifier);
+            PropertyField(m_StepCount);
+            PropertyField(m_Radius);
+            PropertyField(m_MaximumRadiusInPixels);            
+            PropertyField(m_FullResolution);
+
             PropertyField(m_DirectLightingStrength);
 
 #if ENABLE_RAYTRACING

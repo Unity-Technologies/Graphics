@@ -11,7 +11,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         Forward,
         RenderSSAO,
         ResolveSSAO,
-        RenderShadows,
+        RenderShadowMaps,
         ScreenSpaceShadows,
         BuildLightList,
         BlitToFinalRT,
@@ -75,7 +75,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         TPScreenSpaceShadows,
         TPTileSettingsEnableTileAndCluster,
         TPForwardPass,
-        TPForwardTiledClusterpass,
         TPDisplayShadows,
         TPRenderDeferredLighting,
 

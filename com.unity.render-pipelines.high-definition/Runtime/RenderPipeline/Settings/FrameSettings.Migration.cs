@@ -360,5 +360,21 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         internal static void MigrateToSpecularLighting(ref FrameSettings cameraFrameSettings)
             => cameraFrameSettings.SetEnabled(FrameSettingsField.SpecularLighting, true);
+
+        internal static void MigrateToPostProcess(ref FrameSettings cameraFrameSettings)
+        {
+            cameraFrameSettings.SetEnabled(FrameSettingsField.StopNaN, true);
+            cameraFrameSettings.SetEnabled(FrameSettingsField.DepthOfField, true);
+            cameraFrameSettings.SetEnabled(FrameSettingsField.MotionBlur, true);
+            cameraFrameSettings.SetEnabled(FrameSettingsField.PaniniProjection, true);
+            cameraFrameSettings.SetEnabled(FrameSettingsField.Bloom, true);
+            cameraFrameSettings.SetEnabled(FrameSettingsField.LensDistortion, true);
+            cameraFrameSettings.SetEnabled(FrameSettingsField.ChromaticAberration, true);
+            cameraFrameSettings.SetEnabled(FrameSettingsField.Vignette, true);
+            cameraFrameSettings.SetEnabled(FrameSettingsField.ColorGrading, true);
+            cameraFrameSettings.SetEnabled(FrameSettingsField.FilmGrain, true);
+            cameraFrameSettings.SetEnabled(FrameSettingsField.Dithering, true);
+            cameraFrameSettings.SetEnabled(FrameSettingsField.Antialiasing, true);
+        }
     }
 }

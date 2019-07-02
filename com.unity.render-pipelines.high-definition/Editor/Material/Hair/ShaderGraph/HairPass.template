@@ -29,15 +29,14 @@ Pass
 
     #pragma multi_compile _ LOD_FADE_CROSSFADE
 
+    #pragma shader_feature_local _ _BLENDMODE_ALPHA _BLENDMODE_ADD _BLENDMODE_PRE_MULTIPLY
+    #pragma shader_feature_local _DOUBLESIDED_ON
+    #pragma shader_feature _SURFACE_TYPE_TRANSPARENT
+
     //-------------------------------------------------------------------------------------
     // Variant Definitions (active field translations to HDRP defines)
     //-------------------------------------------------------------------------------------
     $Material.KajiyaKay:                #define _MATERIAL_FEATURE_HAIR_KAJIYA_KAY 1
-    $SurfaceType.Transparent:           #define _SURFACE_TYPE_TRANSPARENT 1
-    $BlendMode.Alpha:                   #define _BLENDMODE_ALPHA 1
-    $BlendMode.Add:                     #define _BLENDMODE_ADD 1
-    $BlendMode.Premultiply:             #define _BLENDMODE_PRE_MULTIPLY 1
-    $BlendMode.PreserveSpecular:        #define _BLENDMODE_PRESERVE_SPECULAR_LIGHTING 1
     $AlphaFog:                          #define _ENABLE_FOG_ON_TRANSPARENT 1
     $Occlusion:                         #define _OCCLUSION 1
     $SpecularOcclusionFromAO:           #define _SPECULAR_OCCLUSION_FROM_AO 1
@@ -46,10 +45,10 @@ Pass
     $Specular.AA:                       #define _ENABLE_GEOMETRIC_SPECULAR_AA 1
     $DisableDecals:                     #define _DISABLE_DECALS 1
     $DisableSSR:                        #define _DISABLE_SSR 1
-    $DoubleSided:                       #define _DOUBLESIDED_ON 1
     $TransparentWritesMotionVec:        #define _WRITE_TRANSPARENT_MOTION_VECTOR 1
     $DepthOffset:                       #define _DEPTHOFFSET_ON 1
     $UseLightFacingNormal:              #define _USE_LIGHT_FACING_NORMAL 1
+    $BlendMode.PreserveSpecular:        #define _BLENDMODE_PRESERVE_SPECULAR_LIGHTING 1
 
     //-------------------------------------------------------------------------------------
     // End Variant Definitions
@@ -89,6 +88,11 @@ Pass
     $VaryingsMeshToPS.cullFace:             #define VARYINGS_NEED_CULLFACE
     $features.modifyMesh:                   #define HAVE_MESH_MODIFICATION
 
+// We need isFontFace when using double sided
+#if defined(_DOUBLESIDED_ON) && !defined(VARYINGS_NEED_CULLFACE)
+    #define VARYINGS_NEED_CULLFACE
+#endif
+
     //-------------------------------------------------------------------------------------
     // End Defines
     //-------------------------------------------------------------------------------------
@@ -107,9 +111,7 @@ Pass
 
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoopDef.hlsl"
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Hair/Hair.hlsl"
-    #define MATERIAL_INCLUDE_TRANSMISSION // temp hack
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoop.hlsl"
-    #undef  MATERIAL_INCLUDE_TRANSMISSION // temp hack
 #else
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Hair/Hair.hlsl"
 #endif
@@ -197,9 +199,11 @@ $include("SharedCode.template.hlsl")
         surfaceData.materialFeatures |= MATERIALFEATUREFLAGS_HAIR_KAJIYA_KAY;
 #endif
 
-        float3 doubleSidedConstants = float3(1.0, 1.0, 1.0);
-        $DoubleSided.Flip:   doubleSidedConstants = float3(-1.0, -1.0, -1.0);
-        $DoubleSided.Mirror: doubleSidedConstants = float3( 1.0,  1.0, -1.0);
+#ifdef _DOUBLESIDED_ON
+    float3 doubleSidedConstants = _DoubleSidedConstants.xyz;
+#else
+    float3 doubleSidedConstants = float3(1.0, 1.0, 1.0);
+#endif
 
         // For a typical Unity quad, you have tangent vectors pointing to the right (X axis),
         // and bitangent vectors pointing up (Y axis).
@@ -208,13 +212,13 @@ $include("SharedCode.template.hlsl")
         // Therefore, DefaultHairStrandTangent = -MeshCardBitangent.
         // Both the SurfaceData and the BSDFData store the hair tangent
         // (which represents the hair strand direction, root to tip).
-        surfaceData.hairStrandDirectionWS = -fragInputs.worldToTangent[1].xyz;
+        surfaceData.hairStrandDirectionWS = -fragInputs.tangentToWorld[1].xyz;
         // The hair strand direction texture contains tangent-space vectors.
         // We use the same convention for the texture, which means that
         // to get the default behavior (DefaultHairStrandTangent = -MeshCardBitangent),
         // the artist has to paint (0, -1, 0).
         // TODO: pending artist feedback...
-        $HairStrandDirection: surfaceData.hairStrandDirectionWS = TransformTangentToWorld(surfaceDescription.HairStrandDirection, fragInputs.worldToTangent);
+        $HairStrandDirection: surfaceData.hairStrandDirectionWS = TransformTangentToWorld(surfaceDescription.HairStrandDirection, fragInputs.tangentToWorld);
         // The original Kajiya-Kay BRDF model expects an orthonormal TN frame.
         // Since we use the tangent shift hack (http://web.engr.oregonstate.edu/~mjb/cs519/Projects/Papers/HairRendering.pdf),
         // we may as well not bother to orthonormalize anymore.
@@ -235,7 +239,7 @@ $include("SharedCode.template.hlsl")
         // We reflect this normal for transmitted GI.
         // For the highlight shift hack (along the tangent), we use the user-provided normal.
 
-        surfaceData.geomNormalWS = fragInputs.worldToTangent[2];
+        surfaceData.geomNormalWS = fragInputs.tangentToWorld[2];
 
         // tangent-space normal
         float3 normalTS = float3(0.0f, 0.0f, 1.0f);
@@ -279,7 +283,7 @@ $include("SharedCode.template.hlsl")
 #endif
 
 #ifdef _ENABLE_GEOMETRIC_SPECULAR_AA
-        surfaceData.perceptualSmoothness = GeometricNormalFiltering(surfaceData.perceptualSmoothness, fragInputs.worldToTangent[2], surfaceDescription.SpecularAAScreenSpaceVariance, surfaceDescription.SpecularAAThreshold);
+        surfaceData.perceptualSmoothness = GeometricNormalFiltering(surfaceData.perceptualSmoothness, fragInputs.tangentToWorld[2], surfaceDescription.SpecularAAScreenSpaceVariance, surfaceDescription.SpecularAAThreshold);
 #endif
 
 #ifdef DEBUG_DISPLAY
@@ -290,7 +294,7 @@ $include("SharedCode.template.hlsl")
 
         // We need to call ApplyDebugToSurfaceData after filling the surfarcedata and before filling builtinData
         // as it can modify attribute use for static lighting
-        ApplyDebugToSurfaceData(fragInputs.worldToTangent, surfaceData);
+        ApplyDebugToSurfaceData(fragInputs.tangentToWorld, surfaceData);
 #endif
     }
 
@@ -301,9 +305,11 @@ $include("SharedCode.template.hlsl")
         LODDitheringTransition(fadeMaskSeed, unity_LODFade.x);
 #endif
 
-        float3 doubleSidedConstants = float3(1.0, 1.0, 1.0);
-        $DoubleSided.Flip:   doubleSidedConstants = float3(-1.0, -1.0, -1.0);
-        $DoubleSided.Mirror: doubleSidedConstants = float3( 1.0,  1.0, -1.0);
+#ifdef _DOUBLESIDED_ON
+    float3 doubleSidedConstants = _DoubleSidedConstants.xyz;
+#else
+    float3 doubleSidedConstants = float3(1.0, 1.0, 1.0);
+#endif
 
         ApplyDoubleSidedFlipOrMirror(fragInputs, doubleSidedConstants);
 
@@ -324,7 +330,7 @@ $include("SharedCode.template.hlsl")
     
         // Builtin Data
         // For back lighting we use the oposite vertex normal 
-        InitBuiltinData(posInput, surfaceDescription.Alpha, bentNormalWS, -fragInputs.worldToTangent[2], fragInputs.texCoord1, fragInputs.texCoord2, builtinData);
+        InitBuiltinData(posInput, surfaceDescription.Alpha, bentNormalWS, -fragInputs.tangentToWorld[2], fragInputs.texCoord1, fragInputs.texCoord2, builtinData);
 
         // override sampleBakedGI:
         $LightingGI: builtinData.bakeDiffuseLighting = surfaceDescription.BakedGI;

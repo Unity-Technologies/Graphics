@@ -117,6 +117,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public Shader gradientSkyPS;
             [Reload("Runtime/Sky/AmbientProbeConvolution.compute")]
             public ComputeShader ambientProbeConvolutionCS;
+            [Reload("Runtime/Sky/PhysicallyBasedSky/OpticalDepthPrecomputation.compute")]
+            public ComputeShader opticalDepthPrecomputationCS;
+            [Reload("Runtime/Sky/PhysicallyBasedSky/GroundIrradiancePrecomputation.compute")]
+            public ComputeShader groundIrradiancePrecomputationCS;
+            [Reload("Runtime/Sky/PhysicallyBasedSky/InScatteredRadiancePrecomputation.compute")]
+            public ComputeShader inScatteredRadiancePrecomputationCS;
+            [Reload("Runtime/Sky/PhysicallyBasedSky/PhysicallyBasedSky.shader")]
+            public Shader        physicallyBasedSkyPS;
 
             // Material
             [Reload("Runtime/Material/PreIntegratedFGD/PreIntegratedFGD_GGXDisneyDiffuse.shader")]
@@ -137,6 +145,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public Shader blitCubeTextureFacePS;
             [Reload("Runtime/Material/LTCAreaLight/FilterAreaLightCookies.shader")]
             public Shader filterAreaLightCookiesPS;
+            [Reload("Runtime/Core/CoreResources/ClearUIntTextureArray.compute")]
+            public ComputeShader clearUIntTextureCS;
 
             // Shadow            
             [Reload("Runtime/Lighting/Shadow/ShadowClear.shader")]
@@ -153,16 +163,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public Shader decalNormalBufferPS;
 
             // Ambient occlusion
-            [Reload("Runtime/Lighting/ScreenSpaceLighting/AmbientOcclusionDownsample1.compute")]
-            public ComputeShader aoDownsample1CS;
-            [Reload("Runtime/Lighting/ScreenSpaceLighting/AmbientOcclusionDownsample2.compute")]
-            public ComputeShader aoDownsample2CS;
-            [Reload("Runtime/Lighting/ScreenSpaceLighting/AmbientOcclusionRender.compute")]
-            public ComputeShader aoRenderCS;
-            [Reload("Runtime/Lighting/ScreenSpaceLighting/AmbientOcclusionUpsample.compute")]
-            public ComputeShader aoUpsampleCS;
-            [Reload("Runtime/RenderPipeline/RenderPass/MSAA/AmbientOcclusionResolve.shader")]
-            public Shader aoResolvePS;
+            [Reload("Runtime/Lighting/ScreenSpaceLighting/GTAO.compute")]
+            public ComputeShader GTAOCS;
+            [Reload("Runtime/Lighting/ScreenSpaceLighting/GTAODenoise.compute")]
+            public ComputeShader GTAODenoiseCS;
+            [Reload("Runtime/Lighting/ScreenSpaceLighting/GTAOUpsample.compute")]
+            public ComputeShader GTAOUpsampleCS;
 
             // MSAA Shaders
             [Reload("Runtime/RenderPipeline/RenderPass/MSAA/DepthValues.shader")]
@@ -248,15 +254,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         [Serializable, ReloadGroup]
         public sealed class MaterialResources
         {
-            // Defaults
-            [Reload("Runtime/RenderPipelineResources/Material/DefaultHDMaterial.mat")]
-            public Material defaultDiffuseMat;
-            [Reload("Runtime/RenderPipelineResources/Material/DefaultHDMirrorMaterial.mat")]
-            public Material defaultMirrorMat;
-            [Reload("Runtime/RenderPipelineResources/Material/DefaultHDDecalMaterial.mat")]
-            public Material defaultDecalMat;
-            [Reload("Runtime/RenderPipelineResources/Material/DefaultHDTerrainMaterial.mat")]
-            public Material defaultTerrainMat;
         }
 
         [Serializable, ReloadGroup]

@@ -3,7 +3,7 @@ using System;
 using UnityEngine;
 using UnityEngine.Playables;
 using UnityEngine.Timeline;
-using UnityEngine.Experimental.VFX;
+using UnityEngine.VFX;
 
 public class VisualEffectActivationMixerBehaviour : PlayableBehaviour
 {

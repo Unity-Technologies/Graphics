@@ -37,7 +37,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             // Compute buffer storing the resulting SH from diffuse convolution. L2 SH => 9 float per component.
             m_AmbientProbeResult = new ComputeBuffer(27, 4);
-            var hdrp = GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset;
+            var hdrp = HDRenderPipeline.defaultAsset;
             m_ComputeAmbientProbeCS = hdrp.renderPipelineResources.shaders.ambientProbeConvolutionCS;
             m_ComputeAmbientProbeKernel = m_ComputeAmbientProbeCS.FindKernel("AmbientProbeConvolution");
 

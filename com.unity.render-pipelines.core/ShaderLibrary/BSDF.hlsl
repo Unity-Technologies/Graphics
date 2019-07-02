@@ -6,6 +6,20 @@
 // Version without divide by PI are use for image based lighting where often the PI cancel during importance sampling
 
 //-----------------------------------------------------------------------------
+// Help for BSDF evaluation
+//-----------------------------------------------------------------------------
+
+// Cosine-weighted BSDF (a BSDF taking the projected solid angle into account).
+// If some of the values are monochromatic, the compiler will optimize accordingly.
+struct CBSDF
+{
+    float3 diffR; // Diffuse  reflection   (T -> MS -> T, same sides)
+    float3 specR; // Specular reflection   (R, RR, TRT, etc)
+    float3 diffT; // Diffuse  transmission (rough T or TT, opposite sides)
+    float3 specT; // Specular transmission (T, TT, TRRT, etc)
+};
+
+//-----------------------------------------------------------------------------
 // Fresnel term
 //-----------------------------------------------------------------------------
 
@@ -372,7 +386,7 @@ real Lambert()
 real DisneyDiffuseNoPI(real NdotV, real NdotL, real LdotV, real perceptualRoughness)
 {
     // (2 * LdotH * LdotH) = 1 + LdotV
-    // real fd90 = 0.5 + 2 * LdotH * LdotH * perceptualRoughness;
+    // real fd90 = 0.5 + (2 * LdotH * LdotH) * perceptualRoughness;
     real fd90 = 0.5 + (perceptualRoughness + perceptualRoughness * LdotV);
     // Two schlick fresnel term
     real lightScatter = F_Schlick(1.0, fd90, NdotL);
@@ -450,17 +464,23 @@ real3 EvalIridescence(real eta_1, real cosTheta1, real iridescenceThickness, rea
     // Force eta_2 -> eta_1 when Dinc -> 0.0
     // real eta_2 = lerp(eta_1, eta_2, smoothstep(0.0, 0.03, Dinc));
     // Evaluate the cosTheta on the base layer (Snell law)
-    real sinTheta2 = Sq(eta_1 / eta_2) * (1.0 - Sq(cosTheta1));
+    real sinTheta2Sq = Sq(eta_1 / eta_2) * (1.0 - Sq(cosTheta1));
 
-    // Handle TIR
-    if (sinTheta2 > 1.0)
+    // Handle TIR:
+    // (Also note that with just testing sinTheta2Sq > 1.0, (1.0 - sinTheta2Sq) can be negative, as emitted instructions
+    // can eg be a mad giving a small negative for (1.0 - sinTheta2Sq), while sinTheta2Sq still testing equal to 1.0), so we actually
+    // test the operand [cosTheta2Sq := (1.0 - sinTheta2Sq)] < 0 directly:)
+    real cosTheta2Sq = (1.0 - sinTheta2Sq);
+    // Or use this "artistic hack" to get more continuity even though wrong (no TIR, continue the effect by mirroring it):
+    //   if( cosTheta2Sq < 0.0 ) => { sinTheta2Sq = 2 - sinTheta2Sq; => so cosTheta2Sq = sinTheta2Sq - 1 }
+    // ie don't test and simply do
+    //   real cosTheta2Sq = abs(1.0 - sinTheta2Sq);
+    if (cosTheta2Sq < 0.0)
         I = real3(1.0, 1.0, 1.0);
     else
     {
-        //Or use this "artistic hack" to get more continuity even though wrong (test with dual normal maps to understand the difference)
-        //if( sinTheta2 > 1.0 ) { sinTheta2 = 2 - sinTheta2; }
 
-        real cosTheta2 = sqrt(1.0 - sinTheta2);
+        real cosTheta2 = sqrt(cosTheta2Sq);
 
         // First interface
         real R0 = IorToFresnel0(eta_2, eta_1);
@@ -580,4 +600,31 @@ real G_CookTorrance(real NdotH, real NdotV, real NdotL, real HdotV)
     return min(1.0, 2.0 * NdotH * min(NdotV, NdotL) / HdotV);
 }
 
+//-----------------------------------------------------------------------------
+// Hair
+//-----------------------------------------------------------------------------
+
+//http://web.engr.oregonstate.edu/~mjb/cs519/Projects/Papers/HairRendering.pdf
+real3 ShiftTangent(real3 T, real3 N, real shift)
+{
+    return normalize(T + N * shift);
+}
+
+// Note: this is Blinn-Phong, the original paper uses Phong.
+real3 D_KajiyaKay(real3 T, real3 H, real specularExponent)
+{
+    real TdotH = dot(T, H);
+    real sinTHSq = saturate(1.0 - TdotH * TdotH);
+
+    real dirAttn = saturate(TdotH + 1.0); // Evgenii: this seems like a hack? Do we really need this?
+
+                                           // Note: Kajiya-Kay is not energy conserving.
+                                           // We attempt at least some energy conservation by approximately normalizing Blinn-Phong NDF.
+                                           // We use the formulation with the NdotL.
+                                           // See http://www.thetenthplanet.de/archives/255.
+    real n = specularExponent;
+    real norm = (n + 2) * rcp(2 * PI);
+
+    return dirAttn * norm * PositivePow(sinTHSq, 0.5 * n);
+}
 #endif // UNITY_BSDF_INCLUDED

@@ -142,7 +142,13 @@ MonoBehaviour:
     m_serializedType:
       m_SerializableType: System.UInt32, mscorlib, Version=4.0.0.0, Culture=neutral,
         PublicKeyToken=b77a5c561934e089
-    attributes: []
+    attributes:
+    - m_Type: 8
+      m_Min: -Infinity
+      m_Max: Infinity
+      m_Tooltip: 
+      m_Regex: 
+      m_RegexMaxLength: 0
   m_Direction: 0
   m_LinkedSlots: []
 --- !u!114 &114666935310072058
@@ -260,6 +266,7 @@ VisualEffectResource:
     m_UpdateMode: 0
     m_PreWarmDeltaTime: 0.05
     m_PreWarmStepCount: 0
+    m_InitialEventName: OnPlay
   m_Systems: []
 --- !u!114 &8926484042661614528
 MonoBehaviour:

@@ -215,6 +215,22 @@ void GetAmbientOcclusionFactor(float3 indirectAmbientOcclusion, float3 indirectS
 //-----------------------------------------------------------------------------
 // Helper functions/variable specific to this material
 //-----------------------------------------------------------------------------
+
+float3 GetNormalForShadowBias(BSDFData bsdfData)
+{
+    return bsdfData.geomNormalWS;
+}
+
+void ClampRoughness(inout BSDFData bsdfData, float minRoughness)
+{
+    // TODO
+}
+
+float GetAmbientOcclusionForMicroShadowing(BSDFData bsdfData)
+{
+    return bsdfData.ambientOcclusion;
+}
+
 // SSReflection
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightDefinition.cs.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/Reflection/VolumeProjection.hlsl"
@@ -299,6 +315,85 @@ int ComputeAdding_GetDualNormalsTopHandlingMethod()
     return method;
 }
 
+// Handling of ShaderGraph configured specular occlusion options:
+//
+// _SCREENSPACE_SPECULAROCCLUSION_METHOD, _SCREENSPACE_SPECULAROCCLUSION_VISIBILITY_FROM_AO_WEIGHT, _SCREENSPACE_SPECULAROCCLUSION_VISIBILITY_DIR
+// _DATABASED_SPECULAROCCLUSION_METHOD, _DATABASED_SPECULAROCCLUSION_VISIBILITY_FROM_AO_WEIGHT
+
+int GetScreenSpaceSpecularOcclusionMethod()
+{
+    int method = SPECULAR_OCCLUSION_DISABLED;
+#ifdef _SCREENSPACE_SPECULAROCCLUSION_METHOD
+    method = _SCREENSPACE_SPECULAROCCLUSION_METHOD;
+#endif
+    return method;
+}
+
+int GetScreenSpaceSpecularOcclusionVisibilityFromAoWeight()
+{
+    int method = BENT_VISIBILITY_FROM_AO_COS;
+#ifdef _SCREENSPACE_SPECULAROCCLUSION_VISIBILITY_FROM_AO_WEIGHT
+    method = _SCREENSPACE_SPECULAROCCLUSION_VISIBILITY_FROM_AO_WEIGHT;
+#endif
+    return method;
+}
+
+// For screenspace SO, if a bent algorithm is used, the SS algorithm should also give the direction.
+// It is not the case now, so we have an option to use either the more neutral geometric normal vs
+// the baked bent normal (which is more appropriate for the data-based SO).
+float3 GetScreenSpaceSpecularOcclusionVisibilityDir(BSDFData bsdfData, float3 interfaceShadingNormal)
+{
+    int source = BENT_VISIBILITY_DIR_BENT_NORMAL;
+    float3 dir = bsdfData.bentNormalWS;
+
+#ifdef _SCREENSPACE_SPECULAROCCLUSION_VISIBILITY_DIR
+    source = _SCREENSPACE_SPECULAROCCLUSION_VISIBILITY_DIR;
+#endif
+
+    switch (source)
+    {
+        case BENT_VISIBILITY_DIR_GEOM_NORMAL:
+            dir = bsdfData.geomNormalWS;
+            break;
+        case BENT_VISIBILITY_DIR_BENT_NORMAL:
+            dir = bsdfData.bentNormalWS;
+            break;
+        case BENT_VISIBILITY_DIR_SHADING_NORMAL:
+            dir = interfaceShadingNormal;
+            break;
+    }
+
+    return dir;
+}
+
+int GetDataBasedSpecularOcclusionMethod()
+{
+    int method = SPECULAR_OCCLUSION_DISABLED;
+    //int method = SPECULAR_OCCLUSION_SPTD;
+#ifdef _DATABASED_SPECULAROCCLUSION_METHOD
+    method = _DATABASED_SPECULAROCCLUSION_METHOD;
+#endif
+    return method;
+}
+
+int GetDataBasedSpecularOcclusionVisibilityFromAoWeight()
+{
+    int method = BENT_VISIBILITY_FROM_AO_COS_BENT_CORRECTION;
+#ifdef _DATABASED_SPECULAROCCLUSION_VISIBILITY_FROM_AO_WEIGHT
+    method = _DATABASED_SPECULAROCCLUSION_VISIBILITY_FROM_AO_WEIGHT;
+#endif
+    return method;
+}
+
+uint GetSpecularOcclusionBentVisibilityFixupFlags()
+{
+    uint method = BENT_VISIBILITY_FIXUP_FLAGS_NONE;
+#ifdef _BENT_VISIBILITY_FIXUP_FLAGS
+    method = _BENT_VISIBILITY_FIXUP_FLAGS;
+#endif
+    return method;
+}
+
 
 // Assume bsdfData.normalWS is init
 void FillMaterialAnisotropy(float anisotropyA, float anisotropyB, float3 tangentWS, float3 bitangentWS, inout BSDFData bsdfData)
@@ -309,18 +404,25 @@ void FillMaterialAnisotropy(float anisotropyA, float anisotropyB, float3 tangent
     bsdfData.bitangentWS = bitangentWS;
 }
 
-void FillMaterialIridescence(float mask, float thickness, float ior, inout BSDFData bsdfData)
+void FillMaterialIridescence(float mask, float thickness, float ior, float iridescenceCoatFixupTIR, float iridescenceCoatFixupTIRClamp, inout BSDFData bsdfData)
 {
     bsdfData.iridescenceMask = mask;
     bsdfData.iridescenceThickness = thickness;
     bsdfData.iridescenceIor = ior;
+    bsdfData.iridescenceCoatFixupTIR = iridescenceCoatFixupTIR;
+    bsdfData.iridescenceCoatFixupTIRClamp = iridescenceCoatFixupTIRClamp;
 }
 
-void FillMaterialCoatData(float coatPerceptualRoughness, float coatIor, float coatThickness, float3 coatExtinction, inout BSDFData bsdfData)
+void FillMaterialCoatData(float coatPerceptualRoughness, float coatMask, float coatIor, float coatThickness, float3 coatExtinction, inout BSDFData bsdfData)
 {
     bsdfData.coatPerceptualRoughness = coatPerceptualRoughness;
-    bsdfData.coatIor        = coatIor;
-    bsdfData.coatThickness  = coatThickness;
+    // Hack: A true coatMask would lead to complications like additionnal base lobes unmodified by the coat,
+    // in proportion to 1-coatMask. We lerp the ior with 1 here along with thickness to 0 so that Beer-Lambert attenuation
+    // is removed as coatMask -> 0. Some series term in ComputeStatistics are also lerped with their proper neutral values, along
+    // with pre-integrated FGD terms (to lerp them to 0).
+    bsdfData.coatMask       = coatMask;
+    bsdfData.coatIor        = lerp(1.0, coatIor, bsdfData.coatMask);
+    bsdfData.coatThickness  = coatThickness * bsdfData.coatMask;
     bsdfData.coatExtinction = coatExtinction;
 }
 
@@ -329,21 +431,6 @@ float GetCoatEta(in BSDFData bsdfData)
     float eta = bsdfData.coatIor / 1.0;
     //ieta = 1.0 / eta;
     return eta;
-}
-
-float3 GetNormalForShadowBias(BSDFData bsdfData)
-{
-    return bsdfData.geomNormalWS;
-}
-
-void ClampRoughness(inout BSDFData bsdfData, float minRoughness)
-{
-    // TODO
-}
-
-float ComputeMicroShadowing(BSDFData bsdfData, float NdotL)
-{
-    return 1; // TODO
 }
 
 bool MaterialSupportsTransmission(BSDFData bsdfData)
@@ -394,7 +481,7 @@ float3 GetEnergyCompensationFactor(float specularReflectivity, float3 fresnel0)
 // This function is use to help with debugging and must be implemented by any lit material
 // Implementer must take into account what are the current override component and
 // adjust SurfaceData properties accordingdly
-void ApplyDebugToSurfaceData(float3x3 worldToTangent, inout SurfaceData surfaceData)
+void ApplyDebugToSurfaceData(float3x3 tangentToWorld, inout SurfaceData surfaceData)
 {
 #ifdef DEBUG_DISPLAY
     // Override value if requested by user
@@ -419,7 +506,7 @@ void ApplyDebugToSurfaceData(float3x3 worldToTangent, inout SurfaceData surfaceD
 
     if (overrideNormal)
     {
-        surfaceData.normalWS = worldToTangent[2];
+        surfaceData.normalWS = tangentToWorld[2];
     }
 
     // There is no metallic with SSS and specular color mode
@@ -692,13 +779,14 @@ BSDFData ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfaceData)
 
     if (HasFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_STACK_LIT_IRIDESCENCE))
     {
-        FillMaterialIridescence(surfaceData.iridescenceMask, surfaceData.iridescenceThickness, surfaceData.iridescenceIor, bsdfData);
+        FillMaterialIridescence(surfaceData.iridescenceMask, surfaceData.iridescenceThickness, surfaceData.iridescenceIor,
+                                surfaceData.iridescenceCoatFixupTIR, surfaceData.iridescenceCoatFixupTIRClamp, bsdfData);
     }
 
     if (HasFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_STACK_LIT_COAT))
     {
         FillMaterialCoatData(PerceptualSmoothnessToPerceptualRoughness(surfaceData.coatPerceptualSmoothness),
-                             surfaceData.coatIor, surfaceData.coatThickness, surfaceData.coatExtinction, bsdfData);
+                             surfaceData.coatMask, surfaceData.coatIor, surfaceData.coatThickness, surfaceData.coatExtinction, bsdfData);
 
         if (HasFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_STACK_LIT_COAT_NORMAL_MAP))
         {
@@ -728,6 +816,10 @@ BSDFData ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfaceData)
     }
 
     bsdfData.ambientOcclusion = surfaceData.ambientOcclusion;
+
+    bsdfData.soFixupVisibilityRatioThreshold = surfaceData.soFixupVisibilityRatioThreshold;
+    bsdfData.soFixupStrengthFactor = surfaceData.soFixupStrengthFactor;
+    bsdfData.soFixupMaxAddedRoughness = surfaceData.soFixupMaxAddedRoughness;
 
     ApplyDebugToBSDFData(bsdfData);
     return bsdfData;
@@ -983,8 +1075,10 @@ float GetModifiedAnisotropy(float anisotropy, float perceptualRoughness, float r
 #ifdef STACKLIT_DEBUG
     factor = _DebugAniso.w;
 #endif
-    float newAniso = anisotropy * (r  + (1-r) * clamp(factor*roughness*roughness,0,1));
-
+    //float newAniso = anisotropy * (r  + (1-r) * (1-newPerceptualRoughness)*(1-newPerceptualRoughness)
+    //                                          * clamp(factor*roughness*roughness,0,1));
+    //float newAniso = anisotropy * (r  + (1-r) * clamp(factor*roughness*roughness,0,1));
+    float newAniso = anisotropy * r;
     return newAniso;
 }
 
@@ -1267,6 +1361,7 @@ void ComputeStatistics(in  float  cti, in float3 V, in float3 vOrthoGeomN, in bo
             // Moreover, we don't consider offspecular effect as well as never outputting final downward lobes anyway, so we
             // never output the means but just track them as cosines of angles (cti) for energy transfer calculations
             // (should do with FGD but depends, see comments above).
+
             const float alpha = bsdfData.coatRoughness;
             const float scale = clamp((1.0-alpha)*(sqrt(1.0-alpha) + alpha), 0.0, 1.0);
             //http://www.wolframalpha.com/input/?i=f(alpha)+%3D+(1.0-alpha)*(sqrt(1.0-alpha)+%2B+alpha)+alpha+%3D+0+to+1
@@ -1282,7 +1377,11 @@ void ComputeStatistics(in  float  cti, in float3 V, in float3 vOrthoGeomN, in bo
         }
 
         // Update variance
-        s_r12 = RoughnessToLinearVariance(bsdfData.coatRoughness);
+
+        // coatMask hack: See FillMaterialCoatData.
+        // Here we just lerp linearized variance to 0 here.
+        // Note that ctt -> cti when coatMask -> 0, so s_t12 is left as is. Same for jacobian terms
+        s_r12 = RoughnessToLinearVariance(bsdfData.coatRoughness) * bsdfData.coatMask;
         s_t12 = RoughnessToLinearVariance(bsdfData.coatRoughness * 0.5 * abs((ctt*n12 - cti)/(ctt*n12)));
         j12   = (ctt/cti)*n12;
 
@@ -1297,7 +1396,11 @@ void ComputeStatistics(in  float  cti, in float3 V, in float3 vOrthoGeomN, in bo
         // TODO: if TIR is permitted by UI, do this, or early out
         //float stopFactor = float(cti > 0.0);
         //T12 = stopFactor * exp(- bsdfData.coatThickness * bsdfData.coatExtinction / cti);
-        // Update energy
+
+        // coatMask hack: See FillMaterialCoatData. We already have modified coatThickness
+        // and this will reduce Beer-Lambert attenuation here when the mask goes to 0
+
+        // Update energy:
         R12 = float3(0.0, 0.0, 0.0);
         T12 = exp(- bsdfData.coatThickness * bsdfData.coatExtinction / cti);
         R21 = R12;
@@ -1341,14 +1444,51 @@ void ComputeStatistics(in  float  cti, in float3 V, in float3 vOrthoGeomN, in bo
         {
             if (bsdfData.iridescenceMask > 0.0)
             {
-                //float topIor = bsdfData.coatIor;
-                // TODO:
-                // We will avoid using coatIor directly as with the fake refraction, it can cause TIR
+                // float topIor = bsdfData.coatIor;
+                //
+                // Hack: (see also the last parameter of EvalIridescence() that we don't set)
+                //
+                // We will avoid using coatIor directly as with the refraction, it can cause TIR
                 // which even when handled in EvalIridescence (tested), doesn't look pleasing and
                 // creates a discontinuity.
-                float scale = clamp((1.0-bsdfData.coatPerceptualRoughness), 0.0, 1.0);
-                float topIor = lerp(1.0001, bsdfData.coatIor, scale);
-                R12 = lerp(R12, EvalIridescence(topIor, ctiForFGD, bsdfData.iridescenceThickness, bsdfData.fresnel0), bsdfData.iridescenceMask);
+                //
+                // This fixup is configurable and applied via two terms:
+                //
+                // k1:
+                //
+                // First, note our average refracted lobe direction stat is modulated by the roughness:
+                // The more roughness the coat has, the less we make our average lobe direction stat be
+                // affected by refraction. Since this will make the incoming directions less compressed
+                // wrt to the normal, TIR in iridescence due to the coatIor is more likely to happen.
+                //
+                // We noted the lerpfactor curve to make the iridescence effect cover the whole 0-90 degrees
+                // angular range with 90-eps degrees just short of causing TIR vs the input coatPerceptualRoughness.
+                // We fitted this curve with a cubic polynomial.
+                // This gives us our lerpfactor to lerp down the coatIor closer to air.
+                //
+                // The first fixup is configured to keep TIR just out of the whole possible NdotV range,
+                // but this is also dependent on iridescenceThickness. The first factor works for
+                // iridescenceThickness = 1, but lowering iridescenceThickness will push the TIR border further
+                // out toward the grazing angle.
+                // A second fixup can be used to clamp the TIR border fixed by the first fixup factor,
+                // regardless of iridescenceThickness.
+                // Both are handy artistic options when wanting to animate or map (or anything else in a
+                // shadergraph) coatIor, coatPerceptualSmoothness and iridescenceThickness.
+                float k1 = 1.0;
+                float k2 = 1.0;
+                float scale = bsdfData.coatPerceptualRoughness;
+                k1 = bsdfData.iridescenceCoatFixupTIR * saturate(0.003333915 - 0.1675957*scale + 2.571426*scale*scale - 1.406338*scale*scale*scale);
+                k2 = lerp(1.0, (2.0 - bsdfData.iridescenceThickness), bsdfData.iridescenceCoatFixupTIRClamp); // See EvalIridescence in BSDF.hlsl for why "2-iridescenceThickness"
+                float topIor = k2 * lerp(bsdfData.coatIor, 1.0001, k1);
+                // Because of the coatMask, we also store independently the iridescence evaluation in preLightData for lights to be evaluated
+                // with BSDF(), as normally without coat we do not use the NdotV-based terms (see R12 F_Schlick evaluation with ctiForFGD just
+                // above) calculated in ComputeAdding for fresnel but the true LdotH. So for the coatMask hack, we need a separate iridescence
+                // fresnel (stored here), combined with an F_Schlick(bsdfData.fresnel0, LdotH) term, the later evaluated in BSDF().
+                //
+                // We also need to store the iridescent fresnel term for the split-sum lights for the coatMask = 0 endpoint, since in
+                // GetPreLightData, we assume EvalIridescence is done here (avoid double computation).
+                preLightData.fresnelIridforCalculatingFGD = EvalIridescence(topIor, ctiForFGD, bsdfData.iridescenceThickness, bsdfData.fresnel0);
+                R12 = lerp(R12, preLightData.fresnelIridforCalculatingFGD, bsdfData.iridescenceMask);
             }
         }
 
@@ -1441,7 +1581,10 @@ void ComputeAdding(float _cti, float3 V, in BSDFData bsdfData, inout PreLightDat
             // around the lines where the normal flip,
             _cti = max(abs(dot(bsdfData.coatNormalWS, V)), 0.1);
             // and try not to go beyond the geometric normal:
-            // This is important to avoid outer rim boost from that large clamp of 0.1
+            // This is important to avoid outer rim boost (on the base layer energy, and dimming for the coat,
+            // as when cti -> 0 - which we prevent - , coat reflections get more energy but there's also less
+            // transmission) from that large angular range (from the grazing limit of PI/2 up to acos(0.1))
+            // due to use of a clamp with a large value of 0.1
             _cti = min(_cti, ClampNdotV(preLightData.geomNdotV));
         }
     }
@@ -1493,10 +1636,10 @@ void ComputeAdding(float _cti, float3 V, in BSDFData bsdfData, inout PreLightDat
 
         // Evaluate the adding operator on the normalized variance
         _s_r0m = s_ti0 + j0i*(s_t0i + s_r12 + m_rr*(s_r12+s_ri0));
-        float _s_r0i = (r0i*s_r0i + m_r0i*_s_r0m) / e_r0i;
+        float _s_r0i = (r0i*s_r0i + m_r0i*_s_r0m); // e_r0i;
         float _s_t0i = j12*s_t0i + s_t12 + j12*(s_r12 + s_ri0)*m_rr;
         float _s_rim = s_t12 + j12*(s_t21 + s_ri0 + m_rr*(s_r12+s_ri0));
-        float _s_ri0 = (r21*s_r21 + m_ri0*_s_rim) / e_ri0;
+        float _s_ri0 = (r21*s_r21 + m_ri0*_s_rim); // e_ri0;
         float _s_ti0 = ji0*s_t21 + s_ti0 + ji0*(s_r12 + s_ri0)*m_rr;
         _s_r0i = (e_r0i > 0.0) ? _s_r0i/e_r0i : 0.0;
         _s_ri0 = (e_ri0 > 0.0) ? _s_ri0/e_ri0 : 0.0;
@@ -1513,7 +1656,9 @@ void ComputeAdding(float _cti, float3 V, in BSDFData bsdfData, inout PreLightDat
 
 
         // Update mean
-        cti = ctt;
+        // Avoid grazing angle black artefacts and instead of 
+        // cti = ctt;
+        cti = ClampNdotV(ctt);
 
         // We need to escape this update on the last vlayer iteration,
         // as we will use a hack to compute all needed bottom layer
@@ -1604,7 +1749,6 @@ void ComputeAdding(float _cti, float3 V, in BSDFData bsdfData, inout PreLightDat
 
     preLightData.iblAnisotropy[0] = bsdfData.anisotropyA;
     preLightData.iblAnisotropy[1] = bsdfData.anisotropyB;
-
 
     s_r12 = RoughnessToLinearVariance(PerceptualRoughnessToRoughness(bsdfData.perceptualRoughnessA));
     _s_r0m = s_ti0 + j0i*(s_t0i + s_r12 + m_rr*(s_r12+s_ri0));
@@ -1771,7 +1915,8 @@ void ComputeAdding(float _cti, float3 V, in BSDFData bsdfData, inout PreLightDat
 
 #ifdef VLAYERED_DIFFUSE_ENERGY_HACKED_TERM
     // TODO
-    preLightData.diffuseEnergy = Ti0;
+    // coatMask hack: See FillMaterialCoatData.
+    preLightData.diffuseEnergy = lerp(float3(1.0, 1.0, 1.0), Ti0, bsdfData.coatMask);
     // Not correct since these stats are still directional probably too much
     // removed, but with a non FGD term, could actually balance out (as using
     // FGD would lower this)
@@ -1920,51 +2065,108 @@ void PreLightData_SetupAreaLightsAniso(BSDFData bsdfData, float3 V, float3 N[NB_
 #endif
 } // PreLightData_SetupAreaLightsAniso
 
-
-#define SPECULAR_OCCLUSION_FROM_AO 0
-#define SPECULAR_OCCLUSION_CONECONE 1
-#define SPECULAR_OCCLUSION_SPTD 2
-
-float3 PreLightData_GetSpecularOcclusion(BSDFData bsdfData, // PreLightData preLightData,
-                                         int specularOcclusionAlgorithm,
-                                         float screenSpaceSpecularOcclusion,
-                                         float3 V, float3 normalWS, float NdotV /* clamped */,
-                                         float perceptualRoughness, float3x3 orthoBasisViewNormal,
-                                         int bentVisibilityAlgorithm, bool useHemisphereClip, float3 fresnel0)
+// See PreLightData_SetupOcclusion(): when we require something equivalent to a "diffuse color tint" but for the specular BSDF,
+// we will use this:
+float3 GetApproximatedBottomFresnel0ForTint(BSDFData bsdfData, PreLightData preLightData)
 {
-    SphereCap hemiSphere = GetSphereCap(normalWS, 0.0);
-    //test: SphereCap hemiSphere = GetSphereCap(normalWS, cos(HALF_PI*0.4));
-    float ambientOcclusionFromData = bsdfData.ambientOcclusion;
-    float roughness = PerceptualRoughnessToRoughness(perceptualRoughness);
-
-    float3 debugCoeff = float3(1.0,1.0,1.0);
-    float specularOcclusionFromData;
-    switch(specularOcclusionAlgorithm)
+    float3 bottomF0;
+    if( IsVLayeredEnabled(bsdfData) )
     {
+        bottomF0 = preLightData.vLayerEnergyCoeff[BOTTOM_VLAYER_IDX];
+    }
+    else
+    {
+        if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_STACK_LIT_IRIDESCENCE))
+        {
+            bottomF0 = preLightData.fresnelIridforCalculatingFGD;
+        }
+        else
+        {
+            bottomF0 = bsdfData.fresnel0;
+        }
+    }
+    return bottomF0;
+}
+
+// From SPTDistribution.hlsl:
+
+//#define SPECULAR_OCCLUSION_FROM_AO 0
+//#define SPECULAR_OCCLUSION_CONECONE 1
+//#define SPECULAR_OCCLUSION_SPTD 2
+
+float3 PreLightData_GetCommbinedSpecularOcclusion(float screenSpaceSpecularOcclusion, float specularOcclusionFromData, float3 fresnel0,
+                                                  /* for debug: */
+                                                  int dataBasedSpecularOcclusionAlgorithm)
+{
+    float3 debugCoeff = float3(1.0,1.0,1.0);
+    switch(dataBasedSpecularOcclusionAlgorithm)
+    {
+    case SPECULAR_OCCLUSION_DISABLED:
+        break;
     case SPECULAR_OCCLUSION_FROM_AO:
-        specularOcclusionFromData = GetSpecularOcclusionFromAmbientOcclusion(NdotV, ambientOcclusionFromData, roughness);
+        //debugCoeff = float3(1.0,0.0,0.0);
         break;
     case SPECULAR_OCCLUSION_CONECONE:
         IF_DEBUG( if (_DebugSpecularOcclusion.w == -1.0) { debugCoeff = float3(1.0,0.0,0.0); } )
-        specularOcclusionFromData = GetSpecularOcclusionFromBentAOConeCone(V, bsdfData.bentNormalWS, normalWS, ambientOcclusionFromData, roughness, bentVisibilityAlgorithm);
         break;
     case SPECULAR_OCCLUSION_SPTD:
         IF_DEBUG( if (_DebugSpecularOcclusion.w == -1.0) { debugCoeff = float3(0.0,1.0,0.0); } )
-        specularOcclusionFromData = GetSpecularOcclusionFromBentAOPivot(V, bsdfData.bentNormalWS, normalWS,
-                                                                ambientOcclusionFromData,
-                                                                perceptualRoughness,
-                                                                bentVisibilityAlgorithm,
-                                                                /* useGivenBasis */ true,
-                                                                orthoBasisViewNormal,
-                                                                useHemisphereClip,
-                                                                hemiSphere);
         break;
     }
 
     float3 specularOcclusion = debugCoeff * GTAOMultiBounce(min(specularOcclusionFromData, screenSpaceSpecularOcclusion), fresnel0);
     return specularOcclusion;
-} // PreLightData_GetSpecularOcclusion
+} // PreLightData_GetCommbinedSpecularOcclusion
 
+float PreLightData_GetSpecularOcclusion(int specularOcclusionAlgorithm,
+                                        float ambientOcclusion,
+                                        float3 V, float3 normalWS, float NdotV /* clamped */,
+                                        float perceptualRoughness,
+                                        /* For advanced algorithms: */
+                                        float3 bentNormalWS, int bentVisibilityAlgorithm,
+                                        float3x3 orthoBasisViewNormal, bool useHemisphereClip,
+                                        uint bentFixup = BENT_VISIBILITY_FIXUP_FLAGS_NONE,
+                                        BSDFData bsdfData = (BSDFData)0) /* for reading info for bent cone fixup if needed */
+{
+    SphereCap hemiSphere = GetSphereCap(normalWS, 0.0);
+    //test: SphereCap hemiSphere = GetSphereCap(normalWS, cos(HALF_PI*0.4));
+    float roughness = PerceptualRoughnessToRoughness(perceptualRoughness);
+
+    float specularOcclusion = 1.0;
+    switch(specularOcclusionAlgorithm)
+    {
+    case SPECULAR_OCCLUSION_DISABLED:
+        break;
+    case SPECULAR_OCCLUSION_FROM_AO:
+        specularOcclusion = GetSpecularOcclusionFromAmbientOcclusion(NdotV, ambientOcclusion, roughness);
+        break;
+    case SPECULAR_OCCLUSION_CONECONE:
+        specularOcclusion = GetSpecularOcclusionFromBentAOConeCone(V, bentNormalWS, normalWS, ambientOcclusion, roughness, bentVisibilityAlgorithm,
+                                                                   bentFixup,
+                                                                   bsdfData.soFixupVisibilityRatioThreshold,
+                                                                   bsdfData.soFixupStrengthFactor,
+                                                                   bsdfData.soFixupMaxAddedRoughness,
+                                                                   bsdfData.geomNormalWS);
+        break;
+    case SPECULAR_OCCLUSION_SPTD:
+        specularOcclusion = GetSpecularOcclusionFromBentAOPivot(V, bentNormalWS, normalWS,
+                                                                ambientOcclusion,
+                                                                perceptualRoughness,
+                                                                bentVisibilityAlgorithm,
+                                                                /* useGivenBasis */ true,
+                                                                orthoBasisViewNormal,
+                                                                useHemisphereClip,
+                                                                hemiSphere,
+                                                                bentFixup,
+                                                                bsdfData.soFixupVisibilityRatioThreshold,
+                                                                bsdfData.soFixupStrengthFactor,
+                                                                bsdfData.soFixupMaxAddedRoughness,
+                                                                bsdfData.geomNormalWS);
+        break;
+    }
+
+    return specularOcclusion;
+} // PreLightData_GetSpecularOcclusion
 
 // Call after LTC so orthoBasisViewNormal[] are setup along with other preLightData fields:
 //
@@ -1993,6 +2195,7 @@ void PreLightData_SetupOcclusion(PositionInputs posInput, BSDFData bsdfData, flo
                                  inout PreLightData preLightData)
 {
     float screenSpaceSpecularOcclusion[TOTAL_NB_LOBES];
+    float dataBasedSpecularOcclusion[TOTAL_NB_LOBES];
     float3 bottomF0;
 
     preLightData.screenSpaceAmbientOcclusion = GetScreenSpaceDiffuseOcclusion(posInput.positionSS);
@@ -2013,9 +2216,17 @@ void PreLightData_SetupOcclusion(PositionInputs posInput, BSDFData bsdfData, flo
     // integration with pivot-transformed spherical cap integration domain, our SPTD GGX proxy for BSDF and LTC GGX proxy
     // analytic sphere irradiance.
 
-    int specularOcclusionAlgorithm = SPECULAR_OCCLUSION_SPTD; // = 2
-    int bentVisibilityAlgorithm = BENT_VISIBILITY_FROM_AO_COS_BENT_CORRECTION; // = 2
+    // For (baked) data based specular occlusion:
+    int specularOcclusionAlgorithm = GetDataBasedSpecularOcclusionMethod();
+    int bentVisibilityAlgorithm = GetDataBasedSpecularOcclusionVisibilityFromAoWeight();
+    float3 bentVisibilityDir;
+
     bool useHemisphereClip = true;
+    uint bentFixup = GetSpecularOcclusionBentVisibilityFixupFlags();
+
+    // For SSAO based specular occlusion:
+    int screenSpaceSpecularOcclusionAlgorithm = GetScreenSpaceSpecularOcclusionMethod();
+    int screenSpaceBentVisibilityAlgorithm = GetScreenSpaceSpecularOcclusionVisibilityFromAoWeight();
 
     IF_DEBUG(specularOcclusionAlgorithm = clamp((int)(_DebugSpecularOcclusion.x), 0, SPECULAR_OCCLUSION_SPTD));
     IF_DEBUG(bentVisibilityAlgorithm = clamp((int)(_DebugSpecularOcclusion.y), 0, BENT_VISIBILITY_FROM_AO_COS_BENT_CORRECTION));
@@ -2023,74 +2234,78 @@ void PreLightData_SetupOcclusion(PositionInputs posInput, BSDFData bsdfData, flo
 
     // For fresnel0 to use with GTAOMultiBounce for the bottom interface, since it's already a hack on an empirical fit
     // (empirical fit done for diffuse), we will try to use something we already calculated and should offer a proper tint:
+    bottomF0 = GetApproximatedBottomFresnel0ForTint(bsdfData, preLightData);
+
+    // We calculate the screen space AO-derived SO and then the one based on data (baked) values.
+    // There is one such pair of SO value per lobe. Screen space values will be combined with min( , ) with data-based calculated SO.
+    // Unlike Lit, for screen space AO based SO, we offer the more advanced algorithms too.
+
+    // A caveat for SSAO-based SO methods that would use a bent visibility algorithm is that the SSAO algorithm doesn't calculate the
+    // required direction, so we offer the choice to use a non dynamically calculated one:
+    // (vertex interpolated, baked bent normal map, or shading normal)
+    bentVisibilityDir = GetScreenSpaceSpecularOcclusionVisibilityDir(bsdfData, N[BASE_NORMAL_IDX]);
+    screenSpaceSpecularOcclusion[BASE_LOBEA_IDX] = PreLightData_GetSpecularOcclusion(screenSpaceSpecularOcclusionAlgorithm,
+                                                                                     preLightData.screenSpaceAmbientOcclusion,
+                                                                                     V, N[BASE_NORMAL_IDX], NdotV[BASE_NORMAL_IDX] /* clamped */,
+                                                                                     preLightData.iblPerceptualRoughness[BASE_LOBEA_IDX],
+                                                                                     bentVisibilityDir, screenSpaceBentVisibilityAlgorithm,
+                                                                                     orthoBasisViewNormal[BASE_NORMAL_IDX], useHemisphereClip);
+
+    screenSpaceSpecularOcclusion[BASE_LOBEB_IDX] = PreLightData_GetSpecularOcclusion(screenSpaceSpecularOcclusionAlgorithm,
+                                                                                     preLightData.screenSpaceAmbientOcclusion,
+                                                                                     V, N[BASE_NORMAL_IDX], NdotV[BASE_NORMAL_IDX] /* clamped */,
+                                                                                     preLightData.iblPerceptualRoughness[BASE_LOBEB_IDX],
+                                                                                     bentVisibilityDir, screenSpaceBentVisibilityAlgorithm,
+                                                                                     orthoBasisViewNormal[BASE_NORMAL_IDX], useHemisphereClip);
+
+
+    // Get specular occlusion from data (baked) values temporarily in preLightData.hemiSpecularOcclusion[]
+    // and combine those data-based SO values with the screen-space SO values into one final hemispherical specular occlusion:
+    dataBasedSpecularOcclusion[BASE_LOBEA_IDX] = PreLightData_GetSpecularOcclusion(specularOcclusionAlgorithm,
+                                                                                   bsdfData.ambientOcclusion,
+                                                                                   V, N[BASE_NORMAL_IDX], NdotV[BASE_NORMAL_IDX] /* clamped */,
+                                                                                   preLightData.iblPerceptualRoughness[BASE_LOBEA_IDX],
+                                                                                   bsdfData.bentNormalWS, bentVisibilityAlgorithm,
+                                                                                   orthoBasisViewNormal[BASE_NORMAL_IDX], useHemisphereClip,
+                                                                                   bentFixup, bsdfData);
+
+    dataBasedSpecularOcclusion[BASE_LOBEB_IDX] = PreLightData_GetSpecularOcclusion(specularOcclusionAlgorithm,
+                                                                                   bsdfData.ambientOcclusion,
+                                                                                   V, N[BASE_NORMAL_IDX], NdotV[BASE_NORMAL_IDX] /* clamped */,
+                                                                                   preLightData.iblPerceptualRoughness[BASE_LOBEB_IDX],
+                                                                                   bsdfData.bentNormalWS, bentVisibilityAlgorithm,
+                                                                                   orthoBasisViewNormal[BASE_NORMAL_IDX], useHemisphereClip,
+                                                                                   bentFixup, bsdfData);
+
+    preLightData.hemiSpecularOcclusion[BASE_LOBEA_IDX] = PreLightData_GetCommbinedSpecularOcclusion(screenSpaceSpecularOcclusion[BASE_LOBEA_IDX],
+                                                                                                    dataBasedSpecularOcclusion[BASE_LOBEA_IDX],
+                                                                                                    bottomF0, specularOcclusionAlgorithm);
+
+    preLightData.hemiSpecularOcclusion[BASE_LOBEB_IDX] = PreLightData_GetCommbinedSpecularOcclusion(screenSpaceSpecularOcclusion[BASE_LOBEB_IDX],
+                                                                                                    dataBasedSpecularOcclusion[BASE_LOBEB_IDX],
+                                                                                                    bottomF0, specularOcclusionAlgorithm);
+
     if( IsVLayeredEnabled(bsdfData) )
     {
-        bottomF0 = preLightData.vLayerEnergyCoeff[BOTTOM_VLAYER_IDX];
-    }
-    else
-    {
-        if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_STACK_LIT_IRIDESCENCE))
-        {
-            bottomF0 = preLightData.fresnelIridforCalculatingFGD;
-        }
-        else
-        {
-            bottomF0 = bsdfData.fresnel0;
-        }
-    }
+        bentVisibilityDir = GetScreenSpaceSpecularOcclusionVisibilityDir(bsdfData, N[COAT_NORMAL_IDX]);
+        screenSpaceSpecularOcclusion[COAT_LOBE_IDX] = PreLightData_GetSpecularOcclusion(screenSpaceSpecularOcclusionAlgorithm,
+                                                                                        preLightData.screenSpaceAmbientOcclusion,
+                                                                                        V, N[COAT_NORMAL_IDX], NdotV[COAT_NORMAL_IDX] /* clamped */,
+                                                                                        preLightData.iblPerceptualRoughness[COAT_LOBE_IDX],
+                                                                                        bentVisibilityDir, screenSpaceBentVisibilityAlgorithm,
+                                                                                        orthoBasisViewNormal[COAT_NORMAL_IDX], useHemisphereClip);
 
-    // Screen space derived SO: one per lobe. Will be min( , ) with data-based calculated SO.
-    // TODO: Like in Lit, for screen space AO based SO, we don't offer the more advanced algorithms but we could.
+        dataBasedSpecularOcclusion[COAT_LOBE_IDX] = PreLightData_GetSpecularOcclusion(specularOcclusionAlgorithm,
+                                                                                      bsdfData.ambientOcclusion,
+                                                                                      V, N[COAT_NORMAL_IDX], NdotV[COAT_NORMAL_IDX] /* clamped */,
+                                                                                      preLightData.iblPerceptualRoughness[COAT_LOBE_IDX],
+                                                                                      bsdfData.bentNormalWS, bentVisibilityAlgorithm,
+                                                                                      orthoBasisViewNormal[COAT_NORMAL_IDX], useHemisphereClip,
+                                                                                      bentFixup, bsdfData);
 
-    screenSpaceSpecularOcclusion[BASE_LOBEA_IDX] = GetSpecularOcclusionFromAmbientOcclusion(NdotV[BASE_NORMAL_IDX],
-                                                                                            preLightData.screenSpaceAmbientOcclusion,
-                                                                                            preLightData.iblPerceptualRoughness[BASE_LOBEA_IDX]);
-
-    screenSpaceSpecularOcclusion[BASE_LOBEB_IDX] = GetSpecularOcclusionFromAmbientOcclusion(NdotV[BASE_NORMAL_IDX],
-                                                                                            preLightData.screenSpaceAmbientOcclusion,
-                                                                                            preLightData.iblPerceptualRoughness[BASE_LOBEB_IDX]);
-
-    preLightData.hemiSpecularOcclusion[BASE_LOBEA_IDX] = PreLightData_GetSpecularOcclusion(bsdfData,
-                                                                                           specularOcclusionAlgorithm,
-                                                                                           screenSpaceSpecularOcclusion[BASE_LOBEA_IDX],
-                                                                                           V,
-                                                                                           N[BASE_NORMAL_IDX],
-                                                                                           NdotV[BASE_NORMAL_IDX] /* clamped */,
-                                                                                           preLightData.iblPerceptualRoughness[BASE_LOBEA_IDX],
-                                                                                           orthoBasisViewNormal[BASE_NORMAL_IDX],
-                                                                                           bentVisibilityAlgorithm,
-                                                                                           useHemisphereClip,
-                                                                                           bottomF0);
-
-    preLightData.hemiSpecularOcclusion[BASE_LOBEB_IDX] = PreLightData_GetSpecularOcclusion(bsdfData,
-                                                                                           specularOcclusionAlgorithm,
-                                                                                           screenSpaceSpecularOcclusion[BASE_LOBEB_IDX],
-                                                                                           V,
-                                                                                           N[BASE_NORMAL_IDX],
-                                                                                           NdotV[BASE_NORMAL_IDX] /* clamped */,
-                                                                                           preLightData.iblPerceptualRoughness[BASE_LOBEB_IDX],
-                                                                                           orthoBasisViewNormal[BASE_NORMAL_IDX],
-                                                                                           bentVisibilityAlgorithm,
-                                                                                           useHemisphereClip,
-                                                                                           bottomF0);
-
-    if( IsVLayeredEnabled(bsdfData) )
-    {
-        screenSpaceSpecularOcclusion[COAT_LOBE_IDX] = GetSpecularOcclusionFromAmbientOcclusion(NdotV[COAT_NORMAL_IDX],
-                                                                                               preLightData.screenSpaceAmbientOcclusion,
-                                                                                               preLightData.iblPerceptualRoughness[COAT_LOBE_IDX]);
-
-        preLightData.hemiSpecularOcclusion[COAT_LOBE_IDX] = PreLightData_GetSpecularOcclusion(bsdfData,
-                                                                                              specularOcclusionAlgorithm,
-                                                                                              screenSpaceSpecularOcclusion[COAT_LOBE_IDX],
-                                                                                              V,
-                                                                                              N[COAT_NORMAL_IDX],
-                                                                                              NdotV[COAT_NORMAL_IDX] /* clamped */,
-                                                                                              preLightData.iblPerceptualRoughness[COAT_LOBE_IDX],
-                                                                                              orthoBasisViewNormal[COAT_NORMAL_IDX],
-                                                                                              bentVisibilityAlgorithm,
-                                                                                              useHemisphereClip,
-                                                                                              IorToFresnel0(bsdfData.coatIor));
+        preLightData.hemiSpecularOcclusion[COAT_LOBE_IDX] = PreLightData_GetCommbinedSpecularOcclusion(screenSpaceSpecularOcclusion[COAT_LOBE_IDX],
+                                                                                                       dataBasedSpecularOcclusion[COAT_LOBE_IDX],
+                                                                                                       IorToFresnel0(bsdfData.coatIor), specularOcclusionAlgorithm);
     }
 #else
     preLightData.hemiSpecularOcclusion[COAT_LOBE_IDX] =
@@ -2197,8 +2412,19 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, inout BSDFData b
             diffuseFGDTmp,
             specularReflectivity[COAT_LOBE_IDX]);
 
-        // This is for the base FGD fetches factored out of "if vlayering or not": 
+        // We apply the coatMask here since even an f0 of 0 in the fetch above will give a 
+        // directional albedo (aka specular reflectivity) that is non zero:
+        preLightData.specularFGD[COAT_LOBE_IDX] *= bsdfData.coatMask;
+        // This is for the base FGD fetches factored out of "if vlayering or not":
         f0forCalculatingFGD = preLightData.vLayerEnergyCoeff[BOTTOM_VLAYER_IDX];
+        // We need to lerp with coatMask here too since with "deferred" (out of ComputeAdding)
+        // pre-integrated FGD fetches, we will have a F_Schlick term in the energy coefficient
+        // and not the interface fresnel0 directly. Also, we first lerp the coatMask = 0 endpoint
+        // to include iridescence:
+        f0forCalculatingFGD = lerp(lerp(bsdfData.fresnel0, preLightData.fresnelIridforCalculatingFGD, bsdfData.iridescenceMask),
+                                   f0forCalculatingFGD,
+                                   bsdfData.coatMask);
+
 
     } // ...if( IsVLayeredEnabled(bsdfData) )
     else
@@ -2452,7 +2678,7 @@ void ModifyBakedDiffuseLighting(float3 V, PositionInputs posInput, SurfaceData s
     // preLightData.diffuseEnergy will be 1,1,1 if no vlayering or no VLAYERED_DIFFUSE_ENERGY_HACKED_TERM
     // Note: When baking reflection probes, we approximate the diffuse with the fresnel0
     builtinData.bakeDiffuseLighting *= ReplaceDiffuseForReflectionPass(bsdfData.fresnel0)
-        ? bsdfData.fresnel0
+        ? GetApproximatedBottomFresnel0ForTint(bsdfData, preLightData)
         : preLightData.diffuseFGD * preLightData.diffuseEnergy * bsdfData.diffuseColor;
 
     // The lobe specific specular occlusion data, along with the result of the screen space occlusion sampling 
@@ -2850,19 +3076,117 @@ void CalculateAnisoAngles(BSDFData bsdfData, float3 H, float3 L, float3 V, out f
     BdotL = dot(bsdfData.bitangentWS, L);
 }
 
+
+void GetNLForDirectionalPunctualLights(BSDFData bsdfData, PreLightData preLightData, float3 L, float3 V,
+                                       out float3 mainN, out float3 mainL, out float mainNdotL,
+                                       out bool lightCanOnlyBeTransmitted)
+{
+    // To avoid loosing the coat specular component due to the bottom normal modulation from the bottom normal map,
+    // all the while keeping the code as much the same as with Lit and compatible with the rest of lightloop and
+    // lightevaluation
+    // (wrt to bias handling, shadow mask, shadow map, using only one light evaluation call and one attenuation,
+    // and hidding the handling of transmission with PreEvaluate*LightTransmission() shadow index/mask / NdotL
+    // overrides and N flipping trick),
+    // we will only allow transmission when both NdotL[] are < 0.
+    // For all other cases, the BSDF is evaluated for each lobe using the proper normal, but it also applies the
+    // NdotL projection factor of the direct lighting integral so as to not have to return each layer lighting
+    // components.
+    //
+
+    // Note: we should not use refracted directions provided by BSDF_SetupNormalsAndAngles as we only consider
+    // incoming light here, not "equivalent-lobe" stack BSDF effects (eg see GetPreLightData)
+
+    // For the N, L and NdotL used for the light evaluation, we will use the set of values for which N is closest
+    // to the original light orientation (ie receives the most projected energy).
+
+    float3 N[NB_NORMALS];
+    N[BASE_NORMAL_IDX] = bsdfData.normalWS;
+    N[COAT_NORMAL_IDX] = bsdfData.normalWS;
+    if ( IsCoatNormalMapEnabled(bsdfData) )
+    {
+        N[COAT_NORMAL_IDX] = bsdfData.coatNormalWS;
+    }
+    float3 skewedL[NB_NORMALS]; // L might change according to the normal due to the sun disk hack
+    float NdotL[NB_NORMALS];
+    // ...cf with BSDF_SetupNormalsAndAngles: we dont use NDOTLV_SIZE and NB_LV_DIR as we don't consider the possibility
+    // of using refracted directions for the bottom layer lobes: we are strictly evaluating incoming L now, see comments
+    // where we use refract elsewhere in this file.
+    skewedL[BASE_NORMAL_IDX] = L;
+    skewedL[COAT_NORMAL_IDX] = L;
+
+    NdotL[BASE_NORMAL_IDX] = dot(N[BASE_NORMAL_IDX], skewedL[BASE_NORMAL_IDX]);
+    NdotL[COAT_NORMAL_IDX] = dot(N[COAT_NORMAL_IDX], skewedL[COAT_NORMAL_IDX]);
+
+    // For transmission, we're going to use the bottom layer N and NdotL always.
+    // For the rest, we will use the N which produces the biggest NdotL, as we don't want
+    // to early out eg from the bottom layer when the top should have a highlight,
+    // while the final BSDF evaluation will take care of applying the proper NdotL in any
+    // case. 
+    // We could increase the cost and complexity of all this and actually
+    // commit fully to making all these diract-light evaluations local to this file and 
+    // pass to BSDF the L[], V[], etc. arrays instead of hacking our way around just here.
+
+    float maxNdotL = max(NdotL[COAT_NORMAL_IDX], NdotL[BASE_NORMAL_IDX]);
+
+    lightCanOnlyBeTransmitted = maxNdotL < 0; // In case we have NdotL[base] < 0, NdotL[top] > 0, we won't have transmission, too bad.
+
+    mainNdotL = maxNdotL;
+    bool baseIsBrighter = NdotL[BASE_NORMAL_IDX] >= NdotL[COAT_NORMAL_IDX];
+    if (lightCanOnlyBeTransmitted)
+    {
+        // In that case, we always use the base normal:
+        baseIsBrighter = true;
+        mainNdotL = NdotL[BASE_NORMAL_IDX];
+    }
+
+    mainL = baseIsBrighter ? skewedL[BASE_NORMAL_IDX] : skewedL[COAT_NORMAL_IDX];
+    mainN = baseIsBrighter ? N[BASE_NORMAL_IDX] : N[COAT_NORMAL_IDX];
+}
+
+bool IsNonZeroBSDF(float3 V, float3 L, PreLightData preLightData, BSDFData bsdfData)
+{
+    // Get N, L and NdotL parameters along with if transmission must be evaluated
+    bool unused;
+    float3 mainN, mainL;
+    float mainNdotL;
+    GetNLForDirectionalPunctualLights(bsdfData, preLightData, L, V, mainN, mainL, mainNdotL, unused);
+
+    return HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_STACK_LIT_TRANSMISSION) || (mainNdotL > 0.0);
+}
+
+void BSDF_ModifyFresnelForIridescence(BSDFData bsdfData, PreLightData preLightData, inout float3 F)
+{
+        if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_STACK_LIT_IRIDESCENCE))
+        {
+            float3 fresnelIridescent = preLightData.fresnelIridforCalculatingFGD;
+
+#ifdef IRIDESCENCE_RECOMPUTE_PERLIGHT
+            float topIor = 1.0; // default air on top.
+            fresnelIridescent = EvalIridescence(topIor, savedLdotH, bsdfData.iridescenceThickness, bsdfData.fresnel0);
+#endif
+            F = lerp(F, fresnelIridescent, bsdfData.iridescenceMask);
+        }
+}
+
 // This function is the core BSDF evaluation for analytical dirac-rays light (point and directional).
 // (Reminder, lights are:
 //  -point/directional: fully analytical integral[LFGD] which evaluates directly because of the dirac L.
 //  -environments: split-sum, pre-integrated LD split from pre-integrated FGD
 //  -LTC area lights: split-sum, analytical L, pre-integrated FGD, like environment
-//  -SSR TODO for StackLit )
+//  -SSR)
 //
 // Assumes that NdotL is positive.
-void BSDF2(float3 inV, float3 inL, float inNdotL, float3 positionWS, PreLightData preLightData, BSDFData bsdfData,
-            out float3 diffuseLighting,
-            out float3 specularLighting,
-            out float3 diffuseBsdfNoNdotL)
+CBSDF EvaluateBSDF(float3 inV, float3 inL, PreLightData preLightData, BSDFData bsdfData)
 {
+    CBSDF cbsdf;
+    ZERO_INITIALIZE(CBSDF, cbsdf);
+
+    // Get N, L and NdotL parameters along with if transmission must be evaluated
+    bool unused0;
+    float3 unused1, unused2;
+    float inNdotL;
+    GetNLForDirectionalPunctualLights(bsdfData, preLightData, inL, inV, unused1, unused2, inNdotL, unused0);
+
     float NdotL[NDOTLV_SIZE];
     float NdotV[NDOTLV_SIZE];
     // IMPORTANT: use DNLV_COAT_IDX and DNLV_BASE_IDX to index NdotL and NdotV since they can be sized 2
@@ -2930,14 +3254,36 @@ void BSDF2(float3 inV, float3 inL, float inNdotL, float3 positionWS, PreLightDat
         IF_DEBUG( if(_DebugLobeMask.y == 0.0) DV[BASE_LOBEA_IDX] = (float3)0; )
         IF_DEBUG( if(_DebugLobeMask.z == 0.0) DV[BASE_LOBEB_IDX] = (float3)0; )
 
-        specularLighting =  max(0, NdotL[DNLV_BASE_IDX]) * preLightData.vLayerEnergyCoeff[BOTTOM_VLAYER_IDX]
+#if 1 //coatMask with proper lerped terms
+
+        // Support for the coatMask hack costs us an additional F_Schlick evaluation if we want to lerp
+        // properly to the LdotH fresnel term that we normally get without coat:
+        // This is because in ComputeAdding, the energy coefficients are (either) (FGD based TODOENERGY or)
+        // Schlick but even with Schlick, it is with NdotV, not LdotH like we have here.
+        float3 bottomF;
+
+#ifdef VLAYERED_RECOMPUTE_PERLIGHT // && VLAYERED which we are in this context, also: TODOENERGY: && COMPUTEADDING_DEFERRED_PREINT_FGD_FETCHES
+        // In that case, preLightData.vLayerEnergyCoeff[BOTTOM_VLAYER_IDX] will contain an F_Schlick term
+        // anyways (with other factors as usual for the stack) and possibly mixed or replaced by the iridescence term.
+        bottomF = preLightData.vLayerEnergyCoeff[BOTTOM_VLAYER_IDX];
+#else
+        // If we don't recompute the stack per dirac lights, we ensure the coatmask make us lerp
+        // to the usual LdotH Schlick term.
+        bottomF = F_Schlick(bsdfData.fresnel0, savedLdotH);
+        BSDF_ModifyFresnelForIridescence(bsdfData, preLightData, bottomF);
+#endif
+
+        bottomF = lerp(bottomF, preLightData.vLayerEnergyCoeff[BOTTOM_VLAYER_IDX], bsdfData.coatMask);
+#endif // ...coatMask with proper lerped terms
+
+        cbsdf.specR =  max(0, NdotL[DNLV_BASE_IDX]) * bottomF
                           * lerp(DV[BASE_LOBEA_IDX] * preLightData.energyCompensationFactor[BASE_LOBEA_IDX],
                                  DV[BASE_LOBEB_IDX] * preLightData.energyCompensationFactor[BASE_LOBEB_IDX],
                                  bsdfData.lobeMix);
 
-        specularLighting +=  max(0, NdotL[DNLV_COAT_IDX]) * preLightData.vLayerEnergyCoeff[TOP_VLAYER_IDX]
-                           * preLightData.energyCompensationFactor[COAT_LOBE_IDX]
-                           * DV[COAT_LOBE_IDX];
+        cbsdf.specR +=  max(0, NdotL[DNLV_COAT_IDX]) * preLightData.vLayerEnergyCoeff[TOP_VLAYER_IDX]
+                        * preLightData.energyCompensationFactor[COAT_LOBE_IDX]
+                        * DV[COAT_LOBE_IDX];
 
 #endif // ..._MATERIAL_FEATURE_COAT
     } // if( IsVLayeredEnabled(bsdfData) )
@@ -2949,16 +3295,7 @@ void BSDF2(float3 inV, float3 inL, float inNdotL, float3 positionWS, PreLightDat
         // TODO: Proper Fresnel
         float3 F = F_Schlick(bsdfData.fresnel0, savedLdotH);
 
-        if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_STACK_LIT_IRIDESCENCE))
-        {
-            float3 fresnelIridescent = preLightData.fresnelIridforCalculatingFGD;
-
-#ifdef IRIDESCENCE_RECOMPUTE_PERLIGHT
-            float topIor = 1.0; // default air on top.
-            fresnelIridescent = EvalIridescence(topIor, savedLdotH, bsdfData.iridescenceThickness, bsdfData.fresnel0);
-#endif
-            F = lerp(F, fresnelIridescent, bsdfData.iridescenceMask);
-        }
+        BSDF_ModifyFresnelForIridescence(bsdfData, preLightData, F);
 
         if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_STACK_LIT_ANISOTROPY))
         {
@@ -2980,42 +3317,32 @@ void BSDF2(float3 inV, float3 inL, float inNdotL, float3 positionWS, PreLightDat
         IF_DEBUG( if(_DebugLobeMask.y == 0.0) DV[BASE_LOBEA_IDX] = (float3)0; )
         IF_DEBUG( if(_DebugLobeMask.z == 0.0) DV[BASE_LOBEB_IDX] = (float3)0; )
 
-        specularLighting = max(0, NdotL[0]) * F * lerp(DV[0]*preLightData.energyCompensationFactor[BASE_LOBEA_IDX],
-                                                       DV[1]*preLightData.energyCompensationFactor[BASE_LOBEB_IDX],
-                                                       bsdfData.lobeMix);
+        cbsdf.specR = max(0, NdotL[0]) * F * lerp(DV[0]*preLightData.energyCompensationFactor[BASE_LOBEA_IDX],
+                                                    DV[1]*preLightData.energyCompensationFactor[BASE_LOBEB_IDX],
+                                                    bsdfData.lobeMix);
     }
 
 
     // TODO: config option + diffuse GGX
-    float3 diffuseTerm = Lambert();
+    float3 diffTerm = Lambert();
 
 #ifdef VLAYERED_DIFFUSE_ENERGY_HACKED_TERM
     if( IsVLayeredEnabled(bsdfData) )
     {
         // Controlled by ifdef VLAYERED_DIFFUSE_ENERGY_HACKED_TERM
         // since preLightData.diffuseEnergy == float3(1,1,1) when not defined
-        diffuseTerm *= preLightData.diffuseEnergy;
+        diffTerm *= preLightData.diffuseEnergy;
     }
 #endif
 
-    // We don't multiply by 'bsdfData.diffuseColor' here. It's done only once in PostEvaluateBSDF().
-    diffuseLighting = diffuseTerm;
+    float diffuseNdotL = saturate(NdotL[DNLV_BASE_IDX]);
+    cbsdf.diffR = diffTerm * diffuseNdotL;
+    // TODO: Note for Stephane: I use -inNdotL here as it match visually what was done before the refactor but I guess it should be -diffuseNdotL
+    cbsdf.diffT = diffTerm * ComputeWrappedDiffuseLighting(-inNdotL, TRANSMISSION_WRAP_LIGHT);
 
-    diffuseBsdfNoNdotL = diffuseLighting;
-    diffuseLighting *= max(0, NdotL[DNLV_BASE_IDX]);
-}//...BSDF
-
- // Thunk to allow to compile: SurfaceShading.hlsl depends on this prototype
-void BSDF(float3 inV, float3 inL, float inNdotL, float3 positionWS, PreLightData preLightData, BSDFData bsdfData,
-    out float3 diffuseLighting,
-    out float3 specularLighting)
-{
-    float3 unused;
-    BSDF2(inV, inL, inNdotL, positionWS, preLightData, bsdfData,
-        diffuseLighting,
-        specularLighting,
-        unused);
+    return cbsdf;
 }
+
 
 void EvaluateBSDF_GetNormalUnclampedNdotV(BSDFData bsdfData, PreLightData preLightData, float3 V, out float3 N, out float unclampedNdotV)
 {
@@ -3041,107 +3368,32 @@ void EvaluateBSDF_GetNormalUnclampedNdotV(BSDFData bsdfData, PreLightData preLig
     }
 }
 
+bool ShouldEvaluateThickObjectTransmission(float3 V, float3 L, PreLightData preLightData,
+                                           BSDFData bsdfData, int shadowIndex)
+{
+#ifdef MATERIAL_INCLUDE_TRANSMISSION
+
+    bool lightCanOnlyBeTransmitted;
+    float3 mainN, mainL;
+    float mainNdotL;
+    GetNLForDirectionalPunctualLights(bsdfData, preLightData, L, V, mainN, mainL, mainNdotL, lightCanOnlyBeTransmitted);
+
+    return HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_TRANSMISSION_MODE_THICK_OBJECT) &&
+            (shadowIndex >= 0.0) && lightCanOnlyBeTransmitted;
+#else
+    return false;
+#endif
+}
+
 //-----------------------------------------------------------------------------
 // Surface shading (all light types) below
 //-----------------------------------------------------------------------------
 
+#define OVERRIDE_SHOULD_EVALUATE_THICK_OBJECT_TRANSMISSION
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightEvaluation.hlsl"
 //#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/MaterialEvaluation.hlsl"
 //...already included earlier.
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/SurfaceShading.hlsl"
-
-float3 EvaluateTransmission(BSDFData bsdfData, float3 transmittance, float NdotL, float NdotV, float LdotV, float attenuation)
-{
-    // Apply wrapped lighting to better handle thin objects at grazing angles.
-    float wrappedNdotL = ComputeWrappedDiffuseLighting(-NdotL, TRANSMISSION_WRAP_LIGHT);
-
-    // Apply BSDF-specific diffuse transmission to attenuation. See also: [SSS-NOTE-TRSM]
-    // We don't multiply by 'bsdfData.diffuseColor' here. It's done only once in PostEvaluateBSDF().
-#ifdef USE_DIFFUSE_LAMBERT_BRDF
-    attenuation *= Lambert();
-#else
-    attenuation *= DisneyDiffuse(NdotV, max(0, -NdotL), LdotV, bsdfData.perceptualRoughness);
-#endif
-
-    float intensity = attenuation * wrappedNdotL;
-    return intensity * transmittance;
-}
-
-void GetNLForDirectionalPunctualLights(BSDFData bsdfData, PreLightData preLightData, float3 L, float3 V,
-                                       out float3 mainN, out float3 mainL, out float mainNdotL,
-                                       out bool lightCanOnlyBeTransmitted,
-                                       bool computeSunDiscEffect = true, DirectionalLightData light = (DirectionalLightData)0) // use the 2 later if light is directional
-{
-    // To avoid loosing the coat specular component due to the bottom normal modulation from the bottom normal map,
-    // all the while keeping the code as much the same as with Lit and compatible with the rest of lightloop and
-    // lightevaluation
-    // (wrt to bias handling, shadow mask, shadow map, using only one light evaluation call and one attenuation,
-    // and hidding the handling of transmission with PreEvaluate*LightTransmission() shadow index/mask / NdotL
-    // overrides and N flipping trick),
-    // we will only allow transmission when both NdotL[] are < 0.
-    // For all other cases, the BSDF is evaluated for each lobe using the proper normal, but it also applies the
-    // NdotL projection factor of the direct lighting integral so as to not have to return each layer lighting
-    // components.
-    //
-
-    // Note: we should not use refracted directions provided by BSDF_SetupNormalsAndAngles as we only consider
-    // incoming light here, not "equivalent-lobe" stack BSDF effects (eg see GetPreLightData)
-
-    // For the N, L and NdotL used for the light evaluation, we will use the set of values for which N is closest
-    // to the original light orientation (ie receives the most projected energy).
-
-    float3 N[NB_NORMALS];
-    N[BASE_NORMAL_IDX] = bsdfData.normalWS;
-    N[COAT_NORMAL_IDX] = bsdfData.normalWS;
-    if ( IsCoatNormalMapEnabled(bsdfData) )
-    {
-        N[COAT_NORMAL_IDX] = bsdfData.coatNormalWS;
-    }
-    float3 skewedL[NB_NORMALS]; // L might change according to the normal due to the sun disk hack
-    float NdotL[NB_NORMALS];
-    // ...cf with BSDF_SetupNormalsAndAngles: we dont use NDOTLV_SIZE and NB_LV_DIR as we don't consider the possibility
-    // of using refracted directions for the bottom layer lobes: we are strictly evaluating incoming L now, see comments
-    // where we use refract elsewhere in this file.
-    skewedL[BASE_NORMAL_IDX] = L;
-    skewedL[COAT_NORMAL_IDX] = L;
-    if (computeSunDiscEffect)
-    {
-        // Since we can have two normals, we replace this:
-        //  float3 L = ComputeSunLightDirection(light, N, V);
-        //  float  NdotL = dot(N, L); // Do not saturate
-        // by this:
-        //
-        skewedL[BASE_NORMAL_IDX] = ComputeSunLightDirection(light, N[BASE_NORMAL_IDX], V);
-        skewedL[COAT_NORMAL_IDX] = ComputeSunLightDirection(light, N[COAT_NORMAL_IDX], V);
-    }
-    NdotL[BASE_NORMAL_IDX] = dot(N[BASE_NORMAL_IDX], skewedL[BASE_NORMAL_IDX]);
-    NdotL[COAT_NORMAL_IDX] = dot(N[COAT_NORMAL_IDX], skewedL[COAT_NORMAL_IDX]);
-
-    // For transmission, we're going to use the bottom layer N and NdotL always.
-    // For the rest, we will use the N which produces the biggest NdotL, as we don't want
-    // to early out eg from the bottom layer when the top should have a highlight,
-    // while the final BSDF evaluation will take care of applying the proper NdotL in any
-    // case. 
-    // We could increase the cost and complexity of all this and actually
-    // commit fully to making all these diract-light evaluations local to this file and 
-    // pass to BSDF the L[], V[], etc. arrays instead of hacking our way around just here.
-
-    float maxNdotL = max(NdotL[COAT_NORMAL_IDX], NdotL[BASE_NORMAL_IDX]);
-
-    lightCanOnlyBeTransmitted = maxNdotL < 0; // In case we have NdotL[base] < 0, NdotL[top] > 0, we won't have transmission, too bad.
-
-    mainNdotL = maxNdotL;
-    bool baseIsBrighter = NdotL[BASE_NORMAL_IDX] >= NdotL[COAT_NORMAL_IDX];
-    if (lightCanOnlyBeTransmitted)
-    {
-        // In that case, we always use the base normal:
-        baseIsBrighter = true;
-        mainNdotL = NdotL[BASE_NORMAL_IDX];
-    }
-
-    mainL = baseIsBrighter ? skewedL[BASE_NORMAL_IDX] : skewedL[COAT_NORMAL_IDX];
-    mainN = baseIsBrighter ? N[BASE_NORMAL_IDX] : N[COAT_NORMAL_IDX];
-}
 
 
 //-----------------------------------------------------------------------------
@@ -3153,79 +3405,7 @@ DirectLighting EvaluateBSDF_Directional(LightLoopContext lightLoopContext,
                                         DirectionalLightData light, BSDFData bsdfData,
                                         BuiltinData builtinData)
 {
-    float3 N;
-    float3 L;
-    float NdotL;
-    bool surfaceReflection;
-
-    // Get N, L and NdotL parameters along with if transmission must be evaluated
-    float3 inL = -light.forward;
-    bool lightCanOnlyBeTransmitted;
-    GetNLForDirectionalPunctualLights(bsdfData, preLightData, inL, V,
-                                      N, L, NdotL, lightCanOnlyBeTransmitted, /* computeSunDiscEffect*/ true, light);
-    surfaceReflection = !lightCanOnlyBeTransmitted;
-
-    // The rest is a copy of ShadeSurface_Directional, but without applying NdotL on BSDF diffuse/specular
-    // terms:
-    DirectLighting lighting;
-    ZERO_INITIALIZE(DirectLighting, lighting);
-
-    // Caution: this function modifies N, NdotL, contactShadowMask and shadowMaskSelector.
-    float3 transmittance = PreEvaluateDirectionalLightTransmission(bsdfData, light, N, NdotL);
-
-    float3 color; float attenuation;
-    EvaluateLight_Directional(lightLoopContext, posInput, light, builtinData, N, L, NdotL,
-                              color, attenuation);
-
-    // TODO: transmittance contributes to attenuation, how can we use it for early-out?
-    if (attenuation > 0)
-    {
-        // We must clamp here, otherwise our disk light hack for smooth surfaces does not work.
-        // Explanation: for a perfectly smooth surface, lighting is only reflected if (NdotL = NdotV).
-        // This implies that (NdotH = 1).
-        // Due to the floating point arithmetic (see math in ComputeSunLightDirection() and
-        // GetBSDFAngle()), we will never arrive at this exact number, so no lighting will be reflected.
-        // If we increase the roughness somewhat, the trick still works.
-        ClampRoughness(bsdfData, light.minRoughness);
-
-        float3 diffuseBsdf, specularBsdf, diffuseBsdfNoNdotL;
-        BSDF2(V, L, NdotL, posInput.positionWS, preLightData, bsdfData, diffuseBsdf, specularBsdf, diffuseBsdfNoNdotL);
-
-        if (surfaceReflection)
-        {
-            attenuation *= ComputeMicroShadowing(bsdfData, NdotL);
-            float intensity = attenuation; // Caution: No NdotL attenuation here this is apply in BSDF due to possible refraction and/or dual normal maps 
-
-            lighting.diffuse = diffuseBsdf * (intensity * light.diffuseDimmer);
-            lighting.specular = specularBsdf * (intensity * light.specularDimmer);
-        }
-        else if (MaterialSupportsTransmission(bsdfData))
-        {
-            // Apply wrapped lighting to better handle thin objects at grazing angles.
-            float wrapNdotL = ComputeWrappedDiffuseLighting(NdotL, TRANSMISSION_WRAP_LIGHT);
-            float intensity = attenuation * wrapNdotL;
-
-            // We use diffuse lighting for accumulation since it is going to be blurred during the SSS pass.
-            // Note: Disney's LdoV term in 'diffuseBsdf' does not hold a meaningful value
-            // in the context of transmission, but we keep it unaltered for performance reasons.
-            lighting.diffuse = transmittance * (diffuseBsdfNoNdotL * (intensity * light.diffuseDimmer));
-            lighting.specular = 0; // No spec trans, the compiler should optimize
-        }
-
-        // Save ALU by applying light and cookie colors only once.
-        lighting.diffuse *= color;
-        lighting.specular *= color;
-    }
-
-#ifdef DEBUG_DISPLAY
-    if (_DebugLightingMode == DEBUGLIGHTINGMODE_LUX_METER)
-    {
-        // Only lighting, not BSDF
-        lighting.diffuse = color * attenuation * saturate(NdotL);
-    }
-#endif
-
-    return lighting;
+    return ShadeSurface_Directional(lightLoopContext, posInput, builtinData, preLightData, light, bsdfData, V);
 }
 
 //-----------------------------------------------------------------------------
@@ -3236,77 +3416,7 @@ DirectLighting EvaluateBSDF_Punctual(LightLoopContext lightLoopContext,
                                      float3 V, PositionInputs posInput,
                                      PreLightData preLightData, LightData light, BSDFData bsdfData, BuiltinData builtinData)
 {
-    float3 N;
-    float NdotL;
-    float3 L;
-    bool surfaceReflection;
-
-    // Copy of ShadeSurface_Punctual
-    DirectLighting lighting;
-    ZERO_INITIALIZE(DirectLighting, lighting);
-
-    float3 lightToSample;
-    float4 distances; // {d, d^2, 1/d, d_proj}
-    GetPunctualLightVectors(posInput.positionWS, light, L, lightToSample, distances);
-
-    // Get N, L and NdotL parameters along with if transmission must be evaluated
-    bool lightCanOnlyBeTransmitted;
-    GetNLForDirectionalPunctualLights(bsdfData, preLightData, L, V,
-                                      N, L, NdotL, lightCanOnlyBeTransmitted, /* computeSunDiscEffect*/ false);
-    surfaceReflection = !lightCanOnlyBeTransmitted;
-
-    // Caution: this function modifies N, NdotL, shadowIndex, contactShadowMask and shadowMaskSelector.
-    float3 transmittance = PreEvaluatePunctualLightTransmission(lightLoopContext, posInput, bsdfData,
-                                                                light, distances.x, N, L, NdotL);
-    float3 color; float attenuation;
-    EvaluateLight_Punctual(lightLoopContext, posInput, light, builtinData, N, L, NdotL, lightToSample, distances,
-                           color, attenuation);
-
-    // TODO: transmittance contributes to attenuation, how can we use it for early-out?
-    if (attenuation > 0)
-    {
-        // Simulate a sphere/disk light with this hack
-        // Note that it is not correct with our pre-computation of PartLambdaV (mean if we disable the optimization we will not have the
-        // same result) but we don't care as it is a hack anyway
-        ClampRoughness(bsdfData, light.minRoughness);
-
-        float3 diffuseBsdf, specularBsdf, diffuseBsdfNoNdotL;
-        BSDF2(V, L, NdotL, posInput.positionWS, preLightData, bsdfData, diffuseBsdf, specularBsdf, diffuseBsdfNoNdotL);
-
-        if (surfaceReflection)
-        {
-            float intensity = attenuation; // Caution: No NdotL attenuation here this is apply in BSDF
-
-            lighting.diffuse  = diffuseBsdf  * (intensity * light.diffuseDimmer);
-            lighting.specular = specularBsdf * (intensity * light.specularDimmer);
-        }
-        else if (MaterialSupportsTransmission(bsdfData))
-        {
-             // Apply wrapped lighting to better handle thin objects at grazing angles.
-            float wrapNdotL = ComputeWrappedDiffuseLighting(NdotL, TRANSMISSION_WRAP_LIGHT);
-            float intensity = attenuation * wrapNdotL;
-
-            // We use diffuse lighting for accumulation since it is going to be blurred during the SSS pass.
-            // Note: Disney's LdoV term in 'diffuseBsdf' does not hold a meaningful value
-            // in the context of transmission, but we keep it unaltered for performance reasons.
-            lighting.diffuse  = transmittance * (diffuseBsdfNoNdotL * (intensity * light.diffuseDimmer));
-            lighting.specular = 0; // No spec trans, the compiler should optimize
-        }
-
-        // Save ALU by applying light and cookie colors only once.
-        lighting.diffuse  *= color;
-        lighting.specular *= color;
-    }
-
-#ifdef DEBUG_DISPLAY
-    if (_DebugLightingMode == DEBUGLIGHTINGMODE_LUX_METER)
-    {
-        // Only lighting, not BSDF
-        lighting.diffuse = color * attenuation * saturate(NdotL);
-    }
-#endif
-
-    return lighting;
+    return ShadeSurface_Punctual(lightLoopContext, posInput, builtinData, preLightData, light, bsdfData, V);
 }
 
 // NEWLITTODO: For a refence rendering option for area light, like STACK_LIT_DISPLAY_REFERENCE_AREA option in eg EvaluateBSDF_<area light type> :

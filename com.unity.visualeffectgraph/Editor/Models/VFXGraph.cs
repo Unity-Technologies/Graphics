@@ -3,9 +3,9 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
-using UnityEditor.Experimental.VFX;
+using UnityEditor.VFX;
 using UnityEngine;
-using UnityEngine.Experimental.VFX;
+using UnityEngine.VFX;
 using UnityEngine.Profiling;
 using System.Reflection;
 
@@ -405,6 +405,13 @@ namespace UnityEditor.VFX
             if (cause == VFXModel.InvalidationCause.kStructureChanged)
             {
                 UpdateSubAssets();
+                if( model == this)
+                    VFXSubgraphContext.CallOnGraphChanged(this);
+            }
+
+            if( cause == VFXModel.InvalidationCause.kSettingChanged && model is VFXParameter)
+            {
+                VFXSubgraphContext.CallOnGraphChanged(this);
             }
 
             if (cause != VFXModel.InvalidationCause.kExpressionInvalidated &&
@@ -625,6 +632,12 @@ namespace UnityEditor.VFX
                 if (considerGraphDirty)
                     m_ExpressionGraphDirty = false;
                 m_ExpressionValuesDirty = false;    
+            }
+            else if(m_ExpressionGraphDirty && !preventRecompilation)
+            {
+                BuildSubgraphDependencies();
+                RecurseSubgraphRecreateCopy(this);
+                m_ExpressionGraphDirty = false;
             }
             if(!preventDependencyRecompilation && m_DependentDirty)
             {

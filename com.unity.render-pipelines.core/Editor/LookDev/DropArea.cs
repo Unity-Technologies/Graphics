@@ -3,7 +3,7 @@ using System;
 using UnityEngine;
 using UnityEngine.UIElements;
 
-namespace UnityEditor.Rendering.LookDev
+namespace UnityEditor.Rendering.Experimental.LookDev
 {
     public class DropArea
     {

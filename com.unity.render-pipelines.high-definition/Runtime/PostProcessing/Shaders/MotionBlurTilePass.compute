@@ -10,7 +10,7 @@
 
 #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
 
-#define USE_WAVE_INTRINSICS         defined(SUPPORTS_WAVE_INTRINSICS)
+#define USE_WAVE_INTRINSICS         defined(PLATFORM_SUPPORTS_WAVE_INTRINSICS)
 
 #ifdef SCATTERING
 #define TILE_SIZE                   16u
@@ -325,7 +325,36 @@ void TileMinMaxMerge(uint3 dispatchID : SV_DispatchThreadID)
 
 #ifdef SCATTERING
     int2 id = dispatchID.xy;
-    _TileMaxNeighbourhood[COORD_TEXTURE2D_X(id)] = float3(UnpackMotionVec(_TileToScatterMax[COORD_TEXTURE2D_X(id)]), f16tof32(_TileToScatterMin[COORD_TEXTURE2D_X(id)]));
+
+    // If we scattered wider than a 3 tile radius, then we do an additional neighbourhood search.
+    float2 maxVelData = UnpackMotionVec(_TileToScatterMax[COORD_TEXTURE2D_X(id)]);
+    float maxVelLen = MotionVecLengthInPixelsFromEncoded(maxVelData);
+
+    // TODO: In theory this could have to be even wider. In general, we need a better way to determine min velocities.
+    uint minVel = 0.0f;
+    int2 maxCoords = int2(_TileTargetSize.xy - 1);
+
+    if (maxVelLen > TILE_SIZE * 3.5)
+    {
+
+        uint4 data0 = GATHER_TEXTURE2D_X(_TileToScatterMin, s_linear_clamp_sampler, ClampAndScaleUVForBilinear((id + float2(-2.0, 0.0))  * _TileTargetSize.zw, _TileTargetSize.zw));
+        uint4 data1 = GATHER_TEXTURE2D_X(_TileToScatterMin, s_linear_clamp_sampler, ClampAndScaleUVForBilinear((id + float2(0.0, 2.0))  * _TileTargetSize.zw, _TileTargetSize.zw));
+        uint4 data2 = GATHER_TEXTURE2D_X(_TileToScatterMin, s_linear_clamp_sampler, ClampAndScaleUVForBilinear((id + float2(-2.0, 2.0))  * _TileTargetSize.zw, _TileTargetSize.zw));
+        uint4 data3 = GATHER_TEXTURE2D_X(_TileToScatterMin, s_linear_clamp_sampler, ClampAndScaleUVForBilinear((id + float2(0.0, 0.0))  * _TileTargetSize.zw, _TileTargetSize.zw));
+
+        uint minData0 = min(data0.x, Min3(data0.y, data0.z, data0.w));
+        uint minData1 = min(data1.x, Min3(data1.y, data1.z, data1.w));
+        uint minData2 = min(data2.x, Min3(data2.y, data2.z, data2.w));
+        uint minData3 = min(data3.x, Min3(data3.y, data3.z, data3.w));
+
+         minVel = min(minData0, Min3(minData1, minData2, minData3));
+    }
+    else
+    {
+        minVel = _TileToScatterMin[COORD_TEXTURE2D_X(id)];
+    }
+
+    _TileMaxNeighbourhood[COORD_TEXTURE2D_X(id)] = float3(UnpackMotionVec(_TileToScatterMax[COORD_TEXTURE2D_X(id)]), f16tof32(minVel));
 #endif
 }
 #endif

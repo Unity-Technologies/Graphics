@@ -1,6 +1,6 @@
 #if VFX_HAS_UI
 using UnityEngine.UI;
-using UnityEngine.Experimental.VFX;
+using UnityEngine.VFX;
 
 namespace UnityEngine.Experimental.VFX.Utility
 {

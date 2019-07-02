@@ -1,5 +1,11 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoop.cs.hlsl"
 
+// SCREEN_SPACE_SHADOWS needs to be defined in all cases in which they need to run. IMPORTANT: If this is activated, the light loop function WillRenderScreenSpaceShadows on C# MUST return true.
+#if SHADEROPTIONS_RAYTRACING && (SHADERPASS != SHADERPASS_RAYTRACING_INDIRECT)
+// TODO: This will need to be a multi_compile when we'll have them on compute shaders.
+#define SCREEN_SPACE_SHADOWS 1
+#endif
+
 #define DWORD_PER_TILE 16 // See dwordsPerTile in LightLoop.cs, we have roomm for 31 lights and a number of light value all store on 16 bit (ushort)
 
 // LightLoopContext is not visible from Material (user should not use these properties in Material file)
@@ -363,7 +369,7 @@ float GetContactShadow(LightLoopContext lightLoopContext, int contactShadowMask)
     return 1.0 - (occluded * lightLoopContext.contactShadowFade);
 }
 
-float GetScreenSpaceShadow(PositionInputs posInput)
+float GetScreenSpaceShadow(PositionInputs posInput, int shadowIndex)
 {
-    return LOAD_TEXTURE2D_X(_ScreenSpaceShadowsTexture, posInput.positionSS).x;
+    return LOAD_TEXTURE2D_ARRAY(_ScreenSpaceShadowsTexture, posInput.positionSS, shadowIndex + SLICE_ARRAY_INDEX * _ScreenSpaceShadowArraySize).x;
 }

@@ -16,7 +16,7 @@ namespace UnityEditor.VFX.Block
 
         public enum SpawnMode
         {
-            Randomized,
+            Random,
             Custom
         }
 
