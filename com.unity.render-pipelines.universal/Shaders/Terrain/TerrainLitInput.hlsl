@@ -1,9 +1,9 @@
 #ifndef LIGHTWEIGHT_TERRAIN_LIT_INPUT_INCLUDED
 #define LIGHTWEIGHT_TERRAIN_LIT_INPUT_INCLUDED
 
-#include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/Core.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/CommonMaterial.hlsl"
-#include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/SurfaceInput.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/SurfaceInput.hlsl"
 
 CBUFFER_START(_Terrain)
 half _NormalScale0, _NormalScale1, _NormalScale2, _NormalScale3;
