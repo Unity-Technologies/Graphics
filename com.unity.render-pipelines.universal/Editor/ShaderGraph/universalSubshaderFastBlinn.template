@@ -17,7 +17,7 @@ SubShader
 		#pragma target 3.0
 
 		#pragma multi_compile _ _SINGLE_DIRECTIONAL_LIGHT _SINGLE_SPOT_LIGHT _SINGLE_POINT_LIGHT
-		#pragma multi_compile _ LIGHTWEIGHT_LINEAR
+		#pragma multi_compile _ UNIVERSAL_LINEAR
 		#pragma multi_compile _ UNITY_SINGLE_PASS_STEREO STEREO_INSTANCING_ON STEREO_MULTIVIEW_ON
 		#pragma multi_compile _ LIGHTMAP_ON
 		#pragma multi_compile _ _LIGHT_PROBES_ON
@@ -35,7 +35,7 @@ ${Defines}
 
 		#include "UnityCG.cginc"
 
-		#define UNITY_SAMPLE_TEX2D(tex, coord) LIGHTWEIGHT_GAMMA_TO_LINEAR4(tex.Sample (sampler##tex,coord))
+		#define UNITY_SAMPLE_TEX2D(tex, coord) UNIVERSAL_GAMMA_TO_LINEAR4(tex.Sample (sampler##tex,coord))
 
 #define VERTEX_CUSTOM \
 	${VertexShaderBody}

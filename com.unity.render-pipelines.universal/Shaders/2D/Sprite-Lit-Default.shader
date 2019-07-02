@@ -21,7 +21,7 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-Default"
 
         Pass
         {
-            Tags { "LightMode" = "Lightweight2D" }
+            Tags { "LightMode" = "Universal2D" }
             HLSLPROGRAM
             #pragma prefer_hlslcc gles
             #pragma vertex CombinedShapeLightVertex

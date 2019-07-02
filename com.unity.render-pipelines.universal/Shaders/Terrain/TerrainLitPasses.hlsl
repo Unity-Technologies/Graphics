@@ -1,5 +1,5 @@
-#ifndef LIGHTWEIGHT_TERRAIN_LIT_PASSES_INCLUDED
-#define LIGHTWEIGHT_TERRAIN_LIT_PASSES_INCLUDED
+#ifndef UNIVERSAL_TERRAIN_LIT_PASSES_INCLUDED
+#define UNIVERSAL_TERRAIN_LIT_PASSES_INCLUDED
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
 

@@ -5,13 +5,16 @@ using System.Linq;
 using UnityEditor;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph;
+using UnityEngine.Rendering;
+using UnityEngine.Rendering.Universal;
 
-namespace UnityEngine.Rendering.Universal
+namespace UnityEditor.Rendering.Universal
 {
     [Serializable]
     [FormerName("UnityEngine.Experimental.Rendering.LightweightPipeline.LightWeightUnlitSubShader")]
     [FormerName("UnityEditor.ShaderGraph.LightWeightUnlitSubShader")]
     [FormerName("UnityEditor.Rendering.LWRP.LightWeightUnlitSubShader")]
+    [FormerName("UnityEngine.Rendering.LWRP.LightWeightUnlitSubShader")]
     class UniversalUnlitSubShader : IUnlitSubShader
     {
         static readonly NeededCoordinateSpace k_PixelCoordinateSpace = NeededCoordinateSpace.World;

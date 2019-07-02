@@ -1,7 +1,7 @@
 Pass
 {
     Name "Sprite Lit"
-    Tags { "LightMode" = "Lightweight2D" }
+    Tags { "LightMode" = "Universal2D" }
 
 ${Tags}
 ${Blending}
