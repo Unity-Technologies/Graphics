@@ -192,8 +192,8 @@ Shader "Universal Render Pipeline/Simple Lit"
         }
         Pass
         {
-            Name "Lightweight2D"
-            Tags{ "LightMode" = "Lightweight2D" }
+            Name "Universal2D"
+            Tags{ "LightMode" = "Universal2D" }
             Tags{ "RenderType" = "Transparent" "Queue" = "Transparent" }
 
             HLSLPROGRAM
@@ -207,7 +207,7 @@ Shader "Universal Render Pipeline/Simple Lit"
             #pragma shader_feature _ALPHAPREMULTIPLY_ON
 
             #include "Packages/com.unity.render-pipelines.universal/Shaders/SimpleLitInput.hlsl"
-            #include "Packages/com.unity.render-pipelines.universal/Shaders/Utils/Lightweight2D.hlsl"
+            #include "Packages/com.unity.render-pipelines.universal/Shaders/Utils/Universal2D.hlsl"
             ENDHLSL
         }
     }

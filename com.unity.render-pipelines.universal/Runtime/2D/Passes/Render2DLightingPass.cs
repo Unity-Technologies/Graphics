@@ -9,7 +9,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
     {
         static SortingLayer[] s_SortingLayers;
         Renderer2DData m_RendererData;
-        static readonly ShaderTagId k_CombinedRenderingPassName = new ShaderTagId("Lightweight2D");
+        static readonly ShaderTagId k_CombinedRenderingPassName = new ShaderTagId("Universal2D");
         static readonly ShaderTagId k_NormalsRenderingPassName = new ShaderTagId("NormalsRendering");
         static readonly ShaderTagId k_LegacyPassName = new ShaderTagId("SRPDefaultUnlit");
         static readonly List<ShaderTagId> k_ShaderTags = new List<ShaderTagId>() { k_LegacyPassName, k_CombinedRenderingPassName };
@@ -22,7 +22,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
             m_RendererData = rendererData;
         }
-      
+
 
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
@@ -96,7 +96,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
                 if (lightStats.totalVolumetricUsage > 0)
                 {
-                    
+
                     cmd.Clear();
 #if UNITY_EDITOR
                     cmd.name = "Render Light Volumes" + SortingLayer.IDToName(layerToRender);
