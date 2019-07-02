@@ -41,4 +41,5 @@
     int _RaytracedIndirectDiffuse;
     uint _ScreenSpaceShadowArraySize;
 
+
 #endif
