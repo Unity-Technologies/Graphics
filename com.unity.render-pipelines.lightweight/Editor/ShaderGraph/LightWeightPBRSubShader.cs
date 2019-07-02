@@ -109,7 +109,7 @@ namespace UnityEditor.Rendering.LWRP
 
         Pass m_ForwardPassMetallic2D = new Pass
         {
-            Name = "LightweightForward",
+            Name = "Lightweight2D",
             TemplatePath = "lightweight2DPBRPass.template",
             PixelShaderSlots = new List<int>
             {
@@ -155,7 +155,7 @@ namespace UnityEditor.Rendering.LWRP
 
         Pass m_ForwardPassSpecular2D = new Pass()
         {
-            Name = "LightweightForward",
+            Name = "Lightweight2D",
             TemplatePath = "lightweight2DPBRPass.template",
             PixelShaderSlots = new List<int>()
             {
