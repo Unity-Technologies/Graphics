@@ -74,7 +74,7 @@ Shader "Hidden/HDRP/DownsampleDepth"
 
         Pass
         {
-            ZWrite On ZTest Off Blend Off Cull Off
+            ZWrite On Blend Off Cull Off ZTest Always
 
             HLSLPROGRAM
                 #pragma vertex Vert

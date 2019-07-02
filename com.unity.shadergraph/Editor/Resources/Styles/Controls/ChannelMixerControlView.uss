@@ -20,9 +20,13 @@ ChannelMixerControlView > #buttonPanel {
 
 ChannelMixerControlView > #buttonPanel > Button {
     flex-grow: 1;
-    margin-left: 0;
-    margin-right: 0;
+    margin-left: 1;
+    margin-right: 1;
     align-items: center;
+    border-left-width: 0;
+    border-top-width: 0;
+    border-right-width: 0;
+    border-bottom-width: 1;
 }
 
 ChannelMixerControlView > #buttonPanel > Button > Label {

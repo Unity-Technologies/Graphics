@@ -7,7 +7,7 @@ using System.Linq;
 
 using Object = UnityEngine.Object;
 using System.Collections.ObjectModel;
-using UnityEngine.Experimental.VFX;
+using UnityEngine.VFX;
 
 namespace UnityEditor.VFX.UI
 {

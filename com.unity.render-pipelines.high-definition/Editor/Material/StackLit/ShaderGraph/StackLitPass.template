@@ -149,7 +149,7 @@ Pass
 
     // StackLit shader_features:
 
-    $SpecularOcclusion:                                  #define _ENABLESPECULAROCCLUSION // directly for StackLit.hlsl
+    $SpecularOcclusion:                                  #define _ENABLESPECULAROCCLUSION // main enable
 
     $BaseParametrization.SpecularColor:                  #define _MATERIAL_FEATURE_SPECULAR_COLOR
     $Material.Anisotropy:                                #define _MATERIAL_FEATURE_ANISOTROPY
@@ -166,6 +166,39 @@ Pass
     $StackLitDebug:                                      #define _STACKLIT_DEBUG
     $DepthOffset:                                        #define _DEPTHOFFSET_ON 1
     $BlendMode.PreserveSpecular:                         #define _BLENDMODE_PRESERVE_SPECULAR_LIGHTING 1
+
+    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/SphericalCapPivot/SpecularOcclusionDef.hlsl"
+
+    // StackLit.hlsl config defines (direct, no feature keywords):
+    // _SCREENSPACE_SPECULAROCCLUSION_METHOD, _SCREENSPACE_SPECULAROCCLUSION_VISIBILITY_FROM_AO_WEIGHT, _SCREENSPACE_SPECULAROCCLUSION_VISIBILITY_DIR
+    // _DATABASED_SPECULAROCCLUSION_METHOD, _DATABASED_SPECULAROCCLUSION_VISIBILITY_FROM_AO_WEIGHT
+    $ScreenSpaceSpecularOcclusionBaseMode.Off:                          #define _SCREENSPACE_SPECULAROCCLUSION_METHOD SPECULAR_OCCLUSION_DISABLED
+    $ScreenSpaceSpecularOcclusionBaseMode.DirectFromAO:                 #define _SCREENSPACE_SPECULAROCCLUSION_METHOD SPECULAR_OCCLUSION_FROM_AO
+    $ScreenSpaceSpecularOcclusionBaseMode.ConeConeFromBentAO:           #define _SCREENSPACE_SPECULAROCCLUSION_METHOD SPECULAR_OCCLUSION_CONECONE
+    $ScreenSpaceSpecularOcclusionBaseMode.SPTDIntegrationOfBentAO:      #define _SCREENSPACE_SPECULAROCCLUSION_METHOD SPECULAR_OCCLUSION_SPTD
+
+    $ScreenSpaceSpecularOcclusionAOConeSize.UniformAO:                  #define _SCREENSPACE_SPECULAROCCLUSION_VISIBILITY_FROM_AO_WEIGHT BENT_VISIBILITY_FROM_AO_UNIFORM
+    $ScreenSpaceSpecularOcclusionAOConeSize.CosWeightedAO:              #define _SCREENSPACE_SPECULAROCCLUSION_VISIBILITY_FROM_AO_WEIGHT BENT_VISIBILITY_FROM_AO_COS
+    $ScreenSpaceSpecularOcclusionAOConeSize.CosWeightedBentCorrectAO:   #define _SCREENSPACE_SPECULAROCCLUSION_VISIBILITY_FROM_AO_WEIGHT BENT_VISIBILITY_FROM_AO_COS_BENT_CORRECTION
+
+    $ScreenSpaceSpecularOcclusionAOConeDir.GeomNormal:                  #define _SCREENSPACE_SPECULAROCCLUSION_VISIBILITY_DIR BENT_VISIBILITY_DIR_GEOM_NORMAL
+    $ScreenSpaceSpecularOcclusionAOConeDir.BentNormal:                  #define _SCREENSPACE_SPECULAROCCLUSION_VISIBILITY_DIR BENT_VISIBILITY_DIR_BENT_NORMAL
+    $ScreenSpaceSpecularOcclusionAOConeDir.ShadingNormal:               #define _SCREENSPACE_SPECULAROCCLUSION_VISIBILITY_DIR BENT_VISIBILITY_DIR_SHADING_NORMAL
+
+    $DataBasedSpecularOcclusionBaseMode.Off:                            #define _DATABASED_SPECULAROCCLUSION_METHOD SPECULAR_OCCLUSION_DISABLED
+    $DataBasedSpecularOcclusionBaseMode.DirectFromAO:                   #define _DATABASED_SPECULAROCCLUSION_METHOD SPECULAR_OCCLUSION_FROM_AO
+    $DataBasedSpecularOcclusionBaseMode.ConeConeFromBentAO:             #define _DATABASED_SPECULAROCCLUSION_METHOD SPECULAR_OCCLUSION_CONECONE
+    $DataBasedSpecularOcclusionBaseMode.SPTDIntegrationOfBentAO:        #define _DATABASED_SPECULAROCCLUSION_METHOD SPECULAR_OCCLUSION_SPTD
+
+    $DataBasedSpecularOcclusionAOConeSize.UniformAO:                    #define _DATABASED_SPECULAROCCLUSION_VISIBILITY_FROM_AO_WEIGHT BENT_VISIBILITY_FROM_AO_UNIFORM
+    $DataBasedSpecularOcclusionAOConeSize.CosWeightedAO:                #define _DATABASED_SPECULAROCCLUSION_VISIBILITY_FROM_AO_WEIGHT BENT_VISIBILITY_FROM_AO_COS
+    $DataBasedSpecularOcclusionAOConeSize.CosWeightedBentCorrectAO:     #define _DATABASED_SPECULAROCCLUSION_VISIBILITY_FROM_AO_WEIGHT BENT_VISIBILITY_FROM_AO_COS_BENT_CORRECTION
+
+    // Cone fixup is only for cone methods and only for data based SO:
+    $SpecularOcclusionConeFixupMethod.Off:                              #define _BENT_VISIBILITY_FIXUP_FLAGS BENT_VISIBILITY_FIXUP_FLAGS_NONE
+    $SpecularOcclusionConeFixupMethod.BoostBSDFRoughness:               #define _BENT_VISIBILITY_FIXUP_FLAGS BENT_VISIBILITY_FIXUP_FLAGS_BOOST_BSDF_ROUGHNESS
+    $SpecularOcclusionConeFixupMethod.TiltDirectionToGeomNormal:        #define _BENT_VISIBILITY_FIXUP_FLAGS BENT_VISIBILITY_FIXUP_FLAGS_TILT_BENTNORMAL_TO_GEOM
+    $SpecularOcclusionConeFixupMethod.BoostAndTilt:                     #define _BENT_VISIBILITY_FIXUP_FLAGS (BENT_VISIBILITY_FIXUP_FLAGS_BOOST_BSDF_ROUGHNESS|BENT_VISIBILITY_FIXUP_FLAGS_TILT_BENTNORMAL_TO_GEOM)
 
     // The other predicates that don't directly map to inputs (the more abstract, called "specific" above)
     // are used in the surfaceData and builtinData functions.
@@ -216,6 +249,11 @@ Pass
     $VaryingsMeshToPS.color:                #define VARYINGS_NEED_COLOR
     $VaryingsMeshToPS.cullFace:             #define VARYINGS_NEED_CULLFACE
     $features.modifyMesh:                   #define HAVE_MESH_MODIFICATION
+
+// We need isFontFace when using double sided
+#if defined(_DOUBLESIDED_ON) && !defined(VARYINGS_NEED_CULLFACE)
+    #define VARYINGS_NEED_CULLFACE
+#endif
 
     //-------------------------------------------------------------------------------------
     // End Defines
@@ -297,6 +335,8 @@ $include("SharedCode.template.hlsl")
         // setup defaults -- these are used if the graph doesn't output a value
         ZERO_INITIALIZE(SurfaceData, surfaceData);
 
+        $CoatMaskOne: surfaceData.coatMask = 1.0;
+
         // Copy graph values to surfaceData, if defined
         $SurfaceDescription.BaseColor:                 surfaceData.baseColor =                surfaceDescription.BaseColor;
         $SurfaceDescription.SubsurfaceMask:            surfaceData.subsurfaceMask =           surfaceDescription.SubsurfaceMask;
@@ -304,15 +344,24 @@ $include("SharedCode.template.hlsl")
         $SurfaceDescription.DiffusionProfileHash:      surfaceData.diffusionProfileHash =     asuint(surfaceDescription.DiffusionProfileHash);
         $SurfaceDescription.IridescenceMask:           surfaceData.iridescenceMask =          surfaceDescription.IridescenceMask;
         $SurfaceDescription.IridescenceThickness:      surfaceData.iridescenceThickness =     surfaceDescription.IridescenceThickness;
+        $SurfaceDescription.IridescenceCoatFixupTIR:   surfaceData.iridescenceCoatFixupTIR =  surfaceDescription.IridescenceCoatFixupTIR;
+        $SurfaceDescription.IridescenceCoatFixupTIRClamp: surfaceData.iridescenceCoatFixupTIRClamp =  surfaceDescription.IridescenceCoatFixupTIRClamp;
         $SurfaceDescription.SpecularColor:             surfaceData.specularColor =            surfaceDescription.SpecularColor;
         $SurfaceDescription.DielectricIor:             surfaceData.dielectricIor =            surfaceDescription.DielectricIor;
         $SurfaceDescription.Metallic:                  surfaceData.metallic =                 surfaceDescription.Metallic;
         $SurfaceDescription.SmoothnessA:               surfaceData.perceptualSmoothnessA =    surfaceDescription.SmoothnessA;
         $SurfaceDescription.SmoothnessB:               surfaceData.perceptualSmoothnessB =    surfaceDescription.SmoothnessB;
         $SurfaceDescription.AmbientOcclusion:          surfaceData.ambientOcclusion =         surfaceDescription.AmbientOcclusion;
+        //TODO: if custom external values are wanted, we need one SO value per lobe.
+        //$SurfaceDescription.SpecularOcclusion:         surfaceData.specularOcclusion =        surfaceDescription.SpecularOcclusion;
+        $SurfaceDescription.SOConeFixupVisibilityThreshold: surfaceData.soFixupVisibilityRatioThreshold = surfaceDescription.SOConeFixupVisibilityThreshold;
+        $SurfaceDescription.SOConeFixupStrength:            surfaceData.soFixupStrengthFactor =           surfaceDescription.SOConeFixupStrength;
+        $SurfaceDescription.SOConeFixupMaxAddedRoughness:   surfaceData.soFixupMaxAddedRoughness =        surfaceDescription.SOConeFixupMaxAddedRoughness;
+
         $SurfaceDescription.AnisotropyA:               surfaceData.anisotropyA =              surfaceDescription.AnisotropyA;
         $SurfaceDescription.AnisotropyB:               surfaceData.anisotropyB =              surfaceDescription.AnisotropyB;
         $SurfaceDescription.CoatSmoothness:            surfaceData.coatPerceptualSmoothness = surfaceDescription.CoatSmoothness;
+        $SurfaceDescription.CoatMask:                  surfaceData.coatMask =                 surfaceDescription.CoatMask;
         $SurfaceDescription.CoatIor:                   surfaceData.coatIor =                  surfaceDescription.CoatIor;
         $SurfaceDescription.CoatThickness:             surfaceData.coatThickness =            surfaceDescription.CoatThickness;
         $SurfaceDescription.CoatExtinction:            surfaceData.coatExtinction =           surfaceDescription.CoatExtinction;
@@ -361,10 +410,9 @@ $include("SharedCode.template.hlsl")
 #ifdef _MATERIAL_FEATURE_HAZY_GLOSS
         surfaceData.hazyGlossMaxDielectricF0 = 1.0;
         $CapHazinessIfNotMetallic: surfaceData.hazyGlossMaxDielectricF0 = surfaceDescription.HazyGlossMaxDielectricF0;
-        // ...no need for SurfaceDescription.HazyGlossMaxDielectricF0:,
-        // CapHazinessIfNotMetallic:
-        // is only active if the pass wants the PixelShaderSlot HazyGlossMaxDielectricF0
-        // and if masterNode.capHazinessWrtMetallic.isOn: the later should ensure we're in hazygloss mode and thus,
+        // ...no need for the SurfaceDescription.HazyGlossMaxDielectricF0: predicate,
+        // the CapHazinessIfNotMetallic: predicate is only active if the pass wants the PixelShaderSlot HazyGlossMaxDielectricF0
+        // and if masterNode.capHazinessWrtMetallic.isOn:, the later should ensure we're in hazygloss mode and thus,
         // the masterNode has the HazyGlossMaxDielectricF0 material slot added.
 #endif
 
@@ -378,7 +426,7 @@ $include("SharedCode.template.hlsl")
     float3 doubleSidedConstants = float3(1.0, 1.0, 1.0);
 #endif
 
-        surfaceData.geomNormalWS = fragInputs.worldToTangent[2];
+        surfaceData.geomNormalWS = fragInputs.tangentToWorld[2];
 
         // tangent-space normal
         float3 normalTS = float3(0.0f, 0.0f, 1.0f);
@@ -387,16 +435,16 @@ $include("SharedCode.template.hlsl")
         // compute world space normal
         GetNormalWS(fragInputs, normalTS, surfaceData.normalWS, doubleSidedConstants);
 
-        surfaceData.bentNormalWS = surfaceData.normalWS;
+        surfaceData.bentNormalWS = surfaceData.geomNormalWS; // better to use the geometric one for occlusion by default if no bentnormal map given
         surfaceData.coatNormalWS = surfaceData.geomNormalWS;
         $BentNormal: GetNormalWS(fragInputs, surfaceDescription.BentNormal, surfaceData.bentNormalWS, doubleSidedConstants);
         $CoatNormal: GetNormalWS(fragInputs, surfaceDescription.CoatNormal, surfaceData.coatNormalWS, doubleSidedConstants);
 
-        // surfaceData.tangentWS = normalize(fragInputs.worldToTangent[0].xyz);
+        // surfaceData.tangentWS = normalize(fragInputs.tangentToWorld[0].xyz);
         // ...We don't need to normalize if we're going to call Orthonormalize anyways as long as
         // surfaceData.normalWS is normalized:
-        surfaceData.tangentWS = (fragInputs.worldToTangent[0].xyz); // The tangent is not normalize in worldToTangent for mikkt. TODO: Check if it expected that we normalize with Morten. Tag: SURFACE_GRADIENT
-        $Tangent: surfaceData.tangentWS = TransformTangentToWorld(surfaceDescription.Tangent, fragInputs.worldToTangent);
+        surfaceData.tangentWS = (fragInputs.tangentToWorld[0].xyz); // The tangent is not normalize in tangentToWorld for mikkt. TODO: Check if it expected that we normalize with Morten. Tag: SURFACE_GRADIENT
+        $Tangent: surfaceData.tangentWS = TransformTangentToWorld(surfaceDescription.Tangent, fragInputs.tangentToWorld);
         surfaceData.tangentWS = Orthonormalize(surfaceData.tangentWS, surfaceData.normalWS);
 
 #if HAVE_DECALS
@@ -428,7 +476,7 @@ $include("SharedCode.template.hlsl")
 
         float geometricVariance = 0.0;
         // Note SpecularAA: or GeometricSpecularAA: guarantees surfaceDescription has SpecularAAScreenSpaceVariance and SpecularAAThreshold.
-        $GeometricSpecularAA: geometricVariance = GeometricNormalVariance(fragInputs.worldToTangent[2], surfaceDescription.SpecularAAScreenSpaceVariance);
+        $GeometricSpecularAA: geometricVariance = GeometricNormalVariance(fragInputs.tangentToWorld[2], surfaceDescription.SpecularAAScreenSpaceVariance);
 
         // TODO: Handle normal map filtering
         // Also handle texture normal filtering when we have the proper operator nodes and can thus have the variance port
@@ -450,7 +498,7 @@ $include("SharedCode.template.hlsl")
 
         // We need to call ApplyDebugToSurfaceData after filling the surfarcedata and before filling builtinData
         // as it can modify attributes used for static lighting
-        ApplyDebugToSurfaceData(fragInputs.worldToTangent, surfaceData);
+        ApplyDebugToSurfaceData(fragInputs.tangentToWorld, surfaceData);
 #endif
     }
 
@@ -482,7 +530,7 @@ $include("SharedCode.template.hlsl")
 
         // Builtin Data
         // For back lighting we use the oposite vertex normal 
-        InitBuiltinData(posInput, surfaceDescription.Alpha, surfaceData.bentNormalWS, -fragInputs.worldToTangent[2], fragInputs.texCoord1, fragInputs.texCoord2, builtinData);
+        InitBuiltinData(posInput, surfaceDescription.Alpha, surfaceData.bentNormalWS, -fragInputs.tangentToWorld[2], fragInputs.texCoord1, fragInputs.texCoord2, builtinData);
         
         // override sampleBakedGI:
         $LightingGI: builtinData.bakeDiffuseLighting = surfaceDescription.BakedGI;

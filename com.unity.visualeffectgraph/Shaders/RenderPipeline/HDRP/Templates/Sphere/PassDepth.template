@@ -17,6 +17,8 @@ Pass
 		float2 uv : TEXCOORD1;
 		float4 posWS : TEXCOORD2;
 		float4 sphereInfo : TEXCOORD3;
+
+		UNITY_VERTEX_OUTPUT_STEREO
 	};
 		
 #define VFX_VARYING_PS_INPUTS ps_input
@@ -47,6 +49,7 @@ ${VFXEnd}
 #endif
 	, out float oDepth : SV_DepthLessEqual)
 	{
+		UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i);
 		VFXTransformPSInputs(i);
 		float3 normalWS;
 		VFXClipSphereAndGetDepthOffsetAndNormal(oDepth, normalWS, i);		

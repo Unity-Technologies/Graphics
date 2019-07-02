@@ -248,6 +248,11 @@ namespace UnityEngine.Rendering.Universal
 
                 foreach (var channel in vertexRequirements.requiresMeshUVs.Distinct())
                     vertexDescriptionInputStruct.AppendLine("half4 {0};", channel.GetUVName());
+
+                if (vertexRequirements.requiresTime)
+                {
+                    vertexDescriptionInputStruct.AppendLine("float3 {0};", ShaderGeneratorNames.TimeParameters);
+                }
             }
 
             // -------------------------------------
@@ -295,6 +300,11 @@ namespace UnityEngine.Rendering.Universal
 
                 foreach (var channel in surfaceRequirements.requiresMeshUVs.Distinct())
                     surfaceDescriptionInputStruct.AppendLine("half4 {0};", channel.GetUVName());
+
+                if (surfaceRequirements.requiresTime)
+                {
+                    surfaceDescriptionInputStruct.AppendLine("float3 {0};", ShaderGeneratorNames.TimeParameters);
+                }
             }
 
             // -------------------------------------

@@ -39,6 +39,8 @@ Pass
 		float2 bentFactors : TEXCOORD6;
 		#endif
 		#endif
+
+		UNITY_VERTEX_OUTPUT_STEREO
 	};
 
 #define VFX_VARYING_PS_INPUTS ps_input
@@ -81,6 +83,7 @@ ${VFXEnd}
 #endif
 	)
 	{
+		UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i);
 		VFXTransformPSInputs(i);
 		
 #ifdef WRITE_NORMAL_BUFFER		

@@ -3,10 +3,9 @@ using System.Linq;
 using System.IO;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEditor.Experimental.VFX;
-using UnityEngine.Experimental.VFX;
-using UnityEditor;
 using UnityEditor.VFX;
+using UnityEngine.VFX;
+using UnityEditor;
 using UnityEditor.VFX.UI;
 using UnityEditor.ProjectWindowCallback;
 
@@ -87,7 +86,7 @@ namespace UnityEditor
             var action = ScriptableObject.CreateInstance<DoCreateNewVFX>();
             ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, action, "New VFX.vfx", texture, null);
         }
-        
+
         internal class DoCreateNewVFX : EndNameEditAction
         {
             public override void Action(int instanceId, string pathName, string resourceFile)
@@ -96,8 +95,6 @@ namespace UnityEditor
                 {
                     var templateString = System.IO.File.ReadAllText(templatePath + templateAssetName);
                     System.IO.File.WriteAllText(pathName, templateString);
-
-            
                 }
                 catch(FileNotFoundException)
                 {
@@ -147,6 +144,7 @@ namespace UnityEditor
 
             CreateVisualEffectSubgraph<VisualEffectSubgraphBlock, DoCreateNewSubgraphBlock>(fileName, templateBlockSubgraphAssetName);
         }
+        
         public static void CreateVisualEffectSubgraph<T,U>(string fileName,string templateName) where U : EndNameEditAction
         {
             string templateString = "";
@@ -167,6 +165,6 @@ namespace UnityEditor
 
                 return;
             }
-        }
+        }                
     }
 }

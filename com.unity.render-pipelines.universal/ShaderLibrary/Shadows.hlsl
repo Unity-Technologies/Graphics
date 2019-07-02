@@ -126,7 +126,7 @@ real SampleShadowmap(float4 shadowCoord, TEXTURE2D_SHADOW_PARAM(ShadowMap, sampl
     real attenuation;
 
 #ifdef _SHADOWS_SOFT
-    #ifdef SHADER_API_MOBILE
+    #if defined(SHADER_API_MOBILE) || defined(SHADER_API_SWITCH)
         // 4-tap hardware comparison
         real4 attenuation4;
         attenuation4.x = SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, shadowCoord.xyz + samplingData.shadowOffset0.xyz);
