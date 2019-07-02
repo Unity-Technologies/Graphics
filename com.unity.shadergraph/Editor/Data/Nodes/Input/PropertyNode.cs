@@ -166,7 +166,7 @@ namespace UnityEditor.ShaderGraph
         {
             var property = owner.properties.FirstOrDefault(x => x.guid == propertyGuid);
             if (property == null)
-                return "Error";
+                throw new NullReferenceException();
             
             if (!(property is TextureShaderProperty) &&
                 !(property is Texture2DArrayShaderProperty) &&

@@ -11,14 +11,22 @@ namespace UnityEditor.ShaderGraph
             displayName = "SamplerState";
             value = new TextureSamplerState();
         }
-        
-        public override string referenceName => $"{concreteShaderValueType.ToShaderString()}_{GuidEncoder.Encode(guid)}_{value.filter}_{value.wrap}";
 
         public override PropertyType propertyType => PropertyType.SamplerState;
         
         public override bool isBatchable => false;
         public override bool isExposable => false;
         public override bool isRenamable => false;
+
+        public override TextureSamplerState value
+        {
+            get => base.value;
+            set
+            {
+                overrideReferenceName = $"{concreteShaderValueType.ToShaderString()}_{GuidEncoder.Encode(guid)}_{value.filter}_{value.wrap}";
+                base.value = value;
+            }
+        }
         
         public override string GetPropertyDeclarationString(string delimiter = ";")
         {

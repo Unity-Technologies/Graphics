@@ -197,7 +197,7 @@ namespace UnityEditor.ShaderGraph
                 if(prop == null)
                     continue;
                 
-                prop.SetConcretePrecision(asset.graphPrecision);
+                prop.ValidateConcretePrecision(asset.graphPrecision);
                 var inSlotId = m_PropertyIds[m_PropertyGuids.IndexOf(prop.guid.ToString())];
 
                 switch(prop)
