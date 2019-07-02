@@ -142,6 +142,18 @@ namespace UnityEngine.Experimental.Rendering
                 );
         }
 
+        public static RTHandleSystem.RTHandle Alloc(Texture tex)
+        {
+            return s_DefaultInstance.Alloc(tex);
+        }
+
+        public static RTHandleSystem.RTHandle Alloc(RTHandleSystem.RTHandle tex)
+        {
+            Debug.LogError("Allocation a RTHandle from another one is forbidden.");
+            return null;
+        }
+
+
         public static void Initialize(
             int width,
             int height,

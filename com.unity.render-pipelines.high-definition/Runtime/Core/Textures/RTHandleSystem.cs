@@ -365,9 +365,8 @@ namespace UnityEngine.Experimental.Rendering
 
             rt.Create();
 
-            RTCategory category = enableMSAA ? RTCategory.MSAA : RTCategory.Regular;
             var newRT = new RTHandle(this);
-            newRT.SetRenderTexture(rt, category);
+            newRT.SetRenderTexture(rt);
             newRT.useScaling = false;
             newRT.m_EnableRandomWrite = enableRandomWrite;
             newRT.m_EnableMSAA = enableMSAA;
@@ -546,7 +545,6 @@ namespace UnityEngine.Experimental.Rendering
             }
 
             int msaaSamples = allocForMSAA ? (int)m_ScaledRTCurrentMSAASamples : 1;
-            RTCategory category = allocForMSAA ? RTCategory.MSAA : RTCategory.Regular;
 
             // We need to handle this in an explicit way since GraphicsFormat does not expose depth formats. TODO: Get rid of this branch once GraphicsFormat'll expose depth related formats
             RenderTexture rt;
@@ -597,7 +595,7 @@ namespace UnityEngine.Experimental.Rendering
             rt.Create();
 
             var rth = new RTHandle(this);
-            rth.SetRenderTexture(rt, category);
+            rth.SetRenderTexture(rt);
             rth.m_EnableMSAA = enableMSAA;
             rth.m_EnableRandomWrite = enableRandomWrite;
             rth.useScaling = true;
@@ -606,6 +604,25 @@ namespace UnityEngine.Experimental.Rendering
             m_AutoSizedRTs.Add(rth);
             return rth;
         }
+
+        public RTHandle Alloc(Texture texture)
+        {
+            var rth = new RTHandle(this);
+            rth.SetTexture(texture);
+            rth.m_EnableMSAA = false;
+            rth.m_EnableRandomWrite = false;
+            rth.useScaling = false;
+            rth.m_EnableHWDynamicScale = false;
+            rth.m_Name = "";
+            return rth;
+        }
+
+        public static RTHandle Alloc(RTHandle tex)
+        {
+            Debug.LogError("Allocation a RTHandle from another one is forbidden.");
+            return null;
+        }
+
 
         public string DumpRTInfo()
         {
