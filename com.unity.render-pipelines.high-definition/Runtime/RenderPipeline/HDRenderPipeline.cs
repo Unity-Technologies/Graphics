@@ -120,7 +120,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // MSAA Versions of regular textures
         RTHandleSystem.RTHandle m_CameraColorMSAABuffer;
         RTHandleSystem.RTHandle m_CameraSssDiffuseLightingMSAABuffer;
-        RTHandleSystem.RTHandle m_VTFeedbackBufferMSAA;
         RTHandleSystem.RTHandle m_VTFeedbackBuffer;
 
         // The current MSAA count
@@ -494,11 +493,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Allocate a VT feedback buffer when the one from the GBuffer can't be used.
             if (settings.supportMSAA || settings.supportedLitShaderMode == RenderPipelineSettings.SupportedLitShaderMode.ForwardOnly)
             {
-                m_VTFeedbackBuffer = RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GraphicsFormat.R8G8B8A8_UNorm, bindTextureMS: true, useDynamicScale: true, name: "VTFeedbackExtra");
-                if (settings.supportMSAA)
-                {
-                    m_VTFeedbackBufferMSAA = RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GraphicsFormat.R8G8B8A8_UNorm, bindTextureMS: true, enableMSAA: true, useDynamicScale: true, name: "VTFeedbackMSAA");
-                }
+                // Our processing handles both MSAA and regular buffers so we don't need to explicitly resolve here saving a buffer
+                m_VTFeedbackBuffer = RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GraphicsFormat.R8G8B8A8_UNorm, bindTextureMS: true, enableMSAA: true, useDynamicScale: true, name: "VTFeedbackForward");
             }
         }
 
@@ -1988,7 +1984,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 #if ENABLE_VIRTUALTEXTURES
             // Unbind the RT. TODO(ddebaets) there must be a better way right ?
             HDUtils.SetRenderTarget(cmd, m_GbufferManager.GetGBuffer0RT(), m_SharedRTManager.GetDepthStencilBuffer());
-            m_SharedRTManager.ResolveMSAAColor(cmd, hdCamera, m_VTFeedbackBufferMSAA, m_VTFeedbackBuffer);//FIXME: Refactor
             hdCamera.ResolveVT(cmd, m_GbufferManager.GetVTFeedbackBuffer(), m_VTFeedbackBuffer, m_Asset);
             Experimental.VirtualTexturing.UpdateSystem();
 #endif
@@ -3789,14 +3784,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             if (m_Asset.currentPlatformRenderPipelineSettings.supportMSAA || m_Asset.currentPlatformRenderPipelineSettings.supportedLitShaderMode == RenderPipelineSettings.SupportedLitShaderMode.ForwardOnly)
             {
-                if (m_Asset.currentPlatformRenderPipelineSettings.supportMSAA)
-                {
-                    return m_VTFeedbackBufferMSAA;
-                }
-                else
-                {
-                    return m_VTFeedbackBuffer;
-                }
+                return m_VTFeedbackBuffer;
             }
             else
             {
