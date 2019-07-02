@@ -188,11 +188,13 @@ CBUFFER_START(UnityGlobal)
     float4 _TaaJitterStrength;          // { x, y, x/width, y/height }
 
     // t = animateMaterials ? Time.realtimeSinceStartup : 0.
+    // We keep all those time value for compatibility with legacy unity but prefer _TimeParameters instead.
     float4 _Time;                       // { t/20, t, t*2, t*3 }
-    float4 _LastTime;                   // { t/20, t, t*2, t*3 }
     float4 _SinTime;                    // { sin(t/8), sin(t/4), sin(t/2), sin(t) }
     float4 _CosTime;                    // { cos(t/8), cos(t/4), cos(t/2), cos(t) }
     float4 unity_DeltaTime;             // { dt, 1/dt, smoothdt, 1/smoothdt }
+    float4 _TimeParameters;             // { t, sin(t), cos(t) }
+    float4 _LastTimeParameters;         // { t, sin(t), cos(t) }
 
     // Volumetric lighting.
     float4 _AmbientProbeCoeffs[7];      // 3 bands of SH, packed, rescaled and convolved with the phase function

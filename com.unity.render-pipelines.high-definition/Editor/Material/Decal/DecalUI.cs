@@ -27,6 +27,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
             LoadMaterialProperties(props);
 
+            SerializedProperty instancing = materialEditor.serializedObject.FindProperty("m_EnableInstancingVariants");            
+            instancing.boolValue = true;
+
             using (var changed = new EditorGUI.ChangeCheckScope())
             {
                 uiBlocks.OnGUI(materialEditor, props);
@@ -56,6 +59,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                         SetupMaterialKeywordsAndPassInternal(material);
                 }
             }
+            materialEditor.serializedObject.ApplyModifiedProperties();
         }
 
         enum BlendSource

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering.HDPipeline;
+using UnityEngine.Rendering;
 
 // Include material common properties names
 using static UnityEngine.Experimental.Rendering.HDPipeline.HDMaterialProperties;
@@ -94,6 +95,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             
             // SSR
             public static GUIContent receivesSSRText = new GUIContent("Receive SSR", "When enabled, this Material can receive screen space reflections.");
+
+            public static string afterPostProcessZTestInfoBox = "After post-process material wont be ZTested. Enable the \"ZTest For After PostProcess\" checkbox in the Frame Settings to force the depth-test if the TAA is disabled.";
         }
    
         // Properties common to Unlit and Lit
@@ -420,6 +423,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             if (surfaceTypeValue == SurfaceType.Transparent)
             {
+                if (HDRenderQueue.k_RenderQueue_AfterPostProcessTransparent.Contains(renderQueue))
+                {
+                    if (!zTest.hasMixedValue && materials[0].GetTransparentZTest() != CompareFunction.Disabled)
+                    {
+                        ShowAfterPostProcessZTestInfoBox();
+                    }
+                }
+
                 EditorGUI.indentLevel++;
 
                 if (renderQueueHasMultipleDifferentValue)
@@ -479,6 +490,18 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
                 EditorGUI.indentLevel--;
             }
+            else // SurfaceType.Opaque
+            {
+                if (HDRenderQueue.k_RenderQueue_AfterPostProcessOpaque.Contains(renderQueue))
+                {
+                    ShowAfterPostProcessZTestInfoBox();
+                }
+            }
+        }
+        
+        void ShowAfterPostProcessZTestInfoBox()
+        {
+            EditorGUILayout.HelpBox(Styles.afterPostProcessZTestInfoBox, MessageType.Info);
         }
 
         void SurfaceTypePopup()

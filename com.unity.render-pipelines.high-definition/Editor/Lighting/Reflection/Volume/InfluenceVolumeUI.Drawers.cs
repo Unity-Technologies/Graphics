@@ -186,9 +186,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 {
                     editorAdvancedModeBlendDistancePositive.vector3Value = blendDistancePositive.vector3Value;
                     editorAdvancedModeBlendDistanceNegative.vector3Value = blendDistanceNegative.vector3Value;
-
-                    //Note it strangely do not propagate to main apply so apply here.
-                    serialized.Apply();
                 }
             }
             else

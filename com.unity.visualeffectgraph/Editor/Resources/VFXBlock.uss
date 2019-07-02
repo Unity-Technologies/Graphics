@@ -44,7 +44,7 @@ VFXContextUI VFXBlockUI.node #node-border #title
 
 VFXBlockUI.VFXNodeUI.node #node-border
 {
-    border-radius:8;
+    border-radius:8px;
 }
 
 VFXBlockUI.VFXNodeUI.node.invalid #node-border

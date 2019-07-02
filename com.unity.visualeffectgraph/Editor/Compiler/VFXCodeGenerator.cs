@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Experimental.VFX;
+using UnityEngine.VFX;
 
 using Object = UnityEngine.Object;
 using System.Text.RegularExpressions;
@@ -375,7 +375,7 @@ namespace UnityEditor.VFX
             }
 
             //< Final composition
-            var renderPipePath = UnityEngine.Experimental.VFX.VFXManager.renderPipeSettingsPath;
+            var renderPipePath = UnityEngine.VFX.VFXManager.renderPipeSettingsPath;
             string renderPipeCommon = "Packages/com.unity.visualeffectgraph/Shaders/Common/VFXCommonCompute.cginc";
             string renderPipePasses = null;
 

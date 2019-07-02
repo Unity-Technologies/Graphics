@@ -12,7 +12,7 @@ The options in the **Displacement Mode** drop-down change depending on the Shade
 | ----------------------- | ------------------------------------------------------------ |
 | **None**                | Select this option to apply no displacement to the Material. |
 | **Vertex displacement** | Select this option to displace the Mesh’s vertices according to the **Height Map**. |
-| **Pixel displacement**  | Select this option to displace the pixels on the Mesh surface according to the **Height Map.** |
+| **Pixel displacement**  | Select this option to displace the pixels on the Mesh surface according to the **Height Map**. |
 
 ### Tessellation Shaders
 

@@ -1,7 +1,7 @@
 using System;
 using System.Linq;
 using UnityEngine;
-using UnityEngine.Experimental.VFX;
+using UnityEngine.VFX;
 //using Direction = UnityEditor.VFX.Direction;
 
 namespace UnityEditor.VFX

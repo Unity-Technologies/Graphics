@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Globalization;
 using UnityEngine;
-using UnityEngine.Experimental.VFX;
+using UnityEngine.VFX;
 
 namespace UnityEditor.VFX
 {

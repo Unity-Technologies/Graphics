@@ -57,7 +57,6 @@ namespace UnityEditor.VFX
                 yield return "colorMappingMode";
                 yield return "blendMode";
                 yield return "castShadows";
-                yield return "preRefraction";
                 yield return "sort";
             }
         }

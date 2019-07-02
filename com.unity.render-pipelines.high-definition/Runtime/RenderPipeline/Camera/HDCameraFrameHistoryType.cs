@@ -11,7 +11,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         Depth,
 #if ENABLE_RAYTRACING
         RaytracedAmbientOcclusion,
-        RaytracedAreaShadow,
+        RaytracedShadow,
         RaytracedAreaAnalytic,
         RaytracedReflection,
         RaytracedIndirectDiffuse,

@@ -3,10 +3,10 @@ using System.Text;
 using System.Collections.Generic;
 using System.Linq;
 
-using UnityEditor.Experimental.VFX;
+using UnityEditor.VFX;
 
 using UnityEngine;
-using UnityEngine.Experimental.VFX;
+using UnityEngine.VFX;
 using UnityEngine.Profiling;
 using UnityEngine.Rendering;
 
@@ -512,7 +512,7 @@ namespace UnityEditor.VFX
 
                         return new VFXEditorTaskDesc
                         {
-                            type = (UnityEngine.Experimental.VFX.VFXTaskType)spawnerBlock.spawnerType,
+                            type = (UnityEngine.VFX.VFXTaskType)spawnerBlock.spawnerType,
                             buffers = new VFXMapping[0],
                             values = cpuExpression.ToArray(),
                             parameters = contextData.parameters,

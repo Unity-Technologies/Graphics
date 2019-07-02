@@ -13,7 +13,7 @@ float3 GetVertexDisplacement(float3 positionRWS, float3 normalWS, float2 texCoor
 }
 
 // Note: positionWS can be either in camera relative space or not
-void ApplyVertexModification(AttributesMesh input, float3 normalWS, inout float3 positionRWS, float4 time)
+void ApplyVertexModification(AttributesMesh input, float3 normalWS, inout float3 positionRWS, float3 timeParameters)
 {
 #if defined(_VERTEX_DISPLACEMENT)
 
@@ -44,14 +44,6 @@ void ApplyVertexModification(AttributesMesh input, float3 normalWS, inout float3
         float4(0.0, 0.0, 0.0, 0.0)
     #endif
         );
-#endif
-
-#ifdef _VERTEX_WIND
-    // current wind implementation is in absolute world space
-    float3 rootWP = GetObjectAbsolutePositionWS();
-    float3 absolutePositionWS = GetAbsolutePositionWS(positionRWS);
-    ApplyWindDisplacement(absolutePositionWS, normalWS, rootWP, _Stiffness, _Drag, _ShiverDrag, _ShiverDirectionality, _InitialBend, input.color.a, time);
-    positionRWS = GetCameraRelativePositionWS(absolutePositionWS);
 #endif
 }
 
