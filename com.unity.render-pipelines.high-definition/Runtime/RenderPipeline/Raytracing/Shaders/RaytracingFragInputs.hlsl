@@ -1,5 +1,5 @@
 
-void BuildFragInputsFromIntersection(IntersectionVertex currentVertex, in RayIntersection rayIntersection, out FragInputs outFragInputs)
+void BuildFragInputsFromIntersection(IntersectionVertex currentVertex, float3 incidentDirection, out FragInputs outFragInputs)
 {
 	outFragInputs.positionSS = float4(0.0, 0.0, 0.0, 0.0);
 	outFragInputs.positionRWS = mul(ObjectToWorld3x4(), float4(currentVertex.positionOS, 1.0)).xyz - _WorldSpaceCameraPos;
@@ -12,9 +12,9 @@ void BuildFragInputsFromIntersection(IntersectionVertex currentVertex, in RayInt
 	// Let's compute the object space binormal
 	float3 bitangent = cross(currentVertex.normalOS, currentVertex.tangentOS);
 	float3x3 objectToWorld = (float3x3)ObjectToWorld3x4();
-	outFragInputs.worldToTangent[0] = normalize(mul(objectToWorld, currentVertex.tangentOS));
-	outFragInputs.worldToTangent[1] = normalize(mul(objectToWorld, bitangent));
-	outFragInputs.worldToTangent[2] = normalize(mul(objectToWorld, currentVertex.normalOS));
+	outFragInputs.tangentToWorld[0] = normalize(mul(objectToWorld, currentVertex.tangentOS));
+	outFragInputs.tangentToWorld[1] = normalize(mul(objectToWorld, bitangent));
+	outFragInputs.tangentToWorld[2] = normalize(mul(objectToWorld, currentVertex.normalOS));
 
-	outFragInputs.isFrontFace = dot(rayIntersection.incidentDirection, outFragInputs.worldToTangent[2]) < 0.0f;
+	outFragInputs.isFrontFace = dot(incidentDirection, outFragInputs.tangentToWorld[2]) < 0.0f;
 }

@@ -27,7 +27,7 @@ namespace UnityEditor.ShaderGraph
         [SerializeField]
         private string m_DefaultReferenceName;
 
-        public virtual string referenceName
+        public string referenceName
         {
             get
             {

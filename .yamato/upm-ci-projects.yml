@@ -51,6 +51,12 @@ all_project_ci:
     {% else %}
     - .yamato/upm-ci-vfx_lwrp.yml#VFX_LWRP_Windows64_{{ testplatform.name }}_{{ editor.version }}
     {% endif %}
+  {% elsif project.name == "LWRP" or project.name == "PostProcessing" or project.name == "VFXMain" %}
+    {% if testplatform.name == "Standalone" %}
+    #skip standalone for these projects
+    {% else %}
+    - .yamato/upm-ci-{{ project.name | downcase }}.yml#{{ project.name }}_Windows64_{{ testplatform.name }}_{{ editor.version }}
+    {% endif %}  
   {% else %}
     - .yamato/upm-ci-{{ project.name | downcase }}.yml#{{ project.name }}_Windows64_{{ testplatform.name }}_{{ editor.version }}
   {% endif %}

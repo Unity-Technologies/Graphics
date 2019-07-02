@@ -70,7 +70,7 @@ void GetSurfaceData(FragInputs input, float3 V, PositionInputs posInput, out Dec
 	normalWS = mul((float3x3)normalToWorld, normalTS);
 #elif (SHADERPASS == SHADERPASS_DBUFFER_MESH)	
     // We need to normalize as we use mikkt tangent space and this is expected (tangent space is not normalize)
-    normalWS = normalize(TransformTangentToWorld(normalTS, input.worldToTangent));
+    normalWS = normalize(TransformTangentToWorld(normalTS, input.tangentToWorld));
 #endif
 	surfaceData.normalWS.xyz = normalWS;
 	surfaceData.normalWS.w = _NormalBlendSrc ? maskMapBlend : albedoMapBlend;

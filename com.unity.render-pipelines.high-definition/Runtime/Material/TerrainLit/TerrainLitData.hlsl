@@ -61,7 +61,7 @@ UNITY_INSTANCING_BUFFER_END(Terrain)
 float4 ConstructTerrainTangent(float3 normal, float3 positiveZ)
 {
     // Consider a flat terrain. It should have tangent be (1, 0, 0) and bitangent be (0, 0, 1) as the UV of the terrain grid mesh is a scale of the world XZ position.
-    // In CreateWorldToTangent function (in SpaceTransform.hlsl), it is cross(normal, tangent) * sgn for the bitangent vector.
+    // In CreateTangentToWorld function (in SpaceTransform.hlsl), it is cross(normal, tangent) * sgn for the bitangent vector.
     // It is not true in a left-handed coordinate system for the terrain bitangent, if we provide 1 as the tangent.w. It would produce (0, 0, -1) instead of (0, 0, 1).
     // Also terrain's tangent calculation was wrong in a left handed system because cross((0,0,1), terrainNormalOS) points to the wrong direction as negative X.
     // Therefore all the 4 xyzw components of the tangent needs to be flipped to correct the tangent frame.
@@ -70,7 +70,7 @@ float4 ConstructTerrainTangent(float3 normal, float3 positiveZ)
     return float4(tangent, -1);
 }
 
-AttributesMesh ApplyMeshModification(AttributesMesh input)
+AttributesMesh ApplyMeshModification(AttributesMesh input, float3 timeParameters)
 {
 #ifdef UNITY_INSTANCING_ENABLED
     float2 patchVertex = input.positionOS.xy;
@@ -159,15 +159,15 @@ void GetSurfaceAndBuiltinData(inout FragInputs input, float3 V, inout PositionIn
         float3 normalWS = mul((float3x3)GetObjectToWorldMatrix(), normalOS);
     #endif
     float4 tangentWS = ConstructTerrainTangent(normalWS, GetObjectToWorldMatrix()._13_23_33);
-    input.worldToTangent = BuildWorldToTangent(tangentWS, normalWS);
+    input.tangentToWorld = BuildTangentToWorld(tangentWS, normalWS);
 #endif
-    surfaceData.tangentWS = normalize(input.worldToTangent[0].xyz); // The tangent is not normalize in worldToTangent for mikkt. Tag: SURFACE_GRADIENT
+    surfaceData.tangentWS = normalize(input.tangentToWorld[0].xyz); // The tangent is not normalize in tangentToWorld for mikkt. Tag: SURFACE_GRADIENT
 
 #if !defined(ENABLE_TERRAIN_PERPIXEL_NORMAL) || !defined(TERRAIN_PERPIXEL_NORMAL_OVERRIDE)
-    float3 normalTS = ConvertToNormalTS(terrainLitSurfaceData.normalData, input.worldToTangent[0], input.worldToTangent[1]);
+    float3 normalTS = ConvertToNormalTS(terrainLitSurfaceData.normalData, input.tangentToWorld[0], input.tangentToWorld[1]);
     GetNormalWS(input, normalTS, surfaceData.normalWS, float3(1.0, 1.0, 1.0));
 #endif
-    surfaceData.geomNormalWS = input.worldToTangent[2];
+    surfaceData.geomNormalWS = input.tangentToWorld[2];
 
     surfaceData.baseColor = terrainLitSurfaceData.albedo;
     surfaceData.perceptualSmoothness = terrainLitSurfaceData.smoothness;
@@ -220,7 +220,7 @@ void GetSurfaceAndBuiltinData(inout FragInputs input, float3 V, inout PositionIn
     }
     // We need to call ApplyDebugToSurfaceData after filling the surfarcedata and before filling builtinData
     // as it can modify attribute use for static lighting
-    ApplyDebugToSurfaceData(input.worldToTangent, surfaceData);
+    ApplyDebugToSurfaceData(input.tangentToWorld, surfaceData);
 #endif
 
     GetBuiltinData(input, V, posInput, surfaceData, 1, bentNormalWS, 0, builtinData);

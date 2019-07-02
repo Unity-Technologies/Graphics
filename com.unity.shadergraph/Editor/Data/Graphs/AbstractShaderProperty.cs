@@ -24,9 +24,9 @@ namespace UnityEditor.ShaderGraph
 
         public ConcretePrecision concretePrecision => m_ConcretePrecision;
 
-        public void SetConcretePrecision(ConcretePrecision inheritedPrecision)
+        public void ValidateConcretePrecision(ConcretePrecision graphPrecision)
         {
-            m_ConcretePrecision = (precision == Precision.Inherit) ? inheritedPrecision : precision.ToConcrete();
+            m_ConcretePrecision = (precision == Precision.Inherit) ? graphPrecision : precision.ToConcrete();
         }
 
         public abstract bool isBatchable { get; }
@@ -68,7 +68,7 @@ namespace UnityEditor.ShaderGraph
         [SerializeField]
         private T m_Value;
 
-        public T value
+        public virtual T value
         {
             get => m_Value;
             set => m_Value = value;

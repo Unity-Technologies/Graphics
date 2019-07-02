@@ -30,6 +30,9 @@ namespace UnityEditor.ShaderGraph
         private string m_Name;
 
         [SerializeField]
+        protected int m_NodeVersion;
+
+        [SerializeField]
         private DrawState m_DrawState;
 
         [NonSerialized]
@@ -702,6 +705,12 @@ namespace UnityEditor.ShaderGraph
             else
                 m_Guid = Guid.NewGuid();
 
+            if (m_NodeVersion != GetCompiledNodeVersion())
+            {
+                UpgradeNodeWithVersion(m_NodeVersion, GetCompiledNodeVersion());
+                m_NodeVersion = GetCompiledNodeVersion();
+            }
+
             if (!string.IsNullOrEmpty(m_GroupGuidSerialized))
                 m_GroupGuid = new Guid(m_GroupGuidSerialized);
             else
@@ -718,13 +727,15 @@ namespace UnityEditor.ShaderGraph
         public virtual void UpdateNodeAfterDeserialization()
         {}
 
+        public virtual int GetCompiledNodeVersion() => 0;
+
+        public virtual void UpgradeNodeWithVersion(int from, int to)
+        {}
+
         public bool IsSlotConnected(int slotId)
         {
             var slot = FindSlot<MaterialSlot>(slotId);
             return slot != null && owner.GetEdges(slot.slotReference).Any();
         }
-
-        public virtual void GetSourceAssetDependencies(List<string> paths)
-        {}
     }
 }

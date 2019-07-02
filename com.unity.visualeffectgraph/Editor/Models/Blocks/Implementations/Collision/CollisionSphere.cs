@@ -5,7 +5,7 @@ namespace UnityEditor.VFX.Block
     [VFXInfo(category = "Collision")]
     class CollisionSphere : CollisionBase
     {
-        public override string name { get { return "Collider (Sphere)"; } }
+        public override string name { get { return "Collide with Sphere"; } }
 
         public class InputProperties
         {

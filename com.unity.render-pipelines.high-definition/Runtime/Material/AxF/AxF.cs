@@ -129,16 +129,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public AxF() {}
 
-        public override void Build(HDRenderPipelineAsset hdAsset)
+        public override void Build(HDRenderPipelineAsset hdAsset, RenderPipelineResources defaultResources)
         {
             var hdrp = GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset;
 
             // Create Materials
-            m_preIntegratedFGDMaterial_Ward = CoreUtils.CreateEngineMaterial(hdrp.renderPipelineResources.shaders.preIntegratedFGD_WardPS);
+            m_preIntegratedFGDMaterial_Ward = CoreUtils.CreateEngineMaterial(defaultResources.shaders.preIntegratedFGD_WardPS);
             if (m_preIntegratedFGDMaterial_Ward == null)
                 throw new Exception("Failed to create material for Ward BRDF pre-integration!");
 
-            m_preIntegratedFGDMaterial_CookTorrance = CoreUtils.CreateEngineMaterial(hdrp.renderPipelineResources.shaders.preIntegratedFGD_CookTorrancePS);
+            m_preIntegratedFGDMaterial_CookTorrance = CoreUtils.CreateEngineMaterial(defaultResources.shaders.preIntegratedFGD_CookTorrancePS);
             if (m_preIntegratedFGDMaterial_CookTorrance == null)
                 throw new Exception("Failed to create material for Cook-Torrance BRDF pre-integration!");
 

@@ -43,6 +43,7 @@ CBUFFER_END
 #define _CameraRotationClampNDC             _MotionBlurParams1.w
 #define _SampleCount                        uint(_MotionBlurParams2.x)
 #define _TileSize                           uint(_MotionBlurParams2.y)
+#define _DepthScale                         _MotionBlurParams2.z
 
 
 #if defined(USING_STEREO_MATRICES)

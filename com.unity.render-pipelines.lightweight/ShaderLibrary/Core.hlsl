@@ -7,7 +7,7 @@
 #include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/Input.hlsl"
 
 #if !defined(SHADER_HINT_NICE_QUALITY)
-#ifdef SHADER_API_MOBILE
+#if defined(SHADER_API_MOBILE) || defined(SHADER_API_SWITCH)
 #define SHADER_HINT_NICE_QUALITY 0
 #else
 #define SHADER_HINT_NICE_QUALITY 1

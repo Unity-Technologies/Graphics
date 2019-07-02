@@ -8,7 +8,7 @@ namespace UnityEditor.VFX.Block
     [VFXInfo(category = "Collision")]
     class CollisionSDF : CollisionBase
     {
-        public override string name { get { return "Collider (Signed Distance Field)"; } }
+        public override string name { get { return "Collide with Signed Distance Field"; } }
 
         public class InputProperties
         {

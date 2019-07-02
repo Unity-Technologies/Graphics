@@ -19,5 +19,13 @@ namespace UnityEditor.ShaderGraph.Drawing.Colors
 
             return !string.IsNullOrEmpty(ussClass);
         }
+
+        public override void ClearColor(IShaderNodeView nodeView)
+        {
+            foreach (var type in ConcretePrecision.GetValues(typeof(ConcretePrecision)))
+            {
+                nodeView.colorElement.RemoveFromClassList(type.ToString());
+            }
+        }
     }
 }
