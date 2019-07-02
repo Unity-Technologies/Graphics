@@ -97,10 +97,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             hdCamera.AllocateAmbientOcclusionHistoryBuffer(scaleFactor);
         }
 
-        public AmbientOcclusionSystem(HDRenderPipelineAsset hdAsset)
+        public AmbientOcclusionSystem(HDRenderPipelineAsset hdAsset, RenderPipelineResources defaultResources)
         {
             m_Settings = hdAsset.currentPlatformRenderPipelineSettings;
-            m_Resources = hdAsset.renderPipelineResources;
+            m_Resources = defaultResources;
 #if ENABLE_RAYTRACING
             m_RTResources = hdAsset.renderPipelineRayTracingResources;
 #endif

@@ -116,9 +116,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         readonly System.Random m_Random;
 
-        public PostProcessSystem(HDRenderPipelineAsset hdAsset)
+        public PostProcessSystem(HDRenderPipelineAsset hdAsset, RenderPipelineResources defaultResources)
         {
-            m_Resources = hdAsset.renderPipelineResources;
+            m_Resources = defaultResources;
             m_FinalPassMaterial = CoreUtils.CreateEngineMaterial(m_Resources.shaders.finalPassPS);
             m_ClearBlackMaterial = CoreUtils.CreateEngineMaterial(m_Resources.shaders.clearBlackPS);
             m_SMAAMaterial = CoreUtils.CreateEngineMaterial(m_Resources.shaders.SMAAPS);

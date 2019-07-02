@@ -12,11 +12,60 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
     public partial class HDRenderPipeline : UnityEngine.Rendering.RenderPipeline
     {
+        #region Default Settings
+        public static HDRenderPipelineAsset defaultAsset
+            => GraphicsSettings.renderPipelineAsset is HDRenderPipelineAsset hdrpAsset ? hdrpAsset : null;
+
+        private static Volume s_DefaultVolume = null;
+        public static VolumeProfile defaultVolumeProfile
+            => defaultAsset?.defaultVolumeProfile;
+
+        static HDRenderPipeline()
+        {
+#if UNITY_EDITOR
+            UnityEditor.AssemblyReloadEvents.beforeAssemblyReload += () =>
+            {
+                if (s_DefaultVolume != null && !s_DefaultVolume.Equals(null))
+                {
+                    CoreUtils.Destroy(s_DefaultVolume.gameObject);
+                    s_DefaultVolume = null;
+                }
+            };
+#endif
+        }
+
+        public static Volume GetOrCreateDefaultVolume()
+        {
+            if (s_DefaultVolume == null || s_DefaultVolume.Equals(null))
+            {
+                var go = new GameObject("Default Volume") { hideFlags = HideFlags.HideAndDontSave };
+                s_DefaultVolume = go.AddComponent<Volume>();
+                s_DefaultVolume.isGlobal = true;
+                s_DefaultVolume.priority = float.MinValue;
+                s_DefaultVolume.sharedProfile = HDRenderPipeline.defaultVolumeProfile;
+            }
+            if (
+                // In case the asset was deleted or the reference removed
+                s_DefaultVolume.sharedProfile == null || s_DefaultVolume.sharedProfile.Equals(null)
+#if UNITY_EDITOR
+
+                // In case the serialization recreated an empty volume sharedProfile
+
+                || !UnityEditor.AssetDatabase.Contains(s_DefaultVolume.sharedProfile)
+#endif
+            )
+                s_DefaultVolume.sharedProfile = HDRenderPipeline.defaultVolumeProfile;
+
+            return s_DefaultVolume;
+        }
+        #endregion
 
         public const string k_ShaderTagName = "HDRenderPipeline";
 
         readonly HDRenderPipelineAsset m_Asset;
         public HDRenderPipelineAsset asset { get { return m_Asset; } }
+        readonly HDRenderPipelineAsset m_DefaultAsset;
+        public RenderPipelineResources defaultResources { get { return m_DefaultAsset.renderPipelineResources; } }
 
         public RenderPipelineSettings currentPlatformRenderPipelineSettings { get { return m_Asset.currentPlatformRenderPipelineSettings; } }
 
@@ -50,7 +99,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         IBLFilterBSDF[] m_IBLFilterArray = null;
 
-        ComputeShader m_ScreenSpaceReflectionsCS { get { return m_Asset.renderPipelineResources.shaders.screenSpaceReflectionsCS; } }
+        ComputeShader m_ScreenSpaceReflectionsCS { get { return defaultResources.shaders.screenSpaceReflectionsCS; } }
         int m_SsrTracingKernel      = -1;
         int m_SsrReprojectionKernel = -1;
 
@@ -216,9 +265,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        public HDRenderPipeline(HDRenderPipelineAsset asset)
+        public HDRenderPipeline(HDRenderPipelineAsset asset, HDRenderPipelineAsset defaultAsset)
         {
             m_Asset = asset;
+            m_DefaultAsset = defaultAsset;
             HDProbeSystem.Parameters = asset.reflectionSystemParameters;
 
             DebugManager.instance.RefreshEditor();
@@ -246,12 +296,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // TODO: Might want to initialize to at least the window resolution to avoid un-necessary re-alloc in the player
             RTHandles.Initialize(1, 1, m_Asset.currentPlatformRenderPipelineSettings.supportMSAA, m_Asset.currentPlatformRenderPipelineSettings.msaaSampleCount);
 
-            m_GPUCopy = new GPUCopy(asset.renderPipelineResources.shaders.copyChannelCS);
+            m_GPUCopy = new GPUCopy(defaultResources.shaders.copyChannelCS);
 
-            m_MipGenerator = new MipGenerator(m_Asset);
-            m_BlueNoise = new BlueNoise(m_Asset);
+            m_MipGenerator = new MipGenerator(defaultResources);
+            m_BlueNoise = new BlueNoise(defaultResources);
 
-            EncodeBC6H.DefaultInstance = EncodeBC6H.DefaultInstance ?? new EncodeBC6H(asset.renderPipelineResources.shaders.encodeBC6HCS);
+            EncodeBC6H.DefaultInstance = EncodeBC6H.DefaultInstance ?? new EncodeBC6H(defaultResources.shaders.encodeBC6HCS);
 
             // Scan material list and assign it
             m_MaterialList = HDUtils.GetRenderPipelineMaterialList();
@@ -272,43 +322,43 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_DbufferManager = new DBufferManager(asset.currentPlatformRenderPipelineSettings.decalSettings.perChannelMask);
 
             m_SharedRTManager.Build(asset);
-            m_PostProcessSystem = new PostProcessSystem(asset);
-            m_AmbientOcclusionSystem = new AmbientOcclusionSystem(asset);
+            m_PostProcessSystem = new PostProcessSystem(asset, defaultResources);
+            m_AmbientOcclusionSystem = new AmbientOcclusionSystem(asset, defaultResources);
 
             // Initialize various compute shader resources
             m_SsrTracingKernel      = m_ScreenSpaceReflectionsCS.FindKernel("ScreenSpaceReflectionsTracing");
             m_SsrReprojectionKernel = m_ScreenSpaceReflectionsCS.FindKernel("ScreenSpaceReflectionsReprojection");
 
             // General material
-            m_CameraMotionVectorsMaterial = CoreUtils.CreateEngineMaterial(asset.renderPipelineResources.shaders.cameraMotionVectorsPS);
-            m_DecalNormalBufferMaterial = CoreUtils.CreateEngineMaterial(asset.renderPipelineResources.shaders.decalNormalBufferPS);
+            m_CameraMotionVectorsMaterial = CoreUtils.CreateEngineMaterial(defaultResources.shaders.cameraMotionVectorsPS);
+            m_DecalNormalBufferMaterial = CoreUtils.CreateEngineMaterial(defaultResources.shaders.decalNormalBufferPS);
 
-            m_CopyDepth = CoreUtils.CreateEngineMaterial(asset.renderPipelineResources.shaders.copyDepthBufferPS);
-            m_DownsampleDepthMaterial = CoreUtils.CreateEngineMaterial(asset.renderPipelineResources.shaders.downsampleDepthPS);
-            m_UpsampleTransparency = CoreUtils.CreateEngineMaterial(asset.renderPipelineResources.shaders.upsampleTransparentPS);
+            m_CopyDepth = CoreUtils.CreateEngineMaterial(defaultResources.shaders.copyDepthBufferPS);
+            m_DownsampleDepthMaterial = CoreUtils.CreateEngineMaterial(defaultResources.shaders.downsampleDepthPS);
+            m_UpsampleTransparency = CoreUtils.CreateEngineMaterial(defaultResources.shaders.upsampleTransparentPS);
 
-            m_ApplyDistortionMaterial = CoreUtils.CreateEngineMaterial(asset.renderPipelineResources.shaders.applyDistortionPS);
+            m_ApplyDistortionMaterial = CoreUtils.CreateEngineMaterial(defaultResources.shaders.applyDistortionPS);
 
             InitializeDebugMaterials();
             XRDebugMenu.Reset();
 
-            m_MaterialList.ForEach(material => material.Build(asset));
+            m_MaterialList.ForEach(material => material.Build(asset, defaultResources));
 
             if (m_Asset.currentPlatformRenderPipelineSettings.lightLoopSettings.supportFabricConvolution)
             {
                 m_IBLFilterArray = new IBLFilterBSDF[2];
-                m_IBLFilterArray[0] = new IBLFilterGGX(asset.renderPipelineResources, m_MipGenerator);
-                m_IBLFilterArray[1] = new IBLFilterCharlie(asset.renderPipelineResources, m_MipGenerator);
+                m_IBLFilterArray[0] = new IBLFilterGGX(defaultResources, m_MipGenerator);
+                m_IBLFilterArray[1] = new IBLFilterCharlie(defaultResources, m_MipGenerator);
             }
             else
             {
                 m_IBLFilterArray = new IBLFilterBSDF[1];
-                m_IBLFilterArray[0] = new IBLFilterGGX(asset.renderPipelineResources, m_MipGenerator);
+                m_IBLFilterArray[0] = new IBLFilterGGX(defaultResources, m_MipGenerator);
             }
 
             InitializeLightLoop(m_IBLFilterArray);
 
-            m_SkyManager.Build(asset, m_IBLFilterArray);
+            m_SkyManager.Build(asset, defaultResources, m_IBLFilterArray);
 
             InitializeVolumetricLighting();
             InitializeSubsurfaceScattering();
@@ -366,10 +416,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_Asset.EvaluateSettings();
 
             // Check that the serialized Resources are not broken
-            if ((GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset).renderPipelineResources == null)
-                (GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset).renderPipelineResources
+            if (HDRenderPipeline.defaultAsset.renderPipelineResources == null)
+                HDRenderPipeline.defaultAsset.renderPipelineResources
                     = UnityEditor.AssetDatabase.LoadAssetAtPath<RenderPipelineResources>(HDUtils.GetHDRenderPipelinePath() + "Runtime/RenderPipelineResources/HDRenderPipelineResources.asset");
-			ResourceReloader.ReloadAllNullIn((GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset).renderPipelineResources, HDUtils.GetHDRenderPipelinePath());
+			ResourceReloader.ReloadAllNullIn(HDRenderPipeline.defaultAsset.renderPipelineResources, HDUtils.GetHDRenderPipelinePath());
 
 #if ENABLE_RAYTRACING
             if ((GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset).renderPipelineRayTracingResources == null)
@@ -378,19 +428,19 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             ResourceReloader.ReloadAllNullIn((GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset).renderPipelineRayTracingResources, HDUtils.GetHDRenderPipelinePath());
 #endif
 
-            if ((GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset).renderPipelineEditorResources == null)
-                (GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset).renderPipelineEditorResources
+            if (HDRenderPipeline.defaultAsset.renderPipelineEditorResources == null)
+                HDRenderPipeline.defaultAsset.renderPipelineEditorResources
                     = UnityEditor.AssetDatabase.LoadAssetAtPath<HDRenderPipelineEditorResources>(HDUtils.GetHDRenderPipelinePath() + "Editor/RenderPipelineResources/HDRenderPipelineEditorResources.asset");
-            ResourceReloader.ReloadAllNullIn((GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset).renderPipelineEditorResources, HDUtils.GetHDRenderPipelinePath());
+            ResourceReloader.ReloadAllNullIn(HDRenderPipeline.defaultAsset.renderPipelineEditorResources, HDUtils.GetHDRenderPipelinePath());
 
             // Upgrade the resources (re-import every references in RenderPipelineResources) if the resource version mismatches
             // It's done here because we know every HDRP assets have been imported before
-            (GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset).renderPipelineResources?.UpgradeIfNeeded();
+            HDRenderPipeline.defaultAsset.renderPipelineResources?.UpgradeIfNeeded();
         }
 
         void ValidateResources()
         {
-            var resources = (GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset).renderPipelineResources;
+            var resources = HDRenderPipeline.defaultAsset.renderPipelineResources;
 
             // We iterate over all compute shader to verify if they are all compiled, if it's not the case
             // then we throw an exception to avoid allocating resources and crashing later on by using a null
@@ -425,7 +475,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_DbufferManager.CreateBuffers();
 
             InitSSSBuffers();
-            m_SharedRTManager.InitSharedBuffers(m_GbufferManager, m_Asset.currentPlatformRenderPipelineSettings, m_Asset.renderPipelineResources);
+            m_SharedRTManager.InitSharedBuffers(m_GbufferManager, m_Asset.currentPlatformRenderPipelineSettings, defaultResources);
 
             m_CameraColorBuffer = RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GetColorBufferFormat(), enableRandomWrite: true, useMipMap: false, useDynamicScale: true, name: "CameraColor");
             m_OpaqueAtmosphericScatteringBuffer = RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GetColorBufferFormat(), enableRandomWrite: true, useMipMap: false, useDynamicScale: true, name: "OpaqueAtmosphericScattering");
@@ -613,20 +663,20 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         void InitializeDebugMaterials()
         {
-            m_DebugViewMaterialGBuffer = CoreUtils.CreateEngineMaterial(m_Asset.renderPipelineResources.shaders.debugViewMaterialGBufferPS);
-            m_DebugViewMaterialGBufferShadowMask = CoreUtils.CreateEngineMaterial(m_Asset.renderPipelineResources.shaders.debugViewMaterialGBufferPS);
+            m_DebugViewMaterialGBuffer = CoreUtils.CreateEngineMaterial(defaultResources.shaders.debugViewMaterialGBufferPS);
+            m_DebugViewMaterialGBufferShadowMask = CoreUtils.CreateEngineMaterial(defaultResources.shaders.debugViewMaterialGBufferPS);
             m_DebugViewMaterialGBufferShadowMask.EnableKeyword("SHADOWS_SHADOWMASK");
-            m_DebugDisplayLatlong = CoreUtils.CreateEngineMaterial(m_Asset.renderPipelineResources.shaders.debugDisplayLatlongPS);
-            m_DebugFullScreen = CoreUtils.CreateEngineMaterial(m_Asset.renderPipelineResources.shaders.debugFullScreenPS);
-            m_DebugColorPicker = CoreUtils.CreateEngineMaterial(m_Asset.renderPipelineResources.shaders.debugColorPickerPS);
-            m_Blit = CoreUtils.CreateEngineMaterial(m_Asset.renderPipelineResources.shaders.blitPS);
+            m_DebugDisplayLatlong = CoreUtils.CreateEngineMaterial(defaultResources.shaders.debugDisplayLatlongPS);
+            m_DebugFullScreen = CoreUtils.CreateEngineMaterial(defaultResources.shaders.debugFullScreenPS);
+            m_DebugColorPicker = CoreUtils.CreateEngineMaterial(defaultResources.shaders.debugColorPickerPS);
+            m_Blit = CoreUtils.CreateEngineMaterial(defaultResources.shaders.blitPS);
             m_ErrorMaterial = CoreUtils.CreateEngineMaterial("Hidden/InternalErrorShader");
 
             // With texture array enabled, we still need the normal blit version for other systems like atlas
             if (TextureXR.useTexArray)
             {
                 m_Blit.EnableKeyword("DISABLE_TEXTURE2D_X_ARRAY");
-                m_BlitTexArray = CoreUtils.CreateEngineMaterial(m_Asset.renderPipelineResources.shaders.blitPS);
+                m_BlitTexArray = CoreUtils.CreateEngineMaterial(defaultResources.shaders.blitPS);
         }
         }
 
@@ -922,7 +972,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (!m_ValidAPI || cameras.Length == 0)
                 return;
 
-            DefaultSettings.GetOrCreateDefaultVolume();
+            HDRenderPipeline.GetOrCreateDefaultVolume();
 
             UnityEngine.Rendering.RenderPipeline.BeginFrameRendering(renderContext, cameras);
 
@@ -2083,7 +2133,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     CustomSamplerId.HDRenderPipelineRender.GetSampler())
                 )
                 {
-                    TextureXR.Initialize(cmd, m_Asset.renderPipelineResources.shaders.clearUIntTextureCS);
+                    TextureXR.Initialize(cmd, defaultResources.shaders.clearUIntTextureCS);
                 }
                 renderContext.ExecuteCommandBuffer(cmd);
                 CommandBufferPool.Release(cmd);
@@ -2158,9 +2208,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Compute the FrameSettings actually used to draw the frame
             // FrameSettingsHistory do the same while keeping all step of FrameSettings aggregation in memory for DebugMenu
             if (frameSettingsHistoryEnabled)
-                FrameSettingsHistory.AggregateFrameSettings(ref currentFrameSettings, camera, additionalCameraData, m_Asset);
+                FrameSettingsHistory.AggregateFrameSettings(ref currentFrameSettings, camera, additionalCameraData, m_Asset, m_DefaultAsset);
             else
-                FrameSettings.AggregateFrameSettings(ref currentFrameSettings, camera, additionalCameraData, m_Asset);
+                FrameSettings.AggregateFrameSettings(ref currentFrameSettings, camera, additionalCameraData, m_Asset, m_DefaultAsset);
 
             // Specific pass to simply display the content of the camera buffer if users have fill it themselves (like video player)
             if (additionalCameraData && additionalCameraData.fullscreenPassthrough)
@@ -3422,8 +3472,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 cmd.SetGlobalVector(HDShaderIDs._MousePixelCoord, HDUtils.GetMouseCoordinates(hdCamera));
                 cmd.SetGlobalVector(HDShaderIDs._MouseClickPixelCoord, HDUtils.GetMouseClickCoordinates(hdCamera));
-                cmd.SetGlobalTexture(HDShaderIDs._DebugFont, m_Asset.renderPipelineResources.textures.debugFontTex);
-                cmd.SetGlobalTexture(HDShaderIDs._DebugMatCapTexture, m_Asset.renderPipelineResources.textures.matcapTex);
+                cmd.SetGlobalTexture(HDShaderIDs._DebugFont, defaultResources.textures.debugFontTex);
+                cmd.SetGlobalTexture(HDShaderIDs._DebugMatCapTexture, defaultResources.textures.matcapTex);
 
                 // The DebugNeedsExposure test allows us to set a neutral value if exposure is not needed. This way we don't need to make various tests inside shaders but only in this function.
                 cmd.SetGlobalFloat(HDShaderIDs._DebugExposure, m_CurrentDebugDisplaySettings.DebugNeedsExposure() ? lightingDebugSettings.debugExposure : 0.0f);
