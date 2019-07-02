@@ -1,0 +1,11 @@
+using System.Runtime.CompilerServices;
+
+[assembly: InternalsVisibleTo("Unity.ShaderGraph.Editor.Tests")]
+<<<<<<< HEAD
+[assembly: InternalsVisibleTo("Unity.RenderPipelines.Universal.Editor")]
+=======
+[assembly: InternalsVisibleTo("Unity.ShaderGraph.GraphicsTests")]
+[assembly: InternalsVisibleTo("Unity.ShaderGraph.Editor.GraphicsTests")]
+[assembly: InternalsVisibleTo("Unity.RenderPipelines.Lightweight.Editor")]
+>>>>>>> master
+[assembly: InternalsVisibleTo("Unity.RenderPipelines.HighDefinition.Editor")]
