@@ -22,15 +22,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public Vector4      proj;
 
         public Vector2      atlasOffset;
-        public float        edgeTolerance;
-        public int          flags;
+        public float        worldTexelSize;
+        public int          _pad0;
 
         public Vector4      zBufferParam;
         public Vector4      shadowMapSize;
 
-        public Vector4      viewBias;
-        public Vector3      normalBias;
-        public float        _padding;
+        public float        normalBias;
+        public float        constantBias;
+        public float        _pad1;
+        public float        _pad2;
 
         public Vector4      shadowFilterParams0;
 
@@ -54,14 +55,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         [HLSLArray(4, typeof(float))]
         public fixed float      cascadeBorders[4];
-    }
-
-    [GenerateHLSL]
-    public enum HDShadowFlag
-    {
-        SampleBiasScale     = (1 << 0),
-        EdgeLeakFixup       = (1 << 1),
-        EdgeToleranceNormal = (1 << 2),
     }
 
     public class HDShadowRequest
@@ -91,10 +84,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public ShadowSplitData      splitData;
         // end
 
-        public Vector4              viewBias;
-        public Vector3              normalBias;
-        public float                edgeTolerance;
-        public int                  flags;
+        public float                normalBias;
+        public float                worldTexelSize;
+        public float                constantBias;
 
         // PCSS parameters
         public float                shadowSoftness;
@@ -156,7 +148,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             directionalShadowsDepthBits = k_DefaultShadowMapDepthBits,
             punctualLightShadowAtlas    = HDShadowAtlasInitParams.GetDefault(),
             areaLightShadowAtlas        = HDShadowAtlasInitParams.GetDefault(),
-			shadowQuality               = HDShadowQuality.Low,
+			shadowQuality               = HDShadowQuality.Medium,
             supportScreenSpaceShadows   = false,
             maxScreenSpaceShadows       = 2,
         };
@@ -374,10 +366,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             data.shadowMapSize = new Vector4(shadowRequest.atlasViewport.width, shadowRequest.atlasViewport.height, 1.0f / shadowRequest.atlasViewport.width, 1.0f / shadowRequest.atlasViewport.height);
 
-            data.viewBias = shadowRequest.viewBias;
+            data.constantBias = shadowRequest.constantBias;
             data.normalBias = shadowRequest.normalBias;
-            data.flags = shadowRequest.flags;
-            data.edgeTolerance = shadowRequest.edgeTolerance;
+            data.worldTexelSize = shadowRequest.worldTexelSize;
 
             data.shadowFilterParams0.x = shadowRequest.shadowSoftness;
             data.shadowFilterParams0.y = HDShadowUtils.Asfloat(shadowRequest.blockerSampleCount);
