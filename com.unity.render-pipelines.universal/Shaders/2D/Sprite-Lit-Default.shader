@@ -46,7 +46,7 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-Default"
                 float2	lightingUV  : TEXCOORD1;
             };
 
-            #include "Packages/com.unity.render-pipelines.lightweight/Shaders/2D/Include/LightingUtility.hlsl"
+            #include "Packages/com.unity.render-pipelines.universal/Shaders/2D/Include/LightingUtility.hlsl"
 
             TEXTURE2D(_MainTex);
             SAMPLER(sampler_MainTex);
