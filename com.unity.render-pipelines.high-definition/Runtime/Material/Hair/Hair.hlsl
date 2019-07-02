@@ -297,30 +297,96 @@ float3 GetLobeShiftAlpha(float shift)
 
 // Azimuthal scattering function:
 //
-// Unfortunately, no closed form for rough azimuthal scattering functions exist
-// so for now, use Marschner's like Karis p20, 29 and 32.
-// The problem is that even for dirac light rays, after passing one scattering
-// boundary, there is a lobe, not a single ray, so even knowing h is still a
-// very gross approximation (like the A terms using Fresnel for that matter).
+// Unfortunately, no single evaluation closed form expression exist for energy conserving
+// rough azimuthal scattering functions.
 //
-// For the R path, at least N_0 is correct for dirac lights:
+// The approach of Marschner et al. 2003 is to use the ideally smooth cylinder model and
+// assume the incoming differential irradiance of a ray as being spread out uniformly on
+// the width of the fiber as a far field approximation of a path throughput.
+// Given the ideally smooth nature of the fiber, a number of discrete paths can be enumerated
+// with their indepedent contributions solved for and added together.
+// Because of the assumed symetry of the cylinders, only azimuthal difference in point of entry and
+// exit of light needs to be taken into account, this is the single azimuthal "phi" variable
+// considered. For a given "phi" relative exit azimuth, a value of "h" - the coordinate of where
+// the ray hits on the width of the fiber from -1 to 1, is solved for, depending on which path
+// "order" is considered:
+// Like stated, the full contribution depend on a discrete set of contributing path that split
+// and travel differently bouncing on or into the fiber with each set of paths classified by order:
+// the order is the number of times they travel inside the cross section of the fiber
+// between each interactions (the p number, for R, p = 0, for TT, p = 1 and for TRT, p = 2. Other
+// higher orders are not considered).
+// 
+// Solving for h given phi, expressions are then found for attenuations (depending on h and
+// subsuming Fresnel and transmission absorption effects) and the complete azimuthal scattering
+// function is found as a sum of Np, for each order p, where each Np is expressed as a sum over all
+// solutions h (roots) for a given phi, summing the absorption term of that path order
+// (multiplied by the Jacobian of changing a measure of attenuation from phi to h space).
+//
+// This ideal model also gives rise to the problem of managing singularities related to caustics.
+//
+// Deon et al. 2011 (Weta) improves on this model by mollifying the sum of paths for explicit h solutions,
+// and instead considers the rays to be split continuously at each scattering event in a directional
+// gaussian distribution. The sum over a discrete h-set becomes an integral of absorption over a
+// gaussian "detector" / kernel function with an Azimuthal roughness parameter.
+// This is solved in the context of an offline renderer through numerical Gaussian quadrature.
+// (Longitudinal scattering functions are also improved upon Marschner by
+// making them energy conserving too but they were already rough in Marschner 2003).
+//
+// The state of the art for evaluating this term is expressed in Chiang et al. 2016 (Disney) and
+// Pharr (PBRT), which consist of letting the inner Monte Carlo renderer to also sample stochastically
+// the integrand of the azimuthal gaussian mollifier instead of solving a quadrature at each shading
+// invocation.
+// The h value at which a ray hits is usually given by the path tracing simulation. For example,
+// in the PBRT hair paper p4, the intersection of the ray with the parametric curve modelling the
+// actual hair strand yields the h naturally and is used to directly sample the azimuthal distribution
+// (integrand) resulting in a Monte Carlo integration of the azimuthal paths contributions.
+//
+//
+// In our real-time context we need to use some approximation and we follow the same steps as Karis:
+// 
+// For the R path, Karis completely forgets azimuthal roughness and uses the ideal specular case
+// like Marschner.
+//
+// For TT and TRT, we use a single point evaluation of the whole integral by using an h == to the solution
+// of the ideal cylinder case as given by Marschner. So we need to solve for h again given phi for each
+// path order considered. We use another approximation for finding h for a given phi instead of using the full
+// root solution equation, as a further speedup. The difference with Marschner is that we still do
+// - albeit a very coarse single point one - an integrand evaluation, thus with the mollifier.
+
+// The mollifier used is not the nicely energy conserving and directionally wrapped logistic as described
+// in Disney's and PBRT implementation, but a coarse Gaussian approximation, which no longer has a roughness
+// parameter (the scale of the logistic).
+//
+// See Karis p20, 29 and 32.
+//
+// Another problem with such point expressions is that even for dirac light rays, after passing one
+// scattering boundary, there is a lobe, not a single ray, so even knowing h is still a
+// very gross approximation (like the A terms using Fresnel for that matter see a further discussion in
+// the ApR function below).
+//
+// For the R path, at least N_{p=0} is correct for dirac lights but again only if azimuthal roughness is 0:
+//
+// Karis p20, or Deon 2011 p3 eq(6) but 
 float3 NpR(float cosHalfPhi, float3 attenuation)
 {
     return 0.25 * cosHalfPhi * attenuation;
 }
+
 // TODOTODO logistic to use azimuthal roughness in the term too
 // Karis p29:
 float3 NpTT(float cosPhi, float3 attenuation)
 {
     return exp(-3.65*cosPhi - 3.98) * attenuation;
 }
-// Karis p32:
+
+// Karis p32: even more brutal like stated in the slides here, single lobe approximation
 float3 NpTRT(float cosPhi, float3 attenuation)
 {
     return exp(17*cosPhi - 16.78) * attenuation;
 }
 
-// Attenuation for azimuthal scattering function:
+// Attenuations for azimuthal scattering function:
+//
 // http://www.eugenedeon.com/wp-content/uploads/2014/04/egsrhair.pdf
 // p5 eq(12, 13, 14)
 // Note again for p >= 1, these are for ideal cylinders and taken as approximations
@@ -336,69 +402,83 @@ float3 NpTRT(float cosPhi, float3 attenuation)
 
 // TODOTODO: IOR to boost primary reflections, see Disney 2016.
 
-float3 ApR(BSDFData bsdfData, float LdotH, float cti, float cosGamma, bool usePBRTAngles = false)
+float3 ApR(BSDFData bsdfData, float LdotH, float cti, float cosGamma /* see *** below */, bool usePBRTAngles = false)
 {
     float3 F = F_Schlick(bsdfData.fresnel0, LdotH);
-    // ... so take the term with an angle wrt / as if there was
-    // a "pseudo microfacet" (we use that term because Fresnel is only correctly defined
-    // as reflectance for a perfectly smooth planar interface) that gave the possibility
-    // of that bounce with this exact F reflectance value. The (pseudo) NDF (with shadowing-masking)
-    // would be the distributions we use for our scattering profiles M and N.
-    // Of course in the hair context, we're more empirical even than having built a proper
-    // microfacet model, we directly have scattering functions, so the choice of F and angle
-    // to be used is not completely clear.
-    // The R case is easier to understand because for dirac lights, there's no multiple
+    // ... so take the term with an angle wrt / as if there was a "pseudo microfacet":
+    // We use that term because Fresnel is only correctly defined as reflectance for a perfectly
+    // smooth planar interface. That "pseudo-microfacet" gave the possibility of that bounce
+    // with this exact F reflectance value. The (pseudo) NDF with associated shadowing-masking
+    // would be the distributions used for our scattering profiles M and N.
+    // Of course in the hair context, we're more empirical than in the microfacet theory context,
+    // we directly have scattering functions without an underlying microfacet model, so the choice
+    // of F and angle to be used is not completely clear.
+    //
+    // Also, the R case is easier to understand because for dirac lights, there's no multiple
     // path interactions after crossing a boundary, the dirac light collapse the lobe
     // "spawned" by the V ray.
-    // We're still left with some choice of F() and angle to use, as the literature
-    // clearly demonstrates: Deon et al. 2011 choose p5 eq(12) the "microfacet" perspective,
-    // which makes sense if we think that the reflection cone profile is *mollified* to not
-    // have exactly thin support but spread out over the whole elevation (longitudinal) angular
+    // Even so, we're still left with some choice of F() and angle to use, as the literature
+    // clearly demonstrates: Deon et al. 2011 choose p5 eq(12), what we called the "pseudo microfacet"
+    // perspective, which makes sense if we think that the reflection cone profile is *mollified*
+    // to not have exactly thin support but spread out over the whole elevation (longitudinal) angular
     // range: see figure 7 p5 (and figure 4 p4 to see the mollification of the cone by the M
     // longitudinal distribution).
     // Pixar also discusses choices of F( ) even for R in DataDrivenHairScattering/paper.pdf
     // p4 section 4.1 (see also p5 figure 5).
     //
-    // Finally, Matt Pharr clearly uses a Fresnel term for F that clamps the "pseudo microfacet":
-    // in Pharr p17, for p = 0, we see that they use cosThetaO * cosGammaO (see ***), which is the
+    // Finally, Matt Pharr clearly uses a Fresnel term for F that clamps the implied "pseudo microfacet"
+    // selected to calculate F:
+    // On p17, for p = 0, we see that they use cosThetaO * cosGammaO (see ***), which is the
     // cosine of the angle in 3D between w_o and the normal of a perfect cylinder hit at height
     // "h" on its width (also ignoring roughness for F)
     // We could say that we could decompose the w_o and w_i rays by projecting them in the normal
     // plane and then only take azimuthal half difference angle for F, but as noted by Pixar, this
-    // looses some longitudinal influence. They use the fully free Deon 2011 F term for R.
-    // Karis does the same thing, p20.
+    // loss of longitudinal influence is not desirable.
     //
-    // Using the Pharr term keeps the F term more constrained. Notice that when thinking about the
-    // mollified case (rough) vs perfectly smooth cylindrical ideal case, even in the perfect case
-    // we model the far field agregate by thinking of the ray contribution (total irradiance) being
-    // spread out on the width of the fiber (=2 because h go from -1 to 1), consistent with the
-    // fact that we still have some degree of liberty to select from many normals all in the normal plane
-    // (although in near field the distribution of irradiance across the width is not uniform).
+    // Pixar ends up using the fully free Deon 2011 F term for R and Karis does the same thing, p20.
+    //
+    // Using the Pharr F term makes it more constrained. Notice that when thinking about the
+    // mollified case (rough) vs the perfectly smooth cylindrical ideal case, even in the perfect case
+    // (see in Marschner 2003), we model the far field aggregate by thinking of the ray contribution
+    // (incoming differential irradiance) as being spread out uniformly on the width of the fiber
+    // (width = 2 because h goes from -1 to 1),
+    // consistent with the fact that we still have some degree of liberty to select the h point of
+    // the ray hit in the normal plane (although in near field the distribution of irradiance
+    // across the width is not uniform).
     // 
-    // We can use Pharr or Deon 2011 here. 
-    // For higher orders, Pharr mentions that even in the rough
-    // case, since we're already approximating the A terms with the smooth case, we still consider refraction
-    // cancelling out on exit, and there's no need to complify the already approximate F terms
-    // (which really should be T = 1 - integral F*distro, see eg StackLit model with
-    // R average of lobe = integrated FGD and T = 1-R, but additionnal roughness added on a lobe has some
-    // TIR losses implications too!)
+    // So, we can use Pharr or Deon 2011 here.
+    // For higher orders, Pharr mentions that even in the rough case, since we're already approximating
+    // the A terms with the smooth case expressions, we still consider refraction cancelling out on exit, and
+    // there's no need to complexify the already approximate F terms
+    // (Using F and (1-F) terms is usually valid only when binded in the same single scattering/interaction
+    // point BSDF using the same NDF, as in Walter et al. 2007, but as soon as multiple rough interfaces are
+    // crossed, multiple path interactions add up and only approximate closed form are possible, as in StackLit
+    // where we use average lobe statistics, hence why we have expressions like
+    // R = average specular albedo of lobe = integral[ F * (multi-scattering) DG ]
+    // T = 1 - R, with additionnal roughness added on a lobe as it interacts with the layers and with some
+    // TIR losses implications in the R and T terms too, etc.)
     //
-    // Also see p36 of Pharr: even for this F() term we could have a choice because our usage of w_i or w_o
-    // changes the evaluation, our scattering function (including Fresnel and other A terms) is not reciprocal.
+    // Also see p36 of Pharr: even for this F term, we could end up have a choice depending on our convention for
+    // what w_i or w_o represent, as it changes the evaluation: our scattering function (including Fresnel
+    // and other A terms) is not reciprocal.
 
-    // if pharr term
     // TODO TOCHECK:
+    // If pharr term,
     //
-    // Need Pharr's cosThetaO and cosGammaO, but check how we get h in GetHeightForTT from Karris root solution approximation:
-    // we could get back a dependency on the sign of h in that case which require care because the scattering function
-    // isn't reciprocal. (In PBRT, see p4 of the hair paper, the parametric curves intersection yields the h
-    // naturally.) p17 cosGammaO, p10 cosThetaO (***)
+    // Need Pharr's cosThetaO and cosGammaO, but check how we get h in GetHeightForTT from Karis root solution
+    // approximation:
+    // We could get back a dependency on the sign of h in that case which requires care because the scattering
+    // function isn't reciprocal.
     //
-    // ***
-    // Note that where it could matter - non reciprocity - PBRT (Pharr) uses w_O and (other)*_O as V (see also Sample_f p29)
-    // Here in the code, like for StackLit, in Mitsuba and Marschner paper, we use _I as V.
+    // (refs: p17 for cosGammaO, and p10 for cosThetaO (***) )
     //
-    // Here for cosGamma it doesn't matter.
+    // ***:
+    // Incoming/Outgoing conventions where it could matter - ie for non reciprocity:
+    // PBRT (Pharr) uses w_o and other *_o terms as V
+    // (see also Sample_f() in Pharr p29)
+    // Here in the code, like for StackLit, in Mitsuba and the Marschner 2003 paper, we use _i (ie incoming) as V.
+    //
+    // -> Here for cosGamma it turns out it doesn't matter!
     //
     if(usePBRTAngles)
     {
@@ -439,9 +519,9 @@ float3 ApTRT(BSDFData bsdfData, float cosThetaD, float h, float3 transmittanceFa
 //
 // The goal in the p28 Karis factor modification is to make the Zeta(C) function in the Pixar
 // term the least costly possible while making it so that transmittance is equal to C when
-// the path relative length is maximal (the Pixar paper p5 states when the exponent is maximal,
-// but should be read as maximally negative, as the other endpoint is T = 1, ie no attenuation
-// for zero length paths).
+// the path relative length is maximal (the Pixar paper p5 reads "when the exponent is maximal",
+// but should be read as maximally *negative*, as the other endpoint is T = 1, ie the multiplicationfactor
+// factor that gives no attenuation for paths of length zero).
 //
 // Tpixar = e^(-p * zeta(C) abs(cos(gamma_t)/cos(thetaD)))        (where p is the lobe order <= 2)
 //
@@ -449,7 +529,7 @@ float3 ApTRT(BSDFData bsdfData, float cosThetaD, float h, float3 transmittanceFa
 //
 // note the max of the cos terms is 1, so if we pick zeta(C) = ln(C), we can see that we have
 //
-//        = C^( -p *abs(cos(gamma)/cos(thetaD)) )
+//        = C^( -p * abs(cos(gamma_t)/cos(thetaD)) )
 //
 // but to get the behavior of the exponential decay, C must be > 1. 
 // Otherwise, by keeping C < 1, you can remove the sign and obtain the same inverse relation to
@@ -463,7 +543,10 @@ float3 ApTRT(BSDFData bsdfData, float cosThetaD, float h, float3 transmittanceFa
 //    cos(gamma_t) = cos( arcsin(h/eta_modified) ) = sqrt(1 - (h/eta_modified)^2)
 //
 
-// TODO: test full, but for now, use p26 Karis approximation for the same IOR we use, 1.55
+// TODO: test full formula, but for now, use p26 Karis approximation for the same IOR we use, 1.55
+// Bravais' relationship: use an equivalent IOR in the normal plane to account for the effect of 3D
+// longitudinal elevation of the ray vs the normal plane so we can work strictly in that 2D plane
+// (for the perfect cylinder case at least).
 float GetModifiedIOR(float cosThetaD)
 {
     float iorPrime = (1.19/cosThetaD) + 0.36*cosThetaD;
@@ -471,7 +554,6 @@ float GetModifiedIOR(float cosThetaD)
 }
 
 //TODO: setup absorptionCoefficient in prelightData etc.
-
 bool UseDisneyAbsportion()
 {
     return false;
@@ -994,22 +1076,22 @@ CBSDF EvaluateBSDF(float3 V, float3 L, PreLightData preLightData, BSDFData bsdfD
             float M = MpGaussian(sti + lobeShiftAlpha[0], sto, preLightData.lobeVariance[0]);
             float3 A = ApR(bsdfData, LdotH, cti, cosGamma, /* usePBRTAngles */ false); // TODOTODO totest
             float3 N = NpR(cosHalfPhi, A);
-            cbsdf.specR += M * N; // note: N includes multiply by attenuation factor, the later has both Fresnel
+            cbsdf.specR += M * N; // note: N includes the multiply by attenuation factor and the later has also the Fresnel factor.
         }
         // TT
         if(!TestDebugFlagNum(DEBUG_LOBE_1_OFF))
         {
             float M = MpGaussian(sti + lobeShiftAlpha[1], sto, preLightData.lobeVariance[1]);
-            float3 T = GetTransmittanceFactor(bsdfData, preLightData, 1, cosThetaD, cosGammaT);
+            float3 T = GetTransmittanceFactor(bsdfData, preLightData, 1 /* p, the # of transmission path segments */, cosThetaD, cosGammaT);
             float3 A = ApTT(bsdfData, cosThetaD, h, T);
             float3 N = NpTT(cosHalfPhi, A);
-            cbsdf.specT += M * N; // note: N includes multiply by attenuation factor, the later has both Fresnel and transmittanceFactor
+            cbsdf.specT += M * N; // note: N includes the multiply by attenuation factor and the later has also the Fresnel factor and transmittanceFactor.
         }
         // TRT
         if(!TestDebugFlagNum(DEBUG_LOBE_2_OFF))
         {
             float M = MpGaussian(sti + lobeShiftAlpha[2], sto, preLightData.lobeVariance[2]);
-            float3 T = GetTransmittanceFactor(bsdfData, preLightData, 2, cosThetaD, cosGammaT);
+            float3 T = GetTransmittanceFactor(bsdfData, preLightData, 2 /* p, the # of transmission path segments */, cosThetaD, cosGammaT);
             float3 A = ApTRT(bsdfData, cosThetaD, h, T);
             float3 N = NpTRT(cosHalfPhi, A);
             cbsdf.specR += M * N;
