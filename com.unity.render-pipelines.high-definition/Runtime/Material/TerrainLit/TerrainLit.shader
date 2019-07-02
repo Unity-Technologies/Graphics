@@ -4,7 +4,7 @@ Shader "HDRP/TerrainLit"
     {
         [HideInInspector] [ToggleUI] _EnableHeightBlend("EnableHeightBlend", Float) = 0.0
         _HeightTransition("Height Transition", Range(0, 1.0)) = 0.0
-
+		
         // TODO: support tri-planar?
         // TODO: support more maps?
         //[HideInInspector] _TexWorldScale0("Tiling", Float) = 1.0
@@ -33,6 +33,8 @@ Shader "HDRP/TerrainLit"
 
         [ToggleUI] _EnableInstancedPerPixelNormal("Instanced per pixel normal", Float) = 1.0
 
+		[HideInInspector] _TerrainHolesTexture("Holes Map (RGB)", 2D) = "white" {}
+		
         // Caution: C# code in BaseLitUI.cs call LightmapEmissionFlagsProperty() which assume that there is an existing "_EmissionColor"
         // value that exist to identify if the GI emission need to be enabled.
         // In our case we don't use such a mechanism but need to keep the code quiet. We declare the value and always enable it.
@@ -71,6 +73,8 @@ Shader "HDRP/TerrainLit"
     //enable GPU instancing support
     #pragma multi_compile_instancing
     #pragma instancing_options assumeuniformscaling nomatrices nolightprobe nolightmap
+
+	#pragma multi_compile __ _ALPHATEST_ON
 
     // All our shaders use same name for entry point
     #pragma vertex Vert
