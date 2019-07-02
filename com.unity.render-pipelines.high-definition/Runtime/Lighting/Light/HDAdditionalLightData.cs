@@ -452,6 +452,31 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             return -offset;
         }
 
+        private float GetDirectionalConstantBias(int index, float sphereRadius, float resolution)
+        {
+            // TODO: Heuristics here can possibly be improved with more data points.
+
+            const float baseBias = 2.0f;
+            float range = 0.0f;
+            if (index == 0)
+            {
+                range = m_ShadowSettings.cascadeShadowSplits[0];
+            }
+            else if (index == 3)
+            {
+                range = 1 - m_ShadowSettings.cascadeShadowSplits[2];
+            }
+            else
+            {
+                range = m_ShadowSettings.cascadeShadowSplits[index] - m_ShadowSettings.cascadeShadowSplits[index - 1];
+            }
+
+            range *= m_ShadowSettings.maxShadowDistance.value;
+            float texelScale = (sphereRadius * sphereRadius) / resolution;
+
+            return Math.Min(0.02f, m_ShadowData.constantBias * texelScale * baseBias / range);
+        }
+
         private void UpdateDirectionalShadowRequest(HDShadowManager manager, VisibleLight visibleLight, CullingResults cullResults, Vector2 viewportSize, int requestIndex, int lightIndex, Vector3 cameraPos, HDShadowRequest shadowRequest, out Matrix4x4 invViewProjection)
         {
             Vector4 cullingSphere;
@@ -473,6 +498,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 cullingSphere.y -= cameraPos.y;
                 cullingSphere.z -= cameraPos.z;
             }
+
+			shadowRequest.constantBias = GetDirectionalConstantBias(requestIndex, cullingSphere.w, viewportSize.x);
             manager.UpdateCascade(requestIndex, cullingSphere, m_ShadowSettings.cascadeShadowBorders[requestIndex]);
         }
 
@@ -522,7 +549,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         Vector2 shapeSize = new Vector2(shapeWidth, shapeHeight);
                         float offset = GetAreaLightOffsetForShadows(shapeSize, areaLightShadowCone);
                         Vector3 shadowOffset = offset * visibleLight.GetForward();
-                        HDShadowUtils.ExtractAreaLightData(hdCamera, visibleLight, lightTypeExtent, visibleLight.GetPosition() + shadowOffset, areaLightShadowCone, shadowNearPlane, shapeSize, viewportSize, m_ShadowData.normalBiasMax, out shadowRequest.view, out invViewProjection, out shadowRequest.deviceProjectionYFlip, out shadowRequest.deviceProjection, out shadowRequest.splitData);
+                        HDShadowUtils.ExtractAreaLightData(hdCamera, visibleLight, lightTypeExtent, visibleLight.GetPosition() + shadowOffset, areaLightShadowCone, shadowNearPlane, shapeSize, viewportSize, m_ShadowData.normalBias, out shadowRequest.view, out invViewProjection, out shadowRequest.deviceProjectionYFlip, out shadowRequest.deviceProjection, out shadowRequest.splitData);
                     }
                     else
                     {
@@ -532,19 +559,21 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                             case LightType.Point:
                                 HDShadowUtils.ExtractPointLightData(
                                     hdCamera, legacyLight.type, visibleLight, viewportSize, shadowNearPlane,
-                                    m_ShadowData.normalBiasMax, (uint)index, out shadowRequest.view,
+                                    m_ShadowData.normalBias, (uint)index, out shadowRequest.view,
                                     out invViewProjection, out shadowRequest.deviceProjectionYFlip,
                                     out shadowRequest.deviceProjection, out shadowRequest.splitData
                                 );
+                            	shadowRequest.constantBias = Math.Max(0.0003f, 10.0f * m_ShadowData.constantBias / (legacyLight.range * viewportSize.x));
                                 break;
                             case LightType.Spot:
                                 float spotAngleForShadows = useCustomSpotLightShadowCone ? Math.Min(customSpotLightShadowCone, visibleLight.light.spotAngle)  : visibleLight.light.spotAngle;
                                 HDShadowUtils.ExtractSpotLightData(
                                     hdCamera, legacyLight.type, spotLightShape, spotAngleForShadows, shadowNearPlane, aspectRatio, shapeWidth,
-                                    shapeHeight, visibleLight, viewportSize, m_ShadowData.normalBiasMax,
+                                    shapeHeight, visibleLight, viewportSize, m_ShadowData.normalBias,
                                     out shadowRequest.view, out invViewProjection, out shadowRequest.deviceProjectionYFlip,
                                     out shadowRequest.deviceProjection, out shadowRequest.splitData
                                 );
+                            	shadowRequest.constantBias = Math.Max(0.0003f, 20.0f * m_ShadowData.constantBias / (legacyLight.range * viewportSize.x));
                                 break;
                             case LightType.Directional:
                                 UpdateDirectionalShadowRequest(manager, visibleLight, cullResults, viewportSize, index, lightIndex, cameraPos, shadowRequest, out invViewProjection);
@@ -576,13 +605,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             float f = legacyLight.range;
             float n = shadowNearPlane;
             shadowRequest.zBufferParam = new Vector4((f-n)/n, 1.0f, (f-n)/n*f, 1.0f/f);
-            shadowRequest.viewBias = new Vector4(m_ShadowData.viewBiasMin, m_ShadowData.viewBiasMax, m_ShadowData.viewBiasScale, 2.0f / shadowRequest.deviceProjectionYFlip.m00 / viewportSize.x * 1.4142135623730950488016887242097f);
-            shadowRequest.normalBias = new Vector3(m_ShadowData.normalBiasMin, m_ShadowData.normalBiasMax, m_ShadowData.normalBiasScale);
-            shadowRequest.flags = 0;
-            shadowRequest.flags |= m_ShadowData.sampleBiasScale     ? (int)HDShadowFlag.SampleBiasScale : 0;
-            shadowRequest.flags |= m_ShadowData.edgeLeakFixup       ? (int)HDShadowFlag.EdgeLeakFixup : 0;
-            shadowRequest.flags |= m_ShadowData.edgeToleranceNormal ? (int)HDShadowFlag.EdgeToleranceNormal : 0;
-            shadowRequest.edgeTolerance = m_ShadowData.edgeTolerance;
+            shadowRequest.worldTexelSize = 2.0f / shadowRequest.deviceProjectionYFlip.m00 / viewportSize.x * Mathf.Sqrt(2.0f);
+            shadowRequest.normalBias = m_ShadowData.normalBias;
 
             // Make light position camera relative:
             // TODO: think about VR (use different camera position for each eye)

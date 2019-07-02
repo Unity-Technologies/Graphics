@@ -129,7 +129,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public Fabric() {}
 
-        public override void Build(HDRenderPipelineAsset hdAsset)
+        public override void Build(HDRenderPipelineAsset hdAsset, RenderPipelineResources defaultResources)
         {
             PreIntegratedFGD.instance.Build(PreIntegratedFGD.FGDIndex.FGD_CharlieAndFabricLambert);
             //LTCAreaLight.instance.Build();

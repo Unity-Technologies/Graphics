@@ -177,7 +177,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         protected void GetGBufferOptions(HDRenderPipelineAsset asset, out int gBufferCount, out bool supportShadowMask, out bool supportLightLayers)
         {
-            // Caution: This must be in sync with GBUFFERMATERIAL_COUNT definition in 
+            // Caution: This must be in sync with GBUFFERMATERIAL_COUNT definition in
             supportShadowMask = asset.currentPlatformRenderPipelineSettings.supportShadowMask;
             supportLightLayers = asset.currentPlatformRenderPipelineSettings.supportLightLayers;
             gBufferCount = 4 + (supportShadowMask ? 1 : 0) + (supportLightLayers ? 1 : 0);
@@ -244,7 +244,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public Lit() {}
 
-        public override void Build(HDRenderPipelineAsset hdAsset)
+        public override void Build(HDRenderPipelineAsset hdAsset, RenderPipelineResources defaultResources)
         {
             PreIntegratedFGD.instance.Build(PreIntegratedFGD.FGDIndex.FGD_GGXAndDisneyDiffuse);
             LTCAreaLight.instance.Build();

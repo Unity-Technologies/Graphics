@@ -68,8 +68,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Remove all obsolete wind code from shader
 - Renamed DecalProjectorComponent into DecalProjector for API alignment.
 - Improved the Volume UI and made them Global by default
-
-
+- Remove very high quality shadow option
+- Change default for shadow quality in Deferred to Medium
 ## [6.7.0-preview] - 2019-05-16
 
 ### Added

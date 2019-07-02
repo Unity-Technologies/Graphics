@@ -145,8 +145,6 @@ float HorizonLoop(float3 positionVS, float3 V, float2 rayStart, float2 rayDir, f
     return maxHorizon;
 }
 
-RW_TEXTURE2D_X(float, _OcclusionTexture);
-RW_TEXTURE2D_X(float3, _BentNormalsTexture);
 RW_TEXTURE2D_X(uint, _AOPackedData);
 
 [numthreads(8,8,1)]

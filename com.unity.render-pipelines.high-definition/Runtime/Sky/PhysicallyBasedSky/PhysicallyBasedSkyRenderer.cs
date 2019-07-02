@@ -96,7 +96,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public override void Build()
         {
             var hdrpAsset     = GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset;
-            var hdrpResources = hdrpAsset.renderPipelineResources;
+            var hdrpResources = HDRenderPipeline.defaultAsset.renderPipelineResources;
 
             // Shaders
             s_OpticalDepthPrecomputationCS        = hdrpResources.shaders.opticalDepthPrecomputationCS;

@@ -31,7 +31,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             LowResTransparency = 1 << 15
         }
 
-        readonly static ExpandedState<Expandable, HDRenderPipelineAsset> k_ExpandedState = new ExpandedState<Expandable, HDRenderPipelineAsset>(Expandable.CameraFrameSettings | Expandable.General, "HDRP");
+        static readonly ExpandedState<Expandable, HDRenderPipelineAsset> k_ExpandedState = new ExpandedState<Expandable, HDRenderPipelineAsset>(Expandable.CameraFrameSettings | Expandable.General, "HDRP");
 
         enum ShadowResolutionValue
         {
@@ -60,8 +60,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
             Inspector = CED.Group(
                 //CED.Group(SupportedSettingsInfoSection),
-                FrameSettingsSection,
-                CED.FoldoutGroup(k_GeneralSectionTitle, Expandable.General, k_ExpandedState, Drawer_SectionGeneral),
                 CED.FoldoutGroup(k_RenderingSectionTitle, Expandable.Rendering, k_ExpandedState,
                     CED.Group(GroupOption.Indent, Drawer_SectionRenderingUnsorted),
                     CED.FoldoutGroup(k_DecalsSubTitle, Expandable.Decal, k_ExpandedState, FoldoutOption.Indent | FoldoutOption.SubFoldout, Drawer_SectionDecalSettings),
@@ -91,7 +89,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         public static readonly CED.IDrawer Inspector;
 
-        static readonly CED.IDrawer FrameSettingsSection = CED.Group(
+        public static readonly CED.IDrawer GeneralSection = CED.Group(Drawer_SectionGeneral);
+
+        public static readonly CED.IDrawer FrameSettingsSection = CED.Group(
             CED.Group(
                 (serialized, owner) => EditorGUILayout.BeginVertical("box"),
                 Drawer_TitleDefaultFrameSettings
