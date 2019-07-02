@@ -18,7 +18,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
 
         // Regular interface
-        public virtual void Build(HDRenderPipelineAsset hdAsset) {}
+        public virtual void Build(HDRenderPipelineAsset hdAsset, RenderPipelineResources defaultResources) {}
         public virtual void Cleanup() {}
 
         // Following function can be use to initialize GPU resource (once or each frame) and bind them

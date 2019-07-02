@@ -55,16 +55,16 @@ struct DirectionalLightData
     uint lightLayers;
     float lightDimmer;
     float volumetricLightDimmer;
-    float angleScale;
-    float angleOffset;
     float3 forward;
     int cookieIndex;
     float3 right;
     int tileCookie;
     float3 up;
     int shadowIndex;
+    int screenSpaceShadowIndex;
     float3 color;
     int contactShadowMask;
+    float3 shadowTint;
     float shadowDimmer;
     float volumetricShadowDimmer;
     int nonLightMappedOnly;
@@ -72,6 +72,7 @@ struct DirectionalLightData
     float4 shadowMaskSelector;
     float diffuseDimmer;
     float specularDimmer;
+    int interactsWithSky;
 };
 
 // Generated from UnityEngine.Experimental.Rendering.HDPipeline.LightData
@@ -96,7 +97,8 @@ struct LightData
     int tileCookie;
     int shadowIndex;
     int contactShadowMask;
-    int rayTracedAreaShadowIndex;
+    int screenSpaceShadowIndex;
+    float3 shadowTint;
     float shadowDimmer;
     float volumetricShadowDimmer;
     int nonLightMappedOnly;

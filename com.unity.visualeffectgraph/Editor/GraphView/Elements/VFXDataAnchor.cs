@@ -197,6 +197,8 @@ namespace UnityEditor.VFX.UI
                 AddToClassList("hidden");
             }
 
+            UpdateCapColor();
+
 
             if (controller.direction == Direction.Output)
                 m_ConnectorText.text = controller.name;

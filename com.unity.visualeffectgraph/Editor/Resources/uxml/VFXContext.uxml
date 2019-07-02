@@ -7,7 +7,7 @@
           <ui:Image name="header-space" text=""/>
         </ui:VisualElement>
         <ui:VisualElement name="user-title" pickingMode="Ignore">
-            <ui:Label name="user-label" text="Coucou" />
+            <ui:Label name="user-label" text="" />
             <ui:TextField name="user-title-textfield" multiline="true"/>
         </ui:VisualElement>
         <ui:VisualElement name="contents" pickingMode="Ignore">

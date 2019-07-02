@@ -30,7 +30,7 @@ namespace UnityEngine.Rendering.LWRP.Tests
         [Test]
         public void SetupCullingSetsBoundingSpheresAndCullingIndices()
         {
-            Light2D.SetupCulling(Camera.main);
+            Light2D.SetupCulling(default(ScriptableRenderContext), Camera.main);
 
             Assert.NotNull(Light2DManager.boundingSpheres);
             Assert.AreEqual(1024, Light2DManager.boundingSpheres.Length);
@@ -96,28 +96,30 @@ namespace UnityEngine.Rendering.LWRP.Tests
             Assert.AreSame(light2, Light2DManager.lights[0][2]);
         }
 
-        [UnityTest]
-        public IEnumerator IsLightVisibleReturnsTrueIfInCameraView()
+        [Test]
+        public void IsLightVisibleReturnsTrueIfInCameraView()
         {
             var camera = m_TestObject1.AddComponent<Camera>();
             var light = m_TestObject2.AddComponent<Light2D>();
             light.transform.position = camera.transform.position;
-            Light2D.SetupCulling(camera);
+            Light2D.SetupCulling(default(ScriptableRenderContext), camera);
 
-            yield return null;
+            // We can only verify the results after culling is done on this camera.
+            camera.Render();
 
             Assert.IsTrue(light.IsLightVisible(camera));
         }
 
-        [UnityTest]
-        public IEnumerator IsLightVisibleReturnsFalseIfNotInCameraView()
+        [Test]
+        public void IsLightVisibleReturnsFalseIfNotInCameraView()
         {
             var camera = m_TestObject1.AddComponent<Camera>();
             var light = m_TestObject2.AddComponent<Light2D>();
             light.transform.position = camera.transform.position + new Vector3(9999.0f, 0.0f, 0.0f);
-            Light2D.SetupCulling(camera);
+            Light2D.SetupCulling(default(ScriptableRenderContext), camera);
 
-            yield return null;
+            // We can only verify the results after culling is done on this camera.
+            camera.Render();
 
             Assert.IsFalse(light.IsLightVisible(camera));
         }

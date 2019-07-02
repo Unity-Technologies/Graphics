@@ -6,7 +6,7 @@ using UnityEditor;
 using UnityEditor.Experimental;
 using UnityEditor.SceneManagement;
 using UnityEngine;
-using UnityEngine.Experimental.VFX;
+using UnityEngine.VFX;
 using UnityEditor.VFX;
 using UnityEditor.VFX.UI;
 
@@ -16,7 +16,7 @@ using System.Reflection;
 
 [CustomEditor(typeof(VFXModel), true)]
 [CanEditMultipleObjects]
-public class VFXSlotContainerEditor : Editor
+class VFXSlotContainerEditor : Editor
 {
     protected void OnEnable()
     {
@@ -30,19 +30,24 @@ public class VFXSlotContainerEditor : Editor
         SceneView.duringSceneGui -= OnSceneGUI;
     }
 
+    protected virtual SerializedProperty FindProperty(VFXSetting setting)
+    {
+        return serializedObject.FindProperty(setting.field.Name);
+    }
+
     public virtual void DoInspectorGUI()
     {
         var slotContainer = targets[0] as VFXModel;
-        IEnumerable<FieldInfo> settingFields = slotContainer.GetSettings(false, VFXSettingAttribute.VisibleFlags.InInspector);
+        IEnumerable<VFXSetting> settingFields = slotContainer.GetSettings(false, VFXSettingAttribute.VisibleFlags.InInspector);
 
         for (int i = 1; i < targets.Length; ++i)
         {
-            IEnumerable<FieldInfo> otherSettingFields = (targets[i] as VFXModel).GetSettings(false, VFXSettingAttribute.VisibleFlags.InInspector);
+            IEnumerable<VFXSetting> otherSettingFields = (targets[i] as VFXModel).GetSettings(false, VFXSettingAttribute.VisibleFlags.InInspector);
 
             settingFields = settingFields.Intersect(otherSettingFields);
         }
 
-        foreach (var prop in settingFields.Select(t => new KeyValuePair<FieldInfo, SerializedProperty>(t, serializedObject.FindProperty(t.Name))).Where(t => t.Value != null))
+        foreach (var prop in settingFields.Select(t => new KeyValuePair<FieldInfo, SerializedProperty>(t.field, FindProperty(t))).Where(t => t.Value != null))
         {
             var attrs = prop.Key.GetCustomAttributes(typeof(StringProviderAttribute), true);
             if (attrs.Length > 0)
@@ -237,16 +242,6 @@ public class VFXSlotContainerEditor : Editor
             letter.fontSize = 36;
         }
 
-        static Dictionary<VFXAttributeMode, Color> attributeModeColors = new Dictionary<VFXAttributeMode, Color>()
-        {
-            { VFXAttributeMode.None, new Color32(160, 160, 160, 255) },
-            { VFXAttributeMode.Read, new Color32(160, 160, 255, 255) },
-            { VFXAttributeMode.ReadSource, new Color32(160, 160, 255, 255) },
-            { VFXAttributeMode.ReadWrite, new Color32(160, 255, 160, 255) },
-            { VFXAttributeMode.Write, new Color32(255, 160, 160, 255) },
-            { VFXAttributeMode.Write | VFXAttributeMode.ReadSource, new Color32(255, 160, 255, 255) },
-        };
-
         static Dictionary<VFXValueType, Color> valueTypeColors = new Dictionary<VFXValueType, Color>()
         {
             { VFXValueType.Boolean, new Color32(125, 110, 191, 255) },
@@ -288,8 +283,17 @@ public class VFXSlotContainerEditor : Editor
         internal static void AttributeModeLabel(string Label, VFXAttributeMode mode, GUIStyle style, params GUILayoutOption[] options)
         {
             Color backup = GUI.color;
-            GUI.color = attributeModeColors[mode];
-            EditorGUILayout.LabelField(Label, style, options);
+
+            var c = new Color32(160,160,160,255);
+            if ((mode & VFXAttributeMode.Read) != 0)
+                c.b = 255;
+            if ((mode & VFXAttributeMode.Write) != 0)
+                c.r = 255;
+            if ((mode & VFXAttributeMode.ReadSource) != 0)
+                c.g = 255;
+
+            GUI.color = c;
+            GUILayout.Label(Label, style, options);
             GUI.color = backup;
         }
 

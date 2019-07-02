@@ -30,6 +30,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         Dictionary<Object, TSerialized> m_SerializedHDProbePerTarget;
         protected HDProbe[] m_TypedTargets;
 
+        protected bool showChromeGizmo { get; private set; }
+
         public override void OnInspectorGUI()
         {
             m_SerializedHDProbe.Update();
@@ -42,6 +44,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected virtual void OnEnable()
         {
             m_SerializedHDProbe = NewSerializedObject(serializedObject);
+            showChromeGizmo = true;
 
             m_SerializedHDProbePerTarget = new Dictionary<Object, TSerialized>(targets.Length);
             m_TypedTargets = new HDProbe[targets.Length];
@@ -68,6 +71,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected virtual void Draw(TSerialized serialized, Editor owner)
         {
             HDProbeUI.Drawer<TProvider>.DrawToolbars(serialized, owner);
+            EditorGUI.BeginChangeCheck();
+            showChromeGizmo = EditorGUILayout.Toggle(EditorGUIUtility.TrTextContent("Show Chrome Gizmo"), showChromeGizmo);
+            if (EditorGUI.EndChangeCheck())
+                SceneView.RepaintAll();
             HDProbeUI.Drawer<TProvider>.DrawPrimarySettings(serialized, owner);
 
             //note: cannot use 'using CED = something' due to templated type passed.
@@ -78,9 +85,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     HDProbeUI.Drawer<TProvider>.DrawInfluenceSettings,
                     HDProbeUI.Drawer_DifferentShapeError
                     ),
-                CoreEditorDrawer<TSerialized>.FoldoutGroup(HDProbeUI.k_CaptureSettingsHeader, HDProbeUI.Expandable.Capture, HDProbeUI.k_ExpandedState,
-                    DrawAdditionalCaptureSettings,
-                    HDProbeUI.Drawer<TProvider>.DrawCaptureSettings),
+                CoreEditorDrawer<TSerialized>.AdvancedFoldoutGroup(HDProbeUI.k_CaptureSettingsHeader, HDProbeUI.Expandable.Capture, HDProbeUI.k_ExpandedState,
+                    (s, o) => s.GetEditorOnlyData(SerializedHDProbe.EditorOnlyData.CaptureSettingsIsAdvanced),
+                    (s, o) => s.ToggleEditorOnlyData(SerializedHDProbe.EditorOnlyData.CaptureSettingsIsAdvanced),
+                    CoreEditorDrawer<TSerialized>.Group(DrawAdditionalCaptureSettings,
+                        HDProbeUI.Drawer<TProvider>.DrawCaptureSettings
+                    ),
+                    HDProbeUI.Drawer<TProvider>.DrawAdvancedCaptureSettings
+                    ),
                 CoreEditorDrawer<TSerialized>.FoldoutGroup(HDProbeUI.k_CustomSettingsHeader, HDProbeUI.Expandable.Custom, HDProbeUI.k_ExpandedState,
                     HDProbeUI.Drawer<TProvider>.DrawCustomSettings),
                 CoreEditorDrawer<TSerialized>.Group(HDProbeUI.Drawer<TProvider>.DrawBakeButton)

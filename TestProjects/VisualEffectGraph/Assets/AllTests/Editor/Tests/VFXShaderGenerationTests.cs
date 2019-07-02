@@ -4,8 +4,8 @@ using System.Text;
 using System.Linq;
 using NUnit.Framework;
 using UnityEngine;
-using UnityEngine.Experimental.VFX;
-using UnityEditor.Experimental.VFX;
+using UnityEngine.VFX;
+using UnityEditor.VFX;
 using System.Collections.Generic;
 using UnityEditor.VFX.Block;
 
@@ -92,7 +92,6 @@ namespace UnityEditor.VFX.Test
 
             foreach (var initBlock in initBlocks)
             {
-                graph.AddChild(initBlock);
                 initContext.AddChild(initBlock);
             }
 
@@ -126,7 +125,7 @@ namespace UnityEditor.VFX.Test
             {
                 get
                 {
-                    return VFXContextType.kInitAndUpdate;
+                    return VFXContextType.InitAndUpdate;
                 }
             }
 
@@ -134,7 +133,7 @@ namespace UnityEditor.VFX.Test
             {
                 get
                 {
-                    return VFXDataType.kParticle;
+                    return VFXDataType.Particle;
                 }
             }
 

@@ -3,7 +3,7 @@ using System.Linq;
 using System.Collections.ObjectModel;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Experimental.VFX;
+using UnityEngine.VFX;
 
 namespace UnityEditor.VFX
 {
@@ -189,16 +189,11 @@ namespace UnityEditor.VFX
 
         static public VFXExpression Cross(VFXExpression lhs, VFXExpression rhs)
         {
-            Func<VFXExpression, VFXExpression, VFXExpression, VFXExpression, VFXExpression> ab_Minus_cd = delegate(VFXExpression a, VFXExpression b, VFXExpression c, VFXExpression d)
-            {
-                return (a * b - c * d);
-            };
-
             return new VFXExpressionCombine(new[]
             {
-                ab_Minus_cd(lhs.y, rhs.z, lhs.z, rhs.y),
-                ab_Minus_cd(lhs.z, rhs.x, lhs.x, rhs.z),
-                ab_Minus_cd(lhs.x, rhs.y, lhs.y, rhs.x),
+                lhs.y * rhs.z - lhs.z * rhs.y,
+                lhs.z * rhs.x - lhs.x * rhs.z,
+                lhs.x * rhs.y - lhs.y * rhs.x,
             });
         }
 
@@ -312,8 +307,7 @@ namespace UnityEditor.VFX
         {
             //theta = atan2(coord.y, coord.x)
             //distance = length(coord)
-            var components = ExtractComponents(coord).ToArray();
-            var theta = new VFXExpressionATan2(components[1], components[0]);
+            var theta = Atan2(coord);
             var distance = Length(coord);
             return new VFXExpression[] { theta, distance };
         }
@@ -608,6 +602,13 @@ namespace UnityEditor.VFX
             var m3 = new VFXExpressionCombine(zero,                 zero,       TwoExpression[VFXValueType.Float] * zNear * zFar / deltaZ,     zero);
 
             return new VFXExpressionVector4sToMatrix(m0, m1, m2, m3);
+        }
+
+        static public VFXExpression Atan2(VFXExpression coord)
+        {
+            var components = ExtractComponents(coord).ToArray();
+            var theta = new VFXExpressionATan2(components[1], components[0]);
+            return theta;
         }
     }
 }

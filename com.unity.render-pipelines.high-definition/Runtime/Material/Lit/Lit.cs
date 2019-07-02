@@ -177,7 +177,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         protected void GetGBufferOptions(HDRenderPipelineAsset asset, out int gBufferCount, out bool supportShadowMask, out bool supportLightLayers)
         {
-            // Caution: This must be in sync with GBUFFERMATERIAL_COUNT definition in 
+            // Caution: This must be in sync with GBUFFERMATERIAL_COUNT definition in
             supportShadowMask = asset.currentPlatformRenderPipelineSettings.supportShadowMask;
             supportLightLayers = asset.currentPlatformRenderPipelineSettings.supportLightLayers;
             gBufferCount = 4 + (supportShadowMask ? 1 : 0) + (supportLightLayers ? 1 : 0);
@@ -207,22 +207,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             RTFormat[0] = GraphicsFormat.R8G8B8A8_SRGB; // Albedo sRGB / SSSBuffer
             gBufferUsage[0] = GBufferUsage.SubsurfaceScattering;
-            enableWrite[0] = false;
+            enableWrite[0] = true;
             RTFormat[1] = GraphicsFormat.R8G8B8A8_UNorm; // Normal Buffer
             gBufferUsage[1] = GBufferUsage.Normal;
             enableWrite[1] = true;                    // normal buffer is used as RWTexture to composite decals in forward
             RTFormat[2] = GraphicsFormat.R8G8B8A8_UNorm; // Data
             gBufferUsage[2] = GBufferUsage.None;
-            enableWrite[2] = false;
+            enableWrite[2] = true;
             RTFormat[3] = Builtin.GetLightingBufferFormat();
             gBufferUsage[3] = GBufferUsage.None;
-
-            // If we are in raytracing mode and we want to have indirect diffuse active, we need to make sure that the gbuffer3 is writable
-            #if ENABLE_RAYTRACING
             enableWrite[3] = true;
-            #else
-            enableWrite[3] = false;
-            #endif
 
             int index = 4;
 
@@ -250,7 +244,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public Lit() {}
 
-        public override void Build(HDRenderPipelineAsset hdAsset)
+        public override void Build(HDRenderPipelineAsset hdAsset, RenderPipelineResources defaultResources)
         {
             PreIntegratedFGD.instance.Build(PreIntegratedFGD.FGDIndex.FGD_GGXAndDisneyDiffuse);
             LTCAreaLight.instance.Build();

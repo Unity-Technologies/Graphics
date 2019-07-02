@@ -37,7 +37,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             // Compute buffer storing the resulting SH from diffuse convolution. L2 SH => 9 float per component.
             m_AmbientProbeResult = new ComputeBuffer(27, 4);
-            var hdrp = GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset;
+            var hdrp = HDRenderPipeline.defaultAsset;
             m_ComputeAmbientProbeCS = hdrp.renderPipelineResources.shaders.ambientProbeConvolutionCS;
             m_ComputeAmbientProbeKernel = m_ComputeAmbientProbeCS.FindKernel("AmbientProbeConvolution");
 
@@ -233,8 +233,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 bool forceUpdate = (updateRequired || skyContext.updatedFramesRequired > 0 || m_NeedUpdate);
                 if (forceUpdate ||
-                    (skyContext.skySettings.updateMode == EnvironementUpdateMode.OnChanged && skyHash != skyContext.skyParametersHash) ||
-                    (skyContext.skySettings.updateMode == EnvironementUpdateMode.Realtime && skyContext.currentUpdateTime > skyContext.skySettings.updatePeriod.value))
+                    (skyContext.skySettings.updateMode == EnvironmentUpdateMode.OnChanged && skyHash != skyContext.skyParametersHash) ||
+                    (skyContext.skySettings.updateMode == EnvironmentUpdateMode.Realtime && skyContext.currentUpdateTime > skyContext.skySettings.updatePeriod.value))
                 {
                     using (new ProfilingSample(cmd, "Sky Environment Pass"))
                     {

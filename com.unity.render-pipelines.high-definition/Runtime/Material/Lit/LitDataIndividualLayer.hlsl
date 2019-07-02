@@ -112,10 +112,10 @@ float3 ADD_IDX(GetNormalTS)(FragInputs input, LayerTexCoord layerTexCoord, float
         // /We need to decompress the normal ourselve here as UnpackNormalRGB will return a surface gradient
         float3 normalOS = SAMPLE_TEXTURE2D(ADD_IDX(_NormalMapOS), SAMPLER_NORMALMAP_IDX, ADD_IDX(layerTexCoord.base).uv).xyz * 2.0 - 1.0;
         // no need to renormalize normalOS for SurfaceGradientFromPerturbedNormal
-        normalTS = SurfaceGradientFromPerturbedNormal(input.worldToTangent[2], TransformObjectToWorldNormal(normalOS));
+        normalTS = SurfaceGradientFromPerturbedNormal(input.tangentToWorld[2], TransformObjectToWorldNormal(normalOS));
         #else
         float3 normalOS = UnpackNormalRGB(SAMPLE_TEXTURE2D(ADD_IDX(_NormalMapOS), SAMPLER_NORMALMAP_IDX, ADD_IDX(layerTexCoord.base).uv), 1.0);
-        normalTS = TransformObjectToTangent(normalOS, input.worldToTangent);
+        normalTS = TransformObjectToTangent(normalOS, input.tangentToWorld);
         #endif
     #endif
 
@@ -153,10 +153,10 @@ float3 ADD_IDX(GetBentNormalTS)(FragInputs input, LayerTexCoord layerTexCoord, f
         // /We need to decompress the normal ourselve here as UnpackNormalRGB will return a surface gradient
         float3 normalOS = SAMPLE_TEXTURE2D(ADD_IDX(_BentNormalMapOS), SAMPLER_NORMALMAP_IDX, ADD_IDX(layerTexCoord.base).uv).xyz * 2.0 - 1.0;
         // no need to renormalize normalOS for SurfaceGradientFromPerturbedNormal
-        bentNormalTS = SurfaceGradientFromPerturbedNormal(input.worldToTangent[2], TransformObjectToWorldNormal(normalOS));
+        bentNormalTS = SurfaceGradientFromPerturbedNormal(input.tangentToWorld[2], TransformObjectToWorldNormal(normalOS));
         #else
         float3 normalOS = UnpackNormalRGB(SAMPLE_TEXTURE2D(ADD_IDX(_BentNormalMapOS), SAMPLER_NORMALMAP_IDX, ADD_IDX(layerTexCoord.base).uv), 1.0);
-        bentNormalTS = TransformObjectToTangent(normalOS, input.worldToTangent);
+        bentNormalTS = TransformObjectToTangent(normalOS, input.tangentToWorld);
         #endif
     #endif
 
@@ -302,7 +302,7 @@ float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out
     #ifdef _NORMALMAP_TANGENT_SPACE_IDX // Normal and tangent use same space
     // Tangent space vectors always use only 2 channels.
     float3 tangentTS = UnpackNormalmapRGorAG(SAMPLE_UVMAPPING_TEXTURE2D(_TangentMap, sampler_TangentMap, layerTexCoord.base), 1.0);
-    surfaceData.tangentWS = TransformTangentToWorld(tangentTS, input.worldToTangent);
+    surfaceData.tangentWS = TransformTangentToWorld(tangentTS, input.tangentToWorld);
     #else // Object space
     // Note: There is no such a thing like triplanar with object space normal, so we call directly 2D function
     float3 tangentOS = UnpackNormalRGB(SAMPLE_TEXTURE2D(_TangentMapOS, sampler_TangentMapOS,  layerTexCoord.base.uv), 1.0);
@@ -311,7 +311,7 @@ float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out
 #else
     // Note we don't normalize tangentWS either with a tangentmap above or using the interpolated tangent from the TBN frame
     // as it will be normalized later with a call to Orthonormalize():
-    surfaceData.tangentWS = input.worldToTangent[0].xyz; // The tangent is not normalize in worldToTangent for mikkt. TODO: Check if it expected that we normalize with Morten. Tag: SURFACE_GRADIENT
+    surfaceData.tangentWS = input.tangentToWorld[0].xyz; // The tangent is not normalize in tangentToWorld for mikkt. TODO: Check if it expected that we normalize with Morten. Tag: SURFACE_GRADIENT
 #endif
 
 #ifdef _ANISOTROPYMAP

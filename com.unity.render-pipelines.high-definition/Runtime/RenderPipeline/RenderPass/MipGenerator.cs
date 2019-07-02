@@ -19,17 +19,17 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         int[] m_SrcOffset;
         int[] m_DstOffset;
 
-        public MipGenerator(HDRenderPipelineAsset asset)
+        public MipGenerator(RenderPipelineResources defaultResources)
         {
             m_TempColorTargets = new RTHandle[tmpTargetCount];
             m_TempDownsamplePyramid = new RTHandle[tmpTargetCount];
-            m_DepthPyramidCS = asset.renderPipelineResources.shaders.depthPyramidCS;
+            m_DepthPyramidCS = defaultResources.shaders.depthPyramidCS;
 
             m_DepthDownsampleKernel = m_DepthPyramidCS.FindKernel("KDepthDownsample8DualUav");
 
             m_SrcOffset = new int[4];
             m_DstOffset = new int[4];
-            m_ColorPyramidPS = asset.renderPipelineResources.shaders.colorPyramidPS;
+            m_ColorPyramidPS = defaultResources.shaders.colorPyramidPS;
             m_ColorPyramidPSMat = CoreUtils.CreateEngineMaterial(m_ColorPyramidPS);
             m_PropertyBlock = new MaterialPropertyBlock();
         }
@@ -114,12 +114,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 m_TempColorTargets[rtIndex] = RTHandles.Alloc(
                     Vector2.one * 0.5f,
+                    sourceIsArray ? TextureXR.slices : 1,
+                    dimension: source.dimension,
                     filterMode: FilterMode.Bilinear,
                     colorFormat: destination.graphicsFormat,
                     enableRandomWrite: true,
                     useMipMap: false,
                     enableMSAA: false,
-                    xrInstancing: sourceIsArray,
                     useDynamicScale: true,
                     name: "Temp Gaussian Pyramid Target"
                 );
@@ -137,12 +138,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 m_TempDownsamplePyramid[rtIndex] = RTHandles.Alloc(
                 Vector2.one * 0.5f,
+                sourceIsArray ? TextureXR.slices : 1,
+                dimension: source.dimension,
                 filterMode: FilterMode.Bilinear,
                 colorFormat: destination.graphicsFormat,
                 enableRandomWrite: false,
                 useMipMap: false,
                 enableMSAA: false,
-                xrInstancing: sourceIsArray,
                 useDynamicScale: true,
                 name: "Temporary Downsampled Pyramid"
                 );

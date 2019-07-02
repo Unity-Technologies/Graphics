@@ -76,6 +76,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP
 
             string litPassTemplate = ReadTemplate("lightweightSpriteLitPass.template", sourceAssetDependencyPaths);
             string normalPassTemplate = ReadTemplate("lightweightSpriteNormalPass.template", sourceAssetDependencyPaths);
+            string forwardPassTemplate = ReadTemplate("lightweightSpriteForwardPass.template", sourceAssetDependencyPaths);
             var litMasterNode = masterNode as SpriteLitMasterNode;
 
             var litPass = m_LitPass;
@@ -106,6 +107,13 @@ namespace UnityEditor.Experimental.Rendering.LWRP
                         normalPass,
                         mode,
                         materialOptions));
+                subShader.AppendLines(GetShaderPassFromTemplate(
+                        false,
+                        forwardPassTemplate,
+                        litMasterNode,
+                        normalPass,
+                        mode,
+                        materialOptions));
             }
 
             return subShader.ToString();
@@ -121,6 +129,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP
             // String builders
 
             var shaderProperties = new PropertyCollector();
+            var shaderPropertyUniforms = new ShaderStringBuilder(1);
             var functionBuilder = new ShaderStringBuilder(1);
             var functionRegistry = new FunctionRegistry(functionBuilder);
 
@@ -213,6 +222,11 @@ namespace UnityEditor.Experimental.Rendering.LWRP
 
                 foreach (var channel in vertexRequirements.requiresMeshUVs.Distinct())
                     vertexDescriptionInputStruct.AppendLine("half4 {0};", channel.GetUVName());
+
+                if (vertexRequirements.requiresTime)
+                {
+                    vertexDescriptionInputStruct.AppendLine("float3 {0};", ShaderGeneratorNames.TimeParameters);
+                }
             }
 
             // -------------------------------------
@@ -260,6 +274,11 @@ namespace UnityEditor.Experimental.Rendering.LWRP
 
                 foreach (var channel in surfaceRequirements.requiresMeshUVs.Distinct())
                     surfaceDescriptionInputStruct.AppendLine("half4 {0};", channel.GetUVName());
+
+                if (surfaceRequirements.requiresTime)
+                {
+                    surfaceDescriptionInputStruct.AppendLine("float3 {0};", ShaderGeneratorNames.TimeParameters);
+                }
             }
 
             // -------------------------------------
@@ -287,6 +306,11 @@ namespace UnityEditor.Experimental.Rendering.LWRP
             // ----------------------------------------------------- //
             //           GENERATE VERTEX > PIXEL PIPELINE            //
             // ----------------------------------------------------- //
+
+            // -------------------------------------
+            // Property uniforms
+
+            shaderProperties.GetPropertiesDeclaration(shaderPropertyUniforms, mode, masterNode.owner.concretePrecision);
 
             // -------------------------------------
             // Generate Input structure for Vertex shader
@@ -320,7 +344,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP
             // -------------------------------------
             // Combine Graph sections
 
-            graph.AppendLine(shaderProperties.GetPropertiesDeclaration(1, mode));
+            graph.AppendLines(shaderPropertyUniforms.ToString());
 
             graph.AppendLine(vertexDescriptionInputStruct.ToString());
             graph.AppendLine(surfaceDescriptionInputStruct.ToString());

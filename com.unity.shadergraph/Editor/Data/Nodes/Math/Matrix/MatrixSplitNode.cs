@@ -65,7 +65,7 @@ namespace UnityEditor.ShaderGraph
 
         static int[] s_OutputSlots = {OutputSlotRId, OutputSlotGId, OutputSlotBId, OutputSlotAId};
 
-        public void GenerateNodeCode(ShaderGenerator visitor, GraphContext graphContext, GenerationMode generationMode)
+        public void GenerateNodeCode(ShaderStringBuilder sb, GraphContext graphContext, GenerationMode generationMode)
         {
             var inputValue = GetSlotValue(InputSlotId, generationMode);
 
@@ -93,7 +93,7 @@ namespace UnityEditor.ShaderGraph
                 string outputValue;
                 if (r >= numInputRows)
                 {
-                    outputValue = string.Format("{0}{1}(", precision, concreteRowCount);
+                    outputValue = string.Format("$precision{0}(", concreteRowCount);
                     for (int c = 0; c < concreteRowCount; c++)
                     {
                         if (c != 0)
@@ -107,7 +107,7 @@ namespace UnityEditor.ShaderGraph
                     switch (m_Axis)
                     {
                         case MatrixAxis.Column:
-                            outputValue = string.Format("{0}{1}(", precision, numInputRows);
+                            outputValue = string.Format("$precision{0}(", numInputRows);
                             for (int c = 0; c < numInputRows; c++)
                             {
                                 if (c != 0)
@@ -121,7 +121,7 @@ namespace UnityEditor.ShaderGraph
                             break;
                     }
                 }
-                visitor.AddShaderChunk(string.Format("{0}{1} {2} = {3};", precision, concreteRowCount, GetVariableNameForSlot(s_OutputSlots[r]), outputValue), true);
+                sb.AppendLine(string.Format("$precision{0} {1} = {2};", concreteRowCount, GetVariableNameForSlot(s_OutputSlots[r]), outputValue));
             }
         }
 
@@ -242,6 +242,7 @@ namespace UnityEditor.ShaderGraph
             GetOutputSlots(s_TempSlots);
             isInError |= s_TempSlots.Any(x => x.hasError);
             isInError |= CalculateNodeHasError(ref errorMessage);
+            isInError |= ValidateConcretePrecision(ref errorMessage);
             hasError = isInError;
 
             if (isInError)

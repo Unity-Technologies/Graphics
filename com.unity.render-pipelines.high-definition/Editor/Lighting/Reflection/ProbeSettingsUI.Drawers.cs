@@ -21,6 +21,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 | ProbeSettingsFields.proxyMirrorPositionProxySpace
                 | ProbeSettingsFields.proxyMirrorRotationProxySpace
                 | ProbeSettingsFields.proxyUseInfluenceVolumeAsProxyVolume;
+            const ProbeSettingsFields frustum = ProbeSettingsFields.frustumFieldOfViewMode
+                | ProbeSettingsFields.frustumAutomaticScale
+                | ProbeSettingsFields.frustumFixedValue;
 
             if (!(RenderPipelineManager.currentPipeline is HDRenderPipeline hd))
                 return;
@@ -36,6 +39,24 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 GUI.enabled = true;
                 PropertyFieldWithFlagToggleIfDisplayed(ProbeSettingsFields.lightingMultiplier, serialized.lightingMultiplier, EditorGUIUtility.TrTextContent("Multiplier", "Sets the multiplier value that reflective Materials apply to the results from the Reflection Probe."), @override.probe, displayedFields.probe, overridableFields.probe);
                 PropertyFieldWithFlagToggleIfDisplayed(ProbeSettingsFields.lightingWeight, serialized.lightingWeight, EditorGUIUtility.TrTextContent("Weight", "Sets the weight of this Reflection Probe. When multiple Probes both affect the same area of a reflective Material, the Material uses the Weight of each Probe to determine their contribution to the reflective effect."), @override.probe, displayedFields.probe, overridableFields.probe);
+                EditorGUILayout.Space();
+            }
+
+            if ((displayedFields.probe & frustum) != 0)
+            {
+                PropertyFieldWithFlagToggleIfDisplayed(ProbeSettingsFields.frustumFieldOfViewMode, serialized.frustumFieldOfViewMode, EditorGUIUtility.TrTextContent("Field Of View Mode"), @override.probe, displayedFields.probe, overridableFields.probe);
+                switch ((ProbeSettings.Frustum.FOVMode)serialized.frustumFieldOfViewMode.enumValueIndex)
+                {
+                    case ProbeSettings.Frustum.FOVMode.Fixed:
+                        PropertyFieldWithFlagToggleIfDisplayed(ProbeSettingsFields.frustumFixedValue, serialized.frustumFixedValue, EditorGUIUtility.TrTextContent("Value"), @override.probe, displayedFields.probe, overridableFields.probe, indent: 1);
+                        break;
+                    case ProbeSettings.Frustum.FOVMode.Viewer:
+                        PropertyFieldWithFlagToggleIfDisplayed(ProbeSettingsFields.frustumViewerScale, serialized.frustumViewerScale, EditorGUIUtility.TrTextContent("Scale"), @override.probe, displayedFields.probe, overridableFields.probe, indent: 1);
+                        break;
+                    case ProbeSettings.Frustum.FOVMode.Automatic:
+                        PropertyFieldWithFlagToggleIfDisplayed(ProbeSettingsFields.frustumAutomaticScale, serialized.frustumAutomaticScale, EditorGUIUtility.TrTextContent("Scale"), @override.probe, displayedFields.probe, overridableFields.probe, indent: 1);
+                        break;
+                }
                 EditorGUILayout.Space();
             }
 

@@ -1,4 +1,4 @@
-#define HAVE_MESH_MODIFICATION
+﻿#define HAVE_MESH_MODIFICATION
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/FragInputs.hlsl"
@@ -14,6 +14,11 @@
     // In case of opaque we don't want to perform the alpha test, it is done in depth prepass and we use depth equal for ztest (setup from UI)
     // Don't do it with debug display mode as it is possible there is no depth prepass in this case
     #define SHADERPASS_FORWARD_BYPASS_ALPHA_TEST
+#endif
+
+#if defined(_ALPHATEST_ON)
+	#define ATTRIBUTES_NEED_TEXCOORD0
+	#define VARYINGS_NEED_TEXCOORD0
 #endif
 
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"

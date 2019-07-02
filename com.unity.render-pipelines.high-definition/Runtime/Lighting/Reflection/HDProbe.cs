@@ -16,31 +16,38 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             [SerializeField, FormerlySerializedAs("capturePosition")]
             Vector3 m_CapturePosition;
             Quaternion m_CaptureRotation;
+            float m_FieldOfView;
 
             public Matrix4x4 worldToCameraRHS => m_WorldToCameraRHS;
             public Matrix4x4 projectionMatrix => m_ProjectionMatrix;
             public Vector3 capturePosition => m_CapturePosition;
             public Quaternion captureRotation => m_CaptureRotation;
+            public float fieldOfView => m_FieldOfView;
 
             public RenderData(CameraSettings camera, CameraPositionSettings position)
+                : this(
+                    position.GetUsedWorldToCameraMatrix(),
+                    camera.frustum.GetUsedProjectionMatrix(),
+                    position.position,
+                    position.rotation,
+                    camera.frustum.fieldOfView
+                )
             {
-                m_WorldToCameraRHS = position.GetUsedWorldToCameraMatrix();
-                m_ProjectionMatrix = camera.frustum.GetUsedProjectionMatrix();
-                m_CapturePosition = position.position;
-                m_CaptureRotation = position.rotation;
             }
 
             public RenderData(
                 Matrix4x4 worldToCameraRHS,
                 Matrix4x4 projectionMatrix,
                 Vector3 capturePosition,
-                Quaternion captureRotation
+                Quaternion captureRotation,
+                float fov
             )
             {
                 m_WorldToCameraRHS = worldToCameraRHS;
                 m_ProjectionMatrix = projectionMatrix;
                 m_CapturePosition = capturePosition;
                 m_CaptureRotation = captureRotation;
+                m_FieldOfView = fov;
             }
         }
 
@@ -64,6 +71,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         RenderData m_BakedRenderData;
         [SerializeField]
         RenderData m_CustomRenderData;
+
+        // Only used in editor, but this data needs to be probe instance specific
+        // (Contains: UI section states)
+        [SerializeField]
+        uint m_EditorOnlyData;
 
         // Runtime Data
         RenderTexture m_RealtimeTexture;

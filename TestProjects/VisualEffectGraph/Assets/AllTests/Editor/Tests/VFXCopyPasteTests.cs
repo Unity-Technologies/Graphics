@@ -2,8 +2,8 @@
 using System;
 using NUnit.Framework;
 using UnityEngine;
-using UnityEngine.Experimental.VFX;
-using UnityEditor.Experimental.VFX;
+using UnityEngine.VFX;
+using UnityEditor.VFX;
 using System.Linq;
 using UnityEditor.VFX.UI;
 using System.IO;
@@ -187,6 +187,52 @@ namespace UnityEditor.VFX.Test
 
             Assert.AreNotEqual(copy2Operator.controller.model.position, newOperator.position);
             Assert.AreNotEqual(copy2Operator.controller.model.position, copyOperator.controller.model.position);
+        }
+
+        [Test]
+        public void CopyPasteSpacableOperator()
+        {
+            var inlineOperatorDesc = VFXLibrary.GetOperators().Where(t => t.modelType == typeof(VFXInlineOperator)).First();
+
+            var newOperator = m_ViewController.AddVFXOperator(new Vector2(100, 100), inlineOperatorDesc);
+            newOperator.SetSettingValue("m_Type",new SerializableType(typeof(DirectionType)));
+
+            m_ViewController.ApplyChanges();
+            var operatorController = m_ViewController.allChildren.OfType<VFXOperatorController>().First();
+
+            Assert.AreEqual(operatorController.model, newOperator);
+
+            VFXViewWindow window = EditorWindow.GetWindow<VFXViewWindow>();
+
+            VFXView view = window.graphView;
+            view.controller = m_ViewController;
+
+            view.ClearSelection();
+            foreach (var element in view.Query().OfType<GraphElement>().ToList().OfType<ISelectable>())
+            {
+                view.AddToSelection(element);
+            }
+
+
+            VFXSlot aSlot = newOperator.GetInputSlot(0);
+
+            Assert.IsTrue(aSlot.spaceable);
+
+            aSlot.space = VFXCoordinateSpace.World;
+
+            view.CopySelectionCallback();
+
+            aSlot.space = VFXCoordinateSpace.Local;
+
+            view.PasteCallback();
+
+            var elements = view.Query().OfType<GraphElement>().ToList();
+
+            var copyOperator = elements.OfType<VFXOperatorUI>().First(t => t.controller.model != newOperator);
+
+            var copyASlot = copyOperator.controller.model.GetInputSlot(0);
+
+            Assert.AreEqual(VFXCoordinateSpace.World, copyASlot.space);
         }
 
         [Test]

@@ -2,8 +2,8 @@
 using System;
 using UnityEngine;
 using NUnit.Framework;
-using UnityEngine.Experimental.VFX;
-using UnityEditor.Experimental.VFX;
+using UnityEngine.VFX;
+using UnityEditor.VFX;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;

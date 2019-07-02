@@ -2,19 +2,13 @@
 
 // We perform scalarization only for forward rendering as for deferred loads will already be scalar since tiles will match waves and therefore all threads will read from the same tile. 
 // More info on scalarization: https://flashypixels.wordpress.com/2018/11/10/intro-to-gpu-scalarization-part-2-scalarize-all-the-lights/
-#define SCALARIZE_LIGHT_LOOP (defined(SUPPORTS_WAVE_INTRINSICS) && !defined(LIGHTLOOP_DISABLE_TILE_AND_CLUSTER) && SHADERPASS == SHADERPASS_FORWARD)
-
-// SCREEN_SPACE_SHADOWS needs to be defined in all cases in which they need to run. IMPORTANT: If this is activated, the light loop function WillRenderScreenSpaceShadows on C# MUST return true.
-#if SHADEROPTIONS_RAYTRACING
-// TODO: This will need to be a multi_compile when we'll have them on compute shaders.
-#define SCREEN_SPACE_SHADOWS 1
-#endif
+#define SCALARIZE_LIGHT_LOOP (defined(PLATFORM_SUPPORTS_WAVE_INTRINSICS) && !defined(LIGHTLOOP_DISABLE_TILE_AND_CLUSTER) && SHADERPASS == SHADERPASS_FORWARD)
 
 //-----------------------------------------------------------------------------
 // LightLoop
 // ----------------------------------------------------------------------------
 
-void ApplyDebug(LightLoopContext lightLoopContext, PositionInputs posInput, BSDFData bsdfData, inout float3 diffuseLighting, inout float3 specularLighting)
+void ApplyDebug(LightLoopContext context, PositionInputs posInput, BSDFData bsdfData, inout float3 diffuseLighting, inout float3 specularLighting)
 {
 #ifdef DEBUG_DISPLAY
     if (_DebugLightingMode == DEBUGLIGHTINGMODE_DIFFUSE_LIGHTING)
@@ -49,15 +43,27 @@ void ApplyDebug(LightLoopContext lightLoopContext, PositionInputs posInput, BSDF
             real alpha;
             int cascadeCount;
 
-            int shadowSplitIndex = EvalShadow_GetSplitIndex(lightLoopContext.shadowContext, _DirectionalShadowIndex, posInput.positionWS, alpha, cascadeCount);
+            int shadowSplitIndex = EvalShadow_GetSplitIndex(context.shadowContext, _DirectionalShadowIndex, posInput.positionWS, alpha, cascadeCount);
             if (shadowSplitIndex >= 0)
             {
                 float shadow = 1.0;
                 if (_DirectionalShadowIndex >= 0)
                 {
                     DirectionalLightData light = _DirectionalLightDatas[_DirectionalShadowIndex];
-                    float3 shadowBiasNormal = GetNormalForShadowBias(bsdfData);
-                    shadow = EvaluateRuntimeSunShadow(lightLoopContext, posInput, light, shadowBiasNormal);
+
+#if defined(SCREEN_SPACE_SHADOWS) && !defined(_SURFACE_TYPE_TRANSPARENT)
+                    if(light.screenSpaceShadowIndex >= 0)
+                    {
+                        shadow = GetScreenSpaceShadow(posInput, light.screenSpaceShadowIndex);
+                    }
+                    else
+#endif
+                    {
+                        float3 L = -light.forward;
+                        shadow = GetDirectionalShadowAttenuation(context.shadowContext,
+                                                             posInput.positionSS, posInput.positionWS, GetNormalForShadowBias(bsdfData),
+                                                             light.shadowIndex, L);
+                    }
                 }
 
                 float3 cascadeShadowColor = lerp(s_CascadeColors[shadowSplitIndex], s_CascadeColors[shadowSplitIndex + 1], alpha);
@@ -72,8 +78,20 @@ void ApplyDebug(LightLoopContext lightLoopContext, PositionInputs posInput, BSDF
     {
         specularLighting = 0.0f;
         float3 normalVS = mul((float3x3)UNITY_MATRIX_V, bsdfData.normalWS).xyz;
+
+        float3 V = GetWorldSpaceNormalizeViewDir(posInput.positionWS);
+        float3 R = reflect(V, bsdfData.normalWS);
+
         float2 UV = saturate(normalVS.xy * 0.5f + 0.5f);
-        diffuseLighting = SAMPLE_TEXTURE2D_LOD(_DebugMatCapTexture, s_linear_repeat_sampler, UV, 0).rgb * (_MatcapMixAlbedo > 0  ? bsdfData.diffuseColor * _MatcapViewScale : 1.0f);
+
+        bool isPureMetal = any(bsdfData.fresnel0 > DEFAULT_SPECULAR_VALUE) && all(bsdfData.diffuseColor == 0);
+        if (isPureMetal)
+        {
+            UV = saturate(R.xy * 0.5f + 0.5f);
+        }
+
+        float3 colorToMix = isPureMetal ? bsdfData.fresnel0 : bsdfData.diffuseColor;
+        diffuseLighting = SAMPLE_TEXTURE2D_LOD(_DebugMatCapTexture, s_linear_repeat_sampler, UV, 0).rgb * (_MatcapMixAlbedo > 0  ? colorToMix * _MatcapViewScale : 1.0f);
     }
 
     // We always apply exposure when in debug mode. The exposure value will be at a neutral 0.0 when not needed.
@@ -94,9 +112,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
 
     // With XR single-pass instancing and camera-relative: offset position to do lighting computations from the combined center view (original camera matrix).
     // This is required because there is only one list of lights generated on the CPU. Shadows are also generated once and shared between the instanced views.
-#if (SHADEROPTIONS_CAMERA_RELATIVE_RENDERING != 0) && defined(USING_STEREO_MATRICES)
-    posInput.positionWS += _WorldSpaceCameraPosViewOffset;
-#endif
+    ApplyCameraRelativeXR(posInput.positionWS);
     
     // Initialize the contactShadow and contactShadowFade fields
     InitContactShadow(posInput, context);
@@ -107,42 +123,29 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
         // Evaluate sun shadows.
         if (_DirectionalShadowIndex >= 0)
         {
-#if (SHADERPASS == SHADERPASS_FORWARD) || !defined(SCREEN_SPACE_SHADOWS)
             DirectionalLightData light = _DirectionalLightDatas[_DirectionalShadowIndex];
 
-            // TODO: this will cause us to load from the normal buffer first. Does this cause a performance problem?
-            // Also, the light direction is not consistent with the sun disk highlight hack, which modifies the light vector.
-            float3 L                = -light.forward;
-            float  NdotL            = dot(bsdfData.normalWS, L);
-            float3 shadowBiasNormal = GetNormalForShadowBias(bsdfData);
-            bool   evaluateShadows  = (NdotL > 0);
-
-        #ifdef MATERIAL_INCLUDE_TRANSMISSION
-            if (MaterialSupportsTransmission(bsdfData))
+#if defined(SCREEN_SPACE_SHADOWS) && !defined(_SURFACE_TYPE_TRANSPARENT)
+            if(light.screenSpaceShadowIndex >= 0)
             {
-                // We support some kind of transmission.
-                if (!HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_TRANSMISSION_MODE_THICK_THICKNESS))
-                {
-                    // We always evaluate shadows.
-                    evaluateShadows = true;
-
-                    // Care must be taken to bias in the direction of the light.
-                    shadowBiasNormal *= FastSign(dot(shadowBiasNormal, L));
-                }
-                else
-                {
-                    // We only evaluate shadows for reflection, transmission shadows are handled separately.
-                }
+                context.shadowValue = GetScreenSpaceShadow(posInput, light.screenSpaceShadowIndex);
             }
-        #endif
-
-            if (evaluateShadows)
-            {
-                context.shadowValue = EvaluateRuntimeSunShadow(context, posInput, light, shadowBiasNormal);
-            }
-#else
-        context.shadowValue = GetScreenSpaceShadow(posInput);
+            else
 #endif
+            {
+                // TODO: this will cause us to load from the normal buffer first. Does this cause a performance problem?
+                float3 L = -light.forward;
+
+                // Is it worth sampling the shadow map?
+                if ((light.lightDimmer > 0) && (light.shadowDimmer > 0) && // Note: Volumetric can have different dimmer, thus why we test it here
+                    IsNonZeroBSDF(V, L, preLightData, bsdfData) &&
+                    !ShouldEvaluateThickObjectTransmission(V, L, preLightData, bsdfData, light.shadowIndex))
+                {
+                    context.shadowValue = GetDirectionalShadowAttenuation(context.shadowContext,
+                                                                          posInput.positionSS, posInput.positionWS, GetNormalForShadowBias(bsdfData),
+                                                                          light.shadowIndex, L);
+                }
+            }
         }
     }
 

@@ -5,10 +5,9 @@ using System.Collections.Generic;
 using UnityEditorInternal;
 using UnityEditor;
 using UnityEngine;
-using UnityEngine.Experimental.VFX;
+using UnityEngine.VFX;
 using UnityEngine.Rendering;
 using UnityEditor.Callbacks;
-using UnityEditor.Experimental.VFX;
 using UnityEditor.VFX;
 using UnityEditor.VFX.UI;
 
@@ -25,7 +24,7 @@ public class VFXExternalShaderProcessor : AssetPostprocessor
     {
         if (!allowExternalization)
             return;
-        if (assetPath.EndsWith(".vfx"))
+        if (assetPath.EndsWith(VisualEffectResource.Extension))
         {
             string vfxName = Path.GetFileNameWithoutExtension(assetPath);
             string vfxDirectory = Path.GetDirectoryName(assetPath);
@@ -87,6 +86,14 @@ public class VFXExternalShaderProcessor : AssetPostprocessor
 
     static void OnPostprocessAllAssets(string[] importedAssets, string[] deletedAssets, string[] movedAssets, string[] movedFromAssetPaths)
     {
+        foreach (var assetPath in deletedAssets)
+        {
+            if (VisualEffectAssetModicationProcessor.HasVFXExtension(assetPath))
+            {
+                VisualEffectResource.DeleteAtPath(assetPath);
+            }
+        }
+
         if (!allowExternalization)
             return;
         HashSet<string> vfxToRefresh = new HashSet<string>();
@@ -102,7 +109,7 @@ public class VFXExternalShaderProcessor : AssetPostprocessor
                 if (Path.GetFileName(vfxPath) != k_ShaderDirectory)
                     continue;
 
-                vfxPath = Path.GetDirectoryName(vfxPath) + "/" + vfxName + ".vfx";
+                vfxPath = Path.GetDirectoryName(vfxPath) + "/" + vfxName + VisualEffectResource.Extension;
 
                 if (deletedAssets.Contains(assetPath))
                     vfxToRecompile.Add(vfxPath);
@@ -122,7 +129,7 @@ public class VFXExternalShaderProcessor : AssetPostprocessor
             if (resource == null)
                 continue;
             resource.GetOrCreateGraph().SetExpressionGraphDirty();
-            resource.GetOrCreateGraph().RecompileIfNeeded();
+            resource.GetOrCreateGraph().RecompileIfNeeded(false,true);
         }
 
         foreach (var assetPath in vfxToRefresh)
@@ -155,11 +162,18 @@ public class VisualEffectAssetEditor : Editor
             VFXViewWindow.GetWindow<VFXViewWindow>().LoadAsset(obj as VisualEffectAsset, null);
             return true;
         }
+        else if (obj is VisualEffectSubgraph)
+        {
+            VisualEffectResource resource = VisualEffectResource.GetResourceAtPath(AssetDatabase.GetAssetPath(obj));
+
+            VFXViewWindow.GetWindow<VFXViewWindow>().LoadResource(resource, null);
+            return true;
+        }
         else if (obj is Shader || obj is ComputeShader)
         {
             string path = AssetDatabase.GetAssetPath(instanceID);
 
-            if (path.EndsWith(".vfx"))
+            if (path.EndsWith(VisualEffectResource.Extension))
             {
                 var resource = VisualEffectResource.GetResourceAtPath(path);
                 if (resource != null)
@@ -287,6 +301,7 @@ public class VisualEffectAssetEditor : Editor
         motionVectorRenderModeProperty = resourceObject.FindProperty("m_Infos.m_RendererSettings.motionVectorGenerationMode");
         prewarmDeltaTime = resourceObject.FindProperty("m_Infos.m_PreWarmDeltaTime");
         prewarmStepCount = resourceObject.FindProperty("m_Infos.m_PreWarmStepCount");
+        initialEventName = resourceObject.FindProperty("m_Infos.m_InitialEventName");
     }
 
     PreviewRenderUtility m_PreviewUtility;
@@ -427,6 +442,7 @@ public class VisualEffectAssetEditor : Editor
     SerializedProperty motionVectorRenderModeProperty;
     SerializedProperty prewarmDeltaTime;
     SerializedProperty prewarmStepCount;
+    SerializedProperty initialEventName;
 
     private static readonly float k_MinimalCommonDeltaTime = 1.0f / 800.0f;
 
@@ -545,6 +561,17 @@ public class VisualEffectAssetEditor : Editor
                         prewarmDeltaTime.floatValue = k_MinimalCommonDeltaTime;
                     resourceObject.ApplyModifiedProperties();
                 }
+            }
+        }
+
+        if (initialEventName != null)
+        {
+            EditorGUI.BeginChangeCheck();
+            EditorGUI.showMixedValue = initialEventName.hasMultipleDifferentValues;
+            EditorGUILayout.PropertyField(initialEventName);
+            if (EditorGUI.EndChangeCheck())
+            {
+                resourceObject.ApplyModifiedProperties();
             }
         }
 

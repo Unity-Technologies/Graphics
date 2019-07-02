@@ -29,6 +29,9 @@ For example, here’s the [HDRI sky](Override-HDRI-Sky.html) implementation of S
 
 ```
 [VolumeComponentMenu("Sky/HDRI Sky")]
+// SkyUniqueID does not need to be part of built-in HDRP SkyType enumeration.
+// This is only provided to track IDs used by HDRP natively. 
+// You can use any integer value.
 [SkyUniqueID((int)SkyType.HDRISky)]
 public class HDRISky : SkySettings
 {
@@ -176,9 +179,9 @@ Shader "Hidden/HDRenderPipeline/Sky/HDRISky"
     
     float4 Frag(Varyings input) : SV_Target
     {
-        // Points towards the camera
+        // Points towards the Camera
         float3 viewDirWS = normalize(mul(float3(input.positionCS.xy, 1.0), (float3x3)_PixelCoordToViewDirWS));
-        // Reverse it to point into the scene
+        // Reverse it to point into the Scene
         float3 dir = -viewDirWS;
     
         // Rotate direction

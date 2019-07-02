@@ -73,6 +73,9 @@ BuiltinData VFXGetBuiltinData(const VFX_VARYING_PS_INPUTS i,const PositionInputs
     #if defined(VFX_VARYING_EMISSIVE) && (HDRP_USE_EMISSIVE_COLOR || HDRP_USE_ADDITIONAL_EMISSIVE_COLOR)
     builtinData.emissiveColor *= i.VFX_VARYING_EMISSIVE;
     #endif
+	#ifdef VFX_VARYING_EXPOSUREWEIGHT
+	builtinData.emissiveColor *= lerp(GetInverseCurrentExposureMultiplier(),1.0f,i.VFX_VARYING_EXPOSUREWEIGHT);
+	#endif
     #endif
     builtinData.emissiveColor *= opacity;
 
