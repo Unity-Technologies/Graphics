@@ -241,6 +241,11 @@ namespace UnityEngine.Rendering.LWRP
                 foreach (var channel in localVertexRequirements.requiresMeshUVs.Distinct())
                     vertexDescriptionInputStruct.AppendLine("half4 {0};", channel.GetUVName());
 
+                if (vertexRequirements.requiresTime)
+                {
+                    vertexDescriptionInputStruct.AppendLine("float3 {0};", ShaderGeneratorNames.TimeParameters);
+                }
+
                 // If null there are no keywords
                 if(keywordPermutations[i] != null)
                 {
@@ -275,6 +280,11 @@ namespace UnityEngine.Rendering.LWRP
 
                 foreach (var channel in localSurfaceRequirements.requiresMeshUVs.Distinct())
                     surfaceDescriptionInputStruct.AppendLine("half4 {0};", channel.GetUVName());
+
+                if (surfaceRequirements.requiresTime)
+                {
+                    surfaceDescriptionInputStruct.AppendLine("float3 {0};", ShaderGeneratorNames.TimeParameters);
+                }
 
                 // If null there are no keywords
                 if(keywordPermutations[i] != null)
