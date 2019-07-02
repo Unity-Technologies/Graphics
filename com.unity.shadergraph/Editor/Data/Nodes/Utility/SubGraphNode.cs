@@ -467,10 +467,10 @@ namespace UnityEditor.ShaderGraph
         {
             base.CollectShaderKeywords(keywords, generationMode);
 
-            if (subGraphData == null)
+            if (asset == null)
                 return;
 
-            foreach (var keyword in subGraphData.inputs.Where(x => x is ShaderKeyword))
+            foreach (var keyword in asset.inputs.Where(x => x is ShaderKeyword))
             {
                 keywords.AddShaderKeyword(keyword as ShaderKeyword);
             }    
