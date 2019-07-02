@@ -1,4 +1,4 @@
-Shader "Hidden/Lightweight Render Pipeline/Terrain/Lit (Add Pass)"
+﻿Shader "Hidden/Lightweight Render Pipeline/Terrain/Lit (Add Pass)"
 {
     Properties
     {
@@ -32,8 +32,16 @@ Shader "Hidden/Lightweight Render Pipeline/Terrain/Lit (Add Pass)"
         // used in fallback on old cards & base map
         [HideInInspector] _BaseMap("BaseMap (RGB)", 2D) = "white" {}
         [HideInInspector] _BaseColor("Main Color", Color) = (1,1,1,1)
+        
+		    [HideInInspector] _TerrainHolesTexture("Holes Map (RGB)", 2D) = "white" {}        
     }
 
+	HLSLINCLUDE
+	
+	#pragma multi_compile __ _ALPHATEST_ON
+	
+	ENDHLSL
+	
     SubShader
     {
         Tags { "Queue" = "Geometry-99" "RenderType" = "Opaque" "RenderPipeline" = "LightweightPipeline" "IgnoreProjector" = "True"}

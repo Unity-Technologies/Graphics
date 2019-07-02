@@ -200,4 +200,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/068_xr_CenterLine.unity
     guid: 4eb297ef901e5c24fa0088510b645913
+  - enabled: 1
+    path: Assets/Scenes/071_Terrain_Holes.unity
+    guid: 5a941913e97a77344b15d6acc9db8435
   m_configObjects: {}
