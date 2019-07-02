@@ -7,7 +7,6 @@
 // Generated from UnityEngine.Experimental.Rendering.HDPipeline.ShaderVariablesScreenSpaceLighting
 // PackingRules = Exact
     float4 _ColorPyramidSize;
-    float4 _DepthPyramidSize;
     float4 _CameraMotionVectorsSize;
     float4 _ColorPyramidScale;
     float4 _DepthPyramidScale;

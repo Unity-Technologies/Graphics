@@ -46,9 +46,7 @@
 #define GROUP_SIZE_1D                      8
 #define SUPPORT_LOCAL_LIGHTS               1 // Local lights contribute to fog lighting
 
-// All shadow bias code is completely broken in volumetrics. Disable it.
-#define SHADOW_USE_ONLY_VIEW_BASED_BIASING 1
-#define SHADOW_USE_VIEW_BIAS_SCALING       0
+#define SHADOW_USE_DEPTH_BIAS              0   
 
 #define PREFER_HALF 0
 

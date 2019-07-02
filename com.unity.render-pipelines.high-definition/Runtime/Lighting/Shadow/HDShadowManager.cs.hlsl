@@ -4,13 +4,6 @@
 
 #ifndef HDSHADOWMANAGER_CS_HLSL
 #define HDSHADOWMANAGER_CS_HLSL
-//
-// UnityEngine.Experimental.Rendering.HDPipeline.HDShadowFlag:  static fields
-//
-#define HDSHADOWFLAG_SAMPLE_BIAS_SCALE (1)
-#define HDSHADOWFLAG_EDGE_LEAK_FIXUP (2)
-#define HDSHADOWFLAG_EDGE_TOLERANCE_NORMAL (4)
-
 // Generated from UnityEngine.Experimental.Rendering.HDPipeline.HDShadowData
 // PackingRules = Exact
 struct HDShadowData
@@ -21,13 +14,14 @@ struct HDShadowData
     float3 pos;
     float4 proj;
     float2 atlasOffset;
-    float edgeTolerance;
-    int flags;
+    float worldTexelSize;
+    int _pad0;
     float4 zBufferParam;
     float4 shadowMapSize;
-    float4 viewBias;
-    float3 normalBias;
-    float _padding;
+    float normalBias;
+    float constantBias;
+    float _pad1;
+    float _pad2;
     float4 shadowFilterParams0;
     float4 cacheTranslationDelta;
     float4x4 shadowToWorld;
@@ -69,13 +63,13 @@ float2 GetAtlasOffset(HDShadowData value)
 {
     return value.atlasOffset;
 }
-float GetEdgeTolerance(HDShadowData value)
+float GetWorldTexelSize(HDShadowData value)
 {
-    return value.edgeTolerance;
+    return value.worldTexelSize;
 }
-int GetFlags(HDShadowData value)
+int Get_pad0(HDShadowData value)
 {
-    return value.flags;
+    return value._pad0;
 }
 float4 GetZBufferParam(HDShadowData value)
 {
@@ -85,17 +79,21 @@ float4 GetShadowMapSize(HDShadowData value)
 {
     return value.shadowMapSize;
 }
-float4 GetViewBias(HDShadowData value)
-{
-    return value.viewBias;
-}
-float3 GetNormalBias(HDShadowData value)
+float GetNormalBias(HDShadowData value)
 {
     return value.normalBias;
 }
-float Get_padding(HDShadowData value)
+float GetConstantBias(HDShadowData value)
 {
-    return value._padding;
+    return value.constantBias;
+}
+float Get_pad1(HDShadowData value)
+{
+    return value._pad1;
+}
+float Get_pad2(HDShadowData value)
+{
+    return value._pad2;
 }
 float4 GetShadowFilterParams0(HDShadowData value)
 {
