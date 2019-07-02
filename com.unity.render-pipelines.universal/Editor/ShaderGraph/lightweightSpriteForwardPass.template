@@ -20,9 +20,9 @@ ${Culling}
     #pragma multi_compile _ ETC1_EXTERNAL_ALPHA
 
 ${Defines}
-    #include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/Core.hlsl"
-    #include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/Lighting.hlsl"
-    #include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/ShaderGraphFunctions.hlsl"
+    #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
+    #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
+    #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderGraphFunctions.hlsl"
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
 
 #if ETC1_EXTERNAL_ALPHA
@@ -60,12 +60,12 @@ ${PixelShader}
         SurfaceDescriptionInputs surfaceInput = (SurfaceDescriptionInputs)0;
 ${PixelShaderSurfaceInputs}
         SurfaceDescription surf = PopulateSurfaceData(surfaceInput);
-		
+
 #if ETC1_EXTERNAL_ALPHA
         float4 alpha = SAMPLE_TEXTURE2D(_AlphaTex, sampler_AlphaTex, IN.uv0.xy);
         surf.Color.a = lerp (surf.Color.a, alpha.r, _EnableAlphaTexture);
 #endif
-        
+
         surf.Color *= IN.VertexColor;
         return surf.Color;
     }

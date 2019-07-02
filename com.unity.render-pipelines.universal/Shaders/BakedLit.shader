@@ -204,8 +204,8 @@ Shader "Universal Render Pipeline/Baked Lit"
             #pragma shader_feature _ALPHATEST_ON
             #pragma shader_feature _ALPHAPREMULTIPLY_ON
 
-            #include "Packages/com.unity.render-pipelines.lightweight/Shaders/BakedLitInput.hlsl"
-            #include "Packages/com.unity.render-pipelines.lightweight/Shaders/Utils/Lightweight2D.hlsl"
+            #include "Packages/com.unity.render-pipelines.universal/Shaders/BakedLitInput.hlsl"
+            #include "Packages/com.unity.render-pipelines.universal/Shaders/Utils/Lightweight2D.hlsl"
             ENDHLSL
         }
     }
