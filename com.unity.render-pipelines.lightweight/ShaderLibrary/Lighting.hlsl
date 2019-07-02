@@ -28,7 +28,6 @@ sampler2D transmittance_texture;
 sampler2D irradiance_texture;
 sampler3D scattering_texture;
 sampler3D single_mie_scattering_texture;
-
 #endif
 
 
@@ -573,7 +572,7 @@ half4 LightweightFragmentPBR(InputData inputData, half3 albedo, half metallic, h
     MixRealtimeAndBakedGI(mainLight, inputData.normalWS, inputData.bakedGI, half4(0, 0, 0, 0));
 
     half3 color = GlobalIllumination(brdfData, inputData.bakedGI, occlusion, inputData.normalWS, inputData.viewDirectionWS);
-    float3 sun_contribution =LightingPhysicallyBased(brdfData, mainLight, inputData.normalWS, inputData.viewDirectionWS);
+    color += LightingPhysicallyBased(brdfData, mainLight, inputData.normalWS, inputData.viewDirectionWS);
 
 #ifdef PHYSICAL_SKY
     {
@@ -583,17 +582,19 @@ half4 LightweightFragmentPBR(InputData inputData, half3 albedo, half metallic, h
         float3 sky_irradiance;
     	float3 sun_irradiance = GetSunAndSkyIrradiance(_point - earth_center, normal, sun_direction, sky_irradiance);
 
+        // Sky lighting contribution at this fragment. Normally we shouldn't need this if the sky was part of indirect lighting contribution?!
         float3 irradiance = albedo *(1.f/PI) * (sun_irradiance + sky_irradiance);
+        color += irradiance;
 
         float3 transmittance;
     	float3 in_scatter = fog_amount * GetSkyRadianceToPoint(camera - earth_center, _point - earth_center, 0.f, sun_direction, transmittance);
 
-        color = (color + sun_contribution + irradiance) * transmittance;
+        // Apply sky exposure cfor the sky in-scattering (and keep it HDR).
         in_scatter = in_scatter / white_point * sky_exposure; // same as RenderSky.shader
-        color += in_scatter;
+
+        // Finally mix in the atmospheric scattering.
+        color = color * transmittance + in_scatter;
     }
-#else
-    color += sun_contribution;
 #endif
 
 #ifdef _ADDITIONAL_LIGHTS

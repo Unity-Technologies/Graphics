@@ -173,21 +173,16 @@ namespace UnityEngine.Rendering.LWRP
 
                 int kernel = compute.FindKernel("ClearTex3D");
                 compute.SetTexture(kernel, "targetWrite3D", tex);
-                compute.Dispatch(kernel, width / NUM_THREADS, height / NUM_THREADS, depth / NUM_THREADS);
+                compute.Dispatch(kernel, width / NUM_THREADS, height / NUM_THREADS, depth);
             }
             else
             {
                 int width = tex.width;
                 int height = tex.height;
 
-//                int kernel = compute.FindKernel("ClearTex2D");
-                /*
-                if (kernel >= 0) // (kc)
-                {
-//                    compute.SetTexture(kernel, "targetWrite2D", tex);
-//                    compute.Dispatch(kernel, width / NUM_THREADS, height / NUM_THREADS, 1);
-                }
-                */
+                int kernel = compute.FindKernel("ClearTex2D");
+                compute.SetTexture(kernel, "targetWrite2D", tex);
+                compute.Dispatch(kernel, width / NUM_THREADS, height / NUM_THREADS, 1);
             }
         }
 

@@ -21,6 +21,7 @@ SubShader {
         #pragma target 2.0
         #pragma multi_compile_fog
         #pragma multi_compile _ FOGMAP
+        #pragma multi_compile _ PHYSICAL_SKY
 
         #include "UnityCG.cginc"
         

@@ -38,6 +38,7 @@ Shader "Hidden/TerrainEngine/Details/LightweightPipeline/Vertexlit"
             #pragma multi_compile _ LIGHTMAP_ON
             #pragma multi_compile_fog
             #pragma multi_compile _ FOGMAP
+            #pragma multi_compile _ PHYSICAL_SKY
             
             #include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/Core.hlsl"
             #include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/Lighting.hlsl"

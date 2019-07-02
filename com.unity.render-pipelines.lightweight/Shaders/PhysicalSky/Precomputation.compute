@@ -164,7 +164,7 @@ void CopyTex2D(uint3 id : SV_DispatchThreadID)
 }
 
 #pragma kernel CopyTex3D
-[numthreads(NUM_THREADS, NUM_THREADS, NUM_THREADS)]
+[numthreads(NUM_THREADS, NUM_THREADS, 1)]
 void CopyTex3D(uint3 id : SV_DispatchThreadID)
 {
 	targetWrite3D[id] = targetRead3D[id];
@@ -178,7 +178,7 @@ void ClearTex2D(uint3 id : SV_DispatchThreadID)
 }
 
 #pragma kernel ClearTex3D
-[numthreads(NUM_THREADS, NUM_THREADS, NUM_THREADS)]
+[numthreads(NUM_THREADS, NUM_THREADS, 1)]
 void ClearTex3D(uint3 id : SV_DispatchThreadID)
 {
     targetWrite3D[id] = float4(0,0,0,0);

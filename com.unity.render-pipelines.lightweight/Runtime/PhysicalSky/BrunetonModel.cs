@@ -755,7 +755,7 @@ namespace UnityEngine.Rendering.LWRP
 
             CommandBuffer cmd = CommandBufferPool.Get(kBrenetonComputeLookupsTag);
 
-            this.DoPrecomputation(precomputationCS, kNumScatteringOrders);
+            this.DoPrecomputation(context, cmd, precomputationCS, kNumScatteringOrders);
 
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
@@ -890,7 +890,7 @@ namespace UnityEngine.Rendering.LWRP
         ///
         /// This yields the following implementation:
         /// </summary>
-        private void DoPrecomputation(ComputeShader compute, int num_scattering_orders)
+        private void DoPrecomputation(ScriptableRenderContext context, CommandBuffer cmd, ComputeShader compute, int num_scattering_orders)
         {
             // The precomputations require temporary textures, in particular to store the
             // contribution of one scattering order, which is needed to compute the next
@@ -945,6 +945,7 @@ namespace UnityEngine.Rendering.LWRP
                 Swap(buffer.TransmittanceArray);
             }
 
+            /*
             //Grab ref to textures and mark as null in buffer so they are not released.
             TransmittanceTexture = buffer.TransmittanceArray[READ];
             buffer.TransmittanceArray[READ] = null;
@@ -954,6 +955,45 @@ namespace UnityEngine.Rendering.LWRP
 
             IrradianceTexture = buffer.IrradianceArray[READ];
             buffer.IrradianceArray[READ] = null;
+            */
+            // Store into tighter texture formats.
+            TransmittanceTexture = new RenderTexture(CONSTANTS.TRANSMITTANCE_WIDTH, CONSTANTS.TRANSMITTANCE_HEIGHT, 0, RenderTextureFormat.RGB111110Float, RenderTextureReadWrite.Linear);
+            TransmittanceTexture.filterMode = FilterMode.Bilinear;
+            TransmittanceTexture.wrapMode = TextureWrapMode.Clamp;
+            TransmittanceTexture.useMipMap = false;
+            TransmittanceTexture.enableRandomWrite = true;
+            TransmittanceTexture.Create();
+
+            IrradianceTexture = new RenderTexture(CONSTANTS.IRRADIANCE_WIDTH, CONSTANTS.IRRADIANCE_HEIGHT, 0, RenderTextureFormat.RGB111110Float, RenderTextureReadWrite.Linear);
+            IrradianceTexture.filterMode = FilterMode.Bilinear;
+            IrradianceTexture.wrapMode = TextureWrapMode.Clamp;
+            IrradianceTexture.useMipMap = false;
+            IrradianceTexture.enableRandomWrite = true;
+            IrradianceTexture.Create();
+
+            ScatteringTexture = new RenderTexture(CONSTANTS.SCATTERING_WIDTH, CONSTANTS.SCATTERING_HEIGHT, 0, RenderTextureFormat.ARGBHalf, RenderTextureReadWrite.Linear);
+            ScatteringTexture.volumeDepth = CONSTANTS.SCATTERING_DEPTH;
+            ScatteringTexture.dimension = TextureDimension.Tex3D;
+            ScatteringTexture.filterMode = FilterMode.Bilinear;
+            ScatteringTexture.wrapMode = TextureWrapMode.Clamp;
+            ScatteringTexture.useMipMap = false;
+            ScatteringTexture.enableRandomWrite = true;
+            ScatteringTexture.Create();
+
+            int kernel_copy2D = compute.FindKernel("CopyTex2D");
+            int kernel_copy3D = compute.FindKernel("CopyTex3D");
+
+            compute.SetTexture(kernel_copy2D, "targetRead2D", buffer.TransmittanceArray[READ]);
+            compute.SetTexture(kernel_copy2D, "targetWrite2D", TransmittanceTexture);
+            compute.Dispatch(kernel_copy2D, CONSTANTS.TRANSMITTANCE_WIDTH / CONSTANTS.NUM_THREADS, CONSTANTS.TRANSMITTANCE_HEIGHT / CONSTANTS.NUM_THREADS, 1);
+
+            compute.SetTexture(kernel_copy2D, "targetRead2D", buffer.IrradianceArray[READ]);
+            compute.SetTexture(kernel_copy2D, "targetWrite2D", IrradianceTexture);
+            compute.Dispatch(kernel_copy2D, CONSTANTS.IRRADIANCE_WIDTH / CONSTANTS.NUM_THREADS, CONSTANTS.IRRADIANCE_HEIGHT / CONSTANTS.NUM_THREADS, 1);
+
+            compute.SetTexture(kernel_copy3D, "targetRead3D", buffer.ScatteringArray[READ]);
+            compute.SetTexture(kernel_copy3D, "targetWrite3D", ScatteringTexture);
+            compute.Dispatch(kernel_copy3D, CONSTANTS.SCATTERING_WIDTH / CONSTANTS.NUM_THREADS, CONSTANTS.SCATTERING_HEIGHT / CONSTANTS.NUM_THREADS, CONSTANTS.SCATTERING_DEPTH);
 
             if(CombineScatteringTextures)
             {

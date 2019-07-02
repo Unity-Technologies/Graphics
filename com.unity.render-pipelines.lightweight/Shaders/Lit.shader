@@ -111,6 +111,7 @@ Shader "Lightweight Render Pipeline/Lit"
             #pragma multi_compile _ LIGHTMAP_ON
             #pragma multi_compile_fog
             #pragma multi_compile _ FOGMAP
+            #pragma multi_compile _ PHYSICAL_SKY
 
             //--------------------------------------
             // GPU Instancing

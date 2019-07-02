@@ -120,6 +120,7 @@ Shader "Lightweight Render Pipeline/Particles/Simple Lit"
             // Unity defined keywords
             #pragma multi_compile_fog
             #pragma multi_compile _ FOGMAP
+            #pragma multi_compile _ PHYSICAL_SKY
             
             #pragma vertex ParticlesLitVertex
             #pragma fragment ParticlesLitFragment
