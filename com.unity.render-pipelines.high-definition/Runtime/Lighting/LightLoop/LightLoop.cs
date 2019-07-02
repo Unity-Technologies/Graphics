@@ -2337,9 +2337,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         struct BuildGPULightListResources
         {
-            public TileAndClusterData   tileAndClusterData;
+            public TileAndClusterData tileAndClusterData;
             public RTHandle depthBuffer;
             public RTHandle stencilTexture;
+            public RTHandle[] gBuffer;
         }
 
         BuildGPULightListResources PrepareBuildGPULightListResources(TileAndClusterData tileAndClusterData, RTHandle depthBuffer, RTHandle stencilTexture)
@@ -2349,6 +2350,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             resources.tileAndClusterData = tileAndClusterData;
             resources.depthBuffer = depthBuffer;
             resources.stencilTexture = stencilTexture;
+            resources.gBuffer = m_GbufferManager.GetBuffers();
 
             return resources;
         }
@@ -2538,6 +2540,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     cmd.SetComputeIntParams(parameters.buildMaterialFlagsShader, HDShaderIDs.g_viDimensions, s_TempScreenDimArray);
                     cmd.SetComputeBufferParam(parameters.buildMaterialFlagsShader, buildMaterialFlagsKernel, HDShaderIDs.g_TileFeatureFlags, tileAndCluster.tileFeatureFlags);
 
+                    for (int i = 0; i < resources.gBuffer.Length; ++i)
+                        cmd.SetComputeTextureParam(parameters.buildMaterialFlagsShader, buildMaterialFlagsKernel, HDShaderIDs._GBufferTexture[i], resources.gBuffer[i]);
                     cmd.SetComputeTextureParam(parameters.buildMaterialFlagsShader, buildMaterialFlagsKernel, HDShaderIDs._StencilTexture, resources.stencilTexture);
 
                     cmd.DispatchCompute(parameters.buildMaterialFlagsShader, buildMaterialFlagsKernel, parameters.numTilesFPTLX, parameters.numTilesFPTLY, parameters.viewCount);
@@ -2908,7 +2912,71 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             return 1 << m_ContactShadowIndex++;
         }
 
-        protected void RenderContactShadows(HDCamera hdCamera, RTHandle contactShadowRT, RenderTargetIdentifier depthTexture, int firstMipOffsetY, CommandBuffer cmd)
+        struct ContactShadowsParameters
+        {
+            public ComputeShader    contactShadowsCS;
+            public int              kernel;
+
+            public Vector4          params1;
+            public Vector4          params2;
+            public int              sampleCount;
+
+            public int              numTilesX;
+            public int              numTilesY;
+            public int              viewCount;
+
+            public int              depthTextureParameterName;
+        }
+
+        ContactShadowsParameters PrepareContactShadowsParameters(HDCamera hdCamera, float firstMipOffsetY)
+        {
+            var parameters = new ContactShadowsParameters();
+
+            parameters.contactShadowsCS = contactShadowComputeShader;
+            parameters.kernel = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA) ? s_deferredContactShadowKernelMSAA : s_deferredContactShadowKernel;
+
+            float contactShadowRange = Mathf.Clamp(m_ContactShadows.fadeDistance.value, 0.0f, m_ContactShadows.maxDistance.value);
+            float contactShadowFadeEnd = m_ContactShadows.maxDistance.value;
+            float contactShadowOneOverFadeRange = 1.0f / Math.Max(1e-6f, contactShadowRange);
+            parameters.params1 = new Vector4(m_ContactShadows.length.value, m_ContactShadows.distanceScaleFactor.value, contactShadowFadeEnd, contactShadowOneOverFadeRange);
+            parameters.params2 = new Vector4(m_ContactShadows.opacity.value, firstMipOffsetY, 0.0f, 0.0f);
+            parameters.sampleCount = m_ContactShadows.sampleCount.value;
+
+            int deferredShadowTileSize = 16; // Must match DeferreDirectionalShadow.compute
+            parameters.numTilesX = (hdCamera.actualWidth + (deferredShadowTileSize - 1)) / deferredShadowTileSize;
+            parameters.numTilesY = (hdCamera.actualHeight + (deferredShadowTileSize - 1)) / deferredShadowTileSize;
+            parameters.viewCount = hdCamera.viewCount;
+
+            // TODO: Remove once we switch fully to render graph (auto binding of textures)
+            parameters.depthTextureParameterName = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA) ? HDShaderIDs._CameraDepthValuesTexture : HDShaderIDs._CameraDepthTexture;
+
+            return parameters;
+        }
+
+        static void RenderContactShadows(   in ContactShadowsParameters parameters,
+                                            RTHandle                    contactShadowRT,
+                                            RTHandle                    depthTexture,
+                                            LightLoopLightData          lightLoopLightData,
+                                            TileAndClusterData          tileAndClusterData,
+                                            CommandBuffer               cmd)
+        {
+
+            cmd.SetComputeVectorParam(parameters.contactShadowsCS, HDShaderIDs._ContactShadowParamsParameters, parameters.params1);
+            cmd.SetComputeVectorParam(parameters.contactShadowsCS, HDShaderIDs._ContactShadowParamsParameters2, parameters.params2);
+            cmd.SetComputeIntParam(parameters.contactShadowsCS, HDShaderIDs._DirectionalContactShadowSampleCount, parameters.sampleCount);
+            cmd.SetComputeBufferParam(parameters.contactShadowsCS, parameters.kernel, HDShaderIDs._DirectionalLightDatas, lightLoopLightData.directionalLightData);
+
+            // Send light list to the compute
+            cmd.SetComputeBufferParam(parameters.contactShadowsCS, parameters.kernel, HDShaderIDs._LightDatas, lightLoopLightData.lightData);
+            cmd.SetComputeBufferParam(parameters.contactShadowsCS, parameters.kernel, HDShaderIDs.g_vLightListGlobal, tileAndClusterData.lightList);
+
+            cmd.SetComputeTextureParam(parameters.contactShadowsCS, parameters.kernel, parameters.depthTextureParameterName, depthTexture);
+            cmd.SetComputeTextureParam(parameters.contactShadowsCS, parameters.kernel, HDShaderIDs._ContactShadowTextureUAV, contactShadowRT);
+
+            cmd.DispatchCompute(parameters.contactShadowsCS, parameters.kernel, parameters.numTilesX, parameters.numTilesY, parameters.viewCount);
+        }
+
+        void RenderContactShadows(HDCamera hdCamera, RTHandle contactShadowRT, RTHandle depthTexture, int firstMipOffsetY, CommandBuffer cmd)
         {
             // if there is no need to compute contact shadows, we just quit
             if (!WillRenderContactShadow())
@@ -2916,35 +2984,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             using (new ProfilingSample(cmd, "Contact Shadows", CustomSamplerId.TPScreenSpaceShadows.GetSampler()))
             {
-                // Pick the adequate kenel
-                int kernel = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA) ? s_deferredContactShadowKernelMSAA : s_deferredContactShadowKernel;
-
                 m_ShadowManager.BindResources(cmd);
 
-                float contactShadowRange = Mathf.Clamp(m_ContactShadows.fadeDistance.value, 0.0f, m_ContactShadows.maxDistance.value);
-                float contactShadowFadeEnd = m_ContactShadows.maxDistance.value;
-                float contactShadowOneOverFadeRange = 1.0f / Math.Max(1e-6f, contactShadowRange);
-                Vector4 contactShadowParams = new Vector4(m_ContactShadows.length.value, m_ContactShadows.distanceScaleFactor.value, contactShadowFadeEnd, contactShadowOneOverFadeRange);
-                Vector4 contactShadowParams2 = new Vector4(m_ContactShadows.opacity.value, firstMipOffsetY, 0.0f, 0.0f);
-                cmd.SetComputeVectorParam(contactShadowComputeShader, HDShaderIDs._ContactShadowParamsParameters, contactShadowParams);
-                cmd.SetComputeVectorParam(contactShadowComputeShader, HDShaderIDs._ContactShadowParamsParameters2, contactShadowParams2);
-                cmd.SetComputeIntParam(contactShadowComputeShader, HDShaderIDs._DirectionalContactShadowSampleCount, m_ContactShadows.sampleCount.value);
-                cmd.SetComputeBufferParam(contactShadowComputeShader, kernel, HDShaderIDs._DirectionalLightDatas, m_LightLoopLightData.directionalLightData);
+                var parameters = PrepareContactShadowsParameters(hdCamera, firstMipOffsetY);
+                RenderContactShadows(parameters, contactShadowRT, depthTexture, m_LightLoopLightData, m_TileAndClusterData, cmd);
 
-                // Send light list to the compute
-                cmd.SetComputeBufferParam(contactShadowComputeShader, kernel, HDShaderIDs._LightDatas, m_LightLoopLightData.lightData);
-                cmd.SetComputeBufferParam(contactShadowComputeShader, kernel, HDShaderIDs.g_vLightListGlobal, m_TileAndClusterData.lightList);
-
-                // Inject the texture in the adequate slot
-                cmd.SetComputeTextureParam(contactShadowComputeShader, kernel, hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA) ? HDShaderIDs._CameraDepthValuesTexture : HDShaderIDs._CameraDepthTexture, depthTexture);
-
-                cmd.SetComputeTextureParam(contactShadowComputeShader, kernel, HDShaderIDs._ContactShadowTextureUAV, contactShadowRT);
-
-                int deferredShadowTileSize = 16; // Must match DeferreDirectionalShadow.compute
-                int numTilesX = (hdCamera.actualWidth  + (deferredShadowTileSize - 1)) / deferredShadowTileSize;
-                int numTilesY = (hdCamera.actualHeight + (deferredShadowTileSize - 1)) / deferredShadowTileSize;
-
-                cmd.DispatchCompute(contactShadowComputeShader, kernel, numTilesX, numTilesY, hdCamera.viewCount);
             }
         }
 
