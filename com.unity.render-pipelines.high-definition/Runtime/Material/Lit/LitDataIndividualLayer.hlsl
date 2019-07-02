@@ -1,3 +1,11 @@
+#undef VIRTUAL_TEXTURES_ACTIVE_ON_LAYER
+
+#if (!defined(LAYER_INDEX) || (LAYER_INDEX <= 1)) && (VIRTUAL_TEXTURES_ACTIVE > 0)
+#define VIRTUAL_TEXTURES_ACTIVE_ON_LAYER 1
+#else
+#define VIRTUAL_TEXTURES_ACTIVE_ON_LAYER 0
+#endif
+
 void ADD_IDX(ComputeLayerTexCoord)( // Uv related parameters
                                     float2 texCoord0, float2 texCoord1, float2 texCoord2, float2 texCoord3, float4 uvMappingMask, float4 uvMappingMaskDetails,
                                     // scale and bias for base and detail + global tiling factor (for layered lit only)
@@ -104,10 +112,10 @@ float3 ADD_IDX(GetNormalTS)(FragInputs input, LayerTexCoord layerTexCoord, float
 #ifdef _NORMALMAP_IDX
     #ifdef _NORMALMAP_TANGENT_SPACE_IDX
         //TODO(ddebaets) VT does not handle full range of normal map sampling/reconstruction so special case here...
-#if VIRTUAL_TEXTURES_ACTIVE
-        normalTS = SampleStack_Normal(stackInfo, ADD_IDX(_NormalMap), ADD_IDX(_NormalScale));
+#if VIRTUAL_TEXTURES_ACTIVE_ON_LAYER
+		normalTS = SampleStack_Normal(stackInfo, ADD_IDX(_NormalMap), ADD_IDX(_NormalScale));
 #else
-        normalTS = SAMPLE_UVMAPPING_NORMALMAP(ADD_IDX(_NormalMap), SAMPLER_NORMALMAP_IDX, ADD_IDX(layerTexCoord.base), ADD_IDX(_NormalScale));
+        normalTS = SAMPLE_UVMAPPING_NORMALMAP(ADD_IDX(_NormalMap), ADD_IDX(sampler_NormalMap), ADD_IDX(layerTexCoord.base), ADD_IDX(_NormalScale));
 #endif
     #else // Object space
         // We forbid scale in case of object space as it make no sense
@@ -183,13 +191,15 @@ float3 ADD_IDX(GetBentNormalTS)(FragInputs input, LayerTexCoord layerTexCoord, f
 // Return opacity
 float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out SurfaceData surfaceData, out float3 normalTS, out float3 bentNormalTS)
 {
-    // Prepare the VT stack for sampling
-    StackInfo stackInfo = PrepareStack(UVMappingTo2D(ADD_IDX(layerTexCoord.base)), ADD_IDX(_TextureStack));    
-    surfaceData.VTFeedback = GetResolveOutput(stackInfo);
-#if VIRTUAL_TEXTURES_ACTIVE
+#if VIRTUAL_TEXTURES_ACTIVE_ON_LAYER
+	// Prepare the VT stack for sampling
+	StackInfo stackInfo = PrepareStack(UVMappingTo2D(ADD_IDX(layerTexCoord.base)), ADD_IDX(_TextureStack));
+	surfaceData.VTFeedback = GetResolveOutput(stackInfo);
     const float4 baseColorValue = SampleStack(stackInfo, ADD_IDX(_BaseColorMap)); //SAMPLE_UVMAPPING_TEXTURE2D(ADD_IDX(_BaseColorMap), ADD_ZERO_IDX(sampler_BaseColorMap), ADD_IDX(layerTexCoord.base));
 #else
     const float4 baseColorValue = SAMPLE_UVMAPPING_TEXTURE2D(ADD_IDX(_BaseColorMap), ADD_ZERO_IDX(sampler_BaseColorMap), ADD_IDX(layerTexCoord.base));
+	surfaceData.VTFeedback = float4(1, 1, 1, 1);
+	StackInfo stackInfo;
 #endif
     float alpha = baseColorValue.a * ADD_IDX(_BaseColor).a;
 
@@ -211,10 +221,10 @@ float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out
 
 
 #ifdef _MASKMAP_IDX
-#if VIRTUAL_TEXTURES_ACTIVE  
-    const float4 maskValue = SampleStack(stackInfo, ADD_IDX(_MaskMap)); //SAMPLE_UVMAPPING_TEXTURE2D(ADD_IDX(_MaskMap), SAMPLER_MASKMAP_IDX, ADD_IDX(layerTexCoord.base)).b;
-#else    
-    const float4 maskValue = SAMPLE_UVMAPPING_TEXTURE2D(ADD_IDX(_MaskMap), SAMPLER_MASKMAP_IDX, ADD_IDX(layerTexCoord.base));
+#if VIRTUAL_TEXTURES_ACTIVE_ON_LAYER
+    const float4 maskValue = SampleStack(stackInfo, ADD_IDX(_MaskMap));
+#else
+    const float4 maskValue = SAMPLE_UVMAPPING_TEXTURE2D(ADD_IDX(_MaskMap), ADD_IDX(sampler_MaskMap), ADD_IDX(layerTexCoord.base));
 #endif    
 #endif
 

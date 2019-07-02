@@ -80,11 +80,39 @@ SAMPLER(sampler_CoatMaskMap);
     TEXTURE2D(MERGE_NAME(name, 3)); \
     SAMPLER(MERGE_NAME(MERGE_NAME(sampler, name), 3))
 
+#if VIRTUAL_TEXTURES_ACTIVE
 
+TEXTURE2D(_BaseColorMap0);
+TEXTURE2D(_BaseColorMap1);
+TEXTURE2D(_BaseColorMap2);
+TEXTURE2D(_BaseColorMap3);
+SAMPLER(sampler_BaseColorMap0);
+
+//SAMPLER(sampler_BaseColorMap2);
+//SAMPLER(sampler_BaseColorMap3);
+
+TEXTURE2D(_MaskMap0);
+TEXTURE2D(_MaskMap1);
+TEXTURE2D(_MaskMap2);
+TEXTURE2D(_MaskMap3);
+
+SAMPLER(sampler_MaskMap2);
+SAMPLER(sampler_MaskMap3);
+
+TEXTURE2D(_NormalMap0);
+TEXTURE2D(_NormalMap1);
+TEXTURE2D(_NormalMap2);
+TEXTURE2D(_NormalMap3);
+
+SAMPLER(sampler_NormalMap2);
+SAMPLER(sampler_NormalMap3);
+#else
 PROP_DECL_TEX2D(_BaseColorMap);
 PROP_DECL_TEX2D(_MaskMap);
-PROP_DECL_TEX2D(_BentNormalMap);
 PROP_DECL_TEX2D(_NormalMap);
+#endif
+
+PROP_DECL_TEX2D(_BentNormalMap);
 PROP_DECL_TEX2D(_NormalMapOS);
 PROP_DECL_TEX2D(_DetailMap);
 PROP_DECL_TEX2D(_HeightMap);
@@ -154,7 +182,14 @@ float _EnableGeometricSpecularAA;
 float _SpecularAAScreenSpaceVariance;
 float _SpecularAAThreshold;
 
+#ifndef LAYERED_LIT_SHADER
 DECLARE_STACK_CB(_TextureStack);
+#else
+DECLARE_STACK_CB(_TextureStack0);
+DECLARE_STACK_CB(_TextureStack1);
+DECLARE_STACK_CB(_TextureStack2);
+DECLARE_STACK_CB(_TextureStack3);
+#endif
 
 #ifndef LAYERED_LIT_SHADER
 
@@ -293,4 +328,11 @@ int _PassValue;
 
 CBUFFER_END
 
+#ifndef LAYERED_LIT_SHADER
 DECLARE_STACK3(_TextureStack, _BaseColorMap, _MaskMap, _NormalMap);
+#else
+DECLARE_STACK3(_TextureStack0, _BaseColorMap0, _MaskMap0, _NormalMap0);
+DECLARE_STACK3(_TextureStack1, _BaseColorMap1, _MaskMap1, _NormalMap1);
+DECLARE_STACK3(_TextureStack2, _BaseColorMap2, _MaskMap2, _NormalMap2);
+DECLARE_STACK3(_TextureStack3, _BaseColorMap3, _MaskMap3, _NormalMap3);
+#endif
