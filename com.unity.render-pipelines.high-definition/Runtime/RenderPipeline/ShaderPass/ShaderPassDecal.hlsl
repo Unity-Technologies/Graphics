@@ -77,11 +77,12 @@ void Frag(  PackedVaryingsToPS packedInput,
     GetSurfaceData(input, V, posInput, surfaceData);
 #endif
 
-#if (SHADERPASS == SHADERPASS_DBUFFER_PROJECTOR) || (SHADERPASS == SHADERPASS_DBUFFER_MESH)
+// Perform HTile optimization only on platform that support it
+#if ((SHADERPASS == SHADERPASS_DBUFFER_PROJECTOR) || (SHADERPASS == SHADERPASS_DBUFFER_MESH)) && defined(PLATFORM_SUPPORTS_TEXTURE_ATOMICS)
     uint2 htileCoord = input.positionSS.xy / 8;
     uint mask = surfaceData.HTileMask;
 
-#ifdef SUPPORTS_WAVE_INTRINSICS
+#ifdef PLATFORM_SUPPORTS_WAVE_INTRINSICS
     // This is an optimization to reduce the number of atomatic operation executed.
     // We perform the xor in the shader per wavefront before storing in the UAV
     uint tileCoord1d = (htileCoord.y << 16) | (htileCoord.x);
@@ -116,11 +117,11 @@ void Frag(  PackedVaryingsToPS packedInput,
             tileCoord1d = -1;
         }
     }
-#else // SUPPORTS_WAVE_INTRINSICS
+#else // PLATFORM_SUPPORTS_WAVE_INTRINSICS
     InterlockedOr(_DecalHTile[COORD_TEXTURE2D_X(htileCoord)], mask);
-#endif // SUPPORTS_WAVE_INTRINSICS
+#endif // PLATFORM_SUPPORTS_WAVE_INTRINSICS
 
-#endif // (SHADERPASS == SHADERPASS_DBUFFER_PROJECTOR) || (SHADERPASS == SHADERPASS_DBUFFER_MESH)
+#endif // ((SHADERPASS == SHADERPASS_DBUFFER_PROJECTOR) || (SHADERPASS == SHADERPASS_DBUFFER_MESH)) && defined(PLATFORM_SUPPORTS_TEXTURE_ATOMICS)
 
 #if (SHADERPASS == SHADERPASS_DBUFFER_PROJECTOR) || (SHADERPASS == SHADERPASS_DBUFFER_MESH)
     ENCODE_INTO_DBUFFER(surfaceData, outDBuffer);

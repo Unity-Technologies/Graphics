@@ -23,6 +23,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         public SerializedProperty shadowQuality;
 
+        public SerializedProperty supportScreenSpaceShadows;
+        public SerializedProperty maxScreenSpaceShadows;
+
         public SerializedHDShadowInitParameters(SerializedProperty root)
         {
             this.root = root;
@@ -37,6 +40,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             serializedAreaAtlasInit.useDynamicViewportRescale = root.Find((HDShadowInitParameters s) => s.areaLightShadowAtlas.useDynamicViewportRescale);
             maxShadowRequests = root.Find((HDShadowInitParameters s) => s.maxShadowRequests);
             shadowQuality = root.Find((HDShadowInitParameters s) => s.shadowQuality);
+            supportScreenSpaceShadows = root.Find((HDShadowInitParameters s) => s.supportScreenSpaceShadows);
+            maxScreenSpaceShadows = root.Find((HDShadowInitParameters s) => s.maxScreenSpaceShadows);
         }
     }
 }

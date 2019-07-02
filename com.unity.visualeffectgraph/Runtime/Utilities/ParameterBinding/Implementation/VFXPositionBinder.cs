@@ -1,4 +1,4 @@
-using UnityEngine.Experimental.VFX;
+using UnityEngine.VFX;
 
 namespace UnityEngine.Experimental.VFX.Utility
 {

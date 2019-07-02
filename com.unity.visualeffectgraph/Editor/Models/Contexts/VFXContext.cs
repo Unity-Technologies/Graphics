@@ -2,8 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using UnityEditor.Experimental.VFX;
-using UnityEngine.Experimental.VFX;
+using UnityEditor.VFX;
+using UnityEngine.VFX;
 
 using Type = System.Type;
 using Object = UnityEngine.Object;
@@ -55,7 +55,7 @@ namespace UnityEditor.VFX
     {
         protected static string RenderPipeTemplate(string fileName)
         {
-            return UnityEngine.Experimental.VFX.VFXManager.renderPipeSettingsPath + "/Templates/" + fileName;
+            return VFXLibrary.currentSRPBinder.templatePath + "/Templates/" + fileName;
         }
 
         [SerializeField]

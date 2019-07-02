@@ -34,9 +34,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public FrameSettings sanitazed;
         public FrameSettings debug;
         Camera camera; //ref for DebugMenu retrieval only
-        
+
         static bool s_PossiblyInUse;
-        public static bool enabled 
+        public static bool enabled
         {
             get
             {
@@ -74,12 +74,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         /// <param name="camera">The camera rendering.</param>
         /// <param name="additionalData">Additional data of the camera rendering.</param>
         /// <param name="hdrpAsset">HDRenderPipelineAsset contening default FrameSettings.</param>
-        public static void AggregateFrameSettings(ref FrameSettings aggregatedFrameSettings, Camera camera, HDAdditionalCameraData additionalData, HDRenderPipelineAsset hdrpAsset)
+        public static void AggregateFrameSettings(ref FrameSettings aggregatedFrameSettings, Camera camera, HDAdditionalCameraData additionalData, HDRenderPipelineAsset hdrpAsset, HDRenderPipelineAsset defaultHdrpAsset)
             => AggregateFrameSettings(
                 ref aggregatedFrameSettings,
                 camera,
                 additionalData,
-                ref hdrpAsset.GetDefaultFrameSettings(additionalData?.defaultFrameSettings ?? FrameSettingsRenderType.Camera), //fallback on Camera for SceneCamera and PreviewCamera
+                ref defaultHdrpAsset.GetDefaultFrameSettings(additionalData?.defaultFrameSettings ?? FrameSettingsRenderType.Camera), //fallback on Camera for SceneCamera and PreviewCamera
                 hdrpAsset.currentPlatformRenderPipelineSettings
                 );
 
@@ -107,7 +107,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             history.overridden = aggregatedFrameSettings;
             FrameSettings.Sanitize(ref aggregatedFrameSettings, camera, supportedFeatures);
 
-            bool noHistory = !frameSettingsHistory.ContainsKey(camera);                   
+            bool noHistory = !frameSettingsHistory.ContainsKey(camera);
             bool updatedComponent = !noHistory && frameSettingsHistory[camera].sanitazed != aggregatedFrameSettings;
             bool dirty = noHistory || updatedComponent;
 
@@ -126,7 +126,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             frameSettingsHistory[camera] = history;
         }
 
-        static DebugUI.HistoryBoolField GenerateHistoryBoolField(HDRenderPipelineAsset hdrpAsset, ref FrameSettingsHistory frameSettings, FrameSettingsField field, FrameSettingsFieldAttribute attribute)
+        static DebugUI.HistoryBoolField GenerateHistoryBoolField(HDRenderPipelineAsset defaultHdrpAsset, ref FrameSettingsHistory frameSettings, FrameSettingsField field, FrameSettingsFieldAttribute attribute)
         {
             Camera camera = frameSettings.camera;
             var renderType = frameSettings.defaultType;
@@ -147,12 +147,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 {
                     () => frameSettingsHistory[camera].sanitazed.IsEnabled(field),
                     () => frameSettingsHistory[camera].overridden.IsEnabled(field),
-                    () => hdrpAsset.GetDefaultFrameSettings(renderType).IsEnabled(field)
+                    () => defaultHdrpAsset.GetDefaultFrameSettings(renderType).IsEnabled(field)
                 }
             };
         }
 
-        static DebugUI.HistoryEnumField GenerateHistoryEnumField(HDRenderPipelineAsset hdrpAsset, ref FrameSettingsHistory frameSettings, FrameSettingsField field, FrameSettingsFieldAttribute attribute, Type autoEnum)
+        static DebugUI.HistoryEnumField GenerateHistoryEnumField(HDRenderPipelineAsset defaultHdrpAsset, ref FrameSettingsHistory frameSettings, FrameSettingsField field, FrameSettingsFieldAttribute attribute, Type autoEnum)
         {
             Camera camera = frameSettings.camera;
             var renderType = frameSettings.defaultType;
@@ -171,38 +171,38 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 },
                 autoEnum = autoEnum,
 
-                // Contrarily to other enum of DebugMenu, we do not need to stock index as 
+                // Contrarily to other enum of DebugMenu, we do not need to stock index as
                 // it can be computed again with data in the dedicated debug section of history
-                getIndex = () => frameSettingsHistory[camera].debug.IsEnabled(field) ? 1 : 0, 
+                getIndex = () => frameSettingsHistory[camera].debug.IsEnabled(field) ? 1 : 0,
                 setIndex = (int a) => { },
 
                 historyIndexGetter = new Func<int>[]
                 {
                     () => frameSettingsHistory[camera].sanitazed.IsEnabled(field) ? 1 : 0,
                     () => frameSettingsHistory[camera].overridden.IsEnabled(field) ? 1 : 0,
-                    () => hdrpAsset.GetDefaultFrameSettings(renderType).IsEnabled(field) ? 1 : 0
+                    () => defaultHdrpAsset.GetDefaultFrameSettings(renderType).IsEnabled(field) ? 1 : 0
                 }
             };
         }
 
-        static ObservableList<DebugUI.Widget> GenerateHistoryArea(HDRenderPipelineAsset hdrpAsset, ref FrameSettingsHistory frameSettings, int groupIndex)
+        static ObservableList<DebugUI.Widget> GenerateHistoryArea(HDRenderPipelineAsset defaultHdrpAsset, ref FrameSettingsHistory frameSettings, int groupIndex)
         {
             if (!attributesGroup.ContainsKey(groupIndex) || attributesGroup[groupIndex] == null)
                 attributesGroup[groupIndex] = attributes?.Where(pair => pair.Value?.group == groupIndex)?.OrderBy(pair => pair.Value.orderInGroup);
             if (!attributesGroup.ContainsKey(groupIndex))
                 throw new ArgumentException("Unknown groupIndex");
-            
+
             var area = new ObservableList<DebugUI.Widget>();
             foreach (var field in attributesGroup[groupIndex])
             {
                 switch (field.Value.type)
                 {
                     case FrameSettingsFieldAttribute.DisplayType.BoolAsCheckbox:
-                        area.Add(GenerateHistoryBoolField(hdrpAsset, ref frameSettings, field.Key, field.Value));
+                        area.Add(GenerateHistoryBoolField(defaultHdrpAsset, ref frameSettings, field.Key, field.Value));
                         break;
                     case FrameSettingsFieldAttribute.DisplayType.BoolAsEnumPopup:
                         area.Add(GenerateHistoryEnumField(
-                            hdrpAsset,
+                            defaultHdrpAsset,
                             ref frameSettings,
                             field.Key,
                             field.Value,
@@ -216,22 +216,22 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             return area;
         }
 
-        static DebugUI.Widget[] GenerateFrameSettingsPanelContent(HDRenderPipelineAsset hdrpAsset, ref FrameSettingsHistory frameSettings)
+        static DebugUI.Widget[] GenerateFrameSettingsPanelContent(HDRenderPipelineAsset defaultHdrpAsset, ref FrameSettingsHistory frameSettings)
         {
             var panelContent = new DebugUI.Widget[foldoutNames.Length];
             for (int index = 0; index < foldoutNames.Length; ++index)
             {
-                panelContent[index] = new DebugUI.Foldout(foldoutNames[index], GenerateHistoryArea(hdrpAsset, ref frameSettings, index), columnNames);
+                panelContent[index] = new DebugUI.Foldout(foldoutNames[index], GenerateHistoryArea(defaultHdrpAsset, ref frameSettings, index), columnNames);
             }
             return panelContent;
         }
 
         static void GenerateFrameSettingsPanel(string menuName, FrameSettingsHistory frameSettings)
         {
-            HDRenderPipelineAsset hdrpAsset = GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset;
+            HDRenderPipelineAsset defaultHdrpAsset = HDRenderPipeline.defaultAsset;
             var camera = frameSettings.camera;
             List<DebugUI.Widget> widgets = new List<DebugUI.Widget>();
-            widgets.AddRange(GenerateFrameSettingsPanelContent(hdrpAsset, ref frameSettings));
+            widgets.AddRange(GenerateFrameSettingsPanelContent(defaultHdrpAsset, ref frameSettings));
             var panel = DebugManager.instance.GetPanel(menuName, true, 1);
             panel.children.Add(widgets.ToArray());
         }
@@ -248,13 +248,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         /// <summary>Register FrameSettingsHistory for DebugMenu</summary>
         public static IDebugData RegisterDebug(Camera camera, HDAdditionalCameraData additionalCameraData)
         {
-            HDRenderPipelineAsset hdrpAsset = GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset;
+            HDRenderPipelineAsset hdrpAsset = GraphicsSettings.currentRenderPipeline as HDRenderPipelineAsset;
+            var defaultHdrpAsset = HDRenderPipeline.defaultAsset;
             Assertions.Assert.IsNotNull(hdrpAsset);
 
             // complete frame settings history is required for displaying debug menu.
             // AggregateFrameSettings will finish the registration if it is not yet registered
             FrameSettings registering = new FrameSettings();
-            AggregateFrameSettings(ref registering, camera, additionalCameraData, hdrpAsset);
+            AggregateFrameSettings(ref registering, camera, additionalCameraData, hdrpAsset, defaultHdrpAsset);
             GenerateFrameSettingsPanel(camera.name, frameSettingsHistory[camera]);
 #if UNITY_EDITOR
             if (sceneViewCamera == null && camera.cameraType == CameraType.SceneView)

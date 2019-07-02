@@ -10,7 +10,7 @@ void ClosestHitForward(inout RayIntersection rayIntersection : SV_RayPayload, At
 
     // Build the Frag inputs from the intersection vertice
     FragInputs fragInput;
-    BuildFragInputsFromIntersection(currentvertex, rayIntersection, fragInput);
+    BuildFragInputsFromIntersection(currentvertex, rayIntersection.incidentDirection, fragInput);
 
     // Compute the view vector
     float3 viewWS = -rayIntersection.incidentDirection;
@@ -41,6 +41,7 @@ void ClosestHitForward(inout RayIntersection rayIntersection : SV_RayPayload, At
     float3 reflected = float3(0.0, 0.0, 0.0);
     float reflectedWeight = 0.0;
     float3 transmitted = float3(0.0, 0.0, 0.0);
+    float refractedWeight = 0.0;
 
     // The intersection will launch a refraction ray only if the object is transparent and is has the refraction flag
 #ifdef _SURFACE_TYPE_TRANSPARENT
@@ -60,11 +61,11 @@ void ClosestHitForward(inout RayIntersection rayIntersection : SV_RayPayload, At
     if (rayIntersection.remainingDepth > 0 && dot(refractedDir, surfaceData.normalWS) < 0.0f)
     {
         // Make sure we apply ray bias on the right side of the surface
-        const float biasSign = sign(dot(fragInput.worldToTangent[2], refractedDir));
+        const float biasSign = sign(dot(fragInput.tangentToWorld[2], refractedDir));
 
         // Build the transmitted ray structure
         RayDesc transmittedRay;
-        transmittedRay.Origin = pointWSPos + biasSign * fragInput.worldToTangent[2] * _RaytracingRayBias;
+        transmittedRay.Origin = pointWSPos + biasSign * fragInput.tangentToWorld[2] * _RaytracingRayBias;
         transmittedRay.Direction = refractedDir;
         transmittedRay.TMin = 0;
         transmittedRay.TMax = _RaytracingRayMaxLength;
@@ -86,6 +87,7 @@ void ClosestHitForward(inout RayIntersection rayIntersection : SV_RayPayload, At
 
         // Override the transmitted color
         transmitted = transmittedIntersection.color;
+        refractedWeight = 1.0;
     }
 #endif
 #endif
@@ -97,11 +99,11 @@ void ClosestHitForward(inout RayIntersection rayIntersection : SV_RayPayload, At
         float3 reflectedDir = reflect(rayIntersection.incidentDirection, surfaceData.normalWS);
 
         // Make sure we apply ray bias on the right side of the surface
-        const float biasSign = sign(dot(fragInput.worldToTangent[2], reflectedDir));
+        const float biasSign = sign(dot(fragInput.tangentToWorld[2], reflectedDir));
 
         // Build the reflected ray
         RayDesc reflectedRay;
-        reflectedRay.Origin = pointWSPos + biasSign * fragInput.worldToTangent[2] * _RaytracingRayBias;
+        reflectedRay.Origin = pointWSPos + biasSign * fragInput.tangentToWorld[2] * _RaytracingRayBias;
         reflectedRay.Direction = reflectedDir;
         reflectedRay.TMin = 0;
         reflectedRay.TMax = _RaytracingRayMaxLength;
@@ -129,7 +131,7 @@ void ClosestHitForward(inout RayIntersection rayIntersection : SV_RayPayload, At
     // Run the lightloop
     float3 diffuseLighting;
     float3 specularLighting;
-    LightLoop(viewWS, posInput, preLightData, bsdfData, builtinData, reflectedWeight, reflected, transmitted, diffuseLighting, specularLighting);
+    LightLoop(viewWS, posInput, preLightData, bsdfData, builtinData, reflectedWeight, refractedWeight, reflected, transmitted, diffuseLighting, specularLighting);
 
     // Color display for the moment
     rayIntersection.color = diffuseLighting + specularLighting;
@@ -150,7 +152,7 @@ void AnyHitMain(inout RayIntersection rayIntersection : SV_RayPayload, Attribute
 
     // Build the Frag inputs from the intersection vertice
     FragInputs fragInput;
-    BuildFragInputsFromIntersection(currentvertex, rayIntersection, fragInput);
+    BuildFragInputsFromIntersection(currentvertex, rayIntersection.incidentDirection, fragInput);
 
     // Compute the view vector
     float3 viewWS = -rayIntersection.incidentDirection;

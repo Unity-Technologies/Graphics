@@ -1,5 +1,6 @@
+using System.Collections.Generic;
 using UnityEngine.Rendering;
-using UnityEngine.Rendering.LookDev;
+using UnityEngine.Rendering.Experimental.LookDev;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
@@ -13,7 +14,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public Volume volume;
         }
 
-        void IDataProvider.FirstInit(StageRuntimeInterface SRI)
+        void IDataProvider.FirstInitScene(StageRuntimeInterface SRI)
         {
             Camera camera = SRI.camera;
             camera.allowHDR = true;
@@ -23,6 +24,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             additionalData.clearDepth = true;
             additionalData.backgroundColorHDR = camera.backgroundColor;
             additionalData.volumeAnchorOverride = camera.transform;
+            additionalData.volumeLayerMask = 1 << 31; //31 is the culling layer used in LookDev
 
             GameObject volumeGO = SRI.AddGameObject(persistent: true);
             volumeGO.name = "SkyManagementVolume";
@@ -50,21 +52,37 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             //volumeGO.hideFlags = HideFlags.None;
         }
 
-        void IDataProvider.UpdateSky(Camera camera, Cubemap skybox, StageRuntimeInterface SRI)
+        void IDataProvider.UpdateSky(Camera camera, Sky sky, StageRuntimeInterface SRI)
         {
             //[TODO: add rotation and intensity]
             LookDevDataForHDRP data = (LookDevDataForHDRP)SRI.SRPData;
-            if (skybox == null)
+            if (sky.cubemap == null)
             {
                 data.visualEnvironment.skyType.Override((int)0); //Skytype.None do not really exist
                 data.additionalCameraData.clearColorMode = HDAdditionalCameraData.ClearColorMode.Color;
             }
             else
             {
-                data.visualEnvironment.skyType.Override((int)SkyType.HDRISky);
-                data.sky.hdriSky.Override(skybox);
+                data.visualEnvironment.skyType.Override((int)SkyType.HDRI);
+                data.sky.hdriSky.Override(sky.cubemap);
+                data.sky.rotation.Override(sky.longitudeOffset);
                 data.additionalCameraData.clearColorMode = HDAdditionalCameraData.ClearColorMode.Sky;
             }
         }
+
+        IEnumerable<string> IDataProvider.supportedDebugModes
+            => new[]
+            {
+                "Albedo",
+                "Normal",
+                "Smoothness",
+                "AmbientOcclusion",
+                "Metal",
+                "Specular",
+                "Alpha"
+            };
+
+        void IDataProvider.UpdateDebugMode(int debugIndex)
+            => debugDisplaySettings.SetDebugViewCommonMaterialProperty((Attributes.MaterialSharedProperty)(debugIndex + 1));
     }
 }

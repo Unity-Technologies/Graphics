@@ -7,9 +7,9 @@
         "HDRP_Tests",
         "Unity.Postprocessing.Editor",
         "Unity.RenderPipelines.HighDefinition.Runtime",
-        "Unity.RenderPipelines.HighDefinition.Editor"
+        "Unity.RenderPipelines.HighDefinition.Editor",
+        "Unity.ShaderGraph.Editor"
     ],
-    "optionalUnityReferences": [],
     "includePlatforms": [
         "Editor"
     ],
@@ -18,5 +18,6 @@
     "overrideReferences": false,
     "precompiledReferences": [],
     "autoReferenced": true,
-    "defineConstraints": []
+    "defineConstraints": [],
+    "versionDefines": []
 }

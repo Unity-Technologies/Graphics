@@ -32,6 +32,7 @@ namespace UnityEngine.Rendering.LWRP
             Vector4 sinTimeVector = new Vector4(Mathf.Sin(timeEights), Mathf.Sin(timeFourth), Mathf.Sin(timeHalf), Mathf.Sin(time));
             Vector4 cosTimeVector = new Vector4(Mathf.Cos(timeEights), Mathf.Cos(timeFourth), Mathf.Cos(timeHalf), Mathf.Cos(time));
             Vector4 deltaTimeVector = new Vector4(deltaTime, 1f / deltaTime, smoothDeltaTime, 1f / smoothDeltaTime);
+            Vector4 timeParametersVector = new Vector4(time, Mathf.Sin(time), Mathf.Cos(time), 0.0f);
 
             if (cmd == null)
             {
@@ -39,6 +40,7 @@ namespace UnityEngine.Rendering.LWRP
                 Shader.SetGlobalVector(LightweightRenderPipeline.PerFrameBuffer._SinTime, sinTimeVector);
                 Shader.SetGlobalVector(LightweightRenderPipeline.PerFrameBuffer._CosTime, cosTimeVector);
                 Shader.SetGlobalVector(LightweightRenderPipeline.PerFrameBuffer.unity_DeltaTime, deltaTimeVector);
+                Shader.SetGlobalVector(LightweightRenderPipeline.PerFrameBuffer._TimeParameters, timeParametersVector);
             }
             else
             {
@@ -46,6 +48,7 @@ namespace UnityEngine.Rendering.LWRP
                 cmd.SetGlobalVector(LightweightRenderPipeline.PerFrameBuffer._SinTime, sinTimeVector);
                 cmd.SetGlobalVector(LightweightRenderPipeline.PerFrameBuffer._CosTime, cosTimeVector);
                 cmd.SetGlobalVector(LightweightRenderPipeline.PerFrameBuffer.unity_DeltaTime, deltaTimeVector);
+                cmd.SetGlobalVector(LightweightRenderPipeline.PerFrameBuffer._TimeParameters, timeParametersVector);
             }
         }
  

@@ -5,7 +5,7 @@ namespace UnityEditor.VFX.Block
     [VFXInfo(category = "Collision")]
     class CollisionCylinder : CollisionBase
     {
-        public override string name { get { return "Collider (Cylinder)"; } }
+        public override string name { get { return "Collide with Cylinder"; } }
 
         public class InputProperties
         {

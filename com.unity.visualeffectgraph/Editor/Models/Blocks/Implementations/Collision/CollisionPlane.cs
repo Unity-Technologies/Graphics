@@ -1,14 +1,14 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using UnityEngine.Experimental.VFX;
+using UnityEngine.VFX;
 
 namespace UnityEditor.VFX.Block
 {
     [VFXInfo(category = "Collision")]
     class CollisionPlane : CollisionBase
     {
-        public override string name { get { return "Collider (Plane)"; } }
+        public override string name { get { return "Collide with Plane"; } }
 
         public class InputProperties
         {

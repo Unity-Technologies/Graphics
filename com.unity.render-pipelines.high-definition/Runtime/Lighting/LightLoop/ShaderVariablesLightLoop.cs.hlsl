@@ -38,8 +38,8 @@
     int _DebugSingleShadowIndex;
     int _EnvSliceSize;
     uint _CookieSizePOT;
-    int _RaytracedAreaShadow;
     int _RaytracedIndirectDiffuse;
+    uint _ScreenSpaceShadowArraySize;
 
 
 #endif

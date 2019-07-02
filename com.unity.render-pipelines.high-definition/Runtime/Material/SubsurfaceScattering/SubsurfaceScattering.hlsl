@@ -70,7 +70,7 @@ struct SSSData
 #define SSSBufferType0 float4 // Must match GBufferType0 in deferred
 
 // SSSBuffer texture declaration
-TEXTURE2D_X(_SSSBufferTexture0);
+TEXTURE2D_X(_SSSBufferTexture);
 
 // Note: The SSS buffer used here is sRGB
 void EncodeIntoSSSBuffer(SSSData sssData, uint2 positionSS, out SSSBufferType0 outSSSBuffer0)
@@ -87,7 +87,7 @@ void DecodeFromSSSBuffer(float4 sssBuffer, uint2 positionSS, out SSSData sssData
 
 void DecodeFromSSSBuffer(uint2 positionSS, out SSSData sssData)
 {
-    float4 sssBuffer = LOAD_TEXTURE2D_X(_SSSBufferTexture0, positionSS);
+    float4 sssBuffer = LOAD_TEXTURE2D_X(_SSSBufferTexture, positionSS);
     DecodeFromSSSBuffer(sssBuffer, positionSS, sssData);
 }
 
@@ -141,9 +141,7 @@ bool TestLightingForSSS(float3 subsurfaceLighting)
 //     (...)
 // }
 
-// Note: Transmission functions for light evaluation are included in LightEvaluation.hlsl file also based on the MATERIAL_INCLUDE_TRANSMISSION
-// For LightEvaluation.hlsl file it is required to define a BRDF for the transmission. Defining USE_DIFFUSE_LAMBERT_BRDF use Lambert, otherwise it use Disneydiffuse
-
+// Note: Transmission functions for light evaluation are also included in LightEvaluation.hlsl file based on the MATERIAL_INCLUDE_TRANSMISSION
 #define MATERIALFEATUREFLAGS_SSS_TRANSMISSION_START (1 << 16) // It should be safe to start these flags
 
 #define MATERIALFEATUREFLAGS_SSS_OUTPUT_SPLIT_LIGHTING         ((MATERIALFEATUREFLAGS_SSS_TRANSMISSION_START) << 0)
@@ -156,7 +154,11 @@ bool TestLightingForSSS(float3 subsurfaceLighting)
 // doesn't have transmission on a tile with the material feature transmission enabled, we don't evaluate the diffusion
 // profile because the thick flag is not set (for pixels that have transmission, we force the flags in a per-pixel
 // material feature)).
-#define MATERIALFEATUREFLAGS_TRANSMISSION_MODE_THICK_THICKNESS  ((MATERIALFEATUREFLAGS_SSS_TRANSMISSION_START) << 3)
+#define MATERIALFEATUREFLAGS_TRANSMISSION_MODE_THICK_OBJECT     ((MATERIALFEATUREFLAGS_SSS_TRANSMISSION_START) << 3)
+
+// 15 degrees
+#define TRANSMISSION_WRAP_ANGLE (PI/12)
+#define TRANSMISSION_WRAP_LIGHT cos(PI/2 - TRANSMISSION_WRAP_ANGLE)
 
 #ifdef MATERIAL_INCLUDE_SUBSURFACESCATTERING
 
@@ -205,7 +207,7 @@ void FillMaterialTransmission(uint diffusionProfileIndex, float thickness, inout
     // the current object. That's not a problem, since large thickness will result in low intensity.
     bool useThickObjectMode = !IsBitSet(asuint(_TransmissionFlags), diffusionProfileIndex);
 
-    bsdfData.materialFeatures |= useThickObjectMode ? MATERIALFEATUREFLAGS_TRANSMISSION_MODE_THICK_THICKNESS : 0;
+    bsdfData.materialFeatures |= useThickObjectMode ? MATERIALFEATUREFLAGS_TRANSMISSION_MODE_THICK_OBJECT : 0;
 
     // Compute transmittance using baked thickness here. It may be overridden for direct lighting
     // in the auto-thickness mode (but is always used for indirect lighting).

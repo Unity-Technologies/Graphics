@@ -23,3 +23,8 @@
 5. Go to __Edit > Project Settings__, and select the __Graphics__ category. Set the __Scriptable Render Pipeline Settings __to your created __Pipeline Asset __by dragging the Asset directly onto the box, or by selecting the circle icon to the right of the box to open the __Select Object__ window and selecting the Asset from the list.
 
 The __2D Renderer__ should now be configured for your Project.
+
+
+
+**Note:** If you have the experimental 2D Renderer enabled, some of the options related to 3D rendering in the LWRP Asset don't have any impact on your final app or game.
+

@@ -7,7 +7,7 @@ using System.Linq;
 
 using Object = UnityEngine.Object;
 using System.Collections.ObjectModel;
-using UnityEngine.Experimental.VFX;
+using UnityEngine.VFX;
 
 namespace UnityEditor.VFX.UI
 {
@@ -35,7 +35,7 @@ namespace UnityEditor.VFX.UI
             foreach (var setting in settings)
             {
                 var settingController = new VFXSettingController();
-                settingController.Init(this.slotContainer, setting.Name, setting.FieldType);
+                settingController.Init(this.slotContainer, setting.field.Name, setting.field.FieldType);
                 m_Settings[cpt++] = settingController;
             }
         }

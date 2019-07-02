@@ -76,6 +76,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP
 
             string litPassTemplate = ReadTemplate("lightweightSpriteLitPass.template", sourceAssetDependencyPaths);
             string normalPassTemplate = ReadTemplate("lightweightSpriteNormalPass.template", sourceAssetDependencyPaths);
+            string forwardPassTemplate = ReadTemplate("lightweightSpriteForwardPass.template", sourceAssetDependencyPaths);
             var litMasterNode = masterNode as SpriteLitMasterNode;
 
             var litPass = m_LitPass;
@@ -102,6 +103,13 @@ namespace UnityEditor.Experimental.Rendering.LWRP
                 subShader.AppendLines(GetShaderPassFromTemplate(
                         false,
                         normalPassTemplate,
+                        litMasterNode,
+                        normalPass,
+                        mode,
+                        materialOptions));
+                subShader.AppendLines(GetShaderPassFromTemplate(
+                        false,
+                        forwardPassTemplate,
                         litMasterNode,
                         normalPass,
                         mode,
@@ -214,6 +222,11 @@ namespace UnityEditor.Experimental.Rendering.LWRP
 
                 foreach (var channel in vertexRequirements.requiresMeshUVs.Distinct())
                     vertexDescriptionInputStruct.AppendLine("half4 {0};", channel.GetUVName());
+
+                if (vertexRequirements.requiresTime)
+                {
+                    vertexDescriptionInputStruct.AppendLine("float3 {0};", ShaderGeneratorNames.TimeParameters);
+                }
             }
 
             // -------------------------------------
@@ -261,6 +274,11 @@ namespace UnityEditor.Experimental.Rendering.LWRP
 
                 foreach (var channel in surfaceRequirements.requiresMeshUVs.Distinct())
                     surfaceDescriptionInputStruct.AppendLine("half4 {0};", channel.GetUVName());
+
+                if (surfaceRequirements.requiresTime)
+                {
+                    surfaceDescriptionInputStruct.AppendLine("float3 {0};", ShaderGeneratorNames.TimeParameters);
+                }
             }
 
             // -------------------------------------

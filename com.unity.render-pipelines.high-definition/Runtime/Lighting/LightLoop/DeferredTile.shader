@@ -357,11 +357,13 @@ Shader "Hidden/HDRP/DeferredTile"
             struct Attributes
             {
                 uint vertexID  : SV_VertexID;
+                UNITY_VERTEX_INPUT_INSTANCE_ID
             };
 
             struct Varyings
             {
                 float4 positionCS : SV_POSITION;
+                UNITY_VERTEX_OUTPUT_STEREO
             };
 
             struct Outputs
@@ -377,12 +379,16 @@ Shader "Hidden/HDRP/DeferredTile"
             Varyings Vert(Attributes input)
             {
                 Varyings output;
+                UNITY_SETUP_INSTANCE_ID(input);
+                UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
                 output.positionCS = GetFullScreenTriangleVertexPosition(input.vertexID);
                 return output;
             }
 
             Outputs Frag(Varyings input)
             {
+                UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
+
                 // This need to stay in sync with deferred.compute
 
                 // input.positionCS is SV_Position

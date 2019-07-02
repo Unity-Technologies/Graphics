@@ -4,6 +4,7 @@ using UnityEditor.Build;
 using UnityEditor.Build.Reporting;
 using UnityEditor.Rendering;
 using UnityEngine;
+using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering;
 using UnityEngine.Experimental.Rendering.HDPipeline;
 
@@ -247,11 +248,51 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
             if (_hdrpAssets != null) hdrpAssets.Clear();
             else _hdrpAssets = new List<HDRenderPipelineAsset>();
-            
-            // Add to the list the HDRP asset currently set in the graphic settings.
-            if ( GraphicsSettings.renderPipelineAsset != null && GraphicsSettings.renderPipelineAsset is HDRenderPipelineAsset )
-                _hdrpAssets.Add(GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset);
-            
+
+#if QUALITY_SETTINGS_GET_RENDER_PIPELINE_AT_AVAILABLE
+            using (ListPool<HDRenderPipelineAsset>.Get(out var tmpAssets))
+            {
+                // Here we want the HDRP Assets that are actually used at runtime.
+                // An SRP asset is included if:
+                // 1. It is set in a quality level
+                // 2. It is set as main (GraphicsSettings.renderPipelineAsset)
+                //   AND at least one quality level does not have SRP override
+                // 3. It is set as default (GraphicsSettings.defaultRenderPipeline)
+                //   AND there is no main SRP
+                //   AND at least one quality level does not have SRP override
+
+                // Fetch all SRP overrides in all quality levels
+                // Note: QualitySettings contains only quality levels that are valid for the current platform.
+                var allQualityLevelsAreOverriden = true;
+                for (int i = 0, c = QualitySettings.names.Length; i < c; ++i)
+                {
+                    if (QualitySettings.GetRenderPipelineAssetAt(i) is HDRenderPipelineAsset hdrp)
+                        tmpAssets.Add(hdrp);
+                    else
+                        allQualityLevelsAreOverriden = false;
+                }
+
+                if (!allQualityLevelsAreOverriden)
+                {
+                    // We need to check the fallback cases
+                    if (GraphicsSettings.renderPipelineAsset is HDRenderPipelineAsset hdrp1)
+                        tmpAssets.Add(hdrp1);
+                    else if (GraphicsSettings.defaultRenderPipeline is HDRenderPipelineAsset hdrp2)
+                        tmpAssets.Add(hdrp2);
+                }
+
+                _hdrpAssets.AddRange(tmpAssets);
+            }
+#else
+            // Include all HDRP assets configured in:
+            //  - Any quality level valid for current platform
+            //  - Base SRP (GraphicsSettings.renderPipelineAsset)
+            //  - Default SRP (GraphicsSettings.defaultRenderPipeline)
+            _hdrpAssets.AddRange(GraphicsSettings.allConfiguredRenderPipelines
+                .Where(rp => rp is HDRenderPipelineAsset)
+                .Cast<HDRenderPipelineAsset>());
+#endif
+
             // Get all enabled scenes path in the build settings.
             var scenesPaths = EditorBuildSettings.scenes
                 .Where(s => s.enabled)
@@ -274,7 +315,16 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 Resources.FindObjectsOfTypeAll<HDRenderPipelineAsset>()
                 .Where( a => !_hdrpAssets.Contains(a) )
                 );
-            
+
+            // Discard duplicate entries
+            using (HashSetPool<HDRenderPipelineAsset>.Get(out var uniques))
+            {
+                foreach (var hdrpAsset in _hdrpAssets)
+                    uniques.Add(hdrpAsset);
+                _hdrpAssets.Clear();
+                _hdrpAssets.AddRange(uniques);
+            }
+
             // Prompt a warning if we find 0 HDRP Assets.
             if (_hdrpAssets.Count == 0)
                 if (EditorUtility.DisplayDialog("HDRP Asset missing", "No HDRP Asset has been set in the Graphic Settings, and no potential used in the build HDRP Asset has been found. If you want to continue compiling, this might lead no VERY long compilation time.", "Ok", "Cancel"))

@@ -1,5 +1,12 @@
 namespace UnityEngine.Experimental.Rendering
 {
+    public enum ShadowUpdateMode
+    {
+        EveryFrame = 0,
+        OnEnable,
+        OnDemand
+    }
+
     [RequireComponent(typeof(Light))]
     public class AdditionalShadowData : MonoBehaviour
     {
@@ -19,20 +26,13 @@ namespace UnityEngine.Experimental.Rendering
         public float volumetricShadowDimmer = 1.0f;
         public float shadowFadeDistance = 10000.0f;
         public bool contactShadows = false;
+        public Color shadowTint = Color.black;
         // bias control
-        public float viewBiasMin = 0.5f;
-        public float viewBiasMax = 10f;
-        [Range(0.0F, 15.0F)]
-        public float viewBiasScale = 1.0f;
-        public float normalBiasMin = 0.2f;
-        public float normalBiasMax = 4.0f;
-        [Range(0.0F, 10.0F)]
-        public float normalBiasScale = 1.0f;
-        public bool sampleBiasScale = true;
-        public bool edgeLeakFixup = false; // Causes large banding artifacts
-        public bool edgeToleranceNormal = false;
-        [Range(0.0F, 1.0F)]
-        public float edgeTolerance = 1.0f;
+        public float normalBias = 0.75f;
+
+        public float constantBias = 0.15f;
+
+        public ShadowUpdateMode shadowUpdateMode = ShadowUpdateMode.EveryFrame;
 
         [HideInInspector, SerializeField]
         private int shadowCascadeCount = 4;
@@ -58,16 +58,8 @@ namespace UnityEngine.Experimental.Rendering
             data.volumetricShadowDimmer = volumetricShadowDimmer;
             data.shadowFadeDistance = shadowFadeDistance;
             data.contactShadows = contactShadows;
-            data.viewBiasMin = viewBiasMin;
-            data.viewBiasMax = viewBiasMax;
-            data.viewBiasScale = viewBiasScale;
-            data.normalBiasMin = normalBiasMin;
-            data.normalBiasMax = normalBiasMax;
-            data.normalBiasScale = normalBiasScale;
-            data.sampleBiasScale = sampleBiasScale;
-            data.edgeLeakFixup = edgeLeakFixup;
-            data.edgeToleranceNormal = edgeToleranceNormal;
-            data.edgeTolerance = edgeTolerance;
+            data.constantBias = constantBias;
+            data.normalBias = normalBias;
             data.shadowCascadeCount = shadowCascadeCount;
             data.shadowCascadeRatios = new float[shadowCascadeRatios.Length];
             shadowCascadeRatios.CopyTo(data.shadowCascadeRatios, 0);
@@ -76,6 +68,7 @@ namespace UnityEngine.Experimental.Rendering
             data.shadowAlgorithm = shadowAlgorithm;
             data.shadowVariant = shadowVariant;
             data.shadowPrecision = shadowPrecision;
+            data.shadowUpdateMode = shadowUpdateMode;
         }
     }
 

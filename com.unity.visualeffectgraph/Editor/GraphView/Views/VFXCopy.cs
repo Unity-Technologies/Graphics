@@ -2,7 +2,7 @@ using System;
 using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEditor.Experimental.VFX;
+using UnityEditor.VFX;
 using UnityEngine.UIElements;
 using System.Reflection;
 
@@ -377,7 +377,26 @@ namespace UnityEditor.VFX.UI
             context.blocks = CopyBlocks(controller.blockControllers, index);
             context.node.indexInClipboard = contextsIndices[index];
 
+            if (controller.model is VFXAbstractRenderedOutput)
+                context.subOutputs = CopySubOutputs(((VFXAbstractRenderedOutput)controller.model).GetSubOutputs());
+            else
+                context.subOutputs = null;    
+
             return id;
+        }
+
+        SubOutput[] CopySubOutputs(List<VFXSRPSubOutput> subOutputs)
+        {
+            var newSubOutputs = new SubOutput[subOutputs.Count];
+            for (int i = 0; i < newSubOutputs.Length; ++i)
+            {
+                if (subOutputs[i] != null) // Can be null if associated SRP is unknown
+                {
+                    newSubOutputs[i].type = subOutputs[i].GetType();
+                    CopyModelSettings(ref newSubOutputs[i].settings, subOutputs[i]);
+                }
+            }
+            return newSubOutputs;
         }
 
         static int[] MakeSlotPath(VFXSlot slot, bool input)

@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Experimental.VFX;
+using UnityEngine.VFX;
 
 using Object = UnityEngine.Object;
 using System.Text.RegularExpressions;
@@ -197,9 +197,9 @@ namespace UnityEditor.VFX
                 int hash = 0;
                 foreach (var setting in settings)
                 {
-                    var value = setting.GetValue(block);
+                    var value = setting.value;
                     hash = (hash * 397) ^ value.GetHashCode();
-                    comment += string.Format("{0}:{1} ", setting.Name, value.ToString());
+                    comment += string.Format("{0}:{1} ", setting.field.Name, value.ToString());
                 }
                 functionName = string.Format("{0}_{1}", block.GetType().Name, hash.ToString("X"));
             }
@@ -375,7 +375,7 @@ namespace UnityEditor.VFX
             }
 
             //< Final composition
-            var renderPipePath = UnityEngine.Experimental.VFX.VFXManager.renderPipeSettingsPath;
+            var renderPipePath = UnityEngine.VFX.VFXManager.renderPipeSettingsPath;
             string renderPipeCommon = "Packages/com.unity.visualeffectgraph/Shaders/Common/VFXCommonCompute.cginc";
             string renderPipePasses = null;
 

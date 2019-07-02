@@ -67,7 +67,7 @@ namespace UnityEditor.Experimental.Rendering
             var rect = PrepareControlRect();
             var labelRect = rect;
             labelRect.width = EditorGUIUtility.labelWidth;
-            const int oneValueWidth = 60;
+            const int oneValueWidth = 70;
             var valueRects = new Rect[w.historyDepth + 1];
             for(int i = 0; i < w.historyDepth + 1; i++)
             {
@@ -235,7 +235,7 @@ namespace UnityEditor.Experimental.Rendering
                 
                 var labelRect = rect;
                 labelRect.width = EditorGUIUtility.labelWidth;
-                const int oneValueWidth = 60;
+                const int oneValueWidth = 70;
                 var valueRects = new Rect[w.historyDepth + 1];
                 for (int i = 0; i < w.historyDepth + 1; i++)
                 {
@@ -303,7 +303,7 @@ namespace UnityEditor.Experimental.Rendering
             Rect drawRect = GUILayoutUtility.GetLastRect();
             if (w.columnLabels != null && value)
             {
-                const int oneColumnWidth = 60;
+                const int oneColumnWidth = 70;
                 int indent = EditorGUI.indentLevel;
                 EditorGUI.indentLevel = 0; //be at left of rects
                 for (int i = 0; i < w.columnLabels.Length; i++)
