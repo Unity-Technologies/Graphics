@@ -11,7 +11,7 @@ class RuntimeTests
     GameObject go;
     Camera camera;
     RenderPipelineAsset prevAsset;
-    LightweightRenderPipelineAsset asset;
+    UniversalRenderPipelineAsset asset;
 
     [SetUp]
     public void Setup()
@@ -19,7 +19,7 @@ class RuntimeTests
         go = new GameObject();
         camera = go.AddComponent<Camera>();
         prevAsset = GraphicsSettings.renderPipelineAsset;
-        asset = ScriptableObject.CreateInstance<LightweightRenderPipelineAsset>();
+        asset = ScriptableObject.CreateInstance<UniversalRenderPipelineAsset>();
     }
 
     [TearDown]
@@ -37,7 +37,7 @@ class RuntimeTests
         GraphicsSettings.renderPipelineAsset = asset;
         camera.Render();
         yield return null;
-        
+
         Assert.AreEqual(QualitySettings.activeColorSpace == ColorSpace.Linear, GraphicsSettings.lightsUseLinearIntensity,
             "GraphicsSettings.lightsUseLinearIntensity must match active color space.");
     }
