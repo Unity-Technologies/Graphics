@@ -54,7 +54,6 @@
 #define LIGHT_FEATURE_MASK_FLAGS_OPAQUE (16642048)
 #define LIGHT_FEATURE_MASK_FLAGS_TRANSPARENT (16510976)
 #define MATERIAL_FEATURE_MASK_FLAGS (4095)
-#define MAX_RAY_TRACED_SHADOWS (4)
 
 // Generated from UnityEngine.Experimental.Rendering.HDPipeline.SFiniteLightBound
 // PackingRules = Exact

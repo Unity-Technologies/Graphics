@@ -292,14 +292,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             if (!AssetDatabase.IsValidFolder("Assets/" + HDProjectSettings.projectSettingsFolderPath))
                 AssetDatabase.CreateFolder("Assets", HDProjectSettings.projectSettingsFolderPath);
 
-            var hdrpAsset = GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset;
+            var hdrpAssetEditorResources = HDRenderPipeline.defaultAsset.renderPipelineEditorResources;
 
-            string defaultScenePath = "Assets/" + HDProjectSettings.projectSettingsFolderPath + "/" + hdrpAsset.renderPipelineEditorResources.defaultScene.name + ".prefab";
-            AssetDatabase.CopyAsset(AssetDatabase.GetAssetPath(hdrpAsset.renderPipelineEditorResources.defaultScene), defaultScenePath);
-            string defaultRenderSettingsProfilePath = "Assets/" + HDProjectSettings.projectSettingsFolderPath + "/" + hdrpAsset.renderPipelineEditorResources.defaultRenderSettingsProfile.name + ".asset";
-            AssetDatabase.CopyAsset(AssetDatabase.GetAssetPath(hdrpAsset.renderPipelineEditorResources.defaultRenderSettingsProfile), defaultRenderSettingsProfilePath);
-            string defaultPostProcessingProfilePath = "Assets/" + HDProjectSettings.projectSettingsFolderPath + "/" + hdrpAsset.renderPipelineEditorResources.defaultPostProcessingProfile.name + ".asset";
-            AssetDatabase.CopyAsset(AssetDatabase.GetAssetPath(hdrpAsset.renderPipelineEditorResources.defaultPostProcessingProfile), defaultPostProcessingProfilePath);
+            string defaultScenePath = "Assets/" + HDProjectSettings.projectSettingsFolderPath + "/" + hdrpAssetEditorResources.defaultScene.name + ".prefab";
+            AssetDatabase.CopyAsset(AssetDatabase.GetAssetPath(hdrpAssetEditorResources.defaultScene), defaultScenePath);
+            string defaultRenderSettingsProfilePath = "Assets/" + HDProjectSettings.projectSettingsFolderPath + "/" + hdrpAssetEditorResources.defaultRenderSettingsProfile.name + ".asset";
+            AssetDatabase.CopyAsset(AssetDatabase.GetAssetPath(hdrpAssetEditorResources.defaultRenderSettingsProfile), defaultRenderSettingsProfilePath);
+            string defaultPostProcessingProfilePath = "Assets/" + HDProjectSettings.projectSettingsFolderPath + "/" + hdrpAssetEditorResources.defaultPostProcessingProfile.name + ".asset";
+            AssetDatabase.CopyAsset(AssetDatabase.GetAssetPath(hdrpAssetEditorResources.defaultPostProcessingProfile), defaultPostProcessingProfilePath);
 
             GameObject defaultScene = AssetDatabase.LoadAssetAtPath<GameObject>(defaultScenePath);
             VolumeProfile defaultRenderSettingsProfile = AssetDatabase.LoadAssetAtPath<VolumeProfile>(defaultRenderSettingsProfilePath);
@@ -307,9 +307,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             foreach (var volume in defaultScene.GetComponentsInChildren<Volume>())
             {
-                if (volume.sharedProfile.name.StartsWith(hdrpAsset.renderPipelineEditorResources.defaultRenderSettingsProfile.name))
+                if (volume.sharedProfile.name.StartsWith(hdrpAssetEditorResources.defaultRenderSettingsProfile.name))
                     volume.sharedProfile = defaultRenderSettingsProfile;
-                else if (volume.sharedProfile.name.StartsWith(hdrpAsset.renderPipelineEditorResources.defaultPostProcessingProfile.name))
+                else if (volume.sharedProfile.name.StartsWith(hdrpAssetEditorResources.defaultPostProcessingProfile.name))
                     volume.sharedProfile = defaultPostProcessingProfile;
             }
 
@@ -529,31 +529,31 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         bool IsHdrpAssetRuntimeResourcesCorrect() =>
             IsHdrpAssetUsedCorrect()
-            && (GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset).renderPipelineResources != null;
+            && HDRenderPipeline.defaultAsset != null;
         void FixHdrpAssetRuntimeResources()
         {
             if (!IsHdrpAssetUsedCorrect())
                 FixHdrpAssetUsed();
-            (GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset).renderPipelineResources
+            HDRenderPipeline.defaultAsset.renderPipelineResources
                 = AssetDatabase.LoadAssetAtPath<RenderPipelineResources>(HDUtils.GetHDRenderPipelinePath() + "Runtime/RenderPipelineResources/HDRenderPipelineResources.asset");
-            ResourceReloader.ReloadAllNullIn((GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset).renderPipelineResources, HDUtils.GetHDRenderPipelinePath());
+            ResourceReloader.ReloadAllNullIn(HDRenderPipeline.defaultAsset.renderPipelineResources, HDUtils.GetHDRenderPipelinePath());
         }
 
         bool IsHdrpAssetEditorResourcesCorrect() =>
             IsHdrpAssetUsedCorrect()
-            && (GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset).renderPipelineEditorResources != null;
+            && HDRenderPipeline.defaultAsset.renderPipelineEditorResources != null;
         void FixHdrpAssetEditorResources()
         {
             if (!IsHdrpAssetUsedCorrect())
                 FixHdrpAssetUsed();
-            (GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset).renderPipelineEditorResources
+            HDRenderPipeline.defaultAsset.renderPipelineEditorResources
                 = AssetDatabase.LoadAssetAtPath<HDRenderPipelineEditorResources>(HDUtils.GetHDRenderPipelinePath() + "Editor/RenderPipelineResources/HDRenderPipelineEditorResources.asset");
-            ResourceReloader.ReloadAllNullIn((GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset).renderPipelineEditorResources, HDUtils.GetHDRenderPipelinePath());
+            ResourceReloader.ReloadAllNullIn(HDRenderPipeline.defaultAsset.renderPipelineEditorResources, HDUtils.GetHDRenderPipelinePath());
         }
 
         bool IsHdrpAssetDiffusionProfileCorrect()
         {
-            var profileList = (GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset)?.diffusionProfileSettingsList;
+            var profileList = HDRenderPipeline.defaultAsset?.diffusionProfileSettingsList;
             return IsHdrpAssetUsedCorrect() && profileList.Length != 0 && profileList.Any(p => p != null);
         }
 
