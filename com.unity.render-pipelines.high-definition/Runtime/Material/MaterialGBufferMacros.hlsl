@@ -5,6 +5,28 @@
 // Define for GBuffer management. Can be optionally included after material HLSL headers
 //-----------------------------------------------------------------------------
 
+#define GBufferType0 float4
+#define GBufferType1 float4
+#define GBufferType2 float4
+#define GBufferType3 float4
+#define GBufferType4 float4
+#define GBufferType5 float4
+
+#ifdef LIGHT_LAYERS
+#define GBUFFERMATERIAL_LIGHT_LAYERS 1
+#else
+#define GBUFFERMATERIAL_LIGHT_LAYERS 0
+#endif
+
+#ifdef SHADOWS_SHADOWMASK
+#define GBUFFERMATERIAL_SHADOWMASK 1
+#else
+#define GBUFFERMATERIAL_SHADOWMASK 0
+#endif
+
+// Caution: This must be in sync with Lit.cs GetMaterialGBufferCount()
+#define GBUFFERMATERIAL_COUNT (4 + GBUFFERMATERIAL_LIGHT_LAYERS + GBUFFERMATERIAL_SHADOWMASK)
+
 // Only one deferred layout is allowed for a HDRenderPipeline, this will be detect by the redefinition of GBUFFERMATERIAL_COUNT
 // If GBUFFERMATERIAL_COUNT is define two time, the shaders will not compile
 
