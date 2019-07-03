@@ -590,7 +590,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
 #if UNITY_2019_3_OR_NEWER
 #elif UNITY_2019_2_OR_NEWER
-                Debug.LogWarning("Enlighten for HDRP will be deprecated in 2019.3, please prefer to use Progressive CPU or Progressive GPU mode");
+                Debug.LogWarning("Enlighten for HDRP will be deprecated in 2019.3, please use Progressive CPU or Progressive GPU instead");
 #endif
             }
 #endif
