@@ -585,6 +585,63 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             ShaderStringBuilder pixelGraphEvalFunction = new ShaderStringBuilder();
             ShaderStringBuilder pixelGraphOutputs = new ShaderStringBuilder();
 
+            // ----------------------------------------------------- //
+            //                         KEYWORDS                      //
+            // ----------------------------------------------------- //
+
+            // -------------------------------------
+            // Get keyword permutations
+
+            masterNode.owner.CollectShaderKeywords(sharedKeywords, mode);
+            var keywordPermutations = KeywordUtil.GetKeywordPermutations(sharedKeywords.keywords);
+
+            // Track permutation indices for all nodes
+            List<int>[] keywordPermutationsPerVertexNode = new List<int>[vertexNodes.Count];
+            List<int>[] keywordPermutationsPerPixelNode = new List<int>[pixelNodes.Count];
+
+            // Track requirements per keyword permutation
+            List<KeyValuePair<int, ShaderGraphRequirements>> vertexRequirementsPerKeyword = new List<KeyValuePair<int, ShaderGraphRequirements>>();
+            List<KeyValuePair<int, ShaderGraphRequirements>> pixelRequirementsPerKeyword = new List<KeyValuePair<int, ShaderGraphRequirements>>();
+
+            // -------------------------------------
+            // Evaluate all permutations
+
+            for(int i = 0; i < keywordPermutations.Count; i++)
+            {
+                // Get active nodes for this permutation
+                var localVertexNodes = ListPool<AbstractMaterialNode>.Get();
+                var localPixelNodes = ListPool<AbstractMaterialNode>.Get();
+                NodeUtils.DepthFirstCollectNodesFromNode(localVertexNodes, masterNode, NodeUtils.IncludeSelf.Include, pass.VertexShaderSlots, keywordPermutations[i]);
+                NodeUtils.DepthFirstCollectNodesFromNode(localPixelNodes, masterNode, NodeUtils.IncludeSelf.Include, pass.PixelShaderSlots, keywordPermutations[i]);
+
+                // Track each vertex node in this permutation
+                foreach(AbstractMaterialNode vertexNode in localVertexNodes)
+                {
+                    int nodeIndex = vertexNodes.IndexOf(vertexNode);
+
+                    if(keywordPermutationsPerVertexNode[nodeIndex] == null)
+                        keywordPermutationsPerVertexNode[nodeIndex] = new List<int>();
+                    keywordPermutationsPerVertexNode[nodeIndex].Add(i);
+                }
+
+                // Track each pixel node in this permutation
+                foreach(AbstractMaterialNode pixelNode in localPixelNodes)
+                {
+                    int nodeIndex = pixelNodes.IndexOf(pixelNode);
+
+                    if(keywordPermutationsPerPixelNode[nodeIndex] == null)
+                        keywordPermutationsPerPixelNode[nodeIndex] = new List<int>();
+                    keywordPermutationsPerPixelNode[nodeIndex].Add(i);
+                }
+
+                // Get active requirements for this permutation
+                var localVertexRequirements = ShaderGraphRequirements.FromNodes(localVertexNodes, ShaderStageCapability.Vertex, false);
+                var localPixelRequirements = ShaderGraphRequirements.FromNodes(localPixelNodes, ShaderStageCapability.Fragment, false);
+
+                vertexRequirementsPerKeyword.Add(new KeyValuePair<int, ShaderGraphRequirements>(i, localVertexRequirements));
+                pixelRequirementsPerKeyword.Add(new KeyValuePair<int, ShaderGraphRequirements>(i, localPixelRequirements));
+            }
+
             // build initial requirements
             HDRPShaderStructs.AddActiveFieldsFromPixelGraphRequirements(activeFields, pixelRequirements);
 
@@ -594,6 +651,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             // Build the graph evaluation code, to evaluate the specified slots
             GraphUtil.GenerateSurfaceDescriptionFunction(
                 pixelNodes,
+                keywordPermutationsPerPixelNode,
                 masterNode,
                 masterNode.owner as GraphData,
                 pixelGraphEvalFunction,
@@ -635,6 +693,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     mode,
                     masterNode,
                     vertexNodes,
+                    keywordPermutationsPerVertexNode,
                     vertexSlots,
                     vertexGraphInputStructName,
                     vertexGraphEvalFunctionName,
