@@ -186,6 +186,11 @@ namespace UnityEditor.ShaderGraph.Drawing
             else
                 m_Node.GetOutputSlots<MaterialSlot>(slots);
 
+            // Store the edges
+            Dictionary<MaterialSlot, List<IEdge>> edgeDict = new Dictionary<MaterialSlot, List<IEdge>>();
+            foreach (MaterialSlot slot in slots)
+                edgeDict.Add(slot, (List<IEdge>)slot.owner.owner.GetEdges(slot.slotReference));
+
             // Get reorder slots so need to remove them all then re-add
             foreach (MaterialSlot slot in slots)
                 m_Node.RemoveSlot(slot.id);
@@ -195,10 +200,19 @@ namespace UnityEditor.ShaderGraph.Drawing
             
             // Now add the slots back based on the list order
             // For each list entry get the slot with that ID
-            for(int i = 0; i < list.list.Count; i++)
+            for (int i = 0; i < list.list.Count; i++)
             {
                 var currentSlot = slots.Where(s => s.id == (int)list.list[i]).FirstOrDefault();
                 m_Node.AddSlot(currentSlot);
+            }
+
+            // Reconnect the edges
+            foreach (KeyValuePair<MaterialSlot, List<IEdge>> entry in edgeDict)
+            {
+                foreach (IEdge edge in entry.Value)
+                {
+                    m_Node.owner.Connect(edge.outputSlot, edge.inputSlot);
+                }
             }
 
             RecreateList();
