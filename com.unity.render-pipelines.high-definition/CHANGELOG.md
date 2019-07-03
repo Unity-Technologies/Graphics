@@ -21,6 +21,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Shader Graphs that use time-dependent vertex modification now generate correct motion vectors.
 - Added option to allow a custom spot angle for spot light shadow maps. 
 - Added frame settings for individual post-processing effects
+- Added dither transition between cascades for Low and Medium quality settings
 
 ### Fixed
 - Fixed an issue with history buffers causing effects like TAA or auto exposure to flicker when more than one camera was visible in the editor
