@@ -1472,7 +1472,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_lightList.rightEyeLightVolumes.Add(lightVolumeData);
             }
         }
-
         public bool GetEnvLightData(CommandBuffer cmd, HDCamera hdCamera, HDProbe probe, DebugDisplaySettings debugDisplaySettings, ref EnvLightData envLightData)
         {
             Camera camera = hdCamera.camera;
@@ -2158,6 +2157,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         var probeWrapper = SelectProbe(probe, planarProbe);
 
                         EnvLightData envLightData = new EnvLightData();
+
                         if (GetEnvLightData(cmd, hdCamera, probeWrapper, debugDisplaySettings, ref envLightData))
                         {
                             // it has been filled

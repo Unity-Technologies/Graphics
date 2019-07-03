@@ -104,6 +104,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
                                                                   light.shadowIndex, L);
         }
     }
+
     AggregateLighting aggregateLighting;
     ZERO_INITIALIZE(AggregateLighting, aggregateLighting); // LightLoop is in charge of initializing the structure
 
@@ -223,7 +224,6 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
             EVALUATE_BSDF_ENV_SKY(envLightSky, REFRACTION, refraction);
         }
     }
-    
 #undef EVALUATE_BSDF_ENV
 #undef EVALUATE_BSDF_ENV_SKY
 
@@ -236,6 +236,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
             AccumulateDirectLighting(lighting, aggregateLighting);
         }
     }
+
 
     #ifdef USE_LIGHT_CLUSTER
     // Let's loop through all the 
