@@ -38,7 +38,7 @@ namespace UnityEditor.ShaderGraph
                 }
             }
         }
-        
+
         readonly static string[] k_ValidExtensions = { ".hlsl", ".cginc" };
         const string k_InvalidFileType = "Source file is not a valid file type. Valid file extensions are .hlsl and .cginc";
         const string k_MissingOutputSlot = "A Custom Function Node must have at least one output slot";
@@ -225,7 +225,7 @@ namespace UnityEditor.ShaderGraph
 
             return port.GetDefaultValue(generationMode);
         }
-        
+
         bool IsValidFunction()
         {
             return IsValidFunction(sourceType, functionName, functionSource, functionBody);
