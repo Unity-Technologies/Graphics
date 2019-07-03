@@ -1036,6 +1036,44 @@ namespace UnityEditor.ShaderGraph
             var requirements = ShaderGraphRequirements.FromNodes(activeNodeList, ShaderStageCapability.Fragment);
 
             // ----------------------------------------------------- //
+            //                         KEYWORDS                      //
+            // ----------------------------------------------------- //
+
+            // -------------------------------------
+            // Get keyword permutations
+
+            graph.CollectShaderKeywords(shaderKeywords, mode);
+            var keywordPermutations = KeywordUtil.GetKeywordPermutations(shaderKeywords.keywords);
+
+            // Track permutation indicies for all nodes and requirements
+            List<int>[] keywordPermutationsPerNode = new List<int>[activeNodeList.Count];
+
+            // -------------------------------------
+            // Evaluate all permutations
+
+            for(int i = 0; i < keywordPermutations.Count; i++)
+            {
+                // Get active nodes for this permutation
+                var localNodes = ListPool<AbstractMaterialNode>.Get();
+                NodeUtils.DepthFirstCollectNodesFromNode(localNodes, node, keywordPermutations: keywordPermutations[i]);
+
+                // Track each pixel node in this permutation
+                foreach(AbstractMaterialNode pixelNode in localNodes)
+                {
+                    int nodeIndex = activeNodeList.IndexOf(pixelNode);
+
+                    if(keywordPermutationsPerNode[nodeIndex] == null)
+                        keywordPermutationsPerNode[nodeIndex] = new List<int>();
+                    keywordPermutationsPerNode[nodeIndex].Add(i);
+                }
+
+                // Get active requirements for this permutation
+                var localSurfaceRequirements = ShaderGraphRequirements.FromNodes(localNodes, ShaderStageCapability.Fragment, false);
+                var localPixelRequirements = ShaderGraphRequirements.FromNodes(localNodes, ShaderStageCapability.Fragment);
+            }
+
+
+            // ----------------------------------------------------- //
             //                START VERTEX DESCRIPTION               //
             // ----------------------------------------------------- //
 
@@ -1078,6 +1116,7 @@ namespace UnityEditor.ShaderGraph
 
             GenerateSurfaceDescriptionFunction(
                 activeNodeList,
+                keywordPermutationsPerNode,
                 node,
                 graph,
                 surfaceDescriptionFunction,
@@ -1251,7 +1290,8 @@ namespace UnityEditor.ShaderGraph
         }
 
         public static void GenerateSurfaceDescriptionFunction(
-            List<AbstractMaterialNode> activeNodeList,
+            List<AbstractMaterialNode> nodes,
+            List<int>[] keywordPermutationsPerNode,
             AbstractMaterialNode rootNode,
             GraphData graph,
             ShaderStringBuilder surfaceDescriptionFunction,
@@ -1271,46 +1311,23 @@ namespace UnityEditor.ShaderGraph
             GraphContext graphContext = new GraphContext(graphInputStructName);
 
             graph.CollectShaderProperties(shaderProperties, mode);
-            var keywordPermutations = KeywordUtil.GetKeywordPermutations(shaderKeywords.keywords);
 
             surfaceDescriptionFunction.AppendLine(String.Format("{0} {1}(SurfaceDescriptionInputs IN)", surfaceDescriptionName, functionName), false);
             using (surfaceDescriptionFunction.BlockScope())
             {
                 surfaceDescriptionFunction.AppendLine("{0} surface = ({0})0;", surfaceDescriptionName);
-                for(int i = 0; i < keywordPermutations.Count; i++)
+                for(int i = 0; i < nodes.Count; i++)
                 {
-                    // If null there are no keywords
-                    if(keywordPermutations[i] != null)
-                    {
-                        activeNodeList.Clear();
-                        var slotIds = slots == null ? null : slots.Select(x => x.id);
-                        NodeUtils.DepthFirstCollectNodesFromNode(activeNodeList, rootNode, NodeUtils.IncludeSelf.Include, slotIds, keywordPermutations: keywordPermutations[i]);
+                    GenerateDescriptionForNode(nodes[i], keywordPermutationsPerNode[i], functionRegistry, surfaceDescriptionFunction,
+                        shaderProperties, shaderKeywords, 
+                        graph, graphContext, mode);
+                }               
 
-                        surfaceDescriptionFunction.AppendLine(KeywordUtil.GetKeywordPermutationString(keywordPermutations[i], i, keywordPermutations.Count));
-                        surfaceDescriptionFunction.IncreaseIndent();
-                    }
-                    
-                    foreach (var activeNode in activeNodeList)
-                    {
-                        GenerateDescriptionForNode(activeNode, functionRegistry, surfaceDescriptionFunction,
-                            shaderProperties, shaderKeywords, 
-                            graph, graphContext, mode, keywordPermutations[i]);
-                    }                
+                functionRegistry.builder.currentNode = null;
+                surfaceDescriptionFunction.currentNode = null;
 
-                    functionRegistry.builder.currentNode = null;
-                    surfaceDescriptionFunction.currentNode = null;
-
-                    GenerateSurfaceDescriptionRemap(graph, rootNode, slots, surfaceDescriptionFunction, mode);
-
-                    // If null there are no keywords
-                    if(keywordPermutations[i] != null)
-                    {
-                        surfaceDescriptionFunction.DecreaseIndent();
-                    }
-                }
-                // If first entry is null there are no keywords
-                if(keywordPermutations[0] != null)
-                    surfaceDescriptionFunction.AppendLine("#endif");
+                GenerateSurfaceDescriptionRemap(graph, rootNode, slots,
+                    surfaceDescriptionFunction, mode);
 
                 surfaceDescriptionFunction.AppendLine("return surface;");
             }
@@ -1318,14 +1335,14 @@ namespace UnityEditor.ShaderGraph
 
         static void GenerateDescriptionForNode(
             AbstractMaterialNode activeNode,
+            List<int> keywordPermutations,
             FunctionRegistry functionRegistry,
             ShaderStringBuilder descriptionFunction,
             PropertyCollector shaderProperties,
             KeywordCollector shaderKeywords,
             GraphData graph,
             GraphContext graphContext,
-            GenerationMode mode,
-            List<KeyValuePair<ShaderKeyword, int>> keywordPermutations = null)
+            GenerationMode mode)
         {
             if (activeNode is IGeneratesFunction functionNode)
             {
@@ -1336,21 +1353,15 @@ namespace UnityEditor.ShaderGraph
 
             if (activeNode is IGeneratesBodyCode bodyNode)
             {
+                if(activeNode as KeywordNode == null && keywordPermutations != null)
+                    descriptionFunction.AppendLine(KeywordUtil.GetKeywordPermutationGroupIfDef(keywordPermutations));
+                
                 descriptionFunction.currentNode = activeNode;
                 bodyNode.GenerateNodeCode(descriptionFunction, graphContext, mode);
                 descriptionFunction.ReplaceInCurrentMapping(PrecisionUtil.Token, activeNode.concretePrecision.ToShaderString());
-            }
-
-            if(keywordPermutations != null)
-            {
-                if (activeNode is IGeneratesBranch branchNode)
-                {
-                    var keyword = graph.keywords.FirstOrDefault(x => x.guid == branchNode.keywordGuid);
-                    var keywordPermutation = keywordPermutations.Where(x => x.Key.guid == keyword.guid).FirstOrDefault();
-                    descriptionFunction.currentNode = activeNode;
-                    branchNode.GenerateBranchCode(descriptionFunction, keywordPermutation, mode);
-                    descriptionFunction.ReplaceInCurrentMapping(PrecisionUtil.Token, activeNode.concretePrecision.ToShaderString());
-                }
+            
+                if(activeNode as KeywordNode == null && keywordPermutations != null)
+                    descriptionFunction.AppendLine("#endif");
             }
 
             activeNode.CollectShaderProperties(shaderProperties, mode);
@@ -1431,6 +1442,7 @@ namespace UnityEditor.ShaderGraph
             GenerationMode mode,
             AbstractMaterialNode rootNode,
             List<AbstractMaterialNode> nodes,
+            List<int>[] keywordPermutationsPerNode,
             List<MaterialSlot> slots,
             string graphInputStructName = "VertexDescriptionInputs",
             string functionName = "PopulateVertexData",
@@ -1442,55 +1454,32 @@ namespace UnityEditor.ShaderGraph
             GraphContext graphContext = new GraphContext(graphInputStructName);
 
             graph.CollectShaderProperties(shaderProperties, mode);
-            var keywordPermutations = KeywordUtil.GetKeywordPermutations(shaderKeywords.keywords);
 
             builder.AppendLine("{0} {1}({2} IN)", graphOutputStructName, functionName, graphInputStructName);
             using (builder.BlockScope())
             {
                 builder.AppendLine("{0} description = ({0})0;", graphOutputStructName);
-
-                for(int i = 0; i < keywordPermutations.Count; i++)
+                for(int i = 0; i < nodes.Count; i++)
                 {
-                    if(keywordPermutations[i] != null)
-                    {
-                        nodes.Clear();
-                        var slotIds = slots == null ? new int[0] : slots.Select(x => x.id);
-                        NodeUtils.DepthFirstCollectNodesFromNode(nodes, rootNode, NodeUtils.IncludeSelf.Include, slotIds, keywordPermutations: keywordPermutations[i]);
+                    GenerateDescriptionForNode(nodes[i], keywordPermutationsPerNode[i], functionRegistry, builder,
+                        shaderProperties, shaderKeywords, 
+                        graph, graphContext, mode);
+                }
 
-                        builder.AppendLine(KeywordUtil.GetKeywordPermutationString(keywordPermutations[i], i, keywordPermutations.Count));
-                        builder.IncreaseIndent();
-                    }
-                    
-                    foreach (var node in nodes)
-                    {
-                        GenerateDescriptionForNode(node, functionRegistry, builder,
-                            shaderProperties, shaderKeywords, 
-                            graph, graphContext, mode);
-                    }
+                functionRegistry.builder.currentNode = null;
+                builder.currentNode = null; 
 
-                    functionRegistry.builder.currentNode = null;
-                    builder.currentNode = null; 
-
-                    if(slots.Count != 0)
+                if(slots.Count != 0)
+                {
+                    foreach (var slot in slots)
                     {
-                        foreach (var slot in slots)
-                        {
-                            var isSlotConnected = slot.owner.owner.GetEdges(slot.slotReference).Any();
-                            var slotName = NodeUtils.GetHLSLSafeName(slot.shaderOutputName);
-                            var slotValue = isSlotConnected ? 
-                                ((AbstractMaterialNode)slot.owner).GetSlotValue(slot.id, mode, slot.owner.concretePrecision) : slot.GetDefaultValue(mode, slot.owner.concretePrecision);
-                            builder.AppendLine("description.{0} = {1};", slotName, slotValue);
-                        }
-                    }
-                    // If null there are no keywords
-                    if(keywordPermutations[i] != null)
-                    {
-                        builder.DecreaseIndent();
+                        var isSlotConnected = slot.owner.owner.GetEdges(slot.slotReference).Any();
+                        var slotName = NodeUtils.GetHLSLSafeName(slot.shaderOutputName);
+                        var slotValue = isSlotConnected ? 
+                            ((AbstractMaterialNode)slot.owner).GetSlotValue(slot.id, mode, slot.owner.concretePrecision) : slot.GetDefaultValue(mode, slot.owner.concretePrecision);
+                        builder.AppendLine("description.{0} = {1};", slotName, slotValue);
                     }
                 }
-                // If first entry is null there are no keywords
-                if(keywordPermutations[0] != null)
-                    builder.AppendLine("#endif");
 
                 builder.AppendLine("return description;");
             }

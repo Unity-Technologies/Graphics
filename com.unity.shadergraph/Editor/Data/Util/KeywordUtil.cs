@@ -57,17 +57,12 @@ namespace UnityEditor.ShaderGraph
             List<KeyValuePair<ShaderKeyword, int>> currentPermutation = new List<KeyValuePair<ShaderKeyword, int>>();
             List<List<KeyValuePair<ShaderKeyword, int>>> results = new List<List<KeyValuePair<ShaderKeyword, int>>>();
             
-#if SHADERGRAPH_EXPLICITBRANCH
             for(int i = 0; i < keywords.Count; i++)
             {
                 currentPermutation.Add(new KeyValuePair<ShaderKeyword, int>(keywords[i], 0));
             }
             
             PermuteKeywords(keywords, currentPermutation, results, 0);
-#endif
-
-            if(results.Count == 0)
-                results.Add(null);
 
             return results;
         }
@@ -95,44 +90,63 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        public static string GetKeywordPermutationString(List<KeyValuePair<ShaderKeyword, int>> permutation, int permutationIndex, int permutationCount)
+        public static string GetKeywordPermutationGroupIfDef(List<int> permutationGroup)
         {
             StringBuilder sb = new StringBuilder();
+            sb.Append("#if ");
 
-            if(permutationIndex == 0)
-            {
-                sb.Append("#if ");
-            }
-            else if(permutationIndex == permutationCount - 1)
-            {
-                sb.Append("#else");
-                return sb.ToString();
-            }
-            else
-            {
-                sb.Append("#elif ");
-            }
-
-            bool appendAndFromPrevious = false;
-            for(int i = 0; i < permutation.Count; i++)
+            for(int i = 0; i < permutationGroup.Count; i++)
             {                
-                if(permutation[i].Key.keywordType == ShaderKeywordType.Enum)
-                {
-                    if(appendAndFromPrevious)
-                        sb.Append(" && ");
-                    
-                    sb.Append($"defined({permutation[i].Key.referenceName}_{permutation[i].Key.entries[permutation[i].Value].referenceName})");
-                    appendAndFromPrevious = true;
-                }
-                else if(permutation[i].Value == 0)
-                {
-                    if(appendAndFromPrevious)
-                        sb.Append(" && ");
-                    
-                    sb.Append($"defined({permutation[i].Key.referenceName}_ON)");
-                    appendAndFromPrevious = true;
-                }
+                if(i != 0)
+                    sb.Append(" || ");
+                
+                sb.Append($"defined(KEYWORD_PERMUTATION_{i})");
             }
+            return sb.ToString();
+        }
+
+        public static string GetKeywordPermutationDeclaration(ShaderStringBuilder sb, List<List<KeyValuePair<ShaderKeyword, int>>> permutations)
+        {
+            for(int p = 0; p < permutations.Count; p++)
+            {
+                if(p == 0)
+                    sb.Append("#if ");
+                else if(p == permutations.Count - 1)
+                    sb.Append("#else");
+                else
+                    sb.Append("#elif ");
+
+                bool appendAndFromPrevious = false;
+                if(p != permutations.Count - 1)
+                {
+                    for(int i = 0; i < permutations[p].Count; i++)
+                    {                
+                        if(permutations[p][i].Key.keywordType == ShaderKeywordType.Enum)
+                        {
+                            if(appendAndFromPrevious)
+                                sb.Append(" && ");
+                            
+                            sb.Append($"defined({permutations[p][i].Key.referenceName}_{permutations[p][i].Key.entries[permutations[p][i].Value].referenceName})");
+                            appendAndFromPrevious = true;
+                        }
+                        else if(permutations[p][i].Value == 0)
+                        {
+                            if(appendAndFromPrevious)
+                                sb.Append(" && ");
+                            
+                            sb.Append($"defined({permutations[p][i].Key.referenceName}_ON)");
+                            appendAndFromPrevious = true;
+                        }
+                    }
+                }
+
+                sb.AppendNewLine();
+                sb.AppendLine($"#define KEYWORD_PERMUTATION_{p}");
+            }
+            sb.Append("#endif");
+            sb.AppendNewLine();
+            sb.AppendNewLine();
+
             return sb.ToString();
         }
     }
