@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [6.9.0] - 2019-07-02
 
+### Fixed
+- The `Bitangent Vector Node` now generates all necessary shader requirements.
+
 ## [6.8.0] - 2019-06-12
 ### Added
 - Color Mode improves node visibility by coloring the title bar by Category, Precision, or custom colors.
