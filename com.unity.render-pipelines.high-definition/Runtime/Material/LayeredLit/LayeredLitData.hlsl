@@ -644,7 +644,7 @@ float3 ComputeMainBaseColorInfluence(float influenceMask, float3 baseColor0, flo
     // We want to calculate the mean color of the texture. For this we will sample a low mipmap
     float textureBias = 15.0; // Use maximum bias
 
-#if VIRTUAL_TEXTURES_ACTIVE && 0
+#if VIRTUAL_TEXTURES_ACTIVE
 	// Prepare the VT stack for sampling
 	StackInfo stackInfo = PrepareStack(UVMappingTo2D(layerTexCoord.base0), _TextureStack0);
 	float3 baseMeanColor0 = SampleStack(stackInfo, _BaseColorMap0).rgb;
@@ -652,13 +652,19 @@ float3 ComputeMainBaseColorInfluence(float influenceMask, float3 baseColor0, flo
 	stackInfo = PrepareStack(UVMappingTo2D(layerTexCoord.base1), _TextureStack1);
 	float3 baseMeanColor1 = SampleStack(stackInfo, _BaseColorMap1).rgb;
 
-	stackInfo = PrepareStack(UVMappingTo2D(layerTexCoord.base2), _TextureStack2);
-	float3 baseMeanColor2 = SampleStack(stackInfo, _BaseColorMap2).rgb;
+	//stackInfo = PrepareStack(UVMappingTo2D(layerTexCoord.base2), _TextureStack2);
+	//float3 baseMeanColor2 = SampleStack(stackInfo, _BaseColorMap2).rgb;
 
-	stackInfo = PrepareStack(UVMappingTo2D(layerTexCoord.base3), _TextureStack3);
-	float3 baseMeanColor3 = SampleStack(stackInfo, _BaseColorMap3).rgb;
+	//stackInfo = PrepareStack(UVMappingTo2D(layerTexCoord.base3), _TextureStack3);
+	//float3 baseMeanColor3 = SampleStack(stackInfo, _BaseColorMap3).rgb;
+
+	// For now, use "normal" mode for the 2 last layers ... (doens't seem to work like that? seems to be reddish?)
+	float3 uselessBaseMeanColor = SAMPLE_UVMAPPING_TEXTURE2D_BIAS(_BaseColorMap0, sampler_BaseColorMap0, layerTexCoord.base2, textureBias).rgb * 0.00001;
+	float3 baseMeanColor2 = SAMPLE_UVMAPPING_TEXTURE2D_BIAS(_BaseColorMap2, sampler_BaseColorMap0, layerTexCoord.base2, textureBias).rgb *_BaseColor2.rgb + uselessBaseMeanColor;
+	float3 baseMeanColor3 = SAMPLE_UVMAPPING_TEXTURE2D_BIAS(_BaseColorMap3, sampler_BaseColorMap0, layerTexCoord.base3, textureBias).rgb *_BaseColor3.rgb + uselessBaseMeanColor;
 #else
-	float3 baseMeanColor0 = SAMPLE_UVMAPPING_TEXTURE2D_BIAS(_BaseColorMap0, sampler_BaseColorMap0, layerTexCoord.base0, textureBias).rgb *_BaseColor0.rgb;
+	float3 uselessBaseMeanColor = SAMPLE_UVMAPPING_TEXTURE2D_BIAS(_BaseColorMap0, sampler_BaseColorMap0, layerTexCoord.base2, textureBias).rgb;
+	float3 baseMeanColor0 = SAMPLE_UVMAPPING_TEXTURE2D_BIAS(_BaseColorMap0, sampler_BaseColorMap0, layerTexCoord.base0, textureBias).rgb *_BaseColor0.rgb + 0.00001 * uselessBaseMeanColor;
     float3 baseMeanColor1 = SAMPLE_UVMAPPING_TEXTURE2D_BIAS(_BaseColorMap1, sampler_BaseColorMap0, layerTexCoord.base1, textureBias).rgb *_BaseColor1.rgb;
     float3 baseMeanColor2 = SAMPLE_UVMAPPING_TEXTURE2D_BIAS(_BaseColorMap2, sampler_BaseColorMap0, layerTexCoord.base2, textureBias).rgb *_BaseColor2.rgb;
     float3 baseMeanColor3 = SAMPLE_UVMAPPING_TEXTURE2D_BIAS(_BaseColorMap3, sampler_BaseColorMap0, layerTexCoord.base3, textureBias).rgb *_BaseColor3.rgb;
