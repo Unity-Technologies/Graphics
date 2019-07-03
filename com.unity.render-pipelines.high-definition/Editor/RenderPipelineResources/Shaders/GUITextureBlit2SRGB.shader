@@ -1,69 +1,64 @@
-﻿Shader "Hidden/HDRP/GUITextureBlit2SRGB" {
+﻿Shader "Hidden/GUITextureBlit2SRGB" {
     Properties
     {
-        _MainTex ("Texture", 2D) = "white" {}
-        _MipLevel("_MipLevel", Range(0.0,7.0)) = 0.0
-        _Exposure("_Exposure", Range(-10.0,10.0)) = 0.0
-        _Color("_Color", Color) = (1.0, 1.0, 1.0, 1.0)
+        _MainTex ("Texture", any) = "" {}
+        _Color("Multiplicative color", Color) = (1.0, 1.0, 1.0, 1.0)
     }
     SubShader {
         Pass {
             ZTest Always Cull Off ZWrite Off
 
-            HLSLPROGRAM
-            #pragma editor_sync_compilation
+            // Shader slightly adapted from the builtin renderer
+            // It can consume an exposure texture to setup the exposure in the render
 
+            CGPROGRAM
             #pragma vertex vert
             #pragma fragment frag
+            #pragma target 2.0
 
-            #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+            #include "UnityCG.cginc"
 
-            struct appdata
-            {
-                float4 positionOS : POSITION;
-                float2 uv : TEXCOORD0;
+            UNITY_DECLARE_SCREENSPACE_TEXTURE(_MainTex);
+            UNITY_DECLARE_TEX2D(_Exposure);
+            uniform float4 _MainTex_ST;
+            uniform float4 _Color;
+            uniform bool _ManualTex2SRGB;
+
+            struct appdata_t {
+                float4 vertex : POSITION;
+                float2 texcoord : TEXCOORD0;
                 UNITY_VERTEX_INPUT_INSTANCE_ID
             };
 
-            struct v2f
-            {
-                float4 positionCS : SV_POSITION;
-                float2 uv : TEXCOORD0;
+            struct v2f {
+                float4 vertex : SV_POSITION;
+                float2 texcoord : TEXCOORD0;
                 UNITY_VERTEX_INPUT_INSTANCE_ID
                 UNITY_VERTEX_OUTPUT_STEREO
             };
 
-            TEXTURE2D(_MainTex);
-
-            CBUFFER_START(UnityPerMaterial)
-                float _MipLevel;
-                float _Exposure;
-                float4 _Color;
-                float4 _MainTex_ST;
-                float _ManualTex2SRGB;
-            CBUFFER_END
-
-            v2f vert(appdata v)
+            v2f vert (appdata_t v)
             {
                 v2f o;
-                ZERO_INITIALIZE(v2f, o);
                 UNITY_SETUP_INSTANCE_ID(v);
+                UNITY_INITIALIZE_OUTPUT(v2f, o);
                 UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
-                o.positionCS = TransformObjectToHClip(v.positionOS.xyz);
-                o.uv = TRANSFORM_TEX(v.uv, _MainTex);
-
+                o.vertex = UnityObjectToClipPos(v.vertex);
+                o.texcoord = TRANSFORM_TEX(v.texcoord.xy, _MainTex);
                 return o;
             }
 
-            float4 frag(v2f i) : SV_Target
+            fixed4 frag (v2f i) : SV_Target
             {
                 UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i);
-                float4 color = SAMPLE_TEXTURE2D_X_LOD(_MainTex, s_trilinear_clamp_sampler, i.uv, _MipLevel);
-                color = color * exp2(_Exposure) * GetCurrentExposureMultiplier();
-                return color * _Color;
+                fixed4 colTex = UNITY_SAMPLE_SCREENSPACE_TEXTURE(_MainTex, i.texcoord);
+                if (_ManualTex2SRGB)
+                    colTex.rgb = LinearToGammaSpace(colTex.rgb);
+                float exposure = UNITY_SAMPLE_TEX2D(_Exposure, float2(0, 0)).r;
+                return colTex * _Color * exposure;
             }
-            ENDHLSL
+            ENDCG
+
         }
     }
     Fallback Off
