@@ -12,6 +12,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
     [CanEditMultipleObjects]
     sealed class PlanarReflectionProbeEditor : HDProbeEditor<PlanarReflectionProbeUISettingsProvider, SerializedPlanarReflectionProbe>
     {
+        public static Material GUITextureBlit2SRGBMaterial
+                => HDRenderPipeline.defaultAsset.renderPipelineEditorResources.materials.GUITextureBlit2SRGB;
+
         const float k_PreviewHeight = 128;
 
         static Mesh k_QuadMesh;
@@ -116,7 +119,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
                 c.width = p.texture.width * factor;
                 c.height = k_PreviewHeight;
-                Graphics.DrawTexture(c, p.texture, new Rect(0, 0, 1, 1), 0, 0, 0, 0, GUI.color, CameraEditorUtils.GUITextureBlit2SRGBMaterial);
+
+                var material = GUITextureBlit2SRGBMaterial;
+                material.SetFloat("_MipLevel", 0);
+                material.SetFloat("_Exposure", 0);
+                material.SetColor("_Color", Color.white);
+
+                Graphics.DrawTexture(c, p.texture, new Rect(0, 0, 1, 1), 0, 0, 0, 0, GUI.color, material, -1);
 
                 var fovRect = new Rect(c.x + 5, c.y + 2, c.width - 10, EditorGUIUtility.singleLineHeight);
                 GUI.TextField(fovRect, $"FOV: {p.renderData.fieldOfView:F2}°");
