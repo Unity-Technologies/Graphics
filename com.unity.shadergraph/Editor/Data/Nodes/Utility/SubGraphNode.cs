@@ -522,10 +522,10 @@ namespace UnityEditor.ShaderGraph
 
         public bool RequiresPixelCoordinate(ShaderStageCapability stageCapability)
         {
-            if (subGraphData == null)
+            if (asset == null)
                 return false;
 
-            return subGraphData.requirements.requiresPixelCoordinate;
+            return asset.requirements.requiresPixelCoordinate;
         }
 
         public NeededCoordinateSpace RequiresBitangent(ShaderStageCapability stageCapability)

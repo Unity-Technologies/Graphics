@@ -242,10 +242,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         RenderTexture                   m_TemporaryTargetForCubemaps;
         Stack<Camera>                   m_ProbeCameraPool = new Stack<Camera>();
 
+#if ENABLE_VIRTUALTEXTURES
+        const int additionalVtRenderTargets = 1;
+#else
+        const int additionalVtRenderTargets = 0;
+#endif
+
         RenderTargetIdentifier[] m_MRTTransparentMotionVec;
-        RenderTargetIdentifier[] m_MRTWithSSS = new RenderTargetIdentifier[3]; // Specular, diffuse, sss buffer;
+        RenderTargetIdentifier[] m_MRTWithSSS = new RenderTargetIdentifier[3+additionalVtRenderTargets]; // Specular, (optional) VT, diffuse, sss buffer; note: vt is alway on slot 1 to keep in sync with unlit.
         RenderTargetIdentifier[] mMRTSingle = new RenderTargetIdentifier[1];
-		RenderTargetIdentifier[] m_MRTWithVTFeedback;
+		RenderTargetIdentifier[] m_MRTWithVTFeedback = new RenderTargetIdentifier[2];
         string m_ForwardPassProfileName;
 
         public Material GetBlitMaterial(bool useTexArray) { return useTexArray ? m_BlitTexArray : m_Blit; }
@@ -395,9 +401,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Propagate it to the debug menu
             m_DebugDisplaySettings.data.msaaSamples = m_MSAASamples;
 
-            int additionalVtRenderTargets = 0;
 #if ENABLE_VIRTUALTEXTURES
-            additionalVtRenderTargets = 1;
             Shader.EnableKeyword("VIRTUAL_TEXTURES_ENABLED");
 #else
             Shader.DisableKeyword("VIRTUAL_TEXTURES_ENABLED");
@@ -3009,13 +3013,26 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 {
                     renderTarget = m_MRTWithSSS;
                     renderTarget[0] = msaa ? m_CameraColorMSAABuffer : m_CameraColorBuffer; // Store the specular color
-                    renderTarget[1] = msaa ? m_CameraSssDiffuseLightingMSAABuffer : m_CameraSssDiffuseLightingBuffer;
-                    renderTarget[2] = msaa ? GetSSSBufferMSAA() : GetSSSBuffer();
+#if ENABLE_VIRTUALTEXTURES
+                    renderTarget[1] = GetVTFeedbackBufferForForward(hdCamera);
+                    const int offset = 2;
+#else
+                    const int offset = 1;
+#endif
+                    renderTarget[offset+0] = msaa ? m_CameraSssDiffuseLightingMSAABuffer : m_CameraSssDiffuseLightingBuffer;
+                    renderTarget[offset+1] = msaa ? GetSSSBufferMSAA() : GetSSSBuffer();
                 }
                 else
                 {
+
+#if ENABLE_VIRTUALTEXTURES
+                    renderTarget = m_MRTWithVTFeedback;
+                    renderTarget[0] = msaa ? m_CameraColorMSAABuffer : m_CameraColorBuffer;
+                    renderTarget[1] = GetVTFeedbackBufferForForward(hdCamera);
+#else
                     renderTarget = mMRTSingle;
                     renderTarget[0] = msaa ? m_CameraColorMSAABuffer : m_CameraColorBuffer;
+#endif
                 }
 
                 RenderForwardRendererList(hdCamera.frameSettings,
@@ -3088,7 +3105,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 cmd.SetGlobalInt(HDShaderIDs._ColorMaskTransparentVel, renderMotionVecForTransparent ? (int)ColorWriteMask.All : 0);
 
                 m_MRTTransparentMotionVec[0] = msaa ? m_CameraColorMSAABuffer : m_CameraColorBuffer;
-                m_MRTTransparentMotionVec[1] = renderMotionVecForTransparent ? m_SharedRTManager.GetMotionVectorsBuffer(hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA))
+#if ENABLE_VIRTUALTEXTURES
+                m_MRTTransparentMotionVec[1] = GetVTFeedbackBufferForForward(hdCamera);
+                const int offset = 2;
+#else
+                const int offset = 1;
+#endif
+                m_MRTTransparentMotionVec[offset] = renderMotionVecForTransparent ? m_SharedRTManager.GetMotionVectorsBuffer(hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA))
                     // It doesn't really matter what gets bound here since the color mask state set will prevent this from ever being written to. However, we still need to bind something
                     // to avoid warnings about unbound render targets. The following rendertarget could really be anything if renderVelocitiesForTransparent, here the normal buffer
                     // as it is guaranteed to exist and to have the same size.
@@ -3712,9 +3735,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     }
 
                     // If the forward buffer is different from the GBuffer clear it also
-                    if (GetVTFeedbackBufferForForward() != alreadyCleared)
+                    if (GetVTFeedbackBufferForForward(hdCamera) != alreadyCleared)
                     {
-                        HDUtils.SetRenderTarget(cmd, GetVTFeedbackBufferForForward(), ClearFlag.Color, Color.white);
+                        HDUtils.SetRenderTarget(cmd, GetVTFeedbackBufferForForward(hdCamera), ClearFlag.Color, Color.white);
                     }
                 }
 #endif
@@ -3875,9 +3898,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
 
         // GBuffer vt feedback is handled in  GBufferManager
-        RTHandleSystem.RTHandle GetVTFeedbackBufferForForward()
+        RTHandleSystem.RTHandle GetVTFeedbackBufferForForward(HDCamera hdCamera)
         {
-            if (m_Asset.currentPlatformRenderPipelineSettings.supportMSAA || m_Asset.currentPlatformRenderPipelineSettings.supportedLitShaderMode == RenderPipelineSettings.SupportedLitShaderMode.ForwardOnly)
+            if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA))
             {
                 return m_VTFeedbackBuffer;
             }

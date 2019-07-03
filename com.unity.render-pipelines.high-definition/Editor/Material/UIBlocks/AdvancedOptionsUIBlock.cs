@@ -13,17 +13,23 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             None                = 0,
             Instancing          = 1 << 0,
             SpecularOcclusion   = 1 << 1,
-            All                 = ~0
+            VirtualTexturing    = 1 << 2,
+            All                 = ~0,
+            Unlit = Instancing | VirtualTexturing,
         }
 
         public class Styles
         {
             public const string header = "Advanced Options";
             public static GUIContent enableSpecularOcclusionText = new GUIContent("Specular Occlusion From Bent Normal", "Requires cosine weighted bent normal and cosine weighted ambient occlusion. Specular occlusion for Reflection Probe");
+            public static GUIContent enableVirtualTexturingText = new GUIContent("Virtual Texturing", "When enabled, use virtual texturing instead of regular textures.");
         }
 
         protected MaterialProperty enableSpecularOcclusion = null;
         protected const string kEnableSpecularOcclusion = "_EnableSpecularOcclusion";
+
+        protected MaterialProperty enableVirtualTexturing = null;
+        protected const string kEnableVirtualTexturing = "_VirtualTexturing";
 
         Expandable  m_ExpandableBit;
         Features    m_Features;
@@ -37,6 +43,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         public override void LoadMaterialProperties()
         {
             enableSpecularOcclusion = FindProperty(kEnableSpecularOcclusion);
+            enableVirtualTexturing = FindProperty(kEnableVirtualTexturing);
         }
 
         public override void OnGUI()
@@ -54,6 +61,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 materialEditor.EnableInstancingField();
             if ((m_Features & Features.SpecularOcclusion) != 0)
                 materialEditor.ShaderProperty(enableSpecularOcclusion, Styles.enableSpecularOcclusionText);
+            if ((m_Features & Features.VirtualTexturing) != 0)
+                materialEditor.ShaderProperty(enableVirtualTexturing, Styles.enableVirtualTexturingText);
         }
     }
 }

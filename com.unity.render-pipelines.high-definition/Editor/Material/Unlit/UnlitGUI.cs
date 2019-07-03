@@ -18,7 +18,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             new UnlitSurfaceInputsUIBlock(MaterialUIBlock.Expandable.Input),
             new TransparencyUIBlock(MaterialUIBlock.Expandable.Transparency),
             new EmissionUIBlock(MaterialUIBlock.Expandable.Emissive),
-            new AdvancedOptionsUIBlock(MaterialUIBlock.Expandable.Advance, AdvancedOptionsUIBlock.Features.Instancing),
+            new AdvancedOptionsUIBlock(MaterialUIBlock.Expandable.Advance, AdvancedOptionsUIBlock.Features.Unlit),
         };
 
         public override void OnGUI(MaterialEditor materialEditor, MaterialProperty[] props)
