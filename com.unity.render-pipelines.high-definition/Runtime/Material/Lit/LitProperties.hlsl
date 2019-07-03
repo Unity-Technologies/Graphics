@@ -83,47 +83,33 @@ SAMPLER(sampler_CoatMaskMap);
 #if VIRTUAL_TEXTURES_ACTIVE
 
 TEXTURE2D(_BaseColorMap0);
-TEXTURE2D(_BaseColorMap1);
-TEXTURE2D(_BaseColorMap2);
 TEXTURE2D(_BaseColorMap3);
 SAMPLER(sampler_BaseColorMap0);
 
-//SAMPLER(sampler_BaseColorMap2);
-//SAMPLER(sampler_BaseColorMap3);
-
-TEXTURE2D(_MaskMap0);
-TEXTURE2D(_MaskMap1);
-TEXTURE2D(_MaskMap2);
 TEXTURE2D(_MaskMap3);
-
-SAMPLER(sampler_MaskMap2);
 SAMPLER(sampler_MaskMap3);
 
-TEXTURE2D(_NormalMap0);
-TEXTURE2D(_NormalMap1);
-TEXTURE2D(_NormalMap2);
 TEXTURE2D(_NormalMap3);
-
-SAMPLER(sampler_NormalMap2);
 SAMPLER(sampler_NormalMap3);
+
 #else
 PROP_DECL_TEX2D(_BaseColorMap);
 PROP_DECL_TEX2D(_MaskMap);
 PROP_DECL_TEX2D(_NormalMap);
 #endif
 
-PROP_DECL_TEX2D(_BentNormalMap);
-PROP_DECL_TEX2D(_NormalMapOS);
+//PROP_DECL_TEX2D(_BentNormalMap);
+//PROP_DECL_TEX2D(_NormalMapOS);
 PROP_DECL_TEX2D(_DetailMap);
 PROP_DECL_TEX2D(_HeightMap);
 
-PROP_DECL_TEX2D(_SubsurfaceMaskMap);
+//PROP_DECL_TEX2D(_SubsurfaceMaskMap);
 PROP_DECL_TEX2D(_ThicknessMap);
 
 TEXTURE2D(_LayerMaskMap);
-SAMPLER(sampler_LayerMaskMap);
+//SAMPLER(sampler_LayerMaskMap);
 TEXTURE2D(_LayerInfluenceMaskMap);
-SAMPLER(sampler_LayerInfluenceMaskMap);
+//SAMPLER(sampler_LayerInfluenceMaskMap);
 
 #endif
 
