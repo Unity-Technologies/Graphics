@@ -33,9 +33,7 @@ namespace UnityEditor.Rendering.Experimental.LookDev
 
         static Context defaultContext
             => UnityEngine.ScriptableObject.CreateInstance<Context>();
-
-        public static EnvironmentLibrary currentEnvironmentLibrary { get; private set; }
-
+        
         //[TODO: not compatible with multiple displayer. To rework if needed]
         public static IViewDisplayer currentDisplayer => s_ViewDisplayer;
 
@@ -122,7 +120,9 @@ namespace UnityEditor.Rendering.Experimental.LookDev
         
         static void ConfigureRenderer(bool reloadWithTemporaryID)
         {
+            s_Stages?.Dispose(); //clean previous occurrence on reloading
             s_Stages = new StageCache(dataProvider, currentContext);
+            s_Compositor?.Dispose(); //clean previous occurrence on reloading
             s_Compositor = new Compositer(s_ViewDisplayer, currentContext, dataProvider, s_Stages);
         }
 
@@ -132,6 +132,10 @@ namespace UnityEditor.Rendering.Experimental.LookDev
             {
                 s_Compositor?.Dispose();
                 s_Compositor = null;
+                s_Stages?.Dispose();
+                s_Stages = null;
+                s_ViewDisplayer = null;
+                //currentContext = null;
 
                 //release editorInstanceIDs
                 currentContext.GetViewContent(ViewIndex.First).CleanTemporaryObjectIndexes();
@@ -140,12 +144,6 @@ namespace UnityEditor.Rendering.Experimental.LookDev
                 SaveConfig();
 
                 open = false;
-
-                //free references for memory cleaning
-                s_ViewDisplayer = null;
-                s_Stages = null;
-                s_Compositor = null;
-                //currentContext = null;
             };
             s_ViewDisplayer.OnLayoutChanged += (layout, envPanelOpen) =>
             {
