@@ -80,36 +80,25 @@ SAMPLER(sampler_CoatMaskMap);
     TEXTURE2D(MERGE_NAME(name, 3)); \
     SAMPLER(MERGE_NAME(MERGE_NAME(sampler, name), 3))
 
-#if VIRTUAL_TEXTURES_ACTIVE
-
-TEXTURE2D(_BaseColorMap0);
-TEXTURE2D(_BaseColorMap3);
-SAMPLER(sampler_BaseColorMap0);
-
-TEXTURE2D(_MaskMap3);
-SAMPLER(sampler_MaskMap3);
-
-TEXTURE2D(_NormalMap3);
-SAMPLER(sampler_NormalMap3);
-
-#else
+#if !VIRTUAL_TEXTURES_ACTIVE
 PROP_DECL_TEX2D(_BaseColorMap);
 PROP_DECL_TEX2D(_MaskMap);
 PROP_DECL_TEX2D(_NormalMap);
+
+SAMPLER(sampler_LayerMaskMap);
+SAMPLER(sampler_LayerInfluenceMaskMap);
 #endif
 
-//PROP_DECL_TEX2D(_BentNormalMap);
-//PROP_DECL_TEX2D(_NormalMapOS);
+PROP_DECL_TEX2D(_BentNormalMap);
+PROP_DECL_TEX2D(_NormalMapOS);
 PROP_DECL_TEX2D(_DetailMap);
 PROP_DECL_TEX2D(_HeightMap);
 
-//PROP_DECL_TEX2D(_SubsurfaceMaskMap);
+PROP_DECL_TEX2D(_SubsurfaceMaskMap);
 PROP_DECL_TEX2D(_ThicknessMap);
 
 TEXTURE2D(_LayerMaskMap);
-//SAMPLER(sampler_LayerMaskMap);
 TEXTURE2D(_LayerInfluenceMaskMap);
-//SAMPLER(sampler_LayerInfluenceMaskMap);
 
 #endif
 

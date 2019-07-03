@@ -502,10 +502,11 @@ float4 GetBlendMask(LayerTexCoord layerTexCoord, float4 vertexColor, bool useLod
     // Blend mask are Main Layer A - Layer 1 R - Layer 2 G - Layer 3 B
     // Value for main layer is not use for blending itself but for alternate weighting like density.
     // Settings this specific Main layer blend mask in alpha allow to be transparent in case we don't use it and 1 is provide by default.
-    //float4 blendMasks = useLodSampling ? SAMPLE_UVMAPPING_TEXTURE2D_LOD(_LayerMaskMap, sampler_LayerMaskMap, layerTexCoord.blendMask, lod) : SAMPLE_UVMAPPING_TEXTURE2D(_LayerMaskMap, sampler_LayerMaskMap, layerTexCoord.blendMask);
-    float4 uselessValue = SAMPLE_UVMAPPING_TEXTURE2D_LOD(_BaseColorMap0, sampler_BaseColorMap0, layerTexCoord.blendMask, lod);
-    float4 blendMasks = useLodSampling ? SAMPLE_UVMAPPING_TEXTURE2D_LOD(_LayerMaskMap, sampler_BaseColorMap0, layerTexCoord.blendMask, lod) : SAMPLE_UVMAPPING_TEXTURE2D(_LayerMaskMap, sampler_BaseColorMap0, layerTexCoord.blendMask);
-    blendMasks += 0.00001 * uselessValue;
+#if VIRTUAL_TEXTURES_ACTIVE
+    float4 blendMasks = useLodSampling ? SAMPLE_UVMAPPING_TEXTURE2D_LOD(_LayerMaskMap, sampler_TextureStack0_c0, layerTexCoord.blendMask, lod) : SAMPLE_UVMAPPING_TEXTURE2D(_LayerMaskMap, sampler_TextureStack0_c0, layerTexCoord.blendMask);
+#else
+    float4 blendMasks = useLodSampling ? SAMPLE_UVMAPPING_TEXTURE2D_LOD(_LayerMaskMap, sampler_LayerMaskMap, layerTexCoord.blendMask, lod) : SAMPLE_UVMAPPING_TEXTURE2D(_LayerMaskMap, sampler_LayerMaskMap, layerTexCoord.blendMask);
+#endif
 
     // Wind uses vertex alpha as an intensity parameter.
     // So in case Layered shader uses wind, we need to hardcode the alpha here so that the main layer can be visible without affecting wind intensity.
@@ -523,8 +524,11 @@ float4 GetBlendMask(LayerTexCoord layerTexCoord, float4 vertexColor, bool useLod
 float GetInfluenceMask(LayerTexCoord layerTexCoord, bool useLodSampling = false, float lod = 0)
 {
     // Sample influence mask with same mapping as Main layer
-    //return useLodSampling ? SAMPLE_UVMAPPING_TEXTURE2D_LOD(_LayerInfluenceMaskMap, sampler_LayerInfluenceMaskMap, layerTexCoord.base0, lod).r : SAMPLE_UVMAPPING_TEXTURE2D(_LayerInfluenceMaskMap, sampler_LayerInfluenceMaskMap, layerTexCoord.base0).r;
-    return useLodSampling ? SAMPLE_UVMAPPING_TEXTURE2D_LOD(_LayerInfluenceMaskMap, sampler_BaseColorMap0, layerTexCoord.base0, lod).r : SAMPLE_UVMAPPING_TEXTURE2D(_LayerInfluenceMaskMap, sampler_BaseColorMap0, layerTexCoord.base0).r;
+#if VIRTUAL_TEXTURES_ACTIVE
+    return useLodSampling ? SAMPLE_UVMAPPING_TEXTURE2D_LOD(_LayerInfluenceMaskMap, sampler_TextureStack0_c0, layerTexCoord.base0, lod).r : SAMPLE_UVMAPPING_TEXTURE2D(_LayerInfluenceMaskMap, sampler_TextureStack0_c0, layerTexCoord.base0).r;
+#else
+    return useLodSampling ? SAMPLE_UVMAPPING_TEXTURE2D_LOD(_LayerInfluenceMaskMap, sampler_LayerInfluenceMaskMap, layerTexCoord.base0, lod).r : SAMPLE_UVMAPPING_TEXTURE2D(_LayerInfluenceMaskMap, sampler_LayerInfluenceMaskMap, layerTexCoord.base0).r;
+#endif
 }
 
 float GetMaxHeight(float4 heights)
@@ -659,12 +663,8 @@ float3 ComputeMainBaseColorInfluence(float influenceMask, float3 baseColor0, flo
 	stackInfo = PrepareStack(UVMappingTo2D(layerTexCoord.base2), _TextureStack2);
 	float3 baseMeanColor2 = SampleStack(stackInfo, _BaseColorMap2).rgb;
 
-	//stackInfo = PrepareStack(UVMappingTo2D(layerTexCoord.base3), _TextureStack3);
-	//float3 baseMeanColor3 = SampleStack(stackInfo, _BaseColorMap3).rgb;
-
-	// For now, use "normal" mode for the last layer ... (doens't seem to work like that? seems to be reddish?)
-	float3 uselessBaseMeanColor = SAMPLE_UVMAPPING_TEXTURE2D_BIAS(_BaseColorMap0, sampler_BaseColorMap0, layerTexCoord.base2, textureBias).rgb * 0.00001;
-	float3 baseMeanColor3 = SAMPLE_UVMAPPING_TEXTURE2D_BIAS(_BaseColorMap3, sampler_BaseColorMap0, layerTexCoord.base3, textureBias).rgb *_BaseColor3.rgb + uselessBaseMeanColor;
+	stackInfo = PrepareStack(UVMappingTo2D(layerTexCoord.base3), _TextureStack3);
+	float3 baseMeanColor3 = SampleStack(stackInfo, _BaseColorMap3).rgb;
 #else
 	float3 uselessBaseMeanColor = SAMPLE_UVMAPPING_TEXTURE2D_BIAS(_BaseColorMap0, sampler_BaseColorMap0, layerTexCoord.base2, textureBias).rgb;
 	float3 baseMeanColor0 = SAMPLE_UVMAPPING_TEXTURE2D_BIAS(_BaseColorMap0, sampler_BaseColorMap0, layerTexCoord.base0, textureBias).rgb *_BaseColor0.rgb + 0.00001 * uselessBaseMeanColor;
