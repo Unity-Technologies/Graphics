@@ -2010,6 +2010,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public Material                 blitMaterial;
         }
 
+        public RTHandleSystem.RTHandle GetExposureTexture(HDCamera hdCamera) =>
+            m_PostProcessSystem.GetExposureTexture(hdCamera);
+
         BlitFinalCameraTextureParameters PrepareFinalBlitParameters(HDCamera hdCamera)
         {
             var parameters = new BlitFinalCameraTextureParameters();
