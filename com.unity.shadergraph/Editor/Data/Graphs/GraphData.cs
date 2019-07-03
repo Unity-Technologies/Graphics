@@ -21,16 +21,11 @@ namespace UnityEditor.ShaderGraph
         #region Input data
 
         [NonSerialized]
-        List<ShaderInput> m_Inputs = new List<ShaderInput>();
-
-        public IEnumerable<ShaderInput> inputs
-        {
-            get { return m_Inputs; }
-        }
+        List<AbstractShaderProperty> m_Properties = new List<AbstractShaderProperty>();
 
         public IEnumerable<AbstractShaderProperty> properties
         {
-            get { return m_Inputs.Where(x => x is AbstractShaderProperty ).Select(x => x as AbstractShaderProperty); }
+            get { return m_Properties; }
         }
 
         public IEnumerable<ShaderKeyword> keywords
@@ -655,10 +650,17 @@ namespace UnityEditor.ShaderGraph
             if (input == null)
                 return;
 
-            if (m_Inputs.Contains(input))
-                return;
-
-            m_Inputs.Add(input);
+            switch(input)
+            {
+                case AbstractShaderProperty property:
+                    if (m_Properties.Contains(property))
+                        return;
+                    m_Properties.Add(property);
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+            
             m_AddedInputs.Add(input);
         }
 
@@ -716,35 +718,41 @@ namespace UnityEditor.ShaderGraph
             ValidateGraph();
         }
 
-        public void MoveGraphInput(ShaderInput input, int newIndex)
+        public void MoveProperty(AbstractShaderProperty property, int newIndex)
         {
-            if (newIndex > m_Inputs.Count || newIndex < 0)
+            if (newIndex > m_Properties.Count || newIndex < 0)
                 throw new ArgumentException("New index is not within properties list.");
-            var currentIndex = m_Inputs.IndexOf(input);
+            var currentIndex = m_Properties.IndexOf(property);
             if (currentIndex == -1)
                 throw new ArgumentException("Property is not in graph.");
             if (newIndex == currentIndex)
                 return;
-            m_Inputs.RemoveAt(currentIndex);
+            m_Properties.RemoveAt(currentIndex);
             if (newIndex > currentIndex)
                 newIndex--;
-            var isLast = newIndex == m_Inputs.Count;
+            var isLast = newIndex == m_Properties.Count;
             if (isLast)
-                m_Inputs.Add(input);
+                m_Properties.Add(property);
             else
-                m_Inputs.Insert(newIndex, input);
-            if (!m_MovedInputs.Contains(input))
-                m_MovedInputs.Add(input);
+                m_Properties.Insert(newIndex, property);
+            if (!m_MovedInputs.Contains(property))
+                m_MovedInputs.Add(property);
         }
 
         public int GetGraphInputIndex(ShaderInput input)
         {
-            return m_Inputs.IndexOf(input);
+            switch(input)
+            {
+                case AbstractShaderProperty property:
+                    return m_Properties.IndexOf(property);
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
         }
 
         void RemoveGraphInputNoValidate(Guid guid)
         {
-            if (m_Inputs.RemoveAll(x => x.guid == guid) > 0)
+            if (m_Properties.RemoveAll(x => x.guid == guid) > 0)
             {
                 m_RemovedInputs.Add(guid);
                 m_AddedInputs.RemoveAll(x => x.guid == guid);
@@ -908,15 +916,15 @@ namespace UnityEditor.ShaderGraph
             using (var removedInputsPooledObject = ListPool<Guid>.GetDisposable())
             {
                 var removedInputGuids = removedInputsPooledObject.value;
-                foreach (var input in m_Inputs)
+                foreach (var input in m_Properties)
                     removedInputGuids.Add(input.guid);
                 foreach (var inputGuid in removedInputGuids)
                     RemoveGraphInputNoValidate(inputGuid);
             }
-            foreach (var otherInput in other.inputs)
+            foreach (var otherProperty in other.properties)
             {
-                if (!inputs.Any(p => p.guid == otherInput.guid))
-                    AddGraphInput(otherInput);
+                if (!properties.Any(p => p.guid == otherProperty.guid))
+                    AddGraphInput(otherProperty);
             }
 
             other.ValidateGraph();
@@ -1058,14 +1066,14 @@ namespace UnityEditor.ShaderGraph
         {
             m_SerializableNodes = SerializationHelper.Serialize(GetNodes<AbstractMaterialNode>());
             m_SerializableEdges = SerializationHelper.Serialize<IEdge>(m_Edges);
-            m_SerializedProperties = SerializationHelper.Serialize<ShaderInput>(m_Inputs);
+            m_SerializedProperties = SerializationHelper.Serialize<ShaderInput>(m_Properties);
             m_ActiveOutputNodeGuidSerialized = m_ActiveOutputNodeGuid == Guid.Empty ? null : m_ActiveOutputNodeGuid.ToString();
         }
 
         public void OnAfterDeserialize()
         {
             // have to deserialize 'globals' before nodes
-            m_Inputs = SerializationHelper.Deserialize<ShaderInput>(m_SerializedProperties, GraphUtil.GetLegacyTypeRemapping());
+            m_Properties = SerializationHelper.Deserialize<AbstractShaderProperty>(m_SerializedProperties, GraphUtil.GetLegacyTypeRemapping());
 
             var nodes = SerializationHelper.Deserialize<AbstractMaterialNode>(m_SerializableNodes, GraphUtil.GetLegacyTypeRemapping());
             m_Nodes = new List<AbstractMaterialNode>(nodes.Count);

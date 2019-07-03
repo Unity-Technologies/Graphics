@@ -174,8 +174,16 @@ namespace UnityEditor.ShaderGraph.Drawing
             var input = visualElement.userData as ShaderInput;
             if (input == null)
                 return;
+
             m_Graph.owner.RegisterCompleteObjectUndo("Move Graph Input");
-            m_Graph.MoveGraphInput(input, newIndex);
+            switch(input)
+            {
+                case AbstractShaderProperty property:
+                    m_Graph.MoveProperty(property, newIndex);
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
         }
 
         void AddItemRequested(Blackboard blackboard)
