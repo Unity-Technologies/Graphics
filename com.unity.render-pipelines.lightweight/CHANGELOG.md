@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [6.10.0] - 2019-XX-XX
 
 ## [6.9.0] - 2019-07-02
+### Fixed
+- Fixed an issue where using LWRP and Sprite Shape together would produce meta file conflicts.
 
 ## [6.8.0] - 2019-06-12
 ### Added
