@@ -28,13 +28,19 @@ namespace UnityEditor.ShaderGraph
             get { return m_Properties; }
         }
 
+        [SerializeField]
+        List<SerializationHelper.JSONSerializedElement> m_SerializedProperties = new List<SerializationHelper.JSONSerializedElement>();
+
+        [NonSerialized]
+        List<ShaderKeyword> m_Keywords = new List<ShaderKeyword>();
+
         public IEnumerable<ShaderKeyword> keywords
         {
-            get { return m_Inputs.Where(x => x is ShaderKeyword).Select(x => x as ShaderKeyword); }
+            get { return m_Keywords; }
         }
 
         [SerializeField]
-        List<SerializationHelper.JSONSerializedElement> m_SerializedProperties = new List<SerializationHelper.JSONSerializedElement>();
+        List<SerializationHelper.JSONSerializedElement> m_SerializedKeywords = new List<SerializationHelper.JSONSerializedElement>();
 
         [NonSerialized]
         List<ShaderInput> m_AddedInputs = new List<ShaderInput>();
@@ -657,6 +663,11 @@ namespace UnityEditor.ShaderGraph
                         return;
                     m_Properties.Add(property);
                     break;
+                case ShaderKeyword keyword:
+                    if (m_Keywords.Contains(keyword))
+                        return;
+                    m_Keywords.Add(keyword);
+                    break;
                 default:
                     throw new ArgumentOutOfRangeException();
             }
@@ -739,12 +750,35 @@ namespace UnityEditor.ShaderGraph
                 m_MovedInputs.Add(property);
         }
 
+        public void MoveKeyword(ShaderKeyword keyword, int newIndex)
+        {
+            if (newIndex > m_Keywords.Count || newIndex < 0)
+                throw new ArgumentException("New index is not within keywords list.");
+            var currentIndex = m_Keywords.IndexOf(keyword);
+            if (currentIndex == -1)
+                throw new ArgumentException("Keyword is not in graph.");
+            if (newIndex == currentIndex)
+                return;
+            m_Keywords.RemoveAt(currentIndex);
+            if (newIndex > currentIndex)
+                newIndex--;
+            var isLast = newIndex == m_Keywords.Count;
+            if (isLast)
+                m_Keywords.Add(keyword);
+            else
+                m_Keywords.Insert(newIndex, keyword);
+            if (!m_MovedInputs.Contains(keyword))
+                m_MovedInputs.Add(keyword);
+        }
+
         public int GetGraphInputIndex(ShaderInput input)
         {
             switch(input)
             {
                 case AbstractShaderProperty property:
                     return m_Properties.IndexOf(property);
+                case ShaderKeyword keyword:
+                    return m_Keywords.IndexOf(keyword);
                 default:
                     throw new ArgumentOutOfRangeException();
             }
@@ -752,7 +786,8 @@ namespace UnityEditor.ShaderGraph
 
         void RemoveGraphInputNoValidate(Guid guid)
         {
-            if (m_Properties.RemoveAll(x => x.guid == guid) > 0)
+            if (m_Properties.RemoveAll(x => x.guid == guid) > 0 ||
+                m_Keywords.RemoveAll(x => x.guid == guid) > 0)
             {
                 m_RemovedInputs.Add(guid);
                 m_AddedInputs.RemoveAll(x => x.guid == guid);
@@ -926,6 +961,11 @@ namespace UnityEditor.ShaderGraph
                 if (!properties.Any(p => p.guid == otherProperty.guid))
                     AddGraphInput(otherProperty);
             }
+            foreach (var otherKeyword in other.keywords)
+            {
+                if (!keywords.Any(p => p.guid == otherKeyword.guid))
+                    AddGraphInput(otherKeyword);
+            }
 
             other.ValidateGraph();
             ValidateGraph();
@@ -1066,7 +1106,8 @@ namespace UnityEditor.ShaderGraph
         {
             m_SerializableNodes = SerializationHelper.Serialize(GetNodes<AbstractMaterialNode>());
             m_SerializableEdges = SerializationHelper.Serialize<IEdge>(m_Edges);
-            m_SerializedProperties = SerializationHelper.Serialize<ShaderInput>(m_Properties);
+            m_SerializedProperties = SerializationHelper.Serialize<AbstractShaderProperty>(m_Properties);
+            m_SerializedKeywords = SerializationHelper.Serialize<ShaderKeyword>(m_Keywords);
             m_ActiveOutputNodeGuidSerialized = m_ActiveOutputNodeGuid == Guid.Empty ? null : m_ActiveOutputNodeGuid.ToString();
         }
 
@@ -1074,6 +1115,7 @@ namespace UnityEditor.ShaderGraph
         {
             // have to deserialize 'globals' before nodes
             m_Properties = SerializationHelper.Deserialize<AbstractShaderProperty>(m_SerializedProperties, GraphUtil.GetLegacyTypeRemapping());
+            m_Keywords = SerializationHelper.Deserialize<ShaderKeyword>(m_SerializedKeywords, GraphUtil.GetLegacyTypeRemapping());
 
             var nodes = SerializationHelper.Deserialize<AbstractMaterialNode>(m_SerializableNodes, GraphUtil.GetLegacyTypeRemapping());
             m_Nodes = new List<AbstractMaterialNode>(nodes.Count);

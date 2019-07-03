@@ -181,6 +181,9 @@ namespace UnityEditor.ShaderGraph.Drawing
                 case AbstractShaderProperty property:
                     m_Graph.MoveProperty(property, newIndex);
                     break;
+                case ShaderKeyword keyword:
+                    m_Graph.MoveKeyword(keyword, newIndex);
+                    break;
                 default:
                     throw new ArgumentOutOfRangeException();
             }
