@@ -1,7 +1,7 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/CommonMaterial.hlsl"
-#include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/Core.hlsl"
-#include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/Shadows.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Shadows.hlsl"
 
 Texture2D _CameraDepthTexture;
 float3 _LightDirection;
