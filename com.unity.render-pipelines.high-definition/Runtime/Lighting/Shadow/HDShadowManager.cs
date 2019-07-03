@@ -514,17 +514,21 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_DirectionalShadowDataBuffer.SetData(new HDDirectionalShadowData[]{ m_DirectionalShadowData });
         }
 
-        public void BindResources(CommandBuffer cmd)
+        public void PushGlobalParameters(CommandBuffer cmd)
         {
             // This code must be in sync with HDShadowContext.hlsl
             cmd.SetGlobalBuffer(HDShaderIDs._HDShadowDatas, m_ShadowDataBuffer);
             cmd.SetGlobalBuffer(HDShaderIDs._HDDirectionalShadowData, m_DirectionalShadowDataBuffer);
+            cmd.SetGlobalInt(HDShaderIDs._CascadeShadowCount, m_CascadeCount + 1);
+        }
+
+        public void BindResources(CommandBuffer cmd)
+        {
+            PushGlobalParameters(cmd);
 
             m_Atlas.BindResources(cmd);
             m_CascadeAtlas.BindResources(cmd);
             m_AreaLightShadowAtlas.BindResources(cmd);
-
-            cmd.SetGlobalInt(HDShaderIDs._CascadeShadowCount, m_CascadeCount + 1);
         }
 
         public int GetShadowRequestCount()
