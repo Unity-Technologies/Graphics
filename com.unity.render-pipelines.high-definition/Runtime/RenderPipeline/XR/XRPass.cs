@@ -82,7 +82,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         // XRTODO(2019.3) : remove once XRE-445 is done
         // We need an intermediate target to render the mirror view
-        public RenderTexture tempRenderTexture { get; private set; } = null;
+        internal RenderTexture tempRenderTexture { get; private set; } = null;
 #if USE_XR_SDK
         RenderTextureDescriptor tempRenderTextureDesc;
 #endif
@@ -131,11 +131,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
 
 #if USE_XR_SDK
-        internal static XRPass Create(XRDisplaySubsystem.XRRenderPass xrRenderPass)
+        internal static XRPass Create(XRDisplaySubsystem.XRRenderPass xrRenderPass, int multipassId)
         {
             XRPass passInfo = GenericPool<XRPass>.Get();
 
-            passInfo.multipassId = xrRenderPass.renderPassIndex;
+            passInfo.multipassId = multipassId;
             passInfo.cullingPassId = xrRenderPass.cullingPassIndex;
             passInfo.views.Clear();
             passInfo.renderTarget = xrRenderPass.renderTarget;
@@ -185,10 +185,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             views.Add(xrView);
 
             // Validate memory limitations
-            Debug.Assert(views.Count <= TextureXR.kMaxSlices);
+            Debug.Assert(views.Count <= TextureXR.slices);
         }
 
-        internal void StartLegacyStereo(Camera camera, CommandBuffer cmd, ScriptableRenderContext renderContext)
+        internal void StartSinglePass(CommandBuffer cmd, Camera camera, ScriptableRenderContext renderContext)
         {
             if (enabled)
             {
@@ -209,20 +209,44 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     else
                         renderContext.StartMultiEye(camera);
                 }
+                else if (instancingEnabled)
+                {
+                    if (viewCount == 2)
+                    {
+                        cmd.EnableShaderKeyword("STEREO_INSTANCING_ON");
+#if UNITY_2019_3_OR_NEWER
+                        //cmd.SetInstanceMultiplier(2);
+#endif
+                    }
+                    else
+                    {
+                        throw new NotImplementedException();
+                    }
+                }
             }
         }
 
-        internal void StopLegacyStereo(Camera camera, CommandBuffer cmd, ScriptableRenderContext renderContext)
+        internal void StopSinglePass(CommandBuffer cmd, Camera camera, ScriptableRenderContext renderContext)
         {
-            if (enabled && camera.stereoEnabled)
+            if (enabled)
             {
-                renderContext.ExecuteCommandBuffer(cmd);
-                cmd.Clear();
-                renderContext.StopMultiEye(camera);
+                if (camera.stereoEnabled)
+                {
+                    renderContext.ExecuteCommandBuffer(cmd);
+                    cmd.Clear();
+                    renderContext.StopMultiEye(camera);
+                }
+                else
+                {
+                    cmd.DisableShaderKeyword("STEREO_INSTANCING_ON");
+#if UNITY_2019_3_OR_NEWER
+                    //cmd.SetInstanceMultiplier(1);
+#endif
+                }
             }
         }
 
-        internal void EndCamera(HDCamera hdCamera, ScriptableRenderContext renderContext, CommandBuffer cmd)
+        internal void EndCamera(CommandBuffer cmd, HDCamera hdCamera, ScriptableRenderContext renderContext)
         {
             if (!enabled)
                 return;
@@ -232,15 +256,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // XRTODO(2019.3) : remove once XRE-445 is done
                 if (tempRenderTexture && hdCamera.camera.targetTexture == null)
                 {
-                    // Multipass only for now
+                    // Blit to device
+                    cmd.SetRenderTarget(renderTarget, 0, CubemapFace.Unknown, -1);
+                    cmd.SetViewport(hdCamera.finalViewport);
+                    HDUtils.BlitQuad(cmd, tempRenderTexture, new Vector4(1, 1, 0, 0), new Vector4(1, 1, 0, 0), 0, false);
+
+                    // Mirror view (only works with stereo for now)
                     if (viewCount == 1)
                     {
-                        // Blit to device
-                        cmd.SetRenderTarget(renderTarget);
-                        cmd.SetViewport(hdCamera.finalViewport);
-                        HDUtils.BlitQuad(cmd, tempRenderTexture, new Vector4(1, 1, 0, 0), new Vector4(1, 1, 0, 0), 0, false);
-
-                        // Mirror view (only works with stereo for now)
                         if (multipassId < 2)
                         {
                             cmd.SetRenderTarget(new RenderTargetIdentifier(BuiltinRenderTextureType.CameraTarget));
@@ -256,14 +279,18 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     }
                     else
                     {
-                        throw new NotImplementedException();
+                        // Only one eye for single-pass instancing for now until XRE-445 is done
+                        cmd.SetRenderTarget(new RenderTargetIdentifier(BuiltinRenderTextureType.CameraTarget));
+                        cmd.SetViewport(hdCamera.camera.pixelRect);
+                        HDUtils.BlitQuad(cmd, tempRenderTexture, new Vector4(1, 1, 0, 0), new Vector4(1, 1, 0, 0), 0, true);
                     }
                 }
+
+                StopSinglePass(cmd, hdCamera.camera, renderContext);
             }
             else
             {
-                renderContext.ExecuteCommandBuffer(cmd);
-                cmd.Clear();
+                StopSinglePass(cmd, hdCamera.camera, renderContext);
 
                 // Pushes to XR headset and/or display mirror
                 if (legacyMultipassEnabled)
