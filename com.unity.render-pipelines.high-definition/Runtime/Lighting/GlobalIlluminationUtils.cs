@@ -122,7 +122,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                                     spot.innerConeAngle = l.spotAngle * Mathf.Deg2Rad * add.GetInnerSpotPercent01();
                                     spot.falloff        = add.applyRangeAttenuation ? FalloffType.InverseSquared : FalloffType.InverseSquaredNoRangeAttenuation;
                                     ld.Init(ref spot);
-                                    ld.shape1 = (float)AngularFalloffType.ANALYTIC_AND_INNER_ANGLE;
+                                    ld.shape1 = (float)AngularFalloffType.AnalyticAndInnerAngle;
                                 }
                                 break;
                             case SpotLightShape.Pyramid:
