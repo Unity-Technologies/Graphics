@@ -23,15 +23,21 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // Store active passes and avoid allocating memory every frames
         List<(Camera, XRPass)> framePasses = new List<(Camera, XRPass)>();
 
+        // Resources used by XR
+        Material occlusionMeshMaterial = null;
+
 #if USE_XR_SDK
         List<XRDisplaySubsystem> displayList = new List<XRDisplaySubsystem>();
         XRDisplaySubsystem display = null;
 #endif
 
-        internal XRSystem()
+        internal XRSystem(RenderPipelineResources.ShaderResources shaders)
         {
             RefreshXrSdk();
             TextureXR.maxViews = GetMaxViews();
+
+            if (shaders != null)
+                occlusionMeshMaterial = CoreUtils.CreateEngineMaterial(shaders.xrOcclusionMeshPS);
         }
 
         // Compute the maximum number of views (slices) to allocate for texture arrays
@@ -157,7 +163,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 if (CanUseInstancing(camera, renderPass))
                 {
-                    var xrPass = XRPass.Create(renderPass, multipassId: framePasses.Count);
+                    var xrPass = XRPass.Create(renderPass, multipassId: framePasses.Count, occlusionMeshMaterial);
 
                     for (int renderParamIndex = 0; renderParamIndex < renderPass.GetRenderParameterCount(); ++renderParamIndex)
                     {
@@ -173,7 +179,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     {
                         renderPass.GetRenderParameter(camera, renderParamIndex, out var renderParam);
 
-                        var xrPass = XRPass.Create(renderPass, multipassId: framePasses.Count);
+                        var xrPass = XRPass.Create(renderPass, multipassId: framePasses.Count, occlusionMeshMaterial);
                         xrPass.AddView(renderParam);
 
                         AddPassToFrame(camera, xrPass);
@@ -203,6 +209,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         internal void ClearAll()
         {
             DestroyDebugVolume();
+
+            CoreUtils.Destroy(occlusionMeshMaterial);
+            occlusionMeshMaterial = null;
 
             framePasses = null;
 
