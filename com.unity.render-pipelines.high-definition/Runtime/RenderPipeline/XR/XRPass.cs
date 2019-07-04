@@ -80,6 +80,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         internal int viewCount { get => views.Count; }
         internal bool instancingEnabled { get => viewCount > 1; }
 
+        // Occlusion mesh rendering
+        Material occlusionMeshMaterial = null;
+
         // XRTODO(2019.3) : remove once XRE-445 is done
         // We need an intermediate target to render the mirror view
         internal RenderTexture tempRenderTexture { get; private set; } = null;
@@ -109,7 +112,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 passInfo.renderTarget = invalidRT;
                 passInfo.renderTargetDesc = default;
             }
-            
+
+            passInfo.occlusionMeshMaterial = null;
             passInfo.xrSdkEnabled = false;
             passInfo.tempRenderTexture = null;
 
@@ -131,7 +135,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
 
 #if USE_XR_SDK
-        internal static XRPass Create(XRDisplaySubsystem.XRRenderPass xrRenderPass, int multipassId)
+        internal static XRPass Create(XRDisplaySubsystem.XRRenderPass xrRenderPass, int multipassId, Material occlusionMeshMaterial)
         {
             XRPass passInfo = GenericPool<XRPass>.Get();
 
@@ -140,6 +144,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             passInfo.views.Clear();
             passInfo.renderTarget = xrRenderPass.renderTarget;
             passInfo.renderTargetDesc = xrRenderPass.renderTargetDesc;
+            passInfo.occlusionMeshMaterial = occlusionMeshMaterial;
             passInfo.xrSdkEnabled = true;
 
             Debug.Assert(passInfo.renderTargetValid, "Invalid render target from XRDisplaySubsystem!");
@@ -297,6 +302,26 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     renderContext.StereoEndRender(hdCamera.camera, legacyMultipassEye, legacyMultipassEye == 1);
                 else
                     renderContext.StereoEndRender(hdCamera.camera);
+            }
+        }
+
+        internal void RenderOcclusionMeshes(CommandBuffer cmd, RTHandleSystem.RTHandle depthBuffer)
+        {
+            if (enabled && xrSdkEnabled && occlusionMeshMaterial != null)
+            {
+                using (new ProfilingSample(cmd, "XR Occlusion Meshes"))
+                {
+                    Matrix4x4 m = Matrix4x4.Ortho(0.0f, 1.0f, 0.0f, 1.0f, -1.0f, 1.0f);
+
+                    for (int viewId = 0; viewId < viewCount; ++viewId)
+                    {
+                        if (views[viewId].occlusionMesh != null)
+                        {
+                            HDUtils.SetRenderTarget(cmd, depthBuffer, ClearFlag.None, 0, CubemapFace.Unknown, viewId);
+                            cmd.DrawMesh(views[viewId].occlusionMesh, m, occlusionMeshMaterial);
+                        }
+                    }
+                }
             }
         }
     }

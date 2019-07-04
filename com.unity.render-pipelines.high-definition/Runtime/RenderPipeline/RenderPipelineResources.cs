@@ -148,6 +148,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             [Reload("Runtime/Core/CoreResources/ClearUIntTextureArray.compute")]
             public ComputeShader clearUIntTextureCS;
 
+            // XR
+            [Reload("Runtime/ShaderLibrary/XROcclusionMesh.shader")]
+            public Shader xrOcclusionMeshPS;
+
             // Shadow            
             [Reload("Runtime/Lighting/Shadow/ShadowClear.shader")]
             public Shader shadowClearPS;

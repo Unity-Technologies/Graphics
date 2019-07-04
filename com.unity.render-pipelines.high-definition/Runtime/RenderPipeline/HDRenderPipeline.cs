@@ -76,7 +76,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         readonly DBufferManager m_DbufferManager;
         readonly SharedRTManager m_SharedRTManager = new SharedRTManager();
         readonly PostProcessSystem m_PostProcessSystem;
-        readonly XRSystem m_XRSystem = new XRSystem();
+        readonly XRSystem m_XRSystem;
 
         public bool frameSettingsHistoryEnabled = false;
 
@@ -296,6 +296,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // TODO: Might want to initialize to at least the window resolution to avoid un-necessary re-alloc in the player
             RTHandles.Initialize(1, 1, m_Asset.currentPlatformRenderPipelineSettings.supportMSAA, m_Asset.currentPlatformRenderPipelineSettings.msaaSampleCount);
 
+            m_XRSystem = new XRSystem(asset.renderPipelineResources.shaders);
             m_GPUCopy = new GPUCopy(defaultResources.shaders.copyChannelCS);
 
             m_MipGenerator = new MipGenerator(defaultResources);
@@ -1653,9 +1654,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (m_CurrentDebugDisplaySettings.GetDebugLightingMode() != DebugLightingMode.MatcapView)
                 UpdateSkyEnvironment(hdCamera, cmd);
 
-            hdCamera.xr.StartSinglePass(cmd, camera, renderContext);
-
             ClearBuffers(hdCamera, cmd);
+
+            // Render XR occlusion mesh first to improve performance
+            hdCamera.xr.RenderOcclusionMeshes(cmd, m_SharedRTManager.GetDepthStencilBuffer(hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA)));
+            hdCamera.xr.StartSinglePass(cmd, camera, renderContext);
 
             bool shouldRenderMotionVectorAfterGBuffer = RenderDepthPrepass(cullingResults, hdCamera, renderContext, cmd);
             if (!shouldRenderMotionVectorAfterGBuffer)
@@ -2641,8 +2644,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                                         )
         {
             HDUtils.SetRenderTarget(cmd, depthBuffer);
-                        // XRTODO: wait for XR SDK integration and implement custom version in HDUtils with dynamic resolution support
-                        //XRUtils.DrawOcclusionMesh(cmd, hdCamera.camera, hdCamera.camera.stereoEnabled);
 
             if (hasDepthOnlyPass)
             {
