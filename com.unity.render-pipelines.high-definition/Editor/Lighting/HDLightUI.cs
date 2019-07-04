@@ -613,6 +613,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                             shadowmask = (ShadowmaskMode)EditorGUILayout.EnumPopup(s_Styles.nonLightmappedOnly, shadowmask);
                             if (EditorGUI.EndChangeCheck())
                             {
+                                Undo.RecordObjects(owner.targets, "Light Update Shadow Mask Mode");
                                 serialized.serializedLightData.nonLightmappedOnly.boolValue = shadowmask == ShadowmaskMode.ShadowMask;
                                 foreach (Light target in owner.targets)
                                     target.lightShadowCasterMode = shadowmask == ShadowmaskMode.ShadowMask ? LightShadowCasterMode.NonLightmappedOnly : LightShadowCasterMode.Everything;
