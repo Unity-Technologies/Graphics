@@ -17,9 +17,9 @@ testplatforms:
   - name: editmode
     args: --suite=editor --platform=editmode
 projects:
-  - name: LWRP
-    folder: LWGraphicsTest
-    packagename: com.unity.render-pipelines.lightweight
+  - name: Universal
+    folder: UniversalGraphicsTest
+    packagename: com.unity.render-pipelines.universal
 ---
 {% for project in projects %}
 {% for editor in editors %}
