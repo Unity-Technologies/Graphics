@@ -39,6 +39,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public Material defaultDecalMat;
             [Reload("Runtime/RenderPipelineResources/Material/DefaultHDTerrainMaterial.mat")]
             public Material defaultTerrainMat;
+            [Reload("Editor/RenderPipelineResources/Materials/GUITextureBlit2SRGB.mat")]
+            public Material GUITextureBlit2SRGB;
         }
 
         [Serializable, ReloadGroup]
