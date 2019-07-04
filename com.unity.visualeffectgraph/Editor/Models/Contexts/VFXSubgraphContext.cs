@@ -220,6 +220,8 @@ namespace UnityEditor.VFX
                             LinkFrom(link.context,link.slotIndex,i);
                 }
             }
+
+            SyncSlots(VFXSlot.Direction.kInput,true);
         }
 
 
