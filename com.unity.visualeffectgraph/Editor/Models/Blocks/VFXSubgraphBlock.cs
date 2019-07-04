@@ -152,6 +152,7 @@ namespace UnityEditor.VFX
             {
                 child.hideFlags = HideFlags.HideAndDontSave;
             }
+            SyncSlots(VFXSlot.Direction.kInput,true);
             PatchInputExpressions();
         }
         
