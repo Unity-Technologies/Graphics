@@ -82,7 +82,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public SerializedProperty constantBias;
 
             public SerializedProperty normalBias;
-
         }
 
         public bool needUpdateAreaLightEmissiveMeshComponents = false;

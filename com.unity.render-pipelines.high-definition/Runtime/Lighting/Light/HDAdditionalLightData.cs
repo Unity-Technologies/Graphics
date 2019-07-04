@@ -1747,10 +1747,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         [System.NonSerialized]
         TimelineWorkaround timelineWorkaround = new TimelineWorkaround();
 
-        // For light that used the old intensity system we update them
-        [System.NonSerialized]
-        bool needsIntensityUpdate_1_0 = false;
-
 #if UNITY_EDITOR
 
         // Force to retrieve color light's m_UseColorTemperature because it's private
@@ -1907,7 +1903,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             data.showAdditionalSettings = showAdditionalSettings;
             data.m_Intensity = m_Intensity;
             data.displayAreaLightEmissiveMesh = displayAreaLightEmissiveMesh;
-            data.needsIntensityUpdate_1_0 = needsIntensityUpdate_1_0;
             data.interactsWithSky = interactsWithSky;
 
             data.shadowResolution = shadowResolution;
