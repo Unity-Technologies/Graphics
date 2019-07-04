@@ -121,6 +121,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                                     spot.coneAngle      = l.spotAngle * Mathf.Deg2Rad;
                                     spot.innerConeAngle = l.spotAngle * Mathf.Deg2Rad * add.GetInnerSpotPercent01();
                                     spot.falloff        = add.applyRangeAttenuation ? FalloffType.InverseSquared : FalloffType.InverseSquaredNoRangeAttenuation;
+                                    spot.angularFalloff = AngularFalloffType.AnalyticAndInnerAngle;
                                     ld.Init(ref spot);
                                     ld.shape1 = (float)AngularFalloffType.AnalyticAndInnerAngle;
                                 }
@@ -136,7 +137,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                                     pyramid.color         = directColor;
                                     pyramid.indirectColor = indirectColor;
                                     pyramid.range         = l.range;
-                                    pyramid.minRange      = add.shapeRadius;
                                     pyramid.angle         = l.spotAngle * Mathf.Deg2Rad;
                                     pyramid.aspectRatio   = add.aspectRatio;
                                     pyramid.falloff       = add.applyRangeAttenuation ? FalloffType.InverseSquared : FalloffType.InverseSquaredNoRangeAttenuation;
