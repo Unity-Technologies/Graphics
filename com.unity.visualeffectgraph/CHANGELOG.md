@@ -3,24 +3,10 @@ All notable changes to this package will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
-## [7.0.0-preview] - 2019-XX-XX
-### Added
-- Make multiselection work in a way that do not assume that the same parameter will have the same index in the property sheet.
-- auto recompile when changing shaderpath
-- auto recompile new vfx
-- better detection of default shader path
-- Bitfield control.
-- Initial Event Name inspector for visual effect asset and component
-- Subgraphs
-- Move HDRP outputs to HDRP package + expose HDRP queue selection
-- Add exposure weight control for HDRP outputs
-- Inverse trigonometric operators (atan, atan2, asin, acos)
-- Replaced Orient : Fixed rotation with new option Orient : Advanced
-
-### Fixed
-- Handle a possible exception (ReflectionTypeLoadException) while using VFXParameterBinderEditor
 
 ## [6.9.0-preview] - 2019-XX-XX
+### Fixed
+- Handle a possible exception (ReflectionTypeLoadException) while using VFXParameterBinderEditor
 
 ## [6.8.0-preview] - 2019-06-12
 
