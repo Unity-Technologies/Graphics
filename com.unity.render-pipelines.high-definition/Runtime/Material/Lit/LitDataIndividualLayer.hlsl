@@ -114,6 +114,8 @@ float3 ADD_IDX(GetNormalTS)(FragInputs input, LayerTexCoord layerTexCoord, float
         //TODO(ddebaets) VT does not handle full range of normal map sampling/reconstruction so special case here...
 #if VIRTUAL_TEXTURES_ACTIVE_ON_LAYER
 		normalTS = SampleStack_Normal(stackInfo, ADD_IDX(_NormalMap), ADD_IDX(_NormalScale));
+#elif VIRTUAL_TEXTURES_ACTIVE
+        normalTS = SAMPLE_UVMAPPING_NORMALMAP(ADD_IDX(_NormalMap), sampler_TextureStack0_c2, ADD_IDX(layerTexCoord.base), ADD_IDX(_NormalScale));
 #else
         normalTS = SAMPLE_UVMAPPING_NORMALMAP(ADD_IDX(_NormalMap), ADD_IDX(sampler_NormalMap), ADD_IDX(layerTexCoord.base), ADD_IDX(_NormalScale));
 #endif
@@ -196,6 +198,10 @@ float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out
 	StackInfo stackInfo = PrepareStack(UVMappingTo2D(ADD_IDX(layerTexCoord.base)), ADD_IDX(_TextureStack));
 	surfaceData.VTFeedback = GetResolveOutput(stackInfo);
     const float4 baseColorValue = SampleStack(stackInfo, ADD_IDX(_BaseColorMap)); //SAMPLE_UVMAPPING_TEXTURE2D(ADD_IDX(_BaseColorMap), ADD_ZERO_IDX(sampler_BaseColorMap), ADD_IDX(layerTexCoord.base));
+#elif VIRTUAL_TEXTURES_ACTIVE
+    const float4 baseColorValue = SAMPLE_UVMAPPING_TEXTURE2D(ADD_IDX(_BaseColorMap), sampler_TextureStack0_c0, ADD_IDX(layerTexCoord.base));
+    surfaceData.VTFeedback = float4(1, 1, 1, 1);
+    StackInfo stackInfo;
 #else
     const float4 baseColorValue = SAMPLE_UVMAPPING_TEXTURE2D(ADD_IDX(_BaseColorMap), ADD_ZERO_IDX(sampler_BaseColorMap), ADD_IDX(layerTexCoord.base));
 	surfaceData.VTFeedback = float4(1, 1, 1, 1);
@@ -223,6 +229,8 @@ float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out
 #ifdef _MASKMAP_IDX
 #if VIRTUAL_TEXTURES_ACTIVE_ON_LAYER
     const float4 maskValue = SampleStack(stackInfo, ADD_IDX(_MaskMap));
+#elif VIRTUAL_TEXTURES_ACTIVE
+    const float4 maskValue = SAMPLE_UVMAPPING_TEXTURE2D(ADD_IDX(_MaskMap), sampler_TextureStack0_c0, ADD_IDX(layerTexCoord.base));
 #else
     const float4 maskValue = SAMPLE_UVMAPPING_TEXTURE2D(ADD_IDX(_MaskMap), ADD_IDX(sampler_MaskMap), ADD_IDX(layerTexCoord.base));
 #endif    

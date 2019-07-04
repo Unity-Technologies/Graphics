@@ -87,6 +87,18 @@ PROP_DECL_TEX2D(_NormalMap);
 
 SAMPLER(sampler_LayerMaskMap);
 SAMPLER(sampler_LayerInfluenceMaskMap);
+#else
+TEXTURE2D(_BaseColorMap1);
+TEXTURE2D(_MaskMap1);
+TEXTURE2D(_NormalMap1);
+
+TEXTURE2D(_BaseColorMap2);
+TEXTURE2D(_MaskMap2);
+TEXTURE2D(_NormalMap2);
+
+TEXTURE2D(_BaseColorMap3);
+TEXTURE2D(_MaskMap3);
+TEXTURE2D(_NormalMap3);
 #endif
 
 PROP_DECL_TEX2D(_BentNormalMap);
