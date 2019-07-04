@@ -202,12 +202,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public static readonly int _UseTileLightList = Shader.PropertyToID("_UseTileLightList");
 
-        public static readonly int _FrameCount     = Shader.PropertyToID("_FrameCount");
-        public static readonly int _Time           = Shader.PropertyToID("_Time");
-        public static readonly int _LastTime       = Shader.PropertyToID("_LastTime");
-        public static readonly int _SinTime        = Shader.PropertyToID("_SinTime");
-        public static readonly int _CosTime        = Shader.PropertyToID("_CosTime");
-        public static readonly int unity_DeltaTime = Shader.PropertyToID("unity_DeltaTime");
+        public static readonly int _FrameCount          = Shader.PropertyToID("_FrameCount");
+        public static readonly int _Time                = Shader.PropertyToID("_Time");
+        public static readonly int _SinTime             = Shader.PropertyToID("_SinTime");
+        public static readonly int _CosTime             = Shader.PropertyToID("_CosTime");
+        public static readonly int unity_DeltaTime      = Shader.PropertyToID("unity_DeltaTime");
+        public static readonly int _TimeParameters      = Shader.PropertyToID("_TimeParameters");
+        public static readonly int _LastTimeParameters  = Shader.PropertyToID("_LastTimeParameters");
 
         public static readonly int _EnvLightSkyEnabled = Shader.PropertyToID("_EnvLightSkyEnabled");
         public static readonly int _AmbientOcclusionParam = Shader.PropertyToID("_AmbientOcclusionParam");
@@ -374,11 +375,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly int _LightLayersTexture = Shader.PropertyToID("_LightLayersTexture");
         public static readonly int _DistortionTexture = Shader.PropertyToID("_DistortionTexture");
         public static readonly int _ColorPyramidTexture = Shader.PropertyToID("_ColorPyramidTexture");
-        public static readonly int _DepthPyramidTexture = Shader.PropertyToID("_DepthPyramidTexture");
         public static readonly int _ColorPyramidSize = Shader.PropertyToID("_ColorPyramidSize");
         public static readonly int _ColorPyramidScale = Shader.PropertyToID("_ColorPyramidScale");
         public static readonly int _ColorPyramidUvScaleAndLimitPrevFrame = Shader.PropertyToID("_ColorPyramidUvScaleAndLimitPrevFrame");
-        public static readonly int _DepthPyramidSize = Shader.PropertyToID("_DepthPyramidSize");
         public static readonly int _DepthPyramidScale = Shader.PropertyToID("_DepthPyramidScale");
 
         public static readonly int _DebugColorPickerTexture = Shader.PropertyToID("_DebugColorPickerTexture");
@@ -546,8 +545,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly int _MaxClusterPos                   = Shader.PropertyToID("_MaxClusterPos");
         public static readonly int _LightPerCellCount               = Shader.PropertyToID("_LightPerCellCount");
         public static readonly int _LightDatasRT                    = Shader.PropertyToID("_LightDatasRT");
+        public static readonly int _EnvLightDatasRT                 = Shader.PropertyToID("_EnvLightDatasRT");
         public static readonly int _PunctualLightCountRT            = Shader.PropertyToID("_PunctualLightCountRT");
         public static readonly int _AreaLightCountRT                = Shader.PropertyToID("_AreaLightCountRT");
+        public static readonly int _EnvLightCountRT                 = Shader.PropertyToID("_EnvLightCountRT");
         public static readonly int _RaytracingLightCluster          = Shader.PropertyToID("_RaytracingLightCluster");
 
         // Denoising
@@ -802,7 +803,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public const string kStencilRefDistortionVec = "_StencilRefDistortionVec";
         public const string kStencilWriteMaskDistortionVec = "_StencilWriteMaskDistortionVec";
         public const string kUseSplitLighting = "_RequireSplitLighting";
-        
+
         public const string kZWrite = "_ZWrite";
         public const string kTransparentCullMode = "_TransparentCullMode";
         public const string kZTestTransparent = "_ZTestTransparent";
@@ -817,7 +818,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public const string kEnableSSR = "_ReceivesSSR";
 
         public const string kLayerCount = "_LayerCount";
-        
+
         public const string kAlphaCutoffEnabled = "_AlphaCutoffEnable";
         public const string kZTestGBuffer = "_ZTestGBuffer";
         public const string kZTestDepthEqualForOpaque = "_ZTestDepthEqualForOpaque";
@@ -845,7 +846,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public const string kUVDetail = "_UVDetail";
         public const string kUVDetailsMappingMask = "_UVDetailsMappingMask";
         public const string kReceivesSSR = "_ReceivesSSR";
-    
+
         public static readonly Color[] kLayerColors =
         {
             Color.white,

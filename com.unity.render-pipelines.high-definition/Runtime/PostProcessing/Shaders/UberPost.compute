@@ -36,7 +36,7 @@ CBUFFER_START(cb0)
     float4 _VignetteColor;
     float4 _DistortionParams1;
     float4 _DistortionParams2;
-    float4 _LogLut3D_Params;        // x: 1 / lut_size, y: lut_size - 1, z: postexposure, w: unused
+    float4 _LogLut3D_Params;        // x: 1 / lut_size, y: lut_size - 1, z: postexposure, w: enabled
     float4 _BloomParams;
     float4 _BloomTint;
     float4 _BloomDirtScaleOffset;
@@ -63,6 +63,7 @@ CBUFFER_END
 #define VignetteOpacity         _VignetteColor.w
 
 #define PostExposure            _LogLut3D_Params.z
+#define GradingEnabled          _LogLut3D_Params.w
 
 #define BloomTint               _BloomTint.xyz
 #define BloomIntensity          _BloomParams.x
@@ -186,7 +187,9 @@ void MAIN(uint3 dispatchThreadId : SV_DispatchThreadID)
     }
 
     // Grading, tonemapping
-    // This is always on when post-processing is enabled
+    // The branch is only used for frame settings - else grading is always enabled
+    UNITY_BRANCH
+    if (GradingEnabled)
     {
         // Artist request to fine tune exposure in post without affecting bloom, dof etc
         color *= PostExposure;

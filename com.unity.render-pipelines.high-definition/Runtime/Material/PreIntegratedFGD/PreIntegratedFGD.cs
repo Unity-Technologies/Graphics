@@ -53,7 +53,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             if (m_refCounting[(int)index] == 0)
             {
-                var hdrp = GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset;
+                var hdrp = HDRenderPipeline.defaultAsset;
                 int res  = (int)FGDTexture.Resolution;
 
                 switch(index)

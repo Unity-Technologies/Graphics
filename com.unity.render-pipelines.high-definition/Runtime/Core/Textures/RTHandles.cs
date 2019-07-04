@@ -10,6 +10,7 @@ namespace UnityEngine.Experimental.Rendering
         public static int maxWidth { get { return s_DefaultInstance.GetMaxWidth(); } }
         public static int maxHeight { get { return s_DefaultInstance.GetMaxHeight(); } }
         public static RTHandleProperties rtHandleProperties { get { return s_DefaultInstance.rtHandleProperties; } }
+        public static RTHandleSystem defaultRTHandleSystem { get { return s_DefaultInstance; } }
 
         public static RTHandleSystem.RTHandle Alloc(
             int width,
@@ -141,6 +142,18 @@ namespace UnityEngine.Experimental.Rendering
                 name
                 );
         }
+
+        public static RTHandleSystem.RTHandle Alloc(Texture tex)
+        {
+            return s_DefaultInstance.Alloc(tex);
+        }
+
+        public static RTHandleSystem.RTHandle Alloc(RTHandleSystem.RTHandle tex)
+        {
+            Debug.LogError("Allocation a RTHandle from another one is forbidden.");
+            return null;
+        }
+
 
         public static void Initialize(
             int width,

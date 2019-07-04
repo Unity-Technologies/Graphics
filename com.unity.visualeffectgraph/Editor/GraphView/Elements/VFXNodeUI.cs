@@ -142,7 +142,10 @@ namespace UnityEditor.VFX.UI
                         m_SelectionBorder.style.borderRight = (m_Selected ? 1 : (m_Hovered ? 1 : 0));*/
 
 
-            m_SelectionBorder.style.borderColor = m_Selected ? new Color(68.0f / 255.0f, 192.0f / 255.0f, 255.0f / 255.0f, 1.0f) : (m_Hovered ? new Color(68.0f / 255.0f, 192.0f / 255.0f, 255.0f / 255.0f, 0.5f) : Color.clear);
+            m_SelectionBorder.style.borderBottomColor =
+                m_SelectionBorder.style.borderTopColor =
+                    m_SelectionBorder.style.borderLeftColor =
+                        m_SelectionBorder.style.borderRightColor = m_Selected ? new Color(68.0f / 255.0f, 192.0f / 255.0f, 255.0f / 255.0f, 1.0f) : (m_Hovered ? new Color(68.0f / 255.0f, 192.0f / 255.0f, 255.0f / 255.0f, 0.5f) : Color.clear);
         }
 
         void Initialize()

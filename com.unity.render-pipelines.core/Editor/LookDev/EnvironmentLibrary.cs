@@ -19,6 +19,7 @@ namespace UnityEditor.Rendering.Experimental.LookDev
         public Environment Add()
         {
             Environment environment = ScriptableObject.CreateInstance<Environment>();
+            environment.name = "New Environment";
             Undo.RegisterCreatedObjectUndo(environment, "Add Environment");
             
             environments.Add(environment);
@@ -43,6 +44,26 @@ namespace UnityEditor.Rendering.Experimental.LookDev
             // Force save / refresh
             EditorUtility.SetDirty(this);
             AssetDatabase.SaveAssets();
+        }
+
+        public Environment Duplicate(int fromIndex)
+        {
+            Environment environment = ScriptableObject.CreateInstance<Environment>();
+            Environment environmentToCopy = environments[fromIndex];
+            environmentToCopy.CopyTo(environment);
+
+            Undo.RegisterCreatedObjectUndo(environment, "Duplicate Environment");
+
+            environments.Add(environment);
+
+            // Store this new environment as a subasset so we can reference it safely afterwards.
+            AssetDatabase.AddObjectToAsset(environment, this);
+
+            // Force save / refresh. Important to do this last because SaveAssets can cause effect to become null!
+            EditorUtility.SetDirty(this);
+            AssetDatabase.SaveAssets();
+
+            return environment;
         }
     }
 

@@ -31,6 +31,7 @@ Shader "VFX/Test/Rim"
             {
                 float4 pos : POSITION;
                 float3 normal : NORMAL;
+                UNITY_VERTEX_INPUT_INSTANCE_ID
             };
 
             struct v2f
@@ -38,11 +39,14 @@ Shader "VFX/Test/Rim"
                 float4 pos : SV_POSITION;
                 float3 posWS : TEXCOORD0;
                 float3 normal : NORMAL;
+                UNITY_VERTEX_OUTPUT_STEREO
             };
 
             v2f vert(vertexIn i)
             {
                 v2f o = (v2f)0;
+                UNITY_SETUP_INSTANCE_ID(i);
+                UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
                 o.posWS = mul(unity_ObjectToWorld,float4(i.pos)).xyz;
                 o.pos = UnityWorldToClipPos(o.posWS);
                 o.normal = UnityObjectToWorldNormal(i.normal);
@@ -51,6 +55,7 @@ Shader "VFX/Test/Rim"
 
             float4 frag(v2f i) : SV_Target
             {
+                UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i);
                 const float r0 = _RimCoef;
                 float3 posToCam = normalize(UNITY_MATRIX_I_V._m03_m13_m23 - i.posWS);
                 const float3 fresnel = 1-r0 + r0 * pow(1.0f - saturate(dot(i.normal,posToCam)),5.0f);

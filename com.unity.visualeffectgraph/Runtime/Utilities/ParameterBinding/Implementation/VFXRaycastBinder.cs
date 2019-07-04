@@ -1,5 +1,5 @@
 #if VFX_HAS_PHYSICS
-using UnityEngine.Experimental.VFX;
+using UnityEngine.VFX;
 
 namespace UnityEngine.Experimental.VFX.Utility
 {

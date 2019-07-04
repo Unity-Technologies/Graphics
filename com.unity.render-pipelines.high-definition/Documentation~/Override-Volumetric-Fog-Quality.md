@@ -6,7 +6,7 @@ The High Definition Render Pipeline evaluates volumetric lighting on a 3D grid m
 
 **Volumetric Fog Quality** uses the [Volume](Volumes.html) framework, so to enable and modify **Volumetric Fog Quality** properties, you must add an **Volumetric Fog Quality** override to a [Volume](Volumes.html) in your Scene. To add **Volumetric Fog Quality** to a Volume:
 
-1. In the Scene or Hierarchy view, select the GameObject that contains the Volume component to view it in the Inspector.
+1. In the Scene or Hierarchy view, select a GameObject that contains a Volume component to view it in the Inspector.
 2. In the Inspector, navigate to **Add Override > Lighting** and click on **Volumetric Fog Quality**. You can now use the **Volumetric Fog Quality** override to alter the quality of volumetric effects in HDRP.
 
 Adjust the **Depth Extent** on the Volumetric Lighting Controller component to define the maximum range for the volumetric fog relative to the Camera’s frustum.

@@ -6,7 +6,7 @@ namespace UnityEngine.Rendering
     public class Volume : MonoBehaviour
     {
         [Tooltip("A global volume is applied to the whole scene.")]
-        public bool isGlobal = false;
+        public bool isGlobal = true;
 
         [Tooltip("Volume priority in the stack. Higher number means higher priority. Negative values are supported.")]
         public float priority = 0f;

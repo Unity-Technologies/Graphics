@@ -17,7 +17,6 @@ void ClosestHitGBuffer(inout RayIntersectionGBuffer rayIntersectionGbuffer : SV_
 
     // Make sure to add the additional travel distance
     float travelDistance = length(GetAbsolutePositionWS(fragInput.positionRWS) - rayIntersectionGbuffer.origin);
-    rayIntersectionGbuffer.t = travelDistance;
     rayIntersectionGbuffer.cone.width += travelDistance * rayIntersectionGbuffer.cone.spreadAngle;
 
     PositionInputs posInput;
@@ -29,27 +28,20 @@ void ClosestHitGBuffer(inout RayIntersectionGBuffer rayIntersectionGbuffer : SV_
     BuiltinData builtinData;
     GetSurfaceDataFromIntersection(fragInput, viewWS, posInput, currentvertex, rayIntersectionGbuffer.cone, surfaceData, builtinData);
 
-#ifdef GBUFFER_LIT_STANDARD
-    // We do not want to use the diffuse when we compute the indirect diffuse
+    // Sometimes, we only  want to use the diffuse when we compute the indirect diffuse
     #ifdef DIFFUSE_LIGHTING_ONLY
     builtinData.bakeDiffuseLighting = float3(0.0, 0.0, 0.0);
     builtinData.backBakeDiffuseLighting = float3(0.0, 0.0, 0.0);
     #endif
+
+    // First we pack the data into the standard bsdf data
+    StandardBSDFData standardLitData;
+    ZERO_INITIALIZE(StandardBSDFData, standardLitData);
+    FitToStandardLit(surfaceData, builtinData, posInput.positionSS, standardLitData);
     
-    EncodeIntoGBuffer(surfaceData, builtinData, posInput.positionSS, rayIntersectionGbuffer.gBufferData.gbuffer0, rayIntersectionGbuffer.gBufferData.gbuffer1, rayIntersectionGbuffer.gBufferData.gbuffer2, rayIntersectionGbuffer.gBufferData.gbuffer3
-#if GBUFFERMATERIAL_COUNT > 4
-        ,rayIntersectionGbuffer.gBufferData.gbuffer4
-#endif
-#if GBUFFERMATERIAL_COUNT > 5
-        ,rayIntersectionGbuffer.gBufferData.gbuffer5
-#endif
-        );
-#else
-    // Given that we will be multiplying the final color by the current exposure multiplier outside of this function, we need to make sure that
-    // the unlit color is not impacted by that. Thus, we multiply it by the inverse of the current exposure multiplier.
-    rayIntersectionGbuffer.gBufferData.gbuffer3 = float4(surfaceData.color * GetInverseCurrentExposureMultiplier() + builtinData.emissiveColor, 1.0);
-    rayIntersectionGbuffer.t = _RaytracingRayMaxLength;
-#endif
+    // Then export it to the gbuffer
+    ENCODE_TO_STANDARD_GBUFFER(standardLitData, rayIntersectionGbuffer.gBufferData.gbuffer);
+    rayIntersectionGbuffer.t = standardLitData.isUnlit ? -1 : travelDistance;
 }
 
 // Generic function that handles the reflection code
