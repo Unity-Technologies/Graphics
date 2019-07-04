@@ -3,7 +3,7 @@ using System.Linq;
 using UnityEngine;
 using System.Collections.Generic;
 using UnityEditor.VFX.Block;
-using UnityEngine.Experimental.VFX;
+using UnityEngine.VFX;
 
 namespace UnityEditor.VFX.Operator
 {
