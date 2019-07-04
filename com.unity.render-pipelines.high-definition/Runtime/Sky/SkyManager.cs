@@ -418,6 +418,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public void RenderOpaqueAtmosphericScattering(CommandBuffer cmd, HDCamera hdCamera,
                                                       RTHandle colorBuffer,
+                                                      RTHandle volumetricLighting,
                                                       RTHandle intermediateBuffer,
                                                       RTHandle depthBuffer,
                                                       Matrix4x4 pixelCoordToViewDirWS, bool isMSAA)
@@ -431,6 +432,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     propertyBlock.SetTexture(HDShaderIDs._ColorTextureMS, colorBuffer);
                 else
                     propertyBlock.SetTexture(HDShaderIDs._ColorTexture,   colorBuffer);
+                propertyBlock.SetTexture(HDShaderIDs._VBufferLighting, volumetricLighting);
+
                 // Color -> Intermediate.
                 HDUtils.DrawFullScreen(cmd, m_OpaqueAtmScatteringMaterial, intermediateBuffer, depthBuffer, propertyBlock, isMSAA? 1 : 0);
                 // Intermediate -> Color.

@@ -272,7 +272,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         colorPyramidHistoryIsValid = false;
                     }
 
-                    hdrp.InitializeVolumetricLightingPerCameraData(this, numVolumetricBuffersRequired);
+                    hdrp.InitializeVolumetricLightingPerCameraData(this, numVolumetricBuffersRequired, RTHandles.defaultRTHandleSystem);
 
                     // Mark as init.
                     m_NumColorPyramidBuffersAllocated = numColorPyramidBuffersRequired;
