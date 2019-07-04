@@ -1,7 +1,8 @@
 {
+  "registry": "https://staging-packages.unity.com",
   "dependencies": {
     "com.unity.ide.visualstudio": "1.0.11",
-    "com.unity.recorder": "2.0.1-preview.1",
+    "com.unity.recorder": "2.0.2-preview.1",
     "com.unity.render-pipelines.core": "file:../../../com.unity.render-pipelines.core",
     "com.unity.render-pipelines.lightweight": "file:../../../com.unity.render-pipelines.lightweight",
     "com.unity.shadergraph": "file:../../../com.unity.shadergraph",
