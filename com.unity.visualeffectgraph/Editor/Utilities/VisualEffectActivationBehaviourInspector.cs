@@ -4,7 +4,7 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.Playables;
 using UnityEngine.Timeline;
-using UnityEngine.Experimental.VFX;
+using UnityEngine.VFX;
 using UnityEditor;
 using UnityEditorInternal;
 using UnityEditor.VFX;

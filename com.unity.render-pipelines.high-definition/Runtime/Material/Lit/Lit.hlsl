@@ -57,28 +57,6 @@ TEXTURE2D_X(_ShadowMaskTexture); // Alias for shadow mask, so we don't need to k
 // Definition
 //-----------------------------------------------------------------------------
 
-#define GBufferType0 float4
-#define GBufferType1 float4
-#define GBufferType2 float4
-#define GBufferType3 float4
-#define GBufferType4 float4
-#define GBufferType5 float4
-
-#ifdef LIGHT_LAYERS
-#define GBUFFERMATERIAL_LIGHT_LAYERS 1
-#else
-#define GBUFFERMATERIAL_LIGHT_LAYERS 0
-#endif
-
-#ifdef SHADOWS_SHADOWMASK
-#define GBUFFERMATERIAL_SHADOWMASK 1
-#else
-#define GBUFFERMATERIAL_SHADOWMASK 0
-#endif
-
-// Caution: This must be in sync with Lit.cs GetMaterialGBufferCount()
-#define GBUFFERMATERIAL_COUNT (4 + GBUFFERMATERIAL_LIGHT_LAYERS + GBUFFERMATERIAL_SHADOWMASK)
-
 #if defined(LIGHT_LAYERS) && defined(SHADOWS_SHADOWMASK)
 #define OUT_GBUFFER_LIGHT_LAYERS outGBuffer4
 #define OUT_GBUFFER_SHADOWMASK outGBuffer5

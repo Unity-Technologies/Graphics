@@ -3,9 +3,8 @@ using System.Linq;
 using System.Reflection;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Experimental.VFX;
+using UnityEngine.VFX;
 using UnityEngine.Experimental.VFX.Utility;
-using UnityEditor.Experimental.VFX;
 using UnityEditor.VFX;
 using UnityEditor;
 using UnityEditorInternal;
@@ -153,27 +152,15 @@ namespace UnityEditor.Experimental.VFX.Utility
             m_ElementEditor.serializedObject.ApplyModifiedProperties();
         }
 
+        private static readonly Type[] k_ConcreteBinders = VFXLibrary.FindConcreteSubclasses(typeof(VFXBinderBase), typeof(VFXBinderAttribute)).ToArray();
         public void BuildMenu()
         {
             m_Menu = new GenericMenu();
-
-            List<Type> relevantTypes = new List<Type>();
-
-            foreach (Assembly assembly in AppDomain.CurrentDomain.GetAssemblies())
-            {
-                foreach (Type t in assembly.GetTypes())
-                {
-                    if (typeof(VFXBinderBase).IsAssignableFrom(t) && !t.IsAbstract)
-                        relevantTypes.Add(t);
-                }
-            }
-            foreach (Type type in relevantTypes)
+            foreach (var type in k_ConcreteBinders)
             {
                 string name = type.ToString();
-                var attrib = type.GetCustomAttributes(true).OfType<VFXBinderAttribute>().FirstOrDefault<VFXBinderAttribute>();
-
-                if (attrib != null)
-                    name = attrib.MenuPath;
+                var attrib = type.GetCustomAttributes(true).OfType<VFXBinderAttribute>().First();
+                name = attrib.MenuPath;
 
                 m_Menu.AddItem(new GUIContent(name), false, AddBinding, type);
             }

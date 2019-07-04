@@ -6,7 +6,7 @@ Grading curves are an advanced way to adjust specific ranges in hue, saturation,
 
 **Color Curves** uses the [Volume](Volumes.html) framework, so to enable and modify **Color Curves** properties, you must add a **Color Curves** override to a [Volume](Volumes.html) in your Scene. To add **Color Curves** to a Volume:
 
-1. In the Scene or Hierarchy view, select the GameObject that contains the Volume component to view it in the Inspector.
+1. In the Scene or Hierarchy view, select a GameObject that contains a Volume component to view it in the Inspector.
 2. In the Inspector, navigate to **Add Override > Post-processing** and click on **Color Curves**. HDRP now applies **Color Curves** to any Camera this Volume affects.
 
 ## Properties

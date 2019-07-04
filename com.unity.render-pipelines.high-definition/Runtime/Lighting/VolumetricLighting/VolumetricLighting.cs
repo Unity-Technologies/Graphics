@@ -213,8 +213,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 ? VolumetricLightingPreset.High
                 : VolumetricLightingPreset.Medium;
 
-            m_VolumeVoxelizationCS = asset.renderPipelineResources.shaders.volumeVoxelizationCS;
-            m_VolumetricLightingCS = asset.renderPipelineResources.shaders.volumetricLightingCS;
+            m_VolumeVoxelizationCS = defaultResources.shaders.volumeVoxelizationCS;
+            m_VolumetricLightingCS = defaultResources.shaders.volumetricLightingCS;
 
             m_PackedCoeffs = new Vector4[7];
             m_PhaseZH = new ZonalHarmonicsL2();
@@ -447,11 +447,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             cmd.SetGlobalVectorArray(HDShaderIDs._AmbientProbeCoeffs, m_PackedCoeffs);
         }
 
-        float CornetteShanksPhasePartConstant(float anisotropy)
+        static float CornetteShanksPhasePartConstant(float anisotropy)
         {
             float g = anisotropy;
 
-            return (1.0f / (4.0f * Mathf.PI)) * 1.5f * (1.0f - g * g) / (2.0f + g * g);
+            return (3.0f / (8.0f * Mathf.PI)) * (1.0f - g * g) / (2.0f + g * g);
         }
 
         public void PushVolumetricLightingGlobalParams(HDCamera hdCamera, CommandBuffer cmd, int frameIndex)

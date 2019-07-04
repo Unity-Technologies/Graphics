@@ -45,6 +45,7 @@ namespace UnityEditor.Rendering.Experimental.LookDev
         {
             internal const string k_IconFolder = @"Packages/com.unity.render-pipelines.core/Editor/LookDev/Icons/";
             internal const string k_uss = @"Packages/com.unity.render-pipelines.core/Editor/LookDev/DisplayWindow.uss";
+            internal const string k_uss_personal_overload = @"Packages/com.unity.render-pipelines.core/Editor/LookDev/DisplayWindow-PersonalSkin.uss";
 
             public static readonly GUIContent WindowTitleAndIcon = EditorGUIUtility.TrTextContentWithIcon("Look Dev", CoreEditorUtils.LoadIcon(k_IconFolder, "LookDevMainIcon"));
         }
@@ -80,6 +81,7 @@ namespace UnityEditor.Rendering.Experimental.LookDev
         Label m_NoEnvironment1;
         Label m_NoObject2;
         Label m_NoEnvironment2;
+        Toolbar m_EnvironmentListToolbar;
 
         Image[] m_Views = new Image[2];
 
@@ -192,6 +194,12 @@ namespace UnityEditor.Rendering.Experimental.LookDev
             rootVisualElement.styleSheets.Add(
                 AssetDatabase.LoadAssetAtPath<StyleSheet>(Style.k_uss));
 
+            if (!EditorGUIUtility.isProSkin)
+            {
+                rootVisualElement.styleSheets.Add(
+                    AssetDatabase.LoadAssetAtPath<StyleSheet>(Style.k_uss_personal_overload));
+            }
+
             CreateToolbar();
             
             m_MainContainer = new VisualElement() { name = k_MainContainerName };
@@ -212,7 +220,7 @@ namespace UnityEditor.Rendering.Experimental.LookDev
         void CreateToolbar()
         {
             // Layout swapper part
-            var layoutRadio = new ToolbarRadio("Layout:") { name = k_ToolbarRadioName };
+            var layoutRadio = new ToolbarRadio() { name = k_ToolbarRadioName };
             layoutRadio.AddRadios(new[] {
                 CoreEditorUtils.LoadIcon(Style.k_IconFolder, "LookDevSingle1"),
                 CoreEditorUtils.LoadIcon(Style.k_IconFolder, "LookDevSingle2"),
@@ -391,6 +399,9 @@ namespace UnityEditor.Rendering.Experimental.LookDev
                 => LookDev.dataProvider.UpdateDebugMode(list.IndexOf(evt.newValue) - 1));
             m_DebugContainer.Add(debugView);
         }
+        
+        static int FirstVisibleIndex(ListView listView)
+            => (int)(listView.Q<ScrollView>().scrollOffset.y / listView.itemHeight);
 
         void CreateEnvironment()
         {
@@ -408,6 +419,7 @@ namespace UnityEditor.Rendering.Experimental.LookDev
                 LookDev.SaveContextChangeAndApply(ViewIndex.Second);
             });
             m_EnvironmentList = new ListView();
+            m_EnvironmentList.AddToClassList("list-environment");
             m_EnvironmentList.selectionType = SelectionType.Single;
             m_EnvironmentList.itemHeight = EnvironmentElement.k_SkyThumbnailHeight;
             m_EnvironmentList.makeItem = () =>
@@ -433,9 +445,10 @@ namespace UnityEditor.Rendering.Experimental.LookDev
                 {
                     m_EnvironmentInspector.style.visibility = Visibility.Visible;
                     m_EnvironmentInspector.style.height = new StyleLength(StyleKeyword.Auto);
-                    m_EnvironmentInspector.Bind(
-                        LookDev.currentContext.environmentLibrary[m_EnvironmentList.selectedIndex],
-                        m_EnvironmentList.Q("unity-content-container")[m_EnvironmentList.selectedIndex] as Image);
+                    int firstVisibleIndex = FirstVisibleIndex(m_EnvironmentList);
+                    Environment environment = LookDev.currentContext.environmentLibrary[m_EnvironmentList.selectedIndex];
+                    Image deportedLatLong = m_EnvironmentList.Q("unity-content-container")[m_EnvironmentList.selectedIndex - firstVisibleIndex] as Image;
+                    m_EnvironmentInspector.Bind(environment, deportedLatLong);
                 }
             };
             m_EnvironmentList.onItemChosen += obj =>
@@ -444,7 +457,48 @@ namespace UnityEditor.Rendering.Experimental.LookDev
             m_NoEnvironmentList.style.flexGrow = 1;
             m_NoEnvironmentList.style.unityTextAlign = TextAnchor.MiddleCenter;
             m_EnvironmentContainer.Add(m_EnvironmentInspector);
-            m_EnvironmentContainer.Add(m_EnvironmentList);
+
+            m_EnvironmentListToolbar = new Toolbar();
+            ToolbarButton addEnvironment = new ToolbarButton(() =>
+            {
+                LookDev.currentContext.environmentLibrary.Add();
+                RefreshLibraryDisplay();
+                m_EnvironmentList.ScrollToItem(-1); //-1: scroll to end
+                m_EnvironmentList.selectedIndex = LookDev.currentContext.environmentLibrary.Count - 1;
+                ScrollToEnd();
+            }) { name = "add", text = "+" };
+            ToolbarButton removeEnvironment = new ToolbarButton(() =>
+            {
+                if (m_EnvironmentList.selectedIndex == -1)
+                    return;
+                LookDev.currentContext.environmentLibrary.Remove(m_EnvironmentList.selectedIndex);
+                RefreshLibraryDisplay();
+                m_EnvironmentList.selectedIndex = -1;
+            }) { name = "remove", text = "-" };
+            ToolbarButton duplicateEnvironment = new ToolbarButton(() =>
+            {
+                if (m_EnvironmentList.selectedIndex == -1)
+                    return;
+                LookDev.currentContext.environmentLibrary.Duplicate(m_EnvironmentList.selectedIndex);
+                RefreshLibraryDisplay();
+                m_EnvironmentList.ScrollToItem(-1); //-1: scroll to end
+                m_EnvironmentList.selectedIndex = LookDev.currentContext.environmentLibrary.Count - 1;
+                ScrollToEnd();
+            }) { name = "duplicate", text = "D" };
+            m_EnvironmentListToolbar.Add(addEnvironment);
+            m_EnvironmentListToolbar.Add(removeEnvironment);
+            m_EnvironmentListToolbar.Add(duplicateEnvironment);
+            m_EnvironmentListToolbar.AddToClassList("list-environment-overlay");
+
+            var m_EnvironmentInspectorSeparator = new VisualElement() { name = "separator-line" };
+            m_EnvironmentInspectorSeparator.Add(new VisualElement() { name = "separator" });
+            m_EnvironmentContainer.Add(m_EnvironmentInspectorSeparator);
+
+            VisualElement listContainer = new VisualElement();
+            listContainer.AddToClassList("list-environment");
+            listContainer.Add(m_EnvironmentList);
+            listContainer.Add(m_EnvironmentListToolbar);
+            m_EnvironmentContainer.Add(listContainer);
             m_EnvironmentContainer.Add(m_NoEnvironmentList);
 
             //add ability to unselect
@@ -457,20 +511,35 @@ namespace UnityEditor.Rendering.Experimental.LookDev
                     evt.StopPropagation();
                 }
             });
-
+            
             RefreshLibraryDisplay();
+        }
+        
+        //necessary as the scrollview need to be updated which take some editor frames.
+        void ScrollToEnd(int attemptRemaining = 5)
+        {
+            m_EnvironmentList.ScrollToItem(-1); //-1: scroll to end
+            if(attemptRemaining > 0)
+                EditorApplication.delayCall += () => ScrollToEnd(--attemptRemaining);
         }
 
         void RefreshLibraryDisplay()
         {
             int itemMax = LookDev.currentContext.environmentLibrary?.Count ?? 0;
+            if (itemMax == 0 || m_EnvironmentList.selectedIndex == -1)
+            {
+                m_EnvironmentInspector.style.visibility = Visibility.Hidden;
+                m_EnvironmentInspector.style.height = 0;
+            }
+            else
+            {
+                m_EnvironmentInspector.style.visibility = Visibility.Visible;
+                m_EnvironmentInspector.style.height = new StyleLength(StyleKeyword.Auto);
+            }
             var items = new List<int>(itemMax);
             for (int i = 0; i < itemMax; i++)
                 items.Add(i);
             m_EnvironmentList.itemsSource = items;
-            m_EnvironmentInspector.style.visibility = (itemMax == 0 || m_EnvironmentList.selectedIndex == -1)
-                ? Visibility.Hidden
-                : Visibility.Visible;
             m_EnvironmentList
                 .Q(className: "unity-scroll-view__vertical-scroller")
                 .Q("unity-dragger")

@@ -1,15 +1,23 @@
-#pragma vertex vert
-VFX_VARYING_PS_INPUTS vert(uint id : SV_VertexID, uint instanceID : SV_InstanceID)
+struct vs_input
 {
+	VFX_DECLARE_INSTANCE_ID
+};
+
+#pragma vertex vert
+VFX_VARYING_PS_INPUTS vert(uint id : SV_VertexID, vs_input i)
+{
+	VFX_VARYING_PS_INPUTS o = (VFX_VARYING_PS_INPUTS)0;
+
+	UNITY_SETUP_INSTANCE_ID(i);
+	UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
+
 #if VFX_PRIMITIVE_TRIANGLE
 	uint index = id / 3;
 #elif VFX_PRIMITIVE_QUAD
-	uint index = (id >> 2) + instanceID * 2048;
+	uint index = (id >> 2) + VFX_GET_INSTANCE_ID(i) * 2048;
 #elif VFX_PRIMITIVE_OCTAGON
-	uint index = (id >> 3) + instanceID * 1024;
+	uint index = (id >> 3) + VFX_GET_INSTANCE_ID(i) * 1024;
 #endif
-
-	VFX_VARYING_PS_INPUTS o = (VFX_VARYING_PS_INPUTS)0;
 
 	${VFXLoadAttributesOrCull}
 	${VFXProcessBlocks}

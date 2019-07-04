@@ -3,17 +3,20 @@ using UnityEngine.Rendering;
 using UnityEngine.Profiling;
 using UnityEngine.Rendering.LWRP;
 
+#if UNITY_EDITOR
+using UnityEditor.SceneManagement;
+#endif
+
 namespace UnityEngine.Experimental.Rendering.LWRP
 {
     internal class Render2DLightingPass : ScriptableRenderPass
     {
         static SortingLayer[] s_SortingLayers;
         Renderer2DData m_RendererData;
-        static readonly ShaderTagId k_CombinedRenderingPassName = new ShaderTagId("Lightweight2D");
+        static readonly ShaderTagId k_2DRenderingPassName = new ShaderTagId("Lightweight2D");
         static readonly ShaderTagId k_NormalsRenderingPassName = new ShaderTagId("NormalsRendering");
         static readonly ShaderTagId k_LegacyPassName = new ShaderTagId("SRPDefaultUnlit");
-        static readonly List<ShaderTagId> k_ShaderTags = new List<ShaderTagId>() { k_LegacyPassName, k_CombinedRenderingPassName };
-        //static readonly List<ShaderTagId> k_ShaderTags = new List<ShaderTagId>() { k_CombinedRenderingPassName };
+        static readonly List<ShaderTagId> k_ShaderTags = new List<ShaderTagId>() { k_LegacyPassName, k_2DRenderingPassName };
 
         public Render2DLightingPass(Renderer2DData rendererData)
         {
@@ -42,7 +45,17 @@ namespace UnityEngine.Experimental.Rendering.LWRP
 
             cmd.SetGlobalFloat("_HDREmulationScale", m_RendererData.hdrEmulationScale);
             cmd.SetGlobalFloat("_InverseHDREmulationScale", 1.0f / m_RendererData.hdrEmulationScale);
-            RendererLighting.SetShapeLightShaderGlobals(cmd);
+
+
+#if UNITY_EDITOR
+            bool isPreview = false;
+            isPreview = EditorSceneManager.IsPreviewSceneObject(camera);
+
+            if (isPreview)
+                RendererLighting.SetPreviewShaderGlobals(cmd);
+            else
+#endif
+                RendererLighting.SetShapeLightShaderGlobals(cmd);
 
             context.ExecuteCommandBuffer(cmd);
 

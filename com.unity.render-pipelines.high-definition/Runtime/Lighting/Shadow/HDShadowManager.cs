@@ -22,17 +22,21 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public Vector4      proj;
 
         public Vector2      atlasOffset;
-        public float        edgeTolerance;
-        public int          flags;
+        public float        worldTexelSize;
+        public int          _pad0;
 
         public Vector4      zBufferParam;
         public Vector4      shadowMapSize;
 
-        public Vector4      viewBias;
-        public Vector3      normalBias;
-        public float        _padding;
+        public float        normalBias;
+        public float        constantBias;
+        public float        _pad1;
+        public float        _pad2;
 
         public Vector4      shadowFilterParams0;
+
+        public Vector3      cacheTranslationDelta;
+        public float        _padding1;
 
         public Matrix4x4    shadowToWorld;
     }
@@ -51,14 +55,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         [HLSLArray(4, typeof(float))]
         public fixed float      cascadeBorders[4];
-    }
-
-    [GenerateHLSL]
-    public enum HDShadowFlag
-    {
-        SampleBiasScale     = (1 << 0),
-        EdgeLeakFixup       = (1 << 1),
-        EdgeToleranceNormal = (1 << 2),
     }
 
     public class HDShadowRequest
@@ -88,10 +84,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public ShadowSplitData      splitData;
         // end
 
-        public Vector4              viewBias;
-        public Vector3              normalBias;
-        public float                edgeTolerance;
-        public int                  flags;
+        public float                normalBias;
+        public float                worldTexelSize;
+        public float                constantBias;
 
         // PCSS parameters
         public float                shadowSoftness;
@@ -105,6 +100,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public float                maxDepthBias;
 
         public Vector4              evsmParams;
+
+        public bool         shouldUseCachedShadow = false;
+        public HDShadowData cachedShadowData;
     }
 
     public enum HDShadowQuality
@@ -112,7 +110,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         Low = 0,
         Medium = 1,
         High = 2,
-        VeryHigh = 3,
     }
 
     public enum DirectionalShadowAlgorithm
@@ -151,7 +148,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             directionalShadowsDepthBits = k_DefaultShadowMapDepthBits,
             punctualLightShadowAtlas    = HDShadowAtlasInitParams.GetDefault(),
             areaLightShadowAtlas        = HDShadowAtlasInitParams.GetDefault(),
-			shadowQuality               = HDShadowQuality.Low,
+			shadowQuality               = HDShadowQuality.Medium,
             supportScreenSpaceShadows   = false,
             maxScreenSpaceShadows       = 2,
         };
@@ -244,10 +241,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 case HDShadowQuality.High:
                 {
                     return DirectionalShadowAlgorithm.PCSS;
-                }
-                case HDShadowQuality.VeryHigh:
-                {
-                    return DirectionalShadowAlgorithm.IMS;
                 }
             };
             return DirectionalShadowAlgorithm.PCF5x5;
@@ -363,6 +356,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             data.rot1 = new Vector3(view.m10, view.m11, view.m12);
             data.rot2 = new Vector3(view.m20, view.m21, view.m22);
             data.shadowToWorld = shadowRequest.shadowToWorld;
+            data.cacheTranslationDelta = new Vector3(0.0f, 0.0f, 0.0f);
+
 
             // Compute the scale and offset (between 0 and 1) for the atlas coordinates
             float rWidth = 1.0f / atlas.width;
@@ -371,10 +366,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             data.shadowMapSize = new Vector4(shadowRequest.atlasViewport.width, shadowRequest.atlasViewport.height, 1.0f / shadowRequest.atlasViewport.width, 1.0f / shadowRequest.atlasViewport.height);
 
-            data.viewBias = shadowRequest.viewBias;
+            data.constantBias = shadowRequest.constantBias;
             data.normalBias = shadowRequest.normalBias;
-            data.flags = shadowRequest.flags;
-            data.edgeTolerance = shadowRequest.edgeTolerance;
+            data.worldTexelSize = shadowRequest.worldTexelSize;
 
             data.shadowFilterParams0.x = shadowRequest.shadowSoftness;
             data.shadowFilterParams0.y = HDShadowUtils.Asfloat(shadowRequest.blockerSampleCount);
@@ -382,12 +376,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             data.shadowFilterParams0.w = shadowRequest.minFilterSize;
 
             var hdAsset = (GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset);
-            if (hdAsset.currentPlatformRenderPipelineSettings.hdShadowInitParams.shadowQuality == HDShadowQuality.VeryHigh && shadowRequest.lightType == (int)LightType.Directional)
-            {
-                data.shadowFilterParams0.x = shadowRequest.kernelSize;
-                data.shadowFilterParams0.y = shadowRequest.lightAngle;
-                data.shadowFilterParams0.z = shadowRequest.maxDepthBias;
-            }
 
             if (atlas.HasBlurredEVSM())
             {
@@ -437,7 +425,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_AreaLightShadowAtlas.Layout();
         }
 
-        unsafe public void PrepareGPUShadowDatas(CullingResults cullResults, Camera camera)
+        unsafe public void PrepareGPUShadowDatas(CullingResults cullResults, HDCamera camera)
         {
             int shadowIndex = 0;
 
@@ -455,7 +443,19 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 {
                     atlas = m_AreaLightShadowAtlas;
                 }
-                m_ShadowDatas.Add(CreateShadowData(m_ShadowRequests[i], atlas));
+
+                HDShadowData shadowData;
+                if (m_ShadowRequests[i].shouldUseCachedShadow)
+                {
+                    shadowData = m_ShadowRequests[i].cachedShadowData;
+                }
+                else
+                {
+                    shadowData = CreateShadowData(m_ShadowRequests[i], atlas);
+                    m_ShadowRequests[i].cachedShadowData = shadowData;
+                }
+
+                m_ShadowDatas.Add(shadowData);
                 m_ShadowRequests[i].shadowIndex = shadowIndex++;
             }
 
@@ -514,17 +514,21 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_DirectionalShadowDataBuffer.SetData(new HDDirectionalShadowData[]{ m_DirectionalShadowData });
         }
 
-        public void BindResources(CommandBuffer cmd)
+        public void PushGlobalParameters(CommandBuffer cmd)
         {
             // This code must be in sync with HDShadowContext.hlsl
             cmd.SetGlobalBuffer(HDShaderIDs._HDShadowDatas, m_ShadowDataBuffer);
             cmd.SetGlobalBuffer(HDShaderIDs._HDDirectionalShadowData, m_DirectionalShadowDataBuffer);
+            cmd.SetGlobalInt(HDShaderIDs._CascadeShadowCount, m_CascadeCount + 1);
+        }
+
+        public void BindResources(CommandBuffer cmd)
+        {
+            PushGlobalParameters(cmd);
 
             m_Atlas.BindResources(cmd);
             m_CascadeAtlas.BindResources(cmd);
             m_AreaLightShadowAtlas.BindResources(cmd);
-
-            cmd.SetGlobalInt(HDShaderIDs._CascadeShadowCount, m_CascadeCount + 1);
         }
 
         public int GetShadowRequestCount()

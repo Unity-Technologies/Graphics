@@ -235,7 +235,6 @@ MonoBehaviour:
   sort: 0
   indirectDraw: 0
   castShadows: 0
-  preRefraction: 0
   useExposureWeight: 0
   targetFromAttributes: 1
   useNativeLines: 0
@@ -320,7 +319,6 @@ MonoBehaviour:
   sort: 0
   indirectDraw: 0
   castShadows: 0
-  preRefraction: 0
   useExposureWeight: 0
   targetFromAttributes: 1
   useNativeLines: 0
@@ -470,7 +468,6 @@ MonoBehaviour:
   sort: 0
   indirectDraw: 0
   castShadows: 0
-  preRefraction: 0
   useExposureWeight: 0
   targetFromAttributes: 1
   useNativeLines: 0
@@ -965,7 +962,6 @@ MonoBehaviour:
   sort: 0
   indirectDraw: 0
   castShadows: 0
-  preRefraction: 0
   useExposureWeight: 0
   primitiveType: 1
   useGeometryShader: 0
@@ -1320,6 +1316,7 @@ MonoBehaviour:
   m_OutputSlots: []
   m_Disabled: 0
   mode: 2
+  axes: 4
 --- !u!114 &114242236036460514
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -3004,7 +3001,6 @@ MonoBehaviour:
   sort: 0
   indirectDraw: 0
   castShadows: 0
-  preRefraction: 0
   useExposureWeight: 0
 --- !u!114 &114680178850013376
 MonoBehaviour:
@@ -3438,6 +3434,7 @@ MonoBehaviour:
   m_OutputSlots: []
   m_Disabled: 0
   mode: 2
+  axes: 4
 --- !u!114 &114768138912911638
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -3852,6 +3849,7 @@ MonoBehaviour:
   m_OutputSlots: []
   m_Disabled: 0
   mode: 2
+  axes: 4
 --- !u!114 &114825364019295362
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -4048,6 +4046,7 @@ MonoBehaviour:
   m_OutputSlots: []
   m_Disabled: 0
   mode: 2
+  axes: 4
 --- !u!114 &114880319480420680
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -4470,6 +4469,7 @@ MonoBehaviour:
   m_OutputSlots: []
   m_Disabled: 0
   mode: 2
+  axes: 4
 --- !u!114 &114952545566363384
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -4724,6 +4724,7 @@ VisualEffectResource:
     m_UpdateMode: 0
     m_PreWarmDeltaTime: 0.05
     m_PreWarmStepCount: 0
+    m_InitialEventName: OnPlay
   m_Systems: []
 --- !u!114 &8926484042661614528
 MonoBehaviour:

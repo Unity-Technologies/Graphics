@@ -37,7 +37,7 @@ uint _DebugContactShadowLightIndex;
 CBUFFER_END
 
 // Local shader variables
-float g_DebugShadowAttenuation = 0;
+static float g_DebugShadowAttenuation = 0;
 
 StructuredBuffer<int2>  _DebugDepthPyramidOffsets;
 

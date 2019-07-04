@@ -21,7 +21,7 @@ The following properties control the projection settings for this Planar Reflect
 | **Property**                             | **Description**                                              |
 | ---------------------------------------- | ------------------------------------------------------------ |
 | **Proxy Volume**                         | The [Reflection Proxy Volume](Reflection-Proxy-Volume.html) this Probe uses to correct displacement issues between the Probe’s capture point (**Mirror Position**) and the position of the reflective Material using the RenderTexture this Probe captures. Note: The **Proxy Volume** you assign must be the same **Shape** as the Influence Volume. |
-| **Use Influence Volume As Proxy Volume** | Tick this checkbox to use the boundaries of the Influence Volume as the Proxy Volume.<br />To make this property available, do not assign the **Proxy Volume** property. |
+| **Use Influence Volume As Proxy Volume** | Tick this checkbox to use the boundaries of the Influence Volume as the Proxy Volume.<br />This property only appears when you have not set a Reflection Proxy Volume to the **Proxy Volume** property. |
 
 <a name="InfluenceVolume"></a>
 

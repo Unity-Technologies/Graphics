@@ -38,7 +38,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public SerializedProperty minFilterSize;
             public SerializedProperty areaLightCookie;   // We can't use default light cookies because the cookie gets reset by some safety measure on C++ side... :/
             public SerializedProperty areaLightShadowCone;
+            public SerializedProperty useCustomSpotLightShadowCone;
+            public SerializedProperty customSpotLightShadowCone;
             public SerializedProperty useScreenSpaceShadows;
+            public SerializedProperty interactsWithSky;
 #if ENABLE_RAYTRACING
             public SerializedProperty useRayTracedShadows;
             public SerializedProperty numRayTracingSamples;
@@ -75,18 +78,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public SerializedProperty resolution;
             public SerializedProperty contactShadows;
             public SerializedProperty shadowTint;            
+            public SerializedProperty shadowUpdateMode;
 
             // Bias control
-            public SerializedProperty viewBiasMin;
-            public SerializedProperty viewBiasMax;
-            public SerializedProperty viewBiasScale;
-            public SerializedProperty normalBiasMin;
-            public SerializedProperty normalBiasMax;
-            public SerializedProperty normalBiasScale;
-            public SerializedProperty sampleBiasScale;
-            public SerializedProperty edgeLeakFixup;
-            public SerializedProperty edgeToleranceNormal;
-            public SerializedProperty edgeTolerance;
+            public SerializedProperty constantBias;
+
+            public SerializedProperty normalBias;
         }
 
         public bool needUpdateAreaLightEmissiveMeshComponents = false;
@@ -125,7 +122,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     affectSpecular = o.Find(x => x.affectSpecular),
                     nonLightmappedOnly = o.Find(x => x.nonLightmappedOnly),
                     lightTypeExtent = o.Find(x => x.lightTypeExtent),
-                    spotLightShape = o.Find("m_SpotLightShape"),
+                    spotLightShape = o.Find("m_SpotLightShape"), // WTF?
                     shapeWidth = o.Find(x => x.shapeWidth),
                     shapeHeight = o.Find(x => x.shapeHeight),
                     aspectRatio = o.Find(x => x.aspectRatio),
@@ -139,7 +136,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     minFilterSize = o.Find(x => x.minFilterSize),
                     areaLightCookie = o.Find(x => x.areaLightCookie),
                     areaLightShadowCone = o.Find(x => x.areaLightShadowCone),
+                    useCustomSpotLightShadowCone = o.Find(x => x.useCustomSpotLightShadowCone),
+                    customSpotLightShadowCone = o.Find(x => x.customSpotLightShadowCone),
                     useScreenSpaceShadows = o.Find(x => x.useScreenSpaceShadows),
+                    interactsWithSky = o.Find(x => x.interactsWithSky),
 #if ENABLE_RAYTRACING
                     useRayTracedShadows = o.Find(x => x.useRayTracedShadows),
                     numRayTracingSamples = o.Find(x => x.numRayTracingSamples),
@@ -179,17 +179,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     resolution = o.Find(x => x.shadowResolution),
                     contactShadows = o.Find(x => x.contactShadows),
                     shadowTint = o.Find(x => x.shadowTint),                    
+                    shadowUpdateMode = o.Find(x => x.shadowUpdateMode),
 
-                    viewBiasMin = o.Find(x => x.viewBiasMin),
-                    viewBiasMax = o.Find(x => x.viewBiasMax),
-                    viewBiasScale = o.Find(x => x.viewBiasScale),
-                    normalBiasMin = o.Find(x => x.normalBiasMin),
-                    normalBiasMax = o.Find(x => x.normalBiasMax),
-                    normalBiasScale = o.Find(x => x.normalBiasScale),
-                    sampleBiasScale = o.Find(x => x.sampleBiasScale),
-                    edgeLeakFixup = o.Find(x => x.edgeLeakFixup),
-                    edgeToleranceNormal = o.Find(x => x.edgeToleranceNormal),
-                    edgeTolerance = o.Find(x => x.edgeTolerance)
+                    constantBias = o.Find(x => x.constantBias),
+                    normalBias = o.Find(x => x.normalBias),
                 };
         }
 
