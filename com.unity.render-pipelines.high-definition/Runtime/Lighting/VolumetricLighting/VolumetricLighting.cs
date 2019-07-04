@@ -213,8 +213,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 ? VolumetricLightingPreset.High
                 : VolumetricLightingPreset.Medium;
 
-            m_VolumeVoxelizationCS = asset.renderPipelineResources.shaders.volumeVoxelizationCS;
-            m_VolumetricLightingCS = asset.renderPipelineResources.shaders.volumetricLightingCS;
+            m_VolumeVoxelizationCS = defaultResources.shaders.volumeVoxelizationCS;
+            m_VolumetricLightingCS = defaultResources.shaders.volumetricLightingCS;
 
             m_PackedCoeffs = new Vector4[7];
             m_PhaseZH = new ZonalHarmonicsL2();

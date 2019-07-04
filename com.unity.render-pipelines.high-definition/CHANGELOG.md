@@ -21,6 +21,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Shader Graphs that use time-dependent vertex modification now generate correct motion vectors.
 - Added option to allow a custom spot angle for spot light shadow maps. 
 - Added frame settings for individual post-processing effects
+- Added dither transition between cascades for Low and Medium quality settings
 
 ### Fixed
 - Fixed an issue with history buffers causing effects like TAA or auto exposure to flicker when more than one camera was visible in the editor
@@ -68,7 +69,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Remove all obsolete wind code from shader
 - Renamed DecalProjectorComponent into DecalProjector for API alignment.
 - Improved the Volume UI and made them Global by default
-
+- Remove very high quality shadow option
+- Change default for shadow quality in Deferred to Medium
+- Enlighten now use inverse squared falloff (before was using builtin falloff)
+- Enlighten is now deprecated. Please use CPU or GPU lightmaper instead.
 
 ## [6.7.0-preview] - 2019-05-16
 

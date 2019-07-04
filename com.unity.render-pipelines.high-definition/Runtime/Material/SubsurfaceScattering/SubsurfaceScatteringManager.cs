@@ -105,17 +105,17 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Disney SSS (compute + combine)
             string kernelName = asset.currentPlatformRenderPipelineSettings.increaseSssSampleCount ? "SubsurfaceScatteringHQ" : "SubsurfaceScatteringMQ";
             string kernelNameMSAA = asset.currentPlatformRenderPipelineSettings.increaseSssSampleCount ? "SubsurfaceScatteringHQ_MSAA" : "SubsurfaceScatteringMQ_MSAA";
-            m_SubsurfaceScatteringCS = asset.renderPipelineResources.shaders.subsurfaceScatteringCS;
+            m_SubsurfaceScatteringCS = defaultResources.shaders.subsurfaceScatteringCS;
             m_SubsurfaceScatteringKernel = m_SubsurfaceScatteringCS.FindKernel(kernelName);
             m_SubsurfaceScatteringKernelMSAA = m_SubsurfaceScatteringCS.FindKernel(kernelNameMSAA);
-            m_CombineLightingPass = CoreUtils.CreateEngineMaterial(asset.renderPipelineResources.shaders.combineLightingPS);
+            m_CombineLightingPass = CoreUtils.CreateEngineMaterial(defaultResources.shaders.combineLightingPS);
             m_CombineLightingPass.SetInt(HDShaderIDs._StencilMask, (int)HDRenderPipeline.StencilBitMask.LightingMask);
 
-            m_SSSCopyStencilForSplitLighting = CoreUtils.CreateEngineMaterial(asset.renderPipelineResources.shaders.copyStencilBufferPS);
+            m_SSSCopyStencilForSplitLighting = CoreUtils.CreateEngineMaterial(defaultResources.shaders.copyStencilBufferPS);
             m_SSSCopyStencilForSplitLighting.SetInt(HDShaderIDs._StencilRef, (int)StencilLightingUsage.SplitLighting);
             m_SSSCopyStencilForSplitLighting.SetInt(HDShaderIDs._StencilMask, (int)HDRenderPipeline.StencilBitMask.LightingMask);
 
-            m_SSSDefaultDiffusionProfile = asset.renderPipelineResources.assets.defaultDiffusionProfile;
+            m_SSSDefaultDiffusionProfile = defaultResources.assets.defaultDiffusionProfile;
         }
 
         public void CleanupSubsurfaceScattering()

@@ -203,6 +203,15 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             }
         }
 
+        static public void SetPreviewShaderGlobals(CommandBuffer cmdBuffer)
+        {
+            for (int i = 0; i < s_BlendStyles.Length; ++i)
+            {
+                string keyword = k_UseBlendStyleKeywords[i];
+                cmdBuffer.DisableShaderKeyword(keyword);
+            }
+        }
+
         static public void SetShapeLightShaderGlobals(CommandBuffer cmdBuffer)
         {
             for (int i = 0; i < s_BlendStyles.Length; ++i)

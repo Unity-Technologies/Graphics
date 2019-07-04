@@ -29,6 +29,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             return m_RTIDs;
         }
 
+        public RTHandleSystem.RTHandle[] GetBuffers()
+        {
+            return m_RTs;
+        }
+
         public RTHandleSystem.RTHandle GetBuffer(int index)
         {
             Debug.Assert(index < m_BufferCount);
