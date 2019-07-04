@@ -749,6 +749,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly int _GrainParams                    = Shader.PropertyToID("_GrainParams");
         public static readonly int _GrainTextureParams             = Shader.PropertyToID("_GrainTextureParams");
         public static readonly int _BlueNoiseTexture               = Shader.PropertyToID("_BlueNoiseTexture");
+        public static readonly int _OwenScrambledRGTexture         = Shader.PropertyToID("_OwenScrambledRGTexture");
         public static readonly int _OwenScrambledTexture           = Shader.PropertyToID("_OwenScrambledTexture");
         public static readonly int _ScramblingTexture              = Shader.PropertyToID("_ScramblingTexture");
         public static readonly int _AfterPostProcessTexture        = Shader.PropertyToID("_AfterPostProcessTexture");
