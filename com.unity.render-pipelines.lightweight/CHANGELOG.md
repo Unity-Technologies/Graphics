@@ -29,10 +29,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue with certain LWRP shaders not showing when using forward/2D renderer.
 - Fixed the shadow resolve pass and the final pass, so they're not consuming unnecessary bandwidth. [case 1152439](https://issuetracker.unity3d.com/issues/lwrp-mobile-increased-memory-usage-and-extra-rendering-steps) 
 - Added missing page for 2D Lights in LWRP.
+- Tilemap tiles no longer appear black when you use the 2D renderer.
+- Sprites in the preview window are no longer lit by 2D Scene lighting.
 - Fixed warnings for unsupported shadow map formats for GLES2 API.
 - Disabled shadows for devices that do not support shadow maps or depth textures.
 - Fixed support for LWRP per-pixel terrain. [case 1110520](https://fogbugz.unity3d.com/f/cases/1110520)
 - Fixed some basic UI/usability issues with LWRP terrain Materials (use of warnings and modal value changes).
+- Fixed an issue where using LWRP and Sprite Shape together would produce meta file conflicts.
 
 ## [6.7.0] - 2019-05-16
 ### Added

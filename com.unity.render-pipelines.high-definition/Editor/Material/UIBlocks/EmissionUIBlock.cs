@@ -21,7 +21,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
             public const string header = "Emission Inputs";
 
-            public static GUIContent emissiveText = new GUIContent("Emissive Color", "Emissive Color (RGB).");            
+            public static GUIContent emissiveText = new GUIContent("Emissive Color", "Emissive Color (RGB).");
 
             public static GUIContent albedoAffectEmissiveText = new GUIContent("Emission multiply with Base", "Specifies whether or not the emission color is multiplied by the albedo.");
             public static GUIContent useEmissiveIntensityText = new GUIContent("Use Emission Intensity", "Specifies whether to use to a HDR color or a LDR color with a separate multiplier.");
@@ -94,7 +94,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             EditorGUI.BeginChangeCheck();
             materialEditor.ShaderProperty(useEmissiveIntensity, Styles.useEmissiveIntensityText);
             bool updateEmissiveColor = EditorGUI.EndChangeCheck();
-                
+
             if (useEmissiveIntensity.floatValue == 0)
             {
                 EditorGUI.BeginChangeCheck();
@@ -120,13 +120,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                             {
                                 materialEditor.ShaderProperty(emissiveIntensity, Styles.emissiveIntensityText);
                                 if (change.changed)
-                                    emissiveIntensity.floatValue = Mathf.Max(0, emissiveIntensity.floatValue);
+                                    emissiveIntensity.floatValue = Mathf.Clamp(emissiveIntensity.floatValue, 0, float.MaxValue);
                             }
                         }
                         else
                         {
                             float evValue = LightUtils.ConvertLuminanceToEv(emissiveIntensity.floatValue);
                             evValue = EditorGUILayout.FloatField(Styles.emissiveIntensityText, evValue);
+                            evValue = Mathf.Clamp(evValue, 0, float.MaxValue);
                             emissiveIntensity.floatValue = LightUtils.ConvertEvToLuminance(evValue);
                         }
                         emissiveIntensityUnit.floatValue = (float)(EmissiveIntensityUnit)EditorGUILayout.EnumPopup(unit);
@@ -189,7 +190,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 // so we need to update the emissive color
                 if (!Mathf.Approximately(ColorUtils.Luminance(color), 1))
                     emissiveColorUpdated = true;
-                
+
                 color = HDUtils.NormalizeColor(color);
             }
             return color;
