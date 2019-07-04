@@ -77,7 +77,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     hdLightData.UpdateAllLightValues();
             }
 
-            // TODO: we don't need this anymore
             if (m_SerializedHDLight.needUpdateAreaLightEmissiveMeshComponents)
                 UpdateAreaLightEmissiveMeshComponents();
         }
