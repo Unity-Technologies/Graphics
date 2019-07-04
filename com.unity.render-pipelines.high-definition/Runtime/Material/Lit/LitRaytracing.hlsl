@@ -18,23 +18,25 @@ IndirectLighting EvaluateBSDF_RaytracedRefraction(LightLoopContext lightLoopCont
 }
 #endif
 
-void RayTracingEncodeIntoGBuffer( SurfaceData surfaceData
+#if (SHADERPASS == SHADERPASS_RAYTRACING_GBUFFER)
+void FitToStandardLit( SurfaceData surfaceData
                         , BuiltinData builtinData
                         , uint2 positionSS
-                        , out GBufferType0 outGBuffer0
-                        , out GBufferType1 outGBuffer1
-                        , out GBufferType2 outGBuffer2
-                        , out GBufferType3 outGBuffer3
-#if GBUFFERMATERIAL_COUNT > 4
-                        , out GBufferType4 outGBuffer4
+                        , out StandardBSDFData outStandardlit)
+{    
+    outStandardlit.baseColor = surfaceData.baseColor;
+    outStandardlit.specularOcclusion = surfaceData.specularOcclusion;
+    outStandardlit.normalWS = surfaceData.normalWS;
+    outStandardlit.perceptualRoughness = PerceptualSmoothnessToPerceptualRoughness(surfaceData.perceptualSmoothness);
+    outStandardlit.fresnel0 = surfaceData.specularColor;
+    outStandardlit.coatMask = HasFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_LIT_CLEAR_COAT) ? surfaceData.coatMask : 0.0;
+    outStandardlit.emissiveAndBaked = builtinData.bakeDiffuseLighting * surfaceData.ambientOcclusion + builtinData.emissiveColor;
+#ifdef LIGHT_LAYERS
+    outStandardlit.renderingLayers = builtinData.renderingLayers;
 #endif
-#if GBUFFERMATERIAL_COUNT > 5
-                        , out GBufferType5 outGBuffer5
+#ifdef SHADOWS_SHADOWMASK
+    outStandardlit.shadowMasks = BUILTIN_DATA_SHADOW_MASK;
 #endif
-						, out bool forwardOnly
-                        )
-{
-
-    ENCODE_INTO_GBUFFER(surfaceData, builtinData, positionSS, outGBuffer);
-    forwardOnly = false;
+    outStandardlit.isUnlit = 0;
 }
+#endif
