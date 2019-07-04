@@ -3440,7 +3440,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             float scaleY = hdCamera.actualHeight / (float)m_SharedRTManager.GetDepthTexture().rt.height;
             Vector4 pyramidScaleLod = new Vector4(scaleX, scaleY, mipCount, 0.0f);
             Vector4 pyramidScale = new Vector4(scaleX, scaleY, 0f, 0f);
-            cmd.SetGlobalTexture(HDShaderIDs._DepthPyramidTexture, m_SharedRTManager.GetDepthTexture());
+            cmd.SetGlobalTexture(HDShaderIDs._CameraDepthTexture, m_SharedRTManager.GetDepthTexture());
             cmd.SetGlobalVector(HDShaderIDs._DepthPyramidScale, pyramidScaleLod);
             PushFullScreenDebugTextureMip(hdCamera, cmd, m_SharedRTManager.GetDepthTexture(), mipCount, pyramidScale, debugMode);
         }
