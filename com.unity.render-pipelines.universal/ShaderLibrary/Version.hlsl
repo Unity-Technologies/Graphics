@@ -7,3 +7,4 @@
 #define LWRP_6_2_OR_NEWER
 #define LWRP_6_1_OR_NEWER
 #define LWRP_6_0_OR_NEWER
+#define Universal_7_0_OR_NEWER
