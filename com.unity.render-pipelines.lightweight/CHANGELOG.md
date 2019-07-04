@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [6.9.0] - 2019-07-02
 ### Fixed
 - Fixed an issue where using LWRP and Sprite Shape together would produce meta file conflicts.
+- Tilemap tiles no longer appear black when you use the 2D renderer.
+- Sprites in the preview window are no longer lit by 2D Scene lighting.
 
 ## [6.8.0] - 2019-06-12
 ### Added
