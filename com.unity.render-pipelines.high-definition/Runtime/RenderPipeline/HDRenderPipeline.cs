@@ -839,7 +839,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 PushDecalsGlobalParams(hdCamera, cmd);
 
+                var visualEnv = VolumeManager.instance.stack.GetComponent<VisualEnvironment>();
+                visualEnv.PushFogShaderParameters(hdCamera, cmd);
+
                 PushVolumetricLightingGlobalParams(hdCamera, cmd, m_FrameCount);
+
+                SetMicroShadowingSettings(cmd);
 
                 m_AmbientOcclusionSystem.PushGlobalParameters(hdCamera, cmd);
 
@@ -1788,7 +1793,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     haveAsyncTaskWithShadows = true;
 
                     void Callback(CommandBuffer asyncCmd)
-                        => VolumeVoxelizationPass(hdCamera, asyncCmd, m_FrameCount, densityVolumes);
+                        => VolumeVoxelizationPass(hdCamera, asyncCmd);
                 }
 
                 if (hdCamera.frameSettings.SSRRunsAsync())
@@ -1876,12 +1881,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     }
                 }
 
-                {
-                    // Set fog parameters for volumetric lighting.
-                    var visualEnv = VolumeManager.instance.stack.GetComponent<VisualEnvironment>();
-                    visualEnv.PushFogShaderParameters(hdCamera, cmd);
-                }
-
                 if (hdCamera.frameSettings.VolumeVoxelizationRunsAsync())
                 {
                     volumeVoxelizationTask.End(cmd);
@@ -1889,14 +1888,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 else
                 {
                     // Perform the voxelization step which fills the density 3D texture.
-                    VolumeVoxelizationPass(hdCamera, cmd, m_FrameCount, densityVolumes);
+                    VolumeVoxelizationPass(hdCamera, cmd);
                 }
 
                 // Render the volumetric lighting.
                 // The pass requires the volume properties, the light list and the shadows, and can run async.
                 VolumetricLightingPass(hdCamera, cmd, m_FrameCount);
-
-                SetMicroShadowingSettings(cmd);
 
                 if (hdCamera.frameSettings.SSAORunsAsync())
                 {
@@ -2962,7 +2959,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if ((visualEnv.fogType.value != FogType.None) || (visualEnv.skyType.value == (int)SkyType.PhysicallyBased))
             {
                 var pixelCoordToViewDirWS = hdCamera.mainViewConstants.pixelCoordToViewDirWS;
-                m_SkyManager.RenderOpaqueAtmosphericScattering(cmd, hdCamera, colorBuffer, intermediateBuffer, depthBuffer, pixelCoordToViewDirWS, hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA));
+                m_SkyManager.RenderOpaqueAtmosphericScattering(cmd, hdCamera, colorBuffer, m_LightingBufferHandle, intermediateBuffer, depthBuffer, pixelCoordToViewDirWS, hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA));
             }
         }
 
@@ -3258,11 +3255,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             public Vector4          colorPyramidUVScaleAndLimit;
             public int              colorPyramidMipCount;
-        }
+            }
 
         RenderSSRParameters PrepareSSRParameters(HDCamera hdCamera)
-        {
-            var volumeSettings = VolumeManager.instance.stack.GetComponent<ScreenSpaceReflection>();
+                {
+                    var volumeSettings = VolumeManager.instance.stack.GetComponent<ScreenSpaceReflection>();
 
             var parameters = new RenderSSRParameters();
 
@@ -3274,13 +3271,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             parameters.height = hdCamera.actualHeight;
             parameters.viewCount = hdCamera.viewCount;
 
-            float n = hdCamera.camera.nearClipPlane;
-            float f = hdCamera.camera.farClipPlane;
+                    float n = hdCamera.camera.nearClipPlane;
+                    float f = hdCamera.camera.farClipPlane;
 
             parameters.maxIteration = volumeSettings.rayMaxIterations.value;
             parameters.reflectSky = volumeSettings.reflectSky.value;
 
-            float thickness = volumeSettings.depthBufferThickness.value;
+                    float thickness      = volumeSettings.depthBufferThickness.value;
             parameters.thicknessScale = 1.0f / (1.0f + thickness);
             parameters.thicknessBias = -n / (f - n) * (thickness * parameters.thicknessScale);
 
@@ -3288,7 +3285,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             parameters.depthPyramidMipCount = info.mipLevelCount;
             parameters.offsetBufferData = info.GetOffsetBufferData(m_DepthPyramidMipLevelOffsetsBuffer);
 
-            float roughnessFadeStart = 1 - volumeSettings.smoothnessFadeStart.value;
+                    float roughnessFadeStart             = 1 - volumeSettings.smoothnessFadeStart.value;
             parameters.roughnessFadeEnd = 1 - volumeSettings.minSmoothness.value;
             float roughnessFadeLength = parameters.roughnessFadeEnd - roughnessFadeStart;
             parameters.roughnessFadeEndTimesRcpLength = (roughnessFadeLength != 0) ? (parameters.roughnessFadeEnd * (1.0f / roughnessFadeLength)) : 1;
@@ -3324,10 +3321,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 cmd.SetComputeIntParam(cs, HDShaderIDs._SsrDepthPyramidMaxMip, parameters.depthPyramidMipCount - 1);
                 cmd.SetComputeFloatParam(cs, HDShaderIDs._SsrEdgeFadeRcpLength, parameters.edgeFadeRcpLength);
                 cmd.SetComputeIntParam(cs, HDShaderIDs._SsrReflectsSky, parameters.reflectSky ? 1 : 0);
-                cmd.SetComputeIntParam(cs, HDShaderIDs._SsrStencilExclusionValue, (int)StencilBitMask.DoesntReceiveSSR);
+                    cmd.SetComputeIntParam(  cs, HDShaderIDs._SsrStencilExclusionValue,          (int)StencilBitMask.DoesntReceiveSSR);
 
-                // cmd.SetComputeTextureParam(cs, kernel, "_SsrDebugTexture",    m_SsrDebugTexture);
-                cmd.SetComputeTextureParam(cs, parameters.tracingKernel, HDShaderIDs._DepthPyramidTexture, depthPyramid);
+                    // cmd.SetComputeTextureParam(cs, kernel, "_SsrDebugTexture",    m_SsrDebugTexture);
+                cmd.SetComputeTextureParam(cs, parameters.tracingKernel, HDShaderIDs._CameraDepthTexture, depthPyramid);
                 cmd.SetComputeTextureParam(cs, parameters.tracingKernel, HDShaderIDs._SsrClearCoatMaskTexture, clearCoatMask);
                 cmd.SetComputeTextureParam(cs, parameters.tracingKernel, HDShaderIDs._SsrHitPointTexture, SsrHitPointTexture);
                 cmd.SetComputeTextureParam(cs, parameters.tracingKernel, HDShaderIDs._StencilTexture, stencilBuffer);
@@ -3335,10 +3332,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 cmd.SetComputeBufferParam(cs, parameters.tracingKernel, HDShaderIDs._DepthPyramidMipLevelOffsets, parameters.offsetBufferData);
 
                 cmd.DispatchCompute(cs, parameters.tracingKernel, HDUtils.DivRoundUp(parameters.width, 8), HDUtils.DivRoundUp(parameters.height, 8), parameters.viewCount);
-            }
+                }
 
-            using (new ProfilingSample(cmd, "SSR - Reprojection", CustomSamplerId.SsrReprojection.GetSampler()))
-            {
+                using (new ProfilingSample(cmd, "SSR - Reprojection", CustomSamplerId.SsrReprojection.GetSampler()))
+                {
                 // cmd.SetComputeTextureParam(cs, kernel, "_SsrDebugTexture",    m_SsrDebugTexture);
                 cmd.SetComputeTextureParam(cs, parameters.reprojectionKernel, HDShaderIDs._SsrHitPointTexture, SsrHitPointTexture);
                 cmd.SetComputeTextureParam(cs, parameters.reprojectionKernel, HDShaderIDs._SsrLightingTextureRW, ssrLightingTexture);
@@ -3362,7 +3359,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (settings.enableRaytracing.value)
             {
                 RenderRayTracedReflections(hdCamera, cmd, m_SsrLightingTexture, renderContext, m_FrameCount);
-            }
+                }
             else
 #endif
             {
@@ -3374,7 +3371,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 var parameters = PrepareSSRParameters(hdCamera);
                 RenderSSR(parameters, m_SharedRTManager.GetDepthTexture(), m_SsrHitPointTexture, m_SharedRTManager.GetStencilBufferCopy(), clearCoatMask, previousColorPyramid, m_SsrLightingTexture, cmd, renderContext);
 
-                if (!hdCamera.colorPyramidHistoryIsValid)
+            	if (!hdCamera.colorPyramidHistoryIsValid)
             	{
                 	cmd.SetGlobalTexture(HDShaderIDs._SsrLightingTexture, TextureXR.GetClearTexture());
                 	hdCamera.colorPyramidHistoryIsValid = true; // For the next frame...
