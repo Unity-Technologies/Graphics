@@ -71,9 +71,13 @@ half4 CombinedShapeLightShared(half4 color, half4 mask, half2 lightingUV)
 #endif
 
     half4 finalOutput;
+#if !USE_SHAPE_LIGHT_TYPE_0 && !USE_SHAPE_LIGHT_TYPE_1 && !USE_SHAPE_LIGHT_TYPE_2 && ! USE_SHAPE_LIGHT_TYPE_3
+    finalOutput = color;
+#else
     half4 finalModulate = shapeLight0Modulate + shapeLight1Modulate + shapeLight2Modulate + shapeLight3Modulate;
     half4 finalAdditve = shapeLight0Additive + shapeLight1Additive + shapeLight2Additive + shapeLight3Additive;
     finalOutput = _HDREmulationScale * (color * finalModulate + finalAdditve);
+#endif
 
     finalOutput.a = color.a;
     return finalOutput;

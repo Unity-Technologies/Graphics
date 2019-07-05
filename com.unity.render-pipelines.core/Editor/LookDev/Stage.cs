@@ -18,16 +18,23 @@ namespace UnityEditor.Rendering.Experimental.LookDev
         private readonly List<GameObject> m_GameObjects = new List<GameObject>();
         private readonly List<GameObject> m_PersistentGameObjects = new List<GameObject>();
         private readonly Camera m_Camera;
+        private readonly Light m_SunLight;
 
         /// <summary>Get access to the stage's camera</summary>
         public Camera camera => m_Camera;
+
+        /// <summary>Get access to the stage's light</summary>
+        public Light sunLight => m_SunLight;
 
         /// <summary>Get access to the stage's scene</summary>
         public Scene scene => m_PreviewScene;
 
         private StageRuntimeInterface SRI;
         public StageRuntimeInterface runtimeInterface
-            => SRI ?? (SRI = new StageRuntimeInterface(CreateGameObjectIntoStage, () => camera));
+            => SRI ?? (SRI = new StageRuntimeInterface(
+                CreateGameObjectIntoStage,
+                () => camera,
+                () => sunLight));
 
         /// <summary>
         /// Construct a new stage to let your object live.
@@ -54,6 +61,13 @@ namespace UnityEditor.Rendering.Experimental.LookDev
             m_Camera.renderingPath = RenderingPath.DeferredShading;
             m_Camera.useOcclusionCulling = false;
             m_Camera.scene = m_PreviewScene;
+
+            var lightGO = EditorUtility.CreateGameObjectWithHideFlags("Look Dev Sun", HideFlags.HideAndDontSave, typeof(Light));
+            MoveIntoStage(lightGO, true); //position will be updated right before rendering
+            m_SunLight = lightGO.GetComponent<Light>();
+            m_SunLight.type = LightType.Directional;
+            m_SunLight.shadows = LightShadows.Soft;
+            m_SunLight.intensity = 0f;
         }
 
         /// <summary>

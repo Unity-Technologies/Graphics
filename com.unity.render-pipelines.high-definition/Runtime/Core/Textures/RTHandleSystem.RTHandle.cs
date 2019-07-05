@@ -9,6 +9,7 @@ namespace UnityEngine.Experimental.Rendering
         {
             internal RTHandleSystem             m_Owner;
             internal RenderTexture              m_RT;
+            internal Texture                    m_ExternalTexture;
             internal RenderTargetIdentifier     m_NameID;
             internal bool                       m_EnableMSAA = false;
             internal bool                       m_EnableRandomWrite = false;
@@ -23,21 +24,9 @@ namespace UnityEngine.Experimental.Rendering
 
             public RTHandleProperties           rtHandleProperties { get { return m_Owner.rtHandleProperties; } }
 
-            public RenderTexture rt
-            {
-                get
-                {
-                    return m_RT;
-                }
-            }
+            public RenderTexture rt { get { return m_RT; } }
 
-            public RenderTargetIdentifier nameID
-            {
-                get
-                {
-                    return m_NameID;
-                }
-            }
+            public RenderTargetIdentifier nameID { get { return m_NameID; } }
 
             // Keep constructor private
             internal RTHandle(RTHandleSystem owner)
@@ -47,7 +36,14 @@ namespace UnityEngine.Experimental.Rendering
 
             public static implicit operator RenderTexture(RTHandle handle)
             {
+                Debug.Assert(handle.rt != null, "RTHandle was created using a regular Texture and is used as a RenderTexture");
                 return handle.rt;
+            }
+
+            public static implicit operator Texture(RTHandle handle)
+            {
+                Debug.Assert(handle.m_ExternalTexture != null || handle.rt != null);
+                return (handle.rt != null) ? handle.rt : handle.m_ExternalTexture;
             }
 
             public static implicit operator RenderTargetIdentifier(RTHandle handle)
@@ -55,10 +51,18 @@ namespace UnityEngine.Experimental.Rendering
                 return handle.nameID;
             }
 
-            internal void SetRenderTexture(RenderTexture rt, RTCategory category)
+            internal void SetRenderTexture(RenderTexture rt)
             {
                 m_RT=  rt;
+                m_ExternalTexture = null;
                 m_NameID = new RenderTargetIdentifier(rt);
+            }
+
+            internal void SetTexture(Texture tex)
+            {
+                m_RT = null;
+                m_ExternalTexture = tex;
+                m_NameID = new RenderTargetIdentifier(tex);
             }
 
             public void Release()
@@ -67,6 +71,7 @@ namespace UnityEngine.Experimental.Rendering
                 CoreUtils.Destroy(m_RT);
                 m_NameID = BuiltinRenderTextureType.None;
                 m_RT = null;
+                m_ExternalTexture = null;
             }
 
             public Vector2Int GetScaledSize(Vector2Int refSize)
