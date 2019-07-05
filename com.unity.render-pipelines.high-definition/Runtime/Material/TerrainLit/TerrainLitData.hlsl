@@ -51,6 +51,17 @@ float _DistortionBlurScale;
 float _DistortionBlurRemapMin;
 float _DistortionBlurRemapMax;
 
+#ifdef _ALPHATEST_ON
+TEXTURE2D(_TerrainHolesTexture);
+SAMPLER(sampler_TerrainHolesTexture);
+
+void ClipHoles(float2 uv)
+{
+	float hole = SAMPLE_TEXTURE2D(_TerrainHolesTexture, sampler_TerrainHolesTexture, uv).r;
+	DoAlphaTest(hole, 0.5);
+}
+#endif
+
 // Vertex height displacement
 #ifdef HAVE_MESH_MODIFICATION
 
@@ -142,6 +153,10 @@ void GetSurfaceAndBuiltinData(inout FragInputs input, float3 V, inout PositionIn
     float2 terrainNormalMapUV = (input.texCoord0.xy + 0.5f) * _TerrainHeightmapRecipSize.xy;
     input.texCoord0.xy *= _TerrainHeightmapRecipSize.zw;
 #endif
+
+#ifdef _ALPHATEST_ON
+	ClipHoles(input.texCoord0);
+#endif	
 
     // terrain lightmap uvs are always taken from uv0
     input.texCoord1 = input.texCoord2 = input.texCoord0;
