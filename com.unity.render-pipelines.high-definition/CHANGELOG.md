@@ -18,6 +18,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Changed
 - Remove all obsolete wind code from shader
+- Enlighten now uses inverse squared falloff instead of the built-in falloff.
+- Enlighten is now deprecated. Use the CPU or GPU Lightmapper instead.
 
 ## [6.8.0] - 2019-06-12
 
