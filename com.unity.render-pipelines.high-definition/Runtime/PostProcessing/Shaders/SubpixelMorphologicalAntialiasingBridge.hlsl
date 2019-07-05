@@ -36,11 +36,14 @@ struct VaryingsEdge
     float4 vertex : SV_POSITION;
     float2 texcoord : TEXCOORD0;
     float4 offsets[3] : TEXCOORD1;
+    UNITY_VERTEX_OUTPUT_STEREO
 };
 
 VaryingsEdge VertEdge(Attributes v)
 {
     VaryingsEdge o;
+    UNITY_SETUP_INSTANCE_ID(v);
+    UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
     o.vertex = GetFullScreenTriangleVertexPosition(v.vertexID);
     o.texcoord = GetFullScreenTriangleTexCoord(v.vertexID);
 
@@ -51,6 +54,7 @@ VaryingsEdge VertEdge(Attributes v)
 
 float4 FragEdge(VaryingsEdge i) : SV_Target
 {
+    UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i);
     return float4(SMAAColorEdgeDetectionPS(i.texcoord, i.offsets, _InputTexture), 0.0, 0.0);
 }
 
@@ -63,11 +67,14 @@ struct VaryingsBlend
     float2 texcoord : TEXCOORD0;
     float2 pixcoord : TEXCOORD1;
     float4 offsets[3] : TEXCOORD2;
+    UNITY_VERTEX_OUTPUT_STEREO
 };
 
 VaryingsBlend VertBlend(Attributes v)
 {
     VaryingsBlend o;
+    UNITY_SETUP_INSTANCE_ID(v);
+    UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
     o.vertex = GetFullScreenTriangleVertexPosition(v.vertexID);
     o.texcoord = GetFullScreenTriangleTexCoord(v.vertexID);
 
@@ -78,6 +85,7 @@ VaryingsBlend VertBlend(Attributes v)
 
 float4 FragBlend(VaryingsBlend i) : SV_Target
 {
+    UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i);
     return SMAABlendingWeightCalculationPS(i.texcoord, i.pixcoord, i.offsets, _InputTexture, _AreaTex, _SearchTex, 0);
 }
 
@@ -89,11 +97,14 @@ struct VaryingsNeighbor
     float4 vertex : SV_POSITION;
     float2 texcoord : TEXCOORD0;
     float4 offset : TEXCOORD1;
+    UNITY_VERTEX_OUTPUT_STEREO
 };
 
 VaryingsNeighbor VertNeighbor(Attributes v)
 {
     VaryingsNeighbor o;
+    UNITY_SETUP_INSTANCE_ID(v);
+    UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
     o.vertex = GetFullScreenTriangleVertexPosition(v.vertexID);
     o.texcoord = GetFullScreenTriangleTexCoord(v.vertexID);
 
@@ -103,6 +114,7 @@ VaryingsNeighbor VertNeighbor(Attributes v)
 
 float4 FragNeighbor(VaryingsNeighbor i) : SV_Target
 {
+    UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i);
     return SMAANeighborhoodBlendingPS(i.texcoord, i.offset, _InputTexture, _BlendTex);
 }
 

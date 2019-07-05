@@ -2,8 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using UnityEditor.Experimental.VFX;
-using UnityEngine.Experimental.VFX;
+using UnityEditor.VFX;
+using UnityEngine.VFX;
 
 namespace UnityEditor.VFX
 {
@@ -11,7 +11,7 @@ namespace UnityEditor.VFX
     {
         public Shader shader;
 
-        public override VFXDataType type { get { return VFXDataType.kMesh; } }
+        public override VFXDataType type { get { return VFXDataType.Mesh; } }
 
         public override void OnEnable()
         {
@@ -43,7 +43,8 @@ namespace UnityEditor.VFX
             Dictionary<VFXContext, VFXContextCompiledData> contextToCompiledData,
             Dictionary<VFXContext, int> contextSpawnToBufferIndex,
             Dictionary<VFXData, int> attributeBuffer,
-            Dictionary<VFXData, int> eventBuffer)
+            Dictionary<VFXData, int> eventBuffer,
+            Dictionary<VFXContext, List<VFXContextLink>[]> effectiveFlowInputLinks)
         {
             var context = m_Owners[0];
             var contextData = contextToCompiledData[context];
@@ -61,7 +62,7 @@ namespace UnityEditor.VFX
                 externalProcessor = shader,
                 values = mappings.ToArray(),
                 parameters = contextData.parameters,
-                type = VFXTaskType.Output
+                type = (UnityEngine.VFX.VFXTaskType)VFXTaskType.Output
             };
 
             mappings.Clear();
@@ -92,7 +93,7 @@ namespace UnityEditor.VFX
             });
         }
 
-        public override void GenerateAttributeLayout()
+        public override void GenerateAttributeLayout(Dictionary<VFXContext, List<VFXContextLink>[]> effectiveFlowInputLinks)
         {
         }
 

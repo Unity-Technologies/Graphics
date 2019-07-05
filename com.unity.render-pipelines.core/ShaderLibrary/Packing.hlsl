@@ -40,7 +40,7 @@ real3 UnpackNormalOctRectEncode(real2 f)
     // Solve for {x, y, z} given {r, g}.
     real x = 0.5 + 0.5 * g - abs(r);
     real y = g - x;
-    real z = max(1.0 - abs(x) - abs(y), FLT_EPS); // EPS is absolutely crucial for anisotropy
+    real z = max(1.0 - abs(x) - abs(y), REAL_EPS); // EPS is absolutely crucial for anisotropy
 
     real3 p = real3(x, y, CopySign(z, r));
 
@@ -494,7 +494,7 @@ real UnpackFloatFromR8G8(real2 f)
 }
 
 // Pack float2 (each of 12 bit) in 888
-real3 PackFloat2To888(real2 f)
+float3 PackFloat2To888(float2 f)
 {
     uint2 i = (uint2)(f * 4095.5);
     uint2 hi = i >> 8;
@@ -506,7 +506,7 @@ real3 PackFloat2To888(real2 f)
 }
 
 // Unpack 2 float of 12bit packed into a 888
-real2 Unpack888ToFloat2(real3 x)
+float2 Unpack888ToFloat2(float3 x)
 {
     uint3 i = (uint3)(x * 255.0);
     // 8 bit in lo, 4 bit in hi

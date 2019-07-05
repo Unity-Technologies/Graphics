@@ -2,6 +2,8 @@
 
 The High Definition Render Pipeline’s [Lights](Light-Component.html) can cast shadows from one GameObject onto another. They emphasize the position and scale of GameObjects, which adds a degree of depth and realism to a Scene that could otherwise look flat.
 
+![](Images/HDRPFeatures-Shadows.png)
+
 ## Shadow map resolution
 
 The resolution of a Light’s shadow map determines the size of its shadow maps. The larger the shadow map, the more precise the shadows can be, and the better the High Definition Render Pipeline (HDRP) can capture small details in the shadow casting geometry. Rendering shadow maps at higher resolutions make them look sharper.
@@ -56,18 +58,7 @@ Using high shadow bias values may result in light "leaking" through Meshes. This
 
 After HDRP captures a shadow map, it processes filtering on the map in order to decrease the aliasing effect that occurs on low resolution shadow maps. Different filters affect the perceived sharpness of shadows.
 
-To change which filter HDRP uses, change the **Filtering Quality** property in your Unity Project’s HDRP Asset. There are currently four filter quality presets for directional and punctual lights.
-
-<a name="FilteringQualities"></a>
-
-| **Filtering Quality** | **Algorithm**                                                |
-| --------------------- | ------------------------------------------------------------ |
-| **Low**               | **Point/Spot Lights**: Percentage Closer Filtering (PCF) 3x3 (4 taps).<br />**Directional Lights**: PCF Tent 5x5 (9 taps). |
-| **Medium**            | **Point/Spot Lights**: PCF 5x5 (9 taps).<br />**Directional Lights**: PCF Tent 5x5 (9 taps). |
-| **High**              | **Point/Spot/Directional Lights**: Percentage Closer Soft Shadow (PCSS). You can change the sample count to decrease the quality of these shadows. This decreases the resource intensity of this algorithm. To change the sample count for shadows cast by that Light, set the **Filter Sample Count** in the Inspector of each Light component. |
-| **Very High**         | **Point/Spot**: Use **High** for their **Filtering Quality**.<br />**Directional Lights**: Improve Moment Shadows. |
-
-The PCF algorithm applies a fixed size blur. PCSS and Improved Moment Shadows algorithms apply a different blur size depending on the distance between the shadowed pixel and the shadow caster. This results in a more realistic shadow, that is also more resource intensive to compute.
+To change which filter HDRP uses, change the **Filtering Quality** property in your Unity Project’s [HDRP Asset](HDRP-Asset.html). There are currently four filter quality presets for directional and punctual lights. For information on the available filter qualities, see the [Filtering Qualities table](HDRP-Asset.html#FilteringQualities). 
 
 ## Shadowmasks
 
@@ -102,10 +93,24 @@ Directional Lights do not use **Fade Distance**. Instead they use the **Max Dist
 
 **Shadowmask** is more memory intensive because the Camera uses shadowmask textures for static GameObjects close to the Camera, requiring a larger resolution shadowmask texture.
 
+<a name="ShadowUpdateMode"></a>
+
+## Shadow Update Mode
+
+You can use **Update Mode** to specify the calculation method HDRP uses to update a [Light](Light-Component.html)'s shadow maps. The following Update Modes are available:
+
+| **Update Mode** | **Description**                                              |
+| --------------- | ------------------------------------------------------------ |
+| **Every Frame** | HDRP updates the shadow maps for the light every frame.      |
+| **On Enable**   | HDRP updates the shadow maps for the light whenever you enable the GameObject. |
+| **On Demand**   | HDRP updates the shadow maps for the light every time you request them. To do this, call the RequestShadowMapRendering() method in the Light's HDAdditionalLightData component. |
+
+**Note:** no matter what Update Mode a Light uses, if Unity resizes the content of the shadow atlas (due to shadow maps not fitting on the atlas at their original resolution), Unity also updates the shadow map to perform the required rescaling.
+
 ## Contact Shadows
 
 Contact Shadows are shadows that HDRP [ray marches](Glossary.html#RayMarching) in screen space, inside the depth buffer, at a close range. They provide small, detailed, shadows for details in geometry that shadow maps cannot usually capture.
 
-For details on how to enable and customize Contact Shadows, see the [Contact Shadows documentation](Override-Contact-Shadows.html).
+For details on how to enable and customize Contact Shadows, see the [Contact Shadows override documentation](Override-Contact-Shadows.html).
 
 Only one Light can cast Contact Shadows at a time. This means that, if you have more than one Light that casts Contact Shadows visible on the screen, only the dominant Light renders Contact Shadows. HDRP chooses the dominant Light using the screen space size of the Light’s bounding box. A Direction Light that casts Contact Shadows is always the dominant Light.

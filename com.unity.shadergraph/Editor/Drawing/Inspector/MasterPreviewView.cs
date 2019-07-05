@@ -72,7 +72,6 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
 
         public MasterPreviewView(PreviewManager previewManager, GraphData graph)
         {
-            cacheAsBitmap = true;
             style.overflow = Overflow.Hidden;
             m_PreviewManager = previewManager;
             m_Graph = graph;
@@ -172,6 +171,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
             if (m_Graph.previewData.serializedMesh.mesh != changedMesh)
             {
                 m_Graph.previewData.rotation = Quaternion.identity;
+                m_PreviewScrollPosition = Vector2.zero;
             }
 
             m_Graph.previewData.serializedMesh.mesh = changedMesh;

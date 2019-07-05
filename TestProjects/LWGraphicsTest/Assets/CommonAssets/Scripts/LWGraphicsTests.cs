@@ -46,6 +46,11 @@ public class LWGraphicsTests
             foreach (var camera in cameras)
                 camera.stereoTargetEye = StereoTargetEyeMask.Both;
         }
+        else
+        {
+            XRSettings.enabled = false;
+            yield return null;
+        }
         
         for (int i = 0; i < settings.WaitFrames; i++)
             yield return null;

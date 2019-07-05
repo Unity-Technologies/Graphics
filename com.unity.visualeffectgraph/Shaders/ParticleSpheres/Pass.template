@@ -1,11 +1,20 @@
 ${VFXPerPassInclude}
 ${VFXGeneratedBlockFunction}
 
-#pragma vertex vert
-VFX_VARYING_PS_INPUTS vert(uint id : SV_VertexID, uint instanceID : SV_InstanceID)
+struct vs_input
 {
-	uint index = (id >> 2) + instanceID * 2048;
+	VFX_DECLARE_INSTANCE_ID
+};
+
+#pragma vertex vert
+VFX_VARYING_PS_INPUTS vert(uint id : SV_VertexID, vs_input i)
+{
 	VFX_VARYING_PS_INPUTS o = (VFX_VARYING_PS_INPUTS)0;
+
+	UNITY_SETUP_INSTANCE_ID(i);
+	UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
+
+	uint index = (id >> 2) + VFX_GET_INSTANCE_ID(i) * 2048;
 	
 	${VFXLoadAttributesOrCull}
 	${VFXProcessBlocks}

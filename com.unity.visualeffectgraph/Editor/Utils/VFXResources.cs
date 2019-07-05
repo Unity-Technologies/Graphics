@@ -80,6 +80,23 @@ namespace UnityEditor.VFX
                     new GradientAlphaKey(0.0f, 1.0f),
                 };
 
+                newAsset.gradientMapRamp = new Gradient();
+                newAsset.gradientMapRamp.colorKeys = new GradientColorKey[]
+                {
+                    new GradientColorKey(new Color(0.0f,    0.0f,   0.0f),  0.0f),
+                    new GradientColorKey(new Color(0.75f,   0.15f,  0.0f),  0.3f),
+                    new GradientColorKey(new Color(1.25f,   0.56f,  0.12f), 0.5f),
+                    new GradientColorKey(new Color(3.5f,    2.0f,   0.5f),  0.7f),
+                    new GradientColorKey(new Color(4.0f,    3.5f,   1.2f),  0.9f),
+                    new GradientColorKey(new Color(12.0f,   10.0f,  2.5f),  1.0f),
+                };
+                newAsset.gradientMapRamp.alphaKeys = new GradientAlphaKey[]
+                {
+                    new GradientAlphaKey(0.0f, 0.0f),
+                    new GradientAlphaKey(1.0f, 1.0f),
+                };
+
+
                 AssetDatabase.CreateAsset(newAsset, "Assets/" + defaultFileName);
                 asset = SafeLoadAssetAtPath<VFXResources>("Assets/" + defaultFileName);
             }
@@ -94,6 +111,7 @@ namespace UnityEditor.VFX
         public Mesh mesh;
         public AnimationCurve animationCurve;
         public Gradient gradient;
+        public Gradient gradientMapRamp;
         public Shader shader;
     }
 }

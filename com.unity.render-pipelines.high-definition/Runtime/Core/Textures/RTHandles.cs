@@ -29,7 +29,6 @@ namespace UnityEngine.Experimental.Rendering
             MSAASamples msaaSamples = MSAASamples.None,
             bool bindTextureMS = false,
             bool useDynamicScale = false,
-            bool xrInstancing = false,
             RenderTextureMemoryless memoryless = RenderTextureMemoryless.None,
             string name = ""
             )
@@ -52,7 +51,6 @@ namespace UnityEngine.Experimental.Rendering
                 msaaSamples,
                 bindTextureMS,
                 useDynamicScale,
-                xrInstancing,
                 memoryless,
                 name
                 );
@@ -75,7 +73,6 @@ namespace UnityEngine.Experimental.Rendering
             bool enableMSAA = false,
             bool bindTextureMS = false,
             bool useDynamicScale = false,
-            bool xrInstancing = false,
             RenderTextureMemoryless memoryless = RenderTextureMemoryless.None,
             string name = ""
             )
@@ -97,7 +94,6 @@ namespace UnityEngine.Experimental.Rendering
                 enableMSAA,
                 bindTextureMS,
                 useDynamicScale,
-                xrInstancing,
                 memoryless,
                 name
                 );
@@ -120,7 +116,6 @@ namespace UnityEngine.Experimental.Rendering
             bool enableMSAA = false,
             bool bindTextureMS = false,
             bool useDynamicScale = false,
-            bool xrInstancing = false,
             RenderTextureMemoryless memoryless = RenderTextureMemoryless.None,
             string name = ""
             )
@@ -142,11 +137,22 @@ namespace UnityEngine.Experimental.Rendering
                 enableMSAA,
                 bindTextureMS,
                 useDynamicScale,
-                xrInstancing,
                 memoryless,
                 name
                 );
         }
+
+        public static RTHandleSystem.RTHandle Alloc(Texture tex)
+        {
+            return s_DefaultInstance.Alloc(tex);
+        }
+
+        public static RTHandleSystem.RTHandle Alloc(RTHandleSystem.RTHandle tex)
+        {
+            Debug.LogError("Allocation a RTHandle from another one is forbidden.");
+            return null;
+        }
+
 
         public static void Initialize(
             int width,

@@ -3,7 +3,7 @@ using System;
 using UnityEngine;
 using UnityEngine.Timeline;
 using UnityEngine.Playables;
-using UnityEngine.Experimental.VFX;
+using UnityEngine.VFX;
 using UnityEngine.Experimental.VFX.Utility;
 
 [Serializable]

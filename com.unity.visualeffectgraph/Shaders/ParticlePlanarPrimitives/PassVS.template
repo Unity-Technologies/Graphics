@@ -1,15 +1,23 @@
-#pragma vertex vert
-VFX_VARYING_PS_INPUTS vert(uint id : SV_VertexID, uint instanceID : SV_InstanceID)
+struct vs_input
 {
+	VFX_DECLARE_INSTANCE_ID
+};
+
+#pragma vertex vert
+VFX_VARYING_PS_INPUTS vert(uint id : SV_VertexID, vs_input i)
+{
+	VFX_VARYING_PS_INPUTS o = (VFX_VARYING_PS_INPUTS)0;
+
+	UNITY_SETUP_INSTANCE_ID(i);
+	UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
+
 #if VFX_PRIMITIVE_TRIANGLE
 	uint index = id / 3;
 #elif VFX_PRIMITIVE_QUAD
-	uint index = (id >> 2) + instanceID * 2048;
+	uint index = (id >> 2) + VFX_GET_INSTANCE_ID(i) * 2048;
 #elif VFX_PRIMITIVE_OCTAGON
-	uint index = (id >> 3) + instanceID * 1024;
+	uint index = (id >> 3) + VFX_GET_INSTANCE_ID(i) * 1024;
 #endif
-
-	VFX_VARYING_PS_INPUTS o = (VFX_VARYING_PS_INPUTS)0;
 
 	${VFXLoadAttributesOrCull}
 	${VFXProcessBlocks}
@@ -34,7 +42,7 @@ VFX_VARYING_PS_INPUTS vert(uint id : SV_VertexID, uint instanceID : SV_InstanceI
 	const float kUVScale = 0.866025388240814208984375f;
 	
 	const float2 vOffsets = kOffsets[id % 3];
-	o.VFX_VARYING_UV = (vOffsets * kUVScale) + 0.5f;
+	o.VFX_VARYING_UV.xy = (vOffsets * kUVScale) + 0.5f;
 	
 #elif VFX_PRIMITIVE_OCTAGON	
 	
@@ -53,14 +61,14 @@ VFX_VARYING_PS_INPUTS vert(uint id : SV_VertexID, uint instanceID : SV_InstanceI
 	${VFXLoadParameter:{cropFactor}}
 	cropFactor = id & 1 ? 1.0f - cropFactor : 1.0f;
 	const float2 vOffsets = kUvs[id & 7] * cropFactor;
-	o.VFX_VARYING_UV = vOffsets + 0.5f;
+	o.VFX_VARYING_UV.xy = vOffsets + 0.5f;
 	
 #endif
 	
 	${VFXLoadSize}
 	
 	const float4x4 elementToVFX = GetElementToVFXMatrix(axisX,axisY,axisZ,float3(angleX,angleY,angleZ),float3(pivotX,pivotY,pivotZ),size3,position);
-		  float3 vPos = mul(elementToVFX,float4(vOffsets,0.0f,1.0f)).xyz;
+	float3 vPos = mul(elementToVFX,float4(vOffsets,0.0f,1.0f)).xyz;
 
 	o.VFX_VARYING_POSCS = TransformPositionVFXToClip(vPos);
 

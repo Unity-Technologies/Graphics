@@ -2,7 +2,7 @@ using System;
 using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Experimental.VFX;
+using UnityEngine.VFX;
 
 namespace UnityEditor.VFX
 {
@@ -26,7 +26,7 @@ namespace UnityEditor.VFX
         [SerializeField, VFXSetting(VFXSettingAttribute.VisibleFlags.None)]
         protected VFXExpressionOperation m_expressionOp;
 
-        override public string name { get { return m_expressionOp.ToString(); } }
+        override public string name { get { return ObjectNames.NicifyVariableName(m_expressionOp.ToString()); } }
 
         private Type GetOutputType()
         {

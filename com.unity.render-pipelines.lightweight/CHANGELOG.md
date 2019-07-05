@@ -4,9 +4,48 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [6.7.0] - 2019-XX-XX
+## [7.0.0] - 2019-XX-XX
+### Added
+- Initial Stadia platform support.
+- Added a menu option to create a new `ScriptableRendererFeature` script. To do so in the Editor, click on Asset > Create > Rendering > Lightweight Render Pipeline > Renderer Feature.
+- Added documentation for SpeedTree Shaders in LWRP.
+- Added extended features to LWRP Terrain Shader, so terrain assets can be forward-compatible with HDRP.
+- Enabled per-layer advanced or legacy-mode blending in LWRP Terrain Shader. 
+- Added the documentation page "Rendering in LWRP", which describes the forward rendering camera loop.
+- Added documentation overview for how Post Processing Version 2 works in LWRP.
+- Added documentation notes and FAQ entry on the 2D Renderer affecting the LWRP Asset.
+
+### Changed
+- Replaced beginCameraRendering callbacks by non obsolete implementation in Light2D
+- Updated `ScriptableRendererFeature` and `ScriptableRenderPass` API docs.
+- Shader type Real translates to FP16 precision on Nintendo Switch.
+
+### Fixed
+- Fixed a case where built-in Shader time values could be out of sync with actual time. [case 1142495](https://fogbugz.unity3d.com/f/cases/1142495/)
+- Fixed an issue that caused forward renderer resources to not load properly when you upgraded LWRP from an older version to 7.0.0. [case 1154925](https://issuetracker.unity3d.com/issues/lwrp-upgrading-lwrp-package-to-7-dot-0-0-breaks-forwardrenderdata-asset-in-resource-files)
+- Fixed GC spikes caused by LWRP allocating heap memory every frame.
+- Fixed distortion effect on particle unlit shader.
+- Fixed NullReference exception caused when trying to add a ScriptableRendererFeature.
+- Fixed issue with certain LWRP shaders not showing when using forward/2D renderer.
+- Fixed the shadow resolve pass and the final pass, so they're not consuming unnecessary bandwidth. [case 1152439](https://issuetracker.unity3d.com/issues/lwrp-mobile-increased-memory-usage-and-extra-rendering-steps) 
+- Added missing page for 2D Lights in LWRP.
+- Tilemap tiles no longer appear black when you use the 2D renderer.
+- Sprites in the preview window are no longer lit by 2D Scene lighting.
+- Fixed warnings for unsupported shadow map formats for GLES2 API.
+- Disabled shadows for devices that do not support shadow maps or depth textures.
+- Fixed support for LWRP per-pixel terrain. [case 1110520](https://fogbugz.unity3d.com/f/cases/1110520)
+- Fixed some basic UI/usability issues with LWRP terrain Materials (use of warnings and modal value changes).
+- Fixed an issue where using LWRP and Sprite Shape together would produce meta file conflicts.
+
+## [6.7.0] - 2019-05-16
 ### Added
 - Added SpeedTree Shaders.
+- Added two Shader Graph master nodes: Lit Sprite and Unlit Sprite. They only work with the 2D renderer.
+- Added documentation for the 2D renderer.
+
+### Changed
+- The 2D renderer and Light2D component received a number of improvements and are now ready to try as experimental features.
+- Updated the [Feature Comparison Table](lwrp-builtin-feature-comparison.md) to reflect the current state of LWRP features.
 
 ### Fixed
 - When in playmode, the error 'Non matching Profiler.EndSample' no longer appears. [case 1140750](https://fogbugz.unity3d.com/f/cases/1140750/)
@@ -17,6 +56,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where Lightprobe data was missing if it was needed per-pixel and GPU instancing was enabled.
 - The Soft ScreenSpaceShadows Shader variant no longer gets stripped form builds. [case 1138236](https://fogbugz.unity3d.com/f/cases/1138236/)
 - Fixed a typo in the Particle Unlit Shader, so Soft Particles now work correctly.
+- Fixed emissive Materials not being baked for some meshes. [case 1145297](https://issuetracker.unity3d.com/issues/lwrp-emissive-materials-are-not-baked)
+- Camera matrices are now correctly set up when you call rendering functions in EndCameraRendering. [case 1146586](https://issuetracker.unity3d.com/issues/lwrp-drawmeshnow-returns-wrong-positions-slash-scales-when-called-from-endcamerarendering-hook)
+- Fixed GI not baking correctly while in gamma color space.
+- Fixed a NullReference exception when adding a renderer feature that is contained in a global namespace. [case 1147068](https://issuetracker.unity3d.com/issues/scriptablerenderpipeline-inspector-ui-crashes-when-a-scriptablerenderfeature-is-not-in-a-namespace)
+- Shaders are now set up for VR stereo instancing on Vulkan. [case 1142952](https://fogbugz.unity3d.com/f/cases/1142952/).
+- VR stereo matrices and vertex inputs are now set up on Vulkan. [case 1142952](https://fogbugz.unity3d.com/f/cases/1142952/).
+- Fixed the Material Upgrader so it's now run upon updating the LWRP package. [1148764](https://issuetracker.unity3d.com/product/unity/issues/guid/1148764/)
+- Fixed a NullReference exception when you create a new Lightweight Render Pipeline Asset. [case 1153388](https://issuetracker.unity3d.com/product/unity/issues/guid/1153388/) 
 
 ## [6.6.0] - 2019-04-01
 ### Added

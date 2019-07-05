@@ -39,6 +39,21 @@ VFXBlackboardRow.hovered #pill #selection-border
     bottom: 1px;
 }
 
+.blackboard .output > .mainContainer > #sectionHeader
+{
+    background-color:#393939;
+}
+
+.blackboard .output > .mainContainer > #sectionHeader
+{
+    background-color:#393939;
+}
+
+.blackboard .output > .mainContainer > #sectionHeader > #sectionTitleLabel
+{
+    color:#C1C1C1;
+}
+
 
 .blackboard > #dragIndicator {
     background-color: #44C0FF;

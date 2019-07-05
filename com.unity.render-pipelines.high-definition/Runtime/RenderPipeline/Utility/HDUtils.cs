@@ -259,7 +259,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             cmd.DrawProcedural(Matrix4x4.identity, GetBlitMaterial(source.dimension), bilinear ? 3 : 2, MeshTopology.Quads, 4, 1, s_PropertyBlock);
         }
 
-        public static void BlitTexture(CommandBuffer cmd, RTHandleSystem.RTHandle source, RTHandleSystem.RTHandle destination, Vector4 scaleBias, float mipLevel, bool bilinear)
+        public static void BlitTexture(CommandBuffer cmd, RTHandleSystem.RTHandle source, Vector4 scaleBias, float mipLevel, bool bilinear)
         {
             s_PropertyBlock.SetTexture(HDShaderIDs._BlitTexture, source);
             s_PropertyBlock.SetVector(HDShaderIDs._BlitScaleBias, scaleBias);
@@ -276,7 +276,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             Vector2 viewportScale = new Vector2(source.rtHandleProperties.rtHandleScale.x, source.rtHandleProperties.rtHandleScale.y);
             // Will set the correct camera viewport as well.
             SetRenderTarget(cmd, destination);
-            BlitTexture(cmd, source, destination, viewportScale, mipLevel, bilinear);
+            BlitTexture(cmd, source, viewportScale, mipLevel, bilinear);
         }
 
 
@@ -285,7 +285,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             // Will set the correct camera viewport as well.
             SetRenderTarget(cmd, destination);
-            BlitTexture(cmd, source, destination, scaleBias, mipLevel, bilinear);
+            BlitTexture(cmd, source, scaleBias, mipLevel, bilinear);
         }
 
         public static void BlitCameraTexture(CommandBuffer cmd, RTHandleSystem.RTHandle source, RTHandleSystem.RTHandle destination, Rect destViewport, float mipLevel = 0.0f, bool bilinear = false)
@@ -293,7 +293,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             Vector2 viewportScale = new Vector2(source.rtHandleProperties.rtHandleScale.x, source.rtHandleProperties.rtHandleScale.y);
             SetRenderTarget(cmd, destination);
             cmd.SetViewport(destViewport);
-            BlitTexture(cmd, source, destination, viewportScale, mipLevel, bilinear);
+            BlitTexture(cmd, source, viewportScale, mipLevel, bilinear);
         }
 
         // These method should be used to render full screen triangles sampling auto-scaling RTs.
@@ -462,8 +462,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     graphicDevice == GraphicsDeviceType.XboxOne ||
                     graphicDevice == GraphicsDeviceType.XboxOneD3D12 ||
                     graphicDevice == GraphicsDeviceType.Metal ||
-                    graphicDevice == GraphicsDeviceType.Vulkan ||
-                    graphicDevice == (GraphicsDeviceType)22 /*GraphicsDeviceType.Switch*/);
+                    graphicDevice == GraphicsDeviceType.Vulkan
+                    // Switch isn't supported currently (19.3)
+                    /* || graphicDevice == GraphicsDeviceType.Switch */);
         }
 
         public static void CheckRTCreated(RenderTexture rt)
@@ -506,6 +507,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     buildTarget == UnityEditor.BuildTarget.WSAPlayer ||
                     buildTarget == UnityEditor.BuildTarget.XboxOne ||
                     buildTarget == UnityEditor.BuildTarget.PS4 ||
+                    buildTarget == UnityEditor.BuildTarget.iOS ||
                     buildTarget == UnityEditor.BuildTarget.Switch);
         }
 
@@ -645,6 +647,24 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             color.a = 1;
 
             return color;
+        }
+
+        public static void DrawRendererList(ScriptableRenderContext renderContext, CommandBuffer cmd, RendererList rendererList)
+        {
+            if (!rendererList.isValid)
+                throw new ArgumentException("Invalid renderer list provided to DrawRendererList");
+
+            // This is done here because DrawRenderers API lives outside command buffers so we need to make call this before doing any DrawRenders or things will be executed out of order
+            renderContext.ExecuteCommandBuffer(cmd);
+            cmd.Clear();
+
+            if (rendererList.stateBlock == null)
+                renderContext.DrawRenderers(rendererList.cullingResult, ref rendererList.drawSettings, ref rendererList.filteringSettings);
+            else
+            {
+                var renderStateBlock = rendererList.stateBlock.Value;
+                renderContext.DrawRenderers(rendererList.cullingResult, ref rendererList.drawSettings, ref rendererList.filteringSettings, ref renderStateBlock);
+            }
         }
     }
 }

@@ -64,17 +64,36 @@ namespace UnityEditor.ShaderGraph
             set { m_GeneratePropertyBlock = value; }
         }
 
+        private ConcretePrecision m_ConcretePrecision = ConcretePrecision.Float;
+
+        public ConcretePrecision concretePrecision => m_ConcretePrecision;
+
+        [SerializeField]
+        private Precision m_Precision = Precision.Inherit;
+
+        public Precision precision
+        {
+            get => m_Precision;
+            set => m_Precision = value;
+        }
+
         public abstract PropertyType propertyType { get; }
         
         public abstract Vector4 defaultValue { get; }
         public abstract bool isBatchable { get; }
         public abstract bool isExposable { get; }
+        public abstract bool isRenamable { get; }
         public abstract string GetPropertyBlockString();
         public abstract string GetPropertyDeclarationString(string delimiter = ";");
 
         public virtual string GetPropertyAsArgumentString()
         {
             return GetPropertyDeclarationString(string.Empty);
+        }
+
+        public void SetConcretePrecision(ConcretePrecision inheritedPrecision)
+        {
+            m_ConcretePrecision = (precision == Precision.Inherit) ? inheritedPrecision : precision.ToConcrete();
         }
 
         public abstract PreviewProperty GetPreviewMaterialProperty();

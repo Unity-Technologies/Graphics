@@ -124,14 +124,14 @@ float4 GetStreamingMipColor(uint mipCount, float4 mipInfo)
 
 float4 GetSimpleMipCountColor(uint mipCount)
 {
-    // Grey scale for mip counts where mip count of 12 = white
-    float mipCountColor = float(mipCount) / 12.0;
+    // Grey scale for mip counts where mip count of 14 = white
+    float mipCountColor = float(mipCount) / 14.0;
     float4 color = float4(mipCountColor, mipCountColor, mipCountColor, 1.0f);
 
     // alpha is amount to blend with source color (0.0 = use original, 1.0 = use new color)
     // Magenta is no valid mip count
-    // Original colour if greater than 12
-    return mipCount==0 ? float4(1.0, 0.0, 1.0, 1.0) : (mipCount > 12 ? float4(1.0, 1.0, 1.0, 0.0) : color );
+    // Red if greater than 14
+    return mipCount==0 ? float4(1.0, 0.0, 1.0, 1.0) : (mipCount > 14 ? float4(1.0, 0.0, 0.0, 1.0) : color );
 }
 
 float4 GetMipLevelColor(float2 uv, float4 texelSize)
@@ -230,7 +230,7 @@ float3 GetDebugMipReductionColor(Texture2D tex, float4 mipInfo)
         uint mipCount = GetMipCount(tex);
         uint mipReductionLevel = originalTextureMipCount - mipCount;
 
-        float mipCol = float(mipReductionLevel) / 12.0;
+        float mipCol = float(mipReductionLevel) / 14.0;
         outColor = float3(0, mipCol, 0);
     }
 

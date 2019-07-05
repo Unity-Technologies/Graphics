@@ -8,13 +8,19 @@ namespace UnityEditor.Experimental.Rendering.LWRP
     {
         static Material s_TexCapMaterial = CoreUtils.CreateEngineMaterial(Shader.Find("Hidden/Internal-GUITexture"));
         
-        static internal void GUITextureCap(int controlID, Texture texture, Vector3 position, Quaternion rotation, float size, EventType eventType)
+        static internal void GUITextureCap(int controlID, Texture texture, Vector3 position, Quaternion rotation, float size, EventType eventType, bool isAngleHandle)
         {
             switch (eventType)
             {
                 case (EventType.Layout):
-                    HandleUtility.AddControl(controlID, DistanceToRectangle(position, rotation, Vector2.one * size * 0.5f));
-                    break;
+                    {
+                        Vector2 size2 = Vector2.one * size * 0.5f;
+                        if (isAngleHandle)
+                            size2.x = 0.0f;
+
+                        HandleUtility.AddControl(controlID, DistanceToRectangle(position, rotation, size2));
+                        break;
+                    }
 
                 case (EventType.Repaint):
                     {

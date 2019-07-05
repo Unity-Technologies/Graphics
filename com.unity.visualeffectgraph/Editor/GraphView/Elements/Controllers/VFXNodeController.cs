@@ -7,7 +7,7 @@ using System.Linq;
 
 using Object = UnityEngine.Object;
 using System.Collections.ObjectModel;
-using UnityEngine.Experimental.VFX;
+using UnityEngine.VFX;
 
 namespace UnityEditor.VFX.UI
 {
@@ -35,7 +35,7 @@ namespace UnityEditor.VFX.UI
             foreach (var setting in settings)
             {
                 var settingController = new VFXSettingController();
-                settingController.Init(this.slotContainer, setting.Name, setting.FieldType);
+                settingController.Init(this.slotContainer, setting.field.Name, setting.field.FieldType);
                 m_Settings[cpt++] = settingController;
             }
         }
@@ -159,11 +159,22 @@ namespace UnityEditor.VFX.UI
 
             foreach (var edge in outputEdges)
             {
-                edge.input.sourceNode.OnEdgeGoingToBeRemoved(edge.input);
+                edge.input.sourceNode.OnEdgeFromInputGoingToBeRemoved(edge.input);
+            }
+
+            var inputEdges = inputPorts.SelectMany(t => t.connections);
+
+            foreach (var edge in inputEdges)
+            {
+                edge.output.sourceNode.OnEdgeFromOutputGoingToBeRemoved(edge.output,edge.input);
             }
         }
 
-        public virtual void OnEdgeGoingToBeRemoved(VFXDataAnchorController myInput)
+        public virtual void OnEdgeFromInputGoingToBeRemoved(VFXDataAnchorController myInput)
+        {
+        }
+
+        public virtual void OnEdgeFromOutputGoingToBeRemoved(VFXDataAnchorController myOutput,VFXDataAnchorController otherInput)
         {
         }
 

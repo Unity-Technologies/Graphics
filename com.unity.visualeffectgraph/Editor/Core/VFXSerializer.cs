@@ -490,7 +490,7 @@ namespace UnityEditor.VFX
                 else //List
                 {
                     int listCount = elements.Count;
-                    IList listObj = (Array)Activator.CreateInstance(type, new object[] { listCount });
+                    IList listObj = (IList)Activator.CreateInstance(type, new object[0]);
                     for (int index = 0; index < listCount; index++)
                     {
                         listObj.Add(Load(type.GetElementType(), elements[index], null));

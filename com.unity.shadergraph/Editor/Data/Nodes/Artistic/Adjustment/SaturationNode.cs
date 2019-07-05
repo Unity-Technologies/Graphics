@@ -24,7 +24,7 @@ namespace UnityEditor.ShaderGraph
             Out = Vector3.zero;
             return @"
 {
-    {precision} luma = dot(In, float3(0.2126729, 0.7151522, 0.0721750));
+    $precision luma = dot(In, $precision3(0.2126729, 0.7151522, 0.0721750));
     Out =  luma.xxx + Saturation.xxx * (In - luma.xxx);
 }
 ";

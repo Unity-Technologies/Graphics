@@ -16,20 +16,6 @@ namespace UnityEditor.ShaderGraph.Drawing
         private GUIStyle m_LabelStyle;
         private int m_SelectedIndex = -1;
         private string label => string.Format("{0}s", m_SlotType.ToString());
-        public int labelWidth => 80;
-
-        public GUIStyle labelStyle
-        {
-            get
-            {
-                if(m_LabelStyle == null)
-                {
-                    m_LabelStyle = new GUIStyle();
-                    m_LabelStyle.normal.textColor = Color.white;
-                }
-                return m_LabelStyle;
-            }
-        }
 
         internal ReorderableSlotListView(AbstractMaterialNode node, SlotType slotType)
         {
@@ -83,16 +69,14 @@ namespace UnityEditor.ShaderGraph.Drawing
             // Draw Element
             m_ReorderableList.drawElementCallback = (Rect rect, int index, bool isActive, bool isFocused) => 
             {
-                rect.y += 2;
-
                 // Slot is guaranteed to exist in this UI state
                 MaterialSlot oldSlot = m_Node.FindSlot<MaterialSlot>((int)m_ReorderableList.list[index]);
 
                 EditorGUI.BeginChangeCheck();
                 
-                var displayName = EditorGUI.DelayedTextField( new Rect(rect.x, rect.y, labelWidth, EditorGUIUtility.singleLineHeight), oldSlot.RawDisplayName(), labelStyle); 
+                var displayName = EditorGUI.DelayedTextField( new Rect(rect.x, rect.y, rect.width / 2, EditorGUIUtility.singleLineHeight), oldSlot.RawDisplayName(), EditorStyles.label); 
                 var shaderOutputName = NodeUtils.GetHLSLSafeName(displayName);
-                var concreteValueType = (ConcreteSlotValueType)EditorGUI.EnumPopup( new Rect(rect.x + labelWidth, rect.y, rect.width - labelWidth, EditorGUIUtility.singleLineHeight), oldSlot.concreteValueType);
+                var concreteValueType = (ConcreteSlotValueType)EditorGUI.EnumPopup( new Rect(rect.x + rect.width / 2, rect.y, rect.width - rect.width / 2, EditorGUIUtility.singleLineHeight), oldSlot.concreteValueType);
 
                 if(displayName != oldSlot.RawDisplayName())
                     displayName = NodeUtils.GetDuplicateSafeNameForSlot(m_Node, oldSlot.id, displayName);
@@ -202,6 +186,11 @@ namespace UnityEditor.ShaderGraph.Drawing
             else
                 m_Node.GetOutputSlots<MaterialSlot>(slots);
 
+            // Store the edges
+            Dictionary<MaterialSlot, List<IEdge>> edgeDict = new Dictionary<MaterialSlot, List<IEdge>>();
+            foreach (MaterialSlot slot in slots)
+                edgeDict.Add(slot, (List<IEdge>)slot.owner.owner.GetEdges(slot.slotReference));
+
             // Get reorder slots so need to remove them all then re-add
             foreach (MaterialSlot slot in slots)
                 m_Node.RemoveSlot(slot.id);
@@ -211,10 +200,19 @@ namespace UnityEditor.ShaderGraph.Drawing
             
             // Now add the slots back based on the list order
             // For each list entry get the slot with that ID
-            for(int i = 0; i < list.list.Count; i++)
+            for (int i = 0; i < list.list.Count; i++)
             {
                 var currentSlot = slots.Where(s => s.id == (int)list.list[i]).FirstOrDefault();
                 m_Node.AddSlot(currentSlot);
+            }
+
+            // Reconnect the edges
+            foreach (KeyValuePair<MaterialSlot, List<IEdge>> entry in edgeDict)
+            {
+                foreach (IEdge edge in entry.Value)
+                {
+                    m_Node.owner.Connect(edge.outputSlot, edge.inputSlot);
+                }
             }
 
             RecreateList();

@@ -32,7 +32,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // errors.
             try
             {
-                pipeline = new HDRenderPipeline(this);
+                pipeline = new HDRenderPipeline(this, HDRenderPipeline.defaultAsset);
             } catch (Exception e) {
                 UnityEngine.Debug.LogError(e);
             }
@@ -55,6 +55,22 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             get { return m_RenderPipelineResources; }
             set { m_RenderPipelineResources = value; }
+        }
+
+        [SerializeField]
+        HDRenderPipelineRayTracingResources m_RenderPipelineRayTracingResources;
+        public HDRenderPipelineRayTracingResources renderPipelineRayTracingResources
+        {
+            get { return m_RenderPipelineRayTracingResources; }
+            set { m_RenderPipelineRayTracingResources = value; }
+        }
+
+        [SerializeField] private VolumeProfile m_DefaultVolumeProfile;
+
+        public VolumeProfile defaultVolumeProfile
+        {
+            get => m_DefaultVolumeProfile;
+            set => m_DefaultVolumeProfile = value;
         }
 
 #if UNITY_EDITOR
