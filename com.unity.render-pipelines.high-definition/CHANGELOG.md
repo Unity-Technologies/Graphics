@@ -55,6 +55,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed lighting with XR single-pass instancing by disabling deferred tiles
 - Fixed the Bloom prefiltering pass
 - Fixed post-processing effect relying on Unity's random number generator
+- Fixed camera flickering when using TAA and selecting the camera in the editor
 
 ### Changed
 - Optimization: Reduce the group size of the deferred lighting pass from 16x16 to 8x8
