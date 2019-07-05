@@ -3889,7 +3889,6 @@ MonoBehaviour:
   sort: 0
   indirectDraw: 0
   castShadows: 0
-  preRefraction: 0
   useExposureWeight: 0
 --- !u!114 &114898393254782138
 MonoBehaviour:

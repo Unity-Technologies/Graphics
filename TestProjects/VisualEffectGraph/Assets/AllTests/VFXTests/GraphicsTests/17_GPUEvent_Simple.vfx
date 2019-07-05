@@ -2047,7 +2047,6 @@ MonoBehaviour:
   sort: 0
   indirectDraw: 1
   castShadows: 0
-  preRefraction: 0
   useExposureWeight: 0
 --- !u!114 &114407407610825748
 MonoBehaviour:
@@ -3802,7 +3801,6 @@ MonoBehaviour:
   sort: 0
   indirectDraw: 0
   castShadows: 0
-  preRefraction: 0
   useExposureWeight: 0
   primitiveType: 1
   useGeometryShader: 0
@@ -6483,7 +6481,6 @@ MonoBehaviour:
   sort: 0
   indirectDraw: 0
   castShadows: 0
-  preRefraction: 0
   useExposureWeight: 0
   primitiveType: 1
   useGeometryShader: 0
