@@ -27,8 +27,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             ThinObject = 1
         }
 
-        public string name;
-
         [ColorUsage(false, true)]
         public Color            scatteringDistance;         // Per color channel (no meaningful units)
         [ColorUsage(false, true)]
@@ -49,10 +47,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // Unique hash used in shaders to identify the index in the diffusion profile array
         public uint             hash = 0;
 
-        public DiffusionProfile(string name)
+        // Here we need to have one parameter in the diffusion profile parameter because the deserialization call the default constructor
+        public DiffusionProfile(bool dontUseDefaultConstructor)
         {
-            this.name          = name;
-
             scatteringDistance = Color.grey;
             transmissionTint   = Color.white;
             texturingMode      = TexturingMode.PreAndPostScatter;
@@ -212,11 +209,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         [NonSerialized] public Vector4 disabledTransmissionTintsAndFresnel0; // RGB = black, A = fresnel0 - For debug to remove the transmission
         [NonSerialized] public Vector4[] filterKernels;             // XY = near field, ZW = far field; 0 = radius, 1 = reciprocal of the PDF
         [NonSerialized] public int updateCount;
-        
+
         void OnEnable()
         {
             if (profile == null)
-                profile = new DiffusionProfile("Diffusion Profile");
+                profile = new DiffusionProfile(true);
 
             profile.Validate();
             UpdateCache();

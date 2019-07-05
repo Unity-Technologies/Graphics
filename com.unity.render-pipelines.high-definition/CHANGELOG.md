@@ -77,6 +77,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Change default for shadow quality in Deferred to Medium
 - Enlighten now use inverse squared falloff (before was using builtin falloff)
 - Enlighten is now deprecated. Please use CPU or GPU lightmaper instead.
+- Remove the name in the diffusion profile UI
 
 ## [6.7.0-preview] - 2019-05-16
 
