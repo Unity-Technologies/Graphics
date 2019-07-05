@@ -75,12 +75,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             // First thing to check is: Do we have a valid ray-tracing environment?
             HDRaytracingEnvironment rtEnvironment = m_RaytracingManager.CurrentEnvironment();
-            RayTracingShader indirectDiffuseShader = m_PipelineAsset.renderPipelineRayTracingResources.indirectDiffuseRaytracing;
             var settings = VolumeManager.instance.stack.GetComponent<GlobalIllumination>();
-
-            return !(rtEnvironment == null || !settings.enableRayTracing.value
-                || indirectDiffuseShader == null
-                || m_PipelineResources.textures.owenScrambledTex == null || m_PipelineResources.textures.scramblingTex == null);
+            return !(rtEnvironment == null || !settings.enableRayTracing.value);
         }
 
         public bool RenderIndirectDiffuse(HDCamera hdCamera, CommandBuffer cmd, ScriptableRenderContext renderContext, int frameCount)
@@ -90,18 +86,17 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             // First thing to check is: Do we have a valid ray-tracing environment?
             HDRaytracingEnvironment rtEnvironment = m_RaytracingManager.CurrentEnvironment();
-            RayTracingShader indirectDiffuseShader = m_PipelineAsset.renderPipelineRayTracingResources.indirectDiffuseRaytracing;
-            ComputeShader indirectDiffuseAccumulation = m_PipelineAsset.renderPipelineRayTracingResources.indirectDiffuseAccumulation;
-            var settings = VolumeManager.instance.stack.GetComponent<GlobalIllumination>();
-            var lightClusterSettings = VolumeManager.instance.stack.GetComponent<LightCluster>();
 
-            bool invalidState = rtEnvironment == null || !settings.enableRayTracing.value
-                || indirectDiffuseShader == null || indirectDiffuseAccumulation == null
-                || m_PipelineResources.textures.owenScrambledTex == null || m_PipelineResources.textures.scramblingTex == null;
+            var settings = VolumeManager.instance.stack.GetComponent<GlobalIllumination>();
+            bool invalidState = rtEnvironment == null || !settings.enableRayTracing.value;
 
             // If no acceleration structure available, end it now
             if (invalidState)
                 return false;
+
+            RayTracingShader indirectDiffuseShader = m_PipelineAsset.renderPipelineRayTracingResources.indirectDiffuseRaytracing;
+            ComputeShader indirectDiffuseAccumulation = m_PipelineAsset.renderPipelineRayTracingResources.indirectDiffuseAccumulation;
+            var lightClusterSettings = VolumeManager.instance.stack.GetComponent<LightCluster>();
 
             // Grab the acceleration structures and the light cluster to use
             RayTracingAccelerationStructure accelerationStructure = m_RaytracingManager.RequestAccelerationStructure(rtEnvironment.indirectDiffuseLayerMask);
@@ -117,8 +112,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             cmd.SetRayTracingAccelerationStructure(indirectDiffuseShader, HDShaderIDs._RaytracingAccelerationStructureName, accelerationStructure);
 
             // Inject the ray-tracing sampling data
-            cmd.SetRayTracingTextureParam(indirectDiffuseShader, HDShaderIDs._OwenScrambledTexture, m_PipelineResources.textures.owenScrambledTex);
-            cmd.SetRayTracingTextureParam(indirectDiffuseShader, HDShaderIDs._ScramblingTexture, m_PipelineResources.textures.scramblingTex);
+            cmd.SetGlobalTexture(HDShaderIDs._OwenScrambledRGTexture, m_PipelineResources.textures.owenScrambledRGBATex);
+            cmd.SetGlobalTexture(HDShaderIDs._OwenScrambledTexture, m_PipelineResources.textures.owenScrambled256Tex);
+            cmd.SetGlobalTexture(HDShaderIDs._ScramblingTexture, m_PipelineResources.textures.scramblingTex);
 
             // Inject the ray generation data
             cmd.SetGlobalFloat(HDShaderIDs._RaytracingRayBias, rtEnvironment.rayBias);
@@ -155,14 +151,23 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Set the data for the ray miss
             cmd.SetRayTracingTextureParam(indirectDiffuseShader, HDShaderIDs._SkyTexture, m_SkyManager.skyReflection);
 
+            // Set the number of bounces to 1
+            cmd.SetGlobalInt(HDShaderIDs._RaytracingMaxRecursion, settings.numBounces.value);
+
             // Compute the actual resolution that is needed base on the quality
             int widthResolution = hdCamera.actualWidth;
             int heightResolution = hdCamera.actualHeight;
 
+            // Only use the shader variant that has multi bounce if the bounce count > 1
+            CoreUtils.SetKeyword(cmd, "MULTI_BOUNCE_INDIRECT", settings.numBounces.value > 1);
             // Run the computation
             CoreUtils.SetKeyword(cmd, "DIFFUSE_LIGHTING_ONLY", true);
+
             cmd.DispatchRays(indirectDiffuseShader, targetRayGen, (uint)widthResolution, (uint)heightResolution, 1);
+
+            // Disable the keywords we do not need anymore
             CoreUtils.SetKeyword(cmd, "DIFFUSE_LIGHTING_ONLY", false);
+            CoreUtils.SetKeyword(cmd, "MULTI_BOUNCE_INDIRECT", false);
 
             if(settings.enableFilter.value)
             {

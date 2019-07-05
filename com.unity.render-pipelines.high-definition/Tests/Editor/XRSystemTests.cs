@@ -20,7 +20,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline.Tests
         [SetUp]
         public void SetUp()
         {
-            xrSystem = new XRSystem();
+            xrSystem = new XRSystem(null);
+            TextureXR.maxViews = k_ViewCount;
             cameras = new Camera[k_CameraCount];
             for (int cameraIndex = 0; cameraIndex < k_CameraCount; ++cameraIndex)
             {

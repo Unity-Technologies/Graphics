@@ -78,7 +78,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         ld.position = l.transform.position;
                         ld.range = l.range;
                         ld.coneAngle = l.spotAngle * Mathf.Deg2Rad; // coneAngle is the full angle
-                        ld.innerConeAngle = l.spotAngle * Mathf.Deg2Rad * add.GetInnerSpotPercent01();
+                        ld.innerConeAngle = l.spotAngle * Mathf.Deg2Rad * add.innerSpotPercent01;
 #if UNITY_EDITOR
                         ld.shape0 = l.shadows != LightShadows.None ? l.shadowRadius : 0.0f;
 #else

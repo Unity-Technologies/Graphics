@@ -5,8 +5,8 @@
 
 CBUFFER_START(GTAOUniformBuffer)
 float4 _AOBufferSize;
-float4 _AOParams0;     
-float4 _AOParams1;     
+float4 _AOParams0;
+float4 _AOParams1;
 float4 _AOParams2;
 float4 _AODepthToViewParams;
 CBUFFER_END
@@ -26,7 +26,7 @@ CBUFFER_END
 // If this is set to 0 best quality is achieved when full res, but performance is significantly lower.
 // If set to 1, when full res, it may lead to extra aliasing and loss of detail, but still significant higher quality than half res.
 #define HALF_RES_DEPTH_WHEN_FULL_RES 1 // Make this an option.
-#define HALF_RES_DEPTH_WHEN_FULL_RES_FOR_CENTRAL 0 
+#define HALF_RES_DEPTH_WHEN_FULL_RES_FOR_CENTRAL 0
 
 // This increases the quality when running with half resolution buffer, however it adds a bit of cost. Note that it will not have artifact as we already don't allow samples to be at the edge of the depth buffer.
 #define MIN_DEPTH_GATHERED_FOR_CENTRAL 1
@@ -41,7 +41,7 @@ float GetMinDepth(float2 localUVs)
     localUVs.x = localUVs.x * 0.5f;
     localUVs.y = localUVs.y * (1.0f / 3.0f) + (2.0f / 3.0f);
 
-    float4 gatheredDepth = GATHER_TEXTURE2D_X(_DepthPyramidTexture, s_point_clamp_sampler, localUVs);
+    float4 gatheredDepth = GATHER_TEXTURE2D_X(_CameraDepthTexture, s_point_clamp_sampler, localUVs);
     return min(Min3(gatheredDepth.x, gatheredDepth.y, gatheredDepth.z), gatheredDepth.w);
 }
 
@@ -58,11 +58,11 @@ float GetDepthForCentral(float2 positionSS)
     return GetMinDepth(localUVs);
 
 #else // MIN_DEPTH_GATHERED_FOR_CENTRAL
-    return LOAD_TEXTURE2D_X(_DepthPyramidTexture, float2(0.0f, _AORTHandleSize.y) + positionSS / 2).r;
-#endif 
+    return LOAD_TEXTURE2D_X(_CameraDepthTexture, float2(0.0f, _AORTHandleSize.y) + positionSS / 2).r;
+#endif
 
 #else  // HALF_RES_DEPTH_WHEN_FULL_RES
-    return LOAD_TEXTURE2D_X(_DepthPyramidTexture, positionSS).r;
+    return LOAD_TEXTURE2D_X(_CameraDepthTexture, positionSS).r;
 #endif
 
 #else // FULL_RES
@@ -73,7 +73,7 @@ float GetDepthForCentral(float2 positionSS)
     return GetMinDepth(localUVs);
 #else
 
-    return LOAD_TEXTURE2D_X(_DepthPyramidTexture, float2(0.0f, _AORTHandleSize.y) + (uint2)positionSS.xy).r;
+    return LOAD_TEXTURE2D_X(_CameraDepthTexture, float2(0.0f, _AORTHandleSize.y) + (uint2)positionSS.xy).r;
 #endif
 
 #endif
@@ -84,15 +84,15 @@ float GetDepthSample(float2 positionSS, bool lowerRes)
 {
 #if CENTRAL_AND_SAMPLE_DEPTH_FETCH_SAME_METHOD
     return GetDepthForCentral(positionSS);
-#endif 
+#endif
 
 #ifdef FULL_RES
 
 #if HALF_RES_DEPTH_WHEN_FULL_RES
-    return LOAD_TEXTURE2D_X(_DepthPyramidTexture, float2(0.0f, _AORTHandleSize.y) + positionSS / 2).r;
-#endif 
+    return LOAD_TEXTURE2D_X(_CameraDepthTexture, float2(0.0f, _AORTHandleSize.y) + positionSS / 2).r;
+#endif
 
-    return LOAD_TEXTURE2D_X(_DepthPyramidTexture, positionSS).r;
+    return LOAD_TEXTURE2D_X(_CameraDepthTexture, positionSS).r;
 
 
 #else // FULL_RES
@@ -100,12 +100,12 @@ float GetDepthSample(float2 positionSS, bool lowerRes)
 #if LOWER_RES_SAMPLE
     if (lowerRes)
     {
-        return LOAD_TEXTURE2D_X(_DepthPyramidTexture, float2(_AORTHandleSize.x * 0.5f, _AORTHandleSize.y) + (uint2)positionSS.xy / 2).r;
+        return LOAD_TEXTURE2D_X(_CameraDepthTexture, float2(_AORTHandleSize.x * 0.5f, _AORTHandleSize.y) + (uint2)positionSS.xy / 2).r;
     }
     else
 #endif
     {
-        return LOAD_TEXTURE2D_X(_DepthPyramidTexture, float2(0.0f, _AORTHandleSize.y) + (uint2)positionSS.xy).r;
+        return LOAD_TEXTURE2D_X(_CameraDepthTexture, float2(0.0f, _AORTHandleSize.y) + (uint2)positionSS.xy).r;
     }
 #endif
 }

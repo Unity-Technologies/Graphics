@@ -1,5 +1,5 @@
 // We need only need one bounce given that we want to see the objects and then direct lighting is not done using raytracing
-#pragma max_recursion_depth 1
+#pragma max_recursion_depth 31
 
 // HDRP include
 #define SHADER_TARGET 50
@@ -107,9 +107,7 @@ void RayGenReflectionHalfRes()
 
     int globalSampleIndex = _RaytracingFrameIndex;
 
-    float2 sample = float2(0.0, 0.0);
-    sample.x = GetRaytracingNoiseSample(globalSampleIndex, 0, scramblingValue.x);
-    sample.y = GetRaytracingNoiseSample(globalSampleIndex, 1, scramblingValue.y);
+    float2 sample = GetRaytracingNoiseSampleRG(globalSampleIndex, scramblingValue);
 
     // Importance sample the direction
     float3 sampleDir = float3(0.0, 0.0, 0.0);
@@ -124,8 +122,7 @@ void RayGenReflectionHalfRes()
         if (dot(sampleDir, normalData.normalWS) >= 0.00f)
             break;
 
-        sample.x = GetRaytracingNoiseSample(globalSampleIndex, 0, scramblingValue.x);
-        sample.y = GetRaytracingNoiseSample(globalSampleIndex, 1, scramblingValue.y);
+        sample = GetRaytracingNoiseSampleRG(globalSampleIndex, scramblingValue);
         SampleGGXDir(sample, viewWS, localToWorld, roughness, sampleDir, NdotL, NdotH, VdotH);
     }
 
@@ -221,9 +218,7 @@ void RayGenReflectionFullRes()
 
     int globalSampleIndex = _RaytracingFrameIndex;
 
-    float2 sample = float2(0.0, 0.0);
-    sample.x = GetRaytracingNoiseSample(globalSampleIndex, 0, scramblingValue.x);
-    sample.y = GetRaytracingNoiseSample(globalSampleIndex, 1, scramblingValue.y);
+    float2 sample = GetRaytracingNoiseSampleRG(globalSampleIndex, scramblingValue);
 
     // Importance sample the direction
     float3 sampleDir = float3(0.0, 0.0, 0.0);
@@ -239,8 +234,7 @@ void RayGenReflectionFullRes()
         if (dot(sampleDir, normalData.normalWS) >= 0.00f)
             break;
 
-        sample.x = GetRaytracingNoiseSample(globalSampleIndex, 0, scramblingValue.x);
-        sample.y = GetRaytracingNoiseSample(globalSampleIndex, 1, scramblingValue.y);
+        sample = GetRaytracingNoiseSampleRG(globalSampleIndex, scramblingValue);
         SampleGGXDir(sample, viewWS, localToWorld, roughness, sampleDir, NdotL, NdotH, VdotH);
     }
 
@@ -357,9 +351,7 @@ void RayGenIntegration()
         int globalSampleIndex = _RaytracingFrameIndex * realSampleCount + sampleIndex;
 
     	// Generate the new sample (follwing values of the sequence)
-        float2 sample = float2(0.0, 0.0);
-        sample.x = GetRaytracingNoiseSample(globalSampleIndex, 0, scramblingValue.x);
-        sample.y = GetRaytracingNoiseSample(globalSampleIndex, 1, scramblingValue.y);
+        float2 sample = GetRaytracingNoiseSampleRG(globalSampleIndex, scramblingValue);
 
         // Importance sample the direction using GGX
         float3 sampleDir = float3(0.0, 0.0, 0.0);
@@ -383,6 +375,9 @@ void RayGenIntegration()
         rayIntersection.incidentDirection = rayDescriptor.Direction;
         rayIntersection.origin = rayDescriptor.Origin;
         rayIntersection.t = -1.0;
+        rayIntersection.remainingDepth = 1;
+        rayIntersection.scramblingValue = scramblingValue;
+        rayIntersection.sampleIndex = globalSampleIndex;
 
         // In order to achieve filtering for the textures, we need to compute the spread angle of the pixel
         rayIntersection.cone.spreadAngle = _RaytracingPixelSpreadAngle + roughnessToSpreadAngle(roughness);

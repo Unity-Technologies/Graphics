@@ -15,11 +15,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         public SerializedHDLight m_SerializedHDLight;
 
         HDAdditionalLightData[] m_AdditionalLightDatas;
-        AdditionalShadowData[] m_AdditionalShadowDatas;
 
         HDAdditionalLightData targetAdditionalData
             => m_AdditionalLightDatas[ReferenceTargetIndex(this)];
-        
+
         static Func<Editor, int> ReferenceTargetIndex;
 
         static HDLightEditor()
@@ -39,8 +38,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             // Get & automatically add additional HD data if not present
             m_AdditionalLightDatas = CoreEditorUtils.GetAdditionalData<HDAdditionalLightData>(targets, HDAdditionalLightData.InitDefaultHDAdditionalLightData);
-            m_AdditionalShadowDatas = CoreEditorUtils.GetAdditionalData<AdditionalShadowData>(targets, HDAdditionalShadowData.InitDefaultHDAdditionalShadowData);
-            m_SerializedHDLight = new SerializedHDLight(m_AdditionalLightDatas, m_AdditionalShadowDatas, settings);
+            m_SerializedHDLight = new SerializedHDLight(m_AdditionalLightDatas, settings);
 
             // Update emissive mesh and light intensity when undo/redo
             Undo.undoRedoPerformed += () =>
@@ -69,9 +67,15 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             ApplyAdditionalComponentsVisibility(true);
 
+            EditorGUI.BeginChangeCheck();
             HDLightUI.Inspector.Draw(m_SerializedHDLight, this);
+            if (EditorGUI.EndChangeCheck())
+            {
+                m_SerializedHDLight.Apply();
 
-            m_SerializedHDLight.Apply();
+                foreach (var hdLightData in m_AdditionalLightDatas)
+                    hdLightData.UpdateAllLightValues();
+            }
 
             if (m_SerializedHDLight.needUpdateAreaLightEmissiveMeshComponents)
                 UpdateAreaLightEmissiveMeshComponents();
@@ -122,11 +126,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             foreach (var t in m_SerializedHDLight.serializedLightDatas.targetObjects)
                 ((HDAdditionalLightData)t).hideFlags = flags;
-
-            foreach (var t in m_SerializedHDLight.serializedShadowDatas.targetObjects)
-                ((AdditionalShadowData)t).hideFlags = flags;
         }
-        
+
         protected override void OnSceneGUI()
         {
             // Each handles manipulate only one light
