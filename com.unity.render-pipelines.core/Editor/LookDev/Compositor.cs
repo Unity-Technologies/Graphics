@@ -114,7 +114,7 @@ namespace UnityEditor.Rendering.Experimental.LookDev
         }
 
         Color m_AmbientColor = new Color(0.0f, 0.0f, 0.0f, 0.0f);
-        
+
         bool m_RenderDocAcquisitionRequested;
 
         public Compositer(
@@ -139,7 +139,7 @@ namespace UnityEditor.Rendering.Experimental.LookDev
 
         void RenderDocAcquisitionRequested()
             => m_RenderDocAcquisitionRequested = true;
-        
+
         void CleanUp()
         {
             m_Displayer.OnRenderDocAcquisitionTriggered -= RenderDocAcquisitionRequested;
@@ -182,7 +182,7 @@ namespace UnityEditor.Rendering.Experimental.LookDev
                         break;
                 }
             }
-            
+
             //TODO: make integration EditorWindow agnostic!
             if (UnityEditorInternal.RenderDoc.IsLoaded() && UnityEditorInternal.RenderDoc.IsSupported() && m_RenderDocAcquisitionRequested)
                 UnityEditorInternal.RenderDoc.EndCaptureRenderDoc(m_Displayer as EditorWindow);
@@ -210,7 +210,7 @@ namespace UnityEditor.Rendering.Experimental.LookDev
 
             //get shadowmask betwen first and last pass to still be isolated
             RenderTexture tmp = m_RenderTextures[index, ShadowCompositionPass.ShadowMask];
-            env.UpdateSunPosition(renderingData.stage.sunLight);
+            env?.UpdateSunPosition(renderingData.stage.sunLight);
             renderingData.stage.sunLight.intensity = 1f;
             m_DataProvider.GetShadowMask(ref tmp, renderingData.stage.runtimeInterface);
             renderingData.stage.sunLight.intensity = 0f;
@@ -351,7 +351,7 @@ namespace UnityEditor.Rendering.Experimental.LookDev
 
             RenderTexture.active = oldActive;
         }
-        
+
         public ViewIndex GetViewFromComposition(Vector2 localCoordinate)
         {
             Rect compositionRect = m_Displayer.GetRect(ViewCompositionIndex.Composite);

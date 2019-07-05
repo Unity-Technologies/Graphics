@@ -4,19 +4,16 @@ namespace UnityEngine.Experimental.Rendering
 {
     using RTHandle = RTHandleSystem.RTHandle;
 
-    public static class TextureXR
+    internal static class TextureXR
     {
-        // Limit memory usage of default textures
-        public const int kMaxSlices = 2;
-
         // Property set by XRSystem
-        public static int maxViews { get; set; } = 1;
+        internal static int maxViews { private get; set; } = 1;
 
-        // Property accessed when allocating a render texture
-        public static int slices { get => maxViews; }
+        // Property accessed when allocating a render target
+        internal static int slices { get => maxViews; }
 
         // Must be in sync with shader define in TextureXR.hlsl
-        public static bool useTexArray
+        internal static bool useTexArray
         {
             get
             {
@@ -37,7 +34,7 @@ namespace UnityEngine.Experimental.Rendering
             }
         }
 
-        public static TextureDimension dimension
+        internal static TextureDimension dimension
         {
             get
             {
@@ -109,8 +106,8 @@ namespace UnityEngine.Experimental.Rendering
 
         static Texture2DArray CreateTexture2DArrayFromTexture2D(Texture2D source, string name)
         {
-            Texture2DArray texArray = new Texture2DArray(source.width, source.height, kMaxSlices, source.format, false) { name = name };
-            for (int i = 0; i < kMaxSlices; ++i)
+            Texture2DArray texArray = new Texture2DArray(source.width, source.height, slices, source.format, false) { name = name };
+            for (int i = 0; i < slices; ++i)
                 Graphics.CopyTexture(source, 0, 0, texArray, i, 0);
 
             return texArray;
@@ -121,7 +118,7 @@ namespace UnityEngine.Experimental.Rendering
             RenderTexture blackUIntTexture2DArray = new RenderTexture(1, 1, 0, GraphicsFormat.R32_UInt)
             {
                 dimension = TextureDimension.Tex2DArray,
-                volumeDepth = kMaxSlices,
+                volumeDepth = slices,
                 useMipMap = false,
                 autoGenerateMips = false,
                 enableRandomWrite = true,
@@ -135,7 +132,7 @@ namespace UnityEngine.Experimental.Rendering
             // Clear this type of target on metal devices (output type nor compatible: float4 vs uint)
             int kernel = clearR32_UIntShader.FindKernel("ClearUIntTextureArray");
             cmd.SetComputeTextureParam(clearR32_UIntShader, kernel, "_TargetArray", blackUIntTexture2DArray);
-            cmd.DispatchCompute(clearR32_UIntShader, kernel, 1, 1, kMaxSlices);
+            cmd.DispatchCompute(clearR32_UIntShader, kernel, 1, 1, slices);
 
             return blackUIntTexture2DArray as Texture;
         }
@@ -145,7 +142,7 @@ namespace UnityEngine.Experimental.Rendering
             RenderTexture blackUIntTexture2D = new RenderTexture(1, 1, 0, GraphicsFormat.R32_UInt)
             {
                 dimension = TextureDimension.Tex2D,
-                volumeDepth = kMaxSlices,
+                volumeDepth = slices,
                 useMipMap = false,
                 autoGenerateMips = false,
                 enableRandomWrite = true,
@@ -159,7 +156,7 @@ namespace UnityEngine.Experimental.Rendering
             // Clear this type of target on metal devices (output type nor compatible: float4 vs uint)
             int kernel = clearR32_UIntShader.FindKernel("ClearUIntTexture");
             cmd.SetComputeTextureParam(clearR32_UIntShader, kernel, "_Target", blackUIntTexture2D);
-            cmd.DispatchCompute(clearR32_UIntShader, kernel, 1, 1, kMaxSlices);
+            cmd.DispatchCompute(clearR32_UIntShader, kernel, 1, 1, slices);
 
             return blackUIntTexture2D as Texture;
         }

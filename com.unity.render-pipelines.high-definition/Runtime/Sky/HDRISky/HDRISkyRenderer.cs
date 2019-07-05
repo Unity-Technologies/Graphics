@@ -1,4 +1,3 @@
-using UnityEditor.IMGUI.Controls;
 using UnityEngine.Rendering;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline

@@ -1,5 +1,5 @@
 // We need only need one bounce given that we want to see the objects and then direct lighting is not done using raytracing
-#pragma max_recursion_depth 1
+#pragma max_recursion_depth 31
 
 // HDRP include
 #define SHADER_TARGET 50
@@ -91,9 +91,7 @@ void RayGenIndirectDiffuse()
         int globalSampleIndex = _RaytracingFrameIndex * _RaytracingNumSamples + sampleIndex;
 
     	// Generate the new sample (follwing values of the sequence)
-        float2 sample = float2(0.0, 0.0);
-        sample.x = GetRaytracingNoiseSample(globalSampleIndex, 0, scramblingValue.x);
-        sample.y = GetRaytracingNoiseSample(globalSampleIndex, 1, scramblingValue.y);
+        float2 sample = GetRaytracingNoiseSampleRG(globalSampleIndex, scramblingValue);
 
         // Importance sample with a cosine lobe
         float3 sampleDir = SampleHemisphereCosine(sample.x, sample.y, normalData.normalWS);
@@ -111,6 +109,9 @@ void RayGenIndirectDiffuse()
         rayIntersection.incidentDirection = rayDescriptor.Direction;
         rayIntersection.origin = rayDescriptor.Origin;
         rayIntersection.t = -1.0f;
+        rayIntersection.remainingDepth = 1;
+        rayIntersection.scramblingValue = scramblingValue;
+        rayIntersection.sampleIndex = globalSampleIndex;
 
         // In order to achieve filtering for the textures, we need to compute the spread angle of the pixel
         rayIntersection.cone.spreadAngle = _RaytracingPixelSpreadAngle + roughnessToSpreadAngle(1.0);

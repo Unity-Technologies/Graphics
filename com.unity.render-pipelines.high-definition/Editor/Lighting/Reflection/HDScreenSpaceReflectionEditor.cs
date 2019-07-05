@@ -21,11 +21,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         SerializedDataParameter m_ClampValue;
         SerializedDataParameter m_SpatialFilterRadius;
         SerializedDataParameter m_FullResolution;
-        SerializedDataParameter m_NumSamples;
         SerializedDataParameter m_EnableFilter;
         SerializedDataParameter m_FilterRadius;
         SerializedDataParameter m_DeferredMode;
         SerializedDataParameter m_RayBinning;
+        
+        // Tier 2
+        SerializedDataParameter m_NumSamples;
+        SerializedDataParameter m_NumBounces;
 
         public override void OnEnable()
         {
@@ -42,11 +45,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             m_ClampValue                    = Unpack(o.Find(x => x.clampValue));
             m_SpatialFilterRadius           = Unpack(o.Find(x => x.spatialFilterRadius));
             m_FullResolution                = Unpack(o.Find(x => x.fullResolution));
-            m_NumSamples                    = Unpack(o.Find(x => x.numSamples));
             m_EnableFilter                  = Unpack(o.Find(x => x.enableFilter));
             m_FilterRadius                  = Unpack(o.Find(x => x.filterRadius));
             m_DeferredMode                  = Unpack(o.Find(x => x.deferredMode));
             m_RayBinning                    = Unpack(o.Find(x => x.rayBinning));
+
+            // Tier 2
+            m_NumBounces                    = Unpack(o.Find(x => x.numBounces));
+            m_NumSamples                    = Unpack(o.Find(x => x.numSamples));
         }
 
         public override void OnInspectorGUI()
@@ -94,6 +100,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     case RenderPipelineSettings.RaytracingTier.Tier2:
                     {
                         PropertyField(m_NumSamples);
+                        PropertyField(m_NumBounces);
                         PropertyField(m_EnableFilter);
                         PropertyField(m_FilterRadius);
                     }
