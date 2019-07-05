@@ -14,7 +14,17 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
     sealed class PlanarReflectionProbeEditor : HDProbeEditor<PlanarReflectionProbeUISettingsProvider, SerializedPlanarReflectionProbe>
     {
         public static Material GUITextureBlit2SRGBMaterial
-                => HDRenderPipeline.defaultAsset.renderPipelineEditorResources.materials.GUITextureBlit2SRGB;
+        {
+            get
+            {
+                if (GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset)
+                {
+                    return (GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset).renderPipelineEditorResources.materials.GUITextureBlit2SRGB;
+                }
+
+                return null;
+            }
+        }
 
         const float k_PreviewHeight = 128;
 

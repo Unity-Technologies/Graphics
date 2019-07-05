@@ -525,6 +525,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 Debug.LogError("High Definition Render Pipeline doesn't support Gamma mode, change to Linear mode");
             }
+
+            if (UnityEditor.Lightmapping.realtimeGI)
+            {
+#if UNITY_2019_2_OR_NEWER
+                Debug.LogWarning("Enlighten for HDRP will be deprecated in 2019.3, please use Progressive CPU or Progressive GPU instead");
+#endif
+            }
+
 #endif
 
             GraphicsDeviceType unsupportedDeviceType;

@@ -175,23 +175,32 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
 
         static public Lightmapping.RequestLightsDelegate hdLightsDelegate = (Light[] requests, NativeArray<LightDataGI> lightsOutput) =>
+        {
+            // Get all lights in the scene
+            LightDataGI ld = new LightDataGI();
+            for (int i = 0; i < requests.Length; i++)
             {
-                // Get all lights in the scene
-                LightDataGI ld = new LightDataGI();
-                for (int i = 0; i < requests.Length; i++)
-                {
-                    Light l = requests[i];
+                Light l = requests[i];
+
+                // For editor we need to discard realtime light as otherwise we get double contribution
+                // At runtime for Enlighten we must keep realtime light but we can discard other light as they aren't used.
+
+                // The difference is that `l.lightmapBakeType` is the intent, e.g.you want a mixed light with shadowmask. But then the overlap test might detect more than 4 overlapping volumes and force a light to fallback to baked.
+                // In that case `l.bakingOutput.lightmapBakeType` would be baked, instead of mixed, whereas `l.lightmapBakeType` would still be mixed. But this difference is only relevant in editor builds
 #if UNITY_EDITOR
-                    if (LightmapperUtils.Extract(l.lightmapBakeType) == LightMode.Realtime)
-                        ld.InitNoBake(l.GetInstanceID());
-                    else
-                        LightDataGIExtract(l, ref ld);
-#else
+                if (LightmapperUtils.Extract(l.lightmapBakeType) == LightMode.Realtime)
                     ld.InitNoBake(l.GetInstanceID());
+                else
+                    LightDataGIExtract(l, ref ld);
+#else
+                    if (LightmapperUtils.Extract(l.bakingOutput.lightmapBakeType) == LightMode.Realtime)
+                        LightDataGIExtract(l, ref ld);
+                    else
+                        ld.InitNoBake(l.GetInstanceID());
 #endif
 
-                    lightsOutput[i] = ld;
-                }
-            };
+                lightsOutput[i] = ld;
+            }
+        };
     }
 }
