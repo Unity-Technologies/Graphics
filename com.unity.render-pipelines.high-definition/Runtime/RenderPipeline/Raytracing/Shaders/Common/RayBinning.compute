@@ -43,7 +43,7 @@ void RAY_BINNING(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_Grou
     uint binIndex = 256;
 
     // Is this sample valid ? otherwise its bin index is 256
-    if (LOAD_TEXTURE2D_X(_RaytracingDirectionBuffer, currentCoord).w > 0.0 && currentCoord.x < _ScreenSize.x && currentCoord.y < _ScreenSize.y)
+    if (LOAD_TEXTURE2D_X(_RaytracingDirectionBuffer, currentCoord).w > 0.0 && (float)currentCoord.x < _ScreenSize.x && (float)currentCoord.y < _ScreenSize.y)
     {
         // Fetch the current direction
         const float3 currentDirection = LOAD_TEXTURE2D_X(_RaytracingDirectionBuffer, currentCoord).xyz;
