@@ -78,6 +78,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Enlighten now use inverse squared falloff (before was using builtin falloff)
 - Enlighten is now deprecated. Please use CPU or GPU lightmaper instead.
 - Remove the name in the diffusion profile UI
+- Changed how shadow map resolution scaling with distance is computed. Now it uses screen space area rather than light range.
 
 ## [6.7.0-preview] - 2019-05-16
 
