@@ -84,7 +84,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 m_BlackboardProvider.assetName = value;
             }
         }
-        
+
         public ColorManager colorManager
         {
             get => m_ColorManager;
@@ -178,7 +178,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                             m_ColorManager.SetActiveProvider(newColorIdx, m_GraphView.Query<MaterialNodeView>().ToList());
                             m_UserViewSettings.colorProvider = m_ColorManager.activeProviderName;
                         }
-                    
+
                         m_MasterPreviewView.visible = m_UserViewSettings.isPreviewVisible;
                         m_BlackboardProvider.blackboard.visible = m_UserViewSettings.isBlackboardVisible;
                         var serializedViewSettings = JsonUtility.ToJson(m_UserViewSettings);
@@ -227,6 +227,11 @@ namespace UnityEditor.ShaderGraph.Drawing
             foreach (var graphGroup in graph.groups)
             {
                 AddGroup(graphGroup);
+            }
+
+            foreach (var stickyNote in graph.stickyNotes)
+            {
+                AddStickyNote(stickyNote);
             }
 
             foreach (var node in graph.GetNodes<AbstractMaterialNode>())
@@ -316,13 +321,17 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                 foreach (var element in graphViewChange.movedElements)
                 {
-                    var node = element.userData as AbstractMaterialNode;
-                    if (node == null)
-                        continue;
+                    if (element.userData is AbstractMaterialNode node)
+                    {
+                        var drawState = node.drawState;
+                        drawState.position = element.parent.ChangeCoordinatesTo(m_GraphView.contentViewContainer, element.GetPosition());
+                        node.drawState = drawState;
+                    }
 
-                    var drawState = node.drawState;
-                    drawState.position = element.parent.ChangeCoordinatesTo(m_GraphView.contentViewContainer, element.GetPosition());
-                    node.drawState = drawState;
+                    if (element is StickyNote stickyNote)
+                    {
+                        SetStickyNotePosition(stickyNote);
+                    }
                 }
             }
 
@@ -332,9 +341,10 @@ namespace UnityEditor.ShaderGraph.Drawing
             if (graphViewChange.elementsToRemove != null)
             {
                 m_Graph.owner.RegisterCompleteObjectUndo("Remove Elements");
-                m_Graph.RemoveElements(graphViewChange.elementsToRemove.OfType<IShaderNodeView>().Select(v => v.node),
-                    graphViewChange.elementsToRemove.OfType<Edge>().Select(e => (IEdge)e.userData),
-                    graphViewChange.elementsToRemove.OfType<ShaderGroup>().Select(g => g.userData));
+                m_Graph.RemoveElements(graphViewChange.elementsToRemove.OfType<IShaderNodeView>().Select(v => v.node).ToArray(),
+                    graphViewChange.elementsToRemove.OfType<Edge>().Select(e => (IEdge)e.userData).ToArray(),
+                    graphViewChange.elementsToRemove.OfType<ShaderGroup>().Select(g => g.userData).ToArray(),
+                    graphViewChange.elementsToRemove.OfType<StickyNote>().Select(n => n.userData).ToArray());
                 foreach (var edge in graphViewChange.elementsToRemove.OfType<Edge>())
                 {
                     if (edge.input != null)
@@ -368,6 +378,12 @@ namespace UnityEditor.ShaderGraph.Drawing
             groupNode.userData.position = new Vector2(pos.x, pos.y);
         }
 
+        void SetStickyNotePosition(StickyNote stickyNote)
+        {
+            var pos = stickyNote.GetPosition();
+            stickyNote.userData.position = new Rect(pos);
+        }
+
         void OnGroupTitleChanged(Group graphGroup, string title)
         {
             var groupData = graphGroup.userData as GroupData;
@@ -377,14 +393,14 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
         }
 
-        void OnElementsAddedToGroup(Group graphGroup, IEnumerable<GraphElement> element)
+        void OnElementsAddedToGroup(Group graphGroup, IEnumerable<GraphElement> elements)
         {
             if (graphGroup.userData is GroupData groupData)
             {
                 var anyChanged = false;
-                foreach (var materialNodeView in element.OfType<IShaderNodeView>())
+                foreach (var element in elements)
                 {
-                    if (materialNodeView.node != null && materialNodeView.node.groupGuid != groupData.guid)
+                    if (element.userData is IGroupItem groupItem && groupItem.groupGuid != groupData.guid)
                     {
                         anyChanged = true;
                         break;
@@ -396,21 +412,24 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                 m_Graph.owner.RegisterCompleteObjectUndo(groupData.title);
 
-                foreach (var materialNodeView in element.OfType<IShaderNodeView>())
+                foreach (var element in elements)
                 {
-                    m_Graph.SetNodeGroup(materialNodeView.node, groupData);
+                    if (element.userData is IGroupItem groupItem)
+                    {
+                        m_Graph.SetGroup(groupItem, groupData);
+                    }
                 }
             }
         }
 
-        void OnElementsRemovedFromGroup(Group graphGroup, IEnumerable<GraphElement> element)
+        void OnElementsRemovedFromGroup(Group graphGroup, IEnumerable<GraphElement> elements)
         {
             if (graphGroup.userData is GroupData groupData)
             {
                 var anyChanged = false;
-                foreach (var nodeView in element.OfType<IShaderNodeView>())
+                foreach (var element in elements)
                 {
-                    if (nodeView.node != null && nodeView.node.groupGuid == groupData.guid)
+                    if (element.userData is IGroupItem groupItem && groupItem.groupGuid == groupData.guid)
                     {
                         anyChanged = true;
                         break;
@@ -422,11 +441,11 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                 m_Graph.owner.RegisterCompleteObjectUndo("Ungroup Node(s)");
 
-                foreach (var nodeView in element.OfType<IShaderNodeView>())
+                foreach (var element in elements)
                 {
-                    if (nodeView.node != null)
+                    if (element.userData is IGroupItem groupItem)
                     {
-                        m_Graph.SetNodeGroup(nodeView.node, null);
+                        m_Graph.SetGroup(groupItem, null);
                         SetGroupPosition((ShaderGroup)graphGroup); //, (GraphElement)nodeView);
                     }
                 }
@@ -484,6 +503,12 @@ namespace UnityEditor.ShaderGraph.Drawing
                 }
             }
 
+            foreach (var noteData in m_Graph.removedNotes)
+            {
+                var note = m_GraphView.graphElements.ToList().OfType<StickyNote>().First(n => n.userData == noteData);
+                m_GraphView.RemoveElement(note);
+            }
+
             foreach (GroupData groupData in m_Graph.removedGroups)
             {
                 var group = m_GraphView.graphElements.ToList().OfType<ShaderGroup>().First(g => g.userData == groupData);
@@ -495,28 +520,48 @@ namespace UnityEditor.ShaderGraph.Drawing
                 AddGroup(groupData);
             }
 
+            foreach (var stickyNote in m_Graph.addedStickyNotes)
+            {
+                AddStickyNote(stickyNote);
+            }
+
             foreach (var node in m_Graph.addedNodes)
             {
                 AddNode(node);
             }
 
-            foreach (var groupChange in m_Graph.nodeGroupChanges)
+            foreach (var groupChange in m_Graph.parentGroupChanges)
             {
-                var nodeView = m_GraphView.GetNodeByGuid(groupChange.nodeGuid.ToString());
-                if (nodeView != null)
+                GraphElement graphElement = null;
+                if (groupChange.groupItem is AbstractMaterialNode node)
                 {
-                    var groupView = nodeView.GetContainingScope() as ShaderGroup;
+                    graphElement = m_GraphView.GetNodeByGuid(node.guid.ToString());
+                }
+                else if (groupChange.groupItem is StickyNoteData stickyNote)
+                {
+                    graphElement = m_GraphView.GetElementByGuid(stickyNote.guid.ToString());
+                }
+                else
+                {
+                    throw new InvalidOperationException("Unknown group item type.");
+                }
+
+                if (graphElement != null)
+                {
+                    var groupView = graphElement.GetContainingScope() as ShaderGroup;
                     if (groupView?.userData.guid != groupChange.newGroupGuid)
                     {
-                        groupView?.RemoveElement(nodeView);
+                        groupView?.RemoveElement(graphElement);
                         if (groupChange.newGroupGuid != Guid.Empty)
                         {
                             var newGroupView = m_GraphView.graphElements.ToList()
                                 .OfType<ShaderGroup>()
                                 .First(x => x.userData.guid == groupChange.newGroupGuid);
-                            newGroupView.AddElement(nodeView);
+                            newGroupView.AddElement(graphElement);
                         }
                     }
+
+                    return;
                 }
             }
 
@@ -524,6 +569,12 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 var group = m_GraphView.graphElements.ToList().OfType<ShaderGroup>().ToList().First(g => g.userData == groupData);
                 m_GraphView.AddToSelection(group);
+            }
+
+            foreach (var stickyNoteData in m_Graph.pastedStickyNotes)
+            {
+                var stickyNote = m_GraphView.graphElements.ToList().OfType<StickyNote>().First(s => s.userData == stickyNoteData);
+                m_GraphView.AddToSelection(stickyNote);
             }
 
             foreach (var node in m_Graph.pastedNodes)
@@ -624,7 +675,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
         }
 
-        List<GraphElement> m_AddNodeGraphElements = new List<GraphElement>();
+        List<GraphElement> m_GraphElementsTemp = new List<GraphElement>();
 
         void AddNode(AbstractMaterialNode node)
         {
@@ -662,12 +713,13 @@ namespace UnityEditor.ShaderGraph.Drawing
                 }
             }
 
-            m_AddNodeGraphElements.Clear();
-            m_GraphView.graphElements.ToList(m_AddNodeGraphElements);
+            // This should also work for sticky notes
+            m_GraphElementsTemp.Clear();
+            m_GraphView.graphElements.ToList(m_GraphElementsTemp);
 
             if (materialNode.groupGuid != Guid.Empty)
             {
-                foreach (var element in m_AddNodeGraphElements)
+                foreach (var element in m_GraphElementsTemp)
                 {
                     if (element is ShaderGroup groupView && groupView.userData.guid == materialNode.groupGuid)
                     {
@@ -686,6 +738,37 @@ namespace UnityEditor.ShaderGraph.Drawing
             graphGroup.SetPosition(new Rect(graphGroup.userData.position, Vector2.zero));
 
             m_GraphView.AddElement(graphGroup);
+        }
+
+        void AddStickyNote(StickyNoteData stickyNoteData)
+        {
+            var stickyNote = new StickyNote(stickyNoteData.position, m_Graph);
+
+            stickyNote.userData = stickyNoteData;
+            stickyNote.viewDataKey = stickyNoteData.guid.ToString();
+            stickyNote.title = stickyNoteData.title;
+            stickyNote.contents = stickyNoteData.content;
+            stickyNote.textSize = (StickyNote.TextSize)stickyNoteData.textSize;
+            stickyNote.theme = (StickyNote.Theme)stickyNoteData.theme;
+            stickyNote.userData.groupGuid = stickyNoteData.groupGuid;
+            stickyNote.SetPosition(new Rect(stickyNote.userData.position));
+
+            m_GraphView.AddElement(stickyNote);
+
+            // Add Sticky Note to group
+            m_GraphElementsTemp.Clear();
+            m_GraphView.graphElements.ToList(m_GraphElementsTemp);
+
+            if (stickyNoteData.groupGuid != Guid.Empty)
+            {
+                foreach (var element in m_GraphElementsTemp)
+                {
+                    if (element is ShaderGroup groupView && groupView.userData.guid == stickyNoteData.groupGuid)
+                    {
+                        groupView.AddElement(stickyNote);
+                    }
+                }
+            }
         }
 
         static void RepositionNode(GeometryChangedEvent evt)
