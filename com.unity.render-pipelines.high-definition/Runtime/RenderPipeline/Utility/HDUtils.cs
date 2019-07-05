@@ -27,6 +27,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     m_ClearTexture3D = new Texture3D(1, 1, 1, TextureFormat.ARGB32, false) { name = "Transparent Texture 3D" };
                     m_ClearTexture3D.SetPixel(0, 0, 0, Color.clear);
                     m_ClearTexture3D.Apply();
+
+                    RTHandles.Release(m_ClearTexture3DRTH);
+                    m_ClearTexture3DRTH = null;
                 }
 
                 return m_ClearTexture3D;
@@ -36,8 +39,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             get
             {
-                if (m_ClearTexture3DRTH == null)
+                if (m_ClearTexture3DRTH == null || m_ClearTexture3D == null) // Need to check regular texture as the RTHandle won't null out on domain reload
                 {
+                    RTHandles.Release(m_ClearTexture3DRTH);
                     m_ClearTexture3DRTH = RTHandles.Alloc(clearTexture3D);
                 }
 
@@ -278,7 +282,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             s_PropertyBlock.SetTexture(HDShaderIDs._BlitTexture, source);
             s_PropertyBlock.SetVector(HDShaderIDs._BlitScaleBias, scaleBias);
             s_PropertyBlock.SetFloat(HDShaderIDs._BlitMipLevel, mipLevel);
-            cmd.DrawProcedural(Matrix4x4.identity, GetBlitMaterial(source.rt.dimension), bilinear ? 1 : 0, MeshTopology.Triangles, 3, 1, s_PropertyBlock);
+            cmd.DrawProcedural(Matrix4x4.identity, GetBlitMaterial(TextureXR.dimension), bilinear ? 1 : 0, MeshTopology.Triangles, 3, 1, s_PropertyBlock);
         }
 
         // In the context of HDRP, the internal render targets used during the render loop are the same for all cameras, no matter the size of the camera.
