@@ -2,11 +2,11 @@
 using System;
 using UnityEngine.VFX;
 
-namespace UnityEngine.Experimental.VFX.Utility
+namespace UnityEngine.VFX.Utility
 {
-    [AddComponentMenu("VFX/Utilities/Parameters/VFX Audio Spectrum Binder")]
+    [AddComponentMenu("VFX/Property Binders/Audio Spectrum Binder")]
     [VFXBinder("Audio/Audio Spectrum to AttributeMap")]
-    public class VFXAudioSpectrumBinder : VFXBinderBase
+    class VFXAudioSpectrumBinder : VFXBinderBase
     {
         public enum AudioSourceMode
         {
@@ -14,13 +14,13 @@ namespace UnityEngine.Experimental.VFX.Utility
             AudioListener
         }
 
-        public string CountParameter { get { return (string)m_CountParameter; } set { m_CountParameter = value; } }
-        [VFXParameterBinding("System.UInt32"), SerializeField]
-        protected ExposedParameter m_CountParameter = "Count";
+        public string CountProperty { get { return (string)m_CountProperty; } set { m_CountProperty = value; } }
+        [VFXPropertyBinding("System.UInt32"), SerializeField, UnityEngine.Serialization.FormerlySerializedAs("m_CountParameter")]
+        protected ExposedProperty m_CountProperty = "Count";
 
-        public string TextureParameter { get { return (string)m_TextureParameter; } set { m_TextureParameter = value; } }
-        [VFXParameterBinding("UnityEngine.Texture2D"), SerializeField]
-        protected ExposedParameter m_TextureParameter = "SpectrumTexture";
+        public string TextureProperty { get { return (string)m_TextureProperty; } set { m_TextureProperty = value; } }
+        [VFXPropertyBinding("UnityEngine.Texture2D"), SerializeField, UnityEngine.Serialization.FormerlySerializedAs("m_TextureParameter")]
+        protected ExposedProperty m_TextureProperty = "SpectrumTexture";
 
         public FFTWindow FFTWindow = FFTWindow.BlackmanHarris;
         public uint Samples = 64;
@@ -34,8 +34,8 @@ namespace UnityEngine.Experimental.VFX.Utility
         public override bool IsValid(VisualEffect component)
         {
             bool mode = (Mode == AudioSourceMode.AudioSource ? AudioSource != null : true);
-            bool texture = component.HasTexture(TextureParameter);
-            bool count = component.HasUInt(CountParameter);
+            bool texture = component.HasTexture(TextureProperty);
+            bool count = component.HasUInt(CountProperty);
 
             return mode && texture && count;
         }
@@ -68,13 +68,13 @@ namespace UnityEngine.Experimental.VFX.Utility
         public override void UpdateBinding(VisualEffect component)
         {
             UpdateTexture();
-            component.SetTexture(TextureParameter, m_Texture);
-            component.SetUInt(CountParameter, Samples);
+            component.SetTexture(TextureProperty, m_Texture);
+            component.SetUInt(CountProperty, Samples);
         }
 
         public override string ToString()
         {
-            return string.Format("Audio Spectrum : '{0} samples' -> {1}", m_CountParameter, (Mode == AudioSourceMode.AudioSource ? "AudioSource" : "AudioListener"));
+            return string.Format("Audio Spectrum : '{0} samples' -> {1}", m_CountProperty, (Mode == AudioSourceMode.AudioSource ? "AudioSource" : "AudioListener"));
         }
     }
 }

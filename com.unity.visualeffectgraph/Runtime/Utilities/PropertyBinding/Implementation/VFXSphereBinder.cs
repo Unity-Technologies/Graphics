@@ -1,35 +1,35 @@
 using UnityEngine.VFX;
 
-namespace UnityEngine.Experimental.VFX.Utility
+namespace UnityEngine.VFX.Utility
 {
-    [AddComponentMenu("VFX/Utilities/Parameters/VFX Sphere Collider Binder")]
+    [AddComponentMenu("VFX/Property Binders/Sphere Collider Binder")]
     [VFXBinder("Collider/Sphere")]
-    public class VFXSphereBinder : VFXBinderBase
+    class VFXSphereBinder : VFXBinderBase
     {
-        public string Parameter { get { return (string)m_Parameter; } set { m_Parameter = value; UpdateSubParameters(); } }
+        public string Property { get { return (string)m_Property; } set { m_Property = value; UpdateSubProperties(); } }
 
-        [VFXParameterBinding("UnityEditor.VFX.Sphere"), SerializeField]
-        protected ExposedParameter m_Parameter = "Sphere";
+        [VFXPropertyBinding("UnityEditor.VFX.Sphere"), SerializeField, UnityEngine.Serialization.FormerlySerializedAs("m_Parameter")]
+        protected ExposedProperty m_Property = "Sphere";
         public SphereCollider Target;
 
-        private ExposedParameter Center;
-        private ExposedParameter Radius;
+        private ExposedProperty Center;
+        private ExposedProperty Radius;
 
         protected override void OnEnable()
         {
             base.OnEnable();
-            UpdateSubParameters();
+            UpdateSubProperties();
         }
 
         void OnValidate()
         {
-            UpdateSubParameters();
+            UpdateSubProperties();
         }
 
-        void UpdateSubParameters()
+        void UpdateSubProperties()
         {
-            Center = m_Parameter + "_center";
-            Radius = m_Parameter + "_radius";
+            Center = m_Property + "_center";
+            Radius = m_Property + "_radius";
         }
 
         public override bool IsValid(VisualEffect component)
@@ -50,7 +50,7 @@ namespace UnityEngine.Experimental.VFX.Utility
 
         public override string ToString()
         {
-            return string.Format("Sphere : '{0}' -> {1}", m_Parameter, Target == null ? "(null)" : Target.name);
+            return string.Format("Sphere : '{0}' -> {1}", m_Property, Target == null ? "(null)" : Target.name);
         }
     }
 }

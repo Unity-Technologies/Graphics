@@ -4,10 +4,10 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.VFX;
 
-namespace UnityEngine.Experimental.VFX.Utility
+namespace UnityEngine.VFX.Utility
 {
     [Serializable]
-    public class ExposedParameter
+    public class ExposedProperty
     {
         [SerializeField]
         private string m_Name;
@@ -15,17 +15,17 @@ namespace UnityEngine.Experimental.VFX.Utility
         private int m_Id;
 #endif
 
-        public static implicit operator ExposedParameter(string name)
+        public static implicit operator ExposedProperty(string name)
         {
-            return new ExposedParameter(name);
+            return new ExposedProperty(name);
         }
 
-        public static explicit operator string(ExposedParameter parameter)
+        public static explicit operator string(ExposedProperty parameter)
         {
             return parameter.m_Name;
         }
 
-        public static implicit operator int(ExposedParameter parameter)
+        public static implicit operator int(ExposedProperty parameter)
         {
 #if UNITY_EDITOR
             //In Editor, m_Id cached cannot be used for several reasons :
@@ -46,19 +46,19 @@ namespace UnityEngine.Experimental.VFX.Utility
 #endif
         }
 
-        public static ExposedParameter operator+(ExposedParameter self, ExposedParameter other)
+        public static ExposedProperty operator+(ExposedProperty self, ExposedProperty other)
         {
-            return new ExposedParameter(self.m_Name + other.m_Name);
+            return new ExposedProperty(self.m_Name + other.m_Name);
         }
 
-        public ExposedParameter()
+        public ExposedProperty()
         {
 #if !UNITY_EDITOR
             m_Id = -1;
 #endif
         }
 
-        private ExposedParameter(string name)
+        private ExposedProperty(string name)
         {
             m_Name = name;
 #if !UNITY_EDITOR

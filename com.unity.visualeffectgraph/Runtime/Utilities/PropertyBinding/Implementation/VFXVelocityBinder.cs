@@ -1,15 +1,15 @@
 using UnityEngine.VFX;
 
-namespace UnityEngine.Experimental.VFX.Utility
+namespace UnityEngine.VFX.Utility
 {
-    [AddComponentMenu("VFX/Utilities/Parameters/VFX Velocity Binder")]
+    [AddComponentMenu("VFX/Property Binders/Velocity Binder")]
     [VFXBinder("Transform/Velocity")]
-    public class VFXVelocityBinder : VFXBinderBase
+    class VFXVelocityBinder : VFXBinderBase
     {
-        public string Parameter { get { return (string)m_Parameter; } set { m_Parameter = value; } }
+        public string Property { get { return (string)m_Property; } set { m_Property = value; } }
 
-        [VFXParameterBinding("UnityEngine.Vector3"), SerializeField]
-        public ExposedParameter m_Parameter = "Velocity";
+        [VFXPropertyBinding("UnityEngine.Vector3"), SerializeField, UnityEngine.Serialization.FormerlySerializedAs("m_Parameter")]
+        public ExposedProperty m_Property = "Velocity";
         public Transform Target;
 
         private static readonly float invalidPreviousTime = -1.0f;
@@ -18,7 +18,7 @@ namespace UnityEngine.Experimental.VFX.Utility
 
         public override bool IsValid(VisualEffect component)
         {
-            return Target != null && component.HasVector3((int)m_Parameter);
+            return Target != null && component.HasVector3((int)m_Property);
         }
 
         public override void Reset()
@@ -45,14 +45,14 @@ namespace UnityEngine.Experimental.VFX.Utility
                     velocity = delta / deltaTime;
             }
 
-            component.SetVector3((int)m_Parameter, velocity);
+            component.SetVector3((int)m_Property, velocity);
             m_PreviousPosition = Target.transform.position;
             m_PreviousTime = time;
         }
 
         public override string ToString()
         {
-            return string.Format("Velocity : '{0}' -> {1}", m_Parameter, Target == null ? "(null)" : Target.name);
+            return string.Format("Velocity : '{0}' -> {1}", m_Property, Target == null ? "(null)" : Target.name);
         }
     }
 }

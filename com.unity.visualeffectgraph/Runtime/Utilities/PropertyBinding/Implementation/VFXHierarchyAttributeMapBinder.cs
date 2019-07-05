@@ -1,23 +1,23 @@
 using System.Collections.Generic;
 using UnityEngine.VFX;
 
-namespace UnityEngine.Experimental.VFX.Utility
+namespace UnityEngine.VFX.Utility
 {
-    [AddComponentMenu("VFX/Utilities/Parameters/VFX Hierarchy AttributeMap Binder")]
+    [AddComponentMenu("VFX/Property Binders/Hierarchy to Attribute Map Binder")]
     [VFXBinder("Point Cache/Hierarchy to Attribute Map")]
-    public class VFXHierarchyAttributeMapBinder : VFXBinderBase
+    class VFXHierarchyAttributeMapBinder : VFXBinderBase
     {
-        [VFXParameterBinding("System.UInt32"), SerializeField]
-        protected ExposedParameter m_BoneCount = "BoneCount";
+        [VFXPropertyBinding("System.UInt32"), SerializeField]
+        protected ExposedProperty m_BoneCount = "BoneCount";
 
-        [VFXParameterBinding("UnityEngine.Texture2D"), SerializeField]
-        protected ExposedParameter m_PositionMap = "PositionMap";
+        [VFXPropertyBinding("UnityEngine.Texture2D"), SerializeField]
+        protected ExposedProperty m_PositionMap = "PositionMap";
 
-        [VFXParameterBinding("UnityEngine.Texture2D"), SerializeField]
-        protected ExposedParameter m_TargetPositionMap = "TargetPositionMap";
+        [VFXPropertyBinding("UnityEngine.Texture2D"), SerializeField]
+        protected ExposedProperty m_TargetPositionMap = "TargetPositionMap";
 
-        [VFXParameterBinding("UnityEngine.Texture2D"), SerializeField]
-        protected ExposedParameter m_RadiusPositionMap = "RadiusPositionMap";
+        [VFXPropertyBinding("UnityEngine.Texture2D"), SerializeField]
+        protected ExposedProperty m_RadiusPositionMap = "RadiusPositionMap";
 
         public enum RadiusMode
         {

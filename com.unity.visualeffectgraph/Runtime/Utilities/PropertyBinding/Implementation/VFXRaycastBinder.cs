@@ -1,28 +1,28 @@
 #if VFX_HAS_PHYSICS
 using UnityEngine.VFX;
 
-namespace UnityEngine.Experimental.VFX.Utility
+namespace UnityEngine.VFX.Utility
 {
-    [AddComponentMenu("VFX/Utilities/Parameters/VFX Raycast Binder")]
+    [AddComponentMenu("VFX/Property Binders/Raycast Binder")]
     [VFXBinder("Physics/Raycast")]
-    public class VFXRaycastBinder : VFXBinderBase
+    class VFXRaycastBinder : VFXBinderBase
     {
-        public string TargetPosition { get { return (string)m_TargetPosition; } set { m_TargetPosition = value; UpdateSubParameters(); } }
-        public string TargetNormal { get { return (string)m_TargetNormal; } set { m_TargetNormal = value; UpdateSubParameters(); } }
+        public string TargetPosition { get { return (string)m_TargetPosition; } set { m_TargetPosition = value; UpdateSubProperties(); } }
+        public string TargetNormal { get { return (string)m_TargetNormal; } set { m_TargetNormal = value; UpdateSubProperties(); } }
         public string TargetHit { get { return (string)m_TargetHit; } set { m_TargetHit = value; } }
 
-        [VFXParameterBinding("UnityEditor.VFX.Position"), SerializeField]
-        protected ExposedParameter m_TargetPosition = "TargetPosition";
+        [VFXPropertyBinding("UnityEditor.VFX.Position"), SerializeField]
+        protected ExposedProperty m_TargetPosition = "TargetPosition";
 
-        [VFXParameterBinding("UnityEditor.VFX.DirectionType"), SerializeField]
-        protected ExposedParameter m_TargetNormal = "TargetNormal";
+        [VFXPropertyBinding("UnityEditor.VFX.DirectionType"), SerializeField]
+        protected ExposedProperty m_TargetNormal = "TargetNormal";
 
-        [VFXParameterBinding("System.Boolean"), SerializeField]
-        protected ExposedParameter m_TargetHit = "TargetHit";
+        [VFXPropertyBinding("System.Boolean"), SerializeField]
+        protected ExposedProperty m_TargetHit = "TargetHit";
 
 
-        protected ExposedParameter m_TargetPosition_position;
-        protected ExposedParameter m_TargetNormal_direction;
+        protected ExposedProperty m_TargetPosition_position;
+        protected ExposedProperty m_TargetNormal_direction;
 
         public enum Space
         {
@@ -41,15 +41,15 @@ namespace UnityEngine.Experimental.VFX.Utility
         protected override void OnEnable()
         {
             base.OnEnable();
-            UpdateSubParameters();
+            UpdateSubProperties();
         }
 
         void OnValidate()
         {
-            UpdateSubParameters();
+            UpdateSubProperties();
         }
 
-        void UpdateSubParameters()
+        void UpdateSubProperties()
         {
             m_TargetPosition_position = m_TargetPosition + "_position";
             m_TargetNormal_direction = m_TargetNormal + "_direction";

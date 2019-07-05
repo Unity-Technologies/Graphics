@@ -1,16 +1,16 @@
 using System.Collections.Generic;
 using UnityEngine.VFX;
 
-namespace UnityEngine.Experimental.VFX.Utility
+namespace UnityEngine.VFX.Utility
 {
-    [AddComponentMenu("VFX/Utilities/Parameters/VFX Multiple Position Binder")]
+    [AddComponentMenu("VFX/Property Binders/Multiple Position Binder")]
     [VFXBinder("Point Cache/Multiple Position Binder")]
-    public class VFXMultiplePositionParameterBinder : VFXBinderBase
+    class VFXMultiplePositionBinder : VFXBinderBase
     {
-        [VFXParameterBinding("UnityEngine.Texture2D")]
-        public ExposedParameter PositionMapParameter = "PositionMap";
-        [VFXParameterBinding("System.Int32")]
-        public ExposedParameter PositionCountParameter = "PositionCount";
+        [VFXPropertyBinding("UnityEngine.Texture2D"), UnityEngine.Serialization.FormerlySerializedAs("PositionMapParameter")]
+        public ExposedProperty PositionMapProperty = "PositionMap";
+        [VFXPropertyBinding("System.Int32"), UnityEngine.Serialization.FormerlySerializedAs("PositionCountParameter")]
+        public ExposedProperty PositionCountProperty = "PositionCount";
 
         public GameObject[] Targets;
         public bool EveryFrame = false;
@@ -27,8 +27,8 @@ namespace UnityEngine.Experimental.VFX.Utility
         public override bool IsValid(VisualEffect component)
         {
             return Targets != null &&
-                component.HasTexture(PositionMapParameter) &&
-                component.HasInt(PositionCountParameter);
+                component.HasTexture(PositionMapProperty) &&
+                component.HasInt(PositionCountProperty);
         }
 
         public override void UpdateBinding(VisualEffect component)
@@ -36,8 +36,8 @@ namespace UnityEngine.Experimental.VFX.Utility
             if (EveryFrame || Application.isEditor)
                 UpdateTexture();
 
-            component.SetTexture(PositionMapParameter, positionMap);
-            component.SetInt(PositionCountParameter, count);
+            component.SetTexture(PositionMapProperty, positionMap);
+            component.SetInt(PositionCountProperty, count);
         }
 
         void UpdateTexture()

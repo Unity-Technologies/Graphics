@@ -1,38 +1,40 @@
 #if VFX_HAS_TERRAINMODULE
 using UnityEngine.VFX;
 
-namespace UnityEngine.Experimental.VFX.Utility
+namespace UnityEngine.VFX.Utility
 {
-    [AddComponentMenu("VFX/Utilities/Parameters/VFX Terrain Binder")]
+    [AddComponentMenu("VFX/Property Binders/Terrain Binder")]
     [VFXBinder("Utility/Terrain")]
-    public class VFXTerrainBinder : VFXBinderBase
+    class VFXTerrainBinder : VFXBinderBase
     {
-        [VFXParameterBinding("UnityEditor.VFX.TerrainType")]
-        public ExposedParameter TerrainParameter;
+        public string Property { get { return (string)m_Property; } set { m_Property = value; UpdateSubProperties(); } }
+
+        [VFXPropertyBinding("UnityEditor.VFX.TerrainType"), UnityEngine.Serialization.FormerlySerializedAs("TerrainParameter")]
+        public ExposedProperty m_Property;
         public Terrain Terrain;
 
-        private ExposedParameter Terrain_Bounds_center;
-        private ExposedParameter Terrain_Bounds_size;
-        private ExposedParameter Terrain_HeightMap;
-        private ExposedParameter Terrain_Height;
+        private ExposedProperty Terrain_Bounds_center;
+        private ExposedProperty Terrain_Bounds_size;
+        private ExposedProperty Terrain_HeightMap;
+        private ExposedProperty Terrain_Height;
 
         protected override void OnEnable()
         {
             base.OnEnable();
-            UpdateSubParameters();
+            UpdateSubProperties();
         }
 
         private void OnValidate()
         {
-            UpdateSubParameters();
+            UpdateSubProperties();
         }
 
-        void UpdateSubParameters()
+        void UpdateSubProperties()
         {
-            Terrain_Bounds_center = TerrainParameter + "_Bounds_center";
-            Terrain_Bounds_size = TerrainParameter + "_Bounds_size";
-            Terrain_HeightMap = TerrainParameter + "_HeightMap";
-            Terrain_Height = TerrainParameter + "_Height";
+            Terrain_Bounds_center = m_Property + "_Bounds_center";
+            Terrain_Bounds_size = m_Property + "_Bounds_size";
+            Terrain_HeightMap = m_Property + "_HeightMap";
+            Terrain_Height = m_Property + "_Height";
         }
 
         public override bool IsValid(VisualEffect component)
@@ -56,7 +58,7 @@ namespace UnityEngine.Experimental.VFX.Utility
 
         public override string ToString()
         {
-            return string.Format("Sphere : '{0}' -> {1}", TerrainParameter, Terrain == null ? "(null)" : Terrain.name);
+            return string.Format("Sphere : '{0}' -> {1}", m_Property, Terrain == null ? "(null)" : Terrain.name);
         }
     }
 }

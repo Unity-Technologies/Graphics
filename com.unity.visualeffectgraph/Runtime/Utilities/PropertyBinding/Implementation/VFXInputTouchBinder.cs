@@ -1,25 +1,25 @@
 using UnityEngine.VFX;
 
-namespace UnityEngine.Experimental.VFX.Utility
+namespace UnityEngine.VFX.Utility
 {
-    [AddComponentMenu("VFX/Utilities/Parameters/VFX Input Touch Parameter Binder")]
+    [AddComponentMenu("VFX/Property Binders/Input Touch Parameter Binder")]
     [VFXBinder("Input/Touch")]
-    public class VFXInputTouchBinder : VFXBinderBase
+    class VFXInputTouchBinder : VFXBinderBase
     {
-        public string TouchEnabledParameter { get { return (string)m_TouchEnabledParameter; } set { m_TouchEnabledParameter = value; } }
+        public string TouchEnabledProperty { get { return (string)m_TouchEnabledProperty; } set { m_TouchEnabledProperty = value; } }
 
-        [VFXParameterBinding("System.Boolean"), SerializeField]
-        protected ExposedParameter m_TouchEnabledParameter = "TouchEnabled";
+        [VFXPropertyBinding("System.Boolean"), SerializeField, UnityEngine.Serialization.FormerlySerializedAs("m_TouchEnabledParameter")]
+        protected ExposedProperty m_TouchEnabledProperty = "TouchEnabled";
 
         public string Parameter { get { return (string)m_Parameter; } set { m_Parameter = value; } }
 
-        [VFXParameterBinding("UnityEditor.VFX.Position", "UnityEngine.Vector3"), SerializeField]
-        protected ExposedParameter m_Parameter = "Position";
+        [VFXPropertyBinding("UnityEditor.VFX.Position", "UnityEngine.Vector3"), SerializeField]
+        protected ExposedProperty m_Parameter = "Position";
 
         public string VelocityParameter { get { return (string)m_VelocityParameter; } set { m_VelocityParameter = value; } }
 
-        [VFXParameterBinding("UnityEngine.Vector3"), SerializeField]
-        protected ExposedParameter m_VelocityParameter = "Velocity";
+        [VFXPropertyBinding("UnityEngine.Vector3"), SerializeField]
+        protected ExposedProperty m_VelocityParameter = "Velocity";
 
 
         public int TouchIndex = 0;
@@ -35,7 +35,7 @@ namespace UnityEngine.Experimental.VFX.Utility
 
         public override bool IsValid(VisualEffect component)
         {
-            return Target != null && component.HasVector3(m_Parameter) && component.HasBool(m_TouchEnabledParameter) && (SetVelocity ? component.HasVector3(m_VelocityParameter) : true);
+            return Target != null && component.HasVector3(m_Parameter) && component.HasBool(m_TouchEnabledProperty) && (SetVelocity ? component.HasVector3(m_VelocityParameter) : true);
         }
 
         public override void UpdateBinding(VisualEffect component)
@@ -72,13 +72,13 @@ namespace UnityEngine.Experimental.VFX.Utility
                     position = Target.ScreenToWorldPoint(pos);
                 }
 
-                component.SetBool(m_TouchEnabledParameter, true);
+                component.SetBool(m_TouchEnabledProperty, true);
                 component.SetVector3(m_Parameter, position);
             }
             else // Not touched at all
             {
                 touch = false;
-                component.SetBool(m_TouchEnabledParameter, false);
+                component.SetBool(m_TouchEnabledProperty, false);
                 component.SetVector3(m_Parameter, Vector3.zero);
             }
 
