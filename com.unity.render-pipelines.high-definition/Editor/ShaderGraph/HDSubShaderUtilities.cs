@@ -577,6 +577,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             KeywordCollector sharedKeywords = new KeywordCollector();
             ShaderStringBuilder shaderPropertyUniforms = new ShaderStringBuilder(1);
             ShaderStringBuilder shaderKeywordDeclarations = new ShaderStringBuilder(1);
+            var shaderKeywordPermutations = new ShaderStringBuilder(1);
 
             // build the graph outputs structure to hold the results of each active slots (and fill out activeFields to indicate they are active)
             string pixelGraphInputStructName = "SurfaceDescriptionInputs";
@@ -713,6 +714,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             // Get keyword declarations
             sharedKeywords.GetKeywordsDeclaration(shaderKeywordDeclarations, mode);
+            KeywordUtil.GetKeywordPermutationDeclaration(shaderKeywordPermutations, keywordPermutations);
 
             // Get property declarations
             sharedProperties.GetPropertiesDeclaration(shaderPropertyUniforms, mode, masterNode.owner.concretePrecision);
@@ -777,11 +779,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     shaderPassIncludes.AddShaderChunk(include);
             }
 
+
             // build graph code
             var graph = new ShaderGenerator();
             {
                 graph.AddShaderChunk("// Shared Graph Keywords");
                 graph.AddShaderChunk(shaderKeywordDeclarations.ToString());
+                graph.AddShaderChunk(shaderKeywordPermutations.ToString());
 
                 graph.AddShaderChunk("// Shared Graph Properties (uniform inputs)");
                 graph.AddShaderChunk(shaderPropertyUniforms.ToString());

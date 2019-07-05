@@ -1000,7 +1000,8 @@ namespace UnityEditor.ShaderGraph
             var shaderKeywords = new KeywordCollector();
             var shaderPropertyUniforms = new ShaderStringBuilder();
             var shaderKeywordDeclarations = new ShaderStringBuilder();
-            
+            var shaderKeywordPermutations = new ShaderStringBuilder(1);
+
             var functionBuilder = new ShaderStringBuilder();
             var functionRegistry = new FunctionRegistry(functionBuilder);
 
@@ -1134,6 +1135,7 @@ namespace UnityEditor.ShaderGraph
             // Keyword declarations
 
             shaderKeywords.GetKeywordsDeclaration(shaderKeywordDeclarations, mode);
+            KeywordUtil.GetKeywordPermutationDeclaration(shaderKeywordPermutations, keywordPermutations);
 
             // -------------------------------------
             // Property uniforms
@@ -1170,6 +1172,7 @@ namespace UnityEditor.ShaderGraph
                 finalShader.AppendLine(@"#include ""Packages/com.unity.shadergraph/ShaderGraphLibrary/Functions.hlsl""");
 
                 finalShader.AppendLines(shaderKeywordDeclarations.ToString());
+                finalShader.AppendLines(shaderKeywordPermutations.ToString());
                 finalShader.AppendLine(@"#define SHADERGRAPH_PREVIEW 1");
                 finalShader.AppendNewLine();
 
@@ -1319,9 +1322,9 @@ namespace UnityEditor.ShaderGraph
                 for(int i = 0; i < nodes.Count; i++)
                 {
                     GenerateDescriptionForNode(nodes[i], keywordPermutationsPerNode[i], functionRegistry, surfaceDescriptionFunction,
-                        shaderProperties, shaderKeywords, 
+                        shaderProperties, shaderKeywords,
                         graph, graphContext, mode);
-                }               
+                }
 
                 functionRegistry.builder.currentNode = null;
                 surfaceDescriptionFunction.currentNode = null;
@@ -1370,7 +1373,7 @@ namespace UnityEditor.ShaderGraph
 
         static void GenerateSurfaceDescriptionRemap(
             GraphData graph,
-            AbstractMaterialNode rootNode, 
+            AbstractMaterialNode rootNode,
             IEnumerable<MaterialSlot> slots,
             ShaderStringBuilder surfaceDescriptionFunction,
             GenerationMode mode)
@@ -1462,12 +1465,12 @@ namespace UnityEditor.ShaderGraph
                 for(int i = 0; i < nodes.Count; i++)
                 {
                     GenerateDescriptionForNode(nodes[i], keywordPermutationsPerNode[i], functionRegistry, builder,
-                        shaderProperties, shaderKeywords, 
+                        shaderProperties, shaderKeywords,
                         graph, graphContext, mode);
                 }
 
                 functionRegistry.builder.currentNode = null;
-                builder.currentNode = null; 
+                builder.currentNode = null;
 
                 if(slots.Count != 0)
                 {
@@ -1475,7 +1478,7 @@ namespace UnityEditor.ShaderGraph
                     {
                         var isSlotConnected = slot.owner.owner.GetEdges(slot.slotReference).Any();
                         var slotName = NodeUtils.GetHLSLSafeName(slot.shaderOutputName);
-                        var slotValue = isSlotConnected ? 
+                        var slotValue = isSlotConnected ?
                             ((AbstractMaterialNode)slot.owner).GetSlotValue(slot.id, mode, slot.owner.concretePrecision) : slot.GetDefaultValue(mode, slot.owner.concretePrecision);
                         builder.AppendLine("description.{0} = {1};", slotName, slotValue);
                     }

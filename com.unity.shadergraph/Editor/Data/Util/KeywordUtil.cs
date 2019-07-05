@@ -96,11 +96,11 @@ namespace UnityEditor.ShaderGraph
             sb.Append("#if ");
 
             for(int i = 0; i < permutationGroup.Count; i++)
-            {                
+            {
                 if(i != 0)
                     sb.Append(" || ");
-                
-                sb.Append($"defined(KEYWORD_PERMUTATION_{i})");
+
+                sb.Append($"defined(KEYWORD_PERMUTATION_{permutationGroup[i]})");
             }
             return sb.ToString();
         }
