@@ -4,10 +4,23 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [6.9.0] - 2019-XX-XX
+## [6.10.0] - 2019-XX-XX
+
+## [6.9.0] - 2019-07-02
+
+### Added
+- Shader Graphs that use time-dependent vertex modification now generate correct motion vectors.
 
 ### Fixed
 - Fixed issue with Low resolution transparency on PS4
+- Fixed The Parallax Occlusion Mappping node in shader graph and it's UV input slot
+- Fixed lighting with XR single-pass instancing by disabling deferred tiles
+- Fixed camera flickering when using TAA and selecting the camera in the editor
+
+### Changed
+- Remove all obsolete wind code from shader
+- Enlighten now uses inverse squared falloff instead of the built-in falloff.
+- Enlighten is now deprecated. Use the CPU or GPU Lightmapper instead.
 
 ## [6.8.0] - 2019-06-12
 

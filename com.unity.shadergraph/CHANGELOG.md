@@ -4,12 +4,18 @@ All notable changes to this package are documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [6.9.0] - 2019-XX-XX
+## [6.10.0] - 2019-XX-XX
+
+## [6.9.0] - 2019-07-02
+
+### Fixed
+- The `Bitangent Vector Node` now generates all necessary shader requirements.
 
 ## [6.8.0] - 2019-06-12
 ### Added
 - Color Mode improves node visibility by coloring the title bar by Category, Precision, or custom colors.
 - You can now set the precision of a Shader Graph and individual nodes.
+- Added _TimeParameters variable containing Time, Sin(Time), Cosine(Time)
 
 ## [6.7.0] - 2019-05-21
 ### Added
@@ -17,6 +23,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Changed
 - The `Custom Function Node` now uses an object field to reference its source when using `File` mode.
+- To enable master nodes to generate correct motion vectors for time-based vertex modification, time is now implemented as an input to the graph rather than as a global uniform.
 
 ### Fixed
 - `Sampler State` properties and nodes now serialize correctly.
