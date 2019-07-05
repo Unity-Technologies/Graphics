@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - You can now set the precision of a Shader Graph and individual nodes.
 - Added _TimeParameters variable containing Time, Sin(Time), Cosine(Time)
 - **Asbolute World** space on `Position Node` now provides absolute world space coordinates regardless of the active render pipeline.
+- You can now add sticky notes to graphs.
 
 ### Changed
 - The `Custom Function Node` now uses an object field to reference its source when using `File` mode.

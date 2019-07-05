@@ -267,7 +267,8 @@ namespace UnityEditor.ShaderGraph.Drawing
                     graphView.selection.OfType<IShaderNodeView>().Where(x => !(x.node is PropertyNode || x.node is SubGraphOutputNode)).Select(x => x.node).Where(x => x.allowedInSubGraph).ToArray(),
                     graphView.selection.OfType<Edge>().Select(x => x.userData as IEdge),
                     graphView.selection.OfType<BlackboardField>().Select(x => x.userData as AbstractShaderProperty),
-                    metaProperties);
+                    metaProperties,
+                    graphView.selection.OfType<StickyNote>().Select(x => x.userData));
 
             var deserialized = CopyPasteGraph.FromJson(JsonUtility.ToJson(copyPasteGraph, false));
             if (deserialized == null)
@@ -316,6 +317,22 @@ namespace UnityEditor.ShaderGraph.Drawing
                 }
 
                 subGraph.AddNode(node);
+            }
+
+            foreach (var note in deserialized.stickyNotes)
+            {
+                if (!groupGuids.Contains(note.groupGuid))
+                {
+                    groupGuids.Add(note.groupGuid);
+                }
+
+                if (note.groupGuid != Guid.Empty)
+                {
+                    note.groupGuid = !groupGuidMap.ContainsKey(note.groupGuid) ? Guid.Empty : groupGuidMap[note.groupGuid];
+                }
+
+                note.RewriteGuid();
+                subGraph.AddStickyNote(note);
             }
 
             // figure out what needs remapping
@@ -500,9 +517,10 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
 
             graphObject.graph.RemoveElements(
-                graphView.selection.OfType<IShaderNodeView>().Select(x => x.node).Where(x => x.allowedInSubGraph),
-                Enumerable.Empty<IEdge>(),
-                Enumerable.Empty<GroupData>());
+                graphView.selection.OfType<IShaderNodeView>().Select(x => x.node).Where(x => x.allowedInSubGraph).ToArray(),
+                new IEdge[] {},
+                new GroupData[] {},
+                graphView.selection.OfType<StickyNote>().Select(x => x.userData).ToArray());
             graphObject.graph.ValidateGraph();
         }
 
