@@ -75,6 +75,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Rename WorldToTangent to TangentToWorld as it was incorrectly named
 - Remove SunDisk and Sun Halo size from directional light
 - Remove the name in the diffusion profile UI
+- Changed how shadow map resolution scaling with distance is computed. Now it uses screen space area rather than light range.
 
 
 ## [6.7.0-preview] - 2019-05-21

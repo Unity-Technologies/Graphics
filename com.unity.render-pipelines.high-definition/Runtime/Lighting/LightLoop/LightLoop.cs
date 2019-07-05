@@ -1830,7 +1830,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         // Reserve shadow map resolutions and check if light needs to render shadows
                         if(additionalData.WillRenderShadowMap())
                         {
-                            additionalData.ReserveShadowMap(camera, m_ShadowManager, m_ShadowInitParameters);
+                            additionalData.ReserveShadowMap(camera, m_ShadowManager, m_ShadowInitParameters, light.screenRect);
                         }
 
                         LightCategory lightCategory = LightCategory.Count;
