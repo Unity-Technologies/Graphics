@@ -1419,7 +1419,6 @@ MonoBehaviour:
   sort: 0
   indirectDraw: 0
   castShadows: 0
-  preRefraction: 0
   useExposureWeight: 0
   materialType: 4
   onlyAmbientLighting: 0
@@ -1860,7 +1859,6 @@ MonoBehaviour:
   sort: 0
   indirectDraw: 0
   castShadows: 0
-  preRefraction: 0
   useExposureWeight: 0
   materialType: 3
   onlyAmbientLighting: 0
@@ -3617,7 +3615,6 @@ MonoBehaviour:
   sort: 0
   indirectDraw: 0
   castShadows: 0
-  preRefraction: 0
   useExposureWeight: 0
   materialType: 4
   onlyAmbientLighting: 0
@@ -3850,7 +3847,6 @@ MonoBehaviour:
   sort: 0
   indirectDraw: 0
   castShadows: 0
-  preRefraction: 0
   useExposureWeight: 0
   materialType: 3
   onlyAmbientLighting: 0
@@ -4936,7 +4932,6 @@ MonoBehaviour:
   sort: 0
   indirectDraw: 0
   castShadows: 0
-  preRefraction: 0
   useExposureWeight: 0
   materialType: 4
   onlyAmbientLighting: 0
@@ -5169,7 +5164,6 @@ MonoBehaviour:
   sort: 0
   indirectDraw: 0
   castShadows: 0
-  preRefraction: 0
   useExposureWeight: 0
   materialType: 3
   onlyAmbientLighting: 0
@@ -6255,7 +6249,6 @@ MonoBehaviour:
   sort: 0
   indirectDraw: 0
   castShadows: 0
-  preRefraction: 0
   useExposureWeight: 0
   materialType: 4
   onlyAmbientLighting: 0
@@ -6488,7 +6481,6 @@ MonoBehaviour:
   sort: 0
   indirectDraw: 0
   castShadows: 0
-  preRefraction: 0
   useExposureWeight: 0
   materialType: 3
   onlyAmbientLighting: 0
@@ -7574,7 +7566,6 @@ MonoBehaviour:
   sort: 0
   indirectDraw: 0
   castShadows: 0
-  preRefraction: 0
   useExposureWeight: 0
   materialType: 4
   onlyAmbientLighting: 0
@@ -7807,7 +7798,6 @@ MonoBehaviour:
   sort: 0
   indirectDraw: 0
   castShadows: 0
-  preRefraction: 0
   useExposureWeight: 0
   materialType: 3
   onlyAmbientLighting: 0
@@ -8893,7 +8883,6 @@ MonoBehaviour:
   sort: 0
   indirectDraw: 0
   castShadows: 0
-  preRefraction: 0
   useExposureWeight: 0
   materialType: 4
   onlyAmbientLighting: 0
@@ -9126,7 +9115,6 @@ MonoBehaviour:
   sort: 0
   indirectDraw: 0
   castShadows: 0
-  preRefraction: 0
   useExposureWeight: 0
   materialType: 3
   onlyAmbientLighting: 0

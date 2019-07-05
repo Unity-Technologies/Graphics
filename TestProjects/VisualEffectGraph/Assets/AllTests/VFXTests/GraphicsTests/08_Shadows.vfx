@@ -341,7 +341,6 @@ MonoBehaviour:
   sort: 0
   indirectDraw: 0
   castShadows: 1
-  preRefraction: 0
   useExposureWeight: 0
 --- !u!114 &114149745243873572
 MonoBehaviour:
@@ -936,7 +935,6 @@ MonoBehaviour:
   sort: 0
   indirectDraw: 0
   castShadows: 1
-  preRefraction: 0
   useExposureWeight: 0
 --- !u!114 &114369422258304014
 MonoBehaviour:
@@ -1191,7 +1189,6 @@ MonoBehaviour:
   sort: 0
   indirectDraw: 0
   castShadows: 1
-  preRefraction: 0
   useExposureWeight: 0
   targetFromAttributes: 1
   useNativeLines: 0
@@ -2325,7 +2322,6 @@ MonoBehaviour:
   sort: 0
   indirectDraw: 0
   castShadows: 1
-  preRefraction: 0
   useExposureWeight: 0
   primitiveType: 1
   useGeometryShader: 0

@@ -143,13 +143,16 @@ namespace UnityEditor.VFX
                 block.CollectDependencies(dependencies);
             }
 
-            m_SubChildren = VFXMemorySerializer.DuplicateObjects(dependencies.ToArray()).OfType<VFXModel>().Where(t => t is VFXBlock || t is VFXOperator || t is VFXParameter).ToArray();
+            var copy = VFXMemorySerializer.DuplicateObjects(dependencies.ToArray());
+            m_SubChildren = copy.OfType<VFXModel>().Where(t => t is VFXBlock || t is VFXOperator || t is VFXParameter).ToArray();
             m_SubBlocks = m_SubChildren.OfType<VFXBlock>().ToArray();
             foreach (var child in m_SubChildren)
-            {
                 child.onInvalidateDelegate += SubChildrenOnInvalidate;
-
+            foreach(var child in copy)
+            {
+                child.hideFlags = HideFlags.HideAndDontSave;
             }
+            SyncSlots(VFXSlot.Direction.kInput,true);
             PatchInputExpressions();
         }
         

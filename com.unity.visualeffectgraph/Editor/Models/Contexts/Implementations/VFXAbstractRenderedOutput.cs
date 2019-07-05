@@ -58,12 +58,54 @@ namespace UnityEditor.VFX
 
         public override void OnEnable()
         {
-            if (m_SubOutputs == null)
-                m_SubOutputs = new List<VFXSRPSubOutput>();
+            InitSubOutputs(m_SubOutputs, false);
+            base.OnEnable();
+        }
 
+        public List<VFXSRPSubOutput> GetSubOutputs()
+        {
+            return m_SubOutputs;
+        }
+
+        public void InitSubOutputs(List<VFXSRPSubOutput> subOutputs, bool invalidate = true)
+        {
+            m_SubOutputs = subOutputs;
+            SanitizeSubOutputs();
             m_CurrentSubOutput = GetOrCreateSubOutput();
 
-            base.OnEnable();
+            if (invalidate)
+                Invalidate(InvalidationCause.kSettingChanged);
+        }
+
+        private void SanitizeSubOutputs()
+        {
+            if (m_SubOutputs == null)
+            {
+                m_SubOutputs = new List<VFXSRPSubOutput>();
+                return;
+            }
+
+            // TODO Uncommenting this code will removed SRP data that are unknown, this is probably not what we want
+            //int nbRemoved = 0;
+            //if ((nbRemoved = m_SubOutputs.RemoveAll(s => s == null)) > 0)
+            //    Debug.LogWarningFormat("Remove {0} SRP Sub Outputs that could not be deserialized from {1} of type {2}", nbRemoved, name, GetType());
+
+            var subOutputsTypes = new HashSet<Type>(); // TODO For some reason constructor that takes a capacity does not exist
+            for (int i = 0; i < m_SubOutputs.Count; ++i)
+            {
+                if (m_SubOutputs[i] == null)
+                    continue;
+
+                Type subOutputType = m_SubOutputs[i].GetType();
+                if (subOutputsTypes.Contains(subOutputType))
+                {
+                    Debug.LogWarningFormat("Duplicate SRP Sub Output of type {0} found in {1} of type {2}. It is removed", subOutputType, name, GetType());
+                    m_SubOutputs.RemoveAt(i);
+                    --i;
+                }
+                else
+                    subOutputsTypes.Add(subOutputType);
+            }
         }
 
         public override void CollectDependencies(HashSet<ScriptableObject> objs, bool ownedOnly)

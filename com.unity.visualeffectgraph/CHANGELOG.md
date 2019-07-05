@@ -6,10 +6,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [6.10.0-preview] - 2019-XX-XX
 
-## [6.9.0-preview] - 2019-07-02
+## [6.9.0-preview] - 2019-XX-XX
+### Fixed
+- Handle a possible exception (ReflectionTypeLoadException) while using VFXParameterBinderEditor
 
 ## [6.8.0-preview] - 2019-06-12
-
 ### Added
 - Make multiselection work in a way that do not assume that the same parameter will have the same index in the property sheet.
 - auto recompile when changing shaderpath

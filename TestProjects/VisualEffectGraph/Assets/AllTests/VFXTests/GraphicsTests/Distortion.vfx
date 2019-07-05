@@ -194,7 +194,6 @@ MonoBehaviour:
   sort: 0
   indirectDraw: 0
   castShadows: 0
-  preRefraction: 0
   useExposureWeight: 0
   distortionMode: 1
   scaleByDistance: 1
@@ -2093,7 +2092,6 @@ MonoBehaviour:
   sort: 0
   indirectDraw: 0
   castShadows: 0
-  preRefraction: 0
   useExposureWeight: 0
   distortionMode: 1
   scaleByDistance: 0
@@ -3015,7 +3013,6 @@ MonoBehaviour:
   sort: 0
   indirectDraw: 0
   castShadows: 0
-  preRefraction: 0
   useExposureWeight: 0
   materialType: 0
   onlyAmbientLighting: 0
@@ -4178,7 +4175,6 @@ MonoBehaviour:
   sort: 0
   indirectDraw: 0
   castShadows: 0
-  preRefraction: 0
   useExposureWeight: 0
   distortionMode: 0
   scaleByDistance: 1
@@ -4527,7 +4523,6 @@ MonoBehaviour:
   sort: 0
   indirectDraw: 0
   castShadows: 0
-  preRefraction: 0
   useExposureWeight: 0
   distortionMode: 0
   scaleByDistance: 0
@@ -5216,7 +5211,6 @@ MonoBehaviour:
   sort: 1
   indirectDraw: 0
   castShadows: 0
-  preRefraction: 0
   useExposureWeight: 0
   distortionMode: 0
   scaleByDistance: 0
