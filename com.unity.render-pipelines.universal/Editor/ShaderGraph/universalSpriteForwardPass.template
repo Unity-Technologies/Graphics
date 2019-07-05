@@ -1,7 +1,7 @@
 Pass
 {
     Name "Sprite Forward"
-    Tags{"LightMode" = "LightweightForward"}
+    Tags{"LightMode" = "UniversalForward"}
 
 ${Tags}
 ${Blending}

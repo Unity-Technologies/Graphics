@@ -9,10 +9,11 @@ namespace UnityEngine.Experimental.Rendering.Universal
     {
         static SortingLayer[] s_SortingLayers;
         Renderer2DData m_RendererData;
+        static readonly ShaderTagId k_CombinedRenderingPassNameOld = new ShaderTagId("Lightweight2D");
         static readonly ShaderTagId k_CombinedRenderingPassName = new ShaderTagId("Universal2D");
         static readonly ShaderTagId k_NormalsRenderingPassName = new ShaderTagId("NormalsRendering");
         static readonly ShaderTagId k_LegacyPassName = new ShaderTagId("SRPDefaultUnlit");
-        static readonly List<ShaderTagId> k_ShaderTags = new List<ShaderTagId>() { k_LegacyPassName, k_CombinedRenderingPassName };
+        static readonly List<ShaderTagId> k_ShaderTags = new List<ShaderTagId>() { k_LegacyPassName, k_CombinedRenderingPassName, k_CombinedRenderingPassNameOld };
         //static readonly List<ShaderTagId> k_ShaderTags = new List<ShaderTagId>() { k_CombinedRenderingPassName };
 
         public Render2DLightingPass(Renderer2DData rendererData)
