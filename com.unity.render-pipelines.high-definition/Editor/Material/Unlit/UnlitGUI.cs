@@ -18,7 +18,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             new UnlitSurfaceInputsUIBlock(MaterialUIBlock.Expandable.Input),
             new TransparencyUIBlock(MaterialUIBlock.Expandable.Transparency),
             new EmissionUIBlock(MaterialUIBlock.Expandable.Emissive),
-            new AdvancedOptionsUIBlock(MaterialUIBlock.Expandable.Advance, AdvancedOptionsUIBlock.Features.Instancing),
+            new AdvancedOptionsUIBlock(MaterialUIBlock.Expandable.Advance, AdvancedOptionsUIBlock.Features.Instancing | AdvancedOptionsUIBlock.Features.AdditionalVelocity)
         };
 
         public override void OnGUI(MaterialEditor materialEditor, MaterialProperty[] props)
@@ -76,6 +76,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             material.SetInt(kStencilWriteMaskMV, stencilWriteMaskMV);
             material.SetInt(kStencilRefDistortionVec, (int)HDRenderPipeline.StencilBitMask.DistortionVectors);
             material.SetInt(kStencilWriteMaskDistortionVec, (int)HDRenderPipeline.StencilBitMask.DistortionVectors);
+            if (material.HasProperty(kAdditionalVelocityChange))
+            {
+                CoreUtils.SetKeyword(material, "_ADDITIONAL_VELOCITY_CHANGE", material.GetInt(kAdditionalVelocityChange) != 0);
+            }
+
         }
     }
 } // namespace UnityEditor

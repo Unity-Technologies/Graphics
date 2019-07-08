@@ -24,6 +24,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added dither transition between cascades for Low and Medium quality settings
 - Added single-pass instancing support with XR SDK
 - Added occlusion mesh support with XR SDK
+- Added support of Alembic velocity to various shaders
 
 ### Fixed
 - Fixed an issue with history buffers causing effects like TAA or auto exposure to flicker when more than one camera was visible in the editor

@@ -319,8 +319,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 // doesn't disable motion vector, it just mean that the material
                 // don't do any vertex deformation but we can still have
                 // skinning / morph target
-                material.SetShaderPassEnabled(HDShaderPassNames.s_MotionVectorsStr, false);
-            }
+                material.SetShaderPassEnabled(HDShaderPassNames.s_MotionVectorsStr,
+                    material.GetInt(kAdditionalVelocityChange) !=0);
+
+             }
+
         }
+
     }
 }

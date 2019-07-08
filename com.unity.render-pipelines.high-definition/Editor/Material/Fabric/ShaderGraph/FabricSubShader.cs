@@ -94,7 +94,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 "#define SCENESELECTIONPASS",
                 "#pragma editor_sync_compilation",
-            },            
+            },
             Includes = new List<string>()
             {
                 "#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDepthOnly.hlsl\"",
@@ -286,7 +286,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 HDSubShaderUtilities.SetStencilStateForForward(ref pass);
                 HDSubShaderUtilities.SetBlendModeForForward(ref pass);
 
-                pass.ExtraDefines.Remove("#ifndef DEBUG_DISPLAY\n#define SHADERPASS_FORWARD_BYPASS_ALPHA_TEST\n#endif");                
+                pass.ExtraDefines.Remove("#ifndef DEBUG_DISPLAY\n#define SHADERPASS_FORWARD_BYPASS_ALPHA_TEST\n#endif");
 
                 if (masterNode.surfaceType == SurfaceType.Opaque)
                 {
@@ -545,6 +545,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             if (!masterNode.receiveSSR.isOn)
             {
                 activeFields.Add("DisableSSR");
+            }
+
+            if (masterNode.addVelocityChange.isOn)
+            {
+                activeFields.Add("AdditionalVelocityChange");
             }
 
             if (masterNode.energyConservingSpecular.isOn)

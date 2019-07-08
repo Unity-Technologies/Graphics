@@ -209,6 +209,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 CoreUtils.SetKeyword(material, "_REFRACTION_SPHERE", (refractionModelValue == ScreenSpaceRefraction.RefractionModel.Sphere) && canHaveRefraction);
                 CoreUtils.SetKeyword(material, "_TRANSMITTANCECOLORMAP", material.GetTexture(kTransmittanceColorMap) && canHaveRefraction);
             }
+
+            if (material.HasProperty(kAdditionalVelocityChange))
+            {
+                CoreUtils.SetKeyword(material, "_ADDITIONAL_VELOCITY_CHANGE", material.GetInt(kAdditionalVelocityChange) != 0);
+            }
         }
     }
 } // namespace UnityEditor

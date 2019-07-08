@@ -847,6 +847,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public const string kUVDetail = "_UVDetail";
         public const string kUVDetailsMappingMask = "_UVDetailsMappingMask";
         public const string kReceivesSSR = "_ReceivesSSR";
+        public const string kAdditionalVelocityChange = "_AddVelocityChange";
 
         public static readonly Color[] kLayerColors =
         {
