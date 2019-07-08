@@ -1,6 +1,6 @@
 using System;
 
-namespace UnityEngine.Experimental.Rendering
+namespace UnityEngine.Rendering
 {
     public struct Frustum
     {
@@ -60,7 +60,7 @@ namespace UnityEngine.Experimental.Rendering
         public float   extentZ;
 
         public Vector3 forward { get { return Vector3.Cross(up, right); } }
-        
+
         public OrientedBBox(Matrix4x4 trs)
         {
             Vector3 vecX = trs.GetColumn(0);

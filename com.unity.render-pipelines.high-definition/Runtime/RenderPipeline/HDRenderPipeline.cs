@@ -9,6 +9,7 @@ using UnityEngine.Experimental.GlobalIllumination;
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
     using RTHandle = RTHandleSystem.RTHandle;
+    using RectInt = UnityEngine.Rendering.RectInt;
 
     public partial class HDRenderPipeline : UnityEngine.Rendering.RenderPipeline
     {
@@ -1040,7 +1041,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_RayTracingManager.UpdateFrameData();
 #endif
 
-            var dynResHandler = HDDynamicResolutionHandler.instance;
+            var dynResHandler = DynamicResolutionHandler.instance;
             dynResHandler.Update(m_Asset.currentPlatformRenderPipelineSettings.dynamicResolutionSettings, () =>
             {
                 m_PostProcessSystem.ResetHistory();

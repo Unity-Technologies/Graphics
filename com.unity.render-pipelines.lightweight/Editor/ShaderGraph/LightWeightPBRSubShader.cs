@@ -6,7 +6,7 @@ using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.LWRP;
-    
+
 namespace UnityEditor.Rendering.LWRP
 {
     [Serializable]
@@ -208,11 +208,11 @@ namespace UnityEditor.Rendering.LWRP
             // Get Slot and Node lists per stage
 
             var vertexSlots = pass.VertexShaderSlots.Select(masterNode.FindSlot<MaterialSlot>).ToList();
-            var vertexNodes = ListPool<AbstractMaterialNode>.Get();
+            var vertexNodes = Graphing.ListPool<AbstractMaterialNode>.Get();
             NodeUtils.DepthFirstCollectNodesFromNode(vertexNodes, masterNode, NodeUtils.IncludeSelf.Include, pass.VertexShaderSlots);
 
             var pixelSlots = pass.PixelShaderSlots.Select(masterNode.FindSlot<MaterialSlot>).ToList();
-            var pixelNodes = ListPool<AbstractMaterialNode>.Get();
+            var pixelNodes = Graphing.ListPool<AbstractMaterialNode>.Get();
             NodeUtils.DepthFirstCollectNodesFromNode(pixelNodes, masterNode, NodeUtils.IncludeSelf.Include, pass.PixelShaderSlots);
 
             // -------------------------------------
