@@ -9,7 +9,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
     [DisallowMultipleComponent]
     [AddComponentMenu("Rendering/2D/Pixel Perfect Camera (Experimental)")]
     [RequireComponent(typeof(Camera))]
-    [MovedFrom("UnityEngine.Rendering.LWRP")] public class PixelPerfectCamera : MonoBehaviour, IPixelPerfectCamera
+    [MovedFrom("UnityEngine.Experimental.Rendering.LWRP")] public class PixelPerfectCamera : MonoBehaviour, IPixelPerfectCamera
     {
         /// <summary>
         /// Match this value to to the Pixels Per Unit values of all Sprites within the Scene.

@@ -5,7 +5,7 @@ using UnityEngine.Serialization;
 namespace UnityEngine.Experimental.Rendering.Universal
 {
     [Serializable]
-    [MovedFrom("UnityEngine.Rendering.LWRP")] public struct Light2DBlendStyle
+    [MovedFrom("UnityEngine.Experimental.Rendering.LWRP")] public struct Light2DBlendStyle
     {
         internal enum TextureChannel
         {

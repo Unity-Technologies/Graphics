@@ -1,10 +1,17 @@
 using UnityEngine.Scripting.APIUpdating;
 
+namespace UnityEngine.Experimental.Rendering.LWRP
+{
+    sealed public partial class Light2D
+    {
+    }
+}
+
 namespace UnityEngine.Experimental.Rendering.Universal
 {
     sealed public partial class Light2D : MonoBehaviour
     {
-        [MovedFrom("UnityEngine.Rendering.LWRP")] public enum PointLightQuality
+        [MovedFrom("UnityEngine.Experimental.Rendering.LWRP")] public enum PointLightQuality
         {
             Fast = 0,
             Accurate = 1

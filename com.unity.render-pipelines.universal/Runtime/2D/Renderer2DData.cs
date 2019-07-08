@@ -12,7 +12,7 @@ using UnityEditor.ProjectWindowCallback;
 
 namespace UnityEngine.Experimental.Rendering.Universal
 {
-    [MovedFrom("UnityEngine.Rendering.LWRP")] public class Renderer2DData : ScriptableRendererData
+    [MovedFrom("UnityEngine.Experimental.Rendering.LWRP")] public class Renderer2DData : ScriptableRendererData
     {
         [SerializeField]
         float m_HDREmulationScale = 1;
