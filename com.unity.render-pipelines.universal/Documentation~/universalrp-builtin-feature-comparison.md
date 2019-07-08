@@ -1,11 +1,11 @@
 # Feature comparison table
 
-This table provides an overview of the current features supported in the Lightweight Render Pipeline (LWRP), compared to the Unity Built-in render pipeline. 
+This table provides an overview of the current features supported in the Universal Render Pipeline (UniversalRP), compared to the Unity Built-in render pipeline. 
 
-**Note:** If a feature is marked __In research__, the LWRP team is still researching how and when to implement the feature. If a feature is marked as __Not supported__, it's because Unity is not planning to support it in any release. 
+**Note:** If a feature is marked __In research__, the UniversalRP team is still researching how and when to implement the feature. If a feature is marked as __Not supported__, it's because Unity is not planning to support it in any release. 
 
 
-| Feature                                                      | Unity Built-in render pipeline                               | Lightweight Render Pipeline                                  |
+| Feature                                                      | Unity Built-in render pipeline                               | Universal Render Pipeline                                  |
 | ------------------------------------------------------------ | ------------------------------------------------------------ | ------------------------------------------------------------ |
 | ***Camera***                                                 |                                                              |                                                              |
 | HDR                                                          | Yes                                                          | Yes                                                          |
@@ -118,7 +118,7 @@ This table provides an overview of the current features supported in the Lightwe
 | RenderPipeline.EndFrameRendering                             | Not supported                                                | Yes                                                          |
 | RenderPipeline.BeginCameraRendering                          | Not supported                                                | Yes                                                          |
 | RenderPIpeline.EndCameraRendering                            | Not supported                                                | Yes                                                          |
-| LightweightRenderPipeline.RenderSingleCamera                 | Not supported                                                | Yes                                                          |
+| UniversalRenderPipeline.RenderSingleCamera                 | Not supported                                                | Yes                                                          |
 | ScriptableRenderPass                                         | Not supported                                                | Yes                                                          |
 | Custom Renderers                                             | Not supported                                                | Yes                                                          |
 | ***Post-processing***                                        |                                                              |                                                              |
