@@ -25,7 +25,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected ShaderKeyword m_WriteMSAADepth;
         protected ShaderKeyword m_SubsurfaceScattering;
 
-        protected Dictionary<HDShadowQuality, ShaderKeyword> m_ShadowVariants;
+        protected Dictionary<HDShadowFilteringQuality, ShaderKeyword> m_ShadowVariants;
 
         public BaseShaderPreprocessor()
         {
@@ -50,11 +50,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             m_WriteMSAADepth = new ShaderKeyword("WRITE_MSAA_DEPTH");
             m_SubsurfaceScattering = new ShaderKeyword("OUTPUT_SPLIT_LIGHTING");
 
-            m_ShadowVariants = new Dictionary<HDShadowQuality, ShaderKeyword>
+            m_ShadowVariants = new Dictionary<HDShadowFilteringQuality, ShaderKeyword>
             {
-                {HDShadowQuality.Low, m_ShadowLow},
-                {HDShadowQuality.Medium, m_ShadowMedium},
-                {HDShadowQuality.High, m_ShadowHigh},
+                {HDShadowFilteringQuality.Low, m_ShadowLow},
+                {HDShadowFilteringQuality.Medium, m_ShadowMedium},
+                {HDShadowFilteringQuality.High, m_ShadowHigh},
             };
         }
 

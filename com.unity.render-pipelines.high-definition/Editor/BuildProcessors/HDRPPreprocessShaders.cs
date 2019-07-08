@@ -22,7 +22,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             foreach (var shadowVariant in m_ShadowVariants)
             {
-                if (shadowVariant.Key != shadowInitParams.shadowQuality)
+                if (shadowVariant.Key != shadowInitParams.shadowFilteringQuality)
                     if (inputData.shaderKeywordSet.IsEnabled(shadowVariant.Value))
                         return true;
             }
