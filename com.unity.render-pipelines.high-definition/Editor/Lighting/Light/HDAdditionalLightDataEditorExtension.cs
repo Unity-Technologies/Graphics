@@ -1,3 +1,4 @@
+using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEditor;
 using UnityEditor.Experimental.Rendering;
@@ -19,5 +20,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
             hdLight.useColorTemperature = enable;
         }
+
+        /// <summary>
+        /// Set Lightmap Bake Type.
+        /// </summary>
+        /// <param name="hdLight"></param>
+        /// <param name="lightmapBakeType"></param>
+        /// <returns></returns>
+        public static LightmapBakeType SetLightmapBakeType(this HDAdditionalLightData hdLight, LightmapBakeType lightmapBakeType) => hdLight.legacyLight.lightmapBakeType = lightmapBakeType;
     }
 }
