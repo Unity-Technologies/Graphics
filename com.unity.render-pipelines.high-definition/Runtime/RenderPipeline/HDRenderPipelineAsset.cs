@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine.Rendering;
 using UnityEngine.Serialization;
+using Utilities;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
@@ -152,6 +153,31 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public bool allowShaderVariantStripping = true;
         public bool enableSRPBatcher = true;
         public ShaderVariantLogLevel shaderVariantLogLevel = ShaderVariantLogLevel.Disabled;
+
+        public MaterialQuality materialQualityLevels = (MaterialQuality)(-1);
+
+        [SerializeField]
+        private MaterialQuality m_CurrentMaterialQualityLevel = MaterialQuality.High;
+
+        public MaterialQuality currentMaterialQualityLevel
+        {
+            get
+            {
+                if ((m_CurrentMaterialQualityLevel & materialQualityLevels) != m_CurrentMaterialQualityLevel)
+                {
+                    // Current quality level is not supported,
+                    // Pick the highest one
+                    var highest = materialQualityLevels.GetHighestQuality();
+                    if (highest == 0)
+                        // If none are available, still pick the lowest one
+                        highest = MaterialQuality.Low;
+
+                    return highest;
+                }
+
+                return m_CurrentMaterialQualityLevel;
+            }
+        }
 
         [SerializeField]
         [Obsolete("Use diffusionProfileSettingsList instead")]

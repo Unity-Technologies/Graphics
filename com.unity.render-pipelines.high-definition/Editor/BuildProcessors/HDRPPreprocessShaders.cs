@@ -17,6 +17,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         public override bool ShadersStripper(HDRenderPipelineAsset hdrpAsset, Shader shader, ShaderSnippetData snippet, ShaderCompilerData inputData)
         {
+            if (IsMaterialQualityVariantStripped(hdrpAsset, inputData))
+                return true;
+
             // Strip every useless shadow configs
             var shadowInitParams = hdrpAsset.currentPlatformRenderPipelineSettings.hdShadowInitParams;
 

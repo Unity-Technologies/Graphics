@@ -4,6 +4,7 @@ using UnityEngine.Experimental.Rendering;
 using System.Text;
 using static UnityEngine.Experimental.Rendering.HDPipeline.RenderPipelineSettings;
 using UnityEditor.Rendering;
+using Utilities;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
@@ -539,6 +540,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         static void Drawer_SectionMaterialUnsorted(SerializedHDRenderPipelineAsset serialized, Editor owner)
         {
+            EditorGUILayout.PropertyField(serialized.materialQualityLevels);
+            var v = EditorGUILayout.EnumPopup(k_CurrentMaterialQualityLevelContent, (MaterialQuality) serialized.currentMaterialQualityLevel.intValue);
+            serialized.currentMaterialQualityLevel.intValue = (int)(object)v;
+
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportDistortion, k_SupportDistortion);
 
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportSubsurfaceScattering, k_SupportedSSSContent);

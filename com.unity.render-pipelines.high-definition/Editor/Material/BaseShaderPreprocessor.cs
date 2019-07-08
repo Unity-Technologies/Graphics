@@ -1,8 +1,10 @@
 using System.Collections.Generic;
 using UnityEditor.Rendering;
+using UnityEditor.Rendering.Utilities;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Experimental.Rendering.HDPipeline;
+using Utilities;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
@@ -56,6 +58,22 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 {HDShadowQuality.Medium, m_ShadowMedium},
                 {HDShadowQuality.High, m_ShadowHigh},
             };
+        }
+
+        protected static bool IsMaterialQualityVariantStripped(HDRenderPipelineAsset hdrpAsset, ShaderCompilerData inputData)
+        {
+            if (IsMaterialQualityVariantStripped(hdrpAsset, inputData))
+                return true;
+
+            var shaderMaterialLevel = inputData.shaderKeywordSet.GetMaterialQuality();
+            // if there are material quality defines in this shader
+            if (shaderMaterialLevel != 0
+                // and they don't match the material quality accepted by the hdrp asset
+                && (hdrpAsset.materialQualityLevels & shaderMaterialLevel) == 0)
+                // then strip this variant
+                return true;
+
+            return false;
         }
 
         public abstract bool ShadersStripper(HDRenderPipelineAsset hdrpAsset, Shader shader, ShaderSnippetData snippet, ShaderCompilerData inputData);

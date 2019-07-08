@@ -1,7 +1,9 @@
 using UnityEditor.Rendering;
+using UnityEditor.Rendering.Utilities;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering.HDPipeline;
 using UnityEditor.ShaderGraph;
+using Utilities;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
@@ -11,6 +13,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         public override bool ShadersStripper(HDRenderPipelineAsset hdrpAsset, Shader shader, ShaderSnippetData snippet, ShaderCompilerData inputData)
         {
+            if (IsMaterialQualityVariantStripped(hdrpAsset, inputData))
+                return true;
+
             // CAUTION: Pass Name and Lightmode name must match in master node and .shader.
             // HDRP use LightMode to do drawRenderer and pass name is use here for stripping!
             bool isGBufferPass = snippet.passName == "GBuffer";
