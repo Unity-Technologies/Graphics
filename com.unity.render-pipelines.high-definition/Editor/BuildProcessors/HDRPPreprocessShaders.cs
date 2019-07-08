@@ -1,9 +1,5 @@
 using System.Collections.Generic;
-using System.IO.IsolatedStorage;
 using System.Linq;
-using System.Runtime.InteropServices;
-using Unity.Collections;
-using Unity.Jobs;
 using UnityEditor.Build;
 using UnityEditor.Build.Reporting;
 using UnityEditor.Rendering;
@@ -14,7 +10,7 @@ using UnityEngine.Experimental.Rendering.HDPipeline;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
-    // The common shader stripper function
+    // The common shader stripper function 
     public class CommonShaderPreprocessor : BaseShaderPreprocessor
     {
         public CommonShaderPreprocessor() { }
@@ -76,7 +72,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             if (inputData.shaderKeywordSet.IsEnabled(m_LodFadeCrossFade) && !hdrpAsset.currentPlatformRenderPipelineSettings.supportDitheringCrossFade)
                 return true;
-
+           
             if (inputData.shaderKeywordSet.IsEnabled(m_WriteMSAADepth) && !hdrpAsset.currentPlatformRenderPipelineSettings.supportMSAA)
                 return true;
 
@@ -172,34 +168,39 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         }
 
 
-        struct EvaluateShaderCompilerDataJob: IJobParallelFor
+        public int callbackOrder { get { return 0; } }
+        public void OnProcessShader(Shader shader, ShaderSnippetData snippet, IList<ShaderCompilerData> inputData)
         {
-            [ReadOnly] public GCHandle ShaderAsset;
-            [ReadOnly] public ShaderSnippetData Snippet;
-            [ReadOnly] public NativeArray<ShaderCompilerData> InputDatas;
-            [ReadOnly] public NativeArray<GCHandle> HDRPAssets;
-            [ReadOnly] public NativeArray<GCHandle> Processors;
-            [WriteOnly] public NativeArray<bool> IsStripped;
+            // TODO: Grab correct configuration/quality asset.
+            var hdPipelineAssets = ShaderBuildPreprocessor.hdrpAssets;
+            
+            if (hdPipelineAssets.Count == 0)
+                return;
 
-            public void Execute(int index)
+            uint preStrippingCount = (uint)inputData.Count;
+            
+            // Test if striping is enabled in any of the found HDRP assets.
+            if ( hdPipelineAssets.Count == 0 || !hdPipelineAssets.Any(a => a.allowShaderVariantStripping) )
+                return;
+
+            int inputShaderVariantCount = inputData.Count;
+
+            for (int i = 0; i < inputData.Count; ++i)
             {
-                var input = InputDatas[index];
-                var shader = (Shader)ShaderAsset.Target;
+                ShaderCompilerData input = inputData[i];
 
                 // Remove the input by default, until we find a HDRP Asset in the list that needs it.
-                IsStripped[index] = true;
-
-                for (var i = 0; i < HDRPAssets.Length; ++i)
+                bool removeInput = true;
+                
+                foreach (var hdAsset in hdPipelineAssets)
                 {
-                    var hdAsset = (HDRenderPipelineAsset)HDRPAssets[i].Target;
                     var stripedByPreprocessor = false;
-
+                    
                     // Call list of strippers
                     // Note that all strippers cumulate each other, so be aware of any conflict here
-                    for (var j = 0; j < Processors.Length; ++j)
+                    foreach (BaseShaderPreprocessor shaderPreprocessor in shaderProcessorsList)
                     {
-                        var shaderPreprocessor = (BaseShaderPreprocessor) Processors[j].Target;
-                        if (shaderPreprocessor.ShadersStripper(hdAsset, shader, Snippet, input))
+                        if ( shaderPreprocessor.ShadersStripper(hdAsset, shader, snippet, input) )
                         {
                             stripedByPreprocessor = true;
                             break;
@@ -208,66 +209,17 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
                     if (!stripedByPreprocessor)
                     {
-                        IsStripped[index] = false;
+                        removeInput = false;
                         break;
                     }
                 }
-            }
-        }
 
-        public int callbackOrder { get { return 0; } }
-        public void OnProcessShader(Shader shader, ShaderSnippetData snippet, IList<ShaderCompilerData> inputData)
-        {
-            // TODO: Grab correct configuration/quality asset.
-            var hdPipelineAssets = ShaderBuildPreprocessor.hdrpAssets;
-
-            if (hdPipelineAssets.Count == 0)
-                return;
-
-            uint preStrippingCount = (uint)inputData.Count;
-
-            // Test if striping is enabled in any of the found HDRP assets.
-            if ( hdPipelineAssets.Count == 0 || !hdPipelineAssets.Any(a => a.allowShaderVariantStripping) )
-                return;
-
-            var hdrpAssets = new NativeArray<GCHandle>(hdPipelineAssets.Count, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
-            var processors = new NativeArray<GCHandle>(shaderProcessorsList.Count, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
-            using (var inputDataArray = new NativeArray<ShaderCompilerData>(inputData.Count, Allocator.TempJob, NativeArrayOptions.UninitializedMemory))
-            using (var isStripped = new NativeArray<bool>(inputData.Count, Allocator.TempJob))
-            {
-                var shaderHandle = GCHandle.Alloc(shader);
-                inputDataArray.CopyFrom(inputData.ToArray());
-                for (var i = 0; i < hdPipelineAssets.Count; ++i)
-                    hdrpAssets[i] = GCHandle.Alloc(hdPipelineAssets[i]);
-                for (var i = 0; i < shaderProcessorsList.Count; ++i)
-                    processors[i] = GCHandle.Alloc(shaderProcessorsList[i]);
-
-                var evaluateJobHandle = new EvaluateShaderCompilerDataJob
+                if (removeInput)
                 {
-                    Processors = processors,
-                    Snippet = snippet,
-                    InputDatas = inputDataArray,
-                    IsStripped = isStripped,
-                    ShaderAsset = shaderHandle,
-                    HDRPAssets = hdrpAssets
-                }.Schedule(inputDataArray.Length, 16);
-                evaluateJobHandle.Complete();
-
-                for (var i = isStripped.Length - 1; i >= 0; --i)
-                {
-                    if (isStripped[i])
-                        inputData.RemoveAt(i);
+                    inputData.RemoveAt(i);
+                    i--;
                 }
-
-                for (var i = 0; i < processors.Length; ++i)
-                    processors[i].Free();
-                for (var i = 0; i < hdrpAssets.Length; ++i)
-                    hdrpAssets[i].Free();
-
-                shaderHandle.Free();
             }
-            processors.Dispose();
-            hdrpAssets.Dispose();
 
             foreach (var hdAsset in hdPipelineAssets)
             {
@@ -280,7 +232,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
         }
     }
-
+    
     // Build preprocessor to find all potentially used HDRP assets.
     class ShaderBuildPreprocessor : IPreprocessBuildWithReport
     {
@@ -390,9 +342,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 ));
             // */
         }
-
+        
         public int callbackOrder { get { return 0; } }
-
+        
         public void OnPreprocessBuild(BuildReport report)
         {
             GetAllValidHDRPAssets();
