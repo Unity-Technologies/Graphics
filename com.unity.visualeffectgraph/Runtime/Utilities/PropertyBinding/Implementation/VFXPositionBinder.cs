@@ -10,7 +10,7 @@ namespace UnityEngine.VFX.Utility
 
         [VFXPropertyBinding("UnityEditor.VFX.Position", "UnityEngine.Vector3"), SerializeField, UnityEngine.Serialization.FormerlySerializedAs("m_Parameter")]
         protected ExposedProperty m_Property = "Position";
-        public Transform Target;
+        public Transform Target = null;
 
         public override bool IsValid(VisualEffect component)
         {

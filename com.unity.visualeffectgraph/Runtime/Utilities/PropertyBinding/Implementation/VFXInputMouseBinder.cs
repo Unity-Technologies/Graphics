@@ -25,7 +25,7 @@ namespace UnityEngine.VFX.Utility
         [VFXPropertyBinding("UnityEngine.Vector3"), SerializeField, UnityEngine.Serialization.FormerlySerializedAs("m_VelocityParameter")]
         protected ExposedProperty m_VelocityProperty = "Velocity";
 
-        public Camera Target;
+        public Camera Target = null;
         public float Distance = 10.0f;
 #if VFX_USE_PHYSICS
         public bool UseRaycast = false;

@@ -16,9 +16,7 @@ namespace UnityEngine.VFX.Utility
         public Check check = Check.ActiveInHierarchy;
         [VFXPropertyBinding("System.Boolean"), SerializeField, UnityEngine.Serialization.FormerlySerializedAs("m_Parameter")]
         protected ExposedProperty m_Property = "Enabled";
-        public GameObject Target;
-
-
+        public GameObject Target = null;
 
         public override bool IsValid(VisualEffect component)
         {

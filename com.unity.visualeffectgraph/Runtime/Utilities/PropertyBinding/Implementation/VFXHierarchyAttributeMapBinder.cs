@@ -25,7 +25,7 @@ namespace UnityEngine.VFX.Utility
             Interpolate
         }
 
-        public Transform HierarchyRoot;
+        public Transform HierarchyRoot = null;
         public float DefaultRadius = 0.1f;
         public uint MaximumDepth = 3;
         public RadiusMode Radius = RadiusMode.Fixed;

@@ -11,7 +11,7 @@ namespace UnityEngine.VFX.Utility
 
         [VFXPropertyBinding("UnityEditor.VFX.TerrainType"), UnityEngine.Serialization.FormerlySerializedAs("TerrainParameter")]
         public ExposedProperty m_Property;
-        public Terrain Terrain;
+        public Terrain Terrain = null;
 
         private ExposedProperty Terrain_Bounds_center;
         private ExposedProperty Terrain_Bounds_size;

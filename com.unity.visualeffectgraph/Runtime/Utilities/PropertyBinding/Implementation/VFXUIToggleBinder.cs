@@ -12,7 +12,7 @@ namespace UnityEngine.VFX.Utility
 
         [VFXPropertyBinding("System.Boolean"), SerializeField, UnityEngine.Serialization.FormerlySerializedAs("m_Parameter")]
         protected ExposedProperty m_Property = "BoolParameter";
-        public Toggle Target;
+        public Toggle Target = null;
 
         public override bool IsValid(VisualEffect component)
         {

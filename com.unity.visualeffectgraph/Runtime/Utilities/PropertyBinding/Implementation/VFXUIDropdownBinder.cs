@@ -12,7 +12,7 @@ namespace UnityEngine.VFX.Utility
 
         [VFXPropertyBinding("System.Int32"), SerializeField, UnityEngine.Serialization.FormerlySerializedAs("m_Parameter")]
         protected ExposedProperty m_Property = "IntParameter";
-        public Dropdown Target;
+        public Dropdown Target = null;
 
         public override bool IsValid(VisualEffect component)
         {

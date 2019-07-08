@@ -25,7 +25,7 @@ namespace UnityEngine.VFX.Utility
         public FFTWindow FFTWindow = FFTWindow.BlackmanHarris;
         public uint Samples = 64;
         public AudioSourceMode Mode = AudioSourceMode.AudioSource;
-        public AudioSource AudioSource;
+        public AudioSource AudioSource = null;
 
         private Texture2D m_Texture;
         private float[] m_AudioCache;

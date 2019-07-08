@@ -14,7 +14,7 @@ namespace UnityEngine.VFX.Utility
 
         [VFXPropertyBinding("UnityEditor.VFX.Plane"), SerializeField, UnityEngine.Serialization.FormerlySerializedAs("m_Parameter")]
         protected ExposedProperty m_Property = "Plane";
-        public Transform Target;
+        public Transform Target = null;
 
         private ExposedProperty Position;
         private ExposedProperty Normal;

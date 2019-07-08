@@ -10,7 +10,7 @@ namespace UnityEngine.VFX.Utility
 
         [VFXPropertyBinding("UnityEditor.VFX.Sphere"), SerializeField, UnityEngine.Serialization.FormerlySerializedAs("m_Parameter")]
         protected ExposedProperty m_Property = "Sphere";
-        public SphereCollider Target;
+        public SphereCollider Target = null;
 
         private ExposedProperty Center;
         private ExposedProperty Radius;

@@ -16,7 +16,7 @@ namespace UnityEngine.VFX.Utility
         protected ExposedProperty m_BrightnessProperty = "Brightness";
         [VFXPropertyBinding("System.Single"), SerializeField, UnityEngine.Serialization.FormerlySerializedAs("m_RadiusParameter")]
         protected ExposedProperty m_RadiusProperty = "Radius";
-        public Light Target;
+        public Light Target = null;
 
         public bool BindColor = true;
         public bool BindBrightness = false;
