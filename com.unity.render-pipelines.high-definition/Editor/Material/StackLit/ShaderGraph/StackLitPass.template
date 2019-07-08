@@ -97,6 +97,7 @@ Pass
     // Decals:
     // DisableSSR:
     // $SpecularOcclusion:
+    // AdditionalVelocityChange:
 
     //
     // Original shader keywords reference:
@@ -146,6 +147,7 @@ Pass
 
     $DisableDecals:                                      #define _DISABLE_DECALS
     $DisableSSR:                                         #define _DISABLE_SSR
+    $AdditionalVelocityChange:                           #define _ADDITIONAL_VELOCITY_CHANGE
 
     // StackLit shader_features:
 

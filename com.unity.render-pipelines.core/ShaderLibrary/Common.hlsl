@@ -59,7 +59,7 @@
 // uniform float4 packedArray[3];
 // static float unpackedArray[12] = (float[12])packedArray;
 
-// The function of the shader library are stateless, no uniform decalare in it.
+// The function of the shader library are stateless, no uniform declare in it.
 // Any function that require an explicit precision, use float or half qualifier, when the function can support both, it use real (see below)
 // If a function require to have both a half and a float version, then both need to be explicitly define
 #ifndef real
