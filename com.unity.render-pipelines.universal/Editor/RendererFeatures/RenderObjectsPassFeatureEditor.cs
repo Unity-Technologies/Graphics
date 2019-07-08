@@ -4,7 +4,7 @@ using UnityEngine;
 using UnityEditorInternal;
 using UnityEngine.Experimental.Rendering.Universal;
 
-namespace UnityEditor.Experimental.Rendering.Univerasl 
+namespace UnityEditor.Experimental.Rendering.Universal 
 {
 	[CustomPropertyDrawer(typeof(RenderObjects.RenderObjectsSettings), true)]
     internal class RenderObjectsPassFeatureEditor : PropertyDrawer

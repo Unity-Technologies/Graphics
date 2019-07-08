@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace UnityEditor.Experimental.Rendering.Univerasl.Path2D
+namespace UnityEditor.Experimental.Rendering.Universal.Path2D
 {
     internal interface IDrawer
     {

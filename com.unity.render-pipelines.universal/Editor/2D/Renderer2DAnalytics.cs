@@ -3,7 +3,7 @@ using UnityEngine;
 using UnityEngine.Analytics;
 using UnityEngine.Experimental.Rendering.Universal;
 
-namespace UnityEditor.Experimental.Rendering.Univerasl.Analytics
+namespace UnityEditor.Experimental.Rendering.Universal.Analytics
 {
     struct AnalyticsDataTypes
     {
