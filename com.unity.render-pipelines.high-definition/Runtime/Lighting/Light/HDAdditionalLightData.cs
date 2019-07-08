@@ -1426,7 +1426,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 #endif
         }
 
-        internal void ReserveShadowMap(Camera camera, HDShadowManager shadowManager, HDShadowInitParameters initParameters)
+        internal void ReserveShadowMap(Camera camera, HDShadowManager shadowManager, HDShadowInitParameters initParameters, Rect screenRect)
         {
             if (!m_WillRenderShadowMap)
                 return;
@@ -1469,9 +1469,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (viewPortRescaling && !shadowsAreCached)
             {
                 // resize viewport size by the normalized size of the light on screen
-                // When we will have access to the non screen clamped bounding sphere light size, we could use it to scale the shadow map resolution
-                // For the moment, this will be enough
-                viewportSize *= Mathf.Lerp(64f / viewportSize.x, 1f, legacyLight.range / (camera.transform.position - transform.position).magnitude);
+                float screenArea = screenRect.width * screenRect.height;
+                viewportSize *= Mathf.Lerp(64f / viewportSize.x, 1f, screenArea);
                 viewportSize = Vector2.Max(new Vector2(64f, 64f) / viewportSize, viewportSize);
 
                 // Prevent flickering caused by the floating size of the viewport
@@ -2529,13 +2528,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public float[] SetLayerShadowCullDistances(float[] layerShadowCullDistances) => legacyLight.layerShadowCullDistances = layerShadowCullDistances;
 
         /// <summary>
-        /// Set Lightmap Bake Type.
-        /// </summary>
-        /// <param name="lightmapBakeType"></param>
-        /// <returns></returns>
-        public LightmapBakeType SetLightmapBakeType(LightmapBakeType lightmapBakeType) => legacyLight.lightmapBakeType = lightmapBakeType;
-
-        /// <summary>
         /// Get the list of supported light units depending on the current light type.
         /// </summary>
         /// <returns></returns>
@@ -2613,10 +2605,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             return lightType != LightTypeExtent.Punctual;
         }
 
+#if UNITY_EDITOR
         internal static bool IsAreaLight(SerializedProperty lightType)
         {
             return IsAreaLight((LightTypeExtent)lightType.enumValueIndex);
         }
+#endif
 
 #endregion
 
