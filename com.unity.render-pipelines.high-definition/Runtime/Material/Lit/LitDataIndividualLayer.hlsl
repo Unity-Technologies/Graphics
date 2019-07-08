@@ -113,7 +113,25 @@ float3 ADD_IDX(GetNormalTS)(FragInputs input, LayerTexCoord layerTexCoord, float
     #ifdef _NORMALMAP_TANGENT_SPACE_IDX
         //TODO(ddebaets) VT does not handle full range of normal map sampling/reconstruction so special case here...
 #if VIRTUAL_TEXTURES_ACTIVE_ON_LAYER
+
+	#ifdef SURFACE_GRADIENT
+		real4 packedNormal = SampleStack(stackInfo, ADD_IDX(_NormalMap));
+		if(ADD_IDX(layerTexCoord.base).mappingType != UV_MAPPING_TRIPLANAR && ADD_IDX(layerTexCoord.base).mappingType != UV_MAPPING_PLANAR)
+		{
+		    packedNormal.a *= packedNormal.r;
+		    real2 vT   = packedNormal.ag * 2.0 - 1.0;
+		    real  rcpZ = rsqrt(max(1 - Sq(vT.x) - Sq(vT.y), Sq(FLT_EPS)));
+		    real2 deriv = ConvertTangentSpaceNormalToHeightMapGradient(vT.xy, rcpZ,  ADD_IDX(_NormalScale));
+		    normalTS = SurfaceGradientFromTBN(deriv, ADD_IDX(layerTexCoord.base).tangentWS, ADD_IDX(layerTexCoord.base).bitangentWS);
+		}
+		else
+		{
+			// skip VT for now
+			normalTS = SAMPLE_UVMAPPING_NORMALMAP(ADD_IDX(_NormalMap), ADD_IDX(sampler_NormalMap), ADD_IDX(layerTexCoord.base), ADD_IDX(_NormalScale));
+		}
+		#else // NO SURFACE_GRADIENT
 		normalTS = SampleStack_Normal(stackInfo, ADD_IDX(_NormalMap), ADD_IDX(_NormalScale));
+		#endif
 #elif VIRTUAL_TEXTURES_ACTIVE
         normalTS = SAMPLE_UVMAPPING_NORMALMAP(ADD_IDX(_NormalMap), sampler_TextureStack0_c2, ADD_IDX(layerTexCoord.base), ADD_IDX(_NormalScale));
 #else

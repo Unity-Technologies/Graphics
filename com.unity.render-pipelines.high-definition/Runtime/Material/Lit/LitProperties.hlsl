@@ -88,17 +88,19 @@ PROP_DECL_TEX2D(_NormalMap);
 SAMPLER(sampler_LayerMaskMap);
 SAMPLER(sampler_LayerInfluenceMaskMap);
 #else
+PROP_DECL_TEX2D(_NormalMap);	// have the _NormalMaps *with* their samplers for now, to catch unsupported normal map usage
+
 TEXTURE2D(_BaseColorMap1);
 TEXTURE2D(_MaskMap1);
-TEXTURE2D(_NormalMap1);
+//TEXTURE2D(_NormalMap1);
 
 TEXTURE2D(_BaseColorMap2);
 TEXTURE2D(_MaskMap2);
-TEXTURE2D(_NormalMap2);
+//TEXTURE2D(_NormalMap2);
 
 TEXTURE2D(_BaseColorMap3);
 TEXTURE2D(_MaskMap3);
-TEXTURE2D(_NormalMap3);
+//TEXTURE2D(_NormalMap3);
 #endif
 
 PROP_DECL_TEX2D(_BentNormalMap);
