@@ -5,14 +5,30 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## [7.0.0] - 2019-XX-XX
+###Universal Render Pipeline
+- LWRP has been renamed to the "Universal Render Pipeline"
+- Universal in the same as LWRP in terms of features and scope
+- Classes have moved to the Universal namespace (from LWRP)
+
+###Upgrade Guide
+- Upgrading to Universal is designed to be almost seamless from the user side
+- LWRP package still exists, this forwards includes and classes to the Universal Package
+- Please see the more involved upgrade guide ()
+
 ### Added
 - Initial Stadia platform support.
 - Added a menu option to create a new `ScriptableRendererFeature` script. To do so in the Editor, click on Asset > Create > Rendering > Lightweight Render Pipeline > Renderer Feature.
 - Added documentation for SpeedTree Shaders in LWRP.
+- Added extended features to LWRP Terrain Shader, so terrain assets can be forward-compatible with HDRP.
+- Enabled per-layer advanced or legacy-mode blending in LWRP Terrain Shader. 
+- Added the documentation page "Rendering in LWRP", which describes the forward rendering camera loop.
+- Added documentation overview for how Post Processing Version 2 works in LWRP.
+- Added documentation notes and FAQ entry on the 2D Renderer affecting the LWRP Asset.
 
 ### Changed
 - Replaced beginCameraRendering callbacks by non obsolete implementation in Light2D
 - Updated `ScriptableRendererFeature` and `ScriptableRenderPass` API docs.
+- Shader type Real translates to FP16 precision on Nintendo Switch.
 
 ### Fixed
 - Fixed a case where built-in Shader time values could be out of sync with actual time. [case 1142495](https://fogbugz.unity3d.com/f/cases/1142495/)
@@ -20,8 +36,16 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed GC spikes caused by LWRP allocating heap memory every frame.
 - Fixed distortion effect on particle unlit shader.
 - Fixed NullReference exception caused when trying to add a ScriptableRendererFeature.
+- Fixed issue with certain LWRP shaders not showing when using forward/2D renderer.
+- Fixed the shadow resolve pass and the final pass, so they're not consuming unnecessary bandwidth. [case 1152439](https://issuetracker.unity3d.com/issues/lwrp-mobile-increased-memory-usage-and-extra-rendering-steps) 
 - Added missing page for 2D Lights in LWRP.
-
+- Tilemap tiles no longer appear black when you use the 2D renderer.
+- Sprites in the preview window are no longer lit by 2D Scene lighting.
+- Fixed warnings for unsupported shadow map formats for GLES2 API.
+- Disabled shadows for devices that do not support shadow maps or depth textures.
+- Fixed support for LWRP per-pixel terrain. [case 1110520](https://fogbugz.unity3d.com/f/cases/1110520)
+- Fixed some basic UI/usability issues with LWRP terrain Materials (use of warnings and modal value changes).
+- Fixed an issue where using LWRP and Sprite Shape together would produce meta file conflicts.
 
 
 ## [6.7.0] - 2019-05-16
