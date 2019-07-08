@@ -1,10 +1,7 @@
-using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO.IsolatedStorage;
 using System.Linq;
 using System.Runtime.InteropServices;
-using System.Threading;
 using Unity.Collections;
 using Unity.Jobs;
 using UnityEditor.Build;
@@ -177,39 +174,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         struct EvaluateShaderCompilerDataJob: IJobParallelFor
         {
-            private static int s_NextIndex = 0;
-            public static ConcurrentDictionary<int, ShaderSnippetData>
-                ShaderSnippetDataStorage = new ConcurrentDictionary<int, ShaderSnippetData>();
-
-            public struct JobShaderSnippetData: IDisposable
-            {
-                private int m_Index;
-
-                public JobShaderSnippetData(ShaderSnippetData snippet)
-                {
-                    var index = Interlocked.Increment(ref s_NextIndex);
-                    ShaderSnippetDataStorage.AddOrUpdate(
-                        index,
-                        snippet,
-                        (l, r) => throw new Exception("Must never happens")
-                    );
-
-                    m_Index = index;
-                }
-
-                public ShaderSnippetData ToShaderSnippetData()
-                    => ShaderSnippetDataStorage.TryGetValue(m_Index, out var value)
-                        ? value
-                        : throw new Exception("Must never happens");
-
-                public void Dispose()
-                {
-                    ShaderSnippetDataStorage.TryRemove(m_Index, out _);
-                }
-            }
-
             [ReadOnly] public GCHandle ShaderAsset;
-            [ReadOnly] public JobShaderSnippetData Snippet;
+            [ReadOnly] public ShaderSnippetData Snippet;
             [ReadOnly] public NativeArray<ShaderCompilerData> InputDatas;
             [ReadOnly] public NativeArray<GCHandle> HDRPAssets;
             [ReadOnly] public NativeArray<GCHandle> Processors;
@@ -233,7 +199,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     for (var j = 0; j < Processors.Length; ++j)
                     {
                         var shaderPreprocessor = (BaseShaderPreprocessor) Processors[j].Target;
-                        if (shaderPreprocessor.ShadersStripper(hdAsset, shader, Snippet.ToShaderSnippetData(), input))
+                        if (shaderPreprocessor.ShadersStripper(hdAsset, shader, Snippet, input))
                         {
                             stripedByPreprocessor = true;
                             break;
@@ -268,7 +234,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             var processors = new NativeArray<GCHandle>(shaderProcessorsList.Count, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
             using (var inputDataArray = new NativeArray<ShaderCompilerData>(inputData.Count, Allocator.TempJob, NativeArrayOptions.UninitializedMemory))
             using (var isStripped = new NativeArray<bool>(inputData.Count, Allocator.TempJob))
-            using (var jobSnippet = new EvaluateShaderCompilerDataJob.JobShaderSnippetData(snippet))
             {
                 var shaderHandle = GCHandle.Alloc(shader);
                 inputDataArray.CopyFrom(inputData.ToArray());
@@ -280,7 +245,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 var evaluateJobHandle = new EvaluateShaderCompilerDataJob
                 {
                     Processors = processors,
-                    Snippet = jobSnippet,
+                    Snippet = snippet,
                     InputDatas = inputDataArray,
                     IsStripped = isStripped,
                     ShaderAsset = shaderHandle,
