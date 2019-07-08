@@ -1,0 +1,7 @@
+RedirectNodeView.graphElement.node.redirect-node {
+    min-height: 100px;
+    border-radius: 8px;
+    background-color: rgba(255, 0, 0, 1.0);
+    padding: 0px;
+    border-width: 5px;
+}

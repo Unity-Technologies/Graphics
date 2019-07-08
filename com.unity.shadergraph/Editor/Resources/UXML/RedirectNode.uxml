@@ -1,11 +1,25 @@
-<UXML xmlns:ui="UnityEngine.Experimental.GraphView">
-  <ui:VisualElement name="borderItem" />
-  <ui:VisualElement name="redirectNodeHeaderContainer" />
-  <ui:VisualElement name="redirectNodeContainers" picking-mode="Ignore">
-    <ui:VisualElement name="redirectNodeContentContainerPlaceholder" picking-mode="Ignore" />
-    <ui:VisualElement name="redirectSeparatorContainer" picking-mode="Ignore" />
-    <ui:VisualElement name="redirectPlaceholderContainer" picking-mode="Ignore" />
-  </ui:VisualElement>
-  <ui:VisualElement name="input" />
-  <ui:VisualElement name="output" />
+<UXML xmlns:ui="UnityEngine.UIElements">
+    <ui:VisualElement name="node-border" picking-mode="Ignore" >
+        <ui:VisualElement name="title" picking-mode="Ignore" >
+            <ui:Label name="title-label" text="" />
+            <ui:VisualElement name="title-button-container" picking-mode="Ignore">
+                <ui:VisualElement name="collapse-button" text="">
+                    <ui:VisualElement name="icon" text=""/>
+                </ui:VisualElement>
+            </ui:VisualElement>
+        </ui:VisualElement>
+        <ui:VisualElement name="contents" picking-mode="Ignore">
+            <ui:VisualElement name="divider" class="horizontal"/>
+            <ui:VisualElement name="top" picking-mode="Ignore">
+                <ui:VisualElement name="input" picking-mode="Ignore" />
+                <ui:VisualElement name="divider" class="vertical"/>
+                <ui:VisualElement name="output" picking-mode="Ignore" />
+            </ui:VisualElement>
+            <ui:VisualElement name="collapsible-area" picking-mode="Ignore">
+                <ui:VisualElement name="divider" class="horizontal"/>
+                <ui:VisualElement name="extension" picking-mode="Ignore" />
+            </ui:VisualElement>
+        </ui:VisualElement>
+    </ui:VisualElement>
+    <ui:VisualElement name="selection-border" picking-mode="Ignore" />
 </UXML>

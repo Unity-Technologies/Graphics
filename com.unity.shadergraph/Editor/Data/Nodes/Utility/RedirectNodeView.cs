@@ -24,7 +24,7 @@ namespace UnityEditor.ShaderGraph
         ///////////////////////////////////////////////////////////
         /// Initialization
         ///////////////////////////////////////////////////////////
-        public RedirectNodeView()//: base("../../Resources/UXML/RedirectNode.uxml")
+        public RedirectNodeView()//: base("UXML/RedirectNode.uxml")
         {
 
         }
@@ -32,9 +32,9 @@ namespace UnityEditor.ShaderGraph
         public void Initialize(AbstractMaterialNode inNode, PreviewManager previewManager, IEdgeConnectorListener connectorListener, GraphView graphView)
         {
             // Styling
-            ClearClassList();
-            //styleSheets.Add(Resources.Load<StyleSheet>("RedirectNode")); // @SamH: Update with real path
-            //AddToClassList("redirect-node");
+            styleSheets.Add(Resources.Load<StyleSheet>("Styles/RedirectNodeView")); // @SamH: Update with real path
+            //ClearClassList();
+            AddToClassList("redirect-node");
 
             if (inNode == null)
                 return;
@@ -52,50 +52,6 @@ namespace UnityEditor.ShaderGraph
             RefreshExpandedState(); //This should not be needed. GraphView needs to improve the extension api here
 
             SetPosition(new Rect(node.drawState.position.x, node.drawState.position.y, 0, 0));
-        }
-
-        ///////////////////////////////////////////////////////////
-        /// PortPairs
-        ///////////////////////////////////////////////////////////
-
-        private struct PortPair
-        {
-            Port incoming;
-            Port outgoing;
-        }
-
-        private Dictionary<int, PortPair> m_pairs;
-        private int currentPairKey;
-
-        public void AddPortPair(int key = -1)
-        {
-            PortPair newPair = new PortPair();
-
-            if(key < 0)
-            {
-                m_pairs.Add(currentPairKey++, newPair);
-            }
-            else
-            {
-                RemovePortPair(key);
-                m_pairs.Add(key, newPair);
-            }
-        }
-
-        public bool RemovePortPair(int key)
-        {
-            if (m_pairs.ContainsKey(key))
-            {
-                m_pairs.Remove(key);
-                return true;
-            }
-            else
-                return false;
-        }
-
-        private void FindLeastPairKey()
-        {
-            // Find open int
         }
 
         #region IShaderNodeView interface
