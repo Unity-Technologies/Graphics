@@ -1921,6 +1921,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             data.shadowPrecision = shadowPrecision;
             data.shadowUpdateMode = shadowUpdateMode;
 
+            data.m_UseCustomSpotLightShadowCone = useCustomSpotLightShadowCone;
+            data.m_CustomSpotLightShadowCone = customSpotLightShadowCone;
+
 #if UNITY_EDITOR
             data.timelineWorkaround = timelineWorkaround;
 #endif
