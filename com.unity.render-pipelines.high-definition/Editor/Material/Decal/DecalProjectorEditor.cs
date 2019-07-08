@@ -1,12 +1,9 @@
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Experimental.Rendering.HDPipeline;
-using UnityEditor.IMGUI.Controls;
 using UnityEditor.ShortcutManagement;
+using UnityEditor.Rendering;
 using static UnityEditorInternal.EditMode;
-using System.Collections.Generic;
-using System.Linq.Expressions;
-using System;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
@@ -23,7 +20,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         SerializedProperty m_AffectsTransparencyProperty;
         SerializedProperty m_Size;
         SerializedProperty m_FadeFactor;
-        
+
         int layerMask => (target as Component).gameObject.layer;
         bool layerMaskHasMultipleValue
         {
@@ -101,11 +98,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         });
 
         static Editor s_Owner;
-                
+
         private void OnEnable()
         {
             s_Owner = this;
-            
+
             // Create an instance of the MaterialEditor
             UpdateMaterialEditor();
             foreach (var decalProjector in targets)
@@ -123,7 +120,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             m_Size = serializedObject.FindProperty("m_Size");
             m_FadeFactor = serializedObject.FindProperty("m_FadeFactor");
         }
-        
+
         private void OnDisable()
         {
             foreach (var decalProjector in targets)

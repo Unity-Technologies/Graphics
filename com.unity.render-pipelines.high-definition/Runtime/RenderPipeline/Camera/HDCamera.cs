@@ -308,7 +308,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             Vector2Int nonScaledViewport = new Vector2Int(m_ActualWidth, m_ActualHeight);
             if (isMainGameView)
             {
-                Vector2Int scaledSize = HDDynamicResolutionHandler.instance.GetRTHandleScale(new Vector2Int(m_ActualWidth, m_ActualHeight));
+                Vector2Int scaledSize = DynamicResolutionHandler.instance.GetRTHandleScale(new Vector2Int(m_ActualWidth, m_ActualHeight));
                 m_ActualWidth = scaledSize.x;
                 m_ActualHeight = scaledSize.y;
             }

@@ -157,11 +157,11 @@ namespace UnityEditor.Experimental.Rendering.LWRP
             // -------------------------------------
             // Get Slot and Node lists per stage
             var vertexSlots = pass.VertexShaderSlots.Select(masterNode.FindSlot<MaterialSlot>).ToList();
-            var vertexNodes = ListPool<AbstractMaterialNode>.Get();
+            var vertexNodes = Graphing.ListPool<AbstractMaterialNode>.Get();
             NodeUtils.DepthFirstCollectNodesFromNode(vertexNodes, masterNode, NodeUtils.IncludeSelf.Include, pass.VertexShaderSlots);
 
             var pixelSlots = pass.PixelShaderSlots.Select(masterNode.FindSlot<MaterialSlot>).ToList();
-            var pixelNodes = ListPool<AbstractMaterialNode>.Get();
+            var pixelNodes = Graphing.ListPool<AbstractMaterialNode>.Get();
             NodeUtils.DepthFirstCollectNodesFromNode(pixelNodes, masterNode, NodeUtils.IncludeSelf.Include, pass.PixelShaderSlots);
 
             // -------------------------------------
@@ -175,7 +175,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP
 
             if (isColorPass)
             {
-                
+
                 modelRequiements.requiresMeshUVs = new List<UVChannel>() { UVChannel.UV0 };
             }
 
@@ -209,7 +209,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP
             using (vertexDescriptionInputStruct.BlockSemicolonScope())
             {
                 ShaderGenerator.GenerateSpaceTranslationSurfaceInputs(vertexRequirements.requiresNormal, InterpolatorType.Normal, vertexDescriptionInputStruct);
-                ShaderGenerator.GenerateSpaceTranslationSurfaceInputs(vertexRequirements.requiresTangent, InterpolatorType.Tangent, vertexDescriptionInputStruct);   
+                ShaderGenerator.GenerateSpaceTranslationSurfaceInputs(vertexRequirements.requiresTangent, InterpolatorType.Tangent, vertexDescriptionInputStruct);
                 ShaderGenerator.GenerateSpaceTranslationSurfaceInputs(vertexRequirements.requiresBitangent, InterpolatorType.BiTangent, vertexDescriptionInputStruct);
                 ShaderGenerator.GenerateSpaceTranslationSurfaceInputs(vertexRequirements.requiresViewDir, InterpolatorType.ViewDirection, vertexDescriptionInputStruct);
                 ShaderGenerator.GenerateSpaceTranslationSurfaceInputs(vertexRequirements.requiresPosition, InterpolatorType.Position, vertexDescriptionInputStruct);

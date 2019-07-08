@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEditor.Rendering;
 using UnityEngine.Assertions;
 using UnityEngine.Experimental.Rendering.HDPipeline;
 
@@ -79,7 +80,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         public override void OnInspectorGUI()
         {
             m_SerializedCamera.Update();
-            
+
             HDCameraUI.Inspector.Draw(m_SerializedCamera, this);
 
             m_SerializedCamera.Apply();

@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using static UnityEngine.Experimental.Rendering.HDPipeline.RenderPipelineSettings;
-using UnityEngine.Experimental.Rendering;
+using UnityEngine.Rendering;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
