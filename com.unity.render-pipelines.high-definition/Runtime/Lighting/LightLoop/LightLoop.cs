@@ -793,7 +793,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             var shadowKeywords = new[]{"SHADOW_LOW", "SHADOW_MEDIUM", "SHADOW_HIGH"};
             foreach (var p in shadowKeywords)
                 Shader.DisableKeyword(p);
-            Shader.EnableKeyword(shadowKeywords[(int)shadowParams.shadowQuality]);
+            Shader.EnableKeyword(shadowKeywords[(int)shadowParams.shadowFilteringQuality]);
 
             InitShadowSystem(asset, defaultResources);
 

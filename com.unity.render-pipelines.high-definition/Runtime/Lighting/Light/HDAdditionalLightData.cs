@@ -63,6 +63,18 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         OnDemand
     }
 
+    /// <summary>
+    /// Shadow Resolution Tier
+    /// </summary>
+    public enum ShadowResolutionTier
+    {
+        Low = 0,
+        Medium,
+        High,
+        VeryHigh
+    }
+
+
     // Light layering
     public enum LightLayerEnum
     {
@@ -1094,25 +1106,60 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-#endregion
+        #endregion
 
-#region HDShadow Properties API (from AdditionalShadowData)
+        #region HDShadow Properties API (from AdditionalShadowData)
 
         [SerializeField]
-        int m_ShadowResolution = k_DefaultShadowResolution;
+        ShadowResolutionTier m_ShadowResolutionTier = ShadowResolutionTier.Medium;
         /// <summary>
-        /// Get/Set the resolution of shadow maps.
+        /// Get/Set the quality level for shadow map resoluton.
         /// </summary>
-        /// <value></value>
-        public int shadowResolution
+        public ShadowResolutionTier shadowResolutionTier
         {
-            get => m_ShadowResolution;
+            get => m_ShadowResolutionTier;
             set
             {
-                if (m_ShadowResolution == value)
+                if (m_ShadowResolutionTier == value)
                     return;
 
-                m_ShadowResolution = Mathf.Clamp(value, HDShadowManager.k_MinShadowMapResolution, HDShadowManager.k_MaxShadowMapResolution);
+                m_ShadowResolutionTier = value;
+            }
+        }
+
+        [SerializeField]
+        bool m_UseShadowQualitySettings = false;
+        /// <summary>
+        /// Toggle the usage of quality settings to determine shadow resolution.
+        /// </summary>
+        public bool useShadowQualitySettings
+        {
+            get => m_UseShadowQualitySettings;
+            set
+            {
+                if (m_UseShadowQualitySettings == value)
+                    return;
+
+                m_UseShadowQualitySettings = value;
+            }
+        }
+
+
+        [SerializeField]
+        int m_CustomShadowResolution = k_DefaultShadowResolution;
+        /// <summary>
+        /// Get/Set the resolution of shadow maps in case quality settings are not used.
+        /// </summary>
+        /// <value></value>
+        public int customResolution
+        {
+            get => m_CustomShadowResolution;
+            set
+            {
+                if (m_CustomShadowResolution == value)
+                    return;
+
+                m_CustomShadowResolution = Mathf.Clamp(value, HDShadowManager.k_MinShadowMapResolution, HDShadowManager.k_MaxShadowMapResolution);
             }
         }
 
@@ -1426,6 +1473,22 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 #endif
         }
 
+        private int GetResolutionFromSettings(ShadowMapType shadowMapType, HDShadowInitParameters initParameters)
+        {
+            bool customRes = !useShadowQualitySettings;
+            switch (shadowMapType)
+            {
+                case ShadowMapType.CascadedDirectional:
+                    return customRes ? Math.Min(customResolution, initParameters.maxDirectionalShadowMapResolution) : initParameters.directionalLightsResolutionTiers.GetResolution(shadowResolutionTier);
+                case ShadowMapType.PunctualAtlas:
+                    return customRes ? Math.Min(customResolution, initParameters.maxPunctualShadowMapResolution) : initParameters.punctualLightsResolutionTiers.GetResolution(shadowResolutionTier);
+                case ShadowMapType.AreaLightAtlas:
+                    return customRes ? Math.Min(customResolution, initParameters.maxAreaShadowMapResolution) : initParameters.areaLightsResolutionTiers.GetResolution(shadowResolutionTier);
+            }
+
+            return 0;
+        }
+
         internal void ReserveShadowMap(Camera camera, HDShadowManager shadowManager, HDShadowInitParameters initParameters, Rect screenRect)
         {
             if (!m_WillRenderShadowMap)
@@ -1444,11 +1507,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
             }
 
-            Vector2 viewportSize = new Vector2(shadowResolution, shadowResolution);
-
             // Reserver wanted resolution in the shadow atlas
             ShadowMapType shadowMapType = (lightTypeExtent == LightTypeExtent.Rectangle) ? ShadowMapType.AreaLightAtlas :
                                           (legacyLight.type != LightType.Directional) ? ShadowMapType.PunctualAtlas : ShadowMapType.CascadedDirectional;
+
+            int resolution = GetResolutionFromSettings(shadowMapType, initParameters);
+            Vector2 viewportSize = new Vector2(resolution, resolution);
 
             bool viewPortRescaling = false;
             // Compute dynamic shadow resolution
@@ -1904,7 +1968,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             data.displayAreaLightEmissiveMesh = displayAreaLightEmissiveMesh;
             data.interactsWithSky = interactsWithSky;
 
-            data.shadowResolution = shadowResolution;
+            data.customResolution = customResolution;
             data.shadowDimmer = shadowDimmer;
             data.volumetricShadowDimmer = volumetricShadowDimmer;
             data.shadowFadeDistance = shadowFadeDistance;
@@ -2434,7 +2498,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         /// Set the shadow resolution.
         /// </summary>
         /// <param name="resolution">Must be between 16 and 16384</param>
-        public void SetShadowResolution(int resolution) => shadowResolution = resolution;
+        public void SetShadowResolution(int resolution) => customResolution = resolution;
 
         /// <summary>
         /// Set the near plane of the shadow.
