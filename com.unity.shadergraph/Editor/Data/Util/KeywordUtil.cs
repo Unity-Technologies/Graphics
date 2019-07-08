@@ -15,6 +15,7 @@ namespace UnityEditor.ShaderGraph
             isEditable = false,
             keywordDefinition = ShaderKeywordDefinition.ShaderFeature,
             keywordScope = ShaderKeywordScope.Global,
+            neverExpose = true,
             entries = new List<ShaderKeywordEntry>()
             {
                 new ShaderKeywordEntry(1, "High", "HIGH"),

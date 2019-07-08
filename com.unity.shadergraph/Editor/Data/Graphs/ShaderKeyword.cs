@@ -48,14 +48,23 @@ namespace UnityEditor.ShaderGraph
         [SerializeField]
         private bool m_IsEditable = true;
 
+        [SerializeField]
+        private bool m_NeverExpose = false;
+
         public bool isEditable
         {
             get => m_IsEditable;
             set => m_IsEditable = value;
         }
 
+        public bool neverExpose
+        {
+            get => m_NeverExpose;
+            set => m_NeverExpose = value;
+        }
+
         public override ConcreteSlotValueType concreteShaderValueType => keywordType.ToConcreteSlotValueType();
-        public override bool isExposable => keywordDefinition == ShaderKeywordDefinition.ShaderFeature;
+        public override bool isExposable => !m_NeverExpose && keywordDefinition == ShaderKeywordDefinition.ShaderFeature;
         public override bool isRenamable => isEditable;
 
         [SerializeField]
