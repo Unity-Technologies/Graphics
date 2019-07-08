@@ -5,6 +5,7 @@ using System;
 using System.Diagnostics;
 using System.Linq;
 using UnityEngine.Experimental.GlobalIllumination;
+using Utilities;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
@@ -971,6 +972,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             if (!m_ValidAPI || cameras.Length == 0)
                 return;
+
+            // Set the quality level for this rendering
+            asset.currentMaterialQualityLevel.SetGlobalShaderKeywords();
 
             HDRenderPipeline.GetOrCreateDefaultVolume();
 
