@@ -140,7 +140,7 @@ FragInputs UnpackVaryingsMeshToFragInputs(PackedVaryingsMeshToPS input)
     // Init to some default value to make the computer quiet (else it output "divide by zero" warning even if value is not used).
     // TODO: this is a really poor workaround, but the variable is used in a bunch of places
     // to compute normals which are then passed on elsewhere to compute other values...
-    output.worldToTangent = k_identity3x3;
+    output.tangentToWorld = k_identity3x3;
 
     output.positionSS = input.positionCS; // input.positionCS is SV_Position
 
@@ -150,7 +150,7 @@ FragInputs UnpackVaryingsMeshToFragInputs(PackedVaryingsMeshToPS input)
 
 #ifdef VARYINGS_NEED_TANGENT_TO_WORLD
     float4 tangentWS = float4(input.interpolators2.xyz, input.interpolators2.w > 0.0 ? 1.0 : -1.0); // must not be normalized (mikkts requirement)
-    output.worldToTangent = BuildWorldToTangent(tangentWS, input.interpolators1.xyz);
+    output.tangentToWorld = BuildTangentToWorld(tangentWS, input.interpolators1.xyz);
 #endif // VARYINGS_NEED_TANGENT_TO_WORLD
 
 #ifdef VARYINGS_NEED_TEXCOORD0

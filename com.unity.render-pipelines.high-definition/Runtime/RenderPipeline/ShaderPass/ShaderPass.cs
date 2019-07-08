@@ -29,5 +29,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         RaytracingIndirect,
         RaytracingVisibility,
         RaytracingForward,
+        RaytracingGBuffer,
     }
 }

@@ -1,7 +1,7 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/Decal.hlsl"
 
 #ifndef SCALARIZE_LIGHT_LOOP
-#define SCALARIZE_LIGHT_LOOP (defined(SUPPORTS_WAVE_INTRINSICS) && !defined(LIGHTLOOP_DISABLE_TILE_AND_CLUSTER) && SHADERPASS == SHADERPASS_FORWARD)
+#define SCALARIZE_LIGHT_LOOP (defined(PLATFORM_SUPPORTS_WAVE_INTRINSICS) && !defined(LIGHTLOOP_DISABLE_TILE_AND_CLUSTER) && SHADERPASS == SHADERPASS_FORWARD)
 #endif
 
 DECLARE_DBUFFER_TEXTURE(_DBufferTexture);
@@ -286,7 +286,11 @@ DecalSurfaceData GetDecalSurfaceData(PositionInputs posInput, inout float alpha)
 
     }
 #else // _SURFACE_TYPE_TRANSPARENT
-    mask = (uint)LOAD_TEXTURE2D_X(_DecalHTileTexture, posInput.positionSS / 8).r; 
+    #ifdef PLATFORM_SUPPORTS_TEXTURE_ATOMICS
+    mask = (uint)LOAD_TEXTURE2D_X(_DecalHTileTexture, posInput.positionSS / 8).r;
+    #else
+    mask = DBUFFERHTILEBIT_DIFFUSE | DBUFFERHTILEBIT_NORMAL | DBUFFERHTILEBIT_MASK;
+    #endif
 #endif
     DecalSurfaceData decalSurfaceData;
     DECODE_FROM_DBUFFER(DBuffer, decalSurfaceData);

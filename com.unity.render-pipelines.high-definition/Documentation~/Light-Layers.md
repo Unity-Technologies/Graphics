@@ -29,8 +29,14 @@ After you enable Light Layers, you can then use them to decouple Meshes from cer
 
 ## Shadow Light Layers
 
-When using light layers, the shadow casted by objects are bound to the light layers on them: for example you can't create an object that is not by a light but make this object cast shadows from this light unless you enabled light shadow layers.  
-By default the light layers and shadow layers are synchronized to have the same value so each object that receive light cast shadows, to decouple this behavior you can untick **Link Light Layer** in the shadow map settings. It allows you to modify the **Light Layer** mask below, then this mask will be used against the **Rendering Layer Mask** on **Mesh Renderers** to choose which object will cast shadows.
+When using Light Layers, Meshes only cast shadows for [Lights](Light-Component.html) on the same Light Layer as them. This is because HDRP synchronizes Light Layers and shadow Light Layers by default, so every Mesh that receives light, also casts shadows for it. To make a Mesh cast shadows without the Light also affecting its lighting, you must decouple the shadow Light Layers from that Light's Light Layers.
+
+To do this:
+
+1. Click on a Light in the Hierarchy or the Scene view to view it in the Inspector.
+2. Go to the **Shadows** section and disable the **Link Light Layers** checkbox.
+
+You can now use the **Light Layers** drop-down in the **Shadows** section to set the Light Layers that the Light uses for shadowing. You can also still use the **Light Layers** drop-down in the **General** section to set the Light Layers that the Light uses for lighting.
 
 ## Example scenario
 

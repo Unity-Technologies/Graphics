@@ -1,0 +1,451 @@
+/*
+** Adapted from "Combining Analytic Direct Illumination and Stochastic", by Heitz et al.
+** https://eheitzresearch.wordpress.com/705-2/
+*/
+
+// Temporal Filtering kernels
+#pragma kernel AreaShadowApplyTAA
+#pragma kernel AreaAnalyticHistoryCopy
+#pragma kernel AreaShadowHistoryCopy
+
+// Bilateral computes
+#pragma kernel AreaShadowEstimateNoise
+#pragma kernel AreaShadowDenoiseFirstPass   AREA_SHADOW_DENOISE=AreaShadowDenoiseFirstPass
+#pragma kernel AreaShadowDenoiseSecondPass  AREA_SHADOW_DENOISE=AreaShadowDenoiseSecondPass  FINAL_PASS
+
+// Debug
+#pragma kernel WriteShadowTextureDebug
+
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/NormalBuffer.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingSampling.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Builtin/BuiltinData.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/TemporalAntialiasing.hlsl"
+
+// Tile size of this compute
+#define AREA_BILLATERAL_TILE_SIZE 8
+
+// Input Denoising data
+int _RaytracingShadowSlot;
+int _RaytracingDenoiseRadius;
+TEXTURE2D_X(_DepthTexture);
+TEXTURE2D_X(_DenoiseInputTexture);
+RW_TEXTURE2D_X(float4, _DenoiseOutputTextureRW);
+TEXTURE2D_X(_AnalyticProbBuffer);
+
+// Output buffers
+RWTexture2DArray<float>     _ScreenSpaceShadowsTextureRW;
+RWTexture2DArray<float>     _AnalyticHistoryBuffer;
+Texture2DArray              _AreaShadowHistory;
+RWTexture2DArray<float2>    _AreaShadowHistoryRW;
+
+// Bilateral filter parameters
+#define NORMAL_WEIGHT   1.0
+#define PLANE_WEIGHT    1.0
+#define DEPTH_WEIGHT    1.0
+#define ANALYTIC_WEIGHT 1.0
+
+// This value is the one that we have choosen for the moment as a sufficient limit for
+// the noise estimation. It would require an other pass to check if we can lower it.
+#define MAX_ESTIMATION_RADIUS 10
+
+[numthreads(AREA_BILLATERAL_TILE_SIZE, AREA_BILLATERAL_TILE_SIZE, 1)]
+void AreaAnalyticHistoryCopy(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
+{
+    // Fetch the current pixel coordinate
+    uint2 centerCoord = groupId * AREA_BILLATERAL_TILE_SIZE + groupThreadId;
+
+    // Merge them into the previous buffer
+    _AnalyticHistoryBuffer[uint3(centerCoord, _RaytracingShadowSlot)] = LOAD_TEXTURE2D_X(_AnalyticProbBuffer, centerCoord).x;
+}
+
+[numthreads(AREA_BILLATERAL_TILE_SIZE, AREA_BILLATERAL_TILE_SIZE, 1)]
+void AreaShadowHistoryCopy(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
+{
+    // Fetch the current pixel coordinate
+    uint2 centerCoord = groupId * AREA_BILLATERAL_TILE_SIZE + groupThreadId;
+
+    // Merge them into the previous buffer
+    _AreaShadowHistoryRW[uint3(centerCoord, _RaytracingShadowSlot)] = LOAD_TEXTURE2D_X(_DenoiseInputTexture, centerCoord).xy;
+}
+
+[numthreads(AREA_BILLATERAL_TILE_SIZE, AREA_BILLATERAL_TILE_SIZE, 1)]
+void AreaShadowApplyTAA(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
+{
+    // Fetch the current pixel coordinate
+    uint2 centerCoord = groupId * AREA_BILLATERAL_TILE_SIZE + groupThreadId;
+
+    // Compute the world space coordinate of this pixel
+    float depth = LOAD_TEXTURE2D_X(_DepthTexture, centerCoord).r;
+    PositionInputs posInputs = GetPositionInput(centerCoord, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
+
+    // Get the cosest pixel
+    float2 closest = GetClosestFragment(posInputs);
+
+    // Read the matching velocity
+    float2 velocity;
+    DecodeMotionVector(LOAD_TEXTURE2D_X(_CameraMotionVectorsTexture, closest), velocity);
+    float velocityLength = length(velocity);
+
+    // UV used to read the pixels to filter
+    float2 uv = posInputs.positionNDC;
+
+    // Compute the previous pixel coordinate
+    uint2 historyPixelCoord =  centerCoord - velocity * _ScreenSize.xy;
+    // Ok so here, if we do not match cloesly the previous analytic value, it means either TAA has invalidated the sample or the pixel just appeared
+    float currentAnalyticValue = LOAD_TEXTURE2D_X(_AnalyticProbBuffer, centerCoord).x;
+    float historyAnalyticValue = _AnalyticHistoryBuffer[uint3(historyPixelCoord,_RaytracingShadowSlot)];
+
+    if (abs(historyAnalyticValue - currentAnalyticValue) >= 1e-1 * Max3(1.0f, abs(historyAnalyticValue), abs(currentAnalyticValue)) || historyAnalyticValue < 0.0f)
+    {
+        // Fetch the current value
+        float2 color = Fetch4(_DenoiseInputTexture, uv, 0.0, _RTHandleScale.xy).xy;
+
+        // Set it as the output and leave the function
+        _DenoiseOutputTextureRW[COORD_TEXTURE2D_X(centerCoord)] = float4(color, LOAD_TEXTURE2D_X(_AnalyticProbBuffer, centerCoord).x, 1.0);
+        return;
+    }
+
+    float2 color = Fetch4(_DenoiseInputTexture, uv, 0.0, _RTHandleScale.xy).xy;
+    float2 history = Fetch4Array(_AreaShadowHistory, _RaytracingShadowSlot, posInputs.positionNDC - velocity, 0.0, _RTHandleScaleHistory.xy).xy;
+    float2 topLeft = Fetch4(_DenoiseInputTexture, uv, -RADIUS, _RTHandleScale.xy).xy;
+    float2 bottomRight = Fetch4(_DenoiseInputTexture, uv, RADIUS, _RTHandleScale.xy).xy;
+
+    float2 corners = 4.0 * (topLeft + bottomRight) - 2.0 * color;
+
+    color = clamp(color, 0.0, CLAMP_MAX);
+
+    float2 average = MapPerChannel((corners + color) / 7.0);
+
+    topLeft = MapPerChannel(topLeft);
+    bottomRight = MapPerChannel(bottomRight);
+    color = MapPerChannel(color);
+
+    float2 colorLuma = color;
+    float2 averageLuma = average;
+    float2 nudge = lerp(4.0, 0.25, saturate(velocityLength * 100.0)) * abs(averageLuma - colorLuma);
+
+    float2 minimum = min(bottomRight, topLeft) - nudge;
+    float2 maximum = max(topLeft, bottomRight) + nudge;
+
+    history = MapPerChannel(history);
+
+    // Clip history samples
+    history = clamp(history, minimum, maximum);
+
+    // Blend color & history
+    // Feedback weight from unbiased luminance diff (Timothy Lottes)
+    float2 historyLuma = history;
+    float2 diff = abs(colorLuma - historyLuma) / Max3(colorLuma, historyLuma, 0.2);
+    float2 weight = 1.0 - diff;
+    weight = weight * weight;
+    float2 feedback = (1.0 - weight) * FEEDBACK_MIN + weight * FEEDBACK_MAX;
+
+    color = UnmapPerChannel(lerp(color, history, feedback));
+    color = clamp(color, 0.0, CLAMP_MAX);
+    
+    _DenoiseOutputTextureRW[COORD_TEXTURE2D_X(centerCoord)] = float4(color, LOAD_TEXTURE2D_X(_AnalyticProbBuffer, centerCoord).x, 1.0);
+}
+
+[numthreads(AREA_BILLATERAL_TILE_SIZE, AREA_BILLATERAL_TILE_SIZE, 1)]
+void AreaShadowApplyTAA2(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
+{
+    uint2 coordSS = groupId * AREA_BILLATERAL_TILE_SIZE + groupThreadId;
+
+    PositionInputs posInput = GetPositionInput(coordSS, _ScreenSize.zw, uint2(AREA_BILLATERAL_TILE_SIZE, AREA_BILLATERAL_TILE_SIZE));
+
+    // Fetch velocity information
+    float2 velocity = 0.0;
+    const float2 closest = GetClosestFragment(posInput);
+    DecodeMotionVector(LOAD_TEXTURE2D_X(_CameraMotionVectorsTexture, closest), velocity);
+    const float velocityLength = length(velocity);
+
+    // Get the UV value (in screen space) corresponding to the current pixel,
+    // and fetch the corresponding data in the history buffer
+    const float2 uv = posInput.positionNDC;
+    const float4 center = Fetch4(_DenoiseInputTexture, uv, 0.0, _RTHandleScale.xy);
+
+    // Also fetch neighborhood representatives, to estimate variation
+    const float4 topLeft = Fetch4(_DenoiseInputTexture, uv, -RADIUS, _RTHandleScale.xy);
+    const float4 bottomRight =Fetch4(_DenoiseInputTexture, uv, RADIUS, _RTHandleScale.xy);
+    const float4 corners = 4.0 * (topLeft + bottomRight) - 2.0 * center;
+    const float4 average = (corners + center) / 7.0;
+
+    // Check how much the local average value has changed over time
+    const float2 diffTimeVec = abs(average.xy - average.zw);
+    const float diffTime = max(diffTimeVec.x, diffTimeVec.y);
+
+    // Build an alpha expressing how much things are changing temporally
+    // (taking velocities + local variation into account)
+    const float alpha = 1.0 - saturate(velocityLength * 100.0 + diffTime);
+
+    // Also take spatial variation into account, in the current frame
+    const float2 diffSpaceVec = abs(average.xy - center.xy);
+    const float diffSpace = max(diffSpaceVec.x, diffSpaceVec.y) * alpha * 4.0;
+
+    // Based on the velocity, try and find the matching texel in the history buffer,
+    // and clamp the value based on the current spatial variation, to reduce ghosting
+    float2 history = Fetch4(_DenoiseInputTexture, uv - velocity, 0.0, _RTHandleScale.xy).zw;
+    history = clamp(history, center.xy - diffSpace, center.xy + diffSpace);
+
+    // Last but not least, use the previously computed alpha to drive persistence
+    // of our history value (over the current frame one)
+    float2 result = lerp(center.xy, history, alpha * 0.9);
+
+    // FIXME DEBUG
+    //_DebugTextureRW[coordSS] = float4(diff, alpha * 0.1, 0.0, 1.0);
+
+    _DenoiseOutputTextureRW[COORD_TEXTURE2D_X(coordSS)] = float4(result, LOAD_TEXTURE2D_X(_AnalyticProbBuffer, coordSS).x, 1.0);
+}
+
+// Couple helper functions
+float sqr(float value)
+{
+    return value * value;
+}
+float gaussian(float radius, float sigma)
+{
+    return exp(-sqr(radius / sigma));
+}
+
+// ----------------------------------------------------------------------------
+// Noise Estimation Kernel
+// ----------------------------------------------------------------------------
+
+// Sample the signal used for the noise estimation at coordSS
+float TapRatio(uint2 coordSS)
+{
+    const float Sn = LOAD_TEXTURE2D_X(_DenoiseInputTexture, coordSS).x;
+    const float Un = LOAD_TEXTURE2D_X(_DenoiseInputTexture, coordSS).y;
+
+    return (Un > 0.0) ? (Sn / Un) : 1.0;
+}
+
+// Estimate desired radius from the second derivative of the signal
+float EstimateNoise(uint2 coordSS, float2 axis)
+{
+    // Radius is supposed to be always >= 1
+    const int noiseEsimationRadius = min(_RaytracingDenoiseRadius, MAX_ESTIMATION_RADIUS);
+    float v2 = TapRatio(coordSS - noiseEsimationRadius * axis);
+    float v1 = TapRatio(coordSS - (noiseEsimationRadius - 1) * axis);
+
+    float d2mag = 0.0;
+    uint n = 0;
+
+    // The first two points are accounted for above
+    for (int r = -(noiseEsimationRadius - 2); r <= noiseEsimationRadius; ++r, ++n)
+    {
+        float v0 = TapRatio(coordSS + r * axis);
+
+        // Second derivative
+        const float d2 = v2 - 2.0 * v1 + v0;
+
+        d2mag += abs(d2);
+
+        // Shift weights in the window
+        v2 = v1; v1 = v0;
+    }
+
+    return saturate(sqrt(d2mag / n));
+}
+
+// Estimate noise to drive denoising kernel radius
+[numthreads(AREA_BILLATERAL_TILE_SIZE, AREA_BILLATERAL_TILE_SIZE, 1)]
+void AreaShadowEstimateNoise(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
+{
+    // Fetch the current pixel coordinate
+    uint2 centerCoord = groupId * AREA_BILLATERAL_TILE_SIZE + groupThreadId;
+
+    if(LOAD_TEXTURE2D_X(_DenoiseInputTexture, centerCoord).z < 0.0)
+    {
+        _DenoiseOutputTextureRW[COORD_TEXTURE2D_X(centerCoord)] = float4(0.0, 0.0, -1.0, 1.0);
+        return;
+    }
+
+    // Quasi-random angular offset, to break pattern
+    float angle = ScramblingValue(centerCoord.x, centerCoord.y).x * (PI / 256);
+
+    float maxNoise = 0.0;
+    float2 axis;
+
+    const int N = 4;
+    for (float t = 0; t < N; ++t, angle += PI/N)
+    {
+        sincos(angle, axis.y, axis.x);
+        maxNoise = max(EstimateNoise(centerCoord, axis), maxNoise);
+    }
+
+    _DenoiseOutputTextureRW[COORD_TEXTURE2D_X(centerCoord)] = float4(LOAD_TEXTURE2D_X(_DenoiseInputTexture, centerCoord).xyz, maxNoise);
+}
+
+// ----------------------------------------------------------------------------
+// Denoising Kernel
+// ----------------------------------------------------------------------------
+
+struct BilateralData
+{
+    float3 position;
+    float  z;
+    float3 normal;
+    float  analytic;
+};
+
+BilateralData TapBilateralData(uint2 coordSS)
+{
+    BilateralData key;
+    PositionInputs posInput;
+
+    if (DEPTH_WEIGHT > 0.0 || PLANE_WEIGHT > 0.0)
+    {
+        posInput.deviceDepth = LOAD_TEXTURE2D_X(_DepthTexture, coordSS).r;
+        key.z = Linear01Depth(posInput.deviceDepth, _ZBufferParams);
+    }
+
+    if (PLANE_WEIGHT > 0.0)
+    {
+        posInput = GetPositionInput(coordSS, _ScreenSize.zw, posInput.deviceDepth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
+        key.position = posInput.positionWS;
+    }
+
+    if ((NORMAL_WEIGHT > 0.0) || (PLANE_WEIGHT > 0.0))
+    {
+        NormalData normalData;
+        const float4 normalBuffer = LOAD_TEXTURE2D_X(_NormalBufferTexture, coordSS);
+        DecodeFromNormalBuffer(normalBuffer, coordSS, normalData);
+        key.normal = normalData.normalWS;
+    }
+
+    if (ANALYTIC_WEIGHT > 0.0)
+    {
+        key.analytic = LOAD_TEXTURE2D_X(_DenoiseInputTexture, coordSS).z;
+    }
+
+    return key;
+}
+
+float ComputeBilateralWeight(BilateralData center, BilateralData tap)
+{
+    float depthWeight    = 1.0;
+    float normalWeight   = 1.0;
+    float planeWeight    = 1.0;
+    float analyticWeight = 1.0;
+
+    if (DEPTH_WEIGHT > 0.0)
+    {
+        depthWeight = max(0.0, 1.0 - abs(tap.z - center.z) * DEPTH_WEIGHT);
+    }
+
+    if (NORMAL_WEIGHT > 0.0)
+    {
+        const float normalCloseness = sqr(sqr(max(0.0, dot(tap.normal, center.normal))));
+        const float normalError = 1.0 - normalCloseness;
+        normalWeight = max(0.0, (1.0 - normalError * NORMAL_WEIGHT));
+    }
+
+    if (PLANE_WEIGHT > 0.0)
+    {
+        // Change in position in camera space
+        const float3 dq = center.position - tap.position;
+
+        // How far away is this point from the original sample
+        // in camera space? (Max value is unbounded)
+        const float distance2 = dot(dq, dq);
+
+        // How far off the expected plane (on the perpendicular) is this point? Max value is unbounded.
+        const float planeError = max(abs(dot(dq, tap.normal)), abs(dot(dq, center.normal)));
+
+        planeWeight = (distance2 < 0.0001) ? 1.0 :
+            pow(max(0.0, 1.0 - 2.0 * PLANE_WEIGHT * planeError / sqrt(distance2)), 2.0);
+    }
+
+    if (ANALYTIC_WEIGHT > 0.0)
+    {
+        const float aDiff = abs(tap.analytic - center.analytic);
+        analyticWeight = tap.analytic < 0.0 ? 0.0 : max(0.0, 1.0 - (aDiff * ANALYTIC_WEIGHT));
+    }
+
+    return depthWeight * normalWeight * planeWeight * analyticWeight;
+}
+
+// Simple box filter to smooth out the noise estimate
+float FilterNoiseEstimate(uint2 coordSS)
+{
+    float result = 0.0;
+
+    const int R = 1; // Box radius (add 0.5 for center pixel)
+    for (int j = -R; j <= R; ++j)
+    {
+        for (int i = -R; i <= R; ++i)
+        {
+            result += LOAD_TEXTURE2D_X(_DenoiseInputTexture, coordSS + int2(i, j)).w;
+        }
+    }
+
+    return result / sqr(2 * R + 1);
+}
+
+// Separated bilateral filter (two passes, each with 2*Radius taps)
+[numthreads(AREA_BILLATERAL_TILE_SIZE, AREA_BILLATERAL_TILE_SIZE, 1)]
+void AREA_SHADOW_DENOISE(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
+{
+    // Fetch the current pixel coordinate
+    uint2 centerCoord = groupId * AREA_BILLATERAL_TILE_SIZE + groupThreadId;
+
+    float2 SU = 0.0;
+    float wSum = 0.0;
+
+    #if FINAL_PASS
+    const uint2 passIncr = uint2(1, 0);
+    const float noiseEstimate = LOAD_TEXTURE2D_X(_DenoiseInputTexture, centerCoord).w ;
+    #else
+    const uint2 passIncr = uint2(0, 1);
+    const float noiseEstimate = FilterNoiseEstimate(centerCoord);
+    #endif
+
+    const float sigma = noiseEstimate * _RaytracingDenoiseRadius;
+    const int effectiveRadius = min(sigma * 2.0, _RaytracingDenoiseRadius);
+
+    const BilateralData center = TapBilateralData(centerCoord);
+    if(center.analytic < 0.0)
+    {
+        #if FINAL_PASS
+        // Return the final ratio
+        _ScreenSpaceShadowsTextureRW[uint3(centerCoord, _RaytracingShadowSlot)] = 0.0;
+        #else
+        // Store the intermediate result
+        _DenoiseOutputTextureRW[COORD_TEXTURE2D_X(centerCoord)] = float4(0.0, 0.0, -1.0, noiseEstimate);
+        #endif
+    }
+
+    uint2 tapCoord = centerCoord - effectiveRadius * passIncr;
+    for (int r = -effectiveRadius; r <= effectiveRadius; ++r, tapCoord += passIncr)
+    {
+        // Compute the weight (skip computation for the center)
+        const float w = r ? gaussian(r, sigma) * ComputeBilateralWeight(center, TapBilateralData(tapCoord)) : 1.0;
+
+        SU += LOAD_TEXTURE2D_X(_DenoiseInputTexture, tapCoord).xy * w;
+        wSum += w;
+    }
+
+    #if FINAL_PASS
+    // Return the final ratio
+    _ScreenSpaceShadowsTextureRW[uint3(centerCoord, _RaytracingShadowSlot)] = (wSum > 0.0 && SU.y / wSum > 0.0) ? saturate(SU.x / SU.y) : 1.0;
+    #else
+    // Store the intermediate result
+    _DenoiseOutputTextureRW[COORD_TEXTURE2D_X(centerCoord)] = float4(SU / wSum, LOAD_TEXTURE2D_X(_DenoiseInputTexture, centerCoord).z, noiseEstimate);
+    #endif
+}
+
+// Separated bilateral filter (two passes, each with 2*Radius taps)
+[numthreads(AREA_BILLATERAL_TILE_SIZE, AREA_BILLATERAL_TILE_SIZE, 1)]
+void WriteShadowTextureDebug(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
+{
+    // Fetch the current pixel coordinate
+    uint2 centerCoord = groupId * AREA_BILLATERAL_TILE_SIZE + groupThreadId;
+
+    // Store the intermediate result
+    float shadowValue = _ScreenSpaceShadowsTextureRW[uint3(centerCoord, _RaytracingShadowSlot)];
+    _DenoiseOutputTextureRW[COORD_TEXTURE2D_X(centerCoord)] = float4(shadowValue, shadowValue, shadowValue, 1.0);
+}

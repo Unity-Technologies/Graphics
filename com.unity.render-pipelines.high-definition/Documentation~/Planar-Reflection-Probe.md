@@ -21,7 +21,7 @@ The following properties control the projection settings for this Planar Reflect
 | **Property**                             | **Description**                                              |
 | ---------------------------------------- | ------------------------------------------------------------ |
 | **Proxy Volume**                         | The [Reflection Proxy Volume](Reflection-Proxy-Volume.html) this Probe uses to correct displacement issues between the Probe’s capture point (**Mirror Position**) and the position of the reflective Material using the RenderTexture this Probe captures. Note: The **Proxy Volume** you assign must be the same **Shape** as the Influence Volume. |
-| **Use Influence Volume As Proxy Volume** | Tick this checkbox to use the boundaries of the Influence Volume as the Proxy Volume. Do not assign the **Proxy Volume** property to expose this property. |
+| **Use Influence Volume As Proxy Volume** | Tick this checkbox to use the boundaries of the Influence Volume as the Proxy Volume.<br />This property only appears when you have not set a Reflection Proxy Volume to the **Proxy Volume** property. |
 
 <a name="InfluenceVolume"></a>
 
@@ -80,7 +80,7 @@ You can use Scene view gizmos to visually customize specific properties.
 
 | **Gizmo**                             | **Property**                          | **Description**                                              |
 | ------------------------------------- | ------------------------------------- | ------------------------------------------------------------ |
-| ![](Images/ReflectionProbeGizmo1.png) | **Influence Volume bounds boundary.** | Provides Scene view handles that allow you to move the boundaries of the [Influence Volume](#InfluenceVolume), which defines the area this Reflection Probe affects reflective Materials. Edits the **Box Size** or **Radius** value, depending on the **Shape** you select. |
+| ![](Images/ReflectionProbeGizmo1.png) | **Influence Volume bounds boundary** | Provides Scene view handles that allow you to move the boundaries of the [Influence Volume](#InfluenceVolume), which defines the area this Reflection Probe affects reflective Materials. Edits the **Box Size** or **Radius** value, depending on the **Shape** you select. |
 | ![](Images/ReflectionProbeGizmo2.png) | **Blend Distance boundary**           | Provides Scene view handles that allows you to alter the inward distance from the **Box Size** or **Radius** at which this Planar Reflection Probe blends with other Reflection Probes. Its behavior depends on the [workflow mode](#Workflows) you are using. It scales all sides equally in **Normal** mode, scales just the side with the handle you control in **Advanced** mode. |
 | ![](Images/ReflectionProbeGizmo4.png) | **Mirror Position**                   | Changes the behavior of the Move Tool so that it alters the **Mirror** **Position** property, rather than the **Position** of the **Transform**. |
 | ![](Images/ReflectionProbeGizmo5.png) | **Mirror Rotation**                   | Changes the behavior of the Rotate Tool so that it alters the **Mirror Rotation** property, rather than the **Rotation** of the **Transform**. |

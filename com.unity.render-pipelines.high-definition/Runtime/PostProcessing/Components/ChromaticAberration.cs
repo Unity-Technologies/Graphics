@@ -6,13 +6,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     [Serializable, VolumeComponentMenu("Post-processing/Chromatic Aberration")]
     public sealed class ChromaticAberration : VolumeComponent, IPostProcessComponent
     {
-        [Tooltip("Shifts the hue of chromatic aberrations.")]
+        [Tooltip("Speficies a Texture which HDRP uses to shift the hue of chromatic aberrations.")]
         public TextureParameter spectralLut = new TextureParameter(null);
 
-        [Tooltip("Amount of tangential distortion.")]
+        [Tooltip("Controls the strength of the chromatic aberration effect.")]
         public ClampedFloatParameter intensity = new ClampedFloatParameter(0f, 0f, 1f);
 
-        [Tooltip("Maximum amount of samples used to render the effect. Lower count means better performance.")]
+        [Tooltip("Controls the maximum number of samples HDRP uses to render the effect. A lower sample number results in better performance.")]
         public ClampedIntParameter maxSamples = new ClampedIntParameter(8, 3, 24);
 
         public bool IsActive()

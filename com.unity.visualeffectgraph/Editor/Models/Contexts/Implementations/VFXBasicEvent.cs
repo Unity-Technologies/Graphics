@@ -1,7 +1,7 @@
 using System;
 using System.Linq;
 using UnityEngine;
-using UnityEngine.Experimental.VFX;
+using UnityEngine.VFX;
 
 namespace UnityEditor.VFX
 {
@@ -9,7 +9,7 @@ namespace UnityEditor.VFX
     {
         public void OnClicked(string value)
         {
-            var allComponent = UnityEngine.Experimental.VFX.VFXManager.GetComponents();
+            var allComponent = UnityEngine.VFX.VFXManager.GetComponents();
             foreach (var component in allComponent)
             {
                 component.SendEvent(value);

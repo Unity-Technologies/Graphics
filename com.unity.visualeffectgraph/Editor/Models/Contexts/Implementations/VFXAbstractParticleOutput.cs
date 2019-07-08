@@ -4,8 +4,8 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Serialization;
-using UnityEditor.Experimental.VFX;
-using UnityEngine.Experimental.VFX;
+using UnityEditor.VFX;
+using UnityEngine.VFX;
 
 namespace UnityEditor.VFX
 {
@@ -88,9 +88,6 @@ namespace UnityEditor.VFX
 
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]
         protected bool castShadows = false;
-
-        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]
-        protected bool preRefraction = false;
 
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]
         protected bool useExposureWeight = false;
@@ -330,7 +327,6 @@ namespace UnityEditor.VFX
 
                 if (isBlendModeOpaque)
                 {
-                    yield return "preRefraction";
                     yield return "useSoftParticle";
                 }
 

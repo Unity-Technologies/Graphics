@@ -390,7 +390,8 @@ namespace UnityEditor.VFX
                 }
                 catch (Exception)
                 {
-                    Debug.Log("Cannot access assembly: " + domainAssembly);
+                    if (VFXViewPreference.advancedLogs)
+                        Debug.Log("Cannot access assembly: " + domainAssembly);
                     assemblyTypes = null;
                 }
                 if (assemblyTypes != null)
@@ -420,7 +421,8 @@ namespace UnityEditor.VFX
                         throw new Exception(string.Format("The SRP of asset type {0} is already registered ({1})", SRPAssetTypeStr, srpBinders[SRPAssetTypeStr].GetType()));
                     srpBinders[SRPAssetTypeStr] = binder;
 
-                    Debug.Log(string.Format("Register {0} SRP for VFX", SRPAssetTypeStr));
+                    if (VFXViewPreference.advancedLogs)
+                        Debug.Log(string.Format("Register {0} SRP for VFX", SRPAssetTypeStr));
                 }
                 catch(Exception e)
                 {

@@ -13,13 +13,18 @@ struct vs_input
 	#ifdef VFX_VARYING_TANGENT
 	float4 tangent : TANGENT;
 	#endif
+	VFX_DECLARE_INSTANCE_ID
 };
 
 #pragma vertex vert
-VFX_VARYING_PS_INPUTS vert(vs_input i, uint instanceID : SV_InstanceID)
+VFX_VARYING_PS_INPUTS vert(vs_input i)
 {
-	uint index = instanceID;
-	VFX_VARYING_PS_INPUTS o = (VFX_VARYING_PS_INPUTS)0;
+    VFX_VARYING_PS_INPUTS o = (VFX_VARYING_PS_INPUTS)0;
+
+	UNITY_SETUP_INSTANCE_ID(i);
+	UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
+
+	uint index = VFX_GET_INSTANCE_ID(i);	
 
 	${VFXLoadAttributesOrCull}
 	${VFXProcessBlocks}

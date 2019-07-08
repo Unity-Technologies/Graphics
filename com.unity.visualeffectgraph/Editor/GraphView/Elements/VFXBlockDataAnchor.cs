@@ -1,6 +1,6 @@
 using UnityEditor.Experimental.GraphView;
 using UnityEngine;
-using UnityEngine.Experimental.VFX;
+using UnityEngine.VFX;
 using UnityEngine.UIElements;
 using System.Collections.Generic;
 using Type = System.Type;

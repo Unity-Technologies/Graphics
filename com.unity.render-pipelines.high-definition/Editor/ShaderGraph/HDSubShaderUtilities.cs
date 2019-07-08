@@ -47,7 +47,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             [Optional]                                                              Vector4 texCoord3;
             [Optional]                                                              Vector4 color;
             [Semantic("CUSTOM_INSTANCE_ID")] [PreprocessorIf("UNITY_ANY_INSTANCING_ENABLED")] uint instanceID;
-            [Optional][Semantic("FRONT_FACE_SEMANTIC")][OverrideType("FRONT_FACE_TYPE")][PreprocessorIf("SHADER_STAGE_FRAGMENT")] bool cullFace;
+            [Semantic("FRONT_FACE_SEMANTIC")][OverrideType("FRONT_FACE_TYPE")][PreprocessorIf("defined(SHADER_STAGE_FRAGMENT) && defined(VARYINGS_NEED_CULLFACE)")] bool cullFace;
 
             public static Dependency[] tessellationDependencies = new Dependency[]
             {
@@ -106,8 +106,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public static Dependency[] dependencies = new Dependency[]
             {
                 new Dependency("FragInputs.positionRWS",        "VaryingsMeshToPS.positionRWS"),
-                new Dependency("FragInputs.worldToTangent",     "VaryingsMeshToPS.tangentWS"),
-                new Dependency("FragInputs.worldToTangent",     "VaryingsMeshToPS.normalWS"),
+                new Dependency("FragInputs.tangentToWorld",     "VaryingsMeshToPS.tangentWS"),
+                new Dependency("FragInputs.tangentToWorld",     "VaryingsMeshToPS.normalWS"),
                 new Dependency("FragInputs.texCoord0",          "VaryingsMeshToPS.texCoord0"),
                 new Dependency("FragInputs.texCoord1",          "VaryingsMeshToPS.texCoord1"),
                 new Dependency("FragInputs.texCoord2",          "VaryingsMeshToPS.texCoord2"),
@@ -144,6 +144,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             [Optional] Vector3 ViewSpacePosition;
             [Optional] Vector3 WorldSpacePosition;
             [Optional] Vector3 TangentSpacePosition;
+            [Optional] Vector3 AbsoluteWorldSpacePosition;
 
             [Optional] Vector4 ScreenPosition;
             [Optional] Vector4 uv0;
@@ -152,22 +153,24 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             [Optional] Vector4 uv3;
             [Optional] Vector4 VertexColor;
             [Optional] float FaceSign;
+            [Optional] Vector3 TimeParameters;
 
             public static Dependency[] dependencies = new Dependency[]
             {
-                new Dependency("SurfaceDescriptionInputs.WorldSpaceNormal",          "FragInputs.worldToTangent"),
+                new Dependency("SurfaceDescriptionInputs.WorldSpaceNormal",          "FragInputs.tangentToWorld"),
                 new Dependency("SurfaceDescriptionInputs.ObjectSpaceNormal",         "SurfaceDescriptionInputs.WorldSpaceNormal"),
                 new Dependency("SurfaceDescriptionInputs.ViewSpaceNormal",           "SurfaceDescriptionInputs.WorldSpaceNormal"),
 
-                new Dependency("SurfaceDescriptionInputs.WorldSpaceTangent",         "FragInputs.worldToTangent"),
+                new Dependency("SurfaceDescriptionInputs.WorldSpaceTangent",         "FragInputs.tangentToWorld"),
                 new Dependency("SurfaceDescriptionInputs.ObjectSpaceTangent",        "SurfaceDescriptionInputs.WorldSpaceTangent"),
                 new Dependency("SurfaceDescriptionInputs.ViewSpaceTangent",          "SurfaceDescriptionInputs.WorldSpaceTangent"),
 
-                new Dependency("SurfaceDescriptionInputs.WorldSpaceBiTangent",       "FragInputs.worldToTangent"),
+                new Dependency("SurfaceDescriptionInputs.WorldSpaceBiTangent",       "FragInputs.tangentToWorld"),
                 new Dependency("SurfaceDescriptionInputs.ObjectSpaceBiTangent",      "SurfaceDescriptionInputs.WorldSpaceBiTangent"),
                 new Dependency("SurfaceDescriptionInputs.ViewSpaceBiTangent",        "SurfaceDescriptionInputs.WorldSpaceBiTangent"),
 
                 new Dependency("SurfaceDescriptionInputs.WorldSpacePosition",        "FragInputs.positionRWS"),
+                new Dependency("SurfaceDescriptionInputs.AbsoluteWorldSpacePosition","FragInputs.positionRWS"),
                 new Dependency("SurfaceDescriptionInputs.ObjectSpacePosition",       "FragInputs.positionRWS"),
                 new Dependency("SurfaceDescriptionInputs.ViewSpacePosition",         "FragInputs.positionRWS"),
 
@@ -218,6 +221,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             [Optional] Vector3 ViewSpacePosition;
             [Optional] Vector3 WorldSpacePosition;
             [Optional] Vector3 TangentSpacePosition;
+            [Optional] Vector3 AbsoluteWorldSpacePosition;
 
             [Optional] Vector4 ScreenPosition;
             [Optional] Vector4 uv0;
@@ -225,6 +229,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             [Optional] Vector4 uv2;
             [Optional] Vector4 uv3;
             [Optional] Vector4 VertexColor;
+            [Optional] Vector3 TimeParameters;
 
             public static Dependency[] dependencies = new Dependency[]
             {                                                                       // TODO: NOCHECKIN: these dependencies are not correct for vertex pass
@@ -243,6 +248,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
                 new Dependency("VertexDescriptionInputs.ObjectSpacePosition",       "AttributesMesh.positionOS"),
                 new Dependency("VertexDescriptionInputs.WorldSpacePosition",        "AttributesMesh.positionOS"),
+                new Dependency("VertexDescriptionInputs.AbsoluteWorldSpacePosition","AttributesMesh.positionOS"),
                 new Dependency("VertexDescriptionInputs.ViewSpacePosition",         "VertexDescriptionInputs.WorldSpacePosition"),
 
                 new Dependency("VertexDescriptionInputs.WorldSpaceViewDirection",   "VertexDescriptionInputs.WorldSpacePosition"),
@@ -348,11 +354,19 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
                 if ((requirements.requiresPosition & NeededCoordinateSpace.Tangent) > 0)
                     activeFields.Add("VertexDescriptionInputs.TangentSpacePosition");
+
+                if ((requirements.requiresPosition & NeededCoordinateSpace.AbsoluteWorld) > 0)
+                    activeFields.Add("VertexDescriptionInputs.AbsoluteWorldSpacePosition");
             }
 
             foreach (var channel in requirements.requiresMeshUVs.Distinct())
             {
                 activeFields.Add("VertexDescriptionInputs." + channel.GetUVName());
+            }
+
+            if (requirements.requiresTime)
+            {
+                activeFields.Add("VertexDescriptionInputs.TimeParameters");
             }
         }
 
@@ -447,11 +461,19 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
                 if ((requirements.requiresPosition & NeededCoordinateSpace.Tangent) > 0)
                     activeFields.Add("SurfaceDescriptionInputs.TangentSpacePosition");
+                
+                if ((requirements.requiresPosition & NeededCoordinateSpace.AbsoluteWorld) > 0)
+                    activeFields.Add("SurfaceDescriptionInputs.AbsoluteWorldSpacePosition");
             }
 
             foreach (var channel in requirements.requiresMeshUVs.Distinct())
             {
                 activeFields.Add("SurfaceDescriptionInputs." + channel.GetUVName());
+            }
+
+            if (requirements.requiresTime)
+            {
+                activeFields.Add("SurfaceDescriptionInputs.TimeParameters");
             }
         }
 
@@ -829,7 +851,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             "#pragma multi_compile _ SHADOWS_SHADOWMASK",
             "#pragma multi_compile DECALS_OFF DECALS_3RT DECALS_4RT",
             "#pragma multi_compile USE_FPTL_LIGHTLIST USE_CLUSTERED_LIGHTLIST",
-            "#pragma multi_compile SHADOW_LOW SHADOW_MEDIUM SHADOW_HIGH SHADOW_VERY_HIGH"
+            "#pragma multi_compile SHADOW_LOW SHADOW_MEDIUM SHADOW_HIGH"
         };
 
         public static List<string> s_ExtraDefinesForwardTransparent = new List<string>()
@@ -841,7 +863,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             "#pragma multi_compile _ SHADOWS_SHADOWMASK",
             "#pragma multi_compile DECALS_OFF DECALS_3RT DECALS_4RT",
             "#define USE_CLUSTERED_LIGHTLIST",
-            "#pragma multi_compile SHADOW_LOW SHADOW_MEDIUM SHADOW_HIGH SHADOW_VERY_HIGH"
+            "#pragma multi_compile SHADOW_LOW SHADOW_MEDIUM SHADOW_HIGH"
         };
 
         public static List<string> s_ExtraDefinesForwardMaterialDepthOrMotion = new List<string>()
@@ -1082,13 +1104,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         public static void AddDoubleSidedProperty(PropertyCollector collector, DoubleSidedMode mode = DoubleSidedMode.Enabled)
         {
+            var normalMode = ConvertDoubleSidedModeToDoubleSidedNormalMode(mode);
             collector.AddToggleProperty("_DoubleSidedEnable", mode != DoubleSidedMode.Disabled);
             collector.AddShaderProperty(new Vector1ShaderProperty{
                 enumNames = {"Flip", "Mirror", "None"}, // values will be 0, 1 and 2
                 floatType = FloatType.Enum,
                 overrideReferenceName = "_DoubleSidedNormalMode",
                 hidden = true,
-                value = (int)mode
+                value = (int)normalMode
             });
             collector.AddShaderProperty(new Vector4ShaderProperty{
                 overrideReferenceName = "_DoubleSidedConstants",
@@ -1164,6 +1187,21 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     return BlendMode.Alpha;
                 default:
                     throw new System.Exception("Unknown AlphaMode: " + alphaMode + ": can't convert to BlendMode.");
+            }
+        }
+
+        public static DoubleSidedNormalMode ConvertDoubleSidedModeToDoubleSidedNormalMode(DoubleSidedMode shaderGraphMode)
+        {
+            switch (shaderGraphMode)
+            {
+                case DoubleSidedMode.FlippedNormals:
+                    return DoubleSidedNormalMode.Flip;
+                case DoubleSidedMode.MirroredNormals:
+                    return DoubleSidedNormalMode.Mirror;
+                case DoubleSidedMode.Enabled:
+                case DoubleSidedMode.Disabled:
+                default:
+                    return DoubleSidedNormalMode.None;
             }
         }
     }

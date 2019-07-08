@@ -145,7 +145,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         static void FillScene(Scene scene)
         {
-            HDRenderPipelineAsset hdrpAsset = (GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset);
+            HDRenderPipelineAsset hdrpAsset = HDRenderPipeline.defaultAsset;
             if (hdrpAsset == null || hdrpAsset.Equals(null))
                 return;
 

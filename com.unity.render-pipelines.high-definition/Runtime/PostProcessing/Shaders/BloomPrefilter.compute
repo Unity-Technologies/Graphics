@@ -43,10 +43,10 @@ void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
 
     // Luma weighted average [Karis13]
     float w0 = 1.0 / (Luminance(color0) + 1.0);
-    float w1 = 1.0 / (Luminance(color0) + 1.0);
-    float w2 = 1.0 / (Luminance(color0) + 1.0);
-    float w3 = 1.0 / (Luminance(color0) + 1.0);
-    float w4 = 1.0 / (Luminance(color0) + 1.0);
+    float w1 = 1.0 / (Luminance(color1) + 1.0);
+    float w2 = 1.0 / (Luminance(color2) + 1.0);
+    float w3 = 1.0 / (Luminance(color3) + 1.0);
+    float w4 = 1.0 / (Luminance(color4) + 1.0);
     float wSum = w0 + w1 + w2 + w3 + w4;
 
     color0 *= w0;

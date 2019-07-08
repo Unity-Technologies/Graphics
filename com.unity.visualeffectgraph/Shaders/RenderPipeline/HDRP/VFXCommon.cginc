@@ -87,14 +87,23 @@ float4 VFXApplyFog(float4 color,float4 posCS,float3 posWS)
     posWS = GetCameraRelativePositionWS(posWS); // posWS is absolute in World Space
 #endif
     PositionInputs posInput = GetPositionInput(posCS.xy, _ScreenSize.zw, posCS.z, posCS.w, posWS, uint2(0,0));
-    float4 fog = EvaluateAtmosphericScattering(posInput, GetWorldSpaceNormalizeViewDir(posWS));
+
+    float3 V = GetWorldSpaceNormalizeViewDir(posWS);
+
+    float3 volColor, volOpacity;
+    EvaluateAtmosphericScattering(posInput, V, volColor, volOpacity); // Premultiplied alpha
+
 #if VFX_BLENDMODE_ALPHA
-    color.rgb = lerp(color.rgb, fog.rgb, fog.a);
+    color.rgb = color.rgb * (1 - volOpacity) + volColor * color.a;
 #elif VFX_BLENDMODE_ADD
-    color.rgb *= 1.0 - fog.a;
+    color.rgb = color.rgb * (1.0 - volOpacity);
 #elif VFX_BLENDMODE_PREMULTIPLY
-    color.rgb = lerp(color.rgb, fog.rgb * color.a, fog.a);
+    color.rgb = color.rgb * (1 - volOpacity) + volColor * color.a;
+    // Note: this formula for color is correct, assuming we apply the Over operator afterwards
+    // (see the appendix in the Deep Compositing paper). But do we?
+    // Additionally, we do not modify the alpha here, which is most certainly WRONG.
 #endif
+
     return color;
 }
 

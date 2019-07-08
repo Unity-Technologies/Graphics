@@ -267,7 +267,8 @@ namespace UnityEditor.ShaderGraph.Drawing
                     graphView.selection.OfType<IShaderNodeView>().Where(x => !(x.node is PropertyNode || x.node is SubGraphOutputNode)).Select(x => x.node).Where(x => x.allowedInSubGraph).ToArray(),
                     graphView.selection.OfType<Edge>().Select(x => x.userData as IEdge),
                     graphView.selection.OfType<BlackboardField>().Select(x => x.userData as AbstractShaderProperty),
-                    metaProperties);
+                    metaProperties,
+                    graphView.selection.OfType<StickyNote>().Select(x => x.userData));
 
             var deserialized = CopyPasteGraph.FromJson(JsonUtility.ToJson(copyPasteGraph, false));
             if (deserialized == null)
@@ -318,6 +319,22 @@ namespace UnityEditor.ShaderGraph.Drawing
                 subGraph.AddNode(node);
             }
 
+            foreach (var note in deserialized.stickyNotes)
+            {
+                if (!groupGuids.Contains(note.groupGuid))
+                {
+                    groupGuids.Add(note.groupGuid);
+                }
+
+                if (note.groupGuid != Guid.Empty)
+                {
+                    note.groupGuid = !groupGuidMap.ContainsKey(note.groupGuid) ? Guid.Empty : groupGuidMap[note.groupGuid];
+                }
+
+                note.RewriteGuid();
+                subGraph.AddStickyNote(note);
+            }
+
             // figure out what needs remapping
             var externalOutputSlots = new List<IEdge>();
             var externalInputSlots = new List<IEdge>();
@@ -356,6 +373,12 @@ namespace UnityEditor.ShaderGraph.Drawing
                     (key, edges) => new { slotRef = key, edges = edges.ToList() });
 
             var externalInputNeedingConnection = new List<KeyValuePair<IEdge, AbstractShaderProperty>>();
+
+            var amountOfProps = uniqueIncomingEdges.Count();
+            const int height = 40;
+            const int subtractHeight = 20;
+            var propPos = new Vector2(0, -((amountOfProps / 2) + height) - subtractHeight);
+
             foreach (var group in uniqueIncomingEdges)
             {
                 var sr = group.slotRef;
@@ -422,7 +445,8 @@ namespace UnityEditor.ShaderGraph.Drawing
                     var propNode = new PropertyNode();
                     {
                         var drawState = propNode.drawState;
-                        drawState.position = new Rect(new Vector2(bounds.xMin - 300f, 0f), drawState.position.size);
+                        drawState.position = new Rect(new Vector2(bounds.xMin - 300f, 0f) + propPos, drawState.position.size);
+                        propPos += new Vector2(0, height);
                         propNode.drawState = drawState;
                     }
                     subGraph.AddNode(propNode);
@@ -493,9 +517,10 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
 
             graphObject.graph.RemoveElements(
-                graphView.selection.OfType<IShaderNodeView>().Select(x => x.node).Where(x => x.allowedInSubGraph),
-                Enumerable.Empty<IEdge>(),
-                Enumerable.Empty<GroupData>());
+                graphView.selection.OfType<IShaderNodeView>().Select(x => x.node).Where(x => x.allowedInSubGraph).ToArray(),
+                new IEdge[] {},
+                new GroupData[] {},
+                graphView.selection.OfType<StickyNote>().Select(x => x.userData).ToArray());
             graphObject.graph.ValidateGraph();
         }
 
