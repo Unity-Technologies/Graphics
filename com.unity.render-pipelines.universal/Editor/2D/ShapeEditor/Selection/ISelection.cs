@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace UnityEditor.Experimental.Rendering.Univerasl.Path2D
+namespace UnityEditor.Experimental.Rendering.Universal.Path2D
 {
     internal interface ISelection<T>
     {

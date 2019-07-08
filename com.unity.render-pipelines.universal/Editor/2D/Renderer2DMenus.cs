@@ -6,7 +6,7 @@ using UnityEditor.SceneManagement;
 using UnityEditor.ProjectWindowCallback;
 using UnityEngine.Rendering;
 
-namespace UnityEditor.Experimental.Rendering.Univerasl
+namespace UnityEditor.Experimental.Rendering.Universal
 {
     static class Renderer2DMenus
     {

@@ -1,7 +1,7 @@
 using UnityEngine.UIElements;
 using System;
 
-namespace UnityEditor.Experimental.Rendering.Univerasl
+namespace UnityEditor.Experimental.Rendering.Universal
 {
     class HeaderModifier : IMGUIContainer
     {

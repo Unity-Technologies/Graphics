@@ -2,7 +2,7 @@ using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 
-namespace UnityEditor.Experimental.Rendering.Univerasl
+namespace UnityEditor.Experimental.Rendering.Universal
 {
     internal static class Light2DEditorUtility
     {

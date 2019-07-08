@@ -8,7 +8,7 @@ using UnityEditor.ShaderGraph;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 
-namespace UnityEditor.Experimental.Rendering.Univerasl
+namespace UnityEditor.Experimental.Rendering.Universal
 {
     [Serializable]
     [FormerName("UnityEditor.Experimental.Rendering.LWRP.LightWeightSpriteUnlitSubShader")]
