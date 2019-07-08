@@ -32,7 +32,7 @@ namespace UnityEditor.ShaderGraph
         public void Initialize(AbstractMaterialNode inNode, PreviewManager previewManager, IEdgeConnectorListener connectorListener, GraphView graphView)
         {
             // Styling
-            //ClearClassList();
+            ClearClassList();
             //styleSheets.Add(Resources.Load<StyleSheet>("RedirectNode")); // @SamH: Update with real path
             //AddToClassList("redirect-node");
 
@@ -69,10 +69,20 @@ namespace UnityEditor.ShaderGraph
 
         public void AddPortPair(int key = -1)
         {
+            PortPair newPair = new PortPair();
 
+            if(key < 0)
+            {
+                m_pairs.Add(currentPairKey++, newPair);
+            }
+            else
+            {
+                RemovePortPair(key);
+                m_pairs.Add(key, newPair);
+            }
         }
 
-        public void RemovePortPair(int key)
+        public bool RemovePortPair(int key)
         {
             if (m_pairs.ContainsKey(key))
             {
@@ -85,7 +95,7 @@ namespace UnityEditor.ShaderGraph
 
         private void FindLeastPairKey()
         {
-
+            // Find open int
         }
 
         #region IShaderNodeView interface
