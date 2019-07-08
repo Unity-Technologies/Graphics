@@ -1,0 +1,11 @@
+<UXML xmlns:ui="UnityEngine.Experimental.GraphView">
+  <ui:VisualElement name="borderItem" />
+  <ui:VisualElement name="redirectNodeHeaderContainer" />
+  <ui:VisualElement name="redirectNodeContainers" picking-mode="Ignore">
+    <ui:VisualElement name="redirectNodeContentContainerPlaceholder" picking-mode="Ignore" />
+    <ui:VisualElement name="redirectSeparatorContainer" picking-mode="Ignore" />
+    <ui:VisualElement name="redirectPlaceholderContainer" picking-mode="Ignore" />
+  </ui:VisualElement>
+  <ui:VisualElement name="input" />
+  <ui:VisualElement name="output" />
+</UXML>
