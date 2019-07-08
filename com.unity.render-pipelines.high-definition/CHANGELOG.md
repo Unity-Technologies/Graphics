@@ -79,6 +79,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Enlighten is now deprecated. Please use CPU or GPU lightmaper instead.
 - Remove the name in the diffusion profile UI
 - Changed how shadow map resolution scaling with distance is computed. Now it uses screen space area rather than light range.
+- Updated MoreOptions display in UI
 
 ## [6.7.0-preview] - 2019-05-16
 
