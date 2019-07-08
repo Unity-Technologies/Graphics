@@ -5,6 +5,8 @@ using UnityEngine.Rendering;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
+    using RTHandle = RTHandleSystem.RTHandle;
+
     public class HDUtils
     {
         public const PerObjectData k_RendererConfigurationBakedLighting = PerObjectData.LightProbe | PerObjectData.Lightmaps | PerObjectData.LightProbeProxyVolume;
@@ -13,9 +15,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         static public HDAdditionalReflectionData s_DefaultHDAdditionalReflectionData { get { return ComponentSingleton<HDAdditionalReflectionData>.instance; } }
         static public HDAdditionalLightData s_DefaultHDAdditionalLightData { get { return ComponentSingleton<HDAdditionalLightData>.instance; } }
         static public HDAdditionalCameraData s_DefaultHDAdditionalCameraData { get { return ComponentSingleton<HDAdditionalCameraData>.instance; } }
-        static public AdditionalShadowData s_DefaultAdditionalShadowData { get { return ComponentSingleton<AdditionalShadowData>.instance; } }
 
         static Texture3D m_ClearTexture3D;
+        static RTHandle m_ClearTexture3DRTH;
         public static Texture3D clearTexture3D
         {
             get
@@ -28,6 +30,18 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
 
                 return m_ClearTexture3D;
+            }
+        }
+        public static RTHandle clearTexture3DRTH
+        {
+            get
+            {
+                if (m_ClearTexture3DRTH == null)
+                {
+                    m_ClearTexture3DRTH = RTHandles.Alloc(clearTexture3D);
+                }
+
+                return m_ClearTexture3DRTH;
             }
         }
 
@@ -153,7 +167,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             return tanHalfVertFoV * (2.0f / resolutionY) * planeDepth;
         }
 
-        private static void SetViewportAndClear(CommandBuffer cmd, RTHandleSystem.RTHandle buffer, ClearFlag clearFlag, Color clearColor)
+        private static void SetViewportAndClear(CommandBuffer cmd, RTHandle buffer, ClearFlag clearFlag, Color clearColor)
         {
             // Clearing a partial viewport currently does not go through the hardware clear.
             // Instead it goes through a quad rendered with a specific shader.
@@ -172,16 +186,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         // This set of RenderTarget management methods is supposed to be used when rendering into a camera dependent render texture.
         // This will automatically set the viewport based on the camera size and the RTHandle scaling info.
-        public static void SetRenderTarget(CommandBuffer cmd, RTHandleSystem.RTHandle buffer, ClearFlag clearFlag, Color clearColor, int miplevel = 0, CubemapFace cubemapFace = CubemapFace.Unknown, int depthSlice = -1)
+        public static void SetRenderTarget(CommandBuffer cmd, RTHandle buffer, ClearFlag clearFlag, Color clearColor, int miplevel = 0, CubemapFace cubemapFace = CubemapFace.Unknown, int depthSlice = -1)
         {
             cmd.SetRenderTarget(buffer, miplevel, cubemapFace, depthSlice);
             SetViewportAndClear(cmd, buffer, clearFlag, clearColor);
         }
 
-        public static void SetRenderTarget(CommandBuffer cmd, RTHandleSystem.RTHandle buffer, ClearFlag clearFlag = ClearFlag.None, int miplevel = 0, CubemapFace cubemapFace = CubemapFace.Unknown, int depthSlice = -1)
+        public static void SetRenderTarget(CommandBuffer cmd, RTHandle buffer, ClearFlag clearFlag = ClearFlag.None, int miplevel = 0, CubemapFace cubemapFace = CubemapFace.Unknown, int depthSlice = -1)
             => SetRenderTarget(cmd, buffer, clearFlag, Color.clear, miplevel, cubemapFace, depthSlice);
 
-        public static void SetRenderTarget(CommandBuffer cmd, RTHandleSystem.RTHandle colorBuffer, RTHandleSystem.RTHandle depthBuffer, int miplevel = 0, CubemapFace cubemapFace = CubemapFace.Unknown, int depthSlice = -1)
+        public static void SetRenderTarget(CommandBuffer cmd, RTHandle colorBuffer, RTHandle depthBuffer, int miplevel = 0, CubemapFace cubemapFace = CubemapFace.Unknown, int depthSlice = -1)
         {
             int cw = colorBuffer.rt.width;
             int ch = colorBuffer.rt.height;
@@ -193,7 +207,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             SetRenderTarget(cmd, colorBuffer, depthBuffer, ClearFlag.None, Color.clear, miplevel, cubemapFace, depthSlice);
         }
 
-        public static void SetRenderTarget(CommandBuffer cmd, RTHandleSystem.RTHandle colorBuffer, RTHandleSystem.RTHandle depthBuffer, ClearFlag clearFlag, int miplevel = 0, CubemapFace cubemapFace = CubemapFace.Unknown, int depthSlice = -1)
+        public static void SetRenderTarget(CommandBuffer cmd, RTHandle colorBuffer, RTHandle depthBuffer, ClearFlag clearFlag, int miplevel = 0, CubemapFace cubemapFace = CubemapFace.Unknown, int depthSlice = -1)
         {
             int cw = colorBuffer.rt.width;
             int ch = colorBuffer.rt.height;
@@ -205,7 +219,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             SetRenderTarget(cmd, colorBuffer, depthBuffer, clearFlag, Color.clear, miplevel, cubemapFace, depthSlice);
         }
 
-        public static void SetRenderTarget(CommandBuffer cmd, RTHandleSystem.RTHandle colorBuffer, RTHandleSystem.RTHandle depthBuffer, ClearFlag clearFlag, Color clearColor, int miplevel = 0, CubemapFace cubemapFace = CubemapFace.Unknown, int depthSlice = -1)
+        public static void SetRenderTarget(CommandBuffer cmd, RTHandle colorBuffer, RTHandle depthBuffer, ClearFlag clearFlag, Color clearColor, int miplevel = 0, CubemapFace cubemapFace = CubemapFace.Unknown, int depthSlice = -1)
         {
             int cw = colorBuffer.rt.width;
             int ch = colorBuffer.rt.height;
@@ -218,19 +232,19 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             SetViewportAndClear(cmd, colorBuffer, clearFlag, clearColor);
         }
 
-        public static void SetRenderTarget(CommandBuffer cmd, RenderTargetIdentifier[] colorBuffers, RTHandleSystem.RTHandle depthBuffer)
+        public static void SetRenderTarget(CommandBuffer cmd, RenderTargetIdentifier[] colorBuffers, RTHandle depthBuffer)
         {
             CoreUtils.SetRenderTarget(cmd, colorBuffers, depthBuffer, ClearFlag.None, Color.clear);
             SetViewport(cmd, depthBuffer);
         }
 
-        public static void SetRenderTarget(CommandBuffer cmd, RenderTargetIdentifier[] colorBuffers, RTHandleSystem.RTHandle depthBuffer, ClearFlag clearFlag = ClearFlag.None)
+        public static void SetRenderTarget(CommandBuffer cmd, RenderTargetIdentifier[] colorBuffers, RTHandle depthBuffer, ClearFlag clearFlag = ClearFlag.None)
         {
             CoreUtils.SetRenderTarget(cmd, colorBuffers, depthBuffer); // Don't clear here, viewport needs to be set before we do.
             SetViewportAndClear(cmd, depthBuffer, clearFlag, Color.clear);
         }
 
-        public static void SetRenderTarget(CommandBuffer cmd, RenderTargetIdentifier[] colorBuffers, RTHandleSystem.RTHandle depthBuffer, ClearFlag clearFlag, Color clearColor)
+        public static void SetRenderTarget(CommandBuffer cmd, RenderTargetIdentifier[] colorBuffers, RTHandle depthBuffer, ClearFlag clearFlag, Color clearColor)
         {
             cmd.SetRenderTarget(colorBuffers, depthBuffer);
             SetViewportAndClear(cmd, depthBuffer, clearFlag, clearColor);
@@ -241,7 +255,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // When we render using a camera whose viewport is smaller than the RTHandles reference size (and thus smaller than the RT actual size), we need to set it explicitly (otherwise, native code will set the viewport at the size of the RT)
         // For auto-scaled RTs (like for example a half-resolution RT), we need to scale this viewport accordingly.
         // For non scaled RTs we just do nothing, the native code will set the viewport at the size of the RT anyway.
-        public static void SetViewport(CommandBuffer cmd, RTHandleSystem.RTHandle target)
+        public static void SetViewport(CommandBuffer cmd, RTHandle target)
         {
             if (target.useScaling)
             {
@@ -259,7 +273,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             cmd.DrawProcedural(Matrix4x4.identity, GetBlitMaterial(source.dimension), bilinear ? 3 : 2, MeshTopology.Quads, 4, 1, s_PropertyBlock);
         }
 
-        public static void BlitTexture(CommandBuffer cmd, RTHandleSystem.RTHandle source, Vector4 scaleBias, float mipLevel, bool bilinear)
+        public static void BlitTexture(CommandBuffer cmd, RTHandle source, Vector4 scaleBias, float mipLevel, bool bilinear)
         {
             s_PropertyBlock.SetTexture(HDShaderIDs._BlitTexture, source);
             s_PropertyBlock.SetVector(HDShaderIDs._BlitScaleBias, scaleBias);
@@ -271,7 +285,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // It means that we can end up rendering inside a partial viewport for one of these "camera space" rendering.
         // In this case, we need to make sure than when we blit from one such camera texture to another, we only blit the necessary portion corresponding to the camera viewport.
         // Here, both source and destination are camera-scaled.
-        public static void BlitCameraTexture(CommandBuffer cmd, RTHandleSystem.RTHandle source, RTHandleSystem.RTHandle destination, float mipLevel = 0.0f, bool bilinear = false)
+        public static void BlitCameraTexture(CommandBuffer cmd, RTHandle source, RTHandle destination, float mipLevel = 0.0f, bool bilinear = false)
         {
             Vector2 viewportScale = new Vector2(source.rtHandleProperties.rtHandleScale.x, source.rtHandleProperties.rtHandleScale.y);
             // Will set the correct camera viewport as well.
@@ -281,14 +295,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
 
         // This case, both source and destination are camera-scaled but we want to override the scale/bias parameter.
-        public static void BlitCameraTexture(CommandBuffer cmd, RTHandleSystem.RTHandle source, RTHandleSystem.RTHandle destination, Vector4 scaleBias, float mipLevel = 0.0f, bool bilinear = false)
+        public static void BlitCameraTexture(CommandBuffer cmd, RTHandle source, RTHandle destination, Vector4 scaleBias, float mipLevel = 0.0f, bool bilinear = false)
         {
             // Will set the correct camera viewport as well.
             SetRenderTarget(cmd, destination);
             BlitTexture(cmd, source, scaleBias, mipLevel, bilinear);
         }
 
-        public static void BlitCameraTexture(CommandBuffer cmd, RTHandleSystem.RTHandle source, RTHandleSystem.RTHandle destination, Rect destViewport, float mipLevel = 0.0f, bool bilinear = false)
+        public static void BlitCameraTexture(CommandBuffer cmd, RTHandle source, RTHandle destination, Rect destViewport, float mipLevel = 0.0f, bool bilinear = false)
         {
             Vector2 viewportScale = new Vector2(source.rtHandleProperties.rtHandleScale.x, source.rtHandleProperties.rtHandleScale.y);
             SetRenderTarget(cmd, destination);
@@ -299,7 +313,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // These method should be used to render full screen triangles sampling auto-scaling RTs.
         // This will set the proper viewport and UV scale.
         public static void DrawFullScreen(CommandBuffer commandBuffer, Material material,
-            RTHandleSystem.RTHandle colorBuffer,
+            RTHandle colorBuffer,
             MaterialPropertyBlock properties = null, int shaderPassId = 0)
         {
             HDUtils.SetRenderTarget(commandBuffer, colorBuffer);
@@ -308,7 +322,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
 
         public static void DrawFullScreen(CommandBuffer commandBuffer, Material material,
-            RTHandleSystem.RTHandle colorBuffer, RTHandleSystem.RTHandle depthStencilBuffer,
+            RTHandle colorBuffer, RTHandle depthStencilBuffer,
             MaterialPropertyBlock properties = null, int shaderPassId = 0)
         {
             HDUtils.SetRenderTarget(commandBuffer, colorBuffer, depthStencilBuffer);
@@ -317,7 +331,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
 
         public static void DrawFullScreen(CommandBuffer commandBuffer, Material material,
-            RenderTargetIdentifier[] colorBuffers, RTHandleSystem.RTHandle depthStencilBuffer,
+            RenderTargetIdentifier[] colorBuffers, RTHandle depthStencilBuffer,
             MaterialPropertyBlock properties = null, int shaderPassId = 0)
         {
             HDUtils.SetRenderTarget(commandBuffer, colorBuffers, depthStencilBuffer);

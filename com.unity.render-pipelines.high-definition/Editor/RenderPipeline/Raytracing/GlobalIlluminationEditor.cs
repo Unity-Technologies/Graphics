@@ -12,6 +12,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         SerializedDataParameter m_RayLength;
         SerializedDataParameter m_ClampValue;
         SerializedDataParameter m_NumSamples;
+        SerializedDataParameter m_NumBounces;
         SerializedDataParameter m_EnableFilter;
         SerializedDataParameter m_FilterRadius;
 
@@ -23,6 +24,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             m_RayLength = Unpack(o.Find(x => x.rayLength));
             m_ClampValue = Unpack(o.Find(x => x.clampValue));
             m_NumSamples = Unpack(o.Find(x => x.numSamples));
+            m_NumBounces = Unpack(o.Find(x => x.numBounces));
             m_EnableFilter = Unpack(o.Find(x => x.enableFilter));
             m_FilterRadius = Unpack(o.Find(x => x.filterRadius));
         }
@@ -46,6 +48,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 PropertyField(m_RayLength);
                 PropertyField(m_ClampValue);
                 PropertyField(m_NumSamples);
+                PropertyField(m_NumBounces);
                 PropertyField(m_EnableFilter);
                 PropertyField(m_FilterRadius);
                 EditorGUI.indentLevel--;

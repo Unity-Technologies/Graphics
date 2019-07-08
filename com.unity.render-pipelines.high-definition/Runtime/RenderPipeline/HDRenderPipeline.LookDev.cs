@@ -29,13 +29,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             additionalCameraData.backgroundColorHDR = camera.backgroundColor;
             additionalCameraData.volumeAnchorOverride = camera.transform;
             additionalCameraData.volumeLayerMask = 1 << 31; //31 is the culling layer used in LookDev
-            
+
             Light light = SRI.sunLight;
-            AdditionalShadowData additionalShadowData = light.gameObject.AddComponent<AdditionalShadowData>();
             HDAdditionalLightData additionalLightData = light.gameObject.AddComponent<HDAdditionalLightData>();
 #if UNITY_EDITOR
             HDAdditionalLightData.InitDefaultHDAdditionalLightData(additionalLightData);
-            HDAdditionalShadowData.InitDefaultHDAdditionalShadowData(additionalShadowData);
 #endif
             additionalLightData.intensity = 0f;
 

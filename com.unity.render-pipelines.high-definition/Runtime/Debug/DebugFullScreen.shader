@@ -129,7 +129,7 @@ Shader "Hidden/HDRP/DebugFullScreen"
             float4 Frag(Varyings input) : SV_Target
             {
                 UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
-                
+
                 // Note: If the single shadow debug mode is enabled, we don't render other full screen debug modes
                 // and the value of _FullScreenDebugMode is forced to 0
                 if (_DebugShadowMapMode == SHADOWMAPDEBUGMODE_SINGLE_SHADOW)
@@ -263,7 +263,7 @@ Shader "Hidden/HDRP/DebugFullScreen"
                     // Reuse depth display function from DebugViewMaterial
                     int2 mipOffset = _DebugDepthPyramidOffsets[_DebugDepthPyramidMip];
                     uint2 pixCoord = (uint2)input.positionCS.xy >> _DebugDepthPyramidMip;
-                    float depth = LOAD_TEXTURE2D_X(_DepthPyramidTexture, pixCoord + mipOffset).r;
+                    float depth = LOAD_TEXTURE2D_X(_CameraDepthTexture, pixCoord + mipOffset).r;
                     PositionInputs posInput = GetPositionInput(input.positionCS.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
                     float linearDepth = frac(posInput.linearDepth * 0.1);
                     return float4(linearDepth.xxx, 1.0);

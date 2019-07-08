@@ -944,7 +944,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             return new Vector3(light.finalColor.r, light.finalColor.g, light.finalColor.b);
         }
 
-        public bool GetDirectionalLightData(CommandBuffer cmd, HDCamera hdCamera, GPULightType gpuLightType, VisibleLight light, Light lightComponent, HDAdditionalLightData additionalLightData, AdditionalShadowData additionalShadowData, int lightIndex, int shadowIndex, DebugDisplaySettings debugDisplaySettings, int sortedIndex, ref int screenSpaceShadowIndex, bool isPysicallyBasedSkyActive)
+        internal bool GetDirectionalLightData(CommandBuffer cmd, HDCamera hdCamera, GPULightType gpuLightType, VisibleLight light,
+            Light lightComponent, HDAdditionalLightData additionalLightData, int lightIndex, int shadowIndex,
+            DebugDisplaySettings debugDisplaySettings, int sortedIndex, ref int screenSpaceShadowIndex, bool isPysicallyBasedSkyActive)
         {
             // Clamp light list to the maximum allowed lights on screen to avoid ComputeBuffer overflow
             if (m_lightList.directionalLights.Count >= m_MaxDirectionalLightsOnScreen)
@@ -990,20 +992,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 lightData.cookieIndex = m_TextureCaches.cookieTexArray.FetchSlice(cmd, lightComponent.cookie);
             }
 
-            if (additionalShadowData)
-            {
-                lightData.shadowDimmer           = additionalShadowData.shadowDimmer;
-                lightData.volumetricShadowDimmer = additionalShadowData.volumetricShadowDimmer;
-                lightData.contactShadowMask      = GetContactShadowMask(additionalShadowData.contactShadows);
-                lightData.shadowTint             = new Vector3(additionalShadowData.shadowTint.r, additionalShadowData.shadowTint.g, additionalShadowData.shadowTint.b);
-            }
-            else
-            {
-                lightData.shadowDimmer           = 1.0f;
-                lightData.volumetricShadowDimmer = 1.0f;
-                lightData.contactShadowMask      = 0;
-                lightData.shadowTint             = new Vector3(0.0f, 0.0f, 0.0f);
-            }
+            lightData.shadowDimmer           = additionalLightData.shadowDimmer;
+            lightData.volumetricShadowDimmer = additionalLightData.volumetricShadowDimmer;
+            lightData.contactShadowMask      = GetContactShadowMask(additionalLightData.contactShadows);
+            lightData.shadowTint             = new Vector3(additionalLightData.shadowTint.r, additionalLightData.shadowTint.g, additionalLightData.shadowTint.b);
 
             // fix up shadow information
             lightData.shadowIndex = shadowIndex;
@@ -1049,8 +1041,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             return true;
         }
 
-        public bool GetLightData(CommandBuffer cmd, HDCamera hdCamera, HDShadowSettings shadowSettings, GPULightType gpuLightType,
-            VisibleLight light, Light lightComponent, HDAdditionalLightData additionalLightData, AdditionalShadowData additionalShadowData,
+        internal bool GetLightData(CommandBuffer cmd, HDCamera hdCamera, HDShadowSettings shadowSettings, GPULightType gpuLightType,
+            VisibleLight light, Light lightComponent, HDAdditionalLightData additionalLightData,
             int lightIndex, int shadowIndex, ref Vector3 lightDimensions, DebugDisplaySettings debugDisplaySettings, ref int screenSpaceShadowIndex)
         {
             // Clamp light list to the maximum allowed lights on screen to avoid ComputeBuffer overflow
@@ -1168,7 +1160,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 var spotAngle = light.spotAngle;
 
-                var innerConePercent = additionalLightData.GetInnerSpotPercent01();
+                var innerConePercent = additionalLightData.innerSpotPercent01;
                 var cosSpotOuterHalfAngle = Mathf.Clamp(Mathf.Cos(spotAngle * 0.5f * Mathf.Deg2Rad), 0.0f, 1.0f);
                 var sinSpotOuterHalfAngle = Mathf.Sqrt(1.0f - cosSpotOuterHalfAngle * cosSpotOuterHalfAngle);
                 var cosSpotInnerHalfAngle = Mathf.Clamp(Mathf.Cos(spotAngle * 0.5f * innerConePercent * Mathf.Deg2Rad), 0.0f, 1.0f); // inner cone
@@ -1233,21 +1225,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 lightData.cookieIndex = m_TextureCaches.areaLightCookieManager.FetchSlice(cmd, additionalLightData.areaLightCookie);
             }
 
-            if (additionalShadowData)
-            {
-                float shadowDistanceFade         = HDUtils.ComputeLinearDistanceFade(distanceToCamera, Mathf.Min(shadowSettings.maxShadowDistance.value, additionalShadowData.shadowFadeDistance));
-                lightData.shadowDimmer           = shadowDistanceFade * additionalShadowData.shadowDimmer;
-                lightData.volumetricShadowDimmer = shadowDistanceFade * additionalShadowData.volumetricShadowDimmer;
-                lightData.contactShadowMask      = GetContactShadowMask(additionalShadowData.contactShadows);
-                lightData.shadowTint             = new Vector3(additionalShadowData.shadowTint.r, additionalShadowData.shadowTint.g, additionalShadowData.shadowTint.b);
-            }
-            else
-            {
-                lightData.shadowDimmer           = 1.0f;
-                lightData.volumetricShadowDimmer = 1.0f;
-                lightData.contactShadowMask      = 0;
-                lightData.shadowTint = new Vector3(0.0f, 0.0f, 0.0f);
-             }
+            float shadowDistanceFade         = HDUtils.ComputeLinearDistanceFade(distanceToCamera, Mathf.Min(shadowSettings.maxShadowDistance.value, additionalLightData.shadowFadeDistance));
+            lightData.shadowDimmer           = shadowDistanceFade * additionalLightData.shadowDimmer;
+            lightData.volumetricShadowDimmer = shadowDistanceFade * additionalLightData.volumetricShadowDimmer;
+            lightData.contactShadowMask      = GetContactShadowMask(additionalLightData.contactShadows);
+            lightData.shadowTint             = new Vector3(additionalLightData.shadowTint.r, additionalLightData.shadowTint.g, additionalLightData.shadowTint.b);
 
 #if ENABLE_RAYTRACING
             // If there is still a free slot in the screen space shadow array and this needs to render a screen space shadow
@@ -1828,7 +1810,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         // Reserve shadow map resolutions and check if light needs to render shadows
                         if(additionalData.WillRenderShadowMap())
                         {
-                            additionalData.ReserveShadowMap(camera, m_ShadowManager, m_ShadowInitParameters);
+                            additionalData.ReserveShadowMap(camera, m_ShadowManager, m_ShadowInitParameters, light.screenRect);
                         }
 
                         LightCategory lightCategory = LightCategory.Count;
@@ -1961,7 +1943,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                         // Light should always have additional data, however preview light right don't have, so we must handle the case by assigning HDUtils.s_DefaultHDAdditionalLightData
                         var additionalLightData = GetHDAdditionalLightData(lightComponent);
-                        var additionalShadowData = lightComponent != null ? lightComponent.GetComponent<AdditionalShadowData>() : null; // Can be null
 
                         int shadowIndex = -1;
 
@@ -1985,7 +1966,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         // Directional rendering side, it is separated as it is always visible so no volume to handle here
                         if (gpuLightType == GPULightType.Directional)
                         {
-                            if (GetDirectionalLightData(cmd, hdCamera, gpuLightType, light, lightComponent, additionalLightData, additionalShadowData, lightIndex, shadowIndex, debugDisplaySettings, directionalLightcount, ref m_ScreenSpaceShadowIndex, isPysicallyBasedSkyActive))
+                            if (GetDirectionalLightData(cmd, hdCamera, gpuLightType, light, lightComponent, additionalLightData, lightIndex, shadowIndex, debugDisplaySettings, directionalLightcount, ref m_ScreenSpaceShadowIndex, isPysicallyBasedSkyActive))
                             {
                                 directionalLightcount++;
 
@@ -2006,7 +1987,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         Vector3 lightDimensions = new Vector3(); // X = length or width, Y = height, Z = range (depth)
 
                         // Punctual, area, projector lights - the rendering side.
-                        if (GetLightData(cmd, hdCamera, hdShadowSettings, gpuLightType, light, lightComponent, additionalLightData, additionalShadowData, lightIndex, shadowIndex, ref lightDimensions, debugDisplaySettings, ref m_ScreenSpaceShadowIndex))
+                        if (GetLightData(cmd, hdCamera, hdShadowSettings, gpuLightType, light, lightComponent, additionalLightData, lightIndex, shadowIndex, ref lightDimensions, debugDisplaySettings, ref m_ScreenSpaceShadowIndex))
                         {
                             switch (lightCategory)
                             {
@@ -2788,8 +2769,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             parameters.clusterScale = m_ClusterScale;
             parameters.maxScreenSpaceShadows = m_Asset.currentPlatformRenderPipelineSettings.hdShadowInitParams.maxScreenSpaceShadows;
 
-            AdditionalShadowData sunShadowData = m_CurrentSunLight != null ? m_CurrentSunLight.GetComponent<AdditionalShadowData>() : null;
-            bool sunLightShadow = sunShadowData != null && m_CurrentShadowSortedSunLightIndex >= 0;
+            HDAdditionalLightData sunLightData = m_CurrentSunLight != null ? m_CurrentSunLight.GetComponent<HDAdditionalLightData>() : null;
+            bool sunLightShadow = sunLightData != null && m_CurrentShadowSortedSunLightIndex >= 0;
             parameters.sunLightIndex = sunLightShadow ? m_CurrentShadowSortedSunLightIndex : -1;
 
             return parameters;
