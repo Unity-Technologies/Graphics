@@ -65,11 +65,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             UpgradeLight();
 
-#pragma warning disable 618 // Obsolete warning
-            // Null check, the first time we create the light there is no shadowData attached
-            if (GetComponent<AdditionalShadowData>()?.shadowUpdateMode == ShadowUpdateMode.OnEnable)
+            if (shadowUpdateMode == ShadowUpdateMode.OnEnable)
                 m_ShadowMapRenderedSinceLastRequest = false;
-#pragma warning restore 618
         }
 
         internal void UpgradeLight()
