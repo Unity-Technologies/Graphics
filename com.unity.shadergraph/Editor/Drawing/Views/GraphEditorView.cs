@@ -639,7 +639,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             }
             // @SamH: Temp hack to test redirect nodes
-            else if(node is RedirectNode)
+            else if(node is RedirectNodeData)
             {
                 var redirectNodeView = new RedirectNodeView { userData = materialNode };
                 m_GraphView.AddElement(redirectNodeView);

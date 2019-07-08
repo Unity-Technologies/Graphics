@@ -7,47 +7,45 @@ using UnityEditor.Experimental.GraphView;
 namespace UnityEditor.ShaderGraph
 {
     [Title("Utility", "Redirect")]
-    class RedirectNode : AbstractMaterialNode
+    class RedirectNodeData : AbstractMaterialNode
     {
-        private struct PortPair
+        public struct PortPair
         {
             public Port input;
             public Port output;
         }
 
         //Dictionary of index -> port pairs?
-        Dictionary<int, PortPair> inOutPortPairs;
+        Dictionary<int, PortPair> m_portPairs;
         protected int nextFreeIndex = 0;
 
-        public RedirectNode() : base()
+        public RedirectNodeData() : base()
         {
             name = "Redirect Node";
+            m_portPairs = new Dictionary<int, PortPair>();
         }
 
         //Create and/or destroy input pair
-        public virtual void AddInputPair(Type valueType, int index = -1)
+        public virtual void AddPortPair(Port _input, Port _output, int index = -1)
         {
-            PortPair newPair = new PortPair();
-
-            //newPair.input = InstantiatePort(Orientation.Horizontal, Direction.Input, Port.Capacity.Single, valueType);
-            //newPair.output = InstantiatePort(Orientation.Horizontal, Direction.Output, Port.Capacity.Multi, valueType);
+            PortPair newPair = new PortPair() { input = _input, output = _output };
 
             if (index == -1)
             {
                 FindNextFreeIndex();
-                inOutPortPairs.Add(nextFreeIndex++, newPair);
+                m_portPairs.Add(nextFreeIndex++, newPair);
             }
             else
             {
                 RemovePortPair(index); // Purposeful overwrite
-                inOutPortPairs.Add(index, newPair);
+                m_portPairs.Add(index, newPair);
             }
         }
 
         public void RemovePortPair(int index)
         {
             // Handle existing connections
-            if (inOutPortPairs.ContainsKey(index))
+            if (m_portPairs.ContainsKey(index))
             {
                 //Remove Ports
             }
@@ -60,7 +58,7 @@ namespace UnityEditor.ShaderGraph
         {
             while(true)
             {
-                if (!inOutPortPairs.ContainsKey(nextFreeIndex))
+                if (!m_portPairs.ContainsKey(nextFreeIndex))
                     return true;
                 else
                     ++nextFreeIndex;

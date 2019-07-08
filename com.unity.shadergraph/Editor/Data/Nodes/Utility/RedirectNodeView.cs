@@ -24,7 +24,7 @@ namespace UnityEditor.ShaderGraph
         ///////////////////////////////////////////////////////////
         /// Initialization
         ///////////////////////////////////////////////////////////
-        public RedirectNodeView()//: base("UXML/RedirectNode.uxml")
+        public RedirectNodeView()//: base("UXML/RedirectNode")
         {
 
         }
@@ -32,7 +32,7 @@ namespace UnityEditor.ShaderGraph
         public void Initialize(AbstractMaterialNode inNode, PreviewManager previewManager, IEdgeConnectorListener connectorListener, GraphView graphView)
         {
             // Styling
-            styleSheets.Add(Resources.Load<StyleSheet>("Styles/RedirectNodeView")); // @SamH: Update with real path
+            styleSheets.Add(Resources.Load<StyleSheet>("Styles/RedirectNodeView"));
             //ClearClassList();
             AddToClassList("redirect-node");
 
@@ -52,6 +52,24 @@ namespace UnityEditor.ShaderGraph
             RefreshExpandedState(); //This should not be needed. GraphView needs to improve the extension api here
 
             SetPosition(new Rect(node.drawState.position.x, node.drawState.position.y, 0, 0));
+
+            AddPortPair(typeof(Vector4));
+            RefreshPorts();
+        }
+
+        ///////////////////////////////////////////////////////////
+        /// Helpers
+        ///////////////////////////////////////////////////////////
+        private void AddPortPair(Type type, int key = -1)
+        {
+            Port input = InstantiatePort(Orientation.Horizontal, Direction.Input, Port.Capacity.Single, type);
+            inputContainer.Add(input);
+
+            Port output = InstantiatePort(Orientation.Horizontal, Direction.Output, Port.Capacity.Multi, type);
+            outputContainer.Add(output);
+
+            var data = userData as RedirectNodeData;
+            data.AddPortPair(input, output);
         }
 
         #region IShaderNodeView interface

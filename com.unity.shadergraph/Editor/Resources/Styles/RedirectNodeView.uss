@@ -1,7 +1,69 @@
-RedirectNodeView.graphElement.node.redirect-node {
-    min-height: 100px;
+.redirect-node {
+    min-height: 0px;
     border-radius: 8px;
-    background-color: rgba(255, 0, 0, 1.0);
+    background-color: rgba(63, 63, 63, 1.0);
     padding: 0px;
-    border-width: 5px;
+    border-width: 0px;
+}
+
+#contents {
+    flex: 1 0 auto;
+}
+
+#selection-border {
+    border-width: 2px;
+    border-radius: 8px;
+    margin: 0px;
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+}
+
+:hover > #selection-border {
+    border-color: rgba(68,192,255, 0.5);
+    border-width: 1px;
+}
+
+:selected > #selection-border {
+    border-color: #44C0FF;
+    border-width: 1px;
+}
+
+:selected:hover > #selection-border {
+    border-color: #44C0FF;
+    border-width: 2px;
+}
+
+.node:hover {
+    border-width: 0;
+}
+
+#node-border {
+    margin: 0px;
+    border-radius: 6px;
+    /* The proper opacity of the node border is 0.8 but transparent
+    border are not working properly so it's fully opaque.*/
+    border-color: rgba(25,25,25,1.0);
+    border-width: 2px;
+}
+
+#title {
+    flex-direction: row;
+    justify-content: space-between;
+    background-color: rgba(63,63,63,0.0);
+    border-color: rgba(0,0,0,0);
+    height: 36px;
+}
+
+#title-label {
+    color: #C1C1C1;
+    font-size: 12px;
+    -unity-text-align: middle-left;
+    margin-top: 6px;
+    margin-left: 6px;
+    margin-bottom: 6px;
+    margin-right: 0;
+    padding-left: 2px;
 }
