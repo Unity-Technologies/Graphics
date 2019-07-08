@@ -33,10 +33,15 @@ void ClosestHitGBuffer(inout RayIntersectionGBuffer rayIntersectionGbuffer : SV_
     builtinData.bakeDiffuseLighting = float3(0.0, 0.0, 0.0);
     builtinData.backBakeDiffuseLighting = float3(0.0, 0.0, 0.0);
     #endif
+
+    // First we pack the data into the standard bsdf data
+    StandardBSDFData standardLitData;
+    ZERO_INITIALIZE(StandardBSDFData, standardLitData);
+    FitToStandardLit(surfaceData, builtinData, posInput.positionSS, standardLitData);
     
-    bool forwardOnly = false;
-    RAYTRACING_ENCODE_INTO_GBUFFER(surfaceData, builtinData, posInput.positionSS, rayIntersectionGbuffer.gBufferData.gbuffer, forwardOnly);
-    rayIntersectionGbuffer.t = forwardOnly ? -1 : travelDistance;
+    // Then export it to the gbuffer
+    ENCODE_TO_STANDARD_GBUFFER(standardLitData, rayIntersectionGbuffer.gBufferData.gbuffer);
+    rayIntersectionGbuffer.t = standardLitData.isUnlit ? -1 : travelDistance;
 }
 
 // Generic function that handles the reflection code

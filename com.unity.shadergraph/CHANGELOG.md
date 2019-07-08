@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - You can now set the precision of a Shader Graph and individual nodes.
 - Added _TimeParameters variable containing Time, Sin(Time), Cosine(Time)
 - **Asbolute World** space on `Position Node` now provides absolute world space coordinates regardless of the active render pipeline.
+- You can now add sticky notes to graphs.
 
 ### Changed
 - The `Custom Function Node` now uses an object field to reference its source when using `File` mode.
@@ -27,6 +28,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Shader Graph UI now draws with correct styling for 2019.3.
 - When deleting edge connections to nodes with a preview error, input ports no longer draw in the wrong position.
 - Fixed an error involving deprecated components from VisualElements.
+- When you convert nodes to a Sub Graph, the nodes are now placed correctly in the Sub Graph.
 - The `Bitangent Vector Node` now generates all necessary shader requirements.
 
 ## [6.7.0-preview] - 2019-05-16

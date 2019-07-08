@@ -22,6 +22,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added option to allow a custom spot angle for spot light shadow maps. 
 - Added frame settings for individual post-processing effects
 - Added dither transition between cascades for Low and Medium quality settings
+- Added single-pass instancing support with XR SDK
+- Added occlusion mesh support with XR SDK
 
 ### Fixed
 - Fixed an issue with history buffers causing effects like TAA or auto exposure to flicker when more than one camera was visible in the editor
@@ -53,6 +55,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed lighting with XR single-pass instancing by disabling deferred tiles
 - Fixed the Bloom prefiltering pass
 - Fixed post-processing effect relying on Unity's random number generator
+- Fixed camera flickering when using TAA and selecting the camera in the editor
+- Fixed issue with single shadow debug view and volumetrics
 
 ### Changed
 - Optimization: Reduce the group size of the deferred lighting pass from 16x16 to 8x8
@@ -73,6 +77,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Change default for shadow quality in Deferred to Medium
 - Enlighten now use inverse squared falloff (before was using builtin falloff)
 - Enlighten is now deprecated. Please use CPU or GPU lightmaper instead.
+- Remove the name in the diffusion profile UI
+- Changed how shadow map resolution scaling with distance is computed. Now it uses screen space area rather than light range.
 
 ## [6.7.0-preview] - 2019-05-16
 

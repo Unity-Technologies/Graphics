@@ -138,7 +138,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     cmd.SetComputeTextureParam(shadowsCompute, shadowComputeKernel, HDShaderIDs._RaytracedDirectionalShadowIntegration, m_DenoiseBuffer0);
                     cmd.DispatchCompute(shadowsCompute, shadowComputeKernel, numTilesX, numTilesY, 1);
 
-                    cmd.SetGlobalTexture(HDShaderIDs._OwenScrambledTexture, m_Asset.renderPipelineResources.textures.owenScrambledTex);
+                    cmd.SetGlobalTexture(HDShaderIDs._OwenScrambledRGTexture, m_Asset.renderPipelineResources.textures.owenScrambledRGBATex);
+                    cmd.SetGlobalTexture(HDShaderIDs._OwenScrambledTexture, m_Asset.renderPipelineResources.textures.owenScrambled256Tex);
                     cmd.SetGlobalTexture(HDShaderIDs._ScramblingTexture, m_Asset.renderPipelineResources.textures.scramblingTex);
             
                     for(int i = 0; i < m_CurrentSunLightAdditionalLightData.numRayTracingSamples; ++i)
@@ -215,19 +216,17 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Let's check all the resources and states to see if we should render the effect
             HDRaytracingEnvironment rtEnvironment = m_RayTracingManager.CurrentEnvironment();
 
-            RayTracingShader shadowRayTrace = m_Asset.renderPipelineRayTracingResources.shadowRaytracingRT;
-            ComputeShader shadowsCompute = m_Asset.renderPipelineRayTracingResources.shadowRaytracingCS;
-            ComputeShader shadowFilter = m_Asset.renderPipelineRayTracingResources.shadowFilterCS;
-
             // Make sure everything is valid
             bool invalidState = rtEnvironment == null ||
-					hdCamera.frameSettings.litShaderMode != LitShaderMode.Deferred ||
-                    shadowRayTrace == null || shadowsCompute == null || shadowFilter == null ||
-                    m_Asset.renderPipelineResources.textures.owenScrambledTex == null || m_Asset.renderPipelineResources.textures.scramblingTex == null;
+					hdCamera.frameSettings.litShaderMode != LitShaderMode.Deferred;
 
             // If invalid state or ray-tracing acceleration structure, we stop right away
             if (invalidState)
                 return false;
+
+            RayTracingShader shadowRayTrace = m_Asset.renderPipelineRayTracingResources.shadowRaytracingRT;
+            ComputeShader shadowsCompute = m_Asset.renderPipelineRayTracingResources.shadowRaytracingCS;
+            ComputeShader shadowFilter = m_Asset.renderPipelineRayTracingResources.shadowFilterCS;
 
             // Grab the TAA history buffers (SN/UN and Analytic value)
             RTHandleSystem.RTHandle shadowHistoryArray = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.RaytracedShadow)
@@ -245,7 +244,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             cmd.SetRayTracingAccelerationStructure(shadowRayTrace, HDShaderIDs._RaytracingAccelerationStructureName, accelerationStructure);
 
             // Inject the ray-tracing sampling data
-            cmd.SetGlobalTexture(HDShaderIDs._OwenScrambledTexture, m_Asset.renderPipelineResources.textures.owenScrambledTex);
+            cmd.SetGlobalTexture(HDShaderIDs._OwenScrambledRGTexture, m_Asset.renderPipelineResources.textures.owenScrambledRGBATex);
+            cmd.SetGlobalTexture(HDShaderIDs._OwenScrambledTexture, m_Asset.renderPipelineResources.textures.owenScrambled256Tex);
             cmd.SetGlobalTexture(HDShaderIDs._ScramblingTexture, m_Asset.renderPipelineResources.textures.scramblingTex);
 
             int frameIndex = hdCamera.IsTAAEnabled() ? hdCamera.taaFrameIndex : (int)frameCount % 8;

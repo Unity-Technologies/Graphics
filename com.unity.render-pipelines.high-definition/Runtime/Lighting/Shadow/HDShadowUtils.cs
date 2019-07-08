@@ -9,6 +9,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     public static class HDShadowUtils
     {
         public static readonly float k_MinShadowNearPlane = 0.0001f;
+        public static readonly float k_MaxShadowNearPlane = 10.0f;
 
         public static float Asfloat(uint val) { unsafe { return *((float*)&val); } }
         public static float Asfloat(int val)  { unsafe { return *((float*)&val); } }
