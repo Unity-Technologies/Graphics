@@ -3,9 +3,9 @@ using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
 {
-    public struct NodeGroupChange
+    struct ParentGroupChange
     {
-        public Guid nodeGuid;
+        public IGroupItem groupItem;
         public Guid oldGroupGuid;
         public Guid newGroupGuid;
     }

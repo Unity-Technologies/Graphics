@@ -18,6 +18,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         [Tooltip("Number of samples for GI.")]
         public ClampedIntParameter numSamples = new ClampedIntParameter(1, 1, 32);
 
+        [Tooltip("Number of bounces for GI.")]
+        public ClampedIntParameter numBounces = new ClampedIntParameter(1, 1, 31);
+
         [Tooltip("Enable Filtering on the raytraced GI.")]
         public BoolParameter enableFilter = new BoolParameter(false);
 

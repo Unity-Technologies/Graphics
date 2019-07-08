@@ -303,6 +303,184 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
         };
 
+        Pass m_PassRaytracingIndirect = new Pass()
+        {
+            Name = "IndirectDXR",
+            LightMode = "IndirectDXR",
+            TemplateName = "FabricRaytracingPass.template",
+            MaterialName = "Fabric",
+            ShaderPassName = "SHADERPASS_RAYTRACING_INDIRECT",
+            ExtraDefines = new List<string>()
+            {
+                "#pragma multi_compile _ LIGHTMAP_ON",
+                "#pragma multi_compile _ DIRLIGHTMAP_COMBINED",
+                "#pragma multi_compile _ DYNAMICLIGHTMAP_ON",
+                "#pragma multi_compile _ DIFFUSE_LIGHTING_ONLY",
+                "#define SHADOW_LOW",
+            },
+            Includes = new List<string>()
+            {
+                "#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassRaytracingIndirect.hlsl\"",
+            },
+            PixelShaderSlots = new List<int>()
+            {
+                FabricMasterNode.AlbedoSlotId,
+                FabricMasterNode.SpecularOcclusionSlotId,
+                FabricMasterNode.NormalSlotId,
+                FabricMasterNode.BentNormalSlotId,
+                FabricMasterNode.SmoothnessSlotId,
+                FabricMasterNode.AmbientOcclusionSlotId,
+                FabricMasterNode.SpecularColorSlotId,
+                FabricMasterNode.DiffusionProfileHashSlotId,
+                FabricMasterNode.SubsurfaceMaskSlotId,
+                FabricMasterNode.ThicknessSlotId,
+                FabricMasterNode.TangentSlotId,
+                FabricMasterNode.AnisotropySlotId,
+                FabricMasterNode.EmissionSlotId,
+                FabricMasterNode.AlphaSlotId,
+                FabricMasterNode.AlphaClipThresholdSlotId,
+                FabricMasterNode.LightingSlotId,
+                FabricMasterNode.BackLightingSlotId,
+                FabricMasterNode.DepthOffsetSlotId,
+            },
+            VertexShaderSlots = new List<int>()
+            {
+                HDLitMasterNode.PositionSlotId
+            },
+            UseInPreview = false
+        };
+
+        Pass m_PassRaytracingVisibility = new Pass()
+        {
+            Name = "VisibilityDXR",
+            LightMode = "VisibilityDXR",
+            TemplateName = "FabricRaytracingPass.template",
+            MaterialName = "Fabric",
+            ShaderPassName = "SHADERPASS_RAYTRACING_VISIBILITY",
+            Includes = new List<string>()
+            {
+                "#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassRaytracingVisibility.hlsl\"",
+            },
+            PixelShaderSlots = new List<int>()
+            {
+                FabricMasterNode.AlbedoSlotId,
+                FabricMasterNode.SpecularOcclusionSlotId,
+                FabricMasterNode.NormalSlotId,
+                FabricMasterNode.BentNormalSlotId,
+                FabricMasterNode.SmoothnessSlotId,
+                FabricMasterNode.AmbientOcclusionSlotId,
+                FabricMasterNode.SpecularColorSlotId,
+                FabricMasterNode.DiffusionProfileHashSlotId,
+                FabricMasterNode.SubsurfaceMaskSlotId,
+                FabricMasterNode.ThicknessSlotId,
+                FabricMasterNode.TangentSlotId,
+                FabricMasterNode.AnisotropySlotId,
+                FabricMasterNode.EmissionSlotId,
+                FabricMasterNode.AlphaSlotId,
+                FabricMasterNode.AlphaClipThresholdSlotId,
+                FabricMasterNode.LightingSlotId,
+                FabricMasterNode.BackLightingSlotId,
+                FabricMasterNode.DepthOffsetSlotId,
+            },
+            VertexShaderSlots = new List<int>()
+            {
+                HDLitMasterNode.PositionSlotId
+            },
+            UseInPreview = false
+        };
+
+        Pass m_PassRaytracingForward = new Pass()
+        {
+            Name = "ForwardDXR",
+            LightMode = "ForwardDXR",
+            TemplateName = "FabricRaytracingPass.template",
+            MaterialName = "Fabric",
+            ShaderPassName = "SHADERPASS_RAYTRACING_FORWARD",
+            ExtraDefines = new List<string>()
+            {
+                "#pragma multi_compile _ LIGHTMAP_ON",
+                "#pragma multi_compile _ DIRLIGHTMAP_COMBINED",
+                "#pragma multi_compile _ DYNAMICLIGHTMAP_ON",
+                "#define SHADOW_LOW",
+            },
+            Includes = new List<string>()
+            {
+                "#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassRaytracingForward.hlsl\"",
+            },
+            PixelShaderSlots = new List<int>()
+            {
+                FabricMasterNode.AlbedoSlotId,
+                FabricMasterNode.SpecularOcclusionSlotId,
+                FabricMasterNode.NormalSlotId,
+                FabricMasterNode.BentNormalSlotId,
+                FabricMasterNode.SmoothnessSlotId,
+                FabricMasterNode.AmbientOcclusionSlotId,
+                FabricMasterNode.SpecularColorSlotId,
+                FabricMasterNode.DiffusionProfileHashSlotId,
+                FabricMasterNode.SubsurfaceMaskSlotId,
+                FabricMasterNode.ThicknessSlotId,
+                FabricMasterNode.TangentSlotId,
+                FabricMasterNode.AnisotropySlotId,
+                FabricMasterNode.EmissionSlotId,
+                FabricMasterNode.AlphaSlotId,
+                FabricMasterNode.AlphaClipThresholdSlotId,
+                FabricMasterNode.LightingSlotId,
+                FabricMasterNode.BackLightingSlotId,
+                FabricMasterNode.DepthOffsetSlotId,
+            },
+            VertexShaderSlots = new List<int>()
+            {
+                HDLitMasterNode.PositionSlotId
+            },
+            UseInPreview = false
+        };
+
+        Pass m_PassRaytracingGBuffer = new Pass()
+        {
+            Name = "GBufferDXR",
+            LightMode = "GBufferDXR",
+            TemplateName = "FabricRaytracingPass.template",
+            MaterialName = "Fabric",
+            ShaderPassName = "SHADERPASS_RAYTRACING_GBUFFER",
+            ExtraDefines = new List<string>()
+            {
+                "#pragma multi_compile _ LIGHTMAP_ON",
+                "#pragma multi_compile _ DIRLIGHTMAP_COMBINED",
+                "#pragma multi_compile _ DYNAMICLIGHTMAP_ON",
+                "#define SHADOW_LOW",
+            },
+            Includes = new List<string>()
+            {
+                "#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderpassRaytracingGBuffer.hlsl\"",
+            },
+            PixelShaderSlots = new List<int>()
+            {
+                FabricMasterNode.AlbedoSlotId,
+                FabricMasterNode.SpecularOcclusionSlotId,
+                FabricMasterNode.NormalSlotId,
+                FabricMasterNode.BentNormalSlotId,
+                FabricMasterNode.SmoothnessSlotId,
+                FabricMasterNode.AmbientOcclusionSlotId,
+                FabricMasterNode.SpecularColorSlotId,
+                FabricMasterNode.DiffusionProfileHashSlotId,
+                FabricMasterNode.SubsurfaceMaskSlotId,
+                FabricMasterNode.ThicknessSlotId,
+                FabricMasterNode.TangentSlotId,
+                FabricMasterNode.AnisotropySlotId,
+                FabricMasterNode.EmissionSlotId,
+                FabricMasterNode.AlphaSlotId,
+                FabricMasterNode.AlphaClipThresholdSlotId,
+                FabricMasterNode.LightingSlotId,
+                FabricMasterNode.BackLightingSlotId,
+                FabricMasterNode.DepthOffsetSlotId,
+            },
+            VertexShaderSlots = new List<int>()
+            {
+                HDLitMasterNode.PositionSlotId
+            },
+            UseInPreview = false
+        };
+
         public int GetPreviewPassIndex() { return 0; }
 
         private static HashSet<string> GetActiveFieldsFromMasterNode(AbstractMaterialNode iMasterNode, Pass pass)
@@ -495,6 +673,24 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
             subShader.Deindent();
             subShader.AddShaderChunk("}", true);
+
+#if ENABLE_RAYTRACING
+            if(mode == GenerationMode.ForReals)
+            {
+                subShader.AddShaderChunk("SubShader", false);
+                subShader.AddShaderChunk("{", false);
+                subShader.Indent();
+                {
+                    GenerateShaderPassLit(masterNode, m_PassRaytracingIndirect, mode, subShader, sourceAssetDependencyPaths);
+                    GenerateShaderPassLit(masterNode, m_PassRaytracingVisibility, mode, subShader, sourceAssetDependencyPaths);
+                    GenerateShaderPassLit(masterNode, m_PassRaytracingForward, mode, subShader, sourceAssetDependencyPaths);
+                    GenerateShaderPassLit(masterNode, m_PassRaytracingGBuffer, mode, subShader, sourceAssetDependencyPaths);
+                }
+                subShader.Deindent();
+                subShader.AddShaderChunk("}", false);
+            }
+#endif
+            
             subShader.AddShaderChunk(@"CustomEditor ""UnityEditor.Experimental.Rendering.HDPipeline.FabricGUI""");
 
             return subShader.GetShaderString(0);

@@ -56,7 +56,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
     }
 
-    public partial class XRSystem
+    internal partial class XRSystem
     {
         private readonly string debugVolumeName = "XRDebugVolume";
 
