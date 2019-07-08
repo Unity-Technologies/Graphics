@@ -206,4 +206,5 @@ Shader "Lightweight Render Pipeline/2D/Sprite-Lit-Default"
             ENDHLSL
         }
     }
+    Fallback "Hidden/Sprite-Fallback"
 }

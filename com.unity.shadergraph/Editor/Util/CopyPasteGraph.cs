@@ -18,6 +18,9 @@ namespace UnityEditor.Graphing.Util
         [SerializeField]
         List<GroupData> m_Groups = new List<GroupData>();
 
+        [SerializeField]
+        List<StickyNoteData> m_StickyNotes = new List<StickyNoteData>();
+
         [NonSerialized]
         HashSet<ShaderInput> m_Inputs = new HashSet<ShaderInput>();
 
@@ -44,13 +47,18 @@ namespace UnityEditor.Graphing.Util
 
         public CopyPasteGraph() {}
 
-        public CopyPasteGraph(string sourceGraphGuid, IEnumerable<GroupData> groups, IEnumerable<AbstractMaterialNode> nodes, IEnumerable<IEdge> edges, IEnumerable<ShaderInput> inputs, IEnumerable<AbstractShaderProperty> metaProperties)
+        public CopyPasteGraph(string sourceGraphGuid, IEnumerable<GroupData> groups, IEnumerable<AbstractMaterialNode> nodes, IEnumerable<IEdge> edges, IEnumerable<ShaderInput> inputs, IEnumerable<AbstractShaderProperty> metaProperties, IEnumerable<StickyNoteData> notes)
         {
             m_SourceGraphGuid = sourceGraphGuid;
 
             foreach (var groupData in groups)
             {
                 AddGroup(groupData);
+            }
+
+            foreach (var stickyNote in notes)
+            {
+                AddNote(stickyNote);
             }
 
             foreach (var node in nodes)
@@ -77,6 +85,11 @@ namespace UnityEditor.Graphing.Util
         public void AddGroup(GroupData group)
         {
             m_Groups.Add(group);
+        }
+
+        public void AddNote(StickyNoteData stickyNote)
+        {
+            m_StickyNotes.Add(stickyNote);
         }
 
         public void AddNode(AbstractMaterialNode node)
@@ -108,6 +121,8 @@ namespace UnityEditor.Graphing.Util
         {
             get { return m_Groups; }
         }
+
+        public IEnumerable<StickyNoteData> stickyNotes => m_StickyNotes;
 
         public IEnumerable<IEdge> edges
         {

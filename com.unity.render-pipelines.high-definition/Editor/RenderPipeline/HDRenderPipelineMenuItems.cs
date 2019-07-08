@@ -135,12 +135,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 // Do not add a component if there already is one.
                 if (light.GetComponent<HDAdditionalLightData>() == null)
-                    light.gameObject.AddComponent<HDAdditionalLightData>();
-
-                if (light.GetComponent<AdditionalShadowData>() == null)
                 {
-                    AdditionalShadowData shadowData = light.gameObject.AddComponent<AdditionalShadowData>();
-                    HDAdditionalShadowData.InitDefaultHDAdditionalShadowData(shadowData);
+                    var hdLight = light.gameObject.AddComponent<HDAdditionalLightData>();
+                    HDAdditionalLightData.InitDefaultHDAdditionalLightData(hdLight);
                 }
             }
         }

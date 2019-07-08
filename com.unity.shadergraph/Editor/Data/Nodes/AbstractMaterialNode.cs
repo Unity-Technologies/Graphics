@@ -8,7 +8,7 @@ using UnityEditor.ShaderGraph.Drawing.Colors;
 namespace UnityEditor.ShaderGraph
 {
     [Serializable]
-    abstract class AbstractMaterialNode : ISerializationCallbackReceiver
+    abstract class AbstractMaterialNode : ISerializationCallbackReceiver, IGroupItem
     {
         protected static List<MaterialSlot> s_TempSlots = new List<MaterialSlot>();
         protected static List<IEdge> s_TempEdges = new List<IEdge>();

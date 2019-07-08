@@ -46,19 +46,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         [Tooltip("Number of samples for reflections.")]
         public ClampedIntParameter numSamples = new ClampedIntParameter(1, 1, 32);
 
-        static ScreenSpaceReflection s_Default = null;
-        public static ScreenSpaceReflection @default
-        {
-            get
-            {
-                if (s_Default == null)
-                {
-                    s_Default = ScriptableObject.CreateInstance<ScreenSpaceReflection>();
-                    s_Default.hideFlags = HideFlags.HideAndDontSave;
-                }
-                return s_Default;
-            }
-        }
-
+        [Tooltip("Number of bounces for reflections.")]
+        public ClampedIntParameter numBounces = new ClampedIntParameter(1, 1, 31);
     }
 }

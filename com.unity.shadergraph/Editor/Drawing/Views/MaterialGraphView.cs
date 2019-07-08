@@ -75,7 +75,13 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         public override void BuildContextualMenu(ContextualMenuPopulateEvent evt)
         {
+            Vector2 mousePosition = evt.mousePosition;
             base.BuildContextualMenu(evt);
+            if(evt.target is GraphView)
+            {
+                evt.menu.InsertAction(1, "Create Sticky Note", (e) => { AddStickyNote(mousePosition); });
+            }
+
             if (evt.target is GraphView || evt.target is Node)
             {
                 evt.menu.AppendAction("Convert To Sub-graph", ConvertToSubgraph, ConvertToSubgraphStatus);
@@ -226,10 +232,21 @@ namespace UnityEditor.ShaderGraph.Drawing
             graph.CreateGroup(groupData);
 
             foreach (var shaderNodeView in selection.OfType<IShaderNodeView>())
-                {
-                graph.SetNodeGroup(shaderNodeView.node, groupData);
+            {
+                graph.SetGroup(shaderNodeView.node, groupData);
             }
         }
+
+        public void AddStickyNote(Vector2 position)
+        {
+            position = contentViewContainer.WorldToLocal(position);
+            string title = "New Note";
+            string content = "Write something here";
+            var stickyNoteData  = new StickyNoteData(title, content, new Rect(position.x, position.y, 200, 160));
+            graph.owner.RegisterCompleteObjectUndo("Create Sticky Note");
+            graph.AddStickyNote(stickyNoteData);
+        }
+
 
         void RemoveFromGroupNode(DropdownMenuAction action)
         {
@@ -379,12 +396,13 @@ namespace UnityEditor.ShaderGraph.Drawing
                 ShaderKeyword keyword = this.graph.keywords.FirstOrDefault(x => x.guid == keyNode.keywordGuid);
                 inputs = inputs.Append(keyword);
             }
+            var notes = elements.OfType<StickyNote>().Select(x => x.userData);
 
             // Collect the property nodes and get the corresponding properties
             var propertyNodeGuids = nodes.OfType<PropertyNode>().Select(x => x.propertyGuid);
             var metaProperties = this.graph.properties.Where(x => propertyNodeGuids.Contains(x.guid));
 
-            var graph = new CopyPasteGraph(this.graph.assetGuid, groups, nodes, edges, inputs, metaProperties);
+            var graph = new CopyPasteGraph(this.graph.assetGuid, groups, nodes, edges, inputs, metaProperties, notes);
             return JsonUtility.ToJson(graph, true);
         }
 
@@ -448,7 +466,8 @@ namespace UnityEditor.ShaderGraph.Drawing
             graph.owner.RegisterCompleteObjectUndo(operationName);
             graph.RemoveElements(deleteNodes,
                 selection.OfType<Edge>().Select(x => x.userData).OfType<IEdge>(),
-                selection.OfType<ShaderGroup>().Select(x => x.userData));
+                selection.OfType<ShaderGroup>().Select(x => x.userData),
+                selection.OfType<StickyNote>().Select(x => x.userData));
 
             foreach (var selectable in selection)
             {

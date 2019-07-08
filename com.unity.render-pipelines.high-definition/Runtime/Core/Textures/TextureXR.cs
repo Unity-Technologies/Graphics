@@ -2,19 +2,18 @@ using UnityEngine.Rendering;
 
 namespace UnityEngine.Experimental.Rendering
 {
-    public static class TextureXR
+    using RTHandle = RTHandleSystem.RTHandle;
+
+    internal static class TextureXR
     {
-        // Limit memory usage of default textures
-        public const int kMaxSlices = 2;
-
         // Property set by XRSystem
-        public static int maxViews { get; set; } = 1;
+        internal static int maxViews { private get; set; } = 1;
 
-        // Property accessed when allocating a render texture
-        public static int slices { get => maxViews; }
+        // Property accessed when allocating a render target
+        internal static int slices { get => maxViews; }
 
         // Must be in sync with shader define in TextureXR.hlsl
-        public static bool useTexArray
+        internal static bool useTexArray
         {
             get
             {
@@ -35,7 +34,7 @@ namespace UnityEngine.Experimental.Rendering
             }
         }
 
-        public static TextureDimension dimension
+        internal static TextureDimension dimension
         {
             get
             {
@@ -44,108 +43,74 @@ namespace UnityEngine.Experimental.Rendering
             }
         }
 
+        // Need to keep both the Texture and the RTHandle in order to be able to track lifetime properly.
+        static Texture      m_BlackUIntTexture2DArray;
+        static Texture      m_BlackUIntTexture;
+        static RTHandle     m_BlackUIntTexture2DArrayRTH;
+        static RTHandle     m_BlackUIntTextureRTH;
+        public static RTHandle  GetBlackUIntTexture() { return useTexArray ? m_BlackUIntTexture2DArrayRTH : m_BlackUIntTextureRTH; }
+
+        static Texture2DArray   m_ClearTexture2DArray;
+        static Texture2D        m_ClearTexture;
+        static RTHandle         m_ClearTexture2DArrayRTH;
+        static RTHandle         m_ClearTextureRTH;
+        public static RTHandle GetClearTexture() { return useTexArray ? m_ClearTexture2DArrayRTH : m_ClearTextureRTH; }
+
+        static Texture2DArray   m_BlackTexture2DArray;
+        static RTHandle         m_BlackTexture2DArrayRTH;
+        static RTHandle         m_BlackTextureRTH;
+        public static RTHandle GetBlackTexture() { return useTexArray ? m_BlackTexture2DArrayRTH : m_BlackTextureRTH; }
+
+        static Texture2DArray   m_WhiteTexture2DArray;
+        static RTHandle         m_WhiteTexture2DArrayRTH;
+        static RTHandle         m_WhiteTextureRTH;
+        public static RTHandle GetWhiteTexture() { return useTexArray ? m_WhiteTexture2DArrayRTH : m_WhiteTextureRTH; }
+
         public static void Initialize(CommandBuffer cmd, ComputeShader clearR32_UIntShader)
         {
-            if (blackUIntTexture2DArray == null)
-                blackUIntTexture2DArray = CreateBlackUIntTextureArray(cmd, clearR32_UIntShader);
-            if (blackUIntTexture == null)
-                blackUIntTexture = CreateBlackUintTexture(cmd, clearR32_UIntShader);
+            if (m_BlackUIntTexture2DArray == null) // We assume that everything is invalid if one is invalid.
+            {
+                // Black UINT
+                RTHandles.Release(m_BlackUIntTexture2DArrayRTH);
+                m_BlackUIntTexture2DArray = CreateBlackUIntTextureArray(cmd, clearR32_UIntShader);
+                m_BlackUIntTexture2DArrayRTH = RTHandles.Alloc(m_BlackUIntTexture2DArray);
+                RTHandles.Release(m_BlackUIntTextureRTH);
+                m_BlackUIntTexture = CreateBlackUintTexture(cmd, clearR32_UIntShader);
+                m_BlackUIntTextureRTH = RTHandles.Alloc(m_BlackUIntTexture);
+
+                // Clear
+                RTHandles.Release(m_ClearTextureRTH);
+                m_ClearTexture = new Texture2D(1, 1, TextureFormat.ARGB32, false) { name = "Clear Texture" };
+                m_ClearTexture.SetPixel(0, 0, Color.clear);
+                m_ClearTexture.Apply();
+                m_ClearTextureRTH = RTHandles.Alloc(m_ClearTexture);
+                RTHandles.Release(m_ClearTexture2DArrayRTH);
+                m_ClearTexture2DArray = CreateTexture2DArrayFromTexture2D(m_ClearTexture, "Clear Texture2DArray");
+                m_ClearTexture2DArrayRTH = RTHandles.Alloc(m_ClearTexture2DArray);
+
+                // Black
+                RTHandles.Release(m_BlackTextureRTH);
+                m_BlackTextureRTH = RTHandles.Alloc(Texture2D.blackTexture);
+                RTHandles.Release(m_BlackTexture2DArrayRTH);
+                m_BlackTexture2DArray = CreateTexture2DArrayFromTexture2D(Texture2D.blackTexture, "Black Texture2DArray");
+                m_BlackTexture2DArrayRTH = RTHandles.Alloc(m_BlackTexture2DArray);
+
+                // White
+                RTHandles.Release(m_WhiteTextureRTH);
+                m_WhiteTextureRTH = RTHandles.Alloc(Texture2D.whiteTexture);
+                RTHandles.Release(m_WhiteTexture2DArrayRTH);
+                m_WhiteTexture2DArray = CreateTexture2DArrayFromTexture2D(Texture2D.whiteTexture, "White Texture2DArray");
+                m_WhiteTexture2DArrayRTH = RTHandles.Alloc(m_WhiteTexture2DArray);
+            }
         }
 
-        public static Texture GetClearTexture()
+        static Texture2DArray CreateTexture2DArrayFromTexture2D(Texture2D source, string name)
         {
-            if (useTexArray)
-                return clearTexture2DArray;
-
-            return clearTexture;
-        }
-
-        public static Texture GetBlackTexture()
-        {
-            if (useTexArray)
-                return blackTexture2DArray;
-
-            return Texture2D.blackTexture;
-        }
-
-        public static Texture GetBlackUIntTexture()
-        {
-            if (useTexArray)
-                return blackUIntTexture2DArray;
-
-            return blackUIntTexture;
-        }
-
-        public static Texture GetWhiteTexture()
-        {
-            if (useTexArray)
-                return whiteTexture2DArray;
-
-            return Texture2D.whiteTexture;
-        }
-
-        private static Texture2DArray CreateTexture2DArrayFromTexture2D(Texture2D source, string name)
-        {
-            Texture2DArray texArray = new Texture2DArray(source.width, source.height, kMaxSlices, source.format, false) { name = name };
-            for (int i = 0; i < kMaxSlices; ++i)
+            Texture2DArray texArray = new Texture2DArray(source.width, source.height, slices, source.format, false) { name = name };
+            for (int i = 0; i < slices; ++i)
                 Graphics.CopyTexture(source, 0, 0, texArray, i, 0);
 
             return texArray;
-        }
-
-        private static Texture2D m_ClearTexture;
-        private static Texture2D clearTexture
-        {
-            get
-            {
-                if (m_ClearTexture == null)
-                {
-                    m_ClearTexture = new Texture2D(1, 1, TextureFormat.ARGB32, false) { name = "Clear Texture" };
-                    m_ClearTexture.SetPixel(0, 0, Color.clear);
-                    m_ClearTexture.Apply();
-                }
-
-                return m_ClearTexture;
-            }
-        }
-
-        private static Texture m_BlackUIntTexture;
-        public static Texture blackUIntTexture { get => m_BlackUIntTexture; private set => m_BlackUIntTexture = value; }
-
-        static Texture2DArray m_ClearTexture2DArray;
-        public static Texture2DArray clearTexture2DArray
-        {
-            get
-            {
-                if (m_ClearTexture2DArray == null)
-                    m_ClearTexture2DArray = CreateTexture2DArrayFromTexture2D(clearTexture, "Clear Texture2DArray");
-
-                return m_ClearTexture2DArray;
-            }
-        }
-
-        static Texture2DArray m_BlackTexture2DArray;
-        public static Texture2DArray blackTexture2DArray
-        {
-            get
-            {
-                if (m_BlackTexture2DArray == null)
-                    m_BlackTexture2DArray = CreateTexture2DArrayFromTexture2D(Texture2D.blackTexture, "Black Texture2DArray");
-
-                return m_BlackTexture2DArray;
-            }
-        }
-
-        static Texture2DArray m_WhiteTexture2DArray;
-        public static Texture2DArray whiteTexture2DArray
-        {
-            get
-            {
-                if (m_WhiteTexture2DArray == null)
-                    m_WhiteTexture2DArray = CreateTexture2DArrayFromTexture2D(Texture2D.whiteTexture, "White Texture2DArray");
-
-                return m_WhiteTexture2DArray;
-            }
         }
 
         static Texture CreateBlackUIntTextureArray(CommandBuffer cmd, ComputeShader clearR32_UIntShader)
@@ -153,7 +118,7 @@ namespace UnityEngine.Experimental.Rendering
             RenderTexture blackUIntTexture2DArray = new RenderTexture(1, 1, 0, GraphicsFormat.R32_UInt)
             {
                 dimension = TextureDimension.Tex2DArray,
-                volumeDepth = kMaxSlices,
+                volumeDepth = slices,
                 useMipMap = false,
                 autoGenerateMips = false,
                 enableRandomWrite = true,
@@ -167,7 +132,7 @@ namespace UnityEngine.Experimental.Rendering
             // Clear this type of target on metal devices (output type nor compatible: float4 vs uint)
             int kernel = clearR32_UIntShader.FindKernel("ClearUIntTextureArray");
             cmd.SetComputeTextureParam(clearR32_UIntShader, kernel, "_TargetArray", blackUIntTexture2DArray);
-            cmd.DispatchCompute(clearR32_UIntShader, kernel, 1, 1, kMaxSlices);
+            cmd.DispatchCompute(clearR32_UIntShader, kernel, 1, 1, slices);
 
             return blackUIntTexture2DArray as Texture;
         }
@@ -177,7 +142,7 @@ namespace UnityEngine.Experimental.Rendering
             RenderTexture blackUIntTexture2D = new RenderTexture(1, 1, 0, GraphicsFormat.R32_UInt)
             {
                 dimension = TextureDimension.Tex2D,
-                volumeDepth = kMaxSlices,
+                volumeDepth = slices,
                 useMipMap = false,
                 autoGenerateMips = false,
                 enableRandomWrite = true,
@@ -191,12 +156,9 @@ namespace UnityEngine.Experimental.Rendering
             // Clear this type of target on metal devices (output type nor compatible: float4 vs uint)
             int kernel = clearR32_UIntShader.FindKernel("ClearUIntTexture");
             cmd.SetComputeTextureParam(clearR32_UIntShader, kernel, "_Target", blackUIntTexture2D);
-            cmd.DispatchCompute(clearR32_UIntShader, kernel, 1, 1, kMaxSlices);
+            cmd.DispatchCompute(clearR32_UIntShader, kernel, 1, 1, slices);
 
             return blackUIntTexture2D as Texture;
         }
-
-        static Texture m_BlackUIntTexture2DArray;
-        public static Texture blackUIntTexture2DArray { get => m_BlackUIntTexture2DArray; private set => m_BlackUIntTexture2DArray = value; }
     }
 }

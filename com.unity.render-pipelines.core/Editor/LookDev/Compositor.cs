@@ -6,22 +6,39 @@ namespace UnityEditor.Rendering.Experimental.LookDev
 {
     enum ShadowCompositionPass
     {
-        Sky,
-        ShadowMask,
-        Shadow
+        WithSun,
+        WithoutSun,
+        ShadowMask
+    }
+
+    enum CompositionFinal
+    {
+        First,
+        Second
     }
 
     class RenderTextureCache
     {
-        RenderTexture[] m_RTs = new RenderTexture[7];
+        RenderTexture[] m_RTs = new RenderTexture[8];
 
-        public RenderTexture this[ViewCompositionIndex index, ShadowCompositionPass passIndex = 0]
+        public RenderTexture this[ViewIndex index, ShadowCompositionPass passIndex]
         {
-            get => m_RTs[(int)index * 3 + (int)(index == ViewCompositionIndex.Composite ? 0 : passIndex)];
-            set => m_RTs[(int)index * 3 + (int)(index == ViewCompositionIndex.Composite ? 0 : passIndex)] = value;
+            get => m_RTs[computeIndex(index, passIndex)];
+            set => m_RTs[computeIndex(index, passIndex)] = value;
         }
 
-        public static RenderTexture UpdateSize(RenderTexture renderTexture, Rect rect, bool pixelPerfect, Camera renderingCamera)
+        public RenderTexture this[CompositionFinal index]
+        {
+            get => m_RTs[computeIndex(index)];
+            set => m_RTs[computeIndex(index)] = value;
+        }
+
+        int computeIndex(ViewIndex index, ShadowCompositionPass passIndex)
+            => (int)index * 3 + (int)(passIndex);
+        int computeIndex(CompositionFinal index)
+            => 6 + (int)(index);
+
+        public static RenderTexture UpdateSize(RenderTexture renderTexture, Rect rect, bool pixelPerfect, Camera renderingCamera, string renderDocName = "LookDevRT")
         {
             int width = (int)rect.width;
             int height = (int)rect.height;
@@ -31,7 +48,11 @@ namespace UnityEditor.Rendering.Experimental.LookDev
                 && !rect.IsNullOrInverted())
             {
                 if (renderTexture != null)
+                {
+                    if (renderingCamera != null && !renderingCamera.Equals(null) && renderingCamera.targetTexture == renderTexture)
+                        renderingCamera.targetTexture = null;
                     UnityEngine.Object.DestroyImmediate(renderTexture);
+                }
 
                 // Do not use GetTemporary to manage render textures. Temporary RTs are only
                 // garbage collected each N frames, and in the editor we might be wildly resizing
@@ -40,7 +61,7 @@ namespace UnityEditor.Rendering.Experimental.LookDev
                     width, height, 0,
                     RenderTextureFormat.ARGBHalf, RenderTextureReadWrite.Default);
                 renderTexture.hideFlags = HideFlags.HideAndDontSave;
-                renderTexture.name = "LookDevTexture";
+                renderTexture.name = renderDocName;
                 renderTexture.Create();
 
                 if (renderingCamera != null)
@@ -49,15 +70,16 @@ namespace UnityEditor.Rendering.Experimental.LookDev
             return renderTexture;
         }
 
-        public void UpdateSize(Rect rect, ViewCompositionIndex index, bool pixelPerfect, Camera renderingCamera)
+        public void UpdateSize(Rect rect, ViewIndex index, bool pixelPerfect, Camera renderingCamera)
         {
-            this[index] = UpdateSize(this[index], rect, pixelPerfect, renderingCamera);
-            if (index != ViewCompositionIndex.Composite)
-            {
-                this[index, ShadowCompositionPass.Shadow] = UpdateSize(this[index, ShadowCompositionPass.Shadow], rect, pixelPerfect, renderingCamera);
-                this[index, ShadowCompositionPass.ShadowMask] = UpdateSize(this[index, ShadowCompositionPass.ShadowMask], rect, pixelPerfect, renderingCamera);
-            }
+            this[index, ShadowCompositionPass.WithSun] = UpdateSize(this[index, ShadowCompositionPass.WithSun], rect, pixelPerfect, renderingCamera, $"LookDevRT-{index}-Sky");
+            this[index, ShadowCompositionPass.WithoutSun] = UpdateSize(this[index, ShadowCompositionPass.WithoutSun], rect, pixelPerfect, renderingCamera, $"LookDevRT-{index}-Shadow");
+            this[index, ShadowCompositionPass.ShadowMask] = UpdateSize(this[index, ShadowCompositionPass.ShadowMask], rect, pixelPerfect, renderingCamera, $"LookDevRT-{index}-ShadowMask");
         }
+
+
+        public void UpdateSize(Rect rect, CompositionFinal index, bool pixelPerfect, Camera renderingCamera)
+            => this[index] = UpdateSize(this[index], rect, pixelPerfect, renderingCamera, $"LookDevRT-Final-{index}");
     }
 
     class Compositer : IDisposable
@@ -75,14 +97,15 @@ namespace UnityEditor.Rendering.Experimental.LookDev
             }
         }
 
+        IDataProvider m_DataProvider;
         IViewDisplayer m_Displayer;
         Context m_Contexts;
         RenderTextureCache m_RenderTextures = new RenderTextureCache();
-
         Renderer m_Renderer = new Renderer();
         RenderingData[] m_RenderDataCache;
 
         bool m_pixelPerfect;
+        bool m_Disposed;
 
         public bool pixelPerfect
         {
@@ -91,7 +114,7 @@ namespace UnityEditor.Rendering.Experimental.LookDev
         }
 
         Color m_AmbientColor = new Color(0.0f, 0.0f, 0.0f, 0.0f);
-        
+
         bool m_RenderDocAcquisitionRequested;
 
         public Compositer(
@@ -100,6 +123,7 @@ namespace UnityEditor.Rendering.Experimental.LookDev
             IDataProvider dataProvider,
             StageCache stages)
         {
+            m_DataProvider = dataProvider;
             m_Displayer = displayer;
             m_Contexts = contexts;
 
@@ -115,7 +139,7 @@ namespace UnityEditor.Rendering.Experimental.LookDev
 
         void RenderDocAcquisitionRequested()
             => m_RenderDocAcquisitionRequested = true;
-        
+
         void CleanUp()
         {
             m_Displayer.OnRenderDocAcquisitionTriggered -= RenderDocAcquisitionRequested;
@@ -123,6 +147,9 @@ namespace UnityEditor.Rendering.Experimental.LookDev
         }
         public void Dispose()
         {
+            if (m_Disposed)
+                return;
+            m_Disposed = true;
             CleanUp();
             GC.SuppressFinalize(this);
         }
@@ -155,66 +182,89 @@ namespace UnityEditor.Rendering.Experimental.LookDev
                         break;
                 }
             }
-            
+
             //TODO: make integration EditorWindow agnostic!
             if (UnityEditorInternal.RenderDoc.IsLoaded() && UnityEditorInternal.RenderDoc.IsSupported() && m_RenderDocAcquisitionRequested)
                 UnityEditorInternal.RenderDoc.EndCaptureRenderDoc(m_Displayer as EditorWindow);
 
             //stating that RenderDoc do not need to acquire anymore should
             //allows to gather both view and composition in render doc at once
-            //TODO: check this
             m_RenderDocAcquisitionRequested = false;
+        }
+
+        void AcquireDataForView(ViewIndex index, Rect viewport)
+        {
+            var renderingData = m_RenderDataCache[(int)index];
+            renderingData.viewPort = viewport;
+            Environment env = m_Contexts.GetViewContent(index).environment;
+
+            m_RenderTextures.UpdateSize(renderingData.viewPort, index, m_Renderer.pixelPerfect, renderingData.stage.camera);
+
+            renderingData.output = m_RenderTextures[index, ShadowCompositionPass.WithSun];
+            m_Renderer.Acquire(renderingData, RenderingPass.First);
+            if (renderingData.resized)
+            {
+                m_RenderTextures[index, ShadowCompositionPass.WithSun] = renderingData.output;
+                renderingData.resized = false;
+            }
+
+            //get shadowmask betwen first and last pass to still be isolated
+            RenderTexture tmp = m_RenderTextures[index, ShadowCompositionPass.ShadowMask];
+            env?.UpdateSunPosition(renderingData.stage.sunLight);
+            renderingData.stage.sunLight.intensity = 1f;
+            m_DataProvider.GetShadowMask(ref tmp, renderingData.stage.runtimeInterface);
+            renderingData.stage.sunLight.intensity = 0f;
+            m_RenderTextures[index, ShadowCompositionPass.ShadowMask] = tmp;
+
+            if (env != null)
+                m_DataProvider.UpdateSky(renderingData.stage.camera, env.shadowSky, renderingData.stage.runtimeInterface);
+            renderingData.output = m_RenderTextures[index, ShadowCompositionPass.WithoutSun];
+            m_Renderer.Acquire(renderingData, RenderingPass.Last);
+            if (renderingData.resized)
+            {
+                m_RenderTextures[index, ShadowCompositionPass.WithoutSun] = renderingData.output;
+                renderingData.resized = false;
+            }
+            if (env != null)
+                m_DataProvider.UpdateSky(renderingData.stage.camera, env.sky, renderingData.stage.runtimeInterface);
+
         }
 
         void RenderSingleAndOutput(ViewIndex index)
         {
-            var renderingData = m_RenderDataCache[(int)index];
-            renderingData.viewPort = m_Displayer.GetRect((ViewCompositionIndex)index);
-            m_Renderer.Acquire(renderingData);
-            if (renderingData.resized)
-            {
-                m_RenderTextures[(ViewCompositionIndex)index] = renderingData.output;
-                renderingData.resized = false;
-            }
-            m_Displayer.SetTexture((ViewCompositionIndex)index, renderingData.output);
+            Rect viewport = m_Displayer.GetRect((ViewCompositionIndex)index);
+            AcquireDataForView(index, viewport);
+            Compositing(viewport, (int)index, (CompositionFinal)index);
+            m_Displayer.SetTexture((ViewCompositionIndex)index, m_RenderTextures[(CompositionFinal)index]);
         }
 
         void RenderCompositeAndOutput()
         {
-            Rect rect = m_Displayer.GetRect(ViewCompositionIndex.Composite);
+            Rect viewport = m_Displayer.GetRect(ViewCompositionIndex.Composite);
 
-            var renderingData = m_RenderDataCache[0];
-            renderingData.viewPort = rect;
-            m_Renderer.Acquire(renderingData);
-            if (renderingData.resized)
-            {
-                m_RenderTextures[ViewCompositionIndex.First] = renderingData.output;
-                renderingData.resized = false;
-            }
-            renderingData = m_RenderDataCache[1];
-            renderingData.viewPort = rect;
-            m_Renderer.Acquire(renderingData);
-            if (renderingData.resized)
-            {
-                m_RenderTextures[ViewCompositionIndex.Second] = renderingData.output;
-                renderingData.resized = false;
-            }
-
-            Compositing(rect);
-            m_Displayer.SetTexture(ViewCompositionIndex.Composite, m_RenderTextures[ViewCompositionIndex.Composite]);
+            AcquireDataForView(ViewIndex.First, viewport);
+            AcquireDataForView(ViewIndex.Second, viewport);
+            Compositing(viewport, 2 /*split*/, CompositionFinal.First);
+            m_Displayer.SetTexture(ViewCompositionIndex.Composite, m_RenderTextures[CompositionFinal.First]);
         }
 
-        void Compositing(Rect rect)
+        void Compositing(Rect rect, int pass, CompositionFinal finalBuffer)
         {
             if (rect.IsNullOrInverted()
-                || m_RenderTextures[ViewCompositionIndex.First] == null
-                || m_RenderTextures[ViewCompositionIndex.Second] == null)
+                || (m_Contexts.layout.viewLayout != Layout.FullSecondView
+                    && (m_RenderTextures[ViewIndex.First, ShadowCompositionPass.WithSun] == null
+                        || m_RenderTextures[ViewIndex.First, ShadowCompositionPass.WithoutSun] == null
+                        || m_RenderTextures[ViewIndex.First, ShadowCompositionPass.ShadowMask] == null))
+                || (m_Contexts.layout.viewLayout != Layout.FullFirstView
+                    && (m_RenderTextures[ViewIndex.Second, ShadowCompositionPass.WithSun] == null
+                        || m_RenderTextures[ViewIndex.Second, ShadowCompositionPass.WithoutSun] == null
+                        || m_RenderTextures[ViewIndex.Second, ShadowCompositionPass.ShadowMask] == null)))
             {
-                m_RenderTextures[ViewCompositionIndex.Composite] = null;
+                m_RenderTextures[finalBuffer] = null;
                 return;
             }
 
-            m_RenderTextures.UpdateSize(rect, ViewCompositionIndex.Composite, m_pixelPerfect, null);
+            m_RenderTextures.UpdateSize(rect, finalBuffer, m_pixelPerfect, null);
 
             ComparisonGizmoState gizmo = m_Contexts.layout.gizmoState;
 
@@ -223,25 +273,28 @@ namespace UnityEditor.Rendering.Experimental.LookDev
             Vector4 gizmoThickness = new Vector4(ComparisonGizmoState.thickness, ComparisonGizmoState.thicknessSelected, 0.0f, 0.0f);
             Vector4 gizmoCircleRadius = new Vector4(ComparisonGizmoState.circleRadius, ComparisonGizmoState.circleRadiusSelected, 0.0f, 0.0f);
 
-            float exposureValue0 = 0.0f;
-            float exposureValue1 = 0.0f;
+            Environment env0 = m_Contexts.GetViewContent(ViewIndex.First).environment;
+            Environment env1 = m_Contexts.GetViewContent(ViewIndex.Second).environment;
+
+            float exposureValue0 = env0?.sky.exposure ?? 0f;
+            float exposureValue1 = env1?.sky.exposure ?? 0f;
             float dualViewBlendFactor = gizmo.blendFactor;
-            float isCurrentlyLeftEditting = 1.0f; //1f true, -1f false
+            float isCurrentlyLeftEditting = 1f; //1f true, -1f false
             float dragAndDropContext = 0f; //1f left, -1f right, 0f neither
             float toneMapEnabled = -1f; //1f true, -1f false
-            float shadowMultiplier0 = 0f;
-            float shadowMultiplier1 = 0f;
-            Color shadowColor0 = Color.white;
-            Color shadowColor1 = Color.white;
+            float shadowMultiplier0 = env0?.shadowIntensity ?? 0f;
+            float shadowMultiplier1 = env1?.shadowIntensity ?? 0f;
+            Color shadowColor0 = env0?.shadow.color ?? Color.white;
+            Color shadowColor1 = env1?.shadow.color ?? Color.white;
 
             //TODO: handle shadow not at compositing step but in rendering
-            Texture texWithSun0 = m_RenderTextures[ViewCompositionIndex.First];
-            Texture texWithoutSun0 = texWithSun0;
-            Texture texShadowsMask0 = Texture2D.whiteTexture;
+            Texture texWithSun0 = m_RenderTextures[ViewIndex.First, ShadowCompositionPass.WithSun];
+            Texture texWithoutSun0 = m_RenderTextures[ViewIndex.First, ShadowCompositionPass.WithoutSun];
+            Texture texShadowsMask0 = m_RenderTextures[ViewIndex.First, ShadowCompositionPass.ShadowMask];
 
-            Texture texWithSun1 = m_RenderTextures[ViewCompositionIndex.Second];
-            Texture texWithoutSun1 = texWithSun0;
-            Texture texShadowsMask1 = Texture2D.whiteTexture;
+            Texture texWithSun1 = m_RenderTextures[ViewIndex.Second, ShadowCompositionPass.WithSun];
+            Texture texWithoutSun1 = m_RenderTextures[ViewIndex.Second, ShadowCompositionPass.WithoutSun];
+            Texture texShadowsMask1 = m_RenderTextures[ViewIndex.Second, ShadowCompositionPass.ShadowMask];
 
             Vector4 compositingParams = new Vector4(dualViewBlendFactor, exposureValue0, exposureValue1, isCurrentlyLeftEditting);
             Vector4 compositingParams2 = new Vector4(dragAndDropContext, toneMapEnabled, shadowMultiplier0, shadowMultiplier1);
@@ -266,12 +319,12 @@ namespace UnityEditor.Rendering.Experimental.LookDev
             Vector4 screenRatio = new Vector4(rect.width / k_ReferenceScale, rect.height / k_ReferenceScale, rect.width, rect.height);
 
             RenderTexture oldActive = RenderTexture.active;
-            RenderTexture.active = m_RenderTextures[ViewCompositionIndex.Composite];
-            material.SetTexture("_Tex0Normal", texWithSun0);
+            RenderTexture.active = m_RenderTextures[finalBuffer];
+            material.SetTexture("_Tex0WithSun", texWithSun0);
             material.SetTexture("_Tex0WithoutSun", texWithoutSun0);
             material.SetTexture("_Tex0Shadows", texShadowsMask0);
             material.SetColor("_ShadowColor0", shadowColor0);
-            material.SetTexture("_Tex1Normal", texWithSun1);
+            material.SetTexture("_Tex1WithSun", texWithSun1);
             material.SetTexture("_Tex1WithoutSun", texWithoutSun1);
             material.SetTexture("_Tex1Shadows", texShadowsMask1);
             material.SetColor("_ShadowColor1", shadowColor1);
@@ -292,14 +345,13 @@ namespace UnityEditor.Rendering.Experimental.LookDev
             material.SetVector("_ScreenRatio", screenRatio);
             material.SetVector("_ToneMapCoeffs1", tonemapCoeff1);
             material.SetVector("_ToneMapCoeffs2", tonemapCoeff2);
-            material.SetPass((int)m_Contexts.layout.viewLayout); //missing horizontal pass
+            material.SetPass(pass);
 
             Renderer.DrawFullScreenQuad(new Rect(0, 0, rect.width, rect.height));
 
             RenderTexture.active = oldActive;
-            //GUI.DrawTexture(rect, m_RenderTextures[ViewCompositionIndex.Composite], ScaleMode.StretchToFill, false);
         }
-        
+
         public ViewIndex GetViewFromComposition(Vector2 localCoordinate)
         {
             Rect compositionRect = m_Displayer.GetRect(ViewCompositionIndex.Composite);
@@ -310,9 +362,6 @@ namespace UnityEditor.Rendering.Experimental.LookDev
                     return Vector3.Dot(new Vector3(normalizedLocalCoordinate.x, normalizedLocalCoordinate.y, 1), m_Contexts.layout.gizmoState.plane) >= 0
                         ? ViewIndex.First
                         : ViewIndex.Second;
-                case Layout.CustomCircular:
-                    //[TODO]
-                    return default;
                 default:
                     throw new Exception("GetViewFromComposition call when not inside a Composition");
             }

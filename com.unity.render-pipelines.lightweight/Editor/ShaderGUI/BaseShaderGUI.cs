@@ -343,9 +343,14 @@ namespace UnityEditor
             // LW does not support RealtimeEmissive. We set it to bake emissive and handle the emissive is black right.
             if (emissive)
             {
-                material.globalIlluminationFlags = MaterialGlobalIlluminationFlags.BakedEmissive;
+                var oldFlags = material.globalIlluminationFlags;
+
+                var newFlags = MaterialGlobalIlluminationFlags.BakedEmissive;
                 if (brightness <= 0f)
-                    material.globalIlluminationFlags |= MaterialGlobalIlluminationFlags.EmissiveIsBlack;
+                    newFlags |= MaterialGlobalIlluminationFlags.EmissiveIsBlack;
+
+                if (newFlags != oldFlags)
+                    material.globalIlluminationFlags = newFlags;
             }
         }
 
