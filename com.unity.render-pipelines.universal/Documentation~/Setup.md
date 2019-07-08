@@ -2,15 +2,15 @@
 
 ## Required Installations
 
-- __Lightweight Render Pipeline__ version 6.7 or higher (available via the Package Manager)
+- __Universal Render Pipeline__ version 6.7 or higher (available via the Package Manager)
 - __Unity 2019.2.0b1__ or later
 
 ## Configuring the 2D Renderer
 
 ![](images\image_2.png)
 
-1. Create a new __Pipeline Asset__ by going to the __Assets__ menu and selecting __Create > Rendering > Lightweight Render Pipeline > Pipeline Asset__
-2. Create a new __2D Renderer__ by going to  the Assets menu and selecting __Create > Rendering > Lightweight Render Pipeline > 2D Renderer__
+1. Create a new __Pipeline Asset__ by going to the __Assets__ menu and selecting __Create > Rendering > Universal Render Pipeline > Pipeline Asset__
+2. Create a new __2D Renderer__ by going to  the Assets menu and selecting __Create > Rendering > Universal Render Pipeline > 2D Renderer__
 
 ![](images\image_3.png)
 
@@ -25,5 +25,5 @@
 The __2D Renderer__ should now be configured for your Project.
 
 
-**Note:** If you have the experimental 2D Renderer enabled, some of the options related to 3D rendering in the LWRP Asset don't have any impact on your final app or game.
+**Note:** If you have the experimental 2D Renderer enabled, some of the options related to 3D rendering in the UniversalRP Asset don't have any impact on your final app or game.
 

@@ -1,14 +1,14 @@
-# Lightweight Render Pipeline Asset
-To use the Lightweight Render Pipeline (LWRP), you have to [create a LWRP Asset and assign the asset in the Graphics settings](configuring-lwrp-for-use.md). 
+# Universal Render Pipeline Asset
+To use the Universal Render Pipeline (UniversalRP), you have to [create a UniversalRP Asset and assign the asset in the Graphics settings](configuring-universalrp-for-use.md). 
 
-The LWRP Asset controls several graphical features and quality settings for the Lightweight Render Pipeline.  It is a scriptable object that inherits from ‘RenderPipelineAsset’. When you assign the asset in the Graphics settings, Unity switches from the built-in render pipeline to the LWRP. You can then adjust the corresponding settings directly in the LWRP, instead of looking for them elsewhere.
+The UniversalRP Asset controls several graphical features and quality settings for the Universal Render Pipeline.  It is a scriptable object that inherits from ‘RenderPipelineAsset’. When you assign the asset in the Graphics settings, Unity switches from the built-in render pipeline to the UniversalRP. You can then adjust the corresponding settings directly in the UniversalRP, instead of looking for them elsewhere.
 
-You can have multiple LWRP assets and switch between them. For example, you can have one with Shadows on and one with Shadows off. If you switch between the assets to see the effects, you don’t have to manually toggle the corresponding settings for shadows every time. You cannot, however, switch between HDRP/SRP and LWRP assets, as the 
+You can have multiple UniversalRP assets and switch between them. For example, you can have one with Shadows on and one with Shadows off. If you switch between the assets to see the effects, you don’t have to manually toggle the corresponding settings for shadows every time. You cannot, however, switch between HDRP/SRP and UniversalRP assets, as the 
  render pipelines are incompatible.
 
 
 ## UI overview
-In the LWRP, you can configure settings for:
+In the UniversalRP, you can configure settings for:
 
 - [__General__](#general)
 - [__Quality__](#quality)
@@ -18,7 +18,7 @@ In the LWRP, you can configure settings for:
 
 
 
-**Note:** If you have the experimental 2D Renderer enabled (menu: **Graphics Settings** > add the 2D Renderer Asset under **Scriptable Render Pipeline Settings**), some of the options related to 3D rendering in the LWRP Asset don't have any impact on your final app or game.
+**Note:** If you have the experimental 2D Renderer enabled (menu: **Graphics Settings** > add the 2D Renderer Asset under **Scriptable Render Pipeline Settings**), some of the options related to 3D rendering in the UniversalRP Asset don't have any impact on your final app or game.
 
 
 
@@ -27,15 +27,15 @@ The __General__ settings control the core part of the pipeline rendered frame.
 
 | __Property__            | __Description__                                              |
 | ----------------------- | ------------------------------------------------------------ |
-| __Depth Texture__       | Enables LWRP to create a `_CameraDepthTexture`. LWRP then uses this [depth texture](https://docs.unity3d.com/Manual/SL-DepthTextures.html) by default for all Cameras in your Scene. You can override this for individual cameras in the [Camera Inspector](camera-inspector.md). |
-| __Opaque Texture__      | Enable this to create a `_CameraOpaqueTexture` as default for all cameras in your Scene. This works like the [GrabPass](https://docs.unity3d.com/Manual/SL-GrabPass.html) in the built-in render pipeline. The __Opaque Texture__ provides a snapshot of the scene right before LWRP renders any transparent meshes. You can use this in transparent Shaders to create effects like frosted glass, water refraction, or heat waves. You can override this for individual cameras in the [Camera Inspector](camera-inspector.md). |
+| __Depth Texture__       | Enables UniversalRP to create a `_CameraDepthTexture`. UniversalRP then uses this [depth texture](https://docs.unity3d.com/Manual/SL-DepthTextures.html) by default for all Cameras in your Scene. You can override this for individual cameras in the [Camera Inspector](camera-inspector.md). |
+| __Opaque Texture__      | Enable this to create a `_CameraOpaqueTexture` as default for all cameras in your Scene. This works like the [GrabPass](https://docs.unity3d.com/Manual/SL-GrabPass.html) in the built-in render pipeline. The __Opaque Texture__ provides a snapshot of the scene right before UniversalRP renders any transparent meshes. You can use this in transparent Shaders to create effects like frosted glass, water refraction, or heat waves. You can override this for individual cameras in the [Camera Inspector](camera-inspector.md). |
 | __Opaque Downsampling__ | Set the sampling mode on the opaque texture to one of the following:<br/>__None__:  Produces a copy of the opaque pass in the same resolution as the camera.<br/>__2x Bilinear__: Produces a half-resolution image with bilinear filtering.<br/>__4x Box__: Produces a quarter-resolution image with box filtering. This produces a softly blurred copy.<br/>__4x Bilinear__: Produces a quarter-resolution image with bi-linear filtering. |
 
 
 ### Quality                                                                                                                                                                                                                                         
-These settings control the quality level of the LWRP. This is where you can make performance better on lower-end hardware or make graphics look better on  higher-end hardware. 
+These settings control the quality level of the UniversalRP. This is where you can make performance better on lower-end hardware or make graphics look better on  higher-end hardware. 
 
-**Tip:** If you want to have different settings for different hardware, you can configure these settings across multiple Lightweight Render Pipeline assets, and switch them out as needed.
+**Tip:** If you want to have different settings for different hardware, you can configure these settings across multiple Universal Render Pipeline assets, and switch them out as needed.
 
 | Property         | Description                                                  |
 | ---------------- | ------------------------------------------------------------ |
@@ -52,7 +52,7 @@ If you disable some of these settings, the relevant [keywords](shader-stripping-
 
 | Property              | Description                                                  |
 | --------------------- | ------------------------------------------------------------ |
-| __Main Light__        | These settings affect the main [Directional Light](https://docs.unity3d.com/Manual/Lighting.html) in your Scene. You can select this by assigning it as a [Sun Source](https://docs.unity3d.com/Manual/GlobalIllumination.html) in the Lighting Inspector. If you don’t assign a sun source, the LWRP treats the brightest directional light in the Scene as the main light. You can choose between [Pixel Lighting](https://docs.unity3d.com/Manual/LightPerformance.html) and _None_. If you choose None, LWRP doesn’t render a main light,  even if you’ve set a sun source. |
+| __Main Light__        | These settings affect the main [Directional Light](https://docs.unity3d.com/Manual/Lighting.html) in your Scene. You can select this by assigning it as a [Sun Source](https://docs.unity3d.com/Manual/GlobalIllumination.html) in the Lighting Inspector. If you don’t assign a sun source, the UniversalRP treats the brightest directional light in the Scene as the main light. You can choose between [Pixel Lighting](https://docs.unity3d.com/Manual/LightPerformance.html) and _None_. If you choose None, UniversalRP doesn’t render a main light,  even if you’ve set a sun source. |
 | __Cast Shadows__      | Check this box to make the main light cast shadows in your Scene. |
 | __Shadow Resolution__ | This controls how large the shadow map texture for the main light is. High resolutions give sharper, more detailed shadows. If memory or rendering time is an issue, try a lower resolution. |
 | __Additional Lights__ | Here, you can choose to have additional lights to supplement your main light. Choose between [Per Vertex](https://docs.unity3d.com/Manual/LightPerformance.html), [Per Pixel](https://docs.unity3d.com/Manual/LightPerformance.html), or __Disabled__. |
@@ -70,7 +70,7 @@ These settings affect how shadows look and behave. They also impact performance,
 
 | Property         | Description                                                  |
 | ---------------- | ------------------------------------------------------------ |
-| __Distance__     | This controls how far ahead of the camera objects cast shadows, in Unity units. After this distance, LWRP doesn’t render shadows. For example, the value 100 means that objects more than 100 meters away from the camera do not cast shadows. Use this in large, open worlds, where rendering shadows far away can consume lots of memory. Or use it in top-down games with limited view distance. |
+| __Distance__     | This controls how far ahead of the camera objects cast shadows, in Unity units. After this distance, UniversalRP doesn’t render shadows. For example, the value 100 means that objects more than 100 meters away from the camera do not cast shadows. Use this in large, open worlds, where rendering shadows far away can consume lots of memory. Or use it in top-down games with limited view distance. |
 | __Cascades__     | Select the number of  [cascades](https://docs.unity3d.com/Manual/DirLightShadows.html) for shadows. A high number of cascades gives you more detailed shadows nearer the camera.The options are: __None__, __Two Cascades__ and __Four Cascades__. If you’re experiencing performance issues, try lowering the amount of cascades. You can also configure the distance for shadows in the  section below the setting. Further away from the camera, shadows become less detailed. |
 | __Soft Shadows__ | If you have enabled shadows for either __Main Light__ or __Additionanal Light__, you can enable this to add a smoother filtering on the shadow maps. This gives you smooth edges on shadows. When enabled, the render pipeline performs a 5x5 Tent filter on desktop platforms and a 4 Tap filter on mobile devices. When disabled, the render pipeline samples the shadow once with default hardware filtering. If you disable this feature, you’ll get faster rendering, but sharper, possibly pixelated, shadow edges. |
 

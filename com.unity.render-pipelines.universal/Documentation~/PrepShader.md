@@ -10,8 +10,8 @@ If you are installing the 2D Lights package into a Project with pre-existing Pre
 
 ### Upgrading a Scene
 
-To upgrade the currently opened Scene, go to __Edit> Render Pipeline > LWRP 2D Renderer > Upgrade Scene To 2D Renderer__
+To upgrade the currently opened Scene, go to __Edit> Render Pipeline > UniversalRP 2D Renderer > Upgrade Scene To 2D Renderer__
 
 ### Upgrading a Project
 
-To upgrade all Prefabs and materials in your Project, go to __Edit > Render Pipeline > LWRP 2D Renderer > Upgrade Project To 2D Renderer__
+To upgrade all Prefabs and materials in your Project, go to __Edit > Render Pipeline > UniversalRP 2D Renderer > Upgrade Project To 2D Renderer__

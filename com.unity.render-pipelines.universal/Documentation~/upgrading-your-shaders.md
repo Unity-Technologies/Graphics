@@ -1,11 +1,11 @@
 # Upgrading your shaders
 
-If your Project uses shaders from the built-in render pipeline, and you want to [switch your Project to use the Lightweight Render Pipeline instead](installing-lwrp-into-an-existing-project), you must convert those Shaders to the LWRP Shaders. This is because built-in Lit shaders are not compatible with LWRP Shaders. For an overview of the mapping between built-in shaders and LWRP Shaders, see [Shader mappings](#shader-mappings).
+If your Project uses shaders from the built-in render pipeline, and you want to [switch your Project to use the Universal Render Pipeline instead](installing-universalrp-into-an-existing-project), you must convert those Shaders to the UniversalRP Shaders. This is because built-in Lit shaders are not compatible with UniversalRP Shaders. For an overview of the mapping between built-in shaders and UniversalRP Shaders, see [Shader mappings](#shader-mappings).
 
 To upgrade built-in Shaders:
 
-1. Open your Project in Unity, and go to __Edit__ > __Render Pipeline__ > **Lightweight Render Pipeline**. 
-2. According to your needs, select either __Upgrade Project Materials to LightweightRP Materials__ or __Upgrade Selected Materials to LightweightRP Materials__.
+1. Open your Project in Unity, and go to __Edit__ > __Render Pipeline__ > **Universal Render Pipeline**. 
+2. According to your needs, select either __Upgrade Project Materials to UniversalRP Materials__ or __Upgrade Selected Materials to UniversalRP Materials__.
 
 **Note:** These changes cannot be undone. Backup your Project before you upgrade it.
 
@@ -15,33 +15,33 @@ For [SpeedTree](https://docs.unity3d.com/Manual/SpeedTree.html) Shaders, Unity d
 
 ## Shader mappings
 
-The table below shows which LWRP shaders the Unity built-in shaders convert to when you run the shader upgrader.
+The table below shows which UniversalRP shaders the Unity built-in shaders convert to when you run the shader upgrader.
 
-| Unity built-in shader                             | Lightweight Render Pipeline shader          |
+| Unity built-in shader                             | Universal Render Pipeline shader          |
 | ------------------------------------------------- | ------------------------------------------- |
-| Standard                                          | Lightweight Render Pipeline/Lit             |
-| Standard (Specular Setup)                         | Lightweight Render Pipeline/Lit             |
-| Standard Terrain                                  | Lightweight Render Pipeline/Terrain/Lit     |
-| Particles/Standard Surface                        | Lightweight Render Pipeline/Particles/Lit   |
-| Particles/Standard Unlit                          | Lightweight Render Pipeline/Particles/Unlit |
-| Mobile/Diffuse                                    | Lightweight Render Pipeline/Simple Lit      |
-| Mobile/Bumped Specular                            | Lightweight Render Pipeline/Simple Lit      |
-| Mobile/Bumped Specular(1 Directional Light)       | Lightweight Render Pipeline/Simple Lit      |
-| Mobile/Unlit (Supports Lightmap)                  | Lightweight Render Pipeline/Simple Lit      |
-| Mobile/VertexLit                                  | Lightweight Render Pipeline/Simple Lit      |
-| Legacy Shaders/Diffuse                            | Lightweight Render Pipeline/Simple Lit      |
-| Legacy Shaders/Specular                           | Lightweight Render Pipeline/Simple Lit      |
-| Legacy Shaders/Bumped Diffuse                     | Lightweight Render Pipeline/Simple Lit      |
-| Legacy Shaders/Bumped Specular                    | Lightweight Render Pipeline/Simple Lit      |
-| Legacy Shaders/Self-Illumin/Diffuse               | Lightweight Render Pipeline/Simple Lit      |
-| Legacy Shaders/Self-Illumin/Bumped Diffuse        | Lightweight Render Pipeline/Simple Lit      |
-| Legacy Shaders/Self-Illumin/Specular              | Lightweight Render Pipeline/Simple Lit      |
-| Legacy Shaders/Self-Illumin/Bumped Specular       | Lightweight Render Pipeline/Simple Lit      |
-| Legacy Shaders/Transparent/Diffuse                | Lightweight Render Pipeline/Simple Lit      |
-| Legacy Shaders/Transparent/Specular               | Lightweight Render Pipeline/Simple Lit      |
-| Legacy Shaders/Transparent/Bumped Diffuse         | Lightweight Render Pipeline/Simple Lit      |
-| Legacy Shaders/Transparent/Bumped Specular        | Lightweight Render Pipeline/Simple Lit      |
-| Legacy Shaders/Transparent/Cutout/Diffuse         | Lightweight Render Pipeline/Simple Lit      |
-| Legacy Shaders/Transparent/Cutout/Specular        | Lightweight Render Pipeline/Simple Lit      |
-| Legacy Shaders/Transparent/Cutout/Bumped Diffuse  | Lightweight Render Pipeline/Simple Lit      |
-| Legacy Shaders/Transparent/Cutout/Bumped Specular | Lightweight Render Pipeline/Simple Lit      |
+| Standard                                          | Universal Render Pipeline/Lit             |
+| Standard (Specular Setup)                         | Universal Render Pipeline/Lit             |
+| Standard Terrain                                  | Universal Render Pipeline/Terrain/Lit     |
+| Particles/Standard Surface                        | Universal Render Pipeline/Particles/Lit   |
+| Particles/Standard Unlit                          | Universal Render Pipeline/Particles/Unlit |
+| Mobile/Diffuse                                    | Universal Render Pipeline/Simple Lit      |
+| Mobile/Bumped Specular                            | Universal Render Pipeline/Simple Lit      |
+| Mobile/Bumped Specular(1 Directional Light)       | Universal Render Pipeline/Simple Lit      |
+| Mobile/Unlit (Supports Lightmap)                  | Universal Render Pipeline/Simple Lit      |
+| Mobile/VertexLit                                  | Universal Render Pipeline/Simple Lit      |
+| Legacy Shaders/Diffuse                            | Universal Render Pipeline/Simple Lit      |
+| Legacy Shaders/Specular                           | Universal Render Pipeline/Simple Lit      |
+| Legacy Shaders/Bumped Diffuse                     | Universal Render Pipeline/Simple Lit      |
+| Legacy Shaders/Bumped Specular                    | Universal Render Pipeline/Simple Lit      |
+| Legacy Shaders/Self-Illumin/Diffuse               | Universal Render Pipeline/Simple Lit      |
+| Legacy Shaders/Self-Illumin/Bumped Diffuse        | Universal Render Pipeline/Simple Lit      |
+| Legacy Shaders/Self-Illumin/Specular              | Universal Render Pipeline/Simple Lit      |
+| Legacy Shaders/Self-Illumin/Bumped Specular       | Universal Render Pipeline/Simple Lit      |
+| Legacy Shaders/Transparent/Diffuse                | Universal Render Pipeline/Simple Lit      |
+| Legacy Shaders/Transparent/Specular               | Universal Render Pipeline/Simple Lit      |
+| Legacy Shaders/Transparent/Bumped Diffuse         | Universal Render Pipeline/Simple Lit      |
+| Legacy Shaders/Transparent/Bumped Specular        | Universal Render Pipeline/Simple Lit      |
+| Legacy Shaders/Transparent/Cutout/Diffuse         | Universal Render Pipeline/Simple Lit      |
+| Legacy Shaders/Transparent/Cutout/Specular        | Universal Render Pipeline/Simple Lit      |
+| Legacy Shaders/Transparent/Cutout/Bumped Diffuse  | Universal Render Pipeline/Simple Lit      |
+| Legacy Shaders/Transparent/Cutout/Bumped Specular | Universal Render Pipeline/Simple Lit      |
