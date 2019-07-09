@@ -158,11 +158,11 @@ namespace UnityEditor.Experimental.Rendering.Universal
             // -------------------------------------
             // Get Slot and Node lists per stage
             var vertexSlots = pass.VertexShaderSlots.Select(masterNode.FindSlot<MaterialSlot>).ToList();
-            var vertexNodes = ListPool<AbstractMaterialNode>.Get();
+            var vertexNodes = Graphing.ListPool<AbstractMaterialNode>.Get();
             NodeUtils.DepthFirstCollectNodesFromNode(vertexNodes, masterNode, NodeUtils.IncludeSelf.Include, pass.VertexShaderSlots);
 
             var pixelSlots = pass.PixelShaderSlots.Select(masterNode.FindSlot<MaterialSlot>).ToList();
-            var pixelNodes = ListPool<AbstractMaterialNode>.Get();
+            var pixelNodes = Graphing.ListPool<AbstractMaterialNode>.Get();
             NodeUtils.DepthFirstCollectNodesFromNode(pixelNodes, masterNode, NodeUtils.IncludeSelf.Include, pass.PixelShaderSlots);
 
             // -------------------------------------
