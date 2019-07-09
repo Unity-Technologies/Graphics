@@ -62,8 +62,7 @@ Shader "Hidden/HDRP/Sky/PbrSky"
 
         float NdotV  = dot(N, V);
         float cosChi = -NdotV;
-        float height = r - R;
-        float cosHor = GetCosineOfHorizonZenithAngle(height);
+        float cosHor = ComputeCosineOfHorizonAngle(r);
 
         bool rayIntersectsAtmosphere = (tEntry >= 0);
         bool lookAboveHorizon        = (cosChi > cosHor);

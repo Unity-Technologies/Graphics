@@ -725,6 +725,8 @@ namespace UnityEditor.VFX.UI
         ParameterGizmoContext m_Context;
         public void DrawGizmos(VisualEffect component)
         {
+            if (isOutput)
+                return;
             if (m_Context == null)
             {
                 m_Context = new ParameterGizmoContext(this);
@@ -734,6 +736,8 @@ namespace UnityEditor.VFX.UI
 
         public Bounds GetGizmoBounds(VisualEffect component)
         {
+            if (isOutput)
+                return  new Bounds();
             if (m_Context == null)
             {
                 m_Context = new ParameterGizmoContext(this);
@@ -745,6 +749,8 @@ namespace UnityEditor.VFX.UI
         {
             get
             {
+                if (isOutput)
+                    return false;
                 return VFXGizmoUtility.NeedsComponent(m_Context);
             }
         }
