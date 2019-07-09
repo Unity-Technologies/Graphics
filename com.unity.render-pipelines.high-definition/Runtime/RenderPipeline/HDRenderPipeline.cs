@@ -84,7 +84,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 #if ENABLE_RAYTRACING
         public HDRaytracingManager m_RayTracingManager = new HDRaytracingManager();
         readonly HDRaytracingRenderer m_RaytracingRenderer = new HDRaytracingRenderer();
-        readonly HDRaytracingIndirectDiffuse m_RaytracingIndirectDiffuse = new HDRaytracingIndirectDiffuse();
         public float GetRaysPerFrame(RayCountManager.RayCountValues rayValues) { return m_RayTracingManager.rayCountManager.GetRaysPerFrame(rayValues); }
 #endif
 
@@ -400,10 +399,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 #if ENABLE_RAYTRACING
             m_RayTracingManager.Init(m_Asset.currentPlatformRenderPipelineSettings, m_Asset.renderPipelineResources, m_Asset.renderPipelineRayTracingResources, m_BlueNoise, this, m_SharedRTManager, m_DebugDisplaySettings);
             InitRayTracedReflections();
+            InitRayTracedIndirectDiffuse();
             InitRaytracingDeferred();
             m_RaytracingRenderer.Init(m_Asset, m_SkyManager, m_RayTracingManager, m_SharedRTManager);
             m_AmbientOcclusionSystem.InitRaytracing(m_RayTracingManager, m_SharedRTManager);
-            m_RaytracingIndirectDiffuse.Init(m_Asset, m_SkyManager, m_RayTracingManager, m_SharedRTManager, m_GbufferManager);
 #endif
 
             // Initialize screen space shadows
@@ -710,9 +709,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             ReleaseScreenSpaceShadows();
 
 #if ENABLE_RAYTRACING
-            m_RaytracingIndirectDiffuse.Release();
             m_RaytracingRenderer.Release();
             ReleaseRayTracingDeferred();
+            ReleaseRayTracedIndirectDiffuse();
             ReleaseRayTracedReflections();
             m_RayTracingManager.Release();
 #endif
@@ -883,6 +882,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 cmd.SetGlobalInt(HDShaderIDs._EnableSkyLighting, hdCamera.frameSettings.IsEnabled(FrameSettingsField.EnableSkyLighting) ? 1 : 0);
 
                 m_SkyManager.SetGlobalSkyData(cmd);
+
+                #if ENABLE_RAYTRACING
+                bool validIndirectDiffuse = ValidIndirectDiffuseState();
+                cmd.SetGlobalInt(HDShaderIDs._RaytracedIndirectDiffuse, validIndirectDiffuse ? 1 : 0);
+                #endif
             }
         }
 
@@ -1709,11 +1713,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             RenderDecals(hdCamera, cmd, renderContext, cullingResults);
 
-#if ENABLE_RAYTRACING
-            bool validIndirectDiffuse = m_RaytracingIndirectDiffuse.ValidIndirectDiffuseState();
-            cmd.SetGlobalInt(HDShaderIDs._RaytracedIndirectDiffuse, validIndirectDiffuse ? 1 : 0);
-#endif
-
             RenderGBuffer(cullingResults, hdCamera, renderContext, cmd);
 
             // We can now bind the normal buffer to be use by any effect
@@ -1733,11 +1732,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             RenderCameraMotionVectors(cullingResults, hdCamera, renderContext, cmd);
 
 #if ENABLE_RAYTRACING
-            bool raytracedIndirectDiffuse = m_RaytracingIndirectDiffuse.RenderIndirectDiffuse(hdCamera, cmd, renderContext, m_FrameCount);
-            if(raytracedIndirectDiffuse)
-            {
-                PushFullScreenDebugTexture(hdCamera, cmd, m_RaytracingIndirectDiffuse.GetIndirectDiffuseTexture(), FullScreenDebugMode.IndirectDiffuse);
-            }
+            RenderIndirectDiffuse(hdCamera, cmd, renderContext, m_FrameCount);
 #endif
 
 #if UNITY_EDITOR
