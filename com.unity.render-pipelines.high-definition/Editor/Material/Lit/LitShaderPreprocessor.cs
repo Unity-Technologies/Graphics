@@ -24,12 +24,20 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             bool isTransparentForwardPass = isTransparentPostpass || isTransparentBackface || isTransparentPrepass || isDistortionPass;
 
             // Using Contains to include the Tessellation variants
-            bool isBuiltInLit = shader.name.Contains("HDRP/Lit") || shader.name.Contains("HDRP/LayeredLit") || shader.name.Contains("HDRP/TerrainLit");
+            bool isBuiltInTerrainLit = shader.name.Contains("HDRP/TerrainLit");
+            bool isBuiltInLit = shader.name.Contains("HDRP/Lit") || shader.name.Contains("HDRP/LayeredLit") || isBuiltInTerrainLit;
 
             if (shader.IsShaderGraph())
             {
                 string shaderPath = AssetDatabase.GetAssetPath(shader);
                 isBuiltInLit |= GraphUtil.GetOutputNodeType(shaderPath) == typeof(HDLitMasterNode);
+            }
+
+            // Caution: Currently only HDRP/TerrainLit is using keyword _ALPHATEST_ON with multi compile, we shouldn't test any other built in shader
+            if (isBuiltInTerrainLit)
+            {
+                if (inputData.shaderKeywordSet.IsEnabled(m_AlphaTestOn) && !hdrpAsset.currentPlatformRenderPipelineSettings.supportTerrainHole)
+                    return true;
             }
 
             // When using forward only, we never need GBuffer pass (only Forward)
