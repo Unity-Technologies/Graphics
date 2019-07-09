@@ -23,7 +23,7 @@ namespace UnityEngine.VFX.Utility
 
 
         public int TouchIndex = 0;
-        public Camera Target;
+        public Camera Target = null;
         public float Distance = 10.0f;
 #if VFX_USE_PHYSICS
         public bool UseRaycast = false;

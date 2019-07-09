@@ -12,7 +12,7 @@ namespace UnityEngine.VFX.Utility
 
         [VFXPropertyBinding("System.Single"), SerializeField, UnityEngine.Serialization.FormerlySerializedAs("m_Parameter")]
         protected ExposedProperty m_Property = "FloatParameter";
-        public Slider Target;
+        public Slider Target = null;
 
         public override bool IsValid(VisualEffect component)
         {

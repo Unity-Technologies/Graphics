@@ -126,7 +126,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
     lightEnd = _PunctualLightCountRT;
     #endif
 
-    int i = 0;
+    uint i = 0;
     for (i = lightStart; i < lightEnd; i++)
     {
         #ifdef USE_LIGHT_CLUSTER

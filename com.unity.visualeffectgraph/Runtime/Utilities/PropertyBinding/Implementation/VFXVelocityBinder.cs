@@ -10,7 +10,7 @@ namespace UnityEngine.VFX.Utility
 
         [VFXPropertyBinding("UnityEngine.Vector3"), SerializeField, UnityEngine.Serialization.FormerlySerializedAs("m_Parameter")]
         public ExposedProperty m_Property = "Velocity";
-        public Transform Target;
+        public Transform Target = null;
 
         private static readonly float invalidPreviousTime = -1.0f;
         private float m_PreviousTime = invalidPreviousTime;

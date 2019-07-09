@@ -30,8 +30,8 @@ namespace UnityEngine.VFX.Utility
             World
         }
 
-        public GameObject RaycastSource;
-        public Vector3 RaycastDirection;
+        public GameObject RaycastSource = null;
+        public Vector3 RaycastDirection = Vector3.forward;
         public Space RaycastDirectionSpace = Space.Local;
         public LayerMask Layers = -1;
         public float MaxDistance = 100.0f;

@@ -148,6 +148,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             [Reload("Runtime/Core/CoreResources/ClearUIntTextureArray.compute")]
             public ComputeShader clearUIntTextureCS;
 
+            // XR
+            [Reload("Runtime/ShaderLibrary/XROcclusionMesh.shader")]
+            public Shader xrOcclusionMeshPS;
+
             // Shadow            
             [Reload("Runtime/Lighting/Shadow/ShadowClear.shader")]
             public Shader shadowClearPS;
@@ -265,8 +269,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public Texture2D[] blueNoise16LTex;
             [Reload("Runtime/RenderPipelineResources/Texture/BlueNoise16/RGB/LDR_RGB1_{0}.png", 0, 32)]
             public Texture2D[] blueNoise16RGBTex;
-            [Reload("Runtime/RenderPipelineResources/Texture/CoherentNoise/OwenScrambledNoise.png")]
-            public Texture2D owenScrambledTex;
+            [Reload("Runtime/RenderPipelineResources/Texture/CoherentNoise/OwenScrambledNoise4.png")]
+            public Texture2D owenScrambledRGBATex;
+            [Reload("Runtime/RenderPipelineResources/Texture/CoherentNoise/OwenScrambledNoise256.png")]
+            public Texture2D owenScrambled256Tex;
             [Reload("Runtime/RenderPipelineResources/Texture/CoherentNoise/ScrambleNoise.png")]
             public Texture2D scramblingTex;
 

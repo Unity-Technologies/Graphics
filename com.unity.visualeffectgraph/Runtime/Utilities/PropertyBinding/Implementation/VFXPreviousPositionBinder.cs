@@ -8,7 +8,7 @@ namespace UnityEngine.VFX.Utility
     {
         [VFXPropertyBinding("UnityEngine.Vector3"), UnityEngine.Serialization.FormerlySerializedAs("m_Parameter")]
         public ExposedProperty m_Property = "PreviousPosition";
-        public Transform Target;
+        public Transform Target = null;
         Vector3 oldPosition;
     
         protected override void OnEnable()

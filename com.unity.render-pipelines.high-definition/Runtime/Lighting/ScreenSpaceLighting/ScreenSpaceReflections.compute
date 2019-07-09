@@ -110,7 +110,7 @@ void ScreenSpaceReflectionsTracing(uint3 dispatchThreadId : SV_DispatchThreadID)
 #endif
 
     float2 positionNDC = positionSS * _ScreenSize.zw + (0.5 * _ScreenSize.zw); // Should we precompute the half-texel bias? We seem to use it a lot.
-    float  deviceDepth = LOAD_TEXTURE2D_X(_DepthPyramidTexture, positionSS).r;
+    float  deviceDepth = LOAD_TEXTURE2D_X(_CameraDepthTexture, positionSS).r;
 
     bool killRay = deviceDepth == UNITY_RAW_FAR_CLIP_VALUE;
 
@@ -220,7 +220,7 @@ void ScreenSpaceReflectionsTracing(uint3 dispatchThreadId : SV_DispatchThreadID)
         float4 bounds;
 
         bounds.xy = (mipCoord + rayStep) << mipLevel;
-        bounds.z  = LOAD_TEXTURE2D_X(_DepthPyramidTexture, mipOffset + mipCoord).r;
+        bounds.z  = LOAD_TEXTURE2D_X(_CameraDepthTexture, mipOffset + mipCoord).r;
 
         // We define the depth of the base as the depth value as:
         // b = DeviceDepth((1 + thickness) * LinearDepth(d))

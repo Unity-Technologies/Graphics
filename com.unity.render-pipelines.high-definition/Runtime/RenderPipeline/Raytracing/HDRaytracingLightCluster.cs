@@ -578,7 +578,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 {
                     var spotAngle = light.spotAngle;
 
-                    var innerConePercent = additionalLightData.GetInnerSpotPercent01();
+                    var innerConePercent = additionalLightData.innerSpotPercent01;
                     var cosSpotOuterHalfAngle = Mathf.Clamp(Mathf.Cos(spotAngle * 0.5f * Mathf.Deg2Rad), 0.0f, 1.0f);
                     var sinSpotOuterHalfAngle = Mathf.Sqrt(1.0f - cosSpotOuterHalfAngle * cosSpotOuterHalfAngle);
                     var cosSpotInnerHalfAngle = Mathf.Clamp(Mathf.Cos(spotAngle * 0.5f * innerConePercent * Mathf.Deg2Rad), 0.0f, 1.0f); // inner cone

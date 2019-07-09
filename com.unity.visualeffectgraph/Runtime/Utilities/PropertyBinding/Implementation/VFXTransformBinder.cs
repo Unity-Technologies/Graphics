@@ -10,7 +10,7 @@ namespace UnityEngine.VFX.Utility
 
         [VFXPropertyBinding("UnityEditor.VFX.Transform"), SerializeField, UnityEngine.Serialization.FormerlySerializedAs("m_Parameter")]
         protected ExposedProperty m_Property = "Transform";
-        public Transform Target;
+        public Transform Target = null;
 
         private ExposedProperty Position;
         private ExposedProperty Angles;

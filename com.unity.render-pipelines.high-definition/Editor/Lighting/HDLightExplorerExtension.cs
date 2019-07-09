@@ -12,14 +12,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         struct LightData
         {
             public HDAdditionalLightData hdAdditionalLightData;
-            public AdditionalShadowData additionalShadowData;
             public bool isPrefab;
             public Object prefabRoot;
 
-            public LightData(HDAdditionalLightData hdAdditionalLightData, AdditionalShadowData additionalShadowData, bool isPrefab, Object prefabRoot)
+            public LightData(HDAdditionalLightData hdAdditionalLightData, bool isPrefab, Object prefabRoot)
             {
                 this.hdAdditionalLightData = hdAdditionalLightData;
-                this.additionalShadowData = additionalShadowData;
                 this.isPrefab = isPrefab;
                 this.prefabRoot = prefabRoot;
             }
@@ -125,12 +123,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 if (PrefabUtility.GetCorrespondingObjectFromSource(light) != null) // We have a prefab
                 {
-                    lightDataPairing[light] = new LightData(light.GetComponent<HDAdditionalLightData>(), light.GetComponent<AdditionalShadowData>(),
+                    lightDataPairing[light] = new LightData(light.GetComponent<HDAdditionalLightData>(),
                                                             true, PrefabUtility.GetCorrespondingObjectFromSource(PrefabUtility.GetOutermostPrefabInstanceRoot(light.gameObject)));
                 }
                 else
                 {
-                    lightDataPairing[light] = new LightData(light.GetComponent<HDAdditionalLightData>(), light.GetComponent<AdditionalShadowData>(), false, null);
+                    lightDataPairing[light] = new LightData(light.GetComponent<HDAdditionalLightData>(), false, null);
                 }
             }
             return lights;
@@ -231,33 +229,33 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Checkbox, HDStyles.ContactShadows, "m_Shadows.m_Type", 100, (r, prop, dep) =>  // 12: Contact Shadows
                 {
                     Light light = prop.serializedObject.targetObject as Light;
-                    if(light == null || lightDataPairing[light].additionalShadowData == null)
+                    if(light == null || lightDataPairing[light].hdAdditionalLightData == null)
                     {
                         EditorGUI.LabelField(r,"null");
                         return;
                     }
-                    bool contactShadows = lightDataPairing[light].additionalShadowData.contactShadows;
+                    bool contactShadows = lightDataPairing[light].hdAdditionalLightData.contactShadows;
                     EditorGUI.BeginChangeCheck();
                     contactShadows = EditorGUI.Toggle(r, contactShadows);
                     if (EditorGUI.EndChangeCheck())
                     {
-                        lightDataPairing[light].additionalShadowData.contactShadows = contactShadows;
+                        lightDataPairing[light].hdAdditionalLightData.contactShadows = contactShadows;
                     }
                 }),
                 new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Int, HDStyles.ShadowResolution, "m_Intensity", 60, (r, prop, dep) =>           // 13: Shadow resolution
                 {
                     Light light = prop.serializedObject.targetObject as Light;
-                    if(light == null || lightDataPairing[light].additionalShadowData == null)
+                    if(light == null || lightDataPairing[light].hdAdditionalLightData == null)
                     {
                         EditorGUI.LabelField(r,"null");
                         return;
                     }
-                    int shadowResolution = lightDataPairing[light].additionalShadowData.shadowResolution;
+                    int shadowResolution = lightDataPairing[light].hdAdditionalLightData.shadowResolution;
                     EditorGUI.BeginChangeCheck();
                     shadowResolution = EditorGUI.IntField(r, shadowResolution);
                     if (EditorGUI.EndChangeCheck())
                     {
-                        lightDataPairing[light].additionalShadowData.shadowResolution = shadowResolution;
+                        lightDataPairing[light].hdAdditionalLightData.shadowResolution = shadowResolution;
                     }
                 }),
                 new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Checkbox, HDStyles.AffectDiffuse, "m_Intensity", 90, (r, prop, dep) =>         // 14: Affect Diffuse
@@ -312,18 +310,18 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Float, HDStyles.ShadowFadeDistance, "m_Intensity", 60, (r, prop, dep) =>           // 17: Shadow Fade Distance
                 {
                     Light light = prop.serializedObject.targetObject as Light;
-                    if(light == null || lightDataPairing[light].additionalShadowData == null)
+                    if(light == null || lightDataPairing[light].hdAdditionalLightData == null)
                     {
                         EditorGUI.LabelField(r,"null");
                         return;
                     }
-                    float shadowFadeDistance = lightDataPairing[light].additionalShadowData.shadowFadeDistance;
+                    float shadowFadeDistance = lightDataPairing[light].hdAdditionalLightData.shadowFadeDistance;
                     EditorGUI.BeginChangeCheck();
                     shadowFadeDistance = EditorGUI.FloatField(r, shadowFadeDistance);
                     if (EditorGUI.EndChangeCheck())
                     {
-                        Undo.RecordObject(lightDataPairing[light].additionalShadowData, "Changed light shadow fade distance");
-                        lightDataPairing[light].additionalShadowData.shadowFadeDistance = shadowFadeDistance;
+                        Undo.RecordObject(lightDataPairing[light].hdAdditionalLightData, "Changed light shadow fade distance");
+                        lightDataPairing[light].hdAdditionalLightData.shadowFadeDistance = shadowFadeDistance;
                     }
                 }),
                 new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Custom, HDStyles.LightLayer, "m_RenderingLayerMask", 80, (r, prop, dep) =>     // 18: Light Layer

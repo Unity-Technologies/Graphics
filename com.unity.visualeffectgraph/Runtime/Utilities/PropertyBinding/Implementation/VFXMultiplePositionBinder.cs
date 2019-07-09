@@ -12,7 +12,7 @@ namespace UnityEngine.VFX.Utility
         [VFXPropertyBinding("System.Int32"), UnityEngine.Serialization.FormerlySerializedAs("PositionCountParameter")]
         public ExposedProperty PositionCountProperty = "PositionCount";
 
-        public GameObject[] Targets;
+        public GameObject[] Targets = null;
         public bool EveryFrame = false;
 
         private Texture2D positionMap;
