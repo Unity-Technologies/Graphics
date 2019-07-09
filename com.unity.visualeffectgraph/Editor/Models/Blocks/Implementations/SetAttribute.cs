@@ -18,6 +18,7 @@ namespace UnityEditor.VFX.Block
 
             foreach (var attribute in attributes)
             {
+                var attributeRefSize = VFXExpressionHelper.GetSizeOfType(VFXAttribute.Find(attribute).type);
                 foreach (var random in randoms)
                 {
                     foreach (var source in sources)
@@ -33,8 +34,12 @@ namespace UnityEditor.VFX.Block
                             if (composition != AttributeCompositionMode.Overwrite && attribute == VFXAttribute.Alive.name)
                                 continue;
 
+                            var currentRandomMode = random;
+                            if (currentRandomMode == RandomMode.PerComponent && attributeRefSize == 1)
+                                currentRandomMode = RandomMode.Uniform;
+
                             yield return new[] {    new KeyValuePair<string, object>("attribute", attribute),
-                                                    new KeyValuePair<string, object>("Random", random),
+                                                    new KeyValuePair<string, object>("Random", currentRandomMode),
                                                     new KeyValuePair<string, object>("Source", source),
                                                     new KeyValuePair<string, object>("Composition", composition) };
                         }
