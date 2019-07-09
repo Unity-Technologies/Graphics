@@ -7,6 +7,14 @@ using UnityEngine.Scripting.APIUpdating;
 using UnityEditor.Experimental.SceneManagement;
 #endif
 
+namespace UnityEngine.Experimental.Rendering.LWRP
+{
+    [Obsolete("LWRP -> Universal (UnityUpgradable) -> UnityEngine.Experimental.Rendering.Universal.Light2D", true)]
+    public class Light2D
+    {}
+}
+
+
 namespace UnityEngine.Experimental.Rendering.Universal
 {
     class Light2DManager : IDisposable
@@ -118,7 +126,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
     //     Change code to update mesh only when it is on screen. Maybe we can recreate a changed mesh if it was on screen last update (in the update), and if it wasn't set it dirty. If dirty, in the OnBecameVisible function create the mesh and clear the dirty flag.
     [ExecuteAlways, DisallowMultipleComponent]
     [AddComponentMenu("Rendering/2D/Light 2D (Experimental)")]
-    [MovedFrom("UnityEngine.Experimental.Rendering.LWRP")]
     sealed public partial class Light2D : MonoBehaviour
     {
         /// <summary>

@@ -1,11 +1,5 @@
+using System;
 using UnityEngine.Scripting.APIUpdating;
-
-namespace UnityEngine.Experimental.Rendering.LWRP
-{
-    sealed public partial class Light2D
-    {
-    }
-}
 
 namespace UnityEngine.Experimental.Rendering.Universal
 {
