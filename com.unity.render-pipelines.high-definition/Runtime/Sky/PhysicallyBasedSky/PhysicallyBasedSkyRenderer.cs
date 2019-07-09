@@ -9,10 +9,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         [GenerateHLSL]
         public enum PbrSkyConfig
         {
-            // 64 KiB
-            OpticalDepthTableSizeX        = 128, // <N, X>
-            OpticalDepthTableSizeY        = 128, // height
-
             // Tiny
             GroundIrradianceTableSize     = 256, // <N, L>
 
@@ -34,30 +30,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         PhysicallyBasedSkySettings   m_Settings;
         // Precomputed data below.
-        RTHandleSystem.RTHandle      m_OpticalDepthTable;
         RTHandleSystem.RTHandle[]    m_GroundIrradianceTables;    // All orders, one order
         RTHandleSystem.RTHandle[]    m_InScatteredRadianceTables; // Air SS, Aerosol SS, Atmosphere MS, Atmosphere one order, Temp
 
-        static ComputeShader         s_OpticalDepthPrecomputationCS;
         static ComputeShader         s_GroundIrradiancePrecomputationCS;
         static ComputeShader         s_InScatteredRadiancePrecomputationCS;
         static Material              s_PbrSkyMaterial;
         static MaterialPropertyBlock s_PbrSkyMaterialProperties;
 
         static GraphicsFormat s_ColorFormat = GraphicsFormat.R16G16B16A16_SFloat;
-
-        RTHandleSystem.RTHandle AllocateOpticalDepthTable()
-        {
-            var table = RTHandles.Alloc((int)PbrSkyConfig.OpticalDepthTableSizeX,
-                                        (int)PbrSkyConfig.OpticalDepthTableSizeY,
-                                        colorFormat: GraphicsFormat.R16G16_SFloat,
-                                        enableRandomWrite: true,
-                                        name: "OpticalDepthTable");
-
-            Debug.Assert(table != null);
-
-            return table;
-        }
 
         RTHandleSystem.RTHandle AllocateGroundIrradianceTable(int index)
         {
@@ -99,18 +80,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             var hdrpResources = HDRenderPipeline.defaultAsset.renderPipelineResources;
 
             // Shaders
-            s_OpticalDepthPrecomputationCS        = hdrpResources.shaders.opticalDepthPrecomputationCS;
             s_GroundIrradiancePrecomputationCS    = hdrpResources.shaders.groundIrradiancePrecomputationCS;
             s_InScatteredRadiancePrecomputationCS = hdrpResources.shaders.inScatteredRadiancePrecomputationCS;
             s_PbrSkyMaterial                      = CoreUtils.CreateEngineMaterial(hdrpResources.shaders.physicallyBasedSkyPS);
             s_PbrSkyMaterialProperties            = new MaterialPropertyBlock();
 
-            Debug.Assert(s_OpticalDepthPrecomputationCS        != null);
             Debug.Assert(s_GroundIrradiancePrecomputationCS    != null);
             Debug.Assert(s_InScatteredRadiancePrecomputationCS != null);
-
-            // Textures
-            m_OpticalDepthTable = AllocateOpticalDepthTable();
 
             // No temp tables.
             m_GroundIrradianceTables       = new RTHandleSystem.RTHandle[2];
@@ -131,7 +107,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // TODO: ground irradiance table? Volume SH? Something else?
             if (m_LastPrecomputedBounce > 0)
             {
-                cmd.SetGlobalTexture(HDShaderIDs._OpticalDepthTexture,            m_OpticalDepthTable);
                 cmd.SetGlobalTexture(HDShaderIDs._AirSingleScatteringTexture,     m_InScatteredRadianceTables[0]);
                 cmd.SetGlobalTexture(HDShaderIDs._AerosolSingleScatteringTexture, m_InScatteredRadianceTables[1]);
                 cmd.SetGlobalTexture(HDShaderIDs._MultipleScatteringTexture,      m_InScatteredRadianceTables[2]);
@@ -152,7 +127,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             m_Settings = null;
 
-            RTHandles.Release(m_OpticalDepthTable);            m_OpticalDepthTable            = null;
             RTHandles.Release(m_GroundIrradianceTables[0]);    m_GroundIrradianceTables[0]    = null;
             RTHandles.Release(m_GroundIrradianceTables[1]);    m_GroundIrradianceTables[1]    = null;
             RTHandles.Release(m_InScatteredRadianceTables[0]); m_InScatteredRadianceTables[0] = null;
@@ -229,16 +203,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         void PrecomputeTables(CommandBuffer cmd)
         {
-            if (m_LastPrecomputedBounce == 0)
-            {
-                // Only needs to be done once.
-                using (new ProfilingSample(cmd, "Optical Depth Precomputation"))
-                {
-                    cmd.SetComputeTextureParam(s_OpticalDepthPrecomputationCS, 0, HDShaderIDs._OpticalDepthTable, m_OpticalDepthTable);
-                    cmd.DispatchCompute(s_OpticalDepthPrecomputationCS, 0, (int)PbrSkyConfig.OpticalDepthTableSizeX / 8, (int)PbrSkyConfig.OpticalDepthTableSizeY / 8, 1);
-                }
-            }
-
             using (new ProfilingSample(cmd, "In-Scattered Radiance Precomputation"))
             {
                 //for (int order = 1; order <= m_Settings.numBounces; order++)
@@ -256,11 +220,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     for (int i = 0; i < numPasses; i++)
                     {
                         int pass = (i == 0) ? firstPass : accumPass;
-
-                        {
-                            // Used by all passes.
-                            cmd.SetComputeTextureParam(s_InScatteredRadiancePrecomputationCS, pass, HDShaderIDs._OpticalDepthTexture,  m_OpticalDepthTable);
-                        }
 
                         switch (pass)
                         {
@@ -308,7 +267,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     switch (firstPass)
                     {
                     case 0:
-                        cmd.SetComputeTextureParam(s_GroundIrradiancePrecomputationCS, firstPass, HDShaderIDs._OpticalDepthTexture,            m_OpticalDepthTable);
                         break;
                     case 1:
                         cmd.SetComputeTextureParam(s_GroundIrradiancePrecomputationCS, firstPass, HDShaderIDs._AirSingleScatteringTexture,     m_InScatteredRadianceTables[0]);
@@ -405,7 +363,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             if (m_LastPrecomputedBounce != 0)
             {
-                s_PbrSkyMaterialProperties.SetTexture(HDShaderIDs._OpticalDepthTexture,            m_OpticalDepthTable);
                 s_PbrSkyMaterialProperties.SetTexture(HDShaderIDs._GroundIrradianceTexture,        m_GroundIrradianceTables[0]);
                 s_PbrSkyMaterialProperties.SetTexture(HDShaderIDs._AirSingleScatteringTexture,     m_InScatteredRadianceTables[0]);
                 s_PbrSkyMaterialProperties.SetTexture(HDShaderIDs._AerosolSingleScatteringTexture, m_InScatteredRadianceTables[1]);
@@ -413,7 +370,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
             else
             {
-                s_PbrSkyMaterialProperties.SetTexture(HDShaderIDs._OpticalDepthTexture,            Texture2D.blackTexture);
                 s_PbrSkyMaterialProperties.SetTexture(HDShaderIDs._GroundIrradianceTexture,        Texture2D.blackTexture);
                 s_PbrSkyMaterialProperties.SetTexture(HDShaderIDs._AirSingleScatteringTexture,     CoreUtils.blackVolumeTexture);
                 s_PbrSkyMaterialProperties.SetTexture(HDShaderIDs._AerosolSingleScatteringTexture, CoreUtils.blackVolumeTexture);
