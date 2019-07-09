@@ -615,19 +615,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        // Stopgap method used to extract stereo combined matrix state.
-        public void UpdateStereoDependentState(ref ScriptableCullingParameters cullingParams)
-        {
-            // XRTODO: remove this after culling management is finished
-            if (xr.instancingEnabled)
-            {
-                var view = cullingParams.stereoViewMatrix;
-                var proj = cullingParams.stereoProjectionMatrix;
-
-                UpdateViewConstants(ref mainViewConstants, proj, view, cullingParams.origin, IsTAAEnabled(), false);
-            }
-        }
-
         // XRTODO: this function should not rely on camera.pixelWidth and camera.pixelHeight
         Matrix4x4 GetJitteredProjectionMatrix(Matrix4x4 origProj)
         {

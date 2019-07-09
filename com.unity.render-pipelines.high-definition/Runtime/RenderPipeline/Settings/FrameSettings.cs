@@ -458,9 +458,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             bool preview = HDUtils.IsRegularPreviewCamera(camera);
             bool sceneViewFog = CoreUtils.IsSceneViewFogEnabled(camera);
 
-            // XRTODO: fix it
-            bool stereoInstancing = camera.stereoEnabled && (XRGraphics.stereoRenderingMode == XRGraphics.StereoRenderingMode.SinglePassInstanced);
-
             // When rendering reflection probe we disable specular as it is view dependent
             sanitazedFrameSettings.bitDatas[(int)FrameSettingsField.Reflection] = !reflection;
 
@@ -530,10 +527,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             sanitazedFrameSettings.bitDatas[(int)FrameSettingsField.SSAOAsync] &= async;
             sanitazedFrameSettings.bitDatas[(int)FrameSettingsField.ContactShadowsAsync] &= async;
             sanitazedFrameSettings.bitDatas[(int)FrameSettingsField.VolumeVoxelizationsAsync] &= async;
-
-            // XRTODO: fix indirect deferred pass with instancing
-            sanitazedFrameSettings.bitDatas[(int)FrameSettingsField.DeferredTile] &= !stereoInstancing;
-            sanitazedFrameSettings.bitDatas[(int)FrameSettingsField.ComputeLightEvaluation] &= !stereoInstancing;
 
             // Deferred opaque are always using Fptl. Forward opaque can use Fptl or Cluster, transparent use cluster.
             // When MSAA is enabled we disable Fptl as it become expensive compare to cluster
