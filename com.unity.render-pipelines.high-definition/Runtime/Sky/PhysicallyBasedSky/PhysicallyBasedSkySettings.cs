@@ -50,6 +50,22 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // Hack. Does not affect the precomputation.
         public Vector3Parameter spaceRotation = new Vector3Parameter(Vector3.zero);
 
+        public float GetAirScaleHeight()
+        {
+            // Exp[-d / s] = 0.001
+            // -d / s = Log[0.001]
+            // s = d / -Log[0.001]
+            return airMaxAltitude.value * 0.144765f;
+        }
+
+        public float GetAerosolScaleHeight()
+        {
+            // Exp[-d / s] = 0.001
+            // -d / s = Log[0.001]
+            // s = d / -Log[0.001]
+            return aerosolMaxAltitude.value * 0.144765f;
+        }
+
         PhysicallyBasedSkySettings()
         {
             displayName = "Physically Based Sky (Experimental)";
