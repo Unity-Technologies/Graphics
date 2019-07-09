@@ -6,9 +6,7 @@
     "unityRelease": "0a8",
     "displayName": "Lightweight RP",
     "dependencies": {
-        "com.unity.postprocessing": "2.1.6",
-        "com.unity.render-pipelines.core": "7.0.0",
-        "com.unity.shadergraph": "7.0.0"
+        "com.unity.render-pipelines.universal": "7.0.0"
     },
     "keywords":[
         "graphics",
