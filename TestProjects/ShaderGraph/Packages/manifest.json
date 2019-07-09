@@ -2,7 +2,7 @@
   "dependencies": {
     "com.unity.2d.sprite": "1.0.0",
     "com.unity.render-pipelines.core": "file:../../../com.unity.render-pipelines.core",
-    "com.unity.render-pipelines.lightweight": "file:../../../com.unity.render-pipelines.lightweight",
+    "com.unity.render-pipelines.universal": "file:../../../com.unity.render-pipelines.universal",
     "com.unity.shadergraph": "file:../../../com.unity.shadergraph",
     "com.unity.test-framework": "1.0.12",
     "com.unity.testframework.graphics": "file:../../../com.unity.testframework.graphics",
