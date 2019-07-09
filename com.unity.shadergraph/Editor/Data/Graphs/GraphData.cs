@@ -774,8 +774,7 @@ namespace UnityEditor.ShaderGraph
                 if (outputNode == null
                     || inputNode == null
                     || outputSlot == null
-                    || inputSlot == null
-                    || !outputSlot.IsCompatibleWith(inputSlot))
+                    || inputSlot == null)
                 {
                     //orphaned edge
                     RemoveEdgeNoValidate(edge);
