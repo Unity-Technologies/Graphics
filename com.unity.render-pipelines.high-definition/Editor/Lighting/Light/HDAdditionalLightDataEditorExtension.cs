@@ -1,12 +1,6 @@
-using UnityEngine;
-using UnityEngine.Rendering;
-using UnityEditor;
-using UnityEditor.Experimental.Rendering;
-using UnityEditor.Experimental.Rendering.HDPipeline;
-using UnityEngine.Serialization;
-using UnityEngine.Experimental.Rendering.HDPipeline;
+using UnityEngine.Rendering.HighDefinition;
 
-namespace UnityEditor.Experimental.Rendering.HDPipeline
+namespace UnityEditor.Rendering.HighDefinition
 {
     // Editor only functions for HDAdditoonalLightData User API
     public static class HDAdditionalLightDataEditorExtension
@@ -27,6 +21,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         /// <param name="hdLight"></param>
         /// <param name="lightmapBakeType"></param>
         /// <returns></returns>
-        public static LightmapBakeType SetLightmapBakeType(this HDAdditionalLightData hdLight, LightmapBakeType lightmapBakeType) => hdLight.legacyLight.lightmapBakeType = lightmapBakeType;
+        public static UnityEngine.LightmapBakeType SetLightmapBakeType(this HDAdditionalLightData hdLight, UnityEngine.LightmapBakeType lightmapBakeType) => hdLight.legacyLight.lightmapBakeType = lightmapBakeType;
     }
 }

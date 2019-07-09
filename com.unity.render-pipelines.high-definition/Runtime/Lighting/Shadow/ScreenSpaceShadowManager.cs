@@ -1,9 +1,7 @@
-using UnityEngine;
-using UnityEngine.Rendering;
-using System.Collections.Generic;
 using System;
+using UnityEngine.Experimental.Rendering;
 
-namespace UnityEngine.Experimental.Rendering.HDPipeline
+namespace UnityEngine.Rendering.HighDefinition
 {
     using RTHandle = RTHandleSystem.RTHandle;
 
@@ -141,7 +139,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     cmd.SetGlobalTexture(HDShaderIDs._OwenScrambledRGTexture, m_Asset.renderPipelineResources.textures.owenScrambledRGBATex);
                     cmd.SetGlobalTexture(HDShaderIDs._OwenScrambledTexture, m_Asset.renderPipelineResources.textures.owenScrambled256Tex);
                     cmd.SetGlobalTexture(HDShaderIDs._ScramblingTexture, m_Asset.renderPipelineResources.textures.scramblingTex);
-            
+
                     for(int i = 0; i < m_CurrentSunLightAdditionalLightData.numRayTracingSamples; ++i)
                     {
                         shadowComputeKernel = shadowsCompute.FindKernel("RaytracingDirectionalShadowSample");

@@ -1,6 +1,6 @@
 using NUnit.Framework;
 
-namespace UnityEngine.Experimental.Rendering.HDPipeline.Tests
+namespace UnityEngine.Rendering.HighDefinition.Tests
 {
     public class ProbeSettingsUtilitiesTests
     {

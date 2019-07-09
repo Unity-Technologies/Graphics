@@ -1,12 +1,12 @@
 using System;
 using UnityEngine;
-using UnityEngine.Experimental.Rendering.HDPipeline;
+using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.Rendering;
 
 // Include material common properties names
-using static UnityEngine.Experimental.Rendering.HDPipeline.HDMaterialProperties;
+using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
 
-namespace UnityEditor.Experimental.Rendering.HDPipeline
+namespace UnityEditor.Rendering.HighDefinition
 {
     internal enum AxfBrdfType
     {
@@ -14,7 +14,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         CAR_PAINT,
         BTF,
     }
-        
+
     /// <summary>
     /// GUI for HDRP AxF materials
     /// </summary>

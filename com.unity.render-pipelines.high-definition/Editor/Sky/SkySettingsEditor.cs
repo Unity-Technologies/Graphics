@@ -1,7 +1,7 @@
 using UnityEditor;
 using UnityEditor.Rendering;
 
-namespace UnityEngine.Experimental.Rendering.HDPipeline
+namespace UnityEngine.Rendering.HighDefinition
 {
     public abstract class SkySettingsEditor : VolumeComponentEditor
     {

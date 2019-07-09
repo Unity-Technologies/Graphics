@@ -1,8 +1,8 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Experimental.Rendering.HDPipeline;
-using UnityEditor.Experimental.Rendering.HDPipeline;
+using UnityEditor.Rendering.HighDefinition;
+using UnityEngine.Rendering.HighDefinition;
 
 public class LightScriptCreator : MonoBehaviour
 {

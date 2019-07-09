@@ -1,9 +1,8 @@
 using System;
-using UnityEngine.Rendering;
 using System.Reflection;
 using System.Collections.Generic;
 
-namespace UnityEngine.Experimental.Rendering.HDPipeline
+namespace UnityEngine.Rendering.HighDefinition
 {
     public partial class RenderPipelineResources : ScriptableObject
     {
@@ -150,7 +149,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             [Reload("Runtime/ShaderLibrary/XROcclusionMesh.shader")]
             public Shader xrOcclusionMeshPS;
 
-            // Shadow            
+            // Shadow
             [Reload("Runtime/Lighting/Shadow/ShadowClear.shader")]
             public Shader shadowClearPS;
             [Reload("Runtime/Lighting/Shadow/EVSMBlur.compute")]

@@ -5,7 +5,7 @@
 #ifndef SHADERPASS_CS_HLSL
 #define SHADERPASS_CS_HLSL
 //
-// UnityEngine.Experimental.Rendering.HDPipeline.ShaderPass:  static fields
+// UnityEngine.Rendering.HighDefinition.ShaderPass:  static fields
 //
 #define SHADERPASS_GBUFFER (0)
 #define SHADERPASS_FORWARD (1)

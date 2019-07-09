@@ -3,7 +3,7 @@ using NUnit.Framework;
 using System;
 using UnityEngine.Rendering;
 
-namespace UnityEngine.Experimental.Rendering.HDPipeline.Tests
+namespace UnityEngine.Rendering.HighDefinition.Tests
 {
     public class CameraSettingsUtilitiesTests
     {

@@ -5,7 +5,7 @@
 #ifndef COLORPICKERDEBUG_CS_HLSL
 #define COLORPICKERDEBUG_CS_HLSL
 //
-// UnityEngine.Experimental.Rendering.HDPipeline.ColorPickerDebugMode:  static fields
+// UnityEngine.Rendering.HighDefinition.ColorPickerDebugMode:  static fields
 //
 #define COLORPICKERDEBUGMODE_NONE (0)
 #define COLORPICKERDEBUGMODE_BYTE (1)

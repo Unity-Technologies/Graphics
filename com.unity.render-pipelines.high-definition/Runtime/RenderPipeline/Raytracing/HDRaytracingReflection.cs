@@ -1,8 +1,6 @@
-using UnityEngine;
-using UnityEngine.Rendering;
-using System.Collections.Generic;
+using UnityEngine.Experimental.Rendering;
 
-namespace UnityEngine.Experimental.Rendering.HDPipeline
+namespace UnityEngine.Rendering.HighDefinition
 {
 #if ENABLE_RAYTRACING
     using RTHandle = RTHandleSystem.RTHandle;
@@ -131,10 +129,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             deferredParameters.clampValue = settings.clampValue.value;
             deferredParameters.includeSky = settings.reflectSky.value;
             deferredParameters.diffuseLightingOnly = false;
-            deferredParameters.disableSpecularLighting = false;
             deferredParameters.halfResolution = !settings.fullResolution.value;
             deferredParameters.rtEnv = rtEnv;
-            deferredParameters.defaultSpecularLighting = hdCamera.frameSettings.IsEnabled(FrameSettingsField.SpecularLighting);
 
             // Camera data
             deferredParameters.width = hdCamera.actualWidth;

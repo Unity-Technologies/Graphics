@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using UnityEditor.Rendering;
 using UnityEngine;
 
-namespace UnityEditor.Experimental.Rendering.HDPipeline
+namespace UnityEditor.Rendering.HighDefinition
 {
     static partial class HDProbeUI
     {
@@ -12,7 +12,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         static readonly GUIContent k_WeightContent = EditorGUIUtility.TrTextContent("Weight", "Blend weight applied on this reflection probe. This can be used for fading in or out a reflection probe.");
         static readonly GUIContent k_MultiplierContent = EditorGUIUtility.TrTextContent("Intensity Multiplier", "Allows you to boost or dimmer the reflected cubemap. Values above 1 will make reflections brighter and values under 1 will make reflections darker. Using values different than 1 is not physically correct.");
         static readonly GUIContent k_LightLayersContent = EditorGUIUtility.TrTextContent("Light Layers", "Specifies the current light layers that the light affect. Corresponding renderer with the same flags will be lit by this light.");
-        
+
         const string k_MimapHelpBoxText = "No mipmaps in the cubemap, Smoothness value in Standard shader will be ignored.";
         const string k_NoProxyHelpBoxText = "Influence shape will be used as Projection shape too.";
         const string k_NoProxyInfiniteHelpBoxText = "Projection will be at infinite.";

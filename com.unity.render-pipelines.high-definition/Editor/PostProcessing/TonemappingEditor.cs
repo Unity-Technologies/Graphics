@@ -1,10 +1,10 @@
 using UnityEditor.Rendering;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
-using UnityEngine.Experimental.Rendering.HDPipeline;
+using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.Rendering;
 
-namespace UnityEditor.Experimental.Rendering.HDPipeline
+namespace UnityEditor.Rendering.HighDefinition
 {
     // TODO: handle retina / EditorGUIUtility.pixelsPerPoint
     [VolumeComponentEditor(typeof(Tonemapping))]

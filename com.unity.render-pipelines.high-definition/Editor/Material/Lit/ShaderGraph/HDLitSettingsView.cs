@@ -6,11 +6,10 @@ using UnityEditor.Graphing.Util;
 using UnityEditor.ShaderGraph;
 using UnityEditor.ShaderGraph.Drawing;
 using UnityEditor.ShaderGraph.Drawing.Controls;
-using UnityEditor.Experimental.Rendering.HDPipeline;
-using UnityEngine.Experimental.Rendering.HDPipeline;
+using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.Rendering;
 
-namespace UnityEditor.Experimental.Rendering.HDPipeline.Drawing
+namespace UnityEditor.Rendering.HighDefinition.Drawing
 {
     class HDLitSettingsView : VisualElement
     {
@@ -661,7 +660,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline.Drawing
             td.isOn = evt.newValue;
             m_Node.zWrite = td;
         }
-        
+
         void ChangeTransparentCullMode(ChangeEvent<Enum> evt)
         {
             if (Equals(m_Node.transparentCullMode, evt.newValue))
@@ -670,7 +669,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline.Drawing
             m_Node.owner.owner.RegisterCompleteObjectUndo("Transparent Cull Mode Change");
             m_Node.transparentCullMode = (TransparentCullMode)evt.newValue;
         }
-        
+
         void ChangeZTest(ChangeEvent<Enum> evt)
         {
             if (Equals(m_Node.zTest, evt.newValue))

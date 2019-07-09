@@ -1,7 +1,6 @@
 using UnityEngine;
-using UnityEditor.Rendering;
 
-namespace UnityEditor.Experimental.Rendering.HDPipeline
+namespace UnityEditor.Rendering.HighDefinition
 {
     public class StandardsToHDLitMaterialUpgrader : MaterialUpgrader
     {
