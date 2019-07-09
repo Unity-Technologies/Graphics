@@ -1000,6 +1000,7 @@ namespace UnityEditor.ShaderGraph
             var shaderKeywords = new KeywordCollector();
             var shaderPropertyUniforms = new ShaderStringBuilder();
             var shaderKeywordDeclarations = new ShaderStringBuilder();
+            var shaderKeywordPermutations = new ShaderStringBuilder(1);
             
             var functionBuilder = new ShaderStringBuilder();
             var functionRegistry = new FunctionRegistry(functionBuilder);
@@ -1134,6 +1135,7 @@ namespace UnityEditor.ShaderGraph
             // Keyword declarations
 
             shaderKeywords.GetKeywordsDeclaration(shaderKeywordDeclarations, mode);
+            KeywordUtil.GetKeywordPermutationDeclaration(shaderKeywordPermutations, keywordPermutations);
 
             // -------------------------------------
             // Property uniforms
@@ -1172,6 +1174,8 @@ namespace UnityEditor.ShaderGraph
                 finalShader.AppendLines(shaderKeywordDeclarations.ToString());
                 finalShader.AppendLine(@"#define SHADERGRAPH_PREVIEW 1");
                 finalShader.AppendNewLine();
+
+                finalShader.AppendLines(shaderKeywordPermutations.ToString());
 
                 finalShader.AppendLines(shaderPropertyUniforms.ToString());
                 finalShader.AppendNewLine();

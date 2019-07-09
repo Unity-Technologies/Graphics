@@ -8,7 +8,7 @@ namespace UnityEditor.ShaderGraph
 {
     static class BuiltinKeyword
     {
-        public static ShaderKeyword QualityKeyword = new ShaderKeyword(ShaderKeywordType.Enum)
+        public static ShaderKeyword QualityKeyword = new ShaderKeyword(ShaderKeywordType.Enum, false)
         {
             displayName = "Material Quality",
             overrideReferenceName = "MATERIAL_QUALITY",
@@ -100,7 +100,7 @@ namespace UnityEditor.ShaderGraph
                 if(i != 0)
                     sb.Append(" || ");
                 
-                sb.Append($"defined(KEYWORD_PERMUTATION_{i})");
+                sb.Append($"defined(KEYWORD_PERMUTATION_{permutationGroup[i]})");
             }
             return sb.ToString();
         }
@@ -143,9 +143,13 @@ namespace UnityEditor.ShaderGraph
                 sb.AppendNewLine();
                 sb.AppendLine($"#define KEYWORD_PERMUTATION_{p}");
             }
-            sb.Append("#endif");
-            sb.AppendNewLine();
-            sb.AppendNewLine();
+
+            if(permutations.Count > 0)
+            {
+                sb.Append("#endif");
+                sb.AppendNewLine();
+                sb.AppendNewLine();
+            }
 
             return sb.ToString();
         }

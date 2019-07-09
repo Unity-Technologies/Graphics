@@ -31,10 +31,11 @@ namespace UnityEditor.ShaderGraph
         {
         }
 
-        public ShaderKeyword(ShaderKeywordType keywordType)
+        public ShaderKeyword(ShaderKeywordType keywordType, bool isExposable = true)
         {
-            displayName = keywordType.ToString();
+            this.displayName = keywordType.ToString();
             this.keywordType = keywordType;
+            m_IsExposable = isExposable;
             
             if(keywordType == ShaderKeywordType.Enum)
             {
@@ -54,8 +55,12 @@ namespace UnityEditor.ShaderGraph
             set => m_IsEditable = value;
         }
 
+        [SerializeField]
+        private bool m_IsExposable;
+        
+        public override bool isExposable => m_IsExposable;
+
         public override ConcreteSlotValueType concreteShaderValueType => keywordType.ToConcreteSlotValueType();
-        public override bool isExposable => keywordDefinition == ShaderKeywordDefinition.ShaderFeature;
         public override bool isRenamable => isEditable;
 
         [SerializeField]
