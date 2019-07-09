@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using System.Linq;
+using System.Reflection;
 using UnityEngine.UIElements;
 using UnityEditor.UIElements;
 using System.Reflection;
@@ -22,9 +24,9 @@ namespace UnityEditor.ShaderGraph
         Port m_TempPort;
 
         ///////////////////////////////////////////////////////////
-        /// Initialization
+        /// Main
         ///////////////////////////////////////////////////////////
-        public RedirectNodeView()//: base("UXML/RedirectNode")
+        public RedirectNodeView()
         {
 
         }
@@ -33,8 +35,8 @@ namespace UnityEditor.ShaderGraph
         {
             // Styling
             styleSheets.Add(Resources.Load<StyleSheet>("Styles/RedirectNodeView"));
-            //ClearClassList();
             AddToClassList("redirect-node");
+            //AddToClassList("expanded");
 
             if (inNode == null)
                 return;
@@ -52,9 +54,7 @@ namespace UnityEditor.ShaderGraph
             RefreshExpandedState(); //This should not be needed. GraphView needs to improve the extension api here
 
             SetPosition(new Rect(node.drawState.position.x, node.drawState.position.y, 0, 0));
-
-            AddPortPair(typeof(Vector4));
-            RefreshPorts();
+            AddSlots(node.GetSlots<MaterialSlot>());
         }
 
         ///////////////////////////////////////////////////////////
@@ -62,14 +62,23 @@ namespace UnityEditor.ShaderGraph
         ///////////////////////////////////////////////////////////
         private void AddPortPair(Type type, int key = -1)
         {
-            Port input = InstantiatePort(Orientation.Horizontal, Direction.Input, Port.Capacity.Single, type);
-            inputContainer.Add(input);
-
-            Port output = InstantiatePort(Orientation.Horizontal, Direction.Output, Port.Capacity.Multi, type);
-            outputContainer.Add(output);
-
             var data = userData as RedirectNodeData;
-            data.AddPortPair(input, output);
+            data.AddPortPair();
+        }
+
+        void AddSlots(IEnumerable<MaterialSlot> slots)
+        {
+            foreach (var slot in slots)
+            {
+                if (slot.hidden)
+                    continue;
+
+                var port = ShaderPort.Create(slot, m_ConnectorListener);
+                if (slot.isOutputSlot)
+                    outputContainer.Add(port);
+                else
+                    inputContainer.Add(port);
+            }
         }
 
         #region IShaderNodeView interface
@@ -80,11 +89,71 @@ namespace UnityEditor.ShaderGraph
         public void Dispose()
         {
 
+
+            node = null;
+            ((VisualElement)this).userData = null;
         }
 
         public void OnModified(ModificationScope scope)
         {
+            base.expanded = node.drawState.expanded;
 
+            // Update slots to match node modification
+            if (scope == ModificationScope.Topological)
+            {
+                var slots = node.GetSlots<MaterialSlot>().ToList();
+
+                var inputPorts = inputContainer.Children().OfType<ShaderPort>().ToList();
+                foreach (var port in inputPorts)
+                {
+                    var currentSlot = port.slot;
+                    var newSlot = slots.FirstOrDefault(s => s.id == currentSlot.id);
+                    if (newSlot == null)
+                    {
+                        // Slot doesn't exist anymore, remove it
+                        inputContainer.Remove(port);
+                    }
+                    else
+                    {
+                        port.slot = newSlot;
+                        slots.Remove(newSlot);
+                    }
+                }
+
+                var outputPorts = outputContainer.Children().OfType<ShaderPort>().ToList();
+                foreach (var port in outputPorts)
+                {
+                    var currentSlot = port.slot;
+                    var newSlot = slots.FirstOrDefault(s => s.id == currentSlot.id);
+                    if (newSlot == null)
+                    {
+                        outputContainer.Remove(port);
+                    }
+                    else
+                    {
+                        port.slot = newSlot;
+                        slots.Remove(newSlot);
+                    }
+                }
+
+                AddSlots(slots);
+
+                slots.Clear();
+                slots.AddRange(node.GetSlots<MaterialSlot>());
+
+                if (inputContainer.childCount > 0)
+                    inputContainer.Sort((x, y) => slots.IndexOf(((ShaderPort)x).slot) - slots.IndexOf(((ShaderPort)y).slot));
+                if (outputContainer.childCount > 0)
+                    outputContainer.Sort((x, y) => slots.IndexOf(((ShaderPort)x).slot) - slots.IndexOf(((ShaderPort)y).slot));
+            }
+
+            RefreshExpandedState(); //This should not be needed. GraphView needs to improve the extension api here
+
+            //foreach (var listener in m_ControlItems.Children().OfType<AbstractMaterialNodeModificationListener>())
+            //{
+            //    if (listener != null)
+            //        listener.OnNodeModified(scope);
+            //}
         }
 
         public void UpdatePortInputTypes()

@@ -1,7 +1,7 @@
 .redirect-node {
     min-height: 0px;
-    border-radius: 8px;
-    background-color: rgba(63, 63, 63, 1.0);
+    border-radius: 10px;
+    background-color: rgba(192, 192, 192, 1.0);
     padding: 0px;
     border-width: 0px;
 }
@@ -10,6 +10,16 @@
     flex: 1 0 auto;
 }
 
+#node-border {
+    margin: 0px;
+    border-radius: 10px;
+    /* The proper opacity of the node border is 0.8 but transparent
+    border are not working properly so it's fully opaque.*/
+    border-color: rgba(25,25,25,1.0);
+    border-width: 1px;
+}
+
+/**************** Selection/Hover ****************/
 #selection-border {
     border-width: 2px;
     border-radius: 8px;
@@ -21,7 +31,7 @@
     bottom: 0;
 }
 
-:hover > #selection-border {
+/*:hover > #selection-border {
     border-color: rgba(68,192,255, 0.5);
     border-width: 1px;
 }
@@ -40,15 +50,7 @@
     border-width: 0;
 }
 
-#node-border {
-    margin: 0px;
-    border-radius: 6px;
-    /* The proper opacity of the node border is 0.8 but transparent
-    border are not working properly so it's fully opaque.*/
-    border-color: rgba(25,25,25,1.0);
-    border-width: 2px;
-}
-
+/******************* Title *******************/
 #title {
     flex-direction: row;
     justify-content: space-between;
@@ -67,3 +69,32 @@
     margin-right: 0;
     padding-left: 2px;
 }
+
+/******************* Dividers *******************/
+#divider.vertical {
+    width: 0.0px;
+    border-right-width: 0px;
+}
+
+#divider.horizontal {
+    width: 0.5px;
+    border-right-width: 1px;
+}
+
+/******************* Collapsed *******************/
+.node.collapsed {
+    height: 25px;
+    width: 25px;
+}
+
+.node.collapsed #contents {
+    height: 0px;
+    width: 0px;
+    position: absolute;
+    left: 7.5px;
+    right: 0;
+    top: 6px;
+    bottom: 0;
+}
+
+

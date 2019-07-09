@@ -167,11 +167,16 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 evt.menu.AppendAction("Delete", (e) => DeleteSelectionImplementation("Delete", AskUser.DontAskUser), (e) => canDeleteSelection ? DropdownMenuAction.Status.Normal : DropdownMenuAction.Status.Disabled);
             }
-            if (evt.target is MaterialGraphView)
+            else if (evt.target is MaterialGraphView)
             {
                 evt.menu.AppendAction("Collapse Previews", CollapsePreviews, (a) => DropdownMenuAction.Status.Normal);
                 evt.menu.AppendAction("Expand Previews", ExpandPreviews, (a) => DropdownMenuAction.Status.Normal);
                 evt.menu.AppendSeparator();
+            }
+            else if(evt.target is Edge)
+            {
+                evt.menu.AppendSeparator();
+                evt.menu.AppendAction("Add Redirect Node", AddRedirectNode, (a) => DropdownMenuAction.Status.Normal);
             }
         }
 
@@ -246,6 +251,21 @@ namespace UnityEditor.ShaderGraph.Drawing
                     group.RemoveElement(node);
                 }
             }
+        }
+
+        void AddRedirectNode(DropdownMenuAction action)
+        {
+            // Make a new Redirect Node
+            AbstractMaterialNode nodeData = new RedirectNodeData();
+            var drawstate = nodeData.drawState;
+            drawstate.position = new Rect(action.eventInfo.localMousePosition, Vector2.zero);
+            nodeData.drawState = drawstate;
+
+            graph.owner.RegisterCompleteObjectUndo("Add " + nodeData.name);
+            graph.AddNode(nodeData);
+
+            // How to ensure we get the edge we clicked on??
+            // Make a new port and connect it to the 
         }
 
         void CollapsePreviews(DropdownMenuAction action)
