@@ -31,6 +31,8 @@ namespace UnityEngine.Rendering.HighDefinition
         Material m_TemporalAAMaterial;
 
         MaterialPropertyBlock m_TAAHistoryBlitPropertyBlock = new MaterialPropertyBlock();
+        MaterialPropertyBlock m_TAAPropertyBlock = new MaterialPropertyBlock();
+
         RenderTargetIdentifier[] m_TAAMRT;
 
         // Exposure data
@@ -766,20 +768,17 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_TAAHistoryBlitPropertyBlock.SetFloat(HDShaderIDs._BlitMipLevel, 0);
                 HDUtils.DrawFullScreen(cmd, HDUtils.GetBlitMaterial(source.rt.dimension), prevHistory, m_TAAHistoryBlitPropertyBlock, 0);
                 HDUtils.DrawFullScreen(cmd, HDUtils.GetBlitMaterial(source.rt.dimension), nextHistory, m_TAAHistoryBlitPropertyBlock, 0);
-
             }
 
-            m_TemporalAAMaterial.SetInt(HDShaderIDs._StencilMask, (int)HDRenderPipeline.StencilBitMask.ExcludeFromTAA);
-            m_TemporalAAMaterial.SetInt(HDShaderIDs._StencilRef, (int)HDRenderPipeline.StencilBitMask.ExcludeFromTAA);
-            m_TemporalAAMaterial.SetVector(HDShaderIDs._RTHandleScaleHistory, camera.historyRTHandleProperties.rtHandleScale);
-            m_TemporalAAMaterial.SetTexture(HDShaderIDs._InputTexture, source);
-            m_TemporalAAMaterial.SetTexture(HDShaderIDs._InputHistoryTexture, prevHistory);
+            m_TAAPropertyBlock.SetInt(HDShaderIDs._StencilMask, (int)HDRenderPipeline.StencilBitMask.ExcludeFromTAA);
+            m_TAAPropertyBlock.SetInt(HDShaderIDs._StencilRef, (int)HDRenderPipeline.StencilBitMask.ExcludeFromTAA);
+            m_TAAPropertyBlock.SetVector(HDShaderIDs._RTHandleScaleHistory, camera.historyRTHandleProperties.rtHandleScale);
+            m_TAAPropertyBlock.SetTexture(HDShaderIDs._InputTexture, source);
+            m_TAAPropertyBlock.SetTexture(HDShaderIDs._InputHistoryTexture, prevHistory);
 
-            m_TAAMRT[0] = destination;
-            m_TAAMRT[1] = nextHistory;
-            HDUtils.SetRenderTarget(cmd, m_TAAMRT, depthBuffer);
-            cmd.DrawProcedural(Matrix4x4.identity, m_TemporalAAMaterial, 0, MeshTopology.Triangles, 3, 1, null);
-            cmd.DrawProcedural(Matrix4x4.identity, m_TemporalAAMaterial, 1, MeshTopology.Triangles, 3, 1, null);
+            HDUtils.SetRenderTarget(cmd, destination, depthBuffer);
+            cmd.SetRandomWriteTarget(1, nextHistory);
+            cmd.DrawProcedural(Matrix4x4.identity, m_TemporalAAMaterial, 0, MeshTopology.Triangles, 3, 1, m_TAAPropertyBlock);
         }
 
         static void GrabTemporalAntialiasingHistoryTextures(HDCamera camera, out RTHandle previous, out RTHandle next)

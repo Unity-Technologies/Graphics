@@ -1,4 +1,4 @@
-﻿Shader "Hidden/HDRP/TemporalAntialiasing"
+Shader "Hidden/HDRP/TemporalAntialiasing"
 {
     HLSLINCLUDE
 
@@ -15,6 +15,7 @@
 
         TEXTURE2D_X(_InputTexture);
         TEXTURE2D_X(_InputHistoryTexture);
+        RW_TEXTURE2D_X(float3, _OutputHistoryTexture);
 
         struct Attributes
         {
@@ -39,7 +40,7 @@
             return output;
         }
 
-        void FragTAA(Varyings input, out float3 outColor : SV_Target0, out float3 outColorHistory : SV_Target1)
+        void FragTAA(Varyings input, out float3 outColor : SV_Target0)
         {
             float2 jitter = _TaaJitterStrength.zw;
 
@@ -106,11 +107,11 @@
             color = Unmap(lerp(color, history, feedback));
             color = clamp(color, 0.0, CLAMP_MAX);
 
-            outColor = color;
-            outColorHistory = color;
+            outColor = color; 
+            _OutputHistoryTexture[COORD_TEXTURE2D_X(input.positionCS.xy)] = color;
         }
 
-        void FragExcludedTAA(Varyings input, out float3 outColor : SV_Target0, out float3 outColorHistory : SV_Target1)
+        void FragExcludedTAA(Varyings input, out float3 outColor : SV_Target0)
         {
             float2 jitter = _TaaJitterStrength.zw;
             float2 uv = input.texcoord - jitter;
@@ -118,7 +119,7 @@
             float3 color = Fetch(_InputTexture, uv, 0.0, _RTHandleScale.xy);
 
             outColor = color;
-            outColorHistory = color;
+            _OutputHistoryTexture[COORD_TEXTURE2D_X(input.positionCS.xy)] = color;
         }
     ENDHLSL
 
@@ -131,8 +132,8 @@
         {
             Stencil
             {
-                ReadMask [_StencilMask]
-                Ref [_StencilRef]
+                ReadMask 16     // ExcludeFromTAA
+                Ref 16          // ExcludeFromTAA
                 Comp NotEqual
                 Pass Keep
             }
@@ -151,8 +152,8 @@
         {
             Stencil
             {
-                ReadMask [_StencilMask]
-                Ref [_StencilRef]
+                ReadMask 16     // ExcludeFromTAA
+                Ref 16          // ExcludeFromTAA
                 Comp Equal
                 Pass Keep
             }
