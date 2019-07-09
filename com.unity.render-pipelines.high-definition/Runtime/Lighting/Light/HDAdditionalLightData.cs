@@ -631,7 +631,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// If enabled, display an emissive mesh rect synchronized with the intensity and color of the light.
         /// </summary>
-        public bool displayAreaLightEmissiveMesh
+        internal bool displayAreaLightEmissiveMesh
         {
             get => m_DisplayAreaLightEmissiveMesh;
             set
@@ -640,6 +640,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     return;
 
                 m_DisplayAreaLightEmissiveMesh = value;
+
                 UpdateAllLightValues();
             }
         }
