@@ -358,8 +358,29 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             cameraFrameSettings.SetEnabled(FrameSettingsField.AfterPostprocess, true);
         }
 
-        internal static void MigrateToSpecularLighting(ref FrameSettings cameraFrameSettings)
-            => cameraFrameSettings.SetEnabled(FrameSettingsField.SpecularLighting, true);
+        internal static void MigrateToDefaultReflectionSettings(ref FrameSettings cameraFrameSettings)
+        {
+            cameraFrameSettings.SetEnabled(FrameSettingsField.EnableReflectionProbe, true);
+            cameraFrameSettings.SetEnabled(FrameSettingsField.EnablePlanarProbe, true);
+            cameraFrameSettings.SetEnabled(FrameSettingsField.ReplaceDiffuseForIndirect, false);
+            cameraFrameSettings.SetEnabled(FrameSettingsField.EnableSkyLighting, true);
+        }
+        
+        internal static void MigrateToNoReflectionRealtimeSettings(ref FrameSettings cameraFrameSettings)
+        {
+            cameraFrameSettings.SetEnabled(FrameSettingsField.EnableReflectionProbe, true);
+            cameraFrameSettings.SetEnabled(FrameSettingsField.EnablePlanarProbe, false);
+            cameraFrameSettings.SetEnabled(FrameSettingsField.ReplaceDiffuseForIndirect, false);
+            cameraFrameSettings.SetEnabled(FrameSettingsField.EnableSkyLighting, true);
+        }
+
+        internal static void MigrateToNoReflectionSettings(ref FrameSettings cameraFrameSettings)
+        {
+            cameraFrameSettings.SetEnabled(FrameSettingsField.EnableReflectionProbe, false);
+            cameraFrameSettings.SetEnabled(FrameSettingsField.EnablePlanarProbe, false);
+            cameraFrameSettings.SetEnabled(FrameSettingsField.ReplaceDiffuseForIndirect, true);
+            cameraFrameSettings.SetEnabled(FrameSettingsField.EnableSkyLighting, false);            
+        }
 
         internal static void MigrateToPostProcess(ref FrameSettings cameraFrameSettings)
         {

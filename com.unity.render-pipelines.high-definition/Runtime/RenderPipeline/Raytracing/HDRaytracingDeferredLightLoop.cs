@@ -139,7 +139,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             if (disableSpecularLighting)
             {
-                cmd.SetGlobalInt(HDShaderIDs._EnableSpecularLighting, 0);
+                cmd.SetGlobalInt(HDShaderIDs._ReplaceDiffuseForIndirect, 0);
             }
 
             if (rayBinning)
@@ -180,7 +180,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             if (disableSpecularLighting)
             {
-                cmd.SetGlobalInt(HDShaderIDs._EnableSpecularLighting, hdCamera.frameSettings.IsEnabled(FrameSettingsField.SpecularLighting) ? 1 : 0);
+                cmd.SetGlobalInt(HDShaderIDs._ReplaceDiffuseForIndirect, hdCamera.frameSettings.IsEnabled(FrameSettingsField.ReplaceDiffuseForIndirect) ? 1 : 0);
             }
         }
     }
