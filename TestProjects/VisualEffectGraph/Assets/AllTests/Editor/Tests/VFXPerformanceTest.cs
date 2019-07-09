@@ -67,13 +67,13 @@ namespace UnityEditor.VFX.Test
             }
         }
 
-        [Test]  //Not really a test but an helper to measure compilation time for every existing visual effect
+        //[Test]  //Not really a test but an helper to measure compilation time for every existing visual effect
         public void MeasureLoadLibraryTime()
         {
-            //UnityEngine.Debug.unityLogger.logEnabled = false;
+            UnityEngine.Debug.unityLogger.logEnabled = false;
 
             var sw = Stopwatch.StartNew();
-            long processCount = 1;
+            long processCount = 4;
             for (int pass = 0; pass < processCount; ++pass)
             {
                 VFXLibrary.ClearLibrary();
