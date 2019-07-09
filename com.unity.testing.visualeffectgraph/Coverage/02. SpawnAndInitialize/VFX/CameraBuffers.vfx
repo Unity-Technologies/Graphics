@@ -132,6 +132,16 @@ MonoBehaviour:
     contents: Random UV (effectively, only sampling the lower right part of the screen)
     theme: Classic
     textSize: Small
+  - title: <=
+    position:
+      serializedVersion: 2
+      x: 1090
+      y: 820
+      width: 100
+      height: 100
+    contents: Disabled from now ! VR issue, Tex2DArr vs. Tex2D
+    theme: Classic
+    textSize: Small
   systemInfos: []
   categories: []
   uiBounds:
@@ -139,7 +149,7 @@ MonoBehaviour:
     x: -195
     y: -53
     width: 3453
-    height: 1866
+    height: 1882
 --- !u!114 &114350483966674976
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -698,6 +708,7 @@ MonoBehaviour:
   - link: []
   blendMode: 4
   m_SubOutputs:
+  - {fileID: 0}
   - {fileID: 8926484042661615318}
   cullMode: 0
   zWriteMode: 1
@@ -782,7 +793,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 43, y: 655}
+  m_UIPosition: {x: 25, y: 859}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots: []
@@ -2268,7 +2279,7 @@ MonoBehaviour:
   - {fileID: 8926484042661614824}
   - {fileID: 8926484042661614828}
   m_OutputSlots: []
-  m_Disabled: 0
+  m_Disabled: 1
   attribute: color
   Composition: 0
   SampleMode: 3
