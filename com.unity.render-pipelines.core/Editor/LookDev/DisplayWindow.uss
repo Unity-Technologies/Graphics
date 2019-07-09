@@ -98,6 +98,22 @@
     background-color: rgba(0,0,0,0);
 }
 
+#environmentListCreationToolbar
+{
+    padding-left: 1px;
+}
+
+#environmentListCreationToolbar > *
+{
+    flex: 1;
+    -unity-text-align: middle-center;
+}
+
+ToolbarButton
+{
+    border-left-width: 0px;
+}
+
 .list-environment-overlay > ToolbarButton
 {
     border-width: 0px;
@@ -144,6 +160,12 @@ Image.unity-list-view__item:selected
     padding-bottom: 5px;
     padding-left: 3px;
     background-color: #3C3C3C;
+}
+
+#inspector-header > Image
+{
+    margin-top: 2px;
+    margin-bottom: 2px;
 }
 
 #inspector-header > TextField
@@ -196,10 +218,7 @@ Image.unity-list-view__item:selected
 
 .unity-toggle__input > .unity-image
 {
-    padding-top: 2px;
-    padding-right: 2px;
-    padding-bottom: 2px;
-    padding-left: 1px;
+    padding: 2px;
 }
 
 #toolbar > * > .unity-label
@@ -216,7 +235,10 @@ Image.unity-list-view__item:selected
 
 #sideToolbar > #tabsRadio
 {
+    min-width: auto;
+    flex: 1;
     flex-direction: row;
+    -unity-text-align: middle-center;
 }
 
 .unity-toolbar-toggle
@@ -249,6 +271,35 @@ Image.unity-list-view__item:selected
 {
     flex-shrink: 0;
     min-width: 16px;
+}
+
+#cameraMenu
+{
+    flex-direction: row;
+    padding: 0px;
+    padding-right: 16px;
+}
+
+#cameraButton
+{
+    border-radius: 0px;
+    border-width: 0px;
+    border-left-width: 1px;
+    padding: 0px;
+    padding-right: 4px;
+    margin: 0px;
+}
+
+#cameraSeparator
+{
+    margin-top: 4px;
+    margin-bottom: 4px;
+    border-right-width: 1px;
+}
+
+#cameraButton > *
+{
+    margin: 2px;
 }
 
 /* /////////// */
