@@ -2318,7 +2318,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
 
             LightLoopUpdateCullingParameters(ref cullingParams);
-            hdCamera.UpdateStereoDependentState(ref cullingParams);
 
             // If we don't use environment light (like when rendering reflection probes)
             //   we don't have to cull them.

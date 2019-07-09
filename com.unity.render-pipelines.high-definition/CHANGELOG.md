@@ -59,6 +59,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed post-processing effect relying on Unity's random number generator
 - Fixed camera flickering when using TAA and selecting the camera in the editor
 - Fixed issue with single shadow debug view and volumetrics
+- Fixed indirect deferred compute with XR single-pass instancing
 
 ### Changed
 - Optimization: Reduce the group size of the deferred lighting pass from 16x16 to 8x8
