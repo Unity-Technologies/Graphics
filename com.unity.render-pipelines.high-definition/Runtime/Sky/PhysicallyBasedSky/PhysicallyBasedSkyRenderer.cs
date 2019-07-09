@@ -160,22 +160,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             return (3.0f / (8.0f * Mathf.PI)) * (1.0f - g * g) / (2.0f + g * g);
         }
 
-        static float ComputeScaleHeight(float layerDepth)
-        {
-            // Exp[-d / s] = 0.001
-            // -d / s = Log[0.001]
-            // s = d / -Log[0.001]
-            return layerDepth * 0.144765f;
-        }
-
         // For both precomputation and runtime lighting passes.
         void UpdateGlobalConstantBuffer(CommandBuffer cmd)
         {
 
             float R    = m_Settings.planetaryRadius.value;
             float H    = Mathf.Max(m_Settings.airMaxAltitude.value, m_Settings.aerosolMaxAltitude.value);
-            float airS = ComputeScaleHeight(m_Settings.airMaxAltitude.value);
-            float aerS = ComputeScaleHeight(m_Settings.aerosolMaxAltitude.value);
+            float airS = m_Settings.GetAirScaleHeight();
+            float aerS = m_Settings.GetAerosolScaleHeight();
 
             cmd.SetGlobalFloat( HDShaderIDs._PlanetaryRadius,           R);
             cmd.SetGlobalFloat( HDShaderIDs._RcpPlanetaryRadius,        1.0f / R);
