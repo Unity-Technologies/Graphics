@@ -1,5 +1,4 @@
-using UnityEngine;
-using System;
+using UnityEngine.Rendering;
 
 //-----------------------------------------------------------------------------
 // structure definition

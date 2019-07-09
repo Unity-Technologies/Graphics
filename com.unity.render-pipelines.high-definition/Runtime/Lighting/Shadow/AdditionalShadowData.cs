@@ -18,8 +18,9 @@ namespace UnityEngine.Experimental.Rendering
         private int m_Version = 1;
 #pragma warning restore 414
 
-        [Obsolete("Obsolete, use HDAdditionalLightData.shadowResolution instead.")]
-        public int shadowResolution = HDAdditionalLightData.k_DefaultShadowResolution;
+        [Obsolete("Obsolete, use HDAdditionalLightData.customResolution instead.")]
+        [UnityEngine.Serialization.FormerlySerializedAs("shadowResolution")]
+        public int customResolution = HDAdditionalLightData.k_DefaultShadowResolution;
 
         [Range(0.0f, 1.0f)]
         [Obsolete("Obsolete, use HDAdditionalLightData.shadowDimmer instead.")]
@@ -71,7 +72,7 @@ namespace UnityEngine.Experimental.Rendering
             // If the additional datas is null, then we can't upgrade
             if (additionalData != null)
             {
-                additionalData.shadowResolution = shadowResolution;
+                additionalData.customResolution = customResolution;
                 additionalData.shadowDimmer = shadowDimmer;
                 additionalData.volumetricShadowDimmer = volumetricShadowDimmer;
                 additionalData.shadowFadeDistance = shadowFadeDistance;

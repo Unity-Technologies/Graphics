@@ -187,10 +187,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         internal void AddViewInternal(XRView xrView)
         {
-            views.Add(xrView);
-
-            // Validate memory limitations
-            Debug.Assert(views.Count <= TextureXR.slices);
+            if (views.Count < TextureXR.slices)
+            {
+                views.Add(xrView);
+            }
+            else
+            {
+                throw new NotImplementedException($"Invalid XR setup for single-pass instancing, trying to add too many views! Max supported: {TextureXR.slices}");
+            }
         }
 
         internal void StartSinglePass(CommandBuffer cmd, Camera camera, ScriptableRenderContext renderContext)
@@ -216,11 +220,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
                 else if (instancingEnabled)
                 {
-                    if (viewCount == 2)
+                    if (viewCount <= TextureXR.slices)
                     {
                         cmd.EnableShaderKeyword("STEREO_INSTANCING_ON");
 #if UNITY_2019_3_OR_NEWER
-                        //cmd.SetInstanceMultiplier(2);
+                        //cmd.SetInstanceMultiplier((uint)viewCount);
 #endif
                     }
                     else
