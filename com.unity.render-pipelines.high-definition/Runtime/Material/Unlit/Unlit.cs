@@ -1,5 +1,4 @@
-using UnityEngine;
-using System;
+using UnityEngine.Rendering;
 using UnityEngine.Experimental.Rendering.HDPipeline.Attributes;
 
 //-----------------------------------------------------------------------------

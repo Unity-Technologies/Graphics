@@ -314,13 +314,23 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             // Shader graphs materials have their own management of motion vector pass in the material inspector
             if (!material.shader.IsShaderGraph())
             {
+                //In the case of additional velocity data we will enable the motion vector pass.
+                bool additionalVelocityEnabled = false;
+                if (material.HasProperty(kAdditionalVelocityChange))
+                {
+                    additionalVelocityEnabled = material.GetInt(kAdditionalVelocityChange) != 0;
+                }
+
                 // We don't have any vertex animation for lit/unlit vector, so we
                 // setup motion vector pass to false. Remind that in HDRP this
                 // doesn't disable motion vector, it just mean that the material
                 // don't do any vertex deformation but we can still have
                 // skinning / morph target
-                material.SetShaderPassEnabled(HDShaderPassNames.s_MotionVectorsStr, false);
-            }
+                material.SetShaderPassEnabled(HDShaderPassNames.s_MotionVectorsStr, additionalVelocityEnabled);
+
+             }
+
         }
+
     }
 }

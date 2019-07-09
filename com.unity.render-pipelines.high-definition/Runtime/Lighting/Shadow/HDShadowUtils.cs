@@ -29,12 +29,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (camera.frameSettings.litShaderMode == LitShaderMode.Deferred)
                 return 5;
 
-            switch (hdAsset.currentPlatformRenderPipelineSettings.hdShadowInitParams.shadowQuality)
+            switch (hdAsset.currentPlatformRenderPipelineSettings.hdShadowInitParams.shadowFilteringQuality)
             {
                 // Warning: these values have to match the algorithms used for shadow filtering (in HDShadowAlgorithm.hlsl)
-                case HDShadowQuality.Low:
+                case HDShadowFilteringQuality.Low:
                     return 3; // PCF 3x3
-                case HDShadowQuality.Medium:
+                case HDShadowFilteringQuality.Medium:
                     return 5; // PCF 5x5
                 default:
                     return 1; // Any non PCF algorithms

@@ -1,6 +1,7 @@
 //-----------------------------------------------------------------------------
 // structure definition
 //-----------------------------------------------------------------------------
+using UnityEngine.Rendering;
 using UnityEngine.Experimental.Rendering.HDPipeline.Attributes;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline

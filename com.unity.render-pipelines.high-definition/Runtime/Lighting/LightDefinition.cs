@@ -1,4 +1,4 @@
-using UnityEngine;
+using UnityEngine.Rendering;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
@@ -117,7 +117,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         // TODO: Instead of doing this, we should pack the ray traced shadow index into the tile cookie for instance
         public int     screenSpaceShadowIndex;
-        
+
         public Vector3 shadowTint;              // Use to tint shadow color
 
         public float   shadowDimmer;

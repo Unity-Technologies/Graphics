@@ -309,7 +309,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public void Render(CommandBuffer cmd, HDCamera camera, BlueNoise blueNoise, RTHandle colorBuffer, RTHandle afterPostProcessTexture, RTHandle lightingBuffer, RenderTargetIdentifier finalRT, RTHandle depthBuffer, bool flipY)
         {
-            var dynResHandler = HDDynamicResolutionHandler.instance;
+            var dynResHandler = DynamicResolutionHandler.instance;
 
             m_Pool.SetHWDynamicResolutionState(camera);
 
@@ -1635,7 +1635,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 float sw = scaleW * p;
                 float sh = scaleH * p;
                 int pw, ph;
-                if (HDDynamicResolutionHandler.instance.HardwareDynamicResIsEnabled())
+                if (DynamicResolutionHandler.instance.HardwareDynamicResIsEnabled())
                 {
                     pw = Mathf.Max(1, Mathf.CeilToInt(sw * camera.actualWidth));
                     ph = Mathf.Max(1, Mathf.CeilToInt(sh * camera.actualHeight));
@@ -2188,7 +2188,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_FinalPassMaterial.shaderKeywords = null;
             m_FinalPassMaterial.SetTexture(HDShaderIDs._InputTexture, source);
 
-            var dynResHandler = HDDynamicResolutionHandler.instance;
+            var dynResHandler = DynamicResolutionHandler.instance;
             bool dynamicResIsOn = camera.isMainGameView && dynResHandler.DynamicResolutionEnabled();
 
             if (dynamicResIsOn)
@@ -2325,7 +2325,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             public void SetHWDynamicResolutionState(HDCamera camera)
             {
-                bool needsHW = HDDynamicResolutionHandler.instance.HardwareDynamicResIsEnabled();
+                bool needsHW = DynamicResolutionHandler.instance.HardwareDynamicResIsEnabled();
                 if (needsHW && !m_HasHWDynamicResolution)
                 {
                     // If any target has no dynamic resolution enabled, but we require it, we need to cleanup the pool.

@@ -107,7 +107,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public HDShadowData cachedShadowData;
     }
 
-    public enum HDShadowQuality
+    public enum HDShadowFilteringQuality
     {
         Low = 0,
         Medium = 1,
@@ -125,6 +125,42 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     [Serializable]
     public struct HDShadowInitParameters
     {
+
+        [Serializable]
+        public struct HDShadowTierParams
+        {
+            public int lowQualityResolution;
+            public int mediumQualityResolution;
+            public int highQualityResolution;
+            public int veryHighQualityResolution;
+
+            public int GetResolution(ShadowResolutionTier tier)
+            {
+                switch (tier)
+                {
+                    case ShadowResolutionTier.Low:
+                        return lowQualityResolution;
+                    case ShadowResolutionTier.Medium:
+                        return mediumQualityResolution;
+                    case ShadowResolutionTier.High:
+                        return highQualityResolution;
+                    case ShadowResolutionTier.VeryHigh:
+                        return veryHighQualityResolution;
+                }
+                return mediumQualityResolution;
+            }
+            public static HDShadowTierParams GetDefault()
+            {
+                return new HDShadowTierParams()
+                {
+                    lowQualityResolution = 256,
+                    mediumQualityResolution = 512,
+                    highQualityResolution = 1024,
+                    veryHighQualityResolution = 2048
+                };
+            }
+        }
+
         [Serializable]
         public struct HDShadowAtlasInitParams
         {
@@ -146,13 +182,20 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         /// <summary>Default HDShadowInitParameters</summary>
         public static readonly HDShadowInitParameters @default = new HDShadowInitParameters()
         {
-            maxShadowRequests           = k_DefaultMaxShadowRequests,
-            directionalShadowsDepthBits = k_DefaultShadowMapDepthBits,
-            punctualLightShadowAtlas    = HDShadowAtlasInitParams.GetDefault(),
-            areaLightShadowAtlas        = HDShadowAtlasInitParams.GetDefault(),
-			shadowQuality               = HDShadowQuality.Medium,
-            supportScreenSpaceShadows   = false,
-            maxScreenSpaceShadows       = 2,
+            maxShadowRequests                   = k_DefaultMaxShadowRequests,
+            directionalShadowsDepthBits         = k_DefaultShadowMapDepthBits,
+            punctualLightShadowAtlas            = HDShadowAtlasInitParams.GetDefault(),
+            areaLightShadowAtlas                = HDShadowAtlasInitParams.GetDefault(),
+            directionalLightsResolutionTiers    = HDShadowTierParams.GetDefault(),
+            punctualLightsResolutionTiers       = HDShadowTierParams.GetDefault(),
+            areaLightsResolutionTiers           = HDShadowTierParams.GetDefault(),
+            shadowFilteringQuality              = HDShadowFilteringQuality.Medium,
+            supportScreenSpaceShadows           = false,
+            maxScreenSpaceShadows               = 2,
+            maxDirectionalShadowMapResolution   = 2048,
+            maxAreaShadowMapResolution          = 2048,
+            maxPunctualShadowMapResolution      = 2048,
+
         };
 
         public const int k_DefaultShadowAtlasResolution = 4096;
@@ -162,10 +205,19 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public int maxShadowRequests;
         public DepthBits directionalShadowsDepthBits;
 
-        public HDShadowQuality shadowQuality;
+        [FormerlySerializedAs("shadowQuality")]
+        public HDShadowFilteringQuality shadowFilteringQuality;
 
         public HDShadowAtlasInitParams punctualLightShadowAtlas;
         public HDShadowAtlasInitParams areaLightShadowAtlas;
+
+        public HDShadowTierParams directionalLightsResolutionTiers;
+        public HDShadowTierParams punctualLightsResolutionTiers;
+        public HDShadowTierParams areaLightsResolutionTiers;
+
+        public int maxDirectionalShadowMapResolution;
+        public int maxPunctualShadowMapResolution;
+        public int maxAreaShadowMapResolution;
 
         // Screen space shadow data
         public bool supportScreenSpaceShadows;
@@ -231,17 +283,17 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static DirectionalShadowAlgorithm GetDirectionalShadowAlgorithm()
         {
             var hdAsset = (GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset);
-            switch (hdAsset.currentPlatformRenderPipelineSettings.hdShadowInitParams.shadowQuality)
+            switch (hdAsset.currentPlatformRenderPipelineSettings.hdShadowInitParams.shadowFilteringQuality)
             {
-                case HDShadowQuality.Low:
+                case HDShadowFilteringQuality.Low:
                 {
                     return DirectionalShadowAlgorithm.PCF5x5;
                 }
-                case HDShadowQuality.Medium:
+                case HDShadowFilteringQuality.Medium:
                 {
                     return DirectionalShadowAlgorithm.PCF7x7;
                 }
-                case HDShadowQuality.High:
+                case HDShadowFilteringQuality.High:
                 {
                     return DirectionalShadowAlgorithm.PCSS;
                 }

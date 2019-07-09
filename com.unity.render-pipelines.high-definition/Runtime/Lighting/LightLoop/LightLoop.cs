@@ -422,6 +422,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public static readonly Matrix4x4 s_FlipMatrixLHSRHS = Matrix4x4.Scale(new Vector3(1, 1, -1));
 
+        public Matrix4x4 GetWorldToViewMatrix(HDCamera hdCamera, int viewIndex)
+        {
+            var viewMatrix = (hdCamera.xr.enabled ? hdCamera.xr.GetViewMatrix(viewIndex) : hdCamera.camera.worldToCameraMatrix);
+
+            // camera.worldToCameraMatrix is RHS and Unity's transforms are LHS, we need to flip it to work with transforms
+            return s_FlipMatrixLHSRHS * viewMatrix;
+        }
+
         // Keep track of the maximum number of XR instanced views
         int m_MaxViewCount = 1;
 
@@ -440,10 +448,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public int punctualLightCount;
             public int areaLightCount;
 
-            public List<SFiniteLightBound> bounds;
-            public List<LightVolumeData> lightVolumes;
-            public List<SFiniteLightBound> rightEyeBounds;
-            public List<LightVolumeData> rightEyeLightVolumes;
+            public struct LightsPerView
+            {
+                public List<SFiniteLightBound> bounds;
+                public List<LightVolumeData> lightVolumes;
+            }
+
+            public List<LightsPerView> lightsPerView;
 
             public void Clear()
             {
@@ -453,10 +464,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 punctualLightCount = 0;
                 areaLightCount = 0;
 
-                bounds.Clear();
-                lightVolumes.Clear();
-                rightEyeBounds.Clear();
-                rightEyeLightVolumes.Clear();
+                for (int i = 0; i < lightsPerView.Count; ++i)
+                {
+                    lightsPerView[i].bounds.Clear();
+                    lightsPerView[i].lightVolumes.Clear();
+                }
             }
 
             public void Allocate()
@@ -465,11 +477,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 lights = new List<LightData>();
                 envLights = new List<EnvLightData>();
 
-                bounds = new List<SFiniteLightBound>();
-                lightVolumes = new List<LightVolumeData>();
-
-                rightEyeBounds = new List<SFiniteLightBound>();
-                rightEyeLightVolumes = new List<LightVolumeData>();
+                lightsPerView = new List<LightsPerView>();
+                for (int i = 0; i < TextureXR.slices; ++i)
+                {
+                    lightsPerView.Add(new LightsPerView { bounds = new List<SFiniteLightBound>(), lightVolumes = new List<LightVolumeData>() });
+                }
             }
         }
 
@@ -793,7 +805,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             var shadowKeywords = new[]{"SHADOW_LOW", "SHADOW_MEDIUM", "SHADOW_HIGH"};
             foreach (var p in shadowKeywords)
                 Shader.DisableKeyword(p);
-            Shader.EnableKeyword(shadowKeywords[(int)shadowParams.shadowQuality]);
+            Shader.EnableKeyword(shadowKeywords[(int)shadowParams.shadowFilteringQuality]);
 
             InitShadowSystem(asset, defaultResources);
 
@@ -1274,8 +1286,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         // TODO: we should be able to do this calculation only with LightData without VisibleLight light, but for now pass both
         public void GetLightVolumeDataAndBound(LightCategory lightCategory, GPULightType gpuLightType, LightVolumeType lightVolumeType,
-            VisibleLight light, LightData lightData, Vector3 lightDimensions, Matrix4x4 worldToView,
-            Camera.StereoscopicEye eyeIndex = Camera.StereoscopicEye.Left)
+            VisibleLight light, LightData lightData, Vector3 lightDimensions, Matrix4x4 worldToView, int viewIndex)
         {
             // Then Culling side
             var range = lightDimensions.z;
@@ -1443,16 +1454,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 Debug.Assert(false, "TODO: encountered an unknown GPULightType.");
             }
 
-            if (eyeIndex == Camera.StereoscopicEye.Left)
-            {
-                m_lightList.bounds.Add(bound);
-                m_lightList.lightVolumes.Add(lightVolumeData);
-            }
-            else
-            {
-                m_lightList.rightEyeBounds.Add(bound);
-                m_lightList.rightEyeLightVolumes.Add(lightVolumeData);
-            }
+            m_lightList.lightsPerView[viewIndex].bounds.Add(bound);
+            m_lightList.lightsPerView[viewIndex].lightVolumes.Add(lightVolumeData);
         }
         public bool GetEnvLightData(CommandBuffer cmd, HDCamera hdCamera, HDProbe probe, DebugDisplaySettings debugDisplaySettings, ref EnvLightData envLightData)
         {
@@ -1571,7 +1574,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             return true;
         }
 
-        public void GetEnvLightVolumeDataAndBound(HDProbe probe, LightVolumeType lightVolumeType, Matrix4x4 worldToView, Camera.StereoscopicEye eyeIndex = Camera.StereoscopicEye.Left)
+        public void GetEnvLightVolumeDataAndBound(HDProbe probe, LightVolumeType lightVolumeType, Matrix4x4 worldToView, int viewIndex)
         {
             var bound = new SFiniteLightBound();
             var lightVolumeData = new LightVolumeData();
@@ -1631,19 +1634,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
             }
 
-            if (eyeIndex == Camera.StereoscopicEye.Left)
-            {
-                m_lightList.bounds.Add(bound);
-                m_lightList.lightVolumes.Add(lightVolumeData);
-            }
-            else
-            {
-                m_lightList.rightEyeBounds.Add(bound);
-                m_lightList.rightEyeLightVolumes.Add(lightVolumeData);
-            }
+            m_lightList.lightsPerView[viewIndex].bounds.Add(bound);
+            m_lightList.lightsPerView[viewIndex].lightVolumes.Add(lightVolumeData);
         }
 
-        public void AddBoxVolumeDataAndBound(OrientedBBox obb, LightCategory category, LightFeatureFlags featureFlags, Matrix4x4 worldToView, bool xrInstancingEnabled)
+        public void AddBoxVolumeDataAndBound(OrientedBBox obb, LightCategory category, LightFeatureFlags featureFlags, Matrix4x4 worldToView, int viewIndex)
         {
             var bound      = new SFiniteLightBound();
             var volumeData = new LightVolumeData();
@@ -1676,15 +1671,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             volumeData.boxInnerDist = extents - k_BoxCullingExtentThreshold; // We have no blend range, but the culling code needs a small EPS value for some reason???
             volumeData.boxInvRange.Set(1.0f / k_BoxCullingExtentThreshold.x, 1.0f / k_BoxCullingExtentThreshold.y, 1.0f / k_BoxCullingExtentThreshold.z);
 
-            m_lightList.bounds.Add(bound);
-            m_lightList.lightVolumes.Add(volumeData);
-
-            // XRTODO: use rightEyeWorldToView here too?
-            if (xrInstancingEnabled)
-            {
-                m_lightList.rightEyeBounds.Add(bound);
-                m_lightList.rightEyeLightVolumes.Add(volumeData);
-            }
+            m_lightList.lightsPerView[viewIndex].bounds.Add(bound);
+            m_lightList.lightsPerView[viewIndex].lightVolumes.Add(volumeData);
         }
 
         public int GetCurrentShadowCount()
@@ -1761,20 +1749,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 var hdShadowSettings = VolumeManager.instance.stack.GetComponent<HDShadowSettings>();
 
-                var viewMatrix = (hdCamera.xr.enabled ? hdCamera.xr.GetViewMatrix(0) : camera.worldToCameraMatrix);
                 Vector3 camPosWS = hdCamera.mainViewConstants.worldSpaceCameraPos;
-
-                // camera.worldToCameraMatrix is RHS and Unity's transforms are LHS, we need to flip it to work with transforms
-                var worldToView = s_FlipMatrixLHSRHS * viewMatrix;
-                var rightEyeWorldToView = Matrix4x4.identity;
-
-                if (hdCamera.xr.instancingEnabled)
-                {
-                    if (hdCamera.xr.viewCount == 2)
-                        rightEyeWorldToView = s_FlipMatrixLHSRHS * hdCamera.xr.GetViewMatrix(1);
-                    else
-                        throw new NotImplementedException();
-                }
 
                 // We must clear the shadow requests before checking if they are any visible light because we would have requests from the last frame executed in the case where we don't see any lights
                 m_ShadowManager.Clear();
@@ -2003,9 +1978,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                             }
 
                             // Then culling side. Must be call in this order as we pass the created Light data to the function
-                            GetLightVolumeDataAndBound(lightCategory, gpuLightType, lightVolumeType, light, m_lightList.lights[m_lightList.lights.Count - 1], lightDimensions, worldToView);
-                            if (hdCamera.xr.instancingEnabled)
-                                GetLightVolumeDataAndBound(lightCategory, gpuLightType, lightVolumeType, light, m_lightList.lights[m_lightList.lights.Count - 1], lightDimensions, rightEyeWorldToView, Camera.StereoscopicEye.Right);
+                            for (int viewIndex = 0; viewIndex < hdCamera.viewCount; ++viewIndex)
+                            {
+                                var worldToView = GetWorldToViewMatrix(hdCamera, viewIndex);
+                                GetLightVolumeDataAndBound(lightCategory, gpuLightType, lightVolumeType, light, m_lightList.lights[m_lightList.lights.Count - 1], lightDimensions, worldToView, viewIndex);
+                            }
 
                             // We make the light position camera-relative as late as possible in order
                             // to allow the preceding code to work with the absolute world space coordinates.
@@ -2039,10 +2016,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     UpdateSortKeysArray(probeCount);
                     sortCount = 0;
 
-                    var enableReflectionProbes = !hasDebugLightFilter ||
-                                                 debugLightFilter.IsEnabledFor(ProbeSettings.ProbeType.ReflectionProbe);
-                    var enablePlanarProbes = !hasDebugLightFilter ||
-                                                 debugLightFilter.IsEnabledFor(ProbeSettings.ProbeType.PlanarProbe);
+                    var enableReflectionProbes =    hdCamera.frameSettings.IsEnabled(FrameSettingsField.EnableReflectionProbe) &&
+                                                    (!hasDebugLightFilter || debugLightFilter.IsEnabledFor(ProbeSettings.ProbeType.ReflectionProbe));
+
+                    var enablePlanarProbes =    hdCamera.frameSettings.IsEnabled(FrameSettingsField.EnablePlanarProbe) &&
+                                                (!hasDebugLightFilter || debugLightFilter.IsEnabledFor(ProbeSettings.ProbeType.PlanarProbe));
+
                     for (int probeIndex = 0, numProbes = totalProbes; (probeIndex < numProbes) && (sortCount < probeCount); probeIndex++)
                     {
                         if (probeIndex < cullResults.visibleReflectionProbes.Length)
@@ -2144,9 +2123,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                             // it has been filled
                             m_lightList.envLights.Add(envLightData);
 
-                            GetEnvLightVolumeDataAndBound(probeWrapper, lightVolumeType, worldToView);
-                            if (hdCamera.xr.instancingEnabled)
-                                GetEnvLightVolumeDataAndBound(probeWrapper, lightVolumeType, rightEyeWorldToView, Camera.StereoscopicEye.Right);
+                            for (int viewIndex = 0; viewIndex < hdCamera.viewCount; ++viewIndex)
+                            {
+                                var worldToView = GetWorldToViewMatrix(hdCamera, viewIndex);
+                                GetEnvLightVolumeDataAndBound(probeWrapper, lightVolumeType, worldToView, viewIndex);
+                            }
 
                             // We make the light position camera-relative as late as possible in order
                             // to allow the preceding code to work with the absolute world space coordinates.
@@ -2162,13 +2143,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 {
                     for (int i = 0; i < decalDatasCount; i++)
                     {
-                        m_lightList.bounds.Add(DecalSystem.m_Bounds[i]);
-                        m_lightList.lightVolumes.Add(DecalSystem.m_LightVolumes[i]);
-
-                        if (hdCamera.xr.instancingEnabled)
+                        for (int viewIndex = 0; viewIndex < hdCamera.viewCount; ++viewIndex)
                         {
-                            m_lightList.rightEyeBounds.Add(DecalSystem.m_Bounds[i]);
-                            m_lightList.rightEyeLightVolumes.Add(DecalSystem.m_LightVolumes[i]);
+                            m_lightList.lightsPerView[viewIndex].bounds.Add(DecalSystem.m_Bounds[i]);
+                            m_lightList.lightsPerView[viewIndex].lightVolumes.Add(DecalSystem.m_LightVolumes[i]);
                         }
                     }
                 }
@@ -2176,35 +2154,37 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // Inject density volumes into the clustered data structure for efficient look up.
                 m_densityVolumeCount = densityVolumes.bounds != null ? densityVolumes.bounds.Count : 0;
 
-                Matrix4x4 worldToViewCR = worldToView;
-
-                if (ShaderConfig.s_CameraRelativeRendering != 0)
+                for (int viewIndex = 0; viewIndex < hdCamera.viewCount; ++viewIndex)
                 {
-                    // The OBBs are camera-relative, the matrix is not. Fix it.
-                    worldToViewCR.SetColumn(3, new Vector4(0, 0, 0, 1));
-                }
+                    Matrix4x4 worldToViewCR = GetWorldToViewMatrix(hdCamera, viewIndex);
 
-                for (int i = 0, n = m_densityVolumeCount; i < n; i++)
-                {
-                    // Density volumes are not lights and therefore should not affect light classification.
-                    LightFeatureFlags featureFlags = 0;
-                    AddBoxVolumeDataAndBound(densityVolumes.bounds[i], LightCategory.DensityVolume, featureFlags, worldToViewCR, hdCamera.xr.instancingEnabled);
+                    if (ShaderConfig.s_CameraRelativeRendering != 0)
+                    {
+                        // The OBBs are camera-relative, the matrix is not. Fix it.
+                        worldToViewCR.SetColumn(3, new Vector4(0, 0, 0, 1));
+                    }
+
+                    for (int i = 0, n = m_densityVolumeCount; i < n; i++)
+                    {
+                        // Density volumes are not lights and therefore should not affect light classification.
+                        LightFeatureFlags featureFlags = 0;
+                        AddBoxVolumeDataAndBound(densityVolumes.bounds[i], LightCategory.DensityVolume, featureFlags, worldToViewCR, viewIndex);
+                    }
                 }
 
                 m_TotalLightCount = m_lightList.lights.Count + m_lightList.envLights.Count + decalDatasCount + m_densityVolumeCount;
-                Debug.Assert(m_TotalLightCount == m_lightList.bounds.Count);
-                Debug.Assert(m_TotalLightCount == m_lightList.lightVolumes.Count);
+                Debug.Assert(m_TotalLightCount == m_lightList.lightsPerView[0].bounds.Count);
+                Debug.Assert(m_TotalLightCount == m_lightList.lightsPerView[0].lightVolumes.Count);
 
-                if (hdCamera.xr.instancingEnabled)
+                // Aggregate the remaining views into the first entry of the list (view 0)
+                // XRTODO: revisit this code to avoid duplicated culling computations and extra memory copy
+                for (int viewIndex = 1; viewIndex < hdCamera.viewCount; ++viewIndex)
                 {
-                    // TODO: Proper decal + stereo cull management
+                    Debug.Assert(m_lightList.lightsPerView[viewIndex].bounds.Count == m_TotalLightCount);
+                    m_lightList.lightsPerView[0].bounds.AddRange(m_lightList.lightsPerView[viewIndex].bounds);
 
-                    Debug.Assert(m_lightList.rightEyeBounds.Count == m_TotalLightCount);
-                    Debug.Assert(m_lightList.rightEyeLightVolumes.Count == m_TotalLightCount);
-
-                    // TODO: GC considerations?
-                    m_lightList.bounds.AddRange(m_lightList.rightEyeBounds);
-                    m_lightList.lightVolumes.AddRange(m_lightList.rightEyeLightVolumes);
+                    Debug.Assert(m_lightList.lightsPerView[viewIndex].lightVolumes.Count == m_TotalLightCount);
+                    m_lightList.lightsPerView[0].lightVolumes.AddRange(m_lightList.lightsPerView[viewIndex].lightVolumes);
                 }
 
                 UpdateDataBuffers();
@@ -2728,9 +2708,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_LightLoopLightData.envLightData.SetData(m_lightList.envLights);
             m_LightLoopLightData.decalData.SetData(DecalSystem.m_DecalDatas, 0, 0, Math.Min(DecalSystem.m_DecalDatasCount, m_MaxDecalsOnScreen)); // don't add more than the size of the buffer
 
-            // These two buffers have been set in Rebuild()
-            m_TileAndClusterData.convexBoundsBuffer.SetData(m_lightList.bounds);
-            m_TileAndClusterData.lightVolumeDataBuffer.SetData(m_lightList.lightVolumes);
+            // These two buffers have been set in Rebuild(). At this point, view 0 contains combined data from all views
+            m_TileAndClusterData.convexBoundsBuffer.SetData(m_lightList.lightsPerView[0].bounds);
+            m_TileAndClusterData.lightVolumeDataBuffer.SetData(m_lightList.lightsPerView[0].lightVolumes);
         }
 
         HDAdditionalLightData GetHDAdditionalLightData(Light light)
@@ -3109,7 +3089,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     if (parameters.enableFeatureVariants)
                     {
                         cmd.SetComputeBufferParam(parameters.deferredComputeShader, kernel, HDShaderIDs.g_TileFeatureFlags, resources.tileFeatureFlagsBuffer);
-                        cmd.SetComputeIntParam(parameters.deferredComputeShader, HDShaderIDs.g_TileListOffset, variant * parameters.numTiles);
+                        cmd.SetComputeIntParam(parameters.deferredComputeShader, HDShaderIDs.g_TileListOffset, variant * parameters.numTiles * parameters.viewCount);
                         cmd.SetComputeBufferParam(parameters.deferredComputeShader, kernel, HDShaderIDs.g_TileList, resources.tileListBuffer);
                         cmd.DispatchCompute(parameters.deferredComputeShader, kernel, resources.dispatchIndirectBuffer, (uint)variant * 3 * sizeof(uint));
                     }
@@ -3405,15 +3385,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     }
                 }
             }
-        }
-
-        void AOTExplicitCompilation()
-        {
-            var g = new CoreUnsafeUtils.DefaultKeyGetter<uint>();
-            var v = 0u;
-            g.Get(ref v);
-
-            throw new Exception("Only for AOT compilation, don't call in runtime.");
         }
     }
 }
