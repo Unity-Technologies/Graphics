@@ -484,8 +484,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly int _GroundIrradianceTexture        = Shader.PropertyToID("_GroundIrradianceTexture");
         public static readonly int _GroundIrradianceTable          = Shader.PropertyToID("_GroundIrradianceTable");
         public static readonly int _GroundIrradianceTableOrder     = Shader.PropertyToID("_GroundIrradianceTableOrder");
-        public static readonly int _OpticalDepthTexture            = Shader.PropertyToID("_OpticalDepthTexture");
-        public static readonly int _OpticalDepthTable              = Shader.PropertyToID("_OpticalDepthTable");
         public static readonly int _AirSingleScatteringTexture     = Shader.PropertyToID("_AirSingleScatteringTexture");
         public static readonly int _AirSingleScatteringTable       = Shader.PropertyToID("_AirSingleScatteringTable");
         public static readonly int _AerosolSingleScatteringTexture = Shader.PropertyToID("_AerosolSingleScatteringTexture");

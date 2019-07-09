@@ -131,8 +131,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     minFilterSize = o.Find("m_MinFilterSize"),
                     areaLightCookie = o.Find("m_AreaLightCookie"),
                     areaLightShadowCone = o.Find("m_AreaLightShadowCone"),
-                    useCustomSpotLightShadowCone = o.Find("useCustomSpotLightShadowCone"),
-                    customSpotLightShadowCone = o.Find("customSpotLightShadowCone"),
+                    useCustomSpotLightShadowCone = o.Find("m_UseCustomSpotLightShadowCone"),
+                    customSpotLightShadowCone = o.Find("m_CustomSpotLightShadowCone"),
                     useScreenSpaceShadows = o.Find("m_UseScreenSpaceShadows"),
                     interactsWithSky = o.Find("m_InteractsWithSky"),
 #if ENABLE_RAYTRACING

@@ -32,7 +32,6 @@ CBUFFER_START(UnityPhysicallyBasedSky)
     float3 _PlanetCenterPosition; // Not used during the precomputation, but needed to apply the atmospheric effect
 CBUFFER_END
 
-TEXTURE2D(_OpticalDepthTexture);
 TEXTURE2D(_GroundIrradianceTexture);
 
 // Emulate a 4D texture with a "deep" 3D texture.
@@ -148,21 +147,19 @@ float UnmapQuadraticHeight(float v)
     return (v * v) * _AtmosphericDepth;
 }
 
-float GetCosineOfHorizonZenithAngle(float height)
+float ComputeCosineOfHorizonAngle(float r)
 {
-    float R = _PlanetaryRadius;
-    float h = height;
-    float r = R + h;
-
-    // cos(Pi - x) = -cos(x).
-    // Compute -sqrt(r^2 - R^2) / r = -sqrt(1 - (R / r)^2).
-    return -sqrt(saturate(1 - Sq(R * rcp(r))));
+    float R        = _PlanetaryRadius;
+    float sinHoriz = R * rcp(r);
+    return -sqrt(saturate(1 - sinHoriz * sinHoriz));
 }
 
 // We use the parametrization from "Outdoor Light Scattering Sample Update" by E. Yusov.
 float2 MapAerialPerspective(float cosChi, float height, float texelSize)
 {
-    float cosHor = GetCosineOfHorizonZenithAngle(height);
+    float R      = _PlanetaryRadius;
+    float r      = height + R;
+    float cosHor = ComputeCosineOfHorizonAngle(r);
 
     // Above horizon?
     float s = FastSign(cosChi - cosHor);
@@ -183,7 +180,9 @@ float2 MapAerialPerspective(float cosChi, float height, float texelSize)
 
 float2 MapAerialPerspectiveAboveHorizon(float cosChi, float height)
 {
-    float cosHor = GetCosineOfHorizonZenithAngle(height);
+    float R      = _PlanetaryRadius;
+    float r      = height + R;
+    float cosHor = ComputeCosineOfHorizonAngle(r);
 
     float u = saturate(sqrt(cosChi - cosHor) * rsqrt(1 - cosHor));
     float v = MapQuadraticHeight(height);
@@ -195,7 +194,9 @@ float2 MapAerialPerspectiveAboveHorizon(float cosChi, float height)
 float2 UnmapAerialPerspective(float2 uv)
 {
     float height = UnmapQuadraticHeight(uv.y);
-    float cosHor = GetCosineOfHorizonZenithAngle(height);
+    float R      = _PlanetaryRadius;
+    float r      = height + R;
+    float cosHor = ComputeCosineOfHorizonAngle(r);
 
     float m = uv.x * 2 - 1;
     float s = FastSign(m);
@@ -211,7 +212,9 @@ float2 UnmapAerialPerspective(float2 uv)
 float2 UnmapAerialPerspectiveAboveHorizon(float2 uv)
 {
     float height = UnmapQuadraticHeight(uv.y);
-    float cosHor = GetCosineOfHorizonZenithAngle(height);
+    float R      = _PlanetaryRadius;
+    float r      = height + R;
+    float cosHor = ComputeCosineOfHorizonAngle(r);
 
     float x = (uv.x * uv.x);
 
@@ -222,53 +225,90 @@ float2 UnmapAerialPerspectiveAboveHorizon(float2 uv)
     return float2(cosChi, height);
 }
 
-float3 SampleOpticalDepthTexture(float cosChi, float height, bool lookAboveHorizon)
+float ChapmanUpperApprox(float z, float cosTheta)
 {
-    // TODO: pass the sign? Do not recompute?
-    float s = lookAboveHorizon ? 1 : -1;
+    float c = cosTheta;
+    float n = 0.761643 * ((1 + 2 * z) - (c * c * z));
+    float d = c * z + sqrt(z * (1.47721 + 0.273828 * (c * c * z)));
 
-    // From the current position to the atmospheric boundary.
-    float2 uv       = MapAerialPerspectiveAboveHorizon(s * cosChi, height).xy;
-    float2 optDepth = SAMPLE_TEXTURE2D_LOD(_OpticalDepthTexture, s_linear_clamp_sampler, uv, 0).xy;
-
-    if (!lookAboveHorizon)
-    {
-        // Direction points below the horizon.
-        // What we want to know is transmittance from the sea level to our current position.
-        // Therefore, first, we must flip the direction and perform the look-up from the ground.
-        // The direction must be parametrized w.r.t. the normal of the intersection point.
-        // This value corresponds to transmittance from the sea level to the atmospheric boundary.
-        // If we perform a look-up from the current position (using the reversed direction),
-        // we can compute transmittance from the current position to the atmospheric boundary.
-        // Taking the difference will give us the desired value.
-
-        float R    = _PlanetaryRadius;
-        float rcpR = _RcpPlanetaryRadius;
-        float h    = height;
-        float r    = R + h;
-
-        float cosAlpha = -cosChi;
-        float sinAlpha = SinFromCos(cosAlpha);
-        float sinTheta = sinAlpha * (r * rcpR);
-        float cosTheta = sqrt(saturate(1 - sinTheta * sinTheta));
-
-        // From the sea level to the atmospheric boundary -
-        // from the current position to the atmospheric boundary.
-        uv       = MapAerialPerspectiveAboveHorizon(cosTheta, 0).xy;
-        optDepth = SAMPLE_TEXTURE2D_LOD(_OpticalDepthTexture, s_linear_clamp_sampler, uv, 0).xy
-                 - optDepth;
-    }
-
-    // Compose the optical depth with extinction at the sea level.
-    return optDepth.x * _AirSeaLevelExtinction + optDepth.y * _AerosolSeaLevelExtinction;
+    return 0.5 * c + (n * rcp(d));
 }
 
-float3 SampleOpticalDepthTexture(float cosChi, float height)
+float ChapmanHorizontal(float z)
 {
-    float cosHor           = GetCosineOfHorizonZenithAngle(height);
-    bool  lookAboveHorizon = (cosChi > cosHor);
+    float r = rsqrt(z);
+    float s = z * r; // sqrt(z)
 
-    return SampleOpticalDepthTexture(cosChi, height, lookAboveHorizon);
+    return 0.626657 * (r + 2 * s);
+}
+
+// z = (n * r), Z = (n * R).
+float RescaledChapmanFunction(float z, float Z, float cosTheta)
+{
+    float sinTheta = sqrt(saturate(1 - cosTheta * cosTheta));
+
+    // cos(Pi - theta) = -cos(theta).
+    float ch = ChapmanUpperApprox(z, abs(cosTheta)) * exp(Z - z); // Rescaling adds 'exp'
+
+    if (cosTheta < 0)
+    {
+        // z_0 = n * r_0 = (n * r) * sin(theta) = z * sin(theta).
+        // Ch(z, theta) = 2 * exp(z - z_0) * Ch(z_0, Pi/2) - Ch(z, Pi - theta).
+        float z_0 = z * sinTheta;
+        float a = 2 * ChapmanHorizontal(z_0);
+        float b = exp(Z - z_0); // Rescaling cancels out 'z' and adds 'Z'
+        float ch_2 = a * b;
+
+        ch = ch_2 - ch;
+    }
+
+    return ch;
+}
+
+float3 ComputeAtmosphericOpticalDepth(float r, float cosTheta, bool alwaysAboveHorizon = false)
+{
+    const float2 n = float2(_AirDensityFalloff, _AerosolDensityFalloff);
+    const float2 H = float2(_AirScaleHeight,    _AerosolScaleHeight);
+    const float  R = _PlanetaryRadius;
+
+    float2 z = n * r;
+    float2 Z = n * R;
+
+    float cosHoriz = ComputeCosineOfHorizonAngle(r);
+	float sinTheta = sqrt(saturate(1 - cosTheta * cosTheta));
+
+    float2 ch;
+    ch.x = ChapmanUpperApprox(z.x, abs(cosTheta)) * exp(Z.x - z.x); // Rescaling adds 'exp'
+    ch.y = ChapmanUpperApprox(z.y, abs(cosTheta)) * exp(Z.y - z.y); // Rescaling adds 'exp'
+
+    if ((!alwaysAboveHorizon) && (cosTheta < cosHoriz)) // Below horizon, intersect sphere
+	{
+		float sinGamma = (r / R) * sinTheta;
+		float cosGamma = sqrt(saturate(1 - sinGamma * sinGamma));
+
+		float2 ch_2;
+        ch_2.x = ChapmanUpperApprox(Z.x, cosGamma); // No need to rescale
+        ch_2.y = ChapmanUpperApprox(Z.y, cosGamma); // No need to rescale
+
+		ch = ch_2 - ch;
+    }
+    else if (cosTheta < 0)   // Above horizon, lower hemisphere
+    {
+    	// z_0 = n * r_0 = (n * r) * sin(theta) = z * sin(theta).
+        // Ch(z, theta) = 2 * exp(z - z_0) * Ch(z_0, Pi/2) - Ch(z, Pi - theta).
+        float2 z_0  = z * sinTheta;
+        float2 b    = exp(Z - z_0); // Rescaling cancels out 'z' and adds 'Z'
+        float2 a;
+        a.x         = 2 * ChapmanHorizontal(z_0.x);
+        a.y         = 2 * ChapmanHorizontal(z_0.y);
+        float2 ch_2 = a * b;
+
+        ch = ch_2 - ch;
+    }
+
+    float2 optDepth = ch * H;
+
+    return optDepth.x * _AirSeaLevelExtinction + optDepth.y * _AerosolSeaLevelExtinction;
 }
 
 // Map: [cos(120 deg), 1] -> [0, 1].
