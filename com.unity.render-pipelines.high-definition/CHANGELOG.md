@@ -25,6 +25,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added single-pass instancing support with XR SDK
 - Added occlusion mesh support with XR SDK
 - Added support of Alembic velocity to various shaders
+- Added support for more than 2 views for single-pass instancing
 
 ### Fixed
 - Fixed an issue with history buffers causing effects like TAA or auto exposure to flicker when more than one camera was visible in the editor

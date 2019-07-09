@@ -7,10 +7,20 @@ namespace UnityEngine.Experimental.Rendering
     internal static class TextureXR
     {
         // Property set by XRSystem
-        internal static int maxViews { private get; set; } = 1;
+        private static int m_MaxViews = 1;
+        internal static int maxViews
+        {
+            set
+            {
+                if (value > HDPipeline.ShaderConfig.s_XrMaxViews)
+                    throw new System.NotImplementedException();
+                else
+                    m_MaxViews = value;
+            }
+        }
 
         // Property accessed when allocating a render target
-        internal static int slices { get => maxViews; }
+        internal static int slices { get => m_MaxViews; }
 
         // Must be in sync with shader define in TextureXR.hlsl
         internal static bool useTexArray
