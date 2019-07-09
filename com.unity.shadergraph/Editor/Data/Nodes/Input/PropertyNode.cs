@@ -246,7 +246,10 @@ namespace UnityEditor.ShaderGraph
             var graph = owner as GraphData;
 
             if (!propertyGuid.Equals(Guid.Empty) && !graph.properties.Any(x => x.guid == propertyGuid))
+            {
+                errorMessage = "Property Node has no associated Blackboard property.";
                 return true;
+            }
 
             return false;
         }
