@@ -290,7 +290,10 @@ namespace UnityEditor.ShaderGraph.Drawing
                 return;
 
             if (create)
+            {
                 m_Graph.SanitizeGraphInputName(input);
+                input.generatePropertyBlock = input.isExposable;
+            }
 
             BlackboardField field = null;
             BlackboardRow row = null;
