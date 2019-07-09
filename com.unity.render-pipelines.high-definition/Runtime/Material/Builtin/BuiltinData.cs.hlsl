@@ -25,17 +25,17 @@
 // PackingRules = Exact
 struct BuiltinData
 {
-    float opacity;
-    float3 bakeDiffuseLighting;
-    float3 backBakeDiffuseLighting;
-    float shadowMask0;
-    float shadowMask1;
-    float shadowMask2;
-    float shadowMask3;
-    float3 emissiveColor;
-    float2 motionVector;
-    float2 distortion;
-    float distortionBlur;
+    real opacity;
+    real3 bakeDiffuseLighting;
+    real3 backBakeDiffuseLighting;
+    real shadowMask0;
+    real shadowMask1;
+    real shadowMask2;
+    real shadowMask3;
+    real3 emissiveColor;
+    real2 motionVector;
+    real2 distortion;
+    real distortionBlur;
     uint renderingLayers;
     float depthOffset;
 };
@@ -44,8 +44,8 @@ struct BuiltinData
 // PackingRules = Exact
 struct LightTransportData
 {
-    float3 diffuseColor;
-    float3 emissiveColor;
+    real3 diffuseColor;
+    real3 emissiveColor;
 };
 
 //

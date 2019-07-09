@@ -74,8 +74,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public float   volumetricShadowDimmer;  // Replaces 'shadowDimmer'
         public int     nonLightMappedOnly;      // Used with ShadowMask (TODO: use a bitfield)
+        [SurfaceDataAttributes(precision = FieldPrecision.Real)]
         public float   minRoughness;            // Hack
 
+        [SurfaceDataAttributes(precision = FieldPrecision.Real)]
         public Vector4 shadowMaskSelector;      // Used with ShadowMask feature
 
         public float   diffuseDimmer;
@@ -93,13 +95,16 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public float   lightDimmer;
         public float   volumetricLightDimmer;   // Replaces 'lightDimer'
+        [SurfaceDataAttributes(precision = FieldPrecision.Real)]
         public float   angleScale;              // Spot light
+        [SurfaceDataAttributes(precision = FieldPrecision.Real)]
         public float   angleOffset;             // Spot light
 
         public Vector3 forward;
         public GPULightType lightType;          // TODO: move this up?
 
         public Vector3 right;                   // If spot: rescaled by cot(outerHalfAngle); if projector: rescaled by (2 / shapeWidth)
+        [SurfaceDataAttributes(precision = FieldPrecision.Real)]
         public float   range;
 
         public Vector3 up;                      // If spot: rescaled by cot(outerHalfAngle); if projector: rescaled by (2 / shapeHeight)
@@ -121,10 +126,13 @@ namespace UnityEngine.Rendering.HighDefinition
         public float   shadowDimmer;
         public float   volumetricShadowDimmer;  // Replaces 'shadowDimmer'
         public int     nonLightMappedOnly;      // Used with ShadowMask feature (TODO: use a bitfield)
+        [SurfaceDataAttributes(precision = FieldPrecision.Real)]
         public float   minRoughness;            // This is use to give a small "area" to punctual light, as if we have a light with a radius.
 
+        [SurfaceDataAttributes(precision = FieldPrecision.Real)]
         public Vector4 shadowMaskSelector;      // Used with ShadowMask feature
 
+        [SurfaceDataAttributes(precision = FieldPrecision.Real)]
         public Vector2 size;                    // Used by area (X = length or width, Y = height) and punctual lights (X = radius)
         public float   diffuseDimmer;
         public float   specularDimmer;
@@ -166,6 +174,7 @@ namespace UnityEngine.Rendering.HighDefinition
         // Sphere: extents.x = sphere radius
         public Vector3 proxyExtents;
         // User can chose if they use This is use in case we want to force infinite projection distance (i.e no projection);
+        [SurfaceDataAttributes(precision = FieldPrecision.Real)]
         public float minProjectionDistance;
 
         public Vector3 proxyPositionRWS;
@@ -187,7 +196,9 @@ namespace UnityEngine.Rendering.HighDefinition
         public Vector3 blendNormalDistancePositive;
         public Vector3 blendNormalDistanceNegative;
 
+        [SurfaceDataAttributes(precision = FieldPrecision.Real)]
         public Vector3 boxSideFadePositive;
+        [SurfaceDataAttributes(precision = FieldPrecision.Real)]
         public Vector3 boxSideFadeNegative;
         public float weight;
         public float multiplier;

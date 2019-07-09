@@ -59,5 +59,9 @@ float4 GetShadowMasks(StandardBSDFData value)
 {
     return value.shadowMasks;
 }
+uint GetIsUnlit(StandardBSDFData value)
+{
+    return value.isUnlit;
+}
 
 #endif
