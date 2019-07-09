@@ -732,6 +732,17 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 value = new Color(1.0f, 1.0f, 1.0f, 1.0f)
             });
 
+            //See SG-ADDITIONALVELOCITY-NOTE
+            if (addVelocityChange.isOn)
+            {
+                collector.AddShaderProperty(new BooleanShaderProperty
+                {
+                    value = true,
+                    hidden = true,
+                    overrideReferenceName = kAdditionalVelocityChange,
+                });
+            }
+
             // Add all shader properties required by the inspector
             HDSubShaderUtilities.AddStencilShaderProperties(collector, RequiresSplitLighting(), receiveSSR.isOn);
             HDSubShaderUtilities.AddBlendingStatesShaderProperties(
