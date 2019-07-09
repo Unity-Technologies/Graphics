@@ -8,12 +8,12 @@ Shader "Hidden/Sprite-Fallback"
     }
 
     HLSLINCLUDE
-    #include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/Core.hlsl"
+    #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
     ENDHLSL
 
     SubShader
     {
-        Tags {"Queue" = "Transparent" "RenderType" = "Transparent" "RenderPipeline" = "LightweightPipeline" }
+        Tags {"Queue" = "Transparent" "RenderType" = "Transparent" "RenderPipeline" = "UniversalPipeline" }
 
         Blend SrcAlpha OneMinusSrcAlpha
         Cull Off
@@ -50,7 +50,7 @@ Shader "Hidden/Sprite-Fallback"
                 return o;
             }
 
-            #include "Packages/com.unity.render-pipelines.lightweight/Shaders/2D/Include/CombinedShapeLightShared.hlsl"
+            #include "Packages/com.unity.render-pipelines.universal/Shaders/2D/Include/CombinedShapeLightShared.hlsl"
 
             half4 CombinedShapeLightFragment(Varyings i) : SV_Target
             {
