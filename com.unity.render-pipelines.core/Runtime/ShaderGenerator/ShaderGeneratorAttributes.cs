@@ -17,6 +17,13 @@ namespace UnityEngine.Rendering
         PackedUint
     }
 
+    public enum FieldPrecision
+    {
+        Half,
+        Real,
+        Default
+    }
+
     [AttributeUsage(AttributeTargets.Struct | AttributeTargets.Class | AttributeTargets.Enum)]
     public class GenerateHLSL : System.Attribute
     {
@@ -46,22 +53,25 @@ namespace UnityEngine.Rendering
         public string[] displayNames;
         public bool isDirection;
         public bool sRGBDisplay;
+        public FieldPrecision precision;
 
-        public SurfaceDataAttributes(string displayName = "", bool isDirection = false, bool sRGBDisplay = false)
+        public SurfaceDataAttributes(string displayName = "", bool isDirection = false, bool sRGBDisplay = false, FieldPrecision precision = FieldPrecision.Default)
         {
             displayNames = new string[1];
             displayNames[0] = displayName;
             this.isDirection = isDirection;
             this.sRGBDisplay = sRGBDisplay;
+            this.precision = precision;
         }
 
         // We allow users to add several names for one field, so user can override the auto behavior and do something else with the same data
         // typical example is normal that you want to draw in view space or world space. So user can override view space case and do the transform.
-        public SurfaceDataAttributes(string[] displayName, bool isDirection = false, bool sRGBDisplay = false)
+        public SurfaceDataAttributes(string[] displayName, bool isDirection = false, bool sRGBDisplay = false, FieldPrecision precision = FieldPrecision.Default)
         {
             displayNames = displayName;
             this.isDirection = isDirection;
             this.sRGBDisplay = sRGBDisplay;
+            this.precision = precision;
         }
     }
 

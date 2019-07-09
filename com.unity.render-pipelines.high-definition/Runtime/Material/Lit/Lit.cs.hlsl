@@ -78,26 +78,26 @@
 struct SurfaceData
 {
     uint materialFeatures;
-    float3 baseColor;
-    float specularOcclusion;
+    real3 baseColor;
+    real specularOcclusion;
     float3 normalWS;
-    float perceptualSmoothness;
-    float ambientOcclusion;
-    float metallic;
-    float coatMask;
-    float3 specularColor;
+    real perceptualSmoothness;
+    real ambientOcclusion;
+    real metallic;
+    real coatMask;
+    real3 specularColor;
     uint diffusionProfileHash;
-    float subsurfaceMask;
-    float thickness;
+    real subsurfaceMask;
+    real thickness;
     float3 tangentWS;
-    float anisotropy;
-    float iridescenceThickness;
-    float iridescenceMask;
+    real anisotropy;
+    real iridescenceThickness;
+    real iridescenceMask;
     float3 geomNormalWS;
-    float ior;
-    float3 transmittanceColor;
-    float atDistance;
-    float transmittanceMask;
+    real ior;
+    real3 transmittanceColor;
+    real atDistance;
+    real transmittanceMask;
 };
 
 // Generated from UnityEngine.Rendering.HighDefinition.Lit+BSDFData
@@ -105,30 +105,30 @@ struct SurfaceData
 struct BSDFData
 {
     uint materialFeatures;
-    float3 diffuseColor;
-    float3 fresnel0;
-    float ambientOcclusion;
-    float specularOcclusion;
+    real3 diffuseColor;
+    real3 fresnel0;
+    real ambientOcclusion;
+    real specularOcclusion;
     float3 normalWS;
-    float perceptualRoughness;
-    float coatMask;
+    real perceptualRoughness;
+    real coatMask;
     uint diffusionProfileIndex;
-    float subsurfaceMask;
-    float thickness;
+    real subsurfaceMask;
+    real thickness;
     bool useThickObjectMode;
-    float3 transmittance;
+    real3 transmittance;
     float3 tangentWS;
     float3 bitangentWS;
-    float roughnessT;
-    float roughnessB;
-    float anisotropy;
-    float iridescenceThickness;
-    float iridescenceMask;
-    float coatRoughness;
-    float3 geomNormalWS;
-    float ior;
-    float3 absorptionCoefficient;
-    float transmittanceMask;
+    real roughnessT;
+    real roughnessB;
+    real anisotropy;
+    real iridescenceThickness;
+    real iridescenceMask;
+    real coatRoughness;
+    real3 geomNormalWS;
+    real ior;
+    real3 absorptionCoefficient;
+    real transmittanceMask;
 };
 
 //

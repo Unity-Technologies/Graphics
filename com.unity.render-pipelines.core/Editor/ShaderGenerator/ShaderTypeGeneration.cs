@@ -18,7 +18,7 @@ namespace UnityEditor.Rendering
 
         enum PrimitiveType
         {
-            Float, Int, UInt, Bool
+            Float, Int, UInt, Bool, Half, Real
         };
 
         static string PrimitiveToString(PrimitiveType type, int rows, int cols)
@@ -37,6 +37,12 @@ namespace UnityEditor.Rendering
                     break;
                 case PrimitiveType.Bool:
                     text = "bool";
+                    break;
+                case PrimitiveType.Half:
+                    text = "half";
+                    break;
+                case PrimitiveType.Real:
+                    text = "real";
                     break;
             }
 
@@ -1130,10 +1136,20 @@ namespace UnityEditor.Rendering
                     }
                 }
 
+                PrimitiveType floatPrecision = PrimitiveType.Float;
+                if (Attribute.IsDefined(field, typeof(SurfaceDataAttributes)))
+                {
+                    var propertyAttr = (SurfaceDataAttributes[])field.GetCustomAttributes(typeof(SurfaceDataAttributes), false);
+                    if (propertyAttr[0].precision == FieldPrecision.Half)
+                        floatPrecision = PrimitiveType.Half;
+                    else if (propertyAttr[0].precision == FieldPrecision.Real)
+                        floatPrecision = PrimitiveType.Real;
+                }
+
                 if (fieldType.IsPrimitive)
                 {
                     if (fieldType == typeof(float))
-                        EmitPrimitiveType(PrimitiveType.Float, 1, arraySize, field.Name, "", m_ShaderFields);
+                        EmitPrimitiveType(floatPrecision, 1, arraySize, field.Name, "", m_ShaderFields);
                     else if (fieldType == typeof(int))
                         EmitPrimitiveType(PrimitiveType.Int, 1, arraySize, field.Name, "", m_ShaderFields);
                     else if (fieldType == typeof(uint))
@@ -1150,13 +1166,13 @@ namespace UnityEditor.Rendering
                 {
                     // handle special types, otherwise try parsing the struct
                     if (fieldType == typeof(Vector2))
-                        EmitPrimitiveType(PrimitiveType.Float, 2, arraySize, field.Name, "", m_ShaderFields);
+                        EmitPrimitiveType(floatPrecision, 2, arraySize, field.Name, "", m_ShaderFields);
                     else if (fieldType == typeof(Vector3))
-                        EmitPrimitiveType(PrimitiveType.Float, 3, arraySize, field.Name, "", m_ShaderFields);
+                        EmitPrimitiveType(floatPrecision, 3, arraySize, field.Name, "", m_ShaderFields);
                     else if (fieldType == typeof(Vector4))
-                        EmitPrimitiveType(PrimitiveType.Float, 4, arraySize, field.Name, "", m_ShaderFields);
+                        EmitPrimitiveType(floatPrecision, 4, arraySize, field.Name, "", m_ShaderFields);
                     else if (fieldType == typeof(Matrix4x4))
-                        EmitMatrixType(PrimitiveType.Float, 4, 4, arraySize, field.Name, "", m_ShaderFields);
+                        EmitMatrixType(floatPrecision, 4, 4, arraySize, field.Name, "", m_ShaderFields);
                     else if (!ExtractComplex(field, m_ShaderFields))
                     {
                         // Error reporting done in ExtractComplex()
