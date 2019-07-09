@@ -67,14 +67,6 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        //public override void BuildContextualMenu(ContextualMenuPopulateEvent evt)
-        //{
-        //    if (evt.target == this)
-        //    {
-        //
-        //    }
-        //}
-
         private void SplitEdge(Edge edge)
         {
             AddPortPair();

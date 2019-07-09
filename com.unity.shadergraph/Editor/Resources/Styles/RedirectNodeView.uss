@@ -1,7 +1,7 @@
 .redirect-node {
     min-height: 0px;
-    border-radius: 10px;
-    background-color: rgba(192, 192, 192, 1.0);
+    border-radius: 8px;
+    background-color: rgba(63, 63, 63, 1.0);
     padding: 0px;
     border-width: 0px;
 }
@@ -12,7 +12,7 @@
 
 #node-border {
     margin: 0px;
-    border-radius: 10px;
+    border-radius: 8px;
     /* The proper opacity of the node border is 0.8 but transparent
     border are not working properly so it's fully opaque.*/
     border-color: rgba(25,25,25,1.0);
@@ -97,4 +97,26 @@
     bottom: 0;
 }
 
+/******************* Expanded *******************/
+.node.collapsed {
+    background-color: rgba(192, 192, 192, 1.0);
+    height: 25px;
+    width: 25px;
+}
 
+.node.collapsed #contents {
+    height: 0px;
+    width: 0px;
+    position: absolute;
+    left: 7.5px;
+    right: 0;
+    top: 6px;
+    bottom: 0;
+}
+
+.node.collapsed #collapse-button {
+    width: 28px;
+    flex-direction: column;
+    justify-content: center;
+    padding-left: 4px;
+}
