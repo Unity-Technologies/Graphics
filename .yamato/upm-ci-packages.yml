@@ -4,9 +4,9 @@ projects:
   - name: Core
     folder: none
     packagename: com.unity.render-pipelines.core
-  - name: LWRP
-    folder: LWGraphicsTest
-    packagename: com.unity.visualeffectgraph
+  - name: Universal
+    folder: UniversalGraphicsTest
+    packagename: com.unity.render-pipelines.universal
   - name: ShaderGraph
     folder: ShaderGraph
     packagename: com.unity.shadergraph
