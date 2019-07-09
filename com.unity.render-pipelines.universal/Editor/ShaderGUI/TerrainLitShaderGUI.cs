@@ -4,7 +4,7 @@ using UnityEngine.Rendering;
 using UnityEditor;
 using UnityEngine.Experimental.Rendering;
 
-namespace UnityEditor.Rendering.LWRP
+namespace UnityEditor.Rendering.Universal
 {
     internal class TerrainLitShaderGUI : UnityEditor.ShaderGUI, ITerrainLayerCustomUI
     {
