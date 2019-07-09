@@ -5,8 +5,12 @@
 ${VFXPerPassInclude}
 ${VFXGeneratedBlockFunction}
 
-#pragma vertex vert
+struct vs_input
+{
+	VFX_DECLARE_INSTANCE_ID
+};
 
+#pragma vertex vert
 float4 ClipOnNearPlane(float4 pos, float4 other)
 {
 	if (pos.w >= _ProjectionParams.y || other.w < _ProjectionParams.y)
@@ -17,10 +21,14 @@ float4 ClipOnNearPlane(float4 pos, float4 other)
 	return pos + (other - pos) * ratio;
 }
 
-VFX_VARYING_PS_INPUTS vert(uint id : SV_VertexID, uint instanceID : SV_InstanceID)
+VFX_VARYING_PS_INPUTS vert(uint id : SV_VertexID, vs_input i)
 {
-	uint index = (id >> 2) + instanceID * 2048;
 	VFX_VARYING_PS_INPUTS o = (VFX_VARYING_PS_INPUTS)0;
+
+	UNITY_SETUP_INSTANCE_ID(i);
+	UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
+
+	uint index = (id >> 2) + VFX_GET_INSTANCE_ID(i) * 2048;
 	
 	${VFXLoadAttributesOrCull}
 	${VFXProcessBlocks}

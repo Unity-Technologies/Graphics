@@ -85,6 +85,13 @@ MonoBehaviour:
     gradientSkyPS: {fileID: 4800000, guid: 2b5d4f1b26f03dc4a873b093e0c4adb1, type: 3}
     ambientProbeConvolutionCS: {fileID: 7200000, guid: 6d048f7b1bd45e840b4e79ec92639fa8,
       type: 3}
+    opticalDepthPrecomputationCS: {fileID: 7200000, guid: 0c0080935aaf586499a8802216a18912,
+      type: 3}
+    groundIrradiancePrecomputationCS: {fileID: 7200000, guid: eb6ae6f326207ee4d987a3e5adddf63a,
+      type: 3}
+    inScatteredRadiancePrecomputationCS: {fileID: 7200000, guid: 70c69d514688f8545855680760d77418,
+      type: 3}
+    pbrSkyPS: {fileID: 4800000, guid: a06934a4863e778498be65d8f865b7a4, type: 3}
     preIntegratedFGD_GGXDisneyDiffusePS: {fileID: 4800000, guid: 123f13d52852ef547b2962de4bd9eaad,
       type: 3}
     preIntegratedFGD_CharlieFabricLambertPS: {fileID: 4800000, guid: 3b3bf235775cf8b4baae7f3306787ab0,
@@ -151,11 +158,6 @@ MonoBehaviour:
     finalPassPS: {fileID: 4800000, guid: 5ac9ef0c50282754b93c7692488e7ee7, type: 3}
     clearBlackPS: {fileID: 4800000, guid: 3330c1503ea8c6d4d9408df3f64227eb, type: 3}
     SMAAPS: {fileID: 4800000, guid: 9655f4aa89a469c49aceaceabf9bc77b, type: 3}
-  materials:
-    defaultDiffuseMat: {fileID: 2100000, guid: 73c176f402d2c2f4d929aa5da7585d17, type: 2}
-    defaultMirrorMat: {fileID: 2100000, guid: 6b17274157b33bc45b6a40e7d4ff51fe, type: 2}
-    defaultDecalMat: {fileID: 2100000, guid: 500e733574922d04ea961553b1b26a63, type: 2}
-    defaultTerrainMat: {fileID: 2100000, guid: 22ff8771d87ef27429e670136399094b, type: 2}
   textures:
     debugFontTex: {fileID: 2800000, guid: a3ad2df0e49aaa341a3b3a80f93b3f66, type: 3}
     colorGradient: {fileID: 2800000, guid: 4ea52e665573c1644bf05dd9b11fd2a4, type: 3}

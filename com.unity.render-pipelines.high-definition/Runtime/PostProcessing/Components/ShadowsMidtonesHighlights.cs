@@ -34,5 +34,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 || midtones != defaultState
                 || highlights != defaultState;
         }
+
+        ShadowsMidtonesHighlights() => displayName = "Shadows, Midtones, Highlights";
     }
 }

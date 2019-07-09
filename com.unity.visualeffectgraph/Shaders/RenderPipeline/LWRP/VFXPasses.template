@@ -1,4 +1,0 @@
-${VFXBegin:VFXPassForward}"LightweightForward"${VFXEnd}
-${VFXBegin:VFXPassShadow}"ShadowCaster"${VFXEnd}
-${VFXBegin:VFXPassVelocity}"MotionVectors"${VFXEnd}
-${VFXBegin:VFXPassForwardAdditionalPragma}#pragma multi_compile_fog${VFXEnd}

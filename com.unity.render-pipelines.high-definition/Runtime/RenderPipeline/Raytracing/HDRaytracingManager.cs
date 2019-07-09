@@ -9,6 +9,18 @@ using UnityEditor;
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
 #if ENABLE_RAYTRACING
+    public class HDRayTracingLights
+    {
+        // The list of non-directional lights in the sub-scene
+        public List<HDAdditionalLightData> hdLightArray = null;
+
+        // The list of directional lights in the sub-scene
+        public List<HDAdditionalLightData> hdDirectionalLightArray = null;
+
+        // The list of reflection probes
+        public List<HDProbe> reflectionProbeArray = null;
+    }
+
     public class HDRaytracingManager
     {
         // The list of ray-tracing environments that have been registered
@@ -58,11 +70,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // The list of renderers in the sub-scene
             public List<Renderer> targetRenderers = null;
 
-            // The list of non-directional lights in the sub-scene
-            public List<HDAdditionalLightData> hdLightArray = null;
-
-            // The list of directional lights in the sub-scene
-            public List<HDAdditionalLightData> hdDirectionalLightArray = null;
+            // Structure that holds all the lights that are bound to this sub scene
+            public HDRayTracingLights lights = null;
 
             // Flag that defines if this sub-scene should be re-evaluated
             public bool obsolete = false;
@@ -177,13 +186,18 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 subScene.accelerationStructure.Dispose();
                 subScene.targetRenderers = null;
                 subScene.accelerationStructure = null;
-                subScene.hdLightArray = null;
                 subScene.lightCluster.ReleaseResources();
                 subScene.lightCluster = null;
+
+                // Clear the lights
+                subScene.lights.hdLightArray = null;
+                subScene.lights.hdDirectionalLightArray = null;
+                subScene.lights.reflectionProbeArray = null;
+                subScene.lights = null;
             }
         }
 
-        // This function is in charge of rebuilding the Subscenes in case the environment is flagged as obsolete
+        // This function is in charge of rebuilding the Sub-scenes in case the environment is flagged as obsolete
         public void CheckSubScenes()
         {
             // If the environment is dirty we needs to destroy and rebuild all the sub-scenes
@@ -423,7 +437,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 if (currentSubScene.needUpdate)
                 {
                     // Evaluate the light cluster
-                    currentSubScene.lightCluster.EvaluateLightClusters(cmd, hdCamera, currentSubScene.hdLightArray);
+                    currentSubScene.lightCluster.EvaluateLightClusters(cmd, hdCamera, currentSubScene.lights);
 
                     // It doesn't need RAS update anymore
                     currentSubScene.needUpdate = false;
@@ -520,7 +534,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         subScene.targetRenderers.Add(currentRenderer);
                     }
 
-                    // Also, we need to contribute to the maximal number of submeshes
+                    // Also, we need to contribute to the maximal number of sub-meshes
                     MeshFilter currentFilter = currentRenderer.GetComponent<MeshFilter>();
                     if (currentFilter != null && currentFilter.sharedMesh != null)
                     {
@@ -591,10 +605,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 subScene.accelerationStructure.Build();
 
                 // Allocate the array for the lights
-                subScene.hdLightArray = new List<HDAdditionalLightData>();
-                subScene.hdDirectionalLightArray = new List<HDAdditionalLightData>();
+                subScene.lights = new HDRayTracingLights();
+                subScene.lights.hdLightArray = new List<HDAdditionalLightData>();
+                subScene.lights.hdDirectionalLightArray = new List<HDAdditionalLightData>();
 
-                // fetch all the hdrp lights
+                // fetch all the lights
                 HDAdditionalLightData[] hdLightArray = UnityEngine.GameObject.FindObjectsOfType<HDAdditionalLightData>();
 
                 // Here an important thing is to make sure that the point lights are first in the list then line then area
@@ -613,7 +628,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         {
                             if (hdLight.GetComponent<Light>().type == LightType.Directional)
                             {
-                                subScene.hdDirectionalLightArray.Add(hdLight);
+                                subScene.lights.hdDirectionalLightArray.Add(hdLight);
                             }
                             else
                             {
@@ -635,9 +650,23 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     }
                 }
 
-                subScene.hdLightArray.AddRange(pointLights);
-                subScene.hdLightArray.AddRange(lineLights);
-                subScene.hdLightArray.AddRange(rectLights);
+                subScene.lights.hdLightArray.AddRange(pointLights);
+                subScene.lights.hdLightArray.AddRange(lineLights);
+                subScene.lights.hdLightArray.AddRange(rectLights);
+
+                // Fetch all the reflection probes in the scene
+                subScene.lights.reflectionProbeArray = new List<HDProbe>();
+                
+                HDAdditionalReflectionData[] reflectionProbeArray = UnityEngine.GameObject.FindObjectsOfType<HDAdditionalReflectionData>();
+                for (int reflIdx = 0; reflIdx < reflectionProbeArray.Length; ++reflIdx)
+                {
+                    HDAdditionalReflectionData reflectionProbe = reflectionProbeArray[reflIdx];
+                    // Add it to the list if enabled
+                    if (reflectionProbe.enabled)
+                    {
+                        subScene.lights.reflectionProbeArray.Add(reflectionProbe);
+                    }
+                }
 
                 // Build the light cluster
                 subScene.lightCluster = new HDRaytracingLightCluster();

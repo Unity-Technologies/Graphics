@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
-using UnityEditor.Experimental.VFX;
+using UnityEditor.VFX;
 using UnityEngine;
 using UnityEngine.Rendering;
-using UnityEngine.Experimental.VFX;
+using UnityEngine.VFX;
 
 namespace UnityEditor.VFX
 {

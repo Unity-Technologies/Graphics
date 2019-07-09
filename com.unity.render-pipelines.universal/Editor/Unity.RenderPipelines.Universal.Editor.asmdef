@@ -1,0 +1,21 @@
+{
+    "name": "Unity.RenderPipelines.Universal.Editor",
+    "references": [
+        "GUID:15fc0a57446b3144c949da3e2b9737a9",
+        "GUID:d60799ab2a985554ea1a39cd38695018",
+        "GUID:a35efad8797223d499f8c68b1f545dbc",
+        "GUID:df380645f10b7bc4b97d4f5eb6303d95",
+        "GUID:3eae0364be2026648bf74846acb8a731",
+        "GUID:be0903cd8e1546f498710afdc59db5eb"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": true,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": []
+}

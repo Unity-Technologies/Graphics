@@ -109,16 +109,47 @@ float4 EvaluateLight_Directional(LightLoopContext lightLoopContext, PositionInpu
 {
     float4 color = float4(light.color, 1.0);
 
+    float3 L = -light.forward;
+
+    float3 oDepth = 0;
+
 #ifndef LIGHT_EVALUATION_NO_HEIGHT_FOG
     // Height fog attenuation.
-    // TODO: add an if()?
     {
-        float cosZenithAngle = -light.forward.y;
+        // TODO: should probably unify height attenuation somehow...
+        float cosZenithAngle = L.y;
         float fragmentHeight = posInput.positionWS.y;
-        color.a *= TransmittanceHeightFog(_HeightFogBaseExtinction, _HeightFogBaseHeight,
-                                          _HeightFogExponents, cosZenithAngle, fragmentHeight);
+        oDepth += OpticalDepthHeightFog(_HeightFogBaseExtinction, _HeightFogBaseHeight,
+                                        _HeightFogExponents, cosZenithAngle, fragmentHeight);
     }
 #endif
+
+#if 1
+    if (light.interactsWithSky)
+    {
+        // TODO: should probably unify height attenuation somehow...
+        // TODO: Not sure it's possible to precompute cam rel pos since variables
+        // in the two constant buffers may be set at a different frequency?
+        float3 X = GetAbsolutePositionWS(posInput.positionWS) * 0.001; // Convert m to km
+        float3 C = _PlanetCenterPosition;
+
+        float r        = distance(X, C);
+        float cosHoriz = ComputeCosineOfHorizonAngle(r);
+        float cosTheta = dot(X - C, L) * rcp(r); // Normalize
+
+        if (cosTheta > cosHoriz) // Above horizon
+        {
+            oDepth += ComputeAtmosphericOpticalDepth(r, cosTheta, true);
+        }
+        else
+        {
+            // return 0; // Kill the light. This generates a warning, so can't early out. :-(
+            oDepth = FLT_INF;
+        }
+    }
+#endif
+
+    color.rgb *= TransmittanceFromOpticalDepth(oDepth);
 
 #ifndef LIGHT_EVALUATION_NO_COOKIE
     if (light.cookieIndex >= 0)
@@ -277,7 +308,7 @@ float4 EvaluateCookie_Punctual(LightLoopContext lightLoopContext, LightData ligh
     int lightType = light.lightType;
 
     if (lightType == GPULIGHTTYPE_PROJECTOR_PYRAMID || lightType == GPULIGHTTYPE_PROJECTOR_BOX)
-    { 
+    {
         // Translate and rotate 'positionWS' into the light space.
         // 'light.right' and 'light.up' are pre-scaled on CPU.
         float3x3 lightToWorld = float3x3(light.right, light.up, light.forward);

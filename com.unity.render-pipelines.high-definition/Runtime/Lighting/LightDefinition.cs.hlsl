@@ -72,6 +72,7 @@ struct DirectionalLightData
     float4 shadowMaskSelector;
     float diffuseDimmer;
     float specularDimmer;
+    int interactsWithSky;
 };
 
 // Generated from UnityEngine.Experimental.Rendering.HDPipeline.LightData

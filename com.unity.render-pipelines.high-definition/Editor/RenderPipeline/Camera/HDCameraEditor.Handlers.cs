@@ -33,6 +33,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             EditorUtility.CopySerialized(c, m_PreviewCamera);
             var cameraData = c.GetComponent<HDAdditionalCameraData>();
             EditorUtility.CopySerialized(cameraData, m_PreviewAdditionalCameraData);
+            // We need to explicitly reset the camera type here
+            // It is probably a CameraType.Game, because we copied the source camera's properties.
+            m_PreviewCamera.cameraType = CameraType.Preview;
 
             var previewTexture = GetPreviewTextureWithSize((int)previewSize.x, (int)previewSize.y);
             m_PreviewCamera.targetTexture = previewTexture;

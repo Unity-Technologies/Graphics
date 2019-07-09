@@ -117,6 +117,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public Shader gradientSkyPS;
             [Reload("Runtime/Sky/AmbientProbeConvolution.compute")]
             public ComputeShader ambientProbeConvolutionCS;
+            [Reload("Runtime/Sky/PhysicallyBasedSky/GroundIrradiancePrecomputation.compute")]
+            public ComputeShader groundIrradiancePrecomputationCS;
+            [Reload("Runtime/Sky/PhysicallyBasedSky/InScatteredRadiancePrecomputation.compute")]
+            public ComputeShader inScatteredRadiancePrecomputationCS;
+            [Reload("Runtime/Sky/PhysicallyBasedSky/PhysicallyBasedSky.shader")]
+            public Shader        physicallyBasedSkyPS;
 
             // Material
             [Reload("Runtime/Material/PreIntegratedFGD/PreIntegratedFGD_GGXDisneyDiffuse.shader")]
@@ -139,6 +145,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public Shader filterAreaLightCookiesPS;
             [Reload("Runtime/Core/CoreResources/ClearUIntTextureArray.compute")]
             public ComputeShader clearUIntTextureCS;
+
+            // XR
+            [Reload("Runtime/ShaderLibrary/XROcclusionMesh.shader")]
+            public Shader xrOcclusionMeshPS;
 
             // Shadow            
             [Reload("Runtime/Lighting/Shadow/ShadowClear.shader")]
@@ -239,15 +249,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         [Serializable, ReloadGroup]
         public sealed class MaterialResources
         {
-            // Defaults
-            [Reload("Runtime/RenderPipelineResources/Material/DefaultHDMaterial.mat")]
-            public Material defaultDiffuseMat;
-            [Reload("Runtime/RenderPipelineResources/Material/DefaultHDMirrorMaterial.mat")]
-            public Material defaultMirrorMat;
-            [Reload("Runtime/RenderPipelineResources/Material/DefaultHDDecalMaterial.mat")]
-            public Material defaultDecalMat;
-            [Reload("Runtime/RenderPipelineResources/Material/DefaultHDTerrainMaterial.mat")]
-            public Material defaultTerrainMat;
         }
 
         [Serializable, ReloadGroup]
@@ -266,8 +267,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public Texture2D[] blueNoise16LTex;
             [Reload("Runtime/RenderPipelineResources/Texture/BlueNoise16/RGB/LDR_RGB1_{0}.png", 0, 32)]
             public Texture2D[] blueNoise16RGBTex;
-            [Reload("Runtime/RenderPipelineResources/Texture/CoherentNoise/OwenScrambledNoise.png")]
-            public Texture2D owenScrambledTex;
+            [Reload("Runtime/RenderPipelineResources/Texture/CoherentNoise/OwenScrambledNoise4.png")]
+            public Texture2D owenScrambledRGBATex;
+            [Reload("Runtime/RenderPipelineResources/Texture/CoherentNoise/OwenScrambledNoise256.png")]
+            public Texture2D owenScrambled256Tex;
             [Reload("Runtime/RenderPipelineResources/Texture/CoherentNoise/ScrambleNoise.png")]
             public Texture2D scramblingTex;
 

@@ -162,11 +162,11 @@ namespace UnityEditor.VFX
         abstract public Type SRPOutputDataType { get; }
     }
 
-    // Not in LWRP package because we dont want to add a dependency on VFXGraph
-    class VFXLWRPBinder : VFXSRPBinder
+    // Not in Universal package because we dont want to add a dependency on VFXGraph
+    class VFXUniversalBinder : VFXSRPBinder
     {
-        public override string templatePath { get { return "Packages/com.unity.visualeffectgraph/Shaders/RenderPipeline/LWRP"; } }
-        public override string SRPAssetTypeStr { get { return "LightweightRenderPipelineAsset"; } }
+        public override string templatePath { get { return "Packages/com.unity.visualeffectgraph/Shaders/RenderPipeline/Universal"; } }
+        public override string SRPAssetTypeStr { get { return "UniversalRenderPipelineAsset"; } }
         public override Type SRPOutputDataType { get { return null; } }
     }
 
@@ -390,7 +390,8 @@ namespace UnityEditor.VFX
                 }
                 catch (Exception)
                 {
-                    Debug.Log("Cannot access assembly: " + domainAssembly);
+                    if (VFXViewPreference.advancedLogs)
+                        Debug.Log("Cannot access assembly: " + domainAssembly);
                     assemblyTypes = null;
                 }
                 if (assemblyTypes != null)
@@ -420,7 +421,8 @@ namespace UnityEditor.VFX
                         throw new Exception(string.Format("The SRP of asset type {0} is already registered ({1})", SRPAssetTypeStr, srpBinders[SRPAssetTypeStr].GetType()));
                     srpBinders[SRPAssetTypeStr] = binder;
 
-                    Debug.Log(string.Format("Register {0} SRP for VFX", SRPAssetTypeStr));
+                    if (VFXViewPreference.advancedLogs)
+                        Debug.Log(string.Format("Register {0} SRP for VFX", SRPAssetTypeStr));
                 }
                 catch(Exception e)
                 {

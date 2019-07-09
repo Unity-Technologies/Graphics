@@ -11,7 +11,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             First,
             UpgradeFrameSettingsToStruct,
             AddAfterPostProcessFrameSetting,
-            AddFrameSettingSpecularLighting = 5
+            AddFrameSettingSpecularLighting = 5,
+            AddPostProcessFrameSettings
         }
 
         static readonly MigrationDescription<Version, HDRenderPipelineAsset> k_Migration = MigrationDescription.New(
@@ -36,6 +37,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 FrameSettings.MigrateToSpecularLighting(ref data.m_RenderingPathDefaultCameraFrameSettings);
                 FrameSettings.MigrateToSpecularLighting(ref data.m_RenderingPathDefaultBakedOrCustomReflectionFrameSettings);
                 FrameSettings.MigrateToSpecularLighting(ref data.m_RenderingPathDefaultRealtimeReflectionFrameSettings);
+            }),
+            MigrationStep.New(Version.AddPostProcessFrameSettings, (HDRenderPipelineAsset data) =>
+            {
+                FrameSettings.MigrateToPostProcess(ref data.m_RenderingPathDefaultCameraFrameSettings);
             })
         );
 

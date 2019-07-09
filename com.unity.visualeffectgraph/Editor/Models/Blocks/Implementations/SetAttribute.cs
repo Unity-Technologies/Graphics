@@ -2,7 +2,7 @@ using System;
 using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Experimental.VFX;
+using UnityEngine.VFX;
 
 namespace UnityEditor.VFX.Block
 {
@@ -15,6 +15,7 @@ namespace UnityEditor.VFX.Block
                 return new Dictionary<string, object[]>
                 {
                     { "attribute", VFXAttribute.AllIncludingVariadicReadWritable.Cast<object>().ToArray() },
+                    { "Random", new object[] { RandomMode.Off, RandomMode.PerComponent, RandomMode.Uniform } },
                     { "Source", new object[] { SetAttribute.ValueSource.Slot, SetAttribute.ValueSource.Source } },
                     { "Composition", new object[] { AttributeCompositionMode.Overwrite, AttributeCompositionMode.Add, AttributeCompositionMode.Multiply, AttributeCompositionMode.Blend } }
                 };
@@ -184,7 +185,7 @@ namespace UnityEditor.VFX.Block
                         if (Random == RandomMode.Off)
                             channelSource = VFXBlockUtility.GetRandomMacroString(Random, attributeSize, paramPostfix, GenerateLocalAttributeName(attrib.name));
                         else
-                            channelSource = VFXBlockUtility.GetRandomMacroString(Random, attributeSize, paramPostfix, "Min", "Max");
+                            channelSource = VFXBlockUtility.GetRandomMacroString(Random, attributeSize, paramPostfix, "A", "B");
                     }
                     else
                     {
@@ -214,9 +215,8 @@ namespace UnityEditor.VFX.Block
                 {
                     foreach (var param in base.parameters)
                     {
-                        if ((param.name == "Value" || param.name == "Min" || param.name == "Max") && Source == ValueSource.Source)
+                        if ((param.name == "Value" || param.name == "A" || param.name == "B") && Source == ValueSource.Source)
                             continue;
-
                         yield return param;
                     }
 
@@ -322,8 +322,8 @@ namespace UnityEditor.VFX.Block
                         }
                         else
                         {
-                            yield return new VFXPropertyWithValue(new VFXProperty(slotType, "Min") { attributes = attr }, content);
-                            yield return new VFXPropertyWithValue(new VFXProperty(slotType, "Max") { attributes = attr }, content);
+                            yield return new VFXPropertyWithValue(new VFXProperty(slotType, "A") { attributes = attr }, content);
+                            yield return new VFXPropertyWithValue(new VFXProperty(slotType, "B") { attributes = attr }, content);
                         }
                     }
 

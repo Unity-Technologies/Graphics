@@ -6,7 +6,7 @@ To work with physically-based lighting and Materials, you need to set up the Sce
 
 **Exposure** uses the [Volume](Volumes.html) framework, so to enable and modify **Exposure** properties, you must add an **Exposure** override to a [Volume](Volumes.html) in your Scene. To add **Exposure** to a Volume:
 
-1. In the Scene or Hierarchy view, select the GameObject that contains the Volume component to view it in the Inspector.
+1. In the Scene or Hierarchy view, select a GameObject that contains a Volume component to view it in the Inspector.
 2. In the Inspector, go to **Add Override** and click on **Exposure**. HDRP now applies **Exposure** correction to any Camera this Volume affects.
 
 ## Properties
@@ -47,8 +47,8 @@ The human eye can function in both very dark and very bright areas. However, at 
 | **Limit Min**           | Set the minimum value that the Scene exposure can be set to. |
 | **Limit Max**           | Set the maximum value that the Scene exposure can be set to. |
 | **Mode**                | Use the drop-down to select the method that HDRP uses to change the exposure when the Camera moves from dark to light and vice versa:<br />&#8226; **Progressive**: The exposure changes over the period of time defined by the **Speed Dark to Light** and **Speed Light to Dark** property fields.<br />&#8226; **Fixed**: The exposure changes instantly. Note: The Scene view uses **Fixed**. |
-| **Speed Dark to Light** | Set the speed at which the exposure changes when the Camera moves from a dark area to a bright area.<br />To make this property available, set the **Mode** to **Progressive**. |
-| **Speed Light to Dark** | Set the speed at which the exposure changes when the Camera moves from a bright area to a dark area.<br />To make this property available, set the **Mode** to **Progressive**. |
+| **Speed Dark to Light** | Set the speed at which the exposure changes when the Camera moves from a dark area to a bright area.<br />This property only appears when you set the **Mode** to **Progressive**. |
+| **Speed Light to Dark** | Set the speed at which the exposure changes when the Camera moves from a bright area to a dark area.<br />This property only appears when you set the **Mode** to **Progressive**. |
 
 <a name="UsingAutomatic"></a>
 
