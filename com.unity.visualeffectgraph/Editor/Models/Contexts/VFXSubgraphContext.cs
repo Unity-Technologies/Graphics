@@ -137,6 +137,7 @@ namespace UnityEditor.VFX
 
             foreach (var child in duplicated.Zip(dependencies, (a, b) => new { copy = a, original = b }))
             {
+                child.copy.hideFlags = HideFlags.HideAndDontSave;
                 if (child.copy is VFXSlot)
                 {
                     var original = child.original as VFXSlot;
@@ -219,6 +220,8 @@ namespace UnityEditor.VFX
                             LinkFrom(link.context,link.slotIndex,i);
                 }
             }
+
+            SyncSlots(VFXSlot.Direction.kInput,true);
         }
 
 
