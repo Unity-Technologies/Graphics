@@ -130,29 +130,21 @@ float4 EvaluateLight_Directional(LightLoopContext lightLoopContext, PositionInpu
         // TODO: should probably unify height attenuation somehow...
         // TODO: Not sure it's possible to precompute cam rel pos since variables
         // in the two constant buffers may be set at a different frequency?
-        const float3 O = GetAbsolutePositionWS(posInput.positionWS) * 0.001 - _PlanetCenterPosition; // Convert m to km
+        float3 X = GetAbsolutePositionWS(posInput.positionWS) * 0.001; // Convert m to km
+        float3 C = _PlanetCenterPosition;
 
-        float3 planetN; float r; // These params correspond to the entry point
-        float tEntry = IntersectAtmosphere(O, -L, planetN, r);
+        float r        = distance(X, C);
+        float cosHoriz = ComputeCosineOfHorizonAngle(r);
+        float cosTheta = dot(X - C, L) * rcp(r); // Normalize
 
-        float planetNdotL  = dot(planetN, L);
-        float planetHeight = r - _PlanetaryRadius;
-        float cosHor       = GetCosineOfHorizonZenithAngle(planetHeight);
-
-        bool rayIntersectsAtmosphere = (tEntry >= 0);
-        bool lightAboveHorizon       = (planetNdotL > cosHor);
-
-        if (rayIntersectsAtmosphere)
+        if (cosTheta > cosHoriz) // Above horizon
         {
-            if (lightAboveHorizon)
-            {
-                oDepth += SampleOpticalDepthTexture(planetNdotL, planetHeight, true);
-            }
-            else
-            {
-                // return 0; // Kill the light. This generates a warning, so can't early out. :-(
-                oDepth = FLT_INF;
-            }
+            oDepth += ComputeAtmosphericOpticalDepth(r, cosTheta, true);
+        }
+        else
+        {
+            // return 0; // Kill the light. This generates a warning, so can't early out. :-(
+            oDepth = FLT_INF;
         }
     }
 #endif
