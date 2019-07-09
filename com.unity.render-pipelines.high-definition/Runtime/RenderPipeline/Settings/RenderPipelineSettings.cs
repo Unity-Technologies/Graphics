@@ -57,6 +57,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             supportMotionVectors = true,
             supportRuntimeDebugDisplay = true,
             supportDitheringCrossFade = true,
+            supportTerrainHole = false,
             lightLoopSettings = GlobalLightLoopSettings.@default,
             hdShadowInitParams = HDShadowInitParameters.@default,
             decalSettings = GlobalDecalSettings.@default,
@@ -98,6 +99,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public bool supportMotionVectors;
         public bool supportRuntimeDebugDisplay;
         public bool supportDitheringCrossFade;
+        public bool supportTerrainHole;
         public bool supportRayTracing;
         public RaytracingTier supportedRaytracingTier;
 

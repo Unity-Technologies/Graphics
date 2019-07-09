@@ -197,6 +197,7 @@ MonoBehaviour:
     supportMotionVectors: 1
     supportRuntimeDebugDisplay: 0
     supportDitheringCrossFade: 1
+    supportTerrainHole: 1
     supportRayTracing: 0
     supportedRaytracingTier: 2
     lightLoopSettings:

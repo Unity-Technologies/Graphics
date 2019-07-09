@@ -10,6 +10,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
     {
         // Common keyword list
         protected ShaderKeyword m_Transparent;
+        protected ShaderKeyword m_AlphaTestOn;
         protected ShaderKeyword m_DebugDisplay;
         protected ShaderKeyword m_TileLighting;
         protected ShaderKeyword m_ClusterLighting;
@@ -35,6 +36,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             // STEREO_INSTANCING_ON, STEREO_MULTIVIEW_ON, STEREO_CUBEMAP_RENDER_ON, UNITY_SINGLE_PASS_STEREO
             // INSTANCING_ON
             m_Transparent = new ShaderKeyword("_SURFACE_TYPE_TRANSPARENT");
+            m_AlphaTestOn = new ShaderKeyword("_ALPHATEST_ON");
             m_DebugDisplay = new ShaderKeyword("DEBUG_DISPLAY");
             m_TileLighting = new ShaderKeyword("USE_FPTL_LIGHTLIST");
             m_ClusterLighting = new ShaderKeyword("USE_CLUSTERED_LIGHTLIST");
