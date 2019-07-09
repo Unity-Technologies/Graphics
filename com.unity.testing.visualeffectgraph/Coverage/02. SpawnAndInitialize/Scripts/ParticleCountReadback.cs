@@ -1,9 +1,10 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Experimental.VFX;
 
-[ExecuteInEditMode]
+#if _DISABLE
+[ExecuteInEditMode] //Generates an unexpected error while loading purchasing package
 public class ParticleCountReadback : MonoBehaviour
 {
 
@@ -26,4 +27,6 @@ public class ParticleCountReadback : MonoBehaviour
             yield return null;
         }
     }
+
 }
+#endif
