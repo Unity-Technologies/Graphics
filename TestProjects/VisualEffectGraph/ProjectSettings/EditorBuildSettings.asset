@@ -29,7 +29,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Packages/com.unity.testing.visualeffectgraph/Coverage/02. SpawnAndInitialize/101_Initialize.unity
     guid: ca2333d0ec0c7dd4c95726244c64f3c0
-  - enabled: 0
+  - enabled: 1
     path: Packages/com.unity.testing.visualeffectgraph/Coverage/02. SpawnAndInitialize/102_Spawning.unity
     guid: f96d343a732933243af8a7a35b578bf1
   - enabled: 1
