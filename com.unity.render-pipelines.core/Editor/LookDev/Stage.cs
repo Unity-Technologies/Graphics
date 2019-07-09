@@ -48,7 +48,7 @@ namespace UnityEditor.Rendering.Experimental.LookDev
 
             m_PreviewScene = EditorSceneManager.NewPreviewScene();
             m_PreviewScene.name = sceneName;
-            
+
             var camGO = EditorUtility.CreateGameObjectWithHideFlags("Look Dev Camera", HideFlags.HideAndDontSave, typeof(Camera));
             MoveIntoStage(camGO, true); //position will be updated right before rendering
             camGO.layer = k_PreviewCullingLayerIndex;
@@ -207,7 +207,7 @@ namespace UnityEditor.Rendering.Experimental.LookDev
             foreach (Light light in m_Camera.GetComponentsInChildren<Light>())
                 light.enabled = visible;
         }
-        
+
         private bool disposedValue = false; // To detect redundant calls
 
         void CleanUp()
@@ -218,11 +218,11 @@ namespace UnityEditor.Rendering.Experimental.LookDev
                     SRI.SRPData = null;
                 SRI = null;
                 EditorSceneManager.ClosePreviewScene(m_PreviewScene);
-                
+
                 disposedValue = true;
             }
         }
-        
+
         ~Stage() => CleanUp();
 
         /// <summary>Clear and close the stage's scene.</summary>
@@ -232,7 +232,7 @@ namespace UnityEditor.Rendering.Experimental.LookDev
             GC.SuppressFinalize(this);
         }
     }
-    
+
     class StageCache : IDisposable
     {
         const string firstStageName = "LookDevFirstView";
@@ -256,7 +256,7 @@ namespace UnityEditor.Rendering.Experimental.LookDev
             };
             initialized = true;
         }
-        
+
         Stage InitStage(ViewIndex index, IDataProvider dataProvider)
         {
             Stage stage;
@@ -293,7 +293,7 @@ namespace UnityEditor.Rendering.Experimental.LookDev
             if (viewContent.viewedObjectReference != null && !viewContent.viewedObjectReference.Equals(null))
                 viewContent.viewedInstanceInPreview = stage.InstantiateIntoStage(viewContent.viewedObjectReference);
         }
-        
+
         public void UpdateSceneLighting(ViewIndex index, IDataProvider provider)
         {
             Stage stage = this[index];
@@ -302,7 +302,7 @@ namespace UnityEditor.Rendering.Experimental.LookDev
                 environment?.sky,
                 stage.runtimeInterface);
         }
-        
+
         private bool disposedValue = false; // To detect redundant calls
 
         void CleanUp()

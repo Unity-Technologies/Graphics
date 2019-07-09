@@ -27,17 +27,21 @@ namespace UnityEditor.Rendering.Experimental.LookDev
         CustomCircular
     }
 
-    public enum SidePanel {
+    public enum SidePanel
+    {
         None = -1,
         Environment,
         Debug
     }
 
     [System.Serializable]
-    public class Context : ScriptableObject
+    public class Context : ScriptableObject, IDisposable
     {
         [SerializeField]
-        string environmentLibraryGUID = ""; //Empty GUID
+        string m_EnvironmentLibraryGUID = ""; //Empty GUID
+
+        [SerializeField]
+        bool m_CameraSynced = true;
 
         /// <summary>The currently used Environment</summary>
         public EnvironmentLibrary environmentLibrary { get; private set; }
@@ -45,6 +49,22 @@ namespace UnityEditor.Rendering.Experimental.LookDev
         /// <summary>The currently used layout</summary>
         [field: SerializeField]
         public LayoutContext layout { get; private set; } = new LayoutContext();
+
+        public bool cameraSynced
+        {
+            get => m_CameraSynced;
+            set
+            {
+                if (m_CameraSynced ^ value)
+                {
+                    if (value)
+                        EditorApplication.update += SynchronizeCameraStates;
+                    else
+                        EditorApplication.update -= SynchronizeCameraStates;
+                    m_CameraSynced = value;
+                }
+            }
+        }
 
         [SerializeField]
         ViewContext[] m_Views = new ViewContext[2]
@@ -62,6 +82,9 @@ namespace UnityEditor.Rendering.Experimental.LookDev
 
             //recompute non serialized computes states
             layout.gizmoState.Init();
+
+            if (cameraSynced)
+                EditorApplication.update += SynchronizeCameraStates;
         }
 
         /// <summary>Update the environment used.</summary>
@@ -72,12 +95,12 @@ namespace UnityEditor.Rendering.Experimental.LookDev
         /// </param>
         public void UpdateEnvironmentLibrary(EnvironmentLibrary library)
         {
-            environmentLibraryGUID = "";
+            m_EnvironmentLibraryGUID = "";
             environmentLibrary = null;
             if (library == null || library.Equals(null))
                 return;
 
-            environmentLibraryGUID = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(library));
+            m_EnvironmentLibraryGUID = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(library));
             environmentLibrary = library;
         }
 
@@ -86,17 +109,21 @@ namespace UnityEditor.Rendering.Experimental.LookDev
             environmentLibrary = null;
 
             GUID storedGUID;
-            GUID.TryParse(environmentLibraryGUID, out storedGUID);
+            GUID.TryParse(m_EnvironmentLibraryGUID, out storedGUID);
             if (storedGUID.Empty())
                 return;
 
-            string path = AssetDatabase.GUIDToAssetPath(environmentLibraryGUID);
+            string path = AssetDatabase.GUIDToAssetPath(m_EnvironmentLibraryGUID);
             environmentLibrary = AssetDatabase.LoadAssetAtPath<EnvironmentLibrary>(path);
         }
 
+        /// <summary>
+        /// Synchronize cameras from both view using data from the baseCameraState
+        /// </summary>
+        /// <param name="baseCameraState">The <see cref="ViewIndex"/> to be used as reference</param>
         public void SynchronizeCameraStates(ViewIndex baseCameraState)
         {
-            switch(baseCameraState)
+            switch (baseCameraState)
             {
                 case ViewIndex.First:
                     m_Views[1].camera.SynchronizeFrom(m_Views[0].camera);
@@ -108,8 +135,27 @@ namespace UnityEditor.Rendering.Experimental.LookDev
                     throw new System.ArgumentException("Unknow ViewIndex given in parameter.");
             }
         }
+
+        void SynchronizeCameraStates()
+            => SynchronizeCameraStates(layout.lastFocusedView);
+
+        public void SetFocusedCamera(ViewIndex index)
+            => layout.lastFocusedView = index;
+
+
+        private bool disposedValue = false; // To detect redundant calls
+        void IDisposable.Dispose()
+        {
+            if (!disposedValue)
+            {
+                if (cameraSynced)
+                    EditorApplication.update -= SynchronizeCameraStates;
+
+                disposedValue = true;
+            }
+        }
     }
-    
+
     [System.Serializable]
     public class LayoutContext
     {
@@ -148,7 +194,7 @@ namespace UnityEditor.Rendering.Experimental.LookDev
 
         /// <summary>The currently used Environment</summary>
         public Environment environment { get; private set; }
-        
+
         [SerializeField]
         string viewedObjectAssetGUID = ""; //Empty GUID
 
@@ -239,7 +285,7 @@ namespace UnityEditor.Rendering.Experimental.LookDev
             else if (savedType == typeof(Environment))
                 environment = AssetDatabase.LoadAssetAtPath<Environment>(path);
             else if (savedType == typeof(Cubemap))
-            { 
+            {
                 Cubemap cubemap = AssetDatabase.LoadAssetAtPath<Cubemap>(path);
                 environment = new Environment();
                 environment.sky.cubemap = cubemap;
@@ -255,7 +301,7 @@ namespace UnityEditor.Rendering.Experimental.LookDev
             viewedObjectReference = null;
             if (viewedObject == null || viewedObject.Equals(null))
                 return;
-            
+
             bool fromHierarchy = viewedObject.scene.IsValid();
             if (fromHierarchy)
                 viewedObjecHierarchytInstanceID = viewedObject.GetInstanceID();
@@ -292,6 +338,9 @@ namespace UnityEditor.Rendering.Experimental.LookDev
 
         internal void CleanTemporaryObjectIndexes()
             => viewedObjecHierarchytInstanceID = 0;
+
+        public void ResetCameraState()
+            => camera.Reset();
     }
 
 
@@ -300,10 +349,10 @@ namespace UnityEditor.Rendering.Experimental.LookDev
     {
         ///// <summary>Display the debug grey balls</summary>
         //public bool greyBalls;
-        
+
         //[SerializeField]
         //string colorChartGUID = ""; //Empty GUID
-        
+
         ///// <summary>The currently used color chart</summary>
         //public Texture2D colorChart { get; private set; }
 

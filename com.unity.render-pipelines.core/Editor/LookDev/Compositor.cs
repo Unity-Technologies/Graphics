@@ -279,7 +279,7 @@ namespace UnityEditor.Rendering.Experimental.LookDev
             float exposureValue0 = env0?.sky.exposure ?? 0f;
             float exposureValue1 = env1?.sky.exposure ?? 0f;
             float dualViewBlendFactor = gizmo.blendFactor;
-            float isCurrentlyLeftEditting = 1f; //1f true, -1f false
+            float isCurrentlyLeftEditting = m_Contexts.layout.lastFocusedView == ViewIndex.First ? 1f : -1f;
             float dragAndDropContext = 0f; //1f left, -1f right, 0f neither
             float toneMapEnabled = -1f; //1f true, -1f false
             float shadowMultiplier0 = env0?.shadowIntensity ?? 0f;
