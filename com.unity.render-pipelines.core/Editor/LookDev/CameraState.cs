@@ -56,7 +56,7 @@ namespace UnityEditor.Rendering.Experimental.LookDev
 
         //Pivot is always on center axis by construction
         internal Vector3 QuickProjectPivotInScreen(Rect screen)
-            => new Vector3(screen.width* .5f, screen.height* .5f, distanceFromPivot);
+            => new Vector3(screen.width * .5f, screen.height * .5f, distanceFromPivot);
 
         public void UpdateCamera(Camera camera)
         {

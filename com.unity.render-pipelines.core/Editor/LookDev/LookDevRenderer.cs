@@ -66,14 +66,14 @@ namespace UnityEditor.Rendering.Experimental.LookDev
             if (CheckInvertedOutput(data))
                 return;
 
-            if((pass & RenderingPass.First) != 0)
+            if ((pass & RenderingPass.First) != 0)
                 BeginRendering(data, pass);
             data.stage.camera.targetTexture = data.output;
             data.stage.camera.Render();
             if ((pass & RenderingPass.Last) != 0)
                 EndRendering(data);
         }
-        
+
         internal static void DrawFullScreenQuad(Rect rect)
         {
             GL.PushMatrix();

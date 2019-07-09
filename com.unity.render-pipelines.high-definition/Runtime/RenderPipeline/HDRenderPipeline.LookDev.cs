@@ -35,6 +35,7 @@ namespace UnityEngine.Rendering.HighDefinition
             HDAdditionalLightData.InitDefaultHDAdditionalLightData(additionalLightData);
 #endif
             additionalLightData.intensity = 0f;
+            additionalLightData.SetShadowResolution(2048);
 
             GameObject volumeGO = SRI.AddGameObject(persistent: true);
             volumeGO.name = "SkyManagementVolume";

@@ -17,7 +17,7 @@ namespace UnityEditor.Rendering.Experimental.LookDev
         bool m_CanDeselectAll = false;
 
         public int radioLength { get; private set; } = 0;
-        
+
         int m_Value;
         public int value
         {
