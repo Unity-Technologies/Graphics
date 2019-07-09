@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - XR single-pass instancing support for indirect draws
 - Inverse trigonometric operators (atan, atan2, asin, acos)
 - Replaced Orient : Fixed rotation with new option Orient : Advanced
+- Add Position depth operator along with TransformVector4 and LoadTexture2D expressions. 
 
 ### Fixed
 - Handle a possible exception (ReflectionTypeLoadException) while using VFXParameterBinderEditor
