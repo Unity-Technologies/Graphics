@@ -4,15 +4,15 @@ using System.Reflection;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.VFX;
-using UnityEngine.Experimental.VFX.Utility;
+using UnityEngine.VFX.Utility;
 using UnityEditor.VFX;
 using UnityEditor;
 using UnityEditorInternal;
 
 namespace UnityEditor.Experimental.VFX.Utility
 {
-    [CustomEditor(typeof(VFXParameterBinder))]
-    public class VFXParameterBinderEditor : Editor
+    [CustomEditor(typeof(VFXPropertyBinder))]
+    public class VFXPropertyBinderEditor : Editor
     {
         ReorderableList m_List;
         SerializedProperty m_Elements;
@@ -83,7 +83,7 @@ namespace UnityEditor.Experimental.VFX.Utility
 
                     using (new GUILayout.HorizontalScope())
                     {
-                        var attrib = field.GetCustomAttributes(true).OfType<VFXParameterBindingAttribute>().FirstOrDefault<VFXParameterBindingAttribute>();
+                        var attrib = field.GetCustomAttributes(true).OfType<VFXPropertyBindingAttribute>().FirstOrDefault<VFXPropertyBindingAttribute>();
                         if (attrib != null)
                         {
                             var parameter = property.FindPropertyRelative("m_Name");
@@ -113,7 +113,7 @@ namespace UnityEditor.Experimental.VFX.Utility
                 bool valid = (binding as VFXBinderBase).IsValid(component);
                 if (!valid)
                 {
-                    EditorGUILayout.HelpBox("This binding is not correctly configured, please ensure Parameter is valid and/or objects are not null", MessageType.Warning);
+                    EditorGUILayout.HelpBox("This binding is not correctly configured, please ensure Property is valid and/or objects are not null", MessageType.Warning);
                 }
             }
         }
@@ -124,7 +124,7 @@ namespace UnityEditor.Experimental.VFX.Utility
             public string value;
         }
 
-        public void CheckTypeMenu(SerializedProperty property, VFXParameterBindingAttribute attribute, VisualEffectAsset asset)
+        public void CheckTypeMenu(SerializedProperty property, VFXPropertyBindingAttribute attribute, VisualEffectAsset asset)
         {
             GenericMenu menu = new GenericMenu();
             var parameters = (asset.GetResource().graph as UnityEditor.VFX.VFXGraph).children.OfType<UnityEditor.VFX.VFXParameter>();
@@ -169,7 +169,7 @@ namespace UnityEditor.Experimental.VFX.Utility
         public void AddBinding(object type)
         {
             Type t = type as Type;
-            var obj = (serializedObject.targetObject as VFXParameterBinder).gameObject;
+            var obj = (serializedObject.targetObject as VFXPropertyBinder).gameObject;
             Undo.AddComponent(obj, t);
         }
 
@@ -215,7 +215,7 @@ namespace UnityEditor.Experimental.VFX.Utility
             else
             {
                 EditorGUI.DrawRect(iconRect, errorColor);
-                GUI.Label(rect, "<color=red>(Missing or Null Parameter Binder)</color>", Styles.labelStyle);
+                GUI.Label(rect, "<color=red>(Missing or Null Property Binder)</color>", Styles.labelStyle);
             }
 
         }
@@ -239,7 +239,7 @@ namespace UnityEditor.Experimental.VFX.Utility
 
         public void DrawHeader(Rect rect)
         {
-            GUI.Label(rect, "Parameter Bindings");
+            GUI.Label(rect, "Property Bindings");
         }
     }
 }

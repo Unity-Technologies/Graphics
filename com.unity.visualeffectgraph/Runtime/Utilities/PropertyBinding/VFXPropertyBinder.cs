@@ -3,12 +3,12 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.VFX;
 
-namespace UnityEngine.Experimental.VFX.Utility
+namespace UnityEngine.VFX.Utility
 {
     [RequireComponent(typeof(VisualEffect))]
     [DefaultExecutionOrder(1)]
     [ExecuteInEditMode]
-    public class VFXParameterBinder : MonoBehaviour
+    public class VFXPropertyBinder : MonoBehaviour
     {
         [SerializeField]
         protected bool m_ExecuteInEditor = true;

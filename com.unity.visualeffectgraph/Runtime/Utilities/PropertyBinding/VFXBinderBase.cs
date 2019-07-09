@@ -3,12 +3,12 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.VFX;
 
-namespace UnityEngine.Experimental.VFX.Utility
+namespace UnityEngine.VFX.Utility
 {
-    [ExecuteInEditMode, RequireComponent(typeof(VFXParameterBinder))]
+    [ExecuteInEditMode, RequireComponent(typeof(VFXPropertyBinder))]
     public abstract class VFXBinderBase : MonoBehaviour
     {
-        protected VFXParameterBinder binder;
+        protected VFXPropertyBinder binder;
 
         public abstract bool IsValid(VisualEffect component);
 
@@ -19,7 +19,7 @@ namespace UnityEngine.Experimental.VFX.Utility
 
         protected virtual void Awake()
         {
-            binder = GetComponent<VFXParameterBinder>();
+            binder = GetComponent<VFXPropertyBinder>();
         }
 
         protected virtual void OnEnable()
