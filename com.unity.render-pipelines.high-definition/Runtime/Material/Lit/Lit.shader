@@ -868,6 +868,7 @@ Shader "HDRP/Lit"
             #pragma multi_compile _ LIGHTMAP_ON
             #pragma multi_compile _ DIRLIGHTMAP_COMBINED
             #pragma multi_compile _ DYNAMICLIGHTMAP_ON
+            #pragma multi_compile _ DIFFUSE_LIGHTING_ONLY
             
             #define SHADERPASS SHADERPASS_RAYTRACING_GBUFFER
 

@@ -568,7 +568,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly int _RaytracingIntensityClamp        = Shader.PropertyToID("_RaytracingIntensityClamp");
         public static readonly int _RaytracingReflectionMinSmoothness   = Shader.PropertyToID("_RaytracingReflectionMinSmoothness");
         public static readonly int _RaytracingVSNormalTexture       = Shader.PropertyToID("_RaytracingVSNormalTexture");
-        public static readonly int _RaytracingReflectSky            = Shader.PropertyToID("_RaytracingReflectSky");
+        public static readonly int _RaytracingIncludeSky            = Shader.PropertyToID("_RaytracingIncludeSky");
 
         // Shadows
         public static readonly int _RaytracingTargetAreaLight       = Shader.PropertyToID("_RaytracingTargetAreaLight");
@@ -608,12 +608,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly int _RaytracingCameraNearPlane       = Shader.PropertyToID("_RaytracingCameraNearPlane");
 
         // Indirect diffuse
-        public static readonly int _RaytracedIndirectDiffuse        = Shader.PropertyToID("_RaytracedIndirectDiffuse");
-        public static readonly int _IndirectDiffuseTexture          = Shader.PropertyToID("_IndirectDiffuseTexture");
-        public static readonly int _IndirectDiffuseTextureRW        = Shader.PropertyToID("_IndirectDiffuseTextureRW");
-
+        public static readonly int _RaytracedIndirectDiffuse            = Shader.PropertyToID("_RaytracedIndirectDiffuse");
+        public static readonly int _IndirectDiffuseTexture              = Shader.PropertyToID("_IndirectDiffuseTexture");
+        public static readonly int _IndirectDiffuseTextureRW            = Shader.PropertyToID("_IndirectDiffuseTextureRW");
+        public static readonly int _IndirectDiffuseHitPointTextureRW    = Shader.PropertyToID("_IndirectDiffuseHitPointTextureRW");
+        
         // Deferred Lighting
         public static readonly int _RaytracingLitBufferRW           = Shader.PropertyToID("_RaytracingLitBufferRW");
+        public static readonly int _RaytracingDiffuseRay            = Shader.PropertyToID("_RaytracingDiffuseRay");
 
         // Ray binning
         public static readonly int _RayBinResult                    = Shader.PropertyToID("_RayBinResult");

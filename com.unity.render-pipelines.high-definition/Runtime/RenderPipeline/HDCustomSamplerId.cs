@@ -66,6 +66,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         RaytracingFilterAO,
         RaytracingShadowIntegration,
         RaytracingShadowCombination,
+        RaytracingFilterIndirectDiffuse,
         RaytracingDebug,
 
         // Profile sampler for tile pass
