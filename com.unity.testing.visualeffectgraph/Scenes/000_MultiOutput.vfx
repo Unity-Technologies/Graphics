@@ -134,6 +134,7 @@ MonoBehaviour:
   - link: []
   blendMode: 1
   m_SubOutputs:
+  - {fileID: 0}
   - {fileID: 8926484042661614574}
   cullMode: 0
   zWriteMode: 0
@@ -178,6 +179,7 @@ MonoBehaviour:
   - link: []
   blendMode: 1
   m_SubOutputs:
+  - {fileID: 0}
   - {fileID: 8926484042661614572}
   cullMode: 0
   zWriteMode: 0
@@ -1216,6 +1218,7 @@ MonoBehaviour:
   - link: []
   blendMode: 1
   m_SubOutputs:
+  - {fileID: 0}
   - {fileID: 8926484042661614573}
   cullMode: 0
   zWriteMode: 0
@@ -1621,6 +1624,7 @@ MonoBehaviour:
   - link: []
   blendMode: 1
   m_SubOutputs:
+  - {fileID: 0}
   - {fileID: 8926484042661614575}
   cullMode: 0
   zWriteMode: 0
