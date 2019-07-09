@@ -1,9 +1,9 @@
 using System.Collections.Generic;
 using UnityEngine;
-using static UnityEngine.Experimental.Rendering.HDPipeline.RenderPipelineSettings;
+using static UnityEngine.Rendering.HighDefinition.RenderPipelineSettings;
 using UnityEngine.Rendering;
 
-namespace UnityEditor.Experimental.Rendering.HDPipeline
+namespace UnityEditor.Rendering.HighDefinition
 {
     static partial class HDRenderPipelineUI
     {

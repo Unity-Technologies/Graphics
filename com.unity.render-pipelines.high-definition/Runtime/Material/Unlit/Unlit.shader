@@ -51,7 +51,7 @@ Shader "HDRP/Unlit"
         [HideInInspector] _AlphaDstBlend("__alphaDst", Float) = 0.0
         [HideInInspector][ToggleUI] _ZWrite("__zw", Float) = 1.0
         [HideInInspector] _CullMode("__cullmode", Float) = 2.0
-        [Enum(UnityEditor.Experimental.Rendering.HDPipeline.TransparentCullMode)] _TransparentCullMode("_TransparentCullMode", Int) = 2 // Back culling by default
+        [Enum(UnityEditor.Rendering.HighDefinition.TransparentCullMode)] _TransparentCullMode("_TransparentCullMode", Int) = 2 // Back culling by default
         [HideInInspector] _ZTestModeDistortion("_ZTestModeDistortion", Int) = 8
         [Enum(UnityEngine.Rendering.CompareFunction)] _ZTestTransparent("Transparent ZTest", Int) = 4 // Less equal
         [HideInInspector] _ZTestDepthEqualForOpaque("_ZTestDepthEqualForOpaque", Int) = 4 // Less equal
@@ -426,7 +426,7 @@ Shader "HDRP/Unlit"
             Tags{ "LightMode" = "ForwardDXR" }
 
             HLSLPROGRAM
-            
+
             #pragma raytracing test
 
             #define SHADERPASS SHADERPASS_RAYTRACING_FORWARD
@@ -452,12 +452,12 @@ Shader "HDRP/Unlit"
 
             HLSLPROGRAM
 
-            #pragma raytracing test      
+            #pragma raytracing test
 
             #pragma multi_compile _ LIGHTMAP_ON
             #pragma multi_compile _ DIRLIGHTMAP_COMBINED
             #pragma multi_compile _ DYNAMICLIGHTMAP_ON
-            
+
             #define SHADERPASS SHADERPASS_RAYTRACING_GBUFFER
 
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingMacros.hlsl"
@@ -505,5 +505,5 @@ Shader "HDRP/Unlit"
         }
     }
 
-    CustomEditor "Experimental.Rendering.HDPipeline.UnlitGUI"
+    CustomEditor "Rendering.HighDefinition.UnlitGUI"
 }

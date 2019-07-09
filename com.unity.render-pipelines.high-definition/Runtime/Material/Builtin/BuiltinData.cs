@@ -1,10 +1,10 @@
 //-----------------------------------------------------------------------------
 // structure definition
 //-----------------------------------------------------------------------------
-using UnityEngine.Rendering;
-using UnityEngine.Experimental.Rendering.HDPipeline.Attributes;
+using UnityEngine.Rendering.HighDefinition.Attributes;
+using UnityEngine.Experimental.Rendering;
 
-namespace UnityEngine.Experimental.Rendering.HDPipeline
+namespace UnityEngine.Rendering.HighDefinition
 {
     public class Builtin // Note: This particular class doesn't derive from RenderPipelineMaterial
     {

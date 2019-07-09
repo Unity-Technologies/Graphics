@@ -1,9 +1,8 @@
-using UnityEditor.Rendering;
 using UnityEditorInternal;
 using UnityEngine;
-using UnityEngine.Experimental.Rendering.HDPipeline;
+using UnityEngine.Rendering.HighDefinition;
 
-namespace UnityEditor.Experimental.Rendering.HDPipeline
+namespace UnityEditor.Rendering.HighDefinition
 {
     using CED = CoreEditorDrawer<SerializedDensityVolume>;
 
@@ -17,7 +16,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         }
 
         readonly static ExpandedState<Expandable, DensityVolume> k_ExpandedState = new ExpandedState<Expandable, DensityVolume>(Expandable.Volume | Expandable.DensityMaskTexture, "HDRP");
-        
+
         public static readonly CED.IDrawer Inspector = CED.Group(
             CED.Group(
                 Drawer_ToolBar,
@@ -34,7 +33,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 Drawer_DensityMaskTextureContent
                 )
             );
-        
+
         static void Drawer_ToolBar(SerializedDensityVolume serialized, Editor owner)
         {
             GUILayout.BeginHorizontal();
@@ -77,7 +76,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         static void Drawer_VolumeContent(SerializedDensityVolume serialized, Editor owner)
         {
-            //keep previous data as value are stored in percent 
+            //keep previous data as value are stored in percent
             Vector3 previousSize = serialized.size.vector3Value;
             float previousUniformFade = serialized.editorUniformFade.floatValue;
             Vector3 previousPositiveFade = serialized.editorPositiveFade.vector3Value;
@@ -92,7 +91,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 newSize.y = Mathf.Max(0f, newSize.y);
                 newSize.z = Mathf.Max(0f, newSize.z);
                 serialized.size.vector3Value = newSize;
-                
+
                 //update advanced mode blend
                 Vector3 newPositiveFade = new Vector3(
                     newSize.x < 0.00001 ? 0 : previousPositiveFade.x * previousSize.x / newSize.x,

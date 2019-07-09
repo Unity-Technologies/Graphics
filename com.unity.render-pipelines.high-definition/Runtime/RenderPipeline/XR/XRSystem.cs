@@ -8,12 +8,11 @@
 
 using System;
 using System.Collections.Generic;
-using UnityEngine.Rendering;
 #if USE_XR_SDK
 using UnityEngine.Experimental.XR;
 #endif
 
-namespace UnityEngine.Experimental.Rendering.HDPipeline
+namespace UnityEngine.Rendering.HighDefinition
 {
     internal partial class XRSystem
     {
@@ -67,7 +66,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             // Validate state
             Debug.Assert(framePasses.Count == 0, "XRSystem.ReleaseFrame() was not called!");
-            
+
             foreach (var camera in cameras)
             {
                 if (camera == null)

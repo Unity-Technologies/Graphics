@@ -5,7 +5,7 @@
 #ifndef LIT_CS_HLSL
 #define LIT_CS_HLSL
 //
-// UnityEngine.Experimental.Rendering.HDPipeline.Lit+MaterialFeatureFlags:  static fields
+// UnityEngine.Rendering.HighDefinition.Lit+MaterialFeatureFlags:  static fields
 //
 #define MATERIALFEATUREFLAGS_LIT_STANDARD (1)
 #define MATERIALFEATUREFLAGS_LIT_SPECULAR_COLOR (2)
@@ -16,7 +16,7 @@
 #define MATERIALFEATUREFLAGS_LIT_CLEAR_COAT (64)
 
 //
-// UnityEngine.Experimental.Rendering.HDPipeline.Lit+SurfaceData:  static fields
+// UnityEngine.Rendering.HighDefinition.Lit+SurfaceData:  static fields
 //
 #define DEBUGVIEW_LIT_SURFACEDATA_MATERIAL_FEATURES (1000)
 #define DEBUGVIEW_LIT_SURFACEDATA_BASE_COLOR (1001)
@@ -43,7 +43,7 @@
 #define DEBUGVIEW_LIT_SURFACEDATA_TRANSMITTANCE_MASK (1022)
 
 //
-// UnityEngine.Experimental.Rendering.HDPipeline.Lit+BSDFData:  static fields
+// UnityEngine.Rendering.HighDefinition.Lit+BSDFData:  static fields
 //
 #define DEBUGVIEW_LIT_BSDFDATA_MATERIAL_FEATURES (1050)
 #define DEBUGVIEW_LIT_BSDFDATA_DIFFUSE_COLOR (1051)
@@ -73,7 +73,7 @@
 #define DEBUGVIEW_LIT_BSDFDATA_ABSORPTION_COEFFICIENT (1075)
 #define DEBUGVIEW_LIT_BSDFDATA_TRANSMITTANCE_MASK (1076)
 
-// Generated from UnityEngine.Experimental.Rendering.HDPipeline.Lit+SurfaceData
+// Generated from UnityEngine.Rendering.HighDefinition.Lit+SurfaceData
 // PackingRules = Exact
 struct SurfaceData
 {
@@ -100,7 +100,7 @@ struct SurfaceData
     float transmittanceMask;
 };
 
-// Generated from UnityEngine.Experimental.Rendering.HDPipeline.Lit+BSDFData
+// Generated from UnityEngine.Rendering.HighDefinition.Lit+BSDFData
 // PackingRules = Exact
 struct BSDFData
 {

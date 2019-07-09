@@ -1,9 +1,6 @@
-using UnityEngine.Rendering;
-using System;
-using System.Collections.Generic;
-using System.Linq;
+using UnityEngine.Experimental.Rendering;
 
-namespace UnityEngine.Experimental.Rendering.HDPipeline
+namespace UnityEngine.Rendering.HighDefinition
 {
     using RTHandle = RTHandleSystem.RTHandle;
 

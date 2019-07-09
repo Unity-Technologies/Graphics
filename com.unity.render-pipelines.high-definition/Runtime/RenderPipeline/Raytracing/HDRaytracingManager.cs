@@ -6,7 +6,7 @@ using UnityEngine.Rendering;
 using UnityEditor;
 #endif
 
-namespace UnityEngine.Experimental.Rendering.HDPipeline
+namespace UnityEngine.Rendering.HighDefinition
 {
 #if ENABLE_RAYTRACING
     public class HDRayTracingLights

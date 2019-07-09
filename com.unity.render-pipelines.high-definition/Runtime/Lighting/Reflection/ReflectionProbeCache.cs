@@ -1,7 +1,6 @@
 using System;
-using UnityEngine.Rendering;
 
-namespace UnityEngine.Experimental.Rendering.HDPipeline
+namespace UnityEngine.Rendering.HighDefinition
 {
     public class ReflectionProbeCache
     {
@@ -254,7 +253,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             return TextureCacheCubemap.GetMaxCacheSizeForWeightInByte(weight, resolution, sliceSize);
         }
-        
+
         public int GetEnvSliceSize()
         {
             return m_IBLFilterBSDF.Length;

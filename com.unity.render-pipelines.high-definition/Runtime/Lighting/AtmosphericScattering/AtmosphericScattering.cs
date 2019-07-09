@@ -1,8 +1,7 @@
 using System;
 using System.Diagnostics;
-using UnityEngine.Rendering;
 
-namespace UnityEngine.Experimental.Rendering.HDPipeline
+namespace UnityEngine.Rendering.HighDefinition
 {
     // Keep this class first in the file. Otherwise it seems that the script type is not registered properly.
     public abstract class AtmosphericScattering : VolumeComponent

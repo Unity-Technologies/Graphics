@@ -1,14 +1,13 @@
 using System;
-using UnityEngine.Rendering;
 
-namespace UnityEngine.Experimental.Rendering.HDPipeline
+namespace UnityEngine.Rendering.HighDefinition
 {
     [Serializable, VolumeComponentMenu("Post-processing/Color Adjustments")]
     public sealed class ColorAdjustments : VolumeComponent, IPostProcessComponent
     {
         [Tooltip("Sets the value that HDRP uses to adjust the overall exposure of the Scene, in EV.")]
         public FloatParameter postExposure = new FloatParameter(0f);
-        
+
         [Tooltip("Controls the overall range of the tonal values.")]
         public ClampedFloatParameter contrast = new ClampedFloatParameter(0f, -100f, 100f);
 

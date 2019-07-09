@@ -1,9 +1,4 @@
-using System;
-using UnityEditor;
-using UnityEngine;
-using UnityEngine.Rendering;
-
-namespace UnityEngine.Experimental.Rendering.HDPipeline
+namespace UnityEngine.Rendering.HighDefinition
 {
     public partial class DecalProjector : IVersionable<DecalProjector.Version>
     {
@@ -36,7 +31,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 decal.m_Offset.y = decal.m_Offset.z * decal.transform.lossyScale.z;
                 decal.m_Offset.z = newZ;
                 decal.m_Offset.x *= decal.transform.lossyScale.x;
-                
+
                 // Update decal system
                 if (decal.m_Handle != null)
                     DecalSystem.instance.RemoveDecal(decal.m_Handle);

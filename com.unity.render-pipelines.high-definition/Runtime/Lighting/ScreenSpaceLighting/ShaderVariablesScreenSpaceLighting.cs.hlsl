@@ -4,7 +4,7 @@
 
 #ifndef SHADERVARIABLESSCREENSPACELIGHTING_CS_HLSL
 #define SHADERVARIABLESSCREENSPACELIGHTING_CS_HLSL
-// Generated from UnityEngine.Experimental.Rendering.HDPipeline.ShaderVariablesScreenSpaceLighting
+// Generated from UnityEngine.Rendering.HighDefinition.ShaderVariablesScreenSpaceLighting
 // PackingRules = Exact
     float4 _ColorPyramidSize;
     float4 _CameraMotionVectorsSize;

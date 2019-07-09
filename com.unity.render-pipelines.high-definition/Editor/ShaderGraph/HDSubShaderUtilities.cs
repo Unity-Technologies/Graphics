@@ -4,13 +4,13 @@ using System.Linq;
 using UnityEditor.Graphing;
 using UnityEngine;              // Vector3,4
 using UnityEditor.ShaderGraph;
-using UnityEngine.Experimental.Rendering.HDPipeline;
+using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.Rendering;
 
 // Include material common properties names
-using static UnityEngine.Experimental.Rendering.HDPipeline.HDMaterialProperties;
+using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
 
-namespace UnityEditor.Experimental.Rendering.HDPipeline
+namespace UnityEditor.Rendering.HighDefinition
 {
     internal enum HDRenderTypeTags
     {
@@ -772,7 +772,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             namedFragments.Add("ColorMask", colorMaskCode.ToString());
 
             // this is the format string for building the 'C# qualified assembly type names' for $buildType() commands
-            string buildTypeAssemblyNameFormat = "UnityEditor.Experimental.Rendering.HDPipeline.HDRPShaderStructs+{0}, " + typeof(HDSubShaderUtilities).Assembly.FullName.ToString();
+            string buildTypeAssemblyNameFormat = "UnityEditor.Rendering.HighDefinition.HDRPShaderStructs+{0}, " + typeof(HDSubShaderUtilities).Assembly.FullName.ToString();
 
             string sharedTemplatePath = Path.Combine(Path.Combine(HDUtils.GetHDRenderPipelinePath(), "Editor"), "ShaderGraph");
             // process the template to generate the shader code for this pass

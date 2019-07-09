@@ -1,7 +1,4 @@
-using UnityEngine.Rendering;
-using System.Collections.Generic;
-
-namespace UnityEngine.Experimental.Rendering.HDPipeline
+namespace UnityEngine.Rendering.HighDefinition
 {
     abstract public class IBLFilterBSDF
     {

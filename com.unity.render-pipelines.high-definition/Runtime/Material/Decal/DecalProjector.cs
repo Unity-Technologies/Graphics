@@ -1,9 +1,7 @@
 using System;
 using UnityEditor;
-using UnityEngine;
-using UnityEngine.Rendering;
 
-namespace UnityEngine.Experimental.Rendering.HDPipeline
+namespace UnityEngine.Rendering.HighDefinition
 {
     [ExecuteAlways]
 #if UNITY_EDITOR
@@ -176,7 +174,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 this.m_Handle = value;
             }
         }
-        
+
         public void OnEnable()
         {
             if (m_Material == null)
@@ -194,7 +192,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 DecalSystem.instance.RemoveDecal(m_Handle);
                 m_Handle = null;
             }
-            
+
             Matrix4x4 sizeOffset = Matrix4x4.Translate(decalOffset) * Matrix4x4.Scale(decalSize);
             m_Handle = DecalSystem.instance.AddDecal(position, rotation, Vector3.one, sizeOffset, m_DrawDistance, m_FadeScale, uvScaleBias, m_AffectsTransparency, m_Material, gameObject.layer, m_FadeFactor);
         }

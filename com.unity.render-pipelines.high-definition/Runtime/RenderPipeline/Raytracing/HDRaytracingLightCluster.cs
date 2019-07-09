@@ -1,8 +1,7 @@
-using System;
-using UnityEngine.Rendering;
+using UnityEngine.Experimental.Rendering;
 using System.Collections.Generic;
 
-namespace UnityEngine.Experimental.Rendering.HDPipeline
+namespace UnityEngine.Rendering.HighDefinition
 {
     [GenerateHLSL(PackingRules.Exact, false)]
     public struct LightVolume

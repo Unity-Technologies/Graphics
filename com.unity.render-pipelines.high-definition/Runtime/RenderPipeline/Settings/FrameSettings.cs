@@ -1,10 +1,6 @@
 using System;
-using System.Collections.Generic;
-using System.Runtime.CompilerServices;
-using System.Text;
-using UnityEngine.Rendering;
 
-namespace UnityEngine.Experimental.Rendering.HDPipeline
+namespace UnityEngine.Rendering.HighDefinition
 {
     /// <summary>Helper to handle Deferred or Forward but not both</summary>
     public enum LitShaderMode

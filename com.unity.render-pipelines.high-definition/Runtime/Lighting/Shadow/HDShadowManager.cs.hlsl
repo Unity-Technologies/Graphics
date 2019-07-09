@@ -4,7 +4,7 @@
 
 #ifndef HDSHADOWMANAGER_CS_HLSL
 #define HDSHADOWMANAGER_CS_HLSL
-// Generated from UnityEngine.Experimental.Rendering.HDPipeline.HDShadowData
+// Generated from UnityEngine.Rendering.HighDefinition.HDShadowData
 // PackingRules = Exact
 struct HDShadowData
 {
@@ -27,7 +27,7 @@ struct HDShadowData
     float4x4 shadowToWorld;
 };
 
-// Generated from UnityEngine.Experimental.Rendering.HDPipeline.HDDirectionalShadowData
+// Generated from UnityEngine.Rendering.HighDefinition.HDDirectionalShadowData
 // PackingRules = Exact
 struct HDDirectionalShadowData
 {
@@ -37,7 +37,7 @@ struct HDDirectionalShadowData
 };
 
 //
-// Accessors for UnityEngine.Experimental.Rendering.HDPipeline.HDShadowData
+// Accessors for UnityEngine.Rendering.HighDefinition.HDShadowData
 //
 float3 GetRot0(HDShadowData value)
 {
@@ -108,7 +108,7 @@ float4x4 GetShadowToWorld(HDShadowData value)
     return value.shadowToWorld;
 }
 //
-// Accessors for UnityEngine.Experimental.Rendering.HDPipeline.HDDirectionalShadowData
+// Accessors for UnityEngine.Rendering.HighDefinition.HDDirectionalShadowData
 //
 float4 GetSphereCascades(HDDirectionalShadowData value, int index)
 {

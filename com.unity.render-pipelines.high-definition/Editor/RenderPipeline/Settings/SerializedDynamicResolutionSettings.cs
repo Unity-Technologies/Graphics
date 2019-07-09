@@ -1,7 +1,7 @@
 using UnityEditor.Rendering;
 using UnityEngine.Rendering;
 
-namespace UnityEditor.Experimental.Rendering.HDPipeline
+namespace UnityEditor.Rendering.HighDefinition
 {
     class SerializedDynamicResolutionSettings
     {

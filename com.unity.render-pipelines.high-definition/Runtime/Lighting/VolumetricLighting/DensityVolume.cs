@@ -1,8 +1,7 @@
 using System;
-using UnityEngine.Rendering;
 using UnityEngine.Serialization;
 
-namespace UnityEngine.Experimental.Rendering.HDPipeline
+namespace UnityEngine.Rendering.HighDefinition
 {
 
 
@@ -181,4 +180,4 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             parameters.Constrain();
         }
     }
-} // UnityEngine.Experimental.Rendering.HDPipeline
+}

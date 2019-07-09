@@ -4,7 +4,7 @@
 
 #ifndef STANDARDLIT_CS_HLSL
 #define STANDARDLIT_CS_HLSL
-// Generated from UnityEngine.Experimental.Rendering.HDPipeline.StandardLit+StandardBSDFData
+// Generated from UnityEngine.Rendering.HighDefinition.StandardLit+StandardBSDFData
 // PackingRules = Exact
 struct StandardBSDFData
 {
@@ -21,7 +21,7 @@ struct StandardBSDFData
 };
 
 //
-// Accessors for UnityEngine.Experimental.Rendering.HDPipeline.StandardLit+StandardBSDFData
+// Accessors for UnityEngine.Rendering.HighDefinition.StandardLit+StandardBSDFData
 //
 float3 GetBaseColor(StandardBSDFData value)
 {

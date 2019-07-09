@@ -3,10 +3,10 @@ using System;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
-using UnityEngine.Experimental.Rendering.HDPipeline;
 using UnityEngine.Rendering;
+using UnityEngine.Rendering.HighDefinition;
 
-namespace UnityEditor.Experimental.Rendering.HDPipeline
+namespace UnityEditor.Rendering.HighDefinition
 {
     [InitializeOnLoad]
     public class HDWizard : EditorWindow
@@ -21,7 +21,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         static class Style
         {
-            public static readonly GUIContent hdrpProjectSettingsPath = EditorGUIUtility.TrTextContent("Default Resources Folder", "Resources Folder will be the one where to get project elements related to HDRP as default scene and default settings."); 
+            public static readonly GUIContent hdrpProjectSettingsPath = EditorGUIUtility.TrTextContent("Default Resources Folder", "Resources Folder will be the one where to get project elements related to HDRP as default scene and default settings.");
             public static readonly GUIContent firstTimeInit = EditorGUIUtility.TrTextContent("Populate / Reset", "Populate or override Default Resources Folder content with required assets.");
             public static readonly GUIContent defaultScene = EditorGUIUtility.TrTextContent("Default Scene Prefab", "This prefab contains scene elements that are used when creating a new scene in HDRP.");
             public static readonly GUIContent haveStartPopup = EditorGUIUtility.TrTextContent("Show on start");
@@ -243,9 +243,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 {
                     string defaultDiffusionProfileSettingsPath = "Assets/" + HDProjectSettings.projectSettingsFolderPath + "/" + defaultProfile.name + ".asset";
                     AssetDatabase.CopyAsset(AssetDatabase.GetAssetPath(defaultProfile), defaultDiffusionProfileSettingsPath);
-                    
+
                     DiffusionProfileSettings defaultDiffusionProfile = AssetDatabase.LoadAssetAtPath<DiffusionProfileSettings>(defaultDiffusionProfileSettingsPath);
-                    
+
                     hdrpAsset.diffusionProfileSettingsList[index++] = defaultDiffusionProfile;
                 }
 
@@ -256,7 +256,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     FixHdrpAssetRuntimeResources();
                 if (!IsHdrpAssetEditorResourcesCorrect())
                     FixHdrpAssetEditorResources();
-                
+
                 CreateDefaultSceneFromPackageAnsAssignIt();
             }
             GUILayout.EndHorizontal();

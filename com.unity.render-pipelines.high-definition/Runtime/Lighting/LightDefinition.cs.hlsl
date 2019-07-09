@@ -5,7 +5,7 @@
 #ifndef LIGHTDEFINITION_CS_HLSL
 #define LIGHTDEFINITION_CS_HLSL
 //
-// UnityEngine.Experimental.Rendering.HDPipeline.GPULightType:  static fields
+// UnityEngine.Rendering.HighDefinition.GPULightType:  static fields
 //
 #define GPULIGHTTYPE_DIRECTIONAL (0)
 #define GPULIGHTTYPE_POINT (1)
@@ -16,13 +16,13 @@
 #define GPULIGHTTYPE_RECTANGLE (6)
 
 //
-// UnityEngine.Experimental.Rendering.HDPipeline.GPUImageBasedLightingType:  static fields
+// UnityEngine.Rendering.HighDefinition.GPUImageBasedLightingType:  static fields
 //
 #define GPUIMAGEBASEDLIGHTINGTYPE_REFLECTION (0)
 #define GPUIMAGEBASEDLIGHTINGTYPE_REFRACTION (1)
 
 //
-// UnityEngine.Experimental.Rendering.HDPipeline.EnvShapeType:  static fields
+// UnityEngine.Rendering.HighDefinition.EnvShapeType:  static fields
 //
 #define ENVSHAPETYPE_NONE (0)
 #define ENVSHAPETYPE_BOX (1)
@@ -30,24 +30,24 @@
 #define ENVSHAPETYPE_SKY (3)
 
 //
-// UnityEngine.Experimental.Rendering.HDPipeline.EnvConstants:  static fields
+// UnityEngine.Rendering.HighDefinition.EnvConstants:  static fields
 //
 #define ENVCONSTANTS_SPEC_CUBE_LOD_STEP (6)
 
 //
-// UnityEngine.Experimental.Rendering.HDPipeline.EnvCacheType:  static fields
+// UnityEngine.Rendering.HighDefinition.EnvCacheType:  static fields
 //
 #define ENVCACHETYPE_TEXTURE2D (0)
 #define ENVCACHETYPE_CUBEMAP (1)
 
 //
-// UnityEngine.Experimental.Rendering.HDPipeline.StencilLightingUsage:  static fields
+// UnityEngine.Rendering.HighDefinition.StencilLightingUsage:  static fields
 //
 #define STENCILLIGHTINGUSAGE_NO_LIGHTING (0)
 #define STENCILLIGHTINGUSAGE_SPLIT_LIGHTING (1)
 #define STENCILLIGHTINGUSAGE_REGULAR_LIGHTING (2)
 
-// Generated from UnityEngine.Experimental.Rendering.HDPipeline.DirectionalLightData
+// Generated from UnityEngine.Rendering.HighDefinition.DirectionalLightData
 // PackingRules = Exact
 struct DirectionalLightData
 {
@@ -75,7 +75,7 @@ struct DirectionalLightData
     int interactsWithSky;
 };
 
-// Generated from UnityEngine.Experimental.Rendering.HDPipeline.LightData
+// Generated from UnityEngine.Rendering.HighDefinition.LightData
 // PackingRules = Exact
 struct LightData
 {
@@ -109,7 +109,7 @@ struct LightData
     float specularDimmer;
 };
 
-// Generated from UnityEngine.Experimental.Rendering.HDPipeline.EnvLightData
+// Generated from UnityEngine.Rendering.HighDefinition.EnvLightData
 // PackingRules = Exact
 struct EnvLightData
 {
