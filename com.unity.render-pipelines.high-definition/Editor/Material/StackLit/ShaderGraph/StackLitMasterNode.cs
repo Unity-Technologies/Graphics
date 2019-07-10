@@ -168,10 +168,17 @@ namespace UnityEditor.Rendering.HighDefinition
         // See also _DebugSpecularOcclusion.
         public enum SpecularOcclusionBaseMode
         {
-            Off,
-            DirectFromAO, // TriACE
-            ConeConeFromBentAO,
-            SPTDIntegrationOfBentAO
+            Off = 0,
+            DirectFromAO = 1, // TriACE
+            ConeConeFromBentAO = 2,
+            SPTDIntegrationOfBentAO = 3,
+        }
+
+        public enum SpecularOcclusionBaseModeSimple
+        {
+            Off = 0,
+            DirectFromAO = 1, // TriACE
+            SPTDIntegrationOfBentAO = 3,
         }
 
         public enum SpecularOcclusionAOConeSize
@@ -781,6 +788,21 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         [SerializeField]
+        bool m_HonorPerLightMinRoughness;
+
+        public ToggleData honorPerLightMinRoughness
+        {
+            get { return new ToggleData(m_HonorPerLightMinRoughness); }
+            set
+            {
+                if (m_HonorPerLightMinRoughness == value.isOn)
+                    return;
+                m_HonorPerLightMinRoughness = value.isOn;
+                Dirty(ModificationScope.Graph);
+            }
+        }
+
+        [SerializeField]
         bool m_ShadeBaseUsingRefractedAngles;
 
         public ToggleData shadeBaseUsingRefractedAngles
@@ -807,6 +829,22 @@ namespace UnityEditor.Rendering.HighDefinition
                     return;
                 m_Debug = value.isOn;
                 Dirty(ModificationScope.Graph);
+            }
+        }
+
+        [SerializeField]
+        bool m_DevMode;
+
+        public ToggleData devMode
+        {
+            get { return new ToggleData(m_DevMode); }
+            set
+            {
+                if (m_DevMode == value.isOn)
+                    return;
+                m_DevMode = value.isOn;
+                UpdateNodeAfterDeserialization();
+                Dirty(ModificationScope.Topological);
             }
         }
 

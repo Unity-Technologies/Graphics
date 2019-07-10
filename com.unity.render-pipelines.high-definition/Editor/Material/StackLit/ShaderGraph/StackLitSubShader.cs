@@ -701,6 +701,10 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 activeFields.Add("RecomputeStackPerLight");
             }
+            if (masterNode.honorPerLightMinRoughness.isOn)
+            {
+                activeFields.Add("HonorPerLightMinRoughness");
+            }
             if (masterNode.shadeBaseUsingRefractedAngles.isOn)
             {
                 activeFields.Add("ShadeBaseUsingRefractedAngles");
