@@ -534,9 +534,17 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         }
         public OnGeneratePassDelegate OnGeneratePassImpl;
     }
-
     static class HDSubShaderUtilities
     {
+
+        static List<Dependency[]> k_Dependencies = new List<Dependency[]>()
+        {
+            HDRPShaderStructs.FragInputs.dependencies,
+            HDRPShaderStructs.VaryingsMeshToPS.standardDependencies,
+            HDRPShaderStructs.SurfaceDescriptionInputs.dependencies,
+            HDRPShaderStructs.VertexDescriptionInputs.dependencies
+        };
+
         public static bool GenerateShaderPass(AbstractMaterialNode masterNode, Pass pass, GenerationMode mode, ActiveFields activeFields, ShaderGenerator result, List<string> sourceAssetDependencyPaths, bool vertexActive)
         {
             string templatePath = Path.Combine(HDUtils.GetHDRenderPipelinePath(), "Editor/Material");
@@ -608,8 +616,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             // -------------------------------------
             // Evaluate all permutations
 
-            HDRPShaderStructs.AddActiveFieldsFromPixelGraphRequirements(activeFields.baseInstance, pixelRequirements);
-
             for(int i = 0; i < keywordPermutations.Count; i++)
             {
                 // Get active nodes for this permutation
@@ -647,10 +653,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
                 // build initial requirements
                 HDRPShaderStructs.AddActiveFieldsFromPixelGraphRequirements(activeFields[i], localPixelRequirements);
+                HDRPShaderStructs.AddActiveFieldsFromVertexGraphRequirements(activeFields[i], localVertexRequirements);
             }
 
             // build the graph outputs structure, and populate activeFields with the fields of that structure
-            GraphUtil.GenerateSurfaceDescriptionStruct(pixelGraphOutputs, pixelSlots, pixelGraphOutputStructName, activeFields.all);
+            GraphUtil.GenerateSurfaceDescriptionStruct(pixelGraphOutputs, pixelSlots, pixelGraphOutputStructName, activeFields.baseInstance);
 
             // Build the graph evaluation code, to evaluate the specified slots
             GraphUtil.GenerateSurfaceDescriptionFunction(
@@ -679,12 +686,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             if (vertexActive)
             {
                 vertexActive = true;
-                activeFields.all.AddAll("features.modifyMesh");
-                HDRPShaderStructs.AddActiveFieldsFromVertexGraphRequirements(activeFields.all, vertexRequirements);
+                activeFields.baseInstance.Add("features.modifyMesh");
 
                 // -------------------------------------
                 // Generate Output structure for Vertex Description function
-                GraphUtil.GenerateVertexDescriptionStruct(vertexGraphOutputs, vertexSlots, vertexGraphOutputStructName, activeFields.all);
+                GraphUtil.GenerateVertexDescriptionStruct(vertexGraphOutputs, vertexSlots, vertexGraphOutputStructName, activeFields.baseInstance);
 
                 // -------------------------------------
                 // Generate Vertex Description function
@@ -713,7 +719,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             var colorMaskCode = new ShaderStringBuilder();
             HDSubShaderUtilities.BuildRenderStatesFromPass(pass, blendCode, cullCode, zTestCode, zWriteCode, zClipCode, stencilCode, colorMaskCode);
 
-            HDRPShaderStructs.AddRequiredFields(pass.RequiredFields, activeFields.all);
+            HDRPShaderStructs.AddRequiredFields(pass.RequiredFields, activeFields.baseInstance);
 
             // Get keyword declarations
             sharedKeywords.GetKeywordsDeclaration(shaderKeywordDeclarations, mode);
@@ -724,17 +730,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             // propagate active field requirements using dependencies
             foreach (var instance in activeFields.all.instances)
-            {
-                ShaderSpliceUtil.ApplyDependencies(
-                    instance,
-                    new List<Dependency[]>()
-                    {
-                        HDRPShaderStructs.FragInputs.dependencies,
-                        HDRPShaderStructs.VaryingsMeshToPS.standardDependencies,
-                        HDRPShaderStructs.SurfaceDescriptionInputs.dependencies,
-                        HDRPShaderStructs.VertexDescriptionInputs.dependencies
-                    });
-            }
+                ShaderSpliceUtil.ApplyDependencies(instance, k_Dependencies);
 
             // debug output all active fields
             var interpolatorDefines = new ShaderGenerator();
@@ -785,14 +781,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     shaderPassIncludes.AddShaderChunk(include);
             }
 
+            defines.AddShaderChunk("// Shared Graph Keywords");
+            defines.AddShaderChunk(shaderKeywordDeclarations.ToString());
+            defines.AddShaderChunk(shaderKeywordPermutations.ToString());
 
             // build graph code
             var graph = new ShaderGenerator();
             {
-                graph.AddShaderChunk("// Shared Graph Keywords");
-                graph.AddShaderChunk(shaderKeywordDeclarations.ToString());
-                graph.AddShaderChunk(shaderKeywordPermutations.ToString());
-
                 graph.AddShaderChunk("// Shared Graph Properties (uniform inputs)");
                 graph.AddShaderChunk(shaderPropertyUniforms.ToString());
 

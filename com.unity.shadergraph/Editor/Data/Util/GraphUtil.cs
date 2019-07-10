@@ -10,6 +10,7 @@ using UnityEditor.Graphing.Util;
 using UnityEditorInternal;
 using Debug = UnityEngine.Debug;
 using System.Reflection;
+using System.Runtime.Remoting.Metadata.W3cXsd2001;
 using Data.Util;
 using UnityEditor.ProjectWindowCallback;
 using UnityEngine;
@@ -275,30 +276,18 @@ namespace UnityEditor.ShaderGraph
                     bool isOptional = false;
 
                     // Evaluate all activeFields instance
-                    var instances = new List<IActiveFields>();
-                    foreach (var instance in activeFields.all.instances)
-                    {
-                        if (ShouldSpliceField(t, field, instance, out isOptional))
-                        {
-                            instances.Add(instance);
-                            if (instance.type == ActiveFieldInstanceType.Base)
-                                break;
-                        }
-
-                    }
+                    var instances = activeFields
+                        .allPermutations.instances
+                        .Where(i => ShouldSpliceField(t, field, i, out isOptional))
+                        .ToList();
 
                     if (instances.Count > 0)
                     {
                         // The field is used, so generate it
 
-                        var keywordIfdefs = string.Empty;
-                        if (instances.All(i => i.type != ActiveFieldInstanceType.Base))
-                        {
-                            // We need to generate additional ifdefs for the keywords
-                            keywordIfdefs = KeywordUtil.GetKeywordPermutationGroupIfDef(instances
-                                .Where(i => i.type != ActiveFieldInstanceType.Base)
-                                .Select(i => i.permutationIndex).ToList());
-                        }
+                        // We need to generate additional ifdefs for the keywords
+                        var keywordIfdefs = KeywordUtil.GetKeywordPermutationGroupIfDef(instances
+                            .Select(i => i.permutationIndex).ToList());
 
                         var semanticString = GetFieldSemantic(field);
                         int componentCount;
@@ -307,14 +296,12 @@ namespace UnityEditor.ShaderGraph
 
                         if (conditional != null)
                             result.AddShaderChunk("#if " + conditional);
-                        if (!string.IsNullOrEmpty(keywordIfdefs))
-                            result.AddShaderChunk(keywordIfdefs);
+                        result.AddShaderChunk(keywordIfdefs);
 
                         var fieldDecl = fieldType + " " + field.Name + semanticString + ";" + (isOptional ? " // optional" : string.Empty);
                         result.AddShaderChunk(fieldDecl);
 
-                        if (!string.IsNullOrEmpty(keywordIfdefs))
-                            result.AddShaderChunk("#endif // Shader Graph Keywords");
+                        result.AddShaderChunk("#endif // Shader Graph Keywords");
                         if (conditional != null)
                             result.AddShaderChunk("#endif // " + conditional);
                     }
@@ -326,45 +313,33 @@ namespace UnityEditor.ShaderGraph
             object[] packAttributes = t.GetCustomAttributes(typeof(InterpolatorPack), false);
             if (packAttributes.Length > 0)
             {
-                var isFirst = true;
-                var list = new List<int>();
+                var generatedPackedTypes = new Dictionary<string, (ShaderGenerator, List<int>)>();
 
-                // TODO: Find a way to group the packed types for multiple permutations
-
-                foreach (var instance in activeFields.all.instances
-                    // Get base last
-                    .OrderBy(i => -(int)i.type))
+                foreach (var instance in activeFields.allPermutations.instances)
                 {
-
-                    if (isFirst && instance.type == ActiveFieldInstanceType.Permutation)
-                    {
-                        isFirst = false;
-                        list.Clear();
-                        list.Add(instance.permutationIndex);
-                        result.AddShaderChunk(KeywordUtil.GetKeywordPermutationGroupIfDef(list));
-                        BuildPackedType(t, instance, result);
-                    }
-                    else if (isFirst && instance.type == ActiveFieldInstanceType.Base)
-                    {
-                        isFirst = false;
-                        BuildPackedType(t, instance, result);
-                    }
-                    else if (!isFirst && instance.type == ActiveFieldInstanceType.Permutation)
-                    {
-                        list.Clear();
-                        list.Add(instance.permutationIndex);
-                        var ifdefs = KeywordUtil.GetKeywordPermutationGroupIfDef(list).Replace("#if", "#elif");
-                        result.AddShaderChunk(ifdefs);
-                        BuildPackedType(t, instance, result);
-                    }
-                    else if (!isFirst && instance.type == ActiveFieldInstanceType.Base)
-                    {
-                        result.AddShaderChunk("#else");
-                        BuildPackedType(t, instance, result);
-                    }
+                    var instanceGenerator = new ShaderGenerator();
+                    BuildPackedType(t, instance, instanceGenerator);
+                    var key = instanceGenerator.GetShaderString(0);
+                    if (generatedPackedTypes.TryGetValue(key, out var value))
+                        value.Item2.Add(instance.permutationIndex);
+                    else
+                        generatedPackedTypes.Add(key, (instanceGenerator, new List<int> { instance.permutationIndex }));
                 }
 
-                if (activeFields.allPermutations.count != 0)
+                var isFirst = true;
+                foreach (var generated in generatedPackedTypes)
+                {
+                    if (isFirst)
+                    {
+                        isFirst = false;
+                        result.AddShaderChunk(KeywordUtil.GetKeywordPermutationGroupIfDef(generated.Value.Item2));
+                    }
+                    else
+                        result.AddShaderChunk(KeywordUtil.GetKeywordPermutationGroupIfDef(generated.Value.Item2).Replace("#if", "#elif"));
+
+                    result.AddGenerator(generated.Value.Item1);
+                }
+                if (generatedPackedTypes.Count > 0)
                     result.AddShaderChunk("#endif");
             }
         }
@@ -783,19 +758,16 @@ namespace UnityEditor.ShaderGraph
                 var passedPermutations = activeFields.allPermutations.instances
                     .Where(i => i.Contains(fieldName))
                     .ToList();
-                var hasBasePassed = activeFields.baseInstance.Contains(fieldName);
 
-                if (!hasBasePassed && passedPermutations.Count > 0)
+                if (passedPermutations.Count > 0)
                 {
-                    // If the base don't match the predicate but some keyword permutation does
-                    // Then insert the predicate value as is without evaluating it
-
                     var ifdefs = KeywordUtil.GetKeywordPermutationGroupIfDef(
                         passedPermutations.Select(i => i.permutationIndex).ToList()
                     );
                     result.AppendLine(ifdefs);
                     // Append the rest of the line
                     AppendSubstring(predicate.s, nonwhitespace, true, endLine, false);
+                    result.AppendLine("");
                     result.AppendLine("#endif");
 
                     return false;
