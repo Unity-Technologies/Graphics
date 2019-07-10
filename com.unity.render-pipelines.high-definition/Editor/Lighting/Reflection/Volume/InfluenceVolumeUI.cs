@@ -1,8 +1,6 @@
-using System;
 using UnityEngine;
-using UnityEditor.Rendering;
 
-namespace UnityEditor.Experimental.Rendering.HDPipeline
+namespace UnityEditor.Rendering.HighDefinition
 {
     partial class InfluenceVolumeUI
     {

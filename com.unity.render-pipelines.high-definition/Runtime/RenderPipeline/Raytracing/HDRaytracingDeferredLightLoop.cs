@@ -2,7 +2,7 @@ using UnityEngine;
 using UnityEngine.Rendering;
 using System.Collections.Generic;
 
-namespace UnityEngine.Experimental.Rendering.HDPipeline
+namespace UnityEngine.Rendering.HighDefinition
 {
 #if ENABLE_RAYTRACING
     using RTHandle = RTHandleSystem.RTHandle;
@@ -19,10 +19,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public float clampValue;
             public bool includeSky;
             public bool diffuseLightingOnly;
-            public bool disableSpecularLighting;
             public bool halfResolution;
             public HDRaytracingEnvironment rtEnv;
-            public bool defaultSpecularLighting;
 
             // Camera data
             public int width;

@@ -1,7 +1,7 @@
 using System;
-using UnityEngine.Rendering;
+using UnityEngine.Experimental.Rendering;
 
-namespace UnityEngine.Experimental.Rendering.HDPipeline
+namespace UnityEngine.Rendering.HighDefinition
 {
     [Serializable, VolumeComponentMenu("Ray Tracing/Recursive Rendering")]
     public sealed class RecursiveRendering : VolumeComponent

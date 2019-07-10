@@ -2,11 +2,12 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph;
-using UnityEngine.Experimental.Rendering.HDPipeline;
+using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.Rendering;
 
-namespace UnityEditor.Experimental.Rendering.HDPipeline
+namespace UnityEditor.Rendering.HighDefinition
 {
+    [FormerName("UnityEditor.Experimental.Rendering.HDPipeline.HDPBRSubShader")]
     [FormerName("UnityEditor.ShaderGraph.HDPBRSubShader")]
     class HDPBRSubShader : IPBRSubShader
     {
@@ -289,7 +290,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             },
             StencilOverride = new List<string>
             {
-            
+
                 "// Stencil setup",
                 "Stencil",
                 "{",
@@ -462,7 +463,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 pass.OnGeneratePass(masterNode as PBRMasterNode);
 
                 // apply master node options to active fields
-                HashSet<string> activeFields = GetActiveFieldsFromMasterNode(masterNode, pass);                
+                HashSet<string> activeFields = GetActiveFieldsFromMasterNode(masterNode, pass);
 
                 // use standard shader pass generation
                 bool vertexActive = masterNode.IsSlotConnected(PBRMasterNode.PositionSlotId);
@@ -529,7 +530,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             subShader.Deindent();
             subShader.AddShaderChunk("}", true);
 
-            subShader.AddShaderChunk(@"CustomEditor ""UnityEditor.Experimental.Rendering.HDPipeline.HDPBRLitGUI""");
+            subShader.AddShaderChunk(@"CustomEditor ""UnityEditor.Rendering.HighDefinition.HDPBRLitGUI""");
 
             return subShader.GetShaderString(0);
         }

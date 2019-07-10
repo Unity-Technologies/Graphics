@@ -1,9 +1,8 @@
 using UnityEngine;
 using UnityEditorInternal;
 using System.IO;
-using UnityEngine.Rendering;
 
-namespace UnityEditor.Experimental.Rendering.HDPipeline
+namespace UnityEditor.Rendering.HighDefinition
 {
     //As ScriptableSingleton is not usable due to internal FilePathAttribute,
     //copying mechanism here
@@ -66,7 +65,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
             s_Instance = this;
         }
-        
+
         static HDProjectSettings CreateOrLoad()
         {
             //try load

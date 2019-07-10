@@ -5,12 +5,10 @@ using UnityEngine;
 using UnityEngine.Rendering;
 #if UNITY_EDITOR
 using UnityEditor;
-using UnityEditor.Experimental.Rendering;
-using UnityEditor.Experimental.Rendering.HDPipeline;
 #endif
 using UnityEngine.Serialization;
 
-namespace UnityEngine.Experimental.Rendering.HDPipeline
+namespace UnityEngine.Rendering.HighDefinition
 {
     // This enum extent the original LightType enum with new light type from HD
     public enum LightTypeExtent
@@ -639,7 +637,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         /// <summary>
         /// If enabled, display an emissive mesh rect synchronized with the intensity and color of the light.
         /// </summary>
-        public bool displayAreaLightEmissiveMesh
+        internal bool displayAreaLightEmissiveMesh
         {
             get => m_DisplayAreaLightEmissiveMesh;
             set
@@ -648,6 +646,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     return;
 
                 m_DisplayAreaLightEmissiveMesh = value;
+
                 UpdateAllLightValues();
             }
         }

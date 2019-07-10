@@ -1,7 +1,4 @@
-using System;
-using UnityEngine.Rendering;
-
-namespace UnityEngine.Experimental.Rendering.HDPipeline
+namespace UnityEngine.Rendering.HighDefinition
 {
     public partial class PreIntegratedFGD
     {
@@ -38,7 +35,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         RenderTexture[] m_PreIntegratedFGD = new RenderTexture[(int)FGDIndex.Count];
 
         PreIntegratedFGD()
-        {            
+        {
             for (int i = 0; i < (int)FGDIndex.Count; ++i)
             {
                 m_isInit[i] = false;

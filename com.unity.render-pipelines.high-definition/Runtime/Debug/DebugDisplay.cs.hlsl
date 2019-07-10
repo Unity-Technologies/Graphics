@@ -5,7 +5,7 @@
 #ifndef DEBUGDISPLAY_CS_HLSL
 #define DEBUGDISPLAY_CS_HLSL
 //
-// UnityEngine.Experimental.Rendering.HDPipeline.FullScreenDebugMode:  static fields
+// UnityEngine.Rendering.HighDefinition.FullScreenDebugMode:  static fields
 //
 #define FULLSCREENDEBUGMODE_NONE (0)
 #define FULLSCREENDEBUGMODE_MIN_LIGHTING_FULL_SCREEN_DEBUG (1)

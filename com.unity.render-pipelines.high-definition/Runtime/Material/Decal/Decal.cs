@@ -1,7 +1,7 @@
 using System;
-using UnityEngine.Rendering;
+using UnityEngine.Experimental.Rendering;
 
-namespace UnityEngine.Experimental.Rendering.HDPipeline
+namespace UnityEngine.Rendering.HighDefinition
 {
     public partial class Decal
     {
@@ -13,7 +13,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public Vector4 baseColor;
             [SurfaceDataAttributes("Normal", true)]
             public Vector4 normalWS;
-            [SurfaceDataAttributes("Mask", true)]            
+            [SurfaceDataAttributes("Mask", true)]
             public Vector4 mask; // Metal, AmbientOcclusion, Smoothness, smoothness opacity
             [SurfaceDataAttributes("Emissive")]
             public Vector3 emissive;
@@ -26,7 +26,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         [GenerateHLSL(PackingRules.Exact)]
         public enum DBufferMaterial
-        {           
+        {
             Count = 4
         };
 

@@ -1,8 +1,7 @@
 using System;
 using System.Runtime.CompilerServices;
-using UnityEngine.Rendering;
 
-namespace UnityEngine.Experimental.Rendering.HDPipeline
+namespace UnityEngine.Rendering.HighDefinition
 {
     // Due to limitations in the builtin AnimationCurve we need this custom wrapper.
     // Improvements:
@@ -164,7 +163,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             SetDirty();
         }
     }
-    
+
     [Serializable]
     public class TextureCurveParameter : VolumeParameter<TextureCurve>
     {

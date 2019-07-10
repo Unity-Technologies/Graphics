@@ -67,7 +67,7 @@
 // The including shader should define whether half
 // precision is suitable for its needs.  The shader
 // API (for now) can indicate whether half is possible.
-#ifdef SHADER_API_MOBILE
+#if defined(SHADER_API_MOBILE) || defined(SHADER_API_SWITCH)
 #define HAS_HALF 1
 #else
 #define HAS_HALF 0
