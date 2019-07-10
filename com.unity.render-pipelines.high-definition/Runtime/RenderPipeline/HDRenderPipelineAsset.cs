@@ -148,8 +148,11 @@ namespace UnityEngine.Rendering.HighDefinition
         // Return the current use RenderPipelineSettings (i.e for the current platform)
         internal RenderPipelineSettings currentPlatformRenderPipelineSettings => m_RenderPipelineSettings;
 
+        [SerializeField]
         internal bool allowShaderVariantStripping = true;
+        [SerializeField]
         internal bool enableSRPBatcher = true;
+        [SerializeField]
         internal ShaderVariantLogLevel shaderVariantLogLevel = ShaderVariantLogLevel.Disabled;
 
         [SerializeField]
