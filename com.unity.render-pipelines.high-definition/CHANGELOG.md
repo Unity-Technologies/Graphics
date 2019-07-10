@@ -6,6 +6,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [6.10.0] - 2019-XX-XX
 
+### Fixed
+- Fixed PBR master node always opaque (wrong blend modes for forward pass)
+
 ## [6.9.0] - 2019-07-02
 
 ### Added
