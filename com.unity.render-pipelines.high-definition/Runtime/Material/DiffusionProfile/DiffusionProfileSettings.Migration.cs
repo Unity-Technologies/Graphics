@@ -8,7 +8,7 @@ using UnityEditor;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
-    public sealed partial class DiffusionProfileSettings : IVersionable<DiffusionProfileSettings.Version>
+    sealed partial class DiffusionProfileSettings : IVersionable<DiffusionProfileSettings.Version>
     {
         enum Version
         {

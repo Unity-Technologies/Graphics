@@ -11,7 +11,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public ClampedFloatParameter globalLightProbeDimmer = new ClampedFloatParameter(1.0f, 0.0f, 1.0f);
         public BoolParameter         enableDistantFog       = new BoolParameter(false);
 
-        public override void PushShaderParameters(HDCamera hdCamera, CommandBuffer cmd)
+        internal override void PushShaderParameters(HDCamera hdCamera, CommandBuffer cmd)
         {
             PushShaderParametersCommon(hdCamera, cmd, FogType.Volumetric);
 

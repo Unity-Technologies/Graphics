@@ -5,7 +5,7 @@ using UnityEngine.Experimental.Rendering;
 namespace UnityEngine.Rendering.HighDefinition
 {
 #if ENABLE_RAYTRACING
-    public class RayCountManager
+    class RayCountManager
     {
         // Indices of the values that we can query
         public enum RayCountValues

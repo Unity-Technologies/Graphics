@@ -6,7 +6,7 @@ using Is = UnityEngine.TestTools.Constraints.Is;
 
 namespace UnityEngine.Rendering.HighDefinition.Tests
 {
-    public class XRSystemTests
+    class XRSystemTests
     {
         XRSystem xrSystem;
         Camera[] cameras;

@@ -1,6 +1,6 @@
 namespace UnityEngine.Rendering.HighDefinition
 {
-    public class GradientSkyRenderer : SkyRenderer
+    class GradientSkyRenderer : SkyRenderer
     {
         Material m_GradientSkyMaterial; // Renders a cubemap into a render texture (can be cube or 2D)
         MaterialPropertyBlock m_PropertyBlock;

@@ -12,7 +12,7 @@ using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
 namespace UnityEditor.Rendering.HighDefinition
 {
     // Extension class to setup material keywords on unlit materials
-    public static class BaseUnlitGUI
+        static class BaseUnlitGUI
     {
         public static void SetupBaseUnlitKeywords(this Material material)
         {

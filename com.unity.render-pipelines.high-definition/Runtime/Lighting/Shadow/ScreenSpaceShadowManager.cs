@@ -29,7 +29,7 @@ namespace UnityEngine.Rendering.HighDefinition
         // Array that holds the shadow textures for the area lights
         RTHandle m_ScreenSpaceShadowTextureArray;
 
-        public void InitializeScreenSpaceShadows()
+        void InitializeScreenSpaceShadows()
         {
             if (!m_Asset.currentPlatformRenderPipelineSettings.hdShadowInitParams.supportScreenSpaceShadows)
                 return;
@@ -50,13 +50,13 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
 #if ENABLE_RAYTRACING
-        public RTHandleSystem.RTHandle GetIntegrationTexture()
+        RTHandleSystem.RTHandle GetIntegrationTexture()
         {
             return m_DenoiseBuffer0;
         }
 #endif
 
-        public void ReleaseScreenSpaceShadows()
+        void ReleaseScreenSpaceShadows()
         {
             RTHandles.Release(m_ScreenSpaceShadowTextureArray);
 
@@ -88,7 +88,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         enableRandomWrite: true, useDynamicScale: true, useMipMap: false, name: string.Format("AreaShadowHistoryBuffer{0}", frameIndex));
         }
 
-        public void RenderScreenSpaceShadows(HDCamera hdCamera, CommandBuffer cmd)
+        void RenderScreenSpaceShadows(HDCamera hdCamera, CommandBuffer cmd)
         {
             if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.ScreenSpaceShadows))
             {
@@ -109,7 +109,7 @@ namespace UnityEngine.Rendering.HighDefinition
 #endif
         }
 
-        public void RenderDirectionalLightScreenSpaceShadow(CommandBuffer cmd, HDCamera hdCamera, int frameCount)
+        void RenderDirectionalLightScreenSpaceShadow(CommandBuffer cmd, HDCamera hdCamera, int frameCount)
         {
             // Render directional screen space shadow if required
             if (m_CurrentSunLightAdditionalLightData != null && m_CurrentSunLightAdditionalLightData.WillRenderScreenSpaceShadow())
@@ -209,7 +209,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 #if ENABLE_RAYTRACING
-        public bool RenderAreaShadows(HDCamera hdCamera, CommandBuffer cmd, int frameCount)
+        bool RenderAreaShadows(HDCamera hdCamera, CommandBuffer cmd, int frameCount)
         {
             // Let's check all the resources and states to see if we should render the effect
             HDRaytracingEnvironment rtEnvironment = m_RayTracingManager.CurrentEnvironment();

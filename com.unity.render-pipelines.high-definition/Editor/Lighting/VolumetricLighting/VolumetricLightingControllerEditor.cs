@@ -5,7 +5,7 @@ namespace UnityEditor.Rendering.HighDefinition
 {
     [CanEditMultipleObjects]
     [VolumeComponentEditor(typeof(VolumetricLightingController))]
-    public class VolumetricLightingControllerEditor : VolumeComponentEditor
+    class VolumetricLightingControllerEditor : VolumeComponentEditor
     {
         public override void OnInspectorGUI()
         {

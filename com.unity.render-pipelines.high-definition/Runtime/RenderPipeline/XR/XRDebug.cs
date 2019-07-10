@@ -10,7 +10,7 @@ namespace UnityEngine.Rendering.HighDefinition
         Composite,
     }
 
-    public static class XRDebugMenu
+    static class XRDebugMenu
     {
         public static XRDebugMode debugMode { get; set; }
         public static bool displayCompositeBorders;

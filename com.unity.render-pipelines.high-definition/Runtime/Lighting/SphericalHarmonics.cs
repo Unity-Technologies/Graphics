@@ -1,6 +1,6 @@
 namespace UnityEngine.Rendering.HighDefinition
 {
-    public struct ZonalHarmonicsL2
+    struct ZonalHarmonicsL2
     {
         public float[] coeffs; // Must have the size of 3
 
@@ -28,7 +28,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
     }
 
-    public class SphericalHarmonicMath
+    class SphericalHarmonicMath
     {
         // Ref: "Stupid Spherical Harmonics Tricks", p. 6.
         public static SphericalHarmonicsL2 Convolve(SphericalHarmonicsL2 sh, ZonalHarmonicsL2 zh)

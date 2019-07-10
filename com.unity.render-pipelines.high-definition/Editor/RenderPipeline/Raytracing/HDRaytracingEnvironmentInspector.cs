@@ -8,7 +8,7 @@ namespace UnityEditor.Experimental.Rendering.HighDefinition
     using CED = CoreEditorDrawer<SerializedHDRaytracingEnvironment>;
 
     [CustomEditor(typeof(HDRaytracingEnvironment))]
-    public class HDRaytracingEnvironmentInspector : Editor
+    class HDRaytracingEnvironmentInspector : Editor
     {
 #if ENABLE_RAYTRACING
         protected static class Styles

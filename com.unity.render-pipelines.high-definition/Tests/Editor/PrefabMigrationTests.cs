@@ -4,7 +4,7 @@ using UnityEditor;
 
 namespace UnityEngine.Rendering.HighDefinition.Tests
 {
-    public struct PrefabMigrationTests : IDisposable
+    struct PrefabMigrationTests : IDisposable
     {
         string m_GeneratedPrefabFileName;
 

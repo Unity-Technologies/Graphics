@@ -3,7 +3,7 @@ using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
-    public partial class Decal
+    partial class Decal
     {
         // Main structure that store the user data (i.e user input of master node in material graph)
         [GenerateHLSL(PackingRules.Exact, false)]
@@ -72,7 +72,7 @@ namespace UnityEngine.Rendering.HighDefinition
     // float2 uvScale = float2(decalData.normalToWorld[3][0], decalData.normalToWorld[3][1]);
     // float2 uvBias = float2(decalData.normalToWorld[3][2], decalData.normalToWorld[3][3]);
     [GenerateHLSL(PackingRules.Exact, false)]
-    public struct DecalData
+    struct DecalData
     {
         public Matrix4x4 worldToDecal;
         public Matrix4x4 normalToWorld;

@@ -4,7 +4,7 @@ using System.IO;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
-    public class NormalMapFilteringTexturePostprocessor : AssetPostprocessor
+    class NormalMapFilteringTexturePostprocessor : AssetPostprocessor
     {
         // This class will process a normal map and add the value of average normal length to the blue or alpha channel
         // The texture is saved as BC7.

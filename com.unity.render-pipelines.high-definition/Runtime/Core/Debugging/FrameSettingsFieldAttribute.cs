@@ -3,7 +3,7 @@ using System.Text;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
-    public static partial class StringExtention
+    static partial class StringExtention
     {
         /// <summary>Runtime alternative to UnityEditor.ObjectNames.NicifyVariableName. Only prefix 'm_' is not skipped.</summary>
         public static string CamelToPascalCaseWithSpace(this string text, bool preserveAcronyms = true)
@@ -27,7 +27,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
     /// <summary>Should only be used on enum value of field to describe aspect in DebugMenu</summary>
     [AttributeUsage(AttributeTargets.Field)]
-    public class FrameSettingsFieldAttribute : Attribute
+    class FrameSettingsFieldAttribute : Attribute
     {
         public enum DisplayType { BoolAsCheckbox, BoolAsEnumPopup, Others }
         public readonly DisplayType type;

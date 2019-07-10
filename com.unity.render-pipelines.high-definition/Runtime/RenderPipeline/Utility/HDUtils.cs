@@ -73,7 +73,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         static MaterialPropertyBlock s_PropertyBlock = new MaterialPropertyBlock();
 
-        public static List<RenderPipelineMaterial> GetRenderPipelineMaterialList()
+        internal static List<RenderPipelineMaterial> GetRenderPipelineMaterialList()
         {
             var baseType = typeof(RenderPipelineMaterial);
             var assembly = baseType.Assembly;

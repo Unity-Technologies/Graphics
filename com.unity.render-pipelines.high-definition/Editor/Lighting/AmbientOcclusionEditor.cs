@@ -6,7 +6,7 @@ namespace UnityEditor.Rendering.HighDefinition
 {
     [CanEditMultipleObjects]
     [VolumeComponentEditor(typeof(AmbientOcclusion))]
-    public class AmbientOcclusionEditor : VolumeComponentEditor
+    class AmbientOcclusionEditor : VolumeComponentEditor
     {
         SerializedDataParameter m_Intensity;
         SerializedDataParameter m_StepCount;

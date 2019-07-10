@@ -8,7 +8,7 @@ using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
-    public class ShaderGraphUIBlock : MaterialUIBlock
+    class ShaderGraphUIBlock : MaterialUIBlock
     {
         [Flags]
         public enum Features

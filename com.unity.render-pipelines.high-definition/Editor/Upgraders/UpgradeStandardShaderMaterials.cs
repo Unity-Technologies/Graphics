@@ -5,7 +5,7 @@ using UnityEditor.Rendering;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
-    public class UpgradeStandardShaderMaterials
+    class UpgradeStandardShaderMaterials
     {
         static List<MaterialUpgrader> GetHDUpgraders()
         {

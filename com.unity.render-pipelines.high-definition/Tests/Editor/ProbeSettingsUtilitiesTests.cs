@@ -2,7 +2,7 @@ using NUnit.Framework;
 
 namespace UnityEngine.Rendering.HighDefinition.Tests
 {
-    public class ProbeSettingsUtilitiesTests
+    class ProbeSettingsUtilitiesTests
     {
         [Test]
         public void ApplyObliqueNearClipPlane()

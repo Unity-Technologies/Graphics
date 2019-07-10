@@ -7,7 +7,7 @@ using System;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
-    public class DiffusionProfileSettingsListUI
+    class DiffusionProfileSettingsListUI
     {
         ReorderableList         m_DiffusionProfileList;
         SerializedProperty      m_Property;
@@ -21,7 +21,7 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             m_ListName = listName;
         }
-        
+
         public void OnGUI(SerializedProperty parameter)
         {
             if (parameter.hasMultipleDifferentValues)

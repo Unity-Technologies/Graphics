@@ -15,7 +15,7 @@ namespace UnityEngine.Rendering.HighDefinition
         [Tooltip("Sets the height at which the density of the fog reaches 0.")]
         public FloatParameter fogHeightEnd = new FloatParameter(10.0f);
 
-        public override void PushShaderParameters(HDCamera hdCamera, CommandBuffer cmd)
+        internal override void PushShaderParameters(HDCamera hdCamera, CommandBuffer cmd)
         {
             PushShaderParametersCommon(hdCamera, cmd, FogType.Linear);
             cmd.SetGlobalVector(m_LinearFogParam, new Vector4(fogStart.value, 1.0f / (fogEnd.value - fogStart.value), fogHeightEnd.value, 1.0f / (fogHeightEnd.value - fogHeightStart.value)));

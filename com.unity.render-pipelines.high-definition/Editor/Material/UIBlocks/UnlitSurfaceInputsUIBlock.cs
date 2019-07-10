@@ -5,7 +5,7 @@ using UnityEngine.Rendering.HighDefinition;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
-    public class UnlitSurfaceInputsUIBlock : MaterialUIBlock
+    class UnlitSurfaceInputsUIBlock : MaterialUIBlock
     {
         public class Styles
         {

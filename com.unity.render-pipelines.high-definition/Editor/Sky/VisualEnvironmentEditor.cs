@@ -8,7 +8,7 @@ using UnityEditor.Rendering;
 namespace UnityEditor.Rendering.HighDefinition
 {
     [VolumeComponentEditor(typeof(VisualEnvironment))]
-    public class VisualEnvironmentEditor : VolumeComponentEditor
+    class VisualEnvironmentEditor : VolumeComponentEditor
     {
         SerializedDataParameter m_SkyType;
         SerializedDataParameter m_SkyAmbientMode;

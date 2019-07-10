@@ -2,7 +2,7 @@ using System;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
-    public class LightUtils
+    class LightUtils
     {
         // Physical light unit helper
         // All light unit are in lumen (Luminous power)
