@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace UnityEngine.Experimental.Rendering.LWRP
+namespace UnityEngine.Experimental.Rendering.Universal
 {
     public class LightTest : MonoBehaviour
     {

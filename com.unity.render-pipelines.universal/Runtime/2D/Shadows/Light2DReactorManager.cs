@@ -5,7 +5,7 @@ using UnityEngine;
 using UnityEngine.Events;
 using Unity.Collections;
 
-namespace UnityEngine.Experimental.Rendering.LWRP
+namespace UnityEngine.Experimental.Rendering.Universal
 {
     public class Light2DReactorManager : MonoBehaviour
     {

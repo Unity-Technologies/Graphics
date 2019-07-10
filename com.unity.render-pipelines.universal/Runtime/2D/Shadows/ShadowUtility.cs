@@ -5,7 +5,7 @@ using System;
 using Unity.Collections;
 
 
-namespace UnityEngine.Experimental.Rendering.LWRP
+namespace UnityEngine.Experimental.Rendering.Universal
 {
     internal class ShadowUtility
     {

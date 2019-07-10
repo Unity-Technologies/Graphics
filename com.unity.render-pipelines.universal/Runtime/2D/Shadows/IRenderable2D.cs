@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using Unity.Collections;
 
-namespace UnityEngine.Experimental.Rendering.LWRP
+namespace UnityEngine.Experimental.Rendering.Universal
 {
     public interface IRenderable2D
     {

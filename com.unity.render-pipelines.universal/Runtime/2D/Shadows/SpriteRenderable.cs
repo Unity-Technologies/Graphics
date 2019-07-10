@@ -5,7 +5,7 @@ using UnityEngine.Rendering;
 using UnityEngine.Experimental.U2D;
 using Unity.Collections;
 
-namespace UnityEngine.Experimental.Rendering.LWRP
+namespace UnityEngine.Experimental.Rendering.Universal
 {
     public class SpriteRenderable : IRenderable2D
     {
