@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using Data.Util;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph;
 using UnityEngine.Experimental.Rendering.HDPipeline;
@@ -322,9 +323,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
         }
 
-        private static HashSet<string> GetActiveFieldsFromMasterNode(AbstractMaterialNode iMasterNode, Pass pass)
+        private static ActiveFields GetActiveFieldsFromMasterNode(AbstractMaterialNode iMasterNode, Pass pass)
         {
-            HashSet<string> activeFields = new HashSet<string>();
+            var activeFields = new ActiveFields();
+            var baseActiveFields = activeFields.baseInstance;
 
             UnlitMasterNode masterNode = iMasterNode as UnlitMasterNode;
             if (masterNode == null)
@@ -335,7 +337,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             if (masterNode.IsSlotConnected(UnlitMasterNode.AlphaThresholdSlotId) ||
                 masterNode.GetInputSlots<Vector1MaterialSlot>().First(x => x.id == UnlitMasterNode.AlphaThresholdSlotId).value > 0.0f)
             {
-                activeFields.Add("AlphaTest");
+                baseActiveFields.Add("AlphaTest");
             }
 
             // Keywords for transparent
@@ -343,16 +345,16 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             if (masterNode.surfaceType != ShaderGraph.SurfaceType.Opaque)
             {
                 // transparent-only defines
-                activeFields.Add("SurfaceType.Transparent");
+                baseActiveFields.Add("SurfaceType.Transparent");
 
                 // #pragma shader_feature _ _BLENDMODE_ALPHA _BLENDMODE_ADD _BLENDMODE_PRE_MULTIPLY
                 if (masterNode.alphaMode == AlphaMode.Alpha)
                 {
-                    activeFields.Add("BlendMode.Alpha");
+                    baseActiveFields.Add("BlendMode.Alpha");
                 }
                 else if (masterNode.alphaMode == AlphaMode.Additive)
                 {
-                    activeFields.Add("BlendMode.Add");
+                    baseActiveFields.Add("BlendMode.Add");
                 }
             }
             else
@@ -368,7 +370,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             pass.OnGeneratePass(masterNode);
 
             // apply master node options to active fields
-            HashSet<string> activeFields = GetActiveFieldsFromMasterNode(masterNode, pass);
+            var activeFields = GetActiveFieldsFromMasterNode(masterNode, pass);
 
             // use standard shader pass generation
             bool vertexActive = masterNode.IsSlotConnected(UnlitMasterNode.PositionSlotId);
@@ -394,7 +396,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 var renderingPass = masterNode.surfaceType == ShaderGraph.SurfaceType.Opaque ? HDRenderQueue.RenderQueueType.Opaque : HDRenderQueue.RenderQueueType.Transparent;
                 int queue = HDRenderQueue.ChangeType(renderingPass, 0, true);
                 HDSubShaderUtilities.AddTags(subShader, HDRenderPipeline.k_ShaderTagName, HDRenderTypeTags.HDUnlitShader, queue);
-                
+
                 // generate the necessary shader passes
                 bool opaque = (masterNode.surfaceType == ShaderGraph.SurfaceType.Opaque);
 

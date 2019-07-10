@@ -57,12 +57,12 @@ namespace UnityEditor.ShaderGraph
         {
             List<KeyValuePair<ShaderKeyword, int>> currentPermutation = new List<KeyValuePair<ShaderKeyword, int>>();
             List<List<KeyValuePair<ShaderKeyword, int>>> results = new List<List<KeyValuePair<ShaderKeyword, int>>>();
-            
+
             for(int i = 0; i < keywords.Count; i++)
             {
                 currentPermutation.Add(new KeyValuePair<ShaderKeyword, int>(keywords[i], 0));
             }
-            
+
             PermuteKeywords(keywords, currentPermutation, results, 0);
 
             return results;
@@ -124,12 +124,12 @@ namespace UnityEditor.ShaderGraph
                 if(p != permutations.Count - 1)
                 {
                     for(int i = 0; i < permutations[p].Count; i++)
-                    {                
+                    {
                         if(permutations[p][i].Key.keywordType == ShaderKeywordType.Enum)
                         {
                             if(appendAndFromPrevious)
                                 sb.Append(" && ");
-                            
+
                             sb.Append($"defined({permutations[p][i].Key.referenceName}_{permutations[p][i].Key.entries[permutations[p][i].Value].referenceName})");
                             appendAndFromPrevious = true;
                         }
@@ -137,7 +137,7 @@ namespace UnityEditor.ShaderGraph
                         {
                             if(appendAndFromPrevious)
                                 sb.Append(" && ");
-                            
+
                             sb.Append($"defined({permutations[p][i].Key.referenceName}_ON)");
                             appendAndFromPrevious = true;
                         }

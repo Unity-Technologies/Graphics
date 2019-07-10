@@ -733,7 +733,7 @@ namespace UnityEditor.ShaderGraph
                 default:
                     throw new ArgumentOutOfRangeException();
             }
-            
+
             m_AddedInputs.Add(input);
         }
 
@@ -757,7 +757,7 @@ namespace UnityEditor.ShaderGraph
         {
             if (string.IsNullOrEmpty(newName))
                 return;
-            
+
             string name = newName.Trim();
             if (string.IsNullOrEmpty(name))
                 return;

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Data.Util;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph;
 using UnityEngine.Experimental.Rendering.HDPipeline;
@@ -57,7 +58,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 "#define SCENESELECTIONPASS",
                 "#pragma editor_sync_compilation",
-            },            
+            },
             Includes = new List<string>()
             {
                 "#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDepthOnly.hlsl\"",
@@ -92,7 +93,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 "#pragma multi_compile _ WRITE_MSAA_DEPTH"
                 // Note we don't need to define WRITE_NORMAL_BUFFER
-            },            
+            },
 
             Includes = new List<string>()
             {
@@ -392,9 +393,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         public int GetPreviewPassIndex() { return 0; }
 
-        private static HashSet<string> GetActiveFieldsFromMasterNode(AbstractMaterialNode iMasterNode, Pass pass)
+        private static ActiveFields GetActiveFieldsFromMasterNode(AbstractMaterialNode iMasterNode, Pass pass)
         {
-            HashSet<string> activeFields = new HashSet<string>();
+            var activeFields = new ActiveFields();
+            var baseActiveFields = activeFields.baseInstance;
 
             HDUnlitMasterNode masterNode = iMasterNode as HDUnlitMasterNode;
             if (masterNode == null)
@@ -404,14 +406,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             if (masterNode.alphaTest.isOn && pass.PixelShaderUsesSlot(HDUnlitMasterNode.AlphaThresholdSlotId))
             {
-                activeFields.Add("AlphaTest");
+                baseActiveFields.Add("AlphaTest");
             }
 
             if (masterNode.surfaceType != SurfaceType.Opaque)
             {
                 if (masterNode.transparencyFog.isOn)
                 {
-                    activeFields.Add("AlphaFog");
+                    baseActiveFields.Add("AlphaFog");
                 }
             }
 
@@ -425,7 +427,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 pass.OnGeneratePass(masterNode);
 
                 // apply master node options to active fields
-                HashSet<string> activeFields = GetActiveFieldsFromMasterNode(masterNode, pass);
+                var activeFields = GetActiveFieldsFromMasterNode(masterNode, pass);
 
                 // use standard shader pass generation
                 bool vertexActive = masterNode.IsSlotConnected(HDUnlitMasterNode.PositionSlotId);
@@ -462,7 +464,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 bool opaque = (masterNode.surfaceType == SurfaceType.Opaque);
                 bool transparent = !opaque;
                 bool distortionActive = transparent && masterNode.distortion.isOn;
-  
+
                 GenerateShaderPassUnlit(masterNode, m_PassMETA, mode, subShader, sourceAssetDependencyPaths);
                 GenerateShaderPassUnlit(masterNode, m_PassShadowCaster, mode, subShader, sourceAssetDependencyPaths);
                 GenerateShaderPassUnlit(masterNode, m_SceneSelectionPass, mode, subShader, sourceAssetDependencyPaths);

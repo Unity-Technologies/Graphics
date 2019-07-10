@@ -1,3 +1,4 @@
+using System;
 using UnityEditor.Rendering;
 using UnityEditor.Rendering.Utilities;
 using UnityEngine;
@@ -14,7 +15,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         public override bool ShadersStripper(HDRenderPipelineAsset hdrpAsset, Shader shader, ShaderSnippetData snippet, ShaderCompilerData inputData)
         {
             if (IsMaterialQualityVariantStripped(hdrpAsset, inputData))
+            {
+                throw new Exception($"Variant stripped from material quality: {inputData.shaderKeywordSet.GetShaderKeywords()}");
                 return true;
+            }
+
 
             // CAUTION: Pass Name and Lightmode name must match in master node and .shader.
             // HDRP use LightMode to do drawRenderer and pass name is use here for stripping!
@@ -88,7 +93,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                         // When we are in deferred, we only support tile lighting
                         if (inputData.shaderKeywordSet.IsEnabled(m_ClusterLighting))
                             return true;
-                        
+
                         if (isForwardPass && !inputData.shaderKeywordSet.IsEnabled(m_DebugDisplay))
                             return true;
                     }

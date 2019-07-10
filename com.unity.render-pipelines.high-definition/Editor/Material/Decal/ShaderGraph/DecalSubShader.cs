@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Data.Util;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph;
 using UnityEngine.Rendering;
@@ -276,7 +277,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             RequiredFields = new List<string>()
             {
                 "AttributesMesh.normalOS",
-                "AttributesMesh.tangentOS",     
+                "AttributesMesh.tangentOS",
                 "AttributesMesh.uv0",
 
                 "FragInputs.tangentToWorld",
@@ -442,9 +443,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         };
 
 
-        private static HashSet<string> GetActiveFieldsFromMasterNode(AbstractMaterialNode iMasterNode, Pass pass)
+        private static ActiveFields GetActiveFieldsFromMasterNode(AbstractMaterialNode iMasterNode, Pass pass)
         {
-            HashSet<string> activeFields = new HashSet<string>();
+            var activeFields = new ActiveFields();
+            var baseActiveFields = activeFields.baseInstance;
 
             DecalMasterNode masterNode = iMasterNode as DecalMasterNode;
             if (masterNode == null)
@@ -453,19 +455,19 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
             if(masterNode.affectsAlbedo.isOn)
             {
-                activeFields.Add("Material.AffectsAlbedo");
+                baseActiveFields.Add("Material.AffectsAlbedo");
             }
             if (masterNode.affectsNormal.isOn)
             {
-                activeFields.Add("Material.AffectsNormal");
+                baseActiveFields.Add("Material.AffectsNormal");
             }
             if (masterNode.affectsEmission.isOn)
             {
-                activeFields.Add("Material.AffectsEmission");
+                baseActiveFields.Add("Material.AffectsEmission");
             }
             if (masterNode.affectsSmoothness.isOn || masterNode.affectsMetal.isOn || masterNode.affectsAO.isOn)
             {
-                activeFields.Add("Material.AffectsMaskMap");
+                baseActiveFields.Add("Material.AffectsMaskMap");
             }
 
             return activeFields;
@@ -478,7 +480,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 pass.OnGeneratePass(masterNode);
 
                 // apply master node options to active fields
-                HashSet<string> activeFields = GetActiveFieldsFromMasterNode(masterNode, pass);
+                var activeFields = GetActiveFieldsFromMasterNode(masterNode, pass);
 
                 // use standard shader pass generation
                 bool vertexActive = masterNode.IsSlotConnected(DecalMasterNode.PositionSlotId);

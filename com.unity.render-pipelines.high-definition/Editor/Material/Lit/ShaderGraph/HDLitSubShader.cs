@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Data.Util;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph;
 using UnityEngine.Experimental.Rendering.HDPipeline;
@@ -83,7 +84,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 // Don't do it with debug display mode as it is possible there is no depth prepass in this case
                 // This remove is required otherwise the code generate several time the define...
                 pass.ExtraDefines.Remove("#ifndef DEBUG_DISPLAY\n#define SHADERPASS_GBUFFER_BYPASS_ALPHA_TEST\n#endif");
-                
+
                 if (masterNode.alphaTest.isOn)
                     pass.ExtraDefines.Add("#ifndef DEBUG_DISPLAY\n#define SHADERPASS_GBUFFER_BYPASS_ALPHA_TEST\n#endif");
             }
@@ -185,7 +186,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 "#define SCENESELECTIONPASS",
                 "#pragma editor_sync_compilation",
-            },            
+            },
             Includes = new List<string>()
             {
                 "#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDepthOnly.hlsl\"",
@@ -211,7 +212,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             MaterialName = "Lit",
             ShaderPassName = "SHADERPASS_DEPTH_ONLY",
             CullOverride = HDSubShaderUtilities.defaultCullMode,
-            ExtraDefines = HDSubShaderUtilities.s_ExtraDefinesDepthOrMotion,            
+            ExtraDefines = HDSubShaderUtilities.s_ExtraDefinesDepthOrMotion,
             ZWriteOverride = HDSubShaderUtilities.zWriteOn,
 
             Includes = new List<string>()
@@ -328,7 +329,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 "// Stencil setup",
                 "Stencil",
                 "{",
-                string.Format("   WriteMask {0}", (int)HDRenderPipeline.StencilBitMask.DistortionVectors),  
+                string.Format("   WriteMask {0}", (int)HDRenderPipeline.StencilBitMask.DistortionVectors),
                 string.Format("   Ref  {0}", (int)HDRenderPipeline.StencilBitMask.DistortionVectors),
                 "   Comp Always",
                 "   Pass Replace",
@@ -800,71 +801,70 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             else
             {
                 instancingOption.Add("#pragma instancing_options renderinglayer");
-            }            
+            }
 
             return instancingOption;
         }
-        
 
-        private static HashSet<string> GetActiveFieldsFromMasterNode(AbstractMaterialNode iMasterNode, Pass pass)
+
+        private static ActiveFields GetActiveFieldsFromMasterNode(AbstractMaterialNode iMasterNode, Pass pass)
         {
-            HashSet<string> activeFields = new HashSet<string>();
+            var activeFields = new ActiveFields();
+            var baseActiveFields = activeFields.baseInstance;
 
             HDLitMasterNode masterNode = iMasterNode as HDLitMasterNode;
             if (masterNode == null)
-            {
                 return activeFields;
-            }
 
             if (masterNode.doubleSidedMode != DoubleSidedMode.Disabled)
             {
-                activeFields.Add("DoubleSided");
+                baseActiveFields.AddAll("DoubleSided");
                 if (pass.ShaderPassName != "SHADERPASS_MOTION_VECTORS")   // HACK to get around lack of a good interpolator dependency system
                 {                                                   // we need to be able to build interpolators using multiple input structs
                                                                     // also: should only require isFrontFace if Normals are required...
                     if (masterNode.doubleSidedMode == DoubleSidedMode.FlippedNormals)
                     {
-                        activeFields.Add("DoubleSided.Flip");
+                        baseActiveFields.AddAll("DoubleSided.Flip");
                     }
                     else if (masterNode.doubleSidedMode == DoubleSidedMode.MirroredNormals)
                     {
-                        activeFields.Add("DoubleSided.Mirror");
+                        baseActiveFields.AddAll("DoubleSided.Mirror");
                     }
                     // Important: the following is used in SharedCode.template.hlsl for determining the normal flip mode
-                    activeFields.Add("FragInputs.isFrontFace");
+                    baseActiveFields.AddAll("FragInputs.isFrontFace");
                 }
             }
 
             switch (masterNode.materialType)
             {
                 case HDLitMasterNode.MaterialType.Anisotropy:
-                    activeFields.Add("Material.Anisotropy");
+                    baseActiveFields.AddAll("Material.Anisotropy");
                     break;
                 case HDLitMasterNode.MaterialType.Iridescence:
-                    activeFields.Add("Material.Iridescence");
+                    baseActiveFields.AddAll("Material.Iridescence");
                     break;
                 case HDLitMasterNode.MaterialType.SpecularColor:
-                    activeFields.Add("Material.SpecularColor");
+                    baseActiveFields.AddAll("Material.SpecularColor");
                     break;
                 case HDLitMasterNode.MaterialType.Standard:
-                    activeFields.Add("Material.Standard");
+                    baseActiveFields.AddAll("Material.Standard");
                     break;
                 case HDLitMasterNode.MaterialType.SubsurfaceScattering:
                     {
                         if (masterNode.surfaceType != SurfaceType.Transparent)
                         {
-                            activeFields.Add("Material.SubsurfaceScattering");
-                        }                        
+                            baseActiveFields.AddAll("Material.SubsurfaceScattering");
+                        }
                         if (masterNode.sssTransmission.isOn)
                         {
-                            activeFields.Add("Material.Transmission");
+                            baseActiveFields.AddAll("Material.Transmission");
                         }
                     }
                     break;
                 case HDLitMasterNode.MaterialType.Translucent:
                     {
-                        activeFields.Add("Material.Translucent");
-                        activeFields.Add("Material.Transmission");
+                        baseActiveFields.AddAll("Material.Translucent");
+                        baseActiveFields.AddAll("Material.Transmission");
                     }
                     break;
                 default:
@@ -878,23 +878,23 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 // If alpha test shadow is enable, we use it, otherwise we use the regular test
                 if (pass.PixelShaderUsesSlot(HDLitMasterNode.AlphaThresholdShadowSlotId) && masterNode.alphaTestShadow.isOn)
                 {
-                    activeFields.Add("AlphaTestShadow");
+                    baseActiveFields.AddAll("AlphaTestShadow");
                     ++count;
                 }
                 else if (pass.PixelShaderUsesSlot(HDLitMasterNode.AlphaThresholdSlotId))
                 {
-                    activeFields.Add("AlphaTest");
+                    baseActiveFields.AddAll("AlphaTest");
                     ++count;
                 }
 
                 if (pass.PixelShaderUsesSlot(HDLitMasterNode.AlphaThresholdDepthPrepassSlotId))
                 {
-                    activeFields.Add("AlphaTestPrepass");
+                    baseActiveFields.AddAll("AlphaTestPrepass");
                     ++count;
                 }
                 if (pass.PixelShaderUsesSlot(HDLitMasterNode.AlphaThresholdDepthPostpassSlotId))
                 {
-                    activeFields.Add("AlphaTestPostpass");
+                    baseActiveFields.AddAll("AlphaTestPostpass");
                     ++count;
                 }
                 UnityEngine.Debug.Assert(count == 1, "Alpha test value not set correctly");
@@ -904,52 +904,52 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 if (masterNode.transparencyFog.isOn)
                 {
-                    activeFields.Add("AlphaFog");
+                    baseActiveFields.AddAll("AlphaFog");
                 }
 
                 if (masterNode.transparentWritesMotionVec.isOn)
                 {
-                    activeFields.Add("TransparentWritesMotionVec");
+                    baseActiveFields.AddAll("TransparentWritesMotionVec");
                 }
 
                 if (masterNode.blendPreserveSpecular.isOn)
                 {
-                    activeFields.Add("BlendMode.PreserveSpecular");
+                    baseActiveFields.AddAll("BlendMode.PreserveSpecular");
                 }
             }
 
             if (!masterNode.receiveDecals.isOn)
             {
-                activeFields.Add("DisableDecals");
+                baseActiveFields.AddAll("DisableDecals");
             }
 
             if (!masterNode.receiveSSR.isOn)
             {
-                activeFields.Add("DisableSSR");
+                baseActiveFields.AddAll("DisableSSR");
             }
 
 
             if (masterNode.specularAA.isOn && pass.PixelShaderUsesSlot(HDLitMasterNode.SpecularAAThresholdSlotId) && pass.PixelShaderUsesSlot(HDLitMasterNode.SpecularAAScreenSpaceVarianceSlotId))
             {
-                activeFields.Add("Specular.AA");
+                baseActiveFields.AddAll("Specular.AA");
             }
 
             if (masterNode.energyConservingSpecular.isOn)
             {
-                activeFields.Add("Specular.EnergyConserving");
+                baseActiveFields.AddAll("Specular.EnergyConserving");
             }
 
             if (masterNode.HasRefraction())
             {
-                activeFields.Add("Refraction");
+                baseActiveFields.AddAll("Refraction");
                 switch (masterNode.refractionModel)
                 {
                     case ScreenSpaceRefraction.RefractionModel.Box:
-                        activeFields.Add("RefractionBox");
+                        baseActiveFields.AddAll("RefractionBox");
                         break;
 
                     case ScreenSpaceRefraction.RefractionModel.Sphere:
-                        activeFields.Add("RefractionSphere");
+                        baseActiveFields.AddAll("RefractionSphere");
                         break;
 
                     default:
@@ -960,12 +960,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             if (masterNode.IsSlotConnected(HDLitMasterNode.BentNormalSlotId) && pass.PixelShaderUsesSlot(HDLitMasterNode.BentNormalSlotId))
             {
-                activeFields.Add("BentNormal");
+                baseActiveFields.AddAll("BentNormal");
             }
 
             if (masterNode.IsSlotConnected(HDLitMasterNode.TangentSlotId) && pass.PixelShaderUsesSlot(HDLitMasterNode.TangentSlotId))
             {
-                activeFields.Add("Tangent");
+                baseActiveFields.AddAll("Tangent");
             }
 
             switch (masterNode.specularOcclusionMode)
@@ -973,13 +973,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 case SpecularOcclusionMode.Off:
                     break;
                 case SpecularOcclusionMode.FromAO:
-                    activeFields.Add("SpecularOcclusionFromAO");
+                    baseActiveFields.AddAll("SpecularOcclusionFromAO");
                     break;
                 case SpecularOcclusionMode.FromAOAndBentNormal:
-                    activeFields.Add("SpecularOcclusionFromAOBentNormal");
+                    baseActiveFields.AddAll("SpecularOcclusionFromAOBentNormal");
                     break;
                 case SpecularOcclusionMode.Custom:
-                    activeFields.Add("SpecularOcclusionCustom");
+                    baseActiveFields.AddAll("SpecularOcclusionCustom");
                     break;
 
                 default:
@@ -993,7 +993,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 bool connected = masterNode.IsSlotConnected(HDLitMasterNode.AmbientOcclusionSlotId);
                 if (connected || occlusionSlot.value != occlusionSlot.defaultValue)
                 {
-                    activeFields.Add("AmbientOcclusion");
+                    baseActiveFields.AddAll("AmbientOcclusion");
                 }
             }
 
@@ -1004,21 +1004,21 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 bool connected = masterNode.IsSlotConnected(HDLitMasterNode.CoatMaskSlotId);
                 if (connected || coatMaskSlot.value > 0.0f)
                 {
-                    activeFields.Add("CoatMask");
+                    baseActiveFields.AddAll("CoatMask");
                 }
             }
 
             if (masterNode.IsSlotConnected(HDLitMasterNode.LightingSlotId) && pass.PixelShaderUsesSlot(HDLitMasterNode.LightingSlotId))
             {
-                activeFields.Add("LightingGI");
+                baseActiveFields.AddAll("LightingGI");
             }
             if (masterNode.IsSlotConnected(HDLitMasterNode.BackLightingSlotId) && pass.PixelShaderUsesSlot(HDLitMasterNode.LightingSlotId))
             {
-                activeFields.Add("BackLightingGI");
+                baseActiveFields.AddAll("BackLightingGI");
             }
 
             if (masterNode.depthOffset.isOn && pass.PixelShaderUsesSlot(HDLitMasterNode.DepthOffsetSlotId))
-                activeFields.Add("DepthOffset");
+                baseActiveFields.AddAll("DepthOffset");
 
             return activeFields;
         }
@@ -1030,7 +1030,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 pass.OnGeneratePass(masterNode);
 
                 // apply master node options to active fields
-                HashSet<string> activeFields = GetActiveFieldsFromMasterNode(masterNode, pass);
+                var activeFields = GetActiveFieldsFromMasterNode(masterNode, pass);
 
                 pass.ExtraInstancingOptions = GetInstancingOptionsFromMasterNode(masterNode);
 

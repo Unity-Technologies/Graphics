@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Data.Util;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph;
 using UnityEngine.Rendering;
@@ -94,7 +95,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 "#define SCENESELECTIONPASS",
                 "#pragma editor_sync_compilation",
-            },            
+            },
             Includes = new List<string>()
             {
                 "#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDepthOnly.hlsl\"",
@@ -122,7 +123,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             ZWriteOverride = "ZWrite On",
             CullOverride = HDSubShaderUtilities.defaultCullMode,
             ExtraDefines = HDSubShaderUtilities.s_ExtraDefinesForwardMaterialDepthOrMotion,
-            
+
             Includes = new List<string>()
             {
                 "#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDepthOnly.hlsl\"",
@@ -165,7 +166,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 var masterNode = node as FabricMasterNode;
                 HDSubShaderUtilities.SetStencilStateForDepth(ref pass);
-            }           
+            }
         };
 
         Pass m_PassMotionVectors = new Pass()
@@ -286,7 +287,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 HDSubShaderUtilities.SetStencilStateForForward(ref pass);
                 HDSubShaderUtilities.SetBlendModeForForward(ref pass);
 
-                pass.ExtraDefines.Remove("#ifndef DEBUG_DISPLAY\n#define SHADERPASS_FORWARD_BYPASS_ALPHA_TEST\n#endif");                
+                pass.ExtraDefines.Remove("#ifndef DEBUG_DISPLAY\n#define SHADERPASS_FORWARD_BYPASS_ALPHA_TEST\n#endif");
 
                 if (masterNode.surfaceType == SurfaceType.Opaque)
                 {
@@ -483,9 +484,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         public int GetPreviewPassIndex() { return 0; }
 
-        private static HashSet<string> GetActiveFieldsFromMasterNode(AbstractMaterialNode iMasterNode, Pass pass)
+        private static ActiveFields GetActiveFieldsFromMasterNode(AbstractMaterialNode iMasterNode, Pass pass)
         {
-            HashSet<string> activeFields = new HashSet<string>();
+            var activeFields = new ActiveFields();
+            var baseActiveFields = activeFields.baseInstance;
 
             FabricMasterNode masterNode = iMasterNode as FabricMasterNode;
             if (masterNode == null)
@@ -499,17 +501,17 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 {                                                   // we need to be able to build interpolators using multiple input structs
                                                                     // also: should only require isFrontFace if Normals are required...
                     // Important: the following is used in SharedCode.template.hlsl for determining the normal flip mode
-                    activeFields.Add("FragInputs.isFrontFace");
+                    baseActiveFields.Add("FragInputs.isFrontFace");
                 }
             }
 
             switch (masterNode.materialType)
             {
                 case FabricMasterNode.MaterialType.CottonWool:
-                    activeFields.Add("Material.CottonWool");
+                    baseActiveFields.Add("Material.CottonWool");
                     break;
                 case FabricMasterNode.MaterialType.Silk:
-                    activeFields.Add("Material.Silk");
+                    baseActiveFields.Add("Material.Silk");
                     break;
                 default:
                     UnityEngine.Debug.LogError("Unknown material type: " + masterNode.materialType);
@@ -520,7 +522,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 if (pass.PixelShaderUsesSlot(FabricMasterNode.AlphaClipThresholdSlotId))
                 {
-                    activeFields.Add("AlphaTest");
+                    baseActiveFields.Add("AlphaTest");
                 }
             }
 
@@ -528,48 +530,48 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 if (masterNode.transparencyFog.isOn)
                 {
-                    activeFields.Add("AlphaFog");
+                    baseActiveFields.Add("AlphaFog");
                 }
 
                 if (masterNode.blendPreserveSpecular.isOn)
                 {
-                    activeFields.Add("BlendMode.PreserveSpecular");
+                    baseActiveFields.Add("BlendMode.PreserveSpecular");
                 }
             }
 
             if (!masterNode.receiveDecals.isOn)
             {
-                activeFields.Add("DisableDecals");
+                baseActiveFields.Add("DisableDecals");
             }
 
             if (!masterNode.receiveSSR.isOn)
             {
-                activeFields.Add("DisableSSR");
+                baseActiveFields.Add("DisableSSR");
             }
 
             if (masterNode.energyConservingSpecular.isOn)
             {
-                activeFields.Add("Specular.EnergyConserving");
+                baseActiveFields.Add("Specular.EnergyConserving");
             }
 
             if (masterNode.transmission.isOn)
             {
-                activeFields.Add("Material.Transmission");
+                baseActiveFields.Add("Material.Transmission");
             }
 
             if (masterNode.subsurfaceScattering.isOn && masterNode.surfaceType != SurfaceType.Transparent)
             {
-                activeFields.Add("Material.SubsurfaceScattering");
+                baseActiveFields.Add("Material.SubsurfaceScattering");
             }
 
             if (masterNode.IsSlotConnected(FabricMasterNode.BentNormalSlotId) && pass.PixelShaderUsesSlot(FabricMasterNode.BentNormalSlotId))
             {
-                activeFields.Add("BentNormal");
+                baseActiveFields.Add("BentNormal");
             }
 
             if (masterNode.IsSlotConnected(FabricMasterNode.TangentSlotId) && pass.PixelShaderUsesSlot(FabricMasterNode.TangentSlotId))
             {
-                activeFields.Add("Tangent");
+                baseActiveFields.Add("Tangent");
             }
 
             switch (masterNode.specularOcclusionMode)
@@ -577,13 +579,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 case SpecularOcclusionMode.Off:
                     break;
                 case SpecularOcclusionMode.FromAO:
-                    activeFields.Add("SpecularOcclusionFromAO");
+                    baseActiveFields.Add("SpecularOcclusionFromAO");
                     break;
                 case SpecularOcclusionMode.FromAOAndBentNormal:
-                    activeFields.Add("SpecularOcclusionFromAOBentNormal");
+                    baseActiveFields.Add("SpecularOcclusionFromAOBentNormal");
                     break;
                 case SpecularOcclusionMode.Custom:
-                    activeFields.Add("SpecularOcclusionCustom");
+                    baseActiveFields.Add("SpecularOcclusionCustom");
                     break;
                 default:
                     break;
@@ -596,21 +598,21 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 bool connected = masterNode.IsSlotConnected(FabricMasterNode.AmbientOcclusionSlotId);
                 if (connected || occlusionSlot.value != occlusionSlot.defaultValue)
                 {
-                    activeFields.Add("AmbientOcclusion");
+                    baseActiveFields.Add("AmbientOcclusion");
                 }
             }
 
             if (masterNode.IsSlotConnected(FabricMasterNode.LightingSlotId) && pass.PixelShaderUsesSlot(FabricMasterNode.LightingSlotId))
             {
-                activeFields.Add("LightingGI");
+                baseActiveFields.Add("LightingGI");
             }
             if (masterNode.IsSlotConnected(FabricMasterNode.BackLightingSlotId) && pass.PixelShaderUsesSlot(FabricMasterNode.BackLightingSlotId))
             {
-                activeFields.Add("BackLightingGI");
+                baseActiveFields.Add("BackLightingGI");
             }
 
             if (masterNode.depthOffset.isOn && pass.PixelShaderUsesSlot(FabricMasterNode.DepthOffsetSlotId))
-                activeFields.Add("DepthOffset");
+                baseActiveFields.Add("DepthOffset");
 
             return activeFields;
         }
@@ -622,7 +624,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 pass.OnGeneratePass(masterNode);
 
                 // apply master node options to active fields
-                HashSet<string> activeFields = GetActiveFieldsFromMasterNode(masterNode, pass);
+                var activeFields = GetActiveFieldsFromMasterNode(masterNode, pass);
 
                 // use standard shader pass generation
                 bool vertexActive = masterNode.IsSlotConnected(FabricMasterNode.PositionSlotId);
@@ -690,7 +692,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 subShader.AddShaderChunk("}", false);
             }
 #endif
-            
+
             subShader.AddShaderChunk(@"CustomEditor ""UnityEditor.Experimental.Rendering.HDPipeline.FabricGUI""");
 
             return subShader.GetShaderString(0);

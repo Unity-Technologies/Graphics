@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Data.Util;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph;
 using UnityEngine.Experimental.Rendering.HDPipeline;
@@ -117,7 +118,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 "#define SCENESELECTIONPASS",
                 "#pragma editor_sync_compilation",
-            },            
+            },
             Includes = new List<string>()
             {
                 "#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDepthOnly.hlsl\"",
@@ -504,13 +505,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         //         although they also avoid sampling in that case, but default tiny texture map sampling isn't a big hit since they are all cached once
         //         a default "unityTexWhite" is sampled, it is cached for everyone defaulting to white...)
         //
-        // ok+ means there's a specific additional predicate 
+        // ok+ means there's a specific additional predicate
         //
         // ok masterNode.BaseColorSlotId
         // ok masterNode.NormalSlotId
         //
         // ok+ masterNode.BentNormalSlotId     --> Dependency of the predicate on IsSlotConnected avoids processing even if the slots
-        // ok+ masterNode.TangentSlotId            are always there so any pass that declares its use in PixelShaderSlots will have the field in SurfaceDescription, 
+        // ok+ masterNode.TangentSlotId            are always there so any pass that declares its use in PixelShaderSlots will have the field in SurfaceDescription,
         //                                         but it's not necessarily useful (if slot isnt connected, waste processing on potentially static expressions if
         //                                         shader compiler cant optimize...and even then, useless to have static override value for those.)
         //
@@ -518,14 +519,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         //                                         Also and anyways, the compiler is smart enough not to do the TS to WS matrix multiply on a (0,0,1) vector.
         //
         // ok+ masterNode.CoatNormalSlotId       -> we already have a "material feature" coat normal map so can use that instead, although using that former, we assume the coat normal slot
-        //                                         will be there, but it's ok, we can #ifdef the code on the material feature define, and use the $SurfaceDescription.CoatNormal predicate 
+        //                                         will be there, but it's ok, we can #ifdef the code on the material feature define, and use the $SurfaceDescription.CoatNormal predicate
         //                                         for the actual assignment,
-        //                                         although for that one we could again 
+        //                                         although for that one we could again
         //                                         use the "connected" condition like for tangent and bentnormal
         //
         // The following are all ok, no need beyond present field predicate, ie $SurfaceDescription.*,
         // except special cases where noted
-        // 
+        //
         // ok masterNode.SubsurfaceMaskSlotId
         // ok masterNode.ThicknessSlotId
         // ok masterNode.DiffusionProfileHashSlotId
@@ -558,11 +559,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         //                                                     properties, maybe through debug etc.
         //
         // ok masterNode.DistortionSlotId            -> Warning: peculiarly, instead of using $SurfaceDescription.Distortion and DistortionBlur,
-        // ok masterNode.DistortionBlurSlotId           we do an #if (SHADERPASS == SHADERPASS_DISTORTION) in the template, instead of 
+        // ok masterNode.DistortionBlurSlotId           we do an #if (SHADERPASS == SHADERPASS_DISTORTION) in the template, instead of
         //                                              relying on other passed NOT to include the DistortionSlotId in their PixelShaderSlots!!
 
-        // Other to deal with, and 
-        // Common between Lit and StackLit: 
+        // Other to deal with, and
+        // Common between Lit and StackLit:
         //
         // doubleSidedMode, alphaTest, receiveDecals,
         // surfaceType, alphaMode, blendPreserveSpecular, transparencyFog,
@@ -571,9 +572,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         // geometricSpecularAA, energyConservingSpecular, specularOcclusion
         //
 
-        private static HashSet<string> GetActiveFieldsFromMasterNode(AbstractMaterialNode iMasterNode, Pass pass)
+        private static ActiveFields GetActiveFieldsFromMasterNode(AbstractMaterialNode iMasterNode, Pass pass)
         {
-            HashSet<string> activeFields = new HashSet<string>();
+            var activeFields = new ActiveFields();
+            var baseActiveFields = activeFields.baseInstance;
 
             StackLitMasterNode masterNode = iMasterNode as StackLitMasterNode;
             if (masterNode == null)
@@ -587,15 +589,15 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 {                                                   // we need to be able to build interpolators using multiple input structs
                                                                     // also: should only require isFrontFace if Normals are required...
                     // Important: the following is used in SharedCode.template.hlsl for determining the normal flip mode
-                    activeFields.Add("FragInputs.isFrontFace");
+                    baseActiveFields.Add("FragInputs.isFrontFace");
                 }
             }
 
             if (masterNode.alphaTest.isOn)
             {
                 if (pass.PixelShaderUsesSlot(StackLitMasterNode.AlphaClipThresholdSlotId))
-                { 
-                    activeFields.Add("AlphaTest");
+                {
+                    baseActiveFields.Add("AlphaTest");
                 }
             }
 
@@ -603,12 +605,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 if (masterNode.transparencyFog.isOn)
                 {
-                    activeFields.Add("AlphaFog");
+                    baseActiveFields.Add("AlphaFog");
                 }
 
                 if (masterNode.blendPreserveSpecular.isOn)
                 {
-                    activeFields.Add("BlendMode.PreserveSpecular");
+                    baseActiveFields.Add("BlendMode.PreserveSpecular");
                 }
             }
 
@@ -621,19 +623,19 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             // _MATERIAL_FEATURE_SPECULAR_COLOR define:
             if (masterNode.baseParametrization == StackLit.BaseParametrization.SpecularColor)
             {
-                activeFields.Add("BaseParametrization.SpecularColor");
+                baseActiveFields.Add("BaseParametrization.SpecularColor");
             }
             if (masterNode.energyConservingSpecular.isOn) // No defines, suboption of BaseParametrization.SpecularColor
             {
-                activeFields.Add("EnergyConservingSpecular");
+                baseActiveFields.Add("EnergyConservingSpecular");
             }
             if (masterNode.anisotropy.isOn)
             {
-                activeFields.Add("Material.Anisotropy");
+                baseActiveFields.Add("Material.Anisotropy");
             }
             if (masterNode.coat.isOn)
             {
-                activeFields.Add("Material.Coat");
+                baseActiveFields.Add("Material.Coat");
                 if (pass.PixelShaderUsesSlot(StackLitMasterNode.CoatMaskSlotId))
                 {
                     var coatMaskSlot = masterNode.FindSlot<Vector1MaterialSlot>(StackLitMasterNode.CoatMaskSlotId);
@@ -641,28 +643,28 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
                     if (connected || (coatMaskSlot.value != 0.0f && coatMaskSlot.value != 1.0f))
                     {
-                        activeFields.Add("CoatMask");
+                        baseActiveFields.Add("CoatMask");
                     }
                     else if (coatMaskSlot.value == 0.0f)
                     {
-                        activeFields.Add("CoatMaskZero");
+                        baseActiveFields.Add("CoatMaskZero");
                     }
                     else if (coatMaskSlot.value == 1.0f)
                     {
-                        activeFields.Add("CoatMaskOne");
+                        baseActiveFields.Add("CoatMaskOne");
                     }
                 }
             }
             if (masterNode.coatNormal.isOn)
             {
-                activeFields.Add("Material.CoatNormal");
+                baseActiveFields.Add("Material.CoatNormal");
             }
             if (masterNode.dualSpecularLobe.isOn)
             {
-                activeFields.Add("Material.DualSpecularLobe");
+                baseActiveFields.Add("Material.DualSpecularLobe");
                 if (masterNode.dualSpecularLobeParametrization == StackLit.DualSpecularLobeParametrization.HazyGloss)
                 {
-                    activeFields.Add("DualSpecularLobeParametrization.HazyGloss");
+                    baseActiveFields.Add("DualSpecularLobeParametrization.HazyGloss");
                     // Option for baseParametrization == Metallic && DualSpecularLobeParametrization == HazyGloss:
                     if (masterNode.capHazinessWrtMetallic.isOn && pass.PixelShaderUsesSlot(StackLitMasterNode.HazyGlossMaxDielectricF0SlotId))
                     {
@@ -673,40 +675,40 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                         {
                             // Again we assume masternode has HazyGlossMaxDielectricF0 which should always be the case
                             // if capHazinessWrtMetallic.isOn.
-                            activeFields.Add("CapHazinessIfNotMetallic");
+                            baseActiveFields.Add("CapHazinessIfNotMetallic");
                         }
                     }
                 }
             }
             if (masterNode.iridescence.isOn)
             {
-                activeFields.Add("Material.Iridescence");
+                baseActiveFields.Add("Material.Iridescence");
             }
             if (masterNode.subsurfaceScattering.isOn && masterNode.surfaceType != SurfaceType.Transparent)
             {
-                activeFields.Add("Material.SubsurfaceScattering");
+                baseActiveFields.Add("Material.SubsurfaceScattering");
             }
             if (masterNode.transmission.isOn)
             {
-                activeFields.Add("Material.Transmission");
+                baseActiveFields.Add("Material.Transmission");
             }
 
             // Advanced:
             if (masterNode.anisotropyForAreaLights.isOn)
             {
-                activeFields.Add("AnisotropyForAreaLights");
+                baseActiveFields.Add("AnisotropyForAreaLights");
             }
             if (masterNode.recomputeStackPerLight.isOn)
             {
-                activeFields.Add("RecomputeStackPerLight");
+                baseActiveFields.Add("RecomputeStackPerLight");
             }
             if (masterNode.shadeBaseUsingRefractedAngles.isOn)
             {
-                activeFields.Add("ShadeBaseUsingRefractedAngles");
+                baseActiveFields.Add("ShadeBaseUsingRefractedAngles");
             }
             if (masterNode.debug.isOn)
             {
-                activeFields.Add("StackLitDebug");
+                baseActiveFields.Add("StackLitDebug");
             }
 
             //
@@ -715,12 +717,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             if (!masterNode.receiveDecals.isOn)
             {
-                activeFields.Add("DisableDecals");
+                baseActiveFields.Add("DisableDecals");
             }
 
             if (!masterNode.receiveSSR.isOn)
             {
-                activeFields.Add("DisableSSR");
+                baseActiveFields.Add("DisableSSR");
             }
 
             // Note here we combine an "enable"-like predicate and the $SurfaceDescription.(slotname) predicate
@@ -746,33 +748,33 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 && pass.PixelShaderUsesSlot(StackLitMasterNode.SpecularAAScreenSpaceVarianceSlotId))
             {
                 haveSomeSpecularAA = true;
-                activeFields.Add("GeometricSpecularAA");
+                baseActiveFields.Add("GeometricSpecularAA");
             }
             if (haveSomeSpecularAA)
             {
-                activeFields.Add("SpecularAA");
+                baseActiveFields.Add("SpecularAA");
             }
 
             if (masterNode.screenSpaceSpecularOcclusionBaseMode != StackLitMasterNode.SpecularOcclusionBaseMode.Off
                 || masterNode.dataBasedSpecularOcclusionBaseMode != StackLitMasterNode.SpecularOcclusionBaseMode.Off)
             {
                 // activates main define
-                activeFields.Add("SpecularOcclusion");
+                baseActiveFields.Add("SpecularOcclusion");
             }
 
-            activeFields.Add("ScreenSpaceSpecularOcclusionBaseMode." + masterNode.screenSpaceSpecularOcclusionBaseMode.ToString());
+            baseActiveFields.Add("ScreenSpaceSpecularOcclusionBaseMode." + masterNode.screenSpaceSpecularOcclusionBaseMode.ToString());
             if (StackLitMasterNode.SpecularOcclusionModeUsesVisibilityCone(masterNode.screenSpaceSpecularOcclusionBaseMode))
             {
-                activeFields.Add("ScreenSpaceSpecularOcclusionAOConeSize." + masterNode.screenSpaceSpecularOcclusionAOConeSize.ToString());
-                activeFields.Add("ScreenSpaceSpecularOcclusionAOConeDir." + masterNode.screenSpaceSpecularOcclusionAOConeDir.ToString());
+                baseActiveFields.Add("ScreenSpaceSpecularOcclusionAOConeSize." + masterNode.screenSpaceSpecularOcclusionAOConeSize.ToString());
+                baseActiveFields.Add("ScreenSpaceSpecularOcclusionAOConeDir." + masterNode.screenSpaceSpecularOcclusionAOConeDir.ToString());
             }
 
             //if (!masterNode.specularOcclusionIsCustom.isOn) // TODO: never ON for now.
             {
-                activeFields.Add("DataBasedSpecularOcclusionBaseMode." + masterNode.dataBasedSpecularOcclusionBaseMode.ToString());
+                baseActiveFields.Add("DataBasedSpecularOcclusionBaseMode." + masterNode.dataBasedSpecularOcclusionBaseMode.ToString());
                 if (StackLitMasterNode.SpecularOcclusionModeUsesVisibilityCone(masterNode.dataBasedSpecularOcclusionBaseMode))
                 {
-                    activeFields.Add("DataBasedSpecularOcclusionAOConeSize." + masterNode.dataBasedSpecularOcclusionAOConeSize.ToString());
+                    baseActiveFields.Add("DataBasedSpecularOcclusionAOConeSize." + masterNode.dataBasedSpecularOcclusionAOConeSize.ToString());
                 }
             }
             //else, TODO, we need one value per lobe.
@@ -780,7 +782,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             // Set bent normal fixup predicate if needed:
             if (masterNode.SpecularOcclusionUsesBentNormal())
             {
-                activeFields.Add("SpecularOcclusionConeFixupMethod." + masterNode.specularOcclusionConeFixupMethod.ToString());
+                baseActiveFields.Add("SpecularOcclusionConeFixupMethod." + masterNode.specularOcclusionConeFixupMethod.ToString());
             }
 
             //
@@ -789,12 +791,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             if (masterNode.IsSlotConnected(StackLitMasterNode.BentNormalSlotId) && pass.PixelShaderUsesSlot(StackLitMasterNode.BentNormalSlotId))
             {
-                activeFields.Add("BentNormal");
+                baseActiveFields.Add("BentNormal");
             }
 
             if (masterNode.IsSlotConnected(StackLitMasterNode.TangentSlotId) && pass.PixelShaderUsesSlot(StackLitMasterNode.TangentSlotId))
             {
-                activeFields.Add("Tangent");
+                baseActiveFields.Add("Tangent");
             }
 
             // The following idiom enables an optimization on feature ports that don't have an enable switch in the settings
@@ -809,26 +811,26 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 // master node always has it, assert ambientOcclusionSlot != null
                 if (connected || ambientOcclusionSlot.value != ambientOcclusionSlot.defaultValue)
                 {
-                    activeFields.Add("AmbientOcclusion");
+                    baseActiveFields.Add("AmbientOcclusion");
                 }
             }
 
             if (masterNode.IsSlotConnected(StackLitMasterNode.CoatNormalSlotId) && pass.PixelShaderUsesSlot(StackLitMasterNode.CoatNormalSlotId))
             {
-                activeFields.Add("CoatNormal");
+                baseActiveFields.Add("CoatNormal");
             }
 
             if (masterNode.IsSlotConnected(StackLitMasterNode.LightingSlotId)&& pass.PixelShaderUsesSlot(StackLitMasterNode.LightingSlotId))
             {
-                activeFields.Add("LightingGI");
+                baseActiveFields.Add("LightingGI");
             }
             if (masterNode.IsSlotConnected(StackLitMasterNode.BackLightingSlotId)&& pass.PixelShaderUsesSlot(StackLitMasterNode.BackLightingSlotId))
             {
-                activeFields.Add("BackLightingGI");
+                baseActiveFields.Add("BackLightingGI");
             }
 
         if (masterNode.depthOffset.isOn && pass.PixelShaderUsesSlot(StackLitMasterNode.DepthOffsetSlotId))
-                activeFields.Add("DepthOffset");
+                baseActiveFields.Add("DepthOffset");
 
             return activeFields;
         }
@@ -840,7 +842,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 pass.OnGeneratePass(masterNode);
 
                 // apply master node options to active fields
-                HashSet<string> activeFields = GetActiveFieldsFromMasterNode(masterNode, pass);
+                var activeFields = GetActiveFieldsFromMasterNode(masterNode, pass);
 
                 // use standard shader pass generation
                 bool vertexActive = masterNode.IsSlotConnected(StackLitMasterNode.PositionSlotId);

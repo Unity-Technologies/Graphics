@@ -19,7 +19,7 @@ namespace UnityEditor.ShaderGraph
             this.referenceName = referenceName;
         }
     }
-    
+
     enum ShaderKeywordType { Boolean, Enum }
     enum ShaderKeywordDefinition { ShaderFeature, MultiCompile, Predefined }
     enum ShaderKeywordScope { Local, Global }
@@ -35,7 +35,7 @@ namespace UnityEditor.ShaderGraph
         {
             displayName = keywordType.ToString();
             this.keywordType = keywordType;
-            
+
             if(keywordType == ShaderKeywordType.Enum)
             {
                 m_Entries = new List<ShaderKeywordEntry>();
