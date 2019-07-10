@@ -49,7 +49,8 @@ namespace Data.Util
              => m_Source.GetOrCreateForPermutationIndex(m_PermutationIndex).Add(field);
 
             public bool Contains(string field) =>
-                m_Source.GetOrCreateForPermutationIndex(m_PermutationIndex).Contains(field);
+                m_Source.m_Base.Contains(field)
+                || m_Source.GetOrCreateForPermutationIndex(m_PermutationIndex).Contains(field);
 
             public void AddAll(string field) => Add(field);
             public IEnumerable<IActiveFields> instances => Enumerable.Repeat<IActiveFields>(this, 1);
@@ -147,11 +148,15 @@ namespace Data.Util
         public All all => new All(this);
         public AllPermutations allPermutations => new AllPermutations(this);
 
+        /// <summary>
+        /// All permutation will inherit from base's active fields
+        /// </summary>
         public Base baseInstance => new Base(this);
+
         HashSet<string> GetOrCreateForPermutationIndex(int index)
         {
-            for (var i = index + 1 - m_PerPermutationIndex.Count; i >= 0; --i)
-                m_PerPermutationIndex.Add(new HashSet<string>(m_Base));
+            while(index >= m_PerPermutationIndex.Count)
+                m_PerPermutationIndex.Add(new HashSet<string>());
 
             return m_PerPermutationIndex[index];
         }
