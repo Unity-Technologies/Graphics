@@ -8,7 +8,7 @@ using UnityEditor.ShaderGraph.Drawing.Controls;
 namespace UnityEditor.ShaderGraph
 {
     //[Title("Input", "Texture", "Sample Stack")]
-    class SampleStackNodeBase : AbstractMaterialNode, IGeneratesBodyCode, IMayRequireMeshUV
+    class SampleTextureStackNodeBase : AbstractMaterialNode, IGeneratesBodyCode, IMayRequireMeshUV
     {
         public const int UVInputId = 0;
 
@@ -53,14 +53,14 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        public SampleStackNodeBase(int numSlots)
+        public SampleTextureStackNodeBase(int numSlots)
         {
             if (numSlots > 4)
             {
                 throw new System.Exception("Maximum 4 slots supported");
             }
             this.numSlots = numSlots;
-            name = "Sample Stack " + numSlots;
+            name = "Sample Texture Stack " + numSlots;
 
             UpdateNodeAfterDeserialization();
         }
@@ -125,7 +125,7 @@ namespace UnityEditor.ShaderGraph
         {
             // Not all outputs may be connected (well one is or we wouln't get called) so we are carefull to
             // only generate code for connected outputs
-            string stackName = GetVariableNameForSlot(OutputSlotIds[0]) + "_stack";
+            string stackName = GetVariableNameForSlot(OutputSlotIds[0]) + "_texturestack";
 
             bool anyConnected = false;
             for (int i = 0; i < numSlots; i++)
@@ -202,7 +202,7 @@ namespace UnityEditor.ShaderGraph
 
             properties.AddShaderProperty(new StackShaderProperty()
             {
-                overrideReferenceName = GetVariableNameForSlot(OutputSlotIds[0]) + "_stack",
+                overrideReferenceName = GetVariableNameForSlot(OutputSlotIds[0]) + "_texturestack",
                 generatePropertyBlock = true,
                 modifiable = false,
                 slotNames = slotNames
@@ -237,10 +237,10 @@ namespace UnityEditor.ShaderGraph
         }
     }
 
-    [Title("Input", "Texture", "Sample Stack")]
-    class SampleStackNode : SampleStackNodeBase
+    [Title("Input", "Texture", "Sample Texture Stack")]
+    class SampleTextureStackNode : SampleTextureStackNodeBase
     {
-        public SampleStackNode() : base(1)
+        public SampleTextureStackNode() : base(1)
         { }
 
         [EnumControl("Type")]
@@ -260,10 +260,10 @@ namespace UnityEditor.ShaderGraph
         }
     }
 
-    [Title("Input", "Texture", "Sample Stack 2")]
-    class SampleStackNode2 : SampleStackNodeBase
+    [Title("Input", "Texture", "Sample Texture Stack 2")]
+    class SampleTextureStackNode2 : SampleTextureStackNodeBase
     {
-        public SampleStackNode2() : base(2)
+        public SampleTextureStackNode2() : base(2)
         { }
 
         [EnumControl("Type 1")]
@@ -299,65 +299,10 @@ namespace UnityEditor.ShaderGraph
         }
     }
 
-    [Title("Input", "Texture", "Sample Stack 3")]
-    class SampleStackNode3 : SampleStackNodeBase
+    [Title("Input", "Texture", "Sample Texture Stack 3")]
+    class SampleTextureStackNode3 : SampleTextureStackNodeBase
     {
-        public SampleStackNode3() : base(3)
-        { }
-
-        [EnumControl("Type 1")]
-        public TextureType textureType
-        {
-            get { return m_TextureTypes[0]; }
-            set
-            {
-                if (m_TextureTypes[0] == value)
-                    return;
-
-                m_TextureTypes[0] = value;
-                Dirty(ModificationScope.Graph);
-
-                ValidateNode();
-            }
-        }
-
-        [EnumControl("Type 2")]
-        public TextureType textureType2
-        {
-            get { return m_TextureTypes[1]; }
-            set
-            {
-                if (m_TextureTypes[1] == value)
-                    return;
-
-                m_TextureTypes[1] = value;
-                Dirty(ModificationScope.Graph);
-
-                ValidateNode();
-            }
-        }
-
-        [EnumControl("Type 3")]
-        public TextureType textureType3
-        {
-            get { return m_TextureTypes[2]; }
-            set
-            {
-                if (m_TextureTypes[2] == value)
-                    return;
-
-                m_TextureTypes[2] = value;
-                Dirty(ModificationScope.Graph);
-
-                ValidateNode();
-            }
-        }
-    }
-
-    [Title("Input", "Texture", "Sample Stack 4")]
-    class SampleStackNode4 : SampleStackNodeBase
-    {
-        public SampleStackNode4() : base(4)
+        public SampleTextureStackNode3() : base(3)
         { }
 
         [EnumControl("Type 1")]
@@ -409,7 +354,62 @@ namespace UnityEditor.ShaderGraph
         }
     }
 
-    class AggregateFeedbackNode : AbstractMaterialNode, IGeneratesBodyCode, IMayRequireRequirePixelCoordinate
+    [Title("Input", "Texture", "Sample Texture Stack 4")]
+    class SampleTextureStackNode4 : SampleTextureStackNodeBase
+    {
+        public SampleTextureStackNode4() : base(4)
+        { }
+
+        [EnumControl("Type 1")]
+        public TextureType textureType
+        {
+            get { return m_TextureTypes[0]; }
+            set
+            {
+                if (m_TextureTypes[0] == value)
+                    return;
+
+                m_TextureTypes[0] = value;
+                Dirty(ModificationScope.Graph);
+
+                ValidateNode();
+            }
+        }
+
+        [EnumControl("Type 2")]
+        public TextureType textureType2
+        {
+            get { return m_TextureTypes[1]; }
+            set
+            {
+                if (m_TextureTypes[1] == value)
+                    return;
+
+                m_TextureTypes[1] = value;
+                Dirty(ModificationScope.Graph);
+
+                ValidateNode();
+            }
+        }
+
+        [EnumControl("Type 3")]
+        public TextureType textureType3
+        {
+            get { return m_TextureTypes[2]; }
+            set
+            {
+                if (m_TextureTypes[2] == value)
+                    return;
+
+                m_TextureTypes[2] = value;
+                Dirty(ModificationScope.Graph);
+
+                ValidateNode();
+            }
+        }
+    }
+
+    class TextureStackAggregateFeedbackNode : AbstractMaterialNode, IGeneratesBodyCode, IMayRequireRequirePixelCoordinate
     {
         public const int AggregateOutputId = 0;
         const string AggregateOutputName = "FeedbackAggregateOut";
@@ -420,7 +420,7 @@ namespace UnityEditor.ShaderGraph
 
         public const int MasterNodeFeedbackInputSlotID = 22021982;
 
-        public AggregateFeedbackNode()
+        public TextureStackAggregateFeedbackNode()
         {
             name = "Feedback Aggregate";
             UpdateNodeAfterDeserialization();
@@ -496,9 +496,9 @@ namespace UnityEditor.ShaderGraph
         }
 
         // Automatically add a  streaming feedback node and correctly connect it to stack samples are connected to it and it is connected to the master node output
-        public static AggregateFeedbackNode AutoInjectFeedbackNode(AbstractMaterialNode masterNode)
+        public static TextureStackAggregateFeedbackNode AutoInjectFeedbackNode(AbstractMaterialNode masterNode)
         {
-            var stackNodes = GraphUtil.FindDownStreamNodesOfType<SampleStackNodeBase>(masterNode);
+            var stackNodes = GraphUtil.FindDownStreamNodesOfType<SampleTextureStackNodeBase>(masterNode);
 
             // Early out if there are no VT nodes in the graph
             if ( stackNodes.Count <= 0 )
@@ -506,7 +506,7 @@ namespace UnityEditor.ShaderGraph
                 return null;
             }
 
-            var feedbackNode = new AggregateFeedbackNode();
+            var feedbackNode = new TextureStackAggregateFeedbackNode();
             masterNode.owner.AddNode(feedbackNode);
 
             // Add inputs to feedback node
@@ -523,7 +523,7 @@ namespace UnityEditor.ShaderGraph
 
                 // Create a new slot on the aggregate that is similar to the uv input slot
                 string name = "FeedIn_" + i;
-                var newSlot = new Vector4MaterialSlot(AggregateFeedbackNode.AggregateInputFirstId + i, name, name, SlotType.Input, Vector4.zero, ShaderStageCapability.Fragment);
+                var newSlot = new Vector4MaterialSlot(TextureStackAggregateFeedbackNode.AggregateInputFirstId + i, name, name, SlotType.Input, Vector4.zero, ShaderStageCapability.Fragment);
                 newSlot.owner = feedbackNode;
                 feedbackNode.AddSlot(newSlot);
 
@@ -539,7 +539,7 @@ namespace UnityEditor.ShaderGraph
                 return null;
             }
 
-            var feedbackOutputSlot = feedbackNode.FindOutputSlot<ISlot>(AggregateFeedbackNode.AggregateOutputId);
+            var feedbackOutputSlot = feedbackNode.FindOutputSlot<ISlot>(TextureStackAggregateFeedbackNode.AggregateOutputId);
             if ( feedbackOutputSlot == null )
             {
                 Debug.LogWarning("Could not find the VT feedback output slot on the aggregate node.");

@@ -507,7 +507,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             masterNode = masterNode.owner.ScratchCopy().GetNodeFromGuid(masterNode.guid) as PBRMasterNode;
 
             // Inject VT feedback into graph
-            AggregateFeedbackNode.AutoInjectFeedbackNode(masterNode);
+            TextureStackAggregateFeedbackNode.AutoInjectFeedbackNode(masterNode);
 
             var subShader = new ShaderGenerator();
             subShader.AddShaderChunk("SubShader", true);

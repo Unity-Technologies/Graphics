@@ -37,7 +37,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         public const int DistortionSlotId = 10;
         public const int DistortionBlurSlotId = 11;
         public const int EmissionSlotId = 12;
-        public const int FeedBackSlotId = AggregateFeedbackNode.MasterNodeFeedbackInputSlotID;
+        public const int FeedBackSlotId = TextureStackAggregateFeedbackNode.MasterNodeFeedbackInputSlotID;
 
         // Don't support Multiply
         public enum AlphaModeLit

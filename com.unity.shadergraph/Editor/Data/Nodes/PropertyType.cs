@@ -17,6 +17,6 @@ namespace UnityEditor.ShaderGraph
         Matrix3,
         Matrix4,
         SamplerState,
-        Stack
+        TextureStack
     }
 }

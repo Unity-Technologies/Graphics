@@ -22,7 +22,7 @@ namespace UnityEditor.ShaderGraph
 
         public override PropertyType propertyType
         {
-            get { return PropertyType.Stack; }
+            get { return PropertyType.TextureStack; }
         }
 
         public bool modifiable
@@ -74,7 +74,7 @@ namespace UnityEditor.ShaderGraph
             result.Append(referenceName);
             result.Append("(\"");
             result.Append(displayName);
-            result.Append("\", Stack) = {");
+            result.Append("\", TextureStack) = {");
             result.Append(GetSlotNamesString(" "));
             result.Append("}");
             return result.ToString();
@@ -108,10 +108,10 @@ namespace UnityEditor.ShaderGraph
 
         public override PreviewProperty GetPreviewMaterialProperty()
         {
-            return new PreviewProperty(PropertyType.Stack )
+            return new PreviewProperty(PropertyType.TextureStack)
             {
                 name = referenceName,
-                stackValue = value.stack
+                textureStackValue = value.textureStack
             };
         }
 

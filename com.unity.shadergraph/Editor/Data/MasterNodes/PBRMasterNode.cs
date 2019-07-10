@@ -35,7 +35,7 @@ namespace UnityEditor.ShaderGraph
         public const int AlphaSlotId = 7;
         public const int AlphaThresholdSlotId = 8;
         public const int PositionSlotId = 9;
-        public const int VTFeedbackSlotId = AggregateFeedbackNode.MasterNodeFeedbackInputSlotID;
+        public const int VTFeedbackSlotId = TextureStackAggregateFeedbackNode.MasterNodeFeedbackInputSlotID;
 
         public enum Model
         {

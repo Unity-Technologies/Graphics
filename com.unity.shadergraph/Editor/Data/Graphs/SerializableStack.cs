@@ -7,53 +7,53 @@ namespace UnityEditor.ShaderGraph
     class SerializableStack : ISerializationCallbackReceiver
     {
         [SerializeField]
-        string m_SerializedStack;
+        string m_SerializedTextureStack;
 
         [SerializeField]
         string m_Guid;
 
         [NonSerialized]
-        VTStack m_Stack;
+        VTStack m_TextureStack;
 
         [Serializable]
-        class StackHelper
+        class TextureStackHelper
         {
 #pragma warning disable 649
             public VTStack stack;
 #pragma warning restore 649
         }
 
-        public VTStack stack
+        public VTStack textureStack
         {
             get
             {
-                if (!string.IsNullOrEmpty(m_SerializedStack))
+                if (!string.IsNullOrEmpty(m_SerializedTextureStack))
                 {
-                    var textureHelper = new StackHelper();
-                    EditorJsonUtility.FromJsonOverwrite(m_SerializedStack, textureHelper);
-                    m_SerializedStack = null;
+                    var textureStackHelper = new TextureStackHelper();
+                    EditorJsonUtility.FromJsonOverwrite(m_SerializedTextureStack, textureStackHelper);
+                    m_SerializedTextureStack = null;
                     m_Guid = null;
-                    m_Stack = textureHelper.stack;
+                    m_TextureStack = textureStackHelper.stack;
                 }
-                else if (!string.IsNullOrEmpty(m_Guid) && m_Stack == null)
+                else if (!string.IsNullOrEmpty(m_Guid) && m_TextureStack == null)
                 {
-                    m_Stack = AssetDatabase.LoadAssetAtPath<VTStack>(AssetDatabase.GUIDToAssetPath(m_Guid));
+                    m_TextureStack = AssetDatabase.LoadAssetAtPath<VTStack>(AssetDatabase.GUIDToAssetPath(m_Guid));
                     m_Guid = null;
                 }
 
-                return m_Stack;
+                return m_TextureStack;
             }
             set
             {
-                m_Stack = value;
+                m_TextureStack = value;
                 m_Guid = null;
-                m_SerializedStack = null;
+                m_SerializedTextureStack = null;
             }
         }
 
         public void OnBeforeSerialize()
         {
-            m_SerializedStack = EditorJsonUtility.ToJson(new StackHelper { stack = stack }, false);
+            m_SerializedTextureStack = EditorJsonUtility.ToJson(new TextureStackHelper { stack = textureStack }, false);
         }
 
         public void OnAfterDeserialize()

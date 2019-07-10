@@ -226,7 +226,7 @@ Shader "HDRP/Lit"
         [HideInInspector] _DiffusionProfileHash("Diffusion Profile Hash", Float) = 0
 
         [Toggle] _VirtualTexturing("Virtual Texturing", Float) = 0.0
-        _TextureStack("_TextureStack", Stack) = { _BaseColorMap _MaskMap _NormalMap }
+        _TextureStack("_TextureStack", TextureStack) = { _BaseColorMap _MaskMap _NormalMap }
     }
 
     HLSLINCLUDE

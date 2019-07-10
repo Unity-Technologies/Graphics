@@ -24,7 +24,7 @@ namespace UnityEditor.ShaderGraph
             [FieldOffset(0)]
             public Gradient gradientValue;
             [FieldOffset(0)]
-            public VTStack stackValue;
+            public VTStack textureStackValue;
         }
 
         [StructLayout(LayoutKind.Explicit)]
@@ -110,19 +110,19 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        public VTStack stackValue
+        public VTStack textureStackValue
         {
             get
             {
-                if (propType != PropertyType.Stack)
-                    throw new ArgumentException(string.Format(k_GetErrorMessage, PropertyType.Stack, propType));
-                return m_ClassData.stackValue;
+                if (propType != PropertyType.TextureStack)
+                    throw new ArgumentException(string.Format(k_GetErrorMessage, PropertyType.TextureStack, propType));
+                return m_ClassData.textureStackValue;
             }
             set
             {
-                if (propType != PropertyType.Stack)
-                    throw new ArgumentException(string.Format(k_SetErrorMessage, PropertyType.Stack, propType));
-                m_ClassData.stackValue = value;
+                if (propType != PropertyType.TextureStack)
+                    throw new ArgumentException(string.Format(k_SetErrorMessage, PropertyType.TextureStack, propType));
+                m_ClassData.textureStackValue = value;
             }
         }
 
@@ -220,9 +220,9 @@ namespace UnityEditor.ShaderGraph
                 for (int i = 0; i < 8; i++)
                     mat.SetVector(string.Format("{0}_AlphaKey{1}", name, i), i < m_ClassData.gradientValue.alphaKeys.Length ? GradientUtils.AlphaKeyToVector(m_ClassData.gradientValue.alphaKeys[i]) : Vector2.zero);
             }
-            else if (propType == PropertyType.Stack)
+            else if (propType == PropertyType.TextureStack)
             {
-                mat.SetStack(name, m_ClassData.stackValue);
+                mat.SetTextureStack(name, m_ClassData.textureStackValue);
             }
         }
     }

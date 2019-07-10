@@ -24,7 +24,7 @@ namespace UnityEditor.ShaderGraph
         {
             if (material.HasProperty("_VirtualTexturing"))
             {
-                if (material.GetFloat("_VirtualTexturing") == 0.0f || !StackStatus.AllStacksValid(material))
+                if (material.GetFloat("_VirtualTexturing") == 0.0f || !TextureStackStatus.AllStacksValid(material))
                 {
                     material.DisableKeyword("VIRTUAL_TEXTURES_BUILT");
                 }

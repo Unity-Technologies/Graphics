@@ -8,7 +8,7 @@ namespace UnityEditor.ShaderGraph
 {
     //move to core Unity at some point, make sure the hash calculation is identical to GTSBuildInfoGenerator in the meantime
 
-    public class StackStatus
+    public class TextureStackStatus
     {
         /// <summary>
         /// Update the keywords on a material to reflect the correct VT state.
@@ -20,7 +20,7 @@ namespace UnityEditor.ShaderGraph
             if (material.HasProperty("_VirtualTexturing") == false)
                 return;
 
-            bool enable = forceOff ? false : !(material.GetFloat("_VirtualTexturing") == 0.0f || !StackStatus.AllStacksValid(material));
+            bool enable = forceOff ? false : !(material.GetFloat("_VirtualTexturing") == 0.0f || !TextureStackStatus.AllStacksValid(material));
                      
             if (enable)
                 material.EnableKeyword("VIRTUAL_TEXTURES_BUILT");
@@ -41,7 +41,7 @@ namespace UnityEditor.ShaderGraph
                 var mat = AssetDatabase.LoadAssetAtPath<Material>(path);
                 if (mat != null)
                 {
-                    ShaderGraph.StackStatus.UpdateMaterial(mat, forceOff);
+                    ShaderGraph.TextureStackStatus.UpdateMaterial(mat, forceOff);
                 }
             }
             EditorUtility.ClearProgressBar();
@@ -57,7 +57,7 @@ namespace UnityEditor.ShaderGraph
                 if (ShaderUtil.GetPropertyType(shader, i) == ShaderUtil.ShaderPropertyType.Stack)
                 {
                     string stackPropName = ShaderUtil.GetPropertyName(shader, i);
-                    VTStack vtStack = material.GetStack(stackPropName);
+                    VTStack vtStack = material.GetTextureStack(stackPropName);
 
                     if (vtStack != null)
                     {

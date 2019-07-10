@@ -92,7 +92,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         public const int LightingSlotId = 30;
         public const int BackLightingSlotId = 31;
         public const int DepthOffsetSlotId = 32;
-        public const int VTFeedbackSlotId = AggregateFeedbackNode.MasterNodeFeedbackInputSlotID;
+        public const int VTFeedbackSlotId = TextureStackAggregateFeedbackNode.MasterNodeFeedbackInputSlotID;
 
         public enum MaterialType
         {

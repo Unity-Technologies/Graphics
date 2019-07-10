@@ -4,7 +4,6 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering.HDPipeline;
 using UnityEngine.Rendering;
-using UnityEditor.ShaderGraph;
 using UnityEditor.ShaderGraph; //TODO(ddebaets) remove when StackStatus is in core unity
 
 // Include material common properties names
@@ -199,7 +198,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 }
 
 #if ENABLE_VIRTUALTEXTURES
-                StackStatus.UpdateMaterial(material);
+                TextureStackStatus.UpdateMaterial(material);
 #endif
             }
 
