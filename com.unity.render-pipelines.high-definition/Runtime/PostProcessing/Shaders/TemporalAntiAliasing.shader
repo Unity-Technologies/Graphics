@@ -42,6 +42,8 @@ Shader "Hidden/HDRP/TemporalAntialiasing"
 
         void FragTAA(Varyings input, out float3 outColor : SV_Target0)
         {
+            UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
+
             float2 jitter = _TaaJitterStrength.zw;
 
     #if defined(ORTHOGRAPHIC)
@@ -113,6 +115,8 @@ Shader "Hidden/HDRP/TemporalAntialiasing"
 
         void FragExcludedTAA(Varyings input, out float3 outColor : SV_Target0)
         {
+            UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
+
             float2 jitter = _TaaJitterStrength.zw;
             float2 uv = input.texcoord - jitter;
 
