@@ -28,6 +28,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added support for more than 2 views for single-pass instancing
 - Added support for per punctual/directional light min roughness in StackLit
 - Added mirror view support with XR SDK
+- Added VR verification in HDRPWizard
+- Added DXR verification in HDRPWizard
 
 ### Fixed
 - Fixed an issue with history buffers causing effects like TAA or auto exposure to flicker when more than one camera was visible in the editor
@@ -93,6 +95,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - direct strenght properties in ambient occlusion now affect direct specular as well
 - Removed advanced Specular Occlusion control in StackLit: SSAO based SO control is hidden and fixed to behave like Lit, SPTD is the only HQ technique shown for baked SO.
 - Shader framework refactor: Changed ClampRoughness signature to include PreLightData access.
+- HDRPWizard window is now in Window > General > HD Render Pipeline Wizard
 
 ## [6.7.0-preview] - 2019-05-16
 
