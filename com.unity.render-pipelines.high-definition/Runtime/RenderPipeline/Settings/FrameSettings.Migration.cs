@@ -1,9 +1,7 @@
 using System;
-using System.Collections.Generic;
-using UnityEngine.Rendering;
 using UnityEngine.Serialization;
 
-namespace UnityEngine.Experimental.Rendering.HDPipeline
+namespace UnityEngine.Rendering.HighDefinition
 {
     [Obsolete("For data migration")]
     public enum ObsoleteLitShaderMode
@@ -97,7 +95,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public bool enableSSR;
         public bool enableSSAO;
         public bool enableSubsurfaceScattering;
-        public bool enableTransmission;  
+        public bool enableTransmission;
         public bool enableAtmosphericScattering;
         public bool enableVolumetrics;
         public bool enableReprojectionForVolumetrics;
@@ -106,7 +104,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public float diffuseGlobalDimmer;
         public float specularGlobalDimmer;
-        
+
         public ObsoleteLitShaderMode shaderLitMode;
         public bool enableDepthPrepassWithDeferredRendering;
 
@@ -125,14 +123,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public bool enableRealtimePlanarReflection;
 
         public bool enableMSAA;
-        
+
         public bool enableAsyncCompute;
         public bool runLightListAsync;
         public bool runSSRAsync;
         public bool runSSAOAsync;
         public bool runContactShadowsAsync;
         public bool runVolumeVoxelizationAsync;
-        
+
         public ObsoleteLightLoopSettings lightLoopSettings;
     }
 
@@ -352,7 +350,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             oldFrameSettingsFormat = null;
         }
 #pragma warning restore 618 // Type or member is obsolete
-        
+
         internal static void MigrateToAfterPostprocess(ref FrameSettings cameraFrameSettings)
         {
             cameraFrameSettings.SetEnabled(FrameSettingsField.AfterPostprocess, true);

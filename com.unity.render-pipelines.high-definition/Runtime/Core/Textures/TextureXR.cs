@@ -1,6 +1,6 @@
-using UnityEngine.Rendering;
+using UnityEngine.Experimental.Rendering;
 
-namespace UnityEngine.Experimental.Rendering
+namespace UnityEngine.Rendering
 {
     using RTHandle = RTHandleSystem.RTHandle;
 
@@ -12,7 +12,7 @@ namespace UnityEngine.Experimental.Rendering
         {
             set
             {
-                if (value > HDPipeline.ShaderConfig.s_XrMaxViews)
+                if (value > HighDefinition.ShaderConfig.s_XrMaxViews)
                     throw new System.NotImplementedException();
                 else
                     m_MaxViews = value;

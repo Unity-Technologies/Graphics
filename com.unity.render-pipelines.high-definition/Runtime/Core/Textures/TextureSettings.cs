@@ -1,4 +1,4 @@
-namespace UnityEngine.Experimental.Rendering
+namespace UnityEngine.Rendering
 {
     [System.Serializable]
     public class TextureSettings

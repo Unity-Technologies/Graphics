@@ -3,9 +3,8 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine.Assertions;
 using UnityEngine.Experimental.Rendering;
-using UnityEngine.Rendering;
 
-namespace UnityEngine.Experimental.Rendering.HDPipeline
+namespace UnityEngine.Rendering.HighDefinition
 {
     public class DecalSystem
     {
@@ -838,7 +837,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 Array.Copy(value.resultIndices, m_ResultIndices, m_NumResults);
             }
         }
-		
+
 		void SetupMipStreamingSettings(Texture texture, bool allMips)
 		{
 			if (texture)
@@ -873,7 +872,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         DecalHandle AddDecal(Matrix4x4 localToWorld, Quaternion rotation, Matrix4x4 sizeOffset, float drawDistance, float fadeScale, Vector4 uvScaleBias, bool affectsTransparency, Material material, int layerMask, float fadeFactor)
         {
             SetupMipStreamingSettings(material, true);
-				
+
             DecalSet decalSet = null;
             int key = material != null ? material.GetInstanceID() : kNullMaterialIndex;
             if (!m_DecalSets.TryGetValue(key, out decalSet))

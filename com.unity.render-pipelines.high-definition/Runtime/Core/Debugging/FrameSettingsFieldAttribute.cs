@@ -1,11 +1,7 @@
 using System;
-using System.Collections.Generic;
-using System.Linq.Expressions;
-using System.Reflection;
-using System.Runtime.CompilerServices;
 using System.Text;
 
-namespace UnityEngine.Experimental.Rendering.HDPipeline
+namespace UnityEngine.Rendering.HighDefinition
 {
     public static partial class StringExtention
     {
@@ -61,7 +57,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             if (string.IsNullOrEmpty(displayedName))
                 displayedName = autoName.ToString().CamelToPascalCaseWithSpace();
-            
+
             // Editor and Runtime debug menu
             this.group = group;
             if (customOrderInGroup != -1)

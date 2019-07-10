@@ -1,9 +1,8 @@
 using System.Collections.Generic;
 using System;
-using UnityEngine.Rendering;
-using UnityEngine.Experimental.Rendering.HDPipeline.Attributes;
+using UnityEngine.Rendering.HighDefinition.Attributes;
 
-namespace UnityEngine.Experimental.Rendering.HDPipeline
+namespace UnityEngine.Rendering.HighDefinition
 {
     namespace Attributes
     {

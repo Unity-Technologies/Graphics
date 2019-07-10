@@ -60,7 +60,7 @@ void TEMPORAL_ACCUMULATION_SINGLE(uint2 groupThreadId : SV_GroupThreadID, uint2 
     float depth = LOAD_TEXTURE2D_X(_DepthTexture, centerCoord).r;
     PositionInputs posInputs = GetPositionInput(centerCoord, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
 
-    float2 closest = GetClosestFragment(posInputs);
+    float2 closest = GetClosestFragment(posInputs.positionSS);
 
     float2 velocity;
     DecodeMotionVector(LOAD_TEXTURE2D_X(_CameraMotionVectorsTexture, closest), velocity);
@@ -124,7 +124,7 @@ void TEMPORAL_ACCUMULATION_COLOR(uint2 groupThreadId : SV_GroupThreadID, uint2 g
     float depth = LOAD_TEXTURE2D_X(_DepthTexture, centerCoord).r;
     PositionInputs posInputs = GetPositionInput(centerCoord, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
 
-    float2 closest = GetClosestFragment(posInputs);
+    float2 closest = GetClosestFragment(posInputs.positionSS);
 
     float2 velocity;
     DecodeMotionVector(LOAD_TEXTURE2D_X(_CameraMotionVectorsTexture, closest), velocity);

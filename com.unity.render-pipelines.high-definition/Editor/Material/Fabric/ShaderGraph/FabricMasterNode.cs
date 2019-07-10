@@ -1,24 +1,23 @@
 using System;
 using System.Linq;
 using System.Collections.Generic;
-using UnityEditor.Experimental.Rendering.HDPipeline.Drawing;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph;
-using UnityEditor.ShaderGraph.Drawing;
 using UnityEditor.ShaderGraph.Drawing.Controls;
 using UnityEngine;
 using UnityEngine.UIElements;
-using UnityEngine.Experimental.Rendering.HDPipeline;
-using UnityEditor.ShaderGraph.Drawing.Inspector;
+using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.Rendering;
+using UnityEditor.Rendering.HighDefinition.Drawing;
 
 // Include material common properties names
-using static UnityEngine.Experimental.Rendering.HDPipeline.HDMaterialProperties;
+using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
 
-namespace UnityEditor.Experimental.Rendering.HDPipeline
+namespace UnityEditor.Rendering.HighDefinition
 {
     [Serializable]
     [Title("Master", "HDRP/Fabric")]
+    [FormerName("UnityEditor.Experimental.Rendering.HDPipeline.FabricMasterNode")]
     [FormerName("UnityEditor.ShaderGraph.FabricMasterNode")]
     class FabricMasterNode : MasterNode<IFabricSubShader>, IMayRequirePosition, IMayRequireNormal, IMayRequireTangent
     {
@@ -72,7 +71,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         public const string BentNormalSlotName = "BentNormal";
         public const int BentNormalSlotId = 15;
-        
+
         public const int LightingSlotId = 16;
         public const string BakedGISlotName = "BakedGI";
 
@@ -461,7 +460,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 Dirty(ModificationScope.Graph);
             }
         }
-        
+
         [SerializeField]
         TransparentCullMode m_transparentCullMode = TransparentCullMode.Back;
         public TransparentCullMode transparentCullMode
@@ -623,7 +622,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 AddSlot(new Vector1MaterialSlot(AlphaClipThresholdSlotId, AlphaClipThresholdSlotName, AlphaClipThresholdSlotName, SlotType.Input, 0.5f, ShaderStageCapability.Fragment));
                 validSlots.Add(AlphaClipThresholdSlotId);
             }
-            
+
             if (MaterialTypeUsesSlotMask(SlotMask.BakedGI) && overrideBakedGI.isOn)
             {
                 AddSlot(new DefaultMaterialSlot(LightingSlotId, BakedGISlotName, BakedGISlotName, ShaderStageCapability.Fragment));
@@ -631,7 +630,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 AddSlot(new DefaultMaterialSlot(BackLightingSlotId, BakedBackGISlotName, BakedBackGISlotName, ShaderStageCapability.Fragment));
                 validSlots.Add(BackLightingSlotId);
             }
-            
+
             if (depthOffset.isOn)
             {
                 AddSlot(new Vector1MaterialSlot(DepthOffsetSlotId, DepthOffsetSlotName, DepthOffsetSlotName, SlotType.Input, 0.0f, ShaderStageCapability.Fragment));

@@ -1,9 +1,8 @@
-using UnityEditor.Rendering;
 using UnityEngine;
-using UnityEngine.Experimental.Rendering.HDPipeline;
+using UnityEngine.Rendering.HighDefinition;
 using UnityEditor.ShaderGraph;
 
-namespace UnityEditor.Experimental.Rendering.HDPipeline
+namespace UnityEditor.Rendering.HighDefinition
 {
     public class LitShaderPreprocessor : BaseShaderPreprocessor
     {
@@ -91,7 +90,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                         // When we are in deferred, we only support tile lighting
                         if (inputData.shaderKeywordSet.IsEnabled(m_ClusterLighting))
                             return true;
-                        
+
                         if (isForwardPass && !inputData.shaderKeywordSet.IsEnabled(m_DebugDisplay))
                             return true;
                     }

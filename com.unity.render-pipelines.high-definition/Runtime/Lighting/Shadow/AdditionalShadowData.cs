@@ -1,10 +1,7 @@
-using UnityEngine;
-using UnityEngine.Serialization;
-using UnityEngine.Experimental.Rendering.HDPipeline;
-using UnityEngine.Rendering;
+using UnityEngine.Rendering.HighDefinition;
 using System;
 
-namespace UnityEngine.Experimental.Rendering
+namespace UnityEngine.Rendering
 {
     [RequireComponent(typeof(Light))]
     [Obsolete("This component will be removed in the future, it's content have been moved to HDAdditionalLightData.")]

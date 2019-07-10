@@ -1,13 +1,12 @@
 using System;
 using UnityEngine;
 using System.Linq;
-using UnityEditor.Rendering;
 using UnityEngine.Rendering;
 
 // Include material common properties names
-using static UnityEngine.Experimental.Rendering.HDPipeline.HDMaterialProperties;
+using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
 
-namespace UnityEditor.Experimental.Rendering.HDPipeline
+namespace UnityEditor.Rendering.HighDefinition
 {
     // Needed for json serialization to work
     [Serializable]
@@ -243,7 +242,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             CoreUtils.SetKeyword(material, "_MATERIAL_FEATURE_SUBSURFACE_SCATTERING", materialId == MaterialId.LitSSS);
             CoreUtils.SetKeyword(material, "_MATERIAL_FEATURE_TRANSMISSION", materialId == MaterialId.LitTranslucent || (materialId == MaterialId.LitSSS && material.GetFloat(kTransmissionEnable) > 0.0f));
         }
-        
+
         // This function is call by a script to help artists to have up to date material
         // that why it is static
         public static void SynchronizeAllLayers(Material material)
@@ -270,7 +269,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         public static void SynchronizeAllLayersProperties(Material material, Material[] materialLayers, bool excludeUVMappingProperties)
         {
             int numLayer = material.GetLayerCount();
-            
+
             for (int i = 0; i < numLayer; ++i)
             {
                 SynchronizeLayerProperties(material, materialLayers, i, excludeUVMappingProperties);

@@ -1,8 +1,7 @@
 using System;
-using UnityEngine.Rendering;
-using UnityEngine.Serialization;
+using UnityEngine.Experimental.Rendering;
 
-namespace UnityEngine.Experimental.Rendering.HDPipeline
+namespace UnityEngine.Rendering.HighDefinition
 {
     // RenderPipelineSettings define settings that can't be change during runtime. It is equivalent to the GraphicsSettings of Unity (Tiers + shader variant removal).
     // This allow to allocate resource or not for a given feature.

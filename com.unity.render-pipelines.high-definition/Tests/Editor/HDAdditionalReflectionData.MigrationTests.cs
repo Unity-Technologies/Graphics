@@ -2,7 +2,7 @@ using NUnit.Framework;
 using UnityEditor.Experimental.Rendering.TestFramework;
 using UnityEngine.Rendering;
 
-namespace UnityEngine.Experimental.Rendering.HDPipeline.Tests
+namespace UnityEngine.Rendering.HighDefinition.Tests
 {
     public partial class HDAdditionalReflectionDataTests
     {

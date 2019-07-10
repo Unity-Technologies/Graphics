@@ -1,8 +1,8 @@
 using UnityEditor.Rendering;
-using UnityEngine.Experimental.Rendering.HDPipeline;
+using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.Rendering;
 
-namespace UnityEditor.Experimental.Rendering.HDPipeline
+namespace UnityEditor.Rendering.HighDefinition
 {
     [CanEditMultipleObjects]
     [VolumeComponentEditor(typeof(AmbientOcclusion))]
@@ -53,7 +53,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             PropertyField(m_Intensity);
             PropertyField(m_StepCount);
             PropertyField(m_Radius);
-            PropertyField(m_MaximumRadiusInPixels);            
+            PropertyField(m_MaximumRadiusInPixels);
             PropertyField(m_FullResolution);
 
             PropertyField(m_DirectLightingStrength);

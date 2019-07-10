@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine.Assertions;
 using UnityEngine.SceneManagement;
 
-namespace UnityEngine.Experimental.Rendering.HDPipeline
+namespace UnityEngine.Rendering.HighDefinition
 {
     public class SceneObjectIDMap
     {
@@ -250,7 +250,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     break;
                 }
             }
-            
+
             if (index == -1)
             {
                 index = m_Entries.Count;

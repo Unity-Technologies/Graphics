@@ -1,7 +1,7 @@
 using System;
 using UnityEngine.Serialization;
 
-namespace UnityEngine.Experimental.Rendering.HDPipeline
+namespace UnityEngine.Rendering.HighDefinition
 {
     public abstract partial class HDProbe : IVersionable<HDProbe.Version>
     {
