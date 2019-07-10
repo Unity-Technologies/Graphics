@@ -142,10 +142,6 @@ namespace UnityEditor.ShaderGraph
                     dynamicInputSlotsToCompare.Add((DynamicValueMaterialSlot)inputSlot, outputConcreteType);
                     continue;
                 }
-
-                // if we have a standard connection... just check the types work!
-                if (!ImplicitConversionExists(outputConcreteType, inputSlot.concreteValueType))
-                    inputSlot.hasError = true;
             }
 
             m_MultiplyType = GetMultiplyType(dynamicInputSlotsToCompare.Values);
@@ -184,7 +180,7 @@ namespace UnityEditor.ShaderGraph
                     break;
                 // If all vector resolve as per dynamic vector
                 default:
-                    var dynamicVectorType = ConvertDynamicInputTypeToConcrete(dynamicInputSlotsToCompare.Values);
+                    var dynamicVectorType = ConvertDynamicVectorInputTypeToConcrete(dynamicInputSlotsToCompare.Values);
                     foreach (var dynamicKvP in dynamicInputSlotsToCompare)
                         dynamicKvP.Key.SetConcreteType(dynamicVectorType);
                     foreach (var skippedSlot in skippedDynamicSlots)
@@ -232,7 +228,7 @@ namespace UnityEditor.ShaderGraph
                             break;
                         // As per dynamic vector
                         default:
-                            var dynamicVectorType = ConvertDynamicInputTypeToConcrete(dynamicInputSlotsToCompare.Values);
+                            var dynamicVectorType = ConvertDynamicVectorInputTypeToConcrete(dynamicInputSlotsToCompare.Values);
                             (outputSlot as DynamicValueMaterialSlot).SetConcreteType(dynamicVectorType);
                             break;
                     }
@@ -259,43 +255,6 @@ namespace UnityEditor.ShaderGraph
 
             ListPool<DynamicValueMaterialSlot>.Release(skippedDynamicSlots);
             DictionaryPool<DynamicValueMaterialSlot, ConcreteSlotValueType>.Release(dynamicInputSlotsToCompare);
-        }
-
-        protected override bool CalculateNodeHasError(ref string errorMessage)
-        {
-            if (m_MultiplyType == MultiplyType.Matrix)
-            {
-                foreach (var slot in this.GetOutputSlots<ISlot>())
-                {
-                    foreach (var edge in owner.GetEdges(slot.slotReference))
-                    {
-                        var inputNode = owner.GetNodeFromGuid(edge.inputSlot.nodeGuid);
-                        List<MaterialSlot> slots = new List<MaterialSlot>();
-                        inputNode.GetInputSlots(slots);
-                        foreach (var s in slots)
-                        {
-                            if (s is DynamicValueMaterialSlot) continue;
-
-                            foreach (var inputEdge in inputNode.owner.GetEdges(s.slotReference))
-                            {
-                                if (inputEdge != edge)
-                                    continue;
-                                
-                                if (s.concreteValueType != ConcreteSlotValueType.Matrix4
-                                    && s.concreteValueType != ConcreteSlotValueType.Matrix3
-                                    && s.concreteValueType != ConcreteSlotValueType.Matrix2)
-                                {
-                                    errorMessage = "ERROR: slot " + s.displayName +
-                                                   " cannot accept a Matrix type input"; 
-                                    Debug.Log(errorMessage);
-                                    return true;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            return false;
         }
 
         private MultiplyType GetMultiplyType(IEnumerable<ConcreteSlotValueType> inputTypes)

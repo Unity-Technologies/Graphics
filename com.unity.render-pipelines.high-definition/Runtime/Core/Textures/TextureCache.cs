@@ -26,7 +26,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public uint texId;
             // This counter tracks the number of frames since this slice was requested. The mechanic behind this is due to the fact that the number storage of the cache is limited
             public uint countLRU;
-            // Hash that tracks the version of the input texture (allows us to know if it needs an update)  
+            // Hash that tracks the version of the input texture (allows us to know if it needs an update)
             public uint sliceEntryHash;
         }
         // The array of slices  that the cache holds
@@ -45,8 +45,8 @@ namespace UnityEngine.Rendering.HighDefinition
         protected const int k_FP16SizeInByte = 2;
         protected const int k_NbChannel = 4;
         protected const float k_MipmapFactorApprox = 1.33f;
-        internal const int k_MaxSupported = 250; //vary along hardware and cube/2D but 250 should be always safe 
-        
+        internal const int k_MaxSupported = 250; //vary along hardware and cube/2D but 250 should be always safe
+
         protected TextureCache(string cacheName, int sliceSize = 1)
         {
             m_CacheName = cacheName;
@@ -59,7 +59,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             return m_CacheName;
         }
-        
+
         public int GetNumMipLevels()
         {
             return m_NumMipLevels;
