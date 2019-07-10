@@ -1,0 +1,7 @@
+<UXML xmlns:ui="UnityEngine.UIElements">
+    <ui:VisualElement name="pair" picking-mode="Ignore">
+        <ui:VisualElement name="input" picking-mode="Ignore" />
+        <ui:VisualElement name="divider" class="vertical"/>
+        <ui:VisualElement name="output" picking-mode="Ignore" />
+    </ui:VisualElement>
+</UXML>
