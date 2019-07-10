@@ -26,7 +26,6 @@ namespace UnityEditor.ShaderGraph.Drawing
             deleteSelection = DeleteSelectionImplementation;
             RegisterCallback<DragUpdatedEvent>(OnDragUpdatedEvent);
             RegisterCallback<DragPerformEvent>(OnDragPerformEvent);
-            RegisterCallback<MouseDownEvent>(OnMouseDownEvent);
         }
 
         protected override bool canCopySelection
@@ -220,17 +219,6 @@ namespace UnityEditor.ShaderGraph.Drawing
             m.Invoke(null, new object[] {(Action<Color>) ApplyColor, defaultColor, true, false});
         }
 
-        private void OnMouseDownEvent(MouseDownEvent evt)
-        {
-            if(evt.currentTarget is Edge)
-            {
-                int test = 0;
-                test = 1;
-                var temp = test;
-                test = temp;
-            }
-        }
-
         protected override bool canDeleteSelection
         {
             get
@@ -270,7 +258,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
         }
 
-        void AddRedirectNode(Edge edge, Vector2 pos)
+        public void AddRedirectNode(Edge edge, Vector2 pos)
         {
             // Make a new Redirect Node
             AbstractMaterialNode nodeData = new RedirectNodeData();

@@ -12,6 +12,8 @@ using UnityEditor.ShaderGraph.Drawing;
 using UnityEditor.Experimental.GraphView;
 using UnityEditor.ShaderGraph.Drawing.Controls;
 
+using Edge = UnityEditor.Experimental.GraphView.Edge;
+
 namespace UnityEditor.ShaderGraph
 {
     class RedirectNodeView : Node, IShaderNodeView
@@ -54,6 +56,9 @@ namespace UnityEditor.ShaderGraph
 
             SetPosition(new Rect(node.drawState.position.x, node.drawState.position.y, 0, 0));
             AddSlots(node.GetSlots<MaterialSlot>());
+
+            //callbacks
+            RegisterCallback<MouseDownEvent>(OnDoubleClick);
         }
 
         ///////////////////////////////////////////////////////////
@@ -88,6 +93,8 @@ namespace UnityEditor.ShaderGraph
         public void Dispose()
         {
             //Merge input/output pairs into single edges
+            var nodeData = node as RedirectNodeData;
+            nodeData.Disconnect();
 
             node = null;
             ((VisualElement)this).userData = null;
@@ -153,6 +160,18 @@ namespace UnityEditor.ShaderGraph
             //    if (listener != null)
             //        listener.OnNodeModified(scope);
             //}
+        }
+
+        void OnDoubleClick(MouseDownEvent evt)
+        {
+            if(evt.target is Edge)
+            {
+                if (evt.clickCount == 2 && evt.button == 0)
+                {
+                    var mGraph = m_GraphView as MaterialGraphView;
+                    mGraph.AddRedirectNode(evt.target as Edge, evt.localMousePosition);
+                }
+            }
         }
 
         public void UpdatePortInputTypes()

@@ -34,7 +34,7 @@ namespace UnityEditor.ShaderGraph
             name = "Redirect Node";
             m_portPairs = new Dictionary<int, PortPair>();
 
-            //Set the default to collapsed
+            //Set the default state to collapsed
             DrawState temp = drawState;
             temp.expanded = false;
             drawState = temp;
@@ -42,11 +42,34 @@ namespace UnityEditor.ShaderGraph
             AddSlot(new DynamicValueMaterialSlot(m_tempSlotID, m_tempSlotName, m_tempSlotName, SlotType.Input, Matrix4x4.zero));
         }
 
-        //Create and/or destroy input pair
         public virtual void AddPortPair(int index = -1)
         {
             AddSlot(new DynamicValueMaterialSlot(m_inSlotID, m_inSlotName, m_inSlotName, SlotType.Input, Matrix4x4.zero));
             AddSlot(new DynamicValueMaterialSlot(m_outSlotID, m_outSlotName, m_outSlotName, SlotType.Output, Matrix4x4.zero));
+        }
+
+        public void Disconnect()
+        {
+            // @SamH: Hacky, hard-coded single case
+            var node_inSlotRef = GetSlotReference(0);
+            var node_outSlotRef = GetSlotReference(1);
+            
+            var inEdges = owner.GetEdges(node_outSlotRef);
+
+            foreach (var inEdge in inEdges)
+            {
+                if(inEdge.outputSlot.nodeGuid == guid)
+                {
+                    var outEdges = this.owner.GetEdges(node_outSlotRef);
+                    foreach (var outEdge in outEdges)
+                    {
+                        if (outEdge.outputSlot.nodeGuid == guid)
+                        {
+                            owner.Connect(inEdge.inputSlot, outEdge.inputSlot);
+                        }
+                    }
+                }
+            }
         }
 
         public void RemovePortPair(int index)
@@ -72,13 +95,6 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        private void SplitEdge(Edge edge)
-        {
-            AddPortPair();
-            var input = GetSlotReference(m_inSlotID);
-            var output = GetSlotReference(m_outSlotID);
-        }
-
         protected override MethodInfo GetFunctionToConvert()
         {
             return GetType().GetMethod("Unity_Redirect", BindingFlags.Static | BindingFlags.NonPublic);
@@ -96,15 +112,5 @@ namespace UnityEditor.ShaderGraph
 }
 ";
         }
-
-        /*
-         In order to add new logic to expand/collapse behaviors please override the property:
-         public virtual bool expanded {... }
-         
-         And the function:
-         public void RefreshExpandedState(){...}
-         
-         which are both declared on the Node.cs parent class
-         */
     }
 }
