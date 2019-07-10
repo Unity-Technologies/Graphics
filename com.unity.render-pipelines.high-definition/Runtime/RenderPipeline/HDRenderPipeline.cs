@@ -119,6 +119,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         Material m_Blit;
         Material m_BlitTexArray;
+        Material m_BlitTexArraySingleSlice;
         MaterialPropertyBlock m_BlitPropertyBlock = new MaterialPropertyBlock();
 
 
@@ -247,7 +248,7 @@ namespace UnityEngine.Rendering.HighDefinition
         RenderTargetIdentifier[] mMRTSingle = new RenderTargetIdentifier[1];
         string m_ForwardPassProfileName;
 
-        internal Material GetBlitMaterial(bool useTexArray) { return useTexArray ? m_BlitTexArray : m_Blit; }
+        internal Material GetBlitMaterial(bool useTexArray, bool singleSlice) { return useTexArray ? (singleSlice ? m_BlitTexArraySingleSlice : m_BlitTexArray) : m_Blit; }
 
         ComputeBuffer m_DepthPyramidMipLevelOffsetsBuffer = null;
 
@@ -342,7 +343,6 @@ namespace UnityEngine.Rendering.HighDefinition
             m_ApplyDistortionMaterial = CoreUtils.CreateEngineMaterial(defaultResources.shaders.applyDistortionPS);
 
             InitializeDebugMaterials();
-            XRDebugMenu.Reset();
 
             m_MaterialList.ForEach(material => material.Build(asset, defaultResources));
 
@@ -683,7 +683,9 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 m_Blit.EnableKeyword("DISABLE_TEXTURE2D_X_ARRAY");
                 m_BlitTexArray = CoreUtils.CreateEngineMaterial(defaultResources.shaders.blitPS);
-        }
+                m_BlitTexArraySingleSlice = CoreUtils.CreateEngineMaterial(defaultResources.shaders.blitPS);
+                m_BlitTexArraySingleSlice.EnableKeyword("BLIT_SINGLE_SLICE");
+            }
         }
 
         void InitializeRenderStateBlocks()
@@ -736,6 +738,7 @@ namespace UnityEngine.Rendering.HighDefinition
             CoreUtils.Destroy(m_DebugColorPicker);
             CoreUtils.Destroy(m_Blit);
             CoreUtils.Destroy(m_BlitTexArray);
+            CoreUtils.Destroy(m_BlitTexArraySingleSlice);
             CoreUtils.Destroy(m_CopyDepth);
             CoreUtils.Destroy(m_ErrorMaterial);
             CoreUtils.Destroy(m_DownsampleDepthMaterial);
@@ -1169,9 +1172,9 @@ namespace UnityEngine.Rendering.HighDefinition
                     // Select render target
                     RenderTargetIdentifier targetId = camera.targetTexture ?? new RenderTargetIdentifier(BuiltinRenderTextureType.CameraTarget);
 
-                    // XRTODO(2019.3) : remove once XRE-445 is done, use hdCamera.xr.renderTarget directly
-                    if (hdCamera.xr.enabled && hdCamera.xr.tempRenderTexture != null)
-                        targetId = hdCamera.xr.tempRenderTexture;
+                    // Render directly to XR render target if active
+                    if (hdCamera.xr.enabled && hdCamera.xr.renderTargetValid)
+                        targetId = hdCamera.xr.renderTarget;
 
                     // Add render request
                     var request = new RenderRequest
@@ -1558,6 +1561,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             GenericPool<HDCullingResults>.Release(renderRequest.cullingResults);
                         }
 
+                        m_XRSystem.RenderMirrorView(cmd);
                         renderContext.ExecuteCommandBuffer(cmd);
 
                         CommandBufferPool.Release(cmd);
@@ -2030,6 +2034,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 using (new ProfilingSample(cmd, "Final Blit (Dev Build Only)"))
                 {
                     var finalBlitParams = PrepareFinalBlitParameters(hdCamera);
+
+                    // Disable single-pass instancing if we need to a blit only one slice
+                    if (finalBlitParams.sliceIndex >= 0)
+                        hdCamera.xr.StopSinglePass(cmd, hdCamera.camera, renderContext);
+
                     BlitFinalCameraTexture(finalBlitParams, m_BlitPropertyBlock, m_IntermediateAfterPostProcessBuffer, target.id, cmd);
                 }
 
@@ -2086,6 +2095,7 @@ namespace UnityEngine.Rendering.HighDefinition
         struct BlitFinalCameraTextureParameters
         {
             public bool                     flip;
+            public int                      sliceIndex;
             public Rect                     viewport;
             public Material                 blitMaterial;
         }
@@ -2097,8 +2107,11 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             var parameters = new BlitFinalCameraTextureParameters();
 
+            // Blit only the last slice if specified by layout override
+            parameters.sliceIndex = (m_XRSystem.layoutOverride == XRLayoutOverride.TestSinglePassOneEye) ? (hdCamera.viewCount - 1) : -1;
+
             parameters.flip = hdCamera.flipYMode == HDAdditionalCameraData.FlipYMode.ForceFlipY || hdCamera.isMainGameView;
-            parameters.blitMaterial = HDUtils.GetBlitMaterial(TextureXR.useTexArray ? TextureDimension.Tex2DArray : TextureDimension.Tex2D);
+            parameters.blitMaterial = HDUtils.GetBlitMaterial(TextureXR.useTexArray ? TextureDimension.Tex2DArray : TextureDimension.Tex2D, singleSlice: parameters.sliceIndex >= 0);
             parameters.viewport = hdCamera.finalViewport;
 
             return parameters;
@@ -2119,6 +2132,7 @@ namespace UnityEngine.Rendering.HighDefinition
             propertyBlock.SetTexture(HDShaderIDs._BlitTexture, source);
             propertyBlock.SetVector(HDShaderIDs._BlitScaleBias, scaleBias);
             propertyBlock.SetFloat(HDShaderIDs._BlitMipLevel, 0);
+            propertyBlock.SetInt(HDShaderIDs._BlitTexArraySlice, parameters.sliceIndex);
             HDUtils.DrawFullScreen(cmd, parameters.viewport, parameters.blitMaterial, destination, propertyBlock, 0);
         }
 
