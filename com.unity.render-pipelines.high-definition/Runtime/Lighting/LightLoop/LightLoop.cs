@@ -492,6 +492,19 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             && m_FrameSettings.IsEnabled(FrameSettingsField.ComputeLightEvaluation)
             && (m_FrameSettings.IsEnabled(FrameSettingsField.ComputeLightVariants) || m_FrameSettings.IsEnabled(FrameSettingsField.ComputeMaterialVariants));
 
+        // custom-begin:
+        // Accessor for non-hdrp custom render code.
+        public LightList GetLightList()
+        {
+            return m_lightList;
+        }
+
+        public HDShadowManager GetShadowManager()
+        {
+            return m_ShadowManager;
+        }
+        // custom-end
+
         public LightLoop()
         {}
 
@@ -2387,7 +2400,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
             var isProjectionOblique = GeometryUtils.IsProjectionMatrixOblique(m_LightListProjMatrices[0]);
 
-            // If we don't need to run the light list, we still run it for the first frame that is not needed in order to keep the lists in a clean state. 
+            // If we don't need to run the light list, we still run it for the first frame that is not needed in order to keep the lists in a clean state.
             if (!runLightList && m_hasRunLightListPrevFrame)
             {
                 m_hasRunLightListPrevFrame = false;
