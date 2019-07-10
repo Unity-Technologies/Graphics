@@ -1367,7 +1367,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // Data for cached shadow maps.
         Vector2             m_CachedShadowResolution = new Vector2(0,0);
-        Vector2             m_CachedShadowViewport = new Vector2(0, 0);
+        Rect                m_CachedShadowRect = new Rect(0, 0, 0, 0);
         Vector3             m_CachedViewPos = new Vector3(0, 0, 0);
 
 
@@ -1645,7 +1645,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 Vector2     viewportSize = manager.GetReservedResolution(shadowRequestIndex);
 
 
-                shadowIsCached = shadowIsCached && (viewportSize == m_CachedShadowViewport);
+                shadowIsCached = shadowIsCached && (shadowRequest.atlasViewport == m_CachedShadowRect);
 
                 if (shadowRequestIndex == -1)
                     continue;
@@ -1663,7 +1663,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 else
                 {
                     m_CachedViewPos = cameraPos;
-                    m_CachedShadowViewport = viewportSize;
+                    m_CachedShadowRect = shadowRequest.atlasViewport;
                     shadowRequest.shouldUseCachedShadow = false;
                     m_ShadowMapRenderedSinceLastRequest = true;
 
