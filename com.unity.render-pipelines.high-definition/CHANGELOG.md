@@ -26,6 +26,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added occlusion mesh support with XR SDK
 - Added support of Alembic velocity to various shaders
 - Added support for more than 2 views for single-pass instancing
+- Added support for per punctual/directional light min roughness in StackLit
+- Added mirror view support with XR SDK
+- Added VR verification in HDRPWizard
+- Added DXR verification in HDRPWizard
 
 ### Fixed
 - Fixed an issue with history buffers causing effects like TAA or auto exposure to flicker when more than one camera was visible in the editor
@@ -59,7 +63,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed post-processing effect relying on Unity's random number generator
 - Fixed camera flickering when using TAA and selecting the camera in the editor
 - Fixed issue with single shadow debug view and volumetrics
+- Fixed most of the problems with light animation and timeline
 - Fixed indirect deferred compute with XR single-pass instancing
+- Fixed a slight omission in anisotropy calculations derived from HazeMapping in StackLit
+- Improved stack computation numerical stability in StackLit
+- Fix PBR master node always opaque (wrong blend modes for forward pass)
+- Fixed TAA with XR single-pass instancing (missing macros)
 
 ### Changed
 - Optimization: Reduce the group size of the deferred lighting pass from 16x16 to 8x8
@@ -84,6 +93,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Changed how shadow map resolution scaling with distance is computed. Now it uses screen space area rather than light range.
 - Updated MoreOptions display in UI
 - Moved Display Area Light Emissive Mesh script API functions in the editor namespace
+- direct strenght properties in ambient occlusion now affect direct specular as well
+- Removed advanced Specular Occlusion control in StackLit: SSAO based SO control is hidden and fixed to behave like Lit, SPTD is the only HQ technique shown for baked SO.
+- Shader framework refactor: Changed ClampRoughness signature to include PreLightData access.
+- HDRPWizard window is now in Window > General > HD Render Pipeline Wizard
 
 ## [6.7.0-preview] - 2019-05-16
 

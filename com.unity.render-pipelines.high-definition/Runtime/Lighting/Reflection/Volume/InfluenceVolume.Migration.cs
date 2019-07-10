@@ -3,7 +3,7 @@ using UnityEngine.Serialization;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
-    public partial class InfluenceVolume : IVersionable<InfluenceVolume.Version>, ISerializationCallbackReceiver
+    partial class InfluenceVolume : IVersionable<InfluenceVolume.Version>, ISerializationCallbackReceiver
     {
         enum Version
         {

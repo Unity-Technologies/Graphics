@@ -3,7 +3,7 @@ using System.Collections.Generic;
 namespace UnityEngine.Rendering.HighDefinition
 {
 
-    public class CullingGroupManager
+    class CullingGroupManager
     {
         static CullingGroupManager m_Instance;
         static public CullingGroupManager instance

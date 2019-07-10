@@ -73,7 +73,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="camera">The camera associated with the source texture.</param>
         /// <param name="source">The source texture to copy</param>
         /// <param name="targets">The target texture buffer.</param>
-        public void PushCameraTexture(
+        internal void PushCameraTexture(
             CommandBuffer cmd,
             AOVBuffers aovBufferId,
             HDCamera camera,

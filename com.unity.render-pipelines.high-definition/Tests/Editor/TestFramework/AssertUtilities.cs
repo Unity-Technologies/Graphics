@@ -2,9 +2,9 @@ using NUnit.Framework;
 using System;
 using UnityEngine;
 
-namespace UnityEditor.Experimental.Rendering.TestFramework
+namespace UnityEditor.Rendering.TestFramework
 {
-    public static class AssertUtilities
+    static class AssertUtilities
     {
         const float Epsilon = 1e-6f;
 

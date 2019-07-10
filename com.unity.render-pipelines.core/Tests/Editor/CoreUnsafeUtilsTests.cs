@@ -6,7 +6,7 @@ using UnityEngine.Rendering;
 
 namespace UnityEditor.Rendering.Tests
 {
-    public unsafe class CoreUnsafeUtilsTests
+    unsafe class CoreUnsafeUtilsTests
     {
         public struct TestData : IEquatable<TestData>
         {

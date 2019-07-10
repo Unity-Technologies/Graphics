@@ -32,14 +32,13 @@ namespace UnityEngine.Rendering.HighDefinition
         public Light            sunLight;
         public RTHandle         colorBuffer;
         public RTHandle         depthBuffer;
-        public HDCamera         hdCamera;
 
         public DebugDisplaySettings debugSettings;
 
         public static RenderTargetIdentifier nullRT = -1;
     }
 
-    public class SkyManager
+    class SkyManager
     {
         Material                m_StandardSkyboxMaterial; // This is the Unity standard skybox material. Used to pass the correct cubemap to Enlighten.
         Material                m_BlitCubemapMaterial;
@@ -349,14 +348,14 @@ namespace UnityEngine.Rendering.HighDefinition
             if (isRegularPreview)
                 ambientMode = SkyAmbientMode.Static;
 
-            m_CurrentSkyRenderingContext.UpdateEnvironment(m_CurrentSky, hdCamera, sunLight, m_UpdateRequired, ambientMode == SkyAmbientMode.Dynamic, cmd);
+            m_CurrentSkyRenderingContext.UpdateEnvironment(m_CurrentSky, sunLight, m_UpdateRequired, ambientMode == SkyAmbientMode.Dynamic, cmd);
             StaticLightingSky staticLightingSky = GetStaticLightingSky();
             // We don't want to update the static sky during preview because it contains custom lights that may change the result.
             // The consequence is that previews will use main scene static lighting but we consider this to be acceptable.
             if (staticLightingSky != null && !isRegularPreview)
             {
                 m_StaticLightingSky.skySettings = staticLightingSky.skySettings;
-                m_StaticLightingSkyRenderingContext.UpdateEnvironment(m_StaticLightingSky, hdCamera, sunLight, false, true, cmd);
+                m_StaticLightingSkyRenderingContext.UpdateEnvironment(m_StaticLightingSky, sunLight, false, true, cmd);
             }
 
             bool useRealtimeGI = true;

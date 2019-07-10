@@ -11,7 +11,7 @@ using System.Linq.Expressions;
 namespace UnityEditor.Rendering.HighDefinition
 {
     [InitializeOnLoad]
-    public class HDSceneManagement : UnityEditor.AssetPostprocessor
+    class HDSceneManagement : UnityEditor.AssetPostprocessor
     {
         static Func<string, bool> s_CreateEmptySceneAsset;
 

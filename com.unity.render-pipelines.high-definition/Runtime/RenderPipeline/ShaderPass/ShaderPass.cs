@@ -4,7 +4,7 @@
 namespace UnityEngine.Rendering.HighDefinition
 {
     [GenerateHLSL(PackingRules.Exact)]
-    public enum ShaderPass
+    enum ShaderPass
     {
         GBuffer,
         Forward,

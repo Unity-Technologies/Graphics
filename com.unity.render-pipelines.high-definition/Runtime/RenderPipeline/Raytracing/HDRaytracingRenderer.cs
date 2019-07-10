@@ -17,7 +17,7 @@ namespace UnityEngine.Rendering.HighDefinition
     }
 
 #if ENABLE_RAYTRACING
-    public class HDRaytracingRenderer
+    class HDRaytracingRenderer
     {
         // External structures
         HDRenderPipelineAsset m_PipelineAsset = null;
@@ -135,7 +135,7 @@ namespace UnityEngine.Rendering.HighDefinition
             RecursiveRendering recursiveSettings = VolumeManager.instance.stack.GetComponent<RecursiveRendering>();
 
             // Check the validity of the state before computing the effect
-            bool invalidState = rtEnvironment == null || !recursiveSettings.enable.value 
+            bool invalidState = rtEnvironment == null || !recursiveSettings.enable.value
             || m_PipelineAsset.currentPlatformRenderPipelineSettings.supportedRaytracingTier == RenderPipelineSettings.RaytracingTier.Tier1;
 
             // If any resource or game-object is missing We stop right away

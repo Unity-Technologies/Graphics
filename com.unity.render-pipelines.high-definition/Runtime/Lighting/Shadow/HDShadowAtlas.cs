@@ -6,7 +6,7 @@ namespace UnityEngine.Rendering.HighDefinition
 {
     using RTHandle = RTHandleSystem.RTHandle;
 
-    public partial class HDShadowAtlas
+    partial class HDShadowAtlas
     {
         public enum BlurAlgorithm
         {

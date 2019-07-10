@@ -164,6 +164,7 @@ Pass
     $Material.Transmission:                              #define _MATERIAL_FEATURE_TRANSMISSION
     $AnisotropyForAreaLights:                            #define _ANISOTROPY_FOR_AREA_LIGHTS
     $RecomputeStackPerLight:                             #define _VLAYERED_RECOMPUTE_PERLIGHT
+    $HonorPerLightMinRoughness:                          #define _STACK_LIT_HONORS_LIGHT_MIN_ROUGHNESS
     $ShadeBaseUsingRefractedAngles:                      #define _VLAYERED_USE_REFRACTED_ANGLES_FOR_BASE
     $StackLitDebug:                                      #define _STACKLIT_DEBUG
     $DepthOffset:                                        #define _DEPTHOFFSET_ON 1

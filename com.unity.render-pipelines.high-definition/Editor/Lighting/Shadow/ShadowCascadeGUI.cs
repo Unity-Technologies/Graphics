@@ -5,7 +5,7 @@ using UnityEditor.Rendering;
 
 namespace UnityEditor
 {
-    public static class ShadowCascadeGUI
+    static class ShadowCascadeGUI
     {
         private const int kSliderbarTopMargin = 2;
         private const int kSliderbarHeight = 24;
@@ -273,7 +273,7 @@ namespace UnityEditor
 
             GUI.color = origTextColor;
             GUI.backgroundColor = origBackgroundColor;
-            
+
             switch (eventType)
             {
                 case EventType.MouseDown:
@@ -357,7 +357,7 @@ namespace UnityEditor
                 throw new ArgumentException("Cascade amount must be strictly positive");
 
             uint splitCount = cascadeCount - 1;
-            
+
             if (splitCount > splits.Length)
                 throw new ArgumentException("Cannot use more splits than provided.");
 

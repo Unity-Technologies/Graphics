@@ -4,7 +4,7 @@ namespace UnityEditor.Rendering.HighDefinition
 {
     [CustomEditor(typeof(HDRenderPipelineAsset))]
     [CanEditMultipleObjects]
-    public sealed class HDRenderPipelineEditor : Editor
+    sealed class HDRenderPipelineEditor : Editor
     {
         SerializedHDRenderPipelineAsset m_SerializedHDRenderPipeline;
 

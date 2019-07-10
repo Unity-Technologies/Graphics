@@ -6,7 +6,7 @@ namespace UnityEditor.Rendering.HighDefinition
 {
     [CanEditMultipleObjects]
     [VolumeComponentEditor(typeof(GlobalIllumination))]
-    public class GlobalIlluminatorEditor : VolumeComponentEditor
+    class GlobalIlluminatorEditor : VolumeComponentEditor
     {
         SerializedDataParameter m_EnableRayTracing;
         SerializedDataParameter m_RayLength;

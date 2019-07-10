@@ -12,7 +12,7 @@ namespace UnityEditor.Rendering.HighDefinition
 {
     using UnityObject = UnityEngine.Object;
 
-    public class HDRenderPipelineMenuItems
+    class HDRenderPipelineMenuItems
     {
         // Function used only to check performance of data with and without tessellation
         //[MenuItem("Internal/HDRP/Test/Remove tessellation materials (not reversible)")]

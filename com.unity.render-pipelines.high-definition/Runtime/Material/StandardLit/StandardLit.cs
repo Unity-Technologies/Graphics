@@ -1,6 +1,6 @@
 namespace UnityEngine.Rendering.HighDefinition
 {
-    public partial class StandardLit
+    partial class StandardLit
     {
         //-----------------------------------------------------------------------------
         // BSDFData

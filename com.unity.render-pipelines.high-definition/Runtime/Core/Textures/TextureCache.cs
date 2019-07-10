@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using UnityEditor;
 #endif
 
-namespace UnityEngine.Rendering
+namespace UnityEngine.Rendering.HighDefinition
 {
     // This class allows us to map each of texture to an internal Slice structure. The set of slices that have been produced are then stored into a child-class specific structure
-    public abstract class TextureCache
+    abstract class TextureCache
     {
         // Name that identifies the texture cache (Mainly used to generate the storage texture name)
         protected string m_CacheName;

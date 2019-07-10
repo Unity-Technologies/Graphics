@@ -2,7 +2,7 @@ using System.Collections.Generic;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
-    public class DensityVolumeManager
+    class DensityVolumeManager
     {
         static private DensityVolumeManager _instance = null;
 

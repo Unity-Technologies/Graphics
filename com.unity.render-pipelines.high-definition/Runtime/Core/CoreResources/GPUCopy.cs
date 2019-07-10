@@ -1,6 +1,6 @@
 namespace UnityEngine.Rendering
 {
-    public class GPUCopy
+    class GPUCopy
     {
         ComputeShader m_Shader;
         int k_SampleKernel_xyzw2x_8;

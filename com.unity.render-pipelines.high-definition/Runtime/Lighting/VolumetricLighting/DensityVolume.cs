@@ -96,7 +96,7 @@ namespace UnityEngine.Rendering.HighDefinition
             distanceFadeEnd   = Mathf.Max(distanceFadeStart, distanceFadeEnd);
         }
 
-        public DensityVolumeEngineData ConvertToEngineData()
+        internal DensityVolumeEngineData ConvertToEngineData()
         {
             DensityVolumeEngineData data = new DensityVolumeEngineData();
 
@@ -141,7 +141,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public Action OnTextureUpdated;
 
         //Gather and Update any parameters that may have changed
-        public void PrepareParameters(bool animate, float time)
+        internal void PrepareParameters(bool animate, float time)
         {
             //Texture has been updated notify the manager
             if (previousVolumeMask != parameters.volumeMask)

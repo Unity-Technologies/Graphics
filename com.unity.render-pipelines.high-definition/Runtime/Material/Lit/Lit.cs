@@ -3,7 +3,7 @@ using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
-    public partial class Lit : RenderPipelineMaterial
+    partial class Lit : RenderPipelineMaterial
     {
         // Currently we have only one materialId (Standard GGX), so it is not store in the GBuffer and we don't test for it
 
