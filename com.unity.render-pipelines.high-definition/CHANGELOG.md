@@ -65,6 +65,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed indirect deferred compute with XR single-pass instancing
 - Fixed a slight omission in anisotropy calculations derived from HazeMapping in StackLit
 - Improved stack computation numerical stability in StackLit
+- Fix PBR master node always opaque (wrong blend modes for forward pass)
 
 ### Changed
 - Optimization: Reduce the group size of the deferred lighting pass from 16x16 to 8x8

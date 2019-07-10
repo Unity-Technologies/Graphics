@@ -51,6 +51,7 @@ namespace UnityEditor.Rendering.HighDefinition
             MaterialName = "Unlit",
             ShaderPassName = "SHADERPASS_SHADOWS",
             ColorMaskOverride = "ColorMask 0",
+            ZWriteOverride = "ZWrite On",
             ExtraDefines = new List<string>(),
             Includes = new List<string>()
             {
@@ -73,7 +74,6 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 var masterNode = node as UnlitMasterNode;
                 GetCullMode(masterNode.twoSided.isOn, ref pass);
-                GetZWrite(masterNode.surfaceType, ref pass);
             }
         };
 
