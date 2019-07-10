@@ -2170,11 +2170,16 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 #endif
 
-            Vector3 lossyToLocalScale = new Vector3(
-                lightSize.x / transform.parent.lossyScale.x,
-                lightSize.y / transform.parent.lossyScale.y,
-                lightSize.z / transform.parent.lossyScale.z
-            );
+            Vector3 lossyToLocalScale = lightSize;
+            if (transform.parent != null)
+            {
+                lossyToLocalScale = new Vector3(
+                    lightSize.x / transform.parent.lossyScale.x,
+                    lightSize.y / transform.parent.lossyScale.y,
+                    lightSize.z / transform.parent.lossyScale.z
+                );
+            }
+
             legacyLight.transform.localScale = lossyToLocalScale;
 
             switch (lightTypeExtent)
@@ -2612,8 +2617,9 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             if (IsAreaLight(lightTypeExtent))
             {
-                shapeWidth = size.x;
-                shapeHeight = size.y;
+                m_ShapeWidth = size.x;
+                m_ShapeHeight = size.y;
+                UpdateAllLightValues();
             }
         }
 
