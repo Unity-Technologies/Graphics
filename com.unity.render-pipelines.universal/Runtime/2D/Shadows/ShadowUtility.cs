@@ -189,11 +189,13 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             int numberOfOutsideEdges = meshInfo.numberOfOutsideEdges;
             int[] triangles = new int[meshInfo.triangles.Length + 3 * numberOfOutsideEdges];
             Vector3[] vertices = new Vector3[meshInfo.vertices.Length + numberOfOutsideEdges];
+            Color[] colors = new Color[meshInfo.vertices.Length + numberOfOutsideEdges];
             Vector4[] tangents = new Vector4[meshInfo.vertices.Length + numberOfOutsideEdges];
 
             for (int i = 0; i < meshInfo.vertices.Length; i++)
             {
                 vertices[i] = meshInfo.vertices[i];
+                colors[i] = Color.black;
                 tangents[i] = Vector3.zero;
             }
 
@@ -203,6 +205,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             meshInfo.mesh.vertices = vertices;
             meshInfo.mesh.triangles = triangles;
             meshInfo.mesh.tangents = tangents;
+            meshInfo.mesh.colors = colors;
             meshInfo.mesh.UploadMeshData(false);
         }
 
@@ -264,6 +267,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
 
                     Vector3[] vertices = mesh.vertices;
                     Vector4[] tangents = mesh.tangents;
+                    Color[] colors = mesh.colors;
                     int[] triangles = mesh.triangles;
 
 
@@ -273,6 +277,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                     if (!currentEdge.swapped)
                     {
                         vertices[newVertIndex] = vertex0;
+                        colors[newVertIndex] = Color.white;
                         tangents[currentEdge.vertexIndex1] = v4Tangent;
                         triangles[newTriIndex] = currentEdge.vertexIndex0;
                         triangles[newTriIndex + 2] = currentEdge.vertexIndex1;
@@ -280,10 +285,10 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                     else
                     {
                         vertices[newVertIndex] = vertex1;
+                        colors[newVertIndex] = Color.white;
                         tangents[currentEdge.vertexIndex0] = v4Tangent;
                         triangles[newTriIndex] = currentEdge.vertexIndex1;
                         triangles[newTriIndex + 2] = currentEdge.vertexIndex0;
-                        
                     }
 
                     mesh.vertices = vertices;
