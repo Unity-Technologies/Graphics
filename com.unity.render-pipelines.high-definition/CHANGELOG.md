@@ -85,6 +85,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Changed how shadow map resolution scaling with distance is computed. Now it uses screen space area rather than light range.
 - Updated MoreOptions display in UI
 - Moved Display Area Light Emissive Mesh script API functions in the editor namespace
+- direct strenght properties in ambient occlusion now affect direct specular as well
 
 ## [6.7.0-preview] - 2019-05-16
 
