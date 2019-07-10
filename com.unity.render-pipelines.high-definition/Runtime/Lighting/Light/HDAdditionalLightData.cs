@@ -337,7 +337,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (!IsValidLightUnitForType(legacyLight.type, m_LightTypeExtent, value))
                 {
                     var supportedTypes = String.Join(", ", GetSupportedLightUnits(legacyLight.type, m_LightTypeExtent));
-                    Debug.LogError($"Set Light Unit '{value}' to a {GetLightTypeName()} is not allowed, only {supportedTypes} are supprted.");
+                    Debug.LogError($"Set Light Unit '{value}' to a {GetLightTypeName()} is not allowed, only {supportedTypes} are supported.");
                     return;
                 }
 
@@ -2015,7 +2015,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     break;
             }
 
-            // Sanity check: lightData.lightTypeExtent is init to LightTypeExtent.Punctual (in case for unknow reasons we recreate additional data on an existing line)
+            // Sanity check: lightData.lightTypeExtent is init to LightTypeExtent.Punctual (in case for unknown reasons we recreate additional data on an existing line)
             if (light.type == LightType.Rectangle && lightData.lightTypeExtent == LightTypeExtent.Punctual)
             {
                 lightData.lightTypeExtent = LightTypeExtent.Rectangle;
