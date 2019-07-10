@@ -551,7 +551,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 ShaderUtil.ClearCachedData(shaderData.shader);
             }
 
-            BeginCompile(masterRenderData, shaderData.shaderString, masterNode.GetActiveSubShader()?.GetPreviewPassIndex() ?? 0);
+            BeginCompile(masterRenderData, shaderData.shaderString, masterNode.GetPreviewPassIndex());
         }
 
         void DestroyRenderData(PreviewRenderData renderData)
