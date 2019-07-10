@@ -36,7 +36,6 @@ namespace UnityEditor.ShaderGraph
             // Styling
             styleSheets.Add(Resources.Load<StyleSheet>("Styles/RedirectNodeView"));
             AddToClassList("redirect-node");
-            //AddToClassList("expanded");
 
             if (inNode == null)
                 return;
@@ -88,7 +87,7 @@ namespace UnityEditor.ShaderGraph
 
         public void Dispose()
         {
-
+            //Merge input/output pairs into single edges
 
             node = null;
             ((VisualElement)this).userData = null;

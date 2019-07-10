@@ -26,6 +26,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             deleteSelection = DeleteSelectionImplementation;
             RegisterCallback<DragUpdatedEvent>(OnDragUpdatedEvent);
             RegisterCallback<DragPerformEvent>(OnDragPerformEvent);
+            RegisterCallback<MouseDownEvent>(OnMouseDownEvent);
         }
 
         protected override bool canCopySelection
@@ -175,8 +176,13 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
             else if(evt.target is Edge)
             {
+                Edge test = evt.target as Edge;
                 evt.menu.AppendSeparator();
-                evt.menu.AppendAction("Add Redirect Node", AddRedirectNode, (a) => DropdownMenuAction.Status.Normal);
+                evt.menu.AppendAction("Add Redirect Node", menuAction =>
+                {
+                    AddRedirectNode(test, menuAction.eventInfo.localMousePosition);
+                },
+                (a) => DropdownMenuAction.Status.Normal);
             }
         }
 
@@ -212,6 +218,17 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
             graph.owner.RegisterCompleteObjectUndo("Change Node Color");
             m.Invoke(null, new object[] {(Action<Color>) ApplyColor, defaultColor, true, false});
+        }
+
+        private void OnMouseDownEvent(MouseDownEvent evt)
+        {
+            if(evt.currentTarget is Edge)
+            {
+                int test = 0;
+                test = 1;
+                var temp = test;
+                test = temp;
+            }
         }
 
         protected override bool canDeleteSelection
@@ -253,19 +270,33 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
         }
 
-        void AddRedirectNode(DropdownMenuAction action)
+        void AddRedirectNode(Edge edge, Vector2 pos)
         {
             // Make a new Redirect Node
             AbstractMaterialNode nodeData = new RedirectNodeData();
             var drawstate = nodeData.drawState;
-            drawstate.position = new Rect(action.eventInfo.localMousePosition, Vector2.zero);
+            drawstate.position = new Rect(pos, Vector2.zero);
             nodeData.drawState = drawstate;
 
             graph.owner.RegisterCompleteObjectUndo("Add " + nodeData.name);
             graph.AddNode(nodeData);
 
-            // How to ensure we get the edge we clicked on??
-            // Make a new port and connect it to the 
+            // Sanity check
+            if (edge != null)
+            {
+                var edge_outSlot = edge.output.GetSlot();
+                var edge_inSlot = edge.input.GetSlot();
+            
+                var edge_outSlotRef = edge_outSlot.owner.GetSlotReference(edge_outSlot.id);
+                var edge_inSlotRef = edge_inSlot.owner.GetSlotReference(edge_inSlot.id);
+            
+                // @SamH: HACKY!!! BAD!! Hard-coded nonsense :blep:
+                var node_inSlotRef = nodeData.GetSlotReference(0);
+                var node_outSlotRef = nodeData.GetSlotReference(1);
+            
+                graph.Connect(edge_outSlotRef, node_inSlotRef);
+                graph.Connect(node_outSlotRef, edge_inSlotRef);
+            }
         }
 
         void CollapsePreviews(DropdownMenuAction action)

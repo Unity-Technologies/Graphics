@@ -34,6 +34,11 @@ namespace UnityEditor.ShaderGraph
             name = "Redirect Node";
             m_portPairs = new Dictionary<int, PortPair>();
 
+            //Set the default to collapsed
+            DrawState temp = drawState;
+            temp.expanded = false;
+            drawState = temp;
+
             AddSlot(new DynamicValueMaterialSlot(m_tempSlotID, m_tempSlotName, m_tempSlotName, SlotType.Input, Matrix4x4.zero));
         }
 

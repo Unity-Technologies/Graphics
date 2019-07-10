@@ -83,6 +83,7 @@
 
 /******************* Collapsed *******************/
 .node.collapsed {
+    background-color: rgba(192, 192, 192, 1);
     height: 25px;
     width: 25px;
 }
@@ -93,30 +94,30 @@
     position: absolute;
     left: 7.5px;
     right: 0;
-    top: 6px;
+    top: 7px;
     bottom: 0;
 }
 
-/******************* Expanded *******************/
-.node.collapsed {
-    background-color: rgba(192, 192, 192, 1.0);
-    height: 25px;
-    width: 25px;
-}
-
-.node.collapsed #contents {
-    height: 0px;
+.node.collapsed #title {
+    flex-direction: row;
+    justify-content: space-between;
+    background-color: rgba(63,63,63,0.0);
+    border-color: rgba(0,0,0,0);
     width: 0px;
-    position: absolute;
-    left: 7.5px;
-    right: 0;
-    top: 6px;
-    bottom: 0;
+}
+
+.node.collapsed #title-label {
+    color: rgba(63,63,63,0.0);
 }
 
 .node.collapsed #collapse-button {
-    width: 28px;
+    width: 8px;
+    position: absolute;
+    left: 0px;
     flex-direction: column;
-    justify-content: center;
-    padding-left: 4px;
+    justify-content: flex-start;
+    padding-left: 0px;
 }
+
+
+/******************* Expanded *******************/
