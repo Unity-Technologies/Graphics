@@ -408,7 +408,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     }
 
                     if (!isCompiled)
-                    {
+                {
                         continue;
                     }
 
