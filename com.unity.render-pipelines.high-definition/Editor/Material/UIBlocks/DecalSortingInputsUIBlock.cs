@@ -1,15 +1,15 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Experimental.Rendering.HDPipeline;
+using UnityEngine.Rendering.HighDefinition;
 using System.Linq;
 
 // Include material common properties names
-using static UnityEngine.Experimental.Rendering.HDPipeline.HDMaterialProperties;
+using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
 
-namespace UnityEditor.Experimental.Rendering.HDPipeline
+namespace UnityEditor.Rendering.HighDefinition
 {
-    public class DecalSortingInputsUIBlock : MaterialUIBlock
+    class DecalSortingInputsUIBlock : MaterialUIBlock
     {
         [Flags]
         public enum Features
@@ -23,7 +23,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         public class Styles
         {
             public const string header = "Sorting Inputs";
-            
+
  			public static GUIContent meshDecalDepthBiasText = new GUIContent("Mesh Decal Depth Bias", "Sets a depth bias to stop the decal's Mesh from overlapping with other Meshes.");
 	 		public static GUIContent drawOrderText = new GUIContent("Draw Order", "Controls the draw order of Decal Projectors. HDRP draws decals with lower values first.");
         }
@@ -45,7 +45,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         public override void LoadMaterialProperties()
         {
-            decalMeshDepthBias = FindProperty(kDecalMeshDepthBias);            
+            decalMeshDepthBias = FindProperty(kDecalMeshDepthBias);
             drawOrder = FindProperty(kDrawOrder);
         }
 
@@ -63,7 +63,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         void DrawSortingInputsGUI()
         {
             materialEditor.ShaderProperty(drawOrder, Styles.drawOrderText);
-            materialEditor.ShaderProperty(decalMeshDepthBias, Styles.meshDecalDepthBiasText);                    
+            materialEditor.ShaderProperty(decalMeshDepthBias, Styles.meshDecalDepthBiasText);
         }
     }
 }

@@ -932,9 +932,9 @@ namespace UnityEditor.ShaderGraph
             using (vertexInputs.BlockSemicolonScope())
             {
                 vertexInputs.AppendLine("float4 vertex : POSITION;");
-                if(graphRequiements.requiresNormal != NeededCoordinateSpace.None)
+                if(graphRequiements.requiresNormal != NeededCoordinateSpace.None || graphRequiements.requiresBitangent != NeededCoordinateSpace.None)
                     vertexInputs.AppendLine("float3 normal : NORMAL;");
-                if(graphRequiements.requiresTangent != NeededCoordinateSpace.None)
+                if(graphRequiements.requiresTangent != NeededCoordinateSpace.None || graphRequiements.requiresBitangent != NeededCoordinateSpace.None)
                     vertexInputs.AppendLine("float4 tangent : TANGENT;");
                 if (graphRequiements.requiresVertexColor)
                 {
@@ -1161,6 +1161,11 @@ namespace UnityEditor.ShaderGraph
 
                 foreach (var channel in requirements.requiresMeshUVs.Distinct())
                     sb.AppendLine("half4 {0};", channel.GetUVName());
+
+                if (requirements.requiresTime)
+                {
+                    sb.AppendLine("float3 {0};", ShaderGeneratorNames.TimeParameters);
+                }
             }
         }
 
@@ -1185,6 +1190,11 @@ namespace UnityEditor.ShaderGraph
 
             foreach (var channel in requirements.requiresMeshUVs.Distinct())
                 sb.AppendLine($"{variableName}.{channel.GetUVName()} = IN.{channel.GetUVName()};");
+
+            if (requirements.requiresTime)
+            {
+                sb.AppendLine($"{variableName}.{ShaderGeneratorNames.TimeParameters} = IN.{ShaderGeneratorNames.TimeParameters};");
+            }
         }
 
         public static void GenerateSurfaceDescriptionStruct(ShaderStringBuilder surfaceDescriptionStruct, List<MaterialSlot> slots, string structName = "SurfaceDescription", HashSet<string> activeFields = null, bool useIdsInNames = false)
@@ -1467,43 +1477,6 @@ namespace UnityEditor.ShaderGraph
             }
 
             return string.Format(duplicateFormat, name, duplicateNumber);
-        }
-
-        public static SlotValueType ToSlotValueType(this ConcreteSlotValueType concreteValueType)
-        {
-            switch(concreteValueType)
-            {
-                case ConcreteSlotValueType.SamplerState:
-                    return SlotValueType.SamplerState;
-                case ConcreteSlotValueType.Matrix2:
-                    return SlotValueType.Matrix2;
-                case ConcreteSlotValueType.Matrix3:
-                    return SlotValueType.Matrix3;
-                case ConcreteSlotValueType.Matrix4:
-                    return SlotValueType.Matrix4;
-                case ConcreteSlotValueType.Texture2D:
-                    return SlotValueType.Texture2D;
-                case ConcreteSlotValueType.Texture2DArray:
-                    return SlotValueType.Texture2DArray;
-                case ConcreteSlotValueType.Texture3D:
-                    return SlotValueType.Texture3D;
-                case ConcreteSlotValueType.Cubemap:
-                    return SlotValueType.Cubemap;
-                case ConcreteSlotValueType.Gradient:
-                    return SlotValueType.Gradient;
-                case ConcreteSlotValueType.Vector4:
-                    return SlotValueType.Vector4;
-                case ConcreteSlotValueType.Vector3:
-                    return SlotValueType.Vector3;
-                case ConcreteSlotValueType.Vector2:
-                    return SlotValueType.Vector2;
-                case ConcreteSlotValueType.Vector1:
-                    return SlotValueType.Vector1;
-                case ConcreteSlotValueType.Boolean:
-                    return SlotValueType.Boolean;
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }
         }
 
         public static bool WriteToFile(string path, string content)

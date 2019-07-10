@@ -47,10 +47,10 @@ real PerceptualRoughnessToMipmapLevel(real perceptualRoughness, real NdotR)
     real m = PerceptualRoughnessToRoughness(perceptualRoughness);
 
     // Remap to spec power. See eq. 21 in --> https://dl.dropboxusercontent.com/u/55891920/papers/mm_brdf.pdf
-    real n = (2.0 / max(FLT_EPS, m * m)) - 2.0;
+    real n = (2.0 / max(REAL_EPS, m * m)) - 2.0;
 
     // Remap from n_dot_h formulation to n_dot_r. See section "Pre-convolved Cube Maps vs Path Tracers" --> https://s3.amazonaws.com/docs.knaldtech.com/knald/1.0.0/lys_power_drops.html
-    n /= (4.0 * max(NdotR, FLT_EPS));
+    n /= (4.0 * max(NdotR, REAL_EPS));
 
     // remap back to square root of real roughness (0.25 include both the sqrt root of the conversion and sqrt for going from roughness to perceptualRoughness)
     perceptualRoughness = pow(2.0 / (n + 2.0), 0.25);
@@ -361,7 +361,7 @@ real4 IntegrateGGXAndDisneyDiffuseFGD(real NdotV, real roughness, uint sampleCou
     // Therefore, we don't really want to clamp NdotV here (else the lerp slope is wrong).
     // However, if NdotV is 0, the integral is 0, so that's not what we want, either.
     // Our runtime NdotV bias is quite large, so we use a smaller one here instead.
-    NdotV     = max(NdotV, FLT_EPS);
+    NdotV     = max(NdotV, REAL_EPS);
     real3 V   = real3(sqrt(1 - NdotV * NdotV), 0, NdotV);
     real4 acc = real4(0.0, 0.0, 0.0, 0.0);
 
@@ -422,7 +422,7 @@ uint GetIBLRuntimeFilterSampleCount(uint mipLevel)
     {
         case 1: sampleCount = 21; break;
         case 2: sampleCount = 34; break;
-#ifdef SHADER_API_MOBILE
+#if defined(SHADER_API_MOBILE) || defined(SHADER_API_SWITCH)
         case 3: sampleCount = 34; break;
         case 4: sampleCount = 34; break;
         case 5: sampleCount = 34; break;
@@ -546,7 +546,7 @@ real4 IntegrateLD(TEXTURECUBE_PARAM(tex, sampl),
         lightInt += F * G * val;
         cbsdfInt += F * G;
     #else
-        // Use the approximation from "Real Shading in Unreal Engine 4": Weight ≈ NdotL.
+        // Use the approximation from "Real Shading in Unreal Engine 4": Weight ~ NdotL.
         lightInt += NdotL * val;
         cbsdfInt += NdotL;
     #endif
@@ -599,7 +599,7 @@ real4 IntegrateLDCharlie(TEXTURECUBE_PARAM(tex, sampl),
 
         // We are in the supposition that N == V
         float LdotV, NdotH, LdotH, invLenLV;
-        GetBSDFAngle(V, L, NdotL, NdotV, LdotV, NdotH, LdotH, NdotV, invLenLV);
+        GetBSDFAngle(V, L, NdotL, NdotV, LdotV, NdotH, LdotH, invLenLV);
 
         // BRDF data
         real F = 1;
@@ -633,7 +633,7 @@ real4 IntegrateLDCharlie(TEXTURECUBE_PARAM(tex, sampl),
         // TODO: use a Gaussian-like filter to generate the MIP pyramid.
         real3 val = SAMPLE_TEXTURECUBE_LOD(tex, sampl, L, mipLevel).rgb;
 
-        // Use the approximation from "Real Shading in Unreal Engine 4": Weight ≈ NdotL.
+        // Use the approximation from "Real Shading in Unreal Engine 4": Weight ~ NdotL.
         lightInt +=  val * F * D * Vis;
         cbsdfInt += F * D * Vis;
     }
@@ -730,7 +730,7 @@ real4 IntegrateLD_MIS(TEXTURECUBE_PARAM(envMap, sampler_envMap),
                 // CBSDF  = F * D * G * NdotL / (4 * NdotL * NdotV) = F * D * G / (4 * NdotV).
                 // Weight = CBSDF / PDF.
                 // We use two approximations of Brian Karis from "Real Shading in Unreal Engine 4":
-                // (F * G ≈ NdotL) && (NdotV == 1).
+                // (F * G ~ NdotL) && (NdotV == 1).
                 // Weight = D * NdotL / (4 * PDF).
                 // *********************************************************************************
 
@@ -743,7 +743,7 @@ real4 IntegrateLD_MIS(TEXTURECUBE_PARAM(envMap, sampler_envMap),
     }
 
     // Prevent NaNs arising from the division of 0 by 0.
-    cbsdfInt = max(cbsdfInt, FLT_EPS);
+    cbsdfInt = max(cbsdfInt, REAL_EPS);
 
     return real4(lightInt / cbsdfInt, 1.0);
 }

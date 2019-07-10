@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using UnityEngine.Rendering;
+using UnityEngine.Experimental.Rendering;
 
-namespace UnityEngine.Experimental.Rendering.HDPipeline
+namespace UnityEngine.Rendering.HighDefinition
 {
     using AntialiasingMode = HDAdditionalCameraData.AntialiasingMode;
 
@@ -63,6 +63,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public bool volumetricHistoryIsValid   = false; // Contains garbage otherwise
         public int  colorPyramidHistoryMipCount = 0;
         public VBufferParameters[] vBufferParams; // Double-buffered
+
+        float m_AmbientOcclusionResolutionScale = 0.0f; // Factor used to track if history should be reallocated for Ambient Occlusion
 
         public bool sceneLightingWasDisabledForCamera = false;
 
@@ -247,10 +249,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             // Handle memory allocation.
             {
-                bool isColorPyramidHistoryRequired = m_frameSettings.IsEnabled(FrameSettingsField.SSR); // TODO: TAA as well
+                bool isColorPyramidHistoryRequired = m_frameSettings.IsEnabled(FrameSettingsField.SSR) || antialiasing == AntialiasingMode.TemporalAntialiasing; // TODO: Also need 2 when color buffer is requested on the camera
                 bool isVolumetricHistoryRequired = m_frameSettings.IsEnabled(FrameSettingsField.Volumetrics) && m_frameSettings.IsEnabled(FrameSettingsField.ReprojectionForVolumetrics);
 
-                int numColorPyramidBuffersRequired = isColorPyramidHistoryRequired ? 2 : 1; // TODO: 1 -> 0
+                int numColorPyramidBuffersRequired = isColorPyramidHistoryRequired ? 2 : 1; // TODO: 1 -> 0. Only one is needed when only distortion or refraction or enabled (none of the cases above)
                 int numVolumetricBuffersRequired = isVolumetricHistoryRequired ? 2 : 0; // History + feedback
 
                 if ((m_NumColorPyramidBuffersAllocated != numColorPyramidBuffersRequired) ||
@@ -270,7 +272,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         colorPyramidHistoryIsValid = false;
                     }
 
-                    hdrp.InitializeVolumetricLightingPerCameraData(this, numVolumetricBuffersRequired);
+                    hdrp.InitializeVolumetricLightingPerCameraData(this, numVolumetricBuffersRequired, RTHandles.defaultRTHandleSystem);
 
                     // Mark as init.
                     m_NumColorPyramidBuffersAllocated = numColorPyramidBuffersRequired;
@@ -306,7 +308,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             Vector2Int nonScaledViewport = new Vector2Int(m_ActualWidth, m_ActualHeight);
             if (isMainGameView)
             {
-                Vector2Int scaledSize = HDDynamicResolutionHandler.instance.GetRTHandleScale(new Vector2Int(m_ActualWidth, m_ActualHeight));
+                Vector2Int scaledSize = DynamicResolutionHandler.instance.GetRTHandleScale(new Vector2Int(m_ActualWidth, m_ActualHeight));
                 m_ActualWidth = scaledSize.x;
                 m_ActualHeight = scaledSize.y;
             }
@@ -613,19 +615,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        // Stopgap method used to extract stereo combined matrix state.
-        public void UpdateStereoDependentState(ref ScriptableCullingParameters cullingParams)
-        {
-            // XRTODO: remove this after culling management is finished
-            if (xr.instancingEnabled)
-            {
-                var view = cullingParams.stereoViewMatrix;
-                var proj = cullingParams.stereoProjectionMatrix;
-
-                UpdateViewConstants(ref mainViewConstants, proj, view, cullingParams.origin, IsTAAEnabled(), false);
-            }
-        }
-
         // XRTODO: this function should not rely on camera.pixelWidth and camera.pixelHeight
         Matrix4x4 GetJitteredProjectionMatrix(Matrix4x4 origProj)
         {
@@ -829,11 +818,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             float  dt = Time.deltaTime;
             float sdt = Time.smoothDeltaTime;
 
-            cmd.SetGlobalVector(HDShaderIDs._Time,           new Vector4(ct * 0.05f, ct, ct * 2.0f, ct * 3.0f));
-            cmd.SetGlobalVector(HDShaderIDs._LastTime,       new Vector4(pt * 0.05f, pt, pt * 2.0f, pt * 3.0f));
-            cmd.SetGlobalVector(HDShaderIDs.unity_DeltaTime, new Vector4(dt, 1.0f / dt, sdt, 1.0f / sdt));
-            cmd.SetGlobalVector(HDShaderIDs._SinTime,        new Vector4(Mathf.Sin(ct * 0.125f), Mathf.Sin(ct * 0.25f), Mathf.Sin(ct * 0.5f), Mathf.Sin(ct)));
-            cmd.SetGlobalVector(HDShaderIDs._CosTime,        new Vector4(Mathf.Cos(ct * 0.125f), Mathf.Cos(ct * 0.25f), Mathf.Cos(ct * 0.5f), Mathf.Cos(ct)));
+            cmd.SetGlobalVector(HDShaderIDs._Time,                  new Vector4(ct * 0.05f, ct, ct * 2.0f, ct * 3.0f));
+            cmd.SetGlobalVector(HDShaderIDs._SinTime,               new Vector4(Mathf.Sin(ct * 0.125f), Mathf.Sin(ct * 0.25f), Mathf.Sin(ct * 0.5f), Mathf.Sin(ct)));
+            cmd.SetGlobalVector(HDShaderIDs._CosTime,               new Vector4(Mathf.Cos(ct * 0.125f), Mathf.Cos(ct * 0.25f), Mathf.Cos(ct * 0.5f), Mathf.Cos(ct)));
+            cmd.SetGlobalVector(HDShaderIDs.unity_DeltaTime,        new Vector4(dt, 1.0f / dt, sdt, 1.0f / sdt));
+            cmd.SetGlobalVector(HDShaderIDs._TimeParameters,        new Vector4(ct, Mathf.Sin(ct), Mathf.Cos(ct), 0.0f));
+            cmd.SetGlobalVector(HDShaderIDs._LastTimeParameters,    new Vector4(pt, Mathf.Sin(pt), Mathf.Cos(pt), 0.0f));
+
             cmd.SetGlobalInt(HDShaderIDs._FrameCount,        frameCount);
 
             // TODO: qualify this code with xrInstancingEnabled when compute shaders can use keywords
@@ -858,6 +849,28 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             return m_HistoryRTSystem.GetFrameRT(id, 0);
         }
 
+        public void AllocateAmbientOcclusionHistoryBuffer(float scaleFactor)
+        {
+            if (scaleFactor != m_AmbientOcclusionResolutionScale)
+            {
+                ReleaseHistoryFrameRT((int)HDCameraFrameHistoryType.AmbientOcclusion);
+
+                RTHandleSystem.RTHandle Allocator(string id, int frameIndex, RTHandleSystem rtHandleSystem)
+                {
+                    return rtHandleSystem.Alloc(Vector2.one * scaleFactor, TextureXR.slices, filterMode: FilterMode.Point, colorFormat: GraphicsFormat.R32_UInt, dimension: TextureXR.dimension, useDynamicScale: true, enableRandomWrite: true, name: string.Format("AO Packed history_{0}", frameIndex));
+                }
+
+                AllocHistoryFrameRT((int)HDCameraFrameHistoryType.AmbientOcclusion, Allocator, 2);
+
+                m_AmbientOcclusionResolutionScale = scaleFactor;
+            }
+        }
+
+        public void ReleaseHistoryFrameRT(int id)
+        {
+            m_HistoryRTSystem.ReleaseBuffer(id);
+        }
+
         void ReleaseHistoryBuffer()
         {
             m_HistoryRTSystem.ReleaseAll();
@@ -872,7 +885,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Since recorder does not know about this, we need to send a texture of the right size.
             cmd.GetTemporaryRT(m_RecorderTempRT, actualWidth, actualHeight, 0, FilterMode.Point, input.rt.graphicsFormat);
 
-            var blitMaterial = HDUtils.GetBlitMaterial(TextureDimension.Tex2D);
+            var blitMaterial = HDUtils.GetBlitMaterial(input.rt.dimension);
 
             var rtHandleScale = RTHandles.rtHandleProperties.rtHandleScale;
             Vector2 viewportScale = new Vector2(rtHandleScale.x, rtHandleScale.y);

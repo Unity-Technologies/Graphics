@@ -1,9 +1,8 @@
 using System;
-using UnityEngine.Rendering;
 
-namespace UnityEngine.Experimental.Rendering.HDPipeline
+namespace UnityEngine.Rendering.HighDefinition
 {
-    public class PlanarReflectionProbeCache
+    class PlanarReflectionProbeCache
     {
         internal static readonly int s_InputTexID = Shader.PropertyToID("_InputTex");
         internal static readonly int s_LoDID = Shader.PropertyToID("_LoD");
@@ -26,9 +25,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         MaterialPropertyBlock   m_ConvertTextureMPB;
         bool                    m_PerformBC6HCompression;
 
-        public PlanarReflectionProbeCache(HDRenderPipelineAsset hdAsset, IBLFilterGGX iblFilter, int cacheSize, int probeSize, TextureFormat probeFormat, bool isMipmaped)
+        public PlanarReflectionProbeCache(RenderPipelineResources defaultResources, IBLFilterGGX iblFilter, int cacheSize, int probeSize, TextureFormat probeFormat, bool isMipmaped)
         {
-            m_ConvertTextureMaterial = CoreUtils.CreateEngineMaterial(hdAsset.renderPipelineResources.shaders.blitCubeTextureFacePS);
+            m_ConvertTextureMaterial = CoreUtils.CreateEngineMaterial(defaultResources.shaders.blitCubeTextureFacePS);
             m_ConvertTextureMPB = new MaterialPropertyBlock();
 
             // BC6H requires CPP feature not yet available

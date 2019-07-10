@@ -1,8 +1,7 @@
 using System;
 using UnityEngine;
-using UnityEngine.Experimental.Rendering.HDPipeline;
 
-namespace UnityEditor.Experimental.Rendering.HDPipeline
+namespace UnityEditor.Rendering.HighDefinition
 {
     /// <summary>
     /// GUI for HDRP Shadergraph Decal materials
@@ -38,6 +37,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                         SetupMaterialKeywordsAndPassInternal(material);
                 }
             }
+
+            // We should always do this call at the end
+            materialEditor.serializedObject.ApplyModifiedProperties();
         }
 
         // We don't have any keyword/pass to setup currently for decal shader graphs

@@ -1,11 +1,10 @@
 using System;
 using System.Collections.Generic;
-using UnityEngine.Rendering;
 using UnityEngine.Serialization;
 
-namespace UnityEngine.Experimental.Rendering.HDPipeline
+namespace UnityEngine.Rendering.HighDefinition
 {
-    public enum ShaderVariantLogLevel
+    enum ShaderVariantLogLevel
     {
         Disabled,
         OnlyHDRPShaders,
@@ -32,7 +31,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // errors.
             try
             {
-                pipeline = new HDRenderPipeline(this);
+                pipeline = new HDRenderPipeline(this, HDRenderPipeline.defaultAsset);
             } catch (Exception e) {
                 UnityEngine.Debug.LogError(e);
             }
@@ -51,7 +50,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         [SerializeField]
         RenderPipelineResources m_RenderPipelineResources;
 
-        public RenderPipelineResources renderPipelineResources
+        internal RenderPipelineResources renderPipelineResources
         {
             get { return m_RenderPipelineResources; }
             set { m_RenderPipelineResources = value; }
@@ -59,17 +58,25 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         [SerializeField]
         HDRenderPipelineRayTracingResources m_RenderPipelineRayTracingResources;
-        public HDRenderPipelineRayTracingResources renderPipelineRayTracingResources
+        internal HDRenderPipelineRayTracingResources renderPipelineRayTracingResources
         {
             get { return m_RenderPipelineRayTracingResources; }
             set { m_RenderPipelineRayTracingResources = value; }
+        }
+
+        [SerializeField] private VolumeProfile m_DefaultVolumeProfile;
+
+        internal VolumeProfile defaultVolumeProfile
+        {
+            get => m_DefaultVolumeProfile;
+            set => m_DefaultVolumeProfile = value;
         }
 
 #if UNITY_EDITOR
         HDRenderPipelineEditorResources m_RenderPipelineEditorResources;
 
 
-        public HDRenderPipelineEditorResources renderPipelineEditorResources
+        internal HDRenderPipelineEditorResources renderPipelineEditorResources
         {
             get
             {
@@ -97,7 +104,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         [SerializeField]
         FrameSettings m_RenderingPathDefaultRealtimeReflectionFrameSettings = FrameSettings.defaultRealtimeReflectionProbe;
 
-        public ref FrameSettings GetDefaultFrameSettings(FrameSettingsRenderType type)
+        internal ref FrameSettings GetDefaultFrameSettings(FrameSettingsRenderType type)
         {
             switch(type)
             {
@@ -112,9 +119,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        public bool frameSettingsHistory { get; set; } = false;
+        internal bool frameSettingsHistory { get; set; } = false;
 
-        public ReflectionSystemParameters reflectionSystemParameters
+        internal ReflectionSystemParameters reflectionSystemParameters
         {
             get
             {
@@ -139,18 +146,21 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         RenderPipelineSettings m_RenderPipelineSettings = RenderPipelineSettings.@default;
 
         // Return the current use RenderPipelineSettings (i.e for the current platform)
-        public RenderPipelineSettings currentPlatformRenderPipelineSettings => m_RenderPipelineSettings;
+        internal RenderPipelineSettings currentPlatformRenderPipelineSettings => m_RenderPipelineSettings;
 
-        public bool allowShaderVariantStripping = true;
-        public bool enableSRPBatcher = true;
-        public ShaderVariantLogLevel shaderVariantLogLevel = ShaderVariantLogLevel.Disabled;
+        [SerializeField]
+        internal bool allowShaderVariantStripping = true;
+        [SerializeField]
+        internal bool enableSRPBatcher = true;
+        [SerializeField]
+        internal ShaderVariantLogLevel shaderVariantLogLevel = ShaderVariantLogLevel.Disabled;
 
         [SerializeField]
         [Obsolete("Use diffusionProfileSettingsList instead")]
-        public DiffusionProfileSettings diffusionProfileSettings;
+        internal DiffusionProfileSettings diffusionProfileSettings;
 
         [SerializeField]
-        public DiffusionProfileSettings[] diffusionProfileSettingsList = new DiffusionProfileSettings[0];
+        internal DiffusionProfileSettings[] diffusionProfileSettingsList = new DiffusionProfileSettings[0];
 
         // HDRP use GetRenderingLayerMaskNames to create its light linking system
         // Mean here we define our name for light linking.

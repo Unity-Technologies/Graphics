@@ -2,7 +2,7 @@ using System;
 using UnityEditor.AnimatedValues;
 using UnityEngine;
 
-namespace UnityEditor.Rendering.LookDev
+namespace UnityEditor.Rendering.Experimental.LookDev
 {
     [Serializable]
     public class ComparisonGizmoState
@@ -13,7 +13,7 @@ namespace UnityEditor.Rendering.LookDev
         public const float circleRadiusSelected = 0.03f;
         public const float blendFactorCircleRadius = 0.01f;
         public const float blendFactorCircleRadiusSelected = 0.03f;
-        
+
         public Vector2 point1 { get; private set; }
         public Vector2 point2 { get; private set; }
         [field: SerializeField]
@@ -35,7 +35,7 @@ namespace UnityEditor.Rendering.LookDev
 
         internal void Init()
             => Update(center, length, angle);
-        
+
         //TODO: optimize
         private Vector4 Get2DPlane(Vector2 firstPoint, float angle)
         {

@@ -1,12 +1,12 @@
 using UnityEditor.Rendering;
-using UnityEngine.Experimental.Rendering.HDPipeline;
+using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.Rendering;
 
-namespace UnityEditor.Experimental.Rendering.HDPipeline
+namespace UnityEditor.Experimental.Rendering.HighDefinition
 {
     [CanEditMultipleObjects]
     [VolumeComponentEditor(typeof(RecursiveRendering))]
-    public class RecursiveRenderingEditor : VolumeComponentEditor
+    class RecursiveRenderingEditor : VolumeComponentEditor
     {
         SerializedDataParameter m_Enable;
         SerializedDataParameter m_MaxDepth;
@@ -23,14 +23,20 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         public override void OnInspectorGUI()
         {
-            if (!(GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset)
-                ?.currentPlatformRenderPipelineSettings.supportRayTracing ?? false)
+            HDRenderPipelineAsset currentAsset = (GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset);
+            if (!currentAsset?.currentPlatformRenderPipelineSettings.supportRayTracing ?? false)
             {
                 EditorGUILayout.Space();
                 EditorGUILayout.HelpBox("The current HDRP Asset does not support Ray Tracing.", MessageType.Error, wide: true);
                 return;
             }
 #if ENABLE_RAYTRACING
+            if(currentAsset.currentPlatformRenderPipelineSettings.supportedRaytracingTier == RenderPipelineSettings.RaytracingTier.Tier1)
+            {
+                EditorGUILayout.Space();
+                EditorGUILayout.HelpBox("The current HDRP Asset does not support Recursive Rendering.", MessageType.Error, wide: true);
+                return;
+            }
 
             PropertyField(m_Enable);
 

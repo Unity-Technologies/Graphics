@@ -7,9 +7,6 @@ RW_TEXTURE2D_X(float3, _OutputTexture);
 TEXTURE2D_X(_InputTexture);
 TEXTURE2D_X(_TileMaxNeighbourhood);
 
-#define SOFT_Z_EXTENT 0.1   // TODO: Expose?
-
-
 // ---------------------------------------------
 // Debug
 // ---------------------------------------------
@@ -23,7 +20,6 @@ TEXTURE2D_X(_TileMaxNeighbourhood);
 #define DEBUG_SAMPLE_COUNT 5
 
 #define DEBUG_VIEW NO_DEBUG
-
 
 // ------------Debug Weight------------------
 #define NO_DEBUG 0
@@ -41,8 +37,7 @@ TEXTURE2D_X(_TileMaxNeighbourhood);
 #define ONLY_FAST_PATH 2
 
 #define DEBUG_EXECUTION NORMAL
-
-
+ 
 // ------------Options------------------
 #define MIRROR_WEIGHTS 1
 #define TILE_JITTER 1
@@ -162,7 +157,7 @@ float4 ProcessSample(uint sampleNumber, float2 dir, float invSampleCount, float2
     float2 sampleMotionVec = DecodeMotionVectorFromPacked(sampleMotionVecDepth.xy);
     motionVecDiffWeight = (centralMotionVecLen > 0 && outMotionVecLength > 0.3) ? saturate(abs(dot(sampleMotionVec, currDir) / dot(currDir, currDir)) * DOT_MULTIPLIER) : 1;
 #endif
-    float  sampleWeight = SampleWeight(centralDepth, outDepth, offsetLength, centralMotionVecLen, outMotionVecLength, pixelToSampleScale, SOFT_Z_EXTENT, motionVecDiffWeight);
+    float  sampleWeight = SampleWeight(centralDepth, outDepth, offsetLength, centralMotionVecLen, outMotionVecLength, pixelToSampleScale, _DepthScale, motionVecDiffWeight);
 
     return float4(sampleColor, sampleWeight);
 }
@@ -195,7 +190,7 @@ void MotionBlurCS(uint3 dispatchThreadId : SV_DispatchThreadID)
     bool earlyOut = maxMotionVecLen <= _MinMotionVecThreshold;
     bool fastPath = minMotionVecLenInPixels > (_MinMaxMotionVecRatioForSlowPath * maxMotionVecLen);
 
-#if defined(SUPPORTS_WAVE_INTRINSICS)
+#if defined(PLATFORM_SUPPORTS_WAVE_INTRINSICS)
     earlyOut = WaveActiveAllTrue(earlyOut);
     fastPath = WaveActiveAllTrue(fastPath);
 #endif

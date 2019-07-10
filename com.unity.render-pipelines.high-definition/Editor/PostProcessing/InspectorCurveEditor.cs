@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
-using UnityEditor;
+using UnityEngine;
 
-namespace UnityEngine.Experimental.Rendering.HDPipeline
+namespace UnityEditor.Rendering.HighDefinition
 {
     // A good chunk of this class is recycled from Post-processing v2 and could use a cleaning pass
     internal sealed class InspectorCurveEditor

@@ -1,12 +1,12 @@
 using System;
 using UnityEngine;
-using UnityEngine.Experimental.Rendering.HDPipeline;
+using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.Rendering;
 
 // Include material common properties names
-using static UnityEngine.Experimental.Rendering.HDPipeline.HDMaterialProperties;
+using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
 
-namespace UnityEditor.Experimental.Rendering.HDPipeline
+namespace UnityEditor.Rendering.HighDefinition
 {
     internal enum AxfBrdfType
     {
@@ -14,7 +14,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         CAR_PAINT,
         BTF,
     }
-        
+
     /// <summary>
     /// GUI for HDRP AxF materials
     /// </summary>
@@ -27,6 +27,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             new SurfaceOptionUIBlock(MaterialUIBlock.Expandable.Base, features: SurfaceOptionUIBlock.Features.Unlit),
             new AxfSurfaceInputsUIBlock(MaterialUIBlock.Expandable.Input),
             new AdvancedOptionsUIBlock(MaterialUIBlock.Expandable.Advance, AdvancedOptionsUIBlock.Features.Instancing),
+            new AdvancedOptionsUIBlock(MaterialUIBlock.Expandable.Advance, AdvancedOptionsUIBlock.Features.AdditionalVelocity),
         };
 
         public override void OnGUI(MaterialEditor materialEditor, MaterialProperty[] props)
@@ -110,6 +111,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             material.SetInt(kStencilWriteMaskDepth, stencilWriteMaskDepth);
             material.SetInt(kStencilRefMV, stencilRefMV);
             material.SetInt(kStencilWriteMaskMV, stencilWriteMaskMV);
+
+            if (material.HasProperty(kAdditionalVelocityChange))
+            {
+                CoreUtils.SetKeyword(material, "_ADDITIONAL_VELOCITY_CHANGE", material.GetInt(kAdditionalVelocityChange) != 0);
+            }
+
         }
     }
 } // namespace UnityEditor

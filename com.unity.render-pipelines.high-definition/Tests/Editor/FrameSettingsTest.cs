@@ -1,14 +1,13 @@
-using UnityEditor.Experimental.Rendering.TestFramework;
+using UnityEditor.Rendering.TestFramework;
 using NUnit.Framework;
 using System;
-using UnityEngine.Rendering;
 using System.Linq;
 using System.Collections.Generic;
 using System.Text;
 
-namespace UnityEngine.Experimental.Rendering.HDPipeline.Tests
+namespace UnityEngine.Rendering.HighDefinition.Tests
 {
-    public class FrameSettingsTests
+    class FrameSettingsTests
     {
         Object m_ToClean;
 
@@ -262,59 +261,59 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline.Tests
         public class LegacyLightLoopSettings
         {
             public LegacyLightLoopSettingsOverrides overrides;
-            public bool enableDeferredTileAndCluster;
-            public bool enableComputeLightEvaluation;
-            public bool enableComputeLightVariants;
-            public bool enableComputeMaterialVariants;
-            public bool enableFptlForForwardOpaque;
-            public bool enableBigTilePrepass;
-            public bool isFptlEnabled;
+            public bool enableDeferredTileAndCluster = false;
+            public bool enableComputeLightEvaluation = false;
+            public bool enableComputeLightVariants = false;
+            public bool enableComputeMaterialVariants = false;
+            public bool enableFptlForForwardOpaque = false;
+            public bool enableBigTilePrepass = false;
+            public bool isFptlEnabled = false;
         }
 
         public class LegacyFrameSettings
         {
             public LegacyFrameSettingsOverrides overrides;
 
-            public bool enableShadow;
-            public bool enableContactShadows;
-            public bool enableShadowMask;
-            public bool enableSSR;
-            public bool enableSSAO;
-            public bool enableSubsurfaceScattering;
-            public bool enableTransmission;
-            public bool enableAtmosphericScattering;
-            public bool enableVolumetrics;
-            public bool enableReprojectionForVolumetrics;
-            public bool enableLightLayers;
-            public bool enableExposureControl;
+            public bool enableShadow = false;
+            public bool enableContactShadows = false;
+            public bool enableShadowMask = false;
+            public bool enableSSR = false;
+            public bool enableSSAO = false;
+            public bool enableSubsurfaceScattering = false;
+            public bool enableTransmission = false;
+            public bool enableAtmosphericScattering = false;
+            public bool enableVolumetrics = false;
+            public bool enableReprojectionForVolumetrics = false;
+            public bool enableLightLayers = false;
+            public bool enableExposureControl = false;
 
-            public float diffuseGlobalDimmer;
-            public float specularGlobalDimmer;
+            public float diffuseGlobalDimmer = 1.0f;
+            public float specularGlobalDimmer = 1.0f;
 
             public LegacyLitShaderMode shaderLitMode;
-            public bool enableDepthPrepassWithDeferredRendering;
+            public bool enableDepthPrepassWithDeferredRendering = false;
 
-            public bool enableTransparentPrepass;
-            public bool enableMotionVectors; // Enable/disable whole motion vectors pass (Camera + Object).
-            public bool enableObjectMotionVectors;
-            public bool enableDecals;
-            public bool enableRoughRefraction; // Depends on DepthPyramid - If not enable, just do a copy of the scene color (?) - how to disable rough refraction ?
-            public bool enableTransparentPostpass;
-            public bool enableDistortion;
-            public bool enablePostprocess;
+            public bool enableTransparentPrepass = false;
+            public bool enableMotionVectors = false; // Enable/disable whole motion vectors pass (Camera + Object).
+            public bool enableObjectMotionVectors = false;
+            public bool enableDecals = false;
+            public bool enableRoughRefraction = false; // Depends on DepthPyramid - If not enable, just do a copy of the scene color (?) - how to disable rough refraction ?
+            public bool enableTransparentPostpass = false;
+            public bool enableDistortion = false;
+            public bool enablePostprocess = false;
 
-            public bool enableOpaqueObjects;
-            public bool enableTransparentObjects;
-            public bool enableRealtimePlanarReflection;
+            public bool enableOpaqueObjects = false;
+            public bool enableTransparentObjects = false;
+            public bool enableRealtimePlanarReflection = false;
 
-            public bool enableMSAA;
+            public bool enableMSAA = false;
 
-            public bool enableAsyncCompute;
-            public bool runLightListAsync;
-            public bool runSSRAsync;
-            public bool runSSAOAsync;
-            public bool runContactShadowsAsync;
-            public bool runVolumeVoxelizationAsync;
+            public bool enableAsyncCompute = false;
+            public bool runLightListAsync = false;
+            public bool runSSRAsync = false;
+            public bool runSSAOAsync = false;
+            public bool runContactShadowsAsync = false;
+            public bool runVolumeVoxelizationAsync = false;
 
             public LegacyLightLoopSettings lightLoopSettings;
         }
@@ -546,8 +545,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {{fileID: 11500000, guid: d0ef8dc2c2eabfa4e8cb77be57a837c0, type: 3}}
-  m_Name: 
-  m_EditorClassIdentifier: 
+  m_Name:
+  m_EditorClassIdentifier:
   m_ProxyVolume: {{fileID: 0}}
   m_InfiniteProjection: 1
   m_InfluenceVolume:

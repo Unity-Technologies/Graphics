@@ -1,8 +1,6 @@
-using UnityEngine.Rendering;
-
-namespace UnityEngine.Experimental.Rendering.HDPipeline
+namespace UnityEngine.Rendering.HighDefinition
 {
-    public class ProceduralSkyRenderer : SkyRenderer
+    class ProceduralSkyRenderer : SkyRenderer
     {
         Material m_ProceduralSkyMaterial;
         MaterialPropertyBlock m_PropertyBlock;
@@ -24,7 +22,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public override void Build()
         {
-            var hdrp = GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset;
+            var hdrp = HDRenderPipeline.defaultAsset;
             m_ProceduralSkyMaterial = CoreUtils.CreateEngineMaterial(hdrp.renderPipelineResources.shaders.proceduralSkyPS);
         }
 

@@ -1,5 +1,3 @@
-
-
 //#define OLD_COPY_PASTE
 using System;
 using System.Collections;
@@ -9,8 +7,8 @@ using System.Linq;
 using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 using UnityEngine.Rendering;
-using UnityEditor.Experimental.VFX;
-using UnityEngine.Experimental.VFX;
+using UnityEditor.VFX;
+using UnityEngine.VFX;
 using UnityEngine.UIElements;
 using UnityEngine.Profiling;
 using System.Reflection;
@@ -1093,16 +1091,30 @@ namespace UnityEditor.VFX.UI
             return EventPropagation.Stop;
         }
 
-        public EventPropagation ReinitComponents()
+        IEnumerable<VisualEffect> GetActiveComponents()
         {
             if (attachedComponent != null)
-            {
-                attachedComponent.Reinit();
-            }
+                yield return attachedComponent;
             else
             {
-                foreach (var component in UnityEngine.Experimental.VFX.VFXManager.GetComponents())
-                    component.Reinit();
+                foreach (var component in UnityEngine.VFX.VFXManager.GetComponents())
+                    yield return component;
+            }
+        }
+
+        public EventPropagation ReinitComponents()
+        {
+            foreach (var component in GetActiveComponents())
+                component.Reinit();
+            return EventPropagation.Stop;
+        }
+
+        public EventPropagation ReinitAndPlayComponents()
+        {
+            foreach (var component in GetActiveComponents())
+            {
+                component.Reinit();
+                component.Play();
             }
             return EventPropagation.Stop;
         }

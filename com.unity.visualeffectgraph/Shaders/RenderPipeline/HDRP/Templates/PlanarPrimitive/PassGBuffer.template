@@ -49,6 +49,8 @@ Pass
 		#if USE_NORMAL_BENDING
 		float2 bentFactors : TEXCOORD6;
 		#endif
+
+		UNITY_VERTEX_OUTPUT_STEREO
 	};
 	
 ${VFXHDRPLitVaryingsMacros}		
@@ -83,6 +85,7 @@ ${VFXEnd}
 	#endif
 	)
 	{
+		UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i);
 		VFXTransformPSInputs(i);
 		${VFXComputeNormalWS}		
 		VFXComputePixelOutputToGBuffer(i,normalWS,uvData,outGBuffer);

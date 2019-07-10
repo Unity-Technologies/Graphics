@@ -279,7 +279,7 @@ Shader "HDRP/LayeredLitTessellation"
 
         [HideInInspector][ToggleUI] _ZWrite ("__zw", Float) = 1.0
         [HideInInspector] _CullMode("__cullmode", Float) = 2.0
-        [Enum(UnityEditor.Experimental.Rendering.HDPipeline.TransparentCullMode)] _TransparentCullMode("_TransparentCullMode", Int) = 2 // Back culling by default
+        [Enum(UnityEditor.Rendering.HighDefinition.TransparentCullMode)] _TransparentCullMode("_TransparentCullMode", Int) = 2 // Back culling by default
         [HideInInspector] _ZTestDepthEqualForOpaque("_ZTestDepthEqualForOpaque", Int) = 4 // Less equal
         [HideInInspector] _ZTestGBuffer("_ZTestGBuffer", Int) = 4
         [Enum(UnityEngine.Rendering.CompareFunction)] _ZTestTransparent("Transparent ZTest", Int) = 4 // Less equal
@@ -374,6 +374,8 @@ Shader "HDRP/LayeredLitTessellation"
 
         [ToggleUI] _SupportDecals("Support Decals", Float) = 1.0
         [ToggleUI] _ReceivesSSR("Receives SSR", Float) = 1.0
+        [ToggleUI] _AddVelocityChange("EnableAdditionalVelocity", Float) = 0.0
+
     }
 
     HLSLINCLUDE
@@ -388,7 +390,6 @@ Shader "HDRP/LayeredLitTessellation"
     #pragma shader_feature_local _VERTEX_DISPLACEMENT_LOCK_OBJECT_SCALE
     #pragma shader_feature_local _DISPLACEMENT_LOCK_TILING_SCALE
     #pragma shader_feature_local _PIXEL_DISPLACEMENT_LOCK_OBJECT_SCALE
-    #pragma shader_feature_local _VERTEX_WIND
     #pragma shader_feature_local _TESSELLATION_PHONG
 
     #pragma shader_feature_local _ _EMISSIVE_MAPPING_PLANAR _EMISSIVE_MAPPING_TRIPLANAR
@@ -445,6 +446,7 @@ Shader "HDRP/LayeredLitTessellation"
 
     #pragma shader_feature_local _DISABLE_DECALS
     #pragma shader_feature_local _DISABLE_SSR
+    #pragma shader_feature_local _ADDITIONAL_VELOCITY_CHANGE
     #pragma shader_feature_local _ENABLE_GEOMETRIC_SPECULAR_AA
 
     // Keyword for transparent
@@ -497,7 +499,6 @@ Shader "HDRP/LayeredLitTessellation"
     //-------------------------------------------------------------------------------------
 
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
-    #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Wind.hlsl"
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/GeometricTools.hlsl"
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Tessellation.hlsl"
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
@@ -785,7 +786,7 @@ Shader "HDRP/LayeredLitTessellation"
             #pragma multi_compile DECALS_OFF DECALS_3RT DECALS_4RT
 
             // Supported shadow modes per light type
-            #pragma multi_compile SHADOW_LOW SHADOW_MEDIUM SHADOW_HIGH SHADOW_VERY_HIGH
+            #pragma multi_compile SHADOW_LOW SHADOW_MEDIUM SHADOW_HIGH
 
             #pragma multi_compile USE_FPTL_LIGHTLIST USE_CLUSTERED_LIGHTLIST
 
@@ -827,5 +828,5 @@ Shader "HDRP/LayeredLitTessellation"
         }
     }
 
-    CustomEditor "UnityEditor.Experimental.Rendering.HDPipeline.LayeredLitGUI"
+    CustomEditor "UnityEditor.Rendering.HighDefinition.LayeredLitGUI"
 }

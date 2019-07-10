@@ -5,10 +5,9 @@ using System.Collections.Generic;
 
 using UnityEditor;
 using UnityEngine;
-using UnityEngine.Experimental.VFX;
+using UnityEngine.VFX;
 using UnityEngine.Rendering;
 using UnityEditor.Callbacks;
-using UnityEditor.Experimental.VFX;
 using UnityEditor.VFX;
 using UnityEditor.VFX.UI;
 
@@ -24,11 +23,11 @@ public class VFXManagerEditor : Editor
 
 
     const string HDRPPath = "Packages/com.unity.visualeffectgraph/Shaders/RenderPipeline/HDRP";
-    const string LWRPPath = "Packages/com.unity.visualeffectgraph/Shaders/RenderPipeline/LWRP";
+    const string UniversalPath = "Packages/com.unity.visualeffectgraph/Shaders/RenderPipeline/Universal";
 #if VFX_HAS_HDRP
     const string RPPath = HDRPPath;
-#elif VFX_HAS_LWRP
-    const string RPPath = LWRPPath;
+#elif VFX_HAS_UNIVERSAL
+    const string RPPath = UniversalPath;
 #else
     const string RPPath = "";
 #endif
@@ -50,9 +49,9 @@ public class VFXManagerEditor : Editor
 
     static string GetDefaultPath()
     {
-#if VFX_HAS_HDRP && VFX_HAS_LWRP
-        if(GraphicsSettings.renderPipelineAsset != null && GraphicsSettings.renderPipelineAsset.GetType().Name == "LightweightRenderPipelineAsset")
-            return LWRPPath;
+#if VFX_HAS_HDRP && VFX_HAS_UNIVERSAL
+        if(GraphicsSettings.renderPipelineAsset != null && GraphicsSettings.renderPipelineAsset.GetType().Name == "UniversalRenderPipelineAsset")
+            return UniversalPath;
         else
             return HDRPPath;
 #else
@@ -67,7 +66,7 @@ public class VFXManagerEditor : Editor
             CheckVFXManager();
         serializedObject.Update();
         bool recompile = false;
-        
+
         EditorGUI.BeginChangeCheck();
         EditorGUILayout.LabelField(ObjectNames.NicifyVariableName(m_PathProperty.name));
         string resultPath = EditorGUILayout.DelayedTextField(m_PathProperty.stringValue);
@@ -136,8 +135,8 @@ public class VFXManagerEditor : Editor
             recompile = true;
         }
 #endif
-#if !VFX_HAS_LWRP
-        if (pathProperty.stringValue == LWRPPath)
+#if !VFX_HAS_UNIVERSAL
+        if (pathProperty.stringValue == UniversalPath)
         {
             pathProperty.stringValue = GetDefaultPath();
             recompile = true;

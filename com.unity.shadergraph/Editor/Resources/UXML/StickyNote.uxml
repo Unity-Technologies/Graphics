@@ -1,0 +1,12 @@
+<UXML xmlns:ui="UnityEngine.UIElements" xmlns:sg="UnityEditor.ShaderGraph.Drawing">
+  <ui:VisualElement name="node-border" pickingMode="Ignore" >
+    <ui:Label name="title" />
+    <ui:TextField name="title-field" />
+    <ui:Label name="contents">
+      <ui:TextField name="contents-field" />
+    </ui:Label>
+  </ui:VisualElement>
+  <ui:VisualElement name="selection-border" pickingMode="Ignore" />
+  <sg:ResizableElement pickingMode="Ignore" />
+</UXML>
+

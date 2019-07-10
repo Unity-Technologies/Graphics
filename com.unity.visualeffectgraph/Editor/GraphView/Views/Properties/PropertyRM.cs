@@ -9,7 +9,7 @@ using UnityEditor.VFX.UIElements;
 using Object = UnityEngine.Object;
 using Type = System.Type;
 using UnityEngine.Profiling;
-using UnityEngine.Experimental.VFX;
+using UnityEngine.VFX;
 
 namespace UnityEditor.VFX.UI
 {

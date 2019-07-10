@@ -1,16 +1,16 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Experimental.Rendering.HDPipeline;
+using UnityEngine.Rendering.HighDefinition;
 using System.Linq;
 using UnityEditor;
 
 // Include material common properties names
-using static UnityEngine.Experimental.Rendering.HDPipeline.HDMaterialProperties;
+using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
 
-namespace UnityEditor.Experimental.Rendering.HDPipeline
+namespace UnityEditor.Rendering.HighDefinition
 {
-    public class MaterialToCopyUIBlock : MaterialUIBlock
+    class MaterialToCopyUIBlock : MaterialUIBlock
     {
         public class Styles
         {
@@ -69,12 +69,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         public override void LoadMaterialProperties()
         {
             layerCount = FindProperty(kLayerCount);
-           
+
             // TODO: does not work with multi-selection
             Material material = materials[0];
- 
+
             m_MaterialImporter = AssetImporter.GetAtPath(AssetDatabase.GetAssetPath(material.GetInstanceID()));
-            
+
             // Material importer can be null when the selected material doesn't exists as asset (Material saved inside the scene)
             if (m_MaterialImporter != null)
                 InitializeMaterialLayers(m_MaterialImporter, ref m_MaterialLayers);
@@ -155,14 +155,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                         layersChanged = true;
                     }
 
-                    
+
                     colorRect.width = 30f;
                     GUI.contentColor = kLayerColors[layerIndex];
                     EditorGUI.LabelField(colorRect, "■");
                     GUI.contentColor = originalContentColor;
-                    
+
                     m_WithUV[layerIndex] = EditorGUI.Toggle(uvRect, m_WithUV[layerIndex]);
-                    
+
                     if (GUI.Button(copyRect, GUIContent.none))
                     {
                         LayeredLitGUI.SynchronizeLayerProperties(material, m_MaterialLayers, layerIndex, !m_WithUV[layerIndex]);

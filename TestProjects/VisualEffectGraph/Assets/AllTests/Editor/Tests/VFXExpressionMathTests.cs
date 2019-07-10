@@ -351,8 +351,8 @@ namespace UnityEditor.VFX.Test
         static private IEnumerable<Min_Max_Expression_Folding_TestCase> Generate_Min_Max_Expression_Folding_TestCase()
         {
             var x = VFXBuiltInExpression.TotalTime;
-            var one = VFXOperatorUtility.OneExpression[UnityEngine.Experimental.VFX.VFXValueType.Float];
-            var zero = VFXOperatorUtility.ZeroExpression[UnityEngine.Experimental.VFX.VFXValueType.Float];
+            var one = VFXOperatorUtility.OneExpression[UnityEngine.VFX.VFXValueType.Float];
+            var zero = VFXOperatorUtility.ZeroExpression[UnityEngine.VFX.VFXValueType.Float];
 
             //Good case
             yield return new Min_Max_Expression_Folding_TestCase() { name = "min(max(x, 0), 1)", expression = new VFXExpressionMin(new VFXExpressionMax(x, zero), one), saturateExpected = true };

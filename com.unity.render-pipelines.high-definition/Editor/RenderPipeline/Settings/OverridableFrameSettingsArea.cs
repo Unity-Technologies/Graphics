@@ -2,13 +2,13 @@ using System;
 using System.Collections.Generic;
 using UnityEditor.Rendering;
 using UnityEngine;
-using UnityEngine.Experimental.Rendering.HDPipeline;
+using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.Rendering;
 using UnityEngine.Experimental.Rendering;
 using System.Reflection;
 using System.Linq;
 
-namespace UnityEditor.Experimental.Rendering.HDPipeline
+namespace UnityEditor.Rendering.HighDefinition
 {
     internal struct OverridableFrameSettingsArea
     {
@@ -38,7 +38,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public Func<object> customGetter;
             public Action<object> customSetter;
             public object overridedDefaultValue;
-            public GUIContent label => EditorGUIUtility.TrTextContent(attributes[field].displayedName);
+            public GUIContent label => EditorGUIUtility.TrTextContent(attributes[field].displayedName, attributes[field].tooltip);
             public bool IsOverrideableWithDependencies(SerializedFrameSettings serialized, FrameSettings defaultFrameSettings)
             {
                 FrameSettingsFieldAttribute attribute = attributes[field];
