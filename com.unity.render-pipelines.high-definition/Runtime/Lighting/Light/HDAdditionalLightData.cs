@@ -1367,7 +1367,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // Data for cached shadow maps.
         Vector2             m_CachedShadowResolution = new Vector2(0,0);
-        Rect                m_CachedShadowRect = new Rect(0, 0, 0, 0);
+        Rect[]              m_CachedShadowRect;
         Vector3             m_CachedViewPos = new Vector3(0, 0, 0);
 
 
@@ -1486,6 +1486,15 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             if (!m_WillRenderShadowMap)
                 return;
+
+            if (m_CachedShadowRect == null)
+            {
+                m_CachedShadowRect = new Rect[6];
+                for (int i = 0; i < 6; i++)
+                {
+                    m_CachedShadowRect[i] = new Rect(0, 0, 0, 0);
+                }
+            }
 
             // Create shadow requests array using the light type
             if (shadowRequests == null || m_ShadowRequestIndices == null)
@@ -1638,14 +1647,14 @@ namespace UnityEngine.Rendering.HighDefinition
 
             for (int index = 0; index < count; index++)
             {
-                var         shadowRequest = shadowRequests[index];
+                var shadowRequest = shadowRequests[index];
 
-                Matrix4x4   invViewProjection = Matrix4x4.identity;
-                int         shadowRequestIndex = m_ShadowRequestIndices[index];
-                Vector2     viewportSize = manager.GetReservedResolution(shadowRequestIndex);
+                Matrix4x4 invViewProjection = Matrix4x4.identity;
+                int shadowRequestIndex = m_ShadowRequestIndices[index];
+                Vector2 viewportSize = manager.GetReservedResolution(shadowRequestIndex);
 
 
-                shadowIsCached = shadowIsCached && (shadowRequest.atlasViewport == m_CachedShadowRect);
+                shadowIsCached = shadowIsCached && (shadowRequest.atlasViewport == m_CachedShadowRect[index]);
 
                 if (shadowRequestIndex == -1)
                     continue;
@@ -1663,7 +1672,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 else
                 {
                     m_CachedViewPos = cameraPos;
-                    m_CachedShadowRect = shadowRequest.atlasViewport;
+                    m_CachedShadowRect[index] = shadowRequest.atlasViewport;
                     shadowRequest.shouldUseCachedShadow = false;
                     m_ShadowMapRenderedSinceLastRequest = true;
 
