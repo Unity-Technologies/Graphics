@@ -69,6 +69,7 @@ void GetAmbientOcclusionFactor(float3 indirectAmbientOcclusion, float3 indirectS
     aoFactor.indirectAmbientOcclusion = indirectAmbientOcclusion;
     aoFactor.indirectSpecularOcclusion = indirectSpecularOcclusion;
     aoFactor.directAmbientOcclusion = directAmbientOcclusion;
+    aoFactor.directSpecularOcclusion = 1.0;
 }
 
 //...MaterialEvaluation is needed earlier in StackLit for occlusion handling (see PreLightData_SetupOcclusion)
