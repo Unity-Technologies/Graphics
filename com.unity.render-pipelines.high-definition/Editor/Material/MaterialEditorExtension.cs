@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
-    public static class MaterialEditorExtension
+    internal static class MaterialEditorExtension
     {
         static uint defaultExpandedState => 0xFFFFFFFF; //all opened by default
 

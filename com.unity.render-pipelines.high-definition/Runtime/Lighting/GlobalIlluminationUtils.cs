@@ -3,7 +3,7 @@ using Unity.Collections;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
-    public class GlobalIlluminationUtils
+    class GlobalIlluminationUtils
     {
         // Return true if the light must be added to the baking
         public static bool LightDataGIExtract(Light l, ref LightDataGI ld)

@@ -33,12 +33,6 @@ float GetAmbientOcclusionForMicroShadowing(BSDFData bsdfData)
     return bsdfData.ambientOcclusion;
 }
 
-void ClampRoughness(inout BSDFData bsdfData, float minRoughness)
-{
-    bsdfData.roughnessT = max(minRoughness, bsdfData.roughnessT);
-    bsdfData.roughnessB = max(minRoughness, bsdfData.roughnessB);
-}
-
 // Assume bsdfData.normalWS is init
 void FillMaterialAnisotropy(float anisotropy, float3 tangentWS, float3 bitangentWS, inout BSDFData bsdfData)
 {
@@ -253,6 +247,15 @@ struct PreLightData
     float3 specularFGD;              // Store preintegrated BSDF for both specular and diffuse
     float  diffuseFGD;
 };
+
+//
+// ClampRoughness helper specific to this material
+//
+void ClampRoughness(inout PreLightData preLightData, inout BSDFData bsdfData, float minRoughness)
+{
+    bsdfData.roughnessT = max(minRoughness, bsdfData.roughnessT);
+    bsdfData.roughnessB = max(minRoughness, bsdfData.roughnessB);
+}
 
 // This function is call to precompute heavy calculation before lightloop
 PreLightData GetPreLightData(float3 V, PositionInputs posInput, inout BSDFData bsdfData)

@@ -124,17 +124,11 @@ namespace UnityEngine.Rendering.HighDefinition
     // so we can force timeline to record changes on other fields from the LateUpdate function (editor only)
     struct TimelineWorkaround
     {
-        public float oldDisplayLightIntensity;
-        public float oldLuxAtDistance;
         public float oldSpotAngle;
-        public bool oldEnableSpotReflector;
         public Color oldLightColor;
-        public Vector3 oldLocalScale;
+        public Vector3 oldLossyScale;
         public bool oldDisplayAreaLightEmissiveMesh;
-        public LightTypeExtent oldLightTypeExtent;
         public float oldLightColorTemperature;
-        public Vector3 oldShape;
-        public float lightDimmer;
     }
 
     //@TODO: We should continuously move these values
@@ -343,7 +337,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (!IsValidLightUnitForType(legacyLight.type, m_LightTypeExtent, value))
                 {
                     var supportedTypes = String.Join(", ", GetSupportedLightUnits(legacyLight.type, m_LightTypeExtent));
-                    Debug.LogError($"Set Light Unit '{value}' to a {GetLightTypeName()} is not allowed, only {supportedTypes} are supprted.");
+                    Debug.LogError($"Set Light Unit '{value}' to a {GetLightTypeName()} is not allowed, only {supportedTypes} are supported.");
                     return;
                 }
 
@@ -1373,7 +1367,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // Data for cached shadow maps.
         Vector2             m_CachedShadowResolution = new Vector2(0,0);
-        Vector2             m_CachedShadowViewport = new Vector2(0, 0);
+        Rect[]              m_CachedShadowRect;
         Vector3             m_CachedViewPos = new Vector3(0, 0, 0);
 
 
@@ -1492,6 +1486,15 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             if (!m_WillRenderShadowMap)
                 return;
+
+            if (m_CachedShadowRect == null)
+            {
+                m_CachedShadowRect = new Rect[6];
+                for (int i = 0; i < 6; i++)
+                {
+                    m_CachedShadowRect[i] = new Rect(0, 0, 0, 0);
+                }
+            }
 
             // Create shadow requests array using the light type
             if (shadowRequests == null || m_ShadowRequestIndices == null)
@@ -1644,14 +1647,14 @@ namespace UnityEngine.Rendering.HighDefinition
 
             for (int index = 0; index < count; index++)
             {
-                var         shadowRequest = shadowRequests[index];
+                var shadowRequest = shadowRequests[index];
 
-                Matrix4x4   invViewProjection = Matrix4x4.identity;
-                int         shadowRequestIndex = m_ShadowRequestIndices[index];
-                Vector2     viewportSize = manager.GetReservedResolution(shadowRequestIndex);
+                Matrix4x4 invViewProjection = Matrix4x4.identity;
+                int shadowRequestIndex = m_ShadowRequestIndices[index];
+                Vector2 viewportSize = manager.GetReservedResolution(shadowRequestIndex);
 
 
-                shadowIsCached = shadowIsCached && (viewportSize == m_CachedShadowViewport);
+                shadowIsCached = shadowIsCached && (shadowRequest.atlasViewport == m_CachedShadowRect[index]);
 
                 if (shadowRequestIndex == -1)
                     continue;
@@ -1669,7 +1672,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 else
                 {
                     m_CachedViewPos = cameraPos;
-                    m_CachedShadowViewport = viewportSize;
+                    m_CachedShadowRect[index] = shadowRequest.atlasViewport;
                     shadowRequest.shouldUseCachedShadow = false;
                     m_ShadowMapRenderedSinceLastRequest = true;
 
@@ -1883,46 +1886,38 @@ namespace UnityEngine.Rendering.HighDefinition
             Vector3 shape = new Vector3(shapeWidth, m_ShapeHeight, shapeRadius);
 
             // Check if the intensity have been changed by the inspector or an animator
-            if (m_Intensity != timelineWorkaround.oldDisplayLightIntensity
-                || luxAtDistance != timelineWorkaround.oldLuxAtDistance
-                || lightTypeExtent != timelineWorkaround.oldLightTypeExtent
-                || transform.localScale != timelineWorkaround.oldLocalScale
-                || shape != timelineWorkaround.oldShape
+            if (timelineWorkaround.oldLossyScale != transform.lossyScale
                 || legacyLight.colorTemperature != timelineWorkaround.oldLightColorTemperature)
             {
                 RefreshLightIntensity();
                 UpdateAreaLightEmissiveMesh();
-                timelineWorkaround.oldDisplayLightIntensity = m_Intensity;
-                timelineWorkaround.oldLuxAtDistance = luxAtDistance;
-                timelineWorkaround.oldLocalScale = transform.localScale;
-                timelineWorkaround.oldLightTypeExtent = lightTypeExtent;
+                timelineWorkaround.oldLossyScale = transform.lossyScale;
                 timelineWorkaround.oldLightColorTemperature = legacyLight.colorTemperature;
-                timelineWorkaround.oldShape = shape;
             }
 
             // Same check for light angle to update intensity using spot angle
-            if (legacyLight.type == LightType.Spot && (timelineWorkaround.oldSpotAngle != legacyLight.spotAngle || timelineWorkaround.oldEnableSpotReflector != enableSpotReflector))
+            if (legacyLight.type == LightType.Spot && (timelineWorkaround.oldSpotAngle != legacyLight.spotAngle))
             {
                 RefreshLightIntensity();
                 timelineWorkaround.oldSpotAngle = legacyLight.spotAngle;
-                timelineWorkaround.oldEnableSpotReflector = enableSpotReflector;
             }
 
             if (legacyLight.color != timelineWorkaround.oldLightColor
-                || transform.localScale != timelineWorkaround.oldLocalScale
+                || timelineWorkaround.oldLossyScale != transform.lossyScale
                 || displayAreaLightEmissiveMesh != timelineWorkaround.oldDisplayAreaLightEmissiveMesh
-                || lightTypeExtent != timelineWorkaround.oldLightTypeExtent
-                || legacyLight.colorTemperature != timelineWorkaround.oldLightColorTemperature
-                || lightDimmer != timelineWorkaround.lightDimmer)
+                || legacyLight.colorTemperature != timelineWorkaround.oldLightColorTemperature)
             {
                 UpdateAreaLightEmissiveMesh();
-                timelineWorkaround.lightDimmer = lightDimmer;
                 timelineWorkaround.oldLightColor = legacyLight.color;
-                timelineWorkaround.oldLocalScale = transform.localScale;
+                timelineWorkaround.oldLossyScale = transform.lossyScale;
                 timelineWorkaround.oldDisplayAreaLightEmissiveMesh = displayAreaLightEmissiveMesh;
-                timelineWorkaround.oldLightTypeExtent = lightTypeExtent;
                 timelineWorkaround.oldLightColorTemperature = legacyLight.colorTemperature;
             }
+        }
+
+        void OnDidApplyAnimationProperties()
+        {
+            UpdateAllLightValues();
         }
 
         // The editor can only access m_Intensity (because of SerializedProperties) so we update the intensity to get the real value
@@ -2020,7 +2015,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     break;
             }
 
-            // Sanity check: lightData.lightTypeExtent is init to LightTypeExtent.Punctual (in case for unknow reasons we recreate additional data on an existing line)
+            // Sanity check: lightData.lightTypeExtent is init to LightTypeExtent.Punctual (in case for unknown reasons we recreate additional data on an existing line)
             if (light.type == LightType.Rectangle && lightData.lightTypeExtent == LightTypeExtent.Punctual)
             {
                 lightData.lightTypeExtent = LightTypeExtent.Rectangle;
@@ -2142,9 +2137,9 @@ namespace UnityEngine.Rendering.HighDefinition
             else // Or remove them if the option is disabled
             {
                 if (emissiveMeshRenderer != null)
-                    DestroyImmediate(emissiveMeshRenderer);
+                    CoreUtils.Destroy(emissiveMeshRenderer);
                 if (emissiveMeshFilter != null)
-                    DestroyImmediate(emissiveMeshFilter);
+                    CoreUtils.Destroy(emissiveMeshFilter);
 
                 // We don't have anything to do left if the dislay emissive mesh option is disabled
                 return;
@@ -2154,8 +2149,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Update light area size from GameObject transform scale if the transform have changed
             // else we update the light size from the shape fields
-            if (timelineWorkaround.oldLocalScale != transform.localScale)
-                lightSize = transform.localScale;
+            if (timelineWorkaround.oldLossyScale != transform.lossyScale)
+                lightSize = transform.lossyScale;
             else
                 lightSize = new Vector3(shapeWidth, m_ShapeHeight, transform.localScale.z);
 
@@ -2164,10 +2159,28 @@ namespace UnityEngine.Rendering.HighDefinition
             lightSize.z = k_MinAreaWidth;
 
             lightSize = Vector3.Max(Vector3.one * k_MinAreaWidth, lightSize);
-            legacyLight.transform.localScale = lightSize;
 #if UNITY_EDITOR
             legacyLight.areaSize = lightSize;
+
+            // When we're inside the editor, and the scale of the transform will change
+            // then we must record it with inside the undo
+            if (legacyLight.transform.localScale != lightSize)
+            {
+                Undo.RecordObject(transform, "Light Scale changed");
+            }
 #endif
+
+            Vector3 lossyToLocalScale = lightSize;
+            if (transform.parent != null)
+            {
+                lossyToLocalScale = new Vector3(
+                    lightSize.x / transform.parent.lossyScale.x,
+                    lightSize.y / transform.parent.lossyScale.y,
+                    lightSize.z / transform.parent.lossyScale.z
+                );
+            }
+
+            legacyLight.transform.localScale = lossyToLocalScale;
 
             switch (lightTypeExtent)
             {
@@ -2604,8 +2617,9 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             if (IsAreaLight(lightTypeExtent))
             {
-                shapeWidth = size.x;
-                shapeHeight = size.y;
+                m_ShapeWidth = size.x;
+                m_ShapeHeight = size.y;
+                UpdateAllLightValues();
             }
         }
 

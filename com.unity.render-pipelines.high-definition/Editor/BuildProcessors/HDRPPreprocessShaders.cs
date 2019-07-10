@@ -9,7 +9,7 @@ using UnityEngine.Rendering.HighDefinition;
 namespace UnityEditor.Rendering.HighDefinition
 {
     // The common shader stripper function
-    public class CommonShaderPreprocessor : BaseShaderPreprocessor
+    class CommonShaderPreprocessor : BaseShaderPreprocessor
     {
         public CommonShaderPreprocessor() { }
 

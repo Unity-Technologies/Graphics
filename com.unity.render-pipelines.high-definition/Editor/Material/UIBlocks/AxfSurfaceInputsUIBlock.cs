@@ -10,7 +10,7 @@ using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
 namespace UnityEditor.Rendering.HighDefinition
 {
     // We don't reuse the other surface option ui block, AxF is too different
-    public class AxfSurfaceInputsUIBlock : MaterialUIBlock
+    class AxfSurfaceInputsUIBlock : MaterialUIBlock
     {
         public class Styles
         {
@@ -430,7 +430,7 @@ namespace UnityEditor.Rendering.HighDefinition
                         m_CarPaint2_BRDFColorMapUVScale.vectorValue = EditorGUILayout.Vector2Field(Styles.BRDFColorMapUVScaleText, m_CarPaint2_BRDFColorMapUVScale.vectorValue);
                         --EditorGUI.indentLevel;
                     }
-                    
+
 
                     materialEditor.TexturePropertySingleLine(Styles.BTFFlakesMapText, m_CarPaint2_BTFFlakeMap);
                     //EditorGUILayout.LabelField( "Texture Dimension = " + m_CarPaint_BTFFlakesMap_sRGB.textureDimension );

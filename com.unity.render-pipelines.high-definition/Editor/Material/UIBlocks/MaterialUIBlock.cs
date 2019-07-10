@@ -6,7 +6,7 @@ using UnityEditor.Rendering;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
-    public abstract class MaterialUIBlock
+    abstract class MaterialUIBlock
     {
         protected MaterialEditor        materialEditor;
         protected Material[]            materials;
@@ -103,7 +103,7 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             return parent.FetchUIBlock< T >();
         }
-        
+
         public abstract void LoadMaterialProperties();
         public abstract void OnGUI();
     }

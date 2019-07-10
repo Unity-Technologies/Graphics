@@ -4,7 +4,7 @@ using UnityEngine.Rendering;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
-    public class DecalMenuItems
+    class DecalMenuItems
     {
         [MenuItem("GameObject/Rendering/Decal Projector", priority = CoreUtils.gameObjectMenuPriority)]
         static void CreateDecal(MenuCommand menuCommand)

@@ -10,7 +10,7 @@ using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
-    public class LayersUIBlock : MaterialUIBlock
+    class LayersUIBlock : MaterialUIBlock
     {
         public class Styles
         {

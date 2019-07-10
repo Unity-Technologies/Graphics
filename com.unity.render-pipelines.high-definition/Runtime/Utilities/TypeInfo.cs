@@ -2,7 +2,7 @@ using System;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
-    public static class TypeInfo
+    static class TypeInfo
     {
         struct EnumInfoJITCache<TEnum>
             // closest way to constraint to an enum without 'Enum' generic constraint

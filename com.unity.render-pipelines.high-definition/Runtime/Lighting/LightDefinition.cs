@@ -37,7 +37,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
     // This is use to distinguish between reflection and refraction probe in LightLoop
     [GenerateHLSL]
-    public enum GPUImageBasedLightingType
+    enum GPUImageBasedLightingType
     {
         Reflection,
         Refraction
@@ -45,7 +45,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
     // These structures share between C# and hlsl need to be align on float4, so we pad them.
     [GenerateHLSL(PackingRules.Exact, false)]
-    public struct DirectionalLightData
+    struct DirectionalLightData
     {
         // Packing order depends on chronological access to avoid cache misses
         // Make sure to respect the 16-byte alignment
@@ -86,7 +86,7 @@ namespace UnityEngine.Rendering.HighDefinition
     };
 
     [GenerateHLSL(PackingRules.Exact, false)]
-    public struct LightData
+    struct LightData
     {
         // Packing order depends on chronological access to avoid cache misses
         // Make sure to respect the 16-byte alignment
@@ -140,7 +140,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
 
     [GenerateHLSL]
-    public enum EnvShapeType
+    enum EnvShapeType
     {
         None,
         Box,
@@ -149,7 +149,7 @@ namespace UnityEngine.Rendering.HighDefinition
     };
 
     [GenerateHLSL]
-    public enum EnvConstants
+    enum EnvConstants
     {
         SpecCubeLodStep = 6
     }
@@ -161,7 +161,7 @@ namespace UnityEngine.Rendering.HighDefinition
     // Users can also chose to not have any projection, in this case we use the property minProjectionDistance to minimize code change. minProjectionDistance is set to huge number
     // that simulate effect of no shape projection
     [GenerateHLSL(PackingRules.Exact, false)]
-    public struct EnvLightData
+    struct EnvLightData
     {
         // Packing order depends on chronological access to avoid cache misses
         public uint lightLayers;
@@ -208,7 +208,7 @@ namespace UnityEngine.Rendering.HighDefinition
     };
 
     [GenerateHLSL]
-    public enum EnvCacheType
+    enum EnvCacheType
     {
         Texture2D,
         Cubemap
@@ -222,7 +222,7 @@ namespace UnityEngine.Rendering.HighDefinition
     // 3. unused
     [GenerateHLSL]
     // Caution: Value below are hardcoded in some shader (because properties doesn't support include). If order or value is change, please update corresponding ".shader"
-    public enum StencilLightingUsage
+    enum StencilLightingUsage
     {
         NoLighting,
         SplitLighting,

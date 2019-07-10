@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
-    public class StandardsToHDLitMaterialUpgrader : MaterialUpgrader
+    class StandardsToHDLitMaterialUpgrader : MaterialUpgrader
     {
         static readonly string Standard = "Standard";
         static readonly string Standard_Spec = "Standard (Specular setup)";

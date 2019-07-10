@@ -14,6 +14,14 @@ using UnityEngine.Experimental.XR;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
+    internal enum XRLayoutOverride
+    {
+        None,                       // default layout
+        TestComposite,              // split the  into tiles to simulate multi-pass
+        TestSinglePassOneEye,       // render only eye with single-pass instancing path
+        //Custom,                   // user defined
+    }
+
     internal partial class XRSystem
     {
         // Valid empty pass when a camera is not using XR
@@ -22,8 +30,13 @@ namespace UnityEngine.Rendering.HighDefinition
         // Store active passes and avoid allocating memory every frames
         List<(Camera, XRPass)> framePasses = new List<(Camera, XRPass)>();
 
-        // Resources used by XR
+        // Internal resources used by XR rendering
         Material occlusionMeshMaterial = null;
+        Material mirrorViewMaterial = null;
+        MaterialPropertyBlock mirrorViewMaterialProperty = new MaterialPropertyBlock();
+
+        // Display layout override property
+        internal XRLayoutOverride layoutOverride { get; set; } = XRLayoutOverride.None;
 
 #if USE_XR_SDK
         List<XRDisplaySubsystem> displayList = new List<XRDisplaySubsystem>();
@@ -36,7 +49,10 @@ namespace UnityEngine.Rendering.HighDefinition
             TextureXR.maxViews = GetMaxViews();
 
             if (shaders != null)
+            {
                 occlusionMeshMaterial = CoreUtils.CreateEngineMaterial(shaders.xrOcclusionMeshPS);
+                mirrorViewMaterial = CoreUtils.CreateEngineMaterial(shaders.xrMirrorViewPS);
+            }
         }
 
         // Compute the maximum number of views (slices) to allocate for texture arrays
@@ -55,6 +71,15 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 if (XRGraphics.stereoRenderingMode == XRGraphics.StereoRenderingMode.SinglePassInstanced)
                     maxViews = 2;
+
+#if UNITY_EDITOR
+                // Apply XR layout override if required
+                if (System.Array.Exists(System.Environment.GetCommandLineArgs(), arg => arg == "-xr-tests"))
+                {
+                    layoutOverride = XRLayoutOverride.TestSinglePassOneEye;
+                    maxViews = 2;
+                }
+#endif
             }
 
             return maxViews;
@@ -76,7 +101,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 bool xrEnabled = xrSdkActive || (camera.stereoEnabled && XRGraphics.enabled);
 
                 // Enable XR layout only for gameview camera
-                // XRTODO: support render to texture
                 bool xrSupported = camera.cameraType == CameraType.Game && camera.targetTexture == null;
 
                 // Debug modes can override the entire layout
@@ -110,9 +134,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (displayList.Count > 0)
             {
-                // XRTODO: bind cameras to XR displays (only display 0 is used for now)
                 if (displayList.Count > 1)
-                    throw new NotImplementedException();
+                    throw new NotImplementedException("Only 1 XR display is supported.");
 
                 display = displayList[0];
                 display.disableLegacyRenderer = true;
@@ -207,8 +230,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal void ClearAll()
         {
-            DestroyDebugVolume();
-
             CoreUtils.Destroy(occlusionMeshMaterial);
             occlusionMeshMaterial = null;
 
@@ -257,5 +278,48 @@ namespace UnityEngine.Rendering.HighDefinition
             return true;
         }
 #endif
+
+        internal void RenderMirrorView(CommandBuffer cmd)
+        {
+#if USE_XR_SDK
+            if (display == null)
+                return;
+
+            using (new ProfilingSample(cmd, "XR Mirror View"))
+            {
+                cmd.SetRenderTarget(BuiltinRenderTextureType.CameraTarget);
+
+                if (display.GetMirrorViewBlitDesc(null, out var blitDesc))
+                {
+                    if (blitDesc.nativeBlitAvailable)
+                    {
+                        display.AddGraphicsThreadMirrorViewBlit(cmd, blitDesc.nativeBlitInvalidStates);
+                    }
+                    else
+                    {
+                        for (int i = 0; i < blitDesc.blitParamsCount; ++i)
+                        {
+                            blitDesc.GetBlitParameter(i, out var blitParam);
+
+                            Vector4 scaleBias = new Vector4(blitParam.srcRect.width, blitParam.srcRect.height, blitParam.srcRect.x, blitParam.srcRect.y);
+                            Vector4 scaleBiasRT = new Vector4(blitParam.destRect.width, blitParam.destRect.height, blitParam.destRect.x, blitParam.destRect.y);
+
+                            mirrorViewMaterialProperty.SetTexture(HDShaderIDs._BlitTexture, blitParam.srcTex);
+                            mirrorViewMaterialProperty.SetVector(HDShaderIDs._BlitScaleBias, scaleBias);
+                            mirrorViewMaterialProperty.SetVector(HDShaderIDs._BlitScaleBiasRt, scaleBiasRT);
+                            mirrorViewMaterialProperty.SetInt(HDShaderIDs._BlitTexArraySlice, blitParam.srcTexArraySlice);
+
+                            int shaderPass = (blitParam.srcTex.dimension == TextureDimension.Tex2DArray) ? 1 : 0;
+                            cmd.DrawProcedural(Matrix4x4.identity, mirrorViewMaterial, shaderPass, MeshTopology.Triangles, 3, 1, mirrorViewMaterialProperty);
+                        }
+                    }
+                }
+                else
+                {
+                    cmd.ClearRenderTarget(true, true, Color.black);
+                }
+            }
+#endif
+        }
     }
 }

@@ -6,12 +6,20 @@ namespace UnityEngine.Rendering.HighDefinition
         public ColorParameter        albedo                 = new ColorParameter(Color.white);
         public MinFloatParameter     meanFreePath           = new MinFloatParameter(1000000.0f, 1.0f);
         public FloatParameter        baseHeight             = new FloatParameter(0.0f);
-        public FloatParameter        meanHeight             = new FloatParameter(10.0f);
+        public FloatParameter        maxHeight              = new FloatParameter(10.0f);
         public ClampedFloatParameter anisotropy             = new ClampedFloatParameter(0.0f, -1.0f, 1.0f);
         public ClampedFloatParameter globalLightProbeDimmer = new ClampedFloatParameter(1.0f, 0.0f, 1.0f);
         public BoolParameter         enableDistantFog       = new BoolParameter(false);
 
-        public override void PushShaderParameters(HDCamera hdCamera, CommandBuffer cmd)
+        static float ScaleHeightFromLayerDepth(float d)
+        {
+            // Exp[-d / H] = 0.001
+            // -d / H = Log[0.001]
+            // H = d / -Log[0.001]
+            return d * 0.144765f;
+        }
+
+        internal override void PushShaderParameters(HDCamera hdCamera, CommandBuffer cmd)
         {
             PushShaderParametersCommon(hdCamera, cmd, FogType.Volumetric);
 
@@ -29,10 +37,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 crBaseHeight -= hdCamera.camera.transform.position.y;
             }
 
-            float relativeMeanHeight = Mathf.Max(0.01f, meanHeight.value - baseHeight.value);
+            float layerDepth = Mathf.Max(0.01f, maxHeight.value - baseHeight.value);
+            float H          = ScaleHeightFromLayerDepth(layerDepth);
 
-            // FogExponent = 1 / BaseRelative(MeanHeight).
-            cmd.SetGlobalVector(HDShaderIDs._HeightFogExponents,  new Vector2(1.0f / relativeMeanHeight, relativeMeanHeight));
+            cmd.SetGlobalVector(HDShaderIDs._HeightFogExponents,  new Vector2(1.0f / H, H));
             cmd.SetGlobalFloat( HDShaderIDs._HeightFogBaseHeight, crBaseHeight);
             cmd.SetGlobalFloat( HDShaderIDs._GlobalFogAnisotropy, anisotropy.value);
             cmd.SetGlobalInt(   HDShaderIDs._EnableDistantFog,    enableDistantFog.value ? 1 : 0);

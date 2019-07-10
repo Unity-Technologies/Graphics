@@ -1,6 +1,6 @@
 namespace UnityEngine.Rendering.HighDefinition
 {
-    public static class HDShaderPassNames
+    static class HDShaderPassNames
     {
         // ShaderPass string - use to have consistent name through the code
         public static readonly string s_EmptyStr = "";
@@ -71,7 +71,7 @@ namespace UnityEngine.Rendering.HighDefinition
     // Pre-hashed shader ids - naming conventions are a bit off in this file as we use the same
     // fields names as in the shaders for ease of use...
     // TODO: Would be nice to clean this up at some point
-    public static class HDShaderIDs
+    static class HDShaderIDs
     {
         public static readonly int _ZClip = Shader.PropertyToID("_ZClip");
 
@@ -394,6 +394,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _BlitScaleBias = Shader.PropertyToID("_BlitScaleBias");
         public static readonly int _BlitMipLevel = Shader.PropertyToID("_BlitMipLevel");
         public static readonly int _BlitScaleBiasRt = Shader.PropertyToID("_BlitScaleBiasRt");
+        public static readonly int _BlitTexArraySlice = Shader.PropertyToID("_BlitTexArraySlice");
 
         public static readonly int _WorldScales = Shader.PropertyToID("_WorldScales");
         public static readonly int _FilterKernels = Shader.PropertyToID("_FilterKernels");
@@ -789,7 +790,7 @@ namespace UnityEngine.Rendering.HighDefinition
     }
 
     // Shared material property names
-    public static class HDMaterialProperties
+    static class HDMaterialProperties
     {
         // Stencil properties
         public const string kStencilRef = "_StencilRef";

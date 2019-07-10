@@ -4,7 +4,7 @@ using UnityEditor;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
-    public class SceneViewDrawMode
+    class SceneViewDrawMode
     {
         static private bool RejectDrawMode(SceneView.CameraMode cameraMode)
         {

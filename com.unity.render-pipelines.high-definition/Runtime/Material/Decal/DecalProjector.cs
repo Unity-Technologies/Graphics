@@ -163,7 +163,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>current uv parameters in a way the DecalSystem will be able to use it</summary>
         internal Vector4 uvScaleBias => new Vector4(m_UVScale.x, m_UVScale.y, m_UVBias.x, m_UVBias.y);
 
-        public DecalSystem.DecalHandle Handle
+        internal DecalSystem.DecalHandle Handle
         {
             get
             {

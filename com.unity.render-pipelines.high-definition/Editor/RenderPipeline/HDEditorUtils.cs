@@ -28,7 +28,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 AssetDatabase.LoadAssetAtPath<StyleSheet>(EditorStyleDarkSheetPath)
             ));
 
-        public static void AddStyleSheets(VisualElement element)
+        internal static void AddStyleSheets(VisualElement element)
         {
             element.styleSheets.Add(SpecificStyleSheets.Item1);
             element.styleSheets.Add(
@@ -63,7 +63,7 @@ namespace UnityEditor.Rendering.HighDefinition
             { typeof(StackLitMasterNode), StackLitGUI.SetupMaterialKeywordsAndPass },
         };
 
-        public static T LoadAsset<T>(string relativePath) where T : UnityEngine.Object
+        internal static T LoadAsset<T>(string relativePath) where T : UnityEngine.Object
         {
             return AssetDatabase.LoadAssetAtPath<T>(HDUtils.GetHDRenderPipelinePath() + relativePath);
         }
@@ -116,7 +116,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         /// <summary>Gather all the shader preprocessors</summary>
         /// <returns>The list of shader preprocessor</returns>
-        public static List<BaseShaderPreprocessor> GetBaseShaderPreprocessorList()
+        internal static List<BaseShaderPreprocessor> GetBaseShaderPreprocessorList()
         {
             var baseType = typeof(BaseShaderPreprocessor);
             var assembly = baseType.Assembly;
@@ -154,7 +154,7 @@ namespace UnityEditor.Rendering.HighDefinition
             return rect;
         }
 
-        public static bool IsAssetPath(string path)
+        internal static bool IsAssetPath(string path)
         {
             var isPathRooted = Path.IsPathRooted(path);
             return isPathRooted && path.StartsWith(Application.dataPath)
@@ -162,7 +162,7 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         // Copy texture from cache
-        public static bool CopyFileWithRetryOnUnauthorizedAccess(string s, string path)
+        internal static bool CopyFileWithRetryOnUnauthorizedAccess(string s, string path)
         {
             UnauthorizedAccessException exception = null;
             for (var k = 0; k < 20; ++k)
@@ -277,7 +277,7 @@ namespace UnityEditor.Rendering.HighDefinition
         /// </summary>
         /// <param name="weightInByte">The weigth in byte</param>
         /// <returns>Human readable weight</returns>
-        public static string HumanizeWeight(long weightInByte)
+        internal static string HumanizeWeight(long weightInByte)
         {
             if (weightInByte < 500)
             {
@@ -303,7 +303,7 @@ namespace UnityEditor.Rendering.HighDefinition
         /// <summary>Provide a specific property drawer for LightLayer</summary>
         /// <param name="label">The desired label</param>
         /// <param name="property">The SerializedProperty (representing an int that should be displayed as a LightLayer)</param>
-        public static void LightLayerMaskPropertyDrawer(GUIContent label, SerializedProperty property)
+        internal static void LightLayerMaskPropertyDrawer(GUIContent label, SerializedProperty property)
         {
             var renderingLayerMask = property.intValue;
             int lightLayer;
@@ -327,7 +327,7 @@ namespace UnityEditor.Rendering.HighDefinition
         /// <summary>Provide a specific property drawer for LightLayer (without label)</summary>
         /// <param name="rect">The rect where to draw</param>
         /// <param name="property">The SerializedProperty (representing an int that should be displayed as a LightLayer)</param>
-        public static void LightLayerMaskPropertyDrawer(Rect rect, SerializedProperty property)
+        internal static void LightLayerMaskPropertyDrawer(Rect rect, SerializedProperty property)
         {
             var renderingLayerMask = property.intValue;
             int lightLayer;
@@ -349,7 +349,7 @@ namespace UnityEditor.Rendering.HighDefinition
         }
     }
 
-    public static partial class SerializedPropertyExtention
+    internal static partial class SerializedPropertyExtention
     {
         /// <summary>
         /// Helper to get an enum value from a SerializedProperty

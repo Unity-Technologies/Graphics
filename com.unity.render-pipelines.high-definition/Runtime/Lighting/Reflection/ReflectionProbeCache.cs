@@ -2,7 +2,7 @@ using System;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
-    public class ReflectionProbeCache
+    class ReflectionProbeCache
     {
         internal static readonly int s_InputTexID = Shader.PropertyToID("_InputTex");
         internal static readonly int s_LoDID = Shader.PropertyToID("_LoD");

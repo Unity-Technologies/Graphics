@@ -5,7 +5,7 @@ using UnityEngine.Rendering;
 
 namespace UnityEngine.Rendering.Tests
 {
-    public class BitArrayTests
+    class BitArrayTests
     {
         BitArray8[] ba8;
         BitArray16[] ba16;

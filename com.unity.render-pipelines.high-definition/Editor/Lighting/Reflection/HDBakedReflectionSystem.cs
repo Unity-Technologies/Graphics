@@ -4,14 +4,15 @@ using System.IO;
 using System.Linq.Expressions;
 using System.Reflection;
 using Unity.Collections.LowLevel.Unsafe;
-using UnityEditor;
 using UnityEditor.VersionControl;
+using UnityEngine;
+using UnityEngine.Rendering;
 using UnityEngine.Assertions;
 using UnityEngine.SceneManagement;
+using UnityEngine.Rendering.HighDefinition;
 using UnityEditor.Experimental.Rendering;
-using UnityEditor.Rendering.HighDefinition;
 
-namespace UnityEngine.Rendering.HighDefinition
+namespace UnityEditor.Rendering.HighDefinition
 {
     unsafe class HDBakedReflectionSystem : ScriptableBakedReflectionSystem
     {
@@ -436,7 +437,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (!Directory.Exists(sceneFolder))
                     continue;
 
-                var types = TypeInfo.GetEnumValues<ProbeSettings.ProbeType>();
+                var types = UnityEngine.Rendering.HighDefinition.TypeInfo.GetEnumValues<ProbeSettings.ProbeType>();
                 for (int typeI = 0; typeI < types.Length; ++typeI)
                 {
                     var files = Directory.GetFiles(

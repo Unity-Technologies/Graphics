@@ -7,7 +7,7 @@ using UnityEngine.UIElements;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
-    public class DefaultSettingsPanelProvider
+    class DefaultSettingsPanelProvider
     {
         [SettingsProvider]
         public static SettingsProvider CreateSettingsProvider()

@@ -5,7 +5,7 @@ using UnityEngine.Rendering.HighDefinition;
 namespace UnityEditor.Rendering
 {
 
-    public class DensityVolumeTextureTool : EditorWindow
+    class DensityVolumeTextureTool : EditorWindow
     {
         private Texture2D sourceTexture = null;
         private string assetPath;

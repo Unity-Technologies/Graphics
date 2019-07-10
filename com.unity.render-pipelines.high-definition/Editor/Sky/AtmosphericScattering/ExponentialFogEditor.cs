@@ -4,7 +4,7 @@ using UnityEditor.Rendering;
 namespace UnityEditor.Rendering.HighDefinition
 {
     [VolumeComponentEditor(typeof(ExponentialFog))]
-    public class ExponentialFogEditor : AtmosphericScatteringEditor
+    class ExponentialFogEditor : AtmosphericScatteringEditor
     {
         SerializedDataParameter m_Density;
         SerializedDataParameter m_FogDistance;

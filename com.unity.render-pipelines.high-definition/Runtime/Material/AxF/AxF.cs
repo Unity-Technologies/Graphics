@@ -6,7 +6,7 @@ using UnityEngine.Rendering.HighDefinition.Attributes;
 //-----------------------------------------------------------------------------
 namespace UnityEngine.Rendering.HighDefinition
 {
-    public class AxF : RenderPipelineMaterial
+    class AxF : RenderPipelineMaterial
     {
         //-----------------------------------------------------------------------------
         // SurfaceData

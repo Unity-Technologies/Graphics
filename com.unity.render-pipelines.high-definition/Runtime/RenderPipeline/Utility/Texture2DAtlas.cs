@@ -8,7 +8,7 @@ using UnityEditor;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
-    public class AtlasAllocator
+    class AtlasAllocator
     {
         private class AtlasNode
         {
@@ -114,7 +114,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
     }
 
-    public class Texture2DAtlas
+    class Texture2DAtlas
     {
         private RTHandleSystem.RTHandle m_AtlasTexture = null;
         private int m_Width;

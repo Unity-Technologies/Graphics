@@ -5,7 +5,7 @@ namespace UnityEditor.Rendering.HighDefinition
 {
     [CanEditMultipleObjects]
     [VolumeComponentEditor(typeof(ProceduralSky))]
-    public class ProceduralSkySettingsEditor
+    class ProceduralSkySettingsEditor
         : SkySettingsEditor
     {
         SerializedDataParameter m_SunSize;

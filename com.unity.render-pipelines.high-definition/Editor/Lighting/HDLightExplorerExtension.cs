@@ -6,7 +6,7 @@ using UnityEngine.Rendering.HighDefinition;
 namespace UnityEditor.Rendering.HighDefinition
 {
     [LightingExplorerExtensionAttribute(typeof(HDRenderPipelineAsset))]
-    public class HDLightExplorerExtension : DefaultLightingExplorerExtension
+    class HDLightExplorerExtension : DefaultLightingExplorerExtension
     {
         struct LightData
         {

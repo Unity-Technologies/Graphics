@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
-    public class HDEditorCLI
+    class HDEditorCLI
     {
         enum CommandLineOperation
         {

@@ -5,7 +5,7 @@ using UnityEngine.SceneManagement;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
-    public class SceneObjectIDMap
+    class SceneObjectIDMap
     {
         public static bool TryGetSceneObjectID<TCategory>(GameObject gameObject, out int index, out TCategory category)
             where TCategory : struct, IConvertible

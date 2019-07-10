@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
-    public class Texture3DAtlas
+    class Texture3DAtlas
     {
         private List<Texture3D> m_textures = new List<Texture3D>();
 

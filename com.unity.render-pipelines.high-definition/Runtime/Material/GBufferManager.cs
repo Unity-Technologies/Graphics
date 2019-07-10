@@ -3,7 +3,7 @@ using UnityEngine.Experimental.Rendering;
 namespace UnityEngine.Rendering.HighDefinition
 {
     // This enum allow to identify which render target is used for a specific feature
-    public enum GBufferUsage
+    enum GBufferUsage
     {
         None,
         SubsurfaceScattering,
@@ -12,7 +12,7 @@ namespace UnityEngine.Rendering.HighDefinition
         ShadowMask
     }
 
-    public class GBufferManager : MRTBufferManager
+    class GBufferManager : MRTBufferManager
     {
         RenderPipelineMaterial m_DeferredMaterial;
         // This contain the usage for all allocated buffer
