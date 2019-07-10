@@ -1000,11 +1000,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
             float R = skySettings.planetaryRadius.value;
 
-            Vector2 H = new Vector2(skySettings.GetAirScaleHeight(), skySettings.GetAerosolScaleHeight());
-            Vector2 n = new Vector2(Rcp(H.x), Rcp(H.y));
+            Vector2 H    = new Vector2(skySettings.GetAirScaleHeight(), skySettings.GetAerosolScaleHeight());
+            Vector2 rcpH = new Vector2(Rcp(H.x), Rcp(H.y));
 
-            Vector2 z = n * r;
-            Vector2 Z = n * R;
+            Vector2 z = r * rcpH;
+            Vector2 Z = R * rcpH;
 
             float cosHoriz = ComputeCosineOfHorizonAngle(r, R);
 	        float sinTheta = Mathf.Sqrt(Saturate(1 - cosTheta * cosTheta));
@@ -1040,8 +1040,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             Vector2 optDepth = ch * H;
 
-            Vector3 airExtinction     = (Vector4)skySettings.airThickness.value * 0.001f; // Convert to 1/km
-            float   aerosolExtinction = skySettings.aerosolThickness.value * 0.001f;      // Convert to 1/km
+            Vector3 airExtinction     = skySettings.GetAirExtinctionCoefficient();
+            float   aerosolExtinction = skySettings.GetAerosolExtinctionCoefficient();
 
             return new Vector3(optDepth.x * airExtinction.x + optDepth.y * aerosolExtinction,
                                optDepth.x * airExtinction.y + optDepth.y * aerosolExtinction,
@@ -1058,7 +1058,8 @@ namespace UnityEngine.Rendering.HighDefinition
             Vector3 C = skySettings.planetCenterPosition.value;
 
             float r        = Vector3.Distance(X, C);
-            float cosHoriz = ComputeCosineOfHorizonAngle(r, skySettings.planetaryRadius.value);
+            float R        = skySettings.planetaryRadius.value;
+            float cosHoriz = ComputeCosineOfHorizonAngle(r, R);
             float cosTheta = Vector3.Dot(X - C, L) * Rcp(r);
 
             if (cosTheta > cosHoriz) // Above horizon
