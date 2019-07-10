@@ -19,7 +19,7 @@ namespace UnityEditor.ShaderGraph
             this.referenceName = referenceName;
         }
     }
-    
+
     enum ShaderKeywordType { Boolean, Enum }
     enum ShaderKeywordDefinition { ShaderFeature, MultiCompile, Predefined }
     enum ShaderKeywordScope { Local, Global }

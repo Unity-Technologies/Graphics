@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Data.Util;
 using UnityEditor.Graphing;
 using UnityEngine;              // Vector3,4
 using UnityEditor.ShaderGraph;
@@ -269,109 +270,109 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         };
 
         // TODO: move this out of HDRPShaderStructs
-        static public void AddActiveFieldsFromVertexGraphRequirements(HashSet<string> activeFields, ShaderGraphRequirements requirements)
+        static public void AddActiveFieldsFromVertexGraphRequirements(IActiveFieldsSet activeFields, ShaderGraphRequirements requirements)
         {
             if (requirements.requiresScreenPosition)
             {
-                activeFields.Add("VertexDescriptionInputs.ScreenPosition");
+                activeFields.AddAll("VertexDescriptionInputs.ScreenPosition");
             }
 
             if (requirements.requiresVertexColor)
             {
-                activeFields.Add("VertexDescriptionInputs.VertexColor");
+                activeFields.AddAll("VertexDescriptionInputs.VertexColor");
             }
 
             if (requirements.requiresNormal != 0)
             {
                 if ((requirements.requiresNormal & NeededCoordinateSpace.Object) > 0)
-                    activeFields.Add("VertexDescriptionInputs.ObjectSpaceNormal");
+                    activeFields.AddAll("VertexDescriptionInputs.ObjectSpaceNormal");
 
                 if ((requirements.requiresNormal & NeededCoordinateSpace.View) > 0)
-                    activeFields.Add("VertexDescriptionInputs.ViewSpaceNormal");
+                    activeFields.AddAll("VertexDescriptionInputs.ViewSpaceNormal");
 
                 if ((requirements.requiresNormal & NeededCoordinateSpace.World) > 0)
-                    activeFields.Add("VertexDescriptionInputs.WorldSpaceNormal");
+                    activeFields.AddAll("VertexDescriptionInputs.WorldSpaceNormal");
 
                 if ((requirements.requiresNormal & NeededCoordinateSpace.Tangent) > 0)
-                    activeFields.Add("VertexDescriptionInputs.TangentSpaceNormal");
+                    activeFields.AddAll("VertexDescriptionInputs.TangentSpaceNormal");
             }
 
             if (requirements.requiresTangent != 0)
             {
                 if ((requirements.requiresTangent & NeededCoordinateSpace.Object) > 0)
-                    activeFields.Add("VertexDescriptionInputs.ObjectSpaceTangent");
+                    activeFields.AddAll("VertexDescriptionInputs.ObjectSpaceTangent");
 
                 if ((requirements.requiresTangent & NeededCoordinateSpace.View) > 0)
-                    activeFields.Add("VertexDescriptionInputs.ViewSpaceTangent");
+                    activeFields.AddAll("VertexDescriptionInputs.ViewSpaceTangent");
 
                 if ((requirements.requiresTangent & NeededCoordinateSpace.World) > 0)
-                    activeFields.Add("VertexDescriptionInputs.WorldSpaceTangent");
+                    activeFields.AddAll("VertexDescriptionInputs.WorldSpaceTangent");
 
                 if ((requirements.requiresTangent & NeededCoordinateSpace.Tangent) > 0)
-                    activeFields.Add("VertexDescriptionInputs.TangentSpaceTangent");
+                    activeFields.AddAll("VertexDescriptionInputs.TangentSpaceTangent");
             }
 
             if (requirements.requiresBitangent != 0)
             {
                 if ((requirements.requiresBitangent & NeededCoordinateSpace.Object) > 0)
-                    activeFields.Add("VertexDescriptionInputs.ObjectSpaceBiTangent");
+                    activeFields.AddAll("VertexDescriptionInputs.ObjectSpaceBiTangent");
 
                 if ((requirements.requiresBitangent & NeededCoordinateSpace.View) > 0)
-                    activeFields.Add("VertexDescriptionInputs.ViewSpaceBiTangent");
+                    activeFields.AddAll("VertexDescriptionInputs.ViewSpaceBiTangent");
 
                 if ((requirements.requiresBitangent & NeededCoordinateSpace.World) > 0)
-                    activeFields.Add("VertexDescriptionInputs.WorldSpaceBiTangent");
+                    activeFields.AddAll("VertexDescriptionInputs.WorldSpaceBiTangent");
 
                 if ((requirements.requiresBitangent & NeededCoordinateSpace.Tangent) > 0)
-                    activeFields.Add("VertexDescriptionInputs.TangentSpaceBiTangent");
+                    activeFields.AddAll("VertexDescriptionInputs.TangentSpaceBiTangent");
             }
 
             if (requirements.requiresViewDir != 0)
             {
                 if ((requirements.requiresViewDir & NeededCoordinateSpace.Object) > 0)
-                    activeFields.Add("VertexDescriptionInputs.ObjectSpaceViewDirection");
+                    activeFields.AddAll("VertexDescriptionInputs.ObjectSpaceViewDirection");
 
                 if ((requirements.requiresViewDir & NeededCoordinateSpace.View) > 0)
-                    activeFields.Add("VertexDescriptionInputs.ViewSpaceViewDirection");
+                    activeFields.AddAll("VertexDescriptionInputs.ViewSpaceViewDirection");
 
                 if ((requirements.requiresViewDir & NeededCoordinateSpace.World) > 0)
-                    activeFields.Add("VertexDescriptionInputs.WorldSpaceViewDirection");
+                    activeFields.AddAll("VertexDescriptionInputs.WorldSpaceViewDirection");
 
                 if ((requirements.requiresViewDir & NeededCoordinateSpace.Tangent) > 0)
-                    activeFields.Add("VertexDescriptionInputs.TangentSpaceViewDirection");
+                    activeFields.AddAll("VertexDescriptionInputs.TangentSpaceViewDirection");
             }
 
             if (requirements.requiresPosition != 0)
             {
                 if ((requirements.requiresPosition & NeededCoordinateSpace.Object) > 0)
-                    activeFields.Add("VertexDescriptionInputs.ObjectSpacePosition");
+                    activeFields.AddAll("VertexDescriptionInputs.ObjectSpacePosition");
 
                 if ((requirements.requiresPosition & NeededCoordinateSpace.View) > 0)
-                    activeFields.Add("VertexDescriptionInputs.ViewSpacePosition");
+                    activeFields.AddAll("VertexDescriptionInputs.ViewSpacePosition");
 
                 if ((requirements.requiresPosition & NeededCoordinateSpace.World) > 0)
-                    activeFields.Add("VertexDescriptionInputs.WorldSpacePosition");
+                    activeFields.AddAll("VertexDescriptionInputs.WorldSpacePosition");
 
                 if ((requirements.requiresPosition & NeededCoordinateSpace.Tangent) > 0)
-                    activeFields.Add("VertexDescriptionInputs.TangentSpacePosition");
+                    activeFields.AddAll("VertexDescriptionInputs.TangentSpacePosition");
 
                 if ((requirements.requiresPosition & NeededCoordinateSpace.AbsoluteWorld) > 0)
-                    activeFields.Add("VertexDescriptionInputs.AbsoluteWorldSpacePosition");
+                    activeFields.AddAll("VertexDescriptionInputs.AbsoluteWorldSpacePosition");
             }
 
             foreach (var channel in requirements.requiresMeshUVs.Distinct())
             {
-                activeFields.Add("VertexDescriptionInputs." + channel.GetUVName());
+                activeFields.AddAll("VertexDescriptionInputs." + channel.GetUVName());
             }
 
             if (requirements.requiresTime)
             {
-                activeFields.Add("VertexDescriptionInputs.TimeParameters");
+                activeFields.AddAll("VertexDescriptionInputs.TimeParameters");
             }
         }
 
         // TODO: move this out of HDRPShaderStructs
-        static public void AddActiveFieldsFromPixelGraphRequirements(HashSet<string> activeFields, ShaderGraphRequirements requirements)
+        static public void AddActiveFieldsFromPixelGraphRequirements(IActiveFields activeFields, ShaderGraphRequirements requirements)
         {
             if (requirements.requiresScreenPosition)
             {
@@ -461,7 +462,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
                 if ((requirements.requiresPosition & NeededCoordinateSpace.Tangent) > 0)
                     activeFields.Add("SurfaceDescriptionInputs.TangentSpacePosition");
-                
+
                 if ((requirements.requiresPosition & NeededCoordinateSpace.AbsoluteWorld) > 0)
                     activeFields.Add("SurfaceDescriptionInputs.AbsoluteWorldSpacePosition");
             }
@@ -479,13 +480,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         public static void AddRequiredFields(
             List<string> passRequiredFields,            // fields the pass requires
-            HashSet<string> activeFields)
+            IActiveFieldsSet activeFields)
         {
             if (passRequiredFields != null)
             {
                 foreach (var requiredField in passRequiredFields)
                 {
-                    activeFields.Add(requiredField);
+                    activeFields.AddAll(requiredField);
                 }
             }
         }
@@ -536,7 +537,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
     static class HDSubShaderUtilities
     {
-        public static bool GenerateShaderPass(AbstractMaterialNode masterNode, Pass pass, GenerationMode mode, HashSet<string> activeFields, ShaderGenerator result, List<string> sourceAssetDependencyPaths, bool vertexActive)
+        public static bool GenerateShaderPass(AbstractMaterialNode masterNode, Pass pass, GenerationMode mode, ActiveFields activeFields, ShaderGenerator result, List<string> sourceAssetDependencyPaths, bool vertexActive)
         {
             string templatePath = Path.Combine(HDUtils.GetHDRenderPipelinePath(), "Editor/Material");
             string templateLocation = Path.Combine(Path.Combine(Path.Combine(templatePath, pass.MaterialName), "ShaderGraph"), pass.TemplateName);
@@ -607,6 +608,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             // -------------------------------------
             // Evaluate all permutations
 
+            HDRPShaderStructs.AddActiveFieldsFromPixelGraphRequirements(activeFields.baseInstance, pixelRequirements);
+
             for(int i = 0; i < keywordPermutations.Count; i++)
             {
                 // Get active nodes for this permutation
@@ -641,13 +644,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
                 vertexRequirementsPerKeyword.Add(new KeyValuePair<int, ShaderGraphRequirements>(i, localVertexRequirements));
                 pixelRequirementsPerKeyword.Add(new KeyValuePair<int, ShaderGraphRequirements>(i, localPixelRequirements));
+
+                // build initial requirements
+                HDRPShaderStructs.AddActiveFieldsFromPixelGraphRequirements(activeFields[i], localPixelRequirements);
             }
 
-            // build initial requirements
-            HDRPShaderStructs.AddActiveFieldsFromPixelGraphRequirements(activeFields, pixelRequirements);
-
             // build the graph outputs structure, and populate activeFields with the fields of that structure
-            GraphUtil.GenerateSurfaceDescriptionStruct(pixelGraphOutputs, pixelSlots, pixelGraphOutputStructName, activeFields);
+            GraphUtil.GenerateSurfaceDescriptionStruct(pixelGraphOutputs, pixelSlots, pixelGraphOutputStructName, activeFields.all);
 
             // Build the graph evaluation code, to evaluate the specified slots
             GraphUtil.GenerateSurfaceDescriptionFunction(
@@ -676,12 +679,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             if (vertexActive)
             {
                 vertexActive = true;
-                activeFields.Add("features.modifyMesh");
-                HDRPShaderStructs.AddActiveFieldsFromVertexGraphRequirements(activeFields, vertexRequirements);
+                activeFields.all.AddAll("features.modifyMesh");
+                HDRPShaderStructs.AddActiveFieldsFromVertexGraphRequirements(activeFields.all, vertexRequirements);
 
                 // -------------------------------------
                 // Generate Output structure for Vertex Description function
-                GraphUtil.GenerateVertexDescriptionStruct(vertexGraphOutputs, vertexSlots, vertexGraphOutputStructName, activeFields);
+                GraphUtil.GenerateVertexDescriptionStruct(vertexGraphOutputs, vertexSlots, vertexGraphOutputStructName, activeFields.all);
 
                 // -------------------------------------
                 // Generate Vertex Description function
@@ -710,7 +713,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             var colorMaskCode = new ShaderStringBuilder();
             HDSubShaderUtilities.BuildRenderStatesFromPass(pass, blendCode, cullCode, zTestCode, zWriteCode, zClipCode, stencilCode, colorMaskCode);
 
-            HDRPShaderStructs.AddRequiredFields(pass.RequiredFields, activeFields);
+            HDRPShaderStructs.AddRequiredFields(pass.RequiredFields, activeFields.all);
 
             // Get keyword declarations
             sharedKeywords.GetKeywordsDeclaration(shaderKeywordDeclarations, mode);
@@ -720,22 +723,25 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             sharedProperties.GetPropertiesDeclaration(shaderPropertyUniforms, mode, masterNode.owner.concretePrecision);
 
             // propagate active field requirements using dependencies
-            ShaderSpliceUtil.ApplyDependencies(
-                activeFields,
-                new List<Dependency[]>()
-                {
-                    HDRPShaderStructs.FragInputs.dependencies,
-                    HDRPShaderStructs.VaryingsMeshToPS.standardDependencies,
-                    HDRPShaderStructs.SurfaceDescriptionInputs.dependencies,
-                    HDRPShaderStructs.VertexDescriptionInputs.dependencies
-                });
+            foreach (var instance in activeFields.all.instances)
+            {
+                ShaderSpliceUtil.ApplyDependencies(
+                    instance,
+                    new List<Dependency[]>()
+                    {
+                        HDRPShaderStructs.FragInputs.dependencies,
+                        HDRPShaderStructs.VaryingsMeshToPS.standardDependencies,
+                        HDRPShaderStructs.SurfaceDescriptionInputs.dependencies,
+                        HDRPShaderStructs.VertexDescriptionInputs.dependencies
+                    });
+            }
 
             // debug output all active fields
             var interpolatorDefines = new ShaderGenerator();
             if (debugOutput)
             {
                 interpolatorDefines.AddShaderChunk("// ACTIVE FIELDS:");
-                foreach (string f in activeFields)
+                foreach (string f in activeFields.baseInstance.fields)
                 {
                     interpolatorDefines.AddShaderChunk("//   " + f);
                 }
@@ -902,7 +908,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             if (pass.ColorMaskOverride != null)
                 colorMaskCode.AppendLine(pass.ColorMaskOverride);
-            
+
             if (pass.ZClipOverride != null)
                 zClipCode.AppendLine(pass.ZClipOverride);
 
