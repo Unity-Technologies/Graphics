@@ -292,6 +292,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         // custom-begin:
         ComputeBuffer dissolveOccludersCylindersBufferFallback = null;
+
+        // Accessor for non-hdrp custom render code.
+        public LightLoop GetLightLoop()
+        {
+            return m_LightLoop;
+        }
         // custom-end
 
         public HDRenderPipeline(HDRenderPipelineAsset asset)
@@ -3107,7 +3113,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             var passNames = m_Asset.currentPlatformRenderPipelineSettings.supportTransparentBackface ? m_AllTransparentPassNames : m_TransparentNoBackfaceNames;
             return CreateTransparentRendererListDesc(cullResults, hdCamera.camera, passNames, m_CurrentRendererConfigurationBakedLighting, transparentRange);
         }
-
 
         void RenderForwardTransparent(CullingResults cullResults, HDCamera hdCamera, bool preRefraction, ScriptableRenderContext renderContext, CommandBuffer cmd)
         {
