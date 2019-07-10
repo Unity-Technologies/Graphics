@@ -11,7 +11,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         bool TextureHasMipmaps(Texture texture)
         {
-            // Either the texture 
+            // Either the texture
             if (texture is Texture2D)
                 return ((Texture2D)texture).mipmapCount > 1;
             else

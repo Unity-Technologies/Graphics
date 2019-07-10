@@ -8,7 +8,7 @@ using UnityEngine.Rendering.HighDefinition;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
-    // The common shader stripper function 
+    // The common shader stripper function
     class CommonShaderPreprocessor : BaseShaderPreprocessor
     {
         public CommonShaderPreprocessor() { }
@@ -67,7 +67,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             if (inputData.shaderKeywordSet.IsEnabled(m_LodFadeCrossFade) && !hdrpAsset.currentPlatformRenderPipelineSettings.supportDitheringCrossFade)
                 return true;
-           
+
             if (inputData.shaderKeywordSet.IsEnabled(m_WriteMSAADepth) && !hdrpAsset.currentPlatformRenderPipelineSettings.supportMSAA)
                 return true;
 
@@ -168,12 +168,12 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             // TODO: Grab correct configuration/quality asset.
             var hdPipelineAssets = ShaderBuildPreprocessor.hdrpAssets;
-            
+
             if (hdPipelineAssets.Count == 0)
                 return;
 
             uint preStrippingCount = (uint)inputData.Count;
-            
+
             // Test if striping is enabled in any of the found HDRP assets.
             if ( hdPipelineAssets.Count == 0 || !hdPipelineAssets.Any(a => a.allowShaderVariantStripping) )
                 return;
@@ -186,11 +186,11 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 // Remove the input by default, until we find a HDRP Asset in the list that needs it.
                 bool removeInput = true;
-                
+
                 foreach (var hdAsset in hdPipelineAssets)
                 {
                     var stripedByPreprocessor = false;
-                    
+
                     // Call list of strippers
                     // Note that all strippers cumulate each other, so be aware of any conflict here
                     foreach (BaseShaderPreprocessor shaderPreprocessor in shaderProcessorsList)
@@ -227,7 +227,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
     }
-    
+
     // Build preprocessor to find all potentially used HDRP assets.
     class ShaderBuildPreprocessor : IPreprocessBuildWithReport
     {
@@ -337,9 +337,9 @@ namespace UnityEditor.Rendering.HighDefinition
                 ));
             // */
         }
-        
+
         public int callbackOrder { get { return 0; } }
-        
+
         public void OnPreprocessBuild(BuildReport report)
         {
             GetAllValidHDRPAssets();

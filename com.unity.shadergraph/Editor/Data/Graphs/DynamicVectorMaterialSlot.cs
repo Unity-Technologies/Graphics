@@ -112,7 +112,10 @@ namespace UnityEditor.ShaderGraph
                     property = new Vector1ShaderProperty();
                     break;
                 default:
-                    throw new ArgumentOutOfRangeException();
+                    // This shouldn't happen due to edge validation. The generated shader will
+                    // have errors.
+                    Debug.LogError($"Invalid value type {concreteValueType} passed to Vector Slot {displayName}. Value will be ignored, please plug in an edge with a vector type.");
+                    return;
             }
 
             property.overrideReferenceName = matOwner.GetVariableNameForSlot(id);
