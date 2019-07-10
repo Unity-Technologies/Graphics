@@ -146,6 +146,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeShader clearUIntTextureCS;
 
             // XR
+            [Reload("Runtime/ShaderLibrary/XRMirrorView.shader")]
+            public Shader xrMirrorViewPS;
             [Reload("Runtime/ShaderLibrary/XROcclusionMesh.shader")]
             public Shader xrOcclusionMeshPS;
 

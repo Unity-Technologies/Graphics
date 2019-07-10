@@ -49,12 +49,12 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        public static Material GetBlitMaterial(TextureDimension dimension)
+        public static Material GetBlitMaterial(TextureDimension dimension, bool singleSlice = false)
         {
             HDRenderPipeline hdPipeline = RenderPipelineManager.currentPipeline as HDRenderPipeline;
             if (hdPipeline != null)
             {
-                return hdPipeline.GetBlitMaterial(dimension == TextureDimension.Tex2DArray);
+                return hdPipeline.GetBlitMaterial(dimension == TextureDimension.Tex2DArray, singleSlice);
             }
 
             return null;
