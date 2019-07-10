@@ -10,7 +10,7 @@ using Fence =
 
 namespace UnityEngine.Rendering
 {
-    public struct HDGPUAsyncTask
+    struct HDGPUAsyncTask
     {
         private enum AsyncTaskStage
         {

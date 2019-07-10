@@ -2,7 +2,7 @@ using NUnit.Framework;
 
 namespace UnityEngine.Rendering.HighDefinition.Tests
 {
-    public class MigrationTests
+    class MigrationTests
     {
         class MigrableComponent : IVersionable<MigrableComponent.Version>
         {

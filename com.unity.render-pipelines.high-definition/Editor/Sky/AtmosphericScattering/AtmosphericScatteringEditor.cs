@@ -3,7 +3,7 @@ using UnityEngine.Rendering.HighDefinition;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
-    public class AtmosphericScatteringEditor : VolumeComponentEditor
+    class AtmosphericScatteringEditor : VolumeComponentEditor
     {
         protected SerializedDataParameter m_MaxFogDistance;
         SerializedDataParameter m_ColorMode;

@@ -5,7 +5,7 @@ using UnityEngine.Rendering.HighDefinition;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
-    public class ReflectionMenuItems
+    class ReflectionMenuItems
     {
         [MenuItem("GameObject/3D Object/Mirror", priority = CoreUtils.gameObjectMenuPriority)]
         static void CreateMirrorGameObject(MenuCommand menuCommand)

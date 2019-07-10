@@ -9,7 +9,7 @@ using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
-    public class TessellationOptionsUIBlock : MaterialUIBlock
+    class TessellationOptionsUIBlock : MaterialUIBlock
     {
         public class Styles
         {

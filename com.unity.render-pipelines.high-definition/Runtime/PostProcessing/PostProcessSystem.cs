@@ -10,7 +10,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
     // Main class for all post-processing related features - only includes camera effects, no
     // lighting/surface effect like SSR/AO
-    public sealed class PostProcessSystem
+    sealed class PostProcessSystem
     {
         private enum SMAAStage
         {

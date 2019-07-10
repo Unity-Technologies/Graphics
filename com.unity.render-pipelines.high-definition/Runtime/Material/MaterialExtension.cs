@@ -11,14 +11,14 @@ using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
 namespace UnityEditor.Rendering.HighDefinition
 {
     // Note: There is another SurfaceType in ShaderGraph (AlphaMode.cs) which conflicts in HDRP shader graph files
-    public enum SurfaceType
+    enum SurfaceType
     {
         Opaque,
         Transparent
     }
 
     // Enum values are hardcoded for retro-compatibility. Don't change them.
-    public enum BlendMode
+    enum BlendMode
     {
         // Note: value is due to code change, don't change the value
         Alpha = 0,
@@ -26,7 +26,7 @@ namespace UnityEditor.Rendering.HighDefinition
         Additive = 1
     }
 
-    public enum DisplacementMode
+    enum DisplacementMode
     {
         None,
         Vertex,
@@ -34,20 +34,20 @@ namespace UnityEditor.Rendering.HighDefinition
         Tessellation
     }
 
-    public enum DoubleSidedNormalMode
+    enum DoubleSidedNormalMode
     {
         Flip,
         Mirror,
         None
     }
 
-    public enum TessellationMode
+    enum TessellationMode
     {
         None,
         Phong
     }
 
-    public enum MaterialId
+    enum MaterialId
     {
         LitSSS = 0,
         LitStandard = 1,
@@ -57,19 +57,19 @@ namespace UnityEditor.Rendering.HighDefinition
         LitTranslucent = 5
     };
 
-    public enum NormalMapSpace
+    enum NormalMapSpace
     {
         TangentSpace,
         ObjectSpace,
     }
 
-    public enum HeightmapMode
+    enum HeightmapMode
     {
         Parallax,
         Displacement,
     }
 
-    public enum VertexColorMode
+    enum VertexColorMode
     {
         None,
         Multiply,
@@ -107,7 +107,7 @@ namespace UnityEditor.Rendering.HighDefinition
         Front = CullMode.Front,
     }
 
-    public static class MaterialExtension
+    internal static class MaterialExtension
     {
         public static SurfaceType   GetSurfaceType(this Material material)
         {

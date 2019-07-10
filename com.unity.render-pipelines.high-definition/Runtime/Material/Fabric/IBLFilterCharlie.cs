@@ -1,6 +1,6 @@
 namespace UnityEngine.Rendering.HighDefinition
 {
-    public class IBLFilterCharlie : IBLFilterBSDF
+    class IBLFilterCharlie : IBLFilterBSDF
     {
         public IBLFilterCharlie(RenderPipelineResources renderPipelineResources, MipGenerator mipGenerator)
         {

@@ -23,7 +23,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         /// <summary>Creates a new FrameProperties from an <see cref="HDCamera"/>.</summary>
         /// <param name="hdCamera">The camera to use.</param>
-        public static RenderOutputProperties From(HDCamera hdCamera)
+        internal static RenderOutputProperties From(HDCamera hdCamera)
             => new RenderOutputProperties(
                 new Vector2Int(hdCamera.actualWidth, hdCamera.actualHeight),
                 hdCamera.camera.cameraToWorldMatrix,

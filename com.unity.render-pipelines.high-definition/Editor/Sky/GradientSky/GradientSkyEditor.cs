@@ -5,7 +5,7 @@ namespace UnityEditor.Rendering.HighDefinition
 {
     [CanEditMultipleObjects]
     [VolumeComponentEditor(typeof(GradientSky))]
-    public class GradientSkySettingsEditor : SkySettingsEditor
+    class GradientSkySettingsEditor : SkySettingsEditor
     {
         SerializedDataParameter m_Bottom;
         SerializedDataParameter m_Middle;

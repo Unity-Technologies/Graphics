@@ -9,7 +9,7 @@ using UnityEngine.Rendering.HighDefinition;
 namespace UnityEditor.Rendering.HighDefinition
 {
     [InitializeOnLoad]
-    public class HDWizard : EditorWindow
+    class HDWizard : EditorWindow
     {
         //reflect internal legacy enum
         enum LightmapEncodingQualityCopy

@@ -6,7 +6,7 @@ namespace UnityEditor.Rendering.HighDefinition
 {
     [CanEditMultipleObjects]
     [VolumeComponentEditor(typeof(ScreenSpaceReflection))]
-    public class HDScreenSpaceReflectionEditor : VolumeComponentEditor
+    class HDScreenSpaceReflectionEditor : VolumeComponentEditor
     {
         SerializedDataParameter m_ScreenFadeDistance;
         SerializedDataParameter m_RayMaxIterations;

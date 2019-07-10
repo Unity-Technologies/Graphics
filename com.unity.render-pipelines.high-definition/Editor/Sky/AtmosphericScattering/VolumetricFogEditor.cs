@@ -6,7 +6,7 @@ using UnityEngine.Rendering;
 namespace UnityEditor.Rendering.HighDefinition
 {
     [VolumeComponentEditor(typeof(VolumetricFog))]
-    public class VolumetricFogEditor : AtmosphericScatteringEditor
+    class VolumetricFogEditor : AtmosphericScatteringEditor
     {
         SerializedDataParameter m_Albedo;
         SerializedDataParameter m_MeanFreePath;
@@ -48,7 +48,7 @@ namespace UnityEditor.Rendering.HighDefinition
             PropertyField(m_GlobalLightProbeDimmer, s_GlobalLightProbeDimmerLabel);
             PropertyField(m_MaxFogDistance);
             PropertyField(m_EnableDistantFog,       s_EnableDistantFog);
-            
+
             if (m_MeanHeight.value.floatValue < m_BaseHeight.value.floatValue)
             {
                 m_MeanHeight.value.floatValue = m_BaseHeight.value.floatValue;

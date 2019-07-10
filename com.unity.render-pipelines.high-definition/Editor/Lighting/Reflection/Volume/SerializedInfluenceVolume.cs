@@ -3,7 +3,7 @@ using UnityEngine.Rendering.HighDefinition;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
-    public class SerializedInfluenceVolume
+    class SerializedInfluenceVolume
     {
         internal SerializedProperty root;
 

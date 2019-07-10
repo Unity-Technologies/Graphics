@@ -2,7 +2,7 @@ using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
-    public class RenderPipelineMaterial : Object
+    class RenderPipelineMaterial : Object
     {
         // GBuffer management
         public virtual bool IsDefferedMaterial() { return false; }

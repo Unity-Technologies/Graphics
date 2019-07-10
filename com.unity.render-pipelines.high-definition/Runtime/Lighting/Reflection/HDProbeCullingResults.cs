@@ -3,7 +3,7 @@ using UnityEngine.Assertions;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
-    public struct HDProbeCullingResults
+    struct HDProbeCullingResults
     {
         static readonly IReadOnlyList<HDProbe> s_EmptyList = new List<HDProbe>();
 

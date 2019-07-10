@@ -23,7 +23,7 @@ namespace UnityEngine.Rendering.HighDefinition
     }
 
     [Serializable]
-    public struct ProbeSettingsOverride
+    struct ProbeSettingsOverride
     {
         public ProbeSettingsFields probe;
         public CameraSettingsOverride camera;

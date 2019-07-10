@@ -3,7 +3,7 @@ using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
-    public class PhysicallyBasedSkyRenderer : SkyRenderer
+    class PhysicallyBasedSkyRenderer : SkyRenderer
     {
         [GenerateHLSL]
         public enum PbrSkyConfig

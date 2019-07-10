@@ -12,7 +12,7 @@ namespace UnityEngine.Rendering.HighDefinition
         RealtimeReflection
     }
 
-    public struct FrameSettingsHistory : IDebugData
+    struct FrameSettingsHistory : IDebugData
     {
         static readonly string[] foldoutNames = { "Rendering", "Lighting", "Async Compute", "Light Loop" };
         static readonly string[] columnNames = { "Debug", "Sanitized", "Overridden", "Default" };

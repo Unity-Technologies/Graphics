@@ -1,6 +1,6 @@
 namespace UnityEngine.Rendering.HighDefinition
 {
-    public partial class SPTDistribution
+    partial class SPTDistribution
     {
         static SPTDistribution s_Instance;
 

@@ -1,6 +1,6 @@
 namespace UnityEngine.Rendering.HighDefinition
 {
-    public partial class SPTDistribution
+    partial class SPTDistribution
     {
         //-------------------------------------------------------------------------------------------
         // SPTD (Spherical Pivot Transformed Distributions): Pivot parameter for GGX.

@@ -6,7 +6,7 @@ using UnityEngine.Rendering;
 namespace UnityEditor.Rendering.HighDefinition
 {
     [CustomEditor(typeof(DiffusionProfileSettings))]
-    public sealed partial class DiffusionProfileSettingsEditor : HDBaseEditor<DiffusionProfileSettings>
+    partial class DiffusionProfileSettingsEditor : HDBaseEditor<DiffusionProfileSettings>
     {
         sealed class Profile
         {

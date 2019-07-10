@@ -4,7 +4,7 @@ namespace UnityEngine.Rendering
 {
     using RTHandle = RTHandleSystem.RTHandle;
 
-    internal static class TextureXR
+    public static class TextureXR
     {
         // Property set by XRSystem
         private static int m_MaxViews = 1;
@@ -76,7 +76,7 @@ namespace UnityEngine.Rendering
         static RTHandle         m_WhiteTextureRTH;
         public static RTHandle GetWhiteTexture() { return useTexArray ? m_WhiteTexture2DArrayRTH : m_WhiteTextureRTH; }
 
-        public static void Initialize(CommandBuffer cmd, ComputeShader clearR32_UIntShader)
+        internal static void Initialize(CommandBuffer cmd, ComputeShader clearR32_UIntShader)
         {
             if (m_BlackUIntTexture2DArray == null) // We assume that everything is invalid if one is invalid.
             {

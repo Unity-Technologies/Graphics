@@ -6,7 +6,7 @@ using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
-    public class Builtin // Note: This particular class doesn't derive from RenderPipelineMaterial
+    class Builtin // Note: This particular class doesn't derive from RenderPipelineMaterial
     {
         //-----------------------------------------------------------------------------
         // BuiltinData
