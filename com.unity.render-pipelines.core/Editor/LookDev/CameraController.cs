@@ -138,9 +138,7 @@ namespace UnityEditor.Rendering.LookDev
 
         void OnKeyDown(KeyDownEvent evt)
         {
-            if (m_BehaviorState == ViewTool.FPS)
-                OnKeyDownFPS(evt);
-
+            OnKeyDownFPS(evt);
             OnKeyDownReset(evt);
         }
 
@@ -219,14 +217,15 @@ namespace UnityEditor.Rendering.LookDev
         void OnKeyDownReset(KeyDownEvent evt)
         {
             if (evt.keyCode == KeyCode.Escape)
-            {
                 ResetCameraControl();
-                evt.StopPropagation();
-            }
+            evt.StopPropagation();
         }
 
         void OnKeyDownFPS(KeyDownEvent evt)
         {
+            if (m_BehaviorState != ViewTool.FPS)
+                return;
+
             //Note: Keydown is called in loop but between first occurence of the
             // loop and laters, there is a small pause. To deal with this, we
             // need to register the UpdateMovement function to the Editor update
@@ -247,6 +246,9 @@ namespace UnityEditor.Rendering.LookDev
 
         void OnKeyUpFPS(KeyUpEvent evt)
         {
+            if (m_BehaviorState != ViewTool.FPS)
+                return;
+
             KeyCombination combination;
             if (GetKeyCombinationByID("3D Viewport/Fly Mode Forward", out combination) && combination.Match(evt))
                 RegisterMotionChange(Vector3.back, evt);

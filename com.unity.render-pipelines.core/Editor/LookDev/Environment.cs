@@ -431,8 +431,9 @@ namespace UnityEditor.Rendering.LookDev
             skyCubemapField.RegisterValueChangedCallback(evt =>
             {
                 var tmp = environment.sky.cubemap;
-                RegisterChange(ref tmp, evt.newValue as Cubemap, updatePreview: true);
+                RegisterChange(ref tmp, evt.newValue as Cubemap);
                 environment.sky.cubemap = tmp;
+                latlong.image = GetLatLongThumbnailTexture(environment, k_SkyThumbnailWidth);
             });
             foldout.Add(skyCubemapField);
 
@@ -445,8 +446,9 @@ namespace UnityEditor.Rendering.LookDev
             shadowCubemapField.RegisterValueChangedCallback(evt =>
             {
                 var tmp = environment.shadow.cubemap;
-                RegisterChange(ref tmp, evt.newValue as Cubemap, updatePreview: true);
+                RegisterChange(ref tmp, evt.newValue as Cubemap);
                 environment.shadow.cubemap = tmp;
+                latlong.image = GetLatLongThumbnailTexture(environment, k_SkyThumbnailWidth);
             });
             foldout.Add(shadowCubemapField);
 

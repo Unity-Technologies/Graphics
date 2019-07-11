@@ -69,7 +69,7 @@ void GetAmbientOcclusionFactor(float3 indirectAmbientOcclusion, float3 indirectS
     aoFactor.indirectAmbientOcclusion = indirectAmbientOcclusion;
     aoFactor.indirectSpecularOcclusion = indirectSpecularOcclusion;
     aoFactor.directAmbientOcclusion = directAmbientOcclusion;
-    aoFactor.directSpecularOcclusion = 1.0;
+    aoFactor.directSpecularOcclusion = float3(1.0, 1.0, 1.0);
 }
 
 //...MaterialEvaluation is needed earlier in StackLit for occlusion handling (see PreLightData_SetupOcclusion)
@@ -2331,6 +2331,17 @@ float3 GetApproximatedBottomFresnel0ForTint(BSDFData bsdfData, PreLightData preL
     return bottomF0;
 }
 
+// This function return diffuse color or an equivalent color (in case of metal).
+// This is use for MatCapView and reflection probe pass
+float4 GetDiffuseOrDefaultColor(BSDFData bsdfData, float replace)
+{
+    // Use frensel0 as mettalic weight. all value below 0.2 (ior of diamond) are dielectric
+    // all value above 0.45 are metal, in between we lerp.
+    float weight = saturate((Max3(bsdfData.fresnel0.r, bsdfData.fresnel0.g, bsdfData.fresnel0.b) - 0.2) / (0.45 - 0.2));
+
+    return float4(lerp(bsdfData.diffuseColor, bsdfData.fresnel0, weight * replace), weight);
+}
+
 // From SPTDistribution.hlsl:
 
 //#define SPECULAR_OCCLUSION_FROM_AO 0
@@ -2918,9 +2929,7 @@ void ModifyBakedDiffuseLighting(float3 V, PositionInputs posInput, SurfaceData s
     // pre-integration and energy term.
     // preLightData.diffuseEnergy will be 1,1,1 if no vlayering or no VLAYERED_DIFFUSE_ENERGY_HACKED_TERM
     // Note: When baking reflection probes, we approximate the diffuse with the fresnel0
-    builtinData.bakeDiffuseLighting *= ReplaceDiffuseForReflectionPass(bsdfData.fresnel0)
-        ? GetApproximatedBottomFresnel0ForTint(bsdfData, preLightData)
-        : preLightData.diffuseFGD * preLightData.diffuseEnergy * bsdfData.diffuseColor;
+    builtinData.bakeDiffuseLighting *= preLightData.diffuseFGD * preLightData.diffuseEnergy * GetDiffuseOrDefaultColor(bsdfData, _ReplaceDiffuseForIndirect).rgb;
 
     // The lobe specific specular occlusion data, along with the result of the screen space occlusion sampling 
     // will be computed in PreLightData.

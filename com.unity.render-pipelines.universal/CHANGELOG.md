@@ -7,15 +7,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [7.1.0] - 2019-XX-XX
 
 ## [7.0.0] - 2019-07-10
-###Universal Render Pipeline
-- LWRP has been renamed to the "Universal Render Pipeline"
-- Universal in the same as LWRP in terms of features and scope
-- Classes have moved to the Universal namespace (from LWRP)
+### Universal Render Pipeline
+- LWRP has been renamed to the "Universal Render Pipeline" (UniversalRP).
+- UniversalRP is the same as LWRP in terms of features and scope.
+- Classes have moved to the Universal namespace (from LWRP).
 
-###Upgrade Guide
-- Upgrading to Universal is designed to be almost seamless from the user side
-- LWRP package still exists, this forwards includes and classes to the Universal Package
-- Please see the more involved upgrade guide ()
+### Upgrade Guide
+- Upgrading to UniversalRP is designed to be almost seamless from the user side.
+- LWRP package still exists, this forwards includes and classes to the UniversalRP Package.
+- Please see the more involved upgrade guide (https://docs.google.com/document/d/1Xd5bZa8pYZRHri-EnNkyhwrWEzSa15vtnpcg--xUCIs/).
 
 ### Added
 - Initial Stadia platform support.

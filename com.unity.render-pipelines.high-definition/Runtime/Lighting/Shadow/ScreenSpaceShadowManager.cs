@@ -3,8 +3,6 @@ using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
-    using RTHandle = RTHandleSystem.RTHandle;
-
     public partial class HDRenderPipeline
     {
 #if ENABLE_RAYTRACING
@@ -50,7 +48,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
 #if ENABLE_RAYTRACING
-        RTHandleSystem.RTHandle GetIntegrationTexture()
+        RTHandle GetIntegrationTexture()
         {
             return m_DenoiseBuffer0;
         }
@@ -76,13 +74,13 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetGlobalTexture(HDShaderIDs._ScreenSpaceShadowsTexture, TextureXR.GetBlackTexture());
         }
 
-        static RTHandleSystem.RTHandle ShadowHistoryBufferAllocatorFunction(string viewName, int frameIndex, RTHandleSystem rtHandleSystem)
+        static RTHandle ShadowHistoryBufferAllocatorFunction(string viewName, int frameIndex, RTHandleSystem rtHandleSystem)
         {
             return rtHandleSystem.Alloc(Vector2.one, slices:4 * TextureXR.slices, dimension:TextureDimension.Tex2DArray, filterMode: FilterMode.Point, colorFormat: GraphicsFormat.R16G16_SFloat,
                 enableRandomWrite: true, useDynamicScale: true, useMipMap: false, name: string.Format("AreaShadowHistoryBuffer{0}", frameIndex));
         }
 
-        static RTHandleSystem.RTHandle AreaAnalyticHistoryBufferAllocatorFunction(string viewName, int frameIndex, RTHandleSystem rtHandleSystem)
+        static RTHandle AreaAnalyticHistoryBufferAllocatorFunction(string viewName, int frameIndex, RTHandleSystem rtHandleSystem)
         {
             return rtHandleSystem.Alloc(Vector2.one, slices:4 * TextureXR.slices, dimension:TextureDimension.Tex2DArray, filterMode: FilterMode.Point, colorFormat: GraphicsFormat.R16_SFloat,
                         enableRandomWrite: true, useDynamicScale: true, useMipMap: false, name: string.Format("AreaShadowHistoryBuffer{0}", frameIndex));
@@ -179,7 +177,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         cmd.DispatchRays(shadowRayTrace, m_RayGenDirectionalShadowSingleName, (uint)hdCamera.actualWidth, (uint)hdCamera.actualHeight, 1);
                     }
 
-                    RTHandleSystem.RTHandle shadowHistoryArray = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.RaytracedShadow)
+                    RTHandle shadowHistoryArray = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.RaytracedShadow)
                         ?? hdCamera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.RaytracedShadow, ShadowHistoryBufferAllocatorFunction, 1);
 
                     // Apply the simple denoiser (if required)
@@ -203,7 +201,7 @@ namespace UnityEngine.Rendering.HighDefinition
 #endif
                 {
                     // If it is screen space but not ray traced, then we can rely on the shadow map
-                    HDUtils.SetRenderTarget(cmd, m_ScreenSpaceShadowTextureArray, depthSlice: m_CurrentSunLightDirectionalLightData.screenSpaceShadowIndex);
+                    CoreUtils.SetRenderTarget(cmd, m_ScreenSpaceShadowTextureArray, depthSlice: m_CurrentSunLightDirectionalLightData.screenSpaceShadowIndex);
                     HDUtils.DrawFullScreen(cmd, s_ScreenSpaceShadowsMat, m_ScreenSpaceShadowTextureArray);
                 }
             }
@@ -227,9 +225,9 @@ namespace UnityEngine.Rendering.HighDefinition
             ComputeShader shadowFilter = m_Asset.renderPipelineRayTracingResources.shadowFilterCS;
 
             // Grab the TAA history buffers (SN/UN and Analytic value)
-            RTHandleSystem.RTHandle shadowHistoryArray = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.RaytracedShadow)
+            RTHandle shadowHistoryArray = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.RaytracedShadow)
                 ?? hdCamera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.RaytracedShadow, ShadowHistoryBufferAllocatorFunction, 1);
-            RTHandleSystem.RTHandle areaAnalyticHistoryArray = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.RaytracedAreaAnalytic)
+            RTHandle areaAnalyticHistoryArray = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.RaytracedAreaAnalytic)
                 ?? hdCamera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.RaytracedAreaAnalytic, AreaAnalyticHistoryBufferAllocatorFunction, 1);
 
             // Grab the acceleration structure for the target camera
@@ -473,7 +471,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 int numTilesY = (texHeight + (areaTileSize - 1)) / areaTileSize;
 
                 // Clear the output texture
-                HDUtils.SetRenderTarget(cmd, m_DenoiseBuffer0, clearFlag: ClearFlag.Color);
+                CoreUtils.SetRenderTarget(cmd, m_DenoiseBuffer0, clearFlag: ClearFlag.Color);
 
                 // If the screen space shadows we are asked to deliver is available output it to the intermediate texture
                 if (m_ScreenSpaceShadowIndex > hdrp.m_CurrentDebugDisplaySettings.data.screenSpaceShadowIndex)
