@@ -1718,6 +1718,12 @@ namespace UnityEngine.Rendering.HighDefinition
             if (m_CurrentDebugDisplaySettings.GetDebugLightingMode() != DebugLightingMode.MatcapView)
                 UpdateSkyEnvironment(hdCamera, cmd);
 
+            if (GL.wireframe)
+            {
+                RenderWireFrame(cullingResults, hdCamera, target.id, renderContext, cmd);
+                return;
+            }
+
             if (m_RenderGraph.enabled)
             {
                 ExecuteWithRenderGraph(renderRequest, renderContext, cmd);
@@ -2954,6 +2960,21 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        void RenderWireFrame(CullingResults cull, HDCamera hdCamera, RenderTargetIdentifier backbuffer, ScriptableRenderContext renderContext, CommandBuffer cmd)
+        {
+            using (new ProfilingSample(cmd, "Render Wireframe"))
+            {
+                CoreUtils.SetRenderTarget(cmd, backbuffer, ClearFlag.Color, GetColorBufferClearColor(hdCamera));
+
+                var rendererListOpaque = RendererList.Create(CreateOpaqueRendererListDesc(cull, hdCamera.camera, m_AllForwardOpaquePassNames));
+                DrawOpaqueRendererList(renderContext, cmd, hdCamera.frameSettings, rendererListOpaque);
+
+                // Render forward transparent
+                var rendererListTransparent = RendererList.Create(CreateTransparentRendererListDesc(cull, hdCamera.camera, m_AllTransparentPassNames));
+                DrawTransparentRendererList(renderContext, cmd, hdCamera.frameSettings, rendererListTransparent);
+            }
+        }
+
         void RenderDebugViewMaterial(CullingResults cull, HDCamera hdCamera, ScriptableRenderContext renderContext, CommandBuffer cmd)
         {
             using (new ProfilingSample(cmd, "DisplayDebug ViewMaterial", CustomSamplerId.DisplayDebugViewMaterial.GetSampler()))
@@ -3857,15 +3878,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         HDUtils.IsRegularPreviewCamera(hdCamera.camera)
                         )
                     {
-                        Color clearColor = hdCamera.backgroundColorHDR;
-
-                        // We set the background color to black when the luxmeter is enabled to avoid picking the sky color
-                        if (m_CurrentDebugDisplaySettings.data.lightingDebugSettings.debugLightingMode == DebugLightingMode.LuxMeter ||
-                            m_CurrentDebugDisplaySettings.data.lightingDebugSettings.debugLightingMode == DebugLightingMode.MatcapView)
-                            clearColor = Color.black;
-
-                        CoreUtils.SetRenderTarget(cmd, msaa ? m_CameraColorMSAABuffer : m_CameraColorBuffer, m_SharedRTManager.GetDepthStencilBuffer(msaa), ClearFlag.Color, clearColor);
-
+                        CoreUtils.SetRenderTarget(cmd, msaa ? m_CameraColorMSAABuffer : m_CameraColorBuffer, m_SharedRTManager.GetDepthStencilBuffer(msaa), ClearFlag.Color, GetColorBufferClearColor(hdCamera));
                     }
                 }
 
