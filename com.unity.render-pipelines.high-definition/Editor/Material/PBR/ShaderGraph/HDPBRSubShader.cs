@@ -76,7 +76,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 }
                 else
                 {
-                    pass.ZTestOverride = null;
+                    pass.ZTestOverride = "ZTest LEqual";
                 }
             }
         };
@@ -528,9 +528,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
         }
 
-        void AddTags(ShaderGenerator generator, string pipeline, HDRenderTypeTags renderType, ShaderGraph.SurfaceType surfaceType)
+        void AddTags(ShaderGenerator generator, string pipeline, HDRenderTypeTags renderType, PBRMasterNode masterNode)
         {
-            string queue = surfaceType == ShaderGraph.SurfaceType.Opaque ? "Geometry" : "Transparent";
+            var type = masterNode.surfaceType == ShaderGraph.SurfaceType.Opaque ? HDRenderQueue.RenderQueueType.Opaque : HDRenderQueue.RenderQueueType.Transparent; 
+            string queue = HDRenderQueue.GetShaderTagValue(HDRenderQueue.ChangeType(type, 0, true));
             ShaderStringBuilder builder = new ShaderStringBuilder();
             builder.AppendLine("Tags");
             using (builder.BlockScope())
@@ -560,7 +561,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             subShader.Indent();
             {
                 // Add tags at the SubShader level
-                AddTags(subShader, HDRenderPipeline.k_ShaderTagName, HDRenderTypeTags.HDLitShader, masterNode.surfaceType);
+                AddTags(subShader, HDRenderPipeline.k_ShaderTagName, HDRenderTypeTags.HDLitShader, masterNode);
 
                 // generate the necessary shader passes
                 bool opaque = (masterNode.surfaceType == UnityEditor.ShaderGraph.SurfaceType.Opaque);
