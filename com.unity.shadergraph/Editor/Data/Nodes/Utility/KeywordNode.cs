@@ -31,20 +31,16 @@ namespace UnityEditor.ShaderGraph
                 m_KeywordGuid = value;
                 
                 UpdateNode();
-                UpdateEnumEntries();
                 Dirty(ModificationScope.Topological);
             }
         }
 
         public override bool canSetPrecision => false;
-
-        // TODO: Set true when correct branch code is generated
         public override bool hasPreview => true;
 
         public void OnEnable()
         {
             UpdateNode();
-            UpdateEnumEntries();
         }
 
         public const int OutputSlotId = 0;
@@ -55,59 +51,66 @@ namespace UnityEditor.ShaderGraph
             if (keyword == null)
                 return;
             
-            // Set name
             name = keyword.displayName;
-
-            // Boolean type slots
-            if(keyword.keywordType == ShaderKeywordType.Boolean)
-            {
-                AddSlot(new DynamicVectorMaterialSlot(OutputSlotId, "Out", "Out", SlotType.Output, Vector4.zero));
-                AddSlot(new DynamicVectorMaterialSlot(1, "On", "On", SlotType.Input, Vector4.zero));
-                AddSlot(new DynamicVectorMaterialSlot(2, "Off", "Off", SlotType.Input, Vector4.zero));
-                RemoveSlotsNameNotMatching(new int[] {0, 1, 2});
-            }
+            UpdatePorts(keyword);
         }
 
-        public void UpdateEnumEntries()
+        void UpdatePorts(ShaderKeyword keyword)
         {
-            var keyword = owner.keywords.FirstOrDefault(x => x.guid == keywordGuid);
-            if (keyword == null)
-                return;
-
-            if(keyword.keywordType != ShaderKeywordType.Enum)
-                return;
-            
-            // Get slots
-            List<MaterialSlot> inputSlots = new List<MaterialSlot>();
-            GetInputSlots(inputSlots);
-
-            // Store the edges
-            Dictionary<MaterialSlot, List<IEdge>> edgeDict = new Dictionary<MaterialSlot, List<IEdge>>();
-            foreach (MaterialSlot slot in inputSlots)
-                edgeDict.Add(slot, (List<IEdge>)slot.owner.owner.GetEdges(slot.slotReference));
-            
-            // Remove old slots
-            for(int i = 0; i < inputSlots.Count; i++)
-                RemoveSlot(inputSlots[i].id);
-
-            // Add output slot
-            AddSlot(new DynamicVectorMaterialSlot(OutputSlotId, "Out", "Out", SlotType.Output, Vector4.zero));
-
-            // Add input slots
-            int[] slotIds = new int[keyword.entries.Count + 1];
-            slotIds[keyword.entries.Count] = OutputSlotId;
-            for(int i = 0; i < keyword.entries.Count; i++)
+            switch(keyword.keywordType)
             {
-                AddSlot(new DynamicVectorMaterialSlot(keyword.entries[i].id, keyword.entries[i].displayName, keyword.entries[i].referenceName, SlotType.Input, Vector4.zero));
-                slotIds[i] = keyword.entries[i].id;
-            }
-            RemoveSlotsNameNotMatching(slotIds);
+                case ShaderKeywordType.Boolean:
+                {
+                    AddSlot(new DynamicVectorMaterialSlot(OutputSlotId, "Out", "Out", SlotType.Output, Vector4.zero));
+                    AddSlot(new DynamicVectorMaterialSlot(1, "On", "On", SlotType.Input, Vector4.zero));
+                    AddSlot(new DynamicVectorMaterialSlot(2, "Off", "Off", SlotType.Input, Vector4.zero));
+                    RemoveSlotsNameNotMatching(new int[] {0, 1, 2});
+                    break;
+                }
+                case ShaderKeywordType.Enum:
+                {
+                    // Get slots
+                    List<MaterialSlot> inputSlots = new List<MaterialSlot>();
+                    GetInputSlots(inputSlots);
 
-            // Reconnect the edges
-            foreach (KeyValuePair<MaterialSlot, List<IEdge>> entry in edgeDict)
-            {
-                foreach (IEdge edge in entry.Value)
-                    owner.Connect(edge.outputSlot, edge.inputSlot);
+                    // Store the edges
+                    Dictionary<MaterialSlot, List<IEdge>> edgeDict = new Dictionary<MaterialSlot, List<IEdge>>();
+                    foreach (MaterialSlot slot in inputSlots)
+                        edgeDict.Add(slot, (List<IEdge>)slot.owner.owner.GetEdges(slot.slotReference));
+                    
+                    // Remove old slots
+                    for(int i = 0; i < inputSlots.Count; i++)
+                        RemoveSlot(inputSlots[i].id);
+
+                    // Add output slot
+                    AddSlot(new DynamicVectorMaterialSlot(OutputSlotId, "Out", "Out", SlotType.Output, Vector4.zero));
+
+                    // Add input slots
+                    int[] slotIds = new int[keyword.entries.Count + 1];
+                    slotIds[keyword.entries.Count] = OutputSlotId;
+                    for(int i = 0; i < keyword.entries.Count; i++)
+                    {
+                        MaterialSlot slot = inputSlots.Where(x => 
+                            x.id == keyword.entries[i].id &&
+                            x.RawDisplayName() == keyword.entries[i].displayName && 
+                            x.shaderOutputName == keyword.entries[i].referenceName).FirstOrDefault();
+
+                        if(slot == null)
+                            slot = new DynamicVectorMaterialSlot(keyword.entries[i].id, keyword.entries[i].displayName, keyword.entries[i].referenceName, SlotType.Input, Vector4.zero);
+
+                        AddSlot(slot);
+                        slotIds[i] = keyword.entries[i].id;
+                    }
+                    RemoveSlotsNameNotMatching(slotIds);
+
+                    // Reconnect the edges
+                    foreach (KeyValuePair<MaterialSlot, List<IEdge>> entry in edgeDict)
+                    {
+                        foreach (IEdge edge in entry.Value)
+                            owner.Connect(edge.outputSlot, edge.inputSlot);
+                    }
+                    break;
+                }
             }
 
             ValidateNode();
