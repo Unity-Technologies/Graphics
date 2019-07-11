@@ -19,12 +19,7 @@ Shader "Hidden/Universal Render Pipeline/ScreenSpaceShadows"
         #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
         #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Shadows.hlsl"
 
-#if defined(UNITY_STEREO_INSTANCING_ENABLED) || defined(UNITY_STEREO_MULTIVIEW_ENABLED)
-        TEXTURE2D_ARRAY_FLOAT(_CameraDepthTexture);
-#else
-        TEXTURE2D_FLOAT(_CameraDepthTexture);
-#endif
-
+        TEXTURE2D_X_FLOAT(_CameraDepthTexture);
         SAMPLER(sampler_CameraDepthTexture);
 
         struct Attributes
@@ -62,11 +57,7 @@ Shader "Hidden/Universal Render Pipeline/ScreenSpaceShadows"
         {
             UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
-#if defined(UNITY_STEREO_INSTANCING_ENABLED) || defined(UNITY_STEREO_MULTIVIEW_ENABLED)
-            float deviceDepth = SAMPLE_TEXTURE2D_ARRAY(_CameraDepthTexture, sampler_CameraDepthTexture, input.uv.xy, unity_StereoEyeIndex).r;
-#else
-            float deviceDepth = SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, sampler_CameraDepthTexture, input.uv.xy);
-#endif
+            float deviceDepth = SAMPLE_TEXTURE2D_X(_CameraDepthTexture, sampler_CameraDepthTexture, input.uv.xy).r;
 
 #if UNITY_REVERSED_Z
             deviceDepth = 1 - deviceDepth;

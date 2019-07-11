@@ -25,6 +25,22 @@ namespace UnityEngine.Rendering.Universal
         UsePipelineSettings,
     }
 
+    public enum AntialiasingMode
+    {
+        None,
+        FastApproximateAntialiasing,
+        SubpixelMorphologicalAntiAliasing,
+        //TemporalAntialiasing
+    }
+
+    // Only used for SMAA right now
+    public enum AntialiasingQuality
+    {
+        Low,
+        Medium,
+        High
+    }
+
     [DisallowMultipleComponent]
     [RequireComponent(typeof(Camera))]
     [ImageEffectAllowedInSceneView]
@@ -46,6 +62,15 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] ScriptableRendererData m_RendererData = null;
         ScriptableRenderer m_Renderer = null;
 
+        [SerializeField] LayerMask m_VolumeLayerMask = 1; // "Default"
+        [SerializeField] Transform m_VolumeTrigger = null;
+
+        [SerializeField] bool m_RenderPostProcessing = false;
+        [SerializeField] AntialiasingMode m_Antialiasing = AntialiasingMode.None;
+        [SerializeField] AntialiasingQuality m_AntialiasingQuality = AntialiasingQuality.High;
+        [SerializeField] bool m_StopNaN = false;
+        [SerializeField] bool m_Dithering = false;
+
         // Deprecated:
         [FormerlySerializedAs("requiresDepthTexture"), SerializeField]
         bool m_RequiresDepthTexture = false;
@@ -65,14 +90,14 @@ namespace UnityEngine.Rendering.Universal
 
         public CameraOverrideOption requiresDepthOption
         {
-            get { return m_RequiresDepthTextureOption; }
-            set { m_RequiresDepthTextureOption = value; }
+            get => m_RequiresDepthTextureOption;
+            set => m_RequiresDepthTextureOption = value;
         }
 
         public CameraOverrideOption requiresColorOption
         {
-            get { return m_RequiresOpaqueTextureOption; }
-            set { m_RequiresOpaqueTextureOption = value; }
+            get => m_RequiresOpaqueTextureOption;
+            set => m_RequiresOpaqueTextureOption = value;
         }
 
         public bool requiresDepthTexture
@@ -121,6 +146,48 @@ namespace UnityEngine.Rendering.Universal
 
                 return m_Renderer;
             }
+        }
+
+        public LayerMask volumeLayerMask
+        {
+            get => m_VolumeLayerMask;
+            set => m_VolumeLayerMask = value;
+        }
+
+        public Transform volumeTrigger
+        {
+            get => m_VolumeTrigger;
+            set => m_VolumeTrigger = value;
+        }
+
+        public bool renderPostProcessing
+        {
+            get => m_RenderPostProcessing;
+            set => m_RenderPostProcessing = value;
+        }
+
+        public AntialiasingMode antialiasing
+        {
+            get => m_Antialiasing;
+            set => m_Antialiasing = value;
+        }
+
+        public AntialiasingQuality antialiasingQuality
+        {
+            get => m_AntialiasingQuality;
+            set => m_AntialiasingQuality = value;
+        }
+
+        public bool stopNaN
+        {
+            get => m_StopNaN;
+            set => m_StopNaN = value;
+        }
+
+        public bool dithering
+        {
+            get => m_Dithering;
+            set => m_Dithering = value;
         }
 
         public void OnBeforeSerialize()
