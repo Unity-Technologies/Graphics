@@ -851,7 +851,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public void AllocateAmbientOcclusionHistoryBuffer(float scaleFactor)
         {
-            if (scaleFactor != m_AmbientOcclusionResolutionScale)
+            if (scaleFactor != m_AmbientOcclusionResolutionScale || GetCurrentFrameRT((int)HDCameraFrameHistoryType.AmbientOcclusion) == null)
             {
                 ReleaseHistoryFrameRT((int)HDCameraFrameHistoryType.AmbientOcclusion);
 

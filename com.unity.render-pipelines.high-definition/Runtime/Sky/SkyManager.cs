@@ -438,7 +438,9 @@ namespace UnityEngine.Rendering.HighDefinition
                     propertyBlock.SetTexture(HDShaderIDs._ColorTextureMS, colorBuffer);
                 else
                     propertyBlock.SetTexture(HDShaderIDs._ColorTexture,   colorBuffer);
-                propertyBlock.SetTexture(HDShaderIDs._VBufferLighting, volumetricLighting);
+                // The texture can be null when volumetrics are disabled.
+                if (volumetricLighting != null)
+                    propertyBlock.SetTexture(HDShaderIDs._VBufferLighting, volumetricLighting);
 
                 // Color -> Intermediate.
                 HDUtils.DrawFullScreen(cmd, m_OpaqueAtmScatteringMaterial, intermediateBuffer, depthBuffer, propertyBlock, isMSAA? 1 : 0);
