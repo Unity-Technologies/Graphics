@@ -3,6 +3,7 @@ using UnityEngine.Rendering.Universal;
 
 namespace UnityEngine.Experimental.Rendering.Universal
 {
+    // TODO: Add post-processing support
     internal class Renderer2D : ScriptableRenderer
     {
         Render2DLightingPass m_Render2DLightingPass;
@@ -13,7 +14,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
         public Renderer2D(Renderer2DData data) : base(data)
         {
             m_Render2DLightingPass = new Render2DLightingPass(data);
-            m_PostProcessPass = new PostProcessPass(RenderPassEvent.BeforeRenderingPostProcessing);
+            //m_PostProcessPass = new PostProcessPass(RenderPassEvent.BeforeRenderingPostProcessing);
             m_FinalBlitPass = new FinalBlitPass(RenderPassEvent.AfterRendering, CoreUtils.CreateEngineMaterial(data.blitShader));
         }
 
@@ -38,8 +39,8 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
             if (postProcessEnabled)
             {
-                m_PostProcessPass.Setup(cameraData.cameraTargetDescriptor, m_ColorTargetHandle, m_ColorTargetHandle);
-                EnqueuePass(m_PostProcessPass);
+                //m_PostProcessPass.Setup(cameraData.cameraTargetDescriptor, m_ColorTargetHandle, m_ColorTargetHandle);
+                //EnqueuePass(m_PostProcessPass);
             }
 
             if (useOffscreenColorTexture)
