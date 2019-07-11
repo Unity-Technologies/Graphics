@@ -5,8 +5,9 @@ using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.UIElements;
 
-namespace UnityEditor.Rendering.Experimental.LookDev
+namespace UnityEditor.Rendering.LookDev
 {
+    /// <summary>Interface that must implement the viewer to communicate with the compositor and data management</summary>
     public interface IViewDisplayer
     {
         Rect GetRect(ViewCompositionIndex index);
@@ -21,25 +22,20 @@ namespace UnityEditor.Rendering.Experimental.LookDev
         event Action<IMouseEvent> OnMouseEventInView;
 
         event Action<GameObject, ViewCompositionIndex, Vector2> OnChangingObjectInView;
-        //event Action<Material, ViewCompositionIndex, Vector2> OnChangingMaterialInView;
         event Action<UnityEngine.Object, ViewCompositionIndex, Vector2> OnChangingEnvironmentInView;
 
         event Action OnClosed;
     }
 
+    /// <summary>Interface that must implement the EnvironmentLibrary view to communicate with the data management</summary>
     public interface IEnvironmentDisplayer
     {
         void Repaint();
-
-        //event Action<UnityEngine.Object> OnAddingEnvironment;
-        //event Action<int> OnRemovingEnvironment;
+        
         event Action<EnvironmentLibrary> OnChangingEnvironmentLibrary;
     }
-
-    /// <summary>
-    /// Displayer and User Interaction 
-    /// </summary>
-    internal class DisplayWindow : EditorWindow, IViewDisplayer, IEnvironmentDisplayer
+    
+    class DisplayWindow : EditorWindow, IViewDisplayer, IEnvironmentDisplayer
     {
         static class Style
         {
@@ -379,7 +375,7 @@ namespace UnityEditor.Rendering.Experimental.LookDev
             // GameObject or Prefab in view
             new DropArea(new[] { typeof(GameObject) }, m_Views[(int)ViewIndex.First], (obj, localPos) =>
             {
-                if (layout == Layout.CustomSplit || layout == Layout.CustomCircular)
+                if (layout == Layout.CustomSplit)
                     OnChangingObjectInViewInternal?.Invoke(obj as GameObject, ViewCompositionIndex.Composite, localPos);
                 else
                     OnChangingObjectInViewInternal?.Invoke(obj as GameObject, ViewCompositionIndex.First, localPos);
@@ -405,7 +401,7 @@ namespace UnityEditor.Rendering.Experimental.LookDev
             // Environment in view
             new DropArea(new[] { typeof(Environment), typeof(Cubemap) }, m_Views[(int)ViewIndex.First], (obj, localPos) =>
             {
-                if (layout == Layout.CustomSplit || layout == Layout.CustomCircular)
+                if (layout == Layout.CustomSplit)
                     OnChangingEnvironmentInViewInternal?.Invoke(obj, ViewCompositionIndex.Composite, localPos);
                 else
                     OnChangingEnvironmentInViewInternal?.Invoke(obj, ViewCompositionIndex.First, localPos);
@@ -679,7 +675,7 @@ namespace UnityEditor.Rendering.Experimental.LookDev
             Environment environment = LookDev.currentContext.environmentLibrary[context.draggedIndex];
             if (m_Views[(int)ViewIndex.First].ContainsPoint(mouseWorldPosition))
             {
-                if (layout == Layout.CustomSplit || layout == Layout.CustomCircular)
+                if (layout == Layout.CustomSplit)
                     OnChangingEnvironmentInViewInternal?.Invoke(environment, ViewCompositionIndex.Composite, mouseWorldPosition);
                 else
                     OnChangingEnvironmentInViewInternal?.Invoke(environment, ViewCompositionIndex.First, mouseWorldPosition);
@@ -854,7 +850,6 @@ namespace UnityEditor.Rendering.Experimental.LookDev
                     break;
                 case Layout.FullFirstView:
                 case Layout.CustomSplit:       //display composition on first rect
-                case Layout.CustomCircular:    //display composition on first rect
                     if (!m_ViewContainer.ClassListContains(k_FirstViewClass))
                         m_ViewContainer.AddToClassList(k_FirstViewClass);
                     if (m_ViewContainer.ClassListContains(k_SecondViewsClass))

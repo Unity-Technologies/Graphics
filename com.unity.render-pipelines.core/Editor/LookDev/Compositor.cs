@@ -1,8 +1,8 @@
 using System;
 using UnityEngine;
-using IDataProvider = UnityEngine.Rendering.Experimental.LookDev.IDataProvider;
+using IDataProvider = UnityEngine.Rendering.LookDev.IDataProvider;
 
-namespace UnityEditor.Rendering.Experimental.LookDev
+namespace UnityEditor.Rendering.LookDev
 {
     enum ShadowCompositionPass
     {
@@ -177,7 +177,6 @@ namespace UnityEditor.Rendering.Experimental.LookDev
                         RenderSingleAndOutput(ViewIndex.Second);
                         break;
                     case Layout.CustomSplit:
-                    case Layout.CustomCircular:
                         RenderCompositeAndOutput();
                         break;
                 }
