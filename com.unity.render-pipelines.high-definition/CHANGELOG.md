@@ -6,6 +6,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [7.1.0] - 2019-XX-XX
 
+### Fixed
+- Fixed the renderqueue not updated when the alpha clip is modified in the material UI.
+
 ## [7.0.0] - 2019-07-10
 
 ### Added
