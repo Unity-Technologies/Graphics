@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Added
 - First experimental version of the LookDev. Works with all SRP. Only branched on HDRP at the moment.
+- LookDev out of experimental
 
 ## [6.7.0-preview] - 2019-05-16
 

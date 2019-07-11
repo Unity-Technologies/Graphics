@@ -453,43 +453,5 @@ Shader "Hidden/LookDev/Compositor"
             }
             ENDCG
         }
-
-        // Zone
-        Pass
-        {
-            CGPROGRAM
-            #pragma fragment frag
-            #pragma target 3.0
-
-            float4 frag(float2 texcoord : TEXCOORD0,
-            UNITY_VPOS_TYPE vpos : VPOS) : COLOR
-            {
-                float3 color1 = ComputeColor(_Tex0WithSun, _Tex0WithoutSun, _Tex0Shadows, ShadowMultiplier0, _ShadowColor0, texcoord) * exp2(ExposureValue1);
-                float3 color2 = ComputeColor(_Tex1WithSun, _Tex1WithoutSun, _Tex1Shadows, ShadowMultiplier1, _ShadowColor1, texcoord) * exp2(ExposureValue2);
-
-                float2 normalizedCoord = ((texcoord * 2.0 - 1.0) * _ScreenRatio.xy);
-
-                float insideCircle = length(normalizedCoord - _GizmoZoneCenter) - _GizmoLength * 2.0f;
-                float blendFactor = 0.0f;
-                if (insideCircle < 0.0)
-                {
-                    blendFactor = 1.0 - saturate(-1.0 * _CompositingParams.x);
-                }
-                else
-                {
-                    blendFactor = saturate(_CompositingParams.x);
-                }
-
-                float4 finalColor = float4(lerp(color1, color2, blendFactor), 1.0);
-                finalColor.rgb = ApplyToneMap(finalColor.rgb);
-
-                float4 gizmoColor = GetGizmoColor(normalizedCoord, _GizmoSplitPlane, _GizmoSplitPlaneOrtho);
-                finalColor = lerp(finalColor, gizmoColor, gizmoColor.a);
-                finalColor = ComputeFeedbackColor(finalColor, insideCircle, vpos.xy, normalizedCoord, false, true);
-
-                return finalColor;
-            }
-            ENDCG
-        }
     }
 }
