@@ -618,6 +618,36 @@ namespace UnityEditor.ShaderGraph
             return edges;
         }
 
+        public AbstractMaterialNode GetRemovedNodeFromGuid(Guid guid)
+        {
+            foreach(var node in m_RemovedNodes)
+            {
+                if (node.guid == guid)
+                    return node;
+            }
+
+            return null;
+        }
+
+        public IEnumerable<IEdge> GetRemovedEdges(SlotReference s)
+        {
+            var node = GetRemovedNodeFromGuid(s.nodeGuid);
+            if (node == null)
+                return null;
+
+            var edges = new List<IEdge>();
+            ISlot slot = node.FindSlot<ISlot>(s.slotId);
+
+            foreach(var edge in m_RemovedEdges)
+            {
+                var cs = slot.isInputSlot ? edge.inputSlot : edge.outputSlot;
+                if (cs.nodeGuid == s.nodeGuid && cs.slotId == s.slotId)
+                    edges.Add(edge);
+            }
+
+            return edges;
+        }
+
         public void CollectShaderProperties(PropertyCollector collector, GenerationMode generationMode)
         {
             foreach (var prop in properties)

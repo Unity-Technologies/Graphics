@@ -25,14 +25,9 @@ namespace UnityEditor.ShaderGraph
         const int m_tempSlotID = 2;
         const string m_tempSlotName = "Add";
 
-        //Dictionary of index -> port pairs?
-        Dictionary<int, PortPair> m_portPairs;
-        protected int nextFreeIndex = 0;
-
         public RedirectNodeData() : base()
         {
             name = "Redirect Node";
-            m_portPairs = new Dictionary<int, PortPair>();
 
             //Set the default state to collapsed
             DrawState temp = drawState;
@@ -50,48 +45,17 @@ namespace UnityEditor.ShaderGraph
 
         public void Disconnect()
         {
+            if (owner.isUndo)
+                return;
+
             // @SamH: Hacky, hard-coded single case
             var node_inSlotRef = GetSlotReference(0);
             var node_outSlotRef = GetSlotReference(1);
             
-            var inEdges = owner.GetEdges(node_outSlotRef);
-
-            foreach (var inEdge in inEdges)
+            foreach (var inEdge in owner.GetRemovedEdges(node_inSlotRef))
             {
-                if(inEdge.outputSlot.nodeGuid == guid)
-                {
-                    var outEdges = this.owner.GetEdges(node_outSlotRef);
-                    foreach (var outEdge in outEdges)
-                    {
-                        if (outEdge.outputSlot.nodeGuid == guid)
-                        {
-                            owner.Connect(inEdge.inputSlot, outEdge.inputSlot);
-                        }
-                    }
-                }
-            }
-        }
-
-        public void RemovePortPair(int index)
-        {
-            // Handle existing connections
-            if (m_portPairs.ContainsKey(index))
-            {
-                //Remove Ports
-            }
-
-            if (nextFreeIndex > index)
-                nextFreeIndex = index;
-        }
-
-        bool FindNextFreeIndex()
-        {
-            while(true)
-            {
-                if (!m_portPairs.ContainsKey(nextFreeIndex))
-                    return true;
-                else
-                    ++nextFreeIndex;
+                foreach (var outEdge in owner.GetRemovedEdges(node_outSlotRef))
+                    owner.Connect(inEdge.outputSlot, outEdge.inputSlot);
             }
         }
 

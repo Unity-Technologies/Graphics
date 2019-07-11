@@ -191,26 +191,6 @@ namespace UnityEditor.ShaderGraph
         #endregion
 
         #region Node class overrides
-        public override bool expanded
-        {
-            get { return base.expanded; }
-            set
-            {
-                if (base.expanded != value)
-                    base.expanded = value;
-
-                if (node.drawState.expanded != value)
-                {
-                    var ds = node.drawState;
-                    ds.expanded = value;
-                    node.drawState = ds;
-                }
-
-                RefreshExpandedState(); //This should not be needed. GraphView needs to improve the extension api here
-                //UpdatePortInputVisibilities();
-            }
-        }
-
         public override void BuildContextualMenu(ContextualMenuPopulateEvent evt)
         {
 
