@@ -80,7 +80,6 @@ MonoBehaviour:
     hdriSkyPS: {fileID: 4800000, guid: 9bd32a6ece529fd4f9408b8d7e00c10d, type: 3}
     integrateHdriSkyPS: {fileID: 4800000, guid: 48db2705cf2856d4e893eb30a6892d1b,
       type: 3}
-    proceduralSkyPS: {fileID: 4800000, guid: ec63f47fd265df243a7b1d40f9ef7fe7, type: 3}
     skyboxCubemapPS: {fileID: 103, guid: 0000000000000000f000000000000000, type: 0}
     gradientSkyPS: {fileID: 4800000, guid: 2b5d4f1b26f03dc4a873b093e0c4adb1, type: 3}
     ambientProbeConvolutionCS: {fileID: 7200000, guid: 6d048f7b1bd45e840b4e79ec92639fa8,
@@ -107,6 +106,7 @@ MonoBehaviour:
       type: 3}
     clearUIntTextureCS: {fileID: 7200000, guid: d067ad4b88af51c498875426894aef76,
       type: 3}
+    xrMirrorViewPS: {fileID: 4800000, guid: e6255f98cf405eb45ab6f9006cf11e1f, type: 3}
     xrOcclusionMeshPS: {fileID: 4800000, guid: 46a45b32bb110604fb36216b63bcdb81, type: 3}
     shadowClearPS: {fileID: 4800000, guid: e3cab24f27741f44d8af1e94d006267c, type: 3}
     evsmBlurCS: {fileID: 7200000, guid: fb36979473602464fa32deacb9630c08, type: 3}
@@ -246,6 +246,7 @@ MonoBehaviour:
     - {fileID: 2800000, guid: a35bdcb2008832646b3c8d2eb11e38a9, type: 3}
     SMAASearchTex: {fileID: 2800000, guid: dc95d70472e232b438d0fd38651e7ec2, type: 3}
     SMAAAreaTex: {fileID: 2800000, guid: 92e0d85ab4eca874098e7fcf6f8f674e, type: 3}
+    defaultHDRISky: {fileID: 8900000, guid: 8253d41e6e8b11a4cbe77a4f8f82934d, type: 3}
   assets:
     defaultDiffusionProfile: {fileID: 11400000, guid: 2b7005ba3a4d8474b8cdc34141ad766e,
       type: 2}

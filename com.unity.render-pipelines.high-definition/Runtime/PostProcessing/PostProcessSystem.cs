@@ -5,7 +5,6 @@ using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
-    using RTHandle = RTHandleSystem.RTHandle;
     using AntialiasingMode = HDAdditionalCameraData.AntialiasingMode;
 
     // Main class for all post-processing related features - only includes camera effects, no
@@ -776,7 +775,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_TAAPropertyBlock.SetTexture(HDShaderIDs._InputTexture, source);
             m_TAAPropertyBlock.SetTexture(HDShaderIDs._InputHistoryTexture, prevHistory);
 
-            HDUtils.SetRenderTarget(cmd, destination, depthBuffer);
+            CoreUtils.SetRenderTarget(cmd, destination, depthBuffer);
             cmd.SetRandomWriteTarget(1, nextHistory);
             cmd.DrawProcedural(Matrix4x4.identity, m_TemporalAAMaterial, 0, MeshTopology.Triangles, 3, 1, m_TAAPropertyBlock);
         }
@@ -2150,8 +2149,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // -----------------------------------------------------------------------------
             // Clear
-            HDUtils.SetRenderTarget(cmd, SMAAEdgeTex, ClearFlag.Color);
-            HDUtils.SetRenderTarget(cmd, SMAABlendTex, ClearFlag.Color);
+            CoreUtils.SetRenderTarget(cmd, SMAAEdgeTex, ClearFlag.Color);
+            CoreUtils.SetRenderTarget(cmd, SMAABlendTex, ClearFlag.Color);
 
             // -----------------------------------------------------------------------------
             // EdgeDetection stage

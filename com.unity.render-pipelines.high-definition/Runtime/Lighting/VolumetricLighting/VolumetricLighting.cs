@@ -5,8 +5,6 @@ using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
-    using RTHandle = RTHandleSystem.RTHandle;
-
     // Optimized version of 'DensityVolumeArtistParameters'.
     // TODO: pack better. This data structure contains a bunch of UNORMs.
     [GenerateHLSL]
@@ -425,7 +423,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // With stereo instancing, the VBuffer is doubled and split into 2 compartments for each eye
                 if (TextureXR.useTexArray)
                     result = result * TextureXR.slices;
-        }
+            }
 
             return result;
         }
@@ -583,7 +581,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         VolumeVoxelizationParameters PrepareVolumeVoxelizationParameters(HDCamera hdCamera)
-            {
+        {
             var parameters = new VolumeVoxelizationParameters();
 
             parameters.viewCount = hdCamera.viewCount;
@@ -596,20 +594,20 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.voxelizationCS = m_VolumeVoxelizationCS;
             parameters.voxelizationKernel = (parameters.tiledLighting ? 1 : 0) | (highQuality ? 2 : 0);
 
-                var currFrameParams = hdCamera.vBufferParams[0];
-                var cvp = currFrameParams.viewportSize;
+            var currFrameParams = hdCamera.vBufferParams[0];
+            var cvp = currFrameParams.viewportSize;
 
             parameters.resolution = new Vector4(cvp.x, cvp.y, 1.0f / cvp.x, 1.0f / cvp.y);
 #if UNITY_2019_1_OR_NEWER
-                var vFoV        = hdCamera.camera.GetGateFittedFieldOfView() * Mathf.Deg2Rad;
+            var vFoV = hdCamera.camera.GetGateFittedFieldOfView() * Mathf.Deg2Rad;
 #else
-                var vFoV        = hdCamera.camera.fieldOfView * Mathf.Deg2Rad;
+            var vFoV = hdCamera.camera.fieldOfView * Mathf.Deg2Rad;
 #endif
-                // Compose the matrix which allows us to compute the world space view direction.
+            // Compose the matrix which allows us to compute the world space view direction.
             hdCamera.GetPixelCoordToViewDirWS(parameters.resolution, ref m_PixelCoordToViewDirWS);
             parameters.pixelCoordToViewDirWS = m_PixelCoordToViewDirWS;
 
-                // Compute texel spacing at the depth of 1 meter.
+            // Compute texel spacing at the depth of 1 meter.
             parameters.unitDepthTexelSpacing = HDUtils.ComputZPlaneTexelSpacing(1.0f, vFoV, parameters.resolution.y);
 
             parameters.numVisibleVolumes = m_VisibleVolumeBounds.Count;
@@ -617,16 +615,16 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.volumeAtlasDimensions = new Vector4(0.0f, 0.0f, 0.0f, 0.0f);
 
             if (parameters.volumeAtlas != null)
-                {
+            {
                 parameters.volumeAtlasDimensions.x = (float)parameters.volumeAtlas.width / parameters.volumeAtlas.depth; // 1 / number of textures
                 parameters.volumeAtlasDimensions.y = parameters.volumeAtlas.width;
                 parameters.volumeAtlasDimensions.z = parameters.volumeAtlas.depth;
                 parameters.volumeAtlasDimensions.w = Mathf.Log(parameters.volumeAtlas.width, 2);              // Max LoD
-                }
-                else
-                {
+            }
+            else
+            {
                 parameters.volumeAtlas = CoreUtils.blackVolumeTexture;
-                }
+            }
 
             return parameters;
         }
@@ -810,7 +808,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         void VolumetricLightingPass(HDCamera hdCamera, CommandBuffer cmd, int frameIndex)
-                {
+        {
             if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.Volumetrics))
                 return;
 
@@ -822,14 +820,14 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 var parameters = PrepareVolumetricLightingParameters(hdCamera, frameIndex);
 
-                    var historyRT  = hdCamera.GetPreviousFrameRT((int)HDCameraFrameHistoryType.VolumetricLighting);
-                    var feedbackRT = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.VolumetricLighting);
+                var historyRT = hdCamera.GetPreviousFrameRT((int)HDCameraFrameHistoryType.VolumetricLighting);
+                var feedbackRT = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.VolumetricLighting);
 
                 VolumetricLightingPass(parameters, m_DensityBufferHandle, m_LightingBufferHandle, historyRT, feedbackRT, m_TileAndClusterData.bigTileLightList, cmd);
 
                 if (parameters.enableReprojection)
                     hdCamera.volumetricHistoryIsValid = true; // For the next frame...
-                }
+            }
         }
     } // class VolumetricLightingModule
 } // namespace UnityEngine.Rendering.HighDefinition

@@ -16,8 +16,8 @@ namespace UnityEngine.Rendering.HighDefinition
             Total = 3
         }
         // Texture that keeps track of the ray count per pixel
-        public RTHandleSystem.RTHandle rayCountTexture { get { return m_RayCountTexture; } }
-        RTHandleSystem.RTHandle m_RayCountTexture = null;
+        public RTHandle rayCountTexture { get { return m_RayCountTexture; } }
+        RTHandle m_RayCountTexture = null;
 
         // Buffer that holds the reductions of the ray count
         ComputeBuffer m_ReducedRayCountBuffer0 = null;
@@ -80,7 +80,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.DispatchCompute(countCompute, currentKenel, tileSize, tileSize, 1);
 
                 // Clear the ray count texture (that ensures that we don't have to check what we are reading while we reduce)
-                HDUtils.SetRenderTarget(cmd, m_RayCountTexture, ClearFlag.Color);
+                CoreUtils.SetRenderTarget(cmd, m_RayCountTexture, ClearFlag.Color);
             }
         }
 
