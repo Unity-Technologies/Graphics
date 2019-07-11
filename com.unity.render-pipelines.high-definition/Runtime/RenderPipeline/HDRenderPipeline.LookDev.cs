@@ -2,7 +2,7 @@ using System.Collections.Generic;
 #if UNITY_EDITOR
 using UnityEditor.Rendering.HighDefinition;
 #endif
-using UnityEngine.Rendering.Experimental.LookDev;
+using UnityEngine.Rendering.LookDev;
 
 namespace UnityEngine.Rendering.HighDefinition
 {

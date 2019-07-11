@@ -3,9 +3,9 @@ using System;
 using UnityEngine;
 using UnityEngine.UIElements;
 
-namespace UnityEditor.Rendering.Experimental.LookDev
+namespace UnityEditor.Rendering.LookDev
 {
-    public class DropArea
+    class DropArea
     {
         readonly Type[] k_AcceptedTypes;
         bool droppable;
