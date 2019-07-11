@@ -82,9 +82,12 @@ namespace UnityEditor.Rendering.HighDefinition
             var profile = VolumeProfileFactory.CreateVolumeProfile(sceneSettings.scene, "Scene Settings");
             VolumeProfileFactory.CreateVolumeComponent<HDShadowSettings>(profile, true, false);
             var visualEnv = VolumeProfileFactory.CreateVolumeComponent<VisualEnvironment>(profile, true, false);
-            visualEnv.skyType.value = SkySettings.GetUniqueID<ProceduralSky>();
+            visualEnv.skyType.value = SkySettings.GetUniqueID<HDRISky>();
             visualEnv.fogType.value = FogType.Exponential;
-            VolumeProfileFactory.CreateVolumeComponent<ProceduralSky>(profile, true, false);
+            var hdriSky = VolumeProfileFactory.CreateVolumeComponent<HDRISky>(profile, true, false);
+            var hdrpAsset = (GraphicsSettings.currentRenderPipeline as HDRenderPipelineAsset);
+            hdriSky.hdriSky.value = hdrpAsset?.renderPipelineResources?.textures?.defaultHDRISky;
+            hdriSky.exposure.value = 14;
             VolumeProfileFactory.CreateVolumeComponent<ExponentialFog>(profile, true, true);
 
             var volume = sceneSettings.AddComponent<Volume>();
@@ -93,7 +96,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             var staticLightingSky = sceneSettings.AddComponent<StaticLightingSky>();
             staticLightingSky.profile = volume.sharedProfile;
-            staticLightingSky.staticLightingSkyUniqueID = SkySettings.GetUniqueID<ProceduralSky>();
+            staticLightingSky.staticLightingSkyUniqueID = SkySettings.GetUniqueID<HDRISky>();
         }
 
 #if ENABLE_RAYTRACING
