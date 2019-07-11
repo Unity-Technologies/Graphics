@@ -17,7 +17,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_Node = node;
             PropertySheet ps = new PropertySheet();
 
-            bool opaqueOptions = (m_Node.surfaceType == SurfaceType.Opaque);
+            bool showOpaqueOptions = (m_Node.surfaceType == SurfaceType.Opaque);
 
             ps.Add(new PropertyRow(new Label("Surface")), (row) =>
                 {
@@ -28,7 +28,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     });
                 });
 
-            if (!opaqueOptions)
+            if (!showOpaqueOptions)
             {
                 ps.Add(new PropertyRow(new Label("Blend")), (row) =>
                     {
@@ -41,7 +41,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
             else
             {
-                ps.Add(new PropertyRow(new Label("Cast Shadow")), (row) =>
+                ps.Add(new PropertyRow(new Label("Shadow Caster")), (row) =>
                     {
                         row.Add(new Toggle(), (toggle) =>
                         {

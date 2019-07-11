@@ -50,7 +50,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
             else
             {
-                ps.Add(new PropertyRow(new Label("Cast Shadow")), (row) =>
+                ps.Add(new PropertyRow(new Label("Shadow Caster")), (row) =>
                     {
                         row.Add(new Toggle(), (toggle) =>
                         {

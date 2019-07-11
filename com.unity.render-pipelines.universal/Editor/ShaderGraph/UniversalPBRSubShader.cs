@@ -201,9 +201,51 @@ namespace UnityEditor.Rendering.Universal
             }
         };
 
-        Pass m_DepthShadowPass = new Pass()
+        Pass m_ShadowPass = new Pass()
         {
-            Name = "",
+            Name = "Shadow Pass",
+            TemplatePath = "universalPBRShadowPass.template",
+            PixelShaderSlots = new List<int>()
+            {
+                PBRMasterNode.AlbedoSlotId,
+                PBRMasterNode.EmissionSlotId,
+                PBRMasterNode.AlphaSlotId,
+                PBRMasterNode.AlphaThresholdSlotId
+            },
+            VertexShaderSlots = new List<int>()
+            {
+                PBRMasterNode.PositionSlotId
+            },
+            Requirements = new ShaderGraphRequirements()
+            {
+                requiresNormal = UniversalSubShaderUtilities.k_PixelCoordinateSpace,
+                requiresTangent = UniversalSubShaderUtilities.k_PixelCoordinateSpace,
+                requiresBitangent = UniversalSubShaderUtilities.k_PixelCoordinateSpace,
+                requiresPosition = UniversalSubShaderUtilities.k_PixelCoordinateSpace,
+                requiresViewDir = UniversalSubShaderUtilities.k_PixelCoordinateSpace,
+                requiresMeshUVs = new List<UVChannel>() { UVChannel.UV1 },
+            },
+            ExtraDefines = new List<string>(),
+            OnGeneratePassImpl = (IMasterNode node, ref Pass pass, ref ShaderGraphRequirements requirements) =>
+            {
+                var masterNode = node as PBRMasterNode;
+
+                if (masterNode.model == PBRMasterNode.Model.Specular)
+                    pass.ExtraDefines.Add("#define _SPECULAR_SETUP 1");
+                if (masterNode.IsSlotConnected(PBRMasterNode.AlphaThresholdSlotId))
+                    pass.ExtraDefines.Add("#define _AlphaClip 1");
+                if (masterNode.surfaceType == SurfaceType.Transparent && masterNode.alphaMode == AlphaMode.Premultiply)
+                    pass.ExtraDefines.Add("#define _ALPHAPREMULTIPLY_ON 1");
+                if (requirements.requiresDepthTexture)
+                    pass.ExtraDefines.Add("#define REQUIRE_DEPTH_TEXTURE");
+                if (requirements.requiresCameraOpaqueTexture)
+                    pass.ExtraDefines.Add("#define REQUIRE_OPAQUE_TEXTURE");
+            }
+        };
+
+        Pass m_ExtraPasses = new Pass()
+        {
+            Name = "Extra Passes",
             TemplatePath = "universalPBRExtraPasses.template",
             PixelShaderSlots = new List<int>()
             {
@@ -258,10 +300,18 @@ namespace UnityEditor.Rendering.Universal
             var tags = ShaderGenerator.BuildMaterialTags(pbrMasterNode.surfaceType);
             var options = ShaderGenerator.GetMaterialOptions(pbrMasterNode.surfaceType, pbrMasterNode.alphaMode, pbrMasterNode.twoSided.isOn);
 
+            // Optional passes
+            bool includeShadowPass = true;
+            IOptionalShadowPass optionalShadow = masterNode as IOptionalShadowPass;
+            if (optionalShadow != null)
+            {
+                includeShadowPass = optionalShadow.ShadowPassActive();
+            }
+
             // Passes
             var forwardPass = pbrMasterNode.model == PBRMasterNode.Model.Metallic ? m_ForwardPassMetallic : m_ForwardPassSpecular;
             var forward2DPass = pbrMasterNode.model == PBRMasterNode.Model.Metallic ? m_ForwardPassMetallic2D : m_ForwardPassSpecular2D;
-            var passes = new Pass[] { forwardPass, m_DepthShadowPass, forward2DPass };
+            var passes = includeShadowPass ? new Pass[] { forwardPass, m_ShadowPass, m_ExtraPasses, forward2DPass } : new Pass[] { forwardPass, m_ExtraPasses, forward2DPass };
 
             return UniversalSubShaderUtilities.GetSubShader<PBRMasterNode>(pbrMasterNode, tags, options, 
                 passes, mode, "UnityEditor.ShaderGraph.PBRMasterGUI", sourceAssetDependencyPaths);

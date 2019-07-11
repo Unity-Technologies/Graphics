@@ -43,7 +43,7 @@ namespace UnityEditor.Rendering.Universal
             throw new FileNotFoundException(string.Format(@"Cannot find a template with name ""{0}"".", templateName));
         }
 
-        public static string GetSubShader<T>(T masterNode, SurfaceMaterialTags tags, SurfaceMaterialOptions options, Pass[] passes, 
+        public static string GetSubShader<T>(T masterNode, SurfaceMaterialTags tags, SurfaceMaterialOptions options, Pass[] passes,
             GenerationMode mode, string customEditorPath = null, List<string> sourceAssetDependencyPaths = null) where T : IMasterNode
         {
             if (sourceAssetDependencyPaths != null)
@@ -167,7 +167,7 @@ namespace UnityEditor.Rendering.Universal
             // Generate defines
 
             pass.OnGeneratePass(iMasterNode, graphRequirements);
-            
+
             foreach(string define in pass.ExtraDefines)
                 defines.AppendLine(define);
 

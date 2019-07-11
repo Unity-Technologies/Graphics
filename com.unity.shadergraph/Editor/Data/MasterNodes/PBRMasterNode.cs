@@ -53,7 +53,7 @@ namespace UnityEditor.ShaderGraph
                     return;
 
                 m_Model = value;
-                UpdateNodeAfterDeserialization();
+                UpdateSlots();
                 Dirty(ModificationScope.Topological);
             }
         }
@@ -70,7 +70,7 @@ namespace UnityEditor.ShaderGraph
                     return;
 
                 m_SurfaceType = value;
-                UpdateNodeAfterDeserialization();
+                UpdateSlots();
                 Dirty(ModificationScope.Graph);
             }
         }
@@ -92,17 +92,17 @@ namespace UnityEditor.ShaderGraph
         }
 
         [SerializeField]
-        bool m_shadowCast = true;
+        bool m_IsShadowCaster = true;
 
         public ToggleData shadowCast
         {
-            get { return new ToggleData(m_shadowCast); }
+            get { return new ToggleData(m_IsShadowCaster); }
             set
             {
-                if (m_shadowCast == value.isOn)
+                if (m_IsShadowCaster == value.isOn)
                     return;
 
-                m_shadowCast = value.isOn;
+                m_IsShadowCaster = value.isOn;
                 Dirty(ModificationScope.Graph);
             }
         }
@@ -136,6 +136,11 @@ namespace UnityEditor.ShaderGraph
         public sealed override void UpdateNodeAfterDeserialization()
         {
             base.UpdateNodeAfterDeserialization();
+            UpdateSlots();
+        }
+
+        void UpdateSlots()
+        {
             name = "PBR Master";
             AddSlot(new PositionMaterialSlot(PositionSlotId, PositionName, PositionName, CoordinateSpace.Object, ShaderStageCapability.Vertex));
             AddSlot(new ColorRGBMaterialSlot(AlbedoSlotId, AlbedoSlotName, AlbedoSlotName, SlotType.Input, Color.grey.gamma, ColorMode.Default, ShaderStageCapability.Fragment));
