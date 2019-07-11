@@ -65,11 +65,6 @@ float GetAmbientOcclusionForMicroShadowing(BSDFData bsdfData)
     return 1; // TODO
 }
 
-void ClampRoughness(inout BSDFData bsdfData, float minRoughness)
-{
-    // TODO
-}
-
 //-----------------------------------------------------------------------------
 // Debug method (use to display values)
 //-----------------------------------------------------------------------------
@@ -481,6 +476,13 @@ struct PreLightData
 #endif
 };
 
+//
+// ClampRoughness helper specific to this material
+//
+void ClampRoughness(inout PreLightData preLightData, inout BSDFData bsdfData, float minRoughness)
+{
+}
+
 PreLightData    GetPreLightData(float3 viewWS_Clearcoat, PositionInputs posInput, inout BSDFData bsdfData)
 {
     PreLightData    preLightData;
@@ -686,7 +688,6 @@ PreLightData    GetPreLightData(float3 viewWS_Clearcoat, PositionInputs posInput
 
     return preLightData;
 }
-
 
 //----------------------------------------------------------------------
 // Computes Fresnel reflection/refraction of view and light vectors due to clearcoating

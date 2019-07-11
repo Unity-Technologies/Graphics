@@ -38,7 +38,7 @@ RWTexture2D<float4>                     _SsrHitPointTexture;
 [shader("miss")]
 void MissShaderReflections(inout RayIntersection rayIntersection : SV_RayPayload)
 {
-    if(_RaytracingReflectSky != 0)
+    if(_RaytracingIncludeSky != 0)
     {
         rayIntersection.color = SAMPLE_TEXTURECUBE_ARRAY_LOD(_SkyTexture, s_trilinear_clamp_sampler, rayIntersection.incidentDirection, 0.0, 0).xyz;
     }

@@ -1,8 +1,8 @@
 using System.Collections.Generic;
 using System;
-using UnityEngine.Experimental.Rendering.HDPipeline.Attributes;
+using UnityEngine.Rendering.HighDefinition.Attributes;
 
-namespace UnityEngine.Experimental.Rendering.HDPipeline
+namespace UnityEngine.Rendering.HighDefinition
 {
     namespace Attributes
     {
@@ -386,7 +386,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 isDebugViewMaterialInit = true;
             }
         }
-        
+
         //Validator Settings
         public Color materialValidateLowColor = new Color(1.0f, 0.0f, 0.0f);
         public Color materialValidateHighColor = new Color(0.0f, 0.0f, 1.0f);
@@ -527,7 +527,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
             return enabled;
         }
-        
+
         public bool IsDebugDisplayEnabled()
         {
             return (m_DebugViewEngine != 0 || IsDebugViewMaterialEnabled() || m_DebugViewVarying != DebugViewVarying.None || m_DebugViewProperties != DebugViewProperties.None || IsDebugGBufferEnabled());

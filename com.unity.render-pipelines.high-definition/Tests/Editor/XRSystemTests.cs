@@ -4,9 +4,9 @@ using System.Collections.Generic;
 using UnityEngine.TestTools.Constraints;
 using Is = UnityEngine.TestTools.Constraints.Is;
 
-namespace UnityEngine.Experimental.Rendering.HDPipeline.Tests
+namespace UnityEngine.Rendering.HighDefinition.Tests
 {
-    public class XRSystemTests
+    class XRSystemTests
     {
         XRSystem xrSystem;
         Camera[] cameras;

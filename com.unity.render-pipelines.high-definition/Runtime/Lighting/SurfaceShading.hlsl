@@ -101,7 +101,7 @@ DirectLighting ShadeSurface_Directional(LightLoopContext lightLoopContext,
         // Note that it is not correct with our precomputation of PartLambdaV
         // (means if we disable the optimization it will not have the
         // same result) but we don't care as it is a hack anyway.
-        ClampRoughness(bsdfData, light.minRoughness);
+        ClampRoughness(preLightData, bsdfData, light.minRoughness);
 
         lighting = ShadeSurface_Infinitesimal(preLightData, bsdfData, V, L, lightColor.rgb,
                                               light.diffuseDimmer, light.specularDimmer);
@@ -196,7 +196,7 @@ DirectLighting ShadeSurface_Punctual(LightLoopContext lightLoopContext,
         // Note that it is not correct with our precomputation of PartLambdaV
         // (means if we disable the optimization it will not have the
         // same result) but we don't care as it is a hack anyway.
-        ClampRoughness(bsdfData, light.minRoughness);
+        ClampRoughness(preLightData, bsdfData, light.minRoughness);
 
         lighting = ShadeSurface_Infinitesimal(preLightData, bsdfData, V, L, lightColor.rgb,
                                               light.diffuseDimmer, light.specularDimmer);

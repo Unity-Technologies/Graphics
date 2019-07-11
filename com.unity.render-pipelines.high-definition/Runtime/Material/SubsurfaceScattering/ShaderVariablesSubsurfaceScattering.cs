@@ -1,8 +1,7 @@
-
-namespace UnityEngine.Experimental.Rendering.HDPipeline
+namespace UnityEngine.Rendering.HighDefinition
 {
     [GenerateHLSL(needAccessors = false, omitStructDeclaration = true)]
-    public unsafe struct ShaderVariablesSubsurfaceScattering
+    unsafe struct ShaderVariablesSubsurfaceScattering
     {
         // Use float4 to avoid any packing issue between compute and pixel shaders
         [HLSLArray(DiffusionProfileConstants.DIFFUSION_PROFILE_COUNT, typeof(Vector4))]

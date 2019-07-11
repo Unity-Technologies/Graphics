@@ -1,8 +1,7 @@
-
-namespace UnityEngine.Experimental.Rendering.HDPipeline
+namespace UnityEngine.Rendering.HighDefinition
 {
     [GenerateHLSL(needAccessors = false, omitStructDeclaration = true)]
-    public struct ShaderVariablesScreenSpaceLighting
+    struct ShaderVariablesScreenSpaceLighting
     {
         // Buffer pyramid
         public Vector4  _ColorPyramidSize;              // (x,y) = Actual Pixel Size, (z,w) = 1 / Actual Pixel Size

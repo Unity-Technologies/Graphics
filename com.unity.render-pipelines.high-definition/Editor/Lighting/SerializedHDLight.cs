@@ -1,9 +1,7 @@
-using UnityEditor.Rendering;
-using UnityEngine.Experimental.Rendering;
-using UnityEngine.Experimental.Rendering.HDPipeline;
+using UnityEngine.Rendering.HighDefinition;
 using UnityEngine;
 
-namespace UnityEditor.Experimental.Rendering.HDPipeline
+namespace UnityEditor.Rendering.HighDefinition
 {
     using LightShape = HDLightUI.LightShape;
     internal class SerializedHDLight
@@ -73,7 +71,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public SerializedProperty shadowDimmer;
             public SerializedProperty volumetricShadowDimmer;
             public SerializedProperty shadowFadeDistance;
-            public SerializedProperty resolution;
+            public SerializedProperty shadowResolutionTier;
+            public SerializedProperty useShadowQualitySettings;
+            public SerializedProperty customResolution;
             public SerializedProperty contactShadows;
             public SerializedProperty shadowTint;
             public SerializedProperty shadowUpdateMode;
@@ -131,8 +131,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     minFilterSize = o.Find("m_MinFilterSize"),
                     areaLightCookie = o.Find("m_AreaLightCookie"),
                     areaLightShadowCone = o.Find("m_AreaLightShadowCone"),
-                    useCustomSpotLightShadowCone = o.Find("useCustomSpotLightShadowCone"),
-                    customSpotLightShadowCone = o.Find("customSpotLightShadowCone"),
+                    useCustomSpotLightShadowCone = o.Find("m_UseCustomSpotLightShadowCone"),
+                    customSpotLightShadowCone = o.Find("m_CustomSpotLightShadowCone"),
                     useScreenSpaceShadows = o.Find("m_UseScreenSpaceShadows"),
                     interactsWithSky = o.Find("m_InteractsWithSky"),
 #if ENABLE_RAYTRACING
@@ -167,7 +167,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     shadowDimmer = o.Find("m_ShadowDimmer"),
                     volumetricShadowDimmer = o.Find("m_VolumetricShadowDimmer"),
                     shadowFadeDistance = o.Find("m_ShadowFadeDistance"),
-                    resolution = o.Find("m_ShadowResolution"),
+                    useShadowQualitySettings = o.Find("m_UseShadowQualitySettings"),
+                    customResolution = o.Find("m_CustomShadowResolution"),
+                    shadowResolutionTier = o.Find("m_ShadowResolutionTier"),
                     contactShadows = o.Find("m_ContactShadows"),
                     shadowTint = o.Find("m_ShadowTint"),
                     shadowUpdateMode = o.Find("m_ShadowUpdateMode"),

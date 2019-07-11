@@ -1,9 +1,7 @@
-using UnityEngine;
-using UnityEngine.Rendering;
-using System.Collections.Generic;
 using System;
+using UnityEngine.Experimental.Rendering;
 
-namespace UnityEngine.Experimental.Rendering.HDPipeline
+namespace UnityEngine.Rendering.HighDefinition
 {
     using RTHandle = RTHandleSystem.RTHandle;
 
@@ -31,7 +29,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // Array that holds the shadow textures for the area lights
         RTHandle m_ScreenSpaceShadowTextureArray;
 
-        public void InitializeScreenSpaceShadows()
+        void InitializeScreenSpaceShadows()
         {
             if (!m_Asset.currentPlatformRenderPipelineSettings.hdShadowInitParams.supportScreenSpaceShadows)
                 return;
@@ -52,13 +50,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
 
 #if ENABLE_RAYTRACING
-        public RTHandleSystem.RTHandle GetIntegrationTexture()
+        RTHandleSystem.RTHandle GetIntegrationTexture()
         {
             return m_DenoiseBuffer0;
         }
 #endif
 
-        public void ReleaseScreenSpaceShadows()
+        void ReleaseScreenSpaceShadows()
         {
             RTHandles.Release(m_ScreenSpaceShadowTextureArray);
 
@@ -90,7 +88,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         enableRandomWrite: true, useDynamicScale: true, useMipMap: false, name: string.Format("AreaShadowHistoryBuffer{0}", frameIndex));
         }
 
-        public void RenderScreenSpaceShadows(HDCamera hdCamera, CommandBuffer cmd)
+        void RenderScreenSpaceShadows(HDCamera hdCamera, CommandBuffer cmd)
         {
             if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.ScreenSpaceShadows))
             {
@@ -111,7 +109,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 #endif
         }
 
-        public void RenderDirectionalLightScreenSpaceShadow(CommandBuffer cmd, HDCamera hdCamera, int frameCount)
+        void RenderDirectionalLightScreenSpaceShadow(CommandBuffer cmd, HDCamera hdCamera, int frameCount)
         {
             // Render directional screen space shadow if required
             if (m_CurrentSunLightAdditionalLightData != null && m_CurrentSunLightAdditionalLightData.WillRenderScreenSpaceShadow())
@@ -141,7 +139,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     cmd.SetGlobalTexture(HDShaderIDs._OwenScrambledRGTexture, m_Asset.renderPipelineResources.textures.owenScrambledRGBATex);
                     cmd.SetGlobalTexture(HDShaderIDs._OwenScrambledTexture, m_Asset.renderPipelineResources.textures.owenScrambled256Tex);
                     cmd.SetGlobalTexture(HDShaderIDs._ScramblingTexture, m_Asset.renderPipelineResources.textures.scramblingTex);
-            
+
                     for(int i = 0; i < m_CurrentSunLightAdditionalLightData.numRayTracingSamples; ++i)
                     {
                         shadowComputeKernel = shadowsCompute.FindKernel("RaytracingDirectionalShadowSample");
@@ -211,7 +209,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 #if ENABLE_RAYTRACING
-        public bool RenderAreaShadows(HDCamera hdCamera, CommandBuffer cmd, int frameCount)
+        bool RenderAreaShadows(HDCamera hdCamera, CommandBuffer cmd, int frameCount)
         {
             // Let's check all the resources and states to see if we should render the effect
             HDRaytracingEnvironment rtEnvironment = m_RayTracingManager.CurrentEnvironment();

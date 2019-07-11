@@ -1,16 +1,26 @@
-using UnityEngine.Rendering;
+using UnityEngine.Experimental.Rendering;
 
-namespace UnityEngine.Experimental.Rendering
+namespace UnityEngine.Rendering
 {
     using RTHandle = RTHandleSystem.RTHandle;
 
-    internal static class TextureXR
+    public static class TextureXR
     {
         // Property set by XRSystem
-        internal static int maxViews { private get; set; } = 1;
+        private static int m_MaxViews = 1;
+        internal static int maxViews
+        {
+            set
+            {
+                if (value > HighDefinition.ShaderConfig.s_XrMaxViews)
+                    throw new System.NotImplementedException("Invalid XR setup for single-pass instancing: you must increase ShaderConfig.XrMaxViews");
+                else
+                    m_MaxViews = value;
+            }
+        }
 
         // Property accessed when allocating a render target
-        internal static int slices { get => maxViews; }
+        internal static int slices { get => m_MaxViews; }
 
         // Must be in sync with shader define in TextureXR.hlsl
         internal static bool useTexArray
@@ -66,7 +76,7 @@ namespace UnityEngine.Experimental.Rendering
         static RTHandle         m_WhiteTextureRTH;
         public static RTHandle GetWhiteTexture() { return useTexArray ? m_WhiteTexture2DArrayRTH : m_WhiteTextureRTH; }
 
-        public static void Initialize(CommandBuffer cmd, ComputeShader clearR32_UIntShader)
+        internal static void Initialize(CommandBuffer cmd, ComputeShader clearR32_UIntShader)
         {
             if (m_BlackUIntTexture2DArray == null) // We assume that everything is invalid if one is invalid.
             {

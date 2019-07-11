@@ -33,12 +33,6 @@ float GetAmbientOcclusionForMicroShadowing(BSDFData bsdfData)
     return 1.0; // Don't do microshadowing for simpleLit
 }
 
-void ClampRoughness(inout BSDFData bsdfData, float minRoughness)
-{
-    // No anistropy in simple lit
-    bsdfData.roughnessT    = max(minRoughness, bsdfData.roughnessT);
-}
-
 // This function is similar to ApplyDebugToSurfaceData but for BSDFData
 void ApplyDebugToBSDFData(inout BSDFData bsdfData)
 {
@@ -162,6 +156,15 @@ struct PreLightData
     float transparentSSMipLevel;     // mip level of the screen space gaussian pyramid for rough refraction
 #endif
 };
+
+//
+// ClampRoughness helper specific to this material
+//
+void ClampRoughness(inout PreLightData preLightData, inout BSDFData bsdfData, float minRoughness)
+{
+    // No anistropy in simple lit
+    bsdfData.roughnessT    = max(minRoughness, bsdfData.roughnessT);
+}
 
 //-----------------------------------------------------------------------------
 // BSDF share between directional light, punctual light and area light (reference)

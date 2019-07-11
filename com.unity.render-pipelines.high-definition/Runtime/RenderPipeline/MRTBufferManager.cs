@@ -1,8 +1,6 @@
-using UnityEngine.Rendering;
-
-namespace UnityEngine.Experimental.Rendering.HDPipeline
+namespace UnityEngine.Rendering.HighDefinition
 {
-    public abstract class MRTBufferManager
+    abstract class MRTBufferManager
     {
         protected int m_BufferCount;
         protected RenderTargetIdentifier[] m_RTIDs;

@@ -162,11 +162,11 @@ namespace UnityEditor.VFX
         abstract public Type SRPOutputDataType { get; }
     }
 
-    // Not in LWRP package because we dont want to add a dependency on VFXGraph
-    class VFXLWRPBinder : VFXSRPBinder
+    // Not in Universal package because we dont want to add a dependency on VFXGraph
+    class VFXUniversalBinder : VFXSRPBinder
     {
-        public override string templatePath { get { return "Packages/com.unity.visualeffectgraph/Shaders/RenderPipeline/LWRP"; } }
-        public override string SRPAssetTypeStr { get { return "LightweightRenderPipelineAsset"; } }
+        public override string templatePath { get { return "Packages/com.unity.visualeffectgraph/Shaders/RenderPipeline/Universal"; } }
+        public override string SRPAssetTypeStr { get { return "UniversalRenderPipelineAsset"; } }
         public override Type SRPOutputDataType { get { return null; } }
     }
 

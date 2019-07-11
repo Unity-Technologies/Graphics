@@ -3,16 +3,16 @@ using System.IO;
 using UnityEditor.Rendering;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
-using UnityEngine.Experimental.Rendering.HDPipeline;
+using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.SceneManagement;
 using UnityEditor.SceneManagement;
 using UnityEngine.Rendering;
 
-namespace UnityEditor.Experimental.Rendering.HDPipeline
+namespace UnityEditor.Rendering.HighDefinition
 {
     using UnityObject = UnityEngine.Object;
 
-    public class HDRenderPipelineMenuItems
+    class HDRenderPipelineMenuItems
     {
         // Function used only to check performance of data with and without tessellation
         //[MenuItem("Internal/HDRP/Test/Remove tessellation materials (not reversible)")]

@@ -1,9 +1,9 @@
 using System;
 using System.IO;
 using UnityEngine.Assertions;
-using UnityEngine.Rendering;
+using UnityEngine.Experimental.Rendering;
 
-namespace UnityEngine.Experimental.Rendering.HDPipeline
+namespace UnityEngine.Rendering.HighDefinition
 {
     internal static partial class HDTextureUtilities
     {
@@ -67,7 +67,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     {
                         var resolution = source.width;
                         var result = new Texture2D(resolution * 6, resolution, format, false);
-                        
+
                         var offset = 0;
                         for (var i = 0; i < 6; ++i)
                         {

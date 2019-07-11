@@ -1,13 +1,12 @@
 using System;
-using UnityEngine.Rendering;
 #if UNITY_EDITOR
 using UnityEditor;
-using UnityEditor.Experimental.Rendering;
-using UnityEditor.Experimental.Rendering.HDPipeline;
+using UnityEditor.Rendering;
+using UnityEditor.Rendering.HighDefinition;
 #endif
 using UnityEngine.Serialization;
 
-namespace UnityEngine.Experimental.Rendering.HDPipeline
+namespace UnityEngine.Rendering.HighDefinition
 {
     public partial class HDAdditionalLightData : ISerializationCallbackReceiver
     {
@@ -65,11 +64,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             UpgradeLight();
 
-#pragma warning disable 618 // Obsolete warning
-            // Null check, the first time we create the light there is no shadowData attached
-            if (GetComponent<AdditionalShadowData>()?.shadowUpdateMode == ShadowUpdateMode.OnEnable)
+            if (shadowUpdateMode == ShadowUpdateMode.OnEnable)
                 m_ShadowMapRenderedSinceLastRequest = false;
-#pragma warning restore 618
         }
 
         internal void UpgradeLight()

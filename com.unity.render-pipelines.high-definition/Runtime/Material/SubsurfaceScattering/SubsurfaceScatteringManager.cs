@@ -1,9 +1,6 @@
-using UnityEngine.Rendering;
-using System;
-using System.Collections.Generic;
-using System.Linq;
+using UnityEngine.Experimental.Rendering;
 
-namespace UnityEngine.Experimental.Rendering.HDPipeline
+namespace UnityEngine.Rendering.HighDefinition
 {
     using RTHandle = RTHandleSystem.RTHandle;
 
@@ -43,7 +40,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         uint                        m_SSSTexturingModeFlags;        // 1 bit/profile: 0 = PreAndPostScatter, 1 = PostScatter
         uint                        m_SSSTransmissionFlags;         // 1 bit/profile: 0 = regular, 1 = thin
 
-        public void InitSSSBuffers()
+        void InitSSSBuffers()
         {
             RenderPipelineSettings settings = asset.currentPlatformRenderPipelineSettings;
 
@@ -90,17 +87,17 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_SSSSetDiffusionProfiles = new DiffusionProfileSettings[DiffusionProfileConstants.DIFFUSION_PROFILE_COUNT];
         }
 
-        public RTHandle GetSSSBuffer()
+        RTHandle GetSSSBuffer()
         {
             return m_SSSColor;
         }
 
-        public RTHandle GetSSSBufferMSAA()
+        RTHandle GetSSSBufferMSAA()
         {
             return m_SSSColorMSAA;
         }
 
-        public void InitializeSubsurfaceScattering()
+        void InitializeSubsurfaceScattering()
         {
             // Disney SSS (compute + combine)
             string kernelName = asset.currentPlatformRenderPipelineSettings.increaseSssSampleCount ? "SubsurfaceScatteringHQ" : "SubsurfaceScatteringMQ";
@@ -118,7 +115,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_SSSDefaultDiffusionProfile = defaultResources.assets.defaultDiffusionProfile;
         }
 
-        public void CleanupSubsurfaceScattering()
+        void CleanupSubsurfaceScattering()
         {
             CoreUtils.Destroy(m_CombineLightingPass);
             CoreUtils.Destroy(m_SSSCopyStencilForSplitLighting);
@@ -198,7 +195,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_SSSDiffusionProfileUpdate[index] = settings.updateCount;
         }
 
-        public void PushSubsurfaceScatteringGlobalParams(HDCamera hdCamera, CommandBuffer cmd)
+        void PushSubsurfaceScatteringGlobalParams(HDCamera hdCamera, CommandBuffer cmd)
         {
             UpdateCurrentDiffusionProfileSettings();
 
@@ -289,7 +286,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             return parameters;
         }
 
-        public void RenderSubsurfaceScattering(HDCamera hdCamera, CommandBuffer cmd, RTHandle colorBufferRT,
+        void RenderSubsurfaceScattering(HDCamera hdCamera, CommandBuffer cmd, RTHandle colorBufferRT,
             RTHandle diffuseBufferRT, RTHandle depthStencilBufferRT, RTHandle depthTextureRT)
         {
             if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.SubsurfaceScattering))

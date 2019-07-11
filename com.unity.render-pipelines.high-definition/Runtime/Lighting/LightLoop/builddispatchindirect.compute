@@ -57,6 +57,6 @@ void BUILDINDIRECT(uint3 dispatchThreadId : SV_DispatchThreadID)
 
         // See LightDefinitions class in LightLoop.cs
         uint tileIndex = (unity_StereoEyeIndex << TILE_INDEX_SHIFT_EYE) | (tileY << TILE_INDEX_SHIFT_Y) | (tileX << TILE_INDEX_SHIFT_X);
-        g_TileList[variant * g_NumTiles + tileOffset] = tileIndex;
+        g_TileList[variant * g_NumTiles * _XRViewCount + tileOffset] = tileIndex;
     }
 }

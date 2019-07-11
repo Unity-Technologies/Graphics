@@ -1,10 +1,8 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
 
-namespace UnityEngine.Experimental.Rendering.HDPipeline
+namespace UnityEngine.Rendering.HighDefinition
 {
-    public class LightUtils
+    class LightUtils
     {
         // Physical light unit helper
         // All light unit are in lumen (Luminous power)

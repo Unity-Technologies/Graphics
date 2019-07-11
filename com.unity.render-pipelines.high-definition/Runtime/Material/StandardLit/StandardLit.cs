@@ -1,10 +1,6 @@
-using System;
-using UnityEngine.Experimental.Rendering.HDPipeline.Attributes;
-using UnityEngine.Rendering;
-
-namespace UnityEngine.Experimental.Rendering.HDPipeline
+namespace UnityEngine.Rendering.HighDefinition
 {
-    public partial class StandardLit
+    partial class StandardLit
     {
         //-----------------------------------------------------------------------------
         // BSDFData

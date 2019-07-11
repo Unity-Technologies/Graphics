@@ -1,14 +1,9 @@
-using System;
-using UnityEditor.UIElements;
-using UnityEngine;
 using UnityEngine.UIElements;
 using UnityEditor.Graphing.Util;
-using UnityEditor.ShaderGraph;
 using UnityEditor.ShaderGraph.Drawing;
 using UnityEditor.ShaderGraph.Drawing.Controls;
-using UnityEngine.Experimental.Rendering.HDPipeline;
 
-namespace UnityEditor.Experimental.Rendering.HDPipeline.Drawing
+namespace UnityEditor.Rendering.HighDefinition.Drawing
 {
     class DecalSettingsView : VisualElement
     {
@@ -28,7 +23,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline.Drawing
         {
             m_Node = node;
             PropertySheet ps = new PropertySheet();
-            
+
             int indentLevel = 0;
 
             ps.Add(new PropertyRow(CreateLabel("Affects Albedo", indentLevel)), (row) =>
@@ -109,7 +104,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline.Drawing
             m_Node.owner.owner.RegisterCompleteObjectUndo("Affects Metal Change");
             ToggleData td = m_Node.affectsMetal;
             td.isOn = evt.newValue;
-            m_Node.affectsMetal = td;            
+            m_Node.affectsMetal = td;
         }
 
         void ChangeAffectsAO(ChangeEvent<bool> evt)

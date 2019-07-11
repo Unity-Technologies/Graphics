@@ -2,11 +2,11 @@ using System.Collections.Generic;
 using System.Linq.Expressions;
 using UnityEngine;
 using System.Reflection;
-using UnityEngine.Experimental.Rendering.HDPipeline;
+using UnityEngine.Rendering.HighDefinition;
 using Object = UnityEngine.Object;
 using System;
 
-namespace UnityEditor.Experimental.Rendering.HDPipeline
+namespace UnityEditor.Rendering.HighDefinition
 {
     interface IHDProbeEditor
     {

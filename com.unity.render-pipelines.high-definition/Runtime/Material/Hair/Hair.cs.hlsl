@@ -5,12 +5,12 @@
 #ifndef HAIR_CS_HLSL
 #define HAIR_CS_HLSL
 //
-// UnityEngine.Experimental.Rendering.HDPipeline.Hair+MaterialFeatureFlags:  static fields
+// UnityEngine.Rendering.HighDefinition.Hair+MaterialFeatureFlags:  static fields
 //
 #define MATERIALFEATUREFLAGS_HAIR_KAJIYA_KAY (1)
 
 //
-// UnityEngine.Experimental.Rendering.HDPipeline.Hair+SurfaceData:  static fields
+// UnityEngine.Rendering.HighDefinition.Hair+SurfaceData:  static fields
 //
 #define DEBUGVIEW_HAIR_SURFACEDATA_MATERIAL_FEATURES (1400)
 #define DEBUGVIEW_HAIR_SURFACEDATA_AMBIENT_OCCLUSION (1401)
@@ -31,7 +31,7 @@
 #define DEBUGVIEW_HAIR_SURFACEDATA_SECONDARY_SPECULAR_SHIFT (1416)
 
 //
-// UnityEngine.Experimental.Rendering.HDPipeline.Hair+BSDFData:  static fields
+// UnityEngine.Rendering.HighDefinition.Hair+BSDFData:  static fields
 //
 #define DEBUGVIEW_HAIR_BSDFDATA_MATERIAL_FEATURES (1450)
 #define DEBUGVIEW_HAIR_BSDFDATA_AMBIENT_OCCLUSION (1451)
@@ -55,7 +55,7 @@
 #define DEBUGVIEW_HAIR_BSDFDATA_SPECULAR_SHIFT (1469)
 #define DEBUGVIEW_HAIR_BSDFDATA_SECONDARY_SPECULAR_SHIFT (1470)
 
-// Generated from UnityEngine.Experimental.Rendering.HDPipeline.Hair+SurfaceData
+// Generated from UnityEngine.Rendering.HighDefinition.Hair+SurfaceData
 // PackingRules = Exact
 struct SurfaceData
 {
@@ -76,7 +76,7 @@ struct SurfaceData
     float secondarySpecularShift;
 };
 
-// Generated from UnityEngine.Experimental.Rendering.HDPipeline.Hair+BSDFData
+// Generated from UnityEngine.Rendering.HighDefinition.Hair+BSDFData
 // PackingRules = Exact
 struct BSDFData
 {

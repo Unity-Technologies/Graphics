@@ -59,7 +59,7 @@
 // uniform float4 packedArray[3];
 // static float unpackedArray[12] = (float[12])packedArray;
 
-// The function of the shader library are stateless, no uniform decalare in it.
+// The function of the shader library are stateless, no uniform declare in it.
 // Any function that require an explicit precision, use float or half qualifier, when the function can support both, it use real (see below)
 // If a function require to have both a half and a float version, then both need to be explicitly define
 #ifndef real
@@ -67,7 +67,7 @@
 // The including shader should define whether half
 // precision is suitable for its needs.  The shader
 // API (for now) can indicate whether half is possible.
-#ifdef SHADER_API_MOBILE
+#if defined(SHADER_API_MOBILE) || defined(SHADER_API_SWITCH)
 #define HAS_HALF 1
 #else
 #define HAS_HALF 0

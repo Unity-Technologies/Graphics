@@ -1,8 +1,8 @@
 using System;
 using UnityEngine;
-using IDataProvider = UnityEngine.Rendering.Experimental.LookDev.IDataProvider;
+using IDataProvider = UnityEngine.Rendering.LookDev.IDataProvider;
 
-namespace UnityEditor.Rendering.Experimental.LookDev
+namespace UnityEditor.Rendering.LookDev
 {
     enum ShadowCompositionPass
     {
@@ -177,7 +177,6 @@ namespace UnityEditor.Rendering.Experimental.LookDev
                         RenderSingleAndOutput(ViewIndex.Second);
                         break;
                     case Layout.CustomSplit:
-                    case Layout.CustomCircular:
                         RenderCompositeAndOutput();
                         break;
                 }
@@ -279,7 +278,7 @@ namespace UnityEditor.Rendering.Experimental.LookDev
             float exposureValue0 = env0?.sky.exposure ?? 0f;
             float exposureValue1 = env1?.sky.exposure ?? 0f;
             float dualViewBlendFactor = gizmo.blendFactor;
-            float isCurrentlyLeftEditting = 1f; //1f true, -1f false
+            float isCurrentlyLeftEditting = m_Contexts.layout.lastFocusedView == ViewIndex.First ? 1f : -1f;
             float dragAndDropContext = 0f; //1f left, -1f right, 0f neither
             float toneMapEnabled = -1f; //1f true, -1f false
             float shadowMultiplier0 = env0?.shadowIntensity ?? 0f;

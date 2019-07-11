@@ -5,8 +5,9 @@ using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.UIElements;
 
-namespace UnityEditor.Rendering.Experimental.LookDev
+namespace UnityEditor.Rendering.LookDev
 {
+    /// <summary>Interface that must implement the viewer to communicate with the compositor and data management</summary>
     public interface IViewDisplayer
     {
         Rect GetRect(ViewCompositionIndex index);
@@ -17,29 +18,24 @@ namespace UnityEditor.Rendering.Experimental.LookDev
         event Action<Layout, SidePanel> OnLayoutChanged;
 
         event Action OnRenderDocAcquisitionTriggered;
-        
+
         event Action<IMouseEvent> OnMouseEventInView;
 
         event Action<GameObject, ViewCompositionIndex, Vector2> OnChangingObjectInView;
-        //event Action<Material, ViewCompositionIndex, Vector2> OnChangingMaterialInView;
         event Action<UnityEngine.Object, ViewCompositionIndex, Vector2> OnChangingEnvironmentInView;
-        
+
         event Action OnClosed;
     }
-    
+
+    /// <summary>Interface that must implement the EnvironmentLibrary view to communicate with the data management</summary>
     public interface IEnvironmentDisplayer
     {
         void Repaint();
-
-        //event Action<UnityEngine.Object> OnAddingEnvironment;
-        //event Action<int> OnRemovingEnvironment;
+        
         event Action<EnvironmentLibrary> OnChangingEnvironmentLibrary;
     }
     
-    /// <summary>
-    /// Displayer and User Interaction 
-    /// </summary>
-    internal class DisplayWindow : EditorWindow, IViewDisplayer, IEnvironmentDisplayer
+    class DisplayWindow : EditorWindow, IViewDisplayer, IEnvironmentDisplayer
     {
         static class Style
         {
@@ -49,7 +45,7 @@ namespace UnityEditor.Rendering.Experimental.LookDev
 
             public static readonly GUIContent WindowTitleAndIcon = EditorGUIUtility.TrTextContentWithIcon("Look Dev", CoreEditorUtils.LoadIcon(k_IconFolder, "LookDevMainIcon"));
         }
-        
+
         // /!\ WARNING:
         //The following const are used in the uss.
         //If you change them, update the uss file too.
@@ -73,6 +69,7 @@ namespace UnityEditor.Rendering.Experimental.LookDev
         VisualElement m_MainContainer;
         VisualElement m_ViewContainer;
         VisualElement m_DebugContainer;
+        PopupField<string> m_DebugView;
         VisualElement m_EnvironmentContainer;
         ListView m_EnvironmentList;
         EnvironmentElement m_EnvironmentInspector;
@@ -97,7 +94,7 @@ namespace UnityEditor.Rendering.Experimental.LookDev
                 }
             }
         }
-        
+
         SidePanel sidePanel
         {
             get => LookDev.currentContext.layout.showedSidePanel;
@@ -201,7 +198,7 @@ namespace UnityEditor.Rendering.Experimental.LookDev
             }
 
             CreateToolbar();
-            
+
             m_MainContainer = new VisualElement() { name = k_MainContainerName };
             m_MainContainer.AddToClassList(k_SharedContainerClass);
             rootVisualElement.Add(m_MainContainer);
@@ -222,25 +219,66 @@ namespace UnityEditor.Rendering.Experimental.LookDev
             // Layout swapper part
             var layoutRadio = new ToolbarRadio() { name = k_ToolbarRadioName };
             layoutRadio.AddRadios(new[] {
-                CoreEditorUtils.LoadIcon(Style.k_IconFolder, "LookDevSingle1"),
-                CoreEditorUtils.LoadIcon(Style.k_IconFolder, "LookDevSingle2"),
-                CoreEditorUtils.LoadIcon(Style.k_IconFolder, "LookDevSideBySideVertical"),
-                CoreEditorUtils.LoadIcon(Style.k_IconFolder, "LookDevSideBySideHorizontal"),
-                CoreEditorUtils.LoadIcon(Style.k_IconFolder, "LookDevSplit"),
-                //CoreEditorUtils.LoadIcon(Style.k_IconFolder, "LookDevZone"),
+                CoreEditorUtils.LoadIcon(Style.k_IconFolder, "LookDev_Layout1"),
+                CoreEditorUtils.LoadIcon(Style.k_IconFolder, "LookDev_Layout2"),
+                CoreEditorUtils.LoadIcon(Style.k_IconFolder, "LookDev_LayoutVertical"),
+                CoreEditorUtils.LoadIcon(Style.k_IconFolder, "LookDev_LayoutHorizontal"),
+                CoreEditorUtils.LoadIcon(Style.k_IconFolder, "LookDev_LayoutCustom")
                 });
             layoutRadio.RegisterCallback((ChangeEvent<int> evt)
                 => layout = (Layout)evt.newValue);
             layoutRadio.SetValueWithoutNotify((int)layout);
 
-            // Environment part
+            var cameraMenu = new ToolbarMenu() { name = "cameraMenu" };
+            cameraMenu.variant = ToolbarMenu.Variant.Popup;
+            var cameraToggle = new ToolbarToggle() { name = "cameraButton" };
+            cameraToggle.value = LookDev.currentContext.cameraSynced;
+
+            //Note: when having Image on top of the Toggle nested in the Menu, RegisterValueChangedCallback is not called
+            //cameraToggle.RegisterValueChangedCallback(evt => LookDev.currentContext.cameraSynced = evt.newValue);
+            cameraToggle.RegisterCallback<MouseUpEvent>(evt =>
+            {
+                LookDev.currentContext.cameraSynced ^= true;
+                cameraToggle.SetValueWithoutNotify(LookDev.currentContext.cameraSynced);
+            });
+
+            var cameraSeparator = new ToolbarToggle() { name = "cameraSeparator" };
+            var texCamera1 = CoreEditorUtils.LoadIcon(Style.k_IconFolder, "LookDev_Camera1");
+            var texCamera2 = CoreEditorUtils.LoadIcon(Style.k_IconFolder, "LookDev_Camera2");
+            var texLink = CoreEditorUtils.LoadIcon(Style.k_IconFolder, "LookDev_Link");
+            var texRight = CoreEditorUtils.LoadIcon(Style.k_IconFolder, "LookDev_Right");
+            var texLeft = CoreEditorUtils.LoadIcon(Style.k_IconFolder, "LookDev_Left");
+            cameraToggle.Add(new Image() { image = texCamera1 });
+            cameraToggle.Add(new Image() { image = texLink });
+            cameraToggle.Add(new Image() { image = texCamera2 });
+            cameraMenu.Add(cameraToggle);
+            cameraMenu.Add(cameraSeparator);
+            cameraMenu.menu.AppendAction("Align Camera 1 with Camera 2",
+                (DropdownMenuAction a) => LookDev.currentContext.SynchronizeCameraStates(ViewIndex.Second),
+                DropdownMenuAction.AlwaysEnabled);
+            cameraMenu.menu.AppendAction("Align Camera 2 with Camera 1",
+                (DropdownMenuAction a) => LookDev.currentContext.SynchronizeCameraStates(ViewIndex.First),
+                DropdownMenuAction.AlwaysEnabled);
+            cameraMenu.menu.AppendAction("Reset Cameras",
+                (DropdownMenuAction a) =>
+                {
+                    LookDev.currentContext.GetViewContent(ViewIndex.First).ResetCameraState();
+                    LookDev.currentContext.GetViewContent(ViewIndex.Second).ResetCameraState();
+                },
+                DropdownMenuAction.AlwaysEnabled);
+
+            // Side part
             var sideRadio = new ToolbarRadio(canDeselectAll: true) { name = k_TabsRadioName };
             sideRadio.AddRadios(new[] {
                 "Environment",
                 "Debug"
             });
-            sideRadio.RegisterCallback((ChangeEvent<int> evt)
-                => sidePanel = (SidePanel)evt.newValue);
+            sideRadio.RegisterCallback((ChangeEvent<int> evt) =>
+            {
+                sidePanel = (SidePanel)evt.newValue;
+                if (sidePanel == SidePanel.Debug)
+                    RefreshDebugViews();
+            });
             sideRadio.SetValueWithoutNotify((int)sidePanel);
 
             var sideToolbar = new Toolbar() { name = k_SideToolbarName };
@@ -250,7 +288,7 @@ namespace UnityEditor.Rendering.Experimental.LookDev
             var toolbar = new Toolbar() { name = k_ToolbarName };
             toolbar.Add(layoutRadio);
             toolbar.Add(new ToolbarSpacer());
-            //to complete
+            toolbar.Add(cameraMenu);
 
             toolbar.Add(new ToolbarSpacer() { flex = true });
             if (UnityEditorInternal.RenderDoc.IsInstalled() && UnityEditorInternal.RenderDoc.IsLoaded())
@@ -259,7 +297,8 @@ namespace UnityEditor.Rendering.Experimental.LookDev
                 {
                     name = "renderdoc-content"
                 };
-                renderDocButton.Add(new Image() {
+                renderDocButton.Add(new Image()
+                {
                     image = CoreEditorUtils.LoadIcon(Style.k_IconFolder, "renderdoc")
                 });
                 renderDocButton.Add(new Label() { text = " Content" });
@@ -287,8 +326,27 @@ namespace UnityEditor.Rendering.Experimental.LookDev
             m_Views[(int)ViewIndex.Second] = new Image() { name = k_SecondViewName, image = Texture2D.blackTexture };
             m_ViewContainer.Add(m_Views[(int)ViewIndex.Second]);
 
-            var firstOrCompositeManipulator = new SwitchableCameraController(LookDev.currentContext.GetViewContent(ViewIndex.First).camera, LookDev.currentContext.GetViewContent(ViewIndex.Second).camera, this);
-            var secondManipulator = new CameraController(LookDev.currentContext.GetViewContent(ViewIndex.Second).camera, this);
+            var firstOrCompositeManipulator = new SwitchableCameraController(
+                LookDev.currentContext.GetViewContent(ViewIndex.First).camera,
+                LookDev.currentContext.GetViewContent(ViewIndex.Second).camera,
+                this,
+                index =>
+                {
+                    LookDev.currentContext.SetFocusedCamera(index);
+                    if (sidePanel == SidePanel.Environment)
+                        m_EnvironmentList.selectedIndex = LookDev.currentContext.environmentLibrary.IndexOf(
+                            LookDev.currentContext.GetViewContent(index).environment);
+                });
+            var secondManipulator = new CameraController(
+                LookDev.currentContext.GetViewContent(ViewIndex.Second).camera,
+                this,
+                () =>
+                {
+                    LookDev.currentContext.SetFocusedCamera(ViewIndex.Second);
+                    if (sidePanel == SidePanel.Environment)
+                        m_EnvironmentList.selectedIndex = LookDev.currentContext.environmentLibrary.IndexOf(
+                            LookDev.currentContext.GetViewContent(ViewIndex.Second).environment);
+                });
             var gizmoManipulator = new ComparisonGizmoController(LookDev.currentContext.layout.gizmoState, firstOrCompositeManipulator);
             m_Views[(int)ViewIndex.First].AddManipulator(gizmoManipulator); //must take event first to switch the firstOrCompositeManipulator
             m_Views[(int)ViewIndex.First].AddManipulator(firstOrCompositeManipulator);
@@ -317,7 +375,7 @@ namespace UnityEditor.Rendering.Experimental.LookDev
             // GameObject or Prefab in view
             new DropArea(new[] { typeof(GameObject) }, m_Views[(int)ViewIndex.First], (obj, localPos) =>
             {
-                if (layout == Layout.CustomSplit || layout == Layout.CustomCircular)
+                if (layout == Layout.CustomSplit)
                     OnChangingObjectInViewInternal?.Invoke(obj as GameObject, ViewCompositionIndex.Composite, localPos);
                 else
                     OnChangingObjectInViewInternal?.Invoke(obj as GameObject, ViewCompositionIndex.First, localPos);
@@ -343,7 +401,7 @@ namespace UnityEditor.Rendering.Experimental.LookDev
             // Environment in view
             new DropArea(new[] { typeof(Environment), typeof(Cubemap) }, m_Views[(int)ViewIndex.First], (obj, localPos) =>
             {
-                if (layout == Layout.CustomSplit || layout == Layout.CustomCircular)
+                if (layout == Layout.CustomSplit)
                     OnChangingEnvironmentInViewInternal?.Invoke(obj, ViewCompositionIndex.Composite, localPos);
                 else
                     OnChangingEnvironmentInViewInternal?.Invoke(obj, ViewCompositionIndex.First, localPos);
@@ -390,16 +448,23 @@ namespace UnityEditor.Rendering.Experimental.LookDev
 
             //[TODO: debug why list sometimes empty on resource reloading]
             //[TODO: display only per view]
-            List<string> list = new List<string>(LookDev.dataProvider?.supportedDebugModes ?? Enumerable.Empty<string>());
-            if (list.Count == 0)
-                Debug.LogWarning("DebugMode are wrongly reset on resource loading. Close and reopen the windows.");
-            list.Insert(0, "None");
-            PopupField<string> debugView = new PopupField<string>("Debug view mode", list, 0);
-            debugView.RegisterValueChangedCallback(evt
-                => LookDev.dataProvider.UpdateDebugMode(list.IndexOf(evt.newValue) - 1));
-            m_DebugContainer.Add(debugView);
+
+            RefreshDebugViews();
         }
-        
+
+        void RefreshDebugViews()
+        {
+            if (m_DebugView != null && m_DebugContainer.Contains(m_DebugView))
+                m_DebugContainer.Remove(m_DebugView);
+
+            List<string> list = new List<string>(LookDev.dataProvider?.supportedDebugModes ?? Enumerable.Empty<string>());
+            list.Insert(0, "None");
+            m_DebugView = new PopupField<string>("Debug view mode", list, 0);
+            m_DebugView.RegisterValueChangedCallback(evt
+                => LookDev.dataProvider.UpdateDebugMode(list.IndexOf(evt.newValue) - 1));
+            m_DebugContainer.Add(m_DebugView);
+        }
+
         static int FirstVisibleIndex(ListView listView)
             => (int)(listView.Q<ScrollView>().scrollOffset.y / listView.itemHeight);
 
@@ -466,7 +531,12 @@ namespace UnityEditor.Rendering.Experimental.LookDev
                 m_EnvironmentList.ScrollToItem(-1); //-1: scroll to end
                 m_EnvironmentList.selectedIndex = LookDev.currentContext.environmentLibrary.Count - 1;
                 ScrollToEnd();
-            }) { name = "add", text = "+" };
+            })
+            {
+                name = "add",
+                tooltip = "Add new empty environment"
+            };
+            addEnvironment.Add(new Image() { image = CoreEditorUtils.LoadIcon(Style.k_IconFolder, "LookDev_EnvironmentAdd") });
             ToolbarButton removeEnvironment = new ToolbarButton(() =>
             {
                 if (m_EnvironmentList.selectedIndex == -1)
@@ -474,7 +544,12 @@ namespace UnityEditor.Rendering.Experimental.LookDev
                 LookDev.currentContext.environmentLibrary.Remove(m_EnvironmentList.selectedIndex);
                 RefreshLibraryDisplay();
                 m_EnvironmentList.selectedIndex = -1;
-            }) { name = "remove", text = "-" };
+            })
+            {
+                name = "remove",
+                tooltip = "Remove environment currently selected"
+            };
+            removeEnvironment.Add(new Image() { image = CoreEditorUtils.LoadIcon(Style.k_IconFolder, "LookDev_EnvironmentDelete") });
             ToolbarButton duplicateEnvironment = new ToolbarButton(() =>
             {
                 if (m_EnvironmentList.selectedIndex == -1)
@@ -484,7 +559,12 @@ namespace UnityEditor.Rendering.Experimental.LookDev
                 m_EnvironmentList.ScrollToItem(-1); //-1: scroll to end
                 m_EnvironmentList.selectedIndex = LookDev.currentContext.environmentLibrary.Count - 1;
                 ScrollToEnd();
-            }) { name = "duplicate", text = "D" };
+            })
+            {
+                name = "duplicate",
+                tooltip = "Duplicate environment currently selected"
+            };
+            duplicateEnvironment.Add(new Image() { image = CoreEditorUtils.LoadIcon(Style.k_IconFolder, "LookDev_EnvironmentDuplicate") });
             m_EnvironmentListToolbar.Add(addEnvironment);
             m_EnvironmentListToolbar.Add(removeEnvironment);
             m_EnvironmentListToolbar.Add(duplicateEnvironment);
@@ -498,8 +578,27 @@ namespace UnityEditor.Rendering.Experimental.LookDev
             listContainer.AddToClassList("list-environment");
             listContainer.Add(m_EnvironmentList);
             listContainer.Add(m_EnvironmentListToolbar);
+
+            var environmentListCreationToolbar = new Toolbar()
+            {
+                name = "environmentListCreationToolbar"
+            };
+            environmentListCreationToolbar.Add(new ToolbarButton(()
+                => EnvironmentLibraryCreator.Create())
+            {
+                text = "New",
+                tooltip = "Create a new EnvironmentLibrary"
+            });
+            environmentListCreationToolbar.Add(new ToolbarButton(()
+                => EnvironmentLibraryLoader.Load(RefreshLibraryDisplay))
+            {
+                text = "Load",
+                tooltip = "Load an existing EnvironmentLibrary"
+            });
+
             m_EnvironmentContainer.Add(listContainer);
             m_EnvironmentContainer.Add(m_NoEnvironmentList);
+            m_EnvironmentContainer.Add(environmentListCreationToolbar);
 
             //add ability to unselect
             m_EnvironmentList.RegisterCallback<MouseDownEvent>(evt =>
@@ -511,15 +610,15 @@ namespace UnityEditor.Rendering.Experimental.LookDev
                     evt.StopPropagation();
                 }
             });
-            
+
             RefreshLibraryDisplay();
         }
-        
+
         //necessary as the scrollview need to be updated which take some editor frames.
         void ScrollToEnd(int attemptRemaining = 5)
         {
             m_EnvironmentList.ScrollToItem(-1); //-1: scroll to end
-            if(attemptRemaining > 0)
+            if (attemptRemaining > 0)
                 EditorApplication.delayCall += () => ScrollToEnd(--attemptRemaining);
         }
 
@@ -540,13 +639,26 @@ namespace UnityEditor.Rendering.Experimental.LookDev
             for (int i = 0; i < itemMax; i++)
                 items.Add(i);
             m_EnvironmentList.itemsSource = items;
-            m_EnvironmentList
-                .Q(className: "unity-scroll-view__vertical-scroller")
-                .Q("unity-dragger")
-                .style.visibility = itemMax == 0
-                    ? Visibility.Hidden
-                    : Visibility.Visible;
-            m_NoEnvironmentList.style.display = itemMax == 0 ? DisplayStyle.Flex : DisplayStyle.None;
+            if (LookDev.currentContext.environmentLibrary == null)
+            {
+                m_EnvironmentList
+                    .Q(className: "unity-scroll-view__vertical-scroller")
+                    .Q("unity-dragger")
+                    .style.visibility = Visibility.Hidden;
+                m_EnvironmentListToolbar.style.visibility = Visibility.Hidden;
+                m_NoEnvironmentList.style.display = DisplayStyle.Flex;
+            }
+            else
+            {
+                m_EnvironmentList
+                    .Q(className: "unity-scroll-view__vertical-scroller")
+                    .Q("unity-dragger")
+                    .style.visibility = itemMax == 0
+                        ? Visibility.Hidden
+                        : Visibility.Visible;
+                m_EnvironmentListToolbar.style.visibility = Visibility.Visible;
+                m_NoEnvironmentList.style.display = DisplayStyle.None;
+            }
         }
 
         DraggingContext StartDragging(VisualElement item, Vector2 worldPosition)
@@ -557,13 +669,13 @@ namespace UnityEditor.Rendering.Experimental.LookDev
                 //ListView. Reconstruct index by looking at target of the event.
                 (int)item.layout.y / m_EnvironmentList.itemHeight,
                 worldPosition);
-        
+
         void EndDragging(DraggingContext context, Vector2 mouseWorldPosition)
         {
             Environment environment = LookDev.currentContext.environmentLibrary[context.draggedIndex];
             if (m_Views[(int)ViewIndex.First].ContainsPoint(mouseWorldPosition))
             {
-                if (layout == Layout.CustomSplit || layout == Layout.CustomCircular)
+                if (layout == Layout.CustomSplit)
                     OnChangingEnvironmentInViewInternal?.Invoke(environment, ViewCompositionIndex.Composite, mouseWorldPosition);
                 else
                     OnChangingEnvironmentInViewInternal?.Invoke(environment, ViewCompositionIndex.First, mouseWorldPosition);
@@ -708,12 +820,9 @@ namespace UnityEditor.Rendering.Experimental.LookDev
         }
 
         void IViewDisplayer.Repaint() => Repaint();
-
-        //[TODO]
+        
         void IEnvironmentDisplayer.Repaint()
-        {
-            throw new NotImplementedException();
-        }
+            => RefreshLibraryDisplay();
 
         void ApplyLayout(Layout value)
         {
@@ -741,7 +850,6 @@ namespace UnityEditor.Rendering.Experimental.LookDev
                     break;
                 case Layout.FullFirstView:
                 case Layout.CustomSplit:       //display composition on first rect
-                case Layout.CustomCircular:    //display composition on first rect
                     if (!m_ViewContainer.ClassListContains(k_FirstViewClass))
                         m_ViewContainer.AddToClassList(k_FirstViewClass);
                     if (m_ViewContainer.ClassListContains(k_SecondViewsClass))

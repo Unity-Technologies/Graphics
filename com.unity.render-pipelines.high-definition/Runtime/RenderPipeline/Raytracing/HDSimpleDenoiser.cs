@@ -1,10 +1,8 @@
-using UnityEngine;
-using UnityEngine.Rendering;
-using System.Collections.Generic;
+using UnityEngine.Experimental.Rendering;
 
-namespace UnityEngine.Experimental.Rendering.HDPipeline
+namespace UnityEngine.Rendering.HighDefinition
 {
-    public class HDSimpleDenoiser
+    class HDSimpleDenoiser
     {
 #if ENABLE_RAYTRACING
         ComputeShader m_SimpleDenoiserCS;
@@ -62,7 +60,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 m_KernelFilter = m_SimpleDenoiserCS.FindKernel("TemporalAccumulationColor");
             }
- 
+
 
             // Apply a vectorized temporal filtering pass and store it back in the denoisebuffer0 with the analytic value in the third channel
             var historyScale = new Vector2(hdCamera.actualWidth / (float)historySignal.rt.width, hdCamera.actualHeight / (float)historySignal.rt.height);
