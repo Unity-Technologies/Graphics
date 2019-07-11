@@ -4,16 +4,15 @@ using System.IO;
 using System.Linq.Expressions;
 using System.Reflection;
 using Unity.Collections.LowLevel.Unsafe;
-using UnityEditor;
-using UnityEditor.Experimental.Rendering;
-using UnityEditor.Experimental.Rendering.HDPipeline;
 using UnityEditor.VersionControl;
-using UnityEngine.Assertions;
+using UnityEngine;
 using UnityEngine.Rendering;
+using UnityEngine.Assertions;
 using UnityEngine.SceneManagement;
-using static UnityEditor.VersionControl.Provider;
+using UnityEngine.Rendering.HighDefinition;
+using UnityEditor.Experimental.Rendering;
 
-namespace UnityEngine.Experimental.Rendering.HDPipeline
+namespace UnityEditor.Rendering.HighDefinition
 {
     unsafe class HDBakedReflectionSystem : ScriptableBakedReflectionSystem
     {
@@ -218,10 +217,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                     var bakedTexturePath = HDBakingUtilities.GetBakedTextureFilePath(probe);
                     HDBakingUtilities.CreateParentDirectoryIfMissing(bakedTexturePath);
-                    if (Provider.isActive && File.Exists(bakedTexturePath))
-                    {
-                        Checkout(bakedTexturePath, CheckoutMode.Both);
-                    }
+                    Checkout(bakedTexturePath);
                     // Checkout will make those file writeable, but this is not immediate,
                     // so we retries when this fails.
                     if (!HDEditorUtils.CopyFileWithRetryOnUnauthorizedAccess(cacheFile, bakedTexturePath))
@@ -441,7 +437,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 if (!Directory.Exists(sceneFolder))
                     continue;
 
-                var types = TypeInfo.GetEnumValues<ProbeSettings.ProbeType>();
+                var types = UnityEngine.Rendering.HighDefinition.TypeInfo.GetEnumValues<ProbeSettings.ProbeType>();
                 for (int typeI = 0; typeI < types.Length; ++typeI)
                 {
                     var files = Directory.GetFiles(
@@ -479,6 +475,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             while (queue.TryPop(out string path))
                 AssetDatabase.DeleteAsset(path);
             AssetDatabase.StopAssetEditing();
+        }
+
+        static void Checkout(string targetFile)
+        {
+            if (Provider.isActive
+                && HDEditorUtils.IsAssetPath(targetFile)
+                && Provider.GetAssetByPath(targetFile) != null)
+                Provider.Checkout(targetFile, CheckoutMode.Both);
         }
 
         internal static void AssignRenderData(HDProbe probe, string bakedTexturePath)
@@ -519,8 +523,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                             (uint)StaticEditorFlags.ReflectionProbeStatic
                         );
                         HDBakingUtilities.CreateParentDirectoryIfMissing(targetFile);
-                        if (Provider.isActive && HDEditorUtils.IsAssetPath(targetFile))
-                            Checkout(targetFile, CheckoutMode.Both);
+                        Checkout(targetFile);
                         HDTextureUtilities.WriteTextureFileToDisk(cubeRT, targetFile);
                         break;
                     }
@@ -539,13 +542,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                             out var cameraSettings, out var cameraPositionSettings
                         );
                         HDBakingUtilities.CreateParentDirectoryIfMissing(targetFile);
-                        if (Provider.isActive && HDEditorUtils.IsAssetPath(targetFile))
-                            Checkout(targetFile, CheckoutMode.Both);
+                        Checkout(targetFile);
                         HDTextureUtilities.WriteTextureFileToDisk(planarRT, targetFile);
                         var renderData = new HDProbe.RenderData(cameraSettings, cameraPositionSettings);
                         var targetRenderDataFile = targetFile + ".renderData";
-                        if (Provider.isActive && HDEditorUtils.IsAssetPath(targetRenderDataFile))
-                            Checkout(targetRenderDataFile, CheckoutMode.Both);
+                        Checkout(targetRenderDataFile);
                         HDBakingUtilities.TrySerializeToDisk(renderData, targetRenderDataFile);
                         break;
                     }

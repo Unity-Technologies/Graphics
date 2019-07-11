@@ -87,9 +87,25 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
+
         public bool ShadowPassActive()
         {
             return shadowCast.isOn && m_SurfaceType == SurfaceType.Opaque;
+        }
+        
+        [SerializeField]
+        bool m_AddVelocityChange = false;
+
+        public ToggleData addVelocityChange
+        {
+            get { return new ToggleData(m_AddVelocityChange); }
+            set
+            {
+                if (m_AddVelocityChange == value.isOn)
+                    return;
+                m_AddVelocityChange = value.isOn;
+                Dirty(ModificationScope.Graph);
+            }
         }
 
         public UnlitMasterNode()

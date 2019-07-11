@@ -2,7 +2,7 @@ using System;
 using UnityEditor.UIElements;
 using UnityEditor.Experimental.GraphView;
 using UnityEngine;
-using UnityEngine.Experimental.VFX;
+using UnityEngine.VFX;
 using UnityEngine.UIElements;
 using UnityEditor.VFX;
 using System.Collections.Generic;
@@ -27,8 +27,6 @@ namespace  UnityEditor.VFX.UI
             {
                 button.clickable.clicked += OnExpand;
             }
-
-            cacheAsBitmap = true;
         }
 
         void OnExpand()

@@ -1,18 +1,17 @@
 using System;
-using UnityEngine.Rendering;
 
-namespace UnityEngine.Experimental.Rendering.HDPipeline
+namespace UnityEngine.Rendering.HighDefinition
 {
     [Serializable, VolumeComponentMenu("Post-processing/Lift, Gamma, Gain")]
     public sealed class LiftGammaGain : VolumeComponent, IPostProcessComponent
     {
-        [Tooltip("Controls the darkest portions of the render.")]
+        [Tooltip("Controls the dark tones of the render.")]
         public Vector4Parameter lift = new Vector4Parameter(new Vector4(1f, 1f, 1f, 0f));
 
-        [Tooltip("Power function that controls mid-range tones.")]
+        [Tooltip("Controls the mid-range tones of the render with a power function.")]
         public Vector4Parameter gamma = new Vector4Parameter(new Vector4(1f, 1f, 1f, 0f));
 
-        [Tooltip("Controls the lightest portions of the render.")]
+        [Tooltip("Controls the highlights of the render.")]
         public Vector4Parameter gain = new Vector4Parameter(new Vector4(1f, 1f, 1f, 0f));
 
         public bool IsActive()
@@ -22,5 +21,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 || gamma != defaultState
                 || gain != defaultState;
         }
+
+        LiftGammaGain() => displayName = "Lift, Gamma, Gain";
     }
 }

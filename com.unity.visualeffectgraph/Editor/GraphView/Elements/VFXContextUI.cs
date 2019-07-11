@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.Experimental.GraphView;
 using UnityEngine;
-using UnityEngine.Experimental.VFX;
-using UnityEditor.Experimental.VFX;
+using UnityEngine.VFX;
+using UnityEditor.VFX;
 using UnityEngine.UIElements;
 using UnityEngine.Profiling;
 using System.Reflection;
@@ -755,15 +755,15 @@ namespace UnityEditor.VFX.UI
             var contextType = controller.model.GetType();
             foreach (var setting in newContextController.model.GetSettings(true))
             {
-                if(newContextController.model is VFXPlanarPrimitiveOutput && setting.Name == "primitiveType")
+                if(newContextController.model is VFXPlanarPrimitiveOutput && setting.field.Name == "primitiveType")
                     continue;
-                FieldInfo myField = contextType.GetField(setting.Name, BindingFlags.Instance | BindingFlags.FlattenHierarchy | BindingFlags.Public | BindingFlags.NonPublic);
-                if (myField == null || myField.GetCustomAttributes(typeof(VFXSettingAttribute), true).Length == 0)
+                
+                if (!setting.valid || setting.field.GetCustomAttributes(typeof(VFXSettingAttribute), true).Length == 0)
                     continue;
 
                 object value;
-                if (VFXConverter.TryConvertTo(myField.GetValue(controller.model), setting.FieldType, out value))
-                    newContextController.model.SetSettingValue(setting.Name, value);
+                if (VFXConverter.TryConvertTo(setting.value, setting.field.FieldType, out value))
+                    newContextController.model.SetSettingValue(setting.field.Name, value);
             }
 
             //transfer flow edges

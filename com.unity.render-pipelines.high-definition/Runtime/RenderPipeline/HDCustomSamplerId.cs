@@ -1,8 +1,8 @@
 using UnityEngine.Profiling;
 
-namespace UnityEngine.Experimental.Rendering.HDPipeline
+namespace UnityEngine.Rendering.HighDefinition
 {
-    public enum CustomSamplerId
+    internal enum CustomSamplerId
     {
         PushGlobalParameters,
         CopySetDepthBuffer,
@@ -11,7 +11,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         Forward,
         RenderSSAO,
         ResolveSSAO,
-        RenderShadows,
+        RenderShadowMaps,
         ScreenSpaceShadows,
         BuildLightList,
         BlitToFinalRT,
@@ -66,6 +66,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         RaytracingFilterAO,
         RaytracingShadowIntegration,
         RaytracingShadowCombination,
+        RaytracingFilterIndirectDiffuse,
         RaytracingDebug,
 
         // Profile sampler for tile pass
@@ -75,7 +76,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         TPScreenSpaceShadows,
         TPTileSettingsEnableTileAndCluster,
         TPForwardPass,
-        TPForwardTiledClusterpass,
         TPDisplayShadows,
         TPRenderDeferredLighting,
 
@@ -118,7 +118,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         Max
     }
 
-    public static class HDCustomSamplerExtension
+    internal static class HDCustomSamplerExtension
     {
         static CustomSampler[] s_Samplers;
 

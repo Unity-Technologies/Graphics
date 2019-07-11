@@ -250,7 +250,7 @@ Material:
     m_Floats:
     - Vector1_2632BC3D: 0.862
     - Vector1_3D385304: 1.5
-    - Vector1_43653F57: 0.99
+    - Vector1_43653F57: 1
     - Vector1_68902265: 1
     - Vector1_7CF2C304: 0.5
     - Vector1_867DA71E: 1
@@ -258,7 +258,7 @@ Material:
     - Vector1_C56CE74E: 1
     - Vector1_F3C0C9E7: 1
     - Vector1_F6FC54C8: 1
-    - Vector1_F8D1F01: 1.577
+    - Vector1_F8D1F01: 1.329
     - _AORemapMax: 1
     - _AORemapMin: 0
     - _ATDistance: 1
@@ -267,6 +267,8 @@ Material:
     - _AlphaCutoffEnable: 0
     - _AlphaCutoffPostpass: 0.5
     - _AlphaCutoffPrepass: 0.5
+    - _AlphaDstBlend: 0
+    - _AlphaSrcBlend: 1
     - _AmbientOcclusion: 1
     - _AmbientOcclusionMapChannel: 0
     - _AmbientOcclusionMapSamplerSharingOptout: 0
@@ -510,6 +512,7 @@ Material:
     - _PreRefractionPass: 0
     - _ReceivesSSR: 1
     - _RefractionModel: 0
+    - _RequireSplitLighting: 0
     - _SSRefractionProjectionModel: 0
     - _SSSShow: 0
     - _SamplerSharingShow: 0
@@ -549,8 +552,14 @@ Material:
     - _StencilDepthPrepassRef: 16
     - _StencilDepthPrepassWriteMask: 16
     - _StencilRef: 2
+    - _StencilRefDepth: 0
+    - _StencilRefDistortionVec: 64
+    - _StencilRefGBuffer: 2
     - _StencilRefMV: 128
     - _StencilWriteMask: 7
+    - _StencilWriteMaskDepth: 32
+    - _StencilWriteMaskDistortionVec: 64
+    - _StencilWriteMaskGBuffer: 3
     - _StencilWriteMaskMV: 128
     - _Stiffness: 1
     - _SubsurfaceMask: 1
@@ -583,21 +592,24 @@ Material:
     - _TransmissionEnable: 1
     - _TransmissionShow: 0
     - _TransparentBackfaceEnable: 0
+    - _TransparentCullMode: 2
     - _TransparentDepthPostpassEnable: 0
     - _TransparentDepthPrepassEnable: 0
     - _TransparentSortPriority: 0
     - _UVBase: 0
     - _UVDetail: 0
     - _UVEmissive: 0
+    - _UseShadowThreshold: 0
     - _VlayerRecomputePerLight: 0
     - _VlayerUseRefractedAnglesForBase: 0
     - _ZTestDepthEqualForOpaque: 3
     - _ZTestGBuffer: 4
     - _ZTestModeDistortion: 4
+    - _ZTestTransparent: 4
     - _ZWrite: 1
     m_Colors:
     - Color_5FC1B474: {r: 0, g: 3.9999986, b: 3.9999986, a: 1}
-    - Color_D877BEDB: {r: 0.8, g: 0.8, b: 0.8, a: 1}
+    - Color_D877BEDB: {r: 0.8584906, g: 0.8584906, b: 0.8584906, a: 1}
     - Vector4_25D7BE88: {r: 0, g: 1, b: 0, a: 0}
     - Vector4_56AA901A: {r: 1, g: 1, b: 0, a: 0}
     - Vector4_BD48219E: {r: 1, g: 0, b: 0, a: 0}

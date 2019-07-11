@@ -4,7 +4,7 @@
 
 #ifndef SHADERVARIABLESATMOSPHERICSCATTERING_CS_HLSL
 #define SHADERVARIABLESATMOSPHERICSCATTERING_CS_HLSL
-// Generated from UnityEngine.Experimental.Rendering.HDPipeline.ShaderVariablesAtmosphericScattering
+// Generated from UnityEngine.Rendering.HighDefinition.ShaderVariablesAtmosphericScattering
 // PackingRules = Exact
     int _AtmosphericScatteringType;
     float _MaxFogDistance;

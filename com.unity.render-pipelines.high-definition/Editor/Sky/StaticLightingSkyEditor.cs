@@ -1,14 +1,14 @@
 using System;
 using System.Collections.Generic;
-using UnityEditor;
-using UnityEditor.Rendering;
+using UnityEngine;
 using UnityEngine.Rendering;
+using UnityEngine.Rendering.HighDefinition;
 
-namespace UnityEngine.Experimental.Rendering.HDPipeline
+namespace UnityEditor.Rendering.HighDefinition
 {
     [CustomEditor(typeof(StaticLightingSky))]
     [DisallowMultipleComponent]
-    public class StaticLightingSkyEditor : Editor
+    class StaticLightingSkyEditor : Editor
     {
         SerializedProperty m_VolumeProfile;
         SerializedProperty m_SkyUniqueID;

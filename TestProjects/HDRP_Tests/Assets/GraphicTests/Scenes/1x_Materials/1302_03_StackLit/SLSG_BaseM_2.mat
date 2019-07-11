@@ -8,7 +8,7 @@ Material:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: SLSG_BaseM_2
-  m_Shader: {fileID: -6465566751694194690, guid: 5a682f5b16474d04f991850cb6bdbe82,
+  m_Shader: {fileID: -6465566751694194690, guid: 0bd3a7f12536b3d4dac160edc29274ae,
     type: 3}
   m_ShaderKeywords: _ANISOTROPY_FOR_AREA_LIGHTS _MATERIAL_FEATURE_ANISOTROPY _MATERIAL_FEATURE_COAT
     _MATERIAL_FEATURE_DUAL_SPECULAR_LOBE _MATERIAL_FEATURE_IRIDESCENCE _STACKLIT_DEBUG
@@ -306,7 +306,7 @@ Material:
     - Vector1_3D385304: 1.777
     - Vector1_43653F57: 0.331
     - Vector1_5EE01802: 0.338
-    - Vector1_632A1E97: 0.954
+    - Vector1_632A1E97: 0.865
     - Vector1_68902265: 1
     - Vector1_7CF2C304: 0.741
     - Vector1_867DA71E: 0.93
@@ -314,7 +314,7 @@ Material:
     - Vector1_C41F78F3: 0.652
     - Vector1_F3C0C9E7: 0.2
     - Vector1_F6FC54C8: 0.07
-    - Vector1_F8D1F01: 1.061
+    - Vector1_F8D1F01: 1.129
     - Vector1_FC7928FA: -0.733
     - _AORemapMax: 1
     - _AORemapMin: 0
@@ -324,6 +324,8 @@ Material:
     - _AlphaCutoffEnable: 0
     - _AlphaCutoffPostpass: 0.5
     - _AlphaCutoffPrepass: 0.5
+    - _AlphaDstBlend: 0
+    - _AlphaSrcBlend: 1
     - _AmbientOcclusion: 1
     - _AmbientOcclusionMapChannel: 1
     - _AmbientOcclusionMapSamplerSharingOptout: 0
@@ -601,6 +603,7 @@ Material:
     - _RefractionMode: 0
     - _RefractionModel: 0
     - _RefractionSSRayModel: 0
+    - _RequireSplitLighting: 0
     - _SSRefractionProjectionModel: 0
     - _SSSAndTransmissionType: 0
     - _SSSShow: 1
@@ -650,8 +653,14 @@ Material:
     - _StencilDepthPrepassRef: 16
     - _StencilDepthPrepassWriteMask: 16
     - _StencilRef: 2
+    - _StencilRefDepth: 0
+    - _StencilRefDistortionVec: 64
+    - _StencilRefGBuffer: 2
     - _StencilRefMV: 128
     - _StencilWriteMask: 7
+    - _StencilWriteMaskDepth: 32
+    - _StencilWriteMaskDistortionVec: 64
+    - _StencilWriteMaskGBuffer: 3
     - _StencilWriteMaskMV: 128
     - _Stiffness: 1
     - _SubSurfaceRadius: 0
@@ -691,6 +700,7 @@ Material:
     - _TransmissionEnable: 1
     - _TransmissionShow: 1
     - _TransparentBackfaceEnable: 0
+    - _TransparentCullMode: 2
     - _TransparentDepthPostpassEnable: 0
     - _TransparentDepthPrepassEnable: 0
     - _TransparentSortPriority: 0
@@ -699,12 +709,14 @@ Material:
     - _UVEmissive: 0
     - _UVMappingPlanar: 0
     - _UVSec: 0
+    - _UseShadowThreshold: 0
     - _VlayerRecomputePerLight: 1
     - _VlayerUseRefractedAnglesForBase: 0
     - _ZTestDepthEqualForOpaque: 3
     - _ZTestGBuffer: 4
     - _ZTestMode: 8
     - _ZTestModeDistortion: 8
+    - _ZTestTransparent: 4
     - _ZWrite: 1
     m_Colors:
     - Color_5FC1B474: {r: 0, g: 0.75, b: 0.10000008, a: 1}

@@ -164,7 +164,7 @@ public class MultiMaterialPlacerEditor : Editor
         {
             foreach (Material mat in materials)
             {
-                UnityEditor.Experimental.Rendering.HDPipeline.HDEditorUtils.ResetMaterialKeywords(mat);
+                UnityEditor.Rendering.HighDefinition.HDEditorUtils.ResetMaterialKeywords(mat);
             }
         }
 

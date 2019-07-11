@@ -1,9 +1,8 @@
-using UnityEngine.Rendering;
-using System;
+using UnityEngine.Experimental.Rendering;
 
-namespace UnityEngine.Experimental.Rendering.HDPipeline
+namespace UnityEngine.Rendering.HighDefinition
 {
-    public class SharedRTManager
+    class SharedRTManager
     {
         // The render target used when we do not support MSAA
         RTHandleSystem.RTHandle m_NormalRT = null;

@@ -50,7 +50,7 @@
 #endif
 
     TEXTURE2D_X(            _SsrClearCoatMaskTexture);
-    StructuredBuffer<int2>  _SsrDepthPyramidMipLevelOffsets;
+    StructuredBuffer<int2>  _DepthPyramidMipLevelOffsets;
 
 CBUFFER_START(UnityScreenSpaceReflections)
     int   _SsrStencilExclusionValue;
@@ -110,7 +110,7 @@ void ScreenSpaceReflectionsTracing(uint3 dispatchThreadId : SV_DispatchThreadID)
 #endif
 
     float2 positionNDC = positionSS * _ScreenSize.zw + (0.5 * _ScreenSize.zw); // Should we precompute the half-texel bias? We seem to use it a lot.
-    float  deviceDepth = LOAD_TEXTURE2D_X(_DepthPyramidTexture, positionSS).r;
+    float  deviceDepth = LOAD_TEXTURE2D_X(_CameraDepthTexture, positionSS).r;
 
     bool killRay = deviceDepth == UNITY_RAW_FAR_CLIP_VALUE;
 
@@ -214,13 +214,13 @@ void ScreenSpaceReflectionsTracing(uint3 dispatchThreadId : SV_DispatchThreadID)
         rayPos.xy += raySign.xy * satEdgeDist;
 
         int2 mipCoord  = (int2)rayPos.xy >> mipLevel;
-        int2 mipOffset = _SsrDepthPyramidMipLevelOffsets[mipLevel];
+        int2 mipOffset = _DepthPyramidMipLevelOffsets[mipLevel];
         // Bounds define 4 faces of a cube:
         // 2 walls in front of the ray, and a floor and a base below it.
         float4 bounds;
 
         bounds.xy = (mipCoord + rayStep) << mipLevel;
-        bounds.z  = LOAD_TEXTURE2D_X(_DepthPyramidTexture, mipOffset + mipCoord).r;
+        bounds.z  = LOAD_TEXTURE2D_X(_CameraDepthTexture, mipOffset + mipCoord).r;
 
         // We define the depth of the base as the depth value as:
         // b = DeviceDepth((1 + thickness) * LinearDepth(d))

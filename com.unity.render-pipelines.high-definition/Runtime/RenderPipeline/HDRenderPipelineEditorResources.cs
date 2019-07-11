@@ -1,8 +1,7 @@
 #if UNITY_EDITOR //file must be in realtime assembly folder to be found in HDRPAsset
 using System;
-using UnityEngine.Rendering;
 
-namespace UnityEngine.Experimental.Rendering.HDPipeline
+namespace UnityEngine.Rendering.HighDefinition
 {
     public partial class HDRenderPipelineEditorResources : ScriptableObject
     {
@@ -39,6 +38,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public Material defaultDecalMat;
             [Reload("Runtime/RenderPipelineResources/Material/DefaultHDTerrainMaterial.mat")]
             public Material defaultTerrainMat;
+            [Reload("Editor/RenderPipelineResources/Materials/GUITextureBlit2SRGB.mat")]
+            public Material GUITextureBlit2SRGB;
         }
 
         [Serializable, ReloadGroup]

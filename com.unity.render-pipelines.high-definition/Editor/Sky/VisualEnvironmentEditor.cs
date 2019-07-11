@@ -2,13 +2,13 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
-using UnityEngine.Experimental.Rendering.HDPipeline;
+using UnityEngine.Rendering.HighDefinition;
 using UnityEditor.Rendering;
 
-namespace UnityEditor.Experimental.Rendering.HDPipeline
+namespace UnityEditor.Rendering.HighDefinition
 {
     [VolumeComponentEditor(typeof(VisualEnvironment))]
-    public class VisualEnvironmentEditor : VolumeComponentEditor
+    class VisualEnvironmentEditor : VolumeComponentEditor
     {
         SerializedDataParameter m_SkyType;
         SerializedDataParameter m_SkyAmbientMode;
@@ -46,7 +46,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
                 foreach (KeyValuePair<int, Type> kvp in skyTypesDict)
                 {
-                    m_SkyClassNames.Add(new GUIContent(ObjectNames.NicifyVariableName(kvp.Value.Name.ToString())));
+                    string name = ObjectNames.NicifyVariableName(kvp.Value.Name.ToString());
+                    name = name.Replace("Settings", ""); // remove Settings if it was in the class name
+                    m_SkyClassNames.Add(new GUIContent(name));
                     m_SkyUniqueIDs.Add(kvp.Key);
                 }
             }

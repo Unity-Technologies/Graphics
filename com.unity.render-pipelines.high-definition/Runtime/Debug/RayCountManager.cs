@@ -1,11 +1,11 @@
-using UnityEngine.Rendering;
 using Unity.Collections;
 using System.Collections.Generic;
+using UnityEngine.Experimental.Rendering;
 
-namespace UnityEngine.Experimental.Rendering.HDPipeline
+namespace UnityEngine.Rendering.HighDefinition
 {
 #if ENABLE_RAYTRACING
-    public class RayCountManager
+    class RayCountManager
     {
         // Indices of the values that we can query
         public enum RayCountValues
@@ -26,7 +26,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         // CPU Buffer that holds the current values
         uint[] m_ReducedRayCountValues = new uint[4];
-        
+
         // HDRP Resources
         DebugDisplaySettings m_DebugDisplaySettings;
         HDRenderPipelineRayTracingResources m_PipelineResources;

@@ -1,35 +1,47 @@
 using System;
 using System.Linq;
 using System.Collections.Generic;
-using UnityEditor.Experimental.VFX;
+using UnityEditor.VFX;
 using UnityEngine;
 
 namespace UnityEditor.VFX
 {
     static class VFXSubgraphUtility
     {
-        public static int TransferExpressionToParameters(IList<VFXExpression> inputExpression, IEnumerable<VFXParameter> parameters)
+        public static int TransferExpressionToParameters(IList<VFXExpression> inputExpression, IEnumerable<VFXParameter> parameters,List<VFXExpression> backedUpExpressions = null)
         {
             int cptSlot = 0;
             foreach (var param in parameters)
             {
-                VFXSlot[] inputSlots = param.outputSlots[0].GetVFXValueTypeSlots().ToArray();
+                VFXSlot outputSlot = param.outputSlots[0];
 
                 param.subgraphMode = true;
-                for (int i = 0; i < inputSlots.Length; ++i)
+                if (inputExpression.Count > cptSlot)
                 {
-                    if (inputExpression.Count > cptSlot + i)
+                    if(backedUpExpressions!= null)
                     {
-                        inputSlots[i].SetExpression(inputExpression[cptSlot + i]);
+                        backedUpExpressions.Add(outputSlot.GetExpression());
                     }
-
+                    outputSlot.SetExpression(inputExpression[cptSlot]);
                 }
 
-                cptSlot += inputSlots.Length;
+                cptSlot += 1;
             }
 
             return cptSlot;
         }
+        public static VFXPropertyWithValue GetPropertyFromInputParameter(VFXParameter param)
+        {
+            List<VFXPropertyAttribute> attributes = new List<VFXPropertyAttribute>();
+            if (!string.IsNullOrEmpty(param.tooltip))
+                attributes.Add(new VFXPropertyAttribute(VFXPropertyAttribute.Type.kTooltip, param.tooltip));
+
+            if (param.hasRange)
+                attributes.Add(new VFXPropertyAttribute(VFXPropertyAttribute.Type.kRange, (float)VFXConverter.ConvertTo(param.m_Min.Get(), typeof(float)), (float)VFXConverter.ConvertTo(param.m_Max.Get(), typeof(float))));
+
+            return new VFXPropertyWithValue(new VFXProperty(param.type, param.exposedName, attributes.ToArray()), param.value);
+        }
+
         public static bool InputPredicate(VFXParameter param)
         {
             return param.exposed && !param.isOutput;
@@ -67,10 +79,7 @@ namespace UnityEditor.VFX
             get {
                 foreach (var param in GetParameters(t => VFXSubgraphUtility.InputPredicate(t)))
                 {
-                    if( ! string.IsNullOrEmpty(param.tooltip))
-                        yield return new VFXPropertyWithValue(new VFXProperty(param.type, param.exposedName, new VFXPropertyAttribute(VFXPropertyAttribute.Type.kTooltip,param.tooltip)),param.value);
-                    else
-                        yield return new VFXPropertyWithValue(new VFXProperty(param.type, param.exposedName ),param.value);
+                    yield return VFXSubgraphUtility.GetPropertyFromInputParameter(param);
                 }
             }
         }
@@ -133,7 +142,10 @@ namespace UnityEditor.VFX
 
             // Change all the inputExpressions of the parameters.
             var parameters = GetParameters(t => VFXSubgraphUtility.InputPredicate(t));
-            VFXSubgraphUtility.TransferExpressionToParameters(inputExpression, parameters);
+
+            var backedUpExpressions = new List<VFXExpression>();
+
+            VFXSubgraphUtility.TransferExpressionToParameters(inputExpression, parameters, backedUpExpressions);
 
             List<VFXExpression> outputExpressions = new List<VFXExpression>();
             foreach (var param in GetParameters(t => VFXSubgraphUtility.OutputPredicate(t)))
@@ -141,10 +153,12 @@ namespace UnityEditor.VFX
                 outputExpressions.AddRange(param.inputSlots[0].GetVFXValueTypeSlots().Select(t => t.GetExpression()));
             }
 
-            foreach (var param in GetParameters(t => VFXSubgraphUtility.InputPredicate(t)))
+            foreach (var param in parameters)
             {
                 param.ResetOutputValueExpression();
             }
+
+            VFXSubgraphUtility.TransferExpressionToParameters(backedUpExpressions, parameters );
 
             return outputExpressions.ToArray();
         }

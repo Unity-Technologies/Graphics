@@ -4,7 +4,28 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [7.0.0-preview] - 2019-XX-XX
+## [7.1.0] - 2019-XX-XX
+
+## [7.0.0] - 2019-07-10
+### Added
+- Make multiselection work in a way that do not assume that the same parameter will have the same index in the property sheet.
+- auto recompile when changing shaderpath
+- auto recompile new vfx
+- better detection of default shader path
+- Bitfield control.
+- Initial Event Name inspector for visual effect asset and component
+- Subgraphs
+- Move HDRP outputs to HDRP package + expose HDRP queue selection
+- Add exposure weight control for HDRP outputs
+- Shader macros for XR single-pass instancing
+- XR single-pass instancing support for indirect draws
+- Inverse trigonometric operators (atan, atan2, asin, acos)
+- Replaced Orient : Fixed rotation with new option Orient : Advanced
+
+### Fixed
+- Handle a possible exception (ReflectionTypeLoadException) while using VFXParameterBinderEditor
+- Renamed Parameter Binders to Property Binders. (This will cause breaking serialization for these PropertyBinders : VFXAudioSpectrumBinder, VFXInputMouseBinder, VFXInputMouseBinder, VFXInputTouchBinder, VFXInputTouchBinder, VFXRaycastBinder, VFXTerrainBinder, VFXUIDropdownBinder, VFXUISliderBinder, VFXUIToggleBinder)
+- Renamed Namespace `UnityEngine.Experimental.VFX.Utility` to `UnityEngine.VFX.Utility`
 
 ## [6.7.0-preview] - 2019-05-16
 ### Added

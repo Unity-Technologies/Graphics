@@ -3,9 +3,9 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
-using UnityEditor.Experimental.VFX;
+using UnityEditor.VFX;
 using UnityEngine;
-using UnityEngine.Experimental.VFX;
+using UnityEngine.VFX;
 using UnityEngine.Profiling;
 using System.Reflection;
 
@@ -15,8 +15,7 @@ namespace UnityEditor.VFX
 {
     public class VFXCacheManager : EditorWindow
     {
-        [MenuItem("Edit/Visual Effects//Rebuild All Visual Effect Graphs", priority = 320)]
-        public static void Build()
+        private static List<VisualEffectAsset> GetAllVisualEffectAssets()
         {
             var vfxAssets = new List<VisualEffectAsset>();
             var vfxAssetsGuid = AssetDatabase.FindAssets("t:VisualEffectAsset");
@@ -29,7 +28,13 @@ namespace UnityEditor.VFX
                     vfxAssets.Add(vfxAsset);
                 }
             }
+            return vfxAssets;
+        }
 
+        [MenuItem("Edit/Visual Effects//Rebuild All Visual Effect Graphs", priority = 320)]
+        public static void Build()
+        {
+            var vfxAssets = GetAllVisualEffectAssets();
             foreach (var vfxAsset in vfxAssets)
             {
                 if (VFXViewPreference.advancedLogs)
@@ -38,6 +43,27 @@ namespace UnityEditor.VFX
                 VFXExpression.ClearCache();
                 vfxAsset.GetResource().GetOrCreateGraph().SetExpressionGraphDirty();
                 vfxAsset.GetResource().GetOrCreateGraph().OnSaved();
+            }
+            AssetDatabase.SaveAssets();
+        }
+
+        [MenuItem("Edit/Visual Effects//Clear All Visual Effect Runtime Data", priority = 321)]
+        public static void ClearRuntime()
+        {
+            var vfxAssets = GetAllVisualEffectAssets();
+            foreach (var vfxAsset in vfxAssets)
+            {
+                if (VFXViewPreference.advancedLogs)
+                    Debug.Log(string.Format("Clear VFX asset Runtime Data: {0} ({1})", vfxAsset, AssetDatabase.GetAssetPath(vfxAsset)));
+
+                //Prevent possible automatic compilation afterwards ClearRuntimeData
+                VFXExpression.ClearCache();
+                vfxAsset.GetResource().GetOrCreateGraph().SetExpressionGraphDirty();
+                vfxAsset.GetResource().GetOrCreateGraph().OnSaved();
+
+                //Now effective clear runtime data
+                vfxAsset.GetResource().shaderSources = new VFXShaderSourceDesc[] { }; //TODO: Should be done by ClearRuntimeData, remove this when it's fixed
+                vfxAsset.GetResource().ClearRuntimeData();
             }
             AssetDatabase.SaveAssets();
         }
@@ -379,6 +405,13 @@ namespace UnityEditor.VFX
             if (cause == VFXModel.InvalidationCause.kStructureChanged)
             {
                 UpdateSubAssets();
+                if( model == this)
+                    VFXSubgraphContext.CallOnGraphChanged(this);
+            }
+
+            if( cause == VFXModel.InvalidationCause.kSettingChanged && model is VFXParameter)
+            {
+                VFXSubgraphContext.CallOnGraphChanged(this);
             }
 
             if (cause != VFXModel.InvalidationCause.kExpressionInvalidated &&
@@ -525,16 +558,13 @@ namespace UnityEditor.VFX
             }
         }
 
-        void SubgraphDirty(VisualEffectObject subgraph,bool expressionsChanged)
+        void SubgraphDirty(VisualEffectObject subgraph)
         {
             if (m_SubgraphDependencies != null && m_SubgraphDependencies.Contains(subgraph))
             {
-                if (expressionsChanged)
-                {
-                    RecurseSubgraphRecreateCopy(this);
-                    compiledData.Compile(m_CompilationMode, m_ForceShaderValidation);
-                    m_ExpressionGraphDirty = false;
-                }
+                RecurseSubgraphRecreateCopy(this);
+                compiledData.Compile(m_CompilationMode, m_ForceShaderValidation);
+                m_ExpressionGraphDirty = false;
 
                 m_ExpressionValuesDirty = false;
             }
@@ -596,9 +626,16 @@ namespace UnityEditor.VFX
                 {
                     compiledData.UpdateValues();
                 }
+
                 if (considerGraphDirty)
                     m_ExpressionGraphDirty = false;
                 m_ExpressionValuesDirty = false;    
+            }
+            else if(m_ExpressionGraphDirty && !preventRecompilation)
+            {
+                BuildSubgraphDependencies();
+                RecurseSubgraphRecreateCopy(this);
+                m_ExpressionGraphDirty = false;
             }
             if(!preventDependencyRecompilation && m_DependentDirty)
             {
@@ -607,7 +644,7 @@ namespace UnityEditor.VFX
                     var obj = GetResource().visualEffectObject;
                     foreach (var graph in GetAllGraphs<VisualEffectAsset>())
                     {
-                        graph.SubgraphDirty(obj, m_ExpressionGraphDirty);
+                        graph.SubgraphDirty(obj);
                     }
                     m_DependentDirty = false;
                 }

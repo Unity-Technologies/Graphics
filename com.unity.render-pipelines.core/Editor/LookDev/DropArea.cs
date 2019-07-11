@@ -3,7 +3,7 @@ using System;
 using UnityEngine;
 using UnityEngine.UIElements;
 
-namespace UnityEditor.Rendering.LookDev
+namespace UnityEditor.Rendering.Experimental.LookDev
 {
     public class DropArea
     {
@@ -19,7 +19,7 @@ namespace UnityEditor.Rendering.LookDev
             area.RegisterCallback<DragExitedEvent>(evt => DragExit(evt));
             area.RegisterCallback<DragUpdatedEvent>(evt => DragUpdate(evt));
         }
-        
+
         void DragEnter(DragEnterEvent evt)
         {
             droppable = false;
@@ -40,7 +40,7 @@ namespace UnityEditor.Rendering.LookDev
             {
                 if (!IsInAcceptedTypes(obj.GetType()))
                     continue;
-                
+
                 DragAndDrop.visualMode = DragAndDropVisualMode.Rejected;
                 evt.StopPropagation();
                 return;
@@ -59,7 +59,7 @@ namespace UnityEditor.Rendering.LookDev
                 return;
             }
         }
-        
+
         void DragUpdate(DragUpdatedEvent evt)
         {
             foreach (UnityEngine.Object obj in DragAndDrop.objectReferences)

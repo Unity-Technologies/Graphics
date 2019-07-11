@@ -3,7 +3,7 @@ using UnityEngine;
 using UnityEditor;
 using System.IO;
 
-public class TextureCombiner
+class TextureCombiner
 {
     public static Texture2D _midGrey;
     public static Texture2D midGrey
@@ -58,12 +58,14 @@ public class TextureCombiner
     }
 
     private static TextureFormat[] TextureFormatsWithouthAlpha = {
+        #if !UNITY_2019_1_OR_NEWER
         TextureFormat.ASTC_RGB_10x10 ,
         TextureFormat.ASTC_RGB_12x12 ,
         TextureFormat.ASTC_RGB_4x4 ,
         TextureFormat.ASTC_RGB_5x5 ,
         TextureFormat.ASTC_RGB_6x6 ,
         TextureFormat.ASTC_RGB_8x8 ,
+        #endif
         TextureFormat.BC4 ,
         TextureFormat.BC5 ,
         TextureFormat.DXT1 ,

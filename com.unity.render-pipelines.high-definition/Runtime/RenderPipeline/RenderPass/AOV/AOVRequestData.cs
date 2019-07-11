@@ -1,9 +1,8 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine.Assertions;
-using UnityEngine.Rendering;
 
-namespace UnityEngine.Experimental.Rendering.HDPipeline
+namespace UnityEngine.Rendering.HighDefinition
 {
     /// <summary>Called when the rendering has completed.</summary>
     /// <param name="cmd">A command buffer that can be used.</param>
@@ -74,7 +73,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         /// <param name="camera">The camera associated with the source texture.</param>
         /// <param name="source">The source texture to copy</param>
         /// <param name="targets">The target texture buffer.</param>
-        public void PushCameraTexture(
+        internal void PushCameraTexture(
             CommandBuffer cmd,
             AOVBuffers aovBufferId,
             HDCamera camera,

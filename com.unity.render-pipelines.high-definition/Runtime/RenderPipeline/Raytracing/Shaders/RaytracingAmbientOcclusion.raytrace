@@ -79,9 +79,7 @@ void RayGenAmbientOcclusion()
         int globalSampleIndex = _RaytracingFrameIndex * _RaytracingNumSamples + i;
 
     	// Generate the new sample (follwing values of the sequence)
-        float2 noiseValue = float2(0.0, 0.0);
-        noiseValue.x = GetRaytracingNoiseSample(globalSampleIndex, 0, scramblingValue.x);
-        noiseValue.y = GetRaytracingNoiseSample(globalSampleIndex, 1, scramblingValue.y);
+        float2 noiseValue = GetRaytracingNoiseSampleRG(globalSampleIndex, scramblingValue);
 
     	// Importance sample the direction
 	    float3 sampleDir = SampleHemisphereCosine(noiseValue.x, noiseValue.y, normalData.normalWS);

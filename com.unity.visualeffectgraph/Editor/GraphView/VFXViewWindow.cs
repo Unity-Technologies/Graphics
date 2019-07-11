@@ -4,10 +4,9 @@ using System.Linq;
 using UnityEditor.UIElements;
 using UnityEditor.Experimental.GraphView;
 using UnityEngine;
-using UnityEngine.Experimental.VFX;
-using UnityEditor.Experimental.VFX;
-using UnityEngine.UIElements;
+using UnityEngine.VFX;
 using UnityEditor.VFX;
+using UnityEngine.UIElements;
 using System.Collections.Generic;
 using UnityEditor;
 using UnityObject = UnityEngine.Object;
@@ -29,13 +28,14 @@ namespace  UnityEditor.VFX.UI
                     {Event.KeyboardEvent("o"), view.FrameOrigin },
                     {Event.KeyboardEvent("^#>"), view.FramePrev },
                     {Event.KeyboardEvent("^>"), view.FrameNext },
-                    {Event.KeyboardEvent("#^r"), view.Resync},
                     {Event.KeyboardEvent("F7"), view.Compile},
                     {Event.KeyboardEvent("#d"), view.OutputToDot},
                     {Event.KeyboardEvent("^#d"), view.OutputToDotReduced},
                     {Event.KeyboardEvent("#c"), view.OutputToDotConstantFolding},
                     {Event.KeyboardEvent("^r"), view.ReinitComponents},
                     {Event.KeyboardEvent("F5"), view.ReinitComponents},
+                    {Event.KeyboardEvent("#^r"), view.ReinitAndPlayComponents},
+                    {Event.KeyboardEvent("#F5"), view.ReinitAndPlayComponents},
                 });
         }
 
@@ -172,7 +172,7 @@ namespace  UnityEditor.VFX.UI
 
 #endif
 
-        protected void OnDisable()
+        protected void OnDestroy()
         {
 #if USE_EXIT_WORKAROUND_FOGBUGZ_1062258
             EditorApplication.wantsToQuit -= Quitting_Workaround;

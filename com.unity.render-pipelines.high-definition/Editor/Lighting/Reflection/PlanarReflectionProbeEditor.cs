@@ -2,16 +2,19 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
-using UnityEngine.Experimental.Rendering;
-using UnityEngine.Experimental.Rendering.HDPipeline;
+using UnityEngine.Rendering.HighDefinition;
+using UnityEngine.Rendering;
 using Object = UnityEngine.Object;
 
-namespace UnityEditor.Experimental.Rendering.HDPipeline
+namespace UnityEditor.Rendering.HighDefinition
 {
     [CustomEditorForRenderPipeline(typeof(PlanarReflectionProbe), typeof(HDRenderPipelineAsset))]
     [CanEditMultipleObjects]
     sealed class PlanarReflectionProbeEditor : HDProbeEditor<PlanarReflectionProbeUISettingsProvider, SerializedPlanarReflectionProbe>
     {
+        public static Material GUITextureBlit2SRGBMaterial
+                => HDRenderPipeline.defaultAsset.renderPipelineEditorResources.materials.GUITextureBlit2SRGB;
+
         const float k_PreviewHeight = 128;
 
         static Mesh k_QuadMesh;
@@ -53,7 +56,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                         size.y);
 
                 if (m_PreviewedTextures[i] != null)
-                    EditorGUI.DrawPreviewTexture(itemRect, m_PreviewedTextures[i], CameraEditorUtils.GUITextureBlit2SRGBMaterial, ScaleMode.ScaleToFit, 0, 1);
+                    EditorGUI.DrawPreviewTexture(itemRect, m_PreviewedTextures[i], UnityEditor.Rendering.CameraEditorUtils.GUITextureBlit2SRGBMaterial, ScaleMode.ScaleToFit, 0, 1);
                 else
                     EditorGUI.LabelField(itemRect, EditorGUIUtility.TrTextContent("Not Available"));
             }
@@ -97,6 +100,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         void OnOverlayGUI(Object target, SceneView sceneView)
         {
+            // Get the exposure texture used in this scene view
+            if (!(RenderPipelineManager.currentPipeline is HDRenderPipeline hdrp))
+                return;
+            var hdCamera = HDCamera.GetOrCreate(sceneView.camera, new XRPass());
+            var exposureTex = hdrp.GetExposureTexture(hdCamera);
+
             var index = Array.IndexOf(m_TypedTargets, target);
             if (index == -1)
                 return;
@@ -116,7 +125,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
                 c.width = p.texture.width * factor;
                 c.height = k_PreviewHeight;
-                Graphics.DrawTexture(c, p.texture, new Rect(0, 0, 1, 1), 0, 0, 0, 0, GUI.color, CameraEditorUtils.GUITextureBlit2SRGBMaterial);
+
+                // Setup the material to draw the quad with the exposure texture
+                var material = GUITextureBlit2SRGBMaterial;
+                material.SetTexture("_Exposure", exposureTex);
+                Graphics.DrawTexture(c, p.texture, new Rect(0, 0, 1, 1), 0, 0, 0, 0, GUI.color, material, -1);
 
                 var fovRect = new Rect(c.x + 5, c.y + 2, c.width - 10, EditorGUIUtility.singleLineHeight);
                 GUI.TextField(fovRect, $"FOV: {p.renderData.fieldOfView:F2}°");
