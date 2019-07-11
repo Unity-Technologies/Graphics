@@ -368,6 +368,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         void DrawAlphaCutoffGUI()
         {
+            EditorGUI.BeginChangeCheck();
             if (alphaCutoffEnable != null)
                 materialEditor.ShaderProperty(alphaCutoffEnable, Styles.alphaCutoffEnableText);
 
@@ -402,6 +403,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     }
                 }
                 EditorGUI.indentLevel--;
+            }
+            
+            // Update the renderqueue when we change the alphaTest
+            if (EditorGUI.EndChangeCheck())
+            {
+                var renderQueueType = HDRenderQueue.GetTypeByRenderQueueValue(renderQueue);
+
+                renderQueue = HDRenderQueue.ChangeType(renderQueueType, (int)transparentSortPriority.floatValue, alphaCutoffEnable.floatValue == 1);
             }
         }
 
