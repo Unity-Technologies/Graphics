@@ -5,10 +5,6 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## [7.1.0] - 2019-XX-XX
-- Fixed the PBR master node preview
-
-### Fixed
-- Fixed the renderqueue not updated when the alpha clip is modified in the material UI.
 
 ## [7.0.0] - 2019-07-10
 
@@ -78,6 +74,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed TAA with XR single-pass instancing (missing macros)
 - Fixed an issue causing Scene View selection wire gizmo to not appear when using HDRP Shader Graphs.
 - Fixed wireframe rendering mode (case 1083989)
+- Fixed the renderqueue not updated when the alpha clip is modified in the material UI.
+- Fixed the PBR master node preview
 
 ### Changed
 - Optimization: Reduce the group size of the deferred lighting pass from 16x16 to 8x8
