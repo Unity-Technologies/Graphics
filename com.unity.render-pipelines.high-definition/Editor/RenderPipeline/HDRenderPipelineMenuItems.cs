@@ -70,33 +70,27 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
-        [MenuItem("GameObject/Rendering/Scene Settings", priority = CoreUtils.gameObjectMenuPriority)]
+        [MenuItem("GameObject/Volume/Sky and Fog Volume", priority = CoreUtils.gameObjectMenuPriority)]
         static void CreateSceneSettingsGameObject(MenuCommand menuCommand)
         {
             var parent = menuCommand.context as GameObject;
-            var sceneSettings = CoreEditorUtils.CreateGameObject(parent, "Scene Settings");
-            GameObjectUtility.SetParentAndAlign(sceneSettings, menuCommand.context as GameObject);
-            Undo.RegisterCreatedObjectUndo(sceneSettings, "Create " + sceneSettings.name);
-            Selection.activeObject = sceneSettings;
+            var settings = CoreEditorUtils.CreateGameObject(parent, "Sky and Fog Volume");
+            GameObjectUtility.SetParentAndAlign(settings, menuCommand.context as GameObject);
+            Undo.RegisterCreatedObjectUndo(settings, "Create " + settings.name);
+            Selection.activeObject = settings;
 
-            var profile = VolumeProfileFactory.CreateVolumeProfile(sceneSettings.scene, "Scene Settings");
-            VolumeProfileFactory.CreateVolumeComponent<HDShadowSettings>(profile, true, false);
+            var profile = VolumeProfileFactory.CreateVolumeProfile(settings.scene, "Sky and Fog Settings");
             var visualEnv = VolumeProfileFactory.CreateVolumeComponent<VisualEnvironment>(profile, true, false);
-            visualEnv.skyType.value = SkySettings.GetUniqueID<HDRISky>();
-            visualEnv.fogType.value = FogType.Exponential;
-            var hdriSky = VolumeProfileFactory.CreateVolumeComponent<HDRISky>(profile, true, false);
-            var hdrpAsset = (GraphicsSettings.currentRenderPipeline as HDRenderPipelineAsset);
-            hdriSky.hdriSky.value = hdrpAsset?.renderPipelineResources?.textures?.defaultHDRISky;
-            hdriSky.exposure.value = 14;
-            VolumeProfileFactory.CreateVolumeComponent<ExponentialFog>(profile, true, true);
 
-            var volume = sceneSettings.AddComponent<Volume>();
+            visualEnv.skyType.value = SkySettings.GetUniqueID<PhysicallyBasedSkySettings>();
+            visualEnv.fogType.value = FogType.Volumetric;
+            visualEnv.skyAmbientMode.overrideState = false;
+            VolumeProfileFactory.CreateVolumeComponent<PhysicallyBasedSkySettings>(profile, false, false);
+            VolumeProfileFactory.CreateVolumeComponent<VolumetricFog>(profile, false, true);
+
+            var volume = settings.AddComponent<Volume>();
             volume.isGlobal = true;
             volume.sharedProfile = profile;
-
-            var staticLightingSky = sceneSettings.AddComponent<StaticLightingSky>();
-            staticLightingSky.profile = volume.sharedProfile;
-            staticLightingSky.staticLightingSkyUniqueID = SkySettings.GetUniqueID<HDRISky>();
         }
 
 #if ENABLE_RAYTRACING
