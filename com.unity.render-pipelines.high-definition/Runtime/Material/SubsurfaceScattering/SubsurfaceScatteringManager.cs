@@ -2,8 +2,6 @@ using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
-    using RTHandle = RTHandleSystem.RTHandle;
-
     public partial class HDRenderPipeline
     {
         RTHandle m_SSSColor;
@@ -310,7 +308,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     // Clear the SSS filtering target
                     using (new ProfilingSample(cmd, "Clear SSS filtering target", CustomSamplerId.ClearSSSFilteringTarget.GetSampler()))
                     {
-                        HDUtils.SetRenderTarget(cmd, m_SSSCameraFilteringBuffer, ClearFlag.Color, Color.clear);
+                        CoreUtils.SetRenderTarget(cmd, m_SSSCameraFilteringBuffer, ClearFlag.Color, Color.clear);
                     }
                 }
 
@@ -331,9 +329,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Therefore, it's computed in a pixel shader, and optimized to only contain the SSS bit.
 
                 // Clear the HTile texture. TODO: move this to ClearBuffers(). Clear operations must be batched!
-                HDUtils.SetRenderTarget(cmd, resources.hTileBuffer, ClearFlag.Color, Color.clear);
+                CoreUtils.SetRenderTarget(cmd, resources.hTileBuffer, ClearFlag.Color, Color.clear);
 
-                HDUtils.SetRenderTarget(cmd, resources.depthStencilBuffer); // No need for color buffer here
+                CoreUtils.SetRenderTarget(cmd, resources.depthStencilBuffer); // No need for color buffer here
                 cmd.SetRandomWriteTarget(1, resources.hTileBuffer); // This need to be done AFTER SetRenderTarget
                 // Generate HTile for the split lighting stencil usage. Don't write into stencil texture (shaderPassId = 2)
                 // Use ShaderPassID 1 => "Pass 2 - Export HTILE for stencilRef to output"

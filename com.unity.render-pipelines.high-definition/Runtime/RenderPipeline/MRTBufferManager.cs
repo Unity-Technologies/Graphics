@@ -4,7 +4,7 @@ namespace UnityEngine.Rendering.HighDefinition
     {
         protected int m_BufferCount;
         protected RenderTargetIdentifier[] m_RTIDs;
-        protected RTHandleSystem.RTHandle[] m_RTs;
+        protected RTHandle[] m_RTs;
         protected int[] m_TextureShaderIDs;
 
         public int bufferCount { get { return m_BufferCount; } }
@@ -13,7 +13,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             m_BufferCount = maxBufferCount;
             m_RTIDs = new RenderTargetIdentifier[maxBufferCount];
-            m_RTs = new RTHandleSystem.RTHandle[maxBufferCount];
+            m_RTs = new RTHandle[maxBufferCount];
             m_TextureShaderIDs = new int[maxBufferCount];
         }
 
@@ -27,12 +27,12 @@ namespace UnityEngine.Rendering.HighDefinition
             return m_RTIDs;
         }
 
-        public RTHandleSystem.RTHandle[] GetBuffers()
+        public RTHandle[] GetBuffers()
         {
             return m_RTs;
         }
 
-        public RTHandleSystem.RTHandle GetBuffer(int index)
+        public RTHandle GetBuffer(int index)
         {
             Debug.Assert(index < m_BufferCount);
             return m_RTs[index];

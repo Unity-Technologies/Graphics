@@ -1367,7 +1367,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // Data for cached shadow maps.
         Vector2             m_CachedShadowResolution = new Vector2(0,0);
-        Rect[]              m_CachedShadowRect;
+        Rect[]              m_CachedShadowRect = new Rect[6];
         Vector3             m_CachedViewPos = new Vector3(0, 0, 0);
 
 

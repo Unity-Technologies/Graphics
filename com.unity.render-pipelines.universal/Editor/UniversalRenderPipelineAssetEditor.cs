@@ -110,10 +110,9 @@ namespace UnityEditor.Rendering.Universal
 
         SerializedProperty m_ShaderVariantLogLevel;
 
+        LightRenderingMode selectedLightRenderingMode;
         SerializedProperty m_ColorGradingMode;
         SerializedProperty m_ColorGradingLutSize;
-
-        internal static LightRenderingMode selectedLightRenderingMode;
 
         public override void OnInspectorGUI()
         {

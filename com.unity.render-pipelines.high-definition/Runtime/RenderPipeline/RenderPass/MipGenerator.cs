@@ -1,7 +1,5 @@
 namespace UnityEngine.Rendering.HighDefinition
 {
-    using RTHandle = RTHandleSystem.RTHandle;
-
     class MipGenerator
     {
         RTHandle[] m_TempColorTargets;

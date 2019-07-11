@@ -1,3 +1,6 @@
+using UnityEngine.Rendering;
+using UnityEngine.Rendering.HighDefinition;
+
 namespace UnityEngine.Rendering.HighDefinition
 {
     class ProceduralSkyRenderer : SkyRenderer
@@ -6,6 +9,8 @@ namespace UnityEngine.Rendering.HighDefinition
         MaterialPropertyBlock m_PropertyBlock;
         ProceduralSky m_ProceduralSkyParams;
 
+        readonly int _SkyParam = Shader.PropertyToID("_SkyParam");
+        readonly int _PixelCoordToViewDirWS = Shader.PropertyToID("_PixelCoordToViewDirWS");
         readonly int _SunSizeParam = Shader.PropertyToID("_SunSize");
         readonly int _SunSizeConvergenceParam = Shader.PropertyToID("_SunSizeConvergence");
         readonly int _AtmoshpereThicknessParam = Shader.PropertyToID("_AtmosphereThickness");
@@ -22,8 +27,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public override void Build()
         {
-            var hdrp = HDRenderPipeline.defaultAsset;
-            m_ProceduralSkyMaterial = CoreUtils.CreateEngineMaterial(hdrp.renderPipelineResources.shaders.proceduralSkyPS);
+            var hdrp = GraphicsSettings.currentRenderPipeline as HDRenderPipelineAsset;
+            m_ProceduralSkyMaterial = CoreUtils.CreateEngineMaterial(Shader.Find("Hidden/HDRP/Sky/ProceduralSky"));
         }
 
         public override void Cleanup()
@@ -35,11 +40,11 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             if (builtinParams.depthBuffer == BuiltinSkyParameters.nullRT)
             {
-                HDUtils.SetRenderTarget(builtinParams.commandBuffer, builtinParams.colorBuffer);
+                CoreUtils.SetRenderTarget(builtinParams.commandBuffer, builtinParams.colorBuffer);
             }
             else
             {
-                HDUtils.SetRenderTarget(builtinParams.commandBuffer, builtinParams.colorBuffer, builtinParams.depthBuffer);
+                CoreUtils.SetRenderTarget(builtinParams.commandBuffer, builtinParams.colorBuffer, builtinParams.depthBuffer);
             }
         }
 
@@ -62,7 +67,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (!renderSunDisk)
                 sunSize = 0.0f;
 
-            m_PropertyBlock.SetVector(HDShaderIDs._SkyParam, new Vector4(GetExposure(m_ProceduralSkyParams, builtinParams.debugSettings), m_ProceduralSkyParams.multiplier.value, 0.0f, 0.0f));
+            m_PropertyBlock.SetVector(_SkyParam, new Vector4(GetExposure(m_ProceduralSkyParams, builtinParams.debugSettings), m_ProceduralSkyParams.multiplier.value, 0.0f, 0.0f));
             m_PropertyBlock.SetFloat(_SunSizeParam, sunSize);
             m_PropertyBlock.SetFloat(_SunSizeConvergenceParam, m_ProceduralSkyParams.sunSizeConvergence.value);
             m_PropertyBlock.SetFloat(_AtmoshpereThicknessParam, m_ProceduralSkyParams.atmosphereThickness.value);
@@ -70,7 +75,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_PropertyBlock.SetColor(_GroundColorParam, m_ProceduralSkyParams.groundColor.value);
             m_PropertyBlock.SetColor(_SunColorParam, sunColor);
             m_PropertyBlock.SetVector(_SunDirectionParam, sunDirection);
-            m_PropertyBlock.SetMatrix(HDShaderIDs._PixelCoordToViewDirWS, builtinParams.pixelCoordToViewDirMatrix);
+            m_PropertyBlock.SetMatrix(_PixelCoordToViewDirWS, builtinParams.pixelCoordToViewDirMatrix);
 
             CoreUtils.DrawFullScreen(builtinParams.commandBuffer, m_ProceduralSkyMaterial, m_PropertyBlock, renderForCubemap ? 0 : 1);
         }

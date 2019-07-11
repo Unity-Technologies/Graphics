@@ -4,25 +4,25 @@ namespace UnityEngine.Rendering.HighDefinition
 {
     internal class SkyRenderingContext
     {
-        IBLFilterBSDF[]             m_IBLFilterArray;
-        RTHandleSystem.RTHandle     m_SkyboxCubemapRT;
-        RTHandleSystem.RTHandle     m_SkyboxBSDFCubemapIntermediate;
-        CubemapArray                m_SkyboxBSDFCubemapArray;
-        RTHandleSystem.RTHandle     m_SkyboxMarginalRowCdfRT;
-        RTHandleSystem.RTHandle     m_SkyboxConditionalCdfRT;
-        Vector4                     m_CubemapScreenSize;
-        Matrix4x4[]                 m_facePixelCoordToViewDirMatrices   = new Matrix4x4[6];
-        bool                        m_SupportsConvolution = false;
-        bool                        m_SupportsMIS = false;
-        BuiltinSkyParameters        m_BuiltinParameters = new BuiltinSkyParameters();
-        bool                        m_NeedUpdate = true;
+        IBLFilterBSDF[]         m_IBLFilterArray;
+        RTHandle                m_SkyboxCubemapRT;
+        RTHandle                m_SkyboxBSDFCubemapIntermediate;
+        CubemapArray            m_SkyboxBSDFCubemapArray;
+        RTHandle                m_SkyboxMarginalRowCdfRT;
+        RTHandle                m_SkyboxConditionalCdfRT;
+        Vector4                 m_CubemapScreenSize;
+        Matrix4x4[]             m_facePixelCoordToViewDirMatrices   = new Matrix4x4[6];
+        bool                    m_SupportsConvolution = false;
+        bool                    m_SupportsMIS = false;
+        BuiltinSkyParameters    m_BuiltinParameters = new BuiltinSkyParameters();
+        bool                    m_NeedUpdate = true;
 
-        ComputeShader               m_ComputeAmbientProbeCS;
-        ComputeBuffer               m_AmbientProbeResult;
-        SphericalHarmonicsL2        m_AmbientProbe;
-        readonly int                m_AmbientProbeOutputBufferParam = Shader.PropertyToID("_AmbientProbeOutputBuffer");
-        readonly int                m_AmbientProbeInputCubemap = Shader.PropertyToID("_AmbientProbeInputCubemap");
-        int                         m_ComputeAmbientProbeKernel;
+        ComputeShader           m_ComputeAmbientProbeCS;
+        ComputeBuffer           m_AmbientProbeResult;
+        SphericalHarmonicsL2    m_AmbientProbe;
+        readonly int            m_AmbientProbeOutputBufferParam = Shader.PropertyToID("_AmbientProbeOutputBuffer");
+        readonly int            m_AmbientProbeInputCubemap = Shader.PropertyToID("_AmbientProbeInputCubemap");
+        int                     m_ComputeAmbientProbeKernel;
 
 
         public RenderTexture cubemapRT => m_SkyboxCubemapRT;
@@ -299,7 +299,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return result;
         }
 
-        public void RenderSky(SkyUpdateContext skyContext, HDCamera hdCamera, Light sunLight, RTHandleSystem.RTHandle colorBuffer, RTHandleSystem.RTHandle depthBuffer, DebugDisplaySettings debugSettings, CommandBuffer cmd)
+        public void RenderSky(SkyUpdateContext skyContext, HDCamera hdCamera, Light sunLight, RTHandle colorBuffer, RTHandle depthBuffer, DebugDisplaySettings debugSettings, CommandBuffer cmd)
         {
             if (skyContext.IsValid() && hdCamera.clearColorMode == HDAdditionalCameraData.ClearColorMode.Sky)
             {

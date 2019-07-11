@@ -721,7 +721,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         // BufferedRTHandleSystem API expects an allocator function. We define it here.
-        static RTHandleSystem.RTHandle HistoryBufferAllocatorFunction(string viewName, int frameIndex, RTHandleSystem rtHandleSystem)
+        static RTHandle HistoryBufferAllocatorFunction(string viewName, int frameIndex, RTHandleSystem rtHandleSystem)
         {
             frameIndex &= 1;
             var hdPipeline = (HDRenderPipeline)RenderPipelineManager.currentPipeline;
@@ -832,18 +832,18 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetGlobalBuffer(HDShaderIDs._XRViewConstants, xrViewConstantsGpu);
         }
 
-        public RTHandleSystem.RTHandle GetPreviousFrameRT(int id)
+        public RTHandle GetPreviousFrameRT(int id)
         {
             return m_HistoryRTSystem.GetFrameRT(id, 1);
         }
 
-        public RTHandleSystem.RTHandle GetCurrentFrameRT(int id)
+        public RTHandle GetCurrentFrameRT(int id)
         {
             return m_HistoryRTSystem.GetFrameRT(id, 0);
         }
 
         // Allocate buffers frames and return current frame
-        public RTHandleSystem.RTHandle AllocHistoryFrameRT(int id, Func<string, int, RTHandleSystem, RTHandleSystem.RTHandle> allocator, int bufferCount)
+        public RTHandle AllocHistoryFrameRT(int id, Func<string, int, RTHandleSystem, RTHandle> allocator, int bufferCount)
         {
             m_HistoryRTSystem.AllocBuffer(id, (rts, i) => allocator(camera.name, i, rts), bufferCount);
             return m_HistoryRTSystem.GetFrameRT(id, 0);
@@ -851,11 +851,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public void AllocateAmbientOcclusionHistoryBuffer(float scaleFactor)
         {
-            if (scaleFactor != m_AmbientOcclusionResolutionScale)
+            if (scaleFactor != m_AmbientOcclusionResolutionScale || GetCurrentFrameRT((int)HDCameraFrameHistoryType.AmbientOcclusion) == null)
             {
                 ReleaseHistoryFrameRT((int)HDCameraFrameHistoryType.AmbientOcclusion);
 
-                RTHandleSystem.RTHandle Allocator(string id, int frameIndex, RTHandleSystem rtHandleSystem)
+                RTHandle Allocator(string id, int frameIndex, RTHandleSystem rtHandleSystem)
                 {
                     return rtHandleSystem.Alloc(Vector2.one * scaleFactor, TextureXR.slices, filterMode: FilterMode.Point, colorFormat: GraphicsFormat.R32_UInt, dimension: TextureXR.dimension, useDynamicScale: true, enableRandomWrite: true, name: string.Format("AO Packed history_{0}", frameIndex));
                 }
@@ -876,7 +876,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_HistoryRTSystem.ReleaseAll();
         }
 
-        public void ExecuteCaptureActions(RTHandleSystem.RTHandle input, CommandBuffer cmd)
+        public void ExecuteCaptureActions(RTHandle input, CommandBuffer cmd)
         {
             if (m_RecorderCaptureActions == null || !m_RecorderCaptureActions.MoveNext())
                 return;
