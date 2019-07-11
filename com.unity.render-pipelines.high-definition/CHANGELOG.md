@@ -32,6 +32,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added mirror view support with XR SDK
 - Added VR verification in HDRPWizard
 - Added DXR verification in HDRPWizard
+- Added feedbacks in UI of Volume regarding skies
 
 ### Fixed
 - Fixed an issue with history buffers causing effects like TAA or auto exposure to flicker when more than one camera was visible in the editor
@@ -100,6 +101,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Removed advanced Specular Occlusion control in StackLit: SSAO based SO control is hidden and fixed to behave like Lit, SPTD is the only HQ technique shown for baked SO.
 - Shader framework refactor: Changed ClampRoughness signature to include PreLightData access.
 - HDRPWizard window is now in Window > General > HD Render Pipeline Wizard
+- Moved StaticLightingSky to LightingWindow
 
 ## [6.7.0-preview] - 2019-05-16
 
