@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
@@ -72,19 +73,26 @@ namespace UnityEditor.Rendering.HighDefinition
             EditorGUILayout.LabelField(EditorGUIUtility.TrTextContent("Sky"), EditorStyles.miniLabel);
             using (new EditorGUILayout.HorizontalScope())
             {
-
                 DrawOverrideCheckbox(m_SkyType);
                 using (new EditorGUI.DisabledScope(!m_SkyType.overrideState.boolValue))
                 {
                     EditorGUILayout.IntPopup(m_SkyType.value, m_SkyClassNames.ToArray(), m_SkyUniqueIDs.ToArray(), EditorGUIUtility.TrTextContent("Type", "Specifies the type of sky this Volume uses."));
-
                 }
             }
+            if (m_SkyType.value.intValue != 0)
+                EditorGUILayout.HelpBox("You need to also add a Volume Component matching the selected type.", MessageType.Info);
             PropertyField(m_SkyAmbientMode, EditorGUIUtility.TrTextContent("Ambient Mode"));
 
-            if ( ((SkyAmbientMode)m_SkyAmbientMode.value.enumValueIndex == SkyAmbientMode.Static) && SkyManager.GetStaticLightingSky() == null)
+            var staticLightingSky = SkyManager.GetStaticLightingSky();
+            if ((SkyAmbientMode)m_SkyAmbientMode.value.enumValueIndex == SkyAmbientMode.Static)
             {
-                EditorGUILayout.HelpBox("A Static Lighting Sky Component is required for Static Ambient Mode.", MessageType.Info);
+                if (staticLightingSky == null)
+                    EditorGUILayout.HelpBox("Current Static Lighting Sky use None of profile None.", MessageType.Info);
+                else
+                {
+                    var skyType = staticLightingSky.staticLightingSkyUniqueID == 0 ? "None" : SkyManager.skyTypesDict[staticLightingSky.staticLightingSkyUniqueID].Name.ToString();
+                    EditorGUILayout.HelpBox($"Current Static Lighting Sky use {skyType} of profile {staticLightingSky.profile?.name ?? "None"}.", MessageType.Info);
+                }
             }
 
             EditorGUILayout.LabelField(EditorGUIUtility.TrTextContent("Fog"), EditorStyles.miniLabel);

@@ -3,7 +3,6 @@ using UnityEngine.Experimental.Rendering;
 namespace UnityEngine.Rendering.HighDefinition
 {
 #if ENABLE_RAYTRACING
-    using RTHandle = RTHandleSystem.RTHandle;
     public partial class HDRenderPipeline
     {
         // Buffers used for the evaluation
@@ -33,14 +32,14 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetGlobalTexture(HDShaderIDs._IndirectDiffuseTexture, m_IDIntermediateBuffer0);
         }
 
-        static RTHandleSystem.RTHandle IndirectDiffuseHistoryBufferAllocatorFunction(string viewName, int frameIndex, RTHandleSystem rtHandleSystem)
+        static RTHandle IndirectDiffuseHistoryBufferAllocatorFunction(string viewName, int frameIndex, RTHandleSystem rtHandleSystem)
         {
             return rtHandleSystem.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, dimension: TextureXR.dimension,
                                         enableRandomWrite: true, useMipMap: false, autoGenerateMips: false,
                                         name: string.Format("IndirectDiffuseHistoryBuffer{0}", frameIndex));
         }
 
-        public RTHandleSystem.RTHandle GetIndirectDiffuseTexture()
+        public RTHandle GetIndirectDiffuseTexture()
         {
             return m_IDIntermediateBuffer0;
         }
@@ -219,7 +218,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (settings.enableFilter.value)
                 {
                     // Grab the history buffer
-                    RTHandleSystem.RTHandle indirectDiffuseHistory = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.RaytracedIndirectDiffuse)
+                    RTHandle indirectDiffuseHistory = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.RaytracedIndirectDiffuse)
                         ?? hdCamera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.RaytracedIndirectDiffuse, IndirectDiffuseHistoryBufferAllocatorFunction, 1);
 
                     HDSimpleDenoiser simpleDenoiser = m_RayTracingManager.GetSimpleDenoiser();
@@ -320,7 +319,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if(settings.enableFilter.value)
             {
                 // Grab the history buffer
-                RTHandleSystem.RTHandle indirectDiffuseHistory = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.RaytracedIndirectDiffuse)
+                RTHandle indirectDiffuseHistory = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.RaytracedIndirectDiffuse)
                     ?? hdCamera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.RaytracedIndirectDiffuse, IndirectDiffuseHistoryBufferAllocatorFunction, 1);
 
                 HDSimpleDenoiser simpleDenoiser = m_RayTracingManager.GetSimpleDenoiser();

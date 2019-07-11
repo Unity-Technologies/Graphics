@@ -333,9 +333,9 @@ namespace UnityEditor.Rendering.LookDev
                 index =>
                 {
                     LookDev.currentContext.SetFocusedCamera(index);
-                    if (sidePanel == SidePanel.Environment)
-                        m_EnvironmentList.selectedIndex = LookDev.currentContext.environmentLibrary.IndexOf(
-                            LookDev.currentContext.GetViewContent(index).environment);
+                    var environment = LookDev.currentContext.GetViewContent(index).environment;
+                    if (sidePanel == SidePanel.Environment && environment != null)
+                        m_EnvironmentList.selectedIndex = LookDev.currentContext.environmentLibrary.IndexOf(environment);
                 });
             var secondManipulator = new CameraController(
                 LookDev.currentContext.GetViewContent(ViewIndex.Second).camera,
@@ -343,9 +343,9 @@ namespace UnityEditor.Rendering.LookDev
                 () =>
                 {
                     LookDev.currentContext.SetFocusedCamera(ViewIndex.Second);
-                    if (sidePanel == SidePanel.Environment)
-                        m_EnvironmentList.selectedIndex = LookDev.currentContext.environmentLibrary.IndexOf(
-                            LookDev.currentContext.GetViewContent(ViewIndex.Second).environment);
+                    var environment = LookDev.currentContext.GetViewContent(ViewIndex.Second).environment;
+                    if (sidePanel == SidePanel.Environment && environment != null)
+                        m_EnvironmentList.selectedIndex = LookDev.currentContext.environmentLibrary.IndexOf(environment);
                 });
             var gizmoManipulator = new ComparisonGizmoController(LookDev.currentContext.layout.gizmoState, firstOrCompositeManipulator);
             m_Views[(int)ViewIndex.First].AddManipulator(gizmoManipulator); //must take event first to switch the firstOrCompositeManipulator
@@ -512,7 +512,13 @@ namespace UnityEditor.Rendering.LookDev
                     m_EnvironmentInspector.style.height = new StyleLength(StyleKeyword.Auto);
                     int firstVisibleIndex = FirstVisibleIndex(m_EnvironmentList);
                     Environment environment = LookDev.currentContext.environmentLibrary[m_EnvironmentList.selectedIndex];
-                    Image deportedLatLong = m_EnvironmentList.Q("unity-content-container")[m_EnvironmentList.selectedIndex - firstVisibleIndex] as Image;
+                    var container = m_EnvironmentList.Q("unity-content-container");
+                    if (m_EnvironmentList.selectedIndex - firstVisibleIndex >= container.childCount || m_EnvironmentList.selectedIndex < firstVisibleIndex)
+                    {
+                        m_EnvironmentList.ScrollToItem(m_EnvironmentList.selectedIndex);
+                        firstVisibleIndex = FirstVisibleIndex(m_EnvironmentList);
+                    }
+                    Image deportedLatLong = container[m_EnvironmentList.selectedIndex - firstVisibleIndex] as Image;
                     m_EnvironmentInspector.Bind(environment, deportedLatLong);
                 }
             };

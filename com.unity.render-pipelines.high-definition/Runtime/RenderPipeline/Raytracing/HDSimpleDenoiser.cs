@@ -9,8 +9,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         SharedRTManager m_SharedRTManager;
 
-        RTHandleSystem.RTHandle m_IntermediateBuffer0 = null;
-        RTHandleSystem.RTHandle m_IntermediateBuffer1 = null;
+        RTHandle m_IntermediateBuffer0 = null;
+        RTHandle m_IntermediateBuffer1 = null;
 
         public HDSimpleDenoiser()
         {
@@ -32,7 +32,7 @@ namespace UnityEngine.Rendering.HighDefinition
             RTHandles.Release(m_IntermediateBuffer0);
         }
 
-        public void DenoiseBuffer(CommandBuffer cmd, HDCamera hdCamera, RTHandleSystem.RTHandle noisySignal, RTHandleSystem.RTHandle historySignal, RTHandleSystem.RTHandle outputSingal, int kernelSize, bool singleChannel = true, int slotIndex = -1)
+        public void DenoiseBuffer(CommandBuffer cmd, HDCamera hdCamera, RTHandle noisySignal, RTHandle historySignal, RTHandle outputSingal, int kernelSize, bool singleChannel = true, int slotIndex = -1)
         {
             // Texture dimensions
             int texWidth = hdCamera.actualWidth;

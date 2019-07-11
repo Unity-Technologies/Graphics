@@ -24,10 +24,18 @@ namespace UnityEngine.Rendering.HighDefinition
             }
             set
             {
-                // Changing the volume is considered a destructive operation => reset the static lighting sky.
                 if (value != m_Profile)
                 {
+                    // Changing the volume is considered a destructive operation => reset the static lighting sky.
                     m_StaticLightingSkyUniqueID = 0;
+
+                    //Registration is also done when we go from null to not null
+                    if (m_Profile == null)
+                        SkyManager.RegisterStaticLightingSky(this);
+
+                    //Unregistration is also done when we go from not null to null
+                    if (value == null)
+                        SkyManager.UnRegisterStaticLightingSky(this);
                 }
 
                 m_Profile = value;
@@ -100,12 +108,14 @@ namespace UnityEngine.Rendering.HighDefinition
         void OnEnable()
         {
             UpdateCurrentStaticLightingSky();
-            SkyManager.RegisterStaticLightingSky(this);
+            if (m_Profile != null)
+                SkyManager.RegisterStaticLightingSky(this);
         }
 
         void OnDisable()
         {
-            SkyManager.UnRegisterStaticLightingSky(this);
+            if (m_Profile != null)
+                SkyManager.UnRegisterStaticLightingSky(this);
             skySettings = null;
         }
     }

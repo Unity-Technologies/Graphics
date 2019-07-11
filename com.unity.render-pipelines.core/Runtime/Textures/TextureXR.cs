@@ -2,28 +2,26 @@ using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.Rendering
 {
-    using RTHandle = RTHandleSystem.RTHandle;
-
     public static class TextureXR
     {
         // Property set by XRSystem
         private static int m_MaxViews = 1;
-        internal static int maxViews
+        public static int maxViews
         {
             set
             {
-                if (value > HighDefinition.ShaderConfig.s_XrMaxViews)
-                    throw new System.NotImplementedException("Invalid XR setup for single-pass instancing: you must increase ShaderConfig.XrMaxViews");
-                else
+                //if (value > HighDefinition.ShaderConfig.s_XrMaxViews)
+                //    throw new System.NotImplementedException("Invalid XR setup for single-pass instancing: you must increase ShaderConfig.XrMaxViews");
+                //else
                     m_MaxViews = value;
             }
         }
 
         // Property accessed when allocating a render target
-        internal static int slices { get => m_MaxViews; }
+        public static int slices { get => m_MaxViews; }
 
         // Must be in sync with shader define in TextureXR.hlsl
-        internal static bool useTexArray
+        public static bool useTexArray
         {
             get
             {
@@ -44,7 +42,7 @@ namespace UnityEngine.Rendering
             }
         }
 
-        internal static TextureDimension dimension
+        public static TextureDimension dimension
         {
             get
             {
@@ -66,6 +64,12 @@ namespace UnityEngine.Rendering
         static RTHandle         m_ClearTextureRTH;
         public static RTHandle GetClearTexture() { return useTexArray ? m_ClearTexture2DArrayRTH : m_ClearTextureRTH; }
 
+        static Texture2DArray   m_MagentaTexture2DArray;
+        static Texture2D        m_MagentaTexture;
+        static RTHandle         m_MagentaTexture2DArrayRTH;
+        static RTHandle         m_MagentaTextureRTH;
+        public static RTHandle GetMagentaTexture() { return useTexArray ? m_MagentaTexture2DArrayRTH : m_MagentaTextureRTH; }
+
         static Texture2DArray   m_BlackTexture2DArray;
         static RTHandle         m_BlackTexture2DArrayRTH;
         static RTHandle         m_BlackTextureRTH;
@@ -76,7 +80,7 @@ namespace UnityEngine.Rendering
         static RTHandle         m_WhiteTextureRTH;
         public static RTHandle GetWhiteTexture() { return useTexArray ? m_WhiteTexture2DArrayRTH : m_WhiteTextureRTH; }
 
-        internal static void Initialize(CommandBuffer cmd, ComputeShader clearR32_UIntShader)
+        public static void Initialize(CommandBuffer cmd, ComputeShader clearR32_UIntShader)
         {
             if (m_BlackUIntTexture2DArray == null) // We assume that everything is invalid if one is invalid.
             {
@@ -97,6 +101,16 @@ namespace UnityEngine.Rendering
                 RTHandles.Release(m_ClearTexture2DArrayRTH);
                 m_ClearTexture2DArray = CreateTexture2DArrayFromTexture2D(m_ClearTexture, "Clear Texture2DArray");
                 m_ClearTexture2DArrayRTH = RTHandles.Alloc(m_ClearTexture2DArray);
+
+                // Magenta
+                RTHandles.Release(m_MagentaTextureRTH);
+                m_MagentaTexture = new Texture2D(1, 1, TextureFormat.ARGB32, false) { name = "Magenta Texture" };
+                m_MagentaTexture.SetPixel(0, 0, Color.magenta);
+                m_MagentaTexture.Apply();
+                m_MagentaTextureRTH = RTHandles.Alloc(m_MagentaTexture);
+                RTHandles.Release(m_MagentaTexture2DArrayRTH);
+                m_MagentaTexture2DArray = CreateTexture2DArrayFromTexture2D(m_MagentaTexture, "Magenta Texture2DArray");
+                m_MagentaTexture2DArrayRTH = RTHandles.Alloc(m_MagentaTexture2DArray);
 
                 // Black
                 RTHandles.Release(m_BlackTextureRTH);

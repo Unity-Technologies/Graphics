@@ -15,7 +15,7 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedDataParameter m_IntensityMode;
         SerializedDataParameter m_UpperHemisphereLuxValue;
 
-        RTHandleSystem.RTHandle m_IntensityTexture;
+        RTHandle m_IntensityTexture;
         Material m_IntegrateHDRISkyMaterial; // Compute the HDRI sky intensity in lux for the skybox
         Texture2D readBackTexture;
 
