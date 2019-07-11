@@ -485,6 +485,9 @@ namespace UnityEditor.ShaderGraph
             var fromSlot = fromNode.FindSlot<ISlot>(fromSlotRef.slotId);
             var toSlot = toNode.FindSlot<ISlot>(toSlotRef.slotId);
 
+            if (fromSlot == null || toSlot == null)
+                return null;
+
             if (fromSlot.isOutputSlot == toSlot.isOutputSlot)
                 return null;
 

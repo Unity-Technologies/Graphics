@@ -107,6 +107,9 @@ namespace UnityEditor.ShaderGraph
 
         public static string GetKeywordPermutationDeclaration(ShaderStringBuilder sb, List<List<KeyValuePair<ShaderKeyword, int>>> permutations)
         {
+            if (permutations.Count == 0)
+                return string.Empty;
+            
             for(int p = 0; p < permutations.Count; p++)
             {
                 if(p == 0)
@@ -144,12 +147,9 @@ namespace UnityEditor.ShaderGraph
                 sb.AppendLine($"#define KEYWORD_PERMUTATION_{p}");
             }
 
-            if(permutations.Count > 0)
-            {
-                sb.Append("#endif");
-                sb.AppendNewLine();
-                sb.AppendNewLine();
-            }
+            sb.Append("#endif");
+            sb.AppendNewLine();
+            sb.AppendNewLine();
 
             return sb.ToString();
         }
