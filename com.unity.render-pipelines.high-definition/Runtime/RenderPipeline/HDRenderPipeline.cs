@@ -582,7 +582,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 receiveShadows = false,
                 reflectionProbes = true,
                 rendererPriority = true,
-                overridesEnvironmentLighting = true,
                 overridesFog = true,
                 overridesOtherLightingSettings = true,
                 editableMaterialRenderQueue = false
