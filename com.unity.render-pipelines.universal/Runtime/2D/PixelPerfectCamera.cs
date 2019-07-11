@@ -177,13 +177,13 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
             m_Camera.orthographicSize = m_Internal.orthoSize;
 
-            U2D.PixelPerfectRendering.pixelSnapSpacing = m_Internal.unitsPerPixel;
+            UnityEngine.U2D.PixelPerfectRendering.pixelSnapSpacing = m_Internal.unitsPerPixel;
         }
 
         void OnEndCameraRendering(ScriptableRenderContext context, Camera camera)
         {
             if (camera == m_Camera)
-                U2D.PixelPerfectRendering.pixelSnapSpacing = 0.0f;
+                UnityEngine.U2D.PixelPerfectRendering.pixelSnapSpacing = 0.0f;
         }
 
         void OnEnable()
