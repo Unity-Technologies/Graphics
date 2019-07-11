@@ -42,7 +42,7 @@ namespace UnityEngine.Rendering.HighDefinition
         List<EnvLightData> m_EnvLightDataCPUArray = new List<EnvLightData>();
         ComputeBuffer m_EnvLightDataGPUArray = null;
 
-        public RTHandleSystem.RTHandle m_DebugLightClusterTexture = null;
+        public RTHandle m_DebugLightClusterTexture = null;
 
         // String values
         const string m_LightClusterKernelName = "RaytracingLightCluster";

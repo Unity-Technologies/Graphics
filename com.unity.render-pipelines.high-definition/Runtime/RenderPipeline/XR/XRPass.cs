@@ -229,7 +229,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Legacy VR - push to XR headset and/or display mirror
             if (hdCamera.camera.stereoEnabled)
-            {
+                        {
                 if (legacyMultipassEnabled)
                     renderContext.StereoEndRender(hdCamera.camera, legacyMultipassEye, legacyMultipassEye == 1);
                 else
@@ -237,7 +237,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        internal void RenderOcclusionMeshes(CommandBuffer cmd, RTHandleSystem.RTHandle depthBuffer)
+        internal void RenderOcclusionMeshes(CommandBuffer cmd, RTHandle depthBuffer)
         {
             // XRTODO: uncomment when C++ code is ready and tested
             //if (enabled && xrSdkEnabled && occlusionMeshMaterial != null)

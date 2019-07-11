@@ -206,7 +206,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _CosTime             = Shader.PropertyToID("_CosTime");
         public static readonly int unity_DeltaTime      = Shader.PropertyToID("unity_DeltaTime");
         public static readonly int _TimeParameters      = Shader.PropertyToID("_TimeParameters");
-        public static readonly int _LastTimeParameters  = Shader.PropertyToID("_LastTimeParameters");
+        public static readonly int _LastTimeParameters  = Shader.PropertyToID("_LastTimeParameters");        
 
         public static readonly int _EnvLightSkyEnabled = Shader.PropertyToID("_EnvLightSkyEnabled");
         public static readonly int _AmbientOcclusionParam = Shader.PropertyToID("_AmbientOcclusionParam");
@@ -373,7 +373,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _LightLayersTexture = Shader.PropertyToID("_LightLayersTexture");
         public static readonly int _DistortionTexture = Shader.PropertyToID("_DistortionTexture");
         public static readonly int _ColorPyramidTexture = Shader.PropertyToID("_ColorPyramidTexture");
-        public static readonly int _ColorPyramidSize = Shader.PropertyToID("_ColorPyramidSize");
         public static readonly int _ColorPyramidScale = Shader.PropertyToID("_ColorPyramidScale");
         public static readonly int _ColorPyramidUvScaleAndLimitPrevFrame = Shader.PropertyToID("_ColorPyramidUvScaleAndLimitPrevFrame");
         public static readonly int _DepthPyramidScale = Shader.PropertyToID("_DepthPyramidScale");
