@@ -19,6 +19,8 @@ namespace UnityEditor.Rendering.Universal
         SerializedProperty m_TransparentLayerMask;
         SerializedProperty m_DefaultStencilState;
 
+        SerializedProperty m_PostProcessData;
+
         SerializedProperty m_Shaders;
 
         private void OnEnable()
@@ -26,6 +28,8 @@ namespace UnityEditor.Rendering.Universal
             m_OpaqueLayerMask = serializedObject.FindProperty("m_OpaqueLayerMask");
             m_TransparentLayerMask = serializedObject.FindProperty("m_TransparentLayerMask");
             m_DefaultStencilState = serializedObject.FindProperty("m_DefaultStencilState");
+
+            m_PostProcessData = serializedObject.FindProperty("postProcessData");
 
             m_Shaders = serializedObject.FindProperty("shaders");
         }
@@ -40,6 +44,7 @@ namespace UnityEditor.Rendering.Universal
             EditorGUILayout.PropertyField(m_OpaqueLayerMask, Styles.OpaqueMask);
             if (EditorGUI.EndChangeCheck()) // We copy the opaque mask to the transparent mask, later we might expose both
                 m_TransparentLayerMask.intValue = m_OpaqueLayerMask.intValue;
+            EditorGUILayout.PropertyField(m_PostProcessData);
             EditorGUILayout.Space();
 
             EditorGUILayout.LabelField("Overrides", EditorStyles.boldLabel);
