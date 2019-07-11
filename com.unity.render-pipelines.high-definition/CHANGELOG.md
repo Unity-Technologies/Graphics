@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Now the static lighting sky will correctly take the default values for non-overridden properties
 - Fix shadergraph material pass setup not called
 - Fix property sync in shadergraph with the current material in the inspector
+- Fixed an issue causing Scene View selection wire gizmo to not appear when using HDRP Shader Graphs.
 
 ## [6.9.0] - 2019-07-02
 
