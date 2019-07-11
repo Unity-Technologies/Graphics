@@ -3,9 +3,9 @@ using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.UIElements;
 
-namespace UnityEditor.Rendering.Experimental.LookDev
+namespace UnityEditor.Rendering.LookDev
 {
-    public class ToolbarRadio : Toolbar, INotifyValueChanged<int>
+    class ToolbarRadio : Toolbar, INotifyValueChanged<int>
     {
         public new class UxmlFactory : UxmlFactory<ToolbarRadio, UxmlTraits> { }
         public new class UxmlTraits : Button.UxmlTraits { }

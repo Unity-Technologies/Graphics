@@ -8,16 +8,29 @@ using System.IO;
 using System.Linq.Expressions;
 using System.Reflection;
 
-namespace UnityEditor.Rendering.Experimental.LookDev
+namespace UnityEditor.Rendering.LookDev
 {
+    /// <summary>
+    /// Class containing a collection of Environment
+    /// </summary>
     public class EnvironmentLibrary : ScriptableObject
     {
         [field: SerializeField]
         List<Environment> environments { get; set; } = new List<Environment>();
 
+        /// <summary>
+        /// Number of elements in the collection
+        /// </summary>
         public int Count => environments.Count;
+        /// <summary>
+        /// Indexer giving access to contained Environment
+        /// </summary>
         public Environment this[int index] => environments[index];
 
+        /// <summary>
+        /// Create a new empty Environment at the end of the collection
+        /// </summary>
+        /// <returns>The created Environment</returns>
         public Environment Add()
         {
             Environment environment = ScriptableObject.CreateInstance<Environment>();
@@ -36,6 +49,10 @@ namespace UnityEditor.Rendering.Experimental.LookDev
             return environment;
         }
 
+        /// <summary>
+        /// Remove Environment of the collection at given index
+        /// </summary>
+        /// <param name="index">Index where to remove Environment</param>
         public void Remove(int index)
         {
             Environment environment = environments[index];
@@ -48,6 +65,11 @@ namespace UnityEditor.Rendering.Experimental.LookDev
             AssetDatabase.SaveAssets();
         }
 
+        /// <summary>
+        /// Duplicate the Environment at given index and add it at the end of the Collection
+        /// </summary>
+        /// <param name="fromIndex">Index where to take data for duplication</param>
+        /// <returns>The created Environment</returns>
         public Environment Duplicate(int fromIndex)
         {
             Environment environment = ScriptableObject.CreateInstance<Environment>();
@@ -68,6 +90,11 @@ namespace UnityEditor.Rendering.Experimental.LookDev
             return environment;
         }
 
+        /// <summary>
+        /// Compute position of given Environment in the collection
+        /// </summary>
+        /// <param name="environment">Environment to look at</param>
+        /// <returns>Index of the searched environment. If not found, -1.</returns>
         public int IndexOf(Environment environment)
             => environments.IndexOf(environment);
     }
