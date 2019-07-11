@@ -66,16 +66,6 @@ float GetLuminance(float3 colorLinear)
     #endif
 }
 
-// Soft-light blending mode use for split-toning. Works in HDR as long as `blend` is [0;1] which is
-// fine for our use case.
-float3 SoftLight(float3 base, float3 blend)
-{
-    float3 r1 = 2.0 * base * blend + base * base * (1.0 - 2.0 * blend);
-    float3 r2 = sqrt(base) * (2.0 * blend - 1.0) + 2.0 * base * (1.0 - blend);
-    float3 t = step(0.5, blend);
-    return r2 * t + (1.0 - t) * r1;
-}
-
 float EvaluateCurve(TEXTURE2D(curve), float t)
 {
     float x = SAMPLE_TEXTURE2D_LOD(curve, sampler_LinearClamp, float2(t, 0.0), 0.0).x;
