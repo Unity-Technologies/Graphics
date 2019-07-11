@@ -4,8 +4,6 @@ using System.Collections.Generic;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
-    using RTHandle = RTHandleSystem.RTHandle;
-
     [Serializable]
     public enum SkyResolution
     {

@@ -47,7 +47,7 @@ namespace UnityEngine.Rendering
     /// </exemple>
     public class BufferedRTHandleSystem : IDisposable
     {
-        Dictionary<int, RTHandleSystem.RTHandle[]> m_RTHandles = new Dictionary<int, RTHandleSystem.RTHandle[]>();
+        Dictionary<int, RTHandle[]> m_RTHandles = new Dictionary<int, RTHandle[]>();
 
         RTHandleSystem m_RTHandleSystem = new RTHandleSystem();
         bool m_DisposedValue = false;
@@ -61,8 +61,8 @@ namespace UnityEngine.Rendering
         /// </summary>
         /// <param name="bufferId">Defines the buffer to use.</param>
         /// <param name="frameIndex"></param>
-        /// <returns>The frame RT or null when the <paramref name="bufferId"/> was not previously allocated (<see cref="BufferedRTHandleSystem.AllocBuffer(int, Func{RTHandleSystem, int, RTHandleSystem.RTHandle}, int)" />).</returns>
-        public RTHandleSystem.RTHandle GetFrameRT(int bufferId, int frameIndex)
+        /// <returns>The frame RT or null when the <paramref name="bufferId"/> was not previously allocated (<see cref="BufferedRTHandleSystem.AllocBuffer(int, Func{RTHandleSystem, int, RTHandle}, int)" />).</returns>
+        public RTHandle GetFrameRT(int bufferId, int frameIndex)
         {
             if (!m_RTHandles.ContainsKey(bufferId))
                 return null;
@@ -80,11 +80,11 @@ namespace UnityEngine.Rendering
         /// <param name="bufferCount">The number of RT handles for this buffer.</param>
         public void AllocBuffer(
             int bufferId,
-            Func<RTHandleSystem, int, RTHandleSystem.RTHandle> allocator,
+            Func<RTHandleSystem, int, RTHandle> allocator,
             int bufferCount
             )
         {
-            var buffer = new RTHandleSystem.RTHandle[bufferCount];
+            var buffer = new RTHandle[bufferCount];
             m_RTHandles.Add(bufferId, buffer);
 
             // First is autoresized

@@ -29,8 +29,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         PhysicallyBasedSkySettings   m_Settings;
         // Precomputed data below.
-        RTHandleSystem.RTHandle[]    m_GroundIrradianceTables;    // All orders, one order
-        RTHandleSystem.RTHandle[]    m_InScatteredRadianceTables; // Air SS, Aerosol SS, Atmosphere MS, Atmosphere one order, Temp
+        RTHandle[]    m_GroundIrradianceTables;    // All orders, one order
+        RTHandle[]    m_InScatteredRadianceTables; // Air SS, Aerosol SS, Atmosphere MS, Atmosphere one order, Temp
 
         static ComputeShader         s_GroundIrradiancePrecomputationCS;
         static ComputeShader         s_InScatteredRadiancePrecomputationCS;
@@ -39,7 +39,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         static GraphicsFormat s_ColorFormat = GraphicsFormat.R16G16B16A16_SFloat;
 
-        RTHandleSystem.RTHandle AllocateGroundIrradianceTable(int index)
+        RTHandle AllocateGroundIrradianceTable(int index)
         {
             var table = RTHandles.Alloc((int)PbrSkyConfig.GroundIrradianceTableSize, 1,
                                         colorFormat: s_ColorFormat,
@@ -51,7 +51,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return table;
         }
 
-        RTHandleSystem.RTHandle AllocateInScatteredRadianceTable(int index)
+        RTHandle AllocateInScatteredRadianceTable(int index)
         {
             // Emulate a 4D texture with a "deep" 3D texture.
             var table = RTHandles.Alloc((int)PbrSkyConfig.InScatteredRadianceTableSizeX,
@@ -88,10 +88,10 @@ namespace UnityEngine.Rendering.HighDefinition
             Debug.Assert(s_InScatteredRadiancePrecomputationCS != null);
 
             // No temp tables.
-            m_GroundIrradianceTables       = new RTHandleSystem.RTHandle[2];
+            m_GroundIrradianceTables       = new RTHandle[2];
             m_GroundIrradianceTables[0]    = AllocateGroundIrradianceTable(0);
 
-            m_InScatteredRadianceTables    = new RTHandleSystem.RTHandle[5];
+            m_InScatteredRadianceTables    = new RTHandle[5];
             m_InScatteredRadianceTables[0] = AllocateInScatteredRadianceTable(0);
             m_InScatteredRadianceTables[1] = AllocateInScatteredRadianceTable(1);
             m_InScatteredRadianceTables[2] = AllocateInScatteredRadianceTable(2);
@@ -144,11 +144,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (builtinParams.depthBuffer == BuiltinSkyParameters.nullRT)
             {
-                HDUtils.SetRenderTarget(builtinParams.commandBuffer, builtinParams.colorBuffer);
+                CoreUtils.SetRenderTarget(builtinParams.commandBuffer, builtinParams.colorBuffer);
             }
             else
             {
-                HDUtils.SetRenderTarget(builtinParams.commandBuffer, builtinParams.colorBuffer, builtinParams.depthBuffer);
+                CoreUtils.SetRenderTarget(builtinParams.commandBuffer, builtinParams.colorBuffer, builtinParams.depthBuffer);
             }
         }
 

@@ -3,8 +3,6 @@ using UnityEngine.Experimental.Rendering;
 namespace UnityEngine.Rendering.HighDefinition
 {
 #if ENABLE_RAYTRACING
-    using RTHandle = RTHandleSystem.RTHandle;
-
     public partial class HDRenderPipeline
     {
         // Intermediate buffer for computing the effect
@@ -22,7 +20,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_ReflIntermediateTexture1 = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, dimension: TextureXR.dimension, enableRandomWrite: true, useDynamicScale: true, useMipMap: false, autoGenerateMips: false, name: "ReflIntermediateTexture1");
         }
 
-        static RTHandleSystem.RTHandle ReflectionHistoryBufferAllocatorFunction(string viewName, int frameIndex, RTHandleSystem rtHandleSystem)
+        static RTHandle ReflectionHistoryBufferAllocatorFunction(string viewName, int frameIndex, RTHandleSystem rtHandleSystem)
         {
             return rtHandleSystem.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, dimension: TextureXR.dimension,
                                         enableRandomWrite: true, useMipMap: false, autoGenerateMips: false,
@@ -35,7 +33,7 @@ namespace UnityEngine.Rendering.HighDefinition
             RTHandles.Release(m_ReflIntermediateTexture0);
         }
 
-        void RenderRayTracedReflections(HDCamera hdCamera, CommandBuffer cmd, RTHandleSystem.RTHandle outputTexture, ScriptableRenderContext renderContext, int frameCount)
+        void RenderRayTracedReflections(HDCamera hdCamera, CommandBuffer cmd, RTHandle outputTexture, ScriptableRenderContext renderContext, int frameCount)
         {
             RenderPipelineSettings.RaytracingTier currentTier = m_Asset.currentPlatformRenderPipelineSettings.supportedRaytracingTier;
             switch (currentTier)
@@ -151,7 +149,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return deferredParameters;
         }
 
-        public void RenderReflectionsT1(HDCamera hdCamera, CommandBuffer cmd, RTHandleSystem.RTHandle outputTexture, ScriptableRenderContext renderContext, int frameCount)
+        public void RenderReflectionsT1(HDCamera hdCamera, CommandBuffer cmd, RTHandle outputTexture, ScriptableRenderContext renderContext, int frameCount)
         {
             // First thing to check is: Do we have a valid ray-tracing environment?
             HDRaytracingEnvironment rtEnvironment = m_RayTracingManager.CurrentEnvironment();
@@ -162,7 +160,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // Fetch the required resources
             BlueNoise blueNoise = m_RayTracingManager.GetBlueNoiseManager();
             RayTracingShader reflectionShaderRT = m_Asset.renderPipelineRayTracingResources.reflectionRaytracingRT;
-            ComputeShader reflectionShaderCS = m_Asset.renderPipelineRayTracingResources.reflectionRaytracingCS; 
+            ComputeShader reflectionShaderCS = m_Asset.renderPipelineRayTracingResources.reflectionRaytracingCS;
             ComputeShader reflectionFilter = m_Asset.renderPipelineRayTracingResources.reflectionBilateralFilterCS;
 
             // Fetch all the settings
@@ -252,7 +250,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 int currentKernel = 0;
                 if (settings.fullResolution.value)
                 {
-                    currentKernel = reflectionFilter.FindKernel("ReflectionIntegrationUpscaleFullRes"); 
+                    currentKernel = reflectionFilter.FindKernel("ReflectionIntegrationUpscaleFullRes");
                 }
                 else
                 {
@@ -292,7 +290,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     if (settings.enableFilter.value)
                     {
                         // Grab the history buffer
-                        RTHandleSystem.RTHandle reflectionHistory = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.RaytracedReflection)
+                        RTHandle reflectionHistory = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.RaytracedReflection)
                             ?? hdCamera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.RaytracedReflection, ReflectionHistoryBufferAllocatorFunction, 1);
 
                         HDSimpleDenoiser simpleDenoiser = m_RayTracingManager.GetSimpleDenoiser();
@@ -303,7 +301,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        void RenderReflectionsT2(HDCamera hdCamera, CommandBuffer cmd, RTHandleSystem.RTHandle outputTexture, ScriptableRenderContext renderContext, int frameCount)
+        void RenderReflectionsT2(HDCamera hdCamera, CommandBuffer cmd, RTHandle outputTexture, ScriptableRenderContext renderContext, int frameCount)
         {
             // First thing to check is: Do we have a valid ray-tracing environment?
             HDRaytracingEnvironment rtEnvironment = m_RayTracingManager.CurrentEnvironment();
@@ -338,7 +336,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (settings.enableFilter.value)
                 {
                     // Grab the history buffer
-                    RTHandleSystem.RTHandle reflectionHistory = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.RaytracedReflection)
+                    RTHandle reflectionHistory = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.RaytracedReflection)
                         ?? hdCamera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.RaytracedReflection, ReflectionHistoryBufferAllocatorFunction, 1);
 
                     HDSimpleDenoiser simpleDenoiser = m_RayTracingManager.GetSimpleDenoiser();

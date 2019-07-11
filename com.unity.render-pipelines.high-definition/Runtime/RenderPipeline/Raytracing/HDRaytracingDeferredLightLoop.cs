@@ -5,8 +5,6 @@ using System.Collections.Generic;
 namespace UnityEngine.Rendering.HighDefinition
 {
 #if ENABLE_RAYTRACING
-    using RTHandle = RTHandleSystem.RTHandle;
-
     public partial class HDRenderPipeline
     {
         // The set of parameters that define our ray tracing deferred lighting pass
