@@ -69,6 +69,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Improved stack computation numerical stability in StackLit
 - Fix PBR master node always opaque (wrong blend modes for forward pass)
 - Fixed TAA with XR single-pass instancing (missing macros)
+- Fixed an issue causing Scene View selection wire gizmo to not appear when using HDRP Shader Graphs.
 
 ### Changed
 - Optimization: Reduce the group size of the deferred lighting pass from 16x16 to 8x8
