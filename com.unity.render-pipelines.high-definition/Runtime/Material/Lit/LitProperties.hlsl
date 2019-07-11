@@ -90,6 +90,8 @@ SAMPLER(sampler_LayerInfluenceMaskMap);
 #else
 PROP_DECL_TEX2D(_NormalMap);	// have the _NormalMaps *with* their samplers for now, to catch unsupported normal map usage
 
+TEXTURE2D(_BaseColorMap0);
+
 TEXTURE2D(_BaseColorMap1);
 TEXTURE2D(_MaskMap1);
 //TEXTURE2D(_NormalMap1);
