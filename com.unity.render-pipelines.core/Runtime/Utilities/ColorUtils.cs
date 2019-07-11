@@ -23,6 +23,115 @@ namespace UnityEngine.Rendering
             return new Vector3(L, M, S);
         }
 
+        public static Vector3 ColorBalanceToLMSCoeffs(float temperature, float tint)
+        {
+            // Range ~[-1.5;1.5] works best
+            float t1 = temperature / 65f;
+            float t2 = tint / 65f;
+
+            // Get the CIE xy chromaticity of the reference white point.
+            // Note: 0.31271 = x value on the D65 white point
+            float x = 0.31271f - t1 * (t1 < 0f ? 0.1f : 0.05f);
+            float y = StandardIlluminantY(x) + t2 * 0.05f;
+
+            // Calculate the coefficients in the LMS space.
+            var w1 = new Vector3(0.949237f, 1.03542f, 1.08728f); // D65 white point
+            var w2 = CIExyToLMS(x, y);
+            return new Vector3(w1.x / w2.x, w1.y / w2.y, w1.z / w2.z);
+        }
+
+        public static (Vector4, Vector4, Vector4) PrepareShadowsMidtonesHighlights(in Vector4 inShadows, in Vector4 inMidtones, in Vector4 inHighlights)
+        {
+            float weight;
+
+            var shadows = inShadows;
+            shadows.x = Mathf.GammaToLinearSpace(shadows.x);
+            shadows.y = Mathf.GammaToLinearSpace(shadows.y);
+            shadows.z = Mathf.GammaToLinearSpace(shadows.z);
+            weight = shadows.w * (Mathf.Sign(shadows.w) < 0f ? 1f : 4f);
+            shadows.x = Mathf.Max(shadows.x + weight, 0f);
+            shadows.y = Mathf.Max(shadows.y + weight, 0f);
+            shadows.z = Mathf.Max(shadows.z + weight, 0f);
+            shadows.w = 0f;
+
+            var midtones = inMidtones;
+            midtones.x = Mathf.GammaToLinearSpace(midtones.x);
+            midtones.y = Mathf.GammaToLinearSpace(midtones.y);
+            midtones.z = Mathf.GammaToLinearSpace(midtones.z);
+            weight = midtones.w * (Mathf.Sign(midtones.w) < 0f ? 1f : 4f);
+            midtones.x = Mathf.Max(midtones.x + weight, 0f);
+            midtones.y = Mathf.Max(midtones.y + weight, 0f);
+            midtones.z = Mathf.Max(midtones.z + weight, 0f);
+            midtones.w = 0f;
+
+            var highlights = inHighlights;
+            highlights.x = Mathf.GammaToLinearSpace(highlights.x);
+            highlights.y = Mathf.GammaToLinearSpace(highlights.y);
+            highlights.z = Mathf.GammaToLinearSpace(highlights.z);
+            weight = highlights.w * (Mathf.Sign(highlights.w) < 0f ? 1f : 4f);
+            highlights.x = Mathf.Max(highlights.x + weight, 0f);
+            highlights.y = Mathf.Max(highlights.y + weight, 0f);
+            highlights.z = Mathf.Max(highlights.z + weight, 0f);
+            highlights.w = 0f;
+
+            return (shadows, midtones, highlights);
+        }
+
+        public static (Vector4, Vector4, Vector4) PrepareLiftGammaGain(in Vector4 inLift, in Vector4 inGamma, in Vector4 inGain)
+        {
+            var lift = inLift;
+            lift.x = Mathf.GammaToLinearSpace(lift.x) * 0.15f;
+            lift.y = Mathf.GammaToLinearSpace(lift.y) * 0.15f;
+            lift.z = Mathf.GammaToLinearSpace(lift.z) * 0.15f;
+
+            float lumLift = Luminance(lift);
+            lift.x = lift.x - lumLift + lift.w;
+            lift.y = lift.y - lumLift + lift.w;
+            lift.z = lift.z - lumLift + lift.w;
+            lift.w = 0f;
+
+            var gamma = inGamma;
+            gamma.x = Mathf.GammaToLinearSpace(gamma.x) * 0.8f;
+            gamma.y = Mathf.GammaToLinearSpace(gamma.y) * 0.8f;
+            gamma.z = Mathf.GammaToLinearSpace(gamma.z) * 0.8f;
+
+            float lumGamma = Luminance(gamma);
+            gamma.w += 1f;
+            gamma.x = 1f / Mathf.Max(gamma.x - lumGamma + gamma.w, 1e-03f);
+            gamma.y = 1f / Mathf.Max(gamma.y - lumGamma + gamma.w, 1e-03f);
+            gamma.z = 1f / Mathf.Max(gamma.z - lumGamma + gamma.w, 1e-03f);
+            gamma.w = 0f;
+
+            var gain = inGain;
+            gain.x = Mathf.GammaToLinearSpace(gain.x) * 0.8f;
+            gain.y = Mathf.GammaToLinearSpace(gain.y) * 0.8f;
+            gain.z = Mathf.GammaToLinearSpace(gain.z) * 0.8f;
+
+            float lumGain = Luminance(gain);
+            gain.w += 1f;
+            gain.x = gain.x - lumGain + gain.w;
+            gain.y = gain.y - lumGain + gain.w;
+            gain.z = gain.z - lumGain + gain.w;
+            gain.w = 0f;
+
+            return (lift, gamma, gain);
+        }
+
+        public static (Vector4, Vector4) PrepareSplitToning(in Vector4 inShadows, in Vector4 inHighlights, float balance)
+        {
+            // As counter-intuitive as it is, to make split-toning work the same way it does in
+            // Adobe products we have to do all the maths in sRGB... So do not convert these to
+            // linear before sending them to the shader, this isn't a bug!
+            var shadows = inShadows;
+            var highlights = inHighlights;
+
+            // Balance is stored in `shadows.w`
+            shadows.w = balance / 100f;
+            highlights.w = 0f;
+
+            return (shadows, highlights);
+        }
+
         // RGB in linear space with sRGB primaries and D65 white point
         public static float Luminance(in Color color) => color.r * 0.2126729f + color.g * 0.7151522f + color.b * 0.072175f;
 

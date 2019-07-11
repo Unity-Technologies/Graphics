@@ -84,6 +84,12 @@ namespace UnityEngine.Rendering.Universal
         ForwardRenderer,
     }
 
+    public enum ColorGradingMode
+    {
+        LowDynamicRange,
+        HighDynamicRange
+    }
+
     public class UniversalRenderPipelineAsset : RenderPipelineAsset, ISerializationCallbackReceiver
     {
         Shader m_DefaultShader;
@@ -131,6 +137,10 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] bool m_SupportsDynamicBatching = false;
         [SerializeField] bool m_MixedLightingSupported = true;
 
+        // Post-processing settings
+        [SerializeField] ColorGradingMode m_ColorGradingMode = ColorGradingMode.LowDynamicRange;
+        [SerializeField] int m_ColorGradingLutSize = 32;
+
         // Deprecated settings
         [SerializeField] ShadowQuality m_ShadowType = ShadowQuality.HardShadows;
         [SerializeField] bool m_LocalShadowsSupported = false;
@@ -139,6 +149,12 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] ShadowResolution m_ShadowAtlasResolution = ShadowResolution._256;
 
         [SerializeField] ShaderVariantLogLevel m_ShaderVariantLogLevel = ShaderVariantLogLevel.Disabled;
+
+        // Note: A lut size of 16^3 is barely usable with the HDR grading mode. 32 should be the
+        // minimum, the lut being encoded in log. Lower sizes would work better with an additional
+        // 1D shaper lut but for now we'll keep it simple.
+        public const int k_MinLutSize = 16;
+        public const int k_MaxLutSize = 65;
 
 #if UNITY_EDITOR
         [NonSerialized]
@@ -430,6 +446,18 @@ namespace UnityEngine.Rendering.Universal
         {
             get { return m_UseSRPBatcher; }
             set { m_UseSRPBatcher = value; }
+        }
+
+        public ColorGradingMode colorGradingMode
+        {
+            get { return m_ColorGradingMode; }
+            set { m_ColorGradingMode = value; }
+        }
+
+        public int colorGradingLutSize
+        {
+            get { return m_ColorGradingLutSize; }
+            set { m_ColorGradingLutSize = Mathf.Clamp(value, k_MinLutSize, k_MaxLutSize); }
         }
 
         public override Material defaultMaterial

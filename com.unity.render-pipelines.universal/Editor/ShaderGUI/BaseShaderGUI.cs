@@ -1,8 +1,7 @@
 using System;
 using UnityEngine;
 using UnityEngine.Rendering;
-using UnityEditor.Rendering;
-using UnityEngine.Scripting.APIUpdating;
+using UnityEditor.Rendering.Universal;
 
 namespace UnityEditor
 {
