@@ -467,7 +467,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     Debug.LogWarning("One Static Lighting Sky component was already set for baking, only the latest one will be used.");
                 }
 
-                if (staticLightingSky.staticLightingSkyUniqueID == (int)SkyType.Procedural)
+                if (staticLightingSky.staticLightingSkyUniqueID == (int)SkyType.Procedural && !skyTypesDict.TryGetValue((int)SkyType.Procedural, out var dummy))
                 {
                     Debug.LogError("You are using the deprecated Procedural Sky for static lighting in your Scene. You can still use it but, to do so, you must install it separately. To do this, open the Package Manager window and import the 'Procedural Sky' sample from the HDRP package page, then close and re-open your project without saving.");
                     return;
