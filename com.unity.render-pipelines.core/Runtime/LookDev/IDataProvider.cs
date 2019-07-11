@@ -1,11 +1,10 @@
 using System.Collections.Generic;
 
-namespace UnityEngine.Rendering.Experimental.LookDev
+namespace UnityEngine.Rendering.LookDev
 {
-
-    //IMPORTANT: LookDev is still experimental. Use it at your own risk.
-    //Notably known issue: there is no isolation for volume at the moment that could cause leaks in rendering.
-
+    /// <summary>
+    /// Interface that Scriptable Render Pipelines should implement to be able to use LookDev window
+    /// </summary>
     public interface IDataProvider
     {
         /// <summary>Additional configuration required by this SRP on LookDev's scene creation</summary>
@@ -38,17 +37,14 @@ namespace UnityEngine.Rendering.Experimental.LookDev
         void GetShadowMask(ref RenderTexture output, StageRuntimeInterface stage);
     }
 
+    /// <summary>
+    /// Runtime container representing Sky data given to the scriptable render pipeline for rendering
+    /// </summary>
     public struct Sky
     {
         public Cubemap cubemap;
         public float longitudeOffset;
         public float exposure;
-    }
-    public struct Shadow
-    {
-        public Cubemap cubemap;
-        public Vector2 sunPosition;
-        public Color color;
     }
 
     /// <summary>Runtime link to reflect some Stage functionality for SRP editing</summary>
