@@ -167,6 +167,7 @@ namespace UnityEngine.Rendering.HighDefinition
             float D    = Mathf.Max(m_Settings.airMaximumAltitude.value, m_Settings.aerosolMaximumAltitude.value);
             float airH = m_Settings.GetAirScaleHeight();
             float aerH = m_Settings.GetAerosolScaleHeight();
+            float iMul = Mathf.Pow(2.0f, m_Settings.exposure.value) * m_Settings.multiplier.value;
 
             cmd.SetGlobalFloat( HDShaderIDs._PlanetaryRadius,           R);
             cmd.SetGlobalFloat( HDShaderIDs._RcpPlanetaryRadius,        1.0f / R);
@@ -189,6 +190,8 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetGlobalFloat( HDShaderIDs._AerosolSeaLevelScattering, m_Settings.GetAerosolScatteringCoefficient());
 
             cmd.SetGlobalVector(HDShaderIDs._GroundAlbedo,              m_Settings.groundColor.value);
+            cmd.SetGlobalFloat(HDShaderIDs._IntensityMultiplier,        iMul);
+
             cmd.SetGlobalVector(HDShaderIDs._PlanetCenterPosition,      m_Settings.planetCenterPosition.value);
         }
 

@@ -31,6 +31,7 @@ CBUFFER_START(UnityPhysicallyBasedSky)
     float  _AerosolSeaLevelScattering;
 
     float3 _GroundAlbedo;
+    float  _IntensityMultiplier;
 
     float3 _PlanetCenterPosition; // Not used during the precomputation, but needed to apply the atmospheric effect
 CBUFFER_END

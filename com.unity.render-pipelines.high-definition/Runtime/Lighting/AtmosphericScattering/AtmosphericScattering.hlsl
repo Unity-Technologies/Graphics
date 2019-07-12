@@ -218,7 +218,7 @@ void EvaluateAtmosphericScattering(PositionInputs posInput, float3 V, out float3
         EvaluatePbrAtmosphere(V, posInput.linearDepth, posInput.deviceDepth,
                               skyColor, skyOpacity);
 
-        skyColor *= GetCurrentExposureMultiplier();
+        skyColor *= _IntensityMultiplier * GetCurrentExposureMultiplier();
     }
 
     float3 fogColor = 0, fogOpacity = 0;

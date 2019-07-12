@@ -142,7 +142,7 @@ Shader "Hidden/HDRP/Sky/PbrSky"
                               skyColor, skyOpacity);
 
         skyColor += totalRadiance * (1 - skyOpacity);
-        skyColor *= GetCurrentExposureMultiplier();
+        skyColor *= _IntensityMultiplier * GetCurrentExposureMultiplier();
 
         return float4(skyColor, 1.0);
     }
