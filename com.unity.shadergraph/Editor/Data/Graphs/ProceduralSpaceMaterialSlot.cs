@@ -7,7 +7,7 @@ using UnityEngine.UIElements;
 namespace UnityEditor.ShaderGraph
 {
     [Serializable]
-    class ProceduralSpaceMaterialSlot : MaterialSlot
+    class ProceduralSpaceMaterialSlot : MaterialSlot, IProceduralMaterialSlot
     {
         [SerializeField]
         private CoordinateSpace m_Space = CoordinateSpace.World;

@@ -10,16 +10,18 @@
         output.positionSS = input.positionCS;       // input.positionCS is SV_Position
 
         $FragInputs.positionRWS:        output.positionRWS = input.positionRWS;
-        $FragInputs.tangentToWorld:     output.tangentToWorld = BuildTangentToWorld(input.tangentWS, input.normalWS);
+        #ifndef PROCEDURAL_PIXEL_NORMAL_TANGENT
+            $FragInputs.tangentToWorld: output.tangentToWorld = BuildTangentToWorld(input.tangentWS, input.normalWS);
+        #endif
         $FragInputs.texCoord0:          output.texCoord0 = input.texCoord0;
         $FragInputs.texCoord1:          output.texCoord1 = input.texCoord1;
         $FragInputs.texCoord2:          output.texCoord2 = input.texCoord2;
         $FragInputs.texCoord3:          output.texCoord3 = input.texCoord3;
         $FragInputs.color:              output.color = input.color;
         #if _DOUBLESIDED_ON && SHADER_STAGE_FRAGMENT
-        output.isFrontFace = IS_FRONT_VFACE(input.cullFace, true, false);
+            output.isFrontFace = IS_FRONT_VFACE(input.cullFace, true, false);
         #elif SHADER_STAGE_FRAGMENT
-        $FragInputs.isFrontFace:        output.isFrontFace = IS_FRONT_VFACE(input.cullFace, true, false);
+            $FragInputs.isFrontFace:    output.isFrontFace = IS_FRONT_VFACE(input.cullFace, true, false);
         #endif // SHADER_STAGE_FRAGMENT
 
         return output;

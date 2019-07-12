@@ -1095,6 +1095,14 @@ namespace UnityEditor.Rendering.HighDefinition
             if (masterNode.depthOffset.isOn && pass.PixelShaderUsesSlot(HDLitMasterNode.DepthOffsetSlotId))
                 activeFields.Add("DepthOffset");
 
+            if (masterNode.proceduralNormalMode == ProceduralNormalMode.VertexObjectSpace
+                && (masterNode.IsSlotConnected(HDLitMasterNode.ProceduralNormalOSVertexSlotId) || masterNode.IsSlotConnected(HDLitMasterNode.ProceduralTangentOSVertexSlotId)))
+                activeFields.Add("Procedural.VertexNormal");
+
+            if (masterNode.proceduralNormalMode == ProceduralNormalMode.PixelObjectSpace
+                && (masterNode.IsSlotConnected(HDLitMasterNode.ProceduralNormalOSPixelSlotId) || masterNode.IsSlotConnected(HDLitMasterNode.ProceduralTangentOSPixelSlotId)))
+                activeFields.Add("Procedural.PixelNormal");
+
             return activeFields;
         }
 

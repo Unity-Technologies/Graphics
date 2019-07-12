@@ -1204,6 +1204,9 @@ namespace UnityEditor.ShaderGraph
             {
                 foreach (var slot in slots)
                 {
+                    if (slot is IProceduralMaterialSlot)
+                        continue;
+                
                     string hlslName = NodeUtils.GetHLSLSafeName(slot.shaderOutputName);
                     if (useIdsInNames)
                     {
@@ -1273,26 +1276,17 @@ namespace UnityEditor.ShaderGraph
                     var usedSlots = slots ?? rootNode.GetInputSlots<MaterialSlot>();
                     foreach (var input in usedSlots)
                     {
-                        if (input != null)
+                        if (input == null || (input is IProceduralMaterialSlot))
+                            continue;
+
+                        var hlslName = NodeUtils.GetHLSLSafeName(input.shaderOutputName);
+                        if (rootNode is SubGraphOutputNode)
                         {
-                            var foundEdges = graph.GetEdges(input.slotReference).ToArray();
-                            var hlslName = NodeUtils.GetHLSLSafeName(input.shaderOutputName);
-                            if (rootNode is SubGraphOutputNode)
-                            {
-                                hlslName = $"{hlslName}_{input.id}";
-                            }
-                            if (foundEdges.Any())
-                            {
-                                surfaceDescriptionFunction.AppendLine("surface.{0} = {1};",
-                                    hlslName,
-                                    rootNode.GetSlotValue(input.id, mode, rootNode.concretePrecision));
-                            }
-                            else
-                            {
-                                surfaceDescriptionFunction.AppendLine("surface.{0} = {1};",
-                                    hlslName, input.GetDefaultValue(mode, rootNode.concretePrecision));
-                            }
+                            hlslName = $"{hlslName}_{input.id}";
                         }
+                        surfaceDescriptionFunction.AppendLine(
+                            "surface.{0} = {1};", hlslName,
+                            rootNode.GetSlotValue(input.id, mode, rootNode.concretePrecision));
                     }
                 }
                 else if (rootNode.hasPreview)

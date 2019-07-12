@@ -98,6 +98,8 @@ Pass
     $VaryingsMeshToPS.color:                #define VARYINGS_NEED_COLOR
     $VaryingsMeshToPS.cullFace:             #define VARYINGS_NEED_CULLFACE
     $features.modifyMesh:                   #define HAVE_MESH_MODIFICATION
+    $Procedural.VertexNormal:               #define PROCEDURAL_VERTEX_NORMAL_TANGENT
+    $Procedural.PixelNormal:                #define PROCEDURAL_PIXEL_NORMAL_TANGENT
 
 // We need isFontFace when using double sided
 #if defined(_DOUBLESIDED_ON) && !defined(VARYINGS_NEED_CULLFACE)

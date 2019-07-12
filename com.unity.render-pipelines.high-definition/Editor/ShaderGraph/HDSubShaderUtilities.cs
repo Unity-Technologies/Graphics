@@ -663,6 +663,13 @@ namespace UnityEditor.Rendering.HighDefinition
                     HDRPShaderStructs.VertexDescriptionInputs.dependencies
                 });
 
+            // Don't pass tangent/normal from vertex to pixels if they are gonna be procedurally generated in pixel.
+            if (activeFields.Contains("Procedural.PixelNormal"))
+            {
+                activeFields.Remove("VaryingsMeshToPS.tangentWS");
+                activeFields.Remove("VaryingsMeshToPS.normalWS");
+            }
+
             // debug output all active fields
             var interpolatorDefines = new ShaderGenerator();
             if (debugOutput)
