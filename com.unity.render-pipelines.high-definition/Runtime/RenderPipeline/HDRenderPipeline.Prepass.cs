@@ -216,16 +216,16 @@ namespace UnityEngine.Rendering.HighDefinition
                     if (data.msaaEnabled)
                         mrt[1] = context.resources.GetTexture(data.depthAsColorBuffer);
 
-                    RenderDepthPrepass(context.renderContext, context.cmd, data.frameSettings,
-                                    mrt,
-                                    context.resources.GetTexture(data.depthBuffer),
-                                    data.hasDepthOnlyPrepass ? context.resources.GetRendererList(data.rendererListDepthOnly) : RendererList.nullRendererList,
-                                    context.resources.GetRendererList(data.rendererListMRT),
-                                    data.hasDepthOnlyPrepass,
+                    RenderDepthPrepass(context.renderContext, context.cmd, data.frameSettings
+                                    , mrt
+                                    , context.resources.GetTexture(data.depthBuffer)
+                                    , data.hasDepthOnlyPrepass ? context.resources.GetRendererList(data.rendererListDepthOnly) : RendererList.nullRendererList
+                                    , context.resources.GetRendererList(data.rendererListMRT)
+                                    , data.hasDepthOnlyPrepass
 #if ENABLE_RAYTRACING
-                                    data.rayTracingManager,
-                                    context.resources.GetRendererList(data.renderListRayTracingOpaque),
-                                    context.resources.GetRendererList(data.renderListRayTracingTransparent)
+                                    , data.rayTracingManager,
+                                    , context.resources.GetRendererList(data.renderListRayTracingOpaque)
+                                    , context.resources.GetRendererList(data.renderListRayTracingTransparent)
 #endif
                                     );
                 });
