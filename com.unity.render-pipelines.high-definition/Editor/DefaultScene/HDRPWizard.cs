@@ -201,7 +201,7 @@ namespace UnityEditor.Rendering.HighDefinition
             GetSupportedGraphicsAPIs = getSupportedGraphicsAPIsLambda.Compile();
         }
 
-        [MenuItem("Window/General/HD Render Pipeline Wizard", priority = 2000)]
+        [MenuItem("Window/Render Pipeline/HD Render Pipeline Wizard", priority = 5)]
         static void OpenWindow()
         {
             GetWindow<HDWizard>("Render Pipeline Wizard");
