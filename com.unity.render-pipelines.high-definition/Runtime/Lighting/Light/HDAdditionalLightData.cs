@@ -2152,7 +2152,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (timelineWorkaround.oldLossyScale != transform.lossyScale)
                 lightSize = transform.lossyScale;
             else
-                lightSize = new Vector3(shapeWidth, m_ShapeHeight, transform.localScale.z);
+                lightSize = new Vector3(m_ShapeWidth, m_ShapeHeight, transform.localScale.z);
 
             if (lightTypeExtent == LightTypeExtent.Tube)
                 lightSize.y = k_MinAreaWidth;
@@ -2185,11 +2185,11 @@ namespace UnityEngine.Rendering.HighDefinition
             switch (lightTypeExtent)
             {
                 case LightTypeExtent.Rectangle:
-                    shapeWidth = lightSize.x;
+                    m_ShapeWidth = lightSize.x;
                     m_ShapeHeight = lightSize.y;
                     break;
                 case LightTypeExtent.Tube:
-                    shapeWidth = lightSize.x;
+                    m_ShapeWidth = lightSize.x;
                     break;
                 default:
                     break;

@@ -5,7 +5,7 @@ namespace UnityEditor.Rendering.HighDefinition
 {
     [CanEditMultipleObjects]
     [VolumeComponentEditor(typeof(PhysicallyBasedSky))]
-    public class PhysicallyBasedSkyEditor : VolumeComponentEditor
+    public class PhysicallyBasedSkyEditor : SkySettingsEditor
     {
         SerializedDataParameter m_PlanetaryRadius;
         SerializedDataParameter m_PlanetCenterPosition;
@@ -23,12 +23,14 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedDataParameter m_PlanetRotation;
         SerializedDataParameter m_SpaceEmissionTexture;
         SerializedDataParameter m_SpaceRotation;
-        SerializedDataParameter m_Exposure;
-        SerializedDataParameter m_Multiplier;
 
         public override void OnEnable()
         {
             base.OnEnable();
+
+            m_CommonUIElementsMask = (uint)SkySettingsUIElement.UpdateMode
+                                   | (uint)SkySettingsUIElement.Exposure
+                                   | (uint)SkySettingsUIElement.Multiplier;
 
             var o = new PropertyFetcher<PhysicallyBasedSky>(serializedObject);
 
@@ -48,8 +50,6 @@ namespace UnityEditor.Rendering.HighDefinition
 			m_PlanetRotation             = Unpack(o.Find(x => x.planetRotation));
 			m_SpaceEmissionTexture       = Unpack(o.Find(x => x.spaceEmissionTexture));
 			m_SpaceRotation              = Unpack(o.Find(x => x.spaceRotation));
-            m_Exposure                   = Unpack(o.Find(x => x.exposure));
-            m_Multiplier                 = Unpack(o.Find(x => x.multiplier));
         }
 
         public override void OnInspectorGUI()
@@ -70,8 +70,8 @@ namespace UnityEditor.Rendering.HighDefinition
 			PropertyField(m_PlanetRotation);
 			PropertyField(m_SpaceEmissionTexture);
 			PropertyField(m_SpaceRotation);
-            PropertyField(m_Exposure);
-            PropertyField(m_Multiplier);
+
+            base.CommonSkySettingsGUI();
         }
     }
 }
