@@ -19,12 +19,6 @@ namespace UnityEngine.Rendering.HighDefinition
             // So we can't rely on automatic pass stripping. This is why we have to be explicit here.
             if (IsActive(hdCamera, settings))
             {
-#if ENABLE_RAYTRACING
-                HDRaytracingEnvironment rtEnvironement = m_RayTracingManager.CurrentEnvironment();
-                if (rtEnvironement != null && settings.enableRaytracing.value)
-                    m_RaytracingAmbientOcclusion.RenderAO(camera, cmd, m_AmbientOcclusionTex, renderContext, frameCount);
-                else
-#endif
                 {
                     EnsureRTSize(settings, hdCamera);
 
