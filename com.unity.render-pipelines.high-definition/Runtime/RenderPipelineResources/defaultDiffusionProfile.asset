@@ -12,8 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b2686e09ec7aef44bad2843e4416f057, type: 3}
   m_Name: defaultDiffusionProfile
   m_EditorClassIdentifier: 
-  m_Version: 1
-  profiles: []
   profile:
     name: Diffusion Profile
     scatteringDistance: {r: 0, g: 1, b: 0, a: 1}
@@ -24,3 +22,5 @@ MonoBehaviour:
     worldScale: 1
     ior: 1.4
     hash: 1080714638
+  m_Version: 1
+  profiles: []

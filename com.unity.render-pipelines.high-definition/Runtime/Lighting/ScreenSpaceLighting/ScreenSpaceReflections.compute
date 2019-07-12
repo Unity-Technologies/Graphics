@@ -19,19 +19,19 @@
 // Included headers
 //--------------------------------------------------------------------------------------------------
 
-#include "../../ScriptableRenderPipeline/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
-#include "../../ScriptableRenderPipeline/com.unity.render-pipelines.core/ShaderLibrary/Packing.hlsl"
-#include "../../ScriptableRenderPipeline/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
-#include "../../ScriptableRenderPipeline/com.unity.render-pipelines.high-definition/Runtime/Lighting/ScreenSpaceLighting/ScreenSpaceLighting.hlsl"
-#include "../../ScriptableRenderPipeline/com.unity.render-pipelines.high-definition/Runtime/Material/Builtin/BuiltinData.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Packing.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ScreenSpaceLighting/ScreenSpaceLighting.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Builtin/BuiltinData.hlsl"
 
 
 #ifdef DEBUG_DISPLAY
-    #include "../../ScriptableRenderPipeline/com.unity.render-pipelines.core/ShaderLibrary/Debug.hlsl"
-    #include "../../ScriptableRenderPipeline/com.unity.render-pipelines.high-definition/Runtime/Debug/DebugDisplay.hlsl"
+    #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Debug.hlsl"
+    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Debug/DebugDisplay.hlsl"
 #endif
 
-#include "../../ScriptableRenderPipeline/com.unity.render-pipelines.high-definition/Runtime/Material/NormalBuffer.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/NormalBuffer.hlsl"
 
 //--------------------------------------------------------------------------------------------------
 // Inputs & outputs
@@ -352,7 +352,7 @@ void ScreenSpaceReflectionsReprojection(uint3 dispatchThreadId : SV_DispatchThre
     // Inverse pre-exposure
     float prevExposure = GetPreviousExposureMultiplier();
     color /= prevExposure + (prevExposure == 0.0); // zero-div guard
-
+    
     // Disable SSR for negative, infinite and NaN history values.
     uint3 intCol   = asuint(color);
     bool  isPosFin = Max3(intCol.r, intCol.g, intCol.b) < 0x7F800000;
