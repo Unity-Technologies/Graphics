@@ -23,8 +23,8 @@ projects:
     folder: ShaderGraph
   - name: PostProcessing
     folder: PostProcessing
-#  - name: HDRP
-#    folder: HDRP_Tests
+  - name: HDRP
+    folder: HDRP_Tests
   - name: VFXMain
     folder: VisualEffectGraph
   - name: VFX_LWRP
@@ -51,7 +51,7 @@ all_project_ci:
     {% else %}
     - .yamato/upm-ci-vfx_lwrp.yml#VFX_LWRP_Windows64_{{ testplatform.name }}_{{ editor.version }}
     {% endif %}
-  {% elsif project.name == "Universal" or project.name == "PostProcessing" or project.name == "VFXMain" %}
+  {% elsif project.name == "Universal" or project.name == "PostProcessing" or project.name == "VFXMain" or project.name == "HDRP" %}
     {% if testplatform.name == "Standalone" %}
     #skip standalone for these projects
     {% else %}
