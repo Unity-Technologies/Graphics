@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   components:
   - {fileID: 4399605326884683900}
-  - {fileID: 4845244889253265832}
+  - {fileID: 5021176665141955927}
 --- !u!114 &4399605326884683900
 MonoBehaviour:
   m_ObjectHideFlags: 3
@@ -151,7 +151,7 @@ MonoBehaviour:
   spaceRotation:
     m_OverrideState: 1
     m_Value: {x: 15, y: 30, z: 45}
---- !u!114 &8007770608503675551
+--- !u!114 &5021176665141955927
 MonoBehaviour:
   m_ObjectHideFlags: 3
   m_CorrespondingSourceObject: {fileID: 0}
@@ -160,9 +160,9 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 0}
-  m_Name: PhysicallyBasedSkySettings
-  m_EditorClassIdentifier: Unity.RenderPipelines.HighDefinition.Runtime:UnityEngine.Experimental.Rendering.HDPipeline:PhysicallyBasedSkySettings
+  m_Script: {fileID: 11500000, guid: d877ec3e844f2ca46830012e8e79319b, type: 3}
+  m_Name: PhysicallyBasedSky
+  m_EditorClassIdentifier: 
   active: 1
   m_AdvancedMode: 0
   rotation:
@@ -204,9 +204,9 @@ MonoBehaviour:
   planetCenterPosition:
     m_OverrideState: 0
     m_Value: {x: 0, y: -6378.759, z: 0}
-  airThickness:
+  airAttenuationDistance:
     m_OverrideState: 0
-    m_Value: {r: 5.8, g: 13.5, b: 33.1, a: 1}
+    m_Value: {r: 0.17241378, g: 0.074074075, b: 0.030211482, a: 1}
     hdr: 1
     showAlpha: 0
     showEyeDropper: 0
@@ -216,38 +216,36 @@ MonoBehaviour:
     hdr: 0
     showAlpha: 0
     showEyeDropper: 0
-  airDensityFalloff:
+  airMaximumAltitude:
     m_OverrideState: 0
-    m_Value: 0.118567705
+    m_Value: 58.3
     min: 0
-    max: 1
-  aerosolThickness:
+  aerosolAttenuationDistance:
     m_OverrideState: 0
-    m_Value: 2
+    m_Value: 0.5
     min: 0
   aerosolAlbedo:
     m_OverrideState: 0
     m_Value: 0.9
     min: 0
     max: 1
-  aerosolDensityFalloff:
+  aerosolMaximumAltitude:
     m_OverrideState: 0
-    m_Value: 0.8333333
+    m_Value: 8.3
     min: 0
-    max: 1
   aerosolAnisotropy:
     m_OverrideState: 0
     m_Value: 0
     min: -1
     max: 1
-  numBounces:
+  numberOfBounces:
     m_OverrideState: 0
     m_Value: 8
     min: 1
     max: 10
   groundColor:
-    m_OverrideState: 0
-    m_Value: {r: 0.4, g: 0.25, b: 0.15, a: 1}
+    m_OverrideState: 1
+    m_Value: {r: 0.17254902, g: 0.227451, b: 0.3137255, a: 1}
     hdr: 0
     showAlpha: 0
     showEyeDropper: 0
@@ -259,10 +257,10 @@ MonoBehaviour:
     m_Value: {fileID: 8900000, guid: ec98521838f4e7f4a839280309cb08ab, type: 3}
   planetRotation:
     m_OverrideState: 1
-    m_Value: {x: -5, y: 140, z: -10}
+    m_Value: {x: 180, y: -50, z: 170}
   spaceEmissionTexture:
     m_OverrideState: 1
     m_Value: {fileID: 8900000, guid: b0c5cbf24c773cd449436a2060083b10, type: 3}
   spaceRotation:
     m_OverrideState: 1
-    m_Value: {x: 90, y: -45, z: 45}
+    m_Value: {x: 15, y: 30, z: 45}

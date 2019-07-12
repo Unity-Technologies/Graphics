@@ -27,7 +27,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         bool m_IsBuilt = false;
 
-        PhysicallyBasedSkySettings   m_Settings;
+        PhysicallyBasedSky   m_Settings;
         // Precomputed data below.
         RTHandle[]    m_GroundIrradianceTables;    // All orders, one order
         RTHandle[]    m_InScatteredRadianceTables; // Air SS, Aerosol SS, Atmosphere MS, Atmosphere one order, Temp
@@ -68,7 +68,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return table;
         }
 
-        public PhysicallyBasedSkyRenderer(PhysicallyBasedSkySettings settings)
+        public PhysicallyBasedSkyRenderer(PhysicallyBasedSky settings)
         {
             m_Settings = settings;
         }
@@ -164,7 +164,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
 
             float R    = m_Settings.planetaryRadius.value;
-            float D    = Mathf.Max(m_Settings.airMaxAltitude.value, m_Settings.aerosolMaxAltitude.value);
+            float D    = Mathf.Max(m_Settings.airMaximumAltitude.value, m_Settings.aerosolMaximumAltitude.value);
             float airH = m_Settings.GetAirScaleHeight();
             float aerH = m_Settings.GetAerosolScaleHeight();
 
@@ -315,7 +315,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     }
                 }
 
-                if (m_LastPrecomputedBounce == m_Settings.numBounces.value)
+                if (m_LastPrecomputedBounce == m_Settings.numberOfBounces.value)
                 {
                     // Free temp tables.
                     // This is a deferred release (one frame late)!
@@ -327,7 +327,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     m_InScatteredRadianceTables[4] = null;
                 }
 
-                if (m_LastPrecomputedBounce < m_Settings.numBounces.value)
+                if (m_LastPrecomputedBounce < m_Settings.numberOfBounces.value)
                 {
                     // We precompute one bounce per render call.
                     PrecomputeTables(cmd);
