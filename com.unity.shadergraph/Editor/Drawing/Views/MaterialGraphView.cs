@@ -206,6 +206,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             if (evt.target is BlackboardField)
             {
                 evt.menu.AppendAction("Delete", (e) => DeleteSelectionImplementation("Delete", AskUser.DontAskUser), (e) => canDeleteSelection ? DropdownMenuAction.Status.Normal : DropdownMenuAction.Status.Disabled);
+                evt.menu.AppendAction("Duplicate", (e) => DuplicateSelection(), (e) => canDuplicateSelection ? DropdownMenuAction.Status.Normal : DropdownMenuAction.Status.Disabled);
             }
         }
 
@@ -516,6 +517,29 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             foreach (var propNode in selectedNodeViews)
                 ((GraphData)propNode.owner).ReplacePropertyNodeWithConcreteNode(propNode);
+        }
+
+        void DuplicateSelection()
+        {
+            graph.owner.RegisterCompleteObjectUndo("Duplicate Blackboard Property");
+
+            // Create list that we sorted based on position, so that duplication
+            List<AbstractShaderProperty> selectedProperties = new List<AbstractShaderProperty>();
+            foreach (var selectable in selection)
+            {
+                var field = selectable as BlackboardField;
+                var shaderProp = (AbstractShaderProperty) field.userData;
+                if (field != null && shaderProp != null)
+                {
+                    selectedProperties.Add(shaderProp);
+                }
+            }
+
+            CopyPasteGraph copiedProperties = new CopyPasteGraph("", new List<GroupData>(),
+                new List<AbstractMaterialNode>(), new List<IEdge>(), selectedProperties,
+                new List<AbstractShaderProperty>(), new List<StickyNoteData>());
+
+            GraphViewExtensions.InsertCopyPasteGraph(this, copiedProperties);
         }
 
         DropdownMenuAction.Status ConvertToSubgraphStatus(DropdownMenuAction action)
@@ -854,6 +878,23 @@ namespace UnityEditor.ShaderGraph.Drawing
 
     static class GraphViewExtensions
     {
+        // Sorts based on their position on the blackboard
+        internal class PropertyOrder : IComparer<AbstractShaderProperty>
+        {
+            GraphData graphData;
+
+            internal PropertyOrder(GraphData data)
+            {
+                graphData = data;
+            }
+
+            public int Compare(AbstractShaderProperty x, AbstractShaderProperty y)
+            {
+                if (graphData.GetShaderPropertyIndex(x) > graphData.GetShaderPropertyIndex(y)) return 1;
+                else return -1;
+            }
+        }
+
         internal static void InsertCopyPasteGraph(this MaterialGraphView graphView, CopyPasteGraph copyGraph)
         {
             if (copyGraph == null)
@@ -960,6 +1001,16 @@ namespace UnityEditor.ShaderGraph.Drawing
                         });
                 }
             }
+        }
+
+        static AbstractShaderProperty DuplicateProperty(AbstractShaderProperty original, GraphData graph)
+        {
+            string propertyName = graph.SanitizePropertyName(original.displayName);
+            AbstractShaderProperty copy = original.Copy();
+            copy.displayName = propertyName;
+            graph.AddShaderProperty(copy);
+            copy.generatePropertyBlock = original.generatePropertyBlock;
+            return copy;
         }
     }
 }
