@@ -1,3 +1,6 @@
+#ifndef UNITY_PHYSICALLY_BASED_SKY_COMMON_INCLUDED
+#define UNITY_PHYSICALLY_BASED_SKY_COMMON_INCLUDED
+
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/CommonLighting.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/VolumeRendering.hlsl"
@@ -398,3 +401,5 @@ float IntersectAtmosphere(float3 O, float3 V, out float3 N, out float r)
 
     return t;
 }
+
+#endif // UNITY_PHYSICALLY_BASED_SKY_COMMON_INCLUDED

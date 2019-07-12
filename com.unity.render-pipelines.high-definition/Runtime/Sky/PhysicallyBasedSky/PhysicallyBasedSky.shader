@@ -13,6 +13,7 @@ Shader "Hidden/HDRP/Sky/PbrSky"
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Sky/PhysicallyBasedSky/PhysicallyBasedSkyCommon.hlsl"
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Sky/SkyUtils.hlsl"
+    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/AtmosphericScattering/AtmosphericScattering.hlsl"
 
     int _HasGroundAlbedoTexture;    // bool...
     int _HasGroundEmissionTexture;  // bool...
@@ -106,7 +107,7 @@ Shader "Hidden/HDRP/Sky/PbrSky"
                     float3 radiance = 0;
 
                     float3 irradiance = SampleGroundIrradianceTexture(dot(gN, L));
-                    radiance += gBrdf * irradiance; // Transmittance is applied during the atmospheric scattering pass
+                    radiance += gBrdf * irradiance;
                     radiance *= lightRadiance;      // Globally scale the intensity
 
                     totalRadiance += radiance;
@@ -132,9 +133,18 @@ Shader "Hidden/HDRP/Sky/PbrSky"
             }
         }
 
-        totalRadiance += emission; // Transmittance is applied during the atmospheric scattering pass
+        totalRadiance += emission;
 
-        return float4(totalRadiance, 1.0);
+        float3 skyColor, skyOpacity;
+
+        // Evaluate the sky at infinity.
+        EvaluatePbrAtmosphere(V, FLT_INF, UNITY_RAW_FAR_CLIP_VALUE,
+                              skyColor, skyOpacity);
+
+        skyColor += totalRadiance * (1 - skyOpacity);
+        skyColor *= GetCurrentExposureMultiplier();
+
+        return float4(skyColor, 1.0);
     }
 
     float4 FragBaking(Varyings input) : SV_Target

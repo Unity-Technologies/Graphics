@@ -30,6 +30,7 @@ float3 GetFogColor(float3 V, float fragDist)
         return  float3(0.0, 0.0, 0.0);
 }
 
+// Assumes that there is NO sky occlusion along the ray AT ALL.
 void EvaluatePbrAtmosphere(float3 V, float linearDepth, float deviceDepth,
                            out float3 skyColor, out float3 skyOpacity)
 {
@@ -185,7 +186,6 @@ void EvaluatePbrAtmosphere(float3 V, float linearDepth, float deviceDepth,
                 skyColor += radiance;
             }
 
-            skyColor  *= GetCurrentExposureMultiplier();
             skyOpacity = 1 - skyTransm;
         }
     }
@@ -211,11 +211,14 @@ void EvaluateAtmosphericScattering(PositionInputs posInput, float3 V, out float3
 
     bool hasPbrSkyAtmosphere = (_AtmosphericScatteringType & 128) == 128;
 
-    // Below, we assume there is NO sky occlusion AT ALL.
-    if (hasPbrSkyAtmosphere)
+    // We apply atmospheric scattering at infinity during the sky pass.
+    // Additionally, the planet currently does not write depth.
+    if (hasPbrSkyAtmosphere && (posInput.deviceDepth != UNITY_RAW_FAR_CLIP_VALUE))
     {
         EvaluatePbrAtmosphere(V, posInput.linearDepth, posInput.deviceDepth,
                               skyColor, skyOpacity);
+
+        skyColor *= GetCurrentExposureMultiplier();
     }
 
     float3 fogColor = 0, fogOpacity = 0;
