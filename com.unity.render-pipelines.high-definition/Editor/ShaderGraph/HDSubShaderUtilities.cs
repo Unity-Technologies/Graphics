@@ -566,9 +566,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             NodeUtils.DepthFirstCollectNodesFromNode(pixelNodes, masterNode, NodeUtils.IncludeSelf.Include, pass.PixelShaderSlots);
 
             // graph requirements describe what the graph itself requires
-            var pixelRequirements = ShaderGraphRequirements.FromNodes(pixelNodes, ShaderStageCapability.Fragment, false);   // TODO: is ShaderStageCapability.Fragment correct?
-            var vertexRequirements = ShaderGraphRequirements.FromNodes(vertexNodes, ShaderStageCapability.Vertex, false);
-            var graphRequirements = pixelRequirements.Union(vertexRequirements);
+            ShaderGraphRequirementsPerKeyword pixelRequirements = new ShaderGraphRequirementsPerKeyword();
+            ShaderGraphRequirementsPerKeyword vertexRequirements = new ShaderGraphRequirementsPerKeyword();
+            ShaderGraphRequirementsPerKeyword graphRequirements = new ShaderGraphRequirementsPerKeyword();
 
             // Function Registry tracks functions to remove duplicates, it wraps a string builder that stores the combined function string
             ShaderStringBuilder graphNodeFunctions = new ShaderStringBuilder();
@@ -609,52 +609,61 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             List<int>[] keywordPermutationsPerVertexNode = new List<int>[vertexNodes.Count];
             List<int>[] keywordPermutationsPerPixelNode = new List<int>[pixelNodes.Count];
 
-            // Track requirements per keyword permutation
-            List<KeyValuePair<int, ShaderGraphRequirements>> vertexRequirementsPerKeyword = new List<KeyValuePair<int, ShaderGraphRequirements>>();
-            List<KeyValuePair<int, ShaderGraphRequirements>> pixelRequirementsPerKeyword = new List<KeyValuePair<int, ShaderGraphRequirements>>();
-
             // -------------------------------------
             // Evaluate all permutations
 
-            for(int i = 0; i < keywordPermutations.Count; i++)
+            if (keywordPermutations.Count > 0)
             {
-                // Get active nodes for this permutation
-                var localVertexNodes = ListPool<AbstractMaterialNode>.Get();
-                var localPixelNodes = ListPool<AbstractMaterialNode>.Get();
-                NodeUtils.DepthFirstCollectNodesFromNode(localVertexNodes, masterNode, NodeUtils.IncludeSelf.Include, pass.VertexShaderSlots, keywordPermutations[i]);
-                NodeUtils.DepthFirstCollectNodesFromNode(localPixelNodes, masterNode, NodeUtils.IncludeSelf.Include, pass.PixelShaderSlots, keywordPermutations[i]);
-
-                // Track each vertex node in this permutation
-                foreach(AbstractMaterialNode vertexNode in localVertexNodes)
+                for(int i = 0; i < keywordPermutations.Count; i++)
                 {
-                    int nodeIndex = vertexNodes.IndexOf(vertexNode);
+                    // Get active nodes for this permutation
+                    var localVertexNodes = ListPool<AbstractMaterialNode>.Get();
+                    var localPixelNodes = ListPool<AbstractMaterialNode>.Get();
+                    NodeUtils.DepthFirstCollectNodesFromNode(localVertexNodes, masterNode, NodeUtils.IncludeSelf.Include, pass.VertexShaderSlots, keywordPermutations[i]);
+                    NodeUtils.DepthFirstCollectNodesFromNode(localPixelNodes, masterNode, NodeUtils.IncludeSelf.Include, pass.PixelShaderSlots, keywordPermutations[i]);
 
-                    if(keywordPermutationsPerVertexNode[nodeIndex] == null)
-                        keywordPermutationsPerVertexNode[nodeIndex] = new List<int>();
-                    keywordPermutationsPerVertexNode[nodeIndex].Add(i);
+                    // Track each vertex node in this permutation
+                    foreach(AbstractMaterialNode vertexNode in localVertexNodes)
+                    {
+                        int nodeIndex = vertexNodes.IndexOf(vertexNode);
+
+                        if(keywordPermutationsPerVertexNode[nodeIndex] == null)
+                            keywordPermutationsPerVertexNode[nodeIndex] = new List<int>();
+                        keywordPermutationsPerVertexNode[nodeIndex].Add(i);
+                    }
+
+                    // Track each pixel node in this permutation
+                    foreach(AbstractMaterialNode pixelNode in localPixelNodes)
+                    {
+                        int nodeIndex = pixelNodes.IndexOf(pixelNode);
+
+                        if(keywordPermutationsPerPixelNode[nodeIndex] == null)
+                            keywordPermutationsPerPixelNode[nodeIndex] = new List<int>();
+                        keywordPermutationsPerPixelNode[nodeIndex].Add(i);
+                    }
+
+                    // Get active requirements for this permutation
+                    var localVertexRequirements = ShaderGraphRequirements.FromNodes(localVertexNodes, ShaderStageCapability.Vertex, false);
+                    var localPixelRequirements = ShaderGraphRequirements.FromNodes(localPixelNodes, ShaderStageCapability.Fragment, false);
+
+                    vertexRequirements[i].SetRequirements(localVertexRequirements);
+                    pixelRequirements[i].SetRequirements(localPixelRequirements);
+
+                    // build initial requirements
+                    HDRPShaderStructs.AddActiveFieldsFromPixelGraphRequirements(activeFields[i], localPixelRequirements);
+                    HDRPShaderStructs.AddActiveFieldsFromVertexGraphRequirements(activeFields[i], localVertexRequirements);
                 }
-
-                // Track each pixel node in this permutation
-                foreach(AbstractMaterialNode pixelNode in localPixelNodes)
-                {
-                    int nodeIndex = pixelNodes.IndexOf(pixelNode);
-
-                    if(keywordPermutationsPerPixelNode[nodeIndex] == null)
-                        keywordPermutationsPerPixelNode[nodeIndex] = new List<int>();
-                    keywordPermutationsPerPixelNode[nodeIndex].Add(i);
-                }
-
-                // Get active requirements for this permutation
-                var localVertexRequirements = ShaderGraphRequirements.FromNodes(localVertexNodes, ShaderStageCapability.Vertex, false);
-                var localPixelRequirements = ShaderGraphRequirements.FromNodes(localPixelNodes, ShaderStageCapability.Fragment, false);
-
-                vertexRequirementsPerKeyword.Add(new KeyValuePair<int, ShaderGraphRequirements>(i, localVertexRequirements));
-                pixelRequirementsPerKeyword.Add(new KeyValuePair<int, ShaderGraphRequirements>(i, localPixelRequirements));
-
-                // build initial requirements
-                HDRPShaderStructs.AddActiveFieldsFromPixelGraphRequirements(activeFields[i], localPixelRequirements);
-                HDRPShaderStructs.AddActiveFieldsFromVertexGraphRequirements(activeFields[i], localVertexRequirements);
             }
+            else
+            {
+                pixelRequirements.noPermutation.SetRequirements(ShaderGraphRequirements.FromNodes(pixelNodes, ShaderStageCapability.Fragment, false));   // TODO: is ShaderStageCapability.Fragment correct?
+                vertexRequirements.noPermutation.SetRequirements(ShaderGraphRequirements.FromNodes(vertexNodes, ShaderStageCapability.Vertex, false));
+                HDRPShaderStructs.AddActiveFieldsFromPixelGraphRequirements(activeFields.noPermutation, pixelRequirements.noPermutation.requirements);
+                HDRPShaderStructs.AddActiveFieldsFromVertexGraphRequirements(activeFields.noPermutation, vertexRequirements.noPermutation.requirements);
+            }
+
+            graphRequirements.UnionWith(pixelRequirements);
+            graphRequirements.UnionWith(vertexRequirements);
 
             // build the graph outputs structure, and populate activeFields with the fields of that structure
             GraphUtil.GenerateSurfaceDescriptionStruct(pixelGraphOutputs, pixelSlots, pixelGraphOutputStructName, activeFields.baseInstance);
@@ -767,10 +776,43 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     foreach (var define in pass.ExtraDefines)
                         defines.AddShaderChunk(define);
                 }
-                if (graphRequirements.requiresDepthTexture)
-                    defines.AddShaderChunk("#define REQUIRE_DEPTH_TEXTURE");
-                if (graphRequirements.requiresCameraOpaqueTexture)
-                    defines.AddShaderChunk("#define REQUIRE_OPAQUE_TEXTURE");
+
+                if (graphRequirements.permutationCount > 0)
+                {
+                    {
+                        var activePermutationIndices = graphRequirements.allPermutations.instances
+                            .Where(p => p.requirements.requiresDepthTexture)
+                            .Select(p => p.permutationIndex)
+                            .ToList();
+                        if (activePermutationIndices.Count > 0)
+                        {
+                            defines.AddShaderChunk(KeywordUtil.GetKeywordPermutationGroupIfDef(activePermutationIndices));
+                            defines.AddShaderChunk("#define REQUIRE_DEPTH_TEXTURE");
+                            defines.AddShaderChunk("#endif");
+                        }
+                    }
+
+                    {
+                        var activePermutationIndices = graphRequirements.allPermutations.instances
+                            .Where(p => p.requirements.requiresCameraOpaqueTexture)
+                            .Select(p => p.permutationIndex)
+                            .ToList();
+                        if (activePermutationIndices.Count > 0)
+                        {
+                            defines.AddShaderChunk(KeywordUtil.GetKeywordPermutationGroupIfDef(activePermutationIndices));
+                            defines.AddShaderChunk("#define REQUIRE_OPAQUE_TEXTURE");
+                            defines.AddShaderChunk("#endif");
+                        }
+                    }
+                }
+                else
+                {
+                    if (graphRequirements.noPermutation.requirements.requiresDepthTexture)
+                        defines.AddShaderChunk("#define REQUIRE_DEPTH_TEXTURE");
+                    if (graphRequirements.noPermutation.requirements.requiresCameraOpaqueTexture)
+                        defines.AddShaderChunk("#define REQUIRE_OPAQUE_TEXTURE");
+                }
+
                 defines.AddGenerator(interpolatorDefines);
             }
 

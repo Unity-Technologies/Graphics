@@ -3,41 +3,41 @@ using System.Linq;
 
 namespace Data.Util
 {
-    public enum ActiveFieldInstanceType
+    public interface IActiveFields: KeywordDependentCollection.IInstance, KeywordDependentCollection.ISet<IActiveFields>
     {
-        Base,
-        Permutation
-    }
-
-    public interface IActiveFields
-    {
-        ActiveFieldInstanceType type { get; }
-        int permutationIndex { get; }
         IEnumerable<string> fields { get; }
 
         bool Add(string field);
         bool Contains(string field);
     }
 
-    public interface IActiveFieldsSet
+    public interface IActiveFieldsSet: KeywordDependentCollection.ISet<IActiveFields>
     {
-        int count { get; }
-        IEnumerable<IActiveFields> instances { get; }
-
         void AddAll(string field);
     }
 
-    public class ActiveFields
+    public sealed class ActiveFields: KeywordDependentCollection<
+        HashSet<string>,
+        ActiveFields.All,
+        ActiveFields.AllPermutations,
+        ActiveFields.ForPermutationIndex,
+        ActiveFields.NoPermutation,
+        ActiveFields.Base,
+        IActiveFields,
+        IActiveFieldsSet
+    >
     {
         public struct ForPermutationIndex: IActiveFields, IActiveFieldsSet
         {
             private ActiveFields m_Source;
             private int m_PermutationIndex;
 
-            public IEnumerable<string> fields => m_Source.GetOrCreateForPermutationIndex(m_PermutationIndex);
-            public int count => 1;
+            public KeywordDependentCollection.KeywordPermutationInstanceType type => KeywordDependentCollection.KeywordPermutationInstanceType.Permutation;
+            public IEnumerable<IActiveFields> instances => Enumerable.Repeat<IActiveFields>(this, 1);
+            public IEnumerable<string> fields =>
+                m_Source.baseStorage.Union(m_Source.GetOrCreateForPermutationIndex(m_PermutationIndex));
+            public int instanceCount => 1;
             public int permutationIndex => m_PermutationIndex;
-            public ActiveFieldInstanceType type => ActiveFieldInstanceType.Permutation;
 
             internal ForPermutationIndex(ActiveFields source, int index)
             {
@@ -49,38 +49,37 @@ namespace Data.Util
              => m_Source.GetOrCreateForPermutationIndex(m_PermutationIndex).Add(field);
 
             public bool Contains(string field) =>
-                m_Source.m_Base.Contains(field)
+                m_Source.baseStorage.Contains(field)
                 || m_Source.GetOrCreateForPermutationIndex(m_PermutationIndex).Contains(field);
 
             public void AddAll(string field) => Add(field);
-            public IEnumerable<IActiveFields> instances => Enumerable.Repeat<IActiveFields>(this, 1);
         }
 
         public struct Base : IActiveFields, IActiveFieldsSet
         {
             private ActiveFields m_Source;
 
-            public IEnumerable<string> fields => m_Source.m_Base;
-            public int count => 1;
+            public IEnumerable<string> fields => m_Source.baseStorage;
+            public int instanceCount => 1;
             public int permutationIndex => -1;
-            public ActiveFieldInstanceType type => ActiveFieldInstanceType.Base;
+            public KeywordDependentCollection.KeywordPermutationInstanceType type => KeywordDependentCollection.KeywordPermutationInstanceType.Base;
+            public IEnumerable<IActiveFields> instances => Enumerable.Repeat<IActiveFields>(this, 1);
 
             internal Base(ActiveFields source)
             {
                 m_Source = source;
             }
 
-            public bool Add(string field) => m_Source.m_Base.Add(field);
-            public bool Contains(string field) => m_Source.m_Base.Contains(field);
+            public bool Add(string field) => m_Source.baseStorage.Add(field);
+            public bool Contains(string field) => m_Source.baseStorage.Contains(field);
 
             public void AddAll(string field) => Add(field);
-            public IEnumerable<IActiveFields> instances => Enumerable.Repeat<IActiveFields>(this, 1);
         }
 
         public struct All : IActiveFieldsSet
         {
             private ActiveFields m_Source;
-            public int count => m_Source.m_PerPermutationIndex.Count + 1;
+            public int instanceCount => m_Source.permutationCount + 1;
 
             internal All(ActiveFields source)
             {
@@ -89,9 +88,9 @@ namespace Data.Util
 
             public void AddAll(string field)
             {
-                m_Source.m_Base.Add(field);
-                for (var i = 0; i < m_Source.m_PerPermutationIndex.Count; ++i)
-                    m_Source.m_PerPermutationIndex[i].Add(field);
+                m_Source.noPermutation.Add(field);
+                for (var i = 0; i < m_Source.permutationCount; ++i)
+                    m_Source.GetOrCreateForPermutationIndex(i).Add(field);
             }
 
             public IEnumerable<IActiveFields> instances
@@ -99,7 +98,7 @@ namespace Data.Util
                 get
                 {
                     var self = this;
-                    return m_Source.m_PerPermutationIndex
+                    return m_Source.permutationStorages
                         .Select((v, i) => new ForPermutationIndex(self.m_Source, i) as IActiveFields)
                         .Union(Enumerable.Repeat((IActiveFields)m_Source.baseInstance, 1));
                 }
@@ -109,7 +108,7 @@ namespace Data.Util
         public struct AllPermutations : IActiveFieldsSet
         {
             private ActiveFields m_Source;
-            public int count => m_Source.m_PerPermutationIndex.Count;
+            public int instanceCount => m_Source.permutationCount;
 
             internal AllPermutations(ActiveFields source)
             {
@@ -118,8 +117,8 @@ namespace Data.Util
 
             public void AddAll(string field)
             {
-                for (var i = 0; i < m_Source.m_PerPermutationIndex.Count; ++i)
-                    m_Source.m_PerPermutationIndex[i].Add(field);
+                for (var i = 0; i < m_Source.permutationCount; ++i)
+                    m_Source.GetOrCreateForPermutationIndex(i).Add(field);
             }
 
             public IEnumerable<IActiveFields> instances
@@ -127,38 +126,38 @@ namespace Data.Util
                 get
                 {
                     var self = this;
-                    return m_Source.m_PerPermutationIndex
+                    return m_Source.permutationStorages
                         .Select((v, i) => new ForPermutationIndex(self.m_Source, i) as IActiveFields);
                 }
             }
         }
 
-        HashSet<string> m_Base = new HashSet<string>();
-        List<HashSet<string>> m_PerPermutationIndex = new List<HashSet<string>>();
-
-        public ForPermutationIndex this[int index]
+        public struct NoPermutation : IActiveFields, IActiveFieldsSet
         {
-            get
+            private ActiveFields m_Source;
+
+            public IEnumerable<string> fields => m_Source.baseStorage.Union(m_Source.noPermutationsStorage);
+            public int instanceCount => 1;
+            public int permutationIndex => -1;
+            public KeywordDependentCollection.KeywordPermutationInstanceType type => KeywordDependentCollection.KeywordPermutationInstanceType.NoPermutation;
+
+            internal NoPermutation(ActiveFields source)
             {
-                GetOrCreateForPermutationIndex(index);
-                return new ForPermutationIndex(this, index);
+                m_Source = source;
             }
+
+            public bool Add(string field) => m_Source.noPermutationsStorage.Add(field);
+            public bool Contains(string field) => m_Source.baseStorage.Contains(field)
+                || m_Source.noPermutationsStorage.Contains(field);
+
+            public void AddAll(string field) => Add(field);
+            public IEnumerable<IActiveFields> instances => Enumerable.Repeat<IActiveFields>(this, 1);
         }
 
-        public All all => new All(this);
-        public AllPermutations allPermutations => new AllPermutations(this);
-
-        /// <summary>
-        /// All permutation will inherit from base's active fields
-        /// </summary>
-        public Base baseInstance => new Base(this);
-
-        HashSet<string> GetOrCreateForPermutationIndex(int index)
-        {
-            while(index >= m_PerPermutationIndex.Count)
-                m_PerPermutationIndex.Add(new HashSet<string>());
-
-            return m_PerPermutationIndex[index];
-        }
+        protected override All CreateAllSmartPointer() => new All(this);
+        protected override AllPermutations CreateAllPermutationsSmartPointer() => new AllPermutations(this);
+        protected override ForPermutationIndex CreateForPermutationSmartPointer(int index) => new ForPermutationIndex(this, index);
+        protected override NoPermutation CreateNoPermutationSmartPointer() => new NoPermutation(this);
+        protected override Base CreateBaseSmartPointer() => new Base(this);
     }
 }
