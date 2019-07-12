@@ -18,7 +18,7 @@ namespace UnityEditor.ShaderGraph
     {
         public GraphObject owner { get; set; }
 
-        #region Property data
+        #region Input data
 
         [NonSerialized]
         List<AbstractShaderProperty> m_Properties = new List<AbstractShaderProperty>();
@@ -32,27 +32,27 @@ namespace UnityEditor.ShaderGraph
         List<SerializationHelper.JSONSerializedElement> m_SerializedProperties = new List<SerializationHelper.JSONSerializedElement>();
 
         [NonSerialized]
-        List<AbstractShaderProperty> m_AddedProperties = new List<AbstractShaderProperty>();
+        List<ShaderInput> m_AddedInputs = new List<ShaderInput>();
 
-        public IEnumerable<AbstractShaderProperty> addedProperties
+        public IEnumerable<ShaderInput> addedInputs
         {
-            get { return m_AddedProperties; }
+            get { return m_AddedInputs; }
         }
 
         [NonSerialized]
-        List<Guid> m_RemovedProperties = new List<Guid>();
+        List<Guid> m_RemovedInputs = new List<Guid>();
 
-        public IEnumerable<Guid> removedProperties
+        public IEnumerable<Guid> removedInputs
         {
-            get { return m_RemovedProperties; }
+            get { return m_RemovedInputs; }
         }
 
         [NonSerialized]
-        List<AbstractShaderProperty> m_MovedProperties = new List<AbstractShaderProperty>();
+        List<ShaderInput> m_MovedInputs = new List<ShaderInput>();
 
-        public IEnumerable<AbstractShaderProperty> movedProperties
+        public IEnumerable<ShaderInput> movedInputs
         {
-            get { return m_MovedProperties; }
+            get { return m_MovedInputs; }
         }
 
         public string assetGuid { get; set; }
@@ -320,9 +320,9 @@ namespace UnityEditor.ShaderGraph
             m_PastedGroups.Clear();
             m_AddedEdges.Clear();
             m_RemovedEdges.Clear();
-            m_AddedProperties.Clear();
-            m_RemovedProperties.Clear();
-            m_MovedProperties.Clear();
+            m_AddedInputs.Clear();
+            m_RemovedInputs.Clear();
+            m_MovedInputs.Clear();
             m_AddedStickyNotes.Clear();
             m_RemovedNotes.Clear();
             m_PastedStickyNotes.Clear();
@@ -684,10 +684,9 @@ namespace UnityEditor.ShaderGraph
         {
             foreach (var prop in properties)
             {
-                if(generationMode == GenerationMode.Preview && prop.propertyType == PropertyType.Gradient)
+                if(prop is GradientShaderProperty gradientProp && generationMode == GenerationMode.Preview)
                 {
-                    GradientShaderProperty gradientProperty = prop as GradientShaderProperty;
-                    GradientUtils.GetGradientPropertiesForPreview(collector, gradientProperty.referenceName, gradientProperty.value);
+                    GradientUtil.GetGradientPropertiesForPreview(collector, gradientProp.referenceName, gradientProp.value);
                     continue;
                 }
 
@@ -695,51 +694,74 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        public void AddShaderProperty(AbstractShaderProperty property)
+        public void AddGraphInput(ShaderInput input)
         {
-            if (property == null)
+            if (input == null)
                 return;
 
-            if (m_Properties.Contains(property))
+            switch(input)
+            {
+                case AbstractShaderProperty property:
+                    if (m_Properties.Contains(property))
+                        return;
+                    m_Properties.Add(property);
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+            
+            m_AddedInputs.Add(input);
+        }
+
+        public void SanitizeGraphInputName(ShaderInput input)
+        {
+            input.displayName = input.displayName.Trim();
+            switch(input)
+            {
+                case AbstractShaderProperty property:
+                    input.displayName = GraphUtil.SanitizeName(properties.Where(p => p.guid != input.guid).Select(p => p.displayName), "{0} ({1})", input.displayName);
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+        }
+
+        public void SanitizeGraphInputReferenceName(ShaderInput input, string newName)
+        {
+            if (string.IsNullOrEmpty(newName))
+                return;
+            
+            string name = newName.Trim();
+            if (string.IsNullOrEmpty(name))
                 return;
 
-            m_Properties.Add(property);
-            m_AddedProperties.Add(property);
+            name = Regex.Replace(name, @"(?:[^A-Za-z_0-9])|(?:\s)", "_");
+            switch(input)
+            {
+                case AbstractShaderProperty property:
+                    property.overrideReferenceName = GraphUtil.SanitizeName(properties.Where(p => p.guid != property.guid).Select(p => p.referenceName), "{0}_{1}", name);
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
         }
 
-        public string SanitizePropertyName(string displayName, Guid guid = default(Guid))
+        public void RemoveGraphInput(ShaderInput input)
         {
-            displayName = displayName.Trim();
-            return GraphUtil.SanitizeName(m_Properties.Where(p => p.guid != guid).Select(p => p.displayName), "{0} ({1})", displayName);
-        }
+            switch(input)
+            {
+                case AbstractShaderProperty property:
+                    var propetyNodes = GetNodes<PropertyNode>().Where(x => x.propertyGuid == input.guid).ToList();
+                    foreach (var propNode in propetyNodes)
+                        ReplacePropertyNodeWithConcreteNodeNoValidate(propNode);
+                    break;
+            }
 
-        public string SanitizePropertyReferenceName(string referenceName, Guid guid = default(Guid))
-        {
-            referenceName = referenceName.Trim();
-
-            if (string.IsNullOrEmpty(referenceName))
-                return null;
-
-            if (!referenceName.StartsWith("_"))
-                referenceName = "_" + referenceName;
-
-            referenceName = Regex.Replace(referenceName, @"(?:[^A-Za-z_0-9])|(?:\s)", "_");
-
-            return GraphUtil.SanitizeName(m_Properties.Where(p => p.guid != guid).Select(p => p.referenceName), "{0}_{1}", referenceName);
-        }
-
-        public void RemoveShaderProperty(Guid guid)
-        {
-            var propertyNodes = GetNodes<PropertyNode>().Where(x => x.propertyGuid == guid).ToList();
-            foreach (var propNode in propertyNodes)
-                ReplacePropertyNodeWithConcreteNodeNoValidate(propNode);
-
-            RemoveShaderPropertyNoValidate(guid);
-
+            RemoveGraphInputNoValidate(input.guid);
             ValidateGraph();
         }
 
-        public void MoveShaderProperty(AbstractShaderProperty property, int newIndex)
+        public void MoveProperty(AbstractShaderProperty property, int newIndex)
         {
             if (newIndex > m_Properties.Count || newIndex < 0)
                 throw new ArgumentException("New index is not within properties list.");
@@ -756,22 +778,28 @@ namespace UnityEditor.ShaderGraph
                 m_Properties.Add(property);
             else
                 m_Properties.Insert(newIndex, property);
-            if (!m_MovedProperties.Contains(property))
-                m_MovedProperties.Add(property);
+            if (!m_MovedInputs.Contains(property))
+                m_MovedInputs.Add(property);
         }
 
-        public int GetShaderPropertyIndex(AbstractShaderProperty property)
+        public int GetGraphInputIndex(ShaderInput input)
         {
-            return m_Properties.IndexOf(property);
+            switch(input)
+            {
+                case AbstractShaderProperty property:
+                    return m_Properties.IndexOf(property);
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
         }
 
-        void RemoveShaderPropertyNoValidate(Guid guid)
+        void RemoveGraphInputNoValidate(Guid guid)
         {
             if (m_Properties.RemoveAll(x => x.guid == guid) > 0)
             {
-                m_RemovedProperties.Add(guid);
-                m_AddedProperties.RemoveAll(x => x.guid == guid);
-                m_MovedProperties.RemoveAll(x => x.guid == guid);
+                m_RemovedInputs.Add(guid);
+                m_AddedInputs.RemoveAll(x => x.guid == guid);
+                m_MovedInputs.RemoveAll(x => x.guid == guid);
             }
         }
 
@@ -932,18 +960,18 @@ namespace UnityEditor.ShaderGraph
             if (other == null)
                 throw new ArgumentException("Can only replace with another AbstractMaterialGraph", "other");
 
-            using (var removedPropertiesPooledObject = ListPool<Guid>.GetDisposable())
+            using (var removedInputsPooledObject = ListPool<Guid>.GetDisposable())
             {
-                var removedPropertyGuids = removedPropertiesPooledObject.value;
+                var removedInputGuids = removedInputsPooledObject.value;
                 foreach (var property in m_Properties)
-                    removedPropertyGuids.Add(property.guid);
-                foreach (var propertyGuid in removedPropertyGuids)
-                    RemoveShaderPropertyNoValidate(propertyGuid);
+                    removedInputGuids.Add(property.guid);
+                foreach (var inputGuid in removedInputGuids)
+                    RemoveGraphInputNoValidate(inputGuid);
             }
             foreach (var otherProperty in other.properties)
             {
                 if (!properties.Any(p => p.guid == otherProperty.guid))
-                    AddShaderProperty(otherProperty);
+                    AddGraphInput(otherProperty);
             }
 
             other.ValidateGraph();
@@ -1052,10 +1080,8 @@ namespace UnityEditor.ShaderGraph
                 nodeGuidMap[oldGuid] = newGuid;
 
                 // Check if the property nodes need to be made into a concrete node.
-                if (node is PropertyNode)
+                if (node is PropertyNode propertyNode)
                 {
-                    PropertyNode propertyNode = (PropertyNode)node;
-
                     // If the property is not in the current graph, do check if the
                     // property can be made into a concrete node.
                     if (!m_Properties.Select(x => x.guid).Contains(propertyNode.propertyGuid))

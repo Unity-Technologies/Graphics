@@ -12,33 +12,19 @@ namespace UnityEditor.ShaderGraph.Drawing
     {
         readonly GraphData m_Graph;
         public static readonly Texture2D exposedIcon = Resources.Load<Texture2D>("GraphView/Nodes/BlackboardFieldExposed");
-        readonly Dictionary<Guid, BlackboardRow> m_PropertyRows;
-        readonly BlackboardSection m_Section;
-        //WindowDraggable m_WindowDraggable;
-        //ResizeBorderFrame m_ResizeBorderFrame;
+        readonly Dictionary<Guid, BlackboardRow> m_InputRows;
+        readonly BlackboardSection m_PropertySection;
         public Blackboard blackboard { get; private set; }
         Label m_PathLabel;
         TextField m_PathLabelTextField;
         bool m_EditPathCancelled = false;
         List<Node> m_SelectedNodes = new List<Node>();
 
-        //public Action onDragFinished
-        //{
-        //    get { return m_WindowDraggable.OnDragFinished; }
-        //    set { m_WindowDraggable.OnDragFinished = value; }
-        //}
+        Dictionary<ShaderInput, bool> m_ExpandedInputs = new Dictionary<ShaderInput, bool>();
 
-        //public Action onResizeFinished
-        //{
-        //    get { return m_ResizeBorderFrame.OnResizeFinished; }
-        //    set { m_ResizeBorderFrame.OnResizeFinished = value; }
-        //}
-
-        Dictionary<AbstractShaderProperty, bool> m_ExpandedProperties = new Dictionary<AbstractShaderProperty, bool>();
-
-        public Dictionary<AbstractShaderProperty, bool> expandedProperties
+        public Dictionary<ShaderInput, bool> expandedInputs
         {
-            get { return m_ExpandedProperties; }
+            get { return m_ExpandedInputs; }
         }
 
         public string assetName
@@ -53,7 +39,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         public BlackboardProvider(GraphData graph)
         {
             m_Graph = graph;
-            m_PropertyRows = new Dictionary<Guid, BlackboardRow>();
+            m_InputRows = new Dictionary<Guid, BlackboardRow>();
 
             blackboard = new Blackboard()
             {
@@ -72,16 +58,10 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_PathLabelTextField.Q("unity-text-input").RegisterCallback<KeyDownEvent>(OnPathTextFieldKeyPressed);
             blackboard.hierarchy.Add(m_PathLabelTextField);
 
-            // m_WindowDraggable = new WindowDraggable(blackboard.shadow.Children().First().Q("header"));
-            // blackboard.AddManipulator(m_WindowDraggable);
-
-            // m_ResizeBorderFrame = new ResizeBorderFrame(blackboard) { name = "resizeBorderFrame" };
-            // blackboard.shadow.Add(m_ResizeBorderFrame);
-
-            m_Section = new BlackboardSection { headerVisible = false };
+            m_PropertySection = new BlackboardSection { headerVisible = false };
             foreach (var property in graph.properties)
-                AddProperty(property);
-            blackboard.Add(m_Section);
+                AddInputRow(property);
+            blackboard.Add(m_PropertySection);
         }
 
         void OnDragUpdatedEvent(DragUpdatedEvent evt)
@@ -185,123 +165,150 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void MoveItemRequested(Blackboard blackboard, int newIndex, VisualElement visualElement)
         {
-            var property = visualElement.userData as AbstractShaderProperty;
-            if (property == null)
+            var input = visualElement.userData as ShaderInput;
+            if (input == null)
                 return;
-            m_Graph.owner.RegisterCompleteObjectUndo("Move Property");
-            m_Graph.MoveShaderProperty(property, newIndex);
+
+            m_Graph.owner.RegisterCompleteObjectUndo("Move Graph Input");
+            switch(input)
+            {
+                case AbstractShaderProperty property:
+                    m_Graph.MoveProperty(property, newIndex);
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
         }
 
         void AddItemRequested(Blackboard blackboard)
         {
             var gm = new GenericMenu();
-            gm.AddItem(new GUIContent("Vector1"), false, () => AddProperty(new Vector1ShaderProperty(), true));
-            gm.AddItem(new GUIContent("Vector2"), false, () => AddProperty(new Vector2ShaderProperty(), true));
-            gm.AddItem(new GUIContent("Vector3"), false, () => AddProperty(new Vector3ShaderProperty(), true));
-            gm.AddItem(new GUIContent("Vector4"), false, () => AddProperty(new Vector4ShaderProperty(), true));
-            gm.AddItem(new GUIContent("Color"), false, () => AddProperty(new ColorShaderProperty(), true));
-            gm.AddItem(new GUIContent("Texture2D"), false, () => AddProperty(new TextureShaderProperty(), true));
-            gm.AddItem(new GUIContent("Texture2D Array"), false, () => AddProperty(new Texture2DArrayShaderProperty(), true));
-            gm.AddItem(new GUIContent("Texture3D"), false, () => AddProperty(new Texture3DShaderProperty(), true));
-            gm.AddItem(new GUIContent("Cubemap"), false, () => AddProperty(new CubemapShaderProperty(), true));
-            gm.AddItem(new GUIContent("Boolean"), false, () => AddProperty(new BooleanShaderProperty(), true));
-            gm.AddItem(new GUIContent("Matrix2x2"), false, () => AddProperty(new Matrix2ShaderProperty(), true));
-            gm.AddItem(new GUIContent("Matrix3x3"), false, () => AddProperty(new Matrix3ShaderProperty(), true));
-            gm.AddItem(new GUIContent("Matrix4x4"), false, () => AddProperty(new Matrix4ShaderProperty(), true));
-            gm.AddItem(new GUIContent("SamplerState"), false, () => AddProperty(new SamplerStateShaderProperty(), true));
-            gm.AddItem(new GUIContent("Gradient"), false, () => AddProperty(new GradientShaderProperty(), true));
+            AddPropertyItems(gm);
             gm.ShowAsContext();
+        }
+
+        void AddPropertyItems(GenericMenu gm)
+        {
+            gm.AddItem(new GUIContent($"Vector1"), false, () => AddInputRow(new Vector1ShaderProperty(), true));
+            gm.AddItem(new GUIContent($"Vector2"), false, () => AddInputRow(new Vector2ShaderProperty(), true));
+            gm.AddItem(new GUIContent($"Vector3"), false, () => AddInputRow(new Vector3ShaderProperty(), true));
+            gm.AddItem(new GUIContent($"Vector4"), false, () => AddInputRow(new Vector4ShaderProperty(), true));
+            gm.AddItem(new GUIContent($"Color"), false, () => AddInputRow(new ColorShaderProperty(), true));
+            gm.AddItem(new GUIContent($"Texture2D"), false, () => AddInputRow(new TextureShaderProperty(), true));
+            gm.AddItem(new GUIContent($"Texture2D Array"), false, () => AddInputRow(new Texture2DArrayShaderProperty(), true));
+            gm.AddItem(new GUIContent($"Texture3D"), false, () => AddInputRow(new Texture3DShaderProperty(), true));
+            gm.AddItem(new GUIContent($"Cubemap"), false, () => AddInputRow(new CubemapShaderProperty(), true));
+            gm.AddItem(new GUIContent($"Boolean"), false, () => AddInputRow(new BooleanShaderProperty(), true));
+            gm.AddItem(new GUIContent($"Matrix2x2"), false, () => AddInputRow(new Matrix2ShaderProperty(), true));
+            gm.AddItem(new GUIContent($"Matrix3x3"), false, () => AddInputRow(new Matrix3ShaderProperty(), true));
+            gm.AddItem(new GUIContent($"Matrix4x4"), false, () => AddInputRow(new Matrix4ShaderProperty(), true));
+            gm.AddItem(new GUIContent($"SamplerState"), false, () => AddInputRow(new SamplerStateShaderProperty(), true));
+            gm.AddItem(new GUIContent($"Gradient"), false, () => AddInputRow(new GradientShaderProperty(), true));
         }
 
         void EditTextRequested(Blackboard blackboard, VisualElement visualElement, string newText)
         {
             var field = (BlackboardField)visualElement;
-            var property = (AbstractShaderProperty)field.userData;
-            if (!string.IsNullOrEmpty(newText) && newText != property.displayName)
+            var input = (ShaderInput)field.userData;
+            if (!string.IsNullOrEmpty(newText) && newText != input.displayName)
             {
-                m_Graph.owner.RegisterCompleteObjectUndo("Edit Property Name");
-                newText = m_Graph.SanitizePropertyName(newText, property.guid);
-                property.displayName = newText;
-                field.text = newText;
+                m_Graph.owner.RegisterCompleteObjectUndo("Edit Graph Input Name");
+                m_Graph.SanitizeGraphInputName(input);
+                input.displayName = newText;
+                field.text = input.displayName;
                 DirtyNodes();
             }
         }
 
         public void HandleGraphChanges()
         {
-            foreach (var propertyGuid in m_Graph.removedProperties)
+            foreach (var inputGuid in m_Graph.removedInputs)
             {
                 BlackboardRow row;
-                if (m_PropertyRows.TryGetValue(propertyGuid, out row))
+                if (m_InputRows.TryGetValue(inputGuid, out row))
                 {
                     row.RemoveFromHierarchy();
-                    m_PropertyRows.Remove(propertyGuid);
+                    m_InputRows.Remove(inputGuid);
                 }
             }
 
-            foreach (var property in m_Graph.addedProperties)
-                AddProperty(property, index: m_Graph.GetShaderPropertyIndex(property));
+            foreach (var input in m_Graph.addedInputs)
+                AddInputRow(input, index: m_Graph.GetGraphInputIndex(input));
 
-            foreach (var propertyDict in expandedProperties)
+            foreach (var expandedInput in expandedInputs)
             {
-                SessionState.SetBool(propertyDict.Key.guid.ToString(), propertyDict.Value);
+                SessionState.SetBool(expandedInput.Key.guid.ToString(), expandedInput.Value);
             }
 
-            if (m_Graph.movedProperties.Any())
+            if (m_Graph.movedInputs.Any())
             {
-                foreach (var row in m_PropertyRows.Values)
+                foreach (var row in m_InputRows.Values)
                     row.RemoveFromHierarchy();
 
                 foreach (var property in m_Graph.properties)
-                    m_Section.Add(m_PropertyRows[property.guid]);
+                    m_PropertySection.Add(m_InputRows[property.guid]);
             }
-            m_ExpandedProperties.Clear();
+            m_ExpandedInputs.Clear();
         }
 
-        void AddProperty(AbstractShaderProperty property, bool create = false, int index = -1)
+        void AddInputRow(ShaderInput input, bool create = false, int index = -1)
         {
-            if (m_PropertyRows.ContainsKey(property.guid))
+            if (m_InputRows.ContainsKey(input.guid))
                 return;
 
             if (create)
-                property.displayName = m_Graph.SanitizePropertyName(property.displayName);
+                m_Graph.SanitizeGraphInputName(input);
 
-            var icon = (m_Graph.isSubGraph || (property.isExposable && property.generatePropertyBlock)) ? exposedIcon : null;
-            var field = new BlackboardField(icon, property.displayName, property.propertyType.ToString()) { userData = property };
+            if (index < 0)
+                index = m_InputRows.Count;
 
-            var propertyView = new BlackboardFieldPropertyView(field, m_Graph, property);
-            var row = new BlackboardRow(field, propertyView);
+            BlackboardField field = null;
+            BlackboardRow row = null;
+
+            switch(input)
+            {
+                case AbstractShaderProperty property:
+                {
+                    var icon = (m_Graph.isSubGraph || (property.isExposable && property.generatePropertyBlock)) ? exposedIcon : null;
+                    field = new BlackboardField(icon, property.displayName, property.propertyType.ToString()) { userData = property };
+                    var propertyView = new BlackboardFieldPropertyView(field, m_Graph, property);
+                    row = new BlackboardRow(field, propertyView) { userData = input };
+                    if (index == m_PropertySection.childCount)
+                        m_PropertySection.Add(row);
+                    else
+                        m_PropertySection.Insert(index, row);
+                    break;
+                }
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+            
+            if(field == null || row == null)
+                return;
+
             var pill = row.Q<Pill>();
-            pill.RegisterCallback<MouseEnterEvent>(evt => OnMouseHover(evt, property));
-            pill.RegisterCallback<MouseLeaveEvent>(evt => OnMouseHover(evt, property));
+            pill.RegisterCallback<MouseEnterEvent>(evt => OnMouseHover(evt, input));
+            pill.RegisterCallback<MouseLeaveEvent>(evt => OnMouseHover(evt, input));
             pill.RegisterCallback<DragUpdatedEvent>(OnDragUpdatedEvent);
 
             var expandButton = row.Q<Button>("expandButton");
-            expandButton.RegisterCallback<MouseDownEvent>(evt => OnExpanded(evt, property), TrickleDown.TrickleDown);
+            expandButton.RegisterCallback<MouseDownEvent>(evt => OnExpanded(evt, input), TrickleDown.TrickleDown);
 
-            row.userData = property;
-            if (index < 0)
-                index = m_PropertyRows.Count;
-            if (index == m_PropertyRows.Count)
-                m_Section.Add(row);
-            else
-                m_Section.Insert(index, row);
-            m_PropertyRows[property.guid] = row;
-
-            m_PropertyRows[property.guid].expanded = SessionState.GetBool(property.guid.ToString(), true);
+            m_InputRows[input.guid] = row;
+            m_InputRows[input.guid].expanded = SessionState.GetBool(input.guid.ToString(), true);
 
             if (create)
             {
                 row.expanded = true;
-                m_Graph.owner.RegisterCompleteObjectUndo("Create Property");
-                m_Graph.AddShaderProperty(property);
+                m_Graph.owner.RegisterCompleteObjectUndo("Create Graph Input");
+                m_Graph.AddGraphInput(input);
                 field.OpenTextEditor();
             }
         }
 
-        void OnExpanded(MouseDownEvent evt, AbstractShaderProperty property)
+        void OnExpanded(MouseDownEvent evt, ShaderInput input)
         {
-            m_ExpandedProperties[property] = !m_PropertyRows[property.guid].expanded;
+            m_ExpandedInputs[input] = !m_InputRows[input.guid].expanded;
         }
 
         void DirtyNodes()
@@ -315,22 +322,25 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         public BlackboardRow GetBlackboardRow(Guid guid)
         {
-            return m_PropertyRows[guid];
+            return m_InputRows[guid];
         }
 
-        void OnMouseHover(EventBase evt, AbstractShaderProperty property)
+        void OnMouseHover(EventBase evt, ShaderInput input)
         {
             var graphView = blackboard.GetFirstAncestorOfType<MaterialGraphView>();
             if (evt.eventTypeId == MouseEnterEvent.TypeId())
             {
                 foreach (var node in graphView.nodes.ToList())
                 {
-                    if (node.userData is PropertyNode propertyNode)
+                    if(input is AbstractShaderProperty property)
                     {
-                        if (propertyNode.propertyGuid == property.guid)
+                        if (node.userData is PropertyNode propertyNode)
                         {
-                            m_SelectedNodes.Add(node);
-                            node.AddToClassList("hovered");
+                            if (propertyNode.propertyGuid == input.guid)
+                            {
+                                m_SelectedNodes.Add(node);
+                                node.AddToClassList("hovered");
+                            }
                         }
                     }
                 }

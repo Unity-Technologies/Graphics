@@ -11,7 +11,7 @@ using UnityEditor.Graphing.Util;
 
 namespace UnityEditor.ShaderGraph
 {
-    [ScriptedImporter(8, Extension)]
+    [ScriptedImporter(9, Extension)]
     class ShaderSubGraphImporter : ScriptedImporter
     {
         public const string Extension = "shadersubgraph";
@@ -163,7 +163,7 @@ namespace UnityEditor.ShaderGraph
                 var arguments = new List<string>();
                 foreach (var prop in asset.inputs)
                 {
-                    prop.SetConcretePrecision(asset.graphPrecision);
+                    prop.ValidateConcretePrecision(asset.graphPrecision);
                     arguments.Add(string.Format("{0}", prop.GetPropertyAsArgumentString()));
                 }
 
