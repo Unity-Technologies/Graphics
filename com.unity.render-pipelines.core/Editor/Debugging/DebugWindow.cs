@@ -126,7 +126,7 @@ namespace UnityEditor.Rendering
             s_TypeMapDirty = false;
         }
 
-        [MenuItem("Window/Analysis/Render Pipeline Debug", priority = 112)] // 112 is hardcoded number given by the UxTeam to fit correctly in the Windows menu
+        [MenuItem("Window/Render Pipeline/Render Pipeline Debug", priority = 0)] // 112 is hardcoded number given by the UxTeam to fit correctly in the Windows menu
         static void Init()
         {
             var window = GetWindow<DebugWindow>();
