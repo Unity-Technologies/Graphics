@@ -91,6 +91,10 @@ namespace UnityEditor.Rendering.HighDefinition
         public const int LightingSlotId = 30;
         public const int BackLightingSlotId = 31;
         public const int DepthOffsetSlotId = 32;
+        public const int ProceduralNormalOSVertexSlotId = 33;
+        public const int ProceduralTangentOSVertexSlotId = 34;
+        public const int ProceduralNormalOSPixelSlotId = 35;
+        public const int ProceduralTangentOSPixelSlotId = 36;
 
         public enum MaterialType
         {
@@ -112,43 +116,44 @@ namespace UnityEditor.Rendering.HighDefinition
 
         // Just for convenience of doing simple masks. We could run out of bits of course.
         [Flags]
-        enum SlotMask
+        enum SlotMask : long
         {
             None = 0,
-            Position = 1 << PositionSlotId,
-            Albedo = 1 << AlbedoSlotId,
-            Normal = 1 << NormalSlotId,
-            BentNormal = 1 << BentNormalSlotId,
-            Tangent = 1 << TangentSlotId,
-            SubsurfaceMask = 1 << SubsurfaceMaskSlotId,
-            Thickness = 1 << ThicknessSlotId,
-            DiffusionProfile = 1 << DiffusionProfileHashSlotId,
-            IridescenceMask = 1 << IridescenceMaskSlotId,
-            IridescenceLayerThickness = 1 << IridescenceThicknessSlotId,
-            Specular = 1 << SpecularColorSlotId,
-            CoatMask = 1 << CoatMaskSlotId,
-            Metallic = 1 << MetallicSlotId,
-            Emission = 1 << EmissionSlotId,
-            Smoothness = 1 << SmoothnessSlotId,
-            Occlusion = 1 << AmbientOcclusionSlotId,
-            Alpha = 1 << AlphaSlotId,
-            AlphaThreshold = 1 << AlphaThresholdSlotId,
-            AlphaThresholdDepthPrepass = 1 << AlphaThresholdDepthPrepassSlotId,
-            AlphaThresholdDepthPostpass = 1 << AlphaThresholdDepthPostpassSlotId,
-            Anisotropy = 1 << AnisotropySlotId,
-            SpecularOcclusion = 1 << SpecularOcclusionSlotId,
-            AlphaThresholdShadow = 1 << AlphaThresholdShadowSlotId,
-            Lighting = 1 << LightingSlotId,
-            BackLighting = 1 << BackLightingSlotId,
-            DepthOffset = 1 << DepthOffsetSlotId
+            Position = 1L << PositionSlotId,
+            Albedo = 1L << AlbedoSlotId,
+            Normal = 1L << NormalSlotId,
+            BentNormal = 1L << BentNormalSlotId,
+            Tangent = 1L << TangentSlotId,
+            SubsurfaceMask = 1L << SubsurfaceMaskSlotId,
+            Thickness = 1L << ThicknessSlotId,
+            DiffusionProfile = 1L << DiffusionProfileHashSlotId,
+            IridescenceMask = 1L << IridescenceMaskSlotId,
+            IridescenceLayerThickness = 1L << IridescenceThicknessSlotId,
+            Specular = 1L << SpecularColorSlotId,
+            CoatMask = 1L << CoatMaskSlotId,
+            Metallic = 1L << MetallicSlotId,
+            Emission = 1L << EmissionSlotId,
+            Smoothness = 1L << SmoothnessSlotId,
+            Occlusion = 1L << AmbientOcclusionSlotId,
+            Alpha = 1L << AlphaSlotId,
+            AlphaThreshold = 1L << AlphaThresholdSlotId,
+            AlphaThresholdDepthPrepass = 1L << AlphaThresholdDepthPrepassSlotId,
+            AlphaThresholdDepthPostpass = 1L << AlphaThresholdDepthPostpassSlotId,
+            Anisotropy = 1L << AnisotropySlotId,
+            SpecularOcclusion = 1L << SpecularOcclusionSlotId,
+            AlphaThresholdShadow = 1L << AlphaThresholdShadowSlotId,
+            Lighting = 1L << LightingSlotId,
+            BackLighting = 1L << BackLightingSlotId,
+            DepthOffset = 1L << DepthOffsetSlotId,
+            Procedural = (1L << ProceduralNormalOSVertexSlotId) | (1L << ProceduralTangentOSVertexSlotId) | (1L << ProceduralNormalOSPixelSlotId) | (1L << ProceduralTangentOSPixelSlotId)
         }
 
-        const SlotMask StandardSlotMask = SlotMask.Position | SlotMask.Albedo | SlotMask.Normal | SlotMask.BentNormal | SlotMask.CoatMask | SlotMask.Emission | SlotMask.Metallic | SlotMask.Smoothness | SlotMask.Occlusion | SlotMask.SpecularOcclusion | SlotMask.Alpha | SlotMask.AlphaThreshold | SlotMask.AlphaThresholdDepthPrepass | SlotMask.AlphaThresholdDepthPostpass | SlotMask.AlphaThresholdShadow | SlotMask.Lighting | SlotMask.DepthOffset;
-        const SlotMask SubsurfaceScatteringSlotMask = SlotMask.Position | SlotMask.Albedo | SlotMask.Normal | SlotMask.BentNormal | SlotMask.SubsurfaceMask | SlotMask.Thickness | SlotMask.DiffusionProfile | SlotMask.CoatMask | SlotMask.Emission | SlotMask.Smoothness | SlotMask.Occlusion | SlotMask.SpecularOcclusion | SlotMask.Alpha | SlotMask.AlphaThreshold | SlotMask.AlphaThresholdDepthPrepass | SlotMask.AlphaThresholdDepthPostpass | SlotMask.AlphaThresholdShadow | SlotMask.Lighting | SlotMask.DepthOffset;
-        const SlotMask AnisotropySlotMask = SlotMask.Position | SlotMask.Albedo | SlotMask.Normal | SlotMask.BentNormal | SlotMask.Tangent | SlotMask.Anisotropy | SlotMask.CoatMask | SlotMask.Emission | SlotMask.Metallic | SlotMask.Smoothness | SlotMask.Occlusion | SlotMask.SpecularOcclusion | SlotMask.Alpha | SlotMask.AlphaThreshold | SlotMask.AlphaThresholdDepthPrepass | SlotMask.AlphaThresholdDepthPostpass | SlotMask.AlphaThresholdShadow | SlotMask.Lighting | SlotMask.DepthOffset;
-        const SlotMask IridescenceSlotMask = SlotMask.Position | SlotMask.Albedo | SlotMask.Normal | SlotMask.BentNormal | SlotMask.IridescenceMask | SlotMask.IridescenceLayerThickness | SlotMask.CoatMask | SlotMask.Emission | SlotMask.Metallic | SlotMask.Smoothness | SlotMask.Occlusion | SlotMask.SpecularOcclusion | SlotMask.Alpha | SlotMask.AlphaThreshold | SlotMask.AlphaThresholdDepthPrepass | SlotMask.AlphaThresholdDepthPostpass | SlotMask.AlphaThresholdShadow | SlotMask.Lighting | SlotMask.DepthOffset;
-        const SlotMask SpecularColorSlotMask = SlotMask.Position | SlotMask.Albedo | SlotMask.Normal | SlotMask.BentNormal | SlotMask.Specular | SlotMask.CoatMask | SlotMask.Emission | SlotMask.Smoothness | SlotMask.Occlusion | SlotMask.SpecularOcclusion | SlotMask.Alpha | SlotMask.AlphaThreshold | SlotMask.AlphaThresholdDepthPrepass | SlotMask.AlphaThresholdDepthPostpass | SlotMask.AlphaThresholdShadow | SlotMask.Lighting | SlotMask.DepthOffset;
-        const SlotMask TranslucentSlotMask = SlotMask.Position | SlotMask.Albedo | SlotMask.Normal | SlotMask.BentNormal | SlotMask.Thickness | SlotMask.DiffusionProfile | SlotMask.CoatMask | SlotMask.Emission | SlotMask.Smoothness | SlotMask.Occlusion | SlotMask.SpecularOcclusion | SlotMask.Alpha | SlotMask.AlphaThreshold | SlotMask.AlphaThresholdDepthPrepass | SlotMask.AlphaThresholdDepthPostpass | SlotMask.AlphaThresholdShadow | SlotMask.Lighting | SlotMask.DepthOffset;
+        const SlotMask StandardSlotMask = SlotMask.Position | SlotMask.Albedo | SlotMask.Normal | SlotMask.BentNormal | SlotMask.CoatMask | SlotMask.Emission | SlotMask.Metallic | SlotMask.Smoothness | SlotMask.Occlusion | SlotMask.SpecularOcclusion | SlotMask.Alpha | SlotMask.AlphaThreshold | SlotMask.AlphaThresholdDepthPrepass | SlotMask.AlphaThresholdDepthPostpass | SlotMask.AlphaThresholdShadow | SlotMask.Lighting | SlotMask.DepthOffset | SlotMask.Procedural;
+        const SlotMask SubsurfaceScatteringSlotMask = SlotMask.Position | SlotMask.Albedo | SlotMask.Normal | SlotMask.BentNormal | SlotMask.SubsurfaceMask | SlotMask.Thickness | SlotMask.DiffusionProfile | SlotMask.CoatMask | SlotMask.Emission | SlotMask.Smoothness | SlotMask.Occlusion | SlotMask.SpecularOcclusion | SlotMask.Alpha | SlotMask.AlphaThreshold | SlotMask.AlphaThresholdDepthPrepass | SlotMask.AlphaThresholdDepthPostpass | SlotMask.AlphaThresholdShadow | SlotMask.Lighting | SlotMask.DepthOffset | SlotMask.Procedural;
+        const SlotMask AnisotropySlotMask = SlotMask.Position | SlotMask.Albedo | SlotMask.Normal | SlotMask.BentNormal | SlotMask.Tangent | SlotMask.Anisotropy | SlotMask.CoatMask | SlotMask.Emission | SlotMask.Metallic | SlotMask.Smoothness | SlotMask.Occlusion | SlotMask.SpecularOcclusion | SlotMask.Alpha | SlotMask.AlphaThreshold | SlotMask.AlphaThresholdDepthPrepass | SlotMask.AlphaThresholdDepthPostpass | SlotMask.AlphaThresholdShadow | SlotMask.Lighting | SlotMask.DepthOffset | SlotMask.Procedural;
+        const SlotMask IridescenceSlotMask = SlotMask.Position | SlotMask.Albedo | SlotMask.Normal | SlotMask.BentNormal | SlotMask.IridescenceMask | SlotMask.IridescenceLayerThickness | SlotMask.CoatMask | SlotMask.Emission | SlotMask.Metallic | SlotMask.Smoothness | SlotMask.Occlusion | SlotMask.SpecularOcclusion | SlotMask.Alpha | SlotMask.AlphaThreshold | SlotMask.AlphaThresholdDepthPrepass | SlotMask.AlphaThresholdDepthPostpass | SlotMask.AlphaThresholdShadow | SlotMask.Lighting | SlotMask.DepthOffset | SlotMask.Procedural;
+        const SlotMask SpecularColorSlotMask = SlotMask.Position | SlotMask.Albedo | SlotMask.Normal | SlotMask.BentNormal | SlotMask.Specular | SlotMask.CoatMask | SlotMask.Emission | SlotMask.Smoothness | SlotMask.Occlusion | SlotMask.SpecularOcclusion | SlotMask.Alpha | SlotMask.AlphaThreshold | SlotMask.AlphaThresholdDepthPrepass | SlotMask.AlphaThresholdDepthPostpass | SlotMask.AlphaThresholdShadow | SlotMask.Lighting | SlotMask.DepthOffset | SlotMask.Procedural;
+        const SlotMask TranslucentSlotMask = SlotMask.Position | SlotMask.Albedo | SlotMask.Normal | SlotMask.BentNormal | SlotMask.Thickness | SlotMask.DiffusionProfile | SlotMask.CoatMask | SlotMask.Emission | SlotMask.Smoothness | SlotMask.Occlusion | SlotMask.SpecularOcclusion | SlotMask.Alpha | SlotMask.AlphaThreshold | SlotMask.AlphaThresholdDepthPrepass | SlotMask.AlphaThresholdDepthPostpass | SlotMask.AlphaThresholdShadow | SlotMask.Lighting | SlotMask.DepthOffset | SlotMask.Procedural;
 
         // This could also be a simple array. For now, catch any mismatched data.
         SlotMask GetActiveSlotMask()
@@ -782,6 +787,20 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 AddSlot(new PositionMaterialSlot(PositionSlotId, PositionSlotName, PositionSlotName, CoordinateSpace.Object, ShaderStageCapability.Vertex));
                 validSlots.Add(PositionSlotId);
+            }
+            if (proceduralNormalMode == ProceduralNormalMode.VertexObjectSpace)
+            {
+                AddSlot(new ProceduralSpaceMaterialSlot(ProceduralNormalOSVertexSlotId, "Normal (Procedural)", NormalSlotName, ConcreteSlotValueType.Vector3, CoordinateSpace.Object, ShaderStageCapability.Vertex));
+                AddSlot(new ProceduralSpaceMaterialSlot(ProceduralTangentOSVertexSlotId, "Tangent (Procedural)", TangentSlotName, ConcreteSlotValueType.Vector4, CoordinateSpace.Object, ShaderStageCapability.Vertex));
+                validSlots.Add(ProceduralNormalOSVertexSlotId);
+                validSlots.Add(ProceduralTangentOSVertexSlotId);
+            }
+            else if (proceduralNormalMode == ProceduralNormalMode.PixelObjectSpace)
+            {
+                AddSlot(new ProceduralSpaceMaterialSlot(ProceduralNormalOSPixelSlotId, "Normal (Procedural)", NormalSlotName, ConcreteSlotValueType.Vector3, CoordinateSpace.Object, ShaderStageCapability.Fragment));
+                AddSlot(new ProceduralSpaceMaterialSlot(ProceduralTangentOSPixelSlotId, "Tangent (Procedural)", TangentSlotName, ConcreteSlotValueType.Vector4, CoordinateSpace.Object, ShaderStageCapability.Fragment));
+                validSlots.Add(ProceduralNormalOSPixelSlotId);
+                validSlots.Add(ProceduralTangentOSPixelSlotId);
             }
             if (MaterialTypeUsesSlotMask(SlotMask.Albedo))
             {
