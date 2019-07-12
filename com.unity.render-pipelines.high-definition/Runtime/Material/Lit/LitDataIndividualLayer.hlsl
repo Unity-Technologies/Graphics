@@ -1,11 +1,3 @@
-#undef VIRTUAL_TEXTURES_ACTIVE_ON_LAYER
-
-#if (!defined(LAYER_INDEX) || (LAYER_INDEX <= 3)) && (VIRTUAL_TEXTURES_ACTIVE > 0)
-#define VIRTUAL_TEXTURES_ACTIVE_ON_LAYER 1
-#else
-#define VIRTUAL_TEXTURES_ACTIVE_ON_LAYER 0
-#endif
-
 void ADD_IDX(ComputeLayerTexCoord)( // Uv related parameters
                                     float2 texCoord0, float2 texCoord1, float2 texCoord2, float2 texCoord3, float4 uvMappingMask, float4 uvMappingMaskDetails,
                                     // scale and bias for base and detail + global tiling factor (for layered lit only)
@@ -111,45 +103,48 @@ float3 ADD_IDX(GetNormalTS)(FragInputs input, LayerTexCoord layerTexCoord, float
 
 #ifdef _NORMALMAP_IDX
     #ifdef _NORMALMAP_TANGENT_SPACE_IDX
-        //TODO(ddebaets) VT does not handle full range of normal map sampling/reconstruction so special case here...
-#if VIRTUAL_TEXTURES_ACTIVE_ON_LAYER
 
-	#ifdef SURFACE_GRADIENT
-		real4 packedNormal = SampleStack(stackInfo, ADD_IDX(_NormalMap));
-		if(ADD_IDX(layerTexCoord.base).mappingType == UV_MAPPING_TRIPLANAR)
-		{
-			// Skip VT
-			normalTS = SAMPLE_UVMAPPING_NORMALMAP(ADD_IDX(_NormalMap), ADD_IDX(sampler_NormalMap), ADD_IDX(layerTexCoord.base), ADD_IDX(_NormalScale));
-		}
-		else if(ADD_IDX(layerTexCoord.base).mappingType == UV_MAPPING_PLANAR)
-		{
-			float4 packedNormal = SampleStack(stackInfo, ADD_IDX(_NormalMap));
-			packedNormal.a *= packedNormal.r;
-			real2 vTGranite   = packedNormal.ag * 2.0 - 1.0;
-			real  rcpZGranite = rsqrt(max(1 - Sq(vTGranite.x) - Sq(vTGranite.y), Sq(FLT_EPS)));
-			real2 derivYPlaneGranite = ConvertTangentSpaceNormalToHeightMapGradient(vTGranite.xy, rcpZGranite,  ADD_IDX(_NormalScale));
+#if VIRTUAL_TEXTURES_ACTIVE
+    //TODO VT does not handle full range of normal map sampling/reconstruction so special cases are considered here...
+    // - Triplanar mapping is unsupported
+    // - TODO @jelsayeh verify with "UNITY_NO_DXT5nm" defined
+    #ifdef SURFACE_GRADIENT
+        if(ADD_IDX(layerTexCoord.base).mappingType == UV_MAPPING_TRIPLANAR)
+        {
+            // Skip VT
+            normalTS = SAMPLE_UVMAPPING_NORMALMAP(ADD_IDX(_NormalMap), ADD_IDX(sampler_NormalMap), ADD_IDX(layerTexCoord.base), ADD_IDX(_NormalScale));
+        }
+        else if(ADD_IDX(layerTexCoord.base).mappingType == UV_MAPPING_PLANAR)
+        {
+            float4 packedNormal = SampleStack(stackInfo, ADD_IDX(_NormalMap));
+            packedNormal.a *= packedNormal.r;
+            real2 vTGranite   = packedNormal.ag * 2.0 - 1.0;
+            real  rcpZGranite = rsqrt(max(1 - Sq(vTGranite.x) - Sq(vTGranite.y), Sq(FLT_EPS)));
+            real2 derivYPlaneGranite = ConvertTangentSpaceNormalToHeightMapGradient(vTGranite.xy, rcpZGranite,  ADD_IDX(_NormalScale));
 
-			real3 volumeGradGranite = real3(derivYPlaneGranite.x, 0.0, derivYPlaneGranite.y);
-			normalTS = SurfaceGradientFromVolumeGradient(ADD_IDX(layerTexCoord.base).normalWS, volumeGradGranite);
-		}
-		else
-		{
-		    packedNormal.a *= packedNormal.r;
-		    real2 vT   = packedNormal.ag * 2.0 - 1.0;
-		    real  rcpZ = rsqrt(max(1 - Sq(vT.x) - Sq(vT.y), Sq(FLT_EPS)));
-		    real2 deriv = ConvertTangentSpaceNormalToHeightMapGradient(vT.xy, rcpZ,  ADD_IDX(_NormalScale));
+            real3 volumeGradGranite = real3(derivYPlaneGranite.x, 0.0, derivYPlaneGranite.y);
+            normalTS = SurfaceGradientFromVolumeGradient(ADD_IDX(layerTexCoord.base).normalWS, volumeGradGranite);
+        }
+        else
+        {
+            float4 packedNormal = SampleStack(stackInfo, ADD_IDX(_NormalMap));
+            packedNormal.a *= packedNormal.r;
+            real2 vT   = packedNormal.ag * 2.0 - 1.0;
+            real  rcpZ = rsqrt(max(1 - Sq(vT.x) - Sq(vT.y), Sq(FLT_EPS)));
+            real2 deriv = ConvertTangentSpaceNormalToHeightMapGradient(vT.xy, rcpZ,  ADD_IDX(_NormalScale));
 
-		    normalTS = SurfaceGradientFromTBN(deriv, ADD_IDX(layerTexCoord.base).tangentWS, ADD_IDX(layerTexCoord.base).bitangentWS);
-		}
-	#else // NO SURFACE_GRADIENT
-		normalTS = SampleStack_Normal(stackInfo, ADD_IDX(_NormalMap), ADD_IDX(_NormalScale));
-	#endif
-#elif VIRTUAL_TEXTURES_ACTIVE
-        normalTS = SAMPLE_UVMAPPING_NORMALMAP(ADD_IDX(_NormalMap), sampler_TextureStack0_c2, ADD_IDX(layerTexCoord.base), ADD_IDX(_NormalScale));
+            normalTS = SurfaceGradientFromTBN(deriv, ADD_IDX(layerTexCoord.base).tangentWS, ADD_IDX(layerTexCoord.base).bitangentWS);
+        }
+    #else // NO SURFACE_GRADIENT
+        // - TODO @jelsayeh "NO_SURFACE_GRADIENT" doesn't yet differentiate between TRIPLANAR and regular
+        normalTS = SampleStack_Normal(stackInfo, ADD_IDX(_NormalMap), ADD_IDX(_NormalScale));
+    #endif
 #else
-        normalTS = SAMPLE_UVMAPPING_NORMALMAP(ADD_IDX(_NormalMap), ADD_IDX(sampler_NormalMap), ADD_IDX(layerTexCoord.base), ADD_IDX(_NormalScale));
+        normalTS = SAMPLE_UVMAPPING_NORMALMAP(ADD_IDX(_NormalMap), SAMPLER_NORMALMAP_IDX, ADD_IDX(layerTexCoord.base), ADD_IDX(_NormalScale));
 #endif
+
     #else // Object space
+
         // We forbid scale in case of object space as it make no sense
         // To be able to combine object space normal with detail map then later we will re-transform it to world space.
         // Note: There is no such a thing like triplanar with object space normal, so we call directly 2D function
@@ -162,6 +157,7 @@ float3 ADD_IDX(GetNormalTS)(FragInputs input, LayerTexCoord layerTexCoord, float
         float3 normalOS = UnpackNormalRGB(SAMPLE_TEXTURE2D(ADD_IDX(_NormalMapOS), SAMPLER_NORMALMAP_IDX, ADD_IDX(layerTexCoord.base).uv), 1.0);
         normalTS = TransformObjectToTangent(normalOS, input.tangentToWorld);
         #endif
+
     #endif
 
     #ifdef _DETAIL_MAP_IDX
@@ -170,13 +166,16 @@ float3 ADD_IDX(GetNormalTS)(FragInputs input, LayerTexCoord layerTexCoord, float
         #else
         normalTS = lerp(normalTS, BlendNormalRNM(normalTS, detailNormalTS), detailMask); // todo: detailMask should lerp the angle of the quaternion rotation, not the normals
         #endif
-    #endif
-#else
+    #endif // _NORMALMAP_TANGENT_SPACE_IDX
+
+#else // _NORMALMAP_IDX not defined
+
     #ifdef SURFACE_GRADIENT
     normalTS = float3(0.0, 0.0, 0.0); // No gradient
     #else
     normalTS = float3(0.0, 0.0, 1.0);
     #endif
+
 #endif
 
     return normalTS;
@@ -223,19 +222,13 @@ float3 ADD_IDX(GetBentNormalTS)(FragInputs input, LayerTexCoord layerTexCoord, f
 // Return opacity
 float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out SurfaceData surfaceData, out float3 normalTS, out float3 bentNormalTS)
 {
-#if VIRTUAL_TEXTURES_ACTIVE_ON_LAYER
-	// Prepare the VT stack for sampling
-	StackInfo stackInfo = PrepareStack(UVMappingTo2D(ADD_IDX(layerTexCoord.base)), ADD_IDX(_TextureStack));
-	surfaceData.VTFeedback = GetResolveOutput(stackInfo);
+    // Prepare the VT stack for sampling
+    StackInfo stackInfo = PrepareStack(UVMappingTo2D(ADD_IDX(layerTexCoord.base)), ADD_IDX(_TextureStack));    
+    surfaceData.VTFeedback = GetResolveOutput(stackInfo);
+#if VIRTUAL_TEXTURES_ACTIVE
     const float4 baseColorValue = SampleStack(stackInfo, ADD_IDX(_BaseColorMap)); //SAMPLE_UVMAPPING_TEXTURE2D(ADD_IDX(_BaseColorMap), ADD_ZERO_IDX(sampler_BaseColorMap), ADD_IDX(layerTexCoord.base));
-#elif VIRTUAL_TEXTURES_ACTIVE
-    const float4 baseColorValue = SAMPLE_UVMAPPING_TEXTURE2D(ADD_IDX(_BaseColorMap), sampler_TextureStack0_c0, ADD_IDX(layerTexCoord.base));
-    surfaceData.VTFeedback = float4(1, 1, 1, 1);
-    StackInfo stackInfo;
 #else
     const float4 baseColorValue = SAMPLE_UVMAPPING_TEXTURE2D(ADD_IDX(_BaseColorMap), ADD_ZERO_IDX(sampler_BaseColorMap), ADD_IDX(layerTexCoord.base));
-	surfaceData.VTFeedback = float4(1, 1, 1, 1);
-	StackInfo stackInfo;
 #endif
     float alpha = baseColorValue.a * ADD_IDX(_BaseColor).a;
 
@@ -257,12 +250,10 @@ float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out
 
 
 #ifdef _MASKMAP_IDX
-#if VIRTUAL_TEXTURES_ACTIVE_ON_LAYER
-    const float4 maskValue = SampleStack(stackInfo, ADD_IDX(_MaskMap));
-#elif VIRTUAL_TEXTURES_ACTIVE
-    const float4 maskValue = SAMPLE_UVMAPPING_TEXTURE2D(ADD_IDX(_MaskMap), sampler_TextureStack0_c0, ADD_IDX(layerTexCoord.base));
-#else
-    const float4 maskValue = SAMPLE_UVMAPPING_TEXTURE2D(ADD_IDX(_MaskMap), ADD_IDX(sampler_MaskMap), ADD_IDX(layerTexCoord.base));
+#if VIRTUAL_TEXTURES_ACTIVE  
+    const float4 maskValue = SampleStack(stackInfo, ADD_IDX(_MaskMap)); //SAMPLE_UVMAPPING_TEXTURE2D(ADD_IDX(_MaskMap), SAMPLER_MASKMAP_IDX, ADD_IDX(layerTexCoord.base)).b;
+#else    
+    const float4 maskValue = SAMPLE_UVMAPPING_TEXTURE2D(ADD_IDX(_MaskMap), SAMPLER_MASKMAP_IDX, ADD_IDX(layerTexCoord.base));
 #endif    
 #endif
 

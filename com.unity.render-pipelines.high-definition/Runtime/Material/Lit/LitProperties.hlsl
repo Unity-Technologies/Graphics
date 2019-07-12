@@ -88,21 +88,15 @@ PROP_DECL_TEX2D(_NormalMap);
 SAMPLER(sampler_LayerMaskMap);
 SAMPLER(sampler_LayerInfluenceMaskMap);
 #else
-PROP_DECL_TEX2D(_NormalMap);	// have the _NormalMaps *with* their samplers for now, to catch unsupported normal map usage
+// Have the _NormalMaps *with* their samplers for now, to catch unsupported normal map usage
+// TODO @jelsayeh can we do without the samplers? Look at UV_MAPPING_TRIPLANAR in GetNormalTS() (LitDataIndividualLayer.hlsl)
+PROP_DECL_TEX2D(_NormalMap);
 
+// The _BaseColorMaps are still required for sampling the mean color in ComputeMainBaseColorInfluence() (LayeredLitData.hlsl)
 TEXTURE2D(_BaseColorMap0);
-
 TEXTURE2D(_BaseColorMap1);
-TEXTURE2D(_MaskMap1);
-//TEXTURE2D(_NormalMap1);
-
 TEXTURE2D(_BaseColorMap2);
-TEXTURE2D(_MaskMap2);
-//TEXTURE2D(_NormalMap2);
-
 TEXTURE2D(_BaseColorMap3);
-TEXTURE2D(_MaskMap3);
-//TEXTURE2D(_NormalMap3);
 #endif
 
 PROP_DECL_TEX2D(_BentNormalMap);

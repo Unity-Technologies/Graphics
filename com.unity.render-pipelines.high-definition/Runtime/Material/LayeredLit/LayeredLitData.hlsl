@@ -10,77 +10,77 @@
 // for this we put the constraint that the sampler are the same in a layered material for all textures of the same type
 // then we take the sampler matching the first textures use of this type
 #if !VIRTUAL_TEXTURES_ACTIVE
-	#if defined(_NORMALMAP0)
-		#if defined(_NORMALMAP_TANGENT_SPACE0)
-		#define SAMPLER_NORMALMAP_IDX sampler_NormalMap0
-		#else
-		#define SAMPLER_NORMALMAP_IDX sampler_NormalMapOS0
-		#endif
-	#elif defined(_NORMALMAP1)
-		#if defined(_NORMALMAP_TANGENT_SPACE1)
-		#define SAMPLER_NORMALMAP_IDX sampler_NormalMap1
-		#else
-		#define SAMPLER_NORMALMAP_IDX sampler_NormalMapOS1
-		#endif
-	#elif defined(_NORMALMAP2)
-		#if defined(_NORMALMAP_TANGENT_SPACE2)
-		#define SAMPLER_NORMALMAP_IDX sampler_NormalMap2
-		#else
-		#define SAMPLER_NORMALMAP_IDX sampler_NormalMapOS2
-		#endif
-	#elif defined(_NORMALMAP3)
-		#if defined(_NORMALMAP_TANGENT_SPACE3)
-		#define SAMPLER_NORMALMAP_IDX sampler_NormalMap3
-		#else
-		#define SAMPLER_NORMALMAP_IDX sampler_NormalMapOS3
-		#endif
-	#elif defined(_BENTNORMALMAP0)
-		#if defined(_NORMALMAP_TANGENT_SPACE0)
-		#define SAMPLER_NORMALMAP_IDX sampler_BentNormalMap0
-		#else
-		#define SAMPLER_NORMALMAP_IDX sampler_BentNormalMapOS0
-		#endif
-	#elif defined(_BENTNORMALMAP1)
-		#if defined(_NORMALMAP_TANGENT_SPACE1)
-		#define SAMPLER_NORMALMAP_IDX sampler_BentNormalMap1
-		#else
-		#define SAMPLER_NORMALMAP_IDX sampler_BentNormalMapOS1
-		#endif
-	#elif defined(_BENTNORMALMAP2)
-		#if defined(_NORMALMAP_TANGENT_SPACE2)
-		#define SAMPLER_NORMALMAP_IDX sampler_BentNormalMap2
-		#else
-		#define SAMPLER_NORMALMAP_IDX sampler_BentNormalMapOS2
-		#endif
-	#else
-		#if defined(_NORMALMAP_TANGENT_SPACE3)
-		#define SAMPLER_NORMALMAP_IDX sampler_BentNormalMap3
-		#else
-		#define SAMPLER_NORMALMAP_IDX sampler_BentNormalMapOS3
-		#endif
-	#endif
+    #if defined(_NORMALMAP0)
+        #if defined(_NORMALMAP_TANGENT_SPACE0)
+        #define SAMPLER_NORMALMAP_IDX sampler_NormalMap0
+        #else
+        #define SAMPLER_NORMALMAP_IDX sampler_NormalMapOS0
+        #endif
+    #elif defined(_NORMALMAP1)
+        #if defined(_NORMALMAP_TANGENT_SPACE1)
+        #define SAMPLER_NORMALMAP_IDX sampler_NormalMap1
+        #else
+        #define SAMPLER_NORMALMAP_IDX sampler_NormalMapOS1
+        #endif
+    #elif defined(_NORMALMAP2)
+        #if defined(_NORMALMAP_TANGENT_SPACE2)
+        #define SAMPLER_NORMALMAP_IDX sampler_NormalMap2
+        #else
+        #define SAMPLER_NORMALMAP_IDX sampler_NormalMapOS2
+        #endif
+    #elif defined(_NORMALMAP3)
+        #if defined(_NORMALMAP_TANGENT_SPACE3)
+        #define SAMPLER_NORMALMAP_IDX sampler_NormalMap3
+        #else
+        #define SAMPLER_NORMALMAP_IDX sampler_NormalMapOS3
+        #endif
+    #elif defined(_BENTNORMALMAP0)
+        #if defined(_NORMALMAP_TANGENT_SPACE0)
+        #define SAMPLER_NORMALMAP_IDX sampler_BentNormalMap0
+        #else
+        #define SAMPLER_NORMALMAP_IDX sampler_BentNormalMapOS0
+        #endif
+    #elif defined(_BENTNORMALMAP1)
+        #if defined(_NORMALMAP_TANGENT_SPACE1)
+        #define SAMPLER_NORMALMAP_IDX sampler_BentNormalMap1
+        #else
+        #define SAMPLER_NORMALMAP_IDX sampler_BentNormalMapOS1
+        #endif
+    #elif defined(_BENTNORMALMAP2)
+        #if defined(_NORMALMAP_TANGENT_SPACE2)
+        #define SAMPLER_NORMALMAP_IDX sampler_BentNormalMap2
+        #else
+        #define SAMPLER_NORMALMAP_IDX sampler_BentNormalMapOS2
+        #endif
+    #else
+        #if defined(_NORMALMAP_TANGENT_SPACE3)
+        #define SAMPLER_NORMALMAP_IDX sampler_BentNormalMap3
+        #else
+        #define SAMPLER_NORMALMAP_IDX sampler_BentNormalMapOS3
+        #endif
+    #endif
 #endif
 
 #if defined(_DETAIL_MAP0)
 #define SAMPLER_DETAILMAP_IDX sampler_DetailMap0
 #elif defined(_DETAIL_MAP1)
 #define SAMPLER_DETAILMAP_IDX sampler_DetailMap1
-#elif defined(_DETAIL_MAP2) 
+#elif defined(_DETAIL_MAP2)
 #define SAMPLER_DETAILMAP_IDX sampler_DetailMap2
 #else
 #define SAMPLER_DETAILMAP_IDX sampler_DetailMap3
 #endif
 
 #if !VIRTUAL_TEXTURES_ACTIVE
-	#if defined(_MASKMAP0)
-	#define SAMPLER_MASKMAP_IDX sampler_MaskMap0
-	#elif defined(_MASKMAP1)
-	#define SAMPLER_MASKMAP_IDX sampler_MaskMap1
-	#elif defined(_MASKMAP2)
-	#define SAMPLER_MASKMAP_IDX sampler_MaskMap2
-	#else
-	#define SAMPLER_MASKMAP_IDX sampler_MaskMap3
-	#endif
+    #if defined(_MASKMAP0)
+    #define SAMPLER_MASKMAP_IDX sampler_MaskMap0
+    #elif defined(_MASKMAP1)
+    #define SAMPLER_MASKMAP_IDX sampler_MaskMap1
+    #elif defined(_MASKMAP2)
+    #define SAMPLER_MASKMAP_IDX sampler_MaskMap2
+    #else
+    #define SAMPLER_MASKMAP_IDX sampler_MaskMap3
+    #endif
 #endif
 
 #if defined(_HEIGHTMAP0)
@@ -151,12 +151,6 @@
 #undef _THICKNESSMAP_IDX
 #undef _MASKMAP_IDX
 #undef _BENTNORMALMAP_IDX
-
-//#if VIRTUAL_TEXTURES_ACTIVE
-//#define VT_WAS_ACTIVE 1
-//#endif
-//#undef VIRTUAL_TEXTURES_ACTIVE
-//#define VIRTUAL_TEXTURES_ACTIVE 0
 
 #define LAYER_INDEX 1
 #define ADD_IDX(Name) Name##1
@@ -259,11 +253,6 @@
 #undef _THICKNESSMAP_IDX
 #undef _MASKMAP_IDX
 #undef _BENTNORMALMAP_IDX
-
-//#if defined(VT_WAS_ACTIVE) && VT_WAS_ACTIVE > 0
-//#undef VIRTUAL_TEXTURES_ACTIVE
-//#define VIRTUAL_TEXTURES_ACTIVE 1
-//#endif
 
 float3 BlendLayeredVector3(float3 x0, float3 x1, float3 x2, float3 x3, float weight[4])
 {
@@ -503,6 +492,7 @@ float4 GetBlendMask(LayerTexCoord layerTexCoord, float4 vertexColor, bool useLod
     // Value for main layer is not use for blending itself but for alternate weighting like density.
     // Settings this specific Main layer blend mask in alpha allow to be transparent in case we don't use it and 1 is provide by default.
 #if VIRTUAL_TEXTURES_ACTIVE
+    // If VT is active, we sample using the sampler of the _BaseColor (_c0) of layer 0 (TextureStack0); we do this because we have no capacity left to create a sampler for the _LayerMaskMap
     float4 blendMasks = useLodSampling ? SAMPLE_UVMAPPING_TEXTURE2D_LOD(_LayerMaskMap, sampler_TextureStack0_c0, layerTexCoord.blendMask, lod) : SAMPLE_UVMAPPING_TEXTURE2D(_LayerMaskMap, sampler_TextureStack0_c0, layerTexCoord.blendMask);
 #else
     float4 blendMasks = useLodSampling ? SAMPLE_UVMAPPING_TEXTURE2D_LOD(_LayerMaskMap, sampler_LayerMaskMap, layerTexCoord.blendMask, lod) : SAMPLE_UVMAPPING_TEXTURE2D(_LayerMaskMap, sampler_LayerMaskMap, layerTexCoord.blendMask);
@@ -525,6 +515,7 @@ float GetInfluenceMask(LayerTexCoord layerTexCoord, bool useLodSampling = false,
 {
     // Sample influence mask with same mapping as Main layer
 #if VIRTUAL_TEXTURES_ACTIVE
+    // If VT is active, we sample using the sampler of the _BaseColor (_c0) of layer 0 (TextureStack0); we do this because we have no capacity left to create a sampler for the _LayerInfluenceMaskMap
     return useLodSampling ? SAMPLE_UVMAPPING_TEXTURE2D_LOD(_LayerInfluenceMaskMap, sampler_TextureStack0_c0, layerTexCoord.base0, lod).r : SAMPLE_UVMAPPING_TEXTURE2D(_LayerInfluenceMaskMap, sampler_TextureStack0_c0, layerTexCoord.base0).r;
 #else
     return useLodSampling ? SAMPLE_UVMAPPING_TEXTURE2D_LOD(_LayerInfluenceMaskMap, sampler_LayerInfluenceMaskMap, layerTexCoord.base0, lod).r : SAMPLE_UVMAPPING_TEXTURE2D(_LayerInfluenceMaskMap, sampler_LayerInfluenceMaskMap, layerTexCoord.base0).r;
@@ -653,20 +644,20 @@ float3 ComputeMainBaseColorInfluence(float influenceMask, float3 baseColor0, flo
     float textureBias = 15.0; // Use maximum bias
 
 #if VIRTUAL_TEXTURES_ACTIVE
-	// TODO here we still do non-VT sampling to get the mean colors, instead of PrepareStack() followed by SampleStack(); ideally we have a PrepareStack_Bias() and/or a SampleStack_Bias()
-	// which takes an additional argument to bias the sampled LOD. This approach doesn't work here as the VT system is designed to sample a single *tile* at the lowest resolution.
-	float3 baseMeanColor0 = SAMPLE_UVMAPPING_TEXTURE2D_BIAS(_BaseColorMap0, sampler_TextureStack0_c0, layerTexCoord.base0, textureBias).rgb *_BaseColor0.rgb;
-	float3 baseMeanColor1 = SAMPLE_UVMAPPING_TEXTURE2D_BIAS(_BaseColorMap1, sampler_TextureStack0_c0, layerTexCoord.base1, textureBias).rgb *_BaseColor1.rgb;
-	float3 baseMeanColor2 = SAMPLE_UVMAPPING_TEXTURE2D_BIAS(_BaseColorMap2, sampler_TextureStack0_c0, layerTexCoord.base2, textureBias).rgb *_BaseColor2.rgb;
-	float3 baseMeanColor3 = SAMPLE_UVMAPPING_TEXTURE2D_BIAS(_BaseColorMap3, sampler_TextureStack0_c0, layerTexCoord.base3, textureBias).rgb *_BaseColor3.rgb;
+    // TODO here we still do non-VT sampling to get the mean colors, instead of PrepareStack() followed by SampleStack(); ideally we have a PrepareStack_Bias() and/or a SampleStack_Bias()
+    // which takes an additional argument to bias the sampled LOD. This approach doesn't work here as the VT system is designed to sample a single *tile* at the lowest resolution.
+    float3 baseMeanColor0 = SAMPLE_UVMAPPING_TEXTURE2D_BIAS(_BaseColorMap0, sampler_TextureStack0_c0, layerTexCoord.base0, textureBias).rgb *_BaseColor0.rgb;
+    float3 baseMeanColor1 = SAMPLE_UVMAPPING_TEXTURE2D_BIAS(_BaseColorMap1, sampler_TextureStack0_c0, layerTexCoord.base1, textureBias).rgb *_BaseColor1.rgb;
+    float3 baseMeanColor2 = SAMPLE_UVMAPPING_TEXTURE2D_BIAS(_BaseColorMap2, sampler_TextureStack0_c0, layerTexCoord.base2, textureBias).rgb *_BaseColor2.rgb;
+    float3 baseMeanColor3 = SAMPLE_UVMAPPING_TEXTURE2D_BIAS(_BaseColorMap3, sampler_TextureStack0_c0, layerTexCoord.base3, textureBias).rgb *_BaseColor3.rgb;
 #else
-	float3 baseMeanColor0 = SAMPLE_UVMAPPING_TEXTURE2D_BIAS(_BaseColorMap0, sampler_BaseColorMap0, layerTexCoord.base0, textureBias).rgb *_BaseColor0.rgb;
+    float3 baseMeanColor0 = SAMPLE_UVMAPPING_TEXTURE2D_BIAS(_BaseColorMap0, sampler_BaseColorMap0, layerTexCoord.base0, textureBias).rgb *_BaseColor0.rgb;
     float3 baseMeanColor1 = SAMPLE_UVMAPPING_TEXTURE2D_BIAS(_BaseColorMap1, sampler_BaseColorMap0, layerTexCoord.base1, textureBias).rgb *_BaseColor1.rgb;
     float3 baseMeanColor2 = SAMPLE_UVMAPPING_TEXTURE2D_BIAS(_BaseColorMap2, sampler_BaseColorMap0, layerTexCoord.base2, textureBias).rgb *_BaseColor2.rgb;
     float3 baseMeanColor3 = SAMPLE_UVMAPPING_TEXTURE2D_BIAS(_BaseColorMap3, sampler_BaseColorMap0, layerTexCoord.base3, textureBias).rgb *_BaseColor3.rgb;
 #endif
 
-	float3 meanColor = BlendLayeredVector3(baseMeanColor0, baseMeanColor1, baseMeanColor2, baseMeanColor3, weights);
+    float3 meanColor = BlendLayeredVector3(baseMeanColor0, baseMeanColor1, baseMeanColor2, baseMeanColor3, weights);
 
     // If we inherit from base layer, we will add a bit of it
     // We add variance of current visible level and the base color 0 or mean (to retrieve initial color) depends on influence

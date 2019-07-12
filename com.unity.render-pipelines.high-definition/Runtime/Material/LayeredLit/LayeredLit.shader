@@ -366,15 +366,15 @@ Shader "HDRP/LayeredLit"
         [ToggleUI] _ReceivesSSR("Receives SSR", Float) = 1.0
 
         [Toggle] _VirtualTexturing("Virtual Texturing", Float) = 0.0
-        _TextureStack0("_TextureStack0", Stack) = { _BaseColorMap0 _MaskMap0 _NormalMap0 }
-		_TextureStack1("_TextureStack1", Stack) = { _BaseColorMap1 _MaskMap1 _NormalMap1 }
-		_TextureStack2("_TextureStack2", Stack) = { _BaseColorMap2 _MaskMap2 _NormalMap2 }
-		_TextureStack3("_TextureStack3", Stack) = { _BaseColorMap3 _MaskMap3 _NormalMap3 }
+        _TextureStack0("_TextureStack0", TextureStack) = { _BaseColorMap0 _MaskMap0 _NormalMap0 }
+        _TextureStack1("_TextureStack1", TextureStack) = { _BaseColorMap1 _MaskMap1 _NormalMap1 }
+        _TextureStack2("_TextureStack2", TextureStack) = { _BaseColorMap2 _MaskMap2 _NormalMap2 }
+        _TextureStack3("_TextureStack3", TextureStack) = { _BaseColorMap3 _MaskMap3 _NormalMap3 }
     }
 
     HLSLINCLUDE
 
-    #pragma target 5.0
+    #pragma target 4.5
     #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
 
     #pragma shader_feature_local _ALPHATEST_ON
@@ -644,7 +644,7 @@ Shader "HDRP/LayeredLit"
             HLSLPROGRAM
             #pragma multi_compile _ WRITE_NORMAL_BUFFER
             #pragma multi_compile _ WRITE_MSAA_DEPTH
-
+            
             #define SHADERPASS SHADERPASS_MOTION_VECTORS
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.hlsl"
             #ifdef WRITE_NORMAL_BUFFER // If enabled we need all regular interpolator
@@ -759,7 +759,7 @@ Shader "HDRP/LayeredLit"
             #pragma multi_compile _ SHADOWS_SHADOWMASK
             // Setup DECALS_OFF so the shader stripper can remove variants
             #pragma multi_compile DECALS_OFF DECALS_3RT DECALS_4RT
-
+            
             // Supported shadow modes per light type
             #pragma multi_compile SHADOW_LOW SHADOW_MEDIUM SHADOW_HIGH    
 
