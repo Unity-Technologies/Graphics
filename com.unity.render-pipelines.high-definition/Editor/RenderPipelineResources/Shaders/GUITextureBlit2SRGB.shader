@@ -1,4 +1,4 @@
-﻿Shader "Hidden/GUITextureBlit2SRGB" {
+Shader "Hidden/GUITextureBlit2SRGB" {
     Properties
     {
         _MainTex ("Texture", any) = "" {}
@@ -52,9 +52,7 @@
             {
                 UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i);
                 fixed4 colTex = UNITY_SAMPLE_SCREENSPACE_TEXTURE(_MainTex, i.texcoord);
-                if (_ManualTex2SRGB)
-                    colTex.rgb = LinearToGammaSpace(colTex.rgb);
-                float exposure = UNITY_SAMPLE_TEX2D(_Exposure, float2(0, 0)).r;
+                float exposure = UNITY_SAMPLE_TEX2D(_Exposure, float2(0, 0)).x;
                 return colTex * _Color * exposure;
             }
             ENDCG
