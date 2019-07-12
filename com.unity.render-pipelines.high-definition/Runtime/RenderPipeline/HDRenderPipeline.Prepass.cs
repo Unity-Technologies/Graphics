@@ -223,7 +223,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                     , context.resources.GetRendererList(data.rendererListMRT)
                                     , data.hasDepthOnlyPrepass
 #if ENABLE_RAYTRACING
-                                    , data.rayTracingManager,
+                                    , data.rayTracingManager
                                     , context.resources.GetRendererList(data.renderListRayTracingOpaque)
                                     , context.resources.GetRendererList(data.renderListRayTracingTransparent)
 #endif
