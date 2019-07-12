@@ -993,7 +993,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         static Vector3 ComputeAtmosphericOpticalDepth(float r, float cosTheta, bool alwaysAboveHorizon = false)
         {
-            var skySettings = VolumeManager.instance.stack.GetComponent<PhysicallyBasedSkySettings>();
+            var skySettings = VolumeManager.instance.stack.GetComponent<PhysicallyBasedSky>();
             Debug.Assert(skySettings != null);
 
             float R = skySettings.planetaryRadius.value;
@@ -1049,7 +1049,7 @@ namespace UnityEngine.Rendering.HighDefinition
         // Computes transmittance along the light path segment.
         static Vector3 EvaluateAtmosphericAttenuation(Vector3 L, Vector3 positionWS)
         {
-            var skySettings = VolumeManager.instance.stack.GetComponent<PhysicallyBasedSkySettings>();
+            var skySettings = VolumeManager.instance.stack.GetComponent<PhysicallyBasedSky>();
             Debug.Assert(skySettings != null);
 
             Vector3 X = positionWS * 0.001f; // Convert m to km
@@ -2015,7 +2015,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     var visualEnvironment = VolumeManager.instance.stack.GetComponent<VisualEnvironment>();
                     Debug.Assert(visualEnvironment != null);
 
-                    isPysicallyBasedSkyActive = (visualEnvironment.skyType.value == SkySettings.GetUniqueID<PhysicallyBasedSkySettings>());
+                    isPysicallyBasedSkyActive = (visualEnvironment.skyType.value == SkySettings.GetUniqueID<PhysicallyBasedSky>());
 
                     // TODO: Refactor shadow management
                     // The good way of managing shadow:
