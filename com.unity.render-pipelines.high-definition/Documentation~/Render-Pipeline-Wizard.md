@@ -2,7 +2,7 @@
 
 The High Definition Render Pipeline (HDRP) includes the **HD Render Pipeline Wizard** to help you configure your Unity Project so that it is compatible with HDRP. 
 
-To open the **Render Pipeline Wizard**, go to **Window > General** and select **HD Render Pipeline Wizard**.
+To open the **Render Pipeline Wizard**, go to **Window > Render Pipeline** and select **HD Render Pipeline Wizard**.
 
 ![](Images/RenderPipelineWizard1.png)
 
