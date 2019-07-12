@@ -276,19 +276,19 @@ namespace UnityEditor.Rendering.HighDefinition
 
             string defaultScenePath = "Assets/" + HDProjectSettings.projectSettingsFolderPath + "/" + hdrpAssetEditorResources.defaultScene.name + ".prefab";
             AssetDatabase.CopyAsset(AssetDatabase.GetAssetPath(hdrpAssetEditorResources.defaultScene), defaultScenePath);
-            string defaultRenderSettingsProfilePath = "Assets/" + HDProjectSettings.projectSettingsFolderPath + "/" + hdrpAssetEditorResources.defaultRenderSettingsProfile.name + ".asset";
-            AssetDatabase.CopyAsset(AssetDatabase.GetAssetPath(hdrpAssetEditorResources.defaultRenderSettingsProfile), defaultRenderSettingsProfilePath);
+            string defaultSkyAndFogProfilePath = "Assets/" + HDProjectSettings.projectSettingsFolderPath + "/" + hdrpAssetEditorResources.defaultSkyAndFogProfile.name + ".asset";
+            AssetDatabase.CopyAsset(AssetDatabase.GetAssetPath(hdrpAssetEditorResources.defaultSkyAndFogProfile), defaultSkyAndFogProfilePath);
             string defaultPostProcessingProfilePath = "Assets/" + HDProjectSettings.projectSettingsFolderPath + "/" + hdrpAssetEditorResources.defaultPostProcessingProfile.name + ".asset";
             AssetDatabase.CopyAsset(AssetDatabase.GetAssetPath(hdrpAssetEditorResources.defaultPostProcessingProfile), defaultPostProcessingProfilePath);
 
             GameObject defaultScene = AssetDatabase.LoadAssetAtPath<GameObject>(defaultScenePath);
-            VolumeProfile defaultRenderSettingsProfile = AssetDatabase.LoadAssetAtPath<VolumeProfile>(defaultRenderSettingsProfilePath);
+            VolumeProfile defaultSkyAndFogProfile = AssetDatabase.LoadAssetAtPath<VolumeProfile>(defaultSkyAndFogProfilePath);
             VolumeProfile defaultPostProcessingProfile = AssetDatabase.LoadAssetAtPath<VolumeProfile>(defaultPostProcessingProfilePath);
 
             foreach (var volume in defaultScene.GetComponentsInChildren<Volume>())
             {
-                if (volume.sharedProfile.name.StartsWith(hdrpAssetEditorResources.defaultRenderSettingsProfile.name))
-                    volume.sharedProfile = defaultRenderSettingsProfile;
+                if (volume.sharedProfile.name.StartsWith(hdrpAssetEditorResources.defaultSkyAndFogProfile.name))
+                    volume.sharedProfile = defaultSkyAndFogProfile;
                 else if (volume.sharedProfile.name.StartsWith(hdrpAssetEditorResources.defaultPostProcessingProfile.name))
                     volume.sharedProfile = defaultPostProcessingProfile;
             }
