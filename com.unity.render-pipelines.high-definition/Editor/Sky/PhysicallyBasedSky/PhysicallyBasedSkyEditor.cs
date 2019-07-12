@@ -5,7 +5,7 @@ namespace UnityEditor.Rendering.HighDefinition
 {
     [CanEditMultipleObjects]
     [VolumeComponentEditor(typeof(PhysicallyBasedSky))]
-    public class PhysicallyBasedSkyEditor : VolumeComponentEditor
+    public class PhysicallyBasedSkyEditor : SkySettingsEditor
     {
         SerializedDataParameter m_PlanetaryRadius;
         SerializedDataParameter m_PlanetCenterPosition;
@@ -27,6 +27,11 @@ namespace UnityEditor.Rendering.HighDefinition
         public override void OnEnable()
         {
             base.OnEnable();
+
+            m_CommonUIElementsMask = (uint)SkySettingsUIElement.UpdateMode;
+            // Even if not PBR we should probably add exposure/multiplier for the sake of consistency.
+                //| (uint)SkySettingsUIElement.Exposure
+                //| (uint)SkySettingsUIElement.Multiplier;
 
             var o = new PropertyFetcher<PhysicallyBasedSky>(serializedObject);
 
@@ -66,6 +71,8 @@ namespace UnityEditor.Rendering.HighDefinition
 			PropertyField(m_PlanetRotation);
 			PropertyField(m_SpaceEmissionTexture);
 			PropertyField(m_SpaceRotation);
+
+            base.CommonSkySettingsGUI();
         }
     }
 }
