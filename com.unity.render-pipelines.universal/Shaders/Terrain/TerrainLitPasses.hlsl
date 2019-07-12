@@ -118,22 +118,18 @@ void SplatmapMix(float4 uvMainAndLM, float4 uvSplat01, float4 uvSplat23, inout h
     opacityAsDensity += 0.001h * splatControl;      // if all weights are zero, default to what the blend mask says
     half4 useOpacityAsDensityParam = { _DiffuseRemapScale0.w, _DiffuseRemapScale1.w, _DiffuseRemapScale2.w, _DiffuseRemapScale3.w }; // 1 is off
     splatControl = lerp(opacityAsDensity, splatControl, useOpacityAsDensityParam);
-    splatControl /= dot(splatControl, 1.0h);
 #endif
 
     // Now that splatControl has changed, we can compute the final weight and normalize
     weight = dot(splatControl, 1.0h);
 
-#if !defined(SHADER_API_MOBILE) &&!defined(SHADER_API_SWITCH) && defined(TERRAIN_SPLAT_ADDPASS)
+#if !defined(SHADER_API_MOBILE) && !defined(SHADER_API_SWITCH) && defined(TERRAIN_SPLAT_ADDPASS)
     clip(weight == 0.0h ? -1.0h : 1.0h);
 #endif
 
-#ifndef TERRAIN_SPLAT_ADDPASS
     // Normalize weights before lighting and restore weights in final modifier functions so that the overal
-    // lighting result can be correctly weighted.  In the add pass, we can assume the weights
-    // are already properly normalized in the layer below, so we don't want to renormalize again.
+    // lighting result can be correctly weighted.
     splatControl /= (weight + HALF_MIN);
-#endif
 
     mixedDiffuse = 0.0h;
     mixedDiffuse += diffAlbedo[0] * half4(_DiffuseRemapScale0.rgb * splatControl.rrr, 1.0h);
