@@ -48,10 +48,59 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
+        MaterialProperty[]      oldProperties;
+
+		bool CheckPropertyChanged(MaterialProperty[] properties)
+		{
+			bool propertyChanged = false;
+
+			if (oldProperties != null)
+			{
+				// Check if shader was changed (new/deleted properties)
+				if (properties.Length != oldProperties.Length)
+				{
+					propertyChanged = true;
+				}
+				else
+				{
+					for (int i = 0; i < properties.Length; i++)
+					{
+						if (properties[i].type != oldProperties[i].type)
+							propertyChanged = true;
+						if (properties[i].displayName != oldProperties[i].displayName)
+							propertyChanged = true;
+						if (properties[i].flags != oldProperties[i].flags)
+							propertyChanged = true;
+						if (properties[i].name != oldProperties[i].name)
+							propertyChanged = true;
+						if (properties[i].floatValue != oldProperties[i].floatValue)
+							propertyChanged = true;
+						if (properties[i].vectorValue != oldProperties[i].vectorValue)
+							propertyChanged = true;
+						if (properties[i].colorValue != oldProperties[i].colorValue)
+							propertyChanged = true;
+						if (properties[i].textureValue != oldProperties[i].textureValue)
+							propertyChanged = true;
+					}
+				}
+			}
+
+			oldProperties = properties;
+
+			return propertyChanged;
+		}
+
         void DrawShaderGraphGUI()
         {
             // Filter out properties we don't want to draw:
             PropertiesDefaultGUI(properties);
+
+            // If we change a property in a shadergraph, we trigger a material keyword reset 
+            if (CheckPropertyChanged(properties))
+            {
+                foreach (var material in materials)
+                    HDEditorUtils.ResetMaterialKeywords(material);
+            }
 
             if (properties.Length > 0)
                 EditorGUILayout.Space();
