@@ -138,7 +138,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                         return DropdownMenuAction.Status.Disabled;
                 });
 
-                
+
 
                 var editorView = GetFirstAncestorOfType<GraphEditorView>();
                 if (editorView.colorManager.activeSupportsCustom && selection.OfType<MaterialNodeView>().Any())
@@ -177,6 +177,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             if (evt.target is BlackboardField)
             {
                 evt.menu.AppendAction("Delete", (e) => DeleteSelectionImplementation("Delete", AskUser.DontAskUser), (e) => canDeleteSelection ? DropdownMenuAction.Status.Normal : DropdownMenuAction.Status.Disabled);
+                evt.menu.AppendAction("Duplicate", (e) => DuplicateSelection(), (e) => canDuplicateSelection ? DropdownMenuAction.Status.Normal : DropdownMenuAction.Status.Disabled);
             }
             if (evt.target is MaterialGraphView)
             {
@@ -448,6 +449,29 @@ namespace UnityEditor.ShaderGraph.Drawing
                 ((GraphData)propNode.owner).ReplacePropertyNodeWithConcreteNode(propNode);
         }
 
+        void DuplicateSelection()
+        {
+            graph.owner.RegisterCompleteObjectUndo("Duplicate Blackboard Property");
+
+            // Create list that we sorted based on position, so that duplication
+            List<AbstractShaderProperty> selectedProperties = new List<AbstractShaderProperty>();
+            foreach (var selectable in selection)
+            {
+                var field = selectable as BlackboardField;
+                var shaderProp = (AbstractShaderProperty) field.userData;
+                if (field != null && shaderProp != null)
+                {
+                    selectedProperties.Add(shaderProp);
+                }
+            }
+
+            CopyPasteGraph copiedProperties = new CopyPasteGraph("", new List<GroupData>(),
+                new List<AbstractMaterialNode>(), new List<IEdge>(), selectedProperties,
+                new List<AbstractShaderProperty>(), new List<StickyNoteData>());
+
+            GraphViewExtensions.InsertCopyPasteGraph(this, copiedProperties);
+        }
+
         DropdownMenuAction.Status ConvertToSubgraphStatus(DropdownMenuAction action)
         {
             if (onConvertToSubgraphClick == null) return DropdownMenuAction.Status.Hidden;
@@ -713,18 +737,36 @@ namespace UnityEditor.ShaderGraph.Drawing
 
     static class GraphViewExtensions
     {
+        // Sorts based on their position on the blackboard
+        internal class PropertyOrder : IComparer<AbstractShaderProperty>
+        {
+            GraphData graphData;
+
+            internal PropertyOrder(GraphData data)
+            {
+                graphData = data;
+            }
+
+            public int Compare(AbstractShaderProperty x, AbstractShaderProperty y)
+            {
+                if (graphData.GetShaderPropertyIndex(x) > graphData.GetShaderPropertyIndex(y)) return 1;
+                else return -1;
+            }
+        }
+
         internal static void InsertCopyPasteGraph(this MaterialGraphView graphView, CopyPasteGraph copyGraph)
         {
             if (copyGraph == null)
                 return;
 
+            // Sort based on order
+            List<AbstractShaderProperty> sortedProperties = copyGraph.properties.ToList();
+            sortedProperties.Sort(new PropertyOrder(graphView.graph));
+
             // Make new properties from the copied graph
-            foreach (AbstractShaderProperty property in copyGraph.properties)
+            foreach (AbstractShaderProperty property in sortedProperties)
             {
-                string propertyName = graphView.graph.SanitizePropertyName(property.displayName);
-                AbstractShaderProperty copiedProperty = property.Copy();
-                copiedProperty.displayName = propertyName;
-                graphView.graph.AddShaderProperty(copiedProperty);
+                AbstractShaderProperty copiedProperty = DuplicateProperty(property, graphView.graph);
 
                 // Update the property nodes that depends on the copied node
                 var dependentPropertyNodes = copyGraph.GetNodes<PropertyNode>().Where(x => x.propertyGuid == property.guid);
@@ -782,6 +824,16 @@ namespace UnityEditor.ShaderGraph.Drawing
                         });
                 }
             }
+        }
+
+        static AbstractShaderProperty DuplicateProperty(AbstractShaderProperty original, GraphData graph)
+        {
+            string propertyName = graph.SanitizePropertyName(original.displayName);
+            AbstractShaderProperty copy = original.Copy();
+            copy.displayName = propertyName;
+            graph.AddShaderProperty(copy);
+            copy.generatePropertyBlock = original.generatePropertyBlock;
+            return copy;
         }
     }
 }
