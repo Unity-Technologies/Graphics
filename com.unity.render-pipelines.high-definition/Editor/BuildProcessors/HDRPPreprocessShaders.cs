@@ -2,16 +2,14 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.Build;
 using UnityEditor.Build.Reporting;
-using UnityEditor.Rendering;
 using UnityEngine;
-using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering;
-using UnityEngine.Experimental.Rendering.HDPipeline;
+using UnityEngine.Rendering.HighDefinition;
 
-namespace UnityEditor.Experimental.Rendering.HDPipeline
+namespace UnityEditor.Rendering.HighDefinition
 {
     // The common shader stripper function
-    public class CommonShaderPreprocessor : BaseShaderPreprocessor
+    class CommonShaderPreprocessor : BaseShaderPreprocessor
     {
         public CommonShaderPreprocessor() { }
 
@@ -25,7 +23,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             foreach (var shadowVariant in m_ShadowVariants)
             {
-                if (shadowVariant.Key != shadowInitParams.shadowQuality)
+                if (shadowVariant.Key != shadowInitParams.shadowFilteringQuality)
                     if (inputData.shaderKeywordSet.IsEnabled(shadowVariant.Value))
                         return true;
             }

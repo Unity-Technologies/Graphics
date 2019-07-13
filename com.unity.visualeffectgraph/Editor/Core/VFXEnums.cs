@@ -12,9 +12,6 @@ namespace UnityEditor.VFX
 
         // updates
         CameraSort                  = UnityEngine.VFX.VFXTaskType.CameraSort,
-        StripSort                   = UnityEngine.VFX.VFXTaskType.StripSort,
-        StripUpdatePerParticle      = UnityEngine.VFX.VFXTaskType.StripUpdatePerParticle,
-        StripUpdatePerStrip         = UnityEngine.VFX.VFXTaskType.StripUpdatePerStrip,
 
         // outputs
         ParticlePointOutput         = UnityEngine.VFX.VFXTaskType.ParticlePointOutput,

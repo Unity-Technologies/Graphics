@@ -6,12 +6,12 @@ namespace UnityEditor.ShaderGraph
     abstract class ShaderInput
     {
         [SerializeField]
-        private SerializableGuid m_Guid = new SerializableGuid();
+        SerializableGuid m_Guid = new SerializableGuid();
 
         public Guid guid => m_Guid.guid;
         
         [SerializeField]
-        private string m_Name;
+        string m_Name;
 
         public string displayName
         {
@@ -25,7 +25,7 @@ namespace UnityEditor.ShaderGraph
         }
 
         [SerializeField]
-        private string m_DefaultReferenceName;
+        string m_DefaultReferenceName;
 
         public string referenceName
         {
@@ -34,15 +34,20 @@ namespace UnityEditor.ShaderGraph
                 if (string.IsNullOrEmpty(overrideReferenceName))
                 {
                     if (string.IsNullOrEmpty(m_DefaultReferenceName))
-                        m_DefaultReferenceName = $"{concreteShaderValueType}_{GuidEncoder.Encode(guid)}";
+                        m_DefaultReferenceName = $"{referenceNameBase}_{GuidEncoder.Encode(guid)}";
                     return m_DefaultReferenceName;
                 }
                 return overrideReferenceName;
             }
         }
 
+        // This is required to handle Material data serialized with "_Color_GUID" reference names
+        // m_DefaultReferenceName expects to match the material data and previously used PropertyType
+        // ColorShaderProperty is the only case where PropertyType doesnt match ConcreteSlotValueType
+        public virtual string referenceNameBase => concreteShaderValueType.ToString();
+
         [SerializeField]
-        private string m_OverrideReferenceName;
+        string m_OverrideReferenceName;
 
         public string overrideReferenceName
         {
@@ -51,7 +56,7 @@ namespace UnityEditor.ShaderGraph
         }
 
         [SerializeField]
-        private bool m_GeneratePropertyBlock = true;
+        bool m_GeneratePropertyBlock = true;
 
         public bool generatePropertyBlock
         {

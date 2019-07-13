@@ -14,6 +14,11 @@ namespace UnityEditor.ShaderGraph
         }
         
         public override PropertyType propertyType => PropertyType.Matrix2;
+
+        public override string GetPropertyAsArgumentString()
+        {
+            return $"{concretePrecision.ToShaderString()}2x2 {referenceName}";
+        }
         
         public override AbstractMaterialNode ToConcreteNode()
         {

@@ -1,16 +1,15 @@
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using UnityEngine.Assertions;
-using UnityEngine.Rendering;
+using UnityEngine.Experimental.Rendering;
 
-namespace UnityEngine.Experimental.Rendering.HDPipeline
+namespace UnityEngine.Rendering.HighDefinition
 {
-    using RTHandle = RTHandleSystem.RTHandle;
     using AntialiasingMode = HDAdditionalCameraData.AntialiasingMode;
 
     // Main class for all post-processing related features - only includes camera effects, no
     // lighting/surface effect like SSR/AO
-    public sealed class PostProcessSystem
+    sealed class PostProcessSystem
     {
         private enum SMAAStage
         {
@@ -28,6 +27,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         Material m_FinalPassMaterial;
         Material m_ClearBlackMaterial;
         Material m_SMAAMaterial;
+        Material m_TemporalAAMaterial;
+
+        MaterialPropertyBlock m_TAAHistoryBlitPropertyBlock = new MaterialPropertyBlock();
+        MaterialPropertyBlock m_TAAPropertyBlock = new MaterialPropertyBlock();
+
+        RenderTargetIdentifier[] m_TAAMRT;
 
         // Exposure data
         const int k_ExposureCurvePrecision = 128;
@@ -122,6 +127,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_FinalPassMaterial = CoreUtils.CreateEngineMaterial(m_Resources.shaders.finalPassPS);
             m_ClearBlackMaterial = CoreUtils.CreateEngineMaterial(m_Resources.shaders.clearBlackPS);
             m_SMAAMaterial = CoreUtils.CreateEngineMaterial(m_Resources.shaders.SMAAPS);
+            m_TemporalAAMaterial = CoreUtils.CreateEngineMaterial(m_Resources.shaders.temporalAntialiasingPS);
+            m_TAAMRT = new RenderTargetIdentifier[2];
 
             // Some compute shaders fail on specific hardware or vendors so we'll have to use a
             // safer but slower code path for them
@@ -309,7 +316,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public void Render(CommandBuffer cmd, HDCamera camera, BlueNoise blueNoise, RTHandle colorBuffer, RTHandle afterPostProcessTexture, RTHandle lightingBuffer, RenderTargetIdentifier finalRT, RTHandle depthBuffer, bool flipY)
         {
-            var dynResHandler = HDDynamicResolutionHandler.instance;
+            var dynResHandler = DynamicResolutionHandler.instance;
 
             m_Pool.SetHWDynamicResolutionState(camera);
 
@@ -392,7 +399,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                             using (new ProfilingSample(cmd, "Temporal Anti-aliasing", CustomSamplerId.TemporalAntialiasing.GetSampler()))
                             {
                                 var destination = m_Pool.Get(Vector2.one, k_ColorFormat);
-                                DoTemporalAntialiasing(cmd, camera, source, destination);
+                                DoTemporalAntialiasing(cmd, camera, source, destination, depthBuffer);
                                 PoolSource(ref source, destination);
                             }
                         }
@@ -748,29 +755,29 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         #region Temporal Anti-aliasing
 
-        void DoTemporalAntialiasing(CommandBuffer cmd, HDCamera camera, RTHandle source, RTHandle destination)
+        void DoTemporalAntialiasing(CommandBuffer cmd, HDCamera camera, RTHandle source, RTHandle destination, RTHandle depthBuffer)
         {
-            var cs = m_Resources.shaders.temporalAntialiasingCS;
-            var kernel = cs.FindKernel(camera.camera.orthographic ? "KTAA_Ortho" : "KTAA_Persp");
-
             GrabTemporalAntialiasingHistoryTextures(camera, out var prevHistory, out var nextHistory);
+
 
             if (m_ResetHistory)
             {
-                CopyTemporalAntialiasingHistory(cmd, camera, source, prevHistory);
-                CopyTemporalAntialiasingHistory(cmd, camera, source, nextHistory);
+                m_TAAHistoryBlitPropertyBlock.SetTexture(HDShaderIDs._BlitTexture, source);
+                m_TAAHistoryBlitPropertyBlock.SetVector(HDShaderIDs._BlitScaleBias, new Vector4(1.0f, 1.0f, 0.0f, 0.0f));
+                m_TAAHistoryBlitPropertyBlock.SetFloat(HDShaderIDs._BlitMipLevel, 0);
+                HDUtils.DrawFullScreen(cmd, HDUtils.GetBlitMaterial(source.rt.dimension), prevHistory, m_TAAHistoryBlitPropertyBlock, 0);
+                HDUtils.DrawFullScreen(cmd, HDUtils.GetBlitMaterial(source.rt.dimension), nextHistory, m_TAAHistoryBlitPropertyBlock, 0);
             }
 
-            cmd.SetComputeVectorParam(cs, HDShaderIDs._RTHandleScaleHistory, camera.historyRTHandleProperties.rtHandleScale);
-            cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputTexture, source);
-            cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputHistoryTexture, prevHistory);
-            cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputHistoryTexture, nextHistory);
-            cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, destination);
+            m_TAAPropertyBlock.SetInt(HDShaderIDs._StencilMask, (int)HDRenderPipeline.StencilBitMask.ExcludeFromTAA);
+            m_TAAPropertyBlock.SetInt(HDShaderIDs._StencilRef, (int)HDRenderPipeline.StencilBitMask.ExcludeFromTAA);
+            m_TAAPropertyBlock.SetVector(HDShaderIDs._RTHandleScaleHistory, camera.historyRTHandleProperties.rtHandleScale);
+            m_TAAPropertyBlock.SetTexture(HDShaderIDs._InputTexture, source);
+            m_TAAPropertyBlock.SetTexture(HDShaderIDs._InputHistoryTexture, prevHistory);
 
-            // On Scorpio, a group size of 16x16 is faster by around 20%, on Durango the cost is the same.
-            int groupSize = SystemInfo.graphicsDeviceType == GraphicsDeviceType.XboxOne ? 16 : 8;
-
-            cmd.DispatchCompute(cs, kernel, (camera.actualWidth + (groupSize - 1)) / groupSize, (camera.actualHeight + (groupSize - 1)) / groupSize, camera.viewCount);
+            CoreUtils.SetRenderTarget(cmd, destination, depthBuffer);
+            cmd.SetRandomWriteTarget(1, nextHistory);
+            cmd.DrawProcedural(Matrix4x4.identity, m_TemporalAAMaterial, 0, MeshTopology.Triangles, 3, 1, m_TAAPropertyBlock);
         }
 
         static void GrabTemporalAntialiasingHistoryTextures(HDCamera camera, out RTHandle previous, out RTHandle next)
@@ -787,16 +794,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             next = camera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.TemporalAntialiasing)
                 ?? camera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.TemporalAntialiasing, Allocator, 2);
             previous = camera.GetPreviousFrameRT((int)HDCameraFrameHistoryType.TemporalAntialiasing);
-        }
-
-        void CopyTemporalAntialiasingHistory(CommandBuffer cmd, HDCamera camera, RTHandle source, RTHandle history)
-        {
-            var cs = m_Resources.shaders.temporalAntialiasingCS;
-            var kernel = cs.FindKernel("KCopyHistory");
-
-            cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputTexture, source);
-            cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, history);
-            cmd.DispatchCompute(cs, kernel, (camera.actualWidth + 7) / 8, (camera.actualHeight + 7) / 8, camera.viewCount);
         }
 
         #endregion
@@ -1635,7 +1632,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 float sw = scaleW * p;
                 float sh = scaleH * p;
                 int pw, ph;
-                if (HDDynamicResolutionHandler.instance.HardwareDynamicResIsEnabled())
+                if (DynamicResolutionHandler.instance.HardwareDynamicResIsEnabled())
                 {
                     pw = Mathf.Max(1, Mathf.CeilToInt(sw * camera.actualWidth));
                     ph = Mathf.Max(1, Mathf.CeilToInt(sh * camera.actualHeight));
@@ -2152,8 +2149,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             // -----------------------------------------------------------------------------
             // Clear
-            HDUtils.SetRenderTarget(cmd, SMAAEdgeTex, ClearFlag.Color);
-            HDUtils.SetRenderTarget(cmd, SMAABlendTex, ClearFlag.Color);
+            CoreUtils.SetRenderTarget(cmd, SMAAEdgeTex, ClearFlag.Color);
+            CoreUtils.SetRenderTarget(cmd, SMAABlendTex, ClearFlag.Color);
 
             // -----------------------------------------------------------------------------
             // EdgeDetection stage
@@ -2188,7 +2185,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_FinalPassMaterial.shaderKeywords = null;
             m_FinalPassMaterial.SetTexture(HDShaderIDs._InputTexture, source);
 
-            var dynResHandler = HDDynamicResolutionHandler.instance;
+            var dynResHandler = DynamicResolutionHandler.instance;
             bool dynamicResIsOn = camera.isMainGameView && dynResHandler.DynamicResolutionEnabled();
 
             if (dynamicResIsOn)
@@ -2325,7 +2322,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             public void SetHWDynamicResolutionState(HDCamera camera)
             {
-                bool needsHW = HDDynamicResolutionHandler.instance.HardwareDynamicResIsEnabled();
+                bool needsHW = DynamicResolutionHandler.instance.HardwareDynamicResIsEnabled();
                 if (needsHW && !m_HasHWDynamicResolution)
                 {
                     // If any target has no dynamic resolution enabled, but we require it, we need to cleanup the pool.

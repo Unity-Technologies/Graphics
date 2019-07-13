@@ -42,6 +42,43 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
+        public static ConcreteSlotValueType ToConcreteSlotValueType(this SlotValueType slotValueType)
+        {
+            switch (slotValueType)
+            {
+                case SlotValueType.SamplerState:
+                    return ConcreteSlotValueType.SamplerState;
+                case SlotValueType.Matrix2:
+                    return ConcreteSlotValueType.Matrix2;
+                case SlotValueType.Matrix3:
+                    return ConcreteSlotValueType.Matrix3;
+                case SlotValueType.Matrix4:
+                    return ConcreteSlotValueType.Matrix4;
+                case SlotValueType.Texture2D:
+                    return ConcreteSlotValueType.Texture2D;
+                case SlotValueType.Texture2DArray:
+                    return ConcreteSlotValueType.Texture2DArray;
+                case SlotValueType.Texture3D:
+                    return ConcreteSlotValueType.Texture3D;
+                case SlotValueType.Cubemap:
+                    return ConcreteSlotValueType.Cubemap;
+                case SlotValueType.Gradient:
+                    return ConcreteSlotValueType.Gradient;
+                case SlotValueType.Vector4:
+                    return ConcreteSlotValueType.Vector4;
+                case SlotValueType.Vector3:
+                    return ConcreteSlotValueType.Vector3;
+                case SlotValueType.Vector2:
+                    return ConcreteSlotValueType.Vector2;
+                case SlotValueType.Vector1:
+                    return ConcreteSlotValueType.Vector1;
+                case SlotValueType.Boolean:
+                    return ConcreteSlotValueType.Boolean;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+        }
+
         public static PropertyType ToPropertyType(this ConcreteSlotValueType concreteValueType)
         {
             switch (concreteValueType)

@@ -3,11 +3,12 @@ using System.Linq;
 using Data.Util;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph;
-using UnityEngine.Experimental.Rendering.HDPipeline;
+using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.Rendering;
 
-namespace UnityEditor.Experimental.Rendering.HDPipeline
+namespace UnityEditor.Rendering.HighDefinition
 {
+    [FormerName("UnityEditor.Experimental.Rendering.HDPipeline.HDPBRSubShader")]
     [FormerName("UnityEditor.ShaderGraph.HDPBRSubShader")]
     class HDPBRSubShader : IPBRSubShader
     {
@@ -77,7 +78,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 }
                 else
                 {
-                    pass.ZTestOverride = null;
+                    pass.ZTestOverride = "ZTest LEqual";
                 }
             }
         };
@@ -174,7 +175,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 PBRMasterNode.PositionSlotId
             },
-            UseInPreview = false
+            UseInPreview = false,
+            OnGeneratePassImpl = (IMasterNode node, ref Pass pass) =>
+            {
+                var masterNode = node as PBRMasterNode;
+                GetCullMode(masterNode.twoSided.isOn, ref pass);
+                GetZWrite(masterNode.surfaceType, ref pass);
+            }
         };
 
         Pass m_PassDepthOnly = new Pass()
@@ -321,6 +328,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 var masterNode = node as PBRMasterNode;
 
+                GetBlendMode(masterNode.surfaceType, masterNode.alphaMode, ref pass);
+
                 pass.ExtraDefines.Remove("#ifndef DEBUG_DISPLAY\n#define SHADERPASS_FORWARD_BYPASS_ALPHA_TEST\n#endif");
 
                 if (masterNode.surfaceType == UnityEditor.ShaderGraph.SurfaceType.Opaque &&
@@ -388,6 +397,52 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     "   Pass Replace",
                     "}"
                 };
+            }
+        }
+
+        public static void GetBlendMode(ShaderGraph.SurfaceType surfaceType, AlphaMode alphaMode, ref Pass pass)
+        {
+            if (surfaceType == ShaderGraph.SurfaceType.Opaque)
+            {
+                pass.BlendOverride = "Blend One Zero, One Zero";
+            }
+            else
+            {
+                switch (alphaMode)
+                {
+                    case AlphaMode.Alpha:
+                        pass.BlendOverride = "Blend One OneMinusSrcAlpha, One OneMinusSrcAlpha";
+                        break;
+                    case AlphaMode.Additive:
+                        pass.BlendOverride = "Blend One One, One One";
+                        break;
+                    case AlphaMode.Premultiply:
+                        pass.BlendOverride = "Blend One OneMinusSrcAlpha, One OneMinusSrcAlpha";
+                        break;
+                    // This isn't supported in HDRP.
+                    case AlphaMode.Multiply:
+                    default:
+                        pass.BlendOverride = "Blend One OneMinusSrcAlpha, One OneMinusSrcAlpha";
+                        break;
+                }
+            }
+        }
+
+        public static void GetCullMode(bool doubleSided, ref Pass pass)
+        {
+            if (doubleSided)
+                pass.CullOverride = "Cull Off";
+        }
+        
+        public static void GetZWrite(ShaderGraph.SurfaceType surfaceType, ref Pass pass)
+        {
+            if (surfaceType == ShaderGraph.SurfaceType.Opaque)
+            {
+                pass.ZWriteOverride = "ZWrite On";
+            }
+            else
+            {
+                pass.ZWriteOverride = "ZWrite Off";
             }
         }
 
@@ -476,9 +531,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
         }
 
-        void AddTags(ShaderGenerator generator, string pipeline, HDRenderTypeTags renderType, ShaderGraph.SurfaceType surfaceType)
+        void AddTags(ShaderGenerator generator, string pipeline, HDRenderTypeTags renderType, PBRMasterNode masterNode)
         {
-            string queue = surfaceType == ShaderGraph.SurfaceType.Opaque ? "Geometry" : "Transparent";
+            var type = masterNode.surfaceType == ShaderGraph.SurfaceType.Opaque ? HDRenderQueue.RenderQueueType.Opaque : HDRenderQueue.RenderQueueType.Transparent; 
+            string queue = HDRenderQueue.GetShaderTagValue(HDRenderQueue.ChangeType(type, 0, true));
             ShaderStringBuilder builder = new ShaderStringBuilder();
             builder.AppendLine("Tags");
             using (builder.BlockScope())
@@ -508,13 +564,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             subShader.Indent();
             {
                 // Add tags at the SubShader level
-                AddTags(subShader, HDRenderPipeline.k_ShaderTagName, HDRenderTypeTags.HDLitShader, masterNode.surfaceType);
+                AddTags(subShader, HDRenderPipeline.k_ShaderTagName, HDRenderTypeTags.HDLitShader, masterNode);
 
                 // generate the necessary shader passes
                 bool opaque = (masterNode.surfaceType == UnityEditor.ShaderGraph.SurfaceType.Opaque);
 
-                GenerateShaderPassLit(masterNode, m_PassMETA, mode, subShader, sourceAssetDependencyPaths);
                 GenerateShaderPassLit(masterNode, m_PassShadowCaster, mode, subShader, sourceAssetDependencyPaths);
+                GenerateShaderPassLit(masterNode, m_PassMETA, mode, subShader, sourceAssetDependencyPaths);
                 GenerateShaderPassLit(masterNode, m_SceneSelectionPass, mode, subShader, sourceAssetDependencyPaths);
 
                 if (opaque)
@@ -531,7 +587,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             subShader.Deindent();
             subShader.AddShaderChunk("}", true);
 
-            subShader.AddShaderChunk(@"CustomEditor ""UnityEditor.Experimental.Rendering.HDPipeline.HDPBRLitGUI""");
+            subShader.AddShaderChunk(@"CustomEditor ""UnityEditor.Rendering.HighDefinition.HDPBRLitGUI""");
 
             return subShader.GetShaderString(0);
         }

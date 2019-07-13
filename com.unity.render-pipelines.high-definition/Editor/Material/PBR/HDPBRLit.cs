@@ -1,9 +1,9 @@
 using UnityEngine;
-using UnityEngine.Experimental.Rendering.HDPipeline;
+using UnityEngine.Rendering.HighDefinition;
 
-namespace UnityEditor.Experimental.Rendering.HDPipeline
+namespace UnityEditor.Rendering.HighDefinition
 {
-    public class HDPBRLitGUI : ShaderGUI
+    class HDPBRLitGUI : ShaderGUI
     {
         public override void OnGUI(MaterialEditor materialEditor, MaterialProperty[] props)
         {
@@ -40,7 +40,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     }
                 }
             }
-            
+
             if (DiffusionProfileMaterialUI.IsSupported(materialEditor))
                 DiffusionProfileMaterialUI.OnGUI(FindProperty("_DiffusionProfileAsset", props), FindProperty("_DiffusionProfileHash", props));
         }

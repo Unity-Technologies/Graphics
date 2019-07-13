@@ -3,10 +3,11 @@ using System.Collections.Generic;
 using UnityEditorInternal;
 using System.Reflection;
 using UnityEngine;
-using UnityEngine.Experimental.Rendering.HDPipeline;
+using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.Rendering;
+using UnityEditor.Experimental.Rendering;
 
-namespace UnityEditor.Experimental.Rendering.HDPipeline
+namespace UnityEditor.Rendering.HighDefinition
 {
     static partial class HDProbeUI
     {
@@ -95,7 +96,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     k_ListContent[i] = listContent.ToArray();
                     k_ListModes[i] = listMode.ToArray();
                 }
-                
+
             }
 
             // Tool bars
@@ -161,7 +162,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     serialized.probeSettings.mode.intValue = (int)ProbeSettings.Mode.Realtime;
                 }
                 else
-                { 
+                {
 #endif
 
                 // Probe Mode

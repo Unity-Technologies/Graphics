@@ -1,10 +1,4 @@
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-using UnityEngine.Rendering;
-
-namespace UnityEngine.Experimental.Rendering.HDPipeline
+namespace UnityEngine.Rendering.HighDefinition
 {
     [VolumeComponentMenu("Fog/Exponential Fog")]
     public class ExponentialFog : AtmosphericScattering
@@ -18,7 +12,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         [Tooltip("Controls the falloff of height fog attenuation, larger values result in sharper attenuation.")]
         public ClampedFloatParameter    fogHeightAttenuation = new ClampedFloatParameter(0.2f, 0.0f, 1.0f);
 
-        public override void PushShaderParameters(HDCamera hdCamera, CommandBuffer cmd)
+        internal override void PushShaderParameters(HDCamera hdCamera, CommandBuffer cmd)
         {
             PushShaderParametersCommon(hdCamera, cmd, FogType.Exponential);
             cmd.SetGlobalVector(m_ExpFogParam, new Vector4(Mathf.Max(1e-6f, fogDistance.value), fogBaseHeight.value, fogHeightAttenuation.value, 0.0f));

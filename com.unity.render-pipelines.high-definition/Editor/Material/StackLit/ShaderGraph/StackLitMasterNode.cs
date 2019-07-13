@@ -1,26 +1,27 @@
 using System;
 using System.Linq;
 using System.Collections.Generic;
-using UnityEditor.Experimental.Rendering.HDPipeline.Drawing;
+using UnityEditor.Rendering.HighDefinition.Drawing;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph;
 using UnityEditor.ShaderGraph.Drawing.Controls;
 using UnityEngine;
 using UnityEngine.UIElements;
-using UnityEngine.Experimental.Rendering.HDPipeline;
+using UnityEngine.Rendering.HighDefinition;
 using UnityEditor.ShaderGraph.Drawing.Inspector;
 using UnityEngine.Rendering;
 
 // Include material common properties names
-using static UnityEngine.Experimental.Rendering.HDPipeline.HDMaterialProperties;
+using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
 
-//TODOTODO: 
+//TODOTODO:
 // clamp in shader code the ranged() properties
 // or let inputs (eg mask?) follow invalid values ? Lit does that (let them free running).
-namespace UnityEditor.Experimental.Rendering.HDPipeline
+namespace UnityEditor.Rendering.HighDefinition
 {
     [Serializable]
     [Title("Master", "HDRP/StackLit")]
+    [FormerName("UnityEditor.Experimental.Rendering.HDPipeline.StackLitMasterNode")]
     [FormerName("UnityEditor.ShaderGraph.StackLitMasterNode")]
     class StackLitMasterNode : MasterNode<IStackLitSubShader>, IMayRequirePosition, IMayRequireNormal, IMayRequireTangent
     {
@@ -69,7 +70,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         public const string HazinessSlotName = "Haziness";
         public const string HazeExtentSlotName = "HazeExtent";
         public const string HazyGlossMaxDielectricF0SlotName = "HazyGlossMaxDielectricF0"; // only valid if above option enabled and we have a basecolor + metallic input parametrization
-        
+
         public const string BakedGISlotName = "BakedGI";
         public const string BakedBackGISlotName = "BakedBackGI";
 
@@ -118,7 +119,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         public const int HazinessSlotId = 31;
         public const int HazeExtentSlotId = 32;
         public const int HazyGlossMaxDielectricF0SlotId = 33;
-       
+
         public const int LightingSlotId = 34;
         public const int BackLightingSlotId = 35;
 
@@ -141,13 +142,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         // Available options for computing Vs (specular occlusion) based on:
         //
-        // baked diffuse visibility (aka "data based AO") orientation 
+        // baked diffuse visibility (aka "data based AO") orientation
         // (ie baked visibility cone (aka "bent visibility cone") orientation)
         // := { normal aligned (default bentnormal value), bent normal }
         // X
         // baked diffuse visibility solid angle inference algo from baked visibility scalar
         // (ie baked visibility cone aperture angle or solid angle)
-        // := { uniform (solid angle measure), cos weighted (projected solid angle measure with cone oriented with normal), 
+        // := { uniform (solid angle measure), cos weighted (projected solid angle measure with cone oriented with normal),
         //      cos properly weighted wrt bentnormal (projected solid angle measure with cone oriented with bent normal) }
         // X
         // Vs (aka specular occlusion) calculation algo from baked diffuse values above and BSDF lobe properties
@@ -167,10 +168,17 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         // See also _DebugSpecularOcclusion.
         public enum SpecularOcclusionBaseMode
         {
-            Off,
-            DirectFromAO, // TriACE
-            ConeConeFromBentAO,
-            SPTDIntegrationOfBentAO
+            Off = 0,
+            DirectFromAO = 1, // TriACE
+            ConeConeFromBentAO = 2,
+            SPTDIntegrationOfBentAO = 3,
+        }
+
+        public enum SpecularOcclusionBaseModeSimple
+        {
+            Off = 0,
+            DirectFromAO = 1, // TriACE
+            SPTDIntegrationOfBentAO = 3,
         }
 
         public enum SpecularOcclusionAOConeSize
@@ -582,6 +590,21 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         }
 
         [SerializeField]
+        bool m_AddVelocityChange = false;
+
+        public ToggleData addVelocityChange
+        {
+            get { return new ToggleData(m_AddVelocityChange); }
+            set
+            {
+                if (m_AddVelocityChange == value.isOn)
+                    return;
+                m_AddVelocityChange = value.isOn;
+                Dirty(ModificationScope.Graph);
+            }
+        }
+
+        [SerializeField]
         bool m_GeometricSpecularAA;
 
         public ToggleData geometricSpecularAA
@@ -765,6 +788,21 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         }
 
         [SerializeField]
+        bool m_HonorPerLightMinRoughness;
+
+        public ToggleData honorPerLightMinRoughness
+        {
+            get { return new ToggleData(m_HonorPerLightMinRoughness); }
+            set
+            {
+                if (m_HonorPerLightMinRoughness == value.isOn)
+                    return;
+                m_HonorPerLightMinRoughness = value.isOn;
+                Dirty(ModificationScope.Graph);
+            }
+        }
+
+        [SerializeField]
         bool m_ShadeBaseUsingRefractedAngles;
 
         public ToggleData shadeBaseUsingRefractedAngles
@@ -793,7 +831,23 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 Dirty(ModificationScope.Graph);
             }
         }
-        
+
+        [SerializeField]
+        bool m_DevMode;
+
+        public ToggleData devMode
+        {
+            get { return new ToggleData(m_DevMode); }
+            set
+            {
+                if (m_DevMode == value.isOn)
+                    return;
+                m_DevMode = value.isOn;
+                UpdateNodeAfterDeserialization();
+                Dirty(ModificationScope.Topological);
+            }
+        }
+
         [SerializeField]
         bool m_overrideBakedGI;
 
@@ -809,7 +863,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 Dirty(ModificationScope.Topological);
             }
         }
-        
+
         [SerializeField]
         bool m_depthOffset;
 
@@ -825,7 +879,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 Dirty(ModificationScope.Topological);
             }
         }
-        
+
         [SerializeField]
         bool m_ZWrite;
 
@@ -841,7 +895,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 Dirty(ModificationScope.Topological);
             }
         }
-        
+
         [SerializeField]
         TransparentCullMode m_transparentCullMode = TransparentCullMode.Back;
         public TransparentCullMode transparentCullMode
@@ -898,7 +952,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         public bool SpecularOcclusionUsesBentNormal()
         {
             return (SpecularOcclusionModeUsesVisibilityCone(dataBasedSpecularOcclusionBaseMode)
-                    || (SpecularOcclusionModeUsesVisibilityCone(screenSpaceSpecularOcclusionBaseMode) 
+                    || (SpecularOcclusionModeUsesVisibilityCone(screenSpaceSpecularOcclusionBaseMode)
                         && screenSpaceSpecularOcclusionAOConeDir == SpecularOcclusionAOConeDir.BentNormal));
         }
 
@@ -1216,7 +1270,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 // .y = bentao algo {0 = uniform, cos, bent cos},
                 // .z = use upper visible hemisphere clipping,
                 // .w = The last component of _DebugSpecularOcclusion controls debug visualization:
-                //      -1 colors the object according to the SO algorithm used, 
+                //      -1 colors the object according to the SO algorithm used,
                 //      and values from 1 to 4 controls what the lighting debug display mode will show when set to show "indirect specular occlusion":
                 //      Since there's not one value in our case,
                 //      0 will show the object all red to indicate to choose one, 1-4 corresponds to showing
@@ -1240,6 +1294,17 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 hidden = true,
                 value = new Color(1.0f, 1.0f, 1.0f, 1.0f)
             });
+
+            //See SG-ADDITIONALVELOCITY-NOTE
+            if (addVelocityChange.isOn)
+            {
+                collector.AddShaderProperty(new BooleanShaderProperty
+                {
+                    value = true,
+                    hidden = true,
+                    overrideReferenceName = kAdditionalVelocityChange,
+                });
+            }
 
             // Add all shader properties required by the inspector
             HDSubShaderUtilities.AddStencilShaderProperties(collector, RequiresSplitLighting(), receiveSSR.isOn);

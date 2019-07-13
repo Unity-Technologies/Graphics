@@ -26,7 +26,7 @@ namespace UnityEditor.ShaderGraph
         public override bool isExposable => true;
         public override bool isRenamable => true;
         
-        private string enumTagString
+        string enumTagString
         {
             get
             {
@@ -64,7 +64,7 @@ namespace UnityEditor.ShaderGraph
         }
         
         [SerializeField]
-        private FloatType m_FloatType = FloatType.Default;
+        FloatType m_FloatType = FloatType.Default;
 
         public FloatType floatType
         {
@@ -73,7 +73,7 @@ namespace UnityEditor.ShaderGraph
         }
 
         [SerializeField]
-        private Vector2 m_RangeValues = new Vector2(0, 1);
+        Vector2 m_RangeValues = new Vector2(0, 1);
 
         public Vector2 rangeValues
         {
@@ -81,7 +81,7 @@ namespace UnityEditor.ShaderGraph
             set => m_RangeValues = value;
         }
 
-        private EnumType m_EnumType = EnumType.Enum;
+        EnumType m_EnumType = EnumType.Enum;
 
         public EnumType enumType
         {
@@ -97,15 +97,15 @@ namespace UnityEditor.ShaderGraph
             set => m_CSharpEnumType = value;
         }
 
-        private List<string> m_EnumNames = new List<string>();
-        private List<int> m_EnumValues = new List<int>();
-
+        List<string> m_EnumNames = new List<string>();
+        
         public List<string> enumNames
         {
             get => m_EnumNames;
             set => m_EnumNames = value;
         }
 
+        List<int> m_EnumValues = new List<int>();
 
         public List<int> enumValues
         {

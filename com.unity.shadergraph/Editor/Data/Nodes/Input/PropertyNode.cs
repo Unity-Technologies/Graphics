@@ -16,9 +16,9 @@ namespace UnityEditor.ShaderGraph
         }
         
         [SerializeField]
-        private string m_PropertyGuidSerialized;
+        string m_PropertyGuidSerialized;
 
-        private Guid m_PropertyGuid;
+        Guid m_PropertyGuid;
 
         public Guid propertyGuid
         {
@@ -50,7 +50,7 @@ namespace UnityEditor.ShaderGraph
         
         public const int OutputSlotId = 0;
 
-        private void AddOutputSlot(AbstractShaderProperty property)
+        void AddOutputSlot(AbstractShaderProperty property)
         {
             switch(property.concreteShaderValueType)
             {
@@ -180,7 +180,10 @@ namespace UnityEditor.ShaderGraph
         protected override bool CalculateNodeHasError(ref string errorMessage)
         {
             if (!propertyGuid.Equals(Guid.Empty) && !owner.properties.Any(x => x.guid == propertyGuid))
+            {
+                errorMessage = "Property Node has no associated Blackboard property.";
                 return true;
+            }
 
             return false;
         }

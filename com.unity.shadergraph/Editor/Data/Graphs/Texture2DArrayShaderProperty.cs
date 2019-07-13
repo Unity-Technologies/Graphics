@@ -38,7 +38,7 @@ namespace UnityEditor.ShaderGraph
         }
         
         [SerializeField]
-        private bool m_Modifiable = true;
+        bool m_Modifiable = true;
 
         public bool modifiable
         {

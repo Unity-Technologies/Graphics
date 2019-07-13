@@ -40,7 +40,7 @@ namespace UnityEditor.ShaderGraph
         }
         
         [SerializeField]
-        private bool m_Modifiable = true;
+        bool m_Modifiable = true;
 
         public bool modifiable
         {
@@ -49,7 +49,7 @@ namespace UnityEditor.ShaderGraph
         }
 
         [SerializeField]
-        private DefaultType m_DefaultType = TextureShaderProperty.DefaultType.White;
+        DefaultType m_DefaultType = TextureShaderProperty.DefaultType.White;
 
         public DefaultType defaultType
         {

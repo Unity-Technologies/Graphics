@@ -3,7 +3,7 @@ using UnityEngine;
 using UnityEditor;
 using System.IO;
 
-public class TextureCombiner
+class TextureCombiner
 {
     public static Texture2D _midGrey;
     public static Texture2D midGrey

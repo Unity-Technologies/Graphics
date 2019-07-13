@@ -2,11 +2,12 @@ using System.Collections.Generic;
 using Data.Util;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph;
-using UnityEngine.Experimental.Rendering.HDPipeline;
+using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.Rendering;
 
-namespace UnityEditor.Experimental.Rendering.HDPipeline
+namespace UnityEditor.Rendering.HighDefinition
 {
+    [FormerName("UnityEditor.Experimental.Rendering.HDPipeline.StackLitSubShader")]
     class StackLitSubShader : IStackLitSubShader
     {
         Pass m_PassMETA = new Pass()
@@ -702,6 +703,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 baseActiveFields.Add("RecomputeStackPerLight");
             }
+            if (masterNode.honorPerLightMinRoughness.isOn)
+            {
+                activeFields.Add("HonorPerLightMinRoughness");
+            }
             if (masterNode.shadeBaseUsingRefractedAngles.isOn)
             {
                 baseActiveFields.Add("ShadeBaseUsingRefractedAngles");
@@ -723,6 +728,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             if (!masterNode.receiveSSR.isOn)
             {
                 baseActiveFields.Add("DisableSSR");
+            }
+
+            if (masterNode.addVelocityChange.isOn)
+            {
+                activeFields.Add("AdditionalVelocityChange");
             }
 
             // Note here we combine an "enable"-like predicate and the $SurfaceDescription.(slotname) predicate
@@ -882,8 +892,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
                 bool distortionActive = transparent && masterNode.distortion.isOn;
 
-                GenerateShaderPassLit(masterNode, m_PassMETA, mode, subShader, sourceAssetDependencyPaths);
                 GenerateShaderPassLit(masterNode, m_PassShadowCaster, mode, subShader, sourceAssetDependencyPaths);
+                GenerateShaderPassLit(masterNode, m_PassMETA, mode, subShader, sourceAssetDependencyPaths);
                 GenerateShaderPassLit(masterNode, m_SceneSelectionPass, mode, subShader, sourceAssetDependencyPaths);
 
                 GenerateShaderPassLit(masterNode, m_PassDepthForwardOnly, mode, subShader, sourceAssetDependencyPaths);
@@ -901,7 +911,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             subShader.Deindent();
             subShader.AddShaderChunk("}", true);
-            subShader.AddShaderChunk(@"CustomEditor ""UnityEditor.Experimental.Rendering.HDPipeline.StackLitGUI""");
+            subShader.AddShaderChunk(@"CustomEditor ""UnityEditor.Rendering.HighDefinition.StackLitGUI""");
 
             return subShader.GetShaderString(0);
         }

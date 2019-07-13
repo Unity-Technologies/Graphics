@@ -1,14 +1,14 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Experimental.Rendering.HDPipeline;
+using UnityEngine.Rendering.HighDefinition;
 
 // Include material common properties names
-using static UnityEngine.Experimental.Rendering.HDPipeline.HDMaterialProperties;
+using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
 
-namespace UnityEditor.Experimental.Rendering.HDPipeline
+namespace UnityEditor.Rendering.HighDefinition
 {
-    public class ShaderGraphUIBlock : MaterialUIBlock
+    class ShaderGraphUIBlock : MaterialUIBlock
     {
         [Flags]
         public enum Features
@@ -99,6 +99,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
         }
 
+        // Track additional velocity state. See SG-ADDITIONALVELOCITY-NOTE
+        bool m_AdditionalVelocityChange = false;
+
         void DrawMotionVectorToggle()
         {
             // I absolutely don't know what this is meant to do
@@ -117,6 +120,20 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             bool enabled = materials[0].GetShaderPassEnabled(HDShaderPassNames.s_MotionVectorsStr);
             EditorGUI.BeginChangeCheck();
             enabled = EditorGUILayout.Toggle("Motion Vector For Vertex Animation", enabled);
+
+            // SG-ADDITIONALVELOCITY-NOTE:
+            // We would like to automatically enable the motion vector pass (handled on material UI side)
+            // in case we have additional velocity change enabled in a graph. Due to serialization of material, changing
+            // a value in between shadergraph compilations would have no effect on a material, so we instead
+            // inform the motion vector UI via the existence of the property at all and query against that.
+            bool hasAdditionalVelocityChange = materials[0].HasProperty(kAdditionalVelocityChange);
+            if (m_AdditionalVelocityChange != hasAdditionalVelocityChange)
+            {
+                enabled |= hasAdditionalVelocityChange;
+                m_AdditionalVelocityChange = hasAdditionalVelocityChange;
+                GUI.changed = true;
+            }
+
             if (EditorGUI.EndChangeCheck())
             {
                 foreach (var material in materials)

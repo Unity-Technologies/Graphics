@@ -1,29 +1,28 @@
-using UnityEngine.Rendering;
-using System;
+using UnityEngine.Experimental.Rendering;
 
-namespace UnityEngine.Experimental.Rendering.HDPipeline
+namespace UnityEngine.Rendering.HighDefinition
 {
     internal class SkyRenderingContext
     {
-        IBLFilterBSDF[]             m_IBLFilterArray;
-        RTHandleSystem.RTHandle     m_SkyboxCubemapRT;
-        RTHandleSystem.RTHandle     m_SkyboxBSDFCubemapIntermediate;
-        CubemapArray                m_SkyboxBSDFCubemapArray;
-        RTHandleSystem.RTHandle     m_SkyboxMarginalRowCdfRT;
-        RTHandleSystem.RTHandle     m_SkyboxConditionalCdfRT;
-        Vector4                     m_CubemapScreenSize;
-        Matrix4x4[]                 m_facePixelCoordToViewDirMatrices   = new Matrix4x4[6];
-        bool                        m_SupportsConvolution = false;
-        bool                        m_SupportsMIS = false;
-        BuiltinSkyParameters        m_BuiltinParameters = new BuiltinSkyParameters();
-        bool                        m_NeedUpdate = true;
+        IBLFilterBSDF[]         m_IBLFilterArray;
+        RTHandle                m_SkyboxCubemapRT;
+        RTHandle                m_SkyboxBSDFCubemapIntermediate;
+        CubemapArray            m_SkyboxBSDFCubemapArray;
+        RTHandle                m_SkyboxMarginalRowCdfRT;
+        RTHandle                m_SkyboxConditionalCdfRT;
+        Vector4                 m_CubemapScreenSize;
+        Matrix4x4[]             m_facePixelCoordToViewDirMatrices   = new Matrix4x4[6];
+        bool                    m_SupportsConvolution = false;
+        bool                    m_SupportsMIS = false;
+        BuiltinSkyParameters    m_BuiltinParameters = new BuiltinSkyParameters();
+        bool                    m_NeedUpdate = true;
 
-        ComputeShader               m_ComputeAmbientProbeCS;
-        ComputeBuffer               m_AmbientProbeResult;
-        SphericalHarmonicsL2        m_AmbientProbe;
-        readonly int                m_AmbientProbeOutputBufferParam = Shader.PropertyToID("_AmbientProbeOutputBuffer");
-        readonly int                m_AmbientProbeInputCubemap = Shader.PropertyToID("_AmbientProbeInputCubemap");
-        int                         m_ComputeAmbientProbeKernel;
+        ComputeShader           m_ComputeAmbientProbeCS;
+        ComputeBuffer           m_AmbientProbeResult;
+        SphericalHarmonicsL2    m_AmbientProbe;
+        readonly int            m_AmbientProbeOutputBufferParam = Shader.PropertyToID("_AmbientProbeOutputBuffer");
+        readonly int            m_AmbientProbeInputCubemap = Shader.PropertyToID("_AmbientProbeInputCubemap");
+        int                     m_ComputeAmbientProbeKernel;
 
 
         public RenderTexture cubemapRT => m_SkyboxCubemapRT;
@@ -144,7 +143,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_BuiltinParameters.pixelCoordToViewDirMatrix = m_facePixelCoordToViewDirMatrices[i];
                 m_BuiltinParameters.colorBuffer = m_SkyboxCubemapRT;
                 m_BuiltinParameters.depthBuffer = null;
-                m_BuiltinParameters.hdCamera = null;
 
                 CoreUtils.SetRenderTarget(m_BuiltinParameters.commandBuffer, m_SkyboxCubemapRT, ClearFlag.None, 0, (CubemapFace)i);
                 skyContext.renderer.RenderSky(m_BuiltinParameters, true, skyContext.skySettings.includeSunInBaking.value);
@@ -213,7 +211,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         // GC.Alloc
         // VolumeParameter`.op_Equality()
-        public bool UpdateEnvironment(SkyUpdateContext skyContext, HDCamera camera, Light sunLight, bool updateRequired, bool updateAmbientProbe, CommandBuffer cmd)
+        public bool UpdateEnvironment(SkyUpdateContext skyContext, Light sunLight, bool updateRequired, bool updateAmbientProbe, CommandBuffer cmd)
         {
             bool result = false;
             if (skyContext.IsValid())
@@ -223,7 +221,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_BuiltinParameters.commandBuffer = cmd;
                 m_BuiltinParameters.sunLight = sunLight;
                 m_BuiltinParameters.screenSize = m_CubemapScreenSize;
-                m_BuiltinParameters.hdCamera = null;
                 m_BuiltinParameters.debugSettings = null; // We don't want any debug when updating the environment.
 
                 int sunHash = 0;
@@ -302,7 +299,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             return result;
         }
 
-        public void RenderSky(SkyUpdateContext skyContext, HDCamera hdCamera, Light sunLight, RTHandleSystem.RTHandle colorBuffer, RTHandleSystem.RTHandle depthBuffer, DebugDisplaySettings debugSettings, CommandBuffer cmd)
+        public void RenderSky(SkyUpdateContext skyContext, HDCamera hdCamera, Light sunLight, RTHandle colorBuffer, RTHandle depthBuffer, DebugDisplaySettings debugSettings, CommandBuffer cmd)
         {
             if (skyContext.IsValid() && hdCamera.clearColorMode == HDAdditionalCameraData.ClearColorMode.Sky)
             {
@@ -314,7 +311,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     m_BuiltinParameters.screenSize = hdCamera.screenSize;
                     m_BuiltinParameters.colorBuffer = colorBuffer;
                     m_BuiltinParameters.depthBuffer = depthBuffer;
-                    m_BuiltinParameters.hdCamera = hdCamera;
                     m_BuiltinParameters.debugSettings = debugSettings;
 
                     skyContext.renderer.SetRenderTargets(m_BuiltinParameters);

@@ -4,7 +4,7 @@
 
 #ifndef HDCAMERA_CS_HLSL
 #define HDCAMERA_CS_HLSL
-// Generated from UnityEngine.Experimental.Rendering.HDPipeline.HDCamera+ViewConstants
+// Generated from UnityEngine.Rendering.HighDefinition.HDCamera+ViewConstants
 // PackingRules = Exact
 struct ViewConstants
 {

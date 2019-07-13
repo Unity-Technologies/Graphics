@@ -23,7 +23,7 @@ namespace UnityEditor.ShaderGraph
             get => base.value;
             set
             {
-                overrideReferenceName = $"{concreteShaderValueType.ToShaderString()}_{GuidEncoder.Encode(guid)}_{value.filter}_{value.wrap}";
+                overrideReferenceName = $"{concreteShaderValueType.ToShaderString()}_{value.filter}_{value.wrap}";
                 base.value = value;
             }
         }

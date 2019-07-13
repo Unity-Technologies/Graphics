@@ -91,9 +91,9 @@ MonoBehaviour:
   planetCenterPosition:
     m_OverrideState: 0
     m_Value: {x: 0, y: -6378.759, z: 0}
-  airThickness:
+  airAttenuationDistance:
     m_OverrideState: 0
-    m_Value: {r: 5.8, g: 13.5, b: 33.1, a: 1}
+    m_Value: {r: 0.17241378, g: 0.074074075, b: 0.030211482, a: 1}
     hdr: 1
     showAlpha: 0
     showEyeDropper: 0
@@ -107,9 +107,9 @@ MonoBehaviour:
     m_OverrideState: 0
     m_Value: 58.3
     min: 0
-  aerosolThickness:
+  aerosolAttenuationDistance:
     m_OverrideState: 0
-    m_Value: 2
+    m_Value: 0.5
     min: 0
   aerosolAlbedo:
     m_OverrideState: 0

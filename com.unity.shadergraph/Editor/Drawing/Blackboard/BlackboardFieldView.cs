@@ -29,16 +29,16 @@ namespace UnityEditor.ShaderGraph.Drawing
         IManipulator m_ResetReferenceMenu;
 
         public delegate void OnExposedToggle();
-        private OnExposedToggle m_OnExposedToggle;
+        OnExposedToggle m_OnExposedToggle;
         public OnExposedToggle onExposedToggle
         {
             get => m_OnExposedToggle;
             set => m_OnExposedToggle = value;
         }
 
-        private EventCallback<KeyDownEvent> m_KeyDownCallback;
+        EventCallback<KeyDownEvent> m_KeyDownCallback;
         public EventCallback<KeyDownEvent> keyDownCallback => m_KeyDownCallback;
-        private EventCallback<FocusOutEvent> m_FocusOutCallback;
+        EventCallback<FocusOutEvent> m_FocusOutCallback;
         public EventCallback<FocusOutEvent> focusOutCallback => m_FocusOutCallback;
 
         public BlackboardFieldView(BlackboardField blackboardField, GraphData graph, ShaderInput input)
@@ -81,7 +81,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             AddToClassList("sgblackboardFieldView");
         }
 
-        private void BuildDefaultFields(ShaderInput input)
+        void BuildDefaultFields(ShaderInput input)
         {
             if(!m_Graph.isSubGraph)
             {

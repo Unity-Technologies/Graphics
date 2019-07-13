@@ -190,7 +190,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
         }
         
-        private void BuildVector2PropertyField(Vector2ShaderProperty property)
+        void BuildVector2PropertyField(Vector2ShaderProperty property)
         {
             var field = new Vector2Field { value = property.value };
 
@@ -213,7 +213,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             AddRow("Default", field);
         }
 
-        private void BuildVector3PropertyField(Vector3ShaderProperty property)
+        void BuildVector3PropertyField(Vector3ShaderProperty property)
         {
             var field = new Vector3Field { value = property.value };
 
@@ -238,7 +238,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             AddRow("Default", field);
         }
 
-        private void BuildVector4PropertyField(Vector4ShaderProperty property)
+        void BuildVector4PropertyField(Vector4ShaderProperty property)
         {
             var field = new Vector4Field { value = property.value };
 
@@ -265,7 +265,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             AddRow("Default", field);
         }
 
-        private void BuildColorPropertyField(ColorShaderProperty property)
+        void BuildColorPropertyField(ColorShaderProperty property)
         {
             var colorField = new ColorField { value = property.value, showEyeDropper = false, hdr = property.colorMode == ColorMode.HDR };
             colorField.RegisterValueChangedCallback(evt =>
@@ -293,7 +293,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
         }
 
-        private void BuildTexture2DPropertyField(TextureShaderProperty property)
+        void BuildTexture2DPropertyField(TextureShaderProperty property)
         {
             var field = new ObjectField { value = property.value.texture, objectType = typeof(Texture) };
             field.RegisterValueChangedCallback(evt =>
@@ -325,7 +325,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
         }
 
-        private void BuildTexture2DArrayPropertyField(Texture2DArrayShaderProperty property)
+        void BuildTexture2DArrayPropertyField(Texture2DArrayShaderProperty property)
         {
             var field = new ObjectField { value = property.value.textureArray, objectType = typeof(Texture2DArray) };
             field.RegisterValueChangedCallback(evt =>
@@ -337,7 +337,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             AddRow("Default", field);
         }
 
-        private void BuildTexture3DPropertyField(Texture3DShaderProperty property)
+        void BuildTexture3DPropertyField(Texture3DShaderProperty property)
         {
             var field = new ObjectField { value = property.value.texture, objectType = typeof(Texture3D) };
             field.RegisterValueChangedCallback(evt =>
@@ -349,7 +349,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             AddRow("Default", field);
         }
 
-        private void BuildCubemapPropertyField(CubemapShaderProperty property)
+        void BuildCubemapPropertyField(CubemapShaderProperty property)
         {
             var field = new ObjectField { value = property.value.cubemap, objectType = typeof(Cubemap) };
             field.RegisterValueChangedCallback(evt =>
@@ -361,7 +361,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             AddRow("Default", field);
         }
 
-        private void BuildBooleanPropertyField(BooleanShaderProperty property)
+        void BuildBooleanPropertyField(BooleanShaderProperty property)
         {
             var field = new Toggle() { value = property.value };
             field.OnToggleChanged(evt =>
@@ -373,7 +373,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             AddRow("Default", field);
         }
 
-        private void BuildMatrix2PropertyField(Matrix2ShaderProperty property)
+        void BuildMatrix2PropertyField(Matrix2ShaderProperty property)
         {
             var row0Field = new Vector2Field { value = property.value.GetRow(0) };
             row0Field.RegisterValueChangedCallback(evt =>
@@ -432,7 +432,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             AddRow("", row1Field);
         }
 
-        private void BuildMatrix3PropertyField(Matrix3ShaderProperty property)
+        void BuildMatrix3PropertyField(Matrix3ShaderProperty property)
         {
             var row0Field = new Vector3Field { value = property.value.GetRow(0) };
                 row0Field.RegisterValueChangedCallback(evt =>
@@ -522,7 +522,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 AddRow("", row2Field);
         }
 
-        private void BuildMatrix4PropertyField(Matrix4ShaderProperty property)
+        void BuildMatrix4PropertyField(Matrix4ShaderProperty property)
         {
             var row0Field = new Vector4Field { value = property.value.GetRow(0) };
             row0Field.RegisterValueChangedCallback(evt =>
@@ -645,13 +645,15 @@ namespace UnityEditor.ShaderGraph.Drawing
             AddRow("", row3Field);
         }
 
-        private void BuildSamplerStatePropertyField(SamplerStateShaderProperty property)
+        void BuildSamplerStatePropertyField(SamplerStateShaderProperty property)
         {
             var filterField = new EnumField(property.value.filter);
             filterField.RegisterValueChangedCallback(evt =>
                 {
                     graph.owner.RegisterCompleteObjectUndo("Change Property Value");
-                    property.value.filter = (TextureSamplerState.FilterMode)evt.newValue;
+                    TextureSamplerState state = property.value;
+                    state.filter = (TextureSamplerState.FilterMode)evt.newValue;
+                    property.value = state;
                     DirtyNodes(ModificationScope.Graph);
                 });
             AddRow("Filter", filterField);
@@ -660,13 +662,15 @@ namespace UnityEditor.ShaderGraph.Drawing
             wrapField.RegisterValueChangedCallback(evt =>
                 {
                     graph.owner.RegisterCompleteObjectUndo("Change Property Value");
-                    property.value.wrap = (TextureSamplerState.WrapMode)evt.newValue;
+                    TextureSamplerState state = property.value;
+                    state.wrap = (TextureSamplerState.WrapMode)evt.newValue;
+                    property.value = state;
                     DirtyNodes(ModificationScope.Graph);
                 });
             AddRow("Wrap", wrapField);
         }
 
-        private void BuildGradientPropertyField(GradientShaderProperty property)
+        void BuildGradientPropertyField(GradientShaderProperty property)
         {
             var field = new GradientField { value = property.value };
             field.RegisterValueChangedCallback(evt =>

@@ -1,14 +1,9 @@
 using System;
 using System.Linq;
-using System.Reflection;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using UnityEngine.Rendering;
 
-namespace UnityEngine.Experimental.Rendering.HDPipeline
+namespace UnityEngine.Rendering.HighDefinition
 {
-    using RTHandle = RTHandleSystem.RTHandle;
-
     [Serializable]
     public enum SkyResolution
     {
@@ -35,14 +30,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public Light            sunLight;
         public RTHandle         colorBuffer;
         public RTHandle         depthBuffer;
-        public HDCamera         hdCamera;
 
         public DebugDisplaySettings debugSettings;
 
         public static RenderTargetIdentifier nullRT = -1;
     }
 
-    public class SkyManager
+    class SkyManager
     {
         Material                m_StandardSkyboxMaterial; // This is the Unity standard skybox material. Used to pass the correct cubemap to Enlighten.
         Material                m_BlitCubemapMaterial;
@@ -89,9 +83,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // In practice we will always use the last one registered but we use a list to be able to roll back to the previous one once the user deletes the superfluous instances.
         private static List<StaticLightingSky> m_StaticLightingSkies = new List<StaticLightingSky>();
 
+        // Only show the procedural sky upgrade message once
+        static bool         logOnce = true;
+
 #if UNITY_EDITOR
         // For Preview windows we want to have a 'fixed' sky, so we can display chrome metal and have always the same look
-        ProceduralSky m_DefaultPreviewSky;
+        HDRISky m_DefaultPreviewSky;
 #endif
 
         public SkyManager()
@@ -127,6 +124,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
             else
             {
+                if (skyID == (int)SkyType.Procedural && logOnce)
+                {
+                    Debug.LogError("You are using the deprecated Procedural Sky in your Scene. You can still use it but, to do so, you must install it separately. To do this, open the Package Manager window and import the 'Procedural Sky' sample from the HDRP package page, then close and re-open your project without saving.");
+                    logOnce = false;
+                }
+
                 return null;
             }
         }
@@ -227,11 +230,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
 
 #if UNITY_EDITOR
-        ProceduralSky GetDefaultPreviewSkyInstance()
+        HDRISky GetDefaultPreviewSkyInstance()
         {
             if (m_DefaultPreviewSky == null)
             {
-                m_DefaultPreviewSky = ScriptableObject.CreateInstance<ProceduralSky>();
+                m_DefaultPreviewSky = ScriptableObject.CreateInstance<HDRISky>();
+                m_DefaultPreviewSky.hdriSky.overrideState = true;
+                var hdrpAsset = (GraphicsSettings.currentRenderPipeline as HDRenderPipelineAsset);
+                m_DefaultPreviewSky.hdriSky.value = hdrpAsset?.renderPipelineResources?.textures?.defaultHDRISky;
             }
 
             return m_DefaultPreviewSky;
@@ -352,14 +358,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (isRegularPreview)
                 ambientMode = SkyAmbientMode.Static;
 
-            m_CurrentSkyRenderingContext.UpdateEnvironment(m_CurrentSky, hdCamera, sunLight, m_UpdateRequired, ambientMode == SkyAmbientMode.Dynamic, cmd);
+            m_CurrentSkyRenderingContext.UpdateEnvironment(m_CurrentSky, sunLight, m_UpdateRequired, ambientMode == SkyAmbientMode.Dynamic, cmd);
             StaticLightingSky staticLightingSky = GetStaticLightingSky();
             // We don't want to update the static sky during preview because it contains custom lights that may change the result.
             // The consequence is that previews will use main scene static lighting but we consider this to be acceptable.
             if (staticLightingSky != null && !isRegularPreview)
             {
                 m_StaticLightingSky.skySettings = staticLightingSky.skySettings;
-                m_StaticLightingSkyRenderingContext.UpdateEnvironment(m_StaticLightingSky, hdCamera, sunLight, false, true, cmd);
+                m_StaticLightingSkyRenderingContext.UpdateEnvironment(m_StaticLightingSky, sunLight, false, true, cmd);
             }
 
             bool useRealtimeGI = true;
@@ -418,6 +424,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public void RenderOpaqueAtmosphericScattering(CommandBuffer cmd, HDCamera hdCamera,
                                                       RTHandle colorBuffer,
+                                                      RTHandle volumetricLighting,
                                                       RTHandle intermediateBuffer,
                                                       RTHandle depthBuffer,
                                                       Matrix4x4 pixelCoordToViewDirWS, bool isMSAA)
@@ -431,6 +438,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     propertyBlock.SetTexture(HDShaderIDs._ColorTextureMS, colorBuffer);
                 else
                     propertyBlock.SetTexture(HDShaderIDs._ColorTexture,   colorBuffer);
+                // The texture can be null when volumetrics are disabled.
+                if (volumetricLighting != null)
+                    propertyBlock.SetTexture(HDShaderIDs._VBufferLighting, volumetricLighting);
+
                 // Color -> Intermediate.
                 HDUtils.DrawFullScreen(cmd, m_OpaqueAtmScatteringMaterial, intermediateBuffer, depthBuffer, propertyBlock, isMSAA? 1 : 0);
                 // Intermediate -> Color.
@@ -455,6 +466,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 {
                     Debug.LogWarning("One Static Lighting Sky component was already set for baking, only the latest one will be used.");
                 }
+
+                if (staticLightingSky.staticLightingSkyUniqueID == (int)SkyType.Procedural && !skyTypesDict.TryGetValue((int)SkyType.Procedural, out var dummy))
+                {
+                    Debug.LogError("You are using the deprecated Procedural Sky for static lighting in your Scene. You can still use it but, to do so, you must install it separately. To do this, open the Package Manager window and import the 'Procedural Sky' sample from the HDRP package page, then close and re-open your project without saving.");
+                    return;
+                }
+
                 m_StaticLightingSkies.Add(staticLightingSky);
             }
         }

@@ -1,13 +1,13 @@
 using System;
 using UnityEditor.Rendering;
 using UnityEngine;
-using UnityEngine.Experimental.Rendering.HDPipeline;
+using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.Rendering;
 using UnityEngine.UIElements;
 
-namespace UnityEditor.Experimental.Rendering.HDPipeline
+namespace UnityEditor.Rendering.HighDefinition
 {
-    public class DefaultSettingsPanelProvider
+    class DefaultSettingsPanelProvider
     {
         [SettingsProvider]
         public static SettingsProvider CreateSettingsProvider()
@@ -34,23 +34,24 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             public DefaultSettingsPanel(string searchContext)
             {
+                var scrollView = new ScrollView();
                 {
                     var title = new Label
                     {
                         text = "General Settings"
                     };
                     title.AddToClassList("h1");
-                    Add(title);
+                    scrollView.contentContainer.Add(title);
                 }
                 {
                     var generalSettingsInspector = new IMGUIContainer(Draw_GeneralSettings);
                     generalSettingsInspector.style.marginLeft = 5;
-                    Add(generalSettingsInspector);
+                    scrollView.contentContainer.Add(generalSettingsInspector);
                 }
                 {
                     var space = new VisualElement();
                     space.style.height = 10;
-                    Add(space);
+                    scrollView.contentContainer.Add(space);
                 }
                 {
                     var title = new Label
@@ -58,17 +59,17 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                         text = "Frame Settings"
                     };
                     title.AddToClassList("h1");
-                    Add(title);
+                    scrollView.contentContainer.Add(title);
                 }
                 {
                     var generalSettingsInspector = new IMGUIContainer(Draw_DefaultFrameSettings);
                     generalSettingsInspector.style.marginLeft = 5;
-                    Add(generalSettingsInspector);
+                    scrollView.contentContainer.Add(generalSettingsInspector);
                 }
                 {
                     var space = new VisualElement();
                     space.style.height = 10;
-                    Add(space);
+                    scrollView.contentContainer.Add(space);
                 }
                 {
                     var title = new Label
@@ -76,14 +77,16 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                         text = "Volume Components"
                     };
                     title.AddToClassList("h1");
-                    Add(title);
+                    scrollView.contentContainer.Add(title);
                 }
                 {
                     var volumeInspector = new IMGUIContainer(Draw_VolumeInspector);
                     volumeInspector.style.flexGrow = 1;
                     volumeInspector.style.flexDirection = FlexDirection.Row;
-                    Add(volumeInspector);
+                    scrollView.contentContainer.Add(volumeInspector);
                 }
+
+                Add(scrollView);
             }
 
             private static GUIContent k_DefaultHDRPAsset = new GUIContent("Asset with the default settings");

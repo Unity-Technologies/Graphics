@@ -1,11 +1,8 @@
-using System;
-using UnityEngine.Experimental.Rendering.HDPipeline.Attributes;
-using UnityEngine.Rendering;
-//using System.Runtime.InteropServices;
+using UnityEngine.Rendering.HighDefinition.Attributes;
 
-namespace UnityEngine.Experimental.Rendering.HDPipeline
+namespace UnityEngine.Rendering.HighDefinition
 {
-    public class StackLit : RenderPipelineMaterial
+    class StackLit : RenderPipelineMaterial
     {
         [GenerateHLSL(PackingRules.Exact)]
         public enum MaterialFeatureFlags
@@ -104,7 +101,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // The base layer f0 parameter when the DualSpecularLobeParametrization was == "Direct"
             // is now also a perceptual parameter corresponding to a pseudo-f0 term, Fc(0) or
             // "coreFresnel0" (r_c in the paper). Although an intermediate value, this original
-            // fresnel0 never reach the engine side (BSDFData). 
+            // fresnel0 never reach the engine side (BSDFData).
             //
             // [ Without the HazyGloss parametrization, the original base layer f0 is directly inferred
             // as f0 = f(baseColor, metallic) when the BaseParametrization is BaseMetallic
@@ -119,7 +116,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             //
             // [ TODO: We could actually scrap metallic and dielectricIor here and update specularColor
             // to always hold the f0 intermediate value (r_c), although you could then go further and
-            // put the final "engine input" f0 in there, and other perceptuals like haziness and 
+            // put the final "engine input" f0 in there, and other perceptuals like haziness and
             // hazeExtent and update directly lobeMix here. For now we keep the shader mostly organized
             // like Lit ]
             [SurfaceDataAttributes("Haziness")]

@@ -24,8 +24,8 @@ Set the size of these atlases in your Unity Project’s [HDRP Asset](HDRP-Asset.
 
 For example, the default size of an atlas is 4096 x 4096, which can fit:
 
-- Four shadow maps of 1024 x 1024 pixels.
-- Two shadow maps of 1024 x 1024 plus four shadow maps of 512 x 512 plus 16 shadow maps of 256 x 256.
+- Sixteen shadow maps of 1024 x 1024 pixels.
+- Two shadow maps of 2048 x 2048 plus four shadow maps of 1024 x 1024 plus eight shadow maps of 512 x 512 plus 32 shadow maps of 256 x 256.
 
 ## Controlling the maximum number of shadows on screen
 

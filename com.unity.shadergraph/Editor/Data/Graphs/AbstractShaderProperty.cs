@@ -12,9 +12,9 @@ namespace UnityEditor.ShaderGraph
         public override ConcreteSlotValueType concreteShaderValueType => propertyType.ToConcreteShaderValueType();
 
         [SerializeField]
-        private Precision m_Precision = Precision.Inherit;
+        Precision m_Precision = Precision.Inherit;
         
-        private ConcretePrecision m_ConcretePrecision = ConcretePrecision.Float;
+        ConcretePrecision m_ConcretePrecision = ConcretePrecision.Float;
 
         public Precision precision
         {
@@ -66,7 +66,7 @@ namespace UnityEditor.ShaderGraph
     abstract class AbstractShaderProperty<T> : AbstractShaderProperty
     {
         [SerializeField]
-        private T m_Value;
+        T m_Value;
 
         public virtual T value
         {

@@ -37,7 +37,7 @@ void EvaluateAtmosphericScattering(PositionInputs posInput, float3 V, out float3
 
 #ifdef DEBUG_DISPLAY
     // Don't sample atmospheric scattering when lighting debug more are enabled so fog is not visible
-    if (_DebugLightingMode == DEBUGLIGHTINGMODE_DIFFUSE_LIGHTING || _DebugLightingMode == DEBUGLIGHTINGMODE_SPECULAR_LIGHTING || _DebugLightingMode == DEBUGLIGHTINGMODE_LUX_METER)
+    if (_DebugShadowMapMode == SHADOWMAPDEBUGMODE_SINGLE_SHADOW || _DebugLightingMode == DEBUGLIGHTINGMODE_DIFFUSE_LIGHTING || _DebugLightingMode == DEBUGLIGHTINGMODE_SPECULAR_LIGHTING || _DebugLightingMode == DEBUGLIGHTINGMODE_LUX_METER)
         return;
 #endif
 
@@ -62,10 +62,10 @@ void EvaluateAtmosphericScattering(PositionInputs posInput, float3 V, out float3
         float3 N; float r; // These params correspond to the entry point
         float tEntry = IntersectAtmosphere(O, V, N, r);
 
+        float height = r - R;
         float NdotV  = dot(N, V);
         float cosChi = -NdotV;
-        float height = r - R;
-        float cosHor = GetCosineOfHorizonZenithAngle(height);
+        float cosHor = ComputeCosineOfHorizonAngle(r);
 
         bool lookAboveHorizon        = (cosChi > cosHor);
         bool rayIntersectsAtmosphere = (tEntry >= 0);
@@ -101,7 +101,7 @@ void EvaluateAtmosphericScattering(PositionInputs posInput, float3 V, out float3
                     fogFragDist = min(fogFragDist, tExit * 1000);
                 }
 
-                float3 skyOD = SampleOpticalDepthTexture(cosChi, height, lookAboveHorizon); // from 'tEntry' to 'tExit'
+                float3 skyOD = ComputeAtmosphericOpticalDepth(r, cosChi); // from 'tEntry' to 'tExit'
 
                 float3 N1;
                 float  height1, NdotV1;
@@ -123,7 +123,7 @@ void EvaluateAtmosphericScattering(PositionInputs posInput, float3 V, out float3
 
                     float cosChi1 = -NdotV1;
 
-                    float3 behindOD = SampleOpticalDepthTexture(cosChi1, height1); // from 'tFrag' to 'tExit' now
+                    float3 behindOD = ComputeAtmosphericOpticalDepth(r1, cosChi1); // from 'tFrag' to 'tExit' now
 
                     // Reduce the optical depth.
                     skyOD -= behindOD;
