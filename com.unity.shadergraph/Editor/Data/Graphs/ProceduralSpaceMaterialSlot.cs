@@ -21,11 +21,6 @@ namespace UnityEditor.ShaderGraph
         public override VisualElement InstantiateControl()
             => new LabelSlotControlView(m_Space + " Space");
 
-        protected override string ConcreteSlotValueAsVariable()
-        {
-            return $"$precision{m_ValueType.GetChannelCount()} (0)";
-        }
-
         public override void AddDefaultProperty(PropertyCollector properties, GenerationMode generationMode)
         { }
 

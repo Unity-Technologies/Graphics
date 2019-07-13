@@ -75,6 +75,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 HDLitMasterNode.PositionSlotId,
                 HDLitMasterNode.ProceduralNormalOSVertexSlotId,
                 HDLitMasterNode.ProceduralTangentOSVertexSlotId,
+                HDLitMasterNode.ProceduralUV0SlotId,
+                HDLitMasterNode.ProceduralUV1SlotId,
             },
             UseInPreview = true,
 
@@ -144,6 +146,8 @@ namespace UnityEditor.Rendering.HighDefinition
             VertexShaderSlots = new List<int>()
             {
                 //HDLitMasterNode.PositionSlotId
+                HDLitMasterNode.ProceduralUV0SlotId,
+                HDLitMasterNode.ProceduralUV1SlotId,
             },
             UseInPreview = false
         };
@@ -177,6 +181,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 HDLitMasterNode.PositionSlotId,
                 HDLitMasterNode.ProceduralNormalOSVertexSlotId,
                 HDLitMasterNode.ProceduralTangentOSVertexSlotId,
+                HDLitMasterNode.ProceduralUV0SlotId,
             },
             UseInPreview = false,
         };
@@ -211,6 +216,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 HDLitMasterNode.PositionSlotId,
                 HDLitMasterNode.ProceduralNormalOSVertexSlotId,
                 HDLitMasterNode.ProceduralTangentOSVertexSlotId,
+                HDLitMasterNode.ProceduralUV0SlotId,
             },
             UseInPreview = false
         };
@@ -263,6 +269,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 HDLitMasterNode.PositionSlotId,
                 HDLitMasterNode.ProceduralNormalOSVertexSlotId,
                 HDLitMasterNode.ProceduralTangentOSVertexSlotId,
+                HDLitMasterNode.ProceduralUV0SlotId,
+                HDLitMasterNode.ProceduralUV1SlotId,
             },
             UseInPreview = true,
 
@@ -320,6 +328,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 HDLitMasterNode.PositionSlotId,
                 HDLitMasterNode.ProceduralNormalOSVertexSlotId,
                 HDLitMasterNode.ProceduralTangentOSVertexSlotId,
+                HDLitMasterNode.ProceduralUV0SlotId,
+                HDLitMasterNode.ProceduralUV1SlotId,
             },
             UseInPreview = false,
 
@@ -367,6 +377,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 HDLitMasterNode.PositionSlotId,
                 HDLitMasterNode.ProceduralNormalOSVertexSlotId,
                 HDLitMasterNode.ProceduralTangentOSVertexSlotId,
+                HDLitMasterNode.ProceduralUV0SlotId,
             },
             UseInPreview = true,
 
@@ -433,6 +444,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 HDLitMasterNode.PositionSlotId,
                 HDLitMasterNode.ProceduralNormalOSVertexSlotId,
                 HDLitMasterNode.ProceduralTangentOSVertexSlotId,
+                HDLitMasterNode.ProceduralUV0SlotId,
             },
             UseInPreview = true,
         };
@@ -495,6 +507,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 HDLitMasterNode.PositionSlotId,
                 HDLitMasterNode.ProceduralNormalOSVertexSlotId,
                 HDLitMasterNode.ProceduralTangentOSVertexSlotId,
+                HDLitMasterNode.ProceduralUV0SlotId,
+                HDLitMasterNode.ProceduralUV1SlotId,
             },
             UseInPreview = true,
             OnGeneratePassImpl = (IMasterNode node, ref Pass pass) =>
@@ -562,6 +576,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 HDLitMasterNode.PositionSlotId,
                 HDLitMasterNode.ProceduralNormalOSVertexSlotId,
                 HDLitMasterNode.ProceduralTangentOSVertexSlotId,
+                HDLitMasterNode.ProceduralUV0SlotId,
+                HDLitMasterNode.ProceduralUV1SlotId,
             },
             UseInPreview = true,
 
@@ -616,6 +632,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 HDLitMasterNode.PositionSlotId,
                 HDLitMasterNode.ProceduralNormalOSVertexSlotId,
                 HDLitMasterNode.ProceduralTangentOSVertexSlotId,
+                HDLitMasterNode.ProceduralUV0SlotId,
             },
             UseInPreview = true,
         };
@@ -674,6 +691,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 HDLitMasterNode.PositionSlotId,
                 HDLitMasterNode.ProceduralNormalOSVertexSlotId,
                 HDLitMasterNode.ProceduralTangentOSVertexSlotId,
+                HDLitMasterNode.ProceduralUV0SlotId,
+                HDLitMasterNode.ProceduralUV1SlotId,
             },
             UseInPreview = false
         };
@@ -723,6 +742,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 HDLitMasterNode.PositionSlotId,
                 HDLitMasterNode.ProceduralNormalOSVertexSlotId,
                 HDLitMasterNode.ProceduralTangentOSVertexSlotId,
+                HDLitMasterNode.ProceduralUV0SlotId,
+                HDLitMasterNode.ProceduralUV1SlotId,
             },
             UseInPreview = false
         };
@@ -780,6 +801,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 HDLitMasterNode.PositionSlotId,
                 HDLitMasterNode.ProceduralNormalOSVertexSlotId,
                 HDLitMasterNode.ProceduralTangentOSVertexSlotId,
+                HDLitMasterNode.ProceduralUV0SlotId,
+                HDLitMasterNode.ProceduralUV1SlotId,
             },
             UseInPreview = false
         };
@@ -836,6 +859,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 HDLitMasterNode.PositionSlotId,
                 HDLitMasterNode.ProceduralNormalOSVertexSlotId,
                 HDLitMasterNode.ProceduralTangentOSVertexSlotId,
+                HDLitMasterNode.ProceduralUV0SlotId,
+                HDLitMasterNode.ProceduralUV1SlotId,
             },
             UseInPreview = false
         };
@@ -1102,6 +1127,13 @@ namespace UnityEditor.Rendering.HighDefinition
             if (masterNode.proceduralNormalMode == ProceduralNormalMode.PixelObjectSpace
                 && (masterNode.IsSlotConnected(HDLitMasterNode.ProceduralNormalOSPixelSlotId) || masterNode.IsSlotConnected(HDLitMasterNode.ProceduralTangentOSPixelSlotId)))
                 activeFields.Add("Procedural.PixelNormal");
+
+            if (masterNode.proceduralUVMode == ProceduralUVMode.UV0_ReplicateToAll && masterNode.IsSlotConnected(HDLitMasterNode.ProceduralUV0SlotId))
+                activeFields.Add("Procedural.UV0");
+
+            if (masterNode.proceduralUVMode == ProceduralUVMode.UV0_UV1_ReplicateUV0
+                && (masterNode.IsSlotConnected(HDLitMasterNode.ProceduralUV0SlotId) || masterNode.IsSlotConnected(HDLitMasterNode.ProceduralUV1SlotId)))
+                activeFields.Add("Procedural.UV1");
 
             return activeFields;
         }

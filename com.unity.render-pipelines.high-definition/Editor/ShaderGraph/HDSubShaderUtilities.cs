@@ -670,6 +670,19 @@ namespace UnityEditor.Rendering.HighDefinition
                 activeFields.Remove("VaryingsMeshToPS.normalWS");
             }
 
+            if (activeFields.Contains("Procedural.UV0"))
+            {
+                activeFields.Remove("VaryingsMeshToPS.texCoord1");
+                activeFields.Remove("VaryingsMeshToPS.texCoord2");
+                activeFields.Remove("VaryingsMeshToPS.texCoord3");
+            }
+
+            if (activeFields.Contains("Procedural.UV1"))
+            {
+                activeFields.Remove("VaryingsMeshToPS.texCoord2");
+                activeFields.Remove("VaryingsMeshToPS.texCoord3");
+            }
+
             // debug output all active fields
             var interpolatorDefines = new ShaderGenerator();
             if (debugOutput)

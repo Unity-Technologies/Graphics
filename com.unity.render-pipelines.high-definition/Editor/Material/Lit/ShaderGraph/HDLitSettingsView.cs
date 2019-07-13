@@ -384,6 +384,15 @@ namespace UnityEditor.Rendering.HighDefinition.Drawing
                 });
             });
 
+            ps.Add(new PropertyRow(CreateLabel("Procedural UVs", indentLevel)), (row) =>
+            {
+                row.Add(new EnumField(ProceduralUVMode.Off), (field) =>
+                {
+                    field.value = m_Node.proceduralUVMode;
+                    field.RegisterValueChangedCallback(ChangeProceduralUVMode);
+                });
+            });
+
             ps.Add(new PropertyRow(CreateLabel("DOTS instancing", indentLevel)), (row) =>
             {
                 row.Add(new Toggle(), (toggle) =>
@@ -686,6 +695,15 @@ namespace UnityEditor.Rendering.HighDefinition.Drawing
 
             m_Node.owner.owner.RegisterCompleteObjectUndo("Procedural Normal Mode Change");
             m_Node.proceduralNormalMode = (ProceduralNormalMode)evt.newValue;
+        }
+
+        void ChangeProceduralUVMode(ChangeEvent<Enum> evt)
+        {
+            if (Equals(m_Node.proceduralUVMode, evt.newValue))
+                return;
+
+            m_Node.owner.owner.RegisterCompleteObjectUndo("Procedural UV Mode Change");
+            m_Node.proceduralUVMode = (ProceduralUVMode)evt.newValue;
         }
 
         void ChangeZWrite(ChangeEvent<bool> evt)

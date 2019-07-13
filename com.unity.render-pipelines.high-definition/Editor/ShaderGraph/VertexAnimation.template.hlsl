@@ -48,6 +48,7 @@ AttributesMesh ApplyMeshModification(AttributesMesh input, float3 timeParameters
 
     // copy graph output to the results
     $VertexDescription.Position:    input.positionOS = vertexDescription.Position;
+    $VertexDescription.UV0:         input.uv0 = float4(vertexDescription.UV0, 0, 0);
 
     return input;
 }

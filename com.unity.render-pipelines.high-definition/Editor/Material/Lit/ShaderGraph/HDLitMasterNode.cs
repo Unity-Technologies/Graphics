@@ -95,6 +95,8 @@ namespace UnityEditor.Rendering.HighDefinition
         public const int ProceduralTangentOSVertexSlotId = 34;
         public const int ProceduralNormalOSPixelSlotId = 35;
         public const int ProceduralTangentOSPixelSlotId = 36;
+        public const int ProceduralUV0SlotId = 37;
+        public const int ProceduralUV1SlotId = 38;
 
         public enum MaterialType
         {
@@ -145,7 +147,7 @@ namespace UnityEditor.Rendering.HighDefinition
             Lighting = 1L << LightingSlotId,
             BackLighting = 1L << BackLightingSlotId,
             DepthOffset = 1L << DepthOffsetSlotId,
-            Procedural = (1L << ProceduralNormalOSVertexSlotId) | (1L << ProceduralTangentOSVertexSlotId) | (1L << ProceduralNormalOSPixelSlotId) | (1L << ProceduralTangentOSPixelSlotId)
+            Procedural = (1L << ProceduralNormalOSVertexSlotId) | (1L << ProceduralTangentOSVertexSlotId) | (1L << ProceduralNormalOSPixelSlotId) | (1L << ProceduralTangentOSPixelSlotId) | (1L << ProceduralUV0SlotId) | (1L << ProceduralUV1SlotId)
         }
 
         const SlotMask StandardSlotMask = SlotMask.Position | SlotMask.Albedo | SlotMask.Normal | SlotMask.BentNormal | SlotMask.CoatMask | SlotMask.Emission | SlotMask.Metallic | SlotMask.Smoothness | SlotMask.Occlusion | SlotMask.SpecularOcclusion | SlotMask.Alpha | SlotMask.AlphaThreshold | SlotMask.AlphaThresholdDepthPrepass | SlotMask.AlphaThresholdDepthPostpass | SlotMask.AlphaThresholdShadow | SlotMask.Lighting | SlotMask.DepthOffset | SlotMask.Procedural;
@@ -711,6 +713,22 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         [SerializeField]
+        ProceduralUVMode m_ProceduralUVMode = ProceduralUVMode.Off;
+        public ProceduralUVMode proceduralUVMode
+        {
+            get { return m_ProceduralUVMode; }
+            set
+            {
+                if (m_ProceduralUVMode == value)
+                    return;
+
+                m_ProceduralUVMode = value;
+                UpdateNodeAfterDeserialization();
+                Dirty(ModificationScope.Graph);
+            }
+        }
+
+        [SerializeField]
         bool m_ZWrite = false;
         public ToggleData zWrite
         {
@@ -790,17 +808,29 @@ namespace UnityEditor.Rendering.HighDefinition
             }
             if (proceduralNormalMode == ProceduralNormalMode.VertexObjectSpace)
             {
-                AddSlot(new ProceduralSpaceMaterialSlot(ProceduralNormalOSVertexSlotId, "Normal (Procedural)", NormalSlotName, ConcreteSlotValueType.Vector3, CoordinateSpace.Object, ShaderStageCapability.Vertex));
-                AddSlot(new ProceduralSpaceMaterialSlot(ProceduralTangentOSVertexSlotId, "Tangent (Procedural)", TangentSlotName, ConcreteSlotValueType.Vector4, CoordinateSpace.Object, ShaderStageCapability.Vertex));
+                AddSlot(new ProceduralSpaceMaterialSlot(ProceduralNormalOSVertexSlotId, "Normal (Procedural) ", NormalSlotName, ConcreteSlotValueType.Vector3, CoordinateSpace.Object, ShaderStageCapability.Vertex));
+                AddSlot(new ProceduralSpaceMaterialSlot(ProceduralTangentOSVertexSlotId, "Tangent (Procedural) ", TangentSlotName, ConcreteSlotValueType.Vector4, CoordinateSpace.Object, ShaderStageCapability.Vertex));
                 validSlots.Add(ProceduralNormalOSVertexSlotId);
                 validSlots.Add(ProceduralTangentOSVertexSlotId);
             }
             else if (proceduralNormalMode == ProceduralNormalMode.PixelObjectSpace)
             {
-                AddSlot(new ProceduralSpaceMaterialSlot(ProceduralNormalOSPixelSlotId, "Normal (Procedural)", NormalSlotName, ConcreteSlotValueType.Vector3, CoordinateSpace.Object, ShaderStageCapability.Fragment));
-                AddSlot(new ProceduralSpaceMaterialSlot(ProceduralTangentOSPixelSlotId, "Tangent (Procedural)", TangentSlotName, ConcreteSlotValueType.Vector4, CoordinateSpace.Object, ShaderStageCapability.Fragment));
+                AddSlot(new ProceduralSpaceMaterialSlot(ProceduralNormalOSPixelSlotId, "Normal (Procedural) ", NormalSlotName, ConcreteSlotValueType.Vector3, CoordinateSpace.Object, ShaderStageCapability.Fragment));
+                AddSlot(new ProceduralSpaceMaterialSlot(ProceduralTangentOSPixelSlotId, "Tangent (Procedural) ", TangentSlotName, ConcreteSlotValueType.Vector4, CoordinateSpace.Object, ShaderStageCapability.Fragment));
                 validSlots.Add(ProceduralNormalOSPixelSlotId);
                 validSlots.Add(ProceduralTangentOSPixelSlotId);
+            }
+            if (proceduralUVMode == ProceduralUVMode.UV0_ReplicateToAll)
+            {
+                AddSlot(new ProceduralUVMaterialSlot(ProceduralUV0SlotId, "UV0 (Procedural) ", "UV0", ShaderStageCapability.Vertex));
+                validSlots.Add(ProceduralUV0SlotId);
+            }
+            else if (proceduralUVMode == ProceduralUVMode.UV0_UV1_ReplicateUV0)
+            {
+                AddSlot(new ProceduralUVMaterialSlot(ProceduralUV0SlotId, "UV0 (Procedural) ", "UV0", ShaderStageCapability.Vertex));
+                AddSlot(new ProceduralUVMaterialSlot(ProceduralUV1SlotId, "UV1 (Procedural) ", "UV1", ShaderStageCapability.Vertex));
+                validSlots.Add(ProceduralUV0SlotId);
+                validSlots.Add(ProceduralUV1SlotId);
             }
             if (MaterialTypeUsesSlotMask(SlotMask.Albedo))
             {
