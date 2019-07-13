@@ -583,6 +583,7 @@ namespace UnityEditor.Rendering.HighDefinition
             string pixelGraphEvalFunctionName = "SurfaceDescriptionFunction";
             ShaderStringBuilder pixelGraphEvalFunction = new ShaderStringBuilder();
             ShaderStringBuilder pixelGraphOutputs = new ShaderStringBuilder();
+            ShaderStringBuilder pixelProceduralCode = new ShaderStringBuilder();
 
             // build initial requirements
             HDRPShaderStructs.AddActiveFieldsFromPixelGraphRequirements(activeFields, pixelRequirements);
@@ -596,6 +597,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 masterNode,
                 masterNode.owner as GraphData,
                 pixelGraphEvalFunction,
+                pixelProceduralCode,
                 functionRegistry,
                 sharedProperties,
                 pixelRequirements,  // TODO : REMOVE UNUSED
@@ -791,6 +793,7 @@ namespace UnityEditor.Rendering.HighDefinition
             namedFragments.Add("LODFadeOptions", lodFadeOptions.GetShaderString(0, false));
             namedFragments.Add("Defines", defines.GetShaderString(2, false));
             namedFragments.Add("Graph", graph.GetShaderString(2, false));
+            namedFragments.Add("SurfaceProceduralCode", pixelProceduralCode.ToString());
             namedFragments.Add("LightMode", pass.LightMode);
             namedFragments.Add("PassName", pass.Name);
             namedFragments.Add("Includes", shaderPassIncludes.GetShaderString(2, false));

@@ -984,6 +984,7 @@ namespace UnityEditor.ShaderGraph
             var surfaceDescriptionInputStruct = new ShaderStringBuilder(0);
             var surfaceDescriptionStruct = new ShaderStringBuilder(0);
             var surfaceDescriptionFunction = new ShaderStringBuilder(0);
+            var surfaceProceduralCode = new ShaderStringBuilder(0);
 
             var vertexInputs = new ShaderStringBuilder(0);
 
@@ -1054,6 +1055,7 @@ namespace UnityEditor.ShaderGraph
                 node,
                 graph,
                 surfaceDescriptionFunction,
+                surfaceProceduralCode,
                 functionRegistry,
                 shaderProperties,
                 requirements,
@@ -1228,6 +1230,7 @@ namespace UnityEditor.ShaderGraph
             AbstractMaterialNode rootNode,
             GraphData graph,
             ShaderStringBuilder surfaceDescriptionFunction,
+            ShaderStringBuilder surfaceProceduralCode,
             FunctionRegistry functionRegistry,
             PropertyCollector shaderProperties,
             ShaderGraphRequirements requirements,
@@ -1263,6 +1266,13 @@ namespace UnityEditor.ShaderGraph
                         surfaceDescriptionFunction.currentNode = activeNode;
                         bodyNode.GenerateNodeCode(surfaceDescriptionFunction, graphContext, mode);
                         surfaceDescriptionFunction.ReplaceInCurrentMapping(PrecisionUtil.Token, activeNode.concretePrecision.ToShaderString());
+                    }
+
+                    if (activeNode is IGeneratesProceduralCode proceduralNode)
+                    {
+                        surfaceProceduralCode.currentNode = activeNode;
+                        proceduralNode.GenerateProceduralCode(surfaceProceduralCode, graphContext, mode);
+                        surfaceProceduralCode.ReplaceInCurrentMapping(PrecisionUtil.Token, activeNode.concretePrecision.ToShaderString());
                     }
 
                     activeNode.CollectShaderProperties(shaderProperties, mode);

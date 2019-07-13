@@ -4,7 +4,7 @@ using UnityEditor.ShaderGraph;
 namespace UnityEditor.Rendering.HighDefinition
 {
     [Title("Procedural", "Terrain Mesh")]
-    class TerrainMeshNode : AbstractMaterialNode, IGeneratesBodyCode, IGeneratesFunction, IMayRequirePosition
+    class TerrainMeshNode : AbstractMaterialNode, IGeneratesBodyCode, IGeneratesFunction, IGeneratesProceduralCode, IMayRequirePosition, IMayRequireMeshUV
     {
         public TerrainMeshNode()
         {
@@ -17,20 +17,24 @@ namespace UnityEditor.Rendering.HighDefinition
         const int kPositionOutputSlotId = 0;
         const int kNormalOutputSlotId = 1;
         const int kTangentOutputSlotId = 2;
+        const int kUVOutputSlotId = 3;
         const string kPositionOutputSlotName = "Position";
         const string kNormalOutputSlotName = "Normal";
         const string kTangentOutputSlotName = "Tangent";
+        const string kUVOutputSlotName = "UV";
 
         public sealed override void UpdateNodeAfterDeserialization()
         {
             AddSlot(new Vector3MaterialSlot(kPositionOutputSlotId, kPositionOutputSlotName, kPositionOutputSlotName, SlotType.Output, UnityEngine.Vector3.zero, ShaderStageCapability.Vertex));
             AddSlot(new Vector3MaterialSlot(kNormalOutputSlotId, kNormalOutputSlotName, kNormalOutputSlotName, SlotType.Output, UnityEngine.Vector3.zero, ShaderStageCapability.All));
             AddSlot(new Vector4MaterialSlot(kTangentOutputSlotId, kTangentOutputSlotName, kTangentOutputSlotName, SlotType.Output, UnityEngine.Vector4.zero, ShaderStageCapability.All));
+            AddSlot(new Vector2MaterialSlot(kUVOutputSlotId, kUVOutputSlotName, kUVOutputSlotName, SlotType.Output, UnityEngine.Vector2.zero, ShaderStageCapability.Vertex));
 
             RemoveSlotsNameNotMatching(new[] {
                 kPositionOutputSlotId,
                 kNormalOutputSlotId,
-                kTangentOutputSlotId
+                kTangentOutputSlotId,
+                kUVOutputSlotId
             });
         }
 
@@ -39,6 +43,11 @@ namespace UnityEditor.Rendering.HighDefinition
             if (stageCapability == ShaderStageCapability.Vertex)
                 return NeededCoordinateSpace.Object;
             return NeededCoordinateSpace.None;
+        }
+
+        public bool RequiresMeshUV(UVChannel channel, ShaderStageCapability stageCapability = ShaderStageCapability.All)
+        {
+            return channel == UVChannel.UV0 && stageCapability != ShaderStageCapability.Vertex;
         }
 
         public void GenerateNodeCode(ShaderStringBuilder sb, GraphContext graphContext, GenerationMode generationMode)
@@ -51,8 +60,22 @@ namespace UnityEditor.Rendering.HighDefinition
                 sb.AppendLine("float2 sampleCoords = (patchVertex.xy + instanceData.xy) * instanceData.z; // (xy + float2(xBase,yBase)) * skipScale");
                 sb.AppendLine("float height = UnpackHeightmap(_TerrainHeightmapTexture.Load(int3(sampleCoords, 0)));");
                 sb.AppendLine("$precision3 {0} = {1};", GetVariableNameForSlot(kPositionOutputSlotId), "float3(sampleCoords.x, height, sampleCoords.y) * _TerrainHeightmapScale.xyz");
-//                sb.AppendLine("$precision3 {0} = {1};", GetVariableNameForSlot(kNormalOutputSlotId), "_TerrainNormalmapTexture.Load(int3(sampleCoords, 0)).rgb * 2 - 1");
-//                sb.AppendLine("$precision4 {0} = ConstructTerrainTangent({1}, float3(0, 0, 1));", GetVariableNameForSlot(kTangentOutputSlotId), GetVariableNameForSlot(kNormalOutputSlotId));
+                sb.AppendLine("$precision2 {0} = {1};", GetVariableNameForSlot(kUVOutputSlotId), "sampleCoords");
+                //                sb.AppendLine("$precision3 {0} = {1};", GetVariableNameForSlot(kNormalOutputSlotId), "_TerrainNormalmapTexture.Load(int3(sampleCoords, 0)).rgb * 2 - 1");
+                //                sb.AppendLine("$precision4 {0} = ConstructTerrainTangent({1}, float3(0, 0, 1));", GetVariableNameForSlot(kTangentOutputSlotId), GetVariableNameForSlot(kNormalOutputSlotId));
+            }
+        }
+
+        public void GenerateProceduralCode(ShaderStringBuilder sb, GraphContext graphContext, GenerationMode generationMode)
+        {
+            if (graphContext.graphInputStructName == "SurfaceDescriptionInputs")
+            {
+                sb.AppendLine("float2 terrainNormalMapUV = (IN.texCoord0.xy + 0.5f) * _TerrainHeightmapRecipSize.xy;");
+                sb.AppendLine("IN.texCoord0.xy *= _TerrainHeightmapRecipSize.zw;");
+                sb.AppendLine("float3 normalOS = SAMPLE_TEXTURE2D(_TerrainNormalmapTexture, sampler_TerrainNormalmapTexture, terrainNormalMapUV).rgb * 2 - 1;");
+                sb.AppendLine("float3 normalWS = mul((float3x3)GetObjectToWorldMatrix(), normalOS);");
+                sb.AppendLine("float4 tangentWS = ConstructTerrainTangent(normalWS, GetObjectToWorldMatrix()._13_23_33);");
+                sb.AppendLine("IN.tangentToWorld = BuildTangentToWorld(tangentWS, normalWS);");
             }
         }
 
