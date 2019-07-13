@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using UnityEditor.ShaderGraph;
 using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.Rendering;
+using Data.Util;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
@@ -522,7 +523,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             if (masterNode.addVelocityChange.isOn)
             {
-                activeFields.Add("AdditionalVelocityChange");
+                baseActiveFields.Add("AdditionalVelocityChange");
             }
 
             if (masterNode.specularAA.isOn && pass.PixelShaderUsesSlot(HairMasterNode.SpecularAAThresholdSlotId) && pass.PixelShaderUsesSlot(HairMasterNode.SpecularAAScreenSpaceVarianceSlotId))

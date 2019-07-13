@@ -1,4 +1,6 @@
 using System.Collections.Generic;
+using UnityEditor.Rendering;
+using UnityEditor.Rendering.Utilities;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;

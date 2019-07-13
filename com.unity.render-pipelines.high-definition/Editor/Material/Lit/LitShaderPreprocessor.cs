@@ -1,3 +1,6 @@
+using System;
+using UnityEditor.Rendering;
+using UnityEditor.Rendering.Utilities;
 using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
 using UnityEditor.ShaderGraph;
@@ -14,7 +17,6 @@ namespace UnityEditor.Rendering.HighDefinition
             if (IsMaterialQualityVariantStripped(hdrpAsset, inputData))
             {
                 throw new Exception($"Variant stripped from material quality: {inputData.shaderKeywordSet.GetShaderKeywords()}");
-                return true;
             }
 
 

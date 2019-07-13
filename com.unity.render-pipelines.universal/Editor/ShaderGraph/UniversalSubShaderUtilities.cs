@@ -100,7 +100,11 @@ namespace UnityEditor.Rendering.Universal
             // String builders
 
             var shaderProperties = new PropertyCollector();
+            var shaderKeywords = new KeywordCollector();
             var shaderPropertyUniforms = new ShaderStringBuilder(1);
+            var shaderKeywordDeclarations = new ShaderStringBuilder(1);
+            var shaderKeywordPermutations = new ShaderStringBuilder(1);
+
             var functionBuilder = new ShaderStringBuilder(1);
             var functionRegistry = new FunctionRegistry(functionBuilder);
 
@@ -172,6 +176,66 @@ namespace UnityEditor.Rendering.Universal
                 defines.AppendLine(define);
 
             // ----------------------------------------------------- //
+            //                         KEYWORDS                      //
+            // ----------------------------------------------------- //
+
+            // -------------------------------------
+            // Get keyword permutations
+
+            masterNode.owner.CollectShaderKeywords(shaderKeywords, mode);
+            var keywordPermutations = KeywordUtil.GetKeywordPermutations(shaderKeywords.keywords);
+
+            // Track permutation indices for all nodes
+            List<int>[] keywordPermutationsPerVertexNode = new List<int>[vertexNodes.Count];
+            List<int>[] keywordPermutationsPerPixelNode = new List<int>[pixelNodes.Count];
+
+            // Track requirements per keyword permutation
+            List<KeyValuePair<int, ShaderGraphRequirements>> vertexRequirementsPerKeyword = new List<KeyValuePair<int, ShaderGraphRequirements>>();
+            List<KeyValuePair<int, ShaderGraphRequirements>> surfaceRequirementsPerKeyword = new List<KeyValuePair<int, ShaderGraphRequirements>>();
+            List<KeyValuePair<int, ShaderGraphRequirements>> pixelRequirementsPerKeyword = new List<KeyValuePair<int, ShaderGraphRequirements>>();
+
+            // -------------------------------------
+            // Evaluate all permutations
+
+            for(int i = 0; i < keywordPermutations.Count; i++)
+            {
+                // Get active nodes for this permutation
+                var localVertexNodes = ListPool<AbstractMaterialNode>.Get();
+                var localPixelNodes = ListPool<AbstractMaterialNode>.Get();
+                NodeUtils.DepthFirstCollectNodesFromNode(localVertexNodes, masterNode, NodeUtils.IncludeSelf.Include, pass.VertexShaderSlots, keywordPermutations[i]);
+                NodeUtils.DepthFirstCollectNodesFromNode(localPixelNodes, masterNode, NodeUtils.IncludeSelf.Include, pass.PixelShaderSlots, keywordPermutations[i]);
+
+                // Track each vertex node in this permutation
+                foreach(AbstractMaterialNode vertexNode in localVertexNodes)
+                {
+                    int nodeIndex = vertexNodes.IndexOf(vertexNode);
+
+                    if(keywordPermutationsPerVertexNode[nodeIndex] == null)
+                        keywordPermutationsPerVertexNode[nodeIndex] = new List<int>();
+                    keywordPermutationsPerVertexNode[nodeIndex].Add(i);
+                }
+
+                // Track each pixel node in this permutation
+                foreach(AbstractMaterialNode pixelNode in localPixelNodes)
+                {
+                    int nodeIndex = pixelNodes.IndexOf(pixelNode);
+
+                    if(keywordPermutationsPerPixelNode[nodeIndex] == null)
+                        keywordPermutationsPerPixelNode[nodeIndex] = new List<int>();
+                    keywordPermutationsPerPixelNode[nodeIndex].Add(i);
+                }
+
+                // Get active requirements for this permutation
+                var localVertexRequirements = ShaderGraphRequirements.FromNodes(localVertexNodes, ShaderStageCapability.Vertex, false);
+                var localSurfaceRequirements = ShaderGraphRequirements.FromNodes(localPixelNodes, ShaderStageCapability.Fragment, false);
+                var localPixelRequirements = ShaderGraphRequirements.FromNodes(localPixelNodes, ShaderStageCapability.Fragment);
+
+                vertexRequirementsPerKeyword.Add(new KeyValuePair<int, ShaderGraphRequirements>(i, localVertexRequirements));
+                surfaceRequirementsPerKeyword.Add(new KeyValuePair<int, ShaderGraphRequirements>(i, localSurfaceRequirements));
+                pixelRequirementsPerKeyword.Add(new KeyValuePair<int, ShaderGraphRequirements>(i, localPixelRequirements));
+            }
+
+            // ----------------------------------------------------- //
             //                START VERTEX DESCRIPTION               //
             // ----------------------------------------------------- //
 
@@ -216,8 +280,11 @@ namespace UnityEditor.Rendering.Universal
                 vertexDescriptionFunction,
                 functionRegistry,
                 shaderProperties,
+                shaderKeywords,
                 mode,
+                masterNode,
                 vertexNodes,
+                keywordPermutationsPerVertexNode,
                 vertexSlots);
 
             // ----------------------------------------------------- //
@@ -265,12 +332,13 @@ namespace UnityEditor.Rendering.Universal
 
             GraphUtil.GenerateSurfaceDescriptionFunction(
                 pixelNodes,
+                keywordPermutationsPerPixelNode,
                 masterNode,
                 masterNode.owner as GraphData,
                 surfaceDescriptionFunction,
                 functionRegistry,
                 shaderProperties,
-                pixelRequirements,
+                shaderKeywords,
                 mode,
                 "PopulateSurfaceData",
                 "SurfaceDescription",
@@ -280,6 +348,12 @@ namespace UnityEditor.Rendering.Universal
             // ----------------------------------------------------- //
             //           GENERATE VERTEX > PIXEL PIPELINE            //
             // ----------------------------------------------------- //
+
+            // -------------------------------------
+            // Keyword declarations
+
+            KeywordUtil.GetKeywordPermutationDeclaration(shaderKeywordPermutations, keywordPermutations);
+            shaderKeywords.GetKeywordsDeclaration(shaderKeywordDeclarations, mode);
 
             // -------------------------------------
             // Property uniforms
@@ -333,6 +407,8 @@ namespace UnityEditor.Rendering.Universal
             // -------------------------------------
             // Combine Graph sections
 
+            graph.AppendLines(shaderKeywordDeclarations.ToString());
+            graph.AppendLines(shaderKeywordPermutations.ToString());
             graph.AppendLines(shaderPropertyUniforms.ToString());
 
             graph.AppendLine(vertexDescriptionInputStruct.ToString());

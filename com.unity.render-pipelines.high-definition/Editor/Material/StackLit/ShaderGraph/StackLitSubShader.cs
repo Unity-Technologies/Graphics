@@ -705,7 +705,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
             if (masterNode.honorPerLightMinRoughness.isOn)
             {
-                activeFields.Add("HonorPerLightMinRoughness");
+                baseActiveFields.Add("HonorPerLightMinRoughness");
             }
             if (masterNode.shadeBaseUsingRefractedAngles.isOn)
             {
@@ -732,7 +732,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             if (masterNode.addVelocityChange.isOn)
             {
-                activeFields.Add("AdditionalVelocityChange");
+                baseActiveFields.Add("AdditionalVelocityChange");
             }
 
             // Note here we combine an "enable"-like predicate and the $SurfaceDescription.(slotname) predicate

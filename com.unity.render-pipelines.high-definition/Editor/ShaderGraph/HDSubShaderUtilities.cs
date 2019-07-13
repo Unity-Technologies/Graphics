@@ -617,8 +617,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 for(int i = 0; i < keywordPermutations.Count; i++)
                 {
                     // Get active nodes for this permutation
-                    var localVertexNodes = ListPool<AbstractMaterialNode>.Get();
-                    var localPixelNodes = ListPool<AbstractMaterialNode>.Get();
+                    var localVertexNodes = UnityEngine.Rendering.ListPool<AbstractMaterialNode>.Get();
+                    var localPixelNodes = UnityEngine.Rendering.ListPool<AbstractMaterialNode>.Get();
                     NodeUtils.DepthFirstCollectNodesFromNode(localVertexNodes, masterNode, NodeUtils.IncludeSelf.Include, pass.VertexShaderSlots, keywordPermutations[i]);
                     NodeUtils.DepthFirstCollectNodesFromNode(localPixelNodes, masterNode, NodeUtils.IncludeSelf.Include, pass.PixelShaderSlots, keywordPermutations[i]);
 

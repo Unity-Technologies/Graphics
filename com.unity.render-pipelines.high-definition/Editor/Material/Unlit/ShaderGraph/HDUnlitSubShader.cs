@@ -420,7 +420,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             if (masterNode.addVelocityChange.isOn)
             {
-                activeFields.Add("AdditionalVelocityChange");
+                baseActiveFields.Add("AdditionalVelocityChange");
             }
 
             return activeFields;

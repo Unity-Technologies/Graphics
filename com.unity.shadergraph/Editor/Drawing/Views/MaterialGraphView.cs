@@ -799,6 +799,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                             node.owner = graphView.graph;
                             node.keywordGuid = copiedInput.guid;
                         }
+                        break;
                     default:
                         throw new ArgumentOutOfRangeException();
                 }
