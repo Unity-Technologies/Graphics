@@ -78,7 +78,7 @@ namespace UnityEngine.Rendering
             {
                 if (m_MagentaCubeTextureArray == null)
                 {
-                    m_MagentaCubeTextureArray = new CubemapArray(1, 1, TextureFormat.ARGB32, false);
+                    m_MagentaCubeTextureArray = new CubemapArray(1, 1, TextureFormat.RGBAFloat, false);
                     for (int i = 0; i < 6; ++i)
                     {
                         Color[] colors = { Color.magenta };

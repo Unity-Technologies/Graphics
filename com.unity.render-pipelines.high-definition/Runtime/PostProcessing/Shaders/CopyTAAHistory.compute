@@ -1,4 +1,4 @@
-﻿#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Builtin/BuiltinData.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
 
@@ -16,5 +16,5 @@ void CopyTAAHistory(uint3 dispatchThreadId : SV_DispatchThreadID)
     if (any(dispatchThreadId.xy > uint2(_ScreenSize.xy)))
         return;  // Out of bounds, discard
 
-    _OutputHistoryTexture[COORD_TEXTURE2D_X(dispatchThreadId.xy)] = _InputHistoryTexture[COORD_TEXTURE2D_X(dispatchThreadId.xy)];
+    _OutputHistoryTexture[COORD_TEXTURE2D_X(dispatchThreadId.xy)] = _InputHistoryTexture[COORD_TEXTURE2D_X(dispatchThreadId.xy)].rgb;
 }
