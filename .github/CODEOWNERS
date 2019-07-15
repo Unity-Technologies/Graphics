@@ -1,8 +1,8 @@
 # Code Ownership File
 
 # Universal RP General
-/com.unity.render-pipelines.universal/CHANGELOG.md @Unity-Technologies/gfx-docs
 /com.unity.render-pipelines.universal/ @Unity-Technologies/universal-rp-team
+/com.unity.render-pipelines.universal/CHANGELOG.md @Unity-Technologies/gfx-docs
 
 # Universal RP 2D Renderer
 /com.unity.render-pipelines.universal/Editor/2D @Unity-Technologies/2d-graphics
@@ -18,5 +18,5 @@
 # /katana-ci/ @Unity-Technologies/gfx-sdets
 
 # LWRP (Legacy)
-/com.unity.render-pipelines.lightweight/CHANGELOG.md @Unity-Technologies/gfx-docs
 /com.unity.render-pipelines.lightweight/ @Unity-Technologies/universal-rp-team
+/com.unity.render-pipelines.lightweight/CHANGELOG.md @Unity-Technologies/gfx-docs
