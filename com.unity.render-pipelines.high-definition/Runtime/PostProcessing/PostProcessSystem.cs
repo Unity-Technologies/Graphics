@@ -776,8 +776,16 @@ namespace UnityEngine.Rendering.HighDefinition
             m_TAAPropertyBlock.SetTexture(HDShaderIDs._InputHistoryTexture, prevHistory);
 
             CoreUtils.SetRenderTarget(cmd, destination, depthBuffer);
-            cmd.SetRandomWriteTarget(1, nextHistory);
             cmd.DrawProcedural(Matrix4x4.identity, m_TemporalAAMaterial, 0, MeshTopology.Triangles, 3, 1, m_TAAPropertyBlock);
+
+            // Copy history. 
+            var cs = m_Resources.shaders.CopyTAAHistoryCS;
+            var kernel = cs.FindKernel("CopyTAAHistory");
+
+            cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputHistoryTexture, destination);
+            cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputHistoryTexture, nextHistory);
+            cmd.DispatchCompute(cs, kernel, (camera.actualWidth + 7) / 8, (camera.actualHeight + 7) / 8, camera.viewCount);
+
         }
 
         static void GrabTemporalAntialiasingHistoryTextures(HDCamera camera, out RTHandle previous, out RTHandle next)
