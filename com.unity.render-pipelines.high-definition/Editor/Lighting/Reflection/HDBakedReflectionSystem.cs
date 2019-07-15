@@ -511,6 +511,16 @@ namespace UnityEditor.Rendering.HighDefinition
             RenderTexture cubeRT, RenderTexture planarRT
         )
         {
+            RenderAndWriteToFile(probe, targetFile, cubeRT, planarRT, out _, out _);
+        }
+
+        internal static void RenderAndWriteToFile(
+            HDProbe probe, string targetFile,
+            RenderTexture cubeRT, RenderTexture planarRT,
+            out CameraSettings cameraSettings,
+            out CameraPositionSettings cameraPositionSettings
+        )
+        {
             var settings = probe.settings;
             switch (settings.type)
             {
@@ -518,6 +528,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     {
                         var positionSettings = ProbeCapturePositionSettings.ComputeFrom(probe, null);
                         HDRenderUtilities.Render(probe.settings, positionSettings, cubeRT,
+                            out cameraSettings, out cameraPositionSettings,
                             forceFlipY: true,
                             forceInvertBackfaceCulling: true, // Cubemap have an RHS standard, so we need to invert the face culling
                             (uint)StaticEditorFlags.ReflectionProbeStatic
@@ -539,7 +550,7 @@ namespace UnityEditor.Rendering.HighDefinition
                             settings,
                             positionSettings,
                             planarRT,
-                            out var cameraSettings, out var cameraPositionSettings
+                            out cameraSettings, out cameraPositionSettings
                         );
                         HDBakingUtilities.CreateParentDirectoryIfMissing(targetFile);
                         Checkout(targetFile);
@@ -550,6 +561,7 @@ namespace UnityEditor.Rendering.HighDefinition
                         HDBakingUtilities.TrySerializeToDisk(renderData, targetRenderDataFile);
                         break;
                     }
+                default: throw new ArgumentOutOfRangeException(nameof(probe.settings.type));
             }
         }
 
