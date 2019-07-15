@@ -40,13 +40,13 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public NeededCoordinateSpace RequiresPosition(ShaderStageCapability stageCapability = ShaderStageCapability.All)
         {
-            if (stageCapability == ShaderStageCapability.Vertex)
-                return NeededCoordinateSpace.Object;
-            return NeededCoordinateSpace.None;
+            // Requires Position if we are not in fragment
+            return stageCapability != ShaderStageCapability.Fragment ? NeededCoordinateSpace.Object : NeededCoordinateSpace.None;
         }
 
         public bool RequiresMeshUV(UVChannel channel, ShaderStageCapability stageCapability = ShaderStageCapability.All)
         {
+            // Requires UV0 if we are not in vertex
             return channel == UVChannel.UV0 && stageCapability != ShaderStageCapability.Vertex;
         }
 
@@ -60,9 +60,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 sb.AppendLine("float2 sampleCoords = (patchVertex.xy + instanceData.xy) * instanceData.z; // (xy + float2(xBase,yBase)) * skipScale");
                 sb.AppendLine("float height = UnpackHeightmap(_TerrainHeightmapTexture.Load(int3(sampleCoords, 0)));");
                 sb.AppendLine("$precision3 {0} = {1};", GetVariableNameForSlot(kPositionOutputSlotId), "float3(sampleCoords.x, height, sampleCoords.y) * _TerrainHeightmapScale.xyz");
-                sb.AppendLine("$precision2 {0} = {1};", GetVariableNameForSlot(kUVOutputSlotId), "sampleCoords");
-                //                sb.AppendLine("$precision3 {0} = {1};", GetVariableNameForSlot(kNormalOutputSlotId), "_TerrainNormalmapTexture.Load(int3(sampleCoords, 0)).rgb * 2 - 1");
-                //                sb.AppendLine("$precision4 {0} = ConstructTerrainTangent({1}, float3(0, 0, 1));", GetVariableNameForSlot(kTangentOutputSlotId), GetVariableNameForSlot(kNormalOutputSlotId));
+                sb.AppendLine("$precision2 {0} = {1} * _TerrainHeightmapRecipSize.zw;", GetVariableNameForSlot(kUVOutputSlotId), "sampleCoords");
             }
         }
 
@@ -70,12 +68,9 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             if (graphContext.graphInputStructName == "SurfaceDescriptionInputs")
             {
-                sb.AppendLine("float2 terrainNormalMapUV = (IN.texCoord0.xy + 0.5f) * _TerrainHeightmapRecipSize.xy;");
-                sb.AppendLine("IN.texCoord0.xy *= _TerrainHeightmapRecipSize.zw;");
-                sb.AppendLine("float3 normalOS = SAMPLE_TEXTURE2D(_TerrainNormalmapTexture, sampler_TerrainNormalmapTexture, terrainNormalMapUV).rgb * 2 - 1;");
-                sb.AppendLine("float3 normalWS = mul((float3x3)GetObjectToWorldMatrix(), normalOS);");
-                sb.AppendLine("float4 tangentWS = ConstructTerrainTangent(normalWS, GetObjectToWorldMatrix()._13_23_33);");
-                sb.AppendLine("IN.tangentToWorld = BuildTangentToWorld(tangentWS, normalWS);");
+                sb.AppendLine("$precision3 {0};", GetVariableNameForSlot(kNormalOutputSlotId));
+                sb.AppendLine("$precision4 {0};", GetVariableNameForSlot(kTangentOutputSlotId));
+                sb.AppendLine("ConstructTerrainMesh(IN.texCoord0.xy, {0}, {1});", GetVariableNameForSlot(kNormalOutputSlotId), GetVariableNameForSlot(kTangentOutputSlotId));
             }
         }
 
@@ -106,6 +101,15 @@ float4 ConstructTerrainTangent(float3 normal, float3 positiveZ)
     // (See TerrainLitData.hlsl - GetSurfaceAndBuiltinData)
     float3 tangent = cross(normal, positiveZ);
     return float4(tangent, -1);
+}
+
+void ConstructTerrainMesh(float2 uv, out float3 normalWS, out float4 tangentWS)
+{
+    float2 sampleCoords = uv / _TerrainHeightmapRecipSize.zw;
+    float2 terrainNormalMapUV = (sampleCoords + 0.5f) * _TerrainHeightmapRecipSize.xy;
+    float3 normalOS = SAMPLE_TEXTURE2D(_TerrainNormalmapTexture, sampler_TerrainNormalmapTexture, terrainNormalMapUV).rgb * 2 - 1;
+    normalWS = mul((float3x3)GetObjectToWorldMatrix(), normalOS);
+    tangentWS = ConstructTerrainTangent(normalWS, GetObjectToWorldMatrix()._13_23_33);
 }");
             });
         }

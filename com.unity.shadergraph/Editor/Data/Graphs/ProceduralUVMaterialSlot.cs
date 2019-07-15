@@ -6,7 +6,7 @@ using UnityEngine.UIElements;
 namespace UnityEditor.ShaderGraph
 {
     [Serializable]
-    class ProceduralUVMaterialSlot : MaterialSlot, IProceduralMaterialSlot
+    class ProceduralUVMaterialSlot : MaterialSlot
     {
         public override ConcreteSlotValueType concreteValueType => ConcreteSlotValueType.Vector2;
         public override SlotValueType valueType => SlotValueType.Vector2;

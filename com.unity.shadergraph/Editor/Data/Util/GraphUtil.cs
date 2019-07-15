@@ -1055,6 +1055,7 @@ namespace UnityEditor.ShaderGraph
                 node,
                 graph,
                 surfaceDescriptionFunction,
+                new List<AbstractMaterialNode>(),
                 surfaceProceduralCode,
                 functionRegistry,
                 shaderProperties,
@@ -1206,9 +1207,6 @@ namespace UnityEditor.ShaderGraph
             {
                 foreach (var slot in slots)
                 {
-                    if (slot is IProceduralMaterialSlot)
-                        continue;
-                
                     string hlslName = NodeUtils.GetHLSLSafeName(slot.shaderOutputName);
                     if (useIdsInNames)
                     {
@@ -1230,7 +1228,8 @@ namespace UnityEditor.ShaderGraph
             AbstractMaterialNode rootNode,
             GraphData graph,
             ShaderStringBuilder surfaceDescriptionFunction,
-            ShaderStringBuilder surfaceProceduralCode,
+            List<AbstractMaterialNode> activeProceduralNodeList,
+            ShaderStringBuilder proceduralCode,
             FunctionRegistry functionRegistry,
             PropertyCollector shaderProperties,
             ShaderGraphRequirements requirements,
@@ -1266,13 +1265,6 @@ namespace UnityEditor.ShaderGraph
                         surfaceDescriptionFunction.currentNode = activeNode;
                         bodyNode.GenerateNodeCode(surfaceDescriptionFunction, graphContext, mode);
                         surfaceDescriptionFunction.ReplaceInCurrentMapping(PrecisionUtil.Token, activeNode.concretePrecision.ToShaderString());
-                    }
-
-                    if (activeNode is IGeneratesProceduralCode proceduralNode)
-                    {
-                        surfaceProceduralCode.currentNode = activeNode;
-                        proceduralNode.GenerateProceduralCode(surfaceProceduralCode, graphContext, mode);
-                        surfaceProceduralCode.ReplaceInCurrentMapping(PrecisionUtil.Token, activeNode.concretePrecision.ToShaderString());
                     }
 
                     activeNode.CollectShaderProperties(shaderProperties, mode);
@@ -1311,6 +1303,55 @@ namespace UnityEditor.ShaderGraph
                 }
 
                 surfaceDescriptionFunction.AppendLine("return surface;");
+            }
+
+            if (activeProceduralNodeList.Count > 0)
+            {
+                foreach (var activeNode in activeProceduralNodeList)
+                {
+                    if (activeNode is IGeneratesFunction functionNode)
+                    {
+                        functionRegistry.builder.currentNode = activeNode;
+                        functionNode.GenerateNodeFunction(functionRegistry, graphContext, mode);
+                        functionRegistry.builder.ReplaceInCurrentMapping(PrecisionUtil.Token, activeNode.concretePrecision.ToShaderString());
+                    }
+
+                    if (activeNode is IGeneratesBodyCode bodyNode)
+                    {
+                        proceduralCode.currentNode = activeNode;
+                        bodyNode.GenerateNodeCode(proceduralCode, graphContext, mode);
+                        proceduralCode.ReplaceInCurrentMapping(PrecisionUtil.Token, activeNode.concretePrecision.ToShaderString());
+                    }
+
+                    if (activeNode is IGeneratesProceduralCode proceduralNode)
+                    {
+                        proceduralCode.currentNode = activeNode;
+                        proceduralNode.GenerateProceduralCode(proceduralCode, graphContext, mode);
+                        proceduralCode.ReplaceInCurrentMapping(PrecisionUtil.Token, activeNode.concretePrecision.ToShaderString());
+                    }
+
+                    activeNode.CollectShaderProperties(shaderProperties, mode);
+                }
+
+                if (rootNode is IMasterNode || rootNode is SubGraphOutputNode)
+                {
+                    foreach (var input in rootNode.GetInputSlots<IProceduralMaterialSlot>())
+                    {
+                        if (input == null)
+                            continue;
+
+                        var hlslName = NodeUtils.GetHLSLSafeName(input.shaderOutputName);
+                        if (rootNode is SubGraphOutputNode)
+                        {
+                            hlslName = $"{hlslName}_{input.id}";
+                        }
+                        proceduralCode.AppendLine("{0} {1} = {2};",
+                            input.concreteValueType.ToShaderString(rootNode.concretePrecision), hlslName, rootNode.GetSlotValue(input.id, mode, rootNode.concretePrecision));
+                    }
+                }
+
+                functionRegistry.builder.currentNode = null;
+                proceduralCode.currentNode = null;
             }
         }
 

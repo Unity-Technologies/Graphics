@@ -1,5 +1,8 @@
 namespace UnityEditor.ShaderGraph
 {
-    interface IProceduralMaterialSlot
-    { }
+    interface IProceduralMaterialSlot : Graphing.ISlot
+    {
+        string shaderOutputName { get; }
+        ConcreteSlotValueType concreteValueType { get; }
+    }
 }

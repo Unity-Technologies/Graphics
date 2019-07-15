@@ -505,6 +505,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public List<string> ExtraDefines;
         public List<int> VertexShaderSlots;         // These control what slots are used by the pass vertex shader
         public List<int> PixelShaderSlots;          // These control what slots are used by the pass pixel shader
+        public List<int> PixelProceduralShaderSlots;// These control what slots are used by the pass's procedural part of the pixel shader
         public string CullOverride;
         public string BlendOverride;
         public string BlendOpOverride;
@@ -524,6 +525,10 @@ namespace UnityEditor.Rendering.HighDefinition
         public bool PixelShaderUsesSlot(int slotId)
         {
             return PixelShaderSlots.Contains(slotId);
+        }
+        public bool PixelProceduralShaderUsesSlot(int slotId)
+        {
+            return PixelProceduralShaderSlots.Contains(slotId);
         }
         public void OnGeneratePass(IMasterNode masterNode)
         {
@@ -557,8 +562,12 @@ namespace UnityEditor.Rendering.HighDefinition
             var pixelNodes = Graphing.ListPool<AbstractMaterialNode>.Get();
             NodeUtils.DepthFirstCollectNodesFromNode(pixelNodes, masterNode, NodeUtils.IncludeSelf.Include, pass.PixelShaderSlots);
 
+            var pixelProceduralNodes = Graphing.ListPool<AbstractMaterialNode>.Get();
+            NodeUtils.DepthFirstCollectNodesFromNode(pixelProceduralNodes, masterNode, NodeUtils.IncludeSelf.Include, pass.PixelProceduralShaderSlots);
+
             // graph requirements describe what the graph itself requires
             var pixelRequirements = ShaderGraphRequirements.FromNodes(pixelNodes, ShaderStageCapability.Fragment, false);   // TODO: is ShaderStageCapability.Fragment correct?
+            pixelRequirements = pixelRequirements.Union(ShaderGraphRequirements.FromNodes(pixelProceduralNodes, ShaderStageCapability.Fragment, false));
             var vertexRequirements = ShaderGraphRequirements.FromNodes(vertexNodes, ShaderStageCapability.Vertex, false);
             var graphRequirements = pixelRequirements.Union(vertexRequirements);
 
@@ -597,6 +606,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 masterNode,
                 masterNode.owner as GraphData,
                 pixelGraphEvalFunction,
+                pixelProceduralNodes,
                 pixelProceduralCode,
                 functionRegistry,
                 sharedProperties,
@@ -665,13 +675,14 @@ namespace UnityEditor.Rendering.HighDefinition
                     HDRPShaderStructs.VertexDescriptionInputs.dependencies
                 });
 
-            // Don't pass tangent/normal from vertex to pixels if they are gonna be procedurally generated in pixel.
+            // Don't pass tangent/normal from vertex to pixels if they are procedurally generated in pixel.
             if (activeFields.Contains("Procedural.PixelNormal"))
             {
                 activeFields.Remove("VaryingsMeshToPS.tangentWS");
                 activeFields.Remove("VaryingsMeshToPS.normalWS");
             }
 
+            // Don't pass uv1-uv3 from vertex to pixel because they are assigned from UV0 in pixel.
             if (activeFields.Contains("Procedural.UV0"))
             {
                 activeFields.Remove("VaryingsMeshToPS.texCoord1");
@@ -679,6 +690,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 activeFields.Remove("VaryingsMeshToPS.texCoord3");
             }
 
+            // Don't pass uv2-uv3 from vertex to pixel because they are assigned from UV0 in pixel.
             if (activeFields.Contains("Procedural.UV1"))
             {
                 activeFields.Remove("VaryingsMeshToPS.texCoord2");
