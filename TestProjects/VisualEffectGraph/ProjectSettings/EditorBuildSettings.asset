@@ -21,6 +21,9 @@ EditorBuildSettings:
     path: Packages/com.unity.testing.visualeffectgraph/Scenes/004_Bounds.unity
     guid: fc042ee6987609a4b895d96dffef8dff
   - enabled: 1
+    path: Packages/com.unity.testing.visualeffectgraph/Scenes/200_ManyVisualEffect.unity
+    guid: 6782df9c168c2ed4b804dba3e33c4265
+  - enabled: 1
     path: Assets/AllTests/VFXTests/GraphicsTests/05_MotionVectors.unity
     guid: 24824e132e4c94b43818ee0460ae321c
   - enabled: 1
