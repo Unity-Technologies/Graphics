@@ -57,7 +57,7 @@ void EvaluatePbrAtmosphere(float3 V, float linearDepth, float deviceDepth,
     float cosChi = -NdotV;
     float cosHor = ComputeCosineOfHorizonAngle(r);
 
-    bool lookAboveHorizon        = (cosChi > cosHor);
+    bool lookAboveHorizon        = (cosChi >= cosHor);
     bool rayIntersectsAtmosphere = (tEntry >= 0);
 
     if (rayIntersectsAtmosphere)
@@ -85,7 +85,7 @@ void EvaluatePbrAtmosphere(float3 V, float linearDepth, float deviceDepth,
             float tExit = tEntry + lookAboveHorizon ? IntersectSphere(rExit, cosChi, r).y  // Atmospheric exit
                                                     : IntersectSphere(rExit, cosChi, r).x; // Planetary entry
 
-            float3 skyOD = ComputeAtmosphericOpticalDepth(r, cosChi); // from 'tEntry' to 'tExit'
+            float3 skyOD = ComputeAtmosphericOpticalDepth(r, cosChi, lookAboveHorizon); // from 'tEntry' to 'tExit'
 
             float3 N1;
             float  height1, NdotV1;
@@ -107,7 +107,7 @@ void EvaluatePbrAtmosphere(float3 V, float linearDepth, float deviceDepth,
 
                 float cosChi1 = -NdotV1;
 
-                float3 behindOD = ComputeAtmosphericOpticalDepth(r1, cosChi1); // from 'tFrag' to 'tExit' now
+                float3 behindOD = ComputeAtmosphericOpticalDepth(r1, cosChi1, lookAboveHorizon); // from 'tFrag' to 'tExit' now
 
                 // Reduce the optical depth.
                 skyOD -= behindOD;

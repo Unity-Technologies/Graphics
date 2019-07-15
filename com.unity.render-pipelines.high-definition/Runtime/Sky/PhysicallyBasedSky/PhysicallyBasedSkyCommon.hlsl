@@ -269,7 +269,7 @@ float RescaledChapmanFunction(float z, float Z, float cosTheta)
     return ch;
 }
 
-float3 ComputeAtmosphericOpticalDepth(float r, float cosTheta, bool alwaysAboveHorizon = false)
+float3 ComputeAtmosphericOpticalDepth(float r, float cosTheta, bool aboveHorizon)
 {
     const float2 n = float2(_AirDensityFalloff, _AerosolDensityFalloff);
     const float2 H = float2(_AirScaleHeight,    _AerosolScaleHeight);
@@ -278,14 +278,13 @@ float3 ComputeAtmosphericOpticalDepth(float r, float cosTheta, bool alwaysAboveH
     float2 z = n * r;
     float2 Z = n * R;
 
-    float cosHoriz = ComputeCosineOfHorizonAngle(r);
 	float sinTheta = sqrt(saturate(1 - cosTheta * cosTheta));
 
     float2 ch;
     ch.x = ChapmanUpperApprox(z.x, abs(cosTheta)) * exp(Z.x - z.x); // Rescaling adds 'exp'
     ch.y = ChapmanUpperApprox(z.y, abs(cosTheta)) * exp(Z.y - z.y); // Rescaling adds 'exp'
 
-    if ((!alwaysAboveHorizon) && (cosTheta < cosHoriz)) // Below horizon, intersect sphere
+    if (!aboveHorizon) // Below horizon, intersect sphere
 	{
 		float sinGamma = (r / R) * sinTheta;
 		float cosGamma = sqrt(saturate(1 - sinGamma * sinGamma));
@@ -313,6 +312,13 @@ float3 ComputeAtmosphericOpticalDepth(float r, float cosTheta, bool alwaysAboveH
     float2 optDepth = ch * H;
 
     return optDepth.x * _AirSeaLevelExtinction + optDepth.y * _AerosolSeaLevelExtinction;
+}
+
+float3 ComputeAtmosphericOpticalDepth1(float r, float cosTheta)
+{
+    float cosHor = ComputeCosineOfHorizonAngle(r);
+
+    return ComputeAtmosphericOpticalDepth(r, cosTheta, cosTheta >= cosHor);
 }
 
 // Map: [cos(120 deg), 1] -> [0, 1].
