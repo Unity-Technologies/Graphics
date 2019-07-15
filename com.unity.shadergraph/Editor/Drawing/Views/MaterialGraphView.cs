@@ -277,15 +277,15 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
         }
 
-        //TODO: @samuel.hardin
         public void SetNodePrecisionOnSelection(Precision inPrecision)
         {
             var editorView = GetFirstAncestorOfType<GraphEditorView>();
+            IEnumerable<MaterialNodeView> nodes = selection.Where(x => x is MaterialNodeView).Select(x => x as MaterialNodeView);
 
             graph.owner.RegisterCompleteObjectUndo("Set Precisions");
-            //editorView.colorManager.SetNodesDirty(selection);
+            editorView.colorManager.SetNodesDirty(nodes);
 
-            foreach (MaterialNodeView selectedNode in selection.Where(x => x is MaterialNodeView).Select(x => x as MaterialNodeView))
+            foreach (MaterialNodeView selectedNode in nodes)
             {
                 if (selectedNode.node.canSetPrecision)
                 {
@@ -295,7 +295,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 }
             }
 
-            //editorView.colorManager.UpdateNodeViews(selection);
+            editorView.colorManager.UpdateNodeViews(nodes);
         }
 
         void CollapsePreviews(DropdownMenuAction action)
