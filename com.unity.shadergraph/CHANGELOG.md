@@ -5,6 +5,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## [7.1.0] - 2019-XX-XX
+### Added
+- You can now define shader keywords on the Blackboard. These keywords can be used on the graph to create static branches in the generated shader.
 
 ## [7.0.0] - 2019-07-10
 ### Added
