@@ -592,13 +592,13 @@ namespace UnityEditor.Rendering.LookDev
             environmentListCreationToolbar.Add(new ToolbarButton(()
                 => EnvironmentLibraryCreator.Create())
             {
-                text = "New",
+                text = "New Library",
                 tooltip = "Create a new EnvironmentLibrary"
             });
             environmentListCreationToolbar.Add(new ToolbarButton(()
                 => EnvironmentLibraryLoader.Load(RefreshLibraryDisplay))
             {
-                text = "Load",
+                text = "Load Library",
                 tooltip = "Load an existing EnvironmentLibrary"
             });
 
