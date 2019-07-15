@@ -35,7 +35,14 @@ namespace UnityEditor.Rendering.LookDev
         }
 
         static Context defaultContext
-            => UnityEngine.ScriptableObject.CreateInstance<Context>();
+        {
+            get
+            {
+                var context = UnityEngine.ScriptableObject.CreateInstance<Context>();
+                context.Init();
+                return context;
+            }
+        }
 
         //[TODO: not compatible with multiple displayer. To rework if needed]
         internal static IViewDisplayer currentViewDisplayer => s_ViewDisplayer;
@@ -86,7 +93,7 @@ namespace UnityEditor.Rendering.LookDev
         }
 
         /// <summary>open the LookDev window</summary>
-        [MenuItem("Window/General/Look Dev", false, 1999)]
+        [MenuItem("Window/Render Pipeline/Look Dev", false, 10000)]
         public static void Open()
         {
             s_ViewDisplayer = EditorWindow.GetWindow<DisplayWindow>();
@@ -144,6 +151,9 @@ namespace UnityEditor.Rendering.LookDev
 
         static void LinkViewDisplayer()
         {
+            EditorApplication.playModeStateChanged += state =>
+                (s_ViewDisplayer as EditorWindow)?.Close();
+
             s_ViewDisplayer.OnClosed += () =>
             {
                 s_Compositor?.Dispose();

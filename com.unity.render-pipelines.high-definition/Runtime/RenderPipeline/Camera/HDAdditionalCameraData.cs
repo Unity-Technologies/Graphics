@@ -187,7 +187,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// [RequireComponent(typeof(HDAdditionalCameraData))]
         /// public class SetupAOVCallbacks : MonoBehaviour
         /// {
-        ///     private static RTHandleSystem.RTHandle m_ColorRT;
+        ///     private static RTHandle m_ColorRT;
         ///
         ///     [SerializeField] private Texture m_Target;
         ///     [SerializeField] private DebugFullScreen m_DebugFullScreen;

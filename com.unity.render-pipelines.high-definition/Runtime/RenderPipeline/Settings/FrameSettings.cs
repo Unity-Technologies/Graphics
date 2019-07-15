@@ -461,26 +461,17 @@ namespace UnityEngine.Rendering.HighDefinition
             // When rendering reflection probe we disable specular as it is view dependent
             sanitazedFrameSettings.bitDatas[(int)FrameSettingsField.Reflection] = !reflection;
 
-            // We have to fall back to forward-only rendering when scene view is using wireframe rendering mode
-            // as rendering everything in wireframe + deferred do not play well together
-            if (GL.wireframe)
+            switch (renderPipelineSettings.supportedLitShaderMode)
             {
-                sanitazedFrameSettings.litShaderMode = LitShaderMode.Forward;
-            }
-            else
-            {
-                switch (renderPipelineSettings.supportedLitShaderMode)
-                {
-                    case RenderPipelineSettings.SupportedLitShaderMode.ForwardOnly:
-                        sanitazedFrameSettings.litShaderMode = LitShaderMode.Forward;
-                        break;
-                    case RenderPipelineSettings.SupportedLitShaderMode.DeferredOnly:
-                        sanitazedFrameSettings.litShaderMode = LitShaderMode.Deferred;
-                        break;
-                    case RenderPipelineSettings.SupportedLitShaderMode.Both:
-                        //nothing to do: keep previous value
-                        break;
-                }
+                case RenderPipelineSettings.SupportedLitShaderMode.ForwardOnly:
+                    sanitazedFrameSettings.litShaderMode = LitShaderMode.Forward;
+                    break;
+                case RenderPipelineSettings.SupportedLitShaderMode.DeferredOnly:
+                    sanitazedFrameSettings.litShaderMode = LitShaderMode.Deferred;
+                    break;
+                case RenderPipelineSettings.SupportedLitShaderMode.Both:
+                    //nothing to do: keep previous value
+                    break;
             }
 
             sanitazedFrameSettings.bitDatas[(int)FrameSettingsField.Shadow] &= !preview;

@@ -14,7 +14,7 @@ The Render Pipeline Debug window.
 
 ## Using the Render Pipeline Debug window
 
-To open the Render Pipeline Debug window in the Editor, go to  **Window > Analysis > Render Pipeline Debug**. You can also open this window at run time in Play Mode, or in the standalone Unity Player on any device. Use the keyboard shortcut Ctrl+Backspace (command+Backspace on macOS) or press L3 and R3 (Left Stick and Right Stick) on a controller to open the window.
+To open the Render Pipeline Debug window in the Editor, go to  **Window > Render Pipeline > Render Pipeline Debug**. You can also open this window at run time in Play Mode, or in the standalone Unity Player on any device. Use the keyboard shortcut Ctrl+Backspace (command+Backspace on macOS) or press L3 and R3 (Left Stick and Right Stick) on a controller to open the window.
 
 You can display read-only items such as the FPS counter independently of the **Render Pipeline Debug** window. This means that when you disable the **Render Pipeline Debug** window, they are still visible in the top right corner of the screen. This is particularly useful if you want to track particular values without cluttering the screen.
 

@@ -1,5 +1,3 @@
-#if QUALITY_SETTINGS_GET_RENDER_PIPELINE_AT_AVAILABLE
-
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Assertions;
@@ -187,4 +185,3 @@ namespace UnityEditor.Rendering.HighDefinition
         }
     }
 }
-#endif

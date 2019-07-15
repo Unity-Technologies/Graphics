@@ -647,8 +647,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 bool transparentDepthPrepassActive = transparent && masterNode.alphaTest.isOn && masterNode.alphaTestDepthPrepass.isOn;
                 bool transparentDepthPostpassActive = transparent && masterNode.alphaTest.isOn && masterNode.alphaTestDepthPostpass.isOn;
 
-                GenerateShaderPassHair(masterNode, m_PassMETA, mode, subShader, sourceAssetDependencyPaths);
                 GenerateShaderPassHair(masterNode, m_PassShadowCaster, mode, subShader, sourceAssetDependencyPaths);
+                GenerateShaderPassHair(masterNode, m_PassMETA, mode, subShader, sourceAssetDependencyPaths);
                 GenerateShaderPassHair(masterNode, m_SceneSelectionPass, mode, subShader, sourceAssetDependencyPaths);
 
                 GenerateShaderPassHair(masterNode, m_PassDepthForwardOnly, mode, subShader, sourceAssetDependencyPaths);

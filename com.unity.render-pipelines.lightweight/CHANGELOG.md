@@ -8,7 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [7.0.0] - 2019-07-10
 ### Changed
-- LWRP is being deprecated in favour of Univerasl Render Pipeline. See the changelog for the Universal Package
+- LWRP is being deprecated in favour of Universal Render Pipeline. See the changelog for the UniversalRP Package.
 
 ## [6.7.0] - 2019-05-16
 ### Added

@@ -27,8 +27,8 @@ namespace UnityEngine.Rendering.HighDefinition
         SharedRTManager m_SharedRTManager = null;
 
         // Intermediate buffer that stores the reflection pre-denoising
-        RTHandleSystem.RTHandle m_RaytracingFlagTarget = null;
-        RTHandleSystem.RTHandle m_DebugRaytracingTexture = null;
+        RTHandle m_RaytracingFlagTarget = null;
+        RTHandle m_DebugRaytracingTexture = null;
 
         // The kernel that allows us to override the color buffer
         Material m_RaytracingFlagMaterial = null;
@@ -86,10 +86,10 @@ namespace UnityEngine.Rendering.HighDefinition
         public void EvaluateRaytracingMask(CullingResults cull, HDCamera hdCamera, CommandBuffer cmd, ScriptableRenderContext renderContext)
         {
             // Clear our target
-            HDUtils.SetRenderTarget(cmd, m_RaytracingFlagTarget, ClearFlag.Color, Color.black);
+            CoreUtils.SetRenderTarget(cmd, m_RaytracingFlagTarget, ClearFlag.Color, Color.black);
 
             // Bind out custom color texture
-            HDUtils.SetRenderTarget(cmd, m_RaytracingFlagTarget, m_SharedRTManager.GetDepthStencilBuffer());
+            CoreUtils.SetRenderTarget(cmd, m_RaytracingFlagTarget, m_SharedRTManager.GetDepthStencilBuffer());
 
             // This is done here because DrawRenderers API lives outside command buffers so we need to make call this before doing any DrawRenders
             renderContext.ExecuteCommandBuffer(cmd);
@@ -128,7 +128,7 @@ namespace UnityEngine.Rendering.HighDefinition
             renderContext.DrawRenderers(cull, ref drawSettings, ref filterSettings);
         }
 
-        public void Render(HDCamera hdCamera, CommandBuffer cmd, RTHandleSystem.RTHandle outputTexture, ScriptableRenderContext renderContext, CullingResults cull)
+        public void Render(HDCamera hdCamera, CommandBuffer cmd, RTHandle outputTexture, ScriptableRenderContext renderContext, CullingResults cull)
         {
             // First thing to check is: Do we have a valid ray-tracing environment?
             HDRaytracingEnvironment rtEnvironment = m_RaytracingManager.CurrentEnvironment();
