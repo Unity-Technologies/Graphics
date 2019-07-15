@@ -7,6 +7,7 @@ using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
 using UnityEditorInternal.VR;
 using UnityEditor.SceneManagement;
+using System.Runtime.InteropServices;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
@@ -75,6 +76,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public const string dxrResourcesError = "There is an issue with the DXR resources!";
             public static readonly GUIContent dxrActivatedLabel = EditorGUIUtility.TrTextContent("DXR activated");
             public const string dxrActivatedError = "DXR is not activated!";
+            public const string dxrWindowOnly = "DXR is only available for window on specific version of Unity";
 
             public const string hdrpAssetDisplayDialogTitle = "Create or Load HDRenderPipelineAsset";
             public const string hdrpAssetDisplayDialogContent = "Do you want to create a fresh HDRenderPipelineAsset in the default resource folder and automatically assign it?";
@@ -211,7 +213,7 @@ namespace UnityEditor.Rendering.HighDefinition
             RequestCloseAndRelaunchWithCurrentArguments = requestCloseAndRelaunchWithCurrentArgumentsLambda.Compile();
         }
 
-        [MenuItem("Window/Render Pipeline/HD Render Pipeline Wizard", priority = 5)]
+        [MenuItem("Window/Render Pipeline/HD Render Pipeline Wizard", priority = 10000)]
         static void OpenWindow()
         {
             GetWindow<HDWizard>("Render Pipeline Wizard");
@@ -444,8 +446,21 @@ namespace UnityEditor.Rendering.HighDefinition
             DrawConfigInfoLine(Style.vrSupportedLabel, Style.vrSupportedError, Style.ok, Style.resolve, IsVRSupportedForCurrentBuildTargetGroupCorrect, FixVRSupportedForCurrentBuildTargetGroup);
             --EditorGUI.indentLevel;
         }
-
         void DrawDXRConfigInfo()
+        {
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                DrawDXRConfigInfoWindow();
+            else
+                DrawDXRConfigInfoNotWindow();
+        }
+
+        void DrawDXRConfigInfoNotWindow()
+        {
+            EditorGUILayout.LabelField(Style.dxrConfigurationLabel, EditorStyles.boldLabel);
+            EditorGUILayout.HelpBox(Style.dxrWindowOnly, MessageType.Info);
+        }
+
+        void DrawDXRConfigInfoWindow()
         {
             DrawTitleConfigInfo(Style.dxrConfigurationLabel, Style.resolveAll, IsDXRAllCorrect, FixDXRAll);
 

@@ -8,33 +8,13 @@ namespace UnityEditor.ShaderGraph
     [Serializable]
     abstract class VectorShaderProperty : AbstractShaderProperty<Vector4>
     {
-        [SerializeField]
-        bool    m_Hidden = false;
-
-        public bool hidden
-        {
-            get { return m_Hidden; }
-            set { m_Hidden = value; }
-        }
-
+        public override bool isBatchable => true;
+        public override bool isExposable => true;
+        public override bool isRenamable => true;
+        
         public override string GetPropertyBlockString()
         {
-            var result = new StringBuilder();
-            if (hidden)
-                result.Append("[HideInInspector] ");
-            result.Append(referenceName);
-            result.Append("(\"");
-            result.Append(displayName);
-            result.Append("\", Vector) = (");
-            result.Append(NodeUtils.FloatToShaderValue(value.x));
-            result.Append(",");
-            result.Append(NodeUtils.FloatToShaderValue(value.y));
-            result.Append(",");
-            result.Append(NodeUtils.FloatToShaderValue(value.z));
-            result.Append(",");
-            result.Append(NodeUtils.FloatToShaderValue(value.w));
-            result.Append(")");
-            return result.ToString();
+            return $"{hideTagString}{referenceName}(\"{displayName}\", Vector) = ({NodeUtils.FloatToShaderValue(value.x)}, {NodeUtils.FloatToShaderValue(value.y)}, {NodeUtils.FloatToShaderValue(value.z)}, {NodeUtils.FloatToShaderValue(value.w)})";
         }
     }
 }
