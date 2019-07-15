@@ -5,6 +5,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## [7.1.0] - 2019-XX-XX
+### Changed
+- New Shader Graph windows are now docked to either existing Shader Graph windows, or to the Scene View.
 
 ## [7.0.0] - 2019-07-10
 ### Added
@@ -19,7 +21,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - The `Custom Function Node` now uses an object field to reference its source when using `File` mode.
 - To enable master nodes to generate correct motion vectors for time-based vertex modification, time is now implemented as an input to the graph rather than as a global uniform.
 - **World** space on `Position Node` now uses the default world space coordinates of the active render pipeline. 
-- New Shader Graph windows are now docked to either existing Shader Graph windows, or to the Scene View.
 
 ### Fixed
 - Fixed an error in `Custom Function Node` port naming.
