@@ -247,7 +247,6 @@ namespace UnityEditor.Rendering.HighDefinition
             if (_hdrpAssets != null) hdrpAssets.Clear();
             else _hdrpAssets = new List<HDRenderPipelineAsset>();
 
-#if QUALITY_SETTINGS_GET_RENDER_PIPELINE_AT_AVAILABLE
             using (ListPool<HDRenderPipelineAsset>.Get(out var tmpAssets))
             {
                 // Here we want the HDRP Assets that are actually used at runtime.
@@ -281,15 +280,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 _hdrpAssets.AddRange(tmpAssets);
             }
-#else
-            // Include all HDRP assets configured in:
-            //  - Any quality level valid for current platform
-            //  - Base SRP (GraphicsSettings.renderPipelineAsset)
-            //  - Default SRP (GraphicsSettings.defaultRenderPipeline)
-            _hdrpAssets.AddRange(GraphicsSettings.allConfiguredRenderPipelines
-                .Where(rp => rp is HDRenderPipelineAsset)
-                .Cast<HDRenderPipelineAsset>());
-#endif
 
             // Get all enabled scenes path in the build settings.
             var scenesPaths = EditorBuildSettings.scenes
