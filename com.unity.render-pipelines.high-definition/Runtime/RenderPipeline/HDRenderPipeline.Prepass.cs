@@ -125,12 +125,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             RenderDecals(renderGraph, hdCamera, ref result, cullingResults);
 
-
-#if ENABLE_RAYTRACING
-            bool validIndirectDiffuse = m_RaytracingIndirectDiffuse.ValidIndirectDiffuseState();
-            cmd.SetGlobalInt(HDShaderIDs._RaytracedIndirectDiffuse, validIndirectDiffuse ? 1 : 0);
-#endif
-
             RenderGBuffer(renderGraph, sssBuffer, ref result, cullingResults, hdCamera);
 
             // In both forward and deferred, everything opaque should have been rendered at this point so we can safely copy the depth buffer for later processing.
@@ -143,14 +137,6 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             RenderCameraMotionVectors(renderGraph, hdCamera, result.depthPyramidTexture, result.resolvedMotionVectorsBuffer);
-
-#if ENABLE_RAYTRACING
-            bool raytracedIndirectDiffuse = m_RaytracingIndirectDiffuse.RenderIndirectDiffuse(hdCamera, cmd, renderContext, m_FrameCount);
-            if(raytracedIndirectDiffuse)
-            {
-                PushFullScreenDebugTexture(hdCamera, cmd, m_RaytracingIndirectDiffuse.GetIndirectDiffuseTexture(), FullScreenDebugMode.IndirectDiffuse);
-            }
-#endif
 
             result.stencilBufferCopy = CopyStencilBufferIfNeeded(m_RenderGraph, hdCamera, result.depthBuffer, m_CopyStencil, m_CopyStencilForSSR);
 
@@ -214,8 +200,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.rendererListMRT = builder.UseRendererList(renderGraph.CreateRendererList(depthPrepassParameters.mrtRendererListDesc));
 
 #if ENABLE_RAYTRACING
-                passData.renderListRayTracingOpaque = builder.UseRendererList(builder.CreateRendererList(depthPrepassParameters.rayTracingOpaqueRLDesc));
-                passData.renderListRayTracingTransparent builder.UseRendererList(builder.CreateRendererList(depthPrepassParameters.rayTracingTransparentRLDesc));
+                passData.renderListRayTracingOpaque = builder.UseRendererList(renderGraph.CreateRendererList(depthPrepassParameters.rayTracingOpaqueRLDesc));
+                passData.renderListRayTracingTransparent = builder.UseRendererList(renderGraph.CreateRendererList(depthPrepassParameters.rayTracingTransparentRLDesc));
 #endif
 
                 output.depthBuffer = passData.depthBuffer;
@@ -230,16 +216,16 @@ namespace UnityEngine.Rendering.HighDefinition
                     if (data.msaaEnabled)
                         mrt[1] = context.resources.GetTexture(data.depthAsColorBuffer);
 
-                    RenderDepthPrepass(context.renderContext, context.cmd, data.frameSettings,
-                                    mrt,
-                                    context.resources.GetTexture(data.depthBuffer),
-                                    data.hasDepthOnlyPrepass ? context.resources.GetRendererList(data.rendererListDepthOnly) : RendererList.nullRendererList,
-                                    context.resources.GetRendererList(data.rendererListMRT),
-                                    data.hasDepthOnlyPrepass
+                    RenderDepthPrepass(context.renderContext, context.cmd, data.frameSettings
+                                    , mrt
+                                    , context.resources.GetTexture(data.depthBuffer)
+                                    , data.hasDepthOnlyPrepass ? context.resources.GetRendererList(data.rendererListDepthOnly) : RendererList.nullRendererList
+                                    , context.resources.GetRendererList(data.rendererListMRT)
+                                    , data.hasDepthOnlyPrepass
 #if ENABLE_RAYTRACING
-                                    data.rayTracingManager,
-                                    context.resources.GetRendererList(data.renderListRayTracingOpaque),
-                                    context.resources.GetRendererList(data.renderListRayTracingTransparent)
+                                    , data.rayTracingManager
+                                    , context.resources.GetRendererList(data.renderListRayTracingOpaque)
+                                    , context.resources.GetRendererList(data.renderListRayTracingTransparent)
 #endif
                                     );
                 });

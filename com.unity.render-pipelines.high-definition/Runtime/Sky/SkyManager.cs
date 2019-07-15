@@ -343,13 +343,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public void UpdateEnvironment(HDCamera hdCamera, Light sunLight, CommandBuffer cmd)
         {
-            // WORKAROUND for building the player.
-            // When building the player, for some reason we end up in a state where frameCount is not updated but all currently setup shader texture are reset to null
-            // resulting in a rendering error (compute shader property not bound) that makes the player building fails...
-            // So we just check if the texture is bound here so that we can setup a pink one to avoid the error without breaking half the world.
-            if (Shader.GetGlobalTexture(HDShaderIDs._SkyTexture) == null)
-                cmd.SetGlobalTexture(HDShaderIDs._SkyTexture, CoreUtils.magentaCubeTexture);
-
             bool isRegularPreview = HDUtils.IsRegularPreviewCamera(hdCamera.camera);
 
             SkyAmbientMode ambientMode = VolumeManager.instance.stack.GetComponent<VisualEnvironment>().skyAmbientMode.value;
