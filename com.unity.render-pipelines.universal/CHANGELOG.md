@@ -47,7 +47,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed some basic UI/usability issues with LWRP terrain Materials (use of warnings and modal value changes).
 - Fixed an issue where using LWRP and Sprite Shape together would produce meta file conflicts.
 - Fixed fp16 overflow in Switch in specular calculation
-
+- Fixed shader compilation errors for Android XR projects.
+- Updated the pipeline Asset UI to cap the render scale at 2x so that it matches the render pipeline implementation limit.
 
 ## [6.7.0] - 2019-05-16
 ### Added
