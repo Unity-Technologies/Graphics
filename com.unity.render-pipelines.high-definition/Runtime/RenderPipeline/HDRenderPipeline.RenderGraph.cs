@@ -922,11 +922,13 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+#if UNITY_EDITOR
         class RenderGizmosPassData
         {
             public GizmoSubset  gizmoSubset;
             public Camera       camera;
         }
+#endif
 
         void RenderGizmos(RenderGraph renderGraph, HDCamera hdCamera, RenderGraphMutableResource colorBuffer, GizmoSubset gizmoSubset)
         {
