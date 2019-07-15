@@ -66,6 +66,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (shadowUpdateMode == ShadowUpdateMode.OnEnable)
                 m_ShadowMapRenderedSinceLastRequest = false;
+                
+#if UNITY_EDITOR
+            Undo.undoRedoPerformed += UpdateAllLightValues;
+#endif
         }
 
         internal void UpgradeLight()
