@@ -9,20 +9,20 @@ Shader "Unlit/ShadowTest"
         Tags { "RenderType"="Opaque" }
         LOD 100
 		Cull Off
+        //Blend SrcAlpha OneMinusSrcAlpha
+        ZWrite Off
 
         Pass
         {
-            CGPROGRAM
+            HLSLPROGRAM
             #pragma vertex vert
             #pragma fragment frag
 
-            #include "UnityCG.cginc"
-
-			
+            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
 
             struct appdata
             {
-                float4 vertex : POSITION;
+                float3 vertex : POSITION;
 				float4 tangent: TANGENT;
 				float4 color : COLOR;
             };
@@ -44,8 +44,8 @@ Shader "Unlit/ShadowTest"
 				v2f o;
 				float softRadius = 0.2;  // This would be equal to the length of the shadow * sin(angle)
 
-                float4 vertexWS = v.vertex;  // This should be in world space
-                float3 lightDirection = normalize(_LightPos - vertexWS.xyz); // 
+                float3 vertexWS = TransformObjectToWorld(v.vertex);  // This should be in world space
+                float3 lightDirection = normalize(_LightPos - vertexWS); // 
 
 				// There is something here that needs to be done for when we are not dealing with the xy plane...
 				float passesXY = saturate(ceil(-dot(lightDirection.xy, -v.tangent.xy)));
@@ -54,36 +54,35 @@ Shader "Unlit/ShadowTest"
                 float isSoftShadow = saturate(ceil(abs(v.tangent.z) + abs(v.tangent.w)));
                 float isSoftShadowCorner = isSoftShadow * abs(passesXY - passesZW);
 
-				float stretchHardShadow = (1 - isSoftShadow) * saturate(ceil(dot(lightDirection.xy, v.tangent.xy)));
-				float2 softShadowTangentDir = passesZW * v.tangent.zw + passesXY * v.tangent.xy;
+                float2 endpoint = vertexWS.xy + isSoftShadowCorner * (_ShadowLength * -lightDirection.xy);
 
-
+                float2 softShadowTangentDir = normalize(isSoftShadow * passesZW * v.tangent.zw + passesXY * v.tangent.xy);
                 float3 cross1 = cross(float3(softShadowTangentDir,0), -lightDirection);
                 float3 maxAngle = normalize(cross(cross1, -lightDirection));
-                float angle = dot(softShadowTangentDir, lightDirection);
+
+                float angle = dot(softShadowTangentDir, lightDirection.xy);
                 float t = 1 - abs(2 * angle * angle - 1);
-                float3 offset = isSoftShadowCorner * t * maxAngle;
+                float3 offset = clamp(t * maxAngle, -1, 1);
 
-                float2 hardShadowOffset = stretchHardShadow * _ShadowLength * -lightDirection.xy;
-                float2 softShadowOffset = isSoftShadowCorner * (_ShadowLength * -lightDirection.xy + offset);
+                float sharedShadowTest = saturate(ceil(dot(lightDirection.xy, v.tangent.xy)));
+                float3 softShadowOffset = isSoftShadowCorner * offset;
+                float3 sharedShadowOffset = sharedShadowTest * _ShadowLength * -lightDirection;  // Calculates the hard shadow. The soft shadow will be offset from that
 
+				float3 position;
+                position = vertexWS + sharedShadowOffset + softShadowOffset;
 
-				float4 position;
-                position.xy = v.vertex.xy + hardShadowOffset;
-				position.z = 0;
-				position.w = v.vertex.w;
-                o.vertex = UnityObjectToClipPos(position);
+                o.vertex = TransformWorldToHClip(position);
 				o.color = v.color;
 
                 return o;
             }
 
-            fixed4 frag (v2f i) : SV_Target
+            float4 frag (v2f i) : SV_Target
             {
-				fixed4 col = i.color;
+				float4 col = i.color;
                 return col;
             }
-            ENDCG
+            ENDHLSL
         }
     }
 }

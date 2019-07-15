@@ -18,6 +18,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
                 SceneView view = SceneView.lastActiveSceneView;
                 if (!view)
                     view = sceneViews[0] as SceneView;
+
                 if (view)
                     view.MoveToView(go.transform);
             }
@@ -67,6 +68,22 @@ namespace UnityEditor.Experimental.Rendering.Universal
             lightData.instance_id = light2D.GetInstanceID();
             lightData.light_type = light2D.lightType;
             Analytics.Renderer2DAnalytics.instance.SendData(Analytics.AnalyticsDataTypes.k_LightDataString, lightData);
+        }
+
+        static GameObject CreateShadowCaster2D(MenuCommand menuCommand, string name)
+        {
+            GameObject go = ObjectFactory.CreateGameObject(name, typeof(ShadowCaster2D));
+
+            var parent = menuCommand.context as GameObject;
+            Place(go, parent);
+
+            return go;
+
+            //Analytics.Light2DData lightData = new Analytics.Light2DData();
+            //lightData.was_create_event = true;
+            //lightData.instance_id = light2D.GetInstanceID();
+            //lightData.light_type = light2D.lightType;
+            //Analytics.Renderer2DAnalytics.instance.SendData(Analytics.AnalyticsDataTypes.k_LightDataString, lightData);
         }
 
         static bool CreateLightValidation()
@@ -136,6 +153,28 @@ namespace UnityEditor.Experimental.Rendering.Universal
         }
         [MenuItem("GameObject/Light/2D/Global Light 2D (Experimental)", true, -100)]
         static bool CreateGlobalLight2DValidation()
+        {
+            return CreateLightValidation();
+        }
+
+        [MenuItem("Component/Rendering/2D/Shadow Caster 2D (Experimental)")]
+        static void CreateShadowCaster2DComponent(MenuCommand menuCommand)
+        {
+            var parent = Selection.activeObject as GameObject;
+            if (parent != null)
+            {
+                parent.AddComponent<ShadowCaster2D>();
+            }
+        }
+
+        [MenuItem("GameObject/Light/2D/Shadow Caster 2D (Experimental)")]
+        static void CreateShadowCaster2D(MenuCommand menuCommand)
+        {
+            CreateShadowCaster2D(menuCommand, "Shadow Caster 2D");
+        }
+
+        [MenuItem("GameObject/Light/2D/Shadow Caster2D (Experimental)", true, -100)]
+        static bool CreateShadowCaster2DValidation()
         {
             return CreateLightValidation();
         }
