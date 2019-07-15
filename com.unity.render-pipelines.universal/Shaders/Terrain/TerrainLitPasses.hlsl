@@ -282,8 +282,7 @@ half4 SplatmapFragment(Varyings IN) : SV_TARGET
 
     half4 masks[4];
     half4 hasMask = half4(_LayerHasMask0, _LayerHasMask1, _LayerHasMask2, _LayerHasMask3);
-    float2 splatUV = (IN.uvMainAndLM.xy * (_Control_TexelSize.zw - 1.0f) + 0.5f) * _Control_TexelSize.xy;
-    splatControl = SAMPLE_TEXTURE2D(_Control, sampler_Control, splatUV);
+    splatControl = SAMPLE_TEXTURE2D(_Control, sampler_Control, IN.uvMainAndLM.xy);
 
     masks[0] = 1.0h;
     masks[1] = 1.0h;
