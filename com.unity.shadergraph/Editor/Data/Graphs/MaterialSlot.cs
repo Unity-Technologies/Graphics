@@ -282,43 +282,6 @@ namespace UnityEditor.ShaderGraph
 
         public abstract void AddDefaultProperty(PropertyCollector properties, GenerationMode generationMode);
 
-        protected static PropertyType ConvertConcreteSlotValueTypeToPropertyType(ConcreteSlotValueType slotValue)
-        {
-            switch (slotValue)
-            {
-                case ConcreteSlotValueType.Texture2D:
-                    return PropertyType.Texture2D;
-                case ConcreteSlotValueType.Texture2DArray:
-                    return PropertyType.Texture2DArray;
-                case ConcreteSlotValueType.Texture3D:
-                    return PropertyType.Texture3D;
-                case ConcreteSlotValueType.Cubemap:
-                    return PropertyType.Cubemap;
-                case ConcreteSlotValueType.Gradient:
-                    return PropertyType.Gradient;
-                case ConcreteSlotValueType.Boolean:
-                    return PropertyType.Boolean;
-                case ConcreteSlotValueType.Vector1:
-                    return PropertyType.Vector1;
-                case ConcreteSlotValueType.Vector2:
-                    return PropertyType.Vector2;
-                case ConcreteSlotValueType.Vector3:
-                    return PropertyType.Vector3;
-                case ConcreteSlotValueType.Vector4:
-                    return PropertyType.Vector4;
-                case ConcreteSlotValueType.Matrix2:
-                    return PropertyType.Matrix2;
-                case ConcreteSlotValueType.Matrix3:
-                    return PropertyType.Matrix3;
-                case ConcreteSlotValueType.Matrix4:
-                    return PropertyType.Matrix4;
-                case ConcreteSlotValueType.SamplerState:
-                    return PropertyType.SamplerState;
-                default:
-                    return PropertyType.Vector4;
-            }
-        }
-
         public virtual void GetPreviewProperties(List<PreviewProperty> properties, string name)
         {
             properties.Add(default(PreviewProperty));
