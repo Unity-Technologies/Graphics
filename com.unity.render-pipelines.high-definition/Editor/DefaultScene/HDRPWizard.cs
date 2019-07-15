@@ -6,6 +6,7 @@ using System.Reflection;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
 using UnityEditorInternal.VR;
+using UnityEditor.SceneManagement;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
@@ -167,13 +168,16 @@ namespace UnityEditor.Rendering.HighDefinition
         static Action<BuildTargetGroup, LightmapEncodingQualityCopy> SetLightmapEncodingQualityForPlatformGroup;
         static Func<BuildTarget> CalculateSelectedBuildTarget;
         static Func<BuildTarget, GraphicsDeviceType[]> GetSupportedGraphicsAPIs;
+        static Func<BuildTarget, bool> WillEditorUseFirstGraphicsAPI;
+        static Action RequestCloseAndRelaunchWithCurrentArguments;
 
         static HDWizard()
         {
             Type playerSettingsType = typeof(PlayerSettings);
-            Type LightEncodingQualityType = playerSettingsType.Assembly.GetType("UnityEditor.LightmapEncodingQuality");
+            Type playerSettingsEditorType = playerSettingsType.Assembly.GetType("UnityEditor.PlayerSettingsEditor");
+            Type lightEncodingQualityType = playerSettingsType.Assembly.GetType("UnityEditor.LightmapEncodingQuality");
             Type editorUserBuildSettingsUtilsType = playerSettingsType.Assembly.GetType("UnityEditor.EditorUserBuildSettingsUtils");
-            var qualityVariable = Expression.Variable(LightEncodingQualityType, "quality_internal");
+            var qualityVariable = Expression.Variable(lightEncodingQualityType, "quality_internal");
             var buildTargetGroupParameter = Expression.Parameter(typeof(BuildTargetGroup), "platformGroup");
             var buildTargetParameter = Expression.Parameter(typeof(BuildTarget), "platform");
             var qualityParameter = Expression.Parameter(typeof(LightmapEncodingQualityCopy), "quality");
@@ -181,6 +185,8 @@ namespace UnityEditor.Rendering.HighDefinition
             var setLightmapEncodingQualityForPlatformGroupInfo = playerSettingsType.GetMethod("SetLightmapEncodingQualityForPlatformGroup", BindingFlags.Static | BindingFlags.NonPublic);
             var calculateSelectedBuildTargetInfo = editorUserBuildSettingsUtilsType.GetMethod("CalculateSelectedBuildTarget", BindingFlags.Static | BindingFlags.Public);
             var getSupportedGraphicsAPIsInfo = playerSettingsType.GetMethod("GetSupportedGraphicsAPIs", BindingFlags.Static | BindingFlags.NonPublic);
+            var willEditorUseFirstGraphicsAPIInfo = playerSettingsEditorType.GetMethod("WillEditorUseFirstGraphicsAPI", BindingFlags.Static | BindingFlags.NonPublic);
+            var requestCloseAndRelaunchWithCurrentArgumentsInfo = typeof(EditorApplication).GetMethod("RequestCloseAndRelaunchWithCurrentArguments", BindingFlags.Static | BindingFlags.NonPublic);
             var getLightmapEncodingQualityForPlatformGroupBlock = Expression.Block(
                 new[] { qualityVariable },
                 Expression.Assign(qualityVariable, Expression.Call(getLightmapEncodingQualityForPlatformGroupInfo, buildTargetGroupParameter)),
@@ -188,17 +194,21 @@ namespace UnityEditor.Rendering.HighDefinition
                 );
             var setLightmapEncodingQualityForPlatformGroupBlock = Expression.Block(
                 new[] { qualityVariable },
-                Expression.Assign(qualityVariable, Expression.Convert(qualityParameter, LightEncodingQualityType)),
+                Expression.Assign(qualityVariable, Expression.Convert(qualityParameter, lightEncodingQualityType)),
                 Expression.Call(setLightmapEncodingQualityForPlatformGroupInfo, buildTargetGroupParameter, qualityVariable)
                 );
             var getLightmapEncodingQualityForPlatformGroupLambda = Expression.Lambda<Func<BuildTargetGroup, LightmapEncodingQualityCopy>>(getLightmapEncodingQualityForPlatformGroupBlock, buildTargetGroupParameter);
             var setLightmapEncodingQualityForPlatformGroupLambda = Expression.Lambda<Action<BuildTargetGroup, LightmapEncodingQualityCopy>>(setLightmapEncodingQualityForPlatformGroupBlock, buildTargetGroupParameter, qualityParameter);
             var calculateSelectedBuildTargetLambda = Expression.Lambda<Func<BuildTarget>>(Expression.Call(null, calculateSelectedBuildTargetInfo));
             var getSupportedGraphicsAPIsLambda = Expression.Lambda<Func<BuildTarget, GraphicsDeviceType[]>>(Expression.Call(null, getSupportedGraphicsAPIsInfo, buildTargetParameter), buildTargetParameter);
+            var willEditorUseFirstGraphicsAPILambda = Expression.Lambda<Func<BuildTarget, bool>>(Expression.Call(null, willEditorUseFirstGraphicsAPIInfo, buildTargetParameter), buildTargetParameter);
+            var requestCloseAndRelaunchWithCurrentArgumentsLambda = Expression.Lambda<Action>(Expression.Call(null, requestCloseAndRelaunchWithCurrentArgumentsInfo));
             GetLightmapEncodingQualityForPlatformGroup = getLightmapEncodingQualityForPlatformGroupLambda.Compile();
             SetLightmapEncodingQualityForPlatformGroup = setLightmapEncodingQualityForPlatformGroupLambda.Compile();
             CalculateSelectedBuildTarget = calculateSelectedBuildTargetLambda.Compile();
             GetSupportedGraphicsAPIs = getSupportedGraphicsAPIsLambda.Compile();
+            WillEditorUseFirstGraphicsAPI = willEditorUseFirstGraphicsAPILambda.Compile();
+            RequestCloseAndRelaunchWithCurrentArguments = requestCloseAndRelaunchWithCurrentArgumentsLambda.Compile();
         }
 
         [MenuItem("Window/Render Pipeline/HD Render Pipeline Wizard", priority = 5)]
@@ -266,19 +276,19 @@ namespace UnityEditor.Rendering.HighDefinition
 
             string defaultScenePath = "Assets/" + HDProjectSettings.projectSettingsFolderPath + "/" + hdrpAssetEditorResources.defaultScene.name + ".prefab";
             AssetDatabase.CopyAsset(AssetDatabase.GetAssetPath(hdrpAssetEditorResources.defaultScene), defaultScenePath);
-            string defaultRenderSettingsProfilePath = "Assets/" + HDProjectSettings.projectSettingsFolderPath + "/" + hdrpAssetEditorResources.defaultRenderSettingsProfile.name + ".asset";
-            AssetDatabase.CopyAsset(AssetDatabase.GetAssetPath(hdrpAssetEditorResources.defaultRenderSettingsProfile), defaultRenderSettingsProfilePath);
+            string defaultSkyAndFogProfilePath = "Assets/" + HDProjectSettings.projectSettingsFolderPath + "/" + hdrpAssetEditorResources.defaultSkyAndFogProfile.name + ".asset";
+            AssetDatabase.CopyAsset(AssetDatabase.GetAssetPath(hdrpAssetEditorResources.defaultSkyAndFogProfile), defaultSkyAndFogProfilePath);
             string defaultPostProcessingProfilePath = "Assets/" + HDProjectSettings.projectSettingsFolderPath + "/" + hdrpAssetEditorResources.defaultPostProcessingProfile.name + ".asset";
             AssetDatabase.CopyAsset(AssetDatabase.GetAssetPath(hdrpAssetEditorResources.defaultPostProcessingProfile), defaultPostProcessingProfilePath);
 
             GameObject defaultScene = AssetDatabase.LoadAssetAtPath<GameObject>(defaultScenePath);
-            VolumeProfile defaultRenderSettingsProfile = AssetDatabase.LoadAssetAtPath<VolumeProfile>(defaultRenderSettingsProfilePath);
+            VolumeProfile defaultSkyAndFogProfile = AssetDatabase.LoadAssetAtPath<VolumeProfile>(defaultSkyAndFogProfilePath);
             VolumeProfile defaultPostProcessingProfile = AssetDatabase.LoadAssetAtPath<VolumeProfile>(defaultPostProcessingProfilePath);
 
             foreach (var volume in defaultScene.GetComponentsInChildren<Volume>())
             {
-                if (volume.sharedProfile.name.StartsWith(hdrpAssetEditorResources.defaultRenderSettingsProfile.name))
-                    volume.sharedProfile = defaultRenderSettingsProfile;
+                if (volume.sharedProfile.name.StartsWith(hdrpAssetEditorResources.defaultSkyAndFogProfile.name))
+                    volume.sharedProfile = defaultSkyAndFogProfile;
                 else if (volume.sharedProfile.name.StartsWith(hdrpAssetEditorResources.defaultPostProcessingProfile.name))
                     volume.sharedProfile = defaultPostProcessingProfile;
             }
@@ -441,7 +451,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             ++EditorGUI.indentLevel;
             DrawConfigInfoLine(Style.dxrAutoGraphicsAPILabel, Style.dxrAutoGraphicsAPIError, Style.ok, Style.resolve, IsDXRAutoGraphicsAPICorrect, FixDXRAutoGraphicsAPI);
-            DrawConfigInfoLine(Style.dxrDirect3D12Label, Style.dxrDirect3D12Error, Style.ok, Style.resolve, IsDXRDirect3D12Correct, FixDXRDirect3D12);
+            DrawConfigInfoLine(Style.dxrDirect3D12Label, Style.dxrDirect3D12Error, Style.ok, Style.resolve, IsDXRDirect3D12Correct, () => FixDXRDirect3D12(fromAsync: false));
             DrawConfigInfoLine(Style.dxrSymbolLabel, Style.dxrSymbolError, Style.ok, Style.resolve, IsDXRCSharpKeyWordCorrect, FixDXRCSharpKeyWord);
             DrawConfigInfoLine(Style.dxrActivatedLabel, Style.dxrActivatedError, Style.ok, Style.resolve, IsDXRActivationCorrect, FixDXRActivation);
             DrawConfigInfoLine(Style.dxrResourcesLabel, Style.dxrResourcesError, Style.ok, Style.resolve, IsDXRAssetCorrect, FixDXRAsset);
@@ -683,7 +693,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
             if (!IsDXRDirect3D12Correct())
             {
-                FixDXRDirect3D12();
+                FixDXRDirect3D12(fromAsync: true);
                 return;
             }
             if (!IsDXRCSharpKeyWordCorrect())
@@ -711,17 +721,18 @@ namespace UnityEditor.Rendering.HighDefinition
 
         bool IsDXRDirect3D12Correct()
             => PlayerSettings.GetGraphicsAPIs(CalculateSelectedBuildTarget()).FirstOrDefault() == GraphicsDeviceType.Direct3D12;
-        void FixDXRDirect3D12()
+        void FixDXRDirect3D12(bool fromAsync)
         {
             if (GetSupportedGraphicsAPIs(CalculateSelectedBuildTarget()).Contains(GraphicsDeviceType.Direct3D12))
             {
+                var buidTarget = CalculateSelectedBuildTarget();
                 if (PlayerSettings.GetGraphicsAPIs(CalculateSelectedBuildTarget()).Contains(GraphicsDeviceType.Direct3D12))
                 {
                     PlayerSettings.SetGraphicsAPIs(
                         CalculateSelectedBuildTarget(),
                         new[] { GraphicsDeviceType.Direct3D12 }
                             .Concat(
-                                PlayerSettings.GetGraphicsAPIs(CalculateSelectedBuildTarget())
+                                PlayerSettings.GetGraphicsAPIs(buidTarget)
                                     .Where(x => x != GraphicsDeviceType.Direct3D12))
                             .ToArray());
                 }
@@ -730,8 +741,29 @@ namespace UnityEditor.Rendering.HighDefinition
                     PlayerSettings.SetGraphicsAPIs(
                         CalculateSelectedBuildTarget(),
                         new[] { GraphicsDeviceType.Direct3D12 }
-                            .Concat(PlayerSettings.GetGraphicsAPIs(CalculateSelectedBuildTarget()))
+                            .Concat(PlayerSettings.GetGraphicsAPIs(buidTarget))
                             .ToArray());
+                }
+                if (fromAsync)
+                    EditorApplication.update -= FixDXRAllAsync;
+                ChangedFirstGraphicAPI(buidTarget);
+            }
+        }
+
+        void ChangedFirstGraphicAPI(BuildTarget target)
+        {
+            // If we're changing the first API for relevant editor, this will cause editor to switch: ask for scene save & confirmation
+            if (WillEditorUseFirstGraphicsAPI(target))
+            {
+                if (EditorUtility.DisplayDialog("Changing editor graphics device",
+                    "You've changed the active graphics API. This requires a restart of the Editor. After restarting finish fixing DXR configuration by launching the wizard again.",
+                    "Restart Editor", "Not now"))
+                {
+                    if (EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo())
+                    {
+                        RequestCloseAndRelaunchWithCurrentArguments();
+                        GUIUtility.ExitGUI();
+                    }
                 }
             }
         }
