@@ -5,93 +5,73 @@ using UnityEngine;
 namespace UnityEditor.ShaderGraph
 {
     [Serializable]
-    abstract class AbstractShaderProperty
+    abstract class AbstractShaderProperty : ShaderInput
     {
-        [SerializeField]
-        private string m_Name;
-
-        [SerializeField]
-        private bool m_GeneratePropertyBlock = true;
-
-        [SerializeField]
-        private SerializableGuid m_Guid = new SerializableGuid();
-
-        public Guid guid
-        {
-            get { return m_Guid.guid; }
-        }
-        
-        public string displayName
-        {
-            get
-            {
-                if (string.IsNullOrEmpty(m_Name))
-                    return guid.ToString();
-                return m_Name;
-            }
-            set { m_Name = value; }
-        }
-
-        [SerializeField]
-        string m_DefaultReferenceName;
-
-        public string referenceName
-        {
-            get
-            {
-                if (string.IsNullOrEmpty(overrideReferenceName))
-                {
-                    if (string.IsNullOrEmpty(m_DefaultReferenceName))
-                        m_DefaultReferenceName = string.Format("{0}_{1}", propertyType, GuidEncoder.Encode(guid));
-                    return m_DefaultReferenceName;
-                }
-                return overrideReferenceName;
-            }
-        }
-        
-        [SerializeField]
-        string m_OverrideReferenceName;
-
-        public string overrideReferenceName
-        {
-            get { return m_OverrideReferenceName; }
-            set { m_OverrideReferenceName = value; }
-        }
-
-        public bool generatePropertyBlock
-        {
-            get { return m_GeneratePropertyBlock; }
-            set { m_GeneratePropertyBlock = value; }
-        }
-
         public abstract PropertyType propertyType { get; }
+
+        public override ConcreteSlotValueType concreteShaderValueType => propertyType.ToConcreteShaderValueType();
+
+        [SerializeField]
+        Precision m_Precision = Precision.Inherit;
         
-        public abstract Vector4 defaultValue { get; }
+        ConcretePrecision m_ConcretePrecision = ConcretePrecision.Float;
+
+        public Precision precision
+        {
+            get => m_Precision;
+            set => m_Precision = value;
+        }
+
+        public ConcretePrecision concretePrecision => m_ConcretePrecision;
+
+        public void ValidateConcretePrecision(ConcretePrecision graphPrecision)
+        {
+            m_ConcretePrecision = (precision == Precision.Inherit) ? graphPrecision : precision.ToConcrete();
+        }
+
         public abstract bool isBatchable { get; }
-        public abstract bool isExposable { get; }
-        public abstract string GetPropertyBlockString();
-        public abstract string GetPropertyDeclarationString(string delimiter = ";");
+
+        [SerializeField]
+        bool m_Hidden = false;
+
+        public bool hidden
+        {
+            get => m_Hidden;
+            set => m_Hidden = value;
+        }
+
+        public string hideTagString => hidden ? "[HideInInspector]" : "";
+
+        public virtual string GetPropertyBlockString()
+        {
+            return string.Empty;
+        }
+
+        public virtual string GetPropertyDeclarationString(string delimiter = ";")
+        {
+            SlotValueType type = ConcreteSlotValueType.Vector4.ToSlotValueType();
+            return $"{concreteShaderValueType.ToShaderString(concretePrecision.ToShaderString())} {referenceName}{delimiter}";
+        }
 
         public virtual string GetPropertyAsArgumentString()
         {
             return GetPropertyDeclarationString(string.Empty);
         }
-
-        public abstract PreviewProperty GetPreviewMaterialProperty();
+        
         public abstract AbstractMaterialNode ToConcreteNode();
-        public abstract AbstractShaderProperty Copy();
+        public abstract PreviewProperty GetPreviewMaterialProperty();
     }
     
     [Serializable]
     abstract class AbstractShaderProperty<T> : AbstractShaderProperty
     {
         [SerializeField]
-        private T m_Value;
+        T m_Value;
 
-        public T value
+        public virtual T value
         {
-            get { return m_Value; }
-            set { m_Value = value; }
+            get => m_Value;
+            set => m_Value = value;
         }
     }
 }

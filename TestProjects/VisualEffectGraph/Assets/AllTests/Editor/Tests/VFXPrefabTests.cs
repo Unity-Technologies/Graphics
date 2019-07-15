@@ -2,8 +2,8 @@
 using System;
 using NUnit.Framework;
 using UnityEngine;
-using UnityEngine.Experimental.VFX;
-using UnityEditor.Experimental.VFX;
+using UnityEngine.VFX;
+using UnityEditor.VFX;
 using UnityEngine.Rendering;
 using UnityEngine.TestTools;
 using System.Linq;
@@ -136,8 +136,8 @@ namespace UnityEditor.VFX.Test
             for (var i = 0; i < exposedProperties.Length; ++i)
             {
                 var parameter = parametersIntDesc.CreateInstance();
-                parameter.SetSettingValue("m_exposedName", exposedProperties[i]);
-                parameter.SetSettingValue("m_exposed", true);
+                parameter.SetSettingValue("m_ExposedName", exposedProperties[i]);
+                parameter.SetSettingValue("m_Exposed", true);
                 parameter.value = i + 1;
                 graph.AddChild(parameter);
             }
@@ -236,8 +236,8 @@ namespace UnityEditor.VFX.Test
 
             var exposedName = "ghjkl";
             var parameter = parametersVector3Desc.CreateInstance();
-            parameter.SetSettingValue("m_exposedName", exposedName);
-            parameter.SetSettingValue("m_exposed", true);
+            parameter.SetSettingValue("m_ExposedName", exposedName);
+            parameter.SetSettingValue("m_Exposed", true);
             parameter.value = new Vector3(0, 0, 0);
             graph.AddChild(parameter);
             graph.RecompileIfNeeded();

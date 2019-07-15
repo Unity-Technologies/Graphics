@@ -1,11 +1,7 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-using UnityEngine.Experimental.Rendering.HDPipeline.Attributes;
-using static UnityEngine.Experimental.Rendering.HDPipeline.MaterialDebugSettings;
+using UnityEngine.Rendering.HighDefinition.Attributes;
 
-namespace UnityEngine.Experimental.Rendering.HDPipeline
+namespace UnityEngine.Rendering.HighDefinition
 {
     /// <summary>Engine lighting property.</summary>
     [Flags]
@@ -27,7 +23,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         MotionVectors
     }
 
-    /// <summary>Frame pass settings.</summary>
+    /// <summary>Use this request to define how to render an AOV.</summary>
     public unsafe struct AOVRequest
     {
         /// <summary>Default settings.</summary>

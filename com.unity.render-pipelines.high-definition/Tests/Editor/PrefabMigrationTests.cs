@@ -2,9 +2,9 @@ using System;
 using System.IO;
 using UnityEditor;
 
-namespace UnityEngine.Experimental.Rendering.HDPipeline.Tests
+namespace UnityEngine.Rendering.HighDefinition.Tests
 {
-    public struct PrefabMigrationTests : IDisposable
+    struct PrefabMigrationTests : IDisposable
     {
         string m_GeneratedPrefabFileName;
 

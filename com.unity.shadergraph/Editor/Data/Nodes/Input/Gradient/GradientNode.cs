@@ -60,7 +60,7 @@ namespace UnityEditor.ShaderGraph
             {
                 var scope = ModificationScope.Nothing;
 
-                if (!GradientUtils.CheckEquivalency(gradient, value))
+                if (!GradientUtil.CheckEquivalency(gradient, value))
                     scope = scope < ModificationScope.Graph ? ModificationScope.Graph : scope;
 
                 if (scope > ModificationScope.Nothing)
@@ -90,23 +90,19 @@ namespace UnityEditor.ShaderGraph
 
         public sealed override void UpdateNodeAfterDeserialization()
         {
-            AddSlot(new GradientMaterialSlot(OutputSlotId, kOutputSlotName, kOutputSlotName, SlotType.Output, 0));
+            AddSlot(new GradientMaterialSlot(OutputSlotId, kOutputSlotName, kOutputSlotName, SlotType.Output));
             RemoveSlotsNameNotMatching(new[] { OutputSlotId });
         }
 
-        public void GenerateNodeCode(ShaderGenerator visitor, GraphContext graphContext, GenerationMode generationMode)
+        public void GenerateNodeCode(ShaderStringBuilder sb, GraphContext graphContext, GenerationMode generationMode)
         {
             if (generationMode.IsPreview())
             {
-                visitor.AddShaderChunk(string.Format("Gradient {0} = {1};", 
-                    GetVariableNameForSlot(outputSlotId), 
-                    GradientUtils.GetGradientForPreview(GetVariableNameForNode())));
+                sb.AppendLine("Gradient {0} = {1};", GetVariableNameForSlot(outputSlotId), GradientUtil.GetGradientForPreview(GetVariableNameForNode()));
             }
             else
             {
-                visitor.AddShaderChunk(string.Format("Gradient {0} = {1}", 
-                    GetVariableNameForSlot(outputSlotId), 
-                    GradientUtils.GetGradientValue(gradient, precision, true, ";")));
+                sb.AppendLine("Gradient {0} = {1}", GetVariableNameForSlot(outputSlotId), GradientUtil.GetGradientValue(gradient, ";"));
             }
         }
 
@@ -128,7 +124,7 @@ namespace UnityEditor.ShaderGraph
 
             base.CollectShaderProperties(properties, generationMode);
 
-            GradientUtils.GetGradientPropertiesForPreview(properties, GetVariableNameForNode(), gradient);
+            GradientUtil.GetGradientPropertiesForPreview(properties, GetVariableNameForNode(), gradient);
         }
 
         public AbstractShaderProperty AsShaderProperty()

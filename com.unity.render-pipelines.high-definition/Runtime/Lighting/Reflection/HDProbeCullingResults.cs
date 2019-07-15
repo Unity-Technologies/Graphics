@@ -1,10 +1,9 @@
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine.Assertions;
 
-namespace UnityEngine.Experimental.Rendering.HDPipeline
+namespace UnityEngine.Rendering.HighDefinition
 {
-    public struct HDProbeCullingResults
+    struct HDProbeCullingResults
     {
         static readonly IReadOnlyList<HDProbe> s_EmptyList = new List<HDProbe>();
 

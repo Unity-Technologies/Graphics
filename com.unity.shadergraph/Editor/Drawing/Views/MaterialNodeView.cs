@@ -4,12 +4,15 @@ using System.Linq;
 using System.Reflection;
 using UnityEngine;
 using UnityEditor.Graphing;
+using UnityEditor.Graphing.Util;
 using UnityEditor.ShaderGraph.Drawing.Controls;
 using UnityEngine.Rendering;
 
 using UnityEditor.Experimental.GraphView;
 using UnityEditor.Rendering;
+using UnityEditor.ShaderGraph.Drawing.Colors;
 using UnityEngine.UIElements;
+using UnityEditor.UIElements;
 using Node = UnityEditor.Experimental.GraphView.Node;
 
 namespace UnityEditor.ShaderGraph.Drawing
@@ -18,6 +21,10 @@ namespace UnityEditor.ShaderGraph.Drawing
     {
         PreviewRenderData m_PreviewRenderData;
         Image m_PreviewImage;
+        // Remove this after updated to the correct API call has landed in trunk. ------------
+        VisualElement m_TitleContainer;
+        new VisualElement m_ButtonContainer;
+
         VisualElement m_PreviewContainer;
         VisualElement m_ControlItems;
         VisualElement m_PreviewFiller;
@@ -30,16 +37,20 @@ namespace UnityEditor.ShaderGraph.Drawing
         VisualElement m_Settings;
         VisualElement m_NodeSettingsView;
 
+        GraphView m_GraphView;
 
-        public void Initialize(AbstractMaterialNode inNode, PreviewManager previewManager, IEdgeConnectorListener connectorListener)
+        public void Initialize(AbstractMaterialNode inNode, PreviewManager previewManager, IEdgeConnectorListener connectorListener, GraphView graphView)
         {
             styleSheets.Add(Resources.Load<StyleSheet>("Styles/MaterialNodeView"));
+            styleSheets.Add(Resources.Load<StyleSheet>($"Styles/ColorMode"));
             AddToClassList("MaterialNode");
 
             if (inNode == null)
                 return;
 
             var contents = this.Q("contents");
+
+            m_GraphView = graphView;
 
             m_ConnectorListener = connectorListener;
             node = inNode;
@@ -63,13 +74,15 @@ namespace UnityEditor.ShaderGraph.Drawing
             if (m_ControlItems.childCount > 0)
                 contents.Add(controlsContainer);
 
+            // Node Base class toggles the 'expanded' variable already, this is on top of that call
+            m_CollapseButton.RegisterCallback<MouseUpEvent>(SetNodeExpandedStateOnSelection);
+
             if (node.hasPreview)
             {
                 // Add actual preview which floats on top of the node
                 m_PreviewContainer = new VisualElement
                 {
                     name = "previewContainer",
-                    cacheAsBitmap = true,
                     style = { overflow = Overflow.Hidden },
                     pickingMode = PickingMode.Ignore
                 };
@@ -86,7 +99,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     collapsePreviewButton.AddManipulator(new Clickable(() =>
                         {
                             node.owner.owner.RegisterCompleteObjectUndo("Collapse Preview");
-                            UpdatePreviewExpandedState(false);
+                            SetPreviewExpandedStateOnSelection(false);
                         }));
                     m_PreviewImage.Add(collapsePreviewButton);
                 }
@@ -110,20 +123,19 @@ namespace UnityEditor.ShaderGraph.Drawing
                     expandPreviewButton.AddManipulator(new Clickable(() =>
                         {
                             node.owner.owner.RegisterCompleteObjectUndo("Expand Preview");
-                            UpdatePreviewExpandedState(true);
+                            SetPreviewExpandedStateOnSelection(true);
                         }));
                     m_PreviewFiller.Add(expandPreviewButton);
                 }
                 contents.Add(m_PreviewFiller);
 
-                UpdatePreviewExpandedState(node.previewExpanded);
+                SetPreviewExpandedStateOnSelection(node.previewExpanded);
             }
 
             // Add port input container, which acts as a pixel cache for all port inputs
             m_PortInputContainer = new VisualElement
             {
                 name = "portInputContainer",
-                cacheAsBitmap = true,
                 style = { overflow = Overflow.Hidden },
                 pickingMode = PickingMode.Ignore
             };
@@ -142,6 +154,10 @@ namespace UnityEditor.ShaderGraph.Drawing
                 RegisterCallback<MouseDownEvent>(OnSubGraphDoubleClick);
             }
 
+            m_PortInputContainer.SendToBack();
+
+            m_TitleContainer = this.Q("title");
+
             var masterNode = node as IMasterNode;
             if (masterNode != null)
             {
@@ -153,41 +169,34 @@ namespace UnityEditor.ShaderGraph.Drawing
                 }
             }
 
-            m_PortInputContainer.SendToBack();
+            m_NodeSettingsView = new NodeSettingsView();
+            m_NodeSettingsView.visible = false;
+            Add(m_NodeSettingsView);
 
-            // Remove this after updated to the correct API call has landed in trunk. ------------
-            VisualElement m_TitleContainer;
-            VisualElement m_ButtonContainer;
-            m_TitleContainer = this.Q("title");
-            // -----------------------------------------------------------------------------------
+            m_SettingsButton = new VisualElement {name = "settings-button"};
+            m_SettingsButton.Add(new VisualElement { name = "icon" });
 
-            var settings = node as IHasSettings;
-            if (settings != null)
+            m_Settings = new VisualElement();
+            AddDefaultSettings();
+
+            // Add Node type specific settings
+            var nodeTypeSettings = node as IHasSettings;
+            if (nodeTypeSettings != null)
+                m_Settings.Add(nodeTypeSettings.CreateSettingsElement());
+            
+            // Add manipulators
+            m_SettingsButton.AddManipulator(new Clickable(() =>
+                {
+                    UpdateSettingsExpandedState();
+                }));
+
+            if(m_Settings.childCount > 0)
             {
-                m_NodeSettingsView = new NodeSettingsView();
-                m_NodeSettingsView.visible = false;
-
-                Add(m_NodeSettingsView);
-
-                m_SettingsButton = new VisualElement {name = "settings-button"};
-                m_SettingsButton.Add(new VisualElement { name = "icon" });
-
-                m_Settings = settings.CreateSettingsElement();
-
-                m_SettingsButton.AddManipulator(new Clickable(() =>
-                    {
-                        UpdateSettingsExpandedState();
-                    }));
-
-                // Remove this after updated to the correct API call has landed in trunk. ------------
                 m_ButtonContainer = new VisualElement { name = "button-container" };
                 m_ButtonContainer.style.flexDirection = FlexDirection.Row;
                 m_ButtonContainer.Add(m_SettingsButton);
                 m_ButtonContainer.Add(m_CollapseButton);
                 m_TitleContainer.Add(m_ButtonContainer);
-                // -----------------------------------------------------------------------------------
-                //titleButtonContainer.Add(m_SettingsButton);
-                //titleButtonContainer.Add(m_CollapseButton);
             }
         }
 
@@ -205,8 +214,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
 
             Add(badge);
-            var myTitle = this.Q("title");
-            badge.AttachTo(myTitle, SpriteAlignment.RightCenter);
+            badge.AttachTo(m_TitleContainer, SpriteAlignment.RightCenter);
         }
 
         public void ClearMessage()
@@ -217,6 +225,28 @@ namespace UnityEditor.ShaderGraph.Drawing
                 badge.Detach();
                 badge.RemoveFromHierarchy();
             }
+        }
+
+        public VisualElement colorElement
+        {
+            get { return this; }
+        }
+
+        static readonly StyleColor noColor = new StyleColor(StyleKeyword.Null);
+        public void SetColor(Color color)
+        {
+            m_TitleContainer.style.borderBottomColor = color;
+        }
+        
+        public void ResetColor()
+        {
+            m_TitleContainer.style.borderBottomColor = noColor;
+        }
+
+
+        public Color GetColor()
+        {
+            return m_TitleContainer.resolvedStyle.borderBottomColor;
         }
 
         void OnGeometryChanged(GeometryChangedEvent evt)
@@ -268,14 +298,22 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             if (evt.target is Node)
             {
-                var canViewShader = node.hasPreview || node is IMasterNode;
+                var isMaster = node is IMasterNode;
+                var isActive = node.guid == node.owner.activeOutputNodeGuid;
+                if (isMaster)
+                {
+                    evt.menu.AppendAction("Set Active", SetMasterAsActive,
+                        _ => isActive ? DropdownMenuAction.Status.Checked : DropdownMenuAction.Status.Normal);
+                }
+
+                var canViewShader = node.hasPreview || node is IMasterNode || node is SubGraphOutputNode;
                 evt.menu.AppendAction("Copy Shader", CopyToClipboard,
                     _ => canViewShader ? DropdownMenuAction.Status.Normal : DropdownMenuAction.Status.Hidden,
                     GenerationMode.ForReals);
                 evt.menu.AppendAction("Show Generated Code", ShowGeneratedCode,
                     _ => canViewShader ? DropdownMenuAction.Status.Normal : DropdownMenuAction.Status.Hidden,
                     GenerationMode.ForReals);
-                
+
                 if (Unsupported.IsDeveloperMode())
                 {
                     evt.menu.AppendAction("Show Preview Code", ShowGeneratedCode,
@@ -285,6 +323,11 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
 
             base.BuildContextualMenu(evt);
+        }
+
+        void SetMasterAsActive(DropdownMenuAction action)
+        {
+            node.owner.activeOutputNodeGuid = node.guid;
         }
 
         void CopyToClipboard(DropdownMenuAction action)
@@ -317,16 +360,55 @@ namespace UnityEditor.ShaderGraph.Drawing
             return node.owner.GetShader(node, mode, node.name).shader;
         }
 
+        void AddDefaultSettings()
+        {
+            PropertySheet ps = new PropertySheet();
+            bool hasDefaultSettings = false;
+
+            if(node.canSetPrecision)
+            {
+                hasDefaultSettings = true;
+                ps.Add(new PropertyRow(new Label("Precision")), (row) =>
+                {
+                    row.Add(new EnumField(node.precision), (field) =>
+                    {
+                        field.RegisterValueChangedCallback(evt =>
+                        {
+                            if (evt.newValue.Equals(node.precision))
+                                return;
+                            
+                            var editorView = GetFirstAncestorOfType<GraphEditorView>();
+                            var nodeList = m_GraphView.Query<MaterialNodeView>().ToList();
+
+                            editorView.colorManager.SetNodesDirty(nodeList);
+                            node.owner.owner.RegisterCompleteObjectUndo("Change precision");
+                            node.precision = (Precision)evt.newValue;
+                            node.owner.ValidateGraph();
+                            editorView.colorManager.UpdateNodeViews(nodeList);
+                            node.Dirty(ModificationScope.Graph);
+                        });
+                    });
+                });
+            }
+
+            if(hasDefaultSettings)
+                m_Settings.Add(ps);
+        }
+
         void RecreateSettings()
         {
-            var settings = node as IHasSettings;
-            if (settings != null)
-            {
-                m_Settings.RemoveFromHierarchy();
+            m_Settings.RemoveFromHierarchy();
+            m_Settings = new PropertySheet();
 
-                m_Settings = settings.CreateSettingsElement();
-                m_NodeSettingsView.Add(m_Settings);
-            }
+            // Add default settings
+            AddDefaultSettings();
+
+            // Add Node type specific settings
+            var nodeTypeSettings = node as IHasSettings;
+            if (nodeTypeSettings != null)
+                m_Settings.Add(nodeTypeSettings.CreateSettingsElement());
+
+            m_NodeSettingsView.Add(m_Settings);
         }
 
         void UpdateSettingsExpandedState()
@@ -336,7 +418,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 m_NodeSettingsView.Add(m_Settings);
                 m_NodeSettingsView.visible = true;
-
+                SetSelfSelected();
                 m_SettingsButton.AddToClassList("clicked");
                 RegisterCallback<GeometryChangedEvent>(OnGeometryChanged);
                 OnGeometryChanged(null);
@@ -344,11 +426,54 @@ namespace UnityEditor.ShaderGraph.Drawing
             else
             {
                 m_Settings.RemoveFromHierarchy();
-
+                SetSelfSelected();
                 m_NodeSettingsView.visible = false;
                 m_SettingsButton.RemoveFromClassList("clicked");
                 UnregisterCallback<GeometryChangedEvent>(OnGeometryChanged);
             }
+        }
+
+
+        private void SetSelfSelected()
+        {
+            m_GraphView.ClearSelection();
+            m_GraphView.AddToSelection(this);
+        }
+
+        void SetNodeExpandedStateOnSelection(MouseUpEvent evt)
+        {
+            if (!selected)
+                SetSelfSelected();
+            else
+            {
+                if (m_GraphView is MaterialGraphView)
+                {
+                    var matGraphView = m_GraphView as MaterialGraphView;
+                    matGraphView.SetNodeExpandedOnSelection(expanded);
+                }
+            }
+        }
+
+        void SetPreviewExpandedStateOnSelection(bool state)
+        {
+            if (!selected)
+            {
+                SetSelfSelected();
+                UpdatePreviewExpandedState(state);
+            }
+            else
+            {
+                if(m_GraphView is MaterialGraphView)
+                {
+                    var matGraphView = m_GraphView as MaterialGraphView;
+                    matGraphView.SetPreviewExpandedOnSelection(state);
+                }
+            }
+        }
+
+        public bool CanToggleExpanded()
+        {
+            return m_CollapseButton.enabledInHierarchy;
         }
 
         void UpdatePreviewExpandedState(bool expanded)
@@ -380,8 +505,8 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void UpdateTitle()
         {
-            if (node is SubGraphNode subGraphNode && subGraphNode.subGraphData != null)
-                title = subGraphNode.subGraphAsset.name;
+            if (node is SubGraphNode subGraphNode && subGraphNode.asset != null)
+                title = subGraphNode.asset.name;
             else
                 title = node.name;
         }
@@ -420,7 +545,14 @@ namespace UnityEditor.ShaderGraph.Drawing
                     {
                         port.slot = newSlot;
                         var portInputView = m_PortInputContainer.Children().OfType<PortInputView>().FirstOrDefault(x => x.slot.id == currentSlot.id);
-                        portInputView.UpdateSlot(newSlot);
+                        if (newSlot.isConnected)
+                        {
+                            portInputView?.RemoveFromHierarchy();
+                        }
+                        else
+                        {
+                            portInputView?.UpdateSlot(newSlot);
+                        }
 
                         slots.Remove(newSlot);
                     }
@@ -484,19 +616,20 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             foreach (var port in inputContainer.Children().OfType<ShaderPort>())
             {
-                if (!m_PortInputContainer.Children().OfType<PortInputView>().Any(a => Equals(a.slot, port.slot)))
+                if (port.slot.isConnected)
                 {
-                    var portInputView = new PortInputView(port.slot) { style = { position = Position.Absolute } };
-                    m_PortInputContainer.Add(portInputView);
-                    if (float.IsNaN(port.layout.width))
-                    {
-                        port.RegisterCallback<GeometryChangedEvent>(UpdatePortInput);
-                    }
-                    else
-                    {
-                        SetPortInputPosition(port, portInputView);
-                    }
+                    continue;
                 }
+
+                var portInputView = m_PortInputContainer.Children().OfType<PortInputView>().FirstOrDefault(a => Equals(a.slot, port.slot));
+                if (portInputView == null)
+                {
+                    portInputView = new PortInputView(port.slot) { style = { position = Position.Absolute } };
+                    m_PortInputContainer.Add(portInputView);
+                    SetPortInputPosition(port, portInputView);
+                }
+                
+                port.RegisterCallback<GeometryChangedEvent>(UpdatePortInput);
             }
         }
 
@@ -514,12 +647,15 @@ namespace UnityEditor.ShaderGraph.Drawing
             inputView.parent.style.height = inputContainer.layout.height;
         }
 
-        public void UpdatePortInputVisibilities()
+        void UpdatePortInputVisibilities()
         {
-            foreach (var portInputView in m_PortInputContainer.Children().OfType<PortInputView>().ToList())
+            if (expanded)
             {
-                var slot = portInputView.slot;
-                portInputView.style.display = expanded && !node.owner.GetEdges(node.GetSlotReference(slot.id)).Any() ? DisplayStyle.Flex : DisplayStyle.None;
+                m_PortInputContainer.style.display = StyleKeyword.Null;
+            }
+            else
+            {
+                m_PortInputContainer.style.display = DisplayStyle.None;
             }
         }
 

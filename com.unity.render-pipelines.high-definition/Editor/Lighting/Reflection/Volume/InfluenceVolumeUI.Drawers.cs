@@ -1,8 +1,7 @@
-using UnityEditor.Rendering;
 using UnityEngine;
-using UnityEngine.Experimental.Rendering.HDPipeline;
+using UnityEngine.Rendering.HighDefinition;
 
-namespace UnityEditor.Experimental.Rendering.HDPipeline
+namespace UnityEditor.Rendering.HighDefinition
 {
     partial class InfluenceVolumeUI
     {
@@ -129,12 +128,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             EditorGUILayout.EndHorizontal();
 
             GUILayout.Space(EditorGUIUtility.standardVerticalSpacing);
-            
+
             EditorGUILayout.BeginHorizontal();
             Drawer_AdvancedBlendDistance(serialized, false, maxFadeDistance, blendDistanceContent);
             HDProbeUI.Drawer_ToolBarButton(HDProbeUI.ToolBar.Blend, owner, GUILayout.ExpandHeight(true), GUILayout.Width(28f), GUILayout.MinHeight(22f), GUILayout.MaxHeight((advanced ? 2 : 1) * (EditorGUIUtility.singleLineHeight + 3)));
             EditorGUILayout.EndHorizontal();
-            
+
             GUILayout.Space(EditorGUIUtility.standardVerticalSpacing * 2f);
 
             if (drawNormal)
@@ -143,7 +142,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 Drawer_AdvancedBlendDistance(serialized, true, maxFadeDistance, blendNormalDistanceContent);
                 HDProbeUI.Drawer_ToolBarButton(HDProbeUI.ToolBar.NormalBlend, owner, GUILayout.ExpandHeight(true), GUILayout.Width(28f), GUILayout.MinHeight(22f), GUILayout.MaxHeight((advanced ? 2 : 1) * (EditorGUIUtility.singleLineHeight + 3)));
                 EditorGUILayout.EndHorizontal();
-                
+
                 GUILayout.Space(EditorGUIUtility.standardVerticalSpacing * 2f);
             }
 
@@ -159,7 +158,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 }
                 GUILayout.Space(28f + 9f); //add right margin for alignment
                 EditorGUILayout.EndHorizontal();
-                
+
                 GUILayout.Space(EditorGUIUtility.standardVerticalSpacing * 2f);
             }
         }
@@ -186,9 +185,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 {
                     editorAdvancedModeBlendDistancePositive.vector3Value = blendDistancePositive.vector3Value;
                     editorAdvancedModeBlendDistanceNegative.vector3Value = blendDistanceNegative.vector3Value;
-
-                    //Note it strangely do not propagate to main apply so apply here.
-                    serialized.Apply();
                 }
             }
             else

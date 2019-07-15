@@ -1,24 +1,23 @@
 using System;
-using UnityEngine.Rendering;
 
-namespace UnityEngine.Experimental.Rendering.HDPipeline
+namespace UnityEngine.Rendering.HighDefinition
 {
     [Serializable, VolumeComponentMenu("Post-processing/Color Adjustments")]
     public sealed class ColorAdjustments : VolumeComponent, IPostProcessComponent
     {
-        [Tooltip("Adjusts the overall exposure of the scene in EV100. This is applied after HDR effect and right before tonemapping so it won't affect previous effects in the chain.")]
+        [Tooltip("Sets the value that HDRP uses to adjust the overall exposure of the Scene, in EV.")]
         public FloatParameter postExposure = new FloatParameter(0f);
-        
-        [Tooltip("Expands or shrinks the overall range of tonal values.")]
+
+        [Tooltip("Controls the overall range of the tonal values.")]
         public ClampedFloatParameter contrast = new ClampedFloatParameter(0f, -100f, 100f);
 
-        [Tooltip("Tint the render by multiplying a color.")]
+        [Tooltip("Specifies the color that HDRP tints the render to.")]
         public ColorParameter colorFilter = new ColorParameter(Color.white, true, false, true);
 
-        [Tooltip("Shift the hue of all colors.")]
+        [Tooltip("Controls the hue of all colors in the render.")]
         public ClampedFloatParameter hueShift = new ClampedFloatParameter(0f, -180f, 180f);
 
-        [Tooltip("Pushes the intensity of all colors.")]
+        [Tooltip("Controls the intensity of all colors in the render.")]
         public ClampedFloatParameter saturation = new ClampedFloatParameter(0f, -100f, 100f);
 
         public bool IsActive()

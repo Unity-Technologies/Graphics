@@ -1,6 +1,4 @@
-using UnityEngine.Experimental.Rendering.HDPipeline;
-
-namespace UnityEngine.Rendering
+namespace UnityEngine.Rendering.HighDefinition
 {
     // This file can't be in the editor assembly as we need to access it in runtime-editor-specific
     // places like OnGizmo etc and we don't want to add the editor assembly as a dependency of the
@@ -10,7 +8,7 @@ namespace UnityEngine.Rendering
     using UnityEditor;
     using AntialiasingMode = HDAdditionalCameraData.AntialiasingMode;
 
-    public static class HDRenderPipelinePreferences
+    static class HDRenderPipelinePreferences
     {
         static bool m_Loaded = false;
 
@@ -37,6 +35,31 @@ namespace UnityEngine.Rendering
                 EditorPrefs.SetBool(Keys.sceneViewStopNaNs, s_SceneViewStopNaNs);
             }
         }
+
+        static bool s_MatcapMixAlbedo;
+        public static bool matcapViewMixAlbedo
+        {
+            get => s_MatcapMixAlbedo;
+            set
+            {
+                if (s_MatcapMixAlbedo == value) return;
+                s_MatcapMixAlbedo = value;
+                EditorPrefs.SetBool(Keys.matcapViewMixAlbedo, s_MatcapMixAlbedo);
+            }
+        }
+
+        static float s_MatcapScale;
+        public static float matcapViewScale
+        {
+            get => s_MatcapScale;
+            set
+            {
+                if (s_MatcapScale == value) return;
+                s_MatcapScale = value;
+                EditorPrefs.SetFloat(Keys.matcapViewMixAlbedo, s_MatcapScale);
+            }
+        }
+
 
         static bool s_LightColorNormalization = false;
         public static bool lightColorNormalization
@@ -66,6 +89,8 @@ namespace UnityEngine.Rendering
         {
             internal const string sceneViewAntialiasing = "HDRP.SceneView.Antialiasing";
             internal const string sceneViewStopNaNs = "HDRP.SceneView.StopNaNs";
+            internal const string matcapViewMixAlbedo = "HDRP.SceneView.MatcapMixAlbedo";
+            internal const string matcapViewScale = "HDRP.SceneView.MatcapViewScale";
             internal const string lightColorNormalization = "HDRP.UI.LightColorNormalization";
             internal const string materialEmissionColorNormalization = "HDRP.UI.MaterialEmissionNormalization";
         }
@@ -86,7 +111,11 @@ namespace UnityEngine.Rendering
                         EditorGUILayout.HelpBox("Temporal Anti-aliasing in the Scene View is only supported when Animated Materials are enabled.", MessageType.Info);
 
                     sceneViewStopNaNs = EditorGUILayout.Toggle("Scene View Stop NaNs", sceneViewStopNaNs);
-                    
+
+                    matcapViewMixAlbedo = EditorGUILayout.Toggle("Mix Albedo in the Matcap", matcapViewMixAlbedo);
+                    if(matcapViewMixAlbedo)
+                        matcapViewScale = EditorGUILayout.FloatField("Matcap intensity scale", matcapViewScale);
+
                     // Disable this until we have a good solution to handle the normalized color picking
                     // EditorGUILayout.LabelField("Color Normalization");
                     // using (new EditorGUI.IndentLevelScope())
@@ -107,6 +136,8 @@ namespace UnityEngine.Rendering
         {
             s_SceneViewAntialiasing = (AntialiasingMode)EditorPrefs.GetInt(Keys.sceneViewAntialiasing, (int)AntialiasingMode.None);
             s_SceneViewStopNaNs = EditorPrefs.GetBool(Keys.sceneViewStopNaNs, false);
+            s_MatcapMixAlbedo = EditorPrefs.GetBool(Keys.matcapViewMixAlbedo, true);
+            s_MatcapScale = EditorPrefs.GetFloat(Keys.matcapViewScale, 1.0f);
             s_LightColorNormalization = EditorPrefs.GetBool(Keys.lightColorNormalization, false);
             s_MaterialEmissionColorNormalization = EditorPrefs.GetBool(Keys.materialEmissionColorNormalization, false);
 

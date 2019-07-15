@@ -60,7 +60,7 @@ void geom(point uint intStream[1] : TEXCOORD0,inout TriangleStream<VFX_VARYING_P
 	    const float kUVScale = 0.866025388240814208984375f;
 	
 	    const float2 vOffsets = kOffsets[id % 3];
-	    o.VFX_VARYING_UV = (vOffsets * kUVScale) + 0.5f;
+	    o.VFX_VARYING_UV.xy = (vOffsets * kUVScale) + 0.5f;
 	
 #elif VFX_PRIMITIVE_OCTAGON	
 	    // TODO Not working at the moment. Order of strips has to be fixed
@@ -80,7 +80,7 @@ void geom(point uint intStream[1] : TEXCOORD0,inout TriangleStream<VFX_VARYING_P
 	    ${VFXLoadParameter:{cropFactor}}
 	    cropFactor = id & 1 ? 1.0f - cropFactor : 1.0f;
 	    const float2 vOffsets = kUvs[id & 7] * cropFactor;
-	    o.VFX_VARYING_UV = vOffsets + 0.5f;
+	    o.VFX_VARYING_UV.xy = vOffsets + 0.5f;
 	
 #endif
 						

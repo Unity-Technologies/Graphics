@@ -75,7 +75,7 @@ namespace UnityEditor.VFX
         public void CompileExpressions(VFXGraph graph, VFXExpressionContextOption options, bool filterOutInvalidContexts = false)
         {
             var models = new HashSet<ScriptableObject>();
-            graph.CollectDependencies(models);
+            graph.CollectDependencies(models,false);
             var contexts = models.OfType<VFXContext>();
             if (filterOutInvalidContexts)
                 contexts = contexts.Where(c => c.CanBeCompiled());

@@ -5,6 +5,7 @@ Shader "Hidden/HDRP/Blit"
         #pragma target 4.5
         #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
         #pragma multi_compile _ DISABLE_TEXTURE2D_X_ARRAY
+        #pragma multi_compile _ BLIT_SINGLE_SLICE
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
 
@@ -14,6 +15,7 @@ Shader "Hidden/HDRP/Blit"
         uniform float4 _BlitScaleBias;
         uniform float4 _BlitScaleBiasRt;
         uniform float _BlitMipLevel;
+        uniform int _BlitTexArraySlice;
 
         struct Attributes
         {
@@ -49,24 +51,24 @@ Shader "Hidden/HDRP/Blit"
             return output;
         }
 
+        float4 Frag(Varyings input, SamplerState s)
+        {
+        #if defined(USE_TEXTURE2D_X_AS_ARRAY) && defined(BLIT_SINGLE_SLICE)
+            return SAMPLE_TEXTURE2D_ARRAY_LOD(_BlitTexture, s, input.texcoord.xy, _BlitTexArraySlice, _BlitMipLevel);
+        #endif
+
+            UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
+            return SAMPLE_TEXTURE2D_X_LOD(_BlitTexture, s, input.texcoord.xy, _BlitMipLevel);
+        }
+
         float4 FragNearest(Varyings input) : SV_Target
         {
-            UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
-            float2 uv = input.texcoord.xy;
-#if UNITY_SINGLE_PASS_STEREO
-            uv.x = (uv.x + unity_StereoEyeIndex) * 0.5;
-#endif
-            return SAMPLE_TEXTURE2D_X_LOD(_BlitTexture, sampler_PointClamp, uv, _BlitMipLevel);
+            return Frag(input, sampler_PointClamp);
         }
 
         float4 FragBilinear(Varyings input) : SV_Target
         {
-            UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
-            float2 uv = input.texcoord.xy;
-#if UNITY_SINGLE_PASS_STEREO
-            uv.x = (uv.x + unity_StereoEyeIndex) * 0.5;
-#endif
-            return SAMPLE_TEXTURE2D_X_LOD(_BlitTexture, sampler_LinearClamp, uv, _BlitMipLevel);
+            return Frag(input, sampler_LinearClamp);
         }
 
     ENDHLSL

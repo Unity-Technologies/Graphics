@@ -1,9 +1,7 @@
 using System;
-using System.Collections.Generic;
-using UnityEngine.Rendering;
 using UnityEngine.Serialization;
 
-namespace UnityEngine.Experimental.Rendering.HDPipeline
+namespace UnityEngine.Rendering.HighDefinition
 {
     [Obsolete("For data migration")]
     public enum ObsoleteLitShaderMode
@@ -97,7 +95,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public bool enableSSR;
         public bool enableSSAO;
         public bool enableSubsurfaceScattering;
-        public bool enableTransmission;  
+        public bool enableTransmission;
         public bool enableAtmosphericScattering;
         public bool enableVolumetrics;
         public bool enableReprojectionForVolumetrics;
@@ -106,7 +104,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public float diffuseGlobalDimmer;
         public float specularGlobalDimmer;
-        
+
         public ObsoleteLitShaderMode shaderLitMode;
         public bool enableDepthPrepassWithDeferredRendering;
 
@@ -125,14 +123,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public bool enableRealtimePlanarReflection;
 
         public bool enableMSAA;
-        
+
         public bool enableAsyncCompute;
         public bool runLightListAsync;
         public bool runSSRAsync;
         public bool runSSAOAsync;
         public bool runContactShadowsAsync;
         public bool runVolumeVoxelizationAsync;
-        
+
         public ObsoleteLightLoopSettings lightLoopSettings;
     }
 
@@ -352,13 +350,50 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             oldFrameSettingsFormat = null;
         }
 #pragma warning restore 618 // Type or member is obsolete
-        
+
         internal static void MigrateToAfterPostprocess(ref FrameSettings cameraFrameSettings)
         {
             cameraFrameSettings.SetEnabled(FrameSettingsField.AfterPostprocess, true);
         }
 
-        internal static void MigrateToSpecularLighting(ref FrameSettings cameraFrameSettings)
-            => cameraFrameSettings.SetEnabled(FrameSettingsField.SpecularLighting, true);
+        internal static void MigrateToDefaultReflectionSettings(ref FrameSettings cameraFrameSettings)
+        {
+            cameraFrameSettings.SetEnabled(FrameSettingsField.EnableReflectionProbe, true);
+            cameraFrameSettings.SetEnabled(FrameSettingsField.EnablePlanarProbe, true);
+            cameraFrameSettings.SetEnabled(FrameSettingsField.ReplaceDiffuseForIndirect, false);
+            cameraFrameSettings.SetEnabled(FrameSettingsField.EnableSkyLighting, true);
+        }
+        
+        internal static void MigrateToNoReflectionRealtimeSettings(ref FrameSettings cameraFrameSettings)
+        {
+            cameraFrameSettings.SetEnabled(FrameSettingsField.EnableReflectionProbe, true);
+            cameraFrameSettings.SetEnabled(FrameSettingsField.EnablePlanarProbe, false);
+            cameraFrameSettings.SetEnabled(FrameSettingsField.ReplaceDiffuseForIndirect, false);
+            cameraFrameSettings.SetEnabled(FrameSettingsField.EnableSkyLighting, true);
+        }
+
+        internal static void MigrateToNoReflectionSettings(ref FrameSettings cameraFrameSettings)
+        {
+            cameraFrameSettings.SetEnabled(FrameSettingsField.EnableReflectionProbe, false);
+            cameraFrameSettings.SetEnabled(FrameSettingsField.EnablePlanarProbe, false);
+            cameraFrameSettings.SetEnabled(FrameSettingsField.ReplaceDiffuseForIndirect, true);
+            cameraFrameSettings.SetEnabled(FrameSettingsField.EnableSkyLighting, false);            
+        }
+
+        internal static void MigrateToPostProcess(ref FrameSettings cameraFrameSettings)
+        {
+            cameraFrameSettings.SetEnabled(FrameSettingsField.StopNaN, true);
+            cameraFrameSettings.SetEnabled(FrameSettingsField.DepthOfField, true);
+            cameraFrameSettings.SetEnabled(FrameSettingsField.MotionBlur, true);
+            cameraFrameSettings.SetEnabled(FrameSettingsField.PaniniProjection, true);
+            cameraFrameSettings.SetEnabled(FrameSettingsField.Bloom, true);
+            cameraFrameSettings.SetEnabled(FrameSettingsField.LensDistortion, true);
+            cameraFrameSettings.SetEnabled(FrameSettingsField.ChromaticAberration, true);
+            cameraFrameSettings.SetEnabled(FrameSettingsField.Vignette, true);
+            cameraFrameSettings.SetEnabled(FrameSettingsField.ColorGrading, true);
+            cameraFrameSettings.SetEnabled(FrameSettingsField.FilmGrain, true);
+            cameraFrameSettings.SetEnabled(FrameSettingsField.Dithering, true);
+            cameraFrameSettings.SetEnabled(FrameSettingsField.Antialiasing, true);
+        }
     }
 }

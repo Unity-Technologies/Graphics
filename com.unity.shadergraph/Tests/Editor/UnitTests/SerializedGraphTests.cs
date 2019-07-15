@@ -160,8 +160,7 @@ namespace UnityEditor.Graphing.UnitTests
             node.name = "Test Node";
             graph.AddNode(node);
             Assert.AreEqual(1, graph.GetNodes<AbstractMaterialNode>().Count());
-
-            graph.RemoveNode(graph.GetNodes<AbstractMaterialNode>().FirstOrDefault());
+            Assert.Catch<InvalidOperationException>(() => graph.RemoveNode(node));
             Assert.AreEqual(1, graph.GetNodes<AbstractMaterialNode>().Count());
         }
 
@@ -648,7 +647,7 @@ namespace UnityEditor.Graphing.UnitTests
             graph.Connect(outputNode.GetSlotReference(TestableNode.Output0), inputNode.GetSlotReference(TestableNode.Input0));
             Assert.AreEqual(1, graph.edges.Count());
 
-            graph.RemoveElements(graph.GetNodes<AbstractMaterialNode>(), graph.edges, Enumerable.Empty<GroupData>());
+            graph.RemoveElements(graph.GetNodes<AbstractMaterialNode>().ToArray(), graph.edges.ToArray(), new GroupData[] {}, new StickyNoteData[] {});
             Assert.AreEqual(0, graph.GetNodes<AbstractMaterialNode>().Count());
             Assert.AreEqual(0, graph.edges.Count());
         }

@@ -1,10 +1,10 @@
-using UnityEditor.Rendering;
 using UnityEngine;
-using UnityEngine.Experimental.Rendering.HDPipeline;
+using UnityEngine.Rendering.HighDefinition;
+using UnityEditor.ShaderGraph;
 
-namespace UnityEditor.Experimental.Rendering.HDPipeline
+namespace UnityEditor.Rendering.HighDefinition
 {
-    public class LitShaderPreprocessor : BaseShaderPreprocessor
+    class LitShaderPreprocessor : BaseShaderPreprocessor
     {
         public LitShaderPreprocessor() {}
 
@@ -23,7 +23,21 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             bool isTransparentForwardPass = isTransparentPostpass || isTransparentBackface || isTransparentPrepass || isDistortionPass;
 
             // Using Contains to include the Tessellation variants
-            bool isBuiltInLit = shader.name.Contains("HDRP/Lit") || shader.name.Contains("HDRP/LayeredLit") || shader.name.Contains("HDRP/TerrainLit");
+            bool isBuiltInTerrainLit = shader.name.Contains("HDRP/TerrainLit");
+            bool isBuiltInLit = shader.name.Contains("HDRP/Lit") || shader.name.Contains("HDRP/LayeredLit") || isBuiltInTerrainLit;
+
+            if (shader.IsShaderGraph())
+            {
+                string shaderPath = AssetDatabase.GetAssetPath(shader);
+                isBuiltInLit |= GraphUtil.GetOutputNodeType(shaderPath) == typeof(HDLitMasterNode);
+            }
+
+            // Caution: Currently only HDRP/TerrainLit is using keyword _ALPHATEST_ON with multi compile, we shouldn't test any other built in shader
+            if (isBuiltInTerrainLit)
+            {
+                if (inputData.shaderKeywordSet.IsEnabled(m_AlphaTestOn) && !hdrpAsset.currentPlatformRenderPipelineSettings.supportTerrainHole)
+                    return true;
+            }
 
             // When using forward only, we never need GBuffer pass (only Forward)
             // Gbuffer Pass is suppose to exist only for Lit shader thus why we test the condition here in case another shader generate a GBuffer pass (like VFX)
@@ -51,7 +65,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             // Apply following set of rules only to inspector version of shader as we don't have Transparent keyword with shader graph
             if (isBuiltInLit)
             {
-                // TODO: Currently there is no way to detect that Motion vector pass is from any ShaderGraph or from Lit.shader
                 // Forward material don't use keyword for WriteNormalBuffer but #define so we can't test for the keyword outside of isBuiltInLit
                 // otherwise the pass will be remove for non-lit shader graph version (like StackLit)
                 if (isMotionPass)
@@ -66,38 +79,18 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                         return true;
                 }
 
-                if (inputData.shaderKeywordSet.IsEnabled(m_Transparent))
-                {
-                    // If transparent, we never need GBuffer pass.
-                    if (isGBufferPass)
-                        return true;
-
-                    // If transparent we don't need the depth only pass
-                    if (isDepthOnlyPass)
-                        return true;
-
-                    // If transparent we don't need the motion vector pass
-                    if (isMotionPass)
-                        return true;
-
-                    // If we are transparent we use cluster lighting and not tile lighting
-                    if (inputData.shaderKeywordSet.IsEnabled(m_TileLighting))
-                        return true;
-                }
-                else // Opaque
+                if (!inputData.shaderKeywordSet.IsEnabled(m_Transparent)) // Opaque
                 {
                     // If opaque, we never need transparent specific passes (even in forward only mode)
                     if (isTransparentForwardPass)
                         return true;
 
-                    // Note: We can't apply following rules to Shader Graph as we don't know if we are transparent or opaque.
-                    // TODO: Find a way to be able to apply these rules to Shader Graph lit shader
                     if (hdrpAsset.currentPlatformRenderPipelineSettings.supportedLitShaderMode == RenderPipelineSettings.SupportedLitShaderMode.DeferredOnly)
                     {
                         // When we are in deferred, we only support tile lighting
                         if (inputData.shaderKeywordSet.IsEnabled(m_ClusterLighting))
                             return true;
-                        
+
                         if (isForwardPass && !inputData.shaderKeywordSet.IsEnabled(m_DebugDisplay))
                             return true;
                     }
@@ -107,6 +100,27 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     // if (inputData.shaderKeywordSet.IsEnabled(m_ClusterLighting) && !hdrpAsset.currentPlatformRenderPipelineSettings.supportMSAA)
                     //    return true;
                 }
+            }
+
+            // We strip passes for transparent passes outside of isBuiltInLit because we want Hair, Fabric
+            // and StackLit shader graphs to be taken in account.
+            if (inputData.shaderKeywordSet.IsEnabled(m_Transparent))
+            {
+                // If transparent, we never need GBuffer pass.
+                if (isGBufferPass)
+                    return true;
+
+                // If transparent we don't need the depth only pass
+                if (isDepthOnlyPass)
+                    return true;
+
+                // If transparent we don't need the motion vector pass
+                if (isMotionPass)
+                    return true;
+
+                // If we are transparent we use cluster lighting and not tile lighting
+                if (inputData.shaderKeywordSet.IsEnabled(m_TileLighting))
+                    return true;
             }
 
             // TODO: Tests for later

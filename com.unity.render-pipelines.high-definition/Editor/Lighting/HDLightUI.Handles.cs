@@ -1,8 +1,9 @@
 using UnityEngine;
-using UnityEngine.Experimental.Rendering.HDPipeline;
+using UnityEngine.Rendering.HighDefinition;
+using UnityEditor.Rendering;
 
-namespace UnityEditor.Experimental.Rendering.HDPipeline
-{ 
+namespace UnityEditor.Rendering.HighDefinition
+{
     partial class HDLightUI
     {
         public static void DrawHandles(HDAdditionalLightData additionalData, Editor owner)
@@ -30,7 +31,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                                 case SpotLightShape.Cone:
                                     using (new Handles.DrawingScope(Matrix4x4.TRS(light.transform.position, light.transform.rotation, Vector3.one)))
                                     {
-                                        Vector3 outterAngleInnerAngleRange = new Vector3(light.spotAngle, light.spotAngle * additionalData.GetInnerSpotPercent01(), light.range);
+                                        Vector3 outterAngleInnerAngleRange = new Vector3(light.spotAngle, light.spotAngle * additionalData.innerSpotPercent01, light.range);
                                         Handles.zTest = UnityEngine.Rendering.CompareFunction.Greater;
                                         Handles.color = wireframeColorBehind;
                                         CoreLightEditorUtilities.DrawSpotlightWireframe(outterAngleInnerAngleRange, additionalData.shadowNearPlane);
@@ -47,7 +48,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                                         if (EditorGUI.EndChangeCheck())
                                         {
                                             Undo.RecordObjects(new UnityEngine.Object[] { light, additionalData }, "Adjust Cone Spot Light");
-                                            additionalData.m_InnerSpotPercent = 100f * outterAngleInnerAngleRange.y / outterAngleInnerAngleRange.x;
+                                            additionalData.innerSpotPercent = 100f * outterAngleInnerAngleRange.y / outterAngleInnerAngleRange.x;
                                             light.spotAngle = outterAngleInnerAngleRange.x;
                                             light.range = outterAngleInnerAngleRange.z;
                                         }
@@ -61,17 +62,17 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                                         Vector4 aspectFovMaxRangeMinRange = new Vector4(additionalData.aspectRatio, light.spotAngle, light.range);
                                         Handles.zTest = UnityEngine.Rendering.CompareFunction.Greater;
                                         Handles.color = wireframeColorBehind;
-                                        CoreLightEditorUtilities.DrawPyramidFrustumWireframe(aspectFovMaxRangeMinRange, additionalData.shadowNearPlane);
+                                        CoreLightEditorUtilities.DrawSpherePortionWireframe(aspectFovMaxRangeMinRange, additionalData.shadowNearPlane);
                                         Handles.zTest = UnityEngine.Rendering.CompareFunction.LessEqual;
                                         Handles.color = wireframeColorAbove;
-                                        CoreLightEditorUtilities.DrawPyramidFrustumWireframe(aspectFovMaxRangeMinRange, additionalData.shadowNearPlane);
+                                        CoreLightEditorUtilities.DrawSpherePortionWireframe(aspectFovMaxRangeMinRange, additionalData.shadowNearPlane);
                                         EditorGUI.BeginChangeCheck();
                                         Handles.zTest = UnityEngine.Rendering.CompareFunction.Greater;
                                         Handles.color = handleColorBehind;
-                                        aspectFovMaxRangeMinRange = CoreLightEditorUtilities.DrawPyramidFrustumHandle(aspectFovMaxRangeMinRange, false);
+                                        aspectFovMaxRangeMinRange = CoreLightEditorUtilities.DrawSpherePortionHandle(aspectFovMaxRangeMinRange, false);
                                         Handles.zTest = UnityEngine.Rendering.CompareFunction.LessEqual;
                                         Handles.color = handleColorAbove;
-                                        aspectFovMaxRangeMinRange = CoreLightEditorUtilities.DrawPyramidFrustumHandle(aspectFovMaxRangeMinRange, false);
+                                        aspectFovMaxRangeMinRange = CoreLightEditorUtilities.DrawSpherePortionHandle(aspectFovMaxRangeMinRange, false);
                                         if (EditorGUI.EndChangeCheck())
                                         {
                                             Undo.RecordObjects(new UnityEngine.Object[] { light, additionalData }, "Adjust Pyramid Spot Light");

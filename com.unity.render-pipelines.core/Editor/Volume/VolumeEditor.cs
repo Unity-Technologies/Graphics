@@ -18,6 +18,8 @@ namespace UnityEditor.Rendering
 
         VolumeProfile profileRef => actualTarget.HasInstantiatedProfile() ? actualTarget.profile : actualTarget.sharedProfile;
 
+        readonly GUIContent[] m_Modes = { new GUIContent("Global"), new GUIContent("Local") };
+
         void OnEnable()
         {
             var o = new PropertyFetcher<Volume>(serializedObject);
@@ -48,12 +50,26 @@ namespace UnityEditor.Rendering
         {
             serializedObject.Update();
 
-            EditorGUILayout.PropertyField(m_IsGlobal);
+            int isGlobal = m_IsGlobal.boolValue ? 0 : 1;
+            isGlobal = EditorGUILayout.Popup(EditorGUIUtility.TrTextContent("Mode", "A global volume is applied to the whole scene."), isGlobal, m_Modes);
+            m_IsGlobal.boolValue = isGlobal == 0;
 
-            if (!m_IsGlobal.boolValue) // Blend radius is not needed for global volumes
+            if (isGlobal != 0) // Blend radius is not needed for global volumes
             {
                 if (actualTarget.GetComponent<Collider>() == null)
+                {
                     EditorGUILayout.HelpBox("Add a Collider to this GameObject to set boundaries for the local Volume.", MessageType.Info);
+
+                    if (GUILayout.Button(EditorGUIUtility.TrTextContent("Add Collider"), EditorStyles.miniButton))
+                    {
+                        var menu = new GenericMenu();
+                        menu.AddItem(EditorGUIUtility.TrTextContent("Box"), false, () => Undo.AddComponent<BoxCollider>(actualTarget.gameObject));
+                        menu.AddItem(EditorGUIUtility.TrTextContent("Sphere"), false, () => Undo.AddComponent<SphereCollider>(actualTarget.gameObject));
+                        menu.AddItem(EditorGUIUtility.TrTextContent("Capsule"), false, () => Undo.AddComponent<CapsuleCollider>(actualTarget.gameObject));
+                        menu.AddItem(EditorGUIUtility.TrTextContent("Mesh"), false, () => Undo.AddComponent<MeshCollider>(actualTarget.gameObject));
+                        menu.ShowAsContext();
+                    }
+                }
 
                 EditorGUILayout.PropertyField(m_BlendRadius);
                 m_BlendRadius.floatValue = Mathf.Max(m_BlendRadius.floatValue, 0f);

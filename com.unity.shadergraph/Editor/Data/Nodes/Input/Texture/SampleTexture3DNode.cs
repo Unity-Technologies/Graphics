@@ -37,7 +37,7 @@ namespace UnityEditor.ShaderGraph
         }
 
         // Node generations
-        public virtual void GenerateNodeCode(ShaderGenerator visitor, GraphContext graphContext, GenerationMode generationMode)
+        public virtual void GenerateNodeCode(ShaderStringBuilder sb, GraphContext graphContext, GenerationMode generationMode)
         {
             var uvName = GetSlotValue(UVInput, generationMode);
 
@@ -46,14 +46,13 @@ namespace UnityEditor.ShaderGraph
             var edgesSampler = owner.GetEdges(samplerSlot.slotReference);
 
             var id = GetSlotValue(TextureInputId, generationMode);
-            var result = string.Format("{0}4 {1} = SAMPLE_TEXTURE3D({2}, {3}, {4});"
-                    , precision
+            var result = string.Format("$precision4 {0} = SAMPLE_TEXTURE3D({1}, {2}, {3});"
                     , GetVariableNameForSlot(OutputSlotId)
                     , id
                     , edgesSampler.Any() ? GetSlotValue(SamplerInput, generationMode) : "sampler" + id
                     , uvName);
 
-            visitor.AddShaderChunk(result, true);
+            sb.AppendLine(result);
         }
     }
 }

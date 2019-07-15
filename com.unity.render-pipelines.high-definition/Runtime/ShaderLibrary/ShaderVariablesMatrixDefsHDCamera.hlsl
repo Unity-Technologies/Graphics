@@ -9,11 +9,11 @@
 
 #define UNITY_MATRIX_V              _XRViewConstants[unity_StereoEyeIndex].viewMatrix
 #define UNITY_MATRIX_I_V            _XRViewConstants[unity_StereoEyeIndex].invViewMatrix
-#define UNITY_MATRIX_P              OptimizeProjectionMatrix(_XRViewConstants[unity_StereoEyeIndex].projMatrix) // XRTODO: is the optimization valid for XR?
+#define UNITY_MATRIX_P              OptimizeProjectionMatrix(_XRViewConstants[unity_StereoEyeIndex].projMatrix)
 #define UNITY_MATRIX_I_P            _XRViewConstants[unity_StereoEyeIndex].invProjMatrix
 #define UNITY_MATRIX_VP             _XRViewConstants[unity_StereoEyeIndex].viewProjMatrix
 #define UNITY_MATRIX_I_VP           _XRViewConstants[unity_StereoEyeIndex].invViewProjMatrix
-#define UNITY_MATRIX_UNJITTERED_VP  _XRViewConstants[unity_StereoEyeIndex].viewProjMatrix // Since XR doesn't need to add jitter, just use normal VP matrix, XRTODO: why not?
+#define UNITY_MATRIX_UNJITTERED_VP  _XRViewConstants[unity_StereoEyeIndex].nonJitteredViewProjMatrix
 #define UNITY_MATRIX_PREV_VP        _XRViewConstants[unity_StereoEyeIndex].prevViewProjMatrix
 
 #else

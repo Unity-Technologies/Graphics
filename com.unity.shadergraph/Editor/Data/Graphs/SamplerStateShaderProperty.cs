@@ -9,56 +9,35 @@ namespace UnityEditor.ShaderGraph
         public SamplerStateShaderProperty()
         {
             displayName = "SamplerState";
-
-            if(value == null)
-                value = new TextureSamplerState();
+            value = new TextureSamplerState();
         }
 
-        public override PropertyType propertyType
+        public override PropertyType propertyType => PropertyType.SamplerState;
+        
+        public override bool isBatchable => false;
+        public override bool isExposable => false;
+        public override bool isRenamable => false;
+
+        public override TextureSamplerState value
         {
-            get { return PropertyType.SamplerState; }
+            get => base.value;
+            set
+            {
+                overrideReferenceName = $"{concreteShaderValueType.ToShaderString()}_{value.filter}_{value.wrap}";
+                base.value = value;
+            }
         }
-
-        public override Vector4 defaultValue
-        {
-            get { return new Vector4(); }
-        }
-
-        public override bool isBatchable
-        {
-            get { return false; }
-        }
-
-        public override bool isExposable
-        {
-            get { return false; }
-        }
-
-        public override string GetPropertyBlockString()
-        {
-            return string.Empty;
-        }
-
+        
         public override string GetPropertyDeclarationString(string delimiter = ";")
         {
-            return string.Format(@"SAMPLER({0}_{1}_{2}){3}", referenceName, 
-                Enum.GetName(typeof(TextureSamplerState.FilterMode), value.filter), 
-                Enum.GetName(typeof(TextureSamplerState.WrapMode), value.wrap), 
-                delimiter);
+            return $"SAMPLER({referenceName}){delimiter}";
         }
 
         public override string GetPropertyAsArgumentString()
         {
-            return string.Format(@"SamplerState {0}_{1}_{2}", referenceName, 
-                Enum.GetName(typeof(TextureSamplerState.FilterMode), value.filter), 
-                Enum.GetName(typeof(TextureSamplerState.WrapMode), value.wrap));
+            return $"SamplerState {referenceName}";
         }
-
-        public override PreviewProperty GetPreviewMaterialProperty()
-        {
-            return default(PreviewProperty);
-        }
-
+        
         public override AbstractMaterialNode ToConcreteNode()
         {
             return new SamplerStateNode() 
@@ -68,12 +47,20 @@ namespace UnityEditor.ShaderGraph
             };
         }
 
-        public override AbstractShaderProperty Copy()
+        public override PreviewProperty GetPreviewMaterialProperty()
         {
-            var copied = new SamplerStateShaderProperty();
-            copied.displayName = displayName;
-            copied.value = value;
-            return copied;
+            return default(PreviewProperty);
+        }
+
+        public override ShaderInput Copy()
+        {
+            return new SamplerStateShaderProperty()
+            {
+                displayName = displayName,
+                hidden = hidden,
+                overrideReferenceName = overrideReferenceName,
+                value = value
+            };
         }
     }
 }

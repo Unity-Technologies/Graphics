@@ -5,7 +5,7 @@
 #ifndef MATERIALDEBUG_CS_HLSL
 #define MATERIALDEBUG_CS_HLSL
 //
-// UnityEngine.Experimental.Rendering.HDPipeline.Attributes.DebugViewVarying:  static fields
+// UnityEngine.Rendering.HighDefinition.Attributes.DebugViewVarying:  static fields
 //
 #define DEBUGVIEWVARYING_NONE (0)
 #define DEBUGVIEWVARYING_TEXCOORD0 (1)
@@ -19,7 +19,7 @@
 #define DEBUGVIEWVARYING_VERTEX_COLOR_ALPHA (9)
 
 //
-// UnityEngine.Experimental.Rendering.HDPipeline.Attributes.DebugViewGbuffer:  static fields
+// UnityEngine.Rendering.HighDefinition.Attributes.DebugViewGbuffer:  static fields
 //
 #define DEBUGVIEWGBUFFER_NONE (0)
 #define DEBUGVIEWGBUFFER_DEPTH (10)
@@ -30,7 +30,7 @@
 #define DEBUGVIEWGBUFFER_BAKE_SHADOW_MASK3 (15)
 
 //
-// UnityEngine.Experimental.Rendering.HDPipeline.Attributes.DebugViewProperties:  static fields
+// UnityEngine.Rendering.HighDefinition.Attributes.DebugViewProperties:  static fields
 //
 #define DEBUGVIEWPROPERTIES_NONE (0)
 #define DEBUGVIEWPROPERTIES_TESSELLATION (16)

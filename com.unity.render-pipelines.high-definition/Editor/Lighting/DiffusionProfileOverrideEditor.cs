@@ -1,5 +1,5 @@
 using UnityEditor.Rendering;
-using UnityEngine.Experimental.Rendering.HDPipeline;
+using UnityEngine.Rendering.HighDefinition;
 using UnityEditorInternal;
 using UnityEngine;
 using System.Collections.Generic;
@@ -8,7 +8,7 @@ using System.Linq;
 using System;
 using Object = UnityEngine.Object;
 
-namespace UnityEditor.Experimental.Rendering.HDPipeline
+namespace UnityEditor.Rendering.HighDefinition
 {
     [VolumeComponentEditor(typeof(DiffusionProfileOverride))]
     sealed class DiffusionProfileOverrideEditor : VolumeComponentEditor
@@ -69,7 +69,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     foreach (var mat in meshRenderer.sharedMaterials)
                     {
                         var profile = GetMaterialDiffusionProfile(mat);
-                        
+
                         if (profiles.Count == DiffusionProfileConstants.DIFFUSION_PROFILE_COUNT - 1)
                             break ;
 
@@ -92,12 +92,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
             if (!mat.HasProperty(HDShaderIDs._DiffusionProfileAsset))
                 return null;
-            
+
             string guid = HDUtils.ConvertVector4ToGUID(mat.GetVector(HDShaderIDs._DiffusionProfileAsset));
-            
+
             if (String.IsNullOrEmpty(guid))
                 return null;
-            
+
             return AssetDatabase.LoadAssetAtPath<DiffusionProfileSettings>(AssetDatabase.GUIDToAssetPath(guid));
         }
     }

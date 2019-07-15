@@ -1,14 +1,10 @@
-using System;
-using System.Collections.Generic;
-using UnityEngine.Rendering;
-using UnityEngine.Experimental.Rendering;
-
-namespace UnityEngine.Experimental.Rendering.HDPipeline
+namespace UnityEngine.Rendering.HighDefinition
 {
     // TODO remove every occurrence of ShadowSplitData in function parameters when we'll have scriptable culling
-    public static class HDShadowUtils
+    static class HDShadowUtils
     {
         public static readonly float k_MinShadowNearPlane = 0.0001f;
+        public static readonly float k_MaxShadowNearPlane = 10.0f;
 
         public static float Asfloat(uint val) { unsafe { return *((float*)&val); } }
         public static float Asfloat(int val)  { unsafe { return *((float*)&val); } }
@@ -24,16 +20,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (hdAsset == null)
                 return 1;
 
-            // Currently only PCF 3x3 is used for deferred rendering so if we're in deferred return 3
+            // Currently we force MEDIUM on deferred, so PCF 5x5 is used.
             if (camera.frameSettings.litShaderMode == LitShaderMode.Deferred)
-                return 3;
+                return 5;
 
-            switch (hdAsset.currentPlatformRenderPipelineSettings.hdShadowInitParams.shadowQuality)
+            switch (hdAsset.currentPlatformRenderPipelineSettings.hdShadowInitParams.shadowFilteringQuality)
             {
                 // Warning: these values have to match the algorithms used for shadow filtering (in HDShadowAlgorithm.hlsl)
-                case HDShadowQuality.Low:
+                case HDShadowFilteringQuality.Low:
                     return 3; // PCF 3x3
-                case HDShadowQuality.Medium:
+                case HDShadowFilteringQuality.Medium:
                     return 5; // PCF 5x5
                 default:
                     return 1; // Any non PCF algorithms
@@ -49,7 +45,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
 
         // TODO: box spot and pyramid spots with non 1 aspect ratios shadow are incorrectly culled, see when scriptable culling will be here
-        public static void ExtractSpotLightData(HDCamera camera, LightType lightType, SpotLightShape shape, float nearPlane, float aspectRatio, float shapeWidth, float shapeHeight, VisibleLight visibleLight, Vector2 viewportSize, float normalBiasMax, out Matrix4x4 view, out Matrix4x4 invViewProjection, out Matrix4x4 projection, out Matrix4x4 deviceProjection, out ShadowSplitData splitData)
+        public static void ExtractSpotLightData(HDCamera camera, LightType lightType, SpotLightShape shape, float spotAngle, float nearPlane, float aspectRatio, float shapeWidth, float shapeHeight, VisibleLight visibleLight, Vector2 viewportSize, float normalBiasMax, out Matrix4x4 view, out Matrix4x4 invViewProjection, out Matrix4x4 projection, out Matrix4x4 deviceProjection, out ShadowSplitData splitData)
         {
             Vector4 lightDir;
 
@@ -57,8 +53,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (shape != SpotLightShape.Pyramid)
                 aspectRatio = 1.0f;
 
-            float guardAngle = CalcGuardAnglePerspective(visibleLight.light.spotAngle, viewportSize.x, GetPunctualFilterWidthInTexels(camera, lightType), normalBiasMax, 180.0f - visibleLight.light.spotAngle);
-            ExtractSpotLightMatrix(visibleLight, nearPlane, guardAngle, aspectRatio, out view, out projection, out deviceProjection, out invViewProjection, out lightDir, out splitData);
+            float guardAngle = CalcGuardAnglePerspective(spotAngle, viewportSize.x, GetPunctualFilterWidthInTexels(camera, lightType), normalBiasMax, 180.0f - spotAngle);
+            ExtractSpotLightMatrix(visibleLight, spotAngle, nearPlane, guardAngle, aspectRatio, out view, out projection, out deviceProjection, out invViewProjection, out lightDir, out splitData);
 
             if (shape == SpotLightShape.Box)
             {
@@ -77,6 +73,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             splitData = new ShadowSplitData();
             splitData.cullingSphere.Set(0.0f, 0.0f, 0.0f, float.NegativeInfinity);
             splitData.cullingPlaneCount = 0;
+
+#if UNITY_2019_3_OR_NEWER
+            // This used to be fixed to .6f, but is now configureable.
+            splitData.shadowCascadeBlendCullingFactor = .6f;
+#endif
+
             // get lightDir
             lightDir = visibleLight.light.transform.forward;
             // TODO: At some point this logic should be moved to C#, then the parameters cullResults and lightIndex can be removed as well
@@ -112,7 +114,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 visibleLight.spotAngle = spotAngle;
                 float guardAngle = CalcGuardAnglePerspective(visibleLight.spotAngle, viewportSize.x, GetPunctualFilterWidthInTexels(camera, LightType.Rectangle), normalBiasMax, 180.0f - visibleLight.spotAngle);
 
-                ExtractSpotLightMatrix(visibleLight, shadowNearPlane, guardAngle, aspectRatio, out view, out projection, out deviceProjection, out invViewProjection, out lightDir, out splitData);
+                ExtractSpotLightMatrix(visibleLight, visibleLight.spotAngle, shadowNearPlane, guardAngle, aspectRatio, out view, out projection, out deviceProjection, out invViewProjection, out lightDir, out splitData);
             }
         }
 
@@ -216,7 +218,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             return Matrix4x4.Ortho(-width / 2, width / 2, -height / 2, height / 2, nearZ, range);
         }
 
-        static Matrix4x4 ExtractSpotLightMatrix(VisibleLight vl, float nearPlane, float guardAngle, float aspectRatio, out Matrix4x4 view, out Matrix4x4 proj, out Matrix4x4 deviceProj, out Matrix4x4 vpinverse, out Vector4 lightDir, out ShadowSplitData splitData)
+        static Matrix4x4 ExtractSpotLightMatrix(VisibleLight vl, float spotAngle, float nearPlane, float guardAngle, float aspectRatio, out Matrix4x4 view, out Matrix4x4 proj, out Matrix4x4 deviceProj, out Matrix4x4 vpinverse, out Vector4 lightDir, out ShadowSplitData splitData)
         {
             splitData = new ShadowSplitData();
             splitData.cullingSphere.Set(0.0f, 0.0f, 0.0f, float.NegativeInfinity);
@@ -228,7 +230,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             scaleMatrix.m22 = -1.0f;
             view = scaleMatrix * vl.localToWorldMatrix.inverse;
             // calculate projection
-            proj = ExtractSpotLightProjectionMatrix(vl.range, vl.spotAngle, nearPlane, aspectRatio, guardAngle);
+            proj = ExtractSpotLightProjectionMatrix(vl.range, spotAngle, nearPlane, aspectRatio, guardAngle);
             // and the compound (deviceProj will potentially inverse-Z)
             deviceProj = GL.GetGPUProjectionMatrix(proj, false);
             proj = GL.GetGPUProjectionMatrix(proj, true);

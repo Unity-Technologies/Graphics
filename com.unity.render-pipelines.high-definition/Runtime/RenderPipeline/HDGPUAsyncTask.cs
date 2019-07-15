@@ -1,7 +1,4 @@
 using System;
-using UnityEngine;
-using UnityEngine.Rendering;
-using UnityEngine.Experimental.Rendering;
 
 using Fence =
 #if UNITY_2019_1_OR_NEWER
@@ -13,7 +10,7 @@ using Fence =
 
 namespace UnityEngine.Rendering
 {
-    public struct HDGPUAsyncTask
+    struct HDGPUAsyncTask
     {
         private enum AsyncTaskStage
         {
@@ -30,7 +27,7 @@ namespace UnityEngine.Rendering
         private ComputeQueueType    m_QueueType;
 
         private AsyncTaskStage      m_TaskStage;
-        
+
         public HDGPUAsyncTask(string taskName, ComputeQueueType queueType = ComputeQueueType.Background)
         {
             m_StartFence = new Fence();

@@ -1,0 +1,126 @@
+using System;
+using UnityEngine;
+using UnityEngine.Rendering.LookDev;
+using IDataProvider = UnityEngine.Rendering.LookDev.IDataProvider;
+
+namespace UnityEditor.Rendering.LookDev
+{
+    /// <summary>
+    /// The RenderingPass inside the frame.
+    /// Useful for compositing.
+    /// <seealso cref="Renderer.Acquire(RenderingData, RenderingPass)"/>
+    /// </summary>
+    [Flags]
+    public enum RenderingPass
+    {
+        First = 1,
+        Last = 2
+    }
+
+    /// <summary>Data container to be used with Renderer class</summary>
+    public class RenderingData
+    {
+        /// <summary>
+        /// Internally set to true when the given RenderTexture <see cref="output"/> was not the good size regarding <see cref="viewPort"/> and needed to be recreated
+        /// </summary>
+        public bool resized;
+        /// <summary>The stage that possess every object in your view</summary>
+        public Stage stage;
+        /// <summary>Callback to update the Camera position. Only done in First phase.</summary>
+        public ICameraUpdater updater;
+        /// <summary>Viewport size</summary>
+        public Rect viewPort;
+        /// <summary>Render texture handling captured image</summary>
+        public RenderTexture output;
+    }
+
+    /// <summary>Basic renderer to draw scene in texture</summary>
+    public class Renderer
+    {
+        public bool pixelPerfect { get; set; }
+
+        public Renderer(bool pixelPerfect = false)
+            => this.pixelPerfect = pixelPerfect;
+
+        void BeginRendering(RenderingData data, RenderingPass pass = 0)
+        {
+            data.stage.SetGameObjectVisible(true);
+            data.updater?.UpdateCamera(data.stage.camera);
+            data.stage.camera.enabled = true;
+            UpdateOutputSize(data);
+        }
+
+        void EndRendering(RenderingData data)
+        {
+            data.stage.camera.enabled = false;
+            data.stage.SetGameObjectVisible(false);
+        }
+
+        void UpdateOutputSize(RenderingData data)
+        {
+            var oldOutput = data.output;
+            data.output = RenderTextureCache.UpdateSize(
+                data.output, data.viewPort, pixelPerfect, data.stage.camera);
+            data.resized = oldOutput != data.output;
+        }
+
+        bool CheckInvertedOutput(RenderingData data)
+        {
+            if (data.viewPort.IsNullOrInverted())
+            {
+                data.output = null;
+                data.resized = true;
+                return true;
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// Capture image of the scene.
+        /// </summary>
+        /// <param name="data">Datas required to compute the capture</param>
+        /// <param name="pass">
+        /// [Optional] When drawing several time the scene, you can remove First and/or Last to not initialize objects.
+        /// Be careful though to always start your frame with a First and always end with a Last.
+        /// </param>
+        public void Acquire(RenderingData data, RenderingPass pass = RenderingPass.First | RenderingPass.Last)
+        {
+            if (CheckInvertedOutput(data))
+                return;
+
+            if ((pass & RenderingPass.First) != 0)
+                BeginRendering(data, pass);
+            data.stage.camera.targetTexture = data.output;
+            data.stage.camera.Render();
+            if ((pass & RenderingPass.Last) != 0)
+                EndRendering(data);
+        }
+
+        internal static void DrawFullScreenQuad(Rect rect)
+        {
+            GL.PushMatrix();
+            GL.LoadOrtho();
+            GL.Viewport(rect);
+
+            GL.Begin(GL.QUADS);
+            GL.TexCoord2(0, 0);
+            GL.Vertex3(0f, 0f, 0);
+            GL.TexCoord2(0, 1);
+            GL.Vertex3(0f, 1f, 0);
+            GL.TexCoord2(1, 1);
+            GL.Vertex3(1f, 1f, 0);
+            GL.TexCoord2(1, 0);
+            GL.Vertex3(1f, 0f, 0);
+            GL.End();
+            GL.PopMatrix();
+        }
+    }
+
+    public static partial class RectExtension
+    {
+        /// <summary>Return true if the <see cref="Rect"/> is null sized or inverted.</summary>
+        public static bool IsNullOrInverted(this Rect r)
+            => r.width <= 0f || r.height <= 0f
+            || float.IsNaN(r.width) || float.IsNaN(r.height);
+    }
+}

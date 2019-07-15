@@ -1,7 +1,9 @@
+using System;
 using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
 {
+    [Serializable]
     class TextureSamplerState
     {
         public enum FilterMode

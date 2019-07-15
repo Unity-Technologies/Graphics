@@ -1,17 +1,23 @@
 #ifndef UNITY_TEXTUREXR_INCLUDED
 #define UNITY_TEXTUREXR_INCLUDED
 
-// XRTODO: refactor this with UnityInstancing.hlsl and sync with LWRP
-// XRTODO: update supported platforms based on Unity version (for required C++ fixes)
+// single-pass instancing is the default VR method for HDRP
+// multi-pass is working but not recommended due to lower performance
+// multi-view is not yet supported
+// single-pass doule-wide is deprecated
 
 // Must be in sync with C# with property useTexArray in TextureXR.cs
-#if defined(SHADER_API_D3D11) && !defined(SHADER_API_XBOXONE)
+#if (defined(SHADER_API_D3D11) && !defined(SHADER_API_XBOXONE)) || defined(SHADER_API_PSSL) || defined(SHADER_API_VULKAN)
     #define UNITY_TEXTURE2D_X_ARRAY_SUPPORTED
 #endif
 
 // Validate supported platforms
 #if defined(STEREO_INSTANCING_ON) && !defined(UNITY_TEXTURE2D_X_ARRAY_SUPPORTED)
     #error Single-pass stereo instancing is not supported on this platform (see UNITY_TEXTURE2D_X_ARRAY_SUPPORTED).
+#endif
+
+#if defined(UNITY_SINGLE_PASS_STEREO)
+    #error Single-pass (double-wide) is not compatible with HDRP.
 #endif
 
 // Control if TEXTURE2D_X macros will expand to texture arrays
@@ -30,12 +36,11 @@
 #endif
 
 // Define to override default rendering matrices (used mostly in ShaderVariables.hlsl)
-#if defined(UNITY_SINGLE_PASS_STEREO) || defined(UNITY_STEREO_INSTANCING_ENABLED)
+#if defined(UNITY_STEREO_INSTANCING_ENABLED)
     #define USING_STEREO_MATRICES
 #endif
 
 // Helper macros to handle XR instancing with Texture2DArray
-// Render textures allocated with the flag 'xrInstancing' used Texture2DArray where each slice is associated to an eye.
 // With single-pass stereo instancing, unity_StereoEyeIndex is used to select the eye in the current context.
 // Otherwise, the index is statically set to 0
 #if defined(USE_TEXTURE2D_X_AS_ARRAY)
@@ -66,6 +71,8 @@
     #define GATHER_RED_TEXTURE2D_X(textureName, samplerName, coord2)         GATHER_RED_TEXTURE2D(textureName, samplerName, float3(coord2, SLICE_ARRAY_INDEX))
     #define GATHER_GREEN_TEXTURE2D_X(textureName, samplerName, coord2)       GATHER_GREEN_TEXTURE2D(textureName, samplerName, float3(coord2, SLICE_ARRAY_INDEX))
 #else
+    #define SLICE_ARRAY_INDEX                                                0
+
     #define TEXTURE2D_X                                                      TEXTURE2D
     #define TEXTURE2D_X_PARAM                                                TEXTURE2D_PARAM
     #define TEXTURE2D_X_ARGS                                                 TEXTURE2D_ARGS
@@ -86,27 +93,9 @@
     #define GATHER_GREEN_TEXTURE2D_X                                         GATHER_GREEN_TEXTURE2D
 #endif
 
-// Notes on current stereo support status
-// single-pass doule-wide is working but will be deprecated soon
-// single-pass instancing is the default method
-// multi-view and multi-pass are not yet supported
 // see Unity\Shaders\Includes\UnityShaderVariables.cginc for impl used by the C++ renderer
-#if defined(USING_STEREO_MATRICES)
-
-    #if defined(UNITY_STEREO_INSTANCING_ENABLED)
-        static uint unity_StereoEyeIndex;
-    #elif defined(UNITY_SINGLE_PASS_STEREO) // XRTODO: remove once SinglePassInstanced is working
-        // Workaround for lighting issues with double-wide
-        #define LIGHTLOOP_DISABLE_TILE_AND_CLUSTER
-
-        #if SHADER_STAGE_COMPUTE
-        #else
-            CBUFFER_START(UnityStereoEyeIndex)
-                int unity_StereoEyeIndex;
-            CBUFFER_END
-        #endif
-    #endif
-
+#if defined(USING_STEREO_MATRICES) && defined(UNITY_STEREO_INSTANCING_ENABLED)
+    static uint unity_StereoEyeIndex;
 #else
     #define unity_StereoEyeIndex 0
 #endif
