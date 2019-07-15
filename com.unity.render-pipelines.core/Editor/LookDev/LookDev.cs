@@ -93,7 +93,7 @@ namespace UnityEditor.Rendering.LookDev
         }
 
         /// <summary>open the LookDev window</summary>
-        [MenuItem("Window/Render Pipeline/Look Dev", false, 10000)]
+        [MenuItem("Window/Render Pipeline/Look Dev", false, 10200)]
         public static void Open()
         {
             s_ViewDisplayer = EditorWindow.GetWindow<DisplayWindow>();
