@@ -33,8 +33,6 @@ namespace UnityEditor.ShaderGraph
             DrawState temp = drawState;
             temp.expanded = false;
             drawState = temp;
-
-            AddSlot(new DynamicValueMaterialSlot(m_tempSlotID, m_tempSlotName, m_tempSlotName, SlotType.Input, Matrix4x4.zero));
         }
 
         public virtual void AddPortPair(int index = -1)
@@ -43,12 +41,12 @@ namespace UnityEditor.ShaderGraph
             AddSlot(new DynamicValueMaterialSlot(m_outSlotID, m_outSlotName, m_outSlotName, SlotType.Output, Matrix4x4.zero));
         }
 
-        public void Disconnect()
+        public void OnDelete()
         {
-            if (owner.isUndo)
+            if (owner.isUndoingOrRedoing == true)
                 return;
 
-            // @SamH: Hacky, hard-coded single case
+            // @SamH: hard-coded single case
             var node_inSlotRef = GetSlotReference(0);
             var node_outSlotRef = GetSlotReference(1);
             
@@ -66,8 +64,8 @@ namespace UnityEditor.ShaderGraph
 
         static string Unity_Redirect(
             [Slot(0, Binding.None)] DynamicDimensionVector In,
-            [Slot(1, Binding.None)] out DynamicDimensionVector Out,
-            [Slot(2, Binding.None)] DynamicDimensionVector Add)
+            [Slot(1, Binding.None)] out DynamicDimensionVector Out)
+            //[Slot(2, Binding.None)] DynamicDimensionVector Add)
         {
             return
                 @"

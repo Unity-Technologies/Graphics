@@ -94,7 +94,7 @@ namespace UnityEditor.ShaderGraph
         {
             //Merge input/output pairs into single edges
             var nodeData = node as RedirectNodeData;
-            nodeData.Disconnect();
+            nodeData.OnDelete();
 
             node = null;
             ((VisualElement)this).userData = null;
@@ -102,64 +102,7 @@ namespace UnityEditor.ShaderGraph
 
         public void OnModified(ModificationScope scope)
         {
-            base.expanded = node.drawState.expanded;
-
-            // Update slots to match node modification
-            if (scope == ModificationScope.Topological)
-            {
-                var slots = node.GetSlots<MaterialSlot>().ToList();
-
-                var inputPorts = inputContainer.Children().OfType<ShaderPort>().ToList();
-                foreach (var port in inputPorts)
-                {
-                    var currentSlot = port.slot;
-                    var newSlot = slots.FirstOrDefault(s => s.id == currentSlot.id);
-                    if (newSlot == null)
-                    {
-                        // Slot doesn't exist anymore, remove it
-                        inputContainer.Remove(port);
-                    }
-                    else
-                    {
-                        port.slot = newSlot;
-                        slots.Remove(newSlot);
-                    }
-                }
-
-                var outputPorts = outputContainer.Children().OfType<ShaderPort>().ToList();
-                foreach (var port in outputPorts)
-                {
-                    var currentSlot = port.slot;
-                    var newSlot = slots.FirstOrDefault(s => s.id == currentSlot.id);
-                    if (newSlot == null)
-                    {
-                        outputContainer.Remove(port);
-                    }
-                    else
-                    {
-                        port.slot = newSlot;
-                        slots.Remove(newSlot);
-                    }
-                }
-
-                AddSlots(slots);
-
-                slots.Clear();
-                slots.AddRange(node.GetSlots<MaterialSlot>());
-
-                if (inputContainer.childCount > 0)
-                    inputContainer.Sort((x, y) => slots.IndexOf(((ShaderPort)x).slot) - slots.IndexOf(((ShaderPort)y).slot));
-                if (outputContainer.childCount > 0)
-                    outputContainer.Sort((x, y) => slots.IndexOf(((ShaderPort)x).slot) - slots.IndexOf(((ShaderPort)y).slot));
-            }
-
-            RefreshExpandedState(); //This should not be needed. GraphView needs to improve the extension api here
-
-            //foreach (var listener in m_ControlItems.Children().OfType<AbstractMaterialNodeModificationListener>())
-            //{
-            //    if (listener != null)
-            //        listener.OnNodeModified(scope);
-            //}
+            
         }
 
         void OnDoubleClick(MouseDownEvent evt)

@@ -155,12 +155,16 @@ namespace UnityEditor.ShaderGraph.Drawing
                     m_ChangedSubGraphs.Clear();
                 }
 
+                // @SamH: Redundant function calls. I commented them out to reduce unneeded calculations
+                //if (graphObject.wasUndoRedoPerformed)
+                //{
+                //    graphEditorView.HandleGraphChanges();
+                //    graphObject.graph.ClearChanges();
+                //    graphObject.HandleUndoRedo();
+                //}
+
                 if (graphObject.wasUndoRedoPerformed)
-                {
-                    graphEditorView.HandleGraphChanges();
-                    graphObject.graph.ClearChanges();
                     graphObject.HandleUndoRedo();
-                }
 
                 graphEditorView.HandleGraphChanges();
                 graphObject.graph.ClearChanges();
