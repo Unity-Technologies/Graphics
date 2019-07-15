@@ -30,8 +30,14 @@ float3 GetFogColor(float3 V, float fragDist)
         return  float3(0.0, 0.0, 0.0);
 }
 
+float3 GetViewForwardDir1(float4x4 viewMatrix)
+{
+    return -viewMatrix[2].xyz;
+}
+
 // Assumes that there is NO sky occlusion along the ray AT ALL.
 void EvaluatePbrAtmosphere(float3 V, float linearDepth, float deviceDepth,
+                           float3 worldSpaceCameraPos, float4x4 viewMatrix,
                            out float3 skyColor, out float3 skyOpacity)
 {
     skyColor = skyOpacity = 0;
@@ -41,7 +47,7 @@ void EvaluatePbrAtmosphere(float3 V, float linearDepth, float deviceDepth,
 
     // TODO: Not sure it's possible to precompute cam rel pos since variables
     // in the two constant buffers may be set at a different frequency?
-    const float3 O = _WorldSpaceCameraPos * 0.001 - _PlanetCenterPosition; // Convert m to km
+    const float3 O = worldSpaceCameraPos * 0.001 - _PlanetCenterPosition; // Convert m to km
 
     float3 N; float r; // These params correspond to the entry point
     float tEntry = IntersectAtmosphere(O, V, N, r);
@@ -65,7 +71,7 @@ void EvaluatePbrAtmosphere(float3 V, float linearDepth, float deviceDepth,
         }
 
         // Convert it to distance along the ray. Doesn't work with tilt shift, etc.
-        float tFrag = fragLinDepth * rcp(dot(-V, GetViewForwardDir()));
+        float tFrag = fragLinDepth * rcp(dot(-V, GetViewForwardDir1(viewMatrix)));
 
         if (tFrag < tEntry)
         {
@@ -216,6 +222,7 @@ void EvaluateAtmosphericScattering(PositionInputs posInput, float3 V, out float3
     if (hasPbrSkyAtmosphere && (posInput.deviceDepth != UNITY_RAW_FAR_CLIP_VALUE))
     {
         EvaluatePbrAtmosphere(V, posInput.linearDepth, posInput.deviceDepth,
+                              _WorldSpaceCameraPos, UNITY_MATRIX_V,
                               skyColor, skyOpacity);
 
         skyColor *= _IntensityMultiplier * GetCurrentExposureMultiplier();

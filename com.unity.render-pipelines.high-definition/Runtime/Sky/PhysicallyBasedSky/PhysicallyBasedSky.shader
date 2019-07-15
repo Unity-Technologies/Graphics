@@ -19,6 +19,13 @@ Shader "Hidden/HDRP/Sky/PbrSky"
     int _HasGroundEmissionTexture;  // bool...
     int _HasSpaceEmissionTexture;   // bool...
 
+    // Sky framework does not set up global shader variables (even per-view ones),
+    // so they can contain garbage. It's very difficult to not include them, however,
+    // since the sky framework includes them internally in many header files.
+    // Just don't use them. Ever.
+    float3   _WorldSpaceCameraPos1;
+    float4x4 _ViewMatrix1;
+
     // 3x3, but Unity can only set 4x4...
     float4x4 _PlanetRotation;
     float4x4 _SpaceRotation;
@@ -55,7 +62,7 @@ Shader "Hidden/HDRP/Sky/PbrSky"
         const float  R = _PlanetaryRadius;
         // TODO: Not sure it's possible to precompute cam rel pos since variables
         // in the two constant buffers may be set at a different frequency?
-        const float3 O = _WorldSpaceCameraPos * 0.001 - _PlanetCenterPosition; // Convert m to km
+        const float3 O = _WorldSpaceCameraPos1 * 0.001 - _PlanetCenterPosition; // Convert m to km
         const float3 V = GetSkyViewDirWS(input.positionCS.xy);
 
         float3 N; float r; // These params correspond to the entry point
@@ -139,6 +146,7 @@ Shader "Hidden/HDRP/Sky/PbrSky"
 
         // Evaluate the sky at infinity.
         EvaluatePbrAtmosphere(V, FLT_INF, UNITY_RAW_FAR_CLIP_VALUE,
+                              _WorldSpaceCameraPos1, _ViewMatrix1,
                               skyColor, skyOpacity);
 
         skyColor += totalRadiance * (1 - skyOpacity);

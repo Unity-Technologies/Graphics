@@ -27,10 +27,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
         bool m_IsBuilt = false;
 
-        PhysicallyBasedSky   m_Settings;
+        PhysicallyBasedSky           m_Settings;
+
         // Precomputed data below.
-        RTHandle[]    m_GroundIrradianceTables;    // All orders, one order
-        RTHandle[]    m_InScatteredRadianceTables; // Air SS, Aerosol SS, Atmosphere MS, Atmosphere one order, Temp
+        RTHandle[]                   m_GroundIrradianceTables;    // All orders, one order
+        RTHandle[]                   m_InScatteredRadianceTables; // Air SS, Aerosol SS, Atmosphere MS, Atmosphere one order, Temp
 
         static ComputeShader         s_GroundIrradiancePrecomputationCS;
         static ComputeShader         s_InScatteredRadiancePrecomputationCS;
@@ -350,8 +351,9 @@ namespace UnityEngine.Rendering.HighDefinition
                                                          m_Settings.spaceRotation.value.y,
                                                          m_Settings.spaceRotation.value.z);
 
-            // This matrix needs to be updated at the draw call frequency.
             s_PbrSkyMaterialProperties.SetMatrix(HDShaderIDs._PixelCoordToViewDirWS, builtinParams.pixelCoordToViewDirMatrix);
+            s_PbrSkyMaterialProperties.SetVector(HDShaderIDs._WorldSpaceCameraPos1,  builtinParams.worldSpaceCameraPos);
+            s_PbrSkyMaterialProperties.SetMatrix(HDShaderIDs._ViewMatrix1,           builtinParams.viewMatrix);
             s_PbrSkyMaterialProperties.SetMatrix(HDShaderIDs._PlanetRotation,        Matrix4x4.Rotate(planetRotation));
             s_PbrSkyMaterialProperties.SetMatrix(HDShaderIDs._SpaceRotation,         Matrix4x4.Rotate(spaceRotation));
 
