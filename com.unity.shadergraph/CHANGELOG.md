@@ -5,6 +5,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## [7.1.0] - 2019-XX-XX
+### Changed
+- New Shader Graph windows are now docked to either existing Shader Graph windows, or to the Scene View.
 
 ## [7.0.0] - 2019-07-10
 ### Added
