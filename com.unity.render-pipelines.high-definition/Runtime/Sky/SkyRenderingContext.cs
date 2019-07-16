@@ -214,7 +214,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // GC.Alloc
         // VolumeParameter`.op_Equality()
-        public bool UpdateEnvironment(SkyUpdateContext skyContext, Light sunLight, Vector3 worldSpaceCameraPos, bool updateRequired, bool updateAmbientProbe, CommandBuffer cmd)
+        public bool UpdateEnvironment(SkyUpdateContext skyContext, Light sunLight, Vector3 worldSpaceCameraPos, bool updateRequired, bool updateAmbientProbe, int frameIndex, CommandBuffer cmd)
         {
             bool result = false;
             if (skyContext.IsValid())
@@ -226,6 +226,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_BuiltinParameters.worldSpaceCameraPos = worldSpaceCameraPos;
                 m_BuiltinParameters.screenSize          = m_CubemapScreenSize;
                 m_BuiltinParameters.debugSettings       = null; // We don't want any debug when updating the environment.
+                m_BuiltinParameters.frameIndex          = frameIndex;
+                m_BuiltinParameters.updateMode          = skyContext.skySettings.updateMode.value;
 
                 int sunHash = 0;
                 if (sunLight != null)
@@ -303,7 +305,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return result;
         }
 
-        public void RenderSky(SkyUpdateContext skyContext, HDCamera hdCamera, Light sunLight, RTHandle colorBuffer, RTHandle depthBuffer, DebugDisplaySettings debugSettings, CommandBuffer cmd)
+        public void RenderSky(SkyUpdateContext skyContext, HDCamera hdCamera, Light sunLight, RTHandle colorBuffer, RTHandle depthBuffer, DebugDisplaySettings debugSettings, int frameIndex, CommandBuffer cmd)
         {
             if (skyContext.IsValid() && hdCamera.clearColorMode == HDAdditionalCameraData.ClearColorMode.Sky)
             {
@@ -318,7 +320,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     m_BuiltinParameters.colorBuffer               = colorBuffer;
                     m_BuiltinParameters.depthBuffer               = depthBuffer;
                     m_BuiltinParameters.debugSettings             = debugSettings;
-
+                    m_BuiltinParameters.frameIndex                = frameIndex;
+                    m_BuiltinParameters.updateMode                = skyContext.skySettings.updateMode.value;
 
                     skyContext.renderer.SetRenderTargets(m_BuiltinParameters);
 

@@ -23,7 +23,9 @@ namespace UnityEngine.Rendering.HighDefinition
         int m_LastPrecomputationParamHash;
 
         // We compute at most one bounce per frame for perf reasons.
+        // We need to store the frame index because more than one render can happen during a frame (cubemap update + regular rendering)
         int m_LastPrecomputedBounce;
+        int m_LastPrecomputedBounceFrameIndex;
 
         bool m_IsBuilt = false;
 
@@ -297,49 +299,60 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_LastPrecomputedBounce = 0;
             }
 
-            // F**k cubemap.
-            if (!renderForCubemap)
+            if (m_LastPrecomputedBounce == 0)
             {
-                if (m_LastPrecomputedBounce == 0)
+                // Allocate temp tables if needed
+                if (m_GroundIrradianceTables[1] == null)
                 {
-                    // Allocate temp tables if needed
-                    if (m_GroundIrradianceTables[1] == null)
-                    {
-                        m_GroundIrradianceTables[1] = AllocateGroundIrradianceTable(1);
-                    }
-
-                    if (m_InScatteredRadianceTables[3] == null)
-                    {
-                        m_InScatteredRadianceTables[3] = AllocateInScatteredRadianceTable(3);
-                    }
-
-                    if (m_InScatteredRadianceTables[4] == null)
-                    {
-                        m_InScatteredRadianceTables[4] = AllocateInScatteredRadianceTable(4);
-                    }
+                    m_GroundIrradianceTables[1] = AllocateGroundIrradianceTable(1);
                 }
 
-                if (m_LastPrecomputedBounce == m_Settings.numberOfBounces.value)
+                if (m_InScatteredRadianceTables[3] == null)
                 {
-                    // Free temp tables.
-                    // This is a deferred release (one frame late)!
-                    RTHandles.Release(m_GroundIrradianceTables[1]);
-                    RTHandles.Release(m_InScatteredRadianceTables[3]);
-                    RTHandles.Release(m_InScatteredRadianceTables[4]);
-                    m_GroundIrradianceTables[1]    = null;
-                    m_InScatteredRadianceTables[3] = null;
-                    m_InScatteredRadianceTables[4] = null;
+                    m_InScatteredRadianceTables[3] = AllocateInScatteredRadianceTable(3);
                 }
 
-                if (m_LastPrecomputedBounce < m_Settings.numberOfBounces.value)
+                if (m_InScatteredRadianceTables[4] == null)
+                {
+                    m_InScatteredRadianceTables[4] = AllocateInScatteredRadianceTable(4);
+                }
+            }
+
+            if (m_LastPrecomputedBounce == m_Settings.numberOfBounces.value && m_LastPrecomputedBounceFrameIndex < builtinParams.frameIndex && m_GroundIrradianceTables[1] != null)
+            {
+                // Free temp tables.
+                // This is a deferred release (one frame late)!
+                RTHandles.Release(m_GroundIrradianceTables[1]);
+                RTHandles.Release(m_InScatteredRadianceTables[3]);
+                RTHandles.Release(m_InScatteredRadianceTables[4]);
+                m_GroundIrradianceTables[1]    = null;
+                m_InScatteredRadianceTables[3] = null;
+                m_InScatteredRadianceTables[4] = null;
+            }
+
+            if (m_LastPrecomputedBounce < m_Settings.numberOfBounces.value)
+            {
+                // When rendering into a cubemap for environment lighting, if the sky is not realtime, then we need to do all the bounces at once
+                // It's ok in term of performance because it's only done once (as long as parameters don't change)
+                if (renderForCubemap && builtinParams.updateMode != EnvironmentUpdateMode.Realtime)
+                {
+                    for (int i = 0; i < m_Settings.numberOfBounces.value; ++i)
+                    {
+                        PrecomputeTables(cmd);
+                        m_LastPrecomputedBounce++;
+                    }
+                }
+                // In case of realtime environment lighting, we need to update only one bounce and only once per frame (the same sky can be rendered into a cubemap and in the regular view)
+                else if ((m_LastPrecomputedBounce < m_Settings.numberOfBounces.value) && (m_LastPrecomputedBounceFrameIndex < builtinParams.frameIndex))
                 {
                     // We precompute one bounce per render call.
                     PrecomputeTables(cmd);
                     m_LastPrecomputedBounce++;
-
-                    // Update the hash for the current bounce.
-                    m_LastPrecomputationParamHash = currentParamHash;
                 }
+
+                // Update the hash for the current bounce.
+                m_LastPrecomputationParamHash = currentParamHash;
+                m_LastPrecomputedBounceFrameIndex = builtinParams.frameIndex;
             }
 
             // Precomputation is done, shading is next.
