@@ -91,12 +91,12 @@ namespace UnityEditor.Rendering.HighDefinition
         public const int LightingSlotId = 30;
         public const int BackLightingSlotId = 31;
         public const int DepthOffsetSlotId = 32;
-        public const int ProceduralNormalOSVertexSlotId = 33;
-        public const int ProceduralTangentOSVertexSlotId = 34;
-        public const int ProceduralNormalOSPixelSlotId = 35;
-        public const int ProceduralTangentOSPixelSlotId = 36;
-        public const int ProceduralUV0SlotId = 37;
-        public const int ProceduralUV1SlotId = 38;
+        public const int ProceduralUV0SlotId = 33;
+        public const int ProceduralUV1SlotId = 34;
+        public const int ProceduralNormalOSVertexSlotId = 35;
+        public const int ProceduralTangentOSVertexSlotId = 36;
+        public const int ProceduralNormalOSPixelSlotId = 37;
+        public const int ProceduralTangentOSPixelSlotId = 38;
 
         public enum MaterialType
         {
@@ -806,6 +806,18 @@ namespace UnityEditor.Rendering.HighDefinition
                 AddSlot(new PositionMaterialSlot(PositionSlotId, PositionSlotName, PositionSlotName, CoordinateSpace.Object, ShaderStageCapability.Vertex));
                 validSlots.Add(PositionSlotId);
             }
+            if (proceduralUVMode == ProceduralUVMode.UV0_ReplicateToAll)
+            {
+                AddSlot(new ProceduralUVMaterialSlot(ProceduralUV0SlotId, "UV0 (Procedural) ", "UV0", ShaderStageCapability.Vertex));
+                validSlots.Add(ProceduralUV0SlotId);
+            }
+            else if (proceduralUVMode == ProceduralUVMode.UV0_UV1_ReplicateUV0)
+            {
+                AddSlot(new ProceduralUVMaterialSlot(ProceduralUV0SlotId, "UV0 (Procedural) ", "UV0", ShaderStageCapability.Vertex));
+                AddSlot(new ProceduralUVMaterialSlot(ProceduralUV1SlotId, "UV1 (Procedural) ", "UV1", ShaderStageCapability.Vertex));
+                validSlots.Add(ProceduralUV0SlotId);
+                validSlots.Add(ProceduralUV1SlotId);
+            }
             if (proceduralNormalMode == ProceduralNormalMode.VertexObjectSpace)
             {
                 AddSlot(new ProceduralSpaceMaterialSlot(ProceduralNormalOSVertexSlotId, "Normal (Procedural) ", NormalSlotName, ConcreteSlotValueType.Vector3, CoordinateSpace.Object, ShaderStageCapability.Vertex));
@@ -819,18 +831,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 AddSlot(new ProceduralSpaceMaterialSlot(ProceduralTangentOSPixelSlotId, "Tangent (Procedural) ", TangentSlotName, ConcreteSlotValueType.Vector4, CoordinateSpace.Object, ShaderStageCapability.Fragment));
                 validSlots.Add(ProceduralNormalOSPixelSlotId);
                 validSlots.Add(ProceduralTangentOSPixelSlotId);
-            }
-            if (proceduralUVMode == ProceduralUVMode.UV0_ReplicateToAll)
-            {
-                AddSlot(new ProceduralUVMaterialSlot(ProceduralUV0SlotId, "UV0 (Procedural) ", "UV0", ShaderStageCapability.Vertex));
-                validSlots.Add(ProceduralUV0SlotId);
-            }
-            else if (proceduralUVMode == ProceduralUVMode.UV0_UV1_ReplicateUV0)
-            {
-                AddSlot(new ProceduralUVMaterialSlot(ProceduralUV0SlotId, "UV0 (Procedural) ", "UV0", ShaderStageCapability.Vertex));
-                AddSlot(new ProceduralUVMaterialSlot(ProceduralUV1SlotId, "UV1 (Procedural) ", "UV1", ShaderStageCapability.Vertex));
-                validSlots.Add(ProceduralUV0SlotId);
-                validSlots.Add(ProceduralUV1SlotId);
             }
             if (MaterialTypeUsesSlotMask(SlotMask.Albedo))
             {

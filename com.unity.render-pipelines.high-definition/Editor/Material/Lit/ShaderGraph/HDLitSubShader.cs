@@ -68,10 +68,10 @@ namespace UnityEditor.Rendering.HighDefinition
                 HDLitMasterNode.BackLightingSlotId,
                 HDLitMasterNode.DepthOffsetSlotId,
                 HDLitMasterNode.PositionSlotId,
-                HDLitMasterNode.ProceduralNormalOSVertexSlotId,
-                HDLitMasterNode.ProceduralTangentOSVertexSlotId,
                 HDLitMasterNode.ProceduralUV0SlotId,
-                HDLitMasterNode.ProceduralUV1SlotId
+                HDLitMasterNode.ProceduralUV1SlotId,
+                HDLitMasterNode.ProceduralNormalOSVertexSlotId,
+                HDLitMasterNode.ProceduralTangentOSVertexSlotId
             },
             PixelProceduralSlots = new List<int>()
             {
@@ -169,9 +169,9 @@ namespace UnityEditor.Rendering.HighDefinition
                 HDLitMasterNode.AlphaThresholdShadowSlotId,
                 HDLitMasterNode.DepthOffsetSlotId,
                 HDLitMasterNode.PositionSlotId,
+                HDLitMasterNode.ProceduralUV0SlotId,
                 HDLitMasterNode.ProceduralNormalOSVertexSlotId,
-                HDLitMasterNode.ProceduralTangentOSVertexSlotId,
-                HDLitMasterNode.ProceduralUV0SlotId
+                HDLitMasterNode.ProceduralTangentOSVertexSlotId
             },
             PixelProceduralSlots = new List<int>()
             {
@@ -204,9 +204,9 @@ namespace UnityEditor.Rendering.HighDefinition
                 HDLitMasterNode.AlphaThresholdSlotId,
                 HDLitMasterNode.DepthOffsetSlotId,
                 HDLitMasterNode.PositionSlotId,
+                HDLitMasterNode.ProceduralUV0SlotId,
                 HDLitMasterNode.ProceduralNormalOSVertexSlotId,
-                HDLitMasterNode.ProceduralTangentOSVertexSlotId,
-                HDLitMasterNode.ProceduralUV0SlotId
+                HDLitMasterNode.ProceduralTangentOSVertexSlotId
             },
             PixelProceduralSlots = new List<int>()
             {
@@ -257,10 +257,10 @@ namespace UnityEditor.Rendering.HighDefinition
                 HDLitMasterNode.AlphaThresholdSlotId,
                 HDLitMasterNode.DepthOffsetSlotId,
                 HDLitMasterNode.PositionSlotId,
-                HDLitMasterNode.ProceduralNormalOSVertexSlotId,
-                HDLitMasterNode.ProceduralTangentOSVertexSlotId,
                 HDLitMasterNode.ProceduralUV0SlotId,
-                HDLitMasterNode.ProceduralUV1SlotId
+                HDLitMasterNode.ProceduralUV1SlotId,
+                HDLitMasterNode.ProceduralNormalOSVertexSlotId,
+                HDLitMasterNode.ProceduralTangentOSVertexSlotId
             },
             PixelProceduralSlots = new List<int>()
             {
@@ -316,10 +316,10 @@ namespace UnityEditor.Rendering.HighDefinition
                 HDLitMasterNode.AlphaThresholdSlotId,
                 HDLitMasterNode.DepthOffsetSlotId,
                 HDLitMasterNode.PositionSlotId,
-                HDLitMasterNode.ProceduralNormalOSVertexSlotId,
-                HDLitMasterNode.ProceduralTangentOSVertexSlotId,
                 HDLitMasterNode.ProceduralUV0SlotId,
-                HDLitMasterNode.ProceduralUV1SlotId
+                HDLitMasterNode.ProceduralUV1SlotId,
+                HDLitMasterNode.ProceduralNormalOSVertexSlotId,
+                HDLitMasterNode.ProceduralTangentOSVertexSlotId
             },
             PixelProceduralSlots = new List<int>()
             {
@@ -365,9 +365,9 @@ namespace UnityEditor.Rendering.HighDefinition
                 HDLitMasterNode.DistortionSlotId,
                 HDLitMasterNode.DistortionBlurSlotId,
                 HDLitMasterNode.PositionSlotId,
+                HDLitMasterNode.ProceduralUV0SlotId,
                 HDLitMasterNode.ProceduralNormalOSVertexSlotId,
-                HDLitMasterNode.ProceduralTangentOSVertexSlotId,
-                HDLitMasterNode.ProceduralUV0SlotId
+                HDLitMasterNode.ProceduralTangentOSVertexSlotId
             },
             PixelProceduralSlots = new List<int>()
             {
@@ -432,9 +432,9 @@ namespace UnityEditor.Rendering.HighDefinition
                 HDLitMasterNode.AlphaThresholdDepthPrepassSlotId,
                 HDLitMasterNode.DepthOffsetSlotId,
                 HDLitMasterNode.PositionSlotId,
+                HDLitMasterNode.ProceduralUV0SlotId,
                 HDLitMasterNode.ProceduralNormalOSVertexSlotId,
-                HDLitMasterNode.ProceduralTangentOSVertexSlotId,
-                HDLitMasterNode.ProceduralUV0SlotId
+                HDLitMasterNode.ProceduralTangentOSVertexSlotId
             },
             PixelProceduralSlots = new List<int>()
             {
@@ -495,10 +495,10 @@ namespace UnityEditor.Rendering.HighDefinition
                 HDLitMasterNode.RefractionDistanceSlotId,
                 HDLitMasterNode.DepthOffsetSlotId,
                 HDLitMasterNode.PositionSlotId,
-                HDLitMasterNode.ProceduralNormalOSVertexSlotId,
-                HDLitMasterNode.ProceduralTangentOSVertexSlotId,
                 HDLitMasterNode.ProceduralUV0SlotId,
-                HDLitMasterNode.ProceduralUV1SlotId
+                HDLitMasterNode.ProceduralUV1SlotId,
+                HDLitMasterNode.ProceduralNormalOSVertexSlotId,
+                HDLitMasterNode.ProceduralTangentOSVertexSlotId
             },
             PixelProceduralSlots = new List<int>()
             {
@@ -564,10 +564,10 @@ namespace UnityEditor.Rendering.HighDefinition
                 HDLitMasterNode.BackLightingSlotId,
                 HDLitMasterNode.DepthOffsetSlotId,
                 HDLitMasterNode.PositionSlotId,
-                HDLitMasterNode.ProceduralNormalOSVertexSlotId,
-                HDLitMasterNode.ProceduralTangentOSVertexSlotId,
                 HDLitMasterNode.ProceduralUV0SlotId,
-                HDLitMasterNode.ProceduralUV1SlotId
+                HDLitMasterNode.ProceduralUV1SlotId,
+                HDLitMasterNode.ProceduralNormalOSVertexSlotId,
+                HDLitMasterNode.ProceduralTangentOSVertexSlotId
             },
             PixelProceduralSlots = new List<int>()
             {
@@ -620,9 +620,9 @@ namespace UnityEditor.Rendering.HighDefinition
                 HDLitMasterNode.AlphaThresholdDepthPostpassSlotId,
                 HDLitMasterNode.DepthOffsetSlotId,
                 HDLitMasterNode.PositionSlotId,
+                HDLitMasterNode.ProceduralUV0SlotId,
                 HDLitMasterNode.ProceduralNormalOSVertexSlotId,
-                HDLitMasterNode.ProceduralTangentOSVertexSlotId,
-                HDLitMasterNode.ProceduralUV0SlotId
+                HDLitMasterNode.ProceduralTangentOSVertexSlotId
             },
             PixelProceduralSlots = new List<int>()
             {
@@ -679,10 +679,10 @@ namespace UnityEditor.Rendering.HighDefinition
                 HDLitMasterNode.RefractionColorSlotId,
                 HDLitMasterNode.RefractionDistanceSlotId,
                 HDLitMasterNode.PositionSlotId,
-                HDLitMasterNode.ProceduralNormalOSVertexSlotId,
-                HDLitMasterNode.ProceduralTangentOSVertexSlotId,
                 HDLitMasterNode.ProceduralUV0SlotId,
-                HDLitMasterNode.ProceduralUV1SlotId
+                HDLitMasterNode.ProceduralUV1SlotId,
+                HDLitMasterNode.ProceduralNormalOSVertexSlotId,
+                HDLitMasterNode.ProceduralTangentOSVertexSlotId
             },
             PixelProceduralSlots = new List<int>()
             {
@@ -730,10 +730,10 @@ namespace UnityEditor.Rendering.HighDefinition
                 HDLitMasterNode.RefractionColorSlotId,
                 HDLitMasterNode.RefractionDistanceSlotId,
                 HDLitMasterNode.PositionSlotId,
-                HDLitMasterNode.ProceduralNormalOSVertexSlotId,
-                HDLitMasterNode.ProceduralTangentOSVertexSlotId,
                 HDLitMasterNode.ProceduralUV0SlotId,
-                HDLitMasterNode.ProceduralUV1SlotId
+                HDLitMasterNode.ProceduralUV1SlotId,
+                HDLitMasterNode.ProceduralNormalOSVertexSlotId,
+                HDLitMasterNode.ProceduralTangentOSVertexSlotId
             },
             PixelProceduralSlots = new List<int>()
             {
@@ -789,10 +789,10 @@ namespace UnityEditor.Rendering.HighDefinition
                 HDLitMasterNode.RefractionColorSlotId,
                 HDLitMasterNode.RefractionDistanceSlotId,
                 HDLitMasterNode.PositionSlotId,
-                HDLitMasterNode.ProceduralNormalOSVertexSlotId,
-                HDLitMasterNode.ProceduralTangentOSVertexSlotId,
                 HDLitMasterNode.ProceduralUV0SlotId,
-                HDLitMasterNode.ProceduralUV1SlotId
+                HDLitMasterNode.ProceduralUV1SlotId,
+                HDLitMasterNode.ProceduralNormalOSVertexSlotId,
+                HDLitMasterNode.ProceduralTangentOSVertexSlotId
             },
             PixelProceduralSlots = new List<int>()
             {
@@ -847,10 +847,10 @@ namespace UnityEditor.Rendering.HighDefinition
                 HDLitMasterNode.RefractionColorSlotId,
                 HDLitMasterNode.RefractionDistanceSlotId,
                 HDLitMasterNode.PositionSlotId,
-                HDLitMasterNode.ProceduralNormalOSVertexSlotId,
-                HDLitMasterNode.ProceduralTangentOSVertexSlotId,
                 HDLitMasterNode.ProceduralUV0SlotId,
-                HDLitMasterNode.ProceduralUV1SlotId
+                HDLitMasterNode.ProceduralUV1SlotId,
+                HDLitMasterNode.ProceduralNormalOSVertexSlotId,
+                HDLitMasterNode.ProceduralTangentOSVertexSlotId
             },
             PixelProceduralSlots = new List<int>()
             {
@@ -1115,6 +1115,14 @@ namespace UnityEditor.Rendering.HighDefinition
             if (masterNode.depthOffset.isOn && pass.UsesSlot(HDLitMasterNode.DepthOffsetSlotId))
                 activeFields.Add("DepthOffset");
 
+            if (masterNode.proceduralUVMode == ProceduralUVMode.UV0_ReplicateToAll && masterNode.IsSlotConnected(HDLitMasterNode.ProceduralUV0SlotId) && pass.UsesSlot(HDLitMasterNode.ProceduralUV0SlotId))
+                activeFields.Add("Procedural.UV0");
+
+            if (masterNode.proceduralUVMode == ProceduralUVMode.UV0_UV1_ReplicateUV0
+                && ((masterNode.IsSlotConnected(HDLitMasterNode.ProceduralUV0SlotId) && pass.UsesSlot(HDLitMasterNode.ProceduralUV0SlotId))
+                    || (masterNode.IsSlotConnected(HDLitMasterNode.ProceduralUV1SlotId) && pass.UsesSlot(HDLitMasterNode.ProceduralUV1SlotId))))
+                activeFields.Add("Procedural.UV1");
+
             if (masterNode.proceduralNormalMode == ProceduralNormalMode.VertexObjectSpace
                 && ((masterNode.IsSlotConnected(HDLitMasterNode.ProceduralNormalOSVertexSlotId) && pass.UsesSlot(HDLitMasterNode.ProceduralNormalOSVertexSlotId))
                     || (masterNode.IsSlotConnected(HDLitMasterNode.ProceduralTangentOSVertexSlotId) && pass.UsesSlot(HDLitMasterNode.ProceduralNormalOSVertexSlotId))))
@@ -1124,14 +1132,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 && ((masterNode.IsSlotConnected(HDLitMasterNode.ProceduralNormalOSPixelSlotId) && pass.PixelProceduralUsesSlot(HDLitMasterNode.ProceduralNormalOSPixelSlotId))
                     || (masterNode.IsSlotConnected(HDLitMasterNode.ProceduralTangentOSPixelSlotId) && pass.PixelProceduralUsesSlot(HDLitMasterNode.ProceduralTangentOSPixelSlotId))))
                 activeFields.Add("Procedural.PixelNormal");
-
-            if (masterNode.proceduralUVMode == ProceduralUVMode.UV0_ReplicateToAll && masterNode.IsSlotConnected(HDLitMasterNode.ProceduralUV0SlotId) && pass.UsesSlot(HDLitMasterNode.ProceduralUV0SlotId))
-                activeFields.Add("Procedural.UV0");
-
-            if (masterNode.proceduralUVMode == ProceduralUVMode.UV0_UV1_ReplicateUV0
-                && ((masterNode.IsSlotConnected(HDLitMasterNode.ProceduralUV0SlotId) && pass.UsesSlot(HDLitMasterNode.ProceduralUV0SlotId))
-                    || (masterNode.IsSlotConnected(HDLitMasterNode.ProceduralUV1SlotId) && pass.UsesSlot(HDLitMasterNode.ProceduralUV1SlotId))))
-                activeFields.Add("Procedural.UV1");
 
             return activeFields;
         }
