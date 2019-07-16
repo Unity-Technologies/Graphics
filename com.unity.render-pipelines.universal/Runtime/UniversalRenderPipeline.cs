@@ -239,7 +239,7 @@ namespace UnityEngine.Rendering.Universal
             
             cameraData.isSceneViewCamera = camera.cameraType == CameraType.SceneView;
             cameraData.isHdrEnabled = camera.allowHDR && settings.supportsHDR;
-            cameraData.postProcessEnabled = CoreUtils.ArePostProcessesEnabled(camera);
+            cameraData.postProcessEnabled = CoreUtils.ArePostProcessesEnabled(camera) && camera.cameraType != CameraType.Reflection;
 
             // Disables postprocessing in mobile VR. It's not stable on mobile yet.
             // TODO: enable postfx for stereo rendering

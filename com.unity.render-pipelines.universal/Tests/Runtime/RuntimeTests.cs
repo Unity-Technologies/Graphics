@@ -51,7 +51,7 @@ class RuntimeTests
         camera.Render();
         yield return null;
 
-        Assert.AreEqual("UniversalPipeline", Shader.globalRenderPipeline, "Wrong render pipeline shader tag.");
+        Assert.AreEqual("UniversalPipeline,LightweightPipeline", Shader.globalRenderPipeline, "Wrong render pipeline shader tag.");
 
         GraphicsSettings.renderPipelineAsset = null;
         camera.Render();
