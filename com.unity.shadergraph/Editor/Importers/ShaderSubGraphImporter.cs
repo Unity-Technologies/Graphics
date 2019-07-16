@@ -89,7 +89,7 @@ namespace UnityEditor.ShaderGraph
             outputNode.GetInputSlots(asset.outputs);
 
             List<AbstractMaterialNode> nodes = new List<AbstractMaterialNode>();
-            NodeUtils.DepthFirstCollectNodesFromNode(nodes, outputNode);
+            NodeUtils.DepthFirstCollectNodesFromNode(nodes, outputNode, ShaderStageCapability.All);
 
             asset.effectiveShaderStage = ShaderStageCapability.All;
             foreach (var slot in asset.outputs)

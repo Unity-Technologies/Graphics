@@ -80,7 +80,7 @@ namespace UnityEditor.Graphing
             Exclude
         }
 
-        public static void DepthFirstCollectNodesFromNode<T>(List<T> nodeList, T node, IncludeSelf includeSelf = IncludeSelf.Include, List<int> slotIds = null)
+        public static void DepthFirstCollectNodesFromNode<T>(List<T> nodeList, T node, ShaderStageCapability shaderStageCapability, IncludeSelf includeSelf = IncludeSelf.Include, List<int> slotIds = null)
             where T : AbstractMaterialNode
         {
             // no where to start
@@ -91,19 +91,18 @@ namespace UnityEditor.Graphing
             if (nodeList.Contains(node))
                 return;
 
-            IEnumerable<int> ids;
-            if (slotIds == null)
-                ids = node.GetInputSlots<ISlot>().Select(x => x.id);
-            else
-                ids = node.GetInputSlots<ISlot>().Where(x => slotIds.Contains(x.id)).Select(x => x.id);
-
-            foreach (var slot in ids)
+            var slots = node.GetInputSlots<MaterialSlot>();
+            foreach (var slot in slots)
             {
-                foreach (var edge in node.owner.GetEdges(node.GetSlotReference(slot)))
+                if (slotIds != null && !slotIds.Contains(slot.id)
+                    || (slot.stageCapability & shaderStageCapability) == 0)
+                    continue;
+
+                foreach (var edge in node.owner.GetEdges(node.GetSlotReference(slot.id)))
                 {
                     var outputNode = node.owner.GetNodeFromGuid(edge.outputSlot.nodeGuid) as T;
                     if (outputNode != null)
-                        DepthFirstCollectNodesFromNode(nodeList, outputNode);
+                        DepthFirstCollectNodesFromNode(nodeList, outputNode, shaderStageCapability);
                 }
             }
 

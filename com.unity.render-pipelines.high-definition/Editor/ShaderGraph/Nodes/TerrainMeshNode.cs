@@ -26,8 +26,8 @@ namespace UnityEditor.Rendering.HighDefinition
         public sealed override void UpdateNodeAfterDeserialization()
         {
             AddSlot(new Vector3MaterialSlot(kPositionOutputSlotId, kPositionOutputSlotName, kPositionOutputSlotName, SlotType.Output, UnityEngine.Vector3.zero, ShaderStageCapability.Vertex));
-            AddSlot(new Vector3MaterialSlot(kNormalOutputSlotId, kNormalOutputSlotName, kNormalOutputSlotName, SlotType.Output, UnityEngine.Vector3.zero, ShaderStageCapability.All));
-            AddSlot(new Vector4MaterialSlot(kTangentOutputSlotId, kTangentOutputSlotName, kTangentOutputSlotName, SlotType.Output, UnityEngine.Vector4.zero, ShaderStageCapability.All));
+            AddSlot(new Vector3MaterialSlot(kNormalOutputSlotId, kNormalOutputSlotName, kNormalOutputSlotName, SlotType.Output, UnityEngine.Vector3.zero, ShaderStageCapability.Fragment));
+            AddSlot(new Vector4MaterialSlot(kTangentOutputSlotId, kTangentOutputSlotName, kTangentOutputSlotName, SlotType.Output, UnityEngine.Vector4.zero, ShaderStageCapability.Fragment));
             AddSlot(new Vector2MaterialSlot(kUVOutputSlotId, kUVOutputSlotName, kUVOutputSlotName, SlotType.Output, UnityEngine.Vector2.zero, ShaderStageCapability.Vertex));
 
             RemoveSlotsNameNotMatching(new[] {

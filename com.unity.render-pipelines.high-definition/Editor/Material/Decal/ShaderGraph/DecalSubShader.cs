@@ -39,7 +39,7 @@ namespace UnityEditor.Rendering.HighDefinition
             {
             },
 
-            PixelShaderSlots = new List<int>()
+            UsedSlots = new List<int>()
             {
                 DecalMasterNode.AlbedoSlotId,
                 DecalMasterNode.BaseColorOpacitySlotId,
@@ -49,10 +49,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 DecalMasterNode.AmbientOcclusionSlotId,
                 DecalMasterNode.SmoothnessSlotId,
                 DecalMasterNode.MAOSOpacitySlotId,
-            },
-
-            VertexShaderSlots = new List<int>()
-            {
             },
 
             UseInPreview = false,
@@ -103,7 +99,7 @@ namespace UnityEditor.Rendering.HighDefinition
             {
             },
 
-            PixelShaderSlots = new List<int>()
+            UsedSlots = new List<int>()
             {
                 DecalMasterNode.AlbedoSlotId,
                 DecalMasterNode.BaseColorOpacitySlotId,
@@ -113,10 +109,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 DecalMasterNode.AmbientOcclusionSlotId,
                 DecalMasterNode.SmoothnessSlotId,
                 DecalMasterNode.MAOSOpacitySlotId,
-            },
-
-            VertexShaderSlots = new List<int>()
-            {
             },
 
             UseInPreview = false,
@@ -168,13 +160,9 @@ namespace UnityEditor.Rendering.HighDefinition
             {
             },
 
-            PixelShaderSlots = new List<int>()
+            UsedSlots = new List<int>()
             {
                 DecalMasterNode.EmissionSlotId
-            },
-
-            VertexShaderSlots = new List<int>()
-            {
             },
 
             UseInPreview = false,
@@ -214,7 +202,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 "FragInputs.texCoord0",
             },
 
-            PixelShaderSlots = new List<int>()
+            UsedSlots = new List<int>()
             {
                 DecalMasterNode.AlbedoSlotId,
                 DecalMasterNode.BaseColorOpacitySlotId,
@@ -224,10 +212,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 DecalMasterNode.AmbientOcclusionSlotId,
                 DecalMasterNode.SmoothnessSlotId,
                 DecalMasterNode.MAOSOpacitySlotId,
-            },
-
-            VertexShaderSlots = new List<int>()
-            {
             },
 
             UseInPreview = false,
@@ -285,7 +269,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 "FragInputs.texCoord0",
             },
 
-            PixelShaderSlots = new List<int>()
+            UsedSlots = new List<int>()
             {
                 DecalMasterNode.AlbedoSlotId,
                 DecalMasterNode.BaseColorOpacitySlotId,
@@ -295,10 +279,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 DecalMasterNode.AmbientOcclusionSlotId,
                 DecalMasterNode.SmoothnessSlotId,
                 DecalMasterNode.MAOSOpacitySlotId,
-            },
-
-            VertexShaderSlots = new List<int>()
-            {
             },
 
             UseInPreview = false,
@@ -357,7 +337,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 "FragInputs.texCoord0",
             },
 
-            PixelShaderSlots = new List<int>()
+            UsedSlots = new List<int>()
             {
                 DecalMasterNode.AlbedoSlotId,
                 DecalMasterNode.BaseColorOpacitySlotId,
@@ -368,10 +348,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 DecalMasterNode.SmoothnessSlotId,
                 DecalMasterNode.MAOSOpacitySlotId,
                 DecalMasterNode.EmissionSlotId
-            },
-
-            VertexShaderSlots = new List<int>()
-            {
             },
 
             UseInPreview = false,
@@ -408,7 +384,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 "FragInputs.texCoord0",
             },
 
-            PixelShaderSlots = new List<int>()
+            UsedSlots = new List<int>()
             {
                 DecalMasterNode.AlbedoSlotId,
                 DecalMasterNode.BaseColorOpacitySlotId,
@@ -419,10 +395,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 DecalMasterNode.SmoothnessSlotId,
                 DecalMasterNode.MAOSOpacitySlotId,
                 DecalMasterNode.EmissionSlotId
-            },
-
-            VertexShaderSlots = new List<int>()
-            {
             },
 
             UseInPreview = true,

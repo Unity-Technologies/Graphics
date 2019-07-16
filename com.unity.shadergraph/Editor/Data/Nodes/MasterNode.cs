@@ -72,7 +72,7 @@ namespace UnityEditor.ShaderGraph
         public string GetShader(GenerationMode mode, string outputName, out List<PropertyCollector.TextureInfo> configuredTextures, List<string> sourceAssetDependencyPaths = null)
         {
             var activeNodeList = ListPool<AbstractMaterialNode>.Get();
-            NodeUtils.DepthFirstCollectNodesFromNode(activeNodeList, this);
+            NodeUtils.DepthFirstCollectNodesFromNode(activeNodeList, this, ShaderStageCapability.All);
 
             var shaderProperties = new PropertyCollector();
 

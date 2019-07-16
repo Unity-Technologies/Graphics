@@ -30,14 +30,11 @@ namespace UnityEditor.Rendering.HighDefinition
                 "AttributesMesh.color",
                 "AttributesMesh.uv2",           // SHADERPASS_LIGHT_TRANSPORT always uses uv2
             },
-            PixelShaderSlots = new List<int>()
+            UsedSlots = new List<int>()
             {
                 UnlitMasterNode.ColorSlotId,
                 UnlitMasterNode.AlphaSlotId,
-                UnlitMasterNode.AlphaThresholdSlotId
-            },
-            VertexShaderSlots = new List<int>()
-            {
+                UnlitMasterNode.AlphaThresholdSlotId,
                 //UnlitMasterNode.PositionSlotId
             },
             UseInPreview = false
@@ -60,13 +57,10 @@ namespace UnityEditor.Rendering.HighDefinition
             RequiredFields = new List<string>()
             {
             },
-            PixelShaderSlots = new List<int>()
+            UsedSlots = new List<int>()
             {
                 UnlitMasterNode.AlphaSlotId,
-                UnlitMasterNode.AlphaThresholdSlotId
-            },
-            VertexShaderSlots = new List<int>()
-            {
+                UnlitMasterNode.AlphaThresholdSlotId,
                 UnlitMasterNode.PositionSlotId
             },
             UseInPreview = false,
@@ -94,13 +88,10 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 "#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDepthOnly.hlsl\"",
             },
-            PixelShaderSlots = new List<int>()
+            UsedSlots = new List<int>()
             {
                 UnlitMasterNode.AlphaSlotId,
-                UnlitMasterNode.AlphaThresholdSlotId
-            },
-            VertexShaderSlots = new List<int>()
-            {
+                UnlitMasterNode.AlphaThresholdSlotId,
                 UnlitMasterNode.PositionSlotId
             },
             UseInPreview = false,
@@ -135,13 +126,10 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 "#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDepthOnly.hlsl\"",
             },
-            PixelShaderSlots = new List<int>()
+            UsedSlots = new List<int>()
             {
                 UnlitMasterNode.AlphaSlotId,
-                UnlitMasterNode.AlphaThresholdSlotId
-            },
-            VertexShaderSlots = new List<int>()
-            {
+                UnlitMasterNode.AlphaThresholdSlotId,
                 UnlitMasterNode.PositionSlotId
             },
             UseInPreview = false,
@@ -181,13 +169,10 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 "FragInputs.positionRWS",
             },
-            PixelShaderSlots = new List<int>()
+            UsedSlots = new List<int>()
             {
                 UnlitMasterNode.AlphaSlotId,
-                UnlitMasterNode.AlphaThresholdSlotId
-            },
-            VertexShaderSlots = new List<int>()
-            {
+                UnlitMasterNode.AlphaThresholdSlotId,
                 UnlitMasterNode.PositionSlotId
             },
             UseInPreview = false,
@@ -215,14 +200,11 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 "#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassForwardUnlit.hlsl\"",
             },
-            PixelShaderSlots = new List<int>()
+            UsedSlots = new List<int>()
             {
                 UnlitMasterNode.ColorSlotId,
                 UnlitMasterNode.AlphaSlotId,
-                UnlitMasterNode.AlphaThresholdSlotId
-            },
-            VertexShaderSlots = new List<int>()
-            {
+                UnlitMasterNode.AlphaThresholdSlotId,
                 UnlitMasterNode.PositionSlotId
             },
             UseInPreview = true,

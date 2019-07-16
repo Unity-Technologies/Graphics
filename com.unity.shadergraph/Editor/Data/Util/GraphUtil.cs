@@ -992,7 +992,7 @@ namespace UnityEditor.ShaderGraph
             // Get Slot and Node lists
 
             var activeNodeList = ListPool<AbstractMaterialNode>.Get();
-            NodeUtils.DepthFirstCollectNodesFromNode(activeNodeList, node);
+            NodeUtils.DepthFirstCollectNodesFromNode(activeNodeList, node, ShaderStageCapability.Fragment);
 
             var slots = new List<MaterialSlot>();
             if (node is IMasterNode || node is SubGraphOutputNode)
@@ -1200,7 +1200,7 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        public static void GenerateSurfaceDescriptionStruct(ShaderStringBuilder surfaceDescriptionStruct, List<MaterialSlot> slots, string structName = "SurfaceDescription", HashSet<string> activeFields = null, bool useIdsInNames = false)
+        public static void GenerateSurfaceDescriptionStruct(ShaderStringBuilder surfaceDescriptionStruct, IEnumerable<MaterialSlot> slots, string structName = "SurfaceDescription", HashSet<string> activeFields = null, bool useIdsInNames = false)
         {
             surfaceDescriptionStruct.AppendLine("struct {0}", structName);
             using (surfaceDescriptionStruct.BlockSemicolonScope())
@@ -1356,7 +1356,7 @@ namespace UnityEditor.ShaderGraph
         }
 
         const string k_VertexDescriptionStructName = "VertexDescription";
-        public static void GenerateVertexDescriptionStruct(ShaderStringBuilder builder, List<MaterialSlot> slots, string structName = k_VertexDescriptionStructName, HashSet<string> activeFields = null)
+        public static void GenerateVertexDescriptionStruct(ShaderStringBuilder builder, IEnumerable<MaterialSlot> slots, string structName = k_VertexDescriptionStructName, HashSet<string> activeFields = null)
         {
             builder.AppendLine("struct {0}", structName);
             using (builder.BlockSemicolonScope())
@@ -1381,7 +1381,7 @@ namespace UnityEditor.ShaderGraph
             PropertyCollector shaderProperties,
             GenerationMode mode,
             List<AbstractMaterialNode> nodes,
-            List<MaterialSlot> slots,
+            IEnumerable<MaterialSlot> slots,
             string graphInputStructName = "VertexDescriptionInputs",
             string functionName = "PopulateVertexData",
             string graphOutputStructName = k_VertexDescriptionStructName)
@@ -1418,16 +1418,12 @@ namespace UnityEditor.ShaderGraph
                 functionRegistry.builder.currentNode = null;
                 builder.currentNode = null; 
 
-                if(slots.Count != 0)
+                foreach (var slot in slots)
                 {
-                    foreach (var slot in slots)
-                    {
-                        var isSlotConnected = slot.owner.owner.GetEdges(slot.slotReference).Any();
-                        var slotName = NodeUtils.GetHLSLSafeName(slot.shaderOutputName);
-                        var slotValue = isSlotConnected ? 
-                            ((AbstractMaterialNode)slot.owner).GetSlotValue(slot.id, mode, slot.owner.concretePrecision) : slot.GetDefaultValue(mode, slot.owner.concretePrecision);
-                        builder.AppendLine("description.{0} = {1};", slotName, slotValue);
-                    }
+                    var isSlotConnected = slot.owner.owner.GetEdges(slot.slotReference).Any();
+                    var slotName = NodeUtils.GetHLSLSafeName(slot.shaderOutputName);
+                    var slotValue = isSlotConnected ? slot.owner.GetSlotValue(slot.id, mode, slot.owner.concretePrecision) : slot.GetDefaultValue(mode, slot.owner.concretePrecision);
+                    builder.AppendLine("description.{0} = {1};", slotName, slotValue);
                 }
 
                 builder.AppendLine("return description;");

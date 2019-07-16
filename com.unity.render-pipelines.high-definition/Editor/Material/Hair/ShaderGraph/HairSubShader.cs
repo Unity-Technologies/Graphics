@@ -29,7 +29,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 "AttributesMesh.color",
                 "AttributesMesh.uv2",           // SHADERPASS_LIGHT_TRANSPORT always uses uv2
             },
-            PixelShaderSlots = new List<int>()
+            UsedSlots = new List<int>()
             {
                 HairMasterNode.AlbedoSlotId,
                 HairMasterNode.NormalSlotId,
@@ -50,9 +50,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 HairMasterNode.SecondarySpecularTintSlotId,
                 HairMasterNode.SecondarySmoothnessSlotId,
                 HairMasterNode.SecondarySpecularShiftSlotId,
-            },
-            VertexShaderSlots = new List<int>()
-            {
                 //HairMasterNode.PositionSlotId
             },
             UseInPreview = false
@@ -74,15 +71,12 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 "#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDepthOnly.hlsl\"",
             },
-            PixelShaderSlots = new List<int>()
+            UsedSlots = new List<int>()
             {
                 HairMasterNode.AlphaSlotId,
                 HairMasterNode.AlphaClipThresholdSlotId,
                 HairMasterNode.AlphaClipThresholdShadowSlotId,
                 HairMasterNode.DepthOffsetSlotId,
-            },
-            VertexShaderSlots = new List<int>()
-            {
                 HairMasterNode.PositionSlotId
             },
             UseInPreview = false
@@ -105,14 +99,11 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 "#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDepthOnly.hlsl\"",
             },
-            PixelShaderSlots = new List<int>()
+            UsedSlots = new List<int>()
             {
                 HairMasterNode.AlphaSlotId,
                 HairMasterNode.AlphaClipThresholdSlotId,
                 HairMasterNode.DepthOffsetSlotId,
-            },
-            VertexShaderSlots = new List<int>()
-            {
                 HairMasterNode.PositionSlotId
             },
             UseInPreview = false
@@ -133,13 +124,14 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 "#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDepthOnly.hlsl\"",
             },
-            PixelShaderSlots = new List<int>()
+            UsedSlots = new List<int>()
             {
                 HairMasterNode.NormalSlotId,
                 HairMasterNode.SmoothnessSlotId,
                 HairMasterNode.AlphaSlotId,
                 HairMasterNode.AlphaClipThresholdSlotId,
                 HairMasterNode.DepthOffsetSlotId,
+                HairMasterNode.PositionSlotId
             },
 
             RequiredFields = new List<string>()
@@ -161,10 +153,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 "FragInputs.color",
             },
 
-            VertexShaderSlots = new List<int>()
-            {
-                HairMasterNode.PositionSlotId
-            },
             UseInPreview = true,
 
             OnGeneratePassImpl = (IMasterNode node, ref Pass pass) =>
@@ -204,16 +192,13 @@ namespace UnityEditor.Rendering.HighDefinition
                 "FragInputs.texCoord3",
                 "FragInputs.color",
             },
-            PixelShaderSlots = new List<int>()
+            UsedSlots = new List<int>()
             {
                 HairMasterNode.NormalSlotId,
                 HairMasterNode.SmoothnessSlotId,
                 HairMasterNode.AlphaSlotId,
                 HairMasterNode.AlphaClipThresholdSlotId,
                 HairMasterNode.DepthOffsetSlotId,
-            },
-            VertexShaderSlots = new List<int>()
-            {
                 HairMasterNode.PositionSlotId
             },
             UseInPreview = false,
@@ -244,14 +229,11 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 "#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDepthOnly.hlsl\"",
             },
-            PixelShaderSlots = new List<int>()
+            UsedSlots = new List<int>()
             {
                 HairMasterNode.AlphaSlotId,
                 HairMasterNode.AlphaClipThresholdDepthPrepassSlotId,
                 HairMasterNode.DepthOffsetSlotId,
-            },
-            VertexShaderSlots = new List<int>()
-            {
                 HairMasterNode.PositionSlotId
             },
             UseInPreview = true
@@ -280,7 +262,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 "FragInputs.texCoord1",
                 "FragInputs.texCoord2"
             },
-            PixelShaderSlots = new List<int>()
+            UsedSlots = new List<int>()
             {
                 HairMasterNode.AlbedoSlotId,
                 HairMasterNode.NormalSlotId,
@@ -302,9 +284,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 HairMasterNode.SecondarySmoothnessSlotId,
                 HairMasterNode.SecondarySpecularShiftSlotId,
                 HairMasterNode.DepthOffsetSlotId,
-            },
-            VertexShaderSlots = new List<int>()
-            {
                 HairMasterNode.PositionSlotId
             },
             UseInPreview = true,
@@ -347,7 +326,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 "FragInputs.texCoord3",
                 "FragInputs.color",
             },
-            PixelShaderSlots = new List<int>()
+            UsedSlots = new List<int>()
             {
                 HairMasterNode.AlbedoSlotId,
                 HairMasterNode.NormalSlotId,
@@ -371,9 +350,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 HairMasterNode.LightingSlotId,
                 HairMasterNode.BackLightingSlotId,
                 HairMasterNode.DepthOffsetSlotId,
-            },
-            VertexShaderSlots = new List<int>()
-            {
                 HairMasterNode.PositionSlotId
             },
             UseInPreview = true,
@@ -416,14 +392,11 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 "#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDepthOnly.hlsl\"",
             },
-            PixelShaderSlots = new List<int>()
+            UsedSlots = new List<int>()
             {
                 HairMasterNode.AlphaSlotId,
                 HairMasterNode.AlphaClipThresholdDepthPostpassSlotId,
                 HairMasterNode.DepthOffsetSlotId,
-            },
-            VertexShaderSlots = new List<int>()
-            {
                 HairMasterNode.PositionSlotId
             },
             UseInPreview = true,
@@ -467,23 +440,23 @@ namespace UnityEditor.Rendering.HighDefinition
                 int count = 0;
 
                 // If alpha test shadow is enable, we use it, otherwise we use the regular test
-                if (pass.PixelShaderUsesSlot(HairMasterNode.AlphaClipThresholdShadowSlotId) && masterNode.alphaTestShadow.isOn)
+                if (pass.UsesSlot(HairMasterNode.AlphaClipThresholdShadowSlotId) && masterNode.alphaTestShadow.isOn)
                 {
                     activeFields.Add("AlphaTestShadow");
                     ++count;
                 }
-                else if (pass.PixelShaderUsesSlot(HairMasterNode.AlphaClipThresholdSlotId))
+                else if (pass.UsesSlot(HairMasterNode.AlphaClipThresholdSlotId))
                 {
                     activeFields.Add("AlphaTest");
                     ++count;
                 }
                 // Other alpha test are suppose to be alone
-                else if (pass.PixelShaderUsesSlot(HairMasterNode.AlphaClipThresholdDepthPrepassSlotId))
+                else if (pass.UsesSlot(HairMasterNode.AlphaClipThresholdDepthPrepassSlotId))
                 {
                     activeFields.Add("AlphaTestPrepass");
                     ++count;
                 }
-                else if (pass.PixelShaderUsesSlot(HairMasterNode.AlphaClipThresholdDepthPostpassSlotId))
+                else if (pass.UsesSlot(HairMasterNode.AlphaClipThresholdDepthPostpassSlotId))
                 {
                     activeFields.Add("AlphaTestPostpass");
                     ++count;
@@ -524,27 +497,27 @@ namespace UnityEditor.Rendering.HighDefinition
                 activeFields.Add("AdditionalVelocityChange");
             }
 
-            if (masterNode.specularAA.isOn && pass.PixelShaderUsesSlot(HairMasterNode.SpecularAAThresholdSlotId) && pass.PixelShaderUsesSlot(HairMasterNode.SpecularAAScreenSpaceVarianceSlotId))
+            if (masterNode.specularAA.isOn && pass.UsesSlot(HairMasterNode.SpecularAAThresholdSlotId) && pass.UsesSlot(HairMasterNode.SpecularAAScreenSpaceVarianceSlotId))
             {
                 activeFields.Add("Specular.AA");
             }
 
-            if (masterNode.IsSlotConnected(HairMasterNode.BentNormalSlotId) && pass.PixelShaderUsesSlot(HairMasterNode.BentNormalSlotId))
+            if (masterNode.IsSlotConnected(HairMasterNode.BentNormalSlotId) && pass.UsesSlot(HairMasterNode.BentNormalSlotId))
             {
                 activeFields.Add("BentNormal");
             }
 
-            if (masterNode.IsSlotConnected(HairMasterNode.HairStrandDirectionSlotId) && pass.PixelShaderUsesSlot(HairMasterNode.HairStrandDirectionSlotId))
+            if (masterNode.IsSlotConnected(HairMasterNode.HairStrandDirectionSlotId) && pass.UsesSlot(HairMasterNode.HairStrandDirectionSlotId))
             {
                 activeFields.Add("HairStrandDirection");
             }
 
-            if (masterNode.IsSlotConnected(HairMasterNode.TransmittanceSlotId) && pass.PixelShaderUsesSlot(HairMasterNode.TransmittanceSlotId))
+            if (masterNode.IsSlotConnected(HairMasterNode.TransmittanceSlotId) && pass.UsesSlot(HairMasterNode.TransmittanceSlotId))
             {
                 activeFields.Add(HairMasterNode.TransmittanceSlotName);
             }
 
-            if (masterNode.IsSlotConnected(HairMasterNode.RimTransmissionIntensitySlotId) && pass.PixelShaderUsesSlot(HairMasterNode.RimTransmissionIntensitySlotId))
+            if (masterNode.IsSlotConnected(HairMasterNode.RimTransmissionIntensitySlotId) && pass.UsesSlot(HairMasterNode.RimTransmissionIntensitySlotId))
             {
                 activeFields.Add(HairMasterNode.RimTransmissionIntensitySlotName);
             }
@@ -572,7 +545,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     break;
             }
 
-            if (pass.PixelShaderUsesSlot(HairMasterNode.AmbientOcclusionSlotId))
+            if (pass.UsesSlot(HairMasterNode.AmbientOcclusionSlotId))
             {
                 var occlusionSlot = masterNode.FindSlot<Vector1MaterialSlot>(HairMasterNode.AmbientOcclusionSlotId);
 
@@ -583,16 +556,16 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
             }
 
-            if (masterNode.IsSlotConnected(HairMasterNode.LightingSlotId) && pass.PixelShaderUsesSlot(HairMasterNode.LightingSlotId))
+            if (masterNode.IsSlotConnected(HairMasterNode.LightingSlotId) && pass.UsesSlot(HairMasterNode.LightingSlotId))
             {
                 activeFields.Add("LightingGI");
             }
-            if (masterNode.IsSlotConnected(HairMasterNode.BackLightingSlotId) && pass.PixelShaderUsesSlot(HairMasterNode.LightingSlotId))
+            if (masterNode.IsSlotConnected(HairMasterNode.BackLightingSlotId) && pass.UsesSlot(HairMasterNode.LightingSlotId))
             {
                 activeFields.Add("BackLightingGI");
             }
 
-            if (masterNode.depthOffset.isOn && pass.PixelShaderUsesSlot(HairMasterNode.DepthOffsetSlotId))
+            if (masterNode.depthOffset.isOn && pass.UsesSlot(HairMasterNode.DepthOffsetSlotId))
                 activeFields.Add("DepthOffset");
 
             return activeFields;

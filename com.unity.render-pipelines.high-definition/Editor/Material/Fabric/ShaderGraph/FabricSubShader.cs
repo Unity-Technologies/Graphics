@@ -29,7 +29,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 "AttributesMesh.color",
                 "AttributesMesh.uv2",           // SHADERPASS_LIGHT_TRANSPORT always uses uv2
             },
-            PixelShaderSlots = new List<int>()
+            UsedSlots = new List<int>()
             {
                 FabricMasterNode.AlbedoSlotId,
                 FabricMasterNode.SpecularOcclusionSlotId,
@@ -45,9 +45,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 FabricMasterNode.EmissionSlotId,
                 FabricMasterNode.AlphaSlotId,
                 FabricMasterNode.AlphaClipThresholdSlotId,
-            },
-            VertexShaderSlots = new List<int>()
-            {
                 //FabricMasterNode.PositionSlotId
             },
             UseInPreview = false,
@@ -69,14 +66,11 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 "#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDepthOnly.hlsl\"",
             },
-            PixelShaderSlots = new List<int>()
+            UsedSlots = new List<int>()
             {
                 FabricMasterNode.AlphaSlotId,
                 FabricMasterNode.AlphaClipThresholdSlotId,
                 FabricMasterNode.DepthOffsetSlotId,
-            },
-            VertexShaderSlots = new List<int>()
-            {
                 FabricMasterNode.PositionSlotId
             },
             UseInPreview = false,
@@ -99,14 +93,11 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 "#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDepthOnly.hlsl\"",
             },
-            PixelShaderSlots = new List<int>()
+            UsedSlots = new List<int>()
             {
                 FabricMasterNode.AlphaSlotId,
                 FabricMasterNode.AlphaClipThresholdSlotId,
                 FabricMasterNode.DepthOffsetSlotId,
-            },
-            VertexShaderSlots = new List<int>()
-            {
                 FabricMasterNode.PositionSlotId
             },
             UseInPreview = false
@@ -127,13 +118,14 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 "#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDepthOnly.hlsl\"",
             },
-            PixelShaderSlots = new List<int>()
+            UsedSlots = new List<int>()
             {
                 FabricMasterNode.NormalSlotId,
                 FabricMasterNode.SmoothnessSlotId,
                 FabricMasterNode.AlphaSlotId,
                 FabricMasterNode.AlphaClipThresholdSlotId,
                 FabricMasterNode.DepthOffsetSlotId,
+                FabricMasterNode.PositionSlotId
             },
 
             RequiredFields = new List<string>()
@@ -155,10 +147,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 "FragInputs.color",
             },
 
-            VertexShaderSlots = new List<int>()
-            {
-                FabricMasterNode.PositionSlotId
-            },
             UseInPreview = true,
 
             OnGeneratePassImpl = (IMasterNode node, ref Pass pass) =>
@@ -199,16 +187,13 @@ namespace UnityEditor.Rendering.HighDefinition
                 "FragInputs.texCoord3",
                 "FragInputs.color",
             },
-            PixelShaderSlots = new List<int>()
+            UsedSlots = new List<int>()
             {
                 FabricMasterNode.NormalSlotId,
                 FabricMasterNode.SmoothnessSlotId,
                 FabricMasterNode.AlphaSlotId,
                 FabricMasterNode.AlphaClipThresholdSlotId,
                 FabricMasterNode.DepthOffsetSlotId,
-            },
-            VertexShaderSlots = new List<int>()
-            {
                 FabricMasterNode.PositionSlotId
             },
             UseInPreview = false,
@@ -253,7 +238,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 "FragInputs.texCoord3",
                 "FragInputs.color",
             },
-            PixelShaderSlots = new List<int>()
+            UsedSlots = new List<int>()
             {
                 FabricMasterNode.AlbedoSlotId,
                 FabricMasterNode.SpecularOcclusionSlotId,
@@ -273,9 +258,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 FabricMasterNode.LightingSlotId,
                 FabricMasterNode.BackLightingSlotId,
                 FabricMasterNode.DepthOffsetSlotId,
-            },
-            VertexShaderSlots = new List<int>()
-            {
                 FabricMasterNode.PositionSlotId
             },
             UseInPreview = true,
@@ -322,7 +304,7 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 "#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassRaytracingIndirect.hlsl\"",
             },
-            PixelShaderSlots = new List<int>()
+            UsedSlots = new List<int>()
             {
                 FabricMasterNode.AlbedoSlotId,
                 FabricMasterNode.SpecularOcclusionSlotId,
@@ -342,9 +324,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 FabricMasterNode.LightingSlotId,
                 FabricMasterNode.BackLightingSlotId,
                 FabricMasterNode.DepthOffsetSlotId,
-            },
-            VertexShaderSlots = new List<int>()
-            {
                 HDLitMasterNode.PositionSlotId
             },
             UseInPreview = false
@@ -361,7 +340,7 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 "#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassRaytracingVisibility.hlsl\"",
             },
-            PixelShaderSlots = new List<int>()
+            UsedSlots = new List<int>()
             {
                 FabricMasterNode.AlbedoSlotId,
                 FabricMasterNode.SpecularOcclusionSlotId,
@@ -381,9 +360,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 FabricMasterNode.LightingSlotId,
                 FabricMasterNode.BackLightingSlotId,
                 FabricMasterNode.DepthOffsetSlotId,
-            },
-            VertexShaderSlots = new List<int>()
-            {
                 HDLitMasterNode.PositionSlotId
             },
             UseInPreview = false
@@ -407,7 +383,7 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 "#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassRaytracingForward.hlsl\"",
             },
-            PixelShaderSlots = new List<int>()
+            UsedSlots = new List<int>()
             {
                 FabricMasterNode.AlbedoSlotId,
                 FabricMasterNode.SpecularOcclusionSlotId,
@@ -427,9 +403,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 FabricMasterNode.LightingSlotId,
                 FabricMasterNode.BackLightingSlotId,
                 FabricMasterNode.DepthOffsetSlotId,
-            },
-            VertexShaderSlots = new List<int>()
-            {
                 HDLitMasterNode.PositionSlotId
             },
             UseInPreview = false
@@ -453,7 +426,7 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 "#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderpassRaytracingGBuffer.hlsl\"",
             },
-            PixelShaderSlots = new List<int>()
+            UsedSlots = new List<int>()
             {
                 FabricMasterNode.AlbedoSlotId,
                 FabricMasterNode.SpecularOcclusionSlotId,
@@ -473,9 +446,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 FabricMasterNode.LightingSlotId,
                 FabricMasterNode.BackLightingSlotId,
                 FabricMasterNode.DepthOffsetSlotId,
-            },
-            VertexShaderSlots = new List<int>()
-            {
                 HDLitMasterNode.PositionSlotId
             },
             UseInPreview = false
@@ -518,7 +488,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             if (masterNode.alphaTest.isOn)
             {
-                if (pass.PixelShaderUsesSlot(FabricMasterNode.AlphaClipThresholdSlotId))
+                if (pass.UsesSlot(FabricMasterNode.AlphaClipThresholdSlotId))
                 {
                     activeFields.Add("AlphaTest");
                 }
@@ -567,12 +537,12 @@ namespace UnityEditor.Rendering.HighDefinition
                 activeFields.Add("Material.SubsurfaceScattering");
             }
 
-            if (masterNode.IsSlotConnected(FabricMasterNode.BentNormalSlotId) && pass.PixelShaderUsesSlot(FabricMasterNode.BentNormalSlotId))
+            if (masterNode.IsSlotConnected(FabricMasterNode.BentNormalSlotId) && pass.UsesSlot(FabricMasterNode.BentNormalSlotId))
             {
                 activeFields.Add("BentNormal");
             }
 
-            if (masterNode.IsSlotConnected(FabricMasterNode.TangentSlotId) && pass.PixelShaderUsesSlot(FabricMasterNode.TangentSlotId))
+            if (masterNode.IsSlotConnected(FabricMasterNode.TangentSlotId) && pass.UsesSlot(FabricMasterNode.TangentSlotId))
             {
                 activeFields.Add("Tangent");
             }
@@ -594,7 +564,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     break;
             }
 
-            if (pass.PixelShaderUsesSlot(FabricMasterNode.AmbientOcclusionSlotId))
+            if (pass.UsesSlot(FabricMasterNode.AmbientOcclusionSlotId))
             {
                 var occlusionSlot = masterNode.FindSlot<Vector1MaterialSlot>(FabricMasterNode.AmbientOcclusionSlotId);
 
@@ -605,16 +575,16 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
             }
 
-            if (masterNode.IsSlotConnected(FabricMasterNode.LightingSlotId) && pass.PixelShaderUsesSlot(FabricMasterNode.LightingSlotId))
+            if (masterNode.IsSlotConnected(FabricMasterNode.LightingSlotId) && pass.UsesSlot(FabricMasterNode.LightingSlotId))
             {
                 activeFields.Add("LightingGI");
             }
-            if (masterNode.IsSlotConnected(FabricMasterNode.BackLightingSlotId) && pass.PixelShaderUsesSlot(FabricMasterNode.BackLightingSlotId))
+            if (masterNode.IsSlotConnected(FabricMasterNode.BackLightingSlotId) && pass.UsesSlot(FabricMasterNode.BackLightingSlotId))
             {
                 activeFields.Add("BackLightingGI");
             }
 
-            if (masterNode.depthOffset.isOn && pass.PixelShaderUsesSlot(FabricMasterNode.DepthOffsetSlotId))
+            if (masterNode.depthOffset.isOn && pass.UsesSlot(FabricMasterNode.DepthOffsetSlotId))
                 activeFields.Add("DepthOffset");
 
             return activeFields;

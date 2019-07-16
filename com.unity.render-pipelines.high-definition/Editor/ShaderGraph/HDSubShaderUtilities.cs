@@ -503,9 +503,8 @@ namespace UnityEditor.Rendering.HighDefinition
         public List<string> ExtraInstancingOptions;
         public List<string> LODFadeOptions;
         public List<string> ExtraDefines;
-        public List<int> VertexShaderSlots;         // These control what slots are used by the pass vertex shader
-        public List<int> PixelShaderSlots;          // These control what slots are used by the pass pixel shader
-        public List<int> PixelProceduralShaderSlots;// These control what slots are used by the pass's procedural part of the pixel shader
+        public List<int> UsedSlots;                 // These control what slots are used by the pass vertex/pixel shader
+        public List<int> PixelProceduralSlots;      // These control what slots are used by the pass pixel procedural function
         public string CullOverride;
         public string BlendOverride;
         public string BlendOpOverride;
@@ -518,18 +517,12 @@ namespace UnityEditor.Rendering.HighDefinition
         public bool UseInPreview;
 
         // All these lists could probably be hashed to aid lookups.
-        public bool VertexShaderUsesSlot(int slotId)
-        {
-            return VertexShaderSlots.Contains(slotId);
-        }
-        public bool PixelShaderUsesSlot(int slotId)
-        {
-            return PixelShaderSlots.Contains(slotId);
-        }
-        public bool PixelProceduralShaderUsesSlot(int slotId)
-        {
-            return PixelProceduralShaderSlots.Contains(slotId);
-        }
+        public bool UsesSlot(int slotId)
+            => UsedSlots.Contains(slotId);
+
+        public bool PixelProceduralUsesSlot(int slotId)
+            => PixelProceduralSlots != null && PixelProceduralSlots.Contains(slotId);
+
         public void OnGeneratePass(IMasterNode masterNode)
         {
             if (OnGeneratePassImpl != null)
@@ -557,13 +550,13 @@ namespace UnityEditor.Rendering.HighDefinition
 
             // grab all of the active nodes (for pixel and vertex graphs)
             var vertexNodes = Graphing.ListPool<AbstractMaterialNode>.Get();
-            NodeUtils.DepthFirstCollectNodesFromNode(vertexNodes, masterNode, NodeUtils.IncludeSelf.Include, pass.VertexShaderSlots);
+            NodeUtils.DepthFirstCollectNodesFromNode(vertexNodes, masterNode, ShaderStageCapability.Vertex, NodeUtils.IncludeSelf.Include, pass.UsedSlots);
 
             var pixelNodes = Graphing.ListPool<AbstractMaterialNode>.Get();
-            NodeUtils.DepthFirstCollectNodesFromNode(pixelNodes, masterNode, NodeUtils.IncludeSelf.Include, pass.PixelShaderSlots);
+            NodeUtils.DepthFirstCollectNodesFromNode(pixelNodes, masterNode, ShaderStageCapability.Fragment, NodeUtils.IncludeSelf.Include, pass.UsedSlots);
 
             var pixelProceduralNodes = Graphing.ListPool<AbstractMaterialNode>.Get();
-            NodeUtils.DepthFirstCollectNodesFromNode(pixelProceduralNodes, masterNode, NodeUtils.IncludeSelf.Include, pass.PixelProceduralShaderSlots);
+            NodeUtils.DepthFirstCollectNodesFromNode(pixelProceduralNodes, masterNode, ShaderStageCapability.Fragment, NodeUtils.IncludeSelf.Include, pass.PixelProceduralSlots);
 
             // graph requirements describe what the graph itself requires
             var pixelRequirements = ShaderGraphRequirements.FromNodes(pixelNodes, ShaderStageCapability.Fragment, false);   // TODO: is ShaderStageCapability.Fragment correct?
@@ -579,8 +572,8 @@ namespace UnityEditor.Rendering.HighDefinition
             // TODO: this can be a shared function for all HDRP master nodes -- From here through GraphUtil.GenerateSurfaceDescription(..)
 
             // Build the list of active slots based on what the pass requires
-            var pixelSlots = HDSubShaderUtilities.FindMaterialSlotsOnNode(pass.PixelShaderSlots, masterNode);
-            var vertexSlots = HDSubShaderUtilities.FindMaterialSlotsOnNode(pass.VertexShaderSlots, masterNode);
+            var pixelSlots = masterNode.GetSlots<MaterialSlot>().Where(slot => (slot.stageCapability & ShaderStageCapability.Fragment) != 0 && pass.UsesSlot(slot.id));
+            var vertexSlots = masterNode.GetSlots<MaterialSlot>().Where(slot => (slot.stageCapability & ShaderStageCapability.Vertex) != 0 && pass.UsesSlot(slot.id));
 
             // properties used by either pixel and vertex shader
             PropertyCollector sharedProperties = new PropertyCollector();
@@ -830,23 +823,6 @@ namespace UnityEditor.Rendering.HighDefinition
             result.AddShaderChunk(templatePreprocessor.GetShaderCode().ToString(), false);
 
             return true;
-        }
-
-        public static List<MaterialSlot> FindMaterialSlotsOnNode(IEnumerable<int> slots, AbstractMaterialNode node)
-        {
-            var activeSlots = new List<MaterialSlot>();
-            if (slots != null)
-            {
-                foreach (var id in slots)
-                {
-                    MaterialSlot slot = node.FindSlot<MaterialSlot>(id);
-                    if (slot != null)
-                    {
-                        activeSlots.Add(slot);
-                    }
-                }
-            }
-            return activeSlots;
         }
 
         public static void BuildRenderStatesFromPass(
