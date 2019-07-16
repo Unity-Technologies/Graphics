@@ -11,8 +11,6 @@ struct Varyings
 {
     float2 uv        : TEXCOORD0;
     float4 vertex : SV_POSITION;
-
-    UNITY_VERTEX_OUTPUT_STEREO
 };
 
 Varyings vert(Attributes input)
@@ -23,14 +21,11 @@ Varyings vert(Attributes input)
     output.vertex = vertexInput.positionCS;
     output.uv = TRANSFORM_TEX(input.uv, _BaseMap);
 
-    UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
     return output;
 }
 
 half4 frag(Varyings input) : SV_Target
 {
-    UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
-
     half2 uv = input.uv;
     half4 texColor = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, uv);
     half3 color = texColor.rgb * _BaseColor.rgb;
