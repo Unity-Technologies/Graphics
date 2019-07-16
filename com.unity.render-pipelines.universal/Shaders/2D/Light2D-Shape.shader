@@ -88,7 +88,8 @@ Shader "Hidden/Light2D-Shape"
                 TRANSFER_NORMALS_LIGHTING(o, worldSpacePos)
 
 
-                o.shadowUV = 0.5 * (o.positionCS.xy + 1);
+                float4 clipVertex = o.positionCS / o.positionCS.w;
+                o.shadowUV = ComputeScreenPos(clipVertex).xy;
 
                 return o;
             }
