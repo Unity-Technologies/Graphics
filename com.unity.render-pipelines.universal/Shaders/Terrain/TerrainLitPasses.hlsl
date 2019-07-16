@@ -127,9 +127,11 @@ void SplatmapMix(float4 uvMainAndLM, float4 uvSplat01, float4 uvSplat23, inout h
     clip(weight == 0.0h ? -1.0h : 1.0h);
 #endif
 
+#ifndef _TERRAIN_BASEMAP_GEN
     // Normalize weights before lighting and restore weights in final modifier functions so that the overal
     // lighting result can be correctly weighted.
     splatControl /= (weight + HALF_MIN);
+#endif
 
     mixedDiffuse = 0.0h;
     mixedDiffuse += diffAlbedo[0] * half4(_DiffuseRemapScale0.rgb * splatControl.rrr, 1.0h);
