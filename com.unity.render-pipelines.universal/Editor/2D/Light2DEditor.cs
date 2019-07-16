@@ -73,6 +73,9 @@ namespace UnityEditor.Experimental.Rendering.Universal
             public static GUIContent generalBlendStyle = EditorGUIUtility.TrTextContent("Blend Style", "Specify the blend style");
             public static GUIContent generalLightOverlapMode = EditorGUIUtility.TrTextContent("Alpha Blend on Overlap", "Use alpha blending instead of additive blending when this light overlaps others");
             public static GUIContent generalLightOrder = EditorGUIUtility.TrTextContent("Light Order", "The relative order in which lights of the same blend style get rendered.");
+            public static GUIContent generalCastsShadows = EditorGUIUtility.TrTextContent("Casts Shadows", "Specify where the light casts shadows");
+            public static GUIContent generalShadowIntensity = EditorGUIUtility.TrTextContent("Shadow Intensity", "Specify the shadow's darkness");
+
 
             public static GUIContent pointLightQuality = EditorGUIUtility.TrTextContent("Quality", "Use accurate if there are noticeable visual issues");
             public static GUIContent pointLightInnerAngle =  EditorGUIUtility.TrTextContent("Inner Angle", "Specify the inner angle of the light");
@@ -109,6 +112,8 @@ namespace UnityEditor.Experimental.Rendering.Universal
         SerializedProperty m_LightColor;
         SerializedProperty m_LightIntensity;
         SerializedProperty m_UseNormalMap;
+        SerializedProperty m_CastsShadows;
+        SerializedProperty m_ShadowIntensity;
         SerializedProperty m_ApplyToSortingLayers;
         SerializedProperty m_VolumetricAlpha;
         SerializedProperty m_BlendStyleIndex;
@@ -193,6 +198,8 @@ namespace UnityEditor.Experimental.Rendering.Universal
             m_LightColor = serializedObject.FindProperty("m_Color");
             m_LightIntensity = serializedObject.FindProperty("m_Intensity");
             m_UseNormalMap = serializedObject.FindProperty("m_UseNormalMap");
+            m_CastsShadows = serializedObject.FindProperty("m_CastsShadows");
+            m_ShadowIntensity = serializedObject.FindProperty("m_ShadowIntensity");
             m_ApplyToSortingLayers = serializedObject.FindProperty("m_ApplyToSortingLayers");
             m_VolumetricAlpha = serializedObject.FindProperty("m_LightVolumeOpacity");
             m_BlendStyleIndex = serializedObject.FindProperty("m_BlendStyleIndex");
@@ -718,6 +725,11 @@ namespace UnityEditor.Experimental.Rendering.Universal
 
             if (m_LightType.intValue != (int)Light2D.LightType.Global)
             {
+                EditorGUILayout.PropertyField(m_CastsShadows, Styles.generalCastsShadows);
+                if(m_CastsShadows.boolValue)
+                    EditorGUILayout.PropertyField(m_ShadowIntensity, Styles.generalShadowIntensity);
+
+
                 EditorGUILayout.PropertyField(m_UseNormalMap, Styles.generalUseNormalMap);
 
                 if (m_UseNormalMap.boolValue)

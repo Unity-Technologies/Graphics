@@ -152,7 +152,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
         [SerializeField]
         float m_FalloffIntensity = 0.5f;
 
-        [ColorUsage(false, false)]
+        [ColorUsage(false)]
         [SerializeField]
         Color m_Color = Color.white;
         [SerializeField]
@@ -173,7 +173,11 @@ namespace UnityEngine.Experimental.Rendering.Universal
         Mesh        m_Mesh;
         int         m_LightCullingIndex             = -1;
         Bounds      m_LocalBounds;
-        bool        m_CastsShadows                  = true;
+
+        [SerializeField] bool m_CastsShadows        = true;
+
+        [Range(0,1)]
+        [SerializeField] float m_ShadowIntensity    = 1.0f;
 
         internal struct LightStats
         {
@@ -200,6 +204,11 @@ namespace UnityEngine.Experimental.Rendering.Universal
         /// Specifies if the light cast shadows
         /// </summary>
         public bool castsShadows { get => m_CastsShadows; set => m_CastsShadows = value; }
+
+        /// <summary>
+        /// Specifies the darkness of the shadow
+        /// </summary>
+        public float shadowIntensity { get => m_ShadowIntensity; set => m_ShadowIntensity = Mathf.Clamp01(value); }
 
 
         /// <summary>

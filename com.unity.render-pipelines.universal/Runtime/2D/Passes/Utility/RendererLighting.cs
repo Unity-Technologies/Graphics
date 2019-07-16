@@ -128,6 +128,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     cmdBuffer.SetRenderTarget(Renderer2DData.s_RenderTexture);
                     cmdBuffer.ClearRenderTarget(true, true, Color.white);
                     cmdBuffer.SetGlobalTexture("_ShadowTex", Renderer2DData.s_RenderTexture);
+                    cmdBuffer.SetGlobalFloat("_ShadowIntensity", 1-light.shadowIntensity);
 
                     if (light.castsShadows && Renderer2DData.s_RenderTexture != null)
                     {
@@ -137,6 +138,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
                         cmdBuffer.SetGlobalVector("_LightPos", light.transform.position);
                         cmdBuffer.SetGlobalFloat("_LightRadius", lightBounds.radius);
+                        
 
                         List<ShadowCaster2D> shadowCasters = ShadowCaster2D.shadowCasters;
                         if (shadowCasters != null && shadowCasters.Count > 0)

@@ -50,6 +50,7 @@ Shader "Hidden/Light2D-Shape"
             float4 _LightColor;
             float  _FalloffDistance;
             float4 _FalloffOffset;
+            float  _ShadowIntensity;
 
             TEXTURE2D(_ShadowTex);
             SAMPLER(sampler_ShadowTex);
@@ -88,8 +89,7 @@ Shader "Hidden/Light2D-Shape"
                 TRANSFER_NORMALS_LIGHTING(o, worldSpacePos)
 
 
-                float4 clipVertex = o.positionCS / o.positionCS.w;
-                o.shadowUV = ComputeScreenPos(clipVertex).xy;
+                o.shadowUV = ComputeScreenPos(o.positionCS / o.positionCS.w).xy;
 
                 return o;
             }
@@ -115,9 +115,7 @@ Shader "Hidden/Light2D-Shape"
                 APPLY_NORMALS_LIGHTING(i, color);
 
                 half4 shadow = SAMPLE_TEXTURE2D(_ShadowTex, sampler_ShadowTex, i.shadowUV);
-
-                return color * shadow;
-                //return shadow;
+                return (color * shadow.r) + (color * _ShadowIntensity*(1-shadow.r)) ;
             }
             ENDHLSL
         }
