@@ -157,16 +157,6 @@ namespace UnityEditor.Experimental.Rendering.Universal
             return CreateLightValidation();
         }
 
-        [MenuItem("Component/Rendering/2D/Shadow Caster 2D (Experimental)")]
-        static void CreateShadowCaster2DComponent(MenuCommand menuCommand)
-        {
-            var parent = Selection.activeObject as GameObject;
-            if (parent != null)
-            {
-                parent.AddComponent<ShadowCaster2D>();
-            }
-        }
-
         [MenuItem("GameObject/Light/2D/Shadow Caster 2D (Experimental)")]
         static void CreateShadowCaster2D(MenuCommand menuCommand)
         {

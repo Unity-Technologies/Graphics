@@ -25,27 +25,29 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         static Renderer2DData s_RendererData;
         static Light2DBlendStyle[] s_BlendStyles;
-        static RenderTargetHandle[] s_RenderTargets;
-        static bool[] s_RenderTargetsDirty;
+        static RenderTargetHandle[] s_LightRenderTargets;
+        static bool[] s_LightRenderTargetsDirty;
+        static RenderTargetHandle s_ShadowsRenderTarget;
         static RenderTargetHandle s_NormalsTarget;
         static Texture s_LightLookupTexture;
         static Texture s_FalloffLookupTexture;
         static Material[] s_LightMaterials;
+        static Material s_ShadowMaterial;
 
         static public void Setup(Renderer2DData rendererData)
         {
             s_RendererData = rendererData;
             s_BlendStyles = rendererData.lightBlendStyles;
 
-            if (s_RenderTargets == null)
+            if (s_LightRenderTargets == null)
             {
-                s_RenderTargets = new RenderTargetHandle[s_BlendStyles.Length];
-                s_RenderTargets[0].Init("_ShapeLightTexture0");
-                s_RenderTargets[1].Init("_ShapeLightTexture1");
-                s_RenderTargets[2].Init("_ShapeLightTexture2");
-                s_RenderTargets[3].Init("_ShapeLightTexture3");
+                s_LightRenderTargets = new RenderTargetHandle[s_BlendStyles.Length];
+                s_LightRenderTargets[0].Init("_ShapeLightTexture0");
+                s_LightRenderTargets[1].Init("_ShapeLightTexture1");
+                s_LightRenderTargets[2].Init("_ShapeLightTexture2");
+                s_LightRenderTargets[3].Init("_ShapeLightTexture3");
 
-                s_RenderTargetsDirty = new bool[s_BlendStyles.Length];
+                s_LightRenderTargetsDirty = new bool[s_BlendStyles.Length];
             }
 
             if (s_NormalsTarget.id == 0)
@@ -78,6 +80,8 @@ namespace UnityEngine.Experimental.Rendering.Universal
             descriptor.height = (int)(camera.pixelHeight);
             cmd.GetTemporaryRT(s_NormalsTarget.id, descriptor, FilterMode.Bilinear);
 
+            cmd.GetTemporaryRT(s_ShadowsRenderTarget.id, descriptor, FilterMode.Bilinear); // Needs to be switch to R8 color format...
+
             for (int i = 0; i < s_BlendStyles.Length; ++i)
             {
                 if (!s_BlendStyles[i].enabled)
@@ -86,9 +90,12 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 float renderTextureScale = Mathf.Clamp(s_BlendStyles[i].renderTextureScale, 0.01f, 1.0f);
                 descriptor.width = (int)(camera.pixelWidth * renderTextureScale);
                 descriptor.height = (int)(camera.pixelHeight * renderTextureScale);
-                cmd.GetTemporaryRT(s_RenderTargets[i].id, descriptor, FilterMode.Bilinear);
-                s_RenderTargetsDirty[i] = true;
+                cmd.GetTemporaryRT(s_LightRenderTargets[i].id, descriptor, FilterMode.Bilinear);
+                s_LightRenderTargetsDirty[i] = true;
             }
+
+
+            
         }
 
         static public void ReleaseRenderTextures(CommandBuffer cmd)
@@ -98,20 +105,64 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 if (!s_BlendStyles[i].enabled)
                     continue;
 
-                cmd.ReleaseTemporaryRT(s_RenderTargets[i].id);
+                cmd.ReleaseTemporaryRT(s_LightRenderTargets[i].id);
             }
 
             cmd.ReleaseTemporaryRT(s_NormalsTarget.id);
         }
 
-        static private bool RenderLightSet(Camera camera, int blendStyleIndex, CommandBuffer cmdBuffer, int layerToRender, List<Light2D> lights)
+        static private bool RenderLightSet(Camera camera, int blendStyleIndex, CommandBuffer cmdBuffer, int layerToRender, List<Light2D> lights, RenderTargetIdentifier currentRTIdentifier)
         {
             bool renderedAnyLight = false;
+
+            Material shadowMaterial = GetShadowMaterial();
 
             foreach (var light in lights)
             {
                 if (light != null && light.lightType != Light2D.LightType.Global && light.blendStyleIndex == blendStyleIndex && light.IsLitLayer(layerToRender) && light.IsLightVisible(camera))
                 {
+
+                    // Render light's shadows
+                    //if (light.castsShadows)
+                    //cmdBuffer.SetRenderTarget(s_ShadowsRenderTarget.Identifier()); // This isn't efficient if this light doesn't cast shadow.
+                    cmdBuffer.SetRenderTarget(Renderer2DData.s_RenderTexture);
+                    cmdBuffer.ClearRenderTarget(true, true, Color.white);
+                    cmdBuffer.SetGlobalTexture("_ShadowTex", Renderer2DData.s_RenderTexture);
+
+                    if (light.castsShadows && Renderer2DData.s_RenderTexture != null)
+                    {
+                        BoundingSphere lightBounds = light.GetBoundingSphere(); // Gets the local bounding sphere...
+                        Vector3 lightCenterWS = lightBounds.position;
+                        float lightRadiusSq = lightBounds.radius * lightBounds.radius;
+
+                        cmdBuffer.SetGlobalVector("_LightPos", light.transform.position);
+                        cmdBuffer.SetGlobalFloat("_LightRadius", lightBounds.radius);
+
+                        List<ShadowCaster2D> shadowCasters = ShadowCaster2D.shadowCasters;
+                        if (shadowCasters != null && shadowCasters.Count > 0)
+                        {
+                            foreach (var shadowCaster in shadowCasters)
+                            {
+                                float shadowRadiusSq = shadowCaster.radius * shadowCaster.radius;
+                                Vector3 deltaPos = lightCenterWS - shadowCaster.transform.position;
+                                float sqDist = deltaPos.x * deltaPos.x + deltaPos.y * deltaPos.y;
+
+                                // Check to see if our shadow caster is inside the lights bounds...
+                                if (sqDist < (shadowRadiusSq + lightRadiusSq))
+                                {
+                                    cmdBuffer.DrawMesh(shadowCaster.mesh, Matrix4x4.TRS(shadowCaster.transform.position, shadowCaster.transform.rotation, shadowCaster.transform.lossyScale), shadowMaterial);
+                                }
+                            }
+                        }
+                    }
+                    else
+                    {
+                        //cmdBuffer.SetGlobalTexture("_ShadowTex", s_WhitePixel);
+                    }
+
+                    cmdBuffer.SetRenderTarget(currentRTIdentifier); // This isn't efficient if this light doesn't cast shadow.
+
+                    // Render light
                     Material lightMaterial = GetLightMaterial(light, false);
                     if (lightMaterial != null)
                     {
@@ -306,11 +357,11 @@ namespace UnityEngine.Experimental.Rendering.Universal
         {
             for (int i = 0; i < s_BlendStyles.Length; ++i)
             {
-                if (s_RenderTargetsDirty[i])
+                if (s_LightRenderTargetsDirty[i])
                 {
-                    cmdBuffer.SetRenderTarget(s_RenderTargets[i].Identifier());
+                    cmdBuffer.SetRenderTarget(s_LightRenderTargets[i].Identifier());
                     cmdBuffer.ClearRenderTarget(false, true, Color.black);
-                    s_RenderTargetsDirty[i] = false;
+                    s_LightRenderTargetsDirty[i] = false;
                 }
             }
         }
@@ -338,7 +389,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 string sampleName = s_BlendStyles[i].name;
                 cmdBuffer.BeginSample(sampleName);
 
-                cmdBuffer.SetRenderTarget(s_RenderTargets[i].Identifier());
+                cmdBuffer.SetRenderTarget(s_LightRenderTargets[i].Identifier());
 
                 bool rtDirty = false;
                 Color clearColor;
@@ -347,7 +398,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 else
                     rtDirty = true;
 
-                if (s_RenderTargetsDirty[i] || rtDirty)
+                if (s_LightRenderTargetsDirty[i] || rtDirty)
                     cmdBuffer.ClearRenderTarget(false, true, clearColor);
 
                 rtDirty |= RenderLightSet(
@@ -355,10 +406,11 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     i,
                     cmdBuffer,
                     layerToRender,
-                    Light2D.GetLightsByBlendStyle(i)
+                    Light2D.GetLightsByBlendStyle(i),
+                    s_LightRenderTargets[i].Identifier()
                 );
 
-                s_RenderTargetsDirty[i] = rtDirty;
+                s_LightRenderTargetsDirty[i] = rtDirty;
 
                 cmdBuffer.EndSample(sampleName);
             }
@@ -379,7 +431,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     i,
                     cmdBuffer,
                     layerToRender,
-                    s_RenderTargets[i].Identifier(),
+                    s_LightRenderTargets[i].Identifier(),
                     Light2D.GetLightsByBlendStyle(i)                  
                 );
 
@@ -456,6 +508,14 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 s_LightMaterials[materialIndex] = CreateLightMaterial(light, isVolume);
 
             return s_LightMaterials[materialIndex];
+        }
+
+        static Material GetShadowMaterial()
+        {
+            if(s_ShadowMaterial == null)
+                s_ShadowMaterial = CoreUtils.CreateEngineMaterial(s_RendererData.shadowShader);
+
+            return s_ShadowMaterial;
         }
     }
 }

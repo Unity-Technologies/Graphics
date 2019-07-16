@@ -173,6 +173,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
         Mesh        m_Mesh;
         int         m_LightCullingIndex             = -1;
         Bounds      m_LocalBounds;
+        bool        m_CastsShadows                  = true;
 
         internal struct LightStats
         {
@@ -194,6 +195,12 @@ namespace UnityEngine.Experimental.Rendering.Universal
         /// The lights current operation index
         /// </summary>
         public int blendStyleIndex { get => m_BlendStyleIndex; set => m_BlendStyleIndex = value; }
+
+        /// <summary>
+        /// Specifies if the light cast shadows
+        /// </summary>
+        public bool castsShadows { get => m_CastsShadows; set => m_CastsShadows = value; }
+
 
         /// <summary>
         /// The lights current color
@@ -336,7 +343,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 ErrorIfDuplicateGlobalLight();
         }
 
-        BoundingSphere GetBoundingSphere()
+        internal BoundingSphere GetBoundingSphere()
         {
             return IsShapeLight() ? GetShapeLightBoundingSphere() : GetPointLightBoundingSphere();
         }

@@ -31,6 +31,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
         }
 
         SerializedProperty m_HDREmulationScale;
+        SerializedProperty m_RenderTexture;
         SerializedProperty m_LightBlendStyles;
         LightBlendStyleProps[] m_LightBlendStylePropsArray;
 
@@ -81,6 +82,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
             m_Renderer2DData = (Renderer2DData)serializedObject.targetObject;
 
             m_HDREmulationScale = serializedObject.FindProperty("m_HDREmulationScale");
+            m_RenderTexture = serializedObject.FindProperty("m_RenderTexture");
             m_LightBlendStyles = serializedObject.FindProperty("m_LightBlendStyles");
 
             int numBlendStyles = m_LightBlendStyles.arraySize;
@@ -119,6 +121,8 @@ namespace UnityEditor.Experimental.Rendering.Universal
             EditorGUILayout.PropertyField(m_HDREmulationScale, Styles.hdrEmulationScale);
             if (EditorGUI.EndChangeCheck() && m_HDREmulationScale.floatValue < 1.0f)
                 m_HDREmulationScale.floatValue = 1.0f;
+
+            EditorGUILayout.PropertyField(m_RenderTexture, EditorGUIUtility.TrTextContent("Render Texture", "This is just for testing delete this later"));
 
             EditorGUILayout.LabelField(Styles.lightBlendStyles);
             EditorGUI.indentLevel++;

@@ -5,13 +5,23 @@ using UnityEngine;
 
 namespace UnityEngine.Experimental.Rendering.Universal
 {
+    [ExecuteAlways, DisallowMultipleComponent]
+    [AddComponentMenu("Rendering/2D/Shadow Caster 2D (Experimental)")]
     public class ShadowCaster2D : MonoBehaviour
     {
         public float m_Radius = 1;
         public int m_Sides = 6;
         public MeshFilter m_DebugMeshFilter;
+        Mesh m_Mesh;
 
-        public static List<ShadowCaster2D> s_ShadowCasters = null;
+
+        private static List<ShadowCaster2D> s_ShadowCasters = null;
+
+        public static List<ShadowCaster2D> shadowCasters { get => s_ShadowCasters; }
+
+
+        public float radius { get => m_Radius; }
+        internal Mesh mesh { get => m_Mesh; }
 
         public enum CasterType
         {
@@ -127,18 +137,35 @@ namespace UnityEngine.Experimental.Rendering.Universal
             mesh.triangles = triangles;
             mesh.tangents = tangents;
             mesh.colors = colors;
+
+            m_Mesh = mesh;
         }
 
+        internal static void Initialize()
+        {
+            if (s_ShadowCasters == null)
+                s_ShadowCasters = new List<ShadowCaster2D>();
+            else
+                s_ShadowCasters.Clear();
+        }
 
-        private void Start()
+        private void OnEnable()
         {
             if (s_ShadowCasters == null)
                 s_ShadowCasters = new List<ShadowCaster2D>();
 
             s_ShadowCasters.Add(this);
 
-            CreateShadowPolygon(Vector3.zero, m_Radius, 0, 4, ref m_ShadowMesh);
-            m_DebugMeshFilter.sharedMesh = m_ShadowMesh;
+            CreateShadowPolygon(Vector3.zero, m_Radius, 0, 6, ref m_ShadowMesh);
+
+            if(m_DebugMeshFilter)
+                m_DebugMeshFilter.sharedMesh = m_ShadowMesh;
         }
+
+        private void OnDisable()
+        {
+            s_ShadowCasters.Remove(this);
+        }
+
     }
-}
+}   

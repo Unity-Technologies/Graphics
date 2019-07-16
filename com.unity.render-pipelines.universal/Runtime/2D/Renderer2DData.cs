@@ -35,14 +35,23 @@ namespace UnityEngine.Experimental.Rendering.Universal
         [SerializeField]
         Shader m_BlitShader = null;
 
+        [SerializeField]
+        Shader m_ShadowShader = null;
+
         public float hdrEmulationScale => m_HDREmulationScale;
         public Light2DBlendStyle[] lightBlendStyles => m_LightBlendStyles;
+
+
+        // Delete this stuff
+        public RenderTexture m_RenderTexture;
+        public static RenderTexture s_RenderTexture;
 
         internal Shader shapeLightShader => m_ShapeLightShader;
         internal Shader shapeLightVolumeShader => m_ShapeLightVolumeShader;
         internal Shader pointLightShader => m_PointLightShader;
         internal Shader pointLightVolumeShader => m_PointLightVolumeShader;
         internal Shader blitShader => m_BlitShader;
+        internal Shader shadowShader => m_ShadowShader;
 
         protected override ScriptableRenderer Create()
         {
@@ -94,11 +103,14 @@ namespace UnityEngine.Experimental.Rendering.Universal
             m_PointLightShader = Shader.Find("Hidden/Light2D-Point");
             m_PointLightVolumeShader = Shader.Find("Hidden/Light2d-Point-Volumetric");
             m_BlitShader = Shader.Find("Hidden/Universal Render Pipeline/Blit");
+            m_ShadowShader = Shader.Find("Hidden/Shadow2D");
         }
 
         protected override void OnEnable()
         {
             base.OnEnable();
+
+            s_RenderTexture = m_RenderTexture;
 
             // Provide a list of suggested texture property names to Sprite Editor via EditorPrefs.
             const string suggestedNamesKey = "SecondarySpriteTexturePropertyNames";

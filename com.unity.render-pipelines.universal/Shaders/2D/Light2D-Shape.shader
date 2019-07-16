@@ -42,13 +42,17 @@ Shader "Hidden/Light2D-Shape"
                 float4  positionCS  : SV_POSITION;
                 float4  color       : COLOR;
                 float2  uv          : TEXCOORD0;
-                NORMALS_LIGHTING_COORDS(TEXCOORD1, TEXCOORD2)
+                float2  shadowUV    : TEXCOORD1;
+                NORMALS_LIGHTING_COORDS(TEXCOORD2, TEXCOORD3)
             };
 
             float  _InverseHDREmulationScale;
             float4 _LightColor;
             float  _FalloffDistance;
             float4 _FalloffOffset;
+
+            TEXTURE2D(_ShadowTex);
+            SAMPLER(sampler_ShadowTex);
 
 #ifdef SPRITE_LIGHT
             TEXTURE2D(_CookieTex);			// This can either be a sprite texture uv or a falloff texture
@@ -83,6 +87,9 @@ Shader "Hidden/Light2D-Shape"
                 worldSpacePos.w = 1;
                 TRANSFER_NORMALS_LIGHTING(o, worldSpacePos)
 
+
+                o.shadowUV = 0.5 * (o.positionCS.xy + 1);
+
                 return o;
             }
 
@@ -106,7 +113,10 @@ Shader "Hidden/Light2D-Shape"
 #endif
                 APPLY_NORMALS_LIGHTING(i, color);
 
-                return color;
+                half4 shadow = SAMPLE_TEXTURE2D(_ShadowTex, sampler_ShadowTex, i.shadowUV);
+
+                return color * shadow;
+                //return shadow;
             }
             ENDHLSL
         }
