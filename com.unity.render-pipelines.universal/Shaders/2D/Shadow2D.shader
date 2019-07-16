@@ -47,29 +47,15 @@ Shader "Hidden/Shadow2D"
                 float3 vertexWS = TransformObjectToWorld(v.vertex);  // This should be in world space
                 float3 lightDirection = normalize(_LightPos - vertexWS); // 
 
-				// There is something here that needs to be done for when we are not dealing with the xy plane...
-				float passesXY = saturate(ceil(-dot(lightDirection.xy, -v.tangent.xy)));
-				float passesZW = saturate(ceil(-dot(lightDirection.xy, -v.tangent.zw)));
+                float2 endpoint = vertexWS.xy + (_LightRadius * -lightDirection.xy);
 
-                float isSoftShadow = saturate(ceil(abs(v.tangent.z) + abs(v.tangent.w)));
-                float isSoftShadowCorner = isSoftShadow * abs(passesXY - passesZW);
+                float3 worldTangent = TransformObjectToWorldDir(v.tangent.xyz);
 
-                float2 endpoint = vertexWS.xy + isSoftShadowCorner * (_LightRadius * -lightDirection.xy);
-
-                float2 softShadowTangentDir = normalize(isSoftShadow * passesZW * v.tangent.zw + passesXY * v.tangent.xy);
-                float3 cross1 = cross(float3(softShadowTangentDir,0), -lightDirection);
-                float3 maxAngle = normalize(cross(cross1, -lightDirection));
-
-                float angle = dot(softShadowTangentDir, lightDirection.xy);
-                float t = 1 - abs(2 * angle * angle - 1);
-                float3 offset = clamp(t * maxAngle, -1, 1);
-
-                float sharedShadowTest = saturate(ceil(dot(lightDirection.xy, v.tangent.xy)));
-                float3 softShadowOffset = isSoftShadowCorner * offset;
+                float sharedShadowTest = saturate(ceil(dot(lightDirection.xy, worldTangent.xy)));
                 float3 sharedShadowOffset = sharedShadowTest * _LightRadius * -lightDirection;  // Calculates the hard shadow. The soft shadow will be offset from that
 
 				float3 position;
-                position = vertexWS + sharedShadowOffset + softShadowOffset;
+                position = vertexWS + sharedShadowOffset;
 
                 o.vertex = TransformWorldToHClip(position);
 				o.color = v.color;
