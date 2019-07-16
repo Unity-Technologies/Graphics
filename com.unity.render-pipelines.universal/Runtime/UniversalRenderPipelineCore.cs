@@ -38,6 +38,7 @@ namespace UnityEngine.Rendering.Universal
     {
         public Camera camera;
         public RenderTextureDescriptor cameraTargetDescriptor;
+        public XRPass xrPass;
         public float renderScale;
         public bool isSceneViewCamera;
         public bool isDefaultViewport;

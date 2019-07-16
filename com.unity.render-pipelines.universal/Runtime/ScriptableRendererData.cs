@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine.Scripting.APIUpdating;
 
@@ -41,7 +42,19 @@ namespace UnityEngine.Rendering.Universal
         protected virtual void OnEnable()
         {
             isInvalidated = true;
+#if UNITY_EDITOR
+            ResourceReloader.ReloadAllNullIn(this, UniversalRenderPipelineAsset.packagePath);
+#endif
         }
+
+        [Serializable, ReloadGroup]
+        public sealed class CommonShaderResources
+        {
+            [Reload("Shaders/Utils/XRMirrorView.shader")]
+            public Shader xrMirrorViewPS;
+        }
+
+        public CommonShaderResources commonShaders;
 
 #if UNITY_EDITOR
         internal virtual Material GetDefaultMaterial(DefaultMaterialType materialType)

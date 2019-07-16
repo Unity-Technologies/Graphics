@@ -40,10 +40,11 @@ namespace UnityEngine.Rendering.Universal
             public static int _ScreenParams;
             public static int _WorldSpaceCameraPos;
         }
+        readonly XRSystem m_XRSystem;
 
         public const string k_ShaderTagName = "UniversalPipeline";
-
         const string k_RenderCameraTag = "Render Camera";
+        const string k_RenderMirrorViewTag = "Render Mirror View";
 
         public static float maxShadowBias
         {
@@ -112,6 +113,8 @@ namespace UnityEngine.Rendering.Universal
             CameraCaptureBridge.enabled = true;
 
             RenderingUtils.ClearSystemInfoCache();
+
+            m_XRSystem = new XRSystem(asset.scriptableRendererData.commonShaders.xrMirrorViewPS);
         }
 
         protected override void Dispose(bool disposing)
@@ -131,28 +134,39 @@ namespace UnityEngine.Rendering.Universal
         protected override void Render(ScriptableRenderContext renderContext, Camera[] cameras)
         {
             BeginFrameRendering(renderContext, cameras);
+            var multipassCameras = m_XRSystem.SetupFrame(cameras);
 
             GraphicsSettings.lightsUseLinearIntensity = (QualitySettings.activeColorSpace == ColorSpace.Linear);
             GraphicsSettings.useScriptableRenderPipelineBatching = asset.useSRPBatcher;
             SetupPerFrameShaderConstants();
 
             SortCameras(cameras);
-            foreach (Camera camera in cameras)
+            foreach ((Camera camera, XRPass xrPass) in multipassCameras)
             {
                 BeginCameraRendering(renderContext, camera);
 
                 VFX.VFXManager.ProcessCamera(camera); //Visual Effect Graph is not yet a required package but calling this method when there isn't any VisualEffect component has no effect (but needed for Camera sorting in Visual Effect Graph context)
-                RenderSingleCamera(renderContext, camera);
+                RenderSingleCamera(renderContext, camera, xrPass);
 
                 EndCameraRendering(renderContext, camera);
             }
+            {
+                CommandBuffer cmd = CommandBufferPool.Get(k_RenderMirrorViewTag);
 
+                m_XRSystem.RenderMirrorView(cmd);
+                renderContext.ExecuteCommandBuffer(cmd);
+                renderContext.Submit();
+
+                CommandBufferPool.Release(cmd);
+            }
+
+            m_XRSystem.ReleaseFrame();
             EndFrameRendering(renderContext, cameras);
         }
 
-        public static void RenderSingleCamera(ScriptableRenderContext context, Camera camera)
+        public void RenderSingleCamera(ScriptableRenderContext context, Camera camera, XRPass xrPass)
         {
-            if (!camera.TryGetCullingParameters(IsStereoEnabled(camera), out var cullingParameters))
+            if (!m_XRSystem.GetCullingParameters(camera, xrPass, out var cullingParameters))
                 return;
 
             var settings = asset;
@@ -164,7 +178,7 @@ namespace UnityEngine.Rendering.Universal
                 additionalCameraData = camera.gameObject.GetComponent<LWRPAdditionalCameraData>();
 #endif
 
-            InitializeCameraData(settings, camera, additionalCameraData, out var cameraData);
+            InitializeCameraData(settings, camera, additionalCameraData, xrPass, out var cameraData);
             SetupPerCameraShaderConstants(cameraData);
 
             ScriptableRenderer renderer = (additionalCameraData != null) ? additionalCameraData.scriptableRenderer : settings.scriptableRenderer;
@@ -226,7 +240,7 @@ namespace UnityEngine.Rendering.Universal
 #endif
         }
 
-        static void InitializeCameraData(UniversalRenderPipelineAsset settings, Camera camera, UniversalAdditionalCameraData additionalCameraData, out CameraData cameraData)
+        static void InitializeCameraData(UniversalRenderPipelineAsset settings, Camera camera, UniversalAdditionalCameraData additionalCameraData, XRPass xrPass, out CameraData cameraData)
         {
             const float kRenderScaleThreshold = 0.05f;
             cameraData = new CameraData();
@@ -295,8 +309,23 @@ namespace UnityEngine.Rendering.Universal
             cameraData.defaultOpaqueSortFlags = canSkipFrontToBackSorting ? noFrontToBackOpaqueFlags : commonOpaqueFlags;
             cameraData.captureActions = CameraCaptureBridge.GetCaptureActions(camera);
 
-            cameraData.cameraTargetDescriptor = CreateRenderTextureDescriptor(camera, cameraData.renderScale,
-                cameraData.isStereoEnabled, cameraData.isHdrEnabled, msaaSamples);
+            // Pure XRSDK: use descriptor from xrsdk
+            if (xrPass.xrSdkEnabled)
+            {
+                // Create RenderTextureDescriptor with eye texture's dimension. Default constructor of RenderTextureDescriptor marks texture to be y-flip enabled.
+                // Reason: UniversalRP is using built-in renderer for couple render passes. In built-in renderer, shadow map is configured to be y-flip enabled.
+                // We have to make y-flip configuration consistant between built-in and SRP. Using XRSystem's renderTargetDesc is not safe because it is not guaranteed to be y-flip enabled.
+                cameraData.cameraTargetDescriptor = new RenderTextureDescriptor(xrPass.renderTargetDesc.width, xrPass.renderTargetDesc.height, xrPass.renderTargetDesc.colorFormat,
+                    xrPass.renderTargetDesc.depthBufferBits, xrPass.renderTargetDesc.mipCount);
+
+            }
+            // Legacy XR: create descriptor from camera settings
+            else
+            {
+                cameraData.cameraTargetDescriptor = CreateRenderTextureDescriptor(camera, cameraData.renderScale,
+                    cameraData.isStereoEnabled, cameraData.isHdrEnabled, msaaSamples);
+            }
+            cameraData.xrPass = xrPass;
         }
 
         static void InitializeRenderingData(UniversalRenderPipelineAsset settings, ref CameraData cameraData, ref CullingResults cullResults,
