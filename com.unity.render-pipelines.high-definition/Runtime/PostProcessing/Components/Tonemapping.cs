@@ -5,9 +5,10 @@ namespace UnityEngine.Rendering.HighDefinition
     public enum TonemappingMode
     {
         None,
-        Neutral, // Neutral tonemapper
-        ACES,    // ACES Filmic reference tonemapper (custom approximation)
-        Custom   // Tweakable artist-friendly curve
+        Neutral,    // Neutral tonemapper
+        ACES,       // ACES Filmic reference tonemapper (custom approximation)
+        Custom,     // Tweakable artist-friendly curve
+        External    // External CUBE lut
     }
 
     [Serializable, VolumeComponentMenu("Post-processing/Tonemapping")]
@@ -34,9 +35,45 @@ namespace UnityEngine.Rendering.HighDefinition
         [Tooltip("Sets a gamma correction value that HDRP applies to the whole curve.")]
         public MinFloatParameter gamma = new MinFloatParameter(1f, 0.001f);
 
+        [Tooltip("A custom 3D texture lookup table to apply.")]
+        public TextureParameter lutTexture = new TextureParameter(null);
+
+        [Tooltip("How much of the lookup texture will contribute to the color grading effect.")]
+        public ClampedFloatParameter lutContribution = new ClampedFloatParameter(1f, 0f, 1f);
+
         public bool IsActive()
         {
+            if (mode.value == TonemappingMode.External)
+                return ValidateLUT() && lutContribution.value > 0f;
+
             return mode.value != TonemappingMode.None;
+        }
+
+        public bool ValidateLUT()
+        {
+            var hdAsset = GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset;
+            if (hdAsset == null || lutTexture.value == null)
+                return false;
+
+            if (lutTexture.value.width != hdAsset.currentPlatformRenderPipelineSettings.postProcessSettings.lutSize)
+                return false;
+
+            bool valid = false;
+
+            switch (lutTexture.value)
+            {
+                case Texture3D t:
+                    valid |= t.width == t.height
+                          && t.height == t.depth;
+                    break;
+                case RenderTexture rt:
+                    valid |= rt.dimension == TextureDimension.Tex3D
+                          && rt.width == rt.height
+                          && rt.height == rt.volumeDepth;
+                    break;
+            }
+
+            return valid;
         }
     }
 
