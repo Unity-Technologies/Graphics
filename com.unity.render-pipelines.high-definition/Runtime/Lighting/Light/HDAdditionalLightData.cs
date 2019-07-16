@@ -1845,22 +1845,19 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+#endif
+
         internal bool useColorTemperature
         {
-            get
-            {
-                lightSerializedObject.Update();
-
-                return useColorTemperatureProperty.boolValue;
-            }
+            get => legacyLight.useColorTemperature;
             set
             {
-                useColorTemperatureProperty.boolValue = value;
-                lightSerializedObject.ApplyModifiedProperties();
+                if (legacyLight.useColorTemperature == value)
+                    return;
+                
+                legacyLight.useColorTemperature = value;
             }
         }
-
-#endif
 
         // TODO: we might be able to get rid to that
         [System.NonSerialized]
@@ -2317,9 +2314,22 @@ namespace UnityEngine.Rendering.HighDefinition
         public void SetColor(Color color, float colorTemperature = -1)
         {
             if (colorTemperature != -1)
+            {
                 legacyLight.colorTemperature = colorTemperature;
+                useColorTemperature = true;
+            }
 
             this.color = color;
+        }
+        
+        /// <summary>
+        /// Toggle the usage of color temperature.
+        /// </summary>
+        /// <param name="hdLight"></param>
+        /// <param name="enable"></param>
+        public void EnableColorTemperature(bool enable)
+        {
+            useColorTemperature = enable;
         }
 
         /// <summary>
