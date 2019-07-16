@@ -398,13 +398,6 @@ namespace UnityEditor.Rendering.HighDefinition
                         probe, assetPath, target, null,
                         out var cameraSettings, out var cameraPositionSettings
                     );
-
-                    /*HDProbeSystem.Render(
-                        probe, null, target,
-                        out HDProbe.RenderData renderData,
-                        forceFlipY: probe.type == ProbeSettings.ProbeType.ReflectionProbe
-                    );
-                    HDTextureUtilities.WriteTextureFileToDisk(target, assetPath);*/
                     AssetDatabase.ImportAsset(assetPath);
                     HDBakedReflectionSystem.ImportAssetAt(probe, assetPath);
                     CoreUtils.Destroy(target);

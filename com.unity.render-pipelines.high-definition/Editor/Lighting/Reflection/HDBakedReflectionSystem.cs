@@ -477,12 +477,24 @@ namespace UnityEditor.Rendering.HighDefinition
             AssetDatabase.StopAssetEditing();
         }
 
-        static void Checkout(string targetFile)
+        internal static void Checkout(string targetFile)
         {
+            // Try to checkout through the VCS
             if (Provider.isActive
                 && HDEditorUtils.IsAssetPath(targetFile)
                 && Provider.GetAssetByPath(targetFile) != null)
-                Provider.Checkout(targetFile, CheckoutMode.Both);
+            {
+                Provider.Checkout(targetFile, CheckoutMode.Both).Wait();
+            }
+            else if (File.Exists(targetFile))
+            {
+                // There is no VCS, but the file is still locked
+                // Try to make it writeable
+                var attributes = File.GetAttributes(targetFile);
+                if ((attributes & FileAttributes.ReadOnly) == 0) return;
+                attributes &= ~FileAttributes.ReadOnly;
+                File.SetAttributes(targetFile, attributes);
+            }
         }
 
         internal static void AssignRenderData(HDProbe probe, string bakedTexturePath)

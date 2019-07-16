@@ -3330,7 +3330,7 @@ void CalculateAnisoAngles(BSDFData bsdfData, float3 H, float3 L, float3 V, out f
     BdotL = dot(bsdfData.bitangentWS, L);
 }
 
-void BSDF_ModifyFresnelForIridescence(BSDFData bsdfData, PreLightData preLightData, inout float3 F)
+void BSDF_ModifyFresnelForIridescence(BSDFData bsdfData, PreLightData preLightData, float LdotH, inout float3 F)
 {
         if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_STACK_LIT_IRIDESCENCE))
         {
@@ -3338,7 +3338,7 @@ void BSDF_ModifyFresnelForIridescence(BSDFData bsdfData, PreLightData preLightDa
 
 #ifdef IRIDESCENCE_RECOMPUTE_PERLIGHT
             float topIor = 1.0; // default air on top.
-            fresnelIridescent = EvalIridescence(topIor, savedLdotH, bsdfData.iridescenceThickness, bsdfData.fresnel0);
+            fresnelIridescent = EvalIridescence(topIor, LdotH, bsdfData.iridescenceThickness, bsdfData.fresnel0);
 #endif
             F = lerp(F, fresnelIridescent, bsdfData.iridescenceMask);
         }
@@ -3524,7 +3524,7 @@ CBSDF EvaluateBSDF(float3 inV, float3 inL, PreLightData preLightData, BSDFData b
         // If we don't recompute the stack per dirac lights, we ensure the coatmask make us lerp
         // to the usual LdotH Schlick term.
         bottomF = F_Schlick(bsdfData.fresnel0, savedLdotH);
-        BSDF_ModifyFresnelForIridescence(bsdfData, preLightData, bottomF);
+        BSDF_ModifyFresnelForIridescence(bsdfData, preLightData, savedLdotH, bottomF);
 #endif
 
         bottomF = lerp(bottomF, preLightData.vLayerEnergyCoeff[BOTTOM_VLAYER_IDX], bsdfData.coatMask);
@@ -3546,26 +3546,33 @@ CBSDF EvaluateBSDF(float3 inV, float3 inL, PreLightData preLightData, BSDFData b
         // --------------------------------------------------------------------
         // NO VLAYERING:
         // --------------------------------------------------------------------
+
+        // Note: See GetPreLightData(), in that case, 
+        // preLightData.layeredRoughnessT[0] = bsdfData.roughnessAT;
+        // preLightData.layeredRoughnessB[0] = bsdfData.roughnessAB;
+        // preLightData.layeredRoughnessT[1] = bsdfData.roughnessBT;
+        // preLightData.layeredRoughnessB[1] = bsdfData.roughnessBB;
+
         // TODO: Proper Fresnel
         float3 F = F_Schlick(bsdfData.fresnel0, savedLdotH);
 
-        BSDF_ModifyFresnelForIridescence(bsdfData, preLightData, F);
+        BSDF_ModifyFresnelForIridescence(bsdfData, preLightData, savedLdotH, F);
 
         if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_STACK_LIT_ANISOTROPY))
         {
             float TdotH, TdotL, BdotH, BdotL;
             CalculateAnisoAngles(bsdfData, H, L[0], V[0], TdotH, TdotL, BdotH, BdotL);
             DV[0] = DV_SmithJointGGXAniso(TdotH, BdotH, NdotH[0], NdotV[0], TdotL, BdotL, NdotL[0],
-                                          bsdfData.roughnessAT, bsdfData.roughnessAB,
+                                          preLightData.layeredRoughnessT[0], preLightData.layeredRoughnessB[0],
                                           preLightData.partLambdaV[0]);
             DV[1] = DV_SmithJointGGXAniso(TdotH, BdotH, NdotH[0], NdotV[0], TdotL, BdotL, NdotL[0],
-                                          bsdfData.roughnessBT, bsdfData.roughnessBB,
+                                          preLightData.layeredRoughnessT[1], preLightData.layeredRoughnessB[1],
                                           preLightData.partLambdaV[1]);
         }
         else
         {
-            DV[0] = DV_SmithJointGGX(NdotH[0], NdotL[0], NdotV[0], bsdfData.roughnessAT, preLightData.partLambdaV[0]);
-            DV[1] = DV_SmithJointGGX(NdotH[0], NdotL[0], NdotV[0], bsdfData.roughnessBT, preLightData.partLambdaV[1]);
+            DV[0] = DV_SmithJointGGX(NdotH[0], NdotL[0], NdotV[0], preLightData.layeredRoughnessT[0], preLightData.partLambdaV[0]);
+            DV[1] = DV_SmithJointGGX(NdotH[0], NdotL[0], NdotV[0], preLightData.layeredRoughnessT[1], preLightData.partLambdaV[1]);
         }
 
         IF_DEBUG( if(_DebugLobeMask.y == 0.0) DV[BASE_LOBEA_IDX] = (float3)0; )
