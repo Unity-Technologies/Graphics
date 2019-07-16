@@ -37,6 +37,7 @@ Shader "Hidden/Universal Render Pipeline/Terrain/Lit (Basemap Gen)"
         
         #define _METALLICSPECGLOSSMAP 1
         #define _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A 1
+        #define _TERRAIN_BASEMAP_GEN
 
         #pragma shader_feature_local _TERRAIN_BLEND_HEIGHT
         #pragma shader_feature_local _MASKMAP
