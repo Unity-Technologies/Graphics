@@ -14,7 +14,7 @@ Shader "Hidden/HDRP/XRMirrorView"
                 #pragma fragment FragBilinear
 
                 #define DISABLE_TEXTURE2D_X_ARRAY
-				#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+				#include "Packages/com.unity.render-pipelines.universal/Shaders/Utils/TextureXR.hlsl"
 				
 				TEXTURE2D_X(_BlitTexture);
 				float4 FragBilinear(Varyings input) : SV_Target
@@ -38,7 +38,7 @@ Shader "Hidden/HDRP/XRMirrorView"
                 #pragma fragment FragBilinear
 				
 				#undef DISABLE_TEXTURE2D_X_ARRAY
-				#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+				#include "Packages/com.unity.render-pipelines.universal/Shaders/Utils/TextureXR.hlsl"
 				
 				TEXTURE2D_X(_BlitTexture);
 				float4 FragBilinear(Varyings input) : SV_Target
