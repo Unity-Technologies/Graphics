@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Fixed
 - Fixed fp16 overflow in Switch in specular calculation
+- Fixed shader compilation errors for Android XR projects.
 
 ## [6.9.0] - 2019-07-05
 ### Fixed
