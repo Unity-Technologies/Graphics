@@ -137,6 +137,7 @@ namespace UnityEditor.VFX
 
         public virtual void FillDescs(
             List<VFXGPUBufferDesc> outBufferDescs,
+            List<VFXTemporaryGPUBufferDesc> outTemporaryBufferDescs,
             List<VFXEditorSystemDesc> outSystemDescs,
             VFXExpressionGraph expressionGraph,
             Dictionary<VFXContext, VFXContextCompiledData> contextToCompiledData,

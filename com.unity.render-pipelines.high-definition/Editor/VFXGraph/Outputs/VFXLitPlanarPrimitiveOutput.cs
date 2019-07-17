@@ -12,6 +12,7 @@ namespace UnityEditor.VFX
         public override string codeGeneratorTemplate { get { return RenderPipeTemplate("VFXParticleLitPlanarPrimitive"); } }
         public override VFXTaskType taskType { get { return VFXPlanarPrimitiveHelper.GetTaskType(primitiveType); } }
         public override bool supportsUV { get { return true; } }
+        public sealed override bool implementsMotionVector { get { return true; } }
 
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]
         protected VFXPrimitiveType primitiveType = VFXPrimitiveType.Quad;
