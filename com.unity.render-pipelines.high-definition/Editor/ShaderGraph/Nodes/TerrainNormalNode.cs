@@ -14,19 +14,21 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public override bool hasPreview { get { return false; } }
 
-        const int kNormalOutputSlotId = 0;
-        const int kTangentOutputSlotId = 1;
-        const string kPositionOutputSlotName = "Position";
+        const int kNormalTextureInputSlotId = 0;
+        const int kNormalOutputSlotId = 1;
+        const int kTangentOutputSlotId = 2;
+        const string kNormalTextureSlotName = "NormalmapTexture";
         const string kNormalOutputSlotName = "Normal";
         const string kTangentOutputSlotName = "Tangent";
-        const string kUVOutputSlotName = "UV";
 
         public sealed override void UpdateNodeAfterDeserialization()
         {
+            AddSlot(new TerrainNormalmapTextureInputSlot(kNormalTextureInputSlotId, "Normal (World) ", kNormalTextureSlotName, ShaderStageCapability.Fragment));
             AddSlot(new Vector3MaterialSlot(kNormalOutputSlotId, kNormalOutputSlotName, kNormalOutputSlotName, SlotType.Output, UnityEngine.Vector3.zero, ShaderStageCapability.Fragment));
             AddSlot(new Vector4MaterialSlot(kTangentOutputSlotId, kTangentOutputSlotName, kTangentOutputSlotName, SlotType.Output, UnityEngine.Vector4.zero, ShaderStageCapability.Fragment));
 
             RemoveSlotsNameNotMatching(new[] {
+                kNormalTextureInputSlotId,
                 kNormalOutputSlotId,
                 kTangentOutputSlotId,
             });
@@ -42,7 +44,7 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             sb.AppendLine("$precision3 {0};", GetVariableNameForSlot(kNormalOutputSlotId));
             sb.AppendLine("$precision4 {0};", GetVariableNameForSlot(kTangentOutputSlotId));
-            sb.AppendLine("ConstructTerrainMesh(IN.texCoord0.xy, {0}, {1});", GetVariableNameForSlot(kNormalOutputSlotId), GetVariableNameForSlot(kTangentOutputSlotId));
+            sb.AppendLine("ConstructTerrainMesh(IN.texCoord0.xy, TEXTURE2D_ARGS({0}, sampler{0}), {1}, {2});", GetSlotValue(kNormalTextureInputSlotId, generationMode), GetVariableNameForSlot(kNormalOutputSlotId), GetVariableNameForSlot(kTangentOutputSlotId));
         }
 
         public void GenerateNodeFunction(FunctionRegistry registry, GraphContext graphContext, GenerationMode generationMode)
@@ -54,9 +56,7 @@ namespace UnityEditor.Rendering.HighDefinition
     float4 _TerrainHeightmapScale;      // float4(hmScale.x, hmScale.y / (float)(kMaxHeight), hmScale.z, 0.0f)
 CBUFFER_END
 
-TEXTURE2D(_TerrainHeightmapTexture);
-TEXTURE2D(_TerrainNormalmapTexture);
-SAMPLER(sampler_TerrainNormalmapTexture);");
+TEXTURE2D(_TerrainHeightmapTexture);");
             });
 
             registry.ProvideFunction("TerrainUtilities", sb =>
@@ -73,11 +73,11 @@ SAMPLER(sampler_TerrainNormalmapTexture);");
     return float4(tangent, -1);
 }
 
-void ConstructTerrainMesh(float2 uv, out float3 normalWS, out float4 tangentWS)
+void ConstructTerrainMesh(float2 uv, TEXTURE2D_PARAM(normalTexture, samplerNormalTexture), out float3 normalWS, out float4 tangentWS)
 {
     float2 sampleCoords = uv / _TerrainHeightmapRecipSize.zw;
     float2 terrainNormalMapUV = (sampleCoords + 0.5f) * _TerrainHeightmapRecipSize.xy;
-    float3 normalOS = SAMPLE_TEXTURE2D(_TerrainNormalmapTexture, sampler_TerrainNormalmapTexture, terrainNormalMapUV).rgb * 2 - 1;
+    float3 normalOS = SAMPLE_TEXTURE2D(normalTexture, samplerNormalTexture, terrainNormalMapUV).rgb * 2 - 1;
     normalWS = mul((float3x3)GetObjectToWorldMatrix(), normalOS);
     tangentWS = ConstructTerrainTangent(normalWS, GetObjectToWorldMatrix()._13_23_33);
 }");

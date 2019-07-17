@@ -64,9 +64,7 @@ namespace UnityEditor.Rendering.HighDefinition
     float4 _TerrainHeightmapScale;      // float4(hmScale.x, hmScale.y / (float)(kMaxHeight), hmScale.z, 0.0f)
 CBUFFER_END
 
-TEXTURE2D(_TerrainHeightmapTexture);
-TEXTURE2D(_TerrainNormalmapTexture);
-SAMPLER(sampler_TerrainNormalmapTexture);");
+TEXTURE2D(_TerrainHeightmapTexture);");
             });
 
             registry.ProvideFunction("TerrainInstanceData", sb =>
