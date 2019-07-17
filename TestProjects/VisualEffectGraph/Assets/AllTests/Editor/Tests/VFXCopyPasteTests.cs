@@ -64,7 +64,7 @@ namespace UnityEditor.VFX.Test
         [Test]
         public void CopyPasteContextWithBlock()
         {
-            var initContextDesc = VFXLibrary.GetContexts().Where(t => t.name == "Initialize").First();
+            var initContextDesc = VFXLibrary.GetContexts().Where(t => typeof(VFXBasicInitialize).IsAssignableFrom(t.modelType)).First();
 
             var newContext = m_ViewController.AddVFXContext(new Vector2(100, 100), initContextDesc);
 
@@ -331,7 +331,7 @@ namespace UnityEditor.VFX.Test
         [Test]
         public void CopyPasteBlock()
         {
-            var initContextDesc = VFXLibrary.GetContexts().Where(t => t.name == "Initialize").First();
+            var initContextDesc = VFXLibrary.GetContexts().Where(t => typeof(VFXBasicInitialize).IsAssignableFrom(t.modelType)).First();
 
             var newContext = m_ViewController.AddVFXContext(new Vector2(100, 100), initContextDesc);
 

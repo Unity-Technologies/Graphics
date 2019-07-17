@@ -16,19 +16,19 @@ Pass
 		float2 uv : TEXCOORD0;	
 		#endif
 		#if VFX_NEEDS_COLOR_INTERPOLATOR
-		nointerpolation float4 color : COLOR0;
+		VFX_OPTIONAL_INTERPOLATION float4 color : COLOR0;
 		#endif
 		#if USE_SOFT_PARTICLE || USE_ALPHA_TEST || USE_FLIPBOOK_INTERPOLATION || USE_EXPOSURE_WEIGHT
 		// x: inverse soft particles fade distance
 		// y: alpha threshold
 		// z: frame blending factor
 		// w: exposure weight
-		nointerpolation float4 builtInInterpolants : TEXCOORD1;
+		VFX_OPTIONAL_INTERPOLATION float4 builtInInterpolants : TEXCOORD1;
 		#endif
 		#if USE_FLIPBOOK_MOTIONVECTORS
 		// x: motion vectors scale X
 		// y: motion vectors scale Y
-		nointerpolation float2 builtInInterpolants2 : TEXCOORD2;
+		VFX_OPTIONAL_INTERPOLATION float2 builtInInterpolants2 : TEXCOORD2;
 		#endif
 		#if VFX_NEEDS_POSWS_INTERPOLATOR
 		float3 posWS : TEXCOORD3;

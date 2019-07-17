@@ -89,6 +89,8 @@ namespace UnityEditor.VFX
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]
         protected bool enableEnvLight = true;
 
+        protected VFXAbstractParticleHDRPLitOutput(bool strip = false) : base(strip) { }
+
         protected virtual bool allowTextures { get { return true; }}
 
         public class HDRPLitInputProperties
