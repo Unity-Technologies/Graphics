@@ -59,7 +59,7 @@ namespace UnityEngine.Rendering.HighDefinition
     // To add a new element to FrameSettings, add en entry in this enum using the FrameSettingsFieldAttribute.
     // Inspector UI and DebugMenu are generated from this.
     // If you have very specific display requirement, you could add them in FrameSettingsUI.Drawer.cs with a AmmendInfo command.
-    enum FrameSettingsField
+    public enum FrameSettingsField
     {
         None = -1,
 
@@ -414,9 +414,9 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         /// <summary>Get stored data for this field.</summary>
-        internal bool IsEnabled(FrameSettingsField field) => bitDatas[(uint)field];
+        public bool IsEnabled(FrameSettingsField field) => bitDatas[(uint)field];
         /// <summary>Set stored data for this field.</summary>
-        internal void SetEnabled(FrameSettingsField field, bool value) => bitDatas[(uint)field] = value;
+        public void SetEnabled(FrameSettingsField field, bool value) => bitDatas[(uint)field] = value;
 
         // followings are helper for engine.
         internal bool fptl => litShaderMode == LitShaderMode.Deferred || bitDatas[(int)FrameSettingsField.FPTLForForwardOpaque];

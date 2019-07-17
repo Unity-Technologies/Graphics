@@ -632,7 +632,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// If enabled, display an emissive mesh rect synchronized with the intensity and color of the light.
         /// </summary>
-        internal bool displayAreaLightEmissiveMesh
+        public bool displayAreaLightEmissiveMesh
         {
             get => m_DisplayAreaLightEmissiveMesh;
             set
@@ -1348,13 +1348,13 @@ namespace UnityEngine.Rendering.HighDefinition
 #pragma warning disable 0414 // The field '...' is assigned but its value is never used, these fields are used by the inspector
         // This is specific for the LightEditor GUI and not use at runtime
         [SerializeField, FormerlySerializedAs("useOldInspector")]
-        bool useOldInspector = false;
+        public bool useOldInspector = false;
         [SerializeField, FormerlySerializedAs("useVolumetric")]
         bool useVolumetric = true;
         [SerializeField, FormerlySerializedAs("featuresFoldout")]
-        bool featuresFoldout = true;
+        public bool featuresFoldout = true;
         [SerializeField, FormerlySerializedAs("showAdditionalSettings")]
-        byte showAdditionalSettings = 0;
+        public byte showAdditionalSettings = 0;
 #pragma warning restore 0414
 
         HDShadowRequest[]   shadowRequests;
@@ -1855,7 +1855,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 if (legacyLight.useColorTemperature == value)
                     return;
-                
+
                 legacyLight.useColorTemperature = value;
             }
         }
@@ -2318,7 +2318,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             this.color = color;
         }
-        
+
         /// <summary>
         /// Toggle the usage of color temperature.
         /// </summary>
