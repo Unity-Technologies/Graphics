@@ -44,8 +44,10 @@ namespace UnityEngine.Rendering.Universal
         internal XRSystem(Shader xrMirrorViewPS)
         {
             RefreshXrSdk();
-
-            mirrorViewMaterial = CoreUtils.CreateEngineMaterial(xrMirrorViewPS);
+            if (xrMirrorViewPS != null)
+            {
+                mirrorViewMaterial = CoreUtils.CreateEngineMaterial(xrMirrorViewPS);
+            }
         }
 
         internal List<(Camera, XRPass)> SetupFrame(Camera[] cameras)
@@ -99,7 +101,15 @@ namespace UnityEngine.Rendering.Universal
         internal void RenderMirrorView(CommandBuffer cmd)
         {
 #if USE_XR_SDK
+            // Validate states
+            {
+                Debug.Assert(mirrorViewMaterial != null, "mirrorViewMaterial was not initialized!");
+            }
+
             if (display == null)
+                return;
+
+            if(mirrorViewMaterial == null)
                 return;
 
             using (new ProfilingSample(cmd, "XR Mirror View"))
