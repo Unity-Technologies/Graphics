@@ -11,12 +11,6 @@ namespace UnityEditor.ShaderGraph
     [Title("Utility", "Redirect")]
     class RedirectNodeData : CodeFunctionNode
     {
-        public struct PortPair
-        {
-            public Port input;
-            public Port output;
-        }
-
         const int m_inSlotID = 0;
         const int m_outSlotID = 1;
         const string m_inSlotName = "In";
@@ -35,27 +29,24 @@ namespace UnityEditor.ShaderGraph
             drawState = temp;
         }
 
-        public virtual void AddPortPair(int index = -1)
-        {
-            AddSlot(new DynamicValueMaterialSlot(m_inSlotID, m_inSlotName, m_inSlotName, SlotType.Input, Matrix4x4.zero));
-            AddSlot(new DynamicValueMaterialSlot(m_outSlotID, m_outSlotName, m_outSlotName, SlotType.Output, Matrix4x4.zero));
-        }
+        //public virtual void AddPortPair(int index = -1)
+        //{
+        //    AddSlot(new DynamicValueMaterialSlot(m_inSlotID, m_inSlotName, m_inSlotName, SlotType.Input, Matrix4x4.zero));
+        //    AddSlot(new DynamicValueMaterialSlot(m_outSlotID, m_outSlotName, m_outSlotName, SlotType.Output, Matrix4x4.zero));
+        //}
 
-        public void OnDelete()
-        {
-            if (owner.isUndoingOrRedoing == true)
-                return;
-
-            // @SamH: hard-coded single case
-            var node_inSlotRef = GetSlotReference(0);
-            var node_outSlotRef = GetSlotReference(1);
-            
-            foreach (var inEdge in owner.GetRemovedEdges(node_inSlotRef))
-            {
-                foreach (var outEdge in owner.GetRemovedEdges(node_outSlotRef))
-                    owner.Connect(inEdge.outputSlot, outEdge.inputSlot);
-            }
-        }
+        //public void OnDelete()
+        //{
+        //    // @SamH: hard-coded single case
+        //    var node_inSlotRef = GetSlotReference(0);
+        //    var node_outSlotRef = GetSlotReference(1);
+        //    
+        //    foreach (var inEdge in owner.GetRemovedEdges(node_inSlotRef))
+        //    {
+        //        foreach (var outEdge in owner.GetRemovedEdges(node_outSlotRef))
+        //            owner.Connect(inEdge.outputSlot, outEdge.inputSlot);
+        //    }
+        //}
 
         protected override MethodInfo GetFunctionToConvert()
         {

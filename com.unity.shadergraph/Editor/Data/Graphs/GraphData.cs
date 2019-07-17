@@ -200,9 +200,6 @@ namespace UnityEditor.ShaderGraph
         #endregion
 
 
-        public bool isUndoingOrRedoing = false;
-
-
         [SerializeField]
         InspectorPreviewData m_PreviewData = new InspectorPreviewData();
 
@@ -307,8 +304,6 @@ namespace UnityEditor.ShaderGraph
             m_MovedProperties.Clear();
             m_MostRecentlyCreatedGroup = null;
             didActiveOutputNodeChange = false;
-
-            isUndoingOrRedoing = false;
         }
 
         public void AddNode(AbstractMaterialNode node)
@@ -960,8 +955,6 @@ namespace UnityEditor.ShaderGraph
                 ConnectNoValidate(edge.outputSlot, edge.inputSlot);
 
             ValidateGraph();
-
-            isUndoingOrRedoing = true;
         }
 
         internal void PasteGraph(CopyPasteGraph graphToPaste, List<AbstractMaterialNode> remappedNodes, List<IEdge> remappedEdges)

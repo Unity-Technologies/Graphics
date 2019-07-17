@@ -20,17 +20,10 @@ namespace UnityEditor.ShaderGraph
     {
         IEdgeConnectorListener m_ConnectorListener;
         VisualElement m_TitleContainer;
-
         GraphView m_GraphView;
 
-        Port m_TempPort;
-
-        ///////////////////////////////////////////////////////////
-        /// Main
-        ///////////////////////////////////////////////////////////
         public RedirectNodeView()
         {
-
         }
 
         public void Initialize(AbstractMaterialNode inNode, PreviewManager previewManager, IEdgeConnectorListener connectorListener, GraphView graphView)
@@ -58,17 +51,40 @@ namespace UnityEditor.ShaderGraph
             AddSlots(node.GetSlots<MaterialSlot>());
 
             //callbacks
-            RegisterCallback<MouseDownEvent>(OnDoubleClick);
+            RegisterCallback<MouseDownEvent>(OnMouseDownEvent);
         }
 
         ///////////////////////////////////////////////////////////
-        /// Helpers
+        /// Callbacks
         ///////////////////////////////////////////////////////////
-        private void AddPortPair(Type type, int key = -1)
+        void OnMouseDownEvent(MouseDownEvent evt)
         {
-            var data = userData as RedirectNodeData;
-            data.AddPortPair();
+            if (expanded == true)
+                return;
+
+            var inSlot = node.GetSlotReference(0);
+            var inNode = node.owner.GetNodeFromGuid(inSlot.nodeGuid);
+            if (inNode != null)
+            {
+
+            }
+
+            //if(evt.target is Edge)
+            //{
+            //    if (evt.clickCount == 2 && evt.button == 0)
+            //    {
+            //        var mGraph = m_GraphView as MaterialGraphView;
+            //        mGraph.AddRedirectNode(evt.target as Edge, evt.localMousePosition);
+            //    }
+            //}
         }
+
+        #region Helper functions
+        //private void AddPortPair(Type type, int key = -1)
+        //{
+        //    var data = userData as RedirectNodeData;
+        //    data.AddPortPair();
+        //}
 
         void AddSlots(IEnumerable<MaterialSlot> slots)
         {
@@ -84,6 +100,7 @@ namespace UnityEditor.ShaderGraph
                     inputContainer.Add(port);
             }
         }
+        #endregion
 
         #region IShaderNodeView interface
         public Node gvNode => this;
@@ -92,10 +109,6 @@ namespace UnityEditor.ShaderGraph
 
         public void Dispose()
         {
-            //Merge input/output pairs into single edges
-            var nodeData = node as RedirectNodeData;
-            nodeData.OnDelete();
-
             node = null;
             ((VisualElement)this).userData = null;
         }
@@ -103,18 +116,6 @@ namespace UnityEditor.ShaderGraph
         public void OnModified(ModificationScope scope)
         {
             
-        }
-
-        void OnDoubleClick(MouseDownEvent evt)
-        {
-            if(evt.target is Edge)
-            {
-                if (evt.clickCount == 2 && evt.button == 0)
-                {
-                    var mGraph = m_GraphView as MaterialGraphView;
-                    mGraph.AddRedirectNode(evt.target as Edge, evt.localMousePosition);
-                }
-            }
         }
 
         public void UpdatePortInputTypes()
