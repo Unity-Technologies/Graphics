@@ -216,16 +216,16 @@ namespace UnityEngine.Rendering.Universal
                         renderPass.GetRenderParameter(camera, renderParamIndex, out var renderParam);
 
                         var xrPass = XRPass.Create(renderPass);
-                        xrPass.isMirrorView = false;
                         xrPass.AddView(renderParam);
                         xrPass.multiparamId = renderParamIndex;
+                        xrPass.xrPassType = XRPassType.XRPassDrawScene;
                         AddPassToFrame(camera, xrPass);
                     }
                 }
             }
             {
                 XRPass xrPass = GenericPool<XRPass>.Get();
-                xrPass.isMirrorView = true;
+                xrPass.xrPassType = XRPassType.XRPassMirrorViewBlit;
                 AddPassToFrame(camera, xrPass);
             }
 #endif

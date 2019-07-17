@@ -145,21 +145,30 @@ namespace UnityEngine.Rendering.Universal
             {
                 BeginCameraRendering(renderContext, camera);
 
-                if (xrPass.isMirrorView == false)
+                switch(xrPass.xrPassType)
                 {
-                    VFX.VFXManager.ProcessCamera(camera); //Visual Effect Graph is not yet a required package but calling this method when there isn't any VisualEffect component has no effect (but needed for Camera sorting in Visual Effect Graph context)
-                    RenderSingleCamera(renderContext, camera, xrPass);
+                    case XRPassType.XRPassMirrorViewBlit:
+                        {
+                            CommandBuffer cmd = CommandBufferPool.Get(k_RenderMirrorViewTag);
+                            m_XRSystem.RenderMirrorView(cmd);
+                            renderContext.ExecuteCommandBuffer(cmd);
+                            renderContext.Submit();
+                            CommandBufferPool.Release(cmd);
+                            break;
+                        }
+                    case XRPassType.XRPassDrawScene:
+                        {
+                            VFX.VFXManager.ProcessCamera(camera); //Visual Effect Graph is not yet a required package but calling this method when there isn't any VisualEffect component has no effect (but needed for Camera sorting in Visual Effect Graph context)
+                            RenderSingleCamera(renderContext, camera, xrPass);
+                            break;
+                        }
+                    default:
+                        {
+                            Debug.LogError(string.Format("Unrecognized XRPassType: " + xrPass.xrPassType + ". XRPass is skipped."));
+                            break;
+                        }
                 }
-                else
-                {
-                    CommandBuffer cmd = CommandBufferPool.Get(k_RenderMirrorViewTag);
-
-                    m_XRSystem.RenderMirrorView(cmd);
-                    renderContext.ExecuteCommandBuffer(cmd);
-                    renderContext.Submit();
-
-                    CommandBufferPool.Release(cmd);
-                }
+                
                 EndCameraRendering(renderContext, camera);
             }
 

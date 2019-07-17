@@ -59,6 +59,12 @@ namespace UnityEngine.Rendering.Universal
 #endif
     }
 
+    public enum XRPassType
+    {
+        XRPassDrawScene = 0,
+        XRPassMirrorViewBlit = 1
+    }
+
     public class XRPass
     {
         readonly List<XRView> views = new List<XRView>(2);
@@ -91,8 +97,7 @@ namespace UnityEngine.Rendering.Universal
         internal int  legacyMultipassEye      { get => (int)views[0].legacyStereoEye; }
         internal bool legacyMultipassEnabled  { get => enabled && !instancingEnabled && legacyMultipassEye >= 0; }
 
-        //XRTODO: refactor this logic
-        public bool isMirrorView = false;
+        public XRPassType xrPassType = XRPassType.XRPassDrawScene;
 
         internal static XRPass Create(int multipassId, RenderTexture rt = null)
         {
@@ -114,7 +119,6 @@ namespace UnityEngine.Rendering.Universal
             }
             
             passInfo.xrSdkEnabled = false;
-
             return passInfo;
         }
 
