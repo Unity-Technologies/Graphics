@@ -66,6 +66,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static event Action OnAllocate;
         public static event Action OnFree;
         public static event Action<HDCamera, CommandBuffer> OnPushGlobalParameters;
+        public static event Action<ScriptableRenderContext, HDCamera, CommandBuffer> OnPostBuildLightLists;
+        public static event Action<ScriptableRenderContext, HDCamera, CommandBuffer> OnPostBuildLightListsAsync;
         public static event Action<ScriptableRenderContext, HDCamera, CommandBuffer> OnCameraPostRenderGBuffer;
         public static event Action<HDCamera, CommandBuffer, ComputeShader, int> OnCameraPreRenderVolumetrics;
         public static event Action<ScriptableRenderContext, HDCamera, CommandBuffer, RenderTargetIdentifier> OnCameraPostRenderDeferredLighting;
@@ -78,6 +80,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             OnAllocate = null;
             OnFree = null;
             OnPushGlobalParameters = null;
+            OnPostBuildLightLists = null;
+            OnPostBuildLightListsAsync = null;
             OnCameraPostRenderGBuffer = null;
             OnCameraPreRenderVolumetrics = null;
             OnCameraPostRenderDeferredLighting = null;
@@ -1856,6 +1860,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         => BuildGPULightListsCommon(hdCamera, asyncCmd, m_SharedRTManager.GetDepthStencilBuffer(hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA)), m_SharedRTManager.GetStencilBufferCopy());
                 }
 
+                // custom-begin:
+                var onPostBuildLightListsAsyncTask = new HDGPUAsyncTask("On post build light list async", ComputeQueueType.Background);
+                if (OnPostBuildLightListsAsync != null)
+                {
+                    onPostBuildLightListsAsyncTask.Start(cmd, renderContext, Callback, !haveAsyncTaskWithShadows);
+                    haveAsyncTaskWithShadows = true;
+                    void Callback(CommandBuffer asyncCmd) => OnPostBuildLightListsAsync(renderContext, hdCamera, asyncCmd);
+                }
+                // custom-end
+
                 if (hdCamera.frameSettings.VolumeVoxelizationRunsAsync())
                 {
                     // custom-begin:
@@ -1864,13 +1878,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         {
                             OnCameraPreRenderVolumetrics(
                                 hdCamera,
-                                cmd,
+                                asyncCmd,
                                 m_VolumetricLightingSystem.GetVolumeVoxelizationCS(),
                                 m_VolumetricLightingSystem.GetVolumeVoxelizationKernel(hdCamera, m_LightLoop)
                             );
                         }
+
                         VolumeVoxelizationPass(hdCamera, asyncCmd, m_FrameCount, densityVolumes, m_LightLoop);
-                        VolumeVoxelizationBlurPass(hdCamera, cmd, m_LightLoop);
+                        VolumeVoxelizationBlurPass(hdCamera, asyncCmd, m_LightLoop);
                     }, !haveAsyncTaskWithShadows);
 
                     haveAsyncTaskWithShadows = true;
@@ -1961,6 +1976,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         PushFullScreenDebugTexture(hdCamera, cmd, m_ContactShadowBuffer, FullScreenDebugMode.ContactShadows);
                     }
                 }
+
+                // custom-begin:
+                if (OnPostBuildLightLists != null)
+                    OnPostBuildLightLists(renderContext, hdCamera, cmd);
+                // custom-end
 
                 {
                     // Set fog parameters for volumetric lighting.

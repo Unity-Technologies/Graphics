@@ -694,6 +694,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             return m_deferredLightingMaterial[index];
         }
 
+        // custom-begin
+        public float GetSpecularGlobalDimmer()
+        {
+            return m_FrameSettings.specularGlobalDimmer;
+        }
+        // custom-end
+
         public void InitializeLightLoop(IBLFilterBSDF[] iBLFilterBSDFArray)
         {
             var lightLoopSettings = asset.currentPlatformRenderPipelineSettings.lightLoopSettings;
@@ -1289,6 +1296,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // fix up shadow information
             lightData.shadowIndex = shadowIndex;
 #endif
+
+            // custom-begin:
+            // Cache shadow data from render loop in order to simplify sending shadow data of light sources to custom data structures.
+            // This avoids manually authoring a ton of spaghetti code to wire up additional custom shadow data requests.
+            // Note: This will only be valid for on-screen light sources, as the light loop is only concerned with on-screen lights.
+            additionalLightData.shadowIndex = shadowIndex;
+            // custom-end
+
             // Value of max smoothness is from artists point of view, need to convert from perceptual smoothness to roughness
             lightData.minRoughness = (1.0f - additionalLightData.maxSmoothness) * (1.0f - additionalLightData.maxSmoothness);
 
