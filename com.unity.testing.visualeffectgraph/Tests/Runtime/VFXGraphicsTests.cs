@@ -42,7 +42,6 @@ namespace UnityEngine.VFX.Test
 
         static readonly string[] ExcludedTestsButKeepLoadScene =
         {
-            "20_SpawnerChaining", // Unstable. TODO investigate why
             "RenderStates", // Unstable. There is an instability with shadow rendering. TODO Fix that
             "ConformAndSDF", // Turbulence is not deterministic
             "13_Decals", //doesn't render TODO investigate why <= this one is in world space
