@@ -172,56 +172,5 @@ namespace UnityEngine.Rendering.Universal
             // Validate memory limitations
             //Debug.Assert(views.Count <= TextureXR.kMaxSlices);
         }
-
-        internal void StartLegacyStereo(Camera camera, CommandBuffer cmd, ScriptableRenderContext renderContext)
-        {
-            if (enabled)
-            {
-                // Required for some legacy shaders (text for example)
-                cmd.SetViewProjectionMatrices(GetViewMatrix(), GetProjMatrix());
-
-                if (camera.stereoEnabled)
-                {
-                    // Reset scissor and viewport for C++ stereo code
-                    cmd.DisableScissorRect();
-                    cmd.SetViewport(camera.pixelRect);
-
-                    renderContext.ExecuteCommandBuffer(cmd);
-                    cmd.Clear();
-
-                    if (legacyMultipassEnabled)
-                        renderContext.StartMultiEye(camera, legacyMultipassEye);
-                    else
-                        renderContext.StartMultiEye(camera);
-                }
-            }
-        }
-
-        internal void StopLegacyStereo(Camera camera, CommandBuffer cmd, ScriptableRenderContext renderContext)
-        {
-            if (enabled && camera.stereoEnabled)
-            {
-                renderContext.ExecuteCommandBuffer(cmd);
-                cmd.Clear();
-                renderContext.StopMultiEye(camera);
-            }
-        }
-
-        internal void EndCamera(Camera camera, ScriptableRenderContext renderContext, CommandBuffer cmd, XRSystem system)
-        {
-            if (!enabled)
-                return;
-
-            {
-                renderContext.ExecuteCommandBuffer(cmd);
-                cmd.Clear();
-
-                // Pushes to XR headset and/or display mirror
-                if (legacyMultipassEnabled)
-                    renderContext.StereoEndRender(camera, legacyMultipassEye, legacyMultipassEye == 1);
-                else
-                    renderContext.StereoEndRender(camera);
-            }
-        }
     }
 }
