@@ -119,7 +119,7 @@ namespace UnityEditor.Rendering
 
                 using (var writer = File.CreateText(fileName))
                 {
-                    writer.NewLine = "\r\n";
+                    writer.NewLine = Environment.NewLine;
 
                     var guard = Path.GetFileName(fileName).Replace(".", "_").ToUpper();
                     if (!char.IsLetter(guard[0]))
