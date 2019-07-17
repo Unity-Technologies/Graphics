@@ -5,19 +5,21 @@ using UnityEngine;
 
 namespace UnityEditor.VFX
 {
-    [VFXInfo(variantProvider = typeof(VFXPlanarPrimitiveVariantProvider))]
-    class VFXLitPlanarPrimitiveOutput : VFXAbstractParticleHDRPLitOutput
+    //[VFXInfo] // TODO Put back InInsepctor visibility once C++ PR for strips has landed
+    class VFXLitQuadStripOutput : VFXAbstractParticleHDRPLitOutput
     {
-        public override string name { get { return "Lit " + primitiveType.ToString() + " Output"; } }
+        protected VFXLitQuadStripOutput() : base(true) { } // strips
+
+        public override string name { get { return "Lit Quad Strip Output"; } }
         public override string codeGeneratorTemplate { get { return RenderPipeTemplate("VFXParticleLitPlanarPrimitive"); } }
-        public override VFXTaskType taskType { get { return VFXPlanarPrimitiveHelper.GetTaskType(primitiveType); } }
+        public override VFXTaskType taskType { get { return VFXTaskType.ParticleQuadOutput; } }
         public override bool supportsUV { get { return true; } }
 
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]
-        protected VFXPrimitiveType primitiveType = VFXPrimitiveType.Quad;
-
-        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]
         protected bool normalBending = false;
+
+        [VFXSetting, SerializeField]
+        private StripTilingMode tilingMode = StripTilingMode.Stretch;
 
         public class NormalBendingProperties
         {
@@ -32,8 +34,6 @@ namespace UnityEditor.VFX
                 var properties = base.inputProperties;
                 if (normalBending)
                     properties = properties.Concat(PropertiesFromType("NormalBendingProperties"));
-                if (primitiveType == VFXPrimitiveType.Octagon)
-                    properties = properties.Concat(PropertiesFromType(typeof(VFXPlanarPrimitiveHelper.OctagonInputProperties)));
                 return properties;
             }
         }
@@ -46,21 +46,16 @@ namespace UnityEditor.VFX
                 if (colorMode != ColorMode.None)
                     yield return new VFXAttributeInfo(VFXAttribute.Color, VFXAttributeMode.Read);
                 yield return new VFXAttributeInfo(VFXAttribute.Alpha, VFXAttributeMode.Read);
-                yield return new VFXAttributeInfo(VFXAttribute.Alive, VFXAttributeMode.Read);
-                yield return new VFXAttributeInfo(VFXAttribute.AxisX, VFXAttributeMode.Read);
-                yield return new VFXAttributeInfo(VFXAttribute.AxisY, VFXAttributeMode.Read);
-                yield return new VFXAttributeInfo(VFXAttribute.AxisZ, VFXAttributeMode.Read);
+                yield return new VFXAttributeInfo(VFXAttribute.AxisX, VFXAttributeMode.Write);
+                yield return new VFXAttributeInfo(VFXAttribute.AxisY, VFXAttributeMode.Write);
+                yield return new VFXAttributeInfo(VFXAttribute.AxisZ, VFXAttributeMode.Write);
                 yield return new VFXAttributeInfo(VFXAttribute.AngleX, VFXAttributeMode.Read);
                 yield return new VFXAttributeInfo(VFXAttribute.AngleY, VFXAttributeMode.Read);
                 yield return new VFXAttributeInfo(VFXAttribute.AngleZ, VFXAttributeMode.Read);
                 yield return new VFXAttributeInfo(VFXAttribute.PivotX, VFXAttributeMode.Read);
                 yield return new VFXAttributeInfo(VFXAttribute.PivotY, VFXAttributeMode.Read);
                 yield return new VFXAttributeInfo(VFXAttribute.PivotZ, VFXAttributeMode.Read);
-
                 yield return new VFXAttributeInfo(VFXAttribute.Size, VFXAttributeMode.Read);
-                yield return new VFXAttributeInfo(VFXAttribute.ScaleX, VFXAttributeMode.Read);
-                yield return new VFXAttributeInfo(VFXAttribute.ScaleY, VFXAttributeMode.Read);
-                yield return new VFXAttributeInfo(VFXAttribute.ScaleZ, VFXAttributeMode.Read);
 
                 if (usesFlipbook)
                     yield return new VFXAttributeInfo(VFXAttribute.TexIndex, VFXAttributeMode.Read);
@@ -74,8 +69,6 @@ namespace UnityEditor.VFX
 
             if (normalBending)
                 yield return slotExpressions.First(o => o.name == "bentNormalFactor");
-            if (primitiveType == VFXPrimitiveType.Octagon)
-                yield return slotExpressions.First(o => o.name == "cropFactor");
         }
 
         public override IEnumerable<string> additionalDefines
@@ -88,7 +81,10 @@ namespace UnityEditor.VFX
                 if (normalBending)
                     yield return "USE_NORMAL_BENDING";
 
-                yield return VFXPlanarPrimitiveHelper.GetShaderDefine(primitiveType);
+                if (tilingMode == StripTilingMode.Stretch)
+                    yield return "VFX_STRIPS_UV_STRECHED";
+
+                yield return VFXPlanarPrimitiveHelper.GetShaderDefine(VFXPrimitiveType.Quad);
             }
         }
     }

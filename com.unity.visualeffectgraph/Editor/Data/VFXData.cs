@@ -62,12 +62,18 @@ namespace UnityEditor.VFX
             get { return Enumerable.Empty<VFXContext>(); }
         }
 
+        public virtual IEnumerable<string> additionalHeaders
+        {
+            get { return Enumerable.Empty<string>(); }
+        }
+
         public static VFXData CreateDataType(VFXGraph graph,VFXDataType type)
         {
             VFXData newVFXData;
             switch (type)
             {
                 case VFXDataType.Particle:
+                case VFXDataType.ParticleStrip:
                     newVFXData = ScriptableObject.CreateInstance<VFXDataParticle>();
                     break;
                 case VFXDataType.Mesh:
@@ -101,6 +107,14 @@ namespace UnityEditor.VFX
                 if (nbRemoved > 0)
                     Debug.LogWarning(String.Format("Remove {0} owners that couldnt be deserialized from {1} of type {2}", nbRemoved, name, GetType()));
             }
+        }
+
+        protected internal override void Invalidate(VFXModel model, InvalidationCause cause)
+        {
+            base.Invalidate(model, cause);
+
+            foreach (VFXContext owner in owners)
+                owner.Invalidate(model, cause);
         }
 
         public override void Sanitize(int version)
@@ -384,7 +398,7 @@ namespace UnityEditor.VFX
             m_StoredCurrentAttributes.Clear();
             m_LocalCurrentAttributes.Clear();
             m_ReadSourceAttributes.Clear();
-            if (type == VFXDataType.Particle)
+            if ((type & VFXDataType.Particle) != 0)
             {
                 m_ReadSourceAttributes.Add(new VFXAttribute("spawnCount", VFXValueType.Float)); // TODO dirty
             }

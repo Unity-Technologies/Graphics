@@ -678,10 +678,11 @@ namespace UnityEditor.VFX
             foreach (var data in compilableData.SelectMany(o => o.dependenciesOut).Distinct().OfType<VFXDataParticle>())
             {
                 var eventBufferIndex = -1;
-                if (data.capacity > 0)
+                uint capacity = (uint)data.GetSettingValue("capacity");
+                if (capacity > 0)
                 {
                     eventBufferIndex = bufferDescs.Count;
-                    bufferDescs.Add(new VFXGPUBufferDesc() { type = ComputeBufferType.Append, size = data.capacity, stride = 4 });
+                    bufferDescs.Add(new VFXGPUBufferDesc() { type = ComputeBufferType.Append, size = capacity, stride = 4 });
                 }
                 eventGpuBufferDictionnary.Add(data, eventBufferIndex);
             }
