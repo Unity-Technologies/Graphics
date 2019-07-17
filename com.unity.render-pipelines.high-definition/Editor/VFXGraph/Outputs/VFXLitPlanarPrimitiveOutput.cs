@@ -25,11 +25,6 @@ namespace UnityEditor.VFX
             public float bentNormalFactor = 0.1f;
         }
 
-        public override void OnEnable()
-        {
-            base.OnEnable();
-        }
-
         protected override IEnumerable<VFXPropertyWithValue> inputProperties
         {
             get

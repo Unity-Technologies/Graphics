@@ -6,6 +6,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [7.1.0] - 2019-XX-XX
 
+### Added
+- Cube LUT support in Tonemapping. Cube LUT helpers for external grading are available in the Post-processing Sample package.
+
 ## [7.0.0] - 2019-07-10
 
 ### Added
@@ -76,6 +79,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed wireframe rendering mode (case 1083989)
 - Fixed the renderqueue not updated when the alpha clip is modified in the material UI.
 - Fixed the PBR master node preview
+- Remove the ReadOnly flag on Reflection Probe's cubemap assets during bake when there are no VCS active.
+- Fixed an issue where setting a material debug view would not reset the other exclusive modes
+- Spot light shapes are now correctly taken into account when baking
 
 ### Changed
 - Optimization: Reduce the group size of the deferred lighting pass from 16x16 to 8x8

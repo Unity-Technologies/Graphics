@@ -55,6 +55,20 @@ VFXFlowAnchor.port.EdgeConnector.typeparticle
     --port-color: #FFBC21;
 }
 
+VFXContextUI.inputTypeparticlestrip > #node-border
+{
+    --start-color:#BF8050;
+}
+VFXContextUI.outputTypeparticlestrip > #node-border
+{
+    --end-color:#BF8050;
+}
+
+VFXFlowAnchor.port.EdgeConnector.typeparticlestrip
+{
+    --port-color: #FFAA6B;
+}
+
 /*  output */
 
 
@@ -300,6 +314,10 @@ VFXContextUI.inputTypespawnevent #user-label
 VFXContextUI.inputTypeparticle #user-label
 {
     color: #FFBC21;
+}
+VFXContextUI.inputTypeparticlestrip #user-label
+{
+    color: #FFAA6B;
 }
 
 #user-label.empty

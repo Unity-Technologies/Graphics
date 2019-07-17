@@ -716,7 +716,7 @@ namespace UnityEditor.Rendering
             => GetInternalSkinIndex() == 0 ? Skin.Personnal : Skin.Professional;
 
 
-
+        // /!\ UIElement do not support well pixel per point at the moment. For this, use the hack forceLowRes
         /// <summary>
         /// Load an icon regarding skin and editor resolution.
         /// Icon should be stored as legacy icon resources:
@@ -727,7 +727,7 @@ namespace UnityEditor.Rendering
         /// <param name="name">Icon name without suffix, prefix or extention</param>
         /// <param name="extention">[Optional] Extention of file (png per default)</param>
         /// <param name="skin">[Optional] Load icon for this skin (Auto per default take current skin)</param>
-        internal static Texture2D LoadIcon(string path, string name, string extention = ".png", Skin skin = Skin.Auto)
+        internal static Texture2D LoadIcon(string path, string name, string extention = ".png", Skin skin = Skin.Auto, bool forceLowRes = false)
         {
             if (String.IsNullOrEmpty(path) || String.IsNullOrEmpty(name))
                 return null;
@@ -742,7 +742,7 @@ namespace UnityEditor.Rendering
             
             Texture2D icon = null;
             float pixelsPerPoint = GetGUIStatePixelsPerPoint();
-            if (pixelsPerPoint > 1.0f)
+            if (pixelsPerPoint > 1.0f && !forceLowRes)
             {
                 icon = EditorGUIUtility.Load(String.Format("{0}/{1}{2}@2x{3}", path, prefix, name, extention)) as Texture2D;
                 if (icon == null && !string.IsNullOrEmpty(prefix))

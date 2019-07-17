@@ -58,6 +58,11 @@ namespace UnityEditor.VFX
             Off,
             On
         }
+        protected enum StripTilingMode
+        {
+            Stretch,
+            RepeatPerSegment,
+        }
 
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]
         protected CullMode cullMode = CullMode.Default;
@@ -116,7 +121,9 @@ namespace UnityEditor.VFX
         }
         public bool NeedsDeadListCount() { return HasIndirectDraw() && (taskType == VFXTaskType.ParticleQuadOutput || taskType == VFXTaskType.ParticleHexahedronOutput); } // Should take the capacity into account to avoid false positive
 
-        protected VFXAbstractParticleOutput() : base(VFXDataType.Particle) {}
+        public bool HasStrips() { return ownedType == VFXDataType.ParticleStrip; }
+
+        protected VFXAbstractParticleOutput(bool strip = false) : base(strip ? VFXDataType.ParticleStrip : VFXDataType.Particle) {}
 
         public override bool codeGeneratorCompute { get { return false; } }
 
@@ -315,6 +322,9 @@ namespace UnityEditor.VFX
 
                 if (NeedsDeadListCount() && GetData().IsAttributeStored(VFXAttribute.Alive)) //Actually, there are still corner cases, e.g.: particles spawning immortal particles through GPU Event
                     yield return "USE_DEAD_LIST_COUNT";
+
+                if (HasStrips())
+                    yield return "HAS_STRIPS";
             }
         }
 

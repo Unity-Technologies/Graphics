@@ -277,15 +277,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 return ssrBlackTexture;
 
             RenderGraphResource result;
-
-#if ENABLE_RAYTRACING
-            var settings = VolumeManager.instance.stack.GetComponent<ScreenSpaceReflection>();
-            if (settings.enableRaytracing.value)
-            {
-                RenderRayTracedReflections(hdCamera, cmd, m_SsrLightingTexture, renderContext, m_FrameCount);
-            }
-            else
-#endif
             {
                 using (var builder = renderGraph.AddRenderPass<RenderSSRPassData>("Render SSR", out var passData))
                 {

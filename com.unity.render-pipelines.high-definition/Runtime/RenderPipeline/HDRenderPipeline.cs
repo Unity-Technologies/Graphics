@@ -1683,7 +1683,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.DisableScissorRect();
 
             Resize(hdCamera);
-            m_PostProcessSystem.BeginFrame(cmd, hdCamera);
+            m_PostProcessSystem.BeginFrame(cmd, hdCamera, this);
 
             ApplyDebugDisplaySettings(hdCamera, cmd);
             m_SkyManager.UpdateCurrentSkySettings(hdCamera);
@@ -1717,6 +1717,9 @@ namespace UnityEngine.Rendering.HighDefinition
             // TODO: Try to arrange code so we can trigger this call earlier and use async compute here to run sky convolution during other passes (once we move convolution shader to compute).
             if (m_CurrentDebugDisplaySettings.GetDebugLightingMode() != DebugLightingMode.MatcapView)
                 UpdateSkyEnvironment(hdCamera, cmd);
+            else
+                cmd.SetGlobalTexture(HDShaderIDs._SkyTexture, CoreUtils.magentaCubeTextureArray);
+
 
             if (GL.wireframe)
             {
@@ -3018,7 +3021,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void RenderSky(HDCamera hdCamera, CommandBuffer cmd)
         {
-            if(m_DebugDisplaySettings.GetDebugLightingMode() == DebugLightingMode.MatcapView)
+            if(m_CurrentDebugDisplaySettings.GetDebugLightingMode() == DebugLightingMode.MatcapView)
             {
                 return;
             }

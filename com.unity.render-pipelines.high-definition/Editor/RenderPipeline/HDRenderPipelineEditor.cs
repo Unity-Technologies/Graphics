@@ -12,9 +12,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         void OnEnable()
         {
-#if QUALITY_SETTINGS_GET_RENDER_PIPELINE_AT_AVAILABLE
-            showInspector = false;
-#endif
+            //showInspector = false;
             m_SerializedHDRenderPipeline = new SerializedHDRenderPipelineAsset(serializedObject);
         }
 

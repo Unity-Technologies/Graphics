@@ -993,7 +993,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         static Vector3 ComputeAtmosphericOpticalDepth(float r, float cosTheta, bool alwaysAboveHorizon = false)
         {
-            var skySettings = VolumeManager.instance.stack.GetComponent<PhysicallyBasedSkySettings>();
+            var skySettings = VolumeManager.instance.stack.GetComponent<PhysicallyBasedSky>();
             Debug.Assert(skySettings != null);
 
             float R = skySettings.planetaryRadius.value;
@@ -1049,7 +1049,7 @@ namespace UnityEngine.Rendering.HighDefinition
         // Computes transmittance along the light path segment.
         static Vector3 EvaluateAtmosphericAttenuation(Vector3 L, Vector3 positionWS)
         {
-            var skySettings = VolumeManager.instance.stack.GetComponent<PhysicallyBasedSkySettings>();
+            var skySettings = VolumeManager.instance.stack.GetComponent<PhysicallyBasedSky>();
             Debug.Assert(skySettings != null);
 
             Vector3 X = positionWS * 0.001f; // Convert m to km
@@ -1873,6 +1873,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_CurrentSunLight = null;
                 m_CurrentShadowSortedSunLightIndex = -1;
                 m_DebugSelectedLightShadowIndex = -1;
+                m_DebugSelectedLightShadowCount = 0;
 
                 int decalDatasCount = Math.Min(DecalSystem.m_DecalDatasCount, m_MaxDecalsOnScreen);
 
@@ -2015,7 +2016,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     var visualEnvironment = VolumeManager.instance.stack.GetComponent<VisualEnvironment>();
                     Debug.Assert(visualEnvironment != null);
 
-                    isPysicallyBasedSkyActive = (visualEnvironment.skyType.value == SkySettings.GetUniqueID<PhysicallyBasedSkySettings>());
+                    isPysicallyBasedSkyActive = (visualEnvironment.skyType.value == SkySettings.GetUniqueID<PhysicallyBasedSky>());
 
                     // TODO: Refactor shadow management
                     // The good way of managing shadow:
@@ -3391,6 +3392,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public TileAndClusterData       tileAndClusterData;
             public HDShadowManager          shadowManager;
             public int                      debugSelectedLightShadowIndex;
+            public int                      debugSelectedLightShadowCount;
             public Material                 debugShadowMapMaterial;
         }
 
@@ -3402,6 +3404,7 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.tileAndClusterData = m_TileAndClusterData;
             parameters.shadowManager = m_ShadowManager;
             parameters.debugSelectedLightShadowIndex = m_DebugSelectedLightShadowIndex;
+            parameters.debugSelectedLightShadowCount = m_DebugSelectedLightShadowCount;
             parameters.debugShadowMapMaterial = m_DebugHDShadowMapMaterial;
 
             return parameters;
@@ -3484,10 +3487,18 @@ namespace UnityEngine.Rendering.HighDefinition
                             int shadowRequestCount = 1;
 
 #if UNITY_EDITOR
-                            if (lightingDebug.shadowDebugUseSelection && parameters.debugSelectedLightShadowIndex != -1)
+                            if (lightingDebug.shadowDebugUseSelection)
                             {
-                                startShadowIndex = parameters.debugSelectedLightShadowIndex;
-                                shadowRequestCount = parameters.debugSelectedLightShadowIndex;
+                                if (parameters.debugSelectedLightShadowIndex != -1 && parameters.debugSelectedLightShadowCount != 0)
+                                {
+                                    startShadowIndex = parameters.debugSelectedLightShadowIndex;
+                                    shadowRequestCount = parameters.debugSelectedLightShadowCount;
+                                }
+                                else
+                                {
+                                    // We don't display any shadow map if the selected object is not a light
+                                    shadowRequestCount = 0;
+                                }
                             }
 #endif
 

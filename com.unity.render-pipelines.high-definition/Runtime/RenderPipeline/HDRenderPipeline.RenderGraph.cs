@@ -459,18 +459,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     DrawTransparentRendererList(context.renderContext, context.cmd, data.frameSettings, context.resources.GetRendererList(data.rendererList));
                 });
-
-
-#if ENABLE_RAYTRACING
-                // If there is a ray-tracing environment and the feature is enabled we want to push these objects to the transparent postpass (they are not rendered in the first call because they are not in the generic transparent render queue)
-                HDRaytracingEnvironment currentEnv = m_RayTracingManager.CurrentEnvironment();
-                var rrSettings = VolumeManager.instance.stack.GetComponent<RecursiveRendering>();
-                if (currentEnv != null && rrSettings.enable.value)
-                {
-                    var rendererListRT = RendererList.Create(CreateTransparentRendererListDesc(cullResults, hdCamera.camera, m_TransparentDepthPostpassNames, renderQueueRange: HDRenderQueue.k_RenderQueue_AllTransparentRaytracing));
-                    DrawTransparentRendererList(renderContext, cmd, hdCamera.frameSettings, rendererListRT);
-                }
-#endif
             }
         }
 
@@ -598,10 +586,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             RenderTransparentDepthPrepass(renderGraph, hdCamera, depthStencilBuffer, cullingResults);
 
-#if ENABLE_RAYTRACING
-                m_RaytracingRenderer.Render(hdCamera, cmd, m_CameraColorBuffer, renderContext, cullingResults);
-#endif
-
             // Render pre-refraction objects
             RenderForwardTransparent(renderGraph, hdCamera, colorBuffer, motionVectorsBuffer, depthStencilBuffer, null, shadowResult, cullingResults, true);
 
@@ -705,7 +689,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void RenderSky(RenderGraph renderGraph, HDCamera hdCamera, RenderGraphMutableResource colorBuffer, RenderGraphResource volumetricLighting, RenderGraphMutableResource depthStencilBuffer, RenderGraphResource depthTexture)
         {
-            if (m_DebugDisplaySettings.GetDebugLightingMode() == DebugLightingMode.MatcapView)
+            if (m_CurrentDebugDisplaySettings.GetDebugLightingMode() == DebugLightingMode.MatcapView)
             {
                 return;
             }
@@ -938,11 +922,13 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+#if UNITY_EDITOR
         class RenderGizmosPassData
         {
             public GizmoSubset  gizmoSubset;
             public Camera       camera;
         }
+#endif
 
         void RenderGizmos(RenderGraph renderGraph, HDCamera hdCamera, RenderGraphMutableResource colorBuffer, GizmoSubset gizmoSubset)
         {

@@ -5,6 +5,9 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## [7.1.0] - 2019-XX-XX
+### Fixed
+- Fixed shader compilation errors for Android XR projects.
+- Updated the pipeline Asset UI to cap the render scale at 2x so that it matches the render pipeline implementation limit.
 
 ## [7.0.0] - 2019-07-10
 ### Universal Render Pipeline
