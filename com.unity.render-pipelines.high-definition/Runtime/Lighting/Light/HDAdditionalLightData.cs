@@ -7,6 +7,11 @@ using UnityEditor.Experimental.Rendering.HDPipeline;
 #endif
 using UnityEngine.Serialization;
 
+// custom-begin:
+using System.Collections.Generic;
+using UnityEngine;
+// custom-end
+
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
     // This enum extent the original LightType enum with new light type from HD
@@ -237,10 +242,18 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         [System.NonSerialized]
         Plane[]             m_ShadowFrustumPlanes = new Plane[6];
 
-        #if ENABLE_RAYTRACING
+        // custom-begin:
+        // Cache shadow data from render loop in order to simplify sending shadow data of light sources to custom data structures.
+        // This avoids manually authoring a ton of spaghetti code to wire up additional custom shadow data requests.
+        // Note: This will only be valid for on-screen light sources, as the light loop is only concerned with on-screen lights.
+        // #if ENABLE_RAYTRACING
+        // custom-end
         // Temporary index that stores the current shadow index for the light
         [System.NonSerialized] public int shadowIndex;
-        #endif
+
+        // custom-begin:
+        // #endif
+        // custom-end
 
         [System.NonSerialized] HDShadowSettings    _ShadowSettings = null;
         HDShadowSettings    m_ShadowSettings
@@ -254,7 +267,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
 
         AdditionalShadowData _ShadowData;
-        AdditionalShadowData m_ShadowData
+        public AdditionalShadowData m_ShadowData
         {
             get
             {
@@ -276,7 +289,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             m_WillRenderShadows = legacyLight.shadows != LightShadows.None && frameSettings.IsEnabled(FrameSettingsField.Shadow);
 
-            m_WillRenderShadows &= cullResults.GetShadowCasterBounds(lightIndex, out bounds);
+            // custom-begin:
+            // Force shadows to render on layer #7, even outside the frustum.
+            if (((uint)lightLayers & 7u) == 0u)
+            {
+            // custom-end
+                m_WillRenderShadows &= cullResults.GetShadowCasterBounds(lightIndex, out bounds);
+            }
+
             // When creating a new light, at the first frame, there is no AdditionalShadowData so we can't really render shadows
             m_WillRenderShadows &= m_ShadowData != null && m_ShadowData.shadowDimmer > 0;
             // If the shadow is too far away, we don't render it
@@ -343,7 +363,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
 
         // This offset shift the position of the spotlight used to approximate the area light shadows. The offset is the minimum such that the full
-        // area light shape is included in the cone spanned by the spot light. 
+        // area light shape is included in the cone spanned by the spot light.
         public static float GetAreaLightOffsetForShadows(Vector2 shapeSize, float coneAngle)
         {
             float rectangleDiagonal = shapeSize.magnitude;
@@ -651,7 +671,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 return useColorTemperatureProperty.boolValue;
             }
         }
-        
+
         public static bool IsAreaLight(SerializedProperty lightType)
         {
             return IsAreaLight((LightTypeExtent)lightType.enumValueIndex);
@@ -990,10 +1010,32 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
+        // custom-begin:
+        [System.NonSerialized] public static List<HDAdditionalLightData> s_InstancesHDAdditionalLightData = new List<HDAdditionalLightData>();
+        [System.NonSerialized] public static List<Light> s_InstancesLight = new List<Light>();
+        // custom-end
+
         private void OnEnable()
         {
             UpgradeLight();
+
+            // custom-begin:
+            s_InstancesHDAdditionalLightData.Add(this);
+            s_InstancesLight.Add(this.GetComponent<Light>());
+            // custom-end
         }
+
+        // custom-begin:
+        private void OnDisable()
+        {
+            int index = s_InstancesHDAdditionalLightData.IndexOf(this);
+            if (index != -1)
+            {
+                s_InstancesHDAdditionalLightData.RemoveAt(index);
+                s_InstancesLight.RemoveAt(index);
+            }
+        }
+        // custom-end
 
         public void UpgradeLight()
         {
