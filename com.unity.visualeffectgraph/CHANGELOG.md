@@ -22,6 +22,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Inverse trigonometric operators (atan, atan2, asin, acos)
 - Replaced Orient : Fixed rotation with new option Orient : Advanced
 - Loop & Delay integrated to the spawn system
+- Motion Vector support for PlanarPrimitive & Mesh outputs
 
 ### Fixed
 - Handle a possible exception (ReflectionTypeLoadException) while using VFXParameterBinderEditor
