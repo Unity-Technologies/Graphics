@@ -117,6 +117,13 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_SkySettings = (SkySettings)ScriptableObject.CreateInstance(skyType);
                 var newSkyParameters = m_SkySettings.parameters;
                 var profileSkyParameters = m_SkySettingsFromProfile.parameters;
+
+                // Seems to inexplicably happen sometimes on domain reload.
+                if (profileSkyParameters == null)
+                {
+                    return;
+                }
+
                 int parameterCount = m_SkySettings.parameters.Count;
                 // Copy overridden parameters.
                 for (int i  = 0; i < parameterCount; ++i)
