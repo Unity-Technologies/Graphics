@@ -1,7 +1,8 @@
 using UnityEngine;
-using UnityEngine.Experimental.Rendering.HDPipeline;
+using UnityEngine.Rendering.HighDefinition;
+using UnityEditor.Rendering;
 
-namespace UnityEditor.Experimental.Rendering.HDPipeline
+namespace UnityEditor.Rendering.HighDefinition
 {
     [CustomEditor(typeof(ReflectionProxyVolumeComponent))]
     [CanEditMultipleObjects]
@@ -20,7 +21,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             System.Array.Resize(ref m_TypedTargets, serializedObject.targetObjects.Length);
             for (int i = 0; i < serializedObject.targetObjects.Length; ++i)
                 m_TypedTargets[i] = (ReflectionProxyVolumeComponent)serializedObject.targetObjects[i];
-            
+
             m_SphereHandle = new HierarchicalSphere(k_HandleColor);
             m_BoxHandle = new HierarchicalBox(k_HandleColor, new[] { k_HandleColor, k_HandleColor, k_HandleColor, k_HandleColor, k_HandleColor, k_HandleColor })
             {
@@ -39,7 +40,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         void OnSceneGUI()
         {
-            
+
             for (int i = 0; i < m_TypedTargets.Length; ++i)
             {
                 var comp = m_TypedTargets[i];

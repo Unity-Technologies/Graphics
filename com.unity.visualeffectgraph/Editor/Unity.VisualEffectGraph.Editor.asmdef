@@ -5,7 +5,6 @@
         "Unity.Timeline",
         "Unity.RenderPipelines.HighDefinition.Runtime"
     ],
-    "optionalUnityReferences": [],
     "includePlatforms": [
         "Editor"
     ],
@@ -32,9 +31,9 @@
             "define": "VFX_HAS_HDRP"
         },
         {
-            "name": "com.unity.render-pipelines.lightweight",
+            "name": "com.unity.render-pipelines.universal",
             "expression": "1.0.0",
-            "define": "VFX_HAS_LWRP"
+            "define": "VFX_HAS_UNIVERSAL"
         }
     ]
 }

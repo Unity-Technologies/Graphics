@@ -31,7 +31,12 @@ Pass
 		nointerpolation float2 builtInInterpolants2 : TEXCOORD2;
 		#endif
 		#if VFX_NEEDS_POSWS_INTERPOLATOR
-		float3 posWS : TEXCOORD3;
+		float3 posWS : TEXCOORD4;
+		#endif
+		
+		#if WRITE_MOTION_VECTOR_IN_FORWARD
+		float4 cPosPrevious : TEXCOORD5;
+		float4 cPosNonJiterred : TEXCOORD6;
 		#endif
 
 		UNITY_VERTEX_OUTPUT_STEREO
@@ -40,6 +45,9 @@ Pass
 	struct ps_output
 	{
 		float4 color : SV_Target0;
+#if WRITE_MOTION_VECTOR_IN_FORWARD
+		float4 outMotionVector : SV_Target1;
+#endif
 	};
 
 #define VFX_VARYING_PS_INPUTS ps_input
@@ -56,6 +64,10 @@ Pass
 #endif
 #if USE_EXPOSURE_WEIGHT
 #define VFX_VARYING_EXPOSUREWEIGHT builtInInterpolants.w
+#endif
+#if WRITE_MOTION_VECTOR_IN_FORWARD
+#define VFX_VARYING_VELOCITY_CPOS cPosNonJiterred
+#define VFX_VARYING_VELOCITY_CPOS_PREVIOUS cPosPrevious
 #endif
 		
 	${VFXInclude("Shaders/ParticleMeshes/Pass.template")}	
@@ -74,6 +86,11 @@ Pass
 		o.color = VFXApplyFog(o.color,i);
 		VFXClipFragmentColor(o.color.a,i);
 		o.color.a = saturate(o.color.a);
+		
+#if WRITE_MOTION_VECTOR_IN_FORWARD
+		${VFXComputeOutputMotionVector}
+		o.outMotionVector = encodedMotionVector;
+#endif
 		return o;
 	}
 	ENDHLSL

@@ -1,14 +1,12 @@
-namespace UnityEngine.Experimental.Rendering
-{
-    public enum ShadowUpdateMode
-    {
-        EveryFrame = 0,
-        OnEnable,
-        OnDemand
-    }
+using UnityEngine.Rendering.HighDefinition;
+using System;
 
+namespace UnityEngine.Rendering
+{
     [RequireComponent(typeof(Light))]
-    public class AdditionalShadowData : MonoBehaviour
+    [Obsolete("This component will be removed in the future, it's content have been moved to HDAdditionalLightData.")]
+    [ExecuteAlways]
+    class AdditionalShadowData : MonoBehaviour
     {
 // Currently m_Version is not used and produce a warning, remove these pragmas at the next version incrementation
 #pragma warning disable 414
@@ -17,148 +15,77 @@ namespace UnityEngine.Experimental.Rendering
         private int m_Version = 1;
 #pragma warning restore 414
 
-        public const int DefaultShadowResolution = 512;
-
-        public int shadowResolution = DefaultShadowResolution;
+        [Obsolete("Obsolete, use HDAdditionalLightData.customResolution instead.")]
+        [UnityEngine.Serialization.FormerlySerializedAs("shadowResolution")]
+        public int customResolution = HDAdditionalLightData.k_DefaultShadowResolution;
 
         [Range(0.0f, 1.0f)]
+        [Obsolete("Obsolete, use HDAdditionalLightData.shadowDimmer instead.")]
         public float shadowDimmer = 1.0f;
-        public float volumetricShadowDimmer = 1.0f;
-        public float shadowFadeDistance = 10000.0f;
-        public bool contactShadows = false;
-        public Color shadowTint = Color.black;
-        // bias control
-        public float viewBiasMin = 0.5f;
-        public float viewBiasMax = 10f;
-        [Range(0.0F, 15.0F)]
-        public float viewBiasScale = 1.0f;
-        public float normalBiasMin = 0.2f;
-        public float normalBiasMax = 4.0f;
-        [Range(0.0F, 10.0F)]
-        public float normalBiasScale = 1.0f;
-        public bool sampleBiasScale = true;
-        public bool edgeLeakFixup = false; // Causes large banding artifacts
-        public bool edgeToleranceNormal = false;
-        [Range(0.0F, 1.0F)]
-        public float edgeTolerance = 1.0f;
 
+        [Range(0.0f, 1.0f)]
+        [Obsolete("Obsolete, use HDAdditionalLightData.volumetricShadowDimmer instead.")]
+        public float volumetricShadowDimmer = 1.0f;
+
+        [Obsolete("Obsolete, use HDAdditionalLightData.shadowFadeDistance instead.")]
+        public float shadowFadeDistance = 10000.0f;
+
+        [Obsolete("Obsolete, use HDAdditionalLightData.contactShadows instead.")]
+        public bool contactShadows = false;
+
+        [Obsolete("Obsolete, use HDAdditionalLightData.shadowTint instead.")]
+        public Color shadowTint = Color.black;
+
+        // bias control
+        [Obsolete("Obsolete, use HDAdditionalLightData.normalBias instead.")]
+        public float normalBias = 0.75f;
+
+        [Obsolete("Obsolete, use HDAdditionalLightData.constantBias instead.")]
+        public float constantBias = 0.15f;
+
+        [Obsolete("Obsolete, use HDAdditionalLightData.shadowUpdateMode instead.")]
         public ShadowUpdateMode shadowUpdateMode = ShadowUpdateMode.EveryFrame;
 
         [HideInInspector, SerializeField]
-        private int shadowCascadeCount = 4;
+        [Obsolete("Obsolete, use HDAdditionalLightData.shadowCascadeRatios instead.")]
+        float[] shadowCascadeRatios = new float[3] { 0.05f, 0.2f, 0.3f };
         [HideInInspector, SerializeField]
-        private float[] shadowCascadeRatios = new float[3] { 0.05f, 0.2f, 0.3f };
+        [Obsolete("Obsolete, use HDAdditionalLightData.shadowCascadeBorders instead.")]
+        float[] shadowCascadeBorders = new float[4] { 0.2f, 0.2f, 0.2f, 0.2f };
         [HideInInspector, SerializeField]
-        private float[] shadowCascadeBorders = new float[4] { 0.2f, 0.2f, 0.2f, 0.2f };
+        [Obsolete("Obsolete, use HDAdditionalLightData.shadowAlgorithm instead.")]
+        int shadowAlgorithm = 0;
         [HideInInspector, SerializeField]
-        private int shadowAlgorithm = 0;
+        [Obsolete("Obsolete, use HDAdditionalLightData.shadowVariant instead.")]
+        int shadowVariant = 0;
         [HideInInspector, SerializeField]
-        private int shadowVariant = 0;
-        [HideInInspector, SerializeField]
-        private int shadowPrecision = 0;
-
-        public int cascadeCount { get { return shadowCascadeCount; } }
-        public void GetShadowCascades(out int cascadeCount, out float[] cascadeRatios, out float[] cascadeBorders) { cascadeCount = shadowCascadeCount; cascadeRatios = shadowCascadeRatios; cascadeBorders = shadowCascadeBorders; }
-        public void SetShadowCascades(int cascadeCount, float[] cascadeRatios, float[] cascadeBorders) { shadowCascadeCount = cascadeCount; shadowCascadeRatios = cascadeRatios; shadowCascadeBorders = cascadeBorders; }
-
-        public void CopyTo(AdditionalShadowData data)
-        {
-            data.shadowResolution = shadowResolution;
-            data.shadowDimmer = shadowDimmer;
-            data.volumetricShadowDimmer = volumetricShadowDimmer;
-            data.shadowFadeDistance = shadowFadeDistance;
-            data.contactShadows = contactShadows;
-            data.viewBiasMin = viewBiasMin;
-            data.viewBiasMax = viewBiasMax;
-            data.viewBiasScale = viewBiasScale;
-            data.normalBiasMin = normalBiasMin;
-            data.normalBiasMax = normalBiasMax;
-            data.normalBiasScale = normalBiasScale;
-            data.sampleBiasScale = sampleBiasScale;
-            data.edgeLeakFixup = edgeLeakFixup;
-            data.edgeToleranceNormal = edgeToleranceNormal;
-            data.edgeTolerance = edgeTolerance;
-            data.shadowCascadeCount = shadowCascadeCount;
-            data.shadowCascadeRatios = new float[shadowCascadeRatios.Length];
-            shadowCascadeRatios.CopyTo(data.shadowCascadeRatios, 0);
-            data.shadowCascadeBorders = new float[shadowCascadeBorders.Length];
-            shadowCascadeBorders.CopyTo(data.shadowCascadeBorders, 0);
-            data.shadowAlgorithm = shadowAlgorithm;
-            data.shadowVariant = shadowVariant;
-            data.shadowPrecision = shadowPrecision;
-            data.shadowUpdateMode = shadowUpdateMode;
-        }
-    }
-
-#if UNITY_EDITOR
-    [UnityEditor.CustomEditor(typeof(AdditionalShadowData))]
-    [UnityEditor.CanEditMultipleObjects]
-    public class AdditionalShadowDataEditor : UnityEditor.Editor
-    {
-#pragma warning disable 414 // CS0414 The private field '...' is assigned but its value is never used
-        UnityEditor.SerializedProperty m_ShadowAlgorithm;
-        UnityEditor.SerializedProperty m_ShadowVariant;
-        UnityEditor.SerializedProperty m_ShadowData;
-        UnityEditor.SerializedProperty m_ShadowDatas;
-#pragma warning restore 414
-        UnityEditor.SerializedProperty m_ShadowCascadeCount;
-        UnityEditor.SerializedProperty m_ShadowCascadeRatios;
-        UnityEditor.SerializedProperty m_ShadowCascadeBorders;
+        [Obsolete("Obsolete, use HDAdditionalLightData.shadowPrecision instead.")]
+        int shadowPrecision = 0;
 
         void OnEnable()
         {
-            m_ShadowAlgorithm = serializedObject.FindProperty("shadowAlgorithm");
-            m_ShadowVariant = serializedObject.FindProperty("shadowVariant");
-            m_ShadowCascadeCount = serializedObject.FindProperty("shadowCascadeCount");
-            m_ShadowCascadeRatios = serializedObject.FindProperty("shadowCascadeRatios");
-            m_ShadowCascadeBorders = serializedObject.FindProperty("shadowCascadeBorders");
-        }
+            var additionalData = GetComponent< HDAdditionalLightData >();
 
-        public override void OnInspectorGUI()
-        {
-            base.OnInspectorGUI();
-
-            AdditionalShadowData asd = (AdditionalShadowData)target;
-            if (asd == null)
-                return;
-
-            UnityEditor.EditorGUI.BeginChangeCheck();
-
-            serializedObject.Update();
-
-            // cascade code
-            if (asd.gameObject.GetComponent<Light>().type == LightType.Directional)
+            // If the additional datas is null, then we can't upgrade
+            if (additionalData != null)
             {
-                UnityEditor.EditorGUI.BeginChangeCheck();
-                UnityEditor.EditorGUILayout.PropertyField(m_ShadowCascadeCount);
-                if (UnityEditor.EditorGUI.EndChangeCheck())
-                {
-                    const int kMaxCascades = 4;
-                    int newcnt = m_ShadowCascadeCount.intValue <= 0 ? 1 : (m_ShadowCascadeCount.intValue > kMaxCascades ? kMaxCascades : m_ShadowCascadeCount.intValue);
-                    m_ShadowCascadeCount.intValue = newcnt;
-                    m_ShadowCascadeRatios.arraySize = newcnt - 1;
-                    m_ShadowCascadeBorders.arraySize = newcnt;
-                }
-                UnityEditor.EditorGUI.indentLevel++;
-                for (int i = 0; i < m_ShadowCascadeRatios.arraySize; i++)
-                {
-                    UnityEditor.EditorGUILayout.Slider(m_ShadowCascadeRatios.GetArrayElementAtIndex(i), 0.0f, 1.0f, new GUIContent("Cascade " + i));
-                }
-                for (int i = 0; i < m_ShadowCascadeBorders.arraySize; i++)
-                {
-                    UnityEditor.EditorGUILayout.Slider(m_ShadowCascadeBorders.GetArrayElementAtIndex(i), 0.0f, 1.0f, new GUIContent("Transition " + i));
-                }
-                UnityEditor.EditorGUI.indentLevel--;
-            }
+                additionalData.customResolution = customResolution;
+                additionalData.shadowDimmer = shadowDimmer;
+                additionalData.volumetricShadowDimmer = volumetricShadowDimmer;
+                additionalData.shadowFadeDistance = shadowFadeDistance;
+                additionalData.contactShadows = contactShadows;
+                additionalData.shadowTint = shadowTint;
+                additionalData.normalBias = normalBias;
+                additionalData.constantBias = constantBias;
+                additionalData.shadowUpdateMode = shadowUpdateMode;
+                additionalData.shadowCascadeRatios = shadowCascadeRatios;
+                additionalData.shadowCascadeBorders = shadowCascadeBorders;
+                additionalData.shadowAlgorithm = shadowAlgorithm;
+                additionalData.shadowVariant = shadowVariant;
+                additionalData.shadowPrecision = shadowPrecision;
 
-            if (UnityEditor.EditorGUI.EndChangeCheck())
-            {
-                UnityEditor.EditorUtility.SetDirty(asd);
-                UnityEditor.SceneManagement.EditorSceneManager.MarkAllScenesDirty();
-                UnityEditor.SceneView.RepaintAll();
+                CoreUtils.Destroy(this);
             }
-            serializedObject.ApplyModifiedProperties();
         }
     }
-#endif
 }

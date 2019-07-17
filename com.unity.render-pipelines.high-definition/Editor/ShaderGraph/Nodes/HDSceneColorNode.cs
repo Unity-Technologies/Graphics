@@ -4,11 +4,12 @@ using UnityEngine;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph;
 using UnityEditor.ShaderGraph.Drawing.Controls;
-using UnityEngine.Experimental.Rendering.HDPipeline;
+using UnityEngine.Rendering.HighDefinition;
 
-namespace UnityEditor.Experimental.Rendering.HDPipeline
+namespace UnityEditor.Rendering.HighDefinition
 {
     [Title("Input", "High Definition Render Pipeline", "HD Scene Color")]
+    [FormerName("UnityEditor.Experimental.Rendering.HDPipeline.HDSceneColorNode")]
     class HDSceneColorNode : AbstractMaterialNode, IGeneratesBodyCode, IGeneratesFunction, IMayRequireCameraOpaqueTexture, IMayRequireScreenPosition
     {
         public HDSceneColorNode()

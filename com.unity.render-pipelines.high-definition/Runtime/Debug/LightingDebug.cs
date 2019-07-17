@@ -1,6 +1,6 @@
 using System;
 
-namespace UnityEngine.Experimental.Rendering.HDPipeline
+namespace UnityEngine.Rendering.HighDefinition
 {
     [GenerateHLSL]
     public enum DebugLightingMode

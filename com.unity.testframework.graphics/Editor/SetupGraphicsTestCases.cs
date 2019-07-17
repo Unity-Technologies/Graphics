@@ -117,7 +117,6 @@ namespace UnityEditor.TestTools.Graphics
 
                 if ( labels.Contains(bakeLabel) )
                 {
-
                     EditorSceneManagement.EditorSceneManager.OpenScene(scene.path, EditorSceneManagement.OpenSceneMode.Additive);
 
                     Scene currentScene = EditorSceneManagement.EditorSceneManager.GetSceneAt(1);
@@ -160,14 +159,15 @@ namespace UnityEditor.TestTools.Graphics
                     BindingFlags.NonPublic | BindingFlags.Instance
                 );
 
-                var testRunnerFilter = getSelectedTestsAsFilterMethod.Invoke(playModeListGUIValue, new object[] { selectedItems });
+                dynamic testRunnerFilterArray = getSelectedTestsAsFilterMethod.Invoke(playModeListGUIValue, new object[] { selectedItems });
+                
+                var testNamesField = testRunnerFilterArray[0].GetType().GetField("testNames", BindingFlags.Instance | BindingFlags.Public);
 
-                var testNames = testRunnerFilter.GetType().GetField("testNames", BindingFlags.Instance | BindingFlags.Public);
+                List< string > testNames = new List<string>();
+                foreach (dynamic testRunnerFilter in testRunnerFilterArray)
+                    testNames.AddRange(testNamesField.GetValue(testRunnerFilter));
 
-                // Finally get the name of the selected scene to run !
-                var testNamesValue = testNames.GetValue(testRunnerFilter) as string[];
-
-                return testNamesValue.Select(name => name.Substring(name.LastIndexOf('.') + 1)).ToArray();
+                return testNames.Select(name => name.Substring(name.LastIndexOf('.') + 1)).ToArray();
             } catch (Exception) {
                 return new string[] {}; // Ignore error and return an empty array
             }

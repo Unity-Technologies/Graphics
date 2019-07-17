@@ -1,16 +1,16 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Experimental.Rendering.HDPipeline;
+using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.Rendering;
 
 // Include material common properties names
-using static UnityEngine.Experimental.Rendering.HDPipeline.HDMaterialProperties;
+using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
 
-namespace UnityEditor.Experimental.Rendering.HDPipeline
+namespace UnityEditor.Rendering.HighDefinition
 {
     // This block is shared for Lit and Layered surface inputs + tesselation variants
-    public class LitSurfaceInputsUIBlock : MaterialUIBlock
+    class LitSurfaceInputsUIBlock : MaterialUIBlock
     {
         public enum Features
         {
@@ -79,7 +79,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public static GUIContent iridescenceThicknessText = new GUIContent("Iridescence Layer Thickness");
             public static GUIContent iridescenceThicknessMapText = new GUIContent("Iridescence Layer Thickness map", "Specifies the Iridescence Layer Thickness map (R) for this Material.");
             public static GUIContent iridescenceThicknessRemapText = new GUIContent("Iridescence Layer Thickness remap");
-            
+
             // Clear Coat
             public static GUIContent coatMaskText = new GUIContent("Coat Mask", "Attenuate the coating effect.");
 
@@ -318,7 +318,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             thickness = FindPropertyLayered(kThickness, m_LayerCount);
             thicknessMap = FindPropertyLayered(kThicknessMap, m_LayerCount);
             thicknessRemap = FindPropertyLayered(kThicknessRemap, m_LayerCount);
-            
+
             // clear coat
             coatMask = FindProperty(kCoatMask);
             coatMaskMap = FindProperty(kCoatMaskMap);

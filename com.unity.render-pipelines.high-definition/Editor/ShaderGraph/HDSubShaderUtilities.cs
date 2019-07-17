@@ -4,13 +4,13 @@ using System.Linq;
 using UnityEditor.Graphing;
 using UnityEngine;              // Vector3,4
 using UnityEditor.ShaderGraph;
-using UnityEngine.Experimental.Rendering.HDPipeline;
+using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.Rendering;
 
 // Include material common properties names
-using static UnityEngine.Experimental.Rendering.HDPipeline.HDMaterialProperties;
+using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
 
-namespace UnityEditor.Experimental.Rendering.HDPipeline
+namespace UnityEditor.Rendering.HighDefinition
 {
     internal enum HDRenderTypeTags
     {
@@ -461,7 +461,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
                 if ((requirements.requiresPosition & NeededCoordinateSpace.Tangent) > 0)
                     activeFields.Add("SurfaceDescriptionInputs.TangentSpacePosition");
-                
+
                 if ((requirements.requiresPosition & NeededCoordinateSpace.AbsoluteWorld) > 0)
                     activeFields.Add("SurfaceDescriptionInputs.AbsoluteWorldSpacePosition");
             }
@@ -550,10 +550,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             bool debugOutput = true;
 
             // grab all of the active nodes (for pixel and vertex graphs)
-            var vertexNodes = ListPool<AbstractMaterialNode>.Get();
+            var vertexNodes = Graphing.ListPool<AbstractMaterialNode>.Get();
             NodeUtils.DepthFirstCollectNodesFromNode(vertexNodes, masterNode, NodeUtils.IncludeSelf.Include, pass.VertexShaderSlots);
 
-            var pixelNodes = ListPool<AbstractMaterialNode>.Get();
+            var pixelNodes = Graphing.ListPool<AbstractMaterialNode>.Get();
             NodeUtils.DepthFirstCollectNodesFromNode(pixelNodes, masterNode, NodeUtils.IncludeSelf.Include, pass.PixelShaderSlots);
 
             // graph requirements describe what the graph itself requires
@@ -772,7 +772,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             namedFragments.Add("ColorMask", colorMaskCode.ToString());
 
             // this is the format string for building the 'C# qualified assembly type names' for $buildType() commands
-            string buildTypeAssemblyNameFormat = "UnityEditor.Experimental.Rendering.HDPipeline.HDRPShaderStructs+{0}, " + typeof(HDSubShaderUtilities).Assembly.FullName.ToString();
+            string buildTypeAssemblyNameFormat = "UnityEditor.Rendering.HighDefinition.HDRPShaderStructs+{0}, " + typeof(HDSubShaderUtilities).Assembly.FullName.ToString();
 
             string sharedTemplatePath = Path.Combine(Path.Combine(HDUtils.GetHDRenderPipelinePath(), "Editor"), "ShaderGraph");
             // process the template to generate the shader code for this pass
@@ -830,7 +830,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             if (pass.ColorMaskOverride != null)
                 colorMaskCode.AppendLine(pass.ColorMaskOverride);
-            
+
             if (pass.ZClipOverride != null)
                 zClipCode.AppendLine(pass.ZClipOverride);
 
@@ -851,7 +851,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             "#pragma multi_compile _ SHADOWS_SHADOWMASK",
             "#pragma multi_compile DECALS_OFF DECALS_3RT DECALS_4RT",
             "#pragma multi_compile USE_FPTL_LIGHTLIST USE_CLUSTERED_LIGHTLIST",
-            "#pragma multi_compile SHADOW_LOW SHADOW_MEDIUM SHADOW_HIGH SHADOW_VERY_HIGH"
+            "#pragma multi_compile SHADOW_LOW SHADOW_MEDIUM SHADOW_HIGH"
         };
 
         public static List<string> s_ExtraDefinesForwardTransparent = new List<string>()
@@ -863,7 +863,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             "#pragma multi_compile _ SHADOWS_SHADOWMASK",
             "#pragma multi_compile DECALS_OFF DECALS_3RT DECALS_4RT",
             "#define USE_CLUSTERED_LIGHTLIST",
-            "#pragma multi_compile SHADOW_LOW SHADOW_MEDIUM SHADOW_HIGH SHADOW_VERY_HIGH"
+            "#pragma multi_compile SHADOW_LOW SHADOW_MEDIUM SHADOW_HIGH"
         };
 
         public static List<string> s_ExtraDefinesForwardMaterialDepthOrMotion = new List<string>()

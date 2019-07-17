@@ -30,7 +30,7 @@ namespace UnityEngine.Rendering
             return ((VolumeParameter<T>) this).value;
         }
 
-        internal abstract void SetValue(VolumeParameter parameter);
+        public abstract void SetValue(VolumeParameter parameter);
 
         // This is used in case you need to access fields/properties that can't be accessed in the
         // constructor of a ScriptableObject (VolumeParameter are generally declared and inited in
@@ -99,7 +99,7 @@ namespace UnityEngine.Rendering
             m_Value = x;
         }
 
-        internal override void SetValue(VolumeParameter parameter)
+        public override void SetValue(VolumeParameter parameter)
         {
             m_Value = parameter.GetValue<T>();
         }

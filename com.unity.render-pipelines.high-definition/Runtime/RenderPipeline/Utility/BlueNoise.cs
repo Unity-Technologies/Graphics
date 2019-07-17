@@ -1,7 +1,6 @@
 using UnityEngine.Assertions;
-using UnityEngine.Rendering;
 
-namespace UnityEngine.Experimental.Rendering.HDPipeline
+namespace UnityEngine.Rendering.HighDefinition
 {
     // Blue noise texture bank
     public sealed class BlueNoise
@@ -20,12 +19,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         static readonly System.Random m_Random = new System.Random();
 
-        public BlueNoise(HDRenderPipelineAsset asset)
+        public BlueNoise(RenderPipelineResources resources)
         {
-            var resources = asset.renderPipelineResources.textures;
-
-            InitTextures(16, TextureFormat.Alpha8, resources.blueNoise16LTex, out m_Textures16L, out m_TextureArray16L);
-            InitTextures(16, TextureFormat.RGB24, resources.blueNoise16RGBTex, out m_Textures16RGB, out m_TextureArray16RGB);
+            InitTextures(16, TextureFormat.Alpha8, resources.textures.blueNoise16LTex, out m_Textures16L, out m_TextureArray16L);
+            InitTextures(16, TextureFormat.RGB24, resources.textures.blueNoise16RGBTex, out m_Textures16RGB, out m_TextureArray16RGB);
         }
 
         public void Cleanup()

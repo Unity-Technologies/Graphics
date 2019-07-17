@@ -1,8 +1,7 @@
 using System;
 using UnityEngine;
-using UnityEngine.Experimental.Rendering.HDPipeline;
 
-namespace UnityEditor.Experimental.Rendering.HDPipeline
+namespace UnityEditor.Rendering.HighDefinition
 {
     /// <summary>
     /// GUI for HDRP Shadergraph Decal materials

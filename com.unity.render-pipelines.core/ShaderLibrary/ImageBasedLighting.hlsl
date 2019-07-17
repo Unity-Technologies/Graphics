@@ -546,7 +546,7 @@ real4 IntegrateLD(TEXTURECUBE_PARAM(tex, sampl),
         lightInt += F * G * val;
         cbsdfInt += F * G;
     #else
-        // Use the approximation from "Real Shading in Unreal Engine 4": Weight ≈ NdotL.
+        // Use the approximation from "Real Shading in Unreal Engine 4": Weight ~ NdotL.
         lightInt += NdotL * val;
         cbsdfInt += NdotL;
     #endif
@@ -633,7 +633,7 @@ real4 IntegrateLDCharlie(TEXTURECUBE_PARAM(tex, sampl),
         // TODO: use a Gaussian-like filter to generate the MIP pyramid.
         real3 val = SAMPLE_TEXTURECUBE_LOD(tex, sampl, L, mipLevel).rgb;
 
-        // Use the approximation from "Real Shading in Unreal Engine 4": Weight ≈ NdotL.
+        // Use the approximation from "Real Shading in Unreal Engine 4": Weight ~ NdotL.
         lightInt +=  val * F * D * Vis;
         cbsdfInt += F * D * Vis;
     }
@@ -730,7 +730,7 @@ real4 IntegrateLD_MIS(TEXTURECUBE_PARAM(envMap, sampler_envMap),
                 // CBSDF  = F * D * G * NdotL / (4 * NdotL * NdotV) = F * D * G / (4 * NdotV).
                 // Weight = CBSDF / PDF.
                 // We use two approximations of Brian Karis from "Real Shading in Unreal Engine 4":
-                // (F * G ≈ NdotL) && (NdotV == 1).
+                // (F * G ~ NdotL) && (NdotV == 1).
                 // Weight = D * NdotL / (4 * PDF).
                 // *********************************************************************************
 

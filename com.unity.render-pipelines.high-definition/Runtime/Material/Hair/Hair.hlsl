@@ -20,6 +20,11 @@
 // Helper functions/variable specific to this material
 //-----------------------------------------------------------------------------
 
+float4 GetDiffuseOrDefaultColor(BSDFData bsdfData, float replace)
+{
+    return float4(bsdfData.diffuseColor, 0.0);
+}
+
 float3 GetNormalForShadowBias(BSDFData bsdfData)
 {
 #if _USE_LIGHT_FACING_NORMAL
@@ -34,12 +39,6 @@ float GetAmbientOcclusionForMicroShadowing(BSDFData bsdfData)
 {
     // Don't do micro shadow for hair, don't really make sense
     return 1.0;
-}
-
-void ClampRoughness(inout BSDFData bsdfData, float minRoughness)
-{
-    bsdfData.perceptualRoughness = max(RoughnessToPerceptualRoughness(minRoughness), bsdfData.perceptualRoughness);
-    bsdfData.secondaryPerceptualRoughness = max(RoughnessToPerceptualRoughness(minRoughness), bsdfData.secondaryPerceptualRoughness);
 }
 
 // This function is use to help with debugging and must be implemented by any lit material
@@ -234,6 +233,15 @@ struct PreLightData
     float3 specularFGD;              // Store preintegrated BSDF for both specular and diffuse
     float  diffuseFGD;
 };
+
+//
+// ClampRoughness helper specific to this material
+//
+void ClampRoughness(inout PreLightData preLightData, inout BSDFData bsdfData, float minRoughness)
+{
+    bsdfData.perceptualRoughness = max(RoughnessToPerceptualRoughness(minRoughness), bsdfData.perceptualRoughness);
+    bsdfData.secondaryPerceptualRoughness = max(RoughnessToPerceptualRoughness(minRoughness), bsdfData.secondaryPerceptualRoughness);
+}
 
 // This function is call to precompute heavy calculation before lightloop
 PreLightData GetPreLightData(float3 V, PositionInputs posInput, inout BSDFData bsdfData)

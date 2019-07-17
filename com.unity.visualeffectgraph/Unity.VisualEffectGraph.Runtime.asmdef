@@ -29,7 +29,7 @@
             "define": "VFX_HAS_TERRAINMODULE"
         },
         {
-            "name": "com.unity.modules.ui",
+            "name": "com.unity.ugui",
             "expression": "1.0.0",
             "define": "VFX_HAS_UI"
         },

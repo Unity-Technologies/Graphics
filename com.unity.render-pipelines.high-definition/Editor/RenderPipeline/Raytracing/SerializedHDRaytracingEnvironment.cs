@@ -1,9 +1,9 @@
 using UnityEditor.Rendering;
 using UnityEngine.Experimental.Rendering;
-using UnityEngine.Experimental.Rendering.HDPipeline;
+using UnityEngine.Rendering.HighDefinition;
 using UnityEngine;
 
-namespace UnityEditor.Experimental.Rendering.HDPipeline
+namespace UnityEditor.Experimental.Rendering.HighDefinition
 {
     internal class SerializedHDRaytracingEnvironment
     {
