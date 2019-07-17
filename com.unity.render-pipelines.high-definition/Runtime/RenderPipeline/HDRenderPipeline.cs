@@ -15,12 +15,6 @@ namespace UnityEngine.Rendering.HighDefinition
         internal static HDRenderPipelineAsset defaultAsset
             => GraphicsSettings.renderPipelineAsset is HDRenderPipelineAsset hdrpAsset ? hdrpAsset : null;
 
-        // sample-game begin: debug layers
-        public delegate void RenderCallback(HDCamera hdCamera, CommandBuffer cmd);
-        public RenderCallback DebugLayer2DCallback;
-        public RenderCallback DebugLayer3DCallback;
-        // sample-game end
-
         private static Volume s_DefaultVolume = null;
         static VolumeProfile defaultVolumeProfile
             => defaultAsset?.defaultVolumeProfile;
@@ -66,6 +60,12 @@ namespace UnityEngine.Rendering.HighDefinition
         #endregion
 
         public const string k_ShaderTagName = "HDRenderPipeline";
+
+        // sample-game begin: debug layers
+        public delegate void RenderCallback(HDCamera hdCamera, CommandBuffer cmd);
+        public RenderCallback DebugLayer2DCallback;
+        public RenderCallback DebugLayer3DCallback;
+        // sample-game end
 
         readonly HDRenderPipelineAsset m_Asset;
         internal HDRenderPipelineAsset asset { get { return m_Asset; } }

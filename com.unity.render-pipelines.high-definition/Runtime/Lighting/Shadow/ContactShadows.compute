@@ -101,7 +101,7 @@ bool ScreenSpaceShadowRayCast(float3 positionWS, float3 rayDirWS, float rayLengt
 
     bool tracingHalfRes = true;
 
-    // sample-game begin: fix HLSLcc compiler error by converting for loop to while loop
+    // sample-game begin: fix HLSLcc compiler error by converting for loop to while loop (case 1158280)
     int i = 0;
     while (true)
     {
