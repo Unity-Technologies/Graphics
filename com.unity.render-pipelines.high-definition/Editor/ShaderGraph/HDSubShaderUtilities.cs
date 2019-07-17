@@ -535,7 +535,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
     static class HDSubShaderUtilities
     {
-        public static bool GenerateShaderPass(AbstractMaterialNode masterNode, Pass pass, GenerationMode mode, HashSet<string> activeFields, ShaderGenerator result, List<string> sourceAssetDependencyPaths, bool vertexActive)
+        public static bool GenerateShaderPass(AbstractMaterialNode masterNode, Pass pass, GenerationMode mode, HashSet<string> activeFields, ShaderGenerator result, List<string> sourceAssetDependencyPaths, bool vertexActive, bool pixelProceduralActive)
         {
             string templatePath = Path.Combine(HDUtils.GetHDRenderPipelinePath(), "Editor/Material");
             string templateLocation = Path.Combine(Path.Combine(Path.Combine(templatePath, pass.MaterialName), "ShaderGraph"), pass.TemplateName);
@@ -549,19 +549,27 @@ namespace UnityEditor.Rendering.HighDefinition
             bool debugOutput = true;
 
             // grab all of the active nodes (for pixel and vertex graphs)
-            var vertexNodes = Graphing.ListPool<AbstractMaterialNode>.Get();
-            NodeUtils.DepthFirstCollectNodesFromNode(vertexNodes, masterNode, ShaderStageCapability.Vertex, NodeUtils.IncludeSelf.Include, pass.UsedSlots);
-
             var pixelNodes = Graphing.ListPool<AbstractMaterialNode>.Get();
             NodeUtils.DepthFirstCollectNodesFromNode(pixelNodes, masterNode, ShaderStageCapability.Fragment, NodeUtils.IncludeSelf.Include, pass.UsedSlots);
+            var pixelRequirements = ShaderGraphRequirements.FromNodes(pixelNodes, ShaderStageCapability.Fragment, false);   // TODO: is ShaderStageCapability.Fragment correct?
 
-            var pixelProceduralNodes = Graphing.ListPool<AbstractMaterialNode>.Get();
-            NodeUtils.DepthFirstCollectNodesFromNode(pixelProceduralNodes, masterNode, ShaderStageCapability.Fragment, NodeUtils.IncludeSelf.Include, pass.PixelProceduralSlots);
+            List<AbstractMaterialNode> vertexNodes = null;
+            if (vertexActive)
+            {
+                vertexNodes = Graphing.ListPool<AbstractMaterialNode>.Get();
+                NodeUtils.DepthFirstCollectNodesFromNode(vertexNodes, masterNode, ShaderStageCapability.Vertex, NodeUtils.IncludeSelf.Include, pass.UsedSlots);
+            }
+            var vertexRequirements = vertexActive ? ShaderGraphRequirements.FromNodes(vertexNodes, ShaderStageCapability.Vertex, false) : ShaderGraphRequirements.none;
+
+            List<AbstractMaterialNode> pixelProceduralNodes = null;
+            if (pixelProceduralActive)
+            {
+                pixelProceduralNodes = Graphing.ListPool<AbstractMaterialNode>.Get();
+                NodeUtils.DepthFirstCollectNodesFromNode(pixelProceduralNodes, masterNode, ShaderStageCapability.Fragment, NodeUtils.IncludeSelf.Include, pass.PixelProceduralSlots);
+                pixelRequirements = pixelRequirements.Union(ShaderGraphRequirements.FromNodes(pixelProceduralNodes, ShaderStageCapability.Fragment, false));
+            }
 
             // graph requirements describe what the graph itself requires
-            var pixelRequirements = ShaderGraphRequirements.FromNodes(pixelNodes, ShaderStageCapability.Fragment, false);   // TODO: is ShaderStageCapability.Fragment correct?
-            pixelRequirements = pixelRequirements.Union(ShaderGraphRequirements.FromNodes(pixelProceduralNodes, ShaderStageCapability.Fragment, false));
-            var vertexRequirements = ShaderGraphRequirements.FromNodes(vertexNodes, ShaderStageCapability.Vertex, false);
             var graphRequirements = pixelRequirements.Union(vertexRequirements);
 
             // Function Registry tracks functions to remove duplicates, it wraps a string builder that stores the combined function string
@@ -571,13 +579,12 @@ namespace UnityEditor.Rendering.HighDefinition
 
             // TODO: this can be a shared function for all HDRP master nodes -- From here through GraphUtil.GenerateSurfaceDescription(..)
 
-            // Build the list of active slots based on what the pass requires
-            var pixelSlots = masterNode.GetSlots<MaterialSlot>().Where(slot => (slot.stageCapability & ShaderStageCapability.Fragment) != 0 && pass.UsesSlot(slot.id));
-            var vertexSlots = masterNode.GetSlots<MaterialSlot>().Where(slot => (slot.stageCapability & ShaderStageCapability.Vertex) != 0 && pass.UsesSlot(slot.id));
-
             // properties used by either pixel and vertex shader
             PropertyCollector sharedProperties = new PropertyCollector();
             ShaderStringBuilder shaderPropertyUniforms = new ShaderStringBuilder(1);
+
+            var graphData = masterNode.owner as GraphData;
+            graphData?.CollectShaderProperties(sharedProperties, mode);
 
             // build the graph outputs structure to hold the results of each active slots (and fill out activeFields to indicate they are active)
             string pixelGraphInputStructName = "SurfaceDescriptionInputs";
@@ -585,7 +592,8 @@ namespace UnityEditor.Rendering.HighDefinition
             string pixelGraphEvalFunctionName = "SurfaceDescriptionFunction";
             ShaderStringBuilder pixelGraphEvalFunction = new ShaderStringBuilder();
             ShaderStringBuilder pixelGraphOutputs = new ShaderStringBuilder();
-            ShaderStringBuilder pixelProceduralCode = new ShaderStringBuilder();
+            ShaderStringBuilder pixelProceduralFunction = new ShaderStringBuilder();
+            var pixelSlots = masterNode.GetSlots<MaterialSlot>().Where(slot => (slot.stageCapability & ShaderStageCapability.Fragment) != 0 && pass.UsesSlot(slot.id));
 
             // build initial requirements
             HDRPShaderStructs.AddActiveFieldsFromPixelGraphRequirements(activeFields, pixelRequirements);
@@ -594,22 +602,33 @@ namespace UnityEditor.Rendering.HighDefinition
             GraphUtil.GenerateSurfaceDescriptionStruct(pixelGraphOutputs, pixelSlots, pixelGraphOutputStructName, activeFields);
 
             // Build the graph evaluation code, to evaluate the specified slots
-            GraphUtil.GenerateSurfaceDescriptionFunction(
-                pixelNodes,
-                masterNode,
-                masterNode.owner as GraphData,
-                pixelGraphEvalFunction,
-                pixelProceduralNodes,
-                pixelProceduralCode,
-                functionRegistry,
-                sharedProperties,
-                pixelRequirements,  // TODO : REMOVE UNUSED
-                mode,
-                pixelGraphEvalFunctionName,
-                pixelGraphOutputStructName,
-                null,
-                pixelSlots,
-                pixelGraphInputStructName);
+            if (graphData != null)
+            {
+                GraphUtil.GenerateSurfaceDescriptionFunction(
+                    pixelNodes,
+                    masterNode,
+                    pixelGraphEvalFunction,
+                    functionRegistry,
+                    sharedProperties,
+                    pixelRequirements,  // TODO : REMOVE UNUSED
+                    mode,
+                    pixelGraphEvalFunctionName,
+                    pixelGraphOutputStructName,
+                    null,
+                    pixelSlots,
+                    pixelGraphInputStructName);
+
+                if (pixelProceduralActive)
+                {
+                    GraphUtil.GenerateSurfaceProceduralFunction(
+                        pixelProceduralFunction,
+                        functionRegistry,
+                        sharedProperties,
+                        mode,
+                        pixelProceduralNodes,
+                        masterNode.GetSlots<IProceduralMaterialSlot>().Where(slot => (slot.stageCapability & ShaderStageCapability.Fragment) != 0 && pass.PixelProceduralUsesSlot(slot.id)));
+                }
+            }
 
             string vertexGraphInputStructName = "VertexDescriptionInputs";
             string vertexGraphOutputStructName = "VertexDescription";
@@ -620,9 +639,10 @@ namespace UnityEditor.Rendering.HighDefinition
             // check for vertex animation -- enables HAVE_VERTEX_MODIFICATION
             if (vertexActive)
             {
-                vertexActive = true;
                 activeFields.Add("features.modifyMesh");
                 HDRPShaderStructs.AddActiveFieldsFromVertexGraphRequirements(activeFields, vertexRequirements);
+
+                var vertexSlots = masterNode.GetSlots<MaterialSlot>().Where(slot => (slot.stageCapability & ShaderStageCapability.Vertex) != 0 && pass.UsesSlot(slot.id));
 
                 // -------------------------------------
                 // Generate Output structure for Vertex Description function
@@ -630,17 +650,19 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 // -------------------------------------
                 // Generate Vertex Description function
-                GraphUtil.GenerateVertexDescriptionFunction(
-                    masterNode.owner as GraphData,
-                    vertexGraphEvalFunction,
-                    functionRegistry,
-                    sharedProperties,
-                    mode,
-                    vertexNodes,
-                    vertexSlots,
-                    vertexGraphInputStructName,
-                    vertexGraphEvalFunctionName,
-                    vertexGraphOutputStructName);
+                if (graphData != null)
+                {
+                    GraphUtil.GenerateVertexDescriptionFunction(
+                        vertexGraphEvalFunction,
+                        functionRegistry,
+                        sharedProperties,
+                        mode,
+                        vertexNodes,
+                        vertexSlots,
+                        vertexGraphInputStructName,
+                        vertexGraphEvalFunctionName,
+                        vertexGraphOutputStructName);
+                }
             }
 
             var blendCode = new ShaderStringBuilder();
@@ -790,6 +812,14 @@ namespace UnityEditor.Rendering.HighDefinition
                 graph.Indent();
                 graph.AddShaderChunk(pixelGraphEvalFunction.ToString());
                 graph.Deindent();
+
+                if (pixelProceduralActive)
+                {
+                    graph.AddShaderChunk("// Pixel Procedural Graph Evaluation");
+                    graph.Indent();
+                    graph.AddShaderChunk(pixelProceduralFunction.ToString());
+                    graph.Deindent();
+                }
             }
 
             // build the hash table of all named fragments      TODO: could make this Dictionary<string, ShaderGenerator / string>  ?
@@ -798,7 +828,6 @@ namespace UnityEditor.Rendering.HighDefinition
             namedFragments.Add("LODFadeOptions", lodFadeOptions.GetShaderString(0, false));
             namedFragments.Add("Defines", defines.GetShaderString(2, false));
             namedFragments.Add("Graph", graph.GetShaderString(2, false));
-            namedFragments.Add("SurfaceProceduralCode", pixelProceduralCode.ToString());
             namedFragments.Add("LightMode", pass.LightMode);
             namedFragments.Add("PassName", pass.Name);
             namedFragments.Add("Includes", shaderPassIncludes.GetShaderString(2, false));

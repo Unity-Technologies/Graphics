@@ -984,7 +984,6 @@ namespace UnityEditor.ShaderGraph
             var surfaceDescriptionInputStruct = new ShaderStringBuilder(0);
             var surfaceDescriptionStruct = new ShaderStringBuilder(0);
             var surfaceDescriptionFunction = new ShaderStringBuilder(0);
-            var surfaceProceduralCode = new ShaderStringBuilder(0);
 
             var vertexInputs = new ShaderStringBuilder(0);
 
@@ -1053,10 +1052,7 @@ namespace UnityEditor.ShaderGraph
             GenerateSurfaceDescriptionFunction(
                 activeNodeList,
                 node,
-                graph,
                 surfaceDescriptionFunction,
-                new List<AbstractMaterialNode>(),
-                surfaceProceduralCode,
                 functionRegistry,
                 shaderProperties,
                 requirements,
@@ -1226,10 +1222,7 @@ namespace UnityEditor.ShaderGraph
         public static void GenerateSurfaceDescriptionFunction(
             List<AbstractMaterialNode> activeNodeList,
             AbstractMaterialNode rootNode,
-            GraphData graph,
             ShaderStringBuilder surfaceDescriptionFunction,
-            List<AbstractMaterialNode> activeProceduralNodeList,
-            ShaderStringBuilder proceduralCode,
             FunctionRegistry functionRegistry,
             PropertyCollector shaderProperties,
             ShaderGraphRequirements requirements,
@@ -1240,12 +1233,7 @@ namespace UnityEditor.ShaderGraph
             IEnumerable<MaterialSlot> slots = null,
             string graphInputStructName = "SurfaceDescriptionInputs")
         {
-            if (graph == null)
-                return;
-
             GraphContext graphContext = new GraphContext(graphInputStructName);
-
-            graph.CollectShaderProperties(shaderProperties, mode);
 
             surfaceDescriptionFunction.AppendLine(String.Format("{0} {1}(SurfaceDescriptionInputs IN)", surfaceDescriptionName, functionName), false);
             using (surfaceDescriptionFunction.BlockScope())
@@ -1304,10 +1292,24 @@ namespace UnityEditor.ShaderGraph
 
                 surfaceDescriptionFunction.AppendLine("return surface;");
             }
+        }
 
-            if (activeProceduralNodeList.Count > 0)
+        public static void GenerateSurfaceProceduralFunction(
+            ShaderStringBuilder builder,
+            FunctionRegistry functionRegistry,
+            PropertyCollector shaderProperties,
+            GenerationMode mode,
+            List<AbstractMaterialNode> nodes,
+            IEnumerable<IProceduralMaterialSlot> slots,
+            string graphInputStructName = "FragInputs",
+            string functionName = "SurfaceProcedural")
+        {
+            GraphContext graphContext = new GraphContext(graphInputStructName);
+
+            builder.AppendLine("void {0}(inout {1} IN)", functionName, graphInputStructName);
+            using (builder.BlockScope())
             {
-                foreach (var activeNode in activeProceduralNodeList)
+                foreach (var activeNode in nodes)
                 {
                     if (activeNode is IGeneratesFunction functionNode)
                     {
@@ -1318,40 +1320,39 @@ namespace UnityEditor.ShaderGraph
 
                     if (activeNode is IGeneratesBodyCode bodyNode)
                     {
-                        proceduralCode.currentNode = activeNode;
-                        bodyNode.GenerateNodeCode(proceduralCode, graphContext, mode);
-                        proceduralCode.ReplaceInCurrentMapping(PrecisionUtil.Token, activeNode.concretePrecision.ToShaderString());
+                        builder.currentNode = activeNode;
+                        bodyNode.GenerateNodeCode(builder, graphContext, mode);
+                        builder.ReplaceInCurrentMapping(PrecisionUtil.Token, activeNode.concretePrecision.ToShaderString());
                     }
 
                     if (activeNode is IGeneratesProceduralCode proceduralNode)
                     {
-                        proceduralCode.currentNode = activeNode;
-                        proceduralNode.GenerateProceduralCode(proceduralCode, graphContext, mode);
-                        proceduralCode.ReplaceInCurrentMapping(PrecisionUtil.Token, activeNode.concretePrecision.ToShaderString());
+                        builder.currentNode = activeNode;
+                        proceduralNode.GenerateProceduralCode(builder, graphContext, mode);
+                        builder.ReplaceInCurrentMapping(PrecisionUtil.Token, activeNode.concretePrecision.ToShaderString());
                     }
 
                     activeNode.CollectShaderProperties(shaderProperties, mode);
                 }
 
-                if (rootNode is IMasterNode || rootNode is SubGraphOutputNode)
-                {
-                    foreach (var input in rootNode.GetInputSlots<IProceduralMaterialSlot>())
-                    {
-                        if (input == null)
-                            continue;
+                functionRegistry.builder.currentNode = null;
+                builder.currentNode = null;
 
-                        var hlslName = NodeUtils.GetHLSLSafeName(input.shaderOutputName);
-                        if (rootNode is SubGraphOutputNode)
-                        {
-                            hlslName = $"{hlslName}_{input.id}";
-                        }
-                        proceduralCode.AppendLine("{0} {1} = {2};",
-                            input.concreteValueType.ToShaderString(rootNode.concretePrecision), hlslName, rootNode.GetSlotValue(input.id, mode, rootNode.concretePrecision));
-                    }
+                foreach (var slot in slots)
+                {
+                    var typeName = slot.concreteValueType.ToShaderString(slot.owner.concretePrecision);
+                    var hlslName = NodeUtils.GetHLSLSafeName(slot.shaderOutputName);
+                    // TODO: subgraph?
+                    //if (rootNode is SubGraphOutputNode)
+                    //{
+                    //    hlslName = $"{hlslName}_{input.id}";
+                    //}
+                    var slotValue = slot.owner.GetSlotValue(slot.id, mode, slot.owner.concretePrecision);
+                    builder.AppendLine("{0} {1} = {2};", typeName, hlslName, slotValue);
                 }
 
-                functionRegistry.builder.currentNode = null;
-                proceduralCode.currentNode = null;
+                if (slots.Any())
+                    builder.AppendLine("IN.tangentToWorld = BuildTangentToWorld(Tangent, Normal);");
             }
         }
 
@@ -1375,7 +1376,6 @@ namespace UnityEditor.ShaderGraph
         }
 
         public static void GenerateVertexDescriptionFunction(
-            GraphData graph,
             ShaderStringBuilder builder,
             FunctionRegistry functionRegistry,
             PropertyCollector shaderProperties,
@@ -1386,12 +1386,7 @@ namespace UnityEditor.ShaderGraph
             string functionName = "PopulateVertexData",
             string graphOutputStructName = k_VertexDescriptionStructName)
         {
-            if (graph == null)
-                return;
-
             GraphContext graphContext = new GraphContext(graphInputStructName);
-
-            graph.CollectShaderProperties(shaderProperties, mode);
 
             builder.AppendLine("{0} {1}({2} IN)", graphOutputStructName, functionName, graphInputStructName);
             using (builder.BlockScope())
@@ -1420,9 +1415,8 @@ namespace UnityEditor.ShaderGraph
 
                 foreach (var slot in slots)
                 {
-                    var isSlotConnected = slot.owner.owner.GetEdges(slot.slotReference).Any();
                     var slotName = NodeUtils.GetHLSLSafeName(slot.shaderOutputName);
-                    var slotValue = isSlotConnected ? slot.owner.GetSlotValue(slot.id, mode, slot.owner.concretePrecision) : slot.GetDefaultValue(mode, slot.owner.concretePrecision);
+                    var slotValue = slot.owner.GetSlotValue(slot.id, mode, slot.owner.concretePrecision);
                     builder.AppendLine("description.{0} = {1};", slotName, slotValue);
                 }
 

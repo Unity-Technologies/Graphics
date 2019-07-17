@@ -40,12 +40,9 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public void GenerateProceduralCode(ShaderStringBuilder sb, GraphContext graphContext, GenerationMode generationMode)
         {
-            if (graphContext.graphInputStructName == "SurfaceDescriptionInputs")
-            {
-                sb.AppendLine("$precision3 {0};", GetVariableNameForSlot(kNormalOutputSlotId));
-                sb.AppendLine("$precision4 {0};", GetVariableNameForSlot(kTangentOutputSlotId));
-                sb.AppendLine("ConstructTerrainMesh(IN.texCoord0.xy, {0}, {1});", GetVariableNameForSlot(kNormalOutputSlotId), GetVariableNameForSlot(kTangentOutputSlotId));
-            }
+            sb.AppendLine("$precision3 {0};", GetVariableNameForSlot(kNormalOutputSlotId));
+            sb.AppendLine("$precision4 {0};", GetVariableNameForSlot(kTangentOutputSlotId));
+            sb.AppendLine("ConstructTerrainMesh(IN.texCoord0.xy, {0}, {1});", GetVariableNameForSlot(kNormalOutputSlotId), GetVariableNameForSlot(kTangentOutputSlotId));
         }
 
         public void GenerateNodeFunction(FunctionRegistry registry, GraphContext graphContext, GenerationMode generationMode)

@@ -75,8 +75,8 @@ namespace UnityEditor.Rendering.HighDefinition
             },
             PixelProceduralSlots = new List<int>()
             {
-                HDLitMasterNode.ProceduralNormalOSPixelSlotId,
-                HDLitMasterNode.ProceduralTangentOSPixelSlotId
+                HDLitMasterNode.ProceduralNormalWSPixelSlotId,
+                HDLitMasterNode.ProceduralTangentWSPixelSlotId
             },
             UseInPreview = true,
 
@@ -175,8 +175,8 @@ namespace UnityEditor.Rendering.HighDefinition
             },
             PixelProceduralSlots = new List<int>()
             {
-                HDLitMasterNode.ProceduralNormalOSPixelSlotId,
-                HDLitMasterNode.ProceduralTangentOSPixelSlotId
+                HDLitMasterNode.ProceduralNormalWSPixelSlotId,
+                HDLitMasterNode.ProceduralTangentWSPixelSlotId
             },
             UseInPreview = false,
         };
@@ -210,8 +210,8 @@ namespace UnityEditor.Rendering.HighDefinition
             },
             PixelProceduralSlots = new List<int>()
             {
-                HDLitMasterNode.ProceduralNormalOSPixelSlotId,
-                HDLitMasterNode.ProceduralTangentOSPixelSlotId
+                HDLitMasterNode.ProceduralNormalWSPixelSlotId,
+                HDLitMasterNode.ProceduralTangentWSPixelSlotId
             },
             UseInPreview = false
         };
@@ -264,8 +264,8 @@ namespace UnityEditor.Rendering.HighDefinition
             },
             PixelProceduralSlots = new List<int>()
             {
-                HDLitMasterNode.ProceduralNormalOSPixelSlotId,
-                HDLitMasterNode.ProceduralTangentOSPixelSlotId
+                HDLitMasterNode.ProceduralNormalWSPixelSlotId,
+                HDLitMasterNode.ProceduralTangentWSPixelSlotId
             },
             UseInPreview = true,
 
@@ -323,8 +323,8 @@ namespace UnityEditor.Rendering.HighDefinition
             },
             PixelProceduralSlots = new List<int>()
             {
-                HDLitMasterNode.ProceduralNormalOSPixelSlotId,
-                HDLitMasterNode.ProceduralTangentOSPixelSlotId
+                HDLitMasterNode.ProceduralNormalWSPixelSlotId,
+                HDLitMasterNode.ProceduralTangentWSPixelSlotId
             },
             UseInPreview = false,
 
@@ -371,8 +371,8 @@ namespace UnityEditor.Rendering.HighDefinition
             },
             PixelProceduralSlots = new List<int>()
             {
-                HDLitMasterNode.ProceduralNormalOSPixelSlotId,
-                HDLitMasterNode.ProceduralTangentOSPixelSlotId
+                HDLitMasterNode.ProceduralNormalWSPixelSlotId,
+                HDLitMasterNode.ProceduralTangentWSPixelSlotId
             },
             UseInPreview = true,
 
@@ -438,8 +438,8 @@ namespace UnityEditor.Rendering.HighDefinition
             },
             PixelProceduralSlots = new List<int>()
             {
-                HDLitMasterNode.ProceduralNormalOSPixelSlotId,
-                HDLitMasterNode.ProceduralTangentOSPixelSlotId
+                HDLitMasterNode.ProceduralNormalWSPixelSlotId,
+                HDLitMasterNode.ProceduralTangentWSPixelSlotId
             },
             UseInPreview = true,
         };
@@ -502,8 +502,8 @@ namespace UnityEditor.Rendering.HighDefinition
             },
             PixelProceduralSlots = new List<int>()
             {
-                HDLitMasterNode.ProceduralNormalOSPixelSlotId,
-                HDLitMasterNode.ProceduralTangentOSPixelSlotId
+                HDLitMasterNode.ProceduralNormalWSPixelSlotId,
+                HDLitMasterNode.ProceduralTangentWSPixelSlotId
             },
             UseInPreview = true,
             OnGeneratePassImpl = (IMasterNode node, ref Pass pass) =>
@@ -571,8 +571,8 @@ namespace UnityEditor.Rendering.HighDefinition
             },
             PixelProceduralSlots = new List<int>()
             {
-                HDLitMasterNode.ProceduralNormalOSPixelSlotId,
-                HDLitMasterNode.ProceduralTangentOSPixelSlotId
+                HDLitMasterNode.ProceduralNormalWSPixelSlotId,
+                HDLitMasterNode.ProceduralTangentWSPixelSlotId
             },
             UseInPreview = true,
 
@@ -626,8 +626,8 @@ namespace UnityEditor.Rendering.HighDefinition
             },
             PixelProceduralSlots = new List<int>()
             {
-                HDLitMasterNode.ProceduralNormalOSPixelSlotId,
-                HDLitMasterNode.ProceduralTangentOSPixelSlotId
+                HDLitMasterNode.ProceduralNormalWSPixelSlotId,
+                HDLitMasterNode.ProceduralTangentWSPixelSlotId
             },
             UseInPreview = true,
         };
@@ -686,8 +686,8 @@ namespace UnityEditor.Rendering.HighDefinition
             },
             PixelProceduralSlots = new List<int>()
             {
-                HDLitMasterNode.ProceduralNormalOSPixelSlotId,
-                HDLitMasterNode.ProceduralTangentOSPixelSlotId
+                HDLitMasterNode.ProceduralNormalWSPixelSlotId,
+                HDLitMasterNode.ProceduralTangentWSPixelSlotId
             },
             UseInPreview = false
         };
@@ -737,8 +737,8 @@ namespace UnityEditor.Rendering.HighDefinition
             },
             PixelProceduralSlots = new List<int>()
             {
-                HDLitMasterNode.ProceduralNormalOSPixelSlotId,
-                HDLitMasterNode.ProceduralTangentOSPixelSlotId
+                HDLitMasterNode.ProceduralNormalWSPixelSlotId,
+                HDLitMasterNode.ProceduralTangentWSPixelSlotId
             },
             UseInPreview = false
         };
@@ -796,8 +796,8 @@ namespace UnityEditor.Rendering.HighDefinition
             },
             PixelProceduralSlots = new List<int>()
             {
-                HDLitMasterNode.ProceduralNormalOSPixelSlotId,
-                HDLitMasterNode.ProceduralTangentOSPixelSlotId
+                HDLitMasterNode.ProceduralNormalWSPixelSlotId,
+                HDLitMasterNode.ProceduralTangentWSPixelSlotId
             },
             UseInPreview = false
         };
@@ -854,8 +854,8 @@ namespace UnityEditor.Rendering.HighDefinition
             },
             PixelProceduralSlots = new List<int>()
             {
-                HDLitMasterNode.ProceduralNormalOSPixelSlotId,
-                HDLitMasterNode.ProceduralTangentOSPixelSlotId
+                HDLitMasterNode.ProceduralNormalWSPixelSlotId,
+                HDLitMasterNode.ProceduralTangentWSPixelSlotId
             },
             UseInPreview = false
         };
@@ -1128,9 +1128,9 @@ namespace UnityEditor.Rendering.HighDefinition
                     || (masterNode.IsSlotConnected(HDLitMasterNode.ProceduralTangentOSVertexSlotId) && pass.UsesSlot(HDLitMasterNode.ProceduralNormalOSVertexSlotId))))
                 activeFields.Add("Procedural.VertexNormal");
 
-            if (masterNode.proceduralNormalMode == ProceduralNormalMode.PixelObjectSpace
-                && ((masterNode.IsSlotConnected(HDLitMasterNode.ProceduralNormalOSPixelSlotId) && pass.PixelProceduralUsesSlot(HDLitMasterNode.ProceduralNormalOSPixelSlotId))
-                    || (masterNode.IsSlotConnected(HDLitMasterNode.ProceduralTangentOSPixelSlotId) && pass.PixelProceduralUsesSlot(HDLitMasterNode.ProceduralTangentOSPixelSlotId))))
+            if (masterNode.proceduralNormalMode == ProceduralNormalMode.PixelWorldSpace
+                && ((masterNode.IsSlotConnected(HDLitMasterNode.ProceduralNormalWSPixelSlotId) && pass.PixelProceduralUsesSlot(HDLitMasterNode.ProceduralNormalWSPixelSlotId))
+                    || (masterNode.IsSlotConnected(HDLitMasterNode.ProceduralTangentWSPixelSlotId) && pass.PixelProceduralUsesSlot(HDLitMasterNode.ProceduralTangentWSPixelSlotId))))
                 activeFields.Add("Procedural.PixelNormal");
 
             return activeFields;
@@ -1150,7 +1150,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 // use standard shader pass generation
                 bool vertexActive = masterNode.IsSlotConnected(HDLitMasterNode.PositionSlotId);
-                return HDSubShaderUtilities.GenerateShaderPass(masterNode, pass, mode, activeFields, result, sourceAssetDependencyPaths, vertexActive);
+                bool pixelProceduralActive = masterNode.IsSlotConnected(HDLitMasterNode.ProceduralNormalWSPixelSlotId) || masterNode.IsSlotConnected(HDLitMasterNode.ProceduralTangentWSPixelSlotId);
+                return HDSubShaderUtilities.GenerateShaderPass(masterNode, pass, mode, activeFields, result, sourceAssetDependencyPaths, vertexActive, pixelProceduralActive);
             }
             else
             {

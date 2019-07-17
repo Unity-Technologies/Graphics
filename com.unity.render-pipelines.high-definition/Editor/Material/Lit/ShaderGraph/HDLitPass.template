@@ -294,17 +294,12 @@ $include("SharedCode.template.hlsl")
 #endif
     }
 
-    void SurfaceProcedural(inout FragInputs IN)
-    {
-        $splice(SurfaceProceduralCode)
-        $Procedural.PixelNormal:    IN.tangentToWorld = BuildTangentToWorld(Tangent, Normal);
-        $Procedural.UV0:            IN.texCoord1 = IN.texCoord2 = IN.texCoord3 = IN.texCoord0;
-        $Procedural.UV1:            IN.texCoord2 = IN.texCoord3 = IN.texCoord0;
-    }
-
     void GetSurfaceAndBuiltinData(FragInputs fragInputs, float3 V, inout PositionInputs posInput, out SurfaceData surfaceData, out BuiltinData builtinData)
     {
-        $Procedural.PixelNormal: SurfaceProcedural(fragInputs);
+        $Procedural.PixelNormal:    SurfaceProcedural(fragInputs);
+        $Procedural.UV0:            fragInputs.texCoord1 = fragInputs.texCoord2 = fragInputs.texCoord3 = fragInputs.texCoord0;
+        $Procedural.UV1:            fragInputs.texCoord2 = fragInputs.texCoord3 = fragInputs.texCoord0;
+
 #ifdef LOD_FADE_CROSSFADE // enable dithering LOD transition if user select CrossFade transition in LOD group
         uint3 fadeMaskSeed = asuint((int3)(V * _ScreenSize.xyx)); // Quantize V to _ScreenSize values
         LODDitheringTransition(fadeMaskSeed, unity_LODFade.x);

@@ -18,6 +18,12 @@ namespace UnityEditor.ShaderGraph
         public override ConcreteSlotValueType concreteValueType => m_ValueType;
         public override SlotValueType valueType => m_ValueType.ToSlotValueType();
 
+        [SerializeField]
+        private string m_DefaultValue;
+
+        protected override string ConcreteSlotValueAsVariable()
+            => m_DefaultValue;
+
         public override VisualElement InstantiateControl()
             => new LabelSlotControlView(m_Space + " Space");
 
@@ -27,12 +33,13 @@ namespace UnityEditor.ShaderGraph
         public ProceduralSpaceMaterialSlot()
         { }
 
-        public ProceduralSpaceMaterialSlot(int slotId, string displayName, string shaderOutputName, ConcreteSlotValueType valueType, CoordinateSpace space,
+        public ProceduralSpaceMaterialSlot(int slotId, string displayName, string shaderOutputName, string defaultValue, ConcreteSlotValueType valueType, CoordinateSpace space,
                                     ShaderStageCapability stageCapability = ShaderStageCapability.All, bool hidden = false)
             : base(slotId, displayName, shaderOutputName, SlotType.Input, stageCapability, hidden: hidden)
         {
             m_Space = space;
             m_ValueType = valueType;
+            m_DefaultValue = defaultValue;
         }
 
         public override void CopyValuesFrom(MaterialSlot foundSlot)
@@ -41,6 +48,7 @@ namespace UnityEditor.ShaderGraph
             {
                 m_Space = proceduralSlot.m_Space;
                 m_ValueType = proceduralSlot.m_ValueType;
+                m_DefaultValue = proceduralSlot.m_DefaultValue;
             }
         }
     }

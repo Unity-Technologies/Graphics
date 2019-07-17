@@ -4,6 +4,6 @@ namespace UnityEditor.Rendering.HighDefinition
     {
         Off,
         VertexObjectSpace,
-        PixelObjectSpace
+        PixelWorldSpace
     }
 }
