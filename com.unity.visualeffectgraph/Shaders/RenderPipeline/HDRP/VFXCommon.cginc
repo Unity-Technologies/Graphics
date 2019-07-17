@@ -1,7 +1,31 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPass.cs.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/AtmosphericScattering/AtmosphericScattering.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Builtin/BuiltinData.hlsl"
 
+void VFXEncodeMotionVector(float2 motionVec, out float4 outBuffer)
+{
+    EncodeMotionVector(motionVec, outBuffer);
+    outBuffer.zw = 1.0f;
+}
+
+float4 VFXTransformPositionWorldToNonJitteredClip(float3 posWS)
+{
+#if VFX_WORLD_SPACE
+    posWS = GetCameraRelativePositionWS(posWS);
+#endif
+    return mul(_NonJitteredViewProjMatrix, float4(posWS, 1.0f));
+}
+
+float4 VFXTransformPositionWorldToPreviousClip(float3 posWS)
+{
+#if VFX_WORLD_SPACE
+    posWS = GetCameraRelativePositionWS(posWS);
+#endif
+    return mul(_PrevViewProjMatrix, float4(posWS, 1.0f));
+}
+
+#ifdef VFX_VARYING_PS_INPUTS
 void VFXTransformPSInputs(inout VFX_VARYING_PS_INPUTS input)
 {
 #if IS_TRANSPARENT_PARTICLE && defined(VFX_VARYING_POSCS)
@@ -9,6 +33,7 @@ void VFXTransformPSInputs(inout VFX_VARYING_PS_INPUTS input)
     input.VFX_VARYING_POSCS.xy = _OffScreenRendering > 0 ? (input.VFX_VARYING_POSCS.xy * _OffScreenDownsampleFactor) : input.VFX_VARYING_POSCS.xy;
 #endif
 }
+#endif
 
 float4 VFXTransformPositionWorldToClip(float3 posWS)
 {
@@ -16,6 +41,18 @@ float4 VFXTransformPositionWorldToClip(float3 posWS)
     posWS = GetCameraRelativePositionWS(posWS);
 #endif
     return TransformWorldToHClip(posWS);
+}
+
+float4 VFXTransformPositionObjectToNonJitteredClip(float3 posOS)
+{
+    float3 posWS = TransformObjectToWorld(posOS);
+    return mul(_NonJitteredViewProjMatrix, float4(posWS, 1.0f));
+}
+
+float4 VFXTransformPositionObjectToPreviousClip(float3 posOS)
+{
+    float3 posWS = TransformObjectToWorld(posOS);
+    return mul(_PrevViewProjMatrix, float4(posWS, 1.0f));
 }
 
 float4 VFXTransformPositionObjectToClip(float3 posOS)
@@ -107,6 +144,7 @@ float4 VFXApplyFog(float4 color,float4 posCS,float3 posWS)
     return color;
 }
 
+#ifdef VFX_VARYING_PS_INPUTS
 float4 VFXApplyPreExposure(float4 color, VFX_VARYING_PS_INPUTS input)
 {
 #ifdef VFX_VARYING_EXPOSUREWEIGHT
@@ -117,3 +155,4 @@ float4 VFXApplyPreExposure(float4 color, VFX_VARYING_PS_INPUTS input)
 	color.xyz *= exposure;
     return color;
 }
+#endif
