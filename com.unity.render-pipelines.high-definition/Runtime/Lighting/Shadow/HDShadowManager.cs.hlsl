@@ -37,4 +37,5 @@ struct HDDirectionalShadowData
     real cascadeBorders[4];
 };
 
+
 #endif
