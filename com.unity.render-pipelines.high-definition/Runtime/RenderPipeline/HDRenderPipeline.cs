@@ -3898,6 +3898,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
 
         // GBuffer vt feedback is handled in  GBufferManager
+#if ENABLE_VIRTUALTEXTURES        
         RTHandleSystem.RTHandle GetVTFeedbackBufferForForward(HDCamera hdCamera)
         {
             if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA))
@@ -3909,5 +3910,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 return m_GbufferManager.GetVTFeedbackBuffer();
             }
         }
+#endif        
     }
 }
