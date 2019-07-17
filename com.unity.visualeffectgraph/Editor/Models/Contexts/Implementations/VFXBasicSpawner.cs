@@ -85,7 +85,7 @@ namespace UnityEditor.VFX
                 var mapper = VFXExpressionMapper.FromBlocks(activeFlattenedChildrenWithImplicit);
 
                 var mapperFromContext = new VFXExpressionMapper();
-                mapperFromContext.AddExpressionFromSlotContainer(this, -1);
+                mapperFromContext.AddExpressionsFromSlotContainer(this, -1);
 
                 if (loopDuration != LoopMode.Infinite)
                 {
