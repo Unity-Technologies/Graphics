@@ -5,7 +5,7 @@
 // To avoid allocating every frame, XRView is a struct and XRPass is pooled.
 
 #if UNITY_2019_3_OR_NEWER && ENABLE_VR
-//#define USE_XR_SDK
+#define USE_XR_SDK
 #endif
 
 using System;
@@ -90,6 +90,9 @@ namespace UnityEngine.Rendering.Universal
         // Legacy multipass support
         internal int  legacyMultipassEye      { get => (int)views[0].legacyStereoEye; }
         internal bool legacyMultipassEnabled  { get => enabled && !instancingEnabled && legacyMultipassEye >= 0; }
+
+        //XRTODO: refactor this logic
+        public bool isMirrorView = false;
 
         internal static XRPass Create(int multipassId, RenderTexture rt = null)
         {

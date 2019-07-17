@@ -3,7 +3,7 @@
 // - or the 'legacy' C++ stereo rendering path and XRSettings (will be removed in 2020.1)
 
 #if UNITY_2019_3_OR_NEWER && ENABLE_VR
-//#define USE_XR_SDK
+#define USE_XR_SDK
 #endif
 
 using System;
@@ -216,11 +216,17 @@ namespace UnityEngine.Rendering.Universal
                         renderPass.GetRenderParameter(camera, renderParamIndex, out var renderParam);
 
                         var xrPass = XRPass.Create(renderPass);
+                        xrPass.isMirrorView = false;
                         xrPass.AddView(renderParam);
                         xrPass.multiparamId = renderParamIndex;
                         AddPassToFrame(camera, xrPass);
                     }
                 }
+            }
+            {
+                XRPass xrPass = GenericPool<XRPass>.Get();
+                xrPass.isMirrorView = true;
+                AddPassToFrame(camera, xrPass);
             }
 #endif
         }

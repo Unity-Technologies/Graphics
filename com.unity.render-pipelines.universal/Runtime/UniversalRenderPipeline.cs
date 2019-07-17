@@ -145,19 +145,22 @@ namespace UnityEngine.Rendering.Universal
             {
                 BeginCameraRendering(renderContext, camera);
 
-                VFX.VFXManager.ProcessCamera(camera); //Visual Effect Graph is not yet a required package but calling this method when there isn't any VisualEffect component has no effect (but needed for Camera sorting in Visual Effect Graph context)
-                RenderSingleCamera(renderContext, camera, xrPass);
+                if (xrPass.isMirrorView == false)
+                {
+                    VFX.VFXManager.ProcessCamera(camera); //Visual Effect Graph is not yet a required package but calling this method when there isn't any VisualEffect component has no effect (but needed for Camera sorting in Visual Effect Graph context)
+                    RenderSingleCamera(renderContext, camera, xrPass);
+                }
+                else
+                {
+                    CommandBuffer cmd = CommandBufferPool.Get(k_RenderMirrorViewTag);
 
+                    m_XRSystem.RenderMirrorView(cmd);
+                    renderContext.ExecuteCommandBuffer(cmd);
+                    renderContext.Submit();
+
+                    CommandBufferPool.Release(cmd);
+                }
                 EndCameraRendering(renderContext, camera);
-            }
-            {
-                CommandBuffer cmd = CommandBufferPool.Get(k_RenderMirrorViewTag);
-
-                m_XRSystem.RenderMirrorView(cmd);
-                renderContext.ExecuteCommandBuffer(cmd);
-                renderContext.Submit();
-
-                CommandBufferPool.Release(cmd);
             }
 
             m_XRSystem.ReleaseFrame();
@@ -312,12 +315,13 @@ namespace UnityEngine.Rendering.Universal
             // Pure XRSDK: use descriptor from xrsdk
             if (xrPass.xrSdkEnabled)
             {
-                // Create RenderTextureDescriptor with eye texture's dimension. Default constructor of RenderTextureDescriptor marks texture to be y-flip enabled.
-                // Reason: UniversalRP is using built-in renderer for couple render passes. In built-in renderer, shadow map is configured to be y-flip enabled.
-                // We have to make y-flip configuration consistant between built-in and SRP. Using XRSystem's renderTargetDesc is not safe because it is not guaranteed to be y-flip enabled.
+                // Create RenderTextureDescriptor with eye texture's dimension. 
+                // Reason for *NOT* using xrPass' renderTargetDesc: Using XRSystem's renderTargetDesc is not safe because it is not guaranteed to be y-flip enabled.
+                // UniversalRP is using built-in renderer for couple render passes. In built-in renderer, shadow map is configured to be y-flip enabled.
+                // We have to make y-flip configuration consistant between built-in and SRP. Default constructor of RenderTextureDescriptor marks texture to be y-flip enabled.
+                // XRTODO: Use descriptor from XRPass once dependencies on built-in renderer's intermediate textures are removed.
                 cameraData.cameraTargetDescriptor = new RenderTextureDescriptor(xrPass.renderTargetDesc.width, xrPass.renderTargetDesc.height, xrPass.renderTargetDesc.colorFormat,
                     xrPass.renderTargetDesc.depthBufferBits, xrPass.renderTargetDesc.mipCount);
-
             }
             // Legacy XR: create descriptor from camera settings
             else

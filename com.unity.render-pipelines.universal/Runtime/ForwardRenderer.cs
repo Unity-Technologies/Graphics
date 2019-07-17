@@ -19,6 +19,7 @@ namespace UnityEngine.Rendering.Universal
         PostProcessPass m_PostProcessPass;
         PostProcessPass m_FinalPostProcessPass;
         FinalBlitPass m_FinalBlitPass;
+        FinalBlitXRPass m_FinalBlitXRPass;
         CapturePass m_CapturePass;
 
 #if UNITY_EDITOR
@@ -40,6 +41,7 @@ namespace UnityEngine.Rendering.Universal
         public ForwardRenderer(ForwardRendererData data) : base(data)
         {
             Material blitMaterial = CoreUtils.CreateEngineMaterial(data.shaders.blitPS);
+            Material fastBlitMaterial = CoreUtils.CreateEngineMaterial(data.shaders.fastBlitPS);
             Material copyDepthMaterial = CoreUtils.CreateEngineMaterial(data.shaders.copyDepthPS);
             Material samplingMaterial = CoreUtils.CreateEngineMaterial(data.shaders.samplingPS);
             Material screenspaceShadowsMaterial = CoreUtils.CreateEngineMaterial(data.shaders.screenSpaceShadowPS);
@@ -69,7 +71,7 @@ namespace UnityEngine.Rendering.Universal
             m_FinalPostProcessPass = new PostProcessPass(RenderPassEvent.AfterRenderingPostProcessing, data.postProcessData);
             m_CapturePass = new CapturePass(RenderPassEvent.AfterRendering);
             m_FinalBlitPass = new FinalBlitPass(RenderPassEvent.AfterRendering, blitMaterial);
-
+            m_FinalBlitXRPass = new FinalBlitXRPass(RenderPassEvent.AfterRendering, fastBlitMaterial);
 #if UNITY_EDITOR
             m_SceneViewDepthCopyPass = new SceneViewDepthCopyPass(RenderPassEvent.AfterRendering + 9, copyDepthMaterial);
 #endif
@@ -88,6 +90,8 @@ namespace UnityEngine.Rendering.Universal
         public override void Setup(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             Camera camera = renderingData.cameraData.camera;
+            XRPass xrPass = renderingData.cameraData.xrPass;
+
             RenderTextureDescriptor cameraTargetDescriptor = renderingData.cameraData.cameraTargetDescriptor;
 
             EnqueuePass(m_VolumeBlendingPass);
@@ -127,9 +131,15 @@ namespace UnityEngine.Rendering.Universal
             bool createColorTexture = RequiresIntermediateColorTexture(ref renderingData, cameraTargetDescriptor)
                                       || rendererFeatures.Count != 0;
 
+            // XRTODO: For now we enforce a blit, we should avoid extra blit when intermediate target is not necessary
+            createColorTexture = createColorTexture || xrPass.xrSdkEnabled;
+
             // If camera requires depth and there's no depth pre-pass we create a depth texture that can be read
             // later by effect requiring it.
             bool createDepthTexture = renderingData.cameraData.requiresDepthTexture && !requiresDepthPrepass;
+            // XRTODO: Smae as color texture todo above
+            createDepthTexture = createDepthTexture || xrPass.xrSdkEnabled;
+
             bool postProcessEnabled = renderingData.cameraData.postProcessEnabled;
 
             m_ActiveCameraColorAttachment = (createColorTexture) ? m_CameraColorAttachment : RenderTargetHandle.CameraTarget;
@@ -159,6 +169,8 @@ namespace UnityEngine.Rendering.Universal
                     activeRenderPassQueue.RemoveAt(i);
             }
             bool hasAfterRendering = activeRenderPassQueue.Find(x => x.renderPassEvent == RenderPassEvent.AfterRendering) != null;
+            // XRTODO: XRSDK should not force after rendering path, this is a WIP work
+            hasAfterRendering = hasAfterRendering || xrPass.xrSdkEnabled;
 
             if (mainLightShadows)
                 EnqueuePass(m_MainLightShadowCasterPass);
@@ -224,8 +236,16 @@ namespace UnityEngine.Rendering.Universal
                     EnqueuePass(m_PostProcessPass);
                 }
 
-                //now blit into the final target
-                if (m_ActiveCameraColorAttachment != RenderTargetHandle.CameraTarget)
+                // Pure XRSDK: now blit into eye texture if xr is enabled
+                // XRTODO: seemse like post fx resolve path is SetupFinalPass, current logic will not work with multi sampling
+                if (xrPass.xrSdkEnabled)
+                {
+                    // XRTODO: for now we enforce intermediate target for xrsdk path, after adding support of rendering to eye texture, this final blit can be saved
+                    m_FinalBlitXRPass.Setup(cameraTargetDescriptor, m_ActiveCameraColorAttachment.Identifier(), xrPass.renderTargetDesc, xrPass.renderTarget, xrPass.GetDepthSlice());
+                    EnqueuePass(m_FinalBlitXRPass);
+                }
+                // Legacy XR: now blit into the final target
+                else if (m_ActiveCameraColorAttachment != RenderTargetHandle.CameraTarget)
                 {
                     if (renderingData.cameraData.captureActions != null)
                     {
