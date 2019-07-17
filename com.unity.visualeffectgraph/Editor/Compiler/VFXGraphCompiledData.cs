@@ -461,8 +461,17 @@ namespace UnityEditor.VFX
                 }
 
                 var contextData = contextToCompiledData[spawnContext];
+                var contextExpressions = contextData.cpuMapper.CollectExpression(-1);
+                var systemValueMappings = new List<VFXMapping>();
+                foreach (var contextExpression in contextExpressions)
+                {
+                    var expressionIndex = graph.GetFlattenedIndex(contextExpression.exp);
+                    systemValueMappings.Add(new VFXMapping(contextExpression.name, expressionIndex));
+                }
+
                 outSystemDescs.Add(new VFXEditorSystemDesc()
                 {
+                    values = systemValueMappings.ToArray(),
                     buffers = buffers.ToArray(),
                     capacity = 0u,
                     flags = VFXSystemFlag.SystemDefault,
@@ -678,10 +687,11 @@ namespace UnityEditor.VFX
             foreach (var data in compilableData.SelectMany(o => o.dependenciesOut).Distinct().OfType<VFXDataParticle>())
             {
                 var eventBufferIndex = -1;
-                if (data.capacity > 0)
+                uint capacity = (uint)data.GetSettingValue("capacity");
+                if (capacity > 0)
                 {
                     eventBufferIndex = bufferDescs.Count;
-                    bufferDescs.Add(new VFXGPUBufferDesc() { type = ComputeBufferType.Append, size = data.capacity, stride = 4 });
+                    bufferDescs.Add(new VFXGPUBufferDesc() { type = ComputeBufferType.Append, size = capacity, stride = 4 });
                 }
                 eventGpuBufferDictionnary.Add(data, eventBufferIndex);
             }

@@ -23,12 +23,12 @@ Pass
 		// y: frame blending factor
 		// z: alpha
 		// w: smoothness
-		nointerpolation float4 builtInInterpolants : TEXCOORD1;
+		VFX_OPTIONAL_INTERPOLATION float4 builtInInterpolants : TEXCOORD1;
 		#endif
 		#if USE_FLIPBOOK_MOTIONVECTORS
 		// x: motion vector scale u
 		// y: motion vector scale v
-		nointerpolation float2 builtInInterpolants2 : TEXCOORD2;
+		VFX_OPTIONAL_INTERPOLATION float2 builtInInterpolants2 : TEXCOORD2;
 		#endif
 		#ifdef WRITE_NORMAL_BUFFER
 		float4 normal : TEXCOORD3; // normal scale is stored in w
