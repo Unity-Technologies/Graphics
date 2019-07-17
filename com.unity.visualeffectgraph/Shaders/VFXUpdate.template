@@ -3,14 +3,20 @@ ${VFXGlobalInclude}
 ${VFXGlobalDeclaration}
 ${VFXPerPassInclude}
 
+#define USE_DEAD_LIST (VFX_USE_ALIVE_CURRENT && !HAS_STRIPS)
+
 RWByteAddressBuffer attributeBuffer;
 
-#if VFX_USE_ALIVE_CURRENT
+#if USE_DEAD_LIST
 RWStructuredBuffer<uint> deadListOut;
 #endif
 
 #if VFX_HAS_INDIRECT_DRAW
 RWStructuredBuffer<uint> indirectBuffer;
+#endif
+
+#if HAS_STRIPS
+RWBuffer<uint> stripData;
 #endif
 
 CBUFFER_START(updateParams)
@@ -47,12 +53,21 @@ void CSMain(uint3 groupId          : SV_GroupID,
                 uint indirectIndex = indirectBuffer.IncrementCounter();
 				indirectBuffer[indirectIndex] = index;
 #endif
+
+#if HAS_STRIPS
+				uint stripIndex = index / PARTICLE_PER_STRIP_COUNT;
+				uint relativeIndexInStrip = (PARTICLE_PER_STRIP_COUNT + index - STRIP_DATA(STRIP_FIRST_INDEX)) % PARTICLE_PER_STRIP_COUNT;
+				InterlockedMin(STRIP_DATA(STRIP_MIN_ALIVE),relativeIndexInStrip);
+				InterlockedMax(STRIP_DATA(STRIP_MAX_ALIVE),relativeIndexInStrip);
+#endif
 			}
 			else
 			{
 				${VFXStoreAttributes:{alive|eventCount}}
+#if USE_DEAD_LIST
 				uint deadIndex = deadListOut.IncrementCounter();
 				deadListOut[deadIndex] = index;
+#endif
 			}
 		}
 #else

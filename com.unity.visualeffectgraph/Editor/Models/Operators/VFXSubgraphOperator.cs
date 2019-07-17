@@ -96,7 +96,7 @@ namespace UnityEditor.VFX
             }
         }
 
-        protected override void Invalidate(VFXModel model, InvalidationCause cause)
+        protected internal override void Invalidate(VFXModel model, InvalidationCause cause)
         {
             if( cause == InvalidationCause.kSettingChanged)
             {
