@@ -1289,6 +1289,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // fix up shadow information
             lightData.shadowIndex = shadowIndex;
 #endif
+
+            // custom-begin:
+            // Cache shadow data from render loop in order to simplify sending shadow data of light sources to custom data structures.
+            // This avoids manually authoring a ton of spaghetti code to wire up additional custom shadow data requests.
+            // Note: This will only be valid for on-screen light sources, as the light loop is only concerned with on-screen lights.
+            additionalLightData.shadowIndex = shadowIndex;
+            // custom-end
+
             // Value of max smoothness is from artists point of view, need to convert from perceptual smoothness to roughness
             lightData.minRoughness = (1.0f - additionalLightData.maxSmoothness) * (1.0f - additionalLightData.maxSmoothness);
 
@@ -1822,6 +1830,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 // We must clear the shadow requests before checking if they are any visible light because we would have requests from the last frame executed in the case where we don't see any lights
                 m_ShadowManager.Clear();
+
+                // custom-begin:
+                // Similar to m_ShadowManager.Clear() above, we must clear cached shadow indices up front to ensure culled lights do not retain stale shadow indices.
+                // If this up front clear becomes a performance issue, we can cache time stamps on the HDAdditionalLightData when setting the shadowIndex, and if timestamp is not current frame we treat as - 1.
+                for (int i = 0, iLen = HDAdditionalLightData.s_InstancesHDAdditionalLightData.Count; i < iLen; ++i)
+                {
+                    HDAdditionalLightData additionalLightData = HDAdditionalLightData.s_InstancesHDAdditionalLightData[i];
+                    additionalLightData.shadowIndex = -1;
+                }
+                // custom-end
 
                 // Note: Light with null intensity/Color are culled by the C++, no need to test it here
                 if (cullResults.visibleLights.Length != 0 || cullResults.visibleReflectionProbes.Length != 0)
