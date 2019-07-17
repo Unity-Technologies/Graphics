@@ -11,6 +11,8 @@ namespace UnityEditor.VFX
         public override string name { get { return "Lit Cube Output"; } }
         public override string codeGeneratorTemplate { get { return RenderPipeTemplate("VFXParticleLitCube"); } }
         public override VFXTaskType taskType { get { return VFXTaskType.ParticleHexahedronOutput; } }
+        public override bool implementsMotionVector { get { return true; } }
+
 
         public override void OnEnable()
         {

@@ -1,0 +1,14 @@
+Pass
+{		
+	Tags { "LightMode"=${VFXPassVelocity} }
+	
+	${VFXStencilMotionVector}
+
+	ZWrite On
+	Blend Off
+	
+	HLSLPROGRAM
+	#define IS_MOTION_VECTORS_PASS 1
+	${VFXInclude("Shaders/ParticleHexahedron/PassDepthOrMV.template")}
+	ENDHLSL
+}
