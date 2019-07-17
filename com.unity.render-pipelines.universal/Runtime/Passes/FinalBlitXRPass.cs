@@ -18,8 +18,6 @@ namespace UnityEngine.Rendering.Universal
 
         Material m_BlitMaterial;
 
-        bool m_IsMobileOrSwitch;
-
         public FinalBlitXRPass(RenderPassEvent evt, Material blitMaterial)
         {
             m_BlitMaterial = blitMaterial;
@@ -33,8 +31,6 @@ namespace UnityEngine.Rendering.Universal
             m_srcDesc = srcDescriptor;
             m_dstDesc = dstDescriptor;
             m_Targetslice = targetslice;
-
-            m_IsMobileOrSwitch = Application.isMobilePlatform || Application.platform == RuntimePlatform.Switch;
         }
 
         /// <inheritdoc/>
@@ -46,10 +42,7 @@ namespace UnityEngine.Rendering.Universal
                 return;
             }
 
-            // @thomas: TODO handles srgb. fetch from display subsystem.
-            bool requiresSRGBConvertion = false;
-
-            // @thomas: TODO handles color format
+            bool requiresSRGBConvertion = m_dstDesc.sRGB;
             bool killAlpha = renderingData.killAlphaInFinalBlit;
 
             CommandBuffer cmd = CommandBufferPool.Get(m_ProfilerTag);
@@ -67,7 +60,7 @@ namespace UnityEngine.Rendering.Universal
             {
                 cmd.SetGlobalTexture("_BlitTex", m_Source);
 
-                // xr flip!
+                // Perform y-flip in the final blit pass.
                 cmd.SetGlobalVector("_BlitScaleBias", new Vector4(1,-1,0,1));
 
                 if (m_dstDesc.dimension == TextureDimension.Tex2DArray)
