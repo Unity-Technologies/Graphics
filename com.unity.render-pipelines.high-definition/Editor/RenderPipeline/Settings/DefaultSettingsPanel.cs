@@ -1,26 +1,18 @@
-using System.Linq;
-using Object = UnityEngine.Object;
 using System;
-using System.Collections.Generic;
-using System.IO;
-using UnityEditor.Build;
-using UnityEditor.Build.Reporting;
 using UnityEditor.Rendering;
 using UnityEngine;
-using UnityEngine.Assertions;
-using UnityEngine.Experimental.Rendering;
-using UnityEngine.Experimental.Rendering.HDPipeline;
+using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.Rendering;
 using UnityEngine.UIElements;
 
-namespace UnityEditor.Experimental.Rendering.HDPipeline
+namespace UnityEditor.Rendering.HighDefinition
 {
-    public class DefaultSettingsPanelProvider
+    class DefaultSettingsPanelProvider
     {
         [SettingsProvider]
         public static SettingsProvider CreateSettingsProvider()
         {
-            return new SettingsProvider("Project/Default Settings/HDRP", SettingsScope.Project)
+            return new SettingsProvider("Project/HDRP Default Settings", SettingsScope.Project)
             {
                 activateHandler = (searchContext, rootElement) =>
                 {
@@ -37,97 +29,122 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         class DefaultSettingsPanel : VisualElement
         {
-            VolumeProfile m_DefaultVolumeProfile;
+            VolumeComponentListEditor m_ComponentList;
             Editor m_Cached;
-
 
             public DefaultSettingsPanel(string searchContext)
             {
-                m_DefaultVolumeProfile = GetOrCreateDefaultVolumeProfile();
-
+                var scrollView = new ScrollView();
+                {
+                    var title = new Label
+                    {
+                        text = "General Settings"
+                    };
+                    title.AddToClassList("h1");
+                    scrollView.contentContainer.Add(title);
+                }
+                {
+                    var generalSettingsInspector = new IMGUIContainer(Draw_GeneralSettings);
+                    generalSettingsInspector.style.marginLeft = 5;
+                    scrollView.contentContainer.Add(generalSettingsInspector);
+                }
+                {
+                    var space = new VisualElement();
+                    space.style.height = 10;
+                    scrollView.contentContainer.Add(space);
+                }
+                {
+                    var title = new Label
+                    {
+                        text = "Frame Settings"
+                    };
+                    title.AddToClassList("h1");
+                    scrollView.contentContainer.Add(title);
+                }
+                {
+                    var generalSettingsInspector = new IMGUIContainer(Draw_DefaultFrameSettings);
+                    generalSettingsInspector.style.marginLeft = 5;
+                    scrollView.contentContainer.Add(generalSettingsInspector);
+                }
+                {
+                    var space = new VisualElement();
+                    space.style.height = 10;
+                    scrollView.contentContainer.Add(space);
+                }
                 {
                     var title = new Label
                     {
                         text = "Volume Components"
                     };
                     title.AddToClassList("h1");
-                    Add(title);
+                    scrollView.contentContainer.Add(title);
                 }
                 {
-                    var inspectorContainer = new IMGUIContainer(Draw_VolumeInspector);
-                    inspectorContainer.style.flexGrow = 1;
-                    inspectorContainer.style.flexDirection = FlexDirection.Row;
-                    Add(inspectorContainer);
+                    var volumeInspector = new IMGUIContainer(Draw_VolumeInspector);
+                    volumeInspector.style.flexGrow = 1;
+                    volumeInspector.style.flexDirection = FlexDirection.Row;
+                    scrollView.contentContainer.Add(volumeInspector);
                 }
+
+                Add(scrollView);
             }
 
+            private static GUIContent k_DefaultHDRPAsset = new GUIContent("Asset with the default settings");
+            void Draw_GeneralSettings()
+            {
+                var hdrpAsset = HDRenderPipeline.defaultAsset;
+                if (hdrpAsset == null)
+                {
+                    EditorGUILayout.HelpBox("Base SRP Asset is not an HDRenderPipelineAsset.", MessageType.Warning);
+                    return;
+                }
+
+                GUI.enabled = false;
+                EditorGUILayout.ObjectField(k_DefaultHDRPAsset, hdrpAsset, typeof(HDRenderPipelineAsset), false);
+                GUI.enabled = true;
+
+                var serializedObject = new SerializedObject(hdrpAsset);
+                var serializedHDRPAsset = new SerializedHDRenderPipelineAsset(serializedObject);
+
+                HDRenderPipelineUI.GeneralSection.Draw(serializedHDRPAsset, null);
+
+                serializedObject.ApplyModifiedProperties();
+            }
+
+            private static GUIContent k_DefaultVolumeProfileLabel = new GUIContent("Default Volume Profile Asset");
             void Draw_VolumeInspector()
             {
-                if (m_DefaultVolumeProfile == null || m_DefaultVolumeProfile.Equals(null))
-                    m_DefaultVolumeProfile = GetOrCreateDefaultVolumeProfile();
+                var hdrpAsset = HDRenderPipeline.defaultAsset;
+                if (hdrpAsset == null)
+                    return;
 
-                Editor.CreateCachedEditor(m_DefaultVolumeProfile,
+                var asset = EditorDefaultSettings.GetOrAssignDefaultVolumeProfile();
+
+                var newAsset = (VolumeProfile)EditorGUILayout.ObjectField(k_DefaultVolumeProfileLabel, asset, typeof(VolumeProfile), false);
+                if (newAsset != null && newAsset != asset)
+                {
+                    asset = newAsset;
+                    hdrpAsset.defaultVolumeProfile = asset;
+                    EditorUtility.SetDirty(hdrpAsset);
+                }
+
+                Editor.CreateCachedEditor(asset,
                     Type.GetType("UnityEditor.Rendering.VolumeProfileEditor"), ref m_Cached);
                 m_Cached.OnInspectorGUI();
             }
 
-            static string k_DefaultVolumeAssetPath =
-                $@"Packages/com.unity.render-pipelines.high-definition/Editor/RenderPipelineResources/{DefaultSettings.defaultVolumeProfileFileStem}.asset";
-            static VolumeProfile GetOrCreateDefaultVolumeProfile()
+            void Draw_DefaultFrameSettings()
             {
-                // Search a VolumeProfile in the ResourceFolder with the name "DefaultSettingsVolumeProfile".
-                var selectedAsset = DefaultSettings.defaultVolumeProfile;
+                var hdrpAsset = HDRenderPipeline.defaultAsset;
+                if (hdrpAsset == null)
+                    return;
 
-                // Asset was found, we can return it.
-                if (selectedAsset != null && !selectedAsset.Equals(null))
-                    return selectedAsset;
+                var serializedObject = new SerializedObject(hdrpAsset);
+                var serializedHDRPAsset = new SerializedHDRenderPipelineAsset(serializedObject);
 
-                // There is no default asset, so create one from the asset provided by the package.
-                var defaultAsset = AssetDatabase.LoadAssetAtPath<VolumeProfile>(k_DefaultVolumeAssetPath);
-                Assert.IsNotNull(defaultAsset, "Default Volume Profile asset is missing");
-
-                // Create resource folder if it is missing
-                var targetPath = $"Assets/Resources/{DefaultSettings.defaultVolumeProfileFileStem}.asset";
-                var parentPath = Path.GetDirectoryName(targetPath);
-                if (!Directory.Exists(parentPath))
-                    Directory.CreateDirectory(parentPath);
-
-                // Deep copy of the VolumeProfile
-                selectedAsset = Object.Instantiate(defaultAsset);
-                selectedAsset.name = defaultAsset.name;
-                AssetDatabase.CreateAsset(selectedAsset, targetPath);
-                AssetDatabase.SaveAssets();
-
-                AssetDatabase.StartAssetEditing();
-                using (ListPool<VolumeComponent>.Get(out var components))
-                {
-                    for (int i = 0, c = selectedAsset.components.Count; i < c ; ++i)
-                    {
-                        var componentClone = Object.Instantiate(selectedAsset.components[i]);
-                        componentClone.name = selectedAsset.components[i].name;
-                        components.Add(componentClone);
-                        AssetDatabase.AddObjectToAsset(componentClone, selectedAsset);
-                    }
-
-                    selectedAsset.components.Clear();
-                    selectedAsset.components.AddRange(components);
-                }
-                AssetDatabase.StopAssetEditing();
-
-                // Return the new default asset
-                return selectedAsset;
+                HDRenderPipelineUI.FrameSettingsSection.Draw(serializedHDRPAsset, null);
+                serializedObject.ApplyModifiedProperties();
             }
-        }
-    }
-
-    class PreProcessBuild : IPreprocessBuildWithReport
-    {
-        public int callbackOrder { get; }
-
-        public void OnPreprocessBuild(BuildReport report)
-        {
-            // Create default settings volume profile if required
-            DefaultSettings.GetOrCreateDefaultVolume();
         }
     }
 }

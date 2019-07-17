@@ -1,9 +1,8 @@
 using UnityEngine;
 using UnityEngine.Assertions;
-using UnityEngine.Experimental.Rendering;
-using UnityEngine.Experimental.Rendering.HDPipeline;
+using UnityEngine.Rendering.HighDefinition;
 
-namespace UnityEditor.Experimental.Rendering.HDPipeline
+namespace UnityEditor.Rendering.HighDefinition
 {
     partial class HDLightUI
     {
@@ -17,7 +16,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             Undo.IncrementCurrentGroup();
             Undo.DestroyObjectImmediate(go.GetComponent<Light>());
             Undo.DestroyObjectImmediate(go.GetComponent<HDAdditionalLightData>());
-            Undo.DestroyObjectImmediate(go.GetComponent<AdditionalShadowData>());
         }
 
         [MenuItem("CONTEXT/Light/Reset", false, 0)]
@@ -29,18 +27,15 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             Light light = go.GetComponent<Light>();
             HDAdditionalLightData lightAdditionalData = go.GetComponent<HDAdditionalLightData>();
-            AdditionalShadowData shadowAdditionalData = go.GetComponent<AdditionalShadowData>();
 
             Assert.IsNotNull(light);
             Assert.IsNotNull(lightAdditionalData);
-            Assert.IsNotNull(shadowAdditionalData);
 
-            Undo.RecordObjects(new UnityEngine.Object[] { light, lightAdditionalData, shadowAdditionalData }, "Reset HD Light");
+            Undo.RecordObjects(new UnityEngine.Object[] { light, lightAdditionalData }, "Reset HD Light");
             light.Reset();
             // To avoid duplicating init code we copy default settings to Reset additional data
             // Note: we can't call this code inside the HDAdditionalLightData, thus why we don't wrap it in a Reset() function
             HDUtils.s_DefaultHDAdditionalLightData.CopyTo(lightAdditionalData);
-            HDUtils.s_DefaultAdditionalShadowData.CopyTo(shadowAdditionalData);
         }
     }
 }

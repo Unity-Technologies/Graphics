@@ -1,11 +1,8 @@
 using System;
 using System.Linq;
-using System.Reflection;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using UnityEngine.Rendering;
 
-namespace UnityEngine.Experimental.Rendering.HDPipeline
+namespace UnityEngine.Rendering.HighDefinition
 {
     [Serializable]
     public enum SkyResolution
@@ -28,19 +25,22 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     public class BuiltinSkyParameters
     {
         public Matrix4x4                pixelCoordToViewDirMatrix;
+        public Vector3                  worldSpaceCameraPos;
+        public Matrix4x4                viewMatrix;
         public Vector4                  screenSize;
         public CommandBuffer            commandBuffer;
         public Light                    sunLight;
-        public RTHandleSystem.RTHandle  colorBuffer;
-        public RTHandleSystem.RTHandle  depthBuffer;
-        public HDCamera                 hdCamera;
+        public RTHandle                 colorBuffer;
+        public RTHandle                 depthBuffer;
+        public int                      frameIndex;
+        public EnvironmentUpdateMode    updateMode;
 
         public DebugDisplaySettings debugSettings;
 
         public static RenderTargetIdentifier nullRT = -1;
     }
 
-    public class SkyManager
+    class SkyManager
     {
         Material                m_StandardSkyboxMaterial; // This is the Unity standard skybox material. Used to pass the correct cubemap to Enlighten.
         Material                m_BlitCubemapMaterial;
@@ -87,9 +87,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // In practice we will always use the last one registered but we use a list to be able to roll back to the previous one once the user deletes the superfluous instances.
         private static List<StaticLightingSky> m_StaticLightingSkies = new List<StaticLightingSky>();
 
+        // Only show the procedural sky upgrade message once
+        static bool         logOnce = true;
+
 #if UNITY_EDITOR
         // For Preview windows we want to have a 'fixed' sky, so we can display chrome metal and have always the same look
-        ProceduralSky m_DefaultPreviewSky;
+        HDRISky m_DefaultPreviewSky;
 #endif
 
         public SkyManager()
@@ -125,6 +128,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
             else
             {
+                if (skyID == (int)SkyType.Procedural && logOnce)
+                {
+                    Debug.LogError("You are using the deprecated Procedural Sky in your Scene. You can still use it but, to do so, you must install it separately. To do this, open the Package Manager window and import the 'Procedural Sky' sample from the HDRP package page, then close and re-open your project without saving.");
+                    logOnce = false;
+                }
+
                 return null;
             }
         }
@@ -225,11 +234,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
 
 #if UNITY_EDITOR
-        ProceduralSky GetDefaultPreviewSkyInstance()
+        HDRISky GetDefaultPreviewSkyInstance()
         {
             if (m_DefaultPreviewSky == null)
             {
-                m_DefaultPreviewSky = ScriptableObject.CreateInstance<ProceduralSky>();
+                m_DefaultPreviewSky = ScriptableObject.CreateInstance<HDRISky>();
+                m_DefaultPreviewSky.hdriSky.overrideState = true;
+                var hdrpAsset = (GraphicsSettings.currentRenderPipeline as HDRenderPipelineAsset);
+                m_DefaultPreviewSky.hdriSky.value = hdrpAsset?.renderPipelineResources?.textures?.defaultHDRISky;
             }
 
             return m_DefaultPreviewSky;
@@ -237,16 +249,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
 #endif
 
-        public void Build(HDRenderPipelineAsset hdAsset, IBLFilterBSDF[] iblFilterBSDFArray)
+        public void Build(HDRenderPipelineAsset hdAsset, RenderPipelineResources defaultResources, IBLFilterBSDF[] iblFilterBSDFArray)
         {
             m_SkyRenderingContext = new SkyRenderingContext(iblFilterBSDFArray, (int)hdAsset.currentPlatformRenderPipelineSettings.lightLoopSettings.skyReflectionSize, true);
 #if UNITY_EDITOR
             m_PreviewSkyRenderingContext = new SkyRenderingContext(iblFilterBSDFArray, (int)hdAsset.currentPlatformRenderPipelineSettings.lightLoopSettings.skyReflectionSize, true);
 #endif
 
-            m_StandardSkyboxMaterial = CoreUtils.CreateEngineMaterial(hdAsset.renderPipelineResources.shaders.skyboxCubemapPS);
-            m_BlitCubemapMaterial = CoreUtils.CreateEngineMaterial(hdAsset.renderPipelineResources.shaders.blitCubemapPS);
-            m_OpaqueAtmScatteringMaterial = CoreUtils.CreateEngineMaterial(hdAsset.renderPipelineResources.shaders.opaqueAtmosphericScatteringPS);
+            m_StandardSkyboxMaterial = CoreUtils.CreateEngineMaterial(defaultResources.shaders.skyboxCubemapPS);
+            m_BlitCubemapMaterial = CoreUtils.CreateEngineMaterial(defaultResources.shaders.blitCubemapPS);
+            m_OpaqueAtmScatteringMaterial = CoreUtils.CreateEngineMaterial(defaultResources.shaders.opaqueAtmosphericScatteringPS);
 
             m_LightingOverrideVolumeStack = VolumeManager.instance.CreateStack();
             m_LightingOverrideLayerMask = hdAsset.currentPlatformRenderPipelineSettings.lightLoopSettings.skyLightingOverrideLayerMask;
@@ -333,15 +345,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_UpdateRequired = true;
         }
 
-        public void UpdateEnvironment(HDCamera hdCamera, Light sunLight, CommandBuffer cmd)
+        public void UpdateEnvironment(HDCamera hdCamera, Light sunLight, int frameIndex, CommandBuffer cmd)
         {
-            // WORKAROUND for building the player.
-            // When building the player, for some reason we end up in a state where frameCount is not updated but all currently setup shader texture are reset to null
-            // resulting in a rendering error (compute shader property not bound) that makes the player building fails...
-            // So we just check if the texture is bound here so that we can setup a pink one to avoid the error without breaking half the world.
-            if (Shader.GetGlobalTexture(HDShaderIDs._SkyTexture) == null)
-                cmd.SetGlobalTexture(HDShaderIDs._SkyTexture, CoreUtils.magentaCubeTexture);
-
             bool isRegularPreview = HDUtils.IsRegularPreviewCamera(hdCamera.camera);
 
             SkyAmbientMode ambientMode = VolumeManager.instance.stack.GetComponent<VisualEnvironment>().skyAmbientMode.value;
@@ -350,14 +355,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (isRegularPreview)
                 ambientMode = SkyAmbientMode.Static;
 
-            m_CurrentSkyRenderingContext.UpdateEnvironment(m_CurrentSky, hdCamera, sunLight, m_UpdateRequired, ambientMode == SkyAmbientMode.Dynamic, cmd);
+            m_CurrentSkyRenderingContext.UpdateEnvironment(m_CurrentSky, sunLight, hdCamera.mainViewConstants.worldSpaceCameraPos, m_UpdateRequired, ambientMode == SkyAmbientMode.Dynamic, frameIndex, cmd);
             StaticLightingSky staticLightingSky = GetStaticLightingSky();
             // We don't want to update the static sky during preview because it contains custom lights that may change the result.
             // The consequence is that previews will use main scene static lighting but we consider this to be acceptable.
             if (staticLightingSky != null && !isRegularPreview)
             {
                 m_StaticLightingSky.skySettings = staticLightingSky.skySettings;
-                m_StaticLightingSkyRenderingContext.UpdateEnvironment(m_StaticLightingSky, hdCamera, sunLight, false, true, cmd);
+                m_StaticLightingSkyRenderingContext.UpdateEnvironment(m_StaticLightingSky, sunLight, hdCamera.mainViewConstants.worldSpaceCameraPos, false, true, frameIndex, cmd);
             }
 
             bool useRealtimeGI = true;
@@ -409,15 +414,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        public void RenderSky(HDCamera camera, Light sunLight, RTHandleSystem.RTHandle colorBuffer, RTHandleSystem.RTHandle depthBuffer, DebugDisplaySettings debugSettings, CommandBuffer cmd)
+        public void RenderSky(HDCamera camera, Light sunLight, RTHandle colorBuffer, RTHandle depthBuffer, DebugDisplaySettings debugSettings, int frameIndex, CommandBuffer cmd)
         {
-            m_CurrentSkyRenderingContext.RenderSky(m_VisualSky, camera, sunLight, colorBuffer, depthBuffer, debugSettings, cmd);
+            m_CurrentSkyRenderingContext.RenderSky(m_VisualSky, camera, sunLight, colorBuffer, depthBuffer, debugSettings, frameIndex, cmd);
         }
 
         public void RenderOpaqueAtmosphericScattering(CommandBuffer cmd, HDCamera hdCamera,
-                                                      RTHandleSystem.RTHandle colorBuffer,
-                                                      RTHandleSystem.RTHandle intermediateBuffer,
-                                                      RTHandleSystem.RTHandle depthBuffer,
+                                                      RTHandle colorBuffer,
+                                                      RTHandle volumetricLighting,
+                                                      RTHandle intermediateBuffer,
+                                                      RTHandle depthBuffer,
                                                       Matrix4x4 pixelCoordToViewDirWS, bool isMSAA)
         {
             using (new ProfilingSample(cmd, "Opaque Atmospheric Scattering"))
@@ -429,6 +435,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     propertyBlock.SetTexture(HDShaderIDs._ColorTextureMS, colorBuffer);
                 else
                     propertyBlock.SetTexture(HDShaderIDs._ColorTexture,   colorBuffer);
+                // The texture can be null when volumetrics are disabled.
+                if (volumetricLighting != null)
+                    propertyBlock.SetTexture(HDShaderIDs._VBufferLighting, volumetricLighting);
+
                 // Color -> Intermediate.
                 HDUtils.DrawFullScreen(cmd, m_OpaqueAtmScatteringMaterial, intermediateBuffer, depthBuffer, propertyBlock, isMSAA? 1 : 0);
                 // Intermediate -> Color.
@@ -453,6 +463,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 {
                     Debug.LogWarning("One Static Lighting Sky component was already set for baking, only the latest one will be used.");
                 }
+
+                if (staticLightingSky.staticLightingSkyUniqueID == (int)SkyType.Procedural && !skyTypesDict.TryGetValue((int)SkyType.Procedural, out var dummy))
+                {
+                    Debug.LogError("You are using the deprecated Procedural Sky for static lighting in your Scene. You can still use it but, to do so, you must install it separately. To do this, open the Package Manager window and import the 'Procedural Sky' sample from the HDRP package page, then close and re-open your project without saving.");
+                    return;
+                }
+
                 m_StaticLightingSkies.Add(staticLightingSky);
             }
         }
@@ -516,13 +533,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 #if UNITY_EDITOR
         void OnBakeStarted()
         {
-            var hdrp = RenderPipelineManager.currentPipeline as HDRenderPipeline;
+            var hdrp = HDRenderPipeline.defaultAsset;
             if (hdrp == null)
                 return;
 
             // Happens sometime in the tests.
             if (m_StandardSkyboxMaterial == null)
-                m_StandardSkyboxMaterial = CoreUtils.CreateEngineMaterial(hdrp.asset.renderPipelineResources.shaders.skyboxCubemapPS);
+                m_StandardSkyboxMaterial = CoreUtils.CreateEngineMaterial(hdrp.renderPipelineResources.shaders.skyboxCubemapPS);
 
             // At the start of baking we need to update the GI system with the static lighting sky in order for lightmaps and probes to be baked with it.
             var staticLightingSky = GetStaticLightingSky();

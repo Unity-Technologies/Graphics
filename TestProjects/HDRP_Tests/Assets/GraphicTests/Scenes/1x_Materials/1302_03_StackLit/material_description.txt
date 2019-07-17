@@ -20,6 +20,7 @@ SLSG_SpecC_4.ShaderGraph : (from SpecC1, to test bent AO fixup)
 Column_SLSG_SpecC4.mat: SLSG_SpecC_4.ShaderGraph : (from SpecC1, to test bent AO fixup in StackLitSG_TestersAndColumns scenes)
 
 SLSG_BaseM_2M.ShaderGraph : (From SLSG_BaseM_2 + coat mask slider, maps for irid Thickness and 2 irid fixups)
+SLSG_BaseM_2Mplr.ShaderGraph : (From SLSG_BaseM_2M + per light min roughness)
 
 SLSG_BaseM_2MNC.ShaderGraph : (From SLSG_BaseM_2 + no coat: ie coat disabled )
 
@@ -30,3 +31,4 @@ SLSG_BaseM_2Mb.mat   : SLSG_BaseM_2M.ShaderGraph
 SLSG_BaseM_2Mc.mat   : SLSG_BaseM_2M.ShaderGraph : Irid thickness grey/greyer checker, irid coat fixup TIR U-direction divided mask, irid coat fixup TIR clamp 1 (bottom left sphere)
 SLSG_BaseM_2Mc2.mat  : SLSG_BaseM_2M.ShaderGraph : Irid thickness mask gradual, no irid coat fixup TIR or TIR clamp (bottom right sphere)
 SLSG_BaseM_2Mc3.mat  : SLSG_BaseM_2M.ShaderGraph : offscreen, tutorial on iridescence fixups
+SLSG_BaseM_2Mc4.mat  : SLSG_BaseM_2Mplr.ShaderGraph : offscreen, per light min roughness tests

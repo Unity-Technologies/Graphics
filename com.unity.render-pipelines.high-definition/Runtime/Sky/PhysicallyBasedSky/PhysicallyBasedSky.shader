@@ -13,10 +13,18 @@ Shader "Hidden/HDRP/Sky/PbrSky"
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Sky/PhysicallyBasedSky/PhysicallyBasedSkyCommon.hlsl"
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Sky/SkyUtils.hlsl"
+    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/AtmosphericScattering/AtmosphericScattering.hlsl"
 
     int _HasGroundAlbedoTexture;    // bool...
     int _HasGroundEmissionTexture;  // bool...
     int _HasSpaceEmissionTexture;   // bool...
+
+    // Sky framework does not set up global shader variables (even per-view ones),
+    // so they can contain garbage. It's very difficult to not include them, however,
+    // since the sky framework includes them internally in many header files.
+    // Just don't use them. Ever.
+    float3   _WorldSpaceCameraPos1;
+    float4x4 _ViewMatrix1;
 
     // 3x3, but Unity can only set 4x4...
     float4x4 _PlanetRotation;
@@ -54,7 +62,7 @@ Shader "Hidden/HDRP/Sky/PbrSky"
         const float  R = _PlanetaryRadius;
         // TODO: Not sure it's possible to precompute cam rel pos since variables
         // in the two constant buffers may be set at a different frequency?
-        const float3 O = _WorldSpaceCameraPos * 0.001 - _PlanetCenterPosition; // Convert m to km
+        const float3 O = _WorldSpaceCameraPos1 * 0.001 - _PlanetCenterPosition; // Convert m to km
         const float3 V = GetSkyViewDirWS(input.positionCS.xy);
 
         float3 N; float r; // These params correspond to the entry point
@@ -62,8 +70,7 @@ Shader "Hidden/HDRP/Sky/PbrSky"
 
         float NdotV  = dot(N, V);
         float cosChi = -NdotV;
-        float height = r - R;
-        float cosHor = GetCosineOfHorizonZenithAngle(height);
+        float cosHor = ComputeCosineOfHorizonAngle(r);
 
         bool rayIntersectsAtmosphere = (tEntry >= 0);
         bool lookAboveHorizon        = (cosChi > cosHor);
@@ -107,7 +114,7 @@ Shader "Hidden/HDRP/Sky/PbrSky"
                     float3 radiance = 0;
 
                     float3 irradiance = SampleGroundIrradianceTexture(dot(gN, L));
-                    radiance += gBrdf * irradiance; // Transmittance is applied during the atmospheric scattering pass
+                    radiance += gBrdf * irradiance;
                     radiance *= lightRadiance;      // Globally scale the intensity
 
                     totalRadiance += radiance;
@@ -133,9 +140,19 @@ Shader "Hidden/HDRP/Sky/PbrSky"
             }
         }
 
-        totalRadiance += emission; // Transmittance is applied during the atmospheric scattering pass
+        totalRadiance += emission;
 
-        return float4(totalRadiance, 1.0);
+        float3 skyColor, skyOpacity;
+
+        // Evaluate the sky at infinity.
+        EvaluatePbrAtmosphere(V, FLT_INF, UNITY_RAW_FAR_CLIP_VALUE,
+                              _WorldSpaceCameraPos1, _ViewMatrix1,
+                              skyColor, skyOpacity);
+
+        skyColor += totalRadiance * (1 - skyOpacity);
+        skyColor *= _IntensityMultiplier * GetCurrentExposureMultiplier();
+
+        return float4(skyColor, 1.0);
     }
 
     float4 FragBaking(Varyings input) : SV_Target

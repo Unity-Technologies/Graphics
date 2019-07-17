@@ -168,9 +168,7 @@ void RayGenAreaShadows()
         int globalSampleIndex = _RaytracingFrameIndex * _RaytracingNumSamples + sampleIdx;
 
         // Generate the new sample (follwing values of the sequence)
-        float2 noiseValue = float2(0.0, 0.0);
-        misInput.noiseValue.x = GetRaytracingNoiseSample(globalSampleIndex, 0, scramblingValue.x);
-        misInput.noiseValue.y = GetRaytracingNoiseSample(globalSampleIndex, 1, scramblingValue.y);
+        misInput.noiseValue = GetRaytracingNoiseSampleRG(globalSampleIndex, scramblingValue);
         // Pick the sampling technique
         EvaluateMISTechnique(misInput);
 

@@ -1,11 +1,11 @@
 using UnityEngine;
-using UnityEngine.Experimental.Rendering.HDPipeline;
+using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.Rendering;
 
 // Include material common properties names
-using static UnityEngine.Experimental.Rendering.HDPipeline.HDMaterialProperties;
+using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
 
-namespace UnityEditor.Experimental.Rendering.HDPipeline
+namespace UnityEditor.Rendering.HighDefinition
 {
     /// <summary>
     /// GUI for HDRP Unlit shader graphs
@@ -39,7 +39,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
         }
 
-        public static void SetupMaterialKeywordsAndPass(Material material) => UnlitGUI.SetupUnlitMaterialKeywordsAndPass(material);
+        public static void SetupMaterialKeywordsAndPass(Material material)
+        {
+            SynchronizeShaderGraphProperties(material);
+            UnlitGUI.SetupUnlitMaterialKeywordsAndPass(material);
+        }
 
         protected override void SetupMaterialKeywordsAndPassInternal(Material material) => SetupMaterialKeywordsAndPass(material);
     }

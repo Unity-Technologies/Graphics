@@ -1,10 +1,9 @@
 using NUnit.Framework;
-using UnityEditor.Experimental.Rendering.TestFramework;
-using UnityEngine.Rendering;
+using UnityEditor.Rendering.TestFramework;
 
-namespace UnityEngine.Experimental.Rendering.HDPipeline.Tests
+namespace UnityEngine.Rendering.HighDefinition.Tests
 {
-    public partial class HDAdditionalReflectionDataTests
+    partial class HDAdditionalReflectionDataTests
     {
         public class MigrateReflectionProbeFromVersion_ModeAndTextures
         {
@@ -224,8 +223,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {{fileID: 11500000, guid: d0ef8dc2c2eabfa4e8cb77be57a837c0, type: 3}}
-  m_Name: 
-  m_EditorClassIdentifier: 
+  m_Name:
+  m_EditorClassIdentifier:
   m_ProxyVolume: {{fileID: 0}}
   m_InfiniteProjection: 1
   m_InfluenceVolume:
@@ -338,8 +337,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {{fileID: 11500000, guid: 172515602e62fb746b5d573b38a5fe58, type: 3}}
-  m_Name: 
-  m_EditorClassIdentifier: 
+  m_Name:
+  m_EditorClassIdentifier:
   isGlobal: 1
   priority: 0
   blendDistance: 0

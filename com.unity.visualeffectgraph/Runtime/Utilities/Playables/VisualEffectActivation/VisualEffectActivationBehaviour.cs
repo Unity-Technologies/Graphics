@@ -4,7 +4,7 @@ using UnityEngine;
 using UnityEngine.Timeline;
 using UnityEngine.Playables;
 using UnityEngine.VFX;
-using UnityEngine.Experimental.VFX.Utility;
+using UnityEngine.VFX.Utility;
 
 [Serializable]
 public class VisualEffectActivationBehaviour : PlayableBehaviour
@@ -25,15 +25,15 @@ public class VisualEffectActivationBehaviour : PlayableBehaviour
     [Serializable]
     public struct EventState
     {
-        public ExposedParameter attribute;
+        public ExposedProperty attribute;
         public AttributeType type;
         public float[] values; //double could cover precision of integer and float within the same container, but not needed for now
     }
 
     [SerializeField]
-    private ExposedParameter onClipEnter = "OnPlay";
+    private ExposedProperty onClipEnter = "OnPlay";
     [SerializeField]
-    private ExposedParameter onClipExit = "OnStop";
+    private ExposedProperty onClipExit = "OnStop";
     [SerializeField]
     private EventState[] clipEnterEventAttributes = null;
     [SerializeField]

@@ -6,11 +6,11 @@ using UnityEditor.Graphing.Util;
 using UnityEditor.ShaderGraph;
 using UnityEditor.ShaderGraph.Drawing;
 using UnityEditor.ShaderGraph.Drawing.Controls;
-using UnityEditor.Experimental.Rendering.HDPipeline;
-using UnityEngine.Experimental.Rendering.HDPipeline;
+using UnityEditor.Rendering.HighDefinition;
+using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.Rendering;
 
-namespace UnityEditor.Experimental.Rendering.HDPipeline.Drawing
+namespace UnityEditor.Rendering.HighDefinition.Drawing
 {
     class HDUnlitSettingsView : VisualElement
     {
@@ -208,6 +208,15 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline.Drawing
                 });
             });
 
+            ps.Add(new PropertyRow(CreateLabel("Additional Velocity Change", indentLevel)), (row) =>
+            {
+                row.Add(new Toggle(), (toggle) =>
+                {
+                    toggle.value = m_Node.addVelocityChange.isOn;
+                    toggle.OnToggleChanged(ChangeAddVelocityChange);
+                });
+            });
+
             Add(ps);
         }
 
@@ -337,6 +346,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline.Drawing
             ToggleData td = m_Node.alphaTest;
             td.isOn = evt.newValue;
             m_Node.alphaTest = td;
+        }
+
+        void ChangeAddVelocityChange(ChangeEvent<bool> evt)
+        {
+            m_Node.owner.owner.RegisterCompleteObjectUndo("Add Velocity Change");
+            ToggleData td = m_Node.addVelocityChange;
+            td.isOn = evt.newValue;
+            m_Node.addVelocityChange = td;
         }
 
         void ChangeZWrite(ChangeEvent<bool> evt)

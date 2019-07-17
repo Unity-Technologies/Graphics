@@ -1,11 +1,8 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using UnityEngine.Rendering;
+using UnityEngine.Experimental.Rendering;
 
-namespace UnityEngine.Experimental.Rendering.HDPipeline
+namespace UnityEngine.Rendering.HighDefinition
 {
-    public class RenderPipelineMaterial : Object
+    class RenderPipelineMaterial : Object
     {
         // GBuffer management
         public virtual bool IsDefferedMaterial() { return false; }
@@ -18,7 +15,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
 
         // Regular interface
-        public virtual void Build(HDRenderPipelineAsset hdAsset) {}
+        public virtual void Build(HDRenderPipelineAsset hdAsset, RenderPipelineResources defaultResources) {}
         public virtual void Cleanup() {}
 
         // Following function can be use to initialize GPU resource (once or each frame) and bind them

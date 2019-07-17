@@ -1,7 +1,7 @@
 using System;
-using UnityEngine.Rendering;
+using UnityEngine.Experimental.Rendering;
 
-namespace UnityEngine.Experimental.Rendering.HDPipeline
+namespace UnityEngine.Rendering.HighDefinition
 {
     [Serializable, VolumeComponentMenu("Ray Tracing/Recursive Rendering")]
     public sealed class RecursiveRendering : VolumeComponent
@@ -17,7 +17,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     }
 
 #if ENABLE_RAYTRACING
-    public class HDRaytracingRenderer
+    class HDRaytracingRenderer
     {
         // External structures
         HDRenderPipelineAsset m_PipelineAsset = null;
@@ -27,8 +27,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         SharedRTManager m_SharedRTManager = null;
 
         // Intermediate buffer that stores the reflection pre-denoising
-        RTHandleSystem.RTHandle m_RaytracingFlagTarget = null;
-        RTHandleSystem.RTHandle m_DebugRaytracingTexture = null;
+        RTHandle m_RaytracingFlagTarget = null;
+        RTHandle m_DebugRaytracingTexture = null;
 
         // The kernel that allows us to override the color buffer
         Material m_RaytracingFlagMaterial = null;
@@ -86,10 +86,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public void EvaluateRaytracingMask(CullingResults cull, HDCamera hdCamera, CommandBuffer cmd, ScriptableRenderContext renderContext)
         {
             // Clear our target
-            HDUtils.SetRenderTarget(cmd, m_RaytracingFlagTarget, ClearFlag.Color, Color.black);
+            CoreUtils.SetRenderTarget(cmd, m_RaytracingFlagTarget, ClearFlag.Color, Color.black);
 
             // Bind out custom color texture
-            HDUtils.SetRenderTarget(cmd, m_RaytracingFlagTarget, m_SharedRTManager.GetDepthStencilBuffer());
+            CoreUtils.SetRenderTarget(cmd, m_RaytracingFlagTarget, m_SharedRTManager.GetDepthStencilBuffer());
 
             // This is done here because DrawRenderers API lives outside command buffers so we need to make call this before doing any DrawRenders
             renderContext.ExecuteCommandBuffer(cmd);
@@ -128,26 +128,24 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             renderContext.DrawRenderers(cull, ref drawSettings, ref filterSettings);
         }
 
-        public void Render(HDCamera hdCamera, CommandBuffer cmd, RTHandleSystem.RTHandle outputTexture, ScriptableRenderContext renderContext, CullingResults cull)
+        public void Render(HDCamera hdCamera, CommandBuffer cmd, RTHandle outputTexture, ScriptableRenderContext renderContext, CullingResults cull)
         {
             // First thing to check is: Do we have a valid ray-tracing environment?
             HDRaytracingEnvironment rtEnvironment = m_RaytracingManager.CurrentEnvironment();
-            HDRenderPipeline renderPipeline = m_RaytracingManager.GetRenderPipeline();
-            RayTracingShader forwardShader = m_PipelineAsset.renderPipelineRayTracingResources.forwardRaytracing;
-            Shader raytracingMask = m_PipelineAsset.renderPipelineRayTracingResources.raytracingFlagMask;
-
             RecursiveRendering recursiveSettings = VolumeManager.instance.stack.GetComponent<RecursiveRendering>();
-            LightCluster lightClusterSettings = VolumeManager.instance.stack.GetComponent<LightCluster>();
 
             // Check the validity of the state before computing the effect
             bool invalidState = rtEnvironment == null || !recursiveSettings.enable.value
-                || forwardShader == null || raytracingMask == null
-                || renderPipeline.asset.currentPlatformRenderPipelineSettings.supportedRaytracingTier == RenderPipelineSettings.RaytracingTier.Tier1
-                || m_PipelineResources.textures.owenScrambledTex == null || m_PipelineResources.textures.scramblingTex == null;
+            || m_PipelineAsset.currentPlatformRenderPipelineSettings.supportedRaytracingTier == RenderPipelineSettings.RaytracingTier.Tier1;
 
             // If any resource or game-object is missing We stop right away
             if (invalidState)
                 return;
+
+            HDRenderPipeline renderPipeline = m_RaytracingManager.GetRenderPipeline();
+            RayTracingShader forwardShader = m_PipelineAsset.renderPipelineRayTracingResources.forwardRaytracing;
+            Shader raytracingMask = m_PipelineAsset.renderPipelineRayTracingResources.raytracingFlagMask;
+            LightCluster lightClusterSettings = VolumeManager.instance.stack.GetComponent<LightCluster>();
 
             // Grab the acceleration structure and the list of HD lights for the target camera
             RayTracingAccelerationStructure accelerationStructure = m_RaytracingManager.RequestAccelerationStructure(rtEnvironment.raytracedLayerMask);
@@ -166,7 +164,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             cmd.SetRayTracingAccelerationStructure(forwardShader, HDShaderIDs._RaytracingAccelerationStructureName, accelerationStructure);
 
             // Inject the ray-tracing sampling data
-            cmd.SetRayTracingTextureParam(forwardShader, HDShaderIDs._OwenScrambledTexture, m_PipelineResources.textures.owenScrambledTex);
+            cmd.SetRayTracingTextureParam(forwardShader, HDShaderIDs._OwenScrambledTexture, m_PipelineResources.textures.owenScrambledRGBATex);
             cmd.SetRayTracingTextureParam(forwardShader, HDShaderIDs._ScramblingTexture, m_PipelineResources.textures.scramblingTex);
 
             // Inject the ray generation data

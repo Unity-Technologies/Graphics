@@ -206,7 +206,7 @@ Shader "Custom/StencilWriteShader"
 
             HLSLPROGRAM
             #pragma multi_compile _ WRITE_MSAA_DEPTH
-            
+
             #define SHADERPASS SHADERPASS_MOTION_VECTORS
 
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
@@ -318,5 +318,5 @@ Shader "Custom/StencilWriteShader"
         }
     }
 
-    CustomEditor "Experimental.Rendering.HDPipeline.UnlitGUI"
+    CustomEditor "Rendering.HighDefinition.UnlitGUI"
 }

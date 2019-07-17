@@ -3,9 +3,9 @@ using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEditor.Rendering;
 
-namespace UnityEditor.Experimental.Rendering.HDPipeline
+namespace UnityEditor.Rendering.HighDefinition
 {
-    public class UpgradeStandardShaderMaterials
+    class UpgradeStandardShaderMaterials
     {
         static List<MaterialUpgrader> GetHDUpgraders()
         {

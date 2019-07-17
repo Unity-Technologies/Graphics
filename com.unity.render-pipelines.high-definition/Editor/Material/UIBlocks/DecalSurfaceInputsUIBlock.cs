@@ -1,16 +1,16 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Experimental.Rendering.HDPipeline;
+using UnityEngine.Rendering.HighDefinition;
 using System.Linq;
 using UnityEngine.Rendering;
 
 // Include material common properties names
-using static UnityEngine.Experimental.Rendering.HDPipeline.HDMaterialProperties;
+using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
 
-namespace UnityEditor.Experimental.Rendering.HDPipeline
+namespace UnityEditor.Rendering.HighDefinition
 {
-    public class DecalSurfaceInputsUIBlock : MaterialUIBlock
+    class DecalSurfaceInputsUIBlock : MaterialUIBlock
     {
         public class Styles
         {
@@ -148,7 +148,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         MaterialProperty emissiveColorHDR = null;
         const string kEmissiveColorHDR = "_EmissiveColorHDR";
-        
+
         MaterialProperty emissiveExposureWeight = null;
         const string kEmissiveExposureWeight = "_EmissiveExposureWeight";
 
@@ -170,7 +170,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             maskBlendMode = FindProperty(kMaskBlendMode);
             maskmapMetal = FindProperty(kMaskmapMetal);
             maskmapAO = FindProperty(kMaskmapAO);
-            maskmapSmoothness = FindProperty(kMaskmapSmoothness);            
+            maskmapSmoothness = FindProperty(kMaskmapSmoothness);
             AORemapMin = FindProperty(kAORemapMin);
             AORemapMax = FindProperty(kAORemapMax);
             smoothnessRemapMin = FindProperty(kSmoothnessRemapMin);
@@ -240,7 +240,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 if (materials[0].GetTexture(kMaskMap))
                 {
                     EditorGUI.indentLevel++;
-                    
+
                     EditorGUILayout.MinMaxSlider(Styles.smoothnessRemappingText, ref smoothnessRemapMinValue, ref smoothnessRemapMaxValue, 0.0f, 1.0f);
                     if (perChannelMask)
                     {
@@ -296,7 +296,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 if (emissive.floatValue == 1.0f)
                 {
                     materialEditor.ShaderProperty(useEmissiveIntensity, Styles.useEmissionIntensityText);
-                    
+
                     if (useEmissiveIntensity.floatValue == 1.0f)
                     {
                         materialEditor.TexturePropertySingleLine(Styles.emissionMapText, emissiveColorMap, emissiveColorLDR);

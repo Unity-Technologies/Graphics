@@ -1,9 +1,7 @@
 using System;
 using UnityEditor;
-using UnityEngine;
-using UnityEngine.Rendering;
 
-namespace UnityEngine.Experimental.Rendering.HDPipeline
+namespace UnityEngine.Rendering.HighDefinition
 {
     [ExecuteAlways]
 #if UNITY_EDITOR
@@ -165,7 +163,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         /// <summary>current uv parameters in a way the DecalSystem will be able to use it</summary>
         internal Vector4 uvScaleBias => new Vector4(m_UVScale.x, m_UVScale.y, m_UVBias.x, m_UVBias.y);
 
-        public DecalSystem.DecalHandle Handle
+        internal DecalSystem.DecalHandle Handle
         {
             get
             {
@@ -176,7 +174,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 this.m_Handle = value;
             }
         }
-        
+
         public void OnEnable()
         {
             if (m_Material == null)
@@ -194,7 +192,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 DecalSystem.instance.RemoveDecal(m_Handle);
                 m_Handle = null;
             }
-            
+
             Matrix4x4 sizeOffset = Matrix4x4.Translate(decalOffset) * Matrix4x4.Scale(decalSize);
             m_Handle = DecalSystem.instance.AddDecal(position, rotation, Vector3.one, sizeOffset, m_DrawDistance, m_FadeScale, uvScaleBias, m_AffectsTransparency, m_Material, gameObject.layer, m_FadeFactor);
         }

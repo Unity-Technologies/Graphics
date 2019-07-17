@@ -1,20 +1,17 @@
-using System.Collections.Generic;
 using UnityEditor.Rendering;
 using UnityEngine;
-using UnityEngine.Experimental.Rendering.HDPipeline;
+using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.Rendering;
 
-namespace UnityEditor.Experimental.Rendering.HDPipeline
+namespace UnityEditor.Rendering.HighDefinition
 {
     [CustomEditor(typeof(DiffusionProfileSettings))]
-    public sealed partial class DiffusionProfileSettingsEditor : HDBaseEditor<DiffusionProfileSettings>
+    partial class DiffusionProfileSettingsEditor : HDBaseEditor<DiffusionProfileSettings>
     {
         sealed class Profile
         {
             internal SerializedProperty self;
             internal DiffusionProfile objReference;
-
-            internal SerializedProperty name;
 
             internal SerializedProperty scatteringDistance;
             internal SerializedProperty transmissionTint;
@@ -63,8 +60,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 self = serializedProfile,
                 objReference = m_Target.profile,
 
-                name = rp.Find(x => x.name),
-
                 scatteringDistance = rp.Find(x => x.scatteringDistance),
                 transmissionTint = rp.Find(x => x.transmissionTint),
                 texturingMode = rp.Find(x => x.texturingMode),
@@ -85,7 +80,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             m_Profile.Release();
 
             m_Profile = null;
-            
+
             Undo.undoRedoPerformed -= UpdateProfile;
         }
 
@@ -100,7 +95,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             var profile = m_Profile;
 
             EditorGUI.indentLevel++;
-            EditorGUILayout.PropertyField(profile.name);
 
             using (var scope = new EditorGUI.ChangeCheckScope())
             {

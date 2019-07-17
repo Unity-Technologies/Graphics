@@ -23,11 +23,11 @@ public class VFXManagerEditor : Editor
 
 
     const string HDRPPath = "Packages/com.unity.visualeffectgraph/Shaders/RenderPipeline/HDRP";
-    const string LWRPPath = "Packages/com.unity.visualeffectgraph/Shaders/RenderPipeline/LWRP";
+    const string UniversalPath = "Packages/com.unity.visualeffectgraph/Shaders/RenderPipeline/Universal";
 #if VFX_HAS_HDRP
     const string RPPath = HDRPPath;
-#elif VFX_HAS_LWRP
-    const string RPPath = LWRPPath;
+#elif VFX_HAS_UNIVERSAL
+    const string RPPath = UniversalPath;
 #else
     const string RPPath = "";
 #endif
@@ -36,8 +36,19 @@ public class VFXManagerEditor : Editor
     void OnEnable()
     {
         m_PathProperty = serializedObject.FindProperty("m_RenderPipeSettingsPath");
-        m_TimeProperties = new SerializedProperty[]{ serializedObject.FindProperty("m_FixedTimeStep"), serializedObject.FindProperty("m_MaxDeltaTime")};
-        m_ShaderProperties = new SerializedProperty[]{ serializedObject.FindProperty("m_IndirectShader"), serializedObject.FindProperty("m_CopyBufferShader"), serializedObject.FindProperty("m_SortShader")};
+
+        m_TimeProperties = new SerializedProperty[] {
+            serializedObject.FindProperty("m_FixedTimeStep"),
+            serializedObject.FindProperty("m_MaxDeltaTime")
+        };
+
+        m_ShaderProperties = new SerializedProperty[] {
+            serializedObject.FindProperty("m_IndirectShader"),
+            serializedObject.FindProperty("m_CopyBufferShader"),
+            serializedObject.FindProperty("m_SortShader"),
+            serializedObject.FindProperty("m_StripUpdateShader"),
+        };
+
         CheckVFXManager();
         serializedObject.Update();
     }
@@ -49,9 +60,9 @@ public class VFXManagerEditor : Editor
 
     static string GetDefaultPath()
     {
-#if VFX_HAS_HDRP && VFX_HAS_LWRP
-        if(GraphicsSettings.renderPipelineAsset != null && GraphicsSettings.renderPipelineAsset.GetType().Name == "LightweightRenderPipelineAsset")
-            return LWRPPath;
+#if VFX_HAS_HDRP && VFX_HAS_UNIVERSAL
+        if(GraphicsSettings.renderPipelineAsset != null && GraphicsSettings.renderPipelineAsset.GetType().Name == "UniversalRenderPipelineAsset")
+            return UniversalPath;
         else
             return HDRPPath;
 #else
@@ -66,7 +77,7 @@ public class VFXManagerEditor : Editor
             CheckVFXManager();
         serializedObject.Update();
         bool recompile = false;
-        
+
         EditorGUI.BeginChangeCheck();
         EditorGUILayout.LabelField(ObjectNames.NicifyVariableName(m_PathProperty.name));
         string resultPath = EditorGUILayout.DelayedTextField(m_PathProperty.stringValue);
@@ -135,8 +146,8 @@ public class VFXManagerEditor : Editor
             recompile = true;
         }
 #endif
-#if !VFX_HAS_LWRP
-        if (pathProperty.stringValue == LWRPPath)
+#if !VFX_HAS_UNIVERSAL
+        if (pathProperty.stringValue == UniversalPath)
         {
             pathProperty.stringValue = GetDefaultPath();
             recompile = true;
@@ -157,6 +168,12 @@ public class VFXManagerEditor : Editor
         if (sortProperty.objectReferenceValue == null)
         {
             sortProperty.objectReferenceValue = AssetDatabase.LoadAssetAtPath<ComputeShader>("Packages/com.unity.visualeffectgraph/Shaders/Sort.compute");
+        }
+
+        var updateStripProperty = obj.FindProperty("m_StripUpdateShader");
+        if (updateStripProperty != null && updateStripProperty.objectReferenceValue == null)
+        {
+            updateStripProperty.objectReferenceValue = AssetDatabase.LoadAssetAtPath<ComputeShader>("Packages/com.unity.visualeffectgraph/Shaders/UpdateStrips.compute");
         }
 
         obj.ApplyModifiedPropertiesWithoutUndo();

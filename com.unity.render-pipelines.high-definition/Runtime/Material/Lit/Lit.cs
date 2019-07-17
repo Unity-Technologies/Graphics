@@ -1,10 +1,9 @@
-using System;
-using UnityEngine.Experimental.Rendering.HDPipeline.Attributes;
-using UnityEngine.Rendering;
+using UnityEngine.Rendering.HighDefinition.Attributes;
+using UnityEngine.Experimental.Rendering;
 
-namespace UnityEngine.Experimental.Rendering.HDPipeline
+namespace UnityEngine.Rendering.HighDefinition
 {
-    public partial class Lit : RenderPipelineMaterial
+    partial class Lit : RenderPipelineMaterial
     {
         // Currently we have only one materialId (Standard GGX), so it is not store in the GBuffer and we don't test for it
 
@@ -35,9 +34,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             // Standard
             [MaterialSharedPropertyMapping(MaterialSharedProperty.Albedo)]
-            [SurfaceDataAttributes("Base Color", false, true)]
+            [SurfaceDataAttributes("Base Color", false, true, FieldPrecision.Real)]
             public Vector3 baseColor;
-            [SurfaceDataAttributes("Specular Occlusion")]
+            [SurfaceDataAttributes("Specular Occlusion", precision = FieldPrecision.Real)]
             public float specularOcclusion;
 
             [MaterialSharedPropertyMapping(MaterialSharedProperty.Normal)]
@@ -45,48 +44,48 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public Vector3 normalWS;
 
             [MaterialSharedPropertyMapping(MaterialSharedProperty.Smoothness)]
-            [SurfaceDataAttributes("Smoothness")]
+            [SurfaceDataAttributes("Smoothness", precision = FieldPrecision.Real)]
             public float perceptualSmoothness;
 
             [MaterialSharedPropertyMapping(MaterialSharedProperty.AmbientOcclusion)]
-            [SurfaceDataAttributes("Ambient Occlusion")]
+            [SurfaceDataAttributes("Ambient Occlusion", precision = FieldPrecision.Real)]
             public float ambientOcclusion;
 
             [MaterialSharedPropertyMapping(MaterialSharedProperty.Metal)]
-            [SurfaceDataAttributes("Metallic")]
+            [SurfaceDataAttributes("Metallic", precision = FieldPrecision.Real)]
             public float metallic;
 
-            [SurfaceDataAttributes("Coat mask")]
+            [SurfaceDataAttributes("Coat mask", precision = FieldPrecision.Real)]
             public float coatMask;
 
             // MaterialFeature dependent attribute
 
             // Specular Color
             [MaterialSharedPropertyMapping(MaterialSharedProperty.Specular)]
-            [SurfaceDataAttributes("Specular Color", false, true)]
+            [SurfaceDataAttributes("Specular Color", false, true, FieldPrecision.Real)]
             public Vector3 specularColor;
 
             // SSS
             [SurfaceDataAttributes("Diffusion Profile Hash")]
             public uint diffusionProfileHash;
-            [SurfaceDataAttributes("Subsurface Mask")]
+            [SurfaceDataAttributes("Subsurface Mask", precision = FieldPrecision.Real)]
             public float subsurfaceMask;
 
             // Transmission
             // + Diffusion Profile
-            [SurfaceDataAttributes("Thickness")]
+            [SurfaceDataAttributes("Thickness", precision = FieldPrecision.Real)]
             public float thickness;
 
             // Anisotropic
             [SurfaceDataAttributes("Tangent", true)]
             public Vector3 tangentWS;
-            [SurfaceDataAttributes("Anisotropy")]
+            [SurfaceDataAttributes("Anisotropy", precision = FieldPrecision.Real)]
             public float anisotropy; // anisotropic ratio(0->no isotropic; 1->full anisotropy in tangent direction, -1->full anisotropy in bitangent direction)
 
             // Iridescence
-            [SurfaceDataAttributes("Iridescence Layer Thickness")]
+            [SurfaceDataAttributes("Iridescence Layer Thickness", precision = FieldPrecision.Real)]
             public float iridescenceThickness;
-            [SurfaceDataAttributes("Iridescence Mask")]
+            [SurfaceDataAttributes("Iridescence Mask", precision = FieldPrecision.Real)]
             public float iridescenceMask;
 
             // Forward property only
@@ -96,13 +95,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Transparency
             // Reuse thickness from SSS
 
-            [SurfaceDataAttributes("Index of refraction")]
+            [SurfaceDataAttributes("Index of refraction", precision = FieldPrecision.Real)]
             public float ior;
-            [SurfaceDataAttributes("Transmittance Color")]
+            [SurfaceDataAttributes("Transmittance Color", precision = FieldPrecision.Real)]
             public Vector3 transmittanceColor;
-            [SurfaceDataAttributes("Transmittance Absorption Distance")]
+            [SurfaceDataAttributes("Transmittance Absorption Distance", precision = FieldPrecision.Real)]
             public float atDistance;
-            [SurfaceDataAttributes("Transmittance mask")]
+            [SurfaceDataAttributes("Transmittance mask", precision = FieldPrecision.Real)]
             public float transmittanceMask;
         };
 
@@ -115,17 +114,22 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             public uint materialFeatures;
 
-            [SurfaceDataAttributes("", false, true)]
+            [SurfaceDataAttributes("", false, true, FieldPrecision.Real)]
             public Vector3 diffuseColor;
+            [SurfaceDataAttributes(precision = FieldPrecision.Real)]
             public Vector3 fresnel0;
 
+            [SurfaceDataAttributes(precision = FieldPrecision.Real)]
             public float ambientOcclusion; // Caution: This is accessible only if light layer is enabled, otherwise it is 1
+            [SurfaceDataAttributes(precision = FieldPrecision.Real)]
             public float specularOcclusion;
 
             [SurfaceDataAttributes(new string[] { "Normal WS", "Normal View Space" }, true)]
             public Vector3 normalWS;
+            [SurfaceDataAttributes(precision = FieldPrecision.Real)]
             public float perceptualRoughness;
 
+            [SurfaceDataAttributes(precision = FieldPrecision.Real)]
             public float coatMask;
 
             // MaterialFeature dependent attribute
@@ -134,12 +138,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             // SSS
             public uint diffusionProfileIndex;
+            [SurfaceDataAttributes(precision = FieldPrecision.Real)]
             public float subsurfaceMask;
 
             // Transmission
             // + Diffusion Profile
+            [SurfaceDataAttributes(precision = FieldPrecision.Real)]
             public float thickness;
             public bool useThickObjectMode; // Read from the diffusion profile
+            [SurfaceDataAttributes(precision = FieldPrecision.Real)]
             public Vector3 transmittance;   // Precomputation of transmittance
 
             // Anisotropic
@@ -147,25 +154,34 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public Vector3 tangentWS;
             [SurfaceDataAttributes("", true)]
             public Vector3 bitangentWS;
+            [SurfaceDataAttributes(precision = FieldPrecision.Real)]
             public float roughnessT;
+            [SurfaceDataAttributes(precision = FieldPrecision.Real)]
             public float roughnessB;
+            [SurfaceDataAttributes(precision = FieldPrecision.Real)]
             public float anisotropy;
 
             // Iridescence
+            [SurfaceDataAttributes(precision = FieldPrecision.Real)]
             public float iridescenceThickness;
+            [SurfaceDataAttributes(precision = FieldPrecision.Real)]
             public float iridescenceMask;
 
             // ClearCoat
+            [SurfaceDataAttributes(precision = FieldPrecision.Real)]
             public float coatRoughness; // Automatically fill
 
             // Forward property only
-            [SurfaceDataAttributes(new string[] { "Geometric Normal", "Geometric Normal View Space" }, true)]
+            [SurfaceDataAttributes(new string[] { "Geometric Normal", "Geometric Normal View Space" }, true, precision = FieldPrecision.Real)]
             public Vector3 geomNormalWS;
 
             // Transparency
+            [SurfaceDataAttributes(precision = FieldPrecision.Real)]
             public float ior;
             // Reuse thickness from SSS
+            [SurfaceDataAttributes(precision = FieldPrecision.Real)]
             public Vector3 absorptionCoefficient;
+            [SurfaceDataAttributes(precision = FieldPrecision.Real)]
             public float transmittanceMask;
         };
 
@@ -177,7 +193,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         protected void GetGBufferOptions(HDRenderPipelineAsset asset, out int gBufferCount, out bool supportShadowMask, out bool supportLightLayers)
         {
-            // Caution: This must be in sync with GBUFFERMATERIAL_COUNT definition in 
+            // Caution: This must be in sync with GBUFFERMATERIAL_COUNT definition in
             supportShadowMask = asset.currentPlatformRenderPipelineSettings.supportShadowMask;
             supportLightLayers = asset.currentPlatformRenderPipelineSettings.supportLightLayers;
             gBufferCount = 4 + (supportShadowMask ? 1 : 0) + (supportLightLayers ? 1 : 0);
@@ -244,7 +260,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public Lit() {}
 
-        public override void Build(HDRenderPipelineAsset hdAsset)
+        public override void Build(HDRenderPipelineAsset hdAsset, RenderPipelineResources defaultResources)
         {
             PreIntegratedFGD.instance.Build(PreIntegratedFGD.FGDIndex.FGD_GGXAndDisneyDiffuse);
             LTCAreaLight.instance.Build();

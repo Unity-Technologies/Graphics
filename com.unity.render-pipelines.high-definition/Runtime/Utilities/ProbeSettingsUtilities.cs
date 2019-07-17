@@ -1,7 +1,6 @@
 using System;
-using UnityEngine.Rendering;
 
-namespace UnityEngine.Experimental.Rendering.HDPipeline
+namespace UnityEngine.Rendering.HighDefinition
 {
     /// <summary>Utilities for <see cref="ProbeSettings"/></summary>
     public static class ProbeSettingsUtilities
@@ -108,9 +107,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 case ProbeSettings.ProbeType.ReflectionProbe:
                     cameraSettings.customRenderingSettings = true;
-                    // Disable specular lighting for reflection probes, they must not have view dependent information when baking
-                    cameraSettings.renderingPathCustomFrameSettings.SetEnabled(FrameSettingsField.SpecularLighting, false);
-                    cameraSettings.renderingPathCustomFrameSettingsOverrideMask.mask[(int)FrameSettingsField.SpecularLighting] = true;
                     break;
             }
         }

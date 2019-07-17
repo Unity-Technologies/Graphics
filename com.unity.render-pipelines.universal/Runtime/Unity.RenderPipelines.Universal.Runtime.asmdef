@@ -1,0 +1,21 @@
+{
+    "name": "Unity.RenderPipelines.Universal.Runtime",
+    "references": [
+        "GUID:d60799ab2a985554ea1a39cd38695018",
+        "GUID:df380645f10b7bc4b97d4f5eb6303d95"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": true,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [
+        {
+            "name": "com.unity.postprocessing",
+            "expression": "2.0.0",
+            "define": "POST_PROCESSING_STACK_2_0_0_OR_NEWER"
+        }
+    ]
+}
