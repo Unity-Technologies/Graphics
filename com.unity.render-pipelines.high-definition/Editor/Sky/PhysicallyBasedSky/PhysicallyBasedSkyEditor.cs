@@ -28,10 +28,9 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             base.OnEnable();
 
-            m_CommonUIElementsMask = (uint)SkySettingsUIElement.UpdateMode;
-            // Even if not PBR we should probably add exposure/multiplier for the sake of consistency.
-                //| (uint)SkySettingsUIElement.Exposure
-                //| (uint)SkySettingsUIElement.Multiplier;
+            m_CommonUIElementsMask = (uint)SkySettingsUIElement.UpdateMode
+                                   | (uint)SkySettingsUIElement.Exposure
+                                   | (uint)SkySettingsUIElement.Multiplier;
 
             var o = new PropertyFetcher<PhysicallyBasedSky>(serializedObject);
 
@@ -55,22 +54,28 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public override void OnInspectorGUI()
         {
+            EditorGUILayout.LabelField("Geometry");
 			PropertyField(m_PlanetaryRadius);
 			PropertyField(m_PlanetCenterPosition);
+            EditorGUILayout.LabelField("Air");
 			PropertyField(m_AirAttenuationDistance);
 			PropertyField(m_AirAlbedo);
 			PropertyField(m_AirMaximumAltitude);
+            EditorGUILayout.LabelField("Aerosols");
 			PropertyField(m_AerosolAttenuationDistance);
 			PropertyField(m_AerosolAlbedo);
 			PropertyField(m_AerosolMaximumAltitude);
 			PropertyField(m_AerosolAnisotropy);
-			PropertyField(m_NumberOfBounces);
+            EditorGUILayout.LabelField("Planet");
+			PropertyField(m_PlanetRotation);
 			PropertyField(m_GroundColor);
 			PropertyField(m_GroundAlbedoTexture);
 			PropertyField(m_GroundEmissionTexture);
-			PropertyField(m_PlanetRotation);
-			PropertyField(m_SpaceEmissionTexture);
+            EditorGUILayout.LabelField("Space");
 			PropertyField(m_SpaceRotation);
+			PropertyField(m_SpaceEmissionTexture);
+            EditorGUILayout.LabelField("Miscellaneous");
+			PropertyField(m_NumberOfBounces);
 
             base.CommonSkySettingsGUI();
         }
