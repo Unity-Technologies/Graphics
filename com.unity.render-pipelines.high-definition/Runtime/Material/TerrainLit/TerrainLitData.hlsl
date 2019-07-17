@@ -224,5 +224,7 @@ void GetSurfaceAndBuiltinData(inout FragInputs input, float3 V, inout PositionIn
     ApplyDebugToSurfaceData(input.tangentToWorld, surfaceData);
 #endif
 
+    surfaceData.VTFeedback = float4(1, 1, 1, 1);
+
     GetBuiltinData(input, V, posInput, surfaceData, 1, bentNormalWS, 0, builtinData);
 }
