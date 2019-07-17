@@ -82,6 +82,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Remove the ReadOnly flag on Reflection Probe's cubemap assets during bake when there are no VCS active.
 - Fixed an issue where setting a material debug view would not reset the other exclusive modes
 - Spot light shapes are now correctly taken into account when baking
+- Now the static lighting sky will correctly take the default values for non-overridden properties
 
 ### Changed
 - Optimization: Reduce the group size of the deferred lighting pass from 16x16 to 8x8
