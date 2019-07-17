@@ -1,16 +1,15 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine.Assertions;
-using UnityEngine.Rendering;
 
-namespace UnityEngine.Experimental.Rendering.HDPipeline
+namespace UnityEngine.Rendering.HighDefinition
 {
     /// <summary>Called when the rendering has completed.</summary>
     /// <param name="cmd">A command buffer that can be used.</param>
     /// <param name="buffers">The buffers that has been requested.</param>
     /// <param name="outputProperties">Several properties that were computed for this frame.</param>
-    public delegate void FramePassCallback(CommandBuffer cmd, List<RTHandleSystem.RTHandle> buffers, RenderOutputProperties outputProperties);
-    public delegate RTHandleSystem.RTHandle AOVRequestBufferAllocator(AOVBuffers aovBufferId);
+    public delegate void FramePassCallback(CommandBuffer cmd, List<RTHandle> buffers, RenderOutputProperties outputProperties);
+    public delegate RTHandle AOVRequestBufferAllocator(AOVBuffers aovBufferId);
 
     /// <summary>Describes a frame pass.</summary>
     public struct AOVRequestData
@@ -55,7 +54,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         /// <summary>Allocate texture if required.</summary>
         /// <param name="textures">A buffer of texture ready to use.</param>
-        public void AllocateTargetTexturesIfRequired(ref List<RTHandleSystem.RTHandle> textures)
+        public void AllocateTargetTexturesIfRequired(ref List<RTHandle> textures)
         {
             if (!isValid || textures == null)
                 return;
@@ -74,12 +73,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         /// <param name="camera">The camera associated with the source texture.</param>
         /// <param name="source">The source texture to copy</param>
         /// <param name="targets">The target texture buffer.</param>
-        public void PushCameraTexture(
+        internal void PushCameraTexture(
             CommandBuffer cmd,
             AOVBuffers aovBufferId,
             HDCamera camera,
-            RTHandleSystem.RTHandle source,
-            List<RTHandleSystem.RTHandle> targets
+            RTHandle source,
+            List<RTHandle> targets
         )
         {
             if (!isValid)
@@ -99,7 +98,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         /// <param name="cmd">The command buffer to use.</param>
         /// <param name="framePassTextures">The textures to use.</param>
         /// <param name="outputProperties">The properties computed for this frame.</param>
-        public void Execute(CommandBuffer cmd, List<RTHandleSystem.RTHandle> framePassTextures, RenderOutputProperties outputProperties)
+        public void Execute(CommandBuffer cmd, List<RTHandle> framePassTextures, RenderOutputProperties outputProperties)
         {
             if (!isValid)
                 return;

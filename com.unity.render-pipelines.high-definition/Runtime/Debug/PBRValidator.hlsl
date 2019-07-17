@@ -28,7 +28,7 @@ float4 pbrDiffuseColorValidate(float3 diffuseColor, float3 specularColor, bool i
     // Check if we are pure metal with black albedo
     if (_DebugLightingMaterialValidatePureMetalColor.x > 0.0 && isMetal && value != 0.0)
     {
-    return float4(_DebugLightingMaterialValidatePureMetalColor.yzw, 0);
+        return float4(_DebugLightingMaterialValidatePureMetalColor.yzw, 0);
     }
 
     // If we have a metallic object, don't complain about low albedo

@@ -3,7 +3,9 @@
 #ifndef UNITY_SHADER_VARIABLES_INCLUDED
 #define UNITY_SHADER_VARIABLES_INCLUDED
 
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Version.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderConfig.cs.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition-config/Runtime/ShaderConfig.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/TextureXR.hlsl"
 
 // CAUTION:
@@ -188,11 +190,13 @@ CBUFFER_START(UnityGlobal)
     float4 _TaaJitterStrength;          // { x, y, x/width, y/height }
 
     // t = animateMaterials ? Time.realtimeSinceStartup : 0.
+    // We keep all those time value for compatibility with legacy unity but prefer _TimeParameters instead.
     float4 _Time;                       // { t/20, t, t*2, t*3 }
-    float4 _LastTime;                   // { t/20, t, t*2, t*3 }
     float4 _SinTime;                    // { sin(t/8), sin(t/4), sin(t/2), sin(t) }
     float4 _CosTime;                    // { cos(t/8), cos(t/4), cos(t/2), cos(t) }
     float4 unity_DeltaTime;             // { dt, 1/dt, smoothdt, 1/smoothdt }
+    float4 _TimeParameters;             // { t, sin(t), cos(t) }
+    float4 _LastTimeParameters;         // { t, sin(t), cos(t) }
 
     // Volumetric lighting.
     float4 _AmbientProbeCoeffs[7];      // 3 bands of SH, packed, rescaled and convolved with the phase function
@@ -229,7 +233,8 @@ CBUFFER_START(UnityGlobal)
 
     #define DEFAULT_LIGHT_LAYERS 0xFF
     uint _EnableLightLayers;
-    uint _EnableSpecularLighting;
+    float _ReplaceDiffuseForIndirect;
+    uint _EnableSkyLighting;
 
     uint _EnableSSRefraction;
 
@@ -315,6 +320,12 @@ float4x4 ApplyCameraTranslationToInverseMatrix(float4x4 inverseModelMatrix)
 #endif
 }
 
+void ApplyCameraRelativeXR(inout float3 positionWS)
+{
+#if (SHADEROPTIONS_CAMERA_RELATIVE_RENDERING != 0) && defined(USING_STEREO_MATRICES)
+    positionWS += _WorldSpaceCameraPosViewOffset;
+#endif
+}
 
 float GetCurrentExposureMultiplier()
 {
@@ -369,13 +380,6 @@ float2 ClampAndScaleUVForBilinear(float2 UV)
 float2 ClampAndScaleUVForPoint(float2 UV)
 {
     return min(UV, 1.0f) * _RTHandleScale.xy;
-}
-
-bool ReplaceDiffuseForReflectionPass(float3 fresnel0)
-{
-    // we want to use Fresnel0 instead diffuse when doing reflection (reflection probe, planar reflection,
-    // DXR reflection). Dieletric are suppose to have a fresnel of around 0.04. Let's consider anything above 0.3 as metal.
-    return (_EnableSpecularLighting.x == 0) && Max3(fresnel0.r, fresnel0.g, fresnel0.b) > 0.3;
 }
 
 // Define Model Matrix Macro

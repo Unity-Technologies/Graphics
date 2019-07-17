@@ -1,8 +1,7 @@
 using System;
 using System.Diagnostics;
-using UnityEngine.Rendering;
 
-namespace UnityEngine.Experimental.Rendering.HDPipeline
+namespace UnityEngine.Rendering.HighDefinition
 {
     // This class is used to associate a unique ID to a sky class.
     // This is needed to be able to automatically register sky classes and avoid collisions and refactoring class names causing data compatibility issues.
@@ -18,9 +17,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     }
 
     [Serializable, DebuggerDisplay(k_DebuggerDisplay)]
-    public sealed class EnvUpdateParameter : VolumeParameter<EnvironementUpdateMode>
+    public sealed class EnvUpdateParameter : VolumeParameter<EnvironmentUpdateMode>
     {
-        public EnvUpdateParameter(EnvironementUpdateMode value, bool overrideState = false)
+        public EnvUpdateParameter(EnvironmentUpdateMode value, bool overrideState = false)
             : base(value, overrideState) {}
     }
 
@@ -60,7 +59,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         [Tooltip("Sets the absolute intensity (in Lux) of the current HDR texture set in HDRI Sky. Functions as a Lux intensity multiplier for the sky.")]
         public FloatParameter           desiredLuxValue = new FloatParameter(20000);
         [Tooltip("Specifies when HDRP updates the environment lighting. When set to OnDemand, use HDRenderPipeline.RequestSkyEnvironmentUpdate() to request an update.")]
-        public EnvUpdateParameter       updateMode = new EnvUpdateParameter(EnvironementUpdateMode.OnChanged);
+        public EnvUpdateParameter       updateMode = new EnvUpdateParameter(EnvironmentUpdateMode.OnChanged);
         [Tooltip("Sets the period, in seconds, at which HDRP updates the environment ligting (0 means HDRP updates it every frame).")]
         public MinFloatParameter        updatePeriod = new MinFloatParameter(0.0f, 0.0f);
         [Tooltip("When enabled, HDRP uses the Sun Disk in baked lighting.")]

@@ -27,7 +27,7 @@ Use the gear icon in the top right corner of the node to open the [Custom Port M
 | Body | A text box where you enter HLSL code. **Only available in `String` mode**. |
 
 ### Defining the Function via String 
-If you select `String` mode, the graph generates the shader function. The `Name` field defines the name of the generated function, and the `Body` field defines the contents of the generated function. The arguments, braces, and indent scope are handled automatically.
+If you select `String` mode, the graph generates the shader function. The `Name` field defines the name of the generated function, and the `Body` field defines the contents of the generated function. The arguments, braces, and indent scope are handled automatically. In `String` mode you may use the token `$precision` instead of `half` or `float` when filling out the `Body` field. This will be replaced by the correct type, based on that node's precision, when the node is processed.
 
 ![04](images/Custom-Function-Node-String-wFunction.png)
 
@@ -40,7 +40,7 @@ If you select `File` mode, the graph does not automatically generate the shader 
 
 ![06](images/Custom-Function-Node-File-wFunction.png)
 
-When you use `File` mode for the Custom Function node, you must manually format the functions properly. One thing to note when creating custom functions for [Shader Graph](Shader-Graph.md) is the precision suffixes. The generated code appends a precision suffix to function names. Your include file function must also append your desired precision suffix (shown below with `float`), but your `Name` field **must not include the precision suffix**. 
+When you use `File` mode for the Custom Function node, you must manually format the functions properly. One thing to note when creating custom functions for [Shader Graph](Shader-Graph.md) is the precision suffixes. The generated code appends a precision suffix to function names. Your include file function must also append your desired precision suffix (shown below with `_float`), or contain multiple functions with both `_float` and `_half` suffixes, but your `Name` field **must not include the precision suffix**. 
 
 ![07](images/Custom-Function-Node-File-Function-01.png)
 

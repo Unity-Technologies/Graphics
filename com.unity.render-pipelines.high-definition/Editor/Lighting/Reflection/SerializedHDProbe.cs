@@ -1,17 +1,25 @@
-using UnityEditor.Rendering;
-using UnityEngine.Experimental.Rendering.HDPipeline;
+using System;
+using UnityEngine.Rendering.HighDefinition;
 
-namespace UnityEditor.Experimental.Rendering.HDPipeline
+namespace UnityEditor.Rendering.HighDefinition
 {
     internal abstract class SerializedHDProbe
     {
+        [Flags]
+        internal enum EditorOnlyData
+        {
+            None = 0,
+            CaptureSettingsIsAdvanced = 1 << 0
+        }
+
         internal SerializedObject serializedObject;
-        
+
         internal SerializedProperty bakedTexture;
         internal SerializedProperty customTexture;
         internal SerializedProbeSettings probeSettings;
         internal SerializedProbeSettingsOverride probeSettingsOverride;
         internal SerializedProperty proxyVolume;
+        internal SerializedProperty editorOnlyData;
 
         internal HDProbe target { get { return serializedObject.targetObject as HDProbe; } }
 
@@ -24,6 +32,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             proxyVolume = serializedObject.Find((HDProbe p) => p.proxyVolume);
             probeSettings = new SerializedProbeSettings(serializedObject.FindProperty("m_ProbeSettings"));
             probeSettingsOverride = new SerializedProbeSettingsOverride(serializedObject.FindProperty("m_ProbeSettingsOverride"));
+            editorOnlyData = serializedObject.FindProperty("m_EditorOnlyData");
         }
 
         internal virtual void Update()
@@ -38,5 +47,17 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
             serializedObject.ApplyModifiedProperties();
         }
+
+        internal bool GetEditorOnlyData(EditorOnlyData mask) => (editorOnlyData.intValue & (int) mask) == (int) mask;
+
+        internal void SetEditorOnlyData(EditorOnlyData mask, bool value)
+        {
+            if (value)
+                editorOnlyData.intValue |= (int) mask;
+            else
+                editorOnlyData.intValue &= ~(int)mask;
+        }
+
+        internal void ToggleEditorOnlyData(EditorOnlyData mask) => SetEditorOnlyData(mask, !GetEditorOnlyData(mask));
     }
 }

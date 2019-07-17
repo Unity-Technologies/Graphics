@@ -2,7 +2,7 @@ using System;
 using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Experimental.VFX;
+using UnityEngine.VFX;
 
 namespace UnityEditor.VFX.Block
 {
@@ -94,9 +94,9 @@ namespace UnityEditor.VFX.Block
             {
                 case CurveSampleMode.OverLife: n += " over Life"; break;
                 case CurveSampleMode.BySpeed: n += " by Speed"; break;
-                case CurveSampleMode.Random: n += " randomized"; break;
-                case CurveSampleMode.RandomConstantPerParticle: n += " randomized"; break;
-                case CurveSampleMode.Custom: n += " custom"; break;
+                case CurveSampleMode.Random: n += $" Random from {(attribute == VFXAttribute.Color.name ? "Gradient" : "Curve")}"; break;
+                case CurveSampleMode.RandomConstantPerParticle: n += $" Random from {(attribute == VFXAttribute.Color.name ? "Gradient" : "Curve")} (Constant per-particle)"; break;
+                case CurveSampleMode.Custom: n += " Custom"; break;
                 default:
                     throw new NotImplementedException("Invalid CurveSampleMode");
             }
@@ -124,8 +124,8 @@ namespace UnityEditor.VFX.Block
             }
         }
 
-        public override VFXContextType compatibleContexts { get { return VFXContextType.kInitAndUpdateAndOutput; } }
-        public override VFXDataType compatibleData { get { return VFXDataType.kParticle; } }
+        public override VFXContextType compatibleContexts { get { return VFXContextType.InitAndUpdateAndOutput; } }
+        public override VFXDataType compatibleData { get { return VFXDataType.Particle; } }
 
         public override IEnumerable<VFXAttributeInfo> attributes
         {

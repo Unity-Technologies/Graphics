@@ -22,30 +22,13 @@ namespace UnityEditor.ShaderGraph
             properties.Add(chunk);
         }
 
-        public string GetPropertiesBlock(int baseIndentLevel)
+        public void GetPropertiesDeclaration(ShaderStringBuilder builder, GenerationMode mode, ConcretePrecision inheritedPrecision)
         {
-            var sb = new StringBuilder();
-            foreach (var prop in properties.Where(x => x.generatePropertyBlock))
+            foreach (var prop in properties)
             {
-                for (var i = 0; i < baseIndentLevel; i++)
-                {
-                    //sb.Append("\t");
-                    sb.Append("    "); // unity convention use space instead of tab...
-                }
-                sb.AppendLine(prop.GetPropertyBlockString());
+                prop.ValidateConcretePrecision(inheritedPrecision);
             }
-            return sb.ToString();
-        }
 
-        public string GetPropertiesDeclaration(int baseIndentLevel, GenerationMode mode)
-        {
-            var builder = new ShaderStringBuilder(baseIndentLevel);
-            GetPropertiesDeclaration(builder, mode);
-            return builder.ToString();
-        }
-
-        public void GetPropertiesDeclaration(ShaderStringBuilder builder, GenerationMode mode)
-        {
             var batchAll = mode == GenerationMode.Preview;
             builder.AppendLine("CBUFFER_START(UnityPerMaterial)");
             foreach (var prop in properties.Where(n => batchAll || (n.generatePropertyBlock && n.isBatchable)))

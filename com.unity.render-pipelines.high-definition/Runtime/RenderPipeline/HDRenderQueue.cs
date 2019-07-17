@@ -1,7 +1,6 @@
 using System;
-using UnityEngine.Rendering;
 
-namespace UnityEngine.Experimental.Rendering.HDPipeline
+namespace UnityEngine.Rendering.HighDefinition
 {
     // In HD we don't expose HDRenderQueue instead we create as much value as needed in the enum for our different pass
     // and use inspector to manipulate the value.
@@ -287,6 +286,30 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     return RenderQueueType.RaytracingTransparent;
                 default:
                     throw new ArgumentException("Unknown TransparentRenderQueue, was " + transparentRenderqueue);
+            }
+        }
+
+        public static string GetShaderTagValue(int index)
+        {
+            // Special case for transparent (as we have transparent range from PreRefractionFirst to AfterPostprocessTransparentLast
+            // that start before RenderQueue.Transparent value
+            if (HDRenderQueue.k_RenderQueue_AllTransparent.Contains(index)
+                || HDRenderQueue.k_RenderQueue_AfterPostProcessTransparent.Contains(index)
+                || HDRenderQueue.k_RenderQueue_LowTransparent.Contains(index))
+            {
+                int v = (index - (int)RenderQueue.Transparent);
+                return "Transparent" + ((v < 0) ? "" : "+") + v;
+            }
+            else if (index >= (int)RenderQueue.Overlay)
+                return "Overlay+" + (index - (int)RenderQueue.Overlay);
+            else if (index >= (int)RenderQueue.AlphaTest)
+                return "AlphaTest+" + (index - (int)RenderQueue.AlphaTest);
+            else if (index >= (int)RenderQueue.Geometry)
+                return "Geometry+" + (index - (int)RenderQueue.Geometry);
+            else
+            {
+                int v = (index - (int)RenderQueue.Background);
+                return "Background" + ((v < 0) ? "" : "+") + v;
             }
         }
     }

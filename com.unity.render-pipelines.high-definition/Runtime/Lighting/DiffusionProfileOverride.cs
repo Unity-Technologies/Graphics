@@ -1,7 +1,6 @@
 using System;
-using UnityEngine.Rendering;
 
-namespace UnityEngine.Experimental.Rendering.HDPipeline
+namespace UnityEngine.Rendering.HighDefinition
 {
     [Serializable, VolumeComponentMenu("Diffusion Profile Override")]
     public sealed class DiffusionProfileOverride : VolumeComponent

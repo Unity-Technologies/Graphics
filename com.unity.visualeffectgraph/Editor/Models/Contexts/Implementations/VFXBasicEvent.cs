@@ -1,7 +1,7 @@
 using System;
 using System.Linq;
 using UnityEngine;
-using UnityEngine.Experimental.VFX;
+using UnityEngine.VFX;
 
 namespace UnityEditor.VFX
 {
@@ -9,7 +9,7 @@ namespace UnityEditor.VFX
     {
         public void OnClicked(string value)
         {
-            var allComponent = UnityEngine.Experimental.VFX.VFXManager.GetComponents();
+            var allComponent = UnityEngine.VFX.VFXManager.GetComponents();
             foreach (var component in allComponent)
             {
                 component.SendEvent(value);
@@ -20,10 +20,12 @@ namespace UnityEditor.VFX
     [VFXInfo]
     class VFXBasicEvent : VFXContext
     {
-        [VFXSetting, PushButton(typeof(LaunchEventBehavior), "Send"), Delayed]
-        public string eventName = "OnPlay";
 
-        public VFXBasicEvent() : base(VFXContextType.kEvent, VFXDataType.kNone, VFXDataType.kSpawnEvent) {}
+
+        [VFXSetting, PushButton(typeof(LaunchEventBehavior), "Send"), Delayed]
+        public string eventName = VisualEffectAsset.PlayEventName;
+
+        public VFXBasicEvent() : base(VFXContextType.Event, VFXDataType.None, VFXDataType.SpawnEvent) {}
         public override string name { get { return "Event"; } }
 
         public override VFXExpressionMapper GetExpressionMapper(VFXDeviceTarget target)

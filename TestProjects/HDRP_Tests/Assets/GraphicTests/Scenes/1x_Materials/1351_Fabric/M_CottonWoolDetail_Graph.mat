@@ -9,16 +9,16 @@ Material:
   m_PrefabAsset: {fileID: 0}
   m_Name: M_CottonWoolDetail_Graph
   m_Shader: {fileID: 4800000, guid: 9fa8750eedf71fc46a72a9330d155885, type: 3}
-  m_ShaderKeywords: _DETAIL_MAP _MATERIAL_FEATURE_COTTON_WOOL _THREAD_MAP _USENORMALMAP_ON
-    _USETHREADMAP_ON _UVSEC_UV1
+  m_ShaderKeywords: _DISABLE_SSR
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
-  m_CustomRenderQueue: -1
+  m_CustomRenderQueue: 2000
   stringTagMap:
     MotionVector: User
   disabledShaderPasses:
   - MOTIONVECTORS
+  - TransparentBackface
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
@@ -132,11 +132,13 @@ Material:
     - _AORemapMin: 0
     - _ATDistance: 1
     - _AlbedoAffectEmissive: 0
-    - _AlphaCutoff: 0.304
+    - _AlphaCutoff: 0.5
     - _AlphaCutoffEnable: 0
     - _AlphaCutoffPostpass: 0.5
     - _AlphaCutoffPrepass: 0.5
     - _AlphaCutoutThreshold: 0
+    - _AlphaDstBlend: 0
+    - _AlphaSrcBlend: 1
     - _Anisotropy: 0.299
     - _BlendMode: 0
     - _CoatMask: 0
@@ -167,7 +169,7 @@ Material:
     - _DistortionVectorBias: -1
     - _DistortionVectorScale: 2
     - _DoubleSidedEnable: 0
-    - _DoubleSidedNormalMode: 1
+    - _DoubleSidedNormalMode: 0
     - _Drag: 1
     - _DstBlend: 0
     - _EmissiveColorMode: 1
@@ -213,7 +215,9 @@ Material:
     - _PPDPrimitiveLength: 1
     - _PPDPrimitiveWidth: 1
     - _PreRefractionPass: 0
+    - _ReceivesSSR: 0
     - _RefractionModel: 0
+    - _RequireSplitLighting: 0
     - _SSRefractionProjectionModel: 0
     - _ShiverDirectionality: 0.5
     - _ShiverDrag: 0.2
@@ -226,9 +230,15 @@ Material:
     - _SpecularAAThreshold: 0.2
     - _SrcBlend: 1
     - _StencilRef: 2
-    - _StencilRefMV: 128
-    - _StencilWriteMask: 7
-    - _StencilWriteMaskMV: 128
+    - _StencilRefDepth: 32
+    - _StencilRefDistortionVec: 64
+    - _StencilRefGBuffer: 34
+    - _StencilRefMV: 160
+    - _StencilWriteMask: 3
+    - _StencilWriteMaskDepth: 48
+    - _StencilWriteMaskDistortionVec: 64
+    - _StencilWriteMaskGBuffer: 51
+    - _StencilWriteMaskMV: 176
     - _Stiffness: 1
     - _SubsurfaceMask: 1
     - _SupportDecals: 1
@@ -245,6 +255,7 @@ Material:
     - _ThreadSmoothnessScale: 0.5
     - _TransmissionEnable: 1
     - _TransparentBackfaceEnable: 0
+    - _TransparentCullMode: 2
     - _TransparentDepthPostpassEnable: 0
     - _TransparentDepthPrepassEnable: 0
     - _TransparentSortPriority: 0
@@ -252,9 +263,11 @@ Material:
     - _UVDetail: 0
     - _UVEmissive: 0
     - _UVThread: 0
+    - _UseShadowThreshold: 0
     - _ZTestDepthEqualForOpaque: 3
     - _ZTestGBuffer: 4
     - _ZTestModeDistortion: 8
+    - _ZTestTransparent: 4
     - _ZWrite: 1
     - _normalScale: 0
     - _useNormalMap: 1

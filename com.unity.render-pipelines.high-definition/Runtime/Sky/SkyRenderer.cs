@@ -1,6 +1,4 @@
-using UnityEngine.Rendering;
-
-namespace UnityEngine.Experimental.Rendering.HDPipeline
+namespace UnityEngine.Rendering.HighDefinition
 {
     public abstract class SkyRenderer
     {
@@ -19,6 +17,18 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 debugExposure = debugSettings.data.lightingDebugSettings.debugExposure;
             }
             return ColorUtils.ConvertEV100ToExposure(-(skySettings.exposure.value + debugExposure));
+        }
+
+        public static void SetGlobalNeutralSkyData(CommandBuffer cmd)
+        {
+            cmd.SetGlobalTexture(HDShaderIDs._AirSingleScatteringTexture,     CoreUtils.blackVolumeTexture);
+            cmd.SetGlobalTexture(HDShaderIDs._AerosolSingleScatteringTexture, CoreUtils.blackVolumeTexture);
+            cmd.SetGlobalTexture(HDShaderIDs._MultipleScatteringTexture,      CoreUtils.blackVolumeTexture);
+        }
+
+        public virtual void SetGlobalSkyData(CommandBuffer cmd)
+        {
+            SetGlobalNeutralSkyData(cmd);
         }
     }
 }

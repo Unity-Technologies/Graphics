@@ -1,7 +1,12 @@
 {
     "name": "Unity.RenderPipelines.Core.Runtime",
-    "optionalUnityReferences": [],
+    "references": [],
     "includePlatforms": [],
     "excludePlatforms": [],
-    "allowUnsafeCode": true
+    "allowUnsafeCode": true,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": []
 }

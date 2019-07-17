@@ -2,10 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
-using UnityEngine.Experimental.Rendering;
-using UnityEngine.Experimental.Rendering.HDPipeline;
-using UnityEditor.Experimental.Rendering;
-using UnityEditor.Experimental.Rendering.HDPipeline;
+using UnityEngine.Rendering.HighDefinition;
 
 [DisallowMultipleComponent]
 [CustomEditor(typeof(DebugViewController))]
@@ -28,7 +25,7 @@ public class DebugViewController_Editor : Editor
     {
         //base.OnInspectorGUI();
 
-        if ( ( (UnityEngine.Experimental.Rendering.HDPipeline.HDRenderPipelineAsset) UnityEngine.Rendering.GraphicsSettings.renderPipelineAsset ) != null ) // avoid displaying the following if the assigned RP is not a HDRP
+        if ( ( (UnityEngine.Rendering.HighDefinition.HDRenderPipelineAsset) UnityEngine.Rendering.GraphicsSettings.renderPipelineAsset ) != null ) // avoid displaying the following if the assigned RP is not a HDRP
         {
             int i_settingType = s_settingType.intValue;//= (int) (target as DebugViewController).settingType;
 

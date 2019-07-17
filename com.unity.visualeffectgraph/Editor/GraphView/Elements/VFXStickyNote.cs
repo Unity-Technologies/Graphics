@@ -66,7 +66,7 @@ namespace UnityEditor.VFX.UI
 
         public override void OnResized()
         {
-            controller.position = new Rect(resolvedStyle.left, resolvedStyle.top, resolvedStyle.width, resolvedStyle.height);
+            controller.position = new Rect(resolvedStyle.left, resolvedStyle.top, style.width.value.value, style.height.value.value);
         }
 
         Controller IControlledElement.controller

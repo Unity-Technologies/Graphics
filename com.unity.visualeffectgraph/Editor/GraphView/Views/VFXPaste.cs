@@ -3,6 +3,7 @@ using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UIElements;
+using UnityEditor.VFX;
 
 using NodeID = System.UInt32;
 
@@ -28,10 +29,26 @@ namespace UnityEditor.VFX.UI
 
             if (s_Instance == null)
                 s_Instance = new VFXPaste();
-            s_Instance.Paste(viewController, center, serializableGraph, view, groupNode);
+            s_Instance.DoPaste(viewController, center, serializableGraph, view, groupNode, null);
         }
 
-        public void Paste(VFXViewController viewController, Vector2 center, object data, VFXView view, VFXGroupNodeController groupNode)
+        public static void Paste(VFXViewController viewController, Vector2 center, object data, VFXView view, VFXGroupNodeController groupNode, List<VFXNodeController> nodesInTheSameOrder = null)
+        {
+            if (s_Instance == null)
+                s_Instance = new VFXPaste();
+            s_Instance.DoPaste(viewController, center, data, view, groupNode, nodesInTheSameOrder);
+        }
+
+
+        public static void PasteBlocks(VFXViewController viewController, object data, VFXContext targetModelContext, int targetIndex, List<VFXBlockController> blocksInTheSameOrder)
+        {    
+            if (s_Instance == null)
+                s_Instance = new VFXPaste();
+
+            s_Instance.PasteBlocks(viewController, (data as SerializableGraph).operators, targetModelContext, targetIndex, blocksInTheSameOrder);
+        }
+
+        void DoPaste(VFXViewController viewController, Vector2 center, object data, VFXView view, VFXGroupNodeController groupNode, List<VFXNodeController> nodesInTheSameOrder)
         {
             SerializableGraph serializableGraph = (SerializableGraph)data;
 
@@ -44,7 +61,7 @@ namespace UnityEditor.VFX.UI
             }
             else
             {
-                PasteAll(viewController, center, ref serializableGraph, view, groupNode);
+                PasteAll(viewController, center, ref serializableGraph, view, groupNode, nodesInTheSameOrder);
             }
         }
 
@@ -81,39 +98,63 @@ namespace UnityEditor.VFX.UI
                 targetIndex = targetModelContext.GetIndex(targetBlock.controller.model) + 1;
             }
 
-            var newBlocks = new HashSet<VFXBlock>();
+            targetIndex = PasteBlocks(view.controller, serializableGraph.operators, targetModelContext, targetIndex);
 
+            targetModelContext.Invalidate(VFXModel.InvalidationCause.kStructureChanged);
+
+            if (view != null)
+            {
+                view.ClearSelection();
+
+                foreach (var uiBlock in targetContext.Query().OfType<VFXBlockUI>().Where(t => m_NodesInTheSameOrder.Any(u=> u.model == t.controller.model)).ToList())
+                    view.AddToSelection(uiBlock);
+            }
+        }
+
+        private int PasteBlocks(VFXViewController viewController, Node[] blocks, VFXContext targetModelContext, int targetIndex,List<VFXBlockController> blocksInTheSameOrder = null)
+        {
             newControllers.Clear();
-
-            foreach (var block in serializableGraph.operatorsOrBlocks)
+            m_NodesInTheSameOrder = new VFXNodeID[blocks.Length];
+            int cpt = 0;
+            foreach (var block in blocks)
             {
                 Node blk = block;
-                VFXBlock newBlock = PasteAndInitializeNode<VFXBlock>(view.controller, ref blk);
+                VFXBlock newBlock = PasteAndInitializeNode<VFXBlock>(viewController, ref blk);
 
                 if (targetModelContext.AcceptChild(newBlock, targetIndex))
                 {
-                    newBlocks.Add(newBlock);
+                    m_NodesInTheSameOrder[cpt] = new VFXNodeID(newBlock, 0);
                     targetModelContext.AddChild(newBlock, targetIndex, false); // only notify once after all blocks have been added
 
                     targetIndex++;
                 }
+
+                ++cpt;
             }
 
-            targetModelContext.Invalidate(VFXModel.InvalidationCause.kStructureChanged);
 
-            //TODO fill infos.indexToController for when external links will be optionally copied.
+            var targetContextController = viewController.GetRootNodeController(targetModelContext, 0)as VFXContextController;
+            targetContextController.ApplyChanges();
 
-            view.ClearSelection();
-
-            foreach (var uiBlock in targetContext.Query().OfType<VFXBlockUI>().Where(t => newBlocks.Contains(t.controller.model)).ToList())
+            if ( blocksInTheSameOrder != null)
             {
-                view.AddToSelection(uiBlock);
+                blocksInTheSameOrder.Clear();
+                for (int i = 0; i < m_NodesInTheSameOrder.Length; ++i)
+                {
+                    blocksInTheSameOrder.Add(m_NodesInTheSameOrder[i].model != null ? targetContextController.blockControllers.First(t=>t.model == m_NodesInTheSameOrder[i].model as VFXBlock): null);
+                }
             }
+
+            return targetIndex;
         }
 
-        void PasteAll(VFXViewController viewController, Vector2 center, ref SerializableGraph serializableGraph, VFXView view, VFXGroupNodeController groupNode)
+        VFXNodeID[] m_NodesInTheSameOrder = null;
+
+        void PasteAll(VFXViewController viewController, Vector2 center, ref SerializableGraph serializableGraph, VFXView view, VFXGroupNodeController groupNode, List<VFXNodeController> nodesInTheSameOrder)
         {
             newControllers.Clear();
+
+            m_NodesInTheSameOrder = new VFXNodeID[serializableGraph.controllerCount];
 
             var graph = viewController.graph;
             pasteOffset = (serializableGraph.bounds.width > 0 && serializableGraph.bounds.height > 0) ? center - serializableGraph.bounds.center : Vector2.zero;
@@ -146,6 +187,12 @@ namespace UnityEditor.VFX.UI
             // Create all ui based on model
             viewController.LightApplyChanges();
 
+            if (nodesInTheSameOrder != null)
+            {
+                nodesInTheSameOrder.Clear();
+                nodesInTheSameOrder.AddRange(m_NodesInTheSameOrder.Select(t => t.model == null ? null : viewController.GetNodeController(t.model, t.id)));
+            }
+
             if (view != null)
             {
                 SelectCopiedElements(view, groupNode);
@@ -161,7 +208,6 @@ namespace UnityEditor.VFX.UI
                     if (dataEdge.input.targetIndex == InvalidID || dataEdge.output.targetIndex == InvalidID)
                         continue;
 
-                    //TODO: This bypasses viewController.CreateLink, and all its additional checks it shouldn't.
                     VFXModel inputModel = newControllers.ContainsKey(dataEdge.input.targetIndex) ? newControllers[dataEdge.input.targetIndex].model : null;
 
                     VFXNodeController outputController = newControllers.ContainsKey(dataEdge.output.targetIndex) ? newControllers[dataEdge.output.targetIndex] : null;
@@ -184,6 +230,24 @@ namespace UnityEditor.VFX.UI
             }
         }
 
+        void PasteSubOutputs(VFXAbstractRenderedOutput output, ref Context src)
+        {
+            if (src.subOutputs == null)
+                return;
+
+            var newSubOutputs = new List<VFXSRPSubOutput>(src.subOutputs.Length);
+            for (int i = 0; i < src.subOutputs.Length; ++i)
+            {
+                if (src.subOutputs[i].type != null)
+                {
+                    newSubOutputs.Add((VFXSRPSubOutput)ScriptableObject.CreateInstance(src.subOutputs[i].type));
+                    PasteModelSettings(newSubOutputs[i], src.subOutputs[i].settings, src.subOutputs[i].type);
+                }
+            }
+
+            output.InitSubOutputs(newSubOutputs);
+        }
+
         VFXContext PasteContext(VFXViewController controller, ref Context context)
         {
             VFXContext newContext = PasteAndInitializeNode<VFXContext>(controller, ref context.node);
@@ -195,6 +259,9 @@ namespace UnityEditor.VFX.UI
             }
 
             newContext.label = context.label;
+
+            if (newContext is VFXAbstractRenderedOutput)
+                PasteSubOutputs((VFXAbstractRenderedOutput)newContext, ref context);
 
             List<VFXBlock> blocks = new List<VFXBlock>();
             foreach (var block in context.blocks)
@@ -228,7 +295,12 @@ namespace UnityEditor.VFX.UI
             PasteNode(newNode, ref ope);
 
             if (!(newNode is VFXBlock))
+            {
                 controller.graph.AddChild(newNode);
+
+                m_NodesInTheSameOrder[node.indexInClipboard] = new VFXNodeID(newNode,0);
+            }
+                
 
             return newNode;
         }
@@ -256,11 +328,13 @@ namespace UnityEditor.VFX.UI
 
             var slotContainer = model as IVFXSlotContainer;
             var inputSlots = slotContainer.inputSlots;
-            for (int i = 0; i < node.inputSlots.Length; ++i)
+            for (int i = 0; i < node.inputSlots.Length && i< inputSlots.Count; ++i)
             {
                 if (inputSlots[i].name == node.inputSlots[i].name)
                 {
                     inputSlots[i].value = node.inputSlots[i].value.Get();
+                    if (inputSlots[i].spaceable)
+                        inputSlots[i].space = node.inputSlots[i].space;
                 }
             }
 
@@ -425,11 +499,11 @@ namespace UnityEditor.VFX.UI
                         }
                     }
                 }
-                else if (serializableGraph.operatorsOrBlocks != null && serializableGraph.operatorsOrBlocks.Length > 0)
+                else if (serializableGraph.operators != null && serializableGraph.operators.Length > 0)
                 {
                     foreach (var existingSlotContainer in viewController.graph.children.Where(t => t is IVFXSlotContainer))
                     {
-                        if ((serializableGraph.operatorsOrBlocks[0].position + pasteOffset - existingSlotContainer.position).sqrMagnitude < 1)
+                        if ((serializableGraph.operators[0].position + pasteOffset - existingSlotContainer.position).sqrMagnitude < 1)
                         {
                             foundSamePosition = true;
                             break;
@@ -583,6 +657,7 @@ namespace UnityEditor.VFX.UI
                         if (targetData != null)
                         {
                             PasteModelSettings(targetData, data.settings, targetData.GetType());
+                            targetData.Invalidate(VFXModel.InvalidationCause.kSettingChanged);
                         }
                     }
                 }
@@ -620,9 +695,9 @@ namespace UnityEditor.VFX.UI
         private void PasteOperators(VFXViewController viewController, ref SerializableGraph serializableGraph)
         {
             newOperators.Clear();
-            if (serializableGraph.operatorsOrBlocks != null)
+            if (serializableGraph.operators != null)
             {
-                foreach (var operat in serializableGraph.operatorsOrBlocks)
+                foreach (var operat in serializableGraph.operators)
                 {
                     Node ope = operat;
                     VFXOperator newOperator = PasteAndInitializeNode<VFXOperator>(viewController, ref ope);
@@ -656,7 +731,10 @@ namespace UnityEditor.VFX.UI
                                 p.m_Min = parameter.min;
                                 p.m_Max = parameter.max;
                             }
-                            p.SetSettingValue("m_exposedName", parameter.name); // the controller will take care or name unicity later
+                            p.SetSettingValue("m_Exposed", parameter.exposed);
+                            if(viewController.model.visualEffectObject is VisualEffectSubgraphOperator)
+                                p.isOutput = parameter.isOutput;
+                            p.SetSettingValue("m_ExposedName", parameter.name); // the controller will take care or name unicity later
                             p.tooltip = parameter.tooltip;
                         }
                     }
@@ -676,6 +754,8 @@ namespace UnityEditor.VFX.UI
                         nodeModel.expanded = !node.collapsed;
                         nodeModel.expandedSlots = AllSlots(p.outputSlots).Where(t => node.expandedOutput.Contains(t.path)).ToList();
 
+
+                        m_NodesInTheSameOrder[node.indexInClipboard] = new VFXNodeID(p, nodeModel.id);
                         newParameterNodes.Add(nodeIndex);
                     }
 

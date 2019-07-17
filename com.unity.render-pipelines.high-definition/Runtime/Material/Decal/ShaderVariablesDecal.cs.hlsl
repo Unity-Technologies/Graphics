@@ -4,7 +4,7 @@
 
 #ifndef SHADERVARIABLESDECAL_CS_HLSL
 #define SHADERVARIABLESDECAL_CS_HLSL
-// Generated from UnityEngine.Experimental.Rendering.HDPipeline.ShaderVariablesDecal
+// Generated from UnityEngine.Rendering.HighDefinition.ShaderVariablesDecal
 // PackingRules = Exact
     float2 _DecalAtlasResolution;
     uint _EnableDecals;

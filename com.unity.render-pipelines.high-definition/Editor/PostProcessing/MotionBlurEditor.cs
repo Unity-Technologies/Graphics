@@ -1,9 +1,9 @@
 using UnityEditor.Rendering;
-using UnityEngine.Experimental.Rendering.HDPipeline;
+using UnityEngine.Rendering.HighDefinition;
 
 
 
-namespace UnityEditor.Experimental.Rendering.HDPipeline
+namespace UnityEditor.Rendering.HighDefinition
 {
     [VolumeComponentEditor(typeof(MotionBlur))]
     sealed class MotionBlurEditor : VolumeComponentEditor
@@ -14,8 +14,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         SerializedDataParameter m_MaxVelocityInPixels;
         SerializedDataParameter m_MinVelInPixels;
 
-
+        //  Advanced properties 
         SerializedDataParameter m_CameraRotClamp;
+        SerializedDataParameter m_DepthCmpScale;
 
         public override bool hasAdvancedMode => true;
 
@@ -25,9 +26,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             m_Intensity = Unpack(o.Find(x => x.intensity));
             m_SampleCount = Unpack(o.Find(x => x.sampleCount));
-            m_MinVelInPixels = Unpack(o.Find(x => x.minVel));
-            m_MaxVelocityInPixels = Unpack(o.Find(x => x.maxVelocity));
+            m_MinVelInPixels = Unpack(o.Find(x => x.minimumVelocity));
+            m_MaxVelocityInPixels = Unpack(o.Find(x => x.maximumVelocity));
             m_CameraRotClamp = Unpack(o.Find(x => x.cameraRotationVelocityClamp));
+            m_DepthCmpScale = Unpack(o.Find(x => x.depthComparisonExtent));
         }
 
         public override void OnInspectorGUI()
@@ -42,6 +44,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             if(advanced)
             {
+                PropertyField(m_DepthCmpScale);
                 PropertyField(m_CameraRotClamp);
             }
         }

@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using UnityEngine.Experimental.VFX;
+using UnityEngine.VFX;
 using UnityEditor.VFX.Block;
 
 namespace UnityEditor.VFX
@@ -29,11 +29,13 @@ namespace UnityEditor.VFX
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), Tooltip("Destroy particles if age > lifetime")]
         public bool reapParticles = true;
 
-        public VFXBasicUpdate() : base(VFXContextType.kUpdate, VFXDataType.kParticle, VFXDataType.kParticle) {}
-        public override string name { get { return "Update"; } }
+        public VFXBasicUpdate() : base(VFXContextType.Update, VFXDataType.None, VFXDataType.None) {}
+        public override string name { get { return "Update " + ObjectNames.NicifyVariableName(ownedType.ToString()); } }
         public override string codeGeneratorTemplate { get { return VisualEffectGraphPackageInfo.assetPackagePath + "/Shaders/VFXUpdate"; } }
         public override bool codeGeneratorCompute { get { return true; } }
         public override VFXTaskType taskType { get { return VFXTaskType.Update; } }
+        public override VFXDataType inputType { get { return GetData() == null ? VFXDataType.Particle : GetData().type; } }
+        public override VFXDataType outputType { get { return GetData() == null ? VFXDataType.Particle : GetData().type; } }
 
         public override IEnumerable<VFXAttributeInfo> attributes
         {
@@ -102,6 +104,9 @@ namespace UnityEditor.VFX
             {
                 if ((GetData() as VFXDataParticle).NeedsIndirectBuffer())
                     yield return "VFX_HAS_INDIRECT_DRAW";
+
+                if (ownedType == VFXDataType.ParticleStrip)
+                    yield return "HAS_STRIPS";
             }
         }
     }

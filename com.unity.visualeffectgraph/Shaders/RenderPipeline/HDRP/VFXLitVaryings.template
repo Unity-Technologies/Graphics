@@ -26,27 +26,31 @@ ${VFXBegin:VFXHDRPLitVaryingsMacros}
 #endif
 
 #if HDRP_USE_EMISSIVE_COLOR || HDRP_USE_ADDITIONAL_EMISSIVE_COLOR
-#define VFX_VARYING_EMISSIVE emissiveColor
+#define VFX_VARYING_EMISSIVE emissiveColor.rgb
+#endif
+
+#if USE_EXPOSURE_WEIGHT
+#define VFX_VARYING_EXPOSUREWEIGHT emissiveColor.a
 #endif
 ${VFXEnd}
 
 ${VFXBegin:VFXHDRPLitDeclareVaryings}
 
 #if (VFX_NEEDS_COLOR_INTERPOLATOR && HDRP_USE_BASE_COLOR) || HDRP_USE_ADDITIONAL_BASE_COLOR
-nointerpolation float4 color : COLOR0;
+VFX_OPTIONAL_INTERPOLATION float4 color : COLOR0;
 #endif
 #if HDRP_MATERIAL_TYPE_SPECULAR
-nointerpolation float3 specularColor : COLOR1;
+VFX_OPTIONAL_INTERPOLATION float3 specularColor : COLOR1;
 #endif
-#if HDRP_USE_EMISSIVE_COLOR || HDRP_USE_ADDITIONAL_EMISSIVE_COLOR	
-nointerpolation float3 emissiveColor : COLOR2;
+#if HDRP_USE_EMISSIVE	
+VFX_OPTIONAL_INTERPOLATION float4 emissiveColor : COLOR2;
 #endif
 
 // x: smoothness
 // y: metallic/thickness
 // z: normal scale
 // w: emissive scale
-nointerpolation float4 materialProperties : TEXCOORD0;
+VFX_OPTIONAL_INTERPOLATION float4 materialProperties : TEXCOORD0;
 ${VFXEnd}
 
 ${VFXBegin:VFXHDRPLitFillVaryings}

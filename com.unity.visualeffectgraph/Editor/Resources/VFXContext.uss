@@ -55,6 +55,20 @@ VFXFlowAnchor.port.EdgeConnector.typeparticle
     --port-color: #FFBC21;
 }
 
+VFXContextUI.inputTypeparticlestrip > #node-border
+{
+    --start-color:#BF8050;
+}
+VFXContextUI.outputTypeparticlestrip > #node-border
+{
+    --end-color:#BF8050;
+}
+
+VFXFlowAnchor.port.EdgeConnector.typeparticlestrip
+{
+    --port-color: #FFAA6B;
+}
+
 /*  output */
 
 
@@ -68,7 +82,11 @@ VFXFlowAnchor.port.EdgeConnector.typemesh
 {
     --port-color: #0763eb;
 }
-
+VFXContextUI.inputTypenone.outputTypenone > #node-border
+{
+    --start-color: #777;
+    --end-color: #777;
+}
 /* spawner */
 
 VFXContextUI.inputTypespawnevent  > #node-border,VFXContextUI.inputTypeevent  > #node-border
@@ -86,11 +104,6 @@ VFXFlowAnchor.port.EdgeConnector.typespawnevent, VFXFlowAnchor.port.EdgeConnecto
 }
 
 /* event */
-
-VFXContextUI.typenone  > #node-border
-{
-    border-color: #27FFA0;
-}
 
 VFXContextUI > #selection-border
 {
@@ -190,9 +203,6 @@ VFXContextUI #footer #icon
 }
 
 VFXContextUI #block-container {
-    color:#8FC1DF;
-
-    font-size: 12px;
     margin-top: 0;
     margin-bottom: 0;
     padding-top: 2px;
@@ -304,6 +314,10 @@ VFXContextUI.inputTypespawnevent #user-label
 VFXContextUI.inputTypeparticle #user-label
 {
     color: #FFBC21;
+}
+VFXContextUI.inputTypeparticlestrip #user-label
+{
+    color: #FFAA6B;
 }
 
 #user-label.empty

@@ -1,27 +1,26 @@
-using UnityEngine.Rendering;
-using System;
+using UnityEngine.Experimental.Rendering;
 
-namespace UnityEngine.Experimental.Rendering.HDPipeline
+namespace UnityEngine.Rendering.HighDefinition
 {
-    public class SharedRTManager
+    class SharedRTManager
     {
         // The render target used when we do not support MSAA
-        RTHandleSystem.RTHandle m_NormalRT = null;
-        RTHandleSystem.RTHandle m_MotionVectorsRT = null;
-        RTHandleSystem.RTHandle m_CameraDepthStencilBuffer = null;
-        RTHandleSystem.RTHandle m_CameraDepthBufferMipChain;
-        RTHandleSystem.RTHandle m_CameraStencilBufferCopy;
-        RTHandleSystem.RTHandle m_CameraHalfResDepthBuffer = null;
+        RTHandle m_NormalRT = null;
+        RTHandle m_MotionVectorsRT = null;
+        RTHandle m_CameraDepthStencilBuffer = null;
+        RTHandle m_CameraDepthBufferMipChain;
+        RTHandle m_CameraStencilBufferCopy;
+        RTHandle m_CameraHalfResDepthBuffer = null;
         HDUtils.PackedMipChainInfo m_CameraDepthBufferMipChainInfo; // This is metadata
 
         // The two render targets that should be used when we render in MSAA
-        RTHandleSystem.RTHandle m_NormalMSAART = null;
-        RTHandleSystem.RTHandle m_MotionVectorsMSAART = null;
+        RTHandle m_NormalMSAART = null;
+        RTHandle m_MotionVectorsMSAART = null;
         // This texture must be used because reading directly from an MSAA Depth buffer is way to expensive. The solution that we went for is writing the depth in an additional color buffer (10x cheaper to solve on ps4)
-        RTHandleSystem.RTHandle m_DepthAsColorMSAART = null;
-        RTHandleSystem.RTHandle m_CameraDepthStencilMSAABuffer;
+        RTHandle m_DepthAsColorMSAART = null;
+        RTHandle m_CameraDepthStencilMSAABuffer;
         // This texture stores a set of depth values that are required for evaluating a bunch of effects in MSAA mode (R = Samples Max Depth, G = Samples Min Depth, G =  Samples Average Depth)
-        RTHandleSystem.RTHandle m_CameraDepthValuesBuffer = null;
+        RTHandle m_CameraDepthValuesBuffer = null;
 
         // MSAA resolve materials
         Material m_DepthResolveMaterial  = null;
@@ -54,28 +53,28 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_ReuseGBufferMemory = settings.supportedLitShaderMode != RenderPipelineSettings.SupportedLitShaderMode.ForwardOnly;
 
             // Create the depth/stencil buffer
-            m_CameraDepthStencilBuffer = RTHandles.Alloc(Vector2.one, depthBufferBits: DepthBits.Depth32, filterMode: FilterMode.Point, xrInstancing: true, useDynamicScale: true, name: "CameraDepthStencil");
+            m_CameraDepthStencilBuffer = RTHandles.Alloc(Vector2.one, TextureXR.slices, DepthBits.Depth32, dimension: TextureXR.dimension, useDynamicScale: true, name: "CameraDepthStencil");
 
             // Create the mip chain buffer
             m_CameraDepthBufferMipChainInfo = new HDUtils.PackedMipChainInfo();
             m_CameraDepthBufferMipChainInfo.Allocate();
-            m_CameraDepthBufferMipChain = RTHandles.Alloc(ComputeDepthBufferMipChainSize, colorFormat: GraphicsFormat.R32_SFloat, filterMode: FilterMode.Point, enableRandomWrite: true, xrInstancing: true, useDynamicScale: true, name: "CameraDepthBufferMipChain");
+            m_CameraDepthBufferMipChain = RTHandles.Alloc(ComputeDepthBufferMipChainSize, TextureXR.slices, colorFormat: GraphicsFormat.R32_SFloat, dimension: TextureXR.dimension, enableRandomWrite: true, useDynamicScale: true, name: "CameraDepthBufferMipChain");
 
             if(settings.lowresTransparentSettings.enabled)
             {
                 // Create the half res depth buffer used for low resolution transparency
-                m_CameraHalfResDepthBuffer = RTHandles.Alloc(Vector2.one * 0.5f, depthBufferBits: DepthBits.Depth32, filterMode: FilterMode.Point, xrInstancing: true, useDynamicScale: true, name: "LowResDepthBuffer");
+                m_CameraHalfResDepthBuffer = RTHandles.Alloc(Vector2.one * 0.5f, TextureXR.slices, DepthBits.Depth32, dimension: TextureXR.dimension, useDynamicScale: true, name: "LowResDepthBuffer");
             }
 
             // Technically we won't need this buffer in some cases, but nothing that we can determine at init time.
-            m_CameraStencilBufferCopy = RTHandles.Alloc(Vector2.one, depthBufferBits: DepthBits.None, colorFormat: GraphicsFormat.R8_UNorm, filterMode: FilterMode.Point, enableRandomWrite: true, xrInstancing: true, useDynamicScale: true, name: "CameraStencilCopy"); // DXGI_FORMAT_R8_UINT is not supported by Unity
+            m_CameraStencilBufferCopy = RTHandles.Alloc(Vector2.one, TextureXR.slices, DepthBits.None, colorFormat: GraphicsFormat.R8_UNorm, dimension: TextureXR.dimension, enableRandomWrite: true, useDynamicScale: true, name: "CameraStencilCopy"); // DXGI_FORMAT_R8_UINT is not supported by Unity
 
             if (m_MotionVectorsSupport)
             {
-                m_MotionVectorsRT = RTHandles.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: Builtin.GetMotionVectorFormat(), xrInstancing: true, useDynamicScale: true, name: "MotionVectors");
+                m_MotionVectorsRT = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: Builtin.GetMotionVectorFormat(), dimension: TextureXR.dimension, useDynamicScale: true, name: "MotionVectors");
                 if (m_MSAASupported)
                 {
-                    m_MotionVectorsMSAART = RTHandles.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: Builtin.GetMotionVectorFormat(), enableMSAA: true, bindTextureMS: true, xrInstancing: true, useDynamicScale: true, name: "MotionVectorsMSAA");
+                    m_MotionVectorsMSAART = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: Builtin.GetMotionVectorFormat(), dimension: TextureXR.dimension, enableMSAA: true, bindTextureMS: true, useDynamicScale: true, name: "MotionVectorsMSAA");
                 }
             }
 
@@ -83,12 +82,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (m_MSAASupported)
             {
                 // Let's create the MSAA textures
-                m_CameraDepthStencilMSAABuffer = RTHandles.Alloc(Vector2.one, depthBufferBits: DepthBits.Depth24, filterMode: FilterMode.Point, bindTextureMS: true, enableMSAA: true, xrInstancing: true, useDynamicScale: true, name: "CameraDepthStencilMSAA");
-                m_CameraDepthValuesBuffer = RTHandles.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: GraphicsFormat.R32G32B32A32_SFloat, xrInstancing: true, useDynamicScale: true, name: "DepthValuesBuffer");
-                m_DepthAsColorMSAART = RTHandles.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: GraphicsFormat.R32_SFloat, bindTextureMS: true, enableMSAA: true, xrInstancing: true, useDynamicScale: true, name: "DepthAsColorMSAA");
+                m_CameraDepthStencilMSAABuffer = RTHandles.Alloc(Vector2.one, TextureXR.slices, DepthBits.Depth24, dimension: TextureXR.dimension, bindTextureMS: true, enableMSAA: true, useDynamicScale: true, name: "CameraDepthStencilMSAA");
+                m_CameraDepthValuesBuffer = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R32G32B32A32_SFloat, dimension: TextureXR.dimension, useDynamicScale: true, name: "DepthValuesBuffer");
+                m_DepthAsColorMSAART = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R32_SFloat, dimension: TextureXR.dimension, bindTextureMS: true, enableMSAA: true, useDynamicScale: true, name: "DepthAsColorMSAA");
 
                 // We need to allocate this texture as long as msaa is supported because on both mode, one of the cameras can be forward only using the framesettings
-                m_NormalMSAART = RTHandles.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: GraphicsFormat.R8G8B8A8_UNorm, enableMSAA: true, bindTextureMS: true, xrInstancing: true, useDynamicScale: true, name: "NormalBufferMSAA");
+                m_NormalMSAART = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R8G8B8A8_UNorm, dimension: TextureXR.dimension, enableMSAA: true, bindTextureMS: true, useDynamicScale: true, name: "NormalBufferMSAA");
 
                 // Create the required resolve materials
                 m_DepthResolveMaterial = CoreUtils.CreateEngineMaterial(resources.shaders.depthValuesPS);
@@ -100,7 +99,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 // In case of full forward we must allocate the render target for normal buffer (or reuse one already existing)
                 // TODO: Provide a way to reuse a render target
-                m_NormalRT = RTHandles.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: GraphicsFormat.R8G8B8A8_UNorm, enableRandomWrite: true, xrInstancing: true, useDynamicScale: true, name: "NormalBuffer");
+                m_NormalRT = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R8G8B8A8_UNorm, dimension: TextureXR.dimension, enableRandomWrite: true, useDynamicScale: true, name: "NormalBuffer");
             }
             else
             {
@@ -156,7 +155,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
 
         // Request the normal buffer (MSAA or not)
-        public RTHandleSystem.RTHandle GetNormalBuffer(bool isMSAA = false)
+        public RTHandle GetNormalBuffer(bool isMSAA = false)
         {
             if (isMSAA)
             {
@@ -170,7 +169,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
 
         // Request the motion vectors buffer (MSAA or not)
-        public RTHandleSystem.RTHandle GetMotionVectorsBuffer(bool isMSAA = false)
+        public RTHandle GetMotionVectorsBuffer(bool isMSAA = false)
         {
             Debug.Assert(m_MotionVectorsSupport);
             if (isMSAA)
@@ -185,7 +184,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
 
         // Request the depth stencil buffer (MSAA or not)
-        public RTHandleSystem.RTHandle GetDepthStencilBuffer(bool isMSAA = false)
+        public RTHandle GetDepthStencilBuffer(bool isMSAA = false)
         {
             if (isMSAA)
             {
@@ -198,13 +197,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        public RTHandleSystem.RTHandle GetLowResDepthBuffer()
+        public RTHandle GetLowResDepthBuffer()
         {
             return m_CameraHalfResDepthBuffer;
         }
 
         // Request the depth texture (MSAA or not)
-        public RTHandleSystem.RTHandle GetDepthTexture(bool isMSAA = false)
+        public RTHandle GetDepthTexture(bool isMSAA = false)
         {
             if (isMSAA)
             {
@@ -217,7 +216,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        public RTHandleSystem.RTHandle GetDepthValuesTexture()
+        public RTHandle GetDepthValuesTexture()
         {
             Debug.Assert(m_MSAASupported);
             return m_CameraDepthValuesBuffer;
@@ -228,7 +227,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_MSAASamples = msaaSamples;
         }
 
-        public RTHandleSystem.RTHandle GetStencilBufferCopy()
+        public RTHandle GetStencilBufferCopy()
         {
             return m_CameraStencilBufferCopy;
         }
@@ -317,7 +316,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     // Grab the RTIs and set the output render targets
                     m_RTIDs2[0] = m_CameraDepthValuesBuffer.nameID;
                     m_RTIDs2[1] = m_NormalRT.nameID;
-                    HDUtils.SetRenderTarget(cmd, m_RTIDs2, m_CameraDepthStencilBuffer);
+                    CoreUtils.SetRenderTarget(cmd, m_RTIDs2, m_CameraDepthStencilBuffer);
 
                     // Set the input textures
                     Shader.SetGlobalTexture(HDShaderIDs._NormalTextureMS, m_NormalMSAART);
@@ -328,7 +327,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
             }
         }
-        public void ResolveMSAAColor(CommandBuffer cmd, HDCamera hdCamera, RTHandleSystem.RTHandle msaaTarget, RTHandleSystem.RTHandle simpleTarget)
+        public void ResolveMSAAColor(CommandBuffer cmd, HDCamera hdCamera, RTHandle msaaTarget, RTHandle simpleTarget)
         {
             if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA))
             {
@@ -336,7 +335,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 using (new ProfilingSample(cmd, "ResolveColor", CustomSamplerId.VolumeUpdate.GetSampler()))
                 {
                     // Grab the RTIs and set the output render targets
-                    HDUtils.SetRenderTarget(cmd, simpleTarget);
+                    CoreUtils.SetRenderTarget(cmd, simpleTarget);
 
                     // Set the input textures
                     m_PropertyBlock.SetTexture(HDShaderIDs._ColorTextureMS, msaaTarget);

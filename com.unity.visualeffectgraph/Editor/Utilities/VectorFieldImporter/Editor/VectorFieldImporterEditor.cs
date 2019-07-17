@@ -15,6 +15,7 @@ namespace UnityEditor.VFXToolbox
 
         public override void OnEnable()
         {
+            base.OnEnable();
             format = serializedObject.FindProperty("m_OutputFormat");
             wrapMode = serializedObject.FindProperty("m_WrapMode");
             filterMode = serializedObject.FindProperty("m_FilterMode");

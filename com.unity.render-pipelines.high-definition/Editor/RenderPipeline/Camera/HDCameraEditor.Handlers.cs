@@ -1,12 +1,11 @@
 using System;
 using System.Reflection;
-using UnityEditor.Rendering;
 using UnityEngine;
-using UnityEngine.Experimental.Rendering;
-using UnityEngine.Experimental.Rendering.HDPipeline;
+using UnityEngine.Rendering;
+using UnityEngine.Rendering.HighDefinition;
 using Object = UnityEngine.Object;
 
-namespace UnityEditor.Experimental.Rendering.HDPipeline
+namespace UnityEditor.Rendering.HighDefinition
 {
     partial class HDCameraEditor
     {
@@ -14,7 +13,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
             var c = (Camera)target;
 
-            if (!CameraEditorUtils.IsViewPortRectValidToRender(c.rect))
+            if (!UnityEditor.Rendering.CameraEditorUtils.IsViewPortRectValidToRender(c.rect))
                 return;
 
             SceneViewOverlay_Window(EditorGUIUtility.TrTextContent("Camera Preview"), OnOverlayGUI, -100, target);
@@ -24,7 +23,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         void OnOverlayGUI(Object target, SceneView sceneView)
         {
-            CameraEditorUtils.DrawCameraSceneViewOverlay(target, sceneView, InitializePreviewCamera);
+            UnityEditor.Rendering.CameraEditorUtils.DrawCameraSceneViewOverlay(target, sceneView, InitializePreviewCamera);
         }
 
         Camera InitializePreviewCamera(Camera c, Vector2 previewSize)
@@ -33,6 +32,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             EditorUtility.CopySerialized(c, m_PreviewCamera);
             var cameraData = c.GetComponent<HDAdditionalCameraData>();
             EditorUtility.CopySerialized(cameraData, m_PreviewAdditionalCameraData);
+            // We need to explicitly reset the camera type here
+            // It is probably a CameraType.Game, because we copied the source camera's properties.
+            m_PreviewCamera.cameraType = CameraType.Preview;
 
             var previewTexture = GetPreviewTextureWithSize((int)previewSize.x, (int)previewSize.y);
             m_PreviewCamera.targetTexture = previewTexture;

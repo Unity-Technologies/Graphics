@@ -40,7 +40,7 @@ namespace UnityEditor.ShaderGraph
 
         string GetFunctionHeader()
         {
-            return string.Format("Unity_Multiply_{0}", precision);
+            return "Unity_Multiply_$precision";
         }
 
         public sealed override void UpdateNodeAfterDeserialization()
@@ -51,25 +51,19 @@ namespace UnityEditor.ShaderGraph
             RemoveSlotsNameNotMatching(new[] { Input1SlotId, Input2SlotId, OutputSlotId });
         }
 
-        public void GenerateNodeCode(ShaderGenerator visitor, GraphContext graphContext, GenerationMode generationMode)
+        public void GenerateNodeCode(ShaderStringBuilder sb, GraphContext graphContext, GenerationMode generationMode)
         {
-            var sb = new ShaderStringBuilder();
             var input1Value = GetSlotValue(Input1SlotId, generationMode);
             var input2Value = GetSlotValue(Input2SlotId, generationMode);
             var outputValue = GetSlotValue(OutputSlotId, generationMode);
 
-            sb.AppendLine("{0} {1};", NodeUtils.ConvertConcreteSlotValueTypeToString(precision, FindOutputSlot<MaterialSlot>(OutputSlotId).concreteValueType), GetVariableNameForSlot(OutputSlotId));
+            sb.AppendLine("{0} {1};", FindOutputSlot<MaterialSlot>(OutputSlotId).concreteValueType.ToShaderString(), GetVariableNameForSlot(OutputSlotId));
             sb.AppendLine("{0}({1}, {2}, {3});", GetFunctionHeader(), input1Value, input2Value, outputValue);
-
-            visitor.AddShaderChunk(sb.ToString(), false);
         }
 
         string GetFunctionName()
         {
-            return string.Format("{0}_{1}_{2}",
-                GetFunctionHeader(),
-                FindInputSlot<MaterialSlot>(Input1SlotId).concreteValueType.ToString(precision),
-                FindInputSlot<MaterialSlot>(Input2SlotId).concreteValueType.ToString(precision));
+            return $"Unity_Multiply_{FindSlot<MaterialSlot>(Input1SlotId).concreteValueType.ToShaderString(concretePrecision)}_{FindSlot<MaterialSlot>(Input2SlotId).concreteValueType.ToShaderString(concretePrecision)}";
         }
 
         public void GenerateNodeFunction(FunctionRegistry registry, GraphContext graphContext, GenerationMode generationMode)
@@ -78,9 +72,9 @@ namespace UnityEditor.ShaderGraph
                 {
                     s.AppendLine("void {0} ({1} A, {2} B, out {3} Out)",
                         GetFunctionHeader(),
-                        FindInputSlot<MaterialSlot>(Input1SlotId).concreteValueType.ToString(precision),
-                        FindInputSlot<MaterialSlot>(Input2SlotId).concreteValueType.ToString(precision),
-                        FindOutputSlot<MaterialSlot>(OutputSlotId).concreteValueType.ToString(precision));
+                        FindInputSlot<MaterialSlot>(Input1SlotId).concreteValueType.ToShaderString(),
+                        FindInputSlot<MaterialSlot>(Input2SlotId).concreteValueType.ToShaderString(),
+                        FindOutputSlot<MaterialSlot>(OutputSlotId).concreteValueType.ToShaderString());
                     using (s.BlockScope())
                     {
                         switch (m_MultiplyType)
@@ -148,10 +142,6 @@ namespace UnityEditor.ShaderGraph
                     dynamicInputSlotsToCompare.Add((DynamicValueMaterialSlot)inputSlot, outputConcreteType);
                     continue;
                 }
-
-                // if we have a standard connection... just check the types work!
-                if (!ImplicitConversionExists(outputConcreteType, inputSlot.concreteValueType))
-                    inputSlot.hasError = true;
             }
 
             m_MultiplyType = GetMultiplyType(dynamicInputSlotsToCompare.Values);
@@ -190,7 +180,7 @@ namespace UnityEditor.ShaderGraph
                     break;
                 // If all vector resolve as per dynamic vector
                 default:
-                    var dynamicVectorType = ConvertDynamicInputTypeToConcrete(dynamicInputSlotsToCompare.Values);
+                    var dynamicVectorType = ConvertDynamicVectorInputTypeToConcrete(dynamicInputSlotsToCompare.Values);
                     foreach (var dynamicKvP in dynamicInputSlotsToCompare)
                         dynamicKvP.Key.SetConcreteType(dynamicVectorType);
                     foreach (var skippedSlot in skippedDynamicSlots)
@@ -238,7 +228,7 @@ namespace UnityEditor.ShaderGraph
                             break;
                         // As per dynamic vector
                         default:
-                            var dynamicVectorType = ConvertDynamicInputTypeToConcrete(dynamicInputSlotsToCompare.Values);
+                            var dynamicVectorType = ConvertDynamicVectorInputTypeToConcrete(dynamicInputSlotsToCompare.Values);
                             (outputSlot as DynamicValueMaterialSlot).SetConcreteType(dynamicVectorType);
                             break;
                     }
@@ -251,6 +241,7 @@ namespace UnityEditor.ShaderGraph
             GetOutputSlots(s_TempSlots);
             isInError |= s_TempSlots.Any(x => x.hasError);
             isInError |= CalculateNodeHasError(ref errorMessage);
+            isInError |= ValidateConcretePrecision(ref errorMessage);
             hasError = isInError;
 
             if (isInError)
@@ -264,43 +255,6 @@ namespace UnityEditor.ShaderGraph
 
             ListPool<DynamicValueMaterialSlot>.Release(skippedDynamicSlots);
             DictionaryPool<DynamicValueMaterialSlot, ConcreteSlotValueType>.Release(dynamicInputSlotsToCompare);
-        }
-
-        protected override bool CalculateNodeHasError(ref string errorMessage)
-        {
-            if (m_MultiplyType == MultiplyType.Matrix)
-            {
-                foreach (var slot in this.GetOutputSlots<ISlot>())
-                {
-                    foreach (var edge in owner.GetEdges(slot.slotReference))
-                    {
-                        var inputNode = owner.GetNodeFromGuid(edge.inputSlot.nodeGuid);
-                        List<MaterialSlot> slots = new List<MaterialSlot>();
-                        inputNode.GetInputSlots(slots);
-                        foreach (var s in slots)
-                        {
-                            if (s is DynamicValueMaterialSlot) continue;
-
-                            foreach (var inputEdge in inputNode.owner.GetEdges(s.slotReference))
-                            {
-                                if (inputEdge != edge)
-                                    continue;
-                                
-                                if (s.concreteValueType != ConcreteSlotValueType.Matrix4
-                                    && s.concreteValueType != ConcreteSlotValueType.Matrix3
-                                    && s.concreteValueType != ConcreteSlotValueType.Matrix2)
-                                {
-                                    errorMessage = "ERROR: slot " + s.displayName +
-                                                   " cannot accept a Matrix type input"; 
-                                    Debug.Log(errorMessage);
-                                    return true;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            return false;
         }
 
         private MultiplyType GetMultiplyType(IEnumerable<ConcreteSlotValueType> inputTypes)

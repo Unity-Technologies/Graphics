@@ -1,3 +1,12 @@
 {
-    "name": "Unity.RenderPipelines.ShaderGraph.ShaderGraphLibrary"
+    "name": "Unity.RenderPipelines.ShaderGraph.ShaderGraphLibrary",
+    "references": [],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": []
 }

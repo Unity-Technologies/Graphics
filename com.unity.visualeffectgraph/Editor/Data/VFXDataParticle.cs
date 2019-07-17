@@ -3,8 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using UnityEngine;
-using UnityEditor.Experimental.VFX;
-using UnityEngine.Experimental.VFX;
+using UnityEditor.VFX;
+using UnityEngine.VFX;
+using UnityEngine.Serialization;
 
 namespace UnityEditor.VFX
 {
@@ -192,58 +193,135 @@ namespace UnityEditor.VFX
 
     class VFXDataParticle : VFXData, ISpaceable
     {
-        public override VFXDataType type { get { return VFXDataType.kParticle; } }
+        public override VFXDataType type { get { return hasStrip ? VFXDataType.ParticleStrip : VFXDataType.Particle; } }
 
-        public uint capacity
+        protected enum DataType
         {
-            get { return m_Capacity; }
-            set { m_Capacity = value; }
+            Particle,
+            ParticleStrip
+        }
+
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.None), SerializeField] // TODO Put back InInsepctor visibility once C++ PR for strips has landed
+        protected DataType dataType = DataType.Particle;
+        [VFXSetting, Delayed, SerializeField, FormerlySerializedAs("m_Capacity")]
+        protected uint capacity = 128;
+        [VFXSetting, Delayed, SerializeField]
+        protected uint stripCapacity = 16;
+        [VFXSetting, Delayed, SerializeField]
+        protected uint particlePerStripCount = 16;
+
+        protected bool hasStrip { get { return dataType == DataType.ParticleStrip; } }
+
+        protected override void OnSettingModified(VFXSetting setting)
+        {
+            base.OnSettingModified(setting);
+            if (hasStrip)
+            {
+                if (setting.name == "dataType") // strip has just been set
+                {
+                    stripCapacity = 1;
+                    particlePerStripCount = capacity;
+                }
+                capacity = stripCapacity * particlePerStripCount;
+            }
+        }
+
+        protected override void OnInvalidate(VFXModel model, InvalidationCause cause)
+        {
+            base.OnInvalidate(model, cause);
+            if (cause == InvalidationCause.kSettingChanged)
+                UpdateValidOutputs();
+        }
+
+        protected override IEnumerable<string> filteredOutSettings
+        {
+            get
+            {
+                foreach (var s in base.filteredOutSettings)
+                    yield return s;
+
+                if (hasStrip)
+                {
+                    yield return "capacity";
+                }
+                else
+                {
+                    yield return "stripCapacity";
+                    yield return "particlePerStripCount";
+                }
+            }
+        }
+
+        public override IEnumerable<string> additionalHeaders
+        {
+            get
+            {
+                if (hasStrip)
+                {
+                    yield return "#define STRIP_COUNT " + stripCapacity;
+                    yield return "#define PARTICLE_PER_STRIP_COUNT " + particlePerStripCount;
+                    yield return "#include \"Packages/com.unity.visualeffectgraph/Shaders/VFXParticleStripCommon.hlsl\"";
+                }
+            }
+        }
+
+        private void UpdateValidOutputs()
+        {
+            var toUnlink = new List<VFXContext>();
+
+            foreach (var context in owners)
+                if (context.contextType == VFXContextType.Output) // Consider only outputs
+                { 
+                    var input = context.inputContexts.FirstOrDefault(); // Consider only one input at the moment because this is ensure by the data type (even if it may change in the future)
+                    if (input != null && (input.outputType & context.inputType) != context.inputType)
+                        toUnlink.Add(context);
+                }
+
+            foreach (var context in toUnlink)
+                context.UnlinkFrom(context.inputContexts.FirstOrDefault());
         }
 
         private uint alignedCapacity
         {
             get
             {
-                uint capacity = m_Capacity;
+                uint paddedCapacity = capacity;
                 const uint kThreadPerGroup = 64;
-                if (capacity > kThreadPerGroup)
-                    capacity = (uint)((capacity + kThreadPerGroup - 1) & ~(kThreadPerGroup - 1)); // multiple of kThreadPerGroup
-                return (capacity + 3u) & ~3u; // Align on 4 boundary
+                if (paddedCapacity > kThreadPerGroup)
+                    paddedCapacity = (uint)((paddedCapacity + kThreadPerGroup - 1) & ~(kThreadPerGroup - 1)); // multiple of kThreadPerGroup
+                return (paddedCapacity + 3u) & ~3u; // Align on 4 boundary
             }
         }
 
-        public override uint sourceCount
+        public uint ComputeSourceCount(Dictionary<VFXContext, List<VFXContextLink>[]> effectiveFlowInputLinks)
         {
-            get
+            var init = owners.FirstOrDefault(o => o.contextType == VFXContextType.Init);
+
+            if (init == null)
+                return 0u;
+
+            var cpuCount = effectiveFlowInputLinks[init].SelectMany(t=>t.Select(u=>u.context)).Where(o => o.contextType == VFXContextType.Spawner).Count();
+            var gpuCount = effectiveFlowInputLinks[init].SelectMany(t => t.Select(u => u.context)).Where(o => o.contextType == VFXContextType.SpawnerGPU).Count();
+
+            if (cpuCount != 0 && gpuCount != 0)
             {
-                var init = owners.FirstOrDefault(o => o.contextType == VFXContextType.kInit);
-
-                if (init == null)
-                    return 0u;
-
-                var cpuCount = init.inputContexts.Where(o => o.contextType == VFXContextType.kSpawner).Count();
-                var gpuCount = init.inputContexts.Where(o => o.contextType == VFXContextType.kSpawnerGPU).Count();
-
-                if (cpuCount != 0 && gpuCount != 0)
-                {
-                    throw new InvalidOperationException("Cannot mix GPU & CPU spawners in init");
-                }
-
-                if (cpuCount > 0)
-                {
-                    return (uint)cpuCount;
-                }
-                else if (gpuCount > 0)
-                {
-                    if (gpuCount > 1)
-                    {
-                        throw new InvalidOperationException("Don't support multiple GPU event (for now)");
-                    }
-                    var parent = m_DependenciesIn.OfType<VFXDataParticle>().FirstOrDefault();
-                    return parent != null ? parent.m_Capacity : 0u;
-                }
-                return init != null ? (uint)init.inputContexts.Where(o => o.contextType == VFXContextType.kSpawner /* Explicitly ignore spawner gpu */).Count() : 0u;
+                throw new InvalidOperationException("Cannot mix GPU & CPU spawners in init");
             }
+
+            if (cpuCount > 0)
+            {
+                return (uint)cpuCount;
+            }
+            else if (gpuCount > 0)
+            {
+                if (gpuCount > 1)
+                {
+                    throw new InvalidOperationException("Don't support multiple GPU event (for now)");
+                }
+                var parent = m_DependenciesIn.OfType<VFXDataParticle>().FirstOrDefault();
+                return parent != null ? parent.capacity : 0u;
+            }
+            return init != null ? (uint)effectiveFlowInputLinks[init].SelectMany(t => t.Select(u => u.context)).Where(o => o.contextType == VFXContextType.Spawner /* Explicitly ignore spawner gpu */).Count() : 0u;
         }
 
         public uint attributeBufferSize
@@ -271,11 +349,11 @@ namespace UnityEditor.VFX
         public override bool CanBeCompiled()
         {
             // Has enough contexts and capacity
-            if (m_Owners.Count < 1 || m_Capacity <= 0)
+            if (m_Owners.Count < 1 || capacity <= 0)
                 return false;
 
             // Has a initialize
-            if (m_Owners[0].contextType != VFXContextType.kInit)
+            if (m_Owners[0].contextType != VFXContextType.Init)
                 return false;
 
             // Has a spawner
@@ -283,7 +361,7 @@ namespace UnityEditor.VFX
                 return false;
 
             // Has an output
-            if (m_Owners.Last().contextType == VFXContextType.kOutput)
+            if (m_Owners.Last().contextType == VFXContextType.Output)
                 return true;
 
             // Has a least one dependent compilable system
@@ -300,9 +378,21 @@ namespace UnityEditor.VFX
             return VFXDeviceTarget.GPU;
         }
 
-        public override void GenerateAttributeLayout()
+
+        uint m_SourceCount = 0xFFFFFFFFu;
+
+        public override uint sourceCount
+        {
+            get
+            {
+                return m_SourceCount;
+            }
+        }
+
+        public override void GenerateAttributeLayout(Dictionary<VFXContext, List<VFXContextLink>[]> effectiveFlowInputLinks)
         {
             m_layoutAttributeCurrent.GenerateAttributeLayout(alignedCapacity, m_StoredCurrentAttributes);
+            m_SourceCount = ComputeSourceCount(effectiveFlowInputLinks);
             var parent = m_DependenciesIn.OfType<VFXDataParticle>().FirstOrDefault();
             if (parent != null)
             {
@@ -312,7 +402,7 @@ namespace UnityEditor.VFX
             else
             {
                 var readSourceAttribute = m_ReadSourceAttributes.ToDictionary(o => o, _ => (int)VFXAttributeMode.ReadSource);
-                m_layoutAttributeSource.GenerateAttributeLayout(sourceCount, readSourceAttribute);
+                m_layoutAttributeSource.GenerateAttributeLayout(m_SourceCount, readSourceAttribute);
                 m_ownAttributeSourceBuffer = true;
             }
         }
@@ -382,7 +472,7 @@ namespace UnityEditor.VFX
             // First add init and updates
             for (index = 0; index < m_Owners.Count; ++index)
             {
-                if ((m_Owners[index].contextType == VFXContextType.kOutput))
+                if ((m_Owners[index].contextType == VFXContextType.Output))
                     break;
                 m_Contexts.Add(m_Owners[index]);
             }
@@ -415,7 +505,8 @@ namespace UnityEditor.VFX
             Dictionary<VFXContext, VFXContextCompiledData> contextToCompiledData,
             Dictionary<VFXContext, int> contextSpawnToBufferIndex,
             Dictionary<VFXData, int> attributeBuffer,
-            Dictionary<VFXData, int> eventBuffer)
+            Dictionary<VFXData, int> eventBuffer,
+            Dictionary<VFXContext, List<VFXContextLink>[]> effectiveFlowInputLinks)
         {
             bool hasKill = IsAttributeStored(VFXAttribute.Alive);
 
@@ -429,6 +520,9 @@ namespace UnityEditor.VFX
 
             int attributeSourceBufferIndex = -1;
             int eventGPUFrom = -1;
+
+            var stripDataIndex = -1;
+
             if (m_DependenciesIn.Any())
             {
                 if (m_DependenciesIn.Count != 1)
@@ -481,10 +575,22 @@ namespace UnityEditor.VFX
                 systemBufferMappings.Add(new VFXMapping("deadListCount", deadListCountIndex));
             }
 
-            var initContext = m_Contexts.FirstOrDefault(o => o.contextType == VFXContextType.kInit);
+            if (hasStrip)
+            {
+                systemFlag |= VFXSystemFlag.SystemHasStrips;
+
+                systemValueMappings.Add(new VFXMapping("stripCount", (int)stripCapacity));
+                systemValueMappings.Add(new VFXMapping("particlePerStripCount", (int)particlePerStripCount));
+
+                stripDataIndex = outBufferDescs.Count;
+                outBufferDescs.Add(new VFXGPUBufferDesc() { type = ComputeBufferType.Default, size = stripCapacity * 4, stride = 4 });
+                systemBufferMappings.Add(new VFXMapping("stripData", stripDataIndex));
+            }
+
+            var initContext = m_Contexts.FirstOrDefault(o => o.contextType == VFXContextType.Init);
             if (initContext != null)
-                systemBufferMappings.AddRange(initContext.inputContexts.Where(o => o.contextType == VFXContextType.kSpawner).Select(o => new VFXMapping("spawner_input", contextSpawnToBufferIndex[o])));
-            if (m_Contexts.Count() > 0 && m_Contexts.First().contextType == VFXContextType.kInit) // TODO This test can be removed once we ensure priorly the system is valid
+                systemBufferMappings.AddRange(effectiveFlowInputLinks[initContext].SelectMany(t=>t.Select(u=>u.context)).Where(o => o.contextType == VFXContextType.Spawner).Select(o => new VFXMapping("spawner_input", contextSpawnToBufferIndex[o])));
+            if (m_Contexts.Count() > 0 && m_Contexts.First().contextType == VFXContextType.Init) // TODO This test can be removed once we ensure priorly the system is valid
             {
                 var mapper = contextToCompiledData[m_Contexts.First()].cpuMapper;
 
@@ -538,33 +644,36 @@ namespace UnityEditor.VFX
                 var contextData = contextToCompiledData[context];
 
                 var taskDesc = new VFXEditorTaskDesc();
-                taskDesc.type = context.taskType;
+                taskDesc.type = (UnityEngine.VFX.VFXTaskType)context.taskType;
 
                 bufferMappings.Clear();
 
                 if (attributeBufferIndex != -1)
                     bufferMappings.Add(new VFXMapping("attributeBuffer", attributeBufferIndex));
 
-                if (eventGPUFrom != -1 && context.contextType == VFXContextType.kInit)
+                if (eventGPUFrom != -1 && context.contextType == VFXContextType.Init)
                     bufferMappings.Add(new VFXMapping("eventList", eventGPUFrom));
 
-                if (deadListBufferIndex != -1 && context.contextType != VFXContextType.kOutput && context.taskType != VFXTaskType.CameraSort)
-                    bufferMappings.Add(new VFXMapping(context.contextType == VFXContextType.kUpdate ? "deadListOut" : "deadListIn", deadListBufferIndex));
+                if (deadListBufferIndex != -1 && context.contextType != VFXContextType.Output && context.taskType != VFXTaskType.CameraSort)
+                    bufferMappings.Add(new VFXMapping(context.contextType == VFXContextType.Update ? "deadListOut" : "deadListIn", deadListBufferIndex));
 
-                if (deadListCountIndex != -1 && context.contextType == VFXContextType.kInit)
+                if (deadListCountIndex != -1 && context.contextType == VFXContextType.Init)
                     bufferMappings.Add(new VFXMapping("deadListCount", deadListCountIndex));
 
-                if (attributeSourceBufferIndex != -1 && context.contextType == VFXContextType.kInit)
+                if (attributeSourceBufferIndex != -1 && context.contextType == VFXContextType.Init)
                     bufferMappings.Add(new VFXMapping("sourceAttributeBuffer", attributeSourceBufferIndex));
 
+                if (stripDataIndex != -1 && context.ownedType == VFXDataType.ParticleStrip)
+                    bufferMappings.Add(new VFXMapping("stripData", stripDataIndex));
+
                 if (indirectBufferIndex != -1 &&
-                    (context.contextType == VFXContextType.kUpdate ||
-                     (context.contextType == VFXContextType.kOutput && (context as VFXAbstractParticleOutput).HasIndirectDraw())))
+                    (context.contextType == VFXContextType.Update ||
+                     (context.contextType == VFXContextType.Output && (context as VFXAbstractParticleOutput).HasIndirectDraw())))
                 {
                     bufferMappings.Add(new VFXMapping(context.taskType == VFXTaskType.CameraSort ? "inputBuffer" : "indirectBuffer", indirectBufferIndex));
                 }
 
-                if (deadListBufferIndex != -1 && context.contextType == VFXContextType.kOutput && (context as VFXAbstractParticleOutput).NeedsDeadListCount())
+                if (deadListBufferIndex != -1 && context.contextType == VFXContextType.Output && (context as VFXAbstractParticleOutput).NeedsDeadListCount())
                     bufferMappings.Add(new VFXMapping("deadListCount", deadListCountIndex));
 
                 if (context.taskType == VFXTaskType.CameraSort)
@@ -623,7 +732,6 @@ namespace UnityEditor.VFX
         public override void CopySettings<T>(T dst)
         {
             var instance = dst as VFXDataParticle;
-            instance.m_Capacity = m_Capacity;
             instance.m_Space = m_Space;
         }
 
@@ -638,9 +746,7 @@ namespace UnityEditor.VFX
         }
 
         [SerializeField]
-        private uint m_Capacity = 65536;
-        [SerializeField]
-        private VFXCoordinateSpace m_Space;
+        private VFXCoordinateSpace m_Space; // TODO Should be an actual setting
         [NonSerialized]
         private StructureOfArrayProvider m_layoutAttributeCurrent = new StructureOfArrayProvider();
         [NonSerialized]

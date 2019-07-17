@@ -15,7 +15,6 @@ SliderControlView > #SliderPanel {
 .unity-slider .unity-base-field__input {
     margin-left: 0;
     margin-right: 0;
-    flex-direction: row;
     flex-grow: 1;
     min-width: 164px;
     overflow:visible;
