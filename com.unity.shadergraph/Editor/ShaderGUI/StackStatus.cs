@@ -57,7 +57,7 @@ namespace UnityEditor.ShaderGraph
                 if (ShaderUtil.GetPropertyType(shader, i) == ShaderUtil.ShaderPropertyType.Stack)
                 {
                     string stackPropName = ShaderUtil.GetPropertyName(shader, i);
-                    VTStack vtStack = material.GetTextureStack(stackPropName);
+                    TextureStack vtStack = material.GetTextureStack(stackPropName);
 
                     if (vtStack != null)
                     {
