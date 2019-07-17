@@ -461,8 +461,17 @@ namespace UnityEditor.VFX
                 }
 
                 var contextData = contextToCompiledData[spawnContext];
+                var contextExpressions = contextData.cpuMapper.CollectExpression(-1);
+                var systemValueMappings = new List<VFXMapping>();
+                foreach (var contextExpression in contextExpressions)
+                {
+                    var expressionIndex = graph.GetFlattenedIndex(contextExpression.exp);
+                    systemValueMappings.Add(new VFXMapping(contextExpression.name, expressionIndex));
+                }
+
                 outSystemDescs.Add(new VFXEditorSystemDesc()
                 {
+                    values = systemValueMappings.ToArray(),
                     buffers = buffers.ToArray(),
                     capacity = 0u,
                     flags = VFXSystemFlag.SystemDefault,
