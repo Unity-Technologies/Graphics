@@ -114,8 +114,9 @@ Shader "Hidden/Light2D-Shape"
 #endif
                 APPLY_NORMALS_LIGHTING(i, color);
 
-                half4 shadow = SAMPLE_TEXTURE2D(_ShadowTex, sampler_ShadowTex, i.shadowUV);
-                return (color * shadow.r) + (color * _ShadowIntensity*(1-shadow.r)) ;
+                half4 shadow = saturate(SAMPLE_TEXTURE2D(_ShadowTex, sampler_ShadowTex, i.shadowUV));  // We shouldn't need saturate...
+                half  shadowIntensity = 1 - (shadow.r * saturate(2*shadow.g) * (1-shadow.b));
+                return (color * shadowIntensity) + (color * _ShadowIntensity*(1-shadowIntensity)) ;
             }
             ENDHLSL
         }

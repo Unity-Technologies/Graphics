@@ -174,10 +174,8 @@ namespace UnityEngine.Experimental.Rendering.Universal
         int         m_LightCullingIndex             = -1;
         Bounds      m_LocalBounds;
 
-        [SerializeField] bool m_CastsShadows        = true;
-
         [Range(0,1)]
-        [SerializeField] float m_ShadowIntensity    = 1.0f;
+        [SerializeField] float m_ShadowIntensity    = 0.0f;
 
         internal struct LightStats
         {
@@ -199,11 +197,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
         /// The lights current operation index
         /// </summary>
         public int blendStyleIndex { get => m_BlendStyleIndex; set => m_BlendStyleIndex = value; }
-
-        /// <summary>
-        /// Specifies if the light cast shadows
-        /// </summary>
-        public bool castsShadows { get => m_CastsShadows; set => m_CastsShadows = value; }
 
         /// <summary>
         /// Specifies the darkness of the shadow

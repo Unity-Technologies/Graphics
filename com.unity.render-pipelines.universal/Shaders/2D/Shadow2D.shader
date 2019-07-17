@@ -7,9 +7,10 @@ Shader "Hidden/Shadow2D"
     SubShader
     {
         Tags { "RenderType"="Opaque" }
-        LOD 100
-		Cull Off
-        //Blend SrcAlpha OneMinusSrcAlpha
+
+        Cull Off
+        BlendOp Add
+        Blend One One
         ZWrite Off
 
         Pass
@@ -47,18 +48,22 @@ Shader "Hidden/Shadow2D"
                 float3 vertexWS = TransformObjectToWorld(v.vertex);  // This should be in world space
                 float3 lightDirection = normalize(_LightPos - vertexWS); // 
 
-                float2 endpoint = vertexWS.xy + (_LightRadius * -lightDirection.xy);
+                float3 endpoint = vertexWS + (_LightRadius * -lightDirection);
 
                 float3 worldTangent = TransformObjectToWorldDir(v.tangent.xyz);
 
-                float sharedShadowTest = saturate(ceil(dot(lightDirection.xy, worldTangent.xy)));
+                float sharedShadowTest = saturate(ceil(dot(lightDirection, worldTangent)));
                 float3 sharedShadowOffset = sharedShadowTest * _LightRadius * -lightDirection;  // Calculates the hard shadow. The soft shadow will be offset from that
 
 				float3 position;
                 position = vertexWS + sharedShadowOffset;
 
                 o.vertex = TransformWorldToHClip(position);
-				o.color = v.color;
+
+                // RGB - R is shadow value (to support soft shadows), G is Self Shadow Mask, B is No Shadow Mask
+                o.color = 1; // v.color;
+                o.color.g = 0.5;
+                o.color.b = 0;
 
                 return o;
             }
