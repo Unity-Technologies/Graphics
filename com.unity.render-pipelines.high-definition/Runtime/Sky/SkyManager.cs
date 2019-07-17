@@ -24,12 +24,16 @@ namespace UnityEngine.Rendering.HighDefinition
 
     public class BuiltinSkyParameters
     {
-        public Matrix4x4        pixelCoordToViewDirMatrix;
-        public Vector4          screenSize;
-        public CommandBuffer    commandBuffer;
-        public Light            sunLight;
-        public RTHandle         colorBuffer;
-        public RTHandle         depthBuffer;
+        public Matrix4x4                pixelCoordToViewDirMatrix;
+        public Vector3                  worldSpaceCameraPos;
+        public Matrix4x4                viewMatrix;
+        public Vector4                  screenSize;
+        public CommandBuffer            commandBuffer;
+        public Light                    sunLight;
+        public RTHandle                 colorBuffer;
+        public RTHandle                 depthBuffer;
+        public int                      frameIndex;
+        public EnvironmentUpdateMode    updateMode;
 
         public DebugDisplaySettings debugSettings;
 
@@ -341,7 +345,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_UpdateRequired = true;
         }
 
-        public void UpdateEnvironment(HDCamera hdCamera, Light sunLight, CommandBuffer cmd)
+        public void UpdateEnvironment(HDCamera hdCamera, Light sunLight, int frameIndex, CommandBuffer cmd)
         {
             bool isRegularPreview = HDUtils.IsRegularPreviewCamera(hdCamera.camera);
 
@@ -351,14 +355,14 @@ namespace UnityEngine.Rendering.HighDefinition
             if (isRegularPreview)
                 ambientMode = SkyAmbientMode.Static;
 
-            m_CurrentSkyRenderingContext.UpdateEnvironment(m_CurrentSky, sunLight, m_UpdateRequired, ambientMode == SkyAmbientMode.Dynamic, cmd);
+            m_CurrentSkyRenderingContext.UpdateEnvironment(m_CurrentSky, sunLight, hdCamera.mainViewConstants.worldSpaceCameraPos, m_UpdateRequired, ambientMode == SkyAmbientMode.Dynamic, frameIndex, cmd);
             StaticLightingSky staticLightingSky = GetStaticLightingSky();
             // We don't want to update the static sky during preview because it contains custom lights that may change the result.
             // The consequence is that previews will use main scene static lighting but we consider this to be acceptable.
             if (staticLightingSky != null && !isRegularPreview)
             {
                 m_StaticLightingSky.skySettings = staticLightingSky.skySettings;
-                m_StaticLightingSkyRenderingContext.UpdateEnvironment(m_StaticLightingSky, sunLight, false, true, cmd);
+                m_StaticLightingSkyRenderingContext.UpdateEnvironment(m_StaticLightingSky, sunLight, hdCamera.mainViewConstants.worldSpaceCameraPos, false, true, frameIndex, cmd);
             }
 
             bool useRealtimeGI = true;
@@ -410,9 +414,9 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        public void RenderSky(HDCamera camera, Light sunLight, RTHandle colorBuffer, RTHandle depthBuffer, DebugDisplaySettings debugSettings, CommandBuffer cmd)
+        public void RenderSky(HDCamera camera, Light sunLight, RTHandle colorBuffer, RTHandle depthBuffer, DebugDisplaySettings debugSettings, int frameIndex, CommandBuffer cmd)
         {
-            m_CurrentSkyRenderingContext.RenderSky(m_VisualSky, camera, sunLight, colorBuffer, depthBuffer, debugSettings, cmd);
+            m_CurrentSkyRenderingContext.RenderSky(m_VisualSky, camera, sunLight, colorBuffer, depthBuffer, debugSettings, frameIndex, cmd);
         }
 
         public void RenderOpaqueAtmosphericScattering(CommandBuffer cmd, HDCamera hdCamera,
