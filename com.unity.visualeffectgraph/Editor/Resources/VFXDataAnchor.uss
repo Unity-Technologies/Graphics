@@ -14,7 +14,7 @@
     color: #BBB;
     font-size: 11px;
     padding-bottom:0;
-    min-height: 18px;
+    min-height: 20px;
     height: -1px;
     margin-bottom:0;
     margin-right: 4px;
