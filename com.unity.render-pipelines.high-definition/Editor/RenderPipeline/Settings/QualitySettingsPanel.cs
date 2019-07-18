@@ -1,13 +1,11 @@
-#if QUALITY_SETTINGS_GET_RENDER_PIPELINE_AT_AVAILABLE
-
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Assertions;
-using UnityEngine.Experimental.Rendering.HDPipeline;
+using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.Rendering;
 using UnityEngine.UIElements;
 
-namespace UnityEditor.Experimental.Rendering.HDPipeline
+namespace UnityEditor.Rendering.HighDefinition
 {
     public class QualitySettingsPanel
     {
@@ -187,4 +185,3 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         }
     }
 }
-#endif

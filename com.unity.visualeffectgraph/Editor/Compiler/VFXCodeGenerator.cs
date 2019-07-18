@@ -392,6 +392,9 @@ namespace UnityEditor.VFX
             foreach (var attribute in context.GetData().GetAttributes().Where(a => context.GetData().IsSourceAttributeUsed(a.attrib, context)))
                 globalIncludeContent.WriteLineFormat("#define VFX_USE_{0}_{1} 1", attribute.attrib.name.ToUpper(), "SOURCE");
 
+            foreach (var additionnalHeader in context.additionalDataHeaders)
+                globalIncludeContent.WriteLine(additionnalHeader);
+
             foreach (var additionnalDefine in context.additionalDefines)
                 globalIncludeContent.WriteLineFormat("#define {0} 1", additionnalDefine);
 

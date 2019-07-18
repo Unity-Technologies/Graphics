@@ -2,11 +2,11 @@ Shader "Hidden/LookDev/Compositor"
 {
     Properties
     {
-        _Tex0Normal("First View", 2D) = "white" {}
+        _Tex0WithSun("First View", 2D) = "white" {}
         _Tex0WithoutSun("First View without sun", 2D) = "white" {}
         _Tex0Shadows("First View shadow mask", 2D) = "white" {}
         _ShadowColor0("Shadow Color for first view", Color) = (1.0, 1.0, 1.0, 1.0)
-        _Tex1Normal("Second View", 2D) = "white" {}
+        _Tex1WithSun("Second View", 2D) = "white" {}
         _Tex1WithoutSun("Second View without sun", 2D) = "white" {}
         _Tex1Shadows("Second View shadow mask", 2D) = "white" {}
         _ShadowColor1("Shadow Color for second view", Color) = (1.0, 1.0, 1.0, 1.0)
@@ -41,11 +41,11 @@ Shader "Hidden/LookDev/Compositor"
     #define kAll 4.0f
 
 
-    sampler2D   _Tex0Normal;
+    sampler2D   _Tex0WithSun;
     sampler2D   _Tex0WithoutSun;
     sampler2D   _Tex0Shadows;
     float4      _ShadowColor0;
-    sampler2D   _Tex1Normal;
+    sampler2D   _Tex1WithSun;
     sampler2D   _Tex1WithoutSun;
     sampler2D   _Tex1Shadows;
     float4      _ShadowColor1;
@@ -67,7 +67,7 @@ Shader "Hidden/LookDev/Compositor"
     float4      _ToneMapCoeffs1;
     float4      _ToneMapCoeffs2;
 
-    float4      _Tex0Normal_ST;
+    float4      _Tex0WithSun_ST;
 
     #define ShadowMultiplier0 _CompositingParams2.z
     #define ShadowMultiplier1 _CompositingParams2.w
@@ -287,7 +287,7 @@ Shader "Hidden/LookDev/Compositor"
     {
         v2f OUT;
         OUT.vertex = UnityObjectToClipPos(IN.vertex);
-        OUT.texcoord = TRANSFORM_TEX(IN.texcoord, _Tex0Normal);
+        OUT.texcoord = TRANSFORM_TEX(IN.texcoord, _Tex0WithSun);
         return OUT;
     }
 
@@ -390,10 +390,9 @@ Shader "Hidden/LookDev/Compositor"
             float4 frag(float2 texcoord : TEXCOORD0,
             UNITY_VPOS_TYPE vpos : VPOS) : COLOR
             {
-                float4 color = float4(ComputeColor(_Tex0Normal, _Tex0WithoutSun, _Tex0Shadows, ShadowMultiplier0, _ShadowColor0, texcoord) * exp2(ExposureValue1), 1.0);
+                float4 color = float4(ComputeColor(_Tex0WithSun, _Tex0WithoutSun, _Tex0Shadows, ShadowMultiplier0, _ShadowColor0, texcoord) * exp2(ExposureValue1), 1.0);
                 color.rgb = ApplyToneMap(color.rgb);
-                float factor = ComputeDragColorFactor(1.0, vpos.xy, float2(0.0, 0.0), false, false);
-                color = lerp(color, _FirstViewColor, factor);
+                color = ComputeFeedbackColor(color, 1.0, vpos.xy, float2(0.0, 0.0), false, false);
                 return color;
             }
             ENDCG
@@ -409,69 +408,10 @@ Shader "Hidden/LookDev/Compositor"
             float4 frag(float2 texcoord : TEXCOORD0,
                         UNITY_VPOS_TYPE vpos : VPOS) : COLOR
             {
-                float4 color = float4(ComputeColor(_Tex0Normal, _Tex0WithoutSun, _Tex0Shadows, ShadowMultiplier0, _ShadowColor0, texcoord) * exp2(ExposureValue1), 1.0);
+                float4 color = float4(ComputeColor(_Tex1WithSun, _Tex1WithoutSun, _Tex1Shadows, ShadowMultiplier1, _ShadowColor1, texcoord) * exp2(ExposureValue2), 1.0);
                 color.rgb = ApplyToneMap(color.rgb);
-                float factor = ComputeDragColorFactor(1.0, vpos.xy, float2(0.0, 0.0), false, false);
-                color = lerp(color, _FirstViewColor, factor);
+                color = ComputeFeedbackColor(color, -1.0, vpos.xy, float2(0.0, 0.0), false, false);
                 return color;
-            }
-            ENDCG
-        }
-
-        // Side by side vertical split
-        Pass
-        {
-            CGPROGRAM
-            #pragma fragment frag
-            #pragma target 3.0
-
-            float4 frag(float2 texcoord : TEXCOORD0,
-            UNITY_VPOS_TYPE vpos : VPOS) : COLOR
-            {
-                float2 scale = float2(2.0, 1.0);
-                float4 finalColor;
-                float side = texcoord.x < 0.5 ? 1.0 : -1.0;
-                if (side > 0.0)
-                {
-                    finalColor = float4(ComputeColor(_Tex0Normal, _Tex0WithoutSun, _Tex0Shadows, ShadowMultiplier0, _ShadowColor0, texcoord * scale) * exp2(ExposureValue1), 1.0);
-                }
-                else
-                {
-                    finalColor = float4(ComputeColor(_Tex1Normal, _Tex1WithoutSun, _Tex1Shadows, ShadowMultiplier1, _ShadowColor1, (texcoord - float2(0.5, 0.0)) * scale) * exp2(ExposureValue2), 1.0);
-                }
-
-                finalColor.rgb = ApplyToneMap(finalColor.rgb);
-                finalColor = ComputeFeedbackColor(finalColor, side, vpos.xy, float2(0.0, 0.0), true, false);
-                return finalColor;
-            }
-            ENDCG
-        }
-
-        // Side by side horizontal split
-        Pass
-        {
-            CGPROGRAM
-            #pragma fragment frag
-            #pragma target 3.0
-
-            float4 frag(float2 texcoord : TEXCOORD0,
-            UNITY_VPOS_TYPE vpos : VPOS) : COLOR
-            {
-                float2 scale = float2(1.0, 2.0);
-                float4 finalColor;
-                float side = texcoord.y < 0.5 ? 1.0 : -1.0;
-                if (side > 0.0)
-                {
-                    finalColor = float4(ComputeColor(_Tex0Normal, _Tex0WithoutSun, _Tex0Shadows, ShadowMultiplier0, _ShadowColor0, texcoord * scale) * exp2(ExposureValue1), 1.0);
-                }
-                else
-                {
-                    finalColor = float4(ComputeColor(_Tex1Normal, _Tex1WithoutSun, _Tex1Shadows, ShadowMultiplier1, _ShadowColor1, (texcoord - float2(0.5, 0.0)) * scale) * exp2(ExposureValue2), 1.0);
-                }
-
-                finalColor.rgb = ApplyToneMap(finalColor.rgb);
-                finalColor = ComputeFeedbackColor(finalColor, side, vpos.xy, float2(0.0, 0.0), true, false);
-                return finalColor;
             }
             ENDCG
         }
@@ -486,8 +426,8 @@ Shader "Hidden/LookDev/Compositor"
             float4 frag(float2 texcoord : TEXCOORD0,
             UNITY_VPOS_TYPE vpos : VPOS) : COLOR
             {
-                float3 color1 = ComputeColor(_Tex0Normal, _Tex0WithoutSun, _Tex0Shadows, ShadowMultiplier0, _ShadowColor0, texcoord) * exp2(ExposureValue1);
-                float3 color2 = ComputeColor(_Tex1Normal, _Tex1WithoutSun, _Tex1Shadows, ShadowMultiplier1, _ShadowColor1, texcoord) * exp2(ExposureValue2);
+                float3 color1 = ComputeColor(_Tex0WithSun, _Tex0WithoutSun, _Tex0Shadows, ShadowMultiplier0, _ShadowColor0, texcoord) * exp2(ExposureValue1);
+                float3 color2 = ComputeColor(_Tex1WithSun, _Tex1WithoutSun, _Tex1Shadows, ShadowMultiplier1, _ShadowColor1, texcoord) * exp2(ExposureValue2);
 
                 float2 normalizedCoord = ((texcoord * 2.0 - 1.0) * _ScreenRatio.xy);
 
@@ -508,44 +448,6 @@ Shader "Hidden/LookDev/Compositor"
                 float4 gizmoColor = GetGizmoColor(normalizedCoord, _GizmoSplitPlane, _GizmoSplitPlaneOrtho);
                 finalColor = lerp(finalColor, gizmoColor, gizmoColor.a);
                 finalColor = ComputeFeedbackColor(finalColor, side, vpos.xy, float2(0.0, 0.0), false, false);
-
-                return finalColor;
-            }
-            ENDCG
-        }
-
-        // Zone
-        Pass
-        {
-            CGPROGRAM
-            #pragma fragment frag
-            #pragma target 3.0
-
-            float4 frag(float2 texcoord : TEXCOORD0,
-            UNITY_VPOS_TYPE vpos : VPOS) : COLOR
-            {
-                float3 color1 = ComputeColor(_Tex0Normal, _Tex0WithoutSun, _Tex0Shadows, ShadowMultiplier0, _ShadowColor0, texcoord) * exp2(ExposureValue1);
-                float3 color2 = ComputeColor(_Tex1Normal, _Tex1WithoutSun, _Tex1Shadows, ShadowMultiplier1, _ShadowColor1, texcoord) * exp2(ExposureValue2);
-
-                float2 normalizedCoord = ((texcoord * 2.0 - 1.0) * _ScreenRatio.xy);
-
-                float insideCircle = length(normalizedCoord - _GizmoZoneCenter) - _GizmoLength * 2.0f;
-                float blendFactor = 0.0f;
-                if (insideCircle < 0.0)
-                {
-                    blendFactor = 1.0 - saturate(-1.0 * _CompositingParams.x);
-                }
-                else
-                {
-                    blendFactor = saturate(_CompositingParams.x);
-                }
-
-                float4 finalColor = float4(lerp(color1, color2, blendFactor), 1.0);
-                finalColor.rgb = ApplyToneMap(finalColor.rgb);
-
-                float4 gizmoColor = GetGizmoColor(normalizedCoord, _GizmoSplitPlane, _GizmoSplitPlaneOrtho);
-                finalColor = lerp(finalColor, gizmoColor, gizmoColor.a);
-                finalColor = ComputeFeedbackColor(finalColor, insideCircle, vpos.xy, normalizedCoord, false, true);
 
                 return finalColor;
             }

@@ -1,11 +1,11 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Experimental.Rendering.HDPipeline;
+using UnityEngine.Rendering.HighDefinition;
 
-namespace UnityEditor.Experimental.Rendering.HDPipeline
+namespace UnityEditor.Rendering.HighDefinition
 {
-    public class AdvancedOptionsUIBlock : MaterialUIBlock
+    class AdvancedOptionsUIBlock : MaterialUIBlock
     {
         [Flags]
         public enum Features
@@ -13,7 +13,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             None                = 0,
             Instancing          = 1 << 0,
             SpecularOcclusion   = 1 << 1,
-            VirtualTexturing    = 1 << 2,
+            AdditionalVelocity  = 1 << 2,
+            VirtualTexturing    = 1 << 3,
             All                 = ~0,
             Unlit = Instancing | VirtualTexturing,
         }
@@ -22,11 +23,15 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
             public const string header = "Advanced Options";
             public static GUIContent enableSpecularOcclusionText = new GUIContent("Specular Occlusion From Bent Normal", "Requires cosine weighted bent normal and cosine weighted ambient occlusion. Specular occlusion for Reflection Probe");
+            public static GUIContent additionalVelocityChangeText = new GUIContent("Additional Velocity Changes", "Requires additional per vertex velocity info");
             public static GUIContent enableVirtualTexturingText = new GUIContent("Virtual Texturing", "When enabled, use virtual texturing instead of regular textures.");
         }
 
         protected MaterialProperty enableSpecularOcclusion = null;
+        protected MaterialProperty additionalVelocityChange = null;
+
         protected const string kEnableSpecularOcclusion = "_EnableSpecularOcclusion";
+        protected const string kAdditionalVelocityChange = HDMaterialProperties.kAdditionalVelocityChange;
 
         protected MaterialProperty enableVirtualTexturing = null;
         protected const string kEnableVirtualTexturing = "_VirtualTexturing";
@@ -43,6 +48,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         public override void LoadMaterialProperties()
         {
             enableSpecularOcclusion = FindProperty(kEnableSpecularOcclusion);
+            additionalVelocityChange = FindProperty(kAdditionalVelocityChange);
             enableVirtualTexturing = FindProperty(kEnableVirtualTexturing);
         }
 
@@ -63,6 +69,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 materialEditor.ShaderProperty(enableSpecularOcclusion, Styles.enableSpecularOcclusionText);
             if ((m_Features & Features.VirtualTexturing) != 0)
                 materialEditor.ShaderProperty(enableVirtualTexturing, Styles.enableVirtualTexturingText);
-        }
-    }
+            if ((m_Features & Features.AdditionalVelocity) != 0)
+            {
+                if ( additionalVelocityChange != null)
+                    materialEditor.ShaderProperty(additionalVelocityChange, Styles.additionalVelocityChangeText);
+        	}
+    	}
+	}
 }
+

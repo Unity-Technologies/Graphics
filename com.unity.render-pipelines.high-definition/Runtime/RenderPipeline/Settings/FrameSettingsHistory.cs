@@ -1,12 +1,9 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Linq;
-using UnityEngine;
-using UnityEngine.Rendering;
 
-namespace UnityEngine.Experimental.Rendering.HDPipeline
+namespace UnityEngine.Rendering.HighDefinition
 {
     public enum FrameSettingsRenderType
     {
@@ -15,7 +12,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         RealtimeReflection
     }
 
-    public struct FrameSettingsHistory : IDebugData
+    struct FrameSettingsHistory : IDebugData
     {
         static readonly string[] foldoutNames = { "Rendering", "Lighting", "Async Compute", "Light Loop" };
         static readonly string[] columnNames = { "Debug", "Sanitized", "Overridden", "Default" };

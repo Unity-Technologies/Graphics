@@ -2,10 +2,10 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
-using UnityEditor.Experimental.Rendering.HDPipeline;
 using UnityEditor.ShaderGraph;
 using System;
 using System.Reflection;
+using UnityEditor.Rendering.HighDefinition;
 
 public class ResetMaterialProperties : MonoBehaviour
 {

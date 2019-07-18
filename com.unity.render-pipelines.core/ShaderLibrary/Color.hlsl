@@ -307,6 +307,16 @@ real RotateHue(real value, real low, real hi)
                 : value;
 }
 
+// Soft-light blending mode use for split-toning. Works in HDR as long as `blend` is [0;1] which is
+// fine for our use case.
+float3 SoftLight(float3 base, float3 blend)
+{
+    float3 r1 = 2.0 * base * blend + base * base * (1.0 - 2.0 * blend);
+    float3 r2 = sqrt(base) * (2.0 * blend - 1.0) + 2.0 * base * (1.0 - blend);
+    float3 t = step(0.5, blend);
+    return r2 * t + (1.0 - t) * r1;
+}
+
 // SMPTE ST.2084 (PQ) transfer functions
 // 1.0 = 100nits, 100.0 = 10knits
 #define DEFAULT_MAX_PQ 100.0
@@ -480,7 +490,7 @@ real4 FastTonemapInvert(real4 c)
 #ifndef SHADER_API_GLES
 // 3D LUT grading
 // scaleOffset = (1 / lut_size, lut_size - 1)
-real3 ApplyLut3D(TEXTURE3D_PARAM(tex, samplerTex), real3 uvw, real2 scaleOffset)
+real3 ApplyLut3D(TEXTURE3D_PARAM(tex, samplerTex), float3 uvw, float2 scaleOffset)
 {    
     uvw.xyz = uvw.xyz * scaleOffset.yyy * scaleOffset.xxx + scaleOffset.xxx * 0.5;
     return SAMPLE_TEXTURE3D_LOD(tex, samplerTex, uvw, 0.0).rgb;
@@ -489,16 +499,16 @@ real3 ApplyLut3D(TEXTURE3D_PARAM(tex, samplerTex), real3 uvw, real2 scaleOffset)
 
 // 2D LUT grading
 // scaleOffset = (1 / lut_width, 1 / lut_height, lut_height - 1)
-real3 ApplyLut2D(TEXTURE2D_PARAM(tex, samplerTex), real3 uvw, real3 scaleOffset)
+real3 ApplyLut2D(TEXTURE2D_PARAM(tex, samplerTex), float3 uvw, float3 scaleOffset)
 {
     // Strip format where `height = sqrt(width)`
     uvw.z *= scaleOffset.z;
-    real shift = floor(uvw.z);
+    float shift = floor(uvw.z);
     uvw.xy = uvw.xy * scaleOffset.z * scaleOffset.xy + scaleOffset.xy * 0.5;
     uvw.x += shift * scaleOffset.y;
     uvw.xyz = lerp(
         SAMPLE_TEXTURE2D_LOD(tex, samplerTex, uvw.xy, 0.0).rgb,
-        SAMPLE_TEXTURE2D_LOD(tex, samplerTex, uvw.xy + real2(scaleOffset.y, 0.0), 0.0).rgb,
+        SAMPLE_TEXTURE2D_LOD(tex, samplerTex, uvw.xy + float2(scaleOffset.y, 0.0), 0.0).rgb,
         uvw.z - shift
     );
     return uvw;
@@ -506,7 +516,7 @@ real3 ApplyLut2D(TEXTURE2D_PARAM(tex, samplerTex), real3 uvw, real3 scaleOffset)
 
 // Returns the default value for a given position on a 2D strip-format color lookup table
 // params = (lut_height, 0.5 / lut_width, 0.5 / lut_height, lut_height / lut_height - 1)
-real3 GetLutStripValue(real2 uv, real4 params)
+real3 GetLutStripValue(float2 uv, float4 params)
 {
     uv -= params.yz;
     real3 color;
@@ -670,6 +680,22 @@ float3 AcesTonemap(float3 aces)
     return linearCV;
 
 #endif
+}
+
+// RGBM encode/decode
+static const float kRGBMRange = 8.0;
+
+half4 EncodeRGBM(half3 color)
+{
+    color *= 1.0 / kRGBMRange;
+    half m = max(max(color.x, color.y), max(color.z, 1e-5));
+    m = ceil(m * 255) / 255;
+    return half4(color / m, m);
+}
+
+half3 DecodeRGBM(half4 rgbm)
+{
+    return rgbm.xyz * rgbm.w * kRGBMRange;
 }
 
 #endif // UNITY_COLOR_INCLUDED

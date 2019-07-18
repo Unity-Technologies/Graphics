@@ -1,23 +1,24 @@
 using System;
 using System.Linq;
 using System.Collections.Generic;
-using UnityEditor.Experimental.Rendering.HDPipeline.Drawing;
+using UnityEditor.Rendering.HighDefinition.Drawing;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph;
 using UnityEditor.ShaderGraph.Drawing;
 using UnityEditor.ShaderGraph.Drawing.Controls;
 using UnityEngine;
 using UnityEngine.UIElements;
-using UnityEngine.Experimental.Rendering.HDPipeline;
+using UnityEngine.Rendering.HighDefinition;
 using UnityEditor.ShaderGraph.Drawing.Inspector;
 using UnityEngine.Rendering;
 
 // Include material common properties names
-using static UnityEngine.Experimental.Rendering.HDPipeline.HDMaterialProperties;
+using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
 
-namespace UnityEditor.Experimental.Rendering.HDPipeline
+namespace UnityEditor.Rendering.HighDefinition
 {
     [Serializable]
+    [FormerName("UnityEditor.Experimental.Rendering.HDPipeline.HDUnlitMasterNode")]
     [Title("Master", "HDRP/Unlit")]
     class HDUnlitMasterNode : MasterNode<IHDUnlitSubShader>, IMayRequirePosition
     {
@@ -239,7 +240,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 Dirty(ModificationScope.Graph);
             }
         }
-        
+
         [SerializeField]
         TransparentCullMode m_transparentCullMode = TransparentCullMode.Back;
         public TransparentCullMode transparentCullMode
@@ -272,6 +273,23 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
         }
 
+        [SerializeField]
+        bool m_AddVelocityChange = false;
+
+        public ToggleData addVelocityChange
+        {
+            get { return new ToggleData(m_AddVelocityChange); }
+            set
+            {
+                if (m_AddVelocityChange == value.isOn)
+                    return;
+                m_AddVelocityChange = value.isOn;
+                UpdateNodeAfterDeserialization();
+                Dirty(ModificationScope.Graph);
+            }
+        }
+
+
         public HDUnlitMasterNode()
         {
             UpdateNodeAfterDeserialization();
@@ -281,7 +299,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
             get { return null; }
         }
-        
+
         public bool HasDistortion()
         {
             return (surfaceType == SurfaceType.Transparent && distortion.isOn);
@@ -358,7 +376,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             HDUnlitGUI.SetupMaterialKeywordsAndPass(previewMaterial);
         }
-        
+
         public override void CollectShaderProperties(PropertyCollector collector, GenerationMode generationMode)
         {
             // Trunk currently relies on checking material property "_EmissionColor" to allow emissive GI. If it doesn't find that property, or it is black, GI is forced off.
@@ -380,6 +398,17 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 hidden = true,
                 value = (int)renderingPass,
             });
+
+            //See SG-ADDITIONALVELOCITY-NOTE
+            if (addVelocityChange.isOn)
+            {
+                collector.AddShaderProperty(new BooleanShaderProperty
+                {
+                    value  = true,
+                    hidden = true,
+                    overrideReferenceName = kAdditionalVelocityChange,
+                });
+            }
 
             // Add all shader properties required by the inspector
             HDSubShaderUtilities.AddStencilShaderProperties(collector, false, false);

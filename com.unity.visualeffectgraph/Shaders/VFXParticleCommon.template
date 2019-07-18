@@ -81,8 +81,11 @@ index = indirectBuffer[index];
 ${VFXLoadAttributes}
 #else
 ${VFXLoadAttributes:{alive}}
+
+#if !HAS_STRIPS
 if (!alive)
 	return o;
+#endif
 	
 ${VFXLoadAttributes:{(?!(alive))(\b\w)}}
 #endif

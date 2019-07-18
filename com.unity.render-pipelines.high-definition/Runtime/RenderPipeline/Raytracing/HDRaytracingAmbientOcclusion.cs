@@ -1,11 +1,9 @@
-using UnityEngine;
-using UnityEngine.Rendering;
-using System.Collections.Generic;
+using UnityEngine.Experimental.Rendering;
 
-namespace UnityEngine.Experimental.Rendering.HDPipeline
+namespace UnityEngine.Rendering.HighDefinition
 {
 #if ENABLE_RAYTRACING
-    public class HDRaytracingAmbientOcclusion
+    class HDRaytracingAmbientOcclusion
     {
         // External structures
         RenderPipelineResources m_PipelineResources = null;
@@ -18,8 +16,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         static int m_KernelFilter;
 
         // Intermediate buffer that stores the ambient occlusion pre-denoising
-        RTHandleSystem.RTHandle m_IntermediateBuffer = null;
-        RTHandleSystem.RTHandle m_ViewSpaceNormalBuffer = null;
+        RTHandle m_IntermediateBuffer = null;
+        RTHandle m_ViewSpaceNormalBuffer = null;
 
         // String values
         const string m_RayGenShaderName = "RayGenAmbientOcclusion";
@@ -56,7 +54,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             RTHandles.Release(m_IntermediateBuffer);
         }
 
-        static RTHandleSystem.RTHandle AmbientOcclusionHistoryBufferAllocatorFunction(string viewName, int frameIndex, RTHandleSystem rtHandleSystem)
+        static RTHandle AmbientOcclusionHistoryBufferAllocatorFunction(string viewName, int frameIndex, RTHandleSystem rtHandleSystem)
         {
             return rtHandleSystem.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R16_SFloat, dimension: TextureXR.dimension,
                                         enableRandomWrite: true, useMipMap: false, autoGenerateMips: false,
@@ -70,17 +68,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             cmd.SetGlobalVector(HDShaderIDs._AmbientOcclusionParam, Vector4.zero);
         }
 
-        public void RenderAO(HDCamera hdCamera, CommandBuffer cmd, RTHandleSystem.RTHandle outputTexture, ScriptableRenderContext renderContext, int frameCount)
+        public void RenderAO(HDCamera hdCamera, CommandBuffer cmd, RTHandle outputTexture, ScriptableRenderContext renderContext, int frameCount)
         {
             // Let's check all the resources
             HDRaytracingEnvironment rtEnvironment = m_RaytracingManager.CurrentEnvironment();
-            RayTracingShader aoShader = m_PipelineRayTracingResources.aoRaytracing;
-            var aoSettings = VolumeManager.instance.stack.GetComponent<AmbientOcclusion>();
+
 
             // Check if the state is valid for evaluating ambient occlusion
-            bool invalidState = rtEnvironment == null
-            || aoShader == null
-            || m_PipelineResources.textures.owenScrambledTex == null || m_PipelineResources.textures.scramblingTex == null;
+            bool invalidState = rtEnvironment == null;
 
             // If any of the previous requirements is missing, the effect is not requested or no acceleration structure, set the default one and leave right away
             if (invalidState)
@@ -88,6 +83,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 SetDefaultAmbientOcclusionTexture(cmd);
                 return;
             }
+
+            RayTracingShader aoShader = m_PipelineRayTracingResources.aoRaytracing;
+            var aoSettings = VolumeManager.instance.stack.GetComponent<AmbientOcclusion>();
 
             // Grab the acceleration structure for the target camera
             RayTracingAccelerationStructure accelerationStructure = m_RaytracingManager.RequestAccelerationStructure(rtEnvironment.aoLayerMask);
@@ -99,8 +97,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             cmd.SetRayTracingAccelerationStructure(aoShader, HDShaderIDs._RaytracingAccelerationStructureName, accelerationStructure);
 
             // Inject the ray-tracing sampling data
-            cmd.SetRayTracingTextureParam(aoShader, HDShaderIDs._OwenScrambledTexture, m_PipelineResources.textures.owenScrambledTex);
-            cmd.SetRayTracingTextureParam(aoShader, HDShaderIDs._ScramblingTexture, m_PipelineResources.textures.scramblingTex);
+            cmd.SetGlobalTexture(HDShaderIDs._OwenScrambledRGTexture, m_PipelineResources.textures.owenScrambledRGBATex);
+            cmd.SetGlobalTexture(HDShaderIDs._OwenScrambledTexture, m_PipelineResources.textures.owenScrambled256Tex);
+            cmd.SetGlobalTexture(HDShaderIDs._ScramblingTexture, m_PipelineResources.textures.scramblingTex);
 
             // Inject the ray generation data
             cmd.SetRayTracingFloatParams(aoShader, HDShaderIDs._RaytracingRayBias, rtEnvironment.rayBias);
@@ -131,7 +130,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 if(aoSettings.enableFilter.value)
                 {
                     // Grab the history buffer
-                    RTHandleSystem.RTHandle ambientOcclusionHistory = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.RaytracedAmbientOcclusion)
+                    RTHandle ambientOcclusionHistory = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.RaytracedAmbientOcclusion)
                         ?? hdCamera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.RaytracedAmbientOcclusion, AmbientOcclusionHistoryBufferAllocatorFunction, 1);
 
                     // Apply the simple denoiser

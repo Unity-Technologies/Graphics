@@ -1,7 +1,7 @@
 using System;
-using UnityEngine.Rendering;
+using UnityEngine.Experimental.Rendering;
 
-namespace UnityEngine.Experimental.Rendering.HDPipeline
+namespace UnityEngine.Rendering.HighDefinition
 {
     public partial class HDRenderPipelineRayTracingResources : ScriptableObject
     {
@@ -35,10 +35,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public ComputeShader lightClusterDebugCS;
 
         // Indirect Diffuse
-        [Reload("Runtime/RenderPipeline/Raytracing/Shaders/RaytracingIndirectDiffuse.raytrace")]
-        public RayTracingShader indirectDiffuseRaytracing;
-        [Reload("Runtime/RenderPipeline/Raytracing/Shaders/IndirectDiffuseAccumulation.compute")]
-        public ComputeShader indirectDiffuseAccumulation;
+        [Reload("Runtime/RenderPipeline/Raytracing/Shaders/IndirectDiffuse/RaytracingIndirectDiffuse.raytrace")]
+        public RayTracingShader indirectDiffuseRaytracingRT;
+        [Reload("Runtime/RenderPipeline/Raytracing/Shaders/IndirectDiffuse/RaytracingIndirectDiffuse.compute")]
+        public ComputeShader indirectDiffuseRaytracingCS;
 
         // Ambient Occlusion
         [Reload("Runtime/RenderPipeline/Raytracing/Shaders/RaytracingAmbientOcclusion.raytrace")]

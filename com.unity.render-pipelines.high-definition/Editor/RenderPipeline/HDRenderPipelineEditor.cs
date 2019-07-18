@@ -1,10 +1,10 @@
-using UnityEngine.Experimental.Rendering.HDPipeline;
+using UnityEngine.Rendering.HighDefinition;
 
-namespace UnityEditor.Experimental.Rendering.HDPipeline
+namespace UnityEditor.Rendering.HighDefinition
 {
     [CustomEditor(typeof(HDRenderPipelineAsset))]
     [CanEditMultipleObjects]
-    public sealed class HDRenderPipelineEditor : Editor
+    sealed class HDRenderPipelineEditor : Editor
     {
         SerializedHDRenderPipelineAsset m_SerializedHDRenderPipeline;
 
@@ -12,9 +12,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         void OnEnable()
         {
-#if QUALITY_SETTINGS_GET_RENDER_PIPELINE_AT_AVAILABLE
-            showInspector = false;
-#endif
+            //showInspector = false;
             m_SerializedHDRenderPipeline = new SerializedHDRenderPipelineAsset(serializedObject);
         }
 

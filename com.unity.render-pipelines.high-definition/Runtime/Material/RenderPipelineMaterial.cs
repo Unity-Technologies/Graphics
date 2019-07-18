@@ -1,11 +1,8 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using UnityEngine.Rendering;
+using UnityEngine.Experimental.Rendering;
 
-namespace UnityEngine.Experimental.Rendering.HDPipeline
+namespace UnityEngine.Rendering.HighDefinition
 {
-    public class RenderPipelineMaterial : Object
+    class RenderPipelineMaterial : Object
     {
         // GBuffer management
         public virtual bool IsDefferedMaterial() { return false; }

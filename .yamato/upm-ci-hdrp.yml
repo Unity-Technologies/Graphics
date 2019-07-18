@@ -3,8 +3,8 @@ editors:
 platforms:
   - name: Windows64
     type: Unity::VM::GPU
-    image: sdet/gamecode_win10:latest
-    flavor: m1.large
+    image: sdet/gamecode_win10:stable
+    flavor: b1.large
 #  - name: OSX
 #    type: Unity::VM::osx
 #    image: buildfarm/mac:stable

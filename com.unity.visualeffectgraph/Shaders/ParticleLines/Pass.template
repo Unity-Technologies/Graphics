@@ -15,18 +15,34 @@ struct vs_input
 VFX_VARYING_PS_INPUTS vert(uint id : SV_VertexID, vs_input i)
 {
 	VFX_VARYING_PS_INPUTS o = (VFX_VARYING_PS_INPUTS)0;
-
+	
 	UNITY_SETUP_INSTANCE_ID(i);
 	UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
 
+	#if HAS_STRIPS
+	const uint vertexPerStripCount = (PARTICLE_PER_STRIP_COUNT - 1) << 1;
+	uint stripIndex = id / vertexPerStripCount;
+	uint currentIndex = (id % vertexPerStripCount + 1) >> 1; // relative index of particle
+	
+	uint maxEdgeIndex = currentIndex - (id & 1) + 1;
+	if (maxEdgeIndex >= STRIP_DATA(STRIP_NEXT_INDEX))
+		return o;
+	
+	uint index = PARTICLE_PER_STRIP_COUNT * stripIndex + (currentIndex + STRIP_DATA(STRIP_FIRST_INDEX)) % PARTICLE_PER_STRIP_COUNT; // wrapped index of particle	
+	#else
 	uint index = id >> 1;
+	#endif
 	
 	${VFXLoadAttributesOrCull}
 	${VFXProcessBlocks}
 			
+	#if HAS_STRIPS
+	float3 vPos = position;
+	#else
+		
 	if (!alive)
-		return o;
-
+		return o;	
+	
 	#if TARGET_FROM_ATTRIBUTES
 	${VFXLoadSize}
 	float4x4 elementToVFX = GetElementToVFXMatrix(axisX,axisY,axisZ,float3(angleX,angleY,angleZ),float3(pivotX,pivotY,pivotZ),size3,position);
@@ -38,11 +54,13 @@ VFX_VARYING_PS_INPUTS vert(uint id : SV_VertexID, vs_input i)
 	#endif
 		
 	float3 vPos = id & 1 ? targetPosition : position;
+	#endif
+	
 	o.VFX_VARYING_POSCS = TransformPositionVFXToClip(vPos);
 	
 	${VFXVertexCommonProcess}
 	${VFXVertexAdditionalProcess}
-
+	
 	return o;
 }
 

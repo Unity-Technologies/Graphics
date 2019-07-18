@@ -1,9 +1,9 @@
 using System;
 using UnityEngine;
-using UnityEngine.Experimental.Rendering.HDPipeline;
+using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.Rendering;
 
-namespace UnityEditor.Experimental.Rendering.HDPipeline
+namespace UnityEditor.Rendering.HighDefinition
 {
     /// <summary>
     /// GUI for HDRP Decal materials (does not include ShaderGraphs)
@@ -27,7 +27,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
             LoadMaterialProperties(props);
 
-            SerializedProperty instancing = materialEditor.serializedObject.FindProperty("m_EnableInstancingVariants");            
+            SerializedProperty instancing = materialEditor.serializedObject.FindProperty("m_EnableInstancingVariants");
             instancing.boolValue = true;
 
             using (var changed = new EditorGUI.ChangeCheckScope())

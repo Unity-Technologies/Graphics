@@ -1,9 +1,6 @@
-using UnityEngine.Rendering;
-using System.Collections.Generic;
-
-namespace UnityEngine.Experimental.Rendering.HDPipeline
+namespace UnityEngine.Rendering.HighDefinition
 {
-    public class LTCAreaLightCookieManager
+    class LTCAreaLightCookieManager
     {
         HDRenderPipelineAsset m_RenderPipelineAsset = null;
 

@@ -35,6 +35,7 @@ Pass
     #pragma shader_feature_local _ _BLENDMODE_ALPHA _BLENDMODE_ADD _BLENDMODE_PRE_MULTIPLY
 
     $AlphaFog:                           #define _ENABLE_FOG_ON_TRANSPARENT 1
+    $AdditionalVelocityChange:           #define _ADDITIONAL_VELOCITY_CHANGE
 
     //enable GPU instancing support
     #pragma multi_compile_instancing
