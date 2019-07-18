@@ -392,6 +392,8 @@ namespace UnityEditor.Rendering.Universal
                 {
                     EditorGUI.indentLevel++;
                     hasChanged |= DrawIntPopup(m_AdditionalCameraDataAntialiasingQuality, ref selectedAntialiasingQuality, Styles.antialiasingQuality, Styles.antialiasingQualityOptions, Styles.antialiasingQualityValues);
+                    if (SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES2)
+                        EditorGUILayout.HelpBox("Sub-pixel Morphological Anti-Aliasing isn't supported on GLES2 platforms.", MessageType.Warning);
                     EditorGUI.indentLevel--;
                 }
                 //else if (selectedAntialiasing == AntialiasingMode.TemporalAntialiasing)

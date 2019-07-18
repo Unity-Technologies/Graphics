@@ -36,10 +36,12 @@ VFX_VARYING_PS_INPUTS vert(vs_input i)
 	
 	${VFXLoadSize}
 	
+	float3 inputVertexPosition = i.pos;
 	float4x4 elementToVFX = GetElementToVFXMatrix(axisX,axisY,axisZ,float3(angleX,angleY,angleZ),float3(pivotX,pivotY,pivotZ),size3,position);
-	float3 vPos = mul(elementToVFX,float4(i.pos,1.0f)).xyz;
-
-	o.VFX_VARYING_POSCS = TransformPositionVFXToClip(vPos);
+	float3 vPos = mul(elementToVFX,float4(inputVertexPosition,1.0f)).xyz;
+	float4 csPos = TransformPositionVFXToClip(vPos);
+	o.VFX_VARYING_POSCS = csPos;
+	
 	float3 normalWS = normalize(TransformDirectionVFXToWorld(mul((float3x3)elementToVFX, i.normal)));
 	#ifdef VFX_VARYING_NORMAL // TODO Should use inverse transpose
 	o.VFX_VARYING_NORMAL = normalWS;
@@ -48,12 +50,14 @@ VFX_VARYING_PS_INPUTS vert(vs_input i)
 	o.VFX_VARYING_TANGENT = float4(normalize(TransformDirectionVFXToWorld(mul((float3x3)elementToVFX,i.tangent.xyz))),i.tangent.w);
 	#endif
 
+	${VFXVertexComputeCurrentAndPreviousClipPos}
+	
 	${VFXVertexCommonProcess}
-
+	
 	${VFXVertexSetFlipbooksInterpolants}
 
 	${VFXVertexAdditionalProcess}
-			
+	
 	return o;
 }
 
