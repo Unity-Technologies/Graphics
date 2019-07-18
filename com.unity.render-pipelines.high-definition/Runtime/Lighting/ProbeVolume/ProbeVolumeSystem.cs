@@ -16,6 +16,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public Vector3 rcpNegFaceFade;
         public float   rcpDistFadeLen;
         public float   endTimesRcpDistFadeLen;
+        public Vector4 scaleBias;
 
         public static ProbeVolumeEngineData GetNeutralValues()
         {
@@ -27,6 +28,7 @@ namespace UnityEngine.Rendering.HighDefinition
             data.rcpNegFaceFade = new Vector3(float.MaxValue, float.MaxValue, float.MaxValue);
             data.rcpDistFadeLen = 0;
             data.endTimesRcpDistFadeLen = 1;
+            data.scaleBias = Vector4.zero;
 
             return data;
         }
