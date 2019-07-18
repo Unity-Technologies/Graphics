@@ -9,7 +9,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
 {
     [MovedFrom("UnityEditor.Rendering.LWRP.ShaderGUI")] public static class ParticleGUI
     {
-        [MovedFrom("UnityEditor.Rendering.LWRP.ShaderGUI")] public enum ColorMode
+        //[MovedFrom("UnityEditor.Rendering.LWRP.ShaderGUI")] 
+        public enum ColorMode
         {
             Multiply,
             Additive,
@@ -19,7 +20,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
             Difference
         }
 
-        [MovedFrom("UnityEditor.Rendering.LWRP.ShaderGUI")] public static class Styles
+        //[MovedFrom("UnityEditor.Rendering.LWRP.ShaderGUI")] 
+        public static class Styles
         {
             public static GUIContent colorMode = new GUIContent("Color Mode",
                 "Controls how the Particle color and the Material color blend together.");

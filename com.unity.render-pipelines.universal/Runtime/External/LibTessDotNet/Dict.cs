@@ -44,7 +44,9 @@ namespace LibTessDotNet
 {
     internal class Dict<TValue> where TValue : class
     {
-        [MovedFrom("UnityEngine.Rendering.LWRP")] public class Node
+        //[MovedFrom("UnityEngine.Rendering.LWRP")]
+        // Dict<> ?? 
+        public class Node
         {
             internal TValue _key;
             internal Node _prev, _next;

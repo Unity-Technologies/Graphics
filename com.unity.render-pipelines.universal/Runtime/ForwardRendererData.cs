@@ -31,7 +31,9 @@ namespace UnityEngine.Rendering.Universal
 #endif
 
         [Serializable, ReloadGroup]
-        [MovedFrom("UnityEngine.Rendering.LWRP")] public sealed class ShaderResources
+        //[MovedFrom("UnityEngine.Rendering.LWRP")] 
+        // What about ForwardRendererData ? Hasn't it moved ?
+        public sealed class ShaderResources
         {
             [Reload("Shaders/Utils/Blit.shader")]
             public Shader blitPS;

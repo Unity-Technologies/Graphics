@@ -5,7 +5,9 @@ namespace UnityEngine.Experimental.Rendering.Universal
 {
     sealed public partial class Light2D : MonoBehaviour
     {
-        [MovedFrom("UnityEngine.Experimental.Rendering.LWRP")] public enum PointLightQuality
+        //[MovedFrom("UnityEngine.Experimental.Rendering.LWRP")] 
+        // what about Light2D ?
+        public enum PointLightQuality
         {
             Fast = 0,
             Accurate = 1

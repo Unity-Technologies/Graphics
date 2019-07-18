@@ -7,19 +7,22 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
 {
     [MovedFrom("UnityEditor.Rendering.LWRP.ShaderGUI")] public static class LitGUI
     {
-        [MovedFrom("UnityEditor.Rendering.LWRP.ShaderGUI")] public enum WorkflowMode
+        //[MovedFrom("UnityEditor.Rendering.LWRP.ShaderGUI")] 
+        public enum WorkflowMode
         {
             Specular = 0,
             Metallic
         }
 
-        [MovedFrom("UnityEditor.Rendering.LWRP.ShaderGUI")] public enum SmoothnessMapChannel
+        //[MovedFrom("UnityEditor.Rendering.LWRP.ShaderGUI")] 
+        public enum SmoothnessMapChannel
         {
             SpecularMetallicAlpha,
             AlbedoAlpha,
         }
 
-        [MovedFrom("UnityEditor.Rendering.LWRP.ShaderGUI")] public static class Styles
+        //[MovedFrom("UnityEditor.Rendering.LWRP.ShaderGUI")] 
+        public static class Styles
         {
             public static GUIContent workflowModeText = new GUIContent("Workflow Mode",
                 "Select a workflow that fits your textures. Choose between Metallic or Specular.");
