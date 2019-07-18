@@ -44,6 +44,12 @@
     margin-right:0;
 }
 
+
+.superCollapsed .VFXDataAnchor.port #connector
+{
+    margin-left:0;
+}
+
 .VFXDataAnchor #connector #hole
 {
     position:absolute;
