@@ -178,8 +178,8 @@ namespace UnityEngine.Rendering.Universal
 
         public void RenderSingleCamera(ScriptableRenderContext context, Camera camera, XRPass xrPass)
         {
-            if (!m_XRSystem.GetCullingParameters(camera, xrPass, out var cullingParameters))
-                return;
+            //if (!m_XRSystem.GetCullingParameters(camera, xrPass, out var cullingParameters))
+            //    return;
 
             var settings = asset;
             UniversalAdditionalCameraData additionalCameraData = null;
@@ -208,6 +208,29 @@ namespace UnityEngine.Rendering.Universal
             CommandBuffer cmd = CommandBufferPool.Get(tag);
             using (new ProfilingSample(cmd, tag))
             {
+                ScriptableCullingParameters cullingParameters;
+                ScriptableCullingParameters xrcullingParameters;
+
+                if (xrPass.xrSdkEnabled)
+                {
+                    if (!m_XRSystem.GetCullingParameters(camera, xrPass, out xrcullingParameters))
+                        return;
+                }
+                else
+                {
+                    if (!camera.TryGetCullingParameters(IsStereoEnabled(camera), out xrcullingParameters))
+                        return;
+                }
+
+                if (xrPass.xrSdkEnabled)
+                {
+                    camera.worldToCameraMatrix = xrcullingParameters.stereoViewMatrix;
+                    camera.projectionMatrix = xrcullingParameters.stereoProjectionMatrix;
+                }
+
+                if (!camera.TryGetCullingParameters(IsStereoEnabled(camera), out cullingParameters))
+                    return;
+
                 renderer.Clear();
                 renderer.SetupCullingParameters(ref cullingParameters, ref cameraData);
 
@@ -222,6 +245,14 @@ namespace UnityEngine.Rendering.Universal
 #endif
 
                 var cullResults = context.Cull(ref cullingParameters);
+
+                if (xrPass.xrSdkEnabled)
+                {
+                    // Reset is required to reset inernal states, assign to origin value is not working because it won't reset internal states
+                    camera.ResetWorldToCameraMatrix();
+                    camera.ResetProjectionMatrix();
+                }
+
                 InitializeRenderingData(settings, ref cameraData, ref cullResults, out var renderingData);
 
                 renderer.Setup(context, ref renderingData);
@@ -598,7 +629,6 @@ namespace UnityEngine.Rendering.Universal
             Shader.SetGlobalVector(PerCameraBuffer._ScaledScreenParams, new Vector4(scaledCameraWidth, scaledCameraHeight, 1.0f + 1.0f / scaledCameraWidth, 1.0f + 1.0f / scaledCameraHeight));
             Shader.SetGlobalVector(PerCameraBuffer._WorldSpaceCameraPos, camera.transform.position);
             Shader.SetGlobalVector(PerCameraBuffer._ScreenParams, new Vector4(cameraWidth, cameraHeight, 1.0f + 1.0f / cameraWidth, 1.0f + 1.0f / cameraHeight));
-            Shader.SetGlobalMatrix(PerCameraBuffer._InvCameraViewProj, invViewProjMatrix);
             Shader.SetGlobalMatrix(PerCameraBuffer._InvCameraViewProj, invViewProjMatrix);
 
             Shader.SetGlobalMatrix(Shader.PropertyToID("_ViewMatrix"), viewMatrix);

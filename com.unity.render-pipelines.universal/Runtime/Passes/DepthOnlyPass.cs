@@ -57,6 +57,28 @@ namespace UnityEngine.Rendering.Universal
             CommandBuffer cmd = CommandBufferPool.Get(m_ProfilerTag);
             using (new ProfilingSample(cmd, m_ProfilerTag))
             {
+                Matrix4x4 projMatrix;
+                Matrix4x4 viewMatrix;
+                if (renderingData.cameraData.xrPass.xrSdkEnabled)
+                {
+                    projMatrix = GL.GetGPUProjectionMatrix(renderingData.cameraData.xrPass.GetProjMatrix(0), true);
+                    viewMatrix = renderingData.cameraData.xrPass.GetViewMatrix(0);
+                }
+                else
+                {
+                    projMatrix = GL.GetGPUProjectionMatrix(renderingData.cameraData.camera.projectionMatrix, true);
+                    viewMatrix = renderingData.cameraData.camera.worldToCameraMatrix;
+                }
+                Matrix4x4 viewProjMatrix = projMatrix * viewMatrix;
+                Matrix4x4 invViewProjMatrix = Matrix4x4.Inverse(viewProjMatrix);
+
+                cmd.SetGlobalMatrix(Shader.PropertyToID("_ViewMatrix"), viewMatrix);
+                cmd.SetGlobalMatrix(Shader.PropertyToID("_InvViewMatrix"), Matrix4x4.Inverse(viewMatrix));
+                cmd.SetGlobalMatrix(Shader.PropertyToID("_ProjMatrix"), projMatrix);
+                cmd.SetGlobalMatrix(Shader.PropertyToID("_InvProjMatrix"), Matrix4x4.Inverse(projMatrix));
+                cmd.SetGlobalMatrix(Shader.PropertyToID("_ViewProjMatrix"), viewProjMatrix);
+                cmd.SetGlobalMatrix(Shader.PropertyToID("_InvViewProjMatrix"), Matrix4x4.Inverse(viewProjMatrix));
+
                 context.ExecuteCommandBuffer(cmd);
                 cmd.Clear();
 

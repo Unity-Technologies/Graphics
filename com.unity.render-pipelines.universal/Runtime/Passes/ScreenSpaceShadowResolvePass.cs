@@ -53,9 +53,36 @@ namespace UnityEngine.Rendering.Universal
             CommandBuffer cmd = CommandBufferPool.Get(m_ProfilerTag);
             if (!stereo)
             {
-                cmd.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.identity);
+                // XRTODO: this code pass is not tested yet.
+                Matrix4x4 projMatrix = GL.GetGPUProjectionMatrix(Matrix4x4.identity, true);
+                Matrix4x4 viewMatrix = Matrix4x4.identity;
+                Matrix4x4 viewProjMatrix = projMatrix * viewMatrix;
+                Matrix4x4 invViewProjMatrix = Matrix4x4.Inverse(viewProjMatrix);
+                cmd.SetGlobalMatrix(Shader.PropertyToID("_ViewMatrix"), viewMatrix);
+                cmd.SetGlobalMatrix(Shader.PropertyToID("_ProjMatrix"), projMatrix);
+                cmd.SetGlobalMatrix(Shader.PropertyToID("_ViewProjMatrix"), viewProjMatrix);
+                if (renderingData.cameraData.xrPass.xrSdkEnabled)
+                {
+                    Matrix4x4 xrProjMatrix = renderingData.cameraData.xrPass.GetProjMatrix(0);
+                    Matrix4x4 xrViewMatrix = renderingData.cameraData.xrPass.GetViewMatrix(0);
+                    Matrix4x4 xrViewProjMatrix = xrProjMatrix * xrViewMatrix;
+                    cmd.SetGlobalMatrix(Shader.PropertyToID("_InvProjMatrix"), Matrix4x4.Inverse(xrProjMatrix));
+                    cmd.SetGlobalMatrix(Shader.PropertyToID("_InvViewMatrix"), Matrix4x4.Inverse(xrViewMatrix));
+                    cmd.SetGlobalMatrix(Shader.PropertyToID("_InvViewProjMatrix"), Matrix4x4.Inverse(xrViewProjMatrix));
+
+                }
+                else
+                {
+                    Matrix4x4 xrProjMatrix = renderingData.cameraData.camera.projectionMatrix;
+                    Matrix4x4 xrViewMatrix = renderingData.cameraData.camera.worldToCameraMatrix;
+                    Matrix4x4 xrViewProjMatrix = xrProjMatrix * xrViewMatrix;
+                    cmd.SetGlobalMatrix(Shader.PropertyToID("_InvProjMatrix"), Matrix4x4.Inverse(xrProjMatrix));
+                    cmd.SetGlobalMatrix(Shader.PropertyToID("_InvViewMatrix"), Matrix4x4.Inverse(xrViewMatrix));
+                    cmd.SetGlobalMatrix(Shader.PropertyToID("_InvViewProjMatrix"), Matrix4x4.Inverse(xrViewProjMatrix));
+
+                }
+
                 cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, m_ScreenSpaceShadowsMaterial);
-                cmd.SetViewProjectionMatrices(camera.worldToCameraMatrix, camera.projectionMatrix);
             }
             else
             {

@@ -244,7 +244,7 @@ namespace UnityEngine.Rendering.Universal
         internal bool GetCullingParameters(Camera camera, XRPass xrPass, out ScriptableCullingParameters cullingParams)
         {
 #if USE_XR_SDK
-            if (display != null)
+            if (display != null && camera.cameraType == CameraType.Game && camera.targetTexture == null)
             {
                 display.GetCullingParameters(camera, xrPass.cullingPassId, out cullingParams);
             }

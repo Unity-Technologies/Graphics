@@ -91,11 +91,22 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     Matrix4x4 projectionMatrix = Matrix4x4.Perspective(m_CameraSettings.cameraFieldOfView, cameraAspect,
                         camera.nearClipPlane, camera.farClipPlane);
 
-                    Matrix4x4 viewMatrix = camera.worldToCameraMatrix;
-                    Vector4 cameraTranslation = viewMatrix.GetColumn(3);
-                    viewMatrix.SetColumn(3, cameraTranslation + m_CameraSettings.offset);
+                    Matrix4x4 CamViewMatrix = camera.worldToCameraMatrix;
+                    Vector4 cameraTranslation = CamViewMatrix.GetColumn(3);
+                    CamViewMatrix.SetColumn(3, cameraTranslation + m_CameraSettings.offset);
 
-                    cmd.SetViewProjectionMatrices(viewMatrix, projectionMatrix);
+                    // XRTODO: this code pass is not tested yet. need to test
+                    Matrix4x4 projMatrix = GL.GetGPUProjectionMatrix(projectionMatrix, false);
+                    Matrix4x4 viewMatrix = CamViewMatrix;
+                    Matrix4x4 viewProjMatrix = projMatrix * viewMatrix;
+                    Matrix4x4 invViewProjMatrix = Matrix4x4.Inverse(viewProjMatrix);
+                    cmd.SetGlobalMatrix(Shader.PropertyToID("_ViewMatrix"), viewMatrix);
+                    cmd.SetGlobalMatrix(Shader.PropertyToID("_InvViewMatrix"), Matrix4x4.Inverse(viewMatrix));
+                    cmd.SetGlobalMatrix(Shader.PropertyToID("_ProjMatrix"), projMatrix);
+                    cmd.SetGlobalMatrix(Shader.PropertyToID("_InvProjMatrix"), Matrix4x4.Inverse(projMatrix));
+                    cmd.SetGlobalMatrix(Shader.PropertyToID("_ViewProjMatrix"), viewProjMatrix);
+                    cmd.SetGlobalMatrix(Shader.PropertyToID("_InvViewProjMatrix"), Matrix4x4.Inverse(viewProjMatrix));
+
                     context.ExecuteCommandBuffer(cmd);
                 }
 
@@ -108,7 +119,18 @@ namespace UnityEngine.Experimental.Rendering.Universal
                         camera.nearClipPlane, camera.farClipPlane);
 
                     cmd.Clear();
-                    cmd.SetViewProjectionMatrices(camera.worldToCameraMatrix, projectionMatrix);
+
+                    // XRTODO: this code pass is not tested yet. need to test
+                    Matrix4x4 projMatrix = GL.GetGPUProjectionMatrix(projectionMatrix, false);
+                    Matrix4x4 viewMatrix = camera.worldToCameraMatrix;
+                    Matrix4x4 viewProjMatrix = projMatrix * viewMatrix;
+                    Matrix4x4 invViewProjMatrix = Matrix4x4.Inverse(viewProjMatrix);
+                    cmd.SetGlobalMatrix(Shader.PropertyToID("_ViewMatrix"), viewMatrix);
+                    cmd.SetGlobalMatrix(Shader.PropertyToID("_InvViewMatrix"), Matrix4x4.Inverse(viewMatrix));
+                    cmd.SetGlobalMatrix(Shader.PropertyToID("_ProjMatrix"), projMatrix);
+                    cmd.SetGlobalMatrix(Shader.PropertyToID("_InvProjMatrix"), Matrix4x4.Inverse(projMatrix));
+                    cmd.SetGlobalMatrix(Shader.PropertyToID("_ViewProjMatrix"), viewProjMatrix);
+                    cmd.SetGlobalMatrix(Shader.PropertyToID("_InvViewProjMatrix"), Matrix4x4.Inverse(viewProjMatrix));
                 }
             }
             context.ExecuteCommandBuffer(cmd);

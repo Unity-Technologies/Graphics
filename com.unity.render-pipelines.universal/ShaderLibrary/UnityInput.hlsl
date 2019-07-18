@@ -84,6 +84,7 @@ float4 unity_CameraWorldClipPlanes[6];
 // that is set right now, e.g. while rendering shadows the matrices below are still the projection
 // of original camera.
 float4x4 unity_CameraProjection;
+// XRTODO: remove this camera inv proj. this is legacy camera's property
 float4x4 unity_CameraInvProjection;
 float4x4 unity_WorldToCamera;
 float4x4 unity_CameraToWorld;
