@@ -52,20 +52,43 @@ half4 _AdditionalLightsSpotDir[MAX_VISIBLE_LIGHTS];
 half4 _AdditionalLightsOcclusionProbes[MAX_VISIBLE_LIGHTS];
 CBUFFER_END
 
-#define UNITY_MATRIX_M     unity_ObjectToWorld
-#define UNITY_MATRIX_I_M   unity_WorldToObject
-#define UNITY_MATRIX_V     unity_MatrixV
-#define UNITY_MATRIX_I_V   unity_MatrixInvV
-#define UNITY_MATRIX_P     OptimizeProjectionMatrix(glstate_matrix_projection)
-#define UNITY_MATRIX_I_P   ERROR_UNITY_MATRIX_I_P_IS_NOT_DEFINED
-#define UNITY_MATRIX_VP    unity_MatrixVP
-#define UNITY_MATRIX_I_VP  _InvCameraViewProj
-#define UNITY_MATRIX_MV    mul(UNITY_MATRIX_V, UNITY_MATRIX_M)
-#define UNITY_MATRIX_T_MV  transpose(UNITY_MATRIX_MV)
-#define UNITY_MATRIX_IT_MV transpose(mul(UNITY_MATRIX_I_M, UNITY_MATRIX_I_V))
-#define UNITY_MATRIX_MVP   mul(UNITY_MATRIX_VP, UNITY_MATRIX_M)
-
 #include "UnityInput.hlsl"
+
+// Helper to handle camera relative space
+float4x4 ApplyCameraTranslationToMatrix(float4x4 modelMatrix)
+{
+    // To handle camera relative rendering we substract the camera position in the model matrix
+#if (SHADEROPTIONS_CAMERA_RELATIVE_RENDERING != 0)
+    modelMatrix._m03_m13_m23 -= _WorldSpaceCameraPos;
+#endif
+    return modelMatrix;
+}
+
+float4x4 ApplyCameraTranslationToInverseMatrix(float4x4 inverseModelMatrix)
+{
+#if (SHADEROPTIONS_CAMERA_RELATIVE_RENDERING != 0)
+    // To handle camera relative rendering we need to apply translation before converting to object space
+    float4x4 translationMatrix = { { 1.0, 0.0, 0.0, _WorldSpaceCameraPos.x },{ 0.0, 1.0, 0.0, _WorldSpaceCameraPos.y },{ 0.0, 0.0, 1.0, _WorldSpaceCameraPos.z },{ 0.0, 0.0, 0.0, 1.0 } };
+    return mul(inverseModelMatrix, translationMatrix);
+#else
+    return inverseModelMatrix;
+#endif
+}
+
+// Define Model Matrix Macro
+// Note: In order to be able to define our macro to forbid usage of unity_ObjectToWorld/unity_WorldToObject
+// We need to declare inline function. Using uniform directly mean they are expand with the macro
+float4x4 GetRawUnityObjectToWorld() { return unity_ObjectToWorld; }
+float4x4 GetRawUnityWorldToObject() { return unity_WorldToObject; }
+
+#define UNITY_MATRIX_M     ApplyCameraTranslationToMatrix(GetRawUnityObjectToWorld())
+#define UNITY_MATRIX_I_M   ApplyCameraTranslationToInverseMatrix(GetRawUnityWorldToObject())
+
+// To get instancing working, we must use UNITY_MATRIX_M / UNITY_MATRIX_I_M as UnityInstancing.hlsl redefine them
+#define unity_ObjectToWorld Use_Macro_UNITY_MATRIX_M_instead_of_unity_ObjectToWorld
+#define unity_WorldToObject Use_Macro_UNITY_MATRIX_I_M_instead_of_unity_WorldToObject
+
+#include "ShaderVariablesMatrixDefsUniversalRP.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/UnityInstancing.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/SpaceTransforms.hlsl"
 

@@ -140,7 +140,8 @@ namespace UnityEngine.Rendering.Universal
             // XRTODO: Smae as color texture todo above
             createDepthTexture = createDepthTexture || xrPass.xrSdkEnabled;
 
-            bool postProcessEnabled = renderingData.cameraData.postProcessEnabled;
+            // XRTODO: enable postFX
+            bool postProcessEnabled = renderingData.cameraData.postProcessEnabled && false;
 
             m_ActiveCameraColorAttachment = (createColorTexture) ? m_CameraColorAttachment : RenderTargetHandle.CameraTarget;
             m_ActiveCameraDepthAttachment = (createDepthTexture) ? m_CameraDepthAttachment : RenderTargetHandle.CameraTarget;

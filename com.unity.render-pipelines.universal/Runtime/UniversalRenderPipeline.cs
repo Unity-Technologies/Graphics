@@ -558,20 +558,55 @@ namespace UnityEngine.Rendering.Universal
         static void SetupPerCameraShaderConstants(CameraData cameraData)
         {
             Camera camera = cameraData.camera;
+            XRPass xrPass = cameraData.xrPass;
 
-            float scaledCameraWidth = (float)cameraData.camera.pixelWidth * cameraData.renderScale;
-            float scaledCameraHeight = (float)cameraData.camera.pixelHeight * cameraData.renderScale;
-            Shader.SetGlobalVector(PerCameraBuffer._ScaledScreenParams, new Vector4(scaledCameraWidth, scaledCameraHeight, 1.0f + 1.0f / scaledCameraWidth, 1.0f + 1.0f / scaledCameraHeight));
-            Shader.SetGlobalVector(PerCameraBuffer._WorldSpaceCameraPos, camera.transform.position);
-            float cameraWidth = (float)cameraData.camera.pixelWidth;
-            float cameraHeight = (float)cameraData.camera.pixelHeight;
-            Shader.SetGlobalVector(PerCameraBuffer._ScreenParams, new Vector4(cameraWidth, cameraHeight, 1.0f + 1.0f / cameraWidth, 1.0f + 1.0f / cameraHeight));
+            float scaledCameraWidth = 0;
+            float scaledCameraHeight = 0;
 
-            Matrix4x4 projMatrix = GL.GetGPUProjectionMatrix(camera.projectionMatrix, false);
-            Matrix4x4 viewMatrix = camera.worldToCameraMatrix;
+            float cameraWidth = 0;
+            float cameraHeight = 0;
+
+            Matrix4x4 projMatrix = Matrix4x4.identity;
+            Matrix4x4 viewMatrix = Matrix4x4.identity;
+            if (xrPass.xrSdkEnabled)
+            {
+                // XRTODO: handles adaptive pixel density. How it is being handled in XRSDK?
+                float xrAdaptivePixelDensity = 1;
+                scaledCameraWidth = xrPass.renderTargetDesc.width * xrAdaptivePixelDensity;
+                scaledCameraHeight = xrPass.renderTargetDesc.height * xrAdaptivePixelDensity;
+                cameraWidth = xrPass.renderTargetDesc.width;
+                cameraHeight = xrPass.renderTargetDesc.height;
+
+                // Flip if y-flip is enabled.
+                projMatrix = GL.GetGPUProjectionMatrix(xrPass.GetProjMatrix(0),true);
+                viewMatrix = xrPass.GetViewMatrix(0);
+            }
+            else
+            {
+                scaledCameraWidth = (float)cameraData.camera.pixelWidth * cameraData.renderScale;
+                scaledCameraHeight = (float)cameraData.camera.pixelHeight * cameraData.renderScale;
+                cameraWidth = (float)cameraData.camera.pixelWidth;
+                cameraHeight = (float)cameraData.camera.pixelHeight;
+
+                projMatrix = GL.GetGPUProjectionMatrix(camera.projectionMatrix, true);
+                viewMatrix = camera.worldToCameraMatrix;
+            }
+
             Matrix4x4 viewProjMatrix = projMatrix * viewMatrix;
             Matrix4x4 invViewProjMatrix = Matrix4x4.Inverse(viewProjMatrix);
+
+            Shader.SetGlobalVector(PerCameraBuffer._ScaledScreenParams, new Vector4(scaledCameraWidth, scaledCameraHeight, 1.0f + 1.0f / scaledCameraWidth, 1.0f + 1.0f / scaledCameraHeight));
+            Shader.SetGlobalVector(PerCameraBuffer._WorldSpaceCameraPos, camera.transform.position);
+            Shader.SetGlobalVector(PerCameraBuffer._ScreenParams, new Vector4(cameraWidth, cameraHeight, 1.0f + 1.0f / cameraWidth, 1.0f + 1.0f / cameraHeight));
             Shader.SetGlobalMatrix(PerCameraBuffer._InvCameraViewProj, invViewProjMatrix);
+            Shader.SetGlobalMatrix(PerCameraBuffer._InvCameraViewProj, invViewProjMatrix);
+
+            Shader.SetGlobalMatrix(Shader.PropertyToID("_ViewMatrix"), viewMatrix);
+            Shader.SetGlobalMatrix(Shader.PropertyToID("_InvViewMatrix"), Matrix4x4.Inverse(viewMatrix));
+            Shader.SetGlobalMatrix(Shader.PropertyToID("_ProjMatrix"), projMatrix);
+            Shader.SetGlobalMatrix(Shader.PropertyToID("_InvProjMatrix"), Matrix4x4.Inverse(projMatrix));
+            Shader.SetGlobalMatrix(Shader.PropertyToID("_ViewProjMatrix"), viewProjMatrix);
+            Shader.SetGlobalMatrix(Shader.PropertyToID("_InvViewProjMatrix"), Matrix4x4.Inverse(viewProjMatrix));
         }
 
         static Lightmapping.RequestLightsDelegate lightsDelegate = (Light[] requests, NativeArray<LightDataGI> lightsOutput) =>

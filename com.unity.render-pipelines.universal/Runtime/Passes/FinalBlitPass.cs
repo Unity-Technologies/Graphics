@@ -91,11 +91,19 @@ namespace UnityEngine.Rendering.Universal
                     Color.black,
                     m_TargetDimension);
 
-                Camera camera = cameraData.camera;
-                cmd.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.identity);
+                Matrix4x4 projMatrix = GL.GetGPUProjectionMatrix(Matrix4x4.identity, true);
+                Matrix4x4 viewMatrix = Matrix4x4.identity;
+                Matrix4x4 viewProjMatrix = projMatrix * viewMatrix;
+                Matrix4x4 invViewProjMatrix = Matrix4x4.Inverse(viewProjMatrix);
+
+                cmd.SetGlobalMatrix(Shader.PropertyToID("_ViewMatrix"), viewMatrix);
+                cmd.SetGlobalMatrix(Shader.PropertyToID("_InvViewMatrix"), Matrix4x4.Inverse(viewMatrix));
+                cmd.SetGlobalMatrix(Shader.PropertyToID("_ProjMatrix"), projMatrix);
+                cmd.SetGlobalMatrix(Shader.PropertyToID("_InvProjMatrix"), Matrix4x4.Inverse(projMatrix));
+                cmd.SetGlobalMatrix(Shader.PropertyToID("_ViewProjMatrix"), viewProjMatrix);
+                cmd.SetGlobalMatrix(Shader.PropertyToID("_InvViewProjMatrix"), Matrix4x4.Inverse(viewProjMatrix));
                 cmd.SetViewport(m_PixelRect != Rect.zero ? m_PixelRect : cameraData.camera.pixelRect);
                 cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, m_BlitMaterial);
-                cmd.SetViewProjectionMatrices(camera.worldToCameraMatrix, camera.projectionMatrix);
             }
 
             context.ExecuteCommandBuffer(cmd);
