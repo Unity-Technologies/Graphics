@@ -135,7 +135,6 @@ EditorBuildSettings:
     path: Assets/AllTests/VFXTests/GraphicsTests/GradientMapped.unity
     guid: 56d69bce6c4697147823f3b5b3acd8ea
   - enabled: 1
-  - enabled: 1
     path: Assets/AllTests/VFXTests/GraphicsTests/Jumping Cubes/Jumping Cubes.unity
     guid: bd230f4e3e8da61488a3ef08fd491db0
   - enabled: 1
