@@ -33,20 +33,20 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public void RegisterVolume(ProbeVolume volume)
         {
+            if (!volumes.Contains(volume))
+                return;
+
             volumes.Add(volume);
             volumesArrayIsDirty = true;
-            
-            // TODO
-            //Vector4f scaleBias = new Vector4f(1,1,1,1);
-            //volumeAtlas.AddTexture(volume);
         }
 
         public void DeRegisterVolume(ProbeVolume volume)
         {
             if (!volumes.Contains(volume))
                 return;
-            
-            // TODO
+
+            volumes.Remove(volume);
+            volumesArrayIsDirty = true;
         }
 
         public ProbeVolume[] PrepareProbeVolumeData(CommandBuffer cmd, Camera currentCam)
@@ -58,6 +58,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (volumesArrayIsDirty)
             {
+                foreach (ProbeVolume volume in volumes)
+                {
+                    volumeAtlas.AddTexture(cmd, ref volume.parameters.scaleBias, volume.ProbeVolumeTexture);
+                }
+
                 volumesArrayIsDirty = false;
                 volumesArray = volumes.ToArray();
             }
