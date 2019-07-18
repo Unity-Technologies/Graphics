@@ -29,6 +29,8 @@ namespace UnityEditor.ShaderGraph
         Dictionary<int, PortPair> m_portPairs;
         protected int nextFreeIndex = 0;
 
+        private DynamicValueMaterialSlot danglingSlot;
+        
         public RedirectNodeData() : base()
         {
             name = "Redirect Node";
@@ -39,7 +41,7 @@ namespace UnityEditor.ShaderGraph
             temp.expanded = false;
             drawState = temp;
 
-            AddSlot(new DynamicValueMaterialSlot(m_tempSlotID, m_tempSlotName, m_tempSlotName, SlotType.Input, Matrix4x4.zero));
+            AddSlot(danglingSlot = new DynamicValueMaterialSlot(m_tempSlotID, m_tempSlotName, m_tempSlotName, SlotType.Input, Matrix4x4.zero));
         }
 
         //Create and/or destroy input pair

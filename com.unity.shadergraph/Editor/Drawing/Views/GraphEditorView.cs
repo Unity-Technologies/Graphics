@@ -40,7 +40,8 @@ namespace UnityEditor.ShaderGraph.Drawing
         PreviewManager m_PreviewManager;
         MessageManager m_MessageManager;
         SearchWindowProvider m_SearchWindowProvider;
-        EdgeConnectorListener m_EdgeConnectorListener;
+        EdgeConnectorListener m_EdgeConnectorListener; 
+        RedirectNodeEdgeConnectorListener m_redirectEdgeConnectorListener;
         BlackboardProvider m_BlackboardProvider;
         ColorManager m_ColorManager;
 
@@ -223,6 +224,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 };
 
             m_EdgeConnectorListener = new EdgeConnectorListener(m_Graph, m_SearchWindowProvider);
+            m_redirectEdgeConnectorListener = new RedirectNodeEdgeConnectorListener(m_Graph, m_SearchWindowProvider);
 
             foreach (var graphGroup in graph.groups)
             {
@@ -643,7 +645,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 var redirectNodeView = new RedirectNodeView { userData = materialNode };
                 m_GraphView.AddElement(redirectNodeView);
-                redirectNodeView.Initialize(materialNode, m_PreviewManager, m_EdgeConnectorListener, graphView);
+                redirectNodeView.Initialize(materialNode, m_PreviewManager, m_redirectEdgeConnectorListener, graphView);
                 //m_ColorManager.UpdateNodeView(materialNodeView);
                 nodeView = redirectNodeView;
             }

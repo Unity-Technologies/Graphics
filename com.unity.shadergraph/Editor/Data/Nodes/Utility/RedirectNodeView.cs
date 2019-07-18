@@ -20,7 +20,9 @@ namespace UnityEditor.ShaderGraph
         VisualElement m_TitleContainer;
 
         GraphView m_GraphView;
-
+        
+        VisualElement m_inOutPairsRoot;
+        
         Port m_TempPort;
 
         ///////////////////////////////////////////////////////////
