@@ -12,10 +12,12 @@ namespace UnityEngine.Experimental.Rendering.Universal
         public float m_Radius = 1;
         public int m_Sides = 6;
         public float m_Angle = 0;
+        public int m_Group = -1;
         Mesh m_Mesh;
 
         int m_PreviousSides = 6;
         float m_PreviousRadius = 1;
+        int m_PreviousGroup = -1;
         public MeshFilter m_DebugMeshFilter;
 
 
@@ -97,7 +99,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 tangents[vertexIndex].z = 0;
                 tangents[vertexIndex].w = 0;
                 colors[vertexIndex] = Color.clear;
-                //Debug.DrawLine(endPoint, endPoint + -nextCross, Color.blue, 60);
 
                 int triangleIndex = 3 * i;
                 triangles[triangleIndex] = vertexIndex;
@@ -109,7 +110,13 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 vertices[extraVertexIndex] = endPoint;
                 tangents[extraVertexIndex] = new Vector4(curCross.x, curCross.y, 0, 0);
                 colors[extraVertexIndex] = Color.clear;
-                //Debug.DrawLine(endPoint, endPoint + -curCross, Color.red, 60);
+
+                //if (i == 3)
+                //{
+                //    Vector3 transformedEndPoint = transform.TransformPoint(endPoint);
+                //    Debug.DrawLine(transformedEndPoint, transformedEndPoint + -nextCross, Color.blue, 60);
+                //    Debug.DrawLine(transformedEndPoint, transformedEndPoint + -curCross, Color.red, 60);
+                //}
 
                 int extraTriangleIndex = 3 * (i + sides);
                 triangles[extraTriangleIndex] = vertexIndex;
@@ -157,12 +164,31 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 s_ShadowCasters.Clear();
         }
 
+
+        internal static void AddShadowCasterToList(ShadowCaster2D shadowCaster, List<ShadowCaster2D> list)
+        {
+            int positionToInsert = 0;
+            for(positionToInsert=0; positionToInsert < list.Count; positionToInsert++)
+            {
+                if (shadowCaster.m_Group == list[positionToInsert].m_Group)
+                    break;
+            }
+
+            list.Insert(positionToInsert, shadowCaster);
+        }
+
+
+        internal static void RemoveShadowCasterFromList(ShadowCaster2D shadowCaster, List<ShadowCaster2D> list)
+        {
+            list.Remove(shadowCaster);
+        }
+
         private void OnEnable()
         {
             if (s_ShadowCasters == null)
                 s_ShadowCasters = new List<ShadowCaster2D>();
 
-            s_ShadowCasters.Add(this);
+            AddShadowCasterToList(this, s_ShadowCasters);
 
             CreateShadowPolygon(Vector3.zero, m_Radius, m_Angle, m_Sides, ref m_ShadowMesh);
 
@@ -172,7 +198,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         private void OnDisable()
         {
-            s_ShadowCasters.Remove(this);
+            RemoveShadowCasterFromList(this, s_ShadowCasters);
         }
 
         private void Update()
@@ -183,6 +209,13 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
             if (rebuildMesh)
                 CreateShadowPolygon(Vector3.zero, m_Radius, m_Angle, m_Sides, ref m_Mesh);
+
+            bool reinsertShadowCaster = LightUtility.CheckForChange(m_Group, ref m_PreviousGroup);
+            if(reinsertShadowCaster)
+            {
+                RemoveShadowCasterFromList(this, s_ShadowCasters);
+                AddShadowCasterToList(this, s_ShadowCasters);
+            }
         }
     }
 }   

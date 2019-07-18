@@ -145,8 +145,9 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
                         cmdBuffer.SetGlobalVector("_LightPos", light.transform.position);
                         cmdBuffer.SetGlobalFloat("_LightRadius", lightBounds.radius);
-                        
 
+                        int previousShadowCasterGroup = int.MinValue;
+                        byte incrementedStencilGroup = 1;
                         List<ShadowCaster2D> shadowCasters = ShadowCaster2D.shadowCasters;
                         if (shadowCasters != null && shadowCasters.Count > 0)
                         {
@@ -156,9 +157,18 @@ namespace UnityEngine.Experimental.Rendering.Universal
                                 Vector3 deltaPos = lightCenterWS - shadowCaster.transform.position;
                                 float sqDist = deltaPos.x * deltaPos.x + deltaPos.y * deltaPos.y;
 
+
+                              
+
                                 // Check to see if our shadow caster is inside the lights bounds...
                                 if (sqDist < (shadowRadiusSq + lightRadiusSq))
                                 {
+                                    //if (LightUtility.CheckForChange(shadowCaster.m_Group, ref previousShadowCasterGroup))
+                                    {
+                                        incrementedStencilGroup++;
+                                        cmdBuffer.SetGlobalFloat("_ShadowStencilGroup", incrementedStencilGroup);
+                                    }
+
                                     cmdBuffer.DrawMesh(shadowCaster.mesh, Matrix4x4.TRS(shadowCaster.transform.position, shadowCaster.transform.rotation, shadowCaster.transform.lossyScale), shadowMaterial);
                                     cmdBuffer.DrawMesh(shadowCaster.mesh, Matrix4x4.TRS(shadowCaster.transform.position, shadowCaster.transform.rotation, shadowCaster.transform.lossyScale), removeSelfShadowMaterial);
                                 }

@@ -2,6 +2,7 @@ Shader "Hidden/Shadow2D"
 {
     Properties
     {
+        [HideInInspector] _ShadowStencilGroup("__ShadowStencilGroup", Float) = 1.0
     }
 
     SubShader
@@ -15,6 +16,13 @@ Shader "Hidden/Shadow2D"
 
         Pass
         {
+            Stencil
+            {
+                Ref [_ShadowStencilGroup]
+                Comp NotEqual
+                Pass Replace
+            }
+
             HLSLPROGRAM
             #pragma vertex vert
             #pragma fragment frag
