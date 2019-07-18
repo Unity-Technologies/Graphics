@@ -562,93 +562,13 @@ namespace UnityEditor.VFX
             if (m_SubgraphDependencies != null && m_SubgraphDependencies.Contains(subgraph))
             {
                 RecurseSubgraphRecreateCopy(this);
-                compiledData.Compile(m_CompilationMode, m_ForceShaderValidation);
+                m_CompilationStatus = new VFXCompilationStatus();
+                compiledData.Compile(m_CompilationStatus,m_CompilationMode, m_ForceShaderValidation);
                 m_ExpressionGraphDirty = false;
 
                 m_ExpressionValuesDirty = false;
             }
         }
-
-
-
-        IEnumerable<VFXGraph> GetAllGraphs<T>() where T : VisualEffectObject
-        {
-            var guids = AssetDatabase.FindAssets("t:" + typeof(T).Name);
-
-            foreach (var assetPath in guids.Select(t => AssetDatabase.GUIDToAssetPath(t)))
-            {
-                var asset = AssetDatabase.LoadAssetAtPath<T>(assetPath);
-                if (asset != null)
-                {
-                    var graph = asset.GetResource().GetOrCreateGraph();
-                    yield return graph;
-                }
-            }
-        }
-
-        public void ComputeDataIndices()
-        {
-            VFXContext[] directContexts = children.OfType<VFXContext>().ToArray();
-
-            HashSet<ScriptableObject> dependencies = new HashSet<ScriptableObject>();
-            CollectDependencies(dependencies, false);
-
-            VFXContext[] allContexts = dependencies.OfType<VFXContext>().ToArray();
-
-            IEnumerable<VFXData> datas = allContexts.Select(t => t.GetData()).Where(t => t != null).Distinct().OrderBy(t => directContexts.Contains(t.owners.First()) ? 0 : 1);
-
-            int cpt = 1;
-            foreach (var data in datas)
-            {
-                data.index = cpt++;
-            }
-        }
-
-        void RecurseSubgraphRecreateCopy(VFXGraph graph)
-        {
-            foreach (var child in graph.children)
-            {
-                if (child is VFXSubgraphContext)
-                {
-                    var subgraphContext = child as VFXSubgraphContext;
-                    if( subgraphContext.subgraph != null)
-                        RecurseSubgraphRecreateCopy(subgraphContext.subgraph.GetResource().GetOrCreateGraph());
-                    subgraphContext.RecreateCopy();
-                }
-                else if(child is VFXContext)
-                {
-                    foreach( var block in child.children)
-                    {
-                        if( block is VFXSubgraphBlock)
-                        {
-
-                            var subgraphBlock = block as VFXSubgraphBlock;
-                            if (subgraphBlock.subgraph != null)
-                                RecurseSubgraphRecreateCopy(subgraphBlock.subgraph.GetResource().GetOrCreateGraph());
-                            subgraphBlock.RecreateCopy();
-                        }
-                    }
-                }
-            }
-        }
-
-        void SubgraphDirty(VisualEffectObject subgraph,bool expressionsChanged)
-        {
-            if (m_SubgraphDependencies != null && m_SubgraphDependencies.Contains(subgraph))
-            {
-                if (expressionsChanged)
-                {
-                    RecurseSubgraphRecreateCopy(this);
-                    m_CompilationStatus = new VFXCompilationStatus();
-                    compiledData.Compile(m_CompilationStatus, m_CompilationMode, m_ForceShaderValidation);
-                    m_ExpressionGraphDirty = false;
-                }
-
-                m_ExpressionValuesDirty = false;
-            }
-        }
-
-
 
         IEnumerable<VFXGraph> GetAllGraphs<T>() where T : VisualEffectObject
         {
