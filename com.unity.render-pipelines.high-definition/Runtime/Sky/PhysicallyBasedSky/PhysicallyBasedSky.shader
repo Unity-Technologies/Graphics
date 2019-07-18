@@ -55,38 +55,78 @@ Shader "Hidden/HDRP/Sky/PbrSky"
         return output;
     }
 
-    // TODO: we must write depth for the planet!
-    // What about depth prepass??
     float4 RenderSky(Varyings input)
     {
-        const float  R = _PlanetaryRadius;
+        const float A = _AtmosphericRadius;
+        const float R = _PlanetaryRadius;
+
         // TODO: Not sure it's possible to precompute cam rel pos since variables
         // in the two constant buffers may be set at a different frequency?
         const float3 O = _WorldSpaceCameraPos1 * 0.001 - _PlanetCenterPosition; // Convert m to km
         const float3 V = GetSkyViewDirWS(input.positionCS.xy);
 
         float3 N; float r; // These params correspond to the entry point
-        float tEntry = IntersectAtmosphere(O, V, N, r);
+        float tEntry = IntersectAtmosphere(O, V, N, r).x;
 
         float NdotV  = dot(N, V);
         float cosChi = -NdotV;
         float cosHor = ComputeCosineOfHorizonAngle(r);
 
         bool rayIntersectsAtmosphere = (tEntry >= 0);
-        bool lookAboveHorizon        = (cosChi > cosHor);
+        bool lookAboveHorizon        = (cosChi >= cosHor);
 
-        float3 gN = 0, gBrdf = 0, transm = 1;
+        float  tFrag    = FLT_INF;
+        float3 radiance = 0;
 
-        float3 totalRadiance = 0;
-
-        if (rayIntersectsAtmosphere)
+        // Intersect and shade emissive celestial bodies.
+        // Unfortunately, they don't write depth.
+        // This means that they are always effectively "at infinity",
+        // and cannot occlude anything (except for each other and the planet).
+        for (uint i = 0; i < _DirectionalLightCount; i++)
         {
-            if (!lookAboveHorizon) // See the ground?
-            {
-                float tExit = tEntry + IntersectSphere(R, cosChi, r).x;
+            DirectionalLightData light = _DirectionalLightDatas[i];
 
-                float3 gP = O + tExit * -V;
-                       gN = normalize(gP);
+            if (!light.interactsWithSky) continue;
+
+            if (light.radius > 0)
+            {
+                // We may be able to see the celestial body.
+                float3 radialVec       = (light.positionRWS - GetPrimaryCameraPosition()) * 0.001; // Convert m to km
+                float  radialVecLen    = sqrt(dot(radialVec, radialVec));
+                float  rcpRadialVecLen = rsqrt(dot(radialVec, radialVec));
+                float  cosBody         = dot(V, radialVec) * rcpRadialVecLen; // Both vectors are flipped
+
+                float2 tBody = IntersectSphere(light.radius, cosBody, radialVecLen, rcpRadialVecLen);
+
+                if (tBody.x > 0 && tBody.x < tFrag)
+                {
+                    // Closest so far.
+                    tFrag = tBody.x;
+
+                    // Assume uniform emission (no rescaling w.r.t. the solid angle).
+                    radiance = light.color.rgb;
+                }
+            }
+        }
+
+        if (rayIntersectsAtmosphere && !lookAboveHorizon) // See the ground?
+        {
+            float tGround = tEntry + IntersectSphere(R, cosChi, r).x;
+
+            if (tGround < tFrag)
+            {
+                // Closest so far.
+                tFrag = tGround;
+
+                radiance = 0;
+
+                float3 gP = O + tFrag * -V;
+                float3 gN = normalize(gP);
+
+                if (_HasGroundEmissionTexture)
+                {
+                    radiance += SAMPLE_TEXTURECUBE(_GroundEmissionTexture, s_trilinear_clamp_sampler, mul(gN, (float3x3)_PlanetRotation));
+                }
 
                 float3 albedo;
 
@@ -99,57 +139,40 @@ Shader "Hidden/HDRP/Sky/PbrSky"
                     albedo = _GroundAlbedo;
                 }
 
-                gBrdf = INV_PI * albedo;
-            }
+                float3 gBrdf = INV_PI * albedo;
 
-            if (!lookAboveHorizon) // See the ground?
-            {
+                // Shade the ground.
                 for (uint i = 0; i < _DirectionalLightCount; i++)
                 {
-                    if (!_DirectionalLightDatas[i].interactsWithSky) continue;
+                    DirectionalLightData light = _DirectionalLightDatas[i];
 
-                    float3 L             = -_DirectionalLightDatas[i].forward.xyz;
-                    float3 lightRadiance =  _DirectionalLightDatas[i].color.rgb;
+                    if (!light.interactsWithSky) continue;
 
-                    float3 radiance = 0;
-
+                    float3 L          = -light.forward.xyz;
+                    float3 intensity  = light.color.rgb;
                     float3 irradiance = SampleGroundIrradianceTexture(dot(gN, L));
-                    radiance += gBrdf * irradiance;
-                    radiance *= lightRadiance;      // Globally scale the intensity
 
-                    totalRadiance += radiance;
+                    radiance += gBrdf * (irradiance * intensity); // Scale from unit intensity to light's intensity
                 }
             }
         }
-
-        float3 emission = 0;
-
-        if (rayIntersectsAtmosphere && !lookAboveHorizon) // See the ground?
-        {
-            if (_HasGroundEmissionTexture)
-            {
-                emission = SAMPLE_TEXTURECUBE(_GroundEmissionTexture, s_trilinear_clamp_sampler, mul(gN, (float3x3)_PlanetRotation));
-            }
-        }
-        else // See the space?
+        else if (tFrag == FLT_INF) // See the stars?
         {
             if (_HasSpaceEmissionTexture)
             {
                 // V points towards the camera.
-                emission = SAMPLE_TEXTURECUBE(_SpaceEmissionTexture, s_trilinear_clamp_sampler, mul(-V, (float3x3)_SpaceRotation));
+                radiance += SAMPLE_TEXTURECUBE(_SpaceEmissionTexture, s_trilinear_clamp_sampler, mul(-V, (float3x3)_SpaceRotation));
             }
         }
 
-        totalRadiance += emission;
+        float3 skyColor = 0, skyOpacity = 0;
 
-        float3 skyColor, skyOpacity;
+        if (rayIntersectsAtmosphere)
+        {
+            EvaluatePbrAtmosphere(_WorldSpaceCameraPos1, V, tFrag, skyColor, skyOpacity);
+        }
 
-        // Evaluate the sky at infinity.
-        EvaluatePbrAtmosphere(V, FLT_INF, UNITY_RAW_FAR_CLIP_VALUE,
-                              _WorldSpaceCameraPos1, _ViewMatrix1,
-                              skyColor, skyOpacity);
-
-        skyColor += totalRadiance * (1 - skyOpacity);
+        skyColor += radiance * (1 - skyOpacity);
         skyColor *= _IntensityMultiplier * GetCurrentExposureMultiplier();
 
         return float4(skyColor, 1.0);

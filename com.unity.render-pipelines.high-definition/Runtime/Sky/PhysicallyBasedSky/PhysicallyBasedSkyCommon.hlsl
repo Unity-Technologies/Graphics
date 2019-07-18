@@ -87,10 +87,11 @@ float3 AtmospherePhaseScatter(float LdotV, float height)
 
 // Returns the closest hit in X and the farthest hit in Y.
 // Returns a negative number if there's no intersection.
-float2 IntersectSphere(float sphereRadius, float cosChi, float radialDistance)
+// (result.y >= 0) indicates success.
+// (result.x < 0) indicates that we are inside the sphere.
+float2 IntersectSphere(float sphereRadius, float cosChi,
+                       float radialDistance, float rcpRadialDistance)
 {
-    float r = radialDistance;
-
     // r_o = float2(0, r)
     // r_d = float2(sinChi, cosChi)
     // p_s = r_o + t * r_d
@@ -114,11 +115,17 @@ float2 IntersectSphere(float sphereRadius, float cosChi, float radialDistance)
     //
     // Why do we do this? Because it is more numerically robust.
 
-    float d = Sq(sphereRadius * rcp(r)) - saturate(1 - cosChi * cosChi);
+    float d = Sq(sphereRadius * rcpRadialDistance) - saturate(1 - cosChi * cosChi);
 
     // Return the value of 'd' for debugging purposes.
-    return (d < 0) ? d : (r * float2(-cosChi - sqrt(d),
-                                     -cosChi + sqrt(d)));
+    return (d < 0) ? d : (radialDistance * float2(-cosChi - sqrt(d),
+                                                  -cosChi + sqrt(d)));
+}
+
+// TODO: remove.
+float2 IntersectSphere(float sphereRadius, float cosChi, float radialDistance)
+{
+    return IntersectSphere(sphereRadius, cosChi, radialDistance, rcp(radialDistance));
 }
 
 float2 IntersectRayCylinder(float3 cylAxis, float cylRadius,
@@ -375,32 +382,25 @@ TexCoord4D ConvertPositionAndOrientationToTexCoords(float height, float NdotV, f
 }
 
 // O must be planet-relative.
-float IntersectAtmosphere(float3 O, float3 V, out float3 N, out float r)
+float2 IntersectAtmosphere(float3 O, float3 V, out float3 N, out float r)
 {
     const float A = _AtmosphericRadius;
-    const float R = _PlanetaryRadius;
 
     float3 P = O;
 
     N = normalize(P);
-    r = max(length(P), R); // Must not be inside the planet
+    r = length(P);
 
-    float t;
+    float2 t = IntersectSphere(A, dot(N, -V), r);
 
-    if (r <= A)
+    if (t.y >= 0) // Success?
     {
-        // We are inside the atmosphere.
-        t = 0;
-    }
-    else
-    {
-        // We are observing the planet from space.
-        t = IntersectSphere(A, dot(N, -V), r).x; // Min root
+        // If we are already inside, do not step back.
+        t.x = max(t.x, 0);
 
-        if (t >= 0)
+        if (t.x > 0)
         {
-            // It's in the view.
-            P = P + t * -V;
+            P = P + t.x * -V;
             N = normalize(P);
             r = A;
         }
