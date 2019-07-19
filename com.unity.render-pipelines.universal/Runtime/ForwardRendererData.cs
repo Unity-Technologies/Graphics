@@ -8,6 +8,7 @@ using UnityEngine.Scripting.APIUpdating;
 namespace UnityEngine.Rendering.Universal
 {
     [Serializable, ReloadGroup]
+    [MovedFrom("UnityEngine.Rendering.LWRP")]
     public class ForwardRendererData : ScriptableRendererData
     {
 #if UNITY_EDITOR
@@ -31,8 +32,6 @@ namespace UnityEngine.Rendering.Universal
 #endif
 
         [Serializable, ReloadGroup]
-        //[MovedFrom("UnityEngine.Rendering.LWRP")] 
-        // What about ForwardRendererData ? Hasn't it moved ?
         public sealed class ShaderResources
         {
             [Reload("Shaders/Utils/Blit.shader")]

@@ -132,8 +132,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
         /// an enumeration of the types of light
         /// </summary>
         
-        //[MovedFrom("UnityEngine.Experimental.Rendering.LWRP")] 
-        // Light2D ?
         public enum LightType
         {
             Parametric = 0,
