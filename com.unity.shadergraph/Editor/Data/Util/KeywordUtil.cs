@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using UnityEditor.ShaderGraph.Drawing;
 using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
@@ -22,6 +23,9 @@ namespace UnityEditor.ShaderGraph
                 new ShaderKeywordEntry(3, "Low", "LOW"),
             },
         };
+
+        [CustomKeywordNodeProvider]
+        public static IEnumerable<ShaderKeyword> BuiltinShaderKeywords() => Enumerable.Repeat(QualityKeyword, 1);
     }
 
     static class KeywordUtil

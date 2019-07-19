@@ -221,7 +221,8 @@ namespace UnityEditor.ShaderGraph.Drawing
             gm.AddItem(new GUIContent($"{path}/Boolean"), false, () => AddInputRow(new ShaderKeyword(ShaderKeywordType.Boolean), true));
             gm.AddItem(new GUIContent($"{path}/Enum"), false, () => AddInputRow(new ShaderKeyword(ShaderKeywordType.Enum), true));
             gm.AddSeparator($"{path}/");
-            AddBuiltinKeyword(gm, BuiltinKeyword.QualityKeyword, path);
+            foreach (var shaderKeyword in BlackboardCustomKeywordNode.GetAllShaderKeyword())
+                AddBuiltinKeyword(gm, shaderKeyword, path);
         }
 
         void AddBuiltinKeyword(GenericMenu gm, ShaderKeyword keyword, string path)
