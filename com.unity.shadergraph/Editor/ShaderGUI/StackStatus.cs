@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -75,6 +76,39 @@ namespace UnityEditor.ShaderGraph
             }
 
             return true;
+        }
+
+        public static List<string> GetInvalidStacksInfo(Material material)
+        {
+            List<string> result = new List<string>();
+            var shader = material.shader;
+
+            int propCount = ShaderUtil.GetPropertyCount(shader);
+            for (int i = 0; i < propCount; i++)
+            {
+                if (ShaderUtil.GetPropertyType(shader, i) == ShaderUtil.ShaderPropertyType.Stack)
+                {
+                    string stackPropName = ShaderUtil.GetPropertyName(shader, i);
+                    VTStack vtStack = material.GetTextureStack(stackPropName);
+
+                    if (vtStack != null)
+                    {
+                        string hash = GetStackHash(stackPropName, material);
+
+                        if (hash != vtStack.atlasName)
+                        {
+                            result.Add(string.Format("Mat {0}, vt stack {1} hash does not match texture hash {2}", material.name, vtStack.atlasName, hash));
+                        }
+
+                    }
+                    else
+                    {
+                        result.Add(string.Format("Mat {0}, vt stack {1} is null", material.name, stackPropName));
+                    }
+                }
+            }
+
+            return result;
         }
 
         public static string GetStackHash(string stackPropName, Material material)
