@@ -500,7 +500,8 @@ namespace UnityEditor.Rendering.HighDefinition
         public List<string> Includes;
         public string TemplateName;
         public string MaterialName;
-        public List<string> ExtraInstancingOptions;
+        public InstancingSettings InstancingSettings;
+        public LODFadeSettings LODFadeSettings;
         public List<string> ExtraDefines;
         public List<int> VertexShaderSlots;         // These control what slots are used by the pass vertex shader
         public List<int> PixelShaderSlots;          // These control what slots are used by the pass pixel shader
@@ -679,13 +680,42 @@ namespace UnityEditor.Rendering.HighDefinition
             ShaderGenerator vertexGraphInputs = new ShaderGenerator();
             ShaderSpliceUtil.BuildType(typeof(HDRPShaderStructs.VertexDescriptionInputs), activeFields, vertexGraphInputs);
 
-            ShaderGenerator instancingOptions = new ShaderGenerator();
+            ShaderGenerator instancingSettings = new ShaderGenerator();
+            if (pass.InstancingSettings.Enabled)
             {
-                instancingOptions.AddShaderChunk("#pragma multi_compile_instancing", true);
-                if (pass.ExtraInstancingOptions != null)
+                instancingSettings.AddShaderChunk("#pragma multi_compile_instancing", true);
+                if (pass.InstancingSettings.Options != InstancingOption.None || !string.IsNullOrEmpty(pass.InstancingSettings.ProceduralFuncName))
                 {
-                    foreach (var instancingOption in pass.ExtraInstancingOptions)
-                        instancingOptions.AddShaderChunk(instancingOption);
+                    var options = "#pragma instancing_options";
+                    if ((pass.InstancingSettings.Options & InstancingOption.AssumeUniformScaling) != 0)
+                        options += " assumeuniformscaling";
+                    if ((pass.InstancingSettings.Options & InstancingOption.NoMatrices) != 0)
+                        options += " nomatrices";
+                    if ((pass.InstancingSettings.Options & InstancingOption.NoLODFade) != 0)
+                        options += " nolodfade";
+                    if ((pass.InstancingSettings.Options & InstancingOption.NoRenderingLayer) != 0)
+                        options += " norenderinglayer";
+                    if ((pass.InstancingSettings.Options & InstancingOption.NoLightProbe) != 0)
+                        options += " nolightprobe";
+                    if ((pass.InstancingSettings.Options & InstancingOption.NoLightmap) != 0)
+                        options += " nolightmap";
+                    if (!string.IsNullOrEmpty(pass.InstancingSettings.ProceduralFuncName))
+                        options += $" procedural:{pass.InstancingSettings.ProceduralFuncName}";
+                    instancingSettings.AddShaderChunk(options, true);
+                }
+            }
+
+            ShaderGenerator lodFadeSettings = new ShaderGenerator();
+            if (pass.LODFadeSettings.Enabled)
+            {
+                if (pass.LODFadeSettings.SpeedTreeMode)
+                {
+                    lodFadeSettings.AddShaderChunk("#pragma multi_compile_vertex LOD_FADE_PERCENTAGE LOD_FADE_CROSSFADE");
+                    lodFadeSettings.AddShaderChunk("#pragma multi_compile_fragment _ LOD_FADE_CROSSFADE");
+                }
+                else
+                {
+                    lodFadeSettings.AddShaderChunk("#pragma multi_compile _ LOD_FADE_CROSSFADE");
                 }
             }
 
@@ -757,7 +787,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
             // build the hash table of all named fragments      TODO: could make this Dictionary<string, ShaderGenerator / string>  ?
             Dictionary<string, string> namedFragments = new Dictionary<string, string>();
-            namedFragments.Add("InstancingOptions", instancingOptions.GetShaderString(0, false));
+            namedFragments.Add("InstancingSettings", instancingSettings.GetShaderString(0, false));
+            namedFragments.Add("LODFadeSettings", lodFadeSettings.GetShaderString(0, false));
             namedFragments.Add("Defines", defines.GetShaderString(2, false));
             namedFragments.Add("Graph", graph.GetShaderString(2, false));
             namedFragments.Add("LightMode", pass.LightMode);

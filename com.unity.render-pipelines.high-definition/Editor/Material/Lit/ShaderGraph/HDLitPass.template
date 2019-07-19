@@ -24,9 +24,8 @@ Pass
     #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
     //#pragma enable_d3d11_debug_symbols
 
-    $splice(InstancingOptions)
-
-    #pragma multi_compile _ LOD_FADE_CROSSFADE
+    $splice(InstancingSettings)
+    $splice(LODFadeSettings)
 
     #pragma shader_feature _SURFACE_TYPE_TRANSPARENT
     #pragma shader_feature_local _DOUBLESIDED_ON
