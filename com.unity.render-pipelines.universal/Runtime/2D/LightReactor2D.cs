@@ -5,6 +5,7 @@ using UnityEngine;
 namespace UnityEngine.Experimental.Rendering.Universal
 {
 
+    [ExecuteInEditMode]
     public class LightReactor2D : MonoBehaviour, IShadowCasterGroup2D
     {
         //[SerializeField]
@@ -23,14 +24,12 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 m_ShadowCasters = new List<ShadowCaster2D>();
 
             m_ShadowCasters.Add(shadowCaster2D);
-            //LightUtility.AddShadowCasterGroupToList(shadowCaster2D, m_ShadowCasters);
         }
 
         public void UnregisterShadowCaster2D(ShadowCaster2D shadowCaster2D)
         {
             if(m_ShadowCasters != null)
                 m_ShadowCasters.Remove(shadowCaster2D);
-            //LightUtility.RemoveShadowCasterGroupFromList(shadowCaster2D, m_ShadowCasters);
         }
 
         private void OnEnable()
