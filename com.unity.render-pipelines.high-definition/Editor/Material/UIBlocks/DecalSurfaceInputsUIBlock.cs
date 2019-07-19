@@ -10,7 +10,7 @@ using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
-    public class DecalSurfaceInputsUIBlock : MaterialUIBlock
+    class DecalSurfaceInputsUIBlock : MaterialUIBlock
     {
         public class Styles
         {
@@ -148,7 +148,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         MaterialProperty emissiveColorHDR = null;
         const string kEmissiveColorHDR = "_EmissiveColorHDR";
-        
+
         MaterialProperty emissiveExposureWeight = null;
         const string kEmissiveExposureWeight = "_EmissiveExposureWeight";
 
@@ -170,7 +170,7 @@ namespace UnityEditor.Rendering.HighDefinition
             maskBlendMode = FindProperty(kMaskBlendMode);
             maskmapMetal = FindProperty(kMaskmapMetal);
             maskmapAO = FindProperty(kMaskmapAO);
-            maskmapSmoothness = FindProperty(kMaskmapSmoothness);            
+            maskmapSmoothness = FindProperty(kMaskmapSmoothness);
             AORemapMin = FindProperty(kAORemapMin);
             AORemapMax = FindProperty(kAORemapMax);
             smoothnessRemapMin = FindProperty(kSmoothnessRemapMin);
@@ -240,7 +240,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 if (materials[0].GetTexture(kMaskMap))
                 {
                     EditorGUI.indentLevel++;
-                    
+
                     EditorGUILayout.MinMaxSlider(Styles.smoothnessRemappingText, ref smoothnessRemapMinValue, ref smoothnessRemapMaxValue, 0.0f, 1.0f);
                     if (perChannelMask)
                     {
@@ -296,7 +296,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 if (emissive.floatValue == 1.0f)
                 {
                     materialEditor.ShaderProperty(useEmissiveIntensity, Styles.useEmissionIntensityText);
-                    
+
                     if (useEmissiveIntensity.floatValue == 1.0f)
                     {
                         materialEditor.TexturePropertySingleLine(Styles.emissionMapText, emissiveColorMap, emissiveColorLDR);

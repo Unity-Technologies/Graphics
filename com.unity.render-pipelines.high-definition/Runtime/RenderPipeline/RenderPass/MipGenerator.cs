@@ -1,8 +1,6 @@
 namespace UnityEngine.Rendering.HighDefinition
 {
-    using RTHandle = RTHandleSystem.RTHandle;
-
-    public class MipGenerator
+    class MipGenerator
     {
         RTHandle[] m_TempColorTargets;
         RTHandle[] m_TempDownsamplePyramid;

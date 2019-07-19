@@ -13,7 +13,7 @@ using Object = System.Object;
 
 namespace UnityEditor.ShaderGraph
 {
-    [ScriptedImporter(28, Extension, 3)]
+    [ScriptedImporter(29, Extension, 3)]
     class ShaderGraphImporter : ScriptedImporter
     {
         public const string Extension = "shadergraph";

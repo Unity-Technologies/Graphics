@@ -1,16 +1,12 @@
-using UnityEngine;
-using UnityEngine.Rendering;
-using System.Collections.Generic;
+using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
 #if ENABLE_RAYTRACING
-    using RTHandle = RTHandleSystem.RTHandle;
-
     public partial class HDRenderPipeline
     {
         // The set of parameters that define our ray tracing deferred lighting pass
-        public struct DeferredLightingRTParameters
+        struct DeferredLightingRTParameters
         {
             // Generic attributes
             public bool rayBinning;
@@ -74,7 +70,7 @@ namespace UnityEngine.Rendering.HighDefinition
         // Resolution of the binning tile
         const int binningTileSize = 16;
 
-        public void InitRaytracingDeferred()
+        void InitRaytracingDeferred()
         {
             m_RayBinResult = new ComputeBuffer(1, sizeof(uint));
             m_RayBinSizeResult = new ComputeBuffer(1, sizeof(uint));
@@ -84,7 +80,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_RaytracingGBufferManager.CreateBuffers();
         }
 
-        public void ReleaseRayTracingDeferred()
+        void ReleaseRayTracingDeferred()
         {
             CoreUtils.SafeRelease(m_RayBinResult);
             CoreUtils.SafeRelease(m_RayBinSizeResult);
@@ -114,7 +110,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         void CheckBinningBuffersSize(HDCamera hdCamera)
-        {
+            {
             // Evaluate the dispatch parameters
             int numTilesRayBinX = (hdCamera.actualWidth + (binningTileSize - 1)) / binningTileSize;
             int numTilesRayBinY = (hdCamera.actualHeight + (binningTileSize - 1)) / binningTileSize;
@@ -123,22 +119,22 @@ namespace UnityEngine.Rendering.HighDefinition
             int bufferSizeY = numTilesRayBinY * binningTileSize;
 
             //  Resize the binning buffers if required
-            if (bufferSizeX * bufferSizeY > m_RayBinResult.count)
-            {
-                if (m_RayBinResult != null)
+                if (bufferSizeX * bufferSizeY > m_RayBinResult.count)
                 {
-                    CoreUtils.SafeRelease(m_RayBinResult);
-                    CoreUtils.SafeRelease(m_RayBinSizeResult);
-                    m_RayBinResult = null;
-                    m_RayBinSizeResult = null;
-                }
+                    if(m_RayBinResult != null)
+                    {
+                        CoreUtils.SafeRelease(m_RayBinResult);
+                        CoreUtils.SafeRelease(m_RayBinSizeResult);
+                        m_RayBinResult = null;
+                        m_RayBinSizeResult = null;
+                    }
 
-                if (bufferSizeX * bufferSizeY > 0)
-                {
-                    m_RayBinResult = new ComputeBuffer(bufferSizeX * bufferSizeY, sizeof(uint));
-                    m_RayBinSizeResult = new ComputeBuffer(numTilesRayBinX * numTilesRayBinY, sizeof(uint));
+                    if (bufferSizeX * bufferSizeY > 0)
+                    {
+                        m_RayBinResult = new ComputeBuffer(bufferSizeX * bufferSizeY, sizeof(uint));
+                        m_RayBinSizeResult = new ComputeBuffer(numTilesRayBinX * numTilesRayBinY, sizeof(uint));
+                    }
                 }
-            }
         }
 
         static void BinRays(CommandBuffer cmd, in DeferredLightingRTParameters config, RTHandle directionBuffer, int texWidth, int texHeight)

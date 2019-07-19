@@ -7,7 +7,8 @@ using UnityEngine.Scripting.APIUpdating;
 
 namespace UnityEngine.Rendering.Universal
 {
-    [MovedFrom("UnityEngine.Rendering.LWRP")] public class ForwardRendererData : ScriptableRendererData
+    [Serializable, ReloadGroup]
+    public class ForwardRendererData : ScriptableRendererData
     {
 #if UNITY_EDITOR
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1812")]
@@ -32,18 +33,21 @@ namespace UnityEngine.Rendering.Universal
         [Serializable, ReloadGroup]
         [MovedFrom("UnityEngine.Rendering.LWRP")] public sealed class ShaderResources
         {
-            [SerializeField, Reload("Shaders/Utils/Blit.shader")]
+            [Reload("Shaders/Utils/Blit.shader")]
             public Shader blitPS;
 
-            [SerializeField, Reload("Shaders/Utils/CopyDepth.shader")]
+            [Reload("Shaders/Utils/CopyDepth.shader")]
             public Shader copyDepthPS;
 
-            [SerializeField, Reload("Shaders/Utils/ScreenSpaceShadows.shader")]
+            [Reload("Shaders/Utils/ScreenSpaceShadows.shader")]
             public Shader screenSpaceShadowPS;
-
-            [SerializeField, Reload("Shaders/Utils/Sampling.shader")]
+        
+            [Reload("Shaders/Utils/Sampling.shader")]
             public Shader samplingPS;
         }
+
+        [Reload("Runtime/Data/PostProcessData.asset")]
+        public PostProcessData postProcessData = null;
 
         public ShaderResources shaders = null;
 
@@ -56,7 +60,10 @@ namespace UnityEngine.Rendering.Universal
         {
 #if UNITY_EDITOR
             if (!Application.isPlaying)
+            {
                 ResourceReloader.ReloadAllNullIn(this, UniversalRenderPipelineAsset.packagePath);
+                ResourceReloader.ReloadAllNullIn(postProcessData, UniversalRenderPipelineAsset.packagePath);
+            }
 #endif
             return new ForwardRenderer(this);
         }
@@ -79,14 +86,8 @@ namespace UnityEngine.Rendering.Universal
                 return;
 
 #if UNITY_EDITOR
-            foreach (var shader in shaders.GetType().GetFields())
-            {
-                if (shader.GetValue(shaders) == null)
-                {
-                    ResourceReloader.ReloadAllNullIn(this, UniversalRenderPipelineAsset.packagePath);
-                    break;
-                }
-            }
+            ResourceReloader.ReloadAllNullIn(this, UniversalRenderPipelineAsset.packagePath);
+            ResourceReloader.ReloadAllNullIn(postProcessData, UniversalRenderPipelineAsset.packagePath);
 #endif
         }
     }

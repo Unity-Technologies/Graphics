@@ -5,6 +5,9 @@ using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.Rendering;
 
+// Include material common properties names
+using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
+
 namespace UnityEditor.Rendering.HighDefinition
 {
     // A Material can be authored from the shader graph or by hand. When written by hand we need to provide an inspector.
@@ -29,6 +32,19 @@ namespace UnityEditor.Rendering.HighDefinition
             material.renderQueue = currentRenderQueue;
 
             SetupMaterialKeywordsAndPassInternal(material);
+        }
+        
+        readonly static string[] floatPropertiesToSynchronize = {
+            kAlphaCutoffEnabled, "_AlphaCutoff", "_UseShadowThreshold", kReceivesSSR, kUseSplitLighting
+        };
+
+        protected static void SynchronizeShaderGraphProperties(Material material)
+        {
+            var defaultProperties = new Material(material.shader);
+            foreach (var floatToSync in floatPropertiesToSynchronize)
+                if (material.HasProperty(floatToSync))
+                    material.SetFloat(floatToSync, defaultProperties.GetFloat(floatToSync));
+            defaultProperties = null;
         }
     }
 }

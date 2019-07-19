@@ -5,7 +5,7 @@ using UnityEngine.Rendering.HighDefinition;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
-    public class DistortionUIBlock : MaterialUIBlock
+    class DistortionUIBlock : MaterialUIBlock
     {
         protected static class Styles
         {

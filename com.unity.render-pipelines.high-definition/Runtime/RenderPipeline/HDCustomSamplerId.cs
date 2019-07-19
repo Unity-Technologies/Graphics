@@ -2,7 +2,7 @@ using UnityEngine.Profiling;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
-    public enum CustomSamplerId
+    internal enum CustomSamplerId
     {
         PushGlobalParameters,
         CopySetDepthBuffer,
@@ -118,7 +118,7 @@ namespace UnityEngine.Rendering.HighDefinition
         Max
     }
 
-    public static class HDCustomSamplerExtension
+    internal static class HDCustomSamplerExtension
     {
         static CustomSampler[] s_Samplers;
 

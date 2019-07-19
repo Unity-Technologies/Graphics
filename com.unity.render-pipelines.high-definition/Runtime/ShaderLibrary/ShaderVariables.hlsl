@@ -3,7 +3,9 @@
 #ifndef UNITY_SHADER_VARIABLES_INCLUDED
 #define UNITY_SHADER_VARIABLES_INCLUDED
 
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Version.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderConfig.cs.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition-config/Runtime/ShaderConfig.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/TextureXR.hlsl"
 
 // CAUTION:
@@ -231,7 +233,7 @@ CBUFFER_START(UnityGlobal)
 
     #define DEFAULT_LIGHT_LAYERS 0xFF
     uint _EnableLightLayers;
-    uint _ReplaceDiffuseForIndirect;
+    float _ReplaceDiffuseForIndirect;
     uint _EnableSkyLighting;
 
     uint _EnableSSRefraction;
@@ -378,13 +380,6 @@ float2 ClampAndScaleUVForBilinear(float2 UV)
 float2 ClampAndScaleUVForPoint(float2 UV)
 {
     return min(UV, 1.0f) * _RTHandleScale.xy;
-}
-
-bool ReplaceDiffuseForReflectionPass(float3 fresnel0)
-{
-    // we want to use Fresnel0 instead diffuse when doing reflection (reflection probe, planar reflection,
-    // DXR reflection). Dieletric are suppose to have a fresnel of around 0.04. Let's consider anything above 0.3 as metal.
-    return (_ReplaceDiffuseForIndirect.x != 0) && Max3(fresnel0.r, fresnel0.g, fresnel0.b) > 0.3;
 }
 
 // Define Model Matrix Macro

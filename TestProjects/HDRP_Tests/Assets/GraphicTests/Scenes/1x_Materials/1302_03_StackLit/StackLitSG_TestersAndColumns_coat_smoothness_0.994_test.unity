@@ -232,16 +232,10 @@ MonoBehaviour:
   volumetricShadowDimmer: 1
   shadowFadeDistance: 10000
   contactShadows: 0
-  viewBiasMin: 0.5
-  viewBiasMax: 10
-  viewBiasScale: 1
-  normalBiasMin: 0.2
-  normalBiasMax: 4
-  normalBiasScale: 1
-  sampleBiasScale: 1
-  edgeLeakFixup: 1
-  edgeToleranceNormal: 1
-  edgeTolerance: 1
+  shadowTint: {r: 0, g: 0, b: 0, a: 1}
+  normalBias: 0.75
+  constantBias: 0.15
+  shadowUpdateMode: 0
   shadowCascadeCount: 4
   shadowCascadeRatios:
   - 0.005
@@ -255,12 +249,6 @@ MonoBehaviour:
   shadowAlgorithm: 0
   shadowVariant: 0
   shadowPrecision: 0
-  shadowData:
-    format: 0
-    data: 0bd7a33b0000803f
-  shadowDatas:
-  - format: 0
-    data: 0bd7a33b0000803f
 --- !u!114 &299864296
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -273,8 +261,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7a68c43fe1f2a47cfa234b5eeaa98012, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  version: 4
-  m_Version: 4
+  version: 5
+  m_Version: 5
   directionalIntensity: 3
   punctualIntensity: 600
   areaIntensity: 200
@@ -284,8 +272,6 @@ MonoBehaviour:
   lightDimmer: 1
   m_VolumetricDimmer: 1
   lightUnit: 2
-  sunDiskSize: 1
-  sunHaloSize: 0.1
   fadeDistance: 10000
   affectDiffuse: 1
   affectSpecular: 1
@@ -296,6 +282,8 @@ MonoBehaviour:
   shapeHeight: 0.5
   aspectRatio: 1
   shapeRadius: 0
+  useCustomSpotLightShadowCone: 0
+  customSpotLightShadowCone: 30
   maxSmoothness: 1
   applyRangeAttenuation: 1
   useOldInspector: 0
@@ -306,11 +294,15 @@ MonoBehaviour:
   displayAreaLightEmissiveMesh: 0
   areaLightCookie: {fileID: 0}
   areaLightShadowCone: 120
+  useScreenSpaceShadows: 0
+  interactsWithSky: 1
   evsmExponent: 15
   evsmLightLeakBias: 0
   evsmVarianceBias: 0.00001
   evsmBlurPasses: 0
   lightLayers: 1
+  lightlayersMask: 1
+  linkShadowLayers: 1
   shadowNearPlane: 0.2
   shadowSoftness: 0.5
   blockerSampleCount: 24
@@ -408,6 +400,14 @@ PrefabInstance:
       propertyPath: m_Name
       value: tester (2)
       objectReference: {fileID: 0}
+    - target: {fileID: 100000, guid: 8f37564560ca16541a8a345a9d0ed93a, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 100002, guid: 8f37564560ca16541a8a345a9d0ed93a, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 400004, guid: 8f37564560ca16541a8a345a9d0ed93a, type: 3}
       propertyPath: m_LocalPosition.x
       value: -4.2
@@ -483,14 +483,6 @@ PrefabInstance:
     - target: {fileID: 2300004, guid: 8f37564560ca16541a8a345a9d0ed93a, type: 3}
       propertyPath: m_CastShadows
       value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 100000, guid: 8f37564560ca16541a8a345a9d0ed93a, type: 3}
-      propertyPath: m_IsActive
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 100002, guid: 8f37564560ca16541a8a345a9d0ed93a, type: 3}
-      propertyPath: m_IsActive
-      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 8f37564560ca16541a8a345a9d0ed93a, type: 3}
@@ -586,6 +578,7 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -628,6 +621,10 @@ PrefabInstance:
     - target: {fileID: 100000, guid: 0d47940eb44ff1046a69c7a0215bf35a, type: 3}
       propertyPath: m_Name
       value: column_2a (SG)
+      objectReference: {fileID: 0}
+    - target: {fileID: 100000, guid: 0d47940eb44ff1046a69c7a0215bf35a, type: 3}
+      propertyPath: m_IsActive
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 400000, guid: 0d47940eb44ff1046a69c7a0215bf35a, type: 3}
       propertyPath: m_LocalPosition.x
@@ -799,16 +796,10 @@ MonoBehaviour:
   volumetricShadowDimmer: 1
   shadowFadeDistance: 10000
   contactShadows: 0
-  viewBiasMin: 0.2
-  viewBiasMax: 100
-  viewBiasScale: 1
-  normalBiasMin: 0.5
-  normalBiasMax: 0.5
-  normalBiasScale: 1
-  sampleBiasScale: 0
-  edgeLeakFixup: 1
-  edgeToleranceNormal: 1
-  edgeTolerance: 1
+  shadowTint: {r: 0, g: 0, b: 0, a: 1}
+  normalBias: 0.75
+  constantBias: 0.15
+  shadowUpdateMode: 0
   shadowCascadeCount: 4
   shadowCascadeRatios:
   - 0.05
@@ -822,10 +813,6 @@ MonoBehaviour:
   shadowAlgorithm: 0
   shadowVariant: 0
   shadowPrecision: 0
-  shadowData:
-    format: 0
-    data: 
-  shadowDatas: []
 --- !u!114 &811234928
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -838,8 +825,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7a68c43fe1f2a47cfa234b5eeaa98012, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  version: 4
-  m_Version: 4
+  version: 5
+  m_Version: 5
   directionalIntensity: 3.1415927
   punctualIntensity: 600
   areaIntensity: 200
@@ -849,8 +836,6 @@ MonoBehaviour:
   lightDimmer: 1
   m_VolumetricDimmer: 1
   lightUnit: 0
-  sunDiskSize: 1
-  sunHaloSize: 0.1
   fadeDistance: 10000
   affectDiffuse: 1
   affectSpecular: 1
@@ -861,6 +846,8 @@ MonoBehaviour:
   shapeHeight: 4
   aspectRatio: 1
   shapeRadius: 0
+  useCustomSpotLightShadowCone: 0
+  customSpotLightShadowCone: 30
   maxSmoothness: 1
   applyRangeAttenuation: 1
   useOldInspector: 0
@@ -871,11 +858,15 @@ MonoBehaviour:
   displayAreaLightEmissiveMesh: 0
   areaLightCookie: {fileID: 0}
   areaLightShadowCone: 120
+  useScreenSpaceShadows: 0
+  interactsWithSky: 1
   evsmExponent: 15
   evsmLightLeakBias: 0
   evsmVarianceBias: 0.00001
   evsmBlurPasses: 0
   lightLayers: 1
+  lightlayersMask: 1
+  linkShadowLayers: 1
   shadowNearPlane: 0.2
   shadowSoftness: 0.5
   blockerSampleCount: 24
@@ -1035,6 +1026,7 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -1559,6 +1551,14 @@ PrefabInstance:
       propertyPath: m_Name
       value: tester (2b)
       objectReference: {fileID: 0}
+    - target: {fileID: 100000, guid: 8f37564560ca16541a8a345a9d0ed93a, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 100002, guid: 8f37564560ca16541a8a345a9d0ed93a, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 400004, guid: 8f37564560ca16541a8a345a9d0ed93a, type: 3}
       propertyPath: m_LocalPosition.x
       value: -3.44
@@ -1634,14 +1634,6 @@ PrefabInstance:
     - target: {fileID: 2300004, guid: 8f37564560ca16541a8a345a9d0ed93a, type: 3}
       propertyPath: m_CastShadows
       value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 100000, guid: 8f37564560ca16541a8a345a9d0ed93a, type: 3}
-      propertyPath: m_IsActive
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 100002, guid: 8f37564560ca16541a8a345a9d0ed93a, type: 3}
-      propertyPath: m_IsActive
-      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 8f37564560ca16541a8a345a9d0ed93a, type: 3}
@@ -1768,6 +1760,7 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -1851,16 +1844,10 @@ MonoBehaviour:
   volumetricShadowDimmer: 1
   shadowFadeDistance: 10000
   contactShadows: 0
-  viewBiasMin: 0.2
-  viewBiasMax: 100
-  viewBiasScale: 1
-  normalBiasMin: 0.5
-  normalBiasMax: 0.5
-  normalBiasScale: 1
-  sampleBiasScale: 0
-  edgeLeakFixup: 1
-  edgeToleranceNormal: 1
-  edgeTolerance: 1
+  shadowTint: {r: 0, g: 0, b: 0, a: 1}
+  normalBias: 0.75
+  constantBias: 0.15
+  shadowUpdateMode: 0
   shadowCascadeCount: 4
   shadowCascadeRatios:
   - 0.05
@@ -1874,10 +1861,6 @@ MonoBehaviour:
   shadowAlgorithm: 0
   shadowVariant: 0
   shadowPrecision: 0
-  shadowData:
-    format: 0
-    data: 
-  shadowDatas: []
 --- !u!114 &2062071935
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1890,8 +1873,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7a68c43fe1f2a47cfa234b5eeaa98012, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  version: 4
-  m_Version: 4
+  version: 5
+  m_Version: 5
   directionalIntensity: 3.1415927
   punctualIntensity: 600
   areaIntensity: 200
@@ -1901,8 +1884,6 @@ MonoBehaviour:
   lightDimmer: 1
   m_VolumetricDimmer: 1
   lightUnit: 0
-  sunDiskSize: 1
-  sunHaloSize: 0.1
   fadeDistance: 10000
   affectDiffuse: 1
   affectSpecular: 1
@@ -1913,6 +1894,8 @@ MonoBehaviour:
   shapeHeight: 4
   aspectRatio: 1
   shapeRadius: 0
+  useCustomSpotLightShadowCone: 0
+  customSpotLightShadowCone: 30
   maxSmoothness: 1
   applyRangeAttenuation: 1
   useOldInspector: 0
@@ -1923,11 +1906,15 @@ MonoBehaviour:
   displayAreaLightEmissiveMesh: 0
   areaLightCookie: {fileID: 0}
   areaLightShadowCone: 120
+  useScreenSpaceShadows: 0
+  interactsWithSky: 1
   evsmExponent: 15
   evsmLightLeakBias: 0
   evsmVarianceBias: 0.00001
   evsmBlurPasses: 0
   lightLayers: 1
+  lightlayersMask: 1
+  linkShadowLayers: 1
   shadowNearPlane: 0.2
   shadowSoftness: 0.5
   blockerSampleCount: 24

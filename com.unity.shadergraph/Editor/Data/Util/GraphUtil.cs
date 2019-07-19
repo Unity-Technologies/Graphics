@@ -926,6 +926,18 @@ namespace UnityEditor.ShaderGraph
             return importer is ShaderGraphImporter;
         }
 
+        public static void GeneratePropertiesBlock(ShaderStringBuilder sb, PropertyCollector propertyCollector, GenerationMode mode)
+        {
+            sb.AppendLine("Properties");
+            using (sb.BlockScope())
+            {
+                foreach (var prop in propertyCollector.properties.Where(x => x.generatePropertyBlock))
+                {
+                    sb.AppendLine(prop.GetPropertyBlockString());
+                }
+            }
+        }
+
         public static void GenerateApplicationVertexInputs(ShaderGraphRequirements graphRequiements, ShaderStringBuilder vertexInputs)
         {
             vertexInputs.AppendLine("struct GraphVertexInput");
@@ -1084,11 +1096,7 @@ namespace UnityEditor.ShaderGraph
             finalShader.AppendLine(@"Shader ""{0}""", name);
             using (finalShader.BlockScope())
             {
-                finalShader.AppendLine("Properties");
-                using (finalShader.BlockScope())
-                {
-                    finalShader.AppendLines(shaderProperties.GetPropertiesBlock(0));
-                }
+                GraphUtil.GeneratePropertiesBlock(finalShader, shaderProperties, mode);
                 finalShader.AppendNewLine();
 
                 finalShader.AppendLine(@"HLSLINCLUDE");

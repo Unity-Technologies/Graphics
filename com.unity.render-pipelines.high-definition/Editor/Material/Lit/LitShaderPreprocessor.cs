@@ -4,7 +4,7 @@ using UnityEditor.ShaderGraph;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
-    public class LitShaderPreprocessor : BaseShaderPreprocessor
+    class LitShaderPreprocessor : BaseShaderPreprocessor
     {
         public LitShaderPreprocessor() {}
 

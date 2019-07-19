@@ -4,9 +4,11 @@ using UnityEngine.UIElements;
 using UnityEditor.UIElements;
 using System.Linq;
 
-namespace UnityEditor.Rendering.Experimental.LookDev
+namespace UnityEditor.Rendering.LookDev
 {
-    //[CreateAssetMenu(fileName = "Environment", menuName = "LookDev/Environment", order = 1999)]
+    /// <summary>
+    /// Lighting environment used in LookDev
+    /// </summary>
     public class Environment : ScriptableObject
     {
         [Serializable]
@@ -16,6 +18,9 @@ namespace UnityEditor.Rendering.Experimental.LookDev
             string m_CubemapGUID;
             Cubemap m_Cubemap;
 
+            /// <summary>
+            /// The cubemap used for this part of the lighting environment
+            /// </summary>
             public Cubemap cubemap
             {
                 get
@@ -45,8 +50,9 @@ namespace UnityEditor.Rendering.Experimental.LookDev
             }
         }
 
-        //[TODO: check if the shadow/sky split worth the indirection]
-        //Note: multi-edition is not supported as we cannot draw multiple HDRI
+        /// <summary>
+        /// Class containing editor data for shadow part of the lighting environment 
+        /// </summary>
         [Serializable]
         public class Shadow : BaseEnvironmentCubemapHandler
         {
@@ -56,9 +62,15 @@ namespace UnityEditor.Rendering.Experimental.LookDev
             float m_Latitude = 60.0f; // [-90..90]
             [SerializeField]
             float m_Longitude = 299.0f; // [0..360[
-            //public float intensity = 1.0f;
+
+            /// <summary>
+            /// The shading tint to used when computing shadow from sun
+            /// </summary>
             public Color color = Color.white;
 
+            /// <summary>
+            /// The Latitude position of the sun casting shadows
+            /// </summary>
             public float sunLatitude
             {
                 get => m_Latitude;
@@ -67,6 +79,9 @@ namespace UnityEditor.Rendering.Experimental.LookDev
 
             internal static float ClampLatitude(float value) => Mathf.Clamp(value, -90, 90);
 
+            /// <summary>
+            /// The Longitude position of the sun casting shadows
+            /// </summary>
             public float sunLongitude
             {
                 get => m_Longitude;
@@ -80,28 +95,31 @@ namespace UnityEditor.Rendering.Experimental.LookDev
                     value += 360f;
                 return value;
             }
-
-            public static implicit operator UnityEngine.Rendering.Experimental.LookDev.Shadow(Shadow shadow)
-                => shadow == null
-                ? default
-                : new UnityEngine.Rendering.Experimental.LookDev.Shadow()
-                {
-                    cubemap = shadow.cubemap,
-                    sunPosition = new Vector2(shadow.m_Longitude, shadow.m_Latitude),
-                    color = shadow.color
-                };
         }
 
+        /// <summary>
+        /// Class containing editor data for sky part of the lighting environment 
+        /// </summary>
         [Serializable]
         public class Sky : BaseEnvironmentCubemapHandler
         {
+            /// <summary>
+            /// Offset on the longitude. Affect both sky and sun position in Shadow part
+            /// </summary>
             public float rotation = 0.0f;
+            /// <summary>
+            /// Exposure to use with this Sky
+            /// </summary>
             public float exposure = 1f;
 
-            public static implicit operator UnityEngine.Rendering.Experimental.LookDev.Sky(Sky sky)
+            /// <summary>
+            /// Implicit conversion operator to runtime version of sky datas
+            /// </summary>
+            /// <param name="sky">Editor version of the datas</param>
+            public static implicit operator UnityEngine.Rendering.LookDev.Sky(Sky sky)
                 => sky == null
                 ? default
-                : new UnityEngine.Rendering.Experimental.LookDev.Sky()
+                : new UnityEngine.Rendering.LookDev.Sky()
                 {
                     cubemap = sky.cubemap,
                     longitudeOffset = sky.rotation,
@@ -109,11 +127,21 @@ namespace UnityEditor.Rendering.Experimental.LookDev
                 };
         }
 
+        /// <summary>
+        /// The sky part of the lighting environment 
+        /// </summary>
         public Sky sky = new Sky();
+
+        /// <summary>
+        /// The shadow part of the lighting environment 
+        /// </summary>
         public Shadow shadow = new Shadow();
 
-        public UnityEngine.Rendering.Experimental.LookDev.Sky shadowSky
-            => new UnityEngine.Rendering.Experimental.LookDev.Sky()
+        /// <summary>
+        /// Compute the shadow runtime data with editor datas
+        /// </summary>
+        public UnityEngine.Rendering.LookDev.Sky shadowSky
+            => new UnityEngine.Rendering.LookDev.Sky()
             {
                 cubemap = shadow.cubemap ?? sky.cubemap,
                 longitudeOffset = sky.rotation,
@@ -126,7 +154,7 @@ namespace UnityEditor.Rendering.Experimental.LookDev
         internal void UpdateSunPosition(Light sun)
             => sun.transform.rotation = Quaternion.Euler(shadow.sunLatitude, sky.rotation + shadow.sunLongitude, 0f);
 
-        public void CopyTo(Environment other)
+        internal void CopyTo(Environment other)
         {
             other.sky.cubemap = sky.cubemap;
             other.sky.exposure = sky.exposure;
@@ -138,6 +166,9 @@ namespace UnityEditor.Rendering.Experimental.LookDev
             other.name = name + " (copy)";
         }
 
+        /// <summary>
+        /// Compute sun position to be brightest spot of the sky
+        /// </summary>
         public void ResetToBrightestSpot()
             => EnvironmentElement.ResetToBrightestSpot(this);
     }
@@ -161,7 +192,7 @@ namespace UnityEditor.Rendering.Experimental.LookDev
         void Bind(T data);
     }
 
-    public class EnvironmentElement : VisualElement, IBendable<Environment>
+    class EnvironmentElement : VisualElement, IBendable<Environment>
     {
         internal const int k_SkyThumbnailWidth = 200;
         internal const int k_SkyThumbnailHeight = 100;
@@ -371,7 +402,7 @@ namespace UnityEditor.Rendering.Experimental.LookDev
             VisualElement header = new VisualElement() { name = "inspector-header" };
             header.Add(new Image()
             {
-                image = CoreEditorUtils.LoadIcon(@"Packages/com.unity.render-pipelines.core/Editor/LookDev/Icons/", "LookDev_EnvironmentHDR")
+                image = CoreEditorUtils.LoadIcon(@"Packages/com.unity.render-pipelines.core/Editor/LookDev/Icons/", "LookDev_EnvironmentHDR", forceLowRes: true)
             });
             environmentName = new TextField();
             environmentName.isDelayed = true;
@@ -400,8 +431,9 @@ namespace UnityEditor.Rendering.Experimental.LookDev
             skyCubemapField.RegisterValueChangedCallback(evt =>
             {
                 var tmp = environment.sky.cubemap;
-                RegisterChange(ref tmp, evt.newValue as Cubemap, updatePreview: true);
+                RegisterChange(ref tmp, evt.newValue as Cubemap);
                 environment.sky.cubemap = tmp;
+                latlong.image = GetLatLongThumbnailTexture(environment, k_SkyThumbnailWidth);
             });
             foldout.Add(skyCubemapField);
 
@@ -414,8 +446,9 @@ namespace UnityEditor.Rendering.Experimental.LookDev
             shadowCubemapField.RegisterValueChangedCallback(evt =>
             {
                 var tmp = environment.shadow.cubemap;
-                RegisterChange(ref tmp, evt.newValue as Cubemap, updatePreview: true);
+                RegisterChange(ref tmp, evt.newValue as Cubemap);
                 environment.shadow.cubemap = tmp;
+                latlong.image = GetLatLongThumbnailTexture(environment, k_SkyThumbnailWidth);
             });
             foldout.Add(shadowCubemapField);
 
@@ -471,7 +504,7 @@ namespace UnityEditor.Rendering.Experimental.LookDev
             };
             sunToBrightess.Add(new Image()
             {
-                image = CoreEditorUtils.LoadIcon(@"Packages/com.unity.render-pipelines.core/Editor/LookDev/Icons/", "LookDev_SunPosition")
+                image = CoreEditorUtils.LoadIcon(@"Packages/com.unity.render-pipelines.core/Editor/LookDev/Icons/", "LookDev_SunPosition", forceLowRes: true)
             });
             sunToBrightess.AddToClassList("sun-to-brightest-button");
             var vector2Input = sunPosition.Q(className: "unity-vector2-field__input");

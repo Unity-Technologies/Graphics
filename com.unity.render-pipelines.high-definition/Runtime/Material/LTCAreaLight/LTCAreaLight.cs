@@ -1,6 +1,6 @@
 namespace UnityEngine.Rendering.HighDefinition
 {
-    public partial class LTCAreaLight
+    partial class LTCAreaLight
     {
         static LTCAreaLight s_Instance;
 

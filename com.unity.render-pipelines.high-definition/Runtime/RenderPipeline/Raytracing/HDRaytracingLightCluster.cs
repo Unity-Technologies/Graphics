@@ -4,7 +4,7 @@ using System.Collections.Generic;
 namespace UnityEngine.Rendering.HighDefinition
 {
     [GenerateHLSL(PackingRules.Exact, false)]
-    public struct LightVolume
+    struct LightVolume
     {
         public int active;
         public int shape;
@@ -15,7 +15,7 @@ namespace UnityEngine.Rendering.HighDefinition
     }
 
 #if ENABLE_RAYTRACING
-    public class HDRaytracingLightCluster
+    class HDRaytracingLightCluster
     {
         // External data
         RenderPipelineResources m_RenderPipelineResources = null;
@@ -42,7 +42,7 @@ namespace UnityEngine.Rendering.HighDefinition
         List<EnvLightData> m_EnvLightDataCPUArray = new List<EnvLightData>();
         ComputeBuffer m_EnvLightDataGPUArray = null;
 
-        public RTHandleSystem.RTHandle m_DebugLightClusterTexture = null;
+        public RTHandle m_DebugLightClusterTexture = null;
 
         // String values
         const string m_LightClusterKernelName = "RaytracingLightCluster";
@@ -56,7 +56,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _RaytracingLightCullResult = Shader.PropertyToID("_RaytracingLightCullResult");
         public static readonly int _ClusterCenterPosition = Shader.PropertyToID("_ClusterCenterPosition");
         public static readonly int _ClusterDimension = Shader.PropertyToID("_ClusterDimension");
-        
+
         // Temporary variables
         Vector3 minClusterPos = new Vector3(0.0f, 0.0f, 0.0f);
         Vector3 maxClusterPos = new Vector3(0.0f, 0.0f, 0.0f);
@@ -239,7 +239,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     m_LightVolumesCPUArray[lightIdx].position = currentLight.gameObject.transform.position;
                     m_LightVolumesCPUArray[lightIdx].active = (currentLight.gameObject.activeInHierarchy ? 1 : 0);
                     m_LightVolumesCPUArray[lightIdx].lightIndex = (uint)lightIdx;
-                    
+
                     if (currentLight.lightTypeExtent == LightTypeExtent.Punctual)
                     {
                         m_LightVolumesCPUArray[lightIdx].lightType = 0;

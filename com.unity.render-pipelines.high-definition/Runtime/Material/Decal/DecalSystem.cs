@@ -6,7 +6,7 @@ using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
-    public class DecalSystem
+    class DecalSystem
     {
         // Relies on the order shader passes are declared in Decal.shader and DecalSubshader.cs
         public enum MaterialDecalPass

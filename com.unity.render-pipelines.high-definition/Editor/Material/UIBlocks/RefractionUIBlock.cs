@@ -8,7 +8,7 @@ using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
-    public class RefractionUIBlock : MaterialUIBlock
+    class RefractionUIBlock : MaterialUIBlock
     {
         protected static class Styles
         {

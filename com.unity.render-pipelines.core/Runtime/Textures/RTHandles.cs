@@ -11,7 +11,7 @@ namespace UnityEngine.Rendering
         public static RTHandleProperties rtHandleProperties { get { return s_DefaultInstance.rtHandleProperties; } }
         public static RTHandleSystem defaultRTHandleSystem { get { return s_DefaultInstance; } }
 
-        public static RTHandleSystem.RTHandle Alloc(
+        public static RTHandle Alloc(
             int width,
             int height,
             int slices = 1,
@@ -56,7 +56,7 @@ namespace UnityEngine.Rendering
                 );
         }
 
-        public static RTHandleSystem.RTHandle Alloc(
+        public static RTHandle Alloc(
             Vector2 scaleFactor,
             int slices = 1,
             DepthBits depthBufferBits = DepthBits.None,
@@ -99,7 +99,7 @@ namespace UnityEngine.Rendering
                 );
         }
 
-        public static RTHandleSystem.RTHandle Alloc(
+        public static RTHandle Alloc(
             ScaleFunc scaleFunc,
             int slices = 1,
             DepthBits depthBufferBits = DepthBits.None,
@@ -142,12 +142,12 @@ namespace UnityEngine.Rendering
                 );
         }
 
-        public static RTHandleSystem.RTHandle Alloc(Texture tex)
+        public static RTHandle Alloc(Texture tex)
         {
             return s_DefaultInstance.Alloc(tex);
         }
 
-        public static RTHandleSystem.RTHandle Alloc(RTHandleSystem.RTHandle tex)
+        public static RTHandle Alloc(RTHandle tex)
         {
             Debug.LogError("Allocation a RTHandle from another one is forbidden.");
             return null;
@@ -169,7 +169,7 @@ namespace UnityEngine.Rendering
                 );
         }
 
-        public static void Release(RTHandleSystem.RTHandle rth)
+        public static void Release(RTHandle rth)
         {
             s_DefaultInstance.Release(rth);
         }

@@ -8,92 +8,67 @@ namespace UnityEditor.ShaderGraph
     [Serializable]
     class Texture2DArrayShaderProperty : AbstractShaderProperty<SerializableTextureArray>
     {
-        [SerializeField]
-        private bool m_Modifiable = true;
-
         public Texture2DArrayShaderProperty()
         {
-            value = new SerializableTextureArray();
             displayName = "Texture2D Array";
+            value = new SerializableTextureArray();
         }
-
-        public override PropertyType propertyType
-        {
-            get { return PropertyType.Texture2DArray; }
-        }
-
-        public bool modifiable
-        {
-            get { return m_Modifiable; }
-            set { m_Modifiable = value; }
-        }
-
-        public override Vector4 defaultValue
-        {
-            get { return new Vector4(); }
-        }
-
-        public override bool isBatchable
-        {
-            get { return false; }
-        }
-
-        public override bool isExposable
-        {
-            get { return true; }
-        }
-
-        public override bool isRenamable
-        {
-            get { return true; }
-        }
+        
+        public override PropertyType propertyType => PropertyType.Texture2DArray;
+        
+        public override bool isBatchable => false;
+        public override bool isExposable => true;
+        public override bool isRenamable => true;
+        
+        public string modifiableTagString => modifiable ? "" : "[NonModifiableTextureData]";
 
         public override string GetPropertyBlockString()
         {
-            var result = new StringBuilder();
-            if (!m_Modifiable)
-            {
-                result.Append("[NonModifiableTextureData] ");
-            }
-            result.Append("[NoScaleOffset] ");
-
-            result.Append(referenceName);
-            result.Append("(\"");
-            result.Append(displayName);
-            result.Append("\", 2DArray) = \"white\" {}");
-            return result.ToString();
+            return $"{hideTagString}{modifiableTagString}[NoScaleOffset]{referenceName}(\"{displayName}\", 2DArray) = \"white\" {{}}";
         }
-
+        
         public override string GetPropertyDeclarationString(string delimiter = ";")
         {
-            return string.Format("TEXTURE2D_ARRAY({0}){1} SAMPLER(sampler{0}){1}", referenceName, delimiter);
+            return $"TEXTURE2D_ARRAY({referenceName}){delimiter} SAMPLER(sampler{referenceName}){delimiter}";
         }
 
         public override string GetPropertyAsArgumentString()
         {
-            return string.Format("TEXTURE2D_ARRAY_PARAM({0}, sampler{0})", referenceName);
+            return $"TEXTURE2D_ARRAY_PARAM({referenceName}, sampler{referenceName})";
+        }
+        
+        [SerializeField]
+        bool m_Modifiable = true;
+
+        public bool modifiable
+        {
+            get => m_Modifiable;
+            set => m_Modifiable = value;
+        }
+        
+        public override AbstractMaterialNode ToConcreteNode()
+        {
+            return new Texture2DArrayAssetNode { texture = value.textureArray };
         }
 
+        
         public override PreviewProperty GetPreviewMaterialProperty()
         {
-            return new PreviewProperty(PropertyType.Texture2D)
+            return new PreviewProperty(propertyType)
             {
                 name = referenceName,
                 textureValue = value.textureArray
             };
         }
 
-        public override AbstractMaterialNode ToConcreteNode()
+        public override ShaderInput Copy()
         {
-            return new Texture2DArrayAssetNode { texture = value.textureArray };
-        }
-
-        public override AbstractShaderProperty Copy()
-        {
-            var copied = new Texture2DArrayShaderProperty();
-            copied.displayName = displayName;
-            copied.value = value;
-            return copied;
+            return new Texture2DArrayShaderProperty()
+            {
+                displayName = displayName,
+                hidden = hidden,
+                value = value
+            };
         }
     }
 }

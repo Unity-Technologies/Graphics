@@ -3,7 +3,7 @@ using UnityEngine.Rendering.HighDefinition;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
-    public class UnlitUI : ShaderGUI
+    class UnlitUI : ShaderGUI
     {
         public override void OnGUI(MaterialEditor materialEditor, MaterialProperty[] props)
         {

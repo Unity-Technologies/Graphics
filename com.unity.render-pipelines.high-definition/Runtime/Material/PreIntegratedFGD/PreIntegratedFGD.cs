@@ -1,6 +1,6 @@
 namespace UnityEngine.Rendering.HighDefinition
 {
-    public partial class PreIntegratedFGD
+    partial class PreIntegratedFGD
     {
         [GenerateHLSL]
         public enum FGDTexture

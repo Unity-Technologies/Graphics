@@ -1467,7 +1467,7 @@ namespace UnityEditor.VFX.UI
             return bounds;
         }
 
-        string SerializeElements(IEnumerable<GraphElement> elements)
+        public string SerializeElements(IEnumerable<GraphElement> elements)
         {
             pasteOffset = defaultPasteOffset;
 
@@ -1489,7 +1489,7 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        void UnserializeAndPasteElements(string operationName, string data)
+        public void UnserializeAndPasteElements(string operationName, string data)
         {
             Profiler.BeginSample("VFXPaste.VFXPaste.UnserializeAndPasteElements");
             VFXPaste.UnserializeAndPasteElements(controller, pasteCenter, data, this);

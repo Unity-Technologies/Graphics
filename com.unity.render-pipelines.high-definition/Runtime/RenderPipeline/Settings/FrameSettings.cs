@@ -222,10 +222,10 @@ namespace UnityEngine.Rendering.HighDefinition
     /// <summary>Per renderer and per frame settings.</summary>
     [Serializable]
     [System.Diagnostics.DebuggerDisplay("{bitDatas.humanizedData}")]
-    public partial struct FrameSettings
+    partial struct FrameSettings
     {
         /// <summary>Default FrameSettings for Camera renderer.</summary>
-        public static readonly FrameSettings defaultCamera = new FrameSettings()
+        internal static readonly FrameSettings defaultCamera = new FrameSettings()
         {
             bitDatas = new BitArray128(new uint[] {
                 (uint)FrameSettingsField.Shadow,
@@ -288,7 +288,7 @@ namespace UnityEngine.Rendering.HighDefinition
             lodBias = 1,
         };
         /// <summary>Default FrameSettings for realtime ReflectionProbe/PlanarReflectionProbe renderer.</summary>
-        public static readonly FrameSettings defaultRealtimeReflectionProbe = new FrameSettings()
+        internal static readonly FrameSettings defaultRealtimeReflectionProbe = new FrameSettings()
         {
             bitDatas = new BitArray128(new uint[] {
                 (uint)FrameSettingsField.Shadow,
@@ -335,7 +335,7 @@ namespace UnityEngine.Rendering.HighDefinition
             lodBias = 1,
         };
         /// <summary>Default FrameSettings for baked or custom ReflectionProbe renderer.</summary>
-        public static readonly FrameSettings defaultCustomOrBakeReflectionProbe = new FrameSettings()
+        internal static readonly FrameSettings defaultCustomOrBakeReflectionProbe = new FrameSettings()
         {
             bitDatas = new BitArray128(new uint[] {
                 (uint)FrameSettingsField.Shadow,
@@ -391,15 +391,19 @@ namespace UnityEngine.Rendering.HighDefinition
         /// if <c>lodBiasMode == LODBiasMode.Fixed</c>, then this value will overwrite <c>QualitySettings.lodBias</c>
         /// if <c>lodBiasMode == LODBiasMode.ScaleQualitySettings</c>, then this value will scale <c>QualitySettings.lodBias</c>
         /// </summary>
+        [SerializeField]
         public float lodBias;
         /// <summary>Define how the <c>QualitySettings.lodBias</c> value is set.</summary>
+        [SerializeField]
         public LODBiasMode lodBiasMode;
         /// <summary>
         /// if <c>maximumLODLevelMode == MaximumLODLevelMode.FromQualitySettings</c>, then this value will overwrite <c>QualitySettings.maximumLODLevel</c>
         /// if <c>maximumLODLevelMode == MaximumLODLevelMode.OffsetQualitySettings</c>, then this value will offset <c>QualitySettings.maximumLODLevel</c>
         /// </summary>
+        [SerializeField]
         public int maximumLODLevel;
         /// <summary>Define how the <c>QualitySettings.maximumLODLevel</c> value is set.</summary>
+        [SerializeField]
         public MaximumLODLevelMode maximumLODLevelMode;
 
         /// <summary>Helper to see binary saved data on LitShaderMode as a LitShaderMode enum.</summary>
@@ -428,7 +432,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="overriddenFrameSettings">Overrided FrameSettings. Must contains default data before attempting the override.</param>
         /// <param name="overridingFrameSettings">The FrameSettings data we will use for overriding.</param>
         /// <param name="frameSettingsOverideMask">The mask to use for overriding (1 means override this field).</param>
-        public static void Override(ref FrameSettings overriddenFrameSettings, FrameSettings overridingFrameSettings, FrameSettingsOverrideMask frameSettingsOverideMask)
+        internal static void Override(ref FrameSettings overriddenFrameSettings, FrameSettings overridingFrameSettings, FrameSettingsOverrideMask frameSettingsOverideMask)
         {
             //quick override of all booleans
             overriddenFrameSettings.bitDatas = (overridingFrameSettings.bitDatas & frameSettingsOverideMask.mask) | (~frameSettingsOverideMask.mask & overriddenFrameSettings.bitDatas);
@@ -445,97 +449,88 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         /// <summary>Check FrameSettings with what is supported in RenderPipelineSettings and change value in order to be compatible.</summary>
-        /// <param name="sanitazedFrameSettings">The FrameSettings being cleaned.</param>
+        /// <param name="sanitizedFrameSettings">The FrameSettings being cleaned.</param>
         /// <param name="camera">Camera contais some necessary information to check how to sanitize.</param>
         /// <param name="renderPipelineSettings">Contains what is supported by the engine.</param>
-        public static void Sanitize(ref FrameSettings sanitazedFrameSettings, Camera camera, RenderPipelineSettings renderPipelineSettings)
+        internal static void Sanitize(ref FrameSettings sanitizedFrameSettings, Camera camera, RenderPipelineSettings renderPipelineSettings)
         {
             bool reflection = camera.cameraType == CameraType.Reflection;
             bool preview = HDUtils.IsRegularPreviewCamera(camera);
             bool sceneViewFog = CoreUtils.IsSceneViewFogEnabled(camera);
 
             // When rendering reflection probe we disable specular as it is view dependent
-            sanitazedFrameSettings.bitDatas[(int)FrameSettingsField.Reflection] = !reflection;
+            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.Reflection] = !reflection;
 
-            // We have to fall back to forward-only rendering when scene view is using wireframe rendering mode
-            // as rendering everything in wireframe + deferred do not play well together
-            if (GL.wireframe)
+            switch (renderPipelineSettings.supportedLitShaderMode)
             {
-                sanitazedFrameSettings.litShaderMode = LitShaderMode.Forward;
-            }
-            else
-            {
-                switch (renderPipelineSettings.supportedLitShaderMode)
-                {
-                    case RenderPipelineSettings.SupportedLitShaderMode.ForwardOnly:
-                        sanitazedFrameSettings.litShaderMode = LitShaderMode.Forward;
-                        break;
-                    case RenderPipelineSettings.SupportedLitShaderMode.DeferredOnly:
-                        sanitazedFrameSettings.litShaderMode = LitShaderMode.Deferred;
-                        break;
-                    case RenderPipelineSettings.SupportedLitShaderMode.Both:
-                        //nothing to do: keep previous value
-                        break;
-                }
+                case RenderPipelineSettings.SupportedLitShaderMode.ForwardOnly:
+                    sanitizedFrameSettings.litShaderMode = LitShaderMode.Forward;
+                    break;
+                case RenderPipelineSettings.SupportedLitShaderMode.DeferredOnly:
+                    sanitizedFrameSettings.litShaderMode = LitShaderMode.Deferred;
+                    break;
+                case RenderPipelineSettings.SupportedLitShaderMode.Both:
+                    //nothing to do: keep previous value
+                    break;
             }
 
-            sanitazedFrameSettings.bitDatas[(int)FrameSettingsField.Shadow] &= !preview;
-            sanitazedFrameSettings.bitDatas[(int)FrameSettingsField.ShadowMask] &= renderPipelineSettings.supportShadowMask && !preview;
-            sanitazedFrameSettings.bitDatas[(int)FrameSettingsField.ContactShadows] &= !preview;
-            sanitazedFrameSettings.bitDatas[(int)FrameSettingsField.ScreenSpaceShadows] &= renderPipelineSettings.hdShadowInitParams.supportScreenSpaceShadows;
+            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.Shadow] &= !preview;
+            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.ShadowMask] &= renderPipelineSettings.supportShadowMask && !preview;
+            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.ContactShadows] &= !preview;
+            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.ScreenSpaceShadows] &= renderPipelineSettings.hdShadowInitParams.supportScreenSpaceShadows;
 
             //MSAA only supported in forward
             // TODO: The work will be implemented piecemeal to support all passes
-            bool msaa = sanitazedFrameSettings.bitDatas[(int)FrameSettingsField.MSAA] &= renderPipelineSettings.supportMSAA && sanitazedFrameSettings.litShaderMode == LitShaderMode.Forward;
+            bool msaa = sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.MSAA] &= renderPipelineSettings.supportMSAA && sanitizedFrameSettings.litShaderMode == LitShaderMode.Forward;
 
             // No recursive reflections
-            sanitazedFrameSettings.bitDatas[(int)FrameSettingsField.SSR] &= !reflection && renderPipelineSettings.supportSSR && !msaa && !preview;
-            sanitazedFrameSettings.bitDatas[(int)FrameSettingsField.SSAO] &= renderPipelineSettings.supportSSAO && !preview;
-            sanitazedFrameSettings.bitDatas[(int)FrameSettingsField.SubsurfaceScattering] &= !reflection && renderPipelineSettings.supportSubsurfaceScattering;
+            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.SSR] &= !reflection && renderPipelineSettings.supportSSR && !msaa && !preview;
+            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.SSAO] &= renderPipelineSettings.supportSSAO && !preview;
+            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.SubsurfaceScattering] &= !reflection && renderPipelineSettings.supportSubsurfaceScattering;
 
             // We must take care of the scene view fog flags in the editor
-            bool atmosphericScattering = sanitazedFrameSettings.bitDatas[(int)FrameSettingsField.AtmosphericScattering] &= sceneViewFog && !preview;
+            bool atmosphericScattering = sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.AtmosphericScattering] &= sceneViewFog && !preview;
 
             // Volumetric are disabled if there is no atmospheric scattering
-            sanitazedFrameSettings.bitDatas[(int)FrameSettingsField.Volumetrics] &= renderPipelineSettings.supportVolumetrics && atmosphericScattering; //&& !preview induced by atmospheric scattering
-            sanitazedFrameSettings.bitDatas[(int)FrameSettingsField.ReprojectionForVolumetrics] &= !preview;
+            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.Volumetrics] &= renderPipelineSettings.supportVolumetrics && atmosphericScattering; //&& !preview induced by atmospheric scattering
+            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.ReprojectionForVolumetrics] &= !preview;
 
-            sanitazedFrameSettings.bitDatas[(int)FrameSettingsField.LightLayers] &= renderPipelineSettings.supportLightLayers && !preview;
-            sanitazedFrameSettings.bitDatas[(int)FrameSettingsField.ExposureControl] &= !reflection && !preview;
+            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.LightLayers] &= renderPipelineSettings.supportLightLayers && !preview;
+            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.ExposureControl] &= !reflection && !preview;
 
             // Planar and real time cubemap doesn't need post process and render in FP16
-            sanitazedFrameSettings.bitDatas[(int)FrameSettingsField.Postprocess] &= !reflection && !preview;
+            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.Postprocess] &= !reflection && !preview;
 
-            sanitazedFrameSettings.bitDatas[(int)FrameSettingsField.TransparentPrepass] &= renderPipelineSettings.supportTransparentDepthPrepass && !preview;
+            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.TransparentPrepass] &= renderPipelineSettings.supportTransparentDepthPrepass && !preview;
 
-            bool motionVector = sanitazedFrameSettings.bitDatas[(int)FrameSettingsField.MotionVectors] &= !reflection && renderPipelineSettings.supportMotionVectors && !preview;
+            bool motionVector = sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.MotionVectors] &= !reflection && renderPipelineSettings.supportMotionVectors && !preview;
 
             // Object motion vector are disabled if motion vector are disabled
-            sanitazedFrameSettings.bitDatas[(int)FrameSettingsField.ObjectMotionVectors] &= motionVector && !preview;
-            sanitazedFrameSettings.bitDatas[(int)FrameSettingsField.Decals] &= renderPipelineSettings.supportDecals && !preview;
-            sanitazedFrameSettings.bitDatas[(int)FrameSettingsField.TransparentPostpass] &= renderPipelineSettings.supportTransparentDepthPostpass && !preview;
-            sanitazedFrameSettings.bitDatas[(int)FrameSettingsField.Distortion] &= !reflection && renderPipelineSettings.supportDistortion && !msaa && !preview;
-            sanitazedFrameSettings.bitDatas[(int)FrameSettingsField.LowResTransparent] &= renderPipelineSettings.lowresTransparentSettings.enabled;
+            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.ObjectMotionVectors] &= motionVector && !preview;
+            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.Decals] &= renderPipelineSettings.supportDecals && !preview;
+            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.TransparentPostpass] &= renderPipelineSettings.supportTransparentDepthPostpass && !preview;
+            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.Distortion] &= !reflection && renderPipelineSettings.supportDistortion && !msaa && !preview;
+            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.LowResTransparent] &= renderPipelineSettings.lowresTransparentSettings.enabled;
 
-            bool async = sanitazedFrameSettings.bitDatas[(int)FrameSettingsField.AsyncCompute] &= SystemInfo.supportsAsyncCompute;
-            sanitazedFrameSettings.bitDatas[(int)FrameSettingsField.LightListAsync] &= async;
-            sanitazedFrameSettings.bitDatas[(int)FrameSettingsField.SSRAsync] &= async;
-            sanitazedFrameSettings.bitDatas[(int)FrameSettingsField.SSAOAsync] &= async;
-            sanitazedFrameSettings.bitDatas[(int)FrameSettingsField.ContactShadowsAsync] &= async;
-            sanitazedFrameSettings.bitDatas[(int)FrameSettingsField.VolumeVoxelizationsAsync] &= async;
+            bool async = sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.AsyncCompute] &= SystemInfo.supportsAsyncCompute;
+            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.LightListAsync] &= async;
+            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.SSRAsync] &= async;
+            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.SSAOAsync] &= async;
+            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.ContactShadowsAsync] &= async;
+            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.VolumeVoxelizationsAsync] &= async;
 
             // Deferred opaque are always using Fptl. Forward opaque can use Fptl or Cluster, transparent use cluster.
             // When MSAA is enabled we disable Fptl as it become expensive compare to cluster
             // In HD, MSAA is only supported for forward only rendering, no MSAA in deferred mode (for code complexity reasons)
-            sanitazedFrameSettings.bitDatas[(int)FrameSettingsField.FPTLForForwardOpaque] &= !msaa;
+            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.FPTLForForwardOpaque] &= !msaa;
         }
 
-        /// <summary>Aggregation is default with override of the renderer then sanitazed depending on supported features of hdrpasset.</summary>
+        /// <summary>Aggregation is default with override of the renderer then sanitized depending on supported features of hdrpasset.</summary>
         /// <param name="aggregatedFrameSettings">The aggregated FrameSettings result.</param>
         /// <param name="camera">The camera rendering.</param>
         /// <param name="additionalData">Additional data of the camera rendering.</param>
         /// <param name="hdrpAsset">HDRenderPipelineAsset contening default FrameSettings.</param>
-        public static void AggregateFrameSettings(ref FrameSettings aggregatedFrameSettings, Camera camera, HDAdditionalCameraData additionalData, HDRenderPipelineAsset hdrpAsset, HDRenderPipelineAsset defaultHdrpAsset)
+        internal static void AggregateFrameSettings(ref FrameSettings aggregatedFrameSettings, Camera camera, HDAdditionalCameraData additionalData, HDRenderPipelineAsset hdrpAsset, HDRenderPipelineAsset defaultHdrpAsset)
             => AggregateFrameSettings(
                 ref aggregatedFrameSettings,
                 camera,
@@ -545,13 +540,13 @@ namespace UnityEngine.Rendering.HighDefinition
                 );
 
         // Note: this version is the one tested as there is issue getting HDRenderPipelineAsset in batchmode in unit test framework currently.
-        /// <summary>Aggregation is default with override of the renderer then sanitazed depending on supported features of hdrpasset.</summary>
+        /// <summary>Aggregation is default with override of the renderer then sanitized depending on supported features of hdrpasset.</summary>
         /// <param name="aggregatedFrameSettings">The aggregated FrameSettings result.</param>
         /// <param name="camera">The camera rendering.</param>
         /// <param name="additionalData">Additional data of the camera rendering.</param>
         /// <param name="defaultFrameSettings">Base framesettings to copy prior any override.</param>
-        /// <param name="supportedFeatures">Currently supported feature for the sanitazation pass.</param>
-        public static void AggregateFrameSettings(ref FrameSettings aggregatedFrameSettings, Camera camera, HDAdditionalCameraData additionalData, ref FrameSettings defaultFrameSettings, RenderPipelineSettings supportedFeatures)
+        /// <param name="supportedFeatures">Currently supported feature for the sanitization pass.</param>
+        internal static void AggregateFrameSettings(ref FrameSettings aggregatedFrameSettings, Camera camera, HDAdditionalCameraData additionalData, ref FrameSettings defaultFrameSettings, RenderPipelineSettings supportedFeatures)
         {
             aggregatedFrameSettings = defaultFrameSettings; //fallback on Camera for SceneCamera and PreviewCamera
             if (additionalData && additionalData.customRenderingSettings)

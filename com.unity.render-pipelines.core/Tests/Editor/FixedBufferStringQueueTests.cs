@@ -3,7 +3,7 @@ using System;
 
 namespace UnityEngine.Rendering.Tests
 {
-    public unsafe class FixedBufferStringQueueTests
+    unsafe class FixedBufferStringQueueTests
     {
         [Test]
         public void PushAndPopInBufferRange()

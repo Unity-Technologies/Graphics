@@ -9,7 +9,7 @@ namespace UnityEngine.Rendering
 
     public struct RTHandleProperties
     {
-        public Vector2Int previousViewportSize;     // Size set as reference at the previous frame
+        public Vector2Int previousViewportSize;    // Size set as reference at the previous frame
         public Vector2Int previousRenderTargetSize; // Size of the render targets at the previous frame
         public Vector2Int currentViewportSize;      // Size set as reference at the current frame
         public Vector2Int currentRenderTargetSize;  // Size of the render targets at the current frame
@@ -34,8 +34,8 @@ namespace UnityEngine.Rendering
         RTHandle[]          m_AutoSizedRTsArray; // For fast iteration
         HashSet<RTHandle>   m_ResizeOnDemandRTs;
         RTHandleProperties  m_RTHandleProperties;
-        public RTHandleProperties rtHandleProperties { get { return m_RTHandleProperties; } }
 
+        public RTHandleProperties rtHandleProperties { get { return m_RTHandleProperties; } }
 
         int m_MaxWidths = 0;
         int m_MaxHeights = 0;
@@ -74,6 +74,11 @@ namespace UnityEngine.Rendering
                 Assert.AreEqual(this, rth.m_Owner);
                 rth.Release();
             }
+        }
+
+        internal void Remove(RTHandle rth)
+        {
+            m_AutoSizedRTs.Remove(rth);
         }
 
         public void SetReferenceSize(int width, int height, MSAASamples msaaSamples)

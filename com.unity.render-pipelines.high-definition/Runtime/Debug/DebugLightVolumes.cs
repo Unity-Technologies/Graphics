@@ -2,8 +2,6 @@ using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
-    using RTHandle = RTHandleSystem.RTHandle;
-
     class DebugLightVolumes
     {
         // Render target that holds the light count in floating points
@@ -96,25 +94,25 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.cullResults = cullResults;
             parameters.debugLightVolumeMaterial = m_DebugLightVolumeMaterial;
             parameters.debugLightVolumeCS = m_DebugLightVolumeCompute;
-            parameters.debugLightVolumeKernel =  lightDebugSettings.lightVolumeDebugByCategory == LightVolumeDebug.ColorAndEdge ? m_DebugLightVolumeColorsKernel : m_DebugLightVolumeGradientKernel;
+            parameters.debugLightVolumeKernel = lightDebugSettings.lightVolumeDebugByCategory == LightVolumeDebug.ColorAndEdge ? m_DebugLightVolumeColorsKernel : m_DebugLightVolumeGradientKernel;
             parameters.maxDebugLightCount = (int)lightDebugSettings.maxDebugLightCount;
             parameters.colorGradientTexture = m_ColorGradientTexture;
 
             return parameters;
         }
 
-        public static void RenderLightVolumes(  CommandBuffer                   cmd,
+        public static void RenderLightVolumes(CommandBuffer cmd,
                                                 in RenderLightVolumesParameters parameters,
-                                                RenderTargetIdentifier[]        accumulationMRT, // [0] = m_LightCountBuffer, [1] m_ColorAccumulationBuffer
-                                                RTHandle                        lightCountBuffer,
-                                                RTHandle                        colorAccumulationBuffer,
-                                                RTHandle                        debugLightVolumesTexture,
-                                                RTHandle                        depthBuffer,
-                                                RTHandle                        destination,
-                                                MaterialPropertyBlock           mpb)
+                                                RenderTargetIdentifier[] accumulationMRT, // [0] = m_LightCountBuffer, [1] m_ColorAccumulationBuffer
+                                                RTHandle lightCountBuffer,
+                                                RTHandle colorAccumulationBuffer,
+                                                RTHandle debugLightVolumesTexture,
+                                                RTHandle depthBuffer,
+                                                RTHandle destination,
+                                                MaterialPropertyBlock mpb)
         {
             // Set the render target array
-            HDUtils.SetRenderTarget(cmd, accumulationMRT, depthBuffer);
+            CoreUtils.SetRenderTarget(cmd, accumulationMRT, depthBuffer);
 
             // First of all let's do the regions for the light sources (we only support Punctual and Area)
             int numLights = parameters.cullResults.visibleLights.Length;
@@ -235,7 +233,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.DispatchCompute(parameters.debugLightVolumeCS, parameters.debugLightVolumeKernel, numTilesX, numTilesY, parameters.hdCamera.viewCount);
 
             // Blit this into the camera target
-            HDUtils.SetRenderTarget(cmd, destination);
+            CoreUtils.SetRenderTarget(cmd, destination);
             mpb.SetTexture(HDShaderIDs._BlitTexture, debugLightVolumesTexture);
             cmd.DrawProcedural(Matrix4x4.identity, parameters.debugLightVolumeMaterial, 1, MeshTopology.Triangles, 3, 1, mpb);
         }
@@ -245,9 +243,9 @@ namespace UnityEngine.Rendering.HighDefinition
             using (new ProfilingSample(cmd, "Display Light Volumes"))
             {
                 // Clear the buffers
-                HDUtils.SetRenderTarget(cmd, m_ColorAccumulationBuffer, ClearFlag.Color, Color.black);
-                HDUtils.SetRenderTarget(cmd, m_LightCountBuffer, ClearFlag.Color, Color.black);
-                HDUtils.SetRenderTarget(cmd, m_DebugLightVolumesTexture, ClearFlag.Color, Color.black);
+                CoreUtils.SetRenderTarget(cmd, m_ColorAccumulationBuffer, ClearFlag.Color, Color.black);
+                CoreUtils.SetRenderTarget(cmd, m_LightCountBuffer, ClearFlag.Color, Color.black);
+                CoreUtils.SetRenderTarget(cmd, m_DebugLightVolumesTexture, ClearFlag.Color, Color.black);
 
                 var parameters = PrepareLightVolumeParameters(hdCamera, lightDebugSettings, cullResults);
 

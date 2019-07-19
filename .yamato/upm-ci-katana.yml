@@ -3,7 +3,7 @@ run_katana_metal:
   agent:
     name: whatever
     type: Unity::VM
-    image: cds-ops/ubuntu-18.04-agent:latest
+    image: cds-ops/ubuntu-18.04-agent:stable
     flavor: b1.small
   commands:
   #- sudo apt-get update

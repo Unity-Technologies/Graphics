@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
-    public static class DiffusionProfileMaterialUI
+    static class DiffusionProfileMaterialUI
     {
         public static bool IsSupported(MaterialEditor materialEditor)
         {

@@ -198,9 +198,9 @@ namespace UnityEditor.ShaderGraph
                 mat.SetFloat(string.Format("{0}_ColorsLength", name), m_ClassData.gradientValue.colorKeys.Length);
                 mat.SetFloat(string.Format("{0}_AlphasLength", name), m_ClassData.gradientValue.alphaKeys.Length);
                 for (int i = 0; i < 8; i++)
-                    mat.SetVector(string.Format("{0}_ColorKey{1}", name, i), i < m_ClassData.gradientValue.colorKeys.Length ? GradientUtils.ColorKeyToVector(m_ClassData.gradientValue.colorKeys[i]) : Vector4.zero);
+                    mat.SetVector(string.Format("{0}_ColorKey{1}", name, i), i < m_ClassData.gradientValue.colorKeys.Length ? GradientUtil.ColorKeyToVector(m_ClassData.gradientValue.colorKeys[i]) : Vector4.zero);
                 for (int i = 0; i < 8; i++)
-                    mat.SetVector(string.Format("{0}_AlphaKey{1}", name, i), i < m_ClassData.gradientValue.alphaKeys.Length ? GradientUtils.AlphaKeyToVector(m_ClassData.gradientValue.alphaKeys[i]) : Vector2.zero);
+                    mat.SetVector(string.Format("{0}_AlphaKey{1}", name, i), i < m_ClassData.gradientValue.alphaKeys.Length ? GradientUtil.AlphaKeyToVector(m_ClassData.gradientValue.alphaKeys[i]) : Vector2.zero);
             }
         }
     }

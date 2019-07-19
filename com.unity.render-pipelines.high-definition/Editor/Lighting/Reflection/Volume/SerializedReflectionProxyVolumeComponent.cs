@@ -2,7 +2,7 @@ using UnityEngine.Rendering.HighDefinition;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
-    public class SerializedReflectionProxyVolumeComponent
+    class SerializedReflectionProxyVolumeComponent
     {
         public SerializedObject serializedObject;
 

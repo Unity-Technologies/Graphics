@@ -5,7 +5,7 @@ using UnityEngine.Rendering.HighDefinition.Attributes;
 //-----------------------------------------------------------------------------
 namespace UnityEngine.Rendering.HighDefinition
 {
-    public class Unlit : RenderPipelineMaterial
+    class Unlit : RenderPipelineMaterial
     {
         //-----------------------------------------------------------------------------
         // SurfaceData

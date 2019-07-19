@@ -7,7 +7,7 @@ using UnityEngine.UIElements;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
-    public class DefaultSettingsPanelProvider
+    class DefaultSettingsPanelProvider
     {
         [SettingsProvider]
         public static SettingsProvider CreateSettingsProvider()
@@ -125,6 +125,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 {
                     asset = newAsset;
                     hdrpAsset.defaultVolumeProfile = asset;
+                    EditorUtility.SetDirty(hdrpAsset);
                 }
 
                 Editor.CreateCachedEditor(asset,

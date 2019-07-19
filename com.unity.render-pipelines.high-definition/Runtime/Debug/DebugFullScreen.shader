@@ -230,6 +230,11 @@ Shader "Hidden/HDRP/DebugFullScreen"
 
                     return float4(color + d.xxx, 1.0);
                 }
+                if (_FullScreenDebugMode == FULLSCREENDEBUGMODE_COLOR_LOG)
+                {
+                    float4 color = LOAD_TEXTURE2D_X(_DebugFullScreenTexture, (uint2)input.positionCS.xy);
+                    return color;
+                }
                 if (_FullScreenDebugMode == FULLSCREENDEBUGMODE_CONTACT_SHADOWS)
                 {
                     uint contactShadowData = LOAD_TEXTURE2D_X(_ContactShadowTexture, input.texcoord * _ScreenSize.xy).r;

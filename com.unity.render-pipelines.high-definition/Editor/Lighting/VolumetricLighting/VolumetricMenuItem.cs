@@ -4,7 +4,7 @@ using UnityEngine.Rendering;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
-    public class VolumetricMenuItems
+    class VolumetricMenuItems
     {
         [MenuItem("GameObject/Rendering/Density Volume", priority = CoreUtils.gameObjectMenuPriority)]
         static void CreateDensityVolumeGameObject(MenuCommand menuCommand)

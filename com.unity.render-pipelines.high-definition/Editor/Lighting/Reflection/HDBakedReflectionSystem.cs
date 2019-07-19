@@ -4,14 +4,15 @@ using System.IO;
 using System.Linq.Expressions;
 using System.Reflection;
 using Unity.Collections.LowLevel.Unsafe;
-using UnityEditor;
 using UnityEditor.VersionControl;
+using UnityEngine;
+using UnityEngine.Rendering;
 using UnityEngine.Assertions;
 using UnityEngine.SceneManagement;
+using UnityEngine.Rendering.HighDefinition;
 using UnityEditor.Experimental.Rendering;
-using UnityEditor.Rendering.HighDefinition;
 
-namespace UnityEngine.Rendering.HighDefinition
+namespace UnityEditor.Rendering.HighDefinition
 {
     unsafe class HDBakedReflectionSystem : ScriptableBakedReflectionSystem
     {
@@ -436,7 +437,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (!Directory.Exists(sceneFolder))
                     continue;
 
-                var types = TypeInfo.GetEnumValues<ProbeSettings.ProbeType>();
+                var types = UnityEngine.Rendering.HighDefinition.TypeInfo.GetEnumValues<ProbeSettings.ProbeType>();
                 for (int typeI = 0; typeI < types.Length; ++typeI)
                 {
                     var files = Directory.GetFiles(
@@ -476,12 +477,24 @@ namespace UnityEngine.Rendering.HighDefinition
             AssetDatabase.StopAssetEditing();
         }
 
-        static void Checkout(string targetFile)
+        internal static void Checkout(string targetFile)
         {
+            // Try to checkout through the VCS
             if (Provider.isActive
                 && HDEditorUtils.IsAssetPath(targetFile)
                 && Provider.GetAssetByPath(targetFile) != null)
-                Provider.Checkout(targetFile, CheckoutMode.Both);
+            {
+                Provider.Checkout(targetFile, CheckoutMode.Both).Wait();
+            }
+            else if (File.Exists(targetFile))
+            {
+                // There is no VCS, but the file is still locked
+                // Try to make it writeable
+                var attributes = File.GetAttributes(targetFile);
+                if ((attributes & FileAttributes.ReadOnly) == 0) return;
+                attributes &= ~FileAttributes.ReadOnly;
+                File.SetAttributes(targetFile, attributes);
+            }
         }
 
         internal static void AssignRenderData(HDProbe probe, string bakedTexturePath)
@@ -510,6 +523,16 @@ namespace UnityEngine.Rendering.HighDefinition
             RenderTexture cubeRT, RenderTexture planarRT
         )
         {
+            RenderAndWriteToFile(probe, targetFile, cubeRT, planarRT, out _, out _);
+        }
+
+        internal static void RenderAndWriteToFile(
+            HDProbe probe, string targetFile,
+            RenderTexture cubeRT, RenderTexture planarRT,
+            out CameraSettings cameraSettings,
+            out CameraPositionSettings cameraPositionSettings
+        )
+        {
             var settings = probe.settings;
             switch (settings.type)
             {
@@ -517,6 +540,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         var positionSettings = ProbeCapturePositionSettings.ComputeFrom(probe, null);
                         HDRenderUtilities.Render(probe.settings, positionSettings, cubeRT,
+                            out cameraSettings, out cameraPositionSettings,
                             forceFlipY: true,
                             forceInvertBackfaceCulling: true, // Cubemap have an RHS standard, so we need to invert the face culling
                             (uint)StaticEditorFlags.ReflectionProbeStatic
@@ -538,7 +562,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             settings,
                             positionSettings,
                             planarRT,
-                            out var cameraSettings, out var cameraPositionSettings
+                            out cameraSettings, out cameraPositionSettings
                         );
                         HDBakingUtilities.CreateParentDirectoryIfMissing(targetFile);
                         Checkout(targetFile);
@@ -549,6 +573,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         HDBakingUtilities.TrySerializeToDisk(renderData, targetRenderDataFile);
                         break;
                     }
+                default: throw new ArgumentOutOfRangeException(nameof(probe.settings.type));
             }
         }
 

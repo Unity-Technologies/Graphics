@@ -4,9 +4,7 @@ using UnityEngine.Serialization;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
-    using RTHandle = RTHandleSystem.RTHandle;
-
-    public enum ShadowMapType
+    enum ShadowMapType
     {
         CascadedDirectional,
         PunctualAtlas,
@@ -14,7 +12,7 @@ namespace UnityEngine.Rendering.HighDefinition
     }
 
     [GenerateHLSL(needAccessors = false)]
-    public struct HDShadowData
+    struct HDShadowData
     {
         public Vector3      rot0;
         public Vector3      rot1;
@@ -48,7 +46,7 @@ namespace UnityEngine.Rendering.HighDefinition
     // and it will add too much useless stuff for other lights
     // Note: In order to support HLSL array generation, we need to use fixed arrays and so a unsafe context for this struct
     [GenerateHLSL(needAccessors = false)]
-    public unsafe struct HDDirectionalShadowData
+    unsafe struct HDDirectionalShadowData
     {
         // We can't use Vector4 here because the vector4[] makes this struct non blittable
         [HLSLArray(4, typeof(Vector4))]
@@ -62,7 +60,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public fixed float      cascadeBorders[4];
     }
 
-    public class HDShadowRequest
+    class HDShadowRequest
     {
         public Matrix4x4            view;
         // Use the y flipped device projection matrix as light projection matrix
@@ -185,16 +183,16 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Default HDShadowInitParameters</summary>
         public static readonly HDShadowInitParameters @default = new HDShadowInitParameters()
         {
-            maxShadowRequests                   = k_DefaultMaxShadowRequests,
-            directionalShadowsDepthBits         = k_DefaultShadowMapDepthBits,
-            punctualLightShadowAtlas            = HDShadowAtlasInitParams.GetDefault(),
-            areaLightShadowAtlas                = HDShadowAtlasInitParams.GetDefault(),
+            maxShadowRequests           = k_DefaultMaxShadowRequests,
+            directionalShadowsDepthBits = k_DefaultShadowMapDepthBits,
+            punctualLightShadowAtlas    = HDShadowAtlasInitParams.GetDefault(),
+            areaLightShadowAtlas        = HDShadowAtlasInitParams.GetDefault(),
             directionalLightsResolutionTiers    = HDShadowTierParams.GetDefault(),
             punctualLightsResolutionTiers       = HDShadowTierParams.GetDefault(),
             areaLightsResolutionTiers           = HDShadowTierParams.GetDefault(),
             shadowFilteringQuality              = HDShadowFilteringQuality.Medium,
-            supportScreenSpaceShadows           = false,
-            maxScreenSpaceShadows               = 2,
+            supportScreenSpaceShadows   = false,
+            maxScreenSpaceShadows       = 2,
             maxDirectionalShadowMapResolution   = 2048,
             maxAreaShadowMapResolution          = 2048,
             maxPunctualShadowMapResolution      = 2048,
@@ -227,14 +225,14 @@ namespace UnityEngine.Rendering.HighDefinition
         public int maxScreenSpaceShadows;
     }
 
-    public class HDShadowResolutionRequest
+    class HDShadowResolutionRequest
     {
         public Rect             atlasViewport;
         public Vector2          resolution;
         public ShadowMapType    shadowMapType;
     }
 
-    public partial class HDShadowManager : IDisposable
+    partial class HDShadowManager : IDisposable
     {
         public const int            k_DirectionalShadowCascadeCount = 4;
         public const int            k_MinShadowMapResolution = 16;
@@ -316,7 +314,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_CascadeAtlas.UpdateSize(atlasResolution);
         }
 
-        public int ReserveShadowResolutions(Vector2 resolution, ShadowMapType shadowMapType)
+        internal int ReserveShadowResolutions(Vector2 resolution, ShadowMapType shadowMapType)
         {
             if (m_ShadowRequestCount >= m_MaxShadowRequests)
             {
@@ -356,7 +354,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return m_ShadowResolutionRequests[index].resolution;
         }
 
-        public void UpdateShadowRequest(int index, HDShadowRequest shadowRequest)
+        internal void UpdateShadowRequest(int index, HDShadowRequest shadowRequest)
         {
             if (index >= m_ShadowRequestCount)
                 return;

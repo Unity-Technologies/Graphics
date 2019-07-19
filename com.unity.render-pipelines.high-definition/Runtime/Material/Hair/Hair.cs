@@ -2,7 +2,7 @@ using UnityEngine.Rendering.HighDefinition.Attributes;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
-    public partial class Hair : RenderPipelineMaterial
+    partial class Hair : RenderPipelineMaterial
     {
         [GenerateHLSL(PackingRules.Exact)]
         public enum MaterialFeatureFlags

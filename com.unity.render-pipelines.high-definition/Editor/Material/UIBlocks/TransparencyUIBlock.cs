@@ -9,7 +9,7 @@ using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
-    public class TransparencyUIBlock : MaterialUIBlock
+    class TransparencyUIBlock : MaterialUIBlock
     {
         [Flags]
         public enum Features
@@ -47,7 +47,7 @@ namespace UnityEditor.Rendering.HighDefinition
             // Disable the block if one of the materials is not transparent:
             if (materials.Any(material => material.GetSurfaceType() != SurfaceType.Transparent))
                 return ;
-            
+
             using (var header = new MaterialHeaderScope(Styles.header, (uint)m_ExpandableBit, materialEditor))
             {
                 if (header.expanded)
