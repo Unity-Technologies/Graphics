@@ -659,21 +659,6 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         [SerializeField]
-        bool m_DOTSInstancing = false;
-        public ToggleData dotsInstancing
-        {
-            get { return new ToggleData(m_DOTSInstancing); }
-            set
-            {
-                if (m_DOTSInstancing == value.isOn)
-                    return;
-
-                m_DOTSInstancing = value.isOn;
-                Dirty(ModificationScope.Graph);
-            }
-        }
-
-        [SerializeField]
         bool m_ZWrite = false;
         public ToggleData zWrite
         {
@@ -720,6 +705,22 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
+        [SerializeReference]
+        private IGeometryModule m_GeometryModule;
+
+        public IGeometryModule GeometryModule
+            => m_GeometryModule;
+
+        public void SetGeometryModuleType(Type type)
+        {
+            if (!type.GetInterfaces().Contains(typeof(IGeometryModule)))
+                throw new ArgumentException($"Type {type.Name} doesn't implement IGeometryModule.");
+            else if (type.GetConstructor(Type.EmptyTypes) == null)
+                throw new ArgumentException($"Type {type.Name} doesn't have a parameterless public constructor.");
+
+            m_GeometryModule = Activator.CreateInstance(type) as IGeometryModule;
+        }
+
         public HDLitMasterNode()
         {
             UpdateNodeAfterDeserialization();
@@ -744,6 +745,9 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             base.UpdateNodeAfterDeserialization();
             name = "Lit Master";
+
+            if (m_GeometryModule == null)
+                m_GeometryModule = new DefaultGeometryModule();
 
             List<int> validSlots = new List<int>();
             if (MaterialTypeUsesSlotMask(SlotMask.Position))

@@ -1,4 +1,7 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
 using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -15,9 +18,18 @@ namespace UnityEditor.Rendering.HighDefinition.Drawing
     {
         HDLitMasterNode m_Node;
 
+        private class GeometryModuleItem
+        {
+            public string DisplayName;
+            public Type Type;
+            public override string ToString()
+                => DisplayName;
+        }
+        List<GeometryModuleItem> m_GeometryModuleTypes;
+
         IntegerField m_SortPriorityField;
 
-        Label CreateLabel(string text, int indentLevel)
+        private static Label CreateLabel(string text, int indentLevel)
         {
             string label = "";
             for (var i = 0; i < indentLevel; i++)
@@ -30,6 +42,23 @@ namespace UnityEditor.Rendering.HighDefinition.Drawing
         public HDLitSettingsView(HDLitMasterNode node)
         {
             m_Node = node;
+            m_GeometryModuleTypes = TypeCache.GetTypesDerivedFrom<IGeometryModule>()
+                .Select(t => new GeometryModuleItem()
+                {
+                    DisplayName = t.GetCustomAttribute<GeometryModuleDisplayNameAttribute>()?.DisplayName ?? t.Name,
+                    Type = t
+                })
+                .ToList();
+            m_GeometryModuleTypes.Sort((x, y) =>
+            {
+                if (x.Type == typeof(DefaultGeometryModule))
+                    return -1;
+                else if (y.Type == typeof(DefaultGeometryModule))
+                    return 1;
+                else
+                    return x.DisplayName.CompareTo(y.DisplayName);
+            });
+
             PropertySheet ps = new PropertySheet();
 
             int indentLevel = 0;
@@ -375,14 +404,44 @@ namespace UnityEditor.Rendering.HighDefinition.Drawing
                 });
             });
 
-            ps.Add(new PropertyRow(CreateLabel("DOTS instancing", indentLevel)), (row) =>
+            if (m_GeometryModuleTypes.Count > 1)
             {
-                row.Add(new Toggle(), (toggle) =>
+                ps.Add(new PropertyRow(CreateLabel("Geometry Module", indentLevel)), row =>
                 {
-                    toggle.value = m_Node.dotsInstancing.isOn;
-                    toggle.OnToggleChanged(ChangeDotsInstancing);
+                    row.Add(new PopupField<GeometryModuleItem>(m_GeometryModuleTypes,
+                        m_GeometryModuleTypes.Find(i => i.Type == m_Node.GeometryModule.GetType())),
+                        popup =>
+                        {
+                            popup.RegisterValueChangedCallback(v =>
+                            {
+                                m_Node.SetGeometryModuleType(v.newValue.Type);
+                                m_Node.Dirty(Graphing.ModificationScope.Topological);
+                            });
+                        });
                 });
-            });
+                ++indentLevel;
+            }
+
+            foreach (var visualElement in m_Node.GeometryModule.CreateVisualElements())
+            {
+                ps.Add(new PropertyRow(CreateLabel(visualElement.name, indentLevel)), (row) =>
+                {
+                    row.Add(visualElement, (ve) =>
+                    {
+                        if (ve is Toggle toggle)
+                        {
+                            toggle.OnToggleChanged(evt =>
+                            {
+                                m_Node.owner.owner.RegisterCompleteObjectUndo($"{ve.name} Change");
+                                m_Node.GeometryModule.OnVisualElementValueChanged(ve);
+                            });
+                        }
+                    });
+                });
+            }
+
+            if (m_GeometryModuleTypes.Count > 1)
+                --indentLevel;
 
             Add(ps);
         }
@@ -645,13 +704,13 @@ namespace UnityEditor.Rendering.HighDefinition.Drawing
             m_Node.depthOffset = td;
         }
 
-        void ChangeDotsInstancing(ChangeEvent<bool> evt)
-        {
-            m_Node.owner.owner.RegisterCompleteObjectUndo("DotsInstancing Change");
-            ToggleData td = m_Node.dotsInstancing;
-            td.isOn = evt.newValue;
-            m_Node.dotsInstancing = td;
-        }
+        //void ChangeDotsInstancing(ChangeEvent<bool> evt)
+        //{
+        //    m_Node.owner.owner.RegisterCompleteObjectUndo("DotsInstancing Change");
+        //    ToggleData td = m_Node.dotsInstancing;
+        //    td.isOn = evt.newValue;
+        //    m_Node.dotsInstancing = td;
+        //}
 
         void ChangeZWrite(ChangeEvent<bool> evt)
         {

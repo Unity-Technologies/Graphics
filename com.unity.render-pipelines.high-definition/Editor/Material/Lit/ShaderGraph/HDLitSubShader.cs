@@ -786,18 +786,6 @@ namespace UnityEditor.Rendering.HighDefinition
         };
         public int GetPreviewPassIndex() { return 0; }
 
-        private static InstancingSettings GetInstancingSettingsFromMasterNode(AbstractMaterialNode iMasterNode)
-        {
-            var settings = InstancingSettings.Default;
-
-            if ((iMasterNode as HDLitMasterNode).dotsInstancing.isOn)
-                settings.Options |= InstancingOption.NoLightProbe | InstancingOption.NoLODFade;
-            else
-                settings.Options |= InstancingOption.NoRenderingLayer;
-
-            return settings;
-        }
-
         private static HashSet<string> GetActiveFieldsFromMasterNode(AbstractMaterialNode iMasterNode, Pass pass)
         {
             HashSet<string> activeFields = new HashSet<string>();
@@ -1028,8 +1016,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 // apply master node options to active fields
                 HashSet<string> activeFields = GetActiveFieldsFromMasterNode(masterNode, pass);
 
-                pass.InstancingSettings = GetInstancingSettingsFromMasterNode(masterNode);
-                pass.LODFadeSettings = LODFadeSettings.Default;
+                pass.InstancingSettings = masterNode.GeometryModule.GenerateInstancingSettings();
+                pass.LODFadeSettings = masterNode.GeometryModule.GenerateLODFadeSettings();
 
                 // use standard shader pass generation
                 bool vertexActive = masterNode.IsSlotConnected(HDLitMasterNode.PositionSlotId);
