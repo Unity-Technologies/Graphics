@@ -21,7 +21,15 @@ Shader "Hidden/Shadow2D"
                 Ref [_ShadowStencilGroup]
                 Comp NotEqual
                 Pass Replace
+                Fail Keep
             }
+
+            //Stencil
+            //{
+            //    Ref 2
+            //    Comp always
+            //    Pass replace
+            //}
 
             HLSLPROGRAM
             #pragma vertex vert

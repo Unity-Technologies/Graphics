@@ -21,6 +21,9 @@ namespace UnityEngine.Experimental.Rendering.Universal
         Light2DBlendStyle[] m_LightBlendStyles = null;
 
         [SerializeField]
+        string[] m_ShadowGroups = null;
+
+        [SerializeField]
         Shader m_ShapeLightShader = null;
 
         [SerializeField]
