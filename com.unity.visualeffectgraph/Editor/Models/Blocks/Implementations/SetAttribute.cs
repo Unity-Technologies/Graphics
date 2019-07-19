@@ -2,6 +2,7 @@ using System;
 using System.Text;
 using System.Linq;
 using System.Collections.Generic;
+using UnityEditor.Experimental.VFX;
 using UnityEngine;
 using UnityEngine.Experimental.VFX;
 
@@ -220,7 +221,7 @@ namespace UnityEditor.VFX.Block
                         if (Random == RandomMode.Off)
                             channelSource = VFXBlockUtility.GetRandomMacroString(Random, attributeSize, paramPostfix, GenerateLocalAttributeName(attrib.name));
                         else
-                            channelSource = VFXBlockUtility.GetRandomMacroString(Random, attributeSize, paramPostfix, "Min", "Max");
+                            channelSource = VFXBlockUtility.GetRandomMacroString(Random, attributeSize, paramPostfix, "A", "B");
                     }
                     else
                     {
@@ -250,7 +251,7 @@ namespace UnityEditor.VFX.Block
                 {
                     foreach (var param in base.parameters)
                     {
-                        if ((param.name == "Value" || param.name == "Min" || param.name == "Max") && Source == ValueSource.Source)
+                        if ((param.name == "Value" || param.name == "A" || param.name == "B") && Source == ValueSource.Source)
                             continue;
 
                         yield return param;
