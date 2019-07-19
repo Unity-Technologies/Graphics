@@ -1,27 +1,42 @@
 using System;
 using System.Collections.Generic;
+using System.Reflection;
+using UnityEditor.ShaderGraph;
 using UnityEngine.UIElements;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
-    public class GeometryModuleDisplayNameAttribute : Attribute
+    public static class GeometryModule
     {
-        public readonly string DisplayName;
-
-        public GeometryModuleDisplayNameAttribute(string displayName)
+        public class DisplayNameAttribute : Attribute
         {
-            DisplayName = displayName;
+            public readonly string DisplayName;
+
+            public DisplayNameAttribute(string displayName)
+            {
+                DisplayName = displayName;
+            }
         }
+
+        public static string DisplayName(this IGeometryModule geometryModule)
+            => DisplayName(geometryModule.GetType());
+
+        public static string DisplayName(Type geometryModuleType)
+            => geometryModuleType.GetCustomAttribute<DisplayNameAttribute>()?.DisplayName ?? geometryModuleType.Name;
     }
 
     public interface IGeometryModule
     {
+        // UI
         IEnumerable<VisualElement> CreateVisualElements();
         void OnVisualElementValueChanged(VisualElement visualElement);
+
         InstancingSettings GenerateInstancingSettings();
         LODFadeSettings GenerateLODFadeSettings();
+        bool ForceVertex();
         void OverrideActiveFields(ICollection<string> activeFields);
-        string GenerateVertexProlog();
-        string GeneratePixelProlog();
+        void RegisterGlobalFunctions(FunctionRegistry functionRegistry);
+        void GenerateVertexProlog(ShaderStringBuilder sb);
+        void GeneratePixelProlog(ShaderStringBuilder sb);
     }
 }

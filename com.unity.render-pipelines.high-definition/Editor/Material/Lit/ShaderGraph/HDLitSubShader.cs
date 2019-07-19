@@ -1016,12 +1016,9 @@ namespace UnityEditor.Rendering.HighDefinition
                 // apply master node options to active fields
                 HashSet<string> activeFields = GetActiveFieldsFromMasterNode(masterNode, pass);
 
-                pass.InstancingSettings = masterNode.GeometryModule.GenerateInstancingSettings();
-                pass.LODFadeSettings = masterNode.GeometryModule.GenerateLODFadeSettings();
-
                 // use standard shader pass generation
                 bool vertexActive = masterNode.IsSlotConnected(HDLitMasterNode.PositionSlotId);
-                return HDSubShaderUtilities.GenerateShaderPass(masterNode, pass, mode, activeFields, result, sourceAssetDependencyPaths, vertexActive);
+                return HDSubShaderUtilities.GenerateShaderPass(masterNode, pass, masterNode.GeometryModule, mode, activeFields, result, sourceAssetDependencyPaths, vertexActive);
             }
             else
             {

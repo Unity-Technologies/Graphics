@@ -6,12 +6,12 @@ namespace UnityEditor.Rendering.HighDefinition
     public enum InstancingOption
     {
         None = 0,
-        AssumeUniformScaling = 1 << 0,
-        NoMatrices = 1 << 1,
-        NoLODFade = 1 << 2,
-        NoRenderingLayer = 1 << 3,
-        NoLightProbe = 1 << 4,
-        NoLightmap = 1 << 5
+        AssumeUniformScaling    = 1 << 0,
+        NoMatrices              = 1 << 1,
+        NoLODFade               = 1 << 2,
+        NoLightProbe            = 1 << 3,
+        NoLightmap              = 1 << 4,
+        RenderingLayer          = 1 << 5
     }
 
     public struct InstancingSettings

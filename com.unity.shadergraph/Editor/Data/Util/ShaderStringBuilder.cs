@@ -13,7 +13,7 @@ namespace UnityEditor.ShaderGraph
         public int count { get; set; }
     }
 
-    class ShaderStringBuilder : IDisposable
+    public class ShaderStringBuilder : IDisposable
     {
         enum ScopeType
         {
@@ -210,7 +210,7 @@ namespace UnityEditor.ShaderGraph
             return m_StringBuilder.ToString();
         }
 
-        public string ToString(out ShaderSourceMap sourceMap)
+        internal string ToString(out ShaderSourceMap sourceMap)
         {
             m_CurrentMapping.count = m_StringBuilder.Length - m_CurrentMapping.startIndex;
             if (m_CurrentMapping.count > 0)

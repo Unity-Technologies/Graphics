@@ -726,6 +726,10 @@ namespace UnityEditor.Rendering.HighDefinition
             UpdateNodeAfterDeserialization();
         }
 
+        public override string title
+            => m_GeometryModule != null && m_GeometryModule.GetType() != typeof(DefaultGeometryModule)
+            ? $"{name} ({m_GeometryModule.DisplayName()})" : base.title;
+
         public override string documentationURL
         {
             get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/HD-Lit-Master-Node"; }

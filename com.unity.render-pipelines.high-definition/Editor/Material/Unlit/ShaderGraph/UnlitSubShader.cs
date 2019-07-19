@@ -377,7 +377,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             // use standard shader pass generation
             bool vertexActive = masterNode.IsSlotConnected(UnlitMasterNode.PositionSlotId);
-            return HDSubShaderUtilities.GenerateShaderPass(masterNode, pass, mode, activeFields, result, sourceAssetDependencyPaths, vertexActive);
+            return HDSubShaderUtilities.GenerateShaderPass(masterNode, pass, new DefaultGeometryModule(), mode, activeFields, result, sourceAssetDependencyPaths, vertexActive);
         }
 
         public string GetSubshader(IMasterNode iMasterNode, GenerationMode mode, List<string> sourceAssetDependencyPaths = null)

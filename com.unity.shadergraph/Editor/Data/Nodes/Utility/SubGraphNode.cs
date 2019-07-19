@@ -137,6 +137,9 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
+        public override string title
+            => asset?.name ?? base.title;
+
         public override bool hasPreview
         {
             get { return asset != null; }

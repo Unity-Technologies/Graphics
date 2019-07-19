@@ -500,8 +500,6 @@ namespace UnityEditor.Rendering.HighDefinition
         public List<string> Includes;
         public string TemplateName;
         public string MaterialName;
-        public InstancingSettings InstancingSettings;
-        public LODFadeSettings LODFadeSettings;
         public List<string> ExtraDefines;
         public List<int> VertexShaderSlots;         // These control what slots are used by the pass vertex shader
         public List<int> PixelShaderSlots;          // These control what slots are used by the pass pixel shader
@@ -537,7 +535,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
     static class HDSubShaderUtilities
     {
-        public static bool GenerateShaderPass(AbstractMaterialNode masterNode, Pass pass, GenerationMode mode, HashSet<string> activeFields, ShaderGenerator result, List<string> sourceAssetDependencyPaths, bool vertexActive)
+        public static bool GenerateShaderPass(AbstractMaterialNode masterNode, Pass pass, IGeometryModule geometry, GenerationMode mode, HashSet<string> activeFields, ShaderGenerator result, List<string> sourceAssetDependencyPaths, bool vertexActive)
         {
             string templatePath = Path.Combine(HDUtils.GetHDRenderPipelinePath(), "Editor/Material");
             string templateLocation = Path.Combine(Path.Combine(Path.Combine(templatePath, pass.MaterialName), "ShaderGraph"), pass.TemplateName);
@@ -566,6 +564,7 @@ namespace UnityEditor.Rendering.HighDefinition
             ShaderStringBuilder graphNodeFunctions = new ShaderStringBuilder();
             graphNodeFunctions.IncreaseIndent();
             var functionRegistry = new FunctionRegistry(graphNodeFunctions);
+            geometry.RegisterGlobalFunctions(functionRegistry);
 
             // TODO: this can be a shared function for all HDRP master nodes -- From here through GraphUtil.GenerateSurfaceDescription(..)
 
@@ -613,7 +612,7 @@ namespace UnityEditor.Rendering.HighDefinition
             ShaderStringBuilder vertexGraphOutputs = new ShaderStringBuilder();
 
             // check for vertex animation -- enables HAVE_VERTEX_MODIFICATION
-            if (vertexActive)
+            if (vertexActive || geometry.ForceVertex())
             {
                 vertexActive = true;
                 activeFields.Add("features.modifyMesh");
@@ -663,6 +662,8 @@ namespace UnityEditor.Rendering.HighDefinition
                     HDRPShaderStructs.VertexDescriptionInputs.dependencies
                 });
 
+            geometry.OverrideActiveFields(activeFields);
+
             // debug output all active fields
             var interpolatorDefines = new ShaderGenerator();
             if (debugOutput)
@@ -680,42 +681,44 @@ namespace UnityEditor.Rendering.HighDefinition
             ShaderGenerator vertexGraphInputs = new ShaderGenerator();
             ShaderSpliceUtil.BuildType(typeof(HDRPShaderStructs.VertexDescriptionInputs), activeFields, vertexGraphInputs);
 
-            ShaderGenerator instancingSettings = new ShaderGenerator();
-            if (pass.InstancingSettings.Enabled)
+            ShaderGenerator instancingSettingsStr = new ShaderGenerator();
+            var instancingSettings = geometry.GenerateInstancingSettings();
+            if (instancingSettings.Enabled)
             {
-                instancingSettings.AddShaderChunk("#pragma multi_compile_instancing", true);
-                if (pass.InstancingSettings.Options != InstancingOption.None || !string.IsNullOrEmpty(pass.InstancingSettings.ProceduralFuncName))
+                instancingSettingsStr.AddShaderChunk("#pragma multi_compile_instancing", true);
+                if (instancingSettings.Options != InstancingOption.None || !string.IsNullOrEmpty(instancingSettings.ProceduralFuncName))
                 {
                     var options = "#pragma instancing_options";
-                    if ((pass.InstancingSettings.Options & InstancingOption.AssumeUniformScaling) != 0)
+                    if ((instancingSettings.Options & InstancingOption.AssumeUniformScaling) != 0)
                         options += " assumeuniformscaling";
-                    if ((pass.InstancingSettings.Options & InstancingOption.NoMatrices) != 0)
+                    if ((instancingSettings.Options & InstancingOption.NoMatrices) != 0)
                         options += " nomatrices";
-                    if ((pass.InstancingSettings.Options & InstancingOption.NoLODFade) != 0)
+                    if ((instancingSettings.Options & InstancingOption.NoLODFade) != 0)
                         options += " nolodfade";
-                    if ((pass.InstancingSettings.Options & InstancingOption.NoRenderingLayer) != 0)
-                        options += " norenderinglayer";
-                    if ((pass.InstancingSettings.Options & InstancingOption.NoLightProbe) != 0)
+                    if ((instancingSettings.Options & InstancingOption.NoLightProbe) != 0)
                         options += " nolightprobe";
-                    if ((pass.InstancingSettings.Options & InstancingOption.NoLightmap) != 0)
+                    if ((instancingSettings.Options & InstancingOption.NoLightmap) != 0)
                         options += " nolightmap";
-                    if (!string.IsNullOrEmpty(pass.InstancingSettings.ProceduralFuncName))
-                        options += $" procedural:{pass.InstancingSettings.ProceduralFuncName}";
-                    instancingSettings.AddShaderChunk(options, true);
+                    if ((instancingSettings.Options & InstancingOption.RenderingLayer) != 0)
+                        options += " renderinglayer";
+                    if (!string.IsNullOrEmpty(instancingSettings.ProceduralFuncName))
+                        options += $" procedural:{instancingSettings.ProceduralFuncName}";
+                    instancingSettingsStr.AddShaderChunk(options, true);
                 }
             }
 
-            ShaderGenerator lodFadeSettings = new ShaderGenerator();
-            if (pass.LODFadeSettings.Enabled)
+            ShaderGenerator lodFadeSettingsStr = new ShaderGenerator();
+            var lodFadeSettings = geometry.GenerateLODFadeSettings();
+            if (lodFadeSettings.Enabled)
             {
-                if (pass.LODFadeSettings.SpeedTreeMode)
+                if (lodFadeSettings.SpeedTreeMode)
                 {
-                    lodFadeSettings.AddShaderChunk("#pragma multi_compile_vertex LOD_FADE_PERCENTAGE LOD_FADE_CROSSFADE");
-                    lodFadeSettings.AddShaderChunk("#pragma multi_compile_fragment _ LOD_FADE_CROSSFADE");
+                    lodFadeSettingsStr.AddShaderChunk("#pragma multi_compile_vertex LOD_FADE_PERCENTAGE LOD_FADE_CROSSFADE");
+                    lodFadeSettingsStr.AddShaderChunk("#pragma multi_compile_fragment _ LOD_FADE_CROSSFADE");
                 }
                 else
                 {
-                    lodFadeSettings.AddShaderChunk("#pragma multi_compile _ LOD_FADE_CROSSFADE");
+                    lodFadeSettingsStr.AddShaderChunk("#pragma multi_compile _ LOD_FADE_CROSSFADE");
                 }
             }
 
@@ -740,6 +743,16 @@ namespace UnityEditor.Rendering.HighDefinition
                 foreach (var include in pass.Includes)
                     shaderPassIncludes.AddShaderChunk(include);
             }
+
+            var vertexShaderProlog = new ShaderGenerator();
+            var vertexShaderPrologSb = new ShaderStringBuilder();
+            geometry.GenerateVertexProlog(vertexShaderPrologSb);
+            vertexShaderProlog.AddShaderChunk(vertexShaderPrologSb.ToString());
+
+            var pixelShaderProlog = new ShaderGenerator();
+            var pixelShaderPrologSb = new ShaderStringBuilder();
+            geometry.GeneratePixelProlog(pixelShaderPrologSb);
+            pixelShaderProlog.AddShaderChunk(pixelShaderPrologSb.ToString());
 
             // build graph code
             var graph = new ShaderGenerator();
@@ -787,8 +800,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
             // build the hash table of all named fragments      TODO: could make this Dictionary<string, ShaderGenerator / string>  ?
             Dictionary<string, string> namedFragments = new Dictionary<string, string>();
-            namedFragments.Add("InstancingSettings", instancingSettings.GetShaderString(0, false));
-            namedFragments.Add("LODFadeSettings", lodFadeSettings.GetShaderString(0, false));
+            namedFragments.Add("InstancingSettings", instancingSettingsStr.GetShaderString(0, false));
+            namedFragments.Add("LODFadeSettings", lodFadeSettingsStr.GetShaderString(0, false));
             namedFragments.Add("Defines", defines.GetShaderString(2, false));
             namedFragments.Add("Graph", graph.GetShaderString(2, false));
             namedFragments.Add("LightMode", pass.LightMode);
@@ -801,6 +814,8 @@ namespace UnityEditor.Rendering.HighDefinition
             namedFragments.Add("ZClip", zClipCode.ToString());
             namedFragments.Add("Stencil", stencilCode.ToString());
             namedFragments.Add("ColorMask", colorMaskCode.ToString());
+            namedFragments.Add("GeometryModule.VertexProlog", vertexShaderProlog.GetShaderString(1, false));
+            namedFragments.Add("GeometryModule.PixelProlog", pixelShaderProlog.GetShaderString(2, false));
 
             // this is the format string for building the 'C# qualified assembly type names' for $buildType() commands
             string buildTypeAssemblyNameFormat = "UnityEditor.Rendering.HighDefinition.HDRPShaderStructs+{0}, " + typeof(HDSubShaderUtilities).Assembly.FullName.ToString();

@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -45,7 +44,7 @@ namespace UnityEditor.Rendering.HighDefinition.Drawing
             m_GeometryModuleTypes = TypeCache.GetTypesDerivedFrom<IGeometryModule>()
                 .Select(t => new GeometryModuleItem()
                 {
-                    DisplayName = t.GetCustomAttribute<GeometryModuleDisplayNameAttribute>()?.DisplayName ?? t.Name,
+                    DisplayName = GeometryModule.DisplayName(t),
                     Type = t
                 })
                 .ToList();

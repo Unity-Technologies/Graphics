@@ -4,13 +4,13 @@ using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
 {
-    class FunctionRegistry
+    public class FunctionRegistry
     {
         Dictionary<string, string> m_Sources = new Dictionary<string, string>();
         bool m_Validate = false;
         ShaderStringBuilder m_Builder;
 
-        public FunctionRegistry(ShaderStringBuilder builder, bool validate = false)
+        internal FunctionRegistry(ShaderStringBuilder builder, bool validate = false)
         {
             m_Builder = builder;
             m_Validate = validate;

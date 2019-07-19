@@ -38,6 +38,7 @@ VertexDescriptionInputs AttributesMeshToVertexDescriptionInputs(AttributesMesh i
 
 AttributesMesh ApplyMeshModification(AttributesMesh input, float3 timeParameters)
 {
+$splice(GeometryModule.VertexProlog)
     // build graph inputs
     VertexDescriptionInputs vertexDescriptionInputs = AttributesMeshToVertexDescriptionInputs(input);
     // Override time paramters with used one (This is required to correctly handle motion vector for vertex animation based on time)

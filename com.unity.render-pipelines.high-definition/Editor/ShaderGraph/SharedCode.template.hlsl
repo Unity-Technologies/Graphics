@@ -68,6 +68,9 @@
     FragInputs UnpackVaryingsMeshToFragInputs(PackedVaryingsMeshToPS input)
     {
         UNITY_SETUP_INSTANCE_ID(input);
-        VaryingsMeshToPS unpacked= UnpackVaryingsMeshToPS(input);
-        return BuildFragInputs(unpacked);
+        VaryingsMeshToPS unpacked = UnpackVaryingsMeshToPS(input);
+        FragInputs fragInputs = BuildFragInputs(unpacked);
+
+$splice(GeometryModule.PixelProlog)
+        return fragInputs;
     }

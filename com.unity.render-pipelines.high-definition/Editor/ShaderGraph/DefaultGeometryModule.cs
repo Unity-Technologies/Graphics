@@ -1,10 +1,11 @@
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEditor.ShaderGraph;
 using UnityEngine.UIElements;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
-    [GeometryModuleDisplayName("Default")]
+    [GeometryModule.DisplayName("Default")]
     class DefaultGeometryModule : IGeometryModule
     {
         [SerializeField]
@@ -31,21 +32,25 @@ namespace UnityEditor.Rendering.HighDefinition
             if (m_DOTSInstancing)
                 settings.Options |= InstancingOption.NoLightProbe | InstancingOption.NoLODFade;
             else
-                settings.Options |= InstancingOption.NoRenderingLayer;
+                settings.Options |= InstancingOption.RenderingLayer;
 
             return settings;
         }
 
-        public LODFadeSettings GenerateLODFadeSettings()
-        {
-            return LODFadeSettings.Default;
-        }
+        public LODFadeSettings GenerateLODFadeSettings() => LODFadeSettings.Default;
+
+        public bool ForceVertex() => false;
 
         public void OverrideActiveFields(ICollection<string> activeFields)
         { }
 
-        public string GenerateVertexProlog() => string.Empty;
+        public void RegisterGlobalFunctions(FunctionRegistry functionRegistry)
+        { }
 
-        public string GeneratePixelProlog() => string.Empty;
+        public void GenerateVertexProlog(ShaderStringBuilder sb)
+        { }
+
+        public void GeneratePixelProlog(ShaderStringBuilder sb)
+        { }
     }
 }
