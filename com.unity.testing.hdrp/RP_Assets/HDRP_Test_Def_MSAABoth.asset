@@ -195,8 +195,9 @@ MonoBehaviour:
     supportDecals: 1
     msaaSampleCount: 8
     supportMotionVectors: 1
-    supportRuntimeDebugDisplay: 1
-    supportDitheringCrossFade: 1
+    supportRuntimeDebugDisplay: 0
+    supportDitheringCrossFade: 0
+    supportTerrainHole: 0
     supportRayTracing: 0
     supportedRaytracingTier: 2
     lightLoopSettings:
