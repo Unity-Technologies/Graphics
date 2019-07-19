@@ -4,7 +4,7 @@ using System.Collections.Generic;
 namespace UnityEngine.Rendering.HighDefinition
 {
     /// <summary>Utility to build frame passes.</summary>
-    class AOVRequestBuilder : IDisposable
+    public class AOVRequestBuilder : IDisposable
     {
         // Owned
         private List<AOVRequestData> m_AOVRequestDataData;
