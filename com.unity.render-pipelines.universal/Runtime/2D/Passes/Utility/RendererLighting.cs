@@ -58,6 +58,14 @@ namespace UnityEngine.Experimental.Rendering.Universal
             // Not all slots must be filled because certain combinations of the feature bits don't make sense (e.g. sprite bit on + shape bit off).
             if (s_LightMaterials == null)
                 s_LightMaterials = new Material[k_NumberOfLightMaterials];
+
+
+            const int totalMaterials = 255;
+            if (s_ShadowMaterials == null)
+                s_ShadowMaterials = new Material[totalMaterials];
+
+            if (s_RemoveSelfShadowMaterial == null)
+                s_RemoveSelfShadowMaterial = CoreUtils.CreateEngineMaterial(s_RendererData.removeSelfShadowShader);
         }
 
         static public void CreateRenderTextures(CommandBuffer cmd, Camera camera)
@@ -161,15 +169,22 @@ namespace UnityEngine.Experimental.Rendering.Universal
                                     {
                                         ShadowCaster2D shadowCaster = shadowCasters[i];
 
-                                        float shadowRadiusSq = shadowCaster.radius * shadowCaster.radius;
-                                        Vector3 deltaPos = lightCenterWS - shadowCaster.transform.position;
-                                        float sqDist = deltaPos.x * deltaPos.x + deltaPos.y * deltaPos.y;
-
-                                        // Check to see if our shadow caster is inside the lights bounds...
-                                        if (sqDist < (shadowRadiusSq + lightRadiusSq))
+                                        if (shadowCaster != null && shadowMaterial != null)
                                         {
-                                            cmdBuffer.DrawMesh(shadowCaster.mesh, Matrix4x4.TRS(shadowCaster.transform.position, shadowCaster.transform.rotation, shadowCaster.transform.lossyScale), new Material(shadowMaterial));
-                                            cmdBuffer.DrawMesh(shadowCaster.mesh, Matrix4x4.TRS(shadowCaster.transform.position, shadowCaster.transform.rotation, shadowCaster.transform.lossyScale), removeSelfShadowMaterial);
+                                            float shadowRadiusSq = shadowCaster.radius * shadowCaster.radius;
+                                            Vector3 deltaPos = lightCenterWS - shadowCaster.transform.position;
+                                            float sqDist = deltaPos.x * deltaPos.x + deltaPos.y * deltaPos.y;
+
+                                            // Check to see if our shadow caster is inside the lights bounds...
+                                            if (sqDist < (shadowRadiusSq + lightRadiusSq))
+                                            {
+                                                cmdBuffer.DrawMesh(shadowCaster.mesh, Matrix4x4.TRS(shadowCaster.transform.position, shadowCaster.transform.rotation, shadowCaster.transform.lossyScale), new Material(shadowMaterial));
+                                                cmdBuffer.DrawMesh(shadowCaster.mesh, Matrix4x4.TRS(shadowCaster.transform.position, shadowCaster.transform.rotation, shadowCaster.transform.lossyScale), removeSelfShadowMaterial);
+                                            }
+                                        }
+                                        else
+                                        {
+                                            Debug.Log("Problem with shadow caster being deleted but not removed from group");
                                         }
                                     }
                                 }
@@ -533,21 +548,14 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         static Material GetShadowMaterial(int index)
         {
-            const int totalMaterials = 255;
-
-            if (s_ShadowMaterials == null)
-            {
-                s_ShadowMaterials = new Material[totalMaterials];
-
-                Material material = CoreUtils.CreateEngineMaterial(s_RendererData.shadowShader);
-                for (int i = 0; i < totalMaterials; i++)
-                {
-                    s_ShadowMaterials[i] = new Material(material);
-                    s_ShadowMaterials[i].SetFloat("_ShadowStencilGroup", i+1);
-                }
+            int shadowMaterialIndex = index % 255;
+            if(s_ShadowMaterials[shadowMaterialIndex] == null)
+            { 
+                s_ShadowMaterials[shadowMaterialIndex] = CoreUtils.CreateEngineMaterial(s_RendererData.shadowShader);
+                s_ShadowMaterials[shadowMaterialIndex].SetFloat("_ShadowStencilGroup", index + 1);
             }
 
-            return s_ShadowMaterials[index%totalMaterials];
+            return s_ShadowMaterials[shadowMaterialIndex];
         }
 
         static Material GetRemoveSelfShadowMaterial()
