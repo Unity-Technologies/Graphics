@@ -1,6 +1,9 @@
 {
     "name": "Unity.ShaderGraph.Editor",
-    "references": [],
+    "references": [
+        "GUID:a2b0e253c44e0427f9c718f9e5c1c7e3",
+        "GUID:e6601bae8dd80452ba4b006fa9212cce"
+    ],
     "includePlatforms": [
         "Editor"
     ],

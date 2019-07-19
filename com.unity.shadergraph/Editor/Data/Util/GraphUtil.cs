@@ -318,9 +318,9 @@ namespace UnityEditor.ShaderGraph
                             result.AddShaderChunk("#endif // Shader Graph Keywords");
                         if (conditional != null)
                             result.AddShaderChunk("#endif // " + conditional);
+                        }
                     }
                 }
-            }
             result.Deindent();
             result.AddShaderChunk("};");
 
@@ -340,7 +340,7 @@ namespace UnityEditor.ShaderGraph
                             value.Item2.Add(instance.permutationIndex);
                         else
                             generatedPackedTypes.Add(key, (instanceGenerator, new List<int> { instance.permutationIndex }));
-                    }
+            }
 
                     var isFirst = true;
                     foreach (var generated in generatedPackedTypes)
@@ -349,7 +349,7 @@ namespace UnityEditor.ShaderGraph
                         {
                             isFirst = false;
                             result.AddShaderChunk(KeywordUtil.GetKeywordPermutationSetConditional(generated.Value.Item2));
-                        }
+        }
                         else
                             result.AddShaderChunk(KeywordUtil.GetKeywordPermutationSetConditional(generated.Value.Item2).Replace("#if", "#elif"));
 
@@ -802,34 +802,34 @@ namespace UnityEditor.ShaderGraph
                 {
                     // eval if(param)
                     if (activeFields.baseInstance.Contains(fieldName))
+                {
+                    // predicate is active
+                    // append everything before the beginning of the escape sequence
+                    AppendSubstring(predicate.s, cur, true, predicate.start-1, false);
+
+                    // continue parsing the rest of the line, starting with the first nonwhitespace character
+                    cur = nonwhitespace;
+                    return true;
+                }
+                else
+                {
+                    // predicate is not active
+                    if (debugOutput)
                     {
-                        // predicate is active
                         // append everything before the beginning of the escape sequence
                         AppendSubstring(predicate.s, cur, true, predicate.start-1, false);
-
-                        // continue parsing the rest of the line, starting with the first nonwhitespace character
-                        cur = nonwhitespace;
-                        return true;
+                        // append the rest of the line, commented out
+                        result.Append("// ");
+                        AppendSubstring(predicate.s, nonwhitespace, true, endLine, false);
                     }
                     else
                     {
-                        // predicate is not active
-                        if (debugOutput)
-                        {
-                            // append everything before the beginning of the escape sequence
-                            AppendSubstring(predicate.s, cur, true, predicate.start-1, false);
-                            // append the rest of the line, commented out
-                            result.Append("// ");
-                            AppendSubstring(predicate.s, nonwhitespace, true, endLine, false);
-                        }
-                        else
-                        {
-                            // don't append anything
-                            appendEndln = false;
-                        }
-                        return false;
+                        // don't append anything
+                        appendEndln = false;
                     }
+                    return false;
                 }
+            }
             }
 
             private Token ParseIdentifier(string code, int start, int end)
@@ -1342,13 +1342,13 @@ namespace UnityEditor.ShaderGraph
         public static void GenerateSurfaceInputTransferCode(ShaderStringBuilder sb, ShaderGraphRequirements requirements, string structName, string variableName)
         {
             sb.AppendLine($"{structName} {variableName};");
-
+            
             ShaderGenerator.GenerateSpaceTranslationSurfaceInputs(requirements.requiresNormal, InterpolatorType.Normal, sb, $"{variableName}.{{0}} = IN.{{0}};");
             ShaderGenerator.GenerateSpaceTranslationSurfaceInputs(requirements.requiresTangent, InterpolatorType.Tangent, sb, $"{variableName}.{{0}} = IN.{{0}};");
             ShaderGenerator.GenerateSpaceTranslationSurfaceInputs(requirements.requiresBitangent, InterpolatorType.BiTangent, sb, $"{variableName}.{{0}} = IN.{{0}};");
             ShaderGenerator.GenerateSpaceTranslationSurfaceInputs(requirements.requiresViewDir, InterpolatorType.ViewDirection, sb, $"{variableName}.{{0}} = IN.{{0}};");
             ShaderGenerator.GenerateSpaceTranslationSurfaceInputs(requirements.requiresPosition, InterpolatorType.Position, sb, $"{variableName}.{{0}} = IN.{{0}};");
-
+            
             if (requirements.requiresVertexColor)
                 sb.AppendLine($"{variableName}.{ShaderGeneratorNames.VertexColor} = IN.{ShaderGeneratorNames.VertexColor};");
 
@@ -1379,7 +1379,7 @@ namespace UnityEditor.ShaderGraph
                     {
                         hlslName = $"{hlslName}_{slot.id}";
                     }
-
+                  
                     surfaceDescriptionStruct.AppendLine("{0} {1};", slot.concreteValueType.ToShaderString(slot.owner.concretePrecision), hlslName);
 
                     if (activeFields != null)
@@ -1408,8 +1408,6 @@ namespace UnityEditor.ShaderGraph
         {
             if (graph == null)
                 return;
-
-            GraphContext graphContext = new GraphContext(graphInputStructName);
 
             graph.CollectShaderProperties(shaderProperties, mode);
 
@@ -1444,34 +1442,32 @@ namespace UnityEditor.ShaderGraph
             GraphData graph,
             GraphContext graphContext,
             GenerationMode mode)
-        {
-            if (activeNode is IGeneratesFunction functionNode)
-            {
-                functionRegistry.builder.currentNode = activeNode;
-                functionNode.GenerateNodeFunction(functionRegistry, graphContext, mode);
-                functionRegistry.builder.ReplaceInCurrentMapping(PrecisionUtil.Token, activeNode.concretePrecision.ToShaderString());
-            }
+                {
+                    if (activeNode is IGeneratesFunction functionNode)
+                    {
+                        functionRegistry.builder.currentNode = activeNode;
+                        functionNode.GenerateNodeFunction(functionRegistry, mode);
+                        functionRegistry.builder.ReplaceInCurrentMapping(PrecisionUtil.Token, activeNode.concretePrecision.ToShaderString());
+                    }
 
-            if (activeNode is IGeneratesBodyCode bodyNode)
-            {
-                if(keywordPermutations != null)
-                    descriptionFunction.AppendLine(KeywordUtil.GetKeywordPermutationSetConditional(keywordPermutations));
+                    if (activeNode is IGeneratesBodyCode bodyNode)
+                    {
+                        if(keywordPermutations != null)
+                            descriptionFunction.AppendLine(KeywordUtil.GetKeywordPermutationSetConditional(keywordPermutations));
+                        surfaceDescriptionFunction.currentNode = activeNode;
+                        bodyNode.GenerateNodeCode(surfaceDescriptionFunction, graphContext, mode);
+                        surfaceDescriptionFunction.ReplaceInCurrentMapping(PrecisionUtil.Token, activeNode.concretePrecision.ToShaderString());
+                         if(keywordPermutations != null)
+                             descriptionFunction.AppendLine("#endif");
+                    }
 
-                descriptionFunction.currentNode = activeNode;
-                bodyNode.GenerateNodeCode(descriptionFunction, graphContext, mode);
-                descriptionFunction.ReplaceInCurrentMapping(PrecisionUtil.Token, activeNode.concretePrecision.ToShaderString());
-
-                if(keywordPermutations != null)
-                    descriptionFunction.AppendLine("#endif");
-            }
-
-            activeNode.CollectShaderProperties(shaderProperties, mode);
+                    activeNode.CollectShaderProperties(shaderProperties, mode);
 
             if (activeNode is SubGraphNode subGraphNode)
             {
                 subGraphNode.CollectShaderKeywords(shaderKeywords, mode);
             }
-        }
+                }                
 
         static void GenerateSurfaceDescriptionRemap(
             GraphData graph,
@@ -1480,43 +1476,43 @@ namespace UnityEditor.ShaderGraph
             ShaderStringBuilder surfaceDescriptionFunction,
             GenerationMode mode)
         {
-            if (rootNode is IMasterNode || rootNode is SubGraphOutputNode)
-            {
-                var usedSlots = slots ?? rootNode.GetInputSlots<MaterialSlot>();
-                foreach (var input in usedSlots)
+                if (rootNode is IMasterNode || rootNode is SubGraphOutputNode)
                 {
-                    if (input != null)
+                    var usedSlots = slots ?? rootNode.GetInputSlots<MaterialSlot>();
+                    foreach (var input in usedSlots)
                     {
-                        var foundEdges = graph.GetEdges(input.slotReference).ToArray();
-                        var hlslName = NodeUtils.GetHLSLSafeName(input.shaderOutputName);
-                        if (rootNode is SubGraphOutputNode)
+                        if (input != null)
                         {
-                            hlslName = $"{hlslName}_{input.id}";
-                        }
-                        if (foundEdges.Any())
-                        {
-                            surfaceDescriptionFunction.AppendLine("surface.{0} = {1};",
-                                hlslName,
-                                rootNode.GetSlotValue(input.id, mode, rootNode.concretePrecision));
-                        }
-                        else
-                        {
-                            surfaceDescriptionFunction.AppendLine("surface.{0} = {1};",
-                                hlslName, input.GetDefaultValue(mode, rootNode.concretePrecision));
+                            var foundEdges = graph.GetEdges(input.slotReference).ToArray();
+                            var hlslName = NodeUtils.GetHLSLSafeName(input.shaderOutputName);
+                            if (rootNode is SubGraphOutputNode)
+                            {
+                                hlslName = $"{hlslName}_{input.id}";
+                            }
+                            if (foundEdges.Any())
+                            {
+                                surfaceDescriptionFunction.AppendLine("surface.{0} = {1};",
+                                    hlslName,
+                                    rootNode.GetSlotValue(input.id, mode, rootNode.concretePrecision));
+                            }
+                            else
+                            {
+                                surfaceDescriptionFunction.AppendLine("surface.{0} = {1};",
+                                    hlslName, input.GetDefaultValue(mode, rootNode.concretePrecision));
+                            }
                         }
                     }
                 }
-            }
-            else if (rootNode.hasPreview)
-            {
-                var slot = rootNode.GetOutputSlots<MaterialSlot>().FirstOrDefault();
-                if (slot != null)
+                else if (rootNode.hasPreview)
                 {
-                    var hlslSafeName = $"{NodeUtils.GetHLSLSafeName(slot.shaderOutputName)}_{slot.id}";
-                    surfaceDescriptionFunction.AppendLine("surface.{0} = {1};",
-                        hlslSafeName, rootNode.GetSlotValue(slot.id, mode, rootNode.concretePrecision));
+                    var slot = rootNode.GetOutputSlots<MaterialSlot>().FirstOrDefault();
+                    if (slot != null)
+                    {
+                        var hlslSafeName = $"{NodeUtils.GetHLSLSafeName(slot.shaderOutputName)}_{slot.id}";
+                        surfaceDescriptionFunction.AppendLine("surface.{0} = {1};",
+                            hlslSafeName, rootNode.GetSlotValue(slot.id, mode, rootNode.concretePrecision));
+                    }
                 }
-            }
         }
 
         const string k_VertexDescriptionStructName = "VertexDescription";
@@ -1556,8 +1552,6 @@ namespace UnityEditor.ShaderGraph
             if (graph == null)
                 return;
 
-            GraphContext graphContext = new GraphContext(graphInputStructName);
-
             graph.CollectShaderProperties(shaderProperties, mode);
 
             builder.AppendLine("{0} {1}({2} IN)", graphOutputStructName, functionName, graphInputStructName);
@@ -1572,7 +1566,7 @@ namespace UnityEditor.ShaderGraph
                 }
 
                 functionRegistry.builder.currentNode = null;
-                builder.currentNode = null;
+                builder.currentNode = null; 
 
                 if(slots.Count != 0)
                 {
@@ -1580,7 +1574,7 @@ namespace UnityEditor.ShaderGraph
                     {
                         var isSlotConnected = slot.owner.owner.GetEdges(slot.slotReference).Any();
                         var slotName = NodeUtils.GetHLSLSafeName(slot.shaderOutputName);
-                        var slotValue = isSlotConnected ?
+                        var slotValue = isSlotConnected ? 
                             ((AbstractMaterialNode)slot.owner).GetSlotValue(slot.id, mode, slot.owner.concretePrecision) : slot.GetDefaultValue(mode, slot.owner.concretePrecision);
                         builder.AppendLine("description.{0} = {1};", slotName, slotValue);
                     }

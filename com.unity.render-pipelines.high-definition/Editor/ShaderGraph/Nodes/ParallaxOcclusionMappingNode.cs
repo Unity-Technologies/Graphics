@@ -89,7 +89,7 @@ namespace UnityEditor.Rendering.HighDefinition
             base.ValidateNode();
         }
 
-        public void GenerateNodeFunction(FunctionRegistry registry, GraphContext graphContext, GenerationMode generationMode)
+        public void GenerateNodeFunction(FunctionRegistry registry, GenerationMode generationMode)
         {
             string perPixelDisplacementInclude = @"#include ""Packages/com.unity.render-pipelines.core/ShaderLibrary/PerPixelDisplacement.hlsl""";
 
@@ -130,7 +130,7 @@ return objectScale;");
                 });
         }
 
-        public void GenerateNodeCode(ShaderStringBuilder sb, GraphContext graphContext, GenerationMode generationMode)
+        public void GenerateNodeCode(ShaderStringBuilder sb, GenerationMode generationMode)
         {
             string amplitude = GetSlotValue(kAmplitudeSlotId, generationMode);
             string steps = GetSlotValue(kStepsSlotId, generationMode);

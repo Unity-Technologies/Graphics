@@ -168,7 +168,7 @@ namespace UnityEditor.ShaderGraph
             get { return false; }
         }
 
-        public void GenerateNodeCode(ShaderStringBuilder sb, GraphContext graphContext, GenerationMode generationMode)
+        public void GenerateNodeCode(ShaderStringBuilder sb, GenerationMode generationMode)
         {
             if (asset == null || hasError)
             {
@@ -479,7 +479,7 @@ namespace UnityEditor.ShaderGraph
         }
         }
 
-        public virtual void GenerateNodeFunction(FunctionRegistry registry, GraphContext graphContext, GenerationMode generationMode)
+        public virtual void GenerateNodeFunction(FunctionRegistry registry, GenerationMode generationMode)
         {
             if (asset == null || hasError)
                 return;

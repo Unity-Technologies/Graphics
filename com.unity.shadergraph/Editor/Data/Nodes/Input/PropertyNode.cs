@@ -13,7 +13,7 @@ namespace UnityEditor.ShaderGraph
             name = "Property";
             UpdateNodeAfterDeserialization();
         }
-        
+
         [SerializeField]
         string m_PropertyGuidSerialized;
 
@@ -23,7 +23,7 @@ namespace UnityEditor.ShaderGraph
         {
             get { return m_PropertyGuid; }
             set
-            {
+        {
                 if (m_PropertyGuid == value)
                     return;
 
@@ -34,7 +34,7 @@ namespace UnityEditor.ShaderGraph
                 
                 AddOutputSlot(property);
                 Dirty(ModificationScope.Topological);
-            }
+        }
         }
         public override bool canSetPrecision => false;
 
@@ -58,20 +58,20 @@ namespace UnityEditor.ShaderGraph
                     RemoveSlotsNameNotMatching(new[] { OutputSlotId });
                     break;
                 case ConcreteSlotValueType.Vector1:
-                    AddSlot(new Vector1MaterialSlot(OutputSlotId, property.displayName, "Out", SlotType.Output, 0));
-                    RemoveSlotsNameNotMatching(new[] {OutputSlotId});
+                AddSlot(new Vector1MaterialSlot(OutputSlotId, property.displayName, "Out", SlotType.Output, 0));
+                RemoveSlotsNameNotMatching(new[] {OutputSlotId});
                     break;
                 case ConcreteSlotValueType.Vector2:
-                    AddSlot(new Vector2MaterialSlot(OutputSlotId, property.displayName, "Out", SlotType.Output, Vector4.zero));
-                    RemoveSlotsNameNotMatching(new[] {OutputSlotId});
+                AddSlot(new Vector2MaterialSlot(OutputSlotId, property.displayName, "Out", SlotType.Output, Vector4.zero));
+                RemoveSlotsNameNotMatching(new[] {OutputSlotId});
                     break;
                 case ConcreteSlotValueType.Vector3:
-                    AddSlot(new Vector3MaterialSlot(OutputSlotId, property.displayName, "Out", SlotType.Output, Vector4.zero));
-                    RemoveSlotsNameNotMatching(new[] {OutputSlotId});
+                AddSlot(new Vector3MaterialSlot(OutputSlotId, property.displayName, "Out", SlotType.Output, Vector4.zero));
+                RemoveSlotsNameNotMatching(new[] {OutputSlotId});
                     break;
                 case ConcreteSlotValueType.Vector4:
-                    AddSlot(new Vector4MaterialSlot(OutputSlotId, property.displayName, "Out", SlotType.Output, Vector4.zero));
-                    RemoveSlotsNameNotMatching(new[] {OutputSlotId});
+                AddSlot(new Vector4MaterialSlot(OutputSlotId, property.displayName, "Out", SlotType.Output, Vector4.zero));
+                RemoveSlotsNameNotMatching(new[] {OutputSlotId});
                     break;
                 case ConcreteSlotValueType.Matrix2:
                     AddSlot(new Matrix2MaterialSlot(OutputSlotId, property.displayName, "Out", SlotType.Output));
@@ -83,43 +83,43 @@ namespace UnityEditor.ShaderGraph
                     break;
                 case ConcreteSlotValueType.Matrix4:
                     AddSlot(new Matrix4MaterialSlot(OutputSlotId, property.displayName, "Out", SlotType.Output));
-                    RemoveSlotsNameNotMatching(new[] { OutputSlotId });
+                RemoveSlotsNameNotMatching(new[] {OutputSlotId});
                     break;
                 case ConcreteSlotValueType.Texture2D:
-                    AddSlot(new Texture2DMaterialSlot(OutputSlotId, property.displayName, "Out", SlotType.Output));
-                    RemoveSlotsNameNotMatching(new[] {OutputSlotId});
+                AddSlot(new Texture2DMaterialSlot(OutputSlotId, property.displayName, "Out", SlotType.Output));
+                RemoveSlotsNameNotMatching(new[] {OutputSlotId});
                     break;
                 case ConcreteSlotValueType.Texture2DArray:
-                    AddSlot(new Texture2DArrayMaterialSlot(OutputSlotId, property.displayName, "Out", SlotType.Output));
-                    RemoveSlotsNameNotMatching(new[] {OutputSlotId});
+                AddSlot(new Texture2DArrayMaterialSlot(OutputSlotId, property.displayName, "Out", SlotType.Output));
+                RemoveSlotsNameNotMatching(new[] {OutputSlotId});
                     break;
                 case ConcreteSlotValueType.Texture3D:
-                    AddSlot(new Texture3DMaterialSlot(OutputSlotId, property.displayName, "Out", SlotType.Output));
-                    RemoveSlotsNameNotMatching(new[] {OutputSlotId});
+                AddSlot(new Texture3DMaterialSlot(OutputSlotId, property.displayName, "Out", SlotType.Output));
+                RemoveSlotsNameNotMatching(new[] {OutputSlotId});
                     break;
                 case ConcreteSlotValueType.Cubemap:
-                    AddSlot(new CubemapMaterialSlot(OutputSlotId, property.displayName, "Out", SlotType.Output));
-                    RemoveSlotsNameNotMatching(new[] { OutputSlotId });
+                AddSlot(new CubemapMaterialSlot(OutputSlotId, property.displayName, "Out", SlotType.Output));
+                RemoveSlotsNameNotMatching(new[] { OutputSlotId });
                     break;
                 case ConcreteSlotValueType.SamplerState:
-                    AddSlot(new SamplerStateMaterialSlot(OutputSlotId, property.displayName, "Out", SlotType.Output));
-                    RemoveSlotsNameNotMatching(new[] { OutputSlotId });
+                AddSlot(new SamplerStateMaterialSlot(OutputSlotId, property.displayName, "Out", SlotType.Output));
+                RemoveSlotsNameNotMatching(new[] { OutputSlotId });
                     break;
                 case ConcreteSlotValueType.Gradient:
-                    AddSlot(new GradientMaterialSlot(OutputSlotId, property.displayName, "Out", SlotType.Output));
-                    RemoveSlotsNameNotMatching(new[] { OutputSlotId });
+                AddSlot(new GradientMaterialSlot(OutputSlotId, property.displayName, "Out", SlotType.Output));
+                RemoveSlotsNameNotMatching(new[] { OutputSlotId });
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();
             }
         }
-        
-        public void GenerateNodeCode(ShaderStringBuilder sb, GraphContext graphContext, GenerationMode generationMode)
+
+        public void GenerateNodeCode(ShaderStringBuilder sb, GenerationMode generationMode)
         {
             var property = owner.properties.FirstOrDefault(x => x.guid == propertyGuid);
             if (property == null)
                 return;
-            
+
             switch(property.propertyType)
             {
                 case PropertyType.Boolean:
@@ -153,9 +153,9 @@ namespace UnityEditor.ShaderGraph
                     sb.AppendLine($"SamplerState {GetVariableNameForSlot(OutputSlotId)} = {property.referenceName};");
                     break;
                 case PropertyType.Gradient:
-                    if(generationMode == GenerationMode.Preview)
+                if(generationMode == GenerationMode.Preview)
                         sb.AppendLine($"Gradient {GetVariableNameForSlot(OutputSlotId)} = {GradientUtil.GetGradientForPreview(property.referenceName)};");
-                    else
+                else
                         sb.AppendLine($"Gradient {GetVariableNameForSlot(OutputSlotId)} = {property.referenceName};");
                     break;
             }
@@ -164,9 +164,9 @@ namespace UnityEditor.ShaderGraph
         public override string GetVariableNameForSlot(int slotId)
         {
             var property = owner.properties.FirstOrDefault(x => x.guid == propertyGuid);
-            if (property == null)
+                if (property == null)
                 throw new NullReferenceException();
-            
+
             if (!(property is TextureShaderProperty) &&
                 !(property is Texture2DArrayShaderProperty) &&
                 !(property is Texture3DShaderProperty) &&
@@ -175,7 +175,7 @@ namespace UnityEditor.ShaderGraph
 
             return property.referenceName;
         }
-        
+
         protected override bool CalculateNodeHasError(ref string errorMessage)
         {
             if (!propertyGuid.Equals(Guid.Empty) && !owner.properties.Any(x => x.guid == propertyGuid))
@@ -200,14 +200,14 @@ namespace UnityEditor.ShaderGraph
                 concretePrecision = precision.ToConcrete();
             else
                 concretePrecision = owner.concretePrecision;
-            return false;
-        }
+                return false;
+            }
         
         public override void OnBeforeSerialize()
-        {
+            {
             base.OnBeforeSerialize();
             m_PropertyGuidSerialized = m_PropertyGuid.ToString();
-        }
+            }
 
         public override void OnAfterDeserialize()
         {
