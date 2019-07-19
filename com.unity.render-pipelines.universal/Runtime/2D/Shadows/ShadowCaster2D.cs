@@ -12,19 +12,12 @@ namespace UnityEngine.Experimental.Rendering.Universal
         public float m_Radius = 1;
         public int m_Sides = 6;
         public float m_Angle = 0;
-        public int m_Group = -1;
         Mesh m_Mesh;
+        internal IShadowCasterGroup2D m_ShadowCasterGroup = null;
 
         int m_PreviousSides = 6;
+        float m_PreviousAngle = 0;
         float m_PreviousRadius = 1;
-        int m_PreviousGroup = -1;
-        public MeshFilter m_DebugMeshFilter;
-
-
-
-        private static List<ShadowCaster2D> s_ShadowCasters = null;
-
-        public static List<ShadowCaster2D> shadowCasters { get => s_ShadowCasters; }
 
 
         public float radius { get => m_Radius; }
@@ -156,49 +149,16 @@ namespace UnityEngine.Experimental.Rendering.Universal
             m_Mesh = mesh;
         }
 
-        internal static void Initialize()
-        {
-            if (s_ShadowCasters == null)
-                s_ShadowCasters = new List<ShadowCaster2D>();
-            else
-                s_ShadowCasters.Clear();
-        }
-
-
-        internal static void AddShadowCasterToList(ShadowCaster2D shadowCaster, List<ShadowCaster2D> list)
-        {
-            int positionToInsert = 0;
-            for(positionToInsert=0; positionToInsert < list.Count; positionToInsert++)
-            {
-                if (shadowCaster.m_Group == list[positionToInsert].m_Group)
-                    break;
-            }
-
-            list.Insert(positionToInsert, shadowCaster);
-        }
-
-
-        internal static void RemoveShadowCasterFromList(ShadowCaster2D shadowCaster, List<ShadowCaster2D> list)
-        {
-            list.Remove(shadowCaster);
-        }
-
         private void OnEnable()
         {
-            if (s_ShadowCasters == null)
-                s_ShadowCasters = new List<ShadowCaster2D>();
-
-            AddShadowCasterToList(this, s_ShadowCasters);
-
             CreateShadowPolygon(Vector3.zero, m_Radius, m_Angle, m_Sides, ref m_ShadowMesh);
 
-            if(m_DebugMeshFilter)
-                m_DebugMeshFilter.sharedMesh = m_ShadowMesh;
+            LightUtility.AddToShadowCasterToGroup(this, out m_ShadowCasterGroup);
         }
 
         private void OnDisable()
         {
-            RemoveShadowCasterFromList(this, s_ShadowCasters);
+            LightUtility.RemoveShadowCasterFromGroup(this, m_ShadowCasterGroup);
         }
 
         private void Update()
@@ -206,16 +166,10 @@ namespace UnityEngine.Experimental.Rendering.Universal
             bool rebuildMesh = false;
             rebuildMesh |= LightUtility.CheckForChange(m_Radius, ref m_PreviousRadius);
             rebuildMesh |= LightUtility.CheckForChange(m_Sides, ref m_PreviousSides);
+            rebuildMesh |= LightUtility.CheckForChange(m_Angle, ref m_PreviousAngle);
 
             if (rebuildMesh)
                 CreateShadowPolygon(Vector3.zero, m_Radius, m_Angle, m_Sides, ref m_Mesh);
-
-            bool reinsertShadowCaster = LightUtility.CheckForChange(m_Group, ref m_PreviousGroup);
-            if(reinsertShadowCaster)
-            {
-                RemoveShadowCasterFromList(this, s_ShadowCasters);
-                AddShadowCasterToList(this, s_ShadowCasters);
-            }
         }
     }
 }   

@@ -276,6 +276,40 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
             return localBounds;
         }
+
+        public static void AddShadowCasterGroupToList(IShadowCasterGroup2D shadowCaster, List<IShadowCasterGroup2D> list)
+        {
+            int positionToInsert = 0;
+            for (positionToInsert = 0; positionToInsert < list.Count; positionToInsert++)
+            {
+                if (shadowCaster.GetShadowGroup() == list[positionToInsert].GetShadowGroup())
+                    break;
+            }
+
+            list.Insert(positionToInsert, shadowCaster);
+        }
+
+
+        public static void RemoveShadowCasterFromList(IShadowCasterGroup2D shadowCaster, List<IShadowCasterGroup2D> list)
+        {
+            list.Remove(shadowCaster);
+        }
+
+
+        public static void AddToShadowCasterToGroup(ShadowCaster2D shadowCaster, out IShadowCasterGroup2D shadowCasterGroup)
+        {
+            shadowCasterGroup = shadowCaster.GetComponentInParent(typeof(IShadowCasterGroup2D)) as IShadowCasterGroup2D;
+            if (shadowCasterGroup != null)
+            {
+                shadowCasterGroup.RegisterShadowCaster2D(shadowCaster);
+            }
+        }
+
+        public static void RemoveShadowCasterFromGroup(ShadowCaster2D shadowCaster, IShadowCasterGroup2D shadowCasterGroup)
+        {
+            if(shadowCasterGroup != null)
+                shadowCasterGroup.UnregisterShadowCaster2D(shadowCaster);
+        }
     }
 }
 

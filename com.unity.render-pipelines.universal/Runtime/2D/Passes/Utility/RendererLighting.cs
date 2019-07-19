@@ -145,33 +145,33 @@ namespace UnityEngine.Experimental.Rendering.Universal
                         cmdBuffer.SetGlobalVector("_LightPos", light.transform.position);
                         cmdBuffer.SetGlobalFloat("_LightRadius", lightBounds.radius);
 
-
-                        byte incrementedStencilGroup = 0;
-                        Material shadowMaterial = GetShadowMaterial(0);
-                        int previousShadowCasterGroup = int.MinValue;
-                        List<ShadowCaster2D> shadowCasters = ShadowCaster2D.shadowCasters;
-                        if (shadowCasters != null && shadowCasters.Count > 0)
+                        Material shadowMaterial;
+                        List<IShadowCasterGroup2D> shadowCasterGroups = ShadowCasterGroup2DManager.shadowCasterGroups;
+                        if (shadowCasterGroups != null && shadowCasterGroups.Count > 0)
                         {
-                            
-                            for(int i=0;i<shadowCasters.Count;i++)
+                            for(int group=0;group<shadowCasterGroups.Count;group++)
                             {
-                                ShadowCaster2D shadowCaster = shadowCasters[i];
+                                IShadowCasterGroup2D shadowCasterGroup = shadowCasterGroups[group];
+                                List<ShadowCaster2D> shadowCasters = shadowCasterGroup.GetShadowCasters();
+                                shadowMaterial = GetShadowMaterial(shadowCasterGroup.GetShadowGroup());
 
-                                float shadowRadiusSq = shadowCaster.radius * shadowCaster.radius;
-                                Vector3 deltaPos = lightCenterWS - shadowCaster.transform.position;
-                                float sqDist = deltaPos.x * deltaPos.x + deltaPos.y * deltaPos.y;
-
-                                // Check to see if our shadow caster is inside the lights bounds...
-                                if (sqDist < (shadowRadiusSq + lightRadiusSq))
+                                if (shadowCasters != null)
                                 {
-                                    if (LightUtility.CheckForChange(shadowCaster.m_Group, ref previousShadowCasterGroup))
+                                    for (int i = 0; i < shadowCasters.Count; i++)
                                     {
-                                        shadowMaterial = GetShadowMaterial(incrementedStencilGroup);
-                                        incrementedStencilGroup++;
-                                    }
+                                        ShadowCaster2D shadowCaster = shadowCasters[i];
 
-                                    cmdBuffer.DrawMesh(shadowCaster.mesh, Matrix4x4.TRS(shadowCaster.transform.position, shadowCaster.transform.rotation, shadowCaster.transform.lossyScale), new Material(shadowMaterial));
-                                    cmdBuffer.DrawMesh(shadowCaster.mesh, Matrix4x4.TRS(shadowCaster.transform.position, shadowCaster.transform.rotation, shadowCaster.transform.lossyScale), removeSelfShadowMaterial);
+                                        float shadowRadiusSq = shadowCaster.radius * shadowCaster.radius;
+                                        Vector3 deltaPos = lightCenterWS - shadowCaster.transform.position;
+                                        float sqDist = deltaPos.x * deltaPos.x + deltaPos.y * deltaPos.y;
+
+                                        // Check to see if our shadow caster is inside the lights bounds...
+                                        if (sqDist < (shadowRadiusSq + lightRadiusSq))
+                                        {
+                                            cmdBuffer.DrawMesh(shadowCaster.mesh, Matrix4x4.TRS(shadowCaster.transform.position, shadowCaster.transform.rotation, shadowCaster.transform.lossyScale), new Material(shadowMaterial));
+                                            cmdBuffer.DrawMesh(shadowCaster.mesh, Matrix4x4.TRS(shadowCaster.transform.position, shadowCaster.transform.rotation, shadowCaster.transform.lossyScale), removeSelfShadowMaterial);
+                                        }
+                                    }
                                 }
                             }
                         }
