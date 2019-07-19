@@ -67,7 +67,7 @@ namespace UnityEditor.Rendering.HighDefinition
             });
         }
 
-        public void GenerateNodeCode(ShaderStringBuilder sb, GraphContext graphContext, GenerationMode generationMode)
+        public void GenerateNodeCode(ShaderStringBuilder sb, GenerationMode generationMode)
         {
             string exposure = generationMode.IsPreview() ? "1.0" : exposureFunctions[exposureType];
 

@@ -61,7 +61,7 @@ namespace UnityEditor.ShaderGraph
             RemoveSlotsNameNotMatching(new[] { InputSlotId, OutputSlotId });
         }
 
-        public void GenerateNodeCode(ShaderStringBuilder sb, GraphContext graphContext, GenerationMode generationMode)
+        public void GenerateNodeCode(ShaderStringBuilder sb, GenerationMode generationMode)
         {
             var inputValue = GetSlotValue(InputSlotId, generationMode);
             var outputValue = GetSlotValue(OutputSlotId, generationMode);
@@ -71,7 +71,7 @@ namespace UnityEditor.ShaderGraph
             sb.AppendLine("{0}({1},_{2}_Position,_{2}_TangentMatrix, {3});", GetFunctionName(), inputValue, GetVariableNameForNode(), outputValue);
         }
 
-        public void GenerateNodeFunction(FunctionRegistry registry, GraphContext graphContext, GenerationMode generationMode)
+        public void GenerateNodeFunction(FunctionRegistry registry, GenerationMode generationMode)
         {
             registry.ProvideFunction(GetFunctionName(), s =>
                 {

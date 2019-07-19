@@ -9,6 +9,7 @@ namespace UnityEditor.ShaderGraph
     struct ShaderStringMapping
     {
         public AbstractMaterialNode node { get; set; }
+//        public List<AbstractMaterialNode> nodes { get; set; }
         public int startIndex { get; set; }
         public int count { get; set; }
     }
@@ -42,6 +43,11 @@ namespace UnityEditor.ShaderGraph
                 m_CurrentMapping.startIndex = m_StringBuilder.Length;
                 m_CurrentMapping.count = 0;
             }
+        }
+
+        internal List<ShaderStringMapping> mappings
+        {
+            get { return m_Mappings; }
         }
 
         public ShaderStringBuilder()

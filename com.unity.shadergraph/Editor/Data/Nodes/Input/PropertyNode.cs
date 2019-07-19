@@ -110,7 +110,7 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        public void GenerateNodeCode(ShaderStringBuilder sb, GraphContext graphContext, GenerationMode generationMode)
+        public void GenerateNodeCode(ShaderStringBuilder sb, GenerationMode generationMode)
         {
             var graph = owner as GraphData;
             var property = graph.properties.FirstOrDefault(x => x.guid == propertyGuid);

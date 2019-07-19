@@ -79,7 +79,7 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        public void GenerateNodeCode(ShaderStringBuilder sb, GraphContext graphContext, GenerationMode generationMode)
+        public void GenerateNodeCode(ShaderStringBuilder sb, GenerationMode generationMode)
         {
             var uvValue = GetSlotValue(UVSlotId, generationMode);
             var widthValue = GetSlotValue(WidthSlotId, generationMode);
@@ -120,7 +120,7 @@ namespace UnityEditor.ShaderGraph
             });
         }
 
-        public void GenerateNodeFunction(FunctionRegistry registry, GraphContext graphContext, GenerationMode generationMode)
+        public void GenerateNodeFunction(FunctionRegistry registry, GenerationMode generationMode)
         {
             registry.ProvideFunction(GetFunctionName(), s =>
                 {

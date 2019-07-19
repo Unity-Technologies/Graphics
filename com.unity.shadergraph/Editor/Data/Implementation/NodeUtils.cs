@@ -4,6 +4,7 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 using UnityEditor.ShaderGraph;
+using UnityEditor.ShaderGraph.Drawing;
 using UnityEngine;
 
 namespace UnityEditor.Graphing
@@ -80,8 +81,7 @@ namespace UnityEditor.Graphing
             Exclude
         }
 
-        public static void DepthFirstCollectNodesFromNode<T>(List<T> nodeList, T node, IncludeSelf includeSelf = IncludeSelf.Include, List<int> slotIds = null)
-            where T : AbstractMaterialNode
+        public static void DepthFirstCollectNodesFromNode(List<AbstractMaterialNode> nodeList, AbstractMaterialNode node, IncludeSelf includeSelf = IncludeSelf.Include, List<int> slotIds = null)
         {
             // no where to start
             if (node == null)
@@ -101,14 +101,45 @@ namespace UnityEditor.Graphing
             {
                 foreach (var edge in node.owner.GetEdges(node.GetSlotReference(slot)))
                 {
-                    var outputNode = node.owner.GetNodeFromGuid(edge.outputSlot.nodeGuid) as T;
-                    if (outputNode != null)
+                    if (node.owner.GetNodeFromGuid(edge.outputSlot.nodeGuid) is AbstractMaterialNode outputNode)
                         DepthFirstCollectNodesFromNode(nodeList, outputNode);
                 }
             }
 
             if (includeSelf == IncludeSelf.Include)
                 nodeList.Add(node);
+        }
+
+        public static void CollectNodeSet(HashSet<AbstractMaterialNode> nodeSet, MaterialSlot slot)
+        {
+            var node = slot.owner;
+            var graph = node.owner;
+            foreach (var edge in graph.GetEdges(node.GetSlotReference(slot.id)))
+            {
+                var outputNode = graph.GetNodeFromGuid(edge.outputSlot.nodeGuid);
+                if (outputNode != null)
+                {
+                    CollectNodeSet(nodeSet, outputNode);
+                }
+            }
+        }
+
+        public static void CollectNodeSet(HashSet<AbstractMaterialNode> nodeSet, AbstractMaterialNode node)
+        {
+            if (!nodeSet.Add(node))
+            {
+                return;
+            }
+
+            using (var slotsHandle = ListPool<MaterialSlot>.GetDisposable())
+            {
+                var slots = slotsHandle.value;
+                node.GetInputSlots(slots);
+                foreach (var slot in slots)
+                {
+                    CollectNodeSet(nodeSet, slot);
+                }
+            }
         }
 
         public static void CollectNodesNodeFeedsInto(List<AbstractMaterialNode> nodeList, AbstractMaterialNode node, IncludeSelf includeSelf = IncludeSelf.Include)

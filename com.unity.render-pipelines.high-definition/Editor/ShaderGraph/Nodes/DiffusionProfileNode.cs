@@ -99,7 +99,7 @@ namespace UnityEditor.Rendering.HighDefinition
 #pragma warning restore 618
         }
 
-        public void GenerateNodeCode(ShaderStringBuilder sb, GraphContext graphContext, GenerationMode generationMode)
+        public void GenerateNodeCode(ShaderStringBuilder sb, GenerationMode generationMode)
         {
             uint hash = 0;
 
