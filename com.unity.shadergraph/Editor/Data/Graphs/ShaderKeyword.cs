@@ -6,7 +6,7 @@ using UnityEngine;
 namespace UnityEditor.ShaderGraph
 {
     [Serializable]
-    struct ShaderKeywordEntry
+    internal struct ShaderKeywordEntry
     {
         public int id;
         public string displayName;
