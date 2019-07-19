@@ -219,6 +219,18 @@ namespace UnityEngine.Rendering.Universal
             /// * Setup global time properties (_Time, _SinTime, _CosTime)
             bool stereoEnabled = renderingData.cameraData.isStereoEnabled;
             context.SetupCameraProperties(camera, stereoEnabled);
+
+            // XRTODO: remove overwrite logic after `SetupCameraProperties` is removed.
+            if (renderingData.cameraData.xrPass.xrSdkEnabled)
+            {
+                // Submit SetupCameraProperties work so that we can overwrite worldspace camera value
+                context.Submit();
+
+                // _WorldSpaceCameraPos is now set to main camera's position. Overwrite it with the position retrieved from xr view
+                Vector3 cameraPosition = renderingData.cameraData.xrPass.GetViewMatrix(0).inverse.GetColumn(3);
+                Shader.SetGlobalVector(Shader.PropertyToID("_WorldSpaceCameraPos"), cameraPosition);
+            }
+
             SetupLights(context, ref renderingData);
 
             // Override time values from when `SetupCameraProperties` were called.

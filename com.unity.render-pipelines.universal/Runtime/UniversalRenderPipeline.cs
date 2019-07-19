@@ -629,7 +629,6 @@ namespace UnityEngine.Rendering.Universal
             Shader.SetGlobalVector(PerCameraBuffer._ScaledScreenParams, new Vector4(scaledCameraWidth, scaledCameraHeight, 1.0f + 1.0f / scaledCameraWidth, 1.0f + 1.0f / scaledCameraHeight));
             Shader.SetGlobalVector(PerCameraBuffer._ScreenParams, new Vector4(cameraWidth, cameraHeight, 1.0f + 1.0f / cameraWidth, 1.0f + 1.0f / cameraHeight));
             Shader.SetGlobalMatrix(PerCameraBuffer._InvCameraViewProj, invViewProjMatrix);
-            Shader.SetGlobalVector(PerCameraBuffer._WorldSpaceCameraPos, viewMatrix.GetColumn(3)/*camera.transform.position*/);
 
             Shader.SetGlobalMatrix(Shader.PropertyToID("_ViewMatrix"), viewMatrix);
             Shader.SetGlobalMatrix(Shader.PropertyToID("_InvViewMatrix"), Matrix4x4.Inverse(viewMatrix));
