@@ -1,4 +1,4 @@
-﻿#if !UNITY_EDITOR_OSX || MAC_FORCE_TESTS
+#if !UNITY_EDITOR_OSX || MAC_FORCE_TESTS
 using System;
 using UnityEngine;
 using NUnit.Framework;
@@ -67,7 +67,24 @@ namespace UnityEditor.VFX.Test
             }
         }
 
-#if _TEST
+        //[Test]  //Not really a test but an helper to measure compilation time for every existing visual effect
+        public void MeasureLoadLibraryTime()
+        {
+            UnityEngine.Debug.unityLogger.logEnabled = false;
+
+            var sw = Stopwatch.StartNew();
+            long processCount = 4;
+            for (int pass = 0; pass < processCount; ++pass)
+            {
+                VFXLibrary.ClearLibrary();
+                VFXLibrary.Load();
+            }
+            sw.Stop();
+
+            UnityEngine.Debug.unityLogger.logEnabled = true;
+            UnityEngine.Debug.LogFormat("LoadLibrary : {0}ms", sw.ElapsedMilliseconds / processCount);
+        }
+
         //[Test]  //Not really a test but an helper to measure backup (for undo/redo) time for every existing asset
         public void MeasureBackupTime()
         {
@@ -168,8 +185,6 @@ namespace UnityEditor.VFX.Test
                 UnityEngine.Debug.Log(log);
             }
         }
-
-#endif
     }
 }
 #endif
