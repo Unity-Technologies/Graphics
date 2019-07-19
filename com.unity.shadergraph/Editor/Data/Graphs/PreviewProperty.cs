@@ -24,7 +24,7 @@ namespace UnityEditor.ShaderGraph
             [FieldOffset(0)]
             public Gradient gradientValue;
             [FieldOffset(0)]
-            public VTStack textureStackValue;
+            public TextureStack textureStackValue;
         }
 
         [StructLayout(LayoutKind.Explicit)]
@@ -110,7 +110,7 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        public VTStack textureStackValue
+        public TextureStack textureStackValue
         {
             get
             {

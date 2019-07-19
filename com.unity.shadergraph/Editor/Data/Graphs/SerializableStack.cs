@@ -13,17 +13,17 @@ namespace UnityEditor.ShaderGraph
         string m_Guid;
 
         [NonSerialized]
-        VTStack m_TextureStack;
+        TextureStack m_TextureStack;
 
         [Serializable]
         class TextureStackHelper
         {
 #pragma warning disable 649
-            public VTStack stack;
+            public TextureStack stack;
 #pragma warning restore 649
         }
 
-        public VTStack textureStack
+        public TextureStack textureStack
         {
             get
             {
@@ -37,7 +37,7 @@ namespace UnityEditor.ShaderGraph
                 }
                 else if (!string.IsNullOrEmpty(m_Guid) && m_TextureStack == null)
                 {
-                    m_TextureStack = AssetDatabase.LoadAssetAtPath<VTStack>(AssetDatabase.GUIDToAssetPath(m_Guid));
+                    m_TextureStack = AssetDatabase.LoadAssetAtPath<TextureStack>(AssetDatabase.GUIDToAssetPath(m_Guid));
                     m_Guid = null;
                 }
 
