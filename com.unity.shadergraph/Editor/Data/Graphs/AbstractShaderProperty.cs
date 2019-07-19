@@ -107,7 +107,7 @@ namespace UnityEditor.ShaderGraph
         [SerializeField]
         private T m_Value;
 
-        public T value
+        public virtual T value
         {
             get { return m_Value; }
             set { m_Value = value; }
