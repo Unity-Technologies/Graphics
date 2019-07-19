@@ -82,7 +82,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
 #if ENABLE_VIRTUALTEXTURES
-        public RTHandleSystem.RTHandle GetGBuffer0RT()
+        public RTHandle GetGBuffer0RT()
         {
             return m_RTs[0];
         }

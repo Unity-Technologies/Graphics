@@ -216,7 +216,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
 #if ENABLE_VIRTUALTEXTURES
         Experimental.VirtualTextureResolver resolver;
-        RTHandleSystem.RTHandle lowresResolver;
+        RTHandle lowresResolver;
         int resolveScale = 16;
 #endif
 
@@ -367,7 +367,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
 #if ENABLE_VIRTUALTEXTURES
-        public void ResolveVT(CommandBuffer cmd, RTHandleSystem.RTHandle primary, RTHandleSystem.RTHandle secondary, HDRenderPipelineAsset asset)
+        public void ResolveVT(CommandBuffer cmd, RTHandle primary, RTHandle secondary, HDRenderPipelineAsset asset)
         {
             using (new ProfilingSample(cmd, "VTFeedback Downsample", CustomSamplerId.VTFeedbackDownSample.GetSampler()))
             {
@@ -393,7 +393,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     resolver.Process(lowresResolver.nameID, cmd);*/
                 }
 
-                if (secondary != null && secondary.m_EnableMSAA == false)
+                if (secondary != null && secondary.enableMSAA == false)
                 {
                     ResolveVTDispatch(cmd, secondary, asset);
                     /*var cs = asset.renderPipelineResources.shaders.VTFeedbackDownsample;
@@ -412,9 +412,9 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        private void ResolveVTDispatch(CommandBuffer cmd, RTHandleSystem.RTHandle buffer, HDRenderPipelineAsset asset)
+        private void ResolveVTDispatch(CommandBuffer cmd, RTHandle buffer, HDRenderPipelineAsset asset)
         {
-            string mainFunction = (buffer.m_EnableMSAA) ? "KMainMSAA" : "KMain";
+            string mainFunction = (buffer.enableMSAA) ? "KMainMSAA" : "KMain";
 
             var cs = asset.renderPipelineResources.shaders.VTFeedbackDownsample;
             int kernel = cs.FindKernel(mainFunction);

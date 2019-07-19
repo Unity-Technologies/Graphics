@@ -11,6 +11,9 @@ void EncodeIntoStandardGBuffer( StandardBSDFData standardBSDFData
 #if GBUFFERMATERIAL_COUNT > 5
                         , out GBufferType5 outGBuffer5
 #endif
+#if GBUFFERMATERIAL_COUNT > 6
+                        , out GBufferType6 outGBuffer6
+#endif
                         )
 {
 	// GBuffer0

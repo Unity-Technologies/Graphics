@@ -57,12 +57,24 @@ TEXTURE2D_X(_ShadowMaskTexture); // Alias for shadow mask, so we don't need to k
 // Definition
 //-----------------------------------------------------------------------------
 
+#if defined(LIGHT_LAYERS) && defined(SHADOWS_SHADOWMASK)
 #define OUT_GBUFFER_LIGHT_LAYERS outGBuffer4
 #define OUT_GBUFFER_SHADOWMASK outGBuffer5
 #elif defined(LIGHT_LAYERS)
 #define OUT_GBUFFER_LIGHT_LAYERS outGBuffer4
 #elif defined(SHADOWS_SHADOWMASK)
 #define OUT_GBUFFER_SHADOWMASK outGBuffer4
+#endif
+
+// VT feedback goes at the back
+#if VIRTUAL_TEXTURES_ENABLED
+#if defined(LIGHT_LAYERS) && defined(SHADOWS_SHADOWMASK)
+#define OUT_GBUFFER_VTFEEDBACK outGBuffer6
+#elif defined(LIGHT_LAYERS) || defined(SHADOWS_SHADOWMASK)
+#define OUT_GBUFFER_VTFEEDBACK outGBuffer5
+#else
+#define OUT_GBUFFER_VTFEEDBACK outGBuffer4
+#endif
 #endif
 
 #define HAS_REFRACTION (defined(_REFRACTION_PLANE) || defined(_REFRACTION_SPHERE))
@@ -514,6 +526,9 @@ void EncodeIntoGBuffer( SurfaceData surfaceData
 #endif
 #if GBUFFERMATERIAL_COUNT > 6
                         , out GBufferType6 outGBuffer6
+#endif
+#if GBUFFERMATERIAL_COUNT > 7
+                        , out GBufferType7 outGBuffer7
 #endif
                         )
 {

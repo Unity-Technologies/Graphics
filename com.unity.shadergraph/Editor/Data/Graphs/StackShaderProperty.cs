@@ -31,11 +31,6 @@ namespace UnityEditor.ShaderGraph
             set { m_Modifiable = value; }
         }
 
-        public override Vector4 defaultValue
-        {
-            get { return new Vector4(); }
-        }
-
         public override bool isBatchable
         {
             // Note we are semi batchable, constants are but texture slots not. Need to clarify this.
@@ -120,7 +115,7 @@ namespace UnityEditor.ShaderGraph
             return null;// new StackAssetNode { cubemap = value.stack };
         }
 
-        public override AbstractShaderProperty Copy()
+        public override ShaderInput Copy()
         {
             var copied = new StackShaderProperty();
             copied.displayName = displayName;

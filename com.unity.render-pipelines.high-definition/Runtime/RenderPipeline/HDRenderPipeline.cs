@@ -2074,8 +2074,8 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
 #if ENABLE_VIRTUALTEXTURES
-            // Unbind the RT. TODO(ddebaets) there must be a better way right ?
-            HDUtils.SetRenderTarget(cmd, m_GbufferManager.GetGBuffer0RT(), m_SharedRTManager.GetDepthStencilBuffer());
+                // Unbind the RT. TODO(ddebaets) there must be a better way right ?
+                CoreUtils.SetRenderTarget(cmd, m_GbufferManager.GetGBuffer0RT(), m_SharedRTManager.GetDepthStencilBuffer());
             hdCamera.ResolveVT(cmd, m_GbufferManager.GetVTFeedbackBuffer(), m_VTFeedbackBuffer, m_Asset);
             Experimental.VirtualTexturing.UpdateSystem();
 #endif
@@ -3954,18 +3954,18 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Clearing VT buffers ensure we never end up thinking stale date is still relevant for the current frame.
                 using (new ProfilingSample(cmd, "Clear VTFeedback Buffers", CustomSamplerId.VTFeedbackClear.GetSampler()))
                 {
-                    RTHandleSystem.RTHandle alreadyCleared = null;
+                    RTHandle alreadyCleared = null;
                     if (m_GbufferManager != null && m_GbufferManager.GetVTFeedbackBuffer() != null)
                     {
                         alreadyCleared = m_GbufferManager.GetVTFeedbackBuffer();
-                        HDUtils.SetRenderTarget(cmd, alreadyCleared, ClearFlag.Color, Color.white);
+                        CoreUtils.SetRenderTarget(cmd, alreadyCleared, ClearFlag.Color, Color.white);
 
                     }
 
                     // If the forward buffer is different from the GBuffer clear it also
                     if (GetVTFeedbackBufferForForward(hdCamera) != alreadyCleared)
                     {
-                        HDUtils.SetRenderTarget(cmd, GetVTFeedbackBufferForForward(hdCamera), ClearFlag.Color, Color.white);
+                        CoreUtils.SetRenderTarget(cmd, GetVTFeedbackBufferForForward(hdCamera), ClearFlag.Color, Color.white);
                     }
                 }
 #endif
@@ -4127,7 +4127,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // GBuffer vt feedback is handled in  GBufferManager
 #if ENABLE_VIRTUALTEXTURES        
-        RTHandleSystem.RTHandle GetVTFeedbackBufferForForward(HDCamera hdCamera)
+        RTHandle GetVTFeedbackBufferForForward(HDCamera hdCamera)
         {
             if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA))
             {

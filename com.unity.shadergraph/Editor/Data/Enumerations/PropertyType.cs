@@ -1,4 +1,4 @@
-﻿namespace UnityEditor.ShaderGraph
+namespace UnityEditor.ShaderGraph
 {
     enum PropertyType
     {
@@ -16,6 +16,7 @@
         Matrix2,
         Matrix3,
         Matrix4,
-        SamplerState
+        SamplerState,
+        TextureStack
     }
 }
