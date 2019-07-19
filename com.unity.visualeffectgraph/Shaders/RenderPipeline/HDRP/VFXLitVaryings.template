@@ -37,20 +37,20 @@ ${VFXEnd}
 ${VFXBegin:VFXHDRPLitDeclareVaryings}
 
 #if (VFX_NEEDS_COLOR_INTERPOLATOR && HDRP_USE_BASE_COLOR) || HDRP_USE_ADDITIONAL_BASE_COLOR
-nointerpolation float4 color : COLOR0;
+VFX_OPTIONAL_INTERPOLATION float4 color : COLOR0;
 #endif
 #if HDRP_MATERIAL_TYPE_SPECULAR
-nointerpolation float3 specularColor : COLOR1;
+VFX_OPTIONAL_INTERPOLATION float3 specularColor : COLOR1;
 #endif
 #if HDRP_USE_EMISSIVE	
-nointerpolation float4 emissiveColor : COLOR2;
+VFX_OPTIONAL_INTERPOLATION float4 emissiveColor : COLOR2;
 #endif
 
 // x: smoothness
 // y: metallic/thickness
 // z: normal scale
 // w: emissive scale
-nointerpolation float4 materialProperties : TEXCOORD0;
+VFX_OPTIONAL_INTERPOLATION float4 materialProperties : TEXCOORD0;
 ${VFXEnd}
 
 ${VFXBegin:VFXHDRPLitFillVaryings}

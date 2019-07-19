@@ -5,12 +5,10 @@ using UnityEngine;
 using UnityEngine.Rendering;
 #if UNITY_EDITOR
 using UnityEditor;
-using UnityEditor.Experimental.Rendering;
-using UnityEditor.Experimental.Rendering.HDPipeline;
 #endif
 using UnityEngine.Serialization;
 
-namespace UnityEngine.Experimental.Rendering.HDPipeline
+namespace UnityEngine.Rendering.HighDefinition
 {
     // This enum extent the original LightType enum with new light type from HD
     public enum LightTypeExtent
@@ -63,6 +61,18 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         OnDemand
     }
 
+    /// <summary>
+    /// Shadow Resolution Tier
+    /// </summary>
+    public enum ShadowResolutionTier
+    {
+        Low = 0,
+        Medium,
+        High,
+        VeryHigh
+    }
+
+
     // Light layering
     public enum LightLayerEnum
     {
@@ -114,17 +124,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     // so we can force timeline to record changes on other fields from the LateUpdate function (editor only)
     struct TimelineWorkaround
     {
-        public float oldDisplayLightIntensity;
-        public float oldLuxAtDistance;
         public float oldSpotAngle;
-        public bool oldEnableSpotReflector;
         public Color oldLightColor;
-        public Vector3 oldLocalScale;
+        public Vector3 oldLossyScale;
         public bool oldDisplayAreaLightEmissiveMesh;
-        public LightTypeExtent oldLightTypeExtent;
         public float oldLightColorTemperature;
-        public Vector3 oldShape;
-        public float lightDimmer;
+        public float oldIntensity;
     }
 
     //@TODO: We should continuously move these values
@@ -333,7 +338,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 if (!IsValidLightUnitForType(legacyLight.type, m_LightTypeExtent, value))
                 {
                     var supportedTypes = String.Join(", ", GetSupportedLightUnits(legacyLight.type, m_LightTypeExtent));
-                    Debug.LogError($"Set Light Unit '{value}' to a {GetLightTypeName()} is not allowed, only {supportedTypes} are supprted.");
+                    Debug.LogError($"Set Light Unit '{value}' to a {GetLightTypeName()} is not allowed, only {supportedTypes} are supported.");
                     return;
                 }
 
@@ -627,7 +632,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         /// <summary>
         /// If enabled, display an emissive mesh rect synchronized with the intensity and color of the light.
         /// </summary>
-        public bool displayAreaLightEmissiveMesh
+        internal bool displayAreaLightEmissiveMesh
         {
             get => m_DisplayAreaLightEmissiveMesh;
             set
@@ -636,6 +641,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     return;
 
                 m_DisplayAreaLightEmissiveMesh = value;
+
                 UpdateAllLightValues();
             }
         }
@@ -1094,25 +1100,60 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-#endregion
+        #endregion
 
-#region HDShadow Properties API (from AdditionalShadowData)
+        #region HDShadow Properties API (from AdditionalShadowData)
 
         [SerializeField]
-        int m_ShadowResolution = k_DefaultShadowResolution;
+        ShadowResolutionTier m_ShadowResolutionTier = ShadowResolutionTier.Medium;
         /// <summary>
-        /// Get/Set the resolution of shadow maps.
+        /// Get/Set the quality level for shadow map resoluton.
         /// </summary>
-        /// <value></value>
-        public int shadowResolution
+        public ShadowResolutionTier shadowResolutionTier
         {
-            get => m_ShadowResolution;
+            get => m_ShadowResolutionTier;
             set
             {
-                if (m_ShadowResolution == value)
+                if (m_ShadowResolutionTier == value)
                     return;
 
-                m_ShadowResolution = Mathf.Clamp(value, HDShadowManager.k_MinShadowMapResolution, HDShadowManager.k_MaxShadowMapResolution);
+                m_ShadowResolutionTier = value;
+            }
+        }
+
+        [SerializeField]
+        bool m_UseShadowQualitySettings = false;
+        /// <summary>
+        /// Toggle the usage of quality settings to determine shadow resolution.
+        /// </summary>
+        public bool useShadowQualitySettings
+        {
+            get => m_UseShadowQualitySettings;
+            set
+            {
+                if (m_UseShadowQualitySettings == value)
+                    return;
+
+                m_UseShadowQualitySettings = value;
+            }
+        }
+
+
+        [SerializeField]
+        int m_CustomShadowResolution = k_DefaultShadowResolution;
+        /// <summary>
+        /// Get/Set the resolution of shadow maps in case quality settings are not used.
+        /// </summary>
+        /// <value></value>
+        public int customResolution
+        {
+            get => m_CustomShadowResolution;
+            set
+            {
+                if (m_CustomShadowResolution == value)
+                    return;
+
+                m_CustomShadowResolution = Mathf.Clamp(value, HDShadowManager.k_MinShadowMapResolution, HDShadowManager.k_MaxShadowMapResolution);
             }
         }
 
@@ -1327,7 +1368,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         // Data for cached shadow maps.
         Vector2             m_CachedShadowResolution = new Vector2(0,0);
-        Vector2             m_CachedShadowViewport = new Vector2(0, 0);
+        Rect[]              m_CachedShadowRect = new Rect[6];
         Vector3             m_CachedViewPos = new Vector3(0, 0, 0);
 
 
@@ -1426,10 +1467,35 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 #endif
         }
 
-        internal void ReserveShadowMap(Camera camera, HDShadowManager shadowManager, HDShadowInitParameters initParameters)
+        private int GetResolutionFromSettings(ShadowMapType shadowMapType, HDShadowInitParameters initParameters)
+        {
+            bool customRes = !useShadowQualitySettings;
+            switch (shadowMapType)
+            {
+                case ShadowMapType.CascadedDirectional:
+                    return customRes ? Math.Min(customResolution, initParameters.maxDirectionalShadowMapResolution) : initParameters.directionalLightsResolutionTiers.GetResolution(shadowResolutionTier);
+                case ShadowMapType.PunctualAtlas:
+                    return customRes ? Math.Min(customResolution, initParameters.maxPunctualShadowMapResolution) : initParameters.punctualLightsResolutionTiers.GetResolution(shadowResolutionTier);
+                case ShadowMapType.AreaLightAtlas:
+                    return customRes ? Math.Min(customResolution, initParameters.maxAreaShadowMapResolution) : initParameters.areaLightsResolutionTiers.GetResolution(shadowResolutionTier);
+            }
+
+            return 0;
+        }
+
+        internal void ReserveShadowMap(Camera camera, HDShadowManager shadowManager, HDShadowInitParameters initParameters, Rect screenRect)
         {
             if (!m_WillRenderShadowMap)
                 return;
+
+            if (m_CachedShadowRect == null)
+            {
+                m_CachedShadowRect = new Rect[6];
+                for (int i = 0; i < 6; i++)
+                {
+                    m_CachedShadowRect[i] = new Rect(0, 0, 0, 0);
+                }
+            }
 
             // Create shadow requests array using the light type
             if (shadowRequests == null || m_ShadowRequestIndices == null)
@@ -1444,11 +1510,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
             }
 
-            Vector2 viewportSize = new Vector2(shadowResolution, shadowResolution);
-
             // Reserver wanted resolution in the shadow atlas
             ShadowMapType shadowMapType = (lightTypeExtent == LightTypeExtent.Rectangle) ? ShadowMapType.AreaLightAtlas :
                                           (legacyLight.type != LightType.Directional) ? ShadowMapType.PunctualAtlas : ShadowMapType.CascadedDirectional;
+
+            int resolution = GetResolutionFromSettings(shadowMapType, initParameters);
+            Vector2 viewportSize = new Vector2(resolution, resolution);
 
             bool viewPortRescaling = false;
             // Compute dynamic shadow resolution
@@ -1469,9 +1536,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (viewPortRescaling && !shadowsAreCached)
             {
                 // resize viewport size by the normalized size of the light on screen
-                // When we will have access to the non screen clamped bounding sphere light size, we could use it to scale the shadow map resolution
-                // For the moment, this will be enough
-                viewportSize *= Mathf.Lerp(64f / viewportSize.x, 1f, legacyLight.range / (camera.transform.position - transform.position).magnitude);
+                float screenArea = screenRect.width * screenRect.height;
+                viewportSize *= Mathf.Lerp(64f / viewportSize.x, 1f, screenArea);
                 viewportSize = Vector2.Max(new Vector2(64f, 64f) / viewportSize, viewportSize);
 
                 // Prevent flickering caused by the floating size of the viewport
@@ -1582,14 +1648,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             for (int index = 0; index < count; index++)
             {
-                var         shadowRequest = shadowRequests[index];
+                var shadowRequest = shadowRequests[index];
 
-                Matrix4x4   invViewProjection = Matrix4x4.identity;
-                int         shadowRequestIndex = m_ShadowRequestIndices[index];
-                Vector2     viewportSize = manager.GetReservedResolution(shadowRequestIndex);
+                Matrix4x4 invViewProjection = Matrix4x4.identity;
+                int shadowRequestIndex = m_ShadowRequestIndices[index];
+                Vector2 viewportSize = manager.GetReservedResolution(shadowRequestIndex);
 
 
-                shadowIsCached = shadowIsCached && (viewportSize == m_CachedShadowViewport);
+                shadowIsCached = shadowIsCached && (shadowRequest.atlasViewport == m_CachedShadowRect[index]);
 
                 if (shadowRequestIndex == -1)
                     continue;
@@ -1607,7 +1673,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 else
                 {
                     m_CachedViewPos = cameraPos;
-                    m_CachedShadowViewport = viewportSize;
+                    m_CachedShadowRect[index] = shadowRequest.atlasViewport;
                     shadowRequest.shouldUseCachedShadow = false;
                     m_ShadowMapRenderedSinceLastRequest = true;
 
@@ -1780,22 +1846,19 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
+#endif
+
         internal bool useColorTemperature
         {
-            get
-            {
-                lightSerializedObject.Update();
-
-                return useColorTemperatureProperty.boolValue;
-            }
+            get => legacyLight.useColorTemperature;
             set
             {
-                useColorTemperatureProperty.boolValue = value;
-                lightSerializedObject.ApplyModifiedProperties();
+                if (legacyLight.useColorTemperature == value)
+                    return;
+                
+                legacyLight.useColorTemperature = value;
             }
         }
-
-#endif
 
         // TODO: we might be able to get rid to that
         [System.NonSerialized]
@@ -1821,52 +1884,40 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             Vector3 shape = new Vector3(shapeWidth, m_ShapeHeight, shapeRadius);
 
             // Check if the intensity have been changed by the inspector or an animator
-            if (m_Intensity != timelineWorkaround.oldDisplayLightIntensity
-                || luxAtDistance != timelineWorkaround.oldLuxAtDistance
-                || lightTypeExtent != timelineWorkaround.oldLightTypeExtent
-                || transform.localScale != timelineWorkaround.oldLocalScale
-                || shape != timelineWorkaround.oldShape
+            if (timelineWorkaround.oldLossyScale != transform.lossyScale
+                || intensity != timelineWorkaround.oldIntensity
                 || legacyLight.colorTemperature != timelineWorkaround.oldLightColorTemperature)
             {
-                RefreshLightIntensity();
+                UpdateLightIntensity();
                 UpdateAreaLightEmissiveMesh();
-                timelineWorkaround.oldDisplayLightIntensity = m_Intensity;
-                timelineWorkaround.oldLuxAtDistance = luxAtDistance;
-                timelineWorkaround.oldLocalScale = transform.localScale;
-                timelineWorkaround.oldLightTypeExtent = lightTypeExtent;
+                timelineWorkaround.oldLossyScale = transform.lossyScale;
+                timelineWorkaround.oldIntensity = intensity;
                 timelineWorkaround.oldLightColorTemperature = legacyLight.colorTemperature;
-                timelineWorkaround.oldShape = shape;
             }
 
             // Same check for light angle to update intensity using spot angle
-            if (legacyLight.type == LightType.Spot && (timelineWorkaround.oldSpotAngle != legacyLight.spotAngle || timelineWorkaround.oldEnableSpotReflector != enableSpotReflector))
+            if (legacyLight.type == LightType.Spot && (timelineWorkaround.oldSpotAngle != legacyLight.spotAngle))
             {
-                RefreshLightIntensity();
+                UpdateLightIntensity();
                 timelineWorkaround.oldSpotAngle = legacyLight.spotAngle;
-                timelineWorkaround.oldEnableSpotReflector = enableSpotReflector;
             }
 
             if (legacyLight.color != timelineWorkaround.oldLightColor
-                || transform.localScale != timelineWorkaround.oldLocalScale
+                || timelineWorkaround.oldLossyScale != transform.lossyScale
                 || displayAreaLightEmissiveMesh != timelineWorkaround.oldDisplayAreaLightEmissiveMesh
-                || lightTypeExtent != timelineWorkaround.oldLightTypeExtent
-                || legacyLight.colorTemperature != timelineWorkaround.oldLightColorTemperature
-                || lightDimmer != timelineWorkaround.lightDimmer)
+                || legacyLight.colorTemperature != timelineWorkaround.oldLightColorTemperature)
             {
                 UpdateAreaLightEmissiveMesh();
-                timelineWorkaround.lightDimmer = lightDimmer;
                 timelineWorkaround.oldLightColor = legacyLight.color;
-                timelineWorkaround.oldLocalScale = transform.localScale;
+                timelineWorkaround.oldLossyScale = transform.lossyScale;
                 timelineWorkaround.oldDisplayAreaLightEmissiveMesh = displayAreaLightEmissiveMesh;
-                timelineWorkaround.oldLightTypeExtent = lightTypeExtent;
                 timelineWorkaround.oldLightColorTemperature = legacyLight.colorTemperature;
             }
         }
 
-        // The editor can only access m_Intensity (because of SerializedProperties) so we update the intensity to get the real value
-        void RefreshLightIntensity()
+        void OnDidApplyAnimationProperties()
         {
-            intensity = m_Intensity;
+            UpdateAllLightValues();
         }
 
         /// <summary>
@@ -1905,7 +1956,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             data.displayAreaLightEmissiveMesh = displayAreaLightEmissiveMesh;
             data.interactsWithSky = interactsWithSky;
 
-            data.shadowResolution = shadowResolution;
+            data.customResolution = customResolution;
             data.shadowDimmer = shadowDimmer;
             data.volumetricShadowDimmer = volumetricShadowDimmer;
             data.shadowFadeDistance = shadowFadeDistance;
@@ -1920,6 +1971,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             data.shadowVariant = shadowVariant;
             data.shadowPrecision = shadowPrecision;
             data.shadowUpdateMode = shadowUpdateMode;
+
+            data.m_UseCustomSpotLightShadowCone = useCustomSpotLightShadowCone;
+            data.m_CustomSpotLightShadowCone = customSpotLightShadowCone;
 
 #if UNITY_EDITOR
             data.timelineWorkaround = timelineWorkaround;
@@ -1955,7 +2009,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     break;
             }
 
-            // Sanity check: lightData.lightTypeExtent is init to LightTypeExtent.Punctual (in case for unknow reasons we recreate additional data on an existing line)
+            // Sanity check: lightData.lightTypeExtent is init to LightTypeExtent.Punctual (in case for unknown reasons we recreate additional data on an existing line)
             if (light.type == LightType.Rectangle && lightData.lightTypeExtent == LightTypeExtent.Punctual)
             {
                 lightData.lightTypeExtent = LightTypeExtent.Rectangle;
@@ -2077,9 +2131,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             else // Or remove them if the option is disabled
             {
                 if (emissiveMeshRenderer != null)
-                    DestroyImmediate(emissiveMeshRenderer);
+                    CoreUtils.Destroy(emissiveMeshRenderer);
                 if (emissiveMeshFilter != null)
-                    DestroyImmediate(emissiveMeshFilter);
+                    CoreUtils.Destroy(emissiveMeshFilter);
 
                 // We don't have anything to do left if the dislay emissive mesh option is disabled
                 return;
@@ -2089,29 +2143,47 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             // Update light area size from GameObject transform scale if the transform have changed
             // else we update the light size from the shape fields
-            if (timelineWorkaround.oldLocalScale != transform.localScale)
-                lightSize = transform.localScale;
+            if (timelineWorkaround.oldLossyScale != transform.lossyScale)
+                lightSize = transform.lossyScale;
             else
-                lightSize = new Vector3(shapeWidth, m_ShapeHeight, transform.localScale.z);
+                lightSize = new Vector3(m_ShapeWidth, m_ShapeHeight, transform.localScale.z);
 
             if (lightTypeExtent == LightTypeExtent.Tube)
                 lightSize.y = k_MinAreaWidth;
             lightSize.z = k_MinAreaWidth;
 
             lightSize = Vector3.Max(Vector3.one * k_MinAreaWidth, lightSize);
-            legacyLight.transform.localScale = lightSize;
 #if UNITY_EDITOR
             legacyLight.areaSize = lightSize;
+
+            // When we're inside the editor, and the scale of the transform will change
+            // then we must record it with inside the undo
+            if (legacyLight.transform.localScale != lightSize)
+            {
+                Undo.RecordObject(transform, "Light Scale changed");
+            }
 #endif
+
+            Vector3 lossyToLocalScale = lightSize;
+            if (transform.parent != null)
+            {
+                lossyToLocalScale = new Vector3(
+                    lightSize.x / transform.parent.lossyScale.x,
+                    lightSize.y / transform.parent.lossyScale.y,
+                    lightSize.z / transform.parent.lossyScale.z
+                );
+            }
+
+            legacyLight.transform.localScale = lossyToLocalScale;
 
             switch (lightTypeExtent)
             {
                 case LightTypeExtent.Rectangle:
-                    shapeWidth = lightSize.x;
+                    m_ShapeWidth = lightSize.x;
                     m_ShapeHeight = lightSize.y;
                     break;
                 case LightTypeExtent.Tube:
-                    shapeWidth = lightSize.x;
+                    m_ShapeWidth = lightSize.x;
                     break;
                 default:
                     break;
@@ -2239,9 +2311,22 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public void SetColor(Color color, float colorTemperature = -1)
         {
             if (colorTemperature != -1)
+            {
                 legacyLight.colorTemperature = colorTemperature;
+                useColorTemperature = true;
+            }
 
             this.color = color;
+        }
+        
+        /// <summary>
+        /// Toggle the usage of color temperature.
+        /// </summary>
+        /// <param name="hdLight"></param>
+        /// <param name="enable"></param>
+        public void EnableColorTemperature(bool enable)
+        {
+            useColorTemperature = enable;
         }
 
         /// <summary>
@@ -2432,7 +2517,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         /// Set the shadow resolution.
         /// </summary>
         /// <param name="resolution">Must be between 16 and 16384</param>
-        public void SetShadowResolution(int resolution) => shadowResolution = resolution;
+        public void SetShadowResolution(int resolution) => customResolution = resolution;
 
         /// <summary>
         /// Set the near plane of the shadow.
@@ -2526,13 +2611,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public float[] SetLayerShadowCullDistances(float[] layerShadowCullDistances) => legacyLight.layerShadowCullDistances = layerShadowCullDistances;
 
         /// <summary>
-        /// Set Lightmap Bake Type.
-        /// </summary>
-        /// <param name="lightmapBakeType"></param>
-        /// <returns></returns>
-        public LightmapBakeType SetLightmapBakeType(LightmapBakeType lightmapBakeType) => legacyLight.lightmapBakeType = lightmapBakeType;
-
-        /// <summary>
         /// Get the list of supported light units depending on the current light type.
         /// </summary>
         /// <returns></returns>
@@ -2546,8 +2624,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             if (IsAreaLight(lightTypeExtent))
             {
-                shapeWidth = size.x;
-                shapeHeight = size.y;
+                m_ShapeWidth = size.x;
+                m_ShapeHeight = size.y;
+                UpdateAllLightValues();
             }
         }
 
@@ -2610,10 +2689,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             return lightType != LightTypeExtent.Punctual;
         }
 
+#if UNITY_EDITOR
         internal static bool IsAreaLight(SerializedProperty lightType)
         {
             return IsAreaLight((LightTypeExtent)lightType.enumValueIndex);
         }
+#endif
 
 #endregion
 

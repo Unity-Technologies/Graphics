@@ -1,8 +1,9 @@
 using UnityEngine;
-using UnityEngine.Experimental.Rendering.HDPipeline;
+using UnityEngine.Rendering.HighDefinition;
+using UnityEditor.Rendering;
 
-namespace UnityEditor.Experimental.Rendering.HDPipeline
-{ 
+namespace UnityEditor.Rendering.HighDefinition
+{
     partial class HDLightUI
     {
         public static void DrawHandles(HDAdditionalLightData additionalData, Editor owner)

@@ -36,8 +36,9 @@ VFX_VARYING_PS_INPUTS vert(uint id : SV_VertexID, vs_input i)
 	
 	float3x3 rot = GetEulerMatrix(radians(float3(angleX,angleY,angleZ)));
 	float4x4 elementToVFX = GetElementToVFXMatrix(axisX,axisY,axisZ,rot,float3(pivotX,pivotY,pivotZ),size3,position);
-	
-	float3 vPos = mul(elementToVFX,float4(offsets,1.0f)).xyz;
+
+	float3 inputVertexPosition = offsets;
+	float3 vPos = mul(elementToVFX,float4(inputVertexPosition,1.0f)).xyz;
 	float3 vPosWS = TransformPositionVFXToWorld(vPos);
 	
 #ifdef VFX_VARYING_POSWS
@@ -58,6 +59,8 @@ VFX_VARYING_PS_INPUTS vert(uint id : SV_VertexID, vs_input i)
 	o.VFX_VARYING_ROTY = rot[1];
 #endif
 	o.VFX_VARYING_POSCS = VFXTransformPositionWorldToClip(vPosWS);
+	
+	${VFXVertexComputeCurrentAndPreviousClipPos}
 
 	${VFXVertexCommonProcess}
 	

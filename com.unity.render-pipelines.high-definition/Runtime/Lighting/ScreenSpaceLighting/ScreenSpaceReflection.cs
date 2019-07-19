@@ -1,7 +1,7 @@
 using System;
 using UnityEngine.Rendering;
 
-namespace UnityEngine.Experimental.Rendering.HDPipeline
+namespace UnityEngine.Rendering.HighDefinition
 {
     [Serializable, VolumeComponentMenu("Lighting/Screen Space Reflection")]
     public class ScreenSpaceReflection : VolumeComponent
@@ -45,5 +45,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // Tier 2 code
         [Tooltip("Number of samples for reflections.")]
         public ClampedIntParameter numSamples = new ClampedIntParameter(1, 1, 32);
+
+        [Tooltip("Number of bounces for reflections.")]
+        public ClampedIntParameter numBounces = new ClampedIntParameter(1, 1, 31);
     }
 }

@@ -23,12 +23,16 @@ void FitToStandardLit( SurfaceData surfaceData
                         , BuiltinData builtinData
                         , uint2 positionSS
                         , out StandardBSDFData outStandardlit)
-{    
-    outStandardlit.baseColor = surfaceData.baseColor;
+{
     outStandardlit.specularOcclusion = surfaceData.specularOcclusion;
     outStandardlit.normalWS = surfaceData.normalWS;
+
+    float metallic = HasFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_LIT_SPECULAR_COLOR | MATERIALFEATUREFLAGS_LIT_SUBSURFACE_SCATTERING | MATERIALFEATUREFLAGS_LIT_TRANSMISSION) ? 0.0 : surfaceData.metallic;
+
+    outStandardlit.baseColor = ComputeDiffuseColor(surfaceData.baseColor, metallic);
+    outStandardlit.fresnel0     = HasFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_LIT_SPECULAR_COLOR) ? surfaceData.specularColor : ComputeFresnel0(surfaceData.baseColor, surfaceData.metallic, DEFAULT_SPECULAR_VALUE);
+
     outStandardlit.perceptualRoughness = PerceptualSmoothnessToPerceptualRoughness(surfaceData.perceptualSmoothness);
-    outStandardlit.fresnel0 = surfaceData.specularColor;
     outStandardlit.coatMask = HasFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_LIT_CLEAR_COAT) ? surfaceData.coatMask : 0.0;
     outStandardlit.emissiveAndBaked = builtinData.bakeDiffuseLighting * surfaceData.ambientOcclusion + builtinData.emissiveColor;
 #ifdef LIGHT_LAYERS

@@ -1,17 +1,17 @@
 using System.IO;
 using UnityEngine;
-using UnityEngine.Experimental.Rendering.HDPipeline;
+using UnityEngine.Rendering.HighDefinition;
 using System.Collections.Generic;
 using UnityEditor.Rendering;
 using UnityEngine.Rendering;
 using UnityEditor.ShaderGraph;
 
 // Include material common properties names
-using static UnityEngine.Experimental.Rendering.HDPipeline.HDMaterialProperties;
+using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
 
-namespace UnityEditor.Experimental.Rendering.HDPipeline
+namespace UnityEditor.Rendering.HighDefinition
 {
-    public class UpgradeMenuItems
+    class UpgradeMenuItems
     {
         // Version 3
 
@@ -92,7 +92,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                         "Update material " + caption + "...",
                         string.Format("{0} / {1} materials updated.", i, length),
                         i / (float)(length - 1));
-                    
+
                     bool isHDRPShader = mat.shader.name == "HDRP/LitTessellation" ||
                         mat.shader.name == "HDRP/Lit" ||
                         mat.shader.name == "HDRP/LayeredLit" ||
@@ -102,7 +102,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                         mat.shader.name == "HDRP/Fabric" ||
                         mat.shader.name == "HDRP/Decal" ||
                         mat.shader.name == "HDRP/TerrainLit";
-                    
+
                     if (mat.shader.IsShaderGraph())
                     {
                         var outputNodeType = GraphUtil.GetOutputNodeType(AssetDatabase.GetAssetPath(mat.shader));
@@ -193,7 +193,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             // unity can add a supportDecal when executing script for version 1 whereas they only appear in version 2 because it is now part
             // of the shader. Most of the time this have no consequence, but we never know.
 
-            // Caution: Version of latest script and default version in all HDRP shader must match 
+            // Caution: Version of latest script and default version in all HDRP shader must match
 
             UpgradeSceneMaterials();
         }
@@ -203,7 +203,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
             ProcessUpdateMaterial("(ShaderGraphRenderStates_3)", 3.0f, UpdateMaterial_ShaderGraphRenderStates);
         }
-        
+
         [MenuItem("Edit/Render Pipeline/Reset All ShaderGraph Materials BlendStates (Scene)")]
         static public void UpgradeAllShaderGraphMaterialBlendStatesScene()
         {

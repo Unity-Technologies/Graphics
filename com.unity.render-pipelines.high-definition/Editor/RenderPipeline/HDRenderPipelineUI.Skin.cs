@@ -1,9 +1,9 @@
 using System.Collections.Generic;
 using UnityEngine;
-using static UnityEngine.Experimental.Rendering.HDPipeline.RenderPipelineSettings;
-using UnityEngine.Experimental.Rendering;
+using static UnityEngine.Rendering.HighDefinition.RenderPipelineSettings;
+using UnityEngine.Rendering;
 
-namespace UnityEditor.Experimental.Rendering.HDPipeline
+namespace UnityEditor.Rendering.HighDefinition
 {
     static partial class HDRenderPipelineUI
     {
@@ -20,9 +20,15 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         static readonly GUIContent k_DecalsSubTitle = EditorGUIUtility.TrTextContent("Decals");
         static readonly GUIContent k_DecalsMetalAndAOSubTitle = EditorGUIUtility.TrTextContent("Decals Metal And AO");
         static readonly GUIContent k_ShadowSubTitle = EditorGUIUtility.TrTextContent("Shadow");
+        static readonly GUIContent k_DirectionalShadowsSubTitle = EditorGUIUtility.TrTextContent("Directional Light Shadows");
+        static readonly GUIContent k_PunctualShadowsSubTitle = EditorGUIUtility.TrTextContent("Punctual Light Shadows");
+        static readonly GUIContent k_AreaShadowsSubTitle = EditorGUIUtility.TrTextContent("Area Light Shadows");
         static readonly GUIContent k_ShadowPunctualLightAtlasSubTitle = EditorGUIUtility.TrTextContent("Punctual Lights Atlas");
         static readonly GUIContent k_ScreenSpaceShadowsTitle = EditorGUIUtility.TrTextContent("Screen Space Shadows");
         static readonly GUIContent k_ShadowAreaLightAtlasSubTitle = EditorGUIUtility.TrTextContent("Area Lights Atlas");
+        static readonly GUIContent k_PunctualLightsShadowTiers = EditorGUIUtility.TrTextContent("Punctual Shadow Resolution Tiers");
+        static readonly GUIContent k_AreaLightsShadowTiers = EditorGUIUtility.TrTextContent("Area Shadow Resolution Tiers");
+        static readonly GUIContent k_DirectionalLightsShadowTiers = EditorGUIUtility.TrTextContent("Directional Shadow Resolution Tiers");
         static readonly GUIContent k_DynamicResolutionSubTitle = EditorGUIUtility.TrTextContent("Dynamic resolution");
         static readonly GUIContent k_LowResTransparencySubTitle = EditorGUIUtility.TrTextContent("Low res Transparency");
 
@@ -50,6 +56,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         static readonly GUIContent k_SupportMotionVectorContent = EditorGUIUtility.TrTextContent("Motion Vectors", "When enabled, HDRP allocates memory for processing motion vectors which it uses for Motion Blur, TAA, and temporal re-projection of various effect like SSR.");
         static readonly GUIContent k_SupportRuntimeDebugDisplayContent = EditorGUIUtility.TrTextContent("Runtime Debug Display", "When disabled, HDRP removes all debug display Shader variants when you build for the Unity Player. This decreases build time.");
         static readonly GUIContent k_SupportDitheringCrossFadeContent = EditorGUIUtility.TrTextContent("Dithering Cross-fade", "When disabled, HDRP removes all dithering cross fade Shader variants when you build for the Unity Player. This decreases build time.");
+        static readonly GUIContent k_SupportTerrainHoleContent = EditorGUIUtility.TrTextContent("Terrain Hole", "When disabled, HDRP removes all Terrain hole Shader variants when you build for the Unity Player. This decreases build time.");
         static readonly GUIContent k_SupportDistortion = EditorGUIUtility.TrTextContent("Distortion", "When disabled, HDRP removes all distortion Shader variants when you build for the Unity Player. This decreases build time.");
         static readonly GUIContent k_SupportTransparentBackface = EditorGUIUtility.TrTextContent("Transparent Backface", "When disabled, HDRP removes all transparent backface Shader variants when you build for the Unity Player. This decreases build time.");
         static readonly GUIContent k_SupportTransparentDepthPrepass = EditorGUIUtility.TrTextContent("Transparent Depth Prepass", "When disabled, HDRP removes all transparent depth prepass Shader variants when you build for the Unity Player. This decreases build time.");
@@ -92,15 +99,21 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         static readonly GUIContent k_PrecisionContent = EditorGUIUtility.TrTextContent("Precision", "Select the shadow map bit depth, this forces HDRP to use selected bit depth for shadow maps.");
         static readonly GUIContent k_DynamicRescaleContent = EditorGUIUtility.TrTextContent("Dynamic Rescale", "When enabled, scales the shadow map size using the screen size of the Light to leave more space for other shadows in the atlas.");
         static readonly GUIContent k_MaxRequestContent = EditorGUIUtility.TrTextContent("Maximum Shadows on Screen", "Sets the maximum number of shadows HDRP can handle on screen at once. See the documentation for details on how many shadows each light type casts.");
+        static readonly GUIContent k_MaxResolutionContent = EditorGUIUtility.TrTextContent("Max Resolution", "Specifies the maximum resolution that each shadow map can have.");
+        static readonly GUIContent k_LowQualityContent = EditorGUIUtility.TrTextContent("Low", "Specifies the resolution of the shadows set to low quality.");
+        static readonly GUIContent k_MediumQualityContent = EditorGUIUtility.TrTextContent("Medium", "Specifies the resolution of the shadows set to medium quality.");
+        static readonly GUIContent k_HighQualityContent = EditorGUIUtility.TrTextContent("High", "Specifies the resolution of the shadows set to high quality.");
+        static readonly GUIContent k_VeryHighQualityContent = EditorGUIUtility.TrTextContent("Very High", "Specifies the resolution of the shadows set to very high quality.");
 
         static readonly GUIContent k_SupportScreenSpaceShadows = EditorGUIUtility.TrTextContent("Support Screen Space Shadows", "Enables the support of screen space shadows in HDRP.");
         static readonly GUIContent k_MaxScreenSpaceShadows = EditorGUIUtility.TrTextContent("Maximum Screen Space Shadows", "Sets the maximum number of screen space shadows HDRP can handle on screen at once.");
+        static readonly GUIContent k_MaxShadowResolution = EditorGUIUtility.TrTextContent("Max shadow resolution", "Specifies the maximum resolution for any single shadow map.");
 
         static readonly GUIContent k_DrawDistanceContent = EditorGUIUtility.TrTextContent("Draw Distance", "Sets the maximum distance from the Camera at which HDRP draws Decals.");
         static readonly GUIContent k_AtlasWidthContent = EditorGUIUtility.TrTextContent("Atlas Width", "Sets the width of the Decal Atlas.");
         static readonly GUIContent k_AtlasHeightContent = EditorGUIUtility.TrTextContent("Atlas Height", "Sets the height of the Decal Atlas.");
         static readonly GUIContent k_MetalAndAOContent = EditorGUIUtility.TrTextContent("Metal and Ambient Occlusion Properties", "When enabled, Decals affect metal and ambient occlusion properties.");
-        static readonly GUIContent k_FilteringQuality = EditorGUIUtility.TrTextContent("Filtering Qualities", "Specifies the quality of shadows. See the documentation for details on the algorithm HDRP uses for each preset. (Unsupported in Deferred Only)");
+        static readonly GUIContent k_FilteringQuality = EditorGUIUtility.TrTextContent("Filtering Quality", "Specifies the quality of shadows. See the documentation for details on the algorithm HDRP uses for each preset. (Unsupported in Deferred Only)");
 
         static readonly GUIContent k_Enabled = EditorGUIUtility.TrTextContent("Enable", "When enabled, HDRP dynamically lowers the resolution of render targets to reduce the workload on the GPU.");
         static readonly GUIContent k_MaxPercentage = EditorGUIUtility.TrTextContent("Maximum Screen Percentage", "Sets the maximum screen percentage that dynamic resolution can reach.");
@@ -142,6 +155,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             { k_SupportMotionVectorContent         , memoryDrawback },
             { k_SupportRuntimeDebugDisplayContent  , shaderVariantDrawback },
             { k_SupportDitheringCrossFadeContent   , shaderVariantDrawback },
+            { k_SupportTerrainHoleContent          , shaderVariantDrawback },
             { k_SupportDistortion                  , "" },
             { k_SupportTransparentBackface         , shaderVariantDrawback },
             { k_SupportTransparentDepthPrepass     , shaderVariantDrawback },

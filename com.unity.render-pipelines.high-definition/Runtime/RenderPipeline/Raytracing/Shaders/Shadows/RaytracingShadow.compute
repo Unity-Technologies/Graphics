@@ -153,9 +153,7 @@ void RaytracingAreaShadowPrepass(uint2 groupThreadId : SV_GroupThreadID, uint2 g
     int globalSampleIndex = _RaytracingFrameIndex * _RaytracingNumSamples;
 
     // Generate the new sample (follwing values of the sequence)
-    float2 noiseValue = float2(0.0, 0.0);
-    misInput.noiseValue.x = GetRaytracingNoiseSample(globalSampleIndex, 0, scramblingValue.x);
-    misInput.noiseValue.y = GetRaytracingNoiseSample(globalSampleIndex, 1, scramblingValue.y);
+    misInput.noiseValue = GetRaytracingNoiseSampleRG(globalSampleIndex, scramblingValue);
     // Pick the sampling technique
     EvaluateMISTechnique(misInput);
 
@@ -293,9 +291,7 @@ void RaytracingAreaShadowNewSample(uint2 groupThreadId : SV_GroupThreadID, uint2
     int globalSampleIndex = _RaytracingFrameIndex * _RaytracingNumSamples + _RaytracingSampleIndex;
 
     // Generate the new sample (follwing values of the sequence)
-    float2 noiseValue = float2(0.0, 0.0);
-    misInput.noiseValue.x = GetRaytracingNoiseSample(globalSampleIndex, 0, scramblingValue.x);
-    misInput.noiseValue.y = GetRaytracingNoiseSample(globalSampleIndex, 1, scramblingValue.y);
+    misInput.noiseValue = GetRaytracingNoiseSampleRG(globalSampleIndex, scramblingValue);
 
     // Pick the sampling technique
     EvaluateMISTechnique(misInput);
@@ -400,9 +396,7 @@ void RaytracingDirectionalShadowSample(uint2 groupThreadId : SV_GroupThreadID, u
     int globalSampleIndex = _RaytracingFrameIndex * _RaytracingNumSamples + _RaytracingSampleIndex;
 
     // Generate the new sample (follwing values of the sequence)
-    float2 noiseValue = float2(0.0, 0.0);
-    noiseValue.x = GetRaytracingNoiseSample(globalSampleIndex, 0, scramblingValue.x);
-    noiseValue.y = GetRaytracingNoiseSample(globalSampleIndex, 1, scramblingValue.y);
+    float2 noiseValue = GetRaytracingNoiseSampleRG(globalSampleIndex, scramblingValue);
 
     // Create the local ortho basis
     float3x3 localToWorld = GetLocalFrame(-lightData.forward);

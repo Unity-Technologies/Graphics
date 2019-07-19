@@ -1,13 +1,12 @@
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Experimental.Rendering;
-using UnityEngine.Experimental.Rendering.HDPipeline;
 using UnityEngine.Rendering;
+using UnityEngine.Rendering.HighDefinition;
 
-namespace UnityEditor.Experimental.Rendering.HDPipeline
+namespace UnityEditor.Rendering.HighDefinition
 {
     [LightingExplorerExtensionAttribute(typeof(HDRenderPipelineAsset))]
-    public class HDLightExplorerExtension : DefaultLightingExplorerExtension
+    class HDLightExplorerExtension : DefaultLightingExplorerExtension
     {
         struct LightData
         {
@@ -73,7 +72,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public static readonly GUIContent ColorTemperature = EditorGUIUtility.TrTextContent("Color Temperature");
             public static readonly GUIContent Shadows = EditorGUIUtility.TrTextContent("Shadows");
             public static readonly GUIContent ContactShadows = EditorGUIUtility.TrTextContent("Contact Shadows");
-            public static readonly GUIContent ShadowResolution = EditorGUIUtility.TrTextContent("Shadows Resolution");
+            public static readonly GUIContent ShadowResolutionTier = EditorGUIUtility.TrTextContent("Shadows Resolution");
+            public static readonly GUIContent UseShadowQualitySettings = EditorGUIUtility.TrTextContent("Use Shadow Quality Settings");
+            public static readonly GUIContent CustomShadowResolution = EditorGUIUtility.TrTextContent("Shadow Resolution");
             public static readonly GUIContent ShapeWidth = EditorGUIUtility.TrTextContent("Shape Width");
             public static readonly GUIContent VolumeProfile = EditorGUIUtility.TrTextContent("Volume Profile");
             public static readonly GUIContent ColorTemperatureMode = EditorGUIUtility.TrTextContent("Use Color Temperature");
@@ -242,7 +243,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                         lightDataPairing[light].hdAdditionalLightData.contactShadows = contactShadows;
                     }
                 }),
-                new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Int, HDStyles.ShadowResolution, "m_Intensity", 60, (r, prop, dep) =>           // 13: Shadow resolution
+                new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Checkbox, HDStyles.UseShadowQualitySettings, "m_Intensity", 60, (r, prop, dep) =>           // 13: Use Custom Shadow Res
                 {
                     Light light = prop.serializedObject.targetObject as Light;
                     if(light == null || lightDataPairing[light].hdAdditionalLightData == null)
@@ -250,15 +251,48 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                         EditorGUI.LabelField(r,"null");
                         return;
                     }
-                    int shadowResolution = lightDataPairing[light].hdAdditionalLightData.shadowResolution;
+                    bool useQualitySettings = lightDataPairing[light].hdAdditionalLightData.useShadowQualitySettings;
                     EditorGUI.BeginChangeCheck();
-                    shadowResolution = EditorGUI.IntField(r, shadowResolution);
+                    useQualitySettings = EditorGUI.Toggle(r, useQualitySettings);
                     if (EditorGUI.EndChangeCheck())
                     {
-                        lightDataPairing[light].hdAdditionalLightData.shadowResolution = shadowResolution;
+                        lightDataPairing[light].hdAdditionalLightData.useShadowQualitySettings = useQualitySettings;
                     }
                 }),
-                new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Checkbox, HDStyles.AffectDiffuse, "m_Intensity", 90, (r, prop, dep) =>         // 14: Affect Diffuse
+                new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Enum, HDStyles.ShadowResolutionTier, "m_Intensity", 60, (r, prop, dep) =>           // 14: Shadow tiers
+                {
+                    Light light = prop.serializedObject.targetObject as Light;
+                    if(light == null || lightDataPairing[light].hdAdditionalLightData == null)
+                    {
+                        EditorGUI.LabelField(r,"null");
+                        return;
+                    }
+                    ShadowResolutionTier resTier = lightDataPairing[light].hdAdditionalLightData.shadowResolutionTier;
+                    EditorGUI.BeginChangeCheck();
+                    resTier = (ShadowResolutionTier)EditorGUI.EnumPopup(r, resTier);
+                    if (EditorGUI.EndChangeCheck())
+                    {
+                        lightDataPairing[light].hdAdditionalLightData.shadowResolutionTier = resTier;
+                    }
+                }),
+
+                new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Int, HDStyles.CustomShadowResolution, "m_Intensity", 60, (r, prop, dep) =>           // 15: Custom Shadow resolution
+                {
+                    Light light = prop.serializedObject.targetObject as Light;
+                    if(light == null || lightDataPairing[light].hdAdditionalLightData == null)
+                    {
+                        EditorGUI.LabelField(r,"null");
+                        return;
+                    }
+                    int customResolution = lightDataPairing[light].hdAdditionalLightData.customResolution;
+                    EditorGUI.BeginChangeCheck();
+                    customResolution = EditorGUI.IntField(r, customResolution);
+                    if (EditorGUI.EndChangeCheck())
+                    {
+                        lightDataPairing[light].hdAdditionalLightData.customResolution = customResolution;
+                    }
+                }),
+                new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Checkbox, HDStyles.AffectDiffuse, "m_Intensity", 90, (r, prop, dep) =>         // 16: Affect Diffuse
                 {
                     Light light = prop.serializedObject.targetObject as Light;
                     if(light == null || lightDataPairing[light].hdAdditionalLightData == null)
@@ -274,7 +308,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                         lightDataPairing[light].hdAdditionalLightData.affectDiffuse = affectDiffuse;
                     }
                 }),
-                new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Checkbox, HDStyles.AffectSpecular, "m_Intensity", 90, (r, prop, dep) =>        // 15: Affect Specular
+                new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Checkbox, HDStyles.AffectSpecular, "m_Intensity", 90, (r, prop, dep) =>        // 17: Affect Specular
                 {
                     Light light = prop.serializedObject.targetObject as Light;
                     if(light == null || lightDataPairing[light].hdAdditionalLightData == null)
@@ -290,7 +324,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                         lightDataPairing[light].hdAdditionalLightData.affectSpecular = affectSpecular;
                     }
                 }),
-                new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Float, HDStyles.FadeDistance, "m_Intensity", 60, (r, prop, dep) =>                // 16: Fade Distance
+                new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Float, HDStyles.FadeDistance, "m_Intensity", 60, (r, prop, dep) =>                // 18: Fade Distance
                 {
                     Light light = prop.serializedObject.targetObject as Light;
                     if(light == null || lightDataPairing[light].hdAdditionalLightData == null)
@@ -307,7 +341,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                         lightDataPairing[light].hdAdditionalLightData.fadeDistance = fadeDistance;
                     }
                 }),
-                new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Float, HDStyles.ShadowFadeDistance, "m_Intensity", 60, (r, prop, dep) =>           // 17: Shadow Fade Distance
+                new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Float, HDStyles.ShadowFadeDistance, "m_Intensity", 60, (r, prop, dep) =>           // 19: Shadow Fade Distance
                 {
                     Light light = prop.serializedObject.targetObject as Light;
                     if(light == null || lightDataPairing[light].hdAdditionalLightData == null)
@@ -324,14 +358,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                         lightDataPairing[light].hdAdditionalLightData.shadowFadeDistance = shadowFadeDistance;
                     }
                 }),
-                new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Custom, HDStyles.LightLayer, "m_RenderingLayerMask", 80, (r, prop, dep) =>     // 18: Light Layer
+                new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Custom, HDStyles.LightLayer, "m_RenderingLayerMask", 80, (r, prop, dep) =>     // 20: Light Layer
                 {
                     using (new EditorGUI.DisabledScope(!(GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset).currentPlatformRenderPipelineSettings.supportLightLayers))
                     {
                         HDEditorUtils.LightLayerMaskPropertyDrawer(r,prop);
                     }
                 }),
-                new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Custom, HDStyles.IsPrefab, "m_Intensity", 60, (r, prop, dep) =>                // 19: Prefab
+                new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Custom, HDStyles.IsPrefab, "m_Intensity", 60, (r, prop, dep) =>                // 21: Prefab
                 {
                     Light light = prop.serializedObject.targetObject as Light;
                     if(light == null)

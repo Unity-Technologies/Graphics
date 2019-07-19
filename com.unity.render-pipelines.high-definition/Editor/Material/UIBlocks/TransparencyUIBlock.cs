@@ -1,15 +1,15 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Experimental.Rendering.HDPipeline;
+using UnityEngine.Rendering.HighDefinition;
 using System.Linq;
 
 // Include material common properties names
-using static UnityEngine.Experimental.Rendering.HDPipeline.HDMaterialProperties;
+using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
 
-namespace UnityEditor.Experimental.Rendering.HDPipeline
+namespace UnityEditor.Rendering.HighDefinition
 {
-    public class TransparencyUIBlock : MaterialUIBlock
+    class TransparencyUIBlock : MaterialUIBlock
     {
         [Flags]
         public enum Features
@@ -47,7 +47,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             // Disable the block if one of the materials is not transparent:
             if (materials.Any(material => material.GetSurfaceType() != SurfaceType.Transparent))
                 return ;
-            
+
             using (var header = new MaterialHeaderScope(Styles.header, (uint)m_ExpandableBit, materialEditor))
             {
                 if (header.expanded)

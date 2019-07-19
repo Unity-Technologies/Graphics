@@ -1,10 +1,10 @@
 using System;
 using System.Linq.Expressions;
 using UnityEngine;
-using UnityEngine.Experimental.Rendering.HDPipeline;
+using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.Rendering;
 
-namespace UnityEditor.Experimental.Rendering.HDPipeline
+namespace UnityEditor.Rendering.HighDefinition
 {
     using CED = CoreEditorDrawer<SerializedHDLight>;
 
@@ -114,11 +114,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                             CED.Conditional((serialized, owner) => GetAdvanced(Advanceable.Shadow, serialized, owner) && k_ExpandedState[Expandable.ShadowMap],
                                 CED.Group(GroupOption.Indent, DrawShadowMapAdvancedContent)),
                             CED.space,
-                            CED.Conditional((serialized, owner) => HasShadowQualitySettingsUI(HDShadowQuality.High, serialized, owner),
+                            CED.Conditional((serialized, owner) => HasShadowQualitySettingsUI(HDShadowFilteringQuality.High, serialized, owner),
                                 CED.FoldoutGroup(s_Styles.highShadowQualitySubHeader, Expandable.ShadowQuality, k_ExpandedState, FoldoutOption.SubFoldout | FoldoutOption.Indent, DrawHighShadowSettingsContent)),
-                            CED.Conditional((serialized, owner) => HasShadowQualitySettingsUI(HDShadowQuality.Medium, serialized, owner),
+                            CED.Conditional((serialized, owner) => HasShadowQualitySettingsUI(HDShadowFilteringQuality.Medium, serialized, owner),
                                 CED.FoldoutGroup(s_Styles.mediumShadowQualitySubHeader, Expandable.ShadowQuality, k_ExpandedState, FoldoutOption.SubFoldout | FoldoutOption.Indent, DrawMediumShadowSettingsContent)),
-                            CED.Conditional((serialized, owner) => HasShadowQualitySettingsUI(HDShadowQuality.Low, serialized, owner),
+                            CED.Conditional((serialized, owner) => HasShadowQualitySettingsUI(HDShadowFilteringQuality.Low, serialized, owner),
                                 CED.FoldoutGroup(s_Styles.lowShadowQualitySubHeader, Expandable.ShadowQuality, k_ExpandedState, FoldoutOption.SubFoldout | FoldoutOption.Indent, DrawLowShadowSettingsContent)),
 
                             CED.Conditional((serialized, owner) => serialized.editorLightShape != LightShape.Rectangle && serialized.editorLightShape != LightShape.Tube,
@@ -592,11 +592,19 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                         EditorGUILayout.PropertyField(serialized.serializedLightData.shadowUpdateMode, s_Styles.shadowUpdateMode);
                     }
 
+                    EditorGUILayout.PropertyField(serialized.serializedLightData.useShadowQualitySettings, s_Styles.useShadowQualityResolution);
+
+                    if (serialized.serializedLightData.useShadowQualitySettings.boolValue)
+                        EditorGUILayout.PropertyField(serialized.serializedLightData.shadowResolutionTier, s_Styles.shadowResolution);
+
                     using (var change = new EditorGUI.ChangeCheckScope())
                     {
-                        EditorGUILayout.DelayedIntField(serialized.serializedLightData.resolution, s_Styles.shadowResolution);
-                        if (change.changed)
-                            serialized.serializedLightData.resolution.intValue = Mathf.Max(HDShadowManager.k_MinShadowMapResolution, serialized.serializedLightData.resolution.intValue);
+                        if (!serialized.serializedLightData.useShadowQualitySettings.boolValue)
+                        {
+                            EditorGUILayout.DelayedIntField(serialized.serializedLightData.customResolution, s_Styles.shadowResolution);
+                            if (change.changed)
+                                serialized.serializedLightData.customResolution.intValue = Mathf.Max(HDShadowManager.k_MinShadowMapResolution, serialized.serializedLightData.customResolution.intValue);
+                        }
                     }
 
                     EditorGUILayout.Slider(serialized.serializedLightData.shadowNearPlane, HDShadowUtils.k_MinShadowNearPlane, HDShadowUtils.k_MaxShadowNearPlane, s_Styles.shadowNearPlane);
@@ -750,18 +758,18 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         }
 
 
-        static bool HasShadowQualitySettingsUI(HDShadowQuality quality, SerializedHDLight serialized, Editor owner)
+        static bool HasShadowQualitySettingsUI(HDShadowFilteringQuality quality, SerializedHDLight serialized, Editor owner)
         {
             // Handle quality where there is nothing to draw directly here
             // No PCSS for now with directional light
-            if (quality == HDShadowQuality.Medium || quality == HDShadowQuality.Low)
+            if (quality == HDShadowFilteringQuality.Medium || quality == HDShadowFilteringQuality.Low)
                 return false;
 
             // Draw shadow settings using the current shadow algorithm
             HDShadowInitParameters hdShadowInitParameters = (GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset).currentPlatformRenderPipelineSettings.hdShadowInitParams;
             LightType lightType = (LightType)serialized.settings.lightType.enumValueIndex;
 
-            return hdShadowInitParameters.shadowQuality == quality;
+            return hdShadowInitParameters.shadowFilteringQuality == quality;
         }
 
         static void ApplyEditorLightShape(SerializedHDLight serialized, Editor owner)
@@ -778,6 +786,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     break;
                 case LightShape.Spot:
                     serialized.settings.lightType.enumValueIndex = (int)LightType.Spot;
+                    serialized.settings.lightShape.enumValueIndex = serialized.serializedLightData.spotLightShape.enumValueIndex;
                     serialized.serializedLightData.lightTypeExtent.enumValueIndex = (int)LightTypeExtent.Punctual;
                     break;
                 case LightShape.Rectangle:

@@ -1,7 +1,6 @@
 using System;
-using UnityEngine.Rendering;
 
-namespace UnityEngine.Experimental.Rendering.HDPipeline
+namespace UnityEngine.Rendering.HighDefinition
 {
     [Serializable, VolumeComponentMenu("Post-processing/Shadows, Midtones, Highlights")]
     public sealed class ShadowsMidtonesHighlights : VolumeComponent, IPostProcessComponent
@@ -17,13 +16,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         [Tooltip("Sets the start point of the transition between shadows and midtones.")]
         public MinFloatParameter shadowsStart = new MinFloatParameter(0f, 0f);
-        
+
         [Tooltip("Sets the end point of the transition between shadows and midtones.")]
         public MinFloatParameter shadowsEnd = new MinFloatParameter(0.3f, 0f);
-        
+
         [Tooltip("Sets the start point of the transition between midtones and highlights.")]
         public MinFloatParameter highlightsStart = new MinFloatParameter(0.55f, 0f);
-        
+
         [Tooltip("Sets the end point of the transition between midtones and highlights.")]
         public MinFloatParameter highlightsEnd = new MinFloatParameter(1f, 0f);
 

@@ -657,6 +657,7 @@ namespace UnityEditor.VFX.UI
                         if (targetData != null)
                         {
                             PasteModelSettings(targetData, data.settings, targetData.GetType());
+                            targetData.Invalidate(VFXModel.InvalidationCause.kSettingChanged);
                         }
                     }
                 }

@@ -1,6 +1,6 @@
 using System;
 
-namespace UnityEngine.Experimental.Rendering.HDPipeline
+namespace UnityEngine.Rendering.HighDefinition
 {
     /// <summary>Utilities for <see cref="CameraSettings"/>.</summary>
     public static class CameraSettingsUtilities
@@ -13,7 +13,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             var add = cam.GetComponent<HDAdditionalCameraData>()
                 ?? cam.gameObject.AddComponent<HDAdditionalCameraData>();
 
-            // FrameSettings 
+            // FrameSettings
             add.defaultFrameSettings = settings.defaultFrameSettings;
             add.renderingPathCustomFrameSettings = settings.renderingPathCustomFrameSettings;
             add.renderingPathCustomFrameSettingsOverrideMask = settings.renderingPathCustomFrameSettingsOverrideMask;

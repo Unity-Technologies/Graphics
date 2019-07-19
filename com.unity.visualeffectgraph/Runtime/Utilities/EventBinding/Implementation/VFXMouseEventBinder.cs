@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace UnityEngine.Experimental.VFX.Utility
+namespace UnityEngine.VFX.Utility
 {
     [RequireComponent(typeof(Collider))]
     public class VFXMouseEventBinder : VFXEventBinderBase
@@ -19,7 +19,7 @@ namespace UnityEngine.Experimental.VFX.Utility
 
         public Activation activation = Activation.OnMouseDown;
 
-        private ExposedParameter position = "position";
+        private ExposedProperty position = "position";
 
         [Tooltip("Computes intersection in world space and sets it to the position EventAttribute")]
         public bool RaycastMousePosition = false;

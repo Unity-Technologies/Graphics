@@ -58,7 +58,7 @@ int _RaytracingHalfResolution;
 [shader("miss")]
 void MissShaderGBuffer(inout RayIntersectionGBuffer rayIntersection : SV_RayPayload)
 {
-    if(_RaytracingReflectSky != 0)
+    if(_RaytracingIncludeSky != 0)
     {
         rayIntersection.gBufferData.gbuffer3 = SAMPLE_TEXTURECUBE_ARRAY_LOD(_SkyTexture, s_trilinear_clamp_sampler, rayIntersection.incidentDirection, 0.0f, 0);
     }
@@ -127,7 +127,7 @@ void RayGenGBuffer()
 
     // In order to achieve filtering for the textures, we need to compute the spread angle of the pixel
     float roughness = PerceptualRoughnessToRoughness(normalData.perceptualRoughness);
-    rayIntersection.cone.spreadAngle = _RaytracingPixelSpreadAngle + roughnessToSpreadAngle(roughness);
+    rayIntersection.cone.spreadAngle = _RaytracingPixelSpreadAngle + roughnessToSpreadAngle(_RaytracingDiffuseRay ? 1.0 : roughness);
     rayIntersection.cone.width = distanceToCamera * _RaytracingPixelSpreadAngle;
 
     // Evaluate the ray visibility term and PDF
@@ -226,7 +226,7 @@ void RayGenGBufferBinned()
 
     // In order to achieve filtering for the textures, we need to compute the spread angle of the pixel
     float roughness = PerceptualRoughnessToRoughness(normalData.perceptualRoughness);
-    rayIntersection.cone.spreadAngle = _RaytracingPixelSpreadAngle + roughnessToSpreadAngle(roughness);
+    rayIntersection.cone.spreadAngle = _RaytracingPixelSpreadAngle + roughnessToSpreadAngle(_RaytracingDiffuseRay ? 1.0 : roughness);
     rayIntersection.cone.width = distanceToCamera * _RaytracingPixelSpreadAngle;
 
     // Evaluate the ray visibility term and PDF

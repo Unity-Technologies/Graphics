@@ -324,6 +324,8 @@ Material:
     - _AlphaCutoffEnable: 0
     - _AlphaCutoffPostpass: 0.5
     - _AlphaCutoffPrepass: 0.5
+    - _AlphaDstBlend: 0
+    - _AlphaSrcBlend: 1
     - _AmbientOcclusion: 1
     - _AmbientOcclusionMapChannel: 1
     - _AmbientOcclusionMapSamplerSharingOptout: 0
@@ -601,6 +603,7 @@ Material:
     - _RefractionMode: 0
     - _RefractionModel: 0
     - _RefractionSSRayModel: 0
+    - _RequireSplitLighting: 0
     - _SSRefractionProjectionModel: 0
     - _SSSAndTransmissionType: 0
     - _SSSShow: 1
@@ -650,8 +653,14 @@ Material:
     - _StencilDepthPrepassRef: 16
     - _StencilDepthPrepassWriteMask: 16
     - _StencilRef: 2
+    - _StencilRefDepth: 0
+    - _StencilRefDistortionVec: 64
+    - _StencilRefGBuffer: 2
     - _StencilRefMV: 128
     - _StencilWriteMask: 7
+    - _StencilWriteMaskDepth: 32
+    - _StencilWriteMaskDistortionVec: 64
+    - _StencilWriteMaskGBuffer: 3
     - _StencilWriteMaskMV: 128
     - _Stiffness: 1
     - _SubSurfaceRadius: 0
@@ -691,6 +700,7 @@ Material:
     - _TransmissionEnable: 1
     - _TransmissionShow: 1
     - _TransparentBackfaceEnable: 0
+    - _TransparentCullMode: 2
     - _TransparentDepthPostpassEnable: 0
     - _TransparentDepthPrepassEnable: 0
     - _TransparentSortPriority: 0
@@ -699,12 +709,14 @@ Material:
     - _UVEmissive: 0
     - _UVMappingPlanar: 0
     - _UVSec: 0
+    - _UseShadowThreshold: 0
     - _VlayerRecomputePerLight: 1
     - _VlayerUseRefractedAnglesForBase: 0
     - _ZTestDepthEqualForOpaque: 3
     - _ZTestGBuffer: 4
     - _ZTestMode: 8
     - _ZTestModeDistortion: 8
+    - _ZTestTransparent: 4
     - _ZWrite: 1
     m_Colors:
     - Color_5FC1B474: {r: 0, g: 0.75, b: 0.10000008, a: 1}

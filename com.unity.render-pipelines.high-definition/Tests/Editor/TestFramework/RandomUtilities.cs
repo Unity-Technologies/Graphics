@@ -2,9 +2,9 @@ using NUnit.Framework;
 using System;
 using UnityEngine;
 
-namespace UnityEditor.Experimental.Rendering.TestFramework
+namespace UnityEditor.Rendering.TestFramework
 {
-    public static class RandomUtilities
+    static class RandomUtilities
     {
         public static float RandomFloat(float i, float seed)
         {
