@@ -48,6 +48,18 @@
     #define APPLY_NORMALS_LIGHTING(input, lightColor)
 #endif
 
+#define SHADOW_COORDS(TEXCOORDA)\
+    float2  shadowUV    : TEXCOORDA;
+
+#define SHADOW_VARIABLES\
+    float  _ShadowIntensity;\
+    TEXTURE2D(_ShadowTex);\
+    SAMPLER(sampler_ShadowTex);
+
+#define APPLY_SHADOWS(input, color)\
+    half4 shadow = saturate(SAMPLE_TEXTURE2D(_ShadowTex, sampler_ShadowTex, input.shadowUV)); \
+    half  shadowIntensity = 1 - (shadow.r * saturate(2 * shadow.g) * (1 - shadow.b)); \
+    return (color * shadowIntensity) + (color * _ShadowIntensity*(1 - shadowIntensity));
 
 #define SHAPE_LIGHT(index)\
     TEXTURE2D(_ShapeLightTexture##index);\

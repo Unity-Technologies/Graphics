@@ -5,9 +5,7 @@ using UnityEngine;
 
 namespace UnityEngine.Experimental.Rendering.Universal
 {
-    [ExecuteAlways, DisallowMultipleComponent]
-    [AddComponentMenu("Rendering/2D/Shadow Caster 2D (Experimental)")]
-    public class ShadowCaster2D : MonoBehaviour
+    public abstract class ShadowCaster2D : MonoBehaviour
     {
         public float m_Radius = 1;
         public int m_Sides = 6;
@@ -172,4 +170,4 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 CreateShadowPolygon(Vector3.zero, m_Radius, m_Angle, m_Sides, ref m_Mesh);
         }
     }
-}   
+}

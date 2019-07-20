@@ -42,7 +42,8 @@ Shader "Hidden/Light2D-Shape"
                 float4  positionCS  : SV_POSITION;
                 float4  color       : COLOR;
                 float2  uv          : TEXCOORD0;
-                float2  shadowUV    : TEXCOORD1;
+
+                SHADOW_COORDS(TEXCOORD1)
                 NORMALS_LIGHTING_COORDS(TEXCOORD2, TEXCOORD3)
             };
 
@@ -50,10 +51,6 @@ Shader "Hidden/Light2D-Shape"
             float4 _LightColor;
             float  _FalloffDistance;
             float4 _FalloffOffset;
-            float  _ShadowIntensity;
-
-            TEXTURE2D(_ShadowTex);
-            SAMPLER(sampler_ShadowTex);
 
 #ifdef SPRITE_LIGHT
             TEXTURE2D(_CookieTex);			// This can either be a sprite texture uv or a falloff texture
@@ -64,6 +61,7 @@ Shader "Hidden/Light2D-Shape"
             SAMPLER(sampler_FalloffLookup);
 #endif
             NORMALS_LIGHTING_VARIABLES
+            SHADOW_VARIABLES
 
             Varyings vert(Attributes attributes)
             {
@@ -113,10 +111,7 @@ Shader "Hidden/Light2D-Shape"
     #endif
 #endif
                 APPLY_NORMALS_LIGHTING(i, color);
-
-                half4 shadow = saturate(SAMPLE_TEXTURE2D(_ShadowTex, sampler_ShadowTex, i.shadowUV));  // We shouldn't need saturate...
-                half  shadowIntensity = 1 - (shadow.r * saturate(2*shadow.g) * (1-shadow.b));
-                return (color * shadowIntensity) + (color * _ShadowIntensity*(1-shadowIntensity)) ;
+                APPLY_SHADOWS(i, color);
             }
             ENDHLSL
         }
