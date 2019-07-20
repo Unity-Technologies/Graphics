@@ -176,6 +176,8 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         [Range(0,1)]
         [SerializeField] float m_ShadowIntensity    = 0.0f;
+        [Range(0,1)]
+        [SerializeField] float m_ShadowVolumeIntensity = 0.0f;
 
         internal struct LightStats
         {
@@ -202,6 +204,8 @@ namespace UnityEngine.Experimental.Rendering.Universal
         /// Specifies the darkness of the shadow
         /// </summary>
         public float shadowIntensity { get => m_ShadowIntensity; set => m_ShadowIntensity = Mathf.Clamp01(value); }
+
+        public float shadowVolumeIntensity { get => m_ShadowVolumeIntensity; set => m_ShadowVolumeIntensity = Mathf.Clamp01(value); }
 
 
         /// <summary>

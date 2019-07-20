@@ -225,6 +225,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                             if (light.lightType == Light2D.LightType.Sprite && light.lightCookieSprite != null && light.lightCookieSprite.texture != null)
                                 cmdBuffer.SetGlobalTexture("_CookieTex", light.lightCookieSprite.texture);
 
+                            cmdBuffer.SetGlobalFloat("_ShadowVolumeIntensity", 1 - light.shadowVolumeIntensity);
                             cmdBuffer.SetGlobalFloat("_FalloffIntensity", light.falloffIntensity);
                             cmdBuffer.SetGlobalFloat("_FalloffDistance", light.shapeLightFalloffSize);
                             cmdBuffer.SetGlobalVector("_FalloffOffset", light.shapeLightFalloffOffset);

@@ -74,6 +74,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
             public static GUIContent generalLightOverlapMode = EditorGUIUtility.TrTextContent("Alpha Blend on Overlap", "Use alpha blending instead of additive blending when this light overlaps others");
             public static GUIContent generalLightOrder = EditorGUIUtility.TrTextContent("Light Order", "The relative order in which lights of the same blend style get rendered.");
             public static GUIContent generalShadowIntensity = EditorGUIUtility.TrTextContent("Shadow Intensity", "Specify the shadow's darkness");
+            public static GUIContent generalShadowVolumeIntensity = EditorGUIUtility.TrTextContent("Shadow Volume Intensity", "Specify the shadow volume's darkness");
 
 
             public static GUIContent pointLightQuality = EditorGUIUtility.TrTextContent("Quality", "Use accurate if there are noticeable visual issues");
@@ -112,6 +113,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
         SerializedProperty m_LightIntensity;
         SerializedProperty m_UseNormalMap;
         SerializedProperty m_ShadowIntensity;
+        SerializedProperty m_ShadowVolumeIntensity;
         SerializedProperty m_ApplyToSortingLayers;
         SerializedProperty m_VolumetricAlpha;
         SerializedProperty m_BlendStyleIndex;
@@ -197,6 +199,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
             m_LightIntensity = serializedObject.FindProperty("m_Intensity");
             m_UseNormalMap = serializedObject.FindProperty("m_UseNormalMap");
             m_ShadowIntensity = serializedObject.FindProperty("m_ShadowIntensity");
+            m_ShadowVolumeIntensity = serializedObject.FindProperty("m_ShadowVolumeIntensity");
             m_ApplyToSortingLayers = serializedObject.FindProperty("m_ApplyToSortingLayers");
             m_VolumetricAlpha = serializedObject.FindProperty("m_LightVolumeOpacity");
             m_BlendStyleIndex = serializedObject.FindProperty("m_BlendStyleIndex");
@@ -722,7 +725,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
 
             if (m_LightType.intValue != (int)Light2D.LightType.Global)
             {
-                EditorGUILayout.PropertyField(m_ShadowIntensity, Styles.generalShadowIntensity);
+                EditorGUILayout.Slider(m_ShadowIntensity, 0, 1, Styles.generalShadowIntensity);
 
                 EditorGUILayout.PropertyField(m_UseNormalMap, Styles.generalUseNormalMap);
 
@@ -736,6 +739,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
                 }
 
                 EditorGUILayout.Slider(m_VolumetricAlpha, 0, 1, Styles.generalVolumeOpacity);
+                EditorGUILayout.Slider(m_ShadowVolumeIntensity, 0, 1, Styles.generalShadowVolumeIntensity);
             }
 
             OnTargetSortingLayers();

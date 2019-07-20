@@ -129,7 +129,7 @@ Shader "Hidden/Light2d-Point-Volumetric"
                 half4 lightColor = _LightColor * attenuation;
 #endif
 
-                APPLY_SHADOWS(input, lightColor);
+                APPLY_SHADOWS(input, lightColor, _ShadowVolumeIntensity);
 
                 return _VolumeOpacity * lightColor * _InverseHDREmulationScale;
             }

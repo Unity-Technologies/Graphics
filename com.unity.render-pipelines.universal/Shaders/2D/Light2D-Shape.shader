@@ -109,7 +109,7 @@ Shader "Hidden/Light2D-Shape"
     #endif
 #endif
                 APPLY_NORMALS_LIGHTING(i, color);
-                APPLY_SHADOWS(i, color);
+                APPLY_SHADOWS(i, color, _ShadowIntensity);
             }
             ENDHLSL
         }

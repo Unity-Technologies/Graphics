@@ -123,7 +123,7 @@ Shader "Hidden/Light2D-Point"
 #endif
 
                 APPLY_NORMALS_LIGHTING(input, lightColor);
-                APPLY_SHADOWS(input, lightColor);
+                APPLY_SHADOWS(input, lightColor, _ShadowIntensity);
 
                 return lightColor * _InverseHDREmulationScale;
             }

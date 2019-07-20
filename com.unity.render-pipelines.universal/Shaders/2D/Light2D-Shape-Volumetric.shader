@@ -90,7 +90,7 @@ Shader "Hidden/Light2D-Shape-Volumetric"
                 color.a = i.color.a * SAMPLE_TEXTURE2D(_FalloffLookup, sampler_FalloffLookup, i.uv).r;
 #endif
 
-                APPLY_SHADOWS(i, color);
+                APPLY_SHADOWS(i, color, _ShadowVolumeIntensity);
 
                 return color;
 
