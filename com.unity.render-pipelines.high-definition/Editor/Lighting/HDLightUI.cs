@@ -192,6 +192,12 @@ namespace UnityEditor.Rendering.HighDefinition
             if (serialized.editorLightShape == LightShape.Directional)
             {
                 serialized.serializedLightData.interactsWithSky.boolValue = EditorGUILayout.Toggle(s_Styles.interactsWithSky, serialized.serializedLightData.interactsWithSky.boolValue);
+                EditorGUI.BeginChangeCheck();
+                EditorGUILayout.PropertyField(serialized.serializedLightData.radius, s_Styles.radius, null);
+                if (EditorGUI.EndChangeCheck())
+                {
+                    serialized.serializedLightData.radius.floatValue = Mathf.Max(0, serialized.serializedLightData.radius.floatValue);
+                }
             }
         }
 

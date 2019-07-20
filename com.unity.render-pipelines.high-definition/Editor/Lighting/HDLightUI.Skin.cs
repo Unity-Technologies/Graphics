@@ -65,7 +65,8 @@ namespace UnityEditor.Rendering.HighDefinition
             public readonly GUIContent displayAreaLightEmissiveMesh = new GUIContent("Display Emissive Mesh", "Generate an emissive mesh using the size, Color and Intensity of the Area Light.");
             public readonly GUIContent lightLayer = new GUIContent("Light Layer", "Specifies the current Light Layers that the Light affects. This Light illuminates corresponding Renderers with the same Light Layer flags.");
 
-  public readonly GUIContent interactsWithSky = new GUIContent("Interacts with the sky", "Check this option to make the light and the PBR sky affect one another.");
+            public readonly GUIContent interactsWithSky = new GUIContent("Interacts with the sky", "Check this option to make the light and the PBR sky affect one another.");
+            public readonly GUIContent radius = new GUIContent("Radius", "Radius of the emissive celestial body represented by the light (in km). Used by the Physically Based sky. Has no effect on other skies.");
 
             public readonly GUIContent shape = new GUIContent("Type", "Specifies the current type of Light. Possible Light types are Directional, Spot, Point, Rectangle, and Tube.");
             public readonly GUIContent[] shapeNames;

@@ -1173,6 +1173,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 lightData.color.z *= transm.z;
             }
 
+            lightData.radius = additionalLightData.radius;
+
             // Fallback to the first non shadow casting directional light.
             m_CurrentSunLight = m_CurrentSunLight == null ? lightComponent : m_CurrentSunLight;
 

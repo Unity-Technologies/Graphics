@@ -721,6 +721,25 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        [SerializeField, FormerlySerializedAs("radius")]
+        float m_Radius = 0;
+        /// <summary>
+        /// Radius of the emissive celestial body represented by the light (in km).
+        /// Used by the Physically Based sky.
+        /// This have no effect on other skies.
+        /// </summary>
+        public float radius
+        {
+            get => m_Radius;
+            set
+            {
+                if (m_Radius == value)
+                    return;
+
+                m_Radius = value;
+            }
+        }
+
 #if ENABLE_RAYTRACING
         [SerializeField, FormerlySerializedAs("useRayTracedShadows")]
         bool m_UseRayTracedShadows = false;
@@ -1855,7 +1874,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 if (legacyLight.useColorTemperature == value)
                     return;
-                
+
                 legacyLight.useColorTemperature = value;
             }
         }
@@ -1955,6 +1974,7 @@ namespace UnityEngine.Rendering.HighDefinition
             data.m_Intensity = m_Intensity;
             data.displayAreaLightEmissiveMesh = displayAreaLightEmissiveMesh;
             data.interactsWithSky = interactsWithSky;
+            data.radius = radius;
 
             data.customResolution = customResolution;
             data.shadowDimmer = shadowDimmer;
@@ -2318,7 +2338,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             this.color = color;
         }
-        
+
         /// <summary>
         /// Toggle the usage of color temperature.
         /// </summary>
