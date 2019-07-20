@@ -85,9 +85,7 @@ Shader "Hidden/Light2D-Shape"
                 worldSpacePos.xyz = TransformObjectToWorld(positionOS);
                 worldSpacePos.w = 1;
                 TRANSFER_NORMALS_LIGHTING(o, worldSpacePos)
-
-
-                o.shadowUV = ComputeScreenPos(o.positionCS / o.positionCS.w).xy;
+                TRANSFER_SHADOWS(o)
 
                 return o;
             }
