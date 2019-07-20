@@ -33,7 +33,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
         static Texture s_FalloffLookupTexture;
         static Material[] s_LightMaterials;
         static Material[] s_ShadowMaterials;
-        static Material s_RemoveSelfShadowMaterial;
+        static Material[] s_RemoveSelfShadowMaterials;
 
         static public void Setup(Renderer2DData rendererData)
         {
@@ -59,13 +59,13 @@ namespace UnityEngine.Experimental.Rendering.Universal
             if (s_LightMaterials == null)
                 s_LightMaterials = new Material[k_NumberOfLightMaterials];
 
-
-            const int totalMaterials = 255;
+            // This really needs to be deleted and replaced with a material block
+            const int totalMaterials = 256;
             if (s_ShadowMaterials == null)
                 s_ShadowMaterials = new Material[totalMaterials];
 
-            if (s_RemoveSelfShadowMaterial == null)
-                s_RemoveSelfShadowMaterial = CoreUtils.CreateEngineMaterial(s_RendererData.removeSelfShadowShader);
+            if (s_RemoveSelfShadowMaterials == null)
+                s_RemoveSelfShadowMaterials = new Material[totalMaterials];
         }
 
         static public void CreateRenderTextures(CommandBuffer cmd, Camera camera)
@@ -129,8 +129,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
         {
             bool renderedAnyLight = false;
 
-            Material removeSelfShadowMaterial = GetRemoveSelfShadowMaterial();
-
             foreach (var light in lights)
             {
                 if (light != null && light.lightType != Light2D.LightType.Global && light.blendStyleIndex == blendStyleIndex && light.IsLitLayer(layerToRender) && light.IsLightVisible(camera))
@@ -154,6 +152,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                         cmdBuffer.SetGlobalFloat("_LightRadius", lightBounds.radius);
 
                         Material shadowMaterial;
+                        Material removeSelfShadowMaterial;
                         List<IShadowCasterGroup2D> shadowCasterGroups = ShadowCasterGroup2DManager.shadowCasterGroups;
                         if (shadowCasterGroups != null && shadowCasterGroups.Count > 0)
                         {
@@ -161,8 +160,10 @@ namespace UnityEngine.Experimental.Rendering.Universal
                             {
                                 IShadowCasterGroup2D shadowCasterGroup = shadowCasterGroups[group];
                                 List<ShadowCaster2D> shadowCasters = shadowCasterGroup.GetShadowCasters();
-                                shadowMaterial = GetShadowMaterial(shadowCasterGroup.GetShadowGroup());
 
+                                int shadowGroupIndex = shadowCasterGroup.GetShadowGroup();
+                                shadowMaterial = GetShadowMaterial(shadowGroupIndex);
+                                removeSelfShadowMaterial = GetRemoveSelfShadowMaterial(shadowGroupIndex);
                                 if (shadowCasters != null)
                                 {
                                     for (int i = 0; i < shadowCasters.Count; i++)
@@ -550,20 +551,36 @@ namespace UnityEngine.Experimental.Rendering.Universal
         {
             int shadowMaterialIndex = index % 255;
             if(s_ShadowMaterials[shadowMaterialIndex] == null)
-            { 
-                s_ShadowMaterials[shadowMaterialIndex] = CoreUtils.CreateEngineMaterial(s_RendererData.shadowShader);
-                s_ShadowMaterials[shadowMaterialIndex].SetFloat("_ShadowStencilGroup", index + 1);
+            {
+                if (shadowMaterialIndex == 0)
+                {
+                    s_ShadowMaterials[shadowMaterialIndex] = CoreUtils.CreateEngineMaterial(s_RendererData.shadowShader);
+                }
+                else
+                {
+                    s_ShadowMaterials[shadowMaterialIndex] = CoreUtils.CreateEngineMaterial(s_RendererData.shadowGroupShader);
+                    s_ShadowMaterials[shadowMaterialIndex].SetFloat("_ShadowStencilGroup", index + 1);
+                }
             }
 
             return s_ShadowMaterials[shadowMaterialIndex];
         }
 
-        static Material GetRemoveSelfShadowMaterial()
+        static Material GetRemoveSelfShadowMaterial(int index)
         {
-            if(s_RemoveSelfShadowMaterial == null)
-                s_RemoveSelfShadowMaterial = CoreUtils.CreateEngineMaterial(s_RendererData.removeSelfShadowShader);
+            int shadowMaterialIndex = index % 255;
+            if (s_RemoveSelfShadowMaterials[shadowMaterialIndex] == null)
+            {
+                s_RemoveSelfShadowMaterials[shadowMaterialIndex] = CoreUtils.CreateEngineMaterial(s_RendererData.removeSelfShadowShader);
+                s_RemoveSelfShadowMaterials[shadowMaterialIndex].SetFloat("_ShadowStencilGroup", index + 1);
+            }
 
-            return s_RemoveSelfShadowMaterial;
+            return s_RemoveSelfShadowMaterials[shadowMaterialIndex];
+
+            //if (s_RemoveSelfShadowMaterial == null)
+            //    s_RemoveSelfShadowMaterial = CoreUtils.CreateEngineMaterial(s_RendererData.removeSelfShadowShader);
+
+            //return s_RemoveSelfShadowMaterial;
         }
     }
 }

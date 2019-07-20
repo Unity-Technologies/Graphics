@@ -1,4 +1,4 @@
-Shader "Hidden/Shadow2D"
+Shader "Hidden/ShadowGroup2D"
 {
     Properties
     {
@@ -16,6 +16,21 @@ Shader "Hidden/Shadow2D"
 
         Pass
         {
+            Stencil
+            {
+                Ref [_ShadowStencilGroup]
+                Comp NotEqual
+                Pass Replace
+                Fail Keep
+            }
+
+            //Stencil
+            //{
+            //    Ref 2
+            //    Comp always
+            //    Pass replace
+            //}
+
             HLSLPROGRAM
             #pragma vertex vert
             #pragma fragment frag

@@ -42,6 +42,9 @@ namespace UnityEngine.Experimental.Rendering.Universal
         Shader m_ShadowShader = null;
 
         [SerializeField]
+        Shader m_ShadowGroupShader = null;
+
+        [SerializeField]
         Shader m_RemoveSelfShadowShader = null;
 
         public float hdrEmulationScale => m_HDREmulationScale;
@@ -58,6 +61,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
         internal Shader pointLightVolumeShader => m_PointLightVolumeShader;
         internal Shader blitShader => m_BlitShader;
         internal Shader shadowShader => m_ShadowShader;
+        internal Shader shadowGroupShader => m_ShadowGroupShader;
         internal Shader removeSelfShadowShader => m_RemoveSelfShadowShader;
 
         protected override ScriptableRenderer Create()
@@ -111,6 +115,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             m_PointLightVolumeShader = Shader.Find("Hidden/Light2d-Point-Volumetric");
             m_BlitShader = Shader.Find("Hidden/Universal Render Pipeline/Blit");
             m_ShadowShader = Shader.Find("Hidden/Shadow2D");
+            m_ShadowGroupShader = Shader.Find("Hidden/ShadowGroup2D");
             m_RemoveSelfShadowShader = Shader.Find("Hidden/Shadow2DRemoveSelf");
         }
 
