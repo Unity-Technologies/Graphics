@@ -222,9 +222,9 @@ namespace UnityEditor.ShaderGraph
             UpdateSlots();
         }
         
-        public void Reload(HashSet<string> changedSubGraphs)
+        public void Reload(HashSet<string> changedFileDependencies)
         {
-            if (changedSubGraphs.Contains(asset.assetGuid) || asset.descendents.Any(changedSubGraphs.Contains))
+            if (changedFileDependencies.Contains(asset.assetGuid) || asset.descendents.Any(changedFileDependencies.Contains))
             {
                 m_SubGraph = null;
                 UpdateSlots();
