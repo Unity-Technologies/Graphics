@@ -122,6 +122,19 @@ void EvaluatePbrAtmosphere(float3 worldSpaceCameraPos, float3 V, float distAlong
             float3 L             = -light.forward.xyz;
             float3 lightRadiance =  light.color.rgb;
 
+            if (light.radius > 0)
+            {
+                // Hack: adjust the light direction to account for the area of the light.
+                // if (V in LightSolidAngle)
+                // {
+                //     L = V; -> dot(L, V) = 1;
+                // }
+                // else
+                // {
+                //     L = QuadraticInterpolate(L, V, acos(dot(L, V)));
+                // }
+            }
+
             // TODO: solve in spherical coords?
             float height = r - R;
             float  NdotL = dot(N, L);
