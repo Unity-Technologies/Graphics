@@ -180,13 +180,21 @@ namespace UnityEngine.Experimental.Rendering.Universal
                                             if (sqDist < (shadowRadiusSq + lightRadiusSq))
                                             {
                                                 cmdBuffer.DrawMesh(shadowCaster.mesh, Matrix4x4.TRS(shadowCaster.transform.position, shadowCaster.transform.rotation, shadowCaster.transform.lossyScale), new Material(shadowMaterial));
-                                                cmdBuffer.DrawMesh(shadowCaster.mesh, Matrix4x4.TRS(shadowCaster.transform.position, shadowCaster.transform.rotation, shadowCaster.transform.lossyScale), removeSelfShadowMaterial);
+                                                //cmdBuffer.DrawMesh(shadowCaster.mesh, Matrix4x4.TRS(shadowCaster.transform.position, shadowCaster.transform.rotation, shadowCaster.transform.lossyScale), removeSelfShadowMaterial);
                                             }
                                         }
                                         else
                                         {
                                             Debug.Log("Problem with shadow caster being deleted but not removed from group");
                                         }
+                                    }
+
+                                    LightReactor2D lightReactor = shadowCasterGroup as LightReactor2D;
+                                    if(lightReactor != null)
+                                    {
+                                        Renderer renderer = lightReactor.GetComponent<Renderer>();
+                                        if(renderer != null)
+                                            cmdBuffer.DrawRenderer(renderer, new Material(removeSelfShadowMaterial));
                                     }
                                 }
                             }

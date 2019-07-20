@@ -48,10 +48,12 @@ Shader "Hidden/Shadow2DRemoveSelf"
 
             fixed4 frag (v2f i) : SV_Target
             {
+                fixed4 main = tex2D(_MainTex, i.uv);
+
                 // sample the texture
                 fixed4 col;
                 col.r = 0;
-                col.g = 0.5;
+                col.g = 0.5 * main.a;
                 col.b = 0;
                 col.a = 0;
                 return col;
