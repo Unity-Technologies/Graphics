@@ -220,7 +220,7 @@ namespace UnityEngine.Rendering.Universal
             bool stereoEnabled = renderingData.cameraData.isStereoEnabled;
             context.SetupCameraProperties(camera, stereoEnabled);
 
-            // XRTODO: remove overwrite logic after `SetupCameraProperties` is removed.
+            // XRTODO: remove this workaround logic when `SetupCameraProperties` is removed from srp.
             if (renderingData.cameraData.xrPass.xrSdkEnabled)
             {
                 // Submit SetupCameraProperties work so that we can overwrite worldspace camera value
@@ -229,6 +229,15 @@ namespace UnityEngine.Rendering.Universal
                 // _WorldSpaceCameraPos is now set to main camera's position. Overwrite it with the position retrieved from xr view
                 Vector3 cameraPosition = renderingData.cameraData.xrPass.GetViewMatrix(0).inverse.GetColumn(3);
                 Shader.SetGlobalVector(Shader.PropertyToID("_WorldSpaceCameraPos"), cameraPosition);
+
+                // Sync camera with XR's *fov* and *aspect ratio*. 
+                // This is required step to make built-in skybox pass working with LWRP render pipeline
+                // because Skybox pass is constructing its own projection matrix out of camera's fov and aspect. 
+                {
+                    Matrix4x4 projMatrix = GL.GetGPUProjectionMatrix(renderingData.cameraData.xrPass.GetProjMatrix(0), true);
+                    renderingData.cameraData.camera.fieldOfView = Mathf.Atan(1.0f / projMatrix.GetRow(0).x) * 2.0f * Mathf.Rad2Deg;
+                    renderingData.cameraData.camera.aspect = renderingData.cameraData.xrPass.renderTargetDesc.width / renderingData.cameraData.xrPass.renderTargetDesc.height;
+                }
             }
 
             SetupLights(context, ref renderingData);

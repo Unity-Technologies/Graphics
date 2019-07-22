@@ -209,27 +209,18 @@ namespace UnityEngine.Rendering.Universal
             using (new ProfilingSample(cmd, tag))
             {
                 ScriptableCullingParameters cullingParameters;
-                ScriptableCullingParameters xrcullingParameters;
 
                 if (xrPass.xrSdkEnabled)
                 {
-                    if (!m_XRSystem.GetCullingParameters(camera, xrPass, out xrcullingParameters))
+                    if (!m_XRSystem.GetCullingParameters(camera, xrPass, out cullingParameters))
                         return;
                 }
                 else
                 {
-                    if (!camera.TryGetCullingParameters(IsStereoEnabled(camera), out xrcullingParameters))
+                    if (!camera.TryGetCullingParameters(IsStereoEnabled(camera), out cullingParameters))
                         return;
                 }
 
-                if (xrPass.xrSdkEnabled)
-                {
-                    camera.worldToCameraMatrix = xrcullingParameters.stereoViewMatrix;
-                    camera.projectionMatrix = xrcullingParameters.stereoProjectionMatrix;
-                }
-
-                if (!camera.TryGetCullingParameters(IsStereoEnabled(camera), out cullingParameters))
-                    return;
 
                 renderer.Clear();
                 renderer.SetupCullingParameters(ref cullingParameters, ref cameraData);
@@ -609,7 +600,7 @@ namespace UnityEngine.Rendering.Universal
                 cameraHeight = xrPass.renderTargetDesc.height;
 
                 // Flip if y-flip is enabled.
-                projMatrix = GL.GetGPUProjectionMatrix(xrPass.GetProjMatrix(0),true);
+                projMatrix = GL.GetGPUProjectionMatrix(xrPass.GetProjMatrix(0), true);
                 viewMatrix = xrPass.GetViewMatrix(0);
             }
             else
