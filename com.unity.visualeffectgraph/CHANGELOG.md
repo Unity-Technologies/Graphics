@@ -4,11 +4,9 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [7.1.0] - 2019-XX-XX
-### Fixed
-- Automatic template path detection based on SRP in now working correctly
+## [7.1.1] - 2019-XX-XX
 
-## [7.0.0] - 2019-07-10
+## [7.0.0] - 2019-07-17
 ### Added
 - Make multiselection work in a way that do not assume that the same parameter will have the same index in the property sheet.
 - auto recompile when changing shaderpath
@@ -31,6 +29,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Renamed Parameter Binders to Property Binders. (This will cause breaking serialization for these PropertyBinders : VFXAudioSpectrumBinder, VFXInputMouseBinder, VFXInputMouseBinder, VFXInputTouchBinder, VFXInputTouchBinder, VFXRaycastBinder, VFXTerrainBinder, VFXUIDropdownBinder, VFXUISliderBinder, VFXUIToggleBinder)
 - Renamed Namespace `UnityEngine.Experimental.VFX.Utility` to `UnityEngine.VFX.Utility`
 - Fix normal bending factor computation for primitive outputs
+- Automatic template path detection based on SRP in now working correctly
 
 ## [6.7.0-preview] - 2019-05-16
 ### Added
