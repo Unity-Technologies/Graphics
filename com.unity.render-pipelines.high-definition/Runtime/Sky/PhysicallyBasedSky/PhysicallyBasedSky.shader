@@ -103,7 +103,7 @@ Shader "Hidden/HDRP/Sky/PbrSky"
                     // Closest so far.
                     tFrag = tBody.x;
 
-                    // Assume uniform emission (no rescaling w.r.t. the solid angle).
+                    // Assume uniform emission (no rescaling w.r.t. the solid angle or with the normal).
                     radiance = light.color.rgb;
                 }
             }
