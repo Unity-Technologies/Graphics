@@ -232,7 +232,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
             else
             {
-                gm.AddItem(new GUIContent($"{path}/{keyword.displayName}"), false, () => AddInputRow(keyword, true));
+                gm.AddItem(new GUIContent($"{path}/{keyword.displayName}"), false, () => AddInputRow(keyword.Copy(), true));
             }
         }
 
@@ -320,7 +320,8 @@ namespace UnityEditor.ShaderGraph.Drawing
                     m_Graph.SanitizeGraphInputReferenceName(input, input.referenceName);
 
                     var icon = (m_Graph.isSubGraph || (keyword.isExposable && keyword.generatePropertyBlock)) ? exposedIcon : null;
-                    field = new BlackboardField(icon, keyword.displayName, "Keyword") { userData = keyword };
+                    var typeText = keyword.isEditable ? keyword.keywordType.ToString() : "Builtin Keyword";
+                    field = new BlackboardField(icon, keyword.displayName, typeText) { userData = keyword };
                     var keywordView = new BlackboardFieldKeywordView(field, m_Graph, keyword);
                     row = new BlackboardRow(field, keywordView);
                     if (index < 0)

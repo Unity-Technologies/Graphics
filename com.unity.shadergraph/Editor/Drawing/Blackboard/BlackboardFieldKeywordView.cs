@@ -21,8 +21,6 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         private ShaderKeyword m_Keyword;
 
-        bool reorderableListInHierarchy => m_Keyword.keywordType == ShaderKeywordType.Enum && m_Keyword.isEditable;
-
         public BlackboardFieldKeywordView(BlackboardField blackboardField, GraphData graph, ShaderInput input)
             : base (blackboardField, graph, input)
         {
@@ -34,37 +32,34 @@ namespace UnityEditor.ShaderGraph.Drawing
             if(m_Keyword == null)
                 return;
             
-            if(m_Keyword.isEditable)
+            // KeywordDefinition
+            var keywordDefinitionField = new EnumField((Enum)m_Keyword.keywordDefinition);
+            keywordDefinitionField.RegisterValueChangedCallback(evt =>
             {
-                // KeywordDefinition
-                var keywordDefinitionField = new EnumField((Enum)m_Keyword.keywordDefinition);
-                keywordDefinitionField.RegisterValueChangedCallback(evt =>
+                graph.owner.RegisterCompleteObjectUndo("Change Keyword Type");
+                if (m_Keyword.keywordDefinition == (ShaderKeywordDefinition)evt.newValue)
+                    return;
+                m_Keyword.keywordDefinition = (ShaderKeywordDefinition)evt.newValue;
+
+                if(m_Keyword.keywordType == ShaderKeywordType.Enum)
+                    Remove(m_Container);
+
+                Rebuild();
+            });
+            AddRow("Definition", keywordDefinitionField, input.isExposable);
+
+            // KeywordScope
+            if(m_Keyword.keywordDefinition != ShaderKeywordDefinition.Predefined)
+            {
+                var keywordScopeField = new EnumField((Enum)m_Keyword.keywordScope);
+                keywordScopeField.RegisterValueChangedCallback(evt =>
                 {
                     graph.owner.RegisterCompleteObjectUndo("Change Keyword Type");
-                    if (m_Keyword.keywordDefinition == (ShaderKeywordDefinition)evt.newValue)
+                    if (m_Keyword.keywordScope == (ShaderKeywordScope)evt.newValue)
                         return;
-                    m_Keyword.keywordDefinition = (ShaderKeywordDefinition)evt.newValue;
-
-                    if(reorderableListInHierarchy)
-                        Remove(m_Container);
-
-                    Rebuild();
+                    m_Keyword.keywordScope = (ShaderKeywordScope)evt.newValue;
                 });
-                AddRow("Definition", keywordDefinitionField);
-
-                // KeywordScope
-                if(m_Keyword.keywordDefinition != ShaderKeywordDefinition.Predefined)
-                {
-                    var keywordScopeField = new EnumField((Enum)m_Keyword.keywordScope);
-                    keywordScopeField.RegisterValueChangedCallback(evt =>
-                    {
-                        graph.owner.RegisterCompleteObjectUndo("Change Keyword Type");
-                        if (m_Keyword.keywordScope == (ShaderKeywordScope)evt.newValue)
-                            return;
-                        m_Keyword.keywordScope = (ShaderKeywordScope)evt.newValue;
-                    });
-                    AddRow("Scope", keywordScopeField);
-                }
+                AddRow("Scope", keywordScopeField, input.isExposable);
             }
 
             switch(m_Keyword.keywordType)
@@ -94,7 +89,8 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void BuildEnumKeywordField(ShaderKeyword keyword)
         {
-            var field = new IntegerField { value = keyword.value };
+            int value = Mathf.Clamp(keyword.value, 0, keyword.entries.Count - 1);
+            var field = new IntegerField { value = value };
             field.RegisterValueChangedCallback(evt =>
             {
                 keyword.value = evt.newValue;
@@ -111,10 +107,10 @@ namespace UnityEditor.ShaderGraph.Drawing
             AddRow("Default", field);
 
             // Entries
-            if(reorderableListInHierarchy)
+            if(m_Keyword.keywordType == ShaderKeywordType.Enum)
             {
                 m_Container = new IMGUIContainer(() => OnGUIHandler ()) { name = "ListContainer" };
-                Add(m_Container);
+                AddRow("Entries", m_Container, keyword.isEditable);
             }
         }
 
@@ -141,9 +137,12 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             // Draw Header      
             m_ReorderableList.drawHeaderCallback = (Rect rect) => 
-            {  
-                var labelRect = new Rect(rect.x, rect.y, rect.width-10, rect.height);
-                EditorGUI.LabelField(labelRect, "Entries");
+            {
+                int indent = 14;
+                var displayRect = new Rect(rect.x + indent, rect.y, (rect.width - indent) / 2, rect.height);
+                EditorGUI.LabelField(displayRect, "Display Name");
+                var referenceRect = new Rect((rect.x + indent) + (rect.width - indent) / 2, rect.y, (rect.width - indent) / 2, rect.height);
+                EditorGUI.LabelField(referenceRect, "Reference Suffix");
             };
 
             // Draw Element
@@ -220,6 +219,11 @@ namespace UnityEditor.ShaderGraph.Drawing
             var selectedEntry = (ShaderKeywordEntry)m_ReorderableList.list[list.index];
             m_Keyword.entries.Remove(selectedEntry);
 
+            // Clamp value within new entry range
+            int value = Mathf.Clamp(m_Keyword.value, 0, m_Keyword.entries.Count - 1);
+            m_Keyword.value = value;
+
+            Rebuild();
             DirtyNodes();
         }
 

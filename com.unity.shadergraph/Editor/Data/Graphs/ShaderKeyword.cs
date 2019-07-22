@@ -161,6 +161,7 @@ namespace UnityEditor.ShaderGraph
             return new ShaderKeyword()
             {
                 displayName = displayName,
+                overrideReferenceName = overrideReferenceName,
                 generatePropertyBlock = generatePropertyBlock,
                 isEditable = isEditable,
                 keywordType = keywordType,
