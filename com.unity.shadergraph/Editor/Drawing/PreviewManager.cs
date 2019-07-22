@@ -400,9 +400,23 @@ namespace UnityEditor.ShaderGraph.Drawing
             // Check for shaders that finished compiling and set them to redraw
             foreach (var renderData in m_RenderDatas)
             {
-                if (renderData != null && renderData.shaderData.isCompiling &&
-                    ShaderUtil.IsPassCompiled(renderData.shaderData.mat, 0))
+                if (renderData != null && renderData.shaderData.isCompiling)
                 {
+                    var isCompiled = true;
+                    for (var i = 0; i < renderData.shaderData.mat.passCount; i++)
+                    {
+                        if (!ShaderUtil.IsPassCompiled(renderData.shaderData.mat, i))
+                        {
+                            isCompiled = false;
+                            break;
+                        }
+                    }
+
+                    if (!isCompiled)
+                    {
+                        continue;
+                    }
+
                     renderData.shaderData.isCompiling = false;
                     CheckForErrors(renderData.shaderData);
                     m_NodesToDraw.Add(renderData.shaderData.node);
@@ -440,19 +454,22 @@ namespace UnityEditor.ShaderGraph.Drawing
                     continue;
                 }
                 ShaderUtil.ClearCachedData(renderData.shaderData.shader);
-                // Always explicitly use pass 0 for preview shaders
-                BeginCompile(renderData, results.shader, 0);
+                BeginCompile(renderData, results.shader);
             }
 
             ShaderUtil.allowAsyncCompilation = wasAsyncAllowed;
             m_NodesToUpdate.Clear();
         }
 
-        void BeginCompile(PreviewRenderData renderData, string shaderStr, int shaderPass)
+        void BeginCompile(PreviewRenderData renderData, string shaderStr)
         {
             var shaderData = renderData.shaderData;
+            ShaderUtil.ClearCachedData(shaderData.shader);
             ShaderUtil.UpdateShaderAsset(shaderData.shader, shaderStr, false);
-            ShaderUtil.CompilePass(shaderData.mat, shaderPass);
+            for (var i = 0; i < shaderData.mat.passCount; i++)
+            {
+                ShaderUtil.CompilePass(shaderData.mat, i);
+            }
             shaderData.isCompiling = true;
             renderData.NotifyPreviewChanged();
         }
@@ -551,7 +568,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 ShaderUtil.ClearCachedData(shaderData.shader);
             }
 
-            BeginCompile(masterRenderData, shaderData.shaderString, masterNode.GetActiveSubShader()?.GetPreviewPassIndex() ?? 0);
+            BeginCompile(masterRenderData, shaderData.shaderString);
         }
 
         void DestroyRenderData(PreviewRenderData renderData)
