@@ -8,6 +8,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Changed
 - New Shader Graph windows are now docked to either existing Shader Graph windows, or to the Scene View.
 
+### Fixed
+- Fixed various dependency tracking issues with Sub Graphs and HLSL files from Custom Function Nodes.
+- Fixed an error that previously occurred when you used `Sampler State` input ports on Sub Graphs.
+
 ## [7.0.0] - 2019-07-10
 ### Added
 - You can now use the `SHADERGRAPH_PREVIEW` keyword in `Custom Function Node` to generate different code for preview Shaders.
