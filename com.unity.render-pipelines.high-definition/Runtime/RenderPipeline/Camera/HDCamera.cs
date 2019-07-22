@@ -282,23 +282,13 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Update viewport
             {
-                finalViewport = new Rect(camera.pixelRect.x, camera.pixelRect.y, camera.pixelWidth, camera.pixelHeight);
-
                 if (xr.enabled)
                 {
-                    // XRTODO: update viewport code once XR SDK is working
-                    if (xr.xrSdkEnabled)
-                    {
-                        finalViewport.x = 0;
-                        finalViewport.y = 0;
-                        finalViewport.width = xr.renderTargetDesc.width;
-                        finalViewport.height = xr.renderTargetDesc.height;
-                    }
-                    else
-                    {
-                        // XRTODO: support instanced views with different viewport
-                        finalViewport = xr.GetViewport();
-                    }
+                    finalViewport = xr.GetViewport();
+                }
+                else
+                {
+                    finalViewport = new Rect(camera.pixelRect.x, camera.pixelRect.y, camera.pixelWidth, camera.pixelHeight);
                 }
 
                 m_ActualWidth = Math.Max((int)finalViewport.size.x, 1);
@@ -615,14 +605,13 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        // XRTODO: this function should not rely on camera.pixelWidth and camera.pixelHeight
         Matrix4x4 GetJitteredProjectionMatrix(Matrix4x4 origProj)
         {
             // The variance between 0 and the actual halton sequence values reveals noticeable
             // instability in Unity's shadow maps, so we avoid index 0.
             float jitterX = HaltonSequence.Get((taaFrameIndex & 1023) + 1, 2) - 0.5f;
             float jitterY = HaltonSequence.Get((taaFrameIndex & 1023) + 1, 3) - 0.5f;
-            taaJitter = new Vector4(jitterX, jitterY, jitterX / camera.pixelWidth, jitterY / camera.pixelHeight);
+            taaJitter = new Vector4(jitterX, jitterY, jitterX / m_ActualWidth, jitterY / m_ActualHeight);
 
             const int kMaxSampleCount = 8;
             if (++taaFrameIndex >= kMaxSampleCount)
@@ -636,8 +625,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 float horizontal = vertical * camera.aspect;
 
                 var offset = taaJitter;
-                offset.x *= horizontal / (0.5f * camera.pixelWidth);
-                offset.y *= vertical / (0.5f * camera.pixelHeight);
+                offset.x *= horizontal / (0.5f * m_ActualWidth);
+                offset.y *= vertical / (0.5f * m_ActualHeight);
 
                 float left = offset.x - horizontal;
                 float right = offset.x + horizontal;
@@ -653,8 +642,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 float vertFov = Math.Abs(planes.top) + Math.Abs(planes.bottom);
                 float horizFov = Math.Abs(planes.left) + Math.Abs(planes.right);
 
-                var planeJitter = new Vector2(jitterX * horizFov / camera.pixelWidth,
-                    jitterY * vertFov / camera.pixelHeight);
+                var planeJitter = new Vector2(jitterX * horizFov / m_ActualWidth,
+                    jitterY * vertFov / m_ActualHeight);
 
                 planes.left += planeJitter.x;
                 planes.right += planeJitter.x;
