@@ -29,7 +29,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         bool m_HasError;
 
         [NonSerialized]
-        HashSet<string> m_ChangedSubGraphs = new HashSet<string>();
+        HashSet<string> m_ChangedFileDependencies = new HashSet<string>();
 
         ColorSpace m_ColorSpace;
         RenderPipelineAsset m_RenderPipelineAsset;
@@ -145,14 +145,18 @@ namespace UnityEditor.ShaderGraph.Drawing
                     graphObject.Validate();
                 }
 
-                if (m_ChangedSubGraphs.Count > 0 && graphObject != null && graphObject.graph != null)
+                if (m_ChangedFileDependencies.Count > 0 && graphObject != null && graphObject.graph != null)
                 {
                     foreach (var subGraphNode in graphObject.graph.GetNodes<SubGraphNode>())
                     {
-                        subGraphNode.Reload(m_ChangedSubGraphs);
+                        subGraphNode.Reload(m_ChangedFileDependencies);
+                    }
+                    foreach (var customFunctionNode in graphObject.graph.GetNodes<CustomFunctionNode>())
+                    {
+                        customFunctionNode.Reload(m_ChangedFileDependencies);
                     }
 
-                    m_ChangedSubGraphs.Clear();
+                    m_ChangedFileDependencies.Clear();
                 }
 
                 if (graphObject.wasUndoRedoPerformed)
@@ -175,11 +179,11 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
         }
 
-        public void ReloadSubGraphsOnNextUpdate(List<string> subGraphs)
+        public void ReloadSubGraphsOnNextUpdate(List<string> changedFiles)
         {
-            foreach (var subGraph in subGraphs)
+            foreach (var changedFile in changedFiles)
             {
-                m_ChangedSubGraphs.Add(subGraph);
+                m_ChangedFileDependencies.Add(changedFile);
             }
         }
 
