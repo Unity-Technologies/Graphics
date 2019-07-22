@@ -8,6 +8,7 @@ using UnityEngine.Rendering.HighDefinition;
 using UnityEditorInternal.VR;
 using UnityEditor.SceneManagement;
 using System.Runtime.InteropServices;
+using System.Collections.Generic;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
@@ -91,32 +92,37 @@ namespace UnityEditor.Rendering.HighDefinition
         //utility class to show only non scene object selection
         static class ObjectSelector
         {
-            static Action<UnityEngine.Object, Type> ShowObjectSelector;
+            static Action<UnityEngine.Object, Type, Action<UnityEngine.Object>> ShowObjectSelector;
             static Func<UnityEngine.Object> GetCurrentObject;
             static Func<int> GetSelectorID;
             static Action<int> SetSelectorID;
-
+            
             const string ObjectSelectorUpdatedCommand = "ObjectSelectorUpdated";
 
             static int id;
 
             static int selectorID { get => GetSelectorID(); set => SetSelectorID(value); }
 
+            public static bool opened
+                => Resources.FindObjectsOfTypeAll(typeof(PlayerSettings).Assembly.GetType("UnityEditor.ObjectSelector")).Length > 0;
+
             static ObjectSelector()
             {
                 Type playerSettingsType = typeof(PlayerSettings);
                 Type objectSelectorType = playerSettingsType.Assembly.GetType("UnityEditor.ObjectSelector");
                 var instanceObjectSelectorInfo = objectSelectorType.GetProperty("get", BindingFlags.Static | BindingFlags.Public);
-                var showInfo = objectSelectorType.GetMethod("Show", new[] { typeof(UnityEngine.Object), typeof(Type), typeof(SerializedProperty), typeof(bool) });
+                var showInfo = objectSelectorType.GetMethod("Show", BindingFlags.Instance | BindingFlags.NonPublic, null, new[] { typeof(UnityEngine.Object), typeof(Type), typeof(SerializedProperty), typeof(bool), typeof(List<int>), typeof(Action<UnityEngine.Object>), typeof(Action<UnityEngine.Object>) }, null);
                 var objectSelectorVariable = Expression.Variable(objectSelectorType, "objectSelector");
                 var objectParameter = Expression.Parameter(typeof(UnityEngine.Object), "unityObject");
                 var typeParameter = Expression.Parameter(typeof(Type), "type");
+                var onClosedParameter = Expression.Parameter(typeof(Action<UnityEngine.Object>), "onClosed");
+                var onChangedObjectParameter = Expression.Parameter(typeof(Action<UnityEngine.Object>), "onChangedObject");
                 var showObjectSelectorBlock = Expression.Block(
                     new[] { objectSelectorVariable },
                     Expression.Assign(objectSelectorVariable, Expression.Call(null, instanceObjectSelectorInfo.GetGetMethod())),
-                    Expression.Call(objectSelectorVariable, showInfo, objectParameter, typeParameter, Expression.Constant(null, typeof(SerializedProperty)), Expression.Constant(false))
+                    Expression.Call(objectSelectorVariable, showInfo, objectParameter, typeParameter, Expression.Constant(null, typeof(SerializedProperty)), Expression.Constant(false), Expression.Constant(null, typeof(List<int>)), Expression.Constant(null, typeof(Action<UnityEngine.Object>)), onChangedObjectParameter)
                     );
-                var showObjectSelectorLambda = Expression.Lambda<Action<UnityEngine.Object, Type>>(showObjectSelectorBlock, objectParameter, typeParameter);
+                var showObjectSelectorLambda = Expression.Lambda<Action<UnityEngine.Object, Type, Action<UnityEngine.Object>>>(showObjectSelectorBlock, objectParameter, typeParameter, onChangedObjectParameter);
                 ShowObjectSelector = showObjectSelectorLambda.Compile();
 
                 var instanceCall = Expression.Call(null, instanceObjectSelectorInfo.GetGetMethod());
@@ -133,11 +139,11 @@ namespace UnityEditor.Rendering.HighDefinition
                 GetCurrentObject = getCurrentObjectLambda.Compile();
             }
 
-            public static void Show(UnityEngine.Object obj, Type type)
+            public static void Show(UnityEngine.Object obj, Type type, Action<UnityEngine.Object> onChangedObject)
             {
                 id = GUIUtility.GetControlID("s_ObjectFieldHash".GetHashCode(), FocusType.Keyboard);
                 GUIUtility.keyboardControl = id;
-                ShowObjectSelector(obj, type);
+                ShowObjectSelector(obj, type, onChangedObject);
                 selectorID = id;
             }
 
@@ -265,8 +271,6 @@ namespace UnityEditor.Rendering.HighDefinition
             GUILayout.EndScrollView();
 
             // check assignation resolution from Selector
-            ObjectSelector.CheckAssignationEvent<GameObject>(x => HDProjectSettings.defaultScenePrefab = x);
-            ObjectSelector.CheckAssignationEvent<HDRenderPipelineAsset>(x => GraphicsSettings.renderPipelineAsset = x);
         }
 
         void CreateDefaultSceneFromPackageAnsAssignIt()
@@ -300,7 +304,7 @@ namespace UnityEditor.Rendering.HighDefinition
             AssetDatabase.Refresh();
         }
 
-        void CreateOrLoad<T>()
+        void CreateOrLoad<T>(Action onCancel, Action<T> onObjectChanged)
             where T : ScriptableObject
         {
             string title;
@@ -330,16 +334,17 @@ namespace UnityEditor.Rendering.HighDefinition
                         GraphicsSettings.renderPipelineAsset = asset as HDRenderPipelineAsset;
                     break;
                 case 1: //cancel
+                    onCancel?.Invoke();
                     break;
                 case 2: //Load
-                    ObjectSelector.Show(target, typeof(T));
+                    ObjectSelector.Show(target, typeof(T), o => onObjectChanged?.Invoke((T)o));
                     break;
                 default:
                     throw new ArgumentException("Unrecognized option");
             }
         }
 
-        void CreateOrLoadDefaultScene()
+        void CreateOrLoadDefaultScene(Action onCancel, Action<GameObject> onObjectChanged)
         {
             switch (EditorUtility.DisplayDialogComplex(Style.scenePrefabTitle, Style.scenePrefabContent, Style.displayDialogCreate, "Cancel", Style.displayDialogLoad))
             {
@@ -347,9 +352,10 @@ namespace UnityEditor.Rendering.HighDefinition
                     CreateDefaultSceneFromPackageAnsAssignIt();
                     break;
                 case 1: //cancel
+                    onCancel?.Invoke();
                     break;
                 case 2: //Load
-                    ObjectSelector.Show(HDProjectSettings.defaultScenePrefab, typeof(GameObject));
+                    ObjectSelector.Show(HDProjectSettings.defaultScenePrefab, typeof(GameObject), o => onObjectChanged?.Invoke((GameObject)o));
                     break;
                 default:
                     throw new ArgumentException("Unrecognized option");
@@ -429,12 +435,12 @@ namespace UnityEditor.Rendering.HighDefinition
             DrawConfigInfoLine(Style.shadowMaskLabel, Style.shadowMaskError, Style.ok, Style.resolveAllQuality, IsShadowmaskCorrect, FixShadowmask);
             DrawConfigInfoLine(Style.hdrpAssetLabel, Style.hdrpAssetError, Style.ok, Style.resolveAll, IsHdrpAssetCorrect, FixHdrpAsset);
             ++EditorGUI.indentLevel;
-            DrawConfigInfoLine(Style.hdrpAssetUsedLabel, Style.hdrpAssetUsedError, Style.ok, Style.resolve, IsHdrpAssetUsedCorrect, FixHdrpAssetUsed);
+            DrawConfigInfoLine(Style.hdrpAssetUsedLabel, Style.hdrpAssetUsedError, Style.ok, Style.resolve, IsHdrpAssetUsedCorrect, () => FixHdrpAssetUsed(async: false));
             DrawConfigInfoLine(Style.hdrpAssetRuntimeResourcesLabel, Style.hdrpAssetRuntimeResourcesError, Style.ok, Style.resolve, IsHdrpAssetRuntimeResourcesCorrect, FixHdrpAssetRuntimeResources);
             DrawConfigInfoLine(Style.hdrpAssetEditorResourcesLabel, Style.hdrpAssetEditorResourcesError, Style.ok, Style.resolve, IsHdrpAssetEditorResourcesCorrect, FixHdrpAssetEditorResources);
             DrawConfigInfoLine(Style.hdrpAssetDiffusionProfileLabel, Style.hdrpAssetDiffusionProfileError, Style.ok, Style.resolve, IsHdrpAssetDiffusionProfileCorrect, FixHdrpAssetDiffusionProfile);
             --EditorGUI.indentLevel;
-            DrawConfigInfoLine(Style.defaultVolumeProfileLabel, Style.defaultVolumeProfileError, Style.ok, Style.resolve, IsDefaultSceneCorrect, FixDefaultScene);
+            DrawConfigInfoLine(Style.defaultVolumeProfileLabel, Style.defaultVolumeProfileError, Style.ok, Style.resolve, IsDefaultSceneCorrect, () => FixDefaultScene(async: false));
             --EditorGUI.indentLevel;
         }
 
@@ -511,7 +517,8 @@ namespace UnityEditor.Rendering.HighDefinition
             && IsColorSpaceCorrect()
             && IsHdrpAssetCorrect()
             && IsDefaultSceneCorrect();
-        void FixHDRPAll() => EditorApplication.update += FixHDRPAllAsync;
+        void FixHDRPAll()
+            => EditorApplication.update += FixHDRPAllAsync;
         void FixHDRPAllAsync()
         {
             //Async will allow to make things green when fixed before asking
@@ -539,7 +546,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
             if (!IsDefaultSceneCorrect())
             {
-                FixDefaultScene();
+                FixDefaultScene(async: true);
                 return;
             }
             EditorApplication.update -= FixHDRPAllAsync;
@@ -551,6 +558,7 @@ namespace UnityEditor.Rendering.HighDefinition
             && IsHdrpAssetEditorResourcesCorrect()
             && IsHdrpAssetDiffusionProfileCorrect();
         void FixHdrpAsset() => EditorApplication.update += FixHdrpAssetAsync;
+
         void FixHdrpAssetAsync()
         {
             //Async will allow to make things green when fixed before asking
@@ -558,7 +566,7 @@ namespace UnityEditor.Rendering.HighDefinition
             //one is currently being addressed
             if (!IsHdrpAssetUsedCorrect())
             {
-                FixHdrpAssetUsed();
+                FixHdrpAssetUsed(async: true);
                 return;
             }
             if (!IsHdrpAssetRuntimeResourcesCorrect())
@@ -578,8 +586,11 @@ namespace UnityEditor.Rendering.HighDefinition
             EditorApplication.update -= FixHdrpAssetAsync;
         }
 
-        bool IsColorSpaceCorrect() => PlayerSettings.colorSpace == ColorSpace.Linear;
-        void FixColorSpace() => PlayerSettings.colorSpace = ColorSpace.Linear;
+
+        bool IsColorSpaceCorrect()
+            => PlayerSettings.colorSpace == ColorSpace.Linear;
+        void FixColorSpace()
+            => PlayerSettings.colorSpace = ColorSpace.Linear;
 
         bool IsLightmapCorrect()
         {
@@ -599,10 +610,8 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         bool IsShadowmaskCorrect()
-        {
             //QualitySettings.SetQualityLevel.set quality is too costy to be use at frame
-            return QualitySettings.shadowmaskMode == ShadowmaskMode.DistanceShadowmask;
-        }
+            => QualitySettings.shadowmaskMode == ShadowmaskMode.DistanceShadowmask;
         void FixShadowmask()
         {
             int currentQuality = QualitySettings.GetQualityLevel();
@@ -614,28 +623,41 @@ namespace UnityEditor.Rendering.HighDefinition
             QualitySettings.SetQualityLevel(currentQuality, applyExpensiveChanges: false);
         }
 
-        bool IsHdrpAssetUsedCorrect() => GraphicsSettings.renderPipelineAsset != null && GraphicsSettings.renderPipelineAsset is HDRenderPipelineAsset;
-        void FixHdrpAssetUsed() => CreateOrLoad<HDRenderPipelineAsset>();
+        bool IsHdrpAssetUsedCorrect()
+            => GraphicsSettings.renderPipelineAsset != null && GraphicsSettings.renderPipelineAsset is HDRenderPipelineAsset;
+        void FixHdrpAssetUsed(bool async)
+        {
+            if (ObjectSelector.opened)
+                return;
+            CreateOrLoad<HDRenderPipelineAsset>(async
+                ? () => {
+                    EditorApplication.update -= FixHdrpAssetAsync;
+                    //can also be called from fix all HDRP:
+                    EditorApplication.update -= FixHDRPAllAsync;
+                }
+                : (Action)null,
+                asset => GraphicsSettings.renderPipelineAsset = asset);
+        }
 
-        bool IsHdrpAssetRuntimeResourcesCorrect() =>
-            IsHdrpAssetUsedCorrect()
+        bool IsHdrpAssetRuntimeResourcesCorrect()
+            => IsHdrpAssetUsedCorrect()
             && HDRenderPipeline.defaultAsset.renderPipelineResources != null;
         void FixHdrpAssetRuntimeResources()
         {
             if (!IsHdrpAssetUsedCorrect())
-                FixHdrpAssetUsed();
+                FixHdrpAssetUsed(async: false);
             HDRenderPipeline.defaultAsset.renderPipelineResources
                 = AssetDatabase.LoadAssetAtPath<RenderPipelineResources>(HDUtils.GetHDRenderPipelinePath() + "Runtime/RenderPipelineResources/HDRenderPipelineResources.asset");
             ResourceReloader.ReloadAllNullIn(HDRenderPipeline.defaultAsset.renderPipelineResources, HDUtils.GetHDRenderPipelinePath());
         }
 
-        bool IsHdrpAssetEditorResourcesCorrect() =>
-            IsHdrpAssetUsedCorrect()
+        bool IsHdrpAssetEditorResourcesCorrect()
+            => IsHdrpAssetUsedCorrect()
             && HDRenderPipeline.defaultAsset.renderPipelineEditorResources != null;
         void FixHdrpAssetEditorResources()
         {
             if (!IsHdrpAssetUsedCorrect())
-                FixHdrpAssetUsed();
+                FixHdrpAssetUsed(async: false);
             HDRenderPipeline.defaultAsset.renderPipelineEditorResources
                 = AssetDatabase.LoadAssetAtPath<HDRenderPipelineEditorResources>(HDUtils.GetHDRenderPipelinePath() + "Editor/RenderPipelineResources/HDRenderPipelineEditorResources.asset");
             ResourceReloader.ReloadAllNullIn(HDRenderPipeline.defaultAsset.renderPipelineEditorResources, HDUtils.GetHDRenderPipelinePath());
@@ -650,14 +672,20 @@ namespace UnityEditor.Rendering.HighDefinition
         void FixHdrpAssetDiffusionProfile()
         {
             if (!IsHdrpAssetUsedCorrect())
-                FixHdrpAssetUsed();
+                FixHdrpAssetUsed(async: false);
 
             var hdAsset = GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset;
             hdAsset.diffusionProfileSettingsList = hdAsset.renderPipelineEditorResources.defaultDiffusionProfileSettingsList;
         }
 
-        bool IsDefaultSceneCorrect() => HDProjectSettings.defaultScenePrefab != null;
-        void FixDefaultScene() => CreateOrLoadDefaultScene();
+        bool IsDefaultSceneCorrect()
+            => HDProjectSettings.defaultScenePrefab != null;
+        void FixDefaultScene(bool async)
+        {
+            if (ObjectSelector.opened)
+                return;
+            CreateOrLoadDefaultScene(async ? () => EditorApplication.update -= FixHDRPAllAsync : (Action)null, scene => HDProjectSettings.defaultScenePrefab = scene);
+        }
 
         #endregion
 
@@ -800,7 +828,7 @@ namespace UnityEditor.Rendering.HighDefinition
         void FixDXRAsset()
         {
             if (!IsHdrpAssetUsedCorrect())
-                FixHdrpAssetUsed();
+                FixHdrpAssetUsed(async: false);
             HDRenderPipeline.defaultAsset.renderPipelineRayTracingResources
                 = AssetDatabase.LoadAssetAtPath<HDRenderPipelineRayTracingResources>(HDUtils.GetHDRenderPipelinePath() + "Runtime/RenderPipelineResources/HDRenderPipelineRayTracingResources.asset");
             ResourceReloader.ReloadAllNullIn(HDRenderPipeline.defaultAsset.renderPipelineRayTracingResources, HDUtils.GetHDRenderPipelinePath());
@@ -813,7 +841,7 @@ namespace UnityEditor.Rendering.HighDefinition
         void FixDXRActivation()
         {
             if (!IsHdrpAssetUsedCorrect())
-                FixHdrpAssetUsed();
+                FixHdrpAssetUsed(async: false);
             //as property returning struct make copy, use serializedproperty to modify it
             var serializedObject = new SerializedObject(GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset);
             var propertySupportRayTracing = serializedObject.FindProperty("m_RenderPipelineSettings.supportRayTracing");
