@@ -835,7 +835,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             bool bothLayersActive = nearLayerActive && farLayerActive;
             bool useTiles = !camera.xr.instancingEnabled;
-            bool hqFiltering = m_DepthOfField.highQualityFiltering.value;
+            bool hqFiltering = m_DepthOfField.highQualityFiltering;
 
             const uint kIndirectNearOffset = 0u * sizeof(uint);
             const uint kIndirectFarOffset  = 3u * sizeof(uint);
@@ -860,20 +860,20 @@ namespace UnityEngine.Rendering.HighDefinition
             float anamorphism = m_PhysicalCamera.anamorphism / 4f;
             float barrelClipping = m_PhysicalCamera.barrelClipping / 3f;
 
-            float scale = 1f / (float)m_DepthOfField.resolution.value;
+            float scale = 1f / (float)m_DepthOfField.resolution;
             var screenScale = new Vector2(scale, scale);
             int targetWidth = Mathf.RoundToInt(camera.actualWidth * scale);
             int targetHeight = Mathf.RoundToInt(camera.actualHeight * scale);
             int threadGroup8X = (targetWidth + 7) / 8;
             int threadGroup8Y = (targetHeight + 7) / 8;
 
-            cmd.SetGlobalVector(HDShaderIDs._TargetScale, new Vector4((float)m_DepthOfField.resolution.value, scale, 0f, 0f));
+            cmd.SetGlobalVector(HDShaderIDs._TargetScale, new Vector4((float)m_DepthOfField.resolution, scale, 0f, 0f));
 
             float resolutionScale = (camera.actualHeight / 1080f) * (scale * 2f);
-            int farSamples = Mathf.CeilToInt(m_DepthOfField.farSampleCount.value * resolutionScale);
-            int nearSamples = Mathf.CeilToInt(m_DepthOfField.nearSampleCount.value * resolutionScale);
-            float farMaxBlur = m_DepthOfField.farMaxBlur.value * resolutionScale;
-            float nearMaxBlur = m_DepthOfField.nearMaxBlur.value * resolutionScale;
+            int farSamples = Mathf.CeilToInt(m_DepthOfField.farSampleCount * resolutionScale);
+            int nearSamples = Mathf.CeilToInt(m_DepthOfField.nearSampleCount * resolutionScale);
+            float farMaxBlur = m_DepthOfField.farMaxBlur * resolutionScale;
+            float nearMaxBlur = m_DepthOfField.nearMaxBlur * resolutionScale;
 
             // If TAA is enabled we use the camera history system to grab CoC history textures, but
             // because these don't use the same RTHandle system as the global one we'll have a
@@ -1009,7 +1009,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 cs = m_Resources.shaders.depthOfFieldPrefilterCS;
 
-                kernel = m_DepthOfField.resolution.value == DepthOfFieldResolution.Full
+                kernel = m_DepthOfField.resolution == DepthOfFieldResolution.Full
                     ? cs.FindKernel(bothLayersActive ? "KMainNearFarFullRes" : nearLayerActive ? "KMainNearFullRes" : "KMainFarFullRes")
                     : cs.FindKernel(bothLayersActive ? "KMainNearFar" : nearLayerActive ? "KMainNear" : "KMainFar");
 
@@ -1281,7 +1281,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 cs = m_Resources.shaders.depthOfFieldCombineCS;
 
-                if (m_DepthOfField.resolution.value == DepthOfFieldResolution.Full)
+                if (m_DepthOfField.resolution == DepthOfFieldResolution.Full)
                     kernel = cs.FindKernel(bothLayersActive ? "KMainNearFarFullRes" : nearLayerActive ? "KMainNearFullRes" : "KMainFarFullRes");
                 else if (hqFiltering)
                     kernel = cs.FindKernel(bothLayersActive ? "KMainNearFarHighQ" : nearLayerActive ? "KMainNearHighQ" : "KMainFarHighQ");

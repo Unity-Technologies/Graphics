@@ -1,4 +1,8 @@
 using System;
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
+using UnityEngine.Serialization;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -16,12 +20,20 @@ namespace UnityEngine.Rendering.HighDefinition
         Full = 1
     }
 
+
     // TODO: Tooltips
     [Serializable, VolumeComponentMenu("Post-processing/Depth Of Field")]
     public sealed class DepthOfField : VolumeComponent, IPostProcessComponent
     {
         [Tooltip("Specifies the mode that HDRP uses to set the focus for the depth of field effect.")]
         public DepthOfFieldModeParameter focusMode = new DepthOfFieldModeParameter(DepthOfFieldMode.Off);
+
+        [Tooltip("Whether to use quality settings for the effect.")]
+        public BoolParameter useQualitySettings = new BoolParameter(false);
+
+        [Tooltip("Specifies the mode that HDRP uses to set the focus for the depth of field effect.")]
+        public QualitySettingParameter quality = new QualitySettingParameter(VolumeQualitySettingsLevels.Low);
+
 
         // Physical settings
         [Tooltip("Sets the distance to the focus point from the Camera.")]
@@ -41,30 +53,146 @@ namespace UnityEngine.Rendering.HighDefinition
         public MinFloatParameter farFocusEnd = new MinFloatParameter(20f, 0f);
 
         // Shared settings
+        public int nearSampleCount
+        {
+            get
+            {
+                if (!useQualitySettings.value || (HDRenderPipeline)RenderPipelineManager.currentPipeline == null)
+                {
+                    return m_NearSampleCount.value;
+                }
+                else
+                {
+                    HDRenderPipeline pipeline = (HDRenderPipeline)RenderPipelineManager.currentPipeline;
+                    int qualityLevel = (int)quality.value;
+                    return pipeline.currentPlatformRenderPipelineSettings.postProcessQualitySettings.NearBlurSampleCount[qualityLevel];
+                }
+            }
+            set { m_NearSampleCount.value = nearSampleCount; }
+        }
+
+        public float nearMaxBlur
+        {
+            get
+            {
+                if (!useQualitySettings.value || (HDRenderPipeline)RenderPipelineManager.currentPipeline == null)
+                {
+                    return m_NearMaxBlur.value;
+                }
+                else
+                {
+                    HDRenderPipeline pipeline = (HDRenderPipeline)RenderPipelineManager.currentPipeline;
+                    int qualityLevel = (int)quality.value;
+                    return pipeline.currentPlatformRenderPipelineSettings.postProcessQualitySettings.NearBlurMaxRadius[qualityLevel];
+                }
+            }
+            set { m_NearMaxBlur.value = nearMaxBlur; }
+        }
+
+        public int farSampleCount
+        {
+            get
+            {
+                if(!useQualitySettings.value || (HDRenderPipeline)RenderPipelineManager.currentPipeline == null)
+                {
+                    return m_FarSampleCount.value;
+                }
+                else
+                {
+                    HDRenderPipeline pipeline = (HDRenderPipeline)RenderPipelineManager.currentPipeline;
+                    int qualityLevel = (int)quality.value;
+                    return pipeline.currentPlatformRenderPipelineSettings.postProcessQualitySettings.FarBlurSampleCount[qualityLevel];
+                }
+            }
+            set { m_FarSampleCount.value = farSampleCount; }
+        }
+
+        public float farMaxBlur
+        {
+            get
+            {
+                if (!useQualitySettings.value || (HDRenderPipeline)RenderPipelineManager.currentPipeline == null)
+                {
+                    return m_FarMaxBlur.value;
+                }
+                else
+                {
+                    HDRenderPipeline pipeline = (HDRenderPipeline)RenderPipelineManager.currentPipeline;
+                    int qualityLevel = (int)quality.value;
+                    return pipeline.currentPlatformRenderPipelineSettings.postProcessQualitySettings.FarBlurMaxRadius[qualityLevel];
+                }
+            }
+            set { m_FarMaxBlur.value = farMaxBlur; }
+        }
+
+        public bool highQualityFiltering
+        {
+            get
+            {
+                if (!useQualitySettings.value || (HDRenderPipeline)RenderPipelineManager.currentPipeline == null)
+                {
+                    return m_HighQualityFiltering.value;
+                }
+                else
+                {
+                    HDRenderPipeline pipeline = (HDRenderPipeline)RenderPipelineManager.currentPipeline;
+                    int qualityLevel = (int)quality.value;
+                    return pipeline.currentPlatformRenderPipelineSettings.postProcessQualitySettings.HighQualityFiltering[qualityLevel];
+                }
+            }
+            set { m_HighQualityFiltering.value = highQualityFiltering; }
+        }
+
+        public DepthOfFieldResolution resolution
+        {
+            get
+            {
+                if (!useQualitySettings.value || (HDRenderPipeline)RenderPipelineManager.currentPipeline == null)
+                {
+                    return m_Resolution.value;
+                }
+                else
+                {
+                    HDRenderPipeline pipeline = (HDRenderPipeline)RenderPipelineManager.currentPipeline;
+                    int qualityLevel = (int)quality.value;
+                    return pipeline.currentPlatformRenderPipelineSettings.postProcessQualitySettings.Resolution[qualityLevel];
+                }
+            }
+            set { m_Resolution.value = resolution; }
+        }
+
         [Tooltip("Sets the number of samples to use for the near field.")]
-        public ClampedIntParameter nearSampleCount = new ClampedIntParameter(5, 3, 8);
+        [SerializeField, FormerlySerializedAs("nearSampleCount")]
+        ClampedIntParameter m_NearSampleCount = new ClampedIntParameter(5, 3, 8);
+
+        [SerializeField, FormerlySerializedAs("nearMaxBlur")]
         [Tooltip("Sets the maximum radius the near blur can reach.")]
-        public ClampedFloatParameter nearMaxBlur = new ClampedFloatParameter(4f, 0f, 8f);
+        ClampedFloatParameter m_NearMaxBlur = new ClampedFloatParameter(4f, 0f, 8f);
 
         [Tooltip("Sets the number of samples to use for the far field.")]
-        public ClampedIntParameter farSampleCount = new ClampedIntParameter(7, 3, 16);
+        [SerializeField, FormerlySerializedAs("farSampleCount")]
+        ClampedIntParameter m_FarSampleCount = new ClampedIntParameter(7, 3, 16);
         [Tooltip("Sets the maximum radius the far blur can reach.")]
-        public ClampedFloatParameter farMaxBlur = new ClampedFloatParameter(8f, 0f, 16f);
+        [SerializeField, FormerlySerializedAs("farMaxBlur")]
+        ClampedFloatParameter m_FarMaxBlur = new ClampedFloatParameter(8f, 0f, 16f);
 
         // Advanced settings
         [Tooltip("When enabled, HDRP uses bicubic filtering instead of bilinear filtering for the depth of field effect.")]
-        public BoolParameter highQualityFiltering = new BoolParameter(true);
+        [SerializeField, FormerlySerializedAs("highQualityFiltering")]
+        BoolParameter m_HighQualityFiltering = new BoolParameter(true);
+
         [Tooltip("Specifies the resolution at which HDRP processes the depth of field effect.")]
-        public DepthOfFieldResolutionParameter resolution = new DepthOfFieldResolutionParameter(DepthOfFieldResolution.Half);
+        [SerializeField, FormerlySerializedAs("resolution")]
+        DepthOfFieldResolutionParameter m_Resolution = new DepthOfFieldResolutionParameter(DepthOfFieldResolution.Half);
 
         public bool IsActive()
         {
             return focusMode.value != DepthOfFieldMode.Off && (IsNearLayerActive() || IsFarLayerActive());
         }
 
-        public bool IsNearLayerActive() => nearMaxBlur.value > 0f && nearFocusEnd.value > 0f;
+        public bool IsNearLayerActive() => nearMaxBlur > 0f && nearFocusEnd.value > 0f;
 
-        public bool IsFarLayerActive() => farMaxBlur.value > 0f;
+        public bool IsFarLayerActive() => farMaxBlur > 0f;
     }
 
     [Serializable]

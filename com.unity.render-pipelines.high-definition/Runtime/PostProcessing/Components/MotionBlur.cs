@@ -20,7 +20,7 @@ namespace UnityEngine.Rendering.HighDefinition
         [Tooltip("Value used for the depth based weighting of samples. Tweak if unwanted leak of background onto foreground or viceversa is detected.")]
         public ClampedFloatParameter depthComparisonExtent = new ClampedFloatParameter(1.0f, 0.0f, 20.0f);
 
-
+          
         public bool IsActive()
         {
             return intensity.value > 0.0f;

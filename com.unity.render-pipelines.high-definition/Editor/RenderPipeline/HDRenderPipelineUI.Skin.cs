@@ -13,6 +13,7 @@ namespace UnityEditor.Rendering.HighDefinition
         static readonly GUIContent k_MaterialSectionTitle = EditorGUIUtility.TrTextContent("Material");
         static readonly GUIContent k_PostProcessSectionTitle = EditorGUIUtility.TrTextContent("Post-processing");
         static readonly GUIContent k_LightLoopSubTitle = EditorGUIUtility.TrTextContent("Lights");
+        static readonly GUIContent k_PostProcessQualitySubTitle = EditorGUIUtility.TrTextContent("Post-processing Quality Settings");
 
         static readonly GUIContent k_CookiesSubTitle = EditorGUIUtility.TrTextContent("Cookies");
         static readonly GUIContent k_ReflectionsSubTitle = EditorGUIUtility.TrTextContent("Reflections");
@@ -31,6 +32,15 @@ namespace UnityEditor.Rendering.HighDefinition
         static readonly GUIContent k_DirectionalLightsShadowTiers = EditorGUIUtility.TrTextContent("Directional Shadow Resolution Tiers");
         static readonly GUIContent k_DynamicResolutionSubTitle = EditorGUIUtility.TrTextContent("Dynamic resolution");
         static readonly GUIContent k_LowResTransparencySubTitle = EditorGUIUtility.TrTextContent("Low res Transparency");
+
+        static readonly GUIContent k_DepthOfFieldQualitySettings = EditorGUIUtility.TrTextContent("Depth Of Field");
+        static readonly GUIContent k_FarBlurSubTitle = EditorGUIUtility.TrTextContent("Far Blur");
+        static readonly GUIContent k_NearBlurSubTitle = EditorGUIUtility.TrTextContent("Near Blur");
+        static readonly GUIContent k_MaxRadiusQuality = EditorGUIUtility.TrTextContent("Max Radius");
+        static readonly GUIContent k_SampleCountQuality = EditorGUIUtility.TrTextContent("Sample Count");
+        static readonly GUIContent k_DoFResolutionQuality = EditorGUIUtility.TrTextContent("Resolution");
+        static readonly GUIContent k_HighQualityFiltering = EditorGUIUtility.TrTextContent("High Quality Filtering");
+
 
         static readonly GUIContent k_DefaultFrameSettingsContent = EditorGUIUtility.TrTextContent("Default Frame Settings For");
 
