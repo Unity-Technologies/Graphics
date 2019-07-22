@@ -4,12 +4,9 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [7.1.0] - 2019-XX-XX
-### Fixed
-- Fixed shader compilation errors for Android XR projects.
-- Updated the pipeline Asset UI to cap the render scale at 2x so that it matches the render pipeline implementation limit.
+## [7.1.1] - 2019-XX-XX
 
-## [7.0.0] - 2019-07-10
+## [7.0.0] - 2019-07-17
 ### Universal Render Pipeline
 - LWRP has been renamed to the "Universal Render Pipeline" (UniversalRP).
 - UniversalRP is the same as LWRP in terms of features and scope.
@@ -52,7 +49,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed some basic UI/usability issues with LWRP terrain Materials (use of warnings and modal value changes).
 - Fixed an issue where using LWRP and Sprite Shape together would produce meta file conflicts.
 - Fixed fp16 overflow in Switch in specular calculation
-
+- Fixed shader compilation errors for Android XR projects.
+- Updated the pipeline Asset UI to cap the render scale at 2x so that it matches the render pipeline implementation limit.
 
 ## [6.7.0] - 2019-05-16
 ### Added
