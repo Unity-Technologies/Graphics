@@ -172,10 +172,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
                                     // Check to see if our shadow caster is inside the lights bounds...
                                     if (sqDist < (shadowRadiusSq + lightRadiusSq))
-                                    {
-                                        cmdBuffer.DrawMesh(shadowCaster.mesh, Matrix4x4.TRS(shadowCaster.transform.position, shadowCaster.transform.rotation, shadowCaster.transform.lossyScale), new Material(shadowMaterial));
-                                        //cmdBuffer.DrawMesh(shadowCaster.mesh, Matrix4x4.TRS(shadowCaster.transform.position, shadowCaster.transform.rotation, shadowCaster.transform.lossyScale), removeSelfShadowMaterial);
-                                    }
+                                        cmdBuffer.DrawMesh(shadowCaster.mesh, Matrix4x4.TRS(shadowCaster.transform.position, shadowCaster.transform.rotation, shadowCaster.transform.lossyScale), shadowMaterial);
                                 }
                                 else
                                 {
@@ -267,7 +264,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     {
                         if (light != null && light.lightType != Light2D.LightType.Global && light.volumeOpacity > 0.0f && light.blendStyleIndex == blendStyleIndex && light.IsLitLayer(layerToRender) && light.IsLightVisible(camera))
                         {
-                            //RenderShadows(cmdBuffer, light, renderTexture);
+                            RenderShadows(cmdBuffer, light, renderTexture);
 
                             Material lightVolumeMaterial = GetLightMaterial(light, true);
                             if (lightVolumeMaterial != null)
@@ -469,7 +466,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             }
         }
 
-        static public void RenderLightVolumes(Camera camera, CommandBuffer cmdBuffer, int layerToRender)
+        static public void RenderLightVolumes(Camera camera, CommandBuffer cmdBuffer, int layerToRender, RenderTargetIdentifier renderTarget)
         {
             for (int i = 0; i < s_BlendStyles.Length; ++i)
             {
@@ -484,7 +481,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     i,
                     cmdBuffer,
                     layerToRender,
-                    s_LightRenderTargets[i].Identifier(),
+                    renderTarget,
                     Light2D.GetLightsByBlendStyle(i)                  
                 );
 

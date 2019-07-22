@@ -102,7 +102,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
 #if UNITY_EDITOR
                     cmd.name = "Render Light Volumes" + SortingLayer.IDToName(layerToRender);
 #endif
-                    RendererLighting.RenderLightVolumes(camera, cmd, layerToRender);
+                    RendererLighting.RenderLightVolumes(camera, cmd, layerToRender, colorAttachment);
                     context.ExecuteCommandBuffer(cmd);
                     cmd.Clear();
                 }

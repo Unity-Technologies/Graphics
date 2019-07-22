@@ -3,6 +3,7 @@ Shader "Hidden/Shadow2DRemoveSelf"
     Properties
     {
         _MainTex ("Texture", 2D) = "white" {}
+        [PerRendererData][HideInInspector] _ShadowStencilGroup("__ShadowStencilGroup", Float) = 1.0
     }
     SubShader
     {
@@ -15,6 +16,15 @@ Shader "Hidden/Shadow2DRemoveSelf"
 
         Pass
         {
+            Stencil
+            {
+                Ref [_ShadowStencilGroup]
+                Comp Always
+                Pass Keep
+                Fail Keep
+            }
+
+
             CGPROGRAM
             #pragma vertex vert
             #pragma fragment frag
