@@ -2307,7 +2307,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 Debug.Assert(m_TotalLightCount == m_lightList.lightsPerView[0].lightVolumes.Count);
 
                 // Aggregate the remaining views into the first entry of the list (view 0)
-                // XRTODO: revisit this code to avoid duplicated culling computations and extra memory copy
                 for (int viewIndex = 1; viewIndex < hdCamera.viewCount; ++viewIndex)
                 {
                     Debug.Assert(m_lightList.lightsPerView[viewIndex].bounds.Count == m_TotalLightCount);
@@ -2718,17 +2717,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // camera to screen matrix (and it's inverse)
             for (int viewIndex = 0; viewIndex < hdCamera.viewCount; ++viewIndex)
             {
-                var proj = camera.projectionMatrix;
-
-                // XRTODO: If possible, we could generate a non-oblique stereo projection
-                // matrix.  It's ok if it's not the exact same matrix, as long as it encompasses
-                // the same FOV as the original projection matrix (which would mean padding each half
-                // of the frustum with the max half-angle). We don't need the light information in
-                // real projection space.  We just use screen space to figure out what is proximal
-                // to a cluster or tile.
-                // Once we generate this non-oblique projection matrix, it can be shared across both eyes (un-array)
-                if (hdCamera.xr.enabled)
-                    proj = hdCamera.xr.GetProjMatrix(viewIndex);
+                var proj = hdCamera.xr.enabled ? hdCamera.xr.GetProjMatrix(viewIndex) : camera.projectionMatrix;
 
                 m_LightListProjMatrices[viewIndex] = proj * s_FlipMatrixLHSRHS;
                 parameters.lightListProjscrMatrices[viewIndex] = temp * m_LightListProjMatrices[viewIndex];

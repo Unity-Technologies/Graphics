@@ -535,7 +535,6 @@ namespace UnityEngine.Rendering.HighDefinition
             m_GbufferManager.DestroyBuffers();
             m_DbufferManager.DestroyBuffers();
             m_MipGenerator.Release();
-            m_XRSystem.ClearAll();
 
             RTHandles.Release(m_CameraColorBuffer);
             RTHandles.Release(m_OpaqueAtmosphericScatteringBuffer);
@@ -759,6 +758,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             CleanupSubsurfaceScattering();
             m_SharedRTManager.Cleanup();
+            m_XRSystem.Cleanup();
             m_SkyManager.Cleanup();
             CleanupVolumetricLighting();
 
