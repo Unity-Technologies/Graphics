@@ -36,7 +36,7 @@ namespace UnityEditor.Rendering.HighDefinition
         bool ForceVertex();
         void OverrideActiveFields(ICollection<string> activeFields);
         void RegisterGlobalFunctions(FunctionRegistry functionRegistry);
-        void GenerateVertexProlog(ShaderStringBuilder sb);
-        void GeneratePixelProlog(ShaderStringBuilder sb);
+        void GenerateVertexProlog(ShaderStringBuilder sb, string inputStructName);
+        void GeneratePixelProlog(ShaderStringBuilder sb, string inputStructName);
     }
 }

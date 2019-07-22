@@ -47,10 +47,10 @@ namespace UnityEditor.Rendering.HighDefinition
         public void RegisterGlobalFunctions(FunctionRegistry functionRegistry)
         { }
 
-        public void GenerateVertexProlog(ShaderStringBuilder sb)
+        public void GenerateVertexProlog(ShaderStringBuilder sb, string inputVariableName)
         { }
 
-        public void GeneratePixelProlog(ShaderStringBuilder sb)
+        public void GeneratePixelProlog(ShaderStringBuilder sb, string inputVariableName)
         { }
     }
 }

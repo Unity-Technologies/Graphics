@@ -746,12 +746,12 @@ namespace UnityEditor.Rendering.HighDefinition
 
             var vertexShaderProlog = new ShaderGenerator();
             var vertexShaderPrologSb = new ShaderStringBuilder();
-            geometry.GenerateVertexProlog(vertexShaderPrologSb);
+            geometry.GenerateVertexProlog(vertexShaderPrologSb, "input");
             vertexShaderProlog.AddShaderChunk(vertexShaderPrologSb.ToString());
 
             var pixelShaderProlog = new ShaderGenerator();
             var pixelShaderPrologSb = new ShaderStringBuilder();
-            geometry.GeneratePixelProlog(pixelShaderPrologSb);
+            geometry.GeneratePixelProlog(pixelShaderPrologSb, "fragInputs");
             pixelShaderProlog.AddShaderChunk(pixelShaderPrologSb.ToString());
 
             // build graph code
