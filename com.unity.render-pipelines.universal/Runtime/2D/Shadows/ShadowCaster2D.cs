@@ -16,16 +16,12 @@ namespace UnityEngine.Experimental.Rendering.Universal
         int m_PreviousSides = 6;
         float m_PreviousAngle = 0;
         float m_PreviousRadius = 1;
-
+        [SerializeField] Vector3[] m_ShapePath;
 
         public float radius { get => m_Radius; }
         internal Mesh mesh { get => m_Mesh; }
+        internal Vector3[] shapePath => m_ShapePath;
 
-        public enum CasterType
-        {
-            Capsule,
-            Polygon
-        }
 
         Mesh m_ShadowMesh;
 
@@ -147,8 +143,16 @@ namespace UnityEngine.Experimental.Rendering.Universal
             m_Mesh = mesh;
         }
 
+        private void Awake()
+        {
+            if (m_ShapePath == null || m_ShapePath.Length == 0)
+                m_ShapePath = new Vector3[] { new Vector3(-0.5f, -0.5f), new Vector3(0.5f, -0.5f), new Vector3(0.5f, 0.5f), new Vector3(-0.5f, 0.5f) };
+        }
+
         private void OnEnable()
         {
+
+
             CreateShadowPolygon(Vector3.zero, m_Radius, m_Angle, m_Sides, ref m_ShadowMesh);
 
             LightUtility.AddToShadowCasterToGroup(this, out m_ShadowCasterGroup);

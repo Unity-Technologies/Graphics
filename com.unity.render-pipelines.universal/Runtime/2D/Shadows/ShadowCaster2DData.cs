@@ -6,9 +6,9 @@ namespace UnityEngine.Experimental.Rendering.Universal
     [Serializable]
     public class ShadowCaster2DData
     {
-        public float m_Radius = 1;
-        public int m_Sides = 6;
-        public float m_Angle = 0;
+        [SerializeField] Vector3[] m_ShapePath;
+        int m_PreviousShapePathHash = -1;
+
         public IShadowCasterGroup2D m_ShadowCasterGroup = null;
 
         Mesh m_Mesh;

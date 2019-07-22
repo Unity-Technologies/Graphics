@@ -19,7 +19,7 @@ Shader "Hidden/Shadow2DRemoveSelf"
             Stencil
             {
                 Ref [_ShadowStencilGroup]
-                Comp Always
+                Comp Equal
                 Pass Keep
                 Fail Keep
             }
