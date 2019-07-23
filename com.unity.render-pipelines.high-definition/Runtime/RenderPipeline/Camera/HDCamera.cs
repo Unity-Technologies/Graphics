@@ -436,6 +436,33 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             xrViewConstantsGpu.SetData(xrViewConstants);
+
+            // Update frustum and projection parameters
+            {
+                var projMatrix = mainViewConstants.projMatrix;
+                var invProjMatrix = mainViewConstants.invProjMatrix;
+                var viewProjMatrix = mainViewConstants.viewProjMatrix;
+
+                if (xr.enabled)
+                {
+                    var combinedProjMatrix = xr.cullingParams.stereoProjectionMatrix;
+                    var combinedViewMatrix = xr.cullingParams.stereoViewMatrix;
+
+                    if (ShaderConfig.s_CameraRelativeRendering != 0)
+                    {
+                        var combinedOrigin = combinedViewMatrix.inverse.GetColumn(3) - (Vector4)(camera.transform.position);
+                        combinedViewMatrix.SetColumn(3, combinedOrigin);
+                    }
+
+                    projMatrix = combinedProjMatrix;
+                    invProjMatrix = projMatrix.inverse;
+                    viewProjMatrix = projMatrix * combinedViewMatrix;
+                }
+
+                UpdateFrustum(projMatrix, invProjMatrix, viewProjMatrix);
+            }
+
+            m_RecorderCaptureActions = CameraCaptureBridge.GetCaptureActions(camera);
         }
 
         void UpdateViewConstants(ref ViewConstants viewConstants, Matrix4x4 projMatrix, Matrix4x4 viewMatrix, Vector3 cameraPosition, bool jitterProjectionMatrix, bool updatePreviousFrameConstants)
@@ -503,17 +530,19 @@ namespace UnityEngine.Rendering.HighDefinition
                 noTransViewMatrix.SetColumn(3, new Vector4(0, 0, 0, 1));
                 viewConstants.prevViewProjMatrixNoCameraTrans = gpuNonJitteredProj * noTransViewMatrix;
             }
+        }
 
-            // XRTODO: figure out if the following variables must be in ViewConstants
+        void UpdateFrustum(Matrix4x4 projMatrix, Matrix4x4 invProjMatrix, Matrix4x4 viewProjMatrix)
+        {
             float n = camera.nearClipPlane;
             float f = camera.farClipPlane;
 
             // Analyze the projection matrix.
             // p[2][3] = (reverseZ ? 1 : -1) * (depth_0_1 ? 1 : 2) * (f * n) / (f - n)
-            float scale     = viewConstants.projMatrix[2, 3] / (f * n) * (f - n);
+            float scale     = projMatrix[2, 3] / (f * n) * (f - n);
             bool  depth_0_1 = Mathf.Abs(scale) < 1.5f;
             bool  reverseZ  = scale > 0;
-            bool  flipProj  = viewConstants.invProjMatrix.MultiplyPoint(new Vector3(0, 1, 0)).y < 0;
+            bool  flipProj  = invProjMatrix.MultiplyPoint(new Vector3(0, 1, 0)).y < 0;
 
             // http://www.humus.name/temp/Linearize%20depth.txt
             if (reverseZ)
@@ -531,15 +560,13 @@ namespace UnityEngine.Rendering.HighDefinition
             float orthoWidth  = orthoHeight * camera.aspect;
             unity_OrthoParams = new Vector4(orthoWidth, orthoHeight, 0, camera.orthographic ? 1 : 0);
 
-            Frustum.Create(frustum, viewConstants.viewProjMatrix, depth_0_1, reverseZ);
+            Frustum.Create(frustum, viewProjMatrix, depth_0_1, reverseZ);
 
             // Left, right, top, bottom, near, far.
             for (int i = 0; i < 6; i++)
             {
                 frustumPlaneEquations[i] = new Vector4(frustum.planes[i].normal.x, frustum.planes[i].normal.y, frustum.planes[i].normal.z, frustum.planes[i].distance);
             }
-
-            m_RecorderCaptureActions = CameraCaptureBridge.GetCaptureActions(camera);
         }
 
         void UpdateVolumeParameters()

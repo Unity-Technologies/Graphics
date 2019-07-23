@@ -82,6 +82,9 @@ namespace UnityEngine.Rendering.HighDefinition
         internal Matrix4x4 GetViewMatrix(int viewIndex = 0) { return views[viewIndex].viewMatrix; }
         internal Rect GetViewport(int viewIndex = 0)        { return views[viewIndex].viewport; }
 
+        // Combined projection and view matrices for culling
+        internal ScriptableCullingParameters cullingParams { get; private set; }
+
         // Instanced views support (instanced draw calls or multiview extension)
         internal int viewCount { get => views.Count; }
         internal bool instancingEnabled { get => viewCount > 1; }
@@ -93,12 +96,13 @@ namespace UnityEngine.Rendering.HighDefinition
         internal int  legacyMultipassEye      { get => (int)views[0].legacyStereoEye; }
         internal bool legacyMultipassEnabled  { get => enabled && !instancingEnabled && legacyMultipassEye >= 0; }
 
-        internal static XRPass Create(int multipassId, RenderTexture rt = null)
+        internal static XRPass Create(int multipassId, ScriptableCullingParameters cullingParameters, RenderTexture rt = null)
         {
             XRPass passInfo = GenericPool<XRPass>.Get();
 
             passInfo.multipassId = multipassId;
             passInfo.cullingPassId = multipassId;
+            passInfo.cullingParams = cullingParameters;
             passInfo.views.Clear();
 
             if (rt != null)
@@ -129,12 +133,13 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
 #if USE_XR_SDK
-        internal static XRPass Create(XRDisplaySubsystem.XRRenderPass xrRenderPass, int multipassId, Material occlusionMeshMaterial)
+        internal static XRPass Create(XRDisplaySubsystem.XRRenderPass xrRenderPass, int multipassId, ScriptableCullingParameters cullingParameters, Material occlusionMeshMaterial)
         {
             XRPass passInfo = GenericPool<XRPass>.Get();
 
             passInfo.multipassId = multipassId;
             passInfo.cullingPassId = xrRenderPass.cullingPassIndex;
+            passInfo.cullingParams = cullingParameters;
             passInfo.views.Clear();
             passInfo.renderTarget = xrRenderPass.renderTarget;
             passInfo.renderTargetDesc = xrRenderPass.renderTargetDesc;
