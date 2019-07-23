@@ -122,3 +122,20 @@ VFX32BitField > #tip
 
     -unity-text-align: middle-right;
 }
+
+GradientField
+{
+    margin-left:0px;
+    margin-right:0px;
+}
+
+ObjectField
+{
+    margin-left:0px;
+    margin-right:0px;
+}
+
+CurveField > *
+{
+    margin-top:0px;
+}
