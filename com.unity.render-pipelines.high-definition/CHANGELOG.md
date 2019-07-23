@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Fixed
 - Fixed material albedo affecting the lux meter
 - Fixed XR SDK mirror view blit, cleanup some XRTODO and removed XRDebug.cs
+- Removed the double sided option from the Hair materials UI.
 
 ## [7.0.0] - 2019-07-10
 
