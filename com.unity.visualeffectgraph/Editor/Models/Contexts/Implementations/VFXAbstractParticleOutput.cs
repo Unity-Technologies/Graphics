@@ -105,7 +105,7 @@ namespace UnityEditor.VFX
         private bool hasExposure { get { return needsExposureWeight && subOutput.supportsExposure; } }
 
         public bool HasIndirectDraw()   { return indirectDraw || HasSorting(); }
-        public bool HasSorting()        { return sort == SortMode.On || (sort == SortMode.Auto && (blendMode == BlendMode.Alpha || blendMode == BlendMode.AlphaPremultiplied)); }
+        public bool HasSorting()        { return sort == SortMode.On || (sort == SortMode.Auto && (blendMode == BlendMode.Alpha || blendMode == BlendMode.AlphaPremultiplied) && !HasStrips()); }
         int IVFXSubRenderer.sortPriority
         {
             get {
