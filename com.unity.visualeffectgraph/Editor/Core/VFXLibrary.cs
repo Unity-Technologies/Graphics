@@ -1,4 +1,5 @@
 using System;
+using System.Text;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -93,10 +94,7 @@ namespace UnityEditor.VFX
 
         protected void ApplyVariant(VFXModel model)
         {
-            foreach (var variant in m_Variants)
-            {
-                model.SetSettingValue(variant.Key, variant.Value);
-            }
+            model.SetSettingValues(m_Variants);
         }
 
         private IEnumerable<KeyValuePair<string, object>> m_Variants;
@@ -307,6 +305,9 @@ namespace UnityEditor.VFX
         {
             var modelTypes = FindConcreteSubclasses(typeof(T), typeof(VFXInfoAttribute));
             var modelDescs = new List<VFXModelDescriptor<T>>();
+            var nameAlreadyAdded = new HashSet<string>();
+            var error = new StringBuilder();
+
             foreach (var modelType in modelTypes)
             {
                 try
@@ -321,8 +322,19 @@ namespace UnityEditor.VFX
                             foreach (var variant in provider.ComputeVariants())
                             {
                                 var variantArray = variant.ToArray();
-                                modelDescs.Add(new VFXModelDescriptor<T>((T)ScriptableObject.CreateInstance(modelType), variant));
+                                var currentVariant = new VFXModelDescriptor<T>((T)ScriptableObject.CreateInstance(modelType), variant);
+                                if (!nameAlreadyAdded.Contains(currentVariant.name))
+                                {
+                                    modelDescs.Add(currentVariant);
+                                    nameAlreadyAdded.Add(currentVariant.name);
+                                }
+                                else
+                                {
+                                    error.AppendFormat("Trying to add twice : {0}", currentVariant.name);
+                                    error.AppendLine();
+                                }
                             }
+                            nameAlreadyAdded.Clear();
                         }
                         else
                         {
@@ -332,8 +344,14 @@ namespace UnityEditor.VFX
                 }
                 catch (Exception e)
                 {
-                    Debug.LogError("Error while loading model from type " + modelType + ": " + e);
+                    error.AppendFormat("Error while loading model from type " + modelType + ": " + e);
+                    error.AppendLine();
                 }
+            }
+
+            if (error.Length != 0)
+            {
+                Debug.LogError(error);
             }
 
             return modelDescs.OrderBy(o => o.name).ToList();

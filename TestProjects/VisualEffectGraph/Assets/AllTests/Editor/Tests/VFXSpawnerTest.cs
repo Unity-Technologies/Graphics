@@ -12,6 +12,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEditor.VFX.Block;
 using System.Text;
+using System.Globalization;
 
 namespace UnityEditor.VFX.Test
 {
@@ -544,14 +545,14 @@ namespace UnityEditor.VFX.Test
                 var value = o.Invoke(state, null);
                 if (value is float)
                 {
-                    return string.Format("{0:0.00}", value);
+                    return ((float)value).ToString("0.00", CultureInfo.InvariantCulture);
                 }
-                return value.ToString(); ;
+                return value.ToString();
             });
             return DebugSpawnerStateAggregate(allState);
         }
 
-        //[UnityTest] Disabled temporarily : something change, require investigation
+        [UnityTest]
         public IEnumerator CreateSpawner_Chaining()
         {
             EditorApplication.ExecuteMenuItem("Window/General/Game");
@@ -587,6 +588,8 @@ namespace UnityEditor.VFX.Test
             spawnerInit.LinkFrom(spawnerContext_B);
             spawnerOutput.LinkFrom(spawnerInit);
 
+            spawnerInit.SetSettingValue("capacity", 512u);
+
             graph.SetCompilationMode(VFXCompilationMode.Runtime);
             graph.RecompileIfNeeded();
 
@@ -615,7 +618,7 @@ namespace UnityEditor.VFX.Test
             var aliveParticleCount = vfxComponent.aliveParticleCount;
             for (int i = 0; i < 115; ++i)
             {
-                log.AppendFormat("{0} & {1} => {2:00.00}", DebugSpawnerState(state_A), DebugSpawnerState(state_B), aliveParticleCount);
+                log.AppendFormat("{0} & {1} => {2}", DebugSpawnerState(state_A), DebugSpawnerState(state_B), aliveParticleCount.ToString("00.00", CultureInfo.InvariantCulture));
                 log.AppendLine();
 
                 if (i == 100)
@@ -699,7 +702,7 @@ namespace UnityEditor.VFX.Test
 
         };
 
-        //Disabled temporarily : something change, require investigation
+        [UnityTest]
         public IEnumerator CreateSpawner_ChangeLoopMode([ValueSource("k_CreateSpawner_ChangeLoopModeTestCases")] CreateSpawner_ChangeLoopMode_TestCase testCase)
         {
             EditorApplication.ExecuteMenuItem("Window/General/Game");
@@ -774,6 +777,8 @@ namespace UnityEditor.VFX.Test
             spawnerInit.LinkFrom(spawnerContext);
             spawnerOutput.LinkFrom(spawnerInit);
 
+            spawnerInit.SetSettingValue("capacity", 512u);
+
             graph.SetCompilationMode(VFXCompilationMode.Runtime);
             graph.RecompileIfNeeded();
 
@@ -802,7 +807,7 @@ namespace UnityEditor.VFX.Test
             var aliveParticleCount = vfxComponent.aliveParticleCount;
             for (int i = 0; i < 150; ++i)
             {
-                log.AppendFormat("{0} ==> {1:0.00}", DebugSpawnerState(state), aliveParticleCount);
+                log.AppendFormat("{0} ==> {1}", DebugSpawnerState(state), aliveParticleCount.ToString("0.00", CultureInfo.InvariantCulture));
                 log.AppendLine();
 
                 if (i == 100)
