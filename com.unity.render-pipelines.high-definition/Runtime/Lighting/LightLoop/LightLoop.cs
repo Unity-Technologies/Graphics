@@ -1163,17 +1163,27 @@ namespace UnityEngine.Rendering.HighDefinition
                 lightData.nonLightMappedOnly = 0;
             }
 
-            lightData.interactsWithSky = isPysicallyBasedSkyActive && additionalLightData.interactsWithSky ? 1 : 0;
+            bool interactsWithSky = isPysicallyBasedSkyActive
+                                 && additionalLightData.interactsWithSky
+                                 && (additionalLightData.distance >= 0);
 
-            if ((lightData.interactsWithSky != 0) && (ShaderConfig.s_PrecomputedAtmosphericAttenuation != 0))
+            lightData.distanceFromCamera = -1; // Encode 'interactsWithSky'
+
+            if (interactsWithSky)
             {
-                Vector3 transm = EvaluateAtmosphericAttenuation(-lightData.forward, hdCamera.camera.transform.position);
-                lightData.color.x *= transm.x;
-                lightData.color.y *= transm.y;
-                lightData.color.z *= transm.z;
+                lightData.distanceFromCamera = additionalLightData.distance;
+
+                if (ShaderConfig.s_PrecomputedAtmosphericAttenuation != 0)
+                {
+                    // Ignores distance (at infinity).
+                    Vector3 transm = EvaluateAtmosphericAttenuation(-lightData.forward, hdCamera.camera.transform.position);
+                    lightData.color.x *= transm.x;
+                    lightData.color.y *= transm.y;
+                    lightData.color.z *= transm.z;
+                }
             }
 
-            lightData.radius = additionalLightData.radius;
+            lightData.aperture = Mathf.Cos(additionalLightData.aperture * Mathf.Deg2Rad);
 
             // Fallback to the first non shadow casting directional light.
             m_CurrentSunLight = m_CurrentSunLight == null ? lightComponent : m_CurrentSunLight;

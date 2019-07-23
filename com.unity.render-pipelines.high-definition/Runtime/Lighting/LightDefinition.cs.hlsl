@@ -72,8 +72,8 @@ struct DirectionalLightData
     real4 shadowMaskSelector;
     float diffuseDimmer;
     float specularDimmer;
-    int interactsWithSky;
-    float radius;
+    float aperture;
+    float distanceFromCamera;
 };
 
 // Generated from UnityEngine.Rendering.HighDefinition.LightData

@@ -81,8 +81,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public float   diffuseDimmer;
         public float   specularDimmer;
-        public int     interactsWithSky;        // (TODO: use a bitfield)
-        public float   radius;                  // Units: km
+        public float   aperture;                // Cosine of the half-angle
+        public float   distanceFromCamera;      // -1 -> no sky interaction. Units: km
     };
 
     [GenerateHLSL(PackingRules.Exact, false)]

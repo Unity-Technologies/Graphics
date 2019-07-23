@@ -86,22 +86,18 @@ Shader "Hidden/HDRP/Sky/PbrSky"
         {
             DirectionalLightData light = _DirectionalLightDatas[i];
 
-            if (!light.interactsWithSky) continue;
+            // Use scalar or integer cores (more efficient).
+            bool interactsWithSky = asint(light.distanceFromCamera) >= 0;
 
-            if (light.radius > 0)
+            if (interactsWithSky && asint(light.aperture) != 0 && light.distanceFromCamera <= tFrag)
             {
                 // We may be able to see the celestial body.
-                float3 radialVec       = (light.positionRWS - GetPrimaryCameraPosition()) * 0.001; // Convert m to km
-                float  radialVecLen    = sqrt(dot(radialVec, radialVec));
-                float  rcpRadialVecLen = rsqrt(dot(radialVec, radialVec));
-                float  cosBody         = dot(V, radialVec) * rcpRadialVecLen; // Both vectors are flipped
+                float3 L = -light.forward.xyz;
 
-                float2 tBody = IntersectSphere(light.radius, cosBody, radialVecLen, rcpRadialVecLen);
-
-                if (tBody.x > 0 && tBody.x < tFrag)
+                if (dot(L, -V) >= light.aperture)
                 {
                     // Closest so far.
-                    tFrag = tBody.x;
+                    tFrag = light.distanceFromCamera;
 
                     // Assume uniform emission (no rescaling w.r.t. the solid angle or with the normal).
                     radiance = light.color.rgb;
@@ -146,7 +142,8 @@ Shader "Hidden/HDRP/Sky/PbrSky"
                 {
                     DirectionalLightData light = _DirectionalLightDatas[i];
 
-                    if (!light.interactsWithSky) continue;
+                    // Use scalar or integer cores (more efficient).
+                    bool interactsWithSky = asint(light.distanceFromCamera) >= 0;
 
                     float3 L          = -light.forward.xyz;
                     float3 intensity  = light.color.rgb;

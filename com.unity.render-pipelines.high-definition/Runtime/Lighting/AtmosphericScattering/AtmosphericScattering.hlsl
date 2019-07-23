@@ -117,12 +117,15 @@ void EvaluatePbrAtmosphere(float3 worldSpaceCameraPos, float3 V, float distAlong
         {
             DirectionalLightData light = _DirectionalLightDatas[i];
 
-            if (!light.interactsWithSky) continue;
+            // Use scalar or integer cores (more efficient).
+            bool interactsWithSky = asint(light.distanceFromCamera) >= 0;
+
+            if (!interactsWithSky) continue;
 
             float3 L             = -light.forward.xyz;
             float3 lightRadiance =  light.color.rgb;
 
-            if (light.radius > 0)
+            // if (light.radius > 0)
             {
                 // Hack: adjust the light direction to account for the area of the light.
                 // if (V in LightSolidAngle)

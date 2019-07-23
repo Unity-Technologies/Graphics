@@ -721,22 +721,38 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        [SerializeField, FormerlySerializedAs("radius")]
-        float m_Radius = 0;
+        [SerializeField, FormerlySerializedAs("aperture")]
+        float m_Aperture = 0;
         /// <summary>
-        /// Radius of the emissive celestial body represented by the light (in km).
-        /// Used by the Physically Based sky.
-        /// This have no effect on other skies.
+        /// Angular aperture of the emissive celestial body represented by the light (in degrees).
+        /// Used to render the sun/moon disk.
         /// </summary>
-        public float radius
+        public float aperture
         {
-            get => m_Radius;
+            get => m_Aperture;
             set
             {
-                if (m_Radius == value)
+                if (m_Aperture == value)
                     return;
 
-                m_Radius = value;
+                m_Aperture = value;
+            }
+        }
+
+        [SerializeField, FormerlySerializedAs("distance")]
+        float m_Distance = 150000000.0f; // Sun to Earth
+        /// <summary>
+        /// Distance from the planet to the emissive celestial body represented by the light.
+        /// </summary>
+        public float distance
+        {
+            get => m_Distance;
+            set
+            {
+                if (m_Distance == value)
+                    return;
+
+                m_Distance = value;
             }
         }
 
@@ -1974,7 +1990,8 @@ namespace UnityEngine.Rendering.HighDefinition
             data.m_Intensity = m_Intensity;
             data.displayAreaLightEmissiveMesh = displayAreaLightEmissiveMesh;
             data.interactsWithSky = interactsWithSky;
-            data.radius = radius;
+            data.aperture = aperture;
+            data.distance = distance;
 
             data.customResolution = customResolution;
             data.shadowDimmer = shadowDimmer;
