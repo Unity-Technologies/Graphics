@@ -12,6 +12,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed various dependency tracking issues with Sub Graphs and HLSL files from Custom Function Nodes.
 - Fixed an error that previously occurred when you used `Sampler State` input ports on Sub Graphs.
 
+### Fixed
+- Normal maps now unpack correctly for mobile platforms.
+
 ## [7.0.0] - 2019-07-10
 ### Added
 - You can now use the `SHADERGRAPH_PREVIEW` keyword in `Custom Function Node` to generate different code for preview Shaders.
