@@ -117,25 +117,6 @@ void AlphaDiscard(real alpha, real cutoff, real offset = 0.0h)
 #endif
 }
 
-real3 UnpackNormal(real4 packedNormal)
-{
-#if defined(UNITY_NO_DXT5nm)
-    return UnpackNormalRGBNoScale(packedNormal);
-#else
-        // Compiler will optimize the scale away
-    return UnpackNormalmapRGorAG(packedNormal, 1.0);
-#endif
-}
-
-real3 UnpackNormalScale(real4 packedNormal, real bumpScale)
-{
-#if defined(UNITY_NO_DXT5nm)
-    return UnpackNormalRGB(packedNormal, bumpScale);
-#else
-    return UnpackNormalmapRGorAG(packedNormal, bumpScale);
-#endif
-}
-
 // A word on normalization of normals:
 // For better quality normals should be normalized before and after
 // interpolation. 
