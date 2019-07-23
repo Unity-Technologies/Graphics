@@ -13,6 +13,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed material albedo affecting the lux meter
 - Fixed XR SDK mirror view blit, cleanup some XRTODO and removed XRDebug.cs
 
+### Changed
+- RenderQueue for Opaque now start at Background instead of Geometry.
+
 ## [7.0.0] - 2019-07-10
 
 ### Added
