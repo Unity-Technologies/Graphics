@@ -67,7 +67,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             public readonly GUIContent interactsWithSky = new GUIContent("Interacts with the sky", "Check this option to make the light and the Physically Based sky affect one another.");
             public readonly GUIContent aperture = new GUIContent("Aperture", "Angular aperture of the emissive celestial body represented by the light (in degrees). Used to render the sun/moon disk.");
-            public readonly GUIContent distance = new GUIContent("Distance", "Distance from the planet to the emissive celestial body represented by the light.");
+            public readonly GUIContent distance = new GUIContent("Distance", "Distance from the camera to the emissive celestial body represented by the light. Primarily used for sorting.");
 
             public readonly GUIContent shape = new GUIContent("Type", "Specifies the current type of Light. Possible Light types are Directional, Spot, Point, Rectangle, and Tube.");
             public readonly GUIContent[] shapeNames;

@@ -742,7 +742,7 @@ namespace UnityEngine.Rendering.HighDefinition
         [SerializeField, FormerlySerializedAs("distance")]
         float m_Distance = 150000000.0f; // Sun to Earth
         /// <summary>
-        /// Distance from the planet to the emissive celestial body represented by the light.
+        /// Distance from the camera to the emissive celestial body represented by the light.
         /// </summary>
         public float distance
         {
