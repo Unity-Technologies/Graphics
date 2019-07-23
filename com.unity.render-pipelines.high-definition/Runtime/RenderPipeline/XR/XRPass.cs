@@ -12,7 +12,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine.Rendering;
 #if USE_XR_SDK
-using UnityEngine.Experimental.XR;
+using UnityEngine.XR;
 #endif
 
 namespace UnityEngine.Rendering.HighDefinition

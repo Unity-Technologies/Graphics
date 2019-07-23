@@ -839,7 +839,10 @@ MonoBehaviour:
   - {fileID: 114595780175201894}
   - {fileID: 114235624355233986}
   - {fileID: 114220037808193320}
-  m_Capacity: 4096
+  dataType: 0
+  capacity: 4096
+  stripCapacity: 16
+  particlePerStripCount: 16
   m_Space: 0
 --- !u!114 &114130453437287488
 MonoBehaviour:
@@ -1697,6 +1700,7 @@ MonoBehaviour:
   m_OutputFlowSlot:
   - link: []
   blendMode: 0
+  generateMotionVector: 0
   m_SubOutputs:
   - {fileID: 8926484042661614659}
   cullMode: 0
@@ -1933,6 +1937,7 @@ MonoBehaviour:
   m_OutputFlowSlot:
   - link: []
   blendMode: 0
+  generateMotionVector: 0
   m_SubOutputs:
   - {fileID: 8926484042661614658}
   cullMode: 0
@@ -2966,7 +2971,10 @@ MonoBehaviour:
   - {fileID: 114022956160214532}
   - {fileID: 114250236699684926}
   - {fileID: 114267110503531944}
-  m_Capacity: 4096
+  dataType: 0
+  capacity: 4096
+  stripCapacity: 16
+  particlePerStripCount: 16
   m_Space: 0
 --- !u!114 &114472232001433816
 MonoBehaviour:
@@ -5975,7 +5983,7 @@ VisualEffectResource:
     m_Events: []
     m_RuntimeVersion: 10
     m_RendererSettings:
-      motionVectorGenerationMode: 1
+      motionVectorGenerationMode: 0
       shadowCastingMode: 0
       receiveShadows: 0
       reflectionProbeUsage: 0
