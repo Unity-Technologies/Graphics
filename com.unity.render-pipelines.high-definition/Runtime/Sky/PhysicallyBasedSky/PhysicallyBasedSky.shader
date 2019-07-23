@@ -80,8 +80,6 @@ Shader "Hidden/HDRP/Sky/PbrSky"
 
         // Intersect and shade emissive celestial bodies.
         // Unfortunately, they don't write depth.
-        // This means that they are always effectively "at infinity",
-        // and cannot occlude anything (except for each other and the planet).
         for (uint i = 0; i < _DirectionalLightCount; i++)
         {
             DirectionalLightData light = _DirectionalLightDatas[i];

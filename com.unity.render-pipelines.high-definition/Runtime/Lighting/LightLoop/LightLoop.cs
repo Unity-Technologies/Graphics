@@ -1163,9 +1163,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 lightData.nonLightMappedOnly = 0;
             }
 
-            bool interactsWithSky = isPysicallyBasedSkyActive
-                                 && additionalLightData.interactsWithSky
-                                 && (additionalLightData.distance >= 0);
+            bool interactsWithSky = isPysicallyBasedSkyActive && additionalLightData.interactsWithSky;
 
             lightData.distanceFromCamera = -1; // Encode 'interactsWithSky'
 

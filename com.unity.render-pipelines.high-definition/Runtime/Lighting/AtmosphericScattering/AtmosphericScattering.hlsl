@@ -251,8 +251,6 @@ void EvaluateAtmosphericScattering(PositionInputs posInput, float3 V, out float3
 
     // We apply atmospheric scattering to all celestial bodies during the sky pass.
     // Unfortunately, they don't write depth.
-    // This means that they are always effectively "at infinity",
-    // and cannot occlude anything (except for each other and the planet).
     if (hasPbrSkyAtmosphere && (posInput.deviceDepth != UNITY_RAW_FAR_CLIP_VALUE))
     {
         // Convert it to distance along the ray. Doesn't work with tilt shift, etc.
