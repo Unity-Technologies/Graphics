@@ -15,7 +15,7 @@ This is a high level overview of all of the features you can use in the High Def
 
 ### Platform support
 
-You can run HDRP Projects on XboxOne, PS4, and compute Shader compatible devices for DirectX 11, DirectX 12, Metal, and Vulkan.
+You can run HDRP Projects on Xbox One, PS4, and compute Shader compatible devices for DirectX 11, DirectX 12, Metal, and Vulkan.
 
 ### Camera-relative rendering
 
@@ -37,13 +37,13 @@ The HDRP Shaders allow you to use the following features:
 
 - [Opaque/transparent surfaces](Surface-Type.html).
 
-- - Different blend modes for transparent surfaces.
+  - Different blend modes for transparent surfaces.
   - Transparent surfaces that work with fog.
   - Refraction and distortion for transparent surfaces.
 
 - [Material types](Material-Type.html).
 
-- - Anisotropy, for surfaces that have highlights that change when you view them from different angles, like brushed metal or velvet.
+  - Anisotropy, for surfaces that have highlights that change when you view them from different angles, like brushed metal or velvet.
   - Iridescence, for surfaces that appear to change color as you view them from different angles, like soap bubbles or insect wings.
   - Metallic, for surfaces that appear smooth, reflective, and have specular highlights.
   - Specular Color, for surfaces that you want to have a colored specular highlight.
