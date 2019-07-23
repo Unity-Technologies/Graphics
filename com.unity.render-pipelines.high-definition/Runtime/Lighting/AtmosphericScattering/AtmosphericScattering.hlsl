@@ -35,7 +35,7 @@ float3 GetFogColor(float3 V, float fragDist)
 // We evaluate atmospheric scattering for the sky and other celestial bodies
 // during the sky pass. The opaque atmospheric scattering pass applies atmospheric
 // scattering to all other opaque geometry.
-void EvaluatePbrAtmosphere(float3 worldSpaceCameraPos, float3 V, float distAlongRay,
+void EvaluatePbrAtmosphere(float3 worldSpaceCameraPos, float3 V, float distAlongRay, bool isSkyPass,
                            out float3 skyColor, out float3 skyOpacity)
 {
     skyColor = skyOpacity = 0;
@@ -102,8 +102,8 @@ void EvaluatePbrAtmosphere(float3 worldSpaceCameraPos, float3 V, float distAlong
         // We may have swapped X and Y.
         float2 ch = abs(ch0 - ch1);
 
-        float3 optDepth   = ch.x * H.x * _AirSeaLevelExtinction
-                          + ch.y * H.y * _AerosolSeaLevelExtinction;
+        float3 optDepth = ch.x * H.x * _AirSeaLevelExtinction
+                        + ch.y * H.y * _AerosolSeaLevelExtinction;
 
         skyOpacity = 1 - TransmittanceFromOpticalDepth(optDepth); // from 'tEntry' to 'tFrag'
 
@@ -126,7 +126,7 @@ void EvaluatePbrAtmosphere(float3 worldSpaceCameraPos, float3 V, float distAlong
             float3 L = -light.forward.xyz;
 
             // The sun disk hack causes some issues when applied to nearby geometry, so don't do that.
-            if (asint(light.aperture) != 0 && light.distanceFromCamera <= tFrag)
+            if (isSkyPass && asint(light.aperture) != 0 && light.distanceFromCamera <= tFrag)
             {
                 float c = dot(L, -V);
 
@@ -258,7 +258,7 @@ void EvaluateAtmosphericScattering(PositionInputs posInput, float3 V, out float3
         // Convert it to distance along the ray. Doesn't work with tilt shift, etc.
         float tFrag = posInput.linearDepth * rcp(dot(-V, GetViewForwardDir1(UNITY_MATRIX_V)));
 
-        EvaluatePbrAtmosphere(_WorldSpaceCameraPos, V, tFrag, skyColor, skyOpacity);
+        EvaluatePbrAtmosphere(_WorldSpaceCameraPos, V, tFrag, false, skyColor, skyOpacity);
 
         skyColor *= _IntensityMultiplier * GetCurrentExposureMultiplier();
     }

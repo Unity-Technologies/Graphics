@@ -166,7 +166,7 @@ Shader "Hidden/HDRP/Sky/PbrSky"
 
         if (rayIntersectsAtmosphere)
         {
-            EvaluatePbrAtmosphere(_WorldSpaceCameraPos1, V, tFrag, skyColor, skyOpacity);
+            EvaluatePbrAtmosphere(_WorldSpaceCameraPos1, V, tFrag, true, skyColor, skyOpacity);
         }
 
         skyColor += radiance * (1 - skyOpacity);
