@@ -115,6 +115,7 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-Default"
                 float3 positionOS   : POSITION;
                 float4 color		: COLOR;
                 float2 uv			: TEXCOORD0;
+                float4 tangent      : TANGENT;
             };
 
             struct Varyings
@@ -144,9 +145,9 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-Default"
                 o.uv = TRANSFORM_TEX(attributes.uv, _NormalMap);
                 o.uv = attributes.uv;
                 o.color = attributes.color;
-                o.normalWS = TransformObjectToWorldDir(float3(0, 0, 1));
-                o.tangentWS = TransformObjectToWorldDir(float3(1, 0, 0));
-                o.bitangentWS = TransformObjectToWorldDir(float3(0, 1, 0));
+                o.normalWS = TransformObjectToWorldDir(float3(0, 0, -1));
+                o.tangentWS = TransformObjectToWorldDir(attributes.tangent.xyz);
+                o.bitangentWS = cross(o.normalWS, o.tangentWS) * attributes.tangent.w;
                 return o;
             }
 
