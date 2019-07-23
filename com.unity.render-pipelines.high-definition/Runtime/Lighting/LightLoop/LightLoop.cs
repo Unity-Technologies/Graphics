@@ -1183,7 +1183,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
             }
 
-            lightData.aperture = Mathf.Cos(additionalLightData.aperture * Mathf.Deg2Rad);
+            lightData.aperture = additionalLightData.aperture * Mathf.Deg2Rad;
 
             // Fallback to the first non shadow casting directional light.
             m_CurrentSunLight = m_CurrentSunLight == null ? lightComponent : m_CurrentSunLight;

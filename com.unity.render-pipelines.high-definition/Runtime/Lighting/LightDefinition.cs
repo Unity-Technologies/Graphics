@@ -81,7 +81,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public float   diffuseDimmer;
         public float   specularDimmer;
-        public float   aperture;                // Cosine of the half-angle
+        public float   aperture;                // Half-angle (radians)
         public float   distanceFromCamera;      // -1 -> no sky interaction. Units: km
     };
 

@@ -3,6 +3,7 @@
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/VolumeRendering.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Filtering.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/GeometricTools.hlsl"
 
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/AtmosphericScattering/AtmosphericScattering.cs.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
@@ -94,8 +95,8 @@ void EvaluatePbrAtmosphere(float3 worldSpaceCameraPos, float3 V, float distAlong
         {
             float2 z1 = r1 * n;
 
-            ch1.x = ChapmanUpperApprox(z1.x, abs(cosChi1)) * exp(Z - z1.x);
-            ch1.y = ChapmanUpperApprox(z1.y, abs(cosChi1)) * exp(Z - z1.y);
+            ch1.x = ChapmanUpperApprox(z1.x, abs(cosChi1)) * exp(Z.x - z1.x);
+            ch1.y = ChapmanUpperApprox(z1.y, abs(cosChi1)) * exp(Z.y - z1.y);
         }
 
         // We may have swapped X and Y.
@@ -122,20 +123,29 @@ void EvaluatePbrAtmosphere(float3 worldSpaceCameraPos, float3 V, float distAlong
 
             if (!interactsWithSky) continue;
 
-            float3 L             = -light.forward.xyz;
-            float3 lightRadiance =  light.color.rgb;
+            float3 L = -light.forward.xyz;
 
-            // if (light.radius > 0)
+            // The sun disk hack causes some issues when applied to nearby geometry, so don't do that.
+            if (asint(light.aperture) != 0 && light.distanceFromCamera <= tFrag)
             {
-                // Hack: adjust the light direction to account for the area of the light.
-                // if (V in LightSolidAngle)
-                // {
-                //     L = V; -> dot(L, V) = 1;
-                // }
-                // else
-                // {
-                //     L = QuadraticInterpolate(L, V, acos(dot(L, V)));
-                // }
+                float c = dot(L, -V);
+
+                if (c >= -0.99999)
+                {
+                    float alpha = light.aperture;
+                    float beta  = acos(c);
+                    float gamma = min(alpha, beta);
+
+                    // Make sure that if (beta = Pi), no rotation is performed.
+                    gamma *= (PI - beta) * rcp(PI - gamma);
+
+                    // Perform a shortest arc rotation.
+                    float3   A = normalize(cross(L, -V));
+                    float3x3 R = RotationFromAxisAngle(A, sin(gamma), cos(gamma));
+
+                    // Rotate the light direction.
+                    L = mul(R, L);
+                }
             }
 
             // TODO: solve in spherical coords?
@@ -206,7 +216,7 @@ void EvaluatePbrAtmosphere(float3 worldSpaceCameraPos, float3 V, float distAlong
                 radiance = max(0, radiance - (1 - skyOpacity) * radiance1);
             }
 
-            radiance *= lightRadiance; // Globally scale the intensity
+            radiance *= light.color.rgb; // Globally scale the intensity
 
             skyColor += radiance;
         }

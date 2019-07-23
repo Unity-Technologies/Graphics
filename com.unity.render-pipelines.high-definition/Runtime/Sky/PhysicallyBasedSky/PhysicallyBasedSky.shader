@@ -94,9 +94,9 @@ Shader "Hidden/HDRP/Sky/PbrSky"
                 // We may be able to see the celestial body.
                 float3 L = -light.forward.xyz;
 
-                if (dot(L, -V) >= light.aperture)
+                if (dot(L, -V) >= cos(light.aperture))
                 {
-                    // Closest so far.
+                    // It's visible.
                     tFrag = light.distanceFromCamera;
 
                     // Assume uniform emission (no rescaling w.r.t. the solid angle or with the normal).
