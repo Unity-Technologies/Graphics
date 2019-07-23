@@ -74,7 +74,12 @@ VFX_VARYING_PS_INPUTS vert(uint id : SV_VertexID, uint instanceID : SV_InstanceI
 	#endif
 	#ifdef VFX_VARYING_BENTFACTORS
 	${VFXLoadParameter:{bentNormalFactor}}
-	o.VFX_VARYING_BENTFACTORS = vOffsets * bentNormalFactor;
+	#if HAS_STRIPS
+	#define BENT_FACTOR_MULTIPLIER 2.0f
+	#else
+	#define BENT_FACTOR_MULTIPLIER 1.41421353816986083984375f
+	#endif
+	o.VFX_VARYING_BENTFACTORS = vOffsets * bentNormalFactor * BENT_FACTOR_MULTIPLIER;
 	#endif
 
 	${VFXVertexCommonProcess}

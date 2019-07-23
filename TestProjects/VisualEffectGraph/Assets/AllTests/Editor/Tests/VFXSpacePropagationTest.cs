@@ -7,6 +7,8 @@ using System.Collections.Generic;
 using UnityEditor.VFX.Operator;
 using UnityEngine.Experimental.VFX;
 using UnityEditor.VFX.Block;
+using System.IO;
+using UnityEditor.VFX.UI;
 
 namespace UnityEditor.VFX.Test
 {
@@ -255,6 +257,40 @@ namespace UnityEditor.VFX.Test
             initializeContext.space = VFXCoordinateSpace.World;
             slotSpherePositionExpressions = CollectParentExpression(positionSphere.inputSlots[0][0][0].GetExpression()).ToArray();
             Assert.IsTrue(slotSpherePositionExpressions.Count(o => o.operation == VFXExpressionOperation.LocalToWorld) == 1);
+        }
+
+        const string testAssetName = "Assets/TmpTests/VFXGraph_Space.vfx";
+        [Test]
+        public void Initial_Space_Supposed_To_Be_Same_As_Context()
+        {
+            //Cover also case 1163442, this behavior only exists in controller
+            var directoryPath = Path.GetDirectoryName(testAssetName);
+            if (!Directory.Exists(directoryPath))
+                Directory.CreateDirectory(directoryPath);
+            if (File.Exists(testAssetName))
+                AssetDatabase.DeleteAsset(testAssetName);
+
+            VisualEffectAsset asset = VisualEffectAssetEditorUtility.CreateNewAsset(testAssetName);
+            var resource = asset.GetResource(); // force resource creation
+            var viewController = VFXViewController.GetController(resource);
+            viewController.useCount++;
+            var startUndoGroupId = Undo.GetCurrentGroup();
+
+            var updateContext = ScriptableObject.CreateInstance<VFXBasicUpdate>();
+            updateContext.space = VFXCoordinateSpace.World;
+            viewController.AddVFXModel(Vector2.zero, updateContext);
+            viewController.ApplyChanges();
+            viewController.ForceReload();
+
+            var collision = ScriptableObject.CreateInstance<CollisionSphere>();
+            var contextController = viewController.allChildren.OfType<VFXContextController>().First();
+            contextController.AddBlock(0, collision, true);
+
+            Assert.IsTrue(collision.inputSlots.Where(o => o.spaceable).All(o => o.space == VFXCoordinateSpace.World));
+
+            viewController.useCount--;
+            Undo.RevertAllDownToGroup(startUndoGroupId);
+            AssetDatabase.DeleteAsset(testAssetName);
         }
 
         [Test]

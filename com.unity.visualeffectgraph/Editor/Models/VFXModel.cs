@@ -246,7 +246,26 @@ namespace UnityEditor.VFX
             SetSettingValue(name, value, true);
         }
 
+        public void SetSettingValues(IEnumerable<KeyValuePair<string, object>> nameValues)
+        {
+            bool hasChanged = false;
+            foreach (var kvp in nameValues)
+            {
+                if (SetSettingValueAndReturnIfChanged(kvp.Key, kvp.Value))
+                    hasChanged = true;
+            }
+
+            if (hasChanged)
+                Invalidate(InvalidationCause.kSettingChanged);
+        }
         protected void SetSettingValue(string name, object value, bool notify)
+        {
+            bool hasChanged = SetSettingValueAndReturnIfChanged(name, value);
+            if (hasChanged && notify)
+                Invalidate(InvalidationCause.kSettingChanged);
+        }
+
+        private bool SetSettingValueAndReturnIfChanged(string name, object value)
         {
             var setting = GetSetting(name);
             if (setting.field == null)
@@ -258,14 +277,12 @@ namespace UnityEditor.VFX
             if (currentValue != value)
             {
                 setting.field.SetValue(setting.instance, value);
-                if (notify)
-                {
-                    Invalidate(InvalidationCause.kSettingChanged);
-                }
+                return true;
             }
+            return false;
         }
 
-        public virtual VFXSetting GetSetting(string  name)
+        public virtual VFXSetting GetSetting(string name)
         {
             return new VFXSetting(GetType().GetField(name, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance), this);
         }

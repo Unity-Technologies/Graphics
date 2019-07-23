@@ -157,6 +157,11 @@ namespace UnityEditor.VFX.Test
             {
                 AssetDatabase.DeleteAsset(tempFilePath);
             }
+            else
+            {
+                System.IO.Directory.CreateDirectory("Assets/TmpTests/");
+            }
+
             var asset = VisualEffectAssetEditorUtility.CreateNewAsset(tempFilePath);
             VisualEffectResource resource = asset.GetResource(); // force resource creation
 
