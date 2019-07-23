@@ -180,9 +180,19 @@ ColorPropertyRM > .maincontainer > .fieldContainer
     flex:0 0 auto;
 }
 
+Vector3PropertyRM VFXColorField
+{
+    flex: 0 0 auto;
+}
+
+Vector3PropertyRM.propertyrm VFXVector3Field.fieldContainer
+{
+    flex: 0 0 auto;
+}
+
 ColorPropertyRM .unity-float-field
 {
-    flex:1 0 auto;
+    flex: 1 0 auto;
 }
 
 FloatPropertyRM .unity-float-field
