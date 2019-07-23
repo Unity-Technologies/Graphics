@@ -70,6 +70,7 @@ MonoBehaviour:
   m_OutputFlowSlot:
   - link: []
   blendMode: 0
+  generateMotionVector: 0
   m_SubOutputs:
   - {fileID: 8926484042661614540}
   cullMode: 0
@@ -343,7 +344,10 @@ MonoBehaviour:
   - {fileID: 114946465509916290}
   - {fileID: 114780028408030698}
   - {fileID: 114063133802684794}
-  m_Capacity: 2048
+  dataType: 0
+  capacity: 2048
+  stripCapacity: 16
+  particlePerStripCount: 16
   m_Space: 1
 --- !u!114 &114512514798047786
 MonoBehaviour:
@@ -1829,6 +1833,7 @@ MonoBehaviour:
   m_OutputFlowSlot:
   - link: []
   blendMode: 0
+  generateMotionVector: 0
   m_SubOutputs:
   - {fileID: 8926484042661614586}
   cullMode: 0
@@ -2553,7 +2558,10 @@ MonoBehaviour:
   - {fileID: 8926484042661614595}
   - {fileID: 8926484042661614579}
   - {fileID: 8926484042661614581}
-  m_Capacity: 2048
+  dataType: 0
+  capacity: 2048
+  stripCapacity: 16
+  particlePerStripCount: 16
   m_Space: 1
 --- !u!114 &8926484042661614606
 MonoBehaviour:
@@ -3796,7 +3804,10 @@ MonoBehaviour:
   - {fileID: 8926484042661614630}
   - {fileID: 8926484042661614649}
   - {fileID: 8926484042661614651}
-  m_Capacity: 2048
+  dataType: 0
+  capacity: 2048
+  stripCapacity: 16
+  particlePerStripCount: 16
   m_Space: 1
 --- !u!114 &8926484042661614641
 MonoBehaviour:
@@ -4126,6 +4137,7 @@ MonoBehaviour:
   m_OutputFlowSlot:
   - link: []
   blendMode: 0
+  generateMotionVector: 0
   m_SubOutputs:
   - {fileID: 8926484042661614656}
   cullMode: 0
@@ -5458,7 +5470,10 @@ MonoBehaviour:
   - {fileID: 8926484042661614681}
   - {fileID: 8926484042661614700}
   - {fileID: 8926484042661614702}
-  m_Capacity: 2048
+  dataType: 0
+  capacity: 2048
+  stripCapacity: 16
+  particlePerStripCount: 16
   m_Space: 1
 --- !u!114 &8926484042661614692
 MonoBehaviour:
@@ -5788,6 +5803,7 @@ MonoBehaviour:
   m_OutputFlowSlot:
   - link: []
   blendMode: 0
+  generateMotionVector: 0
   m_SubOutputs:
   - {fileID: 8926484042661614707}
   cullMode: 0
@@ -7120,7 +7136,10 @@ MonoBehaviour:
   - {fileID: 8926484042661614732}
   - {fileID: 8926484042661614751}
   - {fileID: 8926484042661614753}
-  m_Capacity: 2048
+  dataType: 0
+  capacity: 2048
+  stripCapacity: 16
+  particlePerStripCount: 16
   m_Space: 1
 --- !u!114 &8926484042661614743
 MonoBehaviour:
@@ -7450,6 +7469,7 @@ MonoBehaviour:
   m_OutputFlowSlot:
   - link: []
   blendMode: 0
+  generateMotionVector: 0
   m_SubOutputs:
   - {fileID: 8926484042661614758}
   cullMode: 0
@@ -8747,7 +8767,10 @@ MonoBehaviour:
   - {fileID: 8926484042661614783}
   - {fileID: 8926484042661614802}
   - {fileID: 8926484042661614804}
-  m_Capacity: 2048
+  dataType: 0
+  capacity: 2048
+  stripCapacity: 16
+  particlePerStripCount: 16
   m_Space: 1
 --- !u!114 &8926484042661614794
 MonoBehaviour:
@@ -9077,6 +9100,7 @@ MonoBehaviour:
   m_OutputFlowSlot:
   - link: []
   blendMode: 0
+  generateMotionVector: 0
   m_SubOutputs:
   - {fileID: 8926484042661614809}
   cullMode: 0
@@ -10409,7 +10433,10 @@ MonoBehaviour:
   - {fileID: 8926484042661614834}
   - {fileID: 8926484042661614853}
   - {fileID: 8926484042661614855}
-  m_Capacity: 2048
+  dataType: 0
+  capacity: 2048
+  stripCapacity: 16
+  particlePerStripCount: 16
   m_Space: 1
 --- !u!114 &8926484042661614845
 MonoBehaviour:
@@ -10739,6 +10766,7 @@ MonoBehaviour:
   m_OutputFlowSlot:
   - link: []
   blendMode: 0
+  generateMotionVector: 0
   m_SubOutputs:
   - {fileID: 8926484042661614860}
   cullMode: 0
@@ -12072,7 +12100,10 @@ MonoBehaviour:
   - {fileID: 8926484042661614885}
   - {fileID: 8926484042661614904}
   - {fileID: 8926484042661614906}
-  m_Capacity: 2048
+  dataType: 0
+  capacity: 2048
+  stripCapacity: 16
+  particlePerStripCount: 16
   m_Space: 1
 --- !u!114 &8926484042661614896
 MonoBehaviour:
@@ -12402,6 +12433,7 @@ MonoBehaviour:
   m_OutputFlowSlot:
   - link: []
   blendMode: 0
+  generateMotionVector: 0
   m_SubOutputs:
   - {fileID: 8926484042661614911}
   cullMode: 0
@@ -13734,7 +13766,10 @@ MonoBehaviour:
   - {fileID: 8926484042661614936}
   - {fileID: 8926484042661614955}
   - {fileID: 8926484042661614957}
-  m_Capacity: 2048
+  dataType: 0
+  capacity: 2048
+  stripCapacity: 16
+  particlePerStripCount: 16
   m_Space: 1
 --- !u!114 &8926484042661614947
 MonoBehaviour:
@@ -14064,6 +14099,7 @@ MonoBehaviour:
   m_OutputFlowSlot:
   - link: []
   blendMode: 0
+  generateMotionVector: 0
   m_SubOutputs:
   - {fileID: 8926484042661614962}
   cullMode: 0

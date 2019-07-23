@@ -1130,6 +1130,10 @@ MonoBehaviour:
   - link:
     - context: {fileID: 114369454375024806}
       slotIndex: 0
+  loopDuration: 0
+  loopCount: 0
+  delayBeforeLoop: 0
+  delayAfterLoop: 0
 --- !u!114 &114376506532976964
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -1547,7 +1551,10 @@ MonoBehaviour:
   - {fileID: 114369454375024806}
   - {fileID: 114233320026838326}
   - {fileID: 114683019862665996}
-  m_Capacity: 65536
+  dataType: 0
+  capacity: 65536
+  stripCapacity: 16
+  particlePerStripCount: 16
   m_Space: 1
 --- !u!114 &114562121327313870
 MonoBehaviour:
@@ -1851,6 +1858,7 @@ MonoBehaviour:
   m_OutputFlowSlot:
   - link: []
   blendMode: 0
+  generateMotionVector: 0
   m_SubOutputs:
   - {fileID: 8926484042661614605}
   cullMode: 0

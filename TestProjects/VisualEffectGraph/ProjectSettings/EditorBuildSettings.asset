@@ -135,12 +135,12 @@ EditorBuildSettings:
     path: Assets/AllTests/VFXTests/GraphicsTests/GradientMapped.unity
     guid: 56d69bce6c4697147823f3b5b3acd8ea
   - enabled: 1
-    path: Assets/AllTests/VFXTests/GraphicsTests/SubgraphContexts.unity
-    guid: df4a078e6e8404b4d953f8cdc87c0aa8
-  - enabled: 1
     path: Assets/AllTests/VFXTests/GraphicsTests/Jumping Cubes/Jumping Cubes.unity
     guid: bd230f4e3e8da61488a3ef08fd491db0
   - enabled: 1
     path: Assets/AllTests/VFXTests/GraphicsTests/SubgraphEventTransmission/SubgraphEventTransmission.unity
     guid: b6ef817208636da4bb6878ac1e08ffd8
+  - enabled: 1
+    path: Assets/AllTests/VFXTests/GraphicsTests/PositionDepthOperator.unity
+    guid: 5c9aadab8d20ed14b827e43d12fc0b7c
   m_configObjects: {}
