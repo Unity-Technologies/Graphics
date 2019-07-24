@@ -7,7 +7,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
     [ExecuteInEditMode]
     [RequireComponent(typeof(Renderer))]
-    public class LightReactor2D : MonoBehaviour, IShadowCasterGroup2D
+    public class LightReactor2D : ShadowCaster2D, IShadowCasterGroup2D
     {
         //[SerializeField]
         public int m_ShadowGroup = 0;
@@ -41,19 +41,23 @@ namespace UnityEngine.Experimental.Rendering.Universal
             m_Renderer = GetComponent<Renderer>();
         }
 
-        private void OnEnable()
+        new private void OnEnable()
         {
+            base.OnEnable();
             ShadowCasterGroup2DManager.AddGroup(this);
         }
 
-        private void OnDisable()
+        new private void OnDisable()
         {
+            base.OnDisable();
             ShadowCasterGroup2DManager.RemoveGroup(this);
         }
 
 
-        public void Update()
+        new public void Update()
         {
+            base.Update();
+
             if (LightUtility.CheckForChange(m_ShadowGroup, ref m_PreviousShadowGroup))
             {
                 // 
