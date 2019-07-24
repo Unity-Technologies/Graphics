@@ -1,7 +1,45 @@
+#if defined(HAS_STRIPS) && !defined(VFX_PRIMITIVE_QUAD)
+#error VFX_PRIMITIVE_QUAD must be defined when HAS_STRIPS is.
+#endif
+
 struct vs_input
 {
 	VFX_DECLARE_INSTANCE_ID
 };
+
+#if HAS_STRIPS
+#define PARTICLE_IN_EDGE (id & 1)
+
+uint GetParticleIndex(uint relativeIndex, uint stripIndex)
+{
+	return PARTICLE_PER_STRIP_COUNT * stripIndex + (relativeIndex + STRIP_DATA(STRIP_FIRST_INDEX)) % PARTICLE_PER_STRIP_COUNT;
+}
+
+float3 GetParticlePosition(uint index)
+{
+	${VFXLoadAttributes:{position}}
+	return position;
+}
+
+float3 GetStripTangent(float3 currentPos, uint relativeIndex, uint stripIndex)
+{
+	float3 prevTangent = (float3)0.0f;
+	if (relativeIndex > 0)
+	{
+		uint prevIndex = GetParticleIndex(relativeIndex - 1,stripIndex);
+		prevTangent = normalize(currentPos - GetParticlePosition(prevIndex));
+	}
+	
+	float3 nextTangent = (float3)0.0f;
+	if (relativeIndex < STRIP_DATA(STRIP_NEXT_INDEX) - 1)
+	{
+		uint nextIndex = GetParticleIndex(relativeIndex + 1,stripIndex);
+		prevTangent = normalize(GetParticlePosition(nextIndex) - currentPos);
+	}
+	
+	return normalize(prevTangent + nextTangent);
+}
+#endif
 
 #pragma vertex vert
 VFX_VARYING_PS_INPUTS vert(uint id : SV_VertexID, vs_input i)
@@ -14,22 +52,55 @@ VFX_VARYING_PS_INPUTS vert(uint id : SV_VertexID, vs_input i)
 #if VFX_PRIMITIVE_TRIANGLE
 	uint index = id / 3;
 #elif VFX_PRIMITIVE_QUAD
+#if HAS_STRIPS
+	id += VFX_GET_INSTANCE_ID(i) * 8192;
+	const uint vertexPerStripCount = (PARTICLE_PER_STRIP_COUNT - 1) << 2;
+	uint stripIndex = id / vertexPerStripCount;
+	uint currentIndex = ((id % vertexPerStripCount) >> 2) + (id & 1); // relative index of particle
+	
+	uint maxEdgeIndex = currentIndex - PARTICLE_IN_EDGE + 1;
+	if (maxEdgeIndex >= STRIP_DATA(STRIP_NEXT_INDEX))
+		return o;
+	
+	uint index = GetParticleIndex(currentIndex, stripIndex);
+#else
 	uint index = (id >> 2) + VFX_GET_INSTANCE_ID(i) * 2048;
+#endif
 #elif VFX_PRIMITIVE_OCTAGON
 	uint index = (id >> 3) + VFX_GET_INSTANCE_ID(i) * 1024;
 #endif
 
-	${VFXLoadAttributesOrCull}
+	${VFXLoadAttributesOrCull}	
 	${VFXProcessBlocks}
 	
+#if !HAS_STRIPS
 	if (!alive)
 		return o;
+#endif
 	
 #if VFX_PRIMITIVE_QUAD
 
+#if HAS_STRIPS
+#if VFX_STRIPS_UV_STRECHED
+	o.VFX_VARYING_UV.x = (float)(currentIndex) / (STRIP_DATA(STRIP_NEXT_INDEX) - 1);
+#else
+	o.VFX_VARYING_UV.x = PARTICLE_IN_EDGE;
+#endif
+
+	o.VFX_VARYING_UV.y = float((id & 2) >> 1);
+	const float2 vOffsets = float2(0.0f,o.VFX_VARYING_UV.y - 0.5f);
+	
+	// Orient strips along their tangents
+	axisX = GetStripTangent(position, currentIndex, stripIndex);
+	axisZ = position - GetViewVFXPosition();
+	axisY = normalize(cross(axisZ, axisX));
+	axisZ = normalize(cross(axisX, axisY));
+	
+#else
 	o.VFX_VARYING_UV.x = float(id & 1);
 	o.VFX_VARYING_UV.y = float((id & 2) >> 1);
 	const float2 vOffsets = o.VFX_VARYING_UV.xy - 0.5f;
+#endif
 	
 #elif VFX_PRIMITIVE_TRIANGLE
 
@@ -68,7 +139,8 @@ VFX_VARYING_PS_INPUTS vert(uint id : SV_VertexID, vs_input i)
 	${VFXLoadSize}
 	
 	const float4x4 elementToVFX = GetElementToVFXMatrix(axisX,axisY,axisZ,float3(angleX,angleY,angleZ),float3(pivotX,pivotY,pivotZ),size3,position);
-	float3 vPos = mul(elementToVFX,float4(vOffsets,0.0f,1.0f)).xyz;
+	float3 inputVertexPosition = float3(vOffsets, 0.0f);
+	float3 vPos = mul(elementToVFX,float4(inputVertexPosition, 1.0f)).xyz;
 
 	o.VFX_VARYING_POSCS = TransformPositionVFXToClip(vPos);
 
@@ -82,8 +154,15 @@ VFX_VARYING_PS_INPUTS vert(uint id : SV_VertexID, vs_input i)
 	#endif
 	#ifdef VFX_VARYING_BENTFACTORS
 	${VFXLoadParameter:{bentNormalFactor}}
-	o.VFX_VARYING_BENTFACTORS = vOffsets * bentNormalFactor;
+	#if HAS_STRIPS
+	#define BENT_FACTOR_MULTIPLIER 2.0f
+	#else
+	#define BENT_FACTOR_MULTIPLIER 1.41421353816986083984375f
 	#endif
+	o.VFX_VARYING_BENTFACTORS = vOffsets * bentNormalFactor * BENT_FACTOR_MULTIPLIER;
+	#endif
+	
+	${VFXVertexComputeCurrentAndPreviousClipPos}
 
 	${VFXVertexCommonProcess}
 	

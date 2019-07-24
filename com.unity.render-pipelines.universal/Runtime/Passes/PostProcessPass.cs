@@ -231,7 +231,7 @@ namespace UnityEngine.Rendering.Universal
             }
 
             // Anti-aliasing
-            if (cameraData.antialiasing == AntialiasingMode.SubpixelMorphologicalAntiAliasing)
+            if (cameraData.antialiasing == AntialiasingMode.SubpixelMorphologicalAntiAliasing && SystemInfo.graphicsDeviceType != GraphicsDeviceType.OpenGLES2)
             {
                 using (new ProfilingSample(cmd, "Sub-pixel Morphological Anti-aliasing"))
                 {

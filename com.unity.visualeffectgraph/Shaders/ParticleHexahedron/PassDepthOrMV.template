@@ -1,0 +1,45 @@
+#pragma target 4.5
+
+struct ps_input
+{
+	float4 pos : SV_POSITION;
+	#if USE_ALPHA_TEST || VFX_USE_ALPHA_CURRENT
+	// x: alpha
+	// y: alpha threshold
+	nointerpolation float2 builtInInterpolants : TEXCOORD1;
+	#endif
+	#if IS_MOTION_VECTORS_PASS
+	float4 cPosPrevious : TEXCOORD2;
+	float4 cPosNonJiterred : TEXCOORD3;
+	#endif
+
+	UNITY_VERTEX_OUTPUT_STEREO
+};
+
+#define VFX_VARYING_PS_INPUTS ps_input
+#define VFX_VARYING_POSCS pos
+#define VFX_VARYING_ALPHA builtInInterpolants.x
+#define VFX_VARYING_ALPHATHRESHOLD builtInInterpolants.y
+#if IS_MOTION_VECTORS_PASS
+#define VFX_VARYING_VELOCITY_CPOS cPosNonJiterred
+#define VFX_VARYING_VELOCITY_CPOS_PREVIOUS cPosPrevious
+#endif
+
+#undef VFX_USE_RIM_LIGHT
+
+${VFXInclude("Shaders/ParticleHexahedron/Pass.template")}	
+	
+#pragma fragment frag
+float4 frag(ps_input i) : SV_Target0
+{
+	UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i);
+	VFXTransformPSInputs(i);
+	float alpha = VFXGetFragmentColor(i).a;
+	VFXClipFragmentColor(alpha,i);
+	#if IS_MOTION_VECTORS_PASS
+		${VFXComputeOutputMotionVector}
+		return encodedMotionVector;
+	#else
+		return (float4)0;
+	#endif
+}

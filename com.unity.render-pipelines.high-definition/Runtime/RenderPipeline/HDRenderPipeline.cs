@@ -535,7 +535,6 @@ namespace UnityEngine.Rendering.HighDefinition
             m_GbufferManager.DestroyBuffers();
             m_DbufferManager.DestroyBuffers();
             m_MipGenerator.Release();
-            m_XRSystem.ClearAll();
 
             RTHandles.Release(m_CameraColorBuffer);
             RTHandles.Release(m_OpaqueAtmosphericScatteringBuffer);
@@ -759,6 +758,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             CleanupSubsurfaceScattering();
             m_SharedRTManager.Cleanup();
+            m_XRSystem.Cleanup();
             m_SkyManager.Cleanup();
             CleanupVolumetricLighting();
 
@@ -1135,7 +1135,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     dynResHandler.SetCurrentCameraRequest(cameraRequestedDynamicRes);
                     RTHandles.SetHardwareDynamicResolutionState(dynResHandler.HardwareDynamicResIsEnabled());
 
-                    VFXManager.ProcessCamera(camera); //Visual Effect Graph is not yet a required package but calling this method when there isn't any VisualEffect component has no effect (but needed for Camera sorting in Visual Effect Graph context)
+                    VFXManager.PrepareCamera(camera);
 
                     // Reset pooled variables
                     cameraSettings.Clear();
@@ -1691,6 +1691,7 @@ namespace UnityEngine.Rendering.HighDefinition
             SetupCameraProperties(hdCamera, renderContext, cmd);
 
             PushGlobalParams(hdCamera, cmd);
+            VFXManager.ProcessCameraCommand(camera, cmd);
 
             // TODO: Find a correct place to bind these material textures
             // We have to bind the material specific global parameters in this mode
@@ -2339,13 +2340,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (hdCamera.xr.enabled)
             {
-                if (!m_XRSystem.GetCullingParameters(camera, hdCamera.xr, out cullingParams))
-                    return false;
+                cullingParams = hdCamera.xr.cullingParams;
             }
             else
             {
                 if (!camera.TryGetCullingParameters(camera.stereoEnabled, out cullingParams))
-                return false;
+                    return false;
             }
 
             if (m_DebugDisplaySettings.IsCameraFreezeEnabled())
