@@ -126,13 +126,13 @@ void EvaluatePbrAtmosphere(float3 worldSpaceCameraPos, float3 V, float distAlong
             float3 L = -light.forward.xyz;
 
             // The sun disk hack causes some issues when applied to nearby geometry, so don't do that.
-            if (renderSunDisk && asint(light.aperture) != 0 && light.distanceFromCamera <= tFrag)
+            if (renderSunDisk && asint(light.angularDiameter) != 0 && light.distanceFromCamera <= tFrag)
             {
                 float c = dot(L, -V);
 
                 if (c >= -0.99999)
                 {
-                    float alpha = light.aperture;
+                    float alpha = light.angularDiameter;
                     float beta  = acos(c);
                     float gamma = min(alpha, beta);
 

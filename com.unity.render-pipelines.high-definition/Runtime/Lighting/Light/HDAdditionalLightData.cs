@@ -721,21 +721,21 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        [SerializeField, FormerlySerializedAs("aperture")]
-        float m_Aperture = 0;
+        [SerializeField, FormerlySerializedAs("angularDiameter")]
+        float m_AngularDiameter = 0;
         /// <summary>
-        /// Angular aperture of the emissive celestial body represented by the light (in degrees).
+        /// Angular diameter of the emissive celestial body represented by the light as seen from the camera (in degrees).
         /// Used to render the sun/moon disk.
         /// </summary>
-        public float aperture
+        public float angularDiameter
         {
-            get => m_Aperture;
+            get => m_AngularDiameter;
             set
             {
-                if (m_Aperture == value)
+                if (m_AngularDiameter == value)
                     return;
 
-                m_Aperture = value;
+                m_AngularDiameter = value;
             }
         }
 
@@ -1990,7 +1990,7 @@ namespace UnityEngine.Rendering.HighDefinition
             data.m_Intensity = m_Intensity;
             data.displayAreaLightEmissiveMesh = displayAreaLightEmissiveMesh;
             data.interactsWithSky = interactsWithSky;
-            data.aperture = aperture;
+            data.angularDiameter = angularDiameter;
             data.distance = distance;
 
             data.customResolution = customResolution;

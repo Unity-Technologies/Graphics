@@ -196,12 +196,12 @@ namespace UnityEditor.Rendering.HighDefinition
                 lightData.interactsWithSky.boolValue = EditorGUILayout.Toggle(s_Styles.interactsWithSky, lightData.interactsWithSky.boolValue);
 
                 EditorGUI.BeginChangeCheck();
-                EditorGUILayout.PropertyField(lightData.aperture, s_Styles.aperture);
-                EditorGUILayout.PropertyField(lightData.distance, s_Styles.distance);
+                EditorGUILayout.PropertyField(lightData.angularDiameter, s_Styles.angularDiameter);
+                EditorGUILayout.PropertyField(lightData.distance,        s_Styles.distance);
                 if (EditorGUI.EndChangeCheck())
                 {
-                    lightData.aperture.floatValue = Mathf.Max(0, lightData.aperture.floatValue);
-                    lightData.distance.floatValue = Mathf.Max(0, lightData.distance.floatValue);
+                    lightData.angularDiameter.floatValue = Mathf.Max(0, lightData.angularDiameter.floatValue);
+                    lightData.distance.floatValue        = Mathf.Max(0, lightData.distance.floatValue);
                 }
             }
         }

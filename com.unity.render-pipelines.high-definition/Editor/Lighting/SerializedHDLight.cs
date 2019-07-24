@@ -40,7 +40,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public SerializedProperty customSpotLightShadowCone;
             public SerializedProperty useScreenSpaceShadows;
             public SerializedProperty interactsWithSky;
-            public SerializedProperty aperture;
+            public SerializedProperty angularDiameter;
             public SerializedProperty distance;
 #if ENABLE_RAYTRACING
             public SerializedProperty useRayTracedShadows;
@@ -137,7 +137,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     customSpotLightShadowCone = o.Find("m_CustomSpotLightShadowCone"),
                     useScreenSpaceShadows = o.Find("m_UseScreenSpaceShadows"),
                     interactsWithSky = o.Find("m_InteractsWithSky"),
-                    aperture = o.Find("m_Aperture"),
+                    angularDiameter = o.Find("m_AngularDiameter"),
                     distance = o.Find("m_Distance"),
 #if ENABLE_RAYTRACING
                     useRayTracedShadows = o.Find("m_UseRayTracedShadows"),

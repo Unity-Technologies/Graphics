@@ -72,7 +72,7 @@ struct DirectionalLightData
     real4 shadowMaskSelector;
     float diffuseDimmer;
     float specularDimmer;
-    float aperture;
+    float angularDiameter;
     float distanceFromCamera;
 };
 

@@ -92,12 +92,12 @@ Shader "Hidden/HDRP/Sky/PbrSky"
                 // Use scalar or integer cores (more efficient).
                 bool interactsWithSky = asint(light.distanceFromCamera) >= 0;
 
-                if (interactsWithSky && asint(light.aperture) != 0 && light.distanceFromCamera <= tFrag)
+                if (interactsWithSky && asint(light.angularDiameter) != 0 && light.distanceFromCamera <= tFrag)
                 {
                     // We may be able to see the celestial body.
                     float3 L = -light.forward.xyz;
 
-                    float c = cos(light.aperture);
+                    float c = cos(light.angularDiameter);
 
                     if (dot(L, -V) >= c)
                     {
