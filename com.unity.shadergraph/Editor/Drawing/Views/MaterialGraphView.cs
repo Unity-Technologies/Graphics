@@ -467,22 +467,15 @@ namespace UnityEditor.ShaderGraph.Drawing
             var inputs = selection.OfType<BlackboardField>().Select(x => x.userData as ShaderInput);
             var notes = elements.OfType<StickyNote>().Select(x => x.userData);
 
-            // Always include Keyword inputs for all keyword nodes
-            foreach(KeywordNode keyNode in elements.OfType<IShaderNodeView>().Where(x => x.node is KeywordNode).Select(x => x.node as KeywordNode))
-            {
-                // Skip if selection already contains keyword
-                if(inputs.Where(x => x.guid == keyNode.keywordGuid).Any())
-                    continue;
-
-                ShaderKeyword keyword = this.graph.keywords.FirstOrDefault(x => x.guid == keyNode.keywordGuid);
-                inputs = inputs.Append(keyword);
-            }
-
             // Collect the property nodes and get the corresponding properties
             var propertyNodeGuids = nodes.OfType<PropertyNode>().Select(x => x.propertyGuid);
             var metaProperties = this.graph.properties.Where(x => propertyNodeGuids.Contains(x.guid));
 
-            var graph = new CopyPasteGraph(this.graph.assetGuid, groups, nodes, edges, inputs, metaProperties, notes);
+            // Collect the keyword nodes and get the corresponding keywords
+            var keywordNodeGuids = nodes.OfType<KeywordNode>().Select(x => x.keywordGuid);
+            var metaKeywords = this.graph.keywords.Where(x => keywordNodeGuids.Contains(x.guid));
+
+            var graph = new CopyPasteGraph(this.graph.assetGuid, groups, nodes, edges, inputs, metaProperties, metaKeywords, notes);
             return JsonUtility.ToJson(graph, true);
         }
 

@@ -1161,6 +1161,23 @@ namespace UnityEditor.ShaderGraph
                     }
                 }
 
+                // Check if the keyword nodes need to have their keywords copied.
+                if (node is KeywordNode keyNode)
+                {
+                    // If the keyword is not in the current graph and is in the serialized paste graph copy it.
+                    if (!keywords.Select(x => x.guid).Contains(keyNode.keywordGuid))
+                    {
+                        var pastedGraphMetaKeywords = graphToPaste.metaKeywords.Where(x => x.guid == keyNode.keywordGuid);
+                        if (pastedGraphMetaKeywords.Any())
+                        {
+                            var keyword = pastedGraphMetaKeywords.FirstOrDefault(x => x.guid == keyNode.keywordGuid);
+                            SanitizeGraphInputName(keyword);
+                            SanitizeGraphInputReferenceName(keyword, keyword.overrideReferenceName);
+                            AddGraphInput(keyword);
+                        }
+                    }
+                }
+
                 AbstractMaterialNode abstractMaterialNode = (AbstractMaterialNode)node;
                 // Check if the node is inside a group
                 if (groupGuidMap.ContainsKey(abstractMaterialNode.groupGuid))
@@ -1168,6 +1185,12 @@ namespace UnityEditor.ShaderGraph
                     var absNode = pastedNode as AbstractMaterialNode;
                     absNode.groupGuid = groupGuidMap[abstractMaterialNode.groupGuid];
                     pastedNode = absNode;
+                }
+
+                // Always update Keyword nodes to handle any collisions resolved on the Keyword
+                if(node is KeywordNode keywordNode)
+                {
+                    keywordNode.UpdateNode();
                 }
 
                 var drawState = node.drawState;

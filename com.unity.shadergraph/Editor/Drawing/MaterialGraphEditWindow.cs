@@ -268,16 +268,9 @@ namespace UnityEditor.ShaderGraph.Drawing
             var propertyNodeGuids = graphView.selection.OfType<IShaderNodeView>().Where(x => (x.node is PropertyNode)).Select(x => ((PropertyNode)x.node).propertyGuid);
             var metaProperties = graphView.graph.properties.Where(x => propertyNodeGuids.Contains(x.guid));
 
-            // Always include Keyword inputs for all keyword nodes
-            foreach(KeywordNode keyNode in graphView.selection.OfType<IShaderNodeView>().Where(x => x.node is KeywordNode).Select(x => x.node as KeywordNode))
-            {
-                // Skip if selection already contains keyword
-                if(graphInputs.Where(x => x.guid == keyNode.keywordGuid).Any())
-                    continue;
-
-                ShaderKeyword keyword = graphView.graph.keywords.FirstOrDefault(x => x.guid == keyNode.keywordGuid);
-                graphInputs = graphInputs.Append(keyword);
-            }
+            // Collect the property nodes and get the corresponding properties
+            var keywordNodeGuids = graphView.selection.OfType<IShaderNodeView>().Where(x => (x.node is KeywordNode)).Select(x => ((KeywordNode)x.node).keywordGuid);
+            var metaKeywords = graphView.graph.keywords.Where(x => keywordNodeGuids.Contains(x.guid));
 
             var copyPasteGraph = new CopyPasteGraph(
                     graphView.graph.assetGuid,
@@ -286,6 +279,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     graphView.selection.OfType<Edge>().Select(x => x.userData as IEdge),
                     graphInputs,
                     metaProperties,
+                    metaKeywords,
                     graphView.selection.OfType<StickyNote>().Select(x => x.userData));
 
             var deserialized = CopyPasteGraph.FromJson(JsonUtility.ToJson(copyPasteGraph, false));
@@ -303,22 +297,19 @@ namespace UnityEditor.ShaderGraph.Drawing
             subGraph.AddNode(subGraphOutputNode);
 
             // Always copy deserialized Keyword inputs
-            foreach (ShaderInput input in deserialized.inputs)
+            foreach (ShaderKeyword keyword in deserialized.metaKeywords)
             {
-                if(input is ShaderKeyword keyword)
-                {
-                    ShaderInput copiedInput = keyword.Copy();
-                    subGraph.SanitizeGraphInputName(copiedInput);
-                    subGraph.SanitizeGraphInputReferenceName(copiedInput, keyword.overrideReferenceName);
-                    subGraph.AddGraphInput(copiedInput);
+                ShaderInput copiedInput = keyword.Copy();
+                subGraph.SanitizeGraphInputName(copiedInput);
+                subGraph.SanitizeGraphInputReferenceName(copiedInput, keyword.overrideReferenceName);
+                subGraph.AddGraphInput(copiedInput);
 
-                    // Update the keyword nodes that depends on the copied node
-                    var dependentKeywordNodes = deserialized.GetNodes<KeywordNode>().Where(x => x.keywordGuid == keyword.guid);
-                    foreach (var node in dependentKeywordNodes)
-                    {
-                        node.owner = graphView.graph;
-                        node.keywordGuid = copiedInput.guid;
-                    }
+                // Update the keyword nodes that depends on the copied node
+                var dependentKeywordNodes = deserialized.GetNodes<KeywordNode>().Where(x => x.keywordGuid == keyword.guid);
+                foreach (var node in dependentKeywordNodes)
+                {
+                    node.owner = graphView.graph;
+                    node.keywordGuid = copiedInput.guid;
                 }
             }
 
