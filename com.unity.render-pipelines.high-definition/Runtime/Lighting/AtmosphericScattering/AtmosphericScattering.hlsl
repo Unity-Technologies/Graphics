@@ -130,9 +130,9 @@ void EvaluatePbrAtmosphere(float3 worldSpaceCameraPos, float3 V, float distAlong
             {
                 float c = dot(L, -V);
 
-                if (c >= -0.99999)
+                if (-0.9999 < c && c < 0.9999)
                 {
-                    float alpha = light.angularDiameter;
+                    float alpha = 0.5 * light.angularDiameter;
                     float beta  = acos(c);
                     float gamma = min(alpha, beta);
 
