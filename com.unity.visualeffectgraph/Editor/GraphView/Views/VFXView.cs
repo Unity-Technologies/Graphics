@@ -1596,6 +1596,23 @@ namespace UnityEditor.VFX.UI
             VFXFilterWindow.Show(VFXViewWindow.currentWindow, e.eventInfo.mousePosition, ViewToScreenPosition(e.eventInfo.mousePosition), m_NodeProvider);
         }
 
+        void OnEnterSubgraph(DropdownMenuAction e)
+        {
+            var node = e.userData as VFXModel;
+            if( node is VFXSubgraphOperator subGraph)
+            {
+                VFXViewWindow.currentWindow.PushResource(subGraph.subgraph.GetResource());
+            }
+            else if (node is VFXSubgraphBlock subGraph2)
+            {
+                VFXViewWindow.currentWindow.PushResource(subGraph2.subgraph.GetResource());
+            }
+            else if (node is VFXSubgraphContext subGraph3)
+            {
+                VFXViewWindow.currentWindow.PushResource(subGraph3.subgraph.GetResource());
+            }
+        }
+
         public override void BuildContextualMenu(ContextualMenuPopulateEvent evt)
         {
             if (evt.target is VFXGroupNode || evt.target is VFXSystemBorder) // Default behaviour only shows the OnCreateNode if the target is the view itself.
@@ -1605,10 +1622,15 @@ namespace UnityEditor.VFX.UI
 
             Vector2 mousePosition = evt.mousePosition;
 
-            if (evt.target is VFXNodeUI)
+            if (evt.target is VFXNodeUI node)
             {
                 evt.menu.InsertAction(evt.target is VFXContextUI ? 1 : 0, "Group Selection", (e) => { GroupSelection(); },
                     (e) => { return canGroupSelection ? DropdownMenuAction.Status.Normal : DropdownMenuAction.Status.Disabled; });
+
+                if( node.controller.model is VFXSubgraphOperator || node.controller.model is VFXSubgraphContext || node.controller.model is VFXSubgraphBlock)
+                {
+                    evt.menu.AppendAction("Enter Subgraph",OnEnterSubgraph,e=>DropdownMenuAction.Status.Normal, node.controller.model);
+                }
             }
 
             if (evt.target is VFXView)
@@ -1628,6 +1650,11 @@ namespace UnityEditor.VFX.UI
                         }
                     }
                 }
+
+                if( VFXViewWindow.currentWindow.resourceHistory.Count() > 0)
+                {
+                    evt.menu.AppendAction(" Back To Parent Graph", e => VFXViewWindow.currentWindow.PopResource());
+                }
             }
 
             if (evt.target is VFXContextUI)
@@ -1641,12 +1668,12 @@ namespace UnityEditor.VFX.UI
             if (selection.OfType<VFXNodeUI>().Any())
             {
                 if (selection.OfType<VFXOperatorUI>().Any() && !selection.OfType<VFXNodeUI>().Any(t => !(t is VFXOperatorUI) && !(t is VFXParameterUI)))
-                    evt.menu.InsertAction(3, "To Subgraph Operator", ToSubgraphOperator, e => DropdownMenuAction.Status.Normal);
+                    evt.menu.InsertAction(3, "Convert To Subgraph Operator", ToSubgraphOperator, e => DropdownMenuAction.Status.Normal);
                 else if (SelectionHasCompleteSystems())
-                    evt.menu.InsertAction(3, "To Subgraph", ToSubgraphContext, e => DropdownMenuAction.Status.Normal);
+                    evt.menu.InsertAction(3, "Convert To Subgraph", ToSubgraphContext, e => DropdownMenuAction.Status.Normal);
                 else if (selection.OfType<VFXBlockUI>().Any() && selection.OfType<VFXBlockUI>().Select(t => t.context).Distinct().Count() == 1)
                 {
-                    evt.menu.InsertAction(3, "To Subgraph Block", ToSubgraphBlock, e => DropdownMenuAction.Status.Normal);
+                    evt.menu.InsertAction(3, "Convert To Subgraph Block", ToSubgraphBlock, e => DropdownMenuAction.Status.Normal);
                 }
             }
             
