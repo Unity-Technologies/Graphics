@@ -655,7 +655,7 @@ MonoBehaviour:
     TargetWidth: 512
     TargetHeight: 512
     PerPixelCorrectnessThreshold: 0
-    AverageCorrectnessThreshold: 0.0005
+    AverageCorrectnessThreshold: 0.005
 --- !u!1 &2132186565
 GameObject:
   m_ObjectHideFlags: 0
