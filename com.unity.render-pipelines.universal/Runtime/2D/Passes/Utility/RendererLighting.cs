@@ -200,7 +200,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                                     if (!lightReactor.selfShadows)
                                         cmdBuffer.DrawRenderer(renderer, new Material(removeSelfShadowMaterial));
                                     else
-                                        cmdBuffer.DrawRenderer(renderer, shadowMaterial);
+                                        cmdBuffer.DrawRenderer(renderer, shadowMaterial, 0, 1);
                                 }
                             }
                         }

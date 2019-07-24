@@ -25,13 +25,6 @@ Shader "Hidden/ShadowGroup2D"
                 Fail Keep
             }
 
-            //Stencil
-            //{
-            //    Ref 2
-            //    Comp always
-            //    Pass replace
-            //}
-
             HLSLPROGRAM
             #pragma vertex vert
             #pragma fragment frag
@@ -42,7 +35,6 @@ Shader "Hidden/ShadowGroup2D"
             {
                 float3 vertex : POSITION;
 				float4 tangent: TANGENT;
-				float4 color : COLOR;
                 float2 uv : TEXCOORD0;
             };
 
@@ -94,6 +86,62 @@ Shader "Hidden/ShadowGroup2D"
                 float4 main = tex2D(_MainTex, i.uv);
 				float4 col = i.color;
                 col.r = main.a;
+                return col;
+            }
+            ENDHLSL
+        }
+        Pass
+        {
+            Stencil
+            {
+                Ref [_ShadowStencilGroup]
+                Comp NotEqual
+                Pass Replace
+                Fail Keep
+            }
+
+            HLSLPROGRAM
+            #pragma vertex vert
+            #pragma fragment frag
+
+            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
+
+            struct appdata
+            {
+                float3 vertex : POSITION;
+                float2 uv : TEXCOORD0;
+            };
+
+            struct v2f
+            {
+                float4 vertex : SV_POSITION;
+                float4 color : COLOR;
+                float2 uv : TEXCOORD0;
+            };
+
+            sampler2D _MainTex;
+            float4 _MainTex_ST;
+
+            v2f vert (appdata v)
+            {
+				v2f o;
+                o.vertex = TransformObjectToHClip(v.vertex);
+
+                // RGB - R is shadow value (to support soft shadows), G is Self Shadow Mask, B is No Shadow Mask
+                o.color = 1; // v.color;
+                o.color.g = 0.5;
+                o.color.b = 0;
+
+                o.uv = TRANSFORM_TEX(v.uv, _MainTex);
+                return o;
+            }
+
+            float4 frag (v2f i) : SV_Target
+            {
+                float4 main = tex2D(_MainTex, i.uv);
+				float4 col = i.color;
+                col.r = main.a;
+                col.g = 0.5 * main.a;
                 return col;
             }
             ENDHLSL
