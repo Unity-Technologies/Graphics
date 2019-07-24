@@ -58,7 +58,6 @@ Shader "Hidden/HDRP/Sky/PbrSky"
 
     float4 RenderSky(Varyings input)
     {
-        const float A = _AtmosphericRadius;
         const float R = _PlanetaryRadius;
 
         // TODO: Not sure it's possible to precompute cam rel pos since variables

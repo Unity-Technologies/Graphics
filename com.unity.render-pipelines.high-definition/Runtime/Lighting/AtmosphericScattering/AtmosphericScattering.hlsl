@@ -40,7 +40,6 @@ void EvaluatePbrAtmosphere(float3 worldSpaceCameraPos, float3 V, float distAlong
 {
     skyColor = skyOpacity = 0;
 
-    const float  A = _AtmosphericRadius;
     const float  R = _PlanetaryRadius;
     const float2 n = float2(_AirDensityFalloff, _AerosolDensityFalloff);
     const float2 H = float2(_AirScaleHeight,    _AerosolScaleHeight);
