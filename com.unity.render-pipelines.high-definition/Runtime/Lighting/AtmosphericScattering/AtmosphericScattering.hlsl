@@ -35,7 +35,7 @@ float3 GetFogColor(float3 V, float fragDist)
 // We evaluate atmospheric scattering for the sky and other celestial bodies
 // during the sky pass. The opaque atmospheric scattering pass applies atmospheric
 // scattering to all other opaque geometry.
-void EvaluatePbrAtmosphere(float3 worldSpaceCameraPos, float3 V, float distAlongRay, bool isSkyPass,
+void EvaluatePbrAtmosphere(float3 worldSpaceCameraPos, float3 V, float distAlongRay, bool renderSunDisk,
                            out float3 skyColor, out float3 skyOpacity)
 {
     skyColor = skyOpacity = 0;
@@ -126,7 +126,7 @@ void EvaluatePbrAtmosphere(float3 worldSpaceCameraPos, float3 V, float distAlong
             float3 L = -light.forward.xyz;
 
             // The sun disk hack causes some issues when applied to nearby geometry, so don't do that.
-            if (isSkyPass && asint(light.aperture) != 0 && light.distanceFromCamera <= tFrag)
+            if (renderSunDisk && asint(light.aperture) != 0 && light.distanceFromCamera <= tFrag)
             {
                 float c = dot(L, -V);
 

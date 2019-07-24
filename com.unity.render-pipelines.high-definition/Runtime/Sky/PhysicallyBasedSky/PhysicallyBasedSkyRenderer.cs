@@ -281,9 +281,6 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        // 'renderSunDisk' parameter is not supported.
-        // Users should instead create an emissive (or lit) mesh for every relevant light source
-        // (to support multiple stars in space, moons with moon phases, etc).
         public override void RenderSky(BuiltinSkyParameters builtinParams, bool renderForCubemap, bool renderSunDisk)
         {
             CommandBuffer cmd = builtinParams.commandBuffer;
@@ -415,6 +412,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 s_PbrSkyMaterialProperties.SetTexture(HDShaderIDs._SpaceEmissionTexture, m_Settings.spaceEmissionTexture.value);
             }
             s_PbrSkyMaterialProperties.SetInt(HDShaderIDs._HasSpaceEmissionTexture, hasSpaceEmissionTexture);
+
+            s_PbrSkyMaterialProperties.SetInt(HDShaderIDs._RenderSunDisk, renderSunDisk ? 1 : 0);
 
             CoreUtils.DrawFullScreen(builtinParams.commandBuffer, s_PbrSkyMaterial, s_PbrSkyMaterialProperties, renderForCubemap ? 0 : 1);
         }

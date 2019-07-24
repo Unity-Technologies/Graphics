@@ -18,6 +18,7 @@ Shader "Hidden/HDRP/Sky/PbrSky"
     int _HasGroundAlbedoTexture;    // bool...
     int _HasGroundEmissionTexture;  // bool...
     int _HasSpaceEmissionTexture;   // bool...
+    int _RenderSunDisk;             // bool...
 
     // Sky framework does not set up global shader variables (even per-view ones),
     // so they can contain garbage. It's very difficult to not include them, however,
@@ -65,6 +66,8 @@ Shader "Hidden/HDRP/Sky/PbrSky"
         const float3 O = _WorldSpaceCameraPos1 * 0.001 - _PlanetCenterPosition; // Convert m to km
         const float3 V = GetSkyViewDirWS(input.positionCS.xy);
 
+        bool renderSunDisk = _RenderSunDisk != 0;
+
         float3 N; float r; // These params correspond to the entry point
         float tEntry = IntersectAtmosphere(O, V, N, r).x;
 
@@ -78,27 +81,30 @@ Shader "Hidden/HDRP/Sky/PbrSky"
         float  tFrag    = FLT_INF;
         float3 radiance = 0;
 
-        // Intersect and shade emissive celestial bodies.
-        // Unfortunately, they don't write depth.
-        for (uint i = 0; i < _DirectionalLightCount; i++)
+        if (renderSunDisk)
         {
-            DirectionalLightData light = _DirectionalLightDatas[i];
-
-            // Use scalar or integer cores (more efficient).
-            bool interactsWithSky = asint(light.distanceFromCamera) >= 0;
-
-            if (interactsWithSky && asint(light.aperture) != 0 && light.distanceFromCamera <= tFrag)
+            // Intersect and shade emissive celestial bodies.
+            // Unfortunately, they don't write depth.
+            for (uint i = 0; i < _DirectionalLightCount; i++)
             {
-                // We may be able to see the celestial body.
-                float3 L = -light.forward.xyz;
+                DirectionalLightData light = _DirectionalLightDatas[i];
 
-                if (dot(L, -V) >= cos(light.aperture))
+                // Use scalar or integer cores (more efficient).
+                bool interactsWithSky = asint(light.distanceFromCamera) >= 0;
+
+                if (interactsWithSky && asint(light.aperture) != 0 && light.distanceFromCamera <= tFrag)
                 {
-                    // It's visible.
-                    tFrag = light.distanceFromCamera;
+                    // We may be able to see the celestial body.
+                    float3 L = -light.forward.xyz;
 
-                    // Assume uniform emission (no rescaling w.r.t. the solid angle or with the normal).
-                    radiance = light.color.rgb;
+                    if (dot(L, -V) >= cos(light.aperture))
+                    {
+                        // It's visible.
+                        tFrag = light.distanceFromCamera;
+
+                        // Assume uniform emission (no rescaling w.r.t. the solid angle or with the normal).
+                        radiance = light.color.rgb;
+                    }
                 }
             }
         }
@@ -164,7 +170,7 @@ Shader "Hidden/HDRP/Sky/PbrSky"
 
         if (rayIntersectsAtmosphere)
         {
-            EvaluatePbrAtmosphere(_WorldSpaceCameraPos1, V, tFrag, true, skyColor, skyOpacity);
+            EvaluatePbrAtmosphere(_WorldSpaceCameraPos1, V, tFrag, renderSunDisk, skyColor, skyOpacity);
         }
 
         skyColor += radiance * (1 - skyOpacity);
