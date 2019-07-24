@@ -163,6 +163,7 @@ namespace UnityEditor.ShaderGraph
                 displayName = displayName,
                 overrideReferenceName = overrideReferenceName,
                 generatePropertyBlock = generatePropertyBlock,
+                m_IsExposable = isExposable,
                 isEditable = isEditable,
                 keywordType = keywordType,
                 keywordDefinition = keywordDefinition,

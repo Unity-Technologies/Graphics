@@ -1187,12 +1187,6 @@ namespace UnityEditor.ShaderGraph
                     pastedNode = absNode;
                 }
 
-                // Always update Keyword nodes to handle any collisions resolved on the Keyword
-                if(node is KeywordNode keywordNode)
-                {
-                    keywordNode.UpdateNode();
-                }
-
                 var drawState = node.drawState;
                 var position = drawState.position;
                 position.x += 30;
@@ -1204,6 +1198,12 @@ namespace UnityEditor.ShaderGraph
 
                 // add the node to the pasted node list
                 m_PastedNodes.Add(pastedNode);
+
+                // Always update Keyword nodes to handle any collisions resolved on the Keyword
+                if(node is KeywordNode keywordNode)
+                {
+                    keywordNode.UpdateNode();
+                }
             }
 
             // only connect edges within pasted elements, discard

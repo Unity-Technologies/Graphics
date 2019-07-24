@@ -46,7 +46,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                 Rebuild();
             });
-            AddRow("Definition", keywordDefinitionField, input.isExposable);
+            AddRow("Definition", keywordDefinitionField, m_Keyword.isEditable);
 
             // KeywordScope
             if(m_Keyword.keywordDefinition != ShaderKeywordDefinition.Predefined)
@@ -59,7 +59,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                         return;
                     m_Keyword.keywordScope = (ShaderKeywordScope)evt.newValue;
                 });
-                AddRow("Scope", keywordScopeField, input.isExposable);
+                AddRow("Scope", keywordScopeField, m_Keyword.isEditable);
             }
 
             switch(m_Keyword.keywordType)
