@@ -35,16 +35,16 @@ Pass
 		// x: inverse soft particles fade distance
 		// y: alpha threshold
 		// z: frame blending factor
-		nointerpolation float3 builtInInterpolants : TEXCOORD2;
+		VFX_OPTIONAL_INTERPOLATION float3 builtInInterpolants : TEXCOORD2;
 		#endif
 		#if USE_FLIPBOOK_MOTIONVECTORS
 		// x: motion vector scale u
 		// y: motion vector scale v
-		nointerpolation float2 builtInInterpolants2 : TEXCOORD3;
+		VFX_OPTIONAL_INTERPOLATION float2 builtInInterpolants2 : TEXCOORD3;
 		#endif
-		nointerpolation float3 normal : TEXCOORD4;
+		VFX_OPTIONAL_INTERPOLATION float3 normal : TEXCOORD4;
 		#if USE_NORMAL_MAP || USE_NORMAL_BENDING
-		nointerpolation float3 tangent : TEXCOORD5;
+		VFX_OPTIONAL_INTERPOLATION float3 tangent : TEXCOORD5;
 		#endif
 		#if USE_NORMAL_BENDING
 		float2 bentFactors : TEXCOORD6;

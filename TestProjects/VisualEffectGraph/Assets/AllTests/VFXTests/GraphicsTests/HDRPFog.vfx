@@ -311,6 +311,10 @@ MonoBehaviour:
   - link:
     - context: {fileID: 8926484042661614656}
       slotIndex: 0
+  loopDuration: 0
+  loopCount: 0
+  delayBeforeLoop: 0
+  delayAfterLoop: 0
 --- !u!114 &8926484042661614654
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -816,7 +820,10 @@ MonoBehaviour:
   - {fileID: 8926484042661614990}
   - {fileID: 8926484042661615023}
   - {fileID: 8926484042661615028}
-  m_Capacity: 320
+  dataType: 0
+  capacity: 320
+  stripCapacity: 16
+  particlePerStripCount: 16
   m_Space: 0
 --- !u!114 &8926484042661614679
 MonoBehaviour:
@@ -913,6 +920,7 @@ MonoBehaviour:
   m_OutputFlowSlot:
   - link: []
   blendMode: 1
+  generateMotionVector: 0
   m_SubOutputs:
   - {fileID: 8926484042661615136}
   cullMode: 0
@@ -1310,6 +1318,7 @@ MonoBehaviour:
   m_OutputFlowSlot:
   - link: []
   blendMode: 3
+  generateMotionVector: 0
   m_SubOutputs:
   - {fileID: 8926484042661615137}
   cullMode: 0
@@ -1751,6 +1760,7 @@ MonoBehaviour:
   m_OutputFlowSlot:
   - link: []
   blendMode: 1
+  generateMotionVector: 0
   m_SubOutputs:
   - {fileID: 8926484042661615138}
   cullMode: 3
@@ -1861,6 +1871,7 @@ MonoBehaviour:
   m_OutputFlowSlot:
   - link: []
   blendMode: 3
+  generateMotionVector: 0
   m_SubOutputs:
   - {fileID: 8926484042661615139}
   cullMode: 3
@@ -2109,6 +2120,7 @@ MonoBehaviour:
   m_OutputFlowSlot:
   - link: []
   blendMode: 0
+  generateMotionVector: 0
   m_SubOutputs:
   - {fileID: 8926484042661615140}
   cullMode: 3
@@ -2371,6 +2383,7 @@ MonoBehaviour:
   m_OutputFlowSlot:
   - link: []
   blendMode: 4
+  generateMotionVector: 0
   m_SubOutputs:
   - {fileID: 8926484042661615141}
   cullMode: 0
@@ -2565,6 +2578,7 @@ MonoBehaviour:
   m_OutputFlowSlot:
   - link: []
   blendMode: 4
+  generateMotionVector: 0
   m_SubOutputs:
   - {fileID: 8926484042661615142}
   cullMode: 3
@@ -2634,6 +2648,7 @@ MonoBehaviour:
   m_OutputFlowSlot:
   - link: []
   blendMode: 4
+  generateMotionVector: 0
   m_SubOutputs:
   - {fileID: 8926484042661615143}
   cullMode: 3
@@ -2842,6 +2857,7 @@ MonoBehaviour:
   m_OutputFlowSlot:
   - link: []
   blendMode: 2
+  generateMotionVector: 0
   m_SubOutputs:
   - {fileID: 8926484042661615144}
   cullMode: 3
@@ -2991,6 +3007,7 @@ MonoBehaviour:
   m_OutputFlowSlot:
   - link: []
   blendMode: 0
+  generateMotionVector: 0
   m_SubOutputs:
   - {fileID: 8926484042661615145}
   cullMode: 0
@@ -3411,6 +3428,7 @@ MonoBehaviour:
   m_OutputFlowSlot:
   - link: []
   blendMode: 4
+  generateMotionVector: 0
   m_SubOutputs:
   - {fileID: 8926484042661615146}
   cullMode: 0
@@ -3592,6 +3610,7 @@ MonoBehaviour:
   m_OutputFlowSlot:
   - link: []
   blendMode: 4
+  generateMotionVector: 0
   m_SubOutputs:
   - {fileID: 8926484042661615147}
   cullMode: 0

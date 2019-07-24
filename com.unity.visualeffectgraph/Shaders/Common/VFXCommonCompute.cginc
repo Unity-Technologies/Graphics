@@ -11,7 +11,27 @@
 #endif
 
 // TODO Null implem at the moment
+float4 VFXTransformPositionWorldToNonJitteredClip(float3 posWS)
+{
+    return (float4)0.0f;
+}
+
+float4 VFXTransformPositionWorldToPreviousClip(float3 posWS)
+{
+    return (float4)0.0f;
+}
+
 float4 VFXTransformPositionWorldToClip(float3 posWS)
+{
+    return (float4)0.0f;
+}
+
+float4 VFXTransformPositionObjectToNonJitteredClip(float3 posOS)
+{
+    return (float4)0.0f;
+}
+
+float4 VFXTransformPositionObjectToPreviousClip(float3 posOS)
 {
     return (float4)0.0f;
 }

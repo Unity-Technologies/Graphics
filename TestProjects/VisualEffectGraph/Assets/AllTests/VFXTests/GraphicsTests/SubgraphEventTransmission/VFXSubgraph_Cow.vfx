@@ -137,6 +137,10 @@ MonoBehaviour:
   - link:
     - context: {fileID: 7}
       slotIndex: 0
+  loopDuration: 0
+  loopCount: 0
+  delayBeforeLoop: 0
+  delayAfterLoop: 0
 --- !u!114 &5
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -577,7 +581,10 @@ MonoBehaviour:
   - {fileID: 7}
   - {fileID: 35}
   - {fileID: 37}
-  m_Capacity: 32
+  dataType: 0
+  capacity: 32
+  stripCapacity: 16
+  particlePerStripCount: 16
   m_Space: 0
 --- !u!114 &18
 MonoBehaviour:
@@ -724,6 +731,7 @@ MonoBehaviour:
   m_OutputFlowSlot:
   - link: []
   blendMode: 1
+  generateMotionVector: 0
   m_SubOutputs:
   - {fileID: 0}
   - {fileID: 61}

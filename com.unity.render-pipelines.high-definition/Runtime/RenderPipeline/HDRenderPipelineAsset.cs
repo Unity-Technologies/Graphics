@@ -20,6 +20,8 @@ namespace UnityEngine.Rendering.HighDefinition
         {
         }
 
+        void Reset() => OnValidate();
+
         protected override UnityEngine.Rendering.RenderPipeline CreatePipeline()
         {
             // safe: When we return a null render pipline it will do nothing in the rendering

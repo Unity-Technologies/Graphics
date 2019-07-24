@@ -129,6 +129,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public Vector3 oldLossyScale;
         public bool oldDisplayAreaLightEmissiveMesh;
         public float oldLightColorTemperature;
+        public float oldIntensity;
     }
 
     //@TODO: We should continuously move these values
@@ -1845,22 +1846,19 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+#endif
+
         internal bool useColorTemperature
         {
-            get
-            {
-                lightSerializedObject.Update();
-
-                return useColorTemperatureProperty.boolValue;
-            }
+            get => legacyLight.useColorTemperature;
             set
             {
-                useColorTemperatureProperty.boolValue = value;
-                lightSerializedObject.ApplyModifiedProperties();
+                if (legacyLight.useColorTemperature == value)
+                    return;
+                
+                legacyLight.useColorTemperature = value;
             }
         }
-
-#endif
 
         // TODO: we might be able to get rid to that
         [System.NonSerialized]
@@ -1887,18 +1885,20 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Check if the intensity have been changed by the inspector or an animator
             if (timelineWorkaround.oldLossyScale != transform.lossyScale
+                || intensity != timelineWorkaround.oldIntensity
                 || legacyLight.colorTemperature != timelineWorkaround.oldLightColorTemperature)
             {
-                RefreshLightIntensity();
+                UpdateLightIntensity();
                 UpdateAreaLightEmissiveMesh();
                 timelineWorkaround.oldLossyScale = transform.lossyScale;
+                timelineWorkaround.oldIntensity = intensity;
                 timelineWorkaround.oldLightColorTemperature = legacyLight.colorTemperature;
             }
 
             // Same check for light angle to update intensity using spot angle
             if (legacyLight.type == LightType.Spot && (timelineWorkaround.oldSpotAngle != legacyLight.spotAngle))
             {
-                RefreshLightIntensity();
+                UpdateLightIntensity();
                 timelineWorkaround.oldSpotAngle = legacyLight.spotAngle;
             }
 
@@ -1918,12 +1918,6 @@ namespace UnityEngine.Rendering.HighDefinition
         void OnDidApplyAnimationProperties()
         {
             UpdateAllLightValues();
-        }
-
-        // The editor can only access m_Intensity (because of SerializedProperties) so we update the intensity to get the real value
-        void RefreshLightIntensity()
-        {
-            intensity = m_Intensity;
         }
 
         /// <summary>
@@ -2152,7 +2146,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (timelineWorkaround.oldLossyScale != transform.lossyScale)
                 lightSize = transform.lossyScale;
             else
-                lightSize = new Vector3(shapeWidth, m_ShapeHeight, transform.localScale.z);
+                lightSize = new Vector3(m_ShapeWidth, m_ShapeHeight, transform.localScale.z);
 
             if (lightTypeExtent == LightTypeExtent.Tube)
                 lightSize.y = k_MinAreaWidth;
@@ -2185,11 +2179,11 @@ namespace UnityEngine.Rendering.HighDefinition
             switch (lightTypeExtent)
             {
                 case LightTypeExtent.Rectangle:
-                    shapeWidth = lightSize.x;
+                    m_ShapeWidth = lightSize.x;
                     m_ShapeHeight = lightSize.y;
                     break;
                 case LightTypeExtent.Tube:
-                    shapeWidth = lightSize.x;
+                    m_ShapeWidth = lightSize.x;
                     break;
                 default:
                     break;
@@ -2317,9 +2311,22 @@ namespace UnityEngine.Rendering.HighDefinition
         public void SetColor(Color color, float colorTemperature = -1)
         {
             if (colorTemperature != -1)
+            {
                 legacyLight.colorTemperature = colorTemperature;
+                useColorTemperature = true;
+            }
 
             this.color = color;
+        }
+        
+        /// <summary>
+        /// Toggle the usage of color temperature.
+        /// </summary>
+        /// <param name="hdLight"></param>
+        /// <param name="enable"></param>
+        public void EnableColorTemperature(bool enable)
+        {
+            useColorTemperature = enable;
         }
 
         /// <summary>

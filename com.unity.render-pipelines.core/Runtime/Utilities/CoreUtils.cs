@@ -71,6 +71,26 @@ namespace UnityEngine.Rendering
             }
         }
 
+        static CubemapArray m_MagentaCubeTextureArray;
+        public static CubemapArray magentaCubeTextureArray
+        {
+            get
+            {
+                if (m_MagentaCubeTextureArray == null)
+                {
+                    m_MagentaCubeTextureArray = new CubemapArray(1, 1, TextureFormat.RGBAFloat, false);
+                    for (int i = 0; i < 6; ++i)
+                    {
+                        Color[] colors = { Color.magenta };
+                        m_MagentaCubeTextureArray.SetPixels(colors, (CubemapFace)i, 0);
+                    }
+                    m_MagentaCubeTextureArray.Apply();
+                }
+
+                return m_MagentaCubeTextureArray;
+            }
+        }
+
         static Cubemap m_WhiteCubeTexture;
         public static Cubemap whiteCubeTexture
         {

@@ -389,22 +389,22 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 if (!string.IsNullOrEmpty(assetPath))
                 {
-                    var target = HDProbeSystem.CreateRenderTargetForMode(
+                    var target = (RenderTexture)HDProbeSystem.CreateRenderTargetForMode(
                         probe, ProbeSettings.Mode.Custom
                     );
-                    HDProbeSystem.Render(
-                        probe, null, target,
-                        out HDProbe.RenderData renderData,
-                        forceFlipY: probe.type == ProbeSettings.ProbeType.ReflectionProbe
+
+
+                    HDBakedReflectionSystem.RenderAndWriteToFile(
+                        probe, assetPath, target, null,
+                        out var cameraSettings, out var cameraPositionSettings
                     );
-                    HDTextureUtilities.WriteTextureFileToDisk(target, assetPath);
                     AssetDatabase.ImportAsset(assetPath);
                     HDBakedReflectionSystem.ImportAssetAt(probe, assetPath);
                     CoreUtils.Destroy(target);
 
                     var assetTarget = AssetDatabase.LoadAssetAtPath<Texture>(assetPath);
                     probe.SetTexture(ProbeSettings.Mode.Custom, assetTarget);
-                    probe.SetRenderData(ProbeSettings.Mode.Custom, renderData);
+                    probe.SetRenderData(ProbeSettings.Mode.Custom, new HDProbe.RenderData(cameraSettings, cameraPositionSettings));
                     EditorUtility.SetDirty(probe);
                 }
             }

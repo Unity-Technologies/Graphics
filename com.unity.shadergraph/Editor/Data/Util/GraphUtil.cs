@@ -1187,7 +1187,7 @@ namespace UnityEditor.ShaderGraph
 
             GenerateSurfaceInputStruct(surfaceDescriptionInputStruct, requirements, "SurfaceDescriptionInputs");
 
-            results.previewMode = PreviewMode.Preview3D;
+            results.previewMode = PreviewMode.Preview2D;
             foreach (var pNode in activeNodeList)
             {
                 if (pNode.previewMode == PreviewMode.Preview3D)

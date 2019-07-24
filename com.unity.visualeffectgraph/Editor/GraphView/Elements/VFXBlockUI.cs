@@ -71,19 +71,11 @@ namespace UnityEditor.VFX.UI
             base.SelfChange();
 
             if (controller.model.enabled)
-            {
-                titleContainer.RemoveFromClassList("disabled");
-            }
+                RemoveFromClassList("block-disabled");
             else
-            {
-                titleContainer.AddToClassList("disabled");
-            }
+                AddToClassList("block-disabled");
 
             m_EnableToggle.SetValueWithoutNotify(controller.model.enabled);
-            if (inputContainer != null)
-                inputContainer.SetEnabled(controller.model.enabled);
-            if (settingsContainer != null)
-                settingsContainer.SetEnabled(controller.model.enabled);
 
             if (!controller.model.isValid)
                 AddToClassList("invalid");
