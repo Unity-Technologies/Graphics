@@ -85,7 +85,7 @@ Shader "Hidden/ShadowGroup2D"
             {
                 float4 main = tex2D(_MainTex, i.uv);
 				float4 col = i.color;
-                col.r = main.a;
+                col.g = main.a * col.g;
                 return col;
             }
             ENDHLSL
@@ -128,7 +128,7 @@ Shader "Hidden/ShadowGroup2D"
                 o.vertex = TransformObjectToHClip(v.vertex);
 
                 // RGB - R is shadow value (to support soft shadows), G is Self Shadow Mask, B is No Shadow Mask
-                o.color = 1; // v.color;
+                o.color = 1; 
                 o.color.g = 0.5;
                 o.color.b = 0;
 
@@ -140,7 +140,7 @@ Shader "Hidden/ShadowGroup2D"
             {
                 float4 main = tex2D(_MainTex, i.uv);
 				float4 col = i.color;
-                col.r = main.a;
+                col.r = 1;
                 col.g = 0.5 * main.a;
                 return col;
             }
