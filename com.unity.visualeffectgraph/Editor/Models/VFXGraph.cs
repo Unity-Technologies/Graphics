@@ -216,6 +216,12 @@ namespace UnityEditor.VFX
 
         public VFXParameterInfo[] m_ParameterInfo;
 
+        private VFXSystemNames m_SystemNames = new VFXSystemNames();
+
+        public override string systemName { get => string.Empty; }
+
+        public VFXSystemNames systemNames { get { return m_SystemNames; } }
+
         public void BuildParameterInfo()
         {
             m_ParameterInfo = VFXParameterInfo.BuildParameterInfo(this);
@@ -287,12 +293,14 @@ namespace UnityEditor.VFX
             var scriptableObject = k_fnExtractObjects(str, false);
 
             Profiler.BeginSample("VFXGraph.Restore SendUnknownChange");
-            foreach (var model in scriptableObject.OfType<VFXModel>())
+            var models = scriptableObject.OfType<VFXModel>();
+            foreach (var model in models)
             {
                 model.OnUnknownChange();
             }
             Profiler.EndSample();
             Profiler.EndSample();
+            m_SystemNames.Init(models);
             m_ExpressionGraphDirty = true;
             m_ExpressionValuesDirty = true;
             m_DependentDirty = true;

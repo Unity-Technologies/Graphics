@@ -62,12 +62,44 @@ namespace UnityEditor.VFX
         [SerializeField]
         private string m_Label;
 
+        public override string systemName
+        {
+            // TODO: should be factorized in VFXSystemNames
+            get
+            {
+                if (m_Data != null)
+                    return m_Data.systemName;
+                if (contextType == VFXContextType.Spawner)
+                    return label;
+                return string.Empty;
+            }
+            set
+            {
+                if (m_Data != null)
+                    m_Data.systemName = value;
+                if (contextType == VFXContextType.Spawner)
+                {
+                    var graph = GetGraph();
+                    if (graph != null)
+                    {
+                        if (string.IsNullOrEmpty(value))
+                            label = "";
+                        else
+                            label = graph.systemNames.AddAndCorrect(this, value);
+                    }
+                }
+            }
+        }
+
         public string label
         {
             get { return m_Label; }
             set {
+                var invalidationCause = InvalidationCause.kUIChanged;
+                if (contextType == VFXContextType.Spawner && m_Label != value)
+                    invalidationCause = InvalidationCause.kSettingChanged;
                 m_Label = value;
-                Invalidate(InvalidationCause.kUIChanged);
+                Invalidate(invalidationCause);
             }
         }
 
@@ -207,6 +239,8 @@ namespace UnityEditor.VFX
         protected override void OnRemoved()
         {
             base.OnRemoved();
+            var graph = GetGraph();
+            graph.systemNames.RemoveSystem(m_Data != null ? m_Data as VFXModel : this);
             if (hasBeenCompiled || CanBeCompiled())
                 Invalidate(InvalidationCause.kExpressionGraphChanged);
         }
