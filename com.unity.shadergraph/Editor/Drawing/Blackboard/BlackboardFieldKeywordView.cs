@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Globalization;
 using UnityEditor.Graphing;
 using UnityEditor.Graphing.Util;
@@ -238,6 +239,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         public string GetDuplicateSafeReferenceName(int id, string name)
         {
             name = name.Trim();
+            name = Regex.Replace(name, @"(?:[^A-Za-z_0-9])|(?:\s)", "_");
             var entryList = m_ReorderableList.list as List<ShaderKeywordEntry>;
             return GraphUtil.SanitizeName(entryList.Where(p => p.id != id).Select(p => p.referenceName), "{0}_{1}", name);
         }
