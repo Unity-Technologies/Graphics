@@ -210,7 +210,6 @@ VFXOperatorUI.superCollapsed.VFXNodeUI.node #settings-divider, VFXOperatorUI.sup
     top: 0;
     bottom: 0;
     width: auto;
-}
 
 .VFXNodeUI.superCollapsed.node .VFXDataAnchor #line
 {
