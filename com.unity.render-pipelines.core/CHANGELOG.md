@@ -6,6 +6,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [7.1.1] - 2019-XX-XX
 
+### Fixed
+- Fixed a precision issue with the ACES tonemapper on mobile platforms.
+
 ## [7.0.0] - 2019-07-17
 
 ### Added
