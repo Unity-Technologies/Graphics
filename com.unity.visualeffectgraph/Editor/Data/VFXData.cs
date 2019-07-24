@@ -39,7 +39,24 @@ namespace UnityEditor.VFX
             get { return m_Owners; }
         }
 
-        public string title;
+        [VFXSetting, SerializeField]
+        protected string title;// TODO: Do we really need it ?
+
+        public override string systemName
+        {
+            get { return title; }
+            set
+            {
+                var graph = m_Owners[0].GetGraph();// TODO: dangerous
+                if (graph != null)
+                {
+                    if (string.IsNullOrEmpty(value))
+                        title = "";
+                    else
+                        title = graph.systemNames.AddAndCorrect(this, value);
+                }
+            }
+        }
 
         public int index
         {
@@ -48,12 +65,12 @@ namespace UnityEditor.VFX
 
         public string fileName {
             get {
-                if( ! string.IsNullOrWhiteSpace(title))
+                if(!string.IsNullOrWhiteSpace(title))
                     return title;
                 int i = this.index;
                 if (i < 0)
                     return string.Empty;
-                return string.IsNullOrEmpty(title)?string.Format("System {0}",i):title;
+                return string.Format("System {0}", i);
             }
         }
 

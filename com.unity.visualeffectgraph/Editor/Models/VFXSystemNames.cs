@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.VFX.UI;
 using UnityEditor;
+using NUnit.Framework;
 
 using SysRegex = System.Text.RegularExpressions.Regex;
 
@@ -22,8 +23,7 @@ namespace UnityEditor.VFX
 
         public static string ExtractName(VFXModel system)
         {
-            //return system.systemName;
-            return string.Empty;
+            return system.systemName;
         }
 
         public static int ExtractIndex(string name)
@@ -47,10 +47,9 @@ namespace UnityEditor.VFX
 
         public static void UIUpdate(VFXContextUI contextUI, string newName)
         {
-
             if (contextUI.controller.model.contextType == VFXContextType.Spawner)
             {
-                //contextUI.controller.model.systemName = newName;
+                contextUI.controller.model.systemName = newName;
             }
         }
 
@@ -81,7 +80,7 @@ namespace UnityEditor.VFX
                 if (!string.IsNullOrEmpty(systemName))
                 {
                     var unindexedName = SysRegex.Replace(systemName, IndexPattern, "");
-                    //system.systemName = unindexedName;
+                    system.systemName = unindexedName;
                 }
             }
 
@@ -102,8 +101,7 @@ namespace UnityEditor.VFX
             {
                 return AddAndCorrect(system, wishedName);
             }
-            //return system.systemName;
-            return string.Empty;
+            return system.systemName;
         }
 
         /// <summary>

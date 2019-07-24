@@ -460,6 +460,13 @@ namespace UnityEditor.VFX
                     }
                 }
 
+                var nativeName = spawnContext.systemName;
+                if (string.IsNullOrEmpty(nativeName))
+                {
+                    spawnContext.systemName = VFXSystemNames.defaultSystemName;
+                    nativeName = spawnContext.systemName;
+                    Debug.Log("Spawner generated name: " + nativeName);
+                }
                 var contextData = contextToCompiledData[spawnContext];
                 var contextExpressions = contextData.cpuMapper.CollectExpression(-1);
                 var systemValueMappings = new List<VFXMapping>();
@@ -474,6 +481,7 @@ namespace UnityEditor.VFX
                     values = systemValueMappings.ToArray(),
                     buffers = buffers.ToArray(),
                     capacity = 0u,
+                    name = nativeName,
                     flags = VFXSystemFlag.SystemDefault,
                     layer = uint.MaxValue,
                     tasks = spawnContext.activeFlattenedChildrenWithImplicit.Select((b, index) =>

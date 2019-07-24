@@ -150,12 +150,9 @@ namespace UnityEditor.VFX.UI
 
         void OnTitleBlur(FocusOutEvent e)
         {
-            title = m_TitleField.value;
+            var newName = m_TitleField.value.Trim();
+            VFXSystemNames.UIUpdate(this, newName);
             m_TitleField.style.display = DisplayStyle.None;
-
-            VFXView view = GetFirstAncestorOfType<VFXView>();
-
-            controller.title = title;
         }
 
         void OnContextChanged(GeometryChangedEvent e)

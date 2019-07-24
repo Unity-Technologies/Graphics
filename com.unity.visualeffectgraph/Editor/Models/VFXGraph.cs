@@ -364,6 +364,16 @@ namespace UnityEditor.VFX
                     Debug.LogError(string.Format("Exception while sanitizing VFXUI: : {0} {1}", e , e.StackTrace));
                 }
 
+            var models = new HashSet<ScriptableObject>();
+            CollectDependencies(models, false);
+            var contexts = models.OfType<VFXContext>();
+            //IEnumerable<VFXContext> compilableContexts = contexts.Where(c => c.CanBeCompiled()).ToArray();
+            if (contexts != null)
+            {
+                var systems = contexts.Select(context => context.GetData() != null ? context.GetData() as VFXModel : context as VFXModel);
+                m_SystemNames.Init(systems);
+            }
+
             m_GraphSanitized = true;
             m_GraphVersion = CurrentVersion;
             UpdateSubAssets(); //Should not be necessary : force remove no more referenced object from asset

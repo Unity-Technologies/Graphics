@@ -880,7 +880,7 @@ namespace UnityEditor.VFX.UI
 
         void OnTitleBlur(FocusOutEvent e)
         {
-            controller.model.label = m_TextField.value
+            var newName = m_TextField.value
                 .Trim()
                 .Replace("/","")
                 .Replace("\\", "")
@@ -892,6 +892,7 @@ namespace UnityEditor.VFX.UI
                 .Replace("\"", "")
                 .Replace("|", "")
                 ;
+            VFXSystemNames.UIUpdate(this, newName);
             m_TextField.style.display = DisplayStyle.None;
         }
         void OnTitleRelayout(GeometryChangedEvent e)
