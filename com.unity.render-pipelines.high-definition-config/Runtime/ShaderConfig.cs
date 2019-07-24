@@ -5,6 +5,14 @@
 namespace UnityEngine.Rendering.HighDefinition
 {
     [GenerateHLSL(PackingRules.Exact)]
+    public enum HDShadowFilteringQuality
+    {
+        Low = 0,
+        Medium = 1,
+        High = 2,
+    }
+
+    [GenerateHLSL(PackingRules.Exact)]
     public enum ShaderOptions
     {
         CameraRelativeRendering = 1, // Rendering sets the origin of the world to the position of the primary (scene view) camera
@@ -20,6 +28,9 @@ namespace UnityEngine.Rendering.HighDefinition
 #else
         XrMaxViews = 1,
 #endif
+        AreaLights = 1,
+
+        DeferredShadowFiltering = HDShadowFilteringQuality.Medium
     };
 
     // Note: #define can't be use in include file in C# so we chose this way to configure both C# and hlsl
@@ -30,5 +41,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static int s_PreExposition = (int)ShaderOptions.PreExposition;
         public static int s_XrMaxViews = (int)ShaderOptions.XrMaxViews;
         public static int s_PrecomputedAtmosphericAttenuation = (int)ShaderOptions.PrecomputedAtmosphericAttenuation;
+        public static int s_AreaLights = (int)ShaderOptions.AreaLights;
+        public static HDShadowFilteringQuality s_DeferredShadowFiltering = (HDShadowFilteringQuality)ShaderOptions.DeferredShadowFiltering;
     }
 }
