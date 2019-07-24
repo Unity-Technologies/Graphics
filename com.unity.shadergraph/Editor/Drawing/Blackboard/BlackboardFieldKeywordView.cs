@@ -90,18 +90,11 @@ namespace UnityEditor.ShaderGraph.Drawing
         void BuildEnumKeywordField(ShaderKeyword keyword)
         {
             int value = Mathf.Clamp(keyword.value, 0, keyword.entries.Count - 1);
-            var field = new IntegerField { value = value };
+            var field = new PopupField<string>(keyword.entries.Select(x => x.displayName).ToList(), value);
             field.RegisterValueChangedCallback(evt =>
             {
-                keyword.value = evt.newValue;
-                this.MarkDirtyRepaint();
-            });
-            field.Q("unity-text-input").RegisterCallback<FocusOutEvent>(evt =>
-            {
                 graph.owner.RegisterCompleteObjectUndo("Change Keyword Value");
-                int clampedValue = Mathf.Clamp(keyword.value, 0, keyword.entries.Count - 1);
-                field.value = clampedValue;
-                keyword.value = clampedValue;
+                keyword.value = field.index;
                 DirtyNodes(ModificationScope.Graph);
             });
             AddRow("Default", field);
@@ -160,7 +153,9 @@ namespace UnityEditor.ShaderGraph.Drawing
                 if(EditorGUI.EndChangeCheck())
                 {
                     m_Keyword.entries[index] = new ShaderKeywordEntry(index + 1, displayName, referenceName);
+                    
                     DirtyNodes();
+                    Rebuild();
                 }   
             };
 
@@ -206,6 +201,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_Keyword.entries.Add(new ShaderKeywordEntry(index, displayName, referenceName));
 
             // Update GUI
+            Rebuild();
             DirtyNodes();
             m_SelectedIndex = list.list.Count - 1;
         }
