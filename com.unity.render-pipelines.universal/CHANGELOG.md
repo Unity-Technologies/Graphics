@@ -4,12 +4,10 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [7.1.0] - 2019-XX-XX
-### Fixed
-- Fixed shader compilation errors for Android XR projects.
-- Updated the pipeline Asset UI to cap the render scale at 2x so that it matches the render pipeline implementation limit.
+## [7.1.1] - 2019-XX-XX
+- Fixed specular lighting related artifacts on Mobile [case 1143049](https://issuetracker.unity3d.com/issues/ios-lwrp-rounded-cubes-has-graphical-artifacts-when-setting-pbr-shaders-smoothness-about-to-0-dot-65-in-shadergraph) and [case 1164822](https://issuetracker.unity3d.com/issues/lwrp-specular-highlight-becomes-hard-edged-when-increasing-the-size-of-an-object).
 
-## [7.0.0] - 2019-07-10
+## [7.0.0] - 2019-07-17
 ### Universal Render Pipeline
 - LWRP has been renamed to the "Universal Render Pipeline" (UniversalRP).
 - UniversalRP is the same as LWRP in terms of features and scope.
@@ -52,7 +50,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed some basic UI/usability issues with LWRP terrain Materials (use of warnings and modal value changes).
 - Fixed an issue where using LWRP and Sprite Shape together would produce meta file conflicts.
 - Fixed fp16 overflow in Switch in specular calculation
-
+- Fixed shader compilation errors for Android XR projects.
+- Updated the pipeline Asset UI to cap the render scale at 2x so that it matches the render pipeline implementation limit.
 
 ## [6.7.0] - 2019-05-16
 ### Added

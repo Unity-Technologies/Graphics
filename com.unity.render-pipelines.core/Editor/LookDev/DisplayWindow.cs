@@ -25,6 +25,8 @@ namespace UnityEditor.Rendering.LookDev
         event Action<UnityEngine.Object, ViewCompositionIndex, Vector2> OnChangingEnvironmentInView;
 
         event Action OnClosed;
+
+        event Action OnUpdateRequested;
     }
 
     /// <summary>Interface that must implement the EnvironmentLibrary view to communicate with the data management</summary>
@@ -176,6 +178,13 @@ namespace UnityEditor.Rendering.LookDev
         {
             add => OnChangingEnvironmentLibraryInternal += value;
             remove => OnChangingEnvironmentLibraryInternal -= value;
+        }
+
+        event Action OnUpdateRequestedInternal;
+        event Action IViewDisplayer.OnUpdateRequested
+        {
+            add => OnUpdateRequestedInternal += value;
+            remove => OnUpdateRequestedInternal -= value;
         }
 
         void OnEnable()
@@ -592,13 +601,13 @@ namespace UnityEditor.Rendering.LookDev
             environmentListCreationToolbar.Add(new ToolbarButton(()
                 => EnvironmentLibraryCreator.Create())
             {
-                text = "New",
+                text = "New Library",
                 tooltip = "Create a new EnvironmentLibrary"
             });
             environmentListCreationToolbar.Add(new ToolbarButton(()
                 => EnvironmentLibraryLoader.Load(RefreshLibraryDisplay))
             {
-                text = "Load",
+                text = "Load Library",
                 tooltip = "Load an existing EnvironmentLibrary"
             });
 
@@ -806,25 +815,50 @@ namespace UnityEditor.Rendering.LookDev
                     throw new ArgumentException("Unknown ViewCompositionIndex: " + index);
             }
         }
-
+        
+        Vector2 m_LastFirstViewSize = new Vector2();
+        Vector2 m_LastSecondViewSize = new Vector2();
         void IViewDisplayer.SetTexture(ViewCompositionIndex index, Texture texture)
         {
+            bool updated = false;
             switch (index)
             {
                 case ViewCompositionIndex.First:
                 case ViewCompositionIndex.Composite:    //display composition on first rect
-                    if (m_Views[(int)ViewIndex.First].image != texture)
+                    if (updated |= m_Views[(int)ViewIndex.First].image != texture)
                         m_Views[(int)ViewIndex.First].image = texture;
+                    else if (updated |= (m_LastFirstViewSize.x != texture.width
+                                      || m_LastFirstViewSize.y != texture.height))
+                    {
+                        m_Views[(int)ViewIndex.First].image = null; //force refresh else it will appear zoomed
+                        m_Views[(int)ViewIndex.First].image = texture;
+                    }
+                    if (updated)
+                    {
+                        m_LastFirstViewSize.x = texture?.width ?? 0;
+                        m_LastFirstViewSize.y = texture?.height ?? 0;
+                    }
                     break;
                 case ViewCompositionIndex.Second:
                     if (m_Views[(int)ViewIndex.Second].image != texture)
                         m_Views[(int)ViewIndex.Second].image = texture;
+                    else if (updated |= (m_LastSecondViewSize.x != texture.width
+                                      || m_LastSecondViewSize.y != texture.height))
+                    {
+                        m_Views[(int)ViewIndex.Second].image = null; //force refresh else it will appear zoomed
+                        m_Views[(int)ViewIndex.Second].image = texture;
+                    }
+                    if (updated)
+                    {
+                        m_LastSecondViewSize.x = texture?.width ?? 0;
+                        m_LastSecondViewSize.y = texture?.height ?? 0;
+                    }
                     break;
                 default:
                     throw new ArgumentException("Unknown ViewCompositionIndex: " + index);
             }
         }
-
+        
         void IViewDisplayer.Repaint() => Repaint();
         
         void IEnvironmentDisplayer.Repaint()
@@ -918,5 +952,7 @@ namespace UnityEditor.Rendering.LookDev
                     throw new ArgumentException("Unknown SidePanel");
             }
         }
+
+        void OnGUI() => OnUpdateRequestedInternal?.Invoke();
     }
 }

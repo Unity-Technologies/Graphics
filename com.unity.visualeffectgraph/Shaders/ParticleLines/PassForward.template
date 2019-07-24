@@ -11,10 +11,10 @@ Pass
 	{
 		float4 pos : SV_POSITION;
 		#if VFX_NEEDS_COLOR_INTERPOLATOR
-		nointerpolation float4 color : COLOR0;
+		VFX_OPTIONAL_INTERPOLATION float4 color : COLOR0;
 		#endif
 		#if USE_SOFT_PARTICLE || USE_ALPHA_TEST || USE_EXPOSURE_WEIGHT
-		nointerpolation float3 builtInInterpolants : TEXCOORD0;
+		VFX_OPTIONAL_INTERPOLATION float3 builtInInterpolants : TEXCOORD0;
 		#endif
 		#if VFX_NEEDS_POSWS_INTERPOLATOR
 		float3 posWS : TEXCOORD1;

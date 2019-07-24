@@ -52,7 +52,7 @@ void main(uint3 dispatchThreadId : SV_DispatchThreadID)
     float r      = height + R;
     float cosHor = ComputeCosineOfHorizonAngle(r);
 
-    bool lookAboveHorizon = (cosChi > cosHor);
+    bool lookAboveHorizon = (cosChi >= cosHor);
 
     float3 N = float3(0, 0, 1);
     float3 V = SphericalToCartesian(0, NdotV);
@@ -148,8 +148,8 @@ void main(uint3 dispatchThreadId : SV_DispatchThreadID)
     // It's easy enough to use a simple quadratic remap.
 
     float  t0          = tMin;
-    float3 viewODepthX = ComputeAtmosphericOpticalDepth(r, NdotV); // Back to start
-    float3 viewODepth  = 0;                                        // Sample to start
+    float3 viewODepthX = ComputeAtmosphericOpticalDepth1(r, NdotV); // Back to start
+    float3 viewODepth  = 0;                                         // Sample to start
 
     if (tMin > 0) // Start changed?
     {
@@ -161,10 +161,10 @@ void main(uint3 dispatchThreadId : SV_DispatchThreadID)
         NdotV  = dot(normalize(P), V);
         NdotL  = dot(normalize(P), L);
 
-        viewODepth = ComputeAtmosphericOpticalDepth(r, NdotV) - viewODepthX;
+        viewODepth = ComputeAtmosphericOpticalDepth1(r, NdotV) - viewODepthX;
     }
 
-    float3 lightODepth = ComputeAtmosphericOpticalDepth(r, NdotL);
+    float3 lightODepth = ComputeAtmosphericOpticalDepth1(r, NdotL);
 
     // Apply the phase function at runtime.
     float3 airInScatterTerm0     = TransmittanceFromOpticalDepth(viewODepth + lightODepth) * AirScatter(height);
@@ -192,8 +192,8 @@ void main(uint3 dispatchThreadId : SV_DispatchThreadID)
         NdotV  = dot(normalize(P), V);
         NdotL  = dot(normalize(P), L);
 
-        viewODepth  = ComputeAtmosphericOpticalDepth(r, NdotV) - viewODepthX;
-        lightODepth = ComputeAtmosphericOpticalDepth(r, NdotL);
+        viewODepth  = ComputeAtmosphericOpticalDepth1(r, NdotV) - viewODepthX;
+        lightODepth = ComputeAtmosphericOpticalDepth1(r, NdotL);
 
         // Compute the amount of in-scattered radiance.
         // Evaluate the transmittance integral from 't0' to 't1' using the trapezoid rule.
@@ -258,7 +258,7 @@ void main(uint3 dispatchThreadId : SV_DispatchThreadID)
             // TODO: we compute the same thing for many voxels,
             // the only real difference is the phase function...
             float3 phase  = AtmospherePhaseScatter(dot(gL, V), height);
-            float3 oDepth = ComputeAtmosphericOpticalDepth(r, gL.z);
+            float3 oDepth = ComputeAtmosphericOpticalDepth1(r, gL.z);
             float3 transm = TransmittanceFromOpticalDepth(oDepth);
 
             float weight = rcpPdf * rcp(numGroundSamples);
@@ -334,8 +334,8 @@ void main(uint3 dispatchThreadId : SV_DispatchThreadID)
     // Integrate in-scattered radiance along -V.
 
     float  t0          = 0;
-    float3 viewODepthX = ComputeAtmosphericOpticalDepth(r, NdotV); // Back to start
-    float3 viewODepth  = 0;                                        // Sample to start
+    float3 viewODepthX = ComputeAtmosphericOpticalDepth1(r, NdotV); // Back to start
+    float3 viewODepth  = 0;                                         // Sample to start
 
     float3 inScatteredRadiance = LOAD_TEXTURE3D(_MultipleScatteringTexture, tableCoord).rgb;
 
@@ -363,7 +363,7 @@ void main(uint3 dispatchThreadId : SV_DispatchThreadID)
         NdotV  = dot(normalize(P), V);
         NdotL  = dot(normalize(P), L);
 
-        viewODepth = ComputeAtmosphericOpticalDepth(r, NdotV) - viewODepthX;
+        viewODepth = ComputeAtmosphericOpticalDepth1(r, NdotV) - viewODepthX;
 
         // 'phiL' is unchanged, so quadrilinear interpolation is actually unnecessary.
         TexCoord4D tc = ConvertPositionAndOrientationToTexCoords(height, NdotV, NdotL, phiL);

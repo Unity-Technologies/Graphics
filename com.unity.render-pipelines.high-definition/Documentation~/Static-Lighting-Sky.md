@@ -1,6 +1,6 @@
 # Static Lighting Sky
 
-The Static Lighting Sky component allows you to select the type of sky that the High Definition Render Pipeline (HDRP) uses in the light baking process.
+The Static Lighting Sky component allows you to select the type of sky that the High Definition Render Pipeline (HDRP) uses in the light baking process and to compute the ambient sky lighting.
 
 When you create a **Scene Settings** GameObject (Menu: **GameObject > Rendering > Scene Settings**), HDRP attaches this component to the new GameObject by default . 
 

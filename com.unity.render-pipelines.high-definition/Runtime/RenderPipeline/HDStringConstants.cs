@@ -291,6 +291,9 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _TaaFrameInfo = Shader.PropertyToID("_TaaFrameInfo");
         public static readonly int _TaaJitterStrength = Shader.PropertyToID("_TaaJitterStrength");
 
+        public static readonly int _WorldSpaceCameraPos1 = Shader.PropertyToID("_WorldSpaceCameraPos1");
+        public static readonly int _ViewMatrix1 = Shader.PropertyToID("_ViewMatrix1");
+
         public static readonly int _XRViewCount = Shader.PropertyToID("_XRViewCount");
         public static readonly int _XRViewConstants = Shader.PropertyToID("_XRViewConstants");
 
@@ -512,6 +515,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _AerosolSeaLevelScattering      = Shader.PropertyToID("_AerosolSeaLevelScattering");
 
         public static readonly int _GroundAlbedo                   = Shader.PropertyToID("_GroundAlbedo");
+        public static readonly int _IntensityMultiplier            = Shader.PropertyToID("_IntensityMultiplier");
+
         public static readonly int _PlanetCenterPosition           = Shader.PropertyToID("_PlanetCenterPosition");
 
         public static readonly int _PlanetRotation                 = Shader.PropertyToID("_PlanetRotation");

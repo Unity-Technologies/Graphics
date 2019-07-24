@@ -385,7 +385,10 @@ MonoBehaviour:
   m_Owners:
   - {fileID: 114575927712798874}
   - {fileID: 114792578739552882}
-  m_Capacity: 65536
+  dataType: 0
+  capacity: 65536
+  stripCapacity: 16
+  particlePerStripCount: 16
   m_Space: 0
 --- !u!114 &114575927712798874
 MonoBehaviour:
@@ -592,6 +595,7 @@ MonoBehaviour:
   m_OutputFlowSlot:
   - link: []
   blendMode: 1
+  generateMotionVector: 0
   m_SubOutputs:
   - {fileID: 8926484042661614564}
   cullMode: 0
