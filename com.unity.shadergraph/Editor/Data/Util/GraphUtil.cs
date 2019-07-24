@@ -1447,14 +1447,14 @@ namespace UnityEditor.ShaderGraph
 
             if (activeNode is IGeneratesBodyCode bodyNode)
             {
-                if(activeNode as KeywordNode == null && keywordPermutations != null)
+                if(keywordPermutations != null)
                     descriptionFunction.AppendLine(KeywordUtil.GetKeywordPermutationGroupIfDef(keywordPermutations));
 
                 descriptionFunction.currentNode = activeNode;
                 bodyNode.GenerateNodeCode(descriptionFunction, graphContext, mode);
                 descriptionFunction.ReplaceInCurrentMapping(PrecisionUtil.Token, activeNode.concretePrecision.ToShaderString());
 
-                if(activeNode as KeywordNode == null && keywordPermutations != null)
+                if(keywordPermutations != null)
                     descriptionFunction.AppendLine("#endif");
             }
 
