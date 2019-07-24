@@ -214,6 +214,15 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline.Drawing
                 });
             });
 
+            ps.Add(new PropertyRow(CreateLabel("Additional Velocity Change", indentLevel)), (row) =>
+            {
+                row.Add(new Toggle(), (toggle) =>
+                {
+                    toggle.value = m_Node.addVelocityChange.isOn;
+                    toggle.OnToggleChanged(ChangeAddVelocityChange);
+                });
+            });
+
             ps.Add(new PropertyRow(CreateLabel("Override Baked GI", indentLevel)), (row) =>
             {
                 row.Add(new Toggle(), (toggle) =>
@@ -363,6 +372,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline.Drawing
             ToggleData td = m_Node.receiveSSR;
             td.isOn = evt.newValue;
             m_Node.receiveSSR = td;
+        }
+
+        void ChangeAddVelocityChange(ChangeEvent<bool> evt)
+        {
+            m_Node.owner.owner.RegisterCompleteObjectUndo("Add Velocity Change");
+            ToggleData td = m_Node.addVelocityChange;
+            td.isOn = evt.newValue;
+            m_Node.addVelocityChange = td;
         }
 
         void ChangeEnergyConservingSpecular(ChangeEvent<bool> evt)

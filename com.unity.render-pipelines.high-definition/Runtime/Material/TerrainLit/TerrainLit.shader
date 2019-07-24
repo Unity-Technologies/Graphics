@@ -45,6 +45,7 @@ Shader "HDRP/TerrainLit"
 
         [HideInInspector] [ToggleUI] _SupportDecals("Support Decals", Float) = 1.0
         [HideInInspector] [ToggleUI] _ReceivesSSR("Receives SSR", Float) = 1.0
+        [HideInInspector] [ToggleUI] _AddVelocityChange("EnableAdditionalVelocity", Float) = 0.0
     }
 
     HLSLINCLUDE
@@ -67,6 +68,7 @@ Shader "HDRP/TerrainLit"
     //#pragma shader_feature _ _LAYER_MAPPING_PLANAR3 _LAYER_MAPPING_TRIPLANAR3
 
     #pragma shader_feature_local _DISABLE_DECALS
+    #pragma shader_feature_local _ADDITIONAL_VELOCITY_CHANGE
 
     //enable GPU instancing support
     #pragma multi_compile_instancing

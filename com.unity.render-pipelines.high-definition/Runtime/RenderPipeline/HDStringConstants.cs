@@ -749,6 +749,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public const string kEnableDecals = "_SupportDecals";
         public const string kSupportDecals = kEnableDecals;
         public const string kEnableSSR = "_ReceivesSSR";
+        public const string kAdditionalVelocityChange = "_AddVelocityChange";
 
         public const string kLayerCount = "_LayerCount";
         

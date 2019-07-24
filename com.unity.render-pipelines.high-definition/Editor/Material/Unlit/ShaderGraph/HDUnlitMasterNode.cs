@@ -270,6 +270,21 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
         }
 
+        [SerializeField]
+        bool m_AddVelocityChange = false;
+        public ToggleData addVelocityChange
+        {
+            get { return new ToggleData(m_AddVelocityChange); }
+            set
+            {
+                if (m_AddVelocityChange == value.isOn)
+                    return;
+                m_AddVelocityChange = value.isOn;
+                UpdateNodeAfterDeserialization();
+                Dirty(ModificationScope.Graph);
+            }
+        }
+
         public HDUnlitMasterNode()
         {
             UpdateNodeAfterDeserialization();

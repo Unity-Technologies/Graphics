@@ -876,7 +876,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 activeFields.Add("DisableSSR");
             }
-
+            
+            if (masterNode.addVelocityChange.isOn)
+            {
+                activeFields.Add("AdditionalVelocityChange");
+            }
 
             if (masterNode.specularAA.isOn && pass.PixelShaderUsesSlot(HDLitMasterNode.SpecularAAThresholdSlotId) && pass.PixelShaderUsesSlot(HDLitMasterNode.SpecularAAScreenSpaceVarianceSlotId))
             {

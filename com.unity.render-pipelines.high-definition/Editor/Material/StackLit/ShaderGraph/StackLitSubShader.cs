@@ -723,6 +723,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 activeFields.Add("DisableSSR");
             }
 
+            if (masterNode.addVelocityChange.isOn)
+            {
+                activeFields.Add("AdditionalVelocityChange");
+            }
+
             // Note here we combine an "enable"-like predicate and the $SurfaceDescription.(slotname) predicate
             // into a single $GeometricSpecularAA pedicate.
             //

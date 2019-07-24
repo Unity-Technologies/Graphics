@@ -306,6 +306,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 }
             }
 
+            if (masterNode.addVelocityChange.isOn)
+            {
+                activeFields.Add("AdditionalVelocityChange");
+            }
+
             return activeFields;
         }
 

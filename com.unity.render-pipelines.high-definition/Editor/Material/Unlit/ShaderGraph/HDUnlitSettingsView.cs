@@ -208,6 +208,15 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline.Drawing
                 });
             });
 
+            ps.Add(new PropertyRow(CreateLabel("Additional Velocity Change", indentLevel)), (row) =>
+            {
+                row.Add(new Toggle(), (toggle) =>
+                {
+                    toggle.value = m_Node.addVelocityChange.isOn;
+                    toggle.OnToggleChanged(ChangeAddVelocityChange);
+                });
+            });
+
             Add(ps);
         }
 
@@ -249,6 +258,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline.Drawing
             ToggleData td = m_Node.transparencyFog;
             td.isOn = evt.newValue;
             m_Node.transparencyFog = td;
+        }
+
+        void ChangeAddVelocityChange(ChangeEvent<bool> evt)
+        {
+            m_Node.owner.owner.RegisterCompleteObjectUndo("Add Velocity Change");
+            ToggleData td = m_Node.addVelocityChange;
+            td.isOn = evt.newValue;
+            m_Node.addVelocityChange = td;
         }
 
         void ChangeRenderingPass(ChangeEvent<HDRenderQueue.RenderQueueType> evt)
