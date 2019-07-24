@@ -97,13 +97,17 @@ Shader "Hidden/HDRP/Sky/PbrSky"
                     // We may be able to see the celestial body.
                     float3 L = -light.forward.xyz;
 
-                    if (dot(L, -V) >= cos(light.aperture))
+                    float c = cos(light.aperture);
+
+                    if (dot(L, -V) >= c)
                     {
                         // It's visible.
                         tFrag = light.distanceFromCamera;
 
-                        // Assume uniform emission (no rescaling w.r.t. the solid angle or with the normal).
-                        radiance = light.color.rgb;
+                        float solidAngle = TWO_PI * (1 - c);
+
+                        // Assume uniform emission.
+                        radiance = light.color.rgb * rcp(solidAngle);
                     }
                 }
             }
