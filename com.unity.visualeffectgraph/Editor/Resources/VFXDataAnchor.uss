@@ -15,7 +15,7 @@
     font-size: 11px;
     padding-bottom:0;
     min-height: 20px;
-    height: -1px;
+    height: auto;
     margin-bottom:0;
     margin-right: 4px;
 }
