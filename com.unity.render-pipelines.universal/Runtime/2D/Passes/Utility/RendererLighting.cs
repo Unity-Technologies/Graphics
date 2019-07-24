@@ -145,19 +145,26 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 cmdBuffer.SetGlobalVector("_LightPos", light.transform.position);
                 cmdBuffer.SetGlobalFloat("_LightRadius", 4*lightBounds.radius);
 
-                Material shadowMaterial;
-                Material removeSelfShadowMaterial;
+                Material shadowMaterial = GetShadowMaterial(1);
+                Material removeSelfShadowMaterial = GetRemoveSelfShadowMaterial(1);
                 List<IShadowCasterGroup2D> shadowCasterGroups = ShadowCasterGroup2DManager.shadowCasterGroups;
                 if (shadowCasterGroups != null && shadowCasterGroups.Count > 0)
                 {
+                    int previousShadowGroupIndex = -1;
+                    int incrementingGroupIndex = 0;
                     for (int group = 0; group < shadowCasterGroups.Count; group++)
                     {
                         IShadowCasterGroup2D shadowCasterGroup = shadowCasterGroups[group];
                         List<ShadowCaster2D> shadowCasters = shadowCasterGroup.GetShadowCasters();
 
                         int shadowGroupIndex = shadowCasterGroup.GetShadowGroup();
-                        shadowMaterial = GetShadowMaterial(shadowGroupIndex);
-                        removeSelfShadowMaterial = GetRemoveSelfShadowMaterial(shadowGroupIndex);
+                        if (LightUtility.CheckForChange(shadowGroupIndex, ref previousShadowGroupIndex) || shadowGroupIndex == 0)
+                        {
+                            incrementingGroupIndex++;
+                            shadowMaterial = GetShadowMaterial(incrementingGroupIndex);
+                            removeSelfShadowMaterial = GetRemoveSelfShadowMaterial(incrementingGroupIndex);
+                        }
+
                         if (shadowCasters != null)
                         {
                             for (int i = 0; i < shadowCasters.Count; i++)
@@ -574,15 +581,8 @@ namespace UnityEngine.Experimental.Rendering.Universal
             int shadowMaterialIndex = index % 255;
             if(s_ShadowMaterials[shadowMaterialIndex] == null)
             {
-                if (shadowMaterialIndex == 0)
-                {
-                    s_ShadowMaterials[shadowMaterialIndex] = CoreUtils.CreateEngineMaterial(s_RendererData.shadowShader);
-                }
-                else
-                {
-                    s_ShadowMaterials[shadowMaterialIndex] = CoreUtils.CreateEngineMaterial(s_RendererData.shadowGroupShader);
-                    s_ShadowMaterials[shadowMaterialIndex].SetFloat("_ShadowStencilGroup", index + 1);
-                }
+                s_ShadowMaterials[shadowMaterialIndex] = CoreUtils.CreateEngineMaterial(s_RendererData.shadowGroupShader);
+                s_ShadowMaterials[shadowMaterialIndex].SetFloat("_ShadowStencilGroup", index);
             }
 
             return s_ShadowMaterials[shadowMaterialIndex];
@@ -594,7 +594,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             if (s_RemoveSelfShadowMaterials[shadowMaterialIndex] == null)
             {
                 s_RemoveSelfShadowMaterials[shadowMaterialIndex] = CoreUtils.CreateEngineMaterial(s_RendererData.removeSelfShadowShader);
-                s_RemoveSelfShadowMaterials[shadowMaterialIndex].SetFloat("_ShadowStencilGroup", index + 1);
+                s_RemoveSelfShadowMaterials[shadowMaterialIndex].SetFloat("_ShadowStencilGroup", index);
             }
 
             return s_RemoveSelfShadowMaterials[shadowMaterialIndex];
