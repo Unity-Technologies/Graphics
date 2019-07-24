@@ -10,7 +10,7 @@ Shader "Hidden/Shadow2DRemoveSelf"
         Tags { "RenderType"="Opaque" }
 
         Cull Off
-        BlendOp RevSub
+        BlendOp Max
         Blend One One
         ZWrite Off
 
@@ -47,6 +47,7 @@ Shader "Hidden/Shadow2DRemoveSelf"
 
             sampler2D _MainTex;
             float4 _MainTex_ST;
+            float  _ReceivesShadows;
 
             v2f vert (appdata v)
             {
@@ -63,8 +64,8 @@ Shader "Hidden/Shadow2DRemoveSelf"
                 // sample the texture
                 fixed4 col;
                 col.r = 0;
-                col.g = 0.5 * main.a;
-                col.b = 0;
+                col.g = 0;
+                col.b = main.a;
                 col.a = 0;
                 return col;
             }

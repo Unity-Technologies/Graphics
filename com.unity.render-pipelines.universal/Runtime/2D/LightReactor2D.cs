@@ -10,10 +10,15 @@ namespace UnityEngine.Experimental.Rendering.Universal
     public class LightReactor2D : ShadowCaster2D, IShadowCasterGroup2D
     {
         [SerializeField] int m_ShadowGroup = 0;
+        [SerializeField] bool m_SelfShadows = false;
         [SerializeField] bool m_CastsShadows = true;
         [SerializeField] bool m_ReceivesShadows = true;
         List<ShadowCaster2D> m_ShadowCasters;
         Renderer m_Renderer;
+
+        public bool selfShadows => m_SelfShadows;
+        public bool castsShadows => m_CastsShadows;
+        public bool receivesShadows => m_ReceivesShadows;
 
         int m_PreviousShadowGroup = 0;
         bool m_PreviousCastsShadows = true;

@@ -2,6 +2,7 @@ Shader "Hidden/ShadowGroup2D"
 {
     Properties
     {
+        _MainTex("Texture", 2D) = "white" {}
         [PerRendererData][HideInInspector] _ShadowStencilGroup("__ShadowStencilGroup", Float) = 1.0
     }
 
@@ -42,12 +43,14 @@ Shader "Hidden/ShadowGroup2D"
                 float3 vertex : POSITION;
 				float4 tangent: TANGENT;
 				float4 color : COLOR;
+                float2 uv : TEXCOORD0;
             };
 
             struct v2f
             {
                 float4 vertex : SV_POSITION;
 				float4 color : COLOR;
+                float2 uv : TEXCOORD0;
             };
 
             sampler2D _MainTex;
@@ -81,12 +84,16 @@ Shader "Hidden/ShadowGroup2D"
                 o.color.g = 0.5;
                 o.color.b = 0;
 
+                o.uv = TRANSFORM_TEX(v.uv, _MainTex);
+
                 return o;
             }
 
             float4 frag (v2f i) : SV_Target
             {
+                float4 main = tex2D(_MainTex, i.uv);
 				float4 col = i.color;
+                col.r = main.a;
                 return col;
             }
             ENDHLSL

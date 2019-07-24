@@ -19,12 +19,14 @@ namespace UnityEditor.Experimental.Rendering.Universal
         private static class Styles
         {
             public static GUIContent shadowCasterGroup = EditorGUIUtility.TrTextContent("Shadow Caster Group", "Shadow casters in the same group will not shadow each other");
+            public static GUIContent selfShadows = EditorGUIUtility.TrTextContent("Self Shadows", "Specifies if this renderer will cast shadows on itself");
             public static GUIContent castsShadows = EditorGUIUtility.TrTextContent("Casts Shadows", "Specifies if this renderer will cast shadows");
             public static GUIContent receivesShadows = EditorGUIUtility.TrTextContent("Receive Shadows", "Specifies if this renderer will receive shadows");
         }
 
 
         SerializedProperty m_ShadowCasterGroup;
+        SerializedProperty m_SelfShadows;
         SerializedProperty m_CastsShadows;
         SerializedProperty m_ReceivesShadows;
 
@@ -33,6 +35,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
             ShadowCaster2DOnEnable();
 
             m_ShadowCasterGroup = serializedObject.FindProperty("m_ShadowGroup");
+            m_SelfShadows = serializedObject.FindProperty("m_SelfShadows");
             m_CastsShadows = serializedObject.FindProperty("m_CastsShadows");
             m_ReceivesShadows = serializedObject.FindProperty("m_ReceivesShadows");
         }
@@ -46,6 +49,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
         {
             serializedObject.Update();
             EditorGUILayout.PropertyField(m_ShadowCasterGroup, Styles.shadowCasterGroup);
+            EditorGUILayout.PropertyField(m_SelfShadows, Styles.selfShadows);
             EditorGUILayout.PropertyField(m_CastsShadows, Styles.castsShadows);
             EditorGUILayout.PropertyField(m_ReceivesShadows, Styles.receivesShadows);
             serializedObject.ApplyModifiedProperties();

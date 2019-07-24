@@ -113,11 +113,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     triangles.Add(edge.vertexIndex0);
                     triangles.Add(newVertexIndex);
                     triangles.Add(edge.vertexIndex1);
-
-                    Vector3 vertex0 = vertices[edge.vertexIndex0];
-                    Vector3 vertex1 = vertices[edge.vertexIndex1];
-                    Debug.DrawLine(vertex0, vertex0 + -(Vector3)edge.tangent, Color.red, 1);
-                    Debug.DrawLine(vertex1, vertex1 + -(Vector3)edge.tangent, Color.blue, 1);
                 }
             }
         }
