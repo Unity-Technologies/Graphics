@@ -764,7 +764,7 @@ namespace UnityEditor.VFX
             {
                 systemName = VFXSystemNames.defaultSystemName;
                 nativeName = systemName;
-                Debug.Log("Spawner genrated name: " + nativeName);
+                Debug.Log("System genrated name: " + nativeName);
             }
 
             outSystemDescs.Add(new VFXEditorSystemDesc()

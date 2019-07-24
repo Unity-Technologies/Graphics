@@ -300,7 +300,7 @@ namespace UnityEditor.VFX
             }
             Profiler.EndSample();
             Profiler.EndSample();
-            m_SystemNames.Init(models);
+            m_SystemNames.Sanitize(models);
             m_ExpressionGraphDirty = true;
             m_ExpressionValuesDirty = true;
             m_DependentDirty = true;

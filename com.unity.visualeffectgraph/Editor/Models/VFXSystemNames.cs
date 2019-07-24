@@ -84,8 +84,29 @@ namespace UnityEditor.VFX
                 }
             }
 
-            //throw new NotImplementedException();
             Debug.Log("VFXSystemNames.Fill basic version called");
+        }
+
+        /// <summary>
+        /// Removed every registered system that is not in models.
+        /// </summary>
+        public void Sanitize(IEnumerable<VFXModel> models)
+        {
+            if (models != null)
+            {
+                var systems = models.OfType<VFXContext>().Select(context => context.contextType == VFXContextType.Spawner ? context as VFXModel : context.GetData() as VFXModel);
+                List<VFXModel> registeredModels = new List<VFXModel>(m_UnindexedNames.Keys);
+                foreach (var registeredModel in registeredModels)
+                {
+                    if (!systems.Contains(registeredModel))
+                        RemoveSystem(registeredModel, true);
+                }
+            }
+            else
+            {
+                m_UnindexedNames.Clear();
+                m_DuplicatesIndices.Clear();
+            }
         }
 
 
@@ -122,7 +143,7 @@ namespace UnityEditor.VFX
             return MakeUnique(unindexedName);
         }
 
-        public void RemoveSystem(VFXModel system)
+        public void RemoveSystem(VFXModel system, bool removeFromUnindexNames = false)
         {
             // if system is not of type VFXDataParticle, or if it is not a spawner of type VFXContext , abort.
             if (!(system is VFXDataParticle))
@@ -146,6 +167,8 @@ namespace UnityEditor.VFX
                     if (duplicateIndices.Count() == 0)
                         m_DuplicatesIndices.Remove(unindexedName);
                 }
+                if (removeFromUnindexNames)
+                    m_UnindexedNames.Remove(system);
             }
         }
 
