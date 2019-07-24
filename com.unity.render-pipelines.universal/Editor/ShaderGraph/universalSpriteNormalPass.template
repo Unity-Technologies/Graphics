@@ -55,7 +55,7 @@ ${VertexShaderDescriptionInputs}
 			o.position.y = -o.position.y;
 		#endif
 		o.normalWS = TransformObjectToWorldDir(float3(0, 0, -1));
-		o.tangentWS = TransformObjectToWorldDir(v.tangent.xyz);
+		o.tangentWS = TransformObjectToWorldDir(ObjectSpaceTangent);
 		o.bitangentWS = cross(o.normalWS, o.tangentWS) * v.tangent.w;
 ${VertexShaderOutputs}
         return o;
@@ -68,7 +68,7 @@ ${PixelShader}
 ${PixelShaderSurfaceInputs}
         SurfaceDescription surf = PopulateSurfaceData(surfaceInput);
 
-		return NormalsRenderingShared(surf.Color, surf.Normal, IN.tangentWS.xyz, IN.bitangentWS.xyz, -IN.normalWS.xyz);;
+		return NormalsRenderingShared(surf.Color, surf.Normal, IN.tangentWS.xyz, IN.bitangentWS.xyz, IN.normalWS.xyz);
     }
 
     ENDHLSL
