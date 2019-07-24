@@ -2,23 +2,23 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using UnityEngine.Experimental.Rendering.HDPipeline;
+using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.Rendering;
 
 // Include material common properties names
-using static UnityEngine.Experimental.Rendering.HDPipeline.HDMaterialProperties;
+using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
 
-namespace UnityEditor.Experimental.Rendering.HDPipeline
+namespace UnityEditor.Rendering.HighDefinition
 {
     // Note: There is another SurfaceType in ShaderGraph (AlphaMode.cs) which conflicts in HDRP shader graph files
-    public enum SurfaceType
+    enum SurfaceType
     {
         Opaque,
         Transparent
     }
 
     // Enum values are hardcoded for retro-compatibility. Don't change them.
-    public enum BlendMode
+    enum BlendMode
     {
         // Note: value is due to code change, don't change the value
         Alpha = 0,
@@ -26,7 +26,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         Additive = 1
     }
 
-    public enum DisplacementMode
+    enum DisplacementMode
     {
         None,
         Vertex,
@@ -34,20 +34,20 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         Tessellation
     }
 
-    public enum DoubleSidedNormalMode
+    enum DoubleSidedNormalMode
     {
         Flip,
         Mirror,
         None
     }
 
-    public enum TessellationMode
+    enum TessellationMode
     {
         None,
         Phong
     }
 
-    public enum MaterialId
+    enum MaterialId
     {
         LitSSS = 0,
         LitStandard = 1,
@@ -57,19 +57,19 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         LitTranslucent = 5
     };
 
-    public enum NormalMapSpace
+    enum NormalMapSpace
     {
         TangentSpace,
         ObjectSpace,
     }
 
-    public enum HeightmapMode
+    enum HeightmapMode
     {
         Parallax,
         Displacement,
     }
 
-    public enum VertexColorMode
+    enum VertexColorMode
     {
         None,
         Multiply,
@@ -83,7 +83,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         UV2,
         UV3
     }
-    
+
     internal enum UVBaseMapping
     {
         UV0,
@@ -107,7 +107,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         Front = CullMode.Front,
     }
 
-    public static class MaterialExtension
+    internal static class MaterialExtension
     {
         public static SurfaceType   GetSurfaceType(this Material material)
         {

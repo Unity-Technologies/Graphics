@@ -4,11 +4,10 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEditor.Experimental;
-using UnityEditor.Experimental.VFX;
+using UnityEditor.VFX;
 using UnityEditor.SceneManagement;
 using UnityEngine;
-using UnityEngine.Experimental.VFX;
-using UnityEditor.VFX;
+using UnityEngine.VFX;
 using UnityEditor.VFX.UI;
 
 using Object = UnityEngine.Object;
@@ -72,9 +71,11 @@ class VFXContextEditor : VFXSlotContainerEditor
     protected override SerializedProperty FindProperty(VFXSetting setting)
     {
         if (setting.instance is VFXContext)
-            return serializedObject.FindProperty(setting.field.Name);
+            return serializedObject.FindProperty(setting.name);
         if (setting.instance is VFXSRPSubOutput)
-            return srpSubOutputObject.FindProperty(setting.field.Name);
+            return srpSubOutputObject.FindProperty(setting.name);
+        if (setting.instance is VFXData)
+            return dataObject.FindProperty(setting.name);
         throw new ArgumentException("VFXSetting is from an unexpected instance: " + setting.instance);
     }
 
@@ -169,7 +170,7 @@ class VFXContextEditor : VFXSlotContainerEditor
             foreach (VFXContext ctx in targets.OfType<VFXContext>())
             {
                 // notify that something changed.
-                ctx.Invalidate(VFXModel.InvalidationCause.kSettingChanged);
+                ctx.GetData().Invalidate(VFXModel.InvalidationCause.kSettingChanged); // This will also invalidate contexts
             }
         }
 
@@ -189,7 +190,7 @@ class VFXContextEditor : VFXSlotContainerEditor
             EditorGUILayout.Space();
             {
                 Styles.Row(Styles.header, "Name", "Value");
-                Styles.Row(Styles.cell, "Capacity", particleData.capacity.ToString());
+                Styles.Row(Styles.cell, "Capacity", particleData.GetSettingValue("capacity").ToString());
 
                 EditorGUILayout.Space();
 

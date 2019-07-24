@@ -81,11 +81,51 @@ index = indirectBuffer[index];
 ${VFXLoadAttributes}
 #else
 ${VFXLoadAttributes:{alive}}
+
+#if !HAS_STRIPS
 if (!alive)
 	return o;
+#endif
 	
 ${VFXLoadAttributes:{(?!(alive))(\b\w)}}
 #endif
+${VFXEnd}
+
+${VFXBegin:VFXVertexComputeCurrentAndPreviousClipPos}
+#if defined(VFX_VARYING_VELOCITY_CPOS) && defined(VFX_VARYING_VELOCITY_CPOS_PREVIOUS)
+float4x4 previousElementToVFX = (float4x4)0;
+previousElementToVFX[3] = float4(0,0,0,1);
+
+UNITY_UNROLL
+for (int itIndexMatrixRow = 0; itIndexMatrixRow < 3; ++itIndexMatrixRow)
+{
+	UNITY_UNROLL
+	for (int itIndexMatrixCol = 0; itIndexMatrixCol < 4; ++itIndexMatrixCol)
+	{
+		uint itIndexMatrix = itIndexMatrixCol * 4 + itIndexMatrixRow;
+		uint read = elementToVFXBufferPrevious.Load((index * 16 + itIndexMatrix) << 2);
+		previousElementToVFX[itIndexMatrixRow][itIndexMatrixCol] = asfloat(read);
+	}
+}
+
+uint previousFrameIndex = elementToVFXBufferPrevious.Load((index * 16 + 15) << 2);
+o.VFX_VARYING_VELOCITY_CPOS = o.VFX_VARYING_VELOCITY_CPOS_PREVIOUS = float4(0.0f, 0.0f, 0.0f, 1.0f);
+if (asuint(currentFrameIndex) - previousFrameIndex == 1u)
+{
+	float3 oldvPos = mul(previousElementToVFX,float4(inputVertexPosition, 1.0f)).xyz;
+	o.VFX_VARYING_VELOCITY_CPOS_PREVIOUS = TransformPositionVFXToPreviousClip(oldvPos);
+	o.VFX_VARYING_VELOCITY_CPOS = TransformPositionVFXToNonJitteredClip(vPos);
+}
+#endif
+${VFXEnd}
+
+${VFXBegin:VFXComputeOutputMotionVector}
+float2 velocity = (i.VFX_VARYING_VELOCITY_CPOS.xy/i.VFX_VARYING_VELOCITY_CPOS.w) - (i.VFX_VARYING_VELOCITY_CPOS_PREVIOUS.xy/i.VFX_VARYING_VELOCITY_CPOS_PREVIOUS.w);
+#if UNITY_UV_STARTS_AT_TOP
+	velocity.y = -velocity.y;
+#endif
+float4 encodedMotionVector = 0.0f;
+VFXEncodeMotionVector(velocity * 0.5f, encodedMotionVector);
 ${VFXEnd}
 
 ${VFXBegin:VFXApplyColor}

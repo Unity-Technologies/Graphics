@@ -4,7 +4,9 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [7.0.0-preview] - 2019-XX-XX
+## [7.1.1] - 2019-XX-XX
+
+## [7.0.0] - 2019-07-17
 
 ### Added
 - `Fixed`, `Viewer`, and `Automatic` modes to compute the FOV used when rendering a `PlanarReflectionProbe`
@@ -13,6 +15,25 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - You can now access ShaderGraph blend states from the Material UI (for example, **Surface Type**, **Sorting Priority**, and **Blending Mode**). This change may break Materials that use a ShaderGraph, to fix them, select **Edit > Render Pipeline > Reset all ShaderGraph Scene Materials BlendStates**. This syncs the blendstates of you ShaderGraph master nodes with the Material properties.
 - You can now control ZTest, ZWrite, and CullMode for transparent Materials.
 - Materials that use Unlit Shaders or Unlit Master Node Shaders now cast shadows.
+- Added an option to enable the ztest on **After Post Process** materials when TAA is disabled.
+- Added a new SSAO (based on Ground Truth Ambient Occlusion algorithm) to replace the previous one. 
+- Added support for shadow tint on light
+- BeginCameraRendering and EndCameraRendering callbacks are now called with probes
+- Adding option to update shadow maps only On Enable and On Demand. 
+- Shader Graphs that use time-dependent vertex modification now generate correct motion vectors.
+- Added option to allow a custom spot angle for spot light shadow maps. 
+- Added frame settings for individual post-processing effects
+- Added dither transition between cascades for Low and Medium quality settings
+- Added single-pass instancing support with XR SDK
+- Added occlusion mesh support with XR SDK
+- Added support of Alembic velocity to various shaders
+- Added support for more than 2 views for single-pass instancing
+- Added support for per punctual/directional light min roughness in StackLit
+- Added mirror view support with XR SDK
+- Added VR verification in HDRPWizard
+- Added DXR verification in HDRPWizard
+- Added feedbacks in UI of Volume regarding skies
+- Cube LUT support in Tonemapping. Cube LUT helpers for external grading are available in the Post-processing Sample package.
 
 ### Fixed
 - Fixed an issue with history buffers causing effects like TAA or auto exposure to flicker when more than one camera was visible in the editor
@@ -30,6 +51,37 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed Decal mip level when using texture mip map streaming to avoid dropping to lowest permitted mip (now loading all mips)
 - Fixed deferred shading for XR single-pass instancing after lightloop refactor
 - Fixed cluster and material classification debug (material classification now works with compute as pixel shader lighting)
+- Fixed IOS Nan by adding a maximun epsilon definition REAL_EPS that uses HALF_EPS when fp16 are used
+- Removed unnecessary GC allocation in motion blur code
+- Fixed locked UI with advanded influence volume inspector for probes
+- Fixed invalid capture direction when rendering planar reflection probes
+- Fixed Decal HTILE optimization with platform not supporting texture atomatic (Disable it)
+- Fixed a crash in the build when the contact shadows are disabled
+- Fixed camera rendering callbacks order (endCameraRendering was being called before the actual rendering)
+- Fixed issue with wrong opaque blending settings for After Postprocess
+- Fixed issue with Low resolution transparency on PS4
+- Fixed a memory leak on volume profiles
+- Fixed The Parallax Occlusion Mappping node in shader graph and it's UV input slot
+- Fixed lighting with XR single-pass instancing by disabling deferred tiles
+- Fixed the Bloom prefiltering pass
+- Fixed post-processing effect relying on Unity's random number generator
+- Fixed camera flickering when using TAA and selecting the camera in the editor
+- Fixed issue with single shadow debug view and volumetrics
+- Fixed most of the problems with light animation and timeline
+- Fixed indirect deferred compute with XR single-pass instancing
+- Fixed a slight omission in anisotropy calculations derived from HazeMapping in StackLit
+- Improved stack computation numerical stability in StackLit
+- Fix PBR master node always opaque (wrong blend modes for forward pass)
+- Fixed TAA with XR single-pass instancing (missing macros)
+- Fixed an issue causing Scene View selection wire gizmo to not appear when using HDRP Shader Graphs.
+- Fixed wireframe rendering mode (case 1083989)
+- Fixed the renderqueue not updated when the alpha clip is modified in the material UI.
+- Fixed the PBR master node preview
+- Remove the ReadOnly flag on Reflection Probe's cubemap assets during bake when there are no VCS active.
+- Fixed an issue where setting a material debug view would not reset the other exclusive modes
+- Spot light shapes are now correctly taken into account when baking
+- Now the static lighting sky will correctly take the default values for non-overridden properties
+- Fixed material albedo affecting the lux meter
 
 ### Changed
 - Optimization: Reduce the group size of the deferred lighting pass from 16x16 to 8x8
@@ -37,6 +89,29 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Removed xrInstancing flag in RTHandles (replaced by TextureXR.slices and TextureXR.dimensions)
 - Refactor the HDRenderPipeline and lightloop code to preprare for high level rendergraph
 - Removed the **Back Then Front Rendering** option in the fabric Master Node settings. Enabling this option previously did nothing.
+- Shader type Real translates to FP16 precision on Nintendo Switch.
+- Shader framework refactor: Introduce CBSDF, EvaluateBSDF, IsNonZeroBSDF to replace BSDF functions
+- Shader framework refactor:  GetBSDFAngles, LightEvaluation and SurfaceShading functions
+- Replace ComputeMicroShadowing by GetAmbientOcclusionForMicroShadowing
+- Rename WorldToTangent to TangentToWorld as it was incorrectly named
+- Remove SunDisk and Sun Halo size from directional light
+- Remove all obsolete wind code from shader
+- Renamed DecalProjectorComponent into DecalProjector for API alignment.
+- Improved the Volume UI and made them Global by default
+- Remove very high quality shadow option
+- Change default for shadow quality in Deferred to Medium
+- Enlighten now use inverse squared falloff (before was using builtin falloff)
+- Enlighten is now deprecated. Please use CPU or GPU lightmaper instead.
+- Remove the name in the diffusion profile UI
+- Changed how shadow map resolution scaling with distance is computed. Now it uses screen space area rather than light range.
+- Updated MoreOptions display in UI
+- Moved Display Area Light Emissive Mesh script API functions in the editor namespace
+- direct strenght properties in ambient occlusion now affect direct specular as well
+- Removed advanced Specular Occlusion control in StackLit: SSAO based SO control is hidden and fixed to behave like Lit, SPTD is the only HQ technique shown for baked SO.
+- Shader framework refactor: Changed ClampRoughness signature to include PreLightData access.
+- HDRPWizard window is now in Window > General > HD Render Pipeline Wizard
+- Moved StaticLightingSky to LightingWindow
+- Removes the current "Scene Settings" and replace them with "Sky & Fog Settings" (with Physically Based Sky and Volumetric Fog).
 
 ## [6.7.0-preview] - 2019-05-16
 

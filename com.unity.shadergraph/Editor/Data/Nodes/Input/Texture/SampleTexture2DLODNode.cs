@@ -120,7 +120,7 @@ namespace UnityEditor.ShaderGraph
             {
                 if (normalMapSpace == NormalMapSpace.Tangent)
                 {
-                    sb.AppendLine(string.Format("{0}.rgb = UnpackNormalmapRGorAG({0});", GetVariableNameForSlot(OutputSlotRGBAId)));
+                    sb.AppendLine(string.Format("{0}.rgb = UnpackNormal({0});", GetVariableNameForSlot(OutputSlotRGBAId)));
                 }
                 else
                 {

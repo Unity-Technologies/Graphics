@@ -1,11 +1,11 @@
-using UnityEngine.Rendering;
 using Unity.Collections;
 using System.Collections.Generic;
+using UnityEngine.Experimental.Rendering;
 
-namespace UnityEngine.Experimental.Rendering.HDPipeline
+namespace UnityEngine.Rendering.HighDefinition
 {
 #if ENABLE_RAYTRACING
-    public class RayCountManager
+    class RayCountManager
     {
         // Indices of the values that we can query
         public enum RayCountValues
@@ -16,8 +16,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             Total = 3
         }
         // Texture that keeps track of the ray count per pixel
-        public RTHandleSystem.RTHandle rayCountTexture { get { return m_RayCountTexture; } }
-        RTHandleSystem.RTHandle m_RayCountTexture = null;
+        public RTHandle rayCountTexture { get { return m_RayCountTexture; } }
+        RTHandle m_RayCountTexture = null;
 
         // Buffer that holds the reductions of the ray count
         ComputeBuffer m_ReducedRayCountBuffer0 = null;
@@ -26,7 +26,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         // CPU Buffer that holds the current values
         uint[] m_ReducedRayCountValues = new uint[4];
-        
+
         // HDRP Resources
         DebugDisplaySettings m_DebugDisplaySettings;
         HDRenderPipelineRayTracingResources m_PipelineResources;
@@ -80,7 +80,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 cmd.DispatchCompute(countCompute, currentKenel, tileSize, tileSize, 1);
 
                 // Clear the ray count texture (that ensures that we don't have to check what we are reading while we reduce)
-                HDUtils.SetRenderTarget(cmd, m_RayCountTexture, ClearFlag.Color);
+                CoreUtils.SetRenderTarget(cmd, m_RayCountTexture, ClearFlag.Color);
             }
         }
 

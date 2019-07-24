@@ -1,7 +1,7 @@
 using UnityEditor.Experimental.GraphView;
 using UnityEngine.UIElements;
 using UnityEngine;
-using UnityEditor.Experimental.VFX;
+using UnityEditor.VFX;
 using System.Collections.Generic;
 using System.Linq;
 using System;
@@ -164,7 +164,7 @@ namespace UnityEditor.VFX.UI
                 if (model.spaceable && block.inputSlots.Any(o => o.spaceable))
                 {
                     var contextSpace = model.space;
-                    foreach (var inputSlot in block.inputSlots)
+                    foreach (var inputSlot in block.inputSlots.Where(o => o.spaceable))
                     {
                         inputSlot.space = contextSpace;
                     }

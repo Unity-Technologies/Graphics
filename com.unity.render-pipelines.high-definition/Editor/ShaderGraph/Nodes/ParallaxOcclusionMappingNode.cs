@@ -3,15 +3,16 @@ using UnityEngine;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph;
 using UnityEditor.ShaderGraph.Drawing.Controls;
-using UnityEngine.Experimental.Rendering.HDPipeline;
+using UnityEngine.Rendering.HighDefinition;
 using System;
 using System.Linq;
 using UnityEngine.Rendering;
 
-namespace UnityEditor.Experimental.Rendering.HDPipeline
+namespace UnityEditor.Rendering.HighDefinition
 {
     [Title("Utility", "High Definition Render Pipeline", "Parallax Occlusion Mapping")]
-    class ParallaxOcclusionMappingNode : AbstractMaterialNode, IGeneratesBodyCode, IGeneratesFunction, IMayRequireViewDirection
+    [FormerName("UnityEditor.Experimental.Rendering.HDPipeline.ParallaxOcclusionMappingNode")]
+    class ParallaxOcclusionMappingNode : AbstractMaterialNode, IGeneratesBodyCode, IGeneratesFunction, IMayRequireViewDirection, IMayRequireMeshUV
     {
         public ParallaxOcclusionMappingNode()
         {
@@ -56,7 +57,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             AddSlot(new SamplerStateMaterialSlot(kHeightmapSamplerSlotId, kHeightmapSamplerSlotName, kHeightmapSamplerSlotName, SlotType.Input));
             AddSlot(new Vector1MaterialSlot(kAmplitudeSlotId, kAmplitudeSlotName, kAmplitudeSlotName, SlotType.Input, 1.0f, ShaderStageCapability.Fragment));
             AddSlot(new Vector1MaterialSlot(kStepsSlotId, kStepsSlotName, kStepsSlotName, SlotType.Input, 5.0f, ShaderStageCapability.Fragment));
-            AddSlot(new Vector2MaterialSlot(kUVsSlotId, kUVsSlotName, kUVsSlotName, SlotType.Input, Vector2.zero, ShaderStageCapability.Fragment));
+            AddSlot(new UVMaterialSlot(kUVsSlotId, kUVsSlotName, kUVsSlotName, UVChannel.UV0, ShaderStageCapability.Fragment));
             AddSlot(new Vector1MaterialSlot(kLodSlotId, kLodSlotName, kLodSlotName, SlotType.Input, 0.0f, ShaderStageCapability.Fragment));
             AddSlot(new Vector1MaterialSlot(kLodThresholdSlotId, kLodThresholdSlotName, kLodThresholdSlotName, SlotType.Input, 0.0f, ShaderStageCapability.Fragment));
 
@@ -152,8 +153,8 @@ $precision {6} = {3} * 0.01;
 // Transform the view vector into the UV space.
 $precision3 {7}    = normalize($precision3({4}.xy * {6}, {4}.z)); // TODO: skip normalize
 
-PerPixelHeightDisplacementParam {1};
-{1}.uv = {2};",
+PerPixelHeightDisplacementParam {0};
+{0}.uv = {1};",
                 tmpPOMParam,
                 uvs,
                 CoordinateSpace.Tangent.ToVariableName(InterpolatorType.ViewDirection),
@@ -187,6 +188,17 @@ $precision {6} = ({7} - {10} * {7}) / max({9}, 0.0001);
         public NeededCoordinateSpace RequiresViewDirection(ShaderStageCapability stageCapability = ShaderStageCapability.All)
         {
             return NeededCoordinateSpace.Tangent;
+        }
+
+        public bool RequiresMeshUV(UVChannel channel, ShaderStageCapability stageCapability)
+        {
+            if (channel != UVChannel.UV0)
+                return false;
+
+            if (IsSlotConnected(kUVsSlotId))
+                return false;
+
+            return true;
         }
     }
 }

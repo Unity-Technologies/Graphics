@@ -1,0 +1,34 @@
+
+/* ******************************* */
+/* override for personal skin them */
+/* ******************************* */
+#environmentContainer > EnvironmentElement
+{
+    border-color: #999999;
+}
+
+#separator
+{
+    border-color: #999999;
+}
+
+.list-environment-overlay > ToolbarButton
+{
+    background-color: #CBCBCB;
+}
+
+#inspector-header
+{
+    background-color: #CBCBCB;
+    border-color: #999999;
+}
+
+#separator-line
+{
+    background-color: #CBCBCB;
+}
+
+Image.unity-list-view__item:selected
+{
+    border-color: #3A72B0;
+}

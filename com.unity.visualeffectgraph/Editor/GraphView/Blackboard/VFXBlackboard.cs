@@ -2,7 +2,7 @@ using System;
 using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 using UnityEngine.UIElements;
-using UnityEditor.Experimental.VFX;
+using UnityEditor.VFX;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -90,7 +90,6 @@ namespace  UnityEditor.VFX.UI
             m_DragIndicator.style.position = PositionType.Absolute;
             hierarchy.Add(m_DragIndicator);
 
-            cacheAsBitmap = true;
             SetDragIndicatorVisible(false);
 
             Resizer resizer = this.Query<Resizer>();

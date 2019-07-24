@@ -10,7 +10,7 @@ When you enable dynamic resolution, HDRP allocates render targets to accommodate
 
 ## Using dynamic resolution
 
-Dynamic resolution is not automatic, so you need to manually call the `HDDynamicResolutionHandler.SetDynamicResScaler(PerformDynamicRes scaler, DynamicResScalePolicyType scalerType)` function. This function is in the `UnityEngine.Experimental.Rendering.HDPipeline` namespace.
+Dynamic resolution is not automatic, so you need to manually call the `HDDynamicResolutionHandler.SetDynamicResScaler(PerformDynamicRes scaler, DynamicResScalePolicyType scalerType)` function. This function is in the `UnityEngine.Rendering.HighDefinition` namespace.
 
 The example below shows how to call this function. In a real production environment, you would call this function depending on the performance of your application.
 
@@ -25,7 +25,7 @@ using System.Collections.Generic;
 
 using UnityEngine;
 
-using UnityEngine.Experimental.Rendering.HDPipeline;
+using UnityEngine.Rendering.HighDefinition;
 
 public class DynamicRes : MonoBehaviour
 

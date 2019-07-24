@@ -1,24 +1,23 @@
 using System;
 using System.Linq;
 using System.Collections.Generic;
-using UnityEditor.Experimental.Rendering.HDPipeline.Drawing;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph;
-using UnityEditor.ShaderGraph.Drawing;
 using UnityEditor.ShaderGraph.Drawing.Controls;
 using UnityEngine;
 using UnityEngine.UIElements;
-using UnityEngine.Experimental.Rendering.HDPipeline;
-using UnityEditor.ShaderGraph.Drawing.Inspector;
+using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.Rendering;
+using UnityEditor.Rendering.HighDefinition.Drawing;
 
 // Include material common properties names
-using static UnityEngine.Experimental.Rendering.HDPipeline.HDMaterialProperties;
+using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
 
-namespace UnityEditor.Experimental.Rendering.HDPipeline
+namespace UnityEditor.Rendering.HighDefinition
 {
     [Serializable]
     [Title("Master", "HDRP/Hair")]
+    [FormerName("UnityEditor.Experimental.Rendering.HDPipeline.HairMasterNode")]
     class HairMasterNode : MasterNode<IHairSubShader>, IMayRequirePosition, IMayRequireNormal, IMayRequireTangent
     {
         public const string PositionSlotName = "Position";
@@ -407,6 +406,23 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         }
 
         [SerializeField]
+        bool m_AddVelocityChange = false;
+
+        public ToggleData addVelocityChange
+        {
+            get { return new ToggleData(m_AddVelocityChange); }
+            set
+            {
+                if (m_AddVelocityChange == value.isOn)
+                    return;
+                m_AddVelocityChange = value.isOn;
+                Dirty(ModificationScope.Graph);
+            }
+        }
+
+
+
+        [SerializeField]
         bool m_UseLightFacingNormal = false;
         public ToggleData useLightFacingNormal
         {
@@ -530,7 +546,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 Dirty(ModificationScope.Graph);
             }
         }
-        
+
         [SerializeField]
         TransparentCullMode m_transparentCullMode = TransparentCullMode.Back;
         public TransparentCullMode transparentCullMode
@@ -546,7 +562,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 Dirty(ModificationScope.Graph);
             }
         }
-    
+
         [SerializeField]
         CompareFunction m_ZTest = CompareFunction.LessEqual;
         public CompareFunction zTest
@@ -761,7 +777,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
             return validSlots.OfType<IMayRequirePosition>().Aggregate(NeededCoordinateSpace.None, (mask, node) => mask | node.RequiresPosition(stageCapability));
         }
-    
+
         public override void ProcessPreviewMaterial(Material previewMaterial)
         {
             // Fixup the material settings:
@@ -794,6 +810,17 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 hidden = true,
                 value = new Color(1.0f, 1.0f, 1.0f, 1.0f)
             });
+
+            //See SG-ADDITIONALVELOCITY-NOTE
+            if (addVelocityChange.isOn)
+            {
+                collector.AddShaderProperty(new BooleanShaderProperty
+                {
+                    value = true,
+                    hidden = true,
+                    overrideReferenceName = kAdditionalVelocityChange,
+                });
+            }
 
             // Add all shader properties required by the inspector
             HDSubShaderUtilities.AddStencilShaderProperties(collector, false, receiveSSR.isOn);

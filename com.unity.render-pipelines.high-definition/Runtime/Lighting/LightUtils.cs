@@ -1,10 +1,8 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
 
-namespace UnityEngine.Experimental.Rendering.HDPipeline
+namespace UnityEngine.Rendering.HighDefinition
 {
-    public class LightUtils
+    class LightUtils
     {
         // Physical light unit helper
         // All light unit are in lumen (Luminous power)
@@ -117,7 +115,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             // From punctual point of view candela and luminance is the same
             return ConvertCandelaToLux(ConvertEvToLuminance(ev), distance);
-        }    
+        }
 
         public static float ConvertLuminanceToEv(float luminance)
         {
@@ -156,7 +154,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             return ConvertCandelaToLux(candela, distance);
         }
-        
+
 
         public static float ConvertPunctualLightCandelaToLumen(LightType lightType, SpotLightShape spotLigthShape, float candela, bool enableSpotReflector, float spotAngle, float aspectRatio)
         {
@@ -285,6 +283,66 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             halfAngle = Mathf.Atan(length); // half of the bigest angle
 
             angleB = halfAngle * 2.0f;
+        }
+
+        internal static void ConvertLightIntensity(LightUnit oldLightUnit, LightUnit newLightUnit, HDAdditionalLightData hdLight, Light light)
+        {
+            float intensity = hdLight.intensity;
+            float luxAtDistance = hdLight.luxAtDistance;
+
+            // For punctual lights
+            if (hdLight.lightTypeExtent == LightTypeExtent.Punctual)
+            {
+                // Lumen ->
+                if (oldLightUnit == LightUnit.Lumen && newLightUnit == LightUnit.Candela)
+                    intensity = LightUtils.ConvertPunctualLightLumenToCandela(light.type, intensity, light.intensity, hdLight.enableSpotReflector);
+                else if (oldLightUnit == LightUnit.Lumen && newLightUnit == LightUnit.Lux)
+                    intensity = LightUtils.ConvertPunctualLightLumenToLux(light.type, intensity, light.intensity, hdLight.enableSpotReflector,
+                                                                            hdLight.luxAtDistance);
+                else if (oldLightUnit == LightUnit.Lumen && newLightUnit == LightUnit.Ev100)
+                    intensity = LightUtils.ConvertPunctualLightLumenToEv(light.type, intensity, light.intensity, hdLight.enableSpotReflector);
+                // Candela ->
+                else if (oldLightUnit == LightUnit.Candela && newLightUnit == LightUnit.Lumen)
+                    intensity = LightUtils.ConvertPunctualLightCandelaToLumen(  light.type, hdLight.spotLightShape, intensity, hdLight.enableSpotReflector,
+                                                                                light.spotAngle, hdLight.aspectRatio);
+                else if (oldLightUnit == LightUnit.Candela && newLightUnit == LightUnit.Lux)
+                    intensity = LightUtils.ConvertCandelaToLux(intensity, hdLight.luxAtDistance);
+                else if (oldLightUnit == LightUnit.Candela && newLightUnit == LightUnit.Ev100)
+                    intensity = LightUtils.ConvertCandelaToEv(intensity);
+                // Lux ->
+                else if (oldLightUnit == LightUnit.Lux && newLightUnit == LightUnit.Lumen)
+                    intensity = LightUtils.ConvertPunctualLightLuxToLumen(light.type, hdLight.spotLightShape, intensity, hdLight.enableSpotReflector,
+                                                                          light.spotAngle, hdLight.aspectRatio, hdLight.luxAtDistance);
+                else if (oldLightUnit == LightUnit.Lux && newLightUnit == LightUnit.Candela)
+                    intensity = LightUtils.ConvertLuxToCandela(intensity, hdLight.luxAtDistance);
+                else if (oldLightUnit == LightUnit.Lux && newLightUnit == LightUnit.Ev100)
+                    intensity = LightUtils.ConvertLuxToEv(intensity, hdLight.luxAtDistance);
+                // EV100 ->
+                else if (oldLightUnit == LightUnit.Ev100 && newLightUnit == LightUnit.Lumen)
+                    intensity = LightUtils.ConvertPunctualLightEvToLumen(light.type, hdLight.spotLightShape, intensity, hdLight.enableSpotReflector,
+                                                                            light.spotAngle, hdLight.aspectRatio);
+                else if (oldLightUnit == LightUnit.Ev100 && newLightUnit == LightUnit.Candela)
+                    intensity = LightUtils.ConvertEvToCandela(intensity);
+                else if (oldLightUnit == LightUnit.Ev100 && newLightUnit == LightUnit.Lux)
+                    intensity = LightUtils.ConvertEvToLux(intensity, hdLight.luxAtDistance);
+            }
+            else  // For area lights
+            {
+                if (oldLightUnit == LightUnit.Lumen && newLightUnit == LightUnit.Luminance)
+                    intensity = LightUtils.ConvertAreaLightLumenToLuminance(hdLight.lightTypeExtent, intensity, hdLight.shapeWidth, hdLight.shapeHeight);
+                if (oldLightUnit == LightUnit.Luminance && newLightUnit == LightUnit.Lumen)
+                    intensity = LightUtils.ConvertAreaLightLuminanceToLumen(hdLight.lightTypeExtent, intensity, hdLight.shapeWidth, hdLight.shapeHeight);
+                if (oldLightUnit == LightUnit.Luminance && newLightUnit == LightUnit.Ev100)
+                    intensity = LightUtils.ConvertLuminanceToEv(intensity);
+                if (oldLightUnit == LightUnit.Ev100 && newLightUnit == LightUnit.Luminance)
+                    intensity = LightUtils.ConvertEvToLuminance(intensity);
+                if (oldLightUnit == LightUnit.Ev100 && newLightUnit == LightUnit.Lumen)
+                    intensity = LightUtils.ConvertAreaLightEvToLumen(hdLight.lightTypeExtent, intensity, hdLight.shapeWidth, hdLight.shapeHeight);
+                if (oldLightUnit == LightUnit.Lumen && newLightUnit == LightUnit.Ev100)
+                    intensity = LightUtils.ConvertAreaLightLumenToEv(hdLight.lightTypeExtent, intensity, hdLight.shapeWidth, hdLight.shapeHeight);
+            }
+
+            hdLight.intensity = intensity;
         }
     }
 }

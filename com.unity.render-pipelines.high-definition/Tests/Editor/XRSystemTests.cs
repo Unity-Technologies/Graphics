@@ -4,9 +4,9 @@ using System.Collections.Generic;
 using UnityEngine.TestTools.Constraints;
 using Is = UnityEngine.TestTools.Constraints.Is;
 
-namespace UnityEngine.Experimental.Rendering.HDPipeline.Tests
+namespace UnityEngine.Rendering.HighDefinition.Tests
 {
-    public class XRSystemTests
+    class XRSystemTests
     {
         XRSystem xrSystem;
         Camera[] cameras;
@@ -20,7 +20,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline.Tests
         [SetUp]
         public void SetUp()
         {
-            xrSystem = new XRSystem();
+            xrSystem = new XRSystem(null);
+            TextureXR.maxViews = k_ViewCount;
             cameras = new Camera[k_CameraCount];
             for (int cameraIndex = 0; cameraIndex < k_CameraCount; ++cameraIndex)
             {

@@ -55,6 +55,20 @@ VFXFlowAnchor.port.EdgeConnector.typeparticle
     --port-color: #FFBC21;
 }
 
+VFXContextUI.inputTypeparticlestrip > #node-border
+{
+    --start-color:#BF8050;
+}
+VFXContextUI.outputTypeparticlestrip > #node-border
+{
+    --end-color:#BF8050;
+}
+
+VFXFlowAnchor.port.EdgeConnector.typeparticlestrip
+{
+    --port-color: #FFAA6B;
+}
+
 /*  output */
 
 
@@ -301,6 +315,10 @@ VFXContextUI.inputTypeparticle #user-label
 {
     color: #FFBC21;
 }
+VFXContextUI.inputTypeparticlestrip #user-label
+{
+    color: #FFAA6B;
+}
 
 #user-label.empty
 {
@@ -311,4 +329,9 @@ VFXContextUI.inputTypeparticle #user-label
 VFXContextUI > #node-border > #inside > #contents
 {
     background-color: rgba(45,45,45,0.8);
+}
+
+VFXContextUI ColorPropertyRM .fieldContainer > *
+{
+    width: 56px;
 }

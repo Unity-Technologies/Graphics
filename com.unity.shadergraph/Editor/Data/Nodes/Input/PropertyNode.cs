@@ -8,204 +8,16 @@ namespace UnityEditor.ShaderGraph
     [Title("Input", "Property")]
     class PropertyNode : AbstractMaterialNode, IGeneratesBodyCode, IOnAssetEnabled
     {
-        private Guid m_PropertyGuid;
-
-        [SerializeField]
-        private string m_PropertyGuidSerialized;
-
-        public const int OutputSlotId = 0;
-
         public PropertyNode()
         {
             name = "Property";
             UpdateNodeAfterDeserialization();
         }
+        
+        [SerializeField]
+        string m_PropertyGuidSerialized;
 
-        public override bool canSetPrecision
-        {
-            get { return false; }
-        }
-
-        private void UpdateNode()
-        {
-            var graph = owner as GraphData;
-            var property = graph.properties.FirstOrDefault(x => x.guid == propertyGuid);
-            if (property == null)
-                return;
-
-            if (property is Vector1ShaderProperty)
-            {
-                AddSlot(new Vector1MaterialSlot(OutputSlotId, property.displayName, "Out", SlotType.Output, 0));
-                RemoveSlotsNameNotMatching(new[] {OutputSlotId});
-            }
-            else if (property is Vector2ShaderProperty)
-            {
-                AddSlot(new Vector2MaterialSlot(OutputSlotId, property.displayName, "Out", SlotType.Output, Vector4.zero));
-                RemoveSlotsNameNotMatching(new[] {OutputSlotId});
-            }
-            else if (property is Vector3ShaderProperty)
-            {
-                AddSlot(new Vector3MaterialSlot(OutputSlotId, property.displayName, "Out", SlotType.Output, Vector4.zero));
-                RemoveSlotsNameNotMatching(new[] {OutputSlotId});
-            }
-            else if (property is Vector4ShaderProperty)
-            {
-                AddSlot(new Vector4MaterialSlot(OutputSlotId, property.displayName, "Out", SlotType.Output, Vector4.zero));
-                RemoveSlotsNameNotMatching(new[] {OutputSlotId});
-            }
-            else if (property is ColorShaderProperty)
-            {
-                AddSlot(new Vector4MaterialSlot(OutputSlotId, property.displayName, "Out", SlotType.Output, Vector4.zero));
-                RemoveSlotsNameNotMatching(new[] {OutputSlotId});
-            }
-            else if (property is TextureShaderProperty)
-            {
-                AddSlot(new Texture2DMaterialSlot(OutputSlotId, property.displayName, "Out", SlotType.Output));
-                RemoveSlotsNameNotMatching(new[] {OutputSlotId});
-            }
-            else if (property is Texture2DArrayShaderProperty)
-            {
-                AddSlot(new Texture2DArrayMaterialSlot(OutputSlotId, property.displayName, "Out", SlotType.Output));
-                RemoveSlotsNameNotMatching(new[] {OutputSlotId});
-            }
-            else if (property is Texture3DShaderProperty)
-            {
-                AddSlot(new Texture3DMaterialSlot(OutputSlotId, property.displayName, "Out", SlotType.Output));
-                RemoveSlotsNameNotMatching(new[] {OutputSlotId});
-            }
-            else if (property is CubemapShaderProperty)
-            {
-                AddSlot(new CubemapMaterialSlot(OutputSlotId, property.displayName, "Out", SlotType.Output));
-                RemoveSlotsNameNotMatching(new[] { OutputSlotId });
-            }
-            else if (property is BooleanShaderProperty)
-            {
-                AddSlot(new BooleanMaterialSlot(OutputSlotId, property.displayName, "Out", SlotType.Output, false));
-                RemoveSlotsNameNotMatching(new[] { OutputSlotId });
-            }
-            else if (property is Matrix2ShaderProperty)
-            {
-                AddSlot(new Matrix2MaterialSlot(OutputSlotId, property.displayName, "Out", SlotType.Output));
-                RemoveSlotsNameNotMatching(new[] { OutputSlotId });
-            }
-            else if (property is Matrix3ShaderProperty)
-            {
-                AddSlot(new Matrix3MaterialSlot(OutputSlotId, property.displayName, "Out", SlotType.Output));
-                RemoveSlotsNameNotMatching(new[] { OutputSlotId });
-            }
-            else if (property is Matrix4ShaderProperty)
-            {
-                AddSlot(new Matrix4MaterialSlot(OutputSlotId, property.displayName, "Out", SlotType.Output));
-                RemoveSlotsNameNotMatching(new[] { OutputSlotId });
-            }
-            else if (property is SamplerStateShaderProperty)
-            {
-                AddSlot(new SamplerStateMaterialSlot(OutputSlotId, property.displayName, "Out", SlotType.Output));
-                RemoveSlotsNameNotMatching(new[] { OutputSlotId });
-            }
-            else if (property is GradientShaderProperty)
-            {
-                AddSlot(new GradientMaterialSlot(OutputSlotId, property.displayName, "Out", SlotType.Output));
-                RemoveSlotsNameNotMatching(new[] { OutputSlotId });
-            }
-        }
-
-        public void GenerateNodeCode(ShaderStringBuilder sb, GraphContext graphContext, GenerationMode generationMode)
-        {
-            var graph = owner as GraphData;
-            var property = graph.properties.FirstOrDefault(x => x.guid == propertyGuid);
-            if (property == null)
-                return;
-
-            if (property is Vector1ShaderProperty)
-            {
-                var result = string.Format("$precision {0} = {1};"
-                        , GetVariableNameForSlot(OutputSlotId)
-                        , property.referenceName);
-                sb.AppendLine(result);
-            }
-            else if (property is Vector2ShaderProperty)
-            {
-                var result = string.Format("$precision2 {0} = {1};"
-                        , GetVariableNameForSlot(OutputSlotId)
-                        , property.referenceName);
-                sb.AppendLine(result);
-            }
-            else if (property is Vector3ShaderProperty)
-            {
-                var result = string.Format("$precision3 {0} = {1};"
-                        , GetVariableNameForSlot(OutputSlotId)
-                        , property.referenceName);
-                sb.AppendLine(result);
-            }
-            else if (property is Vector4ShaderProperty)
-            {
-                var result = string.Format("$precision4 {0} = {1};"
-                        , GetVariableNameForSlot(OutputSlotId)
-                        , property.referenceName);
-                sb.AppendLine(result);
-            }
-            else if (property is ColorShaderProperty)
-            {
-                var result = string.Format("$precision4 {0} = {1};"
-                        , GetVariableNameForSlot(OutputSlotId)
-                        , property.referenceName);
-                sb.AppendLine(result);
-            }
-            else if (property is BooleanShaderProperty)
-            {
-                var result = string.Format("$precision {0} = {1};"
-                        , GetVariableNameForSlot(OutputSlotId)
-                        , property.referenceName);
-                sb.AppendLine(result);
-            }
-            else if (property is Matrix2ShaderProperty)
-            {
-                var result = string.Format("$precision2x2 {0} = {1};"
-                        , GetVariableNameForSlot(OutputSlotId)
-                        , property.referenceName);
-                sb.AppendLine(result);
-            }
-            else if (property is Matrix3ShaderProperty)
-            {
-                var result = string.Format("$precision3x3 {0} = {1};"
-                        , GetVariableNameForSlot(OutputSlotId)
-                        , property.referenceName);
-                sb.AppendLine(result);
-            }
-            else if (property is Matrix4ShaderProperty)
-            {
-                var result = string.Format("$precision4x4 {0} = {1};"
-                        , GetVariableNameForSlot(OutputSlotId)
-                        , property.referenceName);
-                sb.AppendLine(result);
-            }
-            else if (property is SamplerStateShaderProperty)
-            {
-                SamplerStateShaderProperty samplerStateProperty = property as SamplerStateShaderProperty;
-                var result = string.Format("SamplerState {0} = {1};"
-                        , GetVariableNameForSlot(OutputSlotId)
-                        , samplerStateProperty.referenceName);
-                sb.AppendLine(result);
-            }
-            else if (property is GradientShaderProperty)
-            {
-                if(generationMode == GenerationMode.Preview)
-                {
-                    var result = string.Format("Gradient {0} = {1};"
-                        , GetVariableNameForSlot(OutputSlotId) 
-                        , GradientUtils.GetGradientForPreview(property.referenceName));
-                    sb.AppendLine(result);
-                }
-                else
-                {
-                    var result = string.Format("Gradient {0} = {1};"
-                        , GetVariableNameForSlot(OutputSlotId)
-                        , property.referenceName);
-                    sb.AppendLine(result);
-                }
-            }
-        }
+        Guid m_PropertyGuid;
 
         public Guid propertyGuid
         {
@@ -215,23 +27,146 @@ namespace UnityEditor.ShaderGraph
                 if (m_PropertyGuid == value)
                     return;
 
-                var graph = owner as GraphData;
-                var property = graph.properties.FirstOrDefault(x => x.guid == value);
+                m_PropertyGuid = value;
+                var property = owner.properties.FirstOrDefault(x => x.guid == value);
                 if (property == null)
                     return;
-                m_PropertyGuid = value;
-
-                UpdateNode();
-
+                
+                AddOutputSlot(property);
                 Dirty(ModificationScope.Topological);
+            }
+        }
+        public override bool canSetPrecision => false;
+
+        public void OnEnable()
+        {
+            var property = owner.properties.FirstOrDefault(x => x.guid == propertyGuid);
+            if (property == null)
+                return;
+
+            AddOutputSlot(property);
+        }
+        
+        public const int OutputSlotId = 0;
+
+        void AddOutputSlot(AbstractShaderProperty property)
+        {
+            switch(property.concreteShaderValueType)
+            {
+                case ConcreteSlotValueType.Boolean:
+                    AddSlot(new BooleanMaterialSlot(OutputSlotId, property.displayName, "Out", SlotType.Output, false));
+                    RemoveSlotsNameNotMatching(new[] { OutputSlotId });
+                    break;
+                case ConcreteSlotValueType.Vector1:
+                    AddSlot(new Vector1MaterialSlot(OutputSlotId, property.displayName, "Out", SlotType.Output, 0));
+                    RemoveSlotsNameNotMatching(new[] {OutputSlotId});
+                    break;
+                case ConcreteSlotValueType.Vector2:
+                    AddSlot(new Vector2MaterialSlot(OutputSlotId, property.displayName, "Out", SlotType.Output, Vector4.zero));
+                    RemoveSlotsNameNotMatching(new[] {OutputSlotId});
+                    break;
+                case ConcreteSlotValueType.Vector3:
+                    AddSlot(new Vector3MaterialSlot(OutputSlotId, property.displayName, "Out", SlotType.Output, Vector4.zero));
+                    RemoveSlotsNameNotMatching(new[] {OutputSlotId});
+                    break;
+                case ConcreteSlotValueType.Vector4:
+                    AddSlot(new Vector4MaterialSlot(OutputSlotId, property.displayName, "Out", SlotType.Output, Vector4.zero));
+                    RemoveSlotsNameNotMatching(new[] {OutputSlotId});
+                    break;
+                case ConcreteSlotValueType.Matrix2:
+                    AddSlot(new Matrix2MaterialSlot(OutputSlotId, property.displayName, "Out", SlotType.Output));
+                    RemoveSlotsNameNotMatching(new[] { OutputSlotId });
+                    break;
+                case ConcreteSlotValueType.Matrix3:
+                    AddSlot(new Matrix3MaterialSlot(OutputSlotId, property.displayName, "Out", SlotType.Output));
+                    RemoveSlotsNameNotMatching(new[] { OutputSlotId });
+                    break;
+                case ConcreteSlotValueType.Matrix4:
+                    AddSlot(new Matrix4MaterialSlot(OutputSlotId, property.displayName, "Out", SlotType.Output));
+                    RemoveSlotsNameNotMatching(new[] { OutputSlotId });
+                    break;
+                case ConcreteSlotValueType.Texture2D:
+                    AddSlot(new Texture2DMaterialSlot(OutputSlotId, property.displayName, "Out", SlotType.Output));
+                    RemoveSlotsNameNotMatching(new[] {OutputSlotId});
+                    break;
+                case ConcreteSlotValueType.Texture2DArray:
+                    AddSlot(new Texture2DArrayMaterialSlot(OutputSlotId, property.displayName, "Out", SlotType.Output));
+                    RemoveSlotsNameNotMatching(new[] {OutputSlotId});
+                    break;
+                case ConcreteSlotValueType.Texture3D:
+                    AddSlot(new Texture3DMaterialSlot(OutputSlotId, property.displayName, "Out", SlotType.Output));
+                    RemoveSlotsNameNotMatching(new[] {OutputSlotId});
+                    break;
+                case ConcreteSlotValueType.Cubemap:
+                    AddSlot(new CubemapMaterialSlot(OutputSlotId, property.displayName, "Out", SlotType.Output));
+                    RemoveSlotsNameNotMatching(new[] { OutputSlotId });
+                    break;
+                case ConcreteSlotValueType.SamplerState:
+                    AddSlot(new SamplerStateMaterialSlot(OutputSlotId, property.displayName, "Out", SlotType.Output));
+                    RemoveSlotsNameNotMatching(new[] { OutputSlotId });
+                    break;
+                case ConcreteSlotValueType.Gradient:
+                    AddSlot(new GradientMaterialSlot(OutputSlotId, property.displayName, "Out", SlotType.Output));
+                    RemoveSlotsNameNotMatching(new[] { OutputSlotId });
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+        }
+        
+        public void GenerateNodeCode(ShaderStringBuilder sb, GraphContext graphContext, GenerationMode generationMode)
+        {
+            var property = owner.properties.FirstOrDefault(x => x.guid == propertyGuid);
+            if (property == null)
+                return;
+            
+            switch(property.propertyType)
+            {
+                case PropertyType.Boolean:
+                    sb.AppendLine($"$precision {GetVariableNameForSlot(OutputSlotId)} = {property.referenceName};");
+                    break;
+                case PropertyType.Vector1:
+                    sb.AppendLine($"$precision {GetVariableNameForSlot(OutputSlotId)} = {property.referenceName};");
+                    break;
+                case PropertyType.Vector2:
+                    sb.AppendLine($"$precision2 {GetVariableNameForSlot(OutputSlotId)} = {property.referenceName};");
+                    break;
+                case PropertyType.Vector3:
+                    sb.AppendLine($"$precision3 {GetVariableNameForSlot(OutputSlotId)} = {property.referenceName};");
+                    break;
+                case PropertyType.Vector4:
+                    sb.AppendLine($"$precision4 {GetVariableNameForSlot(OutputSlotId)} = {property.referenceName};");
+                    break;
+                case PropertyType.Color:
+                    sb.AppendLine($"$precision4 {GetVariableNameForSlot(OutputSlotId)} = {property.referenceName};");
+                    break;
+                case PropertyType.Matrix2:
+                    sb.AppendLine($"$precision2x2 {GetVariableNameForSlot(OutputSlotId)} = {property.referenceName};");
+                    break;
+                case PropertyType.Matrix3:
+                    sb.AppendLine($"$precision3x3 {GetVariableNameForSlot(OutputSlotId)} = {property.referenceName};");
+                    break;
+                case PropertyType.Matrix4:
+                    sb.AppendLine($"$precision4x4 {GetVariableNameForSlot(OutputSlotId)} = {property.referenceName};");
+                    break;
+                case PropertyType.SamplerState:
+                    sb.AppendLine($"SamplerState {GetVariableNameForSlot(OutputSlotId)} = {property.referenceName};");
+                    break;
+                case PropertyType.Gradient:
+                    if(generationMode == GenerationMode.Preview)
+                        sb.AppendLine($"Gradient {GetVariableNameForSlot(OutputSlotId)} = {GradientUtil.GetGradientForPreview(property.referenceName)};");
+                    else
+                        sb.AppendLine($"Gradient {GetVariableNameForSlot(OutputSlotId)} = {property.referenceName};");
+                    break;
             }
         }
 
         public override string GetVariableNameForSlot(int slotId)
         {
-            var graph = owner as GraphData;
-            var property = graph.properties.FirstOrDefault(x => x.guid == propertyGuid);
-
+            var property = owner.properties.FirstOrDefault(x => x.guid == propertyGuid);
+            if (property == null)
+                throw new NullReferenceException();
+            
             if (!(property is TextureShaderProperty) &&
                 !(property is Texture2DArrayShaderProperty) &&
                 !(property is Texture3DShaderProperty) &&
@@ -240,17 +175,34 @@ namespace UnityEditor.ShaderGraph
 
             return property.referenceName;
         }
-
+        
         protected override bool CalculateNodeHasError(ref string errorMessage)
         {
-            var graph = owner as GraphData;
-
-            if (!propertyGuid.Equals(Guid.Empty) && !graph.properties.Any(x => x.guid == propertyGuid))
+            if (!propertyGuid.Equals(Guid.Empty) && !owner.properties.Any(x => x.guid == propertyGuid))
+            {
+                errorMessage = "Property Node has no associated Blackboard property.";
                 return true;
+            }
 
             return false;
         }
 
+        public override bool ValidateConcretePrecision(ref string errorMessage)
+        {
+            // Get precision from Property
+            var property = owner.properties.FirstOrDefault(x => x.guid == propertyGuid);
+            if (property == null)
+                return true;
+
+            // If Property has a precision override use that
+            precision = property.precision;
+            if (precision != Precision.Inherit)
+                concretePrecision = precision.ToConcrete();
+            else
+                concretePrecision = owner.concretePrecision;
+            return false;
+        }
+        
         public override void OnBeforeSerialize()
         {
             base.OnBeforeSerialize();
@@ -262,33 +214,6 @@ namespace UnityEditor.ShaderGraph
             base.OnAfterDeserialize();
             if (!string.IsNullOrEmpty(m_PropertyGuidSerialized))
                 m_PropertyGuid = new Guid(m_PropertyGuidSerialized);
-        }
-
-        public void OnEnable()
-        {
-            UpdateNode();
-        }
-
-        public override bool ValidateConcretePrecision(ref string errorMessage)
-        {
-            // Get precision from Property
-            var property = owner.properties.FirstOrDefault(x => x.guid == propertyGuid);
-            if (property == null)
-                return true;
-
-            precision = property.precision;
-
-            // If Property has a precision override use that
-            if (precision != Precision.Inherit)
-            {
-                concretePrecision = precision.ToConcrete();
-                return false;
-            }
-            else
-            {
-                concretePrecision = owner.concretePrecision;
-                return false;
-            }
         }
     }
 }

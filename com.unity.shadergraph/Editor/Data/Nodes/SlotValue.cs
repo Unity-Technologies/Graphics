@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEditor.Graphing;
 
 namespace UnityEditor.ShaderGraph
@@ -90,70 +91,45 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        static readonly string[] k_ConcreteSlotValueTypeClassNames =
+        static Dictionary<ConcreteSlotValueType, List<SlotValueType>> s_ValidConversions;
+        static List<SlotValueType> s_ValidSlotTypes;
+        public static bool AreCompatible(SlotValueType inputType, ConcreteSlotValueType outputType)
         {
-            null,
-            "typeMatrix",
-            "typeMatrix",
-            "typeMatrix",
-            "typeTexture2D",
-            "typeTexture2DArray",
-            "typeTexture3D",
-            "typeCubemap",
-            "typeGradient",
-            "typeFloat4",
-            "typeFloat3",
-            "typeFloat2",
-            "typeFloat1",
-            "typeBoolean"
-        };
-
-        public static string ToClassName(this ConcreteSlotValueType type)
-        {
-            return k_ConcreteSlotValueTypeClassNames[(int)type];
-        }
-
-        public static string ToShaderString(this ConcreteSlotValueType type, ConcretePrecision concretePrecision)
-        {
-            string precisionString = concretePrecision.ToShaderString();
-            return type.ToShaderString(precisionString);
-        }
-
-        public static string ToShaderString(this ConcreteSlotValueType type, string precisionToken = PrecisionUtil.Token)
-        {
-            switch (type)
+            if (s_ValidConversions == null)
             {
-                case ConcreteSlotValueType.Boolean:
-                    return precisionToken;
-                case ConcreteSlotValueType.Vector1:
-                    return precisionToken;
-                case ConcreteSlotValueType.Vector2:
-                    return precisionToken + "2";
-                case ConcreteSlotValueType.Vector3:
-                    return precisionToken + "3";
-                case ConcreteSlotValueType.Vector4:
-                    return precisionToken + "4";
-                case ConcreteSlotValueType.Texture2D:
-                    return "Texture2D";
-                case ConcreteSlotValueType.Texture2DArray:
-                    return "Texture2DArray";
-                case ConcreteSlotValueType.Texture3D:
-                    return "Texture3D";
-                case ConcreteSlotValueType.Cubemap:
-                    return "TextureCube";
-                case ConcreteSlotValueType.Gradient:
-                    return "Gradient";
-                case ConcreteSlotValueType.Matrix2:
-                    return precisionToken + "2x2";
-                case ConcreteSlotValueType.Matrix3:
-                    return precisionToken + "3x3";
-                case ConcreteSlotValueType.Matrix4:
-                    return precisionToken + "4x4";
-                case ConcreteSlotValueType.SamplerState:
-                    return "SamplerState";
-                default:
-                    return "Error";
+                var validVectors = new List<SlotValueType>()
+                {
+                    SlotValueType.Dynamic, SlotValueType.DynamicVector,
+                    SlotValueType.Vector1, SlotValueType.Vector2, SlotValueType.Vector3, SlotValueType.Vector4
+                };
+
+                s_ValidConversions = new Dictionary<ConcreteSlotValueType, List<SlotValueType>>()
+                {
+                    {ConcreteSlotValueType.Boolean, new List<SlotValueType>() {SlotValueType.Boolean}},
+                    {ConcreteSlotValueType.Vector1, validVectors},
+                    {ConcreteSlotValueType.Vector2, validVectors},
+                    {ConcreteSlotValueType.Vector3, validVectors},
+                    {ConcreteSlotValueType.Vector4, validVectors},
+                    {ConcreteSlotValueType.Matrix2, new List<SlotValueType>()
+                        {SlotValueType.Dynamic, SlotValueType.DynamicMatrix, SlotValueType.Matrix2}},
+                    {ConcreteSlotValueType.Matrix3, new List<SlotValueType>()
+                        {SlotValueType.Dynamic, SlotValueType.DynamicMatrix, SlotValueType.Matrix2, SlotValueType.Matrix3}},
+                    {ConcreteSlotValueType.Matrix4, new List<SlotValueType>()
+                        {SlotValueType.Dynamic, SlotValueType.DynamicMatrix, SlotValueType.Matrix2, SlotValueType.Matrix3, SlotValueType.Matrix4}},
+                    {ConcreteSlotValueType.Texture2D, new List<SlotValueType>() {SlotValueType.Texture2D}},
+                    {ConcreteSlotValueType.Texture3D, new List<SlotValueType>() {SlotValueType.Texture3D}},
+                    {ConcreteSlotValueType.Texture2DArray, new List<SlotValueType>() {SlotValueType.Texture2DArray}},
+                    {ConcreteSlotValueType.Cubemap, new List<SlotValueType>() {SlotValueType.Cubemap}},
+                    {ConcreteSlotValueType.SamplerState, new List<SlotValueType>() {SlotValueType.SamplerState}},
+                    {ConcreteSlotValueType.Gradient, new List<SlotValueType>() {SlotValueType.Gradient}},
+                };
             }
+
+            if(s_ValidConversions.TryGetValue(outputType, out s_ValidSlotTypes))
+            {
+                return s_ValidSlotTypes.Contains(inputType);
+            }
+            throw new ArgumentOutOfRangeException("Unknown Concrete Slot Type: " + outputType);
         }
     }
 }

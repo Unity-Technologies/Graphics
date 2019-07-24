@@ -1,10 +1,6 @@
-using UnityEngine.Rendering;
-
-namespace UnityEngine.Experimental.Rendering.HDPipeline
+namespace UnityEngine.Rendering.HighDefinition
 {
-    using RTHandle = RTHandleSystem.RTHandle;
-
-    public class MipGenerator
+    class MipGenerator
     {
         RTHandle[] m_TempColorTargets;
         RTHandle[] m_TempDownsamplePyramid;
@@ -19,17 +15,17 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         int[] m_SrcOffset;
         int[] m_DstOffset;
 
-        public MipGenerator(HDRenderPipelineAsset asset)
+        public MipGenerator(RenderPipelineResources defaultResources)
         {
             m_TempColorTargets = new RTHandle[tmpTargetCount];
             m_TempDownsamplePyramid = new RTHandle[tmpTargetCount];
-            m_DepthPyramidCS = asset.renderPipelineResources.shaders.depthPyramidCS;
+            m_DepthPyramidCS = defaultResources.shaders.depthPyramidCS;
 
             m_DepthDownsampleKernel = m_DepthPyramidCS.FindKernel("KDepthDownsample8DualUav");
 
             m_SrcOffset = new int[4];
             m_DstOffset = new int[4];
-            m_ColorPyramidPS = asset.renderPipelineResources.shaders.colorPyramidPS;
+            m_ColorPyramidPS = defaultResources.shaders.colorPyramidPS;
             m_ColorPyramidPSMat = CoreUtils.CreateEngineMaterial(m_ColorPyramidPS);
             m_PropertyBlock = new MaterialPropertyBlock();
         }

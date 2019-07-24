@@ -1,8 +1,7 @@
 using System;
 using System.Diagnostics;
-using UnityEngine.Rendering;
 
-namespace UnityEngine.Experimental.Rendering.HDPipeline
+namespace UnityEngine.Rendering.HighDefinition
 {
     // This class is used to associate a unique ID to a sky class.
     // This is needed to be able to automatically register sky classes and avoid collisions and refactoring class names causing data compatibility issues.

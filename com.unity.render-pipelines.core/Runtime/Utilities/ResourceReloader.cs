@@ -69,15 +69,23 @@ namespace UnityEngine.Rendering
                     }
                 }
             }
+
+            if (container is UnityEngine.Object c)
+                EditorUtility.SetDirty(c);
         }
 
         static void FixGroupIfNeeded(System.Object container, FieldInfo info)
         {
             if (IsNull(container, info))
             {
+                var type = info.FieldType;
+                var value = type.IsSubclassOf(typeof(ScriptableObject))
+                    ? ScriptableObject.CreateInstance(type)
+                    : Activator.CreateInstance(type);
+
                 info.SetValue(
                     container,
-                    Activator.CreateInstance(info.FieldType)
+                    value
                 );
             }
         }
@@ -88,8 +96,13 @@ namespace UnityEngine.Rendering
 
             if (IsNull(array.GetValue(index)))
             {
+                var type = array.GetType().GetElementType();
+                var value = type.IsSubclassOf(typeof(ScriptableObject))
+                    ? ScriptableObject.CreateInstance(type)
+                    : Activator.CreateInstance(type);
+
                 array.SetValue(
-                    Activator.CreateInstance(array.GetType().GetElementType()),
+                    value,
                     index
                 );
             }
@@ -98,10 +111,12 @@ namespace UnityEngine.Rendering
         static void FixArrayIfNeeded(System.Object container, FieldInfo info, int length)
         {
             if (IsNull(container, info) || ((Array)info.GetValue(container)).Length < length)
+            {
                 info.SetValue(
                     container,
                     Activator.CreateInstance(info.FieldType, length)
                 );
+            }
         }
 
         static ReloadAttribute GetReloadAttribute(FieldInfo fieldInfo)

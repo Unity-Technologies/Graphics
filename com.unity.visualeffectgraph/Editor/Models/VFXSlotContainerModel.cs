@@ -4,7 +4,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reflection;
 using UnityEngine;
-using UnityEngine.Experimental.VFX;
+using UnityEngine.VFX;
 using Object = UnityEngine.Object;
 
 namespace UnityEditor.VFX
@@ -408,11 +408,6 @@ namespace UnityEditor.VFX
         public bool IsPathExpanded(string fieldPath)
         {
             return m_expandedPaths.Contains(fieldPath);
-        }
-
-        protected override void Invalidate(VFXModel model, InvalidationCause cause)
-        {
-            base.Invalidate(model, cause);
         }
 
         public virtual void UpdateOutputExpressions() {}

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using UnityEngine;
-using UnityEngine.Experimental.VFX;
+using UnityEngine.VFX;
 using System.Reflection;
 
 namespace UnityEditor.VFX
@@ -717,7 +717,7 @@ namespace UnityEditor.VFX
             }
         }
 
-        protected override void Invalidate(VFXModel model, InvalidationCause cause)
+        protected internal override void Invalidate(VFXModel model, InvalidationCause cause)
         {
             base.Invalidate(model, cause);
 

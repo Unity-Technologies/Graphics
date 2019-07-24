@@ -40,6 +40,8 @@ Pass
 		#if HDRP_NEEDS_UVS
 		nointerpolation uint faceID : TEXCOORD6;
 		#endif
+
+		UNITY_VERTEX_OUTPUT_STEREO
 	};
 	
 	struct ps_output
@@ -75,6 +77,7 @@ ${VFXEnd}
 #endif
 	)
 	{
+		UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i);
 		VFXTransformPSInputs(i);
 		
 #if !USE_DOUBLE_SIDED	
