@@ -9,12 +9,15 @@ namespace UnityEngine.Experimental.Rendering.Universal
     [RequireComponent(typeof(Renderer))]
     public class LightReactor2D : ShadowCaster2D, IShadowCasterGroup2D
     {
-        //[SerializeField]
-        public int m_ShadowGroup = 0;
+        [SerializeField] int m_ShadowGroup = 0;
+        [SerializeField] bool m_CastsShadows = true;
+        [SerializeField] bool m_ReceivesShadows = true;
         List<ShadowCaster2D> m_ShadowCasters;
         Renderer m_Renderer;
 
         int m_PreviousShadowGroup = 0;
+        bool m_PreviousCastsShadows = true;
+        bool m_PreviousReceivesShadows = true;
 
         public List<ShadowCaster2D> GetShadowCasters() { return m_ShadowCasters; }
 
@@ -60,8 +63,21 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
             if (LightUtility.CheckForChange(m_ShadowGroup, ref m_PreviousShadowGroup))
             {
-                // 
-                //m_ShadowCasters
+                ShadowCasterGroup2DManager.RemoveGroup(this);
+                ShadowCasterGroup2DManager.AddGroup(this);
+            }
+
+            if(LightUtility.CheckForChange(m_CastsShadows, ref m_PreviousCastsShadows))
+            {
+                if(m_CastsShadows)
+                    ShadowCasterGroup2DManager.AddGroup(this);
+                else
+                    ShadowCasterGroup2DManager.RemoveGroup(this);
+            }
+
+            if(LightUtility.CheckForChange(m_ReceivesShadows, ref m_PreviousReceivesShadows))
+            {
+                
             }
         }
     }

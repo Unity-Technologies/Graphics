@@ -143,7 +143,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 float lightRadiusSq = lightBounds.radius * lightBounds.radius;
 
                 cmdBuffer.SetGlobalVector("_LightPos", light.transform.position);
-                cmdBuffer.SetGlobalFloat("_LightRadius", lightBounds.radius);
+                cmdBuffer.SetGlobalFloat("_LightRadius", 4*lightBounds.radius);
 
                 Material shadowMaterial;
                 Material removeSelfShadowMaterial;
