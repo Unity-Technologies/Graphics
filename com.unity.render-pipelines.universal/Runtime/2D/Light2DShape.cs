@@ -52,27 +52,5 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
             return boundingSphere;
         }
-
-#if UNITY_EDITOR
-        int GetShapePathHash()
-        {
-            unchecked
-            {
-                int hashCode = (int)2166136261;
-
-                if (m_ShapePath != null)
-                {
-                    foreach (var point in m_ShapePath)
-                        hashCode = hashCode * 16777619 ^ point.GetHashCode();
-                }
-                else
-                {
-                    hashCode = 0;
-                }
-
-                return hashCode;
-            }
-        }
-#endif
     }
 }

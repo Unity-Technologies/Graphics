@@ -522,7 +522,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             rebuildMesh |= LightUtility.CheckForChange(m_ShapeLightFalloffOffset, ref m_PreviousShapeLightFalloffOffset);
 
 #if UNITY_EDITOR
-            rebuildMesh |= LightUtility.CheckForChange(GetShapePathHash(), ref m_PreviousShapePathHash);
+            rebuildMesh |= LightUtility.CheckForChange(LightUtility.GetShapePathHash(m_ShapePath), ref m_PreviousShapePathHash);
 #endif
             if(rebuildMesh && m_LightType != LightType.Global)
                 UpdateMesh();

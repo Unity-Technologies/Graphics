@@ -3,324 +3,171 @@ using System.Collections.Generic;
 using UnityEngine;
 using System;
 using Unity.Collections;
+using System.Linq;
+using UnityEngine.Experimental.Rendering.Universal.LibTessDotNet;
 
 
 namespace UnityEngine.Experimental.Rendering.Universal
 {
     internal class ShadowUtility
     {
-        internal struct Edge : IComparable<Edge>
+        internal struct Edge : IComparable<Edge>, IComparer<Edge>
         {
-            public int objectIndex;
-            public ushort vertexIndex0;
-            public ushort vertexIndex1;
-            public bool swapped;
-            public Vector3 tangent;
-            public Vector3 normal;
+            public int vertexIndex0;
+            public int vertexIndex1;
+            public Vector4 tangent;
+            private bool compareReversed; // This is done so that edge AB can equal edge BA
+
+            static public Edge Comparer
+            {
+                get
+                {
+                    return new Edge();
+                }
+            }
 
             public void AssignVertexIndices(ushort vi0, ushort vi1)
             {
+                vertexIndex0 = vi0;
+                vertexIndex1 = vi1;
+                compareReversed = vi0 > vi1;
+            }
 
-                if (vi0 < vi1)
-                {
-                    vertexIndex0 = vi0;
-                    vertexIndex1 = vi1;
-                    swapped = false;
-                }
+
+            public int Compare(Edge a, Edge b)
+            {
+                int adjustedVertexIndex0A = a.compareReversed ? a.vertexIndex1 : a.vertexIndex0;
+                int adjustedVertexIndex1A = a.compareReversed ? a.vertexIndex0 : a.vertexIndex1;
+                int adjustedVertexIndex0B = b.compareReversed ? b.vertexIndex1 : b.vertexIndex0;
+                int adjustedVertexIndex1B = b.compareReversed ? b.vertexIndex0 : b.vertexIndex1;
+
+                // Sort first by VI0 then by VI1
+                int deltaVI0 = adjustedVertexIndex0A - adjustedVertexIndex0B;
+                int deltaVI1 = adjustedVertexIndex1A - adjustedVertexIndex1B;
+
+                if (deltaVI0 == 0)
+                    return deltaVI1;
                 else
-                {
-                    vertexIndex0 = vi1;
-                    vertexIndex1 = vi0;
-                    swapped = true;
-                }
+                    return deltaVI0;
             }
 
             public int CompareTo(Edge edgeToCompare)
             {
-                int objDelta = objectIndex - edgeToCompare.objectIndex;
-
-                // sort like objects together first
-                if (objDelta == 0)
-                {
-                    // sort like edges together as well
-                    int deltaVI0 = vertexIndex0 - edgeToCompare.vertexIndex0;
-                    int deltaVI1 = vertexIndex1 - edgeToCompare.vertexIndex1;
-
-                    if (deltaVI0 == 0)
-                        return deltaVI1;
-                    else
-                        return deltaVI0; ;
-                }
-                else
-                    return objDelta;
+                return Compare(this, edgeToCompare);
             }
         }
 
-        internal struct VertexLink
+        static Edge CreateEdge(int triangleIndexA, int triangleIndexB, List<Vector3> vertices, List<int> triangles)
         {
-            public int nextVertex;
-            public int previousVertex;
+            Edge retEdge = new Edge();
+
+            retEdge.vertexIndex0 = triangles[triangleIndexA];
+            retEdge.vertexIndex1 = triangles[triangleIndexB];
+
+            Vector3 vertex0 = vertices[retEdge.vertexIndex0];
+            Vector3 vertex1 = vertices[retEdge.vertexIndex1];
+
+            Vector3 edgeDir = Vector3.Normalize(vertex1 - vertex0);
+            retEdge.tangent = Vector3.Cross(-Vector3.forward, edgeDir);
+
+            Debug.DrawLine(vertex0, vertex0 + edgeDir, Color.white);
+            Debug.DrawLine(vertex1, vertex1 + edgeDir, Color.white);
+
+            return retEdge;
         }
 
-
-        internal static void PopulateVerticesPerObject(List<ShadowGenerationInfo> meshesToProcess, NativeArray<int> vertexStartIndices, out int totalVertices, out int totalEdges)
+        static void PopulateEdgeArray(List<Vector3> vertices, List<int> triangles, List<Edge> edges)
         {
-            totalVertices = 0;
-            totalEdges = 0;
-            for (int meshIndex = 0; meshIndex < meshesToProcess.Count; meshIndex++)
+            for(int triangleIndex=0;triangleIndex<triangles.Count;triangleIndex+=3)
             {
-                vertexStartIndices[meshIndex] = totalVertices;
-                totalVertices += meshesToProcess[meshIndex].vertices.Length;
-                totalEdges += meshesToProcess[meshIndex].triangles.Length;
+                edges.Add(CreateEdge(triangleIndex, triangleIndex + 1, vertices, triangles));
+                edges.Add(CreateEdge(triangleIndex, triangleIndex + 1, vertices, triangles));
+                edges.Add(CreateEdge(triangleIndex, triangleIndex + 1, vertices, triangles));
             }
         }
 
-        internal static void PopulateEdgesToProcess(List<ShadowGenerationInfo> meshesToProcess, int totalEdges, NativeArray<Edge> edgesToProcess)
-        {
-            // May want to reconsider this code later so that we can better leverage native container functionality
-            int edgeIndex = 0;
-            for (int meshIndex = 0; meshIndex < meshesToProcess.Count; meshIndex++)
-            {
-                ShadowGenerationInfo currentMesh = meshesToProcess[meshIndex];
-                for (int triIndex = 0; triIndex < totalEdges; triIndex += 3)
-                {
-                    Edge edge0 = new Edge();
-                    Edge edge1 = new Edge();
-                    Edge edge2 = new Edge();
-
-                    Vector3 triVert0 = currentMesh.vertices[currentMesh.triangles[triIndex]];
-                    Vector3 triVert1 = currentMesh.vertices[currentMesh.triangles[triIndex+1]];
-                    Vector3 triVert2 = currentMesh.vertices[currentMesh.triangles[triIndex+2]];
-
-                    //Vector3 normal = -Vector3.forward;
-                    //Vector3 normal = Vector3.Normalize(Vector3.Cross(Vector3.Normalize(triVert1 - triVert0), Vector3.Normalize(triVert2 - triVert0)));
-                    Vector3 normal = Vector3.Normalize(Vector3.Cross(triVert1 - triVert0, triVert2 - triVert0));
-
-                    edge0.objectIndex  = meshIndex;
-                    edge0.AssignVertexIndices(currentMesh.triangles[triIndex], currentMesh.triangles[triIndex + 1]);
-                    edge0.normal = normal;
-
-                    edge1.objectIndex  = meshIndex;
-                    edge1.AssignVertexIndices(currentMesh.triangles[triIndex + 1], currentMesh.triangles[triIndex + 2]);
-                    edge1.normal = normal;
-
-                    edge2.objectIndex = meshIndex;
-                    edge2.AssignVertexIndices(currentMesh.triangles[triIndex + 2], currentMesh.triangles[triIndex]);
-                    edge2.normal = normal;
-
-                    edgesToProcess[edgeIndex] = edge0;
-                    edgesToProcess[edgeIndex + 1] = edge1;
-                    edgesToProcess[edgeIndex + 2] = edge2;
-
-                    edgeIndex += 3;
-                }
-            }
-        }
-
-        internal static void SortEdges(NativeArray<Edge> edgesToProcess)
-        {
-            edgesToProcess.Sort<Edge>();
-        }
-
-        static void InitializeVertexLinks(NativeArray<VertexLink> vertexLinks)
-        {
-            for (int i = 0; i < vertexLinks.Length; i++)
-            {
-                VertexLink link;
-                link.nextVertex = -1;
-                link.previousVertex = -1;
-                vertexLinks[i] = link;
-            }
-        }
-
-        static bool IsOutsideEdge(int edgeIndex, NativeArray<Edge> edgesToProcess)
+        static bool IsOutsideEdge(int edgeIndex, List<Edge> edgesToProcess)
         {
             int previousIndex = edgeIndex - 1;
             int nextIndex = edgeIndex + 1;
-            int numberOfEdgesToProcess = edgesToProcess.Length;
+            int numberOfEdges = edgesToProcess.Count;
             Edge currentEdge = edgesToProcess[edgeIndex];
 
-            return (previousIndex < 0 || (currentEdge.CompareTo(edgesToProcess[edgeIndex - 1]) != 0)) && (nextIndex >= numberOfEdgesToProcess || (currentEdge.CompareTo(edgesToProcess[edgeIndex + 1]) != 0));
+            return (previousIndex < 0 || (currentEdge.CompareTo(edgesToProcess[edgeIndex - 1]) != 0)) && (nextIndex >= numberOfEdges || (currentEdge.CompareTo(edgesToProcess[edgeIndex + 1]) != 0));
         }
 
-
-        static void CountEdges(List<ShadowGenerationInfo> meshesToProcess, NativeArray<Edge> edgesToProcess)
+        static void SortEdges(List<Edge> edgesToProcess)
         {
-            for(int i=0;i<edgesToProcess.Length;i++)
+            edgesToProcess.Sort(Edge.Comparer);
+        }
+
+        static void CreateShadowTriangles(List<Vector3> vertices, List<int> triangles, List<Vector4> tangents, List<Edge> edges)
+        {
+            for(int edgeIndex=0; edgeIndex<edges.Count; edgeIndex++)
             {
-                if (IsOutsideEdge(i, edgesToProcess))
+                if(IsOutsideEdge(edgeIndex, edges))
                 {
-                    Edge currentEdge = edgesToProcess[i];
-                    ShadowGenerationInfo info = meshesToProcess[currentEdge.objectIndex];
-                    info.numberOfOutsideEdges++;
-                    meshesToProcess[currentEdge.objectIndex] = info;
+                    Edge edge = edges[edgeIndex];
+                    tangents[edge.vertexIndex1] = edge.tangent;
+
+                    int newVertexIndex = vertices.Count;
+                    vertices.Add(vertices[edge.vertexIndex0]);
+                    tangents.Add(edge.tangent);
+
+                    triangles.Add(edge.vertexIndex0);
+                    triangles.Add(newVertexIndex);
+                    triangles.Add(edge.vertexIndex1);
                 }
             }
         }
 
-        static void DebugDrawMesh(Mesh mesh, Color color, float time)
+        static object InterpCustomVertexData(Vec3 position, object[] data, float[] weights)
         {
-            for(int i=0;i<mesh.triangles.Length;i+=3)
-            {
-                int idx0 = mesh.triangles[i];
-                int idx1 = mesh.triangles[i + 1];
-                int idx2 = mesh.triangles[i + 2];
-                Debug.DrawLine(mesh.vertices[idx0], mesh.vertices[idx1], color, time);
-                Debug.DrawLine(mesh.vertices[idx1], mesh.vertices[idx2], color, time);
-                Debug.DrawLine(mesh.vertices[idx2], mesh.vertices[idx0], color, time);
-            }
+            return data[0];
         }
 
-        static void DebugDrawMesh(int triangleOffset, Mesh mesh, Color color, float time)
+        static void InitializeTangents(int tangentsToAdd, List<Vector4> tangents)
         {
-            for (int i = triangleOffset; i < mesh.triangles.Length; i += 3)
-            {
-                int idx0 = mesh.triangles[i];
-                int idx1 = mesh.triangles[i + 1];
-                int idx2 = mesh.triangles[i + 2];
-                Debug.DrawLine(mesh.vertices[idx0], mesh.vertices[idx1], color, time);
-                Debug.DrawLine(mesh.vertices[idx1], mesh.vertices[idx2], color, time);
-                Debug.DrawLine(mesh.vertices[idx2], mesh.vertices[idx0], color, time);
-            }
+            for (int i = 0; i < tangentsToAdd; i++)
+                tangents.Add(Vector4.zero);
         }
 
-        static void CopyMeshToShadowMesh(ShadowGenerationInfo meshInfo)
+        public static void GenerateShadowMesh(ref Mesh mesh, Vector3[] shapePath, float falloffDistance)
         {
-            int numberOfOutsideEdges = meshInfo.numberOfOutsideEdges;
-            int[] triangles = new int[meshInfo.triangles.Length + 3 * numberOfOutsideEdges];
-            Vector3[] vertices = new Vector3[meshInfo.vertices.Length + numberOfOutsideEdges];
-            Color[] colors = new Color[meshInfo.vertices.Length + numberOfOutsideEdges];
-            Vector4[] tangents = new Vector4[meshInfo.vertices.Length + numberOfOutsideEdges];
+            Color meshInteriorColor = new Color(0, 0, 0, 1);
+            List<Vector3> vertices = new List<Vector3>();
+            List<int> triangles = new List<int>();
+            List<Vector4> tangents = new List<Vector4>();
 
-            for (int i = 0; i < meshInfo.vertices.Length; i++)
-            {
-                vertices[i] = meshInfo.vertices[i];
-                colors[i] = Color.black;
-                tangents[i] = Vector3.zero;
-            }
+            // Create interior geometry
+            int pointCount = shapePath.Length;
+            var inputs = new ContourVertex[pointCount];
+            for (int i = 0; i < pointCount; ++i)
+                inputs[i] = new ContourVertex() { Position = new Vec3() { X = shapePath[i].x, Y = shapePath[i].y }, Data = meshInteriorColor };
 
-            for (int i = 0; i < meshInfo.triangles.Length; i++)
-                triangles[i] = meshInfo.triangles[i];
+            Tess tessI = new Tess();
+            tessI.AddContour(inputs, ContourOrientation.Original);
+            tessI.Tessellate(WindingRule.EvenOdd, ElementType.Polygons, 3, InterpCustomVertexData);
 
-            meshInfo.mesh.vertices = vertices;
-            meshInfo.mesh.triangles = triangles;
-            meshInfo.mesh.tangents = tangents;
-            meshInfo.mesh.colors = colors;
-            meshInfo.mesh.UploadMeshData(false);
-        }
+            var indicesI = tessI.Elements.Select(i => i).ToArray();
+            var verticesI = tessI.Vertices.Select(v => new Vector3(v.Position.X, v.Position.Y, 0)).ToArray();
 
-        static Vector3 GetTangentFromEdge(Vector3 vertex0, Vector3 vertex1, Vector3 normal, bool swapped)
-        {
-            Vector3 right;
-            if (swapped)
-                right = Vector3.Normalize(vertex0 - vertex1);
-            else
-                right = Vector3.Normalize(vertex1 - vertex0);
+            vertices.AddRange(verticesI);
+            triangles.AddRange(indicesI);
 
-            return Vector3.Cross(normal, right);
-        }
+            InitializeTangents(vertices.Count, tangents);
 
-        static void CreateHardShadowMeshes(List<ShadowGenerationInfo> meshesToProcess, NativeArray<Edge> edgesToProcess, NativeArray<int> vertexStartIndices)
-        {
-            int totalMeshesToProcess = meshesToProcess.Count;
-            int[] addVertIndices = new int[totalMeshesToProcess];
-            int[] addTriIndices = new int[totalMeshesToProcess];
+            List<Edge> edges = new List<Edge>();
+            PopulateEdgeArray(vertices, triangles, edges);
+            SortEdges(edges);
+            CreateShadowTriangles(vertices, triangles, tangents, edges);
 
-            // Copy the interior of the shadow mesh
-            for (int meshIndex = 0; meshIndex < totalMeshesToProcess; meshIndex++)
-            {
-                addVertIndices[meshIndex] = meshesToProcess[meshIndex].vertices.Length;
-                addTriIndices[meshIndex] = meshesToProcess[meshIndex].triangles.Length;
+            Vector3[] finalVertices = vertices.ToArray();
+            int[] finalTriangles = triangles.ToArray();
 
-                CopyMeshToShadowMesh(meshesToProcess[meshIndex]);
-                //DebugDrawMesh(meshesToProcess[meshIndex].mesh, Color.blue, 30f);
-            }
-
-            // Create the extra triangles needed
-            int numberOfEdgesToProcess = edgesToProcess.Length;
-            for (int i = 0; i < numberOfEdgesToProcess; i++)
-            {
-                if (IsOutsideEdge(i, edgesToProcess))
-                {
-                    Edge currentEdge = edgesToProcess[i];
-                    int objectIndex = currentEdge.objectIndex;
-
-                    ShadowGenerationInfo meshInfo = meshesToProcess[objectIndex];
-                    Vector3 vertex0 = meshInfo.vertices[currentEdge.vertexIndex0];
-                    Vector3 vertex1 = meshInfo.vertices[currentEdge.vertexIndex1];
-                    //Vector3 tangent = GetTangentFromEdge(vertex0, vertex1, currentEdge.normal, currentEdge.swapped);
-                    Vector3 tangent = GetTangentFromEdge(vertex0, vertex1, -Vector3.forward, currentEdge.swapped);
-
-                    float tanLen = 0.2f;
-                    Debug.DrawLine(vertex0, vertex0 + tanLen * tangent, Color.red, 30);
-                    Debug.DrawLine(vertex1, vertex1 + tanLen * tangent, Color.red, 30);
-
-                    // For each edge we need to add a vertex and triangle
-                    int newVertIndex = addVertIndices[objectIndex]++;
-                    int newTriIndex = addTriIndices[objectIndex];
-                    addTriIndices[objectIndex] += 3;
-
-
-                    // Add our triangle, vertex, and tangents
-                    Mesh mesh = meshInfo.mesh;
-                    Vector4 v4Tangent = new Vector4(tangent.x, tangent.y, tangent.z, 0);
-
-                    Vector3[] vertices = mesh.vertices;
-                    Vector4[] tangents = mesh.tangents;
-                    Color[] colors = mesh.colors;
-                    int[] triangles = mesh.triangles;
-
-
-                    tangents[newVertIndex] = v4Tangent;
-                    triangles[newTriIndex + 1] = newVertIndex;
-
-                    if (!currentEdge.swapped)
-                    {
-                        vertices[newVertIndex] = vertex0;
-                        colors[newVertIndex] = Color.white;
-                        tangents[currentEdge.vertexIndex1] = v4Tangent;
-                        triangles[newTriIndex] = currentEdge.vertexIndex0;
-                        triangles[newTriIndex + 2] = currentEdge.vertexIndex1;
-                    }
-                    else
-                    {
-                        vertices[newVertIndex] = vertex1;
-                        colors[newVertIndex] = Color.white;
-                        tangents[currentEdge.vertexIndex0] = v4Tangent;
-                        triangles[newTriIndex] = currentEdge.vertexIndex1;
-                        triangles[newTriIndex + 2] = currentEdge.vertexIndex0;
-                    }
-
-                    mesh.vertices = vertices;
-                    mesh.triangles = triangles;
-                    mesh.tangents = tangents;
-                }
-            }
-        }
-
-
-
-        internal static void ProcessMeshesForShadows(List<ShadowGenerationInfo> meshesToProcess)
-        {
-            int totalVertices;
-            int totalEdges;
-
-            NativeArray<int> vertexStartIndices = new NativeArray<int>(meshesToProcess.Count, Allocator.Temp, NativeArrayOptions.UninitializedMemory); ;
-            PopulateVerticesPerObject(meshesToProcess, vertexStartIndices, out totalVertices, out totalEdges);
-
-            NativeArray<Edge> edgesToProcess = new NativeArray<Edge>(totalEdges, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
-            PopulateEdgesToProcess(meshesToProcess, totalEdges, edgesToProcess);
-            SortEdges(edgesToProcess); // Can be multithreaded later as an optimization
-            CountEdges(meshesToProcess, edgesToProcess);
-            CreateHardShadowMeshes(meshesToProcess, edgesToProcess, vertexStartIndices);
-
-            //DebugDrawEdgesAndTangents(meshesToProcess, edgesToProcess);
-
-            // Cleanup array allocations
-            edgesToProcess.Dispose();
-            vertexStartIndices.Dispose();
-
-            meshesToProcess.Clear();
+            mesh.Clear();
+            mesh.vertices = finalVertices;
+            mesh.triangles = finalTriangles;
         }
     }
 }

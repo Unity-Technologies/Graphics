@@ -10,17 +10,23 @@ namespace UnityEngine.Experimental.Rendering.Universal
         public float m_Radius = 1;
         public int m_Sides = 6;
         public float m_Angle = 0;
-        Mesh m_Mesh;
+        
         internal IShadowCasterGroup2D m_ShadowCasterGroup = null;
 
         int m_PreviousSides = 6;
         float m_PreviousAngle = 0;
         float m_PreviousRadius = 1;
-        [SerializeField] Vector3[] m_ShapePath;
 
-        public float radius { get => m_Radius; }
-        internal Mesh mesh { get => m_Mesh; }
+        [SerializeField] Vector3[] m_ShapePath;
+        [SerializeField] int m_ShapePathHash = 0;
+        [SerializeField] int m_PreviousPathHash = 0;
+        [SerializeField] Mesh m_Mesh;
+
+        public float radius => m_Radius;
+        internal Mesh mesh => m_Mesh; 
         internal Vector3[] shapePath => m_ShapePath;
+        internal int shapePathHash { get { return m_ShapePathHash; } set { m_ShapePathHash = value; } }
+
 
 
         Mesh m_ShadowMesh;
@@ -45,26 +51,20 @@ namespace UnityEngine.Experimental.Rendering.Universal
             Vector3[] vertices;
             Vector4[] tangents;
             int[] triangles;
-            Color[] colors;
 
             int extraTriangles = sides; // 1 new triangle for the hard shadow.
             int extraVertices = sides;  // 1 new vertex per side for the hard shadow.
 
-            //int extraTriangles = 2 * sides; // 1 new triangle for the hard shadow. 1 new triangle for the soft shadow.
-            //int extraVertices = 4 * sides;  // 1 new vertex per side for the hard shadow. 3 new vertices for the soft shadow.
-
             vertices = new Vector3[1 + sides + extraVertices];
             tangents = new Vector4[1 + sides + extraVertices];
             triangles = new int[3 * (sides + extraTriangles)];
-
-            colors = new Color[1 + sides + extraVertices];
+            
 
             int centerIndex = sides + extraVertices;
             int lastVertexIndex = 0;
 
             vertices[centerIndex] = position;
             tangents[centerIndex] = Vector4.zero;
-            colors[centerIndex] = Color.clear;
             float radiansPerSide = 2 * Mathf.PI / sides;
             Vector3 lastEndPoint = radius * new Vector3(Mathf.Cos(angleOffset), Mathf.Sin(angleOffset), 0);
             for (int i = 0; i < sides; i++)
@@ -85,7 +85,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 tangents[vertexIndex] = new Vector4(nextCross.x, nextCross.y, 0, 0);
                 tangents[vertexIndex].z = 0;
                 tangents[vertexIndex].w = 0;
-                colors[vertexIndex] = Color.clear;
 
                 int triangleIndex = 3 * i;
                 triangles[triangleIndex] = vertexIndex;
@@ -96,39 +95,13 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 int extraVertexIndex = vertexIndex + sides;
                 vertices[extraVertexIndex] = endPoint;
                 tangents[extraVertexIndex] = new Vector4(curCross.x, curCross.y, 0, 0);
-                colors[extraVertexIndex] = Color.clear;
 
-                //if (i == 3)
-                //{
-                //    Vector3 transformedEndPoint = transform.TransformPoint(endPoint);
-                //    Debug.DrawLine(transformedEndPoint, transformedEndPoint + -nextCross, Color.blue, 60);
-                //    Debug.DrawLine(transformedEndPoint, transformedEndPoint + -curCross, Color.red, 60);
-                //}
 
                 int extraTriangleIndex = 3 * (i + sides);
                 triangles[extraTriangleIndex] = vertexIndex;
                 triangles[extraTriangleIndex + 1] = lastVertexIndex;
                 triangles[extraTriangleIndex + 2] = extraVertexIndex;
 
-                // Create extra soft shadow triangles
-                //int softVertexIndex = 3 * vertexIndex + 2 * sides;
-                //int softTriangleIndex = extraTriangleIndex + 3 * sides;
-
-                //vertices[softVertexIndex] = endPoint;
-                //vertices[softVertexIndex + 1] = endPoint;
-                //vertices[softVertexIndex + 2] = endPoint;
-
-                //tangents[softVertexIndex] = Vector4.zero;
-                //tangents[softVertexIndex + 1] = new Vector4(curCross.x, curCross.y, 0, 0);
-                //tangents[softVertexIndex + 2] = new Vector4(curCross.x, curCross.y, nextCross.x, nextCross.y);
-
-                //colors[softVertexIndex] = Color.grey;
-                //colors[softVertexIndex + 1] = Color.grey;
-                //colors[softVertexIndex + 2] = Color.grey;
-
-                //triangles[softTriangleIndex] = softVertexIndex;
-                //triangles[softTriangleIndex + 1] = softVertexIndex + 1;
-                //triangles[softTriangleIndex + 2] = softVertexIndex + 2;
 
                 lastEndPoint = endPoint;
                 lastVertexIndex = vertexIndex;
@@ -138,9 +111,17 @@ namespace UnityEngine.Experimental.Rendering.Universal
             mesh.vertices = vertices;
             mesh.triangles = triangles;
             mesh.tangents = tangents;
-            mesh.colors = colors;
+
 
             m_Mesh = mesh;
+        }
+
+        void CreateShadowMesh(Vector3[] shapePath, ref Mesh mesh)
+        {
+            if(mesh != null)
+            {
+
+            }
         }
 
         private void Awake()
@@ -151,9 +132,14 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         private void OnEnable()
         {
-
-
             CreateShadowPolygon(Vector3.zero, m_Radius, m_Angle, m_Sides, ref m_ShadowMesh);
+
+            if (m_Mesh == null)
+            {
+                m_Mesh = new Mesh();
+                CreateShadowMesh(m_ShapePath, ref m_Mesh);
+                m_PreviousPathHash = m_ShapePathHash;
+            }
 
             LightUtility.AddToShadowCasterToGroup(this, out m_ShadowCasterGroup);
         }

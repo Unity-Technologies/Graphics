@@ -27,6 +27,13 @@ namespace UnityEditor.Experimental.Rendering.Universal
 
             // This is untracked right now...
             serializedObject.ApplyModifiedProperties();
+
+            ShadowCaster2D shadowCaster = target as ShadowCaster2D;
+            if (shadowCaster != null)
+            {
+                int hash = LightUtility.GetShapePathHash(shadowCaster.shapePath);
+                shadowCaster.shapePathHash = hash;
+            }
         }
     }
 }
