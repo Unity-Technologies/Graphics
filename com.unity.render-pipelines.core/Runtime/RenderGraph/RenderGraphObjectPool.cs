@@ -38,9 +38,9 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         /// Allocate a temporary typed array of a specific size.
         /// Unity releases the array at the end of the Render Pass.
         /// </summary>
-        /// <typeparam name="T">Type of the array to be allocated</typeparam>
-        /// <param name="size">Number of element in the array</param>
-        /// <returns>A new array of type T with size number of elements</returns>
+        /// <typeparam name="T">Type of the array to be allocated.</typeparam>
+        /// <param name="size">Number of element in the array.</param>
+        /// <returns>A new array of type T with size number of elements.</returns>
         public T[] GetTempArray<T>(int size)
         {
             if (!m_ArrayPool.TryGetValue((typeof(T), size), out var stack))
@@ -55,9 +55,9 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         }
 
         /// <summary>
-        /// Allocate a temporary MaterialPropertyBlock for the Render Pass
+        /// Allocate a temporary MaterialPropertyBlock for the Render Pass.
         /// </summary>
-        /// <returns>A new clean MaterialPropertyBlock</returns>
+        /// <returns>A new clean MaterialPropertyBlock.</returns>
         public MaterialPropertyBlock GetTempMaterialPropertyBlock()
         {
             var result = SharedObjectPool<MaterialPropertyBlock>.sharedPool.Get();
