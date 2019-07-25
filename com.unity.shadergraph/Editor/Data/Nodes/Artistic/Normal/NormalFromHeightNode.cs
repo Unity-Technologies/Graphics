@@ -65,7 +65,7 @@ namespace UnityEditor.ShaderGraph
             sb.AppendLine("{0} {1};", FindOutputSlot<MaterialSlot>(k_OutputSlotId).concreteValueType.ToShaderString(), GetVariableNameForSlot(k_OutputSlotId));
             sb.AppendLine("$precision3x3 _{0}_TangentMatrix = $precision3x3(IN.{1}SpaceTangent, IN.{1}SpaceBiTangent, IN.{1}SpaceNormal);", GetVariableNameForNode(), NeededCoordinateSpace.World.ToString());
             sb.AppendLine("$precision3 _{0}_Position = IN.{1}SpacePosition;", GetVariableNameForNode(), NeededCoordinateSpace.World.ToString());
-            sb.AppendLine("$precision _{0}_scale = 1.0 / ({1});", GetVariableNameForNode(), GetVariableNameForSlot(k_InputStrengthId));
+            sb.AppendLine("$precision _{0}_scale = 1.0 / ({1});", GetVariableNameForNode(), GetSlotValue(k_InputStrengthId, generationMode));
             sb.AppendLine("{0}({1}, _{2}_TangentMatrix, _{2}_scale, {3});", GetFunctionName(), inputValue, GetVariableNameForNode(), outputValue);
         }
 
