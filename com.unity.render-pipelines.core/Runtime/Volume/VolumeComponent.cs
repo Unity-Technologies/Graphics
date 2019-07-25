@@ -27,7 +27,7 @@ namespace UnityEngine.Rendering
 
         public string displayName { get; protected set; } = "";
 
-        internal ReadOnlyCollection<VolumeParameter> parameters { get; private set; }
+        public ReadOnlyCollection<VolumeParameter> parameters { get; private set; }
 
 #pragma warning disable 414
         [SerializeField]
