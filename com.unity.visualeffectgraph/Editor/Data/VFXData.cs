@@ -42,30 +42,16 @@ namespace UnityEditor.VFX
         [VFXSetting, SerializeField]
         protected string title;// TODO: Do we really need it ?
 
-        public override string systemName
-        {
-            get { return title; }
-            set
-            {
-                if (string.IsNullOrEmpty(value))
-                    value = VFXSystemNames.DefaultSystemName;
-                var graph = m_Owners[0].GetGraph();// TODO: dangerous
-                if (graph != null)
-                        title = graph.systemNames.AddAndCorrect(this, value);
-                Debug.Log("data.systemName.set:: graph hash: " + graph.GetHashCode());
-            }
-        }
-
         public override void SetSystemName(VFXGraph graph, string name)
         {
             if (string.IsNullOrEmpty(name))
                 name = VFXSystemNames.DefaultSystemName;
             if (graph != null)
-                title = graph.systemNames.AddAndCorrect(this, name);
+                title = graph.systemNames.AddAndCorrect(graph, this, name);
             Debug.Log("data.systemName.set:: graph hash: " + graph.GetHashCode());
         }
 
-        public override string GetSystemName(VFXGraph graph)
+        public override string GetSystemName()
         {
             return title;
         }

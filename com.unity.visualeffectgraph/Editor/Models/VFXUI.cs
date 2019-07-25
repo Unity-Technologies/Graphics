@@ -108,7 +108,7 @@ namespace UnityEditor.VFX
         public string GetNameOfSystem(IEnumerable<VFXContext> contexts)
         {
             foreach (var context in contexts)
-                return context.systemName;
+                return context.GetSystemName();
             return string.Empty;
         }
 
@@ -116,7 +116,7 @@ namespace UnityEditor.VFX
         {
             foreach (var context in contexts)
             {
-                context.systemName = name;
+                context.SetSystemName(context.GetGraph(), name);
                 return;
             }
         }

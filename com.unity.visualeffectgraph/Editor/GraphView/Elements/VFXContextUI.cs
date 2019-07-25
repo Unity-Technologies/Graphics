@@ -892,7 +892,7 @@ namespace UnityEditor.VFX.UI
                 .Replace("\"", "")
                 .Replace("|", "")
                 ;
-            VFXSystemNames.UIUpdate(this, newName);
+            VFXSystemNames.UIUpdate(controller.model.GetGraph(), this, newName);
             m_TextField.style.display = DisplayStyle.None;
         }
         void OnTitleRelayout(GeometryChangedEvent e)

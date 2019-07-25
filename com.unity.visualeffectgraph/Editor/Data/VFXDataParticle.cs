@@ -764,7 +764,7 @@ namespace UnityEditor.VFX
                 flags = systemFlag,
                 tasks = taskDescs.ToArray(),
                 capacity = capacity,
-                name = systemName,
+                name = GetSystemName(),
                 buffers = systemBufferMappings.ToArray(),
                 values = systemValueMappings.ToArray(),
                 type = VFXSystemType.Particle,

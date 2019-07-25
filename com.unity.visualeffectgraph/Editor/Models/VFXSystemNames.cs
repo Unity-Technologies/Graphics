@@ -21,10 +21,9 @@ namespace UnityEditor.VFX
         private Dictionary<VFXModel, string> m_UnindexedNames = new Dictionary<VFXModel, string>();
         private Dictionary<string, List<int>> m_DuplicatesIndices = new Dictionary<string, List<int>>();
 
-
         public static string ExtractName(VFXModel system)
         {
-            return system.systemName;
+            return system.GetSystemName();
         }
 
         public static int ExtractIndex(string name)
@@ -49,7 +48,7 @@ namespace UnityEditor.VFX
                 .Select(c =>  c.GetData() != null ? c.GetData() as VFXModel : c)
                 .Distinct().ToList();
 
-            Init(systems);
+            Init(graph, systems);
         }
 
         /* Handling user modifications */
@@ -59,15 +58,15 @@ namespace UnityEditor.VFX
             systemBorder.title = systemBorder.controller.title;
         }
 
-        public static void UIUpdate(VFXContextUI contextUI, string newName)
+        public static void UIUpdate(VFXGraph graph, VFXContextUI contextUI, string newName)
         {
             if (contextUI.controller.model.contextType == VFXContextType.Spawner)
             {
-                contextUI.controller.model.systemName = newName;
+                contextUI.controller.model.SetSystemName(graph, newName);
             }
         }
 
-        public void Init(IEnumerable<VFXModel> models)
+        public void Init(VFXGraph graph, IEnumerable<VFXModel> models)
         {
             m_UnindexedNames = new Dictionary<VFXModel, string>();
             m_DuplicatesIndices = new Dictionary<string, List<int>>();
@@ -82,16 +81,16 @@ namespace UnityEditor.VFX
                     systemName = DefaultSystemName;
                 
                 var unindexedName = SysRegex.Replace(systemName, IndexPattern, "");
-                system.systemName = unindexedName;
+                system.SetSystemName(graph, unindexedName);
                 if (!m_UnindexedNames.ContainsKey(system))
-                    Debug.LogError("Init: key lost. system.systemName: " + system.systemName);
+                    Debug.LogError("Init: key lost. system.systemName: " + system.GetSystemName() + " graph hash: " + graph.GetHashCode());
             }
         }
 
         /// <summary>
         /// Removed every registered system that is not in models.
         /// </summary>
-        public void Sanitize(IEnumerable<VFXModel> models)
+        public void Sanitize(VFXGraph graph, IEnumerable<VFXModel> models)
         {
             if (models != null)
             {
@@ -100,7 +99,7 @@ namespace UnityEditor.VFX
                 foreach (var registeredModel in registeredModels)
                 {
                     if (!systems.Contains(registeredModel))
-                        RemoveSystem(registeredModel, true);
+                        RemoveSystem(graph, registeredModel, true);
                 }
             }
             else
@@ -115,21 +114,21 @@ namespace UnityEditor.VFX
         /// If an indexed name is supplied, index will not be considered, and will probably change even if it is a correct one.
         /// I'm the index master >:-)
         /// </summary>
-        public string AddAndCorrect(VFXModel system, string wishedName)
+        public string AddAndCorrect(VFXGraph graph, VFXModel system, string wishedName)
         {
             //Debug.Log("AAC: " + RuntimeHelpers.GetHashCode(system));
             if (string.IsNullOrEmpty(wishedName))
                 wishedName = DefaultSystemName;
             var unindexedName = SysRegex.Replace(wishedName, IndexPattern, "");
 
-            RemoveSystem(system);
+            RemoveSystem(graph, system);
 
             m_UnindexedNames[system] = unindexedName;
 
             return MakeUnique(unindexedName);
         }
 
-        public void RemoveSystem(VFXModel system, bool removeFromUnindexNames = true)
+        public void RemoveSystem(VFXGraph graph, VFXModel system, bool removeFromUnindexNames = true)
         {
             // if system is not of type VFXDataParticle, or if it is not a spawner of type VFXContext, abort.
             if (!(system is VFXDataParticle))

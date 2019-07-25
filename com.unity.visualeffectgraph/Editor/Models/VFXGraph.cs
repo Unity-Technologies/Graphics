@@ -218,8 +218,6 @@ namespace UnityEditor.VFX
 
         private VFXSystemNames m_SystemNames = new VFXSystemNames();
 
-        public override string systemName { get => string.Empty; }
-
         public VFXSystemNames systemNames { get { return m_SystemNames; } }
 
         public void BuildParameterInfo()
@@ -300,7 +298,7 @@ namespace UnityEditor.VFX
             }
             Profiler.EndSample();
             Profiler.EndSample();
-            m_SystemNames.Sanitize(models);
+            m_SystemNames.Sanitize(this, models);
             m_ExpressionGraphDirty = true;
             m_ExpressionValuesDirty = true;
             m_DependentDirty = true;
@@ -371,7 +369,7 @@ namespace UnityEditor.VFX
             if (contexts != null)
             {
                 var systems = contexts.Select(context => context.GetData() != null ? context.GetData() as VFXModel : context as VFXModel);
-                m_SystemNames.Init(systems);
+                m_SystemNames.Init(this, systems);
             }
 
             m_GraphSanitized = true;

@@ -474,7 +474,7 @@ namespace UnityEditor.VFX
                     values = systemValueMappings.ToArray(),
                     buffers = buffers.ToArray(),
                     capacity = 0u,
-                    name = spawnContext.systemName,
+                    name = spawnContext.GetSystemName(),
                     flags = VFXSystemFlag.SystemDefault,
                     layer = uint.MaxValue,
                     tasks = spawnContext.activeFlattenedChildrenWithImplicit.Select((b, index) =>
@@ -798,6 +798,13 @@ namespace UnityEditor.VFX
 
                 foreach (var c in contexts) // Unflag all contexts
                     c.MarkAsCompiled(false);
+
+                var systems = models.OfType<VFXContext>()
+                    .Where(c => c.contextType == VFXContextType.Spawner || c.GetData() != null)
+                    .Select(c => c.GetData() != null ? c.GetData() as VFXModel : c)
+                    .Distinct().ToList();
+
+                m_Graph.systemNames.Init(m_Graph, systems);
 
                 IEnumerable<VFXContext> compilableContexts = contexts.Where(c => c.CanBeCompiled()).ToArray();
                 var compilableData = models.OfType<VFXData>().Where(d => d.CanBeCompiled());

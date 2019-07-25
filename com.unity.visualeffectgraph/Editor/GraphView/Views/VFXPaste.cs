@@ -259,7 +259,7 @@ namespace UnityEditor.VFX.UI
             }
 
             newContext.label = context.label;
-            newContext.systemName = context.systemName;
+            newContext.SetSystemName(newContext.GetGraph(), context.systemName);
 
             if (newContext is VFXAbstractRenderedOutput)
                 PasteSubOutputs((VFXAbstractRenderedOutput)newContext, ref context);

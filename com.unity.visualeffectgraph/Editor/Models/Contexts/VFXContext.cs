@@ -62,34 +62,6 @@ namespace UnityEditor.VFX
         [SerializeField]
         private string m_Label;
 
-        public override string systemName
-        {
-            // TODO: should be factorized in VFXSystemNames
-            get
-            {
-                if (m_Data != null)
-                    return m_Data.systemName;
-                if (contextType == VFXContextType.Spawner)
-                    return label;
-                return string.Empty;
-            }
-            set
-            {
-                if (string.IsNullOrEmpty(value))
-                    value = VFXSystemNames.DefaultSystemName;
-
-                if (m_Data != null)
-                    m_Data.systemName = value;
-                else if (contextType == VFXContextType.Spawner)
-                {
-                    var graph = GetGraph();
-                    if (graph != null)
-                        label = graph.systemNames.AddAndCorrect(this, value);
-                    Debug.Log("context.systemName.set:: graph hash: " + graph.GetHashCode());
-                }
-            }
-        }
-
         public override void SetSystemName(VFXGraph graph, string name)
         {
             if (string.IsNullOrEmpty(name))
@@ -100,17 +72,17 @@ namespace UnityEditor.VFX
             else if (contextType == VFXContextType.Spawner)
             {
                 if (graph != null)
-                    label = graph.systemNames.AddAndCorrect(this, name);
+                    m_Label = graph.systemNames.AddAndCorrect(graph, this, name);
                 Debug.Log("context.systemName.set:: graph hash: " + graph.GetHashCode());
             }
         }
 
-        public override string GetSystemName(VFXGraph graph)
+        public override string GetSystemName()
         {
             if (m_Data != null)
-                return m_Data.systemName;
+                return m_Data.GetSystemName();
             if (contextType == VFXContextType.Spawner)
-                return label;
+                return m_Label;
             return string.Empty;
         }
 
@@ -256,7 +228,7 @@ namespace UnityEditor.VFX
         {
             base.OnAdded();
             var graph = GetGraph();
-            systemName = VFXSystemNames.DefaultSystemName;
+            SetSystemName(graph, VFXSystemNames.DefaultSystemName);
             if (hasBeenCompiled || CanBeCompiled())
                 Invalidate(InvalidationCause.kExpressionGraphChanged);
         }
@@ -265,7 +237,7 @@ namespace UnityEditor.VFX
         {
             base.OnRemoved();
             var graph = GetGraph();
-            graph.systemNames.RemoveSystem(m_Data != null ? m_Data as VFXModel : this);
+            graph.systemNames.RemoveSystem(GetGraph(), m_Data != null ? m_Data as VFXModel : this);
             if (hasBeenCompiled || CanBeCompiled())
                 Invalidate(InvalidationCause.kExpressionGraphChanged);
         }

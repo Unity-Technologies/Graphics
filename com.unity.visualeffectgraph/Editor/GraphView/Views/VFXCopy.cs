@@ -369,7 +369,7 @@ namespace UnityEditor.VFX.UI
             var blocks = controller.blockControllers;
 
             context.label = controller.model.label;
-            context.systemName = controller.model.systemName;
+            context.systemName = controller.model.GetSystemName();
 
             if (controller.model.GetData() != null)
                 context.dataIndex = Array.IndexOf(datas, controller.model.GetData());
