@@ -10,7 +10,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added option in the config package to disable globally Area Lights and to select shadow quality settings for the deferred pipeline. 
 
 ### Fixed
-- Fixed material albedo affecting the lux meter
 - Fixed XR SDK mirror view blit, cleanup some XRTODO and removed XRDebug.cs
 - Fixed culling for volumetrics with XR single-pass rendering
 
