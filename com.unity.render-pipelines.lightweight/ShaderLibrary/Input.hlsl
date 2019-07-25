@@ -30,17 +30,12 @@ struct InputData
 //                      Constant Buffers                                     //
 ///////////////////////////////////////////////////////////////////////////////
 
-CBUFFER_START(_PerFrame)
 half4 _GlossyEnvironmentColor;
 half4 _SubtractiveShadowColor;
-CBUFFER_END
 
-CBUFFER_START(_PerCamera)
 float4x4 _InvCameraViewProj;
 float4 _ScaledScreenParams;
-CBUFFER_END
 
-CBUFFER_START(_LightBuffer)
 float4 _MainLightPosition;
 half4 _MainLightColor;
 
@@ -50,7 +45,6 @@ half4 _AdditionalLightsColor[MAX_VISIBLE_LIGHTS];
 half4 _AdditionalLightsAttenuation[MAX_VISIBLE_LIGHTS];
 half4 _AdditionalLightsSpotDir[MAX_VISIBLE_LIGHTS];
 half4 _AdditionalLightsOcclusionProbes[MAX_VISIBLE_LIGHTS];
-CBUFFER_END
 
 #define UNITY_MATRIX_M     unity_ObjectToWorld
 #define UNITY_MATRIX_I_M   unity_WorldToObject
