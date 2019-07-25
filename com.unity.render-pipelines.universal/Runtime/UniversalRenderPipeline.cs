@@ -13,6 +13,9 @@ namespace UnityEngine.Rendering.LWRP
     [Obsolete("LWRP -> Universal (UnityUpgradable) -> UnityEngine.Rendering.Universal.UniversalRenderPipeline", true)]
     public class LightweightRenderPipeline
     {
+        public LightweightRenderPipeline(LightweightRenderPipelineAsset asset)
+        {
+        }
     }
 }
 
@@ -239,8 +242,10 @@ namespace UnityEngine.Rendering.Universal
             
             cameraData.isSceneViewCamera = camera.cameraType == CameraType.SceneView;
             cameraData.isHdrEnabled = camera.allowHDR && settings.supportsHDR;
-            cameraData.postProcessEnabled = CoreUtils.ArePostProcessesEnabled(camera) && camera.cameraType != CameraType.Reflection &&
-                SystemInfo.graphicsDeviceType != GraphicsDeviceType.OpenGLES2;
+            cameraData.postProcessEnabled = CoreUtils.ArePostProcessesEnabled(camera)
+                && camera.cameraType != CameraType.Reflection
+                && camera.cameraType != CameraType.Preview
+                && SystemInfo.graphicsDeviceType != GraphicsDeviceType.OpenGLES2;
 
             // Disables postprocessing in mobile VR. It's not stable on mobile yet.
             // TODO: enable postfx for stereo rendering
@@ -280,6 +285,7 @@ namespace UnityEngine.Rendering.Universal
                 cameraData.requiresOpaqueTexture = settings.supportsCameraOpaqueTexture;
                 cameraData.volumeLayerMask = 1; // "Default"
                 cameraData.volumeTrigger = null;
+                cameraData.postProcessEnabled = false;
                 cameraData.isStopNaNEnabled = false;
                 cameraData.isDitheringEnabled = false;
                 cameraData.antialiasing = AntialiasingMode.None;

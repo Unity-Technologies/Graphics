@@ -471,5 +471,7 @@ namespace UnityEditor.Rendering.Universal
 
             return resultPass;
         }
+
+        public UniversalPBRSubShader() { }
     }
 }
