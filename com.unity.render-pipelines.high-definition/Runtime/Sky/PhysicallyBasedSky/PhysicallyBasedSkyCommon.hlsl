@@ -73,16 +73,11 @@ float AerosolPhase(float LdotV)
     return _AerosolPhasePartConstant * CornetteShanksPhasePartVarying(_AerosolAnisotropy, -LdotV);
 }
 
-// AerosolPhase / AirPhase.
-float AerosolToAirPhaseRatio(float LdotV)
-{
-    float k = 3 / (16 * PI);
-    return _AerosolPhasePartConstant * rcp(k) * CornetteShanksPhasePartAsymmetrical(_AerosolAnisotropy, -LdotV);
-}
-
+// For multiple scattering.
+// Assume that, after multiple bounces, the effect of anisotropy is lost.
 float3 AtmospherePhaseScatter(float LdotV, float height)
 {
-    return AirPhase(LdotV) * AirScatter(height) + AerosolPhase(LdotV) * AerosolScatter(height);
+    return AirPhase(LdotV) * (AirScatter(height) + AerosolScatter(height));
 }
 
 // Returns the closest hit in X and the farthest hit in Y.
