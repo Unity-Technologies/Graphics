@@ -6,10 +6,11 @@ Creates a normal map from a height value defined by input **Input**.
 
 ## Ports
 
-| Name        | Direction           | Type  | Description |
-|:------------ |:-------------|:-----|:---|
-| In      | Input | Vector 1 | Input height value |
-| Out | Output      |    Vector 3 | Output value |
+| Name         | Direction| Type         | Description |
+|:------------ |:---------|:-------------|:---|
+| In           | Input    | Vector 1     | Input height value |
+| Strength     | Input    | Vector 1     | Strength of the normal |
+| Out | Output | Vector 3 | Output value |
 
 ## Controls
 
@@ -24,32 +25,24 @@ The following example code represents one possible outcome of this node per **Ou
 **Tangent**
 
 ```
-void Unity_NormalFromHeight_Tangent(float In, out float3 Out)
+void Unity_NormalFromHeight_Tangent_float(float In, float3x3 TangentMatrix, float scale, out float3 Out)
 {
-    float3 worldDirivativeX = ddx(Position * 100);
-    float3 worldDirivativeY = ddy(Position * 100);
-    float3 crossX = cross(TangentMatrix[2].xyz, worldDirivativeX);
-    float3 crossY = cross(TangentMatrix[2].xyz, worldDirivativeY);
-    float3 d = abs(dot(crossY, worldDirivativeX));
-    float3 inToNormal = ((((In + ddx(In)) - In) * crossY) + (((In + ddy(In)) - In) * crossX)) * sign(d);
-    inToNormal.y *= -1.0;
-    Out = normalize((d * TangentMatrix[2].xyz) - inToNormal);
-    Out = TransformWorldToTangent(Out, TangentMatrix);
+    float3 partialDerivativeX = float3(scale, 0.0, ddx(In));
+    float3 partialDerivativeY = float3(0.0, scale, ddy(In));
+
+    Out = normalize(cross(partialDerivativeX, partialDerivativeY));
 }
 ```
 
 **World**
 
 ```
-void Unity_NormalFromHeight_World(float In, out float3 Out)
+void Unity_NormalFromHeight_World_float(float In, float3x3 TangentMatrix, float scale, out float3 Out)
 {
-    float3 worldDirivativeX = ddx(Position * 100);
-    float3 worldDirivativeY = ddy(Position * 100);
-    float3 crossX = cross(TangentMatrix[2].xyz, worldDirivativeX);
-    float3 crossY = cross(TangentMatrix[2].xyz, worldDirivativeY);
-    float3 d = abs(dot(crossY, worldDirivativeX));
-    float3 inToNormal = ((((In + ddx(In)) - In) * crossY) + (((In + ddy(In)) - In) * crossX)) * sign(d);
-    inToNormal.y *= -1.0;
-    Out = normalize((d * TangentMatrix[2].xyz) - inToNormal);
+    float3 partialDerivativeX = float3(scale, 0.0, ddx(In));
+    float3 partialDerivativeY = float3(0.0, scale, ddy(In));
+
+    Out = normalize(cross(partialDerivativeX, partialDerivativeY));
+    Out = TransformTangentToWorld(Out, TangentMatrix);
 }
 ```
