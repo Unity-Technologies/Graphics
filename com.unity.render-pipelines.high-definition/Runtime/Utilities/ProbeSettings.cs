@@ -1,6 +1,6 @@
 using System;
 
-namespace UnityEngine.Experimental.Rendering.HDPipeline
+namespace UnityEngine.Rendering.HighDefinition
 {
     [Flags]
     public enum ProbeSettingsFields
@@ -23,7 +23,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     }
 
     [Serializable]
-    public struct ProbeSettingsOverride
+    struct ProbeSettingsOverride
     {
         public ProbeSettingsFields probe;
         public CameraSettingsOverride camera;

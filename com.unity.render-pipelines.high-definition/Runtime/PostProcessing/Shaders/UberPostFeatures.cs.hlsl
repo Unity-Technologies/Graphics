@@ -5,7 +5,7 @@
 #ifndef UBERPOSTFEATURES_CS_HLSL
 #define UBERPOSTFEATURES_CS_HLSL
 //
-// UnityEngine.Experimental.Rendering.HDPipeline.UberPostFeatureFlags:  static fields
+// UnityEngine.Rendering.HighDefinition.UberPostFeatureFlags:  static fields
 //
 #define UBERPOSTFEATUREFLAGS_NONE (0)
 #define UBERPOSTFEATUREFLAGS_CHROMATIC_ABERRATION (1)

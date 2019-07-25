@@ -8,10 +8,7 @@
 #pragma kernel KBuild_NeutralTonemap           MAIN=KBuild_NeutralTonemap            TONEMAPPING_NEUTRAL
 #pragma kernel KBuild_AcesTonemap              MAIN=KBuild_AcesTonemap               TONEMAPPING_ACES
 #pragma kernel KBuild_CustomTonemap            MAIN=KBuild_CustomTonemap             TONEMAPPING_CUSTOM
-#pragma kernel KBuild_NoTonemap_Source         MAIN=KBuild_NoTonemap_Source          TONEMAPPING_NONE       USE_SOURCE_LUT
-#pragma kernel KBuild_NeutralTonemap_Source    MAIN=KBuild_NeutralTonemap_Source     TONEMAPPING_NEUTRAL    USE_SOURCE_LUT
-#pragma kernel KBuild_AcesTonemap_Source       MAIN=KBuild_AcesTonemap_Source        TONEMAPPING_ACES       USE_SOURCE_LUT
-#pragma kernel KBuild_CustomTonemap_Source     MAIN=KBuild_CustomTonemap_Source      TONEMAPPING_CUSTOM     USE_SOURCE_LUT
+#pragma kernel KBuild_ExternalTonemap          MAIN=KBuild_ExternalTonemap           TONEMAPPING_EXTERNAL
 
 TEXTURE3D(_LogLut3D);
 RW_TEXTURE3D(float4, _OutputTexture);
@@ -30,7 +27,7 @@ SAMPLER(sampler_LinearClamp);
 
 CBUFFER_START(cb0)
     float4 _Size;               // x: lut_size, y: 1 / (lut_size - 1), zw: unused
-    float4 _LogLut3D_Params;    // x: 1 / lut_size, y: lut_size - 1
+    float4 _LogLut3D_Params;    // x: 1 / lut_size, y: lut_size - 1, z: contribution, w: unused
     float4 _ColorBalance;       // xyz: LMS coeffs, w: unused
     float4 _ColorFilter;        // xyz: color, w: unused
     float4 _ChannelMixerRed;    // xyz: rgb coeffs, w: unused
@@ -64,16 +61,6 @@ float GetLuminance(float3 colorLinear)
     #else
     return Luminance(colorLinear);
     #endif
-}
-
-// Soft-light blending mode use for split-toning. Works in HDR as long as `blend` is [0;1] which is
-// fine for our use case.
-float3 SoftLight(float3 base, float3 blend)
-{
-    float3 r1 = 2.0 * base * blend + base * base * (1.0 - 2.0 * blend);
-    float3 r2 = sqrt(base) * (2.0 * blend - 1.0) + 2.0 * base * (1.0 - blend);
-    float3 t = step(0.5, blend);
-    return r2 * t + (1.0 - t) * r1;
 }
 
 float EvaluateCurve(TEXTURE2D(curve), float t)
@@ -216,6 +203,12 @@ float3 Tonemap(float3 colorLinear)
         // Note: input is actually ACEScg (AP1 w/ linear encoding)
         float3 aces = ACEScg_to_ACES(colorLinear);
         colorLinear = AcesTonemap(aces);
+    }
+    #elif defined(TONEMAPPING_EXTERNAL)
+    {
+        float3 colorLutSpace = saturate(LinearToLogC(colorLinear));
+        float3 colorLut = ApplyLut3D(TEXTURE3D_ARGS(_LogLut3D, sampler_LogLut3D), colorLutSpace, _LogLut3D_Params.xy);
+        colorLinear = lerp(colorLinear, colorLut, _LogLut3D_Params.z);
     }
     #endif
 

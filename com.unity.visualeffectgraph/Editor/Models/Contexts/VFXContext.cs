@@ -32,10 +32,11 @@ namespace UnityEditor.VFX
     [Flags]
     public enum VFXDataType
     {
-        None =         0,
-        SpawnEvent =   1 << 0,
-        Particle =     1 << 1,
-        Mesh =         1 << 2,
+        None =          0,
+        SpawnEvent =    1 << 0,
+        Particle =      1 << 1,     
+        Mesh =          1 << 2,
+        ParticleStrip = 1 << 3 | Particle, // strips 
     };
 
     [Serializable]
@@ -94,14 +95,6 @@ namespace UnityEditor.VFX
         {
             base.OnEnable();
 
-            // type must not be a combination of flags so test if it's a power of two
-            if ((m_ContextType & (m_ContextType - 1)) != 0)
-            {
-                var invalidContext = m_ContextType;
-                m_ContextType = VFXContextType.None;
-                throw new ArgumentException(string.Format("Illegal context type: {0}", invalidContext));
-            }
-
             int nbRemoved = 0;
             if (m_InputFlowSlot == null)
                 m_InputFlowSlot = Enumerable.Range(0, inputFlowCount).Select(_ => new VFXContextSlot()).ToArray();
@@ -127,6 +120,7 @@ namespace UnityEditor.VFX
         public bool doesGenerateShader                                  { get { return codeGeneratorTemplate != null; } }
         public virtual string codeGeneratorTemplate                     { get { return null; } }
         public virtual bool codeGeneratorCompute                        { get { return true; } }
+        public virtual bool doesIncludeCommonCompute                    { get { return codeGeneratorCompute; } }
         public virtual VFXContextType contextType                       { get { return m_ContextType; } }
         public virtual VFXDataType inputType                            { get { return m_InputType; } }
         public virtual VFXDataType outputType                           { get { return m_OutputType; } }
@@ -134,6 +128,7 @@ namespace UnityEditor.VFX
         public virtual VFXTaskType taskType                             { get { return VFXTaskType.None; } }
         public virtual IEnumerable<VFXAttributeInfo> attributes         { get { return Enumerable.Empty<VFXAttributeInfo>(); } }
         public virtual IEnumerable<VFXMapping> additionalMappings       { get { return Enumerable.Empty<VFXMapping>(); } }
+        public virtual IEnumerable<string> additionalDataHeaders        { get { return GetData().additionalHeaders; } }
         public virtual IEnumerable<string> additionalDefines            { get { return Enumerable.Empty<string>(); } }
         public virtual IEnumerable<KeyValuePair<string, VFXShaderWriter>> additionalReplacements { get { return Enumerable.Empty<KeyValuePair<string, VFXShaderWriter>>(); } }
 
@@ -221,15 +216,15 @@ namespace UnityEditor.VFX
             if (from == to || from == null || to == null)
                 return false;
 
-            if (from.outputType == VFXDataType.None || to.inputType == VFXDataType.None || from.outputType != to.inputType)
+            if (from.outputType == VFXDataType.None || to.inputType == VFXDataType.None || (from.outputType & to.inputType) != to.inputType)
                 return false;
 
             if (fromIndex >= from.outputFlowSlot.Length || toIndex >= to.inputFlowSlot.Length)
                 return false;
 
             //If link already present, returns false
-            if (    from.m_OutputFlowSlot[fromIndex].link   .Any(o => o.context == to   && o.slotIndex == toIndex)
-                ||  to.m_InputFlowSlot[toIndex].link        .Any(o => o.context == from && o.slotIndex == fromIndex))
+            if (from.m_OutputFlowSlot[fromIndex].link   .Any(o => o.context == to   && o.slotIndex == toIndex) ||
+                to.m_InputFlowSlot[toIndex].link        .Any(o => o.context == from && o.slotIndex == fromIndex))
                 return false;
 
             return true;
@@ -322,7 +317,7 @@ namespace UnityEditor.VFX
                 }
             }
 
-            if (from.ownedType == to.ownedType)
+            if ((from.ownedType & to.ownedType) == to.ownedType)
                 to.InnerSetData(from.GetData(), false);
 
             from.m_OutputFlowSlot[fromIndex].link.Add(new VFXContextLink() { context = to, slotIndex = toIndex });
@@ -338,7 +333,7 @@ namespace UnityEditor.VFX
 
         private static void InnerUnlink(VFXContext from, VFXContext to, int fromIndex = 0, int toIndex = 0, bool notify = true)
         {
-            if (from.ownedType == to.ownedType)
+            if (from.GetData() == to.GetData() && from.GetData() != null)
                 to.SetDefaultData(false);
 
             from.m_OutputFlowSlot[fromIndex].link.RemoveAll(o => o.context == to && o.slotIndex == toIndex);

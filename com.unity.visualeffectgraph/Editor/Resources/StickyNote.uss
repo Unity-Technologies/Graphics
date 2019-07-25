@@ -48,7 +48,7 @@
     border-top-width:0;
     border-bottom-width:0;
     border-right-width:0;
-    -unity-text-align:top-left;
+    -unity-text-align:upper-left;
 }
 
 .unity-text-field:hover, .unity-base-text-field .unity-base-text-field__input:hover

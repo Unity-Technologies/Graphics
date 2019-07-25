@@ -410,11 +410,6 @@ namespace UnityEditor.VFX
             return m_expandedPaths.Contains(fieldPath);
         }
 
-        protected override void Invalidate(VFXModel model, InvalidationCause cause)
-        {
-            base.Invalidate(model, cause);
-        }
-
         public virtual void UpdateOutputExpressions() {}
 
         public virtual VFXCoordinateSpace GetOutputSpaceFromSlot(VFXSlot slot)

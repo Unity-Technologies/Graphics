@@ -4,9 +4,18 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [7.0.0-preview] - 2019-XX-XX
+## [7.1.1] - 2019-XX-XX
+
+## [7.0.1] - 2019-07-25
+
+### Fixed
+- Fixed a precision issue with the ACES tonemapper on mobile platforms.
+
+## [7.0.0] - 2019-07-17
+
 ### Added
 - First experimental version of the LookDev. Works with all SRP. Only branched on HDRP at the moment.
+- LookDev out of experimental
 
 ## [6.7.0-preview] - 2019-05-16
 

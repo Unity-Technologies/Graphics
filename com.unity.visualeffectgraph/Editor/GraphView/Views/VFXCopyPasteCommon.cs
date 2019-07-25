@@ -100,6 +100,14 @@ namespace UnityEditor.VFX.UI
             public int dataIndex;
             public string label;
             public Node[] blocks;
+            public SubOutput[] subOutputs;
+        }
+
+        [Serializable]
+        protected struct SubOutput
+        {
+            public SerializableType type;
+            public Property[] settings;
         }
 
         [Serializable]
@@ -169,7 +177,7 @@ namespace UnityEditor.VFX.UI
             if (!s_SerializableFieldByType.TryGetValue(type, out fields))
             {
                 fields = new List<FieldInfo>();
-                while (type != typeof(VFXContext) && type != typeof(VFXOperator) && type != typeof(VFXBlock) && type != typeof(VFXData))
+                while (type != typeof(VFXContext) && type != typeof(VFXOperator) && type != typeof(VFXBlock) && type != typeof(VFXData) && type != typeof(VFXSRPSubOutput))
                 {
                     var typeFields = type.GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.DeclaredOnly);
 

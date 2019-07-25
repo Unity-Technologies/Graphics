@@ -43,5 +43,9 @@ ${VFXBegin:VFXFragmentDistortionProcess}
 		distortion = viewNormal.xy * i.distortionInterpolants.x * smpMask;
 		blur = (1.0-smpSmoothness) * i.distortionInterpolants.z * smpMask; 
 #endif
+		float fade = VFXGetSoftParticleFade(i);
+		o.distortion.xyw = fade * i.VFX_VARYING_ALPHA * float3(distortion.xy, blur);
+		o.distortion.z = 1.0;
+		return o;
 
 ${VFXEnd}

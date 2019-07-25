@@ -46,9 +46,7 @@
 #define GROUP_SIZE_1D                      8
 #define SUPPORT_LOCAL_LIGHTS               1 // Local lights contribute to fog lighting
 
-// All shadow bias code is completely broken in volumetrics. Disable it.
-#define SHADOW_USE_ONLY_VIEW_BASED_BIASING 1
-#define SHADOW_USE_VIEW_BIAS_SCALING       0
+#define SHADOW_USE_DEPTH_BIAS              0   
 
 #define PREFER_HALF 0
 
@@ -89,7 +87,7 @@ TEXTURE3D(_VBufferDensity);                     // RGB = scattering, A = extinct
 
 // TODO: avoid creating another Constant Buffer...
 CBUFFER_START(UnityVolumetricLighting)
-    float4x4 _VBufferCoordToViewDirWS[XR_MAX_VIEWS];
+    float4x4 _VBufferCoordToViewDirWS[SHADEROPTIONS_XR_MAX_VIEWS];
 
     float    _VBufferUnitDepthTexelSpacing;
     uint     _NumVisibleDensityVolumes;         // Not used by this shader
@@ -213,18 +211,17 @@ VoxelLighting EvaluateVoxelLightingDirectional(LightLoopContext context, uint fe
         if (light.volumetricLightDimmer > 0)
         {
             float4 lightColor = EvaluateLight_Directional(context, posInput, light);
+            // The volumetric light dimmer, unlike the regular light dimmer, is not pre-multiplied.
+            lightColor.a *= light.volumetricLightDimmer;
+            lightColor.rgb *= lightColor.a; // Composite
 
             // Pass the light direction as the normal to avoid issues with shadow biasing code.
             // TODO: does it make sense?
             float3 shadowN = L;
 
             // This code works for both surface reflection and thin object transmission.
-            lightColor.a *= EvaluateShadow_Directional(context, posInput, light, unused, shadowN);
-
-            // The volumetric light dimmer, unlike the regular light dimmer, is not pre-multiplied.
-            lightColor.a *= light.volumetricLightDimmer;
-
-            lightColor.rgb *= lightColor.a; // Composite
+            float shadow = EvaluateShadow_Directional(context, posInput, light, unused, shadowN);
+            lightColor.rgb *= ComputeShadowColor(shadow, light.shadowTint);
 
             // Important:
             // Ideally, all scattering calculations should use the jittered versions
@@ -330,17 +327,17 @@ VoxelLighting EvaluateVoxelLightingLocal(LightLoopContext context, uint featureF
                 GetPunctualLightVectors(posInput.positionWS, light, L, distances);
 
                 float4 lightColor = EvaluateLight_Punctual(context, posInput, light, L, distances);
+                // The volumetric light dimmer, unlike the regular light dimmer, is not pre-multiplied.
+                lightColor.a *= light.volumetricLightDimmer;
+                lightColor.rgb *= lightColor.a; // Composite
 
                 // Pass the light direction as the normal to avoid issues with shadow biasing code.
                 // TODO: does it make sense?
                 float3 shadowN = L;
 
-                lightColor.a *= EvaluateShadow_Punctual(context, posInput, light, unused, shadowN, L, distances);
+                float shadow = EvaluateShadow_Punctual(context, posInput, light, unused, shadowN, L, distances);
+                lightColor.rgb *= ComputeShadowColor(shadow, light.shadowTint);
 
-                // The volumetric light dimmer, unlike the regular light dimmer, is not pre-multiplied.
-                lightColor.a *= light.volumetricLightDimmer;
-
-                lightColor.rgb *= lightColor.a; // Composite
 
                 // Important:
                 // Ideally, all scattering calculations should use the jittered versions
@@ -411,16 +408,17 @@ VoxelLighting EvaluateVoxelLightingLocal(LightLoopContext context, uint featureF
                 float4 distances     = float4(1, 1, 1, distProj);
 
                 float4 lightColor = EvaluateLight_Punctual(context, posInput, light, L, distances);
+                // The volumetric light dimmer, unlike the regular light dimmer, is not pre-multiplied.
+                lightColor.a *= light.volumetricLightDimmer;
+                lightColor.rgb *= lightColor.a; // Composite
 
                 // Pass the light direction as the normal to avoid issues with shadow biasing code.
                 // TODO: does it make sense?
                 float3 shadowN = L;
 
-                lightColor.a *= EvaluateShadow_Punctual(context, posInput, light, unused, shadowN, L, distances);
+                float shadow = EvaluateShadow_Punctual(context, posInput, light, unused, shadowN, L, distances);
+                lightColor.rgb *= ComputeShadowColor(shadow, light.shadowTint);
 
-                // The volumetric light dimmer, unlike the regular light dimmer, is not pre-multiplied.
-                lightColor.a *= light.volumetricLightDimmer;
-                lightColor.rgb *= lightColor.a; // Composite
 
                 // Important:
                 // Ideally, all scattering calculations should use the jittered versions

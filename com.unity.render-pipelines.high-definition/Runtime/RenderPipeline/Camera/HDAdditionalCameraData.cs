@@ -1,9 +1,8 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine.Serialization;
-using UnityEngine.Rendering;
 
-namespace UnityEngine.Experimental.Rendering.HDPipeline
+namespace UnityEngine.Rendering.HighDefinition
 {
     [Serializable]
     public class HDPhysicalCamera
@@ -86,6 +85,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
     }
 
+    [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "HDRP-Camera" + Documentation.endURL)]
     [DisallowMultipleComponent, ExecuteAlways]
     [RequireComponent(typeof(Camera))]
     public partial class HDAdditionalCameraData : MonoBehaviour
@@ -179,16 +179,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         /// <code>
         /// using System.Collections.Generic;
         /// using UnityEngine;
-        /// using UnityEngine.Experimental.Rendering;
-        /// using UnityEngine.Experimental.Rendering.HDPipeline;
-        /// using UnityEngine.Experimental.Rendering.HDPipeline.Attributes;
+        /// using UnityEngine.Rendering;
+        /// using UnityEngine.Rendering.HighDefinition;
+        /// using UnityEngine.Rendering.HighDefinition.Attributes;
         ///
         /// [ExecuteAlways]
         /// [RequireComponent(typeof(Camera))]
         /// [RequireComponent(typeof(HDAdditionalCameraData))]
         /// public class SetupAOVCallbacks : MonoBehaviour
         /// {
-        ///     private static RTHandleSystem.RTHandle m_ColorRT;
+        ///     private static RTHandle m_ColorRT;
         ///
         ///     [SerializeField] private Texture m_Target;
         ///     [SerializeField] private DebugFullScreen m_DebugFullScreen;

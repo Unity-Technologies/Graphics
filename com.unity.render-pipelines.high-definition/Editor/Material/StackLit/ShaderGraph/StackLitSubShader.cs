@@ -1,11 +1,12 @@
 using System.Collections.Generic;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph;
-using UnityEngine.Experimental.Rendering.HDPipeline;
+using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.Rendering;
 
-namespace UnityEditor.Experimental.Rendering.HDPipeline
+namespace UnityEditor.Rendering.HighDefinition
 {
+    [FormerName("UnityEditor.Experimental.Rendering.HDPipeline.StackLitSubShader")]
     class StackLitSubShader : IStackLitSubShader
     {
         Pass m_PassMETA = new Pass()
@@ -65,6 +66,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 StackLitMasterNode.HazinessSlotId,
                 StackLitMasterNode.HazeExtentSlotId,
                 StackLitMasterNode.HazyGlossMaxDielectricF0SlotId,
+                StackLitMasterNode.SpecularOcclusionSlotId,
                 StackLitMasterNode.SOFixupVisibilityRatioThresholdSlotId,
                 StackLitMasterNode.SOFixupStrengthFactorSlotId,
                 StackLitMasterNode.SOFixupMaxAddedRoughnessSlotId,
@@ -117,7 +119,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 "#define SCENESELECTIONPASS",
                 "#pragma editor_sync_compilation",
-            },            
+            },
             Includes = new List<string>()
             {
                 "#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDepthOnly.hlsl\"",
@@ -389,6 +391,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 StackLitMasterNode.HazinessSlotId,
                 StackLitMasterNode.HazeExtentSlotId,
                 StackLitMasterNode.HazyGlossMaxDielectricF0SlotId,
+                StackLitMasterNode.SpecularOcclusionSlotId,
                 StackLitMasterNode.SOFixupVisibilityRatioThresholdSlotId,
                 StackLitMasterNode.SOFixupStrengthFactorSlotId,
                 StackLitMasterNode.SOFixupMaxAddedRoughnessSlotId,
@@ -504,13 +507,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         //         although they also avoid sampling in that case, but default tiny texture map sampling isn't a big hit since they are all cached once
         //         a default "unityTexWhite" is sampled, it is cached for everyone defaulting to white...)
         //
-        // ok+ means there's a specific additional predicate 
+        // ok+ means there's a specific additional predicate
         //
         // ok masterNode.BaseColorSlotId
         // ok masterNode.NormalSlotId
         //
         // ok+ masterNode.BentNormalSlotId     --> Dependency of the predicate on IsSlotConnected avoids processing even if the slots
-        // ok+ masterNode.TangentSlotId            are always there so any pass that declares its use in PixelShaderSlots will have the field in SurfaceDescription, 
+        // ok+ masterNode.TangentSlotId            are always there so any pass that declares its use in PixelShaderSlots will have the field in SurfaceDescription,
         //                                         but it's not necessarily useful (if slot isnt connected, waste processing on potentially static expressions if
         //                                         shader compiler cant optimize...and even then, useless to have static override value for those.)
         //
@@ -518,14 +521,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         //                                         Also and anyways, the compiler is smart enough not to do the TS to WS matrix multiply on a (0,0,1) vector.
         //
         // ok+ masterNode.CoatNormalSlotId       -> we already have a "material feature" coat normal map so can use that instead, although using that former, we assume the coat normal slot
-        //                                         will be there, but it's ok, we can #ifdef the code on the material feature define, and use the $SurfaceDescription.CoatNormal predicate 
+        //                                         will be there, but it's ok, we can #ifdef the code on the material feature define, and use the $SurfaceDescription.CoatNormal predicate
         //                                         for the actual assignment,
-        //                                         although for that one we could again 
+        //                                         although for that one we could again
         //                                         use the "connected" condition like for tangent and bentnormal
         //
         // The following are all ok, no need beyond present field predicate, ie $SurfaceDescription.*,
         // except special cases where noted
-        // 
+        //
         // ok masterNode.SubsurfaceMaskSlotId
         // ok masterNode.ThicknessSlotId
         // ok masterNode.DiffusionProfileHashSlotId
@@ -558,11 +561,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         //                                                     properties, maybe through debug etc.
         //
         // ok masterNode.DistortionSlotId            -> Warning: peculiarly, instead of using $SurfaceDescription.Distortion and DistortionBlur,
-        // ok masterNode.DistortionBlurSlotId           we do an #if (SHADERPASS == SHADERPASS_DISTORTION) in the template, instead of 
+        // ok masterNode.DistortionBlurSlotId           we do an #if (SHADERPASS == SHADERPASS_DISTORTION) in the template, instead of
         //                                              relying on other passed NOT to include the DistortionSlotId in their PixelShaderSlots!!
 
-        // Other to deal with, and 
-        // Common between Lit and StackLit: 
+        // Other to deal with, and
+        // Common between Lit and StackLit:
         //
         // doubleSidedMode, alphaTest, receiveDecals,
         // surfaceType, alphaMode, blendPreserveSpecular, transparencyFog,
@@ -594,7 +597,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             if (masterNode.alphaTest.isOn)
             {
                 if (pass.PixelShaderUsesSlot(StackLitMasterNode.AlphaClipThresholdSlotId))
-                { 
+                {
                     activeFields.Add("AlphaTest");
                 }
             }
@@ -700,6 +703,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 activeFields.Add("RecomputeStackPerLight");
             }
+            if (masterNode.honorPerLightMinRoughness.isOn)
+            {
+                activeFields.Add("HonorPerLightMinRoughness");
+            }
             if (masterNode.shadeBaseUsingRefractedAngles.isOn)
             {
                 activeFields.Add("ShadeBaseUsingRefractedAngles");
@@ -721,6 +728,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             if (!masterNode.receiveSSR.isOn)
             {
                 activeFields.Add("DisableSSR");
+            }
+
+            if (masterNode.addVelocityChange.isOn)
+            {
+                activeFields.Add("AdditionalVelocityChange");
             }
 
             // Note here we combine an "enable"-like predicate and the $SurfaceDescription.(slotname) predicate
@@ -767,15 +779,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 activeFields.Add("ScreenSpaceSpecularOcclusionAOConeDir." + masterNode.screenSpaceSpecularOcclusionAOConeDir.ToString());
             }
 
-            //if (!masterNode.specularOcclusionIsCustom.isOn) // TODO: never ON for now.
+            activeFields.Add("DataBasedSpecularOcclusionBaseMode." + masterNode.dataBasedSpecularOcclusionBaseMode.ToString());
+            if (StackLitMasterNode.SpecularOcclusionModeUsesVisibilityCone(masterNode.dataBasedSpecularOcclusionBaseMode))
             {
-                activeFields.Add("DataBasedSpecularOcclusionBaseMode." + masterNode.dataBasedSpecularOcclusionBaseMode.ToString());
-                if (StackLitMasterNode.SpecularOcclusionModeUsesVisibilityCone(masterNode.dataBasedSpecularOcclusionBaseMode))
-                {
-                    activeFields.Add("DataBasedSpecularOcclusionAOConeSize." + masterNode.dataBasedSpecularOcclusionAOConeSize.ToString());
-                }
+                activeFields.Add("DataBasedSpecularOcclusionAOConeSize." + masterNode.dataBasedSpecularOcclusionAOConeSize.ToString());
             }
-            //else, TODO, we need one value per lobe.
 
             // Set bent normal fixup predicate if needed:
             if (masterNode.SpecularOcclusionUsesBentNormal())
@@ -880,8 +888,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
                 bool distortionActive = transparent && masterNode.distortion.isOn;
 
-                GenerateShaderPassLit(masterNode, m_PassMETA, mode, subShader, sourceAssetDependencyPaths);
                 GenerateShaderPassLit(masterNode, m_PassShadowCaster, mode, subShader, sourceAssetDependencyPaths);
+                GenerateShaderPassLit(masterNode, m_PassMETA, mode, subShader, sourceAssetDependencyPaths);
                 GenerateShaderPassLit(masterNode, m_SceneSelectionPass, mode, subShader, sourceAssetDependencyPaths);
 
                 GenerateShaderPassLit(masterNode, m_PassDepthForwardOnly, mode, subShader, sourceAssetDependencyPaths);
@@ -899,7 +907,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             subShader.Deindent();
             subShader.AddShaderChunk("}", true);
-            subShader.AddShaderChunk(@"CustomEditor ""UnityEditor.Experimental.Rendering.HDPipeline.StackLitGUI""");
+            subShader.AddShaderChunk(@"CustomEditor ""UnityEditor.Rendering.HighDefinition.StackLitGUI""");
 
             return subShader.GetShaderString(0);
         }

@@ -217,6 +217,11 @@ namespace UnityEditor.VFX.UI
                 m_Label.RemoveFromClassList("empty");
             }
 
+            foreach (var inEdge in m_FlowInputConnectorContainer.Children().OfType<VFXFlowAnchor>().SelectMany(t => t.connections))
+                inEdge.UpdateEdgeControl();
+            foreach (var outEdge in m_FlowOutputConnectorContainer.Children().OfType<VFXFlowAnchor>().SelectMany(t => t.connections))
+                outEdge.UpdateEdgeControl();
+
             RefreshContext();
         }
 
@@ -591,9 +596,10 @@ namespace UnityEditor.VFX.UI
         {
             switch (type)
             {
-                case VFXDataType.None:
+                case VFXDataType.SpawnEvent:
                     return Resources.Load<Texture2D>("VFX/Execution");
                 case VFXDataType.Particle:
+                case VFXDataType.ParticleStrip: // TODO Add an icon
                     return Resources.Load<Texture2D>("VFX/Particles");
             }
             return null;

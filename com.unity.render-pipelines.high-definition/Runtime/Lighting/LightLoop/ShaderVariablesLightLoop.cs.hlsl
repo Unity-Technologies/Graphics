@@ -5,11 +5,11 @@
 #ifndef SHADERVARIABLESLIGHTLOOP_CS_HLSL
 #define SHADERVARIABLESLIGHTLOOP_CS_HLSL
 //
-// UnityEngine.Experimental.Rendering.HDPipeline.ShaderVariablesLightLoop:  static fields
+// UnityEngine.Rendering.HighDefinition.ShaderVariablesLightLoop:  static fields
 //
 #define MAX_ENV2DLIGHT (32)
 
-// Generated from UnityEngine.Experimental.Rendering.HDPipeline.ShaderVariablesLightLoop
+// Generated from UnityEngine.Rendering.HighDefinition.ShaderVariablesLightLoop
 // PackingRules = Exact
     float4 _ShadowAtlasSize;
     float4 _CascadeShadowAtlasSize;
@@ -40,5 +40,6 @@
     uint _CookieSizePOT;
     int _RaytracedIndirectDiffuse;
     uint _ScreenSpaceShadowArraySize;
+
 
 #endif

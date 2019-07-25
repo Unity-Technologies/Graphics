@@ -558,16 +558,13 @@ namespace UnityEditor.VFX
             }
         }
 
-        void SubgraphDirty(VisualEffectObject subgraph,bool expressionsChanged)
+        void SubgraphDirty(VisualEffectObject subgraph)
         {
             if (m_SubgraphDependencies != null && m_SubgraphDependencies.Contains(subgraph))
             {
-                if (expressionsChanged)
-                {
-                    RecurseSubgraphRecreateCopy(this);
-                    compiledData.Compile(m_CompilationMode, m_ForceShaderValidation);
-                    m_ExpressionGraphDirty = false;
-                }
+                RecurseSubgraphRecreateCopy(this);
+                compiledData.Compile(m_CompilationMode, m_ForceShaderValidation);
+                m_ExpressionGraphDirty = false;
 
                 m_ExpressionValuesDirty = false;
             }
@@ -629,6 +626,7 @@ namespace UnityEditor.VFX
                 {
                     compiledData.UpdateValues();
                 }
+
                 if (considerGraphDirty)
                     m_ExpressionGraphDirty = false;
                 m_ExpressionValuesDirty = false;    
@@ -646,7 +644,7 @@ namespace UnityEditor.VFX
                     var obj = GetResource().visualEffectObject;
                     foreach (var graph in GetAllGraphs<VisualEffectAsset>())
                     {
-                        graph.SubgraphDirty(obj, m_ExpressionGraphDirty);
+                        graph.SubgraphDirty(obj);
                     }
                     m_DependentDirty = false;
                 }
@@ -665,7 +663,7 @@ namespace UnityEditor.VFX
         public int version { get { return m_GraphVersion; } }
 
         [SerializeField]
-        private int m_GraphVersion = 0;
+        private int m_GraphVersion = CurrentVersion;
 
         [NonSerialized]
         private bool m_GraphSanitized = false;

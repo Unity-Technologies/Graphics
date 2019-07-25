@@ -111,6 +111,9 @@ EditorBuildSettings:
     path: Assets/GraphicTests/Scenes/1x_Materials/1603_TerrainLit_BaseMap.unity
     guid: db02f2dc6427fce4b9372c28c86f0f73
   - enabled: 1
+    path: Assets/GraphicTests/Scenes/1x_Materials/1604_Terrain_Holes.unity
+    guid: c74289888608dce40a153ce7cebf20cf
+  - enabled: 1
     path: Assets/GraphicTests/Scenes/1x_Materials/1701_Decals.unity
     guid: a27cb5a638892574f99eb333bb3c7722
   - enabled: 1
@@ -128,6 +131,12 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/GraphicTests/Scenes/1x_Materials/1706_DecalsSG.unity
     guid: 4ead319809e7c8544ad909dcf8fa3c4c
+  - enabled: 1
+    path: Assets/GraphicTests/Scenes/1x_Materials/1707-Decals-FadeFactorAndDistance.unity
+    guid: 0c8ccb28854bea64c99d7d677bd0638e
+  - enabled: 1
+    path: Assets/GraphicTests/Scenes/1x_Materials/1708_DecalsSG_on_SG.unity
+    guid: 4462c9729d14bc14ebe49f7bc1069d4b
   - enabled: 1
     path: Assets/GraphicTests/Scenes/1x_Materials/1800_Classification.unity
     guid: 5043daebf48d1b740bb244b9a55508ef
@@ -218,7 +227,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/GraphicTests/Scenes/2x_Lighting/2306_Contact_Shadow_SpotLight.unity
     guid: a8ecf1e3cee864a48bd6bca2c797fdb3
-  - enabled: 1
+  - enabled: 0
     path: Assets/GraphicTests/Scenes/2x_Lighting/2307_Shadow_VeryHigh.unity
     guid: c110cc3f909bb664b82eb554f0494597
   - enabled: 1
@@ -336,6 +345,9 @@ EditorBuildSettings:
     path: Assets/GraphicTests/Scenes/4x_PostProcessing/4036_TonemappingCustom.unity
     guid: 2ffd6ed326c538247bdc54ab68fed4e2
   - enabled: 1
+    path: Assets/GraphicTests/Scenes/4x_PostProcessing/4037_TonemappingExternal.unity
+    guid: a29cfd59900da92428e1dc1fa215b260
+  - enabled: 1
     path: Assets/GraphicTests/Scenes/4x_PostProcessing/4050_FXAA.unity
     guid: 736a5167224854841be61166040606c6
   - enabled: 1
@@ -428,4 +440,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/GraphicTests/Scenes/9x_Other/9401_MSAAForwardBoth.unity
     guid: 3355ad2efd7c699418d5a0db666d2d01
+  - enabled: 1
+    path: Assets/GraphicTests/Scenes/9x_Other/9500_LightScripting.unity
+    guid: 134ab13db8156a14891996196de4cf63
   m_configObjects: {}

@@ -1,8 +1,9 @@
 using UnityEngine;
-using UnityEngine.Experimental.Rendering.HDPipeline;
+using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.Rendering;
+using UnityEditor.Rendering;
 
-namespace UnityEditor.Experimental.Rendering.HDPipeline
+namespace UnityEditor.Rendering.HighDefinition
 {
     using CED = CoreEditorDrawer<SerializedFrameSettings>;
 
@@ -18,7 +19,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         }
 
         readonly static ExpandedState<Expandable, FrameSettings> k_ExpandedState = new ExpandedState<Expandable, FrameSettings>(~(-1), "HDRP");
-        
+
         internal static CED.IDrawer Inspector(bool withOverride = true) => CED.Group(
                 CED.Group((serialized, owner) =>
                 {
@@ -97,7 +98,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
 
             area.AmmendInfo(FrameSettingsField.LitShaderMode,
-                overrideable: () => !GL.wireframe && hdrpSettings.supportedLitShaderMode == RenderPipelineSettings.SupportedLitShaderMode.Both,
+                overrideable: () => hdrpSettings.supportedLitShaderMode == RenderPipelineSettings.SupportedLitShaderMode.Both,
                 overridedDefaultValue: defaultShaderLitMode);
 
             bool hdrpAssetSupportForward = hdrpSettings.supportedLitShaderMode != RenderPipelineSettings.SupportedLitShaderMode.DeferredOnly;
@@ -106,7 +107,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             bool frameSettingsOverrideToDeferred = serialized.GetOverrides(FrameSettingsField.LitShaderMode) && serialized.litShaderMode == LitShaderMode.Deferred;
             bool defaultForwardUsed = !serialized.GetOverrides(FrameSettingsField.LitShaderMode) && defaultShaderLitMode == LitShaderMode.Forward;
             bool defaultDefferedUsed = !serialized.GetOverrides(FrameSettingsField.LitShaderMode) && defaultShaderLitMode == LitShaderMode.Deferred;
-            bool msaaEnablable = !GL.wireframe && hdrpAssetSupportForward && hdrpSettings.supportMSAA && (frameSettingsOverrideToForward || defaultForwardUsed);
+            bool msaaEnablable = hdrpAssetSupportForward && hdrpSettings.supportMSAA && (frameSettingsOverrideToForward || defaultForwardUsed);
             bool depthPrepassEnablable = hdrpAssetSupportDeferred && (defaultDefferedUsed || frameSettingsOverrideToDeferred);
             area.AmmendInfo(FrameSettingsField.MSAA,
                 overrideable: () => msaaEnablable,
@@ -142,7 +143,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                             throw new System.ArgumentOutOfRangeException("Unknown ShaderLitMode");
                     }
                 });
-            
+
             area.AmmendInfo(FrameSettingsField.MotionVectors, overrideable: () => hdrpSettings.supportMotionVectors);
             area.AmmendInfo(FrameSettingsField.ObjectMotionVectors, overrideable: () => hdrpSettings.supportMotionVectors);
             area.AmmendInfo(FrameSettingsField.Decals, overrideable: () => hdrpSettings.supportDecals);

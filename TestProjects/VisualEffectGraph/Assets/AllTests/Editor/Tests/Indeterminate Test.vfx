@@ -7199,7 +7199,10 @@ MonoBehaviour:
   title: 
   m_Owners:
   - {fileID: 114214122751800258}
-  m_Capacity: 65536
+  dataType: 0
+  capacity: 65536
+  stripCapacity: 16
+  particlePerStripCount: 16
   m_Space: 0
 --- !u!114 &114713590420958864
 MonoBehaviour:
@@ -9626,6 +9629,7 @@ VisualEffectResource:
     m_UpdateMode: 0
     m_PreWarmDeltaTime: 0.05
     m_PreWarmStepCount: 0
+    m_InitialEventName: OnPlay
   m_Systems: []
 --- !u!114 &8926484042661614528
 MonoBehaviour:

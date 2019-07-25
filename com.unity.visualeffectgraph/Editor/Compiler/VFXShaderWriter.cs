@@ -252,6 +252,9 @@ namespace UnityEditor.VFX
                     {
                         string type = VFXExpression.TypeToUniformCode(value.valueType);
                         string name = mapper.GetName(value);
+                        if (name.StartsWith("unity_")) //Reserved unity variable name (could be filled manually see : VFXMotionVector)
+                            continue;
+
                         currentSize += VFXExpression.TypeToSize(value.valueType);
 
                         WriteLineFormat("{0} {1};", type, name);

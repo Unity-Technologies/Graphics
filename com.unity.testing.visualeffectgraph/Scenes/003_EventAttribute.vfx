@@ -316,6 +316,7 @@ MonoBehaviour:
   m_OutputFlowSlot:
   - link: []
   blendMode: 2
+  generateMotionVector: 0
   m_SubOutputs:
   - {fileID: 8926484042661614544}
   cullMode: 0
@@ -328,7 +329,6 @@ MonoBehaviour:
   sort: 0
   indirectDraw: 0
   castShadows: 0
-  preRefraction: 0
   useExposureWeight: 0
   primitiveType: 1
   useGeometryShader: 0
@@ -502,7 +502,10 @@ MonoBehaviour:
   - {fileID: 114345900237955474}
   - {fileID: 114558679480665644}
   - {fileID: 114122400231336388}
-  m_Capacity: 320
+  dataType: 0
+  capacity: 320
+  stripCapacity: 16
+  particlePerStripCount: 16
   m_Space: 0
 --- !u!114 &114155354349454458
 MonoBehaviour:
@@ -1009,6 +1012,10 @@ MonoBehaviour:
   - link:
     - context: {fileID: 114345900237955474}
       slotIndex: 0
+  loopDuration: 0
+  loopCount: 0
+  delayBeforeLoop: 0
+  delayAfterLoop: 0
 --- !u!114 &114300944499360208
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -3083,6 +3090,10 @@ MonoBehaviour:
   - link:
     - context: {fileID: 114345900237955474}
       slotIndex: 0
+  loopDuration: 0
+  loopCount: 0
+  delayBeforeLoop: 0
+  delayAfterLoop: 0
 --- !u!114 &114955384045954442
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -3283,6 +3294,7 @@ VisualEffectResource:
     m_UpdateMode: 0
     m_PreWarmDeltaTime: 0.05
     m_PreWarmStepCount: 0
+    m_InitialEventName: OnPlay
   m_Systems: []
 --- !u!114 &8926484042661614528
 MonoBehaviour:

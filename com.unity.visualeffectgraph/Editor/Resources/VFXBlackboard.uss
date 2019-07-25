@@ -101,13 +101,13 @@ VFXBlackboardCategory.expanded #expandButton > #buttonImage {
 
 VFXBlackboardCategory > .mainContainer > #rowsContainer
 {
-    height:0;
+    display:none;
     overflow:hidden
 }
 
 VFXBlackboardCategory.expanded  > .mainContainer > #rowsContainer
 {
-    height: -1px;
+    display:flex;
 }
 
 VFXBlackboardCategory > .mainContainer > #sectionHeader

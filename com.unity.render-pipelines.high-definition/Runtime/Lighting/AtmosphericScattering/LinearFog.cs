@@ -1,10 +1,4 @@
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-using UnityEngine.Rendering;
-
-namespace UnityEngine.Experimental.Rendering.HDPipeline
+namespace UnityEngine.Rendering.HighDefinition
 {
     [VolumeComponentMenu("Fog/Linear Fog")]
     public class LinearFog : AtmosphericScattering
@@ -21,7 +15,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         [Tooltip("Sets the height at which the density of the fog reaches 0.")]
         public FloatParameter fogHeightEnd = new FloatParameter(10.0f);
 
-        public override void PushShaderParameters(HDCamera hdCamera, CommandBuffer cmd)
+        internal override void PushShaderParameters(HDCamera hdCamera, CommandBuffer cmd)
         {
             PushShaderParametersCommon(hdCamera, cmd, FogType.Linear);
             cmd.SetGlobalVector(m_LinearFogParam, new Vector4(fogStart.value, 1.0f / (fogEnd.value - fogStart.value), fogHeightEnd.value, 1.0f / (fogHeightEnd.value - fogHeightStart.value)));

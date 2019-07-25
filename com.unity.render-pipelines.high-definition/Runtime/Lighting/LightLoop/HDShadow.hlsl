@@ -3,12 +3,9 @@
 
 #define SHADOW_OPTIMIZE_REGISTER_USAGE 1
 
-#ifndef SHADOW_USE_VIEW_BIAS_SCALING
-#define SHADOW_USE_VIEW_BIAS_SCALING            1   // Enable view bias scaling to mitigate light leaking across edges. Uses the light vector if SHADOW_USE_ONLY_VIEW_BASED_BIASING is defined, otherwise uses the normal.
+#ifndef SHADOW_USE_DEPTH_BIAS
+#define SHADOW_USE_DEPTH_BIAS                   1   // Enable clip space z biasing
 #endif
-// Note: Sample biasing work well but is very costly in term of VGPR, disable it for now
-#define SHADOW_USE_SAMPLE_BIASING               0   // Enable per sample biasing for wide multi-tap PCF filters. Incompatible with SHADOW_USE_ONLY_VIEW_BASED_BIASING.
-#define SHADOW_USE_DEPTH_BIAS                   0   // Enable clip space z biasing
 
 #if SHADOW_OPTIMIZE_REGISTER_USAGE == 1
 #   pragma warning( disable : 3557 ) // loop only executes for 1 iteration(s)
@@ -21,7 +18,11 @@ float GetDirectionalShadowAttenuation(HDShadowContext shadowContext, float2 posi
 {
     // If NdotL < 0, we flip the normal in case it is used for the transmission to correctly bias shadow position
     normalWS *= FastSign(dot(normalWS, L));
+#if defined(SHADOW_LOW) || defined(SHADOW_MEDIUM)
+    return EvalShadow_CascadedDepth_Dither(shadowContext, _ShadowmapCascadeAtlas, s_linear_clamp_compare_sampler, positionSS, positionWS, normalWS, shadowDataIndex, L);
+#else
     return EvalShadow_CascadedDepth_Blend(shadowContext, _ShadowmapCascadeAtlas, s_linear_clamp_compare_sampler, positionSS, positionWS, normalWS, shadowDataIndex, L);
+#endif
 }
 
 float GetPunctualShadowAttenuation(HDShadowContext shadowContext, float2 positionSS, float3 positionWS, float3 normalWS, int shadowDataIndex, float3 L, float L_dist, bool pointLight, bool perspecive)

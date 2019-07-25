@@ -8,24 +8,24 @@ namespace UnityEditor.VFX
 {
     static class VFXSubgraphUtility
     {
-        public static int TransferExpressionToParameters(IList<VFXExpression> inputExpression, IEnumerable<VFXParameter> parameters)
+        public static int TransferExpressionToParameters(IList<VFXExpression> inputExpression, IEnumerable<VFXParameter> parameters,List<VFXExpression> backedUpExpressions = null)
         {
             int cptSlot = 0;
             foreach (var param in parameters)
             {
-                VFXSlot[] inputSlots = param.outputSlots[0].GetVFXValueTypeSlots().ToArray();
+                VFXSlot outputSlot = param.outputSlots[0];
 
                 param.subgraphMode = true;
-                for (int i = 0; i < inputSlots.Length; ++i)
+                if (inputExpression.Count > cptSlot)
                 {
-                    if (inputExpression.Count > cptSlot + i)
+                    if(backedUpExpressions!= null)
                     {
-                        inputSlots[i].SetExpression(inputExpression[cptSlot + i]);
+                        backedUpExpressions.Add(outputSlot.GetExpression());
                     }
-
+                    outputSlot.SetExpression(inputExpression[cptSlot]);
                 }
 
-                cptSlot += inputSlots.Length;
+                cptSlot += 1;
             }
 
             return cptSlot;
@@ -96,7 +96,7 @@ namespace UnityEditor.VFX
             }
         }
 
-        protected override void Invalidate(VFXModel model, InvalidationCause cause)
+        protected internal override void Invalidate(VFXModel model, InvalidationCause cause)
         {
             if( cause == InvalidationCause.kSettingChanged)
             {
@@ -142,7 +142,10 @@ namespace UnityEditor.VFX
 
             // Change all the inputExpressions of the parameters.
             var parameters = GetParameters(t => VFXSubgraphUtility.InputPredicate(t));
-            VFXSubgraphUtility.TransferExpressionToParameters(inputExpression, parameters);
+
+            var backedUpExpressions = new List<VFXExpression>();
+
+            VFXSubgraphUtility.TransferExpressionToParameters(inputExpression, parameters, backedUpExpressions);
 
             List<VFXExpression> outputExpressions = new List<VFXExpression>();
             foreach (var param in GetParameters(t => VFXSubgraphUtility.OutputPredicate(t)))
@@ -150,10 +153,12 @@ namespace UnityEditor.VFX
                 outputExpressions.AddRange(param.inputSlots[0].GetVFXValueTypeSlots().Select(t => t.GetExpression()));
             }
 
-            foreach (var param in GetParameters(t => VFXSubgraphUtility.InputPredicate(t)))
+            foreach (var param in parameters)
             {
                 param.ResetOutputValueExpression();
             }
+
+            VFXSubgraphUtility.TransferExpressionToParameters(backedUpExpressions, parameters );
 
             return outputExpressions.ToArray();
         }

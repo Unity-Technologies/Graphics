@@ -1,6 +1,6 @@
 using static UnityEngine.Mathf;
 
-namespace UnityEngine.Experimental.Rendering
+namespace UnityEngine.Rendering
 {
     // Raw, mostly unoptimized implementation of Hable's artist-friendly tonemapping curve
     // http://filmicworlds.com/blog/filmic-tonemapping-with-piecewise-power-curves/
@@ -71,7 +71,7 @@ namespace UnityEngine.Experimental.Rendering
         {
             var dstParams = new DirectParams();
 
-            // This is not actually the display gamma. It's just a UI space to avoid having to 
+            // This is not actually the display gamma. It's just a UI space to avoid having to
             // enter small numbers for the input.
             const float kPerceptualGamma = 2.2f;
 
@@ -191,7 +191,7 @@ namespace UnityEngine.Experimental.Rendering
 
             // Shoulder section
             {
-                // Use the simple version that is usually too flat 
+                // Use the simple version that is usually too flat
                 var shoulderSegment = segments[2];
 
                 float x0 = (1f + paramsCopy.overshootX) - paramsCopy.x1;
@@ -209,7 +209,7 @@ namespace UnityEngine.Experimental.Rendering
                 shoulderSegment.B = B;
             }
 
-            // Normalize so that we hit 1.0 at our white point. We wouldn't have do this if we 
+            // Normalize so that we hit 1.0 at our white point. We wouldn't have do this if we
             // skipped the overshoot part.
             {
                 // Evaluate shoulder at the end of the curve

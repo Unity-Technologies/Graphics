@@ -1,7 +1,7 @@
 using UnityEditor.Rendering;
-using UnityEngine.Experimental.Rendering.HDPipeline;
+using UnityEngine.Rendering.HighDefinition;
 
-namespace UnityEditor.Experimental.Rendering.HDPipeline
+namespace UnityEditor.Rendering.HighDefinition
 {
     [VolumeComponentEditor(typeof(Bloom))]
     sealed class BloomEditor : VolumeComponentEditor

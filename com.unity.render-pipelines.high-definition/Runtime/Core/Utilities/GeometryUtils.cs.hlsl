@@ -4,7 +4,7 @@
 
 #ifndef GEOMETRYUTILS_CS_HLSL
 #define GEOMETRYUTILS_CS_HLSL
-// Generated from UnityEngine.Experimental.Rendering.OrientedBBox
+// Generated from UnityEngine.Rendering.HighDefinition.OrientedBBox
 // PackingRules = Exact
 struct OrientedBBox
 {
@@ -17,7 +17,7 @@ struct OrientedBBox
 };
 
 //
-// Accessors for UnityEngine.Experimental.Rendering.OrientedBBox
+// Accessors for UnityEngine.Rendering.HighDefinition.OrientedBBox
 //
 float3 GetRight(OrientedBBox value)
 {

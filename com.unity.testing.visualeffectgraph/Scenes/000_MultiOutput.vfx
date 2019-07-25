@@ -133,6 +133,7 @@ MonoBehaviour:
   m_OutputFlowSlot:
   - link: []
   blendMode: 1
+  generateMotionVector: 0
   m_SubOutputs:
   - {fileID: 8926484042661614574}
   cullMode: 0
@@ -145,7 +146,6 @@ MonoBehaviour:
   sort: 0
   indirectDraw: 0
   castShadows: 0
-  preRefraction: 0
   useExposureWeight: 0
   primitiveType: 1
   useGeometryShader: 0
@@ -178,6 +178,7 @@ MonoBehaviour:
   m_OutputFlowSlot:
   - link: []
   blendMode: 1
+  generateMotionVector: 0
   m_SubOutputs:
   - {fileID: 8926484042661614572}
   cullMode: 0
@@ -190,7 +191,6 @@ MonoBehaviour:
   sort: 0
   indirectDraw: 0
   castShadows: 0
-  preRefraction: 0
   useExposureWeight: 0
   primitiveType: 1
   useGeometryShader: 0
@@ -265,7 +265,10 @@ MonoBehaviour:
   - {fileID: 114802777676336084}
   - {fileID: 114033350763109576}
   - {fileID: 114935258494753348}
-  m_Capacity: 8
+  dataType: 0
+  capacity: 8
+  stripCapacity: 16
+  particlePerStripCount: 16
   m_Space: 0
 --- !u!114 &114076757701435430
 MonoBehaviour:
@@ -352,6 +355,10 @@ MonoBehaviour:
   - link:
     - context: {fileID: 114988927067353768}
       slotIndex: 0
+  loopDuration: 0
+  loopCount: 0
+  delayBeforeLoop: 0
+  delayAfterLoop: 0
 --- !u!114 &114141411942160238
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -1217,6 +1224,7 @@ MonoBehaviour:
   m_OutputFlowSlot:
   - link: []
   blendMode: 1
+  generateMotionVector: 0
   m_SubOutputs:
   - {fileID: 8926484042661614573}
   cullMode: 0
@@ -1229,7 +1237,6 @@ MonoBehaviour:
   sort: 0
   indirectDraw: 1
   castShadows: 0
-  preRefraction: 0
   useExposureWeight: 0
   primitiveType: 1
   useGeometryShader: 0
@@ -1623,6 +1630,7 @@ MonoBehaviour:
   m_OutputFlowSlot:
   - link: []
   blendMode: 1
+  generateMotionVector: 0
   m_SubOutputs:
   - {fileID: 8926484042661614575}
   cullMode: 0
@@ -1635,7 +1643,6 @@ MonoBehaviour:
   sort: 0
   indirectDraw: 0
   castShadows: 0
-  preRefraction: 0
   useExposureWeight: 0
 --- !u!114 &114967865259419442
 MonoBehaviour:
@@ -1820,6 +1827,7 @@ VisualEffectResource:
     m_UpdateMode: 0
     m_PreWarmDeltaTime: 0.05
     m_PreWarmStepCount: 0
+    m_InitialEventName: OnPlay
   m_Systems: []
 --- !u!114 &8926484042661614528
 MonoBehaviour:

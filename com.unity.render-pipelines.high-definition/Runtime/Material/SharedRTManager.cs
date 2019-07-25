@@ -1,27 +1,26 @@
-using UnityEngine.Rendering;
-using System;
+using UnityEngine.Experimental.Rendering;
 
-namespace UnityEngine.Experimental.Rendering.HDPipeline
+namespace UnityEngine.Rendering.HighDefinition
 {
-    public class SharedRTManager
+    class SharedRTManager
     {
         // The render target used when we do not support MSAA
-        RTHandleSystem.RTHandle m_NormalRT = null;
-        RTHandleSystem.RTHandle m_MotionVectorsRT = null;
-        RTHandleSystem.RTHandle m_CameraDepthStencilBuffer = null;
-        RTHandleSystem.RTHandle m_CameraDepthBufferMipChain;
-        RTHandleSystem.RTHandle m_CameraStencilBufferCopy;
-        RTHandleSystem.RTHandle m_CameraHalfResDepthBuffer = null;
+        RTHandle m_NormalRT = null;
+        RTHandle m_MotionVectorsRT = null;
+        RTHandle m_CameraDepthStencilBuffer = null;
+        RTHandle m_CameraDepthBufferMipChain;
+        RTHandle m_CameraStencilBufferCopy;
+        RTHandle m_CameraHalfResDepthBuffer = null;
         HDUtils.PackedMipChainInfo m_CameraDepthBufferMipChainInfo; // This is metadata
 
         // The two render targets that should be used when we render in MSAA
-        RTHandleSystem.RTHandle m_NormalMSAART = null;
-        RTHandleSystem.RTHandle m_MotionVectorsMSAART = null;
+        RTHandle m_NormalMSAART = null;
+        RTHandle m_MotionVectorsMSAART = null;
         // This texture must be used because reading directly from an MSAA Depth buffer is way to expensive. The solution that we went for is writing the depth in an additional color buffer (10x cheaper to solve on ps4)
-        RTHandleSystem.RTHandle m_DepthAsColorMSAART = null;
-        RTHandleSystem.RTHandle m_CameraDepthStencilMSAABuffer;
+        RTHandle m_DepthAsColorMSAART = null;
+        RTHandle m_CameraDepthStencilMSAABuffer;
         // This texture stores a set of depth values that are required for evaluating a bunch of effects in MSAA mode (R = Samples Max Depth, G = Samples Min Depth, G =  Samples Average Depth)
-        RTHandleSystem.RTHandle m_CameraDepthValuesBuffer = null;
+        RTHandle m_CameraDepthValuesBuffer = null;
 
         // MSAA resolve materials
         Material m_DepthResolveMaterial  = null;
@@ -156,7 +155,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
 
         // Request the normal buffer (MSAA or not)
-        public RTHandleSystem.RTHandle GetNormalBuffer(bool isMSAA = false)
+        public RTHandle GetNormalBuffer(bool isMSAA = false)
         {
             if (isMSAA)
             {
@@ -170,7 +169,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
 
         // Request the motion vectors buffer (MSAA or not)
-        public RTHandleSystem.RTHandle GetMotionVectorsBuffer(bool isMSAA = false)
+        public RTHandle GetMotionVectorsBuffer(bool isMSAA = false)
         {
             Debug.Assert(m_MotionVectorsSupport);
             if (isMSAA)
@@ -185,7 +184,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
 
         // Request the depth stencil buffer (MSAA or not)
-        public RTHandleSystem.RTHandle GetDepthStencilBuffer(bool isMSAA = false)
+        public RTHandle GetDepthStencilBuffer(bool isMSAA = false)
         {
             if (isMSAA)
             {
@@ -198,13 +197,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        public RTHandleSystem.RTHandle GetLowResDepthBuffer()
+        public RTHandle GetLowResDepthBuffer()
         {
             return m_CameraHalfResDepthBuffer;
         }
 
         // Request the depth texture (MSAA or not)
-        public RTHandleSystem.RTHandle GetDepthTexture(bool isMSAA = false)
+        public RTHandle GetDepthTexture(bool isMSAA = false)
         {
             if (isMSAA)
             {
@@ -217,7 +216,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        public RTHandleSystem.RTHandle GetDepthValuesTexture()
+        public RTHandle GetDepthValuesTexture()
         {
             Debug.Assert(m_MSAASupported);
             return m_CameraDepthValuesBuffer;
@@ -228,7 +227,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_MSAASamples = msaaSamples;
         }
 
-        public RTHandleSystem.RTHandle GetStencilBufferCopy()
+        public RTHandle GetStencilBufferCopy()
         {
             return m_CameraStencilBufferCopy;
         }
@@ -317,7 +316,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     // Grab the RTIs and set the output render targets
                     m_RTIDs2[0] = m_CameraDepthValuesBuffer.nameID;
                     m_RTIDs2[1] = m_NormalRT.nameID;
-                    HDUtils.SetRenderTarget(cmd, m_RTIDs2, m_CameraDepthStencilBuffer);
+                    CoreUtils.SetRenderTarget(cmd, m_RTIDs2, m_CameraDepthStencilBuffer);
 
                     // Set the input textures
                     Shader.SetGlobalTexture(HDShaderIDs._NormalTextureMS, m_NormalMSAART);
@@ -328,7 +327,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
             }
         }
-        public void ResolveMSAAColor(CommandBuffer cmd, HDCamera hdCamera, RTHandleSystem.RTHandle msaaTarget, RTHandleSystem.RTHandle simpleTarget)
+        public void ResolveMSAAColor(CommandBuffer cmd, HDCamera hdCamera, RTHandle msaaTarget, RTHandle simpleTarget)
         {
             if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA))
             {
@@ -336,7 +335,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 using (new ProfilingSample(cmd, "ResolveColor", CustomSamplerId.VolumeUpdate.GetSampler()))
                 {
                     // Grab the RTIs and set the output render targets
-                    HDUtils.SetRenderTarget(cmd, simpleTarget);
+                    CoreUtils.SetRenderTarget(cmd, simpleTarget);
 
                     // Set the input textures
                     m_PropertyBlock.SetTexture(HDShaderIDs._ColorTextureMS, msaaTarget);

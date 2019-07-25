@@ -184,10 +184,6 @@ namespace UnityEditor.ShaderGraph
                     dynamicMatrixInputSlotsToCompare.Add((DynamicMatrixMaterialSlot)inputSlot, outputConcreteType);
                     continue;
                 }
-
-                // if we have a standard connection... just check the types work!
-                if (!AbstractMaterialNode.ImplicitConversionExists(outputConcreteType, inputSlot.concreteValueType))
-                    inputSlot.hasError = true;
             }
 
             // and now dynamic matrices

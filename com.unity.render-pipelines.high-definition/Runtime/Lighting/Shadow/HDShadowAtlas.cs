@@ -1,15 +1,13 @@
 using System;
 using System.Collections.Generic;
-using UnityEngine.Rendering;
+using UnityEngine.Experimental.Rendering;
 
-namespace UnityEngine.Experimental.Rendering.HDPipeline
+namespace UnityEngine.Rendering.HighDefinition
 {
-    using RTHandle = RTHandleSystem.RTHandle;
-
-    public partial class HDShadowAtlas
+    partial class HDShadowAtlas
     {
         public enum BlurAlgorithm
-        {
+    {
             None,
             EVSM, // exponential variance shadow maps
             IM // Improved Moment shadow maps
@@ -106,12 +104,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        public void ReserveResolution(HDShadowResolutionRequest shadowRequest)
+        internal void ReserveResolution(HDShadowResolutionRequest shadowRequest)
         {
             m_ShadowResolutionRequests.Add(shadowRequest);
         }
 
-        public void AddShadowRequest(HDShadowRequest shadowRequest)
+        internal void AddShadowRequest(HDShadowRequest shadowRequest)
         {
             m_ShadowRequests.Add(shadowRequest);
         }
@@ -280,7 +278,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        public struct RenderShadowsParameters
+        struct RenderShadowsParameters
         {
             public List<HDShadowRequest>    shadowRequests;
             public Material                 clearMaterial;
@@ -480,9 +478,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 int summedAreaVerticalKernel = momentCS.FindKernel("MomentSummedAreaTableVertical");
 
                 // First of all let's clear the moment shadow map
-                HDUtils.SetRenderTarget(cmd, atlasMoment, ClearFlag.Color, Color.black);
-                HDUtils.SetRenderTarget(cmd, intermediateSummedAreaTexture, ClearFlag.Color, Color.black);
-                HDUtils.SetRenderTarget(cmd, summedAreaTexture, ClearFlag.Color, Color.black);
+                CoreUtils.SetRenderTarget(cmd, atlasMoment, ClearFlag.Color, Color.black);
+                CoreUtils.SetRenderTarget(cmd, intermediateSummedAreaTexture, ClearFlag.Color, Color.black);
+                CoreUtils.SetRenderTarget(cmd, summedAreaTexture, ClearFlag.Color, Color.black);
 
 
                 // Alright, so the thing here is that for every sub-shadow map of the atlas, we need to generate the moment shadow map
@@ -522,9 +520,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        public void DisplayAtlas(CommandBuffer cmd, Material debugMaterial, Rect atlasViewport, float screenX, float screenY, float screenSizeX, float screenSizeY, float minValue, float maxValue)
+        public void DisplayAtlas(RTHandle atlasTexture, CommandBuffer cmd, Material debugMaterial, Rect atlasViewport, float screenX, float screenY, float screenSizeX, float screenSizeY, float minValue, float maxValue, MaterialPropertyBlock mpb)
         {
-            if (m_Atlas == null)
+            if (atlasTexture == null)
                 return;
 
             Vector4 validRange = new Vector4(minValue, 1.0f / (maxValue - minValue));
@@ -532,13 +530,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             float rHeight = 1.0f / height;
             Vector4 scaleBias = Vector4.Scale(new Vector4(rWidth, rHeight, rWidth, rHeight), new Vector4(atlasViewport.width, atlasViewport.height, atlasViewport.x, atlasViewport.y));
 
-            MaterialPropertyBlock propertyBlock = new MaterialPropertyBlock();
-            propertyBlock.SetTexture("_AtlasTexture", m_Atlas.rt);
-            propertyBlock.SetVector("_TextureScaleBias", scaleBias);
-            propertyBlock.SetVector("_ValidRange", validRange);
-            propertyBlock.SetFloat("_RcpGlobalScaleFactor", m_RcpScaleFactor);
+            mpb.SetTexture("_AtlasTexture", atlasTexture);
+            mpb.SetVector("_TextureScaleBias", scaleBias);
+            mpb.SetVector("_ValidRange", validRange);
+            mpb.SetFloat("_RcpGlobalScaleFactor", m_RcpScaleFactor);
             cmd.SetViewport(new Rect(screenX, screenY, screenSizeX, screenSizeY));
-            cmd.DrawProcedural(Matrix4x4.identity, debugMaterial, debugMaterial.FindPass("RegularShadow"), MeshTopology.Triangles, 3, 1, propertyBlock);
+            cmd.DrawProcedural(Matrix4x4.identity, debugMaterial, debugMaterial.FindPass("RegularShadow"), MeshTopology.Triangles, 3, 1, mpb);
         }
 
         public void Clear()
