@@ -6,9 +6,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [7.0.1] - 2019-07-25
 
-### Fixed
-- Fixed isuee with experimental namespace in unlit shader graph
-
 ### Changed
 - Change accessibility of some debug API to allow Recorder to work with AOV
 
@@ -19,8 +16,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Fixed
 - Fixed XR SDK mirror view blit, cleanup some XRTODO and removed XRDebug.cs
 - Fixed culling for volumetrics with XR single-pass rendering
-- Fix shadergraph material pass setup not called
+- Fixed shadergraph material pass setup not called
 - Fixed documentation links in component's Inspector header bar
+- Fixed issue with experimental namespace in unlit shader graph
 
 ### Changed
 - RenderQueue for Opaque now start at Background instead of Geometry.
