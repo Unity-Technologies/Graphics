@@ -12,6 +12,7 @@ using UnityEngine.VFX;
 using UnityEngine.UIElements;
 using UnityEngine.Profiling;
 using System.Reflection;
+using UnityEditor.VersionControl;
 
 using PositionType = UnityEngine.UIElements.Position;
 
@@ -47,6 +48,8 @@ namespace UnityEditor.VFX.UI
         VisualElement m_NoAssetLabel;
 
         VFXViewController m_Controller;
+
+        public Button checkoutButton;
         Controller IControlledElement.controller
         {
             get { return m_Controller; }
@@ -281,7 +284,7 @@ namespace UnityEditor.VFX.UI
             m_Toolbar = new VisualElement();
             m_Toolbar.AddToClassList("toolbar");
 
-
+            
             Button button = new Button(() => { Resync(); });
             button.text = "Refresh";
             button.AddToClassList("toolbarItem");
@@ -306,7 +309,16 @@ namespace UnityEditor.VFX.UI
             m_ToggleComponentBoard.AddToClassList("toolbarItem");
             m_ToggleComponentBoard.RegisterCallback<ChangeEvent<bool>>(ToggleComponentBoard);
             m_Toolbar.Add(m_ToggleComponentBoard);
-
+            
+            spacer = new VisualElement();
+            spacer.style.width = 10;
+            m_Toolbar.Add(spacer);
+            
+            checkoutButton = new Button(() => { Checkout(); });
+            checkoutButton.text = "Check Out";
+            checkoutButton.visible = false;
+            checkoutButton.AddToClassList("toolbarItem");
+            m_Toolbar.Add(checkoutButton);
 
             spacer = new VisualElement();
             spacer.style.flexGrow = 1f;
@@ -355,19 +367,19 @@ namespace UnityEditor.VFX.UI
             Add(m_NoAssetLabel);
 
             m_Blackboard = new VFXBlackboard(this);
-
-
+            
+            
             bool blackboardVisible = BoardPreferenceHelper.IsVisible(BoardPreferenceHelper.Board.blackboard, true);
             if (blackboardVisible)
                 Add(m_Blackboard);
             toggleBlackboard.value = blackboardVisible;
-
+            
             /*
             bool componentBoardVisible = BoardPreferenceHelper.IsVisible(BoardPreferenceHelper.Board.blackboard, false);
             if (componentBoardVisible)
                 ShowComponentBoard();
             toggleComponentBoard.value = componentBoardVisible;*/
-
+            
             Add(m_Toolbar);
 
             RegisterCallback<DragUpdatedEvent>(OnDragUpdated);
@@ -1343,6 +1355,12 @@ namespace UnityEditor.VFX.UI
                 Selection.activeObject = controller.model.visualEffectObject;
                 EditorGUIUtility.PingObject(controller.model.visualEffectObject);
             }
+        }
+
+        void Checkout()
+        {
+            Task task = Provider.Checkout(controller.model.visualEffectObject, CheckoutMode.Both);
+            task.Wait();
         }
 
         void ElementAddedToGroupNode(Group groupNode, IEnumerable<GraphElement> elements)

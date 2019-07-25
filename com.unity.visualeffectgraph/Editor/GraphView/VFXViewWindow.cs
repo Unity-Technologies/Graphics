@@ -129,6 +129,7 @@ namespace  UnityEditor.VFX.UI
             VFXManagerEditor.CheckVFXManager();
 
             graphView = new VFXView();
+
             graphView.StretchToParentSize();
             SetupFramingShortcutHandler(graphView);
 
@@ -240,7 +241,14 @@ namespace  UnityEditor.VFX.UI
                 graphView.AssetMoved();
                 VFXViewModicationProcessor.assetMoved = false;
             }
+
             titleContent.text = filename;
+            
+            if (!AssetDatabase.IsOpenForEdit(graphView.controller.model.visualEffectObject,
+                StatusQueryOptions.UseCachedIfPossible))
+                graphView.checkoutButton.visible = true;
+            else
+                graphView.checkoutButton.visible = false;
         }
 
         [SerializeField]

@@ -56,6 +56,10 @@ namespace UnityEditor.ShaderGraph.Drawing
         FloatingWindowsLayout m_FloatingWindowsLayout;
 
         public Action saveRequested { get; set; }
+        
+        public Func<bool> isCheckedOut { get; set; }
+
+        public Action checkOut { get; set; }
 
         public Action convertToSubgraphRequested
         {
@@ -157,6 +161,15 @@ namespace UnityEditor.ShaderGraph.Drawing
                         foreach (var node in graph.GetNodes<AbstractMaterialNode>())
                         {
                             node.Dirty(ModificationScope.Graph);
+                        }
+                    }
+                    
+                    if (!isCheckedOut())
+                    {
+                        if (GUILayout.Button("Check Out", EditorStyles.toolbarButton))
+                        {
+                            if (checkOut != null)
+                                checkOut();
                         }
                     }
 

@@ -449,9 +449,8 @@ public class VisualEffectAssetEditor : Editor
     public override void OnInspectorGUI()
     {
         resourceObject.Update();
-
-        bool enable = GUI.enabled; //Everything in external asset is disabled by default
-        GUI.enabled = true;
+        
+        GUI.enabled = AssetDatabase.IsOpenForEdit(this.target, StatusQueryOptions.UseCachedIfPossible);
 
         EditorGUI.BeginChangeCheck();
         EditorGUI.showMixedValue = resourceUpdateModeProperty.hasMultipleDifferentValues;
@@ -503,7 +502,7 @@ public class VisualEffectAssetEditor : Editor
                     {
                         prewarmStepCount.intValue = currentStepCount = 1;
                     }
-                    
+
                     currentDeltaTime = currentTotalTime == 0.0f ? 0.0f : currentTotalTime / currentStepCount;
                     prewarmDeltaTime.floatValue = currentDeltaTime;
                     prewarmStepCount.intValue = currentStepCount;
