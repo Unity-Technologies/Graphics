@@ -180,7 +180,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
     #endregion
 
     /// <summary>
-    /// The RenderGraphResourceRegistry holds all resource allocated during Render Graph execution
+    /// The RenderGraphResourceRegistry holds all resource allocated during Render Graph execution.
     /// </summary>
     public class RenderGraphResourceRegistry
     {
@@ -297,9 +297,9 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
         #region Public Interface
         /// <summary>
-        /// Returns the RTHandle associated with the provided resource handle
+        /// Returns the RTHandle associated with the provided resource handle.
         /// </summary>
-        /// <param name="handle">Handle to a texture resource</param>
+        /// <param name="handle">Handle to a texture resource.</param>
         /// <returns>The RTHandle associated with the provided resource handle.</returns>
         public RTHandle GetTexture(in RenderGraphResource handle)
         {
@@ -319,9 +319,9 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         }
 
         /// <summary>
-        /// Returns the RendererList associated with the provided resource handle
+        /// Returns the RendererList associated with the provided resource handle.
         /// </summary>
-        /// <param name="handle">Handle to a Renderer List resource</param>
+        /// <param name="handle">Handle to a Renderer List resource.</param>
         /// <returns>The Renderer List associated with the provided resource handle.</returns>
         public RendererList GetRendererList(in RenderGraphResource handle)
         {

@@ -17,7 +17,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
     }
 
     /// <summary>
-    /// Use this struct to specify the context given to every render pass.
+    /// This struct specifies the context given to every render pass.
     /// </summary>
     public ref struct RenderGraphContext
     {
@@ -69,7 +69,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
     }
 
     /// <summary>
-    /// The Render Pass rendering delegate
+    /// The Render Pass rendering delegate.
     /// </summary>
     /// <typeparam name="PassData">The type of the class used to provide data to the Render Pass.</typeparam>
     /// <param name="data">Render Pass specific data.</param>
@@ -77,7 +77,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
     public delegate void RenderFunc<PassData>(PassData data, RenderGraphContext renderGraphContext) where PassData : class, new();
 
     /// <summary>
-    /// This class is the main entry point of the Render Graph system
+    /// This class is the main entry point of the Render Graph system.
     /// </summary>
     public class RenderGraph
     {
@@ -238,7 +238,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         /// </summary>
         /// <param name="desc">Texture descriptor.</param>
         /// <param name="shaderProperty">Optional property that allows you to specify a Shader property name to use for automatic resource binding.</param>
-        /// <returns>A new RenderGraphMutableResource</returns>
+        /// <returns>A new RenderGraphMutableResource.</returns>
         public RenderGraphMutableResource CreateTexture(TextureDesc desc, int shaderProperty = 0)
         {
             if (m_DebugParameters.tagResourceNamesWithRG)
@@ -247,11 +247,11 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         }
 
         /// <summary>
-        /// Create a new Render Graph Texture resource using the descriptor from another texture
+        /// Create a new Render Graph Texture resource using the descriptor from another texture.
         /// </summary>
-        /// <param name="texture">Texture from which the descriptor should be used</param>
+        /// <param name="texture">Texture from which the descriptor should be used.</param>
         /// <param name="shaderProperty">Optional property that allows you to specify a Shader property name to use for automatic resource binding.</param>
-        /// <returns>A new RenderGraphMutableResource</returns>
+        /// <returns>A new RenderGraphMutableResource.</returns>
         public RenderGraphMutableResource CreateTexture(in RenderGraphResource texture, int shaderProperty = 0)
         {
             var desc = m_Resources.GetTextureResourceDesc(texture);
@@ -264,7 +264,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         /// Gets the descriptor of the specified Texture resource.
         /// </summary>
         /// <param name="texture"></param>
-        /// <returns>The input texture descriptor</returns>
+        /// <returns>The input texture descriptor.</returns>
         public TextureDesc GetTextureDesc(in RenderGraphResource texture)
         {
             if (texture.type != RenderGraphResourceType.Texture)

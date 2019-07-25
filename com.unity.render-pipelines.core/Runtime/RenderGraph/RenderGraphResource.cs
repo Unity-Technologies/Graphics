@@ -10,7 +10,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
     }
 
     /// <summary>
-    /// Handle to a read-only Render Graph resource
+    /// Handle to a read-only Render Graph resource.
     /// </summary>
     [DebuggerDisplay("{type} ({handle})")]
     public struct RenderGraphResource
@@ -34,7 +34,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
     }
 
     /// <summary>
-    /// Handle to a writable Render Graph resource
+    /// Handle to a writable Render Graph resource.
     /// </summary>
     [DebuggerDisplay("{type} ({handle})")]
     public struct RenderGraphMutableResource
