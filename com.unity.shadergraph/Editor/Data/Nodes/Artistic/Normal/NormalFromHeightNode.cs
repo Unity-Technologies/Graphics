@@ -28,7 +28,7 @@ namespace UnityEditor.ShaderGraph
         [EnumControl("Output Space")]
         public OutputSpace outputSpace
         {
-            get { return m_OutputSpace; }
+            get => m_OutputSpace;
             set
             {
                 if (m_OutputSpace == value)
@@ -39,40 +39,33 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        const int InputSlotId = 0;
-        const int OutputSlotId = 1;
-        const int InputStrength = 2;
-        const string kInputSlotName = "In";
-        const string kOutputSlotName = "Out";
-        const string kInputStrength = "Strength";
+        const int k_InputSlotId = 0;
+        const int k_OutputSlotId = 1;
+        const int k_InputStrengthId = 2;
+        const string k_InputSlotName = "In";
+        const string k_OutputSlotName = "Out";
+        const string k_InputStrengthName = "Strength";
 
-        public override bool hasPreview
-        {
-            get { return true; }
-        }
+        public override bool hasPreview => true;
 
-        string GetFunctionName()
-        {
-            return string.Format("Unity_NormalFromHeight2_{0}", outputSpace.ToString());
-        }
+        string GetFunctionName() => $"Unity_NormalFromHeight_{outputSpace.ToString()}_{concretePrecision.ToShaderString()}";
 
         public sealed override void UpdateNodeAfterDeserialization()
         {
-            AddSlot(new Vector1MaterialSlot(InputSlotId, kInputSlotName, kInputSlotName, SlotType.Input, 0));
-            // Strength of 2 is the value to match the old version of the NormalFromHeight node
-            AddSlot(new Vector1MaterialSlot(InputStrength, kInputStrength, kInputStrength, SlotType.Input, 2));
-            AddSlot(new Vector3MaterialSlot(OutputSlotId, kOutputSlotName, kOutputSlotName, SlotType.Output, Vector4.zero));
-            RemoveSlotsNameNotMatching(new[] { InputSlotId, InputStrength, OutputSlotId });
+            AddSlot(new Vector1MaterialSlot(k_InputSlotId, k_InputSlotName, k_InputSlotName, SlotType.Input, 0));
+            AddSlot(new Vector1MaterialSlot(k_InputStrengthId, k_InputStrengthName, k_InputStrengthName, SlotType.Input, 2));
+            AddSlot(new Vector3MaterialSlot(k_OutputSlotId, k_OutputSlotName, k_OutputSlotName, SlotType.Output, Vector4.zero));
+            RemoveSlotsNameNotMatching(new[] { k_InputSlotId, k_InputStrengthId, k_OutputSlotId });
         }
 
         public void GenerateNodeCode(ShaderStringBuilder sb, GraphContext graphContext, GenerationMode generationMode)
         {
-            var inputValue = GetSlotValue(InputSlotId, generationMode);
-            var outputValue = GetSlotValue(OutputSlotId, generationMode);
-            sb.AppendLine("{0} {1};", FindOutputSlot<MaterialSlot>(OutputSlotId).concreteValueType.ToShaderString(), GetVariableNameForSlot(OutputSlotId));
+            var inputValue = GetSlotValue(k_InputSlotId, generationMode);
+            var outputValue = GetSlotValue(k_OutputSlotId, generationMode);
+            sb.AppendLine("{0} {1};", FindOutputSlot<MaterialSlot>(k_OutputSlotId).concreteValueType.ToShaderString(), GetVariableNameForSlot(k_OutputSlotId));
             sb.AppendLine("$precision3x3 _{0}_TangentMatrix = $precision3x3(IN.{1}SpaceTangent, IN.{1}SpaceBiTangent, IN.{1}SpaceNormal);", GetVariableNameForNode(), NeededCoordinateSpace.World.ToString());
             sb.AppendLine("$precision3 _{0}_Position = IN.{1}SpacePosition;", GetVariableNameForNode(), NeededCoordinateSpace.World.ToString());
-            sb.AppendLine("$precision _{0}_scale = rcp({1});", GetVariableNameForNode(), GetVariableNameForSlot(InputStrength));
+            sb.AppendLine("$precision _{0}_scale = 1.0 / ({1});", GetVariableNameForNode(), GetVariableNameForSlot(k_InputStrengthId));
             sb.AppendLine("{0}({1}, _{2}_TangentMatrix, _{2}_scale, {3});", GetFunctionName(), inputValue, GetVariableNameForNode(), outputValue);
         }
 
@@ -94,23 +87,9 @@ namespace UnityEditor.ShaderGraph
                 });
         }
 
-        public NeededCoordinateSpace RequiresTangent(ShaderStageCapability stageCapability)
-        {
-            return NeededCoordinateSpace.World;
-        }
-
-        public NeededCoordinateSpace RequiresBitangent(ShaderStageCapability stageCapability)
-        {
-            return NeededCoordinateSpace.World;
-        }
-
-        public NeededCoordinateSpace RequiresNormal(ShaderStageCapability stageCapability)
-        {
-            return NeededCoordinateSpace.World;
-        }
-        public NeededCoordinateSpace RequiresPosition(ShaderStageCapability stageCapability)
-        {
-            return NeededCoordinateSpace.World;
-        }
+        public NeededCoordinateSpace RequiresTangent(ShaderStageCapability stageCapability) => NeededCoordinateSpace.World;
+        public NeededCoordinateSpace RequiresBitangent(ShaderStageCapability stageCapability) => NeededCoordinateSpace.World;
+        public NeededCoordinateSpace RequiresNormal(ShaderStageCapability stageCapability) => NeededCoordinateSpace.World;
+        public NeededCoordinateSpace RequiresPosition(ShaderStageCapability stageCapability) => NeededCoordinateSpace.World;
 	}
 }
