@@ -2,6 +2,8 @@ using System.Collections.Generic;
 
 namespace UnityEngine.Rendering
 {
+    //Volumes are documented in HDRP for now
+    [HelpURL(Documentation.baseURLHDRP + Documentation.version + Documentation.subURL + "Volumes" + Documentation.endURL)]
     [ExecuteAlways]
     public class Volume : MonoBehaviour
     {
