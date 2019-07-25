@@ -41,10 +41,6 @@ namespace UnityEditor.ShaderGraph.Drawing
                 if (m_Keyword.keywordDefinition == (ShaderKeywordDefinition)evt.newValue)
                     return;
                 m_Keyword.keywordDefinition = (ShaderKeywordDefinition)evt.newValue;
-
-                if(m_Keyword.keywordType == ShaderKeywordType.Enum)
-                    Remove(m_Container);
-
                 Rebuild();
             });
             AddRow("Definition", keywordDefinitionField, m_Keyword.isEditable);
@@ -101,7 +97,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             AddRow("Default", field);
 
             // Entries
-            if(m_Keyword.keywordType == ShaderKeywordType.Enum)
+            if(m_Keyword.keywordType == ShaderKeywordType.Enum && m_Keyword.keywordDefinition != ShaderKeywordDefinition.Predefined)
             {
                 m_Container = new IMGUIContainer(() => OnGUIHandler ()) { name = "ListContainer" };
                 AddRow("Entries", m_Container, keyword.isEditable);
