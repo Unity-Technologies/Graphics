@@ -493,6 +493,7 @@ namespace UnityEditor.VFX.Test
         {
             var pathExpected = expectedLogFolder + identifier + ".expected.txt";
             var pathActual = expectedLogFolder + identifier + ".actual.txt";
+            bool success = true;
 
             IEnumerable<string> expectedContent = Enumerable.Empty<string>();
             try
@@ -501,11 +502,11 @@ namespace UnityEditor.VFX.Test
             }
             catch(System.Exception)
             {
+                success = false;
                 Debug.LogErrorFormat("Can't locate file : {0}", pathExpected);
             }
 
             //Compare line by line to avoid carriage return differences
-            bool success = true;
             var reader = new System.IO.StringReader(actualContent.ToString());
             foreach (var expectedContentLine in expectedContent)
             {
@@ -644,7 +645,7 @@ namespace UnityEditor.VFX.Test
                 }
             }
 
-            var compare = CompareWithExpectedLog(log, "CreateSpawner_Chaining");
+            var compare = CompareWithExpectedLog(log, "Chaining");
             Assert.IsTrue(compare);
             yield return null;
             UnityEngine.Object.DestroyImmediate(gameObj);
@@ -660,11 +661,11 @@ namespace UnityEditor.VFX.Test
 
             public override string ToString()
             {
-                return string.Format("LoopDuration_{0}-LoopCount_{1}-DelayBeforeLoop_{2}-DelayAfterLoop_{3}",
-                    LoopDuration,
-                    LoopCount,
-                    DelayBeforeLoop,
-                    DelayAfterLoop);
+                return string.Format("{0}{1}{2}{3}",
+                    VFXCodeGeneratorHelper.GeneratePrefix((uint)LoopDuration),
+                    VFXCodeGeneratorHelper.GeneratePrefix((uint)LoopCount),
+                    VFXCodeGeneratorHelper.GeneratePrefix((uint)DelayBeforeLoop),
+                    VFXCodeGeneratorHelper.GeneratePrefix((uint)DelayAfterLoop)).ToUpper();
             }
         }
 
@@ -832,7 +833,7 @@ namespace UnityEditor.VFX.Test
                 }
             }
 
-            var compare = CompareWithExpectedLog(log, "CreateSpawner_ChangeLoopMode_" + testCase.ToString());
+            var compare = CompareWithExpectedLog(log, testCase.ToString());
             Assert.IsTrue(compare);
 
             yield return null;
