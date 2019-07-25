@@ -24,6 +24,7 @@ The version number for this package has increased due to a version update of a r
 - direct strenght properties in ambient occlusion now affect direct specular as well
 - Added a warning in the material UI when the diffusion profile assigned is not in the HDRP asset
 - Added Alembic velocity support to various Shaders.
+- Allow in ShaderGraph to enable pre/post pass when the alpha clip is disabled
 
 ## [6.9.0] - 2019-07-02
 
