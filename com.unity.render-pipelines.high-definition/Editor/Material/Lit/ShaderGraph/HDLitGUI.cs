@@ -41,7 +41,9 @@ namespace UnityEditor.Rendering.HighDefinition
         public static void SetupMaterialKeywordsAndPass(Material material)
         {
             SynchronizeShaderGraphProperties(material);
+
             BaseLitGUI.SetupBaseLitKeywords(material);
+            BaseLitGUI.SetupBaseLitMaterialPass(material);
             bool receiveSSR = material.HasProperty(kReceivesSSR) ? material.GetInt(kReceivesSSR) != 0 : false;
             bool useSplitLighting = material.HasProperty(kUseSplitLighting) ? material.GetInt(kUseSplitLighting) != 0: false;
             BaseLitGUI.SetupStencil(material, receiveSSR, useSplitLighting);
