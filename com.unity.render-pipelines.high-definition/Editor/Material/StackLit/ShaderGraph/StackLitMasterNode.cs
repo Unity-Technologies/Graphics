@@ -75,7 +75,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public const string BakedBackGISlotName = "BakedBackGI";
 
         // TODO: we would ideally need one value per lobe
-        //public const string SpecularOcclusionSlotName = "SpecularOcclusion";
+        public const string SpecularOcclusionSlotName = "SpecularOcclusion";
 
         public const string SOFixupVisibilityRatioThresholdSlotName = "SOConeFixupVisibilityThreshold";
         public const string SOFixupStrengthFactorSlotName = "SOConeFixupStrength";
@@ -131,10 +131,10 @@ namespace UnityEditor.Rendering.HighDefinition
         public const int IridescenceCoatFixupTIRSlotId = 40;
         public const int IridescenceCoatFixupTIRClampSlotId = 41;
 
-        // TODO: we would ideally need one value per lobe
-        //public const int SpecularOcclusionSlotId = ; // for custom (external) SO replacing data based SO (which comes from DataBasedSOMode(dataAO, optional bent normal))
-
         public const int DepthOffsetSlotId = 42;
+
+        // TODO: we would ideally need one value per lobe
+        public const int SpecularOcclusionSlotId = 43; // for custom (external) SO replacing data based SO (which normally comes from some func of DataBasedSOMode(dataAO, optional bent normal))
 
         // In StackLit.hlsl engine side
         //public enum BaseParametrization
@@ -172,6 +172,11 @@ namespace UnityEditor.Rendering.HighDefinition
             DirectFromAO = 1, // TriACE
             ConeConeFromBentAO = 2,
             SPTDIntegrationOfBentAO = 3,
+            Custom = 4,
+            // Custom user port input: For now, we will only have one input used for all lobes and only for data-based SO
+            // (TODO: Normally would need a custom input per lobe.
+            // Main rationale is that roughness can change IBL fetch direction and not only BSDF lobe width, and interface normal changes shading reference frame
+            // hence it also changes the directional relation between the visibility cone and the BSDF lobe.)
         }
 
         public enum SpecularOcclusionBaseModeSimple
@@ -179,6 +184,7 @@ namespace UnityEditor.Rendering.HighDefinition
             Off = 0,
             DirectFromAO = 1, // TriACE
             SPTDIntegrationOfBentAO = 3,
+            Custom = 4,
         }
 
         public enum SpecularOcclusionAOConeSize
@@ -654,7 +660,7 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         [SerializeField]
-        SpecularOcclusionBaseMode m_DataBasedSpecularOcclusionBaseMode = SpecularOcclusionBaseMode.SPTDIntegrationOfBentAO; // ie from baked AO + bentnormal
+        SpecularOcclusionBaseMode m_DataBasedSpecularOcclusionBaseMode;
 
         public SpecularOcclusionBaseMode dataBasedSpecularOcclusionBaseMode
         {
@@ -956,6 +962,11 @@ namespace UnityEditor.Rendering.HighDefinition
                         && screenSpaceSpecularOcclusionAOConeDir == SpecularOcclusionAOConeDir.BentNormal));
         }
 
+        public bool DataBasedSpecularOcclusionIsCustom()
+        {
+            return dataBasedSpecularOcclusionBaseMode == SpecularOcclusionBaseMode.Custom;
+        }
+
         public static bool SpecularOcclusionConeFixupMethodModifiesRoughness(SpecularOcclusionConeFixupMethod soConeFixupMethod)
         {
             return (soConeFixupMethod == SpecularOcclusionConeFixupMethod.BoostBSDFRoughness
@@ -1010,12 +1021,11 @@ namespace UnityEditor.Rendering.HighDefinition
             validSlots.Add(AmbientOcclusionSlotId);
 
             // TODO: we would ideally need one value per lobe
-            //if (specularOcclusion.isOn && specularOcclusionIsCustom.isOn)
-            //{
-            //
-            //    AddSlot(new Vector1MaterialSlot(SpecularOcclusionSlotId, SpecularOcclusionSlotName, SpecularOcclusionSlotName, SlotType.Input, 1.0f, ShaderStageCapability.Fragment))
-            //    validSlots.Add(SpecularOcclusionSlotId);
-            //}
+            if (DataBasedSpecularOcclusionIsCustom())
+            {
+                AddSlot(new Vector1MaterialSlot(SpecularOcclusionSlotId, SpecularOcclusionSlotName, SpecularOcclusionSlotName, SlotType.Input, 1.0f, ShaderStageCapability.Fragment));
+                validSlots.Add(SpecularOcclusionSlotId);
+            }
 
             if (SpecularOcclusionUsesBentNormal() && specularOcclusionConeFixupMethod != SpecularOcclusionConeFixupMethod.Off)
             {
