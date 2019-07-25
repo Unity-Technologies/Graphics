@@ -6,6 +6,6 @@
     "unityRelease": "0a12",
     "displayName": "High Definition RP Config",
     "dependencies": {
-        "com.unity.render-pipelines.core": "7.1.1"
+        "com.unity.render-pipelines.core": "7.0.1"
     }
 }
