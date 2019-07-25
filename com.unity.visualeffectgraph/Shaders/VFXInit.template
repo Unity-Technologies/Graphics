@@ -93,10 +93,10 @@ void CSMain(uint3 groupId          : SV_GroupID,
 #endif
         ${VFXLoadAttributes}
 #if VFX_USE_PARTICLEID_CURRENT
-         particleId = particleIndex;
+         particleId_Attrib = particleIndex;
 #endif
 #if VFX_USE_SEED_CURRENT
-        seed = WangHash(particleIndex ^ systemSeed);
+        seed_Attrib = WangHash(particleIndex ^ systemSeed);
 #endif
 #if HAS_STRIPS
 		${VFXLoadParameter:{stripIndex}}
@@ -110,9 +110,9 @@ void CSMain(uint3 groupId          : SV_GroupID,
 
 		uint index = particleIndex;
 #if !VFX_USE_ALIVE_CURRENT
-		bool alive = true;
+		bool alive_Attrib = true;
 #endif
-        if (GetParticleIndex(index, alive, stripIndex))
+        if (GetParticleIndex(index, alive_Attrib, stripIndex))
         {
             ${VFXStoreAttributes}
         }

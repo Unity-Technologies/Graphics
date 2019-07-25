@@ -37,16 +37,16 @@ void CSMain(uint3 groupId          : SV_GroupID,
 	{
 #if VFX_USE_ALIVE_CURRENT
 		${VFXLoadAttributes:{alive}}
-		if (alive)
+		if (alive_Attrib)
 		{
 			${VFXLoadAttributes:{(?!(alive))(\b\w)}}
 			
 #if VFX_USE_OLDPOSITION_CURRENT
-			oldPosition = position;
+			oldPosition_Attrib = position_Attrib;
 #endif
 			
 			${VFXProcessBlocks}
-			if (alive)
+			if (alive_Attrib)
 			{
 				${VFXStoreAttributes:{(?!(alive))(\b\w)}}
 #if VFX_HAS_INDIRECT_DRAW
@@ -74,7 +74,7 @@ void CSMain(uint3 groupId          : SV_GroupID,
 		${VFXLoadAttributes}
 		
 #if VFX_USE_OLDPOSITION_CURRENT
-		oldPosition = position;
+		oldPosition_Attrib = position_Attrib;
 #endif
 		
 		${VFXProcessBlocks}

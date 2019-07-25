@@ -42,9 +42,9 @@ void CSMain(uint3 groupId          : SV_GroupID,
 		${VFXLoadAttributes:{position}}
 		
 #if VFX_LOCAL_SPACE
-		float3 wPos = mul(localToWorld,float4(position,1.0f)).xyz;
+		float3 wPos = mul(localToWorld,float4(position_Attrib,1.0f)).xyz;
 #else
-		float3 wPos = position;
+		float3 wPos = position_Attrib;
 #endif
 		float3 camToPos = wPos - cameraPosition;
 		

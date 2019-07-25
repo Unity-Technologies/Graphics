@@ -1,9 +1,9 @@
 ${VFXBegin:VFXVertexCommonProcess}
 #if VFX_USE_COLOR_CURRENT && defined(VFX_VARYING_COLOR)
-o.VFX_VARYING_COLOR = color;
+o.VFX_VARYING_COLOR = color_Attrib;
 #endif
 #if VFX_USE_ALPHA_CURRENT && defined(VFX_VARYING_ALPHA) 
-o.VFX_VARYING_ALPHA = alpha;
+o.VFX_VARYING_ALPHA = alpha_Attrib;
 #endif
 
 #ifdef VFX_VARYING_EXPOSUREWEIGHT
@@ -33,15 +33,15 @@ o.VFX_VARYING_POSWS = TransformPositionVFXToWorld(vPos);
 ${VFXEnd}
 
 ${VFXBegin:VFXLoadSize}
-float3 size3 = float3(size,size,size);
+float3 size3 = float3(size_Attrib,size_Attrib,size_Attrib);
 #if VFX_USE_SCALEX_CURRENT
-size3.x *= scaleX;
+size3.x *= scaleX_Attrib;
 #endif
 #if VFX_USE_SCALEY_CURRENT
-size3.y *= scaleY;
+size3.y *= scaleY_Attrib;
 #endif
 #if VFX_USE_SCALEZ_CURRENT
-size3.z *= scaleZ;
+size3.z *= scaleZ_Attrib;
 #endif
 ${VFXEnd}
 
@@ -49,7 +49,7 @@ ${VFXBegin:VFXVertexSetFlipbooksInterpolants}
 #if USE_FLIPBOOK
 ${VFXLoadParameter:{flipBookSize}}
 ${VFXLoadParameter:{invFlipBookSize}}
-VFXUVData uvData = GetUVData(flipBookSize, invFlipBookSize, o.VFX_VARYING_UV.xy, texIndex);
+VFXUVData uvData = GetUVData(flipBookSize, invFlipBookSize, o.VFX_VARYING_UV.xy, texIndex_Attrib);
 o.VFX_VARYING_UV.xy = uvData.uvs.xy;
 #if USE_FLIPBOOK_INTERPOLATION
 o.VFX_VARYING_UV.zw = uvData.uvs.zw;
@@ -83,7 +83,7 @@ ${VFXLoadAttributes}
 ${VFXLoadAttributes:{alive}}
 
 #if !HAS_STRIPS
-if (!alive)
+if (!alive_Attrib)
 	return o;
 #endif
 	

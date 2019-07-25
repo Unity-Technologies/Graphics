@@ -62,14 +62,14 @@ namespace UnityEditor.VFX
 
             var regex = new Regex(matching);
             var attributesFromContext = context.GetData().GetAttributes().Where(o => regex.IsMatch(o.attrib.name)).ToArray();
-            var attributesSource = attributesFromContext.Where(o => (o.mode & VFXAttributeMode.ReadSource) != 0).ToArray();
+            var attributesSource = attributesFromContext.Where(o => (o.mode & VFXAttributeMode.ReadSource) != 0).Where(a => context.GetData().IsAttributeUsed(a.attrib, context)).ToArray();
             var attributesCurrent = attributesFromContext.Where(o => o.mode != VFXAttributeMode.ReadSource).Where(a => context.GetData().IsAttributeUsed(a.attrib, context) || (context.contextType == VFXContextType.Init && context.GetData().IsAttributeStored(a.attrib))).ToArray();
 
             //< Current Attribute
             foreach (var attribute in attributesCurrent.Select(o => o.attrib))
             {
-                var name = attribute.name;
-                if (name != VFXAttribute.EventCount.name)
+                var name = attribute.GetNameInCode(VFXAttributeLocation.Current);
+                if (attribute.name != VFXAttribute.EventCount.name)
                 {
                     if (context.contextType != VFXContextType.Init && context.GetData().IsAttributeStored(attribute))
                     {
@@ -95,7 +95,7 @@ namespace UnityEditor.VFX
             //< Source Attribute (default temporary behavior, source is always the initial current value except for init context)
             foreach (var attribute in attributesSource.Select(o => o.attrib))
             {
-                var name = string.Format("{0}_source", attribute.name);
+                var name = attribute.GetNameInCode(VFXAttributeLocation.Source);
                 if (context.contextType == VFXContextType.Init)
                 {
                     r.WriteVariable(attribute.type, name, context.GetData().GetLoadAttributeCode(attribute, VFXAttributeLocation.Source));
@@ -134,9 +134,9 @@ namespace UnityEditor.VFX
                 r.WriteLine(';');
             }
 
-            var eventCountName = VFXAttribute.EventCount.name;
-            if (regex.IsMatch(eventCountName))
+            if (regex.IsMatch(VFXAttribute.EventCount.name))
             {
+                var eventCountName = VFXAttribute.EventCount.GetNameInCode(VFXAttributeLocation.Current);
                 for (uint i = 0; i < linkedOutCount; ++i)
                 {
                     var prefix = VFXCodeGeneratorHelper.GeneratePrefix(i);
@@ -544,7 +544,7 @@ namespace UnityEditor.VFX
             {
                 if ((parameters[indexEventCount].mode & VFXAttributeMode.Read) != 0)
                     throw new InvalidOperationException(string.Format("{0} isn't expected as read (special case)", VFXAttribute.EventCount.name));
-                blockCallFunction.WriteLine(string.Format("{0} = 0u;", VFXAttribute.EventCount.name));
+                blockCallFunction.WriteLine(string.Format("{0} = 0u;", VFXAttribute.EventCount.GetNameInCode(VFXAttributeLocation.Current)));
             }
 
             blockCallFunction.WriteCallFunction(methodName,
@@ -558,7 +558,7 @@ namespace UnityEditor.VFX
                 {
                     var eventIndex = linkedEventOut.IndexOf(outputSlot);
                     if (eventIndex != -1)
-                        blockCallFunction.WriteLineFormat("{0}_{1} += {0};", VFXAttribute.EventCount.name, VFXCodeGeneratorHelper.GeneratePrefix((uint)eventIndex));
+                        blockCallFunction.WriteLineFormat("{0}_{1} += {0};", VFXAttribute.EventCount.GetNameInCode(VFXAttributeLocation.Current), VFXCodeGeneratorHelper.GeneratePrefix((uint)eventIndex));
                 }
             }
             if (needScope)

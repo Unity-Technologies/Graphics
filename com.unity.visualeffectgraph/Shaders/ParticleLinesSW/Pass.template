@@ -33,21 +33,28 @@ VFX_VARYING_PS_INPUTS vert(uint id : SV_VertexID, vs_input i)
 	${VFXLoadAttributesOrCull}
 	${VFXProcessBlocks}
 			
-	if (!alive)
+	if (!alive_Attrib)
 		return o;
 
 	#if TARGET_FROM_ATTRIBUTES
 	${VFXLoadSize}
-	float4x4 elementToVFX = GetElementToVFXMatrix(axisX,axisY,axisZ,float3(angleX,angleY,angleZ),float3(pivotX,pivotY,pivotZ),size3,position);
+	float4x4 elementToVFX = GetElementToVFXMatrix(
+		axisX_Attrib,
+		axisY_Attrib,
+		axisZ_Attrib,
+		float3(angleX_Attrib,angleY_Attrib,angleZ_Attrib),
+		float3(pivotX_Attrib,pivotY_Attrib,pivotZ_Attrib),
+		size3,
+		position_Attrib);
 
-	position = mul(elementToVFX,float4(0,0,0,1)).xyz;
+	position_Attrib = mul(elementToVFX,float4(0,0,0,1)).xyz;
 	
 	${VFXLoadParameter:{targetOffset}}
-	targetPosition = mul(elementToVFX,float4(targetOffset,1)).xyz;
+	targetPosition_Attrib = mul(elementToVFX,float4(targetOffset,1)).xyz;
 	#endif
 		
-	float4 pos0 = TransformPositionVFXToClip(position);
-	float4 pos1 = TransformPositionVFXToClip(targetPosition);
+	float4 pos0 = TransformPositionVFXToClip(position_Attrib);
+	float4 pos1 = TransformPositionVFXToClip(targetPosition_Attrib);
 	
 	pos0 = ClipOnNearPlane(pos0, pos1);
 	pos1 = ClipOnNearPlane(pos1, pos0);
@@ -74,7 +81,7 @@ VFX_VARYING_PS_INPUTS vert(uint id : SV_VertexID, vs_input i)
 	#endif
 	
 	// If ever used we need the position in vfx space (we dont take into account the pixel offset)
-	float3 vPos = ((id >> 1) & 1) ? position : targetPosition;
+	float3 vPos = ((id >> 1) & 1) ? position_Attrib : targetPosition_Attrib;
 	
 	o.VFX_VARYING_POSCS = vPosArray[id & 3];
 	
