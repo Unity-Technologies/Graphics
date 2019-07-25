@@ -26,7 +26,7 @@ For [SpeedTree](https://docs.unity3d.com/Manual/SpeedTree.html) Shaders, Unity d
 
 With the Universal Render Pipeline, you can have real-time lighting wither either Physically Based Shaders (PBS) and non-Physically Based Rendering (PBR).
 
-For PBS, use the [Lit Shader](lit-shader.md). You can use it on all platforms. The Shader quality scales, depending on the platform, but keeps physically based rendering on all platforms. This gives you realistic graphics across hardware. The Unity [Standard Shader](<https://docs.unity3d.com/Manual/shader-StandardShader.html>) and the [Standard (Specular setup)](https://docs.unity3d.com/Manual/StandardShaderMetallicVsSpecular.html) Shaders both map to the Lit Shader in UniversalRP. For a list of Shader mappings, see [Shader mappings](upgrading-your-shaders.md#shaderMappings)
+For PBS, use the [Lit Shader](lit-shader.md). You can use it on all platforms. The Shader quality scales, depending on the platform, but keeps physically based rendering on all platforms. This gives you realistic graphics across hardware. The Unity [Standard Shader](<https://docs.unity3d.com/Manual/shader-StandardShader.html>) and the [Standard (Specular setup)](https://docs.unity3d.com/Manual/StandardShaderMetallicVsSpecular.html) Shaders both map to the Lit Shader in UniversalRP. For a list of Shader mappings, see [Shader mappings under Upgradring your Shaders.](upgrading-your-shaders.md#shaderMappings)
 
 If you’re targeting less powerful devices, or just would like simpler shading, use the [Simple Lit Shader](simple-lit-shader.md), which is non-PBR. 
 
