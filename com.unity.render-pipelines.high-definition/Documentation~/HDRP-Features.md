@@ -17,6 +17,10 @@ This is a high level overview of all of the features you can use in the High Def
 
 You can run HDRP Projects on Xbox One, PS4, and compute Shader compatible devices for DirectX 11, DirectX 12, Metal, and Vulkan.
 
+### Virtual Reality
+
+HDRP is compatible with VR and optimized for single-pass rendering. For more information about Virtual Reality, see the [VR documentation](VR-in-HDRP.html).
+
 ### Camera-relative rendering
 
 Use HDRP to render distance GameObjects with large world-space coordinates in a more robust and numerically stable way than the built-in render pipeline. For information on how HDRP achieves this, see the [Camera-relative rendering documentation](Camera-Relative-Rendering.html).
