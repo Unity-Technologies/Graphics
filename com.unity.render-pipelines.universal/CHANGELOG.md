@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [7.1.1] - 2019-XX-XX
 - Fixed specular lighting related artifacts on Mobile [case 1143049](https://issuetracker.unity3d.com/issues/ios-lwrp-rounded-cubes-has-graphical-artifacts-when-setting-pbr-shaders-smoothness-about-to-0-dot-65-in-shadergraph) and [case 1164822](https://issuetracker.unity3d.com/issues/lwrp-specular-highlight-becomes-hard-edged-when-increasing-the-size-of-an-object).
+- Post-processing is no longer enabled in the previews.
+- Unity no longer force-enables post-processing on a camera by default.
+
+### Changed
+- Platform checks now provide more helpful feedback about supported features in the Inspectors.
 
 ## [7.0.0] - 2019-07-17
 ### Universal Render Pipeline
