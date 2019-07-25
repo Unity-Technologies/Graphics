@@ -15,6 +15,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed culling for volumetrics with XR single-pass rendering
 - Fix shadergraph material pass setup not called
 - Fixed documentation links in component's Inspector header bar
+- Cookies using the render texture output from a camera are now properly updated
+- Allow in ShaderGraph to enable pre/post pass when the alpha clip is disabled
 
 ### Changed
 - RenderQueue for Opaque now start at Background instead of Geometry.
