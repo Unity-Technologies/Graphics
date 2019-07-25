@@ -12,6 +12,7 @@ namespace UnityEngine.Rendering.HighDefinition
     }
 
     // The HDRenderPipeline assumes linear lighting. Doesn't work with gamma.
+    [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "HDRP-Asset" + Documentation.endURL)]
     public partial class HDRenderPipelineAsset : RenderPipelineAsset
     {
 

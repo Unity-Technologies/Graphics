@@ -134,6 +134,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
     //@TODO: We should continuously move these values
     // into the engine when we can see them being generally useful
+    [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "Light-Component" + Documentation.endURL)]
     [RequireComponent(typeof(Light))]
     [ExecuteAlways]
     public partial class HDAdditionalLightData : MonoBehaviour
