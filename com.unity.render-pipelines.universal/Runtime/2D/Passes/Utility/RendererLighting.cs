@@ -126,7 +126,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
         }
 
 
-        static private void RenderShadows(CommandBuffer cmdBuffer, Light2D light, RenderTargetIdentifier renderTexture)
+        static private void RenderShadows(CommandBuffer cmdBuffer, Light2D light, float shadowIntensity, RenderTargetIdentifier renderTexture)
         {
             // Render light's shadows
             //if (light.castsShadows)
@@ -136,7 +136,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             cmdBuffer.SetGlobalTexture("_ShadowTex", Renderer2DData.s_RenderTexture);
             cmdBuffer.SetGlobalFloat("_ShadowIntensity", 1 - light.shadowIntensity);
 
-            if (light.shadowIntensity > 0)
+            if (shadowIntensity > 0)
             {
                 BoundingSphere lightBounds = light.GetBoundingSphere(); // Gets the local bounding sphere...
                 Vector3 lightCenterWS = lightBounds.position;
@@ -192,9 +192,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
                             {
                                 Renderer renderer = lightReactor.GetComponent<Renderer>();
 
-                                float receivesShadowsValue = lightReactor.receivesShadows ? 0.0f : 1.0f;
-                                cmdBuffer.SetGlobalFloat("_ReceivesShadows", receivesShadowsValue);
-
                                 if (renderer != null)
                                 {
                                     if (!lightReactor.selfShadows)
@@ -223,7 +220,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             {
                 if (light != null && light.lightType != Light2D.LightType.Global && light.blendStyleIndex == blendStyleIndex && light.IsLitLayer(layerToRender) && light.IsLightVisible(camera))
                 {
-                    RenderShadows(cmdBuffer, light, renderTexture);
+                    RenderShadows(cmdBuffer, light, light.shadowIntensity, renderTexture);
 
                     // Render light
                     Material lightMaterial = GetLightMaterial(light, false);
@@ -280,7 +277,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     {
                         if (light != null && light.lightType != Light2D.LightType.Global && light.volumeOpacity > 0.0f && light.blendStyleIndex == blendStyleIndex && light.IsLitLayer(layerToRender) && light.IsLightVisible(camera))
                         {
-                            RenderShadows(cmdBuffer, light, renderTexture);
+                            RenderShadows(cmdBuffer, light, light.shadowVolumeIntensity, renderTexture);
 
                             Material lightVolumeMaterial = GetLightMaterial(light, true);
                             if (lightVolumeMaterial != null)

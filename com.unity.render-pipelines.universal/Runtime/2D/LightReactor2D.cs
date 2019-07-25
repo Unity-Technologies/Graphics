@@ -12,17 +12,15 @@ namespace UnityEngine.Experimental.Rendering.Universal
         [SerializeField] int m_ShadowGroup = 0;
         [SerializeField] bool m_SelfShadows = false;
         [SerializeField] bool m_CastsShadows = true;
-        [SerializeField] bool m_ReceivesShadows = true;
+
         List<ShadowCaster2D> m_ShadowCasters;
         Renderer m_Renderer;
 
         public bool selfShadows => m_SelfShadows;
         public bool castsShadows => m_CastsShadows;
-        public bool receivesShadows => m_ReceivesShadows;
 
         int m_PreviousShadowGroup = 0;
         bool m_PreviousCastsShadows = true;
-        bool m_PreviousReceivesShadows = true;
 
         public List<ShadowCaster2D> GetShadowCasters() { return m_ShadowCasters; }
 
@@ -78,11 +76,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     ShadowCasterGroup2DManager.AddGroup(this);
                 else
                     ShadowCasterGroup2DManager.RemoveGroup(this);
-            }
-
-            if(LightUtility.CheckForChange(m_ReceivesShadows, ref m_PreviousReceivesShadows))
-            {
-                
             }
         }
     }
