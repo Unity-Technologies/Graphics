@@ -759,20 +759,12 @@ namespace UnityEditor.VFX
                 taskDescs.Add(taskDesc);
             }
 
-            var nativeName = systemName;
-            if (string.IsNullOrEmpty(nativeName))
-            {
-                systemName = VFXSystemNames.defaultSystemName;
-                nativeName = systemName;
-                Debug.Log("System genrated name: " + nativeName);
-            }
-
             outSystemDescs.Add(new VFXEditorSystemDesc()
             {
                 flags = systemFlag,
                 tasks = taskDescs.ToArray(),
                 capacity = capacity,
-                name = nativeName,
+                name = systemName,
                 buffers = systemBufferMappings.ToArray(),
                 values = systemValueMappings.ToArray(),
                 type = VFXSystemType.Particle,

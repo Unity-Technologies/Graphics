@@ -44,6 +44,9 @@ namespace UnityEditor.VFX
 
         public virtual string systemName { get; set; }
 
+        public virtual void SetSystemName(VFXGraph graph, string name) { }
+        public virtual string GetSystemName(VFXGraph graph) { return string.Empty; }
+
         public delegate void InvalidateEvent(VFXModel model, InvalidationCause cause);
 
         public event InvalidateEvent onInvalidateDelegate;

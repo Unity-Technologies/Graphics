@@ -6,6 +6,7 @@ using System.Linq;
 using UnityEditor.VFX.UI;
 using UnityEditor;
 using NUnit.Framework;
+using System.Runtime.CompilerServices;
 
 using SysRegex = System.Text.RegularExpressions.Regex;
 
@@ -14,7 +15,7 @@ namespace UnityEditor.VFX
     internal class VFXSystemNames
     {
 
-        public static readonly string defaultSystemName = "System";
+        public static readonly string DefaultSystemName = "System";
 
         private static readonly string IndexPattern = @" (\(([0-9])*\))$";
         private Dictionary<VFXModel, string> m_UnindexedNames = new Dictionary<VFXModel, string>();
@@ -38,6 +39,19 @@ namespace UnityEditor.VFX
             return 0;
         }
 
+        public void Sync(VFXGraph graph)
+        {
+            var models = new HashSet<ScriptableObject>();
+            graph.CollectDependencies(models, false);
+
+            var systems = models.OfType<VFXContext>()
+                .Where(c => c.contextType == VFXContextType.Spawner || c.GetData() != null)
+                .Select(c =>  c.GetData() != null ? c.GetData() as VFXModel : c)
+                .Distinct().ToList();
+
+            Init(systems);
+        }
+
         /* Handling user modifications */
         public static void UIUpdate(VFXSystemBorder systemBorder, string newName)
         {
@@ -58,33 +72,20 @@ namespace UnityEditor.VFX
             m_UnindexedNames = new Dictionary<VFXModel, string>();
             m_DuplicatesIndices = new Dictionary<string, List<int>>();
 
-            /*foreach (var system in models)
-            {
-                var systemName = system.systemName;
-                if (!string.IsNullOrEmpty(systemName))
-                {
-                    // Adding system
-                    var unindexedName = SysRegex.Replace(systemName, IndexPattern, "");
-                    m_UnindexedNames[system] = unindexedName;
-
-                    // checking if a system with same name already exists:
-                    var index = ExtractIndex(systemName);
-                }
-            }*/
-
             foreach (var system in models)
             {
+                //Debug.Log("Init: " + RuntimeHelpers.GetHashCode(system));
                 if (!(system is VFXDataParticle || system is VFXContext))
                     continue;
                 var systemName = ExtractName(system);
-                if (!string.IsNullOrEmpty(systemName))
-                {
-                    var unindexedName = SysRegex.Replace(systemName, IndexPattern, "");
-                    system.systemName = unindexedName;
-                }
+                if (string.IsNullOrEmpty(systemName))
+                    systemName = DefaultSystemName;
+                
+                var unindexedName = SysRegex.Replace(systemName, IndexPattern, "");
+                system.systemName = unindexedName;
+                if (!m_UnindexedNames.ContainsKey(system))
+                    Debug.LogError("Init: key lost. system.systemName: " + system.systemName);
             }
-
-            Debug.Log("VFXSystemNames.Fill basic version called");
         }
 
         /// <summary>
@@ -94,7 +95,7 @@ namespace UnityEditor.VFX
         {
             if (models != null)
             {
-                var systems = models.OfType<VFXContext>().Select(context => context.contextType == VFXContextType.Spawner ? context as VFXModel : context.GetData() as VFXModel);
+                var systems = models.OfType<VFXContext>().Select(context => context.GetData() != null ? context.GetData() as VFXModel : context as VFXModel);
                 List<VFXModel> registeredModels = new List<VFXModel>(m_UnindexedNames.Keys);
                 foreach (var registeredModel in registeredModels)
                 {
@@ -109,22 +110,6 @@ namespace UnityEditor.VFX
             }
         }
 
-
-        /// <summary>
-        /// Registers a system if not already present, and attempts to name it wishedName.
-        /// </summary>
-        /// <returns> If system is not already registed, wishedName if it is a correct name, otherwise an indexed copy of wishedName.
-        /// Else, returns this system's name.
-        /// </returns>
-        public string TryAdd(VFXModel system, string wishedName)
-        {
-            if (!m_UnindexedNames.ContainsKey(system))
-            {
-                return AddAndCorrect(system, wishedName);
-            }
-            return system.systemName;
-        }
-
         /// <summary>
         /// Registers a system name, eventually corrects it so it is unique, and returns it.
         /// If an indexed name is supplied, index will not be considered, and will probably change even if it is a correct one.
@@ -132,8 +117,9 @@ namespace UnityEditor.VFX
         /// </summary>
         public string AddAndCorrect(VFXModel system, string wishedName)
         {
+            //Debug.Log("AAC: " + RuntimeHelpers.GetHashCode(system));
             if (string.IsNullOrEmpty(wishedName))
-                wishedName = defaultSystemName;
+                wishedName = DefaultSystemName;
             var unindexedName = SysRegex.Replace(wishedName, IndexPattern, "");
 
             RemoveSystem(system);
@@ -143,9 +129,9 @@ namespace UnityEditor.VFX
             return MakeUnique(unindexedName);
         }
 
-        public void RemoveSystem(VFXModel system, bool removeFromUnindexNames = false)
+        public void RemoveSystem(VFXModel system, bool removeFromUnindexNames = true)
         {
-            // if system is not of type VFXDataParticle, or if it is not a spawner of type VFXContext , abort.
+            // if system is not of type VFXDataParticle, or if it is not a spawner of type VFXContext, abort.
             if (!(system is VFXDataParticle))
             {
                 var context = system as VFXContext;
@@ -156,12 +142,10 @@ namespace UnityEditor.VFX
             m_UnindexedNames.TryGetValue(system, out unindexedName);
             if (!string.IsNullOrEmpty(unindexedName))
             {
-                //Debug.Log("RemoveSystem:: unindexedName: " + unindexedName);
                 List<int> duplicateIndices;
                 m_DuplicatesIndices.TryGetValue(unindexedName, out duplicateIndices);
                 if (duplicateIndices != null)
                 {
-                    //Debug.Log("RemoveSystem:: ExtractName(system): " + ExtractName(system));
                     int index = ExtractIndex(ExtractName(system));
                     duplicateIndices.Remove(index);
                     if (duplicateIndices.Count() == 0)

@@ -422,6 +422,7 @@ namespace UnityEditor.VFX
 
             if (cause == VFXModel.InvalidationCause.kStructureChanged)
             {
+                m_SystemNames.Sync(this);
                 UpdateSubAssets();
                 if( model == this)
                     VFXSubgraphContext.CallOnGraphChanged(this);

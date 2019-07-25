@@ -75,20 +75,43 @@ namespace UnityEditor.VFX
             }
             set
             {
+                if (string.IsNullOrEmpty(value))
+                    value = VFXSystemNames.DefaultSystemName;
+
                 if (m_Data != null)
                     m_Data.systemName = value;
-                if (contextType == VFXContextType.Spawner)
+                else if (contextType == VFXContextType.Spawner)
                 {
                     var graph = GetGraph();
                     if (graph != null)
-                    {
-                        if (string.IsNullOrEmpty(value))
-                            label = "";
-                        else
-                            label = graph.systemNames.AddAndCorrect(this, value);
-                    }
+                        label = graph.systemNames.AddAndCorrect(this, value);
+                    Debug.Log("context.systemName.set:: graph hash: " + graph.GetHashCode());
                 }
             }
+        }
+
+        public override void SetSystemName(VFXGraph graph, string name)
+        {
+            if (string.IsNullOrEmpty(name))
+                name = VFXSystemNames.DefaultSystemName;
+
+            if (m_Data != null)
+                m_Data.SetSystemName(graph, name);
+            else if (contextType == VFXContextType.Spawner)
+            {
+                if (graph != null)
+                    label = graph.systemNames.AddAndCorrect(this, name);
+                Debug.Log("context.systemName.set:: graph hash: " + graph.GetHashCode());
+            }
+        }
+
+        public override string GetSystemName(VFXGraph graph)
+        {
+            if (m_Data != null)
+                return m_Data.systemName;
+            if (contextType == VFXContextType.Spawner)
+                return label;
+            return string.Empty;
         }
 
         public string label
@@ -232,6 +255,8 @@ namespace UnityEditor.VFX
         protected override void OnAdded()
         {
             base.OnAdded();
+            var graph = GetGraph();
+            systemName = VFXSystemNames.DefaultSystemName;
             if (hasBeenCompiled || CanBeCompiled())
                 Invalidate(InvalidationCause.kExpressionGraphChanged);
         }
