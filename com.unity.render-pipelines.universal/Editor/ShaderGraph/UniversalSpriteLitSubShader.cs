@@ -129,5 +129,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
         {
             return renderPipelineAsset is UniversalRenderPipelineAsset;
         }
+
+        public UniversalSpriteLitSubShader () { }
     }
 }
