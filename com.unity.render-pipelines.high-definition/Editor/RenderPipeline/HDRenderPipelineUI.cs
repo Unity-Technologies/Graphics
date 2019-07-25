@@ -306,7 +306,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 // Deferred Only mode does not allow to change filtering quality, but rather it is hardcoded.
                 if (isDeferredOnly)
-                    serialized.renderPipelineSettings.hdShadowInitParams.shadowFilteringQuality.intValue = (int)HDShadowFilteringQuality.Medium;
+                    serialized.renderPipelineSettings.hdShadowInitParams.shadowFilteringQuality.intValue = (int)ShaderConfig.s_DeferredShadowFiltering;
 
                 using (new EditorGUI.DisabledScope(isDeferredOnly))
                     EditorGUILayout.PropertyField(serialized.renderPipelineSettings.hdShadowInitParams.shadowFilteringQuality, k_FilteringQuality);

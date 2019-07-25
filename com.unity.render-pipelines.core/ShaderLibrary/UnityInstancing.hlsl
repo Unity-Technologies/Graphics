@@ -162,7 +162,6 @@
                     unity_InstanceID = unity_BaseInstanceID + (inputInstanceID >> 1);
                 #endif
             #else
-                // XRTODO: lookup generated code and optimize if possible
                 unity_StereoEyeIndex = inputInstanceID % _XRViewCount;
                 unity_InstanceID = unity_BaseInstanceID + (inputInstanceID / _XRViewCount);
             #endif
