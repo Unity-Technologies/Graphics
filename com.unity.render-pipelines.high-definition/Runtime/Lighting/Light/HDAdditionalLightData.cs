@@ -482,7 +482,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (m_ShapeWidth == value)
                     return;
 
-                if (lightTypeExtent == LightTypeExtent.Rectangle)
+                if (IsAreaLight(m_LightTypeExtent))
                     m_ShapeWidth = Mathf.Clamp(value, k_MinAreaWidth, float.MaxValue);
                 else
                     m_ShapeWidth = Mathf.Clamp(value, 0, float.MaxValue);
@@ -504,7 +504,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (m_ShapeHeight == value)
                     return;
 
-                if (lightTypeExtent == LightTypeExtent.Rectangle)
+                if (IsAreaLight(m_LightTypeExtent))
                     m_ShapeHeight = Mathf.Clamp(value, k_MinAreaWidth, float.MaxValue);
                 else
                     m_ShapeHeight = Mathf.Clamp(value, 0, float.MaxValue);
@@ -2284,11 +2284,20 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        void UpdateShapeSize()
+        {
+            // Force to clamp the shape if we changed the type of the light
+            shapeWidth = m_ShapeWidth;
+            shapeHeight = m_ShapeHeight;
+        }
+
         /// <summary>
         /// Synchronize all the HD Additional Light values with the Light component.
         /// </summary>
         public void UpdateAllLightValues()
         {
+            UpdateShapeSize();
+
             // Update light intensity
             UpdateLightIntensity();
 
