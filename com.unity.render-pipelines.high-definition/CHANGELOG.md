@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Added
 - Added option in the config package to disable globally Area Lights and to select shadow quality settings for the deferred pipeline. 
+- When shader log stripping is enabled, shader stripper statistics will be written at `Temp/shader-strip.json`
 
 ### Fixed
 - Fixed XR SDK mirror view blit, cleanup some XRTODO and removed XRDebug.cs
