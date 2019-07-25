@@ -10,30 +10,25 @@ struct vs_input
 #if HAS_STRIPS
 #define PARTICLE_IN_EDGE (id & 1)
 
-uint GetParticleIndex(uint relativeIndex, uint stripIndex)
-{
-	return PARTICLE_PER_STRIP_COUNT * stripIndex + (relativeIndex + STRIP_DATA(STRIP_FIRST_INDEX)) % PARTICLE_PER_STRIP_COUNT;
-}
-
 float3 GetParticlePosition(uint index)
 {
 	${VFXLoadAttributes:{position}}
 	return position_Attrib;
 }
 
-float3 GetStripTangent(float3 currentPos, uint relativeIndex, uint stripIndex)
+float3 GetStripTangent(float3 currentPos, uint relativeIndex, const StripData stripData)
 {
 	float3 prevTangent = (float3)0.0f;
 	if (relativeIndex > 0)
 	{
-		uint prevIndex = GetParticleIndex(relativeIndex - 1,stripIndex);
+		uint prevIndex = GetParticleIndex(relativeIndex - 1,stripData);
 		prevTangent = normalize(currentPos - GetParticlePosition(prevIndex));
 	}
 	
 	float3 nextTangent = (float3)0.0f;
-	if (relativeIndex < STRIP_DATA(STRIP_NEXT_INDEX) - 1)
+	if (relativeIndex < stripData.nextIndex - 1)
 	{
-		uint nextIndex = GetParticleIndex(relativeIndex + 1,stripIndex);
+		uint nextIndex = GetParticleIndex(relativeIndex + 1,stripData);
 		prevTangent = normalize(GetParticlePosition(nextIndex) - currentPos);
 	}
 	
@@ -55,14 +50,14 @@ VFX_VARYING_PS_INPUTS vert(uint id : SV_VertexID, vs_input i)
 #if HAS_STRIPS
 	id += VFX_GET_INSTANCE_ID(i) * 8192;
 	const uint vertexPerStripCount = (PARTICLE_PER_STRIP_COUNT - 1) << 2;
-	uint stripIndex = id / vertexPerStripCount;
+	const StripData stripData = GetStripDataFromStripIndex(id / vertexPerStripCount, PARTICLE_PER_STRIP_COUNT);
 	uint currentIndex = ((id % vertexPerStripCount) >> 2) + (id & 1); // relative index of particle
 	
 	uint maxEdgeIndex = currentIndex - PARTICLE_IN_EDGE + 1;
-	if (maxEdgeIndex >= STRIP_DATA(STRIP_NEXT_INDEX))
+	if (maxEdgeIndex >= stripData.nextIndex)
 		return o;
 	
-	uint index = GetParticleIndex(currentIndex, stripIndex);
+	uint index = GetParticleIndex(currentIndex, stripData);
 #else
 	uint index = (id >> 2) + VFX_GET_INSTANCE_ID(i) * 2048;
 #endif
@@ -82,7 +77,7 @@ VFX_VARYING_PS_INPUTS vert(uint id : SV_VertexID, vs_input i)
 
 #if HAS_STRIPS
 #if VFX_STRIPS_UV_STRECHED
-	o.VFX_VARYING_UV.x = (float)(currentIndex) / (STRIP_DATA(STRIP_NEXT_INDEX) - 1);
+	o.VFX_VARYING_UV.x = (float)(currentIndex) / (stripData.nextIndex - 1);
 #else
 	o.VFX_VARYING_UV.x = PARTICLE_IN_EDGE;
 #endif
@@ -91,7 +86,7 @@ VFX_VARYING_PS_INPUTS vert(uint id : SV_VertexID, vs_input i)
 	const float2 vOffsets = float2(0.0f,o.VFX_VARYING_UV.y - 0.5f);
 	
 	// Orient strips along their tangents
-	axisX_Attrib = GetStripTangent(position_Attrib, currentIndex, stripIndex);
+	axisX_Attrib = GetStripTangent(position_Attrib, currentIndex, stripData);
 	axisZ_Attrib = position_Attrib - GetViewVFXPosition();
 	axisY_Attrib = normalize(cross(axisZ_Attrib, axisX_Attrib));
 	axisZ_Attrib = normalize(cross(axisX_Attrib, axisY_Attrib));

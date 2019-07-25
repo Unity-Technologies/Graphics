@@ -21,14 +21,14 @@ VFX_VARYING_PS_INPUTS vert(uint id : SV_VertexID, vs_input i)
 
 	#if HAS_STRIPS
 	const uint vertexPerStripCount = (PARTICLE_PER_STRIP_COUNT - 1) << 1;
-	uint stripIndex = id / vertexPerStripCount;
-	uint currentIndex = (id % vertexPerStripCount + 1) >> 1; // relative index of particle
+	const StripData stripData = GetStripDataFromStripIndex(id / vertexPerStripCount, PARTICLE_PER_STRIP_COUNT);
+	uint relativeIndex = (id % vertexPerStripCount + 1) >> 1; // relative index of particle in strip
 	
-	uint maxEdgeIndex = currentIndex - (id & 1) + 1;
-	if (maxEdgeIndex >= STRIP_DATA(STRIP_NEXT_INDEX))
+	uint maxEdgeIndex = relativeIndex - (id & 1) + 1;
+	if (maxEdgeIndex >= stripData.nextIndex)
 		return o;
 	
-	uint index = PARTICLE_PER_STRIP_COUNT * stripIndex + (currentIndex + STRIP_DATA(STRIP_FIRST_INDEX)) % PARTICLE_PER_STRIP_COUNT; // wrapped index of particle	
+	uint index = GetParticleIndex(relativeIndex, stripData);
 	#else
 	uint index = id >> 1;
 	#endif

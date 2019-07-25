@@ -1,7 +1,6 @@
 #pragma kernel CSMain
 ${VFXGlobalInclude}
 ${VFXGlobalDeclaration}
-${VFXPerPassInclude}
 
 #define USE_DEAD_LIST (VFX_USE_ALIVE_CURRENT && !HAS_STRIPS)
 
@@ -16,7 +15,7 @@ RWStructuredBuffer<uint> indirectBuffer;
 #endif
 
 #if HAS_STRIPS
-RWBuffer<uint> stripData;
+RWBuffer<uint> stripDataBuffer;
 #endif
 
 CBUFFER_START(updateParams)
@@ -24,6 +23,8 @@ CBUFFER_START(updateParams)
 	uint dispatchWidth;
 	uint systemSeed;
 CBUFFER_END
+
+${VFXPerPassInclude}
 
 ${VFXGeneratedBlockFunction}
 
@@ -55,10 +56,10 @@ void CSMain(uint3 groupId          : SV_GroupID,
 #endif
 
 #if HAS_STRIPS
-				uint stripIndex = index / PARTICLE_PER_STRIP_COUNT;
-				uint relativeIndexInStrip = (PARTICLE_PER_STRIP_COUNT + index - STRIP_DATA(STRIP_FIRST_INDEX)) % PARTICLE_PER_STRIP_COUNT;
-				InterlockedMin(STRIP_DATA(STRIP_MIN_ALIVE),relativeIndexInStrip);
-				InterlockedMax(STRIP_DATA(STRIP_MAX_ALIVE),relativeIndexInStrip);
+				const StripData stripData = GetStripDataFromParticleIndex(index, PARTICLE_PER_STRIP_COUNT);
+				uint relativeIndexInStrip = GetRelativeIndex(index, stripData);
+				InterlockedMin(STRIP_DATA(STRIP_MIN_ALIVE, stripData.stripIndex),relativeIndexInStrip);
+				InterlockedMax(STRIP_DATA(STRIP_MAX_ALIVE, stripData.stripIndex),relativeIndexInStrip);
 #endif
 			}
 			else
