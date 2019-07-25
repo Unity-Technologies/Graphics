@@ -453,10 +453,7 @@ public class VisualEffectAssetEditor : Editor
         var enableScope = true;
         var inspectedAssetPath = AssetDatabase.GetAssetPath(this.target);
         if (!AssetDatabase.IsOpenForEdit(inspectedAssetPath))
-        {
             enableScope = false;
-            Debug.Log("Help");
-        }
 
         bool enable = GUI.enabled; //Everything in external asset is disabled by default
         GUI.enabled = true;
