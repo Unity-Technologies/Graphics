@@ -44,6 +44,10 @@ namespace UnityEditor.ShaderGraph
                 m_Entries.Add(new ShaderKeywordEntry(2, "B", "B"));
                 m_Entries.Add(new ShaderKeywordEntry(3, "C", "C"));
             }
+            else
+            {
+                overrideReferenceName = $"{referenceName}_ON";
+            }
         }
 
         [SerializeField]
@@ -133,7 +137,7 @@ namespace UnityEditor.ShaderGraph
             switch(keywordType)
             {
                 case ShaderKeywordType.Boolean:
-                    return $"#pragma {definitionString} _ {referenceName}_ON";
+                    return $"#pragma {definitionString} _ {referenceName}";
                 case ShaderKeywordType.Enum:
                     var enumEntryDefinitions = entries.Select(x => $"{referenceName}_{x.referenceName}");
                     string enumEntriesString = string.Join(" ", enumEntryDefinitions);
@@ -148,7 +152,7 @@ namespace UnityEditor.ShaderGraph
             switch(keywordType)
             {
                 case ShaderKeywordType.Boolean:
-                    return value == 1 ? $"#define {referenceName}_ON" : string.Empty;
+                    return value == 1 ? $"#define {referenceName}" : string.Empty;
                 case ShaderKeywordType.Enum:
                     return $"#define {referenceName}_{entries[value].referenceName}";
                 default:

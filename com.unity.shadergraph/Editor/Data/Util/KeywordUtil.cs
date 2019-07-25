@@ -137,7 +137,7 @@ namespace UnityEditor.ShaderGraph
                             if(appendAndFromPrevious)
                                 sb.Append(" && ");
 
-                            sb.Append($"defined({permutations[p][i].Key.referenceName}_ON)");
+                            sb.Append($"defined({permutations[p][i].Key.referenceName})");
                             appendAndFromPrevious = true;
                         }
                     }
