@@ -15,6 +15,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fix property sync in shadergraph with the current material in the inspector
 - Fixed an issue causing Scene View selection wire gizmo to not appear when using HDRP Shader Graphs.
 
+### Changed
+- Added a warning in the material UI when the diffusion profile assigned is not in the HDRP asset
+
 ## [6.9.0] - 2019-07-02
 
 ### Added
