@@ -90,6 +90,7 @@ Shader "Lightweight Render Pipeline/Particles/Unlit"
             #pragma shader_feature _FLIPBOOKBLENDING_ON
             #pragma shader_feature _SOFTPARTICLES_ON
             #pragma shader_feature _FADING_ON
+            #pragma shader_feature _DISTORTION_ON
             
             // -------------------------------------
             // Unity defined keywords

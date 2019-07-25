@@ -55,14 +55,18 @@ namespace UnityEngine.Rendering.LWRP
                 cmd.DisableShaderKeyword(ShaderKeywordStrings.KillAlpha);
 
             ref CameraData cameraData = ref renderingData.cameraData;
+            // Use default blit for XR as we are not sure the UniversalRP blit handles stereo.
+            // The blit will be reworked for stereo along the XRSDK work.
+            Material blitMaterial = (cameraData.isStereoEnabled) ? null : m_BlitMaterial;
+            cmd.SetGlobalTexture("_BlitTex", m_Source.Identifier());
             if (cameraData.isStereoEnabled || cameraData.isSceneViewCamera || cameraData.isDefaultViewport)
             {
-                cmd.Blit(m_Source.Identifier(), BuiltinRenderTextureType.CameraTarget);
+                // This set render target is necessary so we change the LOAD state to DontCare.
+                cmd.SetRenderTarget(BuiltinRenderTextureType.CameraTarget, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
+                cmd.Blit(m_Source.Identifier(), BuiltinRenderTextureType.CameraTarget, blitMaterial);
             }
             else
             {
-                cmd.SetGlobalTexture("_BlitTex", m_Source.Identifier());
-
                 // TODO: Final blit pass should always blit to backbuffer. The first time we do we don't need to Load contents to tile.
                 // We need to keep in the pipeline of first render pass to each render target to propertly set load/store actions.
                 // meanwhile we set to load so split screen case works.
@@ -78,7 +82,7 @@ namespace UnityEngine.Rendering.LWRP
                 Camera camera = cameraData.camera;
                 cmd.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.identity);
                 cmd.SetViewport(cameraData.camera.pixelRect);
-                cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, m_BlitMaterial);
+                cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, blitMaterial);
                 cmd.SetViewProjectionMatrices(camera.worldToCameraMatrix, camera.projectionMatrix);
             }
 

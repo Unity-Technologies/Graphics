@@ -5,6 +5,14 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## [5.17.0] - 2019-XX-XX
+### Fixed
+- Fixed garbage collection spikes caused by LWRP allocating heap memory every frame.
+- Fixed distortion effect on the particle unlit Shader.
+- Fixed warnings about unsupported shadow map format for GLES2 API.
+- Disabled shadows for devices that do not support shadow map nor depth textures.
+- Fixed the shadow resolve pass and the final pass, so they don't consume unnecessary bandwidth. [case 1152439](https://issuetracker.unity3d.com/issues/lwrp-mobile-increased-memory-usage-and-extra-rendering-steps)
+- Fixed BeforeTransparent post-processing not working.
+- Fixed issue that caused scene to render darker in GLES3 and linear color space. [case 1169789](https://issuetracker.unity3d.com/issues/lwrp-android-scene-is-rendered-darker-in-build-when-graphics-api-set-to-gles3-and-color-space-set-to-linear)
 
 ## [5.16.1] - 2019-05-22
 ### Changed
