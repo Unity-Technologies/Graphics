@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Fixed
 - Fixed fp16 overflow in Switch in specular calculation
 - Fixed shader compilation errors for Android XR projects.
+- Fixed garbage collection spikes caused by LWRP allocating heap memory every frame.
+- Fixed BeforeTransparent post-processing not working.
+- Fixed issue that caused scene to render darker in GLES3 and linear color space. [case 1169789](https://issuetracker.unity3d.com/issues/lwrp-android-scene-is-rendered-darker-in-build-when-graphics-api-set-to-gles3-and-color-space-set-to-linear)
 
 ## [6.9.0] - 2019-07-05
 ### Fixed
