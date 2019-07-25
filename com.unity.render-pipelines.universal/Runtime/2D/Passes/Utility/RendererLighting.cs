@@ -85,10 +85,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
             descriptor.msaaSamples = 1;
             descriptor.dimension = TextureDimension.Tex2D;
 
-            descriptor.width = (int)(camera.pixelWidth/128);
-            descriptor.height = (int)(camera.pixelHeight/128);
-
-            cmd.GetTemporaryRT(s_ShadowsRenderTarget.id, descriptor, FilterMode.Bilinear); // Needs to be switch to R8 color format...
 
 
             descriptor.width = (int)(camera.pixelWidth);
@@ -108,8 +104,19 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 s_LightRenderTargetsDirty[i] = true;
             }
 
+            descriptor.colorFormat = RenderTextureFormat.ARGB32;
+            descriptor.sRGB = false;
+            descriptor.useMipMap = false;
+            descriptor.autoGenerateMips = false;
+            descriptor.depthBufferBits = 24;
+            descriptor.msaaSamples = 1;
+            descriptor.graphicsFormat = GraphicsFormat.B8G8R8A8_UNorm;
+            descriptor.dimension = TextureDimension.Tex2D;
+            descriptor.width = (int)(camera.pixelWidth);
+            descriptor.height = (int)(camera.pixelHeight);
 
-            
+
+            cmd.GetTemporaryRT(s_ShadowsRenderTarget.id, descriptor, FilterMode.Bilinear); // Needs to be switch to R8 color format...            
         }
 
         static public void ReleaseRenderTextures(CommandBuffer cmd)
@@ -130,10 +137,11 @@ namespace UnityEngine.Experimental.Rendering.Universal
         {
             // Render light's shadows
             //if (light.castsShadows)
-            //cmdBuffer.SetRenderTarget(s_ShadowsRenderTarget.Identifier()); // This isn't efficient if this light doesn't cast shadow.
-            cmdBuffer.SetRenderTarget(Renderer2DData.s_RenderTexture);
+            cmdBuffer.SetRenderTarget(s_ShadowsRenderTarget.Identifier()); // This isn't efficient if this light doesn't cast shadow.
+            //cmdBuffer.SetRenderTarget(Renderer2DData.s_RenderTexture);
             cmdBuffer.ClearRenderTarget(true, true, Color.black);
-            cmdBuffer.SetGlobalTexture("_ShadowTex", Renderer2DData.s_RenderTexture);
+            //cmdBuffer.SetGlobalTexture("_ShadowTex", Renderer2DData.s_RenderTexture);
+            cmdBuffer.SetGlobalTexture("_ShadowTex", s_ShadowsRenderTarget.Identifier());
             cmdBuffer.SetGlobalFloat("_ShadowIntensity", 1 - light.shadowIntensity);
 
             if (shadowIntensity > 0)

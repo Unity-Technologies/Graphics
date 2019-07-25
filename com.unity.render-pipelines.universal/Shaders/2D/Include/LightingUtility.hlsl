@@ -62,8 +62,15 @@
     half  shadowIntensity = 1 - (shadow.r * saturate(2 * (shadow.g - 0.5f * shadow.b))); \
     color.rgb = (color.rgb * shadowIntensity) + (color.rgb * intensity*(1 - shadowIntensity))
 
-#define TRANSFER_SHADOWS(output)\
+#if UNITY_UV_STARTS_AT_TOP
+    #define TRANSFER_SHADOWS(output)\
+    output.shadowUV = ComputeScreenPos(output.positionCS / output.positionCS.w).xy;\
+    output.shadowUV.y = 1.0 - output.shadowUV.y;
+#else
+    #define TRANSFER_SHADOWS(output)\
     output.shadowUV = ComputeScreenPos(output.positionCS / output.positionCS.w).xy;
+#endif
+
 
 #define SHAPE_LIGHT(index)\
     TEXTURE2D(_ShapeLightTexture##index);\
