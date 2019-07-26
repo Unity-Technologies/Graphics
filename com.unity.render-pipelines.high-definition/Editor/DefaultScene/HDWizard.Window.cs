@@ -221,6 +221,8 @@ namespace UnityEditor.Rendering.HighDefinition
             container.Add(CreateMigrationButton(Style.migrateAllButton, UpgradeStandardShaderMaterials.UpgradeMaterialsProject));
             container.Add(CreateMigrationButton(Style.migrateSelectedButton, UpgradeStandardShaderMaterials.UpgradeMaterialsSelection));
             container.Add(CreateMigrationButton(Style.migrateLights, UpgradeStandardShaderMaterials.UpgradeLights));
+
+            container.Add(CreateWizardBehaviour());
         }
 
         VisualElement CreateFolderData()
@@ -281,13 +283,17 @@ namespace UnityEditor.Rendering.HighDefinition
             return outerBox;
         }
 
-        //void DrawWizardBehaviour()
-        //{
-        //    EditorGUI.BeginChangeCheck();
-        //    bool changedHasStatPopup = EditorGUILayout.Toggle(Style.haveStartPopup, HDProjectSettings.hasStartPopup);
-        //    if (EditorGUI.EndChangeCheck())
-        //        HDProjectSettings.hasStartPopup = changedHasStatPopup;
-        //}
+        VisualElement CreateWizardBehaviour()
+        {
+            var toggle = new Toggle(Style.showOnStartUp)
+            {
+                value = HDProjectSettings.hasStartPopup,
+                name = "WizardCheckbox"
+            };
+            toggle.RegisterValueChangedCallback(evt
+                => HDProjectSettings.hasStartPopup = evt.newValue);
+            return toggle;
+        }
 
         VisualElement CreateMigrationButton(string title, Action action)
             => new Button(action)
