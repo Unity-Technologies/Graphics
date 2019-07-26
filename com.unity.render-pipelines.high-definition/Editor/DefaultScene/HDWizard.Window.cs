@@ -122,23 +122,13 @@ namespace UnityEditor.Rendering.HighDefinition
 
         static int frameToWait;
         
-        static void WizardBehaviour()
-        {
-            if (HDProjectSettings.wizardIsStartPopup)
-            {
-                //We need to wait at least one frame or the popup will not show up
-                frameToWait = 10;
-                EditorApplication.update += OpenWindowDelayed;
-            }
-        }
-
-        static void OpenWindowDelayed()
+        static void WizardBehaviourDelayed()
         {
             if (frameToWait > 0)
                 --frameToWait;
-            else
+            else if (HDProjectSettings.wizardIsStartPopup)
             {
-                EditorApplication.update -= OpenWindowDelayed;
+                EditorApplication.update -= WizardBehaviourDelayed;
 
                 //Application.isPlaying cannot be called in constructor. Do it here
                 if (Application.isPlaying)
@@ -147,13 +137,20 @@ namespace UnityEditor.Rendering.HighDefinition
                 OpenWindow();
             }
         }
-
+        
+        static void WizardBehaviour()
+        {
+            //We need to wait at least one frame or the popup will not show up
+            frameToWait = 10;
+            EditorApplication.update += WizardBehaviourDelayed;
+        }
+        
         [Callbacks.DidReloadScripts]
         static void ResetDelayed()
         {
             //remove it from domain reload but keep it in editor opening
             frameToWait = 0;
-            EditorApplication.update -= OpenWindowDelayed;
+            EditorApplication.update -= WizardBehaviourDelayed;
         }
 
         #endregion

@@ -340,10 +340,10 @@ namespace UnityEditor.Rendering.HighDefinition
             if (GetSupportedGraphicsAPIs(CalculateSelectedBuildTarget()).Contains(GraphicsDeviceType.Direct3D12))
             {
                 var buidTarget = CalculateSelectedBuildTarget();
-                if (PlayerSettings.GetGraphicsAPIs(CalculateSelectedBuildTarget()).Contains(GraphicsDeviceType.Direct3D12))
+                if (PlayerSettings.GetGraphicsAPIs(buidTarget).Contains(GraphicsDeviceType.Direct3D12))
                 {
                     PlayerSettings.SetGraphicsAPIs(
-                        CalculateSelectedBuildTarget(),
+                        buidTarget,
                         new[] { GraphicsDeviceType.Direct3D12 }
                             .Concat(
                                 PlayerSettings.GetGraphicsAPIs(buidTarget)
@@ -353,7 +353,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 else
                 {
                     PlayerSettings.SetGraphicsAPIs(
-                        CalculateSelectedBuildTarget(),
+                        buidTarget,
                         new[] { GraphicsDeviceType.Direct3D12 }
                             .Concat(PlayerSettings.GetGraphicsAPIs(buidTarget))
                             .ToArray());
