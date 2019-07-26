@@ -722,6 +722,41 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        [SerializeField, FormerlySerializedAs("angularDiameter")]
+        float m_AngularDiameter = 0;
+        /// <summary>
+        /// Angular diameter of the emissive celestial body represented by the light as seen from the camera (in degrees).
+        /// Used to render the sun/moon disk.
+        /// </summary>
+        public float angularDiameter
+        {
+            get => m_AngularDiameter;
+            set
+            {
+                if (m_AngularDiameter == value)
+                    return;
+
+                m_AngularDiameter = value;
+            }
+        }
+
+        [SerializeField, FormerlySerializedAs("distance")]
+        float m_Distance = 150000000.0f; // Sun to Earth
+        /// <summary>
+        /// Distance from the camera to the emissive celestial body represented by the light.
+        /// </summary>
+        public float distance
+        {
+            get => m_Distance;
+            set
+            {
+                if (m_Distance == value)
+                    return;
+
+                m_Distance = value;
+            }
+        }
+
 #if ENABLE_RAYTRACING
         [SerializeField, FormerlySerializedAs("useRayTracedShadows")]
         bool m_UseRayTracedShadows = false;
@@ -1856,7 +1891,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 if (legacyLight.useColorTemperature == value)
                     return;
-                
+
                 legacyLight.useColorTemperature = value;
             }
         }
@@ -1956,6 +1991,8 @@ namespace UnityEngine.Rendering.HighDefinition
             data.m_Intensity = m_Intensity;
             data.displayAreaLightEmissiveMesh = displayAreaLightEmissiveMesh;
             data.interactsWithSky = interactsWithSky;
+            data.angularDiameter = angularDiameter;
+            data.distance = distance;
 
             data.customResolution = customResolution;
             data.shadowDimmer = shadowDimmer;
@@ -2328,7 +2365,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             this.color = color;
         }
-        
+
         /// <summary>
         /// Toggle the usage of color temperature.
         /// </summary>
