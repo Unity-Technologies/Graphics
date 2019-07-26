@@ -380,12 +380,11 @@ namespace UnityEditor.Rendering.HighDefinition
                 public const int k_IndentStepSize = 13;
             }
 
-            public ConfigInfoLine(GUIContent label, string error, string resolverButtonLabel, Func<bool> tester, Action resolver, int indent = 0)
+            public ConfigInfoLine(string label, string error, string resolverButtonLabel, Func<bool> tester, Action resolver, int indent = 0)
                 : base(tester)
             {
-                var testLabel = new Label(label.text)
+                var testLabel = new Label(label)
                 {
-                    tooltip = label.tooltip,
                     name = "TestLabel"
                 };
                 var statusOK = new Image()
