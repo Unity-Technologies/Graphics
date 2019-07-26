@@ -41,6 +41,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         public static void SetupMaterialKeywordsAndPass(Material material)
         {
+            SynchronizeShaderGraphProperties(material);
+
             BaseLitGUI.SetupBaseLitKeywords(material);
             BaseLitGUI.SetupBaseLitMaterialPass(material);
             bool receiveSSR = material.HasProperty(kReceivesSSR) ? material.GetInt(kReceivesSSR) != 0 : false;
@@ -48,7 +50,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             BaseLitGUI.SetupStencil(material, receiveSSR, useSplitLighting);
         }
 
-        // Currently Lit material keyword setup is enough for fabric so we don't have a function for it
         protected override void SetupMaterialKeywordsAndPassInternal(Material material) => SetupMaterialKeywordsAndPass(material);
     }
 }
