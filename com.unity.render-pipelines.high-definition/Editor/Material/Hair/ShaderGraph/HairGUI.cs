@@ -41,6 +41,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         public static void SetupMaterialKeywordsAndPass(Material material)
         {
             BaseLitGUI.SetupBaseLitKeywords(material);
+            BaseLitGUI.SetupBaseLitMaterialPass(material);
             bool receiveSSR = material.HasProperty(kReceivesSSR) ? material.GetInt(kReceivesSSR) != 0 : false;
             bool useSplitLighting = material.HasProperty(kUseSplitLighting) ? material.GetInt(kUseSplitLighting) != 0: false;
             BaseLitGUI.SetupStencil(material, receiveSSR, useSplitLighting);
