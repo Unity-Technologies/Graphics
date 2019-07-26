@@ -68,7 +68,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     return pipeline.currentPlatformRenderPipelineSettings.postProcessQualitySettings.NearBlurSampleCount[qualityLevel];
                 }
             }
-            set { m_NearSampleCount.value = nearSampleCount; }
+            set { m_NearSampleCount.value = value; }
         }
 
         public float nearMaxBlur
@@ -86,7 +86,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     return pipeline.currentPlatformRenderPipelineSettings.postProcessQualitySettings.NearBlurMaxRadius[qualityLevel];
                 }
             }
-            set { m_NearMaxBlur.value = nearMaxBlur; }
+            set { m_NearMaxBlur.value = value; }
         }
 
         public int farSampleCount
@@ -104,7 +104,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     return pipeline.currentPlatformRenderPipelineSettings.postProcessQualitySettings.FarBlurSampleCount[qualityLevel];
                 }
             }
-            set { m_FarSampleCount.value = farSampleCount; }
+            set { m_FarSampleCount.value = value; }
         }
 
         public float farMaxBlur
@@ -122,7 +122,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     return pipeline.currentPlatformRenderPipelineSettings.postProcessQualitySettings.FarBlurMaxRadius[qualityLevel];
                 }
             }
-            set { m_FarMaxBlur.value = farMaxBlur; }
+            set { m_FarMaxBlur.value = value; }
         }
 
         public bool highQualityFiltering
@@ -140,7 +140,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     return pipeline.currentPlatformRenderPipelineSettings.postProcessQualitySettings.HighQualityFiltering[qualityLevel];
                 }
             }
-            set { m_HighQualityFiltering.value = highQualityFiltering; }
+            set { m_HighQualityFiltering.value = value; }
         }
 
         public DepthOfFieldResolution resolution
@@ -160,7 +160,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
             set
             {
-                m_Resolution.value = resolution;
+                m_Resolution.value = value;
             }
         }
 
@@ -188,7 +188,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         [Tooltip("Specifies the resolution at which HDRP processes the depth of field effect.")]
         [SerializeField, FormerlySerializedAs("resolution")]
-        public DepthOfFieldResolutionParameter m_Resolution = new DepthOfFieldResolutionParameter(DepthOfFieldResolution.Half);
+        DepthOfFieldResolutionParameter m_Resolution = new DepthOfFieldResolutionParameter(DepthOfFieldResolution.Half);
 
         public bool IsActive()
         {
