@@ -32,7 +32,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public BoolParameter useQualitySettings = new BoolParameter(false);
 
         [Tooltip("Specifies the mode that HDRP uses to set the focus for the depth of field effect.")]
-        public QualitySettingParameter quality = new QualitySettingParameter(VolumeQualitySettingsLevels.Low);
+        public QualitySettingParameter quality = new QualitySettingParameter(VolumeQualitySettingsLevels.Medium);
 
 
         // Physical settings
@@ -158,32 +158,37 @@ namespace UnityEngine.Rendering.HighDefinition
                     return pipeline.currentPlatformRenderPipelineSettings.postProcessQualitySettings.Resolution[qualityLevel];
                 }
             }
-            set { m_Resolution.value = resolution; }
+            set
+            {
+                m_Resolution.value = resolution;
+            }
         }
 
+
+        /* TODO_FCC: This is problematic, because the editor is in a different asmdef, if this was anything but public*/
         [Tooltip("Sets the number of samples to use for the near field.")]
         [SerializeField, FormerlySerializedAs("nearSampleCount")]
-        ClampedIntParameter m_NearSampleCount = new ClampedIntParameter(5, 3, 8);
+        public ClampedIntParameter m_NearSampleCount = new ClampedIntParameter(5, 3, 8);
 
         [SerializeField, FormerlySerializedAs("nearMaxBlur")]
         [Tooltip("Sets the maximum radius the near blur can reach.")]
-        ClampedFloatParameter m_NearMaxBlur = new ClampedFloatParameter(4f, 0f, 8f);
+        public ClampedFloatParameter m_NearMaxBlur = new ClampedFloatParameter(4f, 0f, 8f);
 
         [Tooltip("Sets the number of samples to use for the far field.")]
         [SerializeField, FormerlySerializedAs("farSampleCount")]
-        ClampedIntParameter m_FarSampleCount = new ClampedIntParameter(7, 3, 16);
+        public ClampedIntParameter m_FarSampleCount = new ClampedIntParameter(7, 3, 16);
         [Tooltip("Sets the maximum radius the far blur can reach.")]
         [SerializeField, FormerlySerializedAs("farMaxBlur")]
-        ClampedFloatParameter m_FarMaxBlur = new ClampedFloatParameter(8f, 0f, 16f);
+        public ClampedFloatParameter m_FarMaxBlur = new ClampedFloatParameter(8f, 0f, 16f);
 
         // Advanced settings
         [Tooltip("When enabled, HDRP uses bicubic filtering instead of bilinear filtering for the depth of field effect.")]
         [SerializeField, FormerlySerializedAs("highQualityFiltering")]
-        BoolParameter m_HighQualityFiltering = new BoolParameter(true);
+        public BoolParameter m_HighQualityFiltering = new BoolParameter(true);
 
         [Tooltip("Specifies the resolution at which HDRP processes the depth of field effect.")]
         [SerializeField, FormerlySerializedAs("resolution")]
-        DepthOfFieldResolutionParameter m_Resolution = new DepthOfFieldResolutionParameter(DepthOfFieldResolution.Half);
+        public DepthOfFieldResolutionParameter m_Resolution = new DepthOfFieldResolutionParameter(DepthOfFieldResolution.Half);
 
         public bool IsActive()
         {

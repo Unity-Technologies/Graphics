@@ -560,7 +560,6 @@ namespace UnityEditor.Rendering.HighDefinition
         static private bool m_ShowDoFLowQualitySection = false;
         static private bool m_ShowDoFMediumQualitySection = false;
         static private bool m_ShowDoFHighQualitySection = false;
-        static private bool m_ShowDoFVeryHighQualitySection = false;
 
         static void DrawDepthOfFieldQualitySetting(SerializedHDRenderPipelineAsset serialized, int tier)
         {
@@ -581,6 +580,9 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
                 --EditorGUI.indentLevel;
             }
+
+            EditorGUILayout.PropertyField(serialized.renderPipelineSettings.postProcessQualitySettings.DoFResolution.GetArrayElementAtIndex(tier), k_DoFResolutionQuality);
+            EditorGUILayout.PropertyField(serialized.renderPipelineSettings.postProcessQualitySettings.DoFHighFilteringQuality.GetArrayElementAtIndex(tier), k_HighQualityFiltering);
             --EditorGUI.indentLevel;
         }
 
@@ -604,13 +606,6 @@ namespace UnityEditor.Rendering.HighDefinition
             if (m_ShowDoFHighQualitySection)
             {
                 int quality = (int)VolumeQualitySettingsLevels.High;
-                DrawDepthOfFieldQualitySetting(serialized, quality);
-            }
-
-            m_ShowDoFVeryHighQualitySection = EditorGUILayout.Foldout(m_ShowDoFVeryHighQualitySection, k_VeryHighQualityContent);
-            if (m_ShowDoFVeryHighQualitySection)
-            {
-                int quality = (int)VolumeQualitySettingsLevels.VeryHigh;
                 DrawDepthOfFieldQualitySetting(serialized, quality);
             }
         }

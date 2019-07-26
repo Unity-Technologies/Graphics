@@ -12,6 +12,8 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty NearBlurMaxRadius;
         public SerializedProperty FarBlurSampleCount;
         public SerializedProperty FarBlurMaxRadius;
+        public SerializedProperty DoFResolution;
+        public SerializedProperty DoFHighFilteringQuality;
 
         public SerializedPostProcessingQualitySettings(SerializedProperty root)
         {
@@ -21,6 +23,9 @@ namespace UnityEditor.Rendering.HighDefinition
             NearBlurMaxRadius       = root.Find((GlobalPostProcessingQualitySettings s) => s.NearBlurMaxRadius);
             FarBlurSampleCount      = root.Find((GlobalPostProcessingQualitySettings s) => s.FarBlurSampleCount);
             FarBlurMaxRadius        = root.Find((GlobalPostProcessingQualitySettings s) => s.FarBlurMaxRadius);
+            DoFResolution           = root.Find((GlobalPostProcessingQualitySettings s) => s.Resolution);
+            DoFHighFilteringQuality = root.Find((GlobalPostProcessingQualitySettings s) => s.HighQualityFiltering);
+
         }
     }
 }

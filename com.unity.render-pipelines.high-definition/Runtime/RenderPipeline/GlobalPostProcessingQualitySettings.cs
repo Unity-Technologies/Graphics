@@ -6,8 +6,7 @@ namespace UnityEngine.Rendering.HighDefinition
     {
         Low = 0,
         Medium = 1,
-        High = 2,
-        VeryHigh = 3
+        High = 2
     }
 
 
@@ -24,33 +23,27 @@ namespace UnityEngine.Rendering.HighDefinition
             /* Depth of Field */
             NearBlurSampleCount[(int)VolumeQualitySettingsLevels.Low] = 3;
             NearBlurSampleCount[(int)VolumeQualitySettingsLevels.Medium] = 5;
-            NearBlurSampleCount[(int)VolumeQualitySettingsLevels.High] = 6;
-            NearBlurSampleCount[(int)VolumeQualitySettingsLevels.VeryHigh] = 8;
+            NearBlurSampleCount[(int)VolumeQualitySettingsLevels.High] = 8;
 
             NearBlurMaxRadius[(int)VolumeQualitySettingsLevels.Low] = 2.0f;
             NearBlurMaxRadius[(int)VolumeQualitySettingsLevels.Medium] = 4.0f;
-            NearBlurMaxRadius[(int)VolumeQualitySettingsLevels.High] = 5.5f;
-            NearBlurMaxRadius[(int)VolumeQualitySettingsLevels.VeryHigh] = 7.5f;
+            NearBlurMaxRadius[(int)VolumeQualitySettingsLevels.High] = 7.0f;
 
-            FarBlurSampleCount[(int)VolumeQualitySettingsLevels.Low] = 3;
+            FarBlurSampleCount[(int)VolumeQualitySettingsLevels.Low] = 4;
             FarBlurSampleCount[(int)VolumeQualitySettingsLevels.Medium] = 7;
-            FarBlurSampleCount[(int)VolumeQualitySettingsLevels.High] = 10;
-            FarBlurSampleCount[(int)VolumeQualitySettingsLevels.VeryHigh] = 16;
+            FarBlurSampleCount[(int)VolumeQualitySettingsLevels.High] = 14;
 
             FarBlurMaxRadius[(int)VolumeQualitySettingsLevels.Low] = 5.0f;
             FarBlurMaxRadius[(int)VolumeQualitySettingsLevels.Medium] = 8.0f;
-            FarBlurMaxRadius[(int)VolumeQualitySettingsLevels.High] = 12.0f;
-            FarBlurMaxRadius[(int)VolumeQualitySettingsLevels.VeryHigh] = 15.5f;
+            FarBlurMaxRadius[(int)VolumeQualitySettingsLevels.High] = 13.0f;
 
             Resolution[(int)VolumeQualitySettingsLevels.Low] = DepthOfFieldResolution.Quarter;
             Resolution[(int)VolumeQualitySettingsLevels.Medium] = DepthOfFieldResolution.Half;
-            Resolution[(int)VolumeQualitySettingsLevels.High] = DepthOfFieldResolution.Half;
-            Resolution[(int)VolumeQualitySettingsLevels.VeryHigh] = DepthOfFieldResolution.Full;
+            Resolution[(int)VolumeQualitySettingsLevels.High] = DepthOfFieldResolution.Full;
 
             HighQualityFiltering[(int)VolumeQualitySettingsLevels.Low] = false;
             HighQualityFiltering[(int)VolumeQualitySettingsLevels.Medium] = true;
             HighQualityFiltering[(int)VolumeQualitySettingsLevels.High] = true;
-            HighQualityFiltering[(int)VolumeQualitySettingsLevels.VeryHigh] = true;
         }
 
         /// <summary>Default GlobalPostProcessingQualitySettings</summary>
