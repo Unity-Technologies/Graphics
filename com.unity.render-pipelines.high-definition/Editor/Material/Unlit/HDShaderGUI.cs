@@ -6,7 +6,7 @@ using UnityEngine.Experimental.Rendering.HDPipeline;
 using UnityEngine.Rendering;
 
 // Include material common properties names
-using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
+using static UnityEngine.Experimental.Rendering.HDPipeline.HDMaterialProperties;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
