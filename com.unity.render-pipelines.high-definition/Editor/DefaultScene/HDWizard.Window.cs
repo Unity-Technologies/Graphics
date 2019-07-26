@@ -3,6 +3,7 @@ using System.Runtime.InteropServices;
 using UnityEngine.UIElements;
 using UnityEditor.UIElements;
 using System.Linq;
+using System;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
@@ -30,7 +31,11 @@ namespace UnityEditor.Rendering.HighDefinition
             public const string defaultSettingsTitle = "Default Path Settings";
             public const string configurationTitle = "Configuration Checking";
             public const string migrationTitle = "Project Migration Quick-links";
-            
+
+            public const string migrateAllButton = "Upgrade Project Materials to High Definition Materials";
+            public const string migrateSelectedButton = "Upgrade Selected Materials to High Definition Materials";
+            public const string migrateLights = "Upgrade Unity Builtin Scene Light Intensity for High Definition";
+
             //configuration debugger
             public const string resolve = "Fix";
             public const string resolveAll = "Fix All";
@@ -213,6 +218,9 @@ namespace UnityEditor.Rendering.HighDefinition
 
 
             container.Add(CreateTitle(Style.migrationTitle));
+            container.Add(CreateMigrationButton(Style.migrateAllButton, UpgradeStandardShaderMaterials.UpgradeMaterialsProject));
+            container.Add(CreateMigrationButton(Style.migrateSelectedButton, UpgradeStandardShaderMaterials.UpgradeMaterialsSelection));
+            container.Add(CreateMigrationButton(Style.migrateLights, UpgradeStandardShaderMaterials.UpgradeLights));
         }
 
         VisualElement CreateFolderData()
@@ -280,6 +288,13 @@ namespace UnityEditor.Rendering.HighDefinition
         //    if (EditorGUI.EndChangeCheck())
         //        HDProjectSettings.hasStartPopup = changedHasStatPopup;
         //}
+
+        VisualElement CreateMigrationButton(string title, Action action)
+            => new Button(action)
+            {
+                text = title,
+                name = "MigrationButton"
+            };
 
         void AddHDRPConfigInfo(VisualElement container)
         {
