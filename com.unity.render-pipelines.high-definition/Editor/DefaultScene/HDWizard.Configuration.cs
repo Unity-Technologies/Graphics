@@ -286,6 +286,7 @@ namespace UnityEditor.Rendering.HighDefinition
             && IsDXRDirect3D12Correct()
             && IsDXRCSharpKeyWordCorrect()
             && IsDXRActivationCorrect()
+            && IsDXRActivationCorrect()
             && IsDXRAssetCorrect();
 
         void FixDXRAll() => EditorApplication.update += FixDXRAllAsync;
@@ -307,6 +308,11 @@ namespace UnityEditor.Rendering.HighDefinition
             if (!IsDXRCSharpKeyWordCorrect())
             {
                 FixDXRCSharpKeyWord();
+                return;
+            }
+            if (!IsScreenSpaceShadowCorrect())
+            {
+                FixScreenSpaceShadow();
                 return;
             }
             if (!IsDXRActivationCorrect())
@@ -397,6 +403,21 @@ namespace UnityEditor.Rendering.HighDefinition
             HDRenderPipeline.defaultAsset.renderPipelineRayTracingResources
                 = AssetDatabase.LoadAssetAtPath<HDRenderPipelineRayTracingResources>(HDUtils.GetHDRenderPipelinePath() + "Runtime/RenderPipelineResources/HDRenderPipelineRayTracingResources.asset");
             ResourceReloader.ReloadAllNullIn(HDRenderPipeline.defaultAsset.renderPipelineRayTracingResources, HDUtils.GetHDRenderPipelinePath());
+        }
+
+        bool IsScreenSpaceShadowCorrect()
+            => GraphicsSettings.renderPipelineAsset != null
+            && GraphicsSettings.renderPipelineAsset is HDRenderPipelineAsset
+            && (GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset).currentPlatformRenderPipelineSettings.hdShadowInitParams.supportScreenSpaceShadows;
+        void FixScreenSpaceShadow()
+        {
+            if (!IsHdrpAssetUsedCorrect())
+                FixHdrpAssetUsed(async: false);
+            //as property returning struct make copy, use serializedproperty to modify it
+            var serializedObject = new SerializedObject(GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset);
+            var propertySupportScreenSpaceShadow = serializedObject.FindProperty("m_RenderPipelineSettings.hdShadowInitParams.supportScreenSpaceShadows");
+            propertySupportScreenSpaceShadow.boolValue = true;
+            serializedObject.ApplyModifiedPropertiesWithoutUndo();
         }
 
         bool IsDXRActivationCorrect()

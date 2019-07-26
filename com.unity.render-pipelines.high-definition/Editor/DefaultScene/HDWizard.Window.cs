@@ -76,6 +76,8 @@ namespace UnityEditor.Rendering.HighDefinition
             public const string dxrResourcesError = "There is an issue with the DXR resources!";
             public const string dxrActivatedLabel = "DXR activated";
             public const string dxrActivatedError = "DXR is not activated!";
+            public const string screenSpaceShadowLabel = "Screen Space Shadow";
+            public const string screenSpaceShadowError = "Screen Space Shadow is required!";
 
             public const string hdrpAssetDisplayDialogTitle = "Create or Load HDRenderPipelineAsset";
             public const string hdrpAssetDisplayDialogContent = "Do you want to create a fresh HDRenderPipelineAsset in the default resource folder and automatically assign it?";
@@ -323,6 +325,7 @@ namespace UnityEditor.Rendering.HighDefinition
             container.Add(new ConfigInfoLine(Style.dxrAutoGraphicsAPILabel, Style.dxrAutoGraphicsAPIError, Style.resolve, IsDXRAutoGraphicsAPICorrect, FixDXRAutoGraphicsAPI));
             container.Add(new ConfigInfoLine(Style.dxrDirect3D12Label, Style.dxrDirect3D12Error, Style.resolve, IsDXRDirect3D12Correct, () => FixDXRDirect3D12(fromAsync: false)));
             container.Add(new ConfigInfoLine(Style.dxrSymbolLabel, Style.dxrSymbolError, Style.resolve, IsDXRCSharpKeyWordCorrect, FixDXRCSharpKeyWord));
+            container.Add(new ConfigInfoLine(Style.screenSpaceShadowLabel, Style.screenSpaceShadowError, Style.resolve, IsScreenSpaceShadowCorrect, FixScreenSpaceShadow));
             container.Add(new ConfigInfoLine(Style.dxrActivatedLabel, Style.dxrActivatedError, Style.resolve, IsDXRActivationCorrect, FixDXRActivation));
             container.Add(new ConfigInfoLine(Style.dxrResourcesLabel, Style.dxrResourcesError, Style.resolve, IsDXRAssetCorrect, FixDXRAsset));
         }
