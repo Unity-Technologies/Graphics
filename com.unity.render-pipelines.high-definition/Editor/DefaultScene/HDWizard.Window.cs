@@ -102,7 +102,10 @@ namespace UnityEditor.Rendering.HighDefinition
 
         [MenuItem("Window/Render Pipeline/HD Render Pipeline Wizard", priority = 10000)]
         static void OpenWindow()
-            => GetWindow<HDWizard>("Render Pipeline Wizard");
+        {
+            var window = GetWindow<HDWizard>("Render Pipeline Wizard");
+            window.minSize = new Vector2(420, 450);
+        }
 
         void OnGUI()
         {
