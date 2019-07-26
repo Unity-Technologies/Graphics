@@ -1,0 +1,152 @@
+#StatusOK, #StatusError
+{
+    width: 12px;
+    height: 12px;
+    position: absolute;
+    left: 180px;
+}
+
+#TestLabel
+{
+    width: 180px;
+}
+
+#Resolver
+{
+    position: absolute;
+    right: 0px;
+    width: 150px;
+    margin-top: -4px;
+}
+
+#HelpBox
+{
+    margin: 10px;
+    margin-top: 5px;
+    padding: 10px;
+    background-color: #2E2E2E;
+    border-color: #232323;
+    border-width: 1px;
+    border-radius: 3px;
+    flex-direction:row;
+    flex-shrink: 1;
+}
+
+#HelpBox > Image
+{
+    margin-top: -7px;
+    margin-bottom: -7px;
+    margin-right: 10px;
+    flex-shrink: 0;
+}
+
+#HelpBox > Label
+{
+    -unity-text-align: middle-left;
+}
+
+#TestRow
+{
+    flex-direction:row;
+    margin-top: 5px;
+}
+
+#FixAll
+{
+    margin-top: 10px;
+}
+
+HiddableUpdatableContainer
+{
+    margin-top: 10px;
+}
+
+#OuterBox
+{
+    margin: 10px;
+    margin-top: 0px;
+    margin-bottom: 0px;
+    background-color: #424242;
+    border-radius: 3px;
+}
+
+#InnerBox
+{
+    padding: 10px;
+    padding-top: 5px;
+    background-color: #424242;
+    border-radius: 3px;
+    border-bottom-width: 1px;
+    border-left-width: 1px;
+    border-right-width: 1px;
+    border-top-left-radius: 0px;
+    border-top-right-radius: 0px;
+    border-color: #181818;
+}
+
+.Radio
+{
+    margin: 0px;
+    flex: 1;
+    background-color: rgba(0, 0, 0, 0);
+    border-left-width: 0px;
+    border-right-width: 1px;
+    border-bottom-width: 1px;
+    background-color: #282828
+    border-color: #181818;
+}
+
+.SelectedRadio
+{
+    border-bottom-width: 0px;
+    background-color: rgba(0, 0, 0, 0);
+}
+
+.LastRadio
+{
+    border-right-width: 0px;
+    margin-right: -1px;
+}
+
+.Radio > * > Label
+{
+    flex-grow: 1;
+    -unity-text-align: middle-center;
+}
+
+ToolbarRadio
+{
+    border-width: 1px;
+    border-bottom-width: 0px;
+    border-radius: 0px;
+    border-top-left-radius: 3px;
+    border-top-right-radius: 3px;
+    background-color: rgba(0, 0, 0, 0);
+    border-color: #181818;
+}
+
+#ResourceRow
+{
+    flex-direction:row;
+}
+
+#DefaultResourceFolder
+{
+    flex: 1;
+    margin-right: 180px;
+}
+
+#Repopulate
+{
+    position: absolute;
+    right: 0px;
+    width: 170px;
+}
+
+
+#Title
+{
+    margin-top: 15px;
+    margin-bottom: 5px;
+    font-size: 17;
+}

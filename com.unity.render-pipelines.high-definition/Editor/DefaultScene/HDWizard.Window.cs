@@ -1,11 +1,8 @@
 using UnityEngine;
-using System;
-using System.Linq.Expressions;
-using System.Reflection;
-using UnityEngine.Rendering;
-using UnityEngine.Rendering.HighDefinition;
 using System.Runtime.InteropServices;
-using System.Collections.Generic;
+using UnityEngine.UIElements;
+using UnityEditor.UIElements;
+using System.Linq;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
@@ -14,18 +11,31 @@ namespace UnityEditor.Rendering.HighDefinition
     {
         static class Style
         {
-            public static readonly GUIContent hdrpProjectSettingsPath = EditorGUIUtility.TrTextContent("Default Resources Folder", "Resources Folder will be the one where to get project elements related to HDRP as default scene and default settings.");
-            public static readonly GUIContent firstTimeInit = EditorGUIUtility.TrTextContent("Populate / Reset", "Populate or override Default Resources Folder content with required assets.");
-            public static readonly GUIContent defaultScene = EditorGUIUtility.TrTextContent("Default Scene Prefab", "This prefab contains scene elements that are used when creating a new scene in HDRP.");
-            public static readonly GUIContent haveStartPopup = EditorGUIUtility.TrTextContent("Show on start");
+            public static readonly GUIContent title = EditorGUIUtility.TrTextContent("Render Pipeline Wizard");
 
+            public const string hdrpProjectSettingsPathLabel = "Default Resources Folder";
+            public const string hdrpProjectSettingsPathTooltip = "Resources Folder will be the one where to get project elements related to HDRP as default scene and default settings.";
+            public const string firstTimeInitLabel = "Populate / Reset";
+            public const string firstTimeInitTooltip = "Populate or override Default Resources Folder content with required assets.";
+            public const string newSceneLabel = "Default Scene Prefab";
+            public const string newSceneTooltip = "This prefab contains scene elements that are used when creating a new scene in HDRP.";
+            public const string hdrpConfigLabel = "HDRP";
+            public const string hdrpConfigTooltip = "This tab contains configuration check for High Definition Render Pipeline.";
+            public const string hdrpVRConfigLabel = "HDRP + VR";
+            public const string hdrpVRConfigTooltip = "This tab contains configuration check for High Definition Render Pipeline along with Virtual Reality configuration.";
+            public const string hdrpDXRConfigLabel = "HDRP + DXR";
+            public const string hdrpDXRConfigTooltip = "This tab contains configuration check for High Definition Render Pipeline along with DirectX Raytracing configuration.";
+            public const string showOnStartUp = "Show on start";
+
+            public const string defaultSettingsTitle = "Default Path Settings";
+            public const string configurationTitle = "Configuration Checking";
+            public const string migrationTitle = "Project Migration Quick-links";
+            
             //configuration debugger
-            public static readonly GUIContent ok = EditorGUIUtility.TrIconContent(EditorGUIUtility.Load(@"Packages/com.unity.render-pipelines.high-definition/Editor/DefaultScene/WizardResources/OK.png") as Texture2D);
-            public static readonly GUIContent fail = EditorGUIUtility.TrIconContent(EditorGUIUtility.Load(@"Packages/com.unity.render-pipelines.high-definition/Editor/DefaultScene/WizardResources/Error.png") as Texture2D);
-            public static readonly GUIContent resolve = EditorGUIUtility.TrTextContent("Fix");
-            public static readonly GUIContent resolveAll = EditorGUIUtility.TrTextContent("Fix All");
-            public static readonly GUIContent resolveAllQuality = EditorGUIUtility.TrTextContent("Fix All Qualities");
-            public static readonly GUIContent resolveAllBuildTarget = EditorGUIUtility.TrTextContent("Fix All Platforms");
+            public const string resolve = "Fix";
+            public const string resolveAll = "Fix All";
+            public const string resolveAllQuality = "Fix All Qualities";
+            public const string resolveAllBuildTarget = "Fix All Platforms";
             public static readonly GUIContent hdrpConfigurationLabel = EditorGUIUtility.TrTextContent("HDRP configuration");
             public static readonly GUIContent vrConfigurationLabel = EditorGUIUtility.TrTextContent("VR additional configuration");
             public static readonly GUIContent dxrConfigurationLabel = EditorGUIUtility.TrTextContent("DXR additional configuration");
@@ -64,7 +74,6 @@ namespace UnityEditor.Rendering.HighDefinition
             public const string dxrResourcesError = "There is an issue with the DXR resources!";
             public static readonly GUIContent dxrActivatedLabel = EditorGUIUtility.TrTextContent("DXR activated");
             public const string dxrActivatedError = "DXR is not activated!";
-            public const string dxrWindowOnly = "DXR is only available for window on specific version of Unity";
 
             public const string hdrpAssetDisplayDialogTitle = "Create or Load HDRenderPipelineAsset";
             public const string hdrpAssetDisplayDialogContent = "Do you want to create a fresh HDRenderPipelineAsset in the default resource folder and automatically assign it?";
@@ -74,12 +83,31 @@ namespace UnityEditor.Rendering.HighDefinition
             public const string scenePrefabContent = "Do you want to create a fresh HD default scene in the default resource folder and automatically assign it?";
             public const string displayDialogCreate = "Create One";
             public const string displayDialogLoad = "Load One";
+
+            public const string k_uss = @"Packages/com.unity.render-pipelines.high-definition/Editor/DefaultScene/WizardResources/WizardWindow.uss";
+            public const string k_uss_personal_overload = @"Packages/com.unity.render-pipelines.high-definition/Editor/DefaultScene/WizardResources/WizardWindow-PersonalSkin.uss";
         }
-        
+
+        enum Configuration
+        {
+            HDRP,
+            HDRP_VR,
+            HDRP_DXR
+        };
+
+        Configuration m_Configuration;
+        VisualElement m_BaseUpdatable;
+
         [MenuItem("Window/Render Pipeline/HD Render Pipeline Wizard", priority = 10000)]
         static void OpenWindow()
             => GetWindow<HDWizard>("Render Pipeline Wizard");
 
+        void OnGUI()
+        {
+            foreach (VisualElementUpdatable updatable in m_BaseUpdatable.Children().Where(c => c is VisualElementUpdatable))
+                updatable.CheckUpdate();
+        }
+        
         #region SCRIPT_RELOADING
 
         static int frameToWait;
@@ -112,338 +140,181 @@ namespace UnityEditor.Rendering.HighDefinition
 
         #region DRAWERS
 
-        Vector2 scrollPos;
-
-        void OnGUI()
+        private void OnEnable()
         {
-            scrollPos = GUILayout.BeginScrollView(scrollPos);
+            titleContent = Style.title;
 
-            DrawFolderData();
-            DrawDefaultScene();
+            rootVisualElement.styleSheets.Add(
+                AssetDatabase.LoadAssetAtPath<StyleSheet>(Style.k_uss));
 
-            EditorGUILayout.Space();
-            DrawHDRPConfigInfo();
-
-            EditorGUILayout.Space();
-            DrawVRConfigInfo();
-
-            EditorGUILayout.Space();
-            DrawDXRConfigInfo();
-
-            GUILayout.EndScrollView();
-        }
-
-        void DrawFolderData()
-        {
-            GUILayout.BeginHorizontal();
-            EditorGUI.BeginChangeCheck();
-            string changedProjectSettingsFolderPath = EditorGUILayout.DelayedTextField(Style.hdrpProjectSettingsPath, HDProjectSettings.projectSettingsFolderPath);
-            if (EditorGUI.EndChangeCheck())
+            if (!EditorGUIUtility.isProSkin)
             {
-                HDProjectSettings.projectSettingsFolderPath = changedProjectSettingsFolderPath;
+                rootVisualElement.styleSheets.Add(
+                    AssetDatabase.LoadAssetAtPath<StyleSheet>(Style.k_uss_personal_overload));
             }
-            if (GUILayout.Button(Style.firstTimeInit, EditorStyles.miniButton, GUILayout.Width(110), GUILayout.ExpandWidth(false)))
-            {
-                if (!AssetDatabase.IsValidFolder("Assets/" + HDProjectSettings.projectSettingsFolderPath))
-                    AssetDatabase.CreateFolder("Assets", HDProjectSettings.projectSettingsFolderPath);
 
-                var hdrpAsset = ScriptableObject.CreateInstance<HDRenderPipelineAsset>();
-                hdrpAsset.name = "HDRenderPipelineAsset";
+            var scrollView = new ScrollView(ScrollViewMode.Vertical);
+            rootVisualElement.Add(scrollView);
+            var container = scrollView.contentContainer;
 
-                int index = 0;
-                hdrpAsset.diffusionProfileSettingsList = new DiffusionProfileSettings[hdrpAsset.renderPipelineEditorResources.defaultDiffusionProfileSettingsList.Length];
-                foreach (var defaultProfile in hdrpAsset.renderPipelineEditorResources.defaultDiffusionProfileSettingsList)
+            container.Add(CreateTitle(Style.defaultSettingsTitle));
+            container.Add(CreateFolderData());
+            container.Add(CreateDefaultScene());
+            
+            container.Add(CreateTitle(Style.configurationTitle));
+            container.Add(CreateTabbedBox(
+                RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+                    ? new[] {
+                        (Style.hdrpConfigLabel, Style.hdrpConfigTooltip),
+                        (Style.hdrpVRConfigLabel, Style.hdrpVRConfigTooltip),
+                        (Style.hdrpDXRConfigLabel, Style.hdrpDXRConfigTooltip),
+                    }
+                    : new[] {
+                        (Style.hdrpConfigLabel, Style.hdrpConfigTooltip),
+                        (Style.hdrpVRConfigLabel, Style.hdrpVRConfigTooltip),
+                        //DXR only supported on window
+                    },
+                out m_BaseUpdatable));
+
+            AddHDRPConfigInfo(m_BaseUpdatable);
+
+            var vrScope = new HiddableUpdatableContainer(()
+                => m_Configuration == Configuration.HDRP_VR);
+            AddVRConfigInfo(vrScope);
+            vrScope.Init();
+            m_BaseUpdatable.Add(vrScope);
+            
+            var dxrScope = new HiddableUpdatableContainer(()
+                => m_Configuration == Configuration.HDRP_DXR);
+            AddDXRConfigInfo(dxrScope);
+            dxrScope.Init();
+            m_BaseUpdatable.Add(dxrScope);
+
+            m_BaseUpdatable.Add(new FixAllButton(
+                Style.resolveAll,
+                () =>
                 {
-                    string defaultDiffusionProfileSettingsPath = "Assets/" + HDProjectSettings.projectSettingsFolderPath + "/" + defaultProfile.name + ".asset";
-                    AssetDatabase.CopyAsset(AssetDatabase.GetAssetPath(defaultProfile), defaultDiffusionProfileSettingsPath);
+                    bool isCorrect = IsHDRPAllCorrect();
+                    switch (m_Configuration)
+                    {
+                        case Configuration.HDRP_VR:
+                            isCorrect &= IsVRAllCorrect();
+                            break;
+                        case Configuration.HDRP_DXR:
+                            isCorrect &= IsDXRAllCorrect();
+                            break;
+                    }
+                    return isCorrect;
+                },
+                () =>
+                {
+                    FixHDRPAll();
+                    switch (m_Configuration)
+                    {
+                        case Configuration.HDRP_VR:
+                            FixVRAll();
+                            break;
+                        case Configuration.HDRP_DXR:
+                            FixDXRAll();
+                            break;
+                    }
+                }));
 
-                    DiffusionProfileSettings defaultDiffusionProfile = AssetDatabase.LoadAssetAtPath<DiffusionProfileSettings>(defaultDiffusionProfileSettingsPath);
 
-                    hdrpAsset.diffusionProfileSettingsList[index++] = defaultDiffusionProfile;
-                }
-
-                AssetDatabase.CreateAsset(hdrpAsset, "Assets/" + HDProjectSettings.projectSettingsFolderPath + "/" + hdrpAsset.name + ".asset");
-
-                GraphicsSettings.renderPipelineAsset = hdrpAsset;
-                if (!IsHdrpAssetRuntimeResourcesCorrect())
-                    FixHdrpAssetRuntimeResources();
-                if (!IsHdrpAssetEditorResourcesCorrect())
-                    FixHdrpAssetEditorResources();
-
-                CreateDefaultSceneFromPackageAnsAssignIt();
-            }
-            GUILayout.EndHorizontal();
+            container.Add(CreateTitle(Style.migrationTitle));
         }
 
-        void DrawDefaultScene()
+        VisualElement CreateFolderData()
         {
-            EditorGUI.BeginChangeCheck();
-            GameObject changedDefaultScene = EditorGUILayout.ObjectField(Style.defaultScene, HDProjectSettings.defaultScenePrefab, typeof(GameObject), allowSceneObjects: false) as GameObject;
-            if (EditorGUI.EndChangeCheck())
+            var defaultResourceFolder = new TextField(Style.hdrpProjectSettingsPathLabel)
             {
-                //only affect on change as it will write the guid on disk
-                HDProjectSettings.defaultScenePrefab = changedDefaultScene;
-            }
-        }
+                tooltip = Style.hdrpProjectSettingsPathTooltip,
+                name = "DefaultResourceFolder",
+                value = HDProjectSettings.projectSettingsFolderPath
+            };
+            defaultResourceFolder.RegisterValueChangedCallback(evt
+                => HDProjectSettings.projectSettingsFolderPath = evt.newValue);
 
-        void DrawWizardBehaviour()
-        {
-            EditorGUI.BeginChangeCheck();
-            bool changedHasStatPopup = EditorGUILayout.Toggle(Style.haveStartPopup, HDProjectSettings.hasStartPopup);
-            if (EditorGUI.EndChangeCheck())
-                HDProjectSettings.hasStartPopup = changedHasStatPopup;
-        }
-
-        void DrawHDRPConfigInfo()
-        {
-            DrawTitleConfigInfo(Style.hdrpConfigurationLabel, Style.resolveAll, IsHDRPAllCorrect, FixHDRPAll);
-
-            ++EditorGUI.indentLevel;
-            DrawConfigInfoLine(Style.colorSpaceLabel, Style.colorSpaceError, Style.ok, Style.resolve, IsColorSpaceCorrect, FixColorSpace);
-            DrawConfigInfoLine(Style.lightmapLabel, Style.lightmapError, Style.ok, Style.resolveAllBuildTarget, IsLightmapCorrect, FixLightmap);
-            DrawConfigInfoLine(Style.shadowMaskLabel, Style.shadowMaskError, Style.ok, Style.resolveAllQuality, IsShadowmaskCorrect, FixShadowmask);
-            DrawConfigInfoLine(Style.hdrpAssetLabel, Style.hdrpAssetError, Style.ok, Style.resolveAll, IsHdrpAssetCorrect, FixHdrpAsset);
-            ++EditorGUI.indentLevel;
-            DrawConfigInfoLine(Style.hdrpAssetUsedLabel, Style.hdrpAssetUsedError, Style.ok, Style.resolve, IsHdrpAssetUsedCorrect, () => FixHdrpAssetUsed(async: false));
-            DrawConfigInfoLine(Style.hdrpAssetRuntimeResourcesLabel, Style.hdrpAssetRuntimeResourcesError, Style.ok, Style.resolve, IsHdrpAssetRuntimeResourcesCorrect, FixHdrpAssetRuntimeResources);
-            DrawConfigInfoLine(Style.hdrpAssetEditorResourcesLabel, Style.hdrpAssetEditorResourcesError, Style.ok, Style.resolve, IsHdrpAssetEditorResourcesCorrect, FixHdrpAssetEditorResources);
-            DrawConfigInfoLine(Style.hdrpAssetDiffusionProfileLabel, Style.hdrpAssetDiffusionProfileError, Style.ok, Style.resolve, IsHdrpAssetDiffusionProfileCorrect, FixHdrpAssetDiffusionProfile);
-            --EditorGUI.indentLevel;
-            DrawConfigInfoLine(Style.defaultVolumeProfileLabel, Style.defaultVolumeProfileError, Style.ok, Style.resolve, IsDefaultSceneCorrect, () => FixDefaultScene(async: false));
-            --EditorGUI.indentLevel;
-        }
-
-        void DrawVRConfigInfo()
-        {
-            DrawTitleConfigInfo(Style.vrConfigurationLabel, Style.resolveAll, IsVRAllCorrect, FixVRAll);
-
-            ++EditorGUI.indentLevel;
-            DrawConfigInfoLine(Style.vrSupportedLabel, Style.vrSupportedError, Style.ok, Style.resolve, IsVRSupportedForCurrentBuildTargetGroupCorrect, FixVRSupportedForCurrentBuildTargetGroup);
-            --EditorGUI.indentLevel;
-        }
-        void DrawDXRConfigInfo()
-        {
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                DrawDXRConfigInfoWindow();
-            else
-                DrawDXRConfigInfoNotWindow();
-        }
-
-        void DrawDXRConfigInfoNotWindow()
-        {
-            EditorGUILayout.LabelField(Style.dxrConfigurationLabel, EditorStyles.boldLabel);
-            EditorGUILayout.HelpBox(Style.dxrWindowOnly, MessageType.Info);
-        }
-
-        void DrawDXRConfigInfoWindow()
-        {
-            DrawTitleConfigInfo(Style.dxrConfigurationLabel, Style.resolveAll, IsDXRAllCorrect, FixDXRAll);
-
-            ++EditorGUI.indentLevel;
-            DrawConfigInfoLine(Style.dxrAutoGraphicsAPILabel, Style.dxrAutoGraphicsAPIError, Style.ok, Style.resolve, IsDXRAutoGraphicsAPICorrect, FixDXRAutoGraphicsAPI);
-            DrawConfigInfoLine(Style.dxrDirect3D12Label, Style.dxrDirect3D12Error, Style.ok, Style.resolve, IsDXRDirect3D12Correct, () => FixDXRDirect3D12(fromAsync: false));
-            DrawConfigInfoLine(Style.dxrSymbolLabel, Style.dxrSymbolError, Style.ok, Style.resolve, IsDXRCSharpKeyWordCorrect, FixDXRCSharpKeyWord);
-            DrawConfigInfoLine(Style.dxrActivatedLabel, Style.dxrActivatedError, Style.ok, Style.resolve, IsDXRActivationCorrect, FixDXRActivation);
-            DrawConfigInfoLine(Style.dxrResourcesLabel, Style.dxrResourcesError, Style.ok, Style.resolve, IsDXRAssetCorrect, FixDXRAsset);
-            --EditorGUI.indentLevel;
-        }
-
-        void DrawTitleConfigInfo(GUIContent title, GUIContent buttonName, Func<bool> checker, Action solver)
-        {
-            EditorGUILayout.BeginHorizontal();
-            EditorGUILayout.LabelField(title, EditorStyles.boldLabel);
-            GUILayout.FlexibleSpace();
-            if (!checker() && GUILayout.Button(buttonName, EditorStyles.miniButton, GUILayout.Width(110), GUILayout.ExpandWidth(false)))
-                solver();
-            EditorGUILayout.EndHorizontal();
-        }
-
-        void DrawConfigInfoLine(GUIContent label, string error, GUIContent ok, GUIContent resolverButtonLabel, Func<bool> tester, Action resolver, GUIContent AdditionalCheckButtonLabel = null, Func<bool> additionalTester = null)
-        {
-            bool wellConfigured = tester();
-            EditorGUILayout.LabelField(label, wellConfigured ? Style.ok : Style.fail);
-            if (wellConfigured)
-                return;
-
-            EditorGUILayout.BeginHorizontal();
-            EditorGUILayout.HelpBox(error, MessageType.Error);
-            EditorGUILayout.BeginVertical(GUILayout.Width(114), GUILayout.ExpandWidth(false));
-            EditorGUILayout.Space();
-            if (GUILayout.Button(resolverButtonLabel, EditorStyles.miniButton))
-                resolver();
-            EditorGUILayout.EndVertical();
-            EditorGUILayout.EndHorizontal();
-            EditorGUILayout.Space();
-        }
-
-        #endregion
-        
-        #region OBJECT_SELECTOR
-
-        //utility class to show only non scene object selection
-        static class ObjectSelector
-        {
-            static Action<UnityEngine.Object, Type, Action<UnityEngine.Object>> ShowObjectSelector;
-            static Func<UnityEngine.Object> GetCurrentObject;
-            static Func<int> GetSelectorID;
-            static Action<int> SetSelectorID;
-
-            const string ObjectSelectorUpdatedCommand = "ObjectSelectorUpdated";
-
-            static int id;
-
-            static int selectorID { get => GetSelectorID(); set => SetSelectorID(value); }
-
-            public static bool opened
-                => Resources.FindObjectsOfTypeAll(typeof(PlayerSettings).Assembly.GetType("UnityEditor.ObjectSelector")).Length > 0;
-
-            static ObjectSelector()
+            var repopulate = new Button(Repopulate)
             {
-                Type playerSettingsType = typeof(PlayerSettings);
-                Type objectSelectorType = playerSettingsType.Assembly.GetType("UnityEditor.ObjectSelector");
-                var instanceObjectSelectorInfo = objectSelectorType.GetProperty("get", BindingFlags.Static | BindingFlags.Public);
-                var showInfo = objectSelectorType.GetMethod("Show", BindingFlags.Instance | BindingFlags.NonPublic, null, new[] { typeof(UnityEngine.Object), typeof(Type), typeof(SerializedProperty), typeof(bool), typeof(List<int>), typeof(Action<UnityEngine.Object>), typeof(Action<UnityEngine.Object>) }, null);
-                var objectSelectorVariable = Expression.Variable(objectSelectorType, "objectSelector");
-                var objectParameter = Expression.Parameter(typeof(UnityEngine.Object), "unityObject");
-                var typeParameter = Expression.Parameter(typeof(Type), "type");
-                var onClosedParameter = Expression.Parameter(typeof(Action<UnityEngine.Object>), "onClosed");
-                var onChangedObjectParameter = Expression.Parameter(typeof(Action<UnityEngine.Object>), "onChangedObject");
-                var showObjectSelectorBlock = Expression.Block(
-                    new[] { objectSelectorVariable },
-                    Expression.Assign(objectSelectorVariable, Expression.Call(null, instanceObjectSelectorInfo.GetGetMethod())),
-                    Expression.Call(objectSelectorVariable, showInfo, objectParameter, typeParameter, Expression.Constant(null, typeof(SerializedProperty)), Expression.Constant(false), Expression.Constant(null, typeof(List<int>)), Expression.Constant(null, typeof(Action<UnityEngine.Object>)), onChangedObjectParameter)
-                    );
-                var showObjectSelectorLambda = Expression.Lambda<Action<UnityEngine.Object, Type, Action<UnityEngine.Object>>>(showObjectSelectorBlock, objectParameter, typeParameter, onChangedObjectParameter);
-                ShowObjectSelector = showObjectSelectorLambda.Compile();
+                text = Style.firstTimeInitLabel,
+                tooltip = Style.firstTimeInitTooltip,
+                name = "Repopulate"
+            };
 
-                var instanceCall = Expression.Call(null, instanceObjectSelectorInfo.GetGetMethod());
-                var objectSelectorIDField = Expression.Field(instanceCall, "objectSelectorID");
-                var getSelectorIDLambda = Expression.Lambda<Func<int>>(objectSelectorIDField);
-                GetSelectorID = getSelectorIDLambda.Compile();
+            var row = new VisualElement() { name = "ResourceRow" };
+            row.Add(defaultResourceFolder);
+            row.Add(repopulate);
 
-                var inSelectorIDParam = Expression.Parameter(typeof(int), "value");
-                var setSelectorIDLambda = Expression.Lambda<Action<int>>(Expression.Assign(objectSelectorIDField, inSelectorIDParam), inSelectorIDParam);
-                SetSelectorID = setSelectorIDLambda.Compile();
-
-                var getCurrentObjectInfo = objectSelectorType.GetMethod("GetCurrentObject");
-                var getCurrentObjectLambda = Expression.Lambda<Func<UnityEngine.Object>>(Expression.Call(null, getCurrentObjectInfo));
-                GetCurrentObject = getCurrentObjectLambda.Compile();
-            }
-
-            public static void Show(UnityEngine.Object obj, Type type, Action<UnityEngine.Object> onChangedObject)
-            {
-                id = GUIUtility.GetControlID("s_ObjectFieldHash".GetHashCode(), FocusType.Keyboard);
-                GUIUtility.keyboardControl = id;
-                ShowObjectSelector(obj, type, onChangedObject);
-                selectorID = id;
-            }
-
-            public static void CheckAssignationEvent<T>(Action<T> assignator)
-                where T : UnityEngine.Object
-            {
-                Event evt = Event.current;
-                if (evt.type != EventType.ExecuteCommand)
-                    return;
-                string commandName = evt.commandName;
-                if (commandName != ObjectSelectorUpdatedCommand || selectorID != id)
-                    return;
-                T current = GetCurrentObject() as T;
-                if (current == null)
-                    return;
-                assignator(current);
-                GUI.changed = true;
-                evt.Use();
-            }
+            return row;
         }
-        
-        void CreateDefaultSceneFromPackageAnsAssignIt()
+
+        VisualElement CreateDefaultScene()
         {
-            if (!AssetDatabase.IsValidFolder("Assets/" + HDProjectSettings.projectSettingsFolderPath))
-                AssetDatabase.CreateFolder("Assets", HDProjectSettings.projectSettingsFolderPath);
-
-            var hdrpAssetEditorResources = HDRenderPipeline.defaultAsset.renderPipelineEditorResources;
-
-            string defaultScenePath = "Assets/" + HDProjectSettings.projectSettingsFolderPath + "/" + hdrpAssetEditorResources.defaultScene.name + ".prefab";
-            AssetDatabase.CopyAsset(AssetDatabase.GetAssetPath(hdrpAssetEditorResources.defaultScene), defaultScenePath);
-            string defaultSkyAndFogProfilePath = "Assets/" + HDProjectSettings.projectSettingsFolderPath + "/" + hdrpAssetEditorResources.defaultSkyAndFogProfile.name + ".asset";
-            AssetDatabase.CopyAsset(AssetDatabase.GetAssetPath(hdrpAssetEditorResources.defaultSkyAndFogProfile), defaultSkyAndFogProfilePath);
-            string defaultPostProcessingProfilePath = "Assets/" + HDProjectSettings.projectSettingsFolderPath + "/" + hdrpAssetEditorResources.defaultPostProcessingProfile.name + ".asset";
-            AssetDatabase.CopyAsset(AssetDatabase.GetAssetPath(hdrpAssetEditorResources.defaultPostProcessingProfile), defaultPostProcessingProfilePath);
-
-            GameObject defaultScene = AssetDatabase.LoadAssetAtPath<GameObject>(defaultScenePath);
-            VolumeProfile defaultSkyAndFogProfile = AssetDatabase.LoadAssetAtPath<VolumeProfile>(defaultSkyAndFogProfilePath);
-            VolumeProfile defaultPostProcessingProfile = AssetDatabase.LoadAssetAtPath<VolumeProfile>(defaultPostProcessingProfilePath);
-
-            foreach (var volume in defaultScene.GetComponentsInChildren<Volume>())
+            var newScene = new ObjectField(Style.newSceneLabel)
             {
-                if (volume.sharedProfile.name.StartsWith(hdrpAssetEditorResources.defaultSkyAndFogProfile.name))
-                    volume.sharedProfile = defaultSkyAndFogProfile;
-                else if (volume.sharedProfile.name.StartsWith(hdrpAssetEditorResources.defaultPostProcessingProfile.name))
-                    volume.sharedProfile = defaultPostProcessingProfile;
-            }
+                tooltip = Style.newSceneTooltip,
+                name = "NewScene",
+                objectType = typeof(GameObject),
+                value = HDProjectSettings.defaultScenePrefab
+            };
+            newScene.RegisterValueChangedCallback(evt
+                => HDProjectSettings.defaultScenePrefab = evt.newValue as GameObject);
 
-            HDProjectSettings.defaultScenePrefab = defaultScene;
-            AssetDatabase.SaveAssets();
-            AssetDatabase.Refresh();
+            return newScene;
         }
 
-        void CreateOrLoad<T>(Action onCancel, Action<T> onObjectChanged)
-            where T : ScriptableObject
+        VisualElement CreateTabbedBox((string label, string tooltip)[] tabs, out VisualElement innerBox)
         {
-            string title;
-            string content;
-            UnityEngine.Object target;
-            if (typeof(T) == typeof(HDRenderPipelineAsset))
-            {
-                title = Style.hdrpAssetDisplayDialogTitle;
-                content = Style.hdrpAssetDisplayDialogContent;
-                target = GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset;
-            }
-            else
-                throw new ArgumentException("Unknown type used");
+            var toolbar = new ToolbarRadio();
+            toolbar.AddRadios(tabs);
+            toolbar.RegisterValueChangedCallback(evt =>
+                m_Configuration = (Configuration)evt.newValue);
 
-            switch (EditorUtility.DisplayDialogComplex(title, content, Style.displayDialogCreate, "Cancel", Style.displayDialogLoad))
-            {
-                case 0: //create
-                    if (!AssetDatabase.IsValidFolder("Assets/" + HDProjectSettings.projectSettingsFolderPath))
-                        AssetDatabase.CreateFolder("Assets", HDProjectSettings.projectSettingsFolderPath);
-                    var asset = ScriptableObject.CreateInstance<T>();
-                    asset.name = typeof(T).Name;
-                    AssetDatabase.CreateAsset(asset, "Assets/" + HDProjectSettings.projectSettingsFolderPath + "/" + asset.name + ".asset");
-                    AssetDatabase.SaveAssets();
-                    AssetDatabase.Refresh();
+            var outerBox = new VisualElement() { name = "OuterBox" };
+            innerBox = new VisualElement { name = "InnerBox" };
 
-                    if (typeof(T) == typeof(HDRenderPipelineAsset))
-                        GraphicsSettings.renderPipelineAsset = asset as HDRenderPipelineAsset;
-                    break;
-                case 1: //cancel
-                    onCancel?.Invoke();
-                    break;
-                case 2: //Load
-                    ObjectSelector.Show(target, typeof(T), o => onObjectChanged?.Invoke((T)o));
-                    break;
-                default:
-                    throw new ArgumentException("Unrecognized option");
-            }
+            outerBox.Add(toolbar);
+            outerBox.Add(innerBox);
+
+            return outerBox;
         }
 
-        void CreateOrLoadDefaultScene(Action onCancel, Action<GameObject> onObjectChanged)
+        //void DrawWizardBehaviour()
+        //{
+        //    EditorGUI.BeginChangeCheck();
+        //    bool changedHasStatPopup = EditorGUILayout.Toggle(Style.haveStartPopup, HDProjectSettings.hasStartPopup);
+        //    if (EditorGUI.EndChangeCheck())
+        //        HDProjectSettings.hasStartPopup = changedHasStatPopup;
+        //}
+
+        void AddHDRPConfigInfo(VisualElement container)
         {
-            switch (EditorUtility.DisplayDialogComplex(Style.scenePrefabTitle, Style.scenePrefabContent, Style.displayDialogCreate, "Cancel", Style.displayDialogLoad))
-            {
-                case 0: //create
-                    CreateDefaultSceneFromPackageAnsAssignIt();
-                    break;
-                case 1: //cancel
-                    onCancel?.Invoke();
-                    break;
-                case 2: //Load
-                    ObjectSelector.Show(HDProjectSettings.defaultScenePrefab, typeof(GameObject), o => onObjectChanged?.Invoke((GameObject)o));
-                    break;
-                default:
-                    throw new ArgumentException("Unrecognized option");
-            }
+            container.Add(new ConfigInfoLine(Style.colorSpaceLabel, Style.colorSpaceError, Style.resolve, IsColorSpaceCorrect, FixColorSpace));
+            container.Add(new ConfigInfoLine(Style.lightmapLabel, Style.lightmapError, Style.resolveAllBuildTarget, IsLightmapCorrect, FixLightmap));
+            container.Add(new ConfigInfoLine(Style.shadowMaskLabel, Style.shadowMaskError,Style.resolveAllQuality, IsShadowmaskCorrect, FixShadowmask));
+            container.Add(new ConfigInfoLine(Style.hdrpAssetLabel, Style.hdrpAssetError, Style.resolveAll, IsHdrpAssetCorrect, FixHdrpAsset));
+            container.Add(new ConfigInfoLine(Style.hdrpAssetUsedLabel, Style.hdrpAssetUsedError, Style.resolve, IsHdrpAssetUsedCorrect, () => FixHdrpAssetUsed(async: false), indent: 1));
+            container.Add(new ConfigInfoLine(Style.hdrpAssetRuntimeResourcesLabel, Style.hdrpAssetRuntimeResourcesError, Style.resolve, IsHdrpAssetRuntimeResourcesCorrect, FixHdrpAssetRuntimeResources, indent: 1));
+            container.Add(new ConfigInfoLine(Style.hdrpAssetEditorResourcesLabel, Style.hdrpAssetEditorResourcesError, Style.resolve, IsHdrpAssetEditorResourcesCorrect, FixHdrpAssetEditorResources, indent: 1));
+            container.Add(new ConfigInfoLine(Style.hdrpAssetDiffusionProfileLabel, Style.hdrpAssetDiffusionProfileError, Style.resolve, IsHdrpAssetDiffusionProfileCorrect, FixHdrpAssetDiffusionProfile, indent: 1));
+            container.Add(new ConfigInfoLine(Style.defaultVolumeProfileLabel, Style.defaultVolumeProfileError, Style.resolve, IsDefaultSceneCorrect, () => FixDefaultScene(async: false)));
         }
+
+        void AddVRConfigInfo(VisualElement container)
+            =>container.Add(new ConfigInfoLine(Style.vrSupportedLabel, Style.vrSupportedError, Style.resolve, IsVRSupportedForCurrentBuildTargetGroupCorrect, FixVRSupportedForCurrentBuildTargetGroup));
+
+        void AddDXRConfigInfo(VisualElement container)
+        {
+            container.Add(new ConfigInfoLine(Style.dxrAutoGraphicsAPILabel, Style.dxrAutoGraphicsAPIError, Style.resolve, IsDXRAutoGraphicsAPICorrect, FixDXRAutoGraphicsAPI));
+            container.Add(new ConfigInfoLine(Style.dxrDirect3D12Label, Style.dxrDirect3D12Error, Style.resolve, IsDXRDirect3D12Correct, () => FixDXRDirect3D12(fromAsync: false)));
+            container.Add(new ConfigInfoLine(Style.dxrSymbolLabel, Style.dxrSymbolError, Style.resolve, IsDXRCSharpKeyWordCorrect, FixDXRCSharpKeyWord));
+            container.Add(new ConfigInfoLine(Style.dxrActivatedLabel, Style.dxrActivatedError, Style.resolve, IsDXRActivationCorrect, FixDXRActivation));
+            container.Add(new ConfigInfoLine(Style.dxrResourcesLabel, Style.dxrResourcesError, Style.resolve, IsDXRAssetCorrect, FixDXRAsset));
+        }
+
+        Label CreateTitle(string title)
+            => new Label(title) { name = "Title" };
 
         #endregion
     }
