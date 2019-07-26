@@ -531,6 +531,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _HasSpaceEmissionTexture        = Shader.PropertyToID("_HasSpaceEmissionTexture");
         public static readonly int _SpaceEmissionTexture           = Shader.PropertyToID("_SpaceEmissionTexture");
 
+        public static readonly int _RenderSunDisk                  = Shader.PropertyToID("_RenderSunDisk");
+
 #if ENABLE_RAYTRACING
         // Raytracing variables
         public static readonly int _RaytracingRayBias               = Shader.PropertyToID("_RaytracingRayBias");
