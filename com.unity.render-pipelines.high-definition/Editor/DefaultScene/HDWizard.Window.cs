@@ -83,9 +83,6 @@ namespace UnityEditor.Rendering.HighDefinition
             public const string scenePrefabContent = "Do you want to create a fresh HD default scene in the default resource folder and automatically assign it?";
             public const string displayDialogCreate = "Create One";
             public const string displayDialogLoad = "Load One";
-
-            public const string k_uss = @"Packages/com.unity.render-pipelines.high-definition/Editor/DefaultScene/WizardResources/WizardWindow.uss";
-            public const string k_uss_personal_overload = @"Packages/com.unity.render-pipelines.high-definition/Editor/DefaultScene/WizardResources/WizardWindow-PersonalSkin.uss";
         }
 
         enum Configuration
@@ -143,15 +140,9 @@ namespace UnityEditor.Rendering.HighDefinition
         private void OnEnable()
         {
             titleContent = Style.title;
-
-            rootVisualElement.styleSheets.Add(
-                AssetDatabase.LoadAssetAtPath<StyleSheet>(Style.k_uss));
-
-            if (!EditorGUIUtility.isProSkin)
-            {
-                rootVisualElement.styleSheets.Add(
-                    AssetDatabase.LoadAssetAtPath<StyleSheet>(Style.k_uss_personal_overload));
-            }
+            
+            HDEditorUtils.AddStyleSheets(rootVisualElement, HDEditorUtils.FormatingPath); //.h1
+            HDEditorUtils.AddStyleSheets(rootVisualElement, HDEditorUtils.WizardSheetPath);
 
             var scrollView = new ScrollView(ScrollViewMode.Vertical);
             rootVisualElement.Add(scrollView);

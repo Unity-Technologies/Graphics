@@ -15,7 +15,7 @@
 {
     position: absolute;
     right: 0px;
-    width: 150px;
+    width: 100px;
     margin-top: -4px;
 }
 
@@ -24,8 +24,6 @@
     margin: 10px;
     margin-top: 5px;
     padding: 10px;
-    background-color: #2E2E2E;
-    border-color: #232323;
     border-width: 1px;
     border-radius: 3px;
     flex-direction:row;
@@ -65,8 +63,7 @@ HiddableUpdatableContainer
 {
     margin: 10px;
     margin-top: 0px;
-    margin-bottom: 0px;
-    background-color: #424242;
+    margin-bottom: 15px;
     border-radius: 3px;
 }
 
@@ -74,32 +71,26 @@ HiddableUpdatableContainer
 {
     padding: 10px;
     padding-top: 5px;
-    background-color: #424242;
     border-radius: 3px;
     border-bottom-width: 1px;
     border-left-width: 1px;
     border-right-width: 1px;
     border-top-left-radius: 0px;
     border-top-right-radius: 0px;
-    border-color: #181818;
 }
 
 .Radio
 {
     margin: 0px;
     flex: 1;
-    background-color: rgba(0, 0, 0, 0);
     border-left-width: 0px;
     border-right-width: 1px;
     border-bottom-width: 1px;
-    background-color: #282828
-    border-color: #181818;
 }
 
 .SelectedRadio
 {
     border-bottom-width: 0px;
-    background-color: rgba(0, 0, 0, 0);
 }
 
 .LastRadio
@@ -121,8 +112,6 @@ ToolbarRadio
     border-radius: 0px;
     border-top-left-radius: 3px;
     border-top-right-radius: 3px;
-    background-color: rgba(0, 0, 0, 0);
-    border-color: #181818;
 }
 
 #ResourceRow
@@ -133,20 +122,31 @@ ToolbarRadio
 #DefaultResourceFolder
 {
     flex: 1;
-    margin-right: 180px;
+    margin-right: 130px;
 }
 
 #Repopulate
 {
     position: absolute;
     right: 0px;
-    width: 170px;
+    width: 120px;
+}
+
+#MigrationButton
+{
+    margin-left: 20px;
+    margin-right: 20px;
 }
 
 
-#Title
+/* spacing between categories */
+
+#NewScene
+{
+    margin-bottom: 15px;
+}
+
+#WizardCheckbox
 {
     margin-top: 15px;
-    margin-bottom: 5px;
-    font-size: 17;
 }
