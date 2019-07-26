@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using UnityEngine;
 using UnityEditor.Graphing;
+using UnityEditor.ShaderGraph.Internal;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -13,7 +14,7 @@ namespace UnityEditor.ShaderGraph
             name = "Property";
             UpdateNodeAfterDeserialization();
         }
-
+        
         [SerializeField]
         string m_PropertyGuidSerialized;
 
@@ -83,7 +84,7 @@ namespace UnityEditor.ShaderGraph
                     break;
                 case ConcreteSlotValueType.Matrix4:
                     AddSlot(new Matrix4MaterialSlot(OutputSlotId, property.displayName, "Out", SlotType.Output));
-                RemoveSlotsNameNotMatching(new[] {OutputSlotId});
+                    RemoveSlotsNameNotMatching(new[] { OutputSlotId });
                     break;
                 case ConcreteSlotValueType.Texture2D:
                 AddSlot(new Texture2DMaterialSlot(OutputSlotId, property.displayName, "Out", SlotType.Output));
@@ -119,7 +120,7 @@ namespace UnityEditor.ShaderGraph
             var property = owner.properties.FirstOrDefault(x => x.guid == propertyGuid);
             if (property == null)
                 return;
-
+            
             switch(property.propertyType)
             {
                 case PropertyType.Boolean:
@@ -166,8 +167,8 @@ namespace UnityEditor.ShaderGraph
             var property = owner.properties.FirstOrDefault(x => x.guid == propertyGuid);
                 if (property == null)
                 throw new NullReferenceException();
-
-            if (!(property is TextureShaderProperty) &&
+            
+            if (!(property is Texture2DShaderProperty) &&
                 !(property is Texture2DArrayShaderProperty) &&
                 !(property is Texture3DShaderProperty) &&
                 !(property is CubemapShaderProperty))
@@ -175,7 +176,7 @@ namespace UnityEditor.ShaderGraph
 
             return property.referenceName;
         }
-
+        
         protected override bool CalculateNodeHasError(ref string errorMessage)
         {
             if (!propertyGuid.Equals(Guid.Empty) && !owner.properties.Any(x => x.guid == propertyGuid))

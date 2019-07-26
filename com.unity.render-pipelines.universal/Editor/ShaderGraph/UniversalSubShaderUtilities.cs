@@ -5,6 +5,7 @@ using System.Linq;
 using UnityEditor;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph;
+using UnityEditor.ShaderGraph.Internal;
 
 namespace UnityEditor.Rendering.Universal
 {

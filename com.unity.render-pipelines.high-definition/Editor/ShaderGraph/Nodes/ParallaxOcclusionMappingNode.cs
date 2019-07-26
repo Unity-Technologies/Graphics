@@ -6,6 +6,7 @@ using UnityEditor.ShaderGraph.Drawing.Controls;
 using UnityEngine.Rendering.HighDefinition;
 using System;
 using System.Linq;
+using UnityEditor.ShaderGraph.Internal;
 using UnityEngine.Rendering;
 
 namespace UnityEditor.Rendering.HighDefinition
@@ -84,7 +85,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public override void ValidateNode()
         {
             var textureSlot = FindInputSlot<Texture2DInputMaterialSlot>(kHeightmapSlotId);
-            textureSlot.defaultType = TextureShaderProperty.DefaultType.Black;
+            textureSlot.defaultType = Texture2DShaderProperty.DefaultType.Black;
 
             base.ValidateNode();
         }

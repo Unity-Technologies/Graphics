@@ -1,5 +1,5 @@
 {
-    "name": "Unity.ShaderGraph.Internal",
+    "name": "Unity.ShaderGraph.Utilities",
     "references": [],
     "includePlatforms": [
         "Editor"

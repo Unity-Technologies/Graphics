@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.Graphing;
+using UnityEditor.ShaderGraph.Internal;
 using UnityEngine;
 using UnityEngine.Rendering;
 
@@ -10,10 +11,19 @@ namespace UnityEditor.ShaderGraph
     {
         public const string PositionName = "Position";
         public const int PositionSlotId = 0;
-        
-        public const string ColorSlotName = "Color";
-        public const int ColorSlotId = 1;
-        
+
+        public const string BaseColorSlotName = "Base Color";
+        public const int BaseColorSlotId = 1;
+
+        public const string MetallicSlotName = "Metallic";
+        public const int MetallicSlotId = 2;
+
+        public const string SmoothnessSlotName = "Smoothness";
+        public const int SmoothnessSlotId = 3;
+
+        public const string AlphaSlotName = "Alpha";
+        public const int AlphaSlotId = 4;
+
         public VfxMasterNode()
         {
             UpdateNodeAfterDeserialization();
@@ -22,19 +32,27 @@ namespace UnityEditor.ShaderGraph
         public override void UpdateNodeAfterDeserialization()
         {
             base.UpdateNodeAfterDeserialization();
-            
+
             name = "Visual Effect Master";
-            
+
             AddSlot(new PositionMaterialSlot(PositionSlotId, PositionName, PositionName, CoordinateSpace.Object, ShaderStageCapability.Vertex));
-            AddSlot(new ColorRGBMaterialSlot(ColorSlotId, ColorSlotName, ColorSlotName, SlotType.Input, Color.grey.gamma, ColorMode.Default, ShaderStageCapability.Fragment));
+            AddSlot(new ColorRGBMaterialSlot(BaseColorSlotId, BaseColorSlotName, NodeUtils.GetHLSLSafeName(BaseColorSlotName), SlotType.Input, Color.grey.gamma, ColorMode.Default, ShaderStageCapability.Fragment));
+            AddSlot(new Vector1MaterialSlot(MetallicSlotId, MetallicSlotName, MetallicSlotName, SlotType.Input, 0.5f, ShaderStageCapability.Fragment));
+            AddSlot(new Vector1MaterialSlot(SmoothnessSlotId, SmoothnessSlotName, SmoothnessSlotName, SlotType.Input, 0.5f, ShaderStageCapability.Fragment));
+            AddSlot(new Vector1MaterialSlot(AlphaSlotId, AlphaSlotName, AlphaSlotName, SlotType.Input, 1, ShaderStageCapability.Fragment));
 
             RemoveSlotsNameNotMatching(new[]
             {
                 PositionSlotId,
-                ColorSlotId
+                BaseColorSlotId,
+                MetallicSlotId,
+                SmoothnessSlotId,
+                AlphaSlotId
             });
         }
-        
+
+        public override bool hasPreview => false;
+
         public NeededCoordinateSpace RequiresPosition(ShaderStageCapability stageCapability)
         {
             List<MaterialSlot> slots = new List<MaterialSlot>();

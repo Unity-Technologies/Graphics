@@ -8,6 +8,7 @@ using UnityEditor.ShaderGraph;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 using UnityEditor.Rendering.Universal;
+using UnityEditor.ShaderGraph.Internal;
 
 namespace UnityEditor.Experimental.Rendering.Universal
 {
