@@ -111,7 +111,8 @@ Shader "Hidden/HDRP/ApplyDistortion"
                 Pass Zero   // We can clear the bit since we won't need anymore.
             }
 
-            ZWrite Off ZTest Off Blend Off Cull Off
+            ZWrite Off Blend Off Cull Off
+            ZTest Less // Required for XR occlusion mesh optimization
 
             HLSLPROGRAM
                 #pragma vertex Vert

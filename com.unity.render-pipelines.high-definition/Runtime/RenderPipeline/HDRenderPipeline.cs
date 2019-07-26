@@ -1744,9 +1744,16 @@ namespace UnityEngine.Rendering.HighDefinition
 
             ClearBuffers(hdCamera, cmd);
 
+            // Render XR occlusion mesh to depth buffer early in the frame to improve performance
+            // XRTODO: add frame setting for occlusion mesh
+            if (hdCamera.xr.enabled)
+            {
+                var msaa = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA);
+                var colorBuffer = msaa ? m_CameraColorMSAABuffer : m_CameraColorBuffer;
+                var depthBuffer = m_SharedRTManager.GetDepthStencilBuffer(msaa);
+                hdCamera.xr.RenderOcclusionMeshes(cmd, colorBuffer, depthBuffer);
+            }
 
-            // Render XR occlusion mesh first to improve performance
-            hdCamera.xr.RenderOcclusionMeshes(cmd, m_SharedRTManager.GetDepthStencilBuffer(hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA)));
             hdCamera.xr.StartSinglePass(cmd, camera, renderContext);
 
             bool shouldRenderMotionVectorAfterGBuffer = RenderDepthPrepass(cullingResults, hdCamera, renderContext, cmd);
