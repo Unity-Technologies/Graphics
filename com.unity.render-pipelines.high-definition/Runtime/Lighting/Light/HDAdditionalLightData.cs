@@ -635,7 +635,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         internal bool displayAreaLightEmissiveMesh
         {
-            get => m_DisplayAreaLightEmissiveMesh;
+            get => (ShaderConfig.s_AreaLights == 1 && m_DisplayAreaLightEmissiveMesh);
             set
             {
                 if (m_DisplayAreaLightEmissiveMesh == value)
