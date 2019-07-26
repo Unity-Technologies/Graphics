@@ -223,6 +223,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 name = "DefaultResourceFolder",
                 value = HDProjectSettings.projectSettingsFolderPath
             };
+            defaultResourceFolder.Q<Label>().AddToClassList("normal");
             defaultResourceFolder.RegisterValueChangedCallback(evt
                 => HDProjectSettings.projectSettingsFolderPath = evt.newValue);
 
@@ -249,6 +250,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 objectType = typeof(GameObject),
                 value = HDProjectSettings.defaultScenePrefab
             };
+            newScene.Q<Label>().AddToClassList("normal");
             newScene.RegisterValueChangedCallback(evt
                 => HDProjectSettings.defaultScenePrefab = evt.newValue as GameObject);
 
@@ -305,7 +307,11 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         Label CreateTitle(string title)
-            => new Label(title) { name = "Title" };
+        {
+            var label = new Label(title);
+            label.AddToClassList("h1");
+            return label;
+        }
 
         #endregion
     }
