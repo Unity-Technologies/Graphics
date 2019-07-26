@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -44,6 +44,12 @@ namespace UnityEngine.Rendering.HighDefinition
             HighQualityFiltering[(int)VolumeQualitySettingsLevels.Low] = false;
             HighQualityFiltering[(int)VolumeQualitySettingsLevels.Medium] = true;
             HighQualityFiltering[(int)VolumeQualitySettingsLevels.High] = true;
+
+
+            /* Motion Blur */
+            MotionBlurSampleCount[(int)VolumeQualitySettingsLevels.Low] = 4;
+            MotionBlurSampleCount[(int)VolumeQualitySettingsLevels.Medium] = 8;
+            MotionBlurSampleCount[(int)VolumeQualitySettingsLevels.High] = 12;
         }
 
         /// <summary>Default GlobalPostProcessingQualitySettings</summary>
@@ -57,5 +63,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public float[] FarBlurMaxRadius             = new float[s_QualitySettingCount];
         public DepthOfFieldResolution[] Resolution  = new DepthOfFieldResolution[s_QualitySettingCount];
         public bool[] HighQualityFiltering          = new bool[s_QualitySettingCount];
+
+        /* Motion Blur */
+        public int[] MotionBlurSampleCount          = new int[s_QualitySettingCount];
     }
 }

@@ -33,6 +33,8 @@ namespace UnityEditor.Rendering.HighDefinition
         static readonly GUIContent k_DynamicResolutionSubTitle = EditorGUIUtility.TrTextContent("Dynamic resolution");
         static readonly GUIContent k_LowResTransparencySubTitle = EditorGUIUtility.TrTextContent("Low res Transparency");
 
+        static readonly GUIContent k_MotionBlurQualitySettings = EditorGUIUtility.TrTextContent("Motion Blur");
+
         static readonly GUIContent k_DepthOfFieldQualitySettings = EditorGUIUtility.TrTextContent("Depth Of Field");
         static readonly GUIContent k_FarBlurSubTitle = EditorGUIUtility.TrTextContent("Far Blur");
         static readonly GUIContent k_NearBlurSubTitle = EditorGUIUtility.TrTextContent("Near Blur");

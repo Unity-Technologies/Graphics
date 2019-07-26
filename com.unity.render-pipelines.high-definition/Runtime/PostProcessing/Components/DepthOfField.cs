@@ -31,7 +31,7 @@ namespace UnityEngine.Rendering.HighDefinition
         [Tooltip("Whether to use quality settings for the effect.")]
         public BoolParameter useQualitySettings = new BoolParameter(false);
 
-        [Tooltip("Specifies the mode that HDRP uses to set the focus for the depth of field effect.")]
+        [Tooltip("Specifies the quality level to be used for performance relevant parameters.")]
         public QualitySettingParameter quality = new QualitySettingParameter(VolumeQualitySettingsLevels.Medium);
 
 

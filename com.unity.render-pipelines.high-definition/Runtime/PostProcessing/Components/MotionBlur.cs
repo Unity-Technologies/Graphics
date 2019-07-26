@@ -1,12 +1,20 @@
 using System;
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
+using UnityEngine.Serialization;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
     [Serializable, VolumeComponentMenu("Post-processing/Motion Blur")]
     public sealed class MotionBlur : VolumeComponent, IPostProcessComponent
     {
-        [Tooltip("Sets the maximum number of sample points that HDRP uses to compute motion blur.")]
-        public MinIntParameter sampleCount = new MinIntParameter(8, 2);
+
+        [Tooltip("Whether to use quality settings for the effect.")]
+        public BoolParameter useQualitySettings = new BoolParameter(false);
+
+        [Tooltip("Specifies the quality level to be used for performance relevant parameters.")]
+        public QualitySettingParameter quality = new QualitySettingParameter(VolumeQualitySettingsLevels.Medium);
 
         [Tooltip("Sets the intensity of the motion blur effect. Acts as a multiplier for velocities.")]
         public MinFloatParameter intensity = new MinFloatParameter(0.0f, 0.0f);
@@ -20,7 +28,29 @@ namespace UnityEngine.Rendering.HighDefinition
         [Tooltip("Value used for the depth based weighting of samples. Tweak if unwanted leak of background onto foreground or viceversa is detected.")]
         public ClampedFloatParameter depthComparisonExtent = new ClampedFloatParameter(1.0f, 0.0f, 20.0f);
 
-          
+        public int sampleCount
+        {
+            get
+            {
+                if (!useQualitySettings.value || (HDRenderPipeline)RenderPipelineManager.currentPipeline == null)
+                {
+                    return m_SampleCount.value;
+                }
+                else
+                {
+                    HDRenderPipeline pipeline = (HDRenderPipeline)RenderPipelineManager.currentPipeline;
+                    int qualityLevel = (int)quality.value;
+                    return pipeline.currentPlatformRenderPipelineSettings.postProcessQualitySettings.MotionBlurSampleCount[qualityLevel];
+                }
+            }
+            set { m_SampleCount.value = value; }
+        }
+
+
+        [Tooltip("Sets the maximum number of sample points that HDRP uses to compute motion blur.")]
+        [SerializeField, FormerlySerializedAs("sampleCount")]
+        MinIntParameter m_SampleCount = new MinIntParameter(8, 2);
+
         public bool IsActive()
         {
             return intensity.value > 0.0f;

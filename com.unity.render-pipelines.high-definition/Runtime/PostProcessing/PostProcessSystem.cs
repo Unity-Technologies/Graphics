@@ -1493,7 +1493,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // Blur kernel
             using (new ProfilingSample(cmd, "Blur Kernel", CustomSamplerId.MotionBlurKernel.GetSampler()))
             {
-                uint sampleCount = (uint)m_MotionBlur.sampleCount.value;
+                uint sampleCount = (uint)m_MotionBlur.sampleCount;
                 Vector4 motionBlurParams2 = new Vector4(
                     m_MotionBlurSupportsScattering ? (sampleCount + (sampleCount & 1)) : sampleCount,
                     tileSize,
