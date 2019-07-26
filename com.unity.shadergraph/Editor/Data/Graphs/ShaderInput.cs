@@ -1,15 +1,15 @@
 ﻿using System;
 using UnityEngine;
 
-namespace UnityEditor.ShaderGraph
+namespace UnityEditor.ShaderGraph.Internal
 {
-    abstract class ShaderInput
+    public abstract class ShaderInput
     {
         [SerializeField]
         SerializableGuid m_Guid = new SerializableGuid();
 
-        public Guid guid => m_Guid.guid;
-        
+        internal Guid guid => m_Guid.guid;
+
         [SerializeField]
         string m_Name;
 
@@ -44,12 +44,12 @@ namespace UnityEditor.ShaderGraph
         // This is required to handle Material data serialized with "_Color_GUID" reference names
         // m_DefaultReferenceName expects to match the material data and previously used PropertyType
         // ColorShaderProperty is the only case where PropertyType doesnt match ConcreteSlotValueType
-        public virtual string referenceNameBase => concreteShaderValueType.ToString();
+        internal virtual string referenceNameBase => concreteShaderValueType.ToString();
 
         [SerializeField]
         string m_OverrideReferenceName;
 
-        public string overrideReferenceName
+        internal string overrideReferenceName
         {
             get => m_OverrideReferenceName;
             set => m_OverrideReferenceName = value;
@@ -58,16 +58,16 @@ namespace UnityEditor.ShaderGraph
         [SerializeField]
         bool m_GeneratePropertyBlock = true;
 
-        public bool generatePropertyBlock
+        internal bool generatePropertyBlock
         {
             get => m_GeneratePropertyBlock;
             set => m_GeneratePropertyBlock = value;
         }
 
-        public abstract ConcreteSlotValueType concreteShaderValueType { get; }
-        public abstract bool isExposable { get; }
-        public abstract bool isRenamable { get; }
+        internal abstract ConcreteSlotValueType concreteShaderValueType { get; }
+        internal abstract bool isExposable { get; }
+        internal abstract bool isRenamable { get; }
 
-        public abstract ShaderInput Copy();
+        internal abstract ShaderInput Copy();
     }
 }

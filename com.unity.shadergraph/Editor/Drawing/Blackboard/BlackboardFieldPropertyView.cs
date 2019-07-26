@@ -8,6 +8,7 @@ using UnityEditor.UIElements;
 using UnityEngine.UIElements;
 using Toggle = UnityEngine.UIElements.Toggle;
 using UnityEditor.Experimental.GraphView;
+using UnityEditor.ShaderGraph.Internal;
 
 namespace UnityEditor.ShaderGraph.Drawing
 {
@@ -41,7 +42,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 case ColorShaderProperty colorProperty:
                     BuildColorPropertyField(colorProperty);
                     break;
-                case TextureShaderProperty texture2DProperty:
+                case Texture2DShaderProperty texture2DProperty:
                     BuildTexture2DPropertyField(texture2DProperty);
                     break;
                 case Texture2DArrayShaderProperty texture2DArrayProperty:
@@ -74,7 +75,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 default:
                     throw new ArgumentOutOfRangeException();
             }
-            
+
             // Precision
             var precisionField = new EnumField((Enum)property.precision);
             precisionField.RegisterValueChangedCallback(evt =>
@@ -82,7 +83,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 graph.owner.RegisterCompleteObjectUndo("Change Precision");
                 if (property.precision == (Precision)evt.newValue)
                     return;
-                
+
                 property.precision = (Precision)evt.newValue;
                 graph.ValidateGraph();
                 precisionField.MarkDirtyRepaint();
@@ -144,7 +145,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                             defaultField.value = property.value;
                             DirtyNodes();
                         });
-                        
+
                         AddRow("Default", defaultField);
                         AddRow("Min", minField);
                         AddRow("Max", maxField);
@@ -189,7 +190,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 AddRow("Mode", modeField);
             }
         }
-        
+
         void BuildVector2PropertyField(Vector2ShaderProperty property)
         {
             var field = new Vector2Field { value = property.value };
@@ -203,10 +204,10 @@ namespace UnityEditor.ShaderGraph.Drawing
             field.RegisterValueChangedCallback(evt =>
                 {
                     // Only true when setting value via FieldMouseDragger
-                    // Undo recorded once per dragger release              
+                    // Undo recorded once per dragger release
                     if (undoGroup == -1)
                         graph.owner.RegisterCompleteObjectUndo("Change property value");
-                    
+
                     property.value = evt.newValue;
                     DirtyNodes();
                 });
@@ -228,10 +229,10 @@ namespace UnityEditor.ShaderGraph.Drawing
             field.RegisterValueChangedCallback(evt =>
                 {
                     // Only true when setting value via FieldMouseDragger
-                    // Undo recorded once per dragger release              
+                    // Undo recorded once per dragger release
                     if (undoGroup == -1)
                         graph.owner.RegisterCompleteObjectUndo("Change property value");
-                    
+
                     property.value = evt.newValue;
                     DirtyNodes();
                 });
@@ -255,10 +256,10 @@ namespace UnityEditor.ShaderGraph.Drawing
             field.RegisterValueChangedCallback(evt =>
                 {
                     // Only true when setting value via FieldMouseDragger
-                    // Undo recorded once per dragger release              
+                    // Undo recorded once per dragger release
                     if (undoGroup == -1)
                         graph.owner.RegisterCompleteObjectUndo("Change property value");
-                    
+
                     property.value = evt.newValue;
                     DirtyNodes();
                 });
@@ -293,7 +294,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
         }
 
-        void BuildTexture2DPropertyField(TextureShaderProperty property)
+        void BuildTexture2DPropertyField(Texture2DShaderProperty property)
         {
             var field = new ObjectField { value = property.value.texture, objectType = typeof(Texture) };
             field.RegisterValueChangedCallback(evt =>
@@ -310,12 +311,12 @@ namespace UnityEditor.ShaderGraph.Drawing
                 defaultModeField.RegisterValueChangedCallback(evt =>
                     {
                         graph.owner.RegisterCompleteObjectUndo("Change Texture Mode");
-                        if (property.defaultType == (TextureShaderProperty.DefaultType)evt.newValue)
+                        if (property.defaultType == (Texture2DShaderProperty.DefaultType)evt.newValue)
                             return;
-                        property.defaultType = (TextureShaderProperty.DefaultType)evt.newValue;
+                        property.defaultType = (Texture2DShaderProperty.DefaultType)evt.newValue;
                         DirtyNodes(ModificationScope.Graph);
                     });
-                
+
                 void ToggleDefaultModeFieldEnabled()
                 {
                     defaultModeField.SetEnabled(!defaultModeField.enabledSelf);
@@ -490,7 +491,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                         };
                         DirtyNodes();
                     });
-                
+
                 AddRow("", row1Field);
                 var row2Field = new Vector3Field { value = property.value.GetRow(2) };
                 row2Field.RegisterValueChangedCallback(evt =>

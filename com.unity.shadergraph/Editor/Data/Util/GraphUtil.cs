@@ -11,6 +11,7 @@ using UnityEditorInternal;
 using Debug = UnityEngine.Debug;
 using System.Reflection;
 using UnityEditor.ProjectWindowCallback;
+using UnityEditor.ShaderGraph.Internal;
 using UnityEngine;
 using Object = System.Object;
 

@@ -3,15 +3,19 @@ using System.Collections.Generic;
 using UnityEditor.ShaderGraph.Drawing.Controls;
 using UnityEngine;
 using UnityEditor.Graphing;
+using UnityEditor.ShaderGraph.Internal;
 
-namespace UnityEditor.ShaderGraph
+namespace UnityEditor.ShaderGraph.Internal
 {
-    enum ColorMode
+    public enum ColorMode
     {
         Default,
         HDR
     }
+}
 
+namespace UnityEditor.ShaderGraph
+{
     [Title("Input", "Basic", "Color")]
     class ColorNode : AbstractMaterialNode, IGeneratesBodyCode, IPropertyFromNode
     {

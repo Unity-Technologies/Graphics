@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using UnityEditor.ShaderGraph.Internal;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -51,7 +52,7 @@ namespace UnityEditor.ShaderGraph
         {
             var result = new List<TextureInfo>();
 
-            foreach (var prop in properties.OfType<TextureShaderProperty>())
+            foreach (var prop in properties.OfType<Texture2DShaderProperty>())
             {
                 if (prop.referenceName != null)
                 {

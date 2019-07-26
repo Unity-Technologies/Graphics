@@ -4,6 +4,7 @@ using System.Linq;
 using UnityEngine;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph.Drawing.Colors;
+using UnityEditor.ShaderGraph.Internal;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -116,7 +117,7 @@ namespace UnityEditor.ShaderGraph
         [SerializeField]
         private Precision m_Precision = Precision.Inherit;
 
-        public Precision precision 
+        public Precision precision
         {
             get => m_Precision;
             set => m_Precision = value;
@@ -290,7 +291,7 @@ namespace UnityEditor.ShaderGraph
 
             return inputSlot.GetDefaultValue(generationMode);
         }
-        
+
         public static ConcreteSlotValueType ConvertDynamicVectorInputTypeToConcrete(IEnumerable<ConcreteSlotValueType> inputTypes)
         {
             var concreteSlotValueTypes = inputTypes as IList<ConcreteSlotValueType> ?? inputTypes.ToList();
