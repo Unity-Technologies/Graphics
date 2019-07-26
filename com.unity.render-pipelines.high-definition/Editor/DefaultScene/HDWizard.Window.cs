@@ -111,10 +111,26 @@ namespace UnityEditor.Rendering.HighDefinition
             foreach (VisualElementUpdatable updatable in m_BaseUpdatable.Children().Where(c => c is VisualElementUpdatable))
                 updatable.CheckUpdate();
         }
-        
+
+        static HDWizard()
+        {
+            LoadReflectionMethods();
+            WizardBehaviour();
+        }
+
         #region SCRIPT_RELOADING
 
         static int frameToWait;
+        
+        static void WizardBehaviour()
+        {
+            if (HDProjectSettings.wizardIsStartPopup)
+            {
+                //We need to wait at least one frame or the popup will not show up
+                frameToWait = 10;
+                EditorApplication.update += OpenWindowDelayed;
+            }
+        }
 
         static void OpenWindowDelayed()
         {
@@ -289,11 +305,11 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             var toggle = new Toggle(Style.showOnStartUp)
             {
-                value = HDProjectSettings.hasStartPopup,
+                value = HDProjectSettings.wizardIsStartPopup,
                 name = "WizardCheckbox"
             };
             toggle.RegisterValueChangedCallback(evt
-                => HDProjectSettings.hasStartPopup = evt.newValue);
+                => HDProjectSettings.wizardIsStartPopup = evt.newValue);
             return toggle;
         }
 

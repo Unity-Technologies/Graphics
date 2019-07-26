@@ -31,7 +31,7 @@ namespace UnityEditor.Rendering.HighDefinition
         static Func<BuildTarget, bool> WillEditorUseFirstGraphicsAPI;
         static Action RequestCloseAndRelaunchWithCurrentArguments;
 
-        static HDWizard()
+        static void LoadReflectionMethods()
         {
             Type playerSettingsType = typeof(PlayerSettings);
             Type playerSettingsEditorType = playerSettingsType.Assembly.GetType("UnityEditor.PlayerSettingsEditor");
