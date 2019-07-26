@@ -1,4 +1,4 @@
-#define LWRP_5_17_OR_NEWER
+#define LWRP_5_16_2_OR_NEWER
 #define LWRP_5_16_OR_NEWER
 #define LWRP_5_15_OR_NEWER
 #define LWRP_5_14_OR_NEWER
