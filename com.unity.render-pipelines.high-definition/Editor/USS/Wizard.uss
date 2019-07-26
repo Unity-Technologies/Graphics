@@ -36,11 +36,15 @@
     margin-bottom: -7px;
     margin-right: 10px;
     flex-shrink: 0;
+    width: 32px;
+    height: 32px;
+    align-self: center;
 }
 
 #HelpBox > Label
 {
     -unity-text-align: middle-left;
+    white-space: normal;
 }
 
 #TestRow
