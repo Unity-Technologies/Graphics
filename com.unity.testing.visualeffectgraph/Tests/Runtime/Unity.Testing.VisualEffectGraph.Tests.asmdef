@@ -3,12 +3,20 @@
     "references": [
         "Unity.Testing.VisualEffectGraph",
         "Unity.VisualEffectGraph.Editor",
-		"Unity.VisualEffectGraph.Runtime",
-        "UnityEngine.TestTools.Graphics"
+        "Unity.VisualEffectGraph.Runtime",
+        "UnityEngine.TestTools.Graphics",
+        "Unity.RenderPipelines.Universal.Runtime"
     ],
     "optionalUnityReferences": [
         "TestAssemblies"
     ],
     "includePlatforms": [],
-    "excludePlatforms": []
+    "excludePlatforms": [],
+    "versionDefines": [
+        {
+            "name": "com.unity.render-pipelines.universal",
+            "expression": "1.0.0",
+            "define": "VFX_HAS_UNIVERSAL_RP"
+        }
+    ]
 }
