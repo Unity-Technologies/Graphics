@@ -130,7 +130,7 @@ namespace UnityEditor.ShaderGraph
                     var onValue = GetSlotValue(1, generationMode);
                     var offValue = GetSlotValue(2, generationMode);
 
-                    sb.AppendLine($"#if defined({keyword.referenceName}_ON)");
+                    sb.AppendLine($"#if defined({keyword.referenceName})");
                     sb.AppendLine(string.Format($"{outputSlot.concreteValueType.ToShaderString()} {GetVariableNameForSlot(OutputSlotId)} = {onValue};"));
                     sb.AppendLine("#else");
                     sb.AppendLine(string.Format($"{outputSlot.concreteValueType.ToShaderString()} {GetVariableNameForSlot(OutputSlotId)} = {offValue};"));
