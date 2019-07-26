@@ -92,12 +92,16 @@ void CSMain(uint3 groupId          : SV_GroupID,
 #if !VFX_USE_SPAWNER_FROM_GPU
         ${VFXComputeSourceIndex}
 #endif
+
+		Attributes attributes = (Attributes)0;
+		SourceAttributes sourceAttributes = (SourceAttributes)0;
+		
         ${VFXLoadAttributes}
 #if VFX_USE_PARTICLEID_CURRENT
-         particleId_Attrib = particleIndex;
+         attributes.particleId = particleIndex;
 #endif
 #if VFX_USE_SEED_CURRENT
-        seed_Attrib = WangHash(particleIndex ^ systemSeed);
+        attributes.seed = WangHash(particleIndex ^ systemSeed);
 #endif
 #if HAS_STRIPS
 		${VFXLoadParameter:{stripIndex}}
@@ -110,10 +114,12 @@ void CSMain(uint3 groupId          : SV_GroupID,
         ${VFXProcessBlocks}
 
 		uint index = particleIndex;
-#if !VFX_USE_ALIVE_CURRENT
-		bool alive_Attrib = true;
+#if VFX_USE_ALIVE_CURRENT
+		bool alive = attributes.alive;
+#else
+		bool alive = true;
 #endif
-        if (GetParticleIndex(index, alive_Attrib, stripIndex))
+        if (GetParticleIndex(index, alive, stripIndex))
         {
             ${VFXStoreAttributes}
         }

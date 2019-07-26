@@ -23,19 +23,19 @@ void geom(point uint intStream[1] : TEXCOORD0,inout TriangleStream<VFX_VARYING_P
 	${VFXLoadAttributesOrCull}
 	${VFXProcessBlocks}
 			
-	if (!alive_Attrib)
+	if (!attributes.alive)
 		return;
 		
 	${VFXLoadSize}
 	
 	const float4x4 elementToVFX = GetElementToVFXMatrix(
-		axisX_Attrib,
-		axisY_Attrib,
-		axisZ_Attrib,
-		float3(angleX_Attrib,angleY_Attrib,angleZ_Attrib),
-		float3(pivotX_Attrib,pivotY_Attrib,pivotZ_Attrib),
+		attributes.axisX,
+		attributes.axisY,
+		attributes.axisZ,
+		float3(attributes.angleX,attributes.angleY,attributes.angleZ),
+		float3(attributes.pivotX,attributes.pivotY,attributes.pivotZ),
 		size3,
-		position_Attrib);
+		attributes.position);
 	
 	VFX_VARYING_PS_INPUTS o = (VFX_VARYING_PS_INPUTS)0;
 	

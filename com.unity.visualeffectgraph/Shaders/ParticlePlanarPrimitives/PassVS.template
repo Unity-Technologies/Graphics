@@ -12,8 +12,9 @@ struct vs_input
 
 float3 GetParticlePosition(uint index)
 {
+	struct Attributes attributes = (Attributes)0;
 	${VFXLoadAttributes:{position}}
-	return position_Attrib;
+	return attributes.position;
 }
 
 float3 GetStripTangent(float3 currentPos, uint relativeIndex, const StripData stripData)
@@ -69,7 +70,7 @@ VFX_VARYING_PS_INPUTS vert(uint id : SV_VertexID, vs_input i)
 	${VFXProcessBlocks}
 	
 #if !HAS_STRIPS
-	if (!alive_Attrib)
+	if (!attributes.alive)
 		return o;
 #endif
 	
@@ -86,10 +87,10 @@ VFX_VARYING_PS_INPUTS vert(uint id : SV_VertexID, vs_input i)
 	const float2 vOffsets = float2(0.0f,o.VFX_VARYING_UV.y - 0.5f);
 	
 	// Orient strips along their tangents
-	axisX_Attrib = GetStripTangent(position_Attrib, currentIndex, stripData);
-	axisZ_Attrib = position_Attrib - GetViewVFXPosition();
-	axisY_Attrib = normalize(cross(axisZ_Attrib, axisX_Attrib));
-	axisZ_Attrib = normalize(cross(axisX_Attrib, axisY_Attrib));
+	attributes.axisX = GetStripTangent(attributes.position, currentIndex, stripData);
+	attributes.axisZ = attributes.position - GetViewVFXPosition();
+	attributes.axisY = normalize(cross(attributes.axisZ, attributes.axisX));
+	attributes.axisZ = normalize(cross(attributes.axisX, attributes.axisY));
 	
 #else
 	o.VFX_VARYING_UV.x = float(id & 1);
@@ -134,13 +135,13 @@ VFX_VARYING_PS_INPUTS vert(uint id : SV_VertexID, vs_input i)
 	${VFXLoadSize}
 	
 	const float4x4 elementToVFX = GetElementToVFXMatrix(
-		axisX_Attrib,
-		axisY_Attrib,
-		axisZ_Attrib,
-		float3(angleX_Attrib,angleY_Attrib,angleZ_Attrib),
-		float3(pivotX_Attrib,pivotY_Attrib,pivotZ_Attrib),
+		attributes.axisX,
+		attributes.axisY,
+		attributes.axisZ,
+		float3(attributes.angleX,attributes.angleY,attributes.angleZ),
+		float3(attributes.pivotX,attributes.pivotY,attributes.pivotZ),
 		size3,
-		position_Attrib);
+		attributes.position);
 		
 	float3 inputVertexPosition = float3(vOffsets, 0.0f);
 	float3 vPos = mul(elementToVFX,float4(inputVertexPosition, 1.0f)).xyz;

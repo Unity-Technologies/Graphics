@@ -28,12 +28,24 @@ const StripData GetStripDataFromParticleIndex(uint particleIndex, uint particleC
 	return GetStripDataFromStripIndex(stripIndex, particleCountInStrip);
 }
 
-const uint GetParticleIndex(uint relativeIndex, const StripData data)
+uint GetParticleIndex(uint relativeIndex, const StripData data)
 {
 	return data.stripIndex * data.particleCountInStrip + (relativeIndex + data.firstIndex) % data.particleCountInStrip;
 }
 
-const uint GetRelativeIndex(uint particleIndex, const StripData data)
+uint GetRelativeIndex(uint particleIndex, const StripData data)
 {
 	return (data.particleCountInStrip + particleIndex - data.firstIndex) % data.particleCountInStrip;	
 }
+
+#if HAS_ATTRIBUTES
+void InitStripAttributes(Attributes attributes, const StripData data)
+{
+#if VFX_USE_STRIPINDEX_CURRENT
+    attributes.stripIndex = stripData.stripIndex;
+#endif
+#if VFX_USE_PARTICLEINDEXINSTRIP_CURRENT
+    attributes.particleIndexInStrip = GetRelativeIndex(particleIndex, stripData);
+#endif	
+}
+#endif

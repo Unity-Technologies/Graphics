@@ -268,6 +268,19 @@ namespace UnityEditor.VFX
             }
         }
 
+        public void WriteAttributeStruct(IEnumerable<VFXAttribute> attributes, string name)
+        {
+            WriteLineFormat("struct {0}", name);
+            WriteLine("{");
+            Indent();
+
+            foreach (var attribute in attributes)
+                WriteLineFormat("{0} {1};", VFXExpression.TypeToCode(attribute.type), attribute.name);
+
+            Deindent();
+            WriteLine("};");
+        }
+
         private string AggregateParameters(List<string> parameters)
         {
             return parameters.Count == 0 ? "" : parameters.Aggregate((a, b) => a + ", " + b);

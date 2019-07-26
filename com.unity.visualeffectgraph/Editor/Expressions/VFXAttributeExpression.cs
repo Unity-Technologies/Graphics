@@ -144,11 +144,8 @@ namespace UnityEditor.VFX
 
         public string GetNameInCode(VFXAttributeLocation location)
         {
-            string str = name;
-            if (location == VFXAttributeLocation.Source)
-                str += "_Source";
-            str += "_Attrib";
-            return str;
+            string structName = location == VFXAttributeLocation.Source ? "sourceAttributes" : "attributes";
+            return String.Format("{0}.{1}", structName, name);
         }
 
         public string name;

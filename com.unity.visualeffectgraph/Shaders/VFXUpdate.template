@@ -36,18 +36,30 @@ void CSMain(uint3 groupId          : SV_GroupID,
 	uint index = id;
 	if (id < nbMax)
 	{
+        Attributes attributes = (Attributes)0;
+		SourceAttributes sourceAttributes = (SourceAttributes)0;
+
 #if VFX_USE_ALIVE_CURRENT
 		${VFXLoadAttributes:{alive}}
-		if (alive_Attrib)
+		if (attributes.alive)
 		{
 			${VFXLoadAttributes:{(?!(alive))(\b\w)}}
-			
+
+// Initialize built-in needed attributes
+#if VFX_USE_PARTICLEINDEX_CURRENT
+           attributes.particleIndex = index; 
+#endif
 #if VFX_USE_OLDPOSITION_CURRENT
-			oldPosition_Attrib = position_Attrib;
+			attributes.oldPosition = position;
+#endif
+#if HAS_STRIPS
+            const StripData stripData = GetStripDataFromParticleIndex(index, PARTICLE_PER_STRIP_COUNT);
+            InitStripAttributes(attributes, stripData);
 #endif
 			
 			${VFXProcessBlocks}
-			if (alive_Attrib)
+
+			if (attributes.alive)
 			{
 				${VFXStoreAttributes:{(?!(alive))(\b\w)}}
 #if VFX_HAS_INDIRECT_DRAW
@@ -55,11 +67,10 @@ void CSMain(uint3 groupId          : SV_GroupID,
 				indirectBuffer[indirectIndex] = index;
 #endif
 
-#if HAS_STRIPS
-				const StripData stripData = GetStripDataFromParticleIndex(index, PARTICLE_PER_STRIP_COUNT);
+#if HAS_STRIPS			
 				uint relativeIndexInStrip = GetRelativeIndex(index, stripData);
-				InterlockedMin(STRIP_DATA(STRIP_MIN_ALIVE, stripData.stripIndex),relativeIndexInStrip);
-				InterlockedMax(STRIP_DATA(STRIP_MAX_ALIVE, stripData.stripIndex),relativeIndexInStrip);
+				InterlockedMin(STRIP_DATA(STRIP_MIN_ALIVE, stripData.stripIndex), relativeIndexInStrip);
+				InterlockedMax(STRIP_DATA(STRIP_MAX_ALIVE, stripData.stripIndex), relativeIndexInStrip);
 #endif
 			}
 			else
@@ -75,7 +86,7 @@ void CSMain(uint3 groupId          : SV_GroupID,
 		${VFXLoadAttributes}
 		
 #if VFX_USE_OLDPOSITION_CURRENT
-		oldPosition_Attrib = position_Attrib;
+		attributes.oldPosition = attributes.position;
 #endif
 		
 		${VFXProcessBlocks}

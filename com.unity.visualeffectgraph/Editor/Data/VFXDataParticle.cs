@@ -260,7 +260,6 @@ namespace UnityEditor.VFX
                 {
                     yield return "#define STRIP_COUNT " + stripCapacity + "u";
                     yield return "#define PARTICLE_PER_STRIP_COUNT " + particlePerStripCount + "u";
-                    yield return "#include \"Packages/com.unity.visualeffectgraph/Shaders/VFXParticleStripCommon.hlsl\"";
                 }
             }
         }
@@ -605,7 +604,7 @@ namespace UnityEditor.VFX
 
                 stripDataIndex = outBufferDescs.Count;
                 outBufferDescs.Add(new VFXGPUBufferDesc() { type = ComputeBufferType.Default, size = stripCapacity * 4, stride = 4 });
-                systemBufferMappings.Add(new VFXMapping("stripData", stripDataIndex));
+                systemBufferMappings.Add(new VFXMapping("stripDataBuffer", stripDataIndex));
             }
 
             var initContext = m_Contexts.FirstOrDefault(o => o.contextType == VFXContextType.Init);
@@ -705,7 +704,7 @@ namespace UnityEditor.VFX
                     bufferMappings.Add(new VFXMapping("sourceAttributeBuffer", attributeSourceBufferIndex));
 
                 if (stripDataIndex != -1 && context.ownedType == VFXDataType.ParticleStrip)
-                    bufferMappings.Add(new VFXMapping("stripData", stripDataIndex));
+                    bufferMappings.Add(new VFXMapping("stripDataBuffer", stripDataIndex));
 
                 if (indirectBufferIndex != -1 &&
                     (context.contextType == VFXContextType.Update ||

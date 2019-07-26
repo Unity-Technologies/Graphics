@@ -1,9 +1,9 @@
 ${VFXBegin:VFXVertexCommonProcess}
 #if VFX_USE_COLOR_CURRENT && defined(VFX_VARYING_COLOR)
-o.VFX_VARYING_COLOR = color_Attrib;
+o.VFX_VARYING_COLOR = attributes.color;
 #endif
 #if VFX_USE_ALPHA_CURRENT && defined(VFX_VARYING_ALPHA) 
-o.VFX_VARYING_ALPHA = alpha_Attrib;
+o.VFX_VARYING_ALPHA = attributes.alpha;
 #endif
 
 #ifdef VFX_VARYING_EXPOSUREWEIGHT
@@ -33,15 +33,15 @@ o.VFX_VARYING_POSWS = TransformPositionVFXToWorld(vPos);
 ${VFXEnd}
 
 ${VFXBegin:VFXLoadSize}
-float3 size3 = float3(size_Attrib,size_Attrib,size_Attrib);
+float3 size3 = float3(attributes.size,attributes.size,attributes.size);
 #if VFX_USE_SCALEX_CURRENT
-size3.x *= scaleX_Attrib;
+size3.x *= attributes.scaleX;
 #endif
 #if VFX_USE_SCALEY_CURRENT
-size3.y *= scaleY_Attrib;
+size3.y *= attributes.scaleY;
 #endif
 #if VFX_USE_SCALEZ_CURRENT
-size3.z *= scaleZ_Attrib;
+size3.z *= attributes.scaleZ;
 #endif
 ${VFXEnd}
 
@@ -49,7 +49,7 @@ ${VFXBegin:VFXVertexSetFlipbooksInterpolants}
 #if USE_FLIPBOOK
 ${VFXLoadParameter:{flipBookSize}}
 ${VFXLoadParameter:{invFlipBookSize}}
-VFXUVData uvData = GetUVData(flipBookSize, invFlipBookSize, o.VFX_VARYING_UV.xy, texIndex_Attrib);
+VFXUVData uvData = GetUVData(flipBookSize, invFlipBookSize, o.VFX_VARYING_UV.xy, attributes.texIndex);
 o.VFX_VARYING_UV.xy = uvData.uvs.xy;
 #if USE_FLIPBOOK_INTERPOLATION
 o.VFX_VARYING_UV.zw = uvData.uvs.zw;
@@ -76,6 +76,9 @@ if (index >= asuint(nbMax) - deadCount)
 	return o; // cull
 #endif
 
+Attributes attributes = (Attributes)0;
+SourceAttributes sourceAttributes = (SourceAttributes)0;
+
 #if VFX_HAS_INDIRECT_DRAW
 index = indirectBuffer[index];
 ${VFXLoadAttributes}
@@ -83,11 +86,19 @@ ${VFXLoadAttributes}
 ${VFXLoadAttributes:{alive}}
 
 #if !HAS_STRIPS
-if (!alive_Attrib)
+if (!attributes.alive)
 	return o;
 #endif
 	
 ${VFXLoadAttributes:{(?!(alive))(\b\w)}}
+#endif
+
+// Initialize built-in needed attributes
+#if VFX_USE_PARTICLEINDEX_CURRENT
+attributes.particleIndex = index; 
+#endif
+#if HAS_STRIPS
+InitStripAttributes(attributes, stripData);
 #endif
 ${VFXEnd}
 

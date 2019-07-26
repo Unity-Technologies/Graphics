@@ -29,7 +29,7 @@ VFX_VARYING_PS_INPUTS vert(vs_input i)
 	${VFXLoadAttributesOrCull}
 	${VFXProcessBlocks}
 			
-	if (!alive_Attrib)
+	if (!attributes.alive)
 		return o;
 	
 	o.VFX_VARYING_UV.xy = i.uv;
@@ -38,13 +38,13 @@ VFX_VARYING_PS_INPUTS vert(vs_input i)
 	
 	float3 inputVertexPosition = i.pos;
 	float4x4 elementToVFX = GetElementToVFXMatrix(
-		axisX_Attrib,
-		axisY_Attrib,
-		axisZ_Attrib,
-		float3(angleX_Attrib,angleY_Attrib,angleZ_Attrib),
-		float3(pivotX_Attrib,pivotY_Attrib,pivotZ_Attrib),
+		attributes.axisX,
+		attributes.axisY,
+		attributes.axisZ,
+		float3(attributes.angleX,attributes.angleY,attributes.angleZ),
+		float3(attributes.pivotX,attributes.pivotY,attributes.pivotZ),
 		size3,
-		position_Attrib);
+		attributes.position);
 		
 	float3 vPos = mul(elementToVFX,float4(inputVertexPosition,1.0f)).xyz;
 	float4 csPos = TransformPositionVFXToClip(vPos);
