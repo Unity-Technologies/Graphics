@@ -85,6 +85,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
     }
 
+    [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "HDRP-Camera" + Documentation.endURL)]
     [DisallowMultipleComponent, ExecuteAlways]
     [RequireComponent(typeof(Camera))]
     public partial class HDAdditionalCameraData : MonoBehaviour

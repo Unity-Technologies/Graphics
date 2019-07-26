@@ -3,6 +3,7 @@ using System;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
+    [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "HDRP-Asset" + Documentation.endURL)]
     public partial class HDRenderPipelineEditorResources : ScriptableObject
     {
         [Reload("Editor/DefaultScene/DefaultSceneRoot.prefab")]

@@ -180,9 +180,19 @@ ColorPropertyRM > .maincontainer > .fieldContainer
     flex:0 0 auto;
 }
 
+Vector3PropertyRM VFXColorField
+{
+    flex: 0 0 auto;
+}
+
+Vector3PropertyRM.propertyrm VFXVector3Field.fieldContainer
+{
+    flex: 0 0 auto;
+}
+
 ColorPropertyRM .unity-float-field
 {
-    flex:1 0 auto;
+    flex: 1 0 auto;
 }
 
 FloatPropertyRM .unity-float-field
@@ -251,7 +261,7 @@ Matrix4x4PropertyRM.propertyrm > .fieldContainer
     background-color: rgb(42,42,42);
     border-top-width: 1px;
     border-color: rgb(13,13,13);
-    border-radius: 2;
+    border-radius: 2px;
     color: rgb(180,180,180);
 }
 .propertyrm VFXColorField #indeterminate
