@@ -250,6 +250,9 @@ Shader ""Hidden/GraphErrorShader2""
                 portCodeIndices[i] = new List<int>();
             }
 
+            sharedCodeIndices.Add(codeSnippets.Count);
+            codeSnippets.Add($"#include \"com.unity.shadergraph/ShaderGraphLibrary/Functions.hlsl\";{nl}");
+
             for (var registryIndex = 0; registryIndex < registry.names.Count; registryIndex++)
             {
                 var name = registry.names[registryIndex];
