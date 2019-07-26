@@ -207,7 +207,11 @@ namespace UnityEditor.VFX.UI
             }
             Profiler.EndSample();
 
-            m_Label.text = controller.model.label;
+            if (controller.model.contextType == VFXContextType.Spawner)
+                m_Label.text = controller.model.GetGraph().systemNames.GetUniqueSystemName(controller.model);
+            else
+                m_Label.text = controller.model.label;
+
             if (string.IsNullOrEmpty(m_Label.text))
             {
                 m_Label.AddToClassList("empty");
@@ -880,7 +884,7 @@ namespace UnityEditor.VFX.UI
 
         void OnTitleBlur(FocusOutEvent e)
         {
-            var newName = m_TextField.value
+            controller.model.label = m_TextField.value
                 .Trim()
                 .Replace("/","")
                 .Replace("\\", "")
@@ -892,7 +896,6 @@ namespace UnityEditor.VFX.UI
                 .Replace("\"", "")
                 .Replace("|", "")
                 ;
-            VFXSystemNames.UIUpdate(controller.model.GetGraph(), this, newName);
             m_TextField.style.display = DisplayStyle.None;
         }
         void OnTitleRelayout(GeometryChangedEvent e)

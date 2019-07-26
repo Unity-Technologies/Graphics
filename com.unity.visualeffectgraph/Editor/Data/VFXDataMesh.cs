@@ -45,7 +45,8 @@ namespace UnityEditor.VFX
             Dictionary<VFXContext, int> contextSpawnToBufferIndex,
             Dictionary<VFXData, int> attributeBuffer,
             Dictionary<VFXData, int> eventBuffer,
-            Dictionary<VFXContext, List<VFXContextLink>[]> effectiveFlowInputLinks)
+            Dictionary<VFXContext, List<VFXContextLink>[]> effectiveFlowInputLinks,
+            VFXSystemNames systemNames = null)
         {
             var context = m_Owners[0];
             var contextData = contextToCompiledData[context];

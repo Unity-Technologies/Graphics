@@ -150,9 +150,10 @@ namespace UnityEditor.VFX.UI
 
         void OnTitleBlur(FocusOutEvent e)
         {
-            var newName = m_TitleField.value.Trim();
-            VFXSystemNames.UIUpdate(this, newName);
+            title = m_TitleField.value;
             m_TitleField.style.display = DisplayStyle.None;
+
+            controller.title = title;
         }
 
         void OnContextChanged(GeometryChangedEvent e)
@@ -431,7 +432,7 @@ namespace UnityEditor.VFX.UI
                 return;
             contexts = controller.contexts.Select(t => view.GetGroupNodeElement(t) as VFXContextUI).ToArray();
 
-            title = controller.title;
+            title = controller.contexts.Length > 0 ? controller.contexts[0].model.GetGraph().systemNames.GetUniqueSystemName(controller.contexts[0].model.GetData()) : controller.title ;
         }
         public void OnControllerChanged(ref ControllerChangedEvent e)
         {

@@ -31,19 +31,18 @@ namespace UnityEditor.VFX.UI
         {
             get
             {
-                return m_ViewController.graph.UIInfos.GetNameOfSystem(contexts.Select(t => t.model));
+                return contexts.Length > 0 ? contexts[0].model.GetGraph().systemNames.GetUniqueSystemName(contexts[0].model.GetData()) : string.Empty;
             }
             set
             {
-                if( value != title)
+                if (value != title && contexts.Length > 0)
                 {
-                    m_ViewController.graph.UIInfos.SetNameOfSystem(contexts.Select(t => t.model), value);
                     VFXData data = contexts.First().model.GetData();
-                    /*if (data != null)
+                    if (data != null)
                     {
                         int index = value.IndexOfAny(new char[] { '\r', '\n' });
-                        data.systemName = index == -1 ? value : value.Substring(0, index);
-                    }*/
+                        data.title = index == -1 ? value : value.Substring(0, index);
+                    }
                     data.owners.First().Invalidate(VFXModel.InvalidationCause.kSettingChanged);
                 }
             }

@@ -62,30 +62,6 @@ namespace UnityEditor.VFX
         [SerializeField]
         private string m_Label;
 
-        public override void SetSystemName(VFXGraph graph, string name)
-        {
-            if (string.IsNullOrEmpty(name))
-                name = VFXSystemNames.DefaultSystemName;
-
-            if (m_Data != null)
-                m_Data.SetSystemName(graph, name);
-            else if (contextType == VFXContextType.Spawner)
-            {
-                if (graph != null)
-                    m_Label = graph.systemNames.AddAndCorrect(graph, this, name);
-                Debug.Log("context.systemName.set:: graph hash: " + graph.GetHashCode());
-            }
-        }
-
-        public override string GetSystemName()
-        {
-            if (m_Data != null)
-                return m_Data.GetSystemName();
-            if (contextType == VFXContextType.Spawner)
-                return m_Label;
-            return string.Empty;
-        }
-
         public string label
         {
             get { return m_Label; }
@@ -228,7 +204,7 @@ namespace UnityEditor.VFX
         {
             base.OnAdded();
             var graph = GetGraph();
-            SetSystemName(graph, VFXSystemNames.DefaultSystemName);
+            VFXSystemNames.SetSystemName(this, VFXSystemNames.DefaultSystemName);
             if (hasBeenCompiled || CanBeCompiled())
                 Invalidate(InvalidationCause.kExpressionGraphChanged);
         }

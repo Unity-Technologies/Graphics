@@ -40,21 +40,7 @@ namespace UnityEditor.VFX
         }
 
         [VFXSetting, SerializeField]
-        protected string title;// TODO: Do we really need it ?
-
-        public override void SetSystemName(VFXGraph graph, string name)
-        {
-            if (string.IsNullOrEmpty(name))
-                name = VFXSystemNames.DefaultSystemName;
-            if (graph != null)
-                title = graph.systemNames.AddAndCorrect(graph, this, name);
-            Debug.Log("data.systemName.set:: graph hash: " + graph.GetHashCode());
-        }
-
-        public override string GetSystemName()
-        {
-            return title;
-        }
+        public string title;
 
         public int index
         {
@@ -159,7 +145,8 @@ namespace UnityEditor.VFX
             Dictionary<VFXContext, int> contextSpawnToBufferIndex,
             Dictionary<VFXData, int> attributeBuffer,
             Dictionary<VFXData, int> eventBuffer,
-            Dictionary<VFXContext, List<VFXContextLink>[]> effectiveFlowInputLinks)
+            Dictionary<VFXContext, List<VFXContextLink>[]> effectiveFlowInputLinks,
+            VFXSystemNames systemNames = null)
         {
             // Empty implementation by default
         }

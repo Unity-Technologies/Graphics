@@ -42,9 +42,6 @@ namespace UnityEditor.VFX
         public new virtual string name  { get { return string.Empty; } }
         public virtual string libraryName  { get { return name; } }
 
-        public virtual void SetSystemName(VFXGraph graph, string name) { Debug.LogError("I should never be called"); }
-        public virtual string GetSystemName() { return string.Empty; }
-
         public delegate void InvalidateEvent(VFXModel model, InvalidationCause cause);
 
         public event InvalidateEvent onInvalidateDelegate;

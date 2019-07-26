@@ -298,7 +298,7 @@ namespace UnityEditor.VFX
             }
             Profiler.EndSample();
             Profiler.EndSample();
-            m_SystemNames.Sanitize(this, models);
+            m_SystemNames.Sync(this);
             m_ExpressionGraphDirty = true;
             m_ExpressionValuesDirty = true;
             m_DependentDirty = true;
@@ -362,15 +362,7 @@ namespace UnityEditor.VFX
                     Debug.LogError(string.Format("Exception while sanitizing VFXUI: : {0} {1}", e , e.StackTrace));
                 }
 
-            var models = new HashSet<ScriptableObject>();
-            CollectDependencies(models, false);
-            var contexts = models.OfType<VFXContext>();
-            //IEnumerable<VFXContext> compilableContexts = contexts.Where(c => c.CanBeCompiled()).ToArray();
-            if (contexts != null)
-            {
-                var systems = contexts.Select(context => context.GetData() != null ? context.GetData() as VFXModel : context as VFXModel);
-                m_SystemNames.Init(this, systems);
-            }
+            systemNames.Sync(this);
 
             m_GraphSanitized = true;
             m_GraphVersion = CurrentVersion;
@@ -418,9 +410,11 @@ namespace UnityEditor.VFX
                 BuildParameterInfo();
             }
 
+            if (cause == VFXModel.InvalidationCause.kStructureChanged || cause == VFXModel.InvalidationCause.kSettingChanged)
+                m_SystemNames.Sync(this);
+
             if (cause == VFXModel.InvalidationCause.kStructureChanged)
             {
-                m_SystemNames.Sync(this);
                 UpdateSubAssets();
                 if( model == this)
                     VFXSubgraphContext.CallOnGraphChanged(this);

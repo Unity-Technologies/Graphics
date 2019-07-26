@@ -421,7 +421,8 @@ namespace UnityEditor.VFX
             VFXExpressionGraph graph,
             List<VFXLayoutElementDesc> globalEventAttributeDescs,
             Dictionary<VFXContext, VFXContextCompiledData> contextToCompiledData,
-            ref SubgraphInfos subgraphInfos)
+            ref SubgraphInfos subgraphInfos,
+            VFXSystemNames systemNames = null)
         {
             var spawners = CollectSpawnersHierarchy(contexts,ref subgraphInfos);
             foreach (var it in spawners.Select((spawner, index) => new { spawner, index }))
@@ -468,13 +469,13 @@ namespace UnityEditor.VFX
                     var expressionIndex = graph.GetFlattenedIndex(contextExpression.exp);
                     systemValueMappings.Add(new VFXMapping(contextExpression.name, expressionIndex));
                 }
-
+                var nativeName = systemNames.GetUniqueSystemName(spawnContext);
                 outSystemDescs.Add(new VFXEditorSystemDesc()
                 {
                     values = systemValueMappings.ToArray(),
                     buffers = buffers.ToArray(),
                     capacity = 0u,
-                    name = spawnContext.GetSystemName(),
+                    name = nativeName,
                     flags = VFXSystemFlag.SystemDefault,
                     layer = uint.MaxValue,
                     tasks = spawnContext.activeFlattenedChildrenWithImplicit.Select((b, index) =>
@@ -799,13 +800,6 @@ namespace UnityEditor.VFX
                 foreach (var c in contexts) // Unflag all contexts
                     c.MarkAsCompiled(false);
 
-                var systems = models.OfType<VFXContext>()
-                    .Where(c => c.contextType == VFXContextType.Spawner || c.GetData() != null)
-                    .Select(c => c.GetData() != null ? c.GetData() as VFXModel : c)
-                    .Distinct().ToList();
-
-                m_Graph.systemNames.Init(m_Graph, systems);
-
                 IEnumerable<VFXContext> compilableContexts = contexts.Where(c => c.CanBeCompiled()).ToArray();
                 var compilableData = models.OfType<VFXData>().Where(d => d.CanBeCompiled());
 
@@ -909,8 +903,10 @@ namespace UnityEditor.VFX
                     initialData = ComputeArrayOfStructureInitialData(globalEventAttributeDescs)
                 });
 
+                m_Graph.systemNames.Sync(m_Graph);
+
                 var contextSpawnToSpawnInfo = new Dictionary<VFXContext, SpawnInfo>();
-                FillSpawner(contextSpawnToSpawnInfo, cpuBufferDescs, systemDescs, compilableContexts, m_ExpressionGraph, globalEventAttributeDescs, contextToCompiledData, ref subgraphInfos);
+                FillSpawner(contextSpawnToSpawnInfo, cpuBufferDescs, systemDescs, compilableContexts, m_ExpressionGraph, globalEventAttributeDescs, contextToCompiledData, ref subgraphInfos, m_Graph.systemNames);
 
                 var eventDescs = new List<VFXEventDesc>();
                 FillEvent(eventDescs, contextSpawnToSpawnInfo, compilableContexts,ref subgraphInfos);
@@ -930,7 +926,8 @@ namespace UnityEditor.VFX
                         contextSpawnToBufferIndex,
                         attributeBufferDictionnary,
                         eventGpuBufferDictionnary,
-                        subgraphInfos.contextEffectiveInputLinks);
+                        subgraphInfos.contextEffectiveInputLinks,
+                        m_Graph.systemNames);
                 }
 
                 // Update renderer settings

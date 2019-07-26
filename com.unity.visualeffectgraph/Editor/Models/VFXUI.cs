@@ -105,22 +105,6 @@ namespace UnityEditor.VFX
 
         public Rect uiBounds;
 
-        public string GetNameOfSystem(IEnumerable<VFXContext> contexts)
-        {
-            foreach (var context in contexts)
-                return context.GetSystemName();
-            return string.Empty;
-        }
-
-        public void SetNameOfSystem(IEnumerable<VFXContext> contexts, string name)
-        {
-            foreach (var context in contexts)
-            {
-                context.SetSystemName(context.GetGraph(), name);
-                return;
-            }
-        }
-
         public void Sanitize(VFXGraph graph)
         {
             if (groupInfos != null)
