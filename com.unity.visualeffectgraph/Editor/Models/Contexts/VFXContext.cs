@@ -203,8 +203,8 @@ namespace UnityEditor.VFX
         protected override void OnAdded()
         {
             base.OnAdded();
-            var graph = GetGraph();
-            VFXSystemNames.SetSystemName(this, VFXSystemNames.DefaultSystemName);
+            //var graph = GetGraph(); 
+            //graph.systemNames.Sync(graph);// Too soon to sync, this context won't be retrieved
             if (hasBeenCompiled || CanBeCompiled())
                 Invalidate(InvalidationCause.kExpressionGraphChanged);
         }
@@ -212,8 +212,8 @@ namespace UnityEditor.VFX
         protected override void OnRemoved()
         {
             base.OnRemoved();
-            var graph = GetGraph();
-            graph.systemNames.RemoveSystem(GetGraph(), m_Data != null ? m_Data as VFXModel : this);
+            //var graph = GetGraph();
+            //graph.systemNames.Sync(graph);
             if (hasBeenCompiled || CanBeCompiled())
                 Invalidate(InvalidationCause.kExpressionGraphChanged);
         }

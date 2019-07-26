@@ -18,15 +18,12 @@ namespace UnityEditor.VFX
         public static readonly string DefaultSystemName = "System";
 
         private static readonly string IndexPattern = @" (\(([0-9])*\))$";
-        //private Dictionary<VFXModel, string> m_UnindexedNames = new Dictionary<VFXModel, string>();
-        //private Dictionary<string, List<int>> m_DuplicatesIndices = new Dictionary<string, List<int>>();
-
-
         private Dictionary<VFXModel, int> m_SystemToIndex = new Dictionary<VFXModel, int>();
 
         public static string GetSystemName(VFXModel model)
         {
             var data = model as VFXData;
+
             // general case
             if (data != null)
             {
@@ -45,7 +42,7 @@ namespace UnityEditor.VFX
                     if (contextData != null)
                         return contextData.title;
                 }
-                    
+
             }
 
             Debug.LogError("model not associated to a system");
@@ -89,7 +86,9 @@ namespace UnityEditor.VFX
             if (m_SystemToIndex.TryGetValue(model, out index))
             {
                 var wishedName = GetSystemName(model);
-                if (!string.IsNullOrEmpty(wishedName))
+                if (wishedName == string.Empty)
+                    wishedName = DefaultSystemName;
+                if (wishedName != null)
                 {
                     var format = "{0} ({1})";
                     var newName = index == 0 ? wishedName : string.Format(format, wishedName, index);
@@ -97,10 +96,10 @@ namespace UnityEditor.VFX
                 }
             }
             Debug.LogError("GetUniqueSystemName::Error: model not registered");
-            return string.Empty;
+            return GetSystemName(model);
         }
 
-        public static int ExtractIndex(string name)
+        private static int ExtractIndex(string name)
         {
             if (SysRegex.IsMatch(name, IndexPattern))
             {
@@ -128,80 +127,24 @@ namespace UnityEditor.VFX
         private void Init(IEnumerable<VFXModel> models)
         {
             m_SystemToIndex.Clear();
-
             foreach (var system in models)
             {
-                /*if (!(system is VFXDataParticle || system is VFXContext))
-                    continue;*/
-
                 var systemName = GetSystemName(system);
-                if (string.IsNullOrEmpty(systemName))
-                {
-                    SetSystemName(system, DefaultSystemName);
-                    systemName = GetSystemName(system);
-                }
-
                 var index = GetIndex(systemName);
                 m_SystemToIndex[system] = index;
             }
             Debug.Log("Init");
         }
 
-        /// <summary>
-        /// Registers a system name, eventually corrects it so it is unique, and returns it.
-        /// If an indexed name is supplied, index will not be considered, and will probably change even if it is a correct one.
-        /// I'm the index master >:-)
-        /// </summary>
-        public string AddAndCorrect(VFXGraph graph, VFXModel system, string wishedName)
-        {
-            //Debug.Log("AAC: " + RuntimeHelpers.GetHashCode(system));
-            /*if (string.IsNullOrEmpty(wishedName))
-                wishedName = DefaultSystemName;
-            var unindexedName = SysRegex.Replace(wishedName, IndexPattern, "");
-
-            RemoveSystem(graph, system);
-
-            m_UnindexedNames[system] = unindexedName;
-
-            return GetIndex(unindexedName);*/
-
-            return string.Empty;
-        }
-
-        public void RemoveSystem(VFXGraph graph, VFXModel system, bool removeFromUnindexNames = true)
-        {
-            // if system is not of type VFXDataParticle, or if it is not a spawner of type VFXContext, abort.
-            /*if (!(system is VFXDataParticle))
-            {
-                var context = system as VFXContext;
-                if (context == null || context.contextType != VFXContextType.Spawner)
-                    return;
-            }
-            string unindexedName;
-            m_UnindexedNames.TryGetValue(system, out unindexedName);
-            if (!string.IsNullOrEmpty(unindexedName))
-            {
-                List<int> duplicateIndices;
-                m_DuplicatesIndices.TryGetValue(unindexedName, out duplicateIndices);
-                if (duplicateIndices != null)
-                {
-                    int index = ExtractIndex(ExtractName(system));
-                    duplicateIndices.Remove(index);
-                    if (duplicateIndices.Count() == 0)
-                        m_DuplicatesIndices.Remove(unindexedName);
-                }
-                if (removeFromUnindexNames)
-                    m_UnindexedNames.Remove(system);
-            }*/
-
-        }
-
         private int GetIndex(string unindexedName)
         {
             int index = -1;
 
-            List<int> unavailableIndices = m_SystemToIndex.Where(pair => GetSystemName(pair.Key) == unindexedName).Select(pair => pair.Value).ToList();
-            //m_DuplicatesIndices.TryGetValue(unindexedName, out unavailableIndices);
+            List<int> unavailableIndices;
+            if (string.IsNullOrEmpty(unindexedName) || unindexedName == DefaultSystemName)
+                unavailableIndices = m_SystemToIndex.Where(pair => (GetSystemName(pair.Key) == string.Empty || GetSystemName(pair.Key) == DefaultSystemName)).Select(pair => pair.Value).ToList();
+            else
+                unavailableIndices = m_SystemToIndex.Where(pair => GetSystemName(pair.Key) == unindexedName).Select(pair => pair.Value).ToList();
             if (unavailableIndices != null && unavailableIndices.Count() > 0)
             {
                 unavailableIndices.Sort();

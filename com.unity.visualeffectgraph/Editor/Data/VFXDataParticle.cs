@@ -761,14 +761,11 @@ namespace UnityEditor.VFX
             }
 
             string nativeName = string.Empty;
-            if (expressionGraph != null)
-            {
+            if (systemNames != null)
                 nativeName = systemNames.GetUniqueSystemName(this);
-            }
             else
-            {
-                Debug.LogError("Graph is null");
-            }
+                throw new InvalidOperationException("system names manager cannot be null");
+            
             outSystemDescs.Add(new VFXEditorSystemDesc()
             {
                 flags = systemFlag,

@@ -469,7 +469,11 @@ namespace UnityEditor.VFX
                     var expressionIndex = graph.GetFlattenedIndex(contextExpression.exp);
                     systemValueMappings.Add(new VFXMapping(contextExpression.name, expressionIndex));
                 }
-                var nativeName = systemNames.GetUniqueSystemName(spawnContext);
+                string nativeName = string.Empty;
+                if (systemNames != null)
+                    nativeName = systemNames.GetUniqueSystemName(spawnContext);
+                else
+                    throw new InvalidOperationException("system names manager cannot be null");
                 outSystemDescs.Add(new VFXEditorSystemDesc()
                 {
                     values = systemValueMappings.ToArray(),

@@ -432,7 +432,7 @@ namespace UnityEditor.VFX.UI
                 return;
             contexts = controller.contexts.Select(t => view.GetGroupNodeElement(t) as VFXContextUI).ToArray();
 
-            title = controller.contexts.Length > 0 ? controller.contexts[0].model.GetGraph().systemNames.GetUniqueSystemName(controller.contexts[0].model.GetData()) : controller.title ;
+            title = controller.contexts[0].model.GetGraph().systemNames.GetUniqueSystemName(controller.contexts[0].model.GetData());
         }
         public void OnControllerChanged(ref ControllerChangedEvent e)
         {
