@@ -6,6 +6,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [7.1.1] - 2019-XX-XX
 
+### Added
+
+### Fixed
+- Fixed wizard infinite loop on cancellation.
+
+### Changed
+- Update Wizard layout.
+
+
 ## [7.0.0] - 2019-07-17
 
 ### Added
