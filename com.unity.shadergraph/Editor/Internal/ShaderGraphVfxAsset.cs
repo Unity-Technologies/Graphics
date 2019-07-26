@@ -50,7 +50,7 @@ namespace UnityEditor.ShaderGraph.Internal
         [SerializeField]
         internal IntArray[] outputPropertyIndices;
 
-        public ConcretePrecision concretePrecision
+        internal ConcretePrecision concretePrecision
         {
             get => m_ConcretePrecision;
             set => m_ConcretePrecision = value;

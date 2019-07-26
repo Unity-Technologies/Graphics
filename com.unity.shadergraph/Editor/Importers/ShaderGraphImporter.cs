@@ -189,6 +189,11 @@ Shader ""Hidden/GraphErrorShader2""
             var bodySb = new ShaderStringBuilder(1);
             var registry = new FunctionRegistry(new ShaderStringBuilder(), true);
 
+            foreach (var properties in graph.properties)
+            {
+                properties.ValidateConcretePrecision(graph.concretePrecision);
+            }
+
             foreach (var node in nodes)
             {
                 if (node is IGeneratesBodyCode bodyGenerator)
@@ -517,6 +522,7 @@ Shader ""Hidden/GraphErrorShader2""
             asset.inputStructName = inputStructName;
             asset.outputStructName = outputStructName;
             asset.portRequirements = portRequirements;
+            asset.concretePrecision = graph.concretePrecision;
             asset.SetProperties(inputProperties);
             asset.outputPropertyIndices = new IntArray[ports.Count];
             for (var portIndex = 0; portIndex < ports.Count; portIndex++)
