@@ -7,6 +7,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
     [ExecuteInEditMode]
     [RequireComponent(typeof(Renderer))]
+    [AddComponentMenu("Rendering/2D/Light Reactor 2D (Experimental)")]
     public class LightReactor2D : ShadowCaster2D, IShadowCasterGroup2D
     {
         [SerializeField] int m_ShadowGroup = 0;

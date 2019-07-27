@@ -157,18 +157,6 @@ namespace UnityEditor.Experimental.Rendering.Universal
             return CreateLightValidation();
         }
 
-        [MenuItem("GameObject/Light/2D/Shadow Caster 2D (Experimental)")]
-        static void CreateShadowCaster2D(MenuCommand menuCommand)
-        {
-            CreateShadowCaster2D(menuCommand, "Shadow Caster 2D");
-        }
-
-        [MenuItem("GameObject/Light/2D/Shadow Caster2D (Experimental)", true, -100)]
-        static bool CreateShadowCaster2DValidation()
-        {
-            return CreateLightValidation();
-        }
-
         [MenuItem("Assets/Create/Rendering/Universal Render Pipeline/2D Renderer (Experimental)", priority = CoreUtils.assetCreateMenuPriority1 + 1)]
         static void Create2DRendererData()
         {

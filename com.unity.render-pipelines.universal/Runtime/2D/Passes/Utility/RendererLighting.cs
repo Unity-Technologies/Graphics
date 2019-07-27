@@ -138,11 +138,11 @@ namespace UnityEngine.Experimental.Rendering.Universal
             // Render light's shadows
             //if (light.castsShadows)
             cmdBuffer.SetRenderTarget(s_ShadowsRenderTarget.Identifier()); // This isn't efficient if this light doesn't cast shadow.
-            //cmdBuffer.SetRenderTarget(Renderer2DData.s_RenderTexture);
             cmdBuffer.ClearRenderTarget(true, true, Color.black);
-            //cmdBuffer.SetGlobalTexture("_ShadowTex", Renderer2DData.s_RenderTexture);
+
             cmdBuffer.SetGlobalTexture("_ShadowTex", s_ShadowsRenderTarget.Identifier());
             cmdBuffer.SetGlobalFloat("_ShadowIntensity", 1 - light.shadowIntensity);
+            cmdBuffer.SetGlobalFloat("_ShadowVolumeIntensity", 1 - light.shadowVolumeIntensity);
 
             if (shadowIntensity > 0)
             {
@@ -163,49 +163,64 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     for (int group = 0; group < shadowCasterGroups.Count; group++)
                     {
                         IShadowCasterGroup2D shadowCasterGroup = shadowCasterGroups[group];
-                        List<ShadowCaster2D> shadowCasters = shadowCasterGroup.GetShadowCasters();
 
-                        int shadowGroupIndex = shadowCasterGroup.GetShadowGroup();
-                        if (LightUtility.CheckForChange(shadowGroupIndex, ref previousShadowGroupIndex) || shadowGroupIndex == 0)
-                        {
-                            incrementingGroupIndex++;
-                            shadowMaterial = GetShadowMaterial(incrementingGroupIndex);
-                            removeSelfShadowMaterial = GetRemoveSelfShadowMaterial(incrementingGroupIndex);
-                        }
 
-                        if (shadowCasters != null)
+                        bool shadowGroupCanBeRendered = true;
+                        LightReactor2D lightReactor = shadowCasterGroup as LightReactor2D;
+                        if (lightReactor != null)
                         {
-                            for (int i = 0; i < shadowCasters.Count; i++)
+                            Renderer renderer = lightReactor.GetComponent<Renderer>();
+                            shadowGroupCanBeRendered = light.IsLitLayer(renderer.sortingLayerID);
+
+                            if (renderer.gameObject.name == "Platform_1")
+                                Debug.Log("Platform 1");
+                        }   
+
+                        if (shadowGroupCanBeRendered)
+                        {
+                            List<ShadowCaster2D> shadowCasters = shadowCasterGroup.GetShadowCasters();
+
+                            int shadowGroupIndex = shadowCasterGroup.GetShadowGroup();
+                            if (LightUtility.CheckForChange(shadowGroupIndex, ref previousShadowGroupIndex) || shadowGroupIndex == 0)
                             {
-                                ShadowCaster2D shadowCaster = shadowCasters[i];
-
-                                if (shadowCaster != null && shadowMaterial != null)
-                                {
-                                    //float shadowRadiusSq = shadowCaster.radius * shadowCaster.radius;
-                                    //Vector3 deltaPos = lightCenterWS - shadowCaster.transform.position;
-                                    //float sqDist = deltaPos.x * deltaPos.x + deltaPos.y * deltaPos.y;
-
-                                    //// Check to see if our shadow caster is inside the lights bounds...
-                                    //if (sqDist < (shadowRadiusSq + lightRadiusSq))
-                                    cmdBuffer.DrawMesh(shadowCaster.mesh, Matrix4x4.TRS(shadowCaster.transform.position, shadowCaster.transform.rotation, shadowCaster.transform.lossyScale), shadowMaterial);
-                                }
-                                else
-                                {
-                                    Debug.Log("Problem with shadow caster being deleted but not removed from group");
-                                }
+                                incrementingGroupIndex++;
+                                shadowMaterial = GetShadowMaterial(incrementingGroupIndex);
+                                removeSelfShadowMaterial = GetRemoveSelfShadowMaterial(incrementingGroupIndex);
                             }
 
-                            LightReactor2D lightReactor = shadowCasterGroup as LightReactor2D;
-                            if (lightReactor != null)
+                            if (shadowCasters != null)
                             {
-                                Renderer renderer = lightReactor.GetComponent<Renderer>();
-
-                                if (renderer != null)
+                                for (int i = 0; i < shadowCasters.Count; i++)
                                 {
-                                    if (!lightReactor.selfShadows)
-                                        cmdBuffer.DrawRenderer(renderer, new Material(removeSelfShadowMaterial));
+                                    ShadowCaster2D shadowCaster = shadowCasters[i];
+
+                                    if (shadowCaster != null && shadowMaterial != null)
+                                    {
+                                        //float shadowRadiusSq = shadowCaster.radius * shadowCaster.radius;
+                                        //Vector3 deltaPos = lightCenterWS - shadowCaster.transform.position;
+                                        //float sqDist = deltaPos.x * deltaPos.x + deltaPos.y * deltaPos.y;
+
+                                        //// Check to see if our shadow caster is inside the lights bounds...
+                                        //if (sqDist < (shadowRadiusSq + lightRadiusSq))
+                                        cmdBuffer.DrawMesh(shadowCaster.mesh, Matrix4x4.TRS(shadowCaster.transform.position, shadowCaster.transform.rotation, shadowCaster.transform.lossyScale), shadowMaterial);
+                                    }
                                     else
-                                        cmdBuffer.DrawRenderer(renderer, shadowMaterial, 0, 1);
+                                    {
+                                        Debug.Log("Problem with shadow caster being deleted but not removed from group");
+                                    }
+                                }
+
+                                if (lightReactor != null)
+                                {
+                                    Renderer renderer = lightReactor.GetComponent<Renderer>();
+
+                                    if (renderer != null)
+                                    {
+                                        if (!lightReactor.selfShadows)
+                                            cmdBuffer.DrawRenderer(renderer, new Material(removeSelfShadowMaterial));
+                                        else
+                                            cmdBuffer.DrawRenderer(renderer, shadowMaterial, 0, 1);
+                                    }
                                 }
                             }
                         }
@@ -228,8 +243,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
             {
                 if (light != null && light.lightType != Light2D.LightType.Global && light.blendStyleIndex == blendStyleIndex && light.IsLitLayer(layerToRender) && light.IsLightVisible(camera))
                 {
-                    RenderShadows(cmdBuffer, light, light.shadowIntensity, renderTexture);
-
                     // Render light
                     Material lightMaterial = GetLightMaterial(light, false);
                     if (lightMaterial != null)
@@ -237,13 +250,13 @@ namespace UnityEngine.Experimental.Rendering.Universal
                         Mesh lightMesh = light.GetMesh();
                         if (lightMesh != null)
                         {
-                            if (!renderedAnyLight)
-                                renderedAnyLight = true;
+                            RenderShadows(cmdBuffer, light, light.shadowIntensity, renderTexture);
+
+                            renderedAnyLight = true;
 
                             if (light.lightType == Light2D.LightType.Sprite && light.lightCookieSprite != null && light.lightCookieSprite.texture != null)
                                 cmdBuffer.SetGlobalTexture("_CookieTex", light.lightCookieSprite.texture);
 
-                            cmdBuffer.SetGlobalFloat("_ShadowVolumeIntensity", 1 - light.shadowVolumeIntensity);
                             cmdBuffer.SetGlobalFloat("_FalloffIntensity", light.falloffIntensity);
                             cmdBuffer.SetGlobalFloat("_FalloffDistance", light.shapeLightFalloffSize);
                             cmdBuffer.SetGlobalVector("_FalloffOffset", light.shapeLightFalloffOffset);
@@ -285,14 +298,14 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     {
                         if (light != null && light.lightType != Light2D.LightType.Global && light.volumeOpacity > 0.0f && light.blendStyleIndex == blendStyleIndex && light.IsLitLayer(layerToRender) && light.IsLightVisible(camera))
                         {
-                            RenderShadows(cmdBuffer, light, light.shadowVolumeIntensity, renderTexture);
-
                             Material lightVolumeMaterial = GetLightMaterial(light, true);
                             if (lightVolumeMaterial != null)
                             {
                                 Mesh lightMesh = light.GetMesh();
                                 if (lightMesh != null)
                                 {
+                                    RenderShadows(cmdBuffer, light, light.shadowVolumeIntensity, renderTexture);
+
                                     if (light.lightType == Light2D.LightType.Sprite && light.lightCookieSprite != null && light.lightCookieSprite.texture != null)
                                         cmdBuffer.SetGlobalTexture("_CookieTex", light.lightCookieSprite.texture);
 

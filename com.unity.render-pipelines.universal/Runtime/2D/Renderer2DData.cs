@@ -51,10 +51,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
         public Light2DBlendStyle[] lightBlendStyles => m_LightBlendStyles;
 
 
-        // Delete this stuff
-        public RenderTexture m_RenderTexture;
-        public static RenderTexture s_RenderTexture;
-
         internal Shader shapeLightShader => m_ShapeLightShader;
         internal Shader shapeLightVolumeShader => m_ShapeLightVolumeShader;
         internal Shader pointLightShader => m_PointLightShader;
@@ -122,8 +118,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
         protected override void OnEnable()
         {
             base.OnEnable();
-
-            s_RenderTexture = m_RenderTexture;
 
             // Provide a list of suggested texture property names to Sprite Editor via EditorPrefs.
             const string suggestedNamesKey = "SecondarySpriteTexturePropertyNames";
