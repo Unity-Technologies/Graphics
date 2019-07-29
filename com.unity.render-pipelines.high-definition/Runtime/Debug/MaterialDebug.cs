@@ -456,6 +456,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public void DisableMaterialDebug()
         {
+            debugViewMaterialCommonValue = MaterialSharedProperty.None;
             m_DebugViewMaterial[0] = 1;
             m_DebugViewMaterial[1] = 0;
             m_DebugViewEngine = 0;
@@ -466,8 +467,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public void SetDebugViewCommonMaterialProperty(MaterialSharedProperty value)
         {
-            DisableMaterialDebug();
-            materialEnumIndex = 0;
+            if (value != 0)
+            {
+                DisableMaterialDebug();
+                materialEnumIndex = 0;
+            }
             debugViewMaterial = value == MaterialSharedProperty.None ? null : s_MaterialPropertyMap[value];
         }
 

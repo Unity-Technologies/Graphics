@@ -97,17 +97,17 @@ namespace UnityEditor.ShaderGraph
                         , GetSlotValue(BlendInputId, generationMode));
                     sb.AppendLine("{0}_Blend /= ({0}_Blend.x + {0}_Blend.y + {0}_Blend.z ).xxx;", GetVariableNameForNode());
 
-                    sb.AppendLine("$precision3 {0}_X = UnpackNormalmapRGorAG(SAMPLE_TEXTURE2D({1}, {2}, {0}_UV.zy));"
+                    sb.AppendLine("$precision3 {0}_X = UnpackNormal(SAMPLE_TEXTURE2D({1}, {2}, {0}_UV.zy));"
                         , GetVariableNameForNode()
                         , id
                         , edgesSampler.Any() ? GetSlotValue(SamplerInputId, generationMode) : "sampler" + id);
 
-                    sb.AppendLine("$precision3 {0}_Y = UnpackNormalmapRGorAG(SAMPLE_TEXTURE2D({1}, {2}, {0}_UV.xz));"
+                    sb.AppendLine("$precision3 {0}_Y = UnpackNormal(SAMPLE_TEXTURE2D({1}, {2}, {0}_UV.xz));"
                         , GetVariableNameForNode()
                         , id
                         , edgesSampler.Any() ? GetSlotValue(SamplerInputId, generationMode) : "sampler" + id);
 
-                    sb.AppendLine("$precision3 {0}_Z = UnpackNormalmapRGorAG(SAMPLE_TEXTURE2D({1}, {2}, {0}_UV.xy));"
+                    sb.AppendLine("$precision3 {0}_Z = UnpackNormal(SAMPLE_TEXTURE2D({1}, {2}, {0}_UV.xy));"
                         , GetVariableNameForNode()
                         , id
                         , edgesSampler.Any() ? GetSlotValue(SamplerInputId, generationMode) : "sampler" + id);

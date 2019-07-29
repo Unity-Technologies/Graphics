@@ -125,6 +125,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 {
                     asset = newAsset;
                     hdrpAsset.defaultVolumeProfile = asset;
+                    EditorUtility.SetDirty(hdrpAsset);
                 }
 
                 Editor.CreateCachedEditor(asset,

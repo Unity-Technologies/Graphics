@@ -7,6 +7,7 @@ using UnityEngine.Rendering;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
+    [FormerName("UnityEditor.Experimental.Rendering.HDPipeline.UnlitSubShader")]
     class UnlitSubShader : IUnlitSubShader
     {
         Pass m_PassMETA = new Pass()
@@ -399,7 +400,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 var renderingPass = masterNode.surfaceType == ShaderGraph.SurfaceType.Opaque ? HDRenderQueue.RenderQueueType.Opaque : HDRenderQueue.RenderQueueType.Transparent;
                 int queue = HDRenderQueue.ChangeType(renderingPass, 0, true);
                 HDSubShaderUtilities.AddTags(subShader, HDRenderPipeline.k_ShaderTagName, HDRenderTypeTags.HDUnlitShader, queue);
-                
+
                 // generate the necessary shader passes
                 bool opaque = (masterNode.surfaceType == ShaderGraph.SurfaceType.Opaque);
 

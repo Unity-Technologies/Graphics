@@ -13,6 +13,9 @@ namespace UnityEngine.Rendering.LWRP
     [Obsolete("LWRP -> Universal (UnityUpgradable) -> UnityEngine.Rendering.Universal.UniversalRenderPipeline", true)]
     public class LightweightRenderPipeline
     {
+        public LightweightRenderPipeline(LightweightRenderPipelineAsset asset)
+        {
+        }
     }
 }
 
@@ -57,7 +60,7 @@ namespace UnityEngine.Rendering.Universal
 
         public static float maxRenderScale
         {
-            get => 4.0f;
+            get => 2.0f;
         }
 
         // Amount of Lights that can be shaded per object (in the for loop in the shader)
@@ -104,7 +107,8 @@ namespace UnityEngine.Rendering.Universal
             if (QualitySettings.antiAliasing != asset.msaaSampleCount)
                 QualitySettings.antiAliasing = asset.msaaSampleCount;
 
-            Shader.globalRenderPipeline = "UniversalPipeline";
+            // For compatibility reasons we also match old LightweightPipeline tag.
+            Shader.globalRenderPipeline = "UniversalPipeline,LightweightPipeline";
 
             Lightmapping.SetDelegate(lightsDelegate);
 
@@ -238,7 +242,10 @@ namespace UnityEngine.Rendering.Universal
             
             cameraData.isSceneViewCamera = camera.cameraType == CameraType.SceneView;
             cameraData.isHdrEnabled = camera.allowHDR && settings.supportsHDR;
-            cameraData.postProcessEnabled = CoreUtils.ArePostProcessesEnabled(camera);
+            cameraData.postProcessEnabled = CoreUtils.ArePostProcessesEnabled(camera)
+                && camera.cameraType != CameraType.Reflection
+                && camera.cameraType != CameraType.Preview
+                && SystemInfo.graphicsDeviceType != GraphicsDeviceType.OpenGLES2;
 
             // Disables postprocessing in mobile VR. It's not stable on mobile yet.
             // TODO: enable postfx for stereo rendering
@@ -278,6 +285,7 @@ namespace UnityEngine.Rendering.Universal
                 cameraData.requiresOpaqueTexture = settings.supportsCameraOpaqueTexture;
                 cameraData.volumeLayerMask = 1; // "Default"
                 cameraData.volumeTrigger = null;
+                cameraData.postProcessEnabled = false;
                 cameraData.isStopNaNEnabled = false;
                 cameraData.isDitheringEnabled = false;
                 cameraData.antialiasing = AntialiasingMode.None;

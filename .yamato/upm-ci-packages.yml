@@ -2,22 +2,20 @@ editors:
   - version: trunk
 projects:
   - name: Core
-    folder: none
     packagename: com.unity.render-pipelines.core
   - name: Universal
-    folder: UniversalGraphicsTest
     packagename: com.unity.render-pipelines.universal
+  - name: Lightweight
+    packagename: com.unity.render-pipelines.lightweight
   - name: ShaderGraph
-    folder: ShaderGraph
     packagename: com.unity.shadergraph
   - name: HDRP
-    folder: HDRP_Tests
     packagename: com.unity.render-pipelines.high-definition
+  - name: HD_Config
+    packagename: com.unity.render-pipelines.high-definition-config
   - name: VFXMain
-    folder: VisualEffectGraph
     packagename: com.unity.visualeffectgraph
   - name: VFX_LWRP
-    folder: VisualEffectGraph_LWRP
     packagename: com.unity.visualeffectgraph
 ---
 all_package_ci:

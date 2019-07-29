@@ -23,14 +23,23 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // TODO: Only take into account the light dimmer when we have real time GI.
             ld.instanceID = l.GetInstanceID();
-            ld.color = add.affectDiffuse ? LinearColor.Convert(l.color, l.intensity) : LinearColor.Black();
-            ld.color.red *= cct.r;
-            ld.color.green *= cct.g;
-            ld.color.blue *= cct.b;
-            ld.indirectColor = add.affectDiffuse ? LightmapperUtils.ExtractIndirect(l) : LinearColor.Black();
-            ld.indirectColor.red *= cct.r;
-            ld.indirectColor.green *= cct.g;
-            ld.indirectColor.blue *= cct.b;
+            LinearColor directColor, indirectColor;
+            directColor = add.affectDiffuse ? LinearColor.Convert(l.color, l.intensity) : LinearColor.Black();
+            directColor.red *= cct.r;
+            directColor.green *= cct.g;
+            directColor.blue *= cct.b;
+            indirectColor = add.affectDiffuse ? LightmapperUtils.ExtractIndirect(l) : LinearColor.Black();
+            indirectColor.red *= cct.r;
+            indirectColor.green *= cct.g;
+            indirectColor.blue *= cct.b;
+#if UNITY_EDITOR
+            LightMode lightMode = LightmapperUtils.Extract(l.lightmapBakeType);
+#else
+            LightMode lightMode = LightmapperUtils.Extract(l.bakingOutput.lightmapBakeType);
+#endif
+
+            ld.color = directColor;
+            ld.indirectColor = indirectColor;
 
             // Note that the HDRI is correctly integrated in the GlobalIllumination system, we don't need to do anything regarding it.
 
@@ -50,6 +59,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 // We apply it on both direct and indirect are they are separated, seems that direct is no used if we used mixed mode with indirect or shadowmask bake.
                 ld.color.intensity          /= Mathf.PI;
                 ld.indirectColor.intensity  /= Mathf.PI;
+                directColor.intensity       /= Mathf.PI;
+                indirectColor.intensity     /= Mathf.PI;
 
                 switch (l.type)
                 {
@@ -70,35 +81,69 @@ namespace UnityEngine.Rendering.HighDefinition
                         break;
 
                     case LightType.Spot:
-
-                        ld.orientation = l.transform.rotation;
-                        ld.position = l.transform.position;
-                        ld.range = l.range;
-                        ld.coneAngle = l.spotAngle * Mathf.Deg2Rad; // coneAngle is the full angle
-                        ld.innerConeAngle = l.spotAngle * Mathf.Deg2Rad * add.innerSpotPercent01;
-#if UNITY_EDITOR
-                        ld.shape0 = l.shadows != LightShadows.None ? l.shadowRadius : 0.0f;
-#else
-                        ld.shape0 = 0.0f;
-#endif
-                        ld.shape1 = 0.0f;
-                        ld.type = UnityEngine.Experimental.GlobalIllumination.LightType.Spot;
-                        ld.falloff = add.applyRangeAttenuation ? FalloffType.InverseSquared : FalloffType.InverseSquaredNoRangeAttenuation;
-
-                        /*
                         switch (add.spotLightShape)
                         {
                             case SpotLightShape.Cone:
+                                {
+                                    SpotLight spot;
+                                    spot.instanceID = l.GetInstanceID();
+                                    spot.shadow = l.shadows != LightShadows.None;
+                                    spot.mode = lightMode;
+#if UNITY_EDITOR
+                                    spot.sphereRadius = l.shadows != LightShadows.None ? l.shadowRadius : 0.0f;
+#else
+                                    spot.sphereRadius   = 0.0f;
+#endif
+                                    spot.position = l.transform.position;
+                                    spot.orientation = l.transform.rotation;
+                                    spot.color = directColor;
+                                    spot.indirectColor = indirectColor;
+                                    spot.range = l.range;
+                                    spot.coneAngle = l.spotAngle * Mathf.Deg2Rad;
+                                    spot.innerConeAngle = l.spotAngle * Mathf.Deg2Rad * add.innerSpotPercent01;
+                                    spot.falloff = add.applyRangeAttenuation ? FalloffType.InverseSquared : FalloffType.InverseSquaredNoRangeAttenuation;
+                                    spot.angularFalloff = AngularFalloffType.AnalyticAndInnerAngle;
+                                    ld.Init(ref spot);
+                                    ld.shape1 = (float)AngularFalloffType.AnalyticAndInnerAngle;
+                                }
                                 break;
                             case SpotLightShape.Pyramid:
+                                {
+                                    SpotLightPyramidShape pyramid;
+                                    pyramid.instanceID = l.GetInstanceID();
+                                    pyramid.shadow = l.shadows != LightShadows.None;
+                                    pyramid.mode = lightMode;
+                                    pyramid.position = l.transform.position;
+                                    pyramid.orientation = l.transform.rotation;
+                                    pyramid.color = directColor;
+                                    pyramid.indirectColor = indirectColor;
+                                    pyramid.range = l.range;
+                                    pyramid.angle = l.spotAngle * Mathf.Deg2Rad;
+                                    pyramid.aspectRatio = add.aspectRatio;
+                                    pyramid.falloff = add.applyRangeAttenuation ? FalloffType.InverseSquared : FalloffType.InverseSquaredNoRangeAttenuation;
+                                    ld.Init(ref pyramid);
+                                }
                                 break;
                             case SpotLightShape.Box:
+                                {
+                                    SpotLightBoxShape box;
+                                    box.instanceID = l.GetInstanceID();
+                                    box.shadow = l.shadows != LightShadows.None;
+                                    box.mode = lightMode;
+                                    box.position = l.transform.position;
+                                    box.orientation = l.transform.rotation;
+                                    box.color = directColor;
+                                    box.indirectColor = indirectColor;
+                                    box.range = l.range;
+                                    box.width = add.shapeWidth;
+                                    box.height = add.shapeHeight;
+                                    ld.Init(ref box);
+                                }
                                 break;
                             default:
                                 Debug.Assert(false, "Encountered an unknown SpotLightShape.");
                                 break;
                         }
-                        */
                         break;
 
                     case LightType.Point:

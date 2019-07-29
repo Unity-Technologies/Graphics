@@ -7,9 +7,9 @@ namespace UnityEngine.Rendering.HighDefinition
     {
         [Reload("Editor/DefaultScene/DefaultSceneRoot.prefab")]
         public GameObject defaultScene;
-        [Reload("Editor/DefaultScene/DefaultRenderingSettings.asset")]
-        public VolumeProfile defaultRenderSettingsProfile;
-        [Reload("Editor/DefaultScene/DefaultPostProcessingSettings.asset")]
+        [Reload("Editor/DefaultScene/Sky and Fog Settings Profile.asset")]
+        public VolumeProfile defaultSkyAndFogProfile;
+        [Reload("Editor/DefaultScene/Scene PostProcess Profile.asset")]
         public VolumeProfile defaultPostProcessingProfile;
         [Reload(new[]
         {
@@ -79,7 +79,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 var resources = target as HDRenderPipelineEditorResources;
                 resources.defaultScene = null;
-                resources.defaultRenderSettingsProfile = null;
+                resources.defaultSkyAndFogProfile = null;
                 resources.defaultPostProcessingProfile = null;
                 resources.defaultDiffusionProfileSettingsList = null;
                 resources.materials = null;
