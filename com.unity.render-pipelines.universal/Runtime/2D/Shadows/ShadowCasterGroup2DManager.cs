@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace UnityEngine.Experimental.Rendering.Universal
 {
-    internal class ShadowCasterGroup2DManager : MonoBehaviour
+    internal class ShadowCasterGroup2DManager
     {
 
         static List<IShadowCasterGroup2D> m_ShadowCasterGroups = null;

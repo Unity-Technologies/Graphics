@@ -57,6 +57,12 @@ namespace UnityEngine.Experimental.Rendering.Universal
             }
         }
 
+        internal struct SoftShadowInput
+        {
+            public List<Edge>    edges;
+            public List<Vector3> vertices;
+        }
+
         static Edge CreateEdge(int triangleIndexA, int triangleIndexB, List<Vector3> vertices, List<int> triangles)
         {
             Edge retEdge = new Edge();
@@ -128,7 +134,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 tangents.Add(Vector4.zero);
         }
 
-        public static void GenerateShadowMesh(ref Mesh mesh, Vector3[] shapePath)
+        public static SoftShadowInput GenerateHardShadowMesh(Vector3[] shapePath, Mesh mesh)
         {
             Color meshInteriorColor = new Color(0, 0, 0, 1);
             List<Vector3> vertices = new List<Vector3>();
@@ -166,90 +172,34 @@ namespace UnityEngine.Experimental.Rendering.Universal
             mesh.vertices = finalVertices;
             mesh.triangles = finalTriangles;
             mesh.tangents = finalTangents;
+
+            SoftShadowInput shadowInput = new SoftShadowInput();
+            shadowInput.edges = edges;
+            shadowInput.vertices = vertices;
+
+            return shadowInput;
         }
 
-        Mesh CreateShadowPolygon(Vector3 position, float radius, float angle, int sides, ref Mesh mesh)
+        public static void GenerateSoftShadowMesh(SoftShadowInput input, Mesh mesh)
         {
-            if (mesh == null)
-                mesh = new Mesh();
+            int numberOfEdgeConnections = input.vertices.Count;
+            int[] cwEdgeConnections = new int[numberOfEdgeConnections];
+            int[] ccwEdgeConnections = new int[numberOfEdgeConnections];
 
-            float angleOffset = Mathf.PI / 2.0f + Mathf.Deg2Rad * angle;
-            if (sides < 3)
+            for(int i=0;i<input.edges.Count;i++)
             {
-                radius = 0.70710678118654752440084436210485f * radius;
-                sides = 4;
+                if (IsOutsideEdge(i, input.edges))
+                {
+                    Edge edge = input.edges[i];
+                    cwEdgeConnections[edge.vertexIndex0] = edge.vertexIndex1;
+                    ccwEdgeConnections[edge.vertexIndex1] = edge.vertexIndex0;
+                }
             }
 
-            if (sides == 4)
-            {
-                angleOffset = Mathf.PI / 4.0f + Mathf.Deg2Rad * angle;
-            }
-
-            Vector3[] vertices;
-            Vector4[] tangents;
-            int[] triangles;
-
-            int extraTriangles = sides; // 1 new triangle for the hard shadow.
-            int extraVertices = sides;  // 1 new vertex per side for the hard shadow.
-
-            vertices = new Vector3[1 + sides + extraVertices];
-            tangents = new Vector4[1 + sides + extraVertices];
-            triangles = new int[3 * (sides + extraTriangles)];
 
 
-            int centerIndex = sides + extraVertices;
-            int lastVertexIndex = 0;
 
-            vertices[centerIndex] = position;
-            tangents[centerIndex] = Vector4.zero;
-            float radiansPerSide = 2 * Mathf.PI / sides;
-            Vector3 lastEndPoint = radius * new Vector3(Mathf.Cos(angleOffset), Mathf.Sin(angleOffset), 0);
-            for (int i = 0; i < sides; i++)
-            {
-                float endAngle = (i + 1) * radiansPerSide;
-                float nextEndAngle = (i + 2) * radiansPerSide;
-                Vector3 endPoint = radius * new Vector3(Mathf.Cos(endAngle + angleOffset), Mathf.Sin(endAngle + angleOffset), 0); ;
-                Vector3 nextEndPoint = radius * new Vector3(Mathf.Cos(nextEndAngle + angleOffset), Mathf.Sin(nextEndAngle + angleOffset), 0); ;
-
-                Vector3 curCross = -Vector3.Normalize(Vector3.Cross((endPoint - lastEndPoint), Vector3.forward));
-                Vector3 nextCross = -Vector3.Normalize(Vector3.Cross((nextEndPoint - endPoint), Vector3.forward));
-
-                // Create triangle
-                int vertexIndex;
-
-                vertexIndex = (i + 1) % (sides);
-                vertices[vertexIndex] = endPoint;
-                tangents[vertexIndex] = new Vector4(nextCross.x, nextCross.y, 0, 0);
-                tangents[vertexIndex].z = 0;
-                tangents[vertexIndex].w = 0;
-
-                int triangleIndex = 3 * i;
-                triangles[triangleIndex] = vertexIndex;
-                triangles[triangleIndex + 1] = lastVertexIndex;
-                triangles[triangleIndex + 2] = centerIndex;
-
-                // Create extra shadow triangle
-                int extraVertexIndex = vertexIndex + sides;
-                vertices[extraVertexIndex] = endPoint;
-                tangents[extraVertexIndex] = new Vector4(curCross.x, curCross.y, 0, 0);
-
-                int extraTriangleIndex = 3 * (i + sides);
-                triangles[extraTriangleIndex] = vertexIndex;
-                triangles[extraTriangleIndex + 1] = lastVertexIndex;
-                triangles[extraTriangleIndex + 2] = extraVertexIndex;
-
-
-                lastEndPoint = endPoint;
-                lastVertexIndex = vertexIndex;
-            }
-
-            mesh.Clear();
-            mesh.vertices = vertices;
-            mesh.triangles = triangles;
-            mesh.tangents = tangents;
-
-
-            return mesh;
         }
+
     }
 }

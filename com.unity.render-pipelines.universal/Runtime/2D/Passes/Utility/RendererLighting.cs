@@ -202,7 +202,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
                                         //// Check to see if our shadow caster is inside the lights bounds...
                                         //if (sqDist < (shadowRadiusSq + lightRadiusSq))
-                                        cmdBuffer.DrawMesh(shadowCaster.mesh, Matrix4x4.TRS(shadowCaster.transform.position, shadowCaster.transform.rotation, shadowCaster.transform.lossyScale), shadowMaterial);
+                                        cmdBuffer.DrawMesh(shadowCaster.hardShadowMesh, Matrix4x4.TRS(shadowCaster.transform.position, shadowCaster.transform.rotation, shadowCaster.transform.lossyScale), shadowMaterial);
                                     }
                                     else
                                     {

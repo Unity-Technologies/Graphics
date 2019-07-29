@@ -12,14 +12,15 @@ namespace UnityEngine.Experimental.Rendering.Universal
         [SerializeField] Vector3[] m_ShapePath;
         [SerializeField] int m_ShapePathHash = 0;
         [SerializeField] int m_PreviousPathHash = 0;
-        [SerializeField] Mesh m_Mesh;
+        [SerializeField] Mesh m_HardShadowMesh;
+        [SerializeField] Mesh m_SoftShadowMesh;
 
-        internal Mesh mesh => m_Mesh; 
+        internal Mesh hardShadowMesh => m_HardShadowMesh;
+        internal Mesh softShadowMesh => m_HardShadowMesh;
         internal Vector3[] shapePath => m_ShapePath;
         internal int shapePathHash { get { return m_ShapePathHash; } set { m_ShapePathHash = value; } }
 
-        Mesh m_ShadowMesh;
-
+        
         private void Awake()
         {
             if (m_ShapePath == null || m_ShapePath.Length == 0)
@@ -28,10 +29,12 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         protected void OnEnable()
         {
-            if (m_Mesh == null)
+            if (m_HardShadowMesh == null)
             {
-                m_Mesh = new Mesh();
-                ShadowUtility.GenerateShadowMesh(ref m_Mesh, m_ShapePath);
+                m_HardShadowMesh = new Mesh();
+                m_SoftShadowMesh = new Mesh();
+                var softShadowInput = ShadowUtility.GenerateHardShadowMesh(m_ShapePath, m_HardShadowMesh);
+                ShadowUtility.GenerateSoftShadowMesh(softShadowInput, m_SoftShadowMesh);
                 m_PreviousPathHash = m_ShapePathHash;
             }
 
@@ -49,7 +52,10 @@ namespace UnityEngine.Experimental.Rendering.Universal
             rebuildMesh |= LightUtility.CheckForChange(m_ShapePathHash, ref m_PreviousPathHash);
 
             if (rebuildMesh)
-                ShadowUtility.GenerateShadowMesh(ref m_Mesh, m_ShapePath);
+            {
+                ShadowUtility.SoftShadowInput softShadowInput = ShadowUtility.GenerateHardShadowMesh(m_ShapePath, m_HardShadowMesh);
+                ShadowUtility.GenerateSoftShadowMesh(softShadowInput, m_SoftShadowMesh);
+            }
         }
     }
 }
