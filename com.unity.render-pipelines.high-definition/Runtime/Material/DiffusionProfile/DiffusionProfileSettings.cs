@@ -198,6 +198,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
     }
 
+    [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "Diffusion-Profile" + Documentation.endURL)]
     public sealed partial class DiffusionProfileSettings : ScriptableObject
     {
         public DiffusionProfile profile;

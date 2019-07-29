@@ -4,15 +4,28 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [7.1.0] - 2019-XX-XX
+## [7.1.1] - 2019-XX-XX
+
+## [7.0.1] - 2019-07-25
 
 ### Added
-- Cube LUT support in Tonemapping. Cube LUT helpers for external grading are available in the Post-processing Sample package.
+- Added option in the config package to disable globally Area Lights and to select shadow quality settings for the deferred pipeline. 
+- When shader log stripping is enabled, shader stripper statistics will be written at `Temp/shader-strip.json`
 
 ### Fixed
-- Fixed material albedo affecting the lux meter
+- Fixed XR SDK mirror view blit, cleanup some XRTODO and removed XRDebug.cs
+- Fixed culling for volumetrics with XR single-pass rendering
+- Fix shadergraph material pass setup not called
+- Fixed documentation links in component's Inspector header bar
+- Cookies using the render texture output from a camera are now properly updated
+- Allow in ShaderGraph to enable pre/post pass when the alpha clip is disabled
 
-## [7.0.0] - 2019-07-10
+### Changed
+- RenderQueue for Opaque now start at Background instead of Geometry.
+- Clamp the area light size for scripting API when we change the light type
+- Added a warning in the material UI when the diffusion profile assigned is not in the HDRP asset
+
+## [7.0.0] - 2019-07-17
 
 ### Added
 - `Fixed`, `Viewer`, and `Automatic` modes to compute the FOV used when rendering a `PlanarReflectionProbe`
@@ -39,6 +52,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added VR verification in HDRPWizard
 - Added DXR verification in HDRPWizard
 - Added feedbacks in UI of Volume regarding skies
+- Cube LUT support in Tonemapping. Cube LUT helpers for external grading are available in the Post-processing Sample package.
 
 ### Fixed
 - Fixed an issue with history buffers causing effects like TAA or auto exposure to flicker when more than one camera was visible in the editor
@@ -86,6 +100,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where setting a material debug view would not reset the other exclusive modes
 - Spot light shapes are now correctly taken into account when baking
 - Now the static lighting sky will correctly take the default values for non-overridden properties
+- Fixed material albedo affecting the lux meter
 
 ### Changed
 - Optimization: Reduce the group size of the deferred lighting pass from 16x16 to 8x8

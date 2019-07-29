@@ -16,11 +16,8 @@ using UnityObject = UnityEngine.Object;
 [CustomEditor(typeof(UnityEditor.VFXManager))]
 public class VFXManagerEditor : Editor
 {
-
-    SerializedProperty m_PathProperty;
     SerializedProperty[] m_TimeProperties;
     SerializedProperty[] m_ShaderProperties;
-
 
     const string HDRPPath = "Packages/com.unity.visualeffectgraph/Shaders/RenderPipeline/HDRP";
     const string UniversalPath = "Packages/com.unity.visualeffectgraph/Shaders/RenderPipeline/Universal";
@@ -35,8 +32,6 @@ public class VFXManagerEditor : Editor
 
     void OnEnable()
     {
-        m_PathProperty = serializedObject.FindProperty("m_RenderPipeSettingsPath");
-
         m_TimeProperties = new SerializedProperty[] {
             serializedObject.FindProperty("m_FixedTimeStep"),
             serializedObject.FindProperty("m_MaxDeltaTime")
@@ -53,56 +48,15 @@ public class VFXManagerEditor : Editor
         serializedObject.Update();
     }
 
-    void OnDisable()
-    {
-    }
-
-
-    static string GetDefaultPath()
-    {
-#if VFX_HAS_HDRP && VFX_HAS_UNIVERSAL
-        if(GraphicsSettings.renderPipelineAsset != null && GraphicsSettings.renderPipelineAsset.GetType().Name == "UniversalRenderPipelineAsset")
-            return UniversalPath;
-        else
-            return HDRPPath;
-#else
-        return RPPath;
-#endif
-    }
-
     public override void OnInspectorGUI()
     {
-        // trying to detect a C++ reset by checking if all shaders have been reset to null and the path to ""
-        if( string.IsNullOrEmpty(m_PathProperty.stringValue) && ! m_ShaderProperties.Any(t=>t.objectReferenceValue != null))
+        // trying to detect a C++ reset by checking if all shaders have been reset to null
+        if(!m_ShaderProperties.Any(t => t != null && t.objectReferenceValue != null))
             CheckVFXManager();
+
         serializedObject.Update();
-        bool recompile = false;
 
-        EditorGUI.BeginChangeCheck();
-        EditorGUILayout.LabelField(ObjectNames.NicifyVariableName(m_PathProperty.name));
-        string resultPath = EditorGUILayout.DelayedTextField(m_PathProperty.stringValue);
-        if (EditorGUI.EndChangeCheck())
-        {
-            m_PathProperty.stringValue = resultPath;
-            recompile = true;
-        }
-
-        GUILayout.BeginHorizontal();
-        if (GUILayout.Button("Default"))
-        {
-            string newPath = GetDefaultPath();
-            if(m_PathProperty.stringValue != newPath)
-            {
-                m_PathProperty.stringValue = newPath;
-                recompile = true;
-            }
-        }
-        if (GUILayout.Button("Reveal"))
-        {
-            EditorUtility.RevealInFinder(resultPath);
-        }
-        GUILayout.EndHorizontal();
-        GUILayout.Space(15);
+        EditorGUILayout.LabelField("Current Scriptable Render Pipeline: " + VFXLibrary.currentSRPBinder.SRPAssetTypeStr);
 
         foreach (var property in m_TimeProperties)
         {
@@ -113,14 +67,10 @@ public class VFXManagerEditor : Editor
 
         foreach (var property in m_ShaderProperties)
         {
-            EditorGUILayout.PropertyField(property);
+            if (property != null)
+                EditorGUILayout.PropertyField(property);
         }
         serializedObject.ApplyModifiedProperties();
-        if( recompile)
-        {
-            VFXCacheManager.Build();
-            EditorGUIUtility.ExitGUI();
-        }
     }
 
     public static void CheckVFXManager()
@@ -130,30 +80,6 @@ public class VFXManagerEditor : Editor
             return;
 
         SerializedObject obj = new SerializedObject(vfxmanager);
-
-        var pathProperty = obj.FindProperty("m_RenderPipeSettingsPath");
-        bool recompile = false;
-        if (string.IsNullOrEmpty(pathProperty.stringValue))
-        {
-            pathProperty.stringValue = GetDefaultPath();
-            recompile = true;
-        }
-
-#if !VFX_HAS_HDRP
-         if(pathProperty.stringValue == HDRPPath)
-        {
-            pathProperty.stringValue = GetDefaultPath();
-            recompile = true;
-        }
-#endif
-#if !VFX_HAS_UNIVERSAL
-        if (pathProperty.stringValue == UniversalPath)
-        {
-            pathProperty.stringValue = GetDefaultPath();
-            recompile = true;
-        }
-#endif
-
         var indirectShaderProperty = obj.FindProperty("m_IndirectShader");
         if (indirectShaderProperty.objectReferenceValue == null)
         {
@@ -177,7 +103,5 @@ public class VFXManagerEditor : Editor
         }
 
         obj.ApplyModifiedPropertiesWithoutUndo();
-        if (recompile)
-            VFXCacheManager.Build();
     }
 }

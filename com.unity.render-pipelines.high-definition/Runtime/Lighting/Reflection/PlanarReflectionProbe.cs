@@ -4,6 +4,7 @@ using System;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
+    [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "Planar-Reflection-Probe" + Documentation.endURL)]
     [ExecuteAlways]
     public sealed partial class PlanarReflectionProbe : HDProbe
     {
