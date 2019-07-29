@@ -217,10 +217,7 @@ namespace UnityEditor.VFX.UI
             }
             Profiler.EndSample();
 
-
             UpdateLabel();
-
-
 
             if (string.IsNullOrEmpty(m_Label.text))
             {
