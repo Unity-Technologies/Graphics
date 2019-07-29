@@ -39,7 +39,7 @@ namespace UnityEditor.VFX.Test
             VisualEffectAsset asset = VisualEffectAssetEditorUtility.CreateNewAsset(testAssetName);
             VisualEffectResource resource = asset.GetResource(); // force resource creation
 
-            m_ViewController = VFXViewController.GetController(resource);
+            m_ViewController = VFXViewController.GetController(resource, true);
             m_ViewController.useCount++;
 
             m_StartUndoGroupId = Undo.GetCurrentGroup();
@@ -898,6 +898,30 @@ namespace UnityEditor.VFX.Test
 
             var compatiblePorts = m_ViewController.GetCompatiblePorts(outputControllers[0], null);
             Assert.AreEqual(0, compatiblePorts.Count);
+        }
+
+        [Test]
+        public void UniqueDefaultSystemNames()
+        {
+            VFXViewWindow window = EditorWindow.GetWindow<VFXViewWindow>();
+            VFXView view = window.graphView;
+            view.controller = m_ViewController;
+
+            const int count = 16;
+            var spawners = VFXTestCommon.CreateSpawners(view, m_ViewController, count);
+
+            var spawnersNames = view.controller.graph.systemNames;
+            var names = new List<string>();
+            foreach (var system in spawners)
+                names.Add(spawnersNames.GetUniqueSystemName(system));
+
+            Assert.IsTrue(names.Distinct().Count() == count, "Not all spawners have different names.");
+
+            var systems = VFXTestCommon.GetFieldValue<VFXView, List<VFXSystemBorder>>(view, "m_Systems");
+            VFXTestCommon.CreateSystems(view, m_ViewController, count, count);
+            var systemNames = systems.Select(system => system.controller.title).Distinct();
+
+            Assert.IsTrue(systemNames.Count() == count, "Not all systems have different names.");
         }
     }
 }

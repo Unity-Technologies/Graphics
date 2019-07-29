@@ -946,6 +946,7 @@ namespace UnityEditor.VFX
 
                 m_Graph.visualEffectResource.SetRuntimeData(expressionSheet, systemDescs.ToArray(), eventDescs.ToArray(), bufferDescs.ToArray(), cpuBufferDescs.ToArray(), temporaryBufferDescs.ToArray());
                 m_ExpressionValues = expressionSheet.values;
+                m_Graph.Modified();
 
                 if (k_FnVFXResource_SetCompileInitialVariants != null)
                 {

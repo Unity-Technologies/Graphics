@@ -39,7 +39,6 @@ namespace UnityEditor.VFX
             get { return m_Owners; }
         }
 
-        [VFXSetting, SerializeField]
         public string title;
 
         public int index

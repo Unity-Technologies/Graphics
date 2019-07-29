@@ -403,6 +403,10 @@ namespace UnityEditor.VFX
         protected override void OnInvalidate(VFXModel model, VFXModel.InvalidationCause cause)
         {
             m_saved = false;
+
+            if (cause == VFXModel.InvalidationCause.kStructureChanged || cause == VFXModel.InvalidationCause.kSettingChanged)
+                m_SystemNames.Sync(this);
+
             base.OnInvalidate(model, cause);
 
             if (model is VFXParameter || model is VFXSlot && (model as VFXSlot).owner is VFXParameter)
@@ -410,17 +414,15 @@ namespace UnityEditor.VFX
                 BuildParameterInfo();
             }
 
-            if (cause == VFXModel.InvalidationCause.kStructureChanged || cause == VFXModel.InvalidationCause.kSettingChanged)
-                m_SystemNames.Sync(this);
 
             if (cause == VFXModel.InvalidationCause.kStructureChanged)
             {
                 UpdateSubAssets();
-                if( model == this)
+                if (model == this)
                     VFXSubgraphContext.CallOnGraphChanged(this);
             }
 
-            if( cause == VFXModel.InvalidationCause.kSettingChanged && model is VFXParameter)
+            if (cause == VFXModel.InvalidationCause.kSettingChanged && model is VFXParameter)
             {
                 VFXSubgraphContext.CallOnGraphChanged(this);
             }

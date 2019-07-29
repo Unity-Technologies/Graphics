@@ -56,6 +56,16 @@ namespace UnityEditor.VFX.UI
             return name.ToLower();
         }
 
+        public void UpdateLabel()
+        {
+            var graph = controller.model.GetGraph();
+
+            if (graph != null && controller.model.contextType == VFXContextType.Spawner)
+                m_Label.text = graph.systemNames.GetUniqueSystemName(controller.model);
+            else
+                m_Label.text = controller.model.label;
+        }
+
         protected override void SelfChange()
         {
             base.SelfChange();
@@ -207,11 +217,9 @@ namespace UnityEditor.VFX.UI
             }
             Profiler.EndSample();
 
-            var graph = controller.model.GetGraph();
-            if (graph != null && controller.model.contextType == VFXContextType.Spawner)
-                m_Label.text = graph.systemNames.GetUniqueSystemName(controller.model);
-            else
-                m_Label.text = controller.model.label;
+
+            UpdateLabel();
+
 
 
             if (string.IsNullOrEmpty(m_Label.text))

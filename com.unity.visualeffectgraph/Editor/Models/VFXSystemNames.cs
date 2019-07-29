@@ -14,7 +14,6 @@ namespace UnityEditor.VFX
 {
     internal class VFXSystemNames
     {
-
         public static readonly string DefaultSystemName = "System";
 
         private static readonly string IndexPattern = @" (\(([0-9])*\))$";
@@ -22,9 +21,8 @@ namespace UnityEditor.VFX
 
         public static string GetSystemName(VFXModel model)
         {
-            var data = model as VFXData;
-
             // general case
+            var data = model as VFXData;
             if (data != null)
             {
                 return data.title;
@@ -45,12 +43,14 @@ namespace UnityEditor.VFX
 
             }
 
-            Debug.LogError("model not associated to a system");
+            if (!(model is VFXSubgraphContext))
+                Debug.LogError("model not associated to a system");
             return null;
         }
 
         public static void SetSystemName(VFXModel model, string name)
         {
+            // general case
             var data = model as VFXData;
             if (data != null)
             {
@@ -58,6 +58,7 @@ namespace UnityEditor.VFX
                 return;
             }
 
+            // special case for spawner
             var context = model as VFXContext;
             if (context != null)
             {
@@ -77,26 +78,14 @@ namespace UnityEditor.VFX
                 }
             }
 
-            Debug.LogError("model not associated to a system");
+            if (!(model is VFXSubgraphContext))
+                Debug.LogError("model not associated to a system");
         }
 
-        public string GetUniqueSystemName(VFXModel model)
+        private static string GetSystemUnindexedName(VFXModel model)
         {
-            int index;
-            if (m_SystemToIndex.TryGetValue(model, out index))
-            {
-                var wishedName = GetSystemName(model);
-                if (wishedName == string.Empty)
-                    wishedName = DefaultSystemName;
-                if (wishedName != null)
-                {
-                    var format = "{0} ({1})";
-                    var newName = index == 0 ? wishedName : string.Format(format, wishedName, index);
-                    return newName;
-                }
-            }
-            Debug.LogError("GetUniqueSystemName::Error: model not registered");
-            return GetSystemName(model);
+            var name = GetSystemName(model);
+            return string.IsNullOrEmpty(name) ? name : SysRegex.Replace(name, IndexPattern, "");
         }
 
         private static int ExtractIndex(string name)
@@ -109,6 +98,22 @@ namespace UnityEditor.VFX
                 return int.Parse(index);
             }
             return 0;
+        }
+
+        public string GetUniqueSystemName(VFXModel model)
+        {
+            int index;
+            if (m_SystemToIndex.TryGetValue(model, out index))
+            {
+                var wishedName = GetSystemName(model);
+                if (string.IsNullOrEmpty(wishedName))
+                    wishedName = DefaultSystemName;
+                var format = "{0} ({1})";
+                var newName = index == 0 ? wishedName : string.Format(format, wishedName, index);
+                return newName;
+            }
+            Debug.LogError("model not registered");
+            return GetSystemName(model);
         }
 
         public void Sync(VFXGraph graph)
@@ -124,7 +129,7 @@ namespace UnityEditor.VFX
             Init(systems);
         }
 
-        private void Init(IEnumerable<VFXModel> models)
+        public void Init(IEnumerable<VFXModel> models)
         {
             m_SystemToIndex.Clear();
             foreach (var system in models)
@@ -133,7 +138,6 @@ namespace UnityEditor.VFX
                 var index = GetIndex(systemName);
                 m_SystemToIndex[system] = index;
             }
-            Debug.Log("Init");
         }
 
         private int GetIndex(string unindexedName)
@@ -142,7 +146,7 @@ namespace UnityEditor.VFX
 
             List<int> unavailableIndices;
             if (string.IsNullOrEmpty(unindexedName) || unindexedName == DefaultSystemName)
-                unavailableIndices = m_SystemToIndex.Where(pair => (GetSystemName(pair.Key) == string.Empty || GetSystemName(pair.Key) == DefaultSystemName)).Select(pair => pair.Value).ToList();
+                unavailableIndices = m_SystemToIndex.Where(pair => (string.IsNullOrEmpty(GetSystemName(pair.Key)) || GetSystemName(pair.Key) == DefaultSystemName)).Select(pair => pair.Value).ToList();
             else
                 unavailableIndices = m_SystemToIndex.Where(pair => GetSystemName(pair.Key) == unindexedName).Select(pair => pair.Value).ToList();
             if (unavailableIndices != null && unavailableIndices.Count() > 0)
@@ -156,7 +160,7 @@ namespace UnityEditor.VFX
                     }
 
                 if (index == -1)
-                    index = unavailableIndices[unavailableIndices.Count() - 1] + 1;
+                    index = unavailableIndices.Last() + 1;
             }
             else
             {

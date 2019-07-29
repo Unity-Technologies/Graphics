@@ -1709,6 +1709,11 @@ namespace UnityEditor.VFX.UI
                 AddElement(border);
                 border.controller = controller.systems[m_Systems.Count() - 1];
             }
+
+            foreach(var context in GetAllContexts())
+            {
+                context.UpdateLabel();
+            }
         }
 
         void OnDragUpdated(DragUpdatedEvent e)
