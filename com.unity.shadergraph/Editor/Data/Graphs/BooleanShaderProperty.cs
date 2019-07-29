@@ -1,8 +1,5 @@
 using System;
-using System.Text;
-using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph.Drawing.Controls;
-using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -16,7 +13,6 @@ namespace UnityEditor.ShaderGraph
 
         public override PropertyType propertyType => PropertyType.Boolean;
         
-        public override bool isBatchable => true;
         public override bool isExposable => true;
         public override bool isRenamable => true;
         

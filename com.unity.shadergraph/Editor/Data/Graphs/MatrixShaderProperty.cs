@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
@@ -6,13 +7,12 @@ namespace UnityEditor.ShaderGraph
     [Serializable]
     abstract class MatrixShaderProperty : AbstractShaderProperty<Matrix4x4>
     {
-        public override bool isBatchable => true;
         public override bool isExposable => false;
         public override bool isRenamable => true;
-        
-        public override string GetPropertyDeclarationString(string delimiter = ";")
+
+        public override IEnumerable<(string cbName, string line)> GetPropertyDeclarationStrings()
         {
-            return $"{concretePrecision.ToShaderString()}4x4 {referenceName}{delimiter}";
+            yield return (s_UnityPerMaterialCbName, $"{concretePrecision.ToShaderString()}4x4 {referenceName}");
         }
     }
 }

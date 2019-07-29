@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Text;
 using UnityEditor.Graphing;
 using UnityEngine;
@@ -6,7 +7,7 @@ using UnityEngine;
 namespace UnityEditor.ShaderGraph
 {
     [Serializable]
-    class TextureShaderProperty : AbstractShaderProperty<SerializableTexture>
+    class TextureShaderProperty : AbstractShaderProperty<SerializableTexture>, ISplattableShaderProperty
     {
         public enum DefaultType { White, Black, Grey, Bump }
 
@@ -18,7 +19,6 @@ namespace UnityEditor.ShaderGraph
         
         public override PropertyType propertyType => PropertyType.Texture2D;
         
-        public override bool isBatchable => false;
         public override bool isExposable => true;
         public override bool isRenamable => true;
         
@@ -26,12 +26,22 @@ namespace UnityEditor.ShaderGraph
 
         public override string GetPropertyBlockString()
         {
-            return $"{hideTagString}{modifiableTagString}[NoScaleOffset]{referenceName}(\"{displayName}\", 2D) = \"{defaultType.ToString().ToLower()}\" {{}}";
+            return $"{hideTagString}{modifiableTagString}{this.PerSplatString()}[NoScaleOffset]{referenceName}(\"{displayName}\", 2D) = \"{defaultType.ToString().ToLower()}\" {{}}";
         }
-        
-        public override string GetPropertyDeclarationString(string delimiter = ";")
+
+        public override IEnumerable<(string cbName, string line)> GetPropertyDeclarationStrings()
         {
-            return $"TEXTURE2D({referenceName}){delimiter} SAMPLER(sampler{referenceName}); {concretePrecision.ToShaderString()}4 {referenceName}_TexelSize{delimiter}";
+            if (splat)
+            {
+                for (int i = 0; i < 4; ++i)
+                    yield return (null, $"TEXTURE2D({referenceName}{i})");
+                yield return (null, $"SAMPLER(sampler{referenceName}0)"); // only declare the sampler once for the first texture.
+            }
+            else
+            {
+                yield return (null, $"TEXTURE2D({referenceName})");
+                yield return (null, $"SAMPLER(sampler{referenceName})");
+            }
         }
 
         public override string GetPropertyAsArgumentString()
@@ -49,12 +59,21 @@ namespace UnityEditor.ShaderGraph
         }
 
         [SerializeField]
-        DefaultType m_DefaultType = TextureShaderProperty.DefaultType.White;
+        DefaultType m_DefaultType = DefaultType.White;
 
         public DefaultType defaultType
         {
-            get { return m_DefaultType; }
-            set { m_DefaultType = value; }
+            get => m_DefaultType;
+            set => m_DefaultType = value;
+        }
+
+        [SerializeField]
+        bool m_Splat = false;
+
+        public bool splat
+        {
+            get => m_Splat;
+            set => m_Splat = value;
         }
         
         public override AbstractMaterialNode ToConcreteNode()

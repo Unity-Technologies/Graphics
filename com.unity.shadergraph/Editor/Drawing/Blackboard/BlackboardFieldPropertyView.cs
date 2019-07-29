@@ -1,8 +1,5 @@
 using System;
-using System.Linq;
-using System.Globalization;
 using UnityEditor.Graphing;
-using UnityEditor.Graphing.Util;
 using UnityEngine;
 using UnityEditor.UIElements;
 using UnityEngine.UIElements;
@@ -24,7 +21,18 @@ namespace UnityEditor.ShaderGraph.Drawing
             if(property == null)
                 return;
 
-            switch(input)
+            if (property is ISplattableShaderProperty splatProperty)
+            {
+                var splatToggle = new Toggle { value = splatProperty.splat };
+                splatToggle.RegisterValueChangedCallback(evt =>
+                {
+                    graph.owner.RegisterCompleteObjectUndo("Change Splat value");
+                    splatProperty.splat = evt.newValue;
+                });
+                AddRow("Splat", splatToggle);
+            }
+
+            switch (input)
             {
                 case Vector1ShaderProperty vector1Property:
                     BuildVector1PropertyField(vector1Property);

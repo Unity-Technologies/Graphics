@@ -1,7 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Text;
-using System.Linq;
 using UnityEditor.Graphing;
 using UnityEngine;
 
@@ -13,7 +11,7 @@ namespace UnityEditor.ShaderGraph
 
     [Serializable]
     [FormerName("UnityEditor.ShaderGraph.FloatShaderProperty")]
-    class Vector1ShaderProperty : AbstractShaderProperty<float>
+    class Vector1ShaderProperty : AbstractShaderProperty<float>, ISplattableShaderProperty
     {
         public Vector1ShaderProperty()
         {
@@ -22,7 +20,6 @@ namespace UnityEditor.ShaderGraph
         
         public override PropertyType propertyType => PropertyType.Vector1;
         
-        public override bool isBatchable => true;
         public override bool isExposable => true;
         public override bool isRenamable => true;
         
@@ -53,16 +50,38 @@ namespace UnityEditor.ShaderGraph
             switch(floatType)
             {
                 case FloatType.Slider:
-                    return $"{hideTagString}{referenceName}(\"{displayName}\", Range({NodeUtils.FloatToShaderValue(m_RangeValues.x)}, {NodeUtils.FloatToShaderValue(m_RangeValues.y)})) = {NodeUtils.FloatToShaderValue(value)}";
+                    return $"{hideTagString}{this.PerSplatString()}{referenceName}(\"{displayName}\", Range({NodeUtils.FloatToShaderValue(m_RangeValues.x)}, {NodeUtils.FloatToShaderValue(m_RangeValues.y)})) = {NodeUtils.FloatToShaderValue(value)}";
                 case FloatType.Integer:
-                    return $"{hideTagString}{referenceName}(\"{displayName}\", Int) = {NodeUtils.FloatToShaderValue(value)}";
+                    return $"{hideTagString}{this.PerSplatString()}{referenceName}(\"{displayName}\", Int) = {NodeUtils.FloatToShaderValue(value)}";
                 case FloatType.Enum:
-                    return $"{hideTagString}{enumTagString}{referenceName}(\"{displayName}\", Float) = {NodeUtils.FloatToShaderValue(value)}";
+                    return $"{hideTagString}{this.PerSplatString()}{enumTagString}{referenceName}(\"{displayName}\", Float) = {NodeUtils.FloatToShaderValue(value)}";
                 default:
-                    return $"{hideTagString}{referenceName}(\"{displayName}\", Float) = {NodeUtils.FloatToShaderValue(value)}";
+                    return $"{hideTagString}{this.PerSplatString()}{referenceName}(\"{displayName}\", Float) = {NodeUtils.FloatToShaderValue(value)}";
             }
         }
-        
+
+        public override IEnumerable<(string cbName, string line)> GetPropertyDeclarationStrings()
+        {
+            if (splat)
+            {
+                for (int i = 0; i < 4; ++i)
+                    yield return ("UnitySplatMaterials", $"{concreteShaderValueType.ToShaderString(concretePrecision)} {referenceName}{i}");
+            }
+            else
+            {
+                yield return (s_UnityPerMaterialCbName, $"{concreteShaderValueType.ToShaderString(concretePrecision)} {referenceName}");
+            }
+        }
+
+        [SerializeField]
+        bool m_Splat = false;
+
+        public bool splat
+        {
+            get => m_Splat;
+            set => m_Splat = value;
+        }
+
         [SerializeField]
         FloatType m_FloatType = FloatType.Default;
 

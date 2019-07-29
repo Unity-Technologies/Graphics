@@ -1,5 +1,6 @@
 using System;
-using UnityEditor.Graphing;
+using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
@@ -29,8 +30,6 @@ namespace UnityEditor.ShaderGraph
             m_ConcretePrecision = (precision == Precision.Inherit) ? graphPrecision : precision.ToConcrete();
         }
 
-        public abstract bool isBatchable { get; }
-
         [SerializeField]
         bool m_Hidden = false;
 
@@ -47,16 +46,15 @@ namespace UnityEditor.ShaderGraph
             return string.Empty;
         }
 
-        public virtual string GetPropertyDeclarationString(string delimiter = ";")
+        internal protected static readonly string s_UnityPerMaterialCbName = "UnityPerMaterial";
+
+        public virtual IEnumerable<(string cbName, string line)> GetPropertyDeclarationStrings()
         {
-            SlotValueType type = ConcreteSlotValueType.Vector4.ToSlotValueType();
-            return $"{concreteShaderValueType.ToShaderString(concretePrecision.ToShaderString())} {referenceName}{delimiter}";
+            yield return (s_UnityPerMaterialCbName, $"{concreteShaderValueType.ToShaderString(concretePrecision.ToShaderString())} {referenceName}");
         }
 
         public virtual string GetPropertyAsArgumentString()
-        {
-            return GetPropertyDeclarationString(string.Empty);
-        }
+            => GetPropertyDeclarationStrings().Select(v => v.line).Aggregate((result, current) => $"{result}, {current}");
         
         public abstract AbstractMaterialNode ToConcreteNode();
         public abstract PreviewProperty GetPreviewMaterialProperty();

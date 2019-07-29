@@ -38,9 +38,12 @@ namespace UnityEditor.ShaderGraph
         }
         public override bool canSetPrecision => false;
 
+        public AbstractShaderProperty shaderProperty
+            => (owner as GraphData).properties.FirstOrDefault(x => x.guid == propertyGuid);
+
         public void OnEnable()
         {
-            var property = owner.properties.FirstOrDefault(x => x.guid == propertyGuid);
+            var property = shaderProperty;
             if (property == null)
                 return;
 
@@ -116,7 +119,7 @@ namespace UnityEditor.ShaderGraph
         
         public void GenerateNodeCode(ShaderStringBuilder sb, GraphContext graphContext, GenerationMode generationMode)
         {
-            var property = owner.properties.FirstOrDefault(x => x.guid == propertyGuid);
+            var property = shaderProperty;
             if (property == null)
                 return;
             
@@ -124,21 +127,6 @@ namespace UnityEditor.ShaderGraph
             {
                 case PropertyType.Boolean:
                     sb.AppendLine($"$precision {GetVariableNameForSlot(OutputSlotId)} = {property.referenceName};");
-                    break;
-                case PropertyType.Vector1:
-                    sb.AppendLine($"$precision {GetVariableNameForSlot(OutputSlotId)} = {property.referenceName};");
-                    break;
-                case PropertyType.Vector2:
-                    sb.AppendLine($"$precision2 {GetVariableNameForSlot(OutputSlotId)} = {property.referenceName};");
-                    break;
-                case PropertyType.Vector3:
-                    sb.AppendLine($"$precision3 {GetVariableNameForSlot(OutputSlotId)} = {property.referenceName};");
-                    break;
-                case PropertyType.Vector4:
-                    sb.AppendLine($"$precision4 {GetVariableNameForSlot(OutputSlotId)} = {property.referenceName};");
-                    break;
-                case PropertyType.Color:
-                    sb.AppendLine($"$precision4 {GetVariableNameForSlot(OutputSlotId)} = {property.referenceName};");
                     break;
                 case PropertyType.Matrix2:
                     sb.AppendLine($"$precision2x2 {GetVariableNameForSlot(OutputSlotId)} = {property.referenceName};");
@@ -163,10 +151,13 @@ namespace UnityEditor.ShaderGraph
 
         public override string GetVariableNameForSlot(int slotId)
         {
-            var property = owner.properties.FirstOrDefault(x => x.guid == propertyGuid);
+            var property = shaderProperty;
             if (property == null)
                 throw new NullReferenceException();
-            
+
+            if (property is ISplattableShaderProperty splatProperty)
+                return $"{property.referenceName}{(splatProperty.splat ? "0" : string.Empty)}";
+
             if (!(property is TextureShaderProperty) &&
                 !(property is Texture2DArrayShaderProperty) &&
                 !(property is Texture3DShaderProperty) &&
@@ -178,7 +169,7 @@ namespace UnityEditor.ShaderGraph
         
         protected override bool CalculateNodeHasError(ref string errorMessage)
         {
-            if (!propertyGuid.Equals(Guid.Empty) && !owner.properties.Any(x => x.guid == propertyGuid))
+            if (!propertyGuid.Equals(Guid.Empty) && shaderProperty == null)
             {
                 errorMessage = "Property Node has no associated Blackboard property.";
                 return true;
@@ -190,7 +181,7 @@ namespace UnityEditor.ShaderGraph
         public override bool ValidateConcretePrecision(ref string errorMessage)
         {
             // Get precision from Property
-            var property = owner.properties.FirstOrDefault(x => x.guid == propertyGuid);
+            var property = shaderProperty;
             if (property == null)
                 return true;
 

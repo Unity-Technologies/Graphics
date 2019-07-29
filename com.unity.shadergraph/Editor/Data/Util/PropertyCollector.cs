@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -29,22 +28,46 @@ namespace UnityEditor.ShaderGraph
                 prop.ValidateConcretePrecision(inheritedPrecision);
             }
 
-            var batchAll = mode == GenerationMode.Preview;
-            builder.AppendLine("CBUFFER_START(UnityPerMaterial)");
-            foreach (var prop in properties.Where(n => batchAll || (n.generatePropertyBlock && n.isBatchable)))
+            var cbDecls = new Dictionary<string, ShaderStringBuilder>();
+            foreach (var prop in properties)
             {
-                builder.AppendLine(prop.GetPropertyDeclarationString());
-            }
-            builder.AppendLine("CBUFFER_END");
-            builder.AppendNewLine();
+                foreach (var (cbName, line) in prop.GetPropertyDeclarationStrings())
+                {
+                    var key = string.IsNullOrWhiteSpace(cbName) ? string.Empty : cbName;
 
-            if (batchAll)
-                return;
-            
-            foreach (var prop in properties.Where(n => !n.isBatchable || !n.generatePropertyBlock))
-            {
-                builder.AppendLine(prop.GetPropertyDeclarationString());
+                    //
+                    // Old behaviours that I don't know why we do them:
+
+                    // If the property is not exposed, put it to Global
+                    if (key == AbstractShaderProperty.s_UnityPerMaterialCbName && !prop.generatePropertyBlock)
+                        key = string.Empty;
+                    // If we are in preview, put all CB variables to UnityPerMaterial CB
+                    if (key != string.Empty && mode == GenerationMode.Preview)
+                        key = AbstractShaderProperty.s_UnityPerMaterialCbName;
+
+                    if (!cbDecls.TryGetValue(key, out var sb))
+                    {
+                        sb = new ShaderStringBuilder();
+                        cbDecls.Add(key, sb);
+                    }
+
+                    if (line.Contains(System.Environment.NewLine))
+                        // Don't append ; if cbName is empty and there are multiple lines - a hack for GradientShaderProperty to put some definitions in the global scope.
+                        sb.AppendLines($"{line}{(string.IsNullOrWhiteSpace(cbName) ? "" : ";")}");
+                    else
+                        sb.AppendLine($"{line};");
+                }
             }
+
+            foreach (var kvp in cbDecls)
+            {
+                if (kvp.Key != string.Empty)
+                    builder.AppendLine($"CBUFFER_START({kvp.Key})");
+                builder.AppendLines(kvp.Value.ToString());
+                if (kvp.Key != string.Empty)
+                    builder.AppendLine($"CBUFFER_END");
+            }
+            builder.AppendNewLine();
         }
 
         public List<TextureInfo> GetConfiguredTexutres()

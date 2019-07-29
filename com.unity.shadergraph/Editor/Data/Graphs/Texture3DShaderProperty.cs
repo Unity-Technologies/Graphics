@@ -1,6 +1,5 @@
 using System;
-using System.Text;
-using UnityEditor.Graphing;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
@@ -16,7 +15,6 @@ namespace UnityEditor.ShaderGraph
         
         public override PropertyType propertyType => PropertyType.Texture3D;
         
-        public override bool isBatchable => false;
         public override bool isExposable => true;
         public override bool isRenamable => true;
         
@@ -26,10 +24,11 @@ namespace UnityEditor.ShaderGraph
         {
             return $"{hideTagString}{modifiableTagString}[NoScaleOffset]{referenceName}(\"{displayName}\", 3D) = \"white\" {{}}";
         }
-        
-        public override string GetPropertyDeclarationString(string delimiter = ";")
+
+        public override IEnumerable<(string cbName, string line)> GetPropertyDeclarationStrings()
         {
-            return $"TEXTURE3D({referenceName}){delimiter} SAMPLER(sampler{referenceName}){delimiter}";
+            yield return (null, $"TEXTURE3D({referenceName})");
+            yield return (null, $"SAMPLER(sampler{referenceName})");
         }
 
         public override string GetPropertyAsArgumentString()

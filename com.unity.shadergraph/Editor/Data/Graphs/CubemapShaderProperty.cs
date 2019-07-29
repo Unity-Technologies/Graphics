@@ -1,6 +1,4 @@
 using System;
-using System.Text;
-using UnityEditor.Graphing;
 using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
@@ -16,7 +14,6 @@ namespace UnityEditor.ShaderGraph
         
         public override PropertyType propertyType => PropertyType.Cubemap;
         
-        public override bool isBatchable => false;
         public override bool isExposable => true;
         public override bool isRenamable => true;
         
@@ -26,10 +23,11 @@ namespace UnityEditor.ShaderGraph
         {
             return $"{hideTagString}{modifiableTagString}[NoScaleOffset]{referenceName}(\"{displayName}\", CUBE) = \"\" {{}}";
         }
-        
-        public override string GetPropertyDeclarationString(string delimiter = ";")
+
+        public override System.Collections.Generic.IEnumerable<(string cbName, string line)> GetPropertyDeclarationStrings()
         {
-            return $"TEXTURECUBE({referenceName}){delimiter} SAMPLER(sampler{referenceName}){delimiter}";
+            yield return (null, $"TEXTURECUBE({referenceName})");
+            yield return (null, $"SAMPLER(sampler{referenceName})");
         }
 
         public override string GetPropertyAsArgumentString()

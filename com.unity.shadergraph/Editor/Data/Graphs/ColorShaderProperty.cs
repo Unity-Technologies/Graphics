@@ -1,12 +1,12 @@
 using System;
-using System.Text;
+using System.Collections.Generic;
 using UnityEditor.Graphing;
 using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
 {
     [Serializable]
-    class ColorShaderProperty : AbstractShaderProperty<Color>
+    class ColorShaderProperty : AbstractShaderProperty<Color>, ISplattableShaderProperty
     {
         public ColorShaderProperty()
         {
@@ -15,7 +15,6 @@ namespace UnityEditor.ShaderGraph
         
         public override PropertyType propertyType => PropertyType.Color;
         
-        public override bool isBatchable => true;
         public override bool isExposable => true;
         public override bool isRenamable => true;
         
@@ -23,7 +22,7 @@ namespace UnityEditor.ShaderGraph
 
         public override string GetPropertyBlockString()
         {
-            return $"{hideTagString}{hdrTagString}{referenceName}(\"{displayName}\", Color) = ({NodeUtils.FloatToShaderValue(value.r)}, {NodeUtils.FloatToShaderValue(value.g)}, {NodeUtils.FloatToShaderValue(value.b)}, {NodeUtils.FloatToShaderValue(value.a)})";
+            return $"{hideTagString}{hdrTagString}{this.PerSplatString()}{referenceName}(\"{displayName}\", Color) = ({NodeUtils.FloatToShaderValue(value.r)}, {NodeUtils.FloatToShaderValue(value.g)}, {NodeUtils.FloatToShaderValue(value.b)}, {NodeUtils.FloatToShaderValue(value.a)})";
         }
 
         public override string referenceNameBase => "Color";
@@ -36,7 +35,30 @@ namespace UnityEditor.ShaderGraph
             get => m_ColorMode;
             set => m_ColorMode = value;
         }
-        
+
+        [SerializeField]
+        bool m_Splat = false;
+
+        public bool splat
+        {
+            get => m_Splat;
+            set => m_Splat = value;
+        }
+
+        public override IEnumerable<(string cbName, string line)> GetPropertyDeclarationStrings()
+        {
+            if (splat)
+            {
+                for (int i = 0; i < 4; ++i)
+                    yield return ("UnitySplatMaterials", $"{concreteShaderValueType.ToShaderString(concretePrecision.ToShaderString())} {referenceName}{i}");
+            }
+            else
+            {
+                foreach (var str in base.GetPropertyDeclarationStrings())
+                    yield return str;
+            }
+        }
+
         public override AbstractMaterialNode ToConcreteNode()
         {
             return new ColorNode { color = new ColorNode.Color(value, colorMode) };

@@ -1,6 +1,4 @@
-using System;
-using UnityEditor.Graphing;
-using UnityEngine;
+using System.Collections.Generic;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -14,7 +12,6 @@ namespace UnityEditor.ShaderGraph
 
         public override PropertyType propertyType => PropertyType.SamplerState;
         
-        public override bool isBatchable => false;
         public override bool isExposable => false;
         public override bool isRenamable => false;
 
@@ -27,10 +24,10 @@ namespace UnityEditor.ShaderGraph
                 base.value = value;
             }
         }
-        
-        public override string GetPropertyDeclarationString(string delimiter = ";")
+
+        public override IEnumerable<(string cbName, string line)> GetPropertyDeclarationStrings()
         {
-            return $"SAMPLER({referenceName}){delimiter}";
+            yield return (null, $"SAMPLER({referenceName})");
         }
 
         public override string GetPropertyAsArgumentString()
