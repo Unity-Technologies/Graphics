@@ -6,37 +6,18 @@ using UnityEngine;
 namespace UnityEditor.ShaderGraph
 {
     [Serializable]
-    struct ShaderKeywordEntry
-    {
-        public int id;
-        public string displayName;
-        public string referenceName;
-
-        public ShaderKeywordEntry(int id, string displayName, string referenceName)
-        {
-            this.id = id;
-            this.displayName = displayName;
-            this.referenceName = referenceName;
-        }
-    }
-
-    enum ShaderKeywordType { Boolean, Enum }
-    enum ShaderKeywordDefinition { ShaderFeature, MultiCompile, Predefined }
-    enum ShaderKeywordScope { Local, Global }
-
-    [Serializable]
     class ShaderKeyword : ShaderInput
     {
         public ShaderKeyword()
         {
         }
 
-        public ShaderKeyword(ShaderKeywordType keywordType, bool isExposable = true)
+        public ShaderKeyword(ShaderKeywordType keywordType)
         {
             this.displayName = keywordType.ToString();
             this.keywordType = keywordType;
-            m_IsExposable = isExposable;
             
+            // Add sensible default entries
             if(keywordType == ShaderKeywordType.Enum)
             {
                 m_Entries = new List<ShaderKeywordEntry>();
@@ -44,28 +25,44 @@ namespace UnityEditor.ShaderGraph
                 m_Entries.Add(new ShaderKeywordEntry(2, "B", "B"));
                 m_Entries.Add(new ShaderKeywordEntry(3, "C", "C"));
             }
+            // _ON suffix is required for exposing to Material
+            // Append it by default
             else
             {
                 overrideReferenceName = $"{referenceName}_ON";
             }
         }
 
-        [SerializeField]
-        private bool m_IsEditable = true;
-
-        public bool isEditable
+        public static ShaderKeyword BuiltinEnumKeyword(ShaderKeywordDescriptor descriptor)
         {
-            get => m_IsEditable;
-            set => m_IsEditable = value;
+            return new ShaderKeyword()
+            {
+                m_IsExposable = false,
+                m_IsEditable = false,
+                displayName = descriptor.displayName,
+                overrideReferenceName = descriptor.referenceName,
+                keywordType = ShaderKeywordType.Enum,
+                keywordDefinition = descriptor.definition,
+                keywordScope = descriptor.scope,
+                value = descriptor.value,
+                entries = descriptor.entries
+            };
         }
 
-        [SerializeField]
-        private bool m_IsExposable;
-        
-        public override bool isExposable => m_IsExposable;
-
-        public override ConcreteSlotValueType concreteShaderValueType => keywordType.ToConcreteSlotValueType();
-        public override bool isRenamable => isEditable;
+        public static ShaderKeyword BuiltinBooleanKeyword(ShaderKeywordDescriptor descriptor)
+        {
+            return new ShaderKeyword()
+            {
+                m_IsExposable = false,
+                m_IsEditable = false,
+                displayName = descriptor.displayName,
+                overrideReferenceName = descriptor.referenceName,
+                keywordType = ShaderKeywordType.Boolean,
+                keywordDefinition = descriptor.definition,
+                keywordScope = descriptor.scope,
+                value = descriptor.value
+            };
+        }
 
         [SerializeField]
         private ShaderKeywordType m_KeywordType = ShaderKeywordType.Boolean;
@@ -112,6 +109,24 @@ namespace UnityEditor.ShaderGraph
             set => m_Value = value;
         }
 
+        [SerializeField]
+        private bool m_IsEditable = true;
+
+        public bool isEditable
+        {
+            get => m_IsEditable;
+            set => m_IsEditable = value;
+        }
+
+        [SerializeField]
+        private bool m_IsExposable;
+
+        public override bool isExposable => m_IsExposable;
+
+        public override bool isRenamable => isEditable;
+
+        public override ConcreteSlotValueType concreteShaderValueType => keywordType.ToConcreteSlotValueType();
+
         public string GetPropertyBlockString()
         {
             switch(keywordType)
@@ -128,9 +143,11 @@ namespace UnityEditor.ShaderGraph
 
         public string GetKeywordDeclarationString()
         {
+            // Predefined keywords do not need to be defined
             if(keywordDefinition == ShaderKeywordDefinition.Predefined)
                 return string.Empty;
 
+            // Get definition type using scope
             string scopeString = keywordScope == ShaderKeywordScope.Local ? "_local" : string.Empty;
             string definitionString = $"{keywordDefinition.ToDeclarationString()}{scopeString}";
 
@@ -162,6 +179,9 @@ namespace UnityEditor.ShaderGraph
 
         public override ShaderInput Copy()
         {
+            // Keywords copy reference name
+            // This is because keywords are copied between graphs
+            // When copying dependent nodes
             return new ShaderKeyword()
             {
                 displayName = displayName,

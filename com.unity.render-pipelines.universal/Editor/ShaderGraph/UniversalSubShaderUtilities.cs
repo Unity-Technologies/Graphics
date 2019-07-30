@@ -187,11 +187,6 @@ namespace UnityEditor.Rendering.Universal
             List<int>[] keywordPermutationsPerVertexNode = new List<int>[vertexNodes.Count];
             List<int>[] keywordPermutationsPerPixelNode = new List<int>[pixelNodes.Count];
 
-            // Track requirements per keyword permutation
-            List<KeyValuePair<int, ShaderGraphRequirements>> vertexRequirementsPerKeyword = new List<KeyValuePair<int, ShaderGraphRequirements>>();
-            List<KeyValuePair<int, ShaderGraphRequirements>> surfaceRequirementsPerKeyword = new List<KeyValuePair<int, ShaderGraphRequirements>>();
-            List<KeyValuePair<int, ShaderGraphRequirements>> pixelRequirementsPerKeyword = new List<KeyValuePair<int, ShaderGraphRequirements>>();
-
             // -------------------------------------
             // Evaluate all permutations
 
@@ -222,15 +217,6 @@ namespace UnityEditor.Rendering.Universal
                         keywordPermutationsPerPixelNode[nodeIndex] = new List<int>();
                     keywordPermutationsPerPixelNode[nodeIndex].Add(i);
                 }
-
-                // Get active requirements for this permutation
-                var localVertexRequirements = ShaderGraphRequirements.FromNodes(localVertexNodes, ShaderStageCapability.Vertex, false);
-                var localSurfaceRequirements = ShaderGraphRequirements.FromNodes(localPixelNodes, ShaderStageCapability.Fragment, false);
-                var localPixelRequirements = ShaderGraphRequirements.FromNodes(localPixelNodes, ShaderStageCapability.Fragment);
-
-                vertexRequirementsPerKeyword.Add(new KeyValuePair<int, ShaderGraphRequirements>(i, localVertexRequirements));
-                surfaceRequirementsPerKeyword.Add(new KeyValuePair<int, ShaderGraphRequirements>(i, localSurfaceRequirements));
-                pixelRequirementsPerKeyword.Add(new KeyValuePair<int, ShaderGraphRequirements>(i, localPixelRequirements));
             }
 
             // ----------------------------------------------------- //

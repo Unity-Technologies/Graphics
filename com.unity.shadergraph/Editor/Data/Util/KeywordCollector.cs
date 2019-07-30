@@ -49,6 +49,8 @@ namespace UnityEditor.ShaderGraph
 
         public void CalculateKeywordPermutations()
         {
+            permutations.Clear();
+
             // Initialize current permutation
             List<KeyValuePair<ShaderKeyword, int>> currentPermutation = new List<KeyValuePair<ShaderKeyword, int>>();
             for(int i = 0; i < keywords.Count; i++)

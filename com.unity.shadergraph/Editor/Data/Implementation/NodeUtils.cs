@@ -80,10 +80,8 @@ namespace UnityEditor.Graphing
             Exclude
         }
 
-        public static void DepthFirstCollectNodesFromNode<T>(List<T> nodeList, T node, 
-            IncludeSelf includeSelf = IncludeSelf.Include, IEnumerable<int> slotIds = null, 
-            List<KeyValuePair<ShaderKeyword, int>> keywordPermutations = null)
-            where T : AbstractMaterialNode
+        public static void DepthFirstCollectNodesFromNode(List<AbstractMaterialNode> nodeList, AbstractMaterialNode node, 
+            IncludeSelf includeSelf = IncludeSelf.Include, IEnumerable<int> slotIds = null, List<KeyValuePair<ShaderKeyword, int>> keywordPermutation = null)
         {
             // no where to start
             if (node == null)
@@ -94,26 +92,30 @@ namespace UnityEditor.Graphing
                 return;
 
             IEnumerable<int> ids;
-            if(keywordPermutations != null && node is KeywordNode keywordNode)
+
+            if (slotIds == null)
             {
-                var permutation = keywordPermutations.Where(x => x.Key.guid == keywordNode.keywordGuid).FirstOrDefault();
-                ids = new int[] { keywordNode.GetSlotIdForPermutation(permutation) };
+                ids = node.GetInputSlots<ISlot>().Select(x => x.id);
+            }
+            // If this node is a keyword node and we have an active keyword permutation
+            // The only valid port id is the port that corresponds to that keywords value in the active permutation
+            else if(node is KeywordNode keywordNode && keywordPermutation != null)
+            {
+                var valueInPermutation = keywordPermutation.Where(x => x.Key.guid == keywordNode.keywordGuid).FirstOrDefault();
+                ids = new int[] { keywordNode.GetSlotIdForPermutation(valueInPermutation) };
             }
             else
             {
-                if (slotIds == null)
-                    ids = node.GetInputSlots<ISlot>().Select(x => x.id);
-                else
-                    ids = node.GetInputSlots<ISlot>().Where(x => slotIds.Contains(x.id)).Select(x => x.id);
+                ids = node.GetInputSlots<ISlot>().Where(x => slotIds.Contains(x.id)).Select(x => x.id);
             }
 
             foreach (var slot in ids)
             {
                 foreach (var edge in node.owner.GetEdges(node.GetSlotReference(slot)))
                 {
-                    var outputNode = node.owner.GetNodeFromGuid(edge.outputSlot.nodeGuid) as T;
+                    var outputNode = node.owner.GetNodeFromGuid(edge.outputSlot.nodeGuid);
                     if (outputNode != null)
-                        DepthFirstCollectNodesFromNode(nodeList, outputNode, keywordPermutations: keywordPermutations);
+                        DepthFirstCollectNodesFromNode(nodeList, outputNode, keywordPermutation: keywordPermutation);
                 }
             }
 

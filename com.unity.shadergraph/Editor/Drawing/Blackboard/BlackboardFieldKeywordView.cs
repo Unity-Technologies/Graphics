@@ -19,7 +19,6 @@ namespace UnityEditor.ShaderGraph.Drawing
         private ReorderableList m_ReorderableList;
         private IMGUIContainer m_Container;
         private int m_SelectedIndex;
-
         private ShaderKeyword m_Keyword;
 
         public BlackboardFieldKeywordView(BlackboardField blackboardField, GraphData graph, ShaderInput input)
@@ -74,6 +73,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void BuildBooleanKeywordField(ShaderKeyword keyword)
         {
+            // Default field
             var field = new Toggle() { value = keyword.value == 1 };
             field.OnToggleChanged(evt =>
                 {
@@ -86,18 +86,21 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void BuildEnumKeywordField(ShaderKeyword keyword)
         {
+            // Clamp value between entry list
             int value = Mathf.Clamp(keyword.value, 0, keyword.entries.Count - 1);
+
+            // Default field
             var field = new PopupField<string>(keyword.entries.Select(x => x.displayName).ToList(), value);
             field.RegisterValueChangedCallback(evt =>
-            {
-                graph.owner.RegisterCompleteObjectUndo("Change Keyword Value");
-                keyword.value = field.index;
-                DirtyNodes(ModificationScope.Graph);
-            });
+                {
+                    graph.owner.RegisterCompleteObjectUndo("Change Keyword Value");
+                    keyword.value = field.index;
+                    DirtyNodes(ModificationScope.Graph);
+                });
             AddRow("Default", field);
 
             // Entries
-            if(m_Keyword.keywordType == ShaderKeywordType.Enum && m_Keyword.keywordDefinition != ShaderKeywordDefinition.Predefined)
+            if(m_Keyword.keywordDefinition != ShaderKeywordDefinition.Predefined)
             {
                 m_Container = new IMGUIContainer(() => OnGUIHandler ()) { name = "ListContainer" };
                 AddRow("Entries", m_Container, keyword.isEditable);
@@ -106,7 +109,6 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         private void OnGUIHandler()
         {
-            // TODO: Add this back?
             if(m_ReorderableList == null)
             {
                 RecreateList();

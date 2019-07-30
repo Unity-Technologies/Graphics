@@ -268,7 +268,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             var propertyNodeGuids = graphView.selection.OfType<IShaderNodeView>().Where(x => (x.node is PropertyNode)).Select(x => ((PropertyNode)x.node).propertyGuid);
             var metaProperties = graphView.graph.properties.Where(x => propertyNodeGuids.Contains(x.guid));
 
-            // Collect the property nodes and get the corresponding properties
+            // Collect the keyword nodes and get the corresponding keywords
             var keywordNodeGuids = graphView.selection.OfType<IShaderNodeView>().Where(x => (x.node is KeywordNode)).Select(x => ((KeywordNode)x.node).keywordGuid);
             var metaKeywords = graphView.graph.keywords.Where(x => keywordNodeGuids.Contains(x.guid));
 
@@ -296,7 +296,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
             subGraph.AddNode(subGraphOutputNode);
 
-            // Always copy deserialized Keyword inputs
+            // Always copy deserialized keyword inputs
             foreach (ShaderKeyword keyword in deserialized.metaKeywords)
             {
                 ShaderInput copiedInput = keyword.Copy();
@@ -304,7 +304,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 subGraph.SanitizeGraphInputReferenceName(copiedInput, keyword.overrideReferenceName);
                 subGraph.AddGraphInput(copiedInput);
 
-                // Update the keyword nodes that depends on the copied node
+                // Update the keyword nodes that depends on the copied keyword
                 var dependentKeywordNodes = deserialized.GetNodes<KeywordNode>().Where(x => x.keywordGuid == keyword.guid);
                 foreach (var node in dependentKeywordNodes)
                 {

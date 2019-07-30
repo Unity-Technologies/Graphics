@@ -199,7 +199,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 m_TitleContainer.Add(m_ButtonContainer);
             }
 
-            // Registering the hovering callbacks for highlighting
+            // Register OnMouseHover callbacks for node highlighting
             RegisterCallback<MouseEnterEvent>(OnMouseHover);
             RegisterCallback<MouseLeaveEvent>(OnMouseHover);
         }
@@ -640,10 +640,13 @@ namespace UnityEditor.ShaderGraph.Drawing
         void UpdatePortInput(GeometryChangedEvent evt)
         {
             var port = (ShaderPort)evt.target;
-            var views = m_PortInputContainer.Children().OfType<PortInputView>().Where(x => Equals(x.slot, port.slot));
-            if(views.Count() != 0)
+            var inputViews = m_PortInputContainer.Children().OfType<PortInputView>().Where(x => Equals(x.slot, port.slot));
+            
+            // Ensure PortInputViews are initialized correctly
+            // Dynamic port lists require one update to validate before init
+            if(inputViews.Count() != 0)
             {
-                var inputView = views.First();
+                var inputView = inputViews.First();
                 SetPortInputPosition(port, inputView);
             }
             
@@ -711,6 +714,8 @@ namespace UnityEditor.ShaderGraph.Drawing
             if (blackboardProvider == null)
                 return;
 
+            // Keyword nodes should be highlighted when Blackboard entry is hovered
+            // TODO: Move to new NodeView type when keyword node has unique style
             if(node is KeywordNode keywordNode)
             {
                 var keywordRow = blackboardProvider.GetBlackboardRow(keywordNode.keywordGuid);

@@ -1145,7 +1145,7 @@ namespace UnityEditor.ShaderGraph
             {
                 // Get active nodes for this permutation
                 var localNodes = ListPool<AbstractMaterialNode>.Get();
-                NodeUtils.DepthFirstCollectNodesFromNode(localNodes, node, keywordPermutations: shaderKeywords.permutations[i]);
+                NodeUtils.DepthFirstCollectNodesFromNode(localNodes, node, keywordPermutation: shaderKeywords.permutations[i]);
 
                 // Track each pixel node in this permutation
                 foreach(AbstractMaterialNode pixelNode in localNodes)

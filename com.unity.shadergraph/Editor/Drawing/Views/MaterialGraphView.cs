@@ -494,7 +494,8 @@ namespace UnityEditor.ShaderGraph.Drawing
         void DeleteSelectionImplementation(string operationName, GraphView.AskUser askUser)
         {
             bool containsProperty = false;
-            bool containsKeyword = false;
+
+            // Track dependent keyword nodes to remove them
             List<KeywordNode> keywordNodes = new List<KeywordNode>();
 
             foreach (var selectable in selection)
@@ -509,7 +510,6 @@ namespace UnityEditor.ShaderGraph.Drawing
                             break;
                         case ShaderKeyword keyword:
                             keywordNodes.AddRange(graph.GetNodes<KeywordNode>().Where(x => x.keywordGuid == keyword.guid));
-                            containsKeyword = true;
                             break;
                         default:
                             throw new ArgumentOutOfRangeException();
@@ -526,18 +526,14 @@ namespace UnityEditor.ShaderGraph.Drawing
                 }
             }
 
-            if(containsKeyword)
-            {
-                if(keywordNodes.Any())
-                {
-                    if (!EditorUtility.DisplayDialog("Keyword Nodes Will be Removed", "Removing a keyword will automatically remove all dependent keyword nodes.\n\nDo you want to continue?", "Yes", "No"))
-                        return;
-                }
-            }
-
-            var deleteNodes = selection.OfType<IShaderNodeView>().Where(v => !(v.node is SubGraphOutputNode) && v.node.canDeleteNode).Select(x => x.node).Union(keywordNodes).ToArray();
+            // Filter nodes that cannot be deleted
+            var nodesToDelete = selection.OfType<IShaderNodeView>().Where(v => !(v.node is SubGraphOutputNode) && v.node.canDeleteNode).Select(x => x.node);
+            
+            // Add keyword nodes dependent on deleted keywords
+            nodesToDelete = nodesToDelete.Union(keywordNodes);
+            
             graph.owner.RegisterCompleteObjectUndo(operationName);
-            graph.RemoveElements(deleteNodes,
+            graph.RemoveElements(nodesToDelete.ToArray(),
                 selection.OfType<Edge>().Select(x => x.userData).OfType<IEdge>().ToArray(),
                 selection.OfType<ShaderGroup>().Select(x => x.userData).ToArray(),
                 selection.OfType<StickyNote>().Select(x => x.userData).ToArray());

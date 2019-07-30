@@ -8,20 +8,20 @@ namespace UnityEditor.ShaderGraph
 {
     static class BuiltinKeyword
     {
-        public static ShaderKeyword QualityKeyword = new ShaderKeyword(ShaderKeywordType.Enum, false)
+        public static ShaderKeyword QualityKeyword = ShaderKeyword.BuiltinEnumKeyword(new ShaderKeywordDescriptor()
         {
             displayName = "Material Quality",
-            overrideReferenceName = "MATERIAL_QUALITY",
-            isEditable = false,
-            keywordDefinition = ShaderKeywordDefinition.ShaderFeature,
-            keywordScope = ShaderKeywordScope.Global,
+            referenceName = "MATERIAL_QUALITY",
+            definition = ShaderKeywordDefinition.ShaderFeature,
+            scope = ShaderKeywordScope.Global,
+            value = 0,
             entries = new List<ShaderKeywordEntry>()
             {
                 new ShaderKeywordEntry(1, "High", "HIGH"),
                 new ShaderKeywordEntry(2, "Medium", "MEDIUM"),
                 new ShaderKeywordEntry(3, "Low", "LOW"),
             },
-        };
+        });
     }
 
     static class KeywordUtil
@@ -99,26 +99,33 @@ namespace UnityEditor.ShaderGraph
                 // Last permutation is always #else
                 if(!isLast)
                 {
+                    // Track whether && is required
+                    bool appendAnd = false;
+                    
                     // Iterate all keywords that are part of the permutation
                     for(int i = 0; i < permutations[p].Count; i++)
                     {
-                        // Subsequent keyword predicates require &&
-                        string and = i > 0 ? " && " : string.Empty;
+                        // When previous keyword was inserted subsequent requires &&
+                        string and = appendAnd ? " && " : string.Empty;
 
                         switch(permutations[p][i].Key.keywordType)
                         {
                             case ShaderKeywordType.Enum:
                             {
                                 sb.Append($"{and}defined({permutations[p][i].Key.referenceName}_{permutations[p][i].Key.entries[permutations[p][i].Value].referenceName})");
+                                appendAnd = true;
                                 break;
                             }
                             case ShaderKeywordType.Boolean:
                             {
                                 // HLSL does not support a !value predicate
                                 if(permutations[p][i].Value != 0)
+                                {
                                     continue;
+                                }
 
                                 sb.Append($"{and}defined({permutations[p][i].Key.referenceName})");
+                                appendAnd = true;
                                 break;
                             }
                             default:

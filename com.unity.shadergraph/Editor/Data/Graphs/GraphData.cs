@@ -1151,7 +1151,7 @@ namespace UnityEditor.ShaderGraph
                 {
                     // If the property is not in the current graph, do check if the
                     // property can be made into a concrete node.
-                    if (!properties.Select(x => x.guid).Contains(propertyNode.propertyGuid))
+                    if (!m_Properties.Select(x => x.guid).Contains(propertyNode.propertyGuid))
                     {
                         // If the property is in the serialized paste graph, make the property node into a property node.
                         var pastedGraphMetaProperties = graphToPaste.metaProperties.Where(x => x.guid == propertyNode.propertyGuid);
@@ -1160,23 +1160,6 @@ namespace UnityEditor.ShaderGraph
                             pastedNode = pastedGraphMetaProperties.FirstOrDefault().ToConcreteNode();
                             pastedNode.drawState = node.drawState;
                             nodeGuidMap[oldGuid] = pastedNode.guid;
-                        }
-                    }
-                }
-
-                // Check if the keyword nodes need to have their keywords copied.
-                if (node is KeywordNode keywordNode)
-                {
-                    // If the keyword is not in the current graph and is in the serialized paste graph copy it.
-                    if (!keywords.Select(x => x.guid).Contains(keywordNode.keywordGuid))
-                    {
-                        var pastedGraphMetaKeywords = graphToPaste.metaKeywords.Where(x => x.guid == keywordNode.keywordGuid);
-                        if (pastedGraphMetaKeywords.Any())
-                        {
-                            var keyword = pastedGraphMetaKeywords.FirstOrDefault(x => x.guid == keywordNode.keywordGuid);
-                            SanitizeGraphInputName(keyword);
-                            SanitizeGraphInputReferenceName(keyword, keyword.overrideReferenceName);
-                            AddGraphInput(keyword);
                         }
                     }
                 }
@@ -1202,10 +1185,24 @@ namespace UnityEditor.ShaderGraph
                 // add the node to the pasted node list
                 m_PastedNodes.Add(pastedNode);
 
-                // Always update Keyword nodes to handle any collisions resolved on the Keyword
-                if(node is KeywordNode keyNode)
+                // Check if the keyword nodes need to have their keywords copied.
+                if (node is KeywordNode keywordNode)
                 {
-                    keyNode.UpdateNode();
+                    // If the keyword is not in the current graph and is in the serialized paste graph copy it.
+                    if (!keywords.Select(x => x.guid).Contains(keywordNode.keywordGuid))
+                    {
+                        var pastedGraphMetaKeywords = graphToPaste.metaKeywords.Where(x => x.guid == keywordNode.keywordGuid);
+                        if (pastedGraphMetaKeywords.Any())
+                        {
+                            var keyword = pastedGraphMetaKeywords.FirstOrDefault(x => x.guid == keywordNode.keywordGuid);
+                            SanitizeGraphInputName(keyword);
+                            SanitizeGraphInputReferenceName(keyword, keyword.overrideReferenceName);
+                            AddGraphInput(keyword);
+                        }
+                    }
+
+                    // Always update Keyword nodes to handle any collisions resolved on the Keyword
+                    keywordNode.UpdateNode();
                 }
             }
 
