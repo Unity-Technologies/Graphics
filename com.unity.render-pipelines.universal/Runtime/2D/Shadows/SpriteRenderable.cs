@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
-using UnityEngine.Experimental.U2D;
+using UnityEngine.U2D;
 using Unity.Collections;
 
 namespace UnityEngine.Experimental.Rendering.Universal
