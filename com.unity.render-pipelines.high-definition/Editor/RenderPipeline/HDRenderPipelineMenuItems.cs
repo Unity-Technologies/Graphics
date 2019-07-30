@@ -3,19 +3,19 @@ using System.IO;
 using UnityEditor.Rendering;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
-using UnityEngine.Experimental.Rendering.HDPipeline;
+using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.SceneManagement;
 using UnityEditor.SceneManagement;
 using UnityEngine.Rendering;
 
-namespace UnityEditor.Experimental.Rendering.HDPipeline
+namespace UnityEditor.Rendering.HighDefinition
 {
     using UnityObject = UnityEngine.Object;
 
-    public class HDRenderPipelineMenuItems
+    class HDRenderPipelineMenuItems
     {
         // Function used only to check performance of data with and without tessellation
-        [MenuItem("Internal/HDRP/Test/Remove tessellation materials (not reversible)")]
+        //[MenuItem("Internal/HDRP/Test/Remove tessellation materials (not reversible)")]
         static void RemoveTessellationMaterials()
         {
             var materials = Resources.FindObjectsOfTypeAll<Material>();
@@ -70,30 +70,27 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
         }
 
-        [MenuItem("GameObject/Rendering/Scene Settings", priority = CoreUtils.gameObjectMenuPriority)]
+        [MenuItem("GameObject/Volume/Sky and Fog Volume", priority = CoreUtils.gameObjectMenuPriority)]
         static void CreateSceneSettingsGameObject(MenuCommand menuCommand)
         {
             var parent = menuCommand.context as GameObject;
-            var sceneSettings = CoreEditorUtils.CreateGameObject(parent, "Scene Settings");
-            GameObjectUtility.SetParentAndAlign(sceneSettings, menuCommand.context as GameObject);
-            Undo.RegisterCreatedObjectUndo(sceneSettings, "Create " + sceneSettings.name);
-            Selection.activeObject = sceneSettings;
+            var settings = CoreEditorUtils.CreateGameObject(parent, "Sky and Fog Volume");
+            GameObjectUtility.SetParentAndAlign(settings, menuCommand.context as GameObject);
+            Undo.RegisterCreatedObjectUndo(settings, "Create " + settings.name);
+            Selection.activeObject = settings;
 
-            var profile = VolumeProfileFactory.CreateVolumeProfile(sceneSettings.scene, "Scene Settings");
-            VolumeProfileFactory.CreateVolumeComponent<HDShadowSettings>(profile, true, false);
+            var profile = VolumeProfileFactory.CreateVolumeProfile(settings.scene, "Sky and Fog Settings");
             var visualEnv = VolumeProfileFactory.CreateVolumeComponent<VisualEnvironment>(profile, true, false);
-            visualEnv.skyType.value = SkySettings.GetUniqueID<ProceduralSky>();
-            visualEnv.fogType.value = FogType.Exponential;
-            VolumeProfileFactory.CreateVolumeComponent<ProceduralSky>(profile, true, false);
-            VolumeProfileFactory.CreateVolumeComponent<ExponentialFog>(profile, true, true);
 
-            var volume = sceneSettings.AddComponent<Volume>();
+            visualEnv.skyType.value = SkySettings.GetUniqueID<PhysicallyBasedSky>();
+            visualEnv.fogType.value = FogType.Volumetric;
+            visualEnv.skyAmbientMode.overrideState = false;
+            VolumeProfileFactory.CreateVolumeComponent<PhysicallyBasedSky>(profile, false, false);
+            VolumeProfileFactory.CreateVolumeComponent<VolumetricFog>(profile, false, true);
+
+            var volume = settings.AddComponent<Volume>();
             volume.isGlobal = true;
             volume.sharedProfile = profile;
-
-            var staticLightingSky = sceneSettings.AddComponent<StaticLightingSky>();
-            staticLightingSky.profile = volume.sharedProfile;
-            staticLightingSky.staticLightingSkyUniqueID = SkySettings.GetUniqueID<ProceduralSky>();
         }
 
 #if ENABLE_RAYTRACING
@@ -126,7 +123,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, ScriptableObject.CreateInstance<DoCreateNewAssetDiffusionProfileSettings>(), "New Diffusion Profile.asset", icon, null);
         }
 
-        [MenuItem("Internal/HDRP/Add \"Additional Light-shadow Data\" (if not present)")]
+        //[MenuItem("Internal/HDRP/Add \"Additional Light-shadow Data\" (if not present)")]
         static void AddAdditionalLightData()
         {
             var lights = UnityObject.FindObjectsOfType(typeof(Light)) as Light[];
@@ -135,17 +132,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 // Do not add a component if there already is one.
                 if (light.GetComponent<HDAdditionalLightData>() == null)
-                    light.gameObject.AddComponent<HDAdditionalLightData>();
-
-                if (light.GetComponent<AdditionalShadowData>() == null)
                 {
-                    AdditionalShadowData shadowData = light.gameObject.AddComponent<AdditionalShadowData>();
-                    HDAdditionalShadowData.InitDefaultHDAdditionalShadowData(shadowData);
+                    var hdLight = light.gameObject.AddComponent<HDAdditionalLightData>();
+                    HDAdditionalLightData.InitDefaultHDAdditionalLightData(hdLight);
                 }
             }
         }
 
-        [MenuItem("Internal/HDRP/Add \"Additional Camera Data\" (if not present)")]
+        //[MenuItem("Internal/HDRP/Add \"Additional Camera Data\" (if not present)")]
         static void AddAdditionalCameraData()
         {
             var cameras = UnityObject.FindObjectsOfType(typeof(Camera)) as Camera[];
@@ -159,7 +153,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         }
 
         // This script is a helper for the artists to re-synchronize all layered materials
-        [MenuItem("Internal/HDRP/Synchronize all Layered materials")]
+        //[MenuItem("Internal/HDRP/Synchronize all Layered materials")]
         static void SynchronizeAllLayeredMaterial()
         {
             var materials = Resources.FindObjectsOfTypeAll<Material>();

@@ -30,6 +30,8 @@ Pass
 		nointerpolation uint faceID : TEXCOORD4;
 		#endif
 		#endif
+
+        UNITY_VERTEX_OUTPUT_STEREO
 	};
 	
 	struct ps_output
@@ -71,6 +73,7 @@ Pass
 	#pragma fragment frag
 	ps_output frag(ps_input i)
 	{
+		UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i);
 		ps_output o = (ps_output)0;
 		VFXTransformPSInputs(i);
 		

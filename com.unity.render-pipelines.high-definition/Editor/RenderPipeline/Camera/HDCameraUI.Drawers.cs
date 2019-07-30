@@ -1,11 +1,11 @@
 using System;
 using System.Linq;
 using System.Reflection;
-using UnityEditor.Rendering;
 using UnityEngine;
-using UnityEngine.Experimental.Rendering.HDPipeline;
+using UnityEngine.Rendering.HighDefinition;
+using UnityEditor.Rendering;
 
-namespace UnityEditor.Experimental.Rendering.HDPipeline
+namespace UnityEditor.Rendering.HighDefinition
 {
     using CED = CoreEditorDrawer<SerializedHDCamera>;
 
@@ -174,7 +174,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         public static readonly CED.IDrawer SectionFrameSettings = CED.Conditional(
             (serialized, owner) => k_ExpandedState[Expandable.General],
             CED.Group((serialized, owner) =>
-            { 
+            {
                 if (!serialized.passThrough.boolValue && serialized.customRenderingSettings.boolValue)
                     FrameSettingsUI.Inspector().Draw(serialized.frameSettings, owner);
                 else

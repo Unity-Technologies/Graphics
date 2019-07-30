@@ -3,7 +3,7 @@ using System.Linq;
 using System.Collections.ObjectModel;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Experimental.VFX;
+using UnityEngine.VFX;
 
 namespace UnityEditor.VFX
 {
@@ -189,16 +189,11 @@ namespace UnityEditor.VFX
 
         static public VFXExpression Cross(VFXExpression lhs, VFXExpression rhs)
         {
-            Func<VFXExpression, VFXExpression, VFXExpression, VFXExpression, VFXExpression> ab_Minus_cd = delegate(VFXExpression a, VFXExpression b, VFXExpression c, VFXExpression d)
-            {
-                return (a * b - c * d);
-            };
-
             return new VFXExpressionCombine(new[]
             {
-                ab_Minus_cd(lhs.y, rhs.z, lhs.z, rhs.y),
-                ab_Minus_cd(lhs.z, rhs.x, lhs.x, rhs.z),
-                ab_Minus_cd(lhs.x, rhs.y, lhs.y, rhs.x),
+                lhs.y * rhs.z - lhs.z * rhs.y,
+                lhs.z * rhs.x - lhs.x * rhs.z,
+                lhs.x * rhs.y - lhs.y * rhs.x,
             });
         }
 

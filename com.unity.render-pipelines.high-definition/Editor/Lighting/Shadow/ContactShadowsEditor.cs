@@ -1,11 +1,10 @@
-using UnityEditor;
-using UnityEditor.Rendering;
+using UnityEngine.Rendering.HighDefinition;
 
-namespace UnityEngine.Experimental.Rendering.HDPipeline
+namespace UnityEditor.Rendering.HighDefinition
 {
     [CanEditMultipleObjects]
     [VolumeComponentEditor(typeof(ContactShadows))]
-    public class ContactShadowsEditor : VolumeComponentEditor
+    class ContactShadowsEditor : VolumeComponentEditor
     {
         SerializedDataParameter m_Enable;
         SerializedDataParameter m_Length;

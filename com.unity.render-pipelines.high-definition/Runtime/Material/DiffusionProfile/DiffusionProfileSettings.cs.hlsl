@@ -5,7 +5,7 @@
 #ifndef DIFFUSIONPROFILESETTINGS_CS_HLSL
 #define DIFFUSIONPROFILESETTINGS_CS_HLSL
 //
-// UnityEngine.Experimental.Rendering.HDPipeline.DiffusionProfileConstants:  static fields
+// UnityEngine.Rendering.HighDefinition.DiffusionProfileConstants:  static fields
 //
 #define DIFFUSION_PROFILE_COUNT (16)
 #define DIFFUSION_PROFILE_NEUTRAL_ID (0)

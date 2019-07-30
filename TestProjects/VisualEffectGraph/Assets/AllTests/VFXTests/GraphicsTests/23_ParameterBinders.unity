@@ -133,7 +133,7 @@ MonoScript:
   m_Icon: {fileID: 0}
   m_ExecutionOrder: 0
   m_ClassName: VFXRaycastBinder
-  m_Namespace: UnityEngine.Experimental.VFX.Utility
+  m_Namespace: UnityEngine.VFX.Utility
 --- !u!1 &35626663
 GameObject:
   m_ObjectHideFlags: 0
@@ -763,7 +763,7 @@ MonoScript:
   m_Icon: {fileID: 0}
   m_ExecutionOrder: 0
   m_ClassName: VFXUIDropdownBinder
-  m_Namespace: UnityEngine.Experimental.VFX.Utility
+  m_Namespace: UnityEngine.VFX.Utility
 --- !u!1 &415086772
 GameObject:
   m_ObjectHideFlags: 0
@@ -2433,7 +2433,7 @@ MonoScript:
   m_Icon: {fileID: 0}
   m_ExecutionOrder: 0
   m_ClassName: VFXUISliderBinder
-  m_Namespace: UnityEngine.Experimental.VFX.Utility
+  m_Namespace: UnityEngine.VFX.Utility
 --- !u!115 &1411498622
 MonoScript:
   m_ObjectHideFlags: 0
@@ -2447,7 +2447,7 @@ MonoScript:
   m_Icon: {fileID: 0}
   m_ExecutionOrder: 0
   m_ClassName: VFXAudioSpectrumBinder
-  m_Namespace: UnityEngine.Experimental.VFX.Utility
+  m_Namespace: UnityEngine.VFX.Utility
 --- !u!1 &1448428318
 GameObject:
   m_ObjectHideFlags: 0

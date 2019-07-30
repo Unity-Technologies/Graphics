@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
-using UnityEditor.Experimental.VFX;
+using UnityEditor.VFX;
 using UnityEngine;
 using UnityEngine.Rendering;
-using UnityEngine.Experimental.VFX;
+using UnityEngine.VFX;
 
 namespace UnityEditor.VFX
 {
@@ -22,6 +22,9 @@ namespace UnityEditor.VFX
         // IVFXSubRenderer interface
         // TODO Could we derive this directly by looking at the shader to know if a shadow pass is present?
         public virtual bool hasShadowCasting { get { return castShadows; } }
+
+        public virtual bool hasMotionVector { get { return false; } } //TODO
+
         int IVFXSubRenderer.sortPriority
         {
             get

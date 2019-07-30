@@ -254,6 +254,7 @@ MonoBehaviour:
   m_OutputSlots: []
   m_Disabled: 0
   mode: 6
+  axes: 4
 --- !u!114 &114134638908199294
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -329,6 +330,7 @@ MonoBehaviour:
   m_OutputFlowSlot:
   - link: []
   blendMode: 4
+  generateMotionVector: 0
   m_SubOutputs:
   - {fileID: 8926484042661614622}
   cullMode: 3
@@ -341,7 +343,6 @@ MonoBehaviour:
   sort: 0
   indirectDraw: 0
   castShadows: 1
-  preRefraction: 0
   useExposureWeight: 0
 --- !u!114 &114149745243873572
 MonoBehaviour:
@@ -812,7 +813,10 @@ MonoBehaviour:
   - {fileID: 114148650700201542}
   - {fileID: 114440299538930908}
   - {fileID: 114361518839833050}
-  m_Capacity: 5056
+  dataType: 0
+  capacity: 5056
+  stripCapacity: 16
+  particlePerStripCount: 16
   m_Space: 0
 --- !u!114 &114340786042683758
 MonoBehaviour:
@@ -924,6 +928,7 @@ MonoBehaviour:
   m_OutputFlowSlot:
   - link: []
   blendMode: 1
+  generateMotionVector: 0
   m_SubOutputs:
   - {fileID: 8926484042661614623}
   cullMode: 0
@@ -936,7 +941,6 @@ MonoBehaviour:
   sort: 0
   indirectDraw: 0
   castShadows: 1
-  preRefraction: 0
   useExposureWeight: 0
 --- !u!114 &114369422258304014
 MonoBehaviour:
@@ -1179,6 +1183,7 @@ MonoBehaviour:
   m_OutputFlowSlot:
   - link: []
   blendMode: 4
+  generateMotionVector: 0
   m_SubOutputs:
   - {fileID: 8926484042661614621}
   cullMode: 3
@@ -1191,7 +1196,6 @@ MonoBehaviour:
   sort: 0
   indirectDraw: 0
   castShadows: 1
-  preRefraction: 0
   useExposureWeight: 0
   targetFromAttributes: 1
   useNativeLines: 0
@@ -2222,6 +2226,10 @@ MonoBehaviour:
   - link:
     - context: {fileID: 114215031371574852}
       slotIndex: 0
+  loopDuration: 0
+  loopCount: 0
+  delayBeforeLoop: 0
+  delayAfterLoop: 0
 --- !u!114 &114770698213047778
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -2313,6 +2321,7 @@ MonoBehaviour:
   m_OutputFlowSlot:
   - link: []
   blendMode: 2
+  generateMotionVector: 0
   m_SubOutputs:
   - {fileID: 8926484042661614620}
   cullMode: 0
@@ -2325,7 +2334,6 @@ MonoBehaviour:
   sort: 0
   indirectDraw: 0
   castShadows: 1
-  preRefraction: 0
   useExposureWeight: 0
   primitiveType: 1
   useGeometryShader: 0
@@ -2603,6 +2611,7 @@ MonoBehaviour:
   m_OutputSlots: []
   m_Disabled: 0
   mode: 0
+  axes: 4
 --- !u!114 &114902290166702664
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -2809,6 +2818,7 @@ VisualEffectResource:
     m_UpdateMode: 0
     m_PreWarmDeltaTime: 0.05
     m_PreWarmStepCount: 0
+    m_InitialEventName: OnPlay
   m_Systems: []
 --- !u!114 &8926484042661614529
 MonoBehaviour:

@@ -125,6 +125,10 @@ namespace UnityEditor.ShaderGraph
                 {
                     transformString = string.Format(conversionType == ConversionType.Direction ? "TransformWorldToViewDir({0})" : "TransformWorldToView({0})", inputValue);
                 }
+                else if (conversion.to == CoordinateSpace.AbsoluteWorld)
+                {
+                    transformString = string.Format("GetAbsolutePositionWS({0})", inputValue);
+                }
             }
             else if (conversion.from == CoordinateSpace.Object)
             {
@@ -144,6 +148,10 @@ namespace UnityEditor.ShaderGraph
                 else if (conversion.to == CoordinateSpace.View)
                 {
                     transformString = string.Format(conversionType == ConversionType.Direction ? "TransformWorldToViewDir(TransformObjectToWorldDir({0}))" : "TransformWorldToView(TransformObjectToWorld({0}))", inputValue);
+                }
+                if (conversion.to == CoordinateSpace.AbsoluteWorld)
+                {
+                    transformString = string.Format(conversionType == ConversionType.Direction ? "TransformObjectToWorldDir({0})" : "GetAbsolutePositionWS(TransformObjectToWorld({0}))", inputValue);
                 }
             }
             else if (conversion.from == CoordinateSpace.Tangent)
@@ -167,6 +175,11 @@ namespace UnityEditor.ShaderGraph
                     requiresTransposeTangentTransform = true;
                     transformString = string.Format(conversionType == ConversionType.Direction ? "TransformWorldToViewDir(mul({0}, {1}).xyz)" : "TransformWorldToView(mul({0}, {1}).xyz)", transposeTargetTransformString, inputValue);
                 }
+                if (conversion.to == CoordinateSpace.AbsoluteWorld)
+                {
+                    requiresTransposeTangentTransform = true;
+                    transformString = string.Format("GetAbsolutePositionWS(mul({0}, {1})).xyz", transposeTargetTransformString, inputValue);
+                }
             }
             else if (conversion.from == CoordinateSpace.View)
             {
@@ -185,6 +198,34 @@ namespace UnityEditor.ShaderGraph
                     transformString = string.Format("TransformWorldToTangent(mul(UNITY_MATRIX_I_V, $precision4({0}, 1) ).xyz, {1})", inputValue, targetTransformString);
                 }
                 else if (conversion.to == CoordinateSpace.View)
+                {
+                    transformString = inputValue;
+                }
+                else if (conversion.to == CoordinateSpace.AbsoluteWorld)
+                {
+                    transformString = string.Format("GetAbsolutePositionWS(mul(UNITY_MATRIX_I_V, $precision4({0}, 1))).xyz", inputValue);
+                }
+            }
+            else if (conversion.from == CoordinateSpace.AbsoluteWorld)
+            {
+                if (conversion.to == CoordinateSpace.World)
+                {
+                    transformString = string.Format("GetCameraRelativePositionWS({0})", inputValue);
+                }
+                else if (conversion.to == CoordinateSpace.Object)
+                {
+                    transformString = string.Format(conversionType == ConversionType.Direction ? "TransformWorldToObjectDir({0})" : "TransformWorldToObject({0})", inputValue);
+                }
+                else if (conversion.to == CoordinateSpace.Tangent)
+                {
+                    requiresTangentTransform = true;
+                    transformString = string.Format("TransformWorldToTangent({0}, {1})", inputValue, targetTransformString);
+                }
+                else if (conversion.to == CoordinateSpace.View)
+                {
+                    transformString = string.Format(conversionType == ConversionType.Direction ? "TransformWorldToViewDir(GetCameraRelativePositionWS({0}))" : "TransformWorldToView(GetCameraRelativePositionWS({0}))", inputValue);
+                }
+                else if (conversion.to == CoordinateSpace.AbsoluteWorld)
                 {
                     transformString = inputValue;
                 }

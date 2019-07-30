@@ -1,9 +1,6 @@
-using UnityEngine.Rendering;
-using System.Collections.Generic;
-
-namespace UnityEngine.Experimental.Rendering.HDPipeline
+namespace UnityEngine.Rendering.HighDefinition
 {
-    abstract public class IBLFilterBSDF
+    abstract class IBLFilterBSDF
     {
         // Material that convolves the cubemap using the profile
         protected Material m_convolveMaterial;

@@ -1,10 +1,10 @@
-using UnityEngine.Experimental.Rendering.HDPipeline;
+using UnityEngine.Rendering.HighDefinition;
 using UnityEditor.Rendering;
 
-namespace UnityEditor.Experimental.Rendering.HDPipeline
+namespace UnityEditor.Rendering.HighDefinition
 {
     [VolumeComponentEditor(typeof(ExponentialFog))]
-    public class ExponentialFogEditor : AtmosphericScatteringEditor
+    class ExponentialFogEditor : AtmosphericScatteringEditor
     {
         SerializedDataParameter m_Density;
         SerializedDataParameter m_FogDistance;

@@ -11,46 +11,9 @@ namespace UnityEditor.ShaderGraph
         {
             displayName = "Vector4";
         }
-
-        public override PropertyType propertyType
-        {
-            get { return PropertyType.Vector4; }
-        }
-
-        public override Vector4 defaultValue
-        {
-            get { return value; }
-        }
-
-        public override bool isBatchable
-        {
-            get { return true; }
-        }
-
-        public override bool isExposable
-        {
-            get { return true; }
-        }
-
-        public override bool isRenamable
-        {
-            get { return true; }
-        }
-
-        public override string GetPropertyDeclarationString(string delimiter = ";")
-        {
-            return string.Format("{0}4 {1}{2}", concretePrecision.ToShaderString(), referenceName, delimiter);
-        }
-
-        public override PreviewProperty GetPreviewMaterialProperty()
-        {
-            return new PreviewProperty(PropertyType.Vector4)
-            {
-                name = referenceName,
-                vector4Value = value
-            };
-        }
-
+        
+        public override PropertyType propertyType => PropertyType.Vector4;
+        
         public override AbstractMaterialNode ToConcreteNode()
         {
             var node = new Vector4Node();
@@ -61,12 +24,23 @@ namespace UnityEditor.ShaderGraph
             return node;
         }
 
-        public override AbstractShaderProperty Copy()
+        public override PreviewProperty GetPreviewMaterialProperty()
         {
-            var copied = new Vector4ShaderProperty();
-            copied.displayName = displayName;
-            copied.value = value;
-            return copied;
+            return new PreviewProperty(propertyType)
+            {
+                name = referenceName,
+                vector4Value = value
+            };
+        }
+
+        public override ShaderInput Copy()
+        {
+            return new Vector4ShaderProperty()
+            {
+                displayName = displayName,
+                hidden = hidden,
+                value = value
+            };
         }
     }
 }

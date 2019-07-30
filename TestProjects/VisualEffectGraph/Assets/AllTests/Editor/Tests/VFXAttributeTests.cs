@@ -4,7 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using UnityEngine.Experimental.VFX;
+using UnityEngine.VFX;
 
 using Object = UnityEngine.Object;
 
@@ -154,6 +154,18 @@ namespace UnityEditor.VFX.Test
             Assert.AreEqual(scaleReference.x, scaleValue.x);
             Assert.AreEqual(scaleReference.y, scaleValue.y);
             Assert.AreEqual(scaleReference.z, scaleValue.z);
+        }
+
+        //Case 1166905
+        [Test]
+        public void SetAttribute_Inheriting_Source_Doesnt_Require_Seed()
+        {
+            var setAttribute = ScriptableObject.CreateInstance<Block.SetAttribute>();
+            setAttribute.SetSettingValue("attribute", "alpha");
+            setAttribute.SetSettingValue("Source", Block.SetAttribute.ValueSource.Source);
+            setAttribute.SetSettingValue("Random", Block.RandomMode.Uniform);
+
+            Assert.IsFalse(setAttribute.attributes.Any(o => o.attrib.name == VFXAttribute.Seed.name));
         }
     }
 }

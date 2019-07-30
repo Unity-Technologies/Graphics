@@ -16,7 +16,8 @@ namespace UnityEngine.Rendering
             m_Cmd = cmd;
             m_Name = name;
             m_Disposed = false;
-            cmd?.BeginSample(name);
+            if (cmd != null && name != "")
+                cmd.BeginSample(name);
             m_Sampler = sampler;
             m_Sampler?.Begin();
         }
@@ -48,7 +49,8 @@ namespace UnityEngine.Rendering
             // this but will generate garbage on every frame (and this struct is used quite a lot).
             if (disposing)
             {
-                m_Cmd?.EndSample(m_Name);
+                if (m_Cmd != null && m_Name != "")
+                    m_Cmd.EndSample(m_Name);
                 m_Sampler?.End();
             }
 

@@ -6,12 +6,6 @@
 // multi-view is not yet supported
 // single-pass doule-wide is deprecated
 
-// XRTODO: refactor this with UnityInstancing.hlsl and sync with LWRP
-// XRTODO: update supported platforms based on Unity version (for required C++ fixes)
-
-// XRTODO: consolidate with TextureXR.cs
-#define XR_MAX_VIEWS 2
-
 // Must be in sync with C# with property useTexArray in TextureXR.cs
 #if (defined(SHADER_API_D3D11) && !defined(SHADER_API_XBOXONE)) || defined(SHADER_API_PSSL) || defined(SHADER_API_VULKAN)
     #define UNITY_TEXTURE2D_X_ARRAY_SUPPORTED
@@ -77,6 +71,8 @@
     #define GATHER_RED_TEXTURE2D_X(textureName, samplerName, coord2)         GATHER_RED_TEXTURE2D(textureName, samplerName, float3(coord2, SLICE_ARRAY_INDEX))
     #define GATHER_GREEN_TEXTURE2D_X(textureName, samplerName, coord2)       GATHER_GREEN_TEXTURE2D(textureName, samplerName, float3(coord2, SLICE_ARRAY_INDEX))
 #else
+    #define SLICE_ARRAY_INDEX                                                0
+
     #define TEXTURE2D_X                                                      TEXTURE2D
     #define TEXTURE2D_X_PARAM                                                TEXTURE2D_PARAM
     #define TEXTURE2D_X_ARGS                                                 TEXTURE2D_ARGS

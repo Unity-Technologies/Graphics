@@ -1,10 +1,9 @@
-using UnityEditor.Rendering;
+using System.IO;
 using UnityEngine;
-using UnityEngine.Experimental.Rendering;
-using UnityEngine.Experimental.Rendering.HDPipeline;
+using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.Rendering;
 
-namespace UnityEditor.Experimental.Rendering.HDPipeline
+namespace UnityEditor.Rendering.HighDefinition
 {
     // TODO: handle retina / EditorGUIUtility.pixelsPerPoint
     [VolumeComponentEditor(typeof(Tonemapping))]
@@ -17,6 +16,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         SerializedDataParameter m_ShoulderLength;
         SerializedDataParameter m_ShoulderAngle;
         SerializedDataParameter m_Gamma;
+        SerializedDataParameter m_LutTexture;
+        SerializedDataParameter m_LutContribution;
 
         // Curve drawing utilities
         readonly HableCurve m_HableCurve = new HableCurve();
@@ -35,6 +36,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             m_ShoulderLength   = Unpack(o.Find(x => x.shoulderLength));
             m_ShoulderAngle    = Unpack(o.Find(x => x.shoulderAngle));
             m_Gamma            = Unpack(o.Find(x => x.gamma));
+            m_LutTexture       = Unpack(o.Find(x => x.lutTexture));
+            m_LutContribution  = Unpack(o.Find(x => x.lutContribution));
 
             m_Material = new Material(Shader.Find("Hidden/HD PostProcessing/Editor/Custom Tonemapper Curve"));
         }
@@ -112,6 +115,18 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 PropertyField(m_ShoulderAngle);
                 PropertyField(m_Gamma);
             }
+            else if (m_Mode.value.intValue == (int)TonemappingMode.External)
+            {
+                PropertyField(m_LutTexture, EditorGUIUtility.TrTextContent("Lookup Texture"));
+
+                var lut = m_LutTexture.value.objectReferenceValue;
+                if (lut != null && !((Tonemapping)target).ValidateLUT())
+                    EditorGUILayout.HelpBox("Invalid lookup texture. It must be a 3D texture or render texture with the same size as set in the HDRP settings.", MessageType.Warning);
+
+                PropertyField(m_LutContribution, EditorGUIUtility.TrTextContent("Contribution"));
+
+                EditorGUILayout.HelpBox("Use \"Edit > Render Pipeline > Render Selected Camera to Log EXR\" to export a log-encoded frame for external grading.", MessageType.Info);
+            }
         }
 
         void CheckCurveRT(int width, int height)
@@ -122,6 +137,72 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 m_CurveTex = new RenderTexture(width, height, 0, RenderTextureFormat.ARGB32);
                 m_CurveTex.hideFlags = HideFlags.HideAndDontSave;
             }
+        }
+    }
+
+    sealed class ExrExportMenu
+    {
+        [MenuItem("Edit/Render Pipeline/Render Selected Camera to Log EXR %#&e", priority = CoreUtils.editMenuPriority3)]
+        static void Export()
+        {
+            var camera = Selection.activeGameObject?.GetComponent<Camera>();
+
+            if (camera == null)
+            {
+                Debug.LogError("Please select a camera before trying to export an EXR.");
+                return;
+            }
+
+            var hdInstance = RenderPipelineManager.currentPipeline as HDRenderPipeline;
+
+            if (hdInstance == null)
+            {
+                Debug.LogError("No HDRenderPipeline set in GraphicsSettings.");
+                return;
+            }
+
+            string outPath = EditorUtility.SaveFilePanel("Export EXR...", "", "Frame", "exr");
+
+            if (string.IsNullOrEmpty(outPath))
+                return;
+
+            var w = camera.pixelWidth;
+            var h = camera.pixelHeight;
+            var texOut = new Texture2D(w, h, TextureFormat.RGBAFloat, false, true);
+            var target = RenderTexture.GetTemporary(w, h, 24, RenderTextureFormat.ARGBFloat, RenderTextureReadWrite.Linear);
+            var lastActive = RenderTexture.active;
+            var lastTargetSet = camera.targetTexture;
+
+            hdInstance.debugDisplaySettings.SetFullScreenDebugMode(FullScreenDebugMode.ColorLog);
+
+            EditorUtility.DisplayProgressBar("Export EXR", "Rendering...", 0f);
+
+            camera.targetTexture = target;
+            camera.Render();
+            camera.targetTexture = lastTargetSet;
+
+            EditorUtility.DisplayProgressBar("Export EXR", "Reading...", 0.25f);
+
+            hdInstance.debugDisplaySettings.SetFullScreenDebugMode(FullScreenDebugMode.None);
+
+            RenderTexture.active = target;
+            texOut.ReadPixels(new Rect(0, 0, w, h), 0, 0);
+            texOut.Apply();
+            RenderTexture.active = lastActive;
+
+            EditorUtility.DisplayProgressBar("Export EXR", "Encoding...", 0.5f);
+
+            var bytes = texOut.EncodeToEXR(Texture2D.EXRFlags.OutputAsFloat | Texture2D.EXRFlags.CompressZIP);
+
+            EditorUtility.DisplayProgressBar("Export EXR", "Saving...", 0.75f);
+
+            File.WriteAllBytes(outPath, bytes);
+
+            EditorUtility.ClearProgressBar();
+            AssetDatabase.Refresh();
+
+            RenderTexture.ReleaseTemporary(target);
+            UnityEngine.Object.DestroyImmediate(texOut);
         }
     }
 }

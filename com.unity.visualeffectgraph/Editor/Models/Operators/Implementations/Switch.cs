@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using UnityEngine.Experimental.VFX;
+using UnityEngine.VFX;
 
 namespace UnityEditor.VFX.Operator
 {
@@ -56,11 +56,11 @@ namespace UnityEditor.VFX.Operator
         }
 
 
-        protected override void Invalidate(VFXModel model, InvalidationCause cause)
+        protected override void OnInvalidate(VFXModel model, InvalidationCause cause)
         {
             if (m_EntryCount < 1) m_EntryCount = 1;
             if (m_EntryCount > 32) m_EntryCount = 32;
-            base.Invalidate(model, cause);
+            base.OnInvalidate(model, cause);
         }
 
         protected sealed override IEnumerable<VFXPropertyWithValue> inputProperties

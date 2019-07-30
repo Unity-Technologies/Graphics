@@ -1,8 +1,7 @@
-
-namespace UnityEngine.Experimental.Rendering.HDPipeline
+namespace UnityEngine.Rendering.HighDefinition
 {
     [GenerateHLSL(needAccessors = false, omitStructDeclaration = true)]
-    public struct ShaderVariablesAtmosphericScattering
+    struct ShaderVariablesAtmosphericScattering
     {
         // Common
         public int     _AtmosphericScatteringType;

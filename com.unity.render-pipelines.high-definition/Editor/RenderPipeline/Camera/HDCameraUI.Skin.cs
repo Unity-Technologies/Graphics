@@ -1,14 +1,14 @@
 using UnityEditor.Rendering;
 using UnityEngine;
 
-namespace UnityEditor.Experimental.Rendering.HDPipeline
+namespace UnityEditor.Rendering.HighDefinition
 {
     static partial class HDCameraUI
     {
         const string generalSettingsHeaderContent = "General";
-        const string physicalSettingsHeaderContent = "Physical Settings";
-        const string outputSettingsHeaderContent = "Output Settings";
-        const string xrSettingsHeaderContent = "XR Settings";
+        const string physicalSettingsHeaderContent = "Physical";
+        const string outputSettingsHeaderContent = "Output";
+        const string xrSettingsHeaderContent = "XR";
 
         const string clippingPlaneMultiFieldTitle = "Clipping Planes";
 

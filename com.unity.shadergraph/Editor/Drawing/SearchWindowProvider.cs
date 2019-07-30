@@ -102,9 +102,8 @@ namespace UnityEditor.ShaderGraph.Drawing
             foreach (var property in m_Graph.properties)
             {
                 var node = new PropertyNode();
-                var property1 = property;
                 node.owner = m_Graph;
-                node.propertyGuid = property1.guid;
+                node.propertyGuid = property.guid;
                 node.owner = null;
                 AddEntries(node, new[] { "Properties", "Property: " + property.displayName }, nodeEntries);
             }

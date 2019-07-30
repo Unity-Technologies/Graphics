@@ -36,11 +36,12 @@ CBUFFER_START(cb0)
     float4 _VignetteColor;
     float4 _DistortionParams1;
     float4 _DistortionParams2;
-    float4 _LogLut3D_Params;        // x: 1 / lut_size, y: lut_size - 1, z: postexposure, w: unused
+    float4 _LogLut3D_Params;        // x: 1 / lut_size, y: lut_size - 1, z: postexposure, w: enabled
     float4 _BloomParams;
     float4 _BloomTint;
     float4 _BloomDirtScaleOffset;
     float4 _BloomBicubicParams;
+    float4 _DebugFlags;
 CBUFFER_END
 
 #define DistCenter              _DistortionParams1.xy
@@ -63,6 +64,7 @@ CBUFFER_END
 #define VignetteOpacity         _VignetteColor.w
 
 #define PostExposure            _LogLut3D_Params.z
+#define GradingEnabled          _LogLut3D_Params.w
 
 #define BloomTint               _BloomTint.xyz
 #define BloomIntensity          _BloomParams.x
@@ -71,6 +73,8 @@ CBUFFER_END
 #define DirtEnabled             _BloomParams.w
 #define DirtScale               _BloomDirtScaleOffset.xy
 #define DirtOffset              _BloomDirtScaleOffset.zw
+
+#define OutputLogEnabled        _DebugFlags.x
 
 float2 DistortUV(float2 uv)
 {
@@ -186,7 +190,14 @@ void MAIN(uint3 dispatchThreadId : SV_DispatchThreadID)
     }
 
     // Grading, tonemapping
-    // This is always on when post-processing is enabled
+    // The branch is only used for frame settings & exr log export - else grading is always enabled
+    UNITY_BRANCH
+    if (OutputLogEnabled)
+    {
+        // Output in log space for debug & exr export (external grading)
+        color = saturate(LinearToLogC(color));
+    }
+    else if (GradingEnabled)
     {
         // Artist request to fine tune exposure in post without affecting bloom, dof etc
         color *= PostExposure;

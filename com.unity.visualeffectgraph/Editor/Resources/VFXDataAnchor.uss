@@ -14,8 +14,8 @@
     color: #BBB;
     font-size: 11px;
     padding-bottom:0;
-    min-height: 18px;
-    height: -1px;
+    min-height: 20px;
+    height: auto;
     margin-bottom:0;
     margin-right: 4px;
 }
@@ -42,6 +42,12 @@
 .VFXDataAnchor.port #connector
 {
     margin-right:0;
+}
+
+
+.superCollapsed .VFXDataAnchor.port #connector
+{
+    margin-left:0;
 }
 
 .VFXDataAnchor #connector #hole

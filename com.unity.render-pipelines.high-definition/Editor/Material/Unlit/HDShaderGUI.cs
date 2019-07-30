@@ -2,10 +2,13 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using UnityEngine.Experimental.Rendering.HDPipeline;
+using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.Rendering;
 
-namespace UnityEditor.Experimental.Rendering.HDPipeline
+// Include material common properties names
+using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
+
+namespace UnityEditor.Rendering.HighDefinition
 {
     // A Material can be authored from the shader graph or by hand. When written by hand we need to provide an inspector.
     // Such a Material will share some properties between it various variant (shader graph variant or hand authored variant).
@@ -29,6 +32,19 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             material.renderQueue = currentRenderQueue;
 
             SetupMaterialKeywordsAndPassInternal(material);
+        }
+        
+        readonly static string[] floatPropertiesToSynchronize = {
+            kAlphaCutoffEnabled, "_AlphaCutoff", "_UseShadowThreshold", kReceivesSSR, kUseSplitLighting
+        };
+
+        protected static void SynchronizeShaderGraphProperties(Material material)
+        {
+            var defaultProperties = new Material(material.shader);
+            foreach (var floatToSync in floatPropertiesToSynchronize)
+                if (material.HasProperty(floatToSync))
+                    material.SetFloat(floatToSync, defaultProperties.GetFloat(floatToSync));
+            defaultProperties = null;
         }
     }
 }

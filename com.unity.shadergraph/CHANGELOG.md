@@ -4,14 +4,26 @@ All notable changes to this package are documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [7.0.0-preview] - 2019-XX-XX
+## [7.1.0] - 2019-XX-XX
+### Changed
+- New Shader Graph windows are now docked to either existing Shader Graph windows, or to the Scene View.
+
+### Fixed
+- Fixed various dependency tracking issues with Sub Graphs and HLSL files from Custom Function Nodes.
+
+## [7.0.0] - 2019-07-10
 ### Added
 - You can now use the `SHADERGRAPH_PREVIEW` keyword in `Custom Function Node` to generate different code for preview Shaders.
 - Color Mode improves node visibility by coloring the title bar by Category, Precision, or custom colors.
 - You can now set the precision of a Shader Graph and individual nodes.
+- Added the `_TimeParameters` variable which contains `Time`, `Sin(Time)`, and `Cosine(Time)`
+- _Absolute World_ space on `Position Node` now provides absolute world space coordinates regardless of the active render pipeline.
+- You can now add sticky notes to graphs.
 
 ### Changed
 - The `Custom Function Node` now uses an object field to reference its source when using `File` mode.
+- To enable master nodes to generate correct motion vectors for time-based vertex modification, time is now implemented as an input to the graph rather than as a global uniform.
+- **World** space on `Position Node` now uses the default world space coordinates of the active render pipeline. 
 
 ### Fixed
 - Fixed an error in `Custom Function Node` port naming.
@@ -20,6 +32,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an error that occured when creating a Sub Graph from a selection containing a Group Node.
 - When you change a Sub Graph, Shader Graph windows now correctly reload.
 - When you save a Shader Graph, all other Shader Graph windows no longer re-compile their preview Shaders.
+- Shader Graph UI now draws with correct styling for 2019.3.
+- When deleting edge connections to nodes with a preview error, input ports no longer draw in the wrong position.
+- Fixed an error involving deprecated components from VisualElements.
+- When you convert nodes to a Sub Graph, the nodes are now placed correctly in the Sub Graph.
+- The `Bitangent Vector Node` now generates all necessary shader requirements.
 
 ## [6.7.0-preview] - 2019-05-16
 ### Added
@@ -47,6 +64,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - When you save a graph that contains a Sub Graph node, the Shader Graph window no longer freezes.
 - Fixed an error that occured when using multiple Sampler State nodes with different parameters.
 - Fixed an issue causing default inputs to be misaligned in certain cases.
+- You can no longer directly connect slots with invalid types. When the graph detects that situation, it now doesn't break and gives an error instead.
 
 ## [6.6.0] - 2019-04-01
 ### Added

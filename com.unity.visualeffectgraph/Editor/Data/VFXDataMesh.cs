@@ -2,8 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using UnityEditor.Experimental.VFX;
-using UnityEngine.Experimental.VFX;
+using UnityEditor.VFX;
+using UnityEngine.VFX;
 
 namespace UnityEditor.VFX
 {
@@ -38,6 +38,7 @@ namespace UnityEditor.VFX
 
         public override void FillDescs(
             List<VFXGPUBufferDesc> outBufferDescs,
+            List<VFXTemporaryGPUBufferDesc> outTemporaryBufferDescs,
             List<VFXEditorSystemDesc> outSystemDescs,
             VFXExpressionGraph expressionGraph,
             Dictionary<VFXContext, VFXContextCompiledData> contextToCompiledData,
@@ -62,7 +63,7 @@ namespace UnityEditor.VFX
                 externalProcessor = shader,
                 values = mappings.ToArray(),
                 parameters = contextData.parameters,
-                type = (UnityEngine.Experimental.VFX.VFXTaskType)VFXTaskType.Output
+                type = (UnityEngine.VFX.VFXTaskType)VFXTaskType.Output
             };
 
             mappings.Clear();

@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
-using UnityEngine.Experimental.VFX;
+using UnityEngine.VFX;
 
 namespace UnityEditor.VFX
 {
@@ -33,16 +33,19 @@ namespace UnityEditor.VFX
 
         public IEnumerable<VFXExpression> expressions { get { return m_ExpressionsData.Keys; } }
 
-        public void AddExpressionFromSlotContainer(IVFXSlotContainer slotContainer, int blockId)
+        public void AddExpressionsFromSlotContainer(IVFXSlotContainer slotContainer, int blockId)
         {
             foreach (var master in slotContainer.inputSlots)
+                AddExpressionsFromSlot(master, blockId);
+        }
+
+        public void AddExpressionsFromSlot(VFXSlot masterSlot, int blockId)
+        {
+            foreach (var slot in masterSlot.GetExpressionSlots())
             {
-                foreach (var slot in master.GetExpressionSlots())
-                {
-                    var exp = slot.GetExpression();
-                    if (!Contains(exp))
-                        AddExpression(exp, slot.fullName, blockId);
-                }
+                var exp = slot.GetExpression();
+                if (!Contains(exp))
+                    AddExpression(exp, slot.fullName, blockId);
             }
         }
 
@@ -60,7 +63,7 @@ namespace UnityEditor.VFX
         public static VFXExpressionMapper FromContext(VFXContext context)
         {
             var mapper = FromBlocks(context.activeFlattenedChildrenWithImplicit);
-            mapper.AddExpressionFromSlotContainer(context, -1);
+            mapper.AddExpressionsFromSlotContainer(context, -1);
             return mapper;
         }
 
