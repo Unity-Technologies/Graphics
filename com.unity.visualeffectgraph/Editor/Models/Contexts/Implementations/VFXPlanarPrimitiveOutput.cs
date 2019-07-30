@@ -15,7 +15,7 @@ namespace UnityEditor.VFX
         [VFXSetting, SerializeField]
         protected ShaderGraphVfxAsset shaderGraph;
 
-        public class InputProperties
+        public class OptionalInputProperties
         {
             public Texture2D mainTexture = VFXResources.defaultResources.particleTexture;
         }
@@ -79,15 +79,19 @@ namespace UnityEditor.VFX
         {
             get
             {
-                IEnumerable<VFXPropertyWithValue> properties = null;
+                IEnumerable<VFXPropertyWithValue> properties = base.inputProperties;
                 if (shaderGraph == null)
-                    properties = base.inputProperties;
+                {
+                    properties = properties.Concat(PropertiesFromType("OptionalInputProperties"));
+                }
                 else
-                    properties = shaderGraph.properties
+                {
+                    properties = properties.Concat(shaderGraph.properties
                         .Where(t => !t.hidden)
                         .Select(t => new { property = t, type = GetSGPropertyType(t) })
                         .Where(t => t.type != null)
-                        .Select(t => new VFXPropertyWithValue(new VFXProperty(t.type, t.property.displayName), GetSGPropertyValue(t.property)));
+                        .Select(t => new VFXPropertyWithValue(new VFXProperty(t.type, t.property.displayName), GetSGPropertyValue(t.property))));
+                }
                 return properties;
             }
         }
