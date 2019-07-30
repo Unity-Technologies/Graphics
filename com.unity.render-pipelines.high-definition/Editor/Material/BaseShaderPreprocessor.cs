@@ -68,11 +68,12 @@ namespace UnityEditor.Rendering.HighDefinition
 
             var shaderMaterialLevel = inputData.shaderKeywordSet.GetMaterialQuality();
             // if there are material quality defines in this shader
-            if (shaderMaterialLevel != 0
-                // and they don't match the material quality accepted by the hdrp asset
-                && (hdrpAsset.materialQualityLevels & shaderMaterialLevel) == 0)
+            // and they don't match the material quality accepted by the hdrp asset
+            if (shaderMaterialLevel != 0 && (hdrpAsset.materialQualityLevels & shaderMaterialLevel) == 0)
+            {
                 // then strip this variant
                 return true;
+            }
 
             return false;
         }

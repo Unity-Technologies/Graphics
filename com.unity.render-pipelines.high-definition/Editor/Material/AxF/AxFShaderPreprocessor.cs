@@ -9,9 +9,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public override bool ShadersStripper(HDRenderPipelineAsset hdrpAsset, Shader shader, ShaderSnippetData snippet, ShaderCompilerData inputData)
         {
-            if (IsMaterialQualityVariantStripped(hdrpAsset, inputData))
-                return true;
-
             // Note: We know that all the rules of common stripper and Lit Stripper are apply, here we only need to do what is specific to AxF shader
             bool isForwardPass = snippet.passName == "ForwardOnly";
             bool isDepthOnlyPass = snippet.passName == "DepthForwardOnly";

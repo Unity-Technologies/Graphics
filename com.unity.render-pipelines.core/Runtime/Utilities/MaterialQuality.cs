@@ -60,6 +60,7 @@ namespace Utilities
                 if ((level & (MaterialQuality) (1 << i)) != 0)
                     return i;
             }
+            
             return -1;
         }
 

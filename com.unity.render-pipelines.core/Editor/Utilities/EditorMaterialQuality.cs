@@ -13,6 +13,7 @@ namespace UnityEditor.Rendering.Utilities
                 if (keywordSet.IsEnabled(MaterialQualityUtilities.Keywords[i]))
                     result |= (MaterialQuality) (1 << i);
             }
+            
             return result;
         }
     }
