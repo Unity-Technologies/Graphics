@@ -6,6 +6,7 @@ using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 namespace UnityEditor.Rendering
 {
@@ -106,6 +107,9 @@ namespace UnityEditor.Rendering
             static void ReleaseMouseControl() => s_GrabbedID = -1;
             static bool HasMouseControl(int id) => s_GrabbedID == id;
         }
+
+        static GraphicsDeviceType[] m_BuildTargets;
+        public static GraphicsDeviceType[] buildTargets => m_BuildTargets ?? (m_BuildTargets = PlayerSettings.GetGraphicsAPIs(EditorUserBuildSettings.activeBuildTarget));
 
         static CoreEditorUtils()
         {

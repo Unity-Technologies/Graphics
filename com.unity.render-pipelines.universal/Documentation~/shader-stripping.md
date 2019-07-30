@@ -1,6 +1,6 @@
 # Shader Stripping
 
-Unity compiles many Shader Variants from a single Shader source file. The number of Shader Variants depends on how many keywords you’ve included in the Shader. In the default Shaders, the Universal Render Pipeline uses a set of keywords for lighting and shadows. UniversalRP can exclude some Shader variants, depending on which features are active in the [UniversalRP Asset](universalrp-asset.md).
+Unity compiles many Shader Variants from a single Shader source file. The number of Shader Variants depends on how many keywords you’ve included in the Shader. In the default Shaders, the Universal Render Pipeline (UniversalRP) uses a set of keywords for lighting and shadows. UniversalRP can exclude some Shader variants, depending on which features are active in the [UniversalRP Asset](universalrp-asset.md).
 
 When you disable [certain features](shader-stripping-keywords.md) in the UniversalRP Asset, the pipeline “strips” the related Shader variants from the build. Stripping your Shaders gives you smaller build sizes and shorter build times. This is useful if your project is never going to use certain features or keywords.
 

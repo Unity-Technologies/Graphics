@@ -67,6 +67,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 StackLitMasterNode.HazinessSlotId,
                 StackLitMasterNode.HazeExtentSlotId,
                 StackLitMasterNode.HazyGlossMaxDielectricF0SlotId,
+                StackLitMasterNode.SpecularOcclusionSlotId,
                 StackLitMasterNode.SOFixupVisibilityRatioThresholdSlotId,
                 StackLitMasterNode.SOFixupStrengthFactorSlotId,
                 StackLitMasterNode.SOFixupMaxAddedRoughnessSlotId,
@@ -391,6 +392,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 StackLitMasterNode.HazinessSlotId,
                 StackLitMasterNode.HazeExtentSlotId,
                 StackLitMasterNode.HazyGlossMaxDielectricF0SlotId,
+                StackLitMasterNode.SpecularOcclusionSlotId,
                 StackLitMasterNode.SOFixupVisibilityRatioThresholdSlotId,
                 StackLitMasterNode.SOFixupStrengthFactorSlotId,
                 StackLitMasterNode.SOFixupMaxAddedRoughnessSlotId,
@@ -779,15 +781,11 @@ namespace UnityEditor.Rendering.HighDefinition
                 baseActiveFields.Add("ScreenSpaceSpecularOcclusionAOConeDir." + masterNode.screenSpaceSpecularOcclusionAOConeDir.ToString());
             }
 
-            //if (!masterNode.specularOcclusionIsCustom.isOn) // TODO: never ON for now.
+            baseActiveFields.Add("DataBasedSpecularOcclusionBaseMode." + masterNode.dataBasedSpecularOcclusionBaseMode.ToString());
+            if (StackLitMasterNode.SpecularOcclusionModeUsesVisibilityCone(masterNode.dataBasedSpecularOcclusionBaseMode))
             {
-                baseActiveFields.Add("DataBasedSpecularOcclusionBaseMode." + masterNode.dataBasedSpecularOcclusionBaseMode.ToString());
-                if (StackLitMasterNode.SpecularOcclusionModeUsesVisibilityCone(masterNode.dataBasedSpecularOcclusionBaseMode))
-                {
-                    baseActiveFields.Add("DataBasedSpecularOcclusionAOConeSize." + masterNode.dataBasedSpecularOcclusionAOConeSize.ToString());
-                }
+                baseActiveFields.Add("DataBasedSpecularOcclusionAOConeSize." + masterNode.dataBasedSpecularOcclusionAOConeSize.ToString());
             }
-            //else, TODO, we need one value per lobe.
 
             // Set bent normal fixup predicate if needed:
             if (masterNode.SpecularOcclusionUsesBentNormal())
