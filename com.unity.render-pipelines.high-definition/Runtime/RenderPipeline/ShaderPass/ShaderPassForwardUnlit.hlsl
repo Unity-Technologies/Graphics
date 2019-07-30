@@ -81,7 +81,7 @@ float4 Frag(PackedVaryingsToPS packedInput) : SV_Target
             if (!needLinearToSRGB)
                 result = SRGBToLinear(max(0, result));
 
-            
+            outColor = float4(result, 1.0);
         }
     }
 
