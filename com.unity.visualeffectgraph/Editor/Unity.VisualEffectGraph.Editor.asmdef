@@ -2,8 +2,7 @@
     "name": "Unity.VisualEffectGraph.Editor",
     "references": [
         "Unity.VisualEffectGraph.Runtime",
-        "Unity.Timeline",
-        "Unity.RenderPipelines.HighDefinition.Runtime"
+        "Unity.Timeline"
     ],
     "includePlatforms": [
         "Editor"
