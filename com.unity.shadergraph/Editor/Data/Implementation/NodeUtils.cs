@@ -264,7 +264,7 @@ namespace UnityEditor.Graphing
             char[] arr = input.ToCharArray();
             arr = Array.FindAll<char>(arr, (c => (Char.IsLetterOrDigit(c))));
             var safeName = new string(arr);
-            if (char.IsDigit(safeName[0]))
+            if (safeName.Length > 1 && char.IsDigit(safeName[0]))
             {
                 safeName = $"var{safeName}";
             }
