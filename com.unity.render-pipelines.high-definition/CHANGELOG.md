@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Added
 - Cube LUT support in Tonemapping. Cube LUT helpers for external grading are available in the Post-processing Sample package.
+- Transparency Overdraw debug mode. Allows to visualize transparent objects draw calls as an "heat map".
 
 ### Fixed
 - Fixed material albedo affecting the lux meter
