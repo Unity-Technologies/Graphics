@@ -14,7 +14,7 @@ namespace UnityEditor.ShaderGraph
             value = Matrix4x4.identity;
         }
 
-        internal override PropertyType propertyType => PropertyType.Matrix4;
+        public override PropertyType propertyType => PropertyType.Matrix4;
 
         internal override AbstractMaterialNode ToConcreteNode()
         {

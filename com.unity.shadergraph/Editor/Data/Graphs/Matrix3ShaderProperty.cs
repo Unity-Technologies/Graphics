@@ -14,7 +14,7 @@ namespace UnityEditor.ShaderGraph
             value = Matrix4x4.identity;
         }
 
-        internal override PropertyType propertyType => PropertyType.Matrix3;
+        public override PropertyType propertyType => PropertyType.Matrix3;
 
         internal override string GetPropertyAsArgumentString()
         {

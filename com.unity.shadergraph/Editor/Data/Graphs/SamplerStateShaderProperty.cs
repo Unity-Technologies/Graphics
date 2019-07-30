@@ -13,7 +13,7 @@ namespace UnityEditor.ShaderGraph
             value = new TextureSamplerState();
         }
 
-        internal override PropertyType propertyType => PropertyType.SamplerState;
+        public override PropertyType propertyType => PropertyType.SamplerState;
 
         internal override bool isBatchable => false;
         internal override bool isExposable => false;

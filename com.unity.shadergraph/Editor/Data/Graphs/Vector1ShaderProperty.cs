@@ -17,7 +17,7 @@ namespace UnityEditor.ShaderGraph.Internal
             displayName = "Vector1";
         }
 
-        internal override PropertyType propertyType => PropertyType.Vector1;
+        public override PropertyType propertyType => PropertyType.Vector1;
 
         internal override bool isBatchable => true;
         internal override bool isExposable => true;

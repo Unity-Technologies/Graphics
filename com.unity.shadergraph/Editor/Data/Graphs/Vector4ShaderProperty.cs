@@ -13,7 +13,7 @@ namespace UnityEditor.ShaderGraph.Internal
             displayName = "Vector4";
         }
 
-        internal override PropertyType propertyType => PropertyType.Vector4;
+        public override PropertyType propertyType => PropertyType.Vector4;
 
         internal override AbstractMaterialNode ToConcreteNode()
         {

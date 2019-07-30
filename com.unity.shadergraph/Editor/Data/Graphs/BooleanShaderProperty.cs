@@ -15,7 +15,7 @@ namespace UnityEditor.ShaderGraph.Internal
             displayName = "Boolean";
         }
 
-        internal override PropertyType propertyType => PropertyType.Boolean;
+        public override PropertyType propertyType => PropertyType.Boolean;
 
         internal override bool isBatchable => true;
         internal override bool isExposable => true;

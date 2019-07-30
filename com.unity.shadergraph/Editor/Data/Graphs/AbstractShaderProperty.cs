@@ -6,7 +6,7 @@ namespace UnityEditor.ShaderGraph.Internal
     [Serializable]
     public abstract class AbstractShaderProperty : ShaderInput
     {
-        internal abstract PropertyType propertyType { get; }
+        public abstract PropertyType propertyType { get; }
 
         internal override ConcreteSlotValueType concreteShaderValueType => propertyType.ToConcreteShaderValueType();
 
@@ -33,7 +33,7 @@ namespace UnityEditor.ShaderGraph.Internal
         [SerializeField]
         bool m_Hidden = false;
 
-        internal bool hidden
+        public bool hidden
         {
             get => m_Hidden;
             set => m_Hidden = value;

@@ -18,7 +18,7 @@ namespace UnityEditor.ShaderGraph
             value = new Gradient();
         }
 
-        internal override PropertyType propertyType => PropertyType.Gradient;
+        public override PropertyType propertyType => PropertyType.Gradient;
 
         internal override bool isBatchable => false;
         internal override bool isExposable => false;

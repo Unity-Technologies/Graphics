@@ -15,7 +15,7 @@ namespace UnityEditor.ShaderGraph.Internal
             value = new SerializableCubemap();
         }
 
-        internal override PropertyType propertyType => PropertyType.Cubemap;
+        public override PropertyType propertyType => PropertyType.Cubemap;
 
         internal override bool isBatchable => false;
         internal override bool isExposable => true;

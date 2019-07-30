@@ -17,7 +17,7 @@ namespace UnityEditor.ShaderGraph.Internal
             value = new SerializableTexture();
         }
 
-        internal override PropertyType propertyType => PropertyType.Texture2D;
+        public override PropertyType propertyType => PropertyType.Texture2D;
 
         internal override bool isBatchable => false;
         internal override bool isExposable => true;
