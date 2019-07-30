@@ -1,9 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using UnityEditor.VFX.Block;
+using System.Reflection;
+using UnityEditor.ShaderGraph;
+using UnityEditor.ShaderGraph.Internal;
 using UnityEngine;
-using UnityEngine.VFX;
+
 
 namespace UnityEditor.VFX
 {
@@ -30,6 +32,10 @@ namespace UnityEditor.VFX
         }
         public override bool supportsUV { get { return true; } }
         public override bool implementsMotionVector { get { return true; } }
+
+
+        [VFXSetting, SerializeField]
+        private ShaderGraphVfxAsset shaderGraph;
 
         public override IEnumerable<string> additionalDefines
         {
@@ -73,11 +79,76 @@ namespace UnityEditor.VFX
             }
         }
 
+        static Type GetSGPropertyType(AbstractShaderProperty property)
+        {
+            switch( property.propertyType)
+            {
+                case PropertyType.Color:
+                    return typeof(Color);
+                case PropertyType.Texture2D:
+                    return typeof(Texture2D);
+                case PropertyType.Texture2DArray:
+                    return typeof(Texture2DArray);
+                case PropertyType.Texture3D:
+                    return typeof(Texture3D);
+                case PropertyType.Cubemap:
+                    return typeof(Cubemap);
+                case PropertyType.Gradient:
+                    return null;
+                case PropertyType.Boolean:
+                    return typeof(bool);
+                case PropertyType.Vector1:
+                    return typeof(float);
+                case PropertyType.Vector2:
+                    return typeof(Vector2);
+                case PropertyType.Vector3:
+                    return typeof(Vector3);
+                case PropertyType.Vector4:
+                    return typeof(Vector4);
+                case PropertyType.Matrix2:
+                    return null;
+                case PropertyType.Matrix3:
+                    return null;
+                case PropertyType.Matrix4:
+                    return typeof(Matrix4x4);
+                case PropertyType.SamplerState:
+                default:
+                    return null;
+            }
+        }
+
+        public static object GetSGPropertyValue(AbstractShaderProperty property)
+        {
+            switch( property.propertyType)
+            {
+                case PropertyType.Texture2D:
+                    return ((Texture2DShaderProperty)property).value.texture;
+                case PropertyType.Texture3D:
+                    return ((Texture3DShaderProperty)property).value.texture;
+                case PropertyType.Cubemap:
+                    return ((CubemapShaderProperty)property).value.cubemap;
+                case PropertyType.Texture2DArray:
+                    return ((Texture2DArrayShaderProperty)property).value.textureArray;
+                default:
+                    PropertyInfo info = property.GetType().GetProperty("value", BindingFlags.Public | BindingFlags.Instance | BindingFlags.FlattenHierarchy);
+                    return info?.GetValue(property);
+            }
+        }
+
+
         protected override IEnumerable<VFXPropertyWithValue> inputProperties
         {
             get
             {
-                var properties = base.inputProperties;
+                IEnumerable<VFXPropertyWithValue> properties = null;
+                if (shaderGraph == null)
+                {
+                    properties = base.inputProperties;
+                }
+                else
+                {
+                    properties = shaderGraph.properties.Where(t=> ! t.hidden).Select(t => new {property = t, type = GetSGPropertyType(t) }).Where(t=>t.type != null).Select(t=> new VFXPropertyWithValue(new VFXProperty(t.type, t.property.displayName),GetSGPropertyValue(t.property)));
+                }
                 if (primitiveType == VFXPrimitiveType.Octagon)
                     properties = properties.Concat(PropertiesFromType(typeof(VFXPlanarPrimitiveHelper.OctagonInputProperties)));
                 return properties;
@@ -88,8 +159,14 @@ namespace UnityEditor.VFX
         {
             foreach (var exp in base.CollectGPUExpressions(slotExpressions))
                 yield return exp;
-
-            yield return slotExpressions.First(o => o.name == "mainTexture");
+            if (shaderGraph == null)
+            {
+                yield return slotExpressions.First(o => o.name == "mainTexture");
+            }
+            else
+            {
+                //TODO
+            }
             if (primitiveType == VFXPrimitiveType.Octagon)
                 yield return slotExpressions.First(o => o.name == "cropFactor");
         }

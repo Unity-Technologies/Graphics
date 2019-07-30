@@ -11,5 +11,8 @@
         "graph",
         "effect",
         "particles"
-    ]
+  ],
+  "dependencies": {
+    "com.unity.shadergraph": "7.1.1"
+  }
 }
