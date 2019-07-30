@@ -27,7 +27,7 @@ namespace UnityEditor.VFX.UI
             m_ObjectField.RegisterCallback<ChangeEvent<UnityObject>>(OnValueChanged);
             m_ObjectField.control.allowSceneObjects = false;
             m_ObjectField.style.flexGrow = 1f;
-            m_ObjectField.style.flexShrink = 0f;
+            m_ObjectField.style.flexShrink = 1f;
 
             Add(m_ObjectField);
         }
