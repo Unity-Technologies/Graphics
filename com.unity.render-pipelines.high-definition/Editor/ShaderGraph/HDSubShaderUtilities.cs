@@ -603,7 +603,6 @@ namespace UnityEditor.Rendering.HighDefinition
             // Get keyword permutations
 
             masterNode.owner.CollectShaderKeywords(sharedKeywords, mode);
-            var keywordPermutations = KeywordUtil.GetKeywordPermutations(sharedKeywords.keywords);
 
             // Track permutation indices for all nodes
             List<int>[] keywordPermutationsPerVertexNode = new List<int>[vertexNodes.Count];
@@ -612,15 +611,15 @@ namespace UnityEditor.Rendering.HighDefinition
             // -------------------------------------
             // Evaluate all permutations
 
-            if (keywordPermutations.Count > 0)
+            if (sharedKeywords.permutations.Count > 0)
             {
-                for(int i = 0; i < keywordPermutations.Count; i++)
+                for(int i = 0; i < sharedKeywords.permutations.Count; i++)
                 {
                     // Get active nodes for this permutation
                     var localVertexNodes = UnityEngine.Rendering.ListPool<AbstractMaterialNode>.Get();
                     var localPixelNodes = UnityEngine.Rendering.ListPool<AbstractMaterialNode>.Get();
-                    NodeUtils.DepthFirstCollectNodesFromNode(localVertexNodes, masterNode, NodeUtils.IncludeSelf.Include, pass.VertexShaderSlots, keywordPermutations[i]);
-                    NodeUtils.DepthFirstCollectNodesFromNode(localPixelNodes, masterNode, NodeUtils.IncludeSelf.Include, pass.PixelShaderSlots, keywordPermutations[i]);
+                    NodeUtils.DepthFirstCollectNodesFromNode(localVertexNodes, masterNode, NodeUtils.IncludeSelf.Include, pass.VertexShaderSlots, sharedKeywords.permutations[i]);
+                    NodeUtils.DepthFirstCollectNodesFromNode(localPixelNodes, masterNode, NodeUtils.IncludeSelf.Include, pass.PixelShaderSlots, sharedKeywords.permutations[i]);
 
                     // Track each vertex node in this permutation
                     foreach(AbstractMaterialNode vertexNode in localVertexNodes)
@@ -732,7 +731,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
             // Get keyword declarations
             sharedKeywords.GetKeywordsDeclaration(shaderKeywordDeclarations, mode);
-            KeywordUtil.GetKeywordPermutationDeclaration(shaderKeywordPermutations, keywordPermutations);
 
             // Get property declarations
             sharedProperties.GetPropertiesDeclaration(shaderPropertyUniforms, mode, masterNode.owner.concretePrecision);
@@ -786,7 +784,7 @@ namespace UnityEditor.Rendering.HighDefinition
                             .ToList();
                         if (activePermutationIndices.Count > 0)
                         {
-                            defines.AddShaderChunk(KeywordUtil.GetKeywordPermutationGroupIfDef(activePermutationIndices));
+                            defines.AddShaderChunk(KeywordUtil.GetKeywordPermutationSetConditional(activePermutationIndices));
                             defines.AddShaderChunk("#define REQUIRE_DEPTH_TEXTURE");
                             defines.AddShaderChunk("#endif");
                         }
@@ -799,7 +797,7 @@ namespace UnityEditor.Rendering.HighDefinition
                             .ToList();
                         if (activePermutationIndices.Count > 0)
                         {
-                            defines.AddShaderChunk(KeywordUtil.GetKeywordPermutationGroupIfDef(activePermutationIndices));
+                            defines.AddShaderChunk(KeywordUtil.GetKeywordPermutationSetConditional(activePermutationIndices));
                             defines.AddShaderChunk("#define REQUIRE_OPAQUE_TEXTURE");
                             defines.AddShaderChunk("#endif");
                         }

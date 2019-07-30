@@ -39,7 +39,7 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        public static string ToKeywordValueString(this ShaderKeywordDefinition keywordDefinition)
+        public static string ToDeclarationString(this ShaderKeywordDefinition keywordDefinition)
         {
             switch(keywordDefinition)
             {
@@ -52,106 +52,90 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        public static List<List<KeyValuePair<ShaderKeyword, int>>> GetKeywordPermutations(List<ShaderKeyword> keywords)
-        {
-            List<KeyValuePair<ShaderKeyword, int>> currentPermutation = new List<KeyValuePair<ShaderKeyword, int>>();
-            List<List<KeyValuePair<ShaderKeyword, int>>> results = new List<List<KeyValuePair<ShaderKeyword, int>>>();
-
-            for(int i = 0; i < keywords.Count; i++)
-            {
-                currentPermutation.Add(new KeyValuePair<ShaderKeyword, int>(keywords[i], 0));
-            }
-
-            PermuteKeywords(keywords, currentPermutation, results, 0);
-
-            return results;
-        }
-
-        // Recursively permute the items that are
-        // not yet in the current selection.
-        static void PermuteKeywords(List<ShaderKeyword> keywords,
-            List<KeyValuePair<ShaderKeyword, int>> currentPermutation, List<List<KeyValuePair<ShaderKeyword, int>>> results,
-            int keywordIndex)
-        {
-            if(keywordIndex == keywords.Count)
-                return;
-
-            int entryCount = keywords[keywordIndex].keywordType == ShaderKeywordType.Enum ? keywords[keywordIndex].entries.Count : 2;
-            for(int i = 0; i < entryCount; i++)
-            {
-                currentPermutation[keywordIndex] = new KeyValuePair<ShaderKeyword, int>(keywords[keywordIndex], i);
-
-                if(keywordIndex == keywords.Count - 1)
-                    results.Add(currentPermutation);
-                else
-                    PermuteKeywords(keywords, currentPermutation, results, keywordIndex + 1);
-
-                currentPermutation = currentPermutation.Select(item => item).ToList();
-            }
-        }
-
-        public static string GetKeywordPermutationGroupIfDef(List<int> permutationGroup)
+        public static string GetKeywordPermutationSetConditional(List<int> permutationSet)
         {
             StringBuilder sb = new StringBuilder();
             sb.Append("#if ");
 
-            for(int i = 0; i < permutationGroup.Count; i++)
-            {                
+            for(int i = 0; i < permutationSet.Count; i++)
+            {
+                // Subsequent permutation predicates require ||                
                 if(i != 0)
                     sb.Append(" || ");
                 
-                sb.Append($"defined(KEYWORD_PERMUTATION_{permutationGroup[i]})");
+                // Append permutation
+                sb.Append($"defined(KEYWORD_PERMUTATION_{permutationSet[i]})");
             }
+
             return sb.ToString();
         }
 
-        public static string GetKeywordPermutationDeclaration(ShaderStringBuilder sb, List<List<KeyValuePair<ShaderKeyword, int>>> permutations)
+        public static void GetKeywordPermutationDeclarations(ShaderStringBuilder sb, List<List<KeyValuePair<ShaderKeyword, int>>> permutations)
         {
             if (permutations.Count == 0)
-                return string.Empty;
+                return;
             
             for(int p = 0; p < permutations.Count; p++)
             {
-                if(p == 0)
-                    sb.Append("#if ");
-                else if(p == permutations.Count - 1)
-                    sb.Append("#else");
-                else
-                    sb.Append("#elif ");
+                // ShaderStringBuilder.Append doesnt apply indentation
+                sb.AppendIndentation();
 
-                bool appendAndFromPrevious = false;
-                if(p != permutations.Count - 1)
+                // Append correct if
+                bool isLast = false;
+                if(p == 0)
                 {
+                    sb.Append("#if ");
+                }
+                else if(p == permutations.Count - 1)
+                {
+                    sb.Append("#else");
+                    isLast = true;
+                } 
+                else
+                {
+                    sb.Append("#elif ");
+                }    
+
+                // Last permutation is always #else
+                if(!isLast)
+                {
+                    // Iterate all keywords that are part of the permutation
                     for(int i = 0; i < permutations[p].Count; i++)
                     {
-                        if(permutations[p][i].Key.keywordType == ShaderKeywordType.Enum)
-                        {
-                            if(appendAndFromPrevious)
-                                sb.Append(" && ");
+                        // Subsequent keyword predicates require &&
+                        string and = i > 0 ? " && " : string.Empty;
 
-                            sb.Append($"defined({permutations[p][i].Key.referenceName}_{permutations[p][i].Key.entries[permutations[p][i].Value].referenceName})");
-                            appendAndFromPrevious = true;
-                        }
-                        else if(permutations[p][i].Value == 0)
+                        switch(permutations[p][i].Key.keywordType)
                         {
-                            if(appendAndFromPrevious)
-                                sb.Append(" && ");
+                            case ShaderKeywordType.Enum:
+                            {
+                                sb.Append($"{and}defined({permutations[p][i].Key.referenceName}_{permutations[p][i].Key.entries[permutations[p][i].Value].referenceName})");
+                                break;
+                            }
+                            case ShaderKeywordType.Boolean:
+                            {
+                                // HLSL does not support a !value predicate
+                                if(permutations[p][i].Value != 0)
+                                    continue;
 
-                            sb.Append($"defined({permutations[p][i].Key.referenceName})");
-                            appendAndFromPrevious = true;
+                                sb.Append($"{and}defined({permutations[p][i].Key.referenceName})");
+                                break;
+                            }
+                            default:
+                                throw new ArgumentOutOfRangeException();
                         }
                     }
                 }
-
                 sb.AppendNewLine();
+
+                // Define the matching permutation keyword
+                sb.AppendIndentation();
                 sb.AppendLine($"#define KEYWORD_PERMUTATION_{p}");
             }
 
-            sb.Append("#endif");
+            // End statement
+            sb.AppendLine("#endif");
             sb.AppendNewLine();
-            sb.AppendNewLine();
-
-            return sb.ToString();
         }
     }
 }

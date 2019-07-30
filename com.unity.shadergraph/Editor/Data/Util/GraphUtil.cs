@@ -289,7 +289,7 @@ namespace UnityEditor.ShaderGraph
 
                         fieldIsActive = instances.Count > 0;
                         if (fieldIsActive)
-                            keywordIfdefs = KeywordUtil.GetKeywordPermutationGroupIfDef(instances
+                            keywordIfdefs = KeywordUtil.GetKeywordPermutationSetConditional(instances
                                 .Select(i => i.permutationIndex).ToList());
                     }
                     else
@@ -348,10 +348,10 @@ namespace UnityEditor.ShaderGraph
                         if (isFirst)
                         {
                             isFirst = false;
-                            result.AddShaderChunk(KeywordUtil.GetKeywordPermutationGroupIfDef(generated.Value.Item2));
+                            result.AddShaderChunk(KeywordUtil.GetKeywordPermutationSetConditional(generated.Value.Item2));
                         }
                         else
-                            result.AddShaderChunk(KeywordUtil.GetKeywordPermutationGroupIfDef(generated.Value.Item2).Replace("#if", "#elif"));
+                            result.AddShaderChunk(KeywordUtil.GetKeywordPermutationSetConditional(generated.Value.Item2).Replace("#if", "#elif"));
 
                         result.AddGenerator(generated.Value.Item1);
                     }
@@ -784,7 +784,7 @@ namespace UnityEditor.ShaderGraph
 
                     if (passedPermutations.Count > 0)
                     {
-                        var ifdefs = KeywordUtil.GetKeywordPermutationGroupIfDef(
+                        var ifdefs = KeywordUtil.GetKeywordPermutationSetConditional(
                             passedPermutations.Select(i => i.permutationIndex).ToList()
                         );
                         result.AppendLine(ifdefs);
@@ -1134,7 +1134,6 @@ namespace UnityEditor.ShaderGraph
             // Get keyword permutations
 
             graph.CollectShaderKeywords(shaderKeywords, mode);
-            var keywordPermutations = KeywordUtil.GetKeywordPermutations(shaderKeywords.keywords);
 
             // Track permutation indicies for all nodes and requirements
             List<int>[] keywordPermutationsPerNode = new List<int>[activeNodeList.Count];
@@ -1142,11 +1141,11 @@ namespace UnityEditor.ShaderGraph
             // -------------------------------------
             // Evaluate all permutations
 
-            for(int i = 0; i < keywordPermutations.Count; i++)
+            for(int i = 0; i < shaderKeywords.permutations.Count; i++)
             {
                 // Get active nodes for this permutation
                 var localNodes = ListPool<AbstractMaterialNode>.Get();
-                NodeUtils.DepthFirstCollectNodesFromNode(localNodes, node, keywordPermutations: keywordPermutations[i]);
+                NodeUtils.DepthFirstCollectNodesFromNode(localNodes, node, keywordPermutations: shaderKeywords.permutations[i]);
 
                 // Track each pixel node in this permutation
                 foreach(AbstractMaterialNode pixelNode in localNodes)
@@ -1225,7 +1224,6 @@ namespace UnityEditor.ShaderGraph
             // Keyword declarations
 
             shaderKeywords.GetKeywordsDeclaration(shaderKeywordDeclarations, mode);
-            KeywordUtil.GetKeywordPermutationDeclaration(shaderKeywordPermutations, keywordPermutations);
 
             // -------------------------------------
             // Property uniforms
@@ -1448,7 +1446,7 @@ namespace UnityEditor.ShaderGraph
             if (activeNode is IGeneratesBodyCode bodyNode)
             {
                 if(keywordPermutations != null)
-                    descriptionFunction.AppendLine(KeywordUtil.GetKeywordPermutationGroupIfDef(keywordPermutations));
+                    descriptionFunction.AppendLine(KeywordUtil.GetKeywordPermutationSetConditional(keywordPermutations));
 
                 descriptionFunction.currentNode = activeNode;
                 bodyNode.GenerateNodeCode(descriptionFunction, graphContext, mode);

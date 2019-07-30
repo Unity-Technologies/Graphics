@@ -103,7 +103,6 @@ namespace UnityEditor.Rendering.Universal
             var shaderKeywords = new KeywordCollector();
             var shaderPropertyUniforms = new ShaderStringBuilder(1);
             var shaderKeywordDeclarations = new ShaderStringBuilder(1);
-            var shaderKeywordPermutations = new ShaderStringBuilder(1);
 
             var functionBuilder = new ShaderStringBuilder(1);
             var functionRegistry = new FunctionRegistry(functionBuilder);
@@ -183,7 +182,6 @@ namespace UnityEditor.Rendering.Universal
             // Get keyword permutations
 
             masterNode.owner.CollectShaderKeywords(shaderKeywords, mode);
-            var keywordPermutations = KeywordUtil.GetKeywordPermutations(shaderKeywords.keywords);
 
             // Track permutation indices for all nodes
             List<int>[] keywordPermutationsPerVertexNode = new List<int>[vertexNodes.Count];
@@ -197,13 +195,13 @@ namespace UnityEditor.Rendering.Universal
             // -------------------------------------
             // Evaluate all permutations
 
-            for(int i = 0; i < keywordPermutations.Count; i++)
+            for(int i = 0; i < shaderKeywords.permutations.Count; i++)
             {
                 // Get active nodes for this permutation
                 var localVertexNodes = ListPool<AbstractMaterialNode>.Get();
                 var localPixelNodes = ListPool<AbstractMaterialNode>.Get();
-                NodeUtils.DepthFirstCollectNodesFromNode(localVertexNodes, masterNode, NodeUtils.IncludeSelf.Include, pass.VertexShaderSlots, keywordPermutations[i]);
-                NodeUtils.DepthFirstCollectNodesFromNode(localPixelNodes, masterNode, NodeUtils.IncludeSelf.Include, pass.PixelShaderSlots, keywordPermutations[i]);
+                NodeUtils.DepthFirstCollectNodesFromNode(localVertexNodes, masterNode, NodeUtils.IncludeSelf.Include, pass.VertexShaderSlots, shaderKeywords.permutations[i]);
+                NodeUtils.DepthFirstCollectNodesFromNode(localPixelNodes, masterNode, NodeUtils.IncludeSelf.Include, pass.PixelShaderSlots, shaderKeywords.permutations[i]);
 
                 // Track each vertex node in this permutation
                 foreach(AbstractMaterialNode vertexNode in localVertexNodes)
@@ -352,7 +350,6 @@ namespace UnityEditor.Rendering.Universal
             // -------------------------------------
             // Keyword declarations
 
-            KeywordUtil.GetKeywordPermutationDeclaration(shaderKeywordPermutations, keywordPermutations);
             shaderKeywords.GetKeywordsDeclaration(shaderKeywordDeclarations, mode);
 
             // -------------------------------------
@@ -408,7 +405,6 @@ namespace UnityEditor.Rendering.Universal
             // Combine Graph sections
 
             graph.AppendLines(shaderKeywordDeclarations.ToString());
-            graph.AppendLines(shaderKeywordPermutations.ToString());
             graph.AppendLines(shaderPropertyUniforms.ToString());
 
             graph.AppendLine(vertexDescriptionInputStruct.ToString());

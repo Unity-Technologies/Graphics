@@ -714,6 +714,9 @@ namespace UnityEditor.ShaderGraph
             {
                 collector.AddShaderKeyword(keyword);
             }
+
+            // Alwways calculate permutations when collecting
+            collector.CalculateKeywordPermutations();
         }
 
         public void AddGraphInput(ShaderInput input)

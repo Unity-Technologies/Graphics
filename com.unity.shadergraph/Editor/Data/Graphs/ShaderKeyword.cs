@@ -132,7 +132,7 @@ namespace UnityEditor.ShaderGraph
                 return string.Empty;
 
             string scopeString = keywordScope == ShaderKeywordScope.Local ? "_local" : string.Empty;
-            string definitionString = $"{keywordDefinition.ToKeywordValueString()}{scopeString}";
+            string definitionString = $"{keywordDefinition.ToDeclarationString()}{scopeString}";
 
             switch(keywordType)
             {
