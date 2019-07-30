@@ -44,7 +44,7 @@ namespace UnityEditor.VFX
             }
 
             if (!(model is VFXSubgraphContext))
-                Debug.LogError("model not associated to a system");
+                Debug.LogError("model not associated to a system.");
             return null;
         }
 
@@ -79,7 +79,7 @@ namespace UnityEditor.VFX
             }
 
             if (!(model is VFXSubgraphContext))
-                Debug.LogError("model not associated to a system");
+                Debug.LogError("model not associated to a system.");
         }
 
         private static string GetSystemUnindexedName(VFXModel model)
@@ -105,14 +105,15 @@ namespace UnityEditor.VFX
             int index;
             if (m_SystemToIndex.TryGetValue(model, out index))
             {
-                var wishedName = GetSystemName(model);
+                var wishedName = GetSystemUnindexedName(model);
                 if (string.IsNullOrEmpty(wishedName))
                     wishedName = DefaultSystemName;
                 var format = "{0} ({1})";
                 var newName = index == 0 ? wishedName : string.Format(format, wishedName, index);
                 return newName;
             }
-            Debug.LogError("model not registered");
+            if (!(model is VFXSubgraphContext))
+                Debug.LogError("model not registered.");
             return GetSystemName(model);
         }
 
@@ -134,7 +135,7 @@ namespace UnityEditor.VFX
             m_SystemToIndex.Clear();
             foreach (var system in models)
             {
-                var systemName = GetSystemName(system);
+                var systemName = GetSystemUnindexedName(system);
                 var index = GetIndex(systemName);
                 m_SystemToIndex[system] = index;
             }
@@ -146,9 +147,9 @@ namespace UnityEditor.VFX
 
             List<int> unavailableIndices;
             if (string.IsNullOrEmpty(unindexedName) || unindexedName == DefaultSystemName)
-                unavailableIndices = m_SystemToIndex.Where(pair => (string.IsNullOrEmpty(GetSystemName(pair.Key)) || GetSystemName(pair.Key) == DefaultSystemName)).Select(pair => pair.Value).ToList();
+                unavailableIndices = m_SystemToIndex.Where(pair => (string.IsNullOrEmpty(GetSystemUnindexedName(pair.Key)) || GetSystemUnindexedName(pair.Key) == DefaultSystemName)).Select(pair => pair.Value).ToList();
             else
-                unavailableIndices = m_SystemToIndex.Where(pair => GetSystemName(pair.Key) == unindexedName).Select(pair => pair.Value).ToList();
+                unavailableIndices = m_SystemToIndex.Where(pair => GetSystemUnindexedName(pair.Key) == unindexedName).Select(pair => pair.Value).ToList();
             if (unavailableIndices != null && unavailableIndices.Count() > 0)
             {
                 unavailableIndices.Sort();

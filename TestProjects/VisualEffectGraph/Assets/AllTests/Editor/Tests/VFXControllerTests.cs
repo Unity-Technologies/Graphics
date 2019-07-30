@@ -910,18 +910,18 @@ namespace UnityEditor.VFX.Test
             const int count = 16;
             var spawners = VFXTestCommon.CreateSpawners(view, m_ViewController, count);
 
-            var spawnersNames = view.controller.graph.systemNames;
+            var systemNames = view.controller.graph.systemNames;
             var names = new List<string>();
             foreach (var system in spawners)
-                names.Add(spawnersNames.GetUniqueSystemName(system));
+                names.Add(systemNames.GetUniqueSystemName(system));
 
-            Assert.IsTrue(names.Distinct().Count() == count, "Not all spawners have different names.");
+            Assert.IsTrue(names.Where(name => !string.IsNullOrEmpty(name)).Distinct().Count() == count, "Some spawners have the same name or are null or empty.");
 
-            var systems = VFXTestCommon.GetFieldValue<VFXView, List<VFXSystemBorder>>(view, "m_Systems");
+            var GPUSystems = VFXTestCommon.GetFieldValue<VFXView, List<VFXSystemBorder>>(view, "m_Systems");
             VFXTestCommon.CreateSystems(view, m_ViewController, count, count);
-            var systemNames = systems.Select(system => system.controller.title).Distinct();
+            var uniqueSystemNames = GPUSystems.Select(system => system.controller.title).Distinct();
 
-            Assert.IsTrue(systemNames.Count() == count, "Not all systems have different names.");
+            Assert.IsTrue(uniqueSystemNames.Count() == count, "Some GPU systems have the same name or are null or empty.");
         }
     }
 }
