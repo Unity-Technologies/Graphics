@@ -2,7 +2,6 @@ using System;
 using System.Linq;
 using UnityEngine;
 using UnityEditor.Graphing;
-using UnityEngine.Serialization;
 
 namespace UnityEditor.ShaderGraph
 {

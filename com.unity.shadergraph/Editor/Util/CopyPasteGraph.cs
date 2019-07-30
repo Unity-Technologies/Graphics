@@ -170,7 +170,7 @@ namespace UnityEditor.Graphing.Util
             m_SerializableNodes = SerializationHelper.Serialize<AbstractMaterialNode>(m_Nodes);
             m_SerializableEdges = SerializationHelper.Serialize<IEdge>(m_Edges);
             m_SerilaizeableInputs = SerializationHelper.Serialize<ShaderInput>(m_Inputs);
-            m_SerializableMetaProperties = SerializationHelper.Serialize<AbstractShaderProperty>(m_MetaProperties);            m_SerializableMetaProperties = SerializationHelper.Serialize<AbstractShaderProperty>(m_MetaProperties);
+            m_SerializableMetaProperties = SerializationHelper.Serialize<AbstractShaderProperty>(m_MetaProperties);
             m_SerializableMetaKeywords = SerializationHelper.Serialize<ShaderKeyword>(m_MetaKeywords);
         }
 

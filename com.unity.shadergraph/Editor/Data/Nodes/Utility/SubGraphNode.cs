@@ -191,7 +191,7 @@ namespace UnityEditor.ShaderGraph
                 sb.AppendLine("{0} {1};", outSlot.concreteValueType.ToShaderString(asset.outputPrecision), GetVariableNameForSlot(outSlot.id));
 
             var arguments = new List<string>();
-            foreach (var prop in asset.properties)
+            foreach (var prop in asset.inputs)
             {               
                 prop.ValidateConcretePrecision(asset.graphPrecision);
                 var inSlotId = m_PropertyIds[m_PropertyGuids.IndexOf(prop.guid.ToString())];
@@ -250,8 +250,8 @@ namespace UnityEditor.ShaderGraph
                 return;
             }
 
-            var properties = asset.properties;
-            foreach (var prop in properties)
+            var props = asset.inputs;
+            foreach (var prop in props)
             {
                 SlotValueType valueType = prop.concreteShaderValueType.ToSlotValueType();
                 var propertyString = prop.guid.ToString();
@@ -455,10 +455,8 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        public override void CollectShaderKeywords(KeywordCollector keywords, GenerationMode generationMode)
+        public void CollectShaderKeywords(KeywordCollector keywords, GenerationMode generationMode)
         {
-            base.CollectShaderKeywords(keywords, generationMode);
-
             if (asset == null)
                 return;
 

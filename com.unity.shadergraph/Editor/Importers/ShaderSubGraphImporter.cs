@@ -103,7 +103,7 @@ namespace UnityEditor.ShaderGraph
             }
 
             asset.requirements = ShaderGraphRequirements.FromNodes(nodes, asset.effectiveShaderStage, false);
-            asset.properties = graph.properties.ToList();
+            asset.inputs = graph.properties.ToList();
             asset.keywords = graph.keywords.ToList();
             asset.graphPrecision = graph.concretePrecision;
             asset.outputPrecision = outputNode.concretePrecision;
@@ -162,7 +162,7 @@ namespace UnityEditor.ShaderGraph
 
                 // Generate arguments... first INPUTS
                 var arguments = new List<string>();
-                foreach (var prop in asset.properties)
+                foreach (var prop in asset.inputs)
                 {
                     prop.ValidateConcretePrecision(asset.graphPrecision);
                     arguments.Add(string.Format("{0}", prop.GetPropertyAsArgumentString()));

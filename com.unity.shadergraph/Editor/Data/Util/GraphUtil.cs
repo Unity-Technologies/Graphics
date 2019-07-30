@@ -1459,7 +1459,11 @@ namespace UnityEditor.ShaderGraph
             }
 
             activeNode.CollectShaderProperties(shaderProperties, mode);
-            activeNode.CollectShaderKeywords(shaderKeywords, mode);
+
+            if (activeNode is SubGraphNode subGraphNode)
+            {
+                subGraphNode.CollectShaderKeywords(shaderKeywords, mode);
+            }
         }
 
         static void GenerateSurfaceDescriptionRemap(

@@ -862,15 +862,15 @@ namespace UnityEditor.ShaderGraph
 
         static List<IEdge> s_TempEdges = new List<IEdge>();
 
-        public void ReplacePropertyNodeWithConcreteNode(PropertyNode propNode)
+        public void ReplacePropertyNodeWithConcreteNode(PropertyNode propertyNode)
         {
-            ReplacePropertyNodeWithConcreteNodeNoValidate(propNode);
+            ReplacePropertyNodeWithConcreteNodeNoValidate(propertyNode);
             ValidateGraph();
         }
 
-        void ReplacePropertyNodeWithConcreteNodeNoValidate(PropertyNode propNode)
+        void ReplacePropertyNodeWithConcreteNodeNoValidate(PropertyNode propertyNode)
         {
-            var property = properties.FirstOrDefault(x => x.guid == propNode.propertyGuid);
+            var property = properties.FirstOrDefault(x => x.guid == propertyNode.propertyGuid);
             if (property == null)
                 return;
 
@@ -878,26 +878,26 @@ namespace UnityEditor.ShaderGraph
             if (node == null)
                 return;
 
-            var slot = propNode.FindOutputSlot<MaterialSlot>(PropertyNode.OutputSlotId);
+            var slot = propertyNode.FindOutputSlot<MaterialSlot>(PropertyNode.OutputSlotId);
             var newSlot = node.GetOutputSlots<MaterialSlot>().FirstOrDefault(s => s.valueType == slot.valueType);
             if (newSlot == null)
                 return;
 
-            node.drawState = propNode.drawState;
-            node.groupGuid = propNode.groupGuid;
+            node.drawState = propertyNode.drawState;
+            node.groupGuid = propertyNode.groupGuid;
             AddNodeNoValidate(node);
 
             foreach (var edge in this.GetEdges(slot.slotReference))
                 ConnectNoValidate(newSlot.slotReference, edge.inputSlot);
 
-            RemoveNodeNoValidate(propNode);
+            RemoveNodeNoValidate(propertyNode);
         }
 
         public void ValidateGraph()
         {
-            var propertyNodes = GetNodes<PropertyNode>().Where(n => !properties.Any(p => p.guid == n.propertyGuid)).ToArray();
-            foreach (var propNode in propertyNodes)
-                ReplacePropertyNodeWithConcreteNodeNoValidate(propNode);
+            var propertyNodes = GetNodes<PropertyNode>().Where(n => !m_Properties.Any(p => p.guid == n.propertyGuid)).ToArray();
+            foreach (var pNode in propertyNodes)
+                ReplacePropertyNodeWithConcreteNodeNoValidate(pNode);
 
             messageManager?.ClearAllFromProvider(this);
             //First validate edges, remove any
@@ -1144,14 +1144,14 @@ namespace UnityEditor.ShaderGraph
                 nodeGuidMap[oldGuid] = newGuid;
 
                 // Check if the property nodes need to be made into a concrete node.
-                if (node is PropertyNode propNode)
+                if (node is PropertyNode propertyNode)
                 {
                     // If the property is not in the current graph, do check if the
                     // property can be made into a concrete node.
-                    if (!properties.Select(x => x.guid).Contains(propNode.propertyGuid))
+                    if (!properties.Select(x => x.guid).Contains(propertyNode.propertyGuid))
                     {
                         // If the property is in the serialized paste graph, make the property node into a property node.
-                        var pastedGraphMetaProperties = graphToPaste.metaProperties.Where(x => x.guid == propNode.propertyGuid);
+                        var pastedGraphMetaProperties = graphToPaste.metaProperties.Where(x => x.guid == propertyNode.propertyGuid);
                         if (pastedGraphMetaProperties.Any())
                         {
                             pastedNode = pastedGraphMetaProperties.FirstOrDefault().ToConcreteNode();
@@ -1162,15 +1162,15 @@ namespace UnityEditor.ShaderGraph
                 }
 
                 // Check if the keyword nodes need to have their keywords copied.
-                if (node is KeywordNode keyNode)
+                if (node is KeywordNode keywordNode)
                 {
                     // If the keyword is not in the current graph and is in the serialized paste graph copy it.
-                    if (!keywords.Select(x => x.guid).Contains(keyNode.keywordGuid))
+                    if (!keywords.Select(x => x.guid).Contains(keywordNode.keywordGuid))
                     {
-                        var pastedGraphMetaKeywords = graphToPaste.metaKeywords.Where(x => x.guid == keyNode.keywordGuid);
+                        var pastedGraphMetaKeywords = graphToPaste.metaKeywords.Where(x => x.guid == keywordNode.keywordGuid);
                         if (pastedGraphMetaKeywords.Any())
                         {
-                            var keyword = pastedGraphMetaKeywords.FirstOrDefault(x => x.guid == keyNode.keywordGuid);
+                            var keyword = pastedGraphMetaKeywords.FirstOrDefault(x => x.guid == keywordNode.keywordGuid);
                             SanitizeGraphInputName(keyword);
                             SanitizeGraphInputReferenceName(keyword, keyword.overrideReferenceName);
                             AddGraphInput(keyword);
@@ -1200,9 +1200,9 @@ namespace UnityEditor.ShaderGraph
                 m_PastedNodes.Add(pastedNode);
 
                 // Always update Keyword nodes to handle any collisions resolved on the Keyword
-                if(node is KeywordNode keywordNode)
+                if(node is KeywordNode keyNode)
                 {
-                    keywordNode.UpdateNode();
+                    keyNode.UpdateNode();
                 }
             }
 

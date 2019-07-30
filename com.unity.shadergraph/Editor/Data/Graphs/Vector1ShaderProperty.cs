@@ -89,7 +89,7 @@ namespace UnityEditor.ShaderGraph
             set => m_EnumType = value;
         }
     
-        private Type m_CSharpEnumType;
+        Type m_CSharpEnumType;
 
         public Type cSharpEnumType
         {
