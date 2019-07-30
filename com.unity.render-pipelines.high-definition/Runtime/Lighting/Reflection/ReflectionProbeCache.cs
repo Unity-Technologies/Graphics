@@ -1,9 +1,8 @@
 using System;
-using UnityEngine.Rendering;
 
-namespace UnityEngine.Experimental.Rendering.HDPipeline
+namespace UnityEngine.Rendering.HighDefinition
 {
-    public class ReflectionProbeCache
+    class ReflectionProbeCache
     {
         internal static readonly int s_InputTexID = Shader.PropertyToID("_InputTex");
         internal static readonly int s_LoDID = Shader.PropertyToID("_LoD");
@@ -254,7 +253,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             return TextureCacheCubemap.GetMaxCacheSizeForWeightInByte(weight, resolution, sliceSize);
         }
-        
+
         public int GetEnvSliceSize()
         {
             return m_IBLFilterBSDF.Length;

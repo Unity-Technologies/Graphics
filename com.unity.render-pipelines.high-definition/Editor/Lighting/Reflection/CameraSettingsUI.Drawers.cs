@@ -1,9 +1,9 @@
 using UnityEngine;
-using UnityEngine.Experimental.Rendering.HDPipeline;
+using UnityEngine.Rendering.HighDefinition;
 
-using static UnityEditor.Experimental.Rendering.HDPipeline.HDEditorUtils;
+using static UnityEditor.Rendering.HighDefinition.HDEditorUtils;
 
-namespace UnityEditor.Experimental.Rendering.HDPipeline
+namespace UnityEditor.Rendering.HighDefinition
 {
     internal partial class CameraSettingsUI
     {
@@ -91,7 +91,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 //Warning, fullscreenPassThrough have been removed from RenderingPath enum
                 //and replaced with a toggle on the camera. If this script aim to be used
                 //on camera too, add it here.
-                
+
                 if (serialized.customRenderingSettings.boolValue)
                 {
                     --EditorGUI.indentLevel; //fix alignment issue for Planar Reflection and Reflection probe's FrameSettings

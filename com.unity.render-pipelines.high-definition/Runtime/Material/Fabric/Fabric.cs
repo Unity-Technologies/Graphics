@@ -1,13 +1,11 @@
-using System;
-using UnityEngine.Experimental.Rendering.HDPipeline.Attributes;
-using UnityEngine.Rendering;
+using UnityEngine.Rendering.HighDefinition.Attributes;
 
 //-----------------------------------------------------------------------------
 // structure definition
 //-----------------------------------------------------------------------------
-namespace UnityEngine.Experimental.Rendering.HDPipeline
+namespace UnityEngine.Rendering.HighDefinition
 {
-    public class Fabric : RenderPipelineMaterial
+    class Fabric : RenderPipelineMaterial
     {
         // If change, be sure it match what is done in Lit.hlsl: MaterialFeatureFlagsFromGBuffer
         // Material bit mask must match the size define LightDefinitions.s_MaterialFeatureMaskFlags value

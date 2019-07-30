@@ -1,11 +1,11 @@
 using UnityEngine.Rendering;
-using UnityEngine.Rendering.Experimental.LookDev;
+using UnityEngine.Rendering.LookDev;
 
 using UnityEditor.UIElements;
 using UnityEditorInternal;
 using UnityEngine;
 
-namespace UnityEditor.Rendering.Experimental.LookDev
+namespace UnityEditor.Rendering.LookDev
 {
     /// <summary>
     /// Main entry point for scripting LookDev
@@ -24,6 +24,9 @@ namespace UnityEditor.Rendering.Experimental.LookDev
         internal static IDataProvider dataProvider
             => RenderPipelineManager.currentPipeline as IDataProvider;
 
+        /// <summary>
+        /// Get all the data used in LookDev currently (views, layout, debug... )
+        /// </summary>
         public static Context currentContext
         {
             //Lazy init: load it when needed instead in static even if you do not support lookdev
@@ -32,18 +35,30 @@ namespace UnityEditor.Rendering.Experimental.LookDev
         }
 
         static Context defaultContext
-            => UnityEngine.ScriptableObject.CreateInstance<Context>();
-        
-        //[TODO: not compatible with multiple displayer. To rework if needed]
-        public static IViewDisplayer currentDisplayer => s_ViewDisplayer;
+        {
+            get
+            {
+                var context = UnityEngine.ScriptableObject.CreateInstance<Context>();
+                context.Init();
+                return context;
+            }
+        }
 
+        //[TODO: not compatible with multiple displayer. To rework if needed]
+        internal static IViewDisplayer currentViewDisplayer => s_ViewDisplayer;
+        internal static IEnvironmentDisplayer currentEnvironmentDisplayer => s_EnvironmentDisplayer;
+
+        /// <summary>State of the LookDev window</summary>
         public static bool open { get; private set; }
-        
+
         /// <summary>
         /// Does LookDev is supported with the current render pipeline?
         /// </summary>
         public static bool supported => dataProvider != null;
-        
+
+        /// <summary>
+        /// Reset all LookDevs datas to the default configuration
+        /// </summary>
         public static void ResetConfig()
             => currentContext = defaultContext;
 
@@ -56,28 +71,36 @@ namespace UnityEditor.Rendering.Experimental.LookDev
             return context;
         }
 
+        /// <summary>
+        /// Load a different set of datas
+        /// </summary>
+        /// <param name="path">Path where to load</param>
         public static void LoadConfig(string path = lastRenderingDataSavePath)
         {
             var last = LoadConfigInternal(path);
             if (last != null)
                 currentContext = last;
         }
-        
+
+        /// <summary>
+        /// Save the current set of datas
+        /// </summary>
+        /// <param name="path">[optional] Path to save. By default, saved in Library folder</param>
         public static void SaveConfig(string path = lastRenderingDataSavePath)
         {
             if (currentContext != null && !currentContext.Equals(null))
                 InternalEditorUtility.SaveToSerializedFileAndForget(new[] { currentContext }, path, true);
         }
 
-        [MenuItem("Window/Experimental/Look Dev", false, 10000)]
+        /// <summary>open the LookDev window</summary>
+        [MenuItem("Window/Render Pipeline/Look Dev", false, 10200)]
         public static void Open()
         {
             s_ViewDisplayer = EditorWindow.GetWindow<DisplayWindow>();
             s_EnvironmentDisplayer = EditorWindow.GetWindow<DisplayWindow>();
             ConfigureLookDev(reloadWithTemporaryID: false);
         }
-
-
+        
         [Callbacks.DidReloadScripts]
         static void OnEditorReload()
         {
@@ -117,7 +140,7 @@ namespace UnityEditor.Rendering.Experimental.LookDev
                     + (RenderPipelineManager.currentPipeline == null ? "No SRP in use" : RenderPipelineManager.currentPipeline.ToString()));
             }
         }
-        
+
         static void ConfigureRenderer(bool reloadWithTemporaryID)
         {
             s_Stages?.Dispose(); //clean previous occurrence on reloading
@@ -128,6 +151,9 @@ namespace UnityEditor.Rendering.Experimental.LookDev
 
         static void LinkViewDisplayer()
         {
+            EditorApplication.playModeStateChanged += state =>
+                (s_ViewDisplayer as EditorWindow)?.Close();
+
             s_ViewDisplayer.OnClosed += () =>
             {
                 s_Compositor?.Dispose();
@@ -189,7 +215,7 @@ namespace UnityEditor.Rendering.Experimental.LookDev
         {
             s_EnvironmentDisplayer.OnChangingEnvironmentLibrary += currentContext.UpdateEnvironmentLibrary;
         }
-        
+
         static void ReloadStage(bool reloadWithTemporaryID)
         {
             currentContext.GetViewContent(ViewIndex.First).LoadAll(reloadWithTemporaryID);
@@ -204,7 +230,7 @@ namespace UnityEditor.Rendering.Experimental.LookDev
             s_Stages.UpdateSceneLighting(index, dataProvider);
             s_ViewDisplayer.Repaint();
         }
-        
+
         /// <summary>Update the rendered element with element in the context</summary>
         /// <param name="index">The index of the stage to update</param>
         public static void SaveContextChangeAndApply(ViewIndex index)

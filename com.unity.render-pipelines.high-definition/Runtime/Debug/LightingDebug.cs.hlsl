@@ -5,7 +5,7 @@
 #ifndef LIGHTINGDEBUG_CS_HLSL
 #define LIGHTINGDEBUG_CS_HLSL
 //
-// UnityEngine.Experimental.Rendering.HDPipeline.DebugLightingMode:  static fields
+// UnityEngine.Rendering.HighDefinition.DebugLightingMode:  static fields
 //
 #define DEBUGLIGHTINGMODE_NONE (0)
 #define DEBUGLIGHTINGMODE_DIFFUSE_LIGHTING (1)
@@ -19,7 +19,7 @@
 #define DEBUGLIGHTINGMODE_INDIRECT_SPECULAR_OCCLUSION (9)
 
 //
-// UnityEngine.Experimental.Rendering.HDPipeline.DebugLightFilterMode:  static fields
+// UnityEngine.Rendering.HighDefinition.DebugLightFilterMode:  static fields
 //
 #define DEBUGLIGHTFILTERMODE_NONE (0)
 #define DEBUGLIGHTFILTERMODE_DIRECT_DIRECTIONAL (1)
@@ -33,7 +33,7 @@
 #define DEBUGLIGHTFILTERMODE_INDIRECT_PLANAR_PROBE (256)
 
 //
-// UnityEngine.Experimental.Rendering.HDPipeline.ShadowMapDebugMode:  static fields
+// UnityEngine.Rendering.HighDefinition.ShadowMapDebugMode:  static fields
 //
 #define SHADOWMAPDEBUGMODE_NONE (0)
 #define SHADOWMAPDEBUGMODE_VISUALIZE_PUNCTUAL_LIGHT_ATLAS (1)

@@ -1,13 +1,12 @@
-using UnityEditor.Rendering;
 using UnityEngine;
-using UnityEngine.Experimental.Rendering.HDPipeline;
+using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.Rendering;
 
-namespace UnityEditor.Experimental.Rendering.HDPipeline
+namespace UnityEditor.Rendering.HighDefinition
 {
     [CanEditMultipleObjects]
     [VolumeComponentEditor(typeof(ScreenSpaceReflection))]
-    public class HDScreenSpaceReflectionEditor : VolumeComponentEditor
+    class HDScreenSpaceReflectionEditor : VolumeComponentEditor
     {
         SerializedDataParameter m_ScreenFadeDistance;
         SerializedDataParameter m_RayMaxIterations;
@@ -25,7 +24,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         SerializedDataParameter m_FilterRadius;
         SerializedDataParameter m_DeferredMode;
         SerializedDataParameter m_RayBinning;
-        
+
         // Tier 2
         SerializedDataParameter m_NumSamples;
         SerializedDataParameter m_NumBounces;

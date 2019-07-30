@@ -1,9 +1,9 @@
 using UnityEngine;
 using UnityEditor.Rendering;
 
-namespace UnityEditor.Experimental.Rendering.HDPipeline
+namespace UnityEditor.Rendering.HighDefinition
 {
-    public class UnlitsToHDUnlitUpgrader : MaterialUpgrader
+    class UnlitsToHDUnlitUpgrader : MaterialUpgrader
     {
         string Unlit_Color = "Unlit/Color";
         //string Unlit_Texture = "Unlit/Texture";

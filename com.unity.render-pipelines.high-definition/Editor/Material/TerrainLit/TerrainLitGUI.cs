@@ -1,12 +1,13 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
+using UnityEngine.Experimental.Rendering;
 using System;
 
 // Include material common properties names
-using static UnityEngine.Experimental.Rendering.HDPipeline.HDMaterialProperties;
+using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
 
-namespace UnityEditor.Experimental.Rendering.HDPipeline
+namespace UnityEditor.Rendering.HighDefinition
 {
     /// <summary>
     /// GUI for HDRP Terrain Lit materials (does not include ShaderGraphs)
@@ -72,7 +73,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public readonly GUIContent height = new GUIContent("B: Height");
             public readonly GUIContent heightParametrization = new GUIContent("Parametrization");
             public readonly GUIContent heightAmplitude = new GUIContent("Amplitude (cm)");
-            public readonly GUIContent heightBase = new GUIContent("Base");
+            public readonly GUIContent heightBase = new GUIContent("Base (cm)");
             public readonly GUIContent heightMin = new GUIContent("Min (cm)");
             public readonly GUIContent heightMax = new GUIContent("Max (cm)");
             public readonly GUIContent heightCm = new GUIContent("B: Height (cm)");
@@ -147,6 +148,15 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             bool enableInstancedPerPixelNormal = material.GetFloat(kEnableInstancedPerPixelNormal) > 0.0f;
             CoreUtils.SetKeyword(material, "_TERRAIN_INSTANCED_PERPIXEL_NORMAL", enableInstancedPerPixelNormal);
         }
+        
+        static public bool TextureHasAlpha(Texture2D inTex)
+        {
+            if (inTex != null)
+            {
+                return GraphicsFormatUtility.HasAlphaChannel(GraphicsFormatUtility.GetGraphicsFormat(inTex.format, true));
+            }
+            return false;
+        }        
 
         protected void DrawTerrainGUI(MaterialEditor materialEditor)
         {
@@ -269,6 +279,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             var maskMapRemapMin = terrainLayer.maskMapRemapMin;
             var maskMapRemapMax = terrainLayer.maskMapRemapMax;
+            var smoothness = terrainLayer.smoothness;
+            var metallic = terrainLayer.metallic;            
 
             ++EditorGUI.indentLevel;
             EditorGUI.BeginChangeCheck();
@@ -298,8 +310,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                             float amplitude = Mathf.Max(maskMapRemapMax.z - maskMapRemapMin.z, Mathf.Epsilon); // to avoid divide by zero
                             float heightBase = -maskMapRemapMin.z / amplitude;
                             amplitude = EditorGUILayout.FloatField(styles.heightAmplitude, amplitude * 100) / 100;
-                            heightBase = EditorGUILayout.FloatField(styles.heightBase, heightBase);
-                            maskMapRemapMin.z = -heightBase * amplitude;
+                            heightBase = EditorGUILayout.FloatField(styles.heightBase, heightBase * 100) / 100;
+                            maskMapRemapMin.z = heightBase * amplitude;
                             maskMapRemapMax.z = (1 - heightBase) * amplitude;
                         }
                         else
@@ -316,11 +328,33 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 }
                 else
                 {
-                    maskMapRemapMin.x = maskMapRemapMax.x = EditorGUILayout.Slider(s_Styles.metallic, maskMapRemapMin.x, 0, 1);
-                    maskMapRemapMin.y = maskMapRemapMax.y = EditorGUILayout.Slider(s_Styles.ao, maskMapRemapMin.y, 0, 1);
+                    metallic = EditorGUILayout.Slider(s_Styles.metallic, metallic, 0, 1);
+                    // AO and Height are still exclusively controlled via the maskRemap controls
+                    // metallic and smoothness have their own values as fields within the LayerData.
+                    maskMapRemapMax.y = EditorGUILayout.Slider(s_Styles.ao, maskMapRemapMax.y, 0, 1);
+                    
                     if (heightBlend)
-                        maskMapRemapMin.z = maskMapRemapMax.z = EditorGUILayout.FloatField(s_Styles.heightCm, maskMapRemapMin.z * 100) / 100;
-                    maskMapRemapMin.w = maskMapRemapMax.w = EditorGUILayout.Slider(s_Styles.smoothness, maskMapRemapMin.w, 0, 1);
+                    {
+                        maskMapRemapMax.z = EditorGUILayout.FloatField(s_Styles.heightCm, maskMapRemapMax.z * 100) / 100;
+                    }
+                    // There's a possibility that someone could slide max below the existing min value
+                    // so we'll just protect against that by locking the min value down a little bit.
+                    // In the case of height (Z), we are trying to set min to no lower than zero value unless
+                    // max goes negative.  Zero is a good sensible value for the minimum.  For AO (Y), we
+                    // don't need this extra protection step because the UI blocks us from going negative
+                    // anyway.  In both cases, pushing the slider below the min value will lock them together, 
+                    // but min will be "left behind" if you go back up.
+                    maskMapRemapMin.y = Mathf.Min(maskMapRemapMin.y, maskMapRemapMax.y);
+                    maskMapRemapMin.z = Mathf.Min(Mathf.Max(0, maskMapRemapMin.z), maskMapRemapMax.z);
+                    
+                    if (TextureHasAlpha(terrainLayer.diffuseTexture))
+                    {
+                        GUIStyle warnStyle = new GUIStyle(GUI.skin.label);
+                        warnStyle.wordWrap = true;
+                        GUILayout.Label("Smoothness is controlled by diffuse alpha channel", warnStyle);
+                    }
+                    else
+                        smoothness = EditorGUILayout.Slider(s_Styles.smoothness, smoothness, 0, 1);
                 }
             }
 
@@ -328,6 +362,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 terrainLayer.maskMapRemapMin = maskMapRemapMin;
                 terrainLayer.maskMapRemapMax = maskMapRemapMax;
+                terrainLayer.smoothness = smoothness;
+                terrainLayer.metallic = metallic;                
             }
             --EditorGUI.indentLevel;
 

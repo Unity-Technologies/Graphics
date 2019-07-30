@@ -12,6 +12,11 @@ ${VFXGlobalInclude}
 ${VFXGlobalDeclaration}
 
 #define VFX_NEEDS_COLOR_INTERPOLATOR (VFX_USE_COLOR_CURRENT || VFX_USE_ALPHA_CURRENT)
+#if HAS_STRIPS
+#define VFX_OPTIONAL_INTERPOLATION 
+#else
+#define VFX_OPTIONAL_INTERPOLATION nointerpolation
+#endif
 
 ByteAddressBuffer attributeBuffer;	
 
@@ -21,6 +26,14 @@ StructuredBuffer<uint> indirectBuffer;
 
 #if USE_DEAD_LIST_COUNT
 ByteAddressBuffer deadListCount;
+#endif
+
+#if HAS_STRIPS
+Buffer<uint> stripData;
+#endif
+
+#if WRITE_MOTION_VECTOR_IN_FORWARD || USE_MOTION_VECTORS_PASS
+ByteAddressBuffer elementToVFXBufferPrevious;
 #endif
 
 CBUFFER_START(outputParams)

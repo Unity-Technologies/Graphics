@@ -18,6 +18,15 @@
 // Helper functions/variable specific to this material
 //-----------------------------------------------------------------------------
 
+float4 GetDiffuseOrDefaultColor(BSDFData bsdfData, float replace)
+{
+    // Use frensel0 as mettalic weight. all value below 0.2 (ior of diamond) are dielectric
+    // all value above 0.45 are metal, in between we lerp.
+    float weight = saturate((Max3(bsdfData.fresnel0.r, bsdfData.fresnel0.g, bsdfData.fresnel0.b) - 0.2) / (0.45 - 0.2));
+
+    return float4(lerp(bsdfData.diffuseColor, bsdfData.fresnel0, weight * replace), weight);
+}
+
 float3 GetNormalForShadowBias(BSDFData bsdfData)
 {
     // In forward we can used geometric normal for shadow bias which improve quality
@@ -31,12 +40,6 @@ float3 GetNormalForShadowBias(BSDFData bsdfData)
 float GetAmbientOcclusionForMicroShadowing(BSDFData bsdfData)
 {
     return 1.0; // Don't do microshadowing for simpleLit
-}
-
-void ClampRoughness(inout BSDFData bsdfData, float minRoughness)
-{
-    // No anistropy in simple lit
-    bsdfData.roughnessT    = max(minRoughness, bsdfData.roughnessT);
 }
 
 // This function is similar to ApplyDebugToSurfaceData but for BSDFData
@@ -162,6 +165,15 @@ struct PreLightData
     float transparentSSMipLevel;     // mip level of the screen space gaussian pyramid for rough refraction
 #endif
 };
+
+//
+// ClampRoughness helper specific to this material
+//
+void ClampRoughness(inout PreLightData preLightData, inout BSDFData bsdfData, float minRoughness)
+{
+    // No anistropy in simple lit
+    bsdfData.roughnessT    = max(minRoughness, bsdfData.roughnessT);
+}
 
 //-----------------------------------------------------------------------------
 // BSDF share between directional light, punctual light and area light (reference)
@@ -450,9 +462,8 @@ void PostEvaluateBSDF(  LightLoopContext lightLoopContext,
 
     #ifdef HDRP_ENABLE_ENV_LIGHT // TODO: check what this is suppose to do?
     // Note: When baking reflection probes, we approximate the diffuse with the fresnel0
-    diffuseLighting += ReplaceDiffuseForReflectionPass(bsdfData.fresnel0)
-        ? bsdfData.fresnel0
-        : builtinData.bakeDiffuseLighting * modifiedDiffuseColor;
+    bsdfData.diffuseColor = modifiedDiffuseColor; // Note: This affect the debug mode of mipmap streaming for simple Lit in PostEvaluateBSDFDebugDisplay. But we are ok with that.
+    diffuseLighting += builtinData.bakeDiffuseLighting * GetDiffuseOrDefaultColor(bsdfData, _ReplaceDiffuseForIndirect).rgb;
     #endif
 
     specularLighting = lighting.direct.specular + lighting.indirect.specularReflected;

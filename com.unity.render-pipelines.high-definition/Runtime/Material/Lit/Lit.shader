@@ -157,7 +157,7 @@ Shader "HDRP/Lit"
         [HideInInspector][ToggleUI] _ZWrite("__zw", Float) = 1.0
         [HideInInspector] _CullMode("__cullmode", Float) = 2.0
         [HideInInspector] _CullModeForward("__cullmodeForward", Float) = 2.0 // This mode is dedicated to Forward to correctly handle backface then front face rendering thin transparent
-        [Enum(UnityEditor.Experimental.Rendering.HDPipeline.TransparentCullMode)] _TransparentCullMode("_TransparentCullMode", Int) = 2 // Back culling by default
+        [Enum(UnityEditor.Rendering.HighDefinition.TransparentCullMode)] _TransparentCullMode("_TransparentCullMode", Int) = 2 // Back culling by default
         [HideInInspector] _ZTestDepthEqualForOpaque("_ZTestDepthEqualForOpaque", Int) = 4 // Less equal
         [HideInInspector] _ZTestModeDistortion("_ZTestModeDistortion", Int) = 8
         [HideInInspector] _ZTestGBuffer("_ZTestGBuffer", Int) = 4
@@ -220,6 +220,7 @@ Shader "HDRP/Lit"
 
         [ToggleUI] _SupportDecals("Support Decals", Float) = 1.0
         [ToggleUI] _ReceivesSSR("Receives SSR", Float) = 1.0
+        [ToggleUI] _AddVelocityChange("EnableAdditionalVelocity", Float) = 0.0
 
         [HideInInspector] _DiffusionProfile("Obsolete, kept for migration purpose", Int) = 0
         [HideInInspector] _DiffusionProfileAsset("Diffusion Profile Asset", Vector) = (0, 0, 0, 0)
@@ -282,6 +283,8 @@ Shader "HDRP/Lit"
     #pragma shader_feature_local _MATERIAL_FEATURE_CLEAR_COAT
     #pragma shader_feature_local _MATERIAL_FEATURE_IRIDESCENCE
     #pragma shader_feature_local _MATERIAL_FEATURE_SPECULAR_COLOR
+
+    #pragma shader_feature_local _ADDITIONAL_VELOCITY_CHANGE
 
     // enable dithering LOD crossfade
     #pragma multi_compile _ LOD_FADE_CROSSFADE
@@ -865,6 +868,7 @@ Shader "HDRP/Lit"
             #pragma multi_compile _ LIGHTMAP_ON
             #pragma multi_compile _ DIRLIGHTMAP_COMBINED
             #pragma multi_compile _ DYNAMICLIGHTMAP_ON
+            #pragma multi_compile _ DIFFUSE_LIGHTING_ONLY
             
             #define SHADERPASS SHADERPASS_RAYTRACING_GBUFFER
 
@@ -912,5 +916,5 @@ Shader "HDRP/Lit"
         }
     }
 
-    CustomEditor "Experimental.Rendering.HDPipeline.LitGUI"
+    CustomEditor "Rendering.HighDefinition.LitGUI"
 }

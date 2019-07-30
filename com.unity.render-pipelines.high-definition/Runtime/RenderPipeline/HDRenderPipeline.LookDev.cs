@@ -1,11 +1,10 @@
 using System.Collections.Generic;
 #if UNITY_EDITOR
-using UnityEditor.Experimental.Rendering.HDPipeline;
+using UnityEditor.Rendering.HighDefinition;
 #endif
-using UnityEngine.Rendering;
-using UnityEngine.Rendering.Experimental.LookDev;
+using UnityEngine.Rendering.LookDev;
 
-namespace UnityEngine.Experimental.Rendering.HDPipeline
+namespace UnityEngine.Rendering.HighDefinition
 {
     public partial class HDRenderPipeline : IDataProvider
     {
@@ -36,6 +35,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             HDAdditionalLightData.InitDefaultHDAdditionalLightData(additionalLightData);
 #endif
             additionalLightData.intensity = 0f;
+            additionalLightData.SetShadowResolution(2048);
 
             GameObject volumeGO = SRI.AddGameObject(persistent: true);
             volumeGO.name = "SkyManagementVolume";

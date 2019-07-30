@@ -1,12 +1,12 @@
 using System;
 using System.Linq;
 using UnityEngine;
-using UnityEngine.Experimental.Rendering.HDPipeline;
+using UnityEngine.Rendering.HighDefinition;
 using UnityEditor.Rendering;
 
-namespace UnityEditor.Experimental.Rendering.HDPipeline
+namespace UnityEditor.Rendering.HighDefinition
 {
-    public abstract class MaterialUIBlock
+    abstract class MaterialUIBlock
     {
         protected MaterialEditor        materialEditor;
         protected Material[]            materials;
@@ -103,7 +103,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
             return parent.FetchUIBlock< T >();
         }
-        
+
         public abstract void LoadMaterialProperties();
         public abstract void OnGUI();
     }

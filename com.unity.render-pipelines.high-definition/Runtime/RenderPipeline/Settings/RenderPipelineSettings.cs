@@ -1,8 +1,7 @@
 using System;
-using UnityEngine.Rendering;
-using UnityEngine.Serialization;
+using UnityEngine.Experimental.Rendering;
 
-namespace UnityEngine.Experimental.Rendering.HDPipeline
+namespace UnityEngine.Rendering.HighDefinition
 {
     // RenderPipelineSettings define settings that can't be change during runtime. It is equivalent to the GraphicsSettings of Unity (Tiers + shader variant removal).
     // This allow to allocate resource or not for a given feature.
@@ -57,6 +56,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             supportMotionVectors = true,
             supportRuntimeDebugDisplay = true,
             supportDitheringCrossFade = true,
+            supportTerrainHole = false,
             lightLoopSettings = GlobalLightLoopSettings.@default,
             hdShadowInitParams = HDShadowInitParameters.@default,
             decalSettings = GlobalDecalSettings.@default,
@@ -98,6 +98,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public bool supportMotionVectors;
         public bool supportRuntimeDebugDisplay;
         public bool supportDitheringCrossFade;
+        public bool supportTerrainHole;
         public bool supportRayTracing;
         public RaytracingTier supportedRaytracingTier;
 

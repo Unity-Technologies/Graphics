@@ -9,7 +9,7 @@ Pass
 	#define LIGHTLOOP_TILE_PASS
 	${VFXHDRPForwardDefines}
 	#pragma multi_compile USE_FPTL_LIGHTLIST USE_CLUSTERED_LIGHTLIST
-	#pragma multi_compile SHADOW_LOW SHADOW_MEDIUM SHADOW_HIGH SHADOW_VERY_HIGH
+	#pragma multi_compile SHADOW_LOW SHADOW_MEDIUM SHADOW_HIGH
 	#pragma multi_compile _ DEBUG_DISPLAY
 	//#pragma enable_d3d11_debug_symbols
 	
@@ -36,13 +36,20 @@ Pass
 		// z: frame blending factor
 		nointerpolation float3 builtInInterpolants : TEXCOORD4;
 		#endif
+		
 		#if USE_FLIPBOOK_MOTIONVECTORS
 		// x: motion vector scale u
 		// y: motion vector scale v
 		nointerpolation float2 builtInInterpolants2 : TEXCOORD5;
 		#endif
-		float3 posWS : TEXCOORD6;
+		
+		#if WRITE_MOTION_VECTOR_IN_FORWARD
+		float4 cPosPrevious : TEXCOORD6;
+		float4 cPosNonJiterred : TEXCOORD7;
+		#endif
 
+		float3 posWS : TEXCOORD8;
+		
 		UNITY_VERTEX_OUTPUT_STEREO
 	};
 	
@@ -66,6 +73,11 @@ ${VFXHDRPLitVaryingsMacros}
 #endif
 #define VFX_VARYING_POSWS posWS
 
+#if WRITE_MOTION_VECTOR_IN_FORWARD
+#define VFX_VARYING_VELOCITY_CPOS cPosNonJiterred
+#define VFX_VARYING_VELOCITY_CPOS_PREVIOUS cPosPrevious
+#endif
+
 ${VFXBegin:VFXVertexAdditionalProcess}
 ${VFXHDRPLitFillVaryings}
 ${VFXEnd}
@@ -80,12 +92,20 @@ ${VFXEnd}
 #if USE_DOUBLE_SIDED
 	, bool frontFace : SV_IsFrontFace
 #endif
+#if WRITE_MOTION_VECTOR_IN_FORWARD
+	, out float4 outMotionVector : SV_Target1
+#endif
 	)
 	{
 		UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i);
 		VFXTransformPSInputs(i);
 		${VFXComputeNormalWS}
 		outColor = VFXGetPixelOutputForward(i,normalWS,uvData);
+		
+		#if WRITE_MOTION_VECTOR_IN_FORWARD
+				${VFXComputeOutputMotionVector}
+				outMotionVector = encodedMotionVector;
+		#endif
 	}
 	ENDHLSL
 }

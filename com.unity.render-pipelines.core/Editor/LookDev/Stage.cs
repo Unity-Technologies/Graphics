@@ -3,11 +3,14 @@ using System.Collections.Generic;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using UnityEngine.Rendering.Experimental.LookDev;
+using UnityEngine.Rendering.LookDev;
 
-namespace UnityEditor.Rendering.Experimental.LookDev
+namespace UnityEditor.Rendering.LookDev
 {
     //TODO: add undo support
+    /// <summary>
+    /// Class handling object of the scene with isolation from other scene based on culling
+    /// </summary>
     public class Stage : IDisposable
     {
         const int k_PreviewCullingLayerIndex = 31; //Camera.PreviewCullingLayer; //TODO: expose or reflection
@@ -48,7 +51,7 @@ namespace UnityEditor.Rendering.Experimental.LookDev
 
             m_PreviewScene = EditorSceneManager.NewPreviewScene();
             m_PreviewScene.name = sceneName;
-            
+
             var camGO = EditorUtility.CreateGameObjectWithHideFlags("Look Dev Camera", HideFlags.HideAndDontSave, typeof(Camera));
             MoveIntoStage(camGO, true); //position will be updated right before rendering
             camGO.layer = k_PreviewCullingLayerIndex;
@@ -207,7 +210,7 @@ namespace UnityEditor.Rendering.Experimental.LookDev
             foreach (Light light in m_Camera.GetComponentsInChildren<Light>())
                 light.enabled = visible;
         }
-        
+
         private bool disposedValue = false; // To detect redundant calls
 
         void CleanUp()
@@ -218,11 +221,11 @@ namespace UnityEditor.Rendering.Experimental.LookDev
                     SRI.SRPData = null;
                 SRI = null;
                 EditorSceneManager.ClosePreviewScene(m_PreviewScene);
-                
+
                 disposedValue = true;
             }
         }
-        
+
         ~Stage() => CleanUp();
 
         /// <summary>Clear and close the stage's scene.</summary>
@@ -232,7 +235,7 @@ namespace UnityEditor.Rendering.Experimental.LookDev
             GC.SuppressFinalize(this);
         }
     }
-    
+
     class StageCache : IDisposable
     {
         const string firstStageName = "LookDevFirstView";
@@ -256,7 +259,7 @@ namespace UnityEditor.Rendering.Experimental.LookDev
             };
             initialized = true;
         }
-        
+
         Stage InitStage(ViewIndex index, IDataProvider dataProvider)
         {
             Stage stage;
@@ -265,10 +268,12 @@ namespace UnityEditor.Rendering.Experimental.LookDev
                 case ViewIndex.First:
                     stage = new Stage(firstStageName);
                     stage.camera.backgroundColor = Compositer.firstViewGizmoColor;
+                    stage.camera.name += "_1";
                     break;
                 case ViewIndex.Second:
                     stage = new Stage(secondStageName);
                     stage.camera.backgroundColor = Compositer.secondViewGizmoColor;
+                    stage.camera.name += "_2";
                     break;
                 default:
                     throw new ArgumentException("Unknown ViewIndex: " + index);
@@ -293,7 +298,7 @@ namespace UnityEditor.Rendering.Experimental.LookDev
             if (viewContent.viewedObjectReference != null && !viewContent.viewedObjectReference.Equals(null))
                 viewContent.viewedInstanceInPreview = stage.InstantiateIntoStage(viewContent.viewedObjectReference);
         }
-        
+
         public void UpdateSceneLighting(ViewIndex index, IDataProvider provider)
         {
             Stage stage = this[index];
@@ -302,7 +307,7 @@ namespace UnityEditor.Rendering.Experimental.LookDev
                 environment?.sky,
                 stage.runtimeInterface);
         }
-        
+
         private bool disposedValue = false; // To detect redundant calls
 
         void CleanUp()

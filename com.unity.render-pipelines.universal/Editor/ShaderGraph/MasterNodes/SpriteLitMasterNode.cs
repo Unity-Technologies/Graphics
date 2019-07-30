@@ -10,7 +10,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
     [Serializable]
     [Title("Master", "Sprite Lit (Experimental)")]
     [FormerName("UnityEditor.Experimental.Rendering.LWRP.SpriteLitMasterNode")]
-    class SpriteLitMasterNode : MasterNode<ISpriteLitSubShader>, IMayRequirePosition
+    class SpriteLitMasterNode : MasterNode<ISpriteLitSubShader>, IMayRequirePosition, IMayRequireTangent
     {
         public const string PositionName = "Position";
         public const string ColorSlotName = "Color";
@@ -62,6 +62,16 @@ namespace UnityEditor.Experimental.Rendering.Universal
                 validSlots.Add(slots[i]);
             }
             return validSlots.OfType<IMayRequirePosition>().Aggregate(NeededCoordinateSpace.None, (mask, node) => mask | node.RequiresPosition(stageCapability));
+        }
+
+        public NeededCoordinateSpace RequiresTangent(ShaderStageCapability stageCapability = ShaderStageCapability.All)
+        {
+            var ret = NeededCoordinateSpace.None;
+
+            if ((stageCapability & ShaderStageCapability.Vertex) == ShaderStageCapability.Vertex)
+                ret |= NeededCoordinateSpace.Object;
+
+            return ret;
         }
     }
 }

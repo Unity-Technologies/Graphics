@@ -1,15 +1,15 @@
 {
     "name": "com.unity.render-pipelines.high-definition",
     "description": "The High Definition Render Pipeline (HDRP) is a high-fidelity Scriptable Render Pipeline built by Unity to target modern (Compute Shader compatible) platforms. The HDRP utilizes Physically-Based Lighting techniques, linear lighting, HDR lighting and a configurable hybrid Tile/Cluster deferred/Forward lighting architecture and gives you the tools you need to create games, technical demos, animations and more to a high graphical standard.",
-    "version": "7.0.0-preview",
+    "version": "7.1.1",
     "unity": "2019.3",
-    "unityRelease": "0a8",
+    "unityRelease": "0a10",
     "displayName": "High Definition RP",
     "dependencies": {
-        "com.unity.render-pipelines.core": "7.0.0",
-        "com.unity.shadergraph": "7.0.0",
-        "com.unity.visualeffectgraph": "7.0.0-preview",
-        "com.unity.ugui" : "1.0.0"
+        "com.unity.render-pipelines.core": "7.1.1",
+        "com.unity.shadergraph": "7.1.1",
+        "com.unity.visualeffectgraph": "7.1.1",
+        "com.unity.render-pipelines.high-definition-config": "7.1.1"
     },
     "keywords":[
         "graphics",
@@ -28,6 +28,11 @@
         "displayName" : "Shader Graph Samples",
         "description" : "Adds Shader Graph samples to your project. Open the SampleScene to see typical use cases for the Hair, Fabric, and Decal Master Nodes for Shader Graph.",
         "path" : "Samples~/ShaderGraphSamples"
+    },
+    {
+        "displayName" : "Procedural Sky",
+        "description" : "Adds the deprecated procedural sky of HDRP.",
+        "path" : "Samples~/ProceduralSky"
     }
     ]
 }

@@ -1,18 +1,16 @@
-using UnityEngine;
-using UnityEngine.Rendering;
-using System.Collections.Generic;
+using UnityEngine.Experimental.Rendering;
 
-namespace UnityEngine.Experimental.Rendering.HDPipeline
+namespace UnityEngine.Rendering.HighDefinition
 {
-    public class HDSimpleDenoiser
+    class HDSimpleDenoiser
     {
 #if ENABLE_RAYTRACING
         ComputeShader m_SimpleDenoiserCS;
 
         SharedRTManager m_SharedRTManager;
 
-        RTHandleSystem.RTHandle m_IntermediateBuffer0 = null;
-        RTHandleSystem.RTHandle m_IntermediateBuffer1 = null;
+        RTHandle m_IntermediateBuffer0 = null;
+        RTHandle m_IntermediateBuffer1 = null;
 
         public HDSimpleDenoiser()
         {
@@ -34,7 +32,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             RTHandles.Release(m_IntermediateBuffer0);
         }
 
-        public void DenoiseBuffer(CommandBuffer cmd, HDCamera hdCamera, RTHandleSystem.RTHandle noisySignal, RTHandleSystem.RTHandle historySignal, RTHandleSystem.RTHandle outputSingal, int kernelSize, bool singleChannel = true, int slotIndex = -1)
+        public void DenoiseBuffer(CommandBuffer cmd, HDCamera hdCamera, RTHandle noisySignal, RTHandle historySignal, RTHandle outputSingal, int kernelSize, bool singleChannel = true, int slotIndex = -1)
         {
             // Texture dimensions
             int texWidth = hdCamera.actualWidth;
@@ -62,7 +60,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 m_KernelFilter = m_SimpleDenoiserCS.FindKernel("TemporalAccumulationColor");
             }
- 
+
 
             // Apply a vectorized temporal filtering pass and store it back in the denoisebuffer0 with the analytic value in the third channel
             var historyScale = new Vector2(hdCamera.actualWidth / (float)historySignal.rt.width, hdCamera.actualHeight / (float)historySignal.rt.height);

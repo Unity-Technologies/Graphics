@@ -4,13 +4,27 @@ All notable changes to this package are documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [7.0.0-preview] - 2019-XX-XX
+## [7.1.1] - 2019-XX-XX
+
+## [7.0.1] - 2019-07-25
+### Changed
+- New Shader Graph windows are now docked to either existing Shader Graph windows, or to the Scene View.
+
+### Fixed
+- Fixed various dependency tracking issues with Sub Graphs and HLSL files from Custom Function Nodes.
+- Fixed an error that previously occurred when you used `Sampler State` input ports on Sub Graphs.
+- `Normal Reconstruct Z` node is now compatible with both fragment and vertex stages. 
+- `Position` node now draws the correct label for **Absolute World**. 
+- Node previews now inherit preview type correctly.
+- Normal maps now unpack correctly for mobile platforms.
+
+## [7.0.0] - 2019-07-10
 ### Added
 - You can now use the `SHADERGRAPH_PREVIEW` keyword in `Custom Function Node` to generate different code for preview Shaders.
 - Color Mode improves node visibility by coloring the title bar by Category, Precision, or custom colors.
 - You can now set the precision of a Shader Graph and individual nodes.
-- Added _TimeParameters variable containing Time, Sin(Time), Cosine(Time)
-- **Asbolute World** space on `Position Node` now provides absolute world space coordinates regardless of the active render pipeline.
+- Added the `_TimeParameters` variable which contains `Time`, `Sin(Time)`, and `Cosine(Time)`
+- _Absolute World_ space on `Position Node` now provides absolute world space coordinates regardless of the active render pipeline.
 - You can now add sticky notes to graphs.
 
 ### Changed
@@ -57,6 +71,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - When you save a graph that contains a Sub Graph node, the Shader Graph window no longer freezes.
 - Fixed an error that occured when using multiple Sampler State nodes with different parameters.
 - Fixed an issue causing default inputs to be misaligned in certain cases.
+- You can no longer directly connect slots with invalid types. When the graph detects that situation, it now doesn't break and gives an error instead.
 
 ## [6.6.0] - 2019-04-01
 ### Added

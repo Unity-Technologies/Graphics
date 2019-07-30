@@ -55,6 +55,15 @@
 // Helper functions/variable specific to this material
 //-----------------------------------------------------------------------------
 
+float4 GetDiffuseOrDefaultColor(BSDFData bsdfData, float replace)
+{
+    // Use frensel0 as mettalic weight. all value below 0.2 (ior of diamond) are dielectric
+    // all value above 0.45 are metal, in between we lerp.
+    float weight = saturate((Max3(bsdfData.fresnelF0.r, bsdfData.fresnelF0.g, bsdfData.fresnelF0.b) - 0.2) / (0.45 - 0.2));
+
+    return float4(lerp(bsdfData.diffuseColor, bsdfData.fresnelF0, weight * replace), weight);
+}
+
 float3 GetNormalForShadowBias(BSDFData bsdfData)
 {
     return bsdfData.geomNormalWS;
@@ -62,12 +71,7 @@ float3 GetNormalForShadowBias(BSDFData bsdfData)
 
 float GetAmbientOcclusionForMicroShadowing(BSDFData bsdfData)
 {
-    return 1; // TODO
-}
-
-void ClampRoughness(inout BSDFData bsdfData, float minRoughness)
-{
-    // TODO
+    return 1.0;
 }
 
 //-----------------------------------------------------------------------------
@@ -481,6 +485,13 @@ struct PreLightData
 #endif
 };
 
+//
+// ClampRoughness helper specific to this material
+//
+void ClampRoughness(inout PreLightData preLightData, inout BSDFData bsdfData, float minRoughness)
+{
+}
+
 PreLightData    GetPreLightData(float3 viewWS_Clearcoat, PositionInputs posInput, inout BSDFData bsdfData)
 {
     PreLightData    preLightData;
@@ -687,7 +698,6 @@ PreLightData    GetPreLightData(float3 viewWS_Clearcoat, PositionInputs posInput
     return preLightData;
 }
 
-
 //----------------------------------------------------------------------
 // Computes Fresnel reflection/refraction of view and light vectors due to clearcoating
 // Returns the ratios of the incoming reflected and refracted energy
@@ -762,13 +772,9 @@ void ModifyBakedDiffuseLighting(float3 V, PositionInputs posInput, SurfaceData s
 
     // Note: When baking reflection probes, we approximate the diffuse with the fresnel0
 #ifdef _AXF_BRDF_TYPE_SVBRDF
-    builtinData.bakeDiffuseLighting *= ReplaceDiffuseForReflectionPass(bsdfData.fresnelF0)
-        ? bsdfData.fresnelF0
-        : preLightData.diffuseFGD * bsdfData.diffuseColor;
+    builtinData.bakeDiffuseLighting *= preLightData.diffuseFGD * GetDiffuseOrDefaultColor(bsdfData, _ReplaceDiffuseForIndirect).rgb;
 #else
-    builtinData.bakeDiffuseLighting *= ReplaceDiffuseForReflectionPass(bsdfData.fresnelF0)
-        ? bsdfData.fresnelF0
-        : bsdfData.diffuseColor;
+    builtinData.bakeDiffuseLighting *= GetDiffuseOrDefaultColor(bsdfData, _ReplaceDiffuseForIndirect).rgb;
 #endif
     //TODO attenuate diffuse lighting for coat ie with (1.0 - preLightData.coatFGD)
 }

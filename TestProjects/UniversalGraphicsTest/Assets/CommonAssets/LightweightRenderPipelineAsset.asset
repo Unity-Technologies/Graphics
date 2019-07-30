@@ -9,7 +9,6 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_GeneratorAsset: {fileID: 0}
   m_Script: {fileID: 11500000, guid: bf2edee5c58d82540a51f03df9d42094, type: 3}
   m_Name: LightweightRenderPipelineAsset
   m_EditorClassIdentifier: 
@@ -19,7 +18,7 @@ MonoBehaviour:
   m_RequireDepthTexture: 0
   m_RequireOpaqueTexture: 1
   m_OpaqueDownsampling: 1
-  m_SupportsHDR: 0
+  m_SupportsHDR: 1
   m_MSAA: 4
   m_RenderScale: 1
   m_MainLightRenderingMode: 1
@@ -39,6 +38,8 @@ MonoBehaviour:
   m_UseSRPBatcher: 1
   m_SupportsDynamicBatching: 0
   m_MixedLightingSupported: 1
+  m_ColorGradingMode: 0
+  m_ColorGradingLutSize: 32
   m_ShadowType: 0
   m_LocalShadowsSupported: 1
   m_LocalShadowsAtlasResolution: 512

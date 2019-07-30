@@ -1,8 +1,6 @@
-using UnityEngine.Rendering;
-
-namespace UnityEngine.Experimental.Rendering.HDPipeline
+namespace UnityEngine.Rendering.HighDefinition
 {
-    public class GradientSkyRenderer : SkyRenderer
+    class GradientSkyRenderer : SkyRenderer
     {
         Material m_GradientSkyMaterial; // Renders a cubemap into a render texture (can be cube or 2D)
         MaterialPropertyBlock m_PropertyBlock;
@@ -34,11 +32,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             if (builtinParams.depthBuffer == BuiltinSkyParameters.nullRT)
             {
-                HDUtils.SetRenderTarget(builtinParams.commandBuffer, builtinParams.colorBuffer);
+                CoreUtils.SetRenderTarget(builtinParams.commandBuffer, builtinParams.colorBuffer);
             }
             else
             {
-                HDUtils.SetRenderTarget(builtinParams.commandBuffer, builtinParams.colorBuffer, builtinParams.depthBuffer);
+                CoreUtils.SetRenderTarget(builtinParams.commandBuffer, builtinParams.colorBuffer, builtinParams.depthBuffer);
             }
         }
 

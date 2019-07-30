@@ -5,7 +5,7 @@
 #ifndef STACKLIT_CS_HLSL
 #define STACKLIT_CS_HLSL
 //
-// UnityEngine.Experimental.Rendering.HDPipeline.StackLit+MaterialFeatureFlags:  static fields
+// UnityEngine.Rendering.HighDefinition.StackLit+MaterialFeatureFlags:  static fields
 //
 #define MATERIALFEATUREFLAGS_STACK_LIT_STANDARD (1)
 #define MATERIALFEATUREFLAGS_STACK_LIT_DUAL_SPECULAR_LOBE (2)
@@ -19,7 +19,7 @@
 #define MATERIALFEATUREFLAGS_STACK_LIT_HAZY_GLOSS (512)
 
 //
-// UnityEngine.Experimental.Rendering.HDPipeline.StackLit+SurfaceData:  static fields
+// UnityEngine.Rendering.HighDefinition.StackLit+SurfaceData:  static fields
 //
 #define DEBUGVIEW_STACKLIT_SURFACEDATA_MATERIAL_FEATURES (1100)
 #define DEBUGVIEW_STACKLIT_SURFACEDATA_BASE_COLOR (1101)
@@ -57,12 +57,13 @@
 #define DEBUGVIEW_STACKLIT_SURFACEDATA_DIFFUSION_PROFILE_HASH (1133)
 #define DEBUGVIEW_STACKLIT_SURFACEDATA_SUBSURFACE_MASK (1134)
 #define DEBUGVIEW_STACKLIT_SURFACEDATA_THICKNESS (1135)
-#define DEBUGVIEW_STACKLIT_SURFACEDATA_SPECULAR_OCCLUSION_FIXUP_VISIBILITY_RATIO_THRESHOLD (1136)
-#define DEBUGVIEW_STACKLIT_SURFACEDATA_SPECULAR_OCCLUSION_FIXUP_STRENGTH (1137)
-#define DEBUGVIEW_STACKLIT_SURFACEDATA_SPECULAR_OCCLUSION_FIXUP_MAX_ADDED_ROUGHNESS (1138)
+#define DEBUGVIEW_STACKLIT_SURFACEDATA_SPECULAR_OCCLUSION_FROM_CUSTOM_INPUT (1136)
+#define DEBUGVIEW_STACKLIT_SURFACEDATA_SPECULAR_OCCLUSION_FIXUP_VISIBILITY_RATIO_THRESHOLD (1137)
+#define DEBUGVIEW_STACKLIT_SURFACEDATA_SPECULAR_OCCLUSION_FIXUP_STRENGTH (1138)
+#define DEBUGVIEW_STACKLIT_SURFACEDATA_SPECULAR_OCCLUSION_FIXUP_MAX_ADDED_ROUGHNESS (1139)
 
 //
-// UnityEngine.Experimental.Rendering.HDPipeline.StackLit+BSDFData:  static fields
+// UnityEngine.Rendering.HighDefinition.StackLit+BSDFData:  static fields
 //
 #define DEBUGVIEW_STACKLIT_BSDFDATA_MATERIAL_FEATURES (1150)
 #define DEBUGVIEW_STACKLIT_BSDFDATA_DIFFUSE_COLOR (1151)
@@ -103,11 +104,12 @@
 #define DEBUGVIEW_STACKLIT_BSDFDATA_THICKNESS (1186)
 #define DEBUGVIEW_STACKLIT_BSDFDATA_USE_THICK_OBJECT_MODE (1187)
 #define DEBUGVIEW_STACKLIT_BSDFDATA_TRANSMITTANCE (1188)
-#define DEBUGVIEW_STACKLIT_BSDFDATA_SO_FIXUP_VISIBILITY_RATIO_THRESHOLD (1189)
-#define DEBUGVIEW_STACKLIT_BSDFDATA_SO_FIXUP_STRENGTH_FACTOR (1190)
-#define DEBUGVIEW_STACKLIT_BSDFDATA_SO_FIXUP_MAX_ADDED_ROUGHNESS (1191)
+#define DEBUGVIEW_STACKLIT_BSDFDATA_SPECULAR_OCCLUSION_CUSTOM_INPUT (1189)
+#define DEBUGVIEW_STACKLIT_BSDFDATA_SO_FIXUP_VISIBILITY_RATIO_THRESHOLD (1190)
+#define DEBUGVIEW_STACKLIT_BSDFDATA_SO_FIXUP_STRENGTH_FACTOR (1191)
+#define DEBUGVIEW_STACKLIT_BSDFDATA_SO_FIXUP_MAX_ADDED_ROUGHNESS (1192)
 
-// Generated from UnityEngine.Experimental.Rendering.HDPipeline.StackLit+SurfaceData
+// Generated from UnityEngine.Rendering.HighDefinition.StackLit+SurfaceData
 // PackingRules = Exact
 struct SurfaceData
 {
@@ -143,12 +145,13 @@ struct SurfaceData
     uint diffusionProfileHash;
     float subsurfaceMask;
     float thickness;
+    float specularOcclusionCustomInput;
     float soFixupVisibilityRatioThreshold;
     float soFixupStrengthFactor;
     float soFixupMaxAddedRoughness;
 };
 
-// Generated from UnityEngine.Experimental.Rendering.HDPipeline.StackLit+BSDFData
+// Generated from UnityEngine.Rendering.HighDefinition.StackLit+BSDFData
 // PackingRules = Exact
 struct BSDFData
 {
@@ -187,6 +190,7 @@ struct BSDFData
     float thickness;
     bool useThickObjectMode;
     float3 transmittance;
+    float specularOcclusionCustomInput;
     float soFixupVisibilityRatioThreshold;
     float soFixupStrengthFactor;
     float soFixupMaxAddedRoughness;
@@ -308,6 +312,9 @@ void GetGeneratedSurfaceDataDebug(uint paramId, SurfaceData surfacedata, inout f
             break;
         case DEBUGVIEW_STACKLIT_SURFACEDATA_THICKNESS:
             result = surfacedata.thickness.xxx;
+            break;
+        case DEBUGVIEW_STACKLIT_SURFACEDATA_SPECULAR_OCCLUSION_FROM_CUSTOM_INPUT:
+            result = surfacedata.specularOcclusionCustomInput.xxx;
             break;
         case DEBUGVIEW_STACKLIT_SURFACEDATA_SPECULAR_OCCLUSION_FIXUP_VISIBILITY_RATIO_THRESHOLD:
             result = surfacedata.soFixupVisibilityRatioThreshold.xxx;
@@ -445,6 +452,9 @@ void GetGeneratedBSDFDataDebug(uint paramId, BSDFData bsdfdata, inout float3 res
             break;
         case DEBUGVIEW_STACKLIT_BSDFDATA_TRANSMITTANCE:
             result = bsdfdata.transmittance;
+            break;
+        case DEBUGVIEW_STACKLIT_BSDFDATA_SPECULAR_OCCLUSION_CUSTOM_INPUT:
+            result = bsdfdata.specularOcclusionCustomInput.xxx;
             break;
         case DEBUGVIEW_STACKLIT_BSDFDATA_SO_FIXUP_VISIBILITY_RATIO_THRESHOLD:
             result = bsdfdata.soFixupVisibilityRatioThreshold.xxx;

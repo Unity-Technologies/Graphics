@@ -29,7 +29,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         bool m_HasError;
 
         [NonSerialized]
-        HashSet<string> m_ChangedSubGraphs = new HashSet<string>();
+        HashSet<string> m_ChangedFileDependencies = new HashSet<string>();
 
         ColorSpace m_ColorSpace;
         RenderPipelineAsset m_RenderPipelineAsset;
@@ -145,14 +145,18 @@ namespace UnityEditor.ShaderGraph.Drawing
                     graphObject.Validate();
                 }
 
-                if (m_ChangedSubGraphs.Count > 0 && graphObject != null && graphObject.graph != null)
+                if (m_ChangedFileDependencies.Count > 0 && graphObject != null && graphObject.graph != null)
                 {
                     foreach (var subGraphNode in graphObject.graph.GetNodes<SubGraphNode>())
                     {
-                        subGraphNode.Reload(m_ChangedSubGraphs);
+                        subGraphNode.Reload(m_ChangedFileDependencies);
+                    }
+                    foreach (var customFunctionNode in graphObject.graph.GetNodes<CustomFunctionNode>())
+                    {
+                        customFunctionNode.Reload(m_ChangedFileDependencies);
                     }
 
-                    m_ChangedSubGraphs.Clear();
+                    m_ChangedFileDependencies.Clear();
                 }
 
                 if (graphObject.wasUndoRedoPerformed)
@@ -175,11 +179,11 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
         }
 
-        public void ReloadSubGraphsOnNextUpdate(List<string> subGraphs)
+        public void ReloadSubGraphsOnNextUpdate(List<string> changedFiles)
         {
-            foreach (var subGraph in subGraphs)
+            foreach (var changedFile in changedFiles)
             {
-                m_ChangedSubGraphs.Add(subGraph);
+                m_ChangedFileDependencies.Add(changedFile);
             }
         }
 
@@ -266,7 +270,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     graphView.selection.OfType<ShaderGroup>().Select(x => x.userData),
                     graphView.selection.OfType<IShaderNodeView>().Where(x => !(x.node is PropertyNode || x.node is SubGraphOutputNode)).Select(x => x.node).Where(x => x.allowedInSubGraph).ToArray(),
                     graphView.selection.OfType<Edge>().Select(x => x.userData as IEdge),
-                    graphView.selection.OfType<BlackboardField>().Select(x => x.userData as AbstractShaderProperty),
+                    graphView.selection.OfType<BlackboardField>().Select(x => x.userData as ShaderInput),
                     metaProperties,
                     graphView.selection.OfType<StickyNote>().Select(x => x.userData));
 
@@ -441,7 +445,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     var fromProperty = fromPropertyNode != null ? materialGraph.properties.FirstOrDefault(p => p.guid == fromPropertyNode.propertyGuid) : null;
                     prop.displayName = fromProperty != null ? fromProperty.displayName : fromSlot.concreteValueType.ToString();
 
-                    subGraph.AddShaderProperty(prop);
+                    subGraph.AddGraphInput(prop);
                     var propNode = new PropertyNode();
                     {
                         var drawState = propNode.drawState;

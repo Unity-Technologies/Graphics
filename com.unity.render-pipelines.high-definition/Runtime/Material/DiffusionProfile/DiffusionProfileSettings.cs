@@ -1,9 +1,9 @@
 using System;
 
-namespace UnityEngine.Experimental.Rendering.HDPipeline
+namespace UnityEngine.Rendering.HighDefinition
 {
     [GenerateHLSL]
-    public class DiffusionProfileConstants
+    class DiffusionProfileConstants
     {
         public const int DIFFUSION_PROFILE_COUNT      = 16; // Max. number of profiles, including the slot taken by the neutral profile
         public const int DIFFUSION_PROFILE_NEUTRAL_ID = 0;  // Does not result in blurring
@@ -198,6 +198,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
     }
 
+    [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "Diffusion-Profile" + Documentation.endURL)]
     public sealed partial class DiffusionProfileSettings : ScriptableObject
     {
         public DiffusionProfile profile;
@@ -221,7 +222,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 #if UNITY_EDITOR
             if (m_Version != Version.Last)
                 TryToUpgrade();
-            UnityEditor.Experimental.Rendering.HDPipeline.DiffusionProfileHashTable.UpdateDiffusionProfileHashNow(this);
+            UnityEditor.Rendering.HighDefinition.DiffusionProfileHashTable.UpdateDiffusionProfileHashNow(this);
 #endif
         }
 

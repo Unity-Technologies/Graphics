@@ -375,13 +375,11 @@ namespace UnityEditor.VFX
             }
 
             //< Final composition
-            var renderPipePath = UnityEngine.VFX.VFXManager.renderPipeSettingsPath;
-            string renderPipeCommon = "Packages/com.unity.visualeffectgraph/Shaders/Common/VFXCommonCompute.cginc";
+            var renderPipePath = VFXLibrary.currentSRPBinder.templatePath;
+            string renderPipeCommon = context.doesIncludeCommonCompute ? "Packages/com.unity.visualeffectgraph/Shaders/Common/VFXCommonCompute.cginc" : renderPipePath + "/VFXCommon.cginc";
             string renderPipePasses = null;
-
             if (!context.codeGeneratorCompute && !string.IsNullOrEmpty(renderPipePath))
             {
-                renderPipeCommon = renderPipePath + "/VFXCommon.cginc";
                 renderPipePasses = renderPipePath + "/VFXPasses.template";
             }
 
@@ -391,6 +389,9 @@ namespace UnityEditor.VFX
                 globalIncludeContent.WriteLineFormat("#define VFX_USE_{0}_{1} 1", attribute.attrib.name.ToUpper(), "CURRENT");
             foreach (var attribute in context.GetData().GetAttributes().Where(a => context.GetData().IsSourceAttributeUsed(a.attrib, context)))
                 globalIncludeContent.WriteLineFormat("#define VFX_USE_{0}_{1} 1", attribute.attrib.name.ToUpper(), "SOURCE");
+
+            foreach (var additionnalHeader in context.additionalDataHeaders)
+                globalIncludeContent.WriteLine(additionnalHeader);
 
             foreach (var additionnalDefine in context.additionalDefines)
                 globalIncludeContent.WriteLineFormat("#define {0} 1", additionnalDefine);

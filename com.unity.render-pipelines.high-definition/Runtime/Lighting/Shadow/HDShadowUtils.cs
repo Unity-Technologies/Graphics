@@ -1,12 +1,7 @@
-using System;
-using System.Collections.Generic;
-using UnityEngine.Rendering;
-using UnityEngine.Experimental.Rendering;
-
-namespace UnityEngine.Experimental.Rendering.HDPipeline
+namespace UnityEngine.Rendering.HighDefinition
 {
     // TODO remove every occurrence of ShadowSplitData in function parameters when we'll have scriptable culling
-    public static class HDShadowUtils
+    static class HDShadowUtils
     {
         public static readonly float k_MinShadowNearPlane = 0.0001f;
         public static readonly float k_MaxShadowNearPlane = 10.0f;
@@ -25,16 +20,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (hdAsset == null)
                 return 1;
 
-            // Currently we force MEDIUM on deferred, so PCF 5x5 is used.
-            if (camera.frameSettings.litShaderMode == LitShaderMode.Deferred)
-                return 5;
-
-            switch (hdAsset.currentPlatformRenderPipelineSettings.hdShadowInitParams.shadowQuality)
+            switch (hdAsset.currentPlatformRenderPipelineSettings.hdShadowInitParams.shadowFilteringQuality)
             {
                 // Warning: these values have to match the algorithms used for shadow filtering (in HDShadowAlgorithm.hlsl)
-                case HDShadowQuality.Low:
+                case HDShadowFilteringQuality.Low:
                     return 3; // PCF 3x3
-                case HDShadowQuality.Medium:
+                case HDShadowFilteringQuality.Medium:
                     return 5; // PCF 5x5
                 default:
                     return 1; // Any non PCF algorithms

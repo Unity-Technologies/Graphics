@@ -1,7 +1,6 @@
 using System;
-using UnityEngine.Rendering;
 
-namespace UnityEngine.Experimental.Rendering.HDPipeline
+namespace UnityEngine.Rendering.HighDefinition
 {
     [Serializable, VolumeComponentMenu("Exposure")]
     public sealed class Exposure : VolumeComponent, IPostProcessComponent
@@ -69,7 +68,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
     [Serializable]
     public sealed class MeteringModeParameter : VolumeParameter<MeteringMode> { public MeteringModeParameter(MeteringMode value, bool overrideState = false) : base(value, overrideState) { } }
-    
+
     [Serializable]
     public sealed class LuminanceSourceParameter : VolumeParameter<LuminanceSource> { public LuminanceSourceParameter(LuminanceSource value, bool overrideState = false) : base(value, overrideState) {} }
 

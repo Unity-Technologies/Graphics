@@ -1,7 +1,7 @@
 using System;
 using UnityEngine.Serialization;
 
-namespace UnityEngine.Experimental.Rendering.HDPipeline
+namespace UnityEngine.Rendering.HighDefinition
 {
     public partial class HDAdditionalCameraData : IVersionable<HDAdditionalCameraData.Version>
     {
@@ -12,13 +12,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             SeparatePassThrough,
             UpgradingFrameSettingsToStruct,
             AddAfterPostProcessFrameSetting,
-            AddFrameSettingSpecularLighting
+            AddFrameSettingSpecularLighting, // Not used anymore
+            AddReflectionSettings
         }
 
         [SerializeField, FormerlySerializedAs("version")]
         Version m_Version;
 
-        protected static readonly MigrationDescription<Version, HDAdditionalCameraData> k_Migration = MigrationDescription.New(
+        static readonly MigrationDescription<Version, HDAdditionalCameraData> k_Migration = MigrationDescription.New(
             MigrationStep.New(Version.SeparatePassThrough, (HDAdditionalCameraData data) =>
             {
 #pragma warning disable 618 // Type or member is obsolete
@@ -50,8 +51,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 FrameSettings.MigrateToAfterPostprocess(ref data.renderingPathCustomFrameSettings);
             }),
-            MigrationStep.New(Version.AddFrameSettingSpecularLighting, (HDAdditionalCameraData data) =>
-                FrameSettings.MigrateToSpecularLighting(ref data.renderingPathCustomFrameSettings)
+            MigrationStep.New(Version.AddReflectionSettings, (HDAdditionalCameraData data) =>
+                FrameSettings.MigrateToDefaultReflectionSettings(ref data.renderingPathCustomFrameSettings)
             )
         );
 

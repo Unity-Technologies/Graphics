@@ -110,6 +110,9 @@ Shader "HDRP/AxF"
 
         [ToggleUI] _SupportDecals("Support Decals", Float) = 1.0
         [ToggleUI] _ReceivesSSR("Receives SSR", Float) = 1.0
+
+        [ToggleUI] _AddVelocityChange("EnableAdditionalVelocity", Float) = 0.0
+
     }
 
     HLSLINCLUDE
@@ -127,6 +130,8 @@ Shader "HDRP/AxF"
 
     #pragma shader_feature _DISABLE_DECALS
     #pragma shader_feature _DISABLE_SSR
+
+    #pragma shader_feature_local _ADDITIONAL_VELOCITY_CHANGE
 
     // Keyword for transparent
     #pragma shader_feature _SURFACE_TYPE_TRANSPARENT
@@ -252,7 +257,7 @@ Shader "HDRP/AxF"
 
             #define WRITE_NORMAL_BUFFER
             #pragma multi_compile _ WRITE_MSAA_DEPTH
-            
+
             #define SHADERPASS SHADERPASS_MOTION_VECTORS
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/AxF/AxF.hlsl"
@@ -351,7 +356,7 @@ Shader "HDRP/AxF"
             #pragma multi_compile _ SHADOWS_SHADOWMASK
             // Setup DECALS_OFF so the shader stripper can remove variants
             #pragma multi_compile DECALS_OFF DECALS_3RT DECALS_4RT
-            
+
             // Supported shadow modes per light type
             #pragma multi_compile SHADOW_LOW SHADOW_MEDIUM SHADOW_HIGH
 
@@ -395,5 +400,5 @@ Shader "HDRP/AxF"
 
     }
 
-    CustomEditor "Experimental.Rendering.HDPipeline.AxFGUI"
+    CustomEditor "Rendering.HighDefinition.AxFGUI"
 }

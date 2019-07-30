@@ -1,13 +1,10 @@
-using UnityEngine;
-using System;
-
 //-----------------------------------------------------------------------------
 // structure definition
 //-----------------------------------------------------------------------------
-namespace UnityEngine.Experimental.Rendering.HDPipeline
+namespace UnityEngine.Rendering.HighDefinition
 {
     [GenerateHLSL(PackingRules.Exact)]
-    public enum ShaderPass
+    enum ShaderPass
     {
         GBuffer,
         Forward,

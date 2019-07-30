@@ -1,8 +1,9 @@
 using System;
 using UnityEngine;
-using IDataProvider = UnityEngine.Rendering.Experimental.LookDev.IDataProvider;
+using UnityEngine.Experimental.Rendering;
+using IDataProvider = UnityEngine.Rendering.LookDev.IDataProvider;
 
-namespace UnityEditor.Rendering.Experimental.LookDev
+namespace UnityEditor.Rendering.LookDev
 {
     enum ShadowCompositionPass
     {
@@ -17,8 +18,17 @@ namespace UnityEditor.Rendering.Experimental.LookDev
         Second
     }
 
-    class RenderTextureCache
+    class RenderTextureCache : IDisposable
     {
+        //RenderTextures are packed this way:
+        //0: ViewIndex.First, ShadowCompositionPass.WithSun
+        //1: ViewIndex.First, ShadowCompositionPass.WithoutSun
+        //2: ViewIndex.First, ShadowCompositionPass.ShadowMask
+        //3: CompositionFinal.First
+        //4: ViewIndex.Second, ShadowCompositionPass.WithSun
+        //5: ViewIndex.Second, ShadowCompositionPass.WithoutSun
+        //6: ViewIndex.Second, ShadowCompositionPass.ShadowMask
+        //7: CompositionFinal.Second
         RenderTexture[] m_RTs = new RenderTexture[8];
 
         public RenderTexture this[ViewIndex index, ShadowCompositionPass passIndex]
@@ -34,52 +44,76 @@ namespace UnityEditor.Rendering.Experimental.LookDev
         }
 
         int computeIndex(ViewIndex index, ShadowCompositionPass passIndex)
-            => (int)index * 3 + (int)(passIndex);
+            => (int)index * 4 + (int)(passIndex);
         int computeIndex(CompositionFinal index)
-            => 6 + (int)(index);
+            => 3 + (int)(index) * 4;
 
-        public static RenderTexture UpdateSize(RenderTexture renderTexture, Rect rect, bool pixelPerfect, Camera renderingCamera, string renderDocName = "LookDevRT")
+        void UpdateSize(int index, Rect rect, bool pixelPerfect, Camera renderingCamera, string renderDocName = "LookDevRT")
         {
+            bool nullRect = rect.IsNullOrInverted();
+
+            GraphicsFormat format = SystemInfo.IsFormatSupported(GraphicsFormat.R16G16B16A16_SFloat, FormatUsage.Render)
+                ? GraphicsFormat.R16G16B16A16_SFloat
+                : SystemInfo.GetGraphicsFormat(DefaultFormat.LDR);
+            if (m_RTs[index] != null && (nullRect || m_RTs[index].graphicsFormat != format))
+            {
+                m_RTs[index].Release();
+                UnityEngine.Object.DestroyImmediate(m_RTs[index]);
+                m_RTs[index] = null;
+            }
+            if (nullRect)
+                return;
+
             int width = (int)rect.width;
             int height = (int)rect.height;
-            if ((renderTexture == null
-                || width != renderTexture.width
-                || height != renderTexture.height)
-                && !rect.IsNullOrInverted())
+
+            if (m_RTs[index] == null)
             {
-                if (renderTexture != null)
-                {
-                    if (renderingCamera != null && !renderingCamera.Equals(null) && renderingCamera.targetTexture == renderTexture)
-                        renderingCamera.targetTexture = null;
-                    UnityEngine.Object.DestroyImmediate(renderTexture);
-                }
-
-                // Do not use GetTemporary to manage render textures. Temporary RTs are only
-                // garbage collected each N frames, and in the editor we might be wildly resizing
-                // the inspector, thus using up tons of memory.
-                renderTexture = new RenderTexture(
-                    width, height, 0,
-                    RenderTextureFormat.ARGBHalf, RenderTextureReadWrite.Default);
-                renderTexture.hideFlags = HideFlags.HideAndDontSave;
-                renderTexture.name = renderDocName;
-                renderTexture.Create();
-
-                if (renderingCamera != null)
-                    renderingCamera.targetTexture = renderTexture;
+                m_RTs[index] = new RenderTexture(0, 0, 24, format);
+                m_RTs[index].name = renderDocName;
+                m_RTs[index].antiAliasing = 1;
+                m_RTs[index].hideFlags = HideFlags.HideAndDontSave;
             }
-            return renderTexture;
+
+            if (m_RTs[index].width != width || m_RTs[index].height != height)
+            {
+                m_RTs[index].Release();
+                m_RTs[index].width = width;
+                m_RTs[index].height = height;
+                m_RTs[index].Create();
+            }
+
+            if (renderingCamera != null)
+                renderingCamera.targetTexture = m_RTs[index];
         }
 
         public void UpdateSize(Rect rect, ViewIndex index, bool pixelPerfect, Camera renderingCamera)
         {
-            this[index, ShadowCompositionPass.WithSun] = UpdateSize(this[index, ShadowCompositionPass.WithSun], rect, pixelPerfect, renderingCamera, $"LookDevRT-{index}-Sky");
-            this[index, ShadowCompositionPass.WithoutSun] = UpdateSize(this[index, ShadowCompositionPass.WithoutSun], rect, pixelPerfect, renderingCamera, $"LookDevRT-{index}-Shadow");
-            this[index, ShadowCompositionPass.ShadowMask] = UpdateSize(this[index, ShadowCompositionPass.ShadowMask], rect, pixelPerfect, renderingCamera, $"LookDevRT-{index}-ShadowMask");
+            UpdateSize(computeIndex(index, ShadowCompositionPass.WithSun), rect, pixelPerfect, renderingCamera, $"LookDevRT-{index}-WithSun");
+            UpdateSize(computeIndex(index, ShadowCompositionPass.WithoutSun), rect, pixelPerfect, renderingCamera, $"LookDevRT-{index}-WithoutSun");
+            UpdateSize(computeIndex(index, ShadowCompositionPass.ShadowMask), rect, pixelPerfect, renderingCamera, $"LookDevRT-{index}-ShadowMask");
         }
 
 
         public void UpdateSize(Rect rect, CompositionFinal index, bool pixelPerfect, Camera renderingCamera)
-            => this[index] = UpdateSize(this[index], rect, pixelPerfect, renderingCamera, $"LookDevRT-Final-{index}");
+            => UpdateSize(computeIndex(index), rect, pixelPerfect, renderingCamera, $"LookDevRT-Final-{index}");
+
+        bool m_Disposed = false;
+        public void Dispose()
+        {
+            if (m_Disposed)
+                return;
+            m_Disposed = true;
+
+            for (int index = 0; index < 8; ++index)
+            {
+                if (m_RTs[index] == null || m_RTs[index].Equals(null))
+                    continue;
+
+                UnityEngine.Object.DestroyImmediate(m_RTs[index]);
+                m_RTs[index] = null;
+            }
+        }
     }
 
     class Compositer : IDisposable
@@ -134,7 +168,7 @@ namespace UnityEditor.Rendering.Experimental.LookDev
             };
 
             m_Displayer.OnRenderDocAcquisitionTriggered += RenderDocAcquisitionRequested;
-            EditorApplication.update += Render;
+            m_Displayer.OnUpdateRequested += Render;
         }
 
         void RenderDocAcquisitionRequested()
@@ -142,8 +176,16 @@ namespace UnityEditor.Rendering.Experimental.LookDev
 
         void CleanUp()
         {
+            for (int index = 0; index < 2; ++index)
+            {
+                m_RenderDataCache[index]?.Dispose();
+                m_RenderDataCache[index] = null;
+            }
+            
+            m_RenderTextures.Dispose();
+
             m_Displayer.OnRenderDocAcquisitionTriggered -= RenderDocAcquisitionRequested;
-            EditorApplication.update -= Render;
+            m_Displayer.OnUpdateRequested -= Render;
         }
         public void Dispose()
         {
@@ -177,7 +219,6 @@ namespace UnityEditor.Rendering.Experimental.LookDev
                         RenderSingleAndOutput(ViewIndex.Second);
                         break;
                     case Layout.CustomSplit:
-                    case Layout.CustomCircular:
                         RenderCompositeAndOutput();
                         break;
                 }
@@ -202,12 +243,7 @@ namespace UnityEditor.Rendering.Experimental.LookDev
 
             renderingData.output = m_RenderTextures[index, ShadowCompositionPass.WithSun];
             m_Renderer.Acquire(renderingData, RenderingPass.First);
-            if (renderingData.resized)
-            {
-                m_RenderTextures[index, ShadowCompositionPass.WithSun] = renderingData.output;
-                renderingData.resized = false;
-            }
-
+            
             //get shadowmask betwen first and last pass to still be isolated
             RenderTexture tmp = m_RenderTextures[index, ShadowCompositionPass.ShadowMask];
             env?.UpdateSunPosition(renderingData.stage.sunLight);
@@ -220,14 +256,9 @@ namespace UnityEditor.Rendering.Experimental.LookDev
                 m_DataProvider.UpdateSky(renderingData.stage.camera, env.shadowSky, renderingData.stage.runtimeInterface);
             renderingData.output = m_RenderTextures[index, ShadowCompositionPass.WithoutSun];
             m_Renderer.Acquire(renderingData, RenderingPass.Last);
-            if (renderingData.resized)
-            {
-                m_RenderTextures[index, ShadowCompositionPass.WithoutSun] = renderingData.output;
-                renderingData.resized = false;
-            }
+
             if (env != null)
                 m_DataProvider.UpdateSky(renderingData.stage.camera, env.sky, renderingData.stage.runtimeInterface);
-
         }
 
         void RenderSingleAndOutput(ViewIndex index)
@@ -248,7 +279,7 @@ namespace UnityEditor.Rendering.Experimental.LookDev
             m_Displayer.SetTexture(ViewCompositionIndex.Composite, m_RenderTextures[CompositionFinal.First]);
         }
 
-        void Compositing(Rect rect, int pass, CompositionFinal finalBuffer)
+        void Compositing(Rect rect, int pass, CompositionFinal finalBufferIndex)
         {
             if (rect.IsNullOrInverted()
                 || (m_Contexts.layout.viewLayout != Layout.FullSecondView
@@ -260,11 +291,11 @@ namespace UnityEditor.Rendering.Experimental.LookDev
                         || m_RenderTextures[ViewIndex.Second, ShadowCompositionPass.WithoutSun] == null
                         || m_RenderTextures[ViewIndex.Second, ShadowCompositionPass.ShadowMask] == null)))
             {
-                m_RenderTextures[finalBuffer] = null;
+                m_RenderTextures[finalBufferIndex] = null;
                 return;
             }
 
-            m_RenderTextures.UpdateSize(rect, finalBuffer, m_pixelPerfect, null);
+            m_RenderTextures.UpdateSize(rect, finalBufferIndex, m_pixelPerfect, null);
 
             ComparisonGizmoState gizmo = m_Contexts.layout.gizmoState;
 
@@ -279,7 +310,7 @@ namespace UnityEditor.Rendering.Experimental.LookDev
             float exposureValue0 = env0?.sky.exposure ?? 0f;
             float exposureValue1 = env1?.sky.exposure ?? 0f;
             float dualViewBlendFactor = gizmo.blendFactor;
-            float isCurrentlyLeftEditting = 1f; //1f true, -1f false
+            float isCurrentlyLeftEditting = m_Contexts.layout.lastFocusedView == ViewIndex.First ? 1f : -1f;
             float dragAndDropContext = 0f; //1f left, -1f right, 0f neither
             float toneMapEnabled = -1f; //1f true, -1f false
             float shadowMultiplier0 = env0?.shadowIntensity ?? 0f;
@@ -319,7 +350,7 @@ namespace UnityEditor.Rendering.Experimental.LookDev
             Vector4 screenRatio = new Vector4(rect.width / k_ReferenceScale, rect.height / k_ReferenceScale, rect.width, rect.height);
 
             RenderTexture oldActive = RenderTexture.active;
-            RenderTexture.active = m_RenderTextures[finalBuffer];
+            RenderTexture.active = m_RenderTextures[finalBufferIndex];
             material.SetTexture("_Tex0WithSun", texWithSun0);
             material.SetTexture("_Tex0WithoutSun", texWithoutSun0);
             material.SetTexture("_Tex0Shadows", texShadowsMask0);

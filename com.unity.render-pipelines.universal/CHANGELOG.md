@@ -4,16 +4,27 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [7.0.0] - 2019-XX-XX
-###Universal Render Pipeline
-- LWRP has been renamed to the "Universal Render Pipeline"
-- Universal in the same as LWRP in terms of features and scope
-- Classes have moved to the Universal namespace (from LWRP)
+## [7.1.1] - 2019-XX-XX
 
-###Upgrade Guide
-- Upgrading to Universal is designed to be almost seamless from the user side
-- LWRP package still exists, this forwards includes and classes to the Universal Package
-- Please see the more involved upgrade guide ()
+## [7.0.1] - 2019-07-25
+- Fixed specular lighting related artifacts on Mobile [case 1143049](https://issuetracker.unity3d.com/issues/ios-lwrp-rounded-cubes-has-graphical-artifacts-when-setting-pbr-shaders-smoothness-about-to-0-dot-65-in-shadergraph) and [case 1164822](https://issuetracker.unity3d.com/issues/lwrp-specular-highlight-becomes-hard-edged-when-increasing-the-size-of-an-object).
+- Post-processing is no longer enabled in the previews.
+- Unity no longer force-enables post-processing on a camera by default.
+- Fixed an issue that caused the Scene to render darker in GLES3 and linear color space. [case 1169789](https://issuetracker.unity3d.com/issues/lwrp-android-scene-is-rendered-darker-in-build-when-graphics-api-set-to-gles3-and-color-space-set-to-linear)
+
+### Changed
+- Platform checks now provide more helpful feedback about supported features in the Inspectors.
+
+## [7.0.0] - 2019-07-17
+### Universal Render Pipeline
+- LWRP has been renamed to the "Universal Render Pipeline" (UniversalRP).
+- UniversalRP is the same as LWRP in terms of features and scope.
+- Classes have moved to the Universal namespace (from LWRP).
+
+### Upgrade Guide
+- Upgrading to UniversalRP is designed to be almost seamless from the user side.
+- LWRP package still exists, this forwards includes and classes to the UniversalRP Package.
+- Please see the more involved upgrade guide (https://docs.google.com/document/d/1Xd5bZa8pYZRHri-EnNkyhwrWEzSa15vtnpcg--xUCIs/).
 
 ### Added
 - Initial Stadia platform support.
@@ -46,7 +57,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed support for LWRP per-pixel terrain. [case 1110520](https://fogbugz.unity3d.com/f/cases/1110520)
 - Fixed some basic UI/usability issues with LWRP terrain Materials (use of warnings and modal value changes).
 - Fixed an issue where using LWRP and Sprite Shape together would produce meta file conflicts.
-
+- Fixed fp16 overflow in Switch in specular calculation
+- Fixed shader compilation errors for Android XR projects.
+- Updated the pipeline Asset UI to cap the render scale at 2x so that it matches the render pipeline implementation limit.
 
 ## [6.7.0] - 2019-05-16
 ### Added

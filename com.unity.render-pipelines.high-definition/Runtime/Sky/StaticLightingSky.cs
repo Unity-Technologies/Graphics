@@ -1,18 +1,40 @@
 using System.Collections.Generic;
-using UnityEngine.Rendering;
 using UnityEngine.Serialization;
 
-namespace UnityEngine.Experimental.Rendering.HDPipeline
+namespace UnityEngine.Rendering.HighDefinition
 {
+    [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "Static-Lighting-Sky" + Documentation.endURL)]
     [ExecuteAlways]
-    public class StaticLightingSky : MonoBehaviour
+    class StaticLightingSky : MonoBehaviour
     {
         [SerializeField]
         VolumeProfile m_Profile;
         [SerializeField, FormerlySerializedAs("m_BakingSkyUniqueID")]
         int m_StaticLightingSkyUniqueID = 0;
+        int m_LastComputedHash;
 
-        public SkySettings skySettings { get; private set; }
+        // This one contain only property values from overridden properties in the original profile component
+        public SkySettings m_SkySettings;
+        public SkySettings m_SkySettingsFromProfile;
+
+        public SkySettings skySettings
+        {
+            get
+            {
+                GetSkyFromIDAndVolume(m_StaticLightingSkyUniqueID, m_Profile, out var skyFromProfile, out var skyType);
+                if (skyFromProfile != null)
+                {
+                    int newHash = skyFromProfile.GetHashCode();
+                    if (m_LastComputedHash != newHash)
+                        UpdateCurrentStaticLightingSky();
+                }
+                else
+                {
+                    Reset();
+                }
+                return m_SkySettings;
+            }
+        }
 
         List<SkySettings> m_VolumeSkyList = new List<SkySettings>();
 
@@ -25,10 +47,18 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
             set
             {
-                // Changing the volume is considered a destructive operation => reset the static lighting sky.
                 if (value != m_Profile)
                 {
+                    // Changing the volume is considered a destructive operation => reset the static lighting sky.
                     m_StaticLightingSkyUniqueID = 0;
+
+                    //Registration is also done when we go from null to not null
+                    if (m_Profile == null)
+                        SkyManager.RegisterStaticLightingSky(this);
+
+                    //Unregistration is also done when we go from not null to null
+                    if (value == null)
+                        SkyManager.UnRegisterStaticLightingSky(this);
                 }
 
                 m_Profile = value;
@@ -48,29 +78,65 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        void UpdateCurrentStaticLightingSky()
+        void GetSkyFromIDAndVolume(int skyUniqueID, VolumeProfile profile, out SkySettings skySetting, out System.Type skyType)
         {
-            skySettings = GetSkyFromIDAndVolume(m_StaticLightingSkyUniqueID, m_Profile);
-        }
-
-        SkySettings GetSkyFromIDAndVolume(int skyUniqueID, VolumeProfile profile)
-        {
+            skySetting = null;
+            skyType = typeof(SkySettings);
             if (profile != null && skyUniqueID != 0)
             {
                 m_VolumeSkyList.Clear();
-                if (m_Profile.TryGetAllSubclassOf<SkySettings>(typeof(SkySettings), m_VolumeSkyList))
+                if (profile.TryGetAllSubclassOf<SkySettings>(typeof(SkySettings), m_VolumeSkyList))
                 {
                     foreach (var sky in m_VolumeSkyList)
                     {
                         if (skyUniqueID == SkySettings.GetUniqueID(sky.GetType()))
                         {
-                            return sky;
+                            skyType = sky.GetType();
+                            skySetting = sky;
                         }
                     }
                 }
             }
+        }
 
-            return null;
+        void UpdateCurrentStaticLightingSky()
+        {
+            // First, grab the sky settings of the right type in the profile.
+            CoreUtils.Destroy(m_SkySettings);
+            m_SkySettings = null;
+            m_LastComputedHash = 0;
+            GetSkyFromIDAndVolume(m_StaticLightingSkyUniqueID, m_Profile, out m_SkySettingsFromProfile, out var skyType);
+
+            if (m_SkySettingsFromProfile != null)
+            {
+                // The static lighting sky is a Volume Component that lives outside of the volume system (we just grab a component from a profile)
+                // As such, it may contain values that are not actually overridden
+                // For example, user overrides a value, change it, and disable overrides. In this case the volume still contains the old overridden value
+                // In this case, we want to use values only if they are still overridden, so we create a volume component with default values and then copy the overridden values from the profile.
+
+                // Create an instance with default values
+                m_SkySettings = (SkySettings)ScriptableObject.CreateInstance(skyType);
+                var newSkyParameters = m_SkySettings.parameters;
+                var profileSkyParameters = m_SkySettingsFromProfile.parameters;
+
+                // Seems to inexplicably happen sometimes on domain reload.
+                if (profileSkyParameters == null)
+                {
+                    return;
+                }
+
+                int parameterCount = m_SkySettings.parameters.Count;
+                // Copy overridden parameters.
+                for (int i  = 0; i < parameterCount; ++i)
+                {
+                    if (profileSkyParameters[i].overrideState == true)
+                    {
+                        newSkyParameters[i].SetValue(profileSkyParameters[i]);
+                    }
+                }
+
+                m_LastComputedHash = m_SkySettingsFromProfile.GetHashCode();
+            }
         }
 
         // All actions done in this method are because Editor won't go through setters so we need to manually check consistency of our data.
@@ -87,9 +153,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             // If we detect that the profile has changed, we need to reset the static lighting sky.
             // We have to do that manually because PropertyField won't go through setters.
-            if (profile != null && skySettings != null)
+            if (profile != null && m_SkySettingsFromProfile != null)
             {
-                if (!profile.components.Find(x => x == skySettings))
+                if (!profile.components.Find(x => x == m_SkySettingsFromProfile))
                 {
                     m_StaticLightingSkyUniqueID = 0;
                 }
@@ -101,13 +167,24 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         void OnEnable()
         {
             UpdateCurrentStaticLightingSky();
-            SkyManager.RegisterStaticLightingSky(this);
+            if (m_Profile != null)
+                SkyManager.RegisterStaticLightingSky(this);
         }
 
         void OnDisable()
         {
-            SkyManager.UnRegisterStaticLightingSky(this);
-            skySettings = null;
+            if (m_Profile != null)
+                SkyManager.UnRegisterStaticLightingSky(this);
+
+            Reset();
+        }
+
+        void Reset()
+        {
+            CoreUtils.Destroy(m_SkySettings);
+            m_SkySettings = null;
+            m_SkySettingsFromProfile = null;
+            m_LastComputedHash = 0;
         }
     }
 }

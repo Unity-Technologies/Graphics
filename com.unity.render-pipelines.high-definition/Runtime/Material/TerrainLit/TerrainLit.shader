@@ -4,7 +4,7 @@ Shader "HDRP/TerrainLit"
     {
         [HideInInspector] [ToggleUI] _EnableHeightBlend("EnableHeightBlend", Float) = 0.0
         _HeightTransition("Height Transition", Range(0, 1.0)) = 0.0
-		
+
         // TODO: support tri-planar?
         // TODO: support more maps?
         //[HideInInspector] _TexWorldScale0("Tiling", Float) = 1.0
@@ -34,7 +34,7 @@ Shader "HDRP/TerrainLit"
         [ToggleUI] _EnableInstancedPerPixelNormal("Instanced per pixel normal", Float) = 1.0
 
 		[HideInInspector] _TerrainHolesTexture("Holes Map (RGB)", 2D) = "white" {}
-		
+
         // Caution: C# code in BaseLitUI.cs call LightmapEmissionFlagsProperty() which assume that there is an existing "_EmissionColor"
         // value that exist to identify if the GI emission need to be enabled.
         // In our case we don't use such a mechanism but need to keep the code quiet. We declare the value and always enable it.
@@ -47,6 +47,8 @@ Shader "HDRP/TerrainLit"
 
         [HideInInspector] [ToggleUI] _SupportDecals("Support Decals", Float) = 1.0
         [HideInInspector] [ToggleUI] _ReceivesSSR("Receives SSR", Float) = 1.0
+        [HideInInspector] [ToggleUI] _AddVelocityChange("EnableAdditionalVelocity", Float) = 0.0
+
     }
 
     HLSLINCLUDE
@@ -69,12 +71,13 @@ Shader "HDRP/TerrainLit"
     //#pragma shader_feature _ _LAYER_MAPPING_PLANAR3 _LAYER_MAPPING_TRIPLANAR3
 
     #pragma shader_feature_local _DISABLE_DECALS
+    #pragma shader_feature_local _ADDITIONAL_VELOCITY_CHANGE
 
     //enable GPU instancing support
     #pragma multi_compile_instancing
     #pragma instancing_options assumeuniformscaling nomatrices nolightprobe nolightmap
 
-	#pragma multi_compile __ _ALPHATEST_ON
+	#pragma multi_compile _ _ALPHATEST_ON
 
     // All our shaders use same name for entry point
     #pragma vertex Vert
@@ -245,7 +248,7 @@ Shader "HDRP/TerrainLit"
             #pragma multi_compile _ SHADOWS_SHADOWMASK
             // Setup DECALS_OFF so the shader stripper can remove variants
             #pragma multi_compile DECALS_OFF DECALS_3RT DECALS_4RT
-            
+
             // Supported shadow modes per light type
             #pragma multi_compile SHADOW_LOW SHADOW_MEDIUM SHADOW_HIGH
 
@@ -264,5 +267,5 @@ Shader "HDRP/TerrainLit"
 
     Dependency "BaseMapShader" = "Hidden/HDRP/TerrainLit_Basemap"
     Dependency "BaseMapGenShader" = "Hidden/HDRP/TerrainLit_BasemapGen"
-    CustomEditor "UnityEditor.Experimental.Rendering.HDPipeline.TerrainLitGUI"
+    CustomEditor "UnityEditor.Rendering.HighDefinition.TerrainLitGUI"
 }

@@ -267,9 +267,9 @@ half3 EnvironmentBRDF(BRDFData brdfData, half3 indirectDiffuse, half3 indirectSp
 half3 DirectBDRF(BRDFData brdfData, half3 normalWS, half3 lightDirectionWS, half3 viewDirectionWS)
 {
 #ifndef _SPECULARHIGHLIGHTS_OFF
-    half3 halfDir = SafeNormalize(lightDirectionWS + viewDirectionWS);
+    float3 halfDir = SafeNormalize(float3(lightDirectionWS) + float3(viewDirectionWS));
 
-    half NoH = saturate(dot(normalWS, halfDir));
+    float NoH = saturate(dot(normalWS, halfDir));
     half LoH = saturate(dot(lightDirectionWS, halfDir));
 
     // GGX Distribution multiplied by combined approximation of Visibility and Fresnel
@@ -282,15 +282,15 @@ half3 DirectBDRF(BRDFData brdfData, half3 normalWS, half3 lightDirectionWS, half
     // Final BRDFspec = roughness² / ( NoH² * (roughness² - 1) + 1 )² * (LoH² * (roughness + 0.5) * 4.0)
     // We further optimize a few light invariant terms
     // brdfData.normalizationTerm = (roughness + 0.5) * 4.0 rewritten as roughness * 4.0 + 2.0 to a fit a MAD.
-    half d = NoH * NoH * brdfData.roughness2MinusOne + 1.00001h;
+    float d = NoH * NoH * brdfData.roughness2MinusOne + 1.00001f;
 
     half LoH2 = LoH * LoH;
     half specularTerm = brdfData.roughness2 / ((d * d) * max(0.1h, LoH2) * brdfData.normalizationTerm);
 
-    // on mobiles (where half actually means something) denominator have risk of overflow
+    // On platforms where half actually means something, the denominator has a risk of overflow
     // clamp below was added specifically to "fix" that, but dx compiler (we convert bytecode to metal/gles)
     // sees that specularTerm have only non-negative terms, so it skips max(0,..) in clamp (leaving only min(100,...))
-#if defined (SHADER_API_MOBILE)
+#if defined (SHADER_API_MOBILE) || defined (SHADER_API_SWITCH)
     specularTerm = specularTerm - HALF_MIN;
     specularTerm = clamp(specularTerm, 0.0, 100.0); // Prevent FP16 overflow on mobiles
 #endif
@@ -465,7 +465,7 @@ half3 LightingLambert(half3 lightColor, half3 lightDir, half3 normal)
 
 half3 LightingSpecular(half3 lightColor, half3 lightDir, half3 normal, half3 viewDir, half4 specular, half smoothness)
 {
-    half3 halfVec = SafeNormalize(lightDir + viewDir);
+    float3 halfVec = SafeNormalize(float3(lightDir) + float3(viewDir));
     half NdotH = saturate(dot(normal, halfVec));
     half modifier = pow(NdotH, smoothness);
     half3 specularReflection = specular.rgb * modifier;

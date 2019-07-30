@@ -1,11 +1,9 @@
-using UnityEngine;
-using UnityEngine.Rendering;
-using System.Collections.Generic;
+using UnityEngine.Experimental.Rendering;
 
-namespace UnityEngine.Experimental.Rendering.HDPipeline
+namespace UnityEngine.Rendering.HighDefinition
 {
 #if ENABLE_RAYTRACING
-    public class HDRaytracingAmbientOcclusion
+    class HDRaytracingAmbientOcclusion
     {
         // External structures
         RenderPipelineResources m_PipelineResources = null;
@@ -18,8 +16,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         static int m_KernelFilter;
 
         // Intermediate buffer that stores the ambient occlusion pre-denoising
-        RTHandleSystem.RTHandle m_IntermediateBuffer = null;
-        RTHandleSystem.RTHandle m_ViewSpaceNormalBuffer = null;
+        RTHandle m_IntermediateBuffer = null;
+        RTHandle m_ViewSpaceNormalBuffer = null;
 
         // String values
         const string m_RayGenShaderName = "RayGenAmbientOcclusion";
@@ -56,7 +54,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             RTHandles.Release(m_IntermediateBuffer);
         }
 
-        static RTHandleSystem.RTHandle AmbientOcclusionHistoryBufferAllocatorFunction(string viewName, int frameIndex, RTHandleSystem rtHandleSystem)
+        static RTHandle AmbientOcclusionHistoryBufferAllocatorFunction(string viewName, int frameIndex, RTHandleSystem rtHandleSystem)
         {
             return rtHandleSystem.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R16_SFloat, dimension: TextureXR.dimension,
                                         enableRandomWrite: true, useMipMap: false, autoGenerateMips: false,
@@ -70,7 +68,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             cmd.SetGlobalVector(HDShaderIDs._AmbientOcclusionParam, Vector4.zero);
         }
 
-        public void RenderAO(HDCamera hdCamera, CommandBuffer cmd, RTHandleSystem.RTHandle outputTexture, ScriptableRenderContext renderContext, int frameCount)
+        public void RenderAO(HDCamera hdCamera, CommandBuffer cmd, RTHandle outputTexture, ScriptableRenderContext renderContext, int frameCount)
         {
             // Let's check all the resources
             HDRaytracingEnvironment rtEnvironment = m_RaytracingManager.CurrentEnvironment();
@@ -132,7 +130,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 if(aoSettings.enableFilter.value)
                 {
                     // Grab the history buffer
-                    RTHandleSystem.RTHandle ambientOcclusionHistory = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.RaytracedAmbientOcclusion)
+                    RTHandle ambientOcclusionHistory = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.RaytracedAmbientOcclusion)
                         ?? hdCamera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.RaytracedAmbientOcclusion, AmbientOcclusionHistoryBufferAllocatorFunction, 1);
 
                     // Apply the simple denoiser

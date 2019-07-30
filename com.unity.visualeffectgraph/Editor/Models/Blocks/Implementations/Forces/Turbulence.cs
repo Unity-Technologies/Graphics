@@ -56,7 +56,7 @@ namespace UnityEditor.VFX.Block
                     if (input.name == "NumOctaves") continue;
 
                     if (input.name == "FieldTransform")
-                        yield return new VFXNamedExpression(new VFXExpressionInverseMatrix(input.exp), "InvFieldTransform");
+                        yield return new VFXNamedExpression(new VFXExpressionInverseTRSMatrix(input.exp), "InvFieldTransform");
                     yield return input;
                 }
 
