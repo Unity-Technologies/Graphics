@@ -17,7 +17,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
             public static readonly GUIContent customBlendFactors = EditorGUIUtility.TrTextContent("Custom Blend Factors");
             public static readonly GUIContent blendFactorMultiplicative = EditorGUIUtility.TrTextContent("Multiplicative");
             public static readonly GUIContent blendFactorAdditive = EditorGUIUtility.TrTextContent("Additive");
-            public static readonly GUIContent shadowGroups = EditorGUIUtility.TrTextContent("Shadow Groups", "Defines the list of shadow groups");
+            public static readonly GUIContent shadowGradient = EditorGUIUtility.TrTextContent("Shadow Gradient", "Shadow Gradient Texture");
         }
         struct LightBlendStyleProps
 
@@ -33,7 +33,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
 
         SerializedProperty m_HDREmulationScale;
         SerializedProperty m_LightBlendStyles;
-        SerializedProperty m_ShadowGroups;
+        SerializedProperty m_ShadowGradient;
         LightBlendStyleProps[] m_LightBlendStylePropsArray;
 
         Analytics.Renderer2DAnalytics m_Analytics = Analytics.Renderer2DAnalytics.instance;
@@ -84,7 +84,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
 
             m_HDREmulationScale = serializedObject.FindProperty("m_HDREmulationScale");
             m_LightBlendStyles = serializedObject.FindProperty("m_LightBlendStyles");
-            m_ShadowGroups = serializedObject.FindProperty("m_ShadowGroups");
+            m_ShadowGradient = serializedObject.FindProperty("m_ShadowGradient");
 
             int numBlendStyles = m_LightBlendStyles.arraySize;
             m_LightBlendStylePropsArray = new LightBlendStyleProps[numBlendStyles];
@@ -177,8 +177,8 @@ namespace UnityEditor.Experimental.Rendering.Universal
                 }
             }
 
-            // We need to fix this so we can control the adding. There are a maximum of 255 groups allowed.
-            EditorGUILayout.PropertyField(m_ShadowGroups, Styles.shadowGroups);
+            // This should probably be removed?
+            EditorGUILayout.PropertyField(m_ShadowGradient, Styles.shadowGradient);
 
             EditorGUI.indentLevel--;
             m_WasModified |= serializedObject.hasModifiedProperties;

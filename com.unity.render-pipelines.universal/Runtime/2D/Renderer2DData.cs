@@ -21,7 +21,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
         Light2DBlendStyle[] m_LightBlendStyles = null;
 
         [SerializeField]
-        string[] m_ShadowGroups = null;
+        Texture m_ShadowGradient;
 
         [SerializeField]
         Shader m_ShapeLightShader = null;
@@ -50,7 +50,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
         public float hdrEmulationScale => m_HDREmulationScale;
         public Light2DBlendStyle[] lightBlendStyles => m_LightBlendStyles;
 
-
+        internal Texture shadowGradient => m_ShadowGradient;
         internal Shader shapeLightShader => m_ShapeLightShader;
         internal Shader shapeLightVolumeShader => m_ShapeLightVolumeShader;
         internal Shader pointLightShader => m_PointLightShader;

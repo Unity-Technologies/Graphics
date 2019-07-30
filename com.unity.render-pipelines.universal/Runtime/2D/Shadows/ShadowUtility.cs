@@ -182,24 +182,79 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         public static void GenerateSoftShadowMesh(SoftShadowInput input, Mesh mesh)
         {
+            // This shadow mesh will be rendered twice.
             int numberOfEdgeConnections = input.vertices.Count;
             int[] cwEdgeConnections = new int[numberOfEdgeConnections];
             int[] ccwEdgeConnections = new int[numberOfEdgeConnections];
 
-            for(int i=0;i<input.edges.Count;i++)
+            int outsideEdgeCount = 0;
+            for (int i=0;i<input.edges.Count;i++)
             {
                 if (IsOutsideEdge(i, input.edges))
                 {
                     Edge edge = input.edges[i];
                     cwEdgeConnections[edge.vertexIndex0] = edge.vertexIndex1;
                     ccwEdgeConnections[edge.vertexIndex1] = edge.vertexIndex0;
+                    outsideEdgeCount++;
                 }
             }
 
+            // Create 1 triangles per outside vertex. Triangle will be 0,1,2 order. 0 will be pinned to the vertex, 1 will project from light center, 2 will be projected from a tangent
+            int vertexCount = 3 * outsideEdgeCount;
+            int triangleCount = 3 * outsideEdgeCount;
 
+            Vector3[] outputVertices = new Vector3[vertexCount];
+            int[] outputTriangles = new int[triangleCount];
+            Vector4[] outputTangents = new Vector4[vertexCount]; // xy is the tangent of one edge, zw is the tangent of the other edge.
+            Vector2[] outputUV0 = new Vector2[vertexCount];  // This will define which part of the light we will project from x=1 for middle, y=1 for tangent, x=0 y=0 for pinned. This will also allow is to set the uv coordinates in the shader.
 
+            int startingIndex = 0;
+            int currentVertexIndex = 0;
+            int nextVertexIndex = cwEdgeConnections[0];
+            int prevVertexIndex = ccwEdgeConnections[0];
+            bool done = false;
 
+            int outputVertexIndex=0;
+            int outputTriangleIndex=0;
+            while(!done)
+            {
+                Vector3 currentVertex = input.vertices[currentVertexIndex];
+                Vector3 prevVertex = input.vertices[prevVertexIndex];
+                Vector3 nextVertex = input.vertices[nextVertexIndex];
+
+                Vector3 nextDirection = Vector3.Normalize(nextVertex - currentVertex);
+                Vector3 nextTangent = Vector3.Cross(-Vector3.forward, nextDirection).normalized;
+                Vector3 prevDirection = Vector3.Normalize(currentVertex - prevVertex);
+                Vector3 prevTangent = Vector3.Cross(-Vector3.forward, prevDirection).normalized; ;
+                Vector4 currentTangent = new Vector4(nextTangent.x, nextTangent.y, prevTangent.x, prevTangent.y);
+
+                outputVertices[outputVertexIndex] = currentVertex;
+                outputVertices[outputVertexIndex+1] = currentVertex;
+                outputVertices[outputVertexIndex+2] = currentVertex;
+                outputTriangles[outputTriangleIndex] = outputTriangleIndex;
+                outputTriangles[outputTriangleIndex+1] = outputTriangleIndex+1;
+                outputTriangles[outputTriangleIndex+2] = outputTriangleIndex+2;
+                outputTangents[outputVertexIndex] = Vector4.zero;
+                outputTangents[outputVertexIndex + 1] = currentTangent;
+                outputTangents[outputVertexIndex + 2] = currentTangent;
+                outputUV0[outputVertexIndex] = new Vector2(0, 0);
+                outputUV0[outputVertexIndex+1] = new Vector2(1, 0);
+                outputUV0[outputVertexIndex+2] = new Vector2(0, 1);
+
+                
+                currentVertexIndex = nextVertexIndex;
+                prevVertexIndex = ccwEdgeConnections[currentVertexIndex];
+                nextVertexIndex = cwEdgeConnections[currentVertexIndex];
+                outputVertexIndex += 3;
+                outputTriangleIndex += 3;
+                done = startingIndex == currentVertexIndex;
+            }
+
+            mesh.Clear();
+            mesh.vertices = outputVertices.ToArray();
+            mesh.triangles = outputTriangles.ToArray();
+            mesh.tangents = outputTangents.ToArray();
+            mesh.uv = outputUV0.ToArray();
         }
-
     }
 }

@@ -56,6 +56,23 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 ShadowUtility.SoftShadowInput softShadowInput = ShadowUtility.GenerateHardShadowMesh(m_ShapePath, m_HardShadowMesh);
                 ShadowUtility.GenerateSoftShadowMesh(softShadowInput, m_SoftShadowMesh);
             }
+
+
+            if (m_SoftShadowMesh.vertexCount > 0)
+            {
+                Vector3[] vertices = m_SoftShadowMesh.vertices;
+                Vector4[] tangents = m_SoftShadowMesh.tangents;
+                for (int i = 0; i < m_SoftShadowMesh.vertexCount; i++)
+                {
+                    Vector3 vertexPos = transform.TransformPoint(vertices[i]);
+                    Vector4 vertexTanXY = transform.TransformDirection(new Vector4(tangents[i].x, tangents[i].y, 0, 0));
+                    Vector4 vertexTanZW = transform.TransformDirection(new Vector4(tangents[i].z, tangents[i].w, 0, 0));
+
+                    Debug.DrawLine(vertexPos, vertexPos + 0.3f * new Vector3(vertexTanXY.x, vertexTanXY.y), Color.red);
+                    Debug.DrawLine(vertexPos, vertexPos + 0.3f * new Vector3(vertexTanZW.x, vertexTanZW.y), Color.blue);
+                }
+            }
+
         }
     }
 }
