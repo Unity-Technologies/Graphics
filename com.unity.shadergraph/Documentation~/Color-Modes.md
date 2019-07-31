@@ -1,4 +1,4 @@
-# Shader Graph Color Modes
+# Color Modes
 
 ## Description
 
