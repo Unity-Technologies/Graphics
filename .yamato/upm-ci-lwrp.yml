@@ -11,7 +11,7 @@ platforms:
     flavor: m1.mac
   - name: Linux
     type: Unity::VM::GPU
-    image: cds-ops/cds-ubuntu-18.04-base:stable
+    image: cds-ops/cds-ubuntu-18.04-base:v1.5.7-368242
     flavor: m1.large
 testplatforms:
   - name: Standalone
