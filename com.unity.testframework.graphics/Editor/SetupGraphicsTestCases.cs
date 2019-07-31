@@ -104,6 +104,9 @@ namespace UnityEditor.TestTools.Graphics
 
             string[] selectedScenes = GetSelectedScenes();
 
+            var sceneIndex = 0;
+            var totalScenes = EditorBuildSettings.scenes.Length;
+            
             foreach( EditorBuildSettingsScene scene in EditorBuildSettings.scenes)
             {
                 if (!scene.enabled) continue;
@@ -124,6 +127,8 @@ namespace UnityEditor.TestTools.Graphics
                     EditorSceneManagement.EditorSceneManager.SetActiveScene(currentScene);
 
                     Lightmapping.giWorkflowMode = Lightmapping.GIWorkflowMode.OnDemand;
+                    
+                    EditorUtility.DisplayProgressBar($"Baking Test Scenes {(sceneIndex + 1).ToString()}/{totalScenes.ToString()}", $"Baking {sceneAsset.name}", ((float)sceneIndex / totalScenes));
 
                     Lightmapping.Bake();
 
@@ -133,7 +138,11 @@ namespace UnityEditor.TestTools.Graphics
 
                     EditorSceneManagement.EditorSceneManager.CloseScene(currentScene, true);
                 }
+
+                sceneIndex++;
             }
+            
+            EditorUtility.ClearProgressBar();
 
             if (!IsBuildingForEditorPlaymode)
                 new CreateSceneListFileFromBuildSettings().Setup();

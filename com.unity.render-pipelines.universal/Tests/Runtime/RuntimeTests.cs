@@ -10,23 +10,20 @@ class RuntimeTests
 {
     GameObject go;
     Camera camera;
-    RenderPipelineAsset prevAsset;
-    UniversalRenderPipelineAsset asset;
+    RenderPipelineAsset currentAsset;
 
     [SetUp]
     public void Setup()
     {
         go = new GameObject();
         camera = go.AddComponent<Camera>();
-        prevAsset = GraphicsSettings.renderPipelineAsset;
-        asset = ScriptableObject.CreateInstance<UniversalRenderPipelineAsset>();
+        currentAsset = GraphicsSettings.renderPipelineAsset;
     }
 
     [TearDown]
     public void Cleanup()
     {
-        GraphicsSettings.renderPipelineAsset = prevAsset;
-        Object.DestroyImmediate(asset);
+        GraphicsSettings.renderPipelineAsset = currentAsset;
         Object.DestroyImmediate(go);
     }
 
@@ -34,7 +31,8 @@ class RuntimeTests
     [UnityTest]
     public IEnumerator PipelineHasCorrectColorSpace()
     {
-        GraphicsSettings.renderPipelineAsset = asset;
+        AssetCheck();
+        
         camera.Render();
         yield return null;
 
@@ -47,7 +45,8 @@ class RuntimeTests
     [UnityTest]
     public IEnumerator PipelineSetsAndRestoreGlobalShaderTagCorrectly()
     {
-        GraphicsSettings.renderPipelineAsset = asset;
+        AssetCheck();
+        
         camera.Render();
         yield return null;
 
@@ -56,7 +55,17 @@ class RuntimeTests
         GraphicsSettings.renderPipelineAsset = null;
         camera.Render();
         yield return null;
+        camera.Render();
+        yield return null;
 
         Assert.AreEqual("", Shader.globalRenderPipeline, "Render Pipeline shader tag is not restored.");
+    }
+
+    void AssetCheck()
+    {
+        Assert.IsNotNull(currentAsset, "Render Pipeline Asset is Null");
+
+        Assert.AreEqual(currentAsset.GetType(), typeof(UniversalRenderPipelineAsset),
+            "Pipeline Asset is not Universal RP");
     }
 }

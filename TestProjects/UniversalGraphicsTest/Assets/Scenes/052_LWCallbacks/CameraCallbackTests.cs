@@ -11,6 +11,7 @@ public class CameraCallbackTests : ScriptableRendererFeature
 	static RenderTargetHandle afterSkybox;
     static RenderTargetHandle afterSkybox2;
 	static RenderTargetHandle afterTransparent;
+	static RenderTargetHandle afterPost;
 	static RenderTargetHandle afterAll;
 
     Material m_SamplingMaterial;
@@ -20,14 +21,17 @@ public class CameraCallbackTests : ScriptableRendererFeature
 		beforeAll.Init("_BeforeAll");
 		afterOpaque.Init("_AfterOpaque");
 		afterSkybox.Init("_AfterSkybox");
-	    afterSkybox.Init("_AfterSkybox2");
+	    afterSkybox2.Init("_AfterSkybox2");
 		afterTransparent.Init("_AfterTransparent");
+		afterPost.Init("_AfterPostProcessTexture");
 		afterAll.Init("_AfterAll");
 	}
 
 	public override void Create()
 	{
-		m_SamplingMaterial = CoreUtils.CreateEngineMaterial(Shader.Find("Hidden/Universal Render Pipeline/Sampling"));
+		ForwardRendererData data = UniversalRenderPipeline.asset.m_RendererData as ForwardRendererData;
+		var shader = data.shaders.samplingPS;
+		m_SamplingMaterial = CoreUtils.CreateEngineMaterial(shader);
 	}
 
 	internal class ClearColorPass : ScriptableRenderPass
@@ -71,8 +75,8 @@ public class CameraCallbackTests : ScriptableRendererFeature
         var copyAfterTransparents = new CopyColorPass(RenderPassEvent.AfterRenderingTransparents, m_SamplingMaterial);
         copyAfterTransparents.Setup(cameraColorTarget, afterTransparent, downSamplingMethod);
 
-        var copyAfterEverything = new CopyColorPass(RenderPassEvent.AfterRendering, m_SamplingMaterial);
-        copyAfterEverything.Setup(cameraColorTarget, afterAll, downSamplingMethod);
+        var copyAfterEverything = new CopyColorPass(RenderPassEvent.AfterRenderingPostProcessing, m_SamplingMaterial);
+        copyAfterEverything.Setup(afterPost.id, afterAll, downSamplingMethod);
 
         var BlitRenderPassesToScreen = new BlitPass(RenderPassEvent.AfterRendering, cameraColorTarget);
 
