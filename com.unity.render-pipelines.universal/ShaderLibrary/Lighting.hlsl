@@ -108,10 +108,12 @@ Light GetMainLight()
 {
     Light light;
     light.direction = _MainLightPosition.xyz;
+    // unity_LightData.z is 1 when not culled by the culling mask, otherwise 0.
     light.distanceAttenuation = unity_LightData.z;
-    #if defined(LIGHTMAP_ON)
-        light.distanceAttenuation *= unity_ProbesOcclusion.x;
-    #endif
+#if defined(LIGHTMAP_ON) || defined(_MIXED_LIGHTING_SUBTRACTIVE)
+    // unity_ProbesOcclusion.x is the mixed light probe occlusion data
+    light.distanceAttenuation *= unity_ProbesOcclusion.x;
+#endif
     light.shadowAttenuation = 1.0;
     light.color = _MainLightColor.rgb;
 
@@ -151,7 +153,7 @@ Light GetAdditionalLight(int i, float3 positionWS)
     light.color = _AdditionalLightsColor[perObjectLightIndex].rgb;
 
     // In case we're using light probes, we can sample the attenuation from the `unity_ProbesOcclusion`
-#if defined(LIGHTMAP_ON)
+#if defined(LIGHTMAP_ON) || defined(_MIXED_LIGHTING_SUBTRACTIVE)
     // First find the probe channel from the light.
     // Then sample `unity_ProbesOcclusion` for the baked occlusion.
     // If the light is not baked, the channel is -1, and we need to apply no occlusion.
