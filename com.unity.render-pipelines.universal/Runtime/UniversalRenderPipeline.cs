@@ -265,7 +265,7 @@ namespace UnityEngine.Rendering.Universal
                 cameraData.requiresOpaqueTexture = additionalCameraData.requiresColorTexture;
                 cameraData.volumeLayerMask = additionalCameraData.volumeLayerMask;
                 cameraData.volumeTrigger = additionalCameraData.volumeTrigger == null ? camera.transform : additionalCameraData.volumeTrigger;
-                cameraData.postProcessEnabled &= additionalCameraData.renderPostProcessing;
+                cameraData.postProcessEnabled = additionalCameraData.renderPostProcessing;
                 cameraData.isStopNaNEnabled = cameraData.postProcessEnabled && additionalCameraData.stopNaN && SystemInfo.graphicsShaderLevel >= 35;
                 cameraData.isDitheringEnabled = cameraData.postProcessEnabled && additionalCameraData.dithering;
                 cameraData.antialiasing = cameraData.postProcessEnabled ? additionalCameraData.antialiasing : AntialiasingMode.None;
