@@ -47,7 +47,11 @@ projects:
       {% endif %}
       - git clone git@github.cds.internal.unity3d.com:unity/utr.git TestProjects/{{ project.folder }}/utr
       - pip install unity-downloader-cli --extra-index-url https://artifactory.eu-cph-1.unityops.net/api/pypi/common-python/simple
+      {% if platform.name == "Linux" %}
+      - cd TestProjects/{{ project.folder }} && sudo unity-downloader-cli -b {{ editor.version }}/staging -c editor --wait --published
+      {% else %}
       - cd TestProjects/{{ project.folder }} && unity-downloader-cli -b {{ editor.version }}/staging -c editor --wait --published
+      {% endif %}
       {% if testplatform.name == "Standalone" %}
       - cd TestProjects/{{ project.folder }} && utr/utr {{ testplatform.args }}{{ platform.name }} --testproject=. --editor-location=.Editor --artifacts_path=upm-ci~/test-results || powershell -command "utr/utr {{ testplatform.args }}{{ platform.name }} --testproject=. --editor-location=.Editor --artifacts_path=upm-ci~/test-results"
       {% else %}
