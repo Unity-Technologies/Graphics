@@ -223,6 +223,15 @@ namespace UnityEditor.ShaderGraph
             return m_Guid;
         }
 
+        public virtual IEnumerable<ISlot> GetInputSlotsForGraphGeneration()
+        {
+            foreach (var slot in m_Slots)
+            {
+                if (slot.isInputSlot)
+                    yield return slot;
+            }
+        }
+
         public void GetInputSlots<T>(List<T> foundSlots) where T : ISlot
         {
             foreach (var slot in m_Slots)

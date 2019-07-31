@@ -536,7 +536,10 @@ namespace UnityEditor.ShaderGraph.Drawing
                         // We also need to remove the inline input
                         var portInputView = m_PortInputContainer.Children().OfType<PortInputView>().FirstOrDefault(v => Equals(v.slot, port.slot));
                         if (portInputView != null)
+                        {
+                            port.UnregisterCallback<GeometryChangedEvent>(UpdatePortInput);
                             portInputView.RemoveFromHierarchy();
+                        }
                     }
                     else
                     {
@@ -544,6 +547,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                         var portInputView = m_PortInputContainer.Children().OfType<PortInputView>().FirstOrDefault(x => x.slot.id == currentSlot.id);
                         if (newSlot.isConnected)
                         {
+                            port.UnregisterCallback<GeometryChangedEvent>(UpdatePortInput);
                             portInputView?.RemoveFromHierarchy();
                         }
                         else
