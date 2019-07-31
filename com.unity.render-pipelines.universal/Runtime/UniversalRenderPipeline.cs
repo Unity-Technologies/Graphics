@@ -161,13 +161,9 @@ namespace UnityEngine.Rendering.Universal
             var settings = asset;
             UniversalAdditionalCameraData additionalCameraData = null;
             if (camera.cameraType == CameraType.Game || camera.cameraType == CameraType.VR)
-#if UNITY_2019_3_OR_NEWER
                 camera.gameObject.TryGetComponent(out additionalCameraData);
-#else
-                additionalCameraData = camera.gameObject.GetComponent<LWRPAdditionalCameraData>();
-#endif
 
-            InitializeCameraData(settings, camera, additionalCameraData, out var cameraData);
+                InitializeCameraData(settings, camera, additionalCameraData, out var cameraData);
             SetupPerCameraShaderConstants(cameraData);
 
             ScriptableRenderer renderer = (additionalCameraData != null) ? additionalCameraData.scriptableRenderer : settings.scriptableRenderer;
@@ -242,10 +238,6 @@ namespace UnityEngine.Rendering.Universal
             
             cameraData.isSceneViewCamera = camera.cameraType == CameraType.SceneView;
             cameraData.isHdrEnabled = camera.allowHDR && settings.supportsHDR;
-            cameraData.postProcessEnabled = CoreUtils.ArePostProcessesEnabled(camera)
-                && camera.cameraType != CameraType.Reflection
-                && camera.cameraType != CameraType.Preview
-                && SystemInfo.graphicsDeviceType != GraphicsDeviceType.OpenGLES2;
 
             // Disables postprocessing in mobile VR. It's not stable on mobile yet.
             // TODO: enable postfx for stereo rendering
@@ -279,6 +271,18 @@ namespace UnityEngine.Rendering.Universal
                 cameraData.antialiasing = cameraData.postProcessEnabled ? additionalCameraData.antialiasing : AntialiasingMode.None;
                 cameraData.antialiasingQuality = additionalCameraData.antialiasingQuality;
             }
+            else if(camera.cameraType == CameraType.SceneView)
+            {
+                cameraData.requiresDepthTexture = settings.supportsCameraDepthTexture;
+                cameraData.requiresOpaqueTexture = settings.supportsCameraOpaqueTexture;
+                cameraData.volumeLayerMask = 1; // "Default"
+                cameraData.volumeTrigger = null;
+                cameraData.postProcessEnabled = CoreUtils.ArePostProcessesEnabled(camera);
+                cameraData.isStopNaNEnabled = false;
+                cameraData.isDitheringEnabled = false;
+                cameraData.antialiasing = AntialiasingMode.None;
+                cameraData.antialiasingQuality = AntialiasingQuality.High;
+            }
             else
             {
                 cameraData.requiresDepthTexture = settings.supportsCameraDepthTexture;
@@ -291,6 +295,9 @@ namespace UnityEngine.Rendering.Universal
                 cameraData.antialiasing = AntialiasingMode.None;
                 cameraData.antialiasingQuality = AntialiasingQuality.High;
             }
+
+            // Disables post if GLes2
+            cameraData.postProcessEnabled &= SystemInfo.graphicsDeviceType != GraphicsDeviceType.OpenGLES2;
 
             cameraData.requiresDepthTexture |= cameraData.isSceneViewCamera || cameraData.postProcessEnabled;
 
