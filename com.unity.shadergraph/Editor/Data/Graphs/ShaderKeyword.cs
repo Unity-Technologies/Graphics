@@ -17,19 +17,13 @@ namespace UnityEditor.ShaderGraph
             this.displayName = keywordType.ToString();
             this.keywordType = keywordType;
             
-            // Add sensible default entries
+            // Add sensible default entries for Enum type
             if(keywordType == ShaderKeywordType.Enum)
             {
                 m_Entries = new List<ShaderKeywordEntry>();
                 m_Entries.Add(new ShaderKeywordEntry(1, "A", "A"));
                 m_Entries.Add(new ShaderKeywordEntry(2, "B", "B"));
                 m_Entries.Add(new ShaderKeywordEntry(3, "C", "C"));
-            }
-            // _ON suffix is required for exposing to Material
-            // Append it by default
-            else
-            {
-                overrideReferenceName = $"{referenceName}_ON";
             }
         }
 
@@ -126,6 +120,18 @@ namespace UnityEditor.ShaderGraph
         public override bool isRenamable => isEditable;
 
         public override ConcreteSlotValueType concreteShaderValueType => keywordType.ToConcreteSlotValueType();
+
+        public override string GetDefaultReferenceName()
+        {
+            // _ON suffix is required for exposing Boolean type to Material
+            var suffix = string.Empty;
+            if(keywordType == ShaderKeywordType.Boolean)
+            {
+                suffix = "_ON";
+            }
+
+            return $"{keywordType.ToString()}_{GuidEncoder.Encode(guid)}{suffix}".ToUpper();
+        }
 
         public string GetPropertyBlockString()
         {

@@ -317,9 +317,6 @@ namespace UnityEditor.ShaderGraph.Drawing
                 }
                 case ShaderKeyword keyword:
                 {
-                    // Keyword reference names must always be upper case
-                    m_Graph.SanitizeGraphInputReferenceName(input, input.referenceName);
-
                     var icon = (m_Graph.isSubGraph || (keyword.isExposable && keyword.generatePropertyBlock)) ? exposedIcon : null;
                     var typeText = keyword.isEditable ? keyword.keywordType.ToString() : "Builtin Keyword";
                     field = new BlackboardField(icon, keyword.displayName, typeText) { userData = keyword };
