@@ -31,7 +31,7 @@ namespace UnityEditor.VFX
         public class OctagonInputProperties
         {
             [Range(0, 1)]
-            public float cropFactor = 0.5f * (1.0f - Mathf.Tan(Mathf.PI / 8.0f)); // regular octagon
+            public float cropFactor = (int)(0.5f * (1.0f - Mathf.Tan(Mathf.PI / 8.0f)) * 1000.0f + 0.5f) / 1000.0f; // regular octagon with 3 decimals
         }
 
         public static VFXTaskType GetTaskType(VFXPrimitiveType prim)

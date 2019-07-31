@@ -8,6 +8,12 @@ float3 _LightDirection;
 
 void VFXTransformPSInputs(inout VFX_VARYING_PS_INPUTS input) {}
 
+void VFXEncodeMotionVector(float2 velocity, out float4 outBuffer)
+{
+	//TODO : LWRP doesn't support motion vector & TAA yet
+	outBuffer = (float4)0.0f;
+}
+
 float3 GetCurrentViewPosition()
 {
     return UNITY_MATRIX_I_V._14_24_34;
@@ -18,10 +24,34 @@ float4 VFXTransformPositionWorldToClip(float3 posWS)
     return TransformWorldToHClip(posWS);
 }
 
+float4 VFXTransformPositionWorldToNonJitteredClip(float3 posWS)
+{
+	//TODO : LWRP doesn't support motion vector & TAA yet
+	return VFXTransformPositionWorldToClip(posWS);
+}
+
+float4 VFXTransformPositionWorldToPreviousClip(float3 posWS)
+{
+	//TODO : LWRP doesn't support motion vector & TAA yet
+	return VFXTransformPositionWorldToClip(posWS);
+}
+
 float4 VFXTransformPositionObjectToClip(float3 posOS)
 {
     float3 posWS = TransformObjectToWorld(posOS);
     return VFXTransformPositionWorldToClip(posWS);
+}
+
+float4 VFXTransformPositionObjectToNonJitteredClip(float3 posOS)
+{
+	//TODO : LWRP doesn't support motion vector & TAA yet
+	return VFXTransformPositionObjectToClip(posOS);
+}
+
+float4 VFXTransformPositionObjectToPreviousClip(float3 posOS)
+{
+	//TODO : LWRP doesn't support motion vector & TAA yet
+	return VFXTransformPositionObjectToClip(posOS);
 }
 
 float3 VFXTransformPositionWorldToView(float3 posWS)

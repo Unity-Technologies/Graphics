@@ -182,7 +182,7 @@ Shader "Hidden/Universal Render Pipeline/GaussianDepthOfField"
             half3 baseColor = LOAD_TEXTURE2D_X(_MainTex, _MainTex_TexelSize.zw * input.uv).xyz;
             half coc = LOAD_TEXTURE2D_X(_FullCoCTexture, _MainTex_TexelSize.zw * input.uv).x;
 
-        #if _HIGH_QUALITY_SAMPLING
+        #if _HIGH_QUALITY_SAMPLING && !defined(SHADER_API_GLES)
             half3 farColor = SampleTexture2DBicubic(TEXTURE2D_X_ARGS(_ColorTexture, sampler_LinearClamp), input.uv, _ColorTexture_TexelSize.zwxy, 1.0, unity_StereoEyeIndex).xyz;
         #else
             half3 farColor = SAMPLE_TEXTURE2D_X(_ColorTexture, sampler_LinearClamp, input.uv).xyz;

@@ -18,12 +18,12 @@ namespace UnityEditor.Rendering.LookDev
     }
 
     /// <summary>Data container to be used with Renderer class</summary>
-    public class RenderingData
+    public class RenderingData : IDisposable
     {
         /// <summary>
         /// Internally set to true when the given RenderTexture <see cref="output"/> was not the good size regarding <see cref="viewPort"/> and needed to be recreated
         /// </summary>
-        public bool resized;
+        public bool sizeMissmatched;
         /// <summary>The stage that possess every object in your view</summary>
         public Stage stage;
         /// <summary>Callback to update the Camera position. Only done in First phase.</summary>
@@ -32,6 +32,20 @@ namespace UnityEditor.Rendering.LookDev
         public Rect viewPort;
         /// <summary>Render texture handling captured image</summary>
         public RenderTexture output;
+        
+        private bool disposed = false; 
+        public void Dispose()
+        {
+            if (disposed)
+                return;
+            disposed = true;
+
+            stage?.Dispose();
+            stage = null;
+            updater = null;
+            output?.Release();
+            output = null;
+        }
     }
 
     /// <summary>Basic renderer to draw scene in texture</summary>
@@ -47,7 +61,6 @@ namespace UnityEditor.Rendering.LookDev
             data.stage.SetGameObjectVisible(true);
             data.updater?.UpdateCamera(data.stage.camera);
             data.stage.camera.enabled = true;
-            UpdateOutputSize(data);
         }
 
         void EndRendering(RenderingData data)
@@ -56,22 +69,18 @@ namespace UnityEditor.Rendering.LookDev
             data.stage.SetGameObjectVisible(false);
         }
 
-        void UpdateOutputSize(RenderingData data)
+        bool CheckWrongSizeOutput(RenderingData data)
         {
-            var oldOutput = data.output;
-            data.output = RenderTextureCache.UpdateSize(
-                data.output, data.viewPort, pixelPerfect, data.stage.camera);
-            data.resized = oldOutput != data.output;
-        }
-
-        bool CheckInvertedOutput(RenderingData data)
-        {
-            if (data.viewPort.IsNullOrInverted())
+            if (data.viewPort.IsNullOrInverted()
+                || data.viewPort.width != data.output.width
+                || data.viewPort.height != data.viewPort.height)
             {
                 data.output = null;
-                data.resized = true;
+                data.sizeMissmatched = true;
                 return true;
             }
+
+            data.sizeMissmatched = false;
             return false;
         }
 
@@ -85,7 +94,7 @@ namespace UnityEditor.Rendering.LookDev
         /// </param>
         public void Acquire(RenderingData data, RenderingPass pass = RenderingPass.First | RenderingPass.Last)
         {
-            if (CheckInvertedOutput(data))
+            if (CheckWrongSizeOutput(data))
                 return;
 
             if ((pass & RenderingPass.First) != 0)
