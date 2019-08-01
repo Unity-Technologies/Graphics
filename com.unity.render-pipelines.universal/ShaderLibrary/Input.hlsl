@@ -1,19 +1,28 @@
 #ifndef UNIVERSAL_INPUT_INCLUDED
 #define UNIVERSAL_INPUT_INCLUDED
 
-#define MAX_VISIBLE_LIGHTS 16
+#define MAX_VISIBLE_LIGHTS_SSBO 256
+#define MAX_VISIBLE_LIGHTS_UBO  32
 
-// TODO: Graphics Emulation are breaking structured buffers for now disabling it until we have a fix
-#define USE_STRUCTURED_BUFFER_FOR_LIGHT_DATA 0
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderTypes.cs.hlsl"
 
-// Must match check of use compute buffer in UniversalRenderPipeline.cs
-// GLES check here because of WebGL 1.0 support
-// TODO: check performance of using StructuredBuffer on mobile as well
-// #if defined(SHADER_API_MOBILE) || defined(SHADER_API_GLES) || defined(SHADER_API_GLCORE)
-// #define USE_STRUCTURED_BUFFER_FOR_LIGHT_DATA 0
-// #else
-// #define USE_STRUCTURED_BUFFER_FOR_LIGHT_DATA 1
-// #endif
+// There are some performance issues by using SSBO in mobile.
+// Also some GPUs don't supports SSBO in vertex shader.
+#if !defined(SHADER_API_MOBILE) && (defined(SHADER_API_METAL) || defined(SHADER_API_VULKAN) || defined(SHADER_API_PS4) || defined(SHADER_API_XBOXONE))
+    #define USE_STRUCTURED_BUFFER_FOR_LIGHT_DATA 1
+    #define MAX_VISIBLE_LIGHTS MAX_VISIBLE_LIGHTS_SSBO
+// We don't use SSBO in D3D because we can't figure out without adding shader variants if platforms is D3D10.
+// We don't use SSBO on Nintendo Switch as UBO path is faster.
+// However here we use same limits as SSBO path. 
+#elif defined(SHADER_API_D3D11) || defined(SHADER_API_SWITCH)
+    #define MAX_VISIBLE_LIGHTS MAX_VISIBLE_LIGHTS_SSBO
+    #define USE_STRUCTURED_BUFFER_FOR_LIGHT_DATA 0
+// We use less limits for mobile as some mobile GPUs have small SP cache for constants
+// Using more than 32 might cause spilling to main memory.
+#else
+    #define MAX_VISIBLE_LIGHTS MAX_VISIBLE_LIGHTS_UBO
+    #define USE_STRUCTURED_BUFFER_FOR_LIGHT_DATA 0
+#endif
 
 struct InputData
 {
@@ -30,27 +39,26 @@ struct InputData
 //                      Constant Buffers                                     //
 ///////////////////////////////////////////////////////////////////////////////
 
-CBUFFER_START(_PerFrame)
 half4 _GlossyEnvironmentColor;
 half4 _SubtractiveShadowColor;
-CBUFFER_END
 
-CBUFFER_START(_PerCamera)
 float4x4 _InvCameraViewProj;
 float4 _ScaledScreenParams;
-CBUFFER_END
 
-CBUFFER_START(_LightBuffer)
 float4 _MainLightPosition;
 half4 _MainLightColor;
 
 half4 _AdditionalLightsCount;
+#if USE_STRUCTURED_BUFFER_FOR_LIGHT_DATA
+StructuredBuffer<LightData> _AdditionalLightsBuffer;
+StructuredBuffer<int> _AdditionalLightsIndices;
+#else
 float4 _AdditionalLightsPosition[MAX_VISIBLE_LIGHTS];
 half4 _AdditionalLightsColor[MAX_VISIBLE_LIGHTS];
 half4 _AdditionalLightsAttenuation[MAX_VISIBLE_LIGHTS];
 half4 _AdditionalLightsSpotDir[MAX_VISIBLE_LIGHTS];
 half4 _AdditionalLightsOcclusionProbes[MAX_VISIBLE_LIGHTS];
-CBUFFER_END
+#endif
 
 #define UNITY_MATRIX_M     unity_ObjectToWorld
 #define UNITY_MATRIX_I_M   unity_WorldToObject
@@ -65,7 +73,7 @@ CBUFFER_END
 #define UNITY_MATRIX_IT_MV transpose(mul(UNITY_MATRIX_I_M, UNITY_MATRIX_I_V))
 #define UNITY_MATRIX_MVP   mul(UNITY_MATRIX_VP, UNITY_MATRIX_M)
 
-#include "UnityInput.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/UnityInput.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/UnityInstancing.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/SpaceTransforms.hlsl"
 

@@ -204,6 +204,8 @@ namespace UnityEngine.Rendering.Universal
             FillBlockRanges(blockEventLimits, blockRanges);
             blockEventLimits.Dispose();
 
+            SetupLights(context, ref renderingData);
+
             // Before Render Block. This render blocks always execute in mono rendering.
             // Camera is not setup. Lights are not setup.
             // Used to render input textures like shadowmaps.
@@ -219,8 +221,7 @@ namespace UnityEngine.Rendering.Universal
             /// * Setup global time properties (_Time, _SinTime, _CosTime)
             bool stereoEnabled = renderingData.cameraData.isStereoEnabled;
             context.SetupCameraProperties(camera, stereoEnabled);
-            SetupLights(context, ref renderingData);
-
+            
             // Override time values from when `SetupCameraProperties` were called.
             // They might be a frame behind.
             // We can remove this after removing `SetupCameraProperties` as the values should be per frame, and not per camera.

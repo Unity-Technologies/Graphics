@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using UnityEngine.Scripting.APIUpdating;
@@ -55,6 +54,21 @@ namespace UnityEngine.Rendering.Universal
         [Obsolete("The use of the Post-processing Stack V2 is deprecated in the Universal Render Pipeline. Use the builtin post-processing effects instead.")]
         public static UnityEngine.Rendering.PostProcessing.PostProcessRenderContext postProcessRenderContext => null;
 #endif
+
+        internal static bool useStructuredBuffer
+        {
+            // There are some performance issues with StructuredBuffers in some platforms.
+            // We fallback to UBO in those cases.
+            get
+            {
+                // We don't use SSBO in D3D because we can't figure out without adding shader variants if platforms is D3D10.
+                GraphicsDeviceType deviceType = SystemInfo.graphicsDeviceType;
+                return !Application.isMobilePlatform &&
+                    (deviceType == GraphicsDeviceType.Metal || deviceType == GraphicsDeviceType.Vulkan ||
+                     deviceType == GraphicsDeviceType.PlayStation4 || deviceType == GraphicsDeviceType.XboxOne);
+            }
+            
+        }
 
         static Material s_ErrorMaterial;
         static Material errorMaterial

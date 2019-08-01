@@ -83,6 +83,13 @@ namespace UnityEngine.Rendering.Universal
             cmd.Clear();
         }
 
+        public static void RenderShadowSlice(CommandBuffer cmd, ref ScriptableRenderContext context,
+            ref ShadowSliceData shadowSliceData, ref ShadowDrawingSettings settings)
+        {
+            RenderShadowSlice(cmd, ref context, ref shadowSliceData, ref settings,
+                shadowSliceData.projectionMatrix, shadowSliceData.viewMatrix);
+        }
+
         public static int GetMaxTileResolutionInAtlas(int atlasWidth, int atlasHeight, int tileCount)
         {
             int resolution = Mathf.Min(atlasWidth, atlasHeight);
