@@ -55,7 +55,11 @@ projects:
       - cd TestProjects/{{ project.folder }} && unity-downloader-cli -b {{ editor.version }}/staging -c editor --wait --published
       {% endif %}
       {% if testplatform.name == "Standalone" %}
+        {% if platform.name == "Linux" %}
+      - cd TestProjects/{{ project.folder }} && utr/utr {{ testplatform.args }}{{ platform.name }}64 --testproject=. --editor-location=.Editor --artifacts_path=upm-ci~/test-results
+        {% else %}
       - cd TestProjects/{{ project.folder }} && utr/utr {{ testplatform.args }}{{ platform.name }} --testproject=. --editor-location=.Editor --artifacts_path=upm-ci~/test-results || powershell -command "utr/utr {{ testplatform.args }}{{ platform.name }} --testproject=. --editor-location=.Editor --artifacts_path=upm-ci~/test-results"
+        {% endif %}
       {% else %}
       - cd TestProjects/{{ project.folder }} && utr/utr {{ testplatform.args }} --testproject=. --editor-location=.Editor --artifacts_path=upm-ci~/test-results || powershell -command "utr/utr {{ testplatform.args }} --testproject=. --editor-location=.Editor --artifacts_path=upm-ci~/test-results"
       {% endif %}
