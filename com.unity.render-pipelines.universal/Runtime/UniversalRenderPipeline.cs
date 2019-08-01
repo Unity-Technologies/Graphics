@@ -64,17 +64,37 @@ namespace UnityEngine.Rendering.Universal
         }
 
         // Amount of Lights that can be shaded per object (in the for loop in the shader)
-        // This uses unity_4LightIndices to store an array of 4 light indices
         public static int maxPerObjectLights
         {
-            get => 4;
+            // No support to bitfield mask and int[] in gles2. Can't index fast more than 4 lights.
+            // Check Lighting.hlsl for more details.
+            get => (SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES2) ? 4 : 8;
         }
 
-        // Light data is stored in a constant buffer (uniform array)
-        // This value has to match MAX_VISIBLE_LIGHTS in Input.hlsl
+        // These limits have to match same limits in Input.hlsl
+        const int k_MaxVisibleAdditionalLightsSSBO  = 256;
+        const int k_MaxVisibleAdditionalLightsUBO   = 32;
         public static int maxVisibleAdditionalLights
         {
-            get => 16;
+            get
+            {
+                // There are some performance issues by using SSBO in mobile.
+                // Also some GPUs don't supports SSBO in vertex shader.
+                if (RenderingUtils.useStructuredBuffer)
+                    return k_MaxVisibleAdditionalLightsSSBO;
+
+                // We don't use SSBO in D3D because we can't figure out without adding shader variants if platforms is D3D10.
+                // We don't use SSBO on Nintendo Switch as UBO path is faster.
+                // However here we use same limits as SSBO path. 
+                var deviceType = SystemInfo.graphicsDeviceType;
+                if (deviceType == GraphicsDeviceType.Direct3D11 || deviceType == GraphicsDeviceType.Direct3D12 ||
+                    deviceType == GraphicsDeviceType.Switch)
+                    return k_MaxVisibleAdditionalLightsSSBO;
+
+                // We use less limits for mobile as some mobile GPUs have small SP cache for constants
+                // Using more than 32 might cause spilling to main memory.
+                return k_MaxVisibleAdditionalLightsUBO;
+            }
         }
 
         public static UniversalRenderPipelineAsset asset
@@ -122,6 +142,7 @@ namespace UnityEngine.Rendering.Universal
             base.Dispose(disposing);
             Shader.globalRenderPipeline = "";
             SupportedRenderingFeatures.active = new SupportedRenderingFeatures();
+            ShaderData.instance.Dispose();
 
 #if UNITY_EDITOR
             SceneViewDrawMode.ResetDrawMode();
@@ -474,7 +495,13 @@ namespace UnityEngine.Rendering.Universal
             var configuration = PerObjectData.ReflectionProbes | PerObjectData.Lightmaps | PerObjectData.LightProbe | PerObjectData.LightData | PerObjectData.OcclusionProbe;
 
             if (additionalLightsCount > 0)
-                configuration |= PerObjectData.LightIndices;
+            {
+                configuration |= PerObjectData.LightData;
+
+                // In this case we also need per-object indices (unity_LightIndices)
+                if (!RenderingUtils.useStructuredBuffer)
+                    configuration |= PerObjectData.LightIndices;
+            }
 
             return configuration;
         }
