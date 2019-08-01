@@ -251,7 +251,7 @@ Shader ""Hidden/GraphErrorShader2""
             }
 
             sharedCodeIndices.Add(codeSnippets.Count);
-            codeSnippets.Add($"#include \"com.unity.shadergraph/ShaderGraphLibrary/Functions.hlsl\";{nl}");
+            codeSnippets.Add($"#include \"Packages/com.unity.shadergraph/ShaderGraphLibrary/Functions.hlsl\";{nl}");
 
             for (var registryIndex = 0; registryIndex < registry.names.Count; registryIndex++)
             {
