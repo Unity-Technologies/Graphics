@@ -123,8 +123,8 @@ void SplatmapMix(float4 uvMainAndLM, float4 uvSplat01, float4 uvSplat23, inout h
     // Now that splatControl has changed, we can compute the final weight and normalize
     weight = dot(splatControl, 1.0h);
 
-#if !defined(SHADER_API_MOBILE) && !defined(SHADER_API_SWITCH) && defined(TERRAIN_SPLAT_ADDPASS)
-    clip(weight == 0.0h ? -1.0h : 1.0h);
+#ifdef TERRAIN_SPLAT_ADDPASS
+    clip(weight <= 0.005h ? -1.0h : 1.0h);
 #endif
 
 #ifndef _TERRAIN_BASEMAP_GEN
