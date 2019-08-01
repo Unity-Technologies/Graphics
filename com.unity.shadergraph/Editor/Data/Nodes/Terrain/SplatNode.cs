@@ -137,10 +137,27 @@ namespace UnityEditor.ShaderGraph
                 ++version;
         }
 
+        private struct SplatGraphNode
+        {
+            public AbstractMaterialNode Node;
+            public bool SplatDependent;
+        }
+
+        private struct SpaltGraphInput
+        {
+            public ConcreteSlotValueType VariableType;
+            public string VariableName;
+            public bool SplatProperty;
+
+            // TODO: more general hashing
+            public override int GetHashCode()
+                => VariableType.GetHashCode() * 23 + VariableName.GetHashCode();
+        }
+
         private struct SplatGraph
         {
-            public IReadOnlyList<(AbstractMaterialNode node, bool splatDependent)> Nodes;
-            public IReadOnlyList<(MaterialSlot slot, bool splatProperty)> SplatFunctionInputs;
+            public IReadOnlyList<SplatGraphNode> Nodes;
+            public IReadOnlyList<SpaltGraphInput> SplatFunctionInputs;
         }
 
         // TODO: cache the resulting SplatGraph until next graph topology change?
@@ -151,7 +168,7 @@ namespace UnityEditor.ShaderGraph
 
             // Determine for each node if it's dependent on the splat properties.
             var splatDependent = new bool[splatGraphNodes.Count];
-            var splatFunctionInputs = new HashSet<(MaterialSlot, bool)>(); // gather the output slots of splat properties and non-splat inputs
+            var splatFunctionInputs = new HashSet<SpaltGraphInput>(); // gather the output slots of splat properties and non-splat inputs
             for (int i = 0; i < splatGraphNodes.Count; ++i)
             {
                 var node = splatGraphNodes[i];
@@ -160,7 +177,12 @@ namespace UnityEditor.ShaderGraph
                     if (propertyNode.shaderProperty is ISplattableShaderProperty splatProperty && splatProperty.splat)
                     {
                         splatDependent[i] = true;
-                        splatFunctionInputs.Add((propertyNode.GetOutputSlots<MaterialSlot>().First(), true));
+                        splatFunctionInputs.Add(new SpaltGraphInput()
+                        {
+                            VariableType = propertyNode.shaderProperty.concreteShaderValueType,
+                            VariableName = propertyNode.GetVariableNameForSlot(PropertyNode.OutputSlotId),
+                            SplatProperty = true
+                        });
                     }
                     continue;
                 }
@@ -190,14 +212,27 @@ namespace UnityEditor.ShaderGraph
                     foreach (var (splat, slot) in outputSlots)
                     {
                         if (!splat && slot != null)
-                            splatFunctionInputs.Add((slot, false));
+                        {
+                            splatFunctionInputs.Add(new SpaltGraphInput()
+                            {
+                                VariableType = slot.concreteValueType,
+                                VariableName = node.GetVariableNameForSlot(slot.id),
+                                SplatProperty = false
+                            });
+                        }
                     }
                 }
             }
 
-            var graphNodes = new List<(AbstractMaterialNode, bool)>();
+            var graphNodes = new List<SplatGraphNode>();
             for (int i = 0; i < splatGraphNodes.Count; ++i)
-                graphNodes.Add((splatGraphNodes[i], splatDependent[i]));
+            {
+                graphNodes.Add(new SplatGraphNode()
+                {
+                    Node = splatGraphNodes[i],
+                    SplatDependent = splatDependent[i]
+                });
+            }
 
             return new SplatGraph()
             {
@@ -210,13 +245,13 @@ namespace UnityEditor.ShaderGraph
         {
             var splatGraph = CompileSplatGraph();
 
-            foreach (var (node, splatDependent) in splatGraph.Nodes)
+            foreach (var node in splatGraph.Nodes)
             {
-                if (!splatDependent && node is IGeneratesBodyCode bodyCode)
+                if (!node.SplatDependent && node.Node is IGeneratesBodyCode bodyCode)
                 {
-                    sb.currentNode = node;
+                    sb.currentNode = node.Node;
                     bodyCode.GenerateNodeCode(sb, graphContext, generationMode);
-                    sb.ReplaceInCurrentMapping(PrecisionUtil.Token, node.concretePrecision.ToShaderString());
+                    sb.ReplaceInCurrentMapping(PrecisionUtil.Token, node.Node.concretePrecision.ToShaderString());
                 }
             }
 
@@ -233,10 +268,10 @@ namespace UnityEditor.ShaderGraph
 
                 sb.AppendIndentation();
                 sb.Append($"SplatFunction_{GetVariableNameForNode()}(IN");
-                foreach (var (slot, splatProp) in splatGraph.SplatFunctionInputs)
+                foreach (var splatInput in splatGraph.SplatFunctionInputs)
                 {
-                    var varName = slot.owner.GetVariableNameForSlot(slot.id);
-                    if (splatProp)
+                    var varName = splatInput.VariableName;
+                    if (splatInput.SplatProperty)
                         varName = $"{varName.Substring(0, varName.Length - 1)}{i}";
                     sb.Append($", {varName}");
                 }
@@ -272,33 +307,33 @@ namespace UnityEditor.ShaderGraph
             var splatGraph = CompileSplatGraph();
 
             // Generate global functions from splat graph.
-            foreach (var (node, splatDependent) in splatGraph.Nodes)
+            foreach (var node in splatGraph.Nodes)
             {
-                if (node is IGeneratesFunction functionNode)
+                if (node.Node is IGeneratesFunction functionNode)
                 {
-                    registry.builder.currentNode = node;
+                    registry.builder.currentNode = node.Node;
                     functionNode.GenerateNodeFunction(registry, graphContext, generationMode);
-                    registry.builder.ReplaceInCurrentMapping(PrecisionUtil.Token, node.concretePrecision.ToShaderString());
+                    registry.builder.ReplaceInCurrentMapping(PrecisionUtil.Token, node.Node.concretePrecision.ToShaderString());
                 }
             }
 
             // Generate the splat function from splat subgraph
             var splatFunction = new ShaderStringBuilder();
             splatFunction.Append($"void SplatFunction_{GetVariableNameForNode()}({graphContext.graphInputStructName} IN");
-            foreach (var (slot, splatProp) in splatGraph.SplatFunctionInputs)
-                splatFunction.Append($", {slot.concreteValueType.ToShaderString(concretePrecision)} {slot.owner.GetVariableNameForSlot(slot.id)}");
+            foreach (var splatInput in splatGraph.SplatFunctionInputs)
+                splatFunction.Append($", {splatInput.VariableType.ToShaderString(concretePrecision)} {splatInput.VariableName}");
             foreach (var slot in EnumerateSplatInputSlots())
                 splatFunction.Append($", out {slot.concreteValueType.ToShaderString(concretePrecision)} outSplat{(slot.id - kSplatInputSlotIdStart) / 2}");
             splatFunction.AppendLine(")");
             using (splatFunction.BlockScope())
             {
-                foreach (var (node, splatDependent) in splatGraph.Nodes)
+                foreach (var node in splatGraph.Nodes)
                 {
-                    if (splatDependent && node is IGeneratesBodyCode bodyNode)
+                    if (node.SplatDependent && node.Node is IGeneratesBodyCode bodyNode)
                     {
-                        splatFunction.currentNode = node;
+                        splatFunction.currentNode = node.Node;
                         bodyNode.GenerateNodeCode(splatFunction, graphContext, generationMode);
-                        splatFunction.ReplaceInCurrentMapping(PrecisionUtil.Token, node.concretePrecision.ToShaderString());
+                        splatFunction.ReplaceInCurrentMapping(PrecisionUtil.Token, node.Node.concretePrecision.ToShaderString());
                     }
                 }
                 foreach (var slot in EnumerateSplatInputSlots())
@@ -309,52 +344,52 @@ namespace UnityEditor.ShaderGraph
 
         public override void CollectPreviewMaterialProperties(List<PreviewProperty> properties)
         {
-            foreach (var (node, splatDependent) in CompileSplatGraph().Nodes)
-                node.CollectPreviewMaterialProperties(properties);
+            foreach (var node in CompileSplatGraph().Nodes)
+                node.Node.CollectPreviewMaterialProperties(properties);
             base.CollectPreviewMaterialProperties(properties);
         }
 
         public override void CollectShaderProperties(PropertyCollector properties, GenerationMode generationMode)
         {
-            foreach (var (node, splatDependent) in CompileSplatGraph().Nodes)
-                node.CollectShaderProperties(properties, generationMode);
+            foreach (var node in CompileSplatGraph().Nodes)
+                node.Node.CollectShaderProperties(properties, generationMode);
             base.CollectShaderProperties(properties, generationMode);
         }
 
         NeededCoordinateSpace IMayRequirePosition.RequiresPosition(ShaderStageCapability stageCapability)
-            => CompileSplatGraph().Nodes.Select(v => v.node).OfType<IMayRequirePosition>().Aggregate(NeededCoordinateSpace.None, (mask, node) => mask | node.RequiresPosition(stageCapability));
+            => CompileSplatGraph().Nodes.Select(v => v.Node).OfType<IMayRequirePosition>().Aggregate(NeededCoordinateSpace.None, (mask, node) => mask | node.RequiresPosition(stageCapability));
 
         NeededCoordinateSpace IMayRequireNormal.RequiresNormal(ShaderStageCapability stageCapability)
-            => CompileSplatGraph().Nodes.Select(v => v.node).OfType<IMayRequireNormal>().Aggregate(NeededCoordinateSpace.None, (mask, node) => mask | node.RequiresNormal(stageCapability));
+            => CompileSplatGraph().Nodes.Select(v => v.Node).OfType<IMayRequireNormal>().Aggregate(NeededCoordinateSpace.None, (mask, node) => mask | node.RequiresNormal(stageCapability));
 
         NeededCoordinateSpace IMayRequireTangent.RequiresTangent(ShaderStageCapability stageCapability)
-            => CompileSplatGraph().Nodes.Select(v => v.node).OfType<IMayRequireTangent>().Aggregate(NeededCoordinateSpace.None, (mask, node) => mask | node.RequiresTangent(stageCapability));
+            => CompileSplatGraph().Nodes.Select(v => v.Node).OfType<IMayRequireTangent>().Aggregate(NeededCoordinateSpace.None, (mask, node) => mask | node.RequiresTangent(stageCapability));
 
         NeededCoordinateSpace IMayRequireBitangent.RequiresBitangent(ShaderStageCapability stageCapability)
-            => CompileSplatGraph().Nodes.Select(v => v.node).OfType<IMayRequireBitangent>().Aggregate(NeededCoordinateSpace.None, (mask, node) => mask | node.RequiresBitangent(stageCapability));
+            => CompileSplatGraph().Nodes.Select(v => v.Node).OfType<IMayRequireBitangent>().Aggregate(NeededCoordinateSpace.None, (mask, node) => mask | node.RequiresBitangent(stageCapability));
 
         bool IMayRequireVertexColor.RequiresVertexColor(ShaderStageCapability stageCapability)
-            => CompileSplatGraph().Nodes.Select(v => v.node).OfType<IMayRequireVertexColor>().Any(node => node.RequiresVertexColor());
+            => CompileSplatGraph().Nodes.Select(v => v.Node).OfType<IMayRequireVertexColor>().Any(node => node.RequiresVertexColor());
 
         bool IMayRequireMeshUV.RequiresMeshUV(UVChannel channel, ShaderStageCapability stageCapability)
-            => CompileSplatGraph().Nodes.Select(v => v.node).OfType<IMayRequireMeshUV>().Any(node => node.RequiresMeshUV(channel));
+            => CompileSplatGraph().Nodes.Select(v => v.Node).OfType<IMayRequireMeshUV>().Any(node => node.RequiresMeshUV(channel));
 
         NeededCoordinateSpace IMayRequireViewDirection.RequiresViewDirection(ShaderStageCapability stageCapability)
-            => CompileSplatGraph().Nodes.Select(v => v.node).OfType<IMayRequireViewDirection>().Aggregate(NeededCoordinateSpace.None, (mask, node) => mask | node.RequiresViewDirection(stageCapability));
+            => CompileSplatGraph().Nodes.Select(v => v.Node).OfType<IMayRequireViewDirection>().Aggregate(NeededCoordinateSpace.None, (mask, node) => mask | node.RequiresViewDirection(stageCapability));
 
         bool IMayRequireScreenPosition.RequiresScreenPosition(ShaderStageCapability stageCapability)
-            => CompileSplatGraph().Nodes.Select(v => v.node).OfType<IMayRequireScreenPosition>().Any(node => node.RequiresScreenPosition());
+            => CompileSplatGraph().Nodes.Select(v => v.Node).OfType<IMayRequireScreenPosition>().Any(node => node.RequiresScreenPosition());
 
         bool IMayRequireFaceSign.RequiresFaceSign(ShaderStageCapability stageCapability)
-            => CompileSplatGraph().Nodes.Select(v => v.node).OfType<IMayRequireFaceSign>().Any(node => node.RequiresFaceSign());
+            => CompileSplatGraph().Nodes.Select(v => v.Node).OfType<IMayRequireFaceSign>().Any(node => node.RequiresFaceSign());
 
         bool IMayRequireDepthTexture.RequiresDepthTexture(ShaderStageCapability stageCapability)
-            => CompileSplatGraph().Nodes.Select(v => v.node).OfType<IMayRequireDepthTexture>().Any(node => node.RequiresDepthTexture());
+            => CompileSplatGraph().Nodes.Select(v => v.Node).OfType<IMayRequireDepthTexture>().Any(node => node.RequiresDepthTexture());
 
         bool IMayRequireCameraOpaqueTexture.RequiresCameraOpaqueTexture(ShaderStageCapability stageCapability)
-            => CompileSplatGraph().Nodes.Select(v => v.node).OfType<IMayRequireCameraOpaqueTexture>().Any(node => node.RequiresCameraOpaqueTexture());
+            => CompileSplatGraph().Nodes.Select(v => v.Node).OfType<IMayRequireCameraOpaqueTexture>().Any(node => node.RequiresCameraOpaqueTexture());
 
         bool IMayRequireTime.RequiresTime()
-            => CompileSplatGraph().Nodes.Select(v => v.node).OfType<IMayRequireTime>().Any(node => node.RequiresTime());
+            => CompileSplatGraph().Nodes.Select(v => v.Node).OfType<IMayRequireTime>().Any(node => node.RequiresTime());
     }
 }
