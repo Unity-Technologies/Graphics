@@ -19,6 +19,7 @@ namespace UnityEditor.VFX
         {
             public Texture2D mainTexture = VFXResources.defaultResources.particleTexture;
         }
+        protected VFXShaderGraphParticleOutput(bool strip = false) : base(strip) { }
         static Type GetSGPropertyType(AbstractShaderProperty property)
         {
             switch (property.propertyType)
@@ -107,6 +108,133 @@ namespace UnityEditor.VFX
             else
             {
                 //TODO
+            }
+        }
+
+        protected class PassInfo
+        {
+            public string[] vertexPorts;
+            public string[] pixelPorts;
+        }
+
+        protected class RPInfo
+        {
+            public Dictionary<string, PassInfo> passInfos;
+            HashSet<string> m_AllPorts;
+
+            public IEnumerable<string> allPorts
+            {
+                get
+                {
+                    if (m_AllPorts == null)
+                    {
+                        m_AllPorts = new HashSet<string>();
+                        foreach (var pass in passInfos.Values)
+                        {
+                            foreach (var port in pass.vertexPorts)
+                                m_AllPorts.Add(port);
+                            foreach (var port in pass.pixelPorts)
+                                m_AllPorts.Add(port);
+                        }
+                    }
+
+                    return m_AllPorts;
+                }
+            }
+        }
+
+        protected RPInfo hdrpInfo = new RPInfo
+        {
+            passInfos = new Dictionary<string, PassInfo>() {
+            { "Forward",new PassInfo()  { vertexPorts = new string[]{"position"},pixelPorts = new string[]{ "baseColor", "alpha", "metallic", "smoothness"} } },
+            { "DepthOnly",new PassInfo()  { vertexPorts = new string[]{"position"},pixelPorts = new string[]{ "alpha" } } }
+        }
+        };
+        protected RPInfo hdrpLitInfo = new RPInfo
+        {
+            passInfos = new Dictionary<string, PassInfo>() {
+            { "GBuffer",new PassInfo()  { vertexPorts = new string[]{"position"},pixelPorts = new string[]{ "baseColor", "alpha", "metallic", "smoothness"} } },
+            { "Forward",new PassInfo()  { vertexPorts = new string[]{"position"},pixelPorts = new string[]{ "baseColor", "alpha", "metallic", "smoothness"} } },
+            { "DepthOnly",new PassInfo()  { vertexPorts = new string[]{"position"},pixelPorts = new string[]{ "alpha" } } }
+        }
+        };
+
+
+        static Dictionary<string, PropertyInfo> s_OutputFromName = new Dictionary<string, PropertyInfo>();
+
+        OutputMetadata GetOutput(string name)
+        {
+            PropertyInfo info;
+            if( !s_OutputFromName.TryGetValue(name,out info))
+            {
+                info = typeof(ShaderGraphVfxAsset).GetProperty(name+"Output",BindingFlags.Public|BindingFlags.Instance|BindingFlags.FlattenHierarchy);
+                s_OutputFromName[name] = info;
+            }
+
+            if( info == null)
+            {
+                throw new NotSupportedException("Can not find output property for " + name);
+            }
+
+            return (OutputMetadata)info.GetValue(shaderGraph);
+        }
+
+        public override IEnumerable<string> additionalDefines
+        {
+            get
+            {
+                foreach (var def in base.additionalDefines)
+                    yield return def;
+
+                if( shaderGraph != null)
+                {
+                    yield return "VFX_SHADERGRAPH";
+                }
+
+            }
+        }
+
+        protected virtual RPInfo currentRP
+        {
+            get { return hdrpInfo; }
+        }
+
+
+        public override IEnumerable<KeyValuePair<string, VFXShaderWriter>> additionalReplacements
+        {
+            get
+            {
+                foreach (var rep in base.additionalReplacements)
+                    yield return rep;
+
+                if (shaderGraph != null)
+                {
+                    RPInfo info = currentRP;
+
+                    foreach( var port in info.allPorts)
+                    {
+                        var portInfo = GetOutput(port);
+                        yield return new KeyValuePair<string, VFXShaderWriter>($"${{SHADERGRAPH_PARAM_{port.ToUpper()}}}", new VFXShaderWriter($"{portInfo.referenceName}_{portInfo.index}"));
+                    }
+
+                    foreach (var kvPass in info.passInfos)
+                    {
+                        GraphCode graphCode = shaderGraph.GetCode(kvPass.Value.pixelPorts.Select(t => GetOutput(t)).ToArray());
+
+                        yield return new KeyValuePair<string, VFXShaderWriter>("${SHADERGRAPH_PIXEL_CODE_" + kvPass.Key.ToUpper()+"}", new VFXShaderWriter(graphCode.code));
+
+
+                        var callSG = new VFXShaderWriter("//Call Shader Graph\n");
+                        callSG.builder.AppendLine($"{shaderGraph.inputStructName} INSG;");
+                        foreach( var property in graphCode.properties)
+                        {
+                            callSG.builder.AppendLine($"INSG.{property.referenceName} = {property.displayName};");
+                        }
+                        callSG.builder.AppendLine($"\n{shaderGraph.outputStructName} OUTSG = {shaderGraph.evaluationFunctionName}(INSG);");
+
+                        yield return new KeyValuePair<string, VFXShaderWriter>("${SHADERGRAPH_PIXEL_CALL_" + kvPass.Key.ToUpper() + "}", callSG);
+                    }
+                }
             }
         }
 

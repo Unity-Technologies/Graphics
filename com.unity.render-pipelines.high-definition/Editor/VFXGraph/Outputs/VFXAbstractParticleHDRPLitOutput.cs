@@ -6,7 +6,7 @@ using UnityEngine.Rendering;
 
 namespace UnityEditor.VFX
 {
-    abstract class VFXAbstractParticleHDRPLitOutput : VFXAbstractParticleOutput
+    abstract class VFXAbstractParticleHDRPLitOutput : VFXShaderGraphParticleOutput
     {
         public enum MaterialType
         {
@@ -155,35 +155,45 @@ namespace UnityEditor.VFX
 
         protected override bool needsExposureWeight { get { return (colorMode & ColorMode.Emissive) != 0 || useEmissive || useEmissiveMap; } }
 
+
+        protected override RPInfo currentRP
+        {
+            get { return hdrpLitInfo; }
+        }
+
         protected override IEnumerable<VFXPropertyWithValue> inputProperties
         {
             get
             {
                 var properties = base.inputProperties;
-                properties = properties.Concat(PropertiesFromType("HDRPLitInputProperties"));
-                properties = properties.Concat(PropertiesFromType(kMaterialTypeToName[(int)materialType]));
 
-                if (allowTextures)
+                if (shaderGraph == null)
                 {
-                    if (useBaseColorMap != BaseColorMapMode.None)
-                        properties = properties.Concat(PropertiesFromType("BaseColorMapProperties"));
+                    properties = properties.Concat(PropertiesFromType("HDRPLitInputProperties"));
+                    properties = properties.Concat(PropertiesFromType(kMaterialTypeToName[(int)materialType]));
+
+                    if (allowTextures)
+                    {
+                        if (useBaseColorMap != BaseColorMapMode.None)
+                            properties = properties.Concat(PropertiesFromType("BaseColorMapProperties"));
+                    }
+
+                    if ((colorMode & ColorMode.BaseColor) == 0) // particle color is not used as base color so add a slot
+                        properties = properties.Concat(PropertiesFromType("BaseColorProperties"));
+
+                    if (allowTextures)
+                    {
+                        if (useMaskMap)
+                            properties = properties.Concat(PropertiesFromType("MaskMapProperties"));
+                        if (useNormalMap)
+                            properties = properties.Concat(PropertiesFromType("NormalMapProperties"));
+                        if (useEmissiveMap)
+                            properties = properties.Concat(PropertiesFromType("EmissiveMapProperties"));
+                    }
+
+                    if (((colorMode & ColorMode.Emissive) == 0) && useEmissive)
+                        properties = properties.Concat(PropertiesFromType("EmissiveColorProperties"));
                 }
-
-                if ((colorMode & ColorMode.BaseColor) == 0) // particle color is not used as base color so add a slot
-                    properties = properties.Concat(PropertiesFromType("BaseColorProperties"));
-
-                if (allowTextures)
-                {
-                    if (useMaskMap)
-                        properties = properties.Concat(PropertiesFromType("MaskMapProperties"));
-                    if (useNormalMap)
-                        properties = properties.Concat(PropertiesFromType("NormalMapProperties"));
-                    if (useEmissiveMap)
-                        properties = properties.Concat(PropertiesFromType("EmissiveMapProperties"));
-                }
-
-                if (((colorMode & ColorMode.Emissive) == 0) && useEmissive)
-                    properties = properties.Concat(PropertiesFromType("EmissiveColorProperties"));
 
                 return properties;
             }
@@ -194,54 +204,57 @@ namespace UnityEditor.VFX
             foreach (var exp in base.CollectGPUExpressions(slotExpressions))
                 yield return exp;
 
-            yield return slotExpressions.First(o => o.name == "smoothness");
-
-            switch (materialType)
+            if( shaderGraph == null)
             {
-                case MaterialType.Standard:
-                case MaterialType.SimpleLit:
-                    yield return slotExpressions.First(o => o.name == "metallic");
-                    break;
+                yield return slotExpressions.First(o => o.name == "smoothness");
 
-                case MaterialType.SpecularColor:
-                    yield return slotExpressions.First(o => o.name == "specularColor");
-                    break;
-
-                case MaterialType.Translucent:
-                case MaterialType.SimpleLitTranslucent:
+                switch (materialType)
                 {
-                    yield return slotExpressions.First(o => o.name == "thickness");
-                    uint diffusionProfileHash = (diffusionProfileAsset?.profile != null) ? diffusionProfileAsset.profile.hash : 0;
-                    yield return new VFXNamedExpression(VFXValue.Constant(diffusionProfileHash), "diffusionProfileHash");
-                    break;
+                    case MaterialType.Standard:
+                    case MaterialType.SimpleLit:
+                        yield return slotExpressions.First(o => o.name == "metallic");
+                        break;
+
+                    case MaterialType.SpecularColor:
+                        yield return slotExpressions.First(o => o.name == "specularColor");
+                        break;
+
+                    case MaterialType.Translucent:
+                    case MaterialType.SimpleLitTranslucent:
+                    {
+                        yield return slotExpressions.First(o => o.name == "thickness");
+                        uint diffusionProfileHash = (diffusionProfileAsset?.profile != null) ? diffusionProfileAsset.profile.hash : 0;
+                        yield return new VFXNamedExpression(VFXValue.Constant(diffusionProfileHash), "diffusionProfileHash");
+                        break;
+                    }
+
+                    default: break;
                 }
 
-                default: break;
+                if (allowTextures)
+                {
+                    if (useBaseColorMap != BaseColorMapMode.None)
+                        yield return slotExpressions.First(o => o.name == "baseColorMap");
+                    if (useMaskMap)
+                        yield return slotExpressions.First(o => o.name == "maskMap");
+                    if (useNormalMap)
+                    {
+                        yield return slotExpressions.First(o => o.name == "normalMap");
+                        yield return slotExpressions.First(o => o.name == "normalScale");
+                    }
+                    if (useEmissiveMap)
+                    {
+                        yield return slotExpressions.First(o => o.name == "emissiveMap");
+                        yield return slotExpressions.First(o => o.name == "emissiveScale");
+                    }
+                }
+
+                if ((colorMode & ColorMode.BaseColor) == 0)
+                    yield return slotExpressions.First(o => o.name == "baseColor");
+
+                if (((colorMode & ColorMode.Emissive) == 0) && useEmissive)
+                    yield return slotExpressions.First(o => o.name == "emissiveColor");
             }
-
-            if (allowTextures)
-            {
-                if (useBaseColorMap != BaseColorMapMode.None)
-                    yield return slotExpressions.First(o => o.name == "baseColorMap");
-                if (useMaskMap)
-                    yield return slotExpressions.First(o => o.name == "maskMap");
-                if (useNormalMap)
-                {
-                    yield return slotExpressions.First(o => o.name == "normalMap");
-                    yield return slotExpressions.First(o => o.name == "normalScale");
-                }
-                if (useEmissiveMap)
-                {
-                    yield return slotExpressions.First(o => o.name == "emissiveMap");
-                    yield return slotExpressions.First(o => o.name == "emissiveScale");
-                }
-            }
-
-            if ((colorMode & ColorMode.BaseColor) == 0)
-                yield return slotExpressions.First(o => o.name == "baseColor");
-
-            if (((colorMode & ColorMode.Emissive) == 0) && useEmissive)
-                yield return slotExpressions.First(o => o.name == "emissiveColor");
         }
 
         public override IEnumerable<string> additionalDefines

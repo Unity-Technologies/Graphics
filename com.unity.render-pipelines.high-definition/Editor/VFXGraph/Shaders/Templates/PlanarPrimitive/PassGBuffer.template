@@ -78,6 +78,8 @@ ${VFXEnd}
 	#define SHADERPASS SHADERPASS_GBUFFER
 	${VFXIncludeRP("VFXLit.template")}
 					
+
+    ${SHADERGRAPH_PIXEL_CODE_GBUFFER}
 	#pragma fragment frag
 	void frag(ps_input i, OUTPUT_GBUFFER(outGBuffer)
 	#if USE_DOUBLE_SIDED
@@ -88,7 +90,21 @@ ${VFXEnd}
 		UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i);
 		VFXTransformPSInputs(i);
 		${VFXComputeNormalWS}		
+
+        #ifdef VFX_SHADERGRAPH
+            SurfaceData data;
+            BuiltInData data;
+            
+            ${SHADERGRAPH_PIXEL_CALL_GBUFFER}
+            
+            surfaceData.smoothness = OUTSG.${SHADERGRAPH_PARAM_SMOOTHNESS};
+            surfaceData.metallic = OUTSG.${SHADERGRAPH_PARAM_METALLIC};
+            builtinData.alpha = OUTSG.${SHADERGRAPH_PARAM_ALPHA};
+        
+            ENCODE_INTO_GBUFFER(surfaceData, builtinData, i.VFX_VARYING_POSCS, outGBuffer);
+        #else
 		VFXComputePixelOutputToGBuffer(i,normalWS,uvData,outGBuffer);
+        #endif
 	}
 	ENDHLSL
 }

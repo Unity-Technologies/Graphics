@@ -27,6 +27,13 @@ namespace UnityEditor.VFX
 
     class VFXShaderWriter
     {
+        public VFXShaderWriter()
+        {}
+
+        public VFXShaderWriter(string initialValue)
+        {
+            builder.Append(initialValue);
+        }
         public static string GetValueString(VFXValueType type, object value)
         {
             var format = "";

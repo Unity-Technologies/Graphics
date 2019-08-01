@@ -71,6 +71,9 @@ Pass
 #endif
 		
 	${VFXInclude("Shaders/ParticlePlanarPrimitives/Pass.template")}	
+#if VFX_SHADERGRAPH            
+    ${SHADERGRAPH_PIXEL_CODE_FORWARD}
+#endif
 		
 	#pragma fragment frag
 	ps_output frag(ps_input i)
@@ -78,9 +81,13 @@ Pass
 		UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i);
 		ps_output o = (ps_output)0;
 		VFXTransformPSInputs(i);
+#if VFX_SHADERGRAPH        
+    ${SHADERGRAPH_PIXEL_CALL_FORWARD}
+#else
 	
 		#define VFX_TEXTURE_COLOR VFXGetTextureColor(VFX_SAMPLER(mainTexture),i)
 		${VFXApplyColor}
+#endif
 
 		o.color = VFXApplyPreExposure(o.color, i);
 		o.color = VFXApplyFog(o.color,i);
