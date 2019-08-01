@@ -34,17 +34,26 @@ namespace UnityEditor.ShaderGraph
                 // Hardcode active keywords in preview to reduce compiled variants
                 if(mode == GenerationMode.Preview)
                 {
-                    builder.AppendLine(keyword.GetKeywordPreviewDeclarationString());
+                    string declaration = keyword.GetKeywordPreviewDeclarationString();
+                    if(!string.IsNullOrEmpty(declaration))
+                    {
+                        builder.AppendLine(declaration);
+                    }
                 }
                 else
                 {
-                    builder.AppendLine(keyword.GetKeywordDeclarationString());
+                    string declaration = keyword.GetKeywordDeclarationString();
+                    if(!string.IsNullOrEmpty(declaration))
+                    {
+                        builder.AppendLine(declaration);
+                    }
                 }
             }
 
             // Declare another keyword per permutation for simpler if/defs in the graph code
             builder.AppendNewLine();
             KeywordUtil.GetKeywordPermutationDeclarations(builder, permutations);
+            builder.AppendNewLine();
         }
 
         public void CalculateKeywordPermutations()

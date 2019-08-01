@@ -136,13 +136,13 @@ namespace UnityEditor.ShaderGraph
                 sb.AppendNewLine();
 
                 // Define the matching permutation keyword
-                sb.AppendIndentation();
+                sb.IncreaseIndent();
                 sb.AppendLine($"#define KEYWORD_PERMUTATION_{p}");
+                sb.DecreaseIndent();
             }
 
             // End statement
             sb.AppendLine("#endif");
-            sb.AppendNewLine();
         }
     }
 }
