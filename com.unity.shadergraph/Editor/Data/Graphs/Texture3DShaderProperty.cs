@@ -28,7 +28,6 @@ namespace UnityEditor.ShaderGraph
         public override IEnumerable<(string cbName, string line)> GetPropertyDeclarationStrings()
         {
             yield return (null, $"TEXTURE3D({referenceName})");
-            yield return (null, $"SAMPLER(sampler{referenceName})");
         }
 
         public override string GetPropertyAsArgumentString()

@@ -27,7 +27,6 @@ namespace UnityEditor.ShaderGraph
         public override System.Collections.Generic.IEnumerable<(string cbName, string line)> GetPropertyDeclarationStrings()
         {
             yield return (null, $"TEXTURECUBE({referenceName})");
-            yield return (null, $"SAMPLER(sampler{referenceName})");
         }
 
         public override string GetPropertyAsArgumentString()

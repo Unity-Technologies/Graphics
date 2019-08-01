@@ -11,7 +11,7 @@ namespace UnityEditor.ShaderGraph
         }
 
         public override PropertyType propertyType => PropertyType.SamplerState;
-        
+
         public override bool isExposable => false;
         public override bool isRenamable => false;
 
@@ -20,7 +20,7 @@ namespace UnityEditor.ShaderGraph
             get => base.value;
             set
             {
-                overrideReferenceName = $"{concreteShaderValueType.ToShaderString()}_{value.filter}_{value.wrap}";
+                overrideReferenceName = GetBuiltinSamplerName(value.filter, value.wrap);
                 base.value = value;
             }
         }
@@ -29,6 +29,9 @@ namespace UnityEditor.ShaderGraph
         {
             yield return (null, $"SAMPLER({referenceName})");
         }
+
+        public static string GetBuiltinSamplerName(TextureSamplerState.FilterMode filterMode, TextureSamplerState.WrapMode wrapMode)
+            => $"{PropertyType.SamplerState.ToConcreteShaderValueType().ToShaderString()}_{filterMode}_{wrapMode}";
 
         public override string GetPropertyAsArgumentString()
         {

@@ -18,7 +18,7 @@ namespace UnityEditor.ShaderGraph
         }
         
         public override PropertyType propertyType => PropertyType.Texture2D;
-        
+
         public override bool isExposable => true;
         public override bool isRenamable => true;
         
@@ -35,12 +35,10 @@ namespace UnityEditor.ShaderGraph
             {
                 for (int i = 0; i < 4; ++i)
                     yield return (null, $"TEXTURE2D({referenceName}{i})");
-                yield return (null, $"SAMPLER(sampler{referenceName}0)"); // only declare the sampler once for the first texture.
             }
             else
             {
                 yield return (null, $"TEXTURE2D({referenceName})");
-                yield return (null, $"SAMPLER(sampler{referenceName})");
             }
         }
 
