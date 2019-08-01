@@ -374,14 +374,17 @@ namespace UnityEngine.Rendering.Universal
                 {
                     context.StartMultiEye(cameraData.camera);
                     XRUtils.DrawOcclusionMesh(cmd, cameraData.camera);
+                    context.ExecuteCommandBuffer(cmd);
                 }
             }
 
             // Only setup render target if current render pass attachments are different from the active ones
             else if (passColorAttachment != m_ActiveColorAttachment || passDepthAttachment != m_ActiveDepthAttachment)
+            {
                 SetRenderTarget(cmd, passColorAttachment, passDepthAttachment, renderPass.clearFlag, renderPass.clearColor);
+                context.ExecuteCommandBuffer(cmd);
+            }
 
-            context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
 
             renderPass.Execute(context, ref renderingData);
