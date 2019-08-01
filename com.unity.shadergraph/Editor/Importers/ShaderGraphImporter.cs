@@ -101,7 +101,7 @@ Shader ""Hidden/GraphErrorShader2""
             if (masterNode is VfxMasterNode vfxMasterNode)
             {
                 var vfxAsset = GenerateVfxShaderGraphAsset(vfxMasterNode);
-                Debug.Log(vfxAsset.GetCode(new []{ vfxAsset.positionOutput, vfxAsset.baseColorOutput, vfxAsset.metallicOutput, vfxAsset.smoothnessOutput, vfxAsset.alphaOutput }).code);
+                //Debug.Log(vfxAsset.GetCode(new []{ vfxAsset.positionOutput, vfxAsset.baseColorOutput, vfxAsset.metallicOutput, vfxAsset.smoothnessOutput, vfxAsset.alphaOutput }).code);
                 mainObject = vfxAsset;
             }
             else
@@ -251,7 +251,7 @@ Shader ""Hidden/GraphErrorShader2""
             }
 
             sharedCodeIndices.Add(codeSnippets.Count);
-            codeSnippets.Add($"#include \"Packages/com.unity.shadergraph/ShaderGraphLibrary/Functions.hlsl\";{nl}");
+            codeSnippets.Add($"#include \"Packages/com.unity.shadergraph/ShaderGraphLibrary/Functions.hlsl\"{nl}");
 
             for (var registryIndex = 0; registryIndex < registry.names.Count; registryIndex++)
             {
