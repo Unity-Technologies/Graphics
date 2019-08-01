@@ -649,7 +649,7 @@ namespace UnityEditor.Rendering.HighDefinition
             HDRPShaderStructs.AddRequiredFields(pass.RequiredFields, activeFields);
 
             // Get property declarations
-            sharedProperties.GetPropertiesDeclaration(shaderPropertyUniforms, mode, masterNode.owner.concretePrecision);
+            sharedProperties.GetPropertiesDeclaration(shaderPropertyUniforms, mode, masterNode.owner.concretePrecision, 4);
 
             // propagate active field requirements using dependencies
             ShaderSpliceUtil.ApplyDependencies(

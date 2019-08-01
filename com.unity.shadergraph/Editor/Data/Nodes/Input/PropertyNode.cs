@@ -155,13 +155,15 @@ namespace UnityEditor.ShaderGraph
             if (property == null)
                 throw new NullReferenceException();
 
-            if (property is ISplattableShaderProperty splatProperty)
-                return $"{property.referenceName}{(splatProperty.splat ? "0" : string.Empty)}";
+            if (property is ISplattableShaderProperty splatProperty && splatProperty.splat)
+                return $"{property.referenceName}0";
 
-            if (!(property is TextureShaderProperty) &&
-                !(property is Texture2DArrayShaderProperty) &&
-                !(property is Texture3DShaderProperty) &&
-                !(property is CubemapShaderProperty))
+            if (property is BooleanShaderProperty
+                || property is Matrix2ShaderProperty
+                || property is Matrix3ShaderProperty
+                || property is Matrix4ShaderProperty
+                || property is SamplerStateShaderProperty
+                || property is GradientShaderProperty)
                 return base.GetVariableNameForSlot(slotId);
 
             return property.referenceName;

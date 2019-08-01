@@ -25,11 +25,6 @@ namespace UnityEditor.ShaderGraph
             return $"{hideTagString}{modifiableTagString}[NoScaleOffset]{referenceName}(\"{displayName}\", 2DArray) = \"white\" {{}}";
         }
 
-        public override IEnumerable<(string cbName, string line)> GetPropertyDeclarationStrings()
-        {
-            yield return (null, $"TEXTURE2D_ARRAY({referenceName})");
-        }
-
         public override string GetPropertyAsArgumentString()
         {
             return $"TEXTURE2D_ARRAY_PARAM({referenceName}, sampler{referenceName})";

@@ -1079,7 +1079,7 @@ namespace UnityEditor.ShaderGraph
             // -------------------------------------
             // Property uniforms
 
-            shaderProperties.GetPropertiesDeclaration(shaderPropertyUniforms, mode, graph.concretePrecision);
+            shaderProperties.GetPropertiesDeclaration(shaderPropertyUniforms, mode, graph.concretePrecision, 4);
 
             // -------------------------------------
             // Generate Input structure for Vertex shader

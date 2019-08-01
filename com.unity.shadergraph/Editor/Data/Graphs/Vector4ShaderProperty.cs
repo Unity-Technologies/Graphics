@@ -1,6 +1,4 @@
 using System;
-using UnityEditor.Graphing;
-using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -39,7 +37,8 @@ namespace UnityEditor.ShaderGraph
             {
                 displayName = displayName,
                 hidden = hidden,
-                value = value
+                value = value,
+                splat = splat
             };
         }
     }

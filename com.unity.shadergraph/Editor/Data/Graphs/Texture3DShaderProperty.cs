@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
@@ -23,11 +22,6 @@ namespace UnityEditor.ShaderGraph
         public override string GetPropertyBlockString()
         {
             return $"{hideTagString}{modifiableTagString}[NoScaleOffset]{referenceName}(\"{displayName}\", 3D) = \"white\" {{}}";
-        }
-
-        public override IEnumerable<(string cbName, string line)> GetPropertyDeclarationStrings()
-        {
-            yield return (null, $"TEXTURE3D({referenceName})");
         }
 
         public override string GetPropertyAsArgumentString()

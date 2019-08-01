@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using UnityEditor.Graphing;
 using UnityEngine;
 
@@ -23,19 +22,6 @@ namespace UnityEditor.ShaderGraph
         public override string GetPropertyBlockString()
         {
             return $"{hideTagString}{this.PerSplatString()}{referenceName}(\"{displayName}\", Vector) = ({NodeUtils.FloatToShaderValue(value.x)}, {NodeUtils.FloatToShaderValue(value.y)}, {NodeUtils.FloatToShaderValue(value.z)}, {NodeUtils.FloatToShaderValue(value.w)})";
-        }
-
-        public override IEnumerable<(string cbName, string line)> GetPropertyDeclarationStrings()
-        {
-            if (splat)
-            {
-                for (int i = 0; i < 4; ++i)
-                    yield return ("UnitySplatMaterials", $"{concreteShaderValueType.ToShaderString(concretePrecision)} {referenceName}{i}");
-            }
-            else
-            {
-                yield return (s_UnityPerMaterialCbName, $"{concreteShaderValueType.ToShaderString(concretePrecision)} {referenceName}");
-            }
         }
     }
 }

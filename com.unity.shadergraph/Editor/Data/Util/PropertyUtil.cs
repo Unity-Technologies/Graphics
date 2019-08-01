@@ -1,10 +1,64 @@
-﻿using System;
-using UnityEngine;
+using System;
 
 namespace UnityEditor.ShaderGraph
 {
     static class PropertyUtil
     {
+        public static bool IsBatchable(this PropertyType propertyType)
+        {
+            switch (propertyType)
+            {
+                case PropertyType.Color:
+                case PropertyType.Boolean:
+                case PropertyType.Vector1:
+                case PropertyType.Vector2:
+                case PropertyType.Vector3:
+                case PropertyType.Vector4:
+                    return true;
+
+                default:
+                    return false;
+            }
+        }
+
+        public static string FormatDeclarationString(this PropertyType propertyType, ConcretePrecision precision, string referenceName)
+        {
+            switch (propertyType)
+            {
+                default:
+                case PropertyType.Color:
+                case PropertyType.Boolean:
+                case PropertyType.Vector1:
+                case PropertyType.Vector2:
+                case PropertyType.Vector3:
+                case PropertyType.Vector4:
+                    return $"{propertyType.ToConcreteShaderValueType().ToShaderString(precision)} {referenceName}";
+
+                case PropertyType.Texture2D:
+                    return $"TEXTURE2D({referenceName})";
+
+                case PropertyType.Texture2DArray:
+                    return $"TEXTURE2D_ARRAY({referenceName})";
+
+                case PropertyType.Texture3D:
+                    return $"TEXTURE3D({referenceName})";
+
+                case PropertyType.Cubemap:
+                    return $"TEXTURECUBE({referenceName})";
+
+                case PropertyType.Gradient:
+                    return $"Gradient {referenceName}"; // GetGradientDeclarationString() is used instead.
+
+                case PropertyType.Matrix2:
+                case PropertyType.Matrix3:
+                case PropertyType.Matrix4:
+                    return $"{precision.ToShaderString()}4x4 {referenceName}";
+
+                case PropertyType.SamplerState:
+                    return $"SAMPLER({referenceName})";
+            }
+        }
+
         public static ConcreteSlotValueType ToConcreteShaderValueType(this PropertyType propertyType)
         {
             switch (propertyType)

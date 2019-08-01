@@ -9,10 +9,5 @@ namespace UnityEditor.ShaderGraph
     {
         public override bool isExposable => false;
         public override bool isRenamable => true;
-
-        public override IEnumerable<(string cbName, string line)> GetPropertyDeclarationStrings()
-        {
-            yield return (s_UnityPerMaterialCbName, $"{concretePrecision.ToShaderString()}4x4 {referenceName}");
-        }
     }
 }

@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 namespace UnityEditor.ShaderGraph
 {
     class SamplerStateShaderProperty : AbstractShaderProperty<TextureSamplerState>
@@ -23,11 +21,6 @@ namespace UnityEditor.ShaderGraph
                 overrideReferenceName = GetBuiltinSamplerName(value.filter, value.wrap);
                 base.value = value;
             }
-        }
-
-        public override IEnumerable<(string cbName, string line)> GetPropertyDeclarationStrings()
-        {
-            yield return (null, $"SAMPLER({referenceName})");
         }
 
         public static string GetBuiltinSamplerName(TextureSamplerState.FilterMode filterMode, TextureSamplerState.WrapMode wrapMode)

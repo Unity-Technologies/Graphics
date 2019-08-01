@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
@@ -18,7 +17,7 @@ namespace UnityEditor.ShaderGraph
         public override bool isExposable => false;
         public override bool isRenamable => true;
 
-        public override IEnumerable<(string cbName, string line)> GetPropertyDeclarationStrings()
+        public string GetGradientDeclarationString()
         {
             ShaderStringBuilder s = new ShaderStringBuilder();
             s.AppendLine("Gradient {0}_Definition()", referenceName);
@@ -62,7 +61,7 @@ namespace UnityEditor.ShaderGraph
                 s.AppendLine("return g;", true);
             }
             s.AppendLine("#define {0} {0}_Definition()", referenceName);
-            yield return (null, s.ToString());
+            return s.ToString();
         }
 
         public override string GetPropertyAsArgumentString()

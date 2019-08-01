@@ -1,6 +1,4 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
@@ -42,19 +40,10 @@ namespace UnityEditor.ShaderGraph
         public string hideTagString => hidden ? "[HideInInspector]" : "";
 
         public virtual string GetPropertyBlockString()
-        {
-            return string.Empty;
-        }
-
-        internal protected static readonly string s_UnityPerMaterialCbName = "UnityPerMaterial";
-
-        public virtual IEnumerable<(string cbName, string line)> GetPropertyDeclarationStrings()
-        {
-            yield return (s_UnityPerMaterialCbName, $"{concreteShaderValueType.ToShaderString(concretePrecision.ToShaderString())} {referenceName}");
-        }
+            => string.Empty;
 
         public virtual string GetPropertyAsArgumentString()
-            => GetPropertyDeclarationStrings().Select(v => v.line).Aggregate((result, current) => $"{result}, {current}");
+            => propertyType.FormatDeclarationString(concretePrecision, referenceName);
         
         public abstract AbstractMaterialNode ToConcreteNode();
         public abstract PreviewProperty GetPreviewMaterialProperty();

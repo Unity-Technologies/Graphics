@@ -1,7 +1,4 @@
 using System;
-using System.Collections.Generic;
-using System.Text;
-using UnityEditor.Graphing;
 using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
@@ -29,21 +26,9 @@ namespace UnityEditor.ShaderGraph
             return $"{hideTagString}{modifiableTagString}{this.PerSplatString()}[NoScaleOffset]{referenceName}(\"{displayName}\", 2D) = \"{defaultType.ToString().ToLower()}\" {{}}";
         }
 
-        public override IEnumerable<(string cbName, string line)> GetPropertyDeclarationStrings()
-        {
-            if (splat)
-            {
-                for (int i = 0; i < 4; ++i)
-                    yield return (null, $"TEXTURE2D({referenceName}{i})");
-            }
-            else
-            {
-                yield return (null, $"TEXTURE2D({referenceName})");
-            }
-        }
-
         public override string GetPropertyAsArgumentString()
         {
+            // TODO
             return $"TEXTURE2D_PARAM({referenceName}, sampler{referenceName})";
         }
         
@@ -94,7 +79,8 @@ namespace UnityEditor.ShaderGraph
             {
                 displayName = displayName,
                 hidden = hidden,
-                value = value
+                value = value,
+                splat = splat
             };
         }
     }

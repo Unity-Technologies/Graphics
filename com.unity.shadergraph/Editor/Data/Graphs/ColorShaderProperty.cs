@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using UnityEditor.Graphing;
 using UnityEngine;
 
@@ -45,20 +44,6 @@ namespace UnityEditor.ShaderGraph
             set => m_Splat = value;
         }
 
-        public override IEnumerable<(string cbName, string line)> GetPropertyDeclarationStrings()
-        {
-            if (splat)
-            {
-                for (int i = 0; i < 4; ++i)
-                    yield return ("UnitySplatMaterials", $"{concreteShaderValueType.ToShaderString(concretePrecision.ToShaderString())} {referenceName}{i}");
-            }
-            else
-            {
-                foreach (var str in base.GetPropertyDeclarationStrings())
-                    yield return str;
-            }
-        }
-
         public override AbstractMaterialNode ToConcreteNode()
         {
             return new ColorNode { color = new ColorNode.Color(value, colorMode) };
@@ -80,7 +65,8 @@ namespace UnityEditor.ShaderGraph
                 displayName = displayName,
                 hidden = hidden,
                 value = value,
-                colorMode = colorMode
+                colorMode = colorMode,
+                splat = splat
             };
         }
     }

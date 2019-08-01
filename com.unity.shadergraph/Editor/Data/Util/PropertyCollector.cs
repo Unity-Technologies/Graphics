@@ -21,7 +21,10 @@ namespace UnityEditor.ShaderGraph
             properties.Add(chunk);
         }
 
-        public void GetPropertiesDeclaration(ShaderStringBuilder builder, GenerationMode mode, ConcretePrecision inheritedPrecision)
+        private const string s_UnityPerMaterialCbName = "UnityPerMaterial";
+        private const string s_UnitySplatMaterialCbName = "UnitySplatProperties";
+
+        public void GetPropertiesDeclaration(ShaderStringBuilder builder, GenerationMode mode, ConcretePrecision inheritedPrecision, int splatCount)
         {
             foreach (var prop in properties)
             {
@@ -31,31 +34,42 @@ namespace UnityEditor.ShaderGraph
             var cbDecls = new Dictionary<string, ShaderStringBuilder>();
             foreach (var prop in properties)
             {
-                foreach (var (cbName, line) in prop.GetPropertyDeclarationStrings())
+                var cbName = prop.propertyType.IsBatchable() ? s_UnityPerMaterialCbName : string.Empty;
+
+                //
+                // Old behaviours that I don't know why we do them:
+
+                // If the property is not exposed, put it to Global
+                if (cbName == s_UnityPerMaterialCbName && !prop.generatePropertyBlock)
+                    cbName = string.Empty;
+                // If we are in preview, put all CB variables to UnityPerMaterial CB
+                if (cbName != string.Empty && mode == GenerationMode.Preview)
+                    cbName = s_UnityPerMaterialCbName;
+
+                var splatProperty = prop as ISplattableShaderProperty;
+                if (cbName == s_UnityPerMaterialCbName && splatProperty != null && splatProperty.splat)
+                    cbName = s_UnitySplatMaterialCbName;
+
+                if (!cbDecls.TryGetValue(cbName, out var sb))
                 {
-                    var key = string.IsNullOrWhiteSpace(cbName) ? string.Empty : cbName;
+                    sb = new ShaderStringBuilder();
+                    cbDecls.Add(cbName, sb);
+                }
 
-                    //
-                    // Old behaviours that I don't know why we do them:
-
-                    // If the property is not exposed, put it to Global
-                    if (key == AbstractShaderProperty.s_UnityPerMaterialCbName && !prop.generatePropertyBlock)
-                        key = string.Empty;
-                    // If we are in preview, put all CB variables to UnityPerMaterial CB
-                    if (key != string.Empty && mode == GenerationMode.Preview)
-                        key = AbstractShaderProperty.s_UnityPerMaterialCbName;
-
-                    if (!cbDecls.TryGetValue(key, out var sb))
+                if (prop is GradientShaderProperty gradientProperty)
+                {
+                    sb.AppendLine(gradientProperty.GetGradientDeclarationString());
+                }
+                else
+                {
+                    var referenceName = prop.referenceName;
+                    if (splatProperty != null && splatProperty.splat)
                     {
-                        sb = new ShaderStringBuilder();
-                        cbDecls.Add(key, sb);
+                        for (int i = 0; i < splatCount; ++i)
+                            sb.AppendLine($"{prop.propertyType.FormatDeclarationString(prop.concretePrecision, $"{referenceName}{i}")};");
                     }
-
-                    if (line.Contains(System.Environment.NewLine))
-                        // Don't append ; if cbName is empty and there are multiple lines - a hack for GradientShaderProperty to put some definitions in the global scope.
-                        sb.AppendLines($"{line}{(string.IsNullOrWhiteSpace(cbName) ? "" : ";")}");
                     else
-                        sb.AppendLine($"{line};");
+                        sb.AppendLine($"{prop.propertyType.FormatDeclarationString(prop.concretePrecision, referenceName)};");
                 }
             }
 

@@ -24,11 +24,6 @@ namespace UnityEditor.ShaderGraph
             return $"{hideTagString}{modifiableTagString}[NoScaleOffset]{referenceName}(\"{displayName}\", CUBE) = \"\" {{}}";
         }
 
-        public override System.Collections.Generic.IEnumerable<(string cbName, string line)> GetPropertyDeclarationStrings()
-        {
-            yield return (null, $"TEXTURECUBE({referenceName})");
-        }
-
         public override string GetPropertyAsArgumentString()
         {
             return $"TEXTURECUBE_PARAM({referenceName}, sampler{referenceName})";

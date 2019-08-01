@@ -19,7 +19,7 @@ namespace UnityEditor.ShaderGraph
         }
         
         public override PropertyType propertyType => PropertyType.Vector1;
-        
+
         public override bool isExposable => true;
         public override bool isRenamable => true;
         
@@ -57,19 +57,6 @@ namespace UnityEditor.ShaderGraph
                     return $"{hideTagString}{this.PerSplatString()}{enumTagString}{referenceName}(\"{displayName}\", Float) = {NodeUtils.FloatToShaderValue(value)}";
                 default:
                     return $"{hideTagString}{this.PerSplatString()}{referenceName}(\"{displayName}\", Float) = {NodeUtils.FloatToShaderValue(value)}";
-            }
-        }
-
-        public override IEnumerable<(string cbName, string line)> GetPropertyDeclarationStrings()
-        {
-            if (splat)
-            {
-                for (int i = 0; i < 4; ++i)
-                    yield return ("UnitySplatMaterials", $"{concreteShaderValueType.ToShaderString(concretePrecision)} {referenceName}{i}");
-            }
-            else
-            {
-                yield return (s_UnityPerMaterialCbName, $"{concreteShaderValueType.ToShaderString(concretePrecision)} {referenceName}");
             }
         }
 
