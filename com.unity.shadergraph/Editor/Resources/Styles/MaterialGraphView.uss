@@ -1,3 +1,8 @@
 MaterialGraphView {
     background-color: #202020;
 }
+
+.subgraph{
+    border-color: #F0F0F0;
+    border-top-width: 4px;
+}
