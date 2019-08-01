@@ -6,7 +6,7 @@ using UnityEngine;
 namespace UnityEditor.ShaderGraph
 {
     [Title("Terrain", "Splat")]
-    partial class SplatNode : AbstractMaterialNode, IHasSettings, IGeneratesBodyCode, IGeneratesFunction,
+    partial class SplatNode : AbstractMaterialNode, ISplatCountListener, IHasSettings, IGeneratesBodyCode, IGeneratesFunction,
         IMayRequirePosition, IMayRequireNormal, IMayRequireTangent, IMayRequireBitangent, IMayRequireVertexColor, IMayRequireMeshUV,
         IMayRequireViewDirection, IMayRequireScreenPosition, IMayRequireFaceSign,
         IMayRequireDepthTexture, IMayRequireCameraOpaqueTexture, IMayRequireTime
@@ -19,10 +19,12 @@ namespace UnityEditor.ShaderGraph
 
         public override bool hasPreview => true;
 
-        public const int kBlendWeightInputSlotId = 0;
+        public const int kBlendWeight0InputSlotId = 0;
+        public const int kBlendWeight1InputSlotId = 1;
+        public const int kSplatInputSlotIdStart = 4;
 
         private IEnumerable<MaterialSlot> EnumerateSplatInputSlots()
-            => this.GetInputSlots<MaterialSlot>().Where(slot => slot.id != kBlendWeightInputSlotId);
+            => this.GetInputSlots<MaterialSlot>().Where(slot => slot.id >= kSplatInputSlotIdStart);
 
         private IEnumerable<MaterialSlot> EnumerateSplatOutputSlots()
             => this.GetOutputSlots<MaterialSlot>();
@@ -30,9 +32,14 @@ namespace UnityEditor.ShaderGraph
         [SerializeField]
         private List<string> m_SplatSlotNames = new List<string>();
 
+        [SerializeField]
+        private int m_SplatCount = 4;
+
         public override IEnumerable<ISlot> GetInputSlotsForGraphGeneration()
         {
-            yield return FindInputSlot<ISlot>(kBlendWeightInputSlotId);
+            yield return FindInputSlot<ISlot>(kBlendWeight0InputSlotId);
+            if (m_SplatCount > 4)
+                yield return FindInputSlot<ISlot>(kBlendWeight1InputSlotId);
             // When generating shader grpah code, don't traverse further along the splat input slots.
             yield break;
         }
@@ -40,8 +47,37 @@ namespace UnityEditor.ShaderGraph
         public override void UpdateNodeAfterDeserialization()
         {
             CreateSplatSlots(null, null);
-            AddSlot(new Vector4MaterialSlot(kBlendWeightInputSlotId, "Blend Weights", "BlendWeights", SlotType.Input, Vector4.zero, ShaderStageCapability.Fragment));
-            RemoveSlotsNameNotMatching(Enumerable.Range(0, m_SplatSlotNames.Count * 2 + 1));
+            var blendWeight0Name = m_SplatCount > 4 ? "Blend Weights 0" : "Blend Weights";
+            AddSlot(new Vector4MaterialSlot(kBlendWeight0InputSlotId, blendWeight0Name, "BlendWeights0", SlotType.Input, Vector4.zero, ShaderStageCapability.Fragment));
+            if (m_SplatCount > 4)
+                AddSlot(new Vector4MaterialSlot(kBlendWeight1InputSlotId, "Blend Weights 1", "BlendWeights1", SlotType.Input, Vector4.zero, ShaderStageCapability.Fragment));
+            RemoveSlotsNameNotMatching(Enumerable.Range(0, m_SplatSlotNames.Count * 2 + kSplatInputSlotIdStart));
+        }
+
+        public void OnSplatCountChange(int splatCount)
+        {
+            if (splatCount != m_SplatCount)
+            {
+                m_SplatCount = splatCount;
+                if (m_SplatCount <= 4 && FindInputSlot<ISlot>(kBlendWeight1InputSlotId) != null)
+                {
+                    RemoveSlot(kBlendWeight1InputSlotId);
+
+                    var blendWeight0Edges = owner.GetEdges(new SlotReference(guid, kBlendWeight0InputSlotId));
+                    AddSlot(new Vector4MaterialSlot(kBlendWeight0InputSlotId, "Blend Weights", "BlendWeights0", SlotType.Input, Vector4.zero, ShaderStageCapability.Fragment));
+                    foreach (var edge in blendWeight0Edges)
+                        owner.Connect(edge.outputSlot, edge.inputSlot);
+                }
+                else if (m_SplatCount > 4 && FindInputSlot<ISlot>(kBlendWeight1InputSlotId) == null)
+                {
+                    var blendWeight0Edges = owner.GetEdges(new SlotReference(guid, kBlendWeight0InputSlotId));
+                    AddSlot(new Vector4MaterialSlot(kBlendWeight0InputSlotId, "Blend Weights 0", "BlendWeights0", SlotType.Input, Vector4.zero, ShaderStageCapability.Fragment));
+                    foreach (var edge in blendWeight0Edges)
+                        owner.Connect(edge.outputSlot, edge.inputSlot);
+
+                    AddSlot(new Vector4MaterialSlot(kBlendWeight1InputSlotId, "Blend Weights 1", "BlendWeights1", SlotType.Input, Vector4.zero, ShaderStageCapability.Fragment));
+                }
+            }
         }
 
         public override void ValidateNode()
@@ -71,7 +107,7 @@ namespace UnityEditor.ShaderGraph
                     continue;
                 }
 
-                if (inputSlot.id != kBlendWeightInputSlotId && inputSlot is DynamicVectorMaterialSlot dynamicVector)
+                if (inputSlot.id >= kSplatInputSlotIdStart && inputSlot is DynamicVectorMaterialSlot dynamicVector)
                     dynamicVector.SetConcreteType(outputSlot.concreteValueType);
             }
 
@@ -84,7 +120,11 @@ namespace UnityEditor.ShaderGraph
                 }
 
                 if (outputSlot is DynamicVectorMaterialSlot dynamicVector)
-                    dynamicVector.SetConcreteType(FindInputSlot<DynamicVectorMaterialSlot>(dynamicVector.id - 1).concreteValueType);
+                {
+                    var inputSlot = FindInputSlot<DynamicVectorMaterialSlot>(dynamicVector.id - 1);
+                    if (inputSlot != null) // Could be null during the slot removing process
+                        dynamicVector.SetConcreteType(inputSlot.concreteValueType);
+                }
             }
 
             var errorMessage = k_validationErrorMessage;
@@ -180,8 +220,14 @@ namespace UnityEditor.ShaderGraph
                 }
             }
 
-            for (int i = 0; i < 4; ++i)
+            for (int i = 0; i < m_SplatCount; ++i)
             {
+                if (i == 4)
+                {
+                    sb.AppendLine($"#ifdef {GraphData.kSplatCount8Keyword}");
+                    sb.IncreaseIndent();
+                }
+
                 foreach (var slot in EnumerateSplatOutputSlots())
                     sb.AppendLine($"{slot.concreteValueType.ToShaderString()} {GetVariableNameForSlot(slot.id)}_splat{i};");
 
@@ -198,11 +244,27 @@ namespace UnityEditor.ShaderGraph
                     sb.Append($", {GetVariableNameForSlot(slot.id)}_splat{i}");
                 sb.Append(");");
                 sb.AppendNewLine();
+
+                if (i == 7)
+                {
+                    sb.DecreaseIndent();
+                    sb.AppendLine("#endif");
+                }
             }
 
-            var blendWeights = GetSlotValue(kBlendWeightInputSlotId, generationMode);
+            var blendWeights0 = GetSlotValue(kBlendWeight0InputSlotId, generationMode);
             foreach (var slot in EnumerateSplatOutputSlots())
-                sb.AppendLine(string.Format("{0} {1} = {1}_splat0 * ({2}).x + {1}_splat1 * ({2}).y + {1}_splat2 * ({2}).z + {1}_splat3 * ({2}).w;", slot.concreteValueType.ToShaderString(), GetVariableNameForSlot(slot.id), blendWeights));
+                sb.AppendLine(string.Format("{0} {1} = {1}_splat0 * ({2}).x + {1}_splat1 * ({2}).y + {1}_splat2 * ({2}).z + {1}_splat3 * ({2}).w;", slot.concreteValueType.ToShaderString(), GetVariableNameForSlot(slot.id), blendWeights0));
+            if (m_SplatCount > 4)
+            {
+                sb.AppendLine($"#ifdef {GraphData.kSplatCount8Keyword}");
+                sb.IncreaseIndent();
+                var blendWeights1 = GetSlotValue(kBlendWeight1InputSlotId, generationMode);
+                foreach (var slot in EnumerateSplatOutputSlots())
+                    sb.AppendLine(string.Format("{0} += {0}_splat4 * ({1}).x + {0}_splat5 * ({1}).y + {0}_splat6 * ({1}).z + {0}_splat7 * ({1}).w;", GetVariableNameForSlot(slot.id), blendWeights1));
+                sb.DecreaseIndent();
+                sb.AppendLine("#endif");
+            }
         }
 
         public void GenerateNodeFunction(FunctionRegistry registry, GraphContext graphContext, GenerationMode generationMode)
@@ -226,7 +288,7 @@ namespace UnityEditor.ShaderGraph
             foreach (var (slot, splatProp) in splatGraph.SplatFunctionInputs)
                 splatFunction.Append($", {slot.concreteValueType.ToShaderString(concretePrecision)} {slot.owner.GetVariableNameForSlot(slot.id)}");
             foreach (var slot in EnumerateSplatInputSlots())
-                splatFunction.Append($", out {slot.concreteValueType.ToShaderString(concretePrecision)} outSplat{slot.id}");
+                splatFunction.Append($", out {slot.concreteValueType.ToShaderString(concretePrecision)} outSplat{(slot.id - kSplatInputSlotIdStart) / 2}");
             splatFunction.AppendLine(")");
             using (splatFunction.BlockScope())
             {
@@ -240,7 +302,7 @@ namespace UnityEditor.ShaderGraph
                     }
                 }
                 foreach (var slot in EnumerateSplatInputSlots())
-                    splatFunction.AppendLine($"outSplat{slot.id} = {GetSlotValue(slot.id, generationMode)};");
+                    splatFunction.AppendLine($"outSplat{(slot.id - kSplatInputSlotIdStart) / 2} = {GetSlotValue(slot.id, generationMode)};");
             }
             registry.ProvideFunction("SplatFunction", s => s.Concat(splatFunction));
         }

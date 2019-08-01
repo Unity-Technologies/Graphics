@@ -160,6 +160,22 @@ namespace UnityEditor.ShaderGraph.Drawing
                         }
                     }
 
+                    if (graph.properties.Any(prop => prop is ISplattableShaderProperty))
+                    {
+                        EditorGUI.BeginChangeCheck();
+                        GUILayout.Label("Splat Count");
+                        var splatCountOptions = new[] { 4, 8 };
+                        if (!splatCountOptions.Contains(graph.splatCount))
+                            graph.splatCount = splatCountOptions[0];
+                        graph.splatCount = EditorGUILayout.IntPopup(graph.splatCount, splatCountOptions.Select(c => EditorGUIUtility.TrTextContent(c.ToString())).ToArray(), splatCountOptions, GUILayout.Width(50f));
+                        GUILayout.Space(4);
+                        if (EditorGUI.EndChangeCheck())
+                        {
+                            foreach (var node in graph.GetNodes<ISplatCountListener>())
+                                node.OnSplatCountChange(graph.splatCount);
+                        }
+                    }
+
                     GUILayout.FlexibleSpace();
 
                     EditorGUI.BeginChangeCheck();

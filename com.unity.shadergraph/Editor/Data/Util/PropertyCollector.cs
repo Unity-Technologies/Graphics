@@ -66,7 +66,19 @@ namespace UnityEditor.ShaderGraph
                     if (splatProperty != null && splatProperty.splat)
                     {
                         for (int i = 0; i < splatCount; ++i)
+                        {
+                            if (i == 4)
+                            {
+                                sb.AppendLine($"#ifdef {GraphData.kSplatCount8Keyword}");
+                                sb.IncreaseIndent();
+                            }
                             sb.AppendLine($"{prop.propertyType.FormatDeclarationString(prop.concretePrecision, $"{referenceName}{i}")};");
+                            if (i == 7)
+                            {
+                                sb.DecreaseIndent();
+                                sb.AppendLine("#endif");
+                            }
+                        }
                     }
                     else
                         sb.AppendLine($"{prop.propertyType.FormatDeclarationString(prop.concretePrecision, referenceName)};");

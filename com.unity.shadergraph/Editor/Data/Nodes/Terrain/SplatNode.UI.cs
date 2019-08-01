@@ -14,8 +14,8 @@ namespace UnityEditor.ShaderGraph
 
         private (MaterialSlot inputSlot, MaterialSlot outputSlot) CreateInputOutputSlot(int splatSlotIndex)
         {
-            var inputSlot = new DynamicVectorMaterialSlot(splatSlotIndex * 2 + 1, m_SplatSlotNames[splatSlotIndex], $"Input{splatSlotIndex}", SlotType.Input, Vector4.zero, ShaderStageCapability.Fragment);
-            var outputSlot = new DynamicVectorMaterialSlot(splatSlotIndex * 2 + 2, m_SplatSlotNames[splatSlotIndex], $"Output{splatSlotIndex}", SlotType.Output, Vector4.zero, ShaderStageCapability.Fragment);
+            var inputSlot = new DynamicVectorMaterialSlot(splatSlotIndex * 2 + kSplatInputSlotIdStart, m_SplatSlotNames[splatSlotIndex], $"Input{splatSlotIndex}", SlotType.Input, Vector4.zero, ShaderStageCapability.Fragment);
+            var outputSlot = new DynamicVectorMaterialSlot(splatSlotIndex * 2 + kSplatInputSlotIdStart + 1, m_SplatSlotNames[splatSlotIndex], $"Output{splatSlotIndex}", SlotType.Output, Vector4.zero, ShaderStageCapability.Fragment);
             return (inputSlot, outputSlot);
         }
 
@@ -38,25 +38,33 @@ namespace UnityEditor.ShaderGraph
             var edges = new List<(IEnumerable<IEdge> inputEdges, IEnumerable<IEdge> outputEdges)>();
             for (int i = 0; i < m_SplatSlotNames.Count; ++i)
             {
-                var inputSlot = new SlotReference(guid, i * 2 + 1);
-                var outputSlot = new SlotReference(guid, i * 2 + 2);
+                var inputSlot = new SlotReference(guid, i * 2 + kSplatInputSlotIdStart);
+                var outputSlot = new SlotReference(guid, i * 2 + kSplatInputSlotIdStart + 1);
                 edges.Add((owner.GetEdges(inputSlot), owner.GetEdges(outputSlot)));
             }
             return edges;
         }
 
-        private void MoveBlendWeightSlotToLast()
+        private void MoveBlendWeightSlotsToLast()
         {
-            var blendWeightEdges = owner.GetEdges(new SlotReference(guid, kBlendWeightInputSlotId));
-            AddSlot(FindInputSlot<ISlot>(kBlendWeightInputSlotId));
-            foreach (var edge in blendWeightEdges)
+            var blendWeight0Edges = owner.GetEdges(new SlotReference(guid, kBlendWeight0InputSlotId));
+            AddSlot(FindInputSlot<ISlot>(kBlendWeight0InputSlotId));
+            foreach (var edge in blendWeight0Edges)
                 owner.Connect(edge.outputSlot, edge.inputSlot);
+
+            if (owner.splatCount > 4)
+            {
+                var blendWeight1Edges = owner.GetEdges(new SlotReference(guid, kBlendWeight1InputSlotId));
+                AddSlot(FindInputSlot<ISlot>(kBlendWeight1InputSlotId));
+                foreach (var edge in blendWeight1Edges)
+                    owner.Connect(edge.outputSlot, edge.inputSlot);
+            }
         }
 
         private void RecreateSplatSlots(IReadOnlyList<MaterialSlot> oldInputSlots, IReadOnlyList<MaterialSlot> oldOutputSlots,
             IReadOnlyList<(IEnumerable<IEdge> inputEdges, IEnumerable<IEdge> outputEdges)> oldEdges, IReadOnlyList<int> newIndexToOldMapping)
         {
-            RemoveSlotsNameNotMatching(new[] { kBlendWeightInputSlotId }, true);
+            RemoveSlotsNameNotMatching(new[] { kBlendWeight0InputSlotId, kBlendWeight1InputSlotId }, true);
             CreateSplatSlots(oldInputSlots, oldOutputSlots);
 
             for (int i = 0; i < m_SplatSlotNames.Count; ++i)
@@ -64,17 +72,17 @@ namespace UnityEditor.ShaderGraph
                 var oi = newIndexToOldMapping[i];
                 foreach (var edge in oldEdges[oi].inputEdges)
                 {
-                    var inputSlotRef = new SlotReference(guid, i * 2 + 1);
+                    var inputSlotRef = new SlotReference(guid, i * 2 + kSplatInputSlotIdStart);
                     owner.Connect(edge.outputSlot, inputSlotRef);
                 }
                 foreach (var edge in oldEdges[oi].outputEdges)
                 {
-                    var outputSlotRef = new SlotReference(guid, i * 2 + 2);
+                    var outputSlotRef = new SlotReference(guid, i * 2 + kSplatInputSlotIdStart + 1);
                     owner.Connect(outputSlotRef, edge.inputSlot);
                 }
             }
 
-            MoveBlendWeightSlotToLast();
+            MoveBlendWeightSlotsToLast();
         }
 
         public VisualElement CreateSettingsElement()
@@ -121,7 +129,7 @@ namespace UnityEditor.ShaderGraph
                 AddSlot(newInputSlot);
                 AddSlot(newOutputSlot);
 
-                MoveBlendWeightSlotToLast();
+                MoveBlendWeightSlotsToLast();
 
                 // Select the new slot, then validate the node
                 list.index = m_SplatSlotNames.Count - 1;

@@ -304,6 +304,17 @@ namespace UnityEditor.ShaderGraph
 
         public bool didActiveOutputNodeChange { get; set; }
 
+        [SerializeField]
+        private int m_SplatCount;
+
+        public int splatCount
+        {
+            get => m_SplatCount;
+            set => m_SplatCount = value;
+        }
+
+        public const string kSplatCount8Keyword = "_TERRAIN_8_LAYERS";
+
         public GraphData()
         {
             m_GroupItems[Guid.Empty] = new List<IGroupItem>();

@@ -46,7 +46,19 @@ namespace UnityEditor.ShaderGraph
 
         public Identifier tempId { get; set; }
 
-        public GraphData owner { get; set; }
+        private GraphData m_Owner = null;
+        public GraphData owner
+        {
+            get => m_Owner;
+            set
+            {
+                if (value == m_Owner)
+                    return;
+                m_Owner = value;
+                if (m_Owner != null && this is ISplatCountListener splatCountListener)
+                    splatCountListener.OnSplatCountChange(m_Owner.splatCount);
+            }
+        }
 
         OnNodeModified m_OnModified;
 
