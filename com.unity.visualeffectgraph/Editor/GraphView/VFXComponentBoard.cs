@@ -147,11 +147,14 @@ namespace UnityEditor.VFX.UI
         }
 
         VFXView m_View;
+        VFXDebugUI m_DebugUI;
 
         public VFXComponentBoard(VFXView view)
         {
             m_View = view;
             var tpl = Resources.Load<VisualTreeAsset>("uxml/VFXComponentBoard");
+
+            m_DebugUI = new VFXDebugUI();
 
             tpl.CloneTree(contentContainer);
 
@@ -200,6 +203,9 @@ namespace UnityEditor.VFX.UI
             button.clickable.clicked += () => SendEvent(VisualEffectAsset.StopEventName);
 
             m_EventsContainer = this.Query("events-container");
+
+            m_DebugModes = this.Query<Button>("debug-modes");
+            m_DebugModes.clickable.clicked += OnDebugModes;
 
             Detach();
             this.AddManipulator(new Dragger { clampToParentEdges = true });
@@ -262,6 +268,21 @@ namespace UnityEditor.VFX.UI
             float rate = (float)((int)value) * VisualEffectControl.valueToPlayRate;
             m_AttachedComponent.playRate = rate;
             UpdatePlayRate();
+        }
+
+        void OnDebugModes()
+        {
+            GenericMenu menu = new GenericMenu();
+            foreach(VFXDebugUI.Modes mode in Enum.GetValues(typeof(VFXDebugUI.Modes)))
+            {
+                menu.AddItem(EditorGUIUtility.TextContent(mode.ToString()), false, SetDebugMode, mode);
+            }
+            menu.DropDown(m_DebugModes.worldBound);
+        }
+
+        void SetDebugMode(object mode)
+        {
+            m_DebugUI.SetDebugMode((VFXDebugUI.Modes)mode, this);
         }
 
         void OnEffectSlider(float f)
@@ -503,6 +524,7 @@ namespace UnityEditor.VFX.UI
         IntegerField m_PlayRateField;
 
         Button m_PlayRateMenu;
+        Button m_DebugModes;
 
         Label m_ParticleCount;
 
