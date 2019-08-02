@@ -1,5 +1,4 @@
 using System;
-using UnityEditor.Graphing;
 using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
@@ -29,8 +28,6 @@ namespace UnityEditor.ShaderGraph
             m_ConcretePrecision = (precision == Precision.Inherit) ? graphPrecision : precision.ToConcrete();
         }
 
-        public abstract bool isBatchable { get; }
-
         [SerializeField]
         bool m_Hidden = false;
 
@@ -43,20 +40,10 @@ namespace UnityEditor.ShaderGraph
         public string hideTagString => hidden ? "[HideInInspector]" : "";
 
         public virtual string GetPropertyBlockString()
-        {
-            return string.Empty;
-        }
-
-        public virtual string GetPropertyDeclarationString(string delimiter = ";")
-        {
-            SlotValueType type = ConcreteSlotValueType.Vector4.ToSlotValueType();
-            return $"{concreteShaderValueType.ToShaderString(concretePrecision.ToShaderString())} {referenceName}{delimiter}";
-        }
+            => string.Empty;
 
         public virtual string GetPropertyAsArgumentString()
-        {
-            return GetPropertyDeclarationString(string.Empty);
-        }
+            => propertyType.FormatDeclarationString(concretePrecision, referenceName);
         
         public abstract AbstractMaterialNode ToConcreteNode();
         public abstract PreviewProperty GetPreviewMaterialProperty();

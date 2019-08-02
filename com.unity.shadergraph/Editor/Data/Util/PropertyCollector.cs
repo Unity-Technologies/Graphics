@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -22,6 +21,8 @@ namespace UnityEditor.ShaderGraph
             properties.Add(chunk);
         }
 
+        private const string s_UnityPerMaterialCbName = "UnityPerMaterial";
+
         public void GetPropertiesDeclaration(ShaderStringBuilder builder, GenerationMode mode, ConcretePrecision inheritedPrecision)
         {
             foreach (var prop in properties)
@@ -29,22 +30,53 @@ namespace UnityEditor.ShaderGraph
                 prop.ValidateConcretePrecision(inheritedPrecision);
             }
 
-            var batchAll = mode == GenerationMode.Preview;
-            builder.AppendLine("CBUFFER_START(UnityPerMaterial)");
-            foreach (var prop in properties.Where(n => batchAll || (n.generatePropertyBlock && n.isBatchable)))
+            var cbDecls = new Dictionary<string, ShaderStringBuilder>();
+            foreach (var prop in properties)
             {
-                builder.AppendLine(prop.GetPropertyDeclarationString());
-            }
-            builder.AppendLine("CBUFFER_END");
-            builder.AppendNewLine();
+                var cbName = prop.propertyType.IsBatchable() ? s_UnityPerMaterialCbName : string.Empty;
 
-            if (batchAll)
-                return;
-            
-            foreach (var prop in properties.Where(n => !n.isBatchable || !n.generatePropertyBlock))
-            {
-                builder.AppendLine(prop.GetPropertyDeclarationString());
+                //
+                // Old behaviours that I don't know why we do them:
+
+                // If the property is not exposed, put it to Global
+                if (cbName == s_UnityPerMaterialCbName && !prop.generatePropertyBlock)
+                    cbName = string.Empty;
+                // If we are in preview, put all CB variables to UnityPerMaterial CB
+                if (cbName != string.Empty && mode == GenerationMode.Preview)
+                    cbName = s_UnityPerMaterialCbName;
+
+                if (!cbDecls.TryGetValue(cbName, out var sb))
+                {
+                    sb = new ShaderStringBuilder();
+                    cbDecls.Add(cbName, sb);
+                }
+
+                if (prop is GradientShaderProperty gradientProperty)
+                {
+                    sb.AppendLine(gradientProperty.GetGraidentPropertyDeclarationString());
+                }
+                else
+                {
+                    var referenceName = prop.referenceName;
+                    sb.AppendLine($"{prop.propertyType.FormatDeclarationString(prop.concretePrecision, referenceName)};");
+                }
             }
+
+            foreach (var kvp in cbDecls)
+            {
+                if (kvp.Key != string.Empty)
+                {
+                    builder.AppendLine($"CBUFFER_START({kvp.Key})");
+                    builder.IncreaseIndent();
+                }
+                builder.AppendLines(kvp.Value.ToString());
+                if (kvp.Key != string.Empty)
+                {
+                    builder.DecreaseIndent();
+                    builder.AppendLine($"CBUFFER_END");
+                }
+            }
+            builder.AppendNewLine();
         }
 
         public List<TextureInfo> GetConfiguredTexutres()

@@ -14,7 +14,6 @@ namespace UnityEditor.ShaderGraph
         
         public override PropertyType propertyType => PropertyType.Texture3D;
         
-        public override bool isBatchable => false;
         public override bool isExposable => true;
         public override bool isRenamable => true;
         
@@ -25,11 +24,6 @@ namespace UnityEditor.ShaderGraph
             return $"{hideTagString}{modifiableTagString}[NoScaleOffset]{referenceName}(\"{displayName}\", 3D) = \"white\" {{}}";
         }
         
-        public override string GetPropertyDeclarationString(string delimiter = ";")
-        {
-            return $"TEXTURE3D({referenceName}){delimiter}";
-        }
-
         public override string GetPropertyAsArgumentString()
         {
             return $"TEXTURE3D_PARAM({referenceName}, sampler{referenceName})";

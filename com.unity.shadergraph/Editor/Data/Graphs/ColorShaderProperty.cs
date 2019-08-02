@@ -15,7 +15,6 @@ namespace UnityEditor.ShaderGraph
         
         public override PropertyType propertyType => PropertyType.Color;
         
-        public override bool isBatchable => true;
         public override bool isExposable => true;
         public override bool isRenamable => true;
         

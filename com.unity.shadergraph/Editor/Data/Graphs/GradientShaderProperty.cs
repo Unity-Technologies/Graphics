@@ -1,10 +1,5 @@
 using System;
-using System.Text;
-using System.Collections.Generic;
-using System.Linq;
-using UnityEditor.ShaderGraph.Drawing.Controls;
 using UnityEngine;
-using UnityEditor.Graphing;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -19,11 +14,10 @@ namespace UnityEditor.ShaderGraph
         
         public override PropertyType propertyType => PropertyType.Gradient;
         
-        public override bool isBatchable => false;
         public override bool isExposable => false;
         public override bool isRenamable => true;
         
-        public override string GetPropertyDeclarationString(string delimiter = ";")
+        public string GetGraidentPropertyDeclarationString()
         {
             ShaderStringBuilder s = new ShaderStringBuilder();
             s.AppendLine("Gradient {0}_Definition()", referenceName);

@@ -14,7 +14,6 @@ namespace UnityEditor.ShaderGraph
         
         public override PropertyType propertyType => PropertyType.Texture2DArray;
         
-        public override bool isBatchable => false;
         public override bool isExposable => true;
         public override bool isRenamable => true;
         
@@ -25,11 +24,6 @@ namespace UnityEditor.ShaderGraph
             return $"{hideTagString}{modifiableTagString}[NoScaleOffset]{referenceName}(\"{displayName}\", 2DArray) = \"white\" {{}}";
         }
         
-        public override string GetPropertyDeclarationString(string delimiter = ";")
-        {
-            return $"TEXTURE2D_ARRAY({referenceName}){delimiter}";
-        }
-
         public override string GetPropertyAsArgumentString()
         {
             return $"TEXTURE2D_ARRAY_PARAM({referenceName}, sampler{referenceName})";

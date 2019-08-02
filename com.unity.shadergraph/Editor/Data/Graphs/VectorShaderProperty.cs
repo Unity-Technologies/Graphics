@@ -8,7 +8,6 @@ namespace UnityEditor.ShaderGraph
     [Serializable]
     abstract class VectorShaderProperty : AbstractShaderProperty<Vector4>
     {
-        public override bool isBatchable => true;
         public override bool isExposable => true;
         public override bool isRenamable => true;
         

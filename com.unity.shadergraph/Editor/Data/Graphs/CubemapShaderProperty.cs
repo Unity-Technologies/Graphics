@@ -14,7 +14,6 @@ namespace UnityEditor.ShaderGraph
         
         public override PropertyType propertyType => PropertyType.Cubemap;
         
-        public override bool isBatchable => false;
         public override bool isExposable => true;
         public override bool isRenamable => true;
         
@@ -25,11 +24,6 @@ namespace UnityEditor.ShaderGraph
             return $"{hideTagString}{modifiableTagString}[NoScaleOffset]{referenceName}(\"{displayName}\", CUBE) = \"\" {{}}";
         }
         
-        public override string GetPropertyDeclarationString(string delimiter = ";")
-        {
-            return $"TEXTURECUBE({referenceName}){delimiter}";
-        }
-
         public override string GetPropertyAsArgumentString()
         {
             return $"TEXTURECUBE_PARAM({referenceName}, sampler{referenceName})";

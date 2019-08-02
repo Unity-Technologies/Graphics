@@ -10,7 +10,6 @@ namespace UnityEditor.ShaderGraph
 
         public override PropertyType propertyType => PropertyType.SamplerState;
         
-        public override bool isBatchable => false;
         public override bool isExposable => false;
         public override bool isRenamable => false;
 
@@ -24,11 +23,6 @@ namespace UnityEditor.ShaderGraph
             }
         }
         
-        public override string GetPropertyDeclarationString(string delimiter = ";")
-        {
-            return $"SAMPLER({referenceName}){delimiter}";
-        }
-
         public static string GetBuiltinSamplerName(TextureSamplerState.FilterMode filterMode, TextureSamplerState.WrapMode wrapMode)
             => $"{PropertyType.SamplerState.ToConcreteShaderValueType().ToShaderString()}_{filterMode}_{wrapMode}";
 
