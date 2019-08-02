@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Fixed
 - Fixed LightProbe occlusion contribution. [case 1146667](https://issuetracker.unity3d.com/product/unity/issues/guid/1146667/)
+- Fixed an issue that caused a log message to be printed in the console when creating a new Material. [case 1173160](https://issuetracker.unity3d.com/product/unity/issues/guid/1173160/)
 
 ## [7.0.1] - 2019-07-25
 ### Changed
