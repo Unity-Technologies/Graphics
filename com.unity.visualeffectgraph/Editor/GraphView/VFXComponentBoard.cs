@@ -154,11 +154,12 @@ namespace UnityEditor.VFX.UI
             m_View = view;
             var tpl = Resources.Load<VisualTreeAsset>("uxml/VFXComponentBoard");
 
-            m_DebugUI = new VFXDebugUI();
-
             tpl.CloneTree(contentContainer);
 
             contentContainer.AddStyleSheetPath("VFXComponentBoard");
+
+            var debugBox = this.Query<Box>("debug-box");
+            m_DebugUI = new VFXDebugUI(view, debugBox);
 
             m_AttachButton = this.Query<Button>("attach");
             m_AttachButton.clickable.clicked += ToggleAttach;

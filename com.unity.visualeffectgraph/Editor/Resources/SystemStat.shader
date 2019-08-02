@@ -29,11 +29,13 @@ Shader "Hidden/VFX/SystemStat"
 
             struct v2f
             {
-
                 float4 vertex : SV_POSITION;
             };
 
             fixed4 _Color;
+            float2 _WinTopLeft;
+            float _WinWidth;
+            float _WinHeight;
 
             uniform float4x4 unity_GUIClipTextureMatrix;
 

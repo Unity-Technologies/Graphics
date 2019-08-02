@@ -19,13 +19,13 @@ namespace UnityEditor.VFX.UI
         {
             Mesh m_Mesh;
             Material m_Mat;
+            VFXDebugUI m_DebugUI;
 
-            public CurveContent()
+            public CurveContent(VFXDebugUI debugUI)
             {
+                m_DebugUI = debugUI;
                 m_Mat = new Material(Shader.Find("Hidden/VFX/SystemStat"));
-                Color color = new Color(1, 0, 0, 1);
-                m_Mat.SetColor("_Color", color);
-
+                
                 var vertices = new Vector3[4];
                 vertices[0] = new Vector3(-0.5f, 0.5f);
                 vertices[1] = new Vector3(0.5f, 0.5f);
@@ -38,19 +38,22 @@ namespace UnityEditor.VFX.UI
                 m_Mesh.SetIndices(indices, MeshTopology.Quads, 0);
             }
 
-            public void SetMesh(Mesh mesh)
-            {
-                m_Mesh = mesh;
-            }
-
             void DrawMesh()
             {
+
+
                 if (m_Mat == null)
                     m_Mat = new Material(Shader.Find("Hidden/VFX/SystemStat"));
                 Color color = new Color(1, 0, 0, 1);
-                m_Mat.SetColor("_ColorStart", color);
-                m_Mat.SetColor("_ColorEnd", color);
-                m_Mat.SetColor("_ColorMiddle", color);
+                m_Mat.SetColor("_Color", color);
+
+                var debugRect = m_DebugUI.m_DebugBox.layout;
+                var windowRect = m_DebugUI.m_View.layout;
+                m_Mat.SetVector("_WinTopLeft", new Vector4(debugRect.x / windowRect.width, debugRect.y / windowRect.height, 0, 0));
+                m_Mat.SetFloat("_WinWidth", debugRect.width / windowRect.width);
+                m_Mat.SetFloat("_WinHeight", debugRect.height / windowRect.height);
+
+
                 m_Mat.SetPass(0);
                 Graphics.DrawMeshNow(m_Mesh, Matrix4x4.identity);
             }
@@ -63,6 +66,14 @@ namespace UnityEditor.VFX.UI
 
         VFXComponentBoard m_ComponentBoard;
         CurveContent m_Curve;
+        Box m_DebugBox;
+        VFXView m_View;
+
+        public VFXDebugUI(VFXView view, Box debugBox)
+        {
+            m_DebugBox = debugBox;
+            m_View = view;
+        }
 
         public void SetDebugMode(Modes mode, VFXComponentBoard componentBoard)
         {
@@ -83,14 +94,13 @@ namespace UnityEditor.VFX.UI
 
         void SystemStat()
         {
-            m_Curve = new CurveContent();
+            m_Curve = new CurveContent(this);
             m_ComponentBoard.contentContainer.Add(m_Curve);
-
         }
 
         void Clear()
         {
-            if (m_ComponentBoard != null)
+            if (m_ComponentBoard != null && m_Curve != null)
                 m_ComponentBoard.contentContainer.Remove(m_Curve);
             m_ComponentBoard = null;
             m_Curve = null;
