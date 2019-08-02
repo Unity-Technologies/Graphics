@@ -32,6 +32,10 @@ ByteAddressBuffer deadListCount;
 Buffer<uint> stripData;
 #endif
 
+#if WRITE_MOTION_VECTOR_IN_FORWARD || USE_MOTION_VECTORS_PASS
+ByteAddressBuffer elementToVFXBufferPrevious;
+#endif
+
 CBUFFER_START(outputParams)
 	float nbMax;
 	float systemSeed;

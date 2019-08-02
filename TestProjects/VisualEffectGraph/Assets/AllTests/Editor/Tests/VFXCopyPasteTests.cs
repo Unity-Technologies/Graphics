@@ -76,7 +76,7 @@ namespace UnityEditor.VFX.Test
 
             Assert.AreEqual(contextController.model, newContext);
 
-            var flipBookBlockDesc = VFXLibrary.GetBlocks().First(t => t.name == "Set Tex Index ");
+            var flipBookBlockDesc = VFXLibrary.GetBlocks().First(t => t.name == "Set Tex Index");
 
             contextController.AddBlock(0, flipBookBlockDesc.CreateInstance());
 
@@ -342,7 +342,7 @@ namespace UnityEditor.VFX.Test
 
             Assert.AreEqual(contextController.model, newContext);
 
-            var flipBookBlockDesc = VFXLibrary.GetBlocks().First(t => t.name == "Set Tex Index ");
+            var flipBookBlockDesc = VFXLibrary.GetBlocks().First(t => t.name == "Set Tex Index");
 
             contextController.AddBlock(0, flipBookBlockDesc.CreateInstance());
 

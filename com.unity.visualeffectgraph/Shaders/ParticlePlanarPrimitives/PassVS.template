@@ -139,7 +139,8 @@ VFX_VARYING_PS_INPUTS vert(uint id : SV_VertexID, vs_input i)
 	${VFXLoadSize}
 	
 	const float4x4 elementToVFX = GetElementToVFXMatrix(axisX,axisY,axisZ,float3(angleX,angleY,angleZ),float3(pivotX,pivotY,pivotZ),size3,position);
-	float3 vPos = mul(elementToVFX,float4(vOffsets,0.0f,1.0f)).xyz;
+	float3 inputVertexPosition = float3(vOffsets, 0.0f);
+	float3 vPos = mul(elementToVFX,float4(inputVertexPosition, 1.0f)).xyz;
 
 	o.VFX_VARYING_POSCS = TransformPositionVFXToClip(vPos);
 
@@ -160,6 +161,8 @@ VFX_VARYING_PS_INPUTS vert(uint id : SV_VertexID, vs_input i)
 	#endif
 	o.VFX_VARYING_BENTFACTORS = vOffsets * bentNormalFactor * BENT_FACTOR_MULTIPLIER;
 	#endif
+	
+	${VFXVertexComputeCurrentAndPreviousClipPos}
 
 	${VFXVertexCommonProcess}
 	

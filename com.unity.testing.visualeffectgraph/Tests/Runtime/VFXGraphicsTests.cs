@@ -42,7 +42,6 @@ namespace UnityEngine.VFX.Test
 
         static readonly string[] ExcludedTestsButKeepLoadScene =
         {
-            "20_SpawnerChaining", // Unstable. TODO investigate why
             "RenderStates", // Unstable. There is an instability with shadow rendering. TODO Fix that
             "ConformAndSDF", // Turbulence is not deterministic
             "13_Decals", //doesn't render TODO investigate why <= this one is in world space
@@ -74,6 +73,14 @@ namespace UnityEngine.VFX.Test
             var camera = GameObject.FindGameObjectWithTag("MainCamera").GetComponent<Camera>();
             if (camera)
             {
+
+#if VFX_HAS_UNIVERSAL_RP
+                if (!camera.gameObject.GetComponent<Rendering.Universal.UniversalAdditionalCameraData>())
+                {
+                    var cameraData = camera.gameObject.AddComponent<Rendering.Universal.UniversalAdditionalCameraData>();
+                    cameraData.renderPostProcessing = true; //HotFix forcing post process to be activated to cover missing clear
+                }
+#endif
                 var vfxComponents = Resources.FindObjectsOfTypeAll<VisualEffect>();
 #if UNITY_EDITOR
                 var vfxAssets = vfxComponents.Select(o => o.visualEffectAsset).Where(o => o != null).Distinct();
@@ -143,10 +150,17 @@ namespace UnityEngine.VFX.Test
                     RenderTexture.active = null;
                     actual.Apply();
 
+                    var imageComparisonSettings = new ImageComparisonSettings() { AverageCorrectnessThreshold = 5e-4f };
+                    var testSettingsInScene = Object.FindObjectOfType<GraphicsTestSettings>();
+                    if (testSettingsInScene != null)
+                    {
+                        imageComparisonSettings.AverageCorrectnessThreshold = testSettingsInScene.ImageComparisonSettings.AverageCorrectnessThreshold;
+                    }
+
                     if (!ExcludedTestsButKeepLoadScene.Any(o => testCase.ScenePath.Contains(o)) &&
                         !(SystemInfo.graphicsDeviceType == GraphicsDeviceType.Metal && UnstableMetalTests.Any(o => testCase.ScenePath.Contains(o))))
                     {
-                        ImageAssert.AreEqual(testCase.ReferenceImage, actual, new ImageComparisonSettings() { AverageCorrectnessThreshold = 30e-5f });
+                        ImageAssert.AreEqual(testCase.ReferenceImage, actual, imageComparisonSettings);
                     }
                     else
                     {

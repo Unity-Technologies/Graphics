@@ -6,13 +6,26 @@ Some HDRP features are not compatible with VR. When you enable VR in your Projec
 
 ## Supported features by Unity version
 
+### Unity 2019.3
+
+You can use Multi-pass or Single-pass instancing for VR in HDRP.
+
+#### Not supported
+
+- Single-pass Stereo (double-wide)
+
 ### Unity 2019.2
 
-You must use Single Pass instancing for VR in HDRP.
+You can use Multi-pass or Single Pass instancing for VR in HDRP.
+
+#### Not supported
+
+- Single-pass Stereo (double-wide)
+- VFX Graph with Single-pass instancing
 
 ### Unity 2019.1
 
-You must use Single Pass Stereo rendering for VR in HDRP.
+You must use Single-pass Stereo (double-wide) rendering for VR in HDRP.
 
 #### Not supported
 

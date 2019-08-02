@@ -271,5 +271,7 @@ namespace UnityEditor.Rendering.Universal
         {
             return renderPipelineAsset is UniversalRenderPipelineAsset;
         }
+
+        public UniversalPBRSubShader() { }
     }
 }

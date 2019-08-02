@@ -52,18 +52,19 @@ namespace UnityEditor.ShaderGraph
             if (anyShaders)
                 UpdateAfterAssetChange(movedAssets);
             
-            var changedSubGraphs = movedAssets.Union(importedAssets)
-                .Where(x => x.EndsWith(ShaderSubGraphImporter.Extension, StringComparison.InvariantCultureIgnoreCase))
+            var changedFiles = movedAssets.Union(importedAssets)
+                .Where(x => x.EndsWith(ShaderSubGraphImporter.Extension, StringComparison.InvariantCultureIgnoreCase)
+                || CustomFunctionNode.s_ValidExtensions.Contains(Path.GetExtension(x)))
                 .Select(AssetDatabase.AssetPathToGUID)
                 .Distinct()
                 .ToList();
 
-            if (changedSubGraphs.Count > 0)
+            if (changedFiles.Count > 0)
             {
                 var windows = Resources.FindObjectsOfTypeAll<MaterialGraphEditWindow>();
                 foreach (var window in windows)
                 {
-                    window.ReloadSubGraphsOnNextUpdate(changedSubGraphs);
+                    window.ReloadSubGraphsOnNextUpdate(changedFiles);
                 }
             }
         }
