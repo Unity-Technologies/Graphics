@@ -192,6 +192,7 @@ void GetSurfaceAndBuiltinData(inout FragInputs input, float3 V, inout PositionIn
     surfaceData.subsurfaceMask = 0;
     surfaceData.thickness = 1;
     surfaceData.diffusionProfileHash = 0;
+    surfaceData.VTFeedback = float4(1, 1, 1, 1);
 
     surfaceData.materialFeatures = MATERIALFEATUREFLAGS_LIT_STANDARD;
 
@@ -237,6 +238,8 @@ void GetSurfaceAndBuiltinData(inout FragInputs input, float3 V, inout PositionIn
     // as it can modify attribute use for static lighting
     ApplyDebugToSurfaceData(input.tangentToWorld, surfaceData);
 #endif
+
+    surfaceData.VTFeedback = float4(1, 1, 1, 1);
 
     GetBuiltinData(input, V, posInput, surfaceData, 1, bentNormalWS, 0, builtinData);
 }

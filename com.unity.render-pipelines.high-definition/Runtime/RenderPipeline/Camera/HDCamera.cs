@@ -214,6 +214,12 @@ namespace UnityEngine.Rendering.HighDefinition
         int m_NumColorPyramidBuffersAllocated = 0;
         int m_NumVolumetricBuffersAllocated   = 0;
 
+#if ENABLE_VIRTUALTEXTURES
+        Experimental.VirtualTextureResolver resolver;
+        RTHandle lowresResolver;
+        int resolveScale = 16;
+#endif
+
         public HDCamera(Camera cam)
         {
             camera = cam;
@@ -223,6 +229,10 @@ namespace UnityEngine.Rendering.HighDefinition
             frustum.corners = new Vector3[8];
 
             frustumPlaneEquations = new Vector4[6];
+
+#if ENABLE_VIRTUALTEXTURES
+            resolver = new Experimental.VirtualTextureResolver();
+#endif
 
             Reset();
         }
@@ -322,6 +332,18 @@ namespace UnityEngine.Rendering.HighDefinition
             // This is necessary because we assume that after post processes, we have the full size render target for debug rendering
             // The only point of calling this here is to grow the render targets. The call in BeginRender will setup the current RTHandle viewport size.
             RTHandles.SetReferenceSize(nonScaledViewport.x, nonScaledViewport.y, m_msaaSamples);
+
+#if ENABLE_VIRTUALTEXTURES          
+            var resolveWidth = (screenWidth + (resolveScale - 1)) / resolveScale;
+            var resolveHeight = (screenHeight + (resolveScale - 1)) / resolveScale;
+            if (resolveWidth != resolver.CurrentWidth || resolveHeight != resolver.CurrentHeight)
+            {
+                RTHandles.Release(lowresResolver);
+            }
+            lowresResolver = RTHandles.Alloc(resolveWidth, resolveHeight, colorFormat: GraphicsFormat.R8G8B8A8_UNorm, enableRandomWrite: true, autoGenerateMips: false, name: "VTFeedback lowres");
+
+            resolver.Init(resolveWidth, resolveHeight);
+#endif
         }
 
         // Updating RTHandle needs to be done at the beginning of rendering (not during update of HDCamera which happens in batches)
@@ -333,6 +355,71 @@ namespace UnityEngine.Rendering.HighDefinition
 
             m_RecorderCaptureActions = CameraCaptureBridge.GetCaptureActions(camera);
         }
+
+#if ENABLE_VIRTUALTEXTURES
+        public void ResolveVT(CommandBuffer cmd, RTHandle primary, RTHandle secondary, HDRenderPipelineAsset asset)
+        {
+            using (new ProfilingSample(cmd, "VTFeedback Downsample", CustomSamplerId.VTFeedbackDownSample.GetSampler()))
+            {
+                if (lowresResolver == null)
+                {
+                    return;
+                }
+
+                if (primary != null)
+                {
+                    ResolveVTDispatch(cmd, primary, asset);
+                    /*var cs = asset.renderPipelineResources.shaders.VTFeedbackDownsample;
+                    int kernel = cs.FindKernel("KMain");
+                    cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputTexture, primary.nameID);
+                    cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, lowresResolver.nameID);
+                    var resolveCounter = 0;
+                    var startOffsetX = (resolveCounter % resolveScale);
+                    var startOffsetY = (resolveCounter / resolveScale) % resolveScale;
+                    cmd.SetComputeVectorParam(cs, HDShaderIDs._Params, new Vector4(resolveScale, startOffsetX, startOffsetY, -1));
+                    var TGSize = 8;
+                    cmd.DispatchCompute(cs, kernel, ((int)screenSize.x + (TGSize - 1)) / TGSize, ((int)screenSize.y + (TGSize - 1)) / TGSize, 1);
+
+                    resolver.Process(lowresResolver.nameID, cmd);*/
+                }
+
+                if (secondary != null && secondary.enableMSAA == false)
+                {
+                    ResolveVTDispatch(cmd, secondary, asset);
+                    /*var cs = asset.renderPipelineResources.shaders.VTFeedbackDownsample;
+                    int kernel = cs.FindKernel("KMain");
+                    cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputTexture, secondary.nameID);
+                    cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, lowresResolver.nameID);
+                    var resolveCounter = 0;
+                    var startOffsetX = (resolveCounter % resolveScale);
+                    var startOffsetY = (resolveCounter / resolveScale) % resolveScale;
+                    cmd.SetComputeVectorParam(cs, HDShaderIDs._Params, new Vector4(resolveScale, startOffsetX, startOffsetY, -1));
+                    var TGSize = 8;
+                    cmd.DispatchCompute(cs, kernel, ((int)screenSize.x + (TGSize - 1)) / TGSize, ((int)screenSize.y + (TGSize - 1)) / TGSize, 1);
+
+                    resolver.Process(lowresResolver.nameID, cmd);*/
+                }
+            }
+        }
+
+        private void ResolveVTDispatch(CommandBuffer cmd, RTHandle buffer, HDRenderPipelineAsset asset)
+        {
+            string mainFunction = (buffer.enableMSAA) ? "KMainMSAA" : "KMain";
+
+            var cs = asset.renderPipelineResources.shaders.VTFeedbackDownsample;
+            int kernel = cs.FindKernel(mainFunction);
+            cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputTexture, buffer.nameID);
+            cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, lowresResolver.nameID);
+            var resolveCounter = 0;
+            var startOffsetX = (resolveCounter % resolveScale);
+            var startOffsetY = (resolveCounter / resolveScale) % resolveScale;
+            cmd.SetComputeVectorParam(cs, HDShaderIDs._Params, new Vector4(resolveScale, startOffsetX, startOffsetY, /*unused*/-1));
+            var TGSize = 8;
+            cmd.DispatchCompute(cs, kernel, ((int)screenSize.x + (TGSize - 1)) / TGSize, ((int)screenSize.y + (TGSize - 1)) / TGSize, 1);
+
+            resolver.Process(lowresResolver.nameID, cmd);
+        }
+#endif
 
         void UpdateAntialiasing()
         {
@@ -734,6 +821,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_HistoryRTSystem.Dispose();
                 m_HistoryRTSystem = null;
             }
+#if ENABLE_VIRTUALTEXTURES
+            resolver.Dispose();
+#endif
         }
 
         // BufferedRTHandleSystem API expects an allocator function. We define it here.

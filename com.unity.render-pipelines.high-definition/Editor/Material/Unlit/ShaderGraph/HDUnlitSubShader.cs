@@ -267,7 +267,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 HDUnlitMasterNode.ColorSlotId,
                 HDUnlitMasterNode.AlphaSlotId,
                 HDUnlitMasterNode.AlphaThresholdSlotId,
-                HDUnlitMasterNode.EmissionSlotId
+                HDUnlitMasterNode.EmissionSlotId,
+                HDUnlitMasterNode.FeedBackSlotId,
             },
             VertexShaderSlots = new List<int>()
             {
@@ -454,6 +455,12 @@ namespace UnityEditor.Rendering.HighDefinition
             }
 
             var masterNode = iMasterNode as HDUnlitMasterNode;
+
+            // Do all work on a copy of the graph
+            masterNode = masterNode.owner.ScratchCopy().GetNodeFromGuid(masterNode.guid) as HDUnlitMasterNode;
+
+            // Inject VT feedback into graph
+            TextureStackAggregateFeedbackNode.AutoInjectFeedbackNode(masterNode);
 
             var subShader = new ShaderGenerator();
             subShader.AddShaderChunk("SubShader", true);

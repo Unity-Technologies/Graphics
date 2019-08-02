@@ -590,6 +590,10 @@ namespace UnityEditor.Rendering.HighDefinition
                 serialized.renderPipelineSettings.supportRayTracing.boolValue = false;
             }
 
+
+            // VT
+            EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportsVirtualTexturing, k_SupportsVirtualTexturing );
+
             EditorGUILayout.Space(); //to separate with following sub sections
         }
 
@@ -700,6 +704,7 @@ namespace UnityEditor.Rendering.HighDefinition
 #if REALTIME_RAYTRACING_SUPPORT
             AppendSupport(builder, serialized.renderPipelineSettings.supportRayTracing, k_SupportRaytracing);
 #endif
+            AppendSupport(builder, serialized.renderPipelineSettings.supportsVirtualTexturing, k_SupportsVirtualTexturing);
 
             EditorGUILayout.HelpBox(builder.ToString(), MessageType.Info, wide: true);
         }

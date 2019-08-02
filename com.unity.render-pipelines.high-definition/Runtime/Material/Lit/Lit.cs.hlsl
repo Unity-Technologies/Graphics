@@ -41,6 +41,7 @@
 #define DEBUGVIEW_LIT_SURFACEDATA_TRANSMITTANCE_COLOR (1020)
 #define DEBUGVIEW_LIT_SURFACEDATA_TRANSMITTANCE_ABSORPTION_DISTANCE (1021)
 #define DEBUGVIEW_LIT_SURFACEDATA_TRANSMITTANCE_MASK (1022)
+#define DEBUGVIEW_LIT_SURFACEDATA_VTFEEDBACK (1023)
 
 //
 // UnityEngine.Rendering.HighDefinition.Lit+BSDFData:  static fields
@@ -98,6 +99,7 @@ struct SurfaceData
     real3 transmittanceColor;
     real atDistance;
     real transmittanceMask;
+    real4 VTFeedback;
 };
 
 // Generated from UnityEngine.Rendering.HighDefinition.Lit+BSDFData
@@ -208,6 +210,9 @@ void GetGeneratedSurfaceDataDebug(uint paramId, SurfaceData surfacedata, inout f
             break;
         case DEBUGVIEW_LIT_SURFACEDATA_TRANSMITTANCE_MASK:
             result = surfacedata.transmittanceMask.xxx;
+            break;
+        case DEBUGVIEW_LIT_SURFACEDATA_VTFEEDBACK:
+            result = surfacedata.VTFeedback.xyz;
             break;
     }
 }

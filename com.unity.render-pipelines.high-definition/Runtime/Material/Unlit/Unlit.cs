@@ -18,6 +18,9 @@ namespace UnityEngine.Rendering.HighDefinition
             [MaterialSharedPropertyMapping(MaterialSharedProperty.Albedo)]
             [SurfaceDataAttributes("Color", false, true)]
             public Vector3 color;
+
+            [SurfaceDataAttributes("VTFeedback")]
+            public Vector4 VTFeedback;
         };
 
         //-----------------------------------------------------------------------------

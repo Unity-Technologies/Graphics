@@ -987,6 +987,7 @@ namespace UnityEditor.ShaderGraph
             var results = new GenerationResults();
 
             var shaderProperties = new PropertyCollector();
+            var shaderPragmas = new PragmaCollector();
             var shaderPropertyUniforms = new ShaderStringBuilder();
             var functionBuilder = new ShaderStringBuilder();
             var functionRegistry = new FunctionRegistry(functionBuilder);
@@ -1067,6 +1068,7 @@ namespace UnityEditor.ShaderGraph
                 graph,
                 surfaceDescriptionFunction,
                 functionRegistry,
+                shaderPragmas,
                 shaderProperties,
                 requirements,
                 mode,
@@ -1109,6 +1111,7 @@ namespace UnityEditor.ShaderGraph
                 finalShader.AppendLine(@"#include ""Packages/com.unity.shadergraph/ShaderGraphLibrary/ShaderVariables.hlsl""");
                 finalShader.AppendLine(@"#include ""Packages/com.unity.shadergraph/ShaderGraphLibrary/ShaderVariablesFunctions.hlsl""");
                 finalShader.AppendLine(@"#include ""Packages/com.unity.shadergraph/ShaderGraphLibrary/Functions.hlsl""");
+                finalShader.AppendLine(@"#include ""Packages/com.unity.render-pipelines.core/ShaderLibrary/TextureStack.hlsl""");
                 finalShader.AppendLine(@"#define SHADERGRAPH_PREVIEW 1");
                 finalShader.AppendNewLine();
 
@@ -1133,7 +1136,7 @@ namespace UnityEditor.ShaderGraph
 
                 finalShader.AppendLine(@"ENDHLSL");
 
-                finalShader.AppendLines(ShaderGenerator.GetPreviewSubShader(node, requirements));
+                finalShader.AppendLines(ShaderGenerator.GetPreviewSubShader(node, requirements, shaderPragmas));
                 ListPool<AbstractMaterialNode>.Release(activeNodeList);
             }
 
@@ -1167,6 +1170,9 @@ namespace UnityEditor.ShaderGraph
                 if (requirements.requiresFaceSign)
                     sb.AppendLine("float {0};", ShaderGeneratorNames.FaceSign);
 
+                if (requirements.requiresPixelCoordinate)
+                    sb.AppendLine("float4 {0};", ShaderGeneratorNames.PixelCoordinate);
+
                 foreach (var channel in requirements.requiresMeshUVs.Distinct())
                     sb.AppendLine("half4 {0};", channel.GetUVName());
 
@@ -1195,6 +1201,9 @@ namespace UnityEditor.ShaderGraph
 
             if (requirements.requiresFaceSign)
                 sb.AppendLine($"{variableName}.{ShaderGeneratorNames.FaceSign} = IN.{ShaderGeneratorNames.FaceSign};");
+
+            if (requirements.requiresPixelCoordinate)
+                sb.AppendLine($"{variableName}.{ShaderGeneratorNames.PixelCoordinate} = IN.{ShaderGeneratorNames.PixelCoordinate};");
 
             foreach (var channel in requirements.requiresMeshUVs.Distinct())
                 sb.AppendLine($"{variableName}.{channel.GetUVName()} = IN.{channel.GetUVName()};");
@@ -1234,6 +1243,7 @@ namespace UnityEditor.ShaderGraph
             GraphData graph,
             ShaderStringBuilder surfaceDescriptionFunction,
             FunctionRegistry functionRegistry,
+            PragmaCollector shaderPragmas,
             PropertyCollector shaderProperties,
             ShaderGraphRequirements requirements,
             GenerationMode mode,
@@ -1271,7 +1281,8 @@ namespace UnityEditor.ShaderGraph
                     }
 
                     activeNode.CollectShaderProperties(shaderProperties, mode);
-                }                
+                    activeNode.CollectShaderPragmas(shaderPragmas, mode);
+                }
 
                 functionRegistry.builder.currentNode = null;
                 surfaceDescriptionFunction.currentNode = null;
@@ -1341,6 +1352,7 @@ namespace UnityEditor.ShaderGraph
             GraphData graph,
             ShaderStringBuilder builder,
             FunctionRegistry functionRegistry,
+            PragmaCollector shaderPragmas,
             PropertyCollector shaderProperties,
             GenerationMode mode,
             List<AbstractMaterialNode> nodes,
@@ -1376,6 +1388,7 @@ namespace UnityEditor.ShaderGraph
                         builder.ReplaceInCurrentMapping(PrecisionUtil.Token, node.concretePrecision.ToShaderString());
                     }
                     node.CollectShaderProperties(shaderProperties, mode);
+                    node.CollectShaderPragmas(shaderPragmas, mode);
                 }
 
                 functionRegistry.builder.currentNode = null;
@@ -1548,6 +1561,50 @@ namespace UnityEditor.ShaderGraph
                 };
                 p.Start();
             }
+        }
+
+        /*
+            Find all VT nodes downstream from the given node
+            Returns a unique list. So even if a node can be reached through different paths it will be present only once.
+        */
+        public static List<NodeType> FindDownStreamNodesOfType<NodeType>(AbstractMaterialNode node) where NodeType : AbstractMaterialNode
+        {
+            // Should never be called without a node
+            Debug.Assert(node != null);
+
+            List<Guid> visitedNodes = new List<Guid>();
+            List<NodeType> vtNodes = new List<NodeType>();
+            Queue<AbstractMaterialNode> nodeStack = new Queue<AbstractMaterialNode>();
+            nodeStack.Enqueue(node);
+            visitedNodes.Add(node.guid);
+
+            while (nodeStack.Count > 0)
+            {
+                AbstractMaterialNode visit = nodeStack.Dequeue();
+
+                // Flood fill through all the nodes
+                foreach (var slot in visit.GetInputSlots<ISlot>())
+                {
+                    foreach (var edge in visit.owner.GetEdges(slot.slotReference))
+                    {
+                        var inputNode = visit.owner.GetNodeFromGuid(edge.outputSlot.nodeGuid);
+                        if (!visitedNodes.Contains(inputNode.guid))
+                        {
+                            nodeStack.Enqueue(inputNode);
+                            visitedNodes.Add(inputNode.guid);
+                        }
+                    }
+                }
+
+                // Extract vt node
+                if (visit is NodeType)
+                {
+                    NodeType vtNode = visit as NodeType;
+                    vtNodes.Add(vtNode);
+                }
+            }
+
+            return vtNodes;
         }
     }
 }

@@ -66,6 +66,17 @@ TEXTURE2D_X(_ShadowMaskTexture); // Alias for shadow mask, so we don't need to k
 #define OUT_GBUFFER_SHADOWMASK outGBuffer4
 #endif
 
+// VT feedback goes at the back
+#if VIRTUAL_TEXTURES_ENABLED
+#if defined(LIGHT_LAYERS) && defined(SHADOWS_SHADOWMASK)
+#define OUT_GBUFFER_VTFEEDBACK outGBuffer6
+#elif defined(LIGHT_LAYERS) || defined(SHADOWS_SHADOWMASK)
+#define OUT_GBUFFER_VTFEEDBACK outGBuffer5
+#else
+#define OUT_GBUFFER_VTFEEDBACK outGBuffer4
+#endif
+#endif
+
 #define HAS_REFRACTION (defined(_REFRACTION_PLANE) || defined(_REFRACTION_SPHERE))
 
 #define SUPPORTS_RAYTRACED_AREA_SHADOWS (SHADEROPTIONS_RAYTRACING && (SHADERPASS == SHADERPASS_DEFERRED_LIGHTING))
@@ -513,6 +524,12 @@ void EncodeIntoGBuffer( SurfaceData surfaceData
 #if GBUFFERMATERIAL_COUNT > 5
                         , out GBufferType5 outGBuffer5
 #endif
+#if GBUFFERMATERIAL_COUNT > 6
+                        , out GBufferType6 outGBuffer6
+#endif
+#if GBUFFERMATERIAL_COUNT > 7
+                        , out GBufferType7 outGBuffer7
+#endif
                         )
 {
     // RT0 - 8:8:8:8 sRGB
@@ -616,6 +633,12 @@ void EncodeIntoGBuffer( SurfaceData surfaceData
 
 #ifdef SHADOWS_SHADOWMASK
     OUT_GBUFFER_SHADOWMASK = BUILTIN_DATA_SHADOW_MASK;
+#endif
+
+#if VIRTUAL_TEXTURES_ACTIVE
+    OUT_GBUFFER_VTFEEDBACK = surfaceData.VTFeedback;
+#elif VIRTUAL_TEXTURES_ENABLED
+    OUT_GBUFFER_VTFEEDBACK = float4(1,1,1,1);
 #endif
 }
 

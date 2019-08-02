@@ -115,6 +115,10 @@ namespace UnityEngine.Rendering.HighDefinition
         SMAA,
         FinalPost,
 
+#if ENABLE_VIRTUALTEXTURES
+        VTFeedbackDownSample,
+        VTFeedbackClear,
+#endif
         Max
     }
 

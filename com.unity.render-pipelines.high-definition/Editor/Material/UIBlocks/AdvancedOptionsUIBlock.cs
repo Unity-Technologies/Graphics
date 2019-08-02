@@ -14,7 +14,9 @@ namespace UnityEditor.Rendering.HighDefinition
             Instancing          = 1 << 0,
             SpecularOcclusion   = 1 << 1,
             AdditionalVelocity  = 1 << 2,
-            All                 = ~0
+            VirtualTexturing    = 1 << 3,
+            All                 = ~0,
+            Unlit = Instancing | VirtualTexturing,
         }
 
         public class Styles
@@ -22,7 +24,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public const string header = "Advanced Options";
             public static GUIContent enableSpecularOcclusionText = new GUIContent("Specular Occlusion From Bent Normal", "Requires cosine weighted bent normal and cosine weighted ambient occlusion. Specular occlusion for Reflection Probe");
             public static GUIContent additionalVelocityChangeText = new GUIContent("Additional Velocity Changes", "Requires additional per vertex velocity info");
-
+            public static GUIContent enableVirtualTexturingText = new GUIContent("Virtual Texturing", "When enabled, use virtual texturing instead of regular textures.");
         }
 
         protected MaterialProperty enableSpecularOcclusion = null;
@@ -30,6 +32,9 @@ namespace UnityEditor.Rendering.HighDefinition
 
         protected const string kEnableSpecularOcclusion = "_EnableSpecularOcclusion";
         protected const string kAdditionalVelocityChange = HDMaterialProperties.kAdditionalVelocityChange;
+
+        protected MaterialProperty enableVirtualTexturing = null;
+        protected const string kEnableVirtualTexturing = "_VirtualTexturing";
 
         Expandable  m_ExpandableBit;
         Features    m_Features;
@@ -44,7 +49,7 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             enableSpecularOcclusion = FindProperty(kEnableSpecularOcclusion);
             additionalVelocityChange = FindProperty(kAdditionalVelocityChange);
-
+            enableVirtualTexturing = FindProperty(kEnableVirtualTexturing);
         }
 
         public override void OnGUI()
@@ -62,12 +67,14 @@ namespace UnityEditor.Rendering.HighDefinition
                 materialEditor.EnableInstancingField();
             if ((m_Features & Features.SpecularOcclusion) != 0)
                 materialEditor.ShaderProperty(enableSpecularOcclusion, Styles.enableSpecularOcclusionText);
+            if ((m_Features & Features.VirtualTexturing) != 0)
+                materialEditor.ShaderProperty(enableVirtualTexturing, Styles.enableVirtualTexturingText);
             if ((m_Features & Features.AdditionalVelocity) != 0)
             {
                 if ( additionalVelocityChange != null)
                     materialEditor.ShaderProperty(additionalVelocityChange, Styles.additionalVelocityChangeText);
-        }
-    }
-}
+        	}
+    	}
+	}
 }
 

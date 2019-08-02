@@ -4,7 +4,7 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.Rendering;
-using UnityEditor.ShaderGraph;
+using UnityEditor.ShaderGraph; //TODO(ddebaets) remove when StackStatus is in core unity
 
 // Include material common properties names
 using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
@@ -196,6 +196,10 @@ namespace UnityEditor.Rendering.HighDefinition
                         material.SetInt("_DistortionBlurBlendOp", (int)UnityEngine.Rendering.BlendOp.Add);
                         break;
                 }
+
+#if ENABLE_VIRTUALTEXTURES
+                TextureStackStatus.UpdateMaterial(material);
+#endif
             }
 
             CullMode doubleSidedOffMode = (surfaceType == SurfaceType.Transparent) ? material.GetTransparentCullMode() : CullMode.Back;

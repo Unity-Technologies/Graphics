@@ -29,6 +29,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public const string DistortionBlurSlotName = "DistortionBlur";
         public const string PositionSlotName = "Position";
         public const string EmissionSlotName = "Emission";
+        public const string FeedbackSlotName = "VTFeedback";
 
         public const int ColorSlotId = 0;
         public const int AlphaSlotId = 7;
@@ -37,6 +38,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public const int DistortionSlotId = 10;
         public const int DistortionBlurSlotId = 11;
         public const int EmissionSlotId = 12;
+        public const int FeedBackSlotId = TextureStackAggregateFeedbackNode.MasterNodeFeedbackInputSlotID;
 
         // Don't support Multiply
         public enum AlphaModeLit
@@ -328,6 +330,11 @@ namespace UnityEditor.Rendering.HighDefinition
                 AddSlot(new Vector1MaterialSlot(DistortionBlurSlotId, DistortionBlurSlotName, DistortionBlurSlotName, SlotType.Input, 1.0f, ShaderStageCapability.Fragment));
                 validSlots.Add(DistortionBlurSlotId);
             }
+
+            var feedbackSlot = new Vector4MaterialSlot(FeedBackSlotId, FeedbackSlotName, FeedbackSlotName, SlotType.Input, Vector4.one, ShaderStageCapability.Fragment);
+            feedbackSlot.hidden = true;
+            AddSlot(feedbackSlot);
+            validSlots.Add(FeedBackSlotId);
 
             RemoveSlotsNameNotMatching(validSlots, true);
         }

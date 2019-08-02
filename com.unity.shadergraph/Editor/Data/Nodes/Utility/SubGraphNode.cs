@@ -24,6 +24,7 @@ namespace UnityEditor.ShaderGraph
         , IMayRequireFaceSign
         , IMayRequireCameraOpaqueTexture
         , IMayRequireDepthTexture
+		, IMayRequireRequirePixelCoordinate
     {
         [Serializable]
         public class MinimalSubGraphNode : IHasDependencies
@@ -544,6 +545,14 @@ namespace UnityEditor.ShaderGraph
                 return false;
 
             return asset.requirements.requiresFaceSign;
+        }
+
+        public bool RequiresPixelCoordinate(ShaderStageCapability stageCapability)
+        {
+            if (asset == null)
+                return false;
+
+            return asset.requirements.requiresPixelCoordinate;
         }
 
         public NeededCoordinateSpace RequiresBitangent(ShaderStageCapability stageCapability)

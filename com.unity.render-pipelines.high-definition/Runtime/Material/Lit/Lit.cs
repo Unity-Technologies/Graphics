@@ -103,6 +103,9 @@ namespace UnityEngine.Rendering.HighDefinition
             public float atDistance;
             [SurfaceDataAttributes("Transmittance mask", precision = FieldPrecision.Real)]
             public float transmittanceMask;
+
+            [SurfaceDataAttributes("VTFeedback")]
+            public Vector4 VTFeedback;
         };
 
         //-----------------------------------------------------------------------------
@@ -197,6 +200,9 @@ namespace UnityEngine.Rendering.HighDefinition
             supportShadowMask = asset.currentPlatformRenderPipelineSettings.supportShadowMask;
             supportLightLayers = asset.currentPlatformRenderPipelineSettings.supportLightLayers;
             gBufferCount = 4 + (supportShadowMask ? 1 : 0) + (supportLightLayers ? 1 : 0);
+#if ENABLE_VIRTUALTEXTURES
+            gBufferCount++;
+#endif
         }
 
         // This must return the number of GBuffer to allocate
@@ -236,12 +242,21 @@ namespace UnityEngine.Rendering.HighDefinition
 
             int index = 4;
 
+#if ENABLE_VIRTUALTEXTURES
+            {
+                RTFormat[index] = GraphicsFormat.R8G8B8A8_UNorm;
+                gBufferUsage[index] = GBufferUsage.VTFeedback;
+                enableWrite[index] = false; //TODO(ddebaets) once VTF DD comes online, this needs to be true
+                index++;
+            }
+#endif
+
             if (supportLightLayers)
             {
                 RTFormat[index] = GraphicsFormat.R8G8B8A8_UNorm;
                 gBufferUsage[index] = GBufferUsage.LightLayers;
                 index++;
-            }
+            }           
 
             // All buffer above are fixed. However shadow mask buffer can be setup or not depends on light in view.
             // Thus it need to be the last one, so all indexes stay the same

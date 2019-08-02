@@ -50,7 +50,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 PBRMasterNode.SmoothnessSlotId,
                 PBRMasterNode.OcclusionSlotId,
                 PBRMasterNode.AlphaSlotId,
-                PBRMasterNode.AlphaThresholdSlotId
+                PBRMasterNode.AlphaThresholdSlotId,
+                PBRMasterNode.VTFeedbackSlotId
             },
             VertexShaderSlots = new List<int>()
             {
@@ -316,7 +317,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 PBRMasterNode.SmoothnessSlotId,
                 PBRMasterNode.OcclusionSlotId,
                 PBRMasterNode.AlphaSlotId,
-                PBRMasterNode.AlphaThresholdSlotId
+                PBRMasterNode.AlphaThresholdSlotId,
+                PBRMasterNode.VTFeedbackSlotId
             },
             VertexShaderSlots = new List<int>()
             {
@@ -556,6 +558,13 @@ namespace UnityEditor.Rendering.HighDefinition
             }
 
             var masterNode = iMasterNode as PBRMasterNode;
+
+            // Do all work on a copy of the graph
+            masterNode = masterNode.owner.ScratchCopy().GetNodeFromGuid(masterNode.guid) as PBRMasterNode;
+
+            // Inject VT feedback into graph
+            TextureStackAggregateFeedbackNode.AutoInjectFeedbackNode(masterNode);
+
             var subShader = new ShaderGenerator();
             subShader.AddShaderChunk("SubShader", true);
             subShader.AddShaderChunk("{", true);
