@@ -35,5 +35,7 @@ void VFXGetHDRPLitData(out SurfaceData surfaceData, out BuiltinData builtinData,
 	VFXGetHDRPLitData(surfaceData,builtinData,bsdfData,preLightData,i,normalWS,uvData,uint2(0,0));
 }
 
+#endif
+
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/VFXGraph/Shaders/VFXLitPixelOutput.hlsl"
 
