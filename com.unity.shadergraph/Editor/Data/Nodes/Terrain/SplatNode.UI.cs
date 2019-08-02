@@ -111,7 +111,6 @@ namespace UnityEditor.ShaderGraph
                     var splatEdges = SaveSplatSlotEdges();
 
                     RecreateSplatSlots(inputSplatSlots, outputSplatSlots, splatEdges, Enumerable.Range(0, inputSplatSlots.Count).ToList());
-                    ValidateNode();
                 }
             };
 
@@ -133,7 +132,6 @@ namespace UnityEditor.ShaderGraph
 
                 // Select the new slot, then validate the node
                 list.index = m_SplatSlotNames.Count - 1;
-                ValidateNode();
             };
 
             m_ReorderableList.onRemoveCallback += list =>
@@ -152,7 +150,6 @@ namespace UnityEditor.ShaderGraph
                 newIndexToOldMapping.RemoveAt(list.index);
 
                 RecreateSplatSlots(inputSplatSlots, outputSplatSlots, splatEdges, newIndexToOldMapping);
-                ValidateNode();
             };
 
             m_ReorderableList.onReorderCallbackWithDetails += (list, oldIndex, newIndex) =>
@@ -168,11 +165,16 @@ namespace UnityEditor.ShaderGraph
                 newIndexToOldMapping.Insert(newIndex, oldIndex);
 
                 RecreateSplatSlots(inputSplatSlots, outputSplatSlots, splatEdges, newIndexToOldMapping);
-                ValidateNode();
             };
 
             var ps = new PropertySheet();
-            ps.Add(new IMGUIContainer(m_ReorderableList.DoLayoutList));
+            ps.Add(new IMGUIContainer(() =>
+            {
+                EditorGUI.BeginChangeCheck();
+                m_ReorderableList.DoLayoutList();
+                if (EditorGUI.EndChangeCheck())
+                    ValidateNode();
+            }));
             return ps;
         }
     }

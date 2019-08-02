@@ -17,6 +17,8 @@ namespace UnityEditor.ShaderGraph
             UpdateNodeAfterDeserialization();
         }
 
+        public override string title => $"{base.title} x{m_SplatCount}";
+
         public override bool hasPreview => true;
 
         public const int kBlendWeight0InputSlotId = 0;
@@ -77,64 +79,8 @@ namespace UnityEditor.ShaderGraph
 
                     AddSlot(new Vector4MaterialSlot(kBlendWeight1InputSlotId, "Blend Weights 1", "BlendWeights1", SlotType.Input, Vector4.zero, ShaderStageCapability.Fragment));
                 }
+                Dirty(ModificationScope.Node);
             }
-        }
-
-        public override void ValidateNode()
-        {
-            // AbstractMaterialNode takes all input dynamic vector slots and figure out one unified concrete type for all.
-            // Splat inputs are all independent and we simply take the concrete type of the input slot and duplicate onto the corresponding output slot.
-            hasError = false;
-            foreach (var inputSlot in this.GetInputSlots<MaterialSlot>())
-            {
-                inputSlot.hasError = false;
-                var edge = owner.GetEdges(inputSlot.slotReference).FirstOrDefault();
-                if (edge == null)
-                    continue;
-
-                var outputNode = owner.GetNodeFromGuid(edge.outputSlot.nodeGuid);
-                if (outputNode == null)
-                    continue;
-
-                var outputSlot = outputNode.FindOutputSlot<MaterialSlot>(edge.outputSlot.slotId);
-                if (outputSlot == null)
-                    continue;
-
-                if (outputSlot.hasError)
-                {
-                    inputSlot.hasError = true;
-                    hasError = true;
-                    continue;
-                }
-
-                if (inputSlot.id >= kSplatInputSlotIdStart && inputSlot is DynamicVectorMaterialSlot dynamicVector)
-                    dynamicVector.SetConcreteType(outputSlot.concreteValueType);
-            }
-
-            foreach (var outputSlot in this.GetOutputSlots<MaterialSlot>())
-            {
-                if (hasError)
-                {
-                    outputSlot.hasError = true;
-                    continue;
-                }
-
-                if (outputSlot is DynamicVectorMaterialSlot dynamicVector)
-                {
-                    var inputSlot = FindInputSlot<DynamicVectorMaterialSlot>(dynamicVector.id - 1);
-                    if (inputSlot != null) // Could be null during the slot removing process
-                        dynamicVector.SetConcreteType(inputSlot.concreteValueType);
-                }
-            }
-
-            var errorMessage = k_validationErrorMessage;
-            hasError = CalculateNodeHasError(ref errorMessage) || hasError;
-            hasError = ValidateConcretePrecision(ref errorMessage) || hasError;
-
-            if (hasError)
-                owner.AddValidationError(tempId, errorMessage);
-            else
-                ++version;
         }
 
         private struct SplatGraphNode
@@ -154,15 +100,18 @@ namespace UnityEditor.ShaderGraph
                 => VariableType.GetHashCode() * 23 + VariableName.GetHashCode();
         }
 
-        private struct SplatGraph
+        private class SplatGraph
         {
             public IReadOnlyList<SplatGraphNode> Nodes;
             public IReadOnlyList<SpaltGraphInput> SplatFunctionInputs;
         }
 
-        // TODO: cache the resulting SplatGraph until next graph topology change?
-        private SplatGraph CompileSplatGraph()
+        private SplatGraph m_SplatGraph;
+
+        private bool CompileSplatGraph(ref string errorMessage)
         {
+            m_SplatGraph = null;
+
             var splatGraphNodes = new List<AbstractMaterialNode>();
             NodeUtils.DepthFirstCollectNodesFromNode(splatGraphNodes, this, NodeUtils.IncludeSelf.Exclude, EnumerateSplatInputSlots().Select(slot => slot.id).ToList());
 
@@ -234,18 +183,78 @@ namespace UnityEditor.ShaderGraph
                 });
             }
 
-            return new SplatGraph()
+            m_SplatGraph = new SplatGraph()
             {
                 Nodes = graphNodes,
                 SplatFunctionInputs = splatFunctionInputs.ToList()
             };
+            return false;
+        }
+
+        public override void ValidateNode()
+        {
+            // AbstractMaterialNode takes all input dynamic vector slots and figure out one unified concrete type for all.
+            // Splat inputs are all independent and we simply take the concrete type of the input slot and duplicate onto the corresponding output slot.
+            hasError = false;
+            foreach (var inputSlot in this.GetInputSlots<MaterialSlot>())
+            {
+                inputSlot.hasError = false;
+                var edge = owner.GetEdges(inputSlot.slotReference).FirstOrDefault();
+                if (edge == null)
+                    continue;
+
+                var outputNode = owner.GetNodeFromGuid(edge.outputSlot.nodeGuid);
+                if (outputNode == null)
+                    continue;
+
+                var outputSlot = outputNode.FindOutputSlot<MaterialSlot>(edge.outputSlot.slotId);
+                if (outputSlot == null)
+                    continue;
+
+                if (outputSlot.hasError)
+                {
+                    inputSlot.hasError = true;
+                    hasError = true;
+                    continue;
+                }
+
+                if (inputSlot.id >= kSplatInputSlotIdStart && inputSlot is DynamicVectorMaterialSlot dynamicVector)
+                    dynamicVector.SetConcreteType(outputSlot.concreteValueType);
+            }
+
+            foreach (var outputSlot in this.GetOutputSlots<MaterialSlot>())
+            {
+                if (hasError)
+                {
+                    outputSlot.hasError = true;
+                    continue;
+                }
+
+                if (outputSlot is DynamicVectorMaterialSlot dynamicVector)
+                {
+                    var inputSlot = FindInputSlot<DynamicVectorMaterialSlot>(dynamicVector.id - 1);
+                    if (inputSlot != null) // Could be null during the slot removing process
+                        dynamicVector.SetConcreteType(inputSlot.concreteValueType);
+                }
+            }
+
+            var errorMessage = k_validationErrorMessage;
+            hasError = CalculateNodeHasError(ref errorMessage) || hasError;
+            hasError = ValidateConcretePrecision(ref errorMessage) || hasError;
+            hasError = CompileSplatGraph(ref errorMessage) || hasError;
+
+            if (hasError)
+                owner.AddValidationError(tempId, errorMessage);
+            else
+                ++version;
         }
 
         public void GenerateNodeCode(ShaderStringBuilder sb, GraphContext graphContext, GenerationMode generationMode)
         {
-            var splatGraph = CompileSplatGraph();
+            if (m_SplatGraph == null)
+                return;
 
-            foreach (var node in splatGraph.Nodes)
+            foreach (var node in m_SplatGraph.Nodes)
             {
                 if (!node.SplatDependent && node.Node is IGeneratesBodyCode bodyCode)
                 {
@@ -268,7 +277,7 @@ namespace UnityEditor.ShaderGraph
 
                 sb.AppendIndentation();
                 sb.Append($"SplatFunction_{GetVariableNameForNode()}(IN");
-                foreach (var splatInput in splatGraph.SplatFunctionInputs)
+                foreach (var splatInput in m_SplatGraph.SplatFunctionInputs)
                 {
                     var varName = splatInput.VariableName;
                     if (splatInput.SplatProperty)
@@ -304,10 +313,11 @@ namespace UnityEditor.ShaderGraph
 
         public void GenerateNodeFunction(FunctionRegistry registry, GraphContext graphContext, GenerationMode generationMode)
         {
-            var splatGraph = CompileSplatGraph();
+            if (m_SplatGraph == null)
+                return;
 
             // Generate global functions from splat graph.
-            foreach (var node in splatGraph.Nodes)
+            foreach (var node in m_SplatGraph.Nodes)
             {
                 if (node.Node is IGeneratesFunction functionNode)
                 {
@@ -320,14 +330,14 @@ namespace UnityEditor.ShaderGraph
             // Generate the splat function from splat subgraph
             var splatFunction = new ShaderStringBuilder();
             splatFunction.Append($"void SplatFunction_{GetVariableNameForNode()}({graphContext.graphInputStructName} IN");
-            foreach (var splatInput in splatGraph.SplatFunctionInputs)
+            foreach (var splatInput in m_SplatGraph.SplatFunctionInputs)
                 splatFunction.Append($", {splatInput.VariableType.ToShaderString(concretePrecision)} {splatInput.VariableName}");
             foreach (var slot in EnumerateSplatInputSlots())
                 splatFunction.Append($", out {slot.concreteValueType.ToShaderString(concretePrecision)} outSplat{(slot.id - kSplatInputSlotIdStart) / 2}");
             splatFunction.AppendLine(")");
             using (splatFunction.BlockScope())
             {
-                foreach (var node in splatGraph.Nodes)
+                foreach (var node in m_SplatGraph.Nodes)
                 {
                     if (node.SplatDependent && node.Node is IGeneratesBodyCode bodyNode)
                     {
@@ -344,52 +354,58 @@ namespace UnityEditor.ShaderGraph
 
         public override void CollectPreviewMaterialProperties(List<PreviewProperty> properties)
         {
-            foreach (var node in CompileSplatGraph().Nodes)
-                node.Node.CollectPreviewMaterialProperties(properties);
+            if (m_SplatGraph != null)
+            {
+                foreach (var node in m_SplatGraph.Nodes)
+                    node.Node.CollectPreviewMaterialProperties(properties);
+            }
             base.CollectPreviewMaterialProperties(properties);
         }
 
         public override void CollectShaderProperties(PropertyCollector properties, GenerationMode generationMode)
         {
-            foreach (var node in CompileSplatGraph().Nodes)
-                node.Node.CollectShaderProperties(properties, generationMode);
+            if (m_SplatGraph != null)
+            {
+                foreach (var node in m_SplatGraph.Nodes)
+                    node.Node.CollectShaderProperties(properties, generationMode);
+            }
             base.CollectShaderProperties(properties, generationMode);
         }
 
         NeededCoordinateSpace IMayRequirePosition.RequiresPosition(ShaderStageCapability stageCapability)
-            => CompileSplatGraph().Nodes.Select(v => v.Node).OfType<IMayRequirePosition>().Aggregate(NeededCoordinateSpace.None, (mask, node) => mask | node.RequiresPosition(stageCapability));
+            => m_SplatGraph != null ? m_SplatGraph.Nodes.Select(v => v.Node).OfType<IMayRequirePosition>().Aggregate(NeededCoordinateSpace.None, (mask, node) => mask | node.RequiresPosition(stageCapability)) : NeededCoordinateSpace.None;
 
         NeededCoordinateSpace IMayRequireNormal.RequiresNormal(ShaderStageCapability stageCapability)
-            => CompileSplatGraph().Nodes.Select(v => v.Node).OfType<IMayRequireNormal>().Aggregate(NeededCoordinateSpace.None, (mask, node) => mask | node.RequiresNormal(stageCapability));
+            => m_SplatGraph != null ? m_SplatGraph.Nodes.Select(v => v.Node).OfType<IMayRequireNormal>().Aggregate(NeededCoordinateSpace.None, (mask, node) => mask | node.RequiresNormal(stageCapability)) : NeededCoordinateSpace.None;
 
         NeededCoordinateSpace IMayRequireTangent.RequiresTangent(ShaderStageCapability stageCapability)
-            => CompileSplatGraph().Nodes.Select(v => v.Node).OfType<IMayRequireTangent>().Aggregate(NeededCoordinateSpace.None, (mask, node) => mask | node.RequiresTangent(stageCapability));
+            => m_SplatGraph != null ? m_SplatGraph.Nodes.Select(v => v.Node).OfType<IMayRequireTangent>().Aggregate(NeededCoordinateSpace.None, (mask, node) => mask | node.RequiresTangent(stageCapability)) : NeededCoordinateSpace.None;
 
         NeededCoordinateSpace IMayRequireBitangent.RequiresBitangent(ShaderStageCapability stageCapability)
-            => CompileSplatGraph().Nodes.Select(v => v.Node).OfType<IMayRequireBitangent>().Aggregate(NeededCoordinateSpace.None, (mask, node) => mask | node.RequiresBitangent(stageCapability));
+            => m_SplatGraph != null ? m_SplatGraph.Nodes.Select(v => v.Node).OfType<IMayRequireBitangent>().Aggregate(NeededCoordinateSpace.None, (mask, node) => mask | node.RequiresBitangent(stageCapability)) : NeededCoordinateSpace.None;
 
         bool IMayRequireVertexColor.RequiresVertexColor(ShaderStageCapability stageCapability)
-            => CompileSplatGraph().Nodes.Select(v => v.Node).OfType<IMayRequireVertexColor>().Any(node => node.RequiresVertexColor());
+            => m_SplatGraph != null && m_SplatGraph.Nodes.Select(v => v.Node).OfType<IMayRequireVertexColor>().Any(node => node.RequiresVertexColor());
 
         bool IMayRequireMeshUV.RequiresMeshUV(UVChannel channel, ShaderStageCapability stageCapability)
-            => CompileSplatGraph().Nodes.Select(v => v.Node).OfType<IMayRequireMeshUV>().Any(node => node.RequiresMeshUV(channel));
+            => m_SplatGraph != null && m_SplatGraph.Nodes.Select(v => v.Node).OfType<IMayRequireMeshUV>().Any(node => node.RequiresMeshUV(channel));
 
         NeededCoordinateSpace IMayRequireViewDirection.RequiresViewDirection(ShaderStageCapability stageCapability)
-            => CompileSplatGraph().Nodes.Select(v => v.Node).OfType<IMayRequireViewDirection>().Aggregate(NeededCoordinateSpace.None, (mask, node) => mask | node.RequiresViewDirection(stageCapability));
+            => m_SplatGraph != null ? m_SplatGraph.Nodes.Select(v => v.Node).OfType<IMayRequireViewDirection>().Aggregate(NeededCoordinateSpace.None, (mask, node) => mask | node.RequiresViewDirection(stageCapability)) : NeededCoordinateSpace.None;
 
         bool IMayRequireScreenPosition.RequiresScreenPosition(ShaderStageCapability stageCapability)
-            => CompileSplatGraph().Nodes.Select(v => v.Node).OfType<IMayRequireScreenPosition>().Any(node => node.RequiresScreenPosition());
+            => m_SplatGraph != null && m_SplatGraph.Nodes.Select(v => v.Node).OfType<IMayRequireScreenPosition>().Any(node => node.RequiresScreenPosition());
 
         bool IMayRequireFaceSign.RequiresFaceSign(ShaderStageCapability stageCapability)
-            => CompileSplatGraph().Nodes.Select(v => v.Node).OfType<IMayRequireFaceSign>().Any(node => node.RequiresFaceSign());
+            => m_SplatGraph != null && m_SplatGraph.Nodes.Select(v => v.Node).OfType<IMayRequireFaceSign>().Any(node => node.RequiresFaceSign());
 
         bool IMayRequireDepthTexture.RequiresDepthTexture(ShaderStageCapability stageCapability)
-            => CompileSplatGraph().Nodes.Select(v => v.Node).OfType<IMayRequireDepthTexture>().Any(node => node.RequiresDepthTexture());
+            => m_SplatGraph != null && m_SplatGraph.Nodes.Select(v => v.Node).OfType<IMayRequireDepthTexture>().Any(node => node.RequiresDepthTexture());
 
         bool IMayRequireCameraOpaqueTexture.RequiresCameraOpaqueTexture(ShaderStageCapability stageCapability)
-            => CompileSplatGraph().Nodes.Select(v => v.Node).OfType<IMayRequireCameraOpaqueTexture>().Any(node => node.RequiresCameraOpaqueTexture());
+            => m_SplatGraph != null && m_SplatGraph.Nodes.Select(v => v.Node).OfType<IMayRequireCameraOpaqueTexture>().Any(node => node.RequiresCameraOpaqueTexture());
 
         bool IMayRequireTime.RequiresTime()
-            => CompileSplatGraph().Nodes.Select(v => v.Node).OfType<IMayRequireTime>().Any(node => node.RequiresTime());
+            => m_SplatGraph != null && m_SplatGraph.Nodes.Select(v => v.Node).OfType<IMayRequireTime>().Any(node => node.RequiresTime());
     }
 }
