@@ -227,12 +227,17 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         public bool IsGraphAssetCheckedOut()
         {
-            var path = AssetDatabase.GUIDToAssetPath(selectedGuid);
-            var asset = AssetDatabase.LoadAssetAtPath<Object>(path);
-            if (!AssetDatabase.IsOpenForEdit(asset, StatusQueryOptions.UseCachedIfPossible))
-                return false;
+            if (selectedGuid != null)
+            {
+                var path = AssetDatabase.GUIDToAssetPath(selectedGuid);
+                var asset = AssetDatabase.LoadAssetAtPath<Object>(path);
+                if (!AssetDatabase.IsOpenForEdit(asset, StatusQueryOptions.UseCachedIfPossible))
+                    return false;
 
                 return true;
+            }
+
+            return false;
         }
         
         public void CheckoutAsset()

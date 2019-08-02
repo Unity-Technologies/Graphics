@@ -163,13 +163,16 @@ namespace UnityEditor.ShaderGraph.Drawing
                             node.Dirty(ModificationScope.Graph);
                         }
                     }
-                    
-                    if (!isCheckedOut())
+
+                    if (isCheckedOut != null)
                     {
-                        if (GUILayout.Button("Check Out", EditorStyles.toolbarButton))
+                        if (!isCheckedOut())
                         {
-                            if (checkOut != null)
-                                checkOut();
+                            if (GUILayout.Button("Check Out", EditorStyles.toolbarButton))
+                            {
+                                if (checkOut != null)
+                                    checkOut();
+                            }
                         }
                     }
 
