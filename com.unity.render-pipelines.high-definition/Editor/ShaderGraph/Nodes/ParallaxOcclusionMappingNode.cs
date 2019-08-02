@@ -54,7 +54,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public sealed override void UpdateNodeAfterDeserialization()
         {
             AddSlot(new Texture2DInputMaterialSlot(kHeightmapSlotId, kHeightmapSlotName, kHeightmapSlotName, ShaderStageCapability.Fragment));
-            AddSlot(new SamplerStateMaterialSlot(kHeightmapSamplerSlotId, kHeightmapSamplerSlotName, kHeightmapSamplerSlotName, SlotType.Input));
+            AddSlot(new SamplerStateMaterialSlot(kHeightmapSamplerSlotId, kHeightmapSamplerSlotName, kHeightmapSamplerSlotName, SlotType.Input) { textureSlotId = kHeightmapSlotId });
             AddSlot(new Vector1MaterialSlot(kAmplitudeSlotId, kAmplitudeSlotName, kAmplitudeSlotName, SlotType.Input, 1.0f, ShaderStageCapability.Fragment));
             AddSlot(new Vector1MaterialSlot(kStepsSlotId, kStepsSlotName, kStepsSlotName, SlotType.Input, 5.0f, ShaderStageCapability.Fragment));
             AddSlot(new UVMaterialSlot(kUVsSlotId, kUVsSlotName, kUVsSlotName, UVChannel.UV0, ShaderStageCapability.Fragment));
@@ -94,8 +94,6 @@ namespace UnityEditor.Rendering.HighDefinition
             string perPixelDisplacementInclude = @"#include ""Packages/com.unity.render-pipelines.core/ShaderLibrary/PerPixelDisplacement.hlsl""";
 
             // Texture sample inputs
-            var samplerSlot = FindInputSlot<MaterialSlot>(kHeightmapSamplerSlotId);
-            var edgesSampler = owner.GetEdges(samplerSlot.slotReference);
             var heightmap = GetSlotValue(kHeightmapSlotId, generationMode);
 
             registry.ProvideFunction(GetFunctionName(), s =>
@@ -124,7 +122,7 @@ return objectScale;");
                     {
                         s.AppendLine("return SAMPLE_TEXTURE2D_LOD({0}, {1}, param.uv + texOffsetCurrent, lod).r;",
                             heightmap,
-                            edgesSampler.Any() ? GetSlotValue(kHeightmapSamplerSlotId, generationMode) : "sampler" + heightmap);
+                            GetSlotValue(kHeightmapSamplerSlotId, generationMode));
                     }
                     s.Append(perPixelDisplacementInclude);
                 });

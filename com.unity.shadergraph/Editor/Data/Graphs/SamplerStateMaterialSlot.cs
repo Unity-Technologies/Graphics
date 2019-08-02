@@ -1,11 +1,21 @@
 using System;
 using UnityEditor.Graphing;
+using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
 {
     [Serializable]
     class SamplerStateMaterialSlot : MaterialSlot
     {
+        [SerializeField]
+        private int m_TextureSlot = -1;
+
+        public int textureSlotId
+        {
+            get => m_TextureSlot;
+            set => m_TextureSlot = value;
+        }
+
         public SamplerStateMaterialSlot()
         {
         }
@@ -27,7 +37,14 @@ namespace UnityEditor.ShaderGraph
             if (matOwner == null)
                 throw new Exception(string.Format("Slot {0} either has no owner, or the owner is not a {1}", this, typeof(AbstractMaterialNode)));
 
-            return $"{matOwner.GetVariableNameForSlot(id)}_Linear_Repeat";
+            var textureSlot = matOwner.FindInputSlot<MaterialSlot>(textureSlotId);
+            return textureSlot != null && (textureSlot.isConnected
+                || (textureSlot is Texture2DInputMaterialSlot texture2DSlot && texture2DSlot.texture != null)
+                || (textureSlot is Texture2DArrayInputMaterialSlot texture2DArraySlot && texture2DArraySlot.textureArray != null)
+                || (textureSlot is Texture3DInputMaterialSlot texture3DSlot && texture3DSlot.texture != null)
+                || (textureSlot is CubemapInputMaterialSlot cubemapSlot && cubemapSlot.cubemap != null))
+                ? $"sampler{matOwner.GetSlotValue(textureSlotId, generationMode)}"
+                : SamplerStateShaderProperty.GetBuiltinSamplerName(TextureSamplerState.FilterMode.Linear, TextureSamplerState.WrapMode.Repeat);
         }
 
         public override SlotValueType valueType { get { return SlotValueType.SamplerState; } }
@@ -40,12 +57,7 @@ namespace UnityEditor.ShaderGraph
 
             properties.AddShaderProperty(new SamplerStateShaderProperty()
             {
-                value = new TextureSamplerState()
-                {
-                    filter = TextureSamplerState.FilterMode.Linear,
-                    wrap = TextureSamplerState.WrapMode.Repeat
-                },
-                overrideReferenceName = $"{matOwner.GetVariableNameForSlot(id)}_Linear_Repeat",
+                overrideReferenceName = GetDefaultValue(generationMode),
                 generatePropertyBlock = false,
             });
         }

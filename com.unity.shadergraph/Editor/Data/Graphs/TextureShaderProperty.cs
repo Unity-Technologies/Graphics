@@ -1,6 +1,4 @@
 using System;
-using System.Text;
-using UnityEditor.Graphing;
 using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
@@ -31,7 +29,7 @@ namespace UnityEditor.ShaderGraph
         
         public override string GetPropertyDeclarationString(string delimiter = ";")
         {
-            return $"TEXTURE2D({referenceName}){delimiter} SAMPLER(sampler{referenceName}); {concretePrecision.ToShaderString()}4 {referenceName}_TexelSize{delimiter}";
+            return $"TEXTURE2D({referenceName}){delimiter} {concretePrecision.ToShaderString()}4 {referenceName}_TexelSize{delimiter}";
         }
 
         public override string GetPropertyAsArgumentString()

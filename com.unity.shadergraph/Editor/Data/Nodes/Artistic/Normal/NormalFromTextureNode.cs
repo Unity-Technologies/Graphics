@@ -39,7 +39,7 @@ namespace UnityEditor.ShaderGraph
         {
             AddSlot(new Texture2DInputMaterialSlot(TextureInputId, k_TextureInputName, k_TextureInputName));
             AddSlot(new UVMaterialSlot(UVInputId, k_UVInputName, k_UVInputName, UVChannel.UV0));
-            AddSlot(new SamplerStateMaterialSlot(SamplerInputId, k_SamplerInputName, k_SamplerInputName, SlotType.Input));
+            AddSlot(new SamplerStateMaterialSlot(SamplerInputId, k_SamplerInputName, k_SamplerInputName, SlotType.Input) { textureSlotId = TextureInputId });
             AddSlot(new Vector1MaterialSlot(OffsetInputId, k_OffsetInputName, k_OffsetInputName, SlotType.Input, 0.5f));
             AddSlot(new Vector1MaterialSlot(StrengthInputId, k_StrengthInputName, k_StrengthInputName, SlotType.Input, 8f));
             AddSlot(new Vector3MaterialSlot(OutputSlotId, k_OutputSlotName, k_OutputSlotName, SlotType.Output, Vector3.zero, ShaderStageCapability.Fragment));
@@ -53,14 +53,7 @@ namespace UnityEditor.ShaderGraph
             var offsetValue = GetSlotValue(OffsetInputId, generationMode);
             var strengthValue = GetSlotValue(StrengthInputId, generationMode);
             var outputValue = GetSlotValue(OutputSlotId, generationMode);
-
-            var samplerSlot = FindInputSlot<MaterialSlot>(SamplerInputId);
-            var edgesSampler = owner.GetEdges(samplerSlot.slotReference);
-            string samplerValue;
-            if (edgesSampler.Any())
-                samplerValue = GetSlotValue(SamplerInputId, generationMode);
-            else
-                samplerValue = string.Format("sampler{0}", GetSlotValue(TextureInputId, generationMode));
+            var samplerValue = GetSlotValue(SamplerInputId, generationMode);
 
             sb.AppendLine("{0} {1};", FindOutputSlot<MaterialSlot>(OutputSlotId).concreteValueType.ToShaderString(), GetVariableNameForSlot(OutputSlotId));
             sb.AppendLine("{0}({1}, {2}, {3}, {4}, {5}, {6});", GetFunctionName(), textureValue, samplerValue, uvValue, offsetValue, strengthValue, outputValue);

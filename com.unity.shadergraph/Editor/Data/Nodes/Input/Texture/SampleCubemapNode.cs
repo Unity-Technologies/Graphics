@@ -36,7 +36,7 @@ namespace UnityEditor.ShaderGraph
             AddSlot(new CubemapInputMaterialSlot(CubemapInputId, kCubemapInputName, kCubemapInputName));
             AddSlot(new ViewDirectionMaterialSlot(ViewDirInputId, kViewDirInputName, kViewDirInputName, CoordinateSpace.Object));
             AddSlot(new NormalMaterialSlot(NormalInputId, kNormalInputName, kNormalInputName, CoordinateSpace.Object));
-            AddSlot(new SamplerStateMaterialSlot(SamplerInputId, kSamplerInputName, kSamplerInputName, SlotType.Input));
+            AddSlot(new SamplerStateMaterialSlot(SamplerInputId, kSamplerInputName, kSamplerInputName, SlotType.Input) { textureSlotId = CubemapInputId });
             AddSlot(new Vector1MaterialSlot(LODInputId, kLODInputName, kLODInputName, SlotType.Input, 0));
             RemoveSlotsNameNotMatching(new[] { OutputSlotId, CubemapInputId, ViewDirInputId, NormalInputId, SamplerInputId, LODInputId });
         }
@@ -49,15 +49,11 @@ namespace UnityEditor.ShaderGraph
         // Node generations
         public virtual void GenerateNodeCode(ShaderStringBuilder sb, GraphContext graphContext, GenerationMode generationMode)
         {
-            //Sampler input slot
-            var samplerSlot = FindInputSlot<MaterialSlot>(SamplerInputId);
-            var edgesSampler = owner.GetEdges(samplerSlot.slotReference);
-
             var id = GetSlotValue(CubemapInputId, generationMode);
             string result = string.Format("$precision4 {0} = SAMPLE_TEXTURECUBE_LOD({1}, {2}, reflect(-{3}, {4}), {5});"
                     , GetVariableNameForSlot(OutputSlotId)
                     , id
-                    , edgesSampler.Any() ? GetSlotValue(SamplerInputId, generationMode) : "sampler" + id
+                    , GetSlotValue(SamplerInputId, generationMode)
                     , GetSlotValue(ViewDirInputId, generationMode)
                     , GetSlotValue(NormalInputId, generationMode)
                     , GetSlotValue(LODInputId, generationMode));

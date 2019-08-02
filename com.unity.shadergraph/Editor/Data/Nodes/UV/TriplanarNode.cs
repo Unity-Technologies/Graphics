@@ -59,7 +59,7 @@ namespace UnityEditor.ShaderGraph
         {
             AddSlot(new Vector4MaterialSlot(OutputSlotId, kOutputSlotName, kOutputSlotName, SlotType.Output, Vector4.zero, ShaderStageCapability.Fragment));
             AddSlot(new Texture2DInputMaterialSlot(TextureInputId, kTextureInputName, kTextureInputName));
-            AddSlot(new SamplerStateMaterialSlot(SamplerInputId, kSamplerInputName, kSamplerInputName, SlotType.Input));
+            AddSlot(new SamplerStateMaterialSlot(SamplerInputId, kSamplerInputName, kSamplerInputName, SlotType.Input) { textureSlotId = TextureInputId });
             AddSlot(new PositionMaterialSlot(PositionInputId, kPositionInputName, kPositionInputName, CoordinateSpace.World));
             AddSlot(new NormalMaterialSlot(NormalInputId, kNormalInputName, kNormalInputName, CoordinateSpace.World));
             AddSlot(new Vector1MaterialSlot(TileInputId, kTileInputName, kTileInputName, SlotType.Input, 1));
@@ -81,10 +81,8 @@ namespace UnityEditor.ShaderGraph
             sb.AppendLine("$precision3 {0}_UV = {1} * {2};", GetVariableNameForNode(),
                 GetSlotValue(PositionInputId, generationMode), GetSlotValue(TileInputId, generationMode));
 
-            //Sampler input slot
-            var samplerSlot = FindInputSlot<MaterialSlot>(SamplerInputId);
-            var edgesSampler = owner.GetEdges(samplerSlot.slotReference);
             var id = GetSlotValue(TextureInputId, generationMode);
+            var samplerValue = GetSlotValue(SamplerInputId, generationMode);
 
             switch (textureType)
             {
@@ -100,17 +98,17 @@ namespace UnityEditor.ShaderGraph
                     sb.AppendLine("$precision3 {0}_X = UnpackNormal(SAMPLE_TEXTURE2D({1}, {2}, {0}_UV.zy));"
                         , GetVariableNameForNode()
                         , id
-                        , edgesSampler.Any() ? GetSlotValue(SamplerInputId, generationMode) : "sampler" + id);
+                        , samplerValue);
 
                     sb.AppendLine("$precision3 {0}_Y = UnpackNormal(SAMPLE_TEXTURE2D({1}, {2}, {0}_UV.xz));"
                         , GetVariableNameForNode()
                         , id
-                        , edgesSampler.Any() ? GetSlotValue(SamplerInputId, generationMode) : "sampler" + id);
+                        , samplerValue);
 
                     sb.AppendLine("$precision3 {0}_Z = UnpackNormal(SAMPLE_TEXTURE2D({1}, {2}, {0}_UV.xy));"
                         , GetVariableNameForNode()
                         , id
-                        , edgesSampler.Any() ? GetSlotValue(SamplerInputId, generationMode) : "sampler" + id);
+                        , samplerValue);
 
                     sb.AppendLine("{0}_X = $precision3({0}_X.xy + {1}.zy, abs({0}_X.z) * {1}.x);"
                         , GetVariableNameForNode()
@@ -141,17 +139,17 @@ namespace UnityEditor.ShaderGraph
                     sb.AppendLine("$precision4 {0}_X = SAMPLE_TEXTURE2D({1}, {2}, {0}_UV.zy);"
                         , GetVariableNameForNode()
                         , id
-                        , edgesSampler.Any() ? GetSlotValue(SamplerInputId, generationMode) : "sampler" + id);
+                        , samplerValue);
 
                     sb.AppendLine("$precision4 {0}_Y = SAMPLE_TEXTURE2D({1}, {2}, {0}_UV.xz);"
                         , GetVariableNameForNode()
                         , id
-                        , edgesSampler.Any() ? GetSlotValue(SamplerInputId, generationMode) : "sampler" + id);
+                        , samplerValue);
 
                     sb.AppendLine("$precision4 {0}_Z = SAMPLE_TEXTURE2D({1}, {2}, {0}_UV.xy);"
                         , GetVariableNameForNode()
                         , id
-                        , edgesSampler.Any() ? GetSlotValue(SamplerInputId, generationMode) : "sampler" + id);
+                        , samplerValue);
 
                     sb.AppendLine("$precision4 {0} = {1}_X * {1}_Blend.x + {1}_Y * {1}_Blend.y + {1}_Z * {1}_Blend.z;"
                         , GetVariableNameForSlot(OutputSlotId)

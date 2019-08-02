@@ -1,6 +1,4 @@
 using System;
-using System.Text;
-using UnityEditor.Graphing;
 using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
@@ -29,7 +27,7 @@ namespace UnityEditor.ShaderGraph
         
         public override string GetPropertyDeclarationString(string delimiter = ";")
         {
-            return $"TEXTURECUBE({referenceName}){delimiter} SAMPLER(sampler{referenceName}){delimiter}";
+            return $"TEXTURECUBE({referenceName}){delimiter}";
         }
 
         public override string GetPropertyAsArgumentString()

@@ -32,7 +32,7 @@ namespace UnityEditor.ShaderGraph
             AddSlot(new Vector4MaterialSlot(OutputSlotId, kOutputSlotName, kOutputSlotName, SlotType.Output, Vector4.zero, ShaderStageCapability.Fragment));
             AddSlot(new Texture3DInputMaterialSlot(TextureInputId, kTextureInputName, kTextureInputName));
             AddSlot(new Vector3MaterialSlot(UVInput, kUVInputName, kUVInputName, SlotType.Input, Vector3.zero));
-            AddSlot(new SamplerStateMaterialSlot(SamplerInput, kSamplerInputName, kSamplerInputName, SlotType.Input));
+            AddSlot(new SamplerStateMaterialSlot(SamplerInput, kSamplerInputName, kSamplerInputName, SlotType.Input) { textureSlotId = TextureInputId });
             RemoveSlotsNameNotMatching(new[] { OutputSlotId, TextureInputId, UVInput, SamplerInput });
         }
 
@@ -40,16 +40,12 @@ namespace UnityEditor.ShaderGraph
         public virtual void GenerateNodeCode(ShaderStringBuilder sb, GraphContext graphContext, GenerationMode generationMode)
         {
             var uvName = GetSlotValue(UVInput, generationMode);
-
-            //Sampler input slot
-            var samplerSlot = FindInputSlot<MaterialSlot>(SamplerInput);
-            var edgesSampler = owner.GetEdges(samplerSlot.slotReference);
-
             var id = GetSlotValue(TextureInputId, generationMode);
+
             var result = string.Format("$precision4 {0} = SAMPLE_TEXTURE3D({1}, {2}, {3});"
                     , GetVariableNameForSlot(OutputSlotId)
                     , id
-                    , edgesSampler.Any() ? GetSlotValue(SamplerInput, generationMode) : "sampler" + id
+                    , GetSlotValue(SamplerInput, generationMode)
                     , uvName);
 
             sb.AppendLine(result);

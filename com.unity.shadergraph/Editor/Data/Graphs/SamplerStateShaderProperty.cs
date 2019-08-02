@@ -1,7 +1,3 @@
-using System;
-using UnityEditor.Graphing;
-using UnityEngine;
-
 namespace UnityEditor.ShaderGraph
 {
     class SamplerStateShaderProperty : AbstractShaderProperty<TextureSamplerState>
@@ -23,7 +19,7 @@ namespace UnityEditor.ShaderGraph
             get => base.value;
             set
             {
-                overrideReferenceName = $"{concreteShaderValueType.ToShaderString()}_{value.filter}_{value.wrap}";
+                overrideReferenceName = GetBuiltinSamplerName(value.filter, value.wrap);
                 base.value = value;
             }
         }
@@ -32,6 +28,9 @@ namespace UnityEditor.ShaderGraph
         {
             return $"SAMPLER({referenceName}){delimiter}";
         }
+
+        public static string GetBuiltinSamplerName(TextureSamplerState.FilterMode filterMode, TextureSamplerState.WrapMode wrapMode)
+            => $"{PropertyType.SamplerState.ToConcreteShaderValueType().ToShaderString()}_{filterMode}_{wrapMode}";
 
         public override string GetPropertyAsArgumentString()
         {
