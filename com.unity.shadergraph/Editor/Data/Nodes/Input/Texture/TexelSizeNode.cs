@@ -1,13 +1,10 @@
-﻿using System.Linq;
-using UnityEngine;
 using UnityEditor.Graphing;
-using UnityEditor.ShaderGraph.Drawing.Controls;
 
 namespace UnityEditor.ShaderGraph
 {
 
     [Title("Input", "Texture", "Texel Size")]
-    class Texture2DPropertiesNode : AbstractMaterialNode, IGeneratesBodyCode, IMayRequireMeshUV
+    class Texture2DPropertiesNode : AbstractMaterialNode, IGeneratesBodyCode
     {
         public const int OutputSlotWId = 0;
         public const int OutputSlotHId = 2;
@@ -24,7 +21,6 @@ namespace UnityEditor.ShaderGraph
             UpdateNodeAfterDeserialization();
         }
 
-
         public sealed override void UpdateNodeAfterDeserialization()
         {
             AddSlot(new Vector1MaterialSlot(OutputSlotWId, kOutputSlotWName, kOutputSlotWName, SlotType.Output, 0, ShaderStageCapability.Fragment));
@@ -33,16 +29,22 @@ namespace UnityEditor.ShaderGraph
             RemoveSlotsNameNotMatching(new[] { OutputSlotWId, OutputSlotHId, TextureInputId });
         }
 
+        public override void CollectShaderProperties(PropertyCollector properties, GenerationMode generationMode)
+        {
+            properties.AddShaderProperty(new Vector4ShaderProperty()
+            {
+                overrideReferenceName = string.Format("{0}_TexelSize", GetSlotValue(TextureInputId, generationMode)),
+                generatePropertyBlock = false,
+            });
+
+            base.CollectShaderProperties(properties, generationMode);
+        }
+
         // Node generations
         public virtual void GenerateNodeCode(ShaderStringBuilder sb, GraphContext graphContext, GenerationMode generationMode)
         {
 			sb.AppendLine(string.Format("$precision {0} = {1}_TexelSize.z;", GetVariableNameForSlot(OutputSlotWId), GetSlotValue(TextureInputId, generationMode)));
 			sb.AppendLine(string.Format("$precision {0} = {1}_TexelSize.w;", GetVariableNameForSlot(OutputSlotHId), GetSlotValue(TextureInputId, generationMode)));
-        }
-
-        public bool RequiresMeshUV(UVChannel channel, ShaderStageCapability stageCapability)
-        {
-            return true;
         }
     }
 }

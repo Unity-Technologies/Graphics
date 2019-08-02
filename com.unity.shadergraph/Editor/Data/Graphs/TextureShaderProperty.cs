@@ -29,7 +29,7 @@ namespace UnityEditor.ShaderGraph
         
         public override string GetPropertyDeclarationString(string delimiter = ";")
         {
-            return $"TEXTURE2D({referenceName}){delimiter} {concretePrecision.ToShaderString()}4 {referenceName}_TexelSize{delimiter}";
+            return $"TEXTURE2D({referenceName}){delimiter}";
         }
 
         public override string GetPropertyAsArgumentString()
