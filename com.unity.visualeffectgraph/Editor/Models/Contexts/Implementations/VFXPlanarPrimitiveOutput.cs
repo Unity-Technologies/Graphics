@@ -15,10 +15,6 @@ namespace UnityEditor.VFX
         [VFXSetting, SerializeField]
         protected ShaderGraphVfxAsset shaderGraph;
 
-        public class OptionalInputProperties
-        {
-            public Texture2D mainTexture = VFXResources.defaultResources.particleTexture;
-        }
         protected VFXShaderGraphParticleOutput(bool strip = false) : base(strip) { }
         static Type GetSGPropertyType(AbstractShaderProperty property)
         {
@@ -81,11 +77,7 @@ namespace UnityEditor.VFX
             get
             {
                 IEnumerable<VFXPropertyWithValue> properties = base.inputProperties;
-                if (shaderGraph == null)
-                {
-                    properties = properties.Concat(PropertiesFromType("OptionalInputProperties"));
-                }
-                else
+                if (shaderGraph != null)
                 {
                     properties = properties.Concat(shaderGraph.properties
                         .Where(t => !t.hidden)
@@ -94,20 +86,6 @@ namespace UnityEditor.VFX
                         .Select(t => new VFXPropertyWithValue(new VFXProperty(t.type, t.property.displayName), GetSGPropertyValue(t.property))));
                 }
                 return properties;
-            }
-        }
-
-        protected override IEnumerable<VFXNamedExpression> CollectGPUExpressions(IEnumerable<VFXNamedExpression> slotExpressions)
-        {
-            foreach (var exp in base.CollectGPUExpressions(slotExpressions))
-                yield return exp;
-            if (shaderGraph == null)
-            {
-                yield return slotExpressions.First(o => o.name == "mainTexture");
-            }
-            else
-            {
-                //TODO
             }
         }
 
@@ -159,6 +137,12 @@ namespace UnityEditor.VFX
         }
         };
 
+        protected override IEnumerable<VFXNamedExpression> CollectGPUExpressions(IEnumerable<VFXNamedExpression> slotExpressions)
+        {
+            foreach (var exp in base.CollectGPUExpressions(slotExpressions))
+                yield return exp;
+        }
+
         public override IEnumerable<string> additionalDefines
         {
             get
@@ -169,15 +153,14 @@ namespace UnityEditor.VFX
                 if( shaderGraph != null)
                 {
                     yield return "VFX_SHADERGRAPH";
+                    RPInfo info = currentRP;
+                    foreach (var port in info.allPorts)
+                    {
+                        var portInfo = shaderGraph.GetOutput(port);
+                        if (!string.IsNullOrEmpty(portInfo.referenceName))
+                            yield return $"HAS_SHADERGRAPH_PARAM_{port.ToUpper()}";
+                    }
                 }
-                RPInfo info = currentRP;
-                foreach (var port in info.allPorts)
-                {
-                    var portInfo = shaderGraph.GetOutput(port);
-                    if (!string.IsNullOrEmpty(portInfo.referenceName))
-                        yield return $"HAS_SHADERGRAPH_PARAM_{port.ToUpper()}";
-                }
-
             }
         }
 
@@ -291,12 +274,19 @@ namespace UnityEditor.VFX
                     yield return new VFXAttributeInfo(VFXAttribute.TexIndex, VFXAttributeMode.Read);
             }
         }
+        public class OptionalInputProperties
+        {
+            public Texture2D mainTexture = VFXResources.defaultResources.particleTexture;
+        }
 
         protected override IEnumerable<VFXPropertyWithValue> inputProperties
         {
             get
             {
                 IEnumerable<VFXPropertyWithValue> properties = base.inputProperties;
+                if(shaderGraph == null)
+                    properties = properties.Concat(PropertiesFromType("OptionalInputProperties"));
+
                 if (primitiveType == VFXPrimitiveType.Octagon)
                     properties = properties.Concat(PropertiesFromType(typeof(VFXPlanarPrimitiveHelper.OctagonInputProperties)));
                 return properties;
@@ -307,6 +297,10 @@ namespace UnityEditor.VFX
         {
             foreach (var exp in base.CollectGPUExpressions(slotExpressions))
                 yield return exp;
+            if (shaderGraph == null)
+            {
+                yield return slotExpressions.First(o => o.name == "mainTexture");
+            }
             if (primitiveType == VFXPrimitiveType.Octagon)
                 yield return slotExpressions.First(o => o.name == "cropFactor");
         }

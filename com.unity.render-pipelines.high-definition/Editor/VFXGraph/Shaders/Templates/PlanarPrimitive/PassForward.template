@@ -89,6 +89,8 @@ ${VFXEnd}
 	#define SHADERPASS SHADERPASS_FORWARD
 	${VFXIncludeRP("VFXLit.template")}
 					
+    ${SHADERGRAPH_PIXEL_CODE_FORWARD}
+					
 	#pragma fragment frag
 	void frag(ps_input i
 	, out float4 outColor : SV_Target0
@@ -103,7 +105,35 @@ ${VFXEnd}
 		UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i);
 		VFXTransformPSInputs(i);
 		${VFXComputeNormalWS}
+        
+        #ifdef VFX_SHADERGRAPH
+            SurfaceData surface = (SurfaceData)0;
+            BuiltinData builtin = (BuiltinData)0;
+            
+            ${SHADERGRAPH_PIXEL_CALL_FORWARD}
+            #if HAS_SHADERGRAPH_PARAM_SMOOTHNESS
+                surface.perceptualSmoothness = OUTSG.${SHADERGRAPH_PARAM_SMOOTHNESS};
+            #endif
+            #if HAS_SHADERGRAPH_PARAM_METALLIC
+                surface.metallic = OUTSG.${SHADERGRAPH_PARAM_METALLIC};
+            #endif
+            #if HAS_SHADERGRAPH_PARAM_BASECOLOR
+                surface.baseColor = OUTSG.${SHADERGRAPH_PARAM_BASECOLOR};
+            #endif
+            
+            surface.normalWS = normalWS;
+            #if HAS_SHADERGRAPH_PARAM_ALPHA
+                builtin.opacity = OUTSG.${SHADERGRAPH_PARAM_ALPHA};
+            #endif
+            #if HAS_SHADERGRAPH_PARAM_EMISSIVE
+                builtin.emissiveColor = OUTSG.${SHADERGRAPH_PARAM_EMISSIVE};
+            #endif
+        
+            outColor = VFXGetPixelOutputForwardShaderGraph(surface, builtin,i);
+        #else
+        
 		outColor = VFXGetPixelOutputForward(i,normalWS,uvData);
+        #endif
 		
 #if WRITE_MOTION_VECTOR_IN_FORWARD
 		${VFXComputeOutputMotionVector}

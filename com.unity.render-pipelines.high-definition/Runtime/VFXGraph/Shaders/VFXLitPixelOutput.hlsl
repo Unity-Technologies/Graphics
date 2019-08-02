@@ -1,19 +1,11 @@
 #if (SHADERPASS == SHADERPASS_FORWARD)
-float4 VFXGetPixelOutputForward(const VFX_VARYING_PS_INPUTS i, float3 normalWS, const VFXUVData uvData)
+
+
+float4 VFXCalcPixelOutputForward(const SurfaceData surfaceData, const BuiltinData builtinData, const PreLightData preLightData, BSDFData bsdfData, const PositionInputs posInput, float3 posRWS)
 {
     float3 diffuseLighting;
     float3 specularLighting;
 
-    SurfaceData surfaceData;
-    BuiltinData builtinData;
-    BSDFData bsdfData;
-    PreLightData preLightData;
-
-    uint2 tileIndex = uint2(i.VFX_VARYING_POSCS.xy) / GetTileSize();
-    VFXGetHDRPLitData(surfaceData,builtinData,bsdfData,preLightData,i,normalWS,uvData,tileIndex);
-
-    float3 posRWS = VFXGetPositionRWS(i);
-    PositionInputs posInput = GetPositionInput(i.VFX_VARYING_POSCS.xy, _ScreenSize.zw, i.VFX_VARYING_POSCS.z, i.VFX_VARYING_POSCS.w, posRWS, tileIndex);
 
     #if IS_OPAQUE_PARTICLE
     uint featureFlags = LIGHT_FEATURE_MASK_FLAGS_OPAQUE;
@@ -85,6 +77,41 @@ float4 VFXGetPixelOutputForward(const VFX_VARYING_PS_INPUTS i, float3 normalWS, 
 
     return outColor;
 }
+
+#ifndef VFX_SHADERGRAPH
+
+float4 VFXGetPixelOutputForward(const VFX_VARYING_PS_INPUTS i, float3 normalWS, const VFXUVData uvData)
+{
+    SurfaceData surfaceData;
+    BuiltinData builtinData;
+    BSDFData bsdfData;
+    PreLightData preLightData;
+
+    uint2 tileIndex = uint2(i.VFX_VARYING_POSCS.xy) / GetTileSize();
+    VFXGetHDRPLitData(surfaceData,builtinData,bsdfData,preLightData,i,normalWS,uvData,tileIndex);
+    
+    float3 posRWS = VFXGetPositionRWS(i);
+	PositionInputs posInput = GetPositionInput(i.VFX_VARYING_POSCS.xy, _ScreenSize.zw, i.VFX_VARYING_POSCS.z, i.VFX_VARYING_POSCS.w, posRWS, tileIndex);
+    
+    return VFXCalcPixelOutputForward(surfaceData,builtinData,preLightData, bsdfData, posInput, posRWS);
+}
+#else
+float4 VFXGetPixelOutputForwardShaderGraph(const SurfaceData surfaceData, const BuiltinData builtinData,const VFX_VARYING_PS_INPUTS i)
+{
+    float3 posRWS = VFXGetPositionRWS(i);
+    PreLightData preLightData = (PreLightData)0;
+    BSDFData bsdfData = (BSDFData)0;
+
+	uint2 tileIndex = uint2(i.VFX_VARYING_POSCS.xy) / GetTileSize();
+
+	PositionInputs posInput = GetPositionInput(i.VFX_VARYING_POSCS.xy, _ScreenSize.zw, i.VFX_VARYING_POSCS.z, i.VFX_VARYING_POSCS.w, posRWS, tileIndex);
+
+	bsdfData = ConvertSurfaceDataToBSDFData(i.VFX_VARYING_POSCS.xy, surfaceData);
+	preLightData = GetPreLightData(GetWorldSpaceNormalizeViewDir(posRWS),posInput,bsdfData);
+    
+    return VFXCalcPixelOutputForward(surfaceData,builtinData,preLightData, bsdfData, posInput, posRWS);
+}
+#endif
 #else
 #define VFXComputePixelOutputToGBuffer(i,normalWS,uvData,outGBuffer) \
 { \
