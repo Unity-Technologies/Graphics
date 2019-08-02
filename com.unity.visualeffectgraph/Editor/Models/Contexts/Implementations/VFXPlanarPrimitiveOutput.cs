@@ -146,38 +146,18 @@ namespace UnityEditor.VFX
         protected RPInfo hdrpInfo = new RPInfo
         {
             passInfos = new Dictionary<string, PassInfo>() {
-            { "Forward",new PassInfo()  { vertexPorts = new string[]{"position"},pixelPorts = new string[]{ "baseColor", "alpha", "metallic", "smoothness"} } },
-            { "DepthOnly",new PassInfo()  { vertexPorts = new string[]{"position"},pixelPorts = new string[]{ "alpha" } } }
+            { "Forward",new PassInfo()  { vertexPorts = new string[]{"Position"},pixelPorts = new string[]{ "Emissive", "Alpha"} } },
+            { "DepthOnly",new PassInfo()  { vertexPorts = new string[]{"Position"},pixelPorts = new string[]{ "Alpha" } } }
         }
         };
         protected RPInfo hdrpLitInfo = new RPInfo
         {
             passInfos = new Dictionary<string, PassInfo>() {
-            { "GBuffer",new PassInfo()  { vertexPorts = new string[]{"position"},pixelPorts = new string[]{ "baseColor", "alpha", "metallic", "smoothness"} } },
-            { "Forward",new PassInfo()  { vertexPorts = new string[]{"position"},pixelPorts = new string[]{ "baseColor", "alpha", "metallic", "smoothness"} } },
-            { "DepthOnly",new PassInfo()  { vertexPorts = new string[]{"position"},pixelPorts = new string[]{ "alpha" } } }
+            { "GBuffer",new PassInfo()  { vertexPorts = new string[]{"Position"},pixelPorts = new string[]{ "BaseColor", "Alpha", "Metallic", "Smoothness","Emissive" } } },
+            { "Forward",new PassInfo()  { vertexPorts = new string[]{"Position"},pixelPorts = new string[]{ "BaseColor", "Alpha", "Metallic", "Smoothness", "Emissive" } } },
+            { "DepthOnly",new PassInfo()  { vertexPorts = new string[]{"Position"},pixelPorts = new string[]{ "Alpha" } } }
         }
         };
-
-
-        static Dictionary<string, PropertyInfo> s_OutputFromName = new Dictionary<string, PropertyInfo>();
-
-        OutputMetadata GetOutput(string name)
-        {
-            PropertyInfo info;
-            if( !s_OutputFromName.TryGetValue(name,out info))
-            {
-                info = typeof(ShaderGraphVfxAsset).GetProperty(name+"Output",BindingFlags.Public|BindingFlags.Instance|BindingFlags.FlattenHierarchy);
-                s_OutputFromName[name] = info;
-            }
-
-            if( info == null)
-            {
-                throw new NotSupportedException("Can not find output property for " + name);
-            }
-
-            return (OutputMetadata)info.GetValue(shaderGraph);
-        }
 
         public override IEnumerable<string> additionalDefines
         {
@@ -189,6 +169,13 @@ namespace UnityEditor.VFX
                 if( shaderGraph != null)
                 {
                     yield return "VFX_SHADERGRAPH";
+                }
+                RPInfo info = currentRP;
+                foreach (var port in info.allPorts)
+                {
+                    var portInfo = shaderGraph.GetOutput(port);
+                    if (!string.IsNullOrEmpty(portInfo.referenceName))
+                        yield return $"HAS_SHADERGRAPH_PARAM_{port.ToUpper()}";
                 }
 
             }
@@ -213,16 +200,16 @@ namespace UnityEditor.VFX
 
                     foreach( var port in info.allPorts)
                     {
-                        var portInfo = GetOutput(port);
-                        yield return new KeyValuePair<string, VFXShaderWriter>($"${{SHADERGRAPH_PARAM_{port.ToUpper()}}}", new VFXShaderWriter($"{portInfo.referenceName}_{portInfo.index}"));
+                        var portInfo = shaderGraph.GetOutput(port);
+                        if( ! string.IsNullOrEmpty(portInfo.referenceName))
+                            yield return new KeyValuePair<string, VFXShaderWriter>($"${{SHADERGRAPH_PARAM_{port.ToUpper()}}}", new VFXShaderWriter($"{portInfo.referenceName}_{portInfo.index}"));
                     }
 
                     foreach (var kvPass in info.passInfos)
                     {
-                        GraphCode graphCode = shaderGraph.GetCode(kvPass.Value.pixelPorts.Select(t => GetOutput(t)).ToArray());
+                        GraphCode graphCode = shaderGraph.GetCode(kvPass.Value.pixelPorts.Select(t => shaderGraph.GetOutput(t)).Where(t=>!string.IsNullOrEmpty(t.referenceName)).ToArray());
 
                         yield return new KeyValuePair<string, VFXShaderWriter>("${SHADERGRAPH_PIXEL_CODE_" + kvPass.Key.ToUpper()+"}", new VFXShaderWriter(graphCode.code));
-
 
                         var callSG = new VFXShaderWriter("//Call Shader Graph\n");
                         callSG.builder.AppendLine($"{shaderGraph.inputStructName} INSG;");

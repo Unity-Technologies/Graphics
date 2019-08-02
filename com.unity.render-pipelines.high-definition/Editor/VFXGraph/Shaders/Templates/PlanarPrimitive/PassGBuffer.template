@@ -95,13 +95,23 @@ ${VFXEnd}
             BuiltinData builtin = (BuiltinData)0;
             
             ${SHADERGRAPH_PIXEL_CALL_GBUFFER}
+            #if HAS_SHADERGRAPH_PARAM_SMOOTHNESS
+                surface.perceptualSmoothness = OUTSG.${SHADERGRAPH_PARAM_SMOOTHNESS};
+            #endif
+            #if HAS_SHADERGRAPH_PARAM_METALLIC
+                surface.metallic = OUTSG.${SHADERGRAPH_PARAM_METALLIC};
+            #endif
+            #if HAS_SHADERGRAPH_PARAM_BASECOLOR
+                surface.baseColor = OUTSG.${SHADERGRAPH_PARAM_BASECOLOR};
+            #endif
             
-            surface.perceptualSmoothness = OUTSG.${SHADERGRAPH_PARAM_SMOOTHNESS};
-            surface.metallic = OUTSG.${SHADERGRAPH_PARAM_METALLIC};
-            surface.baseColor = OUTSG.${SHADERGRAPH_PARAM_BASECOLOR};
             surface.normalWS = normalWS;
-            builtin.opacity = OUTSG.${SHADERGRAPH_PARAM_ALPHA};
-            
+            #if HAS_SHADERGRAPH_PARAM_ALPHA
+                builtin.opacity = OUTSG.${SHADERGRAPH_PARAM_ALPHA};
+            #endif
+            #if HAS_SHADERGRAPH_PARAM_EMISSIVE
+                builtin.emissiveColor = OUTSG.${SHADERGRAPH_PARAM_EMISSIVE};
+            #endif
         
             ENCODE_INTO_GBUFFER(surface, builtin, i.VFX_VARYING_POSCS.xy, outGBuffer);
         #else
