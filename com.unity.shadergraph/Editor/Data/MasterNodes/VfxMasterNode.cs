@@ -24,6 +24,9 @@ namespace UnityEditor.ShaderGraph
         public const string AlphaSlotName = "Alpha";
         public const int AlphaSlotId = 4;
 
+        public const string EmissiveSlotName = "Emissive";
+        public const int EmissiveSlotId = 5;
+
         public VfxMasterNode()
         {
             UpdateNodeAfterDeserialization();
@@ -40,6 +43,7 @@ namespace UnityEditor.ShaderGraph
             AddSlot(new Vector1MaterialSlot(MetallicSlotId, MetallicSlotName, MetallicSlotName, SlotType.Input, 0.5f, ShaderStageCapability.Fragment));
             AddSlot(new Vector1MaterialSlot(SmoothnessSlotId, SmoothnessSlotName, SmoothnessSlotName, SlotType.Input, 0.5f, ShaderStageCapability.Fragment));
             AddSlot(new Vector1MaterialSlot(AlphaSlotId, AlphaSlotName, AlphaSlotName, SlotType.Input, 1, ShaderStageCapability.Fragment));
+            AddSlot(new ColorRGBMaterialSlot(EmissiveSlotId, EmissiveSlotName, NodeUtils.GetHLSLSafeName(EmissiveSlotName), SlotType.Input, Color.black, ColorMode.Default, ShaderStageCapability.Fragment));
 
             RemoveSlotsNameNotMatching(new[]
             {
@@ -47,7 +51,8 @@ namespace UnityEditor.ShaderGraph
                 BaseColorSlotId,
                 MetallicSlotId,
                 SmoothnessSlotId,
-                AlphaSlotId
+                AlphaSlotId,
+                EmissiveSlotId
             });
         }
 

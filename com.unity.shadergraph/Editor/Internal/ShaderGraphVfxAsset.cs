@@ -15,21 +15,6 @@ namespace UnityEditor.ShaderGraph.Internal
         internal ShaderGraphRequirements[] portRequirements;
 
         [SerializeField]
-        OutputMetadata m_PositionOutput;
-
-        [SerializeField]
-        OutputMetadata m_BaseColorOutput;
-
-        [SerializeField]
-        OutputMetadata m_MetallicOutput;
-
-        [SerializeField]
-        OutputMetadata m_SmoothnessOutput;
-
-        [SerializeField]
-        OutputMetadata m_AlphaOutput;
-
-        [SerializeField]
         string m_EvaluationFunctionName;
 
         [SerializeField]
@@ -56,34 +41,17 @@ namespace UnityEditor.ShaderGraph.Internal
             set => m_ConcretePrecision = value;
         }
 
-        public OutputMetadata positionOutput
+        [SerializeField]
+        OutputMetadata[] m_Outputs;
+
+        internal void SetOutputs(OutputMetadata[] outputs)
         {
-            get => m_PositionOutput;
-            internal set => m_PositionOutput = value;
+            m_Outputs = outputs;
         }
 
-        public OutputMetadata baseColorOutput
+        public OutputMetadata GetOutput(string name)
         {
-            get => m_BaseColorOutput;
-            internal set => m_BaseColorOutput = value;
-        }
-
-        public OutputMetadata metallicOutput
-        {
-            get => m_MetallicOutput;
-            internal set => m_MetallicOutput = value;
-        }
-
-        public OutputMetadata smoothnessOutput
-        {
-            get => m_SmoothnessOutput;
-            internal set => m_SmoothnessOutput = value;
-        }
-
-        public OutputMetadata alphaOutput
-        {
-            get => m_AlphaOutput;
-            internal set => m_AlphaOutput = value;
+            return m_Outputs.FirstOrDefault(t => t.referenceName == name);
         }
 
         public string evaluationFunctionName

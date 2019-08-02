@@ -506,20 +506,7 @@ Shader ""Hidden/GraphErrorShader2""
                 result.outputCodeIndices[i] = portCodeIndices[i].ToArray();
             }
 
-            var positionPort = ports.First(x => x.id == VfxMasterNode.PositionSlotId);
-            asset.positionOutput = new OutputMetadata(ports.IndexOf(positionPort), positionPort.shaderOutputName);
-
-            var baseColorPort = ports.First(x => x.id == VfxMasterNode.BaseColorSlotId);
-            asset.baseColorOutput = new OutputMetadata(ports.IndexOf(baseColorPort), baseColorPort.shaderOutputName);
-
-            var metallicPort = ports.First(x => x.id == VfxMasterNode.MetallicSlotId);
-            asset.metallicOutput = new OutputMetadata(ports.IndexOf(metallicPort), metallicPort.shaderOutputName);
-
-            var smoothnessPort = ports.First(x => x.id == VfxMasterNode.SmoothnessSlotId);
-            asset.smoothnessOutput = new OutputMetadata(ports.IndexOf(smoothnessPort), smoothnessPort.shaderOutputName);
-
-            var alphaPort = ports.First(x => x.id == VfxMasterNode.AlphaSlotId);
-            asset.alphaOutput = new OutputMetadata(ports.IndexOf(alphaPort), alphaPort.shaderOutputName);
+            asset.SetOutputs(ports.Select((t, i) => new OutputMetadata(i, t.shaderOutputName)).ToArray());
 
             asset.evaluationFunctionName = evaluationFunctionName;
             asset.inputStructName = inputStructName;
