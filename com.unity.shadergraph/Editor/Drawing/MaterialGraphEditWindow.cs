@@ -589,7 +589,14 @@ namespace UnityEditor.ShaderGraph.Drawing
                     assetName = asset.name.Split('/').Last()
                 };
 
-                titleContent = new GUIContent(asset.name.Split('/').Last());
+                Texture2D icon = Resources.Load<Texture2D>("Icons/sg_graph_icon@16");
+                if (isSubGraph)
+                {
+                    icon = Resources.Load<Texture2D>("Icons/sg_subgraph_icon@16");
+                }
+
+                // This is adding the icon at the front of the tab
+                titleContent = EditorGUIUtility.TrTextContentWithIcon(asset.name.Split('/').Last(), icon);
 
                 Repaint();
             }
