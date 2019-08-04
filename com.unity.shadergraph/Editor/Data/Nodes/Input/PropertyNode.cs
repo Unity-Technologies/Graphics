@@ -6,7 +6,7 @@ using UnityEditor.Graphing;
 namespace UnityEditor.ShaderGraph
 {
     [Title("Input", "Property")]
-    class PropertyNode : AbstractMaterialNode, IGeneratesBodyCode, IOnAssetEnabled
+    class PropertyNode : AbstractMaterialNode, IGeneratesBodyCode, IOnAssetEnabled, IDifferentiable
     {
         public PropertyNode()
         {
@@ -207,6 +207,36 @@ namespace UnityEditor.ShaderGraph
             base.OnAfterDeserialize();
             if (!string.IsNullOrEmpty(m_PropertyGuidSerialized))
                 m_PropertyGuid = new Guid(m_PropertyGuidSerialized);
+        }
+
+        public Derivative GetDerivative(int outputSlotId)
+        {
+            if (outputSlotId != OutputSlotId)
+                throw new ArgumentOutOfRangeException("outputSlotId");
+
+            var property = shaderProperty;
+            switch (property.propertyType)
+            {
+                case PropertyType.Color:
+                case PropertyType.Gradient:
+                case PropertyType.Boolean:
+                case PropertyType.Vector1:
+                case PropertyType.Vector2:
+                case PropertyType.Vector3:
+                case PropertyType.Vector4:
+                case PropertyType.Matrix2:
+                case PropertyType.Matrix3:
+                case PropertyType.Matrix4:
+                    return new Derivative() { FuncVariableInputSlotIds = new int[0], Function = genMode => "0" };
+
+                case PropertyType.Texture2D:
+                case PropertyType.Texture2DArray:
+                case PropertyType.Texture3D:
+                case PropertyType.Cubemap:
+                case PropertyType.SamplerState:
+                default:
+                    return default(Derivative);
+            }
         }
     }
 }

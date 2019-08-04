@@ -4,7 +4,7 @@ using UnityEngine;
 namespace UnityEditor.ShaderGraph
 {
     [Title("UV", "Tiling And Offset")]
-    class TilingAndOffsetNode : CodeFunctionNode
+    class TilingAndOffsetNode : CodeFunctionNode, IDifferentiable
     {
         public TilingAndOffsetNode()
         {
@@ -30,6 +30,18 @@ namespace UnityEditor.ShaderGraph
     Out = UV * Tiling + Offset;
 }
 ";
+        }
+
+        public Derivative GetDerivative(int outputSlotId)
+        {
+            if (outputSlotId != 3)
+                throw new System.ArgumentException("outputSlotId");
+
+            return new Derivative()
+            {
+                FuncVariableInputSlotIds = new[] { 0, 1, 2 },
+                Function = genMode => $"{GetSlotValue(1, genMode)} * {{0}} + {GetSlotValue(0, genMode)} * {{1}} + {{2}}",
+            };
         }
     }
 }

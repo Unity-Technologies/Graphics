@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using System.Collections.Generic;
 using UnityEditor.Graphing;
@@ -36,6 +37,15 @@ namespace UnityEditor.ShaderGraph
 
         [SerializeField]
         private int m_SplatCount = 4;
+
+        [SerializeField]
+        private bool m_Conditional = false;
+
+        public bool Conditional
+        {
+            get => m_Conditional;
+            set => m_Conditional = value;
+        }
 
         public override IEnumerable<ISlot> GetInputSlotsForGraphGeneration()
         {
@@ -87,37 +97,145 @@ namespace UnityEditor.ShaderGraph
         {
             public AbstractMaterialNode Node;
             public bool SplatDependent;
+            public HashSet<int> DifferentiateOutputSlots;
         }
 
-        private struct SpaltGraphInput
+        private struct SplatGraphInput
         {
-            public ConcreteSlotValueType VariableType;
             public string VariableName;
+            public string VariableType;
             public bool SplatProperty;
 
             // TODO: more general hashing
             public override int GetHashCode()
-                => VariableType.GetHashCode() * 23 + VariableName.GetHashCode();
+                => VariableName.GetHashCode() * 23 + VariableType.GetHashCode();
+        }
+
+        private struct SplatGraphInputDerivatives
+        {
+            public string VariableName;
+            public string VariableType;
+            public Func<GenerationMode, string> VariableValue;
         }
 
         private class SplatGraph
         {
             public IReadOnlyList<SplatGraphNode> Nodes;
-            public IReadOnlyList<SpaltGraphInput> SplatFunctionInputs;
+            public IReadOnlyList<SplatGraphInput> SplatFunctionInputs;
+            public IReadOnlyList<SplatGraphInputDerivatives> InputDerivatives;
         }
 
         private SplatGraph m_SplatGraph;
 
-        private bool CompileSplatGraph(ref string errorMessage)
+        private bool FindSplatGraphNode(AbstractMaterialNode node, IReadOnlyList<SplatGraphNode> splatNodes, out SplatGraphNode result)
+        {
+            foreach (var i in splatNodes)
+            {
+                if (i.Node == node)
+                {
+                    result = i;
+                    return true;
+                }
+            }
+
+            result = default(SplatGraphNode);
+            return false;
+        }
+
+        private bool RecurseBuildDifferentialFunction(MaterialSlot inputSlot, List<SplatGraphNode> splatNodes, Dictionary<string, SplatGraphInputDerivatives> inputDerivatives, HashSet<string> differentiateSlots)
+        {
+            var varName = inputSlot.owner.GetVariableNameForSlot(inputSlot.id);
+            if (inputDerivatives.ContainsKey(varName) || differentiateSlots.Contains(varName))
+                return true; // this one has been solved.
+
+            var varType = inputSlot.concreteValueType.ToShaderString(inputSlot.owner.concretePrecision);
+
+            var edge = owner.GetEdges(inputSlot.slotReference).FirstOrDefault();
+            if (edge == null)
+            {
+                var defaultDerivative = inputSlot.GetDefaultValueDerivative();
+                if (defaultDerivative != "0")
+                {
+                    inputDerivatives[defaultDerivative] = new SplatGraphInputDerivatives()
+                    {
+                        VariableName = defaultDerivative,
+                        VariableType = varType,
+                        VariableValue = genMode => inputSlot.owner.GetSlotValue(inputSlot.id, genMode)
+                    };
+                }
+                return true;
+            }
+
+            var outputNode = owner.GetNodeFromGuid(edge.outputSlot.nodeGuid);
+            if (outputNode == null)
+            {
+                owner.AddValidationError(inputSlot.owner.tempId, $"Internal error: Cannot traverse along input slot {inputSlot.id}");
+                return false;
+            }
+
+            var splatNodeIndex = splatNodes.FindIndex(n => n.Node == outputNode);
+            if (splatNodeIndex == -1)
+            {
+                owner.AddValidationError(outputNode.tempId, $"Internal error: the node is not collected by the splat graph.");
+                return false;
+            }
+            var splatNode = splatNodes[splatNodeIndex];
+            if (!splatNode.SplatDependent)
+            {
+                // when we encounter a non-splat dependent node:
+                // take the derivative, and stop chaining the inputs because they are inputs to the Splat function.
+                inputDerivatives[varName] = new SplatGraphInputDerivatives()
+                {
+                    VariableName = varName,
+                    VariableType = varType,
+                    VariableValue = genMode => inputSlot.owner.GetSlotValue(inputSlot.id, genMode)
+                };
+                return true;
+            }
+
+            // Otherwise: apply the chainning rule to get a function of the derivatives of the inputs.
+            // The node must be differentiable.
+            var differentiable = outputNode as IDifferentiable;
+            var derivative = differentiable?.GetDerivative(edge.outputSlot.slotId) ?? default(Derivative);
+            if (derivative.FuncVariableInputSlotIds == null)
+            {
+                owner.AddValidationError(outputNode.tempId, $"Conditional texture sampling requires the node to be differentiable");
+                return false;
+            }
+
+            for (int i = 0; i < derivative.FuncVariableInputSlotIds.Count; ++i)
+            {
+                var inputSlotId = derivative.FuncVariableInputSlotIds[i];
+                var outputNodeInputSlot = outputNode.FindInputSlot<MaterialSlot>(inputSlotId);
+                if (outputNodeInputSlot == null)
+                {
+                    owner.AddValidationError(outputNode.tempId, $"Internal error: Cannot find Slot {inputSlotId}");
+                    return false;
+                }
+
+                if (!RecurseBuildDifferentialFunction(outputNodeInputSlot, splatNodes, inputDerivatives, differentiateSlots))
+                    return false;
+            }
+
+            splatNode.DifferentiateOutputSlots.Add(edge.outputSlot.slotId);
+            differentiateSlots.Add(varName);
+            return true;
+        }
+
+        private void ClearCompiledSplatGraph()
         {
             m_SplatGraph = null;
+        }
 
+        private bool CompileSplatGraph()
+        {
             var splatGraphNodes = new List<AbstractMaterialNode>();
             NodeUtils.DepthFirstCollectNodesFromNode(splatGraphNodes, this, NodeUtils.IncludeSelf.Exclude, EnumerateSplatInputSlots().Select(slot => slot.id).ToList());
 
             // Determine for each node if it's dependent on the splat properties.
             var splatDependent = new bool[splatGraphNodes.Count];
-            var splatFunctionInputs = new HashSet<SpaltGraphInput>(); // gather the output slots of splat properties and non-splat inputs
+            var splatFunctionInputs = new HashSet<SplatGraphInput>(); // gather the output slots of splat properties and non-splat inputs
+            var varToDifferentiate = new HashSet<MaterialSlot>();
             for (int i = 0; i < splatGraphNodes.Count; ++i)
             {
                 var node = splatGraphNodes[i];
@@ -126,10 +244,10 @@ namespace UnityEditor.ShaderGraph
                     if (propertyNode.shaderProperty is ISplattableShaderProperty splatProperty && splatProperty.splat)
                     {
                         splatDependent[i] = true;
-                        splatFunctionInputs.Add(new SpaltGraphInput()
+                        splatFunctionInputs.Add(new SplatGraphInput()
                         {
-                            VariableType = propertyNode.shaderProperty.concreteShaderValueType,
                             VariableName = propertyNode.GetVariableNameForSlot(PropertyNode.OutputSlotId),
+                            VariableType = propertyNode.shaderProperty.concreteShaderValueType.ToShaderString(propertyNode.concretePrecision),
                             SplatProperty = true
                         });
                     }
@@ -155,6 +273,12 @@ namespace UnityEditor.ShaderGraph
                         outputNode?.FindOutputSlot<MaterialSlot>(edge.outputSlot.slotId));
                 }
 
+                if (Conditional && node is IMayRequireDerivatives requireDerivatives)
+                {
+                    foreach (var slotId in requireDerivatives.GetDifferentiatingInputSlotIds())
+                        varToDifferentiate.Add(node.FindInputSlot<MaterialSlot>(slotId));
+                }
+
                 splatDependent[i] = outputSlots.Any(v => v.splatDependent);
                 if (splatDependent[i])
                 {
@@ -162,10 +286,10 @@ namespace UnityEditor.ShaderGraph
                     {
                         if (!splat && slot != null)
                         {
-                            splatFunctionInputs.Add(new SpaltGraphInput()
+                            splatFunctionInputs.Add(new SplatGraphInput()
                             {
-                                VariableType = slot.concreteValueType,
                                 VariableName = node.GetVariableNameForSlot(slot.id),
+                                VariableType = slot.concreteValueType.ToShaderString(slot.owner.concretePrecision),
                                 SplatProperty = false
                             });
                         }
@@ -179,20 +303,29 @@ namespace UnityEditor.ShaderGraph
                 graphNodes.Add(new SplatGraphNode()
                 {
                     Node = splatGraphNodes[i],
-                    SplatDependent = splatDependent[i]
+                    SplatDependent = splatDependent[i],
+                    DifferentiateOutputSlots = new HashSet<int>()
                 });
             }
+
+            var inputDerivatives = new Dictionary<string, SplatGraphInputDerivatives>();
+            var differentiateSlots = new HashSet<string>();
+            foreach (var diffSlot in varToDifferentiate)
+                RecurseBuildDifferentialFunction(diffSlot, graphNodes, inputDerivatives, differentiateSlots);
 
             m_SplatGraph = new SplatGraph()
             {
                 Nodes = graphNodes,
-                SplatFunctionInputs = splatFunctionInputs.ToList()
+                SplatFunctionInputs = splatFunctionInputs.ToList(),
+                InputDerivatives = inputDerivatives.Values.ToList()
             };
-            return false;
+            return true;
         }
 
         public override void ValidateNode()
         {
+            ClearCompiledSplatGraph();
+
             // AbstractMaterialNode takes all input dynamic vector slots and figure out one unified concrete type for all.
             // Splat inputs are all independent and we simply take the concrete type of the input slot and duplicate onto the corresponding output slot.
             hasError = false;
@@ -241,11 +374,14 @@ namespace UnityEditor.ShaderGraph
             var errorMessage = k_validationErrorMessage;
             hasError = CalculateNodeHasError(ref errorMessage) || hasError;
             hasError = ValidateConcretePrecision(ref errorMessage) || hasError;
-            hasError = CompileSplatGraph(ref errorMessage) || hasError;
 
             if (hasError)
+            {
                 owner.AddValidationError(tempId, errorMessage);
-            else
+                return;
+            }
+
+            if (CompileSplatGraph())
                 ++version;
         }
 
@@ -262,6 +398,12 @@ namespace UnityEditor.ShaderGraph
                     bodyCode.GenerateNodeCode(sb, graphContext, generationMode);
                     sb.ReplaceInCurrentMapping(PrecisionUtil.Token, node.Node.concretePrecision.ToShaderString());
                 }
+            }
+
+            foreach (var derivative in m_SplatGraph.InputDerivatives)
+            {
+                sb.AppendLine($"{derivative.VariableType} ddx_{derivative.VariableName} = ddx({derivative.VariableValue(generationMode)});");
+                sb.AppendLine($"{derivative.VariableType} ddy_{derivative.VariableName} = ddy({derivative.VariableValue(generationMode)});");
             }
 
             for (int i = 0; i < m_SplatCount; ++i)
@@ -284,6 +426,8 @@ namespace UnityEditor.ShaderGraph
                         varName = $"{varName.Substring(0, varName.Length - 1)}{i}";
                     sb.Append($", {varName}");
                 }
+                foreach (var derivative in m_SplatGraph.InputDerivatives)
+                    sb.Append($", ddx_{derivative.VariableName}, ddy_{derivative.VariableName}");
                 foreach (var slot in EnumerateSplatOutputSlots())
                     sb.Append($", {GetVariableNameForSlot(slot.id)}_splat{i}");
                 sb.Append(");");
@@ -316,6 +460,9 @@ namespace UnityEditor.ShaderGraph
             if (m_SplatGraph == null)
                 return;
 
+            if (m_Conditional && !graphContext.conditional)
+                graphContext = new GraphContext(graphContext.graphInputStructName, m_Conditional);
+
             // Generate global functions from splat graph.
             foreach (var node in m_SplatGraph.Nodes)
             {
@@ -331,7 +478,9 @@ namespace UnityEditor.ShaderGraph
             var splatFunction = new ShaderStringBuilder();
             splatFunction.Append($"void SplatFunction_{GetVariableNameForNode()}({graphContext.graphInputStructName} IN");
             foreach (var splatInput in m_SplatGraph.SplatFunctionInputs)
-                splatFunction.Append($", {splatInput.VariableType.ToShaderString(concretePrecision)} {splatInput.VariableName}");
+                splatFunction.Append($", {splatInput.VariableType} {splatInput.VariableName}");
+            foreach (var d in m_SplatGraph.InputDerivatives)
+                splatFunction.Append($", {d.VariableType} ddx_{d.VariableName}, {d.VariableType} ddy_{d.VariableName}");
             foreach (var slot in EnumerateSplatInputSlots())
                 splatFunction.Append($", out {slot.concreteValueType.ToShaderString(concretePrecision)} outSplat{(slot.id - kSplatInputSlotIdStart) / 2}");
             splatFunction.AppendLine(")");
@@ -339,17 +488,42 @@ namespace UnityEditor.ShaderGraph
             {
                 foreach (var node in m_SplatGraph.Nodes)
                 {
+                    splatFunction.currentNode = node.Node;
+
                     if (node.SplatDependent && node.Node is IGeneratesBodyCode bodyNode)
-                    {
-                        splatFunction.currentNode = node.Node;
                         bodyNode.GenerateNodeCode(splatFunction, graphContext, generationMode);
-                        splatFunction.ReplaceInCurrentMapping(PrecisionUtil.Token, node.Node.concretePrecision.ToShaderString());
+
+                    var differentiable = node.Node as IDifferentiable;
+                    foreach (var differentiateSlot in node.DifferentiateOutputSlots)
+                    {
+                        var derivative = differentiable.GetDerivative(differentiateSlot);
+                        var funcVars = new (string ddx, string ddy)[derivative.FuncVariableInputSlotIds.Count];
+                        for (int i = 0; i < derivative.FuncVariableInputSlotIds.Count; ++i)
+                        {
+                            var inputSlotId = derivative.FuncVariableInputSlotIds[i];
+                            var inputSlot = node.Node.FindInputSlot<MaterialSlot>(inputSlotId);
+                            var (value, ddx, ddy) = node.Node.GetSlotValueWithDerivative(inputSlotId, generationMode);
+                            funcVars[i] = (ddx, ddy);
+                        }
+                        var outputSlot = node.Node.FindOutputSlot<MaterialSlot>(differentiateSlot);
+                        var typeString = outputSlot.concreteValueType.ToShaderString(node.Node.concretePrecision);
+                        var ddxVar = $"ddx_{node.Node.GetVariableNameForSlot(differentiateSlot)} = {string.Format(derivative.Function(generationMode), funcVars.Select(v => v.ddx).ToArray())}";
+                        var ddyVar = $"ddy_{node.Node.GetVariableNameForSlot(differentiateSlot)} = {string.Format(derivative.Function(generationMode), funcVars.Select(v => v.ddy).ToArray())}";
+                        if (ddxVar.Length > 60)
+                        {
+                            splatFunction.AppendLine($"{typeString} {ddxVar};");
+                            splatFunction.AppendLine($"{typeString} {ddyVar};");
+                        }
+                        else
+                            splatFunction.AppendLine($"{typeString} {ddxVar}, {ddyVar};");
                     }
+
+                    splatFunction.ReplaceInCurrentMapping(PrecisionUtil.Token, node.Node.concretePrecision.ToShaderString());
                 }
                 foreach (var slot in EnumerateSplatInputSlots())
                     splatFunction.AppendLine($"outSplat{(slot.id - kSplatInputSlotIdStart) / 2} = {GetSlotValue(slot.id, generationMode)};");
             }
-            registry.ProvideFunction("SplatFunction", s => s.Concat(splatFunction));
+            registry.ProvideFunction($"SplatFunction_{GetVariableNameForNode()}", s => s.Concat(splatFunction));
         }
 
         public override void CollectPreviewMaterialProperties(List<PreviewProperty> properties)

@@ -1,13 +1,10 @@
-using System.Collections.Generic;
-using System.Linq;
-using UnityEditor.ShaderGraph.Drawing.Controls;
 using UnityEngine;
 using UnityEditor.Graphing;
 
 namespace UnityEditor.ShaderGraph
 {
     [Title("Input", "Basic", "Vector 2")]
-    class Vector2Node : AbstractMaterialNode, IGeneratesBodyCode, IPropertyFromNode
+    class Vector2Node : AbstractMaterialNode, IGeneratesBodyCode, IPropertyFromNode, IDifferentiable
     {
         [SerializeField]
         private Vector2 m_Value = Vector2.zero;
@@ -57,5 +54,17 @@ namespace UnityEditor.ShaderGraph
         }
 
         int IPropertyFromNode.outputSlotId { get { return OutputSlotId; } }
+
+        public Derivative GetDerivative(int outputSlotId)
+        {
+            if (outputSlotId != OutputSlotId)
+                throw new System.ArgumentException("outputSlotId");
+
+            return new Derivative
+            {
+                FuncVariableInputSlotIds = new[] { InputSlotXId, InputSlotYId },
+                Function = genMode => "$precision2({0}, {1})"
+            };
+        }
     }
 }

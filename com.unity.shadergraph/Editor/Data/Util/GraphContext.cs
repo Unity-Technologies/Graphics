@@ -1,21 +1,14 @@
-using System;
-using UnityEngine;
-
 namespace UnityEditor.ShaderGraph
 {
     class GraphContext
     {
-        public GraphContext(string inputStructName)
+        public readonly string graphInputStructName;
+        public readonly bool conditional;
+
+        public GraphContext(string inputStructName, bool conditional = false)
         {
             graphInputStructName = inputStructName;
+            this.conditional = conditional;
         }
-
-        public string graphInputStructName
-        {
-            get { return m_GraphInputStructName; }
-            set { m_GraphInputStructName = value; }
-        }
-
-        string m_GraphInputStructName;
     }
 }

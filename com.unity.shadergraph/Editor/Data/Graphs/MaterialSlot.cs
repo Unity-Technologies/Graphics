@@ -275,10 +275,11 @@ namespace UnityEditor.ShaderGraph
             return ConcreteSlotValueAsVariable();
         }
 
+        public virtual string GetDefaultValueDerivative()
+            => "0";
+
         protected virtual string ConcreteSlotValueAsVariable()
-        {
-            return "error";
-        }
+            => "error";
 
         public abstract void AddDefaultProperty(PropertyCollector properties, GenerationMode generationMode);
 

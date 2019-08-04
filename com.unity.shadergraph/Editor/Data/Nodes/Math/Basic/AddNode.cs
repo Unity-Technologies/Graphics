@@ -3,7 +3,7 @@ using System.Reflection;
 namespace UnityEditor.ShaderGraph
 {
     [Title("Math", "Basic", "Add")]
-    class AddNode : CodeFunctionNode
+    class AddNode : CodeFunctionNode, IDifferentiable
     {
         public AddNode()
         {
@@ -26,6 +26,18 @@ namespace UnityEditor.ShaderGraph
     Out = A + B;
 }
 ";
+        }
+
+        public Derivative GetDerivative(int outputSlotId)
+        {
+            if (outputSlotId != 3)
+                throw new System.ArgumentException("outputSlotId");
+
+            return new Derivative()
+            {
+                FuncVariableInputSlotIds = new[] { 0, 1 },
+                Function = genMode => "{0} + {1}"
+            };
         }
     }
 }

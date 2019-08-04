@@ -128,30 +128,23 @@ namespace UnityEditor.ShaderGraph
 
         private const string kErrorString = @"ERROR!";
 
-        public static string AdaptNodeOutput(AbstractMaterialNode node, int outputSlotId, ConcreteSlotValueType convertToType)
+        public static string ConvertNodeOutputValue(string outputVariable, ConcreteSlotValueType convertFromType, ConcreteSlotValueType convertToType)
         {
-            var outputSlot = node.FindOutputSlot<MaterialSlot>(outputSlotId);
-
-            if (outputSlot == null)
-                return kErrorString;
-
-            var convertFromType = outputSlot.concreteValueType;
-            var rawOutput = node.GetVariableNameForSlot(outputSlotId);
             if (convertFromType == convertToType)
-                return rawOutput;
+                return outputVariable;
 
             switch (convertToType)
             {
                 case ConcreteSlotValueType.Vector1:
-                    return string.Format("({0}).x", rawOutput);
+                    return string.Format("({0}).x", outputVariable);
                 case ConcreteSlotValueType.Vector2:
                     switch (convertFromType)
                     {
                         case ConcreteSlotValueType.Vector1:
-                            return string.Format("({0}.xx)", rawOutput);
+                            return string.Format("({0}.xx)", outputVariable);
                         case ConcreteSlotValueType.Vector3:
                         case ConcreteSlotValueType.Vector4:
-                            return string.Format("({0}.xy)", rawOutput);
+                            return string.Format("({0}.xy)", outputVariable);
                         default:
                             return kErrorString;
                     }
@@ -159,11 +152,11 @@ namespace UnityEditor.ShaderGraph
                     switch (convertFromType)
                     {
                         case ConcreteSlotValueType.Vector1:
-                            return string.Format("({0}.xxx)", rawOutput);
+                            return string.Format("({0}.xxx)", outputVariable);
                         case ConcreteSlotValueType.Vector2:
-                            return string.Format("($precision3({0}, 0.0))", rawOutput);
+                            return string.Format("($precision3({0}, 0.0))", outputVariable);
                         case ConcreteSlotValueType.Vector4:
-                            return string.Format("({0}.xyz)", rawOutput);
+                            return string.Format("({0}.xyz)", outputVariable);
                         default:
                             return kErrorString;
                     }
@@ -171,21 +164,29 @@ namespace UnityEditor.ShaderGraph
                     switch (convertFromType)
                     {
                         case ConcreteSlotValueType.Vector1:
-                            return string.Format("({0}.xxxx)", rawOutput);
+                            return string.Format("({0}.xxxx)", outputVariable);
                         case ConcreteSlotValueType.Vector2:
-                            return string.Format("($precision4({0}, 0.0, 1.0))", rawOutput);
+                            return string.Format("($precision4({0}, 0.0, 1.0))", outputVariable);
                         case ConcreteSlotValueType.Vector3:
-                            return string.Format("($precision4({0}, 1.0))", rawOutput);
+                            return string.Format("($precision4({0}, 1.0))", outputVariable);
                         default:
                             return kErrorString;
                     }
-                case ConcreteSlotValueType.Matrix3:
-                    return rawOutput;
                 case ConcreteSlotValueType.Matrix2:
-                    return rawOutput;
+                case ConcreteSlotValueType.Matrix3:
+                // case ConcreteSlotValueType.Matrix4: // ??
+                    return outputVariable;
                 default:
                     return kErrorString;
             }
+        }
+
+        public static string AdaptNodeOutput(AbstractMaterialNode node, int outputSlotId, ConcreteSlotValueType convertToType)
+        {
+            var outputSlot = node.FindOutputSlot<MaterialSlot>(outputSlotId);
+            return outputSlot != null
+                ? ConvertNodeOutputValue(node.GetVariableNameForSlot(outputSlotId), outputSlot.concreteValueType, convertToType)
+                : kErrorString;            
         }
 
         public static string AdaptNodeOutputForPreview(AbstractMaterialNode node, int outputSlotId)

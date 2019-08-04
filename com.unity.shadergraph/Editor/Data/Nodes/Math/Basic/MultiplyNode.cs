@@ -1,4 +1,3 @@
-//using System.Reflection;
 using System;
 using System.Collections.Generic;
 using UnityEditor.Graphing;
@@ -8,7 +7,7 @@ using System.Linq;
 namespace UnityEditor.ShaderGraph
 {
     [Title("Math", "Basic", "Multiply")]
-    class MultiplyNode : AbstractMaterialNode, IGeneratesBodyCode, IGeneratesFunction
+    class MultiplyNode : AbstractMaterialNode, IGeneratesBodyCode, IGeneratesFunction, IDifferentiable
     {
         public MultiplyNode()
         {
@@ -315,6 +314,18 @@ namespace UnityEditor.ShaderGraph
             var outputNode = owner.GetNodeFromGuid(edges[0].outputSlot.nodeGuid);
             var outputSlot = outputNode.FindOutputSlot<MaterialSlot>(edges[0].outputSlot.slotId);
             slot.SetConcreteType(outputSlot.concreteValueType);
+        }
+
+        public Derivative GetDerivative(int outputSlotId)
+        {
+            if (outputSlotId != 3)
+                throw new ArgumentException("outputSlotId");
+
+            return new Derivative()
+            {
+                FuncVariableInputSlotIds = new[] { Input1SlotId, Input2SlotId },
+                Function = genMode => $"{GetSlotValue(Input2SlotId, genMode)} * {{0}} + {GetSlotValue(Input1SlotId, genMode)} * {{1}}"
+            };
         }
     }
 }

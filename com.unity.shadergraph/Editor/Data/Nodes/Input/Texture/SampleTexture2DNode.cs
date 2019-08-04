@@ -1,4 +1,4 @@
-using System.Linq;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph.Drawing.Controls;
@@ -13,7 +13,7 @@ namespace UnityEditor.ShaderGraph
 
     [FormerName("UnityEditor.ShaderGraph.Texture2DNode")]
     [Title("Input", "Texture", "Sample Texture 2D")]
-    class SampleTexture2DNode : AbstractMaterialNode, IGeneratesBodyCode, IMayRequireMeshUV
+    class SampleTexture2DNode : AbstractMaterialNode, IGeneratesBodyCode, IMayRequireMeshUV, IMayRequireDerivatives
     {
         public const int OutputSlotRGBAId = 0;
         public const int OutputSlotRId = 4;
@@ -102,13 +102,16 @@ namespace UnityEditor.ShaderGraph
         // Node generations
         public virtual void GenerateNodeCode(ShaderStringBuilder sb, GraphContext graphContext, GenerationMode generationMode)
         {
-            var uvName = GetSlotValue(UVInput, generationMode);
+            var (uvName, dUVdx, dUVdy) = GetSlotValueWithDerivative(UVInput, generationMode);
             var id = GetSlotValue(TextureInputId, generationMode);
-            var result = string.Format("$precision4 {0} = SAMPLE_TEXTURE2D({1}, {2}, {3});"
+            var sample = graphContext.conditional ? "SAMPLE_TEXTURE2D_GRAD({1}, {2}, {3}, {4}, {5})" : "SAMPLE_TEXTURE2D({1}, {2}, {3})";
+            var result = string.Format($"$precision4 {{0}} = {sample};"
                     , GetVariableNameForSlot(OutputSlotRGBAId)
                     , id
                     , GetSlotValue(SamplerInput, generationMode)
-                    , uvName);
+                    , uvName
+                    , dUVdx
+                    , dUVdy);
 
             sb.AppendLine(result);
 
@@ -140,6 +143,11 @@ namespace UnityEditor.ShaderGraph
                     return true;
             }
             return false;
+        }
+
+        public IEnumerable<int> GetDifferentiatingInputSlotIds()
+        {
+            return new[] { UVInput };
         }
     }
 }

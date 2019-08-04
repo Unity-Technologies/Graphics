@@ -1,12 +1,10 @@
-using System;
-using System.Linq;
 using UnityEngine;
 using UnityEditor.Graphing;
 
 namespace UnityEditor.ShaderGraph
 {
     [Title("Channel", "Split")]
-    class SplitNode : AbstractMaterialNode, IGeneratesBodyCode
+    class SplitNode : AbstractMaterialNode, IGeneratesBodyCode, IDifferentiable
     {
         const string kInputSlotName = "In";
         const string kOutputSlotRName = "R";
@@ -58,6 +56,20 @@ namespace UnityEditor.ShaderGraph
                 var outputValue = i >= numInputChannels ? "0" : outputFormat;
                 sb.AppendLine(string.Format("$precision {0} = {1};", GetVariableNameForSlot(s_OutputSlots[i]), outputValue));
             }
+        }
+
+        public Derivative GetDerivative(int outputSlotId)
+        {
+            if (outputSlotId == OutputSlotRId)
+                return new Derivative() { FuncVariableInputSlotIds = new[] { InputSlotId }, Function = genMode => "{0}.x" };
+            else if (outputSlotId == OutputSlotGId)
+                return new Derivative() { FuncVariableInputSlotIds = new[] { InputSlotId }, Function = genMode => "{0}.y" };
+            else if (outputSlotId == OutputSlotBId)
+                return new Derivative() { FuncVariableInputSlotIds = new[] { InputSlotId }, Function = genMode => "{0}.z" };
+            else if (outputSlotId == OutputSlotAId)
+                return new Derivative() { FuncVariableInputSlotIds = new[] { InputSlotId }, Function = genMode => "{0}.w" };
+            else
+                throw new System.ArgumentException("outputSlotId");
         }
     }
 }

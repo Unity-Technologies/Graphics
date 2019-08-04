@@ -313,6 +313,34 @@ namespace UnityEditor.ShaderGraph
 
             return inputSlot.GetDefaultValue(generationMode);
         }
+
+        public (string value, string ddx, string ddy) GetSlotValueWithDerivative(int inputSlotId, GenerationMode generationMode)
+        {
+            var inputSlot = FindSlot<MaterialSlot>(inputSlotId);
+            if (inputSlot == null)
+                return (string.Empty, string.Empty, string.Empty);
+
+            var edge = owner.GetEdges(inputSlot.slotReference).FirstOrDefault();
+            if (edge != null)
+            {
+                var fromNode = owner.GetNodeFromGuid<AbstractMaterialNode>(edge.outputSlot.nodeGuid);
+                if (fromNode == null)
+                    return (string.Empty, string.Empty, string.Empty);
+
+                var slot = fromNode.FindOutputSlot<MaterialSlot>(edge.outputSlot.slotId);
+                if (slot == null)
+                    return (string.Empty, string.Empty, string.Empty);
+
+                var valueVarName = fromNode.GetVariableNameForSlot(slot.id);
+                return (ShaderGenerator.ConvertNodeOutputValue(valueVarName, slot.concreteValueType, inputSlot.concreteValueType),
+                    ShaderGenerator.ConvertNodeOutputValue($"ddx_{valueVarName}", slot.concreteValueType, inputSlot.concreteValueType),
+                    ShaderGenerator.ConvertNodeOutputValue($"ddy_{valueVarName}", slot.concreteValueType, inputSlot.concreteValueType));
+            }
+
+            var defaultValue = inputSlot.GetDefaultValue(generationMode);
+            var derivative = inputSlot.GetDefaultValueDerivative();
+            return (defaultValue, derivative != "0" ? $"ddx_{derivative}" : "0", derivative != "0" ? $"ddy_{derivative}" : "0");
+        }
         
         public static ConcreteSlotValueType ConvertDynamicVectorInputTypeToConcrete(IEnumerable<ConcreteSlotValueType> inputTypes)
         {

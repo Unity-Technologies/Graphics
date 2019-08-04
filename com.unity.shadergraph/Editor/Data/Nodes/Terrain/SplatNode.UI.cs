@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.Graphing;
+using UnityEditor.Graphing.Util;
 using UnityEditor.ShaderGraph.Drawing;
 using UnityEditorInternal;
 using UnityEngine;
@@ -87,6 +88,17 @@ namespace UnityEditor.ShaderGraph
 
         public VisualElement CreateSettingsElement()
         {
+            var ps = new PropertySheet();
+
+            ps.Add(new PropertyRow(new Label("Conditional")), row =>
+            {
+                row.Add(new Toggle(), (toggle) =>
+                {
+                    toggle.value = m_Conditional;
+                    toggle.OnToggleChanged(ChangeConditional);
+                });
+            });
+
             m_ReorderableList = new ReorderableList(m_SplatSlotNames, typeof(string), true, true, true, true);
 
             m_ReorderableList.drawHeaderCallback = rect =>
@@ -167,7 +179,6 @@ namespace UnityEditor.ShaderGraph
                 RecreateSplatSlots(inputSplatSlots, outputSplatSlots, splatEdges, newIndexToOldMapping);
             };
 
-            var ps = new PropertySheet();
             ps.Add(new IMGUIContainer(() =>
             {
                 EditorGUI.BeginChangeCheck();
@@ -175,7 +186,16 @@ namespace UnityEditor.ShaderGraph
                 if (EditorGUI.EndChangeCheck())
                     ValidateNode();
             }));
+
             return ps;
+        }
+
+        void ChangeConditional(ChangeEvent<bool> evt)
+        {
+            owner.owner.RegisterCompleteObjectUndo("Conditional Change");
+            m_Conditional = evt.newValue;
+            owner?.ClearErrorsForNode(this);
+            ValidateNode();
         }
     }
 }
