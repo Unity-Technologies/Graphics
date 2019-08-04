@@ -406,11 +406,25 @@ namespace UnityEditor.ShaderGraph
                 sb.AppendLine($"{derivative.VariableType} ddy_{derivative.VariableName} = ddy({derivative.VariableValue(generationMode)});");
             }
 
+            foreach (var slot in EnumerateSplatOutputSlots())
+                sb.AppendLine($"{slot.concreteValueType.ToShaderString()} {GetVariableNameForSlot(slot.id)} = 0;");
+
+            var blendWeights0 = GetSlotValue(kBlendWeight0InputSlotId, generationMode);
+            var blendWeights1 = m_SplatCount > 4 ? GetSlotValue(kBlendWeight1InputSlotId, generationMode) : string.Empty;
+
             for (int i = 0; i < m_SplatCount; ++i)
             {
                 if (i == 4)
                 {
                     sb.AppendLine($"#ifdef {GraphData.kSplatCount8Keyword}");
+                    sb.IncreaseIndent();
+                }
+
+                var blendWeight = $"{(i < 4 ? blendWeights0 : blendWeights1)}.{"xyzw"[i % 4]}";
+                if (m_Conditional)
+                {
+                    sb.AppendLine($"UNITY_BRANCH if ({blendWeight} > 0)");
+                    sb.AppendLine("{");
                     sb.IncreaseIndent();
                 }
 
@@ -433,25 +447,20 @@ namespace UnityEditor.ShaderGraph
                 sb.Append(");");
                 sb.AppendNewLine();
 
+                foreach (var slot in EnumerateSplatOutputSlots())
+                    sb.AppendLine($"{GetVariableNameForSlot(slot.id)} += {GetVariableNameForSlot(slot.id)}_splat{i} * {blendWeight};");
+
+                if (m_Conditional)
+                {
+                    sb.DecreaseIndent();
+                    sb.AppendLine("}");
+                }
+
                 if (i == 7)
                 {
                     sb.DecreaseIndent();
                     sb.AppendLine("#endif");
                 }
-            }
-
-            var blendWeights0 = GetSlotValue(kBlendWeight0InputSlotId, generationMode);
-            foreach (var slot in EnumerateSplatOutputSlots())
-                sb.AppendLine(string.Format("{0} {1} = {1}_splat0 * ({2}).x + {1}_splat1 * ({2}).y + {1}_splat2 * ({2}).z + {1}_splat3 * ({2}).w;", slot.concreteValueType.ToShaderString(), GetVariableNameForSlot(slot.id), blendWeights0));
-            if (m_SplatCount > 4)
-            {
-                sb.AppendLine($"#ifdef {GraphData.kSplatCount8Keyword}");
-                sb.IncreaseIndent();
-                var blendWeights1 = GetSlotValue(kBlendWeight1InputSlotId, generationMode);
-                foreach (var slot in EnumerateSplatOutputSlots())
-                    sb.AppendLine(string.Format("{0} += {0}_splat4 * ({1}).x + {0}_splat5 * ({1}).y + {0}_splat6 * ({1}).z + {0}_splat7 * ({1}).w;", GetVariableNameForSlot(slot.id), blendWeights1));
-                sb.DecreaseIndent();
-                sb.AppendLine("#endif");
             }
         }
 
