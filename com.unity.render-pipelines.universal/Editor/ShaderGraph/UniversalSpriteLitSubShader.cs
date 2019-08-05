@@ -61,6 +61,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
             Requirements = new ShaderGraphRequirements()
             {
                 requiresVertexColor = true,
+                requiresTangent = NeededCoordinateSpace.World
             },
             ExtraDefines = new List<string>(),
             OnGeneratePassImpl = (IMasterNode node, ref Pass pass, ref ShaderGraphRequirements requirements) =>
@@ -90,6 +91,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
             Requirements = new ShaderGraphRequirements()
             {
                 requiresVertexColor = true,
+                requiresMeshUVs = new List<UVChannel>() { UVChannel.UV0 }
             },
             ExtraDefines = new List<string>(),
             OnGeneratePassImpl = (IMasterNode node, ref Pass pass, ref ShaderGraphRequirements requirements) =>
