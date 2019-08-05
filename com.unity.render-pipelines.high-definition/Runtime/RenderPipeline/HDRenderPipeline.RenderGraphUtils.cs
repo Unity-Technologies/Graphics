@@ -145,7 +145,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     builder.SetRenderFunc(
                     (RenderOcclusionMeshesPassData data, RenderGraphContext ctx) =>
                     {
-                        data.hdCamera.xr.RenderOcclusionMeshes(ctx.cmd, ctx.resources.GetTexture(data.depthBuffer));
+                        data.hdCamera.xr.RenderOcclusionMeshes(ctx.cmd, null, ctx.resources.GetTexture(data.depthBuffer));
                     });
                 }
             }
