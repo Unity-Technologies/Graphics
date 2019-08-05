@@ -506,7 +506,7 @@ Shader ""Hidden/GraphErrorShader2""
                 result.outputCodeIndices[i] = portCodeIndices[i].ToArray();
             }
 
-            asset.SetOutputs(ports.Select((t, i) => new OutputMetadata(i, t.shaderOutputName)).ToArray());
+            asset.SetOutputs(ports.Select((t, i) => new OutputMetadata(i, t.shaderOutputName,t.id)).ToArray());
 
             asset.evaluationFunctionName = evaluationFunctionName;
             asset.inputStructName = inputStructName;

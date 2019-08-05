@@ -34,6 +34,9 @@ namespace UnityEditor.ShaderGraph
         public const string ColorSlotName = "Color";
         public const int ColorSlotId = 6;
 
+        public const string AlphaThresholdSlotName = "Alpha Threshold";
+        public const int AlphaThresholdSlotId = 7;
+
         public VfxMasterNode()
         {
             UpdateNodeAfterDeserialization();
@@ -104,6 +107,12 @@ namespace UnityEditor.ShaderGraph
 
             AddSlot(new Vector1MaterialSlot(AlphaSlotId, AlphaSlotName, AlphaSlotName, SlotType.Input, 1, ShaderStageCapability.Fragment));
             usedSlots.Add(AlphaSlotId);
+
+            if( alphaTest.isOn)
+            {
+                AddSlot(new Vector1MaterialSlot(AlphaThresholdSlotId, AlphaThresholdSlotName, AlphaThresholdSlotName, SlotType.Input, 1, ShaderStageCapability.Fragment));
+                usedSlots.Add(AlphaThresholdSlotId);
+            }
 
             RemoveSlotsNameNotMatching(usedSlots);
         }
