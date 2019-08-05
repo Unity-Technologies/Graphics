@@ -535,7 +535,6 @@ namespace UnityEngine.Rendering.HighDefinition
             m_GbufferManager.DestroyBuffers();
             m_DbufferManager.DestroyBuffers();
             m_MipGenerator.Release();
-            m_XRSystem.ClearAll();
 
             RTHandles.Release(m_CameraColorBuffer);
             RTHandles.Release(m_OpaqueAtmosphericScatteringBuffer);
@@ -759,6 +758,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             CleanupSubsurfaceScattering();
             m_SharedRTManager.Cleanup();
+            m_XRSystem.Cleanup();
             m_SkyManager.Cleanup();
             CleanupVolumetricLighting();
 
@@ -1191,6 +1191,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     // Select render target
                     RenderTargetIdentifier targetId = camera.targetTexture ?? new RenderTargetIdentifier(BuiltinRenderTextureType.CameraTarget);
+                    if (camera.targetTexture != null)
+                    {
+                        camera.targetTexture.IncrementUpdateCount(); // Necessary if the texture is used as a cookie.
+                    }
 
                     // Render directly to XR render target if active
                     if (hdCamera.xr.enabled && hdCamera.xr.renderTargetValid)
@@ -2340,13 +2344,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (hdCamera.xr.enabled)
             {
-                if (!m_XRSystem.GetCullingParameters(camera, hdCamera.xr, out cullingParams))
-                    return false;
+                cullingParams = hdCamera.xr.cullingParams;
             }
             else
             {
                 if (!camera.TryGetCullingParameters(camera.stereoEnabled, out cullingParams))
-                return false;
+                    return false;
             }
 
             if (m_DebugDisplaySettings.IsCameraFreezeEnabled())

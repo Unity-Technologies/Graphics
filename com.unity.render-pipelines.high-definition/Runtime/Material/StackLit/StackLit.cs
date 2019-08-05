@@ -174,6 +174,11 @@ namespace UnityEngine.Rendering.HighDefinition
             [SurfaceDataAttributes("Thickness")]
             public float thickness;
 
+            // Specular Occlusion custom input value propagated from master node surfaceDescription to surfaceData to bsdfData:
+            // Only used and valid when using a custom input.
+            // TODO: would ideally need per lobe / interface values.
+            [SurfaceDataAttributes("Specular Occlusion From Custom Input")]
+            public float specularOcclusionCustomInput;
             // Specular occlusion config: bent occlusion fixup
             [SurfaceDataAttributes("Specular Occlusion Fixup Visibility Ratio Threshold")]
             public float soFixupVisibilityRatioThreshold;
@@ -254,6 +259,10 @@ namespace UnityEngine.Rendering.HighDefinition
             public bool useThickObjectMode; // Read from the diffusion profile
             public Vector3 transmittance;   // Precomputation of transmittance
 
+            // Specular Occlusion custom input value propagated from master node surfaceDescription to surfaceData to bsdfData:
+            // Only used and valid when using a custom input.
+            // TODO: would ideally need per lobe / interface values.
+            public float specularOcclusionCustomInput;
             // Specular occlusion config: bent occlusion fixup
             public float soFixupVisibilityRatioThreshold;
             public float soFixupStrengthFactor;

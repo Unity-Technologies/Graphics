@@ -1,6 +1,6 @@
 # Overview
 
-When using [Universal Render Pipeline](https://docs.unity3d.com/Packages/com.unity.render-pipelines.universal@6.5/manual/index.html) (UniversalRP) with the **2D Renderer** selected, the **Light 2D** component introduces a way to apply 2D optimized lighting to Sprites. 
+When using [Universal Render Pipeline](https://docs.unity3d.com/Packages/com.unity.render-pipelines.universalrp@latest/index.html) (UniversalRP) with the **2D Renderer** selected, the **Light 2D** component introduces a way to apply 2D optimized lighting to Sprites. 
 
 You can choose from several different light types with the **Light 2D** component. The light types currently available in the package are:
 

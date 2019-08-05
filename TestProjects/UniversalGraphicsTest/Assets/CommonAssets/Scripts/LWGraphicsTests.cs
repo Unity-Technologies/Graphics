@@ -15,7 +15,7 @@ public class LWGraphicsTests
     [UnityTest, Category("LightWeightRP")]
     [PrebuildSetup("SetupGraphicsTestCases")]
     [UseGraphicsTestCases(lwPackagePath)]
-    
+
 
     public IEnumerator Run(GraphicsTestCase testCase)
     {
@@ -27,13 +27,13 @@ public class LWGraphicsTests
         var cameras = GameObject.FindGameObjectsWithTag("MainCamera").Select(x=>x.GetComponent<Camera>());
         var settings = Object.FindObjectOfType<LWGraphicsTestSettings>();
         Assert.IsNotNull(settings, "Invalid test scene, couldn't find LWGraphicsTestSettings");
-        
+
         Scene scene = SceneManager.GetActiveScene();
 
         if (scene.name.Substring(3, 4).Equals("_xr_"))
         {
             Assume.That((Application.platform != RuntimePlatform.OSXEditor && Application.platform != RuntimePlatform.OSXPlayer), "Stereo LWRP tests do not run on MacOSX.");
-            
+
             XRSettings.LoadDeviceByName("MockHMD");
             yield return null;
 
@@ -56,6 +56,23 @@ public class LWGraphicsTests
             yield return null;
 
         ImageAssert.AreEqual(testCase.ReferenceImage, cameras.Where(x => x != null), settings.ImageComparisonSettings);
+
+#if CHECK_ALLOCATIONS_WHEN_RENDERING
+        // Does it allocate memory when it renders what's on the main camera?
+        bool allocatesMemory = false;
+        var mainCamera = GameObject.FindGameObjectWithTag("MainCamera").GetComponent<Camera>();
+        try
+        {
+            ImageAssert.AllocatesMemory(mainCamera, 512, 512); // 512 used for height and width to render
+        }
+        catch (AssertionException)
+        {
+            allocatesMemory = true;
+        }
+        if (allocatesMemory)
+            Assert.Fail("Allocated memory when rendering what is on main camera");
+#endif
+
     }
 
 #if UNITY_EDITOR
