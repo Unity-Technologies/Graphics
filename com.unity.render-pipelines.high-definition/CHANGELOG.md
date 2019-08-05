@@ -23,6 +23,7 @@ The version number for this package has increased due to a version update of a r
 ### Changed
 - direct strenght properties in ambient occlusion now affect direct specular as well
 - Added a warning in the material UI when the diffusion profile assigned is not in the HDRP asset
+- Added Alembic velocity support to various Shaders.
 
 ## [6.9.0] - 2019-07-02
 

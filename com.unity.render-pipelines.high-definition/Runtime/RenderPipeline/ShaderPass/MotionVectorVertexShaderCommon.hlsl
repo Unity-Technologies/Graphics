@@ -5,6 +5,9 @@
 struct AttributesPass
 {
     float3 previousPositionOS : TEXCOORD4; // Contain previous transform position (in case of skinning for example)
+#if defined (_ADD_PRECOMPUTED_VELOCITY)
+     float3 alembicVelocity    : TEXCOORD5; // Add Precomputed Velocity (Alembic computes velocities on runtime side).
+ #endif
 };
 
 struct VaryingsPassToPS
@@ -121,16 +124,19 @@ PackedVaryingsType MotionVectorVS(inout VaryingsType varyingsType, AttributesMes
     else
     {
         bool hasDeformation = unity_MotionVectorsParams.x > 0.0; // Skin or morph target
+        float3 effectivePositionOS = (hasDeformation ? inputPass.previousPositionOS : inputMesh.positionOS);
+ #if defined(_ADD_PRECOMPUTED_VELOCITY)
+         effectivePositionOS -= inputPass.alembicVelocity;
+ #endif
+        
 
     // Need to apply any vertex animation to the previous worldspace position, if we want it to show up in the motion vector buffer
 #if defined(HAVE_MESH_MODIFICATION)
         AttributesMesh previousMesh = inputMesh;
-        if (hasDeformation)
-            previousMesh.positionOS = inputPass.previousPositionOS;
-        previousMesh = ApplyMeshModification(previousMesh, _LastTimeParameters.xyz);
+        previousMesh.positionOS = effectivePositionOS ;
         float3 previousPositionRWS = TransformPreviousObjectToWorld(previousMesh.positionOS);
 #else
-        float3 previousPositionRWS = TransformPreviousObjectToWorld(hasDeformation ? inputPass.previousPositionOS : inputMesh.positionOS);
+        float3 previousPositionRWS = TransformPreviousObjectToWorld(effectivePositionOS);
 #endif
 
 #ifdef ATTRIBUTES_NEED_NORMAL
