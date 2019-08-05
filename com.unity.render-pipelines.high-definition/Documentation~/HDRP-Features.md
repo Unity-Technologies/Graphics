@@ -127,33 +127,28 @@ The Terrain Lit Shader is compatible with the built-in terrain system and suppor
 The HDRP light types use [physical light units](#PLU) to help you light your Scene in the most realistic way possible. The HDRP light types are:
 
 - **Directional**
-
-- - Color temperature
+  - Color temperature
   - Colored cookie
   - Shadow mask support
 
 - **Spot**
-
-- - Color temperature
+  - Color temperature
   - Colored cookie
   - Shadow mask support
   - Cone, pyramid and box shapes
 
 - **Point**
-
-- - Color temperature
+  - Color temperature
   - Colored cookie
   - Shadow mask support
 
-- **Area**
-
-- - Color temperature
+- **Rectangle**
+  - Color temperature
   - Colored Cookie
   - Shadow mask support
 
-- **Line**
-
-- - Color temperature
+- **Tube**
+  - Color temperature
   - No shadow masks
 
 For more information, including the full list of light properties, see the [Light component documentation](Light-Component.html).
@@ -192,7 +187,8 @@ In HDRP, you set up the sky inside a [Volume](Volumes.html), so you can change s
 
 - [Gradient Sky](Override-Gradient-Sky.html): Renders a simple sky with three color zones for the top, middle, and bottom sections of the sky.
 - [HDRI Sky](Override-HDRI-Sky.html): Constructs a sky environment based on a cubemap texture you set within the HDRI Volume component.
-- [Procedural Sky](Override-Procedural-Sky.html): Produces an environment based on the values you choose within the Procedural Sky Volume component. This is similar to Unity’s [built-in render pipeline procedural sky](https://docs.unity3d.com/Manual/class-Skybox.html).
+- [Physically Based Sky](Override-Physically-Based-Sky.html): Simulates a spherical planet with a two-part atmosphere which features exponentially decreasing density with respect to altitude.
+- [Procedural Sky](Override-Procedural-Sky.html): Produces an environment based on the values you choose within the Procedural Sky Volume component. This is similar to Unity’s [built-in render pipeline procedural sky](https://docs.unity3d.com/Manual/class-Skybox.html). This sky type has been deprecated, but you can still use it in your HDRP Project. For information on how, see [Upgrading to 2019.3](Upgrading-from-2019.2-to-2019.3.html).
 
 <a name="FogOverview"></a>
 
