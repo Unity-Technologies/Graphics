@@ -14,7 +14,6 @@ projects:
   - name: VFX_LWRP
     folder: VisualEffectGraph_LWRP
 ---
-#turning off mac on this one for now so that all the macs don't start at once
 all_project_ci:
   name: Run all test projects on all platforms
   agent:
@@ -28,7 +27,6 @@ all_project_ci:
   {% for project in projects %}
     - .yamato/upm-ci-{{ project.name | downcase }}.yml#All_{{ project.name }}
   {% endfor %}
-    - .yamato/upm-ci-katana.yml#run_katana_metal
   triggers:
     recurring:
       - branch: master
