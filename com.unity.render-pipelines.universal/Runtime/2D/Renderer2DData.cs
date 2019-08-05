@@ -111,7 +111,8 @@ namespace UnityEngine.Experimental.Rendering.Universal
             m_PointLightVolumeShader = Shader.Find("Hidden/Light2d-Point-Volumetric");
             m_BlitShader = Shader.Find("Hidden/Universal Render Pipeline/Blit");
             m_ShadowShader = Shader.Find("Hidden/Shadow2D");
-            m_ShadowGroupShader = Shader.Find("Hidden/ShadowGroup2D");
+            //m_ShadowGroupShader = Shader.Find("Hidden/ShadowGroup2D");
+            m_ShadowGroupShader = Shader.Find("Hidden/HardShadow2D");
             m_RemoveSelfShadowShader = Shader.Find("Hidden/Shadow2DRemoveSelf");
         }
 

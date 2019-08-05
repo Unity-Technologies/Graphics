@@ -135,6 +135,9 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         static private void RenderShadows(CommandBuffer cmdBuffer, Light2D light, float shadowIntensity, RenderTargetIdentifier renderTexture)
         {
+
+            cmdBuffer.BeginSample("Shadow Rendering");
+
             // Render light's shadows
             //if (light.castsShadows)
             cmdBuffer.SetRenderTarget(s_ShadowsRenderTarget.Identifier()); // This isn't efficient if this light doesn't cast shadow.
@@ -202,7 +205,8 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
                                         //// Check to see if our shadow caster is inside the lights bounds...
                                         //if (sqDist < (shadowRadiusSq + lightRadiusSq))
-                                        cmdBuffer.DrawMesh(shadowCaster.hardShadowMesh, Matrix4x4.TRS(shadowCaster.transform.position, shadowCaster.transform.rotation, shadowCaster.transform.lossyScale), shadowMaterial);
+                                        //cmdBuffer.DrawMesh(shadowCaster.hardShadowMesh, Matrix4x4.TRS(shadowCaster.transform.position, shadowCaster.transform.rotation, shadowCaster.transform.lossyScale), shadowMaterial);
+                                        cmdBuffer.DrawMesh(shadowCaster.softShadowMesh, Matrix4x4.TRS(shadowCaster.transform.position, shadowCaster.transform.rotation, shadowCaster.transform.lossyScale), shadowMaterial);
                                     }
                                     else
                                     {
@@ -233,6 +237,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             }
 
             cmdBuffer.SetRenderTarget(renderTexture); // This isn't efficient if this light doesn't cast shadow.
+            cmdBuffer.EndSample("Shadow Rendering");
         }
 
         static private bool RenderLightSet(Camera camera, int blendStyleIndex, CommandBuffer cmdBuffer, int layerToRender, RenderTargetIdentifier renderTexture, List<Light2D> lights)

@@ -152,6 +152,10 @@ namespace UnityEngine.Experimental.Rendering.Universal
         [SerializeField]
         float m_FalloffIntensity = 0.5f;
 
+        //[SerializeField]
+        float m_ShadowCastingRadius = 1f;
+
+
         [ColorUsage(false)]
         [SerializeField]
         Color m_Color = Color.white;
@@ -235,6 +239,8 @@ namespace UnityEngine.Experimental.Rendering.Universal
         public bool useNormalMap => m_UseNormalMap;
         public bool alphaBlendOnOverlap => m_AlphaBlendOnOverlap;
         public int lightOrder { get => m_LightOrder; set => m_LightOrder = value; }
+        public float shadowCastingRadius => m_ShadowCastingRadius;
+
 
         internal int lightCullingIndex => m_LightCullingIndex;
 

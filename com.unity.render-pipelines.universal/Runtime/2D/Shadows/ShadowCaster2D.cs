@@ -16,7 +16,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
         [SerializeField] Mesh m_SoftShadowMesh;
 
         internal Mesh hardShadowMesh => m_HardShadowMesh;
-        internal Mesh softShadowMesh => m_HardShadowMesh;
+        internal Mesh softShadowMesh => m_SoftShadowMesh;
         internal Vector3[] shapePath => m_ShapePath;
         internal int shapePathHash { get { return m_ShapePathHash; } set { m_ShapePathHash = value; } }
 
@@ -68,8 +68,8 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     Vector4 vertexTanXY = transform.TransformDirection(new Vector4(tangents[i].x, tangents[i].y, 0, 0));
                     Vector4 vertexTanZW = transform.TransformDirection(new Vector4(tangents[i].z, tangents[i].w, 0, 0));
 
-                    Debug.DrawLine(vertexPos, vertexPos + 0.3f * new Vector3(vertexTanXY.x, vertexTanXY.y), Color.red);
-                    Debug.DrawLine(vertexPos, vertexPos + 0.3f * new Vector3(vertexTanZW.x, vertexTanZW.y), Color.blue);
+                    //Debug.DrawLine(vertexPos, vertexPos + 0.3f * new Vector3(vertexTanXY.x, vertexTanXY.y), Color.red);
+                    //Debug.DrawLine(vertexPos, vertexPos + 0.3f * new Vector3(vertexTanZW.x, vertexTanZW.y), Color.blue);
                 }
             }
 
