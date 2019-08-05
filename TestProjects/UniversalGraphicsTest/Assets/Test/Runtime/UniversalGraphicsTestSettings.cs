@@ -1,10 +1,10 @@
 using UnityEngine.TestTools.Graphics;
 
-public class LWGraphicsTestSettings : GraphicsTestSettings
+public class UniversalGraphicsTestSettings : GraphicsTestSettings
 {
     public int WaitFrames = 0;
 
-    public LWGraphicsTestSettings()
+    public UniversalGraphicsTestSettings()
     {
         ImageComparisonSettings.TargetWidth = 512;
         ImageComparisonSettings.TargetHeight = 512;

@@ -7,14 +7,14 @@ using UnityEngine.XR;
 using UnityEngine.TestTools.Graphics;
 using UnityEngine.SceneManagement;
 
-public class LWGraphicsTests
+public class UniversalGraphicsTests
 {
 
-    public const string lwPackagePath = "Assets/ReferenceImages";
+    public const string universalPackagePath = "Assets/ReferenceImages";
 
-    [UnityTest, Category("LightWeightRP")]
+    [UnityTest, Category("UniversalRP")]
     [PrebuildSetup("SetupGraphicsTestCases")]
-    [UseGraphicsTestCases(lwPackagePath)]
+    [UseGraphicsTestCases(universalPackagePath)]
 
 
     public IEnumerator Run(GraphicsTestCase testCase)
@@ -25,14 +25,14 @@ public class LWGraphicsTests
         yield return null;
 
         var cameras = GameObject.FindGameObjectsWithTag("MainCamera").Select(x=>x.GetComponent<Camera>());
-        var settings = Object.FindObjectOfType<LWGraphicsTestSettings>();
-        Assert.IsNotNull(settings, "Invalid test scene, couldn't find LWGraphicsTestSettings");
+        var settings = Object.FindObjectOfType<UniversalGraphicsTestSettings>();
+        Assert.IsNotNull(settings, "Invalid test scene, couldn't find UniversalGraphicsTestSettings");
 
         Scene scene = SceneManager.GetActiveScene();
 
         if (scene.name.Substring(3, 4).Equals("_xr_"))
         {
-            Assume.That((Application.platform != RuntimePlatform.OSXEditor && Application.platform != RuntimePlatform.OSXPlayer), "Stereo LWRP tests do not run on MacOSX.");
+            Assume.That((Application.platform != RuntimePlatform.OSXEditor && Application.platform != RuntimePlatform.OSXPlayer), "Stereo Universal tests do not run on MacOSX.");
 
             XRSettings.LoadDeviceByName("MockHMD");
             yield return null;
