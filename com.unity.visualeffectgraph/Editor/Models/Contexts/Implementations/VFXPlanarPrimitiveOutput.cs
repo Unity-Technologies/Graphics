@@ -124,15 +124,15 @@ namespace UnityEditor.VFX
         protected RPInfo hdrpInfo = new RPInfo
         {
             passInfos = new Dictionary<string, PassInfo>() {
-            { "Forward",new PassInfo()  { vertexPorts = new string[]{"Position"},pixelPorts = new string[]{ "Emissive", "Alpha"} } },
-            { "DepthOnly",new PassInfo()  { vertexPorts = new string[]{"Position"},pixelPorts = new string[]{ "Alpha" } } }
+            { "Forward",new PassInfo()  { vertexPorts = new string[]{"Position"},pixelPorts = new string[]{ "Color", "Alpha","AlphaThreshold"} } },
+            { "DepthOnly",new PassInfo()  { vertexPorts = new string[]{"Position"},pixelPorts = new string[]{ "Alpha", "AlphaThreshold" } } }
         }
         };
         protected RPInfo hdrpLitInfo = new RPInfo
         {
             passInfos = new Dictionary<string, PassInfo>() {
-            { "GBuffer",new PassInfo()  { vertexPorts = new string[]{"Position"},pixelPorts = new string[]{ "BaseColor", "Alpha", "Metallic", "Smoothness","Emissive" } } },
-            { "Forward",new PassInfo()  { vertexPorts = new string[]{"Position"},pixelPorts = new string[]{ "BaseColor", "Alpha", "Metallic", "Smoothness", "Emissive" } } },
+            { "GBuffer",new PassInfo()  { vertexPorts = new string[]{"Position"},pixelPorts = new string[]{ "BaseColor", "Alpha", "Metallic", "Smoothness","Emissive", "AlphaThreshold" } } },
+            { "Forward",new PassInfo()  { vertexPorts = new string[]{"Position"},pixelPorts = new string[]{ "BaseColor", "Alpha", "Metallic", "Smoothness", "Emissive", "AlphaThreshold" } } },
             { "DepthOnly",new PassInfo()  { vertexPorts = new string[]{"Position"},pixelPorts = new string[]{ "Alpha" } } }
         }
         };
@@ -185,7 +185,7 @@ namespace UnityEditor.VFX
                     {
                         var portInfo = shaderGraph.GetOutput(port);
                         if( ! string.IsNullOrEmpty(portInfo.referenceName))
-                            yield return new KeyValuePair<string, VFXShaderWriter>($"${{SHADERGRAPH_PARAM_{port.ToUpper()}}}", new VFXShaderWriter($"{portInfo.referenceName}_{portInfo.index}"));
+                            yield return new KeyValuePair<string, VFXShaderWriter>($"${{SHADERGRAPH_PARAM_{port.ToUpper()}}}", new VFXShaderWriter($"{portInfo.referenceName}_{portInfo.id}"));
                     }
 
                     foreach (var kvPass in info.passInfos)

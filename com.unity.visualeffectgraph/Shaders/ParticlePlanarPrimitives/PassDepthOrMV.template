@@ -43,14 +43,22 @@ struct ps_input
 #endif
 
 ${VFXInclude("Shaders/ParticlePlanarPrimitives/Pass.template")}
-	
+
+${SHADERGRAPH_PIXEL_CODE_DEPTHONLY}
+
 #pragma fragment frag
 float4 frag(ps_input i) : SV_TARGET
 {
 	UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i);
 	VFXTransformPSInputs(i);
-	float alpha = VFXGetFragmentColor(i).a;
-	alpha *= VFXGetTextureColor(VFX_SAMPLER(mainTexture),i).a;
+    #ifdef VFX_SHADERGRAPH
+        ${SHADERGRAPH_PIXEL_CALL_DEPTHONLY}
+        
+        float alpha = OUTSG.${SHADERGRAPH_PARAM_ALPHA};
+    #else
+        float alpha = VFXGetFragmentColor(i).a;
+        alpha *= VFXGetTextureColor(VFX_SAMPLER(mainTexture),i).a;
+    #endif
 	VFXClipFragmentColor(alpha,i);
 	
 	#if IS_MOTION_VECTORS_PASS

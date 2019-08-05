@@ -81,15 +81,23 @@ Pass
 		UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i);
 		ps_output o = (ps_output)0;
 		VFXTransformPSInputs(i);
-#if VFX_SHADERGRAPH        
-    ${SHADERGRAPH_PIXEL_CALL_FORWARD}
-#else
+    #if VFX_SHADERGRAPH        
+        ${SHADERGRAPH_PIXEL_CALL_FORWARD}
+        
+        #if HAS_SHADERGRAPH_PARAM_COLOR
+            o.color.rgb = OUTSG.${SHADERGRAPH_PARAM_COLOR}.rgb;
+        #endif
+        
+        #if HAS_SHADERGRAPH_PARAM_ALPHA 
+            o.color.a = OUTSG.${SHADERGRAPH_PARAM_ALPHA};
+        #endif
+    #else
 	
 		#define VFX_TEXTURE_COLOR VFXGetTextureColor(VFX_SAMPLER(mainTexture),i)
 		${VFXApplyColor}
+		o.color = VFXApplyPreExposure(o.color, i);
 #endif
 
-		o.color = VFXApplyPreExposure(o.color, i);
 		o.color = VFXApplyFog(o.color,i);
 		VFXClipFragmentColor(o.color.a,i);
 		o.color.a = saturate(o.color.a);
