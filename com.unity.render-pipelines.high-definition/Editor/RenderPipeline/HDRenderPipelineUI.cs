@@ -317,9 +317,8 @@ namespace UnityEditor.Rendering.HighDefinition
                     EditorGUILayout.LabelField(k_MultipleDifferenteValueMessage);
             }
 
-            EditorGUILayout.LabelField(k_ScreenSpaceShadowsTitle);
-            ++EditorGUI.indentLevel;
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.hdShadowInitParams.supportScreenSpaceShadows, k_SupportScreenSpaceShadows);
+            ++EditorGUI.indentLevel;
             using (new EditorGUI.DisabledGroupScope(!serialized.renderPipelineSettings.hdShadowInitParams.supportScreenSpaceShadows.boolValue))
                 EditorGUILayout.PropertyField(serialized.renderPipelineSettings.hdShadowInitParams.maxScreenSpaceShadows, k_MaxScreenSpaceShadows);
             --EditorGUI.indentLevel;

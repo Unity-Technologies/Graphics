@@ -6,6 +6,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [7.1.1] - 2019-XX-XX
 
+### Added
+
+### Fixed
+- Fixed wizard infinite loop on cancellation.
+
+### Changed
+- Update Wizard layout.
+
+
 ## [7.0.1] - 2019-07-25
 
 ### Added
@@ -24,6 +33,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - RenderQueue for Opaque now start at Background instead of Geometry.
 - Clamp the area light size for scripting API when we change the light type
 - Added a warning in the material UI when the diffusion profile assigned is not in the HDRP asset
+
 
 ## [7.0.0] - 2019-07-17
 

@@ -13,6 +13,8 @@ namespace UnityEditor.Rendering.HighDefinition
     [InitializeOnLoad]
     class HDSceneManagement : UnityEditor.AssetPostprocessor
     {
+        const string defaultSceneNotSetWarning = "Default Scene not set! Set up it in Window > Render Pipeline > HD Render Pipeline Wizard\nStandard default unity scene used instead...";
+
         static Func<string, bool> s_CreateEmptySceneAsset;
 
         static HDSceneManagement()
@@ -44,7 +46,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             if (HDProjectSettings.defaultScenePrefab == null)
             {
-                Debug.LogWarning("Default Scene not set! Please run Wizard...");
+                Debug.LogWarning(defaultSceneNotSetWarning);
                 return;
             }
 
@@ -117,7 +119,7 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 if (HDProjectSettings.defaultScenePrefab == null)
                 {
-                    Debug.LogWarning("Default Scene not set! Please run Wizard...");
+                    Debug.LogWarning(defaultSceneNotSetWarning);
                     return;
                 }
 

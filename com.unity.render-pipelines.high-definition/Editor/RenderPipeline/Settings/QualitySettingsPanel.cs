@@ -16,7 +16,8 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 activateHandler = (searchContext, rootElement) =>
                 {
-                    HDEditorUtils.AddStyleSheets(rootElement);
+                    HDEditorUtils.AddStyleSheets(rootElement, HDEditorUtils.FormatingPath);
+                    HDEditorUtils.AddStyleSheets(rootElement, HDEditorUtils.QualitySettingsSheetPath);
 
                     var panel = new QualitySettingsPanelVisualElement(searchContext);
                     panel.style.flexGrow = 1;

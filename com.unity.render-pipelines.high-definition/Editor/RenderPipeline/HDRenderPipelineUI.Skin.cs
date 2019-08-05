@@ -24,7 +24,6 @@ namespace UnityEditor.Rendering.HighDefinition
         static readonly GUIContent k_PunctualShadowsSubTitle = EditorGUIUtility.TrTextContent("Punctual Light Shadows");
         static readonly GUIContent k_AreaShadowsSubTitle = EditorGUIUtility.TrTextContent("Area Light Shadows");
         static readonly GUIContent k_ShadowPunctualLightAtlasSubTitle = EditorGUIUtility.TrTextContent("Punctual Lights Atlas");
-        static readonly GUIContent k_ScreenSpaceShadowsTitle = EditorGUIUtility.TrTextContent("Screen Space Shadows");
         static readonly GUIContent k_ShadowAreaLightAtlasSubTitle = EditorGUIUtility.TrTextContent("Area Lights Atlas");
         static readonly GUIContent k_PunctualLightsShadowTiers = EditorGUIUtility.TrTextContent("Punctual Shadow Resolution Tiers");
         static readonly GUIContent k_AreaLightsShadowTiers = EditorGUIUtility.TrTextContent("Area Shadow Resolution Tiers");
@@ -105,8 +104,8 @@ namespace UnityEditor.Rendering.HighDefinition
         static readonly GUIContent k_HighQualityContent = EditorGUIUtility.TrTextContent("High", "Specifies the resolution of the shadows set to high quality.");
         static readonly GUIContent k_VeryHighQualityContent = EditorGUIUtility.TrTextContent("Very High", "Specifies the resolution of the shadows set to very high quality.");
 
-        static readonly GUIContent k_SupportScreenSpaceShadows = EditorGUIUtility.TrTextContent("Support Screen Space Shadows", "Enables the support of screen space shadows in HDRP.");
-        static readonly GUIContent k_MaxScreenSpaceShadows = EditorGUIUtility.TrTextContent("Maximum Screen Space Shadows", "Sets the maximum number of screen space shadows HDRP can handle on screen at once.");
+        static readonly GUIContent k_SupportScreenSpaceShadows = EditorGUIUtility.TrTextContent("Screen Space Shadows", "Enables the support of screen space shadows in HDRP.");
+        static readonly GUIContent k_MaxScreenSpaceShadows = EditorGUIUtility.TrTextContent("Maximum", "Sets the maximum number of screen space shadows HDRP can handle on screen at once.");
         static readonly GUIContent k_MaxShadowResolution = EditorGUIUtility.TrTextContent("Max shadow resolution", "Specifies the maximum resolution for any single shadow map.");
 
         static readonly GUIContent k_DrawDistanceContent = EditorGUIUtility.TrTextContent("Draw Distance", "Sets the maximum distance from the Camera at which HDRP draws Decals.");
