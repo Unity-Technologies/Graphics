@@ -360,6 +360,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 // opaque-only defines
             }
 
+            if (masterNode.addPrecomputedVelocity.isOn)
+            {
+                activeFields.Add("AddPrecomputedVelocity");
+            }
+
             return activeFields;
         }
 

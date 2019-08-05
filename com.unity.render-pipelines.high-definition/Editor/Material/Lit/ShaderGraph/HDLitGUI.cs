@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.Experimental.Rendering.HDPipeline;
+using UnityEngine.Rendering;
 
 // Include material common properties names
 using static UnityEngine.Experimental.Rendering.HDPipeline.HDMaterialProperties;
@@ -47,6 +48,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             bool receiveSSR = material.HasProperty(kReceivesSSR) ? material.GetInt(kReceivesSSR) != 0 : false;
             bool useSplitLighting = material.HasProperty(kUseSplitLighting) ? material.GetInt(kUseSplitLighting) != 0: false;
             BaseLitGUI.SetupStencil(material, receiveSSR, useSplitLighting);
+
+            if (material.HasProperty(kAddPrecomputedVelocity))
+            {
+                CoreUtils.SetKeyword(material, "_ADD_PRECOMPUTED_VELOCITY", material.GetInt(kAddPrecomputedVelocity) != 0);
+            }
         }
 
         protected override void SetupMaterialKeywordsAndPassInternal(Material material) => SetupMaterialKeywordsAndPass(material);

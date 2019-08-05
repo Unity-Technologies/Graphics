@@ -330,6 +330,15 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline.Drawing
                 });
             });
 
+            ps.Add(new PropertyRow(CreateLabel("Add Precomputed Velocity", indentLevel)), (row) =>
+            {
+                row.Add(new Toggle(), (toggle) =>
+                {
+                    toggle.value = m_Node.addPrecomputedVelocity.isOn;
+                    toggle.OnToggleChanged(ChangeAddPrecomputedVelocity);
+                });
+            });
+
             ps.Add(new PropertyRow(CreateLabel("Geometric Specular AA", indentLevel)), (row) =>
             {
                 row.Add(new Toggle(), (toggle) =>
@@ -585,6 +594,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline.Drawing
             ToggleData td = m_Node.receiveSSR;
             td.isOn = evt.newValue;
             m_Node.receiveSSR = td;
+        }
+        
+        void ChangeAddPrecomputedVelocity(ChangeEvent<bool> evt)
+        {
+            m_Node.owner.owner.RegisterCompleteObjectUndo("Add Precomputed Velocity");
+            ToggleData td = m_Node.addPrecomputedVelocity;
+            td.isOn = evt.newValue;
+            m_Node.addPrecomputedVelocity = td;
         }
 
         void ChangeSpecularAA(ChangeEvent<bool> evt)

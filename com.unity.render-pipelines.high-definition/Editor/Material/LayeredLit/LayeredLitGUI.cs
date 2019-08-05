@@ -170,6 +170,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             SetupLayersMappingKeywords(material);
             BaseLitGUI.SetupStencil(material, material.GetInt(kReceivesSSR) != 0, material.GetMaterialId() == MaterialId.LitSSS);
 
+            if (material.HasProperty(kAddPrecomputedVelocity))
+            {
+                CoreUtils.SetKeyword(material, "_ADD_PRECOMPUTED_VELOCITY", material.GetInt(kAddPrecomputedVelocity) != 0);
+            }
+
             for (int i = 0; i < kMaxLayerCount; ++i)
             {
                 NormalMapSpace normalMapSpace = ((NormalMapSpace)material.GetFloat(kNormalMapSpace + i));

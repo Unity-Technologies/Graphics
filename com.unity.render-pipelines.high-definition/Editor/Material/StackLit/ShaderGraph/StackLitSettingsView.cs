@@ -184,6 +184,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline.Drawing
             //  
             //  receiveDecals
             //  receiveSSR
+            //  addPrecomputedVelocity
             //  geometricSpecularAA
             //  specularOcclusion
             //  
@@ -333,6 +334,15 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline.Drawing
                 {
                     toggle.value = m_Node.receiveSSR.isOn;
                     toggle.OnToggleChanged(ChangeReceiveSSR);
+                });
+            });
+
+            ps.Add(new PropertyRow(CreateLabel("Add Precomputed Velocity", indentLevel)), (row) =>
+            {
+                row.Add(new Toggle(), (toggle) =>
+                {
+                    toggle.value = m_Node.addPrecomputedVelocity.isOn;
+                    toggle.OnToggleChanged(ChangeAddPrecomputedVelocity);
                 });
             });
 
@@ -630,6 +640,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline.Drawing
             ToggleData td = m_Node.receiveSSR;
             td.isOn = evt.newValue;
             m_Node.receiveSSR = td;
+        }
+
+        void ChangeAddPrecomputedVelocity(ChangeEvent<bool> evt)
+        {
+            m_Node.owner.owner.RegisterCompleteObjectUndo("Add Precomputed Velocity");
+            ToggleData td = m_Node.addPrecomputedVelocity;
+            td.isOn = evt.newValue;
+            m_Node.addPrecomputedVelocity = td;
         }
 
         void ChangeGeometricSpecularAA(ChangeEvent<bool> evt)

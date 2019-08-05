@@ -286,8 +286,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 HDSubShaderUtilities.SetStencilStateForForward(ref pass);
                 HDSubShaderUtilities.SetBlendModeForForward(ref pass);
 
-                pass.ExtraDefines.Remove("#ifndef DEBUG_DISPLAY\n#define SHADERPASS_FORWARD_BYPASS_ALPHA_TEST\n#endif");                
-
+                pass.ExtraDefines.Remove("#ifndef DEBUG_DISPLAY\n#define SHADERPASS_FORWARD_BYPASS_ALPHA_TEST\n#endif");
+                
                 if (masterNode.surfaceType == SurfaceType.Opaque)
                 {
                     if (masterNode.alphaTest.isOn)
@@ -367,6 +367,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             if (!masterNode.receiveSSR.isOn)
             {
                 activeFields.Add("DisableSSR");
+            }
+
+            if (masterNode.addPrecomputedVelocity.isOn)
+            {
+                activeFields.Add("AddPrecomputedVelocity");
             }
 
             if (masterNode.energyConservingSpecular.isOn)
