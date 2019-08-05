@@ -38,8 +38,9 @@ namespace UnityEngine.Rendering.HighDefinition
         RTHandle[] m_AtlasMoments = null;
         RTHandle m_IntermediateSummedAreaTexture;
         RTHandle m_SummedAreaTexture;
+        HDShadowResolutionRequest[] m_SortedRequestsCache;
 
-        public HDShadowAtlas(RenderPipelineResources renderPipelineResources, int width, int height, int atlasShaderID, int atlasSizeShaderID, Material clearMaterial, BlurAlgorithm blurAlgorithm = BlurAlgorithm.None, FilterMode filterMode = FilterMode.Bilinear, DepthBits depthBufferBits = DepthBits.Depth16, RenderTextureFormat format = RenderTextureFormat.Shadowmap, string name = "", int momentAtlasShaderID = 0)
+        public HDShadowAtlas(RenderPipelineResources renderPipelineResources, int width, int height, int atlasShaderID, int atlasSizeShaderID, Material clearMaterial, int maxShadowRequests, BlurAlgorithm blurAlgorithm = BlurAlgorithm.None, FilterMode filterMode = FilterMode.Bilinear, DepthBits depthBufferBits = DepthBits.Depth16, RenderTextureFormat format = RenderTextureFormat.Shadowmap, string name = "", int momentAtlasShaderID = 0)
         {
             this.width = width;
             this.height = height;
@@ -53,6 +54,8 @@ namespace UnityEngine.Rendering.HighDefinition
             m_ClearMaterial = clearMaterial;
             m_BlurAlgorithm = blurAlgorithm;
             m_RenderPipelineResources = renderPipelineResources;
+
+            m_SortedRequestsCache = new HDShadowResolutionRequest[maxShadowRequests];
 
             AllocateRenderTexture();
         }
@@ -121,12 +124,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // Stable (unlike List.Sort) sorting algorithm which, unlike Linq's, doesn't use JIT (lol).
         // Sorts in place. Very efficient (O(n)) for already sorted data.
-        void InsertionSort(List<HDShadowResolutionRequest> array)
+        void InsertionSort(HDShadowResolutionRequest[] array, int length)
         {
             int i = 1;
-            int n = array.Count;
 
-            while (i < n)
+            while (i < length)
             {
                 var curr = array[i];
 
@@ -149,24 +151,25 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             // Perform a deep copy.
             int n = (m_ShadowResolutionRequests != null) ? m_ShadowResolutionRequests.Count : 0;
-            var sortedRequests = new List<HDShadowResolutionRequest>(n);
 
             for (int i = 0; i < n; i++)
             {
-                sortedRequests.Add(m_ShadowResolutionRequests[i]);
+                m_SortedRequestsCache[i] = m_ShadowResolutionRequests[i];
             }
 
             // Note: it is very important to keep the added order for shadow maps that are the same size (for punctual lights)
             // and because of that we can't use List.Sort because it messes up the list even with a good custom comparator
             // Sort in place.
-            InsertionSort(sortedRequests);
+            InsertionSort(m_SortedRequestsCache, n);
 
             float curX = 0, curY = 0, curH = 0, xMax = width, yMax = height;
             m_RcpScaleFactor = 1;
 
             // Assign to every view shadow viewport request a position in the atlas
-            foreach (var shadowRequest in sortedRequests)
+            for (int i = 0; i < n; i++)
             {
+                var shadowRequest = m_SortedRequestsCache[i];
+
                 // shadow atlas layouting
                 Rect viewport = new Rect(Vector2.zero, shadowRequest.resolution);
                 curH = Mathf.Max(curH, viewport.height);

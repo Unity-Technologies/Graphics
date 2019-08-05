@@ -6,6 +6,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [7.1.1] - 2019-XX-XX
 
+### Changed
+- Remove almost all Garbage collection call within a frame.
+
 ## [7.0.1] - 2019-07-25
 
 ### Added
