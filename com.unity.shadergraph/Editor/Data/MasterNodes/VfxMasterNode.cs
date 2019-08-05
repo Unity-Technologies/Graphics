@@ -2,8 +2,12 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph.Internal;
+using UnityEditor.ShaderGraph.Drawing;
+using UnityEditor.ShaderGraph.Drawing.Controls;
 using UnityEngine;
 using UnityEngine.Rendering;
+using UnityEngine.UIElements;
+using UnityEditor.Graphing.Util;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -27,9 +31,45 @@ namespace UnityEditor.ShaderGraph
         public const string EmissiveSlotName = "Emissive";
         public const int EmissiveSlotId = 5;
 
+        public const string ColorSlotName = "Color";
+        public const int ColorSlotId = 6;
+
         public VfxMasterNode()
         {
             UpdateNodeAfterDeserialization();
+        }
+
+
+        [SerializeField]
+        bool m_Lit;
+
+        public ToggleData lit
+        {
+            get { return new ToggleData(m_Lit); }
+            set
+            {
+                if (m_Lit == value.isOn)
+                    return;
+                m_Lit = value.isOn;
+                UpdateNodeAfterDeserialization();
+                Dirty(ModificationScope.Topological);
+            }
+        }
+
+        [SerializeField]
+        bool m_AlphaTest;
+
+        public ToggleData alphaTest
+        {
+            get { return new ToggleData(m_AlphaTest); }
+            set
+            {
+                if (m_AlphaTest == value.isOn)
+                    return;
+                m_AlphaTest = value.isOn;
+                UpdateNodeAfterDeserialization();
+                Dirty(ModificationScope.Topological);
+            }
         }
 
         public override void UpdateNodeAfterDeserialization()
@@ -38,22 +78,79 @@ namespace UnityEditor.ShaderGraph
 
             name = "Visual Effect Master";
 
-            AddSlot(new PositionMaterialSlot(PositionSlotId, PositionName, PositionName, CoordinateSpace.Object, ShaderStageCapability.Vertex));
-            AddSlot(new ColorRGBMaterialSlot(BaseColorSlotId, BaseColorSlotName, NodeUtils.GetHLSLSafeName(BaseColorSlotName), SlotType.Input, Color.grey.gamma, ColorMode.Default, ShaderStageCapability.Fragment));
-            AddSlot(new Vector1MaterialSlot(MetallicSlotId, MetallicSlotName, MetallicSlotName, SlotType.Input, 0.5f, ShaderStageCapability.Fragment));
-            AddSlot(new Vector1MaterialSlot(SmoothnessSlotId, SmoothnessSlotName, SmoothnessSlotName, SlotType.Input, 0.5f, ShaderStageCapability.Fragment));
-            AddSlot(new Vector1MaterialSlot(AlphaSlotId, AlphaSlotName, AlphaSlotName, SlotType.Input, 1, ShaderStageCapability.Fragment));
-            AddSlot(new ColorRGBMaterialSlot(EmissiveSlotId, EmissiveSlotName, NodeUtils.GetHLSLSafeName(EmissiveSlotName), SlotType.Input, Color.black, ColorMode.Default, ShaderStageCapability.Fragment));
+            HashSet<int> usedSlots = new HashSet<int>();
 
-            RemoveSlotsNameNotMatching(new[]
+            AddSlot(new PositionMaterialSlot(PositionSlotId, PositionName, PositionName, CoordinateSpace.Object, ShaderStageCapability.Vertex));
+            usedSlots.Add(PositionSlotId);
+            if ( lit.isOn)
             {
-                PositionSlotId,
-                BaseColorSlotId,
-                MetallicSlotId,
-                SmoothnessSlotId,
-                AlphaSlotId,
-                EmissiveSlotId
-            });
+                AddSlot(new ColorRGBMaterialSlot(BaseColorSlotId, BaseColorSlotName, NodeUtils.GetHLSLSafeName(BaseColorSlotName), SlotType.Input, Color.grey.gamma, ColorMode.Default, ShaderStageCapability.Fragment));
+                usedSlots.Add(BaseColorSlotId);
+
+                AddSlot(new Vector1MaterialSlot(MetallicSlotId, MetallicSlotName, MetallicSlotName, SlotType.Input, 0.5f, ShaderStageCapability.Fragment));
+                usedSlots.Add(MetallicSlotId);
+
+                AddSlot(new Vector1MaterialSlot(SmoothnessSlotId, SmoothnessSlotName, SmoothnessSlotName, SlotType.Input, 0.5f, ShaderStageCapability.Fragment));
+                usedSlots.Add(SmoothnessSlotId);
+
+                AddSlot(new ColorRGBMaterialSlot(EmissiveSlotId, EmissiveSlotName, NodeUtils.GetHLSLSafeName(EmissiveSlotName), SlotType.Input, Color.black, ColorMode.HDR, ShaderStageCapability.Fragment));
+                usedSlots.Add(EmissiveSlotId);
+            }
+            else
+            {
+                AddSlot(new ColorRGBMaterialSlot(ColorSlotId, ColorSlotName, NodeUtils.GetHLSLSafeName(ColorSlotName), SlotType.Input, Color.black, ColorMode.HDR, ShaderStageCapability.Fragment));
+                usedSlots.Add(ColorSlotId);
+            }
+
+            AddSlot(new Vector1MaterialSlot(AlphaSlotId, AlphaSlotName, AlphaSlotName, SlotType.Input, 1, ShaderStageCapability.Fragment));
+            usedSlots.Add(AlphaSlotId);
+
+            RemoveSlotsNameNotMatching(usedSlots);
+        }
+
+        public override void ProcessPreviewMaterial(Material previewMaterial)
+        {
+        }
+
+        class SettingsView : VisualElement
+        {
+            readonly VfxMasterNode m_Node;
+            public SettingsView(VfxMasterNode node)
+            {
+                m_Node = node;
+                PropertySheet ps = new PropertySheet();
+                ps.Add(new PropertyRow(new Label("Alpha Mask")), (row) =>
+                {
+                    row.Add(new Toggle(), (toggle) =>
+                    {
+                        toggle.value = m_Node.alphaTest.isOn;
+                        toggle.OnToggleChanged(ChangeAlphaTest);
+                    });
+                });
+                ps.Add(new PropertyRow(new Label("Lit")), (System.Action<PropertyRow>)((row) =>
+                {
+                    row.Add(new Toggle(), (System.Action<Toggle>)((toggle) =>
+                    {
+                        toggle.value = m_Node.lit.isOn;
+                        toggle.OnToggleChanged(this.ChangeLit);
+                    }));
+                }));
+                Add(ps);
+            }
+
+            void ChangeAlphaTest(ChangeEvent<bool> e)
+            {
+                m_Node.alphaTest = new ToggleData(e.newValue, m_Node.alphaTest.isEnabled);
+            }
+            void ChangeLit(ChangeEvent<bool> e)
+            {
+                m_Node.lit = new ToggleData(e.newValue, m_Node.alphaTest.isEnabled);
+            }
+        }
+
+        protected override VisualElement CreateCommonSettingsElement()
+        {
+            return new SettingsView(this);
         }
 
         public override bool hasPreview => false;
