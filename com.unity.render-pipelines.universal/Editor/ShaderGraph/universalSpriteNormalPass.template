@@ -36,8 +36,7 @@ ${Graph}
     {
         float4	position		: POSITION;
 		float3  normalWS		: TEXCOORD0;
-		float3  tangentWS		: TEXCOORD1;
-		float3  bitangentWS		: TEXCOORD2;
+		float3  bitangentWS		: TEXCOORD1;
 ${VertexOutputStruct}
     };
 
@@ -54,9 +53,8 @@ ${VertexShaderDescriptionInputs}
 		#if UNITY_UV_STARTS_AT_TOP
 			o.position.y = -o.position.y;
 		#endif
-		o.normalWS = TransformObjectToWorldDir(float3(0, 0, 1));
-		o.tangentWS = TransformObjectToWorldDir(float3(1, 0, 0));
-		o.bitangentWS = TransformObjectToWorldDir(float3(0, 1, 0));
+		o.normalWS = TransformObjectToWorldDir(float3(0, 0, -1));
+		o.bitangentWS = cross(o.normalWS, WorldSpaceTangent) * v.tangent.w;
 ${VertexShaderOutputs}
         return o;
     }
@@ -68,7 +66,7 @@ ${PixelShader}
 ${PixelShaderSurfaceInputs}
         SurfaceDescription surf = PopulateSurfaceData(surfaceInput);
 
-		return NormalsRenderingShared(surf.Color, surf.Normal, IN.tangentWS.xyz, IN.bitangentWS.xyz, -IN.normalWS.xyz);;
+		return NormalsRenderingShared(surf.Color, surf.Normal, WorldSpaceTangent, IN.bitangentWS, IN.normalWS);
     }
 
     ENDHLSL
