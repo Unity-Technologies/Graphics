@@ -134,6 +134,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
     //@TODO: We should continuously move these values
     // into the engine when we can see them being generally useful
+    [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "Light-Component" + Documentation.endURL)]
     [RequireComponent(typeof(Light))]
     [ExecuteAlways]
     public partial class HDAdditionalLightData : MonoBehaviour
@@ -482,7 +483,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (m_ShapeWidth == value)
                     return;
 
-                if (lightTypeExtent == LightTypeExtent.Rectangle)
+                if (IsAreaLight(m_LightTypeExtent))
                     m_ShapeWidth = Mathf.Clamp(value, k_MinAreaWidth, float.MaxValue);
                 else
                     m_ShapeWidth = Mathf.Clamp(value, 0, float.MaxValue);
@@ -504,7 +505,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (m_ShapeHeight == value)
                     return;
 
-                if (lightTypeExtent == LightTypeExtent.Rectangle)
+                if (IsAreaLight(m_LightTypeExtent))
                     m_ShapeHeight = Mathf.Clamp(value, k_MinAreaWidth, float.MaxValue);
                 else
                     m_ShapeHeight = Mathf.Clamp(value, 0, float.MaxValue);
@@ -718,6 +719,41 @@ namespace UnityEngine.Rendering.HighDefinition
                     return;
 
                 m_InteractsWithSky = value;
+            }
+        }
+
+        [SerializeField, FormerlySerializedAs("angularDiameter")]
+        float m_AngularDiameter = 0;
+        /// <summary>
+        /// Angular diameter of the emissive celestial body represented by the light as seen from the camera (in degrees).
+        /// Used to render the sun/moon disk.
+        /// </summary>
+        public float angularDiameter
+        {
+            get => m_AngularDiameter;
+            set
+            {
+                if (m_AngularDiameter == value)
+                    return;
+
+                m_AngularDiameter = value;
+            }
+        }
+
+        [SerializeField, FormerlySerializedAs("distance")]
+        float m_Distance = 150000000.0f; // Sun to Earth
+        /// <summary>
+        /// Distance from the camera to the emissive celestial body represented by the light.
+        /// </summary>
+        public float distance
+        {
+            get => m_Distance;
+            set
+            {
+                if (m_Distance == value)
+                    return;
+
+                m_Distance = value;
             }
         }
 
@@ -1855,7 +1891,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 if (legacyLight.useColorTemperature == value)
                     return;
-                
+
                 legacyLight.useColorTemperature = value;
             }
         }
@@ -1955,6 +1991,8 @@ namespace UnityEngine.Rendering.HighDefinition
             data.m_Intensity = m_Intensity;
             data.displayAreaLightEmissiveMesh = displayAreaLightEmissiveMesh;
             data.interactsWithSky = interactsWithSky;
+            data.angularDiameter = angularDiameter;
+            data.distance = distance;
 
             data.customResolution = customResolution;
             data.shadowDimmer = shadowDimmer;
@@ -2284,11 +2322,20 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        void UpdateShapeSize()
+        {
+            // Force to clamp the shape if we changed the type of the light
+            shapeWidth = m_ShapeWidth;
+            shapeHeight = m_ShapeHeight;
+        }
+
         /// <summary>
         /// Synchronize all the HD Additional Light values with the Light component.
         /// </summary>
         public void UpdateAllLightValues()
         {
+            UpdateShapeSize();
+
             // Update light intensity
             UpdateLightIntensity();
 
@@ -2318,7 +2365,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             this.color = color;
         }
-        
+
         /// <summary>
         /// Toggle the usage of color temperature.
         /// </summary>

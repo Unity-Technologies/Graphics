@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine.Experimental.Rendering;
+using UnityEngine.Experimental.Rendering.RenderGraphModule;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -240,7 +241,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             // store a shortcut on HDAdditionalCameraData (done here and not in the constructor as
             // we don't create HDCamera at every frame and user can change the HDAdditionalData later (Like when they create a new scene).
-            m_AdditionalCameraData = camera.GetComponent<HDAdditionalCameraData>();
+            camera.TryGetComponent<HDAdditionalCameraData>(out m_AdditionalCameraData);
 
             m_XRPass = xrPass;
             m_frameSettings = currentFrameSettings;
@@ -892,7 +893,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_HistoryRTSystem.ReleaseAll();
         }
 
-        public void ExecuteCaptureActions(RTHandle input, CommandBuffer cmd)
+        internal void ExecuteCaptureActions(RTHandle input, CommandBuffer cmd)
         {
             if (m_RecorderCaptureActions == null || !m_RecorderCaptureActions.MoveNext())
                 return;
@@ -914,6 +915,50 @@ namespace UnityEngine.Rendering.HighDefinition
 
             for (m_RecorderCaptureActions.Reset(); m_RecorderCaptureActions.MoveNext();)
                 m_RecorderCaptureActions.Current(m_RecorderTempRT, cmd);
+        }
+
+        class ExecuteCaptureActionsPassData
+        {
+            public RenderGraphResource input;
+            public RenderGraphMutableResource tempTexture;
+            public IEnumerator<Action<RenderTargetIdentifier, CommandBuffer>> recorderCaptureActions;
+            public Vector2 viewportScale;
+            public Material blitMaterial;
+        }
+
+        internal void ExecuteCaptureActions(RenderGraph renderGraph, RenderGraphResource input)
+        {
+            if (m_RecorderCaptureActions == null || !m_RecorderCaptureActions.MoveNext())
+                return;
+
+            using (var builder = renderGraph.AddRenderPass<ExecuteCaptureActionsPassData>("Execute Capture Actions", out var passData))
+            {
+                var inputDesc = renderGraph.GetTextureDesc(input);
+                var rtHandleScale = renderGraph.rtHandleProperties.rtHandleScale;
+                passData.viewportScale = new Vector2(rtHandleScale.x, rtHandleScale.y);
+                passData.blitMaterial = HDUtils.GetBlitMaterial(inputDesc.dimension);
+                passData.recorderCaptureActions = m_RecorderCaptureActions;
+                passData.input = builder.ReadTexture(input);
+                // We need to blit to an intermediate texture because input resolution can be bigger than the camera resolution
+                // Since recorder does not know about this, we need to send a texture of the right size.
+                passData.tempTexture = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(actualWidth, actualHeight)
+                    { colorFormat = inputDesc.colorFormat, name = "TempCaptureActions" }));
+
+                builder.SetRenderFunc(
+                (ExecuteCaptureActionsPassData data, RenderGraphContext ctx) =>
+                {
+                    var tempRT = ctx.resources.GetTexture(data.tempTexture);
+                    var mpb = ctx.renderGraphPool.GetTempMaterialPropertyBlock();
+                    mpb.SetTexture(HDShaderIDs._BlitTexture, ctx.resources.GetTexture(data.input));
+                    mpb.SetVector(HDShaderIDs._BlitScaleBias, data.viewportScale);
+                    mpb.SetFloat(HDShaderIDs._BlitMipLevel, 0);
+                    ctx.cmd.SetRenderTarget(tempRT);
+                    ctx.cmd.DrawProcedural(Matrix4x4.identity, data.blitMaterial, 0, MeshTopology.Triangles, 3, 1, mpb);
+
+                    for (data.recorderCaptureActions.Reset(); data.recorderCaptureActions.MoveNext();)
+                        data.recorderCaptureActions.Current(tempRT, ctx.cmd);
+                });
+            }
         }
     }
 }

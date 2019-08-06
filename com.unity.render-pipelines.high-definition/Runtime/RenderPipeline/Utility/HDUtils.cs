@@ -260,6 +260,15 @@ namespace UnityEngine.Rendering.HighDefinition
             commandBuffer.DrawProcedural(Matrix4x4.identity, material, shaderPassId, MeshTopology.Triangles, 3, 1, properties);
         }
 
+        public static void DrawFullScreen(CommandBuffer commandBuffer, Rect viewport, Material material,
+            RenderTargetIdentifier destination, RTHandle depthStencilBuffer,
+            MaterialPropertyBlock properties = null, int shaderPassId = 0)
+        {
+            CoreUtils.SetRenderTarget(commandBuffer, destination, depthStencilBuffer, ClearFlag.None, 0, CubemapFace.Unknown, -1);
+            commandBuffer.SetViewport(viewport);
+            commandBuffer.DrawProcedural(Matrix4x4.identity, material, shaderPassId, MeshTopology.Triangles, 3, 1, properties);
+        }
+
         // Returns mouse coordinates: (x,y) in pixels and (z,w) normalized inside the render target (not the viewport)
         public static Vector4 GetMouseCoordinates(HDCamera camera)
         {
@@ -278,8 +287,10 @@ namespace UnityEngine.Rendering.HighDefinition
         // This function check if camera is a CameraPreview, then check if this preview is a regular preview (i.e not a preview from the camera editor)
         public static bool IsRegularPreviewCamera(Camera camera)
         {
-            var additionalCameraData = camera.GetComponent<HDAdditionalCameraData>();
-            return camera.cameraType == CameraType.Preview && ((additionalCameraData == null) || (additionalCameraData && !additionalCameraData.isEditorCameraPreview));
+            HDAdditionalCameraData additionalCameraData;
+            if (!camera.TryGetComponent<HDAdditionalCameraData>(out additionalCameraData))
+                return false;
+            return camera.cameraType == CameraType.Preview && (additionalCameraData && !additionalCameraData.isEditorCameraPreview);
         }
 
         // We need these at runtime for RenderPipelineResources upgrade
@@ -584,6 +595,79 @@ namespace UnityEngine.Rendering.HighDefinition
                 var renderStateBlock = rendererList.stateBlock.Value;
                 renderContext.DrawRenderers(rendererList.cullingResult, ref rendererList.drawSettings, ref rendererList.filteringSettings, ref renderStateBlock);
             }
+        }
+
+        // $"HDProbe RenderCamera ({probeName}: {face:00} for viewer '{viewerName}')"
+        internal unsafe static string ComputeProbeCameraName(string probeName, int face, string viewerName)
+        {
+            // Interpolate the camera name with as few allocation as possible
+            const string pattern1 = "HDProbe RenderCamera (";
+            const string pattern2 = ": ";
+            const string pattern3 = " for viewer '";
+            const string pattern4 = "')";
+            const int maxCharCountPerName = 40;
+            const int charCountPerNumber = 2;
+
+            probeName = probeName ?? string.Empty;
+            viewerName = viewerName ?? "null";
+
+            var probeNameSize = Mathf.Min(probeName.Length, maxCharCountPerName);
+            var viewerNameSize = Mathf.Min(viewerName.Length, maxCharCountPerName);
+            int size = pattern1.Length + probeNameSize
+                + pattern2.Length + charCountPerNumber
+                + pattern3.Length + viewerNameSize
+                + pattern4.Length;
+
+            var buffer = stackalloc char[size];
+            var p = buffer;
+            int i, c, s = 0;
+            for (i = 0; i < pattern1.Length; ++i, ++p)
+                *p = pattern1[i];
+            for (i = 0, c = Mathf.Min(probeName.Length, maxCharCountPerName); i < c; ++i, ++p)
+                *p = probeName[i];
+            s += c;
+            for (i = 0; i < pattern2.Length; ++i, ++p)
+                *p = pattern2[i];
+
+            // Fast, no-GC index.ToString("2")
+            var temp = (face * 205) >> 11;  // 205/2048 is nearly the same as /10
+            *(p++) = (char)(temp + '0');
+            *(p++) = (char)((face - temp * 10) + '0');
+            s += charCountPerNumber;
+
+            for (i = 0; i < pattern3.Length; ++i, ++p)
+                *p = pattern3[i];
+            for (i = 0, c = Mathf.Min(viewerName.Length, maxCharCountPerName); i < c; ++i, ++p)
+                *p = viewerName[i];
+            s += c;
+            for (i = 0; i < pattern4.Length; ++i, ++p)
+                *p = pattern4[i];
+
+            s += pattern1.Length + pattern2.Length + pattern3.Length + pattern4.Length;
+            return new string(buffer, 0, s);
+        }
+
+        // $"HDRenderPipeline::Render {cameraName}"
+        internal unsafe static string ComputeCameraName(string cameraName)
+        {
+            // Interpolate the camera name with as few allocation as possible
+            const string pattern1 = "HDRenderPipeline::Render ";
+            const int maxCharCountPerName = 40;
+
+            var cameraNameSize = Mathf.Min(cameraName.Length, maxCharCountPerName);
+            int size = pattern1.Length + cameraNameSize;
+
+            var buffer = stackalloc char[size];
+            var p = buffer;
+            int i, c, s = 0;
+            for (i = 0; i < pattern1.Length; ++i, ++p)
+                *p = pattern1[i];
+            for (i = 0, c = cameraNameSize; i < c; ++i, ++p)
+                *p = cameraName[i];
+            s += c;
+
+            s += pattern1.Length;
+            return new string(buffer, 0, s);
         }
     }
 }
