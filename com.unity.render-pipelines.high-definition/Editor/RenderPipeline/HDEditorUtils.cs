@@ -91,17 +91,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         /// <returns>The list of shader preprocessor</returns>
         public static List<BaseShaderPreprocessor> GetBaseShaderPreprocessorList()
         {
-            var baseType = typeof(BaseShaderPreprocessor);
-            var assembly = baseType.Assembly;
-
-            var types = AppDomain.CurrentDomain.GetAssemblies()
-                .SelectMany(a => a.GetTypes()
-                    .Where(t => t.IsSubclassOf(baseType))
-                    .Select(Activator.CreateInstance)
-                    .Cast<BaseShaderPreprocessor>()
-                ).ToList();
-
-            return types;
+            return UnityEngine.Rendering.CoreUtils.GetAllTypesDerivedFrom<BaseShaderPreprocessor>().Select(Activator.CreateInstance).Cast<BaseShaderPreprocessor>().ToList();
         }
 
         static readonly GUIContent s_OverrideTooltip = EditorGUIUtility.TrTextContent("", "Override this setting in component.");
