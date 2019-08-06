@@ -195,7 +195,86 @@ namespace UnityEditor.VFX
 
                         var callSG = new VFXShaderWriter("//Call Shader Graph\n");
                         callSG.builder.AppendLine($"{shaderGraph.inputStructName} INSG;");
-                        foreach( var property in graphCode.properties)
+
+                        if (graphCode.requirements.requiresNormal != NeededCoordinateSpace.None)
+                        {
+                            callSG.builder.AppendLine("float3 WorldSpaceNormal = normalize(normalWS.xyz);");
+                            if ((graphCode.requirements.requiresNormal & NeededCoordinateSpace.World) != 0)
+                                callSG.builder.AppendLine("INSG.WorldSpaceNormal = WorldSpaceNormal;");
+                            if ((graphCode.requirements.requiresNormal & NeededCoordinateSpace.Object) != 0)
+                                callSG.builder.AppendLine("INSG.ObjectSpaceNormal = mul(WorldSpaceNormal, (float3x3)UNITY_MATRIX_M);");
+                            if ((graphCode.requirements.requiresNormal & NeededCoordinateSpace.View) != 0)
+                                callSG.builder.AppendLine("INSG.ViewSpaceNormal = mul(WorldSpaceNormal, (float3x3)UNITY_MATRIX_I_V);");
+                            if ((graphCode.requirements.requiresNormal & NeededCoordinateSpace.Tangent) != 0)
+                                callSG.builder.AppendLine("INSG.ViewSpaceNormal = float3(0.0f, 0.0f, 1.0f);");
+                        }
+                        if (graphCode.requirements.requiresTangent != NeededCoordinateSpace.None)
+                        {
+                            callSG.builder.AppendLine("float3 WorldSpaceTangent = normalize(tangentWS.xyz);");
+                            if ((graphCode.requirements.requiresTangent & NeededCoordinateSpace.World) != 0)
+                                callSG.builder.AppendLine("INSG.WorldSpaceTangent =  WorldSpaceTangent;");
+                            if ((graphCode.requirements.requiresTangent & NeededCoordinateSpace.Object) != 0)
+                                callSG.builder.AppendLine("INSG.ObjectSpaceTangent =  TransformWorldToObjectDir(WorldSpaceTangent);");
+                            if ((graphCode.requirements.requiresTangent & NeededCoordinateSpace.View) != 0)
+                                callSG.builder.AppendLine("INSG.ViewSpaceTangent = TransformWorldToViewDir(WorldSpaceTangent);");
+                            if ((graphCode.requirements.requiresTangent & NeededCoordinateSpace.Tangent) != 0)
+                                callSG.builder.AppendLine("INSG.TangentSpaceTangent = float3(1.0f, 0.0f, 0.0f);");
+                        }
+
+                        if(graphCode.requirements.requiresBitangent != NeededCoordinateSpace.None)
+                        {
+                            callSG.builder.AppendLine("float3 WorldSpaceBiTangent =  normalize(bitangentWS.xyz);");
+                            if ((graphCode.requirements.requiresBitangent & NeededCoordinateSpace.World) != 0)
+                                callSG.builder.AppendLine("INSG.WorldSpaceBiTangent =  WorldSpaceBiTangent;");
+                            if ((graphCode.requirements.requiresBitangent & NeededCoordinateSpace.Object) != 0)
+                                callSG.builder.AppendLine("INSG.ObjectSpaceBiTangent =  TransformWorldToObjectDir(WorldSpaceBiTangent);");
+                            if ((graphCode.requirements.requiresBitangent & NeededCoordinateSpace.View) != 0)
+                                callSG.builder.AppendLine("INSG.ViewSpaceBiTangent = TransformWorldToViewDir(WorldSpaceBiTangent);");
+                            if ((graphCode.requirements.requiresBitangent & NeededCoordinateSpace.Tangent) != 0)
+                                callSG.builder.AppendLine("INSG.TangentSpaceBiTangent = float3(0.0f, 1.0f, 0.0f);");
+                        }
+
+                        if (graphCode.requirements.requiresPosition != NeededCoordinateSpace.None)
+                        {
+                            callSG.builder.AppendLine("float3 WorldSpacePosition = i.posWS;");
+                            if ((graphCode.requirements.requiresPosition & NeededCoordinateSpace.World) != 0)
+                                callSG.builder.AppendLine("INSG.WorldSpacePosition = WorldSpacePosition;");
+                            if ((graphCode.requirements.requiresPosition & NeededCoordinateSpace.Object) != 0)
+                                callSG.builder.AppendLine("INSG.ObjectSpacePosition =  TransformWorldToObjectDir(WorldSpacePosition);");
+                            if ((graphCode.requirements.requiresPosition & NeededCoordinateSpace.View) != 0)
+                                callSG.builder.AppendLine("INSG.ViewSpacePosition = TransformWorldToView(WorldSpacePosition));");
+                            if ((graphCode.requirements.requiresPosition & NeededCoordinateSpace.Tangent) != 0)
+                                callSG.builder.AppendLine("INSG.TangentSpacePosition = float3(0.0f, 0.0f, 0.0f);");
+                            if ((graphCode.requirements.requiresPosition & NeededCoordinateSpace.AbsoluteWorld) != 0)
+                                callSG.builder.AppendLine("INSG.AbsoluteWorldSpacePosition = GetAbsolutePositionWS(WorldSpacePosition);");
+                            
+                        }
+                        if (graphCode.requirements.requiresScreenPosition)
+                            callSG.builder.AppendLine("INSG.ScreenPosition = ComputeScreenPos(TransformWorldToHClip(i.posWS), _ProjectionParams.x);");
+
+                        for(UVChannel uv = UVChannel.UV0; uv != UVChannel.UV3; ++uv)
+                        {
+                            if( graphCode.requirements.requiresMeshUVs.Contains(uv))
+                            {
+                                int uvi = (int)uv;
+                                callSG.builder.AppendLine($"INSG.uv{uvi} = input.texCoord{uvi};");
+                            }
+                        }
+                        /*
+        
+        $SurfaceDescriptionInputs.WorldSpaceViewDirection:   output.WorldSpaceViewDirection = normalize(viewWS);
+        $SurfaceDescriptionInputs.ObjectSpaceViewDirection:  output.ObjectSpaceViewDirection = TransformWorldToObjectDir(output.WorldSpaceViewDirection);
+        $SurfaceDescriptionInputs.ViewSpaceViewDirection:    output.ViewSpaceViewDirection = TransformWorldToViewDir(output.WorldSpaceViewDirection);
+        $SurfaceDescriptionInputs.TangentSpaceViewDirection: float3x3 tangentSpaceTransform = float3x3(output.WorldSpaceTangent, output.WorldSpaceBiTangent, output.WorldSpaceNormal);
+        $SurfaceDescriptionInputs.TangentSpaceViewDirection: output.TangentSpaceViewDirection = mul(tangentSpaceTransform, output.WorldSpaceViewDirection);
+        */
+                        /*
+                        $SurfaceDescriptionInputs.VertexColor:               output.VertexColor = input.color;
+                        $SurfaceDescriptionInputs.FaceSign:                  output.FaceSign = input.isFrontFace;
+                        $SurfaceDescriptionInputs.TimeParameters:            output.TimeParameters = _TimeParameters.xyz; // This is mainly for LW as HD overwrite this value
+                        */
+
+                        foreach ( var property in graphCode.properties)
                         {
                             callSG.builder.AppendLine($"INSG.{property.referenceName} = {property.displayName};");
                         }
