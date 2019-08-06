@@ -58,7 +58,7 @@ A type of [normal map](https://docs.unity3d.com/Manual/StandardShaderMaterialPar
 This contains the same details as the tangent space normal map, but also includes orientation data. You can only use this type of normal map on a static Mesh that does not deform. This normal map type is less resource-intensive to process, because Unity does not need to make any transform calculations.
 
 <a name="BentNormalMap"></a>
-#### world space normal map
+#### bent normal map
 HDRP uses the bent normal to prevent light leaking through the surface of a Mesh. In HDRP, bent normal maps can be in tangent space or object space.
 
 

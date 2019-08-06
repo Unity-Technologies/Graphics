@@ -16,6 +16,7 @@ namespace UnityEngine.Rendering.Universal
         CopyDepthPass m_CopyDepthPass;
         CopyColorPass m_CopyColorPass;
         DrawObjectsPass m_RenderTransparentForwardPass;
+        InvokeOnRenderObjectCallbackPass m_OnRenderObjectCallbackPass;
         PostProcessPass m_PostProcessPass;
         PostProcessPass m_FinalPostProcessPass;
         FinalBlitPass m_FinalBlitPass;
@@ -65,6 +66,7 @@ namespace UnityEngine.Rendering.Universal
             m_DrawSkyboxPass = new DrawSkyboxPass(RenderPassEvent.BeforeRenderingSkybox);
             m_CopyColorPass = new CopyColorPass(RenderPassEvent.BeforeRenderingTransparents, samplingMaterial);
             m_RenderTransparentForwardPass = new DrawObjectsPass("Render Transparents", false, RenderPassEvent.BeforeRenderingTransparents, RenderQueueRange.transparent, data.transparentLayerMask, m_DefaultStencilState, stencilData.stencilReference);
+            m_OnRenderObjectCallbackPass = new InvokeOnRenderObjectCallbackPass(RenderPassEvent.BeforeRenderingPostProcessing);
             m_PostProcessPass = new PostProcessPass(RenderPassEvent.BeforeRenderingPostProcessing, data.postProcessData);
             m_FinalPostProcessPass = new PostProcessPass(RenderPassEvent.AfterRenderingPostProcessing, data.postProcessData);
             m_CapturePass = new CapturePass(RenderPassEvent.AfterRendering);
@@ -206,6 +208,7 @@ namespace UnityEngine.Rendering.Universal
             }
 
             EnqueuePass(m_RenderTransparentForwardPass);
+            EnqueuePass(m_OnRenderObjectCallbackPass);
 
             bool afterRenderExists = renderingData.cameraData.captureActions != null ||
                                      hasAfterRendering;

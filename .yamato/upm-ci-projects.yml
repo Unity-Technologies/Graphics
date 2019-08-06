@@ -1,21 +1,5 @@
 editors:
   - version: trunk
-platforms:
-  - name: Windows64
-    type: Unity::VM::GPU
-    image: sdet/gamecode_win10:stable
-    flavor: b1.large
-  - name: OSX
-    type: Unity::VM::osx
-    image: buildfarm/mac:stable
-    flavor: m1.mac
-testplatforms:
-  - name: Standalone
-    args: --suite=playmode --platform=Standalone
-  - name: playmode
-    args: --suite=playmode
-  - name: editmode
-    args: --suite=editor --platform=editmode
 projects:
   - name: Universal
     folder: UniversalGraphicsTest
@@ -30,7 +14,6 @@ projects:
   - name: VFX_LWRP
     folder: VisualEffectGraph_LWRP
 ---
-#turning off mac on this one for now so that all the macs don't start at once
 all_project_ci:
   name: Run all test projects on all platforms
   agent:
@@ -42,34 +25,13 @@ all_project_ci:
   - dir
   dependencies:
   {% for project in projects %}
-  {% for editor in editors %}
-  #{% for platform in platforms %}
-  {% for testplatform in testplatforms %}
-  {% if project.name == "VFX_LWRP" %}
-    {% if testplatform.name == "editmode" %}
-      #skip
-    {% else %}
-    - .yamato/upm-ci-vfx_lwrp.yml#VFX_LWRP_Windows64_{{ testplatform.name }}_{{ editor.version }}
-    {% endif %}
-  {% elsif project.name == "Universal" or project.name == "PostProcessing" or project.name == "VFXMain" or project.name == "HDRP" %}
-    {% if testplatform.name == "Standalone" %}
-    #skip standalone for these projects
-    {% else %}
-    - .yamato/upm-ci-{{ project.name | downcase }}.yml#{{ project.name }}_Windows64_{{ testplatform.name }}_{{ editor.version }}
-    {% endif %}  
-  {% else %}
-    - .yamato/upm-ci-{{ project.name | downcase }}.yml#{{ project.name }}_Windows64_{{ testplatform.name }}_{{ editor.version }}
-  {% endif %}
+    - .yamato/upm-ci-{{ project.name | downcase }}.yml#All_{{ project.name }}
   {% endfor %}
-  {% endfor %}
-  {% endfor %}
-  #{% endfor %}
-    - .yamato/upm-ci-katana.yml#run_katana_metal
   triggers:
-    branches:
-      only:
-        - master
+    recurring:
+      - branch: master
+        frequency: daily
   artifacts:
-    logs.zip:
+    logs:
       paths:
-      - "**/upm-ci~/test-results/**/*"
+        - "**/test-results/**"
