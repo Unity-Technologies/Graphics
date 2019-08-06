@@ -5,7 +5,7 @@ Shader "Hidden/VFX/SystemStat"
         _Color("Color", Color) = (1,0,0,1)
     }
 
-    SubShader
+        SubShader
     {
         Tags {"RenderType" = "Opaque"}
         LOD 100
@@ -30,25 +30,33 @@ Shader "Hidden/VFX/SystemStat"
             struct v2f
             {
                 float4 vertex : SV_POSITION;
+                float2 clipUV : TEXCOORD1;
             };
 
             fixed4 _Color;
-            float2 _WinTopLeft;
+            /*float2 _WinBotLeft;
             float _WinWidth;
-            float _WinHeight;
+            float _WinHeight;*/
 
-            uniform float4x4 unity_GUIClipTextureMatrix;
+            uniform float4x4 _ClipMatrix;
+            sampler2D _GUIClipTexture;
 
-            v2f vert(vs_input v)
+            v2f vert(vs_input i)
             {
                 v2f o;
-                o.vertex = v.vertex;
+                float2 screenPos = UnityObjectToViewPos(i.vertex).xy;
+                o.vertex = float4(2.0 * screenPos - 1.0, 0, 1);
+                o.clipUV = (mul(_ClipMatrix, float4(screenPos, 0, 1)).xy - float2(0.5, 0.5)) * 0.88 + float2(0.5,0.5);
+
                 return o;
             }
 
             fixed4 frag(v2f i) : SV_Target
             {
-                return _Color;
+                float2 screenPos = (i.vertex.xy + 1.0) * 0.5;
+                float clip = tex2D(_GUIClipTexture, i.clipUV).a;
+                float4 color = float4(clip, 0.5, 0, 1.0);
+                return color;
             }
 
             ENDCG

@@ -173,6 +173,7 @@ VFXComponentBoardEventUI .unity-button, #on-play-button, #on-stop-button,#attach
     background-color:gray;
     margin: auto;
     width: 80%;
+    overflow:hidden;
     /*height: 100px;*/
 }
 
