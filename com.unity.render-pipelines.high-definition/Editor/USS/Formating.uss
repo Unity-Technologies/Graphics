@@ -1,0 +1,25 @@
+.h1 {
+    font-style: bold;
+    font-size: 16;
+    margin: 2 5 8 9;
+}
+
+.h2 {
+    font-style: bold;
+    margin-left: 7px;
+}
+
+.normal
+{
+    margin-left: 10px;
+}
+
+.normal-indent1
+{
+    margin-left: 24px;
+}
+
+.normal-indent2
+{
+    margin-left: 38px;
+}
