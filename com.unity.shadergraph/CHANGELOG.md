@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - `Position` node now draws the correct label for **Absolute World**. 
 - Node previews now inherit preview type correctly.
 - Normal maps now unpack correctly for mobile platforms.
+- Fixed an issue where you couldn't group several nodes.
 
 ## [7.0.0] - 2019-07-10
 ### Added
