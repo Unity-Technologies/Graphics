@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [7.1.1] - 2019-XX-XX
 
+### Fixed
+- Fixed invalid contact shadow shaders being created on metal
+- Fixed  a bug where if Assembly.GetTypes throws an exception due to mis-versioned dlls, then no preprocessors are used in the shader stripper
+
 ### Changed
 - Remove almost all Garbage collection call within a frame.
 
