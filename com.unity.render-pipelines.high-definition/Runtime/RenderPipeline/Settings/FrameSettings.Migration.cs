@@ -335,6 +335,8 @@ namespace UnityEngine.Rendering.HighDefinition
                             case ObsoleteLightLoopSettingsOverrides.ComputeMaterialVariants:
                                 newFrameSettingsOverrideMask.mask[(int)FrameSettingsField.ComputeMaterialVariants] = true;
                                 break;
+                            case ObsoleteLightLoopSettingsOverrides.FptlForForwardOpaque:                                
+                                break;
                             default:
                                 throw new ArgumentException("Unknown ObsoleteLightLoopSettingsOverrides");
                         }
