@@ -11,6 +11,8 @@ namespace UnityEditor.ShaderGraph
 {
     partial class SplatNode
     {
+        private const int kDefaultValueFieldWidth = 180;
+        private const int kListFieldSpace = 5;
         private ReorderableList m_ReorderableList;
 
         private (MaterialSlot inputSlot, MaterialSlot outputSlot) CreateInputOutputSlot(int splatSlotIndex)
@@ -18,6 +20,19 @@ namespace UnityEditor.ShaderGraph
             var inputSlot = new DynamicVectorMaterialSlot(splatSlotIndex * 2 + kSplatInputSlotIdStart, m_SplatSlotNames[splatSlotIndex], $"Input{splatSlotIndex}", SlotType.Input, Vector4.zero, ShaderStageCapability.Fragment);
             var outputSlot = new DynamicVectorMaterialSlot(splatSlotIndex * 2 + kSplatInputSlotIdStart + 1, m_SplatSlotNames[splatSlotIndex], $"Output{splatSlotIndex}", SlotType.Output, Vector4.zero, ShaderStageCapability.Fragment);
             return (inputSlot, outputSlot);
+        }
+
+        private void AddBlendWeightAndCondtionSlots()
+        {
+            AddSlot(new Vector4MaterialSlot(kBlendWeights0InputSlotId, m_SplatCount > 4 ? "Blend Weights 0" : "Blend Weights", "BlendWeights0", SlotType.Input, Vector4.zero, ShaderStageCapability.Fragment));
+            if (m_SplatCount > 4)
+                AddSlot(new Vector4MaterialSlot(kBlendWeights1InputSlotId, "Blend Weights 1", "BlendWeights1", SlotType.Input, Vector4.zero, ShaderStageCapability.Fragment));
+            if (m_Conditional)
+            {
+                AddSlot(new SplatConditionsInputMaterialSlot(kConditions0InputSlotId, m_SplatCount > 4 ? "Sample Conditions 0" : "Sample Conditions", "Conditions0", kBlendWeights0InputSlotId));
+                if (m_SplatCount > 4)
+                    AddSlot(new SplatConditionsInputMaterialSlot(kConditions1InputSlotId, "Sample Conditions 1", "Conditions1", kBlendWeights1InputSlotId));
+            }
         }
 
         private void CreateSplatSlots(IReadOnlyList<MaterialSlot> oldInputSlots, IReadOnlyList<MaterialSlot> oldOutputSlots)
@@ -48,24 +63,16 @@ namespace UnityEditor.ShaderGraph
 
         private void MoveBlendWeightSlotsToLast()
         {
-            var blendWeight0Edges = owner.GetEdges(new SlotReference(guid, kBlendWeight0InputSlotId));
-            AddSlot(FindInputSlot<ISlot>(kBlendWeight0InputSlotId));
-            foreach (var edge in blendWeight0Edges)
+            var edges = owner.GetEdges(guid, kBlendWeights0InputSlotId, kBlendWeights1InputSlotId, kConditions0InputSlotId, kConditions1InputSlotId);
+            AddBlendWeightAndCondtionSlots();
+            foreach (var edge in edges)
                 owner.Connect(edge.outputSlot, edge.inputSlot);
-
-            if (owner.splatCount > 4)
-            {
-                var blendWeight1Edges = owner.GetEdges(new SlotReference(guid, kBlendWeight1InputSlotId));
-                AddSlot(FindInputSlot<ISlot>(kBlendWeight1InputSlotId));
-                foreach (var edge in blendWeight1Edges)
-                    owner.Connect(edge.outputSlot, edge.inputSlot);
-            }
         }
 
         private void RecreateSplatSlots(IReadOnlyList<MaterialSlot> oldInputSlots, IReadOnlyList<MaterialSlot> oldOutputSlots,
             IReadOnlyList<(IEnumerable<IEdge> inputEdges, IEnumerable<IEdge> outputEdges)> oldEdges, IReadOnlyList<int> newIndexToOldMapping)
         {
-            RemoveSlotsNameNotMatching(new[] { kBlendWeight0InputSlotId, kBlendWeight1InputSlotId }, true);
+            RemoveSlotsNameNotMatching(new[] { kBlendWeights0InputSlotId, kBlendWeights1InputSlotId, kConditions0InputSlotId, kConditions1InputSlotId }, true);
             CreateSplatSlots(oldInputSlots, oldOutputSlots);
 
             for (int i = 0; i < m_SplatSlotNames.Count; ++i)
@@ -103,19 +110,21 @@ namespace UnityEditor.ShaderGraph
 
             m_ReorderableList.drawHeaderCallback = rect =>
             {
-                var labelRect = new Rect(rect.x, rect.y, rect.width - 10, rect.height);
-                EditorGUI.LabelField(labelRect, "Slots");
+                var nameRect = m_Conditional ? new Rect(rect.x, rect.y, rect.width - kDefaultValueFieldWidth, EditorGUIUtility.singleLineHeight) : rect;
+                EditorGUI.LabelField(nameRect, "Name");
+                if (m_Conditional)
+                {
+                    var defaultValueRect = new Rect(nameRect.xMax + kListFieldSpace, rect.y, rect.width - nameRect.width - kListFieldSpace * 2, EditorGUIUtility.singleLineHeight);
+                    EditorGUI.LabelField(defaultValueRect, "Default Value");
+                }
             };
 
             m_ReorderableList.drawElementCallback = (rect, index, isActive, isFocused) =>
             {
                 EditorGUI.BeginChangeCheck();
-
-                int id = GUIUtility.GetControlID("NameField".GetHashCode(), FocusType.Keyboard, rect);
-                var name = m_SplatSlotNames[index] = EditorGUI.DelayedTextField(rect, GUIContent.none, id, m_SplatSlotNames[index], EditorStyles.label);
-                if (GUIUtility.keyboardControl == id)
-                    m_ReorderableList.index = index;
-
+                var nameRect = m_Conditional ? new Rect(rect.x, rect.y, rect.width - kDefaultValueFieldWidth, EditorGUIUtility.singleLineHeight) : rect;
+                int id = GUIUtility.GetControlID("NameField".GetHashCode(), FocusType.Keyboard, nameRect);
+                var name = m_SplatSlotNames[index] = EditorGUI.DelayedTextField(nameRect, GUIContent.none, id, m_SplatSlotNames[index], EditorStyles.label);
                 if (EditorGUI.EndChangeCheck())
                 {
                     var inputSplatSlots = EnumerateSplatInputSlots().ToList();
@@ -123,6 +132,28 @@ namespace UnityEditor.ShaderGraph
                     var splatEdges = SaveSplatSlotEdges();
 
                     RecreateSplatSlots(inputSplatSlots, outputSplatSlots, splatEdges, Enumerable.Range(0, inputSplatSlots.Count).ToList());
+                }
+
+                if (GUIUtility.keyboardControl == id)
+                    m_ReorderableList.index = index;
+
+                if (m_Conditional)
+                {
+                    EditorGUI.BeginChangeCheck();
+                    var defaultValueRect = new Rect(nameRect.xMax + kListFieldSpace, rect.y, rect.width - nameRect.width - kListFieldSpace * 2, EditorGUIUtility.singleLineHeight);
+                    int idVec4 = GUIUtility.GetControlID("DefaultValueField".GetHashCode(), FocusType.Keyboard, defaultValueRect);
+                    var splatSlot = FindInputSlot<DynamicVectorMaterialSlot>(kSplatInputSlotIdStart + index * 2);
+                    var xyzw = new[] { splatSlot.value.x, splatSlot.value.y, splatSlot.value.z, splatSlot.value.w };
+                    EditorGUI.MultiFloatField(defaultValueRect, new[] { new GUIContent("X"), new GUIContent("Y"), new GUIContent("Z"), new GUIContent("W") }, xyzw);
+                    if (EditorGUI.EndChangeCheck())
+                    {
+                        splatSlot.value = new Vector4(xyzw[0], xyzw[1], xyzw[2], xyzw[3]);
+                        Dirty(ModificationScope.Node); // update the default values on the slot
+                    }
+
+                    // TODO: keyboardControl never equals idVec4.
+                    if (GUIUtility.keyboardControl == idVec4)
+                        m_ReorderableList.index = index;
                 }
             };
 
@@ -194,6 +225,19 @@ namespace UnityEditor.ShaderGraph
         {
             owner.owner.RegisterCompleteObjectUndo("Conditional Change");
             m_Conditional = evt.newValue;
+            if (m_Conditional)
+            {
+                var conditions0Name = m_SplatCount > 4 ? "Sample Conditions 0" : "Sample Conditions";
+                AddSlot(new SplatConditionsInputMaterialSlot(kConditions0InputSlotId, conditions0Name, "Conditions0", kBlendWeights0InputSlotId));
+                if (m_SplatCount > 4)
+                    AddSlot(new SplatConditionsInputMaterialSlot(kConditions1InputSlotId, "Sample Conditions 1", "Conditions1", kBlendWeights1InputSlotId));
+            }
+            else
+            {
+                RemoveSlot(kConditions0InputSlotId);
+                if (m_SplatCount > 4)
+                    RemoveSlot(kConditions1InputSlotId);
+            }
             owner?.ClearErrorsForNode(this);
             ValidateNode();
         }

@@ -22,8 +22,10 @@ namespace UnityEditor.ShaderGraph
 
         public override bool hasPreview => true;
 
-        public const int kBlendWeight0InputSlotId = 0;
-        public const int kBlendWeight1InputSlotId = 1;
+        public const int kBlendWeights0InputSlotId = 0;
+        public const int kBlendWeights1InputSlotId = 1;
+        public const int kConditions0InputSlotId = 2;
+        public const int kConditions1InputSlotId = 3;
         public const int kSplatInputSlotIdStart = 4;
 
         private IEnumerable<MaterialSlot> EnumerateSplatInputSlots()
@@ -49,9 +51,15 @@ namespace UnityEditor.ShaderGraph
 
         public override IEnumerable<ISlot> GetInputSlotsForGraphGeneration()
         {
-            yield return FindInputSlot<ISlot>(kBlendWeight0InputSlotId);
+            yield return FindInputSlot<ISlot>(kBlendWeights0InputSlotId);
             if (m_SplatCount > 4)
-                yield return FindInputSlot<ISlot>(kBlendWeight1InputSlotId);
+                yield return FindInputSlot<ISlot>(kBlendWeights1InputSlotId);
+            if (m_Conditional)
+            {
+                yield return FindInputSlot<ISlot>(kConditions0InputSlotId);
+                if (m_SplatCount > 4)
+                    yield return FindInputSlot<ISlot>(kConditions1InputSlotId);
+            }
             // When generating shader grpah code, don't traverse further along the splat input slots.
             yield break;
         }
@@ -59,11 +67,14 @@ namespace UnityEditor.ShaderGraph
         public override void UpdateNodeAfterDeserialization()
         {
             CreateSplatSlots(null, null);
-            var blendWeight0Name = m_SplatCount > 4 ? "Blend Weights 0" : "Blend Weights";
-            AddSlot(new Vector4MaterialSlot(kBlendWeight0InputSlotId, blendWeight0Name, "BlendWeights0", SlotType.Input, Vector4.zero, ShaderStageCapability.Fragment));
-            if (m_SplatCount > 4)
-                AddSlot(new Vector4MaterialSlot(kBlendWeight1InputSlotId, "Blend Weights 1", "BlendWeights1", SlotType.Input, Vector4.zero, ShaderStageCapability.Fragment));
-            RemoveSlotsNameNotMatching(Enumerable.Range(0, m_SplatSlotNames.Count * 2 + kSplatInputSlotIdStart));
+            AddBlendWeightAndCondtionSlots();
+
+            var validSlots = Enumerable.Range(0, m_SplatSlotNames.Count * 2 + kSplatInputSlotIdStart);
+            if (m_SplatCount <= 4)
+                validSlots = validSlots.Where(id => id != kBlendWeights1InputSlotId || id != kConditions1InputSlotId);
+            if (!m_Conditional)
+                validSlots = validSlots.Where(id => id < kConditions0InputSlotId || id > kConditions1InputSlotId);
+            RemoveSlotsNameNotMatching(validSlots);
         }
 
         public void OnSplatCountChange(int splatCount)
@@ -71,23 +82,17 @@ namespace UnityEditor.ShaderGraph
             if (splatCount != m_SplatCount)
             {
                 m_SplatCount = splatCount;
-                if (m_SplatCount <= 4 && FindInputSlot<ISlot>(kBlendWeight1InputSlotId) != null)
+                if (m_SplatCount <= 4 && FindInputSlot<ISlot>(kBlendWeights1InputSlotId) != null
+                    || m_SplatCount > 4 && FindInputSlot<ISlot>(kBlendWeights1InputSlotId) == null)
                 {
-                    RemoveSlot(kBlendWeight1InputSlotId);
-
-                    var blendWeight0Edges = owner.GetEdges(new SlotReference(guid, kBlendWeight0InputSlotId));
-                    AddSlot(new Vector4MaterialSlot(kBlendWeight0InputSlotId, "Blend Weights", "BlendWeights0", SlotType.Input, Vector4.zero, ShaderStageCapability.Fragment));
-                    foreach (var edge in blendWeight0Edges)
-                        owner.Connect(edge.outputSlot, edge.inputSlot);
-                }
-                else if (m_SplatCount > 4 && FindInputSlot<ISlot>(kBlendWeight1InputSlotId) == null)
-                {
-                    var blendWeight0Edges = owner.GetEdges(new SlotReference(guid, kBlendWeight0InputSlotId));
-                    AddSlot(new Vector4MaterialSlot(kBlendWeight0InputSlotId, "Blend Weights 0", "BlendWeights0", SlotType.Input, Vector4.zero, ShaderStageCapability.Fragment));
-                    foreach (var edge in blendWeight0Edges)
-                        owner.Connect(edge.outputSlot, edge.inputSlot);
-
-                    AddSlot(new Vector4MaterialSlot(kBlendWeight1InputSlotId, "Blend Weights 1", "BlendWeights1", SlotType.Input, Vector4.zero, ShaderStageCapability.Fragment));
+                    var edges = owner.GetEdges(guid, kBlendWeights0InputSlotId, kBlendWeights1InputSlotId, kConditions0InputSlotId, kConditions1InputSlotId);
+                    RemoveSlotsNameNotMatching(Enumerable.Range(kSplatInputSlotIdStart, m_SplatSlotNames.Count * 2), true);
+                    AddBlendWeightAndCondtionSlots();
+                    foreach (var edge in edges)
+                    {
+                        if (FindInputSlot<ISlot>(edge.inputSlot.slotId) != null)
+                            owner.Connect(edge.outputSlot, edge.inputSlot);
+                    }
                 }
                 Dirty(ModificationScope.Node);
             }
@@ -377,6 +382,7 @@ namespace UnityEditor.ShaderGraph
             if (m_SplatGraph == null)
                 return;
 
+            // Generate code from non-splat nodes because they are common to all splats and we want only one copy of the code.
             foreach (var node in m_SplatGraph.Nodes)
             {
                 if (!node.SplatDependent && node.Node is IGeneratesBodyCode bodyCode)
@@ -387,18 +393,23 @@ namespace UnityEditor.ShaderGraph
                 }
             }
 
+            // Generate input derivatives if any.
             foreach (var derivative in m_SplatGraph.InputDerivatives)
             {
                 sb.AppendLine($"{derivative.VariableType} ddx_{derivative.VariableName} = ddx({derivative.VariableValue(generationMode)});");
                 sb.AppendLine($"{derivative.VariableType} ddy_{derivative.VariableName} = ddy({derivative.VariableValue(generationMode)});");
             }
 
+            // Declare the splat array to hold the per-splat results.
             foreach (var slot in EnumerateSplatOutputSlots())
-                sb.AppendLine($"{slot.concreteValueType.ToShaderString()} {GetVariableNameForSlot(slot.id)} = 0;");
+                sb.AppendLine($"{slot.concreteValueType.ToShaderString()} {GetVariableNameForSlot(slot.id)}_splats[{m_SplatCount}];");
 
-            var blendWeights0 = GetSlotValue(kBlendWeight0InputSlotId, generationMode);
-            var blendWeights1 = m_SplatCount > 4 ? GetSlotValue(kBlendWeight1InputSlotId, generationMode) : string.Empty;
+            var blendWeights0 = GetSlotValue(kBlendWeights0InputSlotId, generationMode);
+            var blendWeights1 = m_SplatCount > 4 ? GetSlotValue(kBlendWeights1InputSlotId, generationMode) : string.Empty;
+            var conditions0 = m_Conditional ? GetSlotValue(kConditions0InputSlotId, generationMode) : blendWeights0;
+            var conditions1 = m_Conditional && m_SplatCount > 4 ? GetSlotValue(kConditions1InputSlotId, generationMode) : blendWeights1;
 
+            // For each splat: call the splat function
             for (int i = 0; i < m_SplatCount; ++i)
             {
                 if (i == 4)
@@ -407,16 +418,14 @@ namespace UnityEditor.ShaderGraph
                     sb.IncreaseIndent();
                 }
 
-                var blendWeight = $"{(i < 4 ? blendWeights0 : blendWeights1)}.{"xyzw"[i % 4]}";
+                // Generate "if (condition)" for conditional.
                 if (m_Conditional)
                 {
-                    sb.AppendLine($"UNITY_BRANCH if ({blendWeight} > 0)");
+                    var condition = $"{(i < 4 ? conditions0 : conditions1)}.{"xyzw"[i % 4]}";
+                    sb.AppendLine($"UNITY_BRANCH if ({condition} > 0)");
                     sb.AppendLine("{");
                     sb.IncreaseIndent();
                 }
-
-                foreach (var slot in EnumerateSplatOutputSlots())
-                    sb.AppendLine($"{slot.concreteValueType.ToShaderString()} {GetVariableNameForSlot(slot.id)}_splat{i};");
 
                 sb.AppendIndentation();
                 sb.Append($"SplatFunction_{GetVariableNameForNode()}(IN");
@@ -430,18 +439,46 @@ namespace UnityEditor.ShaderGraph
                 foreach (var derivative in m_SplatGraph.InputDerivatives)
                     sb.Append($", ddx_{derivative.VariableName}, ddy_{derivative.VariableName}");
                 foreach (var slot in EnumerateSplatOutputSlots())
-                    sb.Append($", {GetVariableNameForSlot(slot.id)}_splat{i}");
+                    sb.Append($", {GetVariableNameForSlot(slot.id)}_splats[{i}]");
                 sb.Append(");");
                 sb.AppendNewLine();
 
-                foreach (var slot in EnumerateSplatOutputSlots())
-                    sb.AppendLine($"{GetVariableNameForSlot(slot.id)} += {GetVariableNameForSlot(slot.id)}_splat{i} * {blendWeight};");
-
+                // If conditional: assign the default values if condition is not met.
                 if (m_Conditional)
                 {
                     sb.DecreaseIndent();
                     sb.AppendLine("}");
+                    sb.AppendLine("else");
+                    sb.AppendLine("{");
+                    sb.IncreaseIndent();
+                    foreach (var slot in EnumerateSplatOutputSlots())
+                        sb.AppendLine($"{GetVariableNameForSlot(slot.id)}_splats[{i}] = {FindInputSlot<MaterialSlot>(slot.id - 1).GetDefaultValue(generationMode)};");
+                    sb.DecreaseIndent();
+                    sb.AppendLine("}");
                 }
+
+                if (i == 7)
+                {
+                    sb.DecreaseIndent();
+                    sb.AppendLine("#endif");
+                }
+            }
+
+            // Generate actual weight applying code
+            foreach (var slot in EnumerateSplatOutputSlots())
+                sb.AppendLine($"{slot.concreteValueType.ToShaderString()} {GetVariableNameForSlot(slot.id)} = 0;");
+
+            for (int i = 0; i < m_SplatCount; ++i)
+            {
+                if (i == 4)
+                {
+                    sb.AppendLine($"#ifdef {GraphData.kSplatCount8Keyword}");
+                    sb.IncreaseIndent();
+                }
+
+                var weight = $"{(i < 4 ? blendWeights0 : blendWeights1)}.{"xyzw"[i % 4]}";
+                foreach (var slot in EnumerateSplatOutputSlots())
+                    sb.AppendLine($"{GetVariableNameForSlot(slot.id)} += {GetVariableNameForSlot(slot.id)}_splats[{i}] * {weight};");
 
                 if (i == 7)
                 {
@@ -539,7 +576,16 @@ namespace UnityEditor.ShaderGraph
                 foreach (var node in m_SplatGraph.Nodes)
                     node.Node.CollectShaderProperties(properties, generationMode);
             }
-            base.CollectShaderProperties(properties, generationMode);
+
+            // base.CollectShaderProperties collect properties only for disconnected slots, so that in preview mode these values
+            // are not baked into shader source.
+            // In Conditional mode we actually want to collect default values from connected slots as well.
+            if (m_Conditional)
+            {
+                // TODO: how about CollectPreviewMaterialProeprties?
+                foreach (var inputSlot in EnumerateSplatInputSlots())
+                    inputSlot.AddDefaultProperty(properties, generationMode);
+            }
         }
 
         NeededCoordinateSpace IMayRequirePosition.RequiresPosition(ShaderStageCapability stageCapability)

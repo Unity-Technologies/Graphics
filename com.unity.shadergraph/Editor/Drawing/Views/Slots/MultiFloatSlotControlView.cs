@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Globalization;
 using UnityEditor.Graphing;
 using UnityEngine;
@@ -23,6 +24,12 @@ namespace UnityEditor.ShaderGraph.Drawing.Slots
             var initialValue = get();
             for (var i = 0; i < labels.Length; i++)
                 AddField(initialValue, i, labels[i]);
+        }
+
+        public void RefreshValues()
+        {
+            foreach (var floatField in Children().OfType<FloatField>())
+                floatField.value = m_Get()[(int)floatField.userData];
         }
 
         void AddField(Vector4 initialValue, int index, string subLabel)

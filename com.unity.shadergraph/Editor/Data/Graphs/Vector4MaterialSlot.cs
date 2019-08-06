@@ -16,6 +16,8 @@ namespace UnityEditor.ShaderGraph
         [SerializeField]
         private Vector4 m_DefaultValue = Vector4.zero;
 
+        private MultiFloatSlotControlView m_MultiFloatField = null;
+
         string[] m_Labels;
 
         public Vector4MaterialSlot()
@@ -46,12 +48,21 @@ namespace UnityEditor.ShaderGraph
         public Vector4 value
         {
             get { return m_Value; }
-            set { m_Value = value; }
+            set
+            {
+                if (m_Value != value)
+                {
+                    m_Value = value;
+                    m_MultiFloatField?.RefreshValues();
+                }
+                m_Value = value;
+            }
         }
 
         public override VisualElement InstantiateControl()
         {
-            return new MultiFloatSlotControlView(owner, m_Labels, () => value, (newValue) => value = newValue);
+            m_MultiFloatField = new MultiFloatSlotControlView(owner, m_Labels, () => value, (newValue) => value = newValue);
+            return m_MultiFloatField;
         }
 
         protected override string ConcreteSlotValueAsVariable()

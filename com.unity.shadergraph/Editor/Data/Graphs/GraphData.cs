@@ -663,33 +663,36 @@ namespace UnityEditor.ShaderGraph
             return default(T);
         }
 
-        public void GetEdges(SlotReference s, List<IEdge> foundEdges)
+        public void GetEdges(Guid nodeGuid, IEnumerable<int> slotIds, List<IEdge> foundEdges)
         {
-            var node = GetNodeFromGuid(s.nodeGuid);
+            var node = GetNodeFromGuid(nodeGuid);
             if (node == null)
-            {
                 return;
-            }
-            ISlot slot = node.FindSlot<ISlot>(s.slotId);
 
             List<IEdge> candidateEdges;
-            if (!m_NodeEdges.TryGetValue(s.nodeGuid, out candidateEdges))
+            if (!m_NodeEdges.TryGetValue(nodeGuid, out candidateEdges))
                 return;
 
             foreach (var edge in candidateEdges)
             {
-                var cs = slot.isInputSlot ? edge.inputSlot : edge.outputSlot;
-                if (cs.nodeGuid == s.nodeGuid && cs.slotId == s.slotId)
+                var slot = edge.inputSlot.nodeGuid == nodeGuid ? edge.inputSlot : edge.outputSlot;
+                if (slotIds.Contains(slot.slotId))
                     foundEdges.Add(edge);
             }
         }
 
-        public IEnumerable<IEdge> GetEdges(SlotReference s)
+        public IEnumerable<IEdge> GetEdges(Guid nodeGuid, params int[] slotIds)
         {
             var edges = new List<IEdge>();
-            GetEdges(s, edges);
+            GetEdges(nodeGuid, slotIds, edges);
             return edges;
         }
+
+        public void GetEdges(SlotReference s, List<IEdge> foundEdges)
+            => GetEdges(s.nodeGuid, new[] { s.slotId }, foundEdges);
+
+        public IEnumerable<IEdge> GetEdges(SlotReference s)
+            => GetEdges(s.nodeGuid, s.slotId);
 
         public void CollectShaderProperties(PropertyCollector collector, GenerationMode generationMode)
         {
