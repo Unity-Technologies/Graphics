@@ -55,14 +55,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         private bool m_HistoryReady = false;
         private RTHandle m_PackedDataTex;
         private RTHandle m_PackedDataBlurred;
-        private RTHandle[] m_PackedHistory;
         private RTHandle m_AmbientOcclusionTex;
         private RTHandle m_FinalHalfRes;
 
         private RTHandle m_BentNormalTex;
 
         private bool m_RunningFullRes = false;
-        private int m_HistoryIndex = 0;
 
 #if ENABLE_RAYTRACING
         public HDRaytracingManager m_RayTracingManager;
@@ -75,10 +73,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             RTHandles.Release(m_BentNormalTex);
             RTHandles.Release(m_PackedDataTex);
             RTHandles.Release(m_PackedDataBlurred);
-            for (int i = 0; i < m_PackedHistory.Length; ++i)
-            {
-                RTHandles.Release(m_PackedHistory[i]);
-            }
 
             if (m_FinalHalfRes != null)
                 RTHandles.Release(m_FinalHalfRes);
@@ -90,22 +84,23 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_BentNormalTex = RTHandles.Alloc(Vector2.one * scaleFactor, TextureXR.slices, filterMode: FilterMode.Point, colorFormat: GraphicsFormat.R8G8B8A8_SNorm, dimension: TextureXR.dimension, useDynamicScale: true, enableRandomWrite: true, name: "Bent normals");
             m_PackedDataTex = RTHandles.Alloc(Vector2.one * scaleFactor, TextureXR.slices, filterMode: FilterMode.Point, colorFormat: GraphicsFormat.R32_UInt, dimension: TextureXR.dimension, useDynamicScale: true, enableRandomWrite: true, name: "AO Packed data");
             m_PackedDataBlurred = RTHandles.Alloc(Vector2.one * scaleFactor, TextureXR.slices, filterMode: FilterMode.Point, colorFormat: GraphicsFormat.R32_UInt, dimension: TextureXR.dimension, useDynamicScale: true, enableRandomWrite: true, name: "AO Packed blurred data");
-            m_PackedHistory[0] = RTHandles.Alloc(Vector2.one * scaleFactor, TextureXR.slices, filterMode: FilterMode.Point, colorFormat: GraphicsFormat.R32_UInt, dimension: TextureXR.dimension, useDynamicScale: true, enableRandomWrite: true, name: "AO Packed history_1");
-            m_PackedHistory[1] = RTHandles.Alloc(Vector2.one * scaleFactor, TextureXR.slices, filterMode: FilterMode.Point, colorFormat: GraphicsFormat.R32_UInt, dimension: TextureXR.dimension, useDynamicScale: true, enableRandomWrite: true, name: "AO Packed history_2");
 
             m_FinalHalfRes = RTHandles.Alloc(Vector2.one * 0.5f, TextureXR.slices, filterMode: FilterMode.Point, colorFormat: GraphicsFormat.R32_UInt, dimension: TextureXR.dimension, useDynamicScale: true, enableRandomWrite: true, name: "Final Half Res AO Packed");
         }
 
-        void EnsureRTSize(AmbientOcclusion settings)
+        void EnsureRTSize(AmbientOcclusion settings, HDCamera hdCamera)
         {
+            float scaleFactor = m_RunningFullRes ? 1.0f : 0.5f;
             if (settings.fullResolution != m_RunningFullRes)
             {
                 ReleaseRT();
 
                 m_RunningFullRes = settings.fullResolution.value;
-                float scaleFactor = m_RunningFullRes ? 1.0f : 0.5f;
+                scaleFactor = m_RunningFullRes ? 1.0f : 0.5f;
                 AllocRT(scaleFactor);
             }
+            hdCamera.AllocateAmbientOcclusionHistoryBuffer(scaleFactor);
+
         }
 
         public AmbientOcclusionSystem(HDRenderPipelineAsset hdAsset)
@@ -119,7 +114,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (!hdAsset.currentPlatformRenderPipelineSettings.supportSSAO)
                 return;
 
-            m_PackedHistory = new RTHandle[2];
             AllocRT(0.5f);
         }
 
@@ -174,7 +168,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Grab current settings
             var settings = VolumeManager.instance.stack.GetComponent<AmbientOcclusion>();
 
-            EnsureRTSize(settings);
+            EnsureRTSize(settings, camera);
 
             Vector4 aoBufferInfo;
             Vector2 runningRes;
@@ -311,11 +305,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 cmd.DispatchCompute(cs, kernel, threadGroupX, threadGroupY, camera.viewCount);
             }
 
+            var currentHistory = camera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.AmbientOcclusion);
+            var historyOutput = camera.GetPreviousFrameRT((int)HDCameraFrameHistoryType.AmbientOcclusion);
+
             if (!m_HistoryReady)
             {
                 var kernel = cs.FindKernel("GTAODenoise_CopyHistory");
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputTexture, m_PackedDataTex);
-                cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, m_PackedHistory[m_HistoryIndex]);
+                cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, currentHistory);
                 const int groupSizeX = 8;
                 const int groupSizeY = 8;
                 int threadGroupX = ((int)runningRes.x + (groupSizeX - 1)) / groupSizeX;
@@ -328,7 +325,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Temporal
             using (new ProfilingSample(cmd, "Temporal GTAO", CustomSamplerId.ResolveSSAO.GetSampler()))
             {
-                int outputIndex = (m_HistoryIndex + 1) & 1;
 
                 int kernel;
                 if (m_RunningFullRes)
@@ -342,8 +338,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._AOPackedData, m_PackedDataTex);
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._AOPackedBlurred, m_PackedDataBlurred);
-                cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._AOPackedHistory, m_PackedHistory[m_HistoryIndex]);
-                cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._AOOutputHistory, m_PackedHistory[outputIndex]);
+                cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._AOPackedHistory, currentHistory);
+                cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._AOOutputHistory, historyOutput);
                 if (m_RunningFullRes)
                 {
                     cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OcclusionTexture, m_AmbientOcclusionTex);
@@ -359,7 +355,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 int threadGroupY = ((int)runningRes.y + (groupSizeY - 1)) / groupSizeY;
                 cmd.DispatchCompute(cs, kernel, threadGroupX, threadGroupY, camera.viewCount);
 
-                m_HistoryIndex = outputIndex;
             }
 
             // Need upsample
