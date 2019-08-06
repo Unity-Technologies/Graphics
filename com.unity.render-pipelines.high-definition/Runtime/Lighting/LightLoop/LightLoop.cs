@@ -527,6 +527,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         static int s_deferredContactShadowKernel;
         static int s_deferredContactShadowKernelMSAA;
+        static int s_deferredContactShadowKernelCluster;
+        static int s_deferredContactShadowKernelClusterMSAA;
 
         static int s_GenListPerBigTileKernel;
 
@@ -734,6 +736,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             s_deferredContactShadowKernel = contactShadowComputeShader.FindKernel("DeferredContactShadow");
             s_deferredContactShadowKernelMSAA = contactShadowComputeShader.FindKernel("DeferredContactShadowMSAA");
+            s_deferredContactShadowKernelCluster = contactShadowComputeShader.FindKernel("DeferredContactShadowCluster");
+            s_deferredContactShadowKernelClusterMSAA = contactShadowComputeShader.FindKernel("DeferredContactShadowClusterMSAA");
 
             for (int variant = 0; variant < LightDefinitions.s_NumFeatureVariants; variant++)
             {
@@ -3031,7 +3035,10 @@ namespace UnityEngine.Rendering.HighDefinition
             var parameters = new ContactShadowsParameters();
 
             parameters.contactShadowsCS = contactShadowComputeShader;
-            parameters.kernel = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA) ? s_deferredContactShadowKernelMSAA : s_deferredContactShadowKernel;
+            if (hdCamera.frameSettings.fptl)
+                parameters.kernel = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA) ? s_deferredContactShadowKernelMSAA : s_deferredContactShadowKernel;
+            else
+                parameters.kernel = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA) ? s_deferredContactShadowKernelClusterMSAA : s_deferredContactShadowKernelCluster;
 
             float contactShadowRange = Mathf.Clamp(m_ContactShadows.fadeDistance.value, 0.0f, m_ContactShadows.maxDistance.value);
             float contactShadowFadeEnd = m_ContactShadows.maxDistance.value;

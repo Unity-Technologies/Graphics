@@ -193,9 +193,7 @@ namespace UnityEngine.Rendering.HighDefinition
         [FrameSettingsField(0, autoName: MaximumLODLevel, type: FrameSettingsFieldAttribute.DisplayType.Others, positiveDependencies: new[]{ MaximumLODLevelMode })]
         MaximumLODLevel = 63,
 
-        //lightLoop settings from 120 to 127
-        [FrameSettingsField(3, autoName: FPTLForForwardOpaque)]
-        FPTLForForwardOpaque = 120,
+        //lightLoop settings from 121 to 127
         [FrameSettingsField(3, autoName: BigTilePrepass)]
         BigTilePrepass = 121,
         [FrameSettingsField(3, autoName: DeferredTile)]
@@ -279,7 +277,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 (uint)FrameSettingsField.ComputeLightEvaluation,
                 (uint)FrameSettingsField.ComputeLightVariants,
                 (uint)FrameSettingsField.ComputeMaterialVariants,
-                (uint)FrameSettingsField.FPTLForForwardOpaque,
                 (uint)FrameSettingsField.BigTilePrepass,
                 (uint)FrameSettingsField.TransparentsWriteMotionVector,
                 (uint)FrameSettingsField.EnableReflectionProbe,
@@ -328,7 +325,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 (uint)FrameSettingsField.ComputeLightEvaluation,
                 (uint)FrameSettingsField.ComputeLightVariants,
                 (uint)FrameSettingsField.ComputeMaterialVariants,
-                (uint)FrameSettingsField.FPTLForForwardOpaque,
                 (uint)FrameSettingsField.BigTilePrepass,
                 (uint)FrameSettingsField.EnableReflectionProbe,
                 (uint)FrameSettingsField.EnableSkyLighting,
@@ -374,7 +370,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 (uint)FrameSettingsField.ComputeLightEvaluation,
                 (uint)FrameSettingsField.ComputeLightVariants,
                 (uint)FrameSettingsField.ComputeMaterialVariants,
-                (uint)FrameSettingsField.FPTLForForwardOpaque,
                 (uint)FrameSettingsField.BigTilePrepass,
                 (uint)FrameSettingsField.ReplaceDiffuseForIndirect,
             }),
@@ -420,7 +415,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public void SetEnabled(FrameSettingsField field, bool value) => bitDatas[(uint)field] = value;
 
         // followings are helper for engine.
-        internal bool fptl => litShaderMode == LitShaderMode.Deferred || bitDatas[(int)FrameSettingsField.FPTLForForwardOpaque];
+        internal bool fptl => litShaderMode == LitShaderMode.Deferred; // Run fptl only in deferred
         internal float specularGlobalDimmer => bitDatas[(int)FrameSettingsField.Reflection] ? 1f : 0f;
 
         internal bool BuildLightListRunsAsync() => SystemInfo.supportsAsyncCompute && bitDatas[(int)FrameSettingsField.AsyncCompute] && bitDatas[(int)FrameSettingsField.LightListAsync];
@@ -520,11 +515,6 @@ namespace UnityEngine.Rendering.HighDefinition
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.SSAOAsync] &= async;
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.ContactShadowsAsync] &= async;
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.VolumeVoxelizationsAsync] &= async;
-
-            // Deferred opaque are always using Fptl. Forward opaque can use Fptl or Cluster, transparent use cluster.
-            // When MSAA is enabled we disable Fptl as it become expensive compare to cluster
-            // In HD, MSAA is only supported for forward only rendering, no MSAA in deferred mode (for code complexity reasons)
-            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.FPTLForForwardOpaque] &= !msaa;
         }
 
         /// <summary>Aggregation is default with override of the renderer then sanitized depending on supported features of hdrpasset.</summary>

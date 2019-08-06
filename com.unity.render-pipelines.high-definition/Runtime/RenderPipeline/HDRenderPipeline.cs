@@ -3034,7 +3034,6 @@ namespace UnityEngine.Rendering.HighDefinition
             bool debugDisplay = m_CurrentDebugDisplaySettings.IsDebugDisplayEnabled();
             using (new ProfilingSample(cmd, debugDisplay ? "Forward Opaque Debug" : "Forward Opaque", CustomSamplerId.ForwardPassName.GetSampler()))
             {
-                bool useFptl = hdCamera.frameSettings.IsEnabled(FrameSettingsField.FPTLForForwardOpaque);
                 bool msaa = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA);
 
                 RenderTargetIdentifier[] renderTarget = null;
@@ -3057,7 +3056,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                             RendererList.Create(PrepareForwardOpaqueRendererList(cullResults, hdCamera)),
                                             renderTarget,
                                             m_SharedRTManager.GetDepthStencilBuffer(msaa),
-                                            useFptl ? m_TileAndClusterData.lightList : m_TileAndClusterData.perVoxelLightLists,
+                                            m_TileAndClusterData.perVoxelLightLists,
                                             true, renderContext, cmd);
             }
         }
@@ -3154,12 +3153,6 @@ namespace UnityEngine.Rendering.HighDefinition
                                                 ScriptableRenderContext     renderContext,
                                                 CommandBuffer               cmd)
         {
-            // Note: SHADOWS_SHADOWMASK keyword is enabled in HDRenderPipeline.cs ConfigureForShadowMask
-            bool useFptl = opaque && frameSettings.IsEnabled(FrameSettingsField.FPTLForForwardOpaque);
-
-            // say that we want to use tile/cluster light loop
-            CoreUtils.SetKeyword(cmd, "USE_FPTL_LIGHTLIST", useFptl);
-            CoreUtils.SetKeyword(cmd, "USE_CLUSTERED_LIGHTLIST", !useFptl);
             cmd.SetGlobalBuffer(HDShaderIDs.g_vLightListGlobal, lightListBuffer);
 
             CoreUtils.SetRenderTarget(cmd, renderTarget, depthBuffer);

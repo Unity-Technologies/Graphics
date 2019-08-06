@@ -197,7 +197,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 newFrameSettingsFormat.SetEnabled(FrameSettingsField.ComputeLightEvaluation, oldFrameSettingsFormat.lightLoopSettings.enableComputeLightEvaluation);
                 newFrameSettingsFormat.SetEnabled(FrameSettingsField.ComputeLightVariants, oldFrameSettingsFormat.lightLoopSettings.enableComputeLightVariants);
                 newFrameSettingsFormat.SetEnabled(FrameSettingsField.ComputeMaterialVariants, oldFrameSettingsFormat.lightLoopSettings.enableComputeMaterialVariants);
-                newFrameSettingsFormat.SetEnabled(FrameSettingsField.FPTLForForwardOpaque, oldFrameSettingsFormat.lightLoopSettings.enableFptlForForwardOpaque);
                 newFrameSettingsFormat.SetEnabled(FrameSettingsField.BigTilePrepass, oldFrameSettingsFormat.lightLoopSettings.enableBigTilePrepass);
             }
 
@@ -335,9 +334,6 @@ namespace UnityEngine.Rendering.HighDefinition
                                 break;
                             case ObsoleteLightLoopSettingsOverrides.ComputeMaterialVariants:
                                 newFrameSettingsOverrideMask.mask[(int)FrameSettingsField.ComputeMaterialVariants] = true;
-                                break;
-                            case ObsoleteLightLoopSettingsOverrides.FptlForForwardOpaque:
-                                newFrameSettingsOverrideMask.mask[(int)FrameSettingsField.FPTLForForwardOpaque] = true;
                                 break;
                             default:
                                 throw new ArgumentException("Unknown ObsoleteLightLoopSettingsOverrides");

@@ -252,7 +252,7 @@ Shader "HDRP/TerrainLit"
             // Supported shadow modes per light type
             #pragma multi_compile SHADOW_LOW SHADOW_MEDIUM SHADOW_HIGH
 
-            #pragma multi_compile USE_FPTL_LIGHTLIST USE_CLUSTERED_LIGHTLIST
+            #define USE_CLUSTERED_LIGHTLIST // There is not FPTL in forward
 
             #define SHADERPASS SHADERPASS_FORWARD
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/TerrainLit/TerrainLitTemplate.hlsl"

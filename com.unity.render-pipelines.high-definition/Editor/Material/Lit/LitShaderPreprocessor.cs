@@ -87,18 +87,9 @@ namespace UnityEditor.Rendering.HighDefinition
 
                     if (hdrpAsset.currentPlatformRenderPipelineSettings.supportedLitShaderMode == RenderPipelineSettings.SupportedLitShaderMode.DeferredOnly)
                     {
-                        // When we are in deferred, we only support tile lighting
-                        if (inputData.shaderKeywordSet.IsEnabled(m_ClusterLighting))
-                            return true;
-
                         if (isForwardPass && !inputData.shaderKeywordSet.IsEnabled(m_DebugDisplay))
                             return true;
                     }
-
-                    // TODO: Should we remove Cluster version if we know MSAA is disabled ? This prevent to manipulate LightLoop Settings (useFPTL option)
-                    // For now comment following code
-                    // if (inputData.shaderKeywordSet.IsEnabled(m_ClusterLighting) && !hdrpAsset.currentPlatformRenderPipelineSettings.supportMSAA)
-                    //    return true;
                 }
             }
 
@@ -116,10 +107,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 // If transparent we don't need the motion vector pass
                 if (isMotionPass)
-                    return true;
-
-                // If we are transparent we use cluster lighting and not tile lighting
-                if (inputData.shaderKeywordSet.IsEnabled(m_TileLighting))
                     return true;
             }
 
