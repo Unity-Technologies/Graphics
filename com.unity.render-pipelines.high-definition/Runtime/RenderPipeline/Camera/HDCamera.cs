@@ -778,14 +778,17 @@ namespace UnityEngine.Rendering.HighDefinition
         // Look for any camera that hasn't been used in the last frame and remove them from the pool.
         public static void CleanUnused()
         {
-            foreach (var kvp in s_Cameras)
+
+            foreach (var key in s_Cameras.Keys)
             {
+                var camera = s_Cameras[key];
+
                 // Unfortunately, the scene view camera is always isActiveAndEnabled==false so we can't rely on this. For this reason we never release it (which should be fine in the editor)
-                if (kvp.Value.camera != null && kvp.Value.camera.cameraType == CameraType.SceneView)
+                if (camera.camera != null && camera.camera.cameraType == CameraType.SceneView)
                     continue;
 
-                if (kvp.Value.camera == null || !kvp.Value.camera.isActiveAndEnabled)
-                    s_Cleanup.Add(kvp.Key);
+                if (camera.camera == null || !camera.camera.isActiveAndEnabled)
+                    s_Cleanup.Add(key);
             }
 
             foreach (var cam in s_Cleanup)

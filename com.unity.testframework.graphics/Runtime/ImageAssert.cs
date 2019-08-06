@@ -12,6 +12,7 @@ using UnityEngine.TestTools.Constraints;
 using Is = UnityEngine.TestTools.Constraints.Is;
 using UnityEngine.Networking.PlayerConnection;
 using UnityEngine;
+using UnityEngine.Profiling;
 
 namespace UnityEngine.TestTools.Graphics
 {
@@ -196,7 +197,26 @@ namespace UnityEngine.TestTools.Graphics
             try
             {
                 camera.targetTexture = rt;
-                Assert.That(() => { camera.Render(); }, Is.Not.AllocatingGCMemory());
+                var gcAllocRecorder = Recorder.Get("GC.Alloc");
+
+                // Render the first frame at this resolution (Alloc are allowed here)
+                camera.Render();
+
+                Profiler.BeginSample("GraphicTests_GC_Alloc_Check");
+                {
+                    gcAllocRecorder.enabled = true;
+                    camera.Render();
+                    gcAllocRecorder.enabled = false;
+                }
+                Profiler.EndSample();
+
+                // Note: Currently there are some allocs between the Camera.Render and the begining of the render pipeline rendering.
+                // Because of that, we can't enable this test.
+                int allocationCountOfRenderPipeline = gcAllocRecorder.sampleBlockCount;
+                
+                if (allocationCountOfRenderPipeline > 0)
+                    throw new Exception($"Memory allocation test failed, {allocationCountOfRenderPipeline} allocations detected. Look for GraphicTests_GC_Alloc_Check in the profiler for more details");
+
                 camera.targetTexture = null;
             }
             finally
