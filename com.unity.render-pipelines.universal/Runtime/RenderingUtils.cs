@@ -1,14 +1,12 @@
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using UnityEngine.Rendering.PostProcessing;
 using UnityEngine.Scripting.APIUpdating;
 
 namespace UnityEngine.Rendering.Universal
 {
     [MovedFrom("UnityEngine.Rendering.LWRP")] public static class RenderingUtils
     {
-        static int m_PostProcessingTemporaryTargetId = Shader.PropertyToID("_TemporaryColorTexture");
-
         static List<ShaderTagId> m_LegacyShaderPassNames = new List<ShaderTagId>()
         {
             new ShaderTagId("Always"),
@@ -53,16 +51,24 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        static PostProcessRenderContext m_PostProcessRenderContext;
-        public static PostProcessRenderContext postProcessRenderContext
+#if POST_PROCESSING_STACK_2_0_0_OR_NEWER
+        [Obsolete("The use of the Post-processing Stack V2 is deprecated in the Universal Render Pipeline. Use the builtin post-processing effects instead.")]
+        public static UnityEngine.Rendering.PostProcessing.PostProcessRenderContext postProcessRenderContext => null;
+#endif
+
+        internal static bool useStructuredBuffer
         {
+            // There are some performance issues with StructuredBuffers in some platforms.
+            // We fallback to UBO in those cases.
             get
             {
-                if (m_PostProcessRenderContext == null)
-                    m_PostProcessRenderContext = new PostProcessRenderContext();
-
-                return m_PostProcessRenderContext;
+                // We don't use SSBO in D3D because we can't figure out without adding shader variants if platforms is D3D10.
+                GraphicsDeviceType deviceType = SystemInfo.graphicsDeviceType;
+                return !Application.isMobilePlatform &&
+                    (deviceType == GraphicsDeviceType.Metal || deviceType == GraphicsDeviceType.Vulkan ||
+                     deviceType == GraphicsDeviceType.PlayStation4 || deviceType == GraphicsDeviceType.XboxOne);
             }
+            
         }
 
         static Material s_ErrorMaterial;
@@ -74,61 +80,6 @@ namespace UnityEngine.Rendering.Universal
                     s_ErrorMaterial = new Material(Shader.Find("Hidden/InternalErrorShader"));
 
                 return s_ErrorMaterial;
-            }
-        }
-
-        internal static void RenderPostProcessing(CommandBuffer cmd, ref CameraData cameraData, RenderTextureDescriptor sourceDescriptor,
-            RenderTargetIdentifier source, RenderTargetIdentifier destination, bool opaqueOnly, bool flip)
-        {
-            var layer = cameraData.postProcessLayer;
-            int effectsCount;
-            if (opaqueOnly)
-            {
-                effectsCount = layer.sortedBundles[PostProcessEvent.BeforeTransparent].Count;
-            }
-            else
-            {
-                effectsCount = layer.sortedBundles[PostProcessEvent.BeforeStack].Count +
-                               layer.sortedBundles[PostProcessEvent.AfterStack].Count;
-            }
-
-            Camera camera = cameraData.camera;
-            var postProcessRenderContext = RenderingUtils.postProcessRenderContext;
-            postProcessRenderContext.Reset();
-            postProcessRenderContext.camera = camera;
-            postProcessRenderContext.source = source;
-            postProcessRenderContext.sourceFormat = sourceDescriptor.colorFormat;
-            postProcessRenderContext.destination = destination;
-            postProcessRenderContext.command = cmd;
-            postProcessRenderContext.flip = flip;
-
-            // If there's only one effect in the stack and soure is same as dest we
-            // create an intermediate blit rendertarget to handle it.
-            // Otherwise, PostProcessing system will create the intermediate blit targets itself.
-            if (effectsCount == 1 && source == destination)
-            {
-                RenderTargetIdentifier rtId = new RenderTargetIdentifier(m_PostProcessingTemporaryTargetId);
-                RenderTextureDescriptor descriptor = sourceDescriptor;
-                descriptor.msaaSamples = 1;
-                descriptor.depthBufferBits = 0;
-
-                postProcessRenderContext.destination = rtId;
-                cmd.GetTemporaryRT(m_PostProcessingTemporaryTargetId, descriptor, FilterMode.Point);
-
-                if (opaqueOnly)
-                    cameraData.postProcessLayer.RenderOpaqueOnly(postProcessRenderContext);
-                else
-                    cameraData.postProcessLayer.Render(postProcessRenderContext);
-
-                cmd.Blit(rtId, destination);
-                cmd.ReleaseTemporaryRT(m_PostProcessingTemporaryTargetId);
-            }
-            else
-            {
-                if (opaqueOnly)
-                    cameraData.postProcessLayer.RenderOpaqueOnly(postProcessRenderContext);
-                else
-                    cameraData.postProcessLayer.Render(postProcessRenderContext);
             }
         }
 

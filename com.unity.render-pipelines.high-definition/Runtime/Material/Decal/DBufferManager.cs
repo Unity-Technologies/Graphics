@@ -2,8 +2,6 @@ using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
-    using RTHandle = RTHandleSystem.RTHandle;
-
     class DBufferManager : MRTBufferManager
     {
         RTHandle m_HTile;

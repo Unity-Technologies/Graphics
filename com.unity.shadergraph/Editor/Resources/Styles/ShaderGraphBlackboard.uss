@@ -1,7 +1,7 @@
-.sgblackboardFieldPropertyView * {
+.sgblackboardFieldView * {
     font-size: 11px;
 }
-.sgblackboardFieldPropertyView > .rowView {
+.sgblackboardFieldView > .rowView {
     flex-direction: row;
     padding-left: 10px;
     padding-right: 2px;
@@ -9,11 +9,11 @@
     padding-bottom: 2px;
 }
 
-.sgblackboardFieldPropertyView > .rowView > .rowViewLabel {
+.sgblackboardFieldView > .rowView > .rowViewLabel {
     min-width: 50px;
 }
 
-.sgblackboardFieldPropertyView > .rowView > .rowViewControl {
+.sgblackboardFieldView > .rowView > .rowViewControl {
     flex: 1;
 }
 

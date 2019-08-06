@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using Unity.Collections;
-using UnityEngine.Rendering.PostProcessing;
 using UnityEngine.Scripting.APIUpdating;
 
 namespace UnityEngine.Rendering.Universal
@@ -19,6 +18,7 @@ namespace UnityEngine.Rendering.Universal
         public CameraData cameraData;
         public LightData lightData;
         public ShadowData shadowData;
+        public PostProcessingData postProcessingData;
         public bool supportsDynamicBatching;
         public PerObjectData perObjectData;
         public bool killAlphaInFinalBlit;
@@ -51,8 +51,21 @@ namespace UnityEngine.Rendering.Universal
 
         public float maxShadowDistance;
         public bool postProcessEnabled;
-        public PostProcessLayer postProcessLayer;
-        public IEnumerator<Action<RenderTargetIdentifier, CommandBuffer> > captureActions;
+
+#if POST_PROCESSING_STACK_2_0_0_OR_NEWER
+        [Obsolete("The use of the Post-processing Stack V2 is deprecated in the Universal Render Pipeline. Use the builtin post-processing effects instead.")]
+        public UnityEngine.Rendering.PostProcessing.PostProcessLayer postProcessLayer;
+#endif
+
+        public IEnumerator<Action<RenderTargetIdentifier, CommandBuffer>> captureActions;
+
+        public LayerMask volumeLayerMask;
+        public Transform volumeTrigger;
+
+        public bool isStopNaNEnabled;
+        public bool isDitheringEnabled;
+        public AntialiasingMode antialiasing;
+        public AntialiasingQuality antialiasingQuality;
     }
 
     [MovedFrom("UnityEngine.Rendering.LWRP")] public struct ShadowData
@@ -71,7 +84,13 @@ namespace UnityEngine.Rendering.Universal
         public List<Vector4> bias;
     }
 
-    [MovedFrom("UnityEngine.Rendering.LWRP")] public static class ShaderKeywordStrings
+    public struct PostProcessingData
+    {
+        public ColorGradingMode gradingMode;
+        public int lutSize;
+    }
+
+    public static class ShaderKeywordStrings
     {
         public static readonly string MainLightShadows = "_MAIN_LIGHT_SHADOWS";
         public static readonly string MainLightShadowCascades = "_MAIN_LIGHT_SHADOWS_CASCADE";
@@ -87,6 +106,27 @@ namespace UnityEngine.Rendering.Universal
 
         public static readonly string LinearToSRGBConversion = "_LINEAR_TO_SRGB_CONVERSION";
         public static readonly string KillAlpha = "_KILL_ALPHA";
+
+        public static readonly string SmaaLow = "_SMAA_PRESET_LOW";
+        public static readonly string SmaaMedium = "_SMAA_PRESET_MEDIUM";
+        public static readonly string SmaaHigh = "_SMAA_PRESET_HIGH";
+        public static readonly string PaniniGeneric = "_GENERIC";
+        public static readonly string PaniniUnitDistance = "_UNIT_DISTANCE";
+        public static readonly string BloomLQ = "_BLOOM_LQ";
+        public static readonly string BloomHQ = "_BLOOM_HQ";
+        public static readonly string BloomLQDirt = "_BLOOM_LQ_DIRT";
+        public static readonly string BloomHQDirt = "_BLOOM_HQ_DIRT";
+        public static readonly string UseRGBM = "_USE_RGBM";
+        public static readonly string Distortion = "_DISTORTION";
+        public static readonly string ChromaticAberration = "_CHROMATIC_ABERRATION";
+        public static readonly string HDRGrading = "_HDR_GRADING";
+        public static readonly string TonemapACES = "_TONEMAP_ACES";
+        public static readonly string TonemapNeutral = "_TONEMAP_NEUTRAL";
+        public static readonly string FilmGrain = "_FILM_GRAIN";
+        public static readonly string Fxaa = "_FXAA";
+        public static readonly string Dithering = "_DITHERING";
+
+        public static readonly string HighQualitySampling = "_HIGH_QUALITY_SAMPLING";
     }
 
     public sealed partial class UniversalRenderPipeline

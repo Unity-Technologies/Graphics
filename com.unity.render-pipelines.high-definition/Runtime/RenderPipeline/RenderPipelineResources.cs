@@ -4,6 +4,7 @@ using System.Collections.Generic;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
+    [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "HDRP-Asset" + Documentation.endURL)]
     public partial class RenderPipelineResources : ScriptableObject
     {
         [Serializable, ReloadGroup]
@@ -108,8 +109,6 @@ namespace UnityEngine.Rendering.HighDefinition
             public Shader hdriSkyPS;
             [Reload("Runtime/Sky/HDRISky/IntegrateHDRISky.shader")]
             public Shader integrateHdriSkyPS;
-            [Reload("Runtime/Sky/ProceduralSky/ProceduralSky.shader")]
-            public Shader proceduralSkyPS;
             [Reload("Skybox/Cubemap", ReloadAttribute.Package.Builtin)]
             public Shader skyboxCubemapPS;
             [Reload("Runtime/Sky/GradientSky/GradientSky.shader")]
@@ -232,6 +231,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public Shader SMAAPS;
             [Reload("Runtime/PostProcessing/Shaders/TemporalAntialiasing.shader")]
             public Shader temporalAntialiasingPS;
+            [Reload("Runtime/PostProcessing/Shaders/CopyTAAHistory.compute")]
+            public ComputeShader CopyTAAHistoryCS;
 
             // Iterator to retrieve all compute shaders in reflection so we don't have to keep a list of
             // used compute shaders up to date (prefer editor-only usage)
@@ -294,6 +295,9 @@ namespace UnityEngine.Rendering.HighDefinition
             public Texture2D   SMAASearchTex;
             [Reload("Runtime/RenderPipelineResources/Texture/SMAA/AreaTex.tga")]
             public Texture2D   SMAAAreaTex;
+
+            [Reload("Runtime/RenderPipelineResources/Texture/DefaultHDRISky.exr")]
+            public Cubemap     defaultHDRISky;
         }
 
         [Serializable, ReloadGroup]

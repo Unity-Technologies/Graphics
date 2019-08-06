@@ -4,8 +4,6 @@ using UnityEngine.Serialization;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
-    using RTHandle = RTHandleSystem.RTHandle;
-
     enum ShadowMapType
     {
         CascadedDirectional,
@@ -110,13 +108,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public HDShadowData cachedShadowData;
     }
 
-    public enum HDShadowFilteringQuality
-    {
-        Low = 0,
-        Medium = 1,
-        High = 2,
-    }
-
     public enum DirectionalShadowAlgorithm
     {
         PCF5x5,
@@ -185,16 +176,16 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Default HDShadowInitParameters</summary>
         public static readonly HDShadowInitParameters @default = new HDShadowInitParameters()
         {
-            maxShadowRequests                   = k_DefaultMaxShadowRequests,
-            directionalShadowsDepthBits         = k_DefaultShadowMapDepthBits,
-            punctualLightShadowAtlas            = HDShadowAtlasInitParams.GetDefault(),
-            areaLightShadowAtlas                = HDShadowAtlasInitParams.GetDefault(),
+            maxShadowRequests           = k_DefaultMaxShadowRequests,
+            directionalShadowsDepthBits = k_DefaultShadowMapDepthBits,
+            punctualLightShadowAtlas    = HDShadowAtlasInitParams.GetDefault(),
+            areaLightShadowAtlas        = HDShadowAtlasInitParams.GetDefault(),
             directionalLightsResolutionTiers    = HDShadowTierParams.GetDefault(),
             punctualLightsResolutionTiers       = HDShadowTierParams.GetDefault(),
             areaLightsResolutionTiers           = HDShadowTierParams.GetDefault(),
-            shadowFilteringQuality              = HDShadowFilteringQuality.Medium,
-            supportScreenSpaceShadows           = false,
-            maxScreenSpaceShadows               = 2,
+            shadowFilteringQuality              = ShaderConfig.s_DeferredShadowFiltering,
+            supportScreenSpaceShadows   = false,
+            maxScreenSpaceShadows       = 2,
             maxDirectionalShadowMapResolution   = 2048,
             maxAreaShadowMapResolution          = 2048,
             maxPunctualShadowMapResolution      = 2048,
@@ -316,7 +307,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_CascadeAtlas.UpdateSize(atlasResolution);
         }
 
-        public int ReserveShadowResolutions(Vector2 resolution, ShadowMapType shadowMapType)
+        internal int ReserveShadowResolutions(Vector2 resolution, ShadowMapType shadowMapType)
         {
             if (m_ShadowRequestCount >= m_MaxShadowRequests)
             {
@@ -356,7 +347,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return m_ShadowResolutionRequests[index].resolution;
         }
 
-        public void UpdateShadowRequest(int index, HDShadowRequest shadowRequest)
+        internal void UpdateShadowRequest(int index, HDShadowRequest shadowRequest)
         {
             if (index >= m_ShadowRequestCount)
                 return;
@@ -557,7 +548,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             using (new ProfilingSample(cmd, "Area Light Shadows rendering", CustomSamplerId.RenderShadowMaps.GetSampler()))
             {
-                m_AreaLightShadowAtlas.RenderShadows(cullResults, hdCamera.frameSettings, renderContext, cmd);
+                if (ShaderConfig.s_AreaLights == 1)
+                    m_AreaLightShadowAtlas.RenderShadows(cullResults, hdCamera.frameSettings, renderContext, cmd);
             }
         }
 

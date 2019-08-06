@@ -15,7 +15,6 @@ Shader "Hidden/HDRP/TemporalAntialiasing"
 
         TEXTURE2D_X(_InputTexture);
         TEXTURE2D_X(_InputHistoryTexture);
-        RW_TEXTURE2D_X(float3, _OutputHistoryTexture);
 
         struct Attributes
         {
@@ -110,7 +109,6 @@ Shader "Hidden/HDRP/TemporalAntialiasing"
             color = clamp(color, 0.0, CLAMP_MAX);
 
             outColor = color; 
-            _OutputHistoryTexture[COORD_TEXTURE2D_X(input.positionCS.xy)] = color;
         }
 
         void FragExcludedTAA(Varyings input, out float3 outColor : SV_Target0)
@@ -123,7 +121,6 @@ Shader "Hidden/HDRP/TemporalAntialiasing"
             float3 color = Fetch(_InputTexture, uv, 0.0, _RTHandleScale.xy);
 
             outColor = color;
-            _OutputHistoryTexture[COORD_TEXTURE2D_X(input.positionCS.xy)] = color;
         }
     ENDHLSL
 

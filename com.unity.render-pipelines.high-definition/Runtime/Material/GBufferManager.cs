@@ -112,7 +112,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return m_RTIDsArrayCurrent;
         }
 
-        public RTHandleSystem.RTHandle GetNormalBuffer(int index)
+        public RTHandle GetNormalBuffer(int index)
         {
             int currentIndex = 0;
             for (int gbufferIndex = 0; gbufferIndex < m_BufferCount; ++gbufferIndex)
@@ -130,7 +130,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return null;
         }
 
-        public RTHandleSystem.RTHandle GetSubsurfaceScatteringBuffer(int index)
+        public RTHandle GetSubsurfaceScatteringBuffer(int index)
         {
             int currentIndex = 0;
             for (int gbufferIndex = 0; gbufferIndex < m_BufferCount; ++gbufferIndex)

@@ -52,20 +52,30 @@ VFXBlockUI.VFXNodeUI.node.invalid #node-border
     border-color: #FF0000;
 }
 
-VFXContextUI VFXBlockUI.node #node-border #title.disabled
-{
-    opacity:0.5;
-}
-
 VFXContextUI VFXBlockUI.node #node-border #title #title-label
 {
     margin-left: 4px;
-    flex:1 0 auto;
+    flex: 1 0 auto;
 }
 
-VFXContextUI VFXBlockUI.node #node-border #title.disabled #title-label
+VFXContextUI VFXBlockUI.node.block-disabled #node-border .port #label
 {
-    opacity:0.5;
+    opacity: 0.5;
+}
+
+VFXContextUI VFXBlockUI.node.block-disabled #node-border #settings #label
+{
+    opacity: 0.5;
+}
+
+VFXContextUI VFXBlockUI.node.block-disabled #node-border #title #title-label
+{
+    opacity: 0.5;
+}
+
+VFXContextUI VFXBlockUI.node.block-disabled #node-border #title, VFXContextUI VFXBlockUI.node.block-disabled #node-border #contents
+{
+    background-color: rgba(41,41,41,0.8);
 }
 
 VFXBlockUI.node #title #collapse-button

@@ -1,4 +1,5 @@
 using System;
+using System.Text;
 using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
@@ -8,17 +9,42 @@ namespace UnityEditor.VFX.Block
 {
     class SetAttributeVariantReadWritable : VariantProvider
     {
-        protected override sealed Dictionary<string, object[]> variants
+        public override sealed IEnumerable<IEnumerable<KeyValuePair<string, object>>> ComputeVariants()
         {
-            get
+            var attributes = VFXAttribute.AllIncludingVariadicReadWritable;
+            var randoms = new[] { RandomMode.Off, RandomMode.PerComponent };
+            var sources = new[] { SetAttribute.ValueSource.Slot, SetAttribute.ValueSource.Source };
+            var compositions = new[] { AttributeCompositionMode.Overwrite, AttributeCompositionMode.Add, AttributeCompositionMode.Multiply, AttributeCompositionMode.Blend };
+
+            foreach (var attribute in attributes)
             {
-                return new Dictionary<string, object[]>
+                var attributeRefSize = VFXExpressionHelper.GetSizeOfType(VFXAttribute.Find(attribute).type);
+                foreach (var random in randoms)
                 {
-                    { "attribute", VFXAttribute.AllIncludingVariadicReadWritable.Cast<object>().ToArray() },
-                    { "Random", new object[] { RandomMode.Off, RandomMode.PerComponent, RandomMode.Uniform } },
-                    { "Source", new object[] { SetAttribute.ValueSource.Slot, SetAttribute.ValueSource.Source } },
-                    { "Composition", new object[] { AttributeCompositionMode.Overwrite, AttributeCompositionMode.Add, AttributeCompositionMode.Multiply, AttributeCompositionMode.Blend } }
-                };
+                    foreach (var source in sources)
+                    {
+                        foreach (var composition in compositions)
+                        {
+                            if (random != RandomMode.Off && source == SetAttribute.ValueSource.Source)
+                                continue;
+
+                            if (composition != AttributeCompositionMode.Overwrite && source == SetAttribute.ValueSource.Source)
+                                continue;
+
+                            if (composition != AttributeCompositionMode.Overwrite && attribute == VFXAttribute.Alive.name)
+                                continue;
+
+                            var currentRandomMode = random;
+                            if (currentRandomMode == RandomMode.PerComponent && attributeRefSize == 1)
+                                currentRandomMode = RandomMode.Uniform;
+
+                            yield return new[] {    new KeyValuePair<string, object>("attribute", attribute),
+                                                    new KeyValuePair<string, object>("Random", currentRandomMode),
+                                                    new KeyValuePair<string, object>("Source", source),
+                                                    new KeyValuePair<string, object>("Composition", composition) };
+                        }
+                    }
+                }
             }
         }
     }
@@ -52,10 +78,15 @@ namespace UnityEditor.VFX.Block
         {
             get
             {
-                if (!attributeIsValid)
-                    return string.Empty;
+                return ComputeName(true);
+            }
+        }
 
-                return ComposeName("");
+        public override string name
+        {
+            get
+            {
+                return ComputeName(false);
             }
         }
 
@@ -67,28 +98,32 @@ namespace UnityEditor.VFX.Block
             }
         }
 
-
-        public override string name
+        private string ComputeName(bool libraryName)
         {
-            get
-            {
-                if (!attributeIsValid)
-                    return string.Empty;
+            if (!attributeIsValid)
+                return string.Empty;
+            if (Source != ValueSource.Slot && Source != ValueSource.Source)
+                throw new NotImplementedException(Source.ToString());
 
-                string variadicName = (currentAttribute.variadic == VFXVariadic.True) ? "." + channels.ToString() : "";
-                return ComposeName(variadicName);
-            }
-        }
+            var builder = new StringBuilder(24);
+            if (Source == ValueSource.Slot)
+                builder.AppendFormat("{0} ", VFXBlockUtility.GetNameString(Composition));
+            else
+                builder.Append("Inherit Source ");
 
-        private string ComposeName(string variadicName)
-        {
-            string attributeName = ObjectNames.NicifyVariableName(attribute) + variadicName;
-            switch (Source)
+            builder.Append( ObjectNames.NicifyVariableName(attribute));
+            if (!libraryName && currentAttribute.variadic == VFXVariadic.True)
+                builder.AppendFormat(".{0}", channels.ToString());
+
+            if (Source == ValueSource.Slot)
             {
-                case ValueSource.Slot: return VFXBlockUtility.GetNameString(Composition) + " " + attributeName + " " + VFXBlockUtility.GetNameString(Random);
-                case ValueSource.Source: return "Inherit Source " + attributeName + " (" + VFXBlockUtility.GetNameString(Composition) + ")";
-                default: return "NOT IMPLEMENTED : " + Source;
+                if (Random != RandomMode.Off)
+                    builder.AppendFormat(" {0}", VFXBlockUtility.GetNameString(Random));
             }
+            else
+                builder.AppendFormat(" ({0})", VFXBlockUtility.GetNameString(Composition));
+
+            return builder.ToString();
         }
 
         public override VFXContextType compatibleContexts { get { return VFXContextType.InitAndUpdateAndOutput; } }
@@ -145,7 +180,7 @@ namespace UnityEditor.VFX.Block
                     {
                         yield return new VFXAttributeInfo(attrib, attributeMode);
                     }
-                    if (Random != RandomMode.Off)
+                    if (Random != RandomMode.Off && Source == ValueSource.Slot)
                         yield return new VFXAttributeInfo(VFXAttribute.Seed, VFXAttributeMode.ReadWrite);
                 }
             }

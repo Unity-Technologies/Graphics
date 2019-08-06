@@ -20,12 +20,12 @@ Pass
 		// x: alpha threshold
 		// y: frame blending factor
 		// z: alpha
-		nointerpolation float3 builtInInterpolants : TEXCOORD1;
+		VFX_OPTIONAL_INTERPOLATION float3 builtInInterpolants : TEXCOORD1;
 		#endif
 		#if USE_FLIPBOOK_MOTIONVECTORS
 		// x: motion vector scale u
 		// y: motion vector scale v
-		nointerpolation float2 builtInInterpolants2 : TEXCOORD2;
+		VFX_OPTIONAL_INTERPOLATION float2 builtInInterpolants2 : TEXCOORD2;
 		#endif
 
 		UNITY_VERTEX_OUTPUT_STEREO

@@ -3,11 +3,14 @@ using System.Collections.Generic;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using UnityEngine.Rendering.Experimental.LookDev;
+using UnityEngine.Rendering.LookDev;
 
-namespace UnityEditor.Rendering.Experimental.LookDev
+namespace UnityEditor.Rendering.LookDev
 {
     //TODO: add undo support
+    /// <summary>
+    /// Class handling object of the scene with isolation from other scene based on culling
+    /// </summary>
     public class Stage : IDisposable
     {
         const int k_PreviewCullingLayerIndex = 31; //Camera.PreviewCullingLayer; //TODO: expose or reflection
@@ -265,10 +268,12 @@ namespace UnityEditor.Rendering.Experimental.LookDev
                 case ViewIndex.First:
                     stage = new Stage(firstStageName);
                     stage.camera.backgroundColor = Compositer.firstViewGizmoColor;
+                    stage.camera.name += "_1";
                     break;
                 case ViewIndex.Second:
                     stage = new Stage(secondStageName);
                     stage.camera.backgroundColor = Compositer.secondViewGizmoColor;
+                    stage.camera.name += "_2";
                     break;
                 default:
                     throw new ArgumentException("Unknown ViewIndex: " + index);

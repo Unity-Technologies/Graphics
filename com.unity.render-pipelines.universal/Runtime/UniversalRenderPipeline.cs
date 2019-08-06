@@ -4,7 +4,6 @@ using Unity.Collections;
 using UnityEditor;
 using UnityEditor.Rendering.Universal;
 #endif
-using UnityEngine.Rendering.PostProcessing;
 using UnityEngine.Experimental.GlobalIllumination;
 using UnityEngine.Scripting.APIUpdating;
 using Lightmapping = UnityEngine.Experimental.GlobalIllumination.Lightmapping;
@@ -14,6 +13,9 @@ namespace UnityEngine.Rendering.LWRP
     [Obsolete("LWRP -> Universal (UnityUpgradable) -> UnityEngine.Rendering.Universal.UniversalRenderPipeline", true)]
     public class LightweightRenderPipeline
     {
+        public LightweightRenderPipeline(LightweightRenderPipelineAsset asset)
+        {
+        }
     }
 }
 
@@ -58,21 +60,41 @@ namespace UnityEngine.Rendering.Universal
 
         public static float maxRenderScale
         {
-            get => 4.0f;
+            get => 2.0f;
         }
 
         // Amount of Lights that can be shaded per object (in the for loop in the shader)
-        // This uses unity_4LightIndices to store an array of 4 light indices
         public static int maxPerObjectLights
         {
-            get => 4;
+            // No support to bitfield mask and int[] in gles2. Can't index fast more than 4 lights.
+            // Check Lighting.hlsl for more details.
+            get => (SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES2) ? 4 : 8;
         }
 
-        // Light data is stored in a constant buffer (uniform array)
-        // This value has to match MAX_VISIBLE_LIGHTS in Input.hlsl
+        // These limits have to match same limits in Input.hlsl
+        const int k_MaxVisibleAdditionalLightsSSBO  = 256;
+        const int k_MaxVisibleAdditionalLightsUBO   = 32;
         public static int maxVisibleAdditionalLights
         {
-            get => 16;
+            get
+            {
+                // There are some performance issues by using SSBO in mobile.
+                // Also some GPUs don't supports SSBO in vertex shader.
+                if (RenderingUtils.useStructuredBuffer)
+                    return k_MaxVisibleAdditionalLightsSSBO;
+
+                // We don't use SSBO in D3D because we can't figure out without adding shader variants if platforms is D3D10.
+                // We don't use SSBO on Nintendo Switch as UBO path is faster.
+                // However here we use same limits as SSBO path. 
+                var deviceType = SystemInfo.graphicsDeviceType;
+                if (deviceType == GraphicsDeviceType.Direct3D11 || deviceType == GraphicsDeviceType.Direct3D12 ||
+                    deviceType == GraphicsDeviceType.Switch)
+                    return k_MaxVisibleAdditionalLightsSSBO;
+
+                // We use less limits for mobile as some mobile GPUs have small SP cache for constants
+                // Using more than 32 might cause spilling to main memory.
+                return k_MaxVisibleAdditionalLightsUBO;
+            }
         }
 
         public static UniversalRenderPipelineAsset asset
@@ -105,7 +127,8 @@ namespace UnityEngine.Rendering.Universal
             if (QualitySettings.antiAliasing != asset.msaaSampleCount)
                 QualitySettings.antiAliasing = asset.msaaSampleCount;
 
-            Shader.globalRenderPipeline = "UniversalPipeline";
+            // For compatibility reasons we also match old LightweightPipeline tag.
+            Shader.globalRenderPipeline = "UniversalPipeline,LightweightPipeline";
 
             Lightmapping.SetDelegate(lightsDelegate);
 
@@ -119,6 +142,7 @@ namespace UnityEngine.Rendering.Universal
             base.Dispose(disposing);
             Shader.globalRenderPipeline = "";
             SupportedRenderingFeatures.active = new SupportedRenderingFeatures();
+            ShaderData.instance.Dispose();
 
 #if UNITY_EDITOR
             SceneViewDrawMode.ResetDrawMode();
@@ -158,13 +182,9 @@ namespace UnityEngine.Rendering.Universal
             var settings = asset;
             UniversalAdditionalCameraData additionalCameraData = null;
             if (camera.cameraType == CameraType.Game || camera.cameraType == CameraType.VR)
-#if UNITY_2019_3_OR_NEWER
                 camera.gameObject.TryGetComponent(out additionalCameraData);
-#else
-                additionalCameraData = camera.gameObject.GetComponent<LWRPAdditionalCameraData>();
-#endif
 
-            InitializeCameraData(settings, camera, additionalCameraData, out var cameraData);
+                InitializeCameraData(settings, camera, additionalCameraData, out var cameraData);
             SetupPerCameraShaderConstants(cameraData);
 
             ScriptableRenderer renderer = (additionalCameraData != null) ? additionalCameraData.scriptableRenderer : settings.scriptableRenderer;
@@ -229,6 +249,7 @@ namespace UnityEngine.Rendering.Universal
         static void InitializeCameraData(UniversalRenderPipelineAsset settings, Camera camera, UniversalAdditionalCameraData additionalCameraData, out CameraData cameraData)
         {
             const float kRenderScaleThreshold = 0.05f;
+            cameraData = new CameraData();
             cameraData.camera = camera;
             cameraData.isStereoEnabled = IsStereoEnabled(camera);
 
@@ -238,14 +259,9 @@ namespace UnityEngine.Rendering.Universal
             
             cameraData.isSceneViewCamera = camera.cameraType == CameraType.SceneView;
             cameraData.isHdrEnabled = camera.allowHDR && settings.supportsHDR;
-#if UNITY_2019_3_OR_NEWER
-            camera.TryGetComponent(out cameraData.postProcessLayer);
-#else
-            cameraData.postProcessLayer = camera.GetComponent<PostProcessLayer>();
-#endif
-            cameraData.postProcessEnabled = cameraData.postProcessLayer != null && cameraData.postProcessLayer.isActiveAndEnabled;
 
-            // Disables postprocessing in mobile VR. It's stable on mobile yet.
+            // Disables postprocessing in mobile VR. It's not stable on mobile yet.
+            // TODO: enable postfx for stereo rendering
             if (cameraData.isStereoEnabled && Application.isMobilePlatform)
                 cameraData.postProcessEnabled = false;
 
@@ -262,18 +278,47 @@ namespace UnityEngine.Rendering.Universal
 
             bool anyShadowsEnabled = settings.supportsMainLightShadows || settings.supportsAdditionalLightShadows;
             cameraData.maxShadowDistance = (anyShadowsEnabled) ? settings.shadowDistance : 0.0f;
-
+            
             if (additionalCameraData != null)
             {
                 cameraData.maxShadowDistance = (additionalCameraData.renderShadows) ? cameraData.maxShadowDistance : 0.0f;
                 cameraData.requiresDepthTexture = additionalCameraData.requiresDepthTexture;
                 cameraData.requiresOpaqueTexture = additionalCameraData.requiresColorTexture;
+                cameraData.volumeLayerMask = additionalCameraData.volumeLayerMask;
+                cameraData.volumeTrigger = additionalCameraData.volumeTrigger == null ? camera.transform : additionalCameraData.volumeTrigger;
+                cameraData.postProcessEnabled = additionalCameraData.renderPostProcessing;
+                cameraData.isStopNaNEnabled = cameraData.postProcessEnabled && additionalCameraData.stopNaN && SystemInfo.graphicsShaderLevel >= 35;
+                cameraData.isDitheringEnabled = cameraData.postProcessEnabled && additionalCameraData.dithering;
+                cameraData.antialiasing = cameraData.postProcessEnabled ? additionalCameraData.antialiasing : AntialiasingMode.None;
+                cameraData.antialiasingQuality = additionalCameraData.antialiasingQuality;
+            }
+            else if(camera.cameraType == CameraType.SceneView)
+            {
+                cameraData.requiresDepthTexture = settings.supportsCameraDepthTexture;
+                cameraData.requiresOpaqueTexture = settings.supportsCameraOpaqueTexture;
+                cameraData.volumeLayerMask = 1; // "Default"
+                cameraData.volumeTrigger = null;
+                cameraData.postProcessEnabled = CoreUtils.ArePostProcessesEnabled(camera);
+                cameraData.isStopNaNEnabled = false;
+                cameraData.isDitheringEnabled = false;
+                cameraData.antialiasing = AntialiasingMode.None;
+                cameraData.antialiasingQuality = AntialiasingQuality.High;
             }
             else
             {
                 cameraData.requiresDepthTexture = settings.supportsCameraDepthTexture;
                 cameraData.requiresOpaqueTexture = settings.supportsCameraOpaqueTexture;
+                cameraData.volumeLayerMask = 1; // "Default"
+                cameraData.volumeTrigger = null;
+                cameraData.postProcessEnabled = false;
+                cameraData.isStopNaNEnabled = false;
+                cameraData.isDitheringEnabled = false;
+                cameraData.antialiasing = AntialiasingMode.None;
+                cameraData.antialiasingQuality = AntialiasingQuality.High;
             }
+
+            // Disables post if GLes2
+            cameraData.postProcessEnabled &= SystemInfo.graphicsDeviceType != GraphicsDeviceType.OpenGLES2;
 
             cameraData.requiresDepthTexture |= cameraData.isSceneViewCamera || cameraData.postProcessEnabled;
 
@@ -327,6 +372,7 @@ namespace UnityEngine.Rendering.Universal
             renderingData.cameraData = cameraData;
             InitializeLightData(settings, visibleLights, mainLightIndex, out renderingData.lightData);
             InitializeShadowData(settings, visibleLights, mainLightCastShadows, additionalLightsCastShadows && !renderingData.lightData.shadeAdditionalLightsPerVertex, out renderingData.shadowData);
+            InitializePostProcessingData(settings, out renderingData.postProcessingData);
             renderingData.supportsDynamicBatching = settings.supportsDynamicBatching;
             renderingData.perObjectData = GetPerObjectLightFlags(renderingData.lightData.additionalLightsCount);
 
@@ -410,6 +456,15 @@ namespace UnityEngine.Rendering.Universal
             shadowData.shadowmapDepthBufferBits = 16;
         }
 
+        static void InitializePostProcessingData(UniversalRenderPipelineAsset settings, out PostProcessingData postProcessingData)
+        {
+            postProcessingData.gradingMode = settings.supportsHDR
+                ? settings.colorGradingMode
+                : ColorGradingMode.LowDynamicRange;
+
+            postProcessingData.lutSize = settings.colorGradingLutSize;
+        }
+
         static void InitializeLightData(UniversalRenderPipelineAsset settings, NativeArray<VisibleLight> visibleLights, int mainLightIndex, out LightData lightData)
         {
             int maxPerObjectAdditionalLights = UniversalRenderPipeline.maxPerObjectLights;
@@ -440,7 +495,13 @@ namespace UnityEngine.Rendering.Universal
             var configuration = PerObjectData.ReflectionProbes | PerObjectData.Lightmaps | PerObjectData.LightProbe | PerObjectData.LightData | PerObjectData.OcclusionProbe;
 
             if (additionalLightsCount > 0)
-                configuration |= PerObjectData.LightIndices;
+            {
+                configuration |= PerObjectData.LightData;
+
+                // In this case we also need per-object indices (unity_LightIndices)
+                if (!RenderingUtils.useStructuredBuffer)
+                    configuration |= PerObjectData.LightIndices;
+            }
 
             return configuration;
         }

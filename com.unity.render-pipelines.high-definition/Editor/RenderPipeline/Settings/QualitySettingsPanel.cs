@@ -1,5 +1,3 @@
-#if QUALITY_SETTINGS_GET_RENDER_PIPELINE_AT_AVAILABLE
-
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Assertions;
@@ -18,7 +16,8 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 activateHandler = (searchContext, rootElement) =>
                 {
-                    HDEditorUtils.AddStyleSheets(rootElement);
+                    HDEditorUtils.AddStyleSheets(rootElement, HDEditorUtils.FormatingPath);
+                    HDEditorUtils.AddStyleSheets(rootElement, HDEditorUtils.QualitySettingsSheetPath);
 
                     var panel = new QualitySettingsPanelVisualElement(searchContext);
                     panel.style.flexGrow = 1;
@@ -187,4 +186,3 @@ namespace UnityEditor.Rendering.HighDefinition
         }
     }
 }
-#endif
