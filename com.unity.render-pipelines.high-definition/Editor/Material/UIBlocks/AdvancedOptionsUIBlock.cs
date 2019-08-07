@@ -67,7 +67,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 materialEditor.EnableInstancingField();
             if ((m_Features & Features.SpecularOcclusion) != 0)
                 materialEditor.ShaderProperty(enableSpecularOcclusion, Styles.enableSpecularOcclusionText);
-            if ((m_Features & Features.VirtualTexturing) != 0)
+            if (((m_Features & Features.VirtualTexturing) != 0) && enableVirtualTexturing != null)
                 materialEditor.ShaderProperty(enableVirtualTexturing, Styles.enableVirtualTexturingText);
             if ((m_Features & Features.AdditionalVelocity) != 0)
             {
