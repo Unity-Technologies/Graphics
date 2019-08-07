@@ -231,8 +231,8 @@ namespace UnityEditor.VFX.UI
         {
             capabilities |= Capabilities.Selectable | Capabilities.Movable | Capabilities.Deletable | Capabilities.Ascendable;
 
-            styleSheets.Add(Resources.Load<StyleSheet>("VFXContext"));
-            styleSheets.Add(Resources.Load<StyleSheet>("Selectable"));
+            styleSheets.Add(VFXView.LoadStyleSheet("VFXContext"));
+            styleSheets.Add(VFXView.LoadStyleSheet("Selectable"));
 
             AddToClassList("VFXContext");
             AddToClassList("selectable");
@@ -597,10 +597,10 @@ namespace UnityEditor.VFX.UI
             switch (type)
             {
                 case VFXDataType.SpawnEvent:
-                    return Resources.Load<Texture2D>("VFX/Execution");
+                    return VFXView.LoadImage("Execution");
                 case VFXDataType.Particle:
                 case VFXDataType.ParticleStrip: // TODO Add an icon
-                    return Resources.Load<Texture2D>("VFX/Particles");
+                    return VFXView.LoadImage("Particles");
             }
             return null;
         }

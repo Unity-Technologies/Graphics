@@ -3,7 +3,7 @@ using UnityEngine.UIElements;
 using UnityEditor.UIElements;
 using PositionType = UnityEngine.UIElements.Position;
 
-namespace UnityEditor.VFX.UIElements
+namespace UnityEditor.VFX.UI
 {
     class VFXColorField : ValueControl<Color>
     {

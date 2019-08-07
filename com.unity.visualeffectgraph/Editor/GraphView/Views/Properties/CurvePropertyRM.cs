@@ -6,7 +6,7 @@ using Object = UnityEngine.Object;
 using System.Reflection;
 using System.Linq;
 
-using MyCurveField = UnityEditor.VFX.UIElements.VFXLabeledField<UnityEditor.UIElements.CurveField, UnityEngine.AnimationCurve>;
+using MyCurveField = UnityEditor.VFX.UI.VFXLabeledField<UnityEditor.UIElements.CurveField, UnityEngine.AnimationCurve>;
 
 namespace UnityEditor.VFX.UI
 {

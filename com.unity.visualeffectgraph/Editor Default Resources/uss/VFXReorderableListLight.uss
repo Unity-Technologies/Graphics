@@ -1,0 +1,14 @@
+.ReorderableList > #Toolbar > #Add > #icon
+{
+    background-image: url("project:///Packages/com.unity.visualeffectgraph/Editor Default Resources/VFX/StolenToolbarPlus.png");
+}
+
+.ReorderableList > #Toolbar > #Remove > #icon
+{
+    background-image: url("project:///Packages/com.unity.visualeffectgraph/Editor Default Resources/VFX/StolenToolbarMinus.png");
+}
+
+#DraggingHandle #icon
+{
+    background-image: resource("Builtin Skins/LightSkin/Images/WindowBottomResize.png");
+}
