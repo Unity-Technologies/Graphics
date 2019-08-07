@@ -24,15 +24,9 @@ namespace UnityEditor.ShaderGraph
 
         private void AddBlendWeightAndCondtionSlots()
         {
-            AddSlot(new Vector4MaterialSlot(kBlendWeights0InputSlotId, m_SplatCount > 4 ? "Blend Weights 0" : "Blend Weights", "BlendWeights0", SlotType.Input, Vector4.zero, ShaderStageCapability.Fragment));
-            if (m_SplatCount > 4)
-                AddSlot(new Vector4MaterialSlot(kBlendWeights1InputSlotId, "Blend Weights 1", "BlendWeights1", SlotType.Input, Vector4.zero, ShaderStageCapability.Fragment));
+            AddSlot(new Vector1MaterialSlot(kBlendWeightInputSlotId, "Blend Weight", "BlendWeight", SlotType.Input, 0.0f, ShaderStageCapability.Fragment));
             if (m_Conditional)
-            {
-                AddSlot(new SplatConditionsInputMaterialSlot(kConditions0InputSlotId, m_SplatCount > 4 ? "Sample Conditions 0" : "Sample Conditions", "Conditions0", kBlendWeights0InputSlotId));
-                if (m_SplatCount > 4)
-                    AddSlot(new SplatConditionsInputMaterialSlot(kConditions1InputSlotId, "Sample Conditions 1", "Conditions1", kBlendWeights1InputSlotId));
-            }
+                AddSlot(new SplatConditionsInputMaterialSlot(kConditionInputSlotId, "Sample Condition", "Condition", kBlendWeightInputSlotId));
         }
 
         private void CreateSplatSlots(IReadOnlyList<MaterialSlot> oldInputSlots, IReadOnlyList<MaterialSlot> oldOutputSlots)
@@ -63,7 +57,7 @@ namespace UnityEditor.ShaderGraph
 
         private void MoveBlendWeightSlotsToLast()
         {
-            var edges = owner.GetEdges(guid, kBlendWeights0InputSlotId, kBlendWeights1InputSlotId, kConditions0InputSlotId, kConditions1InputSlotId);
+            var edges = owner.GetEdges(guid, kBlendWeightInputSlotId, kConditionInputSlotId);
             AddBlendWeightAndCondtionSlots();
             foreach (var edge in edges)
                 owner.Connect(edge.outputSlot, edge.inputSlot);
@@ -72,7 +66,7 @@ namespace UnityEditor.ShaderGraph
         private void RecreateSplatSlots(IReadOnlyList<MaterialSlot> oldInputSlots, IReadOnlyList<MaterialSlot> oldOutputSlots,
             IReadOnlyList<(IEnumerable<IEdge> inputEdges, IEnumerable<IEdge> outputEdges)> oldEdges, IReadOnlyList<int> newIndexToOldMapping)
         {
-            RemoveSlotsNameNotMatching(new[] { kBlendWeights0InputSlotId, kBlendWeights1InputSlotId, kConditions0InputSlotId, kConditions1InputSlotId }, true);
+            RemoveSlotsNameNotMatching(new[] { kBlendWeightInputSlotId, kConditionInputSlotId }, true);
             CreateSplatSlots(oldInputSlots, oldOutputSlots);
 
             for (int i = 0; i < m_SplatSlotNames.Count; ++i)
@@ -226,18 +220,9 @@ namespace UnityEditor.ShaderGraph
             owner.owner.RegisterCompleteObjectUndo("Conditional Change");
             m_Conditional = evt.newValue;
             if (m_Conditional)
-            {
-                var conditions0Name = m_SplatCount > 4 ? "Sample Conditions 0" : "Sample Conditions";
-                AddSlot(new SplatConditionsInputMaterialSlot(kConditions0InputSlotId, conditions0Name, "Conditions0", kBlendWeights0InputSlotId));
-                if (m_SplatCount > 4)
-                    AddSlot(new SplatConditionsInputMaterialSlot(kConditions1InputSlotId, "Sample Conditions 1", "Conditions1", kBlendWeights1InputSlotId));
-            }
+                AddSlot(new SplatConditionsInputMaterialSlot(kConditionInputSlotId, "Sample Condition", "Condition", kBlendWeightInputSlotId));
             else
-            {
-                RemoveSlot(kConditions0InputSlotId);
-                if (m_SplatCount > 4)
-                    RemoveSlot(kConditions1InputSlotId);
-            }
+                RemoveSlot(kConditionInputSlotId);
             owner?.ClearErrorsForNode(this);
             ValidateNode();
         }
