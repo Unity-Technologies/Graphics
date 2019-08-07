@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fix shadergraph material pass setup not called
 - Fix property sync in shadergraph with the current material in the inspector
 - Fixed an issue causing Scene View selection wire gizmo to not appear when using HDRP Shader Graphs.
+- Fixed with compute shader error about too many threads in threadgroup on low GPU
 
 ### Changed
 - direct strenght properties in ambient occlusion now affect direct specular as well
