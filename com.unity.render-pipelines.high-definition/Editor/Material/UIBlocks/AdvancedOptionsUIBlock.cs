@@ -13,6 +13,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             None                = 0,
             Instancing          = 1 << 0,
             SpecularOcclusion   = 1 << 1,
+            AddPrecomputedVelocity  = 1 << 2,
             All                 = ~0
         }
 
@@ -20,10 +21,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
             public const string header = "Advanced Options";
             public static GUIContent enableSpecularOcclusionText = new GUIContent("Specular Occlusion From Bent Normal", "Requires cosine weighted bent normal and cosine weighted ambient occlusion. Specular occlusion for Reflection Probe");
+            public static GUIContent addPrecomputedVelocityText = new GUIContent("Add Precomputed Velocity", "Requires additional per vertex velocity info");
         }
 
         protected MaterialProperty enableSpecularOcclusion = null;
+        protected MaterialProperty addPrecomputedVelocity = null;
         protected const string kEnableSpecularOcclusion = "_EnableSpecularOcclusion";
+        protected const string kAddPrecomputedVelocity = HDMaterialProperties.kAddPrecomputedVelocity;
 
         Expandable  m_ExpandableBit;
         Features    m_Features;
@@ -37,6 +41,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         public override void LoadMaterialProperties()
         {
             enableSpecularOcclusion = FindProperty(kEnableSpecularOcclusion);
+            addPrecomputedVelocity = FindProperty(kAddPrecomputedVelocity);
         }
 
         public override void OnGUI()
@@ -54,6 +59,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 materialEditor.EnableInstancingField();
             if ((m_Features & Features.SpecularOcclusion) != 0)
                 materialEditor.ShaderProperty(enableSpecularOcclusion, Styles.enableSpecularOcclusionText);
+            if ((m_Features & Features.AddPrecomputedVelocity) != 0)
+            {
+                if ( addPrecomputedVelocity != null)
+                    materialEditor.ShaderProperty(addPrecomputedVelocity, Styles.addPrecomputedVelocityText);
+            }
         }
     }
 }

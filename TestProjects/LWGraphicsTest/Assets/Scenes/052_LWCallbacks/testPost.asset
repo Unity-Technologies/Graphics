@@ -14,26 +14,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   settings:
   - {fileID: 114362499158830374}
-  - {fileID: 114049380355447546}
---- !u!114 &114049380355447546
-MonoBehaviour:
-  m_ObjectHideFlags: 3
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1ac41d3f11d084fe8ad95205b865e965, type: 3}
-  m_Name: InvertOpaque
-  m_EditorClassIdentifier: 
-  active: 1
-  enabled:
-    overrideState: 1
-    value: 1
-  enable:
-    overrideState: 1
-    value: 0
 --- !u!114 &114362499158830374
 MonoBehaviour:
   m_ObjectHideFlags: 3

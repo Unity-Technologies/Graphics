@@ -173,7 +173,10 @@ namespace UnityEngine.Rendering.LWRP
             EnqueuePass(m_RenderOpaqueForwardPass);
 
             if (hasOpaquePostProcess)
+            {
                 m_OpaquePostProcessPass.Setup(cameraTargetDescriptor, m_ActiveCameraColorAttachment, m_ActiveCameraColorAttachment);
+                EnqueuePass(m_OpaquePostProcessPass);
+            }
 
             if (camera.clearFlags == CameraClearFlags.Skybox && RenderSettings.skybox != null)
                 EnqueuePass(m_DrawSkyboxPass);

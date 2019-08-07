@@ -12,13 +12,6 @@ namespace UnityEditor.ShaderGraph
 
             if(value == null)
                 value = new TextureSamplerState();
-
-            if(string.IsNullOrEmpty(overrideReferenceName))
-                overrideReferenceName = string.Format("{0}_{1}_{2}_{3}"
-                    , propertyType
-                    , GuidEncoder.Encode(guid)
-                    , value.filter
-                    , value.wrap);
         }
 
         public override PropertyType propertyType
@@ -29,6 +22,19 @@ namespace UnityEditor.ShaderGraph
         public override Vector4 defaultValue
         {
             get { return new Vector4(); }
+        }
+
+        public override TextureSamplerState value
+        {
+        	get => base.value;
+        	set
+        	{
+        		overrideReferenceName = string.Format("{0}_{1}_{2}"
+                    , propertyType
+                    , value.filter
+                    , value.wrap);
+        		base.value = value;
+        	}
         }
 
         public override bool isBatchable

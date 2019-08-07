@@ -6,6 +6,20 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [6.10.0] - 2019-XX-XX
 
+### Fixed
+- Fixed PBR master node always opaque (wrong blend modes for forward pass)
+- Fixed alphaClip option in materials not updating the renderqueue.
+- Fixed PBR master node preview
+- Now the static lighting sky will correctly take the default values for non-overridden properties
+- Fix shadergraph material pass setup not called
+- Fix property sync in shadergraph with the current material in the inspector
+- Fixed an issue causing Scene View selection wire gizmo to not appear when using HDRP Shader Graphs.
+
+### Changed
+- direct strenght properties in ambient occlusion now affect direct specular as well
+- Added a warning in the material UI when the diffusion profile assigned is not in the HDRP asset
+- Added Alembic velocity support to various Shaders.
+
 ## [6.9.0] - 2019-07-02
 
 ### Added
@@ -15,9 +29,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue with Low resolution transparency on PS4
 - Fixed The Parallax Occlusion Mappping node in shader graph and it's UV input slot
 - Fixed lighting with XR single-pass instancing by disabling deferred tiles
+- Fixed camera flickering when using TAA and selecting the camera in the editor
 
 ### Changed
 - Remove all obsolete wind code from shader
+- Enlighten now uses inverse squared falloff instead of the built-in falloff.
+- Enlighten is now deprecated. Use the CPU or GPU Lightmapper instead.
 
 ## [6.8.0] - 2019-06-12
 
@@ -56,6 +73,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed a crash in the build when the contact shadows are disabled
 - Fixed camera rendering callbacks order (endCameraRendering was being called before the actual rendering)
 - Fixed issue with wrong opaque blending settings for After Postprocess
+- Fixed issue with single shadow debug view and volumetrics
 
 ### Changed
 - Removed ScriptRuntimeVersion check in wizard.
@@ -70,6 +88,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Replace ComputeMicroShadowing by GetAmbientOcclusionForMicroShadowing
 - Rename WorldToTangent to TangentToWorld as it was incorrectly named
 - Remove SunDisk and Sun Halo size from directional light
+- Remove the name in the diffusion profile UI
+- Changed how shadow map resolution scaling with distance is computed. Now it uses screen space area rather than light range.
 
 
 ## [6.7.0-preview] - 2019-05-21

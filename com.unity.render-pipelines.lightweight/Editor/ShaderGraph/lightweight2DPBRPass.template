@@ -32,13 +32,11 @@ ${Graph}
         float4 clipPos                : SV_POSITION;
 		// Interpolators defined by graph
 ${VertexOutputStruct}
-    	UNITY_VERTEX_OUTPUT_STEREO
     };
 
     GraphVertexOutput vert (GraphVertexInput v)
 	{
 		GraphVertexOutput o = (GraphVertexOutput)0;
-		UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
 
 		// Vertex transformations performed by graph
 ${VertexShader}
@@ -60,8 +58,6 @@ ${VertexShaderOutputs}
 
 	half4 frag (GraphVertexOutput IN ${FaceSign}) : SV_Target
     {
-		UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(IN);
-
 		// Pixel transformations performed by graph
 ${PixelShader}
         SurfaceDescriptionInputs surfaceInput = (SurfaceDescriptionInputs)0;

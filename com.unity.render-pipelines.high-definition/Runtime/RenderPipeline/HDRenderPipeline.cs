@@ -1014,11 +1014,35 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // With XR multi-pass enabled, each camera can be rendered multiple times with different parameters
                 var multipassCameras = m_XRSystem.SetupFrame(cameras);
 
+#if UNITY_EDITOR
+                // See comment below about the preview camera workaround
+                var hasGameViewCamera = cameras.Any(c => c.cameraType == CameraType.Game);
+#endif
+
                 // Culling loop
                 foreach ((Camera camera, XRPass xrPass) in multipassCameras)
                 {
                     if (camera == null)
                         continue;
+
+#if UNITY_EDITOR
+                    // We selecting a camera in the editor, we have a preview that is drawn.
+                    // For legacy reasons, Unity will render all preview cameras when rendering the GameView
+                    // Actually, we don't need this here because we call explicitly Camera.Render when we
+                    // need a preview rendering.
+                    //
+                    // This is an issue, because at some point, you end up with 2 cameras to render:
+                    // - Main Camera (game view)
+                    // - Preview Camera (preview)
+                    // If the preview camera is rendered last, it will alter the "GameView RT" RenderTexture
+                    // that was previously rendered by the Main Camera.
+                    // This is an issue.
+                    //
+                    // Meanwhile, skipping all preview camera when rendering the game views is sane,
+                    // and will workaround the aformentionned issue.
+                    if (hasGameViewCamera && camera.cameraType == CameraType.Preview)
+                        continue;
+#endif
 
                     bool cameraRequestedDynamicRes = false;
                     if (camera.GetComponent<HDAdditionalCameraData>() != null)
@@ -2039,6 +2063,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public Rect                     viewport;
             public Material                 blitMaterial;
         }
+
+        public RTHandleSystem.RTHandle GetExposureTexture(HDCamera hdCamera) =>
+            m_PostProcessSystem.GetExposureTexture(hdCamera);
 
         BlitFinalCameraTextureParameters PrepareFinalBlitParameters(HDCamera hdCamera)
         {

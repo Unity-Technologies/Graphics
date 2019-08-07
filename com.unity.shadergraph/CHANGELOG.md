@@ -5,6 +5,11 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## [6.10.0] - 2019-XX-XX
+### Fixed
+- You can no longer directly connect slots with invalid types. When the graph detects that situation, it now doesn't break and gives an error instead.
+- Fixed an error that previously occurred when you used `Sampler State` input ports on Sub Graphs.
+- Fixed various dependency tracking issues with Sub Graphs and HLSL files from Custom Function Nodes.
+- Added support of Alembic velocity to various shaders
 
 ## [6.9.0] - 2019-07-02
 
@@ -29,6 +34,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - `Sampler State` properties and nodes now serialize correctly.
 - Labels in the Custom Port menu now use the correct coloring when using the Personal skin.
 - Fixed an error that occured when using multiple Sampler State nodes with different parameters.
+- When you convert nodes to a Sub Graph, the nodes are now placed correctly in the Sub Graph.
 - When you perform an undo or redo to an inactive Shader Graph window, the window no longer breaks.
 - When you rapidly perform an undo or redo, Shader Graph windows no longer break.
 - Sub Graphs that contain references to non-existing Sub Graphs no longer break the Sub Graph Importer.

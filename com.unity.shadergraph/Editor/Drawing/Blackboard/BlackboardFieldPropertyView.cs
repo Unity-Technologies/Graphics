@@ -580,7 +580,9 @@ namespace UnityEditor.ShaderGraph.Drawing
                 filterField.RegisterValueChangedCallback(evt =>
                     {
                         m_Graph.owner.RegisterCompleteObjectUndo("Change Property Value");
-                        samplerStateProperty.value.filter = (TextureSamplerState.FilterMode)evt.newValue;
+                        TextureSamplerState state = samplerStateProperty.value;
+                        state.filter = (TextureSamplerState.FilterMode)evt.newValue;
+                        samplerStateProperty.value = state;
                         DirtyNodes(ModificationScope.Graph);
                     });
                 AddRow("Filter", filterField);
@@ -588,7 +590,9 @@ namespace UnityEditor.ShaderGraph.Drawing
                 wrapField.RegisterValueChangedCallback(evt =>
                     {
                         m_Graph.owner.RegisterCompleteObjectUndo("Change Property Value");
-                        samplerStateProperty.value.wrap = (TextureSamplerState.WrapMode)evt.newValue;
+                        TextureSamplerState state = samplerStateProperty.value;
+                        state.wrap = (TextureSamplerState.WrapMode)evt.newValue;
+                        samplerStateProperty.value = state;
                         DirtyNodes(ModificationScope.Graph);
                     });
                 AddRow("Wrap", wrapField);

@@ -29,7 +29,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         bool m_HasError;
 
         [NonSerialized]
-        HashSet<string> m_ChangedSubGraphs = new HashSet<string>();
+        HashSet<string> m_ChangedFileDependencies = new HashSet<string>();
 
         ColorSpace m_ColorSpace;
         RenderPipelineAsset m_RenderPipelineAsset;
@@ -145,14 +145,18 @@ namespace UnityEditor.ShaderGraph.Drawing
                     graphObject.Validate();
                 }
 
-                if (m_ChangedSubGraphs.Count > 0 && graphObject != null && graphObject.graph != null)
+                if (m_ChangedFileDependencies.Count > 0 && graphObject != null && graphObject.graph != null)
                 {
                     foreach (var subGraphNode in graphObject.graph.GetNodes<SubGraphNode>())
                     {
-                        subGraphNode.Reload(m_ChangedSubGraphs);
+                        subGraphNode.Reload(m_ChangedFileDependencies);
+                    }
+                    foreach (var customFunctionNode in graphObject.graph.GetNodes<CustomFunctionNode>())
+                    {
+                        customFunctionNode.Reload(m_ChangedFileDependencies);
                     }
 
-                    m_ChangedSubGraphs.Clear();
+                    m_ChangedFileDependencies.Clear();
                 }
 
                 if (graphObject.wasUndoRedoPerformed)
@@ -175,11 +179,11 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
         }
 
-        public void ReloadSubGraphsOnNextUpdate(List<string> subGraphs)
+        public void ReloadSubGraphsOnNextUpdate(List<string> changedFiles)
         {
-            foreach (var subGraph in subGraphs)
+            foreach (var changedFile in changedFiles)
             {
-                m_ChangedSubGraphs.Add(subGraph);
+                m_ChangedFileDependencies.Add(changedFile);
             }
         }
 
@@ -333,6 +337,12 @@ namespace UnityEditor.ShaderGraph.Drawing
                     (key, edges) => new { slotRef = key, edges = edges.ToList() });
 
             var externalInputNeedingConnection = new List<KeyValuePair<IEdge, AbstractShaderProperty>>();
+
+            var amountOfProps = uniqueIncomingEdges.Count();
+            const int height = 40;
+            const int subtractHeight = 20;
+            var propPos = new Vector2(0, -((amountOfProps / 2) + height) - subtractHeight);
+
             foreach (var group in uniqueIncomingEdges)
             {
                 var sr = group.slotRef;
@@ -399,7 +409,8 @@ namespace UnityEditor.ShaderGraph.Drawing
                     var propNode = new PropertyNode();
                     {
                         var drawState = propNode.drawState;
-                        drawState.position = new Rect(new Vector2(bounds.xMin - 300f, 0f), drawState.position.size);
+                        drawState.position = new Rect(new Vector2(bounds.xMin - 300f, 0f) + propPos, drawState.position.size);
+                        propPos += new Vector2(0, height);
                         propNode.drawState = drawState;
                     }
                     subGraph.AddNode(propNode);

@@ -98,6 +98,17 @@ namespace UnityEngine.Experimental.Rendering
             }
         }
 
+        public void ReleaseBuffer(int bufferId)
+        {
+            if (m_RTHandles.TryGetValue(bufferId, out var buffers))
+            {
+                foreach (var rt in buffers)
+                    m_RTHandleSystem.Release(rt);
+            }
+
+            m_RTHandles.Remove(bufferId);
+        }
+
         /// <summary>
         /// Swap buffers Set the reference size for this RT Handle System (<see cref="RTHandleSystem.SetReferenceSize(int, int, bool, MSAASamples)"/>)
         /// </summary>

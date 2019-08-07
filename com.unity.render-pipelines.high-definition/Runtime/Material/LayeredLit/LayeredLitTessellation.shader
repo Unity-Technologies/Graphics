@@ -376,7 +376,7 @@ Shader "HDRP/LayeredLitTessellation"
 
         [ToggleUI] _SupportDecals("Support Decals", Float) = 1.0
         [ToggleUI] _ReceivesSSR("Receives SSR", Float) = 1.0
-
+        [ToggleUI] _AddPrecomputedVelocity("AddPrecomputedVelocity", Float) = 0.0
 //forest-begin:
         [Toggle(_ENABLE_TERRAIN_MODE)] _EnableTerrainMode("Enable Terrain Mode", Float) = 0.0
 //forest-end:
@@ -450,6 +450,7 @@ Shader "HDRP/LayeredLitTessellation"
 
     #pragma shader_feature_local _DISABLE_DECALS
     #pragma shader_feature_local _DISABLE_SSR
+    #pragma shader_feature_local _ADD_PRECOMPUTED_VELOCITY
     #pragma shader_feature_local _ENABLE_GEOMETRIC_SPECULAR_AA
 
     // Keyword for transparent

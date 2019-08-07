@@ -91,10 +91,6 @@ Pass
 		ps_output o = (ps_output)0;
 
 		${VFXFragmentDistortionProcess}
-
-		o.distortion.xyw = i.VFX_VARYING_ALPHA * float3(distortion.xy, blur);
-		o.distortion.z = 1.0;
-		return o;
 	}
 	ENDHLSL
 }

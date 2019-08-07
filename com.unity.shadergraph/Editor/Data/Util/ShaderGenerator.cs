@@ -690,7 +690,7 @@ namespace UnityEditor.ShaderGraph
 
             if (pixelRequirements.requiresTime)
             {
-                pixelShaderSurfaceInputs.AppendLine("surfaceInput.{0} = _TimeParameters;", ShaderGeneratorNames.TimeParameters);
+                pixelShaderSurfaceInputs.AppendLine("surfaceInput.{0} = _TimeParameters.xyz;", ShaderGeneratorNames.TimeParameters);
             }
 
             // ----------------------------------------------------- //
@@ -723,7 +723,7 @@ namespace UnityEditor.ShaderGraph
 
             if (vertexRequirements.requiresTime)
             {
-                vertexShaderDescriptionInputs.AppendLine("vdi.{0} = _TimeParameters;", ShaderGeneratorNames.TimeParameters);
+                vertexShaderDescriptionInputs.AppendLine("vdi.{0} = _TimeParameters.xyz;", ShaderGeneratorNames.TimeParameters);
             }
         }
 

@@ -312,3 +312,8 @@ VFXContextUI > #node-border > #inside > #contents
 {
     background-color: rgba(45,45,45,0.8);
 }
+
+VFXContextUI ColorPropertyRM .fieldContainer > *
+{
+    width: 56px;
+}
