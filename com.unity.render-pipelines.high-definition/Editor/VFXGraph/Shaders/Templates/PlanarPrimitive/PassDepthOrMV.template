@@ -26,7 +26,7 @@ struct ps_input
 	
 	#ifdef WRITE_NORMAL_BUFFER
 	float4 normal : TEXCOORD3; // normal scale is stored in w
-	#if USE_NORMAL_MAP || USE_NORMAL_BENDING
+	#if USE_NORMAL_MAP || USE_NORMAL_BENDING || SHADERGRAPH_NEEDS_TANGENT_DEPTH
 	float3 tangent : TEXCOORD4;
 	#endif
 	#if USE_NORMAL_BENDING

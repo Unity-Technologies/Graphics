@@ -189,9 +189,9 @@ namespace UnityEditor.VFX
 
                     foreach (var kvPass in info.passInfos)
                     {
-                        GraphCode graphCode = shaderGraph.GetCode(kvPass.Value.pixelPorts.Select(t => shaderGraph.GetOutput(t)).Where(t=>!string.IsNullOrEmpty(t.referenceName)).ToArray());
+                        GraphCode graphCode = shaderGraph.GetCode(kvPass.Value.pixelPorts.Select(t => shaderGraph.GetOutput(t)).Where(t => !string.IsNullOrEmpty(t.referenceName)).ToArray());
 
-                        yield return new KeyValuePair<string, VFXShaderWriter>("${SHADERGRAPH_PIXEL_CODE_" + kvPass.Key.ToUpper()+"}", new VFXShaderWriter(graphCode.code));
+                        yield return new KeyValuePair<string, VFXShaderWriter>("${SHADERGRAPH_PIXEL_CODE_" + kvPass.Key.ToUpper() + "}", new VFXShaderWriter(graphCode.code));
 
                         var callSG = new VFXShaderWriter("//Call Shader Graph\n");
                         callSG.builder.AppendLine($"{shaderGraph.inputStructName} INSG;");
@@ -206,7 +206,7 @@ namespace UnityEditor.VFX
                             if ((graphCode.requirements.requiresNormal & NeededCoordinateSpace.View) != 0)
                                 callSG.builder.AppendLine("INSG.ViewSpaceNormal = mul(WorldSpaceNormal, (float3x3)UNITY_MATRIX_I_V);");
                             if ((graphCode.requirements.requiresNormal & NeededCoordinateSpace.Tangent) != 0)
-                                callSG.builder.AppendLine("INSG.ViewSpaceNormal = float3(0.0f, 0.0f, 1.0f);");
+                                callSG.builder.AppendLine("INSG.TangentSpaceNormal = float3(0.0f, 0.0f, 1.0f);");
                         }
                         if (graphCode.requirements.requiresTangent != NeededCoordinateSpace.None)
                         {
@@ -221,7 +221,7 @@ namespace UnityEditor.VFX
                                 callSG.builder.AppendLine("INSG.TangentSpaceTangent = float3(1.0f, 0.0f, 0.0f);");
                         }
 
-                        if(graphCode.requirements.requiresBitangent != NeededCoordinateSpace.None)
+                        if (graphCode.requirements.requiresBitangent != NeededCoordinateSpace.None)
                         {
                             callSG.builder.AppendLine("float3 WorldSpaceBiTangent =  normalize(bitangentWS.xyz);");
                             if ((graphCode.requirements.requiresBitangent & NeededCoordinateSpace.World) != 0)
@@ -234,15 +234,19 @@ namespace UnityEditor.VFX
                                 callSG.builder.AppendLine("INSG.TangentSpaceBiTangent = float3(0.0f, 1.0f, 0.0f);");
                         }
 
+                         bool requiresTangent = (graphCode.requirements.requiresTangent & ~NeededCoordinateSpace.Tangent) != 0 || (graphCode.requirements.requiresBitangent & ~NeededCoordinateSpace.Tangent)!= 0;
+                        if(requiresTangent)
+                            yield return new KeyValuePair<string, VFXShaderWriter>($"SHADERGRAPH_NEEDS_TANGENT_{kvPass.Key.ToUpper()}", new VFXShaderWriter("1"));
+
                         if (graphCode.requirements.requiresPosition != NeededCoordinateSpace.None)
                         {
-                            callSG.builder.AppendLine("float3 WorldSpacePosition = i.posWS;");
+                            callSG.builder.AppendLine("float3 WorldSpacePosition = i.posWS.xyz;");
                             if ((graphCode.requirements.requiresPosition & NeededCoordinateSpace.World) != 0)
                                 callSG.builder.AppendLine("INSG.WorldSpacePosition = WorldSpacePosition;");
                             if ((graphCode.requirements.requiresPosition & NeededCoordinateSpace.Object) != 0)
                                 callSG.builder.AppendLine("INSG.ObjectSpacePosition =  TransformWorldToObjectDir(WorldSpacePosition);");
                             if ((graphCode.requirements.requiresPosition & NeededCoordinateSpace.View) != 0)
-                                callSG.builder.AppendLine("INSG.ViewSpacePosition = TransformWorldToView(WorldSpacePosition));");
+                                callSG.builder.AppendLine("INSG.ViewSpacePosition = TransformWorldToView(WorldSpacePosition);");
                             if ((graphCode.requirements.requiresPosition & NeededCoordinateSpace.Tangent) != 0)
                                 callSG.builder.AppendLine("INSG.TangentSpacePosition = float3(0.0f, 0.0f, 0.0f);");
                             if ((graphCode.requirements.requiresPosition & NeededCoordinateSpace.AbsoluteWorld) != 0)
