@@ -86,7 +86,7 @@ namespace UnityEngine.Rendering.HighDefinition
     };
 
     [GenerateHLSL(PackingRules.Exact, false)]
-    struct LightData
+    public struct LightData
     {
         // Packing order depends on chronological access to avoid cache misses
         // Make sure to respect the 16-byte alignment

@@ -1,5 +1,8 @@
 using System;
 using System.Collections.Generic;
+using UnityEngine.Profiling;
+using Unity.Jobs;
+using Unity.Collections;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -31,7 +34,7 @@ namespace UnityEngine.Rendering.HighDefinition
     //-----------------------------------------------------------------------------
 
     [GenerateHLSL]
-    enum LightVolumeType
+    public enum LightVolumeType
     {
         Cone,
         Sphere,
@@ -40,7 +43,7 @@ namespace UnityEngine.Rendering.HighDefinition
     }
 
     [GenerateHLSL]
-    enum LightCategory
+    public enum LightCategory
     {
         Punctual,
         Area,
@@ -97,7 +100,7 @@ namespace UnityEngine.Rendering.HighDefinition
     }
 
     [GenerateHLSL]
-    struct SFiniteLightBound
+    public struct SFiniteLightBound
     {
         public Vector3 boxAxisX;
         public Vector3 boxAxisY;
@@ -108,7 +111,7 @@ namespace UnityEngine.Rendering.HighDefinition
     };
 
     [GenerateHLSL]
-    struct LightVolumeData
+    public struct LightVolumeData
     {
         public Vector3 lightPos;
         public uint lightVolume;
@@ -406,14 +409,239 @@ namespace UnityEngine.Rendering.HighDefinition
         // For now we don't use shadow cascade borders.
         static internal readonly bool s_UseCascadeBorders = true;
 
+
+        // scratch data to decouple passes in prepareLightsForGPU
         // Keep sorting array around to avoid garbage
         uint[] m_SortKeys = null;
+        int[] m_ShadowIndices = null;
+        int[] m_DirLightIndices = null;
+        HDAdditionalLightData[] m_HDLightDatas = null;
+        Matrix4x4[] m_WorldToView = null;
+        bool[] m_ValidLightData = null;
+        float[] m_DistanceToCamera = null;
+        float[] m_LightDistanceFade = null;
 
-        void UpdateSortKeysArray(int count)
+        public struct LightVolumeBoundsJob : IJobParallelFor
         {
-            if (m_SortKeys == null ||count > m_SortKeys.Length)
+            public NativeArray<SFiniteLightBound> bounds;
+            public NativeArray<LightVolumeData> lightVolumeData;
+
+            [ReadOnly]
+            public NativeArray<LightCategory> lightCategory;
+            [ReadOnly]
+            public NativeArray<GPULightType> gpuLightType;
+            [ReadOnly]
+            public NativeArray<LightVolumeType> lightVolumeType;
+            [ReadOnly]
+            public NativeArray<VisibleLight> light;
+            [ReadOnly]
+            public NativeArray<LightData> lightData;
+            [ReadOnly]
+            public NativeArray<Vector3> lightDimensions;
+            [ReadOnly]
+            public NativeArray<Matrix4x4> worldToView;
+            [ReadOnly]
+            public int numViews;
+
+            public void Execute(int index)
             {
-                m_SortKeys = new uint[count];
+ // Then Culling side
+                var range = lightDimensions[index].z;
+                var lightToWorld = light[index].localToWorldMatrix;
+                Vector3 positionWS = lightData[index].positionRWS;
+                Vector3 positionVS = worldToView[index / numViews].MultiplyPoint(positionWS);
+
+                Matrix4x4 lightToView = worldToView[index / numViews] * lightToWorld;
+                Vector3 xAxisVS = lightToView.GetColumn(0);
+                Vector3 yAxisVS = lightToView.GetColumn(1);
+                Vector3 zAxisVS = lightToView.GetColumn(2);
+
+                LightVolumeData lvd = lightVolumeData[index];
+                SFiniteLightBound sflb = bounds[index];
+                
+                lvd.lightCategory = (uint)lightCategory[index];
+                lvd.lightVolume = (uint)lightVolumeType[index];
+
+                if (gpuLightType[index] == GPULightType.Spot || gpuLightType[index] == GPULightType.ProjectorPyramid)
+                {
+                    Vector3 lightDir = lightToWorld.GetColumn(2);
+
+                    // represents a left hand coordinate system in world space since det(worldToView)<0
+                    Vector3 vx = xAxisVS;
+                    Vector3 vy = yAxisVS;
+                    Vector3 vz = zAxisVS;
+
+                    const float pi = 3.1415926535897932384626433832795f;
+                    const float degToRad = (float)(pi / 180.0);
+
+                    var sa = light[index].spotAngle;
+                    var cs = Mathf.Cos(0.5f * sa * degToRad);
+                    var si = Mathf.Sin(0.5f * sa * degToRad);
+
+                    if (gpuLightType[index] == GPULightType.ProjectorPyramid)
+                    {
+                        Vector3 lightPosToProjWindowCorner = (0.5f * lightDimensions[index].x) * vx + (0.5f * lightDimensions[index].y) * vy + 1.0f * vz;
+                        cs = Vector3.Dot(vz, Vector3.Normalize(lightPosToProjWindowCorner));
+                        si = Mathf.Sqrt(1.0f - cs * cs);
+                    }
+
+                    const float FltMax = 3.402823466e+38F;
+                    var ta = cs > 0.0f ? (si / cs) : FltMax;
+                    var cota = si > 0.0f ? (cs / si) : FltMax;
+
+                    //const float cotasa = l.GetCotanHalfSpotAngle();
+
+                    // apply nonuniform scale to OBB of spot light
+                    var squeeze = true;//sa < 0.7f * 90.0f;      // arb heuristic
+                    var fS = squeeze ? ta : si;
+                    sflb.center = worldToView[index / numViews].MultiplyPoint(positionWS + ((0.5f * range) * lightDir));    // use mid point of the spot as the center of the bounding volume for building screen-space AABB for tiled lighting.
+
+                    // scale axis to match box or base of pyramid
+                    sflb.boxAxisX = (fS * range) * vx;
+                    sflb.boxAxisY = (fS * range) * vy;
+                    sflb.boxAxisZ = (0.5f * range) * vz;
+
+                    // generate bounding sphere radius
+                    var fAltDx = si;
+                    var fAltDy = cs;
+                    fAltDy = fAltDy - 0.5f;
+                    //if(fAltDy<0) fAltDy=-fAltDy;
+
+                    fAltDx *= range; fAltDy *= range;
+
+                    // Handle case of pyramid with this select (currently unused)
+                    var altDist = Mathf.Sqrt(fAltDy * fAltDy + (true ? 1.0f : 2.0f) * fAltDx * fAltDx);
+                    sflb.radius = altDist > (0.5f * range) ? altDist : (0.5f * range);       // will always pick fAltDist
+                    sflb.scaleXY = squeeze ? new Vector2(0.01f, 0.01f) : new Vector2(1.0f, 1.0f);
+
+                    lvd.lightAxisX = vx;
+                    lvd.lightAxisY = vy;
+                    lvd.lightAxisZ = vz;
+                    lvd.lightPos = positionVS;
+                    lvd.radiusSq = range * range;
+                    lvd.cotan = cota;
+                    lvd.featureFlags = (uint)LightFeatureFlags.Punctual;
+                }
+                else if (gpuLightType[index] == GPULightType.Point)
+                {
+                    Vector3 vx = xAxisVS;
+                    Vector3 vy = yAxisVS;
+                    Vector3 vz = zAxisVS;
+
+                    sflb.center = positionVS;
+                    sflb.boxAxisX = vx * range;
+                    sflb.boxAxisY = vy * range;
+                    sflb.boxAxisZ = vz * range;
+                    sflb.scaleXY.Set(1.0f, 1.0f);
+                    sflb.radius = range;
+
+                    // fill up ldata
+                    lvd.lightAxisX = vx;
+                    lvd.lightAxisY = vy;
+                    lvd.lightAxisZ = vz;
+                    lvd.lightPos = sflb.center;
+                    lvd.radiusSq = range * range;
+                    lvd.featureFlags = (uint)LightFeatureFlags.Punctual;
+                
+                }
+                else if (gpuLightType[index] == GPULightType.Tube)
+                {
+                    Vector3 dimensions = new Vector3(lightDimensions[index].x + 2 * range, 2 * range, 2 * range); // Omni-directional
+                    Vector3 extents = 0.5f * dimensions;
+
+                    sflb.center = positionVS;
+                    sflb.boxAxisX = extents.x * xAxisVS;
+                    sflb.boxAxisY = extents.y * yAxisVS;
+                    sflb.boxAxisZ = extents.z * zAxisVS;
+                    sflb.scaleXY.Set(1.0f, 1.0f);
+                    sflb.radius = extents.magnitude;
+
+                    lvd.lightPos = positionVS;
+                    lvd.lightAxisX = xAxisVS;
+                    lvd.lightAxisY = yAxisVS;
+                    lvd.lightAxisZ = zAxisVS;
+                    lvd.boxInnerDist = new Vector3(lightDimensions[index].x, 0, 0);
+                    lvd.boxInvRange.Set(1.0f / range, 1.0f / range, 1.0f / range);
+                    lvd.featureFlags = (uint)LightFeatureFlags.Area;
+                }
+                else if (gpuLightType[index] == GPULightType.Rectangle)
+                {
+                    Vector3 dimensions = new Vector3(lightDimensions[index].x + 2 * range, lightDimensions[index].y + 2 * range, range); // One-sided
+                    Vector3 extents = 0.5f * dimensions;
+                    Vector3 centerVS = positionVS + extents.z * zAxisVS;
+
+                    sflb.center = centerVS;
+                    sflb.boxAxisX = extents.x * xAxisVS;
+                    sflb.boxAxisY = extents.y * yAxisVS;
+                    sflb.boxAxisZ = extents.z * zAxisVS;
+                    sflb.scaleXY.Set(1.0f, 1.0f);
+                    sflb.radius = extents.magnitude;
+
+                    lvd.lightPos = centerVS;
+                    lvd.lightAxisX = xAxisVS;
+                    lvd.lightAxisY = yAxisVS;
+                    lvd.lightAxisZ = zAxisVS;
+                    lvd.boxInnerDist = extents;
+                    lvd.boxInvRange.Set(Mathf.Infinity, Mathf.Infinity, Mathf.Infinity);
+                    lvd.featureFlags = (uint)LightFeatureFlags.Area;
+                }
+                else if (gpuLightType[index] == GPULightType.ProjectorBox)
+                {
+                    Vector3 dimensions = new Vector3(lightDimensions[index].x, lightDimensions[index].y, range);  // One-sided
+                    Vector3 extents = 0.5f * dimensions;
+                    Vector3 centerVS = positionVS + extents.z * zAxisVS;
+
+                    sflb.center = centerVS;
+                    sflb.boxAxisX = extents.x * xAxisVS;
+                    sflb.boxAxisY = extents.y * yAxisVS;
+                    sflb.boxAxisZ = extents.z * zAxisVS;
+                    sflb.radius = extents.magnitude;
+                    sflb.scaleXY.Set(1.0f, 1.0f);
+
+                    lvd.lightPos = centerVS;
+                    lvd.lightAxisX = xAxisVS;
+                    lvd.lightAxisY = yAxisVS;
+                    lvd.lightAxisZ = zAxisVS;
+                    lvd.boxInnerDist = extents;
+                    lvd.boxInvRange.Set(Mathf.Infinity, Mathf.Infinity, Mathf.Infinity);
+                    lvd.featureFlags = (uint)LightFeatureFlags.Punctual;
+                }
+                else
+                {
+                    Debug.Assert(false, "TODO: encountered an unknown GPULightType.");
+                }
+                lightVolumeData[index] = lvd;
+                bounds[index] = sflb;
+            }
+        }
+
+        LightVolumeBoundsJob m_LightVolumeBoundsJob;
+
+
+        void UpdateArraySize<Type>(int count, ref Type[]array)
+        {
+            if(array == null || count > array.Length)
+            {
+                array = new Type[count];
+            }
+        }
+
+        void UpdateJobParamsArraySizes(int count, int numViews)
+        {
+
+            for(int viewIndex = 0; viewIndex < numViews; viewIndex++)
+            {
+                m_lightList.lightVolumes = new NativeArray<LightVolumeData>(count * numViews, Allocator.TempJob);
+                m_lightList.bounds = new NativeArray<SFiniteLightBound>(count * numViews, Allocator.TempJob);
+                m_LightVolumeBoundsJob.lightVolumeData = m_lightList.lightVolumes;
+
+                m_LightVolumeBoundsJob.bounds = m_lightList.bounds;
+                m_LightVolumeBoundsJob.lightCategory = new NativeArray<LightCategory>(count * numViews, Allocator.TempJob);
+                m_LightVolumeBoundsJob.gpuLightType = new NativeArray<GPULightType>(count * numViews, Allocator.TempJob);
+                m_LightVolumeBoundsJob.lightVolumeType = new NativeArray<LightVolumeType>(count * numViews, Allocator.TempJob);
+                m_LightVolumeBoundsJob.light = new NativeArray<VisibleLight>(count * numViews, Allocator.TempJob);
+                m_LightVolumeBoundsJob.lightData = new NativeArray<LightData>(count * numViews, Allocator.TempJob);
+                m_LightVolumeBoundsJob.lightDimensions = new NativeArray<Vector3>(count * numViews, Allocator.TempJob);
             }
         }
 
@@ -450,6 +678,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 public List<SFiniteLightBound> bounds;
                 public List<LightVolumeData> lightVolumes;
             }
+
+            public NativeArray<SFiniteLightBound> bounds;
+            public NativeArray<LightVolumeData> lightVolumes;
 
             public List<LightsPerView> lightsPerView;
 
@@ -1181,13 +1412,14 @@ namespace UnityEngine.Rendering.HighDefinition
             return true;
         }
 
+
         internal bool GetLightData(CommandBuffer cmd, HDCamera hdCamera, HDShadowSettings shadowSettings, GPULightType gpuLightType,
             VisibleLight light, Light lightComponent, HDAdditionalLightData additionalLightData,
             int lightIndex, int shadowIndex, ref Vector3 lightDimensions, DebugDisplaySettings debugDisplaySettings, ref int screenSpaceShadowIndex)
         {
             // Clamp light list to the maximum allowed lights on screen to avoid ComputeBuffer overflow
             if (m_lightList.lights.Count >= m_MaxPunctualLightsOnScreen + m_MaxAreaLightsOnScreen)
-            return false;
+                return false;
 
             // Both of these positions are non-camera-relative.
             float distanceToCamera  = (light.GetPosition() - hdCamera.camera.transform.position).magnitude;
@@ -1199,18 +1431,8 @@ namespace UnityEngine.Rendering.HighDefinition
             if (!contributesToLighting)
                 return false;
 
-            var lightData = new LightData();
-
-            lightData.lightLayers = additionalLightData.GetLightLayers();
-
-            lightData.lightType = gpuLightType;
-
-            lightData.positionRWS = light.GetPosition();
-
-            bool applyRangeAttenuation = additionalLightData.applyRangeAttenuation && (gpuLightType != GPULightType.ProjectorBox);
-
             // Discard light if disabled in debug display settings
-            if (lightData.lightType.IsAreaLight())
+            if (gpuLightType.IsAreaLight())
             {
                 if (!debugDisplaySettings.data.lightingDebugSettings.showAreaLight)
                     return false;
@@ -1220,6 +1442,16 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (!debugDisplaySettings.data.lightingDebugSettings.showPunctualLight)
                     return false;
             }
+
+            var lightData = new LightData();
+
+            lightData.lightLayers = additionalLightData.GetLightLayers();
+
+            lightData.lightType = gpuLightType;
+
+            lightData.positionRWS = light.GetPosition();
+
+            bool applyRangeAttenuation = additionalLightData.applyRangeAttenuation && (gpuLightType != GPULightType.ProjectorBox);
 
             lightData.range = light.range;
 
@@ -1408,7 +1640,6 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             m_lightList.lights.Add(lightData);
-
             return true;
         }
 
@@ -1895,7 +2126,15 @@ namespace UnityEngine.Rendering.HighDefinition
                     int areaLightCount = 0;
 
                     int lightCount = Math.Min(cullResults.visibleLights.Length, m_MaxLightsOnScreen);
-                    UpdateSortKeysArray(lightCount);
+
+                    UpdateArraySize(lightCount, ref m_SortKeys);
+                    UpdateArraySize(lightCount, ref m_ShadowIndices);
+                    UpdateArraySize(lightCount, ref m_DirLightIndices);
+                    UpdateArraySize(lightCount, ref m_HDLightDatas);
+                    UpdateArraySize(lightCount, ref m_DistanceToCamera);
+                    UpdateArraySize(lightCount, ref m_LightDistanceFade);
+                    UpdateArraySize(lightCount, ref m_ValidLightData);
+
                     int sortCount = 0;
                     for (int lightIndex = 0, numLights = cullResults.visibleLights.Length; (lightIndex < numLights) && (sortCount < lightCount); ++lightIndex)
                     {
@@ -2033,70 +2272,138 @@ namespace UnityEngine.Rendering.HighDefinition
                     // 2. Go through all lights, convert them to GPU format.
                     // Simultaneously create data for culling (LightVolumeData and SFiniteLightBound)
 
+                    Profiler.BeginSample("Update shadow requests");
                     m_ScreenSpaceShadowIndex = 0;
-
+                    int directionalLightCount = 0;
                     for (int sortIndex = 0; sortIndex < sortCount; ++sortIndex)
                     {
                         // In 1. we have already classify and sorted the light, we need to use this sorted order here
                         uint sortKey = m_SortKeys[sortIndex];
-                        LightCategory lightCategory = (LightCategory)((sortKey >> 27) & 0x1F);
                         GPULightType gpuLightType = (GPULightType)((sortKey >> 22) & 0x1F);
-                        LightVolumeType lightVolumeType = (LightVolumeType)((sortKey >> 17) & 0x1F);
                         int lightIndex = (int)(sortKey & 0xFFFF);
-
+                        
                         var light = cullResults.visibleLights[lightIndex];
                         var lightComponent = light.light;
 
                         m_enableBakeShadowMask = m_enableBakeShadowMask || IsBakedShadowMaskLight(lightComponent);
 
                         // Light should always have additional data, however preview light right don't have, so we must handle the case by assigning HDUtils.s_DefaultHDAdditionalLightData
-                        var additionalLightData = GetHDAdditionalLightData(lightComponent);
+                        m_HDLightDatas[sortIndex] = GetHDAdditionalLightData(lightComponent);
 
-                        int shadowIndex = -1;
+                        m_ShadowIndices[sortIndex] = -1;
 
                         // Manage shadow requests
-                        if (additionalLightData.WillRenderShadowMap())
+                        if (m_HDLightDatas[sortIndex].WillRenderShadowMap())
                         {
                             int shadowRequestCount;
-                            shadowIndex = additionalLightData.UpdateShadowRequest(hdCamera, m_ShadowManager, light, cullResults, lightIndex, debugDisplaySettings.data.lightingDebugSettings, out shadowRequestCount);
+                            m_ShadowIndices[sortIndex] = m_HDLightDatas[sortIndex].UpdateShadowRequest(hdCamera, m_ShadowManager, light, cullResults, lightIndex, debugDisplaySettings.data.lightingDebugSettings, out shadowRequestCount);
 
 #if UNITY_EDITOR
                             if ((debugDisplaySettings.data.lightingDebugSettings.shadowDebugUseSelection
                                     || debugDisplaySettings.data.lightingDebugSettings.shadowDebugMode == ShadowMapDebugMode.SingleShadow)
                                 && UnityEditor.Selection.activeGameObject == lightComponent.gameObject)
                             {
-                                m_DebugSelectedLightShadowIndex = shadowIndex;
+                                m_DebugSelectedLightShadowIndex = m_ShadowIndices[sortIndex];
                                 m_DebugSelectedLightShadowCount = shadowRequestCount;
                             }
 #endif
+                        }
+                        if (gpuLightType == GPULightType.Directional)
+                        {
+                            m_DirLightIndices[directionalLightCount] = sortIndex;
+                            directionalLightCount++;
+                        }
+                    }
+                    Profiler.EndSample();
+
+                    Profiler.BeginSample("Diectional light data");
+                    for (int sortIndex = 0; sortIndex < directionalLightCount; ++sortIndex)
+                    {                        
+                        int lightIndex = m_DirLightIndices[sortIndex];                        
+                        var light = cullResults.visibleLights[lightIndex];
+                        var lightComponent = light.light;
+                        m_enableBakeShadowMask = m_enableBakeShadowMask || IsBakedShadowMaskLight(lightComponent);
+                        // Light should always have additional data, however preview light right don't have, so we must handle the case by assigning HDUtils.s_DefaultHDAdditionalLightData
+                        
+                        if (GetDirectionalLightData(cmd, hdCamera, GPULightType.Directional, light, lightComponent, m_HDLightDatas[lightIndex], lightIndex, m_ShadowIndices[sortIndex], debugDisplaySettings, directionalLightcount, ref m_ScreenSpaceShadowIndex, isPysicallyBasedSkyActive))
+                        {
+                            directionalLightcount++;
+
+                            // We make the light position camera-relative as late as possible in order
+                            // to allow the preceding code to work with the absolute world space coordinates.
+                            if (ShaderConfig.s_CameraRelativeRendering != 0)
+                            {
+                                // Caution: 'DirectionalLightData.positionWS' is camera-relative after this point.
+                                int last = m_lightList.directionalLights.Count - 1;
+                                DirectionalLightData lightData = m_lightList.directionalLights[last];
+                                lightData.positionRWS -= camPosWS;
+                                m_lightList.directionalLights[last] = lightData;
+                            }
+                        }
+                    }
+                    Profiler.EndSample();
+
+                    Profiler.BeginSample("Light, Light Volume and Bounds datas");
+                    UpdateArraySize(hdCamera.viewCount, ref m_WorldToView);
+                    UpdateJobParamsArraySizes(sortCount, hdCamera.viewCount);
+                    for (int viewIndex = 0; viewIndex < hdCamera.viewCount; ++viewIndex)
+                    {
+                        m_WorldToView[viewIndex] = GetWorldToViewMatrix(hdCamera, viewIndex);
+                        m_LightVolumeBoundsJob.worldToView[viewIndex] = m_WorldToView[viewIndex];
+                    }
+
+                    for (int sortIndex = 0; sortIndex < sortCount; ++sortIndex)
+                    {
+                          // Clamp light list to the maximum allowed lights on screen to avoid ComputeBuffer overflow
+                        if (m_lightList.lights.Count >= m_MaxPunctualLightsOnScreen + m_MaxAreaLightsOnScreen)
+                            continue;
+
+                        uint sortKey = m_SortKeys[sortIndex];
+                        GPULightType gpuLightType = (GPULightType)((sortKey >> 22) & 0x1F);
+                        // Directional rendering side, it is separated as it is always visible so no volume to handle here
+                        if (gpuLightType == GPULightType.Directional)
+                        {
+                            continue;
                         }
 
                         // Directional rendering side, it is separated as it is always visible so no volume to handle here
                         if (gpuLightType == GPULightType.Directional)
                         {
-                            if (GetDirectionalLightData(cmd, hdCamera, gpuLightType, light, lightComponent, additionalLightData, lightIndex, shadowIndex, debugDisplaySettings, directionalLightcount, ref m_ScreenSpaceShadowIndex, isPysicallyBasedSkyActive))
-                            {
-                                directionalLightcount++;
-
-                                // We make the light position camera-relative as late as possible in order
-                                // to allow the preceding code to work with the absolute world space coordinates.
-                                if (ShaderConfig.s_CameraRelativeRendering != 0)
-                                {
-                                    // Caution: 'DirectionalLightData.positionWS' is camera-relative after this point.
-                                    int last = m_lightList.directionalLights.Count - 1;
-                                    DirectionalLightData lightData = m_lightList.directionalLights[last];
-                                    lightData.positionRWS -= camPosWS;
-                                    m_lightList.directionalLights[last] = lightData;
-                                }
-                            }
                             continue;
                         }
 
-                        Vector3 lightDimensions = new Vector3(); // X = length or width, Y = height, Z = range (depth)
-
-                        // Punctual, area, projector lights - the rendering side.
-                        if (GetLightData(cmd, hdCamera, hdShadowSettings, gpuLightType, light, lightComponent, additionalLightData, lightIndex, shadowIndex, ref lightDimensions, debugDisplaySettings, ref m_ScreenSpaceShadowIndex))
+                        // Discard light if disabled in debug display settings
+                        if (gpuLightType.IsAreaLight())
                         {
+                            if (!debugDisplaySettings.data.lightingDebugSettings.showAreaLight)
+                                continue;
+                        }
+                        else
+                        {
+                            if (!debugDisplaySettings.data.lightingDebugSettings.showPunctualLight)
+                                continue;
+                        }
+
+                    }
+
+                    for (int sortIndex = 0; sortIndex < sortCount; ++sortIndex)
+                    {
+                        if(m_ValidLightData[sortIndex])
+                        {
+                            // In 1. we have already classify and sorted the light, we need to use this sorted order here
+                            uint sortKey = m_SortKeys[sortIndex];
+                            LightCategory lightCategory = (LightCategory)((sortKey >> 27) & 0x1F);
+                            GPULightType gpuLightType = (GPULightType)((sortKey >> 22) & 0x1F);
+                            LightVolumeType lightVolumeType = (LightVolumeType)((sortKey >> 17) & 0x1F);
+                            int lightIndex = (int)(sortKey & 0xFFFF);
+
+                            var light = cullResults.visibleLights[lightIndex];
+                            var lightComponent = light.light;
+
+                            Vector3 lightDimensions = new Vector3(); // X = length or width, Y = height, Z = range (depth)
+
+                            // Punctual, area, projector lights - the rendering side.
+                            GetLightData(cmd, hdCamera, hdShadowSettings, gpuLightType, light, lightComponent, m_HDLightDatas[lightIndex], lightIndex, m_ShadowIndices[sortIndex], ref lightDimensions, debugDisplaySettings, ref m_ScreenSpaceShadowIndex);
                             switch (lightCategory)
                             {
                                 case LightCategory.Punctual:
@@ -2109,26 +2416,53 @@ namespace UnityEngine.Rendering.HighDefinition
                                     Debug.Assert(false, "TODO: encountered an unknown LightCategory.");
                                     break;
                             }
+                        }
+                    }
 
-                            // Then culling side. Must be call in this order as we pass the created Light data to the function
-                            for (int viewIndex = 0; viewIndex < hdCamera.viewCount; ++viewIndex)
+                    int volumeDataAndBoundCount = 0;
+                    for (int viewIndex = 0; viewIndex < hdCamera.viewCount; ++viewIndex)
+                    {
+                        int lightDataCount = 0;
+                        for (int sortIndex = 0; sortIndex < sortCount; ++sortIndex)
+                        {
+                            if (m_ValidLightData[sortIndex])
                             {
-                                var worldToView = GetWorldToViewMatrix(hdCamera, viewIndex);
-                                GetLightVolumeDataAndBound(lightCategory, gpuLightType, lightVolumeType, light, m_lightList.lights[m_lightList.lights.Count - 1], lightDimensions, worldToView, viewIndex);
-                            }
+                                uint sortKey = m_SortKeys[sortIndex];
+                                LightCategory lightCategory = (LightCategory)((sortKey >> 27) & 0x1F);
+                                GPULightType gpuLightType = (GPULightType)((sortKey >> 22) & 0x1F);
+                                LightVolumeType lightVolumeType = (LightVolumeType)((sortKey >> 17) & 0x1F);
+                                int lightIndex = (int)(sortKey & 0xFFFF);
+                                var light = cullResults.visibleLights[lightIndex];
+                                // Then culling side. Must be call in this order as we pass the created Light data to the function
+                                GetLightVolumeDataAndBound(lightCategory, gpuLightType, lightVolumeType, light, m_lightList.lights[lightDataCount], lightDimensions, m_WorldToView[viewIndex], viewIndex);
+                                m_LightVolumeBoundsJob.lightCategory[volumeDataAndBoundCount] = lightCategory;
+                                m_LightVolumeBoundsJob.gpuLightType[volumeDataAndBoundCount] = gpuLightType;
+                                m_LightVolumeBoundsJob.lightVolumeType[volumeDataAndBoundCount] = lightVolumeType;
+                                m_LightVolumeBoundsJob.light[volumeDataAndBoundCount] = light;
+                                m_LightVolumeBoundsJob.lightData[volumeDataAndBoundCount] = m_lightList.lights[m_lightList.lights.Count - 1];
+                                m_LightVolumeBoundsJob.lightDimensions[volumeDataAndBoundCount] = lightDimensions;
 
-                            // We make the light position camera-relative as late as possible in order
-                            // to allow the preceding code to work with the absolute world space coordinates.
-                            if (ShaderConfig.s_CameraRelativeRendering != 0)
-                            {
-                                // Caution: 'LightData.positionWS' is camera-relative after this point.
-                                int last = m_lightList.lights.Count - 1;
-                                LightData lightData = m_lightList.lights[last];
-                                lightData.positionRWS -= camPosWS;
-                                m_lightList.lights[last] = lightData;
+                                // We make the light position camera-relative as late as possible in order
+                                // to allow the preceding code to work with the absolute world space coordinates.
+                                if (ShaderConfig.s_CameraRelativeRendering != 0)
+                                {
+                                    // Caution: 'LightData.positionWS' is camera-relative after this point.
+                                    int last = m_lightList.lights.Count - 1;
+                                    LightData lightData = m_lightList.lights[last];
+                                    lightData.positionRWS -= camPosWS;
+                                    m_lightList.lights[last] = lightData;
+                                }
+                                volumeDataAndBoundCount++;
+                                lightDataCount++;
                             }
                         }
                     }
+                    Profiler.EndSample();
+
+                    Profiler.BeginSample("LightVolumeBoundsJobs");
+                    JobHandle handle = m_LightVolumeBoundsJob.Schedule(volumeDataAndBoundCount, 1);
+                    handle.Complete();
+                    Profiler.EndSample();
 
                     // Update the compute buffer with the shadow request datas
                     m_ShadowManager.PrepareGPUShadowDatas(cullResults, hdCamera);
@@ -2146,7 +2480,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     var totalProbes = cullResults.visibleReflectionProbes.Length + hdProbeCullingResults.visibleProbes.Count;
                     int probeCount = Math.Min(totalProbes, m_MaxEnvLightsOnScreen);
-                    UpdateSortKeysArray(probeCount);
+                    UpdateArraySize(probeCount, ref m_SortKeys);
                     sortCount = 0;
 
                     var enableReflectionProbes =    hdCamera.frameSettings.IsEnabled(FrameSettingsField.EnableReflectionProbe) &&
