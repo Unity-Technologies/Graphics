@@ -33,8 +33,6 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty supportTransparentBackface;
         public SerializedProperty supportTransparentDepthPrepass;
         public SerializedProperty supportTransparentDepthPostpass;
-        public SerializedProperty supportsVirtualTexturing;
-
 
         public SerializedGlobalLightLoopSettings lightLoopSettings;
         public SerializedHDShadowInitParameters hdShadowInitParams;
@@ -71,8 +69,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
             supportRayTracing               = root.Find((RenderPipelineSettings s) => s.supportRayTracing);
             supportedRaytracingTier         = root.Find((RenderPipelineSettings s) => s.supportedRaytracingTier);
-
-            supportsVirtualTexturing        = root.Find((RenderPipelineSettings s) => s.supportsVirtualTexturing);
 
             lightLoopSettings = new SerializedGlobalLightLoopSettings(root.Find((RenderPipelineSettings s) => s.lightLoopSettings));
             hdShadowInitParams = new SerializedHDShadowInitParameters(root.Find((RenderPipelineSettings s) => s.hdShadowInitParams));

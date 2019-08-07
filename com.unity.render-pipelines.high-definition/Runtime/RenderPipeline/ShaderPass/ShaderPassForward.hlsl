@@ -60,7 +60,7 @@ PackedVaryingsToPS VertTesselation(VaryingsToDS input)
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/TessellationShare.hlsl"
 #endif
 
-#if VIRTUAL_TEXTURES_ENABLED
+#if UNITY_VIRTUAL_TEXTURING
 #define VT_BUFFER_TARGET SV_Target1
 #define EXTRA_BUFFER_TARGET SV_Target2
 #else
@@ -70,16 +70,16 @@ PackedVaryingsToPS VertTesselation(VaryingsToDS input)
 void Frag(PackedVaryingsToPS packedInput,
         #ifdef OUTPUT_SPLIT_LIGHTING
             out float4 outColor : SV_Target0,  // outSpecularLighting
-        #if VIRTUAL_TEXTURES_ENABLED
+        #if UNITY_VIRTUAL_TEXTURING
             out float4 outVTFeedback : VT_BUFFER_TARGET,
-        #endif // VIRTUAL_TEXTURES_ENABLED
+        #endif // UNITY_VIRTUAL_TEXTURING
             out float4 outDiffuseLighting : EXTRA_BUFFER_TARGET,
             OUTPUT_SSSBUFFER(outSSSBuffer)
         #else
             out float4 outColor : SV_Target0
-        #if VIRTUAL_TEXTURES_ENABLED
+        #if UNITY_VIRTUAL_TEXTURING
           ,  out float4 outVTFeedback : VT_BUFFER_TARGET
-        #endif // VIRTUAL_TEXTURES_ENABLED          
+        #endif // UNITY_VIRTUAL_TEXTURING          
         #ifdef _WRITE_TRANSPARENT_MOTION_VECTOR
           , out float4 outMotionVec : EXTRA_BUFFER_TARGET
         #endif // _WRITE_TRANSPARENT_MOTION_VECTOR
@@ -235,7 +235,7 @@ void Frag(PackedVaryingsToPS packedInput,
 
 #if VIRTUAL_TEXTURES_ACTIVE        
     outVTFeedback = surfaceData.VTFeedback;
-#elif VIRTUAL_TEXTURES_ENABLED
+#elif UNITY_VIRTUAL_TEXTURING
     outVTFeedback = float4(1,1,1,1);
 #endif  
 }

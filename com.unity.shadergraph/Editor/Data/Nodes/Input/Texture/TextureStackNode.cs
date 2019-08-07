@@ -220,7 +220,6 @@ namespace UnityEditor.ShaderGraph
 
         public override void CollectShaderPragmas(PragmaCollector pragmas, GenerationMode generationMode)
         {
-            pragmas.AddShaderPragma(new MultiCompilePragma(new string[] { "_", "VIRTUAL_TEXTURES_ENABLED" }));
             pragmas.AddShaderPragma(new ShaderFeatureLocalPragma(new string[] { "VIRTUAL_TEXTURES_BUILT" }));            
         }
 

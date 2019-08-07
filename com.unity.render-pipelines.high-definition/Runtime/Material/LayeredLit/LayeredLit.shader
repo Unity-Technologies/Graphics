@@ -462,7 +462,6 @@ Shader "HDRP/LayeredLit"
     #pragma multi_compile_instancing
     #pragma instancing_options renderinglayer
 
-    #pragma multi_compile _ VIRTUAL_TEXTURES_ENABLED         // Is vt enabled render pipleine wide?
     #pragma shader_feature_local VIRTUAL_TEXTURES_BUILT     // Is VT built for this material
 
     //-------------------------------------------------------------------------------------

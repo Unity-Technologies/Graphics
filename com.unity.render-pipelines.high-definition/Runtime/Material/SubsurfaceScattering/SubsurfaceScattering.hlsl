@@ -93,7 +93,7 @@ void DecodeFromSSSBuffer(uint2 positionSS, out SSSData sssData)
 
 // OUTPUT_SSSBUFFER start from SV_Target2 as SV_Target0 and SV_Target1 are used for lighting buffer
 
-#if VIRTUAL_TEXTURES_ENABLED
+#if UNITY_VIRTUAL_TEXTURING
 #define SS_BUFFER_TARGET SV_Target3
 #else
 #define SS_BUFFER_TARGET SV_Target2

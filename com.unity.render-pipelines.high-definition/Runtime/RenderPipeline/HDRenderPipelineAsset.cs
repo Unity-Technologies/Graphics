@@ -325,7 +325,6 @@ namespace UnityEngine.Rendering.HighDefinition
             defineArray.AddRange(currentDefineList.Split(';'));
 
             bool needUpdate = false;
-            needUpdate |= UpdateDefineList(currentPlatformRenderPipelineSettings.supportsVirtualTexturing, "ENABLE_VIRTUALTEXTURES");;
 
 #if REALTIME_RAYTRACING_SUPPORT
             // Update all the individual defines            

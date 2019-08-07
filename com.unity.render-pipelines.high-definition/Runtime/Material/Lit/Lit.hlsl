@@ -67,7 +67,7 @@ TEXTURE2D_X(_ShadowMaskTexture); // Alias for shadow mask, so we don't need to k
 #endif
 
 // VT feedback goes at the back
-#if VIRTUAL_TEXTURES_ENABLED
+#if UNITY_VIRTUAL_TEXTURING
 #if defined(LIGHT_LAYERS) && defined(SHADOWS_SHADOWMASK)
 #define OUT_GBUFFER_VTFEEDBACK outGBuffer6
 #elif defined(LIGHT_LAYERS) || defined(SHADOWS_SHADOWMASK)
@@ -637,7 +637,7 @@ void EncodeIntoGBuffer( SurfaceData surfaceData
 
 #if VIRTUAL_TEXTURES_ACTIVE
     OUT_GBUFFER_VTFEEDBACK = surfaceData.VTFeedback;
-#elif VIRTUAL_TEXTURES_ENABLED
+#elif UNITY_VIRTUAL_TEXTURING
     OUT_GBUFFER_VTFEEDBACK = float4(1,1,1,1);
 #endif
 }

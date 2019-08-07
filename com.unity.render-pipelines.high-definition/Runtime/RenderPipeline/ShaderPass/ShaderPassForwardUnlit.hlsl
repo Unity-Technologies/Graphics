@@ -26,7 +26,7 @@ PackedVaryingsToPS VertTesselation(VaryingsToDS input)
 
 void Frag(PackedVaryingsToPS packedInput,
     out float4 outResult : SV_Target0   
-#if VIRTUAL_TEXTURES_ENABLED    
+#if UNITY_VIRTUAL_TEXTURING    
     ,out float4 outVTFeedback : SV_Target1
 #endif    
 )
@@ -94,7 +94,7 @@ void Frag(PackedVaryingsToPS packedInput,
     outResult = outColor;
 #if VIRTUAL_TEXTURES_ACTIVE      
     outVTFeedback = surfaceData.VTFeedback;
-#elif VIRTUAL_TEXTURES_ENABLED
+#elif UNITY_VIRTUAL_TEXTURING
     outVTFeedback = float4(1,1,1,1);
 #endif    
 }

@@ -411,9 +411,9 @@ namespace UnityEngine.Rendering.HighDefinition
             m_DebugDisplaySettings.data.msaaSamples = m_MSAASamples;
 
 #if ENABLE_VIRTUALTEXTURES
-            Shader.EnableKeyword("VIRTUAL_TEXTURES_ENABLED");
+            Debug.Log("Scriptable renderpipeline VT enabled");
 #else
-            Shader.DisableKeyword("VIRTUAL_TEXTURES_ENABLED");
+            Debug.Log("Scriptable renderpipeline VT disabled");
 #endif
             m_MRTTransparentMotionVec = new RenderTargetIdentifier[2 + additionalVtRenderTargets];
 #if ENABLE_RAYTRACING
