@@ -1,0 +1,181 @@
+VFXComponentBoard.graphElement
+{
+    position:Absolute;
+
+    background-color: #2b2b2b;
+    border-color: #191919;
+
+    padding-left:0;
+    padding-right:0;
+    padding-top:0;
+    padding-bottom:0;
+
+    min-width: 140px;
+    min-height: 100px;
+}
+
+ *
+{
+    font-size: 11px;
+}
+
+#divider {
+    background-color: rgba(35,35,35,0.8);
+    border-color: rgba(35,35,35,0.8);
+}
+
+#divider.horizontal {
+    height: 0.01px;
+    border-bottom-width: 1px;
+}
+
+
+VFXComponentBoard .unity-scroll-view
+{
+    flex-direction:column;
+    align-items:stretch;
+    overflow:hidden;
+    flex: 1 1 auto;
+}
+
+VFXComponentBoard, #component-container
+{
+    flex-direction:column;
+    align-items:stretch;
+    overflow:hidden;
+    padding-top: 8px;
+}
+
+#header {
+    flex-direction: row;
+    align-items: stretch;
+    background-color: #393939;
+    border-bottom-width: 1px;
+    border-color: #212121;
+    border-top-right-radius: 4px;
+    border-top-left-radius: 4px;
+    padding-left: 1px;
+    padding-top: 4px;
+    padding-bottom: 2px;
+}
+#header > #labelContainer {
+    flex:1 0 auto;
+    flex-direction: column;
+    align-items: stretch;
+}
+#header > #labelContainer > #titleLabel {
+    font-size : 14px;
+    color: #c1c1c1;
+}
+#header > #labelContainer > #subTitleLabel {
+    font-size: 11px;
+    color: #606060;
+    white-space: normal;
+}
+
+
+VFXComponentBoardEventUI .unity-button, #on-play-button, #on-stop-button,#attach, #select,#component-path
+{
+    height: 20px;
+}
+
+
+#attach, #select
+{
+    width: 60px;
+}
+
+#component-path
+{
+    flex:1;
+}
+
+#particle-count-container, #attach-container
+{
+    flex-direction:row;
+}
+
+#attach-container
+{
+    padding-top: 8px;
+    padding-bottom: 8px;
+}
+#particle-count-container > #particle-count
+{
+    flex:1 0 auto;
+}
+
+#toolbar
+{
+    flex-direction:row;
+}
+
+#toolbar .unity-button
+{
+    flex:1 0 auto;
+    height: 24px;
+    align-items:center;
+}
+
+#toolbar .unity-button#stop #icon
+{
+    --unity-image: url("project:///Packages/com.unity.visualeffectgraph/Editor Default Resources/VFX/Stop.png");
+}
+#toolbar .unity-button#play #icon
+{
+    --unity-image: url("project:///Packages/com.unity.visualeffectgraph/Editor Default Resources/VFX/Pause.png");
+}
+#toolbar .unity-button#play.paused #icon
+{
+    --unity-image: url("project:///Packages/com.unity.visualeffectgraph/Editor Default Resources/VFX/Play.png");
+}
+#toolbar .unity-button#step #icon
+{
+    --unity-image: url("project:///Packages/com.unity.visualeffectgraph/Editor Default Resources/VFX/Step.png");
+}
+#toolbar .unity-button#restart #icon
+{
+    --unity-image: url("project:///Packages/com.unity.visualeffectgraph/Editor Default Resources/VFX/Restart.png");
+}
+
+#play-rate-container
+{
+    flex-direction:row;
+    height: 28px;
+    align-items: center;
+    padding-bottom: 8px;
+}
+
+#events-label
+{
+    padding-top: 8px;
+}
+
+#play-rate-container #play-rate-slider
+{
+    flex:1 1 auto;
+}
+
+#play-rate-container #play-rate-field
+{
+    width: 80px;
+}
+
+#play-rate-container #play-rate-menu
+{
+    padding-left:0;
+    border-left-width:0;
+    border-top-width:0;
+    width: 40px;
+    height: 16px;
+}
+
+VFXComponentBoardEventUI
+{
+    flex-direction:row;
+    align-items:center;
+}
+VFXComponentBoardEventUI #event-name
+{
+    flex:1;
+}
