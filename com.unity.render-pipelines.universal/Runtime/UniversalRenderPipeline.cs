@@ -101,7 +101,7 @@ namespace UnityEngine.Rendering.Universal
         {
             get
             {
-                return GraphicsSettings.renderPipelineAsset as UniversalRenderPipelineAsset;
+                return GraphicsSettings.currentRenderPipeline as UniversalRenderPipelineAsset;
             }
         }
 
