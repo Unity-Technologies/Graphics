@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Update Wizard layout.
 - Remove almost all Garbage collection call within a frame.
 - Rename property AdditionalVeclocityChange to AddPrecomputeVelocity 
+- Remove FPTL variant for forward opaque to improve build time. This can cause a small hit of performance on forward opaque
 
 ## [7.0.1] - 2019-07-25
 
