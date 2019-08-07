@@ -50,7 +50,6 @@
                     <ui:Label name="debug-label" text="Debug"/>
                     <ui:VisualElement name="debug-container" pickingMode="Ignore">
                         <ui:Button name="debug-modes" text="Debug modes" class="DropDown"/>
-                        <ui:Box name ="debug-box"/>
                     </ui:VisualElement>
                     <ui:VisualElement name="events-container" pickingMode="Ignore" >
                     </ui:VisualElement>

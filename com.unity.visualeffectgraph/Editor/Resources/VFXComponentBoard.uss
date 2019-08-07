@@ -175,7 +175,37 @@ VFXComponentBoardEventUI .unity-button, #on-play-button, #on-stop-button,#attach
     width: 97%;
     overflow:hidden;
     border-radius:6px;
-    /*height: 100px;*/
+}
+
+#debug-system-stat-container
+{
+    flex-direction:row;
+}
+
+#debug-system-stat-title, #debug-system-stat-title-name
+{
+    font-size: 14px;
+    flex-grow: 1;
+    font-weight: bold;
+}
+
+#debug-system-stat-title-name
+{
+    width: 30%;
+    padding-left: 6px;
+    padding-right: 6px;
+}
+
+#system-names
+{
+    flex-grow: 1;
+    width: 30%;
+    padding-left: 6px;
+    padding-right: 6px;
+}
+#system-stat
+{
+    flex-grow: 1;
 }
 
 #play-rate-container #play-rate-slider

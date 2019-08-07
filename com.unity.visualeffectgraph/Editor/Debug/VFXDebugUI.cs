@@ -113,10 +113,15 @@ namespace UnityEditor.VFX.UI
 
             public void OnVFXChange()
             {
-                m_VFXCurves = new List<NormalizedCurve>(m_DebugUI.m_GpuSystems.Count());
-                for (int i = 0; i < m_DebugUI.m_GpuSystems.Count(); ++i)
+                var particleSystems = new List<string>();
+
+                if (m_DebugUI.m_VFX != null)
                 {
-                    m_VFXCurves.Add(new NormalizedCurve(m_MaxPoints));
+                    m_VFXCurves = new List<NormalizedCurve>(m_DebugUI.m_VFX.GetParticleSystemNames(particleSystems));
+                    for (int i = 0; i < m_DebugUI.m_GpuSystems.Count(); ++i)
+                    {
+                        m_VFXCurves.Add(new NormalizedCurve(m_MaxPoints));
+                    }
                 }
             }
 
@@ -138,9 +143,9 @@ namespace UnityEditor.VFX.UI
                 };
             }
 
-            private static readonly Func<Box, Rect> k_BoxWorldclip = GetWorldClipRect();
+            static readonly Func<Box, Rect> k_BoxWorldclip = GetWorldClipRect();
 
-            private float m_LastAddTime;
+            float m_LastAddTime;
             void DrawMesh()
             {
                 if (m_Mat == null)
@@ -179,7 +184,7 @@ namespace UnityEditor.VFX.UI
                         curve.AddPoint(alive / capacity);
                     }
 
-                    var color = Color.HSVToRGB((0.71405f + i * 0.37135766f) % 1.0f, 0.8f, 0.7f);
+                    var color = Color.HSVToRGB((0.71405f + i * 0.37135766f) % 1.0f, 0.8f, 0.8f);
                     m_Mat.SetColor("_Color", color);
 
                     m_Mat.SetPass(0);
@@ -196,22 +201,32 @@ namespace UnityEditor.VFX.UI
             }
         }
 
+        Modes m_CurrentMode;
         VFXComponentBoard m_ComponentBoard;
         CurveContent m_Curve;
+        VisualElement m_DebugContainer;
         Box m_DebugBox;
         VFXView m_View;
         VisualEffect m_VFX;
         List<int> m_GpuSystems;
 
-        public VFXDebugUI(VFXView view, Box debugBox)
+        // [0] container
+        // [1] system name
+        // [2] alive
+        // [3] capacity
+        // [4] efficiency
+        List<VisualElement[]> m_SystemsStats;
+
+        public VFXDebugUI(VFXView view)
         {
-            m_DebugBox = debugBox;
             m_View = view;
         }
 
         public void SetDebugMode(Modes mode, VFXComponentBoard componentBoard)
         {
             m_ComponentBoard = componentBoard;
+            m_DebugContainer = m_ComponentBoard.Query<VisualElement>("debug-container");
+
             switch (mode)
             {
                 case Modes.SystemStat:
@@ -224,19 +239,13 @@ namespace UnityEditor.VFX.UI
                     Clear();
                     break;
             }
+
+            m_CurrentMode = mode;
         }
 
         public void SetVisualEffect(VisualEffect vfx)
         {
             m_VFX = vfx;
-
-            List<string> particleSystemNames = new List<string>();
-            vfx.GetParticleSystemNames(particleSystemNames);
-            m_GpuSystems = new List<int>();
-            foreach (var name in particleSystemNames)
-            {
-                m_GpuSystems.Add(Shader.PropertyToID(name));
-            }
 
             if (m_Curve != null)
                 m_Curve.OnVFXChange();
@@ -244,8 +253,56 @@ namespace UnityEditor.VFX.UI
 
         void SystemStat()
         {
+            // drawing box
+            m_DebugBox = new Box();
+            m_DebugBox.name = "debug-box";
+            m_DebugContainer.Add(m_DebugBox);
             m_Curve = new CurveContent(this, 100, 0.016f);
             m_ComponentBoard.contentContainer.Add(m_Curve);
+
+            // system stats title
+            var systemStatContainer = new VisualElement();
+            systemStatContainer.name = "debug-system-stat-container";
+            m_DebugContainer.Add(systemStatContainer);
+
+            var systemStatName = new TextElement();
+            systemStatName.name = "debug-system-stat-title-name";
+            systemStatName.text = "Particle System";
+
+            var systemStatAlive = new TextElement();
+            systemStatAlive.name = "debug-system-stat-title";
+            systemStatAlive.text = "Alive";
+
+            var systemStatCapacity = new TextElement();
+            systemStatCapacity.name = "debug-system-stat-title";
+            systemStatCapacity.text = "Capacity";
+
+            var systemStatEfficiency = new TextElement();
+            systemStatEfficiency.name = "debug-system-stat-title";
+            systemStatEfficiency.text = "Efficiency";
+
+            systemStatContainer.Add(systemStatName);
+            systemStatContainer.Add(systemStatAlive);
+            systemStatContainer.Add(systemStatCapacity);
+            systemStatContainer.Add(systemStatEfficiency);
+
+            var systemStatTitle = new VisualElement[1];
+            systemStatTitle[0] = systemStatContainer;
+
+            m_SystemsStats = new List<VisualElement[]>();
+            m_SystemsStats.Add(systemStatTitle);
+
+            if (m_VFX != null)
+            {
+                List<string> particleSystemNames = new List<string>();
+                m_VFX.GetParticleSystemNames(particleSystemNames);
+                m_GpuSystems = new List<int>();
+                foreach (var name in particleSystemNames)
+                {
+                    m_GpuSystems.Add(Shader.PropertyToID(name));
+
+                }
+            }
         }
 
         void Clear()
@@ -254,6 +311,17 @@ namespace UnityEditor.VFX.UI
                 m_ComponentBoard.contentContainer.Remove(m_Curve);
             m_ComponentBoard = null;
             m_Curve = null;
+
+            if (m_DebugContainer != null && m_DebugBox != null)
+                m_DebugContainer.Remove(m_DebugBox);
+            m_DebugBox = null;
+
+            if (m_SystemsStats != null)
+                foreach (var systemStat in m_SystemsStats)
+                    m_DebugContainer.Remove(systemStat[0]);
+            m_SystemsStats = null;
+
+            m_DebugContainer = null;
         }
     }
 }
