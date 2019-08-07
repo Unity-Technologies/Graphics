@@ -3,6 +3,8 @@ editors:
 projects:
   - name: Universal
     folder: UniversalGraphicsTest
+  - name: Universal_Stereo
+    folder: UniversalGfxTestStereo
   - name: ShaderGraph
     folder: ShaderGraph
   - name: PostProcessing
