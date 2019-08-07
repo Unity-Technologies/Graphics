@@ -1,12 +1,13 @@
 #if !UNITY_EDITOR_OSX || MAC_FORCE_TESTS
 using System;
+using System.IO;
+using System.Linq;
+using System.Collections.Generic;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.VFX;
 using UnityEditor.VFX;
-using System.Linq;
 using UnityEditor.VFX.UI;
-using System.IO;
 using UnityEditor.Experimental.GraphView;
 using UnityEngine.UIElements;
 
@@ -394,6 +395,44 @@ namespace UnityEditor.VFX.Test
 
             view.CreateTemplateSystem("Assets/VFXEditor/Editor/Templates/Simple Particle System.vfx", Vector2.zero, null);
         }
+
+        [Test]
+        public void PasteSystems()
+        {
+            VFXViewWindow window = EditorWindow.GetWindow<VFXViewWindow>();
+
+            VFXView view = window.graphView;
+            view.controller = m_ViewController;
+
+            // Create a bunch of systems
+            const int spawnerCount = 4, GPUSystemsCount = 4;
+            var spawners = VFXTestCommon.CreateSpawners(view, m_ViewController, spawnerCount);
+            VFXTestCommon.CreateSystems(view, m_ViewController, GPUSystemsCount, 0);
+
+            // Copy paste them
+            view.ClearSelection();
+            foreach (var element in view.Query().OfType<GraphElement>().ToList().OfType<ISelectable>())
+            {
+                view.AddToSelection(element);
+            }
+            view.CopySelectionCallback();
+            view.PasteCallback();
+
+            // Query unique names
+            var systemNames = view.controller.graph.systemNames;
+            var uniqueNames = new List<string>();
+            foreach (var system in spawners)
+                uniqueNames.Add(systemNames.GetUniqueSystemName(system));
+            var GPUSystems = VFXTestCommon.GetFieldValue<VFXView, List<VFXSystemBorder>>(view, "m_Systems");
+            uniqueNames = uniqueNames.Concat(GPUSystems.Select(system => system.controller.title)).ToList();
+
+            // Remove null or empty names, and duplicates
+            uniqueNames = uniqueNames.Where(name => !string.IsNullOrEmpty(name)).Distinct().ToList();
+
+            // Assert all names are unique, and the expected number of elements was obtained
+            Assert.IsTrue(uniqueNames.Count() == spawnerCount + GPUSystemsCount, "Some systems have the same name or are null or empty.");
+        }
+
     }
 }
 #endif

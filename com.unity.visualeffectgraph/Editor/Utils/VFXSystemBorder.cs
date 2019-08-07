@@ -153,8 +153,6 @@ namespace UnityEditor.VFX.UI
             title = m_TitleField.value;
             m_TitleField.style.display = DisplayStyle.None;
 
-            VFXView view = GetFirstAncestorOfType<VFXView>();
-
             controller.title = title;
         }
 
@@ -434,7 +432,7 @@ namespace UnityEditor.VFX.UI
                 return;
             contexts = controller.contexts.Select(t => view.GetGroupNodeElement(t) as VFXContextUI).ToArray();
 
-            title = controller.title;
+            title = controller.contexts[0].model.GetGraph().systemNames.GetUniqueSystemName(controller.contexts[0].model.GetData());
         }
         public void OnControllerChanged(ref ControllerChangedEvent e)
         {
