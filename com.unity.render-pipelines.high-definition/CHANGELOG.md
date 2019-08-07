@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Fixed
 - Fixed wizard infinite loop on cancellation
+- Fixed with compute shader error about too many threads in threadgroup on low GPU
 - Fixed invalid contact shadow shaders being created on metal
 - Fixed  a bug where if Assembly.GetTypes throws an exception due to mis-versioned dlls, then no preprocessors are used in the shader stripper
 
@@ -15,6 +16,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Update Wizard layout.
 - Remove almost all Garbage collection call within a frame.
 - Rename property AdditionalVeclocityChange to AddPrecomputeVelocity 
+- Call the End/Begin camera rendering callbacks for camera with customRender enabled
 
 ## [7.0.1] - 2019-07-25
 
