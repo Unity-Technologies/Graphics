@@ -219,11 +219,14 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void AddKeywordItems(GenericMenu gm)
         {
-            gm.AddItem(new GUIContent($"Keyword/Boolean"), false, () => AddInputRow(new ShaderKeyword(ShaderKeywordType.Boolean), true));
-            gm.AddItem(new GUIContent($"Keyword/Enum"), false, () => AddInputRow(new ShaderKeyword(ShaderKeywordType.Enum), true));
+            gm.AddItem(new GUIContent($"Keyword/Boolean"), false, () => AddInputRow(new ShaderKeyword(KeywordType.Boolean), true));
+            gm.AddItem(new GUIContent($"Keyword/Enum"), false, () => AddInputRow(new ShaderKeyword(KeywordType.Enum), true));
             gm.AddSeparator($"Keyword/");
-            foreach (var shaderKeyword in BlackboardCustomKeywordNode.GetAllShaderKeyword())
-                AddBuiltinKeyword(gm, shaderKeyword);
+            foreach (var builtinKeywordDescriptor in KeywordUtil.GetBuiltinKeywordDescriptors())
+            {
+                var keyword = ShaderKeyword.Create(builtinKeywordDescriptor);
+                AddBuiltinKeyword(gm, keyword);
+            }
         }
 
         void AddBuiltinKeyword(GenericMenu gm, ShaderKeyword keyword)

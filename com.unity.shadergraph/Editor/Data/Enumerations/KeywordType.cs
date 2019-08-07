@@ -1,6 +1,6 @@
 ﻿namespace UnityEditor.ShaderGraph
 {
-    enum ShaderKeywordType
+    enum KeywordType
     {
         Boolean,
         Enum

@@ -77,7 +77,7 @@ namespace UnityEditor.ShaderGraph
                 return;
 
             // Iterate each possible keyword at the current index
-            int entryCount = keywords[currentIndex].keywordType == ShaderKeywordType.Enum ? keywords[currentIndex].entries.Count : 2;
+            int entryCount = keywords[currentIndex].keywordType == KeywordType.Enum ? keywords[currentIndex].entries.Count : 2;
             for(int i = 0; i < entryCount; i++)
             {
                 // Set the index in the current permutation to the correct value

@@ -57,7 +57,7 @@ namespace UnityEditor.ShaderGraph
         {
             switch(keyword.keywordType)
             {
-                case ShaderKeywordType.Boolean:
+                case KeywordType.Boolean:
                 {
                     // Boolean type has preset slots
                     AddSlot(new DynamicVectorMaterialSlot(OutputSlotId, "Out", "Out", SlotType.Output, Vector4.zero));
@@ -66,7 +66,7 @@ namespace UnityEditor.ShaderGraph
                     RemoveSlotsNameNotMatching(new int[] {0, 1, 2});
                     break;
                 }
-                case ShaderKeywordType.Enum:
+                case KeywordType.Enum:
                 {
                     // Get slots
                     List<MaterialSlot> inputSlots = new List<MaterialSlot>();
@@ -132,7 +132,7 @@ namespace UnityEditor.ShaderGraph
             var outputSlot = FindOutputSlot<MaterialSlot>(OutputSlotId);
             switch(keyword.keywordType)
             {
-                case ShaderKeywordType.Boolean:
+                case KeywordType.Boolean:
                 {
                     // Get values
                     var onValue = GetSlotValue(1, generationMode);
@@ -146,7 +146,7 @@ namespace UnityEditor.ShaderGraph
                     sb.AppendLine("#endif");
                     break;
                 }
-                case ShaderKeywordType.Enum:
+                case KeywordType.Enum:
                 {
                     // Iterate all entries in the keyword
                     for(int i = 0; i < keyword.entries.Count; i++)
@@ -184,10 +184,10 @@ namespace UnityEditor.ShaderGraph
             switch(permutation.Key.keywordType)
             {
                 // Slot 0 is output
-                case ShaderKeywordType.Boolean:
+                case KeywordType.Boolean:
                     return 1 + permutation.Value;
                 // Ids are stored manually as slots are added
-                case ShaderKeywordType.Enum:
+                case KeywordType.Enum:
                     return permutation.Key.entries[permutation.Value].id;
                 default:
                     throw new ArgumentOutOfRangeException();

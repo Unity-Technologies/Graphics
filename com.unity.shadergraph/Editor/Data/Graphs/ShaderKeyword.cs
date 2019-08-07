@@ -12,22 +12,22 @@ namespace UnityEditor.ShaderGraph
         {
         }
 
-        public ShaderKeyword(ShaderKeywordType keywordType)
+        public ShaderKeyword(KeywordType keywordType)
         {
             this.displayName = keywordType.ToString();
             this.keywordType = keywordType;
             
             // Add sensible default entries for Enum type
-            if(keywordType == ShaderKeywordType.Enum)
+            if(keywordType == KeywordType.Enum)
             {
-                m_Entries = new List<ShaderKeywordEntry>();
-                m_Entries.Add(new ShaderKeywordEntry(1, "A", "A"));
-                m_Entries.Add(new ShaderKeywordEntry(2, "B", "B"));
-                m_Entries.Add(new ShaderKeywordEntry(3, "C", "C"));
+                m_Entries = new List<KeywordEntry>();
+                m_Entries.Add(new KeywordEntry(1, "A", "A"));
+                m_Entries.Add(new KeywordEntry(2, "B", "B"));
+                m_Entries.Add(new KeywordEntry(3, "C", "C"));
             }
         }
 
-        public static ShaderKeyword BuiltinEnumKeyword(ShaderKeywordDescriptor descriptor)
+        public static ShaderKeyword Create(KeywordDescriptor descriptor)
         {
             return new ShaderKeyword()
             {
@@ -35,7 +35,7 @@ namespace UnityEditor.ShaderGraph
                 m_IsEditable = false,
                 displayName = descriptor.displayName,
                 overrideReferenceName = descriptor.referenceName,
-                keywordType = ShaderKeywordType.Enum,
+                keywordType = descriptor.type,
                 keywordDefinition = descriptor.definition,
                 keywordScope = descriptor.scope,
                 value = descriptor.value,
@@ -43,52 +43,37 @@ namespace UnityEditor.ShaderGraph
             };
         }
 
-        public static ShaderKeyword BuiltinBooleanKeyword(ShaderKeywordDescriptor descriptor)
-        {
-            return new ShaderKeyword()
-            {
-                m_IsExposable = false,
-                m_IsEditable = false,
-                displayName = descriptor.displayName,
-                overrideReferenceName = descriptor.referenceName,
-                keywordType = ShaderKeywordType.Boolean,
-                keywordDefinition = descriptor.definition,
-                keywordScope = descriptor.scope,
-                value = descriptor.value
-            };
-        }
-
         [SerializeField]
-        private ShaderKeywordType m_KeywordType = ShaderKeywordType.Boolean;
+        private KeywordType m_KeywordType = KeywordType.Boolean;
 
-        public ShaderKeywordType keywordType
+        public KeywordType keywordType
         {
             get => m_KeywordType;
             set => m_KeywordType = value;
         }
 
         [SerializeField]
-        private ShaderKeywordDefinition m_KeywordDefinition = ShaderKeywordDefinition.ShaderFeature;
+        private KeywordDefinition m_KeywordDefinition = KeywordDefinition.ShaderFeature;
 
-        public ShaderKeywordDefinition keywordDefinition
+        public KeywordDefinition keywordDefinition
         {
             get => m_KeywordDefinition;
             set => m_KeywordDefinition = value;
         }
 
         [SerializeField]
-        private ShaderKeywordScope m_KeywordScope = ShaderKeywordScope.Local;
+        private KeywordScope m_KeywordScope = KeywordScope.Local;
 
-        public ShaderKeywordScope keywordScope
+        public KeywordScope keywordScope
         {
             get => m_KeywordScope;
             set => m_KeywordScope = value;
         }
 
         [SerializeField]
-        private List<ShaderKeywordEntry> m_Entries;
+        private List<KeywordEntry> m_Entries;
 
-        public List<ShaderKeywordEntry> entries
+        public List<KeywordEntry> entries
         {
             get => m_Entries;
             set => m_Entries = value;
@@ -113,7 +98,7 @@ namespace UnityEditor.ShaderGraph
         }
 
         [SerializeField]
-        private bool m_IsExposable;
+        private bool m_IsExposable = true;
 
         public override bool isExposable => m_IsExposable;
 
@@ -125,7 +110,7 @@ namespace UnityEditor.ShaderGraph
         {
             // _ON suffix is required for exposing Boolean type to Material
             var suffix = string.Empty;
-            if(keywordType == ShaderKeywordType.Boolean)
+            if(keywordType == KeywordType.Boolean)
             {
                 suffix = "_ON";
             }
@@ -137,10 +122,10 @@ namespace UnityEditor.ShaderGraph
         {
             switch(keywordType)
             {
-                case ShaderKeywordType.Enum:
+                case KeywordType.Enum:
                     string enumTagString = $"[KeywordEnum({string.Join(", ", entries.Select(x => x.displayName))})]";
                     return $"{enumTagString}{referenceName}(\"{displayName}\", Float) = {value}";
-                case ShaderKeywordType.Boolean:
+                case KeywordType.Boolean:
                     return $"[Toggle]{referenceName}(\"{displayName}\", Float) = {value}";
                 default:
                     throw new ArgumentOutOfRangeException();
@@ -150,18 +135,18 @@ namespace UnityEditor.ShaderGraph
         public string GetKeywordDeclarationString()
         {
             // Predefined keywords do not need to be defined
-            if(keywordDefinition == ShaderKeywordDefinition.Predefined)
+            if(keywordDefinition == KeywordDefinition.Predefined)
                 return string.Empty;
 
             // Get definition type using scope
-            string scopeString = keywordScope == ShaderKeywordScope.Local ? "_local" : string.Empty;
+            string scopeString = keywordScope == KeywordScope.Local ? "_local" : string.Empty;
             string definitionString = $"{keywordDefinition.ToDeclarationString()}{scopeString}";
 
             switch(keywordType)
             {
-                case ShaderKeywordType.Boolean:
+                case KeywordType.Boolean:
                     return $"#pragma {definitionString} _ {referenceName}";
-                case ShaderKeywordType.Enum:
+                case KeywordType.Enum:
                     var enumEntryDefinitions = entries.Select(x => $"{referenceName}_{x.referenceName}");
                     string enumEntriesString = string.Join(" ", enumEntryDefinitions);
                     return $"#pragma {definitionString} {enumEntriesString}";
@@ -174,9 +159,9 @@ namespace UnityEditor.ShaderGraph
         {
             switch(keywordType)
             {
-                case ShaderKeywordType.Boolean:
+                case KeywordType.Boolean:
                     return value == 1 ? $"#define {referenceName}" : string.Empty;
-                case ShaderKeywordType.Enum:
+                case KeywordType.Enum:
                     return $"#define {referenceName}_{entries[value].referenceName}";
                 default:
                     throw new ArgumentOutOfRangeException();

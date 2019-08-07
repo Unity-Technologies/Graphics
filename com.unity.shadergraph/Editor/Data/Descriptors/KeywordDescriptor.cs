@@ -2,13 +2,14 @@
 
 namespace UnityEditor.ShaderGraph
 {
-    struct ShaderKeywordDescriptor
+    struct KeywordDescriptor
     {
         public string displayName;
         public string referenceName;
-        public ShaderKeywordDefinition definition;
-        public ShaderKeywordScope scope;
+        public KeywordType type;
+        public KeywordDefinition definition;
+        public KeywordScope scope;
         public int value;
-        public List<ShaderKeywordEntry> entries;
+        public List<KeywordEntry> entries;
     }
 }

@@ -9,47 +9,55 @@ namespace UnityEditor.ShaderGraph
 {
     static class BuiltinKeyword
     {
-        public static ShaderKeyword QualityKeyword = ShaderKeyword.BuiltinEnumKeyword(new ShaderKeywordDescriptor()
+        [BuiltinKeyword]
+        public static KeywordDescriptor QualityKeyword()
         {
-            displayName = "Material Quality",
-            referenceName = "MATERIAL_QUALITY",
-            definition = ShaderKeywordDefinition.ShaderFeature,
-            scope = ShaderKeywordScope.Global,
-            value = 0,
-            entries = new List<ShaderKeywordEntry>()
+            return new KeywordDescriptor()
             {
-                new ShaderKeywordEntry(1, "High", "HIGH"),
-                new ShaderKeywordEntry(2, "Medium", "MEDIUM"),
-                new ShaderKeywordEntry(3, "Low", "LOW"),
-            },
-        });
-
-        [CustomKeywordNodeProvider]
-        public static IEnumerable<ShaderKeyword> BuiltinShaderKeywords() => Enumerable.Repeat(QualityKeyword, 1);
+                displayName = "Material Quality",
+                referenceName = "MATERIAL_QUALITY",
+                type = KeywordType.Enum,
+                definition = KeywordDefinition.ShaderFeature,
+                scope = KeywordScope.Global,
+                value = 0,
+                entries = new List<KeywordEntry>()
+                {
+                    new KeywordEntry(1, "High", "HIGH"),
+                    new KeywordEntry(2, "Medium", "MEDIUM"),
+                    new KeywordEntry(3, "Low", "LOW"),
+                },
+            };
+        }
     }
 
     static class KeywordUtil
     {
-        public static ConcreteSlotValueType ToConcreteSlotValueType(this ShaderKeywordType keywordType)
+        public static IEnumerable<KeywordDescriptor> GetBuiltinKeywordDescriptors() => 
+            TypeCache.GetMethodsWithAttribute<BuiltinKeywordAttribute>()
+            .Where(method => method.IsStatic && method.ReturnType == typeof(KeywordDescriptor))
+            .Select(method =>
+                (KeywordDescriptor) method.Invoke(null, new object[0] { }));
+        
+        public static ConcreteSlotValueType ToConcreteSlotValueType(this KeywordType keywordType)
         {
             switch(keywordType)
             {
-                case ShaderKeywordType.Boolean:
+                case KeywordType.Boolean:
                     return ConcreteSlotValueType.Boolean;
-                case ShaderKeywordType.Enum:
+                case KeywordType.Enum:
                     return ConcreteSlotValueType.Vector1;
                 default:
                     throw new ArgumentOutOfRangeException();
             }
         }
 
-        public static string ToDeclarationString(this ShaderKeywordDefinition keywordDefinition)
+        public static string ToDeclarationString(this KeywordDefinition keywordDefinition)
         {
             switch(keywordDefinition)
             {
-                case ShaderKeywordDefinition.MultiCompile:
+                case KeywordDefinition.MultiCompile:
                     return "multi_compile";
-                case ShaderKeywordDefinition.ShaderFeature:
+                case KeywordDefinition.ShaderFeature:
                     return "shader_feature";
                 default:
                     return string.Empty;
@@ -114,13 +122,13 @@ namespace UnityEditor.ShaderGraph
 
                         switch(permutations[p][i].Key.keywordType)
                         {
-                            case ShaderKeywordType.Enum:
+                            case KeywordType.Enum:
                             {
                                 sb.Append($"{and}defined({permutations[p][i].Key.referenceName}_{permutations[p][i].Key.entries[permutations[p][i].Value].referenceName})");
                                 appendAnd = true;
                                 break;
                             }
-                            case ShaderKeywordType.Boolean:
+                            case KeywordType.Boolean:
                             {
                                 // HLSL does not support a !value predicate
                                 if(permutations[p][i].Value != 0)

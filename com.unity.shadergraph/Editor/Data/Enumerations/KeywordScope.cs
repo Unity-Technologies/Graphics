@@ -1,6 +1,6 @@
 ﻿namespace UnityEditor.ShaderGraph
 {
-    enum ShaderKeywordScope
+    enum KeywordScope
     {
         Local,
         Global
