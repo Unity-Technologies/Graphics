@@ -16,13 +16,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue causing Scene View selection wire gizmo to not appear when using HDRP Shader Graphs.
 - Fixed with compute shader error about too many threads in threadgroup on low GPU
 - Fixed invalid contact shadow shaders being created on metal
-- Fixed  a bug where if Assembly.GetTypes throws an exception due to mis-versioned dlls, then no preprocessors are used in the shader stripper
+- Fixed a bug where if Assembly.GetTypes throws an exception due to mis-versioned dlls, then no preprocessors are used in the shader stripper
 
 ### Changed
 - direct strenght properties in ambient occlusion now affect direct specular as well
 - Added a warning in the material UI when the diffusion profile assigned is not in the HDRP asset
 - Added Alembic velocity support to various Shaders.
 - Allow in ShaderGraph to enable pre/post pass when the alpha clip is disabled
+- Call the End/Begin camera rendering callbacks for camera with customRender enabled
 
 ## [6.9.0] - 2019-07-02
 
