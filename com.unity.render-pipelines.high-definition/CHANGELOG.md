@@ -15,8 +15,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fix property sync in shadergraph with the current material in the inspector
 - Fixed an issue causing Scene View selection wire gizmo to not appear when using HDRP Shader Graphs.
 - Fixed with compute shader error about too many threads in threadgroup on low GPU
-
-### Fixed
 - Fixed invalid contact shadow shaders being created on metal
 - Fixed  a bug where if Assembly.GetTypes throws an exception due to mis-versioned dlls, then no preprocessors are used in the shader stripper
 
