@@ -65,7 +65,7 @@ ${VFXHDRPLitVaryingsMacros}
 #define VFX_VARYING_FRAMEBLEND builtInInterpolants.z
 #define VFX_VARYING_MOTIONVECTORSCALE builtInInterpolants2.xy
 #define VFX_VARYING_NORMAL normal
-#if USE_NORMAL_MAP
+#if USE_NORMAL_MAP || SHADERGRAPH_NEEDS_TANGENT_GBUFFER
 #define VFX_VARYING_TANGENT tangent
 #endif
 
@@ -77,6 +77,8 @@ ${VFXEnd}
 	#define SHADERPASS SHADERPASS_GBUFFER	
 	${VFXIncludeRP("VFXLit.template")}	
 		
+	${SHADERGRAPH_PIXEL_CODE_GBUFFER}
+    
 	#pragma fragment frag
 	void frag(ps_input i, OUTPUT_GBUFFER(outGBuffer)
 #if USE_DOUBLE_SIDED
@@ -87,7 +89,34 @@ ${VFXEnd}
 		UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i);
 		VFXTransformPSInputs(i);
 		${VFXComputeNormalWS}
+        #ifdef VFX_SHADERGRAPH
+            SurfaceData surface = (SurfaceData)0;
+            BuiltinData builtin = (BuiltinData)0;
+            
+            ${SHADERGRAPH_PIXEL_CALL_GBUFFER}
+            #if HAS_SHADERGRAPH_PARAM_SMOOTHNESS
+                surface.perceptualSmoothness = OUTSG.${SHADERGRAPH_PARAM_SMOOTHNESS};
+            #endif
+            #if HAS_SHADERGRAPH_PARAM_METALLIC
+                surface.metallic = OUTSG.${SHADERGRAPH_PARAM_METALLIC};
+            #endif
+            #if HAS_SHADERGRAPH_PARAM_BASECOLOR
+                surface.baseColor = OUTSG.${SHADERGRAPH_PARAM_BASECOLOR};
+            #endif
+            
+            surface.normalWS = normalWS;
+            #if HAS_SHADERGRAPH_PARAM_ALPHA
+                builtin.opacity = OUTSG.${SHADERGRAPH_PARAM_ALPHA};
+            #endif
+            #if HAS_SHADERGRAPH_PARAM_EMISSIVE
+                builtin.emissiveColor = OUTSG.${SHADERGRAPH_PARAM_EMISSIVE};
+            #endif
+        
+            ENCODE_INTO_GBUFFER(surface, builtin, i.VFX_VARYING_POSCS.xy, outGBuffer);
+        #else
+        
 		VFXComputePixelOutputToGBuffer(i,normalWS,uvData,outGBuffer);
+        #endif
 	}
 	ENDHLSL
 }

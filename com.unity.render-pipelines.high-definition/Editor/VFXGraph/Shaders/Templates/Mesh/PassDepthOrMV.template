@@ -64,6 +64,8 @@ ${VFXInclude("Shaders/ParticleMeshes/Pass.template")}
 #define SHADERPASS SHADERPASS_DEPTH_ONLY
 ${VFXIncludeRP("VFXLit.template")}
 			
+${SHADERGRAPH_PIXEL_CODE_DEPTHONLY}
+	
 #pragma fragment frag
 void frag(ps_input i
 #if USE_DOUBLE_SIDED
@@ -86,11 +88,16 @@ void frag(ps_input i
 {
 	UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i);
 	VFXTransformPSInputs(i);
+	#ifdef VFX_SHADERGRAPH
+        ${SHADERGRAPH_PIXEL_CALL_DEPTHONLY}
 	
+        float alpha = OUTSG.${SHADERGRAPH_PARAM_ALPHA};
+    #else
 	float alpha = VFXGetFragmentColor(i).a;
 	#if HDRP_USE_BASE_COLOR_MAP_ALPHA
 		alpha *= VFXGetTextureColor(VFX_SAMPLER(baseColorMap),i).a;
 	#endif
+    #endif
 	VFXClipFragmentColor(alpha,i);
 	
 	#ifdef WRITE_NORMAL_BUFFER
