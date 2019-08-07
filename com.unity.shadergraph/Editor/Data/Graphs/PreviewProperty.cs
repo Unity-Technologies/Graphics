@@ -220,10 +220,6 @@ namespace UnityEditor.ShaderGraph
                 for (int i = 0; i < 8; i++)
                     mat.SetVector(string.Format("{0}_AlphaKey{1}", name, i), i < m_ClassData.gradientValue.alphaKeys.Length ? GradientUtil.AlphaKeyToVector(m_ClassData.gradientValue.alphaKeys[i]) : Vector2.zero);
             }
-            else if (propType == PropertyType.TextureStack)
-            {
-                mat.SetTextureStack(name, m_ClassData.textureStackValue);
-            }
         }
     }
 

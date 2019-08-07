@@ -50,7 +50,7 @@ namespace UnityEditor.ShaderGraph
 
         public static bool AllStacksValid(Material material)
         {
-            var shader = material.shader;
+            /*var shader = material.shader;
 
             int propCount = ShaderUtil.GetPropertyCount(shader);
             for (int i = 0; i < propCount; i++)
@@ -74,14 +74,14 @@ namespace UnityEditor.ShaderGraph
                     }
                 }
             }
-
+            */
             return true;
         }
 
         public static List<string> GetInvalidStacksInfo(Material material)
         {
             List<string> result = new List<string>();
-            var shader = material.shader;
+           /* var shader = material.shader;
 
             int propCount = ShaderUtil.GetPropertyCount(shader);
             for (int i = 0; i < propCount; i++)
@@ -106,12 +106,12 @@ namespace UnityEditor.ShaderGraph
                         result.Add(string.Format("Mat {0}, vt stack {1} is null", material.name, stackPropName));
                     }
                 }
-            }
+            }*/
 
             return result;
         }
 
-        public static string GetStackHash(string stackPropName, Material material)
+        public static string GetStackHash(Material material, IEnumerable<string> textureProperties)
         {            
             // fill in a (hashed) name
             string texturesHash = "";
@@ -122,18 +122,15 @@ namespace UnityEditor.ShaderGraph
             if (material.shader == null)
                 return texturesHash;
 
-
-            string[] textureProperties = ShaderUtil.GetStackTextureProperties(material.shader, stackPropName);
-
             TextureWrapMode wrapMode = TextureWrapMode.Clamp;
             TextureImporterNPOTScale textureScaling = TextureImporterNPOTScale.None;
 
             bool firstTextureAdded = false;
 
-            for (int j = 0; j < textureProperties.Length; j++)
+            int layer = 0;
+            foreach (string textureProperty in textureProperties)
             {
-                string textureProperty = textureProperties[j];
-                string hash = "NO-DATA";  //TODO for empty layers the Granite layer data type is unknown. Therefor, this stack can be part of different tile sets with different layer layouts and still have the same hash
+                /*string hash = "NO-DATA";  //TODO for empty layers the Granite layer data type is unknown. Therefor, this stack can be part of different tile sets with different layer layouts and still have the same hash
 
                 Debug.Assert(material.HasProperty(textureProperty));    
 
@@ -168,8 +165,19 @@ namespace UnityEditor.ShaderGraph
                     }
                 }                
 
-                texturesHash += hash;
+                texturesHash += hash;*/
 
+                // Note this is totally hacky once the old tools go away this should become something faster to calculate ideally
+                // always just hashes of hashes never strings
+
+                Texture2D tex2D = material.GetTexture(textureProperty) as Texture2D;
+                if (tex2D != null)
+                {
+
+                    texturesHash += "_";
+                    texturesHash += tex2D.imageContentsHash;
+                }
+                layer++;
             }
 
             String assetHash = "" + wrapMode + textureScaling;
@@ -178,13 +186,15 @@ namespace UnityEditor.ShaderGraph
             //TileSetBuildSettings tileSetBuildSettings = new TileSetBuildSettings(ts);
             String settingsHash = "";
 
+            Hash128 result = Hash128.Compute("version_1" + texturesHash);
 
-            return ("version_1_" + texturesHash + assetHash + settingsHash).GetHashCode().ToString("X");
+            return result.ToString();// ("version_1_" + texturesHash + assetHash + settingsHash).GetHashCode().ToString("X");
         }
 
         /// <summary>
         /// Get a string that uniquely identifies the texture on the given slot of the given material.
         /// </summary>
+#if false
         public static string GetTextureHash(Texture2D texture)
         {
             if (texture == null)
@@ -217,6 +227,7 @@ namespace UnityEditor.ShaderGraph
 
             return texture.imageContentsHash.ToString() + GetGraniteLayerDataType(textureImporter);
         }
+#endif
 
         //returns null if no valid texture importer is passed
         public static string GetGraniteLayerDataType(TextureImporter textureImporter)
