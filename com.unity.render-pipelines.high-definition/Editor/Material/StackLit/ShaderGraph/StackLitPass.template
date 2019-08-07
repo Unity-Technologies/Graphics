@@ -94,10 +94,10 @@ Pass
     // $RecomputeStackPerLight:
     // $ShadeBaseUsingRefractedAngles:
     // $StackLitDebug:
-    // Decals:
-    // DisableSSR:
+    // $Decals:
+    // $DisableSSR:
     // $SpecularOcclusion:
-    // AdditionalVelocityChange:
+    // $AddPrecomputedVelocity:
 
     //
     // Original shader keywords reference:
@@ -147,7 +147,7 @@ Pass
 
     $DisableDecals:                                      #define _DISABLE_DECALS
     $DisableSSR:                                         #define _DISABLE_SSR
-    $AdditionalVelocityChange:                           #define _ADDITIONAL_VELOCITY_CHANGE
+    $AddPrecomputedVelocity:                           #define _ADD_PRECOMPUTED_VELOCITY
 
     // StackLit shader_features:
 

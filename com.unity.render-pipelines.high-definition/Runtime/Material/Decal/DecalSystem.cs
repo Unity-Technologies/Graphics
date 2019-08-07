@@ -1121,12 +1121,15 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public void LoadCullResults(CullResult cullResult)
         {
-            foreach (var key in cullResult.requests.Keys)
+            using (var enumerator = cullResult.requests.GetEnumerator())
             {
-                if (!m_DecalSets.TryGetValue(key, out var decalSet))
-                    continue;
+                while (enumerator.MoveNext())
+                {
+                    if (!m_DecalSets.TryGetValue(enumerator.Current.Key, out var decalSet))
+                        continue;
 
-                decalSet.SetCullResult(cullResult.requests[key]);
+                    decalSet.SetCullResult(cullResult.requests[enumerator.Current.Key]);
+                }
             }
         }
     }

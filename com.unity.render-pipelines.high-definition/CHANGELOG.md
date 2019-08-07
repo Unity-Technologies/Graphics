@@ -7,11 +7,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [7.1.1] - 2019-XX-XX
 
 ### Fixed
+- Fixed wizard infinite loop on cancellation
 - Fixed invalid contact shadow shaders being created on metal
 - Fixed  a bug where if Assembly.GetTypes throws an exception due to mis-versioned dlls, then no preprocessors are used in the shader stripper
 
 ### Changed
+- Update Wizard layout.
 - Remove almost all Garbage collection call within a frame.
+- Rename property AdditionalVeclocityChange to AddPrecomputeVelocity 
 
 ## [7.0.1] - 2019-07-25
 
@@ -32,6 +35,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - RenderQueue for Opaque now start at Background instead of Geometry.
 - Clamp the area light size for scripting API when we change the light type
 - Added a warning in the material UI when the diffusion profile assigned is not in the HDRP asset
+
 
 ## [7.0.0] - 2019-07-17
 
