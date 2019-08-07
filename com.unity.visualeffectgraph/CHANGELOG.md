@@ -7,10 +7,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [7.1.0] - 2019-XX-XX
 ### Added
 - Navigation commands for subgraph.
+
 ### Fixed
-- using struct as subgraph parameters.
-- objectproperty not consumling delete key.
-- converting a subgraph operator inside a subgraph operator with outputs.
+- Using struct as subgraph parameters.
+- Objectproperty not consuming delete key.
+- Converting a subgraph operator inside a subgraph operator with outputs.
+- Selecting a GameObject with a VFX Property Binder spams exception.
+- Wrong motion vector while modifying local matrix of a VisualEffect.
 
 ## [7.0.1] - 2019-07-25
 ### Added
@@ -19,8 +22,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Fixed
 - Inherit attribute block appears three times [Case 1166905](https://issuetracker.unity3d.com/issues/attributes-each-inherit-attribute-block-appears-3-times-in-the-search-and-some-have-a-seed-attribute)
 - Unexpected exception : `Trying to modify space on a not spaceable slot` error when adding collision or conform blocks [Case 1163442](https://issuetracker.unity3d.com/issues/block-trying-to-modify-space-on-a-not-spaceable-slot-error-when-adding-collision-or-conform-blocks)
-- Selecting a GameObject with a VFX Property Binder spams exception
-- Wrong motion vector while modifying local matrix of a VisualEffect
 
 ## [7.0.0] - 2019-07-17
 ### Added
