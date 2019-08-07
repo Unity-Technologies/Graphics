@@ -2,12 +2,12 @@ Shader "Hidden/VFX/SystemStat"
 {
     Properties
     {
-        _Color("Color", Color) = (1,0,0,1)
+        _Color("Color", Color) = (0.5,0.2,0,1)
     }
 
         SubShader
     {
-        Tags {"RenderType" = "Opaque"}
+        Tags { "RenderType" = "Opaque"}
         LOD 100
         Cull Off
         ZWrite Off
@@ -53,10 +53,10 @@ Shader "Hidden/VFX/SystemStat"
 
             fixed4 frag(v2f i) : SV_Target
             {
-                float2 screenPos = (i.vertex.xy + 1.0) * 0.5;
                 float clip = tex2D(_GUIClipTexture, i.clipUV).a;
-                float4 color = float4(clip, 0.5, 0, 1.0);
-                return color;
+                if (clip < 0.1)
+                    discard;
+                return _Color;
             }
 
             ENDCG

@@ -419,6 +419,8 @@ namespace UnityEditor.VFX.UI
                     m_ComponentContainerParent.Add(m_ComponentContainer);
                 UpdateEventList();
                 m_SelectButton.visible = true;
+
+                m_DebugUI.SetVisualEffect(m_AttachedComponent);
             }
         }
 
