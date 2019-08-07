@@ -7,7 +7,7 @@ using UnityEngine.VFX;
 namespace UnityEditor.VFX
 {
     [VFXInfo]
-    class VFXMeshOutput : VFXAbstractParticleOutput
+    class VFXMeshOutput : VFXShaderGraphParticleOutput
     {
         public override string name { get { return "Mesh Output"; } }
         public override string codeGeneratorTemplate { get { return RenderPipeTemplate("VFXParticleMeshes"); } }
