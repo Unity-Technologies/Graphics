@@ -19,17 +19,6 @@ public class VFXManagerEditor : Editor
     SerializedProperty[] m_TimeProperties;
     SerializedProperty[] m_ShaderProperties;
 
-    const string HDRPPath = "Packages/com.unity.visualeffectgraph/Shaders/RenderPipeline/HDRP";
-    const string UniversalPath = "Packages/com.unity.visualeffectgraph/Shaders/RenderPipeline/Universal";
-#if VFX_HAS_HDRP
-    const string RPPath = HDRPPath;
-#elif VFX_HAS_UNIVERSAL
-    const string RPPath = UniversalPath;
-#else
-    const string RPPath = "";
-#endif
-
-
     void OnEnable()
     {
         m_TimeProperties = new SerializedProperty[] {

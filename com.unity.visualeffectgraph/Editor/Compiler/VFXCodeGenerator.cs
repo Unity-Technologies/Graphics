@@ -274,14 +274,15 @@ namespace UnityEditor.VFX
             includes.Add(formattedPath);
             var templateContent = new StringBuilder(System.IO.File.ReadAllText(formattedPath));
 
-            foreach (var match in GetUniqueMatches("\\${VFXInclude\\(\\\"(.*?)\\\"\\)(,.*)?}", templateContent.ToString()))
+            foreach (var match in GetUniqueMatches("\\${VFXInclude(RP|)\\(\\\"(.*?)\\\"\\)(,.*)?}", templateContent.ToString()))
             {
                 var groups = match.Groups;
-                var includePath = groups[1].Value;
+                var renderPipelineInclude = groups[1].Value == "RP";
+                var includePath = groups[2].Value;
 
-                if (groups.Count > 2 && !String.IsNullOrEmpty(groups[2].Value))
+                if (groups.Count > 3 && !String.IsNullOrEmpty(groups[2].Value))
                 {
-                    var allDefines = groups[2].Value.Split(new char[] {',', ' ', '\t'}, StringSplitOptions.RemoveEmptyEntries);
+                    var allDefines = groups[3].Value.Split(new char[] {',', ' ', '\t'}, StringSplitOptions.RemoveEmptyEntries);
                     var neededDefines = allDefines.Where(d => d[0] != '!');
                     var forbiddenDefines = allDefines.Except(neededDefines).Select(d => d.Substring(1));
                     if (!neededDefines.All(d => defines.Contains(d)) || forbiddenDefines.Any(d => defines.Contains(d)))
@@ -291,7 +292,13 @@ namespace UnityEditor.VFX
                     }
                 }
 
-                var includeBuilder = GetFlattenedTemplateContent(VisualEffectGraphPackageInfo.assetPackagePath + "/" + includePath, includes, defines);
+                string absolutePath;
+                if (renderPipelineInclude)
+                    absolutePath = VFXLibrary.currentSRPBinder.templatePath + "/" + includePath;
+                else
+                    absolutePath = VisualEffectGraphPackageInfo.assetPackagePath + "/" + includePath;
+
+                var includeBuilder = GetFlattenedTemplateContent(absolutePath, includes, defines);
                 ReplaceMultiline(templateContent, groups[0].Value, includeBuilder);
             }
 
@@ -375,12 +382,13 @@ namespace UnityEditor.VFX
             }
 
             //< Final composition
-            var renderPipePath = VFXLibrary.currentSRPBinder.templatePath;
-            string renderPipeCommon = context.doesIncludeCommonCompute ? "Packages/com.unity.visualeffectgraph/Shaders/Common/VFXCommonCompute.cginc" : renderPipePath + "/VFXCommon.cginc";
+            var renderTemplatePipePath = VFXLibrary.currentSRPBinder.templatePath;
+            var renderRuntimePipePath = VFXLibrary.currentSRPBinder.runtimePath;
+            string renderPipeCommon = context.doesIncludeCommonCompute ? "Packages/com.unity.visualeffectgraph/Shaders/Common/VFXCommonCompute.hlsl" : VFXLibrary.currentSRPBinder.runtimePath + "/VFXCommon.hlsl";
             string renderPipePasses = null;
-            if (!context.codeGeneratorCompute && !string.IsNullOrEmpty(renderPipePath))
+            if (!context.codeGeneratorCompute && !string.IsNullOrEmpty(renderTemplatePipePath))
             {
-                renderPipePasses = renderPipePath + "/VFXPasses.template";
+                renderPipePasses = renderTemplatePipePath + "/VFXPasses.template";
             }
 
             var globalIncludeContent = new VFXShaderWriter();
@@ -404,11 +412,11 @@ namespace UnityEditor.VFX
                 var spaceable = context.GetData() as ISpaceable;
                 globalIncludeContent.WriteLineFormat("#define {0} 1", spaceable.space == VFXCoordinateSpace.World ? "VFX_WORLD_SPACE" : "VFX_LOCAL_SPACE");
             }
-            globalIncludeContent.WriteLineFormat("#include \"{0}/VFXDefines.hlsl\"", renderPipePath);
+            globalIncludeContent.WriteLineFormat("#include \"{0}/VFXDefines.hlsl\"", renderRuntimePipePath);
 
             var perPassIncludeContent = new VFXShaderWriter();
             perPassIncludeContent.WriteLine("#include \"" + renderPipeCommon + "\"");
-            perPassIncludeContent.WriteLine("#include \"Packages/com.unity.visualeffectgraph/Shaders/VFXCommon.cginc\"");
+            perPassIncludeContent.WriteLine("#include \"Packages/com.unity.visualeffectgraph/Shaders/VFXCommon.hlsl\"");
 
             // Per-block includes
             var includes = Enumerable.Empty<string>();

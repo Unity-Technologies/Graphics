@@ -62,7 +62,7 @@ o.VFX_VARYING_MOTIONVECTORSCALE = motionVectorScale * invFlipBookSize;
 #endif
 ${VFXEnd}
 
-${VFXBegin:VFXFragmentCommonFunctions}#include "Packages/com.unity.visualeffectgraph/Shaders/VFXCommonOutput.cginc"${VFXEnd}
+${VFXBegin:VFXFragmentCommonFunctions}#include "Packages/com.unity.visualeffectgraph/Shaders/VFXCommonOutput.hlsl"${VFXEnd}
 
 ${VFXBegin:VFXLoadAttributesOrCull}
 uint deadCount = 0;
