@@ -72,17 +72,31 @@ namespace UnityEditor.VFX.UI
                 public void AddPoint(float value)
                 {
                     m_Points = m_Mesh.vertices;
-
+                    var step = 1.0f / (float)(m_MaxPoints - 1);
                     // shifting
                     for (int i = 1; i < m_MaxPoints; ++i)
                     {
+                        var shift = (m_Points[2 * i].x - m_Points[2 * i + 1].x) * 0.5f;
+
                         m_Points[2 * (i - 1)].y = m_Points[2 * i].y;
+                        m_Points[2 * (i - 1)].x = (i - 1) * step + shift;
                         m_Points[2 * (i - 1) + 1].y = m_Points[2 * i + 1].y;
+                        m_Points[2 * (i - 1) + 1].x = (i - 1) * step - shift;
                     }
 
                     // adding new point
                     m_Points[m_Points.Length - 2].y = value + s_Scale;
                     m_Points[m_Points.Length - 1].y = value - s_Scale;
+
+                    // correction
+                    Vector2 tangent = (m_Points[m_Points.Length - 1] + m_Points[m_Points.Length - 2]) - (m_Points[m_Points.Length - 5] + m_Points[m_Points.Length - 6]);
+                    Vector2 dir = m_Points[m_Points.Length - 4] - m_Points[m_Points.Length - 3];
+                    Vector2 midPoint = 0.5f * (m_Points[m_Points.Length - 3] + m_Points[m_Points.Length - 4]);
+
+                    var displacement = s_Scale * (dir.normalized - Vector2.Dot(dir.normalized, tangent.normalized) * tangent.normalized).normalized;
+
+                    m_Points[m_Points.Length - 4] = midPoint + displacement;
+                    m_Points[m_Points.Length - 3] = midPoint - displacement;
 
                     m_Mesh.vertices = m_Points;
                 }
@@ -127,25 +141,21 @@ namespace UnityEditor.VFX.UI
                 m_TimeBetweenDraw = timeBetweenDraw;
 
                 schedule.Execute(MarkDirtyRepaint).Every((long)(m_TimeBetweenDraw * 1000.0f));
-
-                OnVFXChange();
             }
 
             public void OnVFXChange()
             {
-                var particleSystems = new List<string>();
-
-                if (m_DebugUI.m_VFX != null)
+                if (m_DebugUI.m_CurrentMode == Modes.SystemStat && m_DebugUI.m_VFX != null)
                 {
-                    m_VFXCurves = new List<NormalizedCurve>(m_DebugUI.m_VFX.GetParticleSystemNames(particleSystems));
-                    for (int i = 0; i < particleSystems.Count(); ++i)
+                    m_VFXCurves = new List<NormalizedCurve>(m_DebugUI.m_GpuSystems.Count());
+                    for (int i = 0; i < m_DebugUI.m_GpuSystems.Count(); ++i)
                     {
                         m_VFXCurves.Add(new NormalizedCurve(m_MaxPoints));
                     }
                 }
             }
 
-            
+
 
             float m_LastSampleTime;
             void DrawMesh()
@@ -173,7 +183,7 @@ namespace UnityEditor.VFX.UI
                 bool shouldSample = now - m_LastSampleTime > m_TimeBetweenDraw;
                 if (shouldSample)
                     m_LastSampleTime = now;
-                
+
                 int i = 0;
                 foreach (var curve in m_VFXCurves)
                 {
@@ -184,7 +194,7 @@ namespace UnityEditor.VFX.UI
                         var capacity = m_DebugUI.m_VFX.GetSystemCapacity(m_DebugUI.m_GpuSystems[i]);
                         float efficiency = (float)alive / (float)capacity;
                         curve.AddPoint(efficiency);
-                        m_DebugUI.UpdateSystemStat(i+1, alive, capacity);
+                        m_DebugUI.UpdateSystemStat(i, alive, capacity);
                     }
 
                     var color = Color.HSVToRGB((0.71405f + i * 0.37135766f) % 1.0f, 0.8f, 0.8f);
@@ -227,6 +237,8 @@ namespace UnityEditor.VFX.UI
 
         public void SetDebugMode(Modes mode, VFXComponentBoard componentBoard)
         {
+            m_CurrentMode = mode;
+
             m_ComponentBoard = componentBoard;
             m_DebugContainer = m_ComponentBoard.Query<VisualElement>("debug-container");
 
@@ -243,7 +255,6 @@ namespace UnityEditor.VFX.UI
                     break;
             }
 
-            m_CurrentMode = mode;
         }
 
         public void SetVisualEffect(VisualEffect vfx)
@@ -260,7 +271,7 @@ namespace UnityEditor.VFX.UI
             m_DebugBox = new Box();
             m_DebugBox.name = "debug-box";
             m_DebugContainer.Add(m_DebugBox);
-            m_Curves = new CurveContent(this, 100, 0.016f);
+            m_Curves = new CurveContent(this, 300, 0.016f);
             m_ComponentBoard.contentContainer.Add(m_Curves);
 
             // system stats title
@@ -353,7 +364,7 @@ namespace UnityEditor.VFX.UI
 
         void UpdateSystemStat(int i, int alive, int capacity)
         {
-            var stat = m_SystemStats[i];
+            var stat = m_SystemStats[i + 1];// [0] is title bar
             if (stat[2] is TextElement Alive)
                 Alive.text = alive.ToString();
             if (stat[3] is TextElement Capacity)
