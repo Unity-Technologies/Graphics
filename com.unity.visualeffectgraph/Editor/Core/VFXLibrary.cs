@@ -156,6 +156,7 @@ namespace UnityEditor.VFX
     abstract class VFXSRPBinder
     {
         abstract public string templatePath { get; }
+        virtual public string runtimePath { get { return templatePath; } } //optional different path for .hlsl included in runtime
         abstract public string SRPAssetTypeStr { get; }
         abstract public Type SRPOutputDataType { get; }
     }
