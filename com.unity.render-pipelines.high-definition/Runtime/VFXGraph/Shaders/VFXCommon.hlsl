@@ -51,7 +51,7 @@ float4 VFXTransformPositionObjectToNonJitteredClip(float3 posOS)
 
 float4 VFXTransformPositionObjectToPreviousClip(float3 posOS)
 {
-    float3 posWS = TransformObjectToWorld(posOS);
+    float3 posWS = TransformPreviousObjectToWorld(posOS);
     return mul(_PrevViewProjMatrix, float4(posWS, 1.0f));
 }
 
