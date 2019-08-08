@@ -186,7 +186,7 @@ VFXComponentBoardEventUI .unity-button, #on-play-button, #on-stop-button,#attach
 {
     font-size: 14px;
     flex-grow: 1;
-    font-weight: bold;
+  
 }
 
 #debug-system-stat-title-name
@@ -196,14 +196,14 @@ VFXComponentBoardEventUI .unity-button, #on-play-button, #on-stop-button,#attach
     padding-right: 6px;
 }
 
-#system-names
+#debug-system-name
 {
     flex-grow: 1;
     width: 30%;
     padding-left: 6px;
     padding-right: 6px;
 }
-#system-stat
+#debug-system-stat
 {
     flex-grow: 1;
 }

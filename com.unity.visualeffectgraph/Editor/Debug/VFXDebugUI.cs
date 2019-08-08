@@ -98,33 +98,6 @@ namespace UnityEditor.VFX.UI
 
             static readonly Random random = new Random();
 
-            public CurveContent(VFXDebugUI debugUI, int maxPoints, float timeBetweenDraw = 0.033f)
-            {
-                m_DebugUI = debugUI;
-                m_Mat = new Material(Shader.Find("Hidden/VFX/SystemStat"));
-                m_ClippingMatrixId = Shader.PropertyToID("_ClipMatrix");
-                m_MaxPoints = maxPoints;
-                m_TimeBetweenDraw = timeBetweenDraw;
-
-                schedule.Execute(MarkDirtyRepaint).Every((long)(m_TimeBetweenDraw * 1000.0f));
-
-                OnVFXChange();
-            }
-
-            public void OnVFXChange()
-            {
-                var particleSystems = new List<string>();
-
-                if (m_DebugUI.m_VFX != null)
-                {
-                    m_VFXCurves = new List<NormalizedCurve>(m_DebugUI.m_VFX.GetParticleSystemNames(particleSystems));
-                    for (int i = 0; i < m_DebugUI.m_GpuSystems.Count(); ++i)
-                    {
-                        m_VFXCurves.Add(new NormalizedCurve(m_MaxPoints));
-                    }
-                }
-            }
-
             private static Func<VisualElement, Rect> GetWorldClipRect()
             {
                 var worldClipProp = typeof(VisualElement).GetMethod("get_worldClip", BindingFlags.NonPublic | BindingFlags.Instance);
@@ -145,7 +118,36 @@ namespace UnityEditor.VFX.UI
 
             static readonly Func<Box, Rect> k_BoxWorldclip = GetWorldClipRect();
 
-            float m_LastAddTime;
+            public CurveContent(VFXDebugUI debugUI, int maxPoints, float timeBetweenDraw = 0.033f)
+            {
+                m_DebugUI = debugUI;
+                m_Mat = new Material(Shader.Find("Hidden/VFX/SystemStat"));
+                m_ClippingMatrixId = Shader.PropertyToID("_ClipMatrix");
+                m_MaxPoints = maxPoints;
+                m_TimeBetweenDraw = timeBetweenDraw;
+
+                schedule.Execute(MarkDirtyRepaint).Every((long)(m_TimeBetweenDraw * 1000.0f));
+
+                OnVFXChange();
+            }
+
+            public void OnVFXChange()
+            {
+                var particleSystems = new List<string>();
+
+                if (m_DebugUI.m_VFX != null)
+                {
+                    m_VFXCurves = new List<NormalizedCurve>(m_DebugUI.m_VFX.GetParticleSystemNames(particleSystems));
+                    for (int i = 0; i < particleSystems.Count(); ++i)
+                    {
+                        m_VFXCurves.Add(new NormalizedCurve(m_MaxPoints));
+                    }
+                }
+            }
+
+            
+
+            float m_LastSampleTime;
             void DrawMesh()
             {
                 if (m_Mat == null)
@@ -167,21 +169,22 @@ namespace UnityEditor.VFX.UI
                 m_Mat.SetMatrix(m_ClippingMatrixId, baseChange);
 
                 // Updating curve
-                int i = 0;
                 var now = Time.time;
-                bool shouldSample = false;
-                if (now - m_LastAddTime > m_TimeBetweenDraw)
-                {
-                    shouldSample = true;
-                    m_LastAddTime = now;
-                }
+                bool shouldSample = now - m_LastSampleTime > m_TimeBetweenDraw;
+                if (shouldSample)
+                    m_LastSampleTime = now;
+                
+                int i = 0;
                 foreach (var curve in m_VFXCurves)
                 {
                     if (shouldSample)
                     {
-                        float alive = m_DebugUI.m_VFX.GetSystemAliveParticleCount(m_DebugUI.m_GpuSystems[i]);
-                        float capacity = m_DebugUI.m_VFX.GetSystemCapacity(m_DebugUI.m_GpuSystems[i]);
-                        curve.AddPoint(alive / capacity);
+                        // updating stats
+                        var alive = m_DebugUI.m_VFX.GetSystemAliveParticleCount(m_DebugUI.m_GpuSystems[i]);
+                        var capacity = m_DebugUI.m_VFX.GetSystemCapacity(m_DebugUI.m_GpuSystems[i]);
+                        float efficiency = (float)alive / (float)capacity;
+                        curve.AddPoint(efficiency);
+                        m_DebugUI.UpdateSystemStat(i+1, alive, capacity);
                     }
 
                     var color = Color.HSVToRGB((0.71405f + i * 0.37135766f) % 1.0f, 0.8f, 0.8f);
@@ -203,7 +206,7 @@ namespace UnityEditor.VFX.UI
 
         Modes m_CurrentMode;
         VFXComponentBoard m_ComponentBoard;
-        CurveContent m_Curve;
+        CurveContent m_Curves;
         VisualElement m_DebugContainer;
         Box m_DebugBox;
         VFXView m_View;
@@ -215,7 +218,7 @@ namespace UnityEditor.VFX.UI
         // [2] alive
         // [3] capacity
         // [4] efficiency
-        List<VisualElement[]> m_SystemsStats;
+        List<VisualElement[]> m_SystemStats;
 
         public VFXDebugUI(VFXView view)
         {
@@ -247,8 +250,8 @@ namespace UnityEditor.VFX.UI
         {
             m_VFX = vfx;
 
-            if (m_Curve != null)
-                m_Curve.OnVFXChange();
+            if (m_Curves != null)
+                m_Curves.OnVFXChange();
         }
 
         void SystemStat()
@@ -257,8 +260,8 @@ namespace UnityEditor.VFX.UI
             m_DebugBox = new Box();
             m_DebugBox.name = "debug-box";
             m_DebugContainer.Add(m_DebugBox);
-            m_Curve = new CurveContent(this, 100, 0.016f);
-            m_ComponentBoard.contentContainer.Add(m_Curve);
+            m_Curves = new CurveContent(this, 100, 0.016f);
+            m_ComponentBoard.contentContainer.Add(m_Curves);
 
             // system stats title
             var systemStatContainer = new VisualElement();
@@ -289,37 +292,91 @@ namespace UnityEditor.VFX.UI
             var systemStatTitle = new VisualElement[1];
             systemStatTitle[0] = systemStatContainer;
 
-            m_SystemsStats = new List<VisualElement[]>();
-            m_SystemsStats.Add(systemStatTitle);
+            m_SystemStats = new List<VisualElement[]>();
+            m_SystemStats.Add(systemStatTitle);
 
             if (m_VFX != null)
             {
                 List<string> particleSystemNames = new List<string>();
                 m_VFX.GetParticleSystemNames(particleSystemNames);
                 m_GpuSystems = new List<int>();
+                int i = 0;
                 foreach (var name in particleSystemNames)
                 {
                     m_GpuSystems.Add(Shader.PropertyToID(name));
+                    CreateSystemStatEntry(name, Color.HSVToRGB((0.71405f + i * 0.37135766f) % 1.0f, 0.8f, 0.8f));
 
+                    ++i;
                 }
+
+                m_Curves.OnVFXChange();
             }
         }
 
-        void Clear()
+        void CreateSystemStatEntry(string name, Color color)
         {
-            if (m_ComponentBoard != null && m_Curve != null)
-                m_ComponentBoard.contentContainer.Remove(m_Curve);
+            var statContainer = new VisualElement();
+            statContainer.name = "debug-system-stat-container";
+            m_DebugContainer.Add(statContainer);
+
+            var Name = new TextElement();
+            Name.name = "debug-system-name";
+            Name.text = name;
+            Name.style.color = color;
+
+            var Alive = new TextElement();
+            Alive.name = "debug-system-stat";
+            Alive.text = "0";
+
+            var Capacity = new TextElement();
+            Capacity.name = "debug-system-stat";
+            Capacity.text = "0";
+
+            var Efficiency = new TextElement();
+            Efficiency.name = "debug-system-stat";
+            Efficiency.text = "100 %";
+
+            statContainer.Add(Name);
+            statContainer.Add(Alive);
+            statContainer.Add(Capacity);
+            statContainer.Add(Efficiency);
+
+            var stats = new VisualElement[5];
+            stats[0] = statContainer;
+            stats[1] = Name;
+            stats[2] = Alive;
+            stats[3] = Capacity;
+            stats[4] = Efficiency;
+
+            m_SystemStats.Add(stats);
+        }
+
+        void UpdateSystemStat(int i, int alive, int capacity)
+        {
+            var stat = m_SystemStats[i];
+            if (stat[2] is TextElement Alive)
+                Alive.text = alive.ToString();
+            if (stat[3] is TextElement Capacity)
+                Capacity.text = capacity.ToString();
+            if (stat[4] is TextElement Efficiency)
+                Efficiency.text = string.Format("{0} %", (int)((float)alive * 100.0f / (float)capacity));
+        }
+
+        public void Clear()
+        {
+            if (m_ComponentBoard != null && m_Curves != null)
+                m_ComponentBoard.contentContainer.Remove(m_Curves);
             m_ComponentBoard = null;
-            m_Curve = null;
+            m_Curves = null;
 
             if (m_DebugContainer != null && m_DebugBox != null)
                 m_DebugContainer.Remove(m_DebugBox);
             m_DebugBox = null;
 
-            if (m_SystemsStats != null)
-                foreach (var systemStat in m_SystemsStats)
+            if (m_SystemStats != null)
+                foreach (var systemStat in m_SystemStats)
                     m_DebugContainer.Remove(systemStat[0]);
-            m_SystemsStats = null;
+            m_SystemStats = null;
 
             m_DebugContainer = null;
         }
