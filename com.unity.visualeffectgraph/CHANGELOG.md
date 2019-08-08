@@ -6,6 +6,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [7.1.0] - 2019-XX-XX
 ### Added
+- Moved High Definition templates and includes to com.unity.render-pipelines.high-definition package
 - Navigation commands for subgraph.
 
 ### Fixed
