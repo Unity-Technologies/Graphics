@@ -19,6 +19,7 @@ namespace UnityEngine.Rendering.Universal
         UsePipelineSettings,
     }
 
+    //[Obsolete("Renderer override is no longer used, renderers are referenced by index on the pipeline asset.")]
     [MovedFrom("UnityEngine.Rendering.LWRP")] public enum RendererOverrideOption
     {
         Custom,
@@ -57,10 +58,8 @@ namespace UnityEngine.Rendering.Universal
         [Tooltip("If enabled opaque color texture will render for this camera and bound as _CameraOpaqueTexture.")]
         [SerializeField]
         CameraOverrideOption m_RequiresOpaqueTextureOption = CameraOverrideOption.UsePipelineSettings;
-
-        [SerializeField] RendererOverrideOption m_RendererOverrideOption = RendererOverrideOption.UsePipelineSettings;
-        [SerializeField] ScriptableRendererData m_RendererData = null;
-        ScriptableRenderer m_Renderer = null;
+        
+        [SerializeField] int m_RendererIndex = -1;
 
         [SerializeField] LayerMask m_VolumeLayerMask = 1; // "Default"
         [SerializeField] Transform m_VolumeTrigger = null;
@@ -136,16 +135,7 @@ namespace UnityEngine.Rendering.Universal
 
         public ScriptableRenderer scriptableRenderer
         {
-            get
-            {
-                if (m_RendererOverrideOption == RendererOverrideOption.UsePipelineSettings || m_RendererData == null)
-                    return UniversalRenderPipeline.asset.scriptableRenderer;
-
-                if (m_RendererData.isInvalidated || m_Renderer == null)
-                    m_Renderer = m_RendererData.InternalCreateRenderer();
-
-                return m_Renderer;
-            }
+            get => UniversalRenderPipeline.asset.GetRenderer(m_RendererIndex);
         }
 
         public LayerMask volumeLayerMask

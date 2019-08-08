@@ -59,6 +59,8 @@ namespace UnityEngine.Rendering.Universal
 
         protected override ScriptableRenderer Create()
         {
+            m_DefaultStencilState = new StencilStateData();
+            
 #if UNITY_EDITOR
             if (!Application.isPlaying)
             {

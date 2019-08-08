@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.Rendering.Universal;
 using UnityEngine.Rendering;
 using UnityEngine.Scripting.APIUpdating;
+using UnityEditorInternal;
 
 namespace UnityEditor.Rendering.Universal
 {
@@ -19,7 +20,6 @@ namespace UnityEditor.Rendering.Universal
             public static GUIContent advancedSettingsText = EditorGUIUtility.TrTextContent("Advanced");
 
             // General
-            public static GUIContent rendererTypeText = EditorGUIUtility.TrTextContent("Renderer Type", "Controls the global renderer that LWRP uses for all cameras. Choose between the default Forward Renderer and a custom renderer.");
             public static GUIContent rendererDataText = EditorGUIUtility.TrTextContent("Data", "A ScriptableObject with rendering data. Required when using a custom Renderer. If none is assigned, LWRP uses the Forward Renderer as default.");
             public static GUIContent requireDepthTextureText = EditorGUIUtility.TrTextContent("Depth Texture", "If enabled the pipeline will generate camera's depth that can be bound in shaders as _CameraDepthTexture.");
             public static GUIContent requireOpaqueTextureText = EditorGUIUtility.TrTextContent("Opaque Texture", "If enabled the pipeline will copy the screen to texture after opaque objects are drawn. For transparent objects this can be bound in shaders as _CameraOpaqueTexture.");
@@ -75,8 +75,9 @@ namespace UnityEditor.Rendering.Universal
         SavedBool m_PostProcessingSettingsFoldout;
         SavedBool m_AdvancedSettingsFoldout;
 
-        SerializedProperty m_RendererTypeProp;
         SerializedProperty m_RendererDataProp;
+        SerializedProperty m_DefaultRendererProp;
+        ReorderableList m_RendererDataList;
 
         SerializedProperty m_RequireDepthTextureProp;
         SerializedProperty m_RequireOpaqueTextureProp;
@@ -137,8 +138,11 @@ namespace UnityEditor.Rendering.Universal
             m_PostProcessingSettingsFoldout = new SavedBool($"{target.GetType()}.PostProcessingSettingsFoldout", false);
             m_AdvancedSettingsFoldout = new SavedBool($"{target.GetType()}.AdvancedSettingsFoldout", false);
 
-            m_RendererTypeProp = serializedObject.FindProperty("m_RendererType");
             m_RendererDataProp = serializedObject.FindProperty("m_RendererData");
+            m_DefaultRendererProp = serializedObject.FindProperty("m_DefaultRenderer");
+            m_RendererDataList = new ReorderableList(serializedObject, m_RendererDataProp, false, true, true, true);
+
+            DrawRendererListLayout(m_RendererDataList, m_RendererDataProp);
 
             m_RequireDepthTextureProp = serializedObject.FindProperty("m_RequireDepthTexture");
             m_RequireOpaqueTextureProp = serializedObject.FindProperty("m_RequireOpaqueTexture");
@@ -183,19 +187,13 @@ namespace UnityEditor.Rendering.Universal
             if (m_GeneralSettingsFoldout.value)
             {
                 EditorGUI.indentLevel++;
-                EditorGUI.BeginChangeCheck();
-                EditorGUILayout.PropertyField(m_RendererTypeProp, Styles.rendererTypeText);
-                if (EditorGUI.EndChangeCheck())
-                {
-                    if (m_RendererTypeProp.intValue != (int) RendererType.Custom)
-                        m_RendererDataProp.objectReferenceValue = UniversalRenderPipeline.asset.LoadBuiltinRendererData();
-                }
-                if (m_RendererTypeProp.intValue == (int) RendererType.Custom)
-                {
-                    EditorGUI.indentLevel++;
-                    EditorGUILayout.PropertyField(m_RendererDataProp, Styles.rendererDataText);
-                    EditorGUI.indentLevel--;
-                }
+                
+                EditorGUILayout.Space();
+                EditorGUI.indentLevel--;
+                m_RendererDataList.DoLayoutList();
+                EditorGUI.indentLevel++;
+                //EditorGUILayout.PropertyField(m_RendererDataProp, Styles.rendererDataText);
+                
                 EditorGUILayout.PropertyField(m_RequireDepthTextureProp, Styles.requireDepthTextureText);
                 EditorGUILayout.PropertyField(m_RequireOpaqueTextureProp, Styles.requireOpaqueTextureText);
                 EditorGUI.indentLevel++;
@@ -352,6 +350,43 @@ namespace UnityEditor.Rendering.Universal
                 EditorGUILayout.Space();
             }
             EditorGUILayout.EndFoldoutHeaderGroup();
+        }
+
+        void DrawRendererListLayout(ReorderableList list, SerializedProperty prop)
+        {
+            list.drawElementCallback = (Rect rect, int index, bool isActive, bool isFocused) => {
+                Rect indexRect = new Rect(rect.x, rect.y, 14, EditorGUIUtility.singleLineHeight);
+                EditorGUI.LabelField(indexRect, index.ToString());
+                Rect objRect = new Rect(rect.x + indexRect.width, rect.y, rect.width - 134, EditorGUIUtility.singleLineHeight);
+                EditorGUI.ObjectField(objRect, prop.GetArrayElementAtIndex(index), GUIContent.none);
+                Rect defaultButton = new Rect(rect.width - 90, rect.y, 86, EditorGUIUtility.singleLineHeight);
+                var defaultRenderer = m_DefaultRendererProp.intValue;
+                GUI.enabled = index != defaultRenderer;
+                if(GUI.Button(defaultButton, !GUI.enabled ? "Default" : "Set Default"))
+                {
+                    m_DefaultRendererProp.intValue = index;
+                }
+                GUI.enabled = true;
+                
+                Rect selectRect = new Rect(rect.x + rect.width - 24, rect.y, 24, EditorGUIUtility.singleLineHeight);
+                if (GUI.Button(selectRect, EditorGUIUtility.IconContent("Settings")))
+                {
+                    Selection.SetActiveObjectWithContext(prop.GetArrayElementAtIndex(index).objectReferenceValue, null);
+                }
+            };
+            
+            list.drawHeaderCallback = (Rect rect) => { EditorGUI.LabelField(rect, "Renderers"); };
+
+            list.onCanRemoveCallback = li => { return li.count > 1; };
+
+            list.onCanAddCallback = li => { return li.count < UniversalRenderPipeline.maxScriptableRenderers; };
+
+            list.onRemoveCallback = li =>
+            {
+                li.serializedProperty.DeleteArrayElementAtIndex(li.serializedProperty.arraySize - 1);
+                li.serializedProperty.arraySize--;
+                li.index = li.count - 1;
+            };
         }
     }
 }
