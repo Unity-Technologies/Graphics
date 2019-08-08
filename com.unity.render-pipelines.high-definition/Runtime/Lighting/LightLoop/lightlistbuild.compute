@@ -1,15 +1,23 @@
 // The implementation is based on the demo on "fine pruned tiled lighting" published in GPU Pro 7.
 // https://github.com/wolfgangfengel/GPU-Pro-7
 
-#pragma kernel TileLightListGen                             LIGHTLISTGEN=TileLightListGen
-#pragma kernel TileLightListGen_SrcBigTile                  LIGHTLISTGEN=TileLightListGen_SrcBigTile							USE_TWO_PASS_TILED_LIGHTING
-#pragma kernel TileLightListGen_FeatureFlags                LIGHTLISTGEN=TileLightListGen_FeatureFlags							USE_FEATURE_FLAGS
-#pragma kernel TileLightListGen_SrcBigTile_FeatureFlags     LIGHTLISTGEN=TileLightListGen_SrcBigTile_FeatureFlags				USE_TWO_PASS_TILED_LIGHTING     USE_FEATURE_FLAGS
-#pragma kernel TileLightListGen_Oblique                             LIGHTLISTGEN=TileLightListGen_Oblique								USE_OBLIQUE_MODE
-#pragma kernel TileLightListGen_SrcBigTile_Oblique                  LIGHTLISTGEN=TileLightListGen_SrcBigTile_Oblique                    USE_TWO_PASS_TILED_LIGHTING		USE_OBLIQUE_MODE
-#pragma kernel TileLightListGen_FeatureFlags_Oblique                LIGHTLISTGEN=TileLightListGen_FeatureFlags_Oblique                  USE_FEATURE_FLAGS				USE_OBLIQUE_MODE
-#pragma kernel TileLightListGen_SrcBigTile_FeatureFlags_Oblique     LIGHTLISTGEN=TileLightListGen_SrcBigTile_FeatureFlags_Oblique       USE_TWO_PASS_TILED_LIGHTING     USE_FEATURE_FLAGS	 USE_OBLIQUE_MODE
-
+// 1: BigTile, 2: FeatureFlags, 4: Oblique, 8: MSAA
+#pragma kernel TileLightListGen                                         LIGHTLISTGEN=TileLightListGen
+#pragma kernel TileLightListGen_SrcBigTile                              LIGHTLISTGEN=TileLightListGen_SrcBigTile                              USE_TWO_PASS_TILED_LIGHTING
+#pragma kernel TileLightListGen_FeatureFlags                            LIGHTLISTGEN=TileLightListGen_FeatureFlags                                                           USE_FEATURE_FLAGS
+#pragma kernel TileLightListGen_SrcBigTile_FeatureFlags                 LIGHTLISTGEN=TileLightListGen_SrcBigTile_FeatureFlags                 USE_TWO_PASS_TILED_LIGHTING    USE_FEATURE_FLAGS
+#pragma kernel TileLightListGen_Oblique                                 LIGHTLISTGEN=TileLightListGen_Oblique                                                                                     USE_OBLIQUE_MODE
+#pragma kernel TileLightListGen_SrcBigTile_Oblique                      LIGHTLISTGEN=TileLightListGen_SrcBigTile_Oblique                      USE_TWO_PASS_TILED_LIGHTING                         USE_OBLIQUE_MODE
+#pragma kernel TileLightListGen_FeatureFlags_Oblique                    LIGHTLISTGEN=TileLightListGen_FeatureFlags_Oblique                                                   USE_FEATURE_FLAGS    USE_OBLIQUE_MODE
+#pragma kernel TileLightListGen_SrcBigTile_FeatureFlags_Oblique         LIGHTLISTGEN=TileLightListGen_SrcBigTile_FeatureFlags_Oblique         USE_TWO_PASS_TILED_LIGHTING    USE_FEATURE_FLAGS    USE_OBLIQUE_MODE
+#pragma kernel TileLightListGen_MSAA                                    LIGHTLISTGEN=TileLightListGen_MSAA                                                                                                            MSAA_ENABLED
+#pragma kernel TileLightListGen_SrcBigTile_MSAA                         LIGHTLISTGEN=TileLightListGen_SrcBigTile_MSAA                         USE_TWO_PASS_TILED_LIGHTING                                             MSAA_ENABLED
+#pragma kernel TileLightListGen_FeatureFlags_MSAA                       LIGHTLISTGEN=TileLightListGen_FeatureFlags_MSAA                                                      USE_FEATURE_FLAGS                        MSAA_ENABLED
+#pragma kernel TileLightListGen_SrcBigTile_FeatureFlags_MSAA            LIGHTLISTGEN=TileLightListGen_SrcBigTile_FeatureFlags_MSAA            USE_TWO_PASS_TILED_LIGHTING    USE_FEATURE_FLAGS                        MSAA_ENABLED
+#pragma kernel TileLightListGen_Oblique_MSAA                            LIGHTLISTGEN=TileLightListGen_Oblique_MSAA                                                                                USE_OBLIQUE_MODE    MSAA_ENABLED
+#pragma kernel TileLightListGen_SrcBigTile_Oblique_MSAA                 LIGHTLISTGEN=TileLightListGen_SrcBigTile_Oblique_MSAA                 USE_TWO_PASS_TILED_LIGHTING                         USE_OBLIQUE_MODE    MSAA_ENABLED
+#pragma kernel TileLightListGen_FeatureFlags_Oblique_MSAA               LIGHTLISTGEN=TileLightListGen_FeatureFlags_Oblique_MSAA                                              USE_FEATURE_FLAGS    USE_OBLIQUE_MODE    MSAA_ENABLED
+#pragma kernel TileLightListGen_SrcBigTile_FeatureFlags_Oblique_MSAA    LIGHTLISTGEN=TileLightListGen_SrcBigTile_FeatureFlags_Oblique_MSAA    USE_TWO_PASS_TILED_LIGHTING    USE_FEATURE_FLAGS    USE_OBLIQUE_MODE    MSAA_ENABLED
 
 //#pragma #pragma enable_d3d11_debug_symbols
 
@@ -28,9 +36,13 @@
 
 #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
 
-#define FINE_PRUNING_ENABLED
 #define PERFORM_SPHERICAL_INTERSECTION_TESTS
 
+#ifndef MSAA_ENABLED
+    // Fine pruning is too slow with MSAA.
+    // We only perform the screen-aligned (homogeneous 3D) AABB test.
+    #define FINE_PRUNING_ENABLED
+#endif
 
 uniform int g_iNrVisibLights;
 uniform uint2 g_viDimensions;
@@ -40,6 +52,7 @@ uniform uint g_isOrthographic;
 uniform int _EnvLightIndexShift;
 uniform int _DecalIndexShift;
 uniform uint g_BaseFeatureFlags;
+uniform int g_iNumSamplesMSAA;
 
 StructuredBuffer<float4> g_vBoundsBuffer : register( t1 );
 StructuredBuffer<LightVolumeData> _LightVolumeData : register(t2);
@@ -185,10 +198,12 @@ void LIGHTLISTGEN(uint3 dispatchThreadId : SV_DispatchThreadID, uint threadID : 
     float dpt_mi=asfloat(uFltMax), dpt_ma=0.0;
 
 
-#if PIXEL_PER_THREAD == 4
-    float4 vLinDepths;
-#else
-    float vLinDepths[PIXEL_PER_THREAD];
+#ifdef FINE_PRUNING_ENABLED
+    #if PIXEL_PER_THREAD == 4
+        float4 vLinDepths;
+    #else
+        float vLinDepths[PIXEL_PER_THREAD];
+    #endif
 #endif
     {
         // Fetch depths and calculate min/max
@@ -197,13 +212,29 @@ void LIGHTLISTGEN(uint3 dispatchThreadId : SV_DispatchThreadID, uint threadID : 
         {
             int idx = i * NR_THREADS + t;
             uint2 uCrd = min( uint2(viTilLL.x+(idx&0xf), viTilLL.y+(idx>>4)), uint2(iWidth-1, iHeight-1) );
+#ifdef MSAA_ENABLED
+            // TODO: do NOT loop over all depth samples per pixel here.
+            // Simply fetch the min-max (resolved MSAA) depth instead.
+            for(int j=0; j<g_iNumSamplesMSAA; j++)
+            {
+            const float fDepth = FetchDepthMSAA(uCrd, j);
+            const float2 fracSampleCoord = g_depth_tex.GetSamplePosition(j).xy;     // this is optimized away when USE_OBLIQUE_MODE is NOT set.
+#else
             const float fDepth = FetchDepth(uCrd);
-            vLinDepths[i] = GetLinearDepth(uCrd+float2(0.5,0.5), fDepth);
+            const float2 fracSampleCoord = float2(0.5,0.5);
+#endif
+
+#ifdef FINE_PRUNING_ENABLED
+            vLinDepths[i] = GetLinearDepth(uCrd+fracSampleCoord, fDepth);
+#endif
             if(fDepth<VIEWPORT_SCALE_Z)     // if not skydome
             {
                 dpt_mi = min(fDepth, dpt_mi);
                 dpt_ma = max(fDepth, dpt_ma);
             }
+#ifdef MSAA_ENABLED
+            }
+#endif
         }
 
         InterlockedMax(ldsZMax, asuint(dpt_ma));

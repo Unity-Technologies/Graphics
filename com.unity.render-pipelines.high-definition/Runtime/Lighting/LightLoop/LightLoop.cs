@@ -505,8 +505,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         static int s_GenAABBKernel;
         static int s_GenAABBKernel_Oblique;
-        static int s_GenListPerTileKernel;
-        static int s_GenListPerTileKernel_Oblique;
         static int s_GenListPerVoxelKernel;
         static int s_GenListPerVoxelKernelOblique;
         static int s_ClearVoxelAtomicKernel;
@@ -881,18 +879,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 s_GenListPerVoxelKernel = buildPerVoxelLightListShader.FindKernel(kernelName);
                 s_GenListPerVoxelKernelOblique = buildPerVoxelLightListShader.FindKernel(kernelObliqueName);
-            }
-
-            if (GetFeatureVariantsEnabled(frameSettings))
-            {
-                s_GenListPerTileKernel = buildPerTileLightListShader.FindKernel(frameSettings.IsEnabled(FrameSettingsField.BigTilePrepass) ? "TileLightListGen_SrcBigTile_FeatureFlags" : "TileLightListGen_FeatureFlags");
-                s_GenListPerTileKernel_Oblique = buildPerTileLightListShader.FindKernel(frameSettings.IsEnabled(FrameSettingsField.BigTilePrepass) ? "TileLightListGen_SrcBigTile_FeatureFlags_Oblique" : "TileLightListGen_FeatureFlags_Oblique");
-
-            }
-            else
-            {
-                s_GenListPerTileKernel = buildPerTileLightListShader.FindKernel(frameSettings.IsEnabled(FrameSettingsField.BigTilePrepass) ? "TileLightListGen_SrcBigTile" : "TileLightListGen");
-                s_GenListPerTileKernel_Oblique = buildPerTileLightListShader.FindKernel(frameSettings.IsEnabled(FrameSettingsField.BigTilePrepass) ? "TileLightListGen_SrcBigTile_Oblique" : "TileLightListGen_Oblique");
             }
 
             m_TextureCaches.NewFrame();
@@ -2527,6 +2513,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.SetComputeIntParam(parameters.buildPerTileLightListShader, HDShaderIDs._EnvLightIndexShift, parameters.lightList.lights.Count);
                 cmd.SetComputeIntParam(parameters.buildPerTileLightListShader, HDShaderIDs._DecalIndexShift, parameters.lightList.lights.Count + parameters.lightList.envLights.Count);
                 cmd.SetComputeIntParam(parameters.buildPerTileLightListShader, HDShaderIDs.g_iNrVisibLights, parameters.totalLightCount);
+                cmd.SetComputeIntParam(parameters.buildPerTileLightListShader, HDShaderIDs.g_iNumSamplesMSAA, parameters.msaaSamples);
 
                 cmd.SetComputeBufferParam(parameters.buildPerTileLightListShader, parameters.buildPerTileLightListKernel, HDShaderIDs.g_vBoundsBuffer, tileAndCluster.AABBBoundsBuffer);
                 cmd.SetComputeBufferParam(parameters.buildPerTileLightListShader, parameters.buildPerTileLightListKernel, HDShaderIDs._LightVolumeData, tileAndCluster.lightVolumeDataBuffer);
@@ -2781,9 +2768,31 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.numBigTilesY = (h + 63) / 64;
 
             // Fptl
+            int buildPerTileLightListKernel  = 0;
+
+            if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.BigTilePrepass))
+            {
+                buildPerTileLightListKernel += 1;
+            }
+
+            if (GetFeatureVariantsEnabled(hdCamera.frameSettings))
+            {
+                buildPerTileLightListKernel += 2;
+            }
+
+            if (isProjectionOblique)
+            {
+                buildPerTileLightListKernel += 4;
+            }
+
+            if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA))
+            {
+                buildPerTileLightListKernel += 8;
+            }
+
             parameters.runFPTL = true; // We always need the tile light list for opaque
             parameters.buildPerTileLightListShader = buildPerTileLightListShader;
-            parameters.buildPerTileLightListKernel = isProjectionOblique ? s_GenListPerTileKernel_Oblique : s_GenListPerTileKernel;
+            parameters.buildPerTileLightListKernel = buildPerTileLightListKernel;
             parameters.numTilesFPTLX = GetNumTileFtplX(hdCamera);
             parameters.numTilesFPTLY = GetNumTileFtplY(hdCamera);
             parameters.numTilesFPTL = parameters.numTilesFPTLX * parameters.numTilesFPTLY;
