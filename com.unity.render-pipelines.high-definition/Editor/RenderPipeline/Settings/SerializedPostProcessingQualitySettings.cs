@@ -32,8 +32,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
             // Motion Blur
             MotionBlurSampleCount   = root.Find((GlobalPostProcessingQualitySettings s) => s.MotionBlurSampleCount);
-
-
         }
     }
 }

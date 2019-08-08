@@ -551,13 +551,6 @@ namespace UnityEditor.Rendering.HighDefinition
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.postProcessSettings.lutFormat, k_LutFormat);
         }
 
-        static void Drawer_SectionPostProcessQualitySettings(SerializedHDRenderPipelineAsset serialized, Editor owner)
-        {
-            //EditorGUI.LabelField()
-            //++EditorGUI.indentLevel;
-
-        }
-
         static private bool m_ShowDoFLowQualitySection = false;
         static private bool m_ShowDoFMediumQualitySection = false;
         static private bool m_ShowDoFHighQualitySection = false;

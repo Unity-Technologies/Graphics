@@ -42,7 +42,6 @@ namespace UnityEditor.Rendering.HighDefinition
         static readonly GUIContent k_DoFResolutionQuality = EditorGUIUtility.TrTextContent("Resolution");
         static readonly GUIContent k_HighQualityFiltering = EditorGUIUtility.TrTextContent("High Quality Filtering");
 
-
         static readonly GUIContent k_DefaultFrameSettingsContent = EditorGUIUtility.TrTextContent("Default Frame Settings For");
 
         static readonly GUIContent k_RenderPipelineResourcesContent = EditorGUIUtility.TrTextContent("Render Pipeline Resources", "Set of resources that need to be loaded when creating stand alone");

@@ -45,7 +45,6 @@ namespace UnityEngine.Rendering.HighDefinition
             HighQualityFiltering[(int)VolumeQualitySettingsLevels.Medium] = true;
             HighQualityFiltering[(int)VolumeQualitySettingsLevels.High] = true;
 
-
             /* Motion Blur */
             MotionBlurSampleCount[(int)VolumeQualitySettingsLevels.Low] = 4;
             MotionBlurSampleCount[(int)VolumeQualitySettingsLevels.Medium] = 8;
@@ -54,7 +53,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         /// <summary>Default GlobalPostProcessingQualitySettings</summary>
         public static readonly GlobalPostProcessingQualitySettings @default = new GlobalPostProcessingQualitySettings();
-
 
         /*  Depth of field */
         public int[] NearBlurSampleCount            = new int[s_QualitySettingCount];
