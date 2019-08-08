@@ -14,31 +14,29 @@
     #define COMPARE_DEPTH(a, b) step(a, b)
 #endif
 
-SAMPLER(sampler_LinearClamp);
-
 float3 Fetch(TEXTURE2D_X(tex), float2 coords, float2 offset, float2 scale)
 {
     float2 uv = (coords + offset * _ScreenSize.zw) * scale;
-    return SAMPLE_TEXTURE2D_X_LOD(tex, sampler_LinearClamp, uv, 0).xyz;
+    return SAMPLE_TEXTURE2D_X_LOD(tex, s_linear_clamp_sampler, uv, 0).xyz;
 }
 
 float2 Fetch2(TEXTURE2D_X(tex), float2 coords, float2 offset, float2 scale)
 {
     float2 uv = (coords + offset * _ScreenSize.zw) * scale;
-    return SAMPLE_TEXTURE2D_X_LOD(tex, sampler_LinearClamp, uv, 0).xy;
+    return SAMPLE_TEXTURE2D_X_LOD(tex, s_linear_clamp_sampler, uv, 0).xy;
 }
 
 
 float4 Fetch4(TEXTURE2D_X(tex), float2 coords, float2 offset, float2 scale)
 {
     float2 uv = (coords + offset * _ScreenSize.zw) * scale;
-    return SAMPLE_TEXTURE2D_X_LOD(tex, sampler_LinearClamp, uv, 0);
+    return SAMPLE_TEXTURE2D_X_LOD(tex, s_linear_clamp_sampler, uv, 0);
 }
 
 float2 Fetch4Array(Texture2DArray tex, uint slot, float2 coords, float2 offset, float2 scale)
 {
     float2 uv = (coords + offset * _ScreenSize.zw) * scale;
-    return SAMPLE_TEXTURE2D_ARRAY_LOD(tex, sampler_LinearClamp, uv, slot, 0).xy;
+    return SAMPLE_TEXTURE2D_ARRAY_LOD(tex, s_linear_clamp_sampler, uv, slot, 0).xy;
 }
 
 float3 Map(float3 x)
@@ -95,13 +93,13 @@ float2 UnmapPerChannel(float2 x)
     #endif
 }
 
-float2 GetClosestFragment(PositionInputs posInputs)
+float2 GetClosestFragment(float2 positionSS)
 {
-    float center  = LoadCameraDepth(posInputs.positionSS);
-    float nw = LoadCameraDepth(posInputs.positionSS + int2(-1, -1));
-    float ne = LoadCameraDepth(posInputs.positionSS + int2( 1, -1));
-    float sw = LoadCameraDepth(posInputs.positionSS + int2(-1,  1));
-    float se = LoadCameraDepth(posInputs.positionSS + int2( 1,  1));
+    float center  = LoadCameraDepth(positionSS);
+    float nw = LoadCameraDepth(positionSS + int2(-1, -1));
+    float ne = LoadCameraDepth(positionSS + int2( 1, -1));
+    float sw = LoadCameraDepth(positionSS + int2(-1,  1));
+    float se = LoadCameraDepth(positionSS + int2( 1,  1));
 
     float4 neighborhood = float4(nw, ne, sw, se);
 
@@ -111,7 +109,7 @@ float2 GetClosestFragment(PositionInputs posInputs)
     closest = lerp(closest, float3(-1.0,  1.0, neighborhood.z), COMPARE_DEPTH(neighborhood.z, closest.z));
     closest = lerp(closest, float3( 1.0,  1.0, neighborhood.w), COMPARE_DEPTH(neighborhood.w, closest.z));
 
-    return posInputs.positionSS + closest.xy;
+    return positionSS + closest.xy;
 }
 
 float3 ClipToAABB(float3 color, float3 minimum, float3 maximum)

@@ -1,10 +1,8 @@
-using System;
-using UnityEngine.Experimental.Rendering.HDPipeline.Attributes;
-using UnityEngine.Rendering;
+using UnityEngine.Rendering.HighDefinition.Attributes;
 
-namespace UnityEngine.Experimental.Rendering.HDPipeline
+namespace UnityEngine.Rendering.HighDefinition
 {
-    public partial class Hair : RenderPipelineMaterial
+    partial class Hair : RenderPipelineMaterial
     {
         [GenerateHLSL(PackingRules.Exact)]
         public enum MaterialFeatureFlags

@@ -279,7 +279,7 @@ Shader "HDRP/LayeredLitTessellation"
 
         [HideInInspector][ToggleUI] _ZWrite ("__zw", Float) = 1.0
         [HideInInspector] _CullMode("__cullmode", Float) = 2.0
-        [Enum(UnityEditor.Experimental.Rendering.HDPipeline.TransparentCullMode)] _TransparentCullMode("_TransparentCullMode", Int) = 2 // Back culling by default
+        [Enum(UnityEditor.Rendering.HighDefinition.TransparentCullMode)] _TransparentCullMode("_TransparentCullMode", Int) = 2 // Back culling by default
         [HideInInspector] _ZTestDepthEqualForOpaque("_ZTestDepthEqualForOpaque", Int) = 4 // Less equal
         [HideInInspector] _ZTestGBuffer("_ZTestGBuffer", Int) = 4
         [Enum(UnityEngine.Rendering.CompareFunction)] _ZTestTransparent("Transparent ZTest", Int) = 4 // Less equal
@@ -374,6 +374,8 @@ Shader "HDRP/LayeredLitTessellation"
 
         [ToggleUI] _SupportDecals("Support Decals", Float) = 1.0
         [ToggleUI] _ReceivesSSR("Receives SSR", Float) = 1.0
+        [ToggleUI] _AddVelocityChange("EnableAdditionalVelocity", Float) = 0.0
+
     }
 
     HLSLINCLUDE
@@ -444,6 +446,7 @@ Shader "HDRP/LayeredLitTessellation"
 
     #pragma shader_feature_local _DISABLE_DECALS
     #pragma shader_feature_local _DISABLE_SSR
+    #pragma shader_feature_local _ADDITIONAL_VELOCITY_CHANGE
     #pragma shader_feature_local _ENABLE_GEOMETRIC_SPECULAR_AA
 
     // Keyword for transparent
@@ -825,5 +828,5 @@ Shader "HDRP/LayeredLitTessellation"
         }
     }
 
-    CustomEditor "UnityEditor.Experimental.Rendering.HDPipeline.LayeredLitGUI"
+    CustomEditor "UnityEditor.Rendering.HighDefinition.LayeredLitGUI"
 }

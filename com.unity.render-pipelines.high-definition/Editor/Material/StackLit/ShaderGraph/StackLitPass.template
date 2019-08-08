@@ -97,6 +97,7 @@ Pass
     // Decals:
     // DisableSSR:
     // $SpecularOcclusion:
+    // AdditionalVelocityChange:
 
     //
     // Original shader keywords reference:
@@ -146,6 +147,7 @@ Pass
 
     $DisableDecals:                                      #define _DISABLE_DECALS
     $DisableSSR:                                         #define _DISABLE_SSR
+    $AdditionalVelocityChange:                           #define _ADDITIONAL_VELOCITY_CHANGE
 
     // StackLit shader_features:
 
@@ -162,6 +164,7 @@ Pass
     $Material.Transmission:                              #define _MATERIAL_FEATURE_TRANSMISSION
     $AnisotropyForAreaLights:                            #define _ANISOTROPY_FOR_AREA_LIGHTS
     $RecomputeStackPerLight:                             #define _VLAYERED_RECOMPUTE_PERLIGHT
+    $HonorPerLightMinRoughness:                          #define _STACK_LIT_HONORS_LIGHT_MIN_ROUGHNESS
     $ShadeBaseUsingRefractedAngles:                      #define _VLAYERED_USE_REFRACTED_ANGLES_FOR_BASE
     $StackLitDebug:                                      #define _STACKLIT_DEBUG
     $DepthOffset:                                        #define _DEPTHOFFSET_ON 1
@@ -176,6 +179,8 @@ Pass
     $ScreenSpaceSpecularOcclusionBaseMode.DirectFromAO:                 #define _SCREENSPACE_SPECULAROCCLUSION_METHOD SPECULAR_OCCLUSION_FROM_AO
     $ScreenSpaceSpecularOcclusionBaseMode.ConeConeFromBentAO:           #define _SCREENSPACE_SPECULAROCCLUSION_METHOD SPECULAR_OCCLUSION_CONECONE
     $ScreenSpaceSpecularOcclusionBaseMode.SPTDIntegrationOfBentAO:      #define _SCREENSPACE_SPECULAROCCLUSION_METHOD SPECULAR_OCCLUSION_SPTD
+    //This enum case isn't handled, and normally not valided in the input UI, but if set, fallback to default:
+    $ScreenSpaceSpecularOcclusionBaseMode.Custom:                       #define _SCREENSPACE_SPECULAROCCLUSION_METHOD SPECULAR_OCCLUSION_FROM_AO
 
     $ScreenSpaceSpecularOcclusionAOConeSize.UniformAO:                  #define _SCREENSPACE_SPECULAROCCLUSION_VISIBILITY_FROM_AO_WEIGHT BENT_VISIBILITY_FROM_AO_UNIFORM
     $ScreenSpaceSpecularOcclusionAOConeSize.CosWeightedAO:              #define _SCREENSPACE_SPECULAROCCLUSION_VISIBILITY_FROM_AO_WEIGHT BENT_VISIBILITY_FROM_AO_COS
@@ -189,6 +194,10 @@ Pass
     $DataBasedSpecularOcclusionBaseMode.DirectFromAO:                   #define _DATABASED_SPECULAROCCLUSION_METHOD SPECULAR_OCCLUSION_FROM_AO
     $DataBasedSpecularOcclusionBaseMode.ConeConeFromBentAO:             #define _DATABASED_SPECULAROCCLUSION_METHOD SPECULAR_OCCLUSION_CONECONE
     $DataBasedSpecularOcclusionBaseMode.SPTDIntegrationOfBentAO:        #define _DATABASED_SPECULAROCCLUSION_METHOD SPECULAR_OCCLUSION_SPTD
+    // TODO: Normally, we would need a per lobe specular occlusion value, or at least per interface in dual normal mode
+    //       (Main rationale is that roughness can change IBL fetch direction and not only BSDF lobe width, and interface normal changes shading reference frame
+    //       hence it also changes the directional relation between the visibility cone and the BSDF lobe)
+    $DataBasedSpecularOcclusionBaseMode.Custom:                         #define _DATABASED_SPECULAROCCLUSION_METHOD SPECULAR_OCCLUSION_CUSTOM_EXT_INPUT
 
     $DataBasedSpecularOcclusionAOConeSize.UniformAO:                    #define _DATABASED_SPECULAROCCLUSION_VISIBILITY_FROM_AO_WEIGHT BENT_VISIBILITY_FROM_AO_UNIFORM
     $DataBasedSpecularOcclusionAOConeSize.CosWeightedAO:                #define _DATABASED_SPECULAROCCLUSION_VISIBILITY_FROM_AO_WEIGHT BENT_VISIBILITY_FROM_AO_COS
@@ -352,8 +361,8 @@ $include("SharedCode.template.hlsl")
         $SurfaceDescription.SmoothnessA:               surfaceData.perceptualSmoothnessA =    surfaceDescription.SmoothnessA;
         $SurfaceDescription.SmoothnessB:               surfaceData.perceptualSmoothnessB =    surfaceDescription.SmoothnessB;
         $SurfaceDescription.AmbientOcclusion:          surfaceData.ambientOcclusion =         surfaceDescription.AmbientOcclusion;
-        //TODO: if custom external values are wanted, we need one SO value per lobe.
-        //$SurfaceDescription.SpecularOcclusion:         surfaceData.specularOcclusion =        surfaceDescription.SpecularOcclusion;
+        //TODO: if custom external values are wanted, we would ideally need one SO value per lobe.
+        $SurfaceDescription.SpecularOcclusion:         surfaceData.specularOcclusionCustomInput = surfaceDescription.SpecularOcclusion;
         $SurfaceDescription.SOConeFixupVisibilityThreshold: surfaceData.soFixupVisibilityRatioThreshold = surfaceDescription.SOConeFixupVisibilityThreshold;
         $SurfaceDescription.SOConeFixupStrength:            surfaceData.soFixupStrengthFactor =           surfaceDescription.SOConeFixupStrength;
         $SurfaceDescription.SOConeFixupMaxAddedRoughness:   surfaceData.soFixupMaxAddedRoughness =        surfaceDescription.SOConeFixupMaxAddedRoughness;

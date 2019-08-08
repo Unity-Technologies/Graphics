@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using UnityEngine.Rendering;
+using UnityEngine.Experimental.Rendering;
 
-namespace UnityEngine.Experimental.Rendering.HDPipeline
+namespace UnityEngine.Rendering.HighDefinition
 {
     using AntialiasingMode = HDAdditionalCameraData.AntialiasingMode;
 
@@ -282,23 +282,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             // Update viewport
             {
-                finalViewport = new Rect(camera.pixelRect.x, camera.pixelRect.y, camera.pixelWidth, camera.pixelHeight);
-
                 if (xr.enabled)
                 {
-                    // XRTODO: update viewport code once XR SDK is working
-                    if (xr.xrSdkEnabled)
-                    {
-                        finalViewport.x = 0;
-                        finalViewport.y = 0;
-                        finalViewport.width = xr.renderTargetDesc.width;
-                        finalViewport.height = xr.renderTargetDesc.height;
-                    }
-                    else
-                    {
-                        // XRTODO: support instanced views with different viewport
-                        finalViewport = xr.GetViewport();
-                    }
+                    finalViewport = xr.GetViewport();
+                }
+                else
+                {
+                    finalViewport = new Rect(camera.pixelRect.x, camera.pixelRect.y, camera.pixelWidth, camera.pixelHeight);
                 }
 
                 m_ActualWidth = Math.Max((int)finalViewport.size.x, 1);
@@ -308,7 +298,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             Vector2Int nonScaledViewport = new Vector2Int(m_ActualWidth, m_ActualHeight);
             if (isMainGameView)
             {
-                Vector2Int scaledSize = HDDynamicResolutionHandler.instance.GetRTHandleScale(new Vector2Int(m_ActualWidth, m_ActualHeight));
+                Vector2Int scaledSize = DynamicResolutionHandler.instance.GetRTHandleScale(new Vector2Int(m_ActualWidth, m_ActualHeight));
                 m_ActualWidth = scaledSize.x;
                 m_ActualHeight = scaledSize.y;
             }
@@ -446,6 +436,33 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
 
             xrViewConstantsGpu.SetData(xrViewConstants);
+
+            // Update frustum and projection parameters
+            {
+                var projMatrix = mainViewConstants.projMatrix;
+                var invProjMatrix = mainViewConstants.invProjMatrix;
+                var viewProjMatrix = mainViewConstants.viewProjMatrix;
+
+                if (xr.enabled)
+                {
+                    var combinedProjMatrix = xr.cullingParams.stereoProjectionMatrix;
+                    var combinedViewMatrix = xr.cullingParams.stereoViewMatrix;
+
+                    if (ShaderConfig.s_CameraRelativeRendering != 0)
+                    {
+                        var combinedOrigin = combinedViewMatrix.inverse.GetColumn(3) - (Vector4)(camera.transform.position);
+                        combinedViewMatrix.SetColumn(3, combinedOrigin);
+                    }
+
+                    projMatrix = combinedProjMatrix;
+                    invProjMatrix = projMatrix.inverse;
+                    viewProjMatrix = projMatrix * combinedViewMatrix;
+                }
+
+                UpdateFrustum(projMatrix, invProjMatrix, viewProjMatrix);
+            }
+
+            m_RecorderCaptureActions = CameraCaptureBridge.GetCaptureActions(camera);
         }
 
         void UpdateViewConstants(ref ViewConstants viewConstants, Matrix4x4 projMatrix, Matrix4x4 viewMatrix, Vector3 cameraPosition, bool jitterProjectionMatrix, bool updatePreviousFrameConstants)
@@ -513,17 +530,19 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 noTransViewMatrix.SetColumn(3, new Vector4(0, 0, 0, 1));
                 viewConstants.prevViewProjMatrixNoCameraTrans = gpuNonJitteredProj * noTransViewMatrix;
             }
+        }
 
-            // XRTODO: figure out if the following variables must be in ViewConstants
+        void UpdateFrustum(Matrix4x4 projMatrix, Matrix4x4 invProjMatrix, Matrix4x4 viewProjMatrix)
+        {
             float n = camera.nearClipPlane;
             float f = camera.farClipPlane;
 
             // Analyze the projection matrix.
             // p[2][3] = (reverseZ ? 1 : -1) * (depth_0_1 ? 1 : 2) * (f * n) / (f - n)
-            float scale     = viewConstants.projMatrix[2, 3] / (f * n) * (f - n);
+            float scale     = projMatrix[2, 3] / (f * n) * (f - n);
             bool  depth_0_1 = Mathf.Abs(scale) < 1.5f;
             bool  reverseZ  = scale > 0;
-            bool  flipProj  = viewConstants.invProjMatrix.MultiplyPoint(new Vector3(0, 1, 0)).y < 0;
+            bool  flipProj  = invProjMatrix.MultiplyPoint(new Vector3(0, 1, 0)).y < 0;
 
             // http://www.humus.name/temp/Linearize%20depth.txt
             if (reverseZ)
@@ -541,15 +560,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             float orthoWidth  = orthoHeight * camera.aspect;
             unity_OrthoParams = new Vector4(orthoWidth, orthoHeight, 0, camera.orthographic ? 1 : 0);
 
-            Frustum.Create(frustum, viewConstants.viewProjMatrix, depth_0_1, reverseZ);
+            Frustum.Create(frustum, viewProjMatrix, depth_0_1, reverseZ);
 
             // Left, right, top, bottom, near, far.
             for (int i = 0; i < 6; i++)
             {
                 frustumPlaneEquations[i] = new Vector4(frustum.planes[i].normal.x, frustum.planes[i].normal.y, frustum.planes[i].normal.z, frustum.planes[i].distance);
             }
-
-            m_RecorderCaptureActions = CameraCaptureBridge.GetCaptureActions(camera);
         }
 
         void UpdateVolumeParameters()
@@ -615,27 +632,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        // Stopgap method used to extract stereo combined matrix state.
-        public void UpdateStereoDependentState(ref ScriptableCullingParameters cullingParams)
-        {
-            // XRTODO: remove this after culling management is finished
-            if (xr.instancingEnabled)
-            {
-                var view = cullingParams.stereoViewMatrix;
-                var proj = cullingParams.stereoProjectionMatrix;
-
-                UpdateViewConstants(ref mainViewConstants, proj, view, cullingParams.origin, IsTAAEnabled(), false);
-            }
-        }
-
-        // XRTODO: this function should not rely on camera.pixelWidth and camera.pixelHeight
         Matrix4x4 GetJitteredProjectionMatrix(Matrix4x4 origProj)
         {
             // The variance between 0 and the actual halton sequence values reveals noticeable
             // instability in Unity's shadow maps, so we avoid index 0.
             float jitterX = HaltonSequence.Get((taaFrameIndex & 1023) + 1, 2) - 0.5f;
             float jitterY = HaltonSequence.Get((taaFrameIndex & 1023) + 1, 3) - 0.5f;
-            taaJitter = new Vector4(jitterX, jitterY, jitterX / camera.pixelWidth, jitterY / camera.pixelHeight);
+            taaJitter = new Vector4(jitterX, jitterY, jitterX / m_ActualWidth, jitterY / m_ActualHeight);
 
             const int kMaxSampleCount = 8;
             if (++taaFrameIndex >= kMaxSampleCount)
@@ -649,8 +652,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 float horizontal = vertical * camera.aspect;
 
                 var offset = taaJitter;
-                offset.x *= horizontal / (0.5f * camera.pixelWidth);
-                offset.y *= vertical / (0.5f * camera.pixelHeight);
+                offset.x *= horizontal / (0.5f * m_ActualWidth);
+                offset.y *= vertical / (0.5f * m_ActualHeight);
 
                 float left = offset.x - horizontal;
                 float right = offset.x + horizontal;
@@ -666,8 +669,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 float vertFov = Math.Abs(planes.top) + Math.Abs(planes.bottom);
                 float horizFov = Math.Abs(planes.left) + Math.Abs(planes.right);
 
-                var planeJitter = new Vector2(jitterX * horizFov / camera.pixelWidth,
-                    jitterY * vertFov / camera.pixelHeight);
+                var planeJitter = new Vector2(jitterX * horizFov / m_ActualWidth,
+                    jitterY * vertFov / m_ActualHeight);
 
                 planes.left += planeJitter.x;
                 planes.right += planeJitter.x;
@@ -734,7 +737,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
 
         // BufferedRTHandleSystem API expects an allocator function. We define it here.
-        static RTHandleSystem.RTHandle HistoryBufferAllocatorFunction(string viewName, int frameIndex, RTHandleSystem rtHandleSystem)
+        static RTHandle HistoryBufferAllocatorFunction(string viewName, int frameIndex, RTHandleSystem rtHandleSystem)
         {
             frameIndex &= 1;
             var hdPipeline = (HDRenderPipeline)RenderPipelineManager.currentPipeline;
@@ -845,18 +848,18 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             cmd.SetGlobalBuffer(HDShaderIDs._XRViewConstants, xrViewConstantsGpu);
         }
 
-        public RTHandleSystem.RTHandle GetPreviousFrameRT(int id)
+        public RTHandle GetPreviousFrameRT(int id)
         {
             return m_HistoryRTSystem.GetFrameRT(id, 1);
         }
 
-        public RTHandleSystem.RTHandle GetCurrentFrameRT(int id)
+        public RTHandle GetCurrentFrameRT(int id)
         {
             return m_HistoryRTSystem.GetFrameRT(id, 0);
         }
 
         // Allocate buffers frames and return current frame
-        public RTHandleSystem.RTHandle AllocHistoryFrameRT(int id, Func<string, int, RTHandleSystem, RTHandleSystem.RTHandle> allocator, int bufferCount)
+        public RTHandle AllocHistoryFrameRT(int id, Func<string, int, RTHandleSystem, RTHandle> allocator, int bufferCount)
         {
             m_HistoryRTSystem.AllocBuffer(id, (rts, i) => allocator(camera.name, i, rts), bufferCount);
             return m_HistoryRTSystem.GetFrameRT(id, 0);
@@ -864,11 +867,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public void AllocateAmbientOcclusionHistoryBuffer(float scaleFactor)
         {
-            if (scaleFactor != m_AmbientOcclusionResolutionScale)
+            if (scaleFactor != m_AmbientOcclusionResolutionScale || GetCurrentFrameRT((int)HDCameraFrameHistoryType.AmbientOcclusion) == null)
             {
                 ReleaseHistoryFrameRT((int)HDCameraFrameHistoryType.AmbientOcclusion);
 
-                RTHandleSystem.RTHandle Allocator(string id, int frameIndex, RTHandleSystem rtHandleSystem)
+                RTHandle Allocator(string id, int frameIndex, RTHandleSystem rtHandleSystem)
                 {
                     return rtHandleSystem.Alloc(Vector2.one * scaleFactor, TextureXR.slices, filterMode: FilterMode.Point, colorFormat: GraphicsFormat.R32_UInt, dimension: TextureXR.dimension, useDynamicScale: true, enableRandomWrite: true, name: string.Format("AO Packed history_{0}", frameIndex));
                 }
@@ -889,7 +892,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_HistoryRTSystem.ReleaseAll();
         }
 
-        public void ExecuteCaptureActions(RTHandleSystem.RTHandle input, CommandBuffer cmd)
+        public void ExecuteCaptureActions(RTHandle input, CommandBuffer cmd)
         {
             if (m_RecorderCaptureActions == null || !m_RecorderCaptureActions.MoveNext())
                 return;

@@ -2,17 +2,17 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using UnityEngine.Experimental.Rendering.HDPipeline;
+using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.Rendering;
 using UnityEditor.ShaderGraph;
 
 // Include material common properties names
-using static UnityEngine.Experimental.Rendering.HDPipeline.HDMaterialProperties;
+using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
 
-namespace UnityEditor.Experimental.Rendering.HDPipeline
+namespace UnityEditor.Rendering.HighDefinition
 {
     // Extension class to setup material keywords on unlit materials
-    public static class BaseUnlitGUI
+        static class BaseUnlitGUI
     {
         public static void SetupBaseUnlitKeywords(this Material material)
         {
@@ -314,13 +314,23 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             // Shader graphs materials have their own management of motion vector pass in the material inspector
             if (!material.shader.IsShaderGraph())
             {
+                //In the case of additional velocity data we will enable the motion vector pass.
+                bool additionalVelocityEnabled = false;
+                if (material.HasProperty(kAdditionalVelocityChange))
+                {
+                    additionalVelocityEnabled = material.GetInt(kAdditionalVelocityChange) != 0;
+                }
+
                 // We don't have any vertex animation for lit/unlit vector, so we
                 // setup motion vector pass to false. Remind that in HDRP this
                 // doesn't disable motion vector, it just mean that the material
                 // don't do any vertex deformation but we can still have
                 // skinning / morph target
-                material.SetShaderPassEnabled(HDShaderPassNames.s_MotionVectorsStr, false);
-            }
+                material.SetShaderPassEnabled(HDShaderPassNames.s_MotionVectorsStr, additionalVelocityEnabled);
+
+             }
+
         }
+
     }
 }

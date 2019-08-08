@@ -1,13 +1,13 @@
 using System;
 using UnityEditor.Rendering;
 using UnityEngine;
-using UnityEngine.Experimental.Rendering.HDPipeline;
+using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.Rendering;
 using UnityEngine.UIElements;
 
-namespace UnityEditor.Experimental.Rendering.HDPipeline
+namespace UnityEditor.Rendering.HighDefinition
 {
-    public class DefaultSettingsPanelProvider
+    class DefaultSettingsPanelProvider
     {
         [SettingsProvider]
         public static SettingsProvider CreateSettingsProvider()
@@ -16,7 +16,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 activateHandler = (searchContext, rootElement) =>
                 {
-                    HDEditorUtils.AddStyleSheets(rootElement);
+                    HDEditorUtils.AddStyleSheets(rootElement, HDEditorUtils.FormatingPath);
+                    HDEditorUtils.AddStyleSheets(rootElement, HDEditorUtils.QualitySettingsSheetPath);
 
                     var panel = new DefaultSettingsPanel(searchContext);
                     panel.style.flexGrow = 1;
@@ -125,6 +126,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 {
                     asset = newAsset;
                     hdrpAsset.defaultVolumeProfile = asset;
+                    EditorUtility.SetDirty(hdrpAsset);
                 }
 
                 Editor.CreateCachedEditor(asset,

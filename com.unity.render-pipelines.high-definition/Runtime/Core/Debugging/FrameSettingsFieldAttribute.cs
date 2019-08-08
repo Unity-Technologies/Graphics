@@ -1,13 +1,9 @@
 using System;
-using System.Collections.Generic;
-using System.Linq.Expressions;
-using System.Reflection;
-using System.Runtime.CompilerServices;
 using System.Text;
 
-namespace UnityEngine.Experimental.Rendering.HDPipeline
+namespace UnityEngine.Rendering.HighDefinition
 {
-    public static partial class StringExtention
+    static partial class StringExtention
     {
         /// <summary>Runtime alternative to UnityEditor.ObjectNames.NicifyVariableName. Only prefix 'm_' is not skipped.</summary>
         public static string CamelToPascalCaseWithSpace(this string text, bool preserveAcronyms = true)
@@ -31,7 +27,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
     /// <summary>Should only be used on enum value of field to describe aspect in DebugMenu</summary>
     [AttributeUsage(AttributeTargets.Field)]
-    public class FrameSettingsFieldAttribute : Attribute
+    class FrameSettingsFieldAttribute : Attribute
     {
         public enum DisplayType { BoolAsCheckbox, BoolAsEnumPopup, Others }
         public readonly DisplayType type;
@@ -61,7 +57,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             if (string.IsNullOrEmpty(displayedName))
                 displayedName = autoName.ToString().CamelToPascalCaseWithSpace();
-            
+
             // Editor and Runtime debug menu
             this.group = group;
             if (customOrderInGroup != -1)

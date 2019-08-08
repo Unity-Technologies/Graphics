@@ -1,9 +1,9 @@
 using UnityEngine;
-using UnityEngine.Experimental.Rendering.HDPipeline;
-using System.Collections.Generic;
+using UnityEngine.Rendering.HighDefinition;
 using UnityEditorInternal;
+using UnityEditor.Rendering;
 
-namespace UnityEditor.Experimental.Rendering.HDPipeline
+namespace UnityEditor.Rendering.HighDefinition
 {
     [CanEditMultipleObjects]
     [CustomEditor(typeof(DensityVolume))]
@@ -16,7 +16,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         internal static HierarchicalBox s_BlendBox;
 
         SerializedDensityVolume m_SerializedDensityVolume;
-        
+
         void OnEnable()
         {
             m_SerializedDensityVolume = new SerializedDensityVolume(serializedObject);
@@ -75,7 +75,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             else
                 return size - densityVolume.parameters.m_EditorUniformFade * 2f * Vector3.one;
         }
-        
+
         [DrawGizmo(GizmoType.Selected|GizmoType.Active)]
         static void DrawGizmosSelected(DensityVolume densityVolume, GizmoType gizmoType)
         {
@@ -88,7 +88,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 baseColor.a = 8/255f;
                 s_BlendBox.baseColor = baseColor;
                 s_BlendBox.DrawHull(EditMode.editMode == k_EditBlend);
-                
+
                 // Bounding box.
                 s_ShapeBox.center = Vector3.zero;
                 s_ShapeBox.size = densityVolume.parameters.size;
@@ -163,16 +163,16 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                         Vector3 previousSize = densityVolume.parameters.size;
                         Vector3 previousPositiveFade = densityVolume.parameters.m_EditorPositiveFade;
                         Vector3 previousNegativeFade = densityVolume.parameters.m_EditorNegativeFade;
-                        
+
                         EditorGUI.BeginChangeCheck();
                         s_ShapeBox.DrawHandle();
                         if (EditorGUI.EndChangeCheck())
                         {
                             Undo.RecordObjects(new Object[] { densityVolume, densityVolume.transform }, "ChangeDensity Volume Bounding Box");
-                            
+
                             Vector3 newSize = s_ShapeBox.size;
                             densityVolume.parameters.size = newSize;
-                            
+
                             Vector3 newPositiveFade = new Vector3(
                                 newSize.x < 0.00001 ? 0 : previousPositiveFade.x * previousSize.x / newSize.x,
                                 newSize.y < 0.00001 ? 0 : previousPositiveFade.y * previousSize.y / newSize.y,

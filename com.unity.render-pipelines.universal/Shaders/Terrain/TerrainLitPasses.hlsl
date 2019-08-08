@@ -36,12 +36,12 @@ struct Varyings
 #endif
 
 #if defined(_NORMALMAP) && !defined(ENABLE_TERRAIN_PERPIXEL_NORMAL)
-    half4 normal                    : TEXCOORD3;    // xyz: normal, w: viewDir.x
-    half4 tangent                   : TEXCOORD4;    // xyz: tangent, w: viewDir.y
-    half4 bitangent                 : TEXCOORD5;    // xyz: bitangent, w: viewDir.z
+    float4 normal                   : TEXCOORD3;    // xyz: normal, w: viewDir.x
+    float4 tangent                  : TEXCOORD4;    // xyz: tangent, w: viewDir.y
+    float4 bitangent                : TEXCOORD5;    // xyz: bitangent, w: viewDir.z
 #else
-    half3 normal                    : TEXCOORD3;
-    half3 viewDir                   : TEXCOORD4;
+    float3 normal                   : TEXCOORD3;
+    float3 viewDir                  : TEXCOORD4;
     half3 vertexSH                  : TEXCOORD5; // SH
 #endif
 
@@ -118,20 +118,18 @@ void SplatmapMix(float4 uvMainAndLM, float4 uvSplat01, float4 uvSplat23, inout h
     opacityAsDensity += 0.001h * splatControl;      // if all weights are zero, default to what the blend mask says
     half4 useOpacityAsDensityParam = { _DiffuseRemapScale0.w, _DiffuseRemapScale1.w, _DiffuseRemapScale2.w, _DiffuseRemapScale3.w }; // 1 is off
     splatControl = lerp(opacityAsDensity, splatControl, useOpacityAsDensityParam);
-    splatControl /= dot(splatControl, 1.0h);
 #endif
 
     // Now that splatControl has changed, we can compute the final weight and normalize
     weight = dot(splatControl, 1.0h);
 
-#if !defined(SHADER_API_MOBILE) &&!defined(SHADER_API_SWITCH) && defined(TERRAIN_SPLAT_ADDPASS)
+#if !defined(SHADER_API_MOBILE) && !defined(SHADER_API_SWITCH) && defined(TERRAIN_SPLAT_ADDPASS)
     clip(weight == 0.0h ? -1.0h : 1.0h);
 #endif
 
-#ifndef TERRAIN_SPLAT_ADDPASS
+#ifndef _TERRAIN_BASEMAP_GEN
     // Normalize weights before lighting and restore weights in final modifier functions so that the overal
-    // lighting result can be correctly weighted.  In the add pass, we can assume the weights
-    // are already properly normalized in the layer below, so we don't want to renormalize again.
+    // lighting result can be correctly weighted.
     splatControl /= (weight + HALF_MIN);
 #endif
 
@@ -337,7 +335,7 @@ half4 SplatmapFragment(Varyings IN) : SV_TARGET
 
     InputData inputData;
     InitializeInputData(IN, normalTS, inputData);
-    half4 color = UniversalFragmentPBR(inputData, albedo, metallic, half3(0.0h, 0.0h, 0.0h), smoothness, occlusion, /* emission */ half3(0, 0, 0), alpha);
+    half4 color = UniversalFragmentPBR(inputData, albedo, metallic, /* specular */ half3(0.0h, 0.0h, 0.0h), smoothness, occlusion, /* emission */ half3(0, 0, 0), alpha);
 
     SplatmapFinalColor(color, inputData.fogCoord);
 

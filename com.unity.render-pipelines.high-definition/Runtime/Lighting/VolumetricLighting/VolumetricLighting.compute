@@ -87,7 +87,7 @@ TEXTURE3D(_VBufferDensity);                     // RGB = scattering, A = extinct
 
 // TODO: avoid creating another Constant Buffer...
 CBUFFER_START(UnityVolumetricLighting)
-    float4x4 _VBufferCoordToViewDirWS[XR_MAX_VIEWS];
+    float4x4 _VBufferCoordToViewDirWS[SHADEROPTIONS_XR_MAX_VIEWS];
 
     float    _VBufferUnitDepthTexelSpacing;
     uint     _NumVisibleDensityVolumes;         // Not used by this shader

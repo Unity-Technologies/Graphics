@@ -50,6 +50,7 @@ TEXTURE2D_X(_HistoryBuffer);
     RW_TEXTURE2D_X(float4, _DenoiseOutputTextureRW);
 #endif
 
+#if SINGLE_CHANNEL
 [numthreads(SPATIO_TEMPORAL_TILE_SIZE, SPATIO_TEMPORAL_TILE_SIZE, 1)]
 void TEMPORAL_ACCUMULATION_SINGLE(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
 {
@@ -59,7 +60,7 @@ void TEMPORAL_ACCUMULATION_SINGLE(uint2 groupThreadId : SV_GroupThreadID, uint2 
     float depth = LOAD_TEXTURE2D_X(_DepthTexture, centerCoord).r;
     PositionInputs posInputs = GetPositionInput(centerCoord, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
 
-    float2 closest = GetClosestFragment(posInputs);
+    float2 closest = GetClosestFragment(posInputs.positionSS);
 
     float2 velocity;
     DecodeMotionVector(LOAD_TEXTURE2D_X(_CameraMotionVectorsTexture, closest), velocity);
@@ -112,6 +113,8 @@ void TEMPORAL_ACCUMULATION_SINGLE(uint2 groupThreadId : SV_GroupThreadID, uint2 
     _DenoiseOutputTextureRW[COORD_TEXTURE2D_X(centerCoord)] = color;
 }
 
+#else
+
 [numthreads(SPATIO_TEMPORAL_TILE_SIZE, SPATIO_TEMPORAL_TILE_SIZE, 1)]
 void TEMPORAL_ACCUMULATION_COLOR(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
 {
@@ -121,7 +124,7 @@ void TEMPORAL_ACCUMULATION_COLOR(uint2 groupThreadId : SV_GroupThreadID, uint2 g
     float depth = LOAD_TEXTURE2D_X(_DepthTexture, centerCoord).r;
     PositionInputs posInputs = GetPositionInput(centerCoord, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
 
-    float2 closest = GetClosestFragment(posInputs);
+    float2 closest = GetClosestFragment(posInputs.positionSS);
 
     float2 velocity;
     DecodeMotionVector(LOAD_TEXTURE2D_X(_CameraMotionVectorsTexture, closest), velocity);
@@ -168,6 +171,7 @@ void TEMPORAL_ACCUMULATION_COLOR(uint2 groupThreadId : SV_GroupThreadID, uint2 g
 
     _DenoiseOutputTextureRW[COORD_TEXTURE2D_X(centerCoord)] = float4(color, LOAD_TEXTURE2D_X(_DenoiseInputTexture, centerCoord).w);
 }
+#endif
 
 [numthreads(SPATIO_TEMPORAL_TILE_SIZE, SPATIO_TEMPORAL_TILE_SIZE, 1)]
 void COPY_HISTORY(uint3 dispatchThreadId : SV_DispatchThreadID)
@@ -184,7 +188,11 @@ void COPY_HISTORY(uint3 dispatchThreadId : SV_DispatchThreadID)
         _DenoiseOutputTextureRW[uint3(dispatchThreadId.xy, _HistorySlot)] = _DenoiseInputTexture[COORD_TEXTURE2D_X(dispatchThreadId.xy)];
         #endif
     #else
+        #ifdef SINGLE_CHANNEL
+        _DenoiseOutputTextureRW[COORD_TEXTURE2D_X(dispatchThreadId.xy)] = _DenoiseInputTexture[COORD_TEXTURE2D_X(dispatchThreadId.xy)].x;
+        #else
         _DenoiseOutputTextureRW[COORD_TEXTURE2D_X(dispatchThreadId.xy)] = _DenoiseInputTexture[COORD_TEXTURE2D_X(dispatchThreadId.xy)];
+        #endif
     #endif
 }
 

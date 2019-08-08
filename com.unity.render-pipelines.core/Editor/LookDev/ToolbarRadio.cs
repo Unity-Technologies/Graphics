@@ -3,9 +3,9 @@ using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.UIElements;
 
-namespace UnityEditor.Rendering.Experimental.LookDev
+namespace UnityEditor.Rendering.LookDev
 {
-    public class ToolbarRadio : Toolbar, INotifyValueChanged<int>
+    class ToolbarRadio : Toolbar, INotifyValueChanged<int>
     {
         public new class UxmlFactory : UxmlFactory<ToolbarRadio, UxmlTraits> { }
         public new class UxmlTraits : Button.UxmlTraits { }
@@ -17,7 +17,7 @@ namespace UnityEditor.Rendering.Experimental.LookDev
         bool m_CanDeselectAll = false;
 
         public int radioLength { get; private set; } = 0;
-        
+
         int m_Value;
         public int value
         {

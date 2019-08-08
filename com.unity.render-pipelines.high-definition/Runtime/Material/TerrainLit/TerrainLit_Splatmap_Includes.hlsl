@@ -15,7 +15,8 @@
     float _NormalScale##n;              \
     float4 _DiffuseRemapScale##n;       \
     float4 _MaskMapRemapOffset##n;      \
-    float4 _MaskMapRemapScale##n;
+    float4 _MaskMapRemapScale##n;       \
+    float _LayerHasMask##n;
 
 #define DECLARE_TERRAIN_LAYER_PROPS_FIRST_4 \
     DECLARE_TERRAIN_LAYER_PROPS(0)          \

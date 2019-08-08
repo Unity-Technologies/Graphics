@@ -3,7 +3,7 @@ using UnityEngine;
 using UnityEditor.ShortcutManagement;
 using UnityEngine.UIElements;
 
-namespace UnityEditor.Rendering.Experimental.LookDev
+namespace UnityEditor.Rendering.LookDev
 {
     class CameraController : Manipulator
     {
@@ -29,6 +29,7 @@ namespace UnityEditor.Rendering.Experimental.LookDev
 
         protected CameraState m_CameraState;
         DisplayWindow m_Window;
+        protected Action m_Focused;
 
         Rect screen => target.contentRect;
 
@@ -55,7 +56,7 @@ namespace UnityEditor.Rendering.Experimental.LookDev
                 }
             }
         }
-        
+
         float flySpeedNormalized
         {
             get => m_FlySpeedNormalized;
@@ -99,10 +100,11 @@ namespace UnityEditor.Rendering.Experimental.LookDev
             }
         }
 
-        public CameraController(CameraState cameraState, DisplayWindow window)
+        public CameraController(CameraState cameraState, DisplayWindow window, Action focused)
         {
             m_CameraState = cameraState;
             m_Window = window;
+            m_Focused = focused;
         }
 
         private void ResetCameraControl()
@@ -111,7 +113,7 @@ namespace UnityEditor.Rendering.Experimental.LookDev
             inFlyMotion = false;
             m_BehaviorState = ViewTool.None;
         }
-        
+
         protected virtual void OnScrollWheel(WheelEvent evt)
         {
             // See UnityEditor.SceneViewMotion.HandleScrollWheel
@@ -136,9 +138,7 @@ namespace UnityEditor.Rendering.Experimental.LookDev
 
         void OnKeyDown(KeyDownEvent evt)
         {
-            if (m_BehaviorState == ViewTool.FPS)
-                OnKeyDownFPS(evt);
-
+            OnKeyDownFPS(evt);
             OnKeyDownReset(evt);
         }
 
@@ -176,7 +176,7 @@ namespace UnityEditor.Rendering.Experimental.LookDev
             m_CameraState.rotation = rotation;
             evt.StopPropagation();
         }
-        
+
         void OnMouseDragFPS(MouseMoveEvent evt)
         {
             Vector3 camPos = m_CameraState.pivot - m_CameraState.rotation * Vector3.forward * m_CameraState.distanceFromPivot;
@@ -217,14 +217,15 @@ namespace UnityEditor.Rendering.Experimental.LookDev
         void OnKeyDownReset(KeyDownEvent evt)
         {
             if (evt.keyCode == KeyCode.Escape)
-            {
                 ResetCameraControl();
-                evt.StopPropagation();
-            }
+            evt.StopPropagation();
         }
-        
+
         void OnKeyDownFPS(KeyDownEvent evt)
         {
+            if (m_BehaviorState != ViewTool.FPS)
+                return;
+
             //Note: Keydown is called in loop but between first occurence of the
             // loop and laters, there is a small pause. To deal with this, we
             // need to register the UpdateMovement function to the Editor update
@@ -242,9 +243,12 @@ namespace UnityEditor.Rendering.Experimental.LookDev
             if (GetKeyCombinationByID("3D Viewport/Fly Mode Down", out combination) && combination.Match(evt))
                 RegisterMotionChange(Vector3.down, evt);
         }
-        
+
         void OnKeyUpFPS(KeyUpEvent evt)
         {
+            if (m_BehaviorState != ViewTool.FPS)
+                return;
+
             KeyCombination combination;
             if (GetKeyCombinationByID("3D Viewport/Fly Mode Forward", out combination) && combination.Match(evt))
                 RegisterMotionChange(Vector3.back, evt);
@@ -284,15 +288,15 @@ namespace UnityEditor.Rendering.Experimental.LookDev
             result = m_MotionDirection.normalized * m_FlySpeedAccelerated * speed * deltaTime;
             return result;
         }
-        
+
         void UpdateMotion()
         {
-            if(Mathf.Approximately(m_MotionDirection.sqrMagnitude, 0f))
+            if (Mathf.Approximately(m_MotionDirection.sqrMagnitude, 0f))
                 inFlyMotion = false;
             else
                 m_CameraState.pivot += m_CameraState.rotation * GetMotionDirection();
         }
-        
+
         bool GetKeyCombinationByID(string ID, out KeyCombination combination)
         {
             var sequence = ShortcutManager.instance.GetShortcutBinding(ID).keyCombinationSequence.GetEnumerator();
@@ -340,8 +344,10 @@ namespace UnityEditor.Rendering.Experimental.LookDev
             target.Focus(); //required for keyboard event
             isDragging = true;
             evt.StopPropagation();
+
+            m_Focused?.Invoke();
         }
-        
+
         protected override void RegisterCallbacksOnTarget()
         {
             target.focusable = true; //prerequisite for being focusable and recerive keydown events
@@ -360,7 +366,7 @@ namespace UnityEditor.Rendering.Experimental.LookDev
             target.UnregisterCallback<KeyDownEvent>(OnKeyDown);
             target.UnregisterCallback<KeyUpEvent>(OnKeyUpFPS);
         }
-        
+
         struct KeyCombination
         {
             KeyCode key;
@@ -415,21 +421,25 @@ namespace UnityEditor.Rendering.Experimental.LookDev
     {
         CameraState m_FirstView;
         CameraState m_SecondView;
+        ViewIndex m_CurrentViewIndex;
 
         bool switchedDrag = false;
         bool switchedWheel = false;
 
-        public SwitchableCameraController(CameraState cameraStateFirstView, CameraState cameraStateSecondView, DisplayWindow window)
-            : base(cameraStateFirstView, window)
+        public SwitchableCameraController(CameraState cameraStateFirstView, CameraState cameraStateSecondView, DisplayWindow window, Action<ViewIndex> focused)
+            : base(cameraStateFirstView, window, null)
         {
             m_FirstView = cameraStateFirstView;
             m_SecondView = cameraStateSecondView;
+            m_CurrentViewIndex = ViewIndex.First;
+
+            m_Focused = () => focused?.Invoke(m_CurrentViewIndex);
         }
 
         void SwitchTo(ViewIndex index)
         {
             CameraState stateToSwitch;
-            switch(index)
+            switch (index)
             {
                 case ViewIndex.First:
                     stateToSwitch = m_FirstView;
@@ -443,6 +453,8 @@ namespace UnityEditor.Rendering.Experimental.LookDev
 
             if (stateToSwitch != m_CameraState)
                 m_CameraState = stateToSwitch;
+
+            m_CurrentViewIndex = index;
         }
 
         public void SwitchUntilNextEndOfDrag()
@@ -453,7 +465,7 @@ namespace UnityEditor.Rendering.Experimental.LookDev
 
         override protected bool isDragging
         {
-            get => base.isDragging; 
+            get => base.isDragging;
             set
             {
                 bool switchBack = false;
@@ -464,7 +476,7 @@ namespace UnityEditor.Rendering.Experimental.LookDev
                     SwitchTo(ViewIndex.First);
             }
         }
-        
+
         public void SwitchUntilNextWheelEvent()
         {
             switchedWheel = true;

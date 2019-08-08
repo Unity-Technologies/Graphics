@@ -53,7 +53,7 @@ namespace UnityEditor.VFX
             return changed;
         }
 
-        protected override sealed void OnInvalidate(VFXModel model, InvalidationCause cause)
+        protected override void OnInvalidate(VFXModel model, InvalidationCause cause)
         {
             //Detect spaceable input slot & set output slot as a result (if one output slot is spaceable)
             var inputSlotSpaceable = inputSlots.Where(o => o.spaceable);

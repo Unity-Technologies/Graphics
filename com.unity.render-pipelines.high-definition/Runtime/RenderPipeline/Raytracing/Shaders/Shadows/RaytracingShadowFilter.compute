@@ -82,7 +82,7 @@ void AreaShadowApplyTAA(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : 
     PositionInputs posInputs = GetPositionInput(centerCoord, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
 
     // Get the cosest pixel
-    float2 closest = GetClosestFragment(posInputs);
+    float2 closest = GetClosestFragment(posInputs.positionSS);
 
     // Read the matching velocity
     float2 velocity;
@@ -158,7 +158,7 @@ void AreaShadowApplyTAA2(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId :
 
     // Fetch velocity information
     float2 velocity = 0.0;
-    const float2 closest = GetClosestFragment(posInput);
+    const float2 closest = GetClosestFragment(posInput.positionSS);
     DecodeMotionVector(LOAD_TEXTURE2D_X(_CameraMotionVectorsTexture, closest), velocity);
     const float velocityLength = length(velocity);
 

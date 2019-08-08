@@ -1,9 +1,8 @@
 using System.Collections.Generic;
-using UnityEngine.Rendering;
 
-namespace UnityEngine.Experimental.Rendering.HDPipeline
+namespace UnityEngine.Rendering.HighDefinition
 {
-    public class DensityVolumeManager
+    class DensityVolumeManager
     {
         static private DensityVolumeManager _instance = null;
 

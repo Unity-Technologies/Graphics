@@ -1,11 +1,10 @@
 using UnityEngine;
-using UnityEngine.Experimental.Rendering.HDPipeline;
-using System.Linq;
+using UnityEngine.Rendering;
 
 // Include material common properties names
-using static UnityEngine.Experimental.Rendering.HDPipeline.HDMaterialProperties;
+using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
 
-namespace UnityEditor.Experimental.Rendering.HDPipeline
+namespace UnityEditor.Rendering.HighDefinition
 {
     /// <summary>
     /// GUI for HDRP Fabric shader graphs
@@ -17,7 +16,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             ^ SurfaceOptionUIBlock.Features.AlphaCutoff
             ^ SurfaceOptionUIBlock.Features.BackThenFrontRendering
             ^ SurfaceOptionUIBlock.Features.ShowAfterPostProcessPass;
-        
+
         MaterialUIBlockList uiBlocks = new MaterialUIBlockList
         {
             new SurfaceOptionUIBlock(MaterialUIBlock.Expandable.Base, features: surfaceOptionFeatures),
@@ -41,13 +40,20 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         public static void SetupMaterialKeywordsAndPass(Material material)
         {
+            SynchronizeShaderGraphProperties(material);
+
             BaseLitGUI.SetupBaseLitKeywords(material);
+            BaseLitGUI.SetupBaseLitMaterialPass(material);
             bool receiveSSR = material.HasProperty(kReceivesSSR) ? material.GetInt(kReceivesSSR) != 0 : false;
             bool useSplitLighting = material.HasProperty(kUseSplitLighting) ? material.GetInt(kUseSplitLighting) != 0: false;
             BaseLitGUI.SetupStencil(material, receiveSSR, useSplitLighting);
+            if (material.HasProperty(kAdditionalVelocityChange))
+            {
+                CoreUtils.SetKeyword(material, "_ADDITIONAL_VELOCITY_CHANGE", material.GetInt(kAdditionalVelocityChange) != 0);
+            }
+
         }
 
-        // Currently Lit material keyword setup is enough for fabric so we don't have a function for it
         protected override void SetupMaterialKeywordsAndPassInternal(Material material) => SetupMaterialKeywordsAndPass(material);
     }
 }

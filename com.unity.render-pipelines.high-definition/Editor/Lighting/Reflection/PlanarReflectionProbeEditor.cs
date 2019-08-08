@@ -2,12 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
-using UnityEngine.Experimental.Rendering;
-using UnityEngine.Experimental.Rendering.HDPipeline;
+using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.Rendering;
 using Object = UnityEngine.Object;
 
-namespace UnityEditor.Experimental.Rendering.HDPipeline
+namespace UnityEditor.Rendering.HighDefinition
 {
     [CustomEditorForRenderPipeline(typeof(PlanarReflectionProbe), typeof(HDRenderPipelineAsset))]
     [CanEditMultipleObjects]
@@ -57,7 +56,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                         size.y);
 
                 if (m_PreviewedTextures[i] != null)
-                    EditorGUI.DrawPreviewTexture(itemRect, m_PreviewedTextures[i], CameraEditorUtils.GUITextureBlit2SRGBMaterial, ScaleMode.ScaleToFit, 0, 1);
+                    EditorGUI.DrawPreviewTexture(itemRect, m_PreviewedTextures[i], UnityEditor.Rendering.CameraEditorUtils.GUITextureBlit2SRGBMaterial, ScaleMode.ScaleToFit, 0, 1);
                 else
                     EditorGUI.LabelField(itemRect, EditorGUIUtility.TrTextContent("Not Available"));
             }

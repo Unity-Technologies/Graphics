@@ -56,10 +56,10 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/0204_Std_ChromaticAberration_Fast.unity
     guid: 67ebc51e0232d4f46adb6df29c706b2f
-  - enabled: 1
+  - enabled: 0
     path: Assets/Scenes/0205_Std_Grain.unity
     guid: 3d2eea8d8ffb76d4b8abc012bf6627b2
-  - enabled: 1
+  - enabled: 0
     path: Assets/Scenes/0206_Std_Grain_Colored.unity
     guid: dfbf9e7d264fdce44bb4a952aabf030b
   - enabled: 1

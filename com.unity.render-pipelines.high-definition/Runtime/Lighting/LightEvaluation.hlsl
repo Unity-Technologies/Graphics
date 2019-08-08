@@ -124,7 +124,11 @@ float4 EvaluateLight_Directional(LightLoopContext lightLoopContext, PositionInpu
     }
 #endif
 
-#if 1
+#if SHADEROPTIONS_PRECOMPUTED_ATMOSPHERIC_ATTENUATION
+    // Precomputes atmospheric attenuation for the directional light on the CPU,
+    // which makes it independent from the fragment's position, which is faster but wrong.
+    // Basically, the code below runs on the CPU, using camera.positionWS, and modifies light.color.
+#else
     if (light.interactsWithSky)
     {
         // TODO: should probably unify height attenuation somehow...
@@ -137,7 +141,7 @@ float4 EvaluateLight_Directional(LightLoopContext lightLoopContext, PositionInpu
         float cosHoriz = ComputeCosineOfHorizonAngle(r);
         float cosTheta = dot(X - C, L) * rcp(r); // Normalize
 
-        if (cosTheta > cosHoriz) // Above horizon
+        if (cosTheta >= cosHoriz) // Above horizon
         {
             oDepth += ComputeAtmosphericOpticalDepth(r, cosTheta, true);
         }

@@ -2,17 +2,19 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEditor.SceneManagement;
 using UnityEngine.Rendering;
-using UnityEngine.Experimental.Rendering.HDPipeline;
+using UnityEngine.Rendering.HighDefinition;
 using System;
 using System.Reflection;
 using System.Linq.Expressions;
 
 
-namespace UnityEditor.Experimental.Rendering.HDPipeline
+namespace UnityEditor.Rendering.HighDefinition
 {
     [InitializeOnLoad]
-    public class HDSceneManagement : UnityEditor.AssetPostprocessor
+    class HDSceneManagement : UnityEditor.AssetPostprocessor
     {
+        const string defaultSceneNotSetWarning = "Default Scene not set! Set up it in Window > Render Pipeline > HD Render Pipeline Wizard\nStandard default unity scene used instead...";
+
         static Func<string, bool> s_CreateEmptySceneAsset;
 
         static HDSceneManagement()
@@ -44,7 +46,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             if (HDProjectSettings.defaultScenePrefab == null)
             {
-                Debug.LogWarning("Default Scene not set! Please run Wizard...");
+                Debug.LogWarning(defaultSceneNotSetWarning);
                 return;
             }
 
@@ -117,7 +119,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 if (HDProjectSettings.defaultScenePrefab == null)
                 {
-                    Debug.LogWarning("Default Scene not set! Please run Wizard...");
+                    Debug.LogWarning(defaultSceneNotSetWarning);
                     return;
                 }
 

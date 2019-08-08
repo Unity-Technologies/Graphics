@@ -7,19 +7,19 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
 {
     [MovedFrom("UnityEditor.Rendering.LWRP.ShaderGUI")] public static class SimpleLitGUI
     {
-        [MovedFrom("UnityEditor.Rendering.LWRP.ShaderGUI")] public enum SpecularSource
+        public enum SpecularSource
         {
             SpecularTextureAndColor,
             NoSpecular
         }
 
-        [MovedFrom("UnityEditor.Rendering.LWRP.ShaderGUI")] public enum SmoothnessMapChannel
+        public enum SmoothnessMapChannel
         {
             SpecularAlpha,
             AlbedoAlpha,
         }
 
-        [MovedFrom("UnityEditor.Rendering.LWRP.ShaderGUI")] public static class Styles
+        public static class Styles
         {
             public static GUIContent specularMapText =
                 new GUIContent("Specular Map", "Sets and configures a Specular map and color for your Material.");

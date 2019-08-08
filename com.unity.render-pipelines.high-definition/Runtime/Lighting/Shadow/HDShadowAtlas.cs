@@ -1,15 +1,13 @@
 using System;
 using System.Collections.Generic;
-using UnityEngine.Rendering;
+using UnityEngine.Experimental.Rendering;
 
-namespace UnityEngine.Experimental.Rendering.HDPipeline
+namespace UnityEngine.Rendering.HighDefinition
 {
-    using RTHandle = RTHandleSystem.RTHandle;
-
-    public partial class HDShadowAtlas
+    partial class HDShadowAtlas
     {
         public enum BlurAlgorithm
-        {
+    {
             None,
             EVSM, // exponential variance shadow maps
             IM // Improved Moment shadow maps
@@ -106,12 +104,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        public void ReserveResolution(HDShadowResolutionRequest shadowRequest)
+        internal void ReserveResolution(HDShadowResolutionRequest shadowRequest)
         {
             m_ShadowResolutionRequests.Add(shadowRequest);
         }
 
-        public void AddShadowRequest(HDShadowRequest shadowRequest)
+        internal void AddShadowRequest(HDShadowRequest shadowRequest)
         {
             m_ShadowRequests.Add(shadowRequest);
         }
@@ -280,7 +278,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        public struct RenderShadowsParameters
+        struct RenderShadowsParameters
         {
             public List<HDShadowRequest>    shadowRequests;
             public Material                 clearMaterial;
@@ -480,9 +478,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 int summedAreaVerticalKernel = momentCS.FindKernel("MomentSummedAreaTableVertical");
 
                 // First of all let's clear the moment shadow map
-                HDUtils.SetRenderTarget(cmd, atlasMoment, ClearFlag.Color, Color.black);
-                HDUtils.SetRenderTarget(cmd, intermediateSummedAreaTexture, ClearFlag.Color, Color.black);
-                HDUtils.SetRenderTarget(cmd, summedAreaTexture, ClearFlag.Color, Color.black);
+                CoreUtils.SetRenderTarget(cmd, atlasMoment, ClearFlag.Color, Color.black);
+                CoreUtils.SetRenderTarget(cmd, intermediateSummedAreaTexture, ClearFlag.Color, Color.black);
+                CoreUtils.SetRenderTarget(cmd, summedAreaTexture, ClearFlag.Color, Color.black);
 
 
                 // Alright, so the thing here is that for every sub-shadow map of the atlas, we need to generate the moment shadow map

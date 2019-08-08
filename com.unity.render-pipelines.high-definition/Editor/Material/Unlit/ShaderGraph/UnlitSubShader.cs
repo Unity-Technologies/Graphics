@@ -2,11 +2,12 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph;
-using UnityEngine.Experimental.Rendering.HDPipeline;
+using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.Rendering;
 
-namespace UnityEditor.Experimental.Rendering.HDPipeline
+namespace UnityEditor.Rendering.HighDefinition
 {
+    [FormerName("UnityEditor.Experimental.Rendering.HDPipeline.UnlitSubShader")]
     class UnlitSubShader : IUnlitSubShader
     {
         Pass m_PassMETA = new Pass()
@@ -51,6 +52,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             MaterialName = "Unlit",
             ShaderPassName = "SHADERPASS_SHADOWS",
             ColorMaskOverride = "ColorMask 0",
+            ZWriteOverride = "ZWrite On",
             ExtraDefines = new List<string>(),
             Includes = new List<string>()
             {
@@ -73,7 +75,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 var masterNode = node as UnlitMasterNode;
                 GetCullMode(masterNode.twoSided.isOn, ref pass);
-                GetZWrite(masterNode.surfaceType, ref pass);
             }
         };
 
@@ -360,6 +361,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 // opaque-only defines
             }
 
+            if (masterNode.addVelocityChange.isOn)
+            {
+                activeFields.Add("AdditionalVelocityChange");
+            }
+
             return activeFields;
         }
 
@@ -394,7 +400,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 var renderingPass = masterNode.surfaceType == ShaderGraph.SurfaceType.Opaque ? HDRenderQueue.RenderQueueType.Opaque : HDRenderQueue.RenderQueueType.Transparent;
                 int queue = HDRenderQueue.ChangeType(renderingPass, 0, true);
                 HDSubShaderUtilities.AddTags(subShader, HDRenderPipeline.k_ShaderTagName, HDRenderTypeTags.HDUnlitShader, queue);
-                
+
                 // generate the necessary shader passes
                 bool opaque = (masterNode.surfaceType == ShaderGraph.SurfaceType.Opaque);
 
@@ -413,7 +419,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             subShader.Deindent();
             subShader.AddShaderChunk("}", true);
 
-            subShader.AddShaderChunk(@"CustomEditor ""UnityEditor.Experimental.Rendering.HDPipeline.UnlitUI""");
+            subShader.AddShaderChunk(@"CustomEditor ""UnityEditor.Rendering.HighDefinition.UnlitUI""");
 
             return subShader.GetShaderString(0);
         }

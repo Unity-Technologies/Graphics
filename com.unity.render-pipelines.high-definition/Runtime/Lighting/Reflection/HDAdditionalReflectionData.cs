@@ -1,5 +1,6 @@
-namespace UnityEngine.Experimental.Rendering.HDPipeline
+namespace UnityEngine.Rendering.HighDefinition
 {
+    [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "Reflection-Probe" + Documentation.endURL)]
     [RequireComponent(typeof(ReflectionProbe))]
     public sealed partial class HDAdditionalReflectionData : HDProbe
     {

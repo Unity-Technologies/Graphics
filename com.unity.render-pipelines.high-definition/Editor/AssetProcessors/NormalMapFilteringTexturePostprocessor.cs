@@ -2,9 +2,9 @@ using System;
 using UnityEngine;
 using System.IO;
 
-namespace UnityEditor.Experimental.Rendering.HDPipeline
+namespace UnityEditor.Rendering.HighDefinition
 {
-    public class NormalMapFilteringTexturePostprocessor : AssetPostprocessor
+    class NormalMapFilteringTexturePostprocessor : AssetPostprocessor
     {
         // This class will process a normal map and add the value of average normal length to the blue or alpha channel
         // The texture is saved as BC7.
@@ -132,7 +132,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             // (Equation 36 of  Normal map filtering based on The Order : 1886 SIGGRAPH course notes implementation).
             //
             // So to get variance we must use variance = 1 / (4 * kappa)
-            // where 
+            // where
             // kappa = (averageNormalLength*(3.0f - averageNormalLengthSquared)) / (1.0f - averageNormalLengthSquared);
             //
             float averageNormalLengthSquared = averageNormalLength * averageNormalLength;
@@ -143,7 +143,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 variance = 1.0f / (4.0f * kappa);
             }
 
-            // The variance as a function of (averageNormalLength) is quite steep near 0 length, and 
+            // The variance as a function of (averageNormalLength) is quite steep near 0 length, and
             // from about averageNormalLength = 0.376, variance stays under 0.2, and
             // from about averageNormalLength = 0.603, variance stays under 0.1, and goes to 0 quite
             // linearly as averageNormalLength goes to 1 with a slope of -1/4

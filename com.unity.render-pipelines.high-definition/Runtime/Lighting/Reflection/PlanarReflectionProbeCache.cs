@@ -1,9 +1,8 @@
 using System;
-using UnityEngine.Rendering;
 
-namespace UnityEngine.Experimental.Rendering.HDPipeline
+namespace UnityEngine.Rendering.HighDefinition
 {
-    public class PlanarReflectionProbeCache
+    class PlanarReflectionProbeCache
     {
         internal static readonly int s_InputTexID = Shader.PropertyToID("_InputTex");
         internal static readonly int s_LoDID = Shader.PropertyToID("_LoD");

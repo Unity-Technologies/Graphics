@@ -1,9 +1,8 @@
 using UnityEngine;
 using UnityEditorInternal;
 using System.IO;
-using UnityEngine.Rendering;
 
-namespace UnityEditor.Experimental.Rendering.HDPipeline
+namespace UnityEditor.Rendering.HighDefinition
 {
     //As ScriptableSingleton is not usable due to internal FilePathAttribute,
     //copying mechanism here
@@ -27,7 +26,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         [SerializeField]
         string m_ProjectSettingFolderPath = "HDRPDefaultResources";
         [SerializeField]
-        bool m_PopupAtStart = false;
+        bool m_WizardPopupAtStart = false;
 
         public static GameObject defaultScenePrefab
         {
@@ -49,12 +48,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
         }
 
-        public static bool hasStartPopup
+        public static bool wizardIsStartPopup
         {
-            get => instance.m_PopupAtStart;
+            get => instance.m_WizardPopupAtStart;
             set
             {
-                instance.m_PopupAtStart = value;
+                instance.m_WizardPopupAtStart = value;
                 Save();
             }
         }
@@ -66,7 +65,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
             s_Instance = this;
         }
-        
+
         static HDProjectSettings CreateOrLoad()
         {
             //try load

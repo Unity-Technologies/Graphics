@@ -24,7 +24,6 @@ Shader "Hidden/Universal Render Pipeline/ScreenSpaceShadows"
 #else
         TEXTURE2D_FLOAT(_CameraDepthTexture);
 #endif
-
         SAMPLER(sampler_CameraDepthTexture);
 
         struct Attributes
@@ -62,11 +61,7 @@ Shader "Hidden/Universal Render Pipeline/ScreenSpaceShadows"
         {
             UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
-#if defined(UNITY_STEREO_INSTANCING_ENABLED) || defined(UNITY_STEREO_MULTIVIEW_ENABLED)
-            float deviceDepth = SAMPLE_TEXTURE2D_ARRAY(_CameraDepthTexture, sampler_CameraDepthTexture, input.uv.xy, unity_StereoEyeIndex).r;
-#else
-            float deviceDepth = SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, sampler_CameraDepthTexture, input.uv.xy);
-#endif
+            float deviceDepth = SAMPLE_TEXTURE2D_X(_CameraDepthTexture, sampler_CameraDepthTexture, input.uv.xy).r;
 
 #if UNITY_REVERSED_Z
             deviceDepth = 1 - deviceDepth;
@@ -81,8 +76,8 @@ Shader "Hidden/Universal Render Pipeline/ScreenSpaceShadows"
 
             // Screenspace shadowmap is only used for directional lights which use orthogonal projection.
             ShadowSamplingData shadowSamplingData = GetMainLightShadowSamplingData();
-            half shadowStrength = GetMainLightShadowStrength();
-            return SampleShadowmap(coords, TEXTURE2D_ARGS(_MainLightShadowmapTexture, sampler_MainLightShadowmapTexture), shadowSamplingData, shadowStrength, false);
+            half4 shadowParams = GetMainLightShadowParams();
+            return SampleShadowmap(TEXTURE2D_ARGS(_MainLightShadowmapTexture, sampler_MainLightShadowmapTexture), coords, shadowSamplingData, shadowParams, false);
         }
 
         ENDHLSL

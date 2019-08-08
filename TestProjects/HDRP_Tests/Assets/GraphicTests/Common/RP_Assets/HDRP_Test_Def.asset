@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0cf1dab834d4ec34195b920ea7bbf9ec, type: 3}
   m_Name: HDRP_Test_Def
   m_EditorClassIdentifier: 
-  m_Version: 5
+  m_Version: 7
   m_ObsoleteFrameSettings:
     overrides: 0
     enableShadow: 0
@@ -151,17 +151,19 @@ MonoBehaviour:
   m_RenderPipelineResources: {fileID: 11400000, guid: 3ce144cff5783da45aa5d4fdc2da14b7,
     type: 2}
   m_RenderPipelineRayTracingResources: {fileID: 0}
+  m_DefaultVolumeProfile: {fileID: 11400000, guid: aea7ff43876258748be47d8751e0e9d5,
+    type: 2}
   m_RenderingPathDefaultCameraFrameSettings:
     bitDatas:
-      data1: 68184207523613
-      data2: 4539628424389459968
+      data1: 68356006215453
+      data2: 4539628424657829888
     lodBias: 1
     lodBiasMode: 0
     maximumLODLevel: 0
     maximumLODLevelMode: 0
   m_RenderingPathDefaultBakedOrCustomReflectionFrameSettings:
     bitDatas:
-      data1: 69284255629085
+      data1: 69344385171229
       data2: 4539628424389459968
     lodBias: 1
     lodBiasMode: 0
@@ -169,7 +171,7 @@ MonoBehaviour:
     maximumLODLevelMode: 0
   m_RenderingPathDefaultRealtimeReflectionFrameSettings:
     bitDatas:
-      data1: 69284255563549
+      data1: 69421694517021
       data2: 4539628424389459968
     lodBias: 1
     lodBiasMode: 0
@@ -195,6 +197,7 @@ MonoBehaviour:
     supportMotionVectors: 1
     supportRuntimeDebugDisplay: 0
     supportDitheringCrossFade: 1
+    supportTerrainHole: 1
     supportRayTracing: 0
     supportedRaytracingTier: 2
     lightLoopSettings:
@@ -221,7 +224,7 @@ MonoBehaviour:
     hdShadowInitParams:
       maxShadowRequests: 128
       directionalShadowsDepthBits: 32
-      shadowQuality: 0
+      shadowFilteringQuality: 0
       punctualLightShadowAtlas:
         shadowAtlasResolution: 4096
         shadowAtlasDepthBits: 32
@@ -230,6 +233,26 @@ MonoBehaviour:
         shadowAtlasResolution: 4096
         shadowAtlasDepthBits: 32
         useDynamicViewportRescale: 0
+      directionalLightsResolutionTiers:
+        lowQualityResolution: 256
+        mediumQualityResolution: 512
+        highQualityResolution: 1024
+        veryHighQualityResolution: 2048
+      punctualLightsResolutionTiers:
+        lowQualityResolution: 256
+        mediumQualityResolution: 512
+        highQualityResolution: 1024
+        veryHighQualityResolution: 2048
+      areaLightsResolutionTiers:
+        lowQualityResolution: 256
+        mediumQualityResolution: 512
+        highQualityResolution: 1024
+        veryHighQualityResolution: 2048
+      maxDirectionalShadowMapResolution: 2048
+      maxPunctualShadowMapResolution: 2048
+      maxAreaShadowMapResolution: 2048
+      supportScreenSpaceShadows: 0
+      maxScreenSpaceShadows: 2
     decalSettings:
       drawDistance: 1000
       atlasWidth: 2048

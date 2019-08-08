@@ -1,0 +1,261 @@
+.sticky-note
+{
+    min-height: 100px;
+    min-width: 80px;
+    position:absolute;
+    flex-direction:column;
+    align-items:stretch;
+    --layer:-100;
+    border-radius:0;
+    margin-left: 0;
+    margin-right: 0;
+    margin-top: 0;
+    margin-bottom: 0;
+    border-left-width:0;
+    border-top-width:0;
+    border-bottom-width:0;
+    border-right-width:0;
+    padding-left:0;
+    padding-right:0;
+    padding-top:0;
+    padding-bottom:0;
+    border-radius: 2px;
+}
+
+.sticky-note #selection-border
+{
+    border-radius: 2px;
+}
+
+.sticky-note, * .unity-text-field , * .unity-text-field > .unity-base-text-field__input
+{
+    background-color: #fcd76e;
+    padding-left:0;
+    padding-right:0;
+    padding-top:0;
+    padding-bottom:0;
+    font-size:20px;
+}
+
+.sticky-note, * .unity-text-field, .unity-base-text-field .unity-base-text-field__input
+{
+    border-left-width:0;
+    border-top-width:0;
+    border-bottom-width:0;
+    border-right-width:0;
+    -unity-text-align:upper-left;
+}
+
+.unity-text-field:hover, .unity-base-text-field .unity-base-text-field__input:hover
+{
+    border-left-width:0;
+    border-top-width:0;
+    border-bottom-width:0;
+    border-right-width:0;
+}
+
+.sticky-note .resizer
+{
+    margin-bottom: 6px;
+    margin-right: 6px;
+}
+
+.sticky-note *
+{
+    color:#584308;
+}
+
+
+/* Themes*/
+
+.theme-black *
+{
+    color:#AB924B;
+}
+
+.theme-black > #node-border
+{
+    border-color:#AB924B;
+    border-radius: 8px;
+}
+.sticky-note.theme-black, .theme-black .unity-text-field
+{
+    background-color: #362905;
+}
+
+
+* > #node-border
+{
+    flex:1 0 auto;
+    flex-direction:column;
+    align-items:stretch;
+    border-left-width: 2px;
+    border-top-width: 2px;
+    border-bottom-width: 2px;
+    border-right-width: 2px;
+}
+
+
+* #title, * #title-field
+{
+    font-size: 20px;
+    white-space: normal;
+}
+
+* #contents
+{
+    margin-top:0;
+    margin-bottom:0;
+    padding-top:0;
+    padding-bottom:0;
+}
+
+* #contents, * #contents *
+{
+    font-size: 11px;
+    white-space: normal;
+}
+
+* #title
+{
+    margin-top:0;
+    margin-bottom:0;
+    padding-top:0;
+    padding-bottom:0;
+    white-space: normal;
+}
+
+* #title.empty
+{
+    height: 12px;
+}
+
+* #contents
+{
+    flex:1 0 auto;
+}
+
+* .unity-text-field
+{
+    position: absolute;
+    left:0;
+    right:0;
+    top:0;
+    bottom:0;
+    margin-left:0;
+    margin-right:0;
+    margin-top:0;
+    margin-bottom:0;
+    padding-left: 0;
+    padding-right: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+}
+
+* .unity-text-field .unity-base-field__input
+{
+    background-image:none;
+}
+
+* .unity-label
+{
+    border-top-width: 1px;
+    border-left-width: 1px;
+    border-right-width: 1px;
+    border-bottom-width: 1px;
+    margin-left: 6px;
+    margin-right: 6px;
+    margin-top: 1px;
+    margin-bottom: 1px;
+    padding-left:0;
+    padding-right:0;
+    overflow:hidden;
+}
+
+.size-medium #title, .size-medium #title-field
+{
+    font-size: 40px;
+}
+.size-medium #contents, .size-medium #contents *
+{
+    font-size: 24px;
+}
+
+.size-large #title, .size-large #title-field
+{
+    font-size: 60px;
+}
+.size-large #contents, .size-large #contents *
+{
+    font-size: 36px;
+}
+
+.size-huge #title, .size-huge #title-field
+{
+    font-size: 80px;
+}
+
+.size-huge #contents, .size-huge #contents *
+{
+    font-size: 56px;
+}
+
+* .unity-label:hover
+{
+    border-color: rgba(68,192,255, 0.5);
+}
+
+* .unity-text-field:hover
+{
+    background-image:none;
+}
+
+* .unity-text-field .unity-base-field__input:focus
+{
+    background-image:none;
+}
+
+* .unity-text-field .unity-base-field__input:focus:hover
+{
+    background-image:none;
+}
+
+
+/*
+
+.sticky-note.theme-orange, .theme-orange TextField
+{
+    background-color:#FCD76E;
+}
+
+.sticky-note.theme-orange *
+{
+    color:#000000;
+}
+
+.sticky-note.theme-orange #node-border
+{
+    border-color:none;
+}
+
+.sticky-note.theme-red *
+{
+    color:#FF8B8B;
+}
+.sticky-note.theme-green *
+{
+    color:#6BE6B0;
+}
+.sticky-note.theme-blue *
+{
+    color:#8FC1DF;
+}
+.sticky-note.theme-teal *
+{
+    color:#84E4E7;
+}
+.sticky-note.theme-purple *
+{
+    color:#FBCBF4;
+}
+*/
