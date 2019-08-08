@@ -652,7 +652,8 @@ namespace UnityEngine.Rendering.HighDefinition
         void InitShadowSystem(HDRenderPipelineAsset hdAsset, RenderPipelineResources defaultResources)
         {
             m_ShadowInitParameters = hdAsset.currentPlatformRenderPipelineSettings.hdShadowInitParams;
-            m_ShadowManager = new HDShadowManager(
+            m_ShadowManager = HDShadowManager.instance;
+            m_ShadowManager.InitShadowManager(
                 defaultResources,
                 m_ShadowInitParameters.directionalShadowsDepthBits,
                 m_ShadowInitParameters.punctualLightShadowAtlas,
@@ -2283,6 +2284,8 @@ namespace UnityEngine.Rendering.HighDefinition
                         }
                     }
                 }
+
+                HDShadowManager.instance.CheckForCulledCachedShadows();
 
                 if (decalDatasCount > 0)
                 {
