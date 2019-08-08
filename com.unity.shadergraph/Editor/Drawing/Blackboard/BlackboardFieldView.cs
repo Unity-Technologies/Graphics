@@ -107,6 +107,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     else
                         m_ReferenceNameField.AddToClassList("modified");
 
+                    Rebuild();
                     DirtyNodes(ModificationScope.Graph);
                     UpdateReferenceNameResetMenu();
                 });

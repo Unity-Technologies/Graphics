@@ -100,7 +100,8 @@ namespace UnityEditor.ShaderGraph
         [SerializeField]
         private bool m_IsExposable = true;
 
-        public override bool isExposable => m_IsExposable;
+        public override bool isExposable => m_IsExposable 
+            && (keywordType == KeywordType.Enum || referenceName.EndsWith("_ON"));
 
         public override bool isRenamable => isEditable;
 
@@ -126,7 +127,11 @@ namespace UnityEditor.ShaderGraph
                     string enumTagString = $"[KeywordEnum({string.Join(", ", entries.Select(x => x.displayName))})]";
                     return $"{enumTagString}{referenceName}(\"{displayName}\", Float) = {value}";
                 case KeywordType.Boolean:
-                    return $"[Toggle]{referenceName}(\"{displayName}\", Float) = {value}";
+                    // Reference name must be appended with _ON but must be removed when generating block
+                    if(referenceName.EndsWith("_ON"))
+                        return $"[Toggle]{referenceName.Remove(referenceName.Length - 3, 3)}(\"{displayName}\", Float) = {value}";
+                    else 
+                        return string.Empty;
                 default:
                     throw new ArgumentOutOfRangeException();
             }

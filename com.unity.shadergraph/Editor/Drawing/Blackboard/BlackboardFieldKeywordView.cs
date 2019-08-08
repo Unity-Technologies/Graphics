@@ -167,7 +167,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             // Can add
             m_ReorderableList.onCanAddCallback = (ReorderableList list) => 
             {  
-                return list.count < 9;
+                return list.count < 8;
             };
 
             // Can remove
