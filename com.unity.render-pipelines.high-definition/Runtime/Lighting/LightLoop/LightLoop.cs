@@ -443,16 +443,21 @@ namespace UnityEngine.Rendering.HighDefinition
             public NativeArray<Matrix4x4> worldToView;
             [ReadOnly]
             public int lightsPerView;
+            [ReadOnly]
+            public int decalsPerView;
 
             public void Execute(int index)
             {
- // Then Culling side
+                // Then Culling side
+                int totalEntries = (lightsPerView + decalsPerView);
+                int offsetPerView = (index / lightsPerView) * totalEntries;
+                index = offsetPerView + (index % lightsPerView); // calculate actual index in the array padded with decal datas
                 var range = lightDimensions[index].z;
                 var lightToWorld = light[index].localToWorldMatrix;
                 Vector3 positionWS = lightData[index].positionRWS;
-                Vector3 positionVS = worldToView[index / lightsPerView].MultiplyPoint(positionWS);
+                Vector3 positionVS = worldToView[index / totalEntries].MultiplyPoint(positionWS);
 
-                Matrix4x4 lightToView = worldToView[index / lightsPerView] * lightToWorld;
+                Matrix4x4 lightToView = worldToView[index / totalEntries] * lightToWorld;
                 Vector3 xAxisVS = lightToView.GetColumn(0);
                 Vector3 yAxisVS = lightToView.GetColumn(1);
                 Vector3 zAxisVS = lightToView.GetColumn(2);
@@ -495,7 +500,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     // apply nonuniform scale to OBB of spot light
                     var squeeze = true;//sa < 0.7f * 90.0f;      // arb heuristic
                     var fS = squeeze ? ta : si;
-                    sflb.center = worldToView[index / lightsPerView].MultiplyPoint(positionWS + ((0.5f * range) * lightDir));    // use mid point of the spot as the center of the bounding volume for building screen-space AABB for tiled lighting.
+                    sflb.center = worldToView[index / totalEntries].MultiplyPoint(positionWS + ((0.5f * range) * lightDir));    // use mid point of the spot as the center of the bounding volume for building screen-space AABB for tiled lighting.
 
                     // scale axis to match box or base of pyramid
                     sflb.boxAxisX = (fS * range) * vx;
@@ -627,20 +632,22 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        void AllocateJobArrays(int count, int numViews)
+        void AllocateJobArrays(int lightCount, int decalCount, int numViews)
         {
-            m_lightList.lightVolumes = new NativeArray<LightVolumeData>(count * numViews, Allocator.TempJob);
-            m_lightList.bounds = new NativeArray<SFiniteLightBound>(count * numViews, Allocator.TempJob);
+            m_lightList.lightVolumes = new NativeArray<LightVolumeData>(lightCount * numViews, Allocator.TempJob);
+            m_lightList.bounds = new NativeArray<SFiniteLightBound>(lightCount * numViews, Allocator.TempJob);
             m_LightVolumeBoundsJob.lightVolumeData = m_lightList.lightVolumes;
             m_LightVolumeBoundsJob.bounds = m_lightList.bounds;
 
-            m_LightVolumeBoundsJob.lightCategory = new NativeArray<LightCategory>(count * numViews, Allocator.TempJob);
-            m_LightVolumeBoundsJob.gpuLightType = new NativeArray<GPULightType>(count * numViews, Allocator.TempJob);
-            m_LightVolumeBoundsJob.lightVolumeType = new NativeArray<LightVolumeType>(count * numViews, Allocator.TempJob);
-            m_LightVolumeBoundsJob.light = new NativeArray<VisibleLight>(count * numViews, Allocator.TempJob);
-            m_LightVolumeBoundsJob.lightData = new NativeArray<LightData>(count * numViews, Allocator.TempJob);
-            m_LightVolumeBoundsJob.lightDimensions = new NativeArray<Vector3>(count * numViews, Allocator.TempJob);
+            m_LightVolumeBoundsJob.lightCategory = new NativeArray<LightCategory>(lightCount * numViews, Allocator.TempJob);
+            m_LightVolumeBoundsJob.gpuLightType = new NativeArray<GPULightType>(lightCount * numViews, Allocator.TempJob);
+            m_LightVolumeBoundsJob.lightVolumeType = new NativeArray<LightVolumeType>(lightCount * numViews, Allocator.TempJob);
+            m_LightVolumeBoundsJob.light = new NativeArray<VisibleLight>(lightCount * numViews, Allocator.TempJob);
+            m_LightVolumeBoundsJob.lightData = new NativeArray<LightData>(lightCount * numViews, Allocator.TempJob);
+            m_LightVolumeBoundsJob.lightDimensions = new NativeArray<Vector3>(lightCount * numViews, Allocator.TempJob);
             m_LightVolumeBoundsJob.worldToView = new NativeArray<Matrix4x4>(numViews, Allocator.TempJob);
+            m_LightVolumeBoundsJob.lightsPerView = lightCount;
+            m_LightVolumeBoundsJob.decalsPerView = decalCount;
         }
 
         void DisposeJobArrays()
@@ -2128,7 +2135,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // We must clear the shadow requests before checking if they are any visible light because we would have requests from the last frame executed in the case where we don't see any lights
                 m_ShadowManager.Clear();
-
+                int totalDrawnLightsCount = 0;
                 // Note: Light with null intensity/Color are culled by the C++, no need to test it here
                 if (cullResults.visibleLights.Length != 0 || cullResults.visibleReflectionProbes.Length != 0)
                 {
@@ -2359,15 +2366,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     Profiler.EndSample();
 
                     Profiler.BeginSample("Light, Light Volume and Bounds datas");
-                    UpdateArraySize(hdCamera.viewCount, ref m_WorldToView);
-                    AllocateJobArrays(sortCount, hdCamera.viewCount);
-                    for (int viewIndex = 0; viewIndex < hdCamera.viewCount; ++viewIndex)
-                    {
-                        m_WorldToView[viewIndex] = GetWorldToViewMatrix(hdCamera, viewIndex);
-                        m_LightVolumeBoundsJob.worldToView[viewIndex] = m_WorldToView[viewIndex];
-                    }
 
-                    int totalDrawnLightsCount = 0;
                     for (int sortIndex = 0; sortIndex < sortCount; ++sortIndex)
                     {
                         m_ValidLightData[sortIndex] = false;
@@ -2420,6 +2419,16 @@ namespace UnityEngine.Rendering.HighDefinition
                         m_ValidLightData[sortIndex] = true;
                     }
 
+                    AllocateJobArrays(totalDrawnLightsCount, decalDatasCount, hdCamera.viewCount);
+
+                    UpdateArraySize(hdCamera.viewCount, ref m_WorldToView);
+                    for (int viewIndex = 0; viewIndex < hdCamera.viewCount; ++viewIndex)
+                    {
+                        m_WorldToView[viewIndex] = GetWorldToViewMatrix(hdCamera, viewIndex);
+                        m_LightVolumeBoundsJob.worldToView[viewIndex] = m_WorldToView[viewIndex];
+                    }
+
+
                     int currLightIndex = 0;
                     for (int sortIndex = 0; sortIndex < sortCount; ++sortIndex)
                     {
@@ -2458,7 +2467,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     Debug.Assert(currLightIndex == totalDrawnLightsCount);
 
                     int volumeDataAndBoundCount = 0;
-                    m_LightVolumeBoundsJob.lightsPerView = totalDrawnLightsCount;
                     for (int viewIndex = 0; viewIndex < hdCamera.viewCount; ++viewIndex)
                     {
                         int lightDataCount = 0;
@@ -2481,32 +2489,30 @@ namespace UnityEngine.Rendering.HighDefinition
                                 m_LightVolumeBoundsJob.lightData[volumeDataAndBoundCount] = m_lightList.lights[lightDataCount];
                                 m_LightVolumeBoundsJob.lightDimensions[volumeDataAndBoundCount] = m_LightDimensions[volumeDataAndBoundCount];
 
-                                // We make the light position camera-relative as late as possible in order
-                                // to allow the preceding code to work with the absolute world space coordinates.
-                               
                                 volumeDataAndBoundCount++;
                                 lightDataCount++;
                             }
                         }
-                        // We make the light position camera-relative as late as possible in order
-                        // to allow the preceding code to work with the absolute world space coordinates.
-                        if (ShaderConfig.s_CameraRelativeRendering != 0)
+                        volumeDataAndBoundCount += decalDatasCount; // skip the decals
+                    }
+                    // We make the light position camera-relative as late as possible in order
+                    // to allow the preceding code to work with the absolute world space coordinates.
+                    if (ShaderConfig.s_CameraRelativeRendering != 0)
+                    {
+                        for (int lightIndex = 0; lightIndex < m_lightList.lights.Count; lightIndex++)
                         {
-                            for(int lightIndex = 0; lightIndex < m_lightList.lights.Count; lightIndex++)
-                            {
-                                // Caution: 'LightData.positionWS' is camera-relative after this point.
-                                LightData lightData = m_lightList.lights[lightIndex];
-                                lightData.positionRWS -= camPosWS;
-                                m_lightList.lights[lightIndex] = lightData;
-                            }
+                            // Caution: 'LightData.positionWS' is camera-relative after this point.
+                            LightData lightData = m_lightList.lights[lightIndex];
+                            lightData.positionRWS -= camPosWS;
+                            m_lightList.lights[lightIndex] = lightData;
                         }
                     }
                     Profiler.EndSample();
 
                     Profiler.BeginSample("LightVolumeBoundsJobs");
-                    JobHandle handle = m_LightVolumeBoundsJob.Schedule(volumeDataAndBoundCount, 1);
-                    handle.Complete();
-                    //m_LightVolumeBoundsJob.Run(volumeDataAndBoundCount);
+//                    JobHandle handle = m_LightVolumeBoundsJob.Schedule(volumeDataAndBoundCount, 1);
+  //                  handle.Complete();
+                    m_LightVolumeBoundsJob.Run(volumeDataAndBoundCount);
                     Profiler.EndSample();
 
                     // Update the compute buffer with the shadow request datas
@@ -2653,6 +2659,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 if (decalDatasCount > 0)
                 {
+                    /*
                     for (int i = 0; i < decalDatasCount; i++)
                     {
                         for (int viewIndex = 0; viewIndex < hdCamera.viewCount; ++viewIndex)
@@ -2661,8 +2668,17 @@ namespace UnityEngine.Rendering.HighDefinition
                             m_lightList.lightsPerView[viewIndex].lightVolumes.Add(DecalSystem.m_LightVolumes[i]);
                         }
                     }
+                    */
+                    for (int viewIndex = 0; viewIndex < hdCamera.viewCount; ++viewIndex)
+                    {
+                        int offset = viewIndex * (decalDatasCount + totalDrawnLightsCount);
+                        for (int i = 0; i < decalDatasCount; i++)
+                        {
+                            m_lightList.bounds[offset + totalDrawnLightsCount + i] = DecalSystem.m_Bounds[i];
+                            m_lightList.lightVolumes[offset + totalDrawnLightsCount + i] = DecalSystem.m_LightVolumes[i];
+                        }
+                    }
                 }
-
                 // Inject density volumes into the clustered data structure for efficient look up.
                 m_densityVolumeCount = densityVolumes.bounds != null ? densityVolumes.bounds.Count : 0;
 
@@ -2684,10 +2700,15 @@ namespace UnityEngine.Rendering.HighDefinition
                     }
                 }
 
+                m_TotalLightCount = m_lightList.lights.Count + decalDatasCount;
+                Debug.Assert(m_TotalLightCount == m_lightList.bounds.Length);
+                Debug.Assert(m_TotalLightCount == m_lightList.lightVolumes.Length); // todo add density volumes and env lights
+                /*
                 m_TotalLightCount = m_lightList.lights.Count + m_lightList.envLights.Count + decalDatasCount + m_densityVolumeCount;
                 Debug.Assert(m_TotalLightCount == m_lightList.lightsPerView[0].bounds.Count);
                 Debug.Assert(m_TotalLightCount == m_lightList.lightsPerView[0].lightVolumes.Count);
 
+                
                 // Aggregate the remaining views into the first entry of the list (view 0)                
                 for (int viewIndex = 1; viewIndex < hdCamera.viewCount; ++viewIndex)
                 {
@@ -2696,7 +2717,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     Debug.Assert(m_lightList.lightsPerView[viewIndex].lightVolumes.Count == m_TotalLightCount);
                     m_lightList.lightsPerView[0].lightVolumes.AddRange(m_lightList.lightsPerView[viewIndex].lightVolumes);
-                }
+                }*/
 
                 UpdateDataBuffers();
 
