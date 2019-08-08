@@ -1,15 +1,35 @@
-* [Visual Effect Graph](index)
-* [Getting Started](Getting-Started)
-* Documentation
-  * [Assets and Game Objects](Visual-Effect-Assets-and-GameObjects)
-  * [The Visual Effect Graph Window](The-Visual-Effect-Graph-Window)
-  * [Systems, Contexts and Blocks](Systems-Contexts-and-Blocks)
-  * [Attributes, Properties and Settings](Attributes-Properties-and-Settings)
-  * [Parameters and Events](Parameters-and-Events)
-
-* Reference
-  * [Context Reference](Contexts)
-  * [Block Library Reference](Blocks)
-  * [Operators reference](Operators)
-  * [C# Component API](CSharp-API)
-
+# Table of contents
+* [About Visual Effect Graph](index.md)
+* [Getting Started](Getting-Started.md)
+* Visual Effect (Component)	
+  * Editing Properties
+  * Sending Events
+* Visual Effect Graph
+  * Visual Effect Graph Window
+  * Graph Logic and Philosophy
+    * Properties
+    * PropertiesSettings
+    * PropertiesAttributes
+  * Blackboard
+  * Target GameObject Panel
+  * Create Node Menu
+* Visual Effect Graph (Asset)
+* Sub Graphs (Assets)
+  * Visual Effect Subgraphs
+  * Block Subgraphs
+  * Node Subgraphs
+  * Graph Elements
+    * Node
+    * Block
+    * Context
+    * Port
+    * Edge
+    * Group
+* Data
+    * Property Types
+    * Attribute Types
+    * Simulation Data Types
+* Context, Block and Node Library
+    * Context
+    * Block
+    * Node
