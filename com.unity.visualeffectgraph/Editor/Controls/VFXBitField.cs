@@ -13,7 +13,7 @@ namespace UnityEditor.VFX
     }
 }
 
-namespace UnityEditor.VFX.UIElements
+namespace UnityEditor.VFX.UI
 {
 
     abstract class VFXBitField<T,U> : VFXControl<U>

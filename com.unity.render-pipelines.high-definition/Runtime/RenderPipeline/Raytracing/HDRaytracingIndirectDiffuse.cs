@@ -44,13 +44,14 @@ namespace UnityEngine.Rendering.HighDefinition
             return m_IDIntermediateBuffer0;
         }
 
-        public bool ValidIndirectDiffuseState()
+        public bool ValidIndirectDiffuseState(HDCamera hdCamera)
         {
             // First thing to check is: Do we have a valid ray-tracing environment?
             HDRaytracingEnvironment rtEnvironment = m_RayTracingManager.CurrentEnvironment();
             var settings = VolumeManager.instance.stack.GetComponent<GlobalIllumination>();
-            return !(rtEnvironment == null || !settings.enableRayTracing.value);
+            return !(!hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) || rtEnvironment == null || !settings.enableRayTracing.value);
         }
+
         public void RenderIndirectDiffuse(HDCamera hdCamera, CommandBuffer cmd, ScriptableRenderContext renderContext, int frameCount)
         {
             RenderPipelineSettings.RaytracingTier currentTier = m_Asset.currentPlatformRenderPipelineSettings.supportedRaytracingTier;
@@ -67,6 +68,9 @@ namespace UnityEngine.Rendering.HighDefinition
                     }
                     break;
             }
+
+            // Bind the indirect diffuse texture (for forward materials)
+            BindIndirectDiffuseTexture(cmd);
 
             // If we are in deferred mode, we need to make sure to add the indirect diffuse (that we intentionally ignored during the GBuffer pass)
             // Note that this discards the texture/object ambient occlusion. But we consider that okay given that the ray traced indirect diffuse
@@ -136,16 +140,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public void RenderIndirectDiffuseT1(HDCamera hdCamera, CommandBuffer cmd, ScriptableRenderContext renderContext, int frameCount)
         {
-            // First thing to check is: Do we have a valid ray-tracing environment?
-            HDRaytracingEnvironment rtEnvironment = m_RayTracingManager.CurrentEnvironment();
-
-            var settings = VolumeManager.instance.stack.GetComponent<GlobalIllumination>();
-
-            // If no ray tracing environment, then we do not want to evaluate this effect
-            if (rtEnvironment == null || !settings.enableRayTracing.value)
-                return;
-
             // Fetch the required resources
+            HDRaytracingEnvironment rtEnvironment = m_RayTracingManager.CurrentEnvironment();
+            var settings = VolumeManager.instance.stack.GetComponent<GlobalIllumination>();
             BlueNoise blueNoise = m_RayTracingManager.GetBlueNoiseManager();
 
             // Fetch all the settings
@@ -281,18 +278,9 @@ namespace UnityEngine.Rendering.HighDefinition
         }
         public void RenderIndirectDiffuseT2(HDCamera hdCamera, CommandBuffer cmd, ScriptableRenderContext renderContext, int frameCount)
         {
-            // Bind the indirect diffuse texture
-            BindIndirectDiffuseTexture(cmd);
-
             // First thing to check is: Do we have a valid ray-tracing environment?
             HDRaytracingEnvironment rtEnvironment = m_RayTracingManager.CurrentEnvironment();
-
             var settings = VolumeManager.instance.stack.GetComponent<GlobalIllumination>();
-            bool invalidState = rtEnvironment == null || !settings.enableRayTracing.value;
-
-            // If no acceleration structure available, end it now
-            if (invalidState)
-                return;
 
             // Shaders that are used
             RayTracingShader indirectDiffuseRT = m_Asset.renderPipelineRayTracingResources.indirectDiffuseRaytracingRT;

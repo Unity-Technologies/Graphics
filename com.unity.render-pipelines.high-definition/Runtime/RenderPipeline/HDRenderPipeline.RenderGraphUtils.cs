@@ -69,7 +69,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public XRPass xr;
         }
 
-        void StartLegacyStereo(RenderGraph renderGraph, HDCamera hdCamera)
+        void StartSinglePass(RenderGraph renderGraph, HDCamera hdCamera)
         {
             if (hdCamera.xr.enabled)
             {
@@ -87,7 +87,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        void StopLegacyStereo(RenderGraph renderGraph, HDCamera hdCamera)
+        void StopSinglePass(RenderGraph renderGraph, HDCamera hdCamera)
         {
             if (hdCamera.xr.enabled && hdCamera.camera.stereoEnabled)
             {
@@ -122,6 +122,30 @@ namespace UnityEngine.Rendering.HighDefinition
                     (EndCameraXRPassData data, RenderGraphContext ctx) =>
                     {
                         data.hdCamera.xr.EndCamera(ctx.cmd, data.hdCamera, ctx.renderContext);
+                    });
+                }
+            }
+        }
+
+        class RenderOcclusionMeshesPassData
+        {
+            public HDCamera hdCamera;
+            public RenderGraphMutableResource depthBuffer;
+        }
+
+        void RenderOcclusionMeshes(RenderGraph renderGraph, HDCamera hdCamera, RenderGraphMutableResource depthBuffer)
+        {
+            if (hdCamera.xr.enabled && hdCamera.xr.xrSdkEnabled)
+            {
+                using (var builder = renderGraph.AddRenderPass<RenderOcclusionMeshesPassData>("XR Occlusion Meshes", out var passData))
+                {
+                    passData.hdCamera = hdCamera;
+                    passData.depthBuffer = builder.UseDepthBuffer(depthBuffer, DepthAccess.Write);
+
+                    builder.SetRenderFunc(
+                    (RenderOcclusionMeshesPassData data, RenderGraphContext ctx) =>
+                    {
+                        data.hdCamera.xr.RenderOcclusionMeshes(ctx.cmd, null, ctx.resources.GetTexture(data.depthBuffer));
                     });
                 }
             }

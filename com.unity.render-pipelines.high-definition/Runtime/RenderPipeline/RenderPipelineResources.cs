@@ -4,6 +4,7 @@ using System.Collections.Generic;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
+    [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "HDRP-Asset" + Documentation.endURL)]
     public partial class RenderPipelineResources : ScriptableObject
     {
         [Serializable, ReloadGroup]
@@ -230,8 +231,6 @@ namespace UnityEngine.Rendering.HighDefinition
             public Shader SMAAPS;
             [Reload("Runtime/PostProcessing/Shaders/TemporalAntialiasing.shader")]
             public Shader temporalAntialiasingPS;
-            [Reload("Runtime/PostProcessing/Shaders/CopyTAAHistory.compute")]
-            public ComputeShader CopyTAAHistoryCS;
 
             // Iterator to retrieve all compute shaders in reflection so we don't have to keep a list of
             // used compute shaders up to date (prefer editor-only usage)

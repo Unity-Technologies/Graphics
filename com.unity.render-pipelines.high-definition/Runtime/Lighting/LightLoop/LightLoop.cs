@@ -652,7 +652,8 @@ namespace UnityEngine.Rendering.HighDefinition
         void InitShadowSystem(HDRenderPipelineAsset hdAsset, RenderPipelineResources defaultResources)
         {
             m_ShadowInitParameters = hdAsset.currentPlatformRenderPipelineSettings.hdShadowInitParams;
-            m_ShadowManager = new HDShadowManager(
+            m_ShadowManager = HDShadowManager.instance;
+            m_ShadowManager.InitShadowManager(
                 defaultResources,
                 m_ShadowInitParameters.directionalShadowsDepthBits,
                 m_ShadowInitParameters.punctualLightShadowAtlas,
@@ -1147,7 +1148,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             // Value of max smoothness is from artists point of view, need to convert from perceptual smoothness to roughness
-            lightData.minRoughness = Mathf.Max((1.0f - additionalLightData.maxSmoothness) * (1.0f - additionalLightData.maxSmoothness));
+            lightData.minRoughness = (1.0f - additionalLightData.maxSmoothness) * (1.0f - additionalLightData.maxSmoothness);
 
             lightData.shadowMaskSelector = Vector4.zero;
 
@@ -1163,15 +1164,25 @@ namespace UnityEngine.Rendering.HighDefinition
                 lightData.nonLightMappedOnly = 0;
             }
 
-            lightData.interactsWithSky = isPysicallyBasedSkyActive && additionalLightData.interactsWithSky ? 1 : 0;
+            bool interactsWithSky = isPysicallyBasedSkyActive && additionalLightData.interactsWithSky;
 
-            if ((lightData.interactsWithSky != 0) && (ShaderConfig.s_PrecomputedAtmosphericAttenuation != 0))
+            lightData.distanceFromCamera = -1; // Encode 'interactsWithSky'
+
+            if (interactsWithSky)
             {
-                Vector3 transm = EvaluateAtmosphericAttenuation(-lightData.forward, hdCamera.camera.transform.position);
-                lightData.color.x *= transm.x;
-                lightData.color.y *= transm.y;
-                lightData.color.z *= transm.z;
+                lightData.distanceFromCamera = additionalLightData.distance;
+
+                if (ShaderConfig.s_PrecomputedAtmosphericAttenuation != 0)
+                {
+                    // Ignores distance (at infinity).
+                    Vector3 transm = EvaluateAtmosphericAttenuation(-lightData.forward, hdCamera.camera.transform.position);
+                    lightData.color.x *= transm.x;
+                    lightData.color.y *= transm.y;
+                    lightData.color.z *= transm.z;
+                }
             }
+
+            lightData.angularDiameter = additionalLightData.angularDiameter * Mathf.Deg2Rad;
 
             // Fallback to the first non shadow casting directional light.
             m_CurrentSunLight = m_CurrentSunLight == null ? lightComponent : m_CurrentSunLight;
@@ -1187,7 +1198,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             // Clamp light list to the maximum allowed lights on screen to avoid ComputeBuffer overflow
             if (m_lightList.lights.Count >= m_MaxPunctualLightsOnScreen + m_MaxAreaLightsOnScreen)
-                return false;
+            return false;
 
             // Both of these positions are non-camera-relative.
             float distanceToCamera  = (light.GetPosition() - hdCamera.camera.transform.position).magnitude;
@@ -1373,7 +1384,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
 #if ENABLE_RAYTRACING
             // If there is still a free slot in the screen space shadow array and this needs to render a screen space shadow
-            if(screenSpaceShadowIndex < m_Asset.currentPlatformRenderPipelineSettings.hdShadowInitParams.maxScreenSpaceShadows && additionalLightData.WillRenderScreenSpaceShadow())
+            if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) 
+                && screenSpaceShadowIndex < m_Asset.currentPlatformRenderPipelineSettings.hdShadowInitParams.maxScreenSpaceShadows 
+                && additionalLightData.WillRenderScreenSpaceShadow())
             {
                 lightData.screenSpaceShadowIndex = screenSpaceShadowIndex;
                 additionalLightData.shadowIndex = -1;
@@ -1900,6 +1913,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     for (int lightIndex = 0, numLights = cullResults.visibleLights.Length; (lightIndex < numLights) && (sortCount < lightCount); ++lightIndex)
                     {
                         var light = cullResults.visibleLights[lightIndex];
+
                         if (!aovRequest.IsLightEnabled(light.light.gameObject))
                             continue;
 
@@ -1908,9 +1922,11 @@ namespace UnityEngine.Rendering.HighDefinition
                         // Light should always have additional data, however preview light right don't have, so we must handle the case by assigning HDUtils.s_DefaultHDAdditionalLightData
                         var additionalData = GetHDAdditionalLightData(lightComponent);
 
+                        if (ShaderConfig.s_AreaLights == 0 && (additionalData.lightTypeExtent == LightTypeExtent.Rectangle || additionalData.lightTypeExtent == LightTypeExtent.Tube))
+                            continue;
+
                         // First we should evaluate the shadow information for this frame
                         additionalData.EvaluateShadowState(hdCamera, cullResults, hdCamera.frameSettings, lightIndex);
-
 
                         // Reserve shadow map resolutions and check if light needs to render shadows
                         if(additionalData.WillRenderShadowMap())
@@ -2269,6 +2285,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     }
                 }
 
+                HDShadowManager.instance.CheckForCulledCachedShadows();
+
                 if (decalDatasCount > 0)
                 {
                     for (int i = 0; i < decalDatasCount; i++)
@@ -2307,7 +2325,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 Debug.Assert(m_TotalLightCount == m_lightList.lightsPerView[0].lightVolumes.Count);
 
                 // Aggregate the remaining views into the first entry of the list (view 0)
-                // XRTODO: revisit this code to avoid duplicated culling computations and extra memory copy
                 for (int viewIndex = 1; viewIndex < hdCamera.viewCount; ++viewIndex)
                 {
                     Debug.Assert(m_lightList.lightsPerView[viewIndex].bounds.Count == m_TotalLightCount);
@@ -2718,17 +2735,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // camera to screen matrix (and it's inverse)
             for (int viewIndex = 0; viewIndex < hdCamera.viewCount; ++viewIndex)
             {
-                var proj = camera.projectionMatrix;
-
-                // XRTODO: If possible, we could generate a non-oblique stereo projection
-                // matrix.  It's ok if it's not the exact same matrix, as long as it encompasses
-                // the same FOV as the original projection matrix (which would mean padding each half
-                // of the frustum with the max half-angle). We don't need the light information in
-                // real projection space.  We just use screen space to figure out what is proximal
-                // to a cluster or tile.
-                // Once we generate this non-oblique projection matrix, it can be shared across both eyes (un-array)
-                if (hdCamera.xr.enabled)
-                    proj = hdCamera.xr.GetProjMatrix(viewIndex);
+                var proj = hdCamera.xr.enabled ? hdCamera.xr.GetProjMatrix(viewIndex) : camera.projectionMatrix;
 
                 m_LightListProjMatrices[viewIndex] = proj * s_FlipMatrixLHSRHS;
                 parameters.lightListProjscrMatrices[viewIndex] = temp * m_LightListProjMatrices[viewIndex];
@@ -2803,12 +2810,16 @@ namespace UnityEngine.Rendering.HighDefinition
             return parameters;
         }
 
-        void BuildGPULightListsCommon(HDCamera hdCamera, CommandBuffer cmd, RTHandle cameraDepthBufferRT, RTHandle stencilTextureRT)
+        void BuildGPULightListsCommon(HDCamera hdCamera, CommandBuffer cmd)
         {
             using (new ProfilingSample(cmd, "Build Light List"))
             {
                 var parameters = PrepareBuildGPULightListParameters(hdCamera);
-                var resources = PrepareBuildGPULightListResources(m_TileAndClusterData, cameraDepthBufferRT, stencilTextureRT);
+                var resources = PrepareBuildGPULightListResources(
+                    m_TileAndClusterData,
+                    m_SharedRTManager.GetDepthStencilBuffer(hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA)),
+                    m_SharedRTManager.GetStencilBufferCopy()
+                );
 
                 bool tileFlagsWritten = false;
 
@@ -2821,11 +2832,11 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        void BuildGPULightLists(HDCamera hdCamera, CommandBuffer cmd, RTHandle cameraDepthBufferRT, RTHandle stencilTextureRT)
+        void BuildGPULightLists(HDCamera hdCamera, CommandBuffer cmd)
         {
             cmd.SetRenderTarget(BuiltinRenderTextureType.None);
 
-            BuildGPULightListsCommon(hdCamera, cmd, cameraDepthBufferRT, stencilTextureRT);
+            BuildGPULightListsCommon(hdCamera, cmd);
 
             var globalParams = PrepareLightLoopGlobalParameters(hdCamera);
             PushLightLoopGlobalParams(globalParams, cmd);
@@ -2970,16 +2981,6 @@ namespace UnityEngine.Rendering.HighDefinition
             return m_EnableContactShadow && m_ContactShadowIndex != 0;
         }
 
-        bool WillRenderScreenSpaceShadows()
-        {
-            // For now this is only for DXR.
-#if ENABLE_RAYTRACING
-            return true;
-#else
-            return false;
-#endif
-        }
-
         void SetContactShadowsTexture(HDCamera hdCamera, RTHandle contactShadowsRT, CommandBuffer cmd)
         {
             if (!WillRenderContactShadow())
@@ -3068,7 +3069,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.DispatchCompute(parameters.contactShadowsCS, parameters.kernel, parameters.numTilesX, parameters.numTilesY, parameters.viewCount);
         }
 
-        void RenderContactShadows(HDCamera hdCamera, RTHandle contactShadowRT, RTHandle depthTexture, int firstMipOffsetY, CommandBuffer cmd)
+        void RenderContactShadows(HDCamera hdCamera, CommandBuffer cmd)
         {
             // if there is no need to compute contact shadows, we just quit
             if (!WillRenderContactShadow())
@@ -3078,9 +3079,10 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 m_ShadowManager.BindResources(cmd);
 
+                var depthTexture = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA) ? m_SharedRTManager.GetDepthValuesTexture() : m_SharedRTManager.GetDepthTexture();
+                int firstMipOffsetY = m_SharedRTManager.GetDepthBufferMipChainInfo().mipLevelOffsets[1].y;
                 var parameters = PrepareContactShadowsParameters(hdCamera, firstMipOffsetY);
-                RenderContactShadows(parameters, contactShadowRT, depthTexture, m_LightLoopLightData, m_TileAndClusterData, cmd);
-
+                RenderContactShadows(parameters, m_ContactShadowBuffer, depthTexture, m_LightLoopLightData, m_TileAndClusterData, cmd);
             }
         }
 

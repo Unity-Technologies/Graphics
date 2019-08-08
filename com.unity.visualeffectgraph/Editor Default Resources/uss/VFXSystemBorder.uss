@@ -1,0 +1,88 @@
+VFXSystemBorder.graphElement
+{
+    --start-color:#17AB6A;
+    --middle-color:#BF9220;
+    --end-color:#C24F30;
+    border-width: 6px;
+    opacity:0.25;
+    flex-direction:column;
+    align-items:stretch;
+    --layer:-400;
+}
+
+VFXSystemBorder.graphElement Label
+{
+    border-top-width: 1px;
+    border-left-width: 1px;
+    border-right-width: 1px;
+    border-bottom-width: 1px;
+    border-top-width: 1px;
+    border-left-width: 1px;
+    border-right-width: 1px;
+    border-bottom-width: 1px;
+    margin-left: 12px;
+    margin-right: 12px;
+    margin-top: 1px;
+    margin-bottom: 1px;
+    padding-left:0;
+    padding-right:0;
+}
+
+VFXSystemBorder.graphElement Label:hover
+{
+    border-color: rgba(68,192,255, 0.5);
+}
+
+
+#title-field
+{
+    position: absolute;
+}
+
+#title, #title-field
+{
+    font-size: 48px;
+    white-space: normal;
+}
+
+#title
+{
+    color:#17AB6A;
+    opacity:0.75;
+}
+
+#title.empty
+{
+    height : 12px;
+}
+
+VFXSystemBorder.graphElement TextField#title-field
+{
+    padding-left:0;
+    padding-right:0;
+    padding-top:0;
+    padding-bottom:0;
+    margin-left:0;
+    margin-right:0;
+    margin-top:0;
+    margin-bottom:0;
+    
+    position: absolute;
+}
+
+VFXSystemBorder.graphElement TextField#title-field #unity-text-input
+{
+    padding-left:0;
+    padding-right:0;
+    padding-top:0;
+    padding-bottom:0;
+    margin-left:0;
+    margin-right:0;
+    margin-top:0;
+    margin-bottom:0;
+    background-color:rgba(0,0,0,0);
+    background-image:none;
+    font-size: 48px;
+    white-space: normal;
+}
+

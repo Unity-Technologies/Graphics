@@ -5,7 +5,7 @@ This table provides an overview of the current features supported in the Univers
 **Note:** If a feature is marked __In research__, the UniversalRP team is still researching how and when to implement the feature. If a feature is marked as __Not supported__, it's because Unity is not planning to support it in any release. 
 
 
-| Feature                                                      | Unity Built-in render pipeline                               | Universal Render Pipeline                                  |
+| Feature                                                      | Unity Built-in render pipeline                               | Universal Render Pipeline                                    |
 | ------------------------------------------------------------ | ------------------------------------------------------------ | ------------------------------------------------------------ |
 | ***Camera***                                                 |                                                              |                                                              |
 | HDR                                                          | Yes                                                          | Yes                                                          |
@@ -24,7 +24,7 @@ This table provides an overview of the current features supported in the Univers
 | Inner Spot Angle                                             | Not supported                                                | In research                                                  |
 | Shading                                                      | Multiple Passes                                              | Single Pass                                                  |
 | *Culling*<br/>Per-Object<br/>Per-Layer                       | <br/>Yes<br/>Yes                                             | <br/>Yes<br/>Yes                                             |
-| *Light Limits*<br/>Directional Lights<br/>Per-Object<br/>Per-Camera | <br/>Unlimited<br/>Unlimited<br/>Unlimited                   | <br/>1<br/>4<br/>16                                          |
+| *Light Limits*<br/>Directional Lights<br/>Per Object<br/>Per Camera | <br/>Unlimited<br/>Unlimited<br/>Unlimited                   | <br/>1<br/>8 (4 for GLES2)<br/>256 (32 on mobile platforms) |
 | Attenuation                                                  | Legacy                                                       | InverseSquared                                               |
 | Vertex LIghts                                                | Yes                                                          | Yes                                                          |
 | SH Lights                                                    | Yes                                                          | In research                                                  |
@@ -118,7 +118,7 @@ This table provides an overview of the current features supported in the Univers
 | RenderPipeline.EndFrameRendering                             | Not supported                                                | Yes                                                          |
 | RenderPipeline.BeginCameraRendering                          | Not supported                                                | Yes                                                          |
 | RenderPIpeline.EndCameraRendering                            | Not supported                                                | Yes                                                          |
-| UniversalRenderPipeline.RenderSingleCamera                 | Not supported                                                | Yes                                                          |
+| UniversalRenderPipeline.RenderSingleCamera                   | Not supported                                                | Yes                                                          |
 | ScriptableRenderPass                                         | Not supported                                                | Yes                                                          |
 | Custom Renderers                                             | Not supported                                                | Yes                                                          |
 | ***Post-processing***                                        |                                                              |                                                              |
