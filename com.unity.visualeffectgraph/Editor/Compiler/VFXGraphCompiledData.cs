@@ -461,8 +461,17 @@ namespace UnityEditor.VFX
                 }
 
                 var contextData = contextToCompiledData[spawnContext];
+                var contextExpressions = contextData.cpuMapper.CollectExpression(-1);
+                var systemValueMappings = new List<VFXMapping>();
+                foreach (var contextExpression in contextExpressions)
+                {
+                    var expressionIndex = graph.GetFlattenedIndex(contextExpression.exp);
+                    systemValueMappings.Add(new VFXMapping(contextExpression.name, expressionIndex));
+                }
+
                 outSystemDescs.Add(new VFXEditorSystemDesc()
                 {
+                    values = systemValueMappings.ToArray(),
                     buffers = buffers.ToArray(),
                     capacity = 0u,
                     flags = VFXSystemFlag.SystemDefault,
@@ -678,10 +687,11 @@ namespace UnityEditor.VFX
             foreach (var data in compilableData.SelectMany(o => o.dependenciesOut).Distinct().OfType<VFXDataParticle>())
             {
                 var eventBufferIndex = -1;
-                if (data.capacity > 0)
+                uint capacity = (uint)data.GetSettingValue("capacity");
+                if (capacity > 0)
                 {
                     eventBufferIndex = bufferDescs.Count;
-                    bufferDescs.Add(new VFXGPUBufferDesc() { type = ComputeBufferType.Append, size = data.capacity, stride = 4 });
+                    bufferDescs.Add(new VFXGPUBufferDesc() { type = ComputeBufferType.Append, size = capacity, stride = 4 });
                 }
                 eventGpuBufferDictionnary.Add(data, eventBufferIndex);
             }
@@ -691,6 +701,7 @@ namespace UnityEditor.VFX
         {
             var settings = initialSettings;
             settings.shadowCastingMode = subRenderers.Any(r => r.hasShadowCasting) ? ShadowCastingMode.On : ShadowCastingMode.Off;
+            settings.motionVectorGenerationMode = subRenderers.Any(r => r.hasMotionVector) ? MotionVectorGenerationMode.Object : MotionVectorGenerationMode.Camera;
             return settings;
         }
 
@@ -877,6 +888,7 @@ namespace UnityEditor.VFX
                 SaveShaderFiles(m_Graph.visualEffectResource, generatedCodeData, contextToCompiledData);
 
                 var bufferDescs = new List<VFXGPUBufferDesc>();
+                var temporaryBufferDescs = new List<VFXTemporaryGPUBufferDesc>();
                 var cpuBufferDescs = new List<VFXCPUBufferDesc>();
                 var systemDescs = new List<VFXEditorSystemDesc>();
 
@@ -903,6 +915,7 @@ namespace UnityEditor.VFX
                 foreach (var data in compilableData)
                 {
                     data.FillDescs(bufferDescs,
+                        temporaryBufferDescs,
                         systemDescs,
                         m_ExpressionGraph,
                         contextToCompiledData,
@@ -922,7 +935,7 @@ namespace UnityEditor.VFX
                 expressionSheet.values = valueDescs.OrderBy(o => o.expressionIndex).ToArray();
                 expressionSheet.exposed = exposedParameterDescs.OrderBy(o => o.name).ToArray();
 
-                m_Graph.visualEffectResource.SetRuntimeData(expressionSheet, systemDescs.ToArray(), eventDescs.ToArray(), bufferDescs.ToArray(), cpuBufferDescs.ToArray());
+                m_Graph.visualEffectResource.SetRuntimeData(expressionSheet, systemDescs.ToArray(), eventDescs.ToArray(), bufferDescs.ToArray(), cpuBufferDescs.ToArray(), temporaryBufferDescs.ToArray());
                 m_ExpressionValues = expressionSheet.values;
 
                 if (k_FnVFXResource_SetCompileInitialVariants != null)

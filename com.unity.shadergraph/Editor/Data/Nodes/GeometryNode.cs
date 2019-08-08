@@ -1,4 +1,5 @@
 using System;
+using System.Text.RegularExpressions;
 using UnityEditor.ShaderGraph.Drawing.Controls;
 using UnityEngine;
 using UnityEditor.Graphing;
@@ -19,7 +20,7 @@ namespace UnityEditor.ShaderGraph
         {
             get 
             {
-                var names = validSpaces.Select(cs => cs.ToString()).ToArray();
+                var names = validSpaces.Select(cs => cs.ToString().PascalToLabel()).ToArray();
                 return new PopupList(names, (int)m_Space);
             }
             set

@@ -771,6 +771,9 @@ BSDFData ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfaceData)
     // IMPORTANT: In our forward only case, all enable flags are statically know at compile time, so the compiler can do compile time optimization
     bsdfData.materialFeatures = surfaceData.materialFeatures;
 
+    // Blindly copy: will never be used if custom (ext) input is not used and selected as the SO method for baked/data-based specular occlusion.
+    bsdfData.specularOcclusionCustomInput = surfaceData.specularOcclusionCustomInput;
+
     bsdfData.geomNormalWS = surfaceData.geomNormalWS; // We should always have this whether we enable coat normals or not.
 
     // Two lobe base material
@@ -2347,6 +2350,7 @@ float4 GetDiffuseOrDefaultColor(BSDFData bsdfData, float replace)
 //#define SPECULAR_OCCLUSION_FROM_AO 0
 //#define SPECULAR_OCCLUSION_CONECONE 1
 //#define SPECULAR_OCCLUSION_SPTD 2
+//#define SPECULAR_OCCLUSION_CUSTOM_EXT_INPUT 3
 
 float3 PreLightData_GetCommbinedSpecularOcclusion(float screenSpaceSpecularOcclusion, float specularOcclusionFromData, float3 fresnel0,
                                                   /* for debug: */
@@ -2359,6 +2363,8 @@ float3 PreLightData_GetCommbinedSpecularOcclusion(float screenSpaceSpecularOcclu
         break;
     case SPECULAR_OCCLUSION_FROM_AO:
         //debugCoeff = float3(1.0,0.0,0.0);
+        break;
+    case SPECULAR_OCCLUSION_CUSTOM_EXT_INPUT:
         break;
     case SPECULAR_OCCLUSION_CONECONE:
         IF_DEBUG( if (_DebugSpecularOcclusion.w == -1.0) { debugCoeff = float3(1.0,0.0,0.0); } )
@@ -2380,7 +2386,7 @@ float PreLightData_GetSpecularOcclusion(int specularOcclusionAlgorithm,
                                         float3 bentNormalWS, int bentVisibilityAlgorithm,
                                         float3x3 orthoBasisViewNormal, bool useHemisphereClip,
                                         uint bentFixup = BENT_VISIBILITY_FIXUP_FLAGS_NONE,
-                                        BSDFData bsdfData = (BSDFData)0) /* for reading info for bent cone fixup if needed */
+                                        BSDFData bsdfData = (BSDFData)0) /* for reading info for bent cone fixup if needed or direct custom specular occlusion user input*/
 {
     SphereCap hemiSphere = GetSphereCap(normalWS, 0.0);
     //test: SphereCap hemiSphere = GetSphereCap(normalWS, cos(HALF_PI*0.4));
@@ -2416,6 +2422,10 @@ float PreLightData_GetSpecularOcclusion(int specularOcclusionAlgorithm,
                                                                 bsdfData.soFixupStrengthFactor,
                                                                 bsdfData.soFixupMaxAddedRoughness,
                                                                 bsdfData.geomNormalWS);
+        break;
+    case SPECULAR_OCCLUSION_CUSTOM_EXT_INPUT:
+        //specularOcclusion = 1.0;
+        specularOcclusion = bsdfData.specularOcclusionCustomInput;
         break;
     }
 
@@ -2515,6 +2525,9 @@ void PreLightData_SetupOcclusion(PositionInputs posInput, BSDFData bsdfData, flo
 
     // Get specular occlusion from data (baked) values temporarily in preLightData.hemiSpecularOcclusion[]
     // and combine those data-based SO values with the screen-space SO values into one final hemispherical specular occlusion:
+    //
+    // (TODO: Note that for now, for specularOcclusionAlgorithm == SPECULAR_OCCLUSION_CUSTOM_EXT_INPUT,
+    // we only have one value that overrides and set each SO value of each lobe to the same unique user supplied value.)
     dataBasedSpecularOcclusion[BASE_LOBEA_IDX] = PreLightData_GetSpecularOcclusion(specularOcclusionAlgorithm,
                                                                                    bsdfData.ambientOcclusion,
                                                                                    V, N[BASE_NORMAL_IDX], NdotV[BASE_NORMAL_IDX] /* clamped */,
@@ -2549,6 +2562,8 @@ void PreLightData_SetupOcclusion(PositionInputs posInput, BSDFData bsdfData, flo
                                                                                         bentVisibilityDir, screenSpaceBentVisibilityAlgorithm,
                                                                                         orthoBasisViewNormal[COAT_NORMAL_IDX], useHemisphereClip);
 
+        // (TODO: Note that for now, for specularOcclusionAlgorithm == SPECULAR_OCCLUSION_CUSTOM_EXT_INPUT,
+        // we only have one value that overrides and set each SO value of each lobe to the same unique user supplied value.)
         dataBasedSpecularOcclusion[COAT_LOBE_IDX] = PreLightData_GetSpecularOcclusion(specularOcclusionAlgorithm,
                                                                                       bsdfData.ambientOcclusion,
                                                                                       V, N[COAT_NORMAL_IDX], NdotV[COAT_NORMAL_IDX] /* clamped */,
@@ -3330,7 +3345,7 @@ void CalculateAnisoAngles(BSDFData bsdfData, float3 H, float3 L, float3 V, out f
     BdotL = dot(bsdfData.bitangentWS, L);
 }
 
-void BSDF_ModifyFresnelForIridescence(BSDFData bsdfData, PreLightData preLightData, inout float3 F)
+void BSDF_ModifyFresnelForIridescence(BSDFData bsdfData, PreLightData preLightData, float LdotH, inout float3 F)
 {
         if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_STACK_LIT_IRIDESCENCE))
         {
@@ -3338,7 +3353,7 @@ void BSDF_ModifyFresnelForIridescence(BSDFData bsdfData, PreLightData preLightDa
 
 #ifdef IRIDESCENCE_RECOMPUTE_PERLIGHT
             float topIor = 1.0; // default air on top.
-            fresnelIridescent = EvalIridescence(topIor, savedLdotH, bsdfData.iridescenceThickness, bsdfData.fresnel0);
+            fresnelIridescent = EvalIridescence(topIor, LdotH, bsdfData.iridescenceThickness, bsdfData.fresnel0);
 #endif
             F = lerp(F, fresnelIridescent, bsdfData.iridescenceMask);
         }
@@ -3524,7 +3539,7 @@ CBSDF EvaluateBSDF(float3 inV, float3 inL, PreLightData preLightData, BSDFData b
         // If we don't recompute the stack per dirac lights, we ensure the coatmask make us lerp
         // to the usual LdotH Schlick term.
         bottomF = F_Schlick(bsdfData.fresnel0, savedLdotH);
-        BSDF_ModifyFresnelForIridescence(bsdfData, preLightData, bottomF);
+        BSDF_ModifyFresnelForIridescence(bsdfData, preLightData, savedLdotH, bottomF);
 #endif
 
         bottomF = lerp(bottomF, preLightData.vLayerEnergyCoeff[BOTTOM_VLAYER_IDX], bsdfData.coatMask);
@@ -3546,26 +3561,33 @@ CBSDF EvaluateBSDF(float3 inV, float3 inL, PreLightData preLightData, BSDFData b
         // --------------------------------------------------------------------
         // NO VLAYERING:
         // --------------------------------------------------------------------
+
+        // Note: See GetPreLightData(), in that case, 
+        // preLightData.layeredRoughnessT[0] = bsdfData.roughnessAT;
+        // preLightData.layeredRoughnessB[0] = bsdfData.roughnessAB;
+        // preLightData.layeredRoughnessT[1] = bsdfData.roughnessBT;
+        // preLightData.layeredRoughnessB[1] = bsdfData.roughnessBB;
+
         // TODO: Proper Fresnel
         float3 F = F_Schlick(bsdfData.fresnel0, savedLdotH);
 
-        BSDF_ModifyFresnelForIridescence(bsdfData, preLightData, F);
+        BSDF_ModifyFresnelForIridescence(bsdfData, preLightData, savedLdotH, F);
 
         if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_STACK_LIT_ANISOTROPY))
         {
             float TdotH, TdotL, BdotH, BdotL;
             CalculateAnisoAngles(bsdfData, H, L[0], V[0], TdotH, TdotL, BdotH, BdotL);
             DV[0] = DV_SmithJointGGXAniso(TdotH, BdotH, NdotH[0], NdotV[0], TdotL, BdotL, NdotL[0],
-                                          bsdfData.roughnessAT, bsdfData.roughnessAB,
+                                          preLightData.layeredRoughnessT[0], preLightData.layeredRoughnessB[0],
                                           preLightData.partLambdaV[0]);
             DV[1] = DV_SmithJointGGXAniso(TdotH, BdotH, NdotH[0], NdotV[0], TdotL, BdotL, NdotL[0],
-                                          bsdfData.roughnessBT, bsdfData.roughnessBB,
+                                          preLightData.layeredRoughnessT[1], preLightData.layeredRoughnessB[1],
                                           preLightData.partLambdaV[1]);
         }
         else
         {
-            DV[0] = DV_SmithJointGGX(NdotH[0], NdotL[0], NdotV[0], bsdfData.roughnessAT, preLightData.partLambdaV[0]);
-            DV[1] = DV_SmithJointGGX(NdotH[0], NdotL[0], NdotV[0], bsdfData.roughnessBT, preLightData.partLambdaV[1]);
+            DV[0] = DV_SmithJointGGX(NdotH[0], NdotL[0], NdotV[0], preLightData.layeredRoughnessT[0], preLightData.partLambdaV[0]);
+            DV[1] = DV_SmithJointGGX(NdotH[0], NdotL[0], NdotV[0], preLightData.layeredRoughnessT[1], preLightData.partLambdaV[1]);
         }
 
         IF_DEBUG( if(_DebugLobeMask.y == 0.0) DV[BASE_LOBEA_IDX] = (float3)0; )

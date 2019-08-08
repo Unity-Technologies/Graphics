@@ -19,7 +19,11 @@ Shader "Hidden/Universal Render Pipeline/ScreenSpaceShadows"
         #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
         #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Shadows.hlsl"
 
-        TEXTURE2D_X_FLOAT(_CameraDepthTexture);
+#if defined(UNITY_STEREO_INSTANCING_ENABLED) || defined(UNITY_STEREO_MULTIVIEW_ENABLED)
+        TEXTURE2D_ARRAY_FLOAT(_CameraDepthTexture);
+#else
+        TEXTURE2D_FLOAT(_CameraDepthTexture);
+#endif
         SAMPLER(sampler_CameraDepthTexture);
 
         struct Attributes
@@ -72,8 +76,8 @@ Shader "Hidden/Universal Render Pipeline/ScreenSpaceShadows"
 
             // Screenspace shadowmap is only used for directional lights which use orthogonal projection.
             ShadowSamplingData shadowSamplingData = GetMainLightShadowSamplingData();
-            half shadowStrength = GetMainLightShadowStrength();
-            return SampleShadowmap(coords, TEXTURE2D_ARGS(_MainLightShadowmapTexture, sampler_MainLightShadowmapTexture), shadowSamplingData, shadowStrength, false);
+            half4 shadowParams = GetMainLightShadowParams();
+            return SampleShadowmap(TEXTURE2D_ARGS(_MainLightShadowmapTexture, sampler_MainLightShadowmapTexture), coords, shadowSamplingData, shadowParams, false);
         }
 
         ENDHLSL

@@ -477,7 +477,10 @@ MonoBehaviour:
   - {fileID: 4}
   - {fileID: 27}
   - {fileID: 29}
-  m_Capacity: 32
+  dataType: 0
+  capacity: 32
+  stripCapacity: 16
+  particlePerStripCount: 16
   m_Space: 0
 --- !u!114 &15
 MonoBehaviour:
@@ -598,6 +601,7 @@ MonoBehaviour:
   m_OutputFlowSlot:
   - link: []
   blendMode: 1
+  generateMotionVector: 0
   m_SubOutputs:
   - {fileID: 0}
   - {fileID: 48}

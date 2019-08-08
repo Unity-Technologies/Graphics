@@ -13,22 +13,19 @@ MonoBehaviour:
   m_Name: HDRenderPipelineEditorResources
   m_EditorClassIdentifier: 
   m_Version: 0
-  defaultScene: {fileID: 3628837357921210760, guid: bc694eebc7afe0b42b02d231420b217a,
+  defaultScene: {fileID: 4893056312182120781, guid: bc694eebc7afe0b42b02d231420b217a,
     type: 3}
-  defaultRenderSettingsProfile: {fileID: 11400000, guid: cf1b32335766f2e40a3d01fb915d6960,
+  defaultSkyAndFogProfile: {fileID: 11400000, guid: a817123acc6c86946bd0d80b00908e31,
     type: 2}
-  defaultPostProcessingProfile: {fileID: 11400000, guid: 0904b06389a0ca142ae72fe1effad808,
+  defaultPostProcessingProfile: {fileID: 11400000, guid: afc2e9b608c304f468d0c1818eba58d5,
     type: 2}
   defaultDiffusionProfileSettingsList:
   - {fileID: 11400000, guid: 404820c4cf36ad944862fa59c56064f0, type: 2}
   - {fileID: 11400000, guid: 2384dbf2c1c420f45a792fbc315fbfb1, type: 2}
   shaders:
-    terrainDetailLitShader: {fileID: 10505, guid: 0000000000000000f000000000000000,
-      type: 0}
-    terrainDetailGrassShader: {fileID: 10505, guid: 0000000000000000f000000000000000,
-      type: 0}
-    terrainDetailGrassBillboardShader: {fileID: 10505, guid: 0000000000000000f000000000000000,
-      type: 0}
+    terrainDetailLitShader: {fileID: 0}
+    terrainDetailGrassShader: {fileID: 0}
+    terrainDetailGrassBillboardShader: {fileID: 0}
   materials:
     defaultDiffuseMat: {fileID: 2100000, guid: 73c176f402d2c2f4d929aa5da7585d17, type: 2}
     defaultMirrorMat: {fileID: 2100000, guid: 6b17274157b33bc45b6a40e7d4ff51fe, type: 2}

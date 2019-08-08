@@ -170,6 +170,10 @@ MonoBehaviour:
   - link:
     - context: {fileID: 8926484042661614623}
       slotIndex: 0
+  loopDuration: 0
+  loopCount: 0
+  delayBeforeLoop: 0
+  delayAfterLoop: 0
 --- !u!114 &8926484042661614534
 MonoBehaviour:
   m_ObjectHideFlags: 0

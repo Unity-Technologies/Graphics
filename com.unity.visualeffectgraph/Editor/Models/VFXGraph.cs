@@ -663,7 +663,7 @@ namespace UnityEditor.VFX
         public int version { get { return m_GraphVersion; } }
 
         [SerializeField]
-        private int m_GraphVersion = 0;
+        private int m_GraphVersion = CurrentVersion;
 
         [NonSerialized]
         private bool m_GraphSanitized = false;

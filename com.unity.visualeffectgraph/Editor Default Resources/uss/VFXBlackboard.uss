@@ -1,0 +1,134 @@
+.blackboard *
+{
+    font-size: 11px;
+}
+
+#vfx-properties
+{
+    margin-bottom: 7px;
+}
+
+ #vfx-properties .propertyrm
+{
+    flex:0 0 auto;
+}
+
+.propertyrm VFXStringField.fieldContainer
+{
+    width: 240px;
+    flex-grow:0;
+    height: initial;
+}
+
+VFXStringField.fieldContainer > TextField
+{
+    white-space:normal;
+}
+
+VFXBlackboardRow.hovered #pill #selection-border
+{
+    background-color:rgba(68,192,255,0.4);
+    border-color: #44C0FF;
+    border-left-width: 2px;
+    border-top-width: 2px;
+    border-right-width: 2px;
+    border-bottom-width: 2px;
+    left: 1px;
+    right: 1px;
+    top: 1px;
+    bottom: 1px;
+}
+
+.blackboard .output > .mainContainer > #sectionHeader
+{
+    background-color:#393939;
+}
+
+.blackboard .output > .mainContainer > #sectionHeader
+{
+    background-color:#393939;
+}
+
+.blackboard .output > .mainContainer > #sectionHeader > #sectionTitleLabel
+{
+    color:#C1C1C1;
+}
+
+
+.blackboard > #dragIndicator {
+    background-color: #44C0FF;
+    min-height: 4px;
+    left:0;
+    right:0;
+}
+
+
+VFXBlackboardCategory #name-field
+{
+    position:absolute;
+    left:0;
+    right:0;
+    top:0;
+    bottom:0;
+}
+
+#expandButton {
+    align-self: center;
+    background-image: none;
+    border-left-width: 0;
+    border-top-width: 0;
+    border-right-width: 0;
+    border-bottom-width: 0;
+    margin-left: 0;
+    margin-top: 0;
+    margin-right: 0;
+    margin-bottom: 0;
+    padding-left: 0;
+    padding-top: 0;
+    padding-right: 0;
+    padding-bottom: 0;
+}
+
+#expandButton > #buttonImage {
+    --unity-image : resource("GraphView/Nodes/NodeChevronRight.png");
+    width: 12px;
+    height: 12px;
+}
+
+VFXBlackboardCategory.expanded #expandButton > #buttonImage {
+    --unity-image : resource("GraphView/Nodes/NodeChevronDown.png");
+}
+
+VFXBlackboardCategory > .mainContainer > #rowsContainer
+{
+    display:none;
+    overflow:hidden
+}
+
+VFXBlackboardCategory.expanded  > .mainContainer > #rowsContainer
+{
+    display:flex;
+}
+
+VFXBlackboardCategory > .mainContainer > #sectionHeader
+{
+    padding-left: 4px;
+}VFXBlackboardCategory > .mainContainer > #rowsContainer
+{
+    padding-left: 8px;
+}
+
+#expandButton:hover > #buttonImage {
+    background-color: #212121;
+    border-radius: 1px;
+}
+
+#divider {
+    background-color: rgba(60,60,60,0.8);
+    border-color: rgba(60,60,60,0.8);
+}
+
+#divider.horizontal {
+    height: 0.01px;
+    border-bottom-width: 1px;
+}

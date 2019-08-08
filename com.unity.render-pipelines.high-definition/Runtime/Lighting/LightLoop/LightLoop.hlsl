@@ -355,6 +355,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
         }
     }
 
+#if SHADEROPTIONS_AREA_LIGHTS
     if (featureFlags & LIGHTFEATUREFLAGS_AREA)
     {
         uint lightCount, lightStart;
@@ -406,6 +407,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
             }
         }
     }
+#endif
 
     // Also Apply indiret diffuse (GI)
     // PostEvaluateBSDF will perform any operation wanted by the material and sum everything into diffuseLighting and specularLighting

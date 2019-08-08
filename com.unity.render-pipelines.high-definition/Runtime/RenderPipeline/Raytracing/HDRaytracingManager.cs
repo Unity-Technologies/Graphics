@@ -62,7 +62,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public LayerMask mask = -1;
 
             // The native acceleration structure that matches this sub-scene
-            public RayTracingAccelerationStructure accelerationStructure = null;
+            public Experimental.Rendering.RayTracingAccelerationStructure accelerationStructure = null;
 
             // Flag that tracks if the acceleration needs to be updated
             public bool needUpdate = false;
@@ -457,7 +457,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 subScene.targetRenderers = new List<Renderer>();
 
                 // Create the acceleration structure
-                subScene.accelerationStructure = new RayTracingAccelerationStructure();
+                subScene.accelerationStructure = new Experimental.Rendering.RayTracingAccelerationStructure();
 
                 // First of all let's process all the LOD groups
                 LODGroup[] lodGroupArray = UnityEngine.GameObject.FindObjectsOfType<LODGroup>();
@@ -681,7 +681,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        public RayTracingAccelerationStructure RequestAccelerationStructure(LayerMask layerMask)
+        public Experimental.Rendering.RayTracingAccelerationStructure RequestAccelerationStructure(LayerMask layerMask)
         {
             HDRayTracingSubScene currentSubScene = null;
             if (m_SubScenes.TryGetValue(layerMask.value, out currentSubScene))

@@ -64,7 +64,7 @@ namespace UnityEditor.VFX.Test
         [Test]
         public void CopyPasteContextWithBlock()
         {
-            var initContextDesc = VFXLibrary.GetContexts().Where(t => t.name == "Initialize").First();
+            var initContextDesc = VFXLibrary.GetContexts().Where(t => typeof(VFXBasicInitialize).IsAssignableFrom(t.modelType)).First();
 
             var newContext = m_ViewController.AddVFXContext(new Vector2(100, 100), initContextDesc);
 
@@ -76,7 +76,7 @@ namespace UnityEditor.VFX.Test
 
             Assert.AreEqual(contextController.model, newContext);
 
-            var flipBookBlockDesc = VFXLibrary.GetBlocks().First(t => t.name == "Set Tex Index ");
+            var flipBookBlockDesc = VFXLibrary.GetBlocks().First(t => t.name == "Set Tex Index");
 
             contextController.AddBlock(0, flipBookBlockDesc.CreateInstance());
 
@@ -105,12 +105,12 @@ namespace UnityEditor.VFX.Test
             float originalMinValue = 123.456f;
             minValueSlot.value = originalMinValue;
 
-            view.CopySelectionCallback();
+            string copyData = view.SerializeElements(view.selection.OfType<GraphElement>());
 
             boundsSlot.value = new AABox() { center = Vector3.zero, size = Vector3.zero };
             minValueSlot.value = 789f;
 
-            view.PasteCallback();
+            view.UnserializeAndPasteElements("paste", copyData);
             var elements = view.Query().OfType<GraphElement>().ToList();
 
             var contexts = elements.OfType<VFXContextUI>().ToArray();
@@ -124,7 +124,7 @@ namespace UnityEditor.VFX.Test
             Assert.AreNotEqual(copyContext.position, newContext.position);
 
 
-            view.PasteCallback();
+            view.UnserializeAndPasteElements("paste", copyData);
 
             elements = view.Query().OfType<GraphElement>().ToList();
             contexts = elements.OfType<VFXContextUI>().ToArray();
@@ -164,11 +164,11 @@ namespace UnityEditor.VFX.Test
             Vector3 originalA = Vector3.one * 123;
             aSlot.value = originalA;
 
-            view.CopySelectionCallback();
+            string copyData = view.SerializeElements(view.selection.OfType<GraphElement>());
 
             aSlot.value = Vector3.one * 456;
 
-            view.PasteCallback();
+            view.UnserializeAndPasteElements("paste", copyData);
 
             var elements = view.Query().OfType<GraphElement>().ToList();
 
@@ -180,7 +180,7 @@ namespace UnityEditor.VFX.Test
 
             Assert.AreNotEqual(copyOperator.controller.model.position, newOperator.position);
 
-            view.PasteCallback();
+            view.UnserializeAndPasteElements("paste", copyData);
 
             elements = view.Query().OfType<GraphElement>().ToList();
             var copy2Operator = elements.OfType<VFXOperatorUI>().First(t => t.controller.model != newOperator && t != copyOperator);
@@ -220,11 +220,11 @@ namespace UnityEditor.VFX.Test
 
             aSlot.space = VFXCoordinateSpace.World;
 
-            view.CopySelectionCallback();
+            string copyData = view.SerializeElements(view.selection.OfType<GraphElement>());
 
             aSlot.space = VFXCoordinateSpace.Local;
 
-            view.PasteCallback();
+            view.UnserializeAndPasteElements("paste", copyData);
 
             var elements = view.Query().OfType<GraphElement>().ToList();
 
@@ -259,11 +259,11 @@ namespace UnityEditor.VFX.Test
                 view.AddToSelection(element);
             }
 
-            view.CopySelectionCallback();
+            string copyData = view.SerializeElements(view.selection.OfType<GraphElement>());
 
             view.controller = m_ViewController;
 
-            view.PasteCallback();
+            view.UnserializeAndPasteElements("paste", copyData);
 
             m_ViewController.ApplyChanges();
 
@@ -331,7 +331,7 @@ namespace UnityEditor.VFX.Test
         [Test]
         public void CopyPasteBlock()
         {
-            var initContextDesc = VFXLibrary.GetContexts().Where(t => t.name == "Initialize").First();
+            var initContextDesc = VFXLibrary.GetContexts().Where(t => typeof(VFXBasicInitialize).IsAssignableFrom(t.modelType)).First();
 
             var newContext = m_ViewController.AddVFXContext(new Vector2(100, 100), initContextDesc);
 
@@ -342,7 +342,7 @@ namespace UnityEditor.VFX.Test
 
             Assert.AreEqual(contextController.model, newContext);
 
-            var flipBookBlockDesc = VFXLibrary.GetBlocks().First(t => t.name == "Set Tex Index ");
+            var flipBookBlockDesc = VFXLibrary.GetBlocks().First(t => t.name == "Set Tex Index");
 
             contextController.AddBlock(0, flipBookBlockDesc.CreateInstance());
 
@@ -367,11 +367,11 @@ namespace UnityEditor.VFX.Test
             float originalMinValue = 123.456f;
             minValueSlot.value = originalMinValue;
 
-            view.CopySelectionCallback();
+            string copyData = view.SerializeElements(view.selection.OfType<GraphElement>());
 
             minValueSlot.value = 789f;
 
-            view.PasteCallback();
+            view.UnserializeAndPasteElements("Paste", copyData);
 
             view.controller.ApplyChanges();
 

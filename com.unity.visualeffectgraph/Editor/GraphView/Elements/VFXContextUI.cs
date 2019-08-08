@@ -217,6 +217,11 @@ namespace UnityEditor.VFX.UI
                 m_Label.RemoveFromClassList("empty");
             }
 
+            foreach (var inEdge in m_FlowInputConnectorContainer.Children().OfType<VFXFlowAnchor>().SelectMany(t => t.connections))
+                inEdge.UpdateEdgeControl();
+            foreach (var outEdge in m_FlowOutputConnectorContainer.Children().OfType<VFXFlowAnchor>().SelectMany(t => t.connections))
+                outEdge.UpdateEdgeControl();
+
             RefreshContext();
         }
 
@@ -226,8 +231,8 @@ namespace UnityEditor.VFX.UI
         {
             capabilities |= Capabilities.Selectable | Capabilities.Movable | Capabilities.Deletable | Capabilities.Ascendable;
 
-            styleSheets.Add(Resources.Load<StyleSheet>("VFXContext"));
-            styleSheets.Add(Resources.Load<StyleSheet>("Selectable"));
+            styleSheets.Add(VFXView.LoadStyleSheet("VFXContext"));
+            styleSheets.Add(VFXView.LoadStyleSheet("Selectable"));
 
             AddToClassList("VFXContext");
             AddToClassList("selectable");
@@ -591,10 +596,11 @@ namespace UnityEditor.VFX.UI
         {
             switch (type)
             {
-                case VFXDataType.None:
-                    return Resources.Load<Texture2D>("VFX/Execution");
+                case VFXDataType.SpawnEvent:
+                    return VFXView.LoadImage("Execution");
                 case VFXDataType.Particle:
-                    return Resources.Load<Texture2D>("VFX/Particles");
+                case VFXDataType.ParticleStrip: // TODO Add an icon
+                    return VFXView.LoadImage("Particles");
             }
             return null;
         }

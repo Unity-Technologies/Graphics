@@ -407,8 +407,8 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                 var converter = node as IPropertyFromNode;
                 var prop = converter.AsShaderProperty();
-                prop.displayName = graph.SanitizePropertyName(prop.displayName, prop.guid);
-                graph.AddShaderProperty(prop);
+                graph.SanitizeGraphInputName(prop);
+                graph.AddGraphInput(prop);
 
                 var propNode = new PropertyNode();
                 propNode.drawState = node.drawState;
@@ -464,14 +464,14 @@ namespace UnityEditor.ShaderGraph.Drawing
             var groups = elements.OfType<ShaderGroup>().Select(x => x.userData);
             var nodes = elements.OfType<IShaderNodeView>().Select(x => x.node).Where(x => x.canCopyNode);
             var edges = elements.OfType<Edge>().Select(x => x.userData).OfType<IEdge>();
-            var properties = selection.OfType<BlackboardField>().Select(x => x.userData as AbstractShaderProperty);
+            var inputs = selection.OfType<BlackboardField>().Select(x => x.userData as ShaderInput);
             var notes = elements.OfType<StickyNote>().Select(x => x.userData);
 
             // Collect the property nodes and get the corresponding properties
             var propertyNodeGuids = nodes.OfType<PropertyNode>().Select(x => x.propertyGuid);
             var metaProperties = this.graph.properties.Where(x => propertyNodeGuids.Contains(x.guid));
 
-            var graph = new CopyPasteGraph(this.graph.assetGuid, groups, nodes, edges, properties, metaProperties, notes);
+            var graph = new CopyPasteGraph(this.graph.assetGuid, groups, nodes, edges, inputs, metaProperties, notes);
             return JsonUtility.ToJson(graph, true);
         }
 
@@ -489,17 +489,30 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void DeleteSelectionImplementation(string operationName, GraphView.AskUser askUser)
         {
+            bool containsProperty = false;
+
             foreach (var selectable in selection)
             {
                 var field = selectable as BlackboardField;
                 if (field != null && field.userData != null)
                 {
-                    if (graph.isSubGraph)
+                    switch(field.userData)
                     {
-                        if (EditorUtility.DisplayDialog("Sub Graph Will Change", "If you remove a property and save the sub graph, you might change other graphs that are using this sub graph.\n\nDo you want to continue?", "Yes", "No"))
+                        case AbstractShaderProperty property:
+                            containsProperty = true;
                             break;
-                        return;
+                        default:
+                            throw new ArgumentOutOfRangeException();
                     }
+                }
+            }
+
+            if(containsProperty)
+            {
+                if (graph.isSubGraph)
+                {
+                    if (!EditorUtility.DisplayDialog("Sub Graph Will Change", "If you remove a property and save the sub graph, you might change other graphs that are using this sub graph.\n\nDo you want to continue?", "Yes", "No"))
+                        return;
                 }
             }
 
@@ -514,8 +527,8 @@ namespace UnityEditor.ShaderGraph.Drawing
                 var field = selectable as BlackboardField;
                 if (field != null && field.userData != null)
                 {
-                    var property = (AbstractShaderProperty)field.userData;
-                    graph.RemoveShaderProperty(property.guid);
+                    var input = (ShaderInput)field.userData;
+                    graph.RemoveGraphInput(input);
                 }
             }
 
@@ -611,7 +624,6 @@ namespace UnityEditor.ShaderGraph.Drawing
                 }
 
                 var node = new SampleTexture2DNode();
-
                 var drawState = node.drawState;
                 drawState.position = new Rect(nodePosition, drawState.position.size);
                 node.drawState = drawState;
@@ -629,13 +641,13 @@ namespace UnityEditor.ShaderGraph.Drawing
             if (textureArray != null)
             {
                 graph.owner.RegisterCompleteObjectUndo("Drag Texture Array");
-                var property = new Texture2DArrayShaderProperty { displayName = textureArray.name, value = { textureArray = textureArray } };
-                graph.AddShaderProperty(property);
+                
                 var node = new SampleTexture2DArrayNode();
                 var drawState = node.drawState;
                 drawState.position = new Rect(nodePosition, drawState.position.size);
                 node.drawState = drawState;
                 graph.AddNode(node);
+
                 var inputslot = node.FindSlot<Texture2DArrayInputMaterialSlot>(SampleTexture2DArrayNode.TextureInputId);
                 if (inputslot != null)
                     inputslot.textureArray = textureArray;
@@ -645,13 +657,13 @@ namespace UnityEditor.ShaderGraph.Drawing
             if (texture3D != null)
             {
                 graph.owner.RegisterCompleteObjectUndo("Drag Texture 3D");
-                var property = new Texture3DShaderProperty { displayName = texture3D.name, value = { texture = texture3D } };
-                graph.AddShaderProperty(property);
+
                 var node = new SampleTexture3DNode();
                 var drawState = node.drawState;
                 drawState.position = new Rect(nodePosition, drawState.position.size);
                 node.drawState = drawState;
                 graph.AddNode(node);
+
                 var inputslot = node.FindSlot<Texture3DInputMaterialSlot>(SampleTexture3DNode.TextureInputId);
                 if (inputslot != null)
                     inputslot.texture = texture3D;
@@ -661,10 +673,8 @@ namespace UnityEditor.ShaderGraph.Drawing
             if (cubemap != null)
             {
                 graph.owner.RegisterCompleteObjectUndo("Drag Cubemap");
-                var property = new CubemapShaderProperty { displayName = cubemap.name, value = { cubemap = cubemap } };
-                graph.AddShaderProperty(property);
+                
                 var node = new SampleCubemapNode();
-
                 var drawState = node.drawState;
                 drawState.position = new Rect(nodePosition, drawState.position.size);
                 node.drawState = drawState;
@@ -690,20 +700,25 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             var blackboardField = obj as BlackboardField;
             if (blackboardField != null)
-            {
-                AbstractShaderProperty property = blackboardField.userData as AbstractShaderProperty;
-                if (property != null)
+            {   
+                graph.owner.RegisterCompleteObjectUndo("Drag Graph Input");
+
+                switch(blackboardField.userData)
                 {
-                    graph.owner.RegisterCompleteObjectUndo("Drag Property");
-                    var node = new PropertyNode();
+                    case AbstractShaderProperty property:
+                    {
+                        var node = new PropertyNode();
+                        var drawState = node.drawState;
+                        drawState.position =  new Rect(nodePosition, drawState.position.size);
+                        node.drawState = drawState;
+                        graph.AddNode(node);
 
-                    var drawState = node.drawState;
-                    drawState.position =  new Rect(nodePosition, drawState.position.size);
-                    node.drawState = drawState;
-                    graph.AddNode(node);
-
-                    // Setting the guid requires the graph to be set first.
-                    node.propertyGuid = property.guid;
+                        // Setting the guid requires the graph to be set first.
+                        node.propertyGuid = property.guid;
+                        break;
+                    }
+                    default:
+                        throw new ArgumentOutOfRangeException();
                 }
             }
         }
@@ -718,20 +733,27 @@ namespace UnityEditor.ShaderGraph.Drawing
             if (copyGraph == null)
                 return;
 
-            // Make new properties from the copied graph
-            foreach (AbstractShaderProperty property in copyGraph.properties)
+            // Make new inputs from the copied graph
+            foreach (ShaderInput input in copyGraph.inputs)
             {
-                string propertyName = graphView.graph.SanitizePropertyName(property.displayName);
-                AbstractShaderProperty copiedProperty = property.Copy();
-                copiedProperty.displayName = propertyName;
-                graphView.graph.AddShaderProperty(copiedProperty);
+                ShaderInput copiedInput = input.Copy();
+                graphView.graph.SanitizeGraphInputName(copiedInput);
+                graphView.graph.SanitizeGraphInputReferenceName(copiedInput, input.overrideReferenceName);
+                graphView.graph.AddGraphInput(copiedInput);
 
-                // Update the property nodes that depends on the copied node
-                var dependentPropertyNodes = copyGraph.GetNodes<PropertyNode>().Where(x => x.propertyGuid == property.guid);
-                foreach (var node in dependentPropertyNodes)
+                switch(input)
                 {
-                    node.owner = graphView.graph;
-                    node.propertyGuid = copiedProperty.guid;
+                    case AbstractShaderProperty property:
+                        // Update the property nodes that depends on the copied node
+                        var dependentPropertyNodes = copyGraph.GetNodes<PropertyNode>().Where(x => x.propertyGuid == input.guid);
+                        foreach (var node in dependentPropertyNodes)
+                        {
+                            node.owner = graphView.graph;
+                            node.propertyGuid = copiedInput.guid;
+                        }
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException();
                 }
             }
 

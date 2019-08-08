@@ -36,12 +36,12 @@ struct Varyings
 #endif
 
 #if defined(_NORMALMAP) && !defined(ENABLE_TERRAIN_PERPIXEL_NORMAL)
-    half4 normal                    : TEXCOORD3;    // xyz: normal, w: viewDir.x
-    half4 tangent                   : TEXCOORD4;    // xyz: tangent, w: viewDir.y
-    half4 bitangent                 : TEXCOORD5;    // xyz: bitangent, w: viewDir.z
+    float4 normal                   : TEXCOORD3;    // xyz: normal, w: viewDir.x
+    float4 tangent                  : TEXCOORD4;    // xyz: tangent, w: viewDir.y
+    float4 bitangent                : TEXCOORD5;    // xyz: bitangent, w: viewDir.z
 #else
-    half3 normal                    : TEXCOORD3;
-    half3 viewDir                   : TEXCOORD4;
+    float3 normal                   : TEXCOORD3;
+    float3 viewDir                  : TEXCOORD4;
     half3 vertexSH                  : TEXCOORD5; // SH
 #endif
 
@@ -127,9 +127,11 @@ void SplatmapMix(float4 uvMainAndLM, float4 uvSplat01, float4 uvSplat23, inout h
     clip(weight == 0.0h ? -1.0h : 1.0h);
 #endif
 
+#ifndef _TERRAIN_BASEMAP_GEN
     // Normalize weights before lighting and restore weights in final modifier functions so that the overal
     // lighting result can be correctly weighted.
     splatControl /= (weight + HALF_MIN);
+#endif
 
     mixedDiffuse = 0.0h;
     mixedDiffuse += diffAlbedo[0] * half4(_DiffuseRemapScale0.rgb * splatControl.rrr, 1.0h);
@@ -333,7 +335,7 @@ half4 SplatmapFragment(Varyings IN) : SV_TARGET
 
     InputData inputData;
     InitializeInputData(IN, normalTS, inputData);
-    half4 color = UniversalFragmentPBR(inputData, albedo, metallic, half3(0.0h, 0.0h, 0.0h), smoothness, occlusion, /* emission */ half3(0, 0, 0), alpha);
+    half4 color = UniversalFragmentPBR(inputData, albedo, metallic, /* specular */ half3(0.0h, 0.0h, 0.0h), smoothness, occlusion, /* emission */ half3(0, 0, 0), alpha);
 
     SplatmapFinalColor(color, inputData.fogCoord);
 

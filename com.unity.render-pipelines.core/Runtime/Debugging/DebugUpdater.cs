@@ -1,6 +1,6 @@
 namespace UnityEngine.Rendering
 {
-    public class DebugUpdater : MonoBehaviour
+    class DebugUpdater : MonoBehaviour
     {
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         static void RuntimeInit()
