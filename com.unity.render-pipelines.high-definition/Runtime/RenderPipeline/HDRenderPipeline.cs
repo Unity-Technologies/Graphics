@@ -911,7 +911,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_SkyManager.SetGlobalSkyData(cmd);
 
                 #if ENABLE_RAYTRACING
-                bool validIndirectDiffuse = ValidIndirectDiffuseState();
+                bool validIndirectDiffuse = ValidIndirectDiffuseState(hdCamera);
                 cmd.SetGlobalInt(HDShaderIDs._RaytracedIndirectDiffuse, validIndirectDiffuse ? 1 : 0);
                 #endif
             }
@@ -1814,7 +1814,11 @@ namespace UnityEngine.Rendering.HighDefinition
             RenderCameraMotionVectors(cullingResults, hdCamera, renderContext, cmd);
 
 #if ENABLE_RAYTRACING
-            RenderIndirectDiffuse(hdCamera, cmd, renderContext, m_FrameCount);
+            bool validIndirectDiffuse = ValidIndirectDiffuseState(hdCamera);
+            if (validIndirectDiffuse)
+            {
+                RenderIndirectDiffuse(hdCamera, cmd, renderContext, m_FrameCount);
+            }
 #endif
 
 #if UNITY_EDITOR
@@ -3406,10 +3410,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
 #if ENABLE_RAYTRACING
             var settings = VolumeManager.instance.stack.GetComponent<ScreenSpaceReflection>();
-            if (settings.enableRaytracing.value)
+            HDRaytracingEnvironment rtEnvironement = m_RayTracingManager.CurrentEnvironment();
+            if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) && rtEnvironement != null && settings.enableRaytracing.value)
             {
                 RenderRayTracedReflections(hdCamera, cmd, m_SsrLightingTexture, renderContext, m_FrameCount);
-                }
+            }
             else
 #endif
             {

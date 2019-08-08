@@ -143,7 +143,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
 #if ENABLE_RAYTRACING
                 HDRaytracingEnvironment rtEnvironement = m_RayTracingManager.CurrentEnvironment();
-                if (rtEnvironement != null && settings.enableRaytracing.value)
+                if (camera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) && rtEnvironement != null && settings.enableRaytracing.value)
                     m_RaytracingAmbientOcclusion.RenderAO(camera, cmd, m_AmbientOcclusionTex, renderContext, frameCount);
                 else
 #endif
