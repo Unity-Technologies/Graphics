@@ -629,6 +629,10 @@ namespace UnityEngine.Rendering.HighDefinition
             if (!SystemInfo.supportsComputeShaders)
                 return false;
 
+            Debug.Assert(defaultResources != null);
+            if (!defaultResources.shaders.defaultPS.isSupported)
+                return false;
+
 #if UNITY_EDITOR
             UnityEditor.BuildTarget activeBuildTarget = UnityEditor.EditorUserBuildSettings.activeBuildTarget;
             // If the build target matches the operating system of the editor
