@@ -1672,11 +1672,11 @@ namespace UnityEngine.Rendering.HighDefinition
                             ref var target = ref renderRequest.target;
                             target.id = m_TemporaryTargetForCubemaps;
                         }
-
 //forest-begin: Prepare frame callback
                         if(OnBeginCamera != null)
                             OnBeginCamera(renderContext, renderRequest.hdCamera.camera, currentFrameSettings, cmd);
 //forest-end:
+
                         // var aovRequestIndex = 0;
                         foreach (var aovRequest in renderRequest.hdCamera.aovRequests)
                         {
@@ -3477,11 +3477,10 @@ namespace UnityEngine.Rendering.HighDefinition
             using (new ProfilingSample(cmd, "Forward Error", CustomSamplerId.RenderForwardError.GetSampler()))
             {
                 CoreUtils.SetRenderTarget(cmd, m_CameraColorBuffer, m_SharedRTManager.GetDepthStencilBuffer());
-                var rendererList = RendererList.Create(CreateOpaqueRendererListDesc(cullResults, hdCamera.camera, m_ForwardErrorPassNames, renderQueueRange: RenderQueueRange.all, overrideMaterial: m_ErrorMaterial));
-                HDUtils.DrawRendererList(renderContext, cmd, rendererList);
-//forest-begin: customizable sorting flags //UPGRADE-TODO:
-                RenderOpaqueRenderList(cullResults, hdCamera, renderContext, cmd, m_ForwardErrorPassNames, 0, SortingCriteria.None, RenderQueueRange.all, null, m_ErrorMaterial);
+//forest-begin: customizable sorting flags
+                var rendererList = RendererList.Create(CreateOpaqueRendererListDesc(cullResults, hdCamera.camera, m_ForwardErrorPassNames, sortFlags: SortingCriteria.None, renderQueueRange: RenderQueueRange.all, overrideMaterial: m_ErrorMaterial));
 //forest-end:
+                HDUtils.DrawRendererList(renderContext, cmd, rendererList);
             }
         }
 
@@ -3585,11 +3584,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 hdCamera.camera.depthTextureMode |= DepthTextureMode.MotionVectors | DepthTextureMode.Depth;
 
                 CoreUtils.SetRenderTarget(cmd, m_SharedRTManager.GetMotionVectorsPassBuffersRTI(hdCamera.frameSettings), m_SharedRTManager.GetDepthStencilBuffer(hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA)));
-                var rendererList = RendererList.Create(CreateOpaqueRendererListDesc(cullResults, hdCamera.camera, HDShaderPassNames.s_MotionVectorsName, PerObjectData.MotionVectors));
-                DrawOpaqueRendererList(renderContext, cmd, hdCamera.frameSettings, rendererList);
-//forest-begin: customizable sorting flags //MERGE-TODO
-				//RenderOpaqueRenderList(cullResults, hdCamera, renderContext, cmd, HDShaderPassNames.s_MotionVectorsName, PerObjectData.MotionVectors, hdCamera.frameSettings.sortFlagsObjectMotionVectors);
+//forest-begin: customizable sorting flags
+                var rendererList = RendererList.Create(CreateOpaqueRendererListDesc(cullResults, hdCamera.camera, HDShaderPassNames.s_MotionVectorsName, PerObjectData.MotionVectors, sortFlags: hdCamera.frameSettings.sortFlagsObjectMotionVectors));
 //forest-end:
+                DrawOpaqueRendererList(renderContext, cmd, hdCamera.frameSettings, rendererList);
             }
         }
 
