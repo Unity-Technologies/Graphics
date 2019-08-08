@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Node previews now inherit preview type correctly.
 - Normal maps now unpack correctly for mobile platforms.
 - Fixed an error that previously occurred when you used the Gradient Sample node and your system locale uses commas instead of periods.
+- Fixed an issue where you couldn't group several nodes.
 
 ## [7.0.0] - 2019-07-10
 ### Added
