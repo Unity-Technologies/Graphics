@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Fixed
 - Fixed wizard infinite loop on cancellation
+- Fixed with compute shader error about too many threads in threadgroup on low GPU
 - Fixed invalid contact shadow shaders being created on metal
 - Fixed  a bug where if Assembly.GetTypes throws an exception due to mis-versioned dlls, then no preprocessors are used in the shader stripper
 
@@ -15,7 +16,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Update Wizard layout.
 - Remove almost all Garbage collection call within a frame.
 - Rename property AdditionalVeclocityChange to AddPrecomputeVelocity 
-- Remove FPTL variant for forward opaque to improve build time. This can cause a small hit of performance on forward opaque
+- Call the End/Begin camera rendering callbacks for camera with customRender enabled
+- Forward opaque now always used Tile allowing to remove variant.
 
 ## [7.0.1] - 2019-07-25
 
@@ -144,6 +146,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - HDRPWizard window is now in Window > General > HD Render Pipeline Wizard
 - Moved StaticLightingSky to LightingWindow
 - Removes the current "Scene Settings" and replace them with "Sky & Fog Settings" (with Physically Based Sky and Volumetric Fog).
+- Changed how cached shadow maps are placed inside the atlas to minimize re-rendering of them. 
 
 ## [6.7.0-preview] - 2019-05-16
 

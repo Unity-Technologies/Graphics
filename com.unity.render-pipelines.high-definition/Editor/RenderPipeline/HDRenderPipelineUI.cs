@@ -573,20 +573,10 @@ namespace UnityEditor.Rendering.HighDefinition
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportTransparentDepthPrepass, k_SupportTransparentDepthPrepass);
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportTransparentDepthPostpass, k_SupportTransparentDepthPostpass);
 
-            // Only display the support ray tracing feature if the platform supports it
-#if REALTIME_RAYTRACING_SUPPORT
-            if(UnityEngine.SystemInfo.supportsRayTracing)
+            EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportRayTracing, k_SupportRaytracing);
+            using (new EditorGUI.DisabledScope(!serialized.renderPipelineSettings.supportRayTracing.boolValue))
             {
-                EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportRayTracing, k_SupportRaytracing);
-                using (new EditorGUI.DisabledScope(!serialized.renderPipelineSettings.supportRayTracing.boolValue))
-                {
-                    EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportedRaytracingTier, k_RaytracingTier);
-                }
-            }
-            else
-#endif
-            {
-                serialized.renderPipelineSettings.supportRayTracing.boolValue = false;
+                EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportedRaytracingTier, k_RaytracingTier);
             }
 
             EditorGUILayout.Space(); //to separate with following sub sections
@@ -696,9 +686,7 @@ namespace UnityEditor.Rendering.HighDefinition
             AppendSupport(builder, serialized.renderPipelineSettings.supportTransparentBackface, k_SupportTransparentBackface);
             AppendSupport(builder, serialized.renderPipelineSettings.supportTransparentDepthPrepass, k_SupportTransparentDepthPrepass);
             AppendSupport(builder, serialized.renderPipelineSettings.supportTransparentDepthPostpass, k_SupportTransparentDepthPostpass);
-#if REALTIME_RAYTRACING_SUPPORT
             AppendSupport(builder, serialized.renderPipelineSettings.supportRayTracing, k_SupportRaytracing);
-#endif
 
             EditorGUILayout.HelpBox(builder.ToString(), MessageType.Info, wide: true);
         }

@@ -78,6 +78,8 @@ namespace UnityEngine.Rendering.HighDefinition
         TransparentObjects = 3,
         [FrameSettingsField(0, autoName: RealtimePlanarReflection)]
         RealtimePlanarReflection = 4,
+        [FrameSettingsField(0, displayedName: "Ray Tracing", customOrderInGroup: 4)]
+        RayTracing = 92,
 
         [FrameSettingsField(0, autoName: TransparentPrepass)]
         TransparentPrepass = 8,
@@ -282,6 +284,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 (uint)FrameSettingsField.EnableReflectionProbe,
                 (uint)FrameSettingsField.EnablePlanarProbe,
                 (uint)FrameSettingsField.EnableSkyLighting,
+                (uint)FrameSettingsField.RayTracing,
             }),
             lodBias = 1,
         };
@@ -327,7 +330,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 (uint)FrameSettingsField.ComputeMaterialVariants,
                 (uint)FrameSettingsField.BigTilePrepass,
                 (uint)FrameSettingsField.EnableReflectionProbe,
-                (uint)FrameSettingsField.EnableSkyLighting,
+                (uint)FrameSettingsField.RayTracing,
+                // (uint)FrameSettingsField.EnableSkyLighting,
             }),
             lodBias = 1,
         };
@@ -372,6 +376,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 (uint)FrameSettingsField.ComputeMaterialVariants,
                 (uint)FrameSettingsField.BigTilePrepass,
                 (uint)FrameSettingsField.ReplaceDiffuseForIndirect,
+                // (uint)FrameSettingsField.EnableSkyLighting,
             }),
             lodBias = 1,
         };
@@ -475,6 +480,7 @@ namespace UnityEngine.Rendering.HighDefinition
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.ShadowMask] &= renderPipelineSettings.supportShadowMask && !preview;
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.ContactShadows] &= !preview;
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.ScreenSpaceShadows] &= renderPipelineSettings.hdShadowInitParams.supportScreenSpaceShadows;
+            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.RayTracing] &= HDRenderPipelineAsset.AggreateRayTracingSupport(renderPipelineSettings);
 
             //MSAA only supported in forward
             // TODO: The work will be implemented piecemeal to support all passes
