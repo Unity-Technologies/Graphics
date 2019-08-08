@@ -77,10 +77,6 @@ ${VertexShaderDescriptionInputs}
 		float4 clipVertex = o.positionCS / o.positionCS.w;
 		o.lightingUV = ComputeScreenPos(clipVertex).xy;
 
-		#if UNITY_UV_STARTS_AT_TOP
-		o.lightingUV.y = 1.0 - o.lightingUV.y;
-		#endif
-
 ${VertexShaderOutputs}
         return o;
     }

@@ -65,7 +65,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             else if (SystemInfo.SupportsRenderTextureFormat(RenderTextureFormat.ARGBHalf))
                 renderTextureFormatToUse = RenderTextureFormat.ARGBHalf;
 
-            RenderTextureDescriptor descriptor = new RenderTextureDescriptor();
+            RenderTextureDescriptor descriptor = new RenderTextureDescriptor(camera.pixelWidth, camera.pixelHeight);
             descriptor.colorFormat = renderTextureFormatToUse;
             descriptor.sRGB = false;
             descriptor.useMipMap = false;
@@ -74,8 +74,8 @@ namespace UnityEngine.Experimental.Rendering.Universal
             descriptor.msaaSamples = 1;
             descriptor.dimension = TextureDimension.Tex2D;
 
-            descriptor.width = (int)(camera.pixelWidth);
-            descriptor.height = (int)(camera.pixelHeight);
+            descriptor.width = camera.pixelWidth;
+            descriptor.height = camera.pixelHeight;
             cmd.GetTemporaryRT(s_NormalsTarget.id, descriptor, FilterMode.Bilinear);
 
             for (int i = 0; i < s_BlendStyles.Length; ++i)

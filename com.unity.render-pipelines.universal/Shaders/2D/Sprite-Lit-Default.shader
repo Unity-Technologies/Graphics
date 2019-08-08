@@ -81,11 +81,6 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-Default"
                 o.uv = TRANSFORM_TEX(v.uv, _MainTex);
                 float4 clipVertex = o.positionCS / o.positionCS.w;
                 o.lightingUV = ComputeScreenPos(clipVertex).xy;
-
-                #if UNITY_UV_STARTS_AT_TOP
-                o.lightingUV.y = 1.0 - o.lightingUV.y;
-                #endif
-
                 o.color = v.color;
                 return o;
             }
@@ -139,9 +134,6 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-Default"
                 Varyings o = (Varyings)0;
 
                 o.positionCS = TransformObjectToHClip(attributes.positionOS);
-                #if UNITY_UV_STARTS_AT_TOP
-                    o.positionCS.y = -o.positionCS.y;
-                #endif
                 o.uv = TRANSFORM_TEX(attributes.uv, _NormalMap);
                 o.uv = attributes.uv;
                 o.color = attributes.color;
