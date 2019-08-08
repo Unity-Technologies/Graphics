@@ -82,6 +82,14 @@ namespace UnityEditor.ShaderGraph
                 owner.CollectShaderKeywords(shaderKeywords, mode);
             }
 
+            if(shaderKeywords.GetKeywordPermutationCount() > ShaderKeyword.kMaxVariants)
+            {
+                owner.AddValidationError(tempId, ShaderKeyword.kVariantLimitWarning, Rendering.ShaderCompilerMessageSeverity.Error);
+                
+                configuredTextures = shaderProperties.GetConfiguredTexutres();
+                return string.Empty;
+            }
+
             foreach (var activeNode in activeNodeList.OfType<AbstractMaterialNode>())
                 activeNode.CollectShaderProperties(shaderProperties, mode);
 

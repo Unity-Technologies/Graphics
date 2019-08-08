@@ -1105,6 +1105,15 @@ namespace UnityEditor.ShaderGraph
 
             graph.CollectShaderKeywords(shaderKeywords, mode);
 
+            if(shaderKeywords.GetKeywordPermutationCount() > ShaderKeyword.kMaxVariants)
+            {
+                graph.AddValidationError(node.tempId, ShaderKeyword.kVariantLimitWarning, Rendering.ShaderCompilerMessageSeverity.Error);
+
+                results.configuredTextures = shaderProperties.GetConfiguredTexutres();
+                results.shader = string.Empty;
+                return results;
+            }
+
             // -------------------------------------
             // Get Slot and Node lists
 

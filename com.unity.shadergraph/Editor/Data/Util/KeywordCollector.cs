@@ -56,6 +56,20 @@ namespace UnityEditor.ShaderGraph
             builder.AppendNewLine();
         }
 
+        public int GetKeywordPermutationCount()
+        {
+            int permutationCount = 1;
+            foreach(ShaderKeyword keyword in keywords)
+            {
+                if(keyword.keywordType == KeywordType.Boolean)
+                    permutationCount *= 2;
+                else
+                    permutationCount *= keyword.entries.Count;
+            }
+
+            return permutationCount;
+        }
+
         public void CalculateKeywordPermutations()
         {
             permutations.Clear();

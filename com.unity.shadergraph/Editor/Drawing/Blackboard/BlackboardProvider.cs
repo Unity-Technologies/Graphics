@@ -358,6 +358,11 @@ namespace UnityEditor.ShaderGraph.Drawing
                 m_Graph.owner.RegisterCompleteObjectUndo("Create Graph Input");
                 m_Graph.AddGraphInput(input);
                 field.OpenTextEditor();
+
+                if(input as ShaderKeyword != null)
+                {
+                    m_Graph.OnKeywordChanged();
+                }
             }
         }
 

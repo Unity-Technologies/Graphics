@@ -537,7 +537,8 @@ namespace UnityEditor.ShaderGraph.Drawing
                 selection.OfType<Edge>().Select(x => x.userData).OfType<IEdge>().ToArray(),
                 selection.OfType<ShaderGroup>().Select(x => x.userData).ToArray(),
                 selection.OfType<StickyNote>().Select(x => x.userData).ToArray());
-
+            
+            bool keywordsDirty = false;
             foreach (var selectable in selection)
             {
                 var field = selectable as BlackboardField;
@@ -545,7 +546,17 @@ namespace UnityEditor.ShaderGraph.Drawing
                 {
                     var input = (ShaderInput)field.userData;
                     graph.RemoveGraphInput(input);
+
+                    if(input is ShaderKeyword keyword)
+                    {
+                        keywordsDirty = true;
+                    }
                 }
+            }
+
+            if(keywordsDirty)
+            {
+                graph.OnKeywordChanged();
             }
 
             selection.Clear();

@@ -201,7 +201,8 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             // Update GUI
             Rebuild();
-            DirtyNodes();
+            graph.ValidateGraph();
+            graph.OnKeywordChanged();
             m_SelectedIndex = list.list.Count - 1;
         }
 
@@ -219,7 +220,8 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_Keyword.value = value;
 
             Rebuild();
-            DirtyNodes();
+            graph.ValidateGraph();
+            graph.OnKeywordChanged();
         }
 
         private void ReorderEntries(ReorderableList list)
