@@ -50,9 +50,6 @@ ${VertexShaderDescriptionInputs}
 
         v.vertex.xyz = vd.Position;
         o.position = TransformObjectToHClip(v.vertex.xyz);
-		#if UNITY_UV_STARTS_AT_TOP
-			o.position.y = -o.position.y;
-		#endif
 		o.normalWS = TransformObjectToWorldDir(float3(0, 0, -1));
 		o.bitangentWS = cross(o.normalWS, WorldSpaceTangent) * v.tangent.w;
 ${VertexShaderOutputs}
