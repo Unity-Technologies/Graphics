@@ -31,9 +31,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public uint _NumTileFtplX;
         public  uint _NumTileFtplY;
 
-        // these uniforms are only needed for when OPAQUES_ONLY is NOT defined
+        // these uniforms are only needed for when cluster is used
         // but there's a problem with our front-end compilation of compute shaders with multiple kernels causing it to error
-        //#ifdef USE_CLUSTERED_LIGHTLIST
 //        float4x4 g_mInvScrProjection; // TODO: remove, unused in HDRP
 
         public float g_fClustScale;
@@ -43,9 +42,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public int g_iLog2NumClusters; // We need to always define these to keep constant buffer layouts compatible
 
         public uint g_isLogBaseBufferEnabled;
-        //#endif
 
-        //#ifdef USE_CLUSTERED_LIGHTLIST
         public uint _NumTileClusteredX;
         public uint _NumTileClusteredY;
 

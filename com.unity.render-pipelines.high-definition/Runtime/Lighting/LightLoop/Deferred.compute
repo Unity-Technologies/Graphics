@@ -70,7 +70,7 @@
 #endif
 
 // deferred opaque always use FPTL
-#define USE_FPTL_LIGHTLIST 1
+#define USE_TILE_LIGHTLIST 1
 
 // #pragma enable_d3d11_debug_symbols
 

@@ -6,6 +6,19 @@
 #define SCREEN_SPACE_SHADOWS 1
 #endif
 
+// If we haven't forced any LightList mode type, select one based on material
+#if !defined(USE_TILE_LIGHTLIST) && !defined(USE_CLUSTERED_LIGHTLIST) &&!defined(USE_BIG_TILE_LIGHTLIST)
+
+// Opaque object always used tile list and transparent object always used cluster list
+#ifndef _SURFACE_TYPE_TRANSPARENT
+#define USE_TILE_LIGHTLIST 1
+#else
+#define USE_CLUSTERED_LIGHTLIST 1
+#endif
+
+#endif
+
+
 #define DWORD_PER_TILE 16 // See dwordsPerTile in LightLoop.cs, we have roomm for 31 lights and a number of light value all store on 16 bit (ushort)
 
 // LightLoopContext is not visible from Material (user should not use these properties in Material file)
@@ -163,7 +176,7 @@ void GetCountAndStartTile(PositionInputs posInput, uint lightCategory, out uint 
     start = tileOffset;
 }
 
-#ifdef USE_FPTL_LIGHTLIST
+#ifdef USE_TILE_LIGHTLIST
 
 uint GetTileSize()
 {
@@ -248,7 +261,7 @@ uint FetchIndex(uint lightStart, uint lightOffset)
 {
     return 0;
 }
-#endif // USE_FPTL_LIGHTLIST
+#endif // USE_TILE_LIGHTLIST
 
 #else
 

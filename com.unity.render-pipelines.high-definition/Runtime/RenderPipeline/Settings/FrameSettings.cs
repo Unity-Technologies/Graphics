@@ -420,7 +420,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public void SetEnabled(FrameSettingsField field, bool value) => bitDatas[(uint)field] = value;
 
         // followings are helper for engine.
-        internal bool fptl => litShaderMode == LitShaderMode.Deferred; // Run fptl only in deferred
         internal float specularGlobalDimmer => bitDatas[(int)FrameSettingsField.Reflection] ? 1f : 0f;
 
         internal bool BuildLightListRunsAsync() => SystemInfo.supportsAsyncCompute && bitDatas[(int)FrameSettingsField.AsyncCompute] && bitDatas[(int)FrameSettingsField.LightListAsync];

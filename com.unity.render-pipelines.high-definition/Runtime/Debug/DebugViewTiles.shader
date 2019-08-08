@@ -17,7 +17,7 @@ Shader "Hidden/HDRP/DebugViewTiles"
             #pragma vertex Vert
             #pragma fragment Frag
 
-            #pragma multi_compile USE_FPTL_LIGHTLIST USE_CLUSTERED_LIGHTLIST
+            #pragma multi_compile USE_TILE_LIGHTLIST USE_CLUSTERED_LIGHTLIST
             #pragma multi_compile SHOW_LIGHT_CATEGORIES SHOW_FEATURE_VARIANTS
             #pragma multi_compile _ IS_DRAWINSTANCEDINDIRECT
 

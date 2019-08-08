@@ -42,7 +42,7 @@ Shader "Hidden/HDRP/DeferredTile"
 
             #define USE_INDIRECT    // otherwise TileVariantToFeatureFlags() will not be defined in Lit.hlsl!!!
 
-            #define USE_FPTL_LIGHTLIST 1 // deferred opaque always use FPTL
+            #define USE_TILE_LIGHTLIST 1 // deferred opaque always use FPTL
 
             #ifdef VARIANT0
             #define VARIANT 0
@@ -302,7 +302,7 @@ Shader "Hidden/HDRP/DeferredTile"
             #pragma multi_compile _ DEBUG_DISPLAY
             #pragma multi_compile _ SHADOWS_SHADOWMASK /// Variant with and without shadowmask
 
-            #define USE_FPTL_LIGHTLIST 1 // deferred opaque always use FPTL
+            #define USE_TILE_LIGHTLIST 1 // deferred opaque always use FPTL
 
             #ifdef DEBUG_DISPLAY
                 // Don't care about this warning in debug

@@ -279,7 +279,7 @@ namespace UnityEngine.Rendering.HighDefinition
         void PrepareForwardPassData(RenderGraph renderGraph, RenderGraphBuilder builder, ForwardPassData data, bool opaque, FrameSettings frameSettings, RendererListDesc rendererListDesc, RenderGraphMutableResource depthBuffer, ShadowResult shadowResult, DBufferOutput? dbuffer = null)
         {
             data.frameSettings = frameSettings;
-            data.lightListBuffer = m_TileAndClusterData.perVoxelLightLists;
+            data.lightListBuffer = m_TileAndClusterData.lightList; // Opaque always use tile light list
             data.depthBuffer = builder.UseDepthBuffer(depthBuffer, DepthAccess.ReadWrite);
             data.rendererList = builder.UseRendererList(renderGraph.CreateRendererList(rendererListDesc));
             // enable d-buffer flag value is being interpreted more like enable decals in general now that we have clustered

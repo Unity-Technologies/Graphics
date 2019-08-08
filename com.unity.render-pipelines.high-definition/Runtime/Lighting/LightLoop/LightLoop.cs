@@ -527,8 +527,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         static int s_deferredContactShadowKernel;
         static int s_deferredContactShadowKernelMSAA;
-        static int s_deferredContactShadowKernelCluster;
-        static int s_deferredContactShadowKernelClusterMSAA;
 
         static int s_GenListPerBigTileKernel;
 
@@ -584,7 +582,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         IndirectLightingController m_indirectLightingController = null;
 
-        // Following is an array of material of size eight for all combination of keyword: OUTPUT_SPLIT_LIGHTING - LIGHTLOOP_DISABLE_TILE_AND_CLUSTER - SHADOWS_SHADOWMASK - USE_FPTL_LIGHTLIST/USE_CLUSTERED_LIGHTLIST - DEBUG_DISPLAY
+        // Following is an array of material of size eight for all combination of keyword: OUTPUT_SPLIT_LIGHTING - LIGHTLOOP_DISABLE_TILE_AND_CLUSTER - SHADOWS_SHADOWMASK - USE_TILE_LIGHTLIST/USE_CLUSTERED_LIGHTLIST - DEBUG_DISPLAY
         Material[] m_deferredLightingMaterial;
         Material m_DebugViewTilesMaterial;
         Material m_DebugHDShadowMapMaterial;
@@ -737,8 +735,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             s_deferredContactShadowKernel = contactShadowComputeShader.FindKernel("DeferredContactShadow");
             s_deferredContactShadowKernelMSAA = contactShadowComputeShader.FindKernel("DeferredContactShadowMSAA");
-            s_deferredContactShadowKernelCluster = contactShadowComputeShader.FindKernel("DeferredContactShadowCluster");
-            s_deferredContactShadowKernelClusterMSAA = contactShadowComputeShader.FindKernel("DeferredContactShadowClusterMSAA");
 
             for (int variant = 0; variant < LightDefinitions.s_NumFeatureVariants; variant++)
             {
@@ -2785,7 +2781,7 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.numBigTilesY = (h + 63) / 64;
 
             // Fptl
-            parameters.runFPTL = hdCamera.frameSettings.fptl;
+            parameters.runFPTL = true; // We always need the tile light list for opaque
             parameters.buildPerTileLightListShader = buildPerTileLightListShader;
             parameters.buildPerTileLightListKernel = isProjectionOblique ? s_GenListPerTileKernel_Oblique : s_GenListPerTileKernel;
             parameters.numTilesFPTLX = GetNumTileFtplX(hdCamera);
@@ -3030,10 +3026,7 @@ namespace UnityEngine.Rendering.HighDefinition
             var parameters = new ContactShadowsParameters();
 
             parameters.contactShadowsCS = contactShadowComputeShader;
-            if (hdCamera.frameSettings.fptl)
-                parameters.kernel = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA) ? s_deferredContactShadowKernelMSAA : s_deferredContactShadowKernel;
-            else
-                parameters.kernel = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA) ? s_deferredContactShadowKernelClusterMSAA : s_deferredContactShadowKernelCluster;
+            parameters.kernel = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA) ? s_deferredContactShadowKernelMSAA : s_deferredContactShadowKernel;
 
             float contactShadowRange = Mathf.Clamp(m_ContactShadows.fadeDistance.value, 0.0f, m_ContactShadows.maxDistance.value);
             float contactShadowFadeEnd = m_ContactShadows.maxDistance.value;
@@ -3448,7 +3441,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             parameters.debugViewTilesMaterial.SetVector(HDShaderIDs._MouseClickPixelCoord, HDUtils.GetMouseClickCoordinates(hdCamera));
                             parameters.debugViewTilesMaterial.SetBuffer(HDShaderIDs.g_TileList, parameters.tileAndClusterData.tileList);
                             parameters.debugViewTilesMaterial.SetBuffer(HDShaderIDs.g_DispatchIndirectBuffer, parameters.tileAndClusterData.dispatchIndirectBuffer);
-                            parameters.debugViewTilesMaterial.EnableKeyword("USE_FPTL_LIGHTLIST");
+                            parameters.debugViewTilesMaterial.EnableKeyword("USE_TILE_LIGHTLIST");
                             parameters.debugViewTilesMaterial.DisableKeyword("USE_CLUSTERED_LIGHTLIST");
                             parameters.debugViewTilesMaterial.DisableKeyword("SHOW_LIGHT_CATEGORIES");
                             parameters.debugViewTilesMaterial.EnableKeyword("SHOW_FEATURE_VARIANTS");
@@ -3469,8 +3462,8 @@ namespace UnityEngine.Rendering.HighDefinition
                         parameters.debugViewTilesMaterial.SetVector(HDShaderIDs._MouseClickPixelCoord, HDUtils.GetMouseClickCoordinates(hdCamera));
                         parameters.debugViewTilesMaterial.SetBuffer(HDShaderIDs.g_vLightListGlobal, bUseClustered ? parameters.tileAndClusterData.perVoxelLightLists : parameters.tileAndClusterData.lightList);
                         parameters.debugViewTilesMaterial.SetTexture(HDShaderIDs._CameraDepthTexture, depthTexture);
-                        parameters.debugViewTilesMaterial.EnableKeyword(bUseClustered ? "USE_CLUSTERED_LIGHTLIST" : "USE_FPTL_LIGHTLIST");
-                        parameters.debugViewTilesMaterial.DisableKeyword(!bUseClustered ? "USE_CLUSTERED_LIGHTLIST" : "USE_FPTL_LIGHTLIST");
+                        parameters.debugViewTilesMaterial.EnableKeyword(bUseClustered ? "USE_CLUSTERED_LIGHTLIST" : "USE_TILE_LIGHTLIST");
+                        parameters.debugViewTilesMaterial.DisableKeyword(!bUseClustered ? "USE_CLUSTERED_LIGHTLIST" : "USE_TILE_LIGHTLIST");
                         parameters.debugViewTilesMaterial.EnableKeyword("SHOW_LIGHT_CATEGORIES");
                         parameters.debugViewTilesMaterial.DisableKeyword("SHOW_FEATURE_VARIANTS");
 

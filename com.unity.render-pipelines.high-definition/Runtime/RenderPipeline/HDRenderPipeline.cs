@@ -3066,7 +3066,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                             RendererList.Create(PrepareForwardOpaqueRendererList(cullResults, hdCamera)),
                                             renderTarget,
                                             m_SharedRTManager.GetDepthStencilBuffer(msaa),
-                                            m_TileAndClusterData.perVoxelLightLists,
+                                            m_TileAndClusterData.lightList,  // Opaque always use tile light list
                                             true, renderContext, cmd);
             }
         }
