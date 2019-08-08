@@ -14,6 +14,7 @@ half4 _MaskMapRemapOffset0, _MaskMapRemapOffset1, _MaskMapRemapOffset2, _MaskMap
 half4 _MaskMapRemapScale0, _MaskMapRemapScale1, _MaskMapRemapScale2, _MaskMapRemapScale3;
 
 float4 _Control_ST;
+float4 _Control_TexelSize;
 half _DiffuseHasAlpha0, _DiffuseHasAlpha1, _DiffuseHasAlpha2, _DiffuseHasAlpha3;
 half _LayerHasMask0, _LayerHasMask1, _LayerHasMask2, _LayerHasMask3;
 half4 _Splat0_ST, _Splat1_ST, _Splat2_ST, _Splat3_ST;

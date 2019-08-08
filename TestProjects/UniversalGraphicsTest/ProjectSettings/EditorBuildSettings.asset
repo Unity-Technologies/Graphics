@@ -101,6 +101,9 @@ EditorBuildSettings:
   - enabled: 0
     path: Assets/Scenes/037_Particles_Standard.unity
     guid: 67bc76c89479b264aa4a5c176433ec3a
+  - enabled: 1
+    path: Assets/Scenes/038_Shader_TerrainBlend.unity
+    guid: 5578c9d8b0329024d8020e3094f70302
   - enabled: 0
     path: Assets/Scenes/040_UpgradeScene.unity
     guid: 5b50bbd7a4d4f4f49b5a50ebed1ba42c
