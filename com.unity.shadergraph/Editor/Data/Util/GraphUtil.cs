@@ -1105,7 +1105,7 @@ namespace UnityEditor.ShaderGraph
 
             graph.CollectShaderKeywords(shaderKeywords, mode);
 
-            if(graph.GetKeywordPermutationCount() > ShaderKeyword.kMaxVariants)
+            if(graph.GetKeywordPermutationCount() > ShaderGraphPreferences.variantLimit)
             {
                 graph.AddValidationError(node.tempId, ShaderKeyword.kVariantLimitWarning, Rendering.ShaderCompilerMessageSeverity.Error);
 

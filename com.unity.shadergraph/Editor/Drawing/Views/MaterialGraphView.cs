@@ -569,7 +569,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             // Test Keywords against variant limit
             if(keywordsDirty)
             {
-                graph.OnKeywordChanged();
+                graph.OnKeywordChangedNoValidate();
             }
 
             selection.Clear();
@@ -836,7 +836,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             // Test Keywords against variant limit
             if(keywordsDirty)
             {
-                graphView.graph.OnKeywordChanged();
+                graphView.graph.OnKeywordChangedNoValidate();
             }
 
             using (var remappedNodesDisposable = ListPool<AbstractMaterialNode>.GetDisposable())

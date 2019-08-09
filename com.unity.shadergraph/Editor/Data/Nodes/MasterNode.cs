@@ -82,7 +82,7 @@ namespace UnityEditor.ShaderGraph
                 owner.CollectShaderKeywords(shaderKeywords, mode);
             }
 
-            if(owner.GetKeywordPermutationCount() > ShaderKeyword.kMaxVariants)
+            if(owner.GetKeywordPermutationCount() > ShaderGraphPreferences.variantLimit)
             {
                 owner.AddValidationError(tempId, ShaderKeyword.kVariantLimitWarning, Rendering.ShaderCompilerMessageSeverity.Error);
                 

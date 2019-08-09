@@ -201,7 +201,6 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             // Update GUI
             Rebuild();
-            graph.ValidateGraph();
             graph.OnKeywordChanged();
             m_SelectedIndex = list.list.Count - 1;
         }
@@ -220,7 +219,6 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_Keyword.value = value;
 
             Rebuild();
-            graph.ValidateGraph();
             graph.OnKeywordChanged();
         }
 

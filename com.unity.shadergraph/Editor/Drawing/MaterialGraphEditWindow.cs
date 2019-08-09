@@ -147,15 +147,17 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                 if (m_ChangedFileDependencies.Count > 0 && graphObject != null && graphObject.graph != null)
                 {
-                    foreach (var subGraphNode in graphObject.graph.GetNodes<SubGraphNode>())
+                    var subGraphNodes = graphObject.graph.GetNodes<SubGraphNode>();
+                    foreach (var subGraphNode in subGraphNodes)
                     {
                         subGraphNode.Reload(m_ChangedFileDependencies);
-
+                    }
+                    if(subGraphNodes.Count() > 0)
+                    {
                         // Keywords always need to be updated to test against variant limit
                         // No Keywords may indicate removal and this may have now made the Graph valid again
                         // Need to validate Graph to clear errors in this case
                         materialGraph.OnKeywordChanged();
-                        materialGraph.ValidateGraph();
                     }
                     foreach (var customFunctionNode in graphObject.graph.GetNodes<CustomFunctionNode>())
                     {

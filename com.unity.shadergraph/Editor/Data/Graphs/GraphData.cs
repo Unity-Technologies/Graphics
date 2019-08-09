@@ -357,7 +357,7 @@ namespace UnityEditor.ShaderGraph
                 // Need to restest Keywords against the variant limit
                 if(node is SubGraphNode subGraphNode && subGraphNode.asset.keywords.Count > 0)
                 {
-                    OnKeywordChanged();
+                    OnKeywordChangedNoValidate();
                 }
 
                 ValidateGraph();
@@ -906,6 +906,12 @@ namespace UnityEditor.ShaderGraph
 
         public void OnKeywordChanged()
         {
+            OnKeywordChangedNoValidate();
+            ValidateGraph();
+        }
+
+        public void OnKeywordChangedNoValidate()
+        {
             var allNodes = GetNodes<AbstractMaterialNode>();
             foreach(AbstractMaterialNode node in allNodes)
             {
@@ -1317,6 +1323,13 @@ namespace UnityEditor.ShaderGraph
             {
                 node.OnEnable();
             }
+
+            ShaderGraphPreferences.onVariantLimitChanged += OnKeywordChanged;
+        }
+
+        public void OnDisable()
+        {
+            ShaderGraphPreferences.onVariantLimitChanged -= OnKeywordChanged;
         }
     }
 

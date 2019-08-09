@@ -77,7 +77,7 @@ namespace UnityEditor.ShaderGraph
 
             // Get permutation count for all Keywords
             int permutationCount = 1;
-            foreach(ShaderKeyword keyword in )
+            foreach(ShaderKeyword keyword in allKeywords)
             {
                 if(keyword.keywordType == KeywordType.Boolean)
                     permutationCount *= 2;

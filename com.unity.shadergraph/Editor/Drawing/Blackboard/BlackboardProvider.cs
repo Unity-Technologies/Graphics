@@ -361,7 +361,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                 if(input as ShaderKeyword != null)
                 {
-                    m_Graph.OnKeywordChanged();
+                    m_Graph.OnKeywordChangedNoValidate();
                 }
             }
         }
