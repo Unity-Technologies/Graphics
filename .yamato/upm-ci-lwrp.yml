@@ -33,7 +33,7 @@ projects:
   name : Build and Test {{ project.name }} on {{ platform.name }}_{{ testplatform.name }} on version {{ editor.version }}
   agent:
     {% if testplatform.name == "editmode" and (platform.name == "Windows64" or platform.name == "Linux") %}
-    type: Unity::VM
+    type: {{ platform.type }}
     {% else %}
     type: {{ platform.type }}
     {% endif %}
