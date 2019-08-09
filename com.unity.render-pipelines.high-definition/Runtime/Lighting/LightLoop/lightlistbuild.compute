@@ -215,23 +215,23 @@ void LIGHTLISTGEN(uint3 dispatchThreadId : SV_DispatchThreadID, uint threadID : 
 #ifdef MSAA_ENABLED
             // TODO: do NOT loop over all depth samples per pixel here.
             // Simply fetch the min-max (resolved MSAA) depth instead.
-            for(int j=0; j<g_iNumSamplesMSAA; j++)
+            for (int j = 0; j < g_iNumSamplesMSAA; j++)
             {
-            const float fDepth = FetchDepthMSAA(uCrd, j);
-            const float2 fracSampleCoord = g_depth_tex.GetSamplePosition(j).xy;     // this is optimized away when USE_OBLIQUE_MODE is NOT set.
+                const float fDepth = FetchDepthMSAA(uCrd, j);
+                const float2 fracSampleCoord = g_depth_tex.GetSamplePosition(j).xy;     // this is optimized away when USE_OBLIQUE_MODE is NOT set.
 #else
-            const float fDepth = FetchDepth(uCrd);
-            const float2 fracSampleCoord = float2(0.5,0.5);
+                const float fDepth = FetchDepth(uCrd);
+                const float2 fracSampleCoord = float2(0.5,0.5);
 #endif
 
 #ifdef FINE_PRUNING_ENABLED
-            vLinDepths[i] = GetLinearDepth(uCrd+fracSampleCoord, fDepth);
+                vLinDepths[i] = GetLinearDepth(uCrd+fracSampleCoord, fDepth);
 #endif
-            if(fDepth<VIEWPORT_SCALE_Z)     // if not skydome
-            {
-                dpt_mi = min(fDepth, dpt_mi);
-                dpt_ma = max(fDepth, dpt_ma);
-            }
+                if(fDepth<VIEWPORT_SCALE_Z)     // if not skydome
+                {
+                    dpt_mi = min(fDepth, dpt_mi);
+                    dpt_ma = max(fDepth, dpt_ma);
+                }
 #ifdef MSAA_ENABLED
             }
 #endif
