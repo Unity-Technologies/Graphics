@@ -87,7 +87,7 @@ namespace UnityEditor.ShaderGraph
                 owner.AddValidationError(tempId, ShaderKeyword.kVariantLimitWarning, Rendering.ShaderCompilerMessageSeverity.Error);
                 
                 configuredTextures = shaderProperties.GetConfiguredTexutres();
-                return string.Empty;
+                return ShaderGraphImporter.k_ErrorShader;
             }
 
             foreach (var activeNode in activeNodeList.OfType<AbstractMaterialNode>())
