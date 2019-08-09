@@ -5,15 +5,31 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## [7.1.1] - 2019-XX-XX
+### Added
+- Added shader function `GetMainLightShadowParams`. This returns a half4 for the main light that packs shadow strength in x component and shadow soft property in y component.
+- Added shader function `GetAdditionalLightShadowParams`. This returns a half4 for an additional light that packs shadow strength in x component and shadow soft property in y component.
+
+### Changed
+- Increased visible lights limit for the forward renderer. It now supports 256 visible lights except in mobile platforms. Mobile platforms support 32 visible lights.
+- Increased per-object lights limit for the forward renderer. It now supports 8 per-object lights in all platforms except GLES2. GLES2 supports 4 per-object lights.
+- The Sprite-Lit-Default shader and the Sprite Lit Shader Graph shaders now use the vertex tangents for tangent space calculations.
+
+### Fixed
+- Fixed LightProbe occlusion contribution. [case 1146667](https://issuetracker.unity3d.com/product/unity/issues/guid/1146667/)
+- Fixed an issue that caused a log message to be printed in the console when creating a new Material. [case 1173160](https://issuetracker.unity3d.com/product/unity/issues/guid/1173160/)
+- Fixed an issue where OnRenderObjectCallback was never invoked. [case 1122420](https://issuetracker.unity3d.com/issues/lwrp-gl-dot-lines-and-debug-dot-drawline-dont-render-when-scriptable-render-pipeline-settings-is-set-to-lwrp)
+- Fixed an issue where Sprite Masks didn't function properly when using the 2D Renderer. [case 1163474](https://issuetracker.unity3d.com/issues/lwrp-sprite-renderer-ignores-sprite-mask-when-lightweight-render-pipeline-asset-data-is-set-to-2d-renderer-experimental)
+- Fixed memory leaks when using the Frame Debugger with the 2D Renderer.
 
 ## [7.0.1] - 2019-07-25
+### Changed
+- Platform checks now provide more helpful feedback about supported features in the Inspectors.
+
+### Fixed
 - Fixed specular lighting related artifacts on Mobile [case 1143049](https://issuetracker.unity3d.com/issues/ios-lwrp-rounded-cubes-has-graphical-artifacts-when-setting-pbr-shaders-smoothness-about-to-0-dot-65-in-shadergraph) and [case 1164822](https://issuetracker.unity3d.com/issues/lwrp-specular-highlight-becomes-hard-edged-when-increasing-the-size-of-an-object).
 - Post-processing is no longer enabled in the previews.
 - Unity no longer force-enables post-processing on a camera by default.
 - Fixed an issue that caused the Scene to render darker in GLES3 and linear color space. [case 1169789](https://issuetracker.unity3d.com/issues/lwrp-android-scene-is-rendered-darker-in-build-when-graphics-api-set-to-gles3-and-color-space-set-to-linear)
-
-### Changed
-- Platform checks now provide more helpful feedback about supported features in the Inspectors.
 
 ## [7.0.0] - 2019-07-17
 ### Universal Render Pipeline
