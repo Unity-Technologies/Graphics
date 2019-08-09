@@ -55,13 +55,13 @@ projects:
       {% endif %}
       {% if testplatform.name == "Standalone" %}
         {% if platform.name == "Linux" %}
-      - cd TestProjects/{{ project.folder }} && PATH=$PATH:~/.local/bin DISPLAY=:0 utr/utr {{ testplatform.args }}{{ platform.name }}64 --testproject=. --editor-location=.Editor --artifacts_path=upm-ci~/test-results
+      - cd TestProjects/{{ project.folder }} && DISPLAY=:0.0 utr/utr {{ testplatform.args }}{{ platform.name }}64 --testproject=. --editor-location=.Editor --artifacts_path=upm-ci~/test-results
         {% else %}
       - cd TestProjects/{{ project.folder }} && utr/utr {{ testplatform.args }}{{ platform.name }} --testproject=. --editor-location=.Editor --artifacts_path=upm-ci~/test-results || powershell -command "utr/utr {{ testplatform.args }}{{ platform.name }} --testproject=. --editor-location=.Editor --artifacts_path=upm-ci~/test-results"
         {% endif %}
       {% else %}
         {% if platform.name == "Linux" %}
-        - cd TestProjects/{{ project.folder }} && PATH=$PATH:~/.local/bin DISPLAY=:0 utr/utr {{ testplatform.args }} --testproject=. --editor-location=.Editor --artifacts_path=upm-ci~/test-results || powershell -command "utr/utr {{ testplatform.args }} --testproject=. --editor-location=.Editor --artifacts_path=upm-ci~/test-results"
+        - cd TestProjects/{{ project.folder }} && DISPLAY=:0.0 utr/utr {{ testplatform.args }} --testproject=. --editor-location=.Editor --artifacts_path=upm-ci~/test-results
         {% else %}
         - cd TestProjects/{{ project.folder }} && utr/utr {{ testplatform.args }} --testproject=. --editor-location=.Editor --artifacts_path=upm-ci~/test-results || powershell -command "utr/utr {{ testplatform.args }} --testproject=. --editor-location=.Editor --artifacts_path=upm-ci~/test-results"
         {% endif %}
