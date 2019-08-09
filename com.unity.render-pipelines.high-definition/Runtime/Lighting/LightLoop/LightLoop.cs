@@ -2061,7 +2061,7 @@ namespace UnityEngine.Rendering.HighDefinition
 				
 //forest-begin: Explicit reflection probe tracking TODO
 				m_VisibleReflectionProbes.Clear();
-                var disableReflectionProbeCulling = m_FrameSettings.IsEnabled(FrameSettingsField.DisableReflectionProbeCulling);
+                var disableReflectionProbeCulling = hdCamera.frameSettings.IsEnabled(FrameSettingsField.DisableReflectionProbeCulling);
 				if (disableReflectionProbeCulling)
 					foreach(var probe in HDAdditionalReflectionData.s_ActiveReflectionProbes)
 						m_VisibleReflectionProbes.Add(probe);
