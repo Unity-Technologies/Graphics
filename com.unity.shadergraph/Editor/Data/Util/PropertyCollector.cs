@@ -66,6 +66,10 @@ namespace UnityEditor.ShaderGraph
                     var referenceName = prop.referenceName;
                     if (declareSplatProperties)
                     {
+                        sb.AppendLine($"#define {referenceName} {referenceName}0");
+                        sb.AppendLine($"#define sampler{referenceName} sampler{referenceName}0");
+                        sb.AppendLine($"#define {referenceName}_TexelSize {referenceName}0_TexelSize");
+
                         for (int i = 0; i < splatCount; ++i)
                         {
                             if (i == 4)

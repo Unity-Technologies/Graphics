@@ -69,13 +69,6 @@ namespace UnityEditor.ShaderGraph
                     ref var outputString = ref orderSplatting && splatNode.RunsPerSplat ? ref splatFunctions[i] : ref sb;
                     outputString.currentNode = node;
 
-                    if (node is PropertyNode propNode && orderSplatting)
-                    {
-                        var shaderProp = propNode.shaderProperty;
-                        if (shaderProp is ISplattableShaderProperty splatProp && splatProp.splat)
-                            outputString.AppendLine($"{shaderProp.concreteShaderValueType.ToShaderString(shaderProp.concretePrecision)} {shaderProp.referenceName} = {shaderProp.referenceName}0;");
-                    }
-
                     if (node is IGeneratesBodyCode bodyNode)
                     {
                         bodyNode.GenerateNodeCode(outputString, graphContext, generationMode);
@@ -123,6 +116,9 @@ namespace UnityEditor.ShaderGraph
                         sb.AppendLine($"{outputVar.ShaderTypeString} splat{outputVar.Name}[{graphContext.splatCount}];");
                     }
 
+                    splatFunction.DecreaseIndent();
+                    splatFunction.AppendLine("}");
+
                     // Call the splat function for each splat.
                     for (int splat = 0; splat < graphContext.splatCount; ++splat)
                     {
@@ -138,7 +134,7 @@ namespace UnityEditor.ShaderGraph
                         {
                             var varName = inputVar.Name;
                             if (inputVar.Type == SplatFunctionInputType.SplatProperty)
-                                varName = $"{varName.Substring(0, varName.Length - 1)}{splat}";
+                                varName = $"{varName}{splat}";
                             else if (inputVar.Type == SplatFunctionInputType.SplatArray)
                                 varName = $"splat{varName}[{splat}]";
                             sb.Append($", {varName}");
