@@ -12,6 +12,8 @@ namespace UnityEditor.ShaderGraph
             UpdateNodeAfterDeserialization();
         }
 
+        public override bool hasPreview => true;
+
         const string kInputSlotName = "Input";
         const string kOutputSlotName = "Output";
 

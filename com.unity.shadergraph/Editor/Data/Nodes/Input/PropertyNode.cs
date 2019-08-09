@@ -155,9 +155,6 @@ namespace UnityEditor.ShaderGraph
             if (property == null)
                 throw new NullReferenceException();
 
-            if (property is ISplattableShaderProperty splatProperty && splatProperty.splat)
-                return $"{property.referenceName}0";
-
             if (property is BooleanShaderProperty
                 || property is Matrix2ShaderProperty
                 || property is Matrix3ShaderProperty

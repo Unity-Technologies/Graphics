@@ -46,8 +46,9 @@ namespace UnityEditor.ShaderGraph
                 if (cbName != string.Empty && mode == GenerationMode.Preview)
                     cbName = s_UnityPerMaterialCbName;
 
-                var splatProperty = prop as ISplattableShaderProperty;
-                if (cbName == s_UnityPerMaterialCbName && splatProperty != null && splatProperty.splat)
+                // Don't do splatting when in preview. Preview takes the original splatting property.
+                var declareSplatProperties = !mode.IsPreview() && prop is ISplattableShaderProperty splatProp && splatProp.splat;
+                if (cbName == s_UnityPerMaterialCbName && declareSplatProperties)
                     cbName = s_UnitySplatMaterialCbName;
 
                 if (!cbDecls.TryGetValue(cbName, out var sb))
@@ -63,7 +64,7 @@ namespace UnityEditor.ShaderGraph
                 else
                 {
                     var referenceName = prop.referenceName;
-                    if (splatProperty != null && splatProperty.splat)
+                    if (declareSplatProperties)
                     {
                         for (int i = 0; i < splatCount; ++i)
                         {
