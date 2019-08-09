@@ -1246,32 +1246,18 @@ namespace UnityEditor.ShaderGraph
             if (graph == null)
                 return;
 
-            GraphContext graphContext = new GraphContext(graphInputStructName);
+            GraphContext graphContext = new GraphContext(graphInputStructName, graph.splatCount);
 
             graph.CollectShaderProperties(shaderProperties, mode);
+
+            var splatGraph = SplatGraph.Compile(activeNodeList);
 
             surfaceDescriptionFunction.AppendLine(String.Format("{0} {1}(SurfaceDescriptionInputs IN)", surfaceDescriptionName, functionName), false);
             using (surfaceDescriptionFunction.BlockScope())
             {
                 surfaceDescriptionFunction.AppendLine("{0} surface = ({0})0;", surfaceDescriptionName);
-                foreach (var activeNode in activeNodeList)
-                {
-                    if (activeNode is IGeneratesFunction functionNode)
-                    {
-                        functionRegistry.builder.currentNode = activeNode;
-                        functionNode.GenerateNodeFunction(functionRegistry, graphContext, mode);
-                        functionRegistry.builder.ReplaceInCurrentMapping(PrecisionUtil.Token, activeNode.concretePrecision.ToShaderString());
-                    }
 
-                    if (activeNode is IGeneratesBodyCode bodyNode)
-                    {
-                        surfaceDescriptionFunction.currentNode = activeNode;
-                        bodyNode.GenerateNodeCode(surfaceDescriptionFunction, graphContext, mode);
-                        surfaceDescriptionFunction.ReplaceInCurrentMapping(PrecisionUtil.Token, activeNode.concretePrecision.ToShaderString());
-                    }
-
-                    activeNode.CollectShaderProperties(shaderProperties, mode);
-                }                
+                splatGraph.GenerateCode(surfaceDescriptionFunction, graphContext, functionRegistry, shaderProperties, mode);
 
                 functionRegistry.builder.currentNode = null;
                 surfaceDescriptionFunction.currentNode = null;

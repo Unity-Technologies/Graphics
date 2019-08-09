@@ -93,7 +93,7 @@ namespace UnityEditor.Graphing
 
             IEnumerable<int> ids;
             if (slotIds == null)
-                ids = node.GetInputSlotsForGraphGeneration().Select(x => x.id);
+                ids = node.GetInputSlots<ISlot>().Select(x => x.id);
             else
                 ids = node.GetInputSlots<ISlot>().Where(x => slotIds.Contains(x.id)).Select(x => x.id);
 

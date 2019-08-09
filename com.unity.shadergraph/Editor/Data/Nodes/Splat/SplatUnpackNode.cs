@@ -107,7 +107,7 @@ namespace UnityEditor.ShaderGraph
         public void GenerateNodeCode(ShaderStringBuilder sb, GraphContext graphContext, GenerationMode generationMode)
         {
             var outputVarName = GetVariableNameForSlot(kOutputSlotId);
-            sb.AppendLine($"$precision{(m_Mode == Mode.UnpackFloat2 ? "2" : string.Empty)} {outputVarName}[{m_SplatCount}] =");
+            sb.AppendLine($"$precision{(m_Mode == Mode.UnpackFloat2 ? "2" : string.Empty)} splat{outputVarName}[{m_SplatCount}] =");
             using (var scope = sb.BlockSemicolonScope())
             {
                 for (int i = 0; i < m_SplatCount; ++i)
@@ -118,6 +118,7 @@ namespace UnityEditor.ShaderGraph
                     sb.AppendLine($"{GetSlotValue(kInput0SlotId + inputChannel / 4, generationMode)}.{srcSwizzle}{delimiter}");
                 }
             }
+            sb.AppendLine($"$precision{(m_Mode == Mode.UnpackFloat2 ? "2" : string.Empty)} {outputVarName} = splat{outputVarName}[0];");
         }
     }
 }

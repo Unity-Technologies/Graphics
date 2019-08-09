@@ -47,12 +47,6 @@ namespace UnityEditor.ShaderGraph
             set => m_Conditional = value;
         }
 
-        public override IEnumerable<ISlot> GetInputSlotsForGraphGeneration()
-        {
-            // When generating shader grpah code, don't traverse further along the splat input slots.
-            yield break;
-        }
-
         public override void UpdateNodeAfterDeserialization()
         {
             CreateSplatSlots(null, null);
@@ -695,7 +689,7 @@ namespace UnityEditor.ShaderGraph
                 return;
 
             if (m_Conditional && !graphContext.conditional)
-                graphContext = new GraphContext(graphContext.graphInputStructName, m_Conditional);
+                graphContext = new GraphContext(graphContext.graphInputStructName, graphContext.splatCount, m_Conditional);
 
             // Generate global functions from splat graph.
             foreach (var node in m_SplatGraph.Nodes)
