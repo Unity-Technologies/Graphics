@@ -67,7 +67,7 @@ StructuredBuffer<uint> g_vBigTileLightList : register( t4 );        // don't sup
 #endif
 
 #ifdef PLATFORM_LANE_COUNT                                          // We can infer the size of a wave. This is currently not possible on non-consoles, so we have to fallback to a sensible default in those cases.
-#define NR_THREADS              PLATFORM_LANE_COUNT  
+#define NR_THREADS              PLATFORM_LANE_COUNT
 #else
 #define NR_THREADS              64                                  // default to 64 threads per group on other platforms..
 #endif
@@ -217,21 +217,21 @@ void LIGHTLISTGEN(uint3 dispatchThreadId : SV_DispatchThreadID, uint threadID : 
             // Simply fetch the min-max (resolved MSAA) depth instead.
             for (int j = 0; j < g_iNumSamplesMSAA; j++)
             {
-                const float fDepth = FetchDepthMSAA(uCrd, j);
-                const float2 fracSampleCoord = g_depth_tex.GetSamplePosition(j).xy;     // this is optimized away when USE_OBLIQUE_MODE is NOT set.
+            const float fDepth = FetchDepthMSAA(uCrd, j);
+            const float2 fracSampleCoord = g_depth_tex.GetSamplePosition(j).xy;     // this is optimized away when USE_OBLIQUE_MODE is NOT set.
 #else
-                const float fDepth = FetchDepth(uCrd);
-                const float2 fracSampleCoord = float2(0.5,0.5);
+            const float fDepth = FetchDepth(uCrd);
+            const float2 fracSampleCoord = float2(0.5,0.5);
 #endif
 
-#ifdef FINE_PRUNING_ENABLED
-                vLinDepths[i] = GetLinearDepth(uCrd+fracSampleCoord, fDepth);
+#if defined(FINE_PRUNING_ENABLED) && !defined(MSAA_ENABLED)
+            vLinDepths[i] = GetLinearDepth(uCrd+fracSampleCoord, fDepth);
 #endif
-                if(fDepth<VIEWPORT_SCALE_Z)     // if not skydome
-                {
-                    dpt_mi = min(fDepth, dpt_mi);
-                    dpt_ma = max(fDepth, dpt_ma);
-                }
+            if(fDepth<VIEWPORT_SCALE_Z)     // if not skydome
+            {
+                dpt_mi = min(fDepth, dpt_mi);
+                dpt_ma = max(fDepth, dpt_ma);
+            }
 #ifdef MSAA_ENABLED
             }
 #endif
@@ -449,6 +449,23 @@ void FinePruneLights(uint threadID, int iNrCoarseLights, uint2 viTilLL, float vL
     uint iHeight = g_viDimensions.y;
 
     uint uLightsFlags[2] = {0,0};
+
+#ifdef MSAA_ENABLED
+    for(int j=0; j<g_iNumSamplesMSAA; j++)
+    {
+    const float2 fracSampleCoord = g_depth_tex.GetSamplePosition(j).xy;     // this is optimized away when USE_OBLIQUE_MODE is NOT set.
+
+    for(int i = 0; i < PIXEL_PER_THREAD; i++)
+    {
+        int idx = i * NR_THREADS + t;
+        uint2 uPixLoc = min(uint2(viTilLL.x+(idx&0xf), viTilLL.y+(idx>>4)), uint2(iWidth-1, iHeight-1));
+        const float fDepth = FetchDepthMSAA(uPixLoc, j);
+        vLinDepths[i] = GetLinearDepth(uPixLoc+fracSampleCoord, fDepth);
+    }
+#else
+    const float2 fracSampleCoord = float2(0.5,0.5);
+#endif
+
     int l=0;
     // need this outer loop even on xb1 and ps4 since direct lights and
     // reflection lights are kept in separate regions.
@@ -472,7 +489,7 @@ void FinePruneLights(uint threadID, int iNrCoarseLights, uint2 viTilLL, float vL
                 int idx = t + i*NR_THREADS;
 
                 uint2 uPixLoc = min(uint2(viTilLL.x+(idx&0xf), viTilLL.y+(idx>>4)), uint2(iWidth-1, iHeight-1));
-                float3 vVPos = GetViewPosFromLinDepth(uPixLoc + float2(0.5,0.5), vLinDepths[i]);
+                float3 vVPos = GetViewPosFromLinDepth(uPixLoc + fracSampleCoord, vLinDepths[i]);
 
                 // check pixel
                 float3 fromLight = vVPos-lightData.lightPos.xyz;
@@ -502,7 +519,7 @@ void FinePruneLights(uint threadID, int iNrCoarseLights, uint2 viTilLL, float vL
                 int idx = t + i*NR_THREADS;
 
                 uint2 uPixLoc = min(uint2(viTilLL.x+(idx&0xf), viTilLL.y+(idx>>4)), uint2(iWidth-1, iHeight-1));
-                float3 vVPos = GetViewPosFromLinDepth(uPixLoc + float2(0.5,0.5), vLinDepths[i]);
+                float3 vVPos = GetViewPosFromLinDepth(uPixLoc + fracSampleCoord, vLinDepths[i]);
 
                 // check pixel
                 float3 vLp = lightData.lightPos.xyz;
@@ -529,7 +546,7 @@ void FinePruneLights(uint threadID, int iNrCoarseLights, uint2 viTilLL, float vL
                 int idx = t + i*NR_THREADS;
 
                 uint2 uPixLoc = min(uint2(viTilLL.x+(idx&0xf), viTilLL.y+(idx>>4)), uint2(iWidth-1, iHeight-1));
-                float3 vVPos = GetViewPosFromLinDepth(uPixLoc + float2(0.5,0.5), vLinDepths[i]);
+                float3 vVPos = GetViewPosFromLinDepth(uPixLoc + fracSampleCoord, vLinDepths[i]);
 
                 // check pixel
                 float3 toLight  = lightData.lightPos.xyz - vVPos;
@@ -547,6 +564,9 @@ void FinePruneLights(uint threadID, int iNrCoarseLights, uint2 viTilLL, float vL
         // in case we have some corrupt data make sure we terminate
         if(uLightVolume >=LIGHTVOLUMETYPE_COUNT) ++l;
     }
+#ifdef MSAA_ENABLED
+    }
+#endif
 
     InterlockedOr(ldsDoesLightIntersect[0], uLightsFlags[0]);
     InterlockedOr(ldsDoesLightIntersect[1], uLightsFlags[1]);
