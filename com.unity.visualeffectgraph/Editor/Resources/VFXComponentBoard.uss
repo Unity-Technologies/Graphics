@@ -173,6 +173,7 @@ VFXComponentBoardEventUI .unity-button, #on-play-button, #on-stop-button,#attach
     background-color:#555;
     margin: auto;
     width: 97%;
+    height: 300px;
     overflow:hidden;
     border-radius:6px;
 }
@@ -180,6 +181,8 @@ VFXComponentBoardEventUI .unity-button, #on-play-button, #on-stop-button,#attach
 #debug-system-stat-container
 {
     flex-direction:row;
+    height:300px;
+    width: 100%;
 }
 
 #debug-system-stat-title, #debug-system-stat-title-name

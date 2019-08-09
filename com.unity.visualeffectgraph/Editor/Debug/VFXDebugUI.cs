@@ -276,8 +276,8 @@ namespace UnityEditor.VFX.UI
         Modes m_CurrentMode;
         VFXComponentBoard m_ComponentBoard;
         CurveContent m_Curves;
-        VisualElement m_DebugContainer;
         Box m_DebugBox;
+        VisualElement m_DebugContainer;
         VFXView m_View;
         VisualEffect m_VFX;
         List<int> m_GpuSystems;
@@ -334,7 +334,7 @@ namespace UnityEditor.VFX.UI
             m_ComponentBoard.contentContainer.Add(m_Curves);
 
             // system stats title
-            var systemStatContainer = new VisualElement();
+            var systemStatContainer = new ScrollView();
             systemStatContainer.name = "debug-system-stat-container";
             m_DebugContainer.Add(systemStatContainer);
 
@@ -354,16 +354,18 @@ namespace UnityEditor.VFX.UI
             systemStatEfficiency.name = "debug-system-stat-title";
             systemStatEfficiency.text = "Efficiency";
 
-            systemStatContainer.Add(systemStatName);
-            systemStatContainer.Add(systemStatAlive);
-            systemStatContainer.Add(systemStatCapacity);
-            systemStatContainer.Add(systemStatEfficiency);
+            var titleContainer = new VisualElement();
 
-            var systemStatTitle = new VisualElement[1];
-            systemStatTitle[0] = systemStatContainer;
+            titleContainer.Add(systemStatName);
+            titleContainer.Add(systemStatAlive);
+            titleContainer.Add(systemStatCapacity);
+            titleContainer.Add(systemStatEfficiency);
+
+            var systemStatEntry0 = new VisualElement[1];
+            systemStatEntry0[0] = titleContainer;
 
             m_SystemStats = new List<VisualElement[]>();
-            m_SystemStats.Add(systemStatTitle);
+            m_SystemStats.Add(systemStatEntry0);
 
             if (m_VFX != null)
             {
@@ -386,7 +388,7 @@ namespace UnityEditor.VFX.UI
         void CreateSystemStatEntry(string name, Color color)
         {
             var statContainer = new VisualElement();
-            statContainer.name = "debug-system-stat-container";
+            statContainer.name = "debug-system-stat-entry";
             m_DebugContainer.Add(statContainer);
 
             var Name = new TextElement();

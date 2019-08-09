@@ -80,7 +80,7 @@ Shader "Hidden/VFX/SystemStat"
                 float2 verticalProj = float2(i.screenPos.x, t + i.screenPos.y);
                 float distance = abs(i.screenPos.y - verticalProj.y);
                 //distance = abs(dot(i.segment.xy, i.screenPos) + i.segment.z);
-                fixed4 color = fixed4(_Color.rgb, 1.0 - saturate(distance * 10000.0 * abs(ddy(i.uv.y))));
+                fixed4 color = fixed4(_Color.rgb, 1.0 - saturate(distance * 4000.0 * abs(ddy(i.uv.y))));
                 return color;
             }
 
