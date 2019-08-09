@@ -41,73 +41,70 @@ Shader "Hidden/HDRP/DepthValues"
             return output;
         }
 
-        FragOut Frag1X(Varyings input)
+#define UNITY_REVERSED_Z 1
+#define UNITY_NEAR_CLIP_VALUE (1.0)
+// This value will not go through any matrix projection conversion
+#define UNITY_RAW_FAR_CLIP_VALUE (0.0)
+
+        FragOut ComputeDepthValues(Varyings input, int numSamples)
         {
             UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
-            FragOut fragO;
             int2 pixelCoords = int2(input.texcoord);
-            float depthVal = LOAD_TEXTURE2D_X_MSAA(_DepthTextureMS, pixelCoords, 0).x;
-            fragO.depthValues = float4(depthVal, depthVal, depthVal, 0.0f);
+
+            FragOut fragO;
+
+            fragO.depthValues = float4(-FLT_INF, FLT_INF, 0, 0);
+
+            UNITY_UNROLL
+            for (int sampleIdx = 0; sampleIdx < numSamples; ++sampleIdx)
+            {
+                float depthVal = LOAD_TEXTURE2D_X_MSAA(_DepthTextureMS, pixelCoords, sampleIdx).x;
+
+                // Separate the far plane from the geometry.
+                if (depthVal != UNITY_RAW_FAR_CLIP_VALUE)
+                {
+                    fragO.depthValues.x  = max(depthVal, fragO.depthValues.x);
+                    fragO.depthValues.y  = min(depthVal, fragO.depthValues.y);
+                    fragO.depthValues.z += depthVal;
+                    fragO.depthValues.w += 1;
+                }
+            }
+
+            if (fragO.depthValues.w == 0)
+            {
+                // Only the far plane.
+                fragO.depthValues.xyz = UNITY_RAW_FAR_CLIP_VALUE.xxx;
+            }
+            else
+            {
+                // Normalize.
+                fragO.depthValues.z *= rcp(fragO.depthValues.w);
+            }
+
             fragO.normal = LOAD_TEXTURE2D_X_MSAA(_NormalTextureMS, pixelCoords, 0);
             fragO.actualDepth = fragO.depthValues.x;
+
             return fragO;
+        }
+
+        FragOut Frag1X(Varyings input)
+        {
+            return ComputeDepthValues(input, 1);
         }
 
         FragOut Frag2X(Varyings input)
         {
-            UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
-            FragOut fragO;
-            fragO.depthValues = float4(0.0f, 100000.0f, 0.0f, 0.0f);
-            int2 pixelCoords = int2(input.texcoord);
-            for(int sampleIdx = 0; sampleIdx < 2; ++sampleIdx)
-            {
-                float depthVal = LOAD_TEXTURE2D_X_MSAA(_DepthTextureMS, pixelCoords, sampleIdx).x;
-                fragO.depthValues.x = max(depthVal, fragO.depthValues.x);
-                fragO.depthValues.y = min(depthVal, fragO.depthValues.y);
-                fragO.depthValues.z += depthVal;
-            }
-            fragO.depthValues.z *= 0.5;
-            fragO.actualDepth = fragO.depthValues.x;
-            fragO.normal = LOAD_TEXTURE2D_X_MSAA(_NormalTextureMS, pixelCoords, 0);
-            return fragO;
+            return ComputeDepthValues(input, 2);
         }
 
         FragOut Frag4X(Varyings input)
         {
-            UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
-            FragOut fragO;
-            fragO.depthValues = float4(0.0f, 100000.0f, 0.0f, 0.0f);
-            int2 pixelCoords = int2(input.texcoord);
-            for(int sampleIdx = 0; sampleIdx < 4; ++sampleIdx)
-            {
-                float depthVal = LOAD_TEXTURE2D_X_MSAA(_DepthTextureMS, pixelCoords, sampleIdx).x;
-                fragO.depthValues.x = max(depthVal, fragO.depthValues.x);
-                fragO.depthValues.y = min(depthVal, fragO.depthValues.y);
-                fragO.depthValues.z += depthVal;
-            }
-            fragO.depthValues.z *= 0.25;
-            fragO.actualDepth = fragO.depthValues.x;
-            fragO.normal = LOAD_TEXTURE2D_X_MSAA(_NormalTextureMS, pixelCoords, 0);
-            return fragO;
+            return ComputeDepthValues(input, 4);
         }
 
         FragOut Frag8X(Varyings input)
         {
-            UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
-            FragOut fragO;
-            fragO.depthValues = float4(0.0f, 100000.0f, 0.0f, 0.0f);
-            int2 pixelCoords = int2(input.texcoord);
-            for(int sampleIdx = 0; sampleIdx < 8; ++sampleIdx)
-            {
-                float depthVal = LOAD_TEXTURE2D_X_MSAA(_DepthTextureMS, pixelCoords, sampleIdx).x;
-                fragO.depthValues.x = max(depthVal, fragO.depthValues.x);
-                fragO.depthValues.y = min(depthVal, fragO.depthValues.y);
-                fragO.depthValues.z += depthVal;
-            }
-            fragO.depthValues.z *= 0.125;
-            fragO.normal = LOAD_TEXTURE2D_X_MSAA(_NormalTextureMS, pixelCoords, 0);
-            fragO.actualDepth = fragO.depthValues.x;
-            return fragO;
+            return ComputeDepthValues(input, 8);
         }
     ENDHLSL
     SubShader
