@@ -55,7 +55,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public override void OnInspectorGUI()
         {
-
             PropertyField(m_FocusMode);
 
             int mode = m_FocusMode.value.intValue;

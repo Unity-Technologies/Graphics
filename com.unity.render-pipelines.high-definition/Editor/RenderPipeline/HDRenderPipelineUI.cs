@@ -610,6 +610,7 @@ namespace UnityEditor.Rendering.HighDefinition
         static private bool m_ShowMotionBlurLowQualitySection = false;
         static private bool m_ShowMotionBlurMediumQualitySection = false;
         static private bool m_ShowMotionBlurHighQualitySection = false;
+
         static void Drawer_SectionMotionBlurQualitySettings(SerializedHDRenderPipelineAsset serialized, Editor owner)
         {
             m_ShowMotionBlurLowQualitySection = EditorGUILayout.Foldout(m_ShowMotionBlurLowQualitySection, k_LowQualityContent);
@@ -635,6 +636,7 @@ namespace UnityEditor.Rendering.HighDefinition
         static private bool m_ShowBloomLowQualitySection = false;
         static private bool m_ShowBloomMediumQualitySection = false;
         static private bool m_ShowBloomHighQualitySection = false;
+
         static void DrawBloomQualitySetting(SerializedHDRenderPipelineAsset serialized, int tier)
         {
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.postProcessQualitySettings.BloomRes.GetArrayElementAtIndex(tier), k_ResolutionQuality);
@@ -648,7 +650,6 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 int quality = (int)VolumeQualitySettingsLevels.Low;
                 DrawBloomQualitySetting(serialized, quality);
-
             }
             m_ShowBloomMediumQualitySection = EditorGUILayout.Foldout(m_ShowBloomMediumQualitySection, k_MediumQualityContent);
             if (m_ShowBloomMediumQualitySection)

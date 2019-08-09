@@ -1,7 +1,4 @@
 using System;
-#if UNITY_EDITOR
-using UnityEditor;
-#endif
 using UnityEngine.Serialization;
 
 namespace UnityEngine.Rendering.HighDefinition

@@ -72,11 +72,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
         [Tooltip("Specifies the resolution at which HDRP processes the effect. Quarter resolution is less resource intensive.")]
         [SerializeField, FormerlySerializedAs("resolution")]
-        public BloomResolutionParameter m_Resolution = new BloomResolutionParameter(BloomResolution.Half);
+        private BloomResolutionParameter m_Resolution = new BloomResolutionParameter(BloomResolution.Half);
 
         [Tooltip("When enabled, bloom uses bicubic sampling instead of bilinear sampling for the upsampling passes.")]
         [SerializeField, FormerlySerializedAs("highQualityFiltering")]
-        public BoolParameter m_HighQualityFiltering = new BoolParameter(true);
+        private BoolParameter m_HighQualityFiltering = new BoolParameter(true);
 
         public bool IsActive()
         {

@@ -3,7 +3,7 @@ using System;
 namespace UnityEngine.Rendering.HighDefinition
 {
     [Serializable, VolumeComponentMenu("Post-processing/Chromatic Aberration")]
-    public sealed class ChromaticAberration : VolumeComponent, IPostProcessComponent
+    public sealed class ChromaticAberration : VolumeComponentWithQuality, IPostProcessComponent
     {
         [Tooltip("Speficies a Texture which HDRP uses to shift the hue of chromatic aberrations.")]
         public TextureParameter spectralLut = new TextureParameter(null);

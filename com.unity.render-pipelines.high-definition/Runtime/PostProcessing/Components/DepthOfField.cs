@@ -1,7 +1,4 @@
 using System;
-#if UNITY_EDITOR
-using UnityEditor;
-#endif
 using UnityEngine.Serialization;
 
 namespace UnityEngine.Rendering.HighDefinition
@@ -19,7 +16,6 @@ namespace UnityEngine.Rendering.HighDefinition
         Half = 2,
         Full = 1
     }
-
 
     // TODO: Tooltips
     [Serializable, VolumeComponentMenu("Post-processing/Depth Of Field")]

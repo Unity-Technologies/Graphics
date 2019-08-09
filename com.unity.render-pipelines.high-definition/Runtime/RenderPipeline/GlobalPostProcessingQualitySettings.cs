@@ -9,7 +9,6 @@ namespace UnityEngine.Rendering.HighDefinition
         High = 2
     }
 
-
     [Serializable]
     public sealed class QualitySettingParameter : VolumeParameter<VolumeQualitySettingsLevels> { public QualitySettingParameter(VolumeQualitySettingsLevels value, bool overrideState = false) : base(value, overrideState) { } }
 

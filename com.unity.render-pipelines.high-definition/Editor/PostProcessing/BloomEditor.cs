@@ -32,8 +32,8 @@ namespace UnityEditor.Rendering.HighDefinition
             m_DirtTexture = Unpack(o.Find(x => x.dirtTexture));
             m_DirtIntensity = Unpack(o.Find(x => x.dirtIntensity));
 
-            m_HighQualityFiltering = Unpack(o.Find(x => x.highQualityFiltering));
-            m_Resolution = Unpack(o.Find(x => x.resolution));
+            m_HighQualityFiltering = Unpack(o.Find("m_HighQualityFiltering"));
+            m_Resolution = Unpack(o.Find("m_Resolution"));
             m_Prefilter = Unpack(o.Find(x => x.prefilter));
             m_Anamorphic = Unpack(o.Find(x => x.anamorphic));
         }
