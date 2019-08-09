@@ -1370,8 +1370,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
 #if ENABLE_RAYTRACING
             // If there is still a free slot in the screen space shadow array and this needs to render a screen space shadow
-            if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) 
-                && screenSpaceShadowIndex < m_Asset.currentPlatformRenderPipelineSettings.hdShadowInitParams.maxScreenSpaceShadows 
+            if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing)
+                && screenSpaceShadowIndex < m_Asset.currentPlatformRenderPipelineSettings.hdShadowInitParams.maxScreenSpaceShadows
                 && additionalLightData.WillRenderScreenSpaceShadow())
             {
                 lightData.screenSpaceShadowIndex = screenSpaceShadowIndex;
@@ -2434,16 +2434,18 @@ namespace UnityEngine.Rendering.HighDefinition
             public TileAndClusterData tileAndClusterData;
             public RTHandle depthBuffer;
             public RTHandle stencilTexture;
+            public RTHandle depthValuesTexture;
             public RTHandle[] gBuffer;
         }
 
-        BuildGPULightListResources PrepareBuildGPULightListResources(TileAndClusterData tileAndClusterData, RTHandle depthBuffer, RTHandle stencilTexture)
+        BuildGPULightListResources PrepareBuildGPULightListResources(TileAndClusterData tileAndClusterData, RTHandle depthBuffer, RTHandle stencilTexture, RTHandle depthValuesTexture)
         {
             var resources = new BuildGPULightListResources();
 
             resources.tileAndClusterData = tileAndClusterData;
             resources.depthBuffer = depthBuffer;
             resources.stencilTexture = stencilTexture;
+            resources.depthValuesTexture = depthValuesTexture;
             resources.gBuffer = m_GbufferManager.GetBuffers();
 
             return resources;
@@ -2545,6 +2547,13 @@ namespace UnityEngine.Rendering.HighDefinition
                     cmd.SetComputeIntParam(parameters.buildPerTileLightListShader, HDShaderIDs.g_BaseFeatureFlags, (int)baseFeatureFlags);
                     cmd.SetComputeBufferParam(parameters.buildPerTileLightListShader, parameters.buildPerTileLightListKernel, HDShaderIDs.g_TileFeatureFlags, tileAndCluster.tileFeatureFlags);
                     tileFlagsWritten = true;
+                }
+
+                cmd.SetComputeTextureParam(parameters.buildPerTileLightListShader, parameters.buildPerTileLightListKernel, HDShaderIDs.g_depth_tex, resources.depthBuffer);
+
+                if (parameters.msaaSamples > 1)
+                {
+                    cmd.SetComputeTextureParam(parameters.buildPerTileLightListShader, parameters.buildPerTileLightListKernel, HDShaderIDs._CameraDepthValuesTexture, resources.depthValuesTexture);
                 }
 
                 cmd.DispatchCompute(parameters.buildPerTileLightListShader, parameters.buildPerTileLightListKernel, parameters.numTilesFPTLX, parameters.numTilesFPTLY, parameters.viewCount);
@@ -2827,7 +2836,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 var resources = PrepareBuildGPULightListResources(
                     m_TileAndClusterData,
                     m_SharedRTManager.GetDepthStencilBuffer(hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA)),
-                    m_SharedRTManager.GetStencilBufferCopy()
+                    m_SharedRTManager.GetStencilBufferCopy(),
+                    m_SharedRTManager.GetDepthValuesTexture()
                 );
 
                 bool tileFlagsWritten = false;

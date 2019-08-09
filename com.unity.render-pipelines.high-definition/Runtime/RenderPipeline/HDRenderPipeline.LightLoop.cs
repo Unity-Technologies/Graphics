@@ -63,12 +63,13 @@ namespace UnityEngine.Rendering.HighDefinition
             public BuildGPULightListResources buildGPULightListResources;
             public LightLoopGlobalParameters lightLoopGlobalParameters;
             public RenderGraphResource depthBuffer;
+            public RenderGraphResource depthValuesTexture;
             public RenderGraphResource stencilTexture;
             public RenderGraphResource[] gBuffer = new RenderGraphResource[RenderGraph.kMaxMRTCount];
             public int gBufferCount;
         }
 
-        void BuildGPULightList(RenderGraph renderGraph, HDCamera hdCamera, RenderGraphResource depthStencilBuffer, RenderGraphResource stencilBufferCopy, GBufferOutput gBuffer)
+        void BuildGPULightList(RenderGraph renderGraph, HDCamera hdCamera, RenderGraphResource depthStencilBuffer, RenderGraphResource depthValuesTexture, RenderGraphResource stencilBufferCopy, GBufferOutput gBuffer)
         {
             using (var builder = renderGraph.AddRenderPass<BuildGPULightListPassData>("Build Light List", out var passData))
             {
@@ -77,9 +78,14 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.lightLoopGlobalParameters = PrepareLightLoopGlobalParameters(hdCamera);
                 passData.buildGPULightListParameters = PrepareBuildGPULightListParameters(hdCamera);
                 // TODO: Move this inside the render function onces compute buffers are RenderGraph ready
-                passData.buildGPULightListResources = PrepareBuildGPULightListResources(m_TileAndClusterData, null, null);
+                passData.buildGPULightListResources = PrepareBuildGPULightListResources(m_TileAndClusterData, null, null, null);
                 passData.depthBuffer = builder.ReadTexture(depthStencilBuffer);
                 passData.stencilTexture = builder.ReadTexture(stencilBufferCopy);
+                if ((int)hdCamera.msaaSamples > 1)
+                {
+                    passData.depthValuesTexture = builder.ReadTexture(depthValuesTexture);
+                }
+
                 if (passData.buildGPULightListParameters.computeMaterialVariants && passData.buildGPULightListParameters.enableFeatureVariants)
                 {
                     for (int i = 0; i < gBuffer.gBufferCount; ++i)
@@ -94,6 +100,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     data.buildGPULightListResources.depthBuffer = context.resources.GetTexture(data.depthBuffer);
                     data.buildGPULightListResources.stencilTexture = context.resources.GetTexture(data.stencilTexture);
+                    data.buildGPULightListResources.depthValuesTexture = context.resources.GetTexture(data.depthValuesTexture);
+
                     if (passData.buildGPULightListParameters.computeMaterialVariants && passData.buildGPULightListParameters.enableFeatureVariants)
                     {
                         data.buildGPULightListResources.gBuffer = context.renderGraphPool.GetTempArray<RTHandle>(data.gBufferCount);
