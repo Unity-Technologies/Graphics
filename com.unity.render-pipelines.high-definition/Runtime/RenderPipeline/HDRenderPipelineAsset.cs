@@ -213,6 +213,11 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        static public bool AggreateRayTracingSupport(RenderPipelineSettings rpSetting)
+        {
+            return rpSetting.supportRayTracing && UnityEngine.SystemInfo.supportsRayTracing;
+        }
+
 #if UNITY_EDITOR
         public override Material defaultMaterial
         {
@@ -314,11 +319,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
             }
             return false;
-        }
-
-        static public bool AggreateRayTracingSupport(RenderPipelineSettings rpSetting)
-        {
-            return rpSetting.supportRayTracing && UnityEngine.SystemInfo.supportsRayTracing;
         }
 
         // This function allows us to raise or remove some preprocessing defines based on the render pipeline settings
