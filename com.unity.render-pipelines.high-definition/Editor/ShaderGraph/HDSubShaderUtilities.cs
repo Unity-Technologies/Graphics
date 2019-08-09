@@ -665,10 +665,10 @@ namespace UnityEditor.Rendering.HighDefinition
             graphRequirements.UnionWith(vertexRequirements);
 
             // build the graph outputs structure, and populate activeFields with the fields of that structure
-            GraphUtil.GenerateSurfaceDescriptionStruct(pixelGraphOutputs, pixelSlots, pixelGraphOutputStructName, activeFields.baseInstance);
+            SubShaderGenerator.GenerateSurfaceDescriptionStruct(pixelGraphOutputs, pixelSlots, pixelGraphOutputStructName, activeFields.baseInstance);
 
             // Build the graph evaluation code, to evaluate the specified slots
-            GraphUtil.GenerateSurfaceDescriptionFunction(
+            SubShaderGenerator.GenerateSurfaceDescriptionFunction(
                 pixelNodes,
                 keywordPermutationsPerPixelNode,
                 masterNode,
@@ -698,11 +698,11 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 // -------------------------------------
                 // Generate Output structure for Vertex Description function
-                GraphUtil.GenerateVertexDescriptionStruct(vertexGraphOutputs, vertexSlots, vertexGraphOutputStructName, activeFields.baseInstance);
+                SubShaderGenerator.GenerateVertexDescriptionStruct(vertexGraphOutputs, vertexSlots, vertexGraphOutputStructName, activeFields.baseInstance);
 
                 // -------------------------------------
                 // Generate Vertex Description function
-                GraphUtil.GenerateVertexDescriptionFunction(
+                SubShaderGenerator.GenerateVertexDescriptionFunction(
                     masterNode.owner as GraphData,
                     vertexGraphEvalFunction,
                     functionRegistry,

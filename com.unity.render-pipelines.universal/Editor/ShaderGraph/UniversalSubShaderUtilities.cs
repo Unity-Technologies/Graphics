@@ -254,12 +254,12 @@ namespace UnityEditor.Rendering.Universal
             // -------------------------------------
             // Generate Output structure for Vertex Description function
 
-            GraphUtil.GenerateVertexDescriptionStruct(vertexDescriptionStruct, vertexSlots);
+            SubShaderGenerator.GenerateVertexDescriptionStruct(vertexDescriptionStruct, vertexSlots);
 
             // -------------------------------------
             // Generate Vertex Description function
 
-            GraphUtil.GenerateVertexDescriptionFunction(
+            SubShaderGenerator.GenerateVertexDescriptionFunction(
                 masterNode.owner as GraphData,
                 vertexDescriptionFunction,
                 functionRegistry,
@@ -309,12 +309,12 @@ namespace UnityEditor.Rendering.Universal
             // -------------------------------------
             // Generate Output structure for Surface Description function
 
-            GraphUtil.GenerateSurfaceDescriptionStruct(surfaceDescriptionStruct, pixelSlots);
+            SubShaderGenerator.GenerateSurfaceDescriptionStruct(surfaceDescriptionStruct, pixelSlots);
 
             // -------------------------------------
             // Generate Surface Description function
 
-            GraphUtil.GenerateSurfaceDescriptionFunction(
+            SubShaderGenerator.GenerateSurfaceDescriptionFunction(
                 pixelNodes,
                 keywordPermutationsPerPixelNode,
                 masterNode,
@@ -346,7 +346,7 @@ namespace UnityEditor.Rendering.Universal
             // -------------------------------------
             // Generate Input structure for Vertex shader
 
-            GraphUtil.GenerateApplicationVertexInputs(vertexRequirements.Union(pixelRequirements.Union(modelRequirements)), vertexInputStruct);
+            SubShaderGenerator.GenerateApplicationVertexInputs(vertexRequirements.Union(pixelRequirements.Union(modelRequirements)), vertexInputStruct);
 
             // -------------------------------------
             // Generate standard transformations
