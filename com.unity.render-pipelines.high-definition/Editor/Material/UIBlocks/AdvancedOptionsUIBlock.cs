@@ -23,6 +23,9 @@ namespace UnityEditor.Rendering.HighDefinition
             public static GUIContent enableSpecularOcclusionText = new GUIContent("Specular Occlusion From Bent Normal", "Requires cosine weighted bent normal and cosine weighted ambient occlusion. Specular occlusion for Reflection Probe");
             public static GUIContent addPrecomputedVelocityText = new GUIContent("Add Precomputed Velocity", "Requires additional per vertex velocity info");
 
+//forest-begin: Terrain Mode
+            public static GUIContent enableTerrainModeText = new GUIContent("Enable Terrain Mode");
+//forest-end:
         }
 
         protected MaterialProperty enableSpecularOcclusion = null;
@@ -34,6 +37,11 @@ namespace UnityEditor.Rendering.HighDefinition
         Expandable  m_ExpandableBit;
         Features    m_Features;
 
+//forest-begin:
+        MaterialProperty enableTerrainMode = null;
+        const string kEnableTerrainMode = "_EnableTerrainMode";
+//forest-end:
+
         public AdvancedOptionsUIBlock(Expandable expandableBit, Features features = Features.All)
         {
             m_ExpandableBit = expandableBit;
@@ -44,7 +52,9 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             enableSpecularOcclusion = FindProperty(kEnableSpecularOcclusion);
             addPrecomputedVelocity = FindProperty(kAddPrecomputedVelocity);
-
+//forest-begin:
+			enableTerrainMode = FindProperty(kEnableTerrainMode);
+//forest-end:
         }
 
         public override void OnGUI()
@@ -66,8 +76,12 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 if ( addPrecomputedVelocity != null)
                     materialEditor.ShaderProperty(addPrecomputedVelocity, Styles.addPrecomputedVelocityText);
+            }
+
+//forest-begin:
+            if(enableTerrainMode != null)
+                materialEditor.ShaderProperty(enableTerrainMode, Styles.enableTerrainModeText);
+//forest-end:
         }
     }
 }
-}
-
