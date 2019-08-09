@@ -218,7 +218,7 @@ namespace UnityEditor.ShaderGraph
                     // Property node has no input. It should has an order of -1.
                     Debug.Assert(!node.GetInputSlots<MaterialSlot>().Any() && splatGraphNode.Order == -1);
                     // Only gather the splat properties. Regular properties are uniforms.
-                    if ((node as PropertyNode).shaderProperty is ISplattableShaderProperty splatProperty && splatProperty.splat)
+                    if (node.IsSplattingPropertyNode())
                     {
                         splatGraphNode.Order = 0;
                         GetSplatFunctionInputsOutputsForOrder(0).input.Add(new SplatFunctionInput()
@@ -323,7 +323,7 @@ namespace UnityEditor.ShaderGraph
             //    var node = splatGraphNodes[i];
             //    if (node is PropertyNode propertyNode)
             //    {
-            //        if (propertyNode.shaderProperty is ISplattableShaderProperty splatProperty && splatProperty.splat)
+            //        if (node.IsSplattingPropertyNode())
             //        {
             //            splatDependent[i] = true;
             //            splatFunctionInputs.Add(new SplatGraphInput()

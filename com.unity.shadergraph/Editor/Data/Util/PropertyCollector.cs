@@ -47,7 +47,7 @@ namespace UnityEditor.ShaderGraph
                     cbName = s_UnityPerMaterialCbName;
 
                 // Don't do splatting when in preview. Preview takes the original splatting property.
-                var declareSplatProperties = !mode.IsPreview() && prop is ISplattableShaderProperty splatProp && splatProp.splat;
+                var declareSplatProperties = !mode.IsPreview() && prop.IsSplattingShaderProperty();
                 if (cbName == s_UnityPerMaterialCbName && declareSplatProperties)
                     cbName = s_UnitySplatMaterialCbName;
 
@@ -67,8 +67,10 @@ namespace UnityEditor.ShaderGraph
                     if (declareSplatProperties)
                     {
                         sb.AppendLine($"#define {referenceName} {referenceName}0");
-                        sb.AppendLine($"#define sampler{referenceName} sampler{referenceName}0");
-                        sb.AppendLine($"#define {referenceName}_TexelSize {referenceName}0_TexelSize");
+                        if (prop.propertyType == PropertyType.Texture2D || prop.propertyType == PropertyType.Texture2DArray || prop.propertyType == PropertyType.Texture3D)
+                            sb.AppendLine($"#define sampler{referenceName} sampler{referenceName}0");
+                        if (prop.propertyType == PropertyType.Texture2D)
+                            sb.AppendLine($"#define {referenceName}_TexelSize {referenceName}0_TexelSize");
 
                         for (int i = 0; i < splatCount; ++i)
                         {

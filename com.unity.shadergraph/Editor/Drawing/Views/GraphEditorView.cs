@@ -160,7 +160,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                         }
                     }
 
-                    if (graph.properties.Any(prop => prop is ISplattableShaderProperty))
+                    if (graph.properties.Any(prop => prop.IsSplattingShaderProperty()))
                     {
                         EditorGUI.BeginChangeCheck();
                         GUILayout.Label("Splat Count");

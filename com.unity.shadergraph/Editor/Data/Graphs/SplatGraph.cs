@@ -105,7 +105,7 @@ namespace UnityEditor.ShaderGraph
                 {
                     var edge = node.owner.GetEdges(slot.slotReference).FirstOrDefault();
                     var fromNode = edge != null ? node.owner.GetNodeFromGuid(edge.outputSlot.nodeGuid) : null;
-                    var fromNodeIndex = FindIndex(shaderGraphNodes, fromNode);
+                    var fromNodeIndex = FindNodeIndex(fromNode);
                     // Make sure fromNodeIndex >= 0 and fromSlot != null is the same check.
                     Debug.Assert(fromNodeIndex < 0 || fromNode.FindOutputSlot<MaterialSlot>(edge.outputSlot.slotId) != null);
                     return (slot, fromSlot: fromNodeIndex >= 0 ? fromNode.FindOutputSlot<MaterialSlot>(edge.outputSlot.slotId) : null, fromNodeIndex);
@@ -124,8 +124,7 @@ namespace UnityEditor.ShaderGraph
                     outputsPerSplat = false;
                     runsPerSplat = inputSlots.Any(s => s.fromNodeIndex != -1 && splatGraphNodes[s.fromNodeIndex].OutputsPerSplat);
                 }
-                else if (node is ISplatUnpackNode
-                    || node is PropertyNode propNode && propNode.shaderProperty is ISplattableShaderProperty splatProp && splatProp.splat)
+                else if (node is ISplatUnpackNode || node.IsSplattingPropertyNode())
                 {
                     outputsPerSplat = true;
                     runsPerSplat = false;
@@ -163,12 +162,13 @@ namespace UnityEditor.ShaderGraph
                     var fromSplatNode = splatGraphNodes[fromNodeIndex];
                     Debug.Assert(fromSplatNode.Order <= order);
 
-                    if (runsPerSplat &&
-                        (fromSplatNode.Order < order        // Inputs from previous orders
-                        || !fromSplatNode.RunsPerSplat))    // Inputs from the current order's scalar part
+                    if (runsPerSplat
+                        && !fromSlot.owner.IsNonSplattingPropertyNode()
+                        && (fromSplatNode.Order < order         // Inputs from previous orders
+                            || !fromSplatNode.RunsPerSplat))    // Inputs from the current order's scalar part
                     {
                         var splatInputType = SplatFunctionInputType.Variable;
-                        if (fromSlot.owner is PropertyNode propNode && propNode.shaderProperty is ISplattableShaderProperty splatProp && splatProp.splat)
+                        if (fromSlot.owner.IsSplattingPropertyNode())
                             splatInputType = SplatFunctionInputType.SplatProperty;
                         else if (fromSplatNode.OutputsPerSplat)
                             splatInputType = SplatFunctionInputType.SplatArray;
@@ -186,7 +186,7 @@ namespace UnityEditor.ShaderGraph
             return new SplatGraph()
             {
                 m_Orders = Enumerable.Range(0, splatFunctionInputsPerOrder.Count).Select(order => new Order(
-                    splatGraphNodes.Where(n => n.Order == order).ToArray(), // OrderBy does stable sort
+                    splatGraphNodes.Where(n => n.Order == order).ToArray(),
                     splatFunctionInputsPerOrder[order].ToArray(),
                     splatFunctionOutputsPerOrder[order].ToArray())
                 ).ToArray()
@@ -204,11 +204,11 @@ namespace UnityEditor.ShaderGraph
                 return (splatFunctionInputsPerOrder[order], splatFunctionOutputsPerOrder[order]);
             }
 
-            int FindIndex<T>(IReadOnlyList<T> list, T value) where T : class
+            int FindNodeIndex(AbstractMaterialNode node)
             {
-                for (int i = 0; i < list.Count; ++i)
+                for (int i = 0; i < shaderGraphNodes.Count; ++i)
                 {
-                    if (list[i] == value)
+                    if (shaderGraphNodes[i] == node)
                         return i;
                 }
                 return -1;
