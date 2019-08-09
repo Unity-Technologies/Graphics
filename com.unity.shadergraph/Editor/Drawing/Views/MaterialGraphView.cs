@@ -495,6 +495,9 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             bool containsProperty = false;
 
+            // Keywords need to be tested against variant limit based on multiple factors
+            bool keywordsDirty = false;
+
             // Track dependent keyword nodes to remove them
             List<KeywordNode> keywordNodes = new List<KeywordNode>();
 
@@ -531,6 +534,15 @@ namespace UnityEditor.ShaderGraph.Drawing
             
             // Add keyword nodes dependent on deleted keywords
             nodesToDelete = nodesToDelete.Union(keywordNodes);
+
+            // If deleting a Sub Graph node whose asset contains Keywords test variant limit
+            foreach(SubGraphNode subGraphNode in nodesToDelete.OfType<SubGraphNode>())
+            {
+                if(subGraphNode.asset.keywords.Count > 0)
+                {
+                    keywordsDirty = true;
+                }
+            }
             
             graph.owner.RegisterCompleteObjectUndo(operationName);
             graph.RemoveElements(nodesToDelete.ToArray(),
@@ -538,7 +550,6 @@ namespace UnityEditor.ShaderGraph.Drawing
                 selection.OfType<ShaderGroup>().Select(x => x.userData).ToArray(),
                 selection.OfType<StickyNote>().Select(x => x.userData).ToArray());
             
-            bool keywordsDirty = false;
             foreach (var selectable in selection)
             {
                 var field = selectable as BlackboardField;
@@ -547,6 +558,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     var input = (ShaderInput)field.userData;
                     graph.RemoveGraphInput(input);
 
+                    // If deleting a Keyword test variant limit
                     if(input is ShaderKeyword keyword)
                     {
                         keywordsDirty = true;
@@ -554,6 +566,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 }
             }
 
+            // Test Keywords against variant limit
             if(keywordsDirty)
             {
                 graph.OnKeywordChanged();
@@ -772,6 +785,9 @@ namespace UnityEditor.ShaderGraph.Drawing
             if (copyGraph == null)
                 return;
 
+            // Keywords need to be tested against variant limit based on multiple factors
+            bool keywordsDirty = false;
+
             // Make new inputs from the copied graph
             foreach (ShaderInput input in copyGraph.inputs)
             {
@@ -799,10 +815,28 @@ namespace UnityEditor.ShaderGraph.Drawing
                             node.owner = graphView.graph;
                             node.keywordGuid = copiedInput.guid;
                         }
+
+                        // Pasting a new Keyword so need to test against variant limit
+                        keywordsDirty = true;
                         break;
                     default:
                         throw new ArgumentOutOfRangeException();
                 }
+            }
+
+            // Pasting a Sub Graph node that contains Keywords so need to test against variant limit
+            foreach(SubGraphNode subGraphNode in copyGraph.GetNodes<SubGraphNode>())
+            {
+                if(subGraphNode.asset.keywords.Count > 0)
+                {
+                    keywordsDirty = true;
+                }
+            }
+
+            // Test Keywords against variant limit
+            if(keywordsDirty)
+            {
+                graphView.graph.OnKeywordChanged();
             }
 
             using (var remappedNodesDisposable = ListPool<AbstractMaterialNode>.GetDisposable())

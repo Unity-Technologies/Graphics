@@ -150,6 +150,12 @@ namespace UnityEditor.ShaderGraph.Drawing
                     foreach (var subGraphNode in graphObject.graph.GetNodes<SubGraphNode>())
                     {
                         subGraphNode.Reload(m_ChangedFileDependencies);
+
+                        // Keywords always need to be updated to test against variant limit
+                        // No Keywords may indicate removal and this may have now made the Graph valid again
+                        // Need to validate Graph to clear errors in this case
+                        materialGraph.OnKeywordChanged();
+                        materialGraph.ValidateGraph();
                     }
                     foreach (var customFunctionNode in graphObject.graph.GetNodes<CustomFunctionNode>())
                     {
