@@ -4,7 +4,7 @@ using UnityEngine.Rendering.HighDefinition;
 namespace UnityEditor.Rendering.HighDefinition
 {
     [VolumeComponentEditor(typeof(Bloom))]
-    sealed class BloomEditor : VolumeComponentEditor
+    sealed class BloomEditor : VolumeComponentWithQualityEditor
     {
         SerializedDataParameter m_Intensity;
         SerializedDataParameter m_Scatter;
@@ -22,6 +22,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public override void OnEnable()
         {
+            base.OnEnable();
+
             var o = new PropertyFetcher<Bloom>(serializedObject);
 
             m_Intensity = Unpack(o.Find(x => x.intensity));
@@ -38,6 +40,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public override void OnInspectorGUI()
         {
+            base.OnInspectorGUI();
+
             EditorGUILayout.LabelField("Bloom", EditorStyles.miniLabel);
             PropertyField(m_Intensity);
             PropertyField(m_Scatter);
@@ -50,8 +54,11 @@ namespace UnityEditor.Rendering.HighDefinition
             if (isInAdvancedMode)
             {
                 EditorGUILayout.LabelField("Advanced Tweaks", EditorStyles.miniLabel);
-                PropertyField(m_Resolution);
-                PropertyField(m_HighQualityFiltering);
+                if(!UsesQualitySettings())
+                {
+                    PropertyField(m_Resolution);
+                    PropertyField(m_HighQualityFiltering);
+                }
                 PropertyField(m_Prefilter);
                 PropertyField(m_Anamorphic);
             }

@@ -130,7 +130,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     HDRenderPipeline pipeline = (HDRenderPipeline)RenderPipelineManager.currentPipeline;
                     int qualityLevel = (int)quality.value;
-                    return pipeline.currentPlatformRenderPipelineSettings.postProcessQualitySettings.HighQualityFiltering[qualityLevel];
+                    return pipeline.currentPlatformRenderPipelineSettings.postProcessQualitySettings.DoFHighQualityFiltering[qualityLevel];
                 }
             }
             set { m_HighQualityFiltering.value = value; }
@@ -148,7 +148,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     HDRenderPipeline pipeline = (HDRenderPipeline)RenderPipelineManager.currentPipeline;
                     int qualityLevel = (int)quality.value;
-                    return pipeline.currentPlatformRenderPipelineSettings.postProcessQualitySettings.Resolution[qualityLevel];
+                    return pipeline.currentPlatformRenderPipelineSettings.postProcessQualitySettings.DoFResolution[qualityLevel];
                 }
             }
             set

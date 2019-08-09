@@ -37,32 +37,45 @@ namespace UnityEngine.Rendering.HighDefinition
             FarBlurMaxRadius[(int)VolumeQualitySettingsLevels.Medium] = 8.0f;
             FarBlurMaxRadius[(int)VolumeQualitySettingsLevels.High] = 13.0f;
 
-            Resolution[(int)VolumeQualitySettingsLevels.Low] = DepthOfFieldResolution.Quarter;
-            Resolution[(int)VolumeQualitySettingsLevels.Medium] = DepthOfFieldResolution.Half;
-            Resolution[(int)VolumeQualitySettingsLevels.High] = DepthOfFieldResolution.Full;
+            DoFResolution[(int)VolumeQualitySettingsLevels.Low] = DepthOfFieldResolution.Quarter;
+            DoFResolution[(int)VolumeQualitySettingsLevels.Medium] = DepthOfFieldResolution.Half;
+            DoFResolution[(int)VolumeQualitySettingsLevels.High] = DepthOfFieldResolution.Full;
 
-            HighQualityFiltering[(int)VolumeQualitySettingsLevels.Low] = false;
-            HighQualityFiltering[(int)VolumeQualitySettingsLevels.Medium] = true;
-            HighQualityFiltering[(int)VolumeQualitySettingsLevels.High] = true;
+            DoFHighQualityFiltering[(int)VolumeQualitySettingsLevels.Low] = false;
+            DoFHighQualityFiltering[(int)VolumeQualitySettingsLevels.Medium] = true;
+            DoFHighQualityFiltering[(int)VolumeQualitySettingsLevels.High] = true;
 
             /* Motion Blur */
             MotionBlurSampleCount[(int)VolumeQualitySettingsLevels.Low] = 4;
             MotionBlurSampleCount[(int)VolumeQualitySettingsLevels.Medium] = 8;
             MotionBlurSampleCount[(int)VolumeQualitySettingsLevels.High] = 12;
+
+            /* Bloom */
+            BloomRes[(int)VolumeQualitySettingsLevels.Low] = BloomResolution.Quarter;
+            BloomRes[(int)VolumeQualitySettingsLevels.Medium] = BloomResolution.Half;
+            BloomRes[(int)VolumeQualitySettingsLevels.High] = BloomResolution.Half;
+
+            BloomHighQualityFiltering[(int)VolumeQualitySettingsLevels.Low] = false;
+            BloomHighQualityFiltering[(int)VolumeQualitySettingsLevels.Medium] = true;
+            BloomHighQualityFiltering[(int)VolumeQualitySettingsLevels.High] = true;
         }
 
         /// <summary>Default GlobalPostProcessingQualitySettings</summary>
         public static readonly GlobalPostProcessingQualitySettings @default = new GlobalPostProcessingQualitySettings();
 
         /*  Depth of field */
-        public int[] NearBlurSampleCount            = new int[s_QualitySettingCount];
-        public float[] NearBlurMaxRadius            = new float[s_QualitySettingCount];
-        public int[] FarBlurSampleCount             = new int[s_QualitySettingCount];
-        public float[] FarBlurMaxRadius             = new float[s_QualitySettingCount];
-        public DepthOfFieldResolution[] Resolution  = new DepthOfFieldResolution[s_QualitySettingCount];
-        public bool[] HighQualityFiltering          = new bool[s_QualitySettingCount];
+        public int[] NearBlurSampleCount                = new int[s_QualitySettingCount];
+        public float[] NearBlurMaxRadius                = new float[s_QualitySettingCount];
+        public int[] FarBlurSampleCount                 = new int[s_QualitySettingCount];
+        public float[] FarBlurMaxRadius                 = new float[s_QualitySettingCount];
+        public DepthOfFieldResolution[] DoFResolution   = new DepthOfFieldResolution[s_QualitySettingCount];
+        public bool[] DoFHighQualityFiltering           = new bool[s_QualitySettingCount];
 
         /* Motion Blur */
-        public int[] MotionBlurSampleCount          = new int[s_QualitySettingCount];
+        public int[] MotionBlurSampleCount              = new int[s_QualitySettingCount];
+
+        /* Bloom */
+        public BloomResolution[] BloomRes               = new BloomResolution[s_QualitySettingCount];
+        public bool[] BloomHighQualityFiltering         = new bool[s_QualitySettingCount];
     }
 }

@@ -1609,7 +1609,7 @@ namespace UnityEngine.Rendering.HighDefinition
         // TODO: All of this could be simplified and made faster once we have the ability to bind mips as SRV
         unsafe void DoBloom(CommandBuffer cmd, HDCamera camera, RTHandle source, ComputeShader uberCS, int uberKernel)
         {
-            var resolution = m_Bloom.resolution.value;
+            var resolution = m_Bloom.resolution;
             float scaleW = 1f / ((int)resolution / 2f);
             float scaleH = 1f / ((int)resolution / 2f);
 
@@ -1723,7 +1723,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Upsample & combine
             cs = m_Resources.shaders.bloomUpsampleCS;
-            kernel = cs.FindKernel(m_Bloom.highQualityFiltering.value ? "KMainHighQ" : "KMainLowQ");
+            kernel = cs.FindKernel(m_Bloom.highQualityFiltering ? "KMainHighQ" : "KMainLowQ");
 
             float scatter = Mathf.Lerp(0.05f, 0.95f, m_Bloom.scatter.value);
 

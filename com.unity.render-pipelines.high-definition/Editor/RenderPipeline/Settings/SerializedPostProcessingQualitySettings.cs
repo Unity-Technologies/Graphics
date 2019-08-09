@@ -18,20 +18,29 @@ namespace UnityEditor.Rendering.HighDefinition
         // Motion Blur
         public SerializedProperty MotionBlurSampleCount;
 
+        // Bloom
+        public SerializedProperty BloomRes;
+        public SerializedProperty BloomHighFilteringQuality;
+
         public SerializedPostProcessingQualitySettings(SerializedProperty root)
         {
             this.root = root;
 
             // DoF
-            NearBlurSampleCount     = root.Find((GlobalPostProcessingQualitySettings s) => s.NearBlurSampleCount);
-            NearBlurMaxRadius       = root.Find((GlobalPostProcessingQualitySettings s) => s.NearBlurMaxRadius);
-            FarBlurSampleCount      = root.Find((GlobalPostProcessingQualitySettings s) => s.FarBlurSampleCount);
-            FarBlurMaxRadius        = root.Find((GlobalPostProcessingQualitySettings s) => s.FarBlurMaxRadius);
-            DoFResolution           = root.Find((GlobalPostProcessingQualitySettings s) => s.Resolution);
-            DoFHighFilteringQuality = root.Find((GlobalPostProcessingQualitySettings s) => s.HighQualityFiltering);
+            NearBlurSampleCount         = root.Find((GlobalPostProcessingQualitySettings s) => s.NearBlurSampleCount);
+            NearBlurMaxRadius           = root.Find((GlobalPostProcessingQualitySettings s) => s.NearBlurMaxRadius);
+            FarBlurSampleCount          = root.Find((GlobalPostProcessingQualitySettings s) => s.FarBlurSampleCount);
+            FarBlurMaxRadius            = root.Find((GlobalPostProcessingQualitySettings s) => s.FarBlurMaxRadius);
+            DoFResolution               = root.Find((GlobalPostProcessingQualitySettings s) => s.DoFResolution);
+            DoFHighFilteringQuality     = root.Find((GlobalPostProcessingQualitySettings s) => s.DoFHighQualityFiltering);
 
             // Motion Blur
-            MotionBlurSampleCount   = root.Find((GlobalPostProcessingQualitySettings s) => s.MotionBlurSampleCount);
+            MotionBlurSampleCount       = root.Find((GlobalPostProcessingQualitySettings s) => s.MotionBlurSampleCount);
+
+            // Bloom
+            BloomRes                    = root.Find((GlobalPostProcessingQualitySettings s) => s.BloomRes);
+            BloomHighFilteringQuality   = root.Find((GlobalPostProcessingQualitySettings s) => s.BloomHighQualityFiltering);
+
         }
     }
 }
