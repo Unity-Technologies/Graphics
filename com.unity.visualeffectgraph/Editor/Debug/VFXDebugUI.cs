@@ -24,43 +24,64 @@ namespace UnityEditor.VFX.UI
             class NormalizedCurve
             {
                 Vector3[] m_Points;
+                Vector2[] m_Segments1;
+                Vector2[] m_Segments2;
                 int[] m_Triangles;
                 int m_MaxPoints;
                 Mesh m_Mesh;
+                float m_LastValue = 0.0f;
 
-                private static readonly float s_Scale = .012f;
+                private static readonly float s_Scale = .03f;
 
                 public NormalizedCurve(int maxPoints)
                 {
                     if (maxPoints < 2)
                         maxPoints = 2;
                     m_MaxPoints = maxPoints;
-                    m_Points = new Vector3[2 * maxPoints];
+                    m_Points = new Vector3[4 * (maxPoints - 1)];
+                    m_Segments1 = new Vector2[4 * (maxPoints - 1)];
+                    m_Segments2 = new Vector2[4 * (maxPoints - 1)];
                     m_Triangles = new int[6 * (maxPoints - 1)];
 
                     var step = 1.0f / (float)(maxPoints - 1);
 
                     for (int i = 0; i < maxPoints - 1; ++i)
                     {
-                        m_Points[2 * i] = new Vector2(i * step, s_Scale);
-                        m_Points[2 * i + 1] = new Vector2(i * step, -s_Scale);
+                        var leftPoint = new Vector2(i * step, 0);
+                        var rightPoint = new Vector2((i + 1) * step, 0);
 
-                        int startIndex = i > 0 ? m_Triangles[6 * (i - 1) + 2] : 0;
+                        var rect = ComputeDrawingRect(leftPoint, rightPoint);
+                        m_Points[4 * i] = rect[0];
+                        m_Points[4 * i + 1] = rect[1];
+                        m_Points[4 * i + 2] = rect[2];
+                        m_Points[4 * i + 3] = rect[3];
+
+                        m_Segments1[4 * i] = leftPoint;
+                        m_Segments1[4 * i + 1] = leftPoint;
+                        m_Segments1[4 * i + 2] = leftPoint;
+                        m_Segments1[4 * i + 3] = leftPoint;
+
+                        m_Segments2[4 * i] = rightPoint;
+                        m_Segments2[4 * i + 1] = rightPoint;
+                        m_Segments2[4 * i + 2] = rightPoint;
+                        m_Segments2[4 * i + 3] = rightPoint;
+
+
+                        int startIndex = 4 * i;
 
                         m_Triangles[6 * i] = startIndex++;
                         m_Triangles[6 * i + 1] = startIndex++;
-                        m_Triangles[6 * i + 2] = startIndex--;
+                        m_Triangles[6 * i + 2] = startIndex;
 
                         m_Triangles[6 * i + 3] = startIndex++;
-                        m_Triangles[6 * i + 4] = startIndex++;
+                        m_Triangles[6 * i + 4] = startIndex - 3;
                         m_Triangles[6 * i + 5] = startIndex;
                     }
-                    m_Points[m_Points.Length - 2] = new Vector2((maxPoints - 1) * step, s_Scale);
-                    m_Points[m_Points.Length - 1] = new Vector2((maxPoints - 1) * step, -s_Scale);
-
 
                     m_Mesh = new Mesh();
                     m_Mesh.vertices = m_Points;
+                    m_Mesh.uv = m_Segments1;
+                    m_Mesh.uv2 = m_Segments2;
                     m_Mesh.triangles = m_Triangles;
                 }
 
@@ -69,38 +90,76 @@ namespace UnityEditor.VFX.UI
                     return m_Mesh;
                 }
 
+
                 public void AddPoint(float value)
                 {
                     m_Points = m_Mesh.vertices;
-                    var step = 1.0f / (float)(m_MaxPoints - 1);
-                    // shifting
-                    for (int i = 1; i < m_MaxPoints; ++i)
-                    {
-                        var shift = (m_Points[2 * i].x - m_Points[2 * i + 1].x) * 0.5f;
+                    m_Segments1 = m_Mesh.uv;
+                    m_Segments2 = m_Mesh.uv2;
 
-                        m_Points[2 * (i - 1)].y = m_Points[2 * i].y;
-                        m_Points[2 * (i - 1)].x = (i - 1) * step + shift;
-                        m_Points[2 * (i - 1) + 1].y = m_Points[2 * i + 1].y;
-                        m_Points[2 * (i - 1) + 1].x = (i - 1) * step - shift;
+                    // shifting drawing rectangles
+                    for (int i = 1; i < m_MaxPoints - 1; ++i)
+                    {
+                        m_Points[4 * (i - 1)].y = m_Points[4 * i].y;
+                        m_Segments1[4 * (i - 1)].y = m_Segments1[4 * i].y;
+                        m_Segments2[4 * (i - 1)].y = m_Segments2[4 * i].y;
+
+                        m_Points[4 * (i - 1) + 1].y = m_Points[4 * i + 1].y;
+                        m_Segments1[4 * (i - 1) + 1].y = m_Segments1[4 * i + 1].y;
+                        m_Segments2[4 * (i - 1) + 1].y = m_Segments2[4 * i + 1].y;
+
+                        m_Points[4 * (i - 1) + 2].y = m_Points[4 * i + 2].y;
+                        m_Segments1[4 * (i - 1) + 2].y = m_Segments1[4 * i + 2].y;
+                        m_Segments2[4 * (i - 1) + 2].y = m_Segments2[4 * i + 2].y;
+
+                        m_Points[4 * (i - 1) + 3].y = m_Points[4 * i + 3].y;
+                        m_Segments1[4 * (i - 1) + 3].y = m_Segments1[4 * i + 3].y;
+                        m_Segments2[4 * (i - 1) + 3].y = m_Segments2[4 * i + 3].y;
                     }
 
                     // adding new point
-                    m_Points[m_Points.Length - 2].y = value + s_Scale;
-                    m_Points[m_Points.Length - 1].y = value - s_Scale;
+                    var step = 1.0f / (float)(m_MaxPoints - 1);
+                    var leftPoint = new Vector2((float)(m_MaxPoints - 2) * step, m_LastValue);
+                    var rightPoint = new Vector2(1.0f, value);
+                    var rect = ComputeDrawingRect(leftPoint, rightPoint);
 
-                    // correction
-                    Vector2 tangent = (m_Points[m_Points.Length - 1] + m_Points[m_Points.Length - 2]) - (m_Points[m_Points.Length - 5] + m_Points[m_Points.Length - 6]);
-                    Vector2 dir = m_Points[m_Points.Length - 4] - m_Points[m_Points.Length - 3];
-                    Vector2 midPoint = 0.5f * (m_Points[m_Points.Length - 3] + m_Points[m_Points.Length - 4]);
+                    m_Points[4 * (m_MaxPoints - 2)].y = rect[0].y;
+                    m_Segments1[4 * (m_MaxPoints - 2)].y = m_LastValue;
+                    m_Segments2[4 * (m_MaxPoints - 2)].y = value;
 
-                    var displacement = s_Scale * (dir.normalized - Vector2.Dot(dir.normalized, tangent.normalized) * tangent.normalized).normalized;
+                    m_Points[4 * (m_MaxPoints - 2) + 1].y = rect[1].y;
+                    m_Segments1[4 * (m_MaxPoints - 2) + 1].y = m_LastValue;
+                    m_Segments2[4 * (m_MaxPoints - 2) + 1].y = value;
 
-                    m_Points[m_Points.Length - 4] = midPoint + displacement;
-                    m_Points[m_Points.Length - 3] = midPoint - displacement;
+                    m_Points[4 * (m_MaxPoints - 2) + 2].y = rect[2].y;
+                    m_Segments1[4 * (m_MaxPoints - 2) + 2].y = m_LastValue;
+                    m_Segments2[4 * (m_MaxPoints - 2) + 2].y = value;
+
+                    m_Points[4 * (m_MaxPoints - 2) + 3].y = rect[3].y;
+                    m_Segments1[4 * (m_MaxPoints - 2) + 3].y = m_LastValue;
+                    m_Segments2[4 * (m_MaxPoints - 2) + 3].y = value;
 
                     m_Mesh.vertices = m_Points;
+                    m_Mesh.uv = m_Segments1;
+                    m_Mesh.uv2 = m_Segments2;
+
+                    m_LastValue = value;
+                }
+
+                Vector3[] ComputeDrawingRect(Vector2 leftPoint, Vector2 rightPoint)
+                {
+                    var Ymax = Mathf.Max(leftPoint.y, rightPoint.y) + s_Scale;
+                    var Ymin = Mathf.Min(leftPoint.y, rightPoint.y) - s_Scale;
+                    var rect = new Vector3[4];
+                    rect[0] = new Vector3(leftPoint.x, Ymax);
+                    rect[1] = new Vector3(rightPoint.x, Ymax);
+                    rect[2] = new Vector3(rightPoint.x, Ymin);
+                    rect[3] = new Vector3(leftPoint.x, Ymin);
+
+                    return rect;
                 }
             }
+
 
             Material m_Mat;
             VFXDebugUI m_DebugUI;
@@ -271,7 +330,7 @@ namespace UnityEditor.VFX.UI
             m_DebugBox = new Box();
             m_DebugBox.name = "debug-box";
             m_DebugContainer.Add(m_DebugBox);
-            m_Curves = new CurveContent(this, 300, 0.016f);
+            m_Curves = new CurveContent(this, 100, 0.016f);
             m_ComponentBoard.contentContainer.Add(m_Curves);
 
             // system stats title
