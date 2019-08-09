@@ -261,6 +261,7 @@ Material:
     - Vector1_632A1E97: 0.892
     - Vector1_7CF2C304: 0.524
     - Vector1_867DA71E: 0.862
+    - Vector1_A66D0C7E: 1
     - Vector1_C41F78F3: 0
     - Vector1_F6FC54C8: 1.05
     - Vector1_F8D1F01: 1.135
@@ -564,11 +565,11 @@ Material:
     - _StencilRefDistortionVec: 64
     - _StencilRefGBuffer: 2
     - _StencilRefMV: 128
-    - _StencilWriteMask: 7
-    - _StencilWriteMaskDepth: 32
+    - _StencilWriteMask: 3
+    - _StencilWriteMaskDepth: 48
     - _StencilWriteMaskDistortionVec: 64
-    - _StencilWriteMaskGBuffer: 3
-    - _StencilWriteMaskMV: 128
+    - _StencilWriteMaskGBuffer: 51
+    - _StencilWriteMaskMV: 176
     - _Stiffness: 1
     - _SubsurfaceMask: 1
     - _SubsurfaceMaskMapChannel: 0

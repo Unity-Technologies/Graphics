@@ -3,11 +3,13 @@
 * Getting started
   * [Getting Started with HDRP](Getting-started-with-HDRP)
   * [Upgrading to HDRP](Upgrading-To-HDRP)
-  * [Upgrading HDRP to a Later Unity Version](Upgrading-HDRP-Between-Major-Versions)
   * [Render Pipeline Wizard](Render-Pipeline-Wizard)
   * [Forward and Deferred Rendering](Forward-And-Deferred-Rendering)
   * [Exposing Advanced Properties](Advanced-Properties)
   * [VR in HDRP](VR-in-HDRP)
+* Upgrading HDRP between Unity Versions
+  * [2019.1 to 2019.2](Upgrading-from-2019.1-to-2019.2)
+  * [2019.2 to 2019.3](Upgrading-from-2019.2-to-2019.3)
 * Volume Framework
   * [Volumes](Volumes)
   * [Volume Profiles](Volume-Profile)
@@ -47,14 +49,16 @@
   * [Renderer and Material Priority](Renderer-And-Material-Priority)
   * [Surface Type](Surface-Type)
   * Subsurface Scattering
-    - [Subsurface Scattering Materials](Subsurface-Scattering)
-    - [Diffusion Profile](Diffusion-Profile)
+    * [Subsurface Scattering Materials](Subsurface-Scattering)
+    * [Diffusion Profile](Diffusion-Profile)
   * [Decal Projector](Decal-Projector)
   * Shader List
     * [Decal Shader](Decal-Shader)
     * [Layered Lit Shader](Layered-Lit-Shader)
     * [Lit Shader](Lit-Shader)
     * [Unlit Shader](Unlit-Shader)
+  * Shader Graph master nodes
+    * [Creating and Editing Shader Graphs](Creating-and-Editing-HDRP-Shader-Graphs)
 * Lighting
   * [Reflection in HDRP](Reflection-in-HDRP)
   * [Refraction in HDRP](Refraction-in-HDRP)
@@ -100,6 +104,10 @@
 * Debugging
   * [MatCap](MatCap)
   * [Render Pipeline Debug Window](Render-Pipeline-Debug-Window)
+* Tools
+  * Look Dev
+    - [Look Dev Window](Look-Dev)
+    - [Environment Library](Look-Dev-Environment-Library)
 * Customizing HDRP
   * [Camera-relative Rendering](Camera-Relative-Rendering)
   * [Creating a Custom Sky ](Creating-a-Custom-Sky)
