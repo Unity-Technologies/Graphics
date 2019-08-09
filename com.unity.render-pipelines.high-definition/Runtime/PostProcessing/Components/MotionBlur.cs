@@ -7,15 +7,8 @@ using UnityEngine.Serialization;
 namespace UnityEngine.Rendering.HighDefinition
 {
     [Serializable, VolumeComponentMenu("Post-processing/Motion Blur")]
-    public sealed class MotionBlur : VolumeComponent, IPostProcessComponent
+    public sealed class MotionBlur : VolumeComponentWithQuality, IPostProcessComponent
     {
-
-        [Tooltip("Whether to use quality settings for the effect.")]
-        public BoolParameter useQualitySettings = new BoolParameter(false);
-
-        [Tooltip("Specifies the quality level to be used for performance relevant parameters.")]
-        public QualitySettingParameter quality = new QualitySettingParameter(VolumeQualitySettingsLevels.Medium);
-
         [Tooltip("Sets the intensity of the motion blur effect. Acts as a multiplier for velocities.")]
         public MinFloatParameter intensity = new MinFloatParameter(0.0f, 0.0f);
         [Tooltip("Controls the maximum velocity, in pixels, that HDRP allows for all sources of motion blur except Camera rotation.")]
@@ -32,7 +25,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             get
             {
-                if (!useQualitySettings.value || (HDRenderPipeline)RenderPipelineManager.currentPipeline == null)
+                if (!UsesQualitySettings())
                 {
                     return m_SampleCount.value;
                 }

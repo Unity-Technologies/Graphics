@@ -1,17 +1,12 @@
 using UnityEditor.Rendering;
 using UnityEngine.Rendering.HighDefinition;
 
-// TODO_FCC: Make a base class with quality settings? Both in editor and volume? 
 
 namespace UnityEditor.Rendering.HighDefinition
 {
     [VolumeComponentEditor(typeof(MotionBlur))]
-    sealed class MotionBlurEditor : VolumeComponentEditor
+    sealed class MotionBlurEditor : VolumeComponentWithQualityEditor
     {
-        // Quality settings
-        SerializedDataParameter m_UseQualitySettings;
-        SerializedDataParameter m_QualitySetting;
-
         SerializedDataParameter m_Intensity;
         SerializedDataParameter m_SampleCount;
 
@@ -26,10 +21,9 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public override void OnEnable()
         {
-            var o = new PropertyFetcher<MotionBlur>(serializedObject);
+            base.OnEnable();
 
-            m_UseQualitySettings = Unpack(o.Find(x => x.useQualitySettings));
-            m_QualitySetting = Unpack(o.Find(x => x.quality));
+            var o = new PropertyFetcher<MotionBlur>(serializedObject);
 
             m_Intensity = Unpack(o.Find(x => x.intensity));
             m_SampleCount = Unpack(o.Find("m_SampleCount"));
@@ -43,16 +37,11 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             bool advanced = isInAdvancedMode;
 
-            PropertyField(m_UseQualitySettings);
-
-            bool useQualitySettings = m_UseQualitySettings.value.boolValue;
-
-            if (useQualitySettings)
-                PropertyField(m_QualitySetting);
-
             PropertyField(m_Intensity);
 
-            if (!useQualitySettings)
+            base.OnInspectorGUI();
+
+            if (!UsesQualitySettings())
                 PropertyField(m_SampleCount);
 
             PropertyField(m_MaxVelocityInPixels);

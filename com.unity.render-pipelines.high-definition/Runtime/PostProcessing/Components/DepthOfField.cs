@@ -23,17 +23,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
     // TODO: Tooltips
     [Serializable, VolumeComponentMenu("Post-processing/Depth Of Field")]
-    public sealed class DepthOfField : VolumeComponent, IPostProcessComponent
+    public sealed class DepthOfField : VolumeComponentWithQuality, IPostProcessComponent
     {
         [Tooltip("Specifies the mode that HDRP uses to set the focus for the depth of field effect.")]
         public DepthOfFieldModeParameter focusMode = new DepthOfFieldModeParameter(DepthOfFieldMode.Off);
-
-        [Tooltip("Whether to use quality settings for the effect.")]
-        public BoolParameter useQualitySettings = new BoolParameter(false);
-
-        [Tooltip("Specifies the quality level to be used for performance relevant parameters.")]
-        public QualitySettingParameter quality = new QualitySettingParameter(VolumeQualitySettingsLevels.Medium);
-
 
         // Physical settings
         [Tooltip("Sets the distance to the focus point from the Camera.")]
@@ -57,7 +50,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             get
             {
-                if (!useQualitySettings.value || (HDRenderPipeline)RenderPipelineManager.currentPipeline == null)
+                if (!UsesQualitySettings())
                 {
                     return m_NearSampleCount.value;
                 }
@@ -75,7 +68,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             get
             {
-                if (!useQualitySettings.value || (HDRenderPipeline)RenderPipelineManager.currentPipeline == null)
+                if (!UsesQualitySettings())
                 {
                     return m_NearMaxBlur.value;
                 }
@@ -93,7 +86,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             get
             {
-                if(!useQualitySettings.value || (HDRenderPipeline)RenderPipelineManager.currentPipeline == null)
+                if (!UsesQualitySettings())
                 {
                     return m_FarSampleCount.value;
                 }
@@ -111,7 +104,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             get
             {
-                if (!useQualitySettings.value || (HDRenderPipeline)RenderPipelineManager.currentPipeline == null)
+                if (!UsesQualitySettings())
                 {
                     return m_FarMaxBlur.value;
                 }
@@ -129,7 +122,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             get
             {
-                if (!useQualitySettings.value || (HDRenderPipeline)RenderPipelineManager.currentPipeline == null)
+                if (!UsesQualitySettings())
                 {
                     return m_HighQualityFiltering.value;
                 }
@@ -147,7 +140,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             get
             {
-                if (!useQualitySettings.value || (HDRenderPipeline)RenderPipelineManager.currentPipeline == null)
+                if (!UsesQualitySettings())
                 {
                     return m_Resolution.value;
                 }

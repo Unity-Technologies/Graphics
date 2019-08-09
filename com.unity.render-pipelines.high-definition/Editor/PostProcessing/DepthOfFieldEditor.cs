@@ -4,13 +4,9 @@ using UnityEngine.Rendering.HighDefinition;
 namespace UnityEditor.Rendering.HighDefinition
 {
     [VolumeComponentEditor(typeof(DepthOfField))]
-    sealed class DepthOfFieldEditor : VolumeComponentEditor
+    sealed class DepthOfFieldEditor : VolumeComponentWithQualityEditor
     {
         SerializedDataParameter m_FocusMode;
-
-        // Quality settings
-        SerializedDataParameter m_UseQualitySettings;
-        SerializedDataParameter m_QualitySetting;
 
         // Physical mode
         SerializedDataParameter m_FocusDistance;
@@ -35,12 +31,11 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public override void OnEnable()
         {
+            base.OnEnable();
+
             var o = new PropertyFetcher<DepthOfField>(serializedObject);
 
             m_FocusMode = Unpack(o.Find(x => x.focusMode));
-
-            m_UseQualitySettings = Unpack(o.Find(x => x.useQualitySettings));
-            m_QualitySetting = Unpack(o.Find(x => x.quality));
 
             m_FocusDistance = Unpack(o.Find(x => x.focusDistance));
 
@@ -60,18 +55,14 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public override void OnInspectorGUI()
         {
+
             PropertyField(m_FocusMode);
 
             int mode = m_FocusMode.value.intValue;
             if (mode == (int)DepthOfFieldMode.Off)
                 return;
 
-            PropertyField(m_UseQualitySettings);
-
-            bool useQualitySettings = m_UseQualitySettings.value.boolValue;
-
-            if(useQualitySettings)
-                PropertyField(m_QualitySetting); 
+            base.OnInspectorGUI();
 
             bool advanced = isInAdvancedMode;
 
@@ -79,7 +70,7 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 PropertyField(m_FocusDistance);
 
-                if (advanced && !useQualitySettings)
+                if (advanced && !UsesQualitySettings())
                 {
                     EditorGUILayout.LabelField("Near Blur", EditorStyles.miniLabel);
                     PropertyField(m_NearSampleCount, EditorGUIUtility.TrTextContent("Sample Count"));
@@ -98,7 +89,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 PropertyField(m_NearFocusStart, EditorGUIUtility.TrTextContent("Start"));
                 PropertyField(m_NearFocusEnd, EditorGUIUtility.TrTextContent("End"));
 
-                if (advanced && !useQualitySettings)
+                if (advanced && !UsesQualitySettings())
                 {
                     PropertyField(m_NearSampleCount, EditorGUIUtility.TrTextContent("Sample Count"));
                     PropertyField(m_NearMaxBlur, EditorGUIUtility.TrTextContent("Max Radius"));
@@ -108,14 +99,14 @@ namespace UnityEditor.Rendering.HighDefinition
                 PropertyField(m_FarFocusStart, EditorGUIUtility.TrTextContent("Start"));
                 PropertyField(m_FarFocusEnd, EditorGUIUtility.TrTextContent("End"));
 
-                if (advanced && !useQualitySettings)
+                if (advanced && !UsesQualitySettings())
                 {
                     PropertyField(m_FarSampleCount, EditorGUIUtility.TrTextContent("Sample Count"));
                     PropertyField(m_FarMaxBlur, EditorGUIUtility.TrTextContent("Max Radius"));
                 }
             }
 
-            if (advanced && !useQualitySettings)
+            if (advanced && !UsesQualitySettings())
             {
                 EditorGUILayout.LabelField("Advanced Tweaks", EditorStyles.miniLabel);
                 PropertyField(m_Resolution);
