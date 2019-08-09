@@ -354,11 +354,14 @@ namespace UnityEditor.Rendering.Universal
 
         void DrawRendererListLayout(ReorderableList list, SerializedProperty prop)
         {
-            list.drawElementCallback = (Rect rect, int index, bool isActive, bool isFocused) => {
+            list.drawElementCallback = (Rect rect, int index, bool isActive, bool isFocused) =>
+            {
+                rect.y += 2;
                 Rect indexRect = new Rect(rect.x, rect.y, 14, EditorGUIUtility.singleLineHeight);
                 EditorGUI.LabelField(indexRect, index.ToString());
                 Rect objRect = new Rect(rect.x + indexRect.width, rect.y, rect.width - 134, EditorGUIUtility.singleLineHeight);
                 EditorGUI.ObjectField(objRect, prop.GetArrayElementAtIndex(index), GUIContent.none);
+                
                 Rect defaultButton = new Rect(rect.width - 90, rect.y, 86, EditorGUIUtility.singleLineHeight);
                 var defaultRenderer = m_DefaultRendererProp.intValue;
                 GUI.enabled = index != defaultRenderer;
@@ -375,7 +378,7 @@ namespace UnityEditor.Rendering.Universal
                 }
             };
             
-            list.drawHeaderCallback = (Rect rect) => { EditorGUI.LabelField(rect, "Renderers"); };
+            list.drawHeaderCallback = (Rect rect) => { EditorGUI.LabelField(rect, "Renderers"); list.index = list.count - 1; };
 
             list.onCanRemoveCallback = li => { return li.count > 1; };
 
@@ -383,9 +386,22 @@ namespace UnityEditor.Rendering.Universal
 
             list.onRemoveCallback = li =>
             {
-                li.serializedProperty.DeleteArrayElementAtIndex(li.serializedProperty.arraySize - 1);
-                li.serializedProperty.arraySize--;
-                li.index = li.count - 1;
+                if (li.serializedProperty.arraySize - 1 != m_DefaultRendererProp.intValue)
+                {
+                    li.serializedProperty.DeleteArrayElementAtIndex(li.serializedProperty.arraySize - 1);
+                    li.serializedProperty.arraySize--;
+                    li.index = li.count - 1;
+                }
+                else if (li.serializedProperty.arraySize == 1)
+                {
+                    EditorUtility.DisplayDialog("Cannot remove last Renderer", "Removal of the Last Renderer is not allowed.",
+                        "Close");
+                }
+                else
+                {
+                    EditorUtility.DisplayDialog("Cannot remove Default Renderer", "Removal of the Default Renderer is not allowed. To remove, set another Renderer to be the new Default and then remove.",
+                        "Close");
+                }
             };
         }
     }
