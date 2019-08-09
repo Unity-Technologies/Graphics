@@ -147,7 +147,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
             int permutationCount = 1;
             foreach(ShaderKeyword keyword in m_Collector.keywords)
             {
-                permutationCount *= keyword.keywordType == ShaderKeywordType.Enum ? keyword.entries.Count : 2;
+                permutationCount *= keyword.keywordType == KeywordType.Enum ? keyword.entries.Count : 2;
             }
 
             Assert.AreEqual(permutationCount, m_Collector.permutations.Count, "Calculated permutation count was incorrect.");
@@ -234,12 +234,12 @@ namespace UnityEditor.ShaderGraph.UnitTests
                 
                 switch(keyword.keywordType)
                 {
-                    case ShaderKeywordType.Boolean:
+                    case KeywordType.Boolean:
                         Assert.AreEqual(2, inputSlots.Count, "Node had incorrect Port count.");
                         Assert.AreEqual("On", inputSlots[0].RawDisplayName(), "Keyword values and Node Ports did not match.");
                         Assert.AreEqual("Off", inputSlots[1].RawDisplayName(), "Keyword values and Node Ports did not match.");
                         break;
-                    case ShaderKeywordType.Enum:
+                    case KeywordType.Enum:
                         Assert.AreEqual(keyword.entries.Count, inputSlots.Count, "Node had incorrect Port count.");
 
                         for(int i = 0; i < inputSlots.Count; i++)
