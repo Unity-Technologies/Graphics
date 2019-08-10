@@ -223,6 +223,9 @@ void LIGHTLISTGEN(uint3 dispatchThreadId : SV_DispatchThreadID, uint threadID : 
 #elif defined(MSAA_ENABLED) && !defined(FINE_PRUNING_ENABLED)
             // (MSAA - Fine Pruning) uses a pre-computed depth range.
             float2 fMaxMinDepth = LOAD_TEXTURE2D_X(_CameraDepthValues, uCrd).xy;
+#if UNITY_REVERSED_Z
+            fMaxMinDepth = float2(1 - fMaxMinDepth.y, 1 - fMaxMinDepth.x);
+#endif
 #else
             // Non-MSAA.
             const float fDepth = FetchDepth(uCrd);

@@ -2551,7 +2551,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 cmd.SetComputeTextureParam(parameters.buildPerTileLightListShader, parameters.buildPerTileLightListKernel, HDShaderIDs.g_depth_tex, resources.depthBuffer);
 
-                if (parameters.msaaSamples > 1)
+                if (resources.depthValuesTexture != null)
                 {
                     cmd.SetComputeTextureParam(parameters.buildPerTileLightListShader, parameters.buildPerTileLightListKernel, HDShaderIDs._CameraDepthValuesTexture, resources.depthValuesTexture);
                 }
@@ -2837,7 +2837,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     m_TileAndClusterData,
                     m_SharedRTManager.GetDepthStencilBuffer(hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA)),
                     m_SharedRTManager.GetStencilBufferCopy(),
-                    m_SharedRTManager.GetDepthValuesTexture()
+                    hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA) ? m_SharedRTManager.GetDepthValuesTexture() : null
                 );
 
                 bool tileFlagsWritten = false;

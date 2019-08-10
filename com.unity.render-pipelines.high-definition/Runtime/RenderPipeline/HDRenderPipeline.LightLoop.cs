@@ -100,7 +100,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     data.buildGPULightListResources.depthBuffer = context.resources.GetTexture(data.depthBuffer);
                     data.buildGPULightListResources.stencilTexture = context.resources.GetTexture(data.stencilTexture);
-                    data.buildGPULightListResources.depthValuesTexture = context.resources.GetTexture(data.depthValuesTexture);
+                    data.buildGPULightListResources.depthValuesTexture = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA) ? m_SharedRTManager.GetDepthValuesTexture() : null;
 
                     if (passData.buildGPULightListParameters.computeMaterialVariants && passData.buildGPULightListParameters.enableFeatureVariants)
                     {
