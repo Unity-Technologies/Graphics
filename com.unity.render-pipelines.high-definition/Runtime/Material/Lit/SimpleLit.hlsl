@@ -14,6 +14,11 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/NormalBuffer.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/VolumeRendering.hlsl"
 
+// custom-begin:
+#include "Packages/../Assets/Rendering/CustomBakedDiffuseLighting/CustomBakedDiffuseLighting.hlsl"
+// custom-end
+
+
 //-----------------------------------------------------------------------------
 // Helper functions/variable specific to this material
 //-----------------------------------------------------------------------------
@@ -34,7 +39,7 @@ float3 GetNormalForShadowBias(BSDFData bsdfData)
     return bsdfData.geomNormalWS;
 #else
     return bsdfData.normalWS;
-#endif    
+#endif
 }
 
 float GetAmbientOcclusionForMicroShadowing(BSDFData bsdfData)
@@ -452,6 +457,12 @@ void PostEvaluateBSDF(  LightLoopContext lightLoopContext,
 
     // Subsurface scattering mode
     float3 modifiedDiffuseColor = GetModifiedDiffuseColorForSSS(bsdfData);
+
+    // custom-begin:
+#if CUSTOM_BAKED_DIFFUSE_LIGHTING_IS_ENABLED
+    ComputeCustomBakedDiffuseLighting(builtinData, V, posInput, bsdfData);
+#endif
+    // custom-end
 
     // Note: Unlike Lit material, the SimpleLit material don't have ModifyBakedDiffuseLighting() function
     // So we need to multiply by the diffuse albedo here.
