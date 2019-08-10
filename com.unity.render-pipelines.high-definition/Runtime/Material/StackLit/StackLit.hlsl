@@ -11,6 +11,13 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/NormalBuffer.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/VolumeRendering.hlsl"
 
+// custom-begin:
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ProjectCustomizations/ProjectCustomizations.hlsl"
+#if PROJECT_CUSTOMIZATIONS_IS_ENABLED
+#include "Packages/../Assets/Rendering/CustomBakedDiffuseLighting/CustomBakedDiffuseLighting.hlsl"
+#endif
+// custom-end
+
 //-----------------------------------------------------------------------------
 // Configuration
 //-----------------------------------------------------------------------------
@@ -2672,6 +2679,12 @@ void ModifyBakedDiffuseLighting(float3 V, PositionInputs posInput, SurfaceData s
     // we get the whole structures redundantly earlier here - compiler should optimize out everything.
     BSDFData bsdfData = ConvertSurfaceDataToBSDFData(posInput.positionSS, surfaceData);
     PreLightData preLightData = GetPreLightData(V, posInput, bsdfData);
+
+    // custom-begin:
+#if CUSTOM_BAKED_DIFFUSE_LIGHTING_IS_ENABLED
+    ComputeCustomBakedDiffuseLighting(builtinData, V, posInput, bsdfData);
+#endif
+    // custom-end
 
     // Add GI transmission contribution to bakeDiffuseLighting, we then drop backBakeDiffuseLighting (i.e it is not used anymore, this saves VGPR)
     if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_STACK_LIT_TRANSMISSION))
