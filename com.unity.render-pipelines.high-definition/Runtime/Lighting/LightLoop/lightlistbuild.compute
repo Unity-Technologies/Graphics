@@ -239,7 +239,7 @@ void LIGHTLISTGEN(uint3 dispatchThreadId : SV_DispatchThreadID, uint threadID : 
             // (MSAA - Fine Pruning) uses a pre-computed depth range.
             // If it's a sky-only texel, it will only contain the far plane.
             // Otherwise, a texel will never contain the far plane.
-            if(fMaxMinDepth.x != UNITY_RAW_FAR_CLIP_VALUE)
+            if(fMaxMinDepth.x<VIEWPORT_SCALE_Z)
             {
                 dpt_mi = min(fMaxMinDepth.y, dpt_mi);
                 dpt_ma = max(fMaxMinDepth.x, dpt_ma);
