@@ -13,6 +13,9 @@
 // Add support for LTC Area Lights
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/AxF/AxFLTCAreaLight/AxFLTCAreaLight.hlsl"
 
+// custom-begin:
+#include "Packages/../Assets/Rendering/CustomBakedDiffuseLighting/CustomBakedDiffuseLighting.hlsl"
+// custom-end
 
 //-----------------------------------------------------------------------------
 
@@ -762,6 +765,12 @@ void ModifyBakedDiffuseLighting(float3 V, PositionInputs posInput, SurfaceData s
     // To get the data we need to do the whole process - compiler should optimize everything
     BSDFData bsdfData = ConvertSurfaceDataToBSDFData(posInput.positionSS, surfaceData);
     PreLightData preLightData = GetPreLightData(V, posInput, bsdfData);
+
+    // custom-begin:
+#if CUSTOM_BAKED_DIFFUSE_LIGHTING_IS_ENABLED
+    ComputeCustomBakedDiffuseLighting(builtinData, V, posInput, bsdfData);
+#endif
+    // custom-end
 
     // Note: When baking reflection probes, we approximate the diffuse with the fresnel0
 #ifdef _AXF_BRDF_TYPE_SVBRDF

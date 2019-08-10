@@ -14,6 +14,10 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/NormalBuffer.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/VolumeRendering.hlsl"
 
+// custom-begin:
+#include "Packages/../Assets/Rendering/CustomBakedDiffuseLighting/CustomBakedDiffuseLighting.hlsl"
+// custom-end
+
 #define USE_DIFFUSE_LAMBERT_BRDF
 
 void ClampRoughness(inout BSDFData bsdfData, float minRoughness)
@@ -708,6 +712,12 @@ void PostEvaluateBSDF(  LightLoopContext lightLoopContext,
 
     // Subsurface scattering mode
     float3 modifiedDiffuseColor = GetModifiedDiffuseColorForSSS(bsdfData);
+
+    // custom-begin:
+#if CUSTOM_BAKED_DIFFUSE_LIGHTING_IS_ENABLED
+    ComputeCustomBakedDiffuseLighting(builtinData, V, posInput, bsdfData);
+#endif
+    // custom-end
 
     // Note: Unlike Lit material, the SimpleLit material don't have ModifyBakedDiffuseLighting() function
     // So we need to multiply by the diffuse albedo here.
