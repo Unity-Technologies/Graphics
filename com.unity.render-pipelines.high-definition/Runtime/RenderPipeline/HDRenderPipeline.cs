@@ -72,6 +72,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static event Action<HDCamera, CommandBuffer, ComputeShader, int> OnCameraPreRenderVolumetrics;
         public static event Action<ScriptableRenderContext, HDCamera, CommandBuffer, RenderTargetIdentifier> OnCameraPostRenderDeferredLighting;
         public static event Action<ScriptableRenderContext, HDCamera, CommandBuffer, RenderTargetIdentifier, RenderTargetIdentifier> OnCameraPostRenderForward;
+        public static event Action<ScriptableRenderContext, HDCamera, CommandBuffer, RenderTargetIdentifier, RenderTargetIdentifier> OnPostRenderGizmos;
         public static event Action<ScriptableRenderContext, HDCamera, CommandBuffer, RenderTargetIdentifier, RenderTargetIdentifier> OnCameraPreRenderPostProcess;
 
         private void InitializeExternalCallbacks()
@@ -86,6 +87,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             OnCameraPreRenderVolumetrics = null;
             OnCameraPostRenderDeferredLighting = null;
             OnCameraPostRenderForward = null;
+            OnPostRenderGizmos = null;
             OnCameraPreRenderPostProcess = null;
             HDRPCallbackAttribute.ConfigureAllLoadedCallbacks();
         }
@@ -2127,6 +2129,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 {
                     Gizmos.exposure = m_PostProcessSystem.GetExposureTexture(hdCamera).rt;
                     RenderGizmos(cmd, camera, renderContext, GizmoSubset.PreImageEffects);
+
+                    if (OnPostRenderGizmos != null)
+                    {
+                        OnPostRenderGizmos(renderContext, hdCamera, cmd, m_CameraColorBuffer, m_SharedRTManager.GetDepthStencilBuffer());
+                    }
                 }
 #endif
             }
