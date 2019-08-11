@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed a bug where if Assembly.GetTypes throws an exception due to mis-versioned dlls, then no preprocessors are used in the shader stripper
 - Fixed issue with Matcap view and AxF shader
 - Fixed compilation issue with stacklit and direct specular Occlusion
+- Fixed typo in AXF decal property preventing to compile
 
 ### Changed
 - Added Alembic velocity support to various Shaders.
