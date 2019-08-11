@@ -12,8 +12,6 @@ namespace UnityEditor.Rendering.HighDefinition
 {
     partial class HDWizard
     {
-        const string k_DXRSupport_Token = "REALTIME_RAYTRACING_SUPPORT";
-
         #region REFLECTION
 
         //reflect internal legacy enum
@@ -285,7 +283,6 @@ namespace UnityEditor.Rendering.HighDefinition
         bool IsDXRAllCorrect()
             => IsDXRAutoGraphicsAPICorrect()
             && IsDXRDirect3D12Correct()
-            && IsDXRCSharpKeyWordCorrect()
             && IsDXRActivationCorrect()
             && IsDXRActivationCorrect()
             && IsDXRAssetCorrect();
@@ -306,11 +303,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 FixDXRDirect3D12(fromAsync: true);
                 return;
             }
-            if (!IsDXRCSharpKeyWordCorrect())
-            {
-                FixDXRCSharpKeyWord();
-                return;
-            }
+
             if (!IsScreenSpaceShadowCorrect())
             {
                 FixScreenSpaceShadow();
@@ -381,16 +374,6 @@ namespace UnityEditor.Rendering.HighDefinition
                     }
                 }
             }
-        }
-
-        bool IsDXRCSharpKeyWordCorrect()
-            => PlayerSettings.GetScriptingDefineSymbolsForGroup(EditorUserBuildSettings.selectedBuildTargetGroup).Contains(k_DXRSupport_Token);
-        void FixDXRCSharpKeyWord()
-        {
-            var targetGroup = EditorUserBuildSettings.selectedBuildTargetGroup;
-            PlayerSettings.SetScriptingDefineSymbolsForGroup(
-                targetGroup,
-                $"{PlayerSettings.GetScriptingDefineSymbolsForGroup(targetGroup)};{k_DXRSupport_Token}");
         }
 
         bool IsDXRAssetCorrect()

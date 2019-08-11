@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine.Assertions;
+using UnityEngine.Experimental.Rendering.RenderGraphModule;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -92,6 +93,46 @@ namespace UnityEngine.Rendering.HighDefinition
                 return;
 
             HDUtils.BlitCameraTexture(cmd, source, targets[index]);
+        }
+
+        class PushCameraTexturePassData
+        {
+            public int                  requestIndex;
+            public RenderGraphResource  source;
+            // Not super clean to not use RenderGraphResources here. In practice it's ok because those texture are never passed back to any other render pass.
+            public List<RTHandle>       targets;
+        }
+
+        internal void PushCameraTexture(
+            RenderGraph         renderGraph,
+            AOVBuffers          aovBufferId,
+            HDCamera            camera,
+            RenderGraphResource source,
+            List<RTHandle>      targets
+        )
+        {
+            if (!isValid)
+                return;
+
+            Assert.IsNotNull(m_RequestedAOVBuffers);
+            Assert.IsNotNull(targets);
+
+            var index = Array.IndexOf(m_RequestedAOVBuffers, aovBufferId);
+            if (index == -1)
+                return;
+
+            using (var builder = renderGraph.AddRenderPass<PushCameraTexturePassData>("Push AOV Camera Texture", out var passData))
+            {
+                passData.requestIndex = index;
+                passData.source = builder.ReadTexture(source);
+                passData.targets = targets;
+
+                builder.SetRenderFunc(
+                (PushCameraTexturePassData data, RenderGraphContext ctx) =>
+                {
+                    HDUtils.BlitCameraTexture(ctx.cmd, ctx.resources.GetTexture(data.source), data.targets[data.requestIndex]);
+                });
+            }
         }
 
         /// <summary>Execute the frame pass callback. It assumes that the textures are properly initialized and filled.</summary>

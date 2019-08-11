@@ -367,7 +367,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 parameters.combineLighting.SetTexture(HDShaderIDs._IrradianceSource, resources.cameraFilteringBuffer);
 
                 // Additively blend diffuse and specular lighting into the color buffer.
-                HDUtils.DrawFullScreen(cmd, parameters.combineLighting, resources.colorBuffer);
+                HDUtils.DrawFullScreen(cmd, parameters.combineLighting, resources.colorBuffer, resources.depthStencilBuffer);
             }
             else
             {

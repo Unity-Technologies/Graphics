@@ -98,13 +98,13 @@ namespace UnityEngine.Rendering.HighDefinition
             displayName = "Physically Based Sky (Experimental)";
         }
 
-        public override int GetHashCode()
+        public int GetPrecomputationHashCode()
         {
             int hash = base.GetHashCode();
 
             unchecked
             {
-                // No 'planetCenterPosition' or any textures..
+                // No 'planetCenterPosition' or any textures, as they don't affect the precomputation.
                 hash = hash * 23 + planetaryRadius.GetHashCode();
                 hash = hash * 23 + airAttenuationDistance.GetHashCode();
                 hash = hash * 23 + airAlbedo.GetHashCode();
@@ -115,6 +115,23 @@ namespace UnityEngine.Rendering.HighDefinition
                 hash = hash * 23 + aerosolAnisotropy.GetHashCode();
                 hash = hash * 23 + numberOfBounces.GetHashCode();
                 hash = hash * 23 + groundColor.GetHashCode();
+            }
+
+            return hash;
+        }
+
+        public override int GetHashCode()
+        {
+            int hash = GetPrecomputationHashCode();
+
+            unchecked
+            {
+                hash = hash * 23 + planetCenterPosition.GetHashCode();
+                hash = hash * 23 + groundAlbedoTexture.GetHashCode();
+                hash = hash * 23 + groundEmissionTexture.GetHashCode();
+                hash = hash * 23 + planetRotation.GetHashCode();
+                hash = hash * 23 + spaceEmissionTexture.GetHashCode();
+                hash = hash * 23 + spaceRotation.GetHashCode();
             }
 
             return hash;

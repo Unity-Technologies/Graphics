@@ -338,7 +338,6 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             container.Add(new ConfigInfoLine(Style.dxrAutoGraphicsAPILabel, Style.dxrAutoGraphicsAPIError, Style.resolve, IsDXRAutoGraphicsAPICorrect, FixDXRAutoGraphicsAPI));
             container.Add(new ConfigInfoLine(Style.dxrDirect3D12Label, Style.dxrDirect3D12Error, Style.resolve, IsDXRDirect3D12Correct, () => FixDXRDirect3D12(fromAsync: false)));
-            container.Add(new ConfigInfoLine(Style.dxrSymbolLabel, Style.dxrSymbolError, Style.resolve, IsDXRCSharpKeyWordCorrect, FixDXRCSharpKeyWord));
             container.Add(new ConfigInfoLine(Style.screenSpaceShadowLabel, Style.screenSpaceShadowError, Style.resolve, IsScreenSpaceShadowCorrect, FixScreenSpaceShadow));
             container.Add(new ConfigInfoLine(Style.dxrActivatedLabel, Style.dxrActivatedError, Style.resolve, IsDXRActivationCorrect, FixDXRActivation));
             container.Add(new ConfigInfoLine(Style.dxrResourcesLabel, Style.dxrResourcesError, Style.resolve, IsDXRAssetCorrect, FixDXRAsset));

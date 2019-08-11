@@ -177,21 +177,32 @@ namespace UnityEditor.Rendering.HighDefinition
 
         static void DrawGeneralAdvancedContent(SerializedHDLight serialized, Editor owner)
         {
+            var lightData = serialized.serializedLightData;
+
             using (new EditorGUI.DisabledScope(!HDUtils.hdrpSettings.supportLightLayers))
             {
                 using (var change = new EditorGUI.ChangeCheckScope())
                 {
-                    HDEditorUtils.LightLayerMaskPropertyDrawer(s_Styles.lightLayer, serialized.serializedLightData.lightlayersMask);
+                    HDEditorUtils.LightLayerMaskPropertyDrawer(s_Styles.lightLayer, lightData.lightlayersMask);
 
                     // If we're not in decoupled mode for light layers, we sync light with shadow layers:
-                    if (serialized.serializedLightData.linkLightLayers.boolValue && change.changed)
+                    if (lightData.linkLightLayers.boolValue && change.changed)
                         SyncLightAndShadowLayers(serialized, owner);
                 }
             }
 
             if (serialized.editorLightShape == LightShape.Directional)
             {
-                serialized.serializedLightData.interactsWithSky.boolValue = EditorGUILayout.Toggle(s_Styles.interactsWithSky, serialized.serializedLightData.interactsWithSky.boolValue);
+                lightData.interactsWithSky.boolValue = EditorGUILayout.Toggle(s_Styles.interactsWithSky, lightData.interactsWithSky.boolValue);
+
+                EditorGUI.BeginChangeCheck();
+                EditorGUILayout.PropertyField(lightData.angularDiameter, s_Styles.angularDiameter);
+                EditorGUILayout.PropertyField(lightData.distance,        s_Styles.distance);
+                if (EditorGUI.EndChangeCheck())
+                {
+                    lightData.angularDiameter.floatValue = Mathf.Max(0, lightData.angularDiameter.floatValue);
+                    lightData.distance.floatValue        = Mathf.Max(0, lightData.distance.floatValue);
+                }
             }
         }
 

@@ -23,9 +23,10 @@ Shader "Hidden/HDRP/XROcclusionMesh"
             return output;
         }
 
-        float4 Frag() : SV_Target
+        void Frag(out float4 outColor : SV_Target0, out float outputDepth : SV_Depth)
         {
-            return (0.0).xxxx;
+            outColor = (0.0).xxxx;
+            outputDepth = UNITY_NEAR_CLIP_VALUE;
         }
     ENDHLSL
 

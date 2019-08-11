@@ -213,6 +213,11 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        static public bool AggreateRayTracingSupport(RenderPipelineSettings rpSetting)
+        {
+            return rpSetting.supportRayTracing && UnityEngine.SystemInfo.supportsRayTracing;
+        }
+
 #if UNITY_EDITOR
         public override Material defaultMaterial
         {
@@ -319,22 +324,23 @@ namespace UnityEngine.Rendering.HighDefinition
         // This function allows us to raise or remove some preprocessing defines based on the render pipeline settings
         public void EvaluateSettings()
         {
-#if REALTIME_RAYTRACING_SUPPORT
             // Grab the current set of defines and split them
             string currentDefineList = UnityEditor.PlayerSettings.GetScriptingDefineSymbolsForGroup(UnityEditor.BuildTargetGroup.Standalone);
             defineArray.Clear();
             defineArray.AddRange(currentDefineList.Split(';'));
 
+            // Is ray tracing supported for this project and this platform?
+            bool raytracingSupport = AggreateRayTracingSupport(currentPlatformRenderPipelineSettings);
+            
             // Update all the individual defines
             bool needUpdate = false;
-            needUpdate |= UpdateDefineList(currentPlatformRenderPipelineSettings.supportRayTracing, "ENABLE_RAYTRACING");
+            needUpdate |= UpdateDefineList(raytracingSupport, "ENABLE_RAYTRACING");
 
             // Only set if it changed
             if (needUpdate)
             {
                 UnityEditor.PlayerSettings.SetScriptingDefineSymbolsForGroup(UnityEditor.BuildTargetGroup.Standalone, string.Join(";", defineArray.ToArray()));
             }
-#endif
         }
 
         public bool AddDiffusionProfile(DiffusionProfileSettings profile)

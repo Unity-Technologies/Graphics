@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.RenderGraphModule;
 
@@ -5,7 +6,11 @@ namespace UnityEngine.Rendering.HighDefinition
 {
     public partial class HDRenderPipeline
     {
-        void ExecuteWithRenderGraph(RenderRequest renderRequest, ScriptableRenderContext renderContext, CommandBuffer cmd)
+        void ExecuteWithRenderGraph(    RenderRequest           renderRequest,
+                                        AOVRequestData          aovRequest,
+                                        List<RTHandle>          aovBuffers,
+                                        ScriptableRenderContext renderContext,
+                                        CommandBuffer           cmd)
         {
             var hdCamera = renderRequest.hdCamera;
             var camera = hdCamera.camera;
@@ -33,10 +38,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (m_CurrentDebugDisplaySettings.IsDebugMaterialDisplayEnabled() || m_CurrentDebugDisplaySettings.IsMaterialValidationEnabled())
             {
-                StartLegacyStereo(m_RenderGraph, hdCamera);
+                StartSinglePass(m_RenderGraph, hdCamera);
                 RenderDebugViewMaterial(m_RenderGraph, cullingResults, hdCamera, colorBuffer);
                 colorBuffer = ResolveMSAAColor(m_RenderGraph, hdCamera, colorBuffer);
-                StopLegacyStereo(m_RenderGraph, hdCamera);
+                StopSinglePass(m_RenderGraph, hdCamera);
             }
             else
             {
@@ -72,7 +77,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Evaluate the clear coat mask texture based on the lit shader mode
                 var clearCoatMask = hdCamera.frameSettings.litShaderMode == LitShaderMode.Deferred ? prepassOutput.gbuffer.mrt[2] : m_RenderGraph.ImportTexture(TextureXR.GetBlackTexture());
                 lightingBuffers.ssrLightingBuffer = RenderSSR(m_RenderGraph, hdCamera, prepassOutput.resolvedNormalBuffer, prepassOutput.resolvedMotionVectorsBuffer, prepassOutput.depthPyramidTexture, prepassOutput.stencilBufferCopy, clearCoatMask);
-
                 lightingBuffers.contactShadowsBuffer = RenderContactShadows(m_RenderGraph, hdCamera, msaa ? prepassOutput.depthValuesMSAA : prepassOutput.depthPyramidTexture, GetDepthBufferMipChainInfo().mipLevelOffsets[1].y);
 
                 var volumetricDensityBuffer = VolumeVoxelizationPass(m_RenderGraph, hdCamera, m_VisibleVolumeBoundsBuffer, m_VisibleVolumeDataBuffer, m_TileAndClusterData.bigTileLightList);
@@ -81,11 +85,13 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 var volumetricLighting = VolumetricLightingPass(m_RenderGraph, hdCamera, volumetricDensityBuffer, m_TileAndClusterData.bigTileLightList, shadowResult, m_FrameCount);
 
-                StartLegacyStereo(m_RenderGraph, hdCamera);
+                StartSinglePass(m_RenderGraph, hdCamera);
 
                 var deferredLightingOutput = RenderDeferredLighting(m_RenderGraph, hdCamera, colorBuffer, prepassOutput.depthBuffer, prepassOutput.depthPyramidTexture, lightingBuffers, prepassOutput.gbuffer, shadowResult);
 
                 RenderForwardOpaque(m_RenderGraph, hdCamera, colorBuffer, lightingBuffers, prepassOutput.depthBuffer, shadowResult, prepassOutput.dbuffer, cullingResults);
+
+                aovRequest.PushCameraTexture(m_RenderGraph, AOVBuffers.Normals, hdCamera, prepassOutput.resolvedNormalBuffer, aovBuffers);
 
                 lightingBuffers.diffuseLightingBuffer = ResolveMSAAColor(m_RenderGraph, hdCamera, lightingBuffers.diffuseLightingBuffer);
                 lightingBuffers.sssBuffer = ResolveMSAAColor(m_RenderGraph, hdCamera, lightingBuffers.sssBuffer);
@@ -97,6 +103,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 RenderSky(m_RenderGraph, hdCamera, colorBuffer, volumetricLighting, prepassOutput.depthBuffer, prepassOutput.depthPyramidTexture);
 
                 colorBuffer = RenderTransparency(m_RenderGraph, hdCamera, colorBuffer, prepassOutput.depthBuffer, prepassOutput.motionVectorsBuffer, currentColorPyramid, prepassOutput.depthPyramidTexture, shadowResult, cullingResults);
+
+                // Transparent objects may write to the depth and motion vectors buffers.
+                aovRequest.PushCameraTexture(m_RenderGraph, AOVBuffers.DepthStencil, hdCamera, prepassOutput.resolvedDepthBuffer, aovBuffers);
+                if (m_Asset.currentPlatformRenderPipelineSettings.supportMotionVectors)
+                    aovRequest.PushCameraTexture(m_RenderGraph, AOVBuffers.MotionVectors, hdCamera, prepassOutput.resolvedMotionVectorsBuffer, aovBuffers);
 
                 // This final Gaussian pyramid can be reused by SSR, so disable it only if there is no distortion
                 if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.Distortion) || hdCamera.frameSettings.IsEnabled(FrameSettingsField.SSR))
@@ -115,7 +126,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // At this point, the color buffer has been filled by either debug views are regular rendering so we can push it here.
             var colorPickerTexture = PushColorPickerDebugTexture(m_RenderGraph, colorBuffer);
 
-            //aovRequest.PushCameraTexture(cmd, AOVBuffers.Color, hdCamera, m_CameraColorBuffer, aovBuffers);
+            aovRequest.PushCameraTexture(m_RenderGraph, AOVBuffers.Color, hdCamera, colorBuffer, aovBuffers);
 
             //RenderPostProcess(cullingResults, hdCamera, target.id, renderContext, cmd);
 
@@ -123,7 +134,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // Because of this, we need another blit here to the final render target at the right viewport.
             //if (!HDUtils.PostProcessIsFinalPass() || aovRequest.isValid)
             {
-                //hdCamera.ExecuteCaptureActions(m_IntermediateAfterPostProcessBuffer, cmd);
+                hdCamera.ExecuteCaptureActions(m_RenderGraph, colorBuffer);
 
                 colorBuffer = RenderDebug(  m_RenderGraph,
                                             hdCamera,
@@ -137,31 +148,25 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 BlitFinalCameraTexture(m_RenderGraph, hdCamera, colorBuffer, target.id, prepassOutput.resolvedMotionVectorsBuffer, prepassOutput.resolvedNormalBuffer);
 
-                //aovRequest.PushCameraTexture(cmd, AOVBuffers.Output, hdCamera, m_IntermediateAfterPostProcessBuffer, aovBuffers);
+                aovRequest.PushCameraTexture(m_RenderGraph, AOVBuffers.Output, hdCamera, colorBuffer, aovBuffers);
             }
 
 
 
 
             // XR mirror view and blit do device
-            StopLegacyStereo(m_RenderGraph, hdCamera);
             EndCameraXR(m_RenderGraph, hdCamera);
 
             //// Send all required graphics buffer to client systems.
             //SendGraphicsBuffers(cmd, hdCamera);
 
-            //aovRequest.PushCameraTexture(cmd, AOVBuffers.DepthStencil, hdCamera, m_SharedRTManager.GetDepthStencilBuffer(), aovBuffers);
-            //aovRequest.PushCameraTexture(cmd, AOVBuffers.Normals, hdCamera, m_SharedRTManager.GetNormalBuffer(), aovBuffers);
-            //if (m_Asset.currentPlatformRenderPipelineSettings.supportMotionVectors)
-            //    aovRequest.PushCameraTexture(cmd, AOVBuffers.MotionVectors, hdCamera, m_SharedRTManager.GetMotionVectorsBuffer(), aovBuffers);
-
             SetFinalTarget(m_RenderGraph, hdCamera, prepassOutput.resolvedDepthBuffer, target.id);
 
             RenderGizmos(m_RenderGraph, hdCamera, colorBuffer, GizmoSubset.PostImageEffects);
 
-            //aovRequest.Execute(cmd, aovBuffers, RenderOutputProperties.From(hdCamera));
-
             ExecuteRenderGraph(m_RenderGraph, hdCamera, m_MSAASamples, renderContext, cmd);
+
+            aovRequest.Execute(cmd, aovBuffers, RenderOutputProperties.From(hdCamera));
         }
 
         static void ExecuteRenderGraph(RenderGraph renderGraph, HDCamera hdCamera, MSAASamples msaaSample, ScriptableRenderContext renderContext, CommandBuffer cmd)

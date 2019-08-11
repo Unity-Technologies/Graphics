@@ -315,10 +315,10 @@ namespace UnityEditor.Rendering.HighDefinition
             if (!material.shader.IsShaderGraph())
             {
                 //In the case of additional velocity data we will enable the motion vector pass.
-                bool additionalVelocityEnabled = false;
-                if (material.HasProperty(kAdditionalVelocityChange))
+                bool addPrecomputedVelocity = false;
+                if (material.HasProperty(kAddPrecomputedVelocity))
                 {
-                    additionalVelocityEnabled = material.GetInt(kAdditionalVelocityChange) != 0;
+                    addPrecomputedVelocity = material.GetInt(kAddPrecomputedVelocity) != 0;
                 }
 
                 // We don't have any vertex animation for lit/unlit vector, so we
@@ -326,7 +326,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 // doesn't disable motion vector, it just mean that the material
                 // don't do any vertex deformation but we can still have
                 // skinning / morph target
-                material.SetShaderPassEnabled(HDShaderPassNames.s_MotionVectorsStr, additionalVelocityEnabled);
+                material.SetShaderPassEnabled(HDShaderPassNames.s_MotionVectorsStr, addPrecomputedVelocity);
 
              }
 

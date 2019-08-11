@@ -294,6 +294,7 @@ float EvalShadow_CascadedDepth_Dither(HDShadowContext shadowContext, Texture2D t
     {
         HDShadowData sd = shadowContext.shadowDatas[index];
         LoadDirectionalShadowDatas(sd, shadowContext, index + shadowSplitIndex);
+        positionWS = positionWS + sd.cacheTranslationDelta.xyz;
 
         /* normal based bias */
         float worldTexelSize = sd.worldTexelSize;

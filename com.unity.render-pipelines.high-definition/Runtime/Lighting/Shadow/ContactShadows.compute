@@ -100,8 +100,14 @@ bool ScreenSpaceShadowRayCast(float3 positionWS, float3 rayDirWS, float rayLengt
     float t = step * dither + step;
 
     bool tracingHalfRes = true;
-    for (int i = 0; i < _SampleCount; i++)
+    int i = 0;
+
+    // While instead of for loop to fix HLSLcc compiler error by converting for loop to while loop (case 1158280)
+    while (true)
     {
+        if (!(i < _SampleCount))
+            break;
+
         float3 sampleAlongRay = rayStart + t * rayDir;
 
 
@@ -127,7 +133,6 @@ bool ScreenSpaceShadowRayCast(float3 positionWS, float3 rayDirWS, float rayLengt
                 // Move permanentely to full res. There is a good chance we've hit something, so next full res sample will find the intersection.
                 // If not, then allowing each thread to go back and forth between half and full was not beneficial to perf.
                 tracingHalfRes = false;
-                i--;
                 continue;
             }
             else
@@ -138,6 +143,7 @@ bool ScreenSpaceShadowRayCast(float3 positionWS, float3 rayDirWS, float rayLengt
         }
 
         t += step;
+        i++;
     }
 
     // Off screen masking

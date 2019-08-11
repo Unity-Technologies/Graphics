@@ -111,7 +111,7 @@ namespace UnityEngine.Rendering
                 int hash = 17;
                 hash = hash * 23 + overrideState.GetHashCode();
 
-                if (value != null)
+                if (!ReferenceEquals(value, null))
                     hash = hash * 23 + value.GetHashCode();
 
                 return hash;
@@ -120,7 +120,7 @@ namespace UnityEngine.Rendering
 
         public override string ToString() => $"{value} ({overrideState})";
 
-        public static bool operator==(VolumeParameter<T> lhs, T rhs) => lhs != null && lhs.value != null && lhs.value.Equals(rhs);
+        public static bool operator==(VolumeParameter<T> lhs, T rhs) => lhs != null && !ReferenceEquals(lhs.value, null) && lhs.value.Equals(rhs);
 
         public static bool operator!=(VolumeParameter<T> lhs, T rhs) => !(lhs == rhs);
 

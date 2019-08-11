@@ -61,7 +61,6 @@ struct DirectionalLightData
     int tileCookie;
     float3 up;
     int shadowIndex;
-    int screenSpaceShadowIndex;
     float3 color;
     int contactShadowMask;
     float3 shadowTint;
@@ -69,10 +68,12 @@ struct DirectionalLightData
     float volumetricShadowDimmer;
     int nonLightMappedOnly;
     real minRoughness;
+    int screenSpaceShadowIndex;
     real4 shadowMaskSelector;
     float diffuseDimmer;
     float specularDimmer;
-    int interactsWithSky;
+    float angularDiameter;
+    float distanceFromCamera;
 };
 
 // Generated from UnityEngine.Rendering.HighDefinition.LightData
@@ -97,12 +98,12 @@ struct LightData
     int tileCookie;
     int shadowIndex;
     int contactShadowMask;
-    int screenSpaceShadowIndex;
     float3 shadowTint;
     float shadowDimmer;
     float volumetricShadowDimmer;
     int nonLightMappedOnly;
     real minRoughness;
+    int screenSpaceShadowIndex;
     real4 shadowMaskSelector;
     real2 size;
     float diffuseDimmer;

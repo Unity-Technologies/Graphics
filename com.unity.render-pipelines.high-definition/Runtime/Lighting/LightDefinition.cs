@@ -64,10 +64,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public Vector3 up;                      // Rescaled by (2 / shapeHeight)
         public int     shadowIndex;             // -1 if unused (TODO: 16 bit)
 
-        public int     screenSpaceShadowIndex;
-
         public Vector3 color;
-        public int     contactShadowMask;      // 0 if unused (TODO: 16 bit)
+        public int     contactShadowMask;       // 0 if unused (TODO: 16 bit)
 
         public Vector3 shadowTint;              // Use to tint shadow color
         public float   shadowDimmer;
@@ -76,13 +74,15 @@ namespace UnityEngine.Rendering.HighDefinition
         public int     nonLightMappedOnly;      // Used with ShadowMask (TODO: use a bitfield)
         [SurfaceDataAttributes(precision = FieldPrecision.Real)]
         public float   minRoughness;            // Hack
+        public int     screenSpaceShadowIndex;  // -1 if unused (TODO: 16 bit)
 
         [SurfaceDataAttributes(precision = FieldPrecision.Real)]
         public Vector4 shadowMaskSelector;      // Used with ShadowMask feature
 
         public float   diffuseDimmer;
         public float   specularDimmer;
-        public int     interactsWithSky;        // bool...
+        public float   angularDiameter;         // Units: radians
+        public float   distanceFromCamera;      // -1 -> no sky interaction. Units: km
     };
 
     [GenerateHLSL(PackingRules.Exact, false)]
@@ -118,16 +118,15 @@ namespace UnityEngine.Rendering.HighDefinition
         public int     shadowIndex;             // -1 if unused (TODO: 16 bit)
         public int     contactShadowMask;       // negative if unused (TODO: 16 bit)
 
-        // TODO: Instead of doing this, we should pack the ray traced shadow index into the tile cookie for instance
-        public int     screenSpaceShadowIndex;
-
         public Vector3 shadowTint;              // Use to tint shadow color
-
         public float   shadowDimmer;
+
         public float   volumetricShadowDimmer;  // Replaces 'shadowDimmer'
         public int     nonLightMappedOnly;      // Used with ShadowMask feature (TODO: use a bitfield)
         [SurfaceDataAttributes(precision = FieldPrecision.Real)]
         public float   minRoughness;            // This is use to give a small "area" to punctual light, as if we have a light with a radius.
+        // TODO: Instead of doing this, we should pack the ray traced shadow index into the tile cookie for instance
+        public int     screenSpaceShadowIndex;  // -1 if unused (TODO: 16 bit)
 
         [SurfaceDataAttributes(precision = FieldPrecision.Real)]
         public Vector4 shadowMaskSelector;      // Used with ShadowMask feature

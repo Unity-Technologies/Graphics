@@ -361,9 +361,9 @@ namespace UnityEditor.Rendering.HighDefinition
                 // opaque-only defines
             }
 
-            if (masterNode.addVelocityChange.isOn)
+            if (masterNode.addPrecomputedVelocity.isOn)
             {
-                activeFields.Add("AdditionalVelocityChange");
+                activeFields.Add("AddPrecomputedVelocity");
             }
 
             return activeFields;

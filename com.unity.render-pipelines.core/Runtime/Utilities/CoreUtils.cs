@@ -639,8 +639,9 @@ namespace UnityEngine.Rendering
                 enabled = false;
 
                 // Determine whether the "Post Processes" checkbox is checked for the current view.
-                foreach (UnityEditor.SceneView sv in UnityEditor.SceneView.sceneViews)
+                for (int i = 0; i < UnityEditor.SceneView.sceneViews.Count; i++)
                 {
+                    var sv = UnityEditor.SceneView.sceneViews[i] as UnityEditor.SceneView;
                     if (sv.camera == camera && sv.sceneViewState.showImageEffects)
                     {
                         enabled = true;
@@ -666,8 +667,9 @@ namespace UnityEngine.Rendering
                 animateMaterials = false;
 
                 // Determine whether the "Animated Materials" checkbox is checked for the current view.
-                foreach (UnityEditor.SceneView sv in UnityEditor.SceneView.sceneViews)
+                for (int i = 0; i < UnityEditor.SceneView.sceneViews.Count; i++) // Using a foreach on an ArrayList generates garbage ...
                 {
+                    var sv = UnityEditor.SceneView.sceneViews[i] as UnityEditor.SceneView;
                     if (sv.camera == camera && sv.sceneViewState.showMaterialUpdate)
                     {
                         animateMaterials = true;
@@ -719,8 +721,9 @@ namespace UnityEngine.Rendering
             if (camera.cameraType == CameraType.SceneView)
             {
                 // Determine whether the "No Scene Lighting" checkbox is checked for the current view.
-                foreach (UnityEditor.SceneView sv in UnityEditor.SceneView.sceneViews)
+                for (int i = 0; i < UnityEditor.SceneView.sceneViews.Count; i++)
                 {
+                    var sv = UnityEditor.SceneView.sceneViews[i] as UnityEditor.SceneView;
                     if (sv.camera == camera && !sv.sceneLighting)
                     {
                         disabled = true;
@@ -755,8 +758,9 @@ namespace UnityEngine.Rendering
                 fogEnable = false;
 
                 // Determine whether the "Animated Materials" checkbox is checked for the current view.
-                foreach (UnityEditor.SceneView sv in UnityEditor.SceneView.sceneViews)
+                for (int i = 0; i < UnityEditor.SceneView.sceneViews.Count; i++)
                 {
+                    var sv = UnityEditor.SceneView.sceneViews[i] as UnityEditor.SceneView;
                     if (sv.camera == camera && sv.sceneViewState.showFog)
                     {
                         fogEnable = true;

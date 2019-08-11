@@ -90,7 +90,9 @@ Shader "Hidden/HDRP/OpaqueAtmosphericScattering"
         // 0: NOMSAA
         Pass
         {
-            Cull Off    ZTest Always    ZWrite Off    Blend Off // Manual blending
+            Cull Off    ZWrite Off
+            Blend Off   // Manual blending
+            ZTest Less  // Required for XR occlusion mesh optimization
 
             HLSLPROGRAM
                 #pragma vertex Vert
@@ -101,7 +103,9 @@ Shader "Hidden/HDRP/OpaqueAtmosphericScattering"
         // 1: MSAA
         Pass
         {
-            Cull Off    ZTest Always    ZWrite Off    Blend Off // Manual blending
+            Cull Off    ZWrite Off
+            Blend Off   // Manual blending
+            ZTest Less  // Required for XR occlusion mesh optimization
 
             HLSLPROGRAM
                 #pragma vertex Vert

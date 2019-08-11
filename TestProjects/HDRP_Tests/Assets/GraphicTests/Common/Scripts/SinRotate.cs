@@ -11,6 +11,7 @@ public class SinRotate : MonoBehaviour
     [SerializeField] float fps = 60;
 
     Vector3 startAngles = Vector3.zero;
+    int localFrameCount = 0;
 
     // Use this for initialization
     void Start()
@@ -21,14 +22,15 @@ public class SinRotate : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        localFrameCount++;
         if (localSpace)
         {
             transform.eulerAngles = startAngles;
-            transform.Rotate(angles * Mathf.Sin(Mathf.PI * frequency * Time.frameCount / fps), Space.Self);
+            transform.Rotate(angles * Mathf.Sin(Mathf.PI * frequency * localFrameCount / fps), Space.Self);
         }
         else
         {
-            transform.eulerAngles = startAngles + Mathf.Sin(Mathf.PI * frequency * Time.frameCount / fps) * angles;
+            transform.eulerAngles = startAngles + Mathf.Sin(Mathf.PI * frequency * localFrameCount / fps) * angles;
         }
     }
 }

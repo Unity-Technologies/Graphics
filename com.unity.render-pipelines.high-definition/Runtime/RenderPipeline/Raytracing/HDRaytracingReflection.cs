@@ -151,13 +151,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public void RenderReflectionsT1(HDCamera hdCamera, CommandBuffer cmd, RTHandle outputTexture, ScriptableRenderContext renderContext, int frameCount)
         {
-            // First thing to check is: Do we have a valid ray-tracing environment?
-            HDRaytracingEnvironment rtEnvironment = m_RayTracingManager.CurrentEnvironment();
-            // If no ray tracing environment, then we do not want to evaluate this effect
-            if (rtEnvironment == null)
-                return;
-
             // Fetch the required resources
+            HDRaytracingEnvironment rtEnvironment = m_RayTracingManager.CurrentEnvironment();
             BlueNoise blueNoise = m_RayTracingManager.GetBlueNoiseManager();
             RayTracingShader reflectionShaderRT = m_Asset.renderPipelineRayTracingResources.reflectionRaytracingRT;
             ComputeShader reflectionShaderCS = m_Asset.renderPipelineRayTracingResources.reflectionRaytracingCS;
@@ -303,13 +298,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void RenderReflectionsT2(HDCamera hdCamera, CommandBuffer cmd, RTHandle outputTexture, ScriptableRenderContext renderContext, int frameCount)
         {
-            // First thing to check is: Do we have a valid ray-tracing environment?
-            HDRaytracingEnvironment rtEnvironment = m_RayTracingManager.CurrentEnvironment();
-            // If no acceleration structure available, end it now
-            if (rtEnvironment == null)
-                return;
-
             // Fetch the shaders that we will be using
+            HDRaytracingEnvironment rtEnvironment = m_RayTracingManager.CurrentEnvironment();
             ComputeShader reflectionFilter = m_Asset.renderPipelineRayTracingResources.reflectionBilateralFilterCS;
             RayTracingShader reflectionShader = m_Asset.renderPipelineRayTracingResources.reflectionRaytracingRT;
 

@@ -547,9 +547,9 @@ namespace UnityEditor.Rendering.HighDefinition
                 activeFields.Add("DisableSSR");
             }
 
-            if (masterNode.addVelocityChange.isOn)
+            if (masterNode.addPrecomputedVelocity.isOn)
             {
-                activeFields.Add("AdditionalVelocityChange");
+                activeFields.Add("AddPrecomputedVelocity");
             }
 
             if (masterNode.energyConservingSpecular.isOn)

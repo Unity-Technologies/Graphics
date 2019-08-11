@@ -129,7 +129,10 @@ float4 EvaluateLight_Directional(LightLoopContext lightLoopContext, PositionInpu
     // which makes it independent from the fragment's position, which is faster but wrong.
     // Basically, the code below runs on the CPU, using camera.positionWS, and modifies light.color.
 #else
-    if (light.interactsWithSky)
+    // Use scalar or integer cores (more efficient).
+    bool interactsWithSky = asint(light.distanceFromCamera) >= 0;
+
+    if (interactsWithSky)
     {
         // TODO: should probably unify height attenuation somehow...
         // TODO: Not sure it's possible to precompute cam rel pos since variables

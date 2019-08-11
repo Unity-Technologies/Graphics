@@ -18,6 +18,7 @@ Shader "Hidden/HDRP/Sky/PbrSky"
     int _HasGroundAlbedoTexture;    // bool...
     int _HasGroundEmissionTexture;  // bool...
     int _HasSpaceEmissionTexture;   // bool...
+    int _RenderSunDisk;             // bool...
 
     // Sky framework does not set up global shader variables (even per-view ones),
     // so they can contain garbage. It's very difficult to not include them, however,
@@ -55,38 +56,78 @@ Shader "Hidden/HDRP/Sky/PbrSky"
         return output;
     }
 
-    // TODO: we must write depth for the planet!
-    // What about depth prepass??
     float4 RenderSky(Varyings input)
     {
-        const float  R = _PlanetaryRadius;
+        const float R = _PlanetaryRadius;
+
         // TODO: Not sure it's possible to precompute cam rel pos since variables
         // in the two constant buffers may be set at a different frequency?
         const float3 O = _WorldSpaceCameraPos1 * 0.001 - _PlanetCenterPosition; // Convert m to km
         const float3 V = GetSkyViewDirWS(input.positionCS.xy);
 
+        bool renderSunDisk = _RenderSunDisk != 0;
+
         float3 N; float r; // These params correspond to the entry point
-        float tEntry = IntersectAtmosphere(O, V, N, r);
+        float tEntry = IntersectAtmosphere(O, V, N, r).x;
 
         float NdotV  = dot(N, V);
         float cosChi = -NdotV;
         float cosHor = ComputeCosineOfHorizonAngle(r);
 
         bool rayIntersectsAtmosphere = (tEntry >= 0);
-        bool lookAboveHorizon        = (cosChi > cosHor);
+        bool lookAboveHorizon        = (cosChi >= cosHor);
 
-        float3 gN = 0, gBrdf = 0, transm = 1;
+        float  tFrag    = FLT_INF;
+        float3 radiance = 0;
 
-        float3 totalRadiance = 0;
-
-        if (rayIntersectsAtmosphere)
+        if (renderSunDisk)
         {
-            if (!lookAboveHorizon) // See the ground?
+            // Intersect and shade emissive celestial bodies.
+            // Unfortunately, they don't write depth.
+            for (uint i = 0; i < _DirectionalLightCount; i++)
             {
-                float tExit = tEntry + IntersectSphere(R, cosChi, r).x;
+                DirectionalLightData light = _DirectionalLightDatas[i];
 
-                float3 gP = O + tExit * -V;
-                       gN = normalize(gP);
+                // Use scalar or integer cores (more efficient).
+                bool interactsWithSky = asint(light.distanceFromCamera) >= 0;
+
+                if (interactsWithSky && asint(light.angularDiameter) != 0 && light.distanceFromCamera <= tFrag)
+                {
+                    // We may be able to see the celestial body.
+                    float3 L = -light.forward.xyz;
+
+                    if (dot(L, -V) >= cos(0.5 * light.angularDiameter))
+                    {
+                        // It's visible.
+                        tFrag = light.distanceFromCamera;
+
+                        float solidAngle = TWO_PI * (1 - cos(light.angularDiameter));
+
+                        // Assume uniform emission.
+                        radiance = light.color.rgb * rcp(solidAngle);
+                    }
+                }
+            }
+        }
+
+        if (rayIntersectsAtmosphere && !lookAboveHorizon) // See the ground?
+        {
+            float tGround = tEntry + IntersectSphere(R, cosChi, r).x;
+
+            if (tGround < tFrag)
+            {
+                // Closest so far.
+                tFrag = tGround;
+
+                radiance = 0;
+
+                float3 gP = O + tFrag * -V;
+                float3 gN = normalize(gP);
+
+                if (_HasGroundEmissionTexture)
+                {
+                    radiance += SAMPLE_TEXTURECUBE(_GroundEmissionTexture, s_trilinear_clamp_sampler, mul(gN, (float3x3)_PlanetRotation));
+                }
 
                 float3 albedo;
 
@@ -99,57 +140,41 @@ Shader "Hidden/HDRP/Sky/PbrSky"
                     albedo = _GroundAlbedo;
                 }
 
-                gBrdf = INV_PI * albedo;
-            }
+                float3 gBrdf = INV_PI * albedo;
 
-            if (!lookAboveHorizon) // See the ground?
-            {
+                // Shade the ground.
                 for (uint i = 0; i < _DirectionalLightCount; i++)
                 {
-                    if (!_DirectionalLightDatas[i].interactsWithSky) continue;
+                    DirectionalLightData light = _DirectionalLightDatas[i];
 
-                    float3 L             = -_DirectionalLightDatas[i].forward.xyz;
-                    float3 lightRadiance =  _DirectionalLightDatas[i].color.rgb;
+                    // Use scalar or integer cores (more efficient).
+                    bool interactsWithSky = asint(light.distanceFromCamera) >= 0;
 
-                    float3 radiance = 0;
-
+                    float3 L          = -light.forward.xyz;
+                    float3 intensity  = light.color.rgb;
                     float3 irradiance = SampleGroundIrradianceTexture(dot(gN, L));
-                    radiance += gBrdf * irradiance;
-                    radiance *= lightRadiance;      // Globally scale the intensity
 
-                    totalRadiance += radiance;
+                    radiance += gBrdf * (irradiance * intensity); // Scale from unit intensity to light's intensity
                 }
             }
         }
-
-        float3 emission = 0;
-
-        if (rayIntersectsAtmosphere && !lookAboveHorizon) // See the ground?
-        {
-            if (_HasGroundEmissionTexture)
-            {
-                emission = SAMPLE_TEXTURECUBE(_GroundEmissionTexture, s_trilinear_clamp_sampler, mul(gN, (float3x3)_PlanetRotation));
-            }
-        }
-        else // See the space?
+        else if (tFrag == FLT_INF) // See the stars?
         {
             if (_HasSpaceEmissionTexture)
             {
                 // V points towards the camera.
-                emission = SAMPLE_TEXTURECUBE(_SpaceEmissionTexture, s_trilinear_clamp_sampler, mul(-V, (float3x3)_SpaceRotation));
+                radiance += SAMPLE_TEXTURECUBE(_SpaceEmissionTexture, s_trilinear_clamp_sampler, mul(-V, (float3x3)_SpaceRotation));
             }
         }
 
-        totalRadiance += emission;
+        float3 skyColor = 0, skyOpacity = 0;
 
-        float3 skyColor, skyOpacity;
+        if (rayIntersectsAtmosphere)
+        {
+            EvaluatePbrAtmosphere(_WorldSpaceCameraPos1, V, tFrag, renderSunDisk, skyColor, skyOpacity);
+        }
 
-        // Evaluate the sky at infinity.
-        EvaluatePbrAtmosphere(V, FLT_INF, UNITY_RAW_FAR_CLIP_VALUE,
-                              _WorldSpaceCameraPos1, _ViewMatrix1,
-                              skyColor, skyOpacity);
-
-        skyColor += totalRadiance * (1 - skyOpacity);
+        skyColor += radiance * (1 - skyOpacity);
         skyColor *= _IntensityMultiplier * GetCurrentExposureMultiplier();
 
         return float4(skyColor, 1.0);

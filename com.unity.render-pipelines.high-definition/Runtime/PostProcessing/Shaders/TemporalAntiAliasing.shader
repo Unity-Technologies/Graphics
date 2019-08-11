@@ -15,6 +15,7 @@ Shader "Hidden/HDRP/TemporalAntialiasing"
 
         TEXTURE2D_X(_InputTexture);
         TEXTURE2D_X(_InputHistoryTexture);
+        RW_TEXTURE2D_X(float3, _OutputHistoryTexture);
 
         struct Attributes
         {
@@ -108,6 +109,7 @@ Shader "Hidden/HDRP/TemporalAntialiasing"
             color = Unmap(lerp(color, history, feedback));
             color = clamp(color, 0.0, CLAMP_MAX);
 
+            _OutputHistoryTexture[COORD_TEXTURE2D_X(input.positionCS.xy)] = color;
             outColor = color; 
         }
 
