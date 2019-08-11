@@ -13,6 +13,16 @@ float3 Rotate(float3 pivot, float3 position, float3 rotationAxis, float angle)
     return cpa + ((position - cpa) * cos(angle) + cross(rotationAxis, (position - cpa)) * sin(angle));
 }
 
+float3x3 RotationFromAxisAngle(float3 A, float sinAngle, float cosAngle)
+{
+    float c = cosAngle;
+    float s = sinAngle;
+
+    return float3x3(A.x * A.x * (1 - c) + c,        A.x * A.y * (1 - c) - A.z * s,  A.x * A.z * (1 - c) + A.y * s,
+                    A.x * A.y * (1 - c) + A.z * s,  A.y * A.y * (1 - c) + c,        A.y * A.z * (1 - c) - A.x * s,
+                    A.x * A.z * (1 - c) - A.y * s,  A.y * A.z * (1 - c) + A.x * s,  A.z * A.z * (1 - c) + c);
+}
+
 //-----------------------------------------------------------------------------
 // Solver
 //-----------------------------------------------------------------------------

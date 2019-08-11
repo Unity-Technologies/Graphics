@@ -131,7 +131,7 @@ namespace UnityEditor.Rendering.HighDefinition
             foreach (var light in lights)
             {
                 // Do not add a component if there already is one.
-                if (light.GetComponent<HDAdditionalLightData>() == null)
+                if (!light.TryGetComponent<HDAdditionalLightData>(out _))
                 {
                     var hdLight = light.gameObject.AddComponent<HDAdditionalLightData>();
                     HDAdditionalLightData.InitDefaultHDAdditionalLightData(hdLight);
@@ -147,7 +147,7 @@ namespace UnityEditor.Rendering.HighDefinition
             foreach (var camera in cameras)
             {
                 // Do not add a component if there already is one.
-                if (camera.GetComponent<HDAdditionalCameraData>() == null)
+                if (!camera.TryGetComponent<HDAdditionalCameraData>(out _))
                     camera.gameObject.AddComponent<HDAdditionalCameraData>();
             }
         }
