@@ -11,11 +11,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed with compute shader error about too many threads in threadgroup on low GPU
 - Fixed invalid contact shadow shaders being created on metal
 - Fixed a bug where if Assembly.GetTypes throws an exception due to mis-versioned dlls, then no preprocessors are used in the shader stripper
+- Fixed issue with Matcap view and AxF shader
+- Fixed compilation issue with stacklit and direct specular Occlusion
 
 ### Changed
 - Added Alembic velocity support to various Shaders.
 - Allow in ShaderGraph to enable pre/post pass when the alpha clip is disabled
 - Call the End/Begin camera rendering callbacks for camera with customRender enabled
+- Replace hidden specular lighting control on framesettings by EnableSkyLighting and ReplaceFresnel0Diffuse.
 
 ## [6.9.1] - 2019-07-29
 

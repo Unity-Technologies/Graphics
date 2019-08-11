@@ -135,7 +135,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         LightLayers = 30,
         [FrameSettingsField(1, autoName: ExposureControl, customOrderInGroup: 32)]
         ExposureControl = 32,
-        SpecularLighting = 33,
+        [FrameSettingsField(1, autoName: EnableReflectionProbe, customOrderInGroup: 33)]
+        EnableReflectionProbe = 33,
+        [FrameSettingsField(1, autoName: EnablePlanarProbe, customOrderInGroup: 34)]
+        EnablePlanarProbe = 35,
+        [FrameSettingsField(1, autoName: ReplaceDiffuseForIndirect, customOrderInGroup: 35)]
+        ReplaceDiffuseForIndirect = 36,
+        [FrameSettingsField(1, autoName: EnableSkyLighting, customOrderInGroup: 36)]
+        EnableSkyLighting = 37,
 
         //async settings from 40 to 59
         [FrameSettingsField(2, autoName: AsyncCompute)]
@@ -242,7 +249,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 (uint)FrameSettingsField.FPTLForForwardOpaque,
                 (uint)FrameSettingsField.BigTilePrepass,
                 (uint)FrameSettingsField.TransparentsWriteMotionVector,
-                (uint)FrameSettingsField.SpecularLighting,
+                (uint)FrameSettingsField.EnableReflectionProbe,
+                (uint)FrameSettingsField.EnablePlanarProbe,
+                (uint)FrameSettingsField.EnableSkyLighting,
             }),
             lodBias = 1,
         };
@@ -288,11 +297,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 (uint)FrameSettingsField.ComputeMaterialVariants,
                 (uint)FrameSettingsField.FPTLForForwardOpaque,
                 (uint)FrameSettingsField.BigTilePrepass,
-                (uint)FrameSettingsField.SpecularLighting,
+                (uint)FrameSettingsField.EnableReflectionProbe,
+                (uint)FrameSettingsField.EnableSkyLighting,
             }),
             lodBias = 1,
         };
-        /// <summary>Default FrameSettings for baked or custom ReflectionProbe/PlanarReflectionProbe renderer.</summary>
+        /// <summary>Default FrameSettings for baked or custom ReflectionProbe renderer.</summary>
         public static readonly FrameSettings defaultCustomOrBakeReflectionProbe = new FrameSettings()
         {
             bitDatas = new BitArray128(new uint[] {
@@ -333,7 +343,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 (uint)FrameSettingsField.ComputeMaterialVariants,
                 (uint)FrameSettingsField.FPTLForForwardOpaque,
                 (uint)FrameSettingsField.BigTilePrepass,
-                (uint)FrameSettingsField.SpecularLighting,
+                (uint)FrameSettingsField.ReplaceDiffuseForIndirect,
             }),
             lodBias = 1,
         };
