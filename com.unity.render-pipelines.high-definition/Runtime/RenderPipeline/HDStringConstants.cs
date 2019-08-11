@@ -531,6 +531,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _HasSpaceEmissionTexture        = Shader.PropertyToID("_HasSpaceEmissionTexture");
         public static readonly int _SpaceEmissionTexture           = Shader.PropertyToID("_SpaceEmissionTexture");
 
+        public static readonly int _RenderSunDisk                  = Shader.PropertyToID("_RenderSunDisk");
+
 #if ENABLE_RAYTRACING
         // Raytracing variables
         public static readonly int _RaytracingRayBias               = Shader.PropertyToID("_RaytracingRayBias");
@@ -851,7 +853,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public const string kUVDetail = "_UVDetail";
         public const string kUVDetailsMappingMask = "_UVDetailsMappingMask";
         public const string kReceivesSSR = "_ReceivesSSR";
-        public const string kAdditionalVelocityChange = "_AddVelocityChange";
+        public const string kAddPrecomputedVelocity = "_AddPrecomputedVelocity";
 
         public static readonly Color[] kLayerColors =
         {

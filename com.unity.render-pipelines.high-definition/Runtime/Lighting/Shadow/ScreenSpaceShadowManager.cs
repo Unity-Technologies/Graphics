@@ -114,7 +114,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
 #if ENABLE_RAYTRACING
                 // If the shadow is flagged as ray traced, we need to evaluate it completely
-                if (m_CurrentSunLightAdditionalLightData.WillRenderRayTracedShadow())
+                if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) && m_CurrentSunLightAdditionalLightData.WillRenderRayTracedShadow())
                 {
                     HDRaytracingEnvironment rtEnvironment = m_RayTracingManager.CurrentEnvironment();
                     ComputeShader shadowsCompute = m_Asset.renderPipelineRayTracingResources.shadowRaytracingCS;
@@ -213,8 +213,9 @@ namespace UnityEngine.Rendering.HighDefinition
             HDRaytracingEnvironment rtEnvironment = m_RayTracingManager.CurrentEnvironment();
 
             // Make sure everything is valid
-            bool invalidState = rtEnvironment == null ||
-					hdCamera.frameSettings.litShaderMode != LitShaderMode.Deferred;
+            bool invalidState = !hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing)
+                    || rtEnvironment == null
+					|| hdCamera.frameSettings.litShaderMode != LitShaderMode.Deferred;
 
             // If invalid state or ray-tracing acceleration structure, we stop right away
             if (invalidState)
