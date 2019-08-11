@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Remove almost all Garbage collection call within a frame.
 - Rename property AdditionalVeclocityChange to AddPrecomputeVelocity 
 - Call the End/Begin camera rendering callbacks for camera with customRender enabled
+- Changeg framesettings migration order of postprocess flags as a pr for reflection settings flags have been backported to 2019.2
 
 ## [7.0.1] - 2019-07-25
 
