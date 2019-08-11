@@ -84,14 +84,14 @@ void ApplyDebug(LightLoopContext context, PositionInputs posInput, BSDFData bsdf
 
         float2 UV = saturate(normalVS.xy * 0.5f + 0.5f);
 
-        bool isPureMetal = any(bsdfData.fresnel0 > DEFAULT_SPECULAR_VALUE) && all(bsdfData.diffuseColor == 0);
-        if (isPureMetal)
+        float4 defaultColor = GetDiffuseOrDefaultColor(bsdfData, 1.0);
+
+        if (defaultColor.a == 1.0)
         {
             UV = saturate(R.xy * 0.5f + 0.5f);
         }
 
-        float3 colorToMix = isPureMetal ? bsdfData.fresnel0 : bsdfData.diffuseColor;
-        diffuseLighting = SAMPLE_TEXTURE2D_LOD(_DebugMatCapTexture, s_linear_repeat_sampler, UV, 0).rgb * (_MatcapMixAlbedo > 0  ? colorToMix * _MatcapViewScale : 1.0f);
+        diffuseLighting = SAMPLE_TEXTURE2D_LOD(_DebugMatCapTexture, s_linear_repeat_sampler, UV, 0).rgb * (_MatcapMixAlbedo > 0  ? defaultColor.rgb * _MatcapViewScale : 1.0f);
     }
 
     // We always apply exposure when in debug mode. The exposure value will be at a neutral 0.0 when not needed.

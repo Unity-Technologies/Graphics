@@ -14,9 +14,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_RenderPipelineResources: {fileID: 11400000, guid: 3ce144cff5783da45aa5d4fdc2da14b7,
     type: 2}
+  m_RenderPipelineRayTracingResources: {fileID: 0}
   m_RenderingPathDefaultCameraFrameSettings:
     bitDatas:
-      data1: 1116682321692
+      data1: 1288481013532
       data2: 4539628424389459968
     lodBias: 1
     lodBiasMode: 0
@@ -24,7 +25,7 @@ MonoBehaviour:
     maximumLODLevelMode: 0
   m_RenderingPathDefaultBakedOrCustomReflectionFrameSettings:
     bitDatas:
-      data1: 1114534706973
+      data1: 1174664249117
       data2: 4539628424389459968
     lodBias: 1
     lodBiasMode: 0
@@ -32,7 +33,7 @@ MonoBehaviour:
     maximumLODLevelMode: 0
   m_RenderingPathDefaultRealtimeReflectionFrameSettings:
     bitDatas:
-      data1: 1114534641437
+      data1: 1251973594909
       data2: 4539628424389459968
     lodBias: 1
     lodBiasMode: 0
@@ -51,7 +52,6 @@ MonoBehaviour:
     supportTransparentBackface: 1
     supportTransparentDepthPrepass: 1
     supportTransparentDepthPostpass: 1
-    supportLowResTransparent: 1
     colorBufferFormat: 74
     supportedLitShaderMode: 1
     supportDecals: 1
@@ -60,6 +60,7 @@ MonoBehaviour:
     supportRuntimeDebugDisplay: 1
     supportDitheringCrossFade: 1
     supportRayTracing: 0
+    supportedRaytracingTier: 2
     lightLoopSettings:
       cookieSize: 128
       cookieTexArraySize: 16
@@ -93,6 +94,8 @@ MonoBehaviour:
         shadowAtlasResolution: 4096
         shadowAtlasDepthBits: 32
         useDynamicViewportRescale: 1
+      supportScreenSpaceShadows: 0
+      maxScreenSpaceShadows: 2
     decalSettings:
       drawDistance: 1000
       atlasWidth: 4096
@@ -118,7 +121,7 @@ MonoBehaviour:
   shaderVariantLogLevel: 0
   diffusionProfileSettings: {fileID: 0}
   diffusionProfileSettingsList: []
-  m_Version: 5
+  m_Version: 6
   m_ObsoleteFrameSettings:
     overrides: 0
     enableShadow: 0

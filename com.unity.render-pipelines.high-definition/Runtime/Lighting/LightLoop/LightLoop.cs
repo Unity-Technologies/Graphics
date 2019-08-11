@@ -2053,10 +2053,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     UpdateSortKeysArray(probeCount);
                     sortCount = 0;
 
-                    var enableReflectionProbes = !hasDebugLightFilter ||
-                                                 debugLightFilter.IsEnabledFor(ProbeSettings.ProbeType.ReflectionProbe);
-                    var enablePlanarProbes = !hasDebugLightFilter ||
-                                                 debugLightFilter.IsEnabledFor(ProbeSettings.ProbeType.PlanarProbe);
+                    var enableReflectionProbes =    hdCamera.frameSettings.IsEnabled(FrameSettingsField.EnableReflectionProbe) &&
+                                                    (!hasDebugLightFilter || debugLightFilter.IsEnabledFor(ProbeSettings.ProbeType.ReflectionProbe));
+
+                    var enablePlanarProbes =    hdCamera.frameSettings.IsEnabled(FrameSettingsField.EnablePlanarProbe) &&
+                                                (!hasDebugLightFilter || debugLightFilter.IsEnabledFor(ProbeSettings.ProbeType.PlanarProbe));
+
                     for (int probeIndex = 0, numProbes = totalProbes; (probeIndex < numProbes) && (sortCount < probeCount); probeIndex++)
                     {
                         if (probeIndex < cullResults.visibleReflectionProbes.Length)

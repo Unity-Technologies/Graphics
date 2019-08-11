@@ -14,9 +14,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_RenderPipelineResources: {fileID: 11400000, guid: 3ce144cff5783da45aa5d4fdc2da14b7,
     type: 2}
+  m_RenderPipelineRayTracingResources: {fileID: 0}
   m_RenderingPathDefaultCameraFrameSettings:
     bitDatas:
-      data1: 68184207261468
+      data1: 68356005953308
       data2: 4539628424389459968
     lodBias: 1
     lodBiasMode: 0
@@ -24,7 +25,7 @@ MonoBehaviour:
     maximumLODLevelMode: 0
   m_RenderingPathDefaultBakedOrCustomReflectionFrameSettings:
     bitDatas:
-      data1: 69284255629085
+      data1: 69344385171229
       data2: 4539628424389459968
     lodBias: 1
     lodBiasMode: 0
@@ -32,7 +33,7 @@ MonoBehaviour:
     maximumLODLevelMode: 0
   m_RenderingPathDefaultRealtimeReflectionFrameSettings:
     bitDatas:
-      data1: 69284255563549
+      data1: 69421694517021
       data2: 4539628424389459968
     lodBias: 1
     lodBiasMode: 0
@@ -51,7 +52,6 @@ MonoBehaviour:
     supportTransparentBackface: 1
     supportTransparentDepthPrepass: 1
     supportTransparentDepthPostpass: 1
-    supportLowResTransparent: 1
     colorBufferFormat: 74
     supportedLitShaderMode: 1
     supportDecals: 1
@@ -60,6 +60,7 @@ MonoBehaviour:
     supportRuntimeDebugDisplay: 0
     supportDitheringCrossFade: 1
     supportRayTracing: 0
+    supportedRaytracingTier: 2
     lightLoopSettings:
       cookieSize: 128
       cookieTexArraySize: 16
@@ -93,6 +94,8 @@ MonoBehaviour:
         shadowAtlasResolution: 4096
         shadowAtlasDepthBits: 32
         useDynamicViewportRescale: 1
+      supportScreenSpaceShadows: 0
+      maxScreenSpaceShadows: 2
     decalSettings:
       drawDistance: 1000
       atlasWidth: 2048
@@ -134,7 +137,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 86c1c808ebce1cc4992b9b0fd197a0b3, type: 2}
   - {fileID: 11400000, guid: 3506ae472b257f042af66a183fbaac6a, type: 2}
   - {fileID: 11400000, guid: 6be2047feaba36945b8fd12f29e3a7b5, type: 2}
-  m_Version: 5
+  m_Version: 6
   m_ObsoleteFrameSettings:
     overrides: 0
     enableShadow: 0
