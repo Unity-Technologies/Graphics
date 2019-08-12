@@ -209,6 +209,7 @@ Shader ""Hidden/GraphErrorShader2""
                     generatesFunction.GenerateNodeFunction(registry, mode);
                 }
             }
+            bodySb.currentNode = null;
 
             var portNodeSets = new HashSet<AbstractMaterialNode>[ports.Count];
             for (var portIndex = 0; portIndex < ports.Count; portIndex++)
