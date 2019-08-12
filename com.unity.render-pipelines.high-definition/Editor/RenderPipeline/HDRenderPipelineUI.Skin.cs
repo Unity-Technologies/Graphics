@@ -34,6 +34,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         static readonly GUIContent k_MotionBlurQualitySettings = EditorGUIUtility.TrTextContent("Motion Blur");
         static readonly GUIContent k_BloomQualitySettings = EditorGUIUtility.TrTextContent("Bloom");
+        static readonly GUIContent k_ChromaticAberrationQualitySettings = EditorGUIUtility.TrTextContent("Chromatic Aberration");
 
         static readonly GUIContent k_DepthOfFieldQualitySettings = EditorGUIUtility.TrTextContent("Depth Of Field");
         static readonly GUIContent k_FarBlurSubTitle = EditorGUIUtility.TrTextContent("Far Blur");
@@ -42,6 +43,7 @@ namespace UnityEditor.Rendering.HighDefinition
         static readonly GUIContent k_SampleCountQuality = EditorGUIUtility.TrTextContent("Sample Count");
         static readonly GUIContent k_ResolutionQuality = EditorGUIUtility.TrTextContent("Resolution");
         static readonly GUIContent k_HighQualityFiltering = EditorGUIUtility.TrTextContent("High Quality Filtering");
+        static readonly GUIContent k_MaxSamplesQuality = EditorGUIUtility.TrTextContent("Max Samples");
 
         static readonly GUIContent k_DefaultFrameSettingsContent = EditorGUIUtility.TrTextContent("Default Frame Settings For");
 

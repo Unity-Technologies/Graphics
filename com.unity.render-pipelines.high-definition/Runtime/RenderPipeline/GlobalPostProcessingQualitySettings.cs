@@ -57,6 +57,11 @@ namespace UnityEngine.Rendering.HighDefinition
             BloomHighQualityFiltering[(int)VolumeQualitySettingsLevels.Low] = false;
             BloomHighQualityFiltering[(int)VolumeQualitySettingsLevels.Medium] = true;
             BloomHighQualityFiltering[(int)VolumeQualitySettingsLevels.High] = true;
+
+            /* Chromatic Aberration */
+            ChromaticAberrationMaxSamples[(int)VolumeQualitySettingsLevels.Low] = 4;
+            ChromaticAberrationMaxSamples[(int)VolumeQualitySettingsLevels.Medium] = 8;
+            ChromaticAberrationMaxSamples[(int)VolumeQualitySettingsLevels.High] = 16;
         }
 
         /// <summary>Default GlobalPostProcessingQualitySettings</summary>
@@ -76,5 +81,8 @@ namespace UnityEngine.Rendering.HighDefinition
         /* Bloom */
         public BloomResolution[] BloomRes               = new BloomResolution[s_QualitySettingCount];
         public bool[] BloomHighQualityFiltering         = new bool[s_QualitySettingCount];
+
+        /* Chromatic Aberration */
+        public int[] ChromaticAberrationMaxSamples      = new int[s_QualitySettingCount];
     }
 }

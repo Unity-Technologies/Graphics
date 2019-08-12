@@ -22,6 +22,10 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty BloomRes;
         public SerializedProperty BloomHighFilteringQuality;
 
+        // Chromatic Aberration
+        public SerializedProperty ChromaticAbMaxSamples;
+
+
         public SerializedPostProcessingQualitySettings(SerializedProperty root)
         {
             this.root = root;
@@ -41,6 +45,8 @@ namespace UnityEditor.Rendering.HighDefinition
             BloomRes                    = root.Find((GlobalPostProcessingQualitySettings s) => s.BloomRes);
             BloomHighFilteringQuality   = root.Find((GlobalPostProcessingQualitySettings s) => s.BloomHighQualityFiltering);
 
+            // Chromatic Aberration
+            ChromaticAbMaxSamples       = root.Find((GlobalPostProcessingQualitySettings s) => s.ChromaticAberrationMaxSamples);
         }
     }
 }
