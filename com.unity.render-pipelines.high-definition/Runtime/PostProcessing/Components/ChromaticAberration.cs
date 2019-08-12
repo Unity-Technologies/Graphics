@@ -22,9 +22,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
                 else
                 {
-                    HDRenderPipeline pipeline = (HDRenderPipeline)RenderPipelineManager.currentPipeline;
                     int qualityLevel = (int)quality.value;
-                    return pipeline.currentPlatformRenderPipelineSettings.postProcessQualitySettings.ChromaticAberrationMaxSamples[qualityLevel];
+                    return GetPostProcessingQualitySettings().ChromaticAberrationMaxSamples[qualityLevel];
                 }
             }
             set { m_MaxSamples.value = value; }
@@ -32,7 +31,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         [Tooltip("Controls the maximum number of samples HDRP uses to render the effect. A lower sample number results in better performance.")]
         [SerializeField, FormerlySerializedAs("maxSamples")]
-        private ClampedIntParameter m_MaxSamples = new ClampedIntParameter(8, 3, 24);
+        private ClampedIntParameter m_MaxSamples = new ClampedIntParameter(6, 3, 24);
 
         public bool IsActive()
         {

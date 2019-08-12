@@ -28,9 +28,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
                 else
                 {
-                    HDRenderPipeline pipeline = (HDRenderPipeline)RenderPipelineManager.currentPipeline;
                     int qualityLevel = (int)quality.value;
-                    return pipeline.currentPlatformRenderPipelineSettings.postProcessQualitySettings.MotionBlurSampleCount[qualityLevel];
+                    return GetPostProcessingQualitySettings().MotionBlurSampleCount[qualityLevel];
                 }
             }
             set { m_SampleCount.value = value; }

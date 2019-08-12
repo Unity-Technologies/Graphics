@@ -52,9 +52,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
                 else
                 {
-                    HDRenderPipeline pipeline = (HDRenderPipeline)RenderPipelineManager.currentPipeline;
                     int qualityLevel = (int)quality.value;
-                    return pipeline.currentPlatformRenderPipelineSettings.postProcessQualitySettings.NearBlurSampleCount[qualityLevel];
+                    return GetPostProcessingQualitySettings().NearBlurSampleCount[qualityLevel];
                 }
             }
             set { m_NearSampleCount.value = value; }
@@ -70,9 +69,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
                 else
                 {
-                    HDRenderPipeline pipeline = (HDRenderPipeline)RenderPipelineManager.currentPipeline;
                     int qualityLevel = (int)quality.value;
-                    return pipeline.currentPlatformRenderPipelineSettings.postProcessQualitySettings.NearBlurMaxRadius[qualityLevel];
+                    return GetPostProcessingQualitySettings().NearBlurMaxRadius[qualityLevel];
                 }
             }
             set { m_NearMaxBlur.value = value; }
@@ -88,9 +86,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
                 else
                 {
-                    HDRenderPipeline pipeline = (HDRenderPipeline)RenderPipelineManager.currentPipeline;
                     int qualityLevel = (int)quality.value;
-                    return pipeline.currentPlatformRenderPipelineSettings.postProcessQualitySettings.FarBlurSampleCount[qualityLevel];
+                    return GetPostProcessingQualitySettings().FarBlurSampleCount[qualityLevel];
                 }
             }
             set { m_FarSampleCount.value = value; }
@@ -106,9 +103,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
                 else
                 {
-                    HDRenderPipeline pipeline = (HDRenderPipeline)RenderPipelineManager.currentPipeline;
                     int qualityLevel = (int)quality.value;
-                    return pipeline.currentPlatformRenderPipelineSettings.postProcessQualitySettings.FarBlurMaxRadius[qualityLevel];
+                    return GetPostProcessingQualitySettings().FarBlurMaxRadius[qualityLevel];
                 }
             }
             set { m_FarMaxBlur.value = value; }
@@ -124,9 +120,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
                 else
                 {
-                    HDRenderPipeline pipeline = (HDRenderPipeline)RenderPipelineManager.currentPipeline;
                     int qualityLevel = (int)quality.value;
-                    return pipeline.currentPlatformRenderPipelineSettings.postProcessQualitySettings.DoFHighQualityFiltering[qualityLevel];
+                    return GetPostProcessingQualitySettings().DoFHighQualityFiltering[qualityLevel];
                 }
             }
             set { m_HighQualityFiltering.value = value; }
@@ -142,9 +137,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
                 else
                 {
-                    HDRenderPipeline pipeline = (HDRenderPipeline)RenderPipelineManager.currentPipeline;
                     int qualityLevel = (int)quality.value;
-                    return pipeline.currentPlatformRenderPipelineSettings.postProcessQualitySettings.DoFResolution[qualityLevel];
+                    return GetPostProcessingQualitySettings().DoFResolution[qualityLevel];
                 }
             }
             set

@@ -59,9 +59,9 @@ namespace UnityEngine.Rendering.HighDefinition
             BloomHighQualityFiltering[(int)VolumeQualitySettingsLevels.High] = true;
 
             /* Chromatic Aberration */
-            ChromaticAberrationMaxSamples[(int)VolumeQualitySettingsLevels.Low] = 4;
-            ChromaticAberrationMaxSamples[(int)VolumeQualitySettingsLevels.Medium] = 8;
-            ChromaticAberrationMaxSamples[(int)VolumeQualitySettingsLevels.High] = 16;
+            ChromaticAberrationMaxSamples[(int)VolumeQualitySettingsLevels.Low] = 3;
+            ChromaticAberrationMaxSamples[(int)VolumeQualitySettingsLevels.Medium] = 6;
+            ChromaticAberrationMaxSamples[(int)VolumeQualitySettingsLevels.High] = 12;
         }
 
         /// <summary>Default GlobalPostProcessingQualitySettings</summary>
