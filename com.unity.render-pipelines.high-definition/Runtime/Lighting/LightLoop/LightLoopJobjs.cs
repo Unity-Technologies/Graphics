@@ -257,37 +257,28 @@ namespace UnityEngine.Rendering.HighDefinition
         
         void AllocateVolumeBoundsJobArrays(int lightCount, int decalCount, int numViews)
         {
-            m_LightVolumeData = new NativeArray<LightVolumeData>((lightCount + decalCount) * numViews, Allocator.TempJob);
-            m_Bounds = new NativeArray<SFiniteLightBound>((lightCount + decalCount) * numViews, Allocator.TempJob);
             m_LightCategory = new NativeArray<LightCategory>(lightCount, Allocator.TempJob);
             m_GpuLightType = new NativeArray<GPULightType>(lightCount, Allocator.TempJob);
             m_LightVolumeType = new NativeArray<LightVolumeType>(lightCount, Allocator.TempJob);
-            m_LightData = new NativeArray<LightData>(lightCount, Allocator.TempJob);
             m_LightDimensions = new NativeArray<Vector3>(lightCount, Allocator.TempJob);
             m_WorldToView = new NativeArray<Matrix4x4>(numViews, Allocator.TempJob);
         }
 
         void DisposeBoundsJobArrays()
         {
-            m_LightVolumeData.Dispose();
-            m_Bounds.Dispose(); 
             m_LightCategory.Dispose(); 
             m_GpuLightType.Dispose(); 
             m_LightVolumeType.Dispose(); 
-            m_LightData.Dispose();
             m_LightDimensions.Dispose(); 
             m_WorldToView.Dispose();
         }
 
 
 
-        NativeArray<SFiniteLightBound> m_Bounds;
-        NativeArray<LightVolumeData> m_LightVolumeData;
         NativeArray<LightCategory> m_LightCategory;
         NativeArray<GPULightType> m_GpuLightType;
         NativeArray<LightVolumeType> m_LightVolumeType;
         NativeArray<VisibleLight> m_VisibleLights;
-        NativeArray<LightData> m_LightData;
         NativeArray<Vector3> m_LightDimensions;
         NativeArray<Matrix4x4> m_WorldToView;
         NativeArray<int> m_VisibleLightRemapping;
