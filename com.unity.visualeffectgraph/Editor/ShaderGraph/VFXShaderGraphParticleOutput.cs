@@ -5,6 +5,7 @@ using System.Reflection;
 using UnityEditor.ShaderGraph;
 using UnityEditor.ShaderGraph.Internal;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 
 namespace UnityEditor.VFX
@@ -176,6 +177,46 @@ namespace UnityEditor.VFX
             get { return hdrpInfo; }
         }
 
+
+        public override VFXExpressionMapper GetExpressionMapper(VFXDeviceTarget target)
+        {
+            var mapper = base.GetExpressionMapper(target);
+
+            switch (target)
+            {
+                case VFXDeviceTarget.CPU:
+                    break;
+                case VFXDeviceTarget.GPU:
+
+                    if( shaderGraph != null)
+                    {
+                        foreach (var tex in shaderGraph.textureInfos.Where(t => t.texture != null).OrderBy(t => t.name))
+                        {
+                            switch (tex.texture.dimension)
+                            {
+                                case TextureDimension.Tex2D:
+                                    mapper.AddExpression(new VFXTexture2DValue(tex.texture, VFXValue.Mode.Variable), tex.name, -1);
+                                    break;
+                                case TextureDimension.Tex3D:
+                                    mapper.AddExpression(new VFXTexture3DValue(tex.texture, VFXValue.Mode.Variable), tex.name, -1);
+                                    break;
+                                case TextureDimension.Cube:
+                                    mapper.AddExpression(new VFXTextureCubeValue(tex.texture, VFXValue.Mode.Variable), tex.name, -1);
+                                    break;
+                                case TextureDimension.Tex2DArray:
+                                    mapper.AddExpression(new VFXTexture2DArrayValue(tex.texture, VFXValue.Mode.Variable), tex.name, -1);
+                                    break;
+                                case TextureDimension.CubeArray:
+                                    mapper.AddExpression(new VFXTextureCubeArrayValue(tex.texture, VFXValue.Mode.Variable), tex.name, -1);
+                                    break;
+                            }
+                        }
+                    }
+                    break;
+            }
+
+            return mapper;
+        }
 
         public override IEnumerable<KeyValuePair<string, VFXShaderWriter>> additionalReplacements
         {
