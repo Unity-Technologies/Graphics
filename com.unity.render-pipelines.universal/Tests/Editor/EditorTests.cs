@@ -82,7 +82,7 @@ class EditorTests
         Assert.AreEqual(null, asset.default2DMaterial);
 
         Assert.AreNotEqual(null, asset.m_EditorResourcesAsset, "Editor Resources should be initialized when creating a new pipeline.");
-        Assert.AreNotEqual(null, asset.m_RendererData, "A default renderer data should be created when creating a new pipeline.");
+        Assert.AreNotEqual(null, asset.m_RendererDataList, "A default renderer data should be created when creating a new pipeline.");
         ScriptableObject.DestroyImmediate(asset);
         ScriptableObject.DestroyImmediate(data);
     }

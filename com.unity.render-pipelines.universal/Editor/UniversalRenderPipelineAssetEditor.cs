@@ -138,7 +138,7 @@ namespace UnityEditor.Rendering.Universal
             m_PostProcessingSettingsFoldout = new SavedBool($"{target.GetType()}.PostProcessingSettingsFoldout", false);
             m_AdvancedSettingsFoldout = new SavedBool($"{target.GetType()}.AdvancedSettingsFoldout", false);
 
-            m_RendererDataProp = serializedObject.FindProperty("m_RendererData");
+            m_RendererDataProp = serializedObject.FindProperty("m_RendererDataList");
             m_DefaultRendererProp = serializedObject.FindProperty("m_DefaultRenderer");
             m_RendererDataList = new ReorderableList(serializedObject, m_RendererDataProp, false, true, true, true);
 
