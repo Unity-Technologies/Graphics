@@ -154,7 +154,7 @@ VFXComponentBoardEventUI .unity-button, #on-play-button, #on-stop-button,#attach
 #debug-container
 {
     flex-direction: column;
-    height: 200px;
+    flex-grow: 1;
 }
 
 #debug-modes
@@ -167,49 +167,76 @@ VFXComponentBoardEventUI .unity-button, #on-play-button, #on-stop-button,#attach
     padding-top: 10px;
 }
 
+#debug-graph-container
+{
+    flex-direction:row;
+    width:100%;
+}
+
 #debug-box
 {
-    flex-grow: 1;
+    flex-grow: 4;
     background-color:#555;
     margin: auto;
-    width: 97%;
-    height: 300px;
+    width: 95%;
+    height: 150px;
     overflow:hidden;
     border-radius:6px;
+}
+#debug-box-axis-container
+{
+    flex-direction:column;
+    flex-grow: 1;
+}
+
+#debug-box-axis-100 {
+    flex-grow: 1;
+    -unity-text-align: upper-center;
+}
+#debug-box-axis-50 {
+    flex-grow: 1;
+    -unity-text-align: middle-center;
+}
+#debug-box-axis-0 {
+    flex-grow: 1;
+    -unity-text-align: lower-center;
 }
 
 #debug-system-stat-container
 {
     flex-direction:row;
-    height:300px;
+    height:100px;
     width: 100%;
 }
 
-#debug-system-stat-title, #debug-system-stat-title-name
-{
+#debug-system-stat-title, #debug-system-stat-title-name {
     font-size: 14px;
     flex-grow: 1;
-  
+    width: 20%;
+    -unity-text-align: middle-center;
 }
 
-#debug-system-stat-title-name
-{
-    width: 30%;
-    padding-left: 6px;
-    padding-right: 6px;
+#debug-system-stat-title-name {
+    width: 25%;
 }
 
-#debug-system-name
+
+#debug-system-stat-entry-container
 {
-    flex-grow: 1;
-    width: 30%;
-    padding-left: 6px;
-    padding-right: 6px;
-}
-#debug-system-stat
-{
+    flex-direction:row;
+    align-items:center;
     flex-grow: 1;
 }
+
+#debug-system-stat-entry, #debug-system-stat-entry-name {
+    flex-grow: 1;
+    width: 20%;
+    -unity-text-align: middle-center;
+}
+#debug-system-stat-entry-name {
+    width: 25%;
+}
+
 
 #play-rate-container #play-rate-slider
 {

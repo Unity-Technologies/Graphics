@@ -159,7 +159,7 @@ namespace UnityEditor.VFX.UI
             contentContainer.AddStyleSheetPath("VFXComponentBoard");
 
             m_DebugUI = new VFXDebugUI(m_View);
-            m_DebugUI.SetDebugMode(VFXDebugUI.Modes.None, this);
+            m_DebugUI.SetDebugMode(VFXDebugUI.Modes.None, this, true);
 
             m_AttachButton = this.Query<Button>("attach");
             m_AttachButton.clickable.clicked += ToggleAttach;

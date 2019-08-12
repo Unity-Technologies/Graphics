@@ -64,7 +64,7 @@ Shader "Hidden/VFX/SystemStat"
                 else
                 {
                     float2 ab = normalize(float2((rightPoint.y - leftPoint.y) / (leftPoint.x - rightPoint.x), 1.0));
-                    float c = -dot(ab, leftPoint);
+                    float c = -dot(ab, rightPoint);
                     o.segment = float3(ab, c);
                 }
 
@@ -76,11 +76,11 @@ Shader "Hidden/VFX/SystemStat"
                 float clip = tex2D(_GUIClipTexture, i.clipUV).a;
                 if (clip < 0.1)
                     discard;
-                float t = -(dot(i.screenPos, i.segment.xy) + i.segment.z) / i.segment.y;
+                /*float t = -(dot(i.screenPos, i.segment.xy) + i.segment.z) / i.segment.y;
                 float2 verticalProj = float2(i.screenPos.x, t + i.screenPos.y);
-                float distance = abs(i.screenPos.y - verticalProj.y);
-                //distance = abs(dot(i.segment.xy, i.screenPos) + i.segment.z);
-                fixed4 color = fixed4(_Color.rgb, 1.0 - saturate(distance * 4000.0 * abs(ddy(i.uv.y))));
+                float distance = abs(i.screenPos.y - verticalProj.y);*/
+                float distance = abs(dot(i.segment.xy, i.screenPos) + i.segment.z) / length(i.segment.xy);
+                fixed4 color = fixed4( _Color.rgb, 1.0 - saturate( distance * 700.0) );
                 return color;
             }
 
