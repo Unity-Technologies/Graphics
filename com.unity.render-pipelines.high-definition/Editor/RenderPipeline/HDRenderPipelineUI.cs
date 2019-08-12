@@ -608,7 +608,6 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
-
         static private bool m_ShowMotionBlurLowQualitySection = false;
         static private bool m_ShowMotionBlurMediumQualitySection = false;
         static private bool m_ShowMotionBlurHighQualitySection = false;
