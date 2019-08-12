@@ -690,7 +690,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 int quality = (int)VolumeQualitySettingsLevels.High;
                 EditorGUILayout.PropertyField(serialized.renderPipelineSettings.postProcessQualitySettings.ChromaticAbMaxSamples.GetArrayElementAtIndex(quality), k_MaxSamplesQuality);
             }
-
         }
 
         static void Drawer_SectionRenderingUnsorted(SerializedHDRenderPipelineAsset serialized, Editor owner)

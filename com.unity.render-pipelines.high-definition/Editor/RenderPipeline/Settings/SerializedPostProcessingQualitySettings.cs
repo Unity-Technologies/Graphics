@@ -25,7 +25,6 @@ namespace UnityEditor.Rendering.HighDefinition
         // Chromatic Aberration
         public SerializedProperty ChromaticAbMaxSamples;
 
-
         public SerializedPostProcessingQualitySettings(SerializedProperty root)
         {
             this.root = root;

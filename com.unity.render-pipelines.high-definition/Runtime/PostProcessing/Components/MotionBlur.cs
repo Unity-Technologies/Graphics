@@ -36,7 +36,6 @@ namespace UnityEngine.Rendering.HighDefinition
             set { m_SampleCount.value = value; }
         }
 
-
         [Tooltip("Sets the maximum number of sample points that HDRP uses to compute motion blur.")]
         [SerializeField, FormerlySerializedAs("sampleCount")]
         MinIntParameter m_SampleCount = new MinIntParameter(8, 2);
