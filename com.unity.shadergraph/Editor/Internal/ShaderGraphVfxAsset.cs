@@ -6,6 +6,13 @@ using UnityEngine;
 
 namespace UnityEditor.ShaderGraph.Internal
 {
+    [Serializable]
+    public struct TextureInfo
+    {
+        public string name;
+        public Texture texture;
+    }
+
     public sealed class ShaderGraphVfxAsset : ScriptableObject
     {
         [SerializeField]
@@ -43,6 +50,16 @@ namespace UnityEditor.ShaderGraph.Internal
 
         [SerializeField]
         OutputMetadata[] m_Outputs;
+
+        [SerializeField]
+        TextureInfo[] m_TextureInfos;
+
+        public IEnumerable<TextureInfo> textureInfos { get => m_TextureInfos; }
+
+        internal void SetTextureInfos(IList<PropertyCollector.TextureInfo> textures )
+        {
+            m_TextureInfos = textures.Select(t => new TextureInfo() { name = t.name, texture = EditorUtility.InstanceIDToObject(t.textureId) as Texture }).ToArray();
+        }
 
         internal void SetOutputs(OutputMetadata[] outputs)
         {

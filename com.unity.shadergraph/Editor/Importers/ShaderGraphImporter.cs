@@ -243,6 +243,14 @@ Shader ""Hidden/GraphErrorShader2""
                 }
             }
 
+            var shaderProperties = new PropertyCollector();
+            foreach (var node in nodes)
+            {
+                node.CollectShaderProperties(shaderProperties, GenerationMode.ForReals);
+            }
+
+            asset.SetTextureInfos(shaderProperties.GetConfiguredTexutres());
+
             var codeSnippets = new List<string>();
             var portCodeIndices = new List<int>[ports.Count];
             var sharedCodeIndices = new List<int>();
@@ -318,6 +326,8 @@ Shader ""Hidden/GraphErrorShader2""
 
                 codeSnippets.Add($"// Property: {property.displayName}{nl}{property.GetPropertyDeclarationString()}{nl}{nl}");
             }
+
+            
 
             var inputStructName = $"SG_Input_{assetGuid}";
             var outputStructName = $"SG_Output_{assetGuid}";
