@@ -385,7 +385,11 @@ namespace UnityEditor.Rendering.Universal
                 Rect indexRect = new Rect(rect.x, rect.y, 14, EditorGUIUtility.singleLineHeight);
                 EditorGUI.LabelField(indexRect, index.ToString());
                 Rect objRect = new Rect(rect.x + indexRect.width, rect.y, rect.width - 134, EditorGUIUtility.singleLineHeight);
+                
+                EditorGUI.BeginChangeCheck();
                 EditorGUI.ObjectField(objRect, prop.GetArrayElementAtIndex(index), GUIContent.none);
+                if(EditorGUI.EndChangeCheck())
+                    EditorUtility.SetDirty(target);
                 
                 Rect defaultButton = new Rect(rect.width - 90, rect.y, 86, EditorGUIUtility.singleLineHeight);
                 var defaultRenderer = m_DefaultRendererProp.intValue;
@@ -393,6 +397,7 @@ namespace UnityEditor.Rendering.Universal
                 if(GUI.Button(defaultButton, !GUI.enabled ? Styles.rendererDefaultText : Styles.rendererSetDefaultText))
                 {
                     m_DefaultRendererProp.intValue = index;
+                    EditorUtility.SetDirty(target);
                 }
                 GUI.enabled = true;
                 
@@ -440,7 +445,8 @@ namespace UnityEditor.Rendering.Universal
             {
                 if (li.serializedProperty.arraySize - 1 != m_DefaultRendererProp.intValue)
                 {
-                    li.serializedProperty.DeleteArrayElementAtIndex(li.serializedProperty.arraySize - 1);
+                    if(li.serializedProperty.GetArrayElementAtIndex(li.serializedProperty.arraySize - 1).objectReferenceValue != null)
+                        li.serializedProperty.DeleteArrayElementAtIndex(li.serializedProperty.arraySize - 1);
                     li.serializedProperty.arraySize--;
                     li.index = li.count - 1;
                 }
@@ -454,6 +460,7 @@ namespace UnityEditor.Rendering.Universal
                     EditorUtility.DisplayDialog(Styles.rendererListDefaultMessage.text, Styles.rendererListDefaultMessage.tooltip,
                         "Close");
                 }
+                EditorUtility.SetDirty(target);
             };
         }
     }
