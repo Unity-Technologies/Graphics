@@ -39,7 +39,8 @@
 #define PERFORM_SPHERICAL_INTERSECTION_TESTS
 
 #ifdef MSAA_ENABLED
-    // We only perform the screen-aligned (homogeneous 3D) AABB test.
+    // We only perform the spherical intersection test
+    // (screen-space sphere + depth extents).
     TEXTURE2D_X(_CameraDepthValues);
 #else
     // Fine pruning is too slow with MSAA.
