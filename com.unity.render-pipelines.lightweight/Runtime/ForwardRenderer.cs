@@ -8,18 +8,18 @@ namespace UnityEngine.Rendering.LWRP
         const int k_DepthStencilBufferBits = 32;
         const string k_CreateCameraTextures = "Create Camera Texture";
 
-        DepthOnlyPass m_DepthPrepass;
-        MainLightShadowCasterPass m_MainLightShadowCasterPass;
-        AdditionalLightsShadowCasterPass m_AdditionalLightsShadowCasterPass;
-        ScreenSpaceShadowResolvePass m_ScreenSpaceShadowResolvePass;
-        DrawObjectsPass m_RenderOpaqueForwardPass;
+        DepthOnlyPass m_DepthPrepass; //+
+        MainLightShadowCasterPass m_MainLightShadowCasterPass; //+
+        AdditionalLightsShadowCasterPass m_AdditionalLightsShadowCasterPass; //+
+        ScreenSpaceShadowResolvePass m_ScreenSpaceShadowResolvePass; //+
+        DrawObjectsPass m_RenderOpaqueForwardPass; //+
         PostProcessPass m_OpaquePostProcessPass;
-        DrawSkyboxPass m_DrawSkyboxPass;
-        CopyDepthPass m_CopyDepthPass;
-        CopyColorPass m_CopyColorPass;
-        DrawObjectsPass m_RenderTransparentForwardPass;
-        PostProcessPass m_PostProcessPass;
-        FinalBlitPass m_FinalBlitPass;
+        DrawSkyboxPass m_DrawSkyboxPass; //+
+        CopyDepthPass m_CopyDepthPass; //? this
+        CopyColorPass m_CopyColorPass; //? and this together, cause of blit - so kinda works, but i don't see a point in these passes as depth/color can simply be sent as input to custom renderpass
+        DrawObjectsPass m_RenderTransparentForwardPass; //+
+        PostProcessPass m_PostProcessPass; //+
+        FinalBlitPass m_FinalBlitPass; //+
         CapturePass m_CapturePass;
 
 #if UNITY_EDITOR
@@ -308,69 +308,55 @@ namespace UnityEngine.Rendering.LWRP
 
             bool clearWithSkybox = (camera.clearFlags == CameraClearFlags.Skybox && RenderSettings.skybox != null);
 
-//            if (mainLightShadows)
-//            {
-//                m_MainLightShadowCasterPass.Configure(cmd, cameraTargetDescriptor);
-//                cmd.SetRenderTarget(m_MainLightShadowCasterPass.colorAttachment, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
-//                context.ExecuteCommandBuffer(cmd);
-//                cmd.Clear();
-//                m_MainLightShadowCasterPass.Execute(context, ref renderingData);
-//            }
-
-             if (mainLightShadows)
-             {
-                 m_MainLightShadowCasterPass.Configure(cmd, cameraTargetDescriptor);
-//
-
-//                 AttachmentDescriptor shadowCasterDepthAttachmentDescriptor = new AttachmentDescriptor(RenderTextureFormat.Shadowmap);
-//                 shadowCasterDepthAttachmentDescriptor.ConfigureTarget(m_MainLightShadowCasterPass.colorAttachment, false, true);
-//                 shadowCasterDepthAttachmentDescriptor.ConfigureClear(Color.black,1.0f, 0);
-//                 NativeArray<AttachmentDescriptor> shadowCasterDescriptors = new NativeArray<AttachmentDescriptor>(new []{shadowCasterDepthAttachmentDescriptor}, Allocator.Temp);
-//                 context.ExecuteCommandBuffer(cmd);
-//                 cmd.Clear();
-////
-////
-//                var shadowMapHeight = (renderingData.shadowData.mainLightShadowCascadesCount == 2)
-//                    ? renderingData.shadowData.mainLightShadowmapHeight >> 1
-//                    : renderingData.shadowData.mainLightShadowmapHeight;
-//
-//                using (context.BeginScopedRenderPass(renderingData.shadowData.mainLightShadowmapWidth, shadowMapHeight,
-//                    1, shadowCasterDescriptors, 0))
-//                {
-//                    shadowCasterDescriptors.Dispose();
-//                    NativeArray<int> indices = new NativeArray<int>(1, Allocator.Temp);
-//                    indices[0] = 0;
-//                    using (context.BeginScopedSubPass(indices))
-//                    {
-//                        indices.Dispose();
-//                        m_MainLightShadowCasterPass.Execute(context, ref renderingData);
-//                    }
-//                }
-
-                 cmd.SetRenderTarget(m_MainLightShadowCasterPass.colorAttachment, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
-                 cmd.ClearRenderTarget(true, true, Color.white);
-                 context.ExecuteCommandBuffer(cmd);
-                 cmd.Clear();
-                 m_MainLightShadowCasterPass.Execute(context, ref renderingData);
-
-
-
-             }
-
-            if (additionalLightShadows)
+            if (mainLightShadows)
             {
+                m_MainLightShadowCasterPass.Configure(cmd, cameraTargetDescriptor);
+
+                AttachmentDescriptor shadowCasterDepthAttachmentDescriptor =
+                    new AttachmentDescriptor(RenderTextureFormat.Shadowmap);
+                shadowCasterDepthAttachmentDescriptor.ConfigureTarget(m_MainLightShadowCasterPass.colorAttachment,
+                    false, true);
+                shadowCasterDepthAttachmentDescriptor.ConfigureClear(Color.white, 1.0f, 0);
+                NativeArray<AttachmentDescriptor> shadowCasterDescriptors =
+                    new NativeArray<AttachmentDescriptor>(new[] {shadowCasterDepthAttachmentDescriptor},
+                        Allocator.Temp);
+                context.ExecuteCommandBuffer(cmd);
+                cmd.Clear();
 
                 var shadowMapHeight = (renderingData.shadowData.mainLightShadowCascadesCount == 2)
                     ? renderingData.shadowData.mainLightShadowmapHeight >> 1
                     : renderingData.shadowData.mainLightShadowmapHeight;
 
-                AttachmentDescriptor additionalLightShadowCasterAttachmentDescriptor = new AttachmentDescriptor(RenderTextureFormat.Shadowmap);
+                using (context.BeginScopedRenderPass(renderingData.shadowData.mainLightShadowmapWidth, shadowMapHeight,
+                    1, shadowCasterDescriptors, 0))
+                {
+                    shadowCasterDescriptors.Dispose();
+                    NativeArray<int> indices = new NativeArray<int>(0, Allocator.Temp);
+                    using (context.BeginScopedSubPass(indices))
+                    {
+                        indices.Dispose();
+                        m_MainLightShadowCasterPass.Execute(context, ref renderingData);
+                    }
+                }
+            }
+
+            if (additionalLightShadows)
+            {
+                var shadowMapHeight = (renderingData.shadowData.mainLightShadowCascadesCount == 2)
+                    ? renderingData.shadowData.mainLightShadowmapHeight >> 1
+                    : renderingData.shadowData.mainLightShadowmapHeight;
+
+                AttachmentDescriptor additionalLightShadowCasterAttachmentDescriptor =
+                    new AttachmentDescriptor(RenderTextureFormat.Shadowmap);
                 m_AdditionalLightsShadowCasterPass.Configure(cmd, cameraTargetDescriptor);
                 additionalLightShadowCasterAttachmentDescriptor.ConfigureTarget(
                     m_AdditionalLightsShadowCasterPass.colorAttachment, false, true);
-                NativeArray<AttachmentDescriptor> shadowCasterDescriptors = new NativeArray<AttachmentDescriptor>(new [] {additionalLightShadowCasterAttachmentDescriptor}, Allocator.Temp);
+                NativeArray<AttachmentDescriptor> shadowCasterDescriptors =
+                    new NativeArray<AttachmentDescriptor>(new[] {additionalLightShadowCasterAttachmentDescriptor},
+                        Allocator.Temp);
 
-                using (context.BeginScopedRenderPass(renderingData.shadowData.mainLightShadowmapWidth, shadowMapHeight, 1, shadowCasterDescriptors, 0))
+                using (context.BeginScopedRenderPass(renderingData.shadowData.mainLightShadowmapWidth, shadowMapHeight,
+                    1, shadowCasterDescriptors, 0))
                 {
                     shadowCasterDescriptors.Dispose();
                     NativeArray<int> indices = new NativeArray<int>(1, Allocator.Temp);
@@ -381,12 +367,6 @@ namespace UnityEngine.Rendering.LWRP
                         m_AdditionalLightsShadowCasterPass.Execute(context, ref renderingData);
                     }
                 }
-
-
-//                cmd.SetRenderTarget(m_AdditionalLightsShadowCasterPass.colorAttachment, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
-//                context.ExecuteCommandBuffer(cmd);
-//                cmd.Clear();
-//                m_AdditionalLightsShadowCasterPass.Execute(context, ref renderingData);
             }
 
             bool stereoEnabled = false;
@@ -394,11 +374,10 @@ namespace UnityEngine.Rendering.LWRP
 
             if (requiresDepthPrepass)
             {
-                AttachmentDescriptor depthPrepassAttachmentDescriptor = new AttachmentDescriptor(RenderTextureFormat.Depth);
+                AttachmentDescriptor depthPrepassAttachmentDescriptor =
+                    new AttachmentDescriptor(RenderTextureFormat.Depth);
                 m_DepthPrepass.Setup(cameraTargetDescriptor, m_DepthTexture);
                 m_DepthPrepass.Configure(cmd, cameraTargetDescriptor);
-#if PLATFORM_IOS && !UNITY_EDITOR
-                Debug.Log("stuff hapens");
                 context.ExecuteCommandBuffer(cmd);
                 cmd.Clear();
                 depthPrepassAttachmentDescriptor.ConfigureTarget(m_DepthPrepass.colorAttachment, false, true);
@@ -409,8 +388,7 @@ namespace UnityEngine.Rendering.LWRP
                     0))
                 {
                     depthPrepassDescriptors.Dispose();
-                    NativeArray<int> indices = new NativeArray<int>(1, Allocator.Temp);
-                    indices[0] = 0;
+                    NativeArray<int> indices = new NativeArray<int>(0, Allocator.Temp);
                     using (context.BeginScopedSubPass(indices))
                     {
                         indices.Dispose();
@@ -418,12 +396,6 @@ namespace UnityEngine.Rendering.LWRP
                     }
 
                 }
-#else
-                cmd.SetRenderTarget(m_DepthPrepass.colorAttachment, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
-                context.ExecuteCommandBuffer(cmd);
-                cmd.Clear();
-                m_DepthPrepass.Execute(context, ref renderingData);
-#endif
             }
 
 
@@ -432,109 +404,147 @@ namespace UnityEngine.Rendering.LWRP
 
             ClearFlag clearFlag = GetCameraClearFlag(camera.clearFlags);
 
-            m_ActiveCameraColorAttachmentDescriptor.ConfigureTarget(m_ActiveCameraColorAttachment.Identifier(), clearFlag == ClearFlag.None, true );
+            m_ActiveCameraColorAttachmentDescriptor.ConfigureTarget(m_ActiveCameraColorAttachment.Identifier(), true,
+                true);
             m_ActiveCameraColorAttachmentDescriptor.ConfigureClear(Color.yellow, 1.0f, 0);
             m_ActiveCameraDepthAttachmentDescriptor.ConfigureClear(Color.cyan, 1.0f, 0);
 
-            //if (resolveShadowsInScreenSpace)
-            //{
-            //    m_ScreenSpaceShadowResolvePass.Setup(cameraTargetDescriptor);
-            //    m_ScreenSpaceShadowResolvePass.Configure(cmd, cameraTargetDescriptor);
-            //    cmd.SetRenderTarget(m_ScreenSpaceShadowResolvePass.colorAttachment, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
-            //    cmd.ClearRenderTarget(true, true, Color.white);
-            //    context.ExecuteCommandBuffer(cmd);
-            //    cmd.Clear();
-
-            //    m_ScreenSpaceShadowResolvePass.Execute(context, ref renderingData);
-            //}
-
-            NativeArray<AttachmentDescriptor> descriptors;
-            if (resolveShadowsInScreenSpace)
+            if (renderingData.cameraData.requiresOpaqueTexture)
             {
-                m_ScreenSpaceShadowResolvePass.Setup(cameraTargetDescriptor);
-                m_ScreenSpaceShadowResolvePass.Configure(cmd, cameraTargetDescriptor);
+                Downsampling downsamplingMethod = LightweightRenderPipeline.asset.opaqueDownsampling;
+                m_CopyColorPass.Setup(m_ActiveCameraColorAttachment.Identifier(), m_OpaqueColor,
+                    downsamplingMethod);
+                m_CopyColorPass.Configure(cmd, cameraTargetDescriptor);
                 context.ExecuteCommandBuffer(cmd);
                 cmd.Clear();
-                var shadowResolveDescriptor = new AttachmentDescriptor(RenderTextureFormat.R8);
+            }
 
-                shadowResolveDescriptor.ConfigureClear(Color.black, 1.0f, 0);
+            if (createDepthTexture)
+            {
+                m_CopyDepthPass.Setup(m_ActiveCameraDepthAttachment, m_DepthTexture);
+                m_CopyDepthPass.Configure(cmd, cameraTargetDescriptor);
+                context.ExecuteCommandBuffer(cmd);
+                cmd.Clear();
+            }
 
+            NativeArray<AttachmentDescriptor> descriptors;
+
+            m_ScreenSpaceShadowResolvePass.Setup(cameraTargetDescriptor);
+            m_ScreenSpaceShadowResolvePass.Configure(cmd, cameraTargetDescriptor);
+            context.ExecuteCommandBuffer(cmd);
+            cmd.Clear();
+            var shadowResolveDescriptor = new AttachmentDescriptor(RenderTextureFormat.R8);
+
+            shadowResolveDescriptor.ConfigureClear(Color.black, 1.0f, 0);
+            if (resolveShadowsInScreenSpace)
+            {
                 descriptors = new NativeArray<AttachmentDescriptor>(
-                    new[] { m_ActiveCameraColorAttachmentDescriptor, m_ActiveCameraDepthAttachmentDescriptor, shadowResolveDescriptor },
-                    Allocator.Temp);
+                        new[]
+                        {
+                            m_ActiveCameraColorAttachmentDescriptor, m_ActiveCameraDepthAttachmentDescriptor,
+                            shadowResolveDescriptor
+                        },
+                        Allocator.Temp);
             }
             else
             {
-                 descriptors = new NativeArray<AttachmentDescriptor>(
-                    new[] {m_ActiveCameraColorAttachmentDescriptor, m_ActiveCameraDepthAttachmentDescriptor},
-                    Allocator.Temp);
+                descriptors = new NativeArray<AttachmentDescriptor>(
+                        new[] {m_ActiveCameraColorAttachmentDescriptor, m_ActiveCameraDepthAttachmentDescriptor},
+                        Allocator.Temp);
             }
 
-            using (context.BeginScopedRenderPass(camera.pixelWidth, camera.pixelHeight, cameraData.cameraTargetDescriptor.msaaSamples, descriptors, 1))
+
+
+        if (postProcessEnabled)
+                m_PostProcessPass.Setup(cameraTargetDescriptor, m_ActiveCameraColorAttachment, RenderTargetHandle.CameraTarget);
+            else if (m_ActiveCameraColorAttachment != RenderTargetHandle.CameraTarget)
+                m_FinalBlitPass.Setup(cameraTargetDescriptor, m_ActiveCameraColorAttachment);
+
+        if (resolveShadowsInScreenSpace)
+        {
+            using (context.BeginScopedRenderPass(camera.pixelWidth, camera.pixelHeight,
+                cameraData.cameraTargetDescriptor.msaaSamples, descriptors, 1))
             {
                 descriptors.Dispose();
-                if (resolveShadowsInScreenSpace)
                 {
-                    NativeArray<int> shadowResolveIndices = new NativeArray<int>(new[] { 2 }, Allocator.Temp);
+                    NativeArray<int> shadowResolveIndices = new NativeArray<int>(new[] {2}, Allocator.Temp);
                     using (context.BeginScopedSubPass(shadowResolveIndices))
                     {
                         m_ScreenSpaceShadowResolvePass.Execute(context, ref renderingData);
                     }
-                    NativeArray<int> indices = new NativeArray<int>(new[] { 0 }, Allocator.Temp);
+
+                    NativeArray<int> indices = new NativeArray<int>(new[] {0}, Allocator.Temp);
                     using (context.BeginScopedSubPass(indices, shadowResolveIndices))
                     {
-                        indices.Dispose();
                         m_RenderOpaqueForwardPass.Execute(context, ref renderingData);
                         if (clearWithSkybox)
                             m_DrawSkyboxPass.Execute(context, ref renderingData);
-                        m_RenderTransparentForwardPass.Execute(context, ref renderingData);
-                    }
-                    shadowResolveIndices.Dispose();
-                }
-                else
-                {
-                    NativeArray<int> indices = new NativeArray<int>(new[] { 0 }, Allocator.Temp);
-                    using (context.BeginScopedSubPass(indices))
-                    {
-                        indices.Dispose();
-                        m_RenderOpaqueForwardPass.Execute(context, ref renderingData);
-                        if (clearWithSkybox)
-                            m_DrawSkyboxPass.Execute(context, ref renderingData);
-                        m_RenderTransparentForwardPass.Execute(context, ref renderingData);
                     }
                 }
-
-
             }
+            if (createDepthTexture)
+                m_CopyDepthPass.Execute(context, ref renderingData);
+            if (renderingData.cameraData.requiresOpaqueTexture)
+                m_CopyColorPass.Execute(context, ref renderingData);
 
-            DrawGizmos(context, camera, GizmoSubset.PreImageEffects);
-//            AttachmentDescriptor m_CameraTargetAttachmentDescriptor = new AttachmentDescriptor(RenderTextureFormat.ARGB32);
-//            m_CameraTargetAttachmentDescriptor.ConfigureTarget(BuiltinRenderTextureType.CameraTarget, false, true);
-//            descriptors = new NativeArray<AttachmentDescriptor>(new[] {m_CameraTargetAttachmentDescriptor}, Allocator.Temp);
-//            using (context.BeginScopedRenderPass(camera.pixelWidth, camera.pixelHeight,
-//                1, descriptors, -1))
-//            {
-//                descriptors.Dispose();
-//                NativeArray<int> indices = new NativeArray<int>(new [] {0}, Allocator.Temp);
-//                using (context.BeginScopedSubPass(indices))
-//                {
-//                    indices.Dispose();
-                    if (postProcessEnabled)
+            context.ExecuteCommandBuffer(cmd);
+            cmd.Clear();
+
+            m_ActiveCameraColorAttachmentDescriptor.loadAction = RenderBufferLoadAction.Load;
+            m_ActiveCameraDepthAttachmentDescriptor.storeAction = RenderBufferStoreAction.DontCare;
+
+                descriptors = new NativeArray<AttachmentDescriptor>(
+                    new[]
                     {
-                        m_PostProcessPass.Setup(cameraTargetDescriptor, m_ActiveCameraColorAttachment, RenderTargetHandle.CameraTarget);
-                        m_PostProcessPass.Execute(context, ref renderingData);
-                    }
-                    else if (m_ActiveCameraColorAttachment != RenderTargetHandle.CameraTarget)
+                        m_ActiveCameraColorAttachmentDescriptor, m_ActiveCameraDepthAttachmentDescriptor,
+                        shadowResolveDescriptor
+                    }, Allocator.Temp);
+                using (context.BeginScopedRenderPass(camera.pixelWidth, camera.pixelHeight,
+                    cameraData.cameraTargetDescriptor.msaaSamples, descriptors, 1))
+                {
+
+                    NativeArray<int> shadowResolveIndices = new NativeArray<int>(new[] {2}, Allocator.Temp);
+
+                    NativeArray<int> inputs = new NativeArray<int>(new[] {0}, Allocator.Temp);
+                    using (context.BeginScopedSubPass(inputs, shadowResolveIndices))
                     {
-                        m_FinalBlitPass.Setup(cameraTargetDescriptor, m_ActiveCameraColorAttachment);
-                        m_FinalBlitPass.Execute(context, ref renderingData);
+                        m_RenderTransparentForwardPass.Execute(context, ref renderingData);
+                        DrawGizmos(context, camera, GizmoSubset.PreImageEffects);
+                        if (postProcessEnabled)
+                        {
+                            m_PostProcessPass.Execute(context, ref renderingData);
+
+                        }
+                        else if (m_ActiveCameraColorAttachment != RenderTargetHandle.CameraTarget)
+                            m_FinalBlitPass.Execute(context, ref renderingData);
+                        DrawGizmos(context, camera, GizmoSubset.PostImageEffects);
                     }
-//
-//                }
-//            }
+                }
+            }
+        else
+                {
+                    using (context.BeginScopedRenderPass(camera.pixelWidth, camera.pixelHeight,
+                        cameraData.cameraTargetDescriptor.msaaSamples, descriptors, 1))
+                    {
+                        NativeArray<int> indices = new NativeArray<int>(new[] {0}, Allocator.Temp);
+                        using (context.BeginScopedSubPass(indices))
+                        {
+                            indices.Dispose();
+                            m_RenderOpaqueForwardPass.Execute(context, ref renderingData);
+                            if (clearWithSkybox)
+                                m_DrawSkyboxPass.Execute(context, ref renderingData);
 
+                            m_RenderTransparentForwardPass.Execute(context, ref renderingData);
+                            DrawGizmos(context, camera, GizmoSubset.PreImageEffects);
+                            if (postProcessEnabled)
+                                m_PostProcessPass.Execute(context, ref renderingData);
+                            else if (m_ActiveCameraColorAttachment != RenderTargetHandle.CameraTarget)
+                                m_FinalBlitPass.Execute(context, ref renderingData);
+                            DrawGizmos(context, camera, GizmoSubset.PostImageEffects);
+                        }
+                    }
+                }
 
-            DrawGizmos(context, camera, GizmoSubset.PostImageEffects);
 
 #if UNITY_EDITOR
             if (renderingData.cameraData.isSceneViewCamera)
@@ -633,7 +643,7 @@ namespace UnityEngine.Rendering.LWRP
             bool requiresBlitForOffscreenCamera = cameraData.postProcessEnabled || cameraData.requiresOpaqueTexture || requiresExplicitMsaaResolve;
             if (isOffscreenRender)
                 return requiresBlitForOffscreenCamera;
-
+            
             return requiresBlitForOffscreenCamera || cameraData.isSceneViewCamera || isScaledRender || cameraData.isHdrEnabled ||
                    !isCompatibleBackbufferTextureDimension || !cameraData.isDefaultViewport || isCapturing || Display.main.requiresBlitToBackbuffer
                    || (renderingData.killAlphaInFinalBlit && !isStereoEnabled);

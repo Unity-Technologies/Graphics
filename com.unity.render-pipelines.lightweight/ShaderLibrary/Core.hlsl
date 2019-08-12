@@ -140,6 +140,11 @@ float4 GetScaledScreenParams()
     return _ScaledScreenParams;
 }
 
+int GetCameraSampleCount()
+{
+    return _MSAASampleCount;
+}
+
 void AlphaDiscard(real alpha, real cutoff, real offset = 0.0h)
 {
 #ifdef _ALPHATEST_ON

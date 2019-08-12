@@ -38,6 +38,7 @@ CBUFFER_END
 CBUFFER_START(_PerCamera)
 float4x4 _InvCameraViewProj;
 float4 _ScaledScreenParams;
+int _MSAASampleCount;
 CBUFFER_END
 
 CBUFFER_START(_LightBuffer)
@@ -64,6 +65,7 @@ CBUFFER_END
 #define UNITY_MATRIX_T_MV  transpose(UNITY_MATRIX_MV)
 #define UNITY_MATRIX_IT_MV transpose(mul(UNITY_MATRIX_I_M, UNITY_MATRIX_I_V))
 #define UNITY_MATRIX_MVP   mul(UNITY_MATRIX_VP, UNITY_MATRIX_M)
+#define UNITY_MSAA_SAMPLE  _MSAASampleCount
 
 #include "UnityInput.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/UnityInstancing.hlsl"

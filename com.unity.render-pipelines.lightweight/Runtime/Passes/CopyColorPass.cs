@@ -26,6 +26,7 @@ namespace UnityEngine.Rendering.LWRP
         {
             m_SamplingMaterial = samplingMaterial;
             m_SampleOffsetShaderHandle = Shader.PropertyToID("_SampleOffset");
+            destination.Init("_CameraOpaqueTexture");
             renderPassEvent = evt;
             m_DownsamplingMethod = Downsampling.None;
         }
@@ -42,12 +43,14 @@ namespace UnityEngine.Rendering.LWRP
             m_DownsamplingMethod = downsampling;
         }
 
-        public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescripor)
+        public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
         {
-            RenderTextureDescriptor descriptor = cameraTextureDescripor;
+            RenderTextureDescriptor descriptor = cameraTextureDescriptor;
             descriptor.msaaSamples = 1;
             descriptor.depthBufferBits = 0;
             cmd.GetTemporaryRT(destination.id, descriptor, m_DownsamplingMethod == Downsampling.None ? FilterMode.Point : FilterMode.Bilinear);
+            ConfigureTarget(destination.Identifier());
+            ConfigureClear(ClearFlag.All, Color.white);
         }
 
         /// <inheritdoc/>
@@ -61,21 +64,20 @@ namespace UnityEngine.Rendering.LWRP
 
             CommandBuffer cmd = CommandBufferPool.Get(m_ProfilerTag);
             RenderTargetIdentifier opaqueColorRT = destination.Identifier();
-
             switch (m_DownsamplingMethod)
             {
                 case Downsampling.None:
-                    Blit(cmd, source, opaqueColorRT);
+                    cmd.Blit(source, opaqueColorRT);
                     break;
                 case Downsampling._2xBilinear:
-                    Blit(cmd, source, opaqueColorRT);
+                    cmd.Blit(source, opaqueColorRT);
                     break;
                 case Downsampling._4xBox:
                     m_SamplingMaterial.SetFloat(m_SampleOffsetShaderHandle, 2);
-                    Blit(cmd, source, opaqueColorRT, m_SamplingMaterial);
+                    cmd.Blit(source, opaqueColorRT, m_SamplingMaterial);
                     break;
                 case Downsampling._4xBilinear:
-                    Blit(cmd, source, opaqueColorRT);
+                    cmd.Blit(source, opaqueColorRT);
                     break;
             }
             context.ExecuteCommandBuffer(cmd);

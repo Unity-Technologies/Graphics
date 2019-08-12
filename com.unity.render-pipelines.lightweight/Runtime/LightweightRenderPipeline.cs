@@ -30,6 +30,7 @@ namespace UnityEngine.Rendering.LWRP
             public static int _ScaledScreenParams;
             public static int _ScreenParams;
             public static int _WorldSpaceCameraPos;
+            public static int _SampleCount;
         }
 
         public const string k_ShaderTagName = "LightweightPipeline";
@@ -89,6 +90,7 @@ namespace UnityEngine.Rendering.LWRP
             PerCameraBuffer._ScreenParams = Shader.PropertyToID("_ScreenParams");
             PerCameraBuffer._ScaledScreenParams = Shader.PropertyToID("_ScaledScreenParams");
             PerCameraBuffer._WorldSpaceCameraPos = Shader.PropertyToID("_WorldSpaceCameraPos");
+            PerCameraBuffer._SampleCount = Shader.PropertyToID("_MSAASampleCount");
 
             // Let engine know we have MSAA on for cases where we support MSAA backbuffer
             if (QualitySettings.antiAliasing != asset.msaaSampleCount)
@@ -128,7 +130,7 @@ namespace UnityEngine.Rendering.LWRP
             {
                 BeginCameraRendering(renderContext, camera);
 
-                UnityEngine.Experimental.VFX.VFXManager.ProcessCamera(camera); //Visual Effect Graph is not yet a required package but calling this method when there isn't any VisualEffect component has no effect (but needed for Camera sorting in Visual Effect Graph context)
+//                UnityEngine.Experimental.VFX.VFXManager.ProcessCamera(camera); //Visual Effect Graph is not yet a required package but calling this method when there isn't any VisualEffect component has no effect (but needed for Camera sorting in Visual Effect Graph context)
                 RenderSingleCamera(renderContext, camera);
 
                 EndCameraRendering(renderContext, camera);
@@ -497,6 +499,8 @@ namespace UnityEngine.Rendering.LWRP
             Matrix4x4 viewProjMatrix = projMatrix * viewMatrix;
             Matrix4x4 invViewProjMatrix = Matrix4x4.Inverse(viewProjMatrix);
             Shader.SetGlobalMatrix(PerCameraBuffer._InvCameraViewProj, invViewProjMatrix);
+            
+            Shader.SetGlobalInt(PerCameraBuffer._SampleCount, cameraData.cameraTargetDescriptor.msaaSamples);
         }
 
         static Lightmapping.RequestLightsDelegate lightsDelegate = (Light[] requests, NativeArray<LightDataGI> lightsOutput) =>

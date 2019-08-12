@@ -3,6 +3,7 @@
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Shadow/ShadowSamplingTent.hlsl"
+#include "Input.hlsl"
 #include "Core.hlsl"
 
 #define MAX_SHADOW_CASCADES 4
@@ -16,7 +17,12 @@
 #endif
 
 #define SHADOWINPUT 0
+
+#if UNITY_MSAA_SAMPLE > 1
+UNITY_DECLARE_FRAMEBUFFER_INPUT_HALF_MS(SHADOWINPUT);
+#else
 UNITY_DECLARE_FRAMEBUFFER_INPUT_HALF(SHADOWINPUT);
+#endif
 
 SCREENSPACE_TEXTURE(_ScreenSpaceShadowmapTexture);
 SAMPLER(sampler_ScreenSpaceShadowmapTexture);
@@ -114,7 +120,16 @@ half SampleScreenSpaceShadowmap(float4 shadowCoord)
 #if defined(UNITY_STEREO_INSTANCING_ENABLED) || defined(UNITY_STEREO_MULTIVIEW_ENABLED)
     half attenuation = SAMPLE_TEXTURE2D_ARRAY(_ScreenSpaceShadowmapTexture, sampler_ScreenSpaceShadowmapTexture, shadowCoord.xy, unity_StereoEyeIndex).x;
 #else
+
+#if UNITY_MSAA_SAMPLE > 1
+    half attenuation;
+    for (int i = 0; i < UNITY_MSAA_SAMPLE; i++)
+    {
+        attenuation += UNITY_READ_FRAMEBUFFER_INPUT_MS(SHADOWINPUT, i, shadowCoord.xy).x;
+    }
+#else
     half attenuation = UNITY_READ_FRAMEBUFFER_INPUT(SHADOWINPUT, shadowCoord.xy).x;
+#endif
     //half attenuation = SAMPLE_TEXTURE2D(_ScreenSpaceShadowmapTexture, sampler_ScreenSpaceShadowmapTexture, shadowCoord.xy).x;
 #endif
 
