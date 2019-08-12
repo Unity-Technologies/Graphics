@@ -21,7 +21,6 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             new SurfaceOptionUIBlock(MaterialUIBlock.Expandable.Base, features: surfaceOptionFeatures),
             new ShaderGraphUIBlock(MaterialUIBlock.Expandable.ShaderGraph),
-            new AdvancedOptionsUIBlock(MaterialUIBlock.Expandable.Advance, AdvancedOptionsUIBlock.Features.VirtualTexturing),
         };
 
         public override void OnGUI(MaterialEditor materialEditor, MaterialProperty[] props)

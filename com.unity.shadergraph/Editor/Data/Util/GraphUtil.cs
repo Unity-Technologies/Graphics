@@ -987,7 +987,6 @@ namespace UnityEditor.ShaderGraph
             var results = new GenerationResults();
 
             var shaderProperties = new PropertyCollector();
-            var shaderPragmas = new PragmaCollector();
             var shaderPropertyUniforms = new ShaderStringBuilder();
             var functionBuilder = new ShaderStringBuilder();
             var functionRegistry = new FunctionRegistry(functionBuilder);
@@ -1068,7 +1067,6 @@ namespace UnityEditor.ShaderGraph
                 graph,
                 surfaceDescriptionFunction,
                 functionRegistry,
-                shaderPragmas,
                 shaderProperties,
                 requirements,
                 mode,
@@ -1136,7 +1134,7 @@ namespace UnityEditor.ShaderGraph
 
                 finalShader.AppendLine(@"ENDHLSL");
 
-                finalShader.AppendLines(ShaderGenerator.GetPreviewSubShader(node, requirements, shaderPragmas));
+                finalShader.AppendLines(ShaderGenerator.GetPreviewSubShader(node, requirements));
                 ListPool<AbstractMaterialNode>.Release(activeNodeList);
             }
 
@@ -1243,7 +1241,6 @@ namespace UnityEditor.ShaderGraph
             GraphData graph,
             ShaderStringBuilder surfaceDescriptionFunction,
             FunctionRegistry functionRegistry,
-            PragmaCollector shaderPragmas,
             PropertyCollector shaderProperties,
             ShaderGraphRequirements requirements,
             GenerationMode mode,
@@ -1281,7 +1278,6 @@ namespace UnityEditor.ShaderGraph
                     }
 
                     activeNode.CollectShaderProperties(shaderProperties, mode);
-                    activeNode.CollectShaderPragmas(shaderPragmas, mode);
                 }
 
                 functionRegistry.builder.currentNode = null;
@@ -1352,7 +1348,6 @@ namespace UnityEditor.ShaderGraph
             GraphData graph,
             ShaderStringBuilder builder,
             FunctionRegistry functionRegistry,
-            PragmaCollector shaderPragmas,
             PropertyCollector shaderProperties,
             GenerationMode mode,
             List<AbstractMaterialNode> nodes,
@@ -1388,7 +1383,6 @@ namespace UnityEditor.ShaderGraph
                         builder.ReplaceInCurrentMapping(PrecisionUtil.Token, node.concretePrecision.ToShaderString());
                     }
                     node.CollectShaderProperties(shaderProperties, mode);
-                    node.CollectShaderPragmas(shaderPragmas, mode);
                 }
 
                 functionRegistry.builder.currentNode = null;

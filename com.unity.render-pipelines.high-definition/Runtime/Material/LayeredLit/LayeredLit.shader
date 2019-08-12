@@ -366,11 +366,6 @@ Shader "HDRP/LayeredLit"
         [ToggleUI] _ReceivesSSR("Receives SSR", Float) = 1.0
         [ToggleUI] _AddVelocityChange("EnableAdditionalVelocity", Float) = 0.0
 
-        [Toggle] _VirtualTexturing("Virtual Texturing", Float) = 0.0
-        _TextureStack0("_TextureStack0", TextureStack) = { _BaseColorMap0 _MaskMap0 _NormalMap0 }
-        _TextureStack1("_TextureStack1", TextureStack) = { _BaseColorMap1 _MaskMap1 _NormalMap1 }
-        _TextureStack2("_TextureStack2", TextureStack) = { _BaseColorMap2 _MaskMap2 _NormalMap2 }
-        _TextureStack3("_TextureStack3", TextureStack) = { _BaseColorMap3 _MaskMap3 _NormalMap3 }
     }
 
     HLSLINCLUDE
@@ -461,8 +456,6 @@ Shader "HDRP/LayeredLit"
     //enable GPU instancing support
     #pragma multi_compile_instancing
     #pragma instancing_options renderinglayer
-
-    #pragma shader_feature_local VIRTUAL_TEXTURES_BUILT     // Is VT built for this material
 
     //-------------------------------------------------------------------------------------
     // Define

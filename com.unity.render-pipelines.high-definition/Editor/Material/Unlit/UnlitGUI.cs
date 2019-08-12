@@ -18,7 +18,7 @@ namespace UnityEditor.Rendering.HighDefinition
             new UnlitSurfaceInputsUIBlock(MaterialUIBlock.Expandable.Input),
             new TransparencyUIBlock(MaterialUIBlock.Expandable.Transparency),
             new EmissionUIBlock(MaterialUIBlock.Expandable.Emissive),
-            new AdvancedOptionsUIBlock(MaterialUIBlock.Expandable.Advance, AdvancedOptionsUIBlock.Features.Unlit | AdvancedOptionsUIBlock.Features.AdditionalVelocity),
+            new AdvancedOptionsUIBlock(MaterialUIBlock.Expandable.Advance, AdvancedOptionsUIBlock.Features.Instancing | AdvancedOptionsUIBlock.Features.AdditionalVelocity),
         };
 
         public override void OnGUI(MaterialEditor materialEditor, MaterialProperty[] props)

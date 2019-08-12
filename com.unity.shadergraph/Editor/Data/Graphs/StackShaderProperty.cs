@@ -7,14 +7,14 @@ using UnityEngine;
 namespace UnityEditor.ShaderGraph
 {
     [Serializable]
-    class StackShaderProperty : AbstractShaderProperty<SerializableStack>
+    // Node a StackShaderProperty has no user settable values it is only used to ensure correct data is emitted into the shader. So we use a dummy value of  "int" type.
+    class StackShaderProperty : AbstractShaderProperty<int>
     {
         [SerializeField]
-        private bool m_Modifiable = true;
+        private bool m_Modifiable = false;
 
         public StackShaderProperty()
         {
-            value = new SerializableStack();
             displayName = "Stack";
             slotNames = new List<string>();
             slotNames.Add("Dummy");
@@ -98,21 +98,19 @@ namespace UnityEditor.ShaderGraph
         public override string GetPropertyAsArgumentString()
         {
             throw new NotImplementedException();
-            //return string.Format("TEXTURECUBE_PARAM({0}, sampler{0})", referenceName);
         }
 
         public override PreviewProperty GetPreviewMaterialProperty()
         {
             return new PreviewProperty(PropertyType.TextureStack)
             {
-                name = referenceName,
-                textureStackValue = value.textureStack
+                name = referenceName
             };
         }
 
         public override AbstractMaterialNode ToConcreteNode()
         {
-            return null;// new StackAssetNode { cubemap = value.stack };
+            return null;
         }
 
         public override ShaderInput Copy()

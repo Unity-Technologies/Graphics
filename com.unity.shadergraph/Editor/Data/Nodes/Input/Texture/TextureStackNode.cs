@@ -207,20 +207,6 @@ namespace UnityEditor.ShaderGraph
                 modifiable = false,
                 slotNames = slotNames
             });
-
-            // If the property already exists additional calls will be ignored so we just try to add this on every VT node..
-            properties.AddShaderProperty(new BooleanShaderProperty()
-            {
-                overrideReferenceName = "_VirtualTexturing",
-                displayName = "Virtual Texturing",
-                generatePropertyBlock = true,
-                value = false
-            });
-        }
-
-        public override void CollectShaderPragmas(PragmaCollector pragmas, GenerationMode generationMode)
-        {
-            pragmas.AddShaderPragma(new ShaderFeatureLocalPragma(new string[] { "VIRTUAL_TEXTURES_BUILT" }));            
         }
 
         public bool RequiresMeshUV(UVChannel channel, ShaderStageCapability stageCapability)

@@ -7,12 +7,7 @@ namespace UnityEditor.Rendering.HighDefinition
     {
         public override void OnGUI(MaterialEditor materialEditor, MaterialProperty[] props)
         {
-            EditorGUI.BeginChangeCheck();
             materialEditor.PropertiesDefaultGUI(props);
-            if (EditorGUI.EndChangeCheck())
-            {
-                ShaderGraph.StackUtilities.SetMaterialKeywords(materialEditor.targets);
-            }
 
             if (materialEditor.EmissionEnabledProperty())
             {

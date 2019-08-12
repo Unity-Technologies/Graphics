@@ -59,10 +59,9 @@
 
 // A note about the on/off defines
 // UNITY_VIRTUAL_TEXTURING current project is configured to use VT this is something even non vt materials may need to be aware of (e.g. different gbuffer layout used etc...)
-// VIRTUAL_TEXTURES_BUILT valid vt data has been build for the material the material can render with VT from a data point but not nececarry rendering using VT because RP may have it disabled
 // VIRTUAL_TEXTURES_ACTIVE vt data is built and enabled so the current shader should actively use VT sampling
 
-#if UNITY_VIRTUAL_TEXTURING && VIRTUAL_TEXTURES_BUILT
+#if UNITY_VIRTUAL_TEXTURING
 #define VIRTUAL_TEXTURES_ACTIVE 1
 #else
 #define VIRTUAL_TEXTURES_ACTIVE 0

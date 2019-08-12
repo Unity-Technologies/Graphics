@@ -290,12 +290,7 @@ namespace UnityEditor.ShaderGraph
 
             return inputSlot.GetDefaultValue(generationMode);
         }
-
-        public virtual void CollectShaderPragmas(PragmaCollector pragmas, GenerationMode generationMode)
-        {
-            // None by default
-        }        
-
+ 
         public static ConcreteSlotValueType ConvertDynamicVectorInputTypeToConcrete(IEnumerable<ConcreteSlotValueType> inputTypes)
         {
             var concreteSlotValueTypes = inputTypes as IList<ConcreteSlotValueType> ?? inputTypes.ToList();
