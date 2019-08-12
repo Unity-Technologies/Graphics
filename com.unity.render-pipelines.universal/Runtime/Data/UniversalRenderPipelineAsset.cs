@@ -174,11 +174,10 @@ namespace UnityEngine.Rendering.Universal
         {
             // Create Universal RP Asset
             var instance = CreateInstance<UniversalRenderPipelineAsset>();
-            // Create default Renderer
             instance.m_RendererDataList[0] = rendererData;
-            //instance.LoadBuiltinRendererData(RendererType.ForwardRenderer); // TODO - make create work with multiple renderer types
             // Initialize default Renderer
             instance.m_EditorResourcesAsset = LoadResourceFile<UniversalRenderPipelineEditorResources>();
+            instance.m_Renderers = new ScriptableRenderer[1];
             instance.m_Renderers[0] = instance.m_RendererDataList[0].InternalCreateRenderer();
             return instance;
         }
@@ -350,6 +349,11 @@ namespace UnityEngine.Rendering.Universal
         {
             get
             {
+                if (m_RendererDataList[m_DefaultRenderer] == null)
+                {
+                    Debug.LogError("Default renderer is missing from the current Pipeline Asset.", this);
+                    return null;
+                }
                 if (scriptableRendererData.isInvalidated || m_Renderers[m_DefaultRenderer] == null)
                     m_Renderers[m_DefaultRenderer] = scriptableRendererData.InternalCreateRenderer();
 

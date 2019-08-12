@@ -20,7 +20,12 @@ namespace UnityEditor.Rendering.Universal
             public static GUIContent advancedSettingsText = EditorGUIUtility.TrTextContent("Advanced");
 
             // General
-            public static GUIContent rendererDataText = EditorGUIUtility.TrTextContent("Data", "A ScriptableObject with rendering data. Required when using a custom Renderer. If none is assigned, LWRP uses the Forward Renderer as default.");
+            public static GUIContent rendererHeaderText = EditorGUIUtility.TrTextContent("Renderer List", "This list contains all the renderers available to this pipeline asset");
+            public static GUIContent rendererDefaultText = EditorGUIUtility.TrTextContent("Default", "This renderer is currently the default");
+            public static GUIContent rendererSetDefaultText = EditorGUIUtility.TrTextContent("Set Default", "Click this to make the renderer the default");
+            public static GUIContent rendererSettingsText = EditorGUIUtility.TrIconContent("Settings", "Click this to make the renderer the default");
+            public static GUIContent rendererMissingText = EditorGUIUtility.TrIconContent("console.warnicon.sml", "Renderer missing, click this to select a new renderer");
+            public static GUIContent rendererDefaultMissingText = EditorGUIUtility.TrIconContent("console.erroricon.sml", "Defaut renderer missing, click this to select a new renderer");
             public static GUIContent requireDepthTextureText = EditorGUIUtility.TrTextContent("Depth Texture", "If enabled the pipeline will generate camera's depth that can be bound in shaders as _CameraDepthTexture.");
             public static GUIContent requireOpaqueTextureText = EditorGUIUtility.TrTextContent("Opaque Texture", "If enabled the pipeline will copy the screen to texture after opaque objects are drawn. For transparent objects this can be bound in shaders as _CameraOpaqueTexture.");
             public static GUIContent opaqueDownsamplingText = EditorGUIUtility.TrTextContent("Opaque Downsampling", "The downsampling method that is used for the opaque texture");
@@ -62,6 +67,20 @@ namespace UnityEditor.Rendering.Universal
 
             public static GUIContent shaderVariantLogLevel = EditorGUIUtility.TrTextContent("Shader Variant Log Level", "Controls the level logging in of shader variants information is outputted when a build is performed. Information will appear in the Unity console when the build finishes.");
 
+            // Renderer List Messages
+            public static GUIContent rendererListLastMessage =
+                EditorGUIUtility.TrTextContent("Cannot remove last Renderer",
+                    "Removal of the Last Renderer is not allowed.");
+
+            public static GUIContent rendererListDefaultMessage =
+                EditorGUIUtility.TrTextContent("Cannot remove Default Renderer",
+                    "Removal of the Default Renderer is not allowed. To remove, set another Renderer to be the new Default and then remove.");
+            
+            public static GUIContent rendererMissingDefaultMessage =
+                EditorGUIUtility.TrTextContent("Missing Default Renderer\nThe default renderer is not assigned, no rendering can be performed. Set another renderer to be the new Default or assign a renderer to the default slot.");
+            public static GUIContent rendererMissingMessage =
+                EditorGUIUtility.TrTextContent("Missing Renderer(s)\nThere are missing renderers not assigned. Switching to these renderers at runtime will have unforeseen consequences.");
+            
             // Dropdown menu options
             public static string[] mainLightOptions = { "Disabled", "Per Pixel" };
             public static string[] shadowCascadeOptions = {"No Cascades", "Two Cascades", "Four Cascades"};
@@ -192,7 +211,13 @@ namespace UnityEditor.Rendering.Universal
                 EditorGUI.indentLevel--;
                 m_RendererDataList.DoLayoutList();
                 EditorGUI.indentLevel++;
-                //EditorGUILayout.PropertyField(m_RendererDataProp, Styles.rendererDataText);
+                
+                UniversalRenderPipelineAsset asset = target as UniversalRenderPipelineAsset;
+
+                if (!asset.ValidateRendererData(-1))
+                    EditorGUILayout.HelpBox(Styles.rendererMissingDefaultMessage.text, MessageType.Error, true);
+                else if (!asset.ValidateRendererDataList(true))
+                    EditorGUILayout.HelpBox(Styles.rendererMissingMessage.text, MessageType.Warning, true);
                 
                 EditorGUILayout.PropertyField(m_RequireDepthTextureProp, Styles.requireDepthTextureText);
                 EditorGUILayout.PropertyField(m_RequireOpaqueTextureProp, Styles.requireOpaqueTextureText);
@@ -365,20 +390,47 @@ namespace UnityEditor.Rendering.Universal
                 Rect defaultButton = new Rect(rect.width - 90, rect.y, 86, EditorGUIUtility.singleLineHeight);
                 var defaultRenderer = m_DefaultRendererProp.intValue;
                 GUI.enabled = index != defaultRenderer;
-                if(GUI.Button(defaultButton, !GUI.enabled ? "Default" : "Set Default"))
+                if(GUI.Button(defaultButton, !GUI.enabled ? Styles.rendererDefaultText : Styles.rendererSetDefaultText))
                 {
                     m_DefaultRendererProp.intValue = index;
                 }
                 GUI.enabled = true;
                 
                 Rect selectRect = new Rect(rect.x + rect.width - 24, rect.y, 24, EditorGUIUtility.singleLineHeight);
-                if (GUI.Button(selectRect, EditorGUIUtility.IconContent("Settings")))
+                
+                UniversalRenderPipelineAsset asset = target as UniversalRenderPipelineAsset;
+
+                if (asset.ValidateRendererData(index))
                 {
-                    Selection.SetActiveObjectWithContext(prop.GetArrayElementAtIndex(index).objectReferenceValue, null);
+                    if (GUI.Button(selectRect, Styles.rendererSettingsText))
+                    {
+                        Selection.SetActiveObjectWithContext(prop.GetArrayElementAtIndex(index).objectReferenceValue,
+                            null);
+                    }
+                }
+                else if(index == defaultRenderer)
+                {
+                    // missing defaut
+                    if (GUI.Button(selectRect, Styles.rendererDefaultMissingText))
+                    {
+                        //
+                    }
+                }
+                else
+                {
+                    // missing renderer
+                    if (GUI.Button(selectRect, Styles.rendererMissingText))
+                    {
+                        //
+                    }
                 }
             };
-            
-            list.drawHeaderCallback = (Rect rect) => { EditorGUI.LabelField(rect, "Renderers"); list.index = list.count - 1; };
+
+            list.drawHeaderCallback = (Rect rect) =>
+            {
+                EditorGUI.LabelField(rect, Styles.rendererHeaderText);
+                list.index = list.count - 1;
+            };
 
             list.onCanRemoveCallback = li => { return li.count > 1; };
 
@@ -394,12 +446,12 @@ namespace UnityEditor.Rendering.Universal
                 }
                 else if (li.serializedProperty.arraySize == 1)
                 {
-                    EditorUtility.DisplayDialog("Cannot remove last Renderer", "Removal of the Last Renderer is not allowed.",
+                    EditorUtility.DisplayDialog(Styles.rendererListLastMessage.text, Styles.rendererListLastMessage.tooltip,
                         "Close");
                 }
                 else
                 {
-                    EditorUtility.DisplayDialog("Cannot remove Default Renderer", "Removal of the Default Renderer is not allowed. To remove, set another Renderer to be the new Default and then remove.",
+                    EditorUtility.DisplayDialog(Styles.rendererListDefaultMessage.text, Styles.rendererListDefaultMessage.tooltip,
                         "Close");
                 }
             };
