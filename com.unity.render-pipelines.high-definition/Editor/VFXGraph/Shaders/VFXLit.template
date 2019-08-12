@@ -1,5 +1,7 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/VFXGraph/Shaders/VFXLit.hlsl"
 
+#ifndef VFX_SHADERGRAPH
+
 void VFXGetHDRPLitData(out SurfaceData surfaceData, out BuiltinData builtinData, out BSDFData bsdfData, out PreLightData preLightData, VFX_VARYING_PS_INPUTS i, float3 normalWS, const VFXUVData uvData, uint2 tileIndex)
 {	
 	#if HDRP_MATERIAL_TYPE_TRANSLUCENT
