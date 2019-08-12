@@ -82,7 +82,7 @@ namespace UnityEditor.VFX
                         .Where(t => !t.hidden)
                         .Select(t => new { property = t, type = GetSGPropertyType(t) })
                         .Where(t => t.type != null)
-                        .Select(t => new VFXPropertyWithValue(new VFXProperty(t.type, t.property.displayName), GetSGPropertyValue(t.property))));
+                        .Select(t => new VFXPropertyWithValue(new VFXProperty(t.type, t.property.referenceName), GetSGPropertyValue(t.property))));
                 }
                 return properties;
             }
@@ -140,6 +140,14 @@ namespace UnityEditor.VFX
         {
             foreach (var exp in base.CollectGPUExpressions(slotExpressions))
                 yield return exp;
+
+            if( shaderGraph != null)
+            {
+                foreach (var sgProperty in shaderGraph.properties)
+                {
+                    yield return slotExpressions.First(o => o.name == sgProperty.referenceName);
+                }
+            }
         }
 
         public override IEnumerable<string> additionalDefines
@@ -256,12 +264,18 @@ namespace UnityEditor.VFX
                         if (graphCode.requirements.requiresScreenPosition)
                             callSG.builder.AppendLine("INSG.ScreenPosition = ComputeScreenPos(TransformWorldToHClip(i.posWS), _ProjectionParams.x);");
 
-                        for(UVChannel uv = UVChannel.UV0; uv != UVChannel.UV3; ++uv)
+                        if(graphCode.requirements.requiresMeshUVs.Contains(UVChannel.UV0))
+                        {
+                            callSG.builder.AppendLine($"INSG.uv0.xy = i.uv;");
+                        }
+
+
+                        for (UVChannel uv = UVChannel.UV1; uv != UVChannel.UV3; ++uv)
                         {
                             if( graphCode.requirements.requiresMeshUVs.Contains(uv))
                             {
                                 int uvi = (int)uv;
-                                callSG.builder.AppendLine($"INSG.uv{uvi} = input.texCoord{uvi};");
+                                callSG.builder.AppendLine($"INSG.uv{uvi} = i.uv{uvi};");
                             }
                         }
                         /*
@@ -277,12 +291,17 @@ namespace UnityEditor.VFX
                         $SurfaceDescriptionInputs.FaceSign:                  output.FaceSign = input.isFrontFace;
                         $SurfaceDescriptionInputs.TimeParameters:            output.TimeParameters = _TimeParameters.xyz; // This is mainly for LW as HD overwrite this value
                         */
-
+                        
                         foreach ( var property in graphCode.properties)
                         {
-                            callSG.builder.AppendLine($"INSG.{property.referenceName} = {property.displayName};");
+                            callSG.builder.AppendLine($"${{VFXLoadParameter:{property.referenceName}}}");
                         }
-                        callSG.builder.AppendLine($"\n{shaderGraph.outputStructName} OUTSG = {shaderGraph.evaluationFunctionName}(INSG);");
+                        callSG.builder.Append($"\n{shaderGraph.outputStructName} OUTSG = {shaderGraph.evaluationFunctionName}(INSG");
+
+                        if(graphCode.properties.Any())
+                            callSG.builder.Append(","+graphCode.properties.Select(t => t.referenceName).Aggregate((s, t) => s + ", " + t));
+
+                        callSG.builder.AppendLine(");");
 
                         yield return new KeyValuePair<string, VFXShaderWriter>("${SHADERGRAPH_PIXEL_CALL_" + kvPass.Key.ToUpper() + "}", callSG);
                     }
