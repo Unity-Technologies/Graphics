@@ -20,7 +20,7 @@ namespace UnityEditor.Rendering.Universal
         Pass m_UnlitPass = new Pass
         {
             Name = "Pass",
-            TemplatePath = "universalUnlitPass.template",
+            TemplateName = "universalUnlitPass.template",
             PixelShaderSlots = new List<int>
             {
                 UnlitMasterNode.ColorSlotId,
@@ -59,7 +59,7 @@ namespace UnityEditor.Rendering.Universal
         Pass m_DepthShadowPass = new Pass()
         {
             Name = "",
-            TemplatePath = "universalUnlitExtraPasses.template",
+            TemplateName = "universalUnlitExtraPasses.template",
             PixelShaderSlots = new List<int>()
             {
                 PBRMasterNode.AlphaSlotId,

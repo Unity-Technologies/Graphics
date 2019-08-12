@@ -18,7 +18,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
         Pass m_UnlitPass = new Pass
         {
             Name = "Pass",
-            TemplatePath = "universalSpriteUnlitPass.template",
+            TemplateName = "universalSpriteUnlitPass.template",
             PixelShaderSlots = new List<int>
             {
                 SpriteUnlitMasterNode.ColorSlotId,

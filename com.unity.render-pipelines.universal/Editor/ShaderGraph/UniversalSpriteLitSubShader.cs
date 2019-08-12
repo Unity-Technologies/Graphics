@@ -18,7 +18,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
         Pass m_LitPass = new Pass
         {
             Name = "Lit Pass",
-            TemplatePath = "universalSpriteLitPass.template",
+            TemplateName = "universalSpriteLitPass.template",
             PixelShaderSlots = new List<int>
             {
                 SpriteLitMasterNode.ColorSlotId,
@@ -48,7 +48,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
         Pass m_NormalPass = new Pass
         {
             Name = "Sprite Normal",
-            TemplatePath = "universalSpriteNormalPass.template",
+            TemplateName = "universalSpriteNormalPass.template",
             PixelShaderSlots = new List<int>
             {
                 SpriteLitMasterNode.ColorSlotId,
@@ -78,7 +78,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
         Pass m_ForwardPass = new Pass
         {
             Name = "Sprite Forward",
-            TemplatePath = "universalSpriteForwardPass.template",
+            TemplateName = "universalSpriteForwardPass.template",
             PixelShaderSlots = new List<int>
             {
                 SpriteLitMasterNode.ColorSlotId,

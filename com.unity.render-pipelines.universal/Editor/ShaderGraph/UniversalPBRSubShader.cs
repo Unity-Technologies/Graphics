@@ -18,7 +18,7 @@ namespace UnityEditor.Rendering.Universal
         Pass m_ForwardPassMetallic = new Pass
         {
             Name = "UniversalForward",
-            TemplatePath = "universalPBRForwardPass.template",
+            TemplateName = "universalPBRForwardPass.template",
             PixelShaderSlots = new List<int>
             {
                 PBRMasterNode.AlbedoSlotId,
@@ -64,7 +64,7 @@ namespace UnityEditor.Rendering.Universal
         Pass m_ForwardPassSpecular = new Pass()
         {
             Name = "UniversalForward",
-            TemplatePath = "universalPBRForwardPass.template",
+            TemplateName = "universalPBRForwardPass.template",
             PixelShaderSlots = new List<int>()
             {
                 PBRMasterNode.AlbedoSlotId,
@@ -111,7 +111,7 @@ namespace UnityEditor.Rendering.Universal
         Pass m_ForwardPassMetallic2D = new Pass
         {
             Name = "Universal2D",
-            TemplatePath = "universal2DPBRPass.template",
+            TemplateName = "universal2DPBRPass.template",
             PixelShaderSlots = new List<int>
             {
                 PBRMasterNode.AlbedoSlotId,
@@ -157,7 +157,7 @@ namespace UnityEditor.Rendering.Universal
         Pass m_ForwardPassSpecular2D = new Pass()
         {
             Name = "Universal2D",
-            TemplatePath = "universal2DPBRPass.template",
+            TemplateName = "universal2DPBRPass.template",
             PixelShaderSlots = new List<int>()
             {
                 PBRMasterNode.AlbedoSlotId,
@@ -204,7 +204,7 @@ namespace UnityEditor.Rendering.Universal
         Pass m_DepthShadowPass = new Pass()
         {
             Name = "",
-            TemplatePath = "universalPBRExtraPasses.template",
+            TemplateName = "universalPBRExtraPasses.template",
             PixelShaderSlots = new List<int>()
             {
                 PBRMasterNode.AlbedoSlotId,
@@ -263,7 +263,7 @@ namespace UnityEditor.Rendering.Universal
             var forward2DPass = pbrMasterNode.model == PBRMasterNode.Model.Metallic ? m_ForwardPassMetallic2D : m_ForwardPassSpecular2D;
             var passes = new Pass[] { forwardPass, m_DepthShadowPass, forward2DPass };
 
-            return UniversalSubShaderUtilities.GetSubShader<PBRMasterNode>(pbrMasterNode, tags, options, 
+            return UniversalSubShaderUtilities.GetSubShader<PBRMasterNode>(pbrMasterNode, tags, options,
                 passes, mode, "UnityEditor.ShaderGraph.PBRMasterGUI", sourceAssetDependencyPaths);
         }
 
