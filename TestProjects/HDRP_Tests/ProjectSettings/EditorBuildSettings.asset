@@ -455,4 +455,7 @@ EditorBuildSettings:
   - enabled: 0
     path: Assets/GraphicTests/Scenes/6x_BuiltIn/6004_LinesAndTrails.unity
     guid: 8c8220bc2910093408eda32844392d9a
+  - enabled: 0
+    path: Assets/GraphicTests/Scenes/6x_BuiltIn/6005_Alembic.unity
+    guid: 1b8f47be602170940962176d34524bc6
   m_configObjects: {}
