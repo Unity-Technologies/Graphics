@@ -279,8 +279,8 @@ namespace UnityEngine.Rendering.Universal
             return m_RendererDataList[0] =
                 CreateRendererAsset("Assets/ForwardRenderer.asset", RendererType.ForwardRenderer, false);
 #else
-            m_RendererData[0] = null;
-            return m_RendererData[0];
+            m_RendererDataList[0] = null;
+            return m_RendererDataList[0];
 #endif
         }
 
@@ -292,14 +292,12 @@ namespace UnityEngine.Rendering.Universal
             // If no data we can't create pipeline instance
             if (m_RendererDataList[0] == null)
             {
-#if UNITY_EDITOR
                 // Could be upgrading for the first time
                 if (m_NeedsUpgrade)
                 {
                     UpgradeAsset(this);
                 }
                 else
-#endif
                 {
                     Debug.LogError(
                         $"Default Renderer is missing, make sure there is a Renderer assigned as the default on the current Universal RP asset:{UniversalRenderPipeline.asset.name}",
@@ -716,9 +714,10 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-#if UNITY_EDITOR
+
         static void UpgradeAsset(UniversalRenderPipelineAsset asset)
         {
+#if UNITY_EDITOR
             // This upgrade block moved the renderers from a single reference to the list.
             if(asset.k_AssetVersion == 5)
             {
@@ -736,10 +735,10 @@ namespace UnityEngine.Rendering.Universal
                     asset.m_RendererData = null; // Clears the old renderer
                 }
             }
-
+#endif
             asset.m_NeedsUpgrade = false;
         }
-#endif
+
 
         float ValidateShadowBias(float value)
         {
