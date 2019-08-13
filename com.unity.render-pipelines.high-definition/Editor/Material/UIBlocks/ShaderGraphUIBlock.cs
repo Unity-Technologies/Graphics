@@ -128,7 +128,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         void PropertiesDefaultGUI(MaterialProperty[] properties)
         {
-            for (var i = 0; i < properties.Length - 2; i++)
+            for (var i = 0; i < properties.Length; i++)
             {
                 if ((properties[i].flags & (MaterialProperty.PropFlags.HideInInspector | MaterialProperty.PropFlags.PerRendererData)) != 0)
                     continue;
