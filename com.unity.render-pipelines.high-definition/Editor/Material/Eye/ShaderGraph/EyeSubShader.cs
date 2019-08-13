@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using UnityEditor.ShaderGraph;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
+using Data.Util;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
@@ -301,11 +302,12 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public int GetPreviewPassIndex() { return 0; }
 
-        private static HashSet<string> GetActiveFieldsFromMasterNode(AbstractMaterialNode iMasterNode, Pass pass)
+        private static ActiveFields GetActiveFieldsFromMasterNode(AbstractMaterialNode iMasterNode, Pass pass)
         {
-            HashSet<string> activeFields = new HashSet<string>();
+            var activeFields = new ActiveFields();
+            var baseActiveFields = activeFields.baseInstance;
 
-           EyeMasterNode masterNode = iMasterNode as EyeMasterNode;
+            EyeMasterNode masterNode = iMasterNode as EyeMasterNode;
             if (masterNode == null)
             {
                 return activeFields;
@@ -317,17 +319,17 @@ namespace UnityEditor.Rendering.HighDefinition
                 {                                                   // we need to be able to build interpolators using multiple input structs
                                                                     // also: should only require isFrontFace if Normals are required...
                     // Important: the following is used in SharedCode.template.hlsl for determining the normal flip mode
-                    activeFields.Add("FragInputs.isFrontFace");
+                    baseActiveFields.Add("FragInputs.isFrontFace");
                 }
             }
 
             switch (masterNode.materialType)
             {
             case EyeMasterNode.MaterialType.Eye:
-                activeFields.Add("Material.Eye");
+                baseActiveFields.Add("Material.Eye");
                 break;
             case EyeMasterNode.MaterialType.EyeCinematic:
-                activeFields.Add("Material.EyeCinematic");
+                baseActiveFields.Add("Material.EyeCinematic");
                 break;
             default:
                 UnityEngine.Debug.LogError("Unknown material type: " + masterNode.materialType);
@@ -338,7 +340,7 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 if (pass.PixelShaderUsesSlot(EyeMasterNode.AlphaClipThresholdSlotId))
                 {
-                    activeFields.Add("AlphaTest");
+                    baseActiveFields.Add("AlphaTest");
                 }
             }
 
@@ -346,38 +348,38 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 if (masterNode.transparencyFog.isOn)
                 {
-                    activeFields.Add("AlphaFog");
+                    baseActiveFields.Add("AlphaFog");
                 }
 
                 if (masterNode.blendPreserveSpecular.isOn)
                 {
-                    activeFields.Add("BlendMode.PreserveSpecular");
+                    baseActiveFields.Add("BlendMode.PreserveSpecular");
                 }
             }
 
             if (!masterNode.receiveDecals.isOn)
             {
-                activeFields.Add("DisableDecals");
+                baseActiveFields.Add("DisableDecals");
             }
 
             if (!masterNode.receiveSSR.isOn)
             {
-                activeFields.Add("DisableSSR");
+                baseActiveFields.Add("DisableSSR");
             }
 
             if (masterNode.addPrecomputedVelocity.isOn)
             {
-                activeFields.Add("AdditionalVelocityChange");
+                baseActiveFields.Add("AdditionalVelocityChange");
             }
 
             if (masterNode.subsurfaceScattering.isOn && masterNode.surfaceType != SurfaceType.Transparent)
             {
-                activeFields.Add("Material.SubsurfaceScattering");
+                baseActiveFields.Add("Material.SubsurfaceScattering");
             }
 
             if (masterNode.IsSlotConnected(EyeMasterNode.BentNormalSlotId) && pass.PixelShaderUsesSlot(EyeMasterNode.BentNormalSlotId))
             {
-                activeFields.Add("BentNormal");
+                baseActiveFields.Add("BentNormal");
             }
 
             switch (masterNode.specularOcclusionMode)
@@ -385,13 +387,13 @@ namespace UnityEditor.Rendering.HighDefinition
                 case SpecularOcclusionMode.Off:
                     break;
                 case SpecularOcclusionMode.FromAO:
-                    activeFields.Add("SpecularOcclusionFromAO");
+                    baseActiveFields.Add("SpecularOcclusionFromAO");
                     break;
                 case SpecularOcclusionMode.FromAOAndBentNormal:
-                    activeFields.Add("SpecularOcclusionFromAOBentNormal");
+                    baseActiveFields.Add("SpecularOcclusionFromAOBentNormal");
                     break;
                 case SpecularOcclusionMode.Custom:
-                    activeFields.Add("SpecularOcclusionCustom");
+                    baseActiveFields.Add("SpecularOcclusionCustom");
                     break;
                 default:
                     break;
@@ -404,21 +406,21 @@ namespace UnityEditor.Rendering.HighDefinition
                 bool connected = masterNode.IsSlotConnected(EyeMasterNode.AmbientOcclusionSlotId);
                 if (connected || occlusionSlot.value != occlusionSlot.defaultValue)
                 {
-                    activeFields.Add("AmbientOcclusion");
+                    baseActiveFields.Add("AmbientOcclusion");
                 }
             }
 
             if (masterNode.IsSlotConnected(EyeMasterNode.LightingSlotId) && pass.PixelShaderUsesSlot(EyeMasterNode.LightingSlotId))
             {
-                activeFields.Add("LightingGI");
+                baseActiveFields.Add("LightingGI");
             }
             if (masterNode.IsSlotConnected(EyeMasterNode.BackLightingSlotId) && pass.PixelShaderUsesSlot(EyeMasterNode.BackLightingSlotId))
             {
-                activeFields.Add("BackLightingGI");
+                baseActiveFields.Add("BackLightingGI");
             }
 
             if (masterNode.depthOffset.isOn && pass.PixelShaderUsesSlot(EyeMasterNode.DepthOffsetSlotId))
-                activeFields.Add("DepthOffset");
+                baseActiveFields.Add("DepthOffset");
 
             return activeFields;
         }
@@ -430,7 +432,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 pass.OnGeneratePass(masterNode);
 
                 // apply master node options to active fields
-                HashSet<string> activeFields = GetActiveFieldsFromMasterNode(masterNode, pass);
+                var activeFields = GetActiveFieldsFromMasterNode(masterNode, pass);
 
                 // use standard shader pass generation
                 bool vertexActive = masterNode.IsSlotConnected(EyeMasterNode.PositionSlotId);

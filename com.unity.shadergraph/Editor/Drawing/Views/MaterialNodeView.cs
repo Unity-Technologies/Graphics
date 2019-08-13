@@ -198,6 +198,10 @@ namespace UnityEditor.ShaderGraph.Drawing
                 m_ButtonContainer.Add(m_CollapseButton);
                 m_TitleContainer.Add(m_ButtonContainer);
             }
+
+            // Register OnMouseHover callbacks for node highlighting
+            RegisterCallback<MouseEnterEvent>(OnMouseHover);
+            RegisterCallback<MouseLeaveEvent>(OnMouseHover);
         }
 
         public void AttachMessage(string errString, ShaderCompilerMessageSeverity severity)
@@ -636,8 +640,16 @@ namespace UnityEditor.ShaderGraph.Drawing
         void UpdatePortInput(GeometryChangedEvent evt)
         {
             var port = (ShaderPort)evt.target;
-            var inputView = m_PortInputContainer.Children().OfType<PortInputView>().First(x => Equals(x.slot, port.slot));
-            SetPortInputPosition(port, inputView);
+            var inputViews = m_PortInputContainer.Children().OfType<PortInputView>().Where(x => Equals(x.slot, port.slot));
+            
+            // Ensure PortInputViews are initialized correctly
+            // Dynamic port lists require one update to validate before init
+            if(inputViews.Count() != 0)
+            {
+                var inputView = inputViews.First();
+                SetPortInputPosition(port, inputView);
+            }
+            
             port.UnregisterCallback<GeometryChangedEvent>(UpdatePortInput);
         }
 
@@ -689,6 +701,35 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 previewNode.SetDimensions(updatedWidth, updatedHeight);
                 UpdateSize();
+            }
+        }
+
+        void OnMouseHover(EventBase evt)
+        {
+            var graphView = GetFirstAncestorOfType<GraphEditorView>();
+            if (graphView == null)
+                return;
+
+            var blackboardProvider = graphView.blackboardProvider;
+            if (blackboardProvider == null)
+                return;
+
+            // Keyword nodes should be highlighted when Blackboard entry is hovered
+            // TODO: Move to new NodeView type when keyword node has unique style
+            if(node is KeywordNode keywordNode)
+            {
+                var keywordRow = blackboardProvider.GetBlackboardRow(keywordNode.keywordGuid);
+                if (keywordRow != null)
+                {
+                    if (evt.eventTypeId == MouseEnterEvent.TypeId())
+                    {
+                        keywordRow.AddToClassList("hovered");
+                    }
+                    else
+                    {
+                        keywordRow.RemoveFromClassList("hovered");
+                    }
+                }
             }
         }
 

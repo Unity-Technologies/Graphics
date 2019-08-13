@@ -455,6 +455,17 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
+        public void CollectShaderKeywords(KeywordCollector keywords, GenerationMode generationMode)
+        {
+            if (asset == null)
+                return;
+
+            foreach (var keyword in asset.keywords)
+            {
+                keywords.AddShaderKeyword(keyword as ShaderKeyword);
+            }    
+        }
+
         public override void CollectPreviewMaterialProperties(List<PreviewProperty> properties)
         {
             base.CollectPreviewMaterialProperties(properties);

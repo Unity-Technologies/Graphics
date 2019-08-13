@@ -147,9 +147,17 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                 if (m_ChangedFileDependencies.Count > 0 && graphObject != null && graphObject.graph != null)
                 {
-                    foreach (var subGraphNode in graphObject.graph.GetNodes<SubGraphNode>())
+                    var subGraphNodes = graphObject.graph.GetNodes<SubGraphNode>();
+                    foreach (var subGraphNode in subGraphNodes)
                     {
                         subGraphNode.Reload(m_ChangedFileDependencies);
+                    }
+                    if(subGraphNodes.Count() > 0)
+                    {
+                        // Keywords always need to be updated to test against variant limit
+                        // No Keywords may indicate removal and this may have now made the Graph valid again
+                        // Need to validate Graph to clear errors in this case
+                        materialGraph.OnKeywordChanged();
                     }
                     foreach (var customFunctionNode in graphObject.graph.GetNodes<CustomFunctionNode>())
                     {
@@ -261,17 +269,25 @@ namespace UnityEditor.ShaderGraph.Drawing
             var middle = bounds.center;
             bounds.center = Vector2.zero;
 
+            // Collect graph inputs
+            var graphInputs = graphView.selection.OfType<BlackboardField>().Select(x => x.userData as ShaderInput);
+
             // Collect the property nodes and get the corresponding properties
             var propertyNodeGuids = graphView.selection.OfType<IShaderNodeView>().Where(x => (x.node is PropertyNode)).Select(x => ((PropertyNode)x.node).propertyGuid);
             var metaProperties = graphView.graph.properties.Where(x => propertyNodeGuids.Contains(x.guid));
+
+            // Collect the keyword nodes and get the corresponding keywords
+            var keywordNodeGuids = graphView.selection.OfType<IShaderNodeView>().Where(x => (x.node is KeywordNode)).Select(x => ((KeywordNode)x.node).keywordGuid);
+            var metaKeywords = graphView.graph.keywords.Where(x => keywordNodeGuids.Contains(x.guid));
 
             var copyPasteGraph = new CopyPasteGraph(
                     graphView.graph.assetGuid,
                     graphView.selection.OfType<ShaderGroup>().Select(x => x.userData),
                     graphView.selection.OfType<IShaderNodeView>().Where(x => !(x.node is PropertyNode || x.node is SubGraphOutputNode)).Select(x => x.node).Where(x => x.allowedInSubGraph).ToArray(),
                     graphView.selection.OfType<Edge>().Select(x => x.userData as IEdge),
-                    graphView.selection.OfType<BlackboardField>().Select(x => x.userData as ShaderInput),
+                    graphInputs,
                     metaProperties,
+                    metaKeywords,
                     graphView.selection.OfType<StickyNote>().Select(x => x.userData));
 
             var deserialized = CopyPasteGraph.FromJson(JsonUtility.ToJson(copyPasteGraph, false));
@@ -287,6 +303,23 @@ namespace UnityEditor.ShaderGraph.Drawing
                 subGraphOutputNode.drawState = drawState;
             }
             subGraph.AddNode(subGraphOutputNode);
+
+            // Always copy deserialized keyword inputs
+            foreach (ShaderKeyword keyword in deserialized.metaKeywords)
+            {
+                ShaderInput copiedInput = keyword.Copy();
+                subGraph.SanitizeGraphInputName(copiedInput);
+                subGraph.SanitizeGraphInputReferenceName(copiedInput, keyword.overrideReferenceName);
+                subGraph.AddGraphInput(copiedInput);
+
+                // Update the keyword nodes that depends on the copied keyword
+                var dependentKeywordNodes = deserialized.GetNodes<KeywordNode>().Where(x => x.keywordGuid == keyword.guid);
+                foreach (var node in dependentKeywordNodes)
+                {
+                    node.owner = graphView.graph;
+                    node.keywordGuid = copiedInput.guid;
+                }
+            }
 
             var groupGuidMap = new Dictionary<Guid, Guid>();
             foreach (GroupData groupData in deserialized.groups)

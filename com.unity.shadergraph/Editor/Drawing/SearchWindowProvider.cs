@@ -64,6 +64,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 {
                     if (type.IsClass && !type.IsAbstract && (type.IsSubclassOf(typeof(AbstractMaterialNode)))
                         && type != typeof(PropertyNode)
+                        && type != typeof(KeywordNode)
                         && type != typeof(SubGraphNode))
                     {
                         var attrs = type.GetCustomAttributes(typeof(TitleAttribute), false) as TitleAttribute[];
@@ -106,6 +107,14 @@ namespace UnityEditor.ShaderGraph.Drawing
                 node.propertyGuid = property.guid;
                 node.owner = null;
                 AddEntries(node, new[] { "Properties", "Property: " + property.displayName }, nodeEntries);
+            }
+            foreach (var keyword in m_Graph.keywords)
+            {
+                var node = new KeywordNode();
+                node.owner = m_Graph;
+                node.keywordGuid = keyword.guid;
+                node.owner = null;
+                AddEntries(node, new[] { "Keywords", "Keyword: " + keyword.displayName }, nodeEntries);
             }
 
             // Sort the entries lexicographically by group then title with the requirement that items always comes before sub-groups in the same group.

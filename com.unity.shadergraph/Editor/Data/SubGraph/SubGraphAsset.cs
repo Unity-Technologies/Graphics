@@ -46,6 +46,12 @@ namespace UnityEditor.ShaderGraph
         
         [SerializeField]
         List<SerializationHelper.JSONSerializedElement> m_SerializedInputs = new List<SerializationHelper.JSONSerializedElement>();
+
+        [NonSerialized]
+        public List<ShaderKeyword> keywords = new List<ShaderKeyword>();
+        
+        [SerializeField]
+        List<SerializationHelper.JSONSerializedElement> m_SerializedKeywords = new List<SerializationHelper.JSONSerializedElement>();
         
         [NonSerialized]
         public List<AbstractShaderProperty> nodeProperties = new List<AbstractShaderProperty>();
@@ -72,6 +78,7 @@ namespace UnityEditor.ShaderGraph
         public void OnBeforeSerialize()
         {
             m_SerializedInputs = SerializationHelper.Serialize<AbstractShaderProperty>(inputs);
+            m_SerializedKeywords = SerializationHelper.Serialize<ShaderKeyword>(keywords);
             m_SerializedProperties = SerializationHelper.Serialize<AbstractShaderProperty>(nodeProperties);
             m_SerializedOutputs = SerializationHelper.Serialize<MaterialSlot>(outputs);
         }
@@ -80,6 +87,7 @@ namespace UnityEditor.ShaderGraph
         {
             var typeSerializationInfos = GraphUtil.GetLegacyTypeRemapping();
             inputs = SerializationHelper.Deserialize<AbstractShaderProperty>(m_SerializedInputs, typeSerializationInfos);
+            keywords = SerializationHelper.Deserialize<ShaderKeyword>(m_SerializedKeywords, typeSerializationInfos);
             nodeProperties = SerializationHelper.Deserialize<AbstractShaderProperty>(m_SerializedProperties, typeSerializationInfos);
             outputs = SerializationHelper.Deserialize<MaterialSlot>(m_SerializedOutputs, typeSerializationInfos);
         }

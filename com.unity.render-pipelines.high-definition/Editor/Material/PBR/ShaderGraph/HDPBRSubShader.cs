@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using Data.Util;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph;
 using UnityEngine.Rendering.HighDefinition;
@@ -447,9 +448,10 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public int GetPreviewPassIndex() { return 0; }
 
-        private static HashSet<string> GetActiveFieldsFromMasterNode(AbstractMaterialNode iMasterNode, Pass pass)
+        private static ActiveFields GetActiveFieldsFromMasterNode(AbstractMaterialNode iMasterNode, Pass pass)
         {
-            HashSet<string> activeFields = new HashSet<string>();
+            var activeFields = new ActiveFields();
+            var baseActiveFields = activeFields.baseInstance;
 
             PBRMasterNode masterNode = iMasterNode as PBRMasterNode;
             if (masterNode == null)
@@ -459,12 +461,12 @@ namespace UnityEditor.Rendering.HighDefinition
 
             if (masterNode.twoSided.isOn)
             {
-                activeFields.Add("DoubleSided");
+                baseActiveFields.Add("DoubleSided");
                 if (pass.ShaderPassName != "SHADERPASS_MOTION_VECTORS")   // HACK to get around lack of a good interpolator dependency system
                 {                                                   // we need to be able to build interpolators using multiple input structs
                                                                     // also: should only require isFrontFace if Normals are required...
-                    activeFields.Add("DoubleSided.Mirror");         // TODO: change this depending on what kind of normal flip you want..
-                    activeFields.Add("FragInputs.isFrontFace");     // will need this for determining normal flip mode
+                    baseActiveFields.Add("DoubleSided.Mirror");         // TODO: change this depending on what kind of normal flip you want..
+                    baseActiveFields.Add("FragInputs.isFrontFace");     // will need this for determining normal flip mode
                 }
             }
 
@@ -473,7 +475,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 case PBRMasterNode.Model.Metallic:
                     break;
                 case PBRMasterNode.Model.Specular:
-                    activeFields.Add("Material.SpecularColor");
+                    baseActiveFields.Add("Material.SpecularColor");
                     break;
                 default:
                     // TODO: error!
@@ -483,24 +485,24 @@ namespace UnityEditor.Rendering.HighDefinition
             if (masterNode.IsSlotConnected(PBRMasterNode.AlphaThresholdSlotId) ||
                 masterNode.GetInputSlots<Vector1MaterialSlot>().First(x => x.id == PBRMasterNode.AlphaThresholdSlotId).value > 0.0f)
             {
-                activeFields.Add("AlphaTest");
+                baseActiveFields.Add("AlphaTest");
             }
 
             if (masterNode.surfaceType != UnityEditor.ShaderGraph.SurfaceType.Opaque)
             {
-                activeFields.Add("SurfaceType.Transparent");
+                baseActiveFields.Add("SurfaceType.Transparent");
 
                 if (masterNode.alphaMode == AlphaMode.Alpha)
                 {
-                    activeFields.Add("BlendMode.Alpha");
+                    baseActiveFields.Add("BlendMode.Alpha");
                 }
                 else if (masterNode.alphaMode == AlphaMode.Additive)
                 {
-                    activeFields.Add("BlendMode.Add");
+                    baseActiveFields.Add("BlendMode.Add");
                 }
 
                 // By default PBR node will take the fog
-                activeFields.Add("AlphaFog");
+                baseActiveFields.Add("AlphaFog");
             }
             else
             {
@@ -517,7 +519,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 pass.OnGeneratePass(masterNode as PBRMasterNode);
 
                 // apply master node options to active fields
-                HashSet<string> activeFields = GetActiveFieldsFromMasterNode(masterNode, pass);
+                var activeFields = GetActiveFieldsFromMasterNode(masterNode, pass);
 
                 // use standard shader pass generation
                 bool vertexActive = masterNode.IsSlotConnected(PBRMasterNode.PositionSlotId);

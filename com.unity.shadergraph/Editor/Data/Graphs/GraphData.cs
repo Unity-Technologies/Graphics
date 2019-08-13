@@ -32,6 +32,17 @@ namespace UnityEditor.ShaderGraph
         List<SerializationHelper.JSONSerializedElement> m_SerializedProperties = new List<SerializationHelper.JSONSerializedElement>();
 
         [NonSerialized]
+        List<ShaderKeyword> m_Keywords = new List<ShaderKeyword>();
+
+        public IEnumerable<ShaderKeyword> keywords
+        {
+            get { return m_Keywords; }
+        }
+
+        [SerializeField]
+        List<SerializationHelper.JSONSerializedElement> m_SerializedKeywords = new List<SerializationHelper.JSONSerializedElement>();
+
+        [NonSerialized]
         List<ShaderInput> m_AddedInputs = new List<ShaderInput>();
 
         public IEnumerable<ShaderInput> addedInputs
@@ -341,6 +352,14 @@ namespace UnityEditor.ShaderGraph
                 }
 
                 AddNodeNoValidate(materialNode);
+
+                // If adding a Sub Graph node whose asset contains Keywords
+                // Need to restest Keywords against the variant limit
+                if(node is SubGraphNode subGraphNode && subGraphNode.asset.keywords.Count > 0)
+                {
+                    OnKeywordChangedNoValidate();
+                }
+
                 ValidateGraph();
             }
             else
@@ -532,6 +551,9 @@ namespace UnityEditor.ShaderGraph
             var fromSlot = fromNode.FindSlot<ISlot>(fromSlotRef.slotId);
             var toSlot = toNode.FindSlot<ISlot>(toSlotRef.slotId);
 
+            if (fromSlot == null || toSlot == null)
+                return null;
+
             if (fromSlot.isOutputSlot == toSlot.isOutputSlot)
                 return null;
 
@@ -694,6 +716,17 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
+        public void CollectShaderKeywords(KeywordCollector collector, GenerationMode generationMode)
+        {
+            foreach (var keyword in keywords)
+            {
+                collector.AddShaderKeyword(keyword);
+            }
+
+            // Alwways calculate permutations when collecting
+            collector.CalculateKeywordPermutations();
+        }
+
         public void AddGraphInput(ShaderInput input)
         {
             if (input == null)
@@ -706,10 +739,15 @@ namespace UnityEditor.ShaderGraph
                         return;
                     m_Properties.Add(property);
                     break;
+                case ShaderKeyword keyword:
+                    if (m_Keywords.Contains(keyword))
+                        return;
+                    m_Keywords.Add(keyword);
+                    break;
                 default:
                     throw new ArgumentOutOfRangeException();
             }
-            
+
             m_AddedInputs.Add(input);
         }
 
@@ -720,6 +758,9 @@ namespace UnityEditor.ShaderGraph
             {
                 case AbstractShaderProperty property:
                     input.displayName = GraphUtil.SanitizeName(properties.Where(p => p.guid != input.guid).Select(p => p.displayName), "{0} ({1})", input.displayName);
+                    break;
+                case ShaderKeyword keyword:
+                    input.displayName = GraphUtil.SanitizeName(keywords.Where(p => p.guid != input.guid).Select(p => p.displayName), "{0} ({1})", input.displayName);
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();
@@ -740,6 +781,9 @@ namespace UnityEditor.ShaderGraph
             {
                 case AbstractShaderProperty property:
                     property.overrideReferenceName = GraphUtil.SanitizeName(properties.Where(p => p.guid != property.guid).Select(p => p.referenceName), "{0}_{1}", name);
+                    break;
+                case ShaderKeyword keyword:
+                    keyword.overrideReferenceName = GraphUtil.SanitizeName(keywords.Where(p => p.guid != input.guid).Select(p => p.referenceName), "{0}_{1}", name).ToUpper();
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();
@@ -782,12 +826,35 @@ namespace UnityEditor.ShaderGraph
                 m_MovedInputs.Add(property);
         }
 
+        public void MoveKeyword(ShaderKeyword keyword, int newIndex)
+        {
+            if (newIndex > m_Keywords.Count || newIndex < 0)
+                throw new ArgumentException("New index is not within keywords list.");
+            var currentIndex = m_Keywords.IndexOf(keyword);
+            if (currentIndex == -1)
+                throw new ArgumentException("Keyword is not in graph.");
+            if (newIndex == currentIndex)
+                return;
+            m_Keywords.RemoveAt(currentIndex);
+            if (newIndex > currentIndex)
+                newIndex--;
+            var isLast = newIndex == m_Keywords.Count;
+            if (isLast)
+                m_Keywords.Add(keyword);
+            else
+                m_Keywords.Insert(newIndex, keyword);
+            if (!m_MovedInputs.Contains(keyword))
+                m_MovedInputs.Add(keyword);
+        }
+
         public int GetGraphInputIndex(ShaderInput input)
         {
             switch(input)
             {
                 case AbstractShaderProperty property:
                     return m_Properties.IndexOf(property);
+                case ShaderKeyword keyword:
+                    return m_Keywords.IndexOf(keyword);
                 default:
                     throw new ArgumentOutOfRangeException();
             }
@@ -795,7 +862,8 @@ namespace UnityEditor.ShaderGraph
 
         void RemoveGraphInputNoValidate(Guid guid)
         {
-            if (m_Properties.RemoveAll(x => x.guid == guid) > 0)
+            if (m_Properties.RemoveAll(x => x.guid == guid) > 0 ||
+                m_Keywords.RemoveAll(x => x.guid == guid) > 0)
             {
                 m_RemovedInputs.Add(guid);
                 m_AddedInputs.RemoveAll(x => x.guid == guid);
@@ -834,6 +902,22 @@ namespace UnityEditor.ShaderGraph
                 ConnectNoValidate(newSlot.slotReference, edge.inputSlot);
 
             RemoveNodeNoValidate(propertyNode);
+        }
+
+        public void OnKeywordChanged()
+        {
+            OnKeywordChangedNoValidate();
+            ValidateGraph();
+        }
+
+        public void OnKeywordChangedNoValidate()
+        {
+            var allNodes = GetNodes<AbstractMaterialNode>();
+            foreach(AbstractMaterialNode node in allNodes)
+            {
+                node.Dirty(ModificationScope.Topological);
+                node.ValidateNode();
+            }
         }
 
         public void ValidateGraph()
@@ -965,6 +1049,8 @@ namespace UnityEditor.ShaderGraph
                 var removedInputGuids = removedInputsPooledObject.value;
                 foreach (var property in m_Properties)
                     removedInputGuids.Add(property.guid);
+                foreach (var keyword in m_Keywords)
+                    removedInputGuids.Add(keyword.guid);
                 foreach (var inputGuid in removedInputGuids)
                     RemoveGraphInputNoValidate(inputGuid);
             }
@@ -972,6 +1058,11 @@ namespace UnityEditor.ShaderGraph
             {
                 if (!properties.Any(p => p.guid == otherProperty.guid))
                     AddGraphInput(otherProperty);
+            }
+            foreach (var otherKeyword in other.keywords)
+            {
+                if (!keywords.Any(p => p.guid == otherKeyword.guid))
+                    AddGraphInput(otherKeyword);
             }
 
             other.ValidateGraph();
@@ -1117,6 +1208,26 @@ namespace UnityEditor.ShaderGraph
 
                 // add the node to the pasted node list
                 m_PastedNodes.Add(pastedNode);
+
+                // Check if the keyword nodes need to have their keywords copied.
+                if (node is KeywordNode keywordNode)
+                {
+                    // If the keyword is not in the current graph and is in the serialized paste graph copy it.
+                    if (!keywords.Select(x => x.guid).Contains(keywordNode.keywordGuid))
+                    {
+                        var pastedGraphMetaKeywords = graphToPaste.metaKeywords.Where(x => x.guid == keywordNode.keywordGuid);
+                        if (pastedGraphMetaKeywords.Any())
+                        {
+                            var keyword = pastedGraphMetaKeywords.FirstOrDefault(x => x.guid == keywordNode.keywordGuid);
+                            SanitizeGraphInputName(keyword);
+                            SanitizeGraphInputReferenceName(keyword, keyword.overrideReferenceName);
+                            AddGraphInput(keyword);
+                        }
+                    }
+
+                    // Always update Keyword nodes to handle any collisions resolved on the Keyword
+                    keywordNode.UpdateNode();
+                }
             }
 
             // only connect edges within pasted elements, discard
@@ -1145,6 +1256,7 @@ namespace UnityEditor.ShaderGraph
             m_SerializableNodes = SerializationHelper.Serialize(GetNodes<AbstractMaterialNode>());
             m_SerializableEdges = SerializationHelper.Serialize<IEdge>(m_Edges);
             m_SerializedProperties = SerializationHelper.Serialize<AbstractShaderProperty>(m_Properties);
+            m_SerializedKeywords = SerializationHelper.Serialize<ShaderKeyword>(m_Keywords);
             m_ActiveOutputNodeGuidSerialized = m_ActiveOutputNodeGuid == Guid.Empty ? null : m_ActiveOutputNodeGuid.ToString();
         }
 
@@ -1152,6 +1264,7 @@ namespace UnityEditor.ShaderGraph
         {
             // have to deserialize 'globals' before nodes
             m_Properties = SerializationHelper.Deserialize<AbstractShaderProperty>(m_SerializedProperties, GraphUtil.GetLegacyTypeRemapping());
+            m_Keywords = SerializationHelper.Deserialize<ShaderKeyword>(m_SerializedKeywords, GraphUtil.GetLegacyTypeRemapping());
 
             var nodes = SerializationHelper.Deserialize<AbstractMaterialNode>(m_SerializableNodes, GraphUtil.GetLegacyTypeRemapping());
 
@@ -1210,6 +1323,13 @@ namespace UnityEditor.ShaderGraph
             {
                 node.OnEnable();
             }
+
+            ShaderGraphPreferences.onVariantLimitChanged += OnKeywordChanged;
+        }
+
+        public void OnDisable()
+        {
+            ShaderGraphPreferences.onVariantLimitChanged -= OnKeywordChanged;
         }
     }
 
