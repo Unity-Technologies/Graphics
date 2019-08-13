@@ -10,7 +10,7 @@ VFXComponentBoard.graphElement
     padding-top:0;
     padding-bottom:0;
 
-    min-width: 140px;
+    min-width: 240px;
     min-height: 100px;
 }
 
@@ -167,21 +167,25 @@ VFXComponentBoardEventUI .unity-button, #on-play-button, #on-stop-button,#attach
     padding-top: 10px;
 }
 
-#debug-graph-container
-{
-    flex-direction:row;
-    width:100%;
+#debug-graph-container {
+    flex-direction: row;
+    width: 98%;
+    margin-top: 12px;
+    margin-bottom: 12px;
+    margin-left: 6px;
+    margin-right:6px;
 }
 
 #debug-box
 {
-    flex-grow: 4;
-    background-color:#555;
+    flex-grow: 1;
+    background-color:#222;
     margin: auto;
-    width: 95%;
+    width: 90%;
     height: 150px;
     overflow:hidden;
     border-radius:6px;
+
 }
 #debug-box-axis-container
 {
@@ -210,7 +214,7 @@ VFXComponentBoardEventUI .unity-button, #on-play-button, #on-stop-button,#attach
 }
 
 #debug-system-stat-title, #debug-system-stat-title-name {
-    font-size: 14px;
+    font-size: 12px;
     flex-grow: 1;
     width: 20%;
     -unity-text-align: middle-center;
@@ -226,6 +230,7 @@ VFXComponentBoardEventUI .unity-button, #on-play-button, #on-stop-button,#attach
     flex-direction:row;
     align-items:center;
     flex-grow: 1;
+    width:100%;
 }
 
 #debug-system-stat-entry, #debug-system-stat-entry-name {

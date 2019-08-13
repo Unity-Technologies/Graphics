@@ -12,77 +12,55 @@ namespace UnityEditor.VFX.UI
 
     class VFXDebugUI
     {
-
         public enum Modes
         {
             None,
             SystemStat
         }
 
+        public enum Events
+        {
+            VFXPlayPause,
+            VFXReset,
+            VFXStop
+        }
+
         class CurveContent : ImmediateModeElement
         {
             class NormalizedCurve
             {
-                Vector3[] m_Points;
-                Vector2[] m_Segments1;
-                Vector2[] m_Segments2;
-                int[] m_Triangles;
                 int m_MaxPoints;
                 Mesh m_Mesh;
-                float m_LastValue = 0.0f;
 
-                private static readonly float s_Scale = .09f;
+                Vector3[] m_Lines;
+                int[] m_LinesIndices;
 
                 public NormalizedCurve(int maxPoints)
                 {
                     if (maxPoints < 2)
                         maxPoints = 2;
+
                     m_MaxPoints = maxPoints;
-                    m_Points = new Vector3[4 * (maxPoints - 1)];
-                    m_Segments1 = new Vector2[4 * (maxPoints - 1)];
-                    m_Segments2 = new Vector2[4 * (maxPoints - 1)];
-                    m_Triangles = new int[6 * (maxPoints - 1)];
+
+                    // line output
+                    m_Lines = new Vector3[maxPoints];
+                    m_LinesIndices = new int[2 * (maxPoints - 1)];
 
                     var step = 1.0f / (float)(maxPoints - 1);
 
                     for (int i = 0; i < maxPoints - 1; ++i)
                     {
-                        var leftPoint = new Vector2(i * step, 0);
-                        var rightPoint = new Vector2((i + 1) * step, 0);
-
-                        var rect = ComputeDrawingRect(leftPoint, rightPoint);
-                        m_Points[4 * i] = rect[0];
-                        m_Points[4 * i + 1] = rect[1];
-                        m_Points[4 * i + 2] = rect[2];
-                        m_Points[4 * i + 3] = rect[3];
-
-                        m_Segments1[4 * i] = leftPoint;
-                        m_Segments1[4 * i + 1] = leftPoint;
-                        m_Segments1[4 * i + 2] = leftPoint;
-                        m_Segments1[4 * i + 3] = leftPoint;
-
-                        m_Segments2[4 * i] = rightPoint;
-                        m_Segments2[4 * i + 1] = rightPoint;
-                        m_Segments2[4 * i + 2] = rightPoint;
-                        m_Segments2[4 * i + 3] = rightPoint;
-
-
-                        int startIndex = 4 * i;
-
-                        m_Triangles[6 * i] = startIndex++;
-                        m_Triangles[6 * i + 1] = startIndex++;
-                        m_Triangles[6 * i + 2] = startIndex;
-
-                        m_Triangles[6 * i + 3] = startIndex++;
-                        m_Triangles[6 * i + 4] = startIndex - 3;
-                        m_Triangles[6 * i + 5] = startIndex;
+                        m_Lines[i] = new Vector3(i * step, 0, 0);
+                        m_LinesIndices[2 * i] = i;
+                        m_LinesIndices[2 * i + 1] = i + 1;
                     }
 
+                    m_Lines[m_Lines.Length - 1] = new Vector3(1, 0, 0);
+
                     m_Mesh = new Mesh();
-                    m_Mesh.vertices = m_Points;
-                    m_Mesh.uv = m_Segments1;
-                    m_Mesh.uv2 = m_Segments2;
-                    m_Mesh.triangles = m_Triangles;
+                    m_Mesh.vertices = m_Lines;
+
+                    m_Mesh.SetIndices(m_LinesIndices, MeshTopology.Lines, 0);
                 }
 
                 public Mesh GetMesh()
@@ -93,70 +71,13 @@ namespace UnityEditor.VFX.UI
 
                 public void AddPoint(float value)
                 {
-                    m_Points = m_Mesh.vertices;
-                    m_Segments1 = m_Mesh.uv;
-                    m_Segments2 = m_Mesh.uv2;
+                    m_Lines = m_Mesh.vertices;
+                    for (int i = 1; i < m_MaxPoints; ++i)
+                        m_Lines[i - 1].y = m_Lines[i].y;
 
-                    // shifting drawing rectangles
-                    for (int i = 1; i < m_MaxPoints - 1; ++i)
-                    {
-                        m_Points[4 * (i - 1)].y = m_Points[4 * i].y;
-                        m_Segments1[4 * (i - 1)].y = m_Segments1[4 * i].y;
-                        m_Segments2[4 * (i - 1)].y = m_Segments2[4 * i].y;
+                    m_Lines[m_Lines.Length - 1].y = value;
 
-                        m_Points[4 * (i - 1) + 1].y = m_Points[4 * i + 1].y;
-                        m_Segments1[4 * (i - 1) + 1].y = m_Segments1[4 * i + 1].y;
-                        m_Segments2[4 * (i - 1) + 1].y = m_Segments2[4 * i + 1].y;
-
-                        m_Points[4 * (i - 1) + 2].y = m_Points[4 * i + 2].y;
-                        m_Segments1[4 * (i - 1) + 2].y = m_Segments1[4 * i + 2].y;
-                        m_Segments2[4 * (i - 1) + 2].y = m_Segments2[4 * i + 2].y;
-
-                        m_Points[4 * (i - 1) + 3].y = m_Points[4 * i + 3].y;
-                        m_Segments1[4 * (i - 1) + 3].y = m_Segments1[4 * i + 3].y;
-                        m_Segments2[4 * (i - 1) + 3].y = m_Segments2[4 * i + 3].y;
-                    }
-
-                    // adding new point
-                    var step = 1.0f / (float)(m_MaxPoints - 1);
-                    var leftPoint = new Vector2((float)(m_MaxPoints - 2) * step, m_LastValue);
-                    var rightPoint = new Vector2(1.0f, value);
-                    var rect = ComputeDrawingRect(leftPoint, rightPoint);
-
-                    m_Points[4 * (m_MaxPoints - 2)].y = rect[0].y;
-                    m_Segments1[4 * (m_MaxPoints - 2)].y = m_LastValue;
-                    m_Segments2[4 * (m_MaxPoints - 2)].y = value;
-
-                    m_Points[4 * (m_MaxPoints - 2) + 1].y = rect[1].y;
-                    m_Segments1[4 * (m_MaxPoints - 2) + 1].y = m_LastValue;
-                    m_Segments2[4 * (m_MaxPoints - 2) + 1].y = value;
-
-                    m_Points[4 * (m_MaxPoints - 2) + 2].y = rect[2].y;
-                    m_Segments1[4 * (m_MaxPoints - 2) + 2].y = m_LastValue;
-                    m_Segments2[4 * (m_MaxPoints - 2) + 2].y = value;
-
-                    m_Points[4 * (m_MaxPoints - 2) + 3].y = rect[3].y;
-                    m_Segments1[4 * (m_MaxPoints - 2) + 3].y = m_LastValue;
-                    m_Segments2[4 * (m_MaxPoints - 2) + 3].y = value;
-
-                    m_Mesh.vertices = m_Points;
-                    m_Mesh.uv = m_Segments1;
-                    m_Mesh.uv2 = m_Segments2;
-
-                    m_LastValue = value;
-                }
-
-                Vector3[] ComputeDrawingRect(Vector2 leftPoint, Vector2 rightPoint)
-                {
-                    var Ymax = Mathf.Max(leftPoint.y, rightPoint.y) + s_Scale;
-                    var Ymin = Mathf.Min(leftPoint.y, rightPoint.y) - s_Scale;
-                    var rect = new Vector3[4];
-                    rect[0] = new Vector3(leftPoint.x, Ymax);
-                    rect[1] = new Vector3(rightPoint.x, Ymax);
-                    rect[2] = new Vector3(rightPoint.x, Ymin);
-                    rect[3] = new Vector3(leftPoint.x, Ymin);
-
-                    return rect;
+                    m_Mesh.vertices = m_Lines;
                 }
             }
 
@@ -188,6 +109,11 @@ namespace UnityEditor.VFX.UI
                         toggle.RegisterValueChangedCallback(ToggleValueChanged);
                 }
 
+                public void ResetCurve()
+                {
+                    curve = new NormalizedCurve(m_MaxPoints);
+                }
+
                 void ToggleValueChanged(ChangeEvent<bool> evt)
                 {
                     if (evt.newValue == false)
@@ -204,8 +130,8 @@ namespace UnityEditor.VFX.UI
             List<ToggleableCurve> m_VFXCurves;
             int m_MaxPoints;
             float m_TimeBetweenDraw;
-
-            static readonly Random random = new Random();
+            bool m_Pause;
+            bool m_Stopped;
 
             private static Func<VisualElement, Rect> GetWorldClipRect()
             {
@@ -252,12 +178,36 @@ namespace UnityEditor.VFX.UI
                 }
             }
 
-
+            public void Notify(Events e)
+            {
+                switch (e)
+                {
+                    case Events.VFXPlayPause:
+                        m_Pause = !m_Pause;
+                        m_Stopped = false;
+                        break;
+                    case Events.VFXReset:
+                        foreach (var curve in m_VFXCurves)
+                            curve.ResetCurve();
+                        break;
+                    case Events.VFXStop:
+                        m_Pause = true;
+                        m_Stopped = true;
+                        foreach (var curve in m_VFXCurves)
+                            curve.ResetCurve();
+                        break;
+                    default:
+                        break;
+                }
+            }
 
 
             float m_LastSampleTime;
             void DrawCurves()
             {
+                if (m_Stopped)
+                    return;
+
                 if (m_Mat == null)
                 {
                     m_Mat = new Material(Shader.Find("Hidden/VFX/SystemStat"));
@@ -278,7 +228,7 @@ namespace UnityEditor.VFX.UI
 
                 // Updating curve
                 var now = Time.time;
-                bool shouldSample = now - m_LastSampleTime > m_TimeBetweenDraw;
+                bool shouldSample = !m_Pause && (now - m_LastSampleTime > m_TimeBetweenDraw);
                 if (shouldSample)
                     m_LastSampleTime = now;
 
@@ -297,7 +247,7 @@ namespace UnityEditor.VFX.UI
                             m_DebugUI.UpdateSystemStat(switchableCurve.id, alive, capacity);
                         }
 
-                        var color = Color.HSVToRGB((0.71405f + i * 0.37135766f) % 1.0f, 0.8f, 0.8f);
+                        var color = Color.HSVToRGB((0.71405f + i * 0.37135766f) % 1.0f, 0.6f, 1.0f).gamma;
                         m_Mat.SetColor("_Color", color);
 
                         m_Mat.SetPass(0);
@@ -374,6 +324,24 @@ namespace UnityEditor.VFX.UI
                 m_Curves.OnVFXChange();
         }
 
+        public void Notify(Events e)
+        {
+            switch (e)
+            {
+                case Events.VFXPlayPause:
+                    m_Curves.Notify(Events.VFXPlayPause);
+                    break;
+                case Events.VFXReset:
+                    m_Curves.Notify(Events.VFXReset);
+                    break;
+                case Events.VFXStop:
+                    m_Curves.Notify(Events.VFXStop);
+                    break;
+                default:
+                    break;
+            }
+        }
+
         void UpdateDebugMode()
         {
             switch (m_CurrentMode)
@@ -416,7 +384,7 @@ namespace UnityEditor.VFX.UI
                 {
                     int id = Shader.PropertyToID(name);
                     m_GpuSystems.Add(id);
-                    CreateSystemStatEntry(name, id, Color.HSVToRGB((0.71405f + i * 0.37135766f) % 1.0f, 0.8f, 0.8f));
+                    CreateSystemStatEntry(name, id, Color.HSVToRGB((0.71405f + i * 0.37135766f) % 1.0f, 0.6f, 1.0f));
 
                     ++i;
                 }
@@ -469,8 +437,10 @@ namespace UnityEditor.VFX.UI
             m_ComponentBoard.contentContainer.Add(m_Curves);
 
             // system stats title
-            m_SystemStatsContainer = new ScrollView();
-            m_SystemStatsContainer.name = "debug-system-stat-container";
+            var scrollerContainer = new ScrollView();
+            scrollerContainer.name = "debug-system-stat-container";
+            m_SystemStatsContainer = scrollerContainer;
+
 
             var toggleAll = new Toggle();
             toggleAll.value = true;

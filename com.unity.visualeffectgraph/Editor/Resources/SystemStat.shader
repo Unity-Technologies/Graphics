@@ -34,9 +34,6 @@ Shader "Hidden/VFX/SystemStat"
             {
                 float4 vertex : SV_POSITION;
                 float2 clipUV : TEXCOORD0;
-                float2 screenPos : TEXCOORD1;
-                nointerpolation float3 segment : TEXCOORD2;
-                float2 uv : TEXCOORD3;
             };
 
             fixed4 _Color;
@@ -47,26 +44,10 @@ Shader "Hidden/VFX/SystemStat"
             v2f vert(vs_input i)
             {
                 v2f o;
-                o.uv = float2( ((i.id & 2) >> 1) ^ (i.id & 1), (~(i.id & 2) & 2) >> 1);
-                float2 screenPos = UnityObjectToViewPos(float3(i.vertex.xy, 0.0)).xy;
+                float2 shrinkedPoint = float2(i.vertex.x, (i.vertex.y - 0.5) * 0.98 + 0.5);
+                float2 screenPos = UnityObjectToViewPos(float3(shrinkedPoint, 0.0)).xy;
                 o.vertex = float4(2.0 * screenPos - 1.0, 0, 1);
                 o.clipUV = (mul(_ClipMatrix, float4(screenPos, 0, 1)).xy - float2(0.5, 0.5)) * 0.88 + float2(0.5,0.5);
-                o.screenPos = screenPos;
-                float2 shrinkedLeft = float2(i.leftPoint.x, (i.leftPoint.y - 0.5) * 0.95 + 0.5);
-                float2 shrinkedRight = float2(i.rightPoint.x, (i.rightPoint.y - 0.5) * 0.95 + 0.5);
-                float2 leftPoint = UnityObjectToViewPos(float3(shrinkedLeft, 0.0)).xy;
-                float2 rightPoint = UnityObjectToViewPos(float3(shrinkedRight, 0.0)).xy;
-
-                if (abs(leftPoint.x - rightPoint.x) < 0.001)
-                {
-                    o.segment = float3(1, 0, -leftPoint.x);
-                }
-                else
-                {
-                    float2 ab = normalize(float2((rightPoint.y - leftPoint.y) / (leftPoint.x - rightPoint.x), 1.0));
-                    float c = -dot(ab, rightPoint);
-                    o.segment = float3(ab, c);
-                }
 
                 return o;
             }
@@ -76,12 +57,7 @@ Shader "Hidden/VFX/SystemStat"
                 float clip = tex2D(_GUIClipTexture, i.clipUV).a;
                 if (clip < 0.1)
                     discard;
-                /*float t = -(dot(i.screenPos, i.segment.xy) + i.segment.z) / i.segment.y;
-                float2 verticalProj = float2(i.screenPos.x, t + i.screenPos.y);
-                float distance = abs(i.screenPos.y - verticalProj.y);*/
-                float distance = abs(dot(i.segment.xy, i.screenPos) + i.segment.z) / length(i.segment.xy);
-                fixed4 color = fixed4( _Color.rgb, 1.0 - saturate( distance * 700.0) );
-                return color;
+                return _Color;
             }
 
             ENDCG

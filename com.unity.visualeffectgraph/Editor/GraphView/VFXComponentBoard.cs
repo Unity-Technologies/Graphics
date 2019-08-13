@@ -299,12 +299,16 @@ namespace UnityEditor.VFX.UI
         {
             if (m_AttachedComponent != null)
                 m_AttachedComponent.ControlStop();
+            if (m_DebugUI != null)
+                m_DebugUI.Notify(VFXDebugUI.Events.VFXStop);
         }
 
         void EffectPlay()
         {
             if (m_AttachedComponent != null)
                 m_AttachedComponent.ControlPlayPause();
+            if (m_DebugUI != null)
+                m_DebugUI.Notify(VFXDebugUI.Events.VFXPlayPause);
         }
 
         void EffectStep()
@@ -317,6 +321,8 @@ namespace UnityEditor.VFX.UI
         {
             if (m_AttachedComponent != null)
                 m_AttachedComponent.ControlRestart();
+            if (m_DebugUI != null)
+                m_DebugUI.Notify(VFXDebugUI.Events.VFXReset);
         }
 
         void OnAttachToPanel(AttachToPanelEvent e)
