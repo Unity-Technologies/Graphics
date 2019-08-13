@@ -452,7 +452,7 @@ EditorBuildSettings:
   - enabled: 0
     path: Assets/GraphicTests/Scenes/6x_BuiltIn/6001_Sprites.unity
     guid: 1e5765fc8fb36d14ba8b0aa4ef0d2418
-  - enabled: 1
+  - enabled: 0
     path: Assets/GraphicTests/Scenes/6x_BuiltIn/6004_LinesAndTrails.unity
     guid: 8c8220bc2910093408eda32844392d9a
   m_configObjects: {}
