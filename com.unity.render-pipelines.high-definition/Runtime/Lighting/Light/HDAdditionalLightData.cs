@@ -127,7 +127,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public float volumetricDimmer
         {
             get { return useVolumetric ? m_VolumetricDimmer : 0f; }
-            set {  m_VolumetricDimmer = value; }
+            set { m_VolumetricDimmer = value; }
         }
 
         // Used internally to convert any light unit input into light intensity
@@ -226,15 +226,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
 
         // Shadow Settings
-        public float    shadowNearPlane = 0.1f;
+        public float shadowNearPlane = 0.1f;
 
         // PCSS settings
         [Range(0, 1.0f)]
-        public float    shadowSoftness = .125f;
+        public float shadowSoftness = .125f;
         [Range(1, 64)]
-        public int      blockerSampleCount = 2;
+        public int blockerSampleCount = 2;
         [Range(1, 64)]
-        public int      filterSampleCount = 4;
+        public int filterSampleCount = 4;
         [Range(0, 0.001f)]
         public float minFilterSize = 0.00001f;
 
@@ -255,7 +255,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         int[]               m_ShadowRequestIndices;
 
         [System.NonSerialized]
-        Plane[]             m_ShadowFrustumPlanes = new Plane[6];
+        Plane[] m_ShadowFrustumPlanes = new Plane[6];
 
         // custom-begin:
         // Cache shadow data from render loop in order to simplify sending shadow data of light sources to custom data structures.
@@ -264,14 +264,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // #if ENABLE_RAYTRACING
         // custom-end
         // Temporary index that stores the current shadow index for the light
-        [System.NonSerialized] public int shadowIndex;
+        [System.NonSerialized] public int shadowIndex = -1;
 
         // custom-begin:
         // #endif
         // custom-end
 
-        [System.NonSerialized] HDShadowSettings    _ShadowSettings = null;
-        HDShadowSettings    m_ShadowSettings
+        [System.NonSerialized] HDShadowSettings _ShadowSettings = null;
+        HDShadowSettings m_ShadowSettings
         {
             get
             {
@@ -424,15 +424,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             int                 firstShadowRequestIndex = -1;
             Vector3             cameraPos = hdCamera.mainViewConstants.worldSpaceCameraPos;
+
             shadowRequestCount = 0;
 
             int count = GetShadowRequestCount();
             for (int index = 0; index < count; index++)
             {
-                var         shadowRequest = shadowRequests[index];
-                Matrix4x4   invViewProjection = Matrix4x4.identity;
-                int         shadowRequestIndex = m_ShadowRequestIndices[index];
-                Vector2     viewportSize = manager.GetReservedResolution(shadowRequestIndex);
+                var shadowRequest = shadowRequests[index];
+                Matrix4x4 invViewProjection = Matrix4x4.identity;
+                int shadowRequestIndex = m_ShadowRequestIndices[index];
+                Vector2 viewportSize = manager.GetReservedResolution(shadowRequestIndex);
 
                 if (shadowRequestIndex == -1)
                     continue;
@@ -510,12 +511,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // zBuffer param to reconstruct depth position (for transmission)
             float f = legacyLight.range;
             float n = shadowNearPlane;
-            shadowRequest.zBufferParam = new Vector4((f-n)/n, 1.0f, (f-n)/n*f, 1.0f/f);
+            shadowRequest.zBufferParam = new Vector4((f - n) / n, 1.0f, (f - n) / n * f, 1.0f / f);
             shadowRequest.viewBias = new Vector4(m_ShadowData.viewBiasMin, m_ShadowData.viewBiasMax, m_ShadowData.viewBiasScale, 2.0f / shadowRequest.deviceProjectionYFlip.m00 / viewportSize.x * 1.4142135623730950488016887242097f);
             shadowRequest.normalBias = new Vector3(m_ShadowData.normalBiasMin, m_ShadowData.normalBiasMax, m_ShadowData.normalBiasScale);
             shadowRequest.flags = 0;
-            shadowRequest.flags |= m_ShadowData.sampleBiasScale     ? (int)HDShadowFlag.SampleBiasScale : 0;
-            shadowRequest.flags |= m_ShadowData.edgeLeakFixup       ? (int)HDShadowFlag.EdgeLeakFixup : 0;
+            shadowRequest.flags |= m_ShadowData.sampleBiasScale ? (int)HDShadowFlag.SampleBiasScale : 0;
+            shadowRequest.flags |= m_ShadowData.edgeLeakFixup ? (int)HDShadowFlag.EdgeLeakFixup : 0;
             shadowRequest.flags |= m_ShadowData.edgeToleranceNormal ? (int)HDShadowFlag.EdgeToleranceNormal : 0;
             shadowRequest.edgeTolerance = m_ShadowData.edgeTolerance;
 
@@ -552,7 +553,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 shadowRequest.shadowMapType = ShadowMapType.PunctualAtlas;
             }
 
-            shadowRequest.lightType = (int) legacyLight.type;
+            shadowRequest.lightType = (int)legacyLight.type;
 
             // shadow clip planes (used for tessellation clipping)
             GeometryUtility.CalculateFrustumPlanes(viewProjection, m_ShadowFrustumPlanes);
@@ -738,7 +739,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // TODO: There are a lot of old != current checks and assignation in this function, maybe think about using another system ?
         void LateUpdate()
         {
-// We force the animation in the editor and in play mode when there is an animator component attached to the light
+            // We force the animation in the editor and in play mode when there is an animator component attached to the light
 #if !UNITY_EDITOR
             if (!m_Animated)
                 return;
@@ -869,7 +870,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // m_Light.intensity is in luminance which is the value we need for emissive color
             Color value = legacyLight.color.linear * legacyLight.intensity;
 
-// We don't have access to the color temperature in the player because it's a private member of the Light component
+            // We don't have access to the color temperature in the player because it's a private member of the Light component
 #if UNITY_EDITOR
             if (useColorTemperature)
                 value *= Mathf.CorrelatedColorTemperatureToRGB(legacyLight.colorTemperature);
@@ -1084,7 +1085,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public void UpgradeLight()
         {
-// Disable the warning generated by deprecated fields (areaIntensity, directionalIntensity, ...)
+            // Disable the warning generated by deprecated fields (areaIntensity, directionalIntensity, ...)
 #pragma warning disable 618
 
             // If we are deserializing an old version, convert the light intensity to the new system
