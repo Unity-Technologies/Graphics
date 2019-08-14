@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [7.1.1] - 2019-XX-XX
 ### Added
 - You can now define shader keywords on the Blackboard. Use these keywords on the graph to create static branches in the generated shader.
+- You can now see on the tab if you are working in a Sub Graph or in a Shader Graph file.
 
 ## [7.0.1] - 2019-07-25
 ### Changed
