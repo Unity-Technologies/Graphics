@@ -7,11 +7,259 @@ using Unity.Collections;
 namespace UnityEngine.Rendering.HighDefinition
 {
     public partial class HDRenderPipeline
-    {        
+    {
+
+        public struct LightDatasJob : IJobParallelFor
+        {
+            public struct AdditionalLightData
+            {
+                public uint m_LightLayers;
+                public bool m_ApplyRangeAttenuation;
+                public float m_ShapeWidth;
+                public float m_ShapeHeight;
+                public float m_AspectRatio;
+                public float m_InnerSpotPercent01;
+                public float m_ShapeRadius;
+                public float m_LightDimmer;
+                public bool m_AffectDiffuse;
+                public bool m_AffectSpecular;
+                public float m_VolumetricDimmer;
+                public float m_ShadowDimmer;
+                public float m_VolumetricShadowDimmer;
+                public bool m_ContactShadows;
+                public float m_ShadowFadeDistance;
+                public float m_MaxSmoothness;
+                public Color m_ShadowTint;              
+            }
+            public NativeArray<LightData> m_LightData;
+            public NativeArray<Vector3> m_LightDimensions;
+
+            [ReadOnly]
+            public NativeArray<float> m_DistanceToCamera;
+            [ReadOnly]
+            public NativeArray<float>  m_LightDistanceFade;
+            [ReadOnly]
+            public NativeArray<AdditionalLightData> m_AdditionalLightData;
+            [ReadOnly]
+            public NativeArray<VisibleLight> m_VisibleLights;
+            [ReadOnly]
+            public NativeArray<int> m_VisibleLightRemapping;
+            [ReadOnly]
+            public NativeArray<int> m_SortIndexRemapping;
+            [ReadOnly]
+            NativeArray<GPULightType> m_GpuLightType;
+            [ReadOnly]
+            NativeArray<int> m_ShadowIndices;
+            [ReadOnly]
+            NativeArray<LightShadowCasterMode> m_LightShadowCasterModes;
+            [ReadOnly]
+            public float m_SpecularGlobalDimmer;
+            [ReadOnly]
+            public float m_MaxShadowDistance;
+
+            public void Execute(int index)
+            {
+                float distanceToCamera = m_DistanceToCamera[index];
+                float lightDistanceFade = m_LightDistanceFade[index];
+                AdditionalLightData additionalLightData = m_AdditionalLightData[index];
+            
+                LightData lightData = m_LightData[index];
+                lightData.lightLayers = additionalLightData.m_LightLayers;
+
+                lightData.lightType = m_GpuLightType[index];
+
+                VisibleLight light = m_VisibleLights[m_VisibleLightRemapping[index]];
+                lightData.positionRWS = light.GetPosition();
+
+                bool applyRangeAttenuation = additionalLightData.m_ApplyRangeAttenuation && (m_GpuLightType[index] != GPULightType.ProjectorBox);
+
+                lightData.range = light.range;
+
+                if (applyRangeAttenuation)
+                {
+                    lightData.rangeAttenuationScale = 1.0f / (light.range * light.range);
+                    lightData.rangeAttenuationBias  = 1.0f;
+
+                    if (lightData.lightType == GPULightType.Rectangle)
+                    {
+                        // Rect lights are currently a special case because they use the normalized
+                        // [0, 1] attenuation range rather than the regular [0, r] one.
+                        lightData.rangeAttenuationScale = 1.0f;
+                    }
+                }
+                else // Don't apply any attenuation but do a 'step' at range
+                {
+                    // Solve f(x) = b - (a * x)^2 where x = (d/r)^2.
+                    // f(0) = huge -> b = huge.
+                    // f(1) = 0    -> huge - a^2 = 0 -> a = sqrt(huge).
+                    const float hugeValue = 16777216.0f;
+                    const float sqrtHuge  = 4096.0f;
+                    lightData.rangeAttenuationScale = sqrtHuge / (light.range * light.range);
+                    lightData.rangeAttenuationBias  = hugeValue;
+
+                    if (lightData.lightType == GPULightType.Rectangle)
+                    {
+                        // Rect lights are currently a special case because they use the normalized
+                        // [0, 1] attenuation range rather than the regular [0, r] one.
+                        lightData.rangeAttenuationScale = sqrtHuge;
+                    }
+                }
+
+                lightData.color = GetLightColor(light);
+
+                lightData.forward = light.GetForward();
+                lightData.up = light.GetUp();
+                lightData.right = light.GetRight();
+
+                Vector3 lightDimensions = m_LightDimensions[index];
+                lightDimensions.x = additionalLightData.m_ShapeWidth;
+                lightDimensions.y = additionalLightData.m_ShapeHeight;
+                lightDimensions.z = light.range;
+                m_LightDimensions[index] = lightDimensions;
+
+                if (lightData.lightType == GPULightType.ProjectorBox)
+                {
+                    // Rescale for cookies and windowing.
+                    lightData.right *= 2.0f / Mathf.Max(additionalLightData.m_ShapeWidth, 0.001f);
+                    lightData.up    *= 2.0f / Mathf.Max(additionalLightData.m_ShapeHeight, 0.001f);
+                }
+                else if (lightData.lightType == GPULightType.ProjectorPyramid)
+                {
+                    // Get width and height for the current frustum
+                    var spotAngle = light.spotAngle;
+
+                    float frustumWidth, frustumHeight;
+
+                    if (additionalLightData.m_AspectRatio >= 1.0f)
+                    {
+                        frustumHeight = 2.0f * Mathf.Tan(spotAngle * 0.5f * Mathf.Deg2Rad);
+                        frustumWidth = frustumHeight * additionalLightData.m_AspectRatio;
+                    }
+                    else
+                    {
+                        frustumWidth = 2.0f * Mathf.Tan(spotAngle * 0.5f * Mathf.Deg2Rad);
+                        frustumHeight = frustumWidth / additionalLightData.m_AspectRatio;
+                    }
+
+                    lightDimensions = m_LightDimensions[index];
+                    // Adjust based on the new parametrization.
+                    lightDimensions.x = frustumWidth;
+                    lightDimensions.y = frustumHeight;
+                    m_LightDimensions[index] = lightDimensions;
+
+                    // Rescale for cookies and windowing.
+                    lightData.right *= 2.0f / frustumWidth;
+                    lightData.up *= 2.0f / frustumHeight;
+                }
+
+                if (lightData.lightType == GPULightType.Spot)
+                {
+                    var spotAngle = light.spotAngle;
+
+                    var innerConePercent = additionalLightData.m_InnerSpotPercent01;
+                    var cosSpotOuterHalfAngle = Mathf.Clamp(Mathf.Cos(spotAngle * 0.5f * Mathf.Deg2Rad), 0.0f, 1.0f);
+                    var sinSpotOuterHalfAngle = Mathf.Sqrt(1.0f - cosSpotOuterHalfAngle * cosSpotOuterHalfAngle);
+                    var cosSpotInnerHalfAngle = Mathf.Clamp(Mathf.Cos(spotAngle * 0.5f * innerConePercent * Mathf.Deg2Rad), 0.0f, 1.0f); // inner cone
+
+                    var val = Mathf.Max(0.0001f, (cosSpotInnerHalfAngle - cosSpotOuterHalfAngle));
+                    lightData.angleScale = 1.0f / val;
+                    lightData.angleOffset = -cosSpotOuterHalfAngle * lightData.angleScale;
+
+                    // Rescale for cookies and windowing.
+                    float cotOuterHalfAngle = cosSpotOuterHalfAngle / sinSpotOuterHalfAngle;
+                    lightData.up    *= cotOuterHalfAngle;
+                    lightData.right *= cotOuterHalfAngle;
+                }
+                else
+                {
+                    // These are the neutral values allowing GetAngleAnttenuation in shader code to return 1.0
+                    lightData.angleScale = 0.0f;
+                    lightData.angleOffset = 1.0f;
+                }
+
+                if (lightData.lightType != GPULightType.Directional && lightData.lightType != GPULightType.ProjectorBox)
+                {
+                    // Store the squared radius of the light to simulate a fill light.
+                    lightData.size = new Vector2(additionalLightData.m_ShapeRadius * additionalLightData.m_ShapeRadius, 0);
+                }
+
+                if (lightData.lightType == GPULightType.Rectangle || lightData.lightType == GPULightType.Tube)
+                {
+                    lightData.size = new Vector2(additionalLightData.m_ShapeWidth, additionalLightData.m_ShapeHeight);
+                }
+
+                lightData.lightDimmer           = lightDistanceFade * (additionalLightData.m_LightDimmer);
+                lightData.diffuseDimmer         = lightDistanceFade * (additionalLightData.m_AffectDiffuse  ? additionalLightData.m_LightDimmer : 0);
+                lightData.specularDimmer        = lightDistanceFade * (additionalLightData.m_AffectSpecular ? additionalLightData.m_LightDimmer * m_SpecularGlobalDimmer : 0);
+                lightData.volumetricLightDimmer = lightDistanceFade * (additionalLightData.m_VolumetricDimmer);
+
+                lightData.cookieIndex = -1;
+                lightData.shadowIndex = -1;
+                lightData.screenSpaceShadowIndex = -1;
+
+                float shadowDistanceFade         = HDUtils.ComputeLinearDistanceFade(distanceToCamera, Mathf.Min(m_MaxShadowDistance, additionalLightData.m_ShadowFadeDistance));
+                lightData.shadowDimmer           = shadowDistanceFade * additionalLightData.m_ShadowDimmer;
+                lightData.volumetricShadowDimmer = shadowDistanceFade * additionalLightData.m_VolumetricShadowDimmer;
+                lightData.shadowTint             = new Vector3(additionalLightData.m_ShadowTint.r, additionalLightData.m_ShadowTint.g, additionalLightData.m_ShadowTint.b);
+
+    #if ENABLE_RAYTRACING
+                // If there is still a free slot in the screen space shadow array and this needs to render a screen space shadow
+                if(screenSpaceShadowIndex < m_Asset.currentPlatformRenderPipelineSettings.hdShadowInitParams.maxScreenSpaceShadows && additionalLightData.WillRenderScreenSpaceShadow())
+                {
+                    lightData.screenSpaceShadowIndex = screenSpaceShadowIndex;
+                    additionalLightData.shadowIndex = -1;
+                    m_CurrentRayTracedShadows[screenSpaceShadowIndex] = additionalLightData;
+                    screenSpaceShadowIndex++;
+                }
+                else
+                {
+                    // fix up shadow information
+                    lightData.shadowIndex = shadowIndex;
+                    additionalLightData.shadowIndex = shadowIndex;
+                }
+    #else
+                // fix up shadow information
+                int sortIndex = m_SortIndexRemapping[index];
+                lightData.shadowIndex = sortIndex;
+    #endif
+                // Value of max smoothness is from artists point of view, need to convert from perceptual smoothness to roughness
+                lightData.minRoughness = (1.0f - additionalLightData.m_MaxSmoothness) * (1.0f - additionalLightData.m_MaxSmoothness);
+
+                lightData.shadowMaskSelector = Vector4.zero;
+                Light lightComponent = light.light;
+
+                if (IsBakedShadowMaskLight(lightComponent))
+                {
+                    lightData.shadowMaskSelector[lightComponent.bakingOutput.occlusionMaskChannel] = 1.0f;
+                    lightData.nonLightMappedOnly = lightComponent.lightShadowCasterMode == LightShadowCasterMode.NonLightmappedOnly ? 1 : 0;
+                }
+                else
+                {
+                    // use -1 to say that we don't use shadow mask
+                    lightData.shadowMaskSelector.x = -1.0f;
+                    lightData.nonLightMappedOnly = 0;
+                }
+
+                m_LightData[index] = lightData;
+            }
+
+            public void SetData()
+            {
+            }
+        }
+
         public struct LightVolumeBoundsJob : IJobParallelFor
         {
+
+            public struct AdditionalLightDataRef
+            {
+                public HDAdditionalLightData m_AdditionalLightData;
+            }
             public NativeArray<SFiniteLightBound> m_Bounds;
             public NativeArray<LightVolumeData> m_LightVolumeData;
+
+            [ReadOnly]
+            NativeArray<LightVolumeBoundsJob.AdditionalLightDataRef> m_AdditonalData;
 
             [ReadOnly]
             public NativeArray<LightCategory> m_LightCategory;
@@ -255,7 +503,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_SortIndexRemapping.Dispose();
         }
         
-        void AllocateVolumeBoundsJobArrays(int lightCount, int decalCount, int numViews)
+        void AllocateVolumeBoundsJobArrays(int lightCount, int numViews)
         {
             m_LightCategory = new NativeArray<LightCategory>(lightCount, Allocator.TempJob);
             m_GpuLightType = new NativeArray<GPULightType>(lightCount, Allocator.TempJob);
@@ -273,18 +521,41 @@ namespace UnityEngine.Rendering.HighDefinition
             m_WorldToView.Dispose();
         }
 
+        void AllocateDistanceAndFadeArrays(int lightCount)
+        {
+            m_DistanceToCamera = new NativeArray<float>(lightCount, Allocator.TempJob);
+            m_LightDistanceFade = new NativeArray<float>(lightCount, Allocator.TempJob);
+            m_ShadowIndices = new NativeArray<int>(lightCount, Allocator.TempJob);
+            m_AdditonalData = new NativeArray<LightVolumeBoundsJob.AdditionalLightDataRef>(lightCount, Allocator.TempJob);
+        }
 
+        void DisposeDistanceAndFadeArrays()
+        {
+            m_DistanceToCamera.Dispose(); 
+            m_LightDistanceFade.Dispose();
+            m_ShadowIndices.Dispose();
+            m_AdditonalData.Dispose();
+        }
 
         NativeArray<LightCategory> m_LightCategory;
         NativeArray<GPULightType> m_GpuLightType;
         NativeArray<LightVolumeType> m_LightVolumeType;
-        NativeArray<VisibleLight> m_VisibleLights;
         NativeArray<Vector3> m_LightDimensions;
         NativeArray<Matrix4x4> m_WorldToView;
         NativeArray<int> m_VisibleLightRemapping;
         NativeArray<int> m_SortIndexRemapping;
 
+        NativeArray<LightVolumeBoundsJob.AdditionalLightDataRef> m_AdditonalData;
+
+        NativeArray<float> m_DistanceToCamera;
+        NativeArray<float> m_LightDistanceFade;
+        NativeArray<LightDatasJob.AdditionalLightData> m_AdditionalLightDatas;
+        NativeArray<int> m_ShadowIndices;
+        NativeArray<LightBakingOutput> m_LightBakingOutputs;
+        NativeArray<LightShadowCasterMode> m_LightShadowCasterModes;
+
         LightVolumeBoundsJob m_LightVolumeBoundsJob;
+        LightDatasJob m_LightDatasJob;
     }
 }
 

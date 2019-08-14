@@ -413,11 +413,8 @@ namespace UnityEngine.Rendering.HighDefinition
         // scratch data to decouple passes in prepareLightsForGPU
         // Keep sorting array around to avoid garbage
         uint[] m_SortKeys = null;
-        int[] m_ShadowIndices = null;
         int[] m_DirLightIndices = null;
         HDAdditionalLightData[] m_HDLightDatas = null;
-        float[] m_DistanceToCamera = null;
-        float[] m_LightDistanceFade = null;
 
         void UpdateArraySize<Type>(int count, ref Type[]array)
         {
@@ -982,7 +979,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return camera.nonObliqueProjMatrix * s_FlipMatrixLHSRHS;
         }
 
-        Vector3 GetLightColor(VisibleLight light)
+        static Vector3 GetLightColor(VisibleLight light)
         {
             return new Vector3(light.finalColor.r, light.finalColor.g, light.finalColor.b);
         }
@@ -1215,15 +1212,44 @@ namespace UnityEngine.Rendering.HighDefinition
             return true;
         }
 
+        internal void GetLightCookie(CommandBuffer cmd, Light lightComponent, VisibleLight light, HDAdditionalLightData additionalLightData, int currLightIndex)
+        {
+            LightData lightData = m_lightList.m_LightData[currLightIndex];
+            if (lightComponent != null && lightComponent.cookie != null)
+            {
+                // TODO: add texture atlas support for cookie textures.
+                switch (light.lightType)
+                {
+                    case LightType.Spot:
+                        lightData.cookieIndex = m_TextureCaches.cookieTexArray.FetchSlice(cmd, lightComponent.cookie);
+                        break;
+                    case LightType.Point:
+                        lightData.cookieIndex = m_TextureCaches.cubeCookieTexArray.FetchSlice(cmd, lightComponent.cookie);
+                        break;
+                }
+            }
+            else if (light.lightType == LightType.Spot && additionalLightData.spotLightShape != SpotLightShape.Cone)
+            {
+                // Projectors lights must always have a cookie texture.
+                // As long as the cache is a texture array and not an atlas, the 4x4 white texture will be rescaled to 128
+                lightData.cookieIndex = m_TextureCaches.cookieTexArray.FetchSlice(cmd, Texture2D.whiteTexture);
+            }
+            else if (lightData.lightType == GPULightType.Rectangle && additionalLightData.areaLightCookie != null)
+            {
+                lightData.cookieIndex = m_TextureCaches.areaLightCookieManager.FetchSlice(cmd, additionalLightData.areaLightCookie);
+            }
+            lightData.contactShadowMask  = GetContactShadowMask(additionalLightData.contactShadows);
+            m_lightList.m_LightData[currLightIndex] = lightData;
+        }
 
-        internal bool GetLightData(CommandBuffer cmd, HDCamera hdCamera, HDShadowSettings shadowSettings, GPULightType gpuLightType,
+        internal bool GetLightData(HDCamera hdCamera, HDShadowSettings shadowSettings, GPULightType gpuLightType,
             VisibleLight light, Light lightComponent, HDAdditionalLightData additionalLightData,
             int shadowIndex, DebugDisplaySettings debugDisplaySettings, ref int screenSpaceShadowIndex, int currLightIndex)
         {
             float distanceToCamera = m_DistanceToCamera[currLightIndex];
             float lightDistanceFade = m_LightDistanceFade[currLightIndex];
 
-            var lightData = m_lightList.m_LightData[currLightIndex];
+            LightData lightData = m_lightList.m_LightData[currLightIndex];
 
             lightData.lightLayers = additionalLightData.GetLightLayers();
 
@@ -1356,30 +1382,6 @@ namespace UnityEngine.Rendering.HighDefinition
             lightData.cookieIndex = -1;
             lightData.shadowIndex = -1;
             lightData.screenSpaceShadowIndex = -1;
-
-            if (lightComponent != null && lightComponent.cookie != null)
-            {
-                // TODO: add texture atlas support for cookie textures.
-                switch (light.lightType)
-                {
-                    case LightType.Spot:
-                        lightData.cookieIndex = m_TextureCaches.cookieTexArray.FetchSlice(cmd, lightComponent.cookie);
-                        break;
-                    case LightType.Point:
-                        lightData.cookieIndex = m_TextureCaches.cubeCookieTexArray.FetchSlice(cmd, lightComponent.cookie);
-                        break;
-                }
-            }
-            else if (light.lightType == LightType.Spot && additionalLightData.spotLightShape != SpotLightShape.Cone)
-            {
-                // Projectors lights must always have a cookie texture.
-                // As long as the cache is a texture array and not an atlas, the 4x4 white texture will be rescaled to 128
-                lightData.cookieIndex = m_TextureCaches.cookieTexArray.FetchSlice(cmd, Texture2D.whiteTexture);
-            }
-            else if (lightData.lightType == GPULightType.Rectangle && additionalLightData.areaLightCookie != null)
-            {
-                lightData.cookieIndex = m_TextureCaches.areaLightCookieManager.FetchSlice(cmd, additionalLightData.areaLightCookie);
-            }
 
             float shadowDistanceFade         = HDUtils.ComputeLinearDistanceFade(distanceToCamera, Mathf.Min(shadowSettings.maxShadowDistance.value, additionalLightData.shadowFadeDistance));
             lightData.shadowDimmer           = shadowDistanceFade * additionalLightData.shadowDimmer;
@@ -1833,7 +1835,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cullingParams.cullingOptions |= CullingOptions.DisablePerObjectCulling;
         }
 
-        bool IsBakedShadowMaskLight(Light light)
+        static bool IsBakedShadowMaskLight(Light light)
         {
             // This can happen for particle lights.
             if (light == null)
@@ -1913,11 +1915,10 @@ namespace UnityEngine.Rendering.HighDefinition
                     int lightCount = Math.Min(cullResults.visibleLights.Length, m_MaxLightsOnScreen);
 
                     UpdateArraySize(lightCount, ref m_SortKeys);
-                    UpdateArraySize(lightCount, ref m_ShadowIndices);
                     UpdateArraySize(lightCount, ref m_DirLightIndices);
                     UpdateArraySize(lightCount, ref m_HDLightDatas);
-                    UpdateArraySize(lightCount, ref m_DistanceToCamera);
-                    UpdateArraySize(lightCount, ref m_LightDistanceFade);
+
+                    AllocateDistanceAndFadeArrays(lightCount);
 
                     int sortCount = 0;
                     for (int lightIndex = 0, numLights = cullResults.visibleLights.Length; (lightIndex < numLights) && (sortCount < lightCount); ++lightIndex)
@@ -1944,7 +1945,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             additionalData.ReserveShadowMap(camera, m_ShadowManager, m_ShadowInitParameters, light.screenRect);
                         }
 
-                        LightCategory lightCategory = LightCategory.Count;
+                        LightCategory lightCategory = LightCategory.Count;    
                         GPULightType gpuLightType = GPULightType.Point;
                         LightVolumeType lightVolumeType = LightVolumeType.Count;
 
@@ -2186,9 +2187,21 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     Profiler.EndSample();
 
-                    AllocateVolumeBoundsJobArrays(totalDrawnLightsCount, decalDatasCount, hdCamera.viewCount); // needs to be above GetLightData, because m_LightDimensions get computed there
+                    AllocateVolumeBoundsJobArrays(totalDrawnLightsCount, hdCamera.viewCount); // needs to be above GetLightData, because m_LightDimensions get computed there
                     m_lightList.AllocateLightArraysPerFrame(totalDrawnLightsCount, decalDatasCount, hdCamera.viewCount);
 
+                    for (int lightIndex = 0; lightIndex < totalDrawnLightsCount; ++lightIndex)
+                    {
+                        int sortIndex = m_SortIndexRemapping[lightIndex];
+                        // In 1. we have already classify and sorted the light, we need to use this sorted order here
+                        uint sortKey = m_SortKeys[sortIndex];
+
+                        int visibleLightIndex = (int)(sortKey & 0xFFFF);
+                        var light = cullResults.visibleLights[visibleLightIndex];
+                        var lightComponent = light.light;
+                        GetLightCookie(cmd, lightComponent, light, m_HDLightDatas[sortIndex], lightIndex);
+                    }
+                
                     for (int lightIndex = 0; lightIndex < totalDrawnLightsCount; ++lightIndex)
                     {
                         int sortIndex = m_SortIndexRemapping[lightIndex];
@@ -2203,11 +2216,10 @@ namespace UnityEngine.Rendering.HighDefinition
                         var lightComponent = light.light;
 
                         // Punctual, area, projector lights - the rendering side.
-                        GetLightData(cmd, hdCamera, hdShadowSettings, gpuLightType, light, lightComponent, m_HDLightDatas[sortIndex], m_ShadowIndices[sortIndex],  debugDisplaySettings, ref m_ScreenSpaceShadowIndex, lightIndex);
+                        GetLightData(hdCamera, hdShadowSettings, gpuLightType, light, lightComponent, m_HDLightDatas[sortIndex], m_ShadowIndices[sortIndex],  debugDisplaySettings, ref m_ScreenSpaceShadowIndex, lightIndex);
                         switch (lightCategory)
                         {
                             case LightCategory.Punctual:
-                                break;
                             case LightCategory.Area:
                                 break;
                             default:
@@ -2476,6 +2488,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 DisposeBoundsJobArrays();
                 DisposeRemappingArray();
+                DisposeDistanceAndFadeArrays();
                 m_lightList.DisposeLightArraysPerFrame();
             }
 
