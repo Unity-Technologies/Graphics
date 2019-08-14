@@ -15,12 +15,12 @@ namespace UnityEngine.Rendering.LWRP
         DrawObjectsPass m_RenderOpaqueForwardPass; //+
         PostProcessPass m_OpaquePostProcessPass;
         DrawSkyboxPass m_DrawSkyboxPass; //+
-        CopyDepthPass m_CopyDepthPass; //? this
-        CopyColorPass m_CopyColorPass; //? and this together, cause of blit - so kinda works, but i don't see a point in these passes as depth/color can simply be sent as input to custom renderpass
+        CopyDepthPass m_CopyDepthPass; // works the old way (not renderPass)
+        CopyColorPass m_CopyColorPass; // works the old way (not renderPass)
         DrawObjectsPass m_RenderTransparentForwardPass; //+
         PostProcessPass m_PostProcessPass; //+
         FinalBlitPass m_FinalBlitPass; //+
-        CapturePass m_CapturePass;
+        CapturePass m_CapturePass; //-
 
 #if UNITY_EDITOR
         SceneViewDepthCopyPass m_SceneViewDepthCopyPass;
@@ -313,7 +313,7 @@ namespace UnityEngine.Rendering.LWRP
                 m_MainLightShadowCasterPass.Configure(cmd, cameraTargetDescriptor);
 
                 AttachmentDescriptor shadowCasterDepthAttachmentDescriptor =
-                    new AttachmentDescriptor(RenderTextureFormat.Shadowmap);
+                    new AttachmentDescriptor(RenderTextureFormat.Depth);
                 shadowCasterDepthAttachmentDescriptor.ConfigureTarget(m_MainLightShadowCasterPass.colorAttachment,
                     false, true);
                 shadowCasterDepthAttachmentDescriptor.ConfigureClear(Color.white, 1.0f, 0);
@@ -347,7 +347,7 @@ namespace UnityEngine.Rendering.LWRP
                     : renderingData.shadowData.mainLightShadowmapHeight;
 
                 AttachmentDescriptor additionalLightShadowCasterAttachmentDescriptor =
-                    new AttachmentDescriptor(RenderTextureFormat.Shadowmap);
+                    new AttachmentDescriptor(RenderTextureFormat.Depth);
                 m_AdditionalLightsShadowCasterPass.Configure(cmd, cameraTargetDescriptor);
                 additionalLightShadowCasterAttachmentDescriptor.ConfigureTarget(
                     m_AdditionalLightsShadowCasterPass.colorAttachment, false, true);
