@@ -1835,7 +1835,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cullingParams.cullingOptions |= CullingOptions.DisablePerObjectCulling;
         }
 
-        static bool IsBakedShadowMaskLight(Light light)
+        bool IsBakedShadowMaskLight(Light light)
         {
             // This can happen for particle lights.
             if (light == null)
@@ -2078,6 +2078,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                         // Light should always have additional data, however preview light right don't have, so we must handle the case by assigning HDUtils.s_DefaultHDAdditionalLightData
                         m_HDLightDatas[sortIndex] = GetHDAdditionalLightData(lightComponent);
+                      
 
                         m_ShadowIndices[sortIndex] = -1;
 
@@ -2135,7 +2136,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     Profiler.BeginSample("Lights");
                     Profiler.BeginSample("Discard Lights");
-
                     AllocateRemappingArray(sortCount);
 
                     for (int sortIndex = 0; sortIndex < sortCount; ++sortIndex)
@@ -2184,9 +2184,9 @@ namespace UnityEngine.Rendering.HighDefinition
                         m_SortIndexRemapping[totalDrawnLightsCount] = sortIndex;
                         totalDrawnLightsCount++;
                     }
-
                     Profiler.EndSample();
 
+                    Profiler.BeginSample("Light Get lightcookie");
                     AllocateVolumeBoundsJobArrays(totalDrawnLightsCount, hdCamera.viewCount); // needs to be above GetLightData, because m_LightDimensions get computed there
                     m_lightList.AllocateLightArraysPerFrame(totalDrawnLightsCount, decalDatasCount, hdCamera.viewCount);
 
@@ -2201,32 +2201,84 @@ namespace UnityEngine.Rendering.HighDefinition
                         var lightComponent = light.light;
                         GetLightCookie(cmd, lightComponent, light, m_HDLightDatas[sortIndex], lightIndex);
                     }
-                
+                    Profiler.EndSample();
+
+                    Profiler.BeginSample("Light datas prepare");
+                    for (int sortIndex = 0; sortIndex < sortCount; ++sortIndex)
+                    {
+                        LightDatasJob.AdditionalLightData additionalLightData = m_AdditionalLightData[sortIndex];
+                        additionalLightData.copyInto(m_HDLightDatas[sortIndex]);
+                        m_AdditionalLightData[sortIndex] = additionalLightData;
+                        uint sortKey = m_SortKeys[sortIndex];
+
+                        int visibleLightIndex = (int)(sortKey & 0xFFFF);
+                        var light = cullResults.visibleLights[visibleLightIndex];
+                        var lightComponent = light.light;
+                        LightDatasJob.BakedShadowMaskdata bakedShadowMaskdata = m_BakedShadowMaskdatas[sortIndex];
+                        bakedShadowMaskdata.copyInto(lightComponent);
+                        m_BakedShadowMaskdatas[sortIndex] = bakedShadowMaskdata;
+                    }
+                   
+
+                    /*
+                        for (int lightIndex = 0; lightIndex < totalDrawnLightsCount; ++lightIndex)
+                        {
+                            int sortIndex = m_SortIndexRemapping[lightIndex];
+                            // In 1. we have already classify and sorted the light, we need to use this sorted order here
+                            uint sortKey = m_SortKeys[sortIndex];
+                            //LightCategory lightCategory = (LightCategory)((sortKey >> 27) & 0x1F);
+                            GPULightType gpuLightType = (GPULightType)((sortKey >> 22) & 0x1F);
+                            LightVolumeType lightVolumeType = (LightVolumeType)((sortKey >> 17) & 0x1F);
+                            int visibleLightIndex = (int)(sortKey & 0xFFFF);
+
+                            var light = cullResults.visibleLights[visibleLightIndex];
+                            var lightComponent = light.light;
+
+                            // Punctual, area, projector lights - the rendering side.
+                            GetLightData(hdCamera, hdShadowSettings, gpuLightType, light, lightComponent, m_HDLightDatas[sortIndex], m_ShadowIndices[sortIndex],  debugDisplaySettings, ref m_ScreenSpaceShadowIndex, lightIndex);
+                          //  switch (lightCategory)
+                           // {
+                           //     case LightCategory.Punctual:
+                           //     case LightCategory.Area:
+                           //         break;
+                           //     default:
+                           //         Debug.Assert(false, "TODO: encountered an unknown LightCategory.");
+                           //         break;
+                            //}
+                        }*/
+                 
                     for (int lightIndex = 0; lightIndex < totalDrawnLightsCount; ++lightIndex)
                     {
                         int sortIndex = m_SortIndexRemapping[lightIndex];
                         // In 1. we have already classify and sorted the light, we need to use this sorted order here
                         uint sortKey = m_SortKeys[sortIndex];
-                        LightCategory lightCategory = (LightCategory)((sortKey >> 27) & 0x1F);
-                        GPULightType gpuLightType = (GPULightType)((sortKey >> 22) & 0x1F);
-                        LightVolumeType lightVolumeType = (LightVolumeType)((sortKey >> 17) & 0x1F);
+                        m_GpuLightType[lightIndex] = (GPULightType)((sortKey >> 22) & 0x1F);
                         int visibleLightIndex = (int)(sortKey & 0xFFFF);
 
-                        var light = cullResults.visibleLights[visibleLightIndex];
-                        var lightComponent = light.light;
+                        //var light = cullResults.visibleLights[visibleLightIndex];
+                        //var lightComponent = light.light;
 
                         // Punctual, area, projector lights - the rendering side.
-                        GetLightData(hdCamera, hdShadowSettings, gpuLightType, light, lightComponent, m_HDLightDatas[sortIndex], m_ShadowIndices[sortIndex],  debugDisplaySettings, ref m_ScreenSpaceShadowIndex, lightIndex);
-                        switch (lightCategory)
-                        {
-                            case LightCategory.Punctual:
-                            case LightCategory.Area:
-                                break;
-                            default:
-                                Debug.Assert(false, "TODO: encountered an unknown LightCategory.");
-                                break;
-                        }
+                        //GetLightData(hdCamera, hdShadowSettings, gpuLightType, light, lightComponent, m_HDLightDatas[sortIndex], m_ShadowIndices[sortIndex], debugDisplaySettings, ref m_ScreenSpaceShadowIndex, lightIndex);
+                        m_LightDatasJob.SetData(m_lightList.m_LightData,
+                            m_LightDimensions,
+                            m_DistanceToCamera,
+                            m_LightDistanceFade,
+                            m_AdditionalLightData,
+                            cullResults.visibleLights,
+                            m_VisibleLightRemapping,
+                            m_SortIndexRemapping,
+                            m_GpuLightType,
+                            m_ShadowIndices,
+                            m_BakedShadowMaskdatas,
+                            hdCamera.frameSettings.specularGlobalDimmer,
+                            hdShadowSettings.maxShadowDistance.value);
                     }
+                    Profiler.EndSample();
+
+                    Profiler.BeginSample("Light datas compute");
+                    JobHandle handle = m_LightDatasJob.Schedule(totalDrawnLightsCount, 1);
+                    handle.Complete();
                     Profiler.EndSample();
 
                     Profiler.BeginSample("Light Volume and Bounds datas prepare");
@@ -2261,8 +2313,8 @@ namespace UnityEngine.Rendering.HighDefinition
                         decalDatasCount,
                         hdCamera.viewCount);
  
-                    JobHandle handle = m_LightVolumeBoundsJob.Schedule(totalDrawnLightsCount, 1);
-                    handle.Complete();
+                    JobHandle lightVolumeBoundsJobHandle = m_LightVolumeBoundsJob.Schedule(totalDrawnLightsCount, 1);
+                    lightVolumeBoundsJobHandle.Complete();
 //                    m_LightVolumeBoundsJob.Run(volumeDataAndBoundCount);
                     Profiler.EndSample();
 
@@ -2490,6 +2542,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 DisposeRemappingArray();
                 DisposeDistanceAndFadeArrays();
                 m_lightList.DisposeLightArraysPerFrame();
+                Profiler.EndSample();
             }
 
             m_enableBakeShadowMask = m_enableBakeShadowMask && hdCamera.frameSettings.IsEnabled(FrameSettingsField.ShadowMask);

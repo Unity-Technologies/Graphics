@@ -11,6 +11,30 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public struct LightDatasJob : IJobParallelFor
         {
+            public struct BakedShadowMaskdata
+            {
+                public bool m_IsNull;
+                public LightmapBakeType m_LightmapBakeType;
+                public MixedLightingMode m_MixedLightingMode;
+                public int m_OcclusionMaskChannel;
+                public LightShadowCasterMode m_LightShadowCasterMode;
+                public void copyInto(Light light)
+                {
+                    if (light == null)
+                    {
+                        m_IsNull = true;
+                    }
+                    else
+                    {
+                        m_IsNull = false;
+                        m_LightmapBakeType = light.bakingOutput.lightmapBakeType;
+                        m_MixedLightingMode = light.bakingOutput.mixedLightingMode;
+                        m_OcclusionMaskChannel = light.bakingOutput.occlusionMaskChannel; 
+                        m_LightShadowCasterMode = light.lightShadowCasterMode;
+                    }
+                }
+            }
+
             public struct AdditionalLightData
             {
                 public uint m_LightLayers;
@@ -29,7 +53,27 @@ namespace UnityEngine.Rendering.HighDefinition
                 public bool m_ContactShadows;
                 public float m_ShadowFadeDistance;
                 public float m_MaxSmoothness;
-                public Color m_ShadowTint;              
+                public Color m_ShadowTint;
+                public void copyInto(HDAdditionalLightData additionalLightData)
+                {
+                    m_LightLayers = additionalLightData.GetLightLayers();
+                    m_ApplyRangeAttenuation = additionalLightData.applyRangeAttenuation;
+                    m_ShapeWidth = additionalLightData.shapeWidth;
+                    m_ShapeHeight = additionalLightData.shapeHeight;
+                    m_AspectRatio = additionalLightData.aspectRatio;
+                    m_InnerSpotPercent01 = additionalLightData.innerSpotPercent01;
+                    m_ShapeRadius = additionalLightData.shapeRadius;
+                    m_LightDimmer = additionalLightData.lightDimmer;
+                    m_AffectDiffuse = additionalLightData.affectDiffuse;
+                    m_AffectSpecular = additionalLightData.affectSpecular;
+                    m_VolumetricDimmer = additionalLightData.volumetricDimmer;
+                    m_ShadowDimmer = additionalLightData.shadowDimmer;
+                    m_VolumetricShadowDimmer = additionalLightData.volumetricShadowDimmer;
+                    m_ContactShadows = additionalLightData.contactShadows;
+                    m_ShadowFadeDistance = additionalLightData.shadowFadeDistance;
+                    m_MaxSmoothness = additionalLightData.maxSmoothness;
+                    m_ShadowTint = additionalLightData.shadowTint;
+                }
             }
             public NativeArray<LightData> m_LightData;
             public NativeArray<Vector3> m_LightDimensions;
@@ -51,18 +95,31 @@ namespace UnityEngine.Rendering.HighDefinition
             [ReadOnly]
             NativeArray<int> m_ShadowIndices;
             [ReadOnly]
-            NativeArray<LightShadowCasterMode> m_LightShadowCasterModes;
+            NativeArray<BakedShadowMaskdata> m_BakedShadowMaskdatas;
             [ReadOnly]
             public float m_SpecularGlobalDimmer;
             [ReadOnly]
             public float m_MaxShadowDistance;
 
+            bool IsBakedShadowMaskLight(BakedShadowMaskdata bakedShadowMaskdata)
+            {
+                // This can happen for particle lights.
+                if (bakedShadowMaskdata.m_IsNull)
+                    return false;
+
+                return bakedShadowMaskdata.m_LightmapBakeType == LightmapBakeType.Mixed &&
+                    bakedShadowMaskdata.m_MixedLightingMode == MixedLightingMode.Shadowmask &&
+                    bakedShadowMaskdata.m_OcclusionMaskChannel != -1;     // We need to have an occlusion mask channel assign, else we have no shadow mask
+            }
+
             public void Execute(int index)
             {
                 float distanceToCamera = m_DistanceToCamera[index];
                 float lightDistanceFade = m_LightDistanceFade[index];
-                AdditionalLightData additionalLightData = m_AdditionalLightData[index];
-            
+                int sortIndex = m_SortIndexRemapping[index];
+                AdditionalLightData additionalLightData = m_AdditionalLightData[sortIndex];
+                BakedShadowMaskdata bakedShadowMaskdata = m_BakedShadowMaskdatas[sortIndex];
+
                 LightData lightData = m_LightData[index];
                 lightData.lightLayers = additionalLightData.m_LightLayers;
 
@@ -219,19 +276,17 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
     #else
                 // fix up shadow information
-                int sortIndex = m_SortIndexRemapping[index];
-                lightData.shadowIndex = sortIndex;
+                lightData.shadowIndex = m_ShadowIndices[sortIndex];
     #endif
                 // Value of max smoothness is from artists point of view, need to convert from perceptual smoothness to roughness
                 lightData.minRoughness = (1.0f - additionalLightData.m_MaxSmoothness) * (1.0f - additionalLightData.m_MaxSmoothness);
 
                 lightData.shadowMaskSelector = Vector4.zero;
-                Light lightComponent = light.light;
 
-                if (IsBakedShadowMaskLight(lightComponent))
+                if (IsBakedShadowMaskLight(bakedShadowMaskdata))
                 {
-                    lightData.shadowMaskSelector[lightComponent.bakingOutput.occlusionMaskChannel] = 1.0f;
-                    lightData.nonLightMappedOnly = lightComponent.lightShadowCasterMode == LightShadowCasterMode.NonLightmappedOnly ? 1 : 0;
+                    lightData.shadowMaskSelector[bakedShadowMaskdata.m_OcclusionMaskChannel] = 1.0f;
+                    lightData.nonLightMappedOnly = bakedShadowMaskdata.m_LightShadowCasterMode == LightShadowCasterMode.NonLightmappedOnly ? 1 : 0;
                 }
                 else
                 {
@@ -243,23 +298,40 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_LightData[index] = lightData;
             }
 
-            public void SetData()
+            public void SetData( NativeArray<LightData> lightData,
+                NativeArray<Vector3> lightDimensions,
+                NativeArray<float> distanceToCamera,
+                NativeArray<float> lightDistanceFade,
+                NativeArray<AdditionalLightData> additionalLightData,
+                NativeArray<VisibleLight> visibleLights,
+                NativeArray<int> visibleLightRemapping,
+                NativeArray<int> sortIndexRemapping,
+                NativeArray<GPULightType> gpuLightType,
+                NativeArray<int> shadowIndices,
+                NativeArray<BakedShadowMaskdata> bakedShadowMaskdatas,
+                float specularGlobalDimmer,
+                float maxShadowDistance)
             {
+                m_LightData = lightData;
+                m_LightDimensions = lightDimensions;
+                m_DistanceToCamera = distanceToCamera;
+                m_LightDistanceFade = lightDistanceFade;
+                m_AdditionalLightData = additionalLightData;
+                m_VisibleLights = visibleLights;
+                m_VisibleLightRemapping = visibleLightRemapping;
+                m_SortIndexRemapping = sortIndexRemapping;
+                m_GpuLightType = gpuLightType;
+                m_ShadowIndices = shadowIndices;
+                m_BakedShadowMaskdatas = bakedShadowMaskdatas;
+                m_SpecularGlobalDimmer = specularGlobalDimmer;
+                m_MaxShadowDistance = maxShadowDistance;
             }
         }
 
         public struct LightVolumeBoundsJob : IJobParallelFor
         {
-
-            public struct AdditionalLightDataRef
-            {
-                public HDAdditionalLightData m_AdditionalLightData;
-            }
             public NativeArray<SFiniteLightBound> m_Bounds;
             public NativeArray<LightVolumeData> m_LightVolumeData;
-
-            [ReadOnly]
-            NativeArray<LightVolumeBoundsJob.AdditionalLightDataRef> m_AdditonalData;
 
             [ReadOnly]
             public NativeArray<LightCategory> m_LightCategory;
@@ -526,7 +598,8 @@ namespace UnityEngine.Rendering.HighDefinition
             m_DistanceToCamera = new NativeArray<float>(lightCount, Allocator.TempJob);
             m_LightDistanceFade = new NativeArray<float>(lightCount, Allocator.TempJob);
             m_ShadowIndices = new NativeArray<int>(lightCount, Allocator.TempJob);
-            m_AdditonalData = new NativeArray<LightVolumeBoundsJob.AdditionalLightDataRef>(lightCount, Allocator.TempJob);
+            m_AdditionalLightData = new NativeArray<LightDatasJob.AdditionalLightData>(lightCount, Allocator.TempJob);
+            m_BakedShadowMaskdatas = new NativeArray<LightDatasJob.BakedShadowMaskdata>(lightCount, Allocator.TempJob);
         }
 
         void DisposeDistanceAndFadeArrays()
@@ -534,7 +607,8 @@ namespace UnityEngine.Rendering.HighDefinition
             m_DistanceToCamera.Dispose(); 
             m_LightDistanceFade.Dispose();
             m_ShadowIndices.Dispose();
-            m_AdditonalData.Dispose();
+            m_AdditionalLightData.Dispose();
+            m_BakedShadowMaskdatas.Dispose();
         }
 
         NativeArray<LightCategory> m_LightCategory;
@@ -545,14 +619,11 @@ namespace UnityEngine.Rendering.HighDefinition
         NativeArray<int> m_VisibleLightRemapping;
         NativeArray<int> m_SortIndexRemapping;
 
-        NativeArray<LightVolumeBoundsJob.AdditionalLightDataRef> m_AdditonalData;
-
         NativeArray<float> m_DistanceToCamera;
         NativeArray<float> m_LightDistanceFade;
-        NativeArray<LightDatasJob.AdditionalLightData> m_AdditionalLightDatas;
+        NativeArray<LightDatasJob.AdditionalLightData> m_AdditionalLightData;
         NativeArray<int> m_ShadowIndices;
-        NativeArray<LightBakingOutput> m_LightBakingOutputs;
-        NativeArray<LightShadowCasterMode> m_LightShadowCasterModes;
+        NativeArray<LightDatasJob.BakedShadowMaskdata> m_BakedShadowMaskdatas;
 
         LightVolumeBoundsJob m_LightVolumeBoundsJob;
         LightDatasJob m_LightDatasJob;
