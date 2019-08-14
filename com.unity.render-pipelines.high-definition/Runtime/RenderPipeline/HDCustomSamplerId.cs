@@ -14,6 +14,7 @@ namespace UnityEngine.Rendering.HighDefinition
         RenderShadowMaps,
         ScreenSpaceShadows,
         BuildLightList,
+        ContactShadows,
         BlitToFinalRT,
         Distortion,
         ApplyDistortion,

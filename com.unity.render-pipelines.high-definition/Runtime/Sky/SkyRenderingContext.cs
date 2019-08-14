@@ -212,8 +212,6 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        // GC.Alloc
-        // VolumeParameter`.op_Equality()
         public bool UpdateEnvironment(SkyUpdateContext skyContext, Light sunLight, Vector3 worldSpaceCameraPos, bool updateRequired, bool updateAmbientProbe, int frameIndex, CommandBuffer cmd)
         {
             bool result = false;
@@ -236,8 +234,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 bool forceUpdate = (updateRequired || skyContext.updatedFramesRequired > 0 || m_NeedUpdate);
                 if (forceUpdate ||
-                    (skyContext.skySettings.updateMode == EnvironmentUpdateMode.OnChanged && skyHash != skyContext.skyParametersHash) ||
-                    (skyContext.skySettings.updateMode == EnvironmentUpdateMode.Realtime && skyContext.currentUpdateTime > skyContext.skySettings.updatePeriod.value))
+                    (skyContext.skySettings.updateMode.value == EnvironmentUpdateMode.OnChanged && skyHash != skyContext.skyParametersHash) ||
+                    (skyContext.skySettings.updateMode.value == EnvironmentUpdateMode.Realtime && skyContext.currentUpdateTime > skyContext.skySettings.updatePeriod.value))
                 {
                     using (new ProfilingSample(cmd, "Sky Environment Pass"))
                     {

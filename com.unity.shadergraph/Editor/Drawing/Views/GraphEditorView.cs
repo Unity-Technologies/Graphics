@@ -564,8 +564,6 @@ namespace UnityEditor.ShaderGraph.Drawing
                             newGroupView.AddElement(graphElement);
                         }
                     }
-
-                    return;
                 }
             }
 

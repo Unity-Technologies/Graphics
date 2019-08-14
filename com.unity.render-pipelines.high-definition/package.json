@@ -33,6 +33,11 @@
         "displayName" : "Procedural Sky",
         "description" : "Adds the deprecated procedural sky of HDRP.",
         "path" : "Samples~/ProceduralSky"
+    },
+	{
+        "displayName" : "Particle System Shader Samples",
+        "description" : "Adds Particle System Shader samples to your project. Open the SampleScene to see examples of various lit and unlit particle effects.",
+        "path" : "Samples~/ParticleSystemShaderSamples"
     }
     ]
 }
