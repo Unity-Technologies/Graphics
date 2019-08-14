@@ -395,7 +395,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             if (Light2DManager.cullingGroup == null)
             {
                 Light2DManager.cullingGroup = new CullingGroup();
-                RenderPipeline.beginCameraRendering += SetupCulling;
+//                RenderPipeline.beginCameraRendering += SetupCulling;
             }
 
             if (!Light2DManager.lights[m_BlendStyleIndex].Contains(this))
@@ -425,7 +425,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             {
                 Light2DManager.cullingGroup.Dispose();
                 Light2DManager.cullingGroup = null;
-                RenderPipeline.beginCameraRendering -= SetupCulling;
+//                RenderPipeline.beginCameraRendering -= SetupCulling;
             }
         }
 

@@ -73,7 +73,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 m_PreviewContainer = new VisualElement
                 {
                     name = "previewContainer",
-                    cacheAsBitmap = true,
+                    // cacheAsBitmap = true,
                     style = { overflow = Overflow.Hidden },
                     pickingMode = PickingMode.Ignore
                 };
@@ -127,7 +127,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_PortInputContainer = new VisualElement
             {
                 name = "portInputContainer",
-                cacheAsBitmap = true,
+                // cacheAsBitmap = true,
                 style = { overflow = Overflow.Hidden },
                 pickingMode = PickingMode.Ignore
             };
