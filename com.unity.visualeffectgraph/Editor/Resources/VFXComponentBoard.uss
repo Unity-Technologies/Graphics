@@ -167,7 +167,7 @@ VFXComponentBoardEventUI .unity-button, #on-play-button, #on-stop-button,#attach
     padding-top: 10px;
 }
 
-#debug-graph-container {
+#debug-plot-area {
     flex-direction: row;
     width: 98%;
     margin-top: 12px;
