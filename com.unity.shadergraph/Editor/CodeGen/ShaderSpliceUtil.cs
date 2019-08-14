@@ -212,7 +212,7 @@ namespace UnityEditor.ShaderGraph
                     }
                     else
                     {
-                        fieldIsActive = ShouldSpliceField(t, field, activeFields.noPermutation, out isOptional);
+                        fieldIsActive = ShouldSpliceField(t, field, activeFields.baseInstance, out isOptional);
                     }
 
 
@@ -278,7 +278,7 @@ namespace UnityEditor.ShaderGraph
                 }
                 else
                 {
-                    BuildPackedType(t, activeFields.noPermutation, result);
+                    BuildPackedType(t, activeFields.baseInstance, result);
                 }
             }
         }
@@ -719,7 +719,7 @@ namespace UnityEditor.ShaderGraph
                 else
                 {
                     // eval if(param)
-                    if (activeFields.noPermutation.Contains(fieldName))
+                    if (activeFields.baseInstance.Contains(fieldName))
                     {
                         // predicate is active
                         // append everything before the beginning of the escape sequence
