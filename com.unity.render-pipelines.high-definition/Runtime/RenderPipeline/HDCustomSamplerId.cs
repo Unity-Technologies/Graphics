@@ -116,7 +116,6 @@ namespace UnityEngine.Rendering.HighDefinition
         FinalPost,
 
 #if ENABLE_VIRTUALTEXTURES
-        VTFeedbackDownSample,
         VTFeedbackClear,
 #endif
         Max

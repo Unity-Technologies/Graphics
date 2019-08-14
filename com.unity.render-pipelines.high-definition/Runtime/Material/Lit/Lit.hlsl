@@ -11,6 +11,8 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/NormalBuffer.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/VolumeRendering.hlsl"
 
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/TextureStack.hlsl"
+
 //-----------------------------------------------------------------------------
 // Configuration
 //-----------------------------------------------------------------------------
@@ -64,17 +66,6 @@ TEXTURE2D_X(_ShadowMaskTexture); // Alias for shadow mask, so we don't need to k
 #define OUT_GBUFFER_LIGHT_LAYERS outGBuffer4
 #elif defined(SHADOWS_SHADOWMASK)
 #define OUT_GBUFFER_SHADOWMASK outGBuffer4
-#endif
-
-// VT feedback goes at the back
-#if VIRTUAL_TEXTURES_ENABLED
-#if defined(LIGHT_LAYERS) && defined(SHADOWS_SHADOWMASK)
-#define OUT_GBUFFER_VTFEEDBACK outGBuffer6
-#elif defined(LIGHT_LAYERS) || defined(SHADOWS_SHADOWMASK)
-#define OUT_GBUFFER_VTFEEDBACK outGBuffer5
-#else
-#define OUT_GBUFFER_VTFEEDBACK outGBuffer4
-#endif
 #endif
 
 #define HAS_REFRACTION (defined(_REFRACTION_PLANE) || defined(_REFRACTION_SPHERE))
@@ -635,11 +626,7 @@ void EncodeIntoGBuffer( SurfaceData surfaceData
     OUT_GBUFFER_SHADOWMASK = BUILTIN_DATA_SHADOW_MASK;
 #endif
 
-#if VIRTUAL_TEXTURES_ACTIVE
-    OUT_GBUFFER_VTFEEDBACK = surfaceData.VTFeedback;
-#elif VIRTUAL_TEXTURES_ENABLED
-    OUT_GBUFFER_VTFEEDBACK = float4(1,1,1,1);
-#endif
+    StoreVTFeedback(surfaceData.VTFeedback, positionSS);
 }
 
 // Fills the BSDFData. Also returns the (per-pixel) material feature flags inferred

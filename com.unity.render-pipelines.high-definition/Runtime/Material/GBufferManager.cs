@@ -9,10 +9,7 @@ namespace UnityEngine.Rendering.HighDefinition
         SubsurfaceScattering,
         Normal,
         LightLayers,
-        ShadowMask,
-#if ENABLE_VIRTUALTEXTURES
-        VTFeedback,
-#endif
+        ShadowMask
     }
 
     class GBufferManager : MRTBufferManager
@@ -23,7 +20,6 @@ namespace UnityEngine.Rendering.HighDefinition
         // This is the index of the gbuffer use for shadowmask and lightlayers, if any
         protected int m_ShadowMaskIndex = -1;
         protected int m_LightLayers = -1;
-        protected int m_VTFeedbackIndex = -1;
         protected HDRenderPipelineAsset m_asset;
         // We need to store current set of RT to bind exactly, as we can have dynamic RT (LightLayers, ShadowMask), we allocated an array for each possible size (to avoid gardbage collect pressure)
         protected RenderTargetIdentifier[][] m_RTIDsArray = new RenderTargetIdentifier[8][];
@@ -58,10 +54,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     m_ShadowMaskIndex = gbufferIndex;
                 else if (m_GBufferUsage[gbufferIndex] == GBufferUsage.LightLayers)
                     m_LightLayers = gbufferIndex;
-#if ENABLE_VIRTUALTEXTURES
-                else if (m_GBufferUsage[gbufferIndex] == GBufferUsage.VTFeedback)
-                    m_VTFeedbackIndex = gbufferIndex;
-#endif
             }
         }
 
@@ -80,13 +72,6 @@ namespace UnityEngine.Rendering.HighDefinition
             else
                 cmd.SetGlobalTexture(HDShaderIDs._LightLayersTexture, TextureXR.GetWhiteTexture()); // This is never use but need to be bind as the read is inside a if
         }
-
-#if ENABLE_VIRTUALTEXTURES
-        public RTHandle GetGBuffer0RT()
-        {
-            return m_RTs[0];
-        }
-#endif
 
         // This function will setup the required render target array. This take into account if shadow mask and light layers are enabled or not.
         // Note for the future: Setup works fine as we don't have change per object (like velocity for example). If in the future it is the case
@@ -144,17 +129,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             return null;
         }
-
-#if ENABLE_VIRTUALTEXTURES
-        public RTHandle GetVTFeedbackBuffer()
-        {
-            if (m_VTFeedbackIndex != -1)
-            {
-                return m_RTs[m_VTFeedbackIndex];
-            }
-            return null;
-        }
-#endif
 
         public RTHandle GetSubsurfaceScatteringBuffer(int index)
         {

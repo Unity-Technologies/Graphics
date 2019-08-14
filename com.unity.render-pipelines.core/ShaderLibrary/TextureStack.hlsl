@@ -1,7 +1,12 @@
+#ifndef TEXTURESTACK_include
+#define TEXTURESTACK_include
+
 #define GRA_HLSL_5 1
 #define GRA_ROW_MAJOR 1
 #define GRA_TEXTURE_ARRAY_SUPPORT 0
 #include "GraniteShaderLib3.cginc"
+
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 
 /*
 	This header adds the following pseudo definitions. Actual types etc may vary depending
@@ -67,6 +72,8 @@
 #else
 #define VIRTUAL_TEXTURES_ACTIVE 0
 #endif
+
+
 
 #if VIRTUAL_TEXTURES_ACTIVE
 
@@ -215,6 +222,19 @@ float4 ResolveVT_##stackName(float2 uv)\
 #define GetResolveOutput(info) info.resolveOutput
 #define ResolveStack(uv, stackName) ResolveVT_##stackName(uv)
 
+RW_TEXTURE2D(float4, VTFeedback) : register(u7);
+#define VTFeedbackScale 16
+void StoreVTFeedback(float4 feedback, uint2 positionSS)
+{
+    [branch]
+    if ( (positionSS.x & (VTFeedbackScale - 1)) == 0 && (positionSS.y & (VTFeedbackScale - 1)) == 0)
+    {
+
+        const uint2 vt_pos = positionSS / VTFeedbackScale;
+        VTFeedback[vt_pos] = feedback;
+    }
+}
+
 #else
 
 // Stacks amount to nothing when VT is off
@@ -249,5 +269,8 @@ StackInfo MakeStackInfo(float2 uv)
 // Resolve does nothing
 #define GetResolveOutput(info) float4(1,1,1,1)
 #define ResolveStack(uv, stackName) float4(1,1,1,1)
+#define StoreVTFeedback(feedback, positionSS)
 
 #endif
+
+#endif //TEXTURESTACK_include
