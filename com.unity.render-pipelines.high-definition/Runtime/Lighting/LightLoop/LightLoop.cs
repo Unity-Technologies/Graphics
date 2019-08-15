@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using UnityEngine.Profiling;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -2048,6 +2049,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     m_ScreenSpaceShadowIndex = 0;
 
+
                     for (int sortIndex = 0; sortIndex < sortCount; ++sortIndex)
                     {
                         // In 1. we have already classify and sorted the light, we need to use this sorted order here
@@ -2068,6 +2070,8 @@ namespace UnityEngine.Rendering.HighDefinition
                         int shadowIndex = -1;
 
                         // Manage shadow requests
+
+                        Profiler.BeginSample("Shadowmap requests");
                         if (additionalLightData.WillRenderShadowMap())
                         {
                             int shadowRequestCount;
@@ -2083,6 +2087,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             }
 #endif
                         }
+                        Profiler.EndSample();
 
                         // Directional rendering side, it is separated as it is always visible so no volume to handle here
                         if (gpuLightType == GPULightType.Directional)
@@ -2106,7 +2111,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         }
 
                         Vector3 lightDimensions = new Vector3(); // X = length or width, Y = height, Z = range (depth)
-
+                        Profiler.BeginSample("Light data");
                         // Punctual, area, projector lights - the rendering side.
                         if (GetLightData(cmd, hdCamera, hdShadowSettings, gpuLightType, light, lightComponent, additionalLightData, lightIndex, shadowIndex, ref lightDimensions, debugDisplaySettings, ref m_ScreenSpaceShadowIndex))
                         {
@@ -2141,6 +2146,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                 m_lightList.lights[last] = lightData;
                             }
                         }
+                        Profiler.EndSample();
                     }
 
                     // Update the compute buffer with the shadow request datas
