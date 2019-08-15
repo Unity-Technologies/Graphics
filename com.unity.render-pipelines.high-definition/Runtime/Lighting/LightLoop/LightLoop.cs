@@ -1213,13 +1213,16 @@ namespace UnityEngine.Rendering.HighDefinition
             return true;
         }
 
-        internal void GetLightCookie(CommandBuffer cmd, Light lightComponent, VisibleLight light, HDAdditionalLightData additionalLightData, int currLightIndex)
+        internal void GetLightCookie(CommandBuffer cmd, Light lightComponent,
+            LightType lightType,
+//            VisibleLight light,
+            HDAdditionalLightData additionalLightData, int currLightIndex)
         {
             LightData lightData = m_lightList.m_LightData[currLightIndex];
             if (lightComponent != null && lightComponent.cookie != null)
             {
                 // TODO: add texture atlas support for cookie textures.
-                switch (light.lightType)
+                switch (lightType)
                 {
                     case LightType.Spot:
                         lightData.cookieIndex = m_TextureCaches.cookieTexArray.FetchSlice(cmd, lightComponent.cookie);
@@ -1229,7 +1232,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         break;
                 }
             }
-            else if (light.lightType == LightType.Spot && additionalLightData.spotLightShape != SpotLightShape.Cone)
+            else if (lightType == LightType.Spot && additionalLightData.spotLightShape != SpotLightShape.Cone)
             {
                 // Projectors lights must always have a cookie texture.
                 // As long as the cache is a texture array and not an atlas, the 4x4 white texture will be rescaled to 128
@@ -2066,6 +2069,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     Profiler.BeginSample("Update shadow requests");
                     m_ScreenSpaceShadowIndex = 0;
                     directionalLightCount = 0;
+                    AllocateRemappingArray(sortCount);
                     for (int sortIndex = 0; sortIndex < sortCount; ++sortIndex)
                     {
                         // In 1. we have already classify and sorted the light, we need to use this sorted order here
@@ -2074,6 +2078,8 @@ namespace UnityEngine.Rendering.HighDefinition
                         int lightIndex = (int)(sortKey & 0xFFFF);
                         
                         var light = cullResults.visibleLights[lightIndex];
+                        m_LightPositions[sortIndex] = light.GetPosition();
+                        m_LightTypes[sortIndex] = light.lightType;
                         m_LightComponents[sortIndex] = light.light;
 
                         m_enableBakeShadowMask = m_enableBakeShadowMask || IsBakedShadowMaskLight(m_LightComponents[sortIndex]);
@@ -2085,6 +2091,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         m_ShadowIndices[sortIndex] = -1;
 
                         // Manage shadow requests
+                        Profiler.BeginSample("UpdateShadowRequest");
                         if (m_HDLightDatas[sortIndex].WillRenderShadowMap())
                         {
                             int shadowRequestCount;
@@ -2100,6 +2107,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             }
 #endif
                         }
+                        Profiler.EndSample();
                         if (gpuLightType == GPULightType.Directional)
                         {
                             m_DirLightIndices[directionalLightCount] = sortIndex;
@@ -2136,10 +2144,11 @@ namespace UnityEngine.Rendering.HighDefinition
                     }
                     Profiler.EndSample();
 
+
+
                     Profiler.BeginSample("Lights");
                     Profiler.BeginSample("Discard Lights");
-                    AllocateRemappingArray(sortCount);
-
+                    Vector3 cameraPos = hdCamera.camera.transform.position;
                     for (int sortIndex = 0; sortIndex < sortCount; ++sortIndex)
                     {
                         // Clamp light list to the maximum allowed lights on screen to avoid ComputeBuffer overflow
@@ -2153,7 +2162,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         {
                             continue;
                         }
-
+#if UNITY_EDITOR
                         // Discard light if disabled in debug display settings
                         if (gpuLightType.IsAreaLight())
                         {
@@ -2165,14 +2174,12 @@ namespace UnityEngine.Rendering.HighDefinition
                             if (!debugDisplaySettings.data.lightingDebugSettings.showPunctualLight)
                                 continue;
                         }
-
+#endif
                         int lightIndex = (int)(sortKey & 0xFFFF);
-
-                        var light = cullResults.visibleLights[lightIndex];
-
+                        //var light = cullResults.visibleLights[lightIndex];
                         HDAdditionalLightData additionalLightData = m_HDLightDatas[sortIndex];
                         // Both of these positions are non-camera-relative.
-                        float distanceToCamera = (light.GetPosition() - hdCamera.camera.transform.position).magnitude;
+                        float distanceToCamera = (m_LightPositions[sortIndex] - cameraPos).magnitude;
                         float lightDistanceFade = HDUtils.ComputeLinearDistanceFade(distanceToCamera, additionalLightData.fadeDistance);
 
                         bool contributesToLighting = ((additionalLightData.lightDimmer > 0) && (additionalLightData.affectDiffuse || additionalLightData.affectSpecular)) || (additionalLightData.volumetricDimmer > 0);
@@ -2187,36 +2194,17 @@ namespace UnityEngine.Rendering.HighDefinition
                         totalDrawnLightsCount++;
                     }
                     Profiler.EndSample();
-
                    
                     AllocateVolumeBoundsJobArrays(totalDrawnLightsCount, hdCamera.viewCount); // needs to be above GetLightData, because m_LightDimensions get computed there
                     m_lightList.AllocateLightArraysPerFrame(totalDrawnLightsCount, decalDatasCount, hdCamera.viewCount);
-
-                   /* Profiler.BeginSample("Light Get lightcookie");
-                    for (int lightIndex = 0; lightIndex < totalDrawnLightsCount; ++lightIndex)
-                    {
-                        int sortIndex = m_SortIndexRemapping[lightIndex];
-                        // In 1. we have already classify and sorted the light, we need to use this sorted order here
-                        uint sortKey = m_SortKeys[sortIndex];
-
-                        int visibleLightIndex = (int)(sortKey & 0xFFFF);
-                        var light = cullResults.visibleLights[visibleLightIndex];
-                        var lightComponent = light.light;
-                        GetLightCookie(cmd, lightComponent, light, m_HDLightDatas[sortIndex], lightIndex);
-                    }
-                    Profiler.EndSample();*/
-
+                  
                     Profiler.BeginSample("Light datas");
                     Profiler.BeginSample("GetLightCookie");
                     for (int lightIndex = 0; lightIndex < totalDrawnLightsCount; ++lightIndex)
                     {
                         int sortIndex = m_SortIndexRemapping[lightIndex];
                       
-                        uint sortKey = m_SortKeys[sortIndex];
-
-                        int visibleLightIndex = (int)(sortKey & 0xFFFF);
-                        var light = cullResults.visibleLights[visibleLightIndex];                      
-                        GetLightCookie(cmd, m_LightComponents[sortIndex], light, m_HDLightDatas[sortIndex], lightIndex);
+                        GetLightCookie(cmd, m_LightComponents[sortIndex], m_LightTypes[sortIndex], m_HDLightDatas[sortIndex], lightIndex);
                     }
                     Profiler.EndSample();
 

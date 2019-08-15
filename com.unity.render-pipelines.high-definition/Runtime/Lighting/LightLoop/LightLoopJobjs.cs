@@ -567,12 +567,16 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             m_VisibleLightRemapping = new NativeArray<int>(sortCount, Allocator.TempJob);
             m_SortIndexRemapping = new NativeArray<int>(sortCount, Allocator.TempJob);
+            m_LightPositions = new NativeArray<Vector3>(sortCount, Allocator.TempJob);
+            m_LightTypes = new NativeArray<LightType>(sortCount, Allocator.TempJob);
         }
 
         void DisposeRemappingArray()
         {
             m_VisibleLightRemapping.Dispose();
             m_SortIndexRemapping.Dispose();
+            m_LightPositions.Dispose();
+            m_LightTypes.Dispose();
         }
         
         void AllocateVolumeBoundsJobArrays(int lightCount, int numViews)
@@ -616,8 +620,11 @@ namespace UnityEngine.Rendering.HighDefinition
         NativeArray<LightVolumeType> m_LightVolumeType;
         NativeArray<Vector3> m_LightDimensions;
         NativeArray<Matrix4x4> m_WorldToView;
+
         NativeArray<int> m_VisibleLightRemapping;
         NativeArray<int> m_SortIndexRemapping;
+        NativeArray<Vector3> m_LightPositions;
+        NativeArray<LightType> m_LightTypes;
 
         NativeArray<float> m_DistanceToCamera;
         NativeArray<float> m_LightDistanceFade;
