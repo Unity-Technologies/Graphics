@@ -2206,52 +2206,59 @@ namespace UnityEngine.Rendering.HighDefinition
                     }
                     Profiler.EndSample();*/
 
-                    Profiler.BeginSample("Light datas prepare");
+                    Profiler.BeginSample("Light datas");
+                    Profiler.BeginSample("GetLightCookie");
+                    for (int lightIndex = 0; lightIndex < totalDrawnLightsCount; ++lightIndex)
+                    {
+                        int sortIndex = m_SortIndexRemapping[lightIndex];
+                      
+                        uint sortKey = m_SortKeys[sortIndex];
+
+                        int visibleLightIndex = (int)(sortKey & 0xFFFF);
+                        var light = cullResults.visibleLights[visibleLightIndex];                      
+                        GetLightCookie(cmd, m_LightComponents[sortIndex], light, m_HDLightDatas[sortIndex], lightIndex);
+                    }
+                    Profiler.EndSample();
+
+                    Profiler.BeginSample("Copy light component data");
                     for (int lightIndex = 0; lightIndex < totalDrawnLightsCount; ++lightIndex)
                     {
                         int sortIndex = m_SortIndexRemapping[lightIndex];
 
-                        LightDatasJob.AdditionalLightData additionalLightData = m_AdditionalLightData[lightIndex];
-                        additionalLightData.copyInto(m_HDLightDatas[sortIndex]);
-                        m_AdditionalLightData[lightIndex] = additionalLightData;
-                        uint sortKey = m_SortKeys[sortIndex];
-
-                        int visibleLightIndex = (int)(sortKey & 0xFFFF);
-                        var light = cullResults.visibleLights[visibleLightIndex];
-                        //var lightComponent = light.light;
                         LightDatasJob.BakedShadowMaskdata bakedShadowMaskdata = m_BakedShadowMaskdatas[lightIndex];
                         bakedShadowMaskdata.copyInto(m_LightComponents[sortIndex]);
                         m_BakedShadowMaskdatas[lightIndex] = bakedShadowMaskdata;
-                        GetLightCookie(cmd, m_LightComponents[sortIndex], light, m_HDLightDatas[sortIndex], lightIndex);
+
+                        LightDatasJob.AdditionalLightData additionalLightData = m_AdditionalLightData[lightIndex];
+                        additionalLightData.copyInto(m_HDLightDatas[sortIndex]);
+                        m_AdditionalLightData[lightIndex] = additionalLightData;        
                     }
-                 
+                    Profiler.EndSample();
+
+                    Profiler.BeginSample("m_LightDatasJob.SetData");         
                     for (int lightIndex = 0; lightIndex < totalDrawnLightsCount; ++lightIndex)
                     {
                         int sortIndex = m_SortIndexRemapping[lightIndex];
                         // In 1. we have already classify and sorted the light, we need to use this sorted order here
                         uint sortKey = m_SortKeys[sortIndex];
                         m_GpuLightType[lightIndex] = (GPULightType)((sortKey >> 22) & 0x1F);
-                        int visibleLightIndex = (int)(sortKey & 0xFFFF);
-
-                        //var light = cullResults.visibleLights[visibleLightIndex];
-                        //var lightComponent = light.light;
-
-                        // Punctual, area, projector lights - the rendering side.
-                        //GetLightData(hdCamera, hdShadowSettings, gpuLightType, light, lightComponent, m_HDLightDatas[sortIndex], m_ShadowIndices[sortIndex], debugDisplaySettings, ref m_ScreenSpaceShadowIndex, lightIndex);
-                        m_LightDatasJob.SetData(m_lightList.m_LightData,
-                            m_LightDimensions,
-                            m_DistanceToCamera,
-                            m_LightDistanceFade,
-                            m_AdditionalLightData,
-                            cullResults.visibleLights,
-                            m_VisibleLightRemapping,
-                            m_SortIndexRemapping,
-                            m_GpuLightType,
-                            m_ShadowIndices,
-                            m_BakedShadowMaskdatas,
-                            hdCamera.frameSettings.specularGlobalDimmer,
-                            hdShadowSettings.maxShadowDistance.value);
                     }
+
+                    m_LightDatasJob.SetData(m_lightList.m_LightData,
+                        m_LightDimensions,
+                        m_DistanceToCamera,
+                        m_LightDistanceFade,
+                        m_AdditionalLightData,
+                        cullResults.visibleLights,
+                        m_VisibleLightRemapping,
+                        m_SortIndexRemapping,
+                        m_GpuLightType,
+                        m_ShadowIndices,
+                        m_BakedShadowMaskdatas,
+                        hdCamera.frameSettings.specularGlobalDimmer,
+                        hdShadowSettings.maxShadowDistance.value);
+
+                    Profiler.EndSample();
                     Profiler.EndSample();
 
                     Profiler.BeginSample("Light datas compute");
