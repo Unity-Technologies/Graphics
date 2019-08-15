@@ -311,7 +311,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             if (m_ShadowRequestCount >= m_MaxShadowRequests)
             {
-                Debug.LogWarning("Max shadow requests count reached, dropping all exceeding requests. You can increase this limit by changing the max requests in the HDRP asset");
+                //Debug.LogWarning("Max shadow requests count reached, dropping all exceeding requests. You can increase this limit by changing the max requests in the HDRP asset");
                 return -1;
             }
 
