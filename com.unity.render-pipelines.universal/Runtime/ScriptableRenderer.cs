@@ -95,7 +95,7 @@ namespace UnityEngine.Rendering.Universal
         RenderTargetIdentifier m_CameraDepthTarget;
         bool m_FirstCameraRenderPassExecuted = false;
 
-        const string k_ClearRenderStateTag = "Clear Render State";
+        const string k_SetCameraRenderStateTag = "Clear Render State";
         const string k_SetRenderTarget = "Set RenderTarget";
         const string k_ReleaseResourcesTag = "Release Resources";
 
@@ -181,7 +181,7 @@ namespace UnityEngine.Rendering.Universal
         public void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             Camera camera = renderingData.cameraData.camera;
-            ClearRenderState(context);
+            SetCameraRenderState(context, ref renderingData.cameraData);
 
             SortStable(m_ActiveRenderPassQueue);
 
@@ -300,10 +300,12 @@ namespace UnityEngine.Rendering.Universal
             return ClearFlag.All;
         }
 
-        void ClearRenderState(ScriptableRenderContext context)
+        // Initialize Camera Render State
+        // Place all per-camera rendering logic that is generic for all types of renderers here.
+        void SetCameraRenderState(ScriptableRenderContext context, ref CameraData cameraData)
         {
-            // Keywords are enabled while executing passes.
-            CommandBuffer cmd = CommandBufferPool.Get(k_ClearRenderStateTag);
+            // Reset per-camera shader keywords. They are enabled depending on which render passes are executed.
+            CommandBuffer cmd = CommandBufferPool.Get(k_SetCameraRenderStateTag);
             cmd.DisableShaderKeyword(ShaderKeywordStrings.MainLightShadows);
             cmd.DisableShaderKeyword(ShaderKeywordStrings.MainLightShadowCascades);
             cmd.DisableShaderKeyword(ShaderKeywordStrings.AdditionalLightsVertex);
@@ -311,6 +313,9 @@ namespace UnityEngine.Rendering.Universal
             cmd.DisableShaderKeyword(ShaderKeywordStrings.AdditionalLightShadows);
             cmd.DisableShaderKeyword(ShaderKeywordStrings.SoftShadows);
             cmd.DisableShaderKeyword(ShaderKeywordStrings.MixedLightingSubtractive);
+
+            // Required by VolumeSystem / PostProcessing.
+            VolumeManager.instance.Update(cameraData.volumeTrigger, cameraData.volumeLayerMask);
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
         }
