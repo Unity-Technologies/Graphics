@@ -19,8 +19,7 @@ class EditorTests
         try
         {
             ForwardRendererData data = ScriptableObject.CreateInstance<ForwardRendererData>();
-            UniversalRenderPipelineAsset asset =
-                UniversalRenderPipelineAsset.Create(data);
+            UniversalRenderPipelineAsset asset = UniversalRenderPipelineAsset.Create(data);
             LogAssert.NoUnexpectedReceived();
             ScriptableObject.DestroyImmediate(asset);
             ScriptableObject.DestroyImmediate(data);
@@ -67,8 +66,7 @@ class EditorTests
     public void ValidateNewAssetResources()
     {
         ForwardRendererData data = ScriptableObject.CreateInstance<ForwardRendererData>();
-        UniversalRenderPipelineAsset asset =
-            UniversalRenderPipelineAsset.Create(data);
+        UniversalRenderPipelineAsset asset = UniversalRenderPipelineAsset.Create(data);
         Assert.AreNotEqual(null, asset.defaultMaterial);
         Assert.AreNotEqual(null, asset.defaultParticleMaterial);
         Assert.AreNotEqual(null, asset.defaultLineMaterial);
@@ -93,8 +91,7 @@ class EditorTests
     {
         // Create a new asset and validate invalid settings
         ForwardRendererData data = ScriptableObject.CreateInstance<ForwardRendererData>();
-        UniversalRenderPipelineAsset asset =
-            UniversalRenderPipelineAsset.Create(data);
+        UniversalRenderPipelineAsset asset = UniversalRenderPipelineAsset.Create(data);
         if (asset != null)
         {
             asset.shadowDistance = -1.0f;

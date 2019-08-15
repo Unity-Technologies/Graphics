@@ -75,12 +75,12 @@ namespace UnityEditor.Rendering.Universal
             public static GUIContent rendererListDefaultMessage =
                 EditorGUIUtility.TrTextContent("Cannot remove Default Renderer",
                     "Removal of the Default Renderer is not allowed. To remove, set another Renderer to be the new Default and then remove.");
-            
+
             public static GUIContent rendererMissingDefaultMessage =
                 EditorGUIUtility.TrTextContent("Missing Default Renderer\nThe default renderer is not assigned, no rendering can be performed. Set another renderer to be the new Default or assign a renderer to the default slot.");
             public static GUIContent rendererMissingMessage =
                 EditorGUIUtility.TrTextContent("Missing Renderer(s)\nThere are missing renderers not assigned. Switching to these renderers at runtime will have unforeseen consequences.");
-            
+
             // Dropdown menu options
             public static string[] mainLightOptions = { "Disabled", "Per Pixel" };
             public static string[] shadowCascadeOptions = {"No Cascades", "Two Cascades", "Four Cascades"};
@@ -206,19 +206,19 @@ namespace UnityEditor.Rendering.Universal
             if (m_GeneralSettingsFoldout.value)
             {
                 EditorGUI.indentLevel++;
-                
+
                 EditorGUILayout.Space();
                 EditorGUI.indentLevel--;
                 m_RendererDataList.DoLayoutList();
                 EditorGUI.indentLevel++;
-                
+
                 UniversalRenderPipelineAsset asset = target as UniversalRenderPipelineAsset;
 
                 if (!asset.ValidateRendererData(-1))
                     EditorGUILayout.HelpBox(Styles.rendererMissingDefaultMessage.text, MessageType.Error, true);
                 else if (!asset.ValidateRendererDataList(true))
                     EditorGUILayout.HelpBox(Styles.rendererMissingMessage.text, MessageType.Warning, true);
-                
+
                 EditorGUILayout.PropertyField(m_RequireDepthTextureProp, Styles.requireDepthTextureText);
                 EditorGUILayout.PropertyField(m_RequireOpaqueTextureProp, Styles.requireOpaqueTextureText);
                 EditorGUI.indentLevel++;
@@ -230,6 +230,7 @@ namespace UnityEditor.Rendering.Universal
                 EditorGUILayout.Space();
                 EditorGUILayout.Space();
             }
+
             EditorGUILayout.EndFoldoutHeaderGroup();
         }
 
@@ -385,12 +386,12 @@ namespace UnityEditor.Rendering.Universal
                 Rect indexRect = new Rect(rect.x, rect.y, 14, EditorGUIUtility.singleLineHeight);
                 EditorGUI.LabelField(indexRect, index.ToString());
                 Rect objRect = new Rect(rect.x + indexRect.width, rect.y, rect.width - 134, EditorGUIUtility.singleLineHeight);
-                
+
                 EditorGUI.BeginChangeCheck();
                 EditorGUI.ObjectField(objRect, prop.GetArrayElementAtIndex(index), GUIContent.none);
                 if(EditorGUI.EndChangeCheck())
                     EditorUtility.SetDirty(target);
-                
+
                 Rect defaultButton = new Rect(rect.width - 90, rect.y, 86, EditorGUIUtility.singleLineHeight);
                 var defaultRenderer = m_DefaultRendererProp.intValue;
                 GUI.enabled = index != defaultRenderer;
@@ -400,9 +401,9 @@ namespace UnityEditor.Rendering.Universal
                     EditorUtility.SetDirty(target);
                 }
                 GUI.enabled = true;
-                
+
                 Rect selectRect = new Rect(rect.x + rect.width - 24, rect.y, 24, EditorGUIUtility.singleLineHeight);
-                
+
                 UniversalRenderPipelineAsset asset = target as UniversalRenderPipelineAsset;
 
                 if (asset.ValidateRendererData(index))
@@ -413,21 +414,18 @@ namespace UnityEditor.Rendering.Universal
                             null);
                     }
                 }
-                else if(index == defaultRenderer)
+                else // Missing ScriptableRendererData
                 {
-                    // missing defaut
-                    if (GUI.Button(selectRect, Styles.rendererDefaultMissingText))
+                    if (GUI.Button(selectRect, index == defaultRenderer ? Styles.rendererDefaultMissingText : Styles.rendererMissingText))
                     {
-                        //
+                        EditorGUIUtility.ShowObjectPicker<ScriptableRendererData>(null, false, null, index);
                     }
                 }
-                else
+
+                // If object selector chose an object, assign it to the correct ScriptableRendererData slot.
+                if (Event.current.commandName == "ObjectSelectorUpdated" && EditorGUIUtility.GetObjectPickerControlID() == index)
                 {
-                    // missing renderer
-                    if (GUI.Button(selectRect, Styles.rendererMissingText))
-                    {
-                        //
-                    }
+                    prop.GetArrayElementAtIndex(index).objectReferenceValue = EditorGUIUtility.GetObjectPickerObject();
                 }
             };
 

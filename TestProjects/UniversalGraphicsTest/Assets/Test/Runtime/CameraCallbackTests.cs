@@ -28,8 +28,10 @@ public class CameraCallbackTests : ScriptableRendererFeature
 	}
 
 	public override void Create()
-	{
-		ForwardRendererData data = UniversalRenderPipeline.asset.m_RendererDataList[0] as ForwardRendererData;
+    {
+        ForwardRendererData data = null;
+        if(UniversalRenderPipeline.asset.m_RendererDataList[0] != null)
+		    data = UniversalRenderPipeline.asset.m_RendererDataList[0] as ForwardRendererData;
 		if (data == null)
 			return;
 		var shader = data.shaders.samplingPS;
