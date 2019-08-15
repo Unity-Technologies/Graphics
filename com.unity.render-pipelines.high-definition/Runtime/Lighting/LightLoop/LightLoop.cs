@@ -414,6 +414,7 @@ namespace UnityEngine.Rendering.HighDefinition
         // Keep sorting array around to avoid garbage
         uint[] m_SortKeys = null;
         int[] m_DirLightIndices = null;
+        Light[] m_LightComponents = null;
         HDAdditionalLightData[] m_HDLightDatas = null;
 
         void UpdateArraySize<Type>(int count, ref Type[]array)
@@ -1917,6 +1918,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     UpdateArraySize(lightCount, ref m_SortKeys);
                     UpdateArraySize(lightCount, ref m_DirLightIndices);
                     UpdateArraySize(lightCount, ref m_HDLightDatas);
+                    UpdateArraySize(lightCount, ref m_LightComponents);
 
                     AllocateDistanceAndFadeArrays(lightCount);
 
@@ -2072,12 +2074,12 @@ namespace UnityEngine.Rendering.HighDefinition
                         int lightIndex = (int)(sortKey & 0xFFFF);
                         
                         var light = cullResults.visibleLights[lightIndex];
-                        var lightComponent = light.light;
+                        m_LightComponents[sortIndex] = light.light;
 
-                        m_enableBakeShadowMask = m_enableBakeShadowMask || IsBakedShadowMaskLight(lightComponent);
+                        m_enableBakeShadowMask = m_enableBakeShadowMask || IsBakedShadowMaskLight(m_LightComponents[sortIndex]);
 
                         // Light should always have additional data, however preview light right don't have, so we must handle the case by assigning HDUtils.s_DefaultHDAdditionalLightData
-                        m_HDLightDatas[sortIndex] = GetHDAdditionalLightData(lightComponent);
+                        m_HDLightDatas[sortIndex] = GetHDAdditionalLightData(m_LightComponents[sortIndex]);
                       
 
                         m_ShadowIndices[sortIndex] = -1;
@@ -2091,7 +2093,7 @@ namespace UnityEngine.Rendering.HighDefinition
 #if UNITY_EDITOR
                             if ((debugDisplaySettings.data.lightingDebugSettings.shadowDebugUseSelection
                                     || debugDisplaySettings.data.lightingDebugSettings.shadowDebugMode == ShadowMapDebugMode.SingleShadow)
-                                && UnityEditor.Selection.activeGameObject == lightComponent.gameObject)
+                                && UnityEditor.Selection.activeGameObject == m_LightComponents[sortIndex].gameObject)
                             {
                                 m_DebugSelectedLightShadowIndex = m_ShadowIndices[sortIndex];
                                 m_DebugSelectedLightShadowCount = shadowRequestCount;
@@ -2186,10 +2188,11 @@ namespace UnityEngine.Rendering.HighDefinition
                     }
                     Profiler.EndSample();
 
-                    Profiler.BeginSample("Light Get lightcookie");
+                   
                     AllocateVolumeBoundsJobArrays(totalDrawnLightsCount, hdCamera.viewCount); // needs to be above GetLightData, because m_LightDimensions get computed there
                     m_lightList.AllocateLightArraysPerFrame(totalDrawnLightsCount, decalDatasCount, hdCamera.viewCount);
 
+                   /* Profiler.BeginSample("Light Get lightcookie");
                     for (int lightIndex = 0; lightIndex < totalDrawnLightsCount; ++lightIndex)
                     {
                         int sortIndex = m_SortIndexRemapping[lightIndex];
@@ -2201,51 +2204,26 @@ namespace UnityEngine.Rendering.HighDefinition
                         var lightComponent = light.light;
                         GetLightCookie(cmd, lightComponent, light, m_HDLightDatas[sortIndex], lightIndex);
                     }
-                    Profiler.EndSample();
+                    Profiler.EndSample();*/
 
                     Profiler.BeginSample("Light datas prepare");
-                    for (int sortIndex = 0; sortIndex < sortCount; ++sortIndex)
+                    for (int lightIndex = 0; lightIndex < totalDrawnLightsCount; ++lightIndex)
                     {
-                        LightDatasJob.AdditionalLightData additionalLightData = m_AdditionalLightData[sortIndex];
+                        int sortIndex = m_SortIndexRemapping[lightIndex];
+
+                        LightDatasJob.AdditionalLightData additionalLightData = m_AdditionalLightData[lightIndex];
                         additionalLightData.copyInto(m_HDLightDatas[sortIndex]);
-                        m_AdditionalLightData[sortIndex] = additionalLightData;
+                        m_AdditionalLightData[lightIndex] = additionalLightData;
                         uint sortKey = m_SortKeys[sortIndex];
 
                         int visibleLightIndex = (int)(sortKey & 0xFFFF);
                         var light = cullResults.visibleLights[visibleLightIndex];
-                        var lightComponent = light.light;
-                        LightDatasJob.BakedShadowMaskdata bakedShadowMaskdata = m_BakedShadowMaskdatas[sortIndex];
-                        bakedShadowMaskdata.copyInto(lightComponent);
-                        m_BakedShadowMaskdatas[sortIndex] = bakedShadowMaskdata;
+                        //var lightComponent = light.light;
+                        LightDatasJob.BakedShadowMaskdata bakedShadowMaskdata = m_BakedShadowMaskdatas[lightIndex];
+                        bakedShadowMaskdata.copyInto(m_LightComponents[sortIndex]);
+                        m_BakedShadowMaskdatas[lightIndex] = bakedShadowMaskdata;
+                        GetLightCookie(cmd, m_LightComponents[sortIndex], light, m_HDLightDatas[sortIndex], lightIndex);
                     }
-                   
-
-                    /*
-                        for (int lightIndex = 0; lightIndex < totalDrawnLightsCount; ++lightIndex)
-                        {
-                            int sortIndex = m_SortIndexRemapping[lightIndex];
-                            // In 1. we have already classify and sorted the light, we need to use this sorted order here
-                            uint sortKey = m_SortKeys[sortIndex];
-                            //LightCategory lightCategory = (LightCategory)((sortKey >> 27) & 0x1F);
-                            GPULightType gpuLightType = (GPULightType)((sortKey >> 22) & 0x1F);
-                            LightVolumeType lightVolumeType = (LightVolumeType)((sortKey >> 17) & 0x1F);
-                            int visibleLightIndex = (int)(sortKey & 0xFFFF);
-
-                            var light = cullResults.visibleLights[visibleLightIndex];
-                            var lightComponent = light.light;
-
-                            // Punctual, area, projector lights - the rendering side.
-                            GetLightData(hdCamera, hdShadowSettings, gpuLightType, light, lightComponent, m_HDLightDatas[sortIndex], m_ShadowIndices[sortIndex],  debugDisplaySettings, ref m_ScreenSpaceShadowIndex, lightIndex);
-                          //  switch (lightCategory)
-                           // {
-                           //     case LightCategory.Punctual:
-                           //     case LightCategory.Area:
-                           //         break;
-                           //     default:
-                           //         Debug.Assert(false, "TODO: encountered an unknown LightCategory.");
-                           //         break;
-                            //}
-                        }*/
                  
                     for (int lightIndex = 0; lightIndex < totalDrawnLightsCount; ++lightIndex)
                     {
@@ -2293,7 +2271,6 @@ namespace UnityEngine.Rendering.HighDefinition
                         int sortIndex = m_SortIndexRemapping[lightIndex];
                         uint sortKey = m_SortKeys[sortIndex];
                         m_LightCategory[lightIndex] = (LightCategory)((sortKey >> 27) & 0x1F);
-                        m_GpuLightType[lightIndex] = (GPULightType)((sortKey >> 22) & 0x1F);
                         m_LightVolumeType[lightIndex]  = (LightVolumeType)((sortKey >> 17) & 0x1F);
                     }
                     Profiler.EndSample();

@@ -117,8 +117,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 float distanceToCamera = m_DistanceToCamera[index];
                 float lightDistanceFade = m_LightDistanceFade[index];
                 int sortIndex = m_SortIndexRemapping[index];
-                AdditionalLightData additionalLightData = m_AdditionalLightData[sortIndex];
-                BakedShadowMaskdata bakedShadowMaskdata = m_BakedShadowMaskdatas[sortIndex];
+                AdditionalLightData additionalLightData = m_AdditionalLightData[index];
+                BakedShadowMaskdata bakedShadowMaskdata = m_BakedShadowMaskdatas[index];
 
                 LightData lightData = m_LightData[index];
                 lightData.lightLayers = additionalLightData.m_LightLayers;
