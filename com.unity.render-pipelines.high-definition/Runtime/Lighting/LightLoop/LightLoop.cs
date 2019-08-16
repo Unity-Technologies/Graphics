@@ -416,6 +416,7 @@ namespace UnityEngine.Rendering.HighDefinition
         int[] m_DirLightIndices = null;
         Light[] m_LightComponents = null;
         HDAdditionalLightData[] m_HDLightDatas = null;
+        VisibleLight[] m_VisibleLights = null;
 
         void UpdateArraySize<Type>(int count, ref Type[]array)
         {
@@ -1922,18 +1923,20 @@ namespace UnityEngine.Rendering.HighDefinition
                     UpdateArraySize(lightCount, ref m_DirLightIndices);
                     UpdateArraySize(lightCount, ref m_HDLightDatas);
                     UpdateArraySize(lightCount, ref m_LightComponents);
+//                    UpdateArraySize(lightCount, ref m_VisibleLights);
 
                     AllocateDistanceAndFadeArrays(lightCount);
-
+                    Profiler.BeginSample("Sort lights");
                     int sortCount = 0;
+                    Profiler.BeginSample("visibleLights.ToArray()");
+                    m_VisibleLights = cullResults.visibleLights.ToArray();
+                    Profiler.EndSample();
                     for (int lightIndex = 0, numLights = cullResults.visibleLights.Length; (lightIndex < numLights) && (sortCount < lightCount); ++lightIndex)
                     {
-                        var light = cullResults.visibleLights[lightIndex];
-
-                        if (!aovRequest.IsLightEnabled(light.light.gameObject))
+                        if (!aovRequest.IsLightEnabled(m_VisibleLights[lightIndex].light.gameObject))
                             continue;
 
-                        var lightComponent = light.light;
+                        var lightComponent = m_VisibleLights[lightIndex].light;
 
                         // Light should always have additional data, however preview light right don't have, so we must handle the case by assigning HDUtils.s_DefaultHDAdditionalLightData
                         var additionalData = GetHDAdditionalLightData(lightComponent);
@@ -1941,15 +1944,17 @@ namespace UnityEngine.Rendering.HighDefinition
                         if (ShaderConfig.s_AreaLights == 0 && (additionalData.lightTypeExtent == LightTypeExtent.Rectangle || additionalData.lightTypeExtent == LightTypeExtent.Tube))
                             continue;
 
+                        Profiler.BeginSample("EvaluateShadowState");
                         // First we should evaluate the shadow information for this frame
                         additionalData.EvaluateShadowState(hdCamera, cullResults, hdCamera.frameSettings, lightIndex);
-
+                        Profiler.EndSample();
                         // Reserve shadow map resolutions and check if light needs to render shadows
+                        Profiler.BeginSample("ReserveShadowMap");
                         if(additionalData.WillRenderShadowMap())
                         {
-                            additionalData.ReserveShadowMap(camera, m_ShadowManager, m_ShadowInitParameters, light.screenRect);
+                            additionalData.ReserveShadowMap(camera, m_ShadowManager, m_ShadowInitParameters, m_VisibleLights[lightIndex].screenRect);
                         }
-
+                        Profiler.EndSample();
                         LightCategory lightCategory = LightCategory.Count;    
                         GPULightType gpuLightType = GPULightType.Point;
                         LightVolumeType lightVolumeType = LightVolumeType.Count;
@@ -1958,7 +1963,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         {
                             lightCategory = LightCategory.Punctual;
 
-                            switch (light.lightType)
+                            switch (m_VisibleLights[lightIndex].lightType)
                             {
                                 case LightType.Spot:
                                     if (punctualLightCount >= m_MaxPunctualLightsOnScreen)
@@ -2041,12 +2046,14 @@ namespace UnityEngine.Rendering.HighDefinition
                         m_SortKeys[sortCount++] = (uint)lightCategory << 27 | (uint)gpuLightType << 22 | (uint)lightVolumeType << 17 | (uint)lightIndex;
                     }
 
+                    Profiler.BeginSample("QuickSort");
                     CoreUnsafeUtils.QuickSort(m_SortKeys, 0, sortCount - 1); // Call our own quicksort instead of Array.Sort(sortKeys, 0, sortCount) so we don't allocate memory (note the SortCount-1 that is different from original call).
-
+                    Profiler.EndSample();
                     // Now that all the lights have requested a shadow resolution, we can layout them in the atlas
                     // And if needed rescale the whole atlas
+                    Profiler.BeginSample("LayoutShadowMaps");
                     m_ShadowManager.LayoutShadowMaps(debugDisplaySettings.data.lightingDebugSettings);
-
+                    Profiler.EndSample();
                     bool isPysicallyBasedSkyActive = false;
 
                     var visualEnvironment = VolumeManager.instance.stack.GetComponent<VisualEnvironment>();
@@ -2065,7 +2072,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     // 2. Go through all lights, convert them to GPU format.
                     // Simultaneously create data for culling (LightVolumeData and SFiniteLightBound)
-
+                    Profiler.EndSample();
                     Profiler.BeginSample("Update shadow requests");
                     m_ScreenSpaceShadowIndex = 0;
                     directionalLightCount = 0;
@@ -2077,10 +2084,10 @@ namespace UnityEngine.Rendering.HighDefinition
                         GPULightType gpuLightType = (GPULightType)((sortKey >> 22) & 0x1F);
                         int lightIndex = (int)(sortKey & 0xFFFF);
                         
-                        var light = cullResults.visibleLights[lightIndex];
-                        m_LightPositions[sortIndex] = light.GetPosition();
-                        m_LightTypes[sortIndex] = light.lightType;
-                        m_LightComponents[sortIndex] = light.light;
+//                        var light = cullResults.visibleLights[lightIndex];
+                        m_LightPositions[sortIndex] = m_VisibleLights[lightIndex].GetPosition();
+                        m_LightTypes[sortIndex] = m_VisibleLights[lightIndex].lightType;
+                        m_LightComponents[sortIndex] = m_VisibleLights[lightIndex].light;
 
                         m_enableBakeShadowMask = m_enableBakeShadowMask || IsBakedShadowMaskLight(m_LightComponents[sortIndex]);
 
@@ -2095,7 +2102,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         if (m_HDLightDatas[sortIndex].WillRenderShadowMap())
                         {
                             int shadowRequestCount;
-                            m_ShadowIndices[sortIndex] = m_HDLightDatas[sortIndex].UpdateShadowRequest(hdCamera, m_ShadowManager, light, cullResults, lightIndex, debugDisplaySettings.data.lightingDebugSettings, out shadowRequestCount);
+                            m_ShadowIndices[sortIndex] = m_HDLightDatas[sortIndex].UpdateShadowRequest(hdCamera, m_ShadowManager, m_VisibleLights[lightIndex], cullResults, lightIndex, debugDisplaySettings.data.lightingDebugSettings, out shadowRequestCount);
 
 #if UNITY_EDITOR
                             if ((debugDisplaySettings.data.lightingDebugSettings.shadowDebugUseSelection
@@ -2116,17 +2123,17 @@ namespace UnityEngine.Rendering.HighDefinition
                     }
                     Profiler.EndSample();
 
-                    Profiler.BeginSample("Diectional light data");
+                    Profiler.BeginSample("Directional light data");
                     int directionalLightIndex = 0;
                     for (int sortIndex = 0; sortIndex < directionalLightCount; ++sortIndex)
                     {                        
                         int lightIndex = m_DirLightIndices[sortIndex];                        
-                        var light = cullResults.visibleLights[lightIndex];
-                        var lightComponent = light.light;
+                        //var light = cullResults.visibleLights[lightIndex];
+                        var lightComponent = m_VisibleLights[lightIndex].light;
                         m_enableBakeShadowMask = m_enableBakeShadowMask || IsBakedShadowMaskLight(lightComponent);
                         // Light should always have additional data, however preview light right don't have, so we must handle the case by assigning HDUtils.s_DefaultHDAdditionalLightData
                         
-                        if (GetDirectionalLightData(cmd, hdCamera, GPULightType.Directional, light, lightComponent, m_HDLightDatas[lightIndex], lightIndex, m_ShadowIndices[sortIndex], debugDisplaySettings, directionalLightIndex, ref m_ScreenSpaceShadowIndex, isPysicallyBasedSkyActive))
+                        if (GetDirectionalLightData(cmd, hdCamera, GPULightType.Directional, m_VisibleLights[lightIndex], lightComponent, m_HDLightDatas[lightIndex], lightIndex, m_ShadowIndices[sortIndex], debugDisplaySettings, directionalLightIndex, ref m_ScreenSpaceShadowIndex, isPysicallyBasedSkyActive))
                         {
                             directionalLightIndex++;
 
