@@ -359,24 +359,28 @@ namespace UnityEngine.Rendering.HighDefinition
             m_camera.allowHDR = false;
 
             RegisterDebug();
+
+#if UNITY_EDITOR
+            UnityEditor.EditorApplication.hierarchyChanged += UpdateDebugCameraName;
+#endif
         }
 
-        void Update()
+        void UpdateDebugCameraName()
         {
-            // We need to detect name change in the editor and update debug windows accordingly
-#if UNITY_EDITOR
-            // Caution: Object.name generate 48B of garbage at each frame here !
             if (m_camera.name != m_CameraRegisterName)
             {
                 UnRegisterDebug();
                 RegisterDebug();
             }
-#endif
         }
 
         void OnDisable()
         {
             UnRegisterDebug();
+            
+#if UNITY_EDITOR
+            UnityEditor.EditorApplication.hierarchyChanged -= UpdateDebugCameraName;
+#endif
         }
 
         // This is called at the creation of the HD Additional Camera Data, to convert the legacy camera settings to HD
