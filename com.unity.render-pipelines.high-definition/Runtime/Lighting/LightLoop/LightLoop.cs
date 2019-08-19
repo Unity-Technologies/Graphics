@@ -417,6 +417,7 @@ namespace UnityEngine.Rendering.HighDefinition
         Light[] m_LightComponents = null;
         HDAdditionalLightData[] m_HDLightDatas = null;
         VisibleLight[] m_VisibleLights = null;
+        VisibleReflectionProbe[] m_VisibleReflectionProbes = null;
 
         void UpdateArraySize<Type>(int count, ref Type[]array)
         {
@@ -1923,7 +1924,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     UpdateArraySize(lightCount, ref m_DirLightIndices);
                     UpdateArraySize(lightCount, ref m_HDLightDatas);
                     UpdateArraySize(lightCount, ref m_LightComponents);
-//                    UpdateArraySize(lightCount, ref m_VisibleLights);
 
                     AllocateDistanceAndFadeArrays(lightCount);
                     Profiler.BeginSample("Sort lights");
@@ -2294,7 +2294,6 @@ namespace UnityEngine.Rendering.HighDefinition
  
                     JobHandle lightVolumeBoundsJobHandle = m_LightVolumeBoundsJob.Schedule(totalDrawnLightsCount, 1);
                     lightVolumeBoundsJobHandle.Complete();
-//                    m_LightVolumeBoundsJob.Run(volumeDataAndBoundCount);
                     Profiler.EndSample();
 
                     // We make the light position camera-relative as late as possible in order
