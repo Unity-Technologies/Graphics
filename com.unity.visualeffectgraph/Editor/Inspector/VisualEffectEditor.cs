@@ -1230,7 +1230,7 @@ namespace UnityEditor.VFX
 
             public static readonly GUIStyle categoryHeader;
 
-            public static readonly GUILayoutOption MiniButtonWidth = GUILayout.Width(48);
+            public static readonly GUILayoutOption MiniButtonWidth = GUILayout.Width(56);
             public static readonly GUILayoutOption PlayControlsHeight = GUILayout.Height(24);
 
             static Styles()
