@@ -293,6 +293,10 @@ namespace UnityEditor.VFX.UI
             this.AddManipulator(new FreehandSelector());
 
             styleSheets.Add(LoadStyleSheet("VFXView"));
+            if( ! EditorGUIUtility.isProSkin)
+            { 
+                styleSheets.Add(LoadStyleSheet("VFXView-light"));
+            }
 
             AddLayer(-1);
             AddLayer(1);
