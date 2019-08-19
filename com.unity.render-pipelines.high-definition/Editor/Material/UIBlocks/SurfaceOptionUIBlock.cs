@@ -350,7 +350,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             // custom-begin:
             if ((m_Features & Features.DissolveOccluders) != 0)
-                enableDissolveOnOcclusion = FindProperty(kEnableDissolveOnOcclusion, props, false);
+                enableDissolveOnOcclusion = FindProperty(kEnableDissolveOnOcclusion);
             // custom-end
 
             zWrite = FindProperty(kZWrite);
@@ -441,7 +441,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
             if (enableDissolveOnOcclusion != null)
             {
-                m_MaterialEditor.ShaderProperty(enableDissolveOnOcclusion, Styles.enableDissolveOnOcclusionText);
+                materialEditor.ShaderProperty(enableDissolveOnOcclusion, Styles.enableDissolveOnOcclusionText);
             }
         }
         // custom-end

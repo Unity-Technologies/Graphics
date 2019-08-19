@@ -298,12 +298,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         // custom-begin:
         ComputeBuffer dissolveOccludersCylindersBufferFallback = null;
-
-        // Accessor for non-hdrp custom render code.
-        public LightLoop GetLightLoop()
-        {
-            return m_LightLoop;
-        }
         // custom-end
 
         public HDRenderPipeline(HDRenderPipelineAsset asset)
@@ -1881,13 +1875,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                             OnCameraPreRenderVolumetrics(
                                 hdCamera,
                                 asyncCmd,
-                                m_VolumetricLightingSystem.GetVolumeVoxelizationCS(),
-                                m_VolumetricLightingSystem.GetVolumeVoxelizationKernel(hdCamera, m_LightLoop)
+                                GetVolumeVoxelizationCS(),
+                                GetVolumeVoxelizationKernel(hdCamera)
                             );
                         }
 
-                        VolumeVoxelizationPass(hdCamera, asyncCmd, m_FrameCount, densityVolumes, m_LightLoop);
-                        VolumeVoxelizationBlurPass(hdCamera, asyncCmd, m_LightLoop);
+                        VolumeVoxelizationPass(hdCamera, asyncCmd, m_FrameCount, densityVolumes);
+                        VolumeVoxelizationBlurPass(hdCamera, asyncCmd);
                     }, !haveAsyncTaskWithShadows);
 
                     haveAsyncTaskWithShadows = true;
@@ -2001,15 +1995,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         OnCameraPreRenderVolumetrics(
                             hdCamera,
                             cmd,
-                            m_VolumetricLightingSystem.GetVolumeVoxelizationCS(),
-                            m_VolumetricLightingSystem.GetVolumeVoxelizationKernel(hdCamera, m_LightLoop)
+                            GetVolumeVoxelizationCS(),
+                            GetVolumeVoxelizationKernel(hdCamera)
                         );
                     }
 
                     // Perform the voxelization step which fills the density 3D texture.
                     // custom-begin:
-                    VolumeVoxelizationPass(hdCamera, cmd, m_FrameCount, densityVolumes, m_LightLoop);
-                    VolumeVoxelizationBlurPass(hdCamera, cmd, m_LightLoop);
+                    VolumeVoxelizationPass(hdCamera, cmd, m_FrameCount, densityVolumes);
+                    VolumeVoxelizationBlurPass(hdCamera, cmd);
                     // custom-end
                 }
 
@@ -2092,7 +2086,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 if (OnCameraPostRenderForward != null)
                 {
-                    m_LightLoop.PushGlobalParamsClusteredLightList(hdCamera, cmd);
                     OnCameraPostRenderForward(renderContext, hdCamera, cmd, m_CameraColorBuffer, m_SharedRTManager.GetDepthStencilBuffer());
                 }
 

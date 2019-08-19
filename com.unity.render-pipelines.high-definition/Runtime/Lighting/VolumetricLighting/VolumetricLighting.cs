@@ -580,16 +580,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             return m_VolumeVoxelizationCS;
         }
 
-        public int GetVolumeVoxelizationKernel(HDCamera hdCamera, LightLoop lightLoop)
+        public int GetVolumeVoxelizationKernel(HDCamera hdCamera)
         {
-            bool tiledLighting     = lightLoop.HasLightToCull() && hdCamera.frameSettings.IsEnabled(FrameSettingsField.BigTilePrepass);
+            bool tiledLighting     = HasLightToCull() && hdCamera.frameSettings.IsEnabled(FrameSettingsField.BigTilePrepass);
             bool highQuality       = preset == VolumetricLightingPreset.High;
             int kernel = (tiledLighting ? 1 : 0) | (highQuality ? 2 : 0);
             return kernel;
         }
-
-        public void VolumeVoxelizationPass(HDCamera hdCamera, CommandBuffer cmd, uint frameIndex, DensityVolumeList densityVolumes, LightLoop lightLoop)
         // custom-end
+
+        public void VolumeVoxelizationPass(HDCamera hdCamera, CommandBuffer cmd, int frameIndex, DensityVolumeList densityVolumes)
         {
             if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.Volumetrics))
                 return;
@@ -604,7 +604,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 bool tiledLighting     = HasLightToCull() && hdCamera.frameSettings.IsEnabled(FrameSettingsField.BigTilePrepass);
                 bool highQuality       = preset == VolumetricLightingPreset.High;
 
-                int kernel = GetVolumeVoxelizationKernel(hdCamera, lightLoop);
+                int kernel = GetVolumeVoxelizationKernel(hdCamera);
 
                 var currFrameParams = hdCamera.vBufferParams[0];
                 var cvp = currFrameParams.viewportSize;
@@ -665,7 +665,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
 
         // custom-begin:
-        public void VolumeVoxelizationBlurPass(HDCamera hdCamera, CommandBuffer cmd, LightLoop lightLoop)
+        public void VolumeVoxelizationBlurPass(HDCamera hdCamera, CommandBuffer cmd)
         {
             if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.Volumetrics))
                 return;
@@ -676,8 +676,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             using (new ProfilingSample(cmd, "Volume Voxelization Blur"))
             {
-                bool tiledLighting = lightLoop.HasLightToCull() && hdCamera.frameSettings.IsEnabled(FrameSettingsField.BigTilePrepass);
-                int kernel = GetVolumeVoxelizationKernel(hdCamera, lightLoop);
+                bool tiledLighting = HasLightToCull() && hdCamera.frameSettings.IsEnabled(FrameSettingsField.BigTilePrepass);
+                int kernel = GetVolumeVoxelizationKernel(hdCamera);
 
                 var currFrameParams = hdCamera.vBufferParams[0];
                 var cvp = currFrameParams.viewportSize;
@@ -686,10 +686,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 if(hdCamera.frameSettings.VolumeVoxelizationRunsAsync())
                 {
                     // We explicitly set the big tile info even though it is set globally, since this could be running async before the PushGlobalParams
-                    cmd.SetComputeIntParam(m_VolumeVoxelizationBlurCS, HDShaderIDs._NumTileBigTileX, lightLoop.GetNumTileBigTileX(hdCamera));
-                    cmd.SetComputeIntParam(m_VolumeVoxelizationBlurCS, HDShaderIDs._NumTileBigTileY, lightLoop.GetNumTileBigTileY(hdCamera));
+                    cmd.SetComputeIntParam(m_VolumeVoxelizationBlurCS, HDShaderIDs._NumTileBigTileX, GetNumTileBigTileX(hdCamera));
+                    cmd.SetComputeIntParam(m_VolumeVoxelizationBlurCS, HDShaderIDs._NumTileBigTileY, GetNumTileBigTileY(hdCamera));
                     if (tiledLighting)
-                        cmd.SetComputeBufferParam(m_VolumeVoxelizationBlurCS, kernel, HDShaderIDs.g_vBigTileLightList, lightLoop.GetBigTileLightList());
+                        cmd.SetComputeBufferParam(m_VolumeVoxelizationCS, kernel, HDShaderIDs.g_vBigTileLightList, m_TileAndClusterData.bigTileLightList);
                 }
 
                 cmd.SetComputeTextureParam(m_VolumeVoxelizationBlurCS, kernel, HDShaderIDs._VBufferDensity,  m_DensityBufferHandle);
