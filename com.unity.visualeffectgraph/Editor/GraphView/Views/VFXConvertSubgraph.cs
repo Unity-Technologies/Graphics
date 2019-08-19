@@ -320,15 +320,26 @@ namespace UnityEditor.VFX.UI
                     graphName = Path.GetFileNameWithoutExtension(graphPath);
                     graphDirPath = Path.GetDirectoryName(graphPath).Replace('\\', '/');
                 }
-                
 
-                string targetSubgraphPath = string.Format("{0}/{1}{2}{3}", graphDirPath, graphName, typeName, extension);
+
+                string fileName = $"{graphName}_{typeName}";
+                string targetSubgraphPath = string.Format("{0}/{1}{2}", graphDirPath, fileName, extension);
                 int cpt = 1;
 
                 while (File.Exists(targetSubgraphPath))
                 {
-                    targetSubgraphPath = string.Format("{0}/{1}_{3}_{2}{4}", graphDirPath, graphName, cpt++, typeName, extension);
+                    fileName = $"{graphName}_{typeName}_{cpt++}";
+                    targetSubgraphPath = string.Format("{0}/{1}{2}", graphDirPath, fileName, extension);
                 }
+                targetSubgraphPath = EditorUtility.SaveFilePanelInProject("Create Subgraph", fileName, extension.Substring(1),"Select where you want to save your subgraph.");
+
+                if( Path.GetExtension(targetSubgraphPath) != extension)
+                {
+                    targetSubgraphPath += extension;
+                }
+
+                
+
                 m_TargetSubgraph = createFunc(targetSubgraphPath);
 
                 m_TargetController = VFXViewController.GetController(m_TargetSubgraph.GetResource());
