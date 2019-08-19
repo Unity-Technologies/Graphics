@@ -157,24 +157,13 @@ VFXComponentBoardEventUI .unity-button, #on-play-button, #on-stop-button,#attach
     flex-grow: 1;
 }
 
-#debug-modes
-{
-    
-}
 
 #debug-label
 {
     padding-top: 10px;
 }
 
-#debug-plot-area {
-    flex-direction: row;
-    width: 98%;
-    margin-top: 12px;
-    margin-bottom: 12px;
-    margin-left: 6px;
-    margin-right:6px;
-}
+
 
 #debug-box
 {
@@ -187,10 +176,26 @@ VFXComponentBoardEventUI .unity-button, #on-play-button, #on-stop-button,#attach
     border-radius:6px;
 
 }
+
+#debug-setting-field
+{
+    flex:1 1 auto;
+    flex-direction:row;
+}
+
 #debug-box-axis-container
 {
     flex-direction:column;
     flex-grow: 1;
+}
+
+#debug-plot-area {
+    flex-direction: row;
+    width: 98%;
+    margin-top: 12px;
+    margin-bottom: 12px;
+    margin-left: 6px;
+    margin-right: 6px;
 }
 
 #debug-box-axis-100 {

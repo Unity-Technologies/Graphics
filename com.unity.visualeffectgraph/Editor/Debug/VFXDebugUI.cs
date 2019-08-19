@@ -4,6 +4,7 @@ using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UIElements;
+using UnityEditor.UIElements;
 using UnityEngine.VFX;
 using Object = System.Object;
 
@@ -36,7 +37,7 @@ namespace UnityEditor.VFX.UI
                 public VerticalBar(float xPos)
                 {
                     m_Mesh = new Mesh();
-                    m_Mesh.vertices = new Vector3[] { new Vector3(xPos, 0, 0), new Vector3(xPos, 1, 0) };
+                    m_Mesh.vertices = new Vector3[] { new Vector3(xPos, -1, 0), new Vector3(xPos, 2, 0) };
                     m_Mesh.SetIndices(new int[] { 0, 1 }, MeshTopology.Lines, 0);
                 }
 
@@ -101,7 +102,7 @@ namespace UnityEditor.VFX.UI
                 public float GetMax()
                 {
                     float max = m_Points[0].y;
-                    foreach(var point in m_Points)
+                    foreach (var point in m_Points)
                     {
                         if (max < point.y)
                             max = point.y;
@@ -153,12 +154,15 @@ namespace UnityEditor.VFX.UI
 
             }
 
-            Material m_Mat;
+            Material m_CurveMat;
+            Material m_BarMat;
             VFXDebugUI m_DebugUI;
             int m_ClippingMatrixId;
 
             List<SwitchableCurve> m_VFXCurves;
-            //VerticalBar m_VerticalBar;
+            VerticalBar m_VerticalBar;
+            List<float> m_VerticalBarOffsets;
+
             int m_MaxPoints;
             float m_TimeBetweenDraw;
             bool m_Pause;
@@ -184,17 +188,24 @@ namespace UnityEditor.VFX.UI
 
             static readonly Func<Box, Rect> k_BoxWorldclip = GetWorldClipRect();
 
-            public CurveContent(VFXDebugUI debugUI, int maxPoints, float timeBetweenDraw = 0.033f)
+            public CurveContent(VFXDebugUI debugUI, int maxPoints, long timeBetweenDraw = 33)
             {
                 m_DebugUI = debugUI;
-                m_Mat = new Material(Shader.Find("Hidden/VFX/SystemStat"));
+                m_CurveMat = new Material(Shader.Find("Hidden/VFX/SystemStat"));
+                m_BarMat = new Material(Shader.Find("Hidden/VFX/VerticalBar"));
                 m_ClippingMatrixId = Shader.PropertyToID("_ClipMatrix");
                 m_MaxPoints = maxPoints;
-                m_TimeBetweenDraw = timeBetweenDraw;
 
-                //m_VerticalBar = new VerticalBar(1);
+                m_VerticalBar = new VerticalBar(0);
+                m_VerticalBarOffsets = new List<float>();
 
-                schedule.Execute(MarkDirtyRepaint).Every((long)(m_TimeBetweenDraw * 1000.0f));
+                SetSamplingRate((long)timeBetweenDraw);
+            }
+
+            public void SetSamplingRate(long rate)
+            {
+                schedule.Execute(MarkDirtyRepaint).Every(rate);
+                m_TimeBetweenDraw = rate / 1000.0f;
             }
 
             public void OnVFXChange()
@@ -234,7 +245,7 @@ namespace UnityEditor.VFX.UI
                 }
             }
 
-            Object GetCurveData()
+            Object GetCurvesData()
             {
                 switch (m_DebugUI.m_CurrentMode)
                 {
@@ -264,7 +275,7 @@ namespace UnityEditor.VFX.UI
                             var capacity = m_DebugUI.m_VFX.GetSystemCapacity(switchableCurve.id);
                             float efficiency = (float)alive / (float)capacity;
 
-                            m_Mat.SetFloat("_OrdinateScale", 1.0f);
+                            m_CurveMat.SetFloat("_OrdinateScale", 1.0f);
                             switchableCurve.curve.AddPoint(efficiency);
                             m_DebugUI.UpdateEfficiency(switchableCurve.id, alive, capacity);
                         }
@@ -279,7 +290,7 @@ namespace UnityEditor.VFX.UI
                             m_DebugUI.m_YaxisElts[1].text = (superior2 / 2).ToString();
                             m_DebugUI.m_YaxisElts[2].text = superior2.ToString();
 
-                            m_Mat.SetFloat("_OrdinateScale", 1.0f / (float)superior2);
+                            m_CurveMat.SetFloat("_OrdinateScale", 1.0f / (float)superior2);
                             switchableCurve.curve.AddPoint(alive);
                             m_DebugUI.UpdateAlive(switchableCurve.id, alive, capacity);
 
@@ -291,14 +302,16 @@ namespace UnityEditor.VFX.UI
             }
 
             float m_LastSampleTime;
+            float m_LastVBarTime;
             void DrawCurves()
             {
                 if (m_Stopped)
                     return;
 
-                if (m_Mat == null)
+                if (m_CurveMat == null)
                 {
-                    m_Mat = new Material(Shader.Find("Hidden/VFX/SystemStat"));
+                    m_CurveMat = new Material(Shader.Find("Hidden/VFX/SystemStat"));
+                    m_BarMat = new Material(Shader.Find("Hidden/VFX/VerticalBar"));
                     m_ClippingMatrixId = Shader.PropertyToID("_ClipMatrix");
                 }
                 // drawing matrix
@@ -312,7 +325,9 @@ namespace UnityEditor.VFX.UI
                 var clippedScale = new Vector3(windowRect.width / clippedDebugRect.width, windowRect.height / clippedDebugRect.height, 0);
                 var clippedTrans = new Vector3(-clippedDebugRect.x / clippedDebugRect.width, ((clippedDebugRect.y + clippedDebugRect.height) - windowRect.height) / clippedDebugRect.height);
                 var baseChange = Matrix4x4.TRS(clippedTrans, Quaternion.identity, clippedScale);
-                m_Mat.SetMatrix(m_ClippingMatrixId, baseChange);
+                m_CurveMat.SetMatrix(m_ClippingMatrixId, baseChange);
+                m_BarMat.SetMatrix(m_ClippingMatrixId, baseChange);
+
 
                 // Updating curve
                 var now = Time.time;
@@ -324,7 +339,8 @@ namespace UnityEditor.VFX.UI
                 }
 
                 int i = 0;
-                var curveData = GetCurveData();
+                var curveData = GetCurvesData();
+                var TRS = Matrix4x4.TRS(trans, Quaternion.identity, scale);
                 foreach (var vfxCurve in m_VFXCurves)
                 {
                     if (vfxCurve.toggle == null || vfxCurve.toggle.value == true)
@@ -335,30 +351,38 @@ namespace UnityEditor.VFX.UI
                         }
 
                         var curveColor = Color.HSVToRGB((0.71405f + i * 0.37135766f) % 1.0f, 0.6f, 1.0f).gamma;
-                        m_Mat.SetColor("_Color", curveColor);
+                        m_CurveMat.SetColor("_Color", curveColor);
 
-                        m_Mat.SetPass(0);
-                        Graphics.DrawMeshNow(vfxCurve.curve.GetMesh(), Matrix4x4.TRS(trans, Quaternion.identity, scale));
+                        m_CurveMat.SetPass(0);
+                        Graphics.DrawMeshNow(vfxCurve.curve.GetMesh(), TRS);
                     }
 
                     ++i;
                 }
 
-                // time bars
-                //float n = 1.0f / m_TimeBetweenDraw;
-                //float d = (float)n / (float)m_MaxPoints;
-                //for (float k = 0; k * d < 1.0f; ++k)
-                //{
-                //    float offset = k * d * (debugRect.width / windowRect.width);
-                //    var offsetTrans = trans;
-                //    offsetTrans.x -= offset;
+                // time bars creation
+                if (shouldSample && (now - m_LastVBarTime > 1.0f))
+                {
+                    m_LastVBarTime = now;
+                    m_VerticalBarOffsets.Add(1);
+                }
 
-                //    Color color = Color.red;
-                //    color.a = 0.5f;
-                //    m_Mat.SetColor("_Color", color.gamma);
-                //    m_Mat.SetPass(0);
-                //    Graphics.DrawMeshNow(m_VerticalBar.GetMesh(), Matrix4x4.TRS(offsetTrans, Quaternion.identity, scale));
-                //}
+                // time bars update
+                m_VerticalBarOffsets.RemoveAll(vb => vb < 0);
+                var xShift = 1.0f / (float)(m_MaxPoints-1);
+                for (int j = 0; j < m_VerticalBarOffsets.Count(); ++j)
+                {
+                    m_BarMat.SetFloat("_AbscissaOffset", m_VerticalBarOffsets[j]);
+                    if (shouldSample)
+                        m_VerticalBarOffsets[j] -= xShift;
+
+                    m_BarMat.SetColor("_Color", Color.red);
+                    m_BarMat.SetPass(0);
+                    Graphics.DrawMeshNow(m_VerticalBar.GetMesh(), TRS);
+                }
+
+                m_BarMat.SetFloat("_AbscissaOffset", 0);
+
             }
 
 
@@ -541,17 +565,21 @@ namespace UnityEditor.VFX.UI
         {
             // ui
             m_DebugButton.text = "Efficiency plot";
-            m_Curves = new CurveContent(this, (int)(10.0f / 0.016f), 0.016f);
+            m_Curves = new CurveContent(this, (int)(10.0f / 0.016f), 16);
             m_ComponentBoard.contentContainer.Add(m_Curves);
 
             var Yaxis = SetYAxis("100%", "50%", "0%");
             m_DebugDrawingBox = SetDebugDrawingBox();
+
+            var settingsBox = SetSettingsBox();
+
             var plotArea = SetPlotArea(m_DebugDrawingBox, Yaxis);
 
-            var title =  SetStatsTitle();
+            var title = SetStatsTitle();
 
             m_SystemStatsContainer = SetSystemStatContainer();
 
+            m_DebugContainer.Add(settingsBox);
             m_DebugContainer.Add(plotArea);
             m_DebugContainer.Add(title);
             m_DebugContainer.Add(m_SystemStatsContainer);
@@ -565,23 +593,55 @@ namespace UnityEditor.VFX.UI
         {
             // ui
             m_DebugButton.text = "Alive count plot";
-            m_Curves = new CurveContent(this, 300, 0.016f);
+            m_Curves = new CurveContent(this, (int)(10.0f / 0.016f), 16);
             m_ComponentBoard.contentContainer.Add(m_Curves);
 
             var Yaxis = SetYAxis("", "", "0");
             m_DebugDrawingBox = SetDebugDrawingBox();
+
+            var settingsBox = SetSettingsBox();
+
             var plotArea = SetPlotArea(m_DebugDrawingBox, Yaxis);
 
             var title = SetStatsTitle();
 
             m_SystemStatsContainer = SetSystemStatContainer();
 
+            m_DebugContainer.Add(settingsBox);
             m_DebugContainer.Add(plotArea);
             m_DebugContainer.Add(title);
             m_DebugContainer.Add(m_SystemStatsContainer);
 
             // recover debug data
             RegisterParticleSystems();
+        }
+
+        VisualElement SetSettingsBox()
+        {
+            var label = new Label();
+            label.text = "Sampling rate (ms)";
+            label.style.fontSize = 12;
+            var sampleRateField = new IntegerField();
+            sampleRateField.value = 16;
+            sampleRateField.RegisterValueChangedCallback(SetSampleRate);
+
+            var settingsContainer = new VisualElement();
+            settingsContainer.name = "debug-setting-field";
+            settingsContainer.Add(label);
+            settingsContainer.Add(sampleRateField);
+            return settingsContainer;
+        }
+
+        void SetSampleRate(ChangeEvent<int> e)
+        {
+            var intergerField = e.currentTarget as IntegerField;
+            if (intergerField != null)
+            {
+                if (e.newValue < 1)
+                    intergerField.value = 1;
+
+                m_Curves.SetSamplingRate(intergerField.value);
+            }
         }
 
         VisualElement SetYAxis(string topValue, string midValue, string botValue)
@@ -742,7 +802,7 @@ namespace UnityEditor.VFX.UI
 
             if (m_DebugContainer != null)
                 m_DebugContainer.Clear();
-            
+
 
             m_SystemStats = null;
             m_DebugDrawingBox = null;
@@ -750,7 +810,7 @@ namespace UnityEditor.VFX.UI
             m_DebugContainer = null;
         }
 
-       
+
 
     }
 }
