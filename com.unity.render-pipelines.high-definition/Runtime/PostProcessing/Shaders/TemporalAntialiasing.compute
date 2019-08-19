@@ -38,7 +38,7 @@ void MainReconstructionFilter(uint3 dispatchThreadId)
     float2 motionVector;
     DecodeMotionVector(LOAD_TEXTURE2D_X(_CameraMotionVectorsTexture, closest), motionVector);
 
-    float3 color = EvaluateTAAReconstructionFilter(_InputTexture, _InputHistoryTexture, posInputs.positionNDC.xy, 0.0, _ScreenToTargetScale.xy, _ScreenToTargetScaleHistory.xy, motionVector);
+    float3 color = EvaluateTAAReconstructionFilter(_InputTexture, _InputHistoryTexture, posInputs.positionNDC.xy, 0.0, _RTHandleScale.xy, _RTHandleScaleHistory.xy, motionVector);
     _OutputTexture[COORD_TEXTURE2D_X(posInputs.positionSS)] = float4(color.rgb, 1.0);
     _OutputHistoryTexture[COORD_TEXTURE2D_X(posInputs.positionSS)] = float4(color.rgb, 1.0);
 }
