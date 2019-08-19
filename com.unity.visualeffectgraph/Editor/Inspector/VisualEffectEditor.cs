@@ -343,7 +343,7 @@ namespace UnityEditor.VFX
                     default:
                         if(parameter.realType == typeof(Gradient).Name )
                         {
-                            Gradient newGradient = EditorGUI.GradientField(rect, nameContent, null, true);
+                            Gradient newGradient = EditorGUI.GradientField(rect, nameContent, s_DefaultGradient, true);
 
                             if (GUI.changed)
                             { 
@@ -360,6 +360,8 @@ namespace UnityEditor.VFX
 
             return changed;
         }
+
+        static Gradient s_DefaultGradient = new Gradient();
 
         protected static object GetObjectValue(SerializedProperty prop)
         {
