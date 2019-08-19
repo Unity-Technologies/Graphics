@@ -189,7 +189,11 @@ namespace UnityEngine.Rendering.Universal
             // For now we set the time variables per camera, as we plan to remove `SetupCamearProperties`.
             // Setting the time per frame would take API changes to pass the variable to each camera render.
             // Once `SetupCameraProperties` is gone, the variable should be set higher in the call-stack.
+#if UNITY_EDITOR
+            float time = Application.isPlaying ? Time.time : Time.realtimeSinceStartup;
+#else
             float time = Time.time;
+#endif
             float deltaTime = Time.deltaTime;
             float smoothDeltaTime = Time.smoothDeltaTime;
             SetShaderTimeValues(time, deltaTime, smoothDeltaTime);
@@ -221,7 +225,7 @@ namespace UnityEngine.Rendering.Universal
             /// * Setup global time properties (_Time, _SinTime, _CosTime)
             bool stereoEnabled = renderingData.cameraData.isStereoEnabled;
             context.SetupCameraProperties(camera, stereoEnabled);
-            
+
             // Override time values from when `SetupCameraProperties` were called.
             // They might be a frame behind.
             // We can remove this after removing `SetupCameraProperties` as the values should be per frame, and not per camera.
