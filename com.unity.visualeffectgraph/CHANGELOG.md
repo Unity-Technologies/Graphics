@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Converting a subgraph operator inside a subgraph operator with outputs.
 - Selecting a GameObject with a VFX Property Binder spams exception.
 - Wrong motion vector while modifying local matrix of a VisualEffect.
+- Convert output settings copy.
 
 ## [7.0.1] - 2019-07-25
 ### Added
