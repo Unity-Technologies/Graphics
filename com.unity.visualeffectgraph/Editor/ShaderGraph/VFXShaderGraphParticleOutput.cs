@@ -218,6 +218,21 @@ namespace UnityEditor.VFX
             return mapper;
         }
 
+
+        bool IsTexture(PropertyType type)
+        {
+            switch( type)
+            {
+                case PropertyType.Texture2D:
+                case PropertyType.Texture2DArray:
+                case PropertyType.Texture3D:
+                case PropertyType.Cubemap:
+                    return true;
+                default:
+                    return false;
+            }
+        }
+
         public override IEnumerable<KeyValuePair<string, VFXShaderWriter>> additionalReplacements
         {
             get
@@ -340,7 +355,7 @@ namespace UnityEditor.VFX
                         callSG.builder.Append($"\n{shaderGraph.outputStructName} OUTSG = {shaderGraph.evaluationFunctionName}(INSG");
 
                         if(graphCode.properties.Any())
-                            callSG.builder.Append(","+graphCode.properties.Select(t => t.referenceName).Aggregate((s, t) => s + ", " + t));
+                            callSG.builder.Append(","+graphCode.properties.Select(t => IsTexture(t.propertyType) ? $"{t.referenceName}, sampler{t.referenceName}, {t.referenceName}_TexelSize" : t.referenceName).Aggregate((s, t) => s + ", " + t));
 
                         callSG.builder.AppendLine(");");
 
