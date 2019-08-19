@@ -591,13 +591,6 @@ namespace UnityEditor.Rendering.HighDefinition
             using (new EditorGUI.DisabledScope(!newShadowsEnabled))
             {
                 {
-#if ENABLE_RAYTRACING
-                    // For the moment, we only support screen space rasterized shadows for directional lights
-                    if (serialized.settings.lightType.enumValueIndex == (int)LightType.Directional)
-                    {
-                        EditorGUILayout.PropertyField(serialized.serializedLightData.useScreenSpaceShadows, s_Styles.useScreenSpaceShadows);
-                    }
-#endif
                     if (!serialized.settings.isCompletelyBaked)
                     {
                         EditorGUILayout.PropertyField(serialized.serializedLightData.shadowUpdateMode, s_Styles.shadowUpdateMode);
@@ -657,19 +650,35 @@ namespace UnityEditor.Rendering.HighDefinition
                     }
                 }
 
+#if ENABLE_RAYTRACING
+                // For the moment, we only support screen space rasterized shadows for directional lights
                 if (serialized.settings.lightType.enumValueIndex == (int)LightType.Directional)
                 {
-                    EditorGUILayout.PropertyField(serialized.serializedLightData.useRayTracedShadows, s_Styles.useRayTracedShadows);
-                    if(serialized.serializedLightData.useRayTracedShadows.boolValue)
+                    EditorGUILayout.PropertyField(serialized.serializedLightData.useScreenSpaceShadows, s_Styles.useScreenSpaceShadows);
+                    using (new EditorGUI.DisabledScope(!serialized.serializedLightData.useScreenSpaceShadows.boolValue))
                     {
                         EditorGUI.indentLevel++;
-                        EditorGUILayout.PropertyField(serialized.serializedLightData.numRayTracingSamples, s_Styles.numRayTracingSamples);
-                        EditorGUILayout.PropertyField(serialized.serializedLightData.filterTracedShadow, s_Styles.filterTracedShadow);
-                        EditorGUILayout.PropertyField(serialized.serializedLightData.filterSizeTraced, s_Styles.filterSizeTraced);
-                        EditorGUILayout.PropertyField(serialized.serializedLightData.sunLightConeAngle, s_Styles.sunLightConeAngle);
+                        EditorGUILayout.PropertyField(serialized.serializedLightData.useRayTracedShadows, s_Styles.useRayTracedShadows);
+                        using (new EditorGUI.DisabledScope(!serialized.serializedLightData.useRayTracedShadows.boolValue))
+                        {
+                            EditorGUI.indentLevel++;
+                            EditorGUILayout.PropertyField(serialized.serializedLightData.sunLightConeAngle, s_Styles.sunLightConeAngle);
+                            EditorGUILayout.PropertyField(serialized.serializedLightData.numRayTracingSamples, s_Styles.numRayTracingSamples);
+                            EditorGUILayout.PropertyField(serialized.serializedLightData.filterTracedShadow, s_Styles.filterTracedShadow);
+                            using (new EditorGUI.DisabledScope(!serialized.serializedLightData.filterTracedShadow.boolValue))
+                            {
+                                EditorGUI.indentLevel++;
+                                EditorGUILayout.PropertyField(serialized.serializedLightData.filterSizeTraced, s_Styles.filterSizeTraced);
+                                EditorGUI.indentLevel--;
+                            }
+
+                            EditorGUI.indentLevel--;
+                        }
                         EditorGUI.indentLevel--;
                     }
                 }
+#endif
+                
 #endif
             }
         }
