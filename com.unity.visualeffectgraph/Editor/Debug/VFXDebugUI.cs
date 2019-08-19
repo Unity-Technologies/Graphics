@@ -68,7 +68,7 @@ namespace UnityEditor.VFX.UI
 
                     for (int i = 0; i < maxPoints - 1; ++i)
                     {
-                        m_Points[i] = new Vector3(i * step, -1, 0);
+                        m_Points[i] = new Vector3(i * step, -99999999, 0);
                         linesIndices[2 * i] = i;
                         linesIndices[2 * i + 1] = i + 1;
                     }
@@ -263,6 +263,8 @@ namespace UnityEditor.VFX.UI
                             var alive = m_DebugUI.m_VFX.GetSystemAliveParticleCount(switchableCurve.id);
                             var capacity = m_DebugUI.m_VFX.GetSystemCapacity(switchableCurve.id);
                             float efficiency = (float)alive / (float)capacity;
+
+                            m_Mat.SetFloat("_OrdinateScale", 1.0f);
                             switchableCurve.curve.AddPoint(efficiency);
                             m_DebugUI.UpdateEfficiency(switchableCurve.id, alive, capacity);
                         }
@@ -271,10 +273,16 @@ namespace UnityEditor.VFX.UI
                         {
                             var alive = m_DebugUI.m_VFX.GetSystemAliveParticleCount(switchableCurve.id);
                             var capacity = m_DebugUI.m_VFX.GetSystemCapacity(switchableCurve.id);
-                            Debug.Log( (int)((float)data));
-                            float normalizeAlive = (float)alive / Mathf.Max((float)data, 1.0f);// <= bidon
-                            switchableCurve.curve.AddPoint(normalizeAlive);
+                            float maxAlive = (float)data;
+
+                            int superior2 = (int)Mathf.Pow(2, Mathf.CeilToInt(Mathf.Log(maxAlive, 2.0f)));
+                            m_DebugUI.m_YaxisElts[1].text = (superior2 / 2).ToString();
+                            m_DebugUI.m_YaxisElts[2].text = superior2.ToString();
+
+                            m_Mat.SetFloat("_OrdinateScale", 1.0f / (float)superior2);
+                            switchableCurve.curve.AddPoint(alive);
                             m_DebugUI.UpdateAlive(switchableCurve.id, alive, capacity);
+
                         }
                         break;
                     default:
@@ -317,20 +325,20 @@ namespace UnityEditor.VFX.UI
 
                 int i = 0;
                 var curveData = GetCurveData();
-                foreach (var curve in m_VFXCurves)
+                foreach (var vfxCurve in m_VFXCurves)
                 {
-                    if (curve.toggle == null || curve.toggle.value == true)
+                    if (vfxCurve.toggle == null || vfxCurve.toggle.value == true)
                     {
-                        if (shouldSample && m_DebugUI.m_VFX.HasSystem(curve.id))
+                        if (shouldSample && m_DebugUI.m_VFX.HasSystem(vfxCurve.id))
                         {
-                            UpdateCurve(curve, curveData);
+                            UpdateCurve(vfxCurve, curveData);
                         }
 
-                        var color = Color.HSVToRGB((0.71405f + i * 0.37135766f) % 1.0f, 0.6f, 1.0f).gamma;
-                        m_Mat.SetColor("_Color", color);
+                        var curveColor = Color.HSVToRGB((0.71405f + i * 0.37135766f) % 1.0f, 0.6f, 1.0f).gamma;
+                        m_Mat.SetColor("_Color", curveColor);
 
                         m_Mat.SetPass(0);
-                        Graphics.DrawMeshNow(curve.curve.GetMesh(), Matrix4x4.TRS(trans, Quaternion.identity, scale));
+                        Graphics.DrawMeshNow(vfxCurve.curve.GetMesh(), Matrix4x4.TRS(trans, Quaternion.identity, scale));
                     }
 
                     ++i;
@@ -370,6 +378,7 @@ namespace UnityEditor.VFX.UI
         // debug components
         VFXComponentBoard m_ComponentBoard;
         VisualElement m_DebugContainer;
+        Button m_DebugButton;
         VisualElement m_SystemStatsContainer;
         Box m_DebugDrawingBox;
         CurveContent m_Curves;
@@ -384,7 +393,7 @@ namespace UnityEditor.VFX.UI
         // [0] bottom value
         // [1] mid value
         // [2] top value
-        VisualElement[] m_YaxisElts;
+        TextElement[] m_YaxisElts;
 
         public VFXDebugUI(VFXView view)
         {
@@ -406,6 +415,7 @@ namespace UnityEditor.VFX.UI
 
             m_ComponentBoard = componentBoard;
             m_DebugContainer = m_ComponentBoard.Query<VisualElement>("debug-modes-container");
+            m_DebugButton = m_ComponentBoard.Query<Button>("debug-modes");
 
             switch (m_CurrentMode)
             {
@@ -418,6 +428,7 @@ namespace UnityEditor.VFX.UI
                     Alive();
                     break;
                 case Modes.None:
+                    None();
                     Clear();
                     break;
                 default:
@@ -485,9 +496,6 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        
-
-
         void RegisterParticleSystems()
         {
             if (m_SystemStats != null)
@@ -524,10 +532,15 @@ namespace UnityEditor.VFX.UI
             }
         }
 
+        void None()
+        {
+            m_DebugButton.text = "Debug modes";
+        }
 
         void Efficiency()
         {
             // ui
+            m_DebugButton.text = "Efficiency plot";
             m_Curves = new CurveContent(this, (int)(10.0f / 0.016f), 0.016f);
             m_ComponentBoard.contentContainer.Add(m_Curves);
 
@@ -547,13 +560,15 @@ namespace UnityEditor.VFX.UI
             RegisterParticleSystems();
         }
 
+
         void Alive()
         {
             // ui
+            m_DebugButton.text = "Alive count plot";
             m_Curves = new CurveContent(this, 300, 0.016f);
             m_ComponentBoard.contentContainer.Add(m_Curves);
 
-            var Yaxis = SetYAxis("", "", "");
+            var Yaxis = SetYAxis("", "", "0");
             m_DebugDrawingBox = SetDebugDrawingBox();
             var plotArea = SetPlotArea(m_DebugDrawingBox, Yaxis);
 
@@ -586,7 +601,7 @@ namespace UnityEditor.VFX.UI
             Yaxis.Add(mid);
             Yaxis.Add(bot);
 
-            m_YaxisElts = new VisualElement[3];
+            m_YaxisElts = new TextElement[3];
             m_YaxisElts[0] = bot;
             m_YaxisElts[1] = mid;
             m_YaxisElts[2] = top;
