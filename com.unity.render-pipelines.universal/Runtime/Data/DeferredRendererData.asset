@@ -9,7 +9,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a2982ccb7170ea24996a49b2de0e0af8, type: 3}
+  m_Script: {fileID: 11500000, guid: 661a9f2f1e4e6304198f4a9da3d1fee8, type: 3}
   m_Name: DeferredRendererData
   m_EditorClassIdentifier: 
   m_RendererFeatures: []
@@ -20,7 +20,7 @@ MonoBehaviour:
     screenSpaceShadowPS: {fileID: 4800000, guid: 0f854b35a0cf61a429bd5dcfea30eddd,
       type: 3}
     samplingPS: {fileID: 4800000, guid: 04c410c9937594faa893a11dceb85f7e, type: 3}
-    tilingPS: {fileID: 4800000, guid: d2851f1c9a5ce3e448fa7f105f39ed7e, type: 3}
+    tilingPS: {fileID: 4800000, guid: 603f9f036d2f80148b33e10261aa3971, type: 3}
   m_OpaqueLayerMask:
     serializedVersion: 2
     m_Bits: 4294967295
