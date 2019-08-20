@@ -5617,6 +5617,7 @@ MonoBehaviour:
     TargetHeight: 512
     PerPixelCorrectnessThreshold: 0.005
     AverageCorrectnessThreshold: 0.001
+    UseHDR: 1
   WaitFrames: 0
 --- !u!114 &1837275386
 MonoBehaviour:

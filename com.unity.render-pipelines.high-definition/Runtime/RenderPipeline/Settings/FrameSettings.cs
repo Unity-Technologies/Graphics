@@ -78,6 +78,8 @@ namespace UnityEngine.Rendering.HighDefinition
         TransparentObjects = 3,
         [FrameSettingsField(0, autoName: RealtimePlanarReflection)]
         RealtimePlanarReflection = 4,
+        [FrameSettingsField(0, displayedName: "Ray Tracing", customOrderInGroup: 4)]
+        RayTracing = 92,
 
         [FrameSettingsField(0, autoName: TransparentPrepass)]
         TransparentPrepass = 8,
@@ -173,7 +175,8 @@ namespace UnityEngine.Rendering.HighDefinition
         SSRAsync = 42,
         [FrameSettingsField(2, autoName: SSAOAsync, positiveDependencies: new[] { AsyncCompute })]
         SSAOAsync = 43,
-        [FrameSettingsField(2, autoName: ContactShadowsAsync, positiveDependencies: new[] { AsyncCompute })]
+        // TODO: Enable thing when the render graph will be the default renderer.
+        // [FrameSettingsField(2, autoName: ContactShadowsAsync, positiveDependencies: new[] { AsyncCompute })]
         ContactShadowsAsync = 44,
         [FrameSettingsField(2, autoName: VolumeVoxelizationsAsync, positiveDependencies: new[] { AsyncCompute })]
         VolumeVoxelizationsAsync = 45,
@@ -284,6 +287,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 (uint)FrameSettingsField.EnableReflectionProbe,
                 (uint)FrameSettingsField.EnablePlanarProbe,
                 (uint)FrameSettingsField.EnableSkyLighting,
+                (uint)FrameSettingsField.RayTracing,
             }),
             lodBias = 1,
         };
@@ -330,7 +334,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 (uint)FrameSettingsField.FPTLForForwardOpaque,
                 (uint)FrameSettingsField.BigTilePrepass,
                 (uint)FrameSettingsField.EnableReflectionProbe,
-                (uint)FrameSettingsField.EnableSkyLighting,
+                (uint)FrameSettingsField.RayTracing,
+                // (uint)FrameSettingsField.EnableSkyLighting,
             }),
             lodBias = 1,
         };
@@ -376,6 +381,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 (uint)FrameSettingsField.FPTLForForwardOpaque,
                 (uint)FrameSettingsField.BigTilePrepass,
                 (uint)FrameSettingsField.ReplaceDiffuseForIndirect,
+                // (uint)FrameSettingsField.EnableSkyLighting,
             }),
             lodBias = 1,
         };
@@ -425,7 +431,8 @@ namespace UnityEngine.Rendering.HighDefinition
         internal bool BuildLightListRunsAsync() => SystemInfo.supportsAsyncCompute && bitDatas[(int)FrameSettingsField.AsyncCompute] && bitDatas[(int)FrameSettingsField.LightListAsync];
         internal bool SSRRunsAsync() => SystemInfo.supportsAsyncCompute && bitDatas[(int)FrameSettingsField.AsyncCompute] && bitDatas[(int)FrameSettingsField.SSRAsync];
         internal bool SSAORunsAsync() => SystemInfo.supportsAsyncCompute && bitDatas[(int)FrameSettingsField.AsyncCompute] && bitDatas[(int)FrameSettingsField.SSAOAsync];
-        internal bool ContactShadowsRunAsync() => SystemInfo.supportsAsyncCompute && bitDatas[(int)FrameSettingsField.AsyncCompute] && bitDatas[(int)FrameSettingsField.ContactShadowsAsync];
+        // TODO: Re-enable this when the render graph will be used by default.
+        internal bool ContactShadowsRunAsync() => SystemInfo.supportsAsyncCompute && bitDatas[(int)FrameSettingsField.AsyncCompute] && /* bitDatas[(int)FrameSettingsField.ContactShadowsAsync] */ false;
         internal bool VolumeVoxelizationRunsAsync() => SystemInfo.supportsAsyncCompute && bitDatas[(int)FrameSettingsField.AsyncCompute] && bitDatas[(int)FrameSettingsField.VolumeVoxelizationsAsync];
 
         /// <summary>Override a frameSettings according to a mask.</summary>
@@ -478,6 +485,7 @@ namespace UnityEngine.Rendering.HighDefinition
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.ShadowMask] &= renderPipelineSettings.supportShadowMask && !preview;
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.ContactShadows] &= !preview;
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.ScreenSpaceShadows] &= renderPipelineSettings.hdShadowInitParams.supportScreenSpaceShadows;
+            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.RayTracing] &= HDRenderPipelineAsset.AggreateRayTracingSupport(renderPipelineSettings);
 
             //MSAA only supported in forward
             // TODO: The work will be implemented piecemeal to support all passes

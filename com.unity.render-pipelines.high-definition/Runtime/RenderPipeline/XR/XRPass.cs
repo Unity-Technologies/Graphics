@@ -248,25 +248,24 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        internal void RenderOcclusionMeshes(CommandBuffer cmd, RTHandle depthBuffer)
+        internal void RenderOcclusionMeshes(CommandBuffer cmd, RTHandle colorBuffer, RTHandle depthBuffer)
         {
-            // XRTODO: uncomment when C++ code is ready and tested
-            //if (enabled && xrSdkEnabled && occlusionMeshMaterial != null)
-            //{
-            //    using (new ProfilingSample(cmd, "XR Occlusion Meshes"))
-            //    {
-            //        Matrix4x4 m = Matrix4x4.Ortho(0.0f, 1.0f, 0.0f, 1.0f, -1.0f, 1.0f);
+            if (enabled && xrSdkEnabled && occlusionMeshMaterial != null)
+            {
+                using (new ProfilingSample(cmd, "XR Occlusion Mesh"))
+                {
+                    Matrix4x4 m = Matrix4x4.Ortho(0.0f, 1.0f, 0.0f, 1.0f, -1.0f, 1.0f);
 
-            //        for (int viewId = 0; viewId < viewCount; ++viewId)
-            //        {
-            //            if (views[viewId].occlusionMesh != null)
-            //            {
-            //                CoreUtils.SetRenderTarget(cmd, depthBuffer, ClearFlag.None, 0, CubemapFace.Unknown, viewId);
-            //                cmd.DrawMesh(views[viewId].occlusionMesh, m, occlusionMeshMaterial);
-            //            }
-            //        }
-            //    }
-            //}
+                    for (int viewId = 0; viewId < viewCount; ++viewId)
+                    {
+                        if (views[viewId].occlusionMesh != null)
+                        {
+                            CoreUtils.SetRenderTarget(cmd, colorBuffer, depthBuffer, ClearFlag.None, 0, CubemapFace.Unknown, viewId);
+                            cmd.DrawMesh(views[viewId].occlusionMesh, m, occlusionMeshMaterial);
+                        }
+                    }
+                }
+            }
         }
     }
 }
