@@ -243,12 +243,15 @@ namespace  UnityEditor.VFX.UI
             }
 
             titleContent.text = filename;
-            
+
             if (!AssetDatabase.IsOpenForEdit(graphView.controller.model.visualEffectObject,
                 StatusQueryOptions.UseCachedIfPossible))
+            {
                 graphView.checkoutButton.visible = true;
+                graphView.checkoutButton.SetEnabled(true);
+            }
             else
-                graphView.checkoutButton.visible = false;
+                graphView.checkoutButton.SetEnabled(false);
         }
 
         [SerializeField]

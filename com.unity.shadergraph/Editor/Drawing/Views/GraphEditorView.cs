@@ -9,6 +9,7 @@ using Object = UnityEngine.Object;
 
 using UnityEditor.Experimental.GraphView;
 using UnityEditor.ShaderGraph.Drawing.Colors;
+using UnityEditor.VersionControl;
 using UnityEngine.UIElements;
 using Edge = UnityEditor.Experimental.GraphView.Edge;
 
@@ -164,7 +165,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                         }
                     }
 
-                    if (isCheckedOut != null)
+                    if (isCheckedOut != null && Provider.enabled)
                     {
                         if (!isCheckedOut())
                         {
@@ -173,6 +174,12 @@ namespace UnityEditor.ShaderGraph.Drawing
                                 if (checkOut != null)
                                     checkOut();
                             }
+                        }
+                        else
+                        {
+                            EditorGUI.BeginDisabledGroup(true);
+                            GUILayout.Button("Check Out", EditorStyles.toolbarButton);
+                            EditorGUI.EndDisabledGroup();
                         }
                     }
 
