@@ -30,7 +30,7 @@ namespace UnityEditor.VFX
                 return VFXPlanarPrimitiveHelper.GetTaskType(primitiveType);
             }
         }
-        public override bool supportsUV { get { return true; } }
+        public override bool supportsUV { get { return shaderGraph == null; } }
         public override bool implementsMotionVector { get { return true; } }
 
         public override IEnumerable<string> additionalDefines

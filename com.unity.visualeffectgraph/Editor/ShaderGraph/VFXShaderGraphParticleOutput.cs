@@ -72,6 +72,21 @@ namespace UnityEditor.VFX
             }
         }
 
+
+        protected override IEnumerable<string> filteredOutSettings
+        {
+            get
+            {
+                foreach (var setting in base.filteredOutSettings)
+                    yield return setting;
+                if (shaderGraph != null)
+                    yield return "colorMappingMode";
+
+            }
+        }
+
+        public override bool supportsUV => base.supportsUV && shaderGraph == null;
+
         protected override IEnumerable<VFXPropertyWithValue> inputProperties
         {
             get
