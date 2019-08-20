@@ -9,14 +9,6 @@ using Unity.Collections;
 
 namespace UnityEngine.Rendering.Universal
 {
-    // Actual point light data passed to the shaders.
-    internal struct PointLightData
-    {
-        public Vector3 WsPos;
-        public float Radius;
-        public Vector4 Color;
-    };
-
     internal struct BitArray
     {
         uint[] m_Mem; // ulong not supported in il2cpp???
@@ -49,90 +41,6 @@ namespace UnityEngine.Rendering.Universal
                 m_Mem[bitIndex >> 5] &= ~(1u << (bitIndex & 31));
         }
     };
-
-    // Precomputed tile data.
-    internal struct PreTile
-    {
-        // Tile left, right, bottom and top plane equations in view space.
-        // Normals are pointing out.
-        public Vector4 planeLeft;
-        public Vector4 planeRight;
-        public Vector4 planeBottom;
-        public Vector4 planeTop;
-
-        public bool Clip(Vector3 vsPos, float radius)
-        {
-            // Simplified clipping code, only deals with 4 clipping planes.
-            // zNear and zFar clipping planes are ignored as presumably the light is already visible to the camera frustum.
-
-            float radius2 = radius * radius;
-            float d;
-            int insideCount = 0;
-
-            d = distanceToPlane(this.planeLeft, vsPos);
-            if (d + radius <= 0.0f) // completely outside
-                return false;
-            else if (d < 0.0f) // intersection: further check: only need to consider case where more than half the sphere is outside
-            {
-                Vector3 p = vsPos - (Vector3)this.planeLeft * d;
-                float r2 = radius2 - d * d;
-                if (signedSq(distanceToPlane(this.planeBottom, p)) >= -r2
-                 && signedSq(distanceToPlane(this.planeTop, p)) >= -r2)
-                    return true;
-            }
-            else // consider as good as completely inside
-                ++insideCount;
-            d = distanceToPlane(this.planeRight, vsPos);
-            if (d + radius <= 0.0f) // completely outside
-                return false;
-            else if (d < 0.0f) // intersection: further check: only need to consider case where more than half the sphere is outside
-            {
-                Vector3 p = vsPos - (Vector3)this.planeRight * d;
-                float r2 = radius2 - d * d;
-                if (signedSq(distanceToPlane(this.planeBottom, p)) >= -r2
-                 && signedSq(distanceToPlane(this.planeTop, p)) >= -r2)
-                    return true;
-            }
-            else // consider as good as completely inside
-                ++insideCount;
-            d = distanceToPlane(this.planeTop, vsPos);
-            if (d + radius <= 0.0f) // completely outside
-                return false;
-            else if (d < 0.0f) // intersection: further check: only need to consider case where more than half the sphere is outside
-            {
-                Vector3 p = vsPos - (Vector3)this.planeTop * d;
-                float r2 = radius2 - d * d;
-                if (signedSq(distanceToPlane(this.planeLeft, p)) >= -r2
-                 && signedSq(distanceToPlane(this.planeRight, p)) >= -r2)
-                    return true;
-            }
-            else // consider as good as completely inside
-                ++insideCount;
-            d = distanceToPlane(this.planeBottom, vsPos);
-            if (d + radius <= 0.0f) // completely outside
-                return false;
-            else if (d < 0.0f) // intersection: further check: only need to consider case where more than half the sphere is outside
-            {
-                Vector3 p = vsPos - (Vector3)this.planeBottom * d;
-                float r2 = radius2 - d * d;
-                if (signedSq(distanceToPlane(this.planeLeft, p)) >= -r2
-                 && signedSq(distanceToPlane(this.planeRight, p)) >= -r2)
-                    return true;
-            }
-            else // completely inside
-                ++insideCount;
-
-            return insideCount == 4;
-        }
-
-        static float distanceToPlane(Vector4 plane, Vector3 p)
-        {
-            return plane.x * p.x + plane.y * p.y + plane.z * p.z + plane.w;
-        }
-
-        static float signedSq(float f)
-        {return Mathf.Sign(f) * (f * f); }
-    }
 
     // Precomputed light data
     internal struct PrePointLight
@@ -178,15 +86,6 @@ namespace UnityEngine.Rendering.Universal
 
         // Hold all shaders for tiled-based deferred shading.
         Material m_TilingMaterial;
-        // Store tileID for drawing instanced tiles.
-        ComputeBuffer m_TileIDBuffer;
-        // Store an index in RealLightIndexBuffer for each tile.
-        ComputeBuffer m_TileRelLightBuffer;
-        // Store point lights data for a draw call.
-        ComputeBuffer m_PointLightBuffer;
-        // Store lists of lights. Each tile has a list of lights, which start address is given by m_TileRelLightBuffer.
-        // The data stored is a relative light index, which is an index into m_PointLightBuffer. 
-        ComputeBuffer m_RelLightIndexBuffer;
 
         public DeferredPass(RenderPassEvent evt, RenderQueueRange renderQueueRange, Material tilingMaterial)
         {
@@ -202,10 +101,6 @@ namespace UnityEngine.Rendering.Universal
             m_MaxRelLightIndicesPerBatch = kMaxUniformBufferSize / sizeof(uint); // Should be ushort!
 
             m_TilingMaterial = tilingMaterial;
-            m_TileIDBuffer = new ComputeBuffer(m_MaxTilesPerBatch, sizeof(uint), ComputeBufferType.Structured);
-            m_TileRelLightBuffer = new ComputeBuffer(m_MaxTilesPerBatch, sizeof(uint), ComputeBufferType.Structured);
-            m_PointLightBuffer = new ComputeBuffer(m_MaxPointLightPerBatch, sizeof_PointLightData, ComputeBufferType.Structured);
-            m_RelLightIndexBuffer = new ComputeBuffer(m_MaxRelLightIndicesPerBatch, sizeof(uint), ComputeBufferType.Structured);
         }
 
         public void SetupLights(ScriptableRenderContext context, ref RenderingData renderingData)
@@ -219,15 +114,10 @@ namespace UnityEngine.Rendering.Universal
                 m_TileXCount = (m_RenderWidth + m_TilePixelWidth - 1) / m_TilePixelWidth;
                 m_TileYCount = (m_RenderHeight + m_TilePixelHeight - 1) / m_TilePixelHeight;
 
-                if (m_Tiles.IsCreated)
-                    m_Tiles.Dispose();
-                if (m_PreTiles.IsCreated)
-                    m_PreTiles.Dispose();
-
-                m_Tiles = new NativeArray<ushort>(m_TileXCount * m_TileYCount * m_TileSize, Allocator.Persistent); // (kchang) Should we use Allocator.Temp?
-
                 PrecomputeTiles(out m_PreTiles, renderingData.cameraData.camera.projectionMatrix, renderingData.cameraData.camera.orthographic, m_RenderWidth, m_RenderHeight);
             }
+
+            m_Tiles = new NativeArray<ushort>(m_TileXCount * m_TileYCount * m_TileSize, Allocator.Temp);
 
             NativeArray<PrePointLight> prePointLights;
             PrecomputeLights(out prePointLights, renderingData.lightData.visibleLights, renderingData.cameraData.camera.worldToCameraMatrix);
@@ -303,23 +193,20 @@ namespace UnityEngine.Rendering.Universal
 
                         if (tileIDBufferIsFull || lightBufferIsFull || relLightIndexBufferIsFull)
                         {
-                            m_TileIDBuffer.SetData(tileIDBuffer, 0, 0, tileCount);
-                            m_TileRelLightBuffer.SetData(tileRelLightBuffer, 0, 0, tileCount);
-                            m_PointLightBuffer.SetData(pointLightBuffer, 0, 0, lightCount);
-                            m_RelLightIndexBuffer.SetData(relLightIndexBuffer, 0, 0, relLightIndices);
+                            ComputeBuffer _TileIDBuffer = DeferredShaderData.instance.ReserveTileIDBuffer(m_MaxTilesPerBatch);
+                            ComputeBuffer _TileRelLightBuffer = DeferredShaderData.instance.ReserveTileRelLightBuffer(m_MaxTilesPerBatch);
+                            ComputeBuffer _PointLightBuffer = DeferredShaderData.instance.ReservePointLightBuffer(m_MaxPointLightPerBatch);
+                            ComputeBuffer _RelLightIndexBuffer = DeferredShaderData.instance.ReserveRelLightIndexBuffer(m_MaxRelLightIndicesPerBatch);
+                            _TileIDBuffer.SetData(tileIDBuffer, 0, 0, tileCount);
+                            _TileRelLightBuffer.SetData(tileRelLightBuffer, 0, 0, tileCount);
+                            _PointLightBuffer.SetData(pointLightBuffer, 0, 0, lightCount);
+                            _RelLightIndexBuffer.SetData(relLightIndexBuffer, 0, 0, relLightIndices);
 
-                            cmd.SetGlobalBuffer("g_TileIDBuffer", m_TileIDBuffer);
-                            cmd.SetGlobalBuffer("g_TileRelLightBuffer", m_TileRelLightBuffer);
-                            cmd.SetGlobalBuffer("g_PointLightBuffer", m_PointLightBuffer);
-                            cmd.SetGlobalBuffer("g_RelLightIndexBuffer", m_RelLightIndexBuffer);
+                            cmd.SetGlobalBuffer("g_TileIDBuffer", _TileIDBuffer);
+                            cmd.SetGlobalBuffer("g_TileRelLightBuffer", _TileRelLightBuffer);
+                            cmd.SetGlobalBuffer("g_PointLightBuffer", _PointLightBuffer);
+                            cmd.SetGlobalBuffer("g_RelLightIndexBuffer", _RelLightIndexBuffer);
                             cmd.DrawProcedural(Matrix4x4.identity, m_TilingMaterial, 0, topology, 6, tileCount);
-
-                            // TODO: have better management for the compute buffer.
-                            int sizeof_PointLightData = System.Runtime.InteropServices.Marshal.SizeOf(typeof(PointLightData));
-                            m_TileIDBuffer = new ComputeBuffer(m_MaxTilesPerBatch, sizeof(uint), ComputeBufferType.Structured);
-                            m_TileRelLightBuffer = new ComputeBuffer(m_MaxTilesPerBatch, sizeof(uint), ComputeBufferType.Structured);
-                            m_PointLightBuffer = new ComputeBuffer(m_MaxPointLightPerBatch, sizeof_PointLightData, ComputeBufferType.Structured);
-                            m_RelLightIndexBuffer = new ComputeBuffer(m_MaxRelLightIndicesPerBatch, sizeof(uint), ComputeBufferType.Structured);
 
                             tileCount = 0;
                             lightCount = 0;
@@ -360,17 +247,23 @@ namespace UnityEngine.Rendering.Universal
 
                 if (tileCount > 0)
                 {
-                    m_TileIDBuffer.SetData(tileIDBuffer, 0, 0, tileCount);
-                    m_TileRelLightBuffer.SetData(tileRelLightBuffer, 0, 0, tileCount);
-                    m_PointLightBuffer.SetData(pointLightBuffer, 0, 0, lightCount);
-                    m_RelLightIndexBuffer.SetData(relLightIndexBuffer, 0, 0, relLightIndices);
+                    ComputeBuffer _TileIDBuffer = DeferredShaderData.instance.ReserveTileIDBuffer(m_MaxTilesPerBatch);
+                    ComputeBuffer _TileRelLightBuffer = DeferredShaderData.instance.ReserveTileRelLightBuffer(m_MaxTilesPerBatch);
+                    ComputeBuffer _PointLightBuffer = DeferredShaderData.instance.ReservePointLightBuffer(m_MaxPointLightPerBatch);
+                    ComputeBuffer _RelLightIndexBuffer = DeferredShaderData.instance.ReserveRelLightIndexBuffer(m_MaxRelLightIndicesPerBatch);
+                    _TileIDBuffer.SetData(tileIDBuffer, 0, 0, tileCount);
+                    _TileRelLightBuffer.SetData(tileRelLightBuffer, 0, 0, tileCount);
+                    _PointLightBuffer.SetData(pointLightBuffer, 0, 0, lightCount);
+                    _RelLightIndexBuffer.SetData(relLightIndexBuffer, 0, 0, relLightIndices);
 
-                    cmd.SetGlobalBuffer("g_TileIDBuffer", m_TileIDBuffer);
-                    cmd.SetGlobalBuffer("g_TileRelLightBuffer", m_TileRelLightBuffer);
-                    cmd.SetGlobalBuffer("g_PointLightBuffer", m_PointLightBuffer);
-                    cmd.SetGlobalBuffer("g_RelLightIndexBuffer", m_RelLightIndexBuffer);
+                    cmd.SetGlobalBuffer("g_TileIDBuffer", _TileIDBuffer);
+                    cmd.SetGlobalBuffer("g_TileRelLightBuffer", _TileRelLightBuffer);
+                    cmd.SetGlobalBuffer("g_PointLightBuffer", _PointLightBuffer);
+                    cmd.SetGlobalBuffer("g_RelLightIndexBuffer", _RelLightIndexBuffer);
                     cmd.DrawProcedural(Matrix4x4.identity, m_TilingMaterial, 0, topology, 6, tileCount);
                 }
+
+                DeferredShaderData.instance.ResetBuffers();
             }
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
@@ -379,11 +272,13 @@ namespace UnityEngine.Rendering.Universal
         // ScriptableRenderPass
         public override void FrameCleanup(CommandBuffer cmd)
         {
+            if (m_Tiles.IsCreated)
+                m_Tiles.Dispose();
         }
 
         void PrecomputeTiles(out NativeArray<PreTile> preTiles, Matrix4x4 proj, bool isOrthographic, int renderWidth, int renderHeight)
         {
-            preTiles = new NativeArray<PreTile>(m_TileXCount * m_TileYCount, Allocator.Persistent); // (kchang) Should we use Allocator.Temp?
+            preTiles = DeferredShaderData.instance.GetPreTiles(m_TileXCount * m_TileYCount);
 
             // Adjust render width and height to account for tile size expanding over the screen (tiles have a fixed pixel size).
             int adjustedRenderWidth = Align(renderWidth, m_TilePixelWidth);
@@ -502,7 +397,7 @@ namespace UnityEngine.Rendering.Universal
                     {
                         PrePointLight ppl = visPointLights[visLightIndex];
 
-                        if (!preTile.Clip(ppl.vsPos, ppl.radius))
+                        if (!Clip(ref preTile, ppl.vsPos, ppl.radius))
                             continue;
 
                         if (tileLightCount == maxLightPerTile)
@@ -578,6 +473,81 @@ namespace UnityEngine.Rendering.Universal
             n = Vector3.Normalize(n);
 
             return new Vector4(n.x, n.y, n.z, -Vector3.Dot(n, pa));
+        }
+
+        static float distanceToPlane(Vector4 plane, Vector3 p)
+        {
+            return plane.x * p.x + plane.y * p.y + plane.z * p.z + plane.w;
+        }
+
+        static float signedSq(float f)
+        {
+            return Mathf.Sign(f) * (f * f);
+        }
+
+        static bool Clip(ref PreTile tile, Vector3 vsPos, float radius)
+        {
+            // Simplified clipping code, only deals with 4 clipping planes.
+            // zNear and zFar clipping planes are ignored as presumably the light is already visible to the camera frustum.
+
+            float radius2 = radius * radius;
+            float d;
+            int insideCount = 0;
+
+            d = distanceToPlane(tile.planeLeft, vsPos);
+            if (d + radius <= 0.0f) // completely outside
+                return false;
+            else if (d < 0.0f) // intersection: further check: only need to consider case where more than half the sphere is outside
+            {
+                Vector3 p = vsPos - (Vector3)tile.planeLeft * d;
+                float r2 = radius2 - d * d;
+                if (signedSq(distanceToPlane(tile.planeBottom, p)) >= -r2
+                 && signedSq(distanceToPlane(tile.planeTop, p)) >= -r2)
+                    return true;
+            }
+            else // consider as good as completely inside
+                ++insideCount;
+            d = distanceToPlane(tile.planeRight, vsPos);
+            if (d + radius <= 0.0f) // completely outside
+                return false;
+            else if (d < 0.0f) // intersection: further check: only need to consider case where more than half the sphere is outside
+            {
+                Vector3 p = vsPos - (Vector3)tile.planeRight * d;
+                float r2 = radius2 - d * d;
+                if (signedSq(distanceToPlane(tile.planeBottom, p)) >= -r2
+                 && signedSq(distanceToPlane(tile.planeTop, p)) >= -r2)
+                    return true;
+            }
+            else // consider as good as completely inside
+                ++insideCount;
+            d = distanceToPlane(tile.planeTop, vsPos);
+            if (d + radius <= 0.0f) // completely outside
+                return false;
+            else if (d < 0.0f) // intersection: further check: only need to consider case where more than half the sphere is outside
+            {
+                Vector3 p = vsPos - (Vector3)tile.planeTop * d;
+                float r2 = radius2 - d * d;
+                if (signedSq(distanceToPlane(tile.planeLeft, p)) >= -r2
+                 && signedSq(distanceToPlane(tile.planeRight, p)) >= -r2)
+                    return true;
+            }
+            else // consider as good as completely inside
+                ++insideCount;
+            d = distanceToPlane(tile.planeBottom, vsPos);
+            if (d + radius <= 0.0f) // completely outside
+                return false;
+            else if (d < 0.0f) // intersection: further check: only need to consider case where more than half the sphere is outside
+            {
+                Vector3 p = vsPos - (Vector3)tile.planeBottom * d;
+                float r2 = radius2 - d * d;
+                if (signedSq(distanceToPlane(tile.planeLeft, p)) >= -r2
+                 && signedSq(distanceToPlane(tile.planeRight, p)) >= -r2)
+                    return true;
+            }
+            else // completely inside
+                ++insideCount;
+
+            return insideCount == 4;
         }
 
         // Keep in sync with UnpackTileID().

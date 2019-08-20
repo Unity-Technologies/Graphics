@@ -84,6 +84,25 @@ namespace UnityEngine.Rendering.Universal
         public List<Vector4> bias;
     }
 
+    // Precomputed tile data.
+    public struct PreTile
+    {
+        // Tile left, right, bottom and top plane equations in view space.
+        // Normals are pointing out.
+        public Vector4 planeLeft;
+        public Vector4 planeRight;
+        public Vector4 planeBottom;
+        public Vector4 planeTop;
+    }
+
+    // Actual point light data passed to the deferred shaders.
+    public struct PointLightData
+    {
+        public Vector3 WsPos;
+        public float Radius;
+        public Vector4 Color;
+    }
+
     public struct PostProcessingData
     {
         public ColorGradingMode gradingMode;

@@ -143,6 +143,7 @@ namespace UnityEngine.Rendering.Universal
             Shader.globalRenderPipeline = "";
             SupportedRenderingFeatures.active = new SupportedRenderingFeatures();
             ShaderData.instance.Dispose();
+            DeferredShaderData.instance.Dispose();
 
 #if UNITY_EDITOR
             SceneViewDrawMode.ResetDrawMode();
