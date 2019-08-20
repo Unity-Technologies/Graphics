@@ -305,7 +305,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 });
             AddRow("Default", field);
 
-            var defaultMode = (Enum)TextureShaderProperty.DefaultType.Grey;
+            var defaultMode = (Enum)Texture2DShaderProperty.DefaultType.Grey;
             var textureMode = property.generatePropertyBlock ? (Enum)property.defaultType : defaultMode;
             var defaultModeField = new EnumField(textureMode);
                 defaultModeField.RegisterValueChangedCallback(evt =>

@@ -1420,7 +1420,7 @@ namespace UnityEditor.ShaderGraph
                 {
                     GenerateDescriptionForNode(nodes[i], keywordPermutationsPerNode[i], functionRegistry, surfaceDescriptionFunction,
                         shaderProperties, shaderKeywords,
-                        graph, graphContext, mode);
+                        graph, mode);
                 }
 
                 functionRegistry.builder.currentNode = null;
@@ -1441,9 +1441,8 @@ namespace UnityEditor.ShaderGraph
             PropertyCollector shaderProperties,
             KeywordCollector shaderKeywords,
             GraphData graph,
-            GraphContext graphContext,
             GenerationMode mode)
-                {
+        {
                     if (activeNode is IGeneratesFunction functionNode)
                     {
                         functionRegistry.builder.currentNode = activeNode;
@@ -1455,11 +1454,11 @@ namespace UnityEditor.ShaderGraph
                     {
                         if(keywordPermutations != null)
                             descriptionFunction.AppendLine(KeywordUtil.GetKeywordPermutationSetConditional(keywordPermutations));
-                        surfaceDescriptionFunction.currentNode = activeNode;
-                        bodyNode.GenerateNodeCode(surfaceDescriptionFunction, graphContext, mode);
-                        surfaceDescriptionFunction.ReplaceInCurrentMapping(PrecisionUtil.Token, activeNode.concretePrecision.ToShaderString());
-                         if(keywordPermutations != null)
-                             descriptionFunction.AppendLine("#endif");
+                        descriptionFunction.currentNode = activeNode;
+                        bodyNode.GenerateNodeCode(descriptionFunction, mode);
+                        descriptionFunction.ReplaceInCurrentMapping(PrecisionUtil.Token, activeNode.concretePrecision.ToShaderString());
+                        if(keywordPermutations != null)
+                            descriptionFunction.AppendLine("#endif");
                     }
 
                     activeNode.CollectShaderProperties(shaderProperties, mode);
@@ -1468,7 +1467,7 @@ namespace UnityEditor.ShaderGraph
             {
                 subGraphNode.CollectShaderKeywords(shaderKeywords, mode);
             }
-                }                
+        }                
 
         static void GenerateSurfaceDescriptionRemap(
             GraphData graph,
@@ -1563,7 +1562,7 @@ namespace UnityEditor.ShaderGraph
                 {
                     GenerateDescriptionForNode(nodes[i], keywordPermutationsPerNode[i], functionRegistry, builder,
                         shaderProperties, shaderKeywords,
-                        graph, graphContext, mode);
+                        graph, mode);
                 }
 
                 functionRegistry.builder.currentNode = null;
