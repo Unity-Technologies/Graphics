@@ -128,7 +128,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         void PropertiesDefaultGUI(MaterialProperty[] properties)
         {
-            for (var i = 0; i < properties.Length - 2; i++)
+            for (var i = 0; i < properties.Length; i++)
             {
                 if ((properties[i].flags & (MaterialProperty.PropFlags.HideInInspector | MaterialProperty.PropFlags.PerRendererData)) != 0)
                     continue;
@@ -149,7 +149,7 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         // Track additional velocity state. See SG-ADDITIONALVELOCITY-NOTE
-        bool m_AdditionalVelocityChange = false;
+        bool m_AddPrecomputedVelocity = false;
 
         void DrawMotionVectorToggle()
         {
@@ -172,14 +172,14 @@ namespace UnityEditor.Rendering.HighDefinition
 
             // SG-ADDITIONALVELOCITY-NOTE:
             // We would like to automatically enable the motion vector pass (handled on material UI side)
-            // in case we have additional velocity change enabled in a graph. Due to serialization of material, changing
+            // in case we add precomputed velocity in a graph. Due to serialization of material, changing
             // a value in between shadergraph compilations would have no effect on a material, so we instead
             // inform the motion vector UI via the existence of the property at all and query against that.
-            bool hasAdditionalVelocityChange = materials[0].HasProperty(kAdditionalVelocityChange);
-            if (m_AdditionalVelocityChange != hasAdditionalVelocityChange)
+            bool hasPrecomputedVelocity = materials[0].HasProperty(kAddPrecomputedVelocity);
+            if (m_AddPrecomputedVelocity != hasPrecomputedVelocity)
             {
-                enabled |= hasAdditionalVelocityChange;
-                m_AdditionalVelocityChange = hasAdditionalVelocityChange;
+                enabled |= hasPrecomputedVelocity;
+                m_AddPrecomputedVelocity = hasPrecomputedVelocity;
                 GUI.changed = true;
             }
 

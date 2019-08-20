@@ -3,7 +3,7 @@ using UnityEngine.UIElements;
 using UnityEditor.UIElements;
 
 
-namespace UnityEditor.VFX.UIElements
+namespace UnityEditor.VFX.UI
 {
     class VFXStringField : ValueControl<string>
     {
