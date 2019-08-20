@@ -420,7 +420,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (accountForXR)
             {
-                // With stereo instancing, the VBuffer is doubled and split into 2 compartments for each eye
+                // With XR single-pass, the VBuffer size is increased and split into compartments for each eye
                 if (TextureXR.useTexArray)
                     result = result * TextureXR.slices;
             }

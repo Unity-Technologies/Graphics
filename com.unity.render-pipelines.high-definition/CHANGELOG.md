@@ -6,6 +6,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [7.1.1] - 2019-XX-XX
 
+### Added
+- Enabled single-pass instancing support for XR SDK with new API cmd.SetInstanceMultiplier()
+
 ### Fixed
 - Fixed wizard infinite loop on cancellation
 - Fixed with compute shader error about too many threads in threadgroup on low GPU
@@ -19,6 +22,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Rename property AdditionalVeclocityChange to AddPrecomputeVelocity 
 - Call the End/Begin camera rendering callbacks for camera with customRender enabled
 - Changeg framesettings migration order of postprocess flags as a pr for reflection settings flags have been backported to 2019.2
+- Replaced usage of ENABLE_VR in XRSystem.cs by version defines based on the presence of the built-in VR and XR modules
 
 ## [7.0.1] - 2019-07-25
 
