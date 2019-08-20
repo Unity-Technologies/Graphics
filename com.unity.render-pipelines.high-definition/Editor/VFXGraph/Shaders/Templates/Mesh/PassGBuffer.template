@@ -31,6 +31,18 @@ Pass
 		#else
 		float2 uv : TEXCOORD1;	
 		#endif
+        #if VFX_SHADERGRAPH_HAS_UV1
+        float4 uv1 : COLOR2;
+        #endif
+        #if VFX_SHADERGRAPH_HAS_UV2
+        float4 uv2 : COLOR3;
+        #endif
+        #if VFX_SHADERGRAPH_HAS_UV3
+        float4 uv3 : COLOR4;
+        #endif
+        #if VFX_SHADERGRAPH_HAS_COLOR
+        float4 vertexColor : COLOR1;
+        #endif
 		float3 normal : TEXCOORD2;
 		#if USE_NORMAL_MAP
 		float4 tangent : TEXCOORD3;

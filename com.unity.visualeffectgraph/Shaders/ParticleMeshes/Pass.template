@@ -9,6 +9,18 @@ struct vs_input
 {
 	float3 pos : POSITION;
 	float2 uv : TEXCOORD0;
+    #if VFX_SHADERGRAPH_HAS_UV1
+    float4 uv1 : TEXCOORD1;
+    #endif
+    #if VFX_SHADERGRAPH_HAS_UV2
+    float4 uv2 : TEXCOORD2;
+    #endif
+    #if VFX_SHADERGRAPH_HAS_UV3
+    float4 uv3 : TEXCOORD3;
+    #endif
+    #if VFX_SHADERGRAPH_HAS_COLOR
+    float4 vertexColor : COLOR;
+    #endif
 	float3 normal : NORMAL;
 	#ifdef VFX_VARYING_TANGENT
 	float4 tangent : TANGENT;
@@ -33,6 +45,19 @@ VFX_VARYING_PS_INPUTS vert(vs_input i)
 		return o;
 	
 	o.VFX_VARYING_UV.xy = i.uv;
+    
+    #if VFX_SHADERGRAPH_HAS_UV1
+    o.uv1 = i.uv1;
+    #endif
+    #if VFX_SHADERGRAPH_HAS_UV2
+    o.uv2 = i.uv2;
+    #endif
+    #if VFX_SHADERGRAPH_HAS_UV3
+    o.uv3 = i.uv3;
+    #endif
+    #if VFX_SHADERGRAPH_HAS_COLOR
+    o.vertexColor = i.vertexColor;
+    #endif
 	
 	${VFXLoadSize}
 	

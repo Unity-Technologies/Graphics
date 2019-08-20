@@ -8,22 +8,34 @@ struct ps_input
 	#else
 	float2 uv : TEXCOORD0;	
 	#endif
+    #if VFX_SHADERGRAPH_HAS_UV1
+    float4 uv1 : TEXCOORD1;
+    #endif
+    #if VFX_SHADERGRAPH_HAS_UV2
+    float4 uv2 : TEXCOORD2;
+    #endif
+    #if VFX_SHADERGRAPH_HAS_UV3
+    float4 uv3 : TEXCOORD3;
+    #endif
+    #if VFX_SHADERGRAPH_HAS_COLOR
+    float4 vertexColor : COLOR;
+    #endif
 	#if USE_ALPHA_TEST || USE_FLIPBOOK_INTERPOLATION || VFX_USE_ALPHA_CURRENT
 	// x: alpha threshold
 	// y: frame blending factor
 	// z: alpha
-	nointerpolation float3 builtInInterpolants : TEXCOORD1;
+	nointerpolation float3 builtInInterpolants : TEXCOORD4;
 	#endif
 	
 	#if USE_FLIPBOOK_MOTIONVECTORS
 	// x: motion vectors scale X
 	// y: motion vectors scale Y
-	nointerpolation float2 builtInInterpolants2 : TEXCOORD2;
+	nointerpolation float2 builtInInterpolants2 : TEXCOORD5;
 	#endif
 	
 	#if IS_MOTION_VECTORS_PASS
-	float4 cPosPrevious : TEXCOORD3;
-	float4 cPosNonJiterred : TEXCOORD4;
+	float4 cPosPrevious : TEXCOORD6;
+	float4 cPosNonJiterred : TEXCOORD7;
 	#endif
 	
 	UNITY_VERTEX_OUTPUT_STEREO

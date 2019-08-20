@@ -216,8 +216,10 @@ namespace UnityEditor.VFX
         {
             foreach (var texture in mapper.textures)
             {
-                WriteLineFormat("{0} {1};", VFXExpression.TypeToCode(texture.valueType), mapper.GetName(texture));
-                WriteLineFormat("SamplerState sampler{0};", mapper.GetName(texture));
+                string name = mapper.GetName(texture);
+                WriteLineFormat("{0} {1};", VFXExpression.TypeToCode(texture.valueType),name);
+                WriteLineFormat("SamplerState sampler{0};", name);
+                WriteLineFormat("float4 {0}_TexelSize;", name);
             }
         }
 

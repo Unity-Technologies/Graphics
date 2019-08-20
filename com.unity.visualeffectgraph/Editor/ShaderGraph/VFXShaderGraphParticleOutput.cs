@@ -340,13 +340,22 @@ namespace UnityEditor.VFX
                             callSG.builder.AppendLine($"INSG.uv0.xy = i.uv;");
                         }
 
-
-                        for (UVChannel uv = UVChannel.UV1; uv != UVChannel.UV3; ++uv)
+                        if (taskType == VFXTaskType.ParticleMeshOutput)
                         {
-                            if( graphCode.requirements.requiresMeshUVs.Contains(uv))
+                            for (UVChannel uv = UVChannel.UV1; uv != UVChannel.UV3; ++uv)
                             {
-                                int uvi = (int)uv;
-                                callSG.builder.AppendLine($"INSG.uv{uvi} = i.uv{uvi};");
+                                if (graphCode.requirements.requiresMeshUVs.Contains(uv))
+                                {
+                                    int uvi = (int)uv;
+                                    yield return new KeyValuePair<string, VFXShaderWriter>($"VFX_SHADERGRAPH_HAS_UV{uvi}", new VFXShaderWriter("1"));
+                                    callSG.builder.AppendLine($"INSG.uv{uvi} = i.uv{uvi};");
+                                }
+                            }
+
+                            if( graphCode.requirements.requiresVertexColor)
+                            {
+                                yield return new KeyValuePair<string, VFXShaderWriter>($"VFX_SHADERGRAPH_HAS_COLOR", new VFXShaderWriter("1"));
+                                callSG.builder.AppendLine($"INSG.color = i.vertexColor;");
                             }
                         }
                         /*

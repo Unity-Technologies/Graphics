@@ -15,6 +15,18 @@ Pass
 		#else
 		float2 uv : TEXCOORD0;	
 		#endif
+        #if VFX_SHADERGRAPH_HAS_UV1
+        float4 uv1 : TEXCOORD1;
+        #endif
+        #if VFX_SHADERGRAPH_HAS_UV2
+        float4 uv2 : TEXCOORD2;
+        #endif
+        #if VFX_SHADERGRAPH_HAS_UV3
+        float4 uv3 : TEXCOORD3;
+        #endif
+        #if VFX_SHADERGRAPH_HAS_COLOR
+        float4 vertexColor : COLOR1;
+        #endif
 		#if VFX_NEEDS_COLOR_INTERPOLATOR
 		nointerpolation float4 color : COLOR0;
 		#endif
