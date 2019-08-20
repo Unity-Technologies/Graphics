@@ -221,7 +221,7 @@ namespace UnityEditor.ShaderGraph
         public override void CollectShaderPragmas(PragmaCollector pragmas, GenerationMode generationMode)
         {
             pragmas.AddShaderPragma(new MultiCompilePragma(new string[] { "_", "VIRTUAL_TEXTURES_ENABLED" }));
-            pragmas.AddShaderPragma(new ShaderFeatureLocalPragma(new string[] { "VIRTUAL_TEXTURES_BUILT" }));            
+            pragmas.AddShaderPragma(new ShaderFeatureLocalPragma(new string[] { "VIRTUAL_TEXTURES_BUILT" }));
         }
 
         public bool RequiresMeshUV(UVChannel channel, ShaderStageCapability stageCapability)
@@ -426,6 +426,7 @@ namespace UnityEditor.ShaderGraph
             UpdateNodeAfterDeserialization();
         }
 
+
         public override void UpdateNodeAfterDeserialization()
         {
             AddSlot(new Vector4MaterialSlot(AggregateOutputId, AggregateOutputName, AggregateOutputName, SlotType.Output, Vector4.zero, ShaderStageCapability.Fragment));
@@ -443,56 +444,36 @@ namespace UnityEditor.ShaderGraph
             var slots = this.GetInputSlots<ISlot>();
             int numSlots = slots.Count();
 
-            if (numSlots > 1)
-            {
-                string arrayName = string.Format("{0}_array", GetVariableNameForSlot(AggregateOutputId));
-                sb.AppendLine(string.Format("float4 {0}[{1}];", arrayName, numSlots));
+           if (numSlots == 1)
+           {
+               string feedBackCode = $"float4 {GetVariableNameForSlot(AggregateOutputId)} = {GetSlotValue(AggregateInputFirstId, generationMode)};";
+               sb.AppendLine(feedBackCode);
+           }
+           else if (numSlots > 1)
+           {
+               string arrayName = $"{GetVariableNameForSlot(AggregateOutputId)}_array";
+               sb.AppendLine($"float4 {arrayName}[{numSlots}];");
 
-                int arrayIndex = 0;
-                foreach (var slot in slots)
-                {
-                    string code = string.Format("{0}[{1}] = {2};"
-                            , arrayName
-                            , arrayIndex
-                            , GetSlotValue(AggregateInputFirstId + arrayIndex, generationMode));
-                    sb.AppendLine(code);
-                    arrayIndex++;
-                }
+               int arrayIndex = 0;
+               foreach (var slot in slots)
+               {
+                   string code = $"{arrayName}[{arrayIndex}] = {GetSlotValue(AggregateInputFirstId + arrayIndex, generationMode)};";
+                   sb.AppendLine(code);
+                   arrayIndex++;
+               }
 
-                string feedBackCode = string.Format("float4 {0} = {1}[IN.{2}.x%{3}];"
-                        , GetVariableNameForSlot(AggregateOutputId)
-                        , arrayName
-                        , ShaderGeneratorNames.PixelCoordinate
-                        , numSlots);
+               string feedBackCode = $"float4 {GetVariableNameForSlot(AggregateOutputId)} = {arrayName}[ (IN.{ShaderGeneratorNames.PixelCoordinate}.x  + _FrameCount )% (uint){numSlots}];";
 
-                sb.AppendLine(feedBackCode);
-            }
-            else if (numSlots == 1)
-            {
-                string feedBackCode = string.Format("float4 {0} = {1};"
-                        , GetVariableNameForSlot(AggregateOutputId)
-                        , GetSlotValue(AggregateInputFirstId, generationMode));
+               sb.AppendLine(feedBackCode);
+           }
 
-                sb.AppendLine(feedBackCode);
-            }
-            else
-            {
-                string feedBackCode = string.Format("float4 {0} = float4(1,1,1,1);"
-                        , GetVariableNameForSlot(AggregateOutputId)
-                        , GetSlotValue(AggregateInputFirstId, generationMode));
-
-                sb.AppendLine(feedBackCode);
-            }
+           string write = $"StoreVTFeedback({GetVariableNameForSlot(AggregateOutputId)}, (uint2)IN.{ShaderGeneratorNames.PixelCoordinate}.xy  );";
+           sb.AppendLine(write);
         }
 
         public bool RequiresPixelCoordinate(ShaderStageCapability stageCapability)
         {
-            // If there's only one VT slot we don't need the screen position
- 
-            var slots = this.GetInputSlots<ISlot>();
-            int numSlots = slots.Count();
-
-            return (numSlots > 1);
+            return true;
         }
 
         // Automatically add a  streaming feedback node and correctly connect it to stack samples are connected to it and it is connected to the master node output

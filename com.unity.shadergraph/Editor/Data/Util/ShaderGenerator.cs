@@ -436,7 +436,7 @@ namespace UnityEditor.ShaderGraph
 
             if ((neededSpaces & NeededCoordinateSpace.Tangent) > 0)
                 builder.AppendLine(format, CoordinateSpace.Tangent.ToVariableName(interpolatorType));
-            
+
             if ((neededSpaces & NeededCoordinateSpace.AbsoluteWorld) > 0)
                 builder.AppendLine(format, CoordinateSpace.AbsoluteWorld.ToVariableName(interpolatorType));
         }
@@ -873,7 +873,7 @@ namespace UnityEditor.ShaderGraph
                 faceSign.AppendLine(", half FaceSign : VFACE");
 
             if (shaderGraphRequirements.requiresPixelCoordinate)
-                faceSign.AppendLine(", half PixelCoordinate : VPOS");
+                faceSign.AppendLine(", UNITY_VPOS_TYPE PixelCoordinate : VPOS");
 
             var res = subShaderTemplate.Replace("${Interpolators}", vertexOutputStruct.ToString());
             res = res.Replace("${VertexShader}", vertexShader.ToString());

@@ -60,6 +60,7 @@
         $SurfaceDescriptionInputs.VertexColor:               output.VertexColor =                 input.color;
         $SurfaceDescriptionInputs.FaceSign:                  output.FaceSign =                    input.isFrontFace;
         $SurfaceDescriptionInputs.TimeParameters:            output.TimeParameters =              _TimeParameters.xyz; // This is mainly for LW as HD overwrite this value
+        $SurfaceDescriptionInputs.PixelCoordinate:           output.PixelCoordinate =             input.positionSS;
 
         return output;
     }

@@ -180,7 +180,6 @@ $include("SharedCode.template.hlsl")
         $SurfaceDescription.Anisotropy:                 surfaceData.anisotropy =                surfaceDescription.Anisotropy;
         $SurfaceDescription.IridescenceMask:            surfaceData.iridescenceMask =           surfaceDescription.IridescenceMask;
         $SurfaceDescription.IridescenceThickness:       surfaceData.iridescenceThickness =      surfaceDescription.IridescenceThickness;
-        $SurfaceDescription.VTFeedback:                 surfaceData.VTFeedback =                surfaceDescription.VTFeedback;
 
 #ifdef _HAS_REFRACTION
         if (_EnableSSRefraction)
@@ -206,7 +205,7 @@ $include("SharedCode.template.hlsl")
         surfaceData.atDistance = 1.0;
         surfaceData.transmittanceMask = 0.0;
 #endif
-        
+
         // These static material feature allow compile time optimization
         surfaceData.materialFeatures = MATERIALFEATUREFLAGS_LIT_STANDARD;
 #ifdef _MATERIAL_FEATURE_SUBSURFACE_SCATTERING
@@ -317,14 +316,14 @@ $include("SharedCode.template.hlsl")
         $AlphaTestPrepass:  DoAlphaTest(surfaceDescription.Alpha, surfaceDescription.AlphaClipThresholdDepthPrepass);
         $AlphaTestPostpass: DoAlphaTest(surfaceDescription.Alpha, surfaceDescription.AlphaClipThresholdDepthPostpass);
         $AlphaTestShadow:   DoAlphaTest(surfaceDescription.Alpha, surfaceDescription.AlphaClipThresholdShadow);
-        
+
         $DepthOffset: ApplyDepthOffsetPositionInput(V, surfaceDescription.DepthOffset, GetViewForwardDir(), GetWorldToHClipMatrix(), posInput);
 
         float3 bentNormalWS;
         BuildSurfaceData(fragInputs, surfaceDescription, V, posInput, surfaceData, bentNormalWS);
 
         // Builtin Data
-        // For back lighting we use the oposite vertex normal 
+        // For back lighting we use the oposite vertex normal
         InitBuiltinData(posInput, surfaceDescription.Alpha, bentNormalWS, -fragInputs.tangentToWorld[2], fragInputs.texCoord1, fragInputs.texCoord2, builtinData);
 
         // override sampleBakedGI:

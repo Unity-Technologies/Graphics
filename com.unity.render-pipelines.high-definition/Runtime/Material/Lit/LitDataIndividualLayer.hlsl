@@ -223,8 +223,7 @@ float3 ADD_IDX(GetBentNormalTS)(FragInputs input, LayerTexCoord layerTexCoord, f
 float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out SurfaceData surfaceData, out float3 normalTS, out float3 bentNormalTS)
 {
     // Prepare the VT stack for sampling
-    StackInfo stackInfo = PrepareStack(UVMappingTo2D(ADD_IDX(layerTexCoord.base)), ADD_IDX(_TextureStack));    
-    surfaceData.VTFeedback = GetResolveOutput(stackInfo);
+    StackInfo stackInfo = PrepareStack(UVMappingTo2D(ADD_IDX(layerTexCoord.base)), ADD_IDX(_TextureStack));
 #if VIRTUAL_TEXTURES_ACTIVE
     const float4 baseColorValue = SampleStack(stackInfo, ADD_IDX(_BaseColorMap)); //SAMPLE_UVMAPPING_TEXTURE2D(ADD_IDX(_BaseColorMap), ADD_ZERO_IDX(sampler_BaseColorMap), ADD_IDX(layerTexCoord.base));
 #else
@@ -241,7 +240,7 @@ float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out
     alphaCutoff = _AlphaCutoffPostpass;
     #endif
 
-#if SHADERPASS == SHADERPASS_SHADOWS 
+#if SHADERPASS == SHADERPASS_SHADOWS
     DoAlphaTest(alpha, _UseShadowThreshold ? _AlphaCutoffShadow : alphaCutoff);
 #else
     DoAlphaTest(alpha, alphaCutoff);
@@ -250,11 +249,11 @@ float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out
 
 
 #ifdef _MASKMAP_IDX
-#if VIRTUAL_TEXTURES_ACTIVE  
+#if VIRTUAL_TEXTURES_ACTIVE
     const float4 maskValue = SampleStack(stackInfo, ADD_IDX(_MaskMap)); //SAMPLE_UVMAPPING_TEXTURE2D(ADD_IDX(_MaskMap), SAMPLER_MASKMAP_IDX, ADD_IDX(layerTexCoord.base)).b;
-#else    
+#else
     const float4 maskValue = SAMPLE_UVMAPPING_TEXTURE2D(ADD_IDX(_MaskMap), SAMPLER_MASKMAP_IDX, ADD_IDX(layerTexCoord.base));
-#endif    
+#endif
 #endif
 
     float3 detailNormalTS = float3(0.0, 0.0, 0.0);
@@ -271,18 +270,18 @@ float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out
     // We split both call due to trilinear mapping
     detailNormalTS = SAMPLE_UVMAPPING_NORMALMAP_AG(ADD_IDX(_DetailMap), SAMPLER_DETAILMAP_IDX, ADD_IDX(layerTexCoord.details), ADD_IDX(_DetailNormalScale));
 #endif
-        
-    surfaceData.baseColor = baseColorValue.rgb * ADD_IDX(_BaseColor).rgb;    
+
+    surfaceData.baseColor = baseColorValue.rgb * ADD_IDX(_BaseColor).rgb;
 
 #ifdef _DETAIL_MAP_IDX
-	
+
     // Goal: we want the detail albedo map to be able to darken down to black and brighten up to white the surface albedo.
     // The scale control the speed of the gradient. We simply remap detailAlbedo from [0..1] to [-1..1] then perform a lerp to black or white
     // with a factor based on speed.
     // For base color we interpolate in sRGB space (approximate here as square) as it get a nicer perceptual gradient
     float albedoDetailSpeed = saturate(abs(detailAlbedo) * ADD_IDX(_DetailAlbedoScale));
     float3 baseColorOverlay = lerp(sqrt(surfaceData.baseColor), (detailAlbedo < 0.0) ? float3(0.0, 0.0, 0.0) : float3(1.0, 1.0, 1.0), albedoDetailSpeed * albedoDetailSpeed);
-    baseColorOverlay *= baseColorOverlay;							   
+    baseColorOverlay *= baseColorOverlay;
     // Lerp with details mask
     surfaceData.baseColor = lerp(surfaceData.baseColor, saturate(baseColorOverlay), detailMask);
 #endif

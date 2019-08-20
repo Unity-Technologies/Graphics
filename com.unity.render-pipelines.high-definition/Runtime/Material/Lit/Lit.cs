@@ -103,9 +103,6 @@ namespace UnityEngine.Rendering.HighDefinition
             public float atDistance;
             [SurfaceDataAttributes("Transmittance mask", precision = FieldPrecision.Real)]
             public float transmittanceMask;
-
-            [SurfaceDataAttributes("VTFeedback")]
-            public Vector4 VTFeedback;
         };
 
         //-----------------------------------------------------------------------------

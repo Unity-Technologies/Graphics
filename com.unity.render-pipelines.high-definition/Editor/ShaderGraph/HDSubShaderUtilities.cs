@@ -48,6 +48,7 @@ namespace UnityEditor.Rendering.HighDefinition
             [Optional]                                                              Vector4 color;
             [Semantic("CUSTOM_INSTANCE_ID")] [PreprocessorIf("UNITY_ANY_INSTANCING_ENABLED")] uint instanceID;
             [Semantic("FRONT_FACE_SEMANTIC")][OverrideType("FRONT_FACE_TYPE")][PreprocessorIf("defined(SHADER_STAGE_FRAGMENT) && defined(VARYINGS_NEED_CULLFACE)")] bool cullFace;
+            [Optional] Vector4 PixelCoordinate;
 
             public static Dependency[] tessellationDependencies = new Dependency[]
             {
@@ -155,6 +156,8 @@ namespace UnityEditor.Rendering.HighDefinition
             [Optional] float FaceSign;
             [Optional] Vector3 TimeParameters;
 
+            [Optional] Vector4 PixelCoordinate;
+
             public static Dependency[] dependencies = new Dependency[]
             {
                 new Dependency("SurfaceDescriptionInputs.WorldSpaceNormal",          "FragInputs.tangentToWorld"),
@@ -189,6 +192,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 new Dependency("SurfaceDescriptionInputs.uv3",                       "FragInputs.texCoord3"),
                 new Dependency("SurfaceDescriptionInputs.VertexColor",               "FragInputs.color"),
                 new Dependency("SurfaceDescriptionInputs.FaceSign",                  "FragInputs.isFrontFace"),
+                new Dependency("SurfaceDescriptionInputs.PixelCoordinate",           "FragInputs.positionSS"),
 
                 new Dependency("DepthOffset", "FragInputs.positionRWS"),
             };

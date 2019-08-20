@@ -11,8 +11,6 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/NormalBuffer.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/VolumeRendering.hlsl"
 
-#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/TextureStack.hlsl"
-
 //-----------------------------------------------------------------------------
 // Configuration
 //-----------------------------------------------------------------------------
@@ -625,8 +623,6 @@ void EncodeIntoGBuffer( SurfaceData surfaceData
 #ifdef SHADOWS_SHADOWMASK
     OUT_GBUFFER_SHADOWMASK = BUILTIN_DATA_SHADOW_MASK;
 #endif
-
-    StoreVTFeedback(surfaceData.VTFeedback, positionSS);
 }
 
 // Fills the BSDFData. Also returns the (per-pixel) material feature flags inferred

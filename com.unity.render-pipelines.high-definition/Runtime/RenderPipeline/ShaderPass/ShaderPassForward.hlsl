@@ -220,5 +220,4 @@ void Frag(PackedVaryingsToPS packedInput,
     outputDepth = posInput.deviceDepth;
 #endif
 
-    StoreVTFeedback(surfaceData.VTFeedback, posInput.positionSS);
 }

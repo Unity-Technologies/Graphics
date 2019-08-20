@@ -115,8 +115,7 @@ $include("SharedCode.template.hlsl")
 
         // copy across graph values, if defined
         $SurfaceDescription.Color: surfaceData.color = surfaceDescription.Color;
-        $SurfaceDescription.VTFeedback: surfaceData.VTFeedback = surfaceDescription.VTFeedback;
-        
+
 #if defined(DEBUG_DISPLAY)
         if (_DebugMipMapMode != DEBUGMIPMAPMODE_NONE)
         {

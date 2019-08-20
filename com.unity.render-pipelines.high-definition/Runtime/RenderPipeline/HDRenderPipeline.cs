@@ -249,7 +249,6 @@ namespace UnityEngine.Rendering.HighDefinition
         RenderTargetIdentifier[] m_MRTTransparentMotionVec;
         RenderTargetIdentifier[] m_MRTWithSSS = new RenderTargetIdentifier[3]; // Specular, (optional) VT, diffuse, sss buffer;
         RenderTargetIdentifier[] mMRTSingle = new RenderTargetIdentifier[1];
-		RenderTargetIdentifier[] m_MRTWithVTFeedback = new RenderTargetIdentifier[2];
         string m_ForwardPassProfileName;
 
         internal Material GetBlitMaterial(bool useTexArray, bool singleSlice) { return useTexArray ? (singleSlice ? m_BlitTexArraySingleSlice : m_BlitTexArray) : m_Blit; }
