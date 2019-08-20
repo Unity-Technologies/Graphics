@@ -24,6 +24,7 @@ namespace UnityEditor.VFX.UI
         public enum Events
         {
             VFXPlayPause,
+            VFXStep,
             VFXReset,
             VFXStop
         }
@@ -116,6 +117,7 @@ namespace UnityEditor.VFX.UI
             {
                 int m_MaxPoints;
                 Toggle m_Toggle;
+                //Button m_MaxAlive;
 
                 public NormalizedCurve curve { get; set; }
                 public int id { get; set; }
@@ -150,8 +152,6 @@ namespace UnityEditor.VFX.UI
                     if (evt.newValue == false)
                         curve = new NormalizedCurve(m_MaxPoints);
                 }
-
-
             }
 
             Material m_CurveMat;
@@ -161,12 +161,15 @@ namespace UnityEditor.VFX.UI
 
             List<SwitchableCurve> m_VFXCurves;
             VerticalBar m_VerticalBar;
-            List<float> m_VerticalBarOffsets;
+            List<float> m_TimeBarsOffsets;
 
             int m_MaxPoints;
             float m_TimeBetweenDraw;
             bool m_Pause;
             bool m_Stopped;
+            bool m_Step;
+            bool m_ShouldDrawTimeBars = true;
+            static readonly float s_TimeBarsInterval = 1;
 
             private static Func<VisualElement, Rect> GetWorldClipRect()
             {
@@ -192,19 +195,20 @@ namespace UnityEditor.VFX.UI
             {
                 m_DebugUI = debugUI;
                 m_CurveMat = new Material(Shader.Find("Hidden/VFX/SystemStat"));
-                m_BarMat = new Material(Shader.Find("Hidden/VFX/VerticalBar"));
+                m_BarMat = new Material(Shader.Find("Hidden/VFX/TimeBar"));
                 m_ClippingMatrixId = Shader.PropertyToID("_ClipMatrix");
                 m_MaxPoints = maxPoints;
 
                 m_VerticalBar = new VerticalBar(0);
-                m_VerticalBarOffsets = new List<float>();
+                m_TimeBarsOffsets = new List<float>();
+                m_LastTimeBarDrawTime = -2 * s_TimeBarsInterval;
 
                 SetSamplingRate((long)timeBetweenDraw);
             }
 
             public void SetSamplingRate(long rate)
             {
-                schedule.Execute(MarkDirtyRepaint).Every(rate);
+                //schedule.Execute(MarkDirtyRepaint).Every(rate);
                 m_TimeBetweenDraw = rate / 1000.0f;
             }
 
@@ -213,6 +217,7 @@ namespace UnityEditor.VFX.UI
                 if ((m_DebugUI.m_CurrentMode == Modes.Efficiency || m_DebugUI.m_CurrentMode == Modes.Alive) && m_DebugUI.m_VFX != null)
                 {
                     m_VFXCurves = new List<SwitchableCurve>(m_DebugUI.m_GpuSystems.Count());
+                    m_TimeBarsOffsets.Clear();
                     for (int i = 0; i < m_DebugUI.m_GpuSystems.Count(); ++i)
                     {
                         var toggle = m_DebugUI.m_SystemStats[m_DebugUI.m_GpuSystems[i]][1] as Toggle;
@@ -230,19 +235,31 @@ namespace UnityEditor.VFX.UI
                         m_Pause = !m_Pause;
                         m_Stopped = false;
                         break;
+                    case Events.VFXStep:
+                        m_Step = true;
+                        m_Pause = true;
+                        m_Stopped = false;
+                        break;
                     case Events.VFXReset:
                         foreach (var curve in m_VFXCurves)
                             curve.ResetCurve();
+                        m_TimeBarsOffsets.Clear();
                         break;
                     case Events.VFXStop:
                         m_Pause = true;
                         m_Stopped = true;
                         foreach (var curve in m_VFXCurves)
                             curve.ResetCurve();
+                        m_TimeBarsOffsets.Clear();
                         break;
                     default:
                         break;
                 }
+            }
+
+            public void SetDrawTimeBars(bool status)
+            {
+                m_ShouldDrawTimeBars = status;
             }
 
             Object GetCurvesData()
@@ -271,19 +288,17 @@ namespace UnityEditor.VFX.UI
                 {
                     case Modes.Efficiency:
                         {
-                            var alive = m_DebugUI.m_VFX.GetSystemAliveParticleCount(switchableCurve.id);
-                            var capacity = m_DebugUI.m_VFX.GetSystemCapacity(switchableCurve.id);
-                            float efficiency = (float)alive / (float)capacity;
+                            var stat = m_DebugUI.m_VFX.GetParticleSystemStat(switchableCurve.id);
+                            float efficiency = (float)stat.alive / (float)stat.capacity;
 
                             m_CurveMat.SetFloat("_OrdinateScale", 1.0f);
                             switchableCurve.curve.AddPoint(efficiency);
-                            m_DebugUI.UpdateEfficiency(switchableCurve.id, alive, capacity);
+                            m_DebugUI.UpdateStatEntry(switchableCurve.id, stat);
                         }
                         break;
                     case Modes.Alive:
                         {
-                            var alive = m_DebugUI.m_VFX.GetSystemAliveParticleCount(switchableCurve.id);
-                            var capacity = m_DebugUI.m_VFX.GetSystemCapacity(switchableCurve.id);
+                            var stat = m_DebugUI.m_VFX.GetParticleSystemStat(switchableCurve.id);
                             float maxAlive = (float)data;
 
                             int superior2 = (int)Mathf.Pow(2, Mathf.CeilToInt(Mathf.Log(maxAlive, 2.0f)));
@@ -291,8 +306,8 @@ namespace UnityEditor.VFX.UI
                             m_DebugUI.m_YaxisElts[2].text = superior2.ToString();
 
                             m_CurveMat.SetFloat("_OrdinateScale", 1.0f / (float)superior2);
-                            switchableCurve.curve.AddPoint(alive);
-                            m_DebugUI.UpdateAlive(switchableCurve.id, alive, capacity);
+                            switchableCurve.curve.AddPoint(stat.alive);
+                            m_DebugUI.UpdateStatEntry(switchableCurve.id, stat);
 
                         }
                         break;
@@ -302,11 +317,13 @@ namespace UnityEditor.VFX.UI
             }
 
             float m_LastSampleTime;
-            float m_LastVBarTime;
+            float m_LastTimeBarDrawTime;
             void DrawCurves()
             {
                 if (m_Stopped)
                     return;
+
+                MarkDirtyRepaint();
 
                 if (m_CurveMat == null)
                 {
@@ -331,10 +348,10 @@ namespace UnityEditor.VFX.UI
 
                 // Updating curve
                 var now = Time.time;
-                bool shouldSample = !m_Pause && (now - m_LastSampleTime > m_TimeBetweenDraw);
+                bool shouldSample = (!m_Pause && (now - m_LastSampleTime > m_TimeBetweenDraw)) || (m_Pause && m_Step);
+                m_Step = false;
                 if (shouldSample)
                 {
-                    //Debug.Log(now - m_LastSampleTime);
                     m_LastSampleTime = now;
                 }
 
@@ -361,28 +378,37 @@ namespace UnityEditor.VFX.UI
                 }
 
                 // time bars creation
-                if (shouldSample && (now - m_LastVBarTime > 1.0f))
+                if (shouldSample && (now - m_LastTimeBarDrawTime > s_TimeBarsInterval))
                 {
-                    m_LastVBarTime = now;
-                    m_VerticalBarOffsets.Add(1);
+                    m_LastTimeBarDrawTime = now;
+                    m_TimeBarsOffsets.Add(1);
                 }
 
                 // time bars update
-                m_VerticalBarOffsets.RemoveAll(vb => vb < 0);
-                var xShift = 1.0f / (float)(m_MaxPoints-1);
-                for (int j = 0; j < m_VerticalBarOffsets.Count(); ++j)
+                //m_TimeBarsOffsets.RemoveAll(timeBar => timeBar < 0);
+                var xShift = 1.0f / (float)(m_MaxPoints - 1);
+                Color timeBarColor = new Color(1, 0, 0, 0.5f).gamma;
+                for (int j = 0; j < m_TimeBarsOffsets.Count(); ++j)
                 {
-                    m_BarMat.SetFloat("_AbscissaOffset", m_VerticalBarOffsets[j]);
+                    if (m_TimeBarsOffsets[j] < 0)
+                    {
+                        m_TimeBarsOffsets.RemoveAt(j);
+                        --j;
+                        continue;
+                    }
+                    m_BarMat.SetFloat("_AbscissaOffset", m_TimeBarsOffsets[j]);
                     if (shouldSample)
-                        m_VerticalBarOffsets[j] -= xShift;
+                        m_TimeBarsOffsets[j] -= xShift;
 
-                    m_BarMat.SetColor("_Color", Color.red);
-                    m_BarMat.SetPass(0);
-                    Graphics.DrawMeshNow(m_VerticalBar.GetMesh(), TRS);
+                    if (m_ShouldDrawTimeBars)
+                    {
+                        m_BarMat.SetColor("_Color", timeBarColor);
+                        m_BarMat.SetPass(0);
+                        Graphics.DrawMeshNow(m_VerticalBar.GetMesh(), TRS);
+                    }
                 }
 
                 m_BarMat.SetFloat("_AbscissaOffset", 0);
-
             }
 
 
@@ -411,7 +437,7 @@ namespace UnityEditor.VFX.UI
         // [1] toggle
         // [2] system name
         // [3] alive
-        // [4] capacity
+        // [4] max alive (Button)
         // [5] efficiency
         Dictionary<int, VisualElement[]> m_SystemStats;
         // [0] bottom value
@@ -467,9 +493,11 @@ namespace UnityEditor.VFX.UI
             {
                 case Modes.Efficiency:
                     RegisterParticleSystems();
+                    InitStatArray();
                     break;
                 case Modes.Alive:
                     RegisterParticleSystems();
+                    InitStatArray();
                     break;
                 default:
                     break;
@@ -506,18 +534,16 @@ namespace UnityEditor.VFX.UI
         {
             switch (e)
             {
-                case Events.VFXPlayPause:
-                    m_Curves.Notify(Events.VFXPlayPause);
-                    break;
                 case Events.VFXReset:
-                    m_Curves.Notify(Events.VFXReset);
+                    InitStatArray();
                     break;
                 case Events.VFXStop:
-                    m_Curves.Notify(Events.VFXStop);
+                    InitStatArray();
                     break;
                 default:
                     break;
             }
+            m_Curves.Notify(e);
         }
 
         void RegisterParticleSystems()
@@ -537,7 +563,7 @@ namespace UnityEditor.VFX.UI
                 {
                     int id = Shader.PropertyToID(name);
                     m_GpuSystems.Add(id);
-                    CreateSystemStatEntry(name, id, Color.HSVToRGB((0.71405f + i * 0.37135766f) % 1.0f, 0.6f, 1.0f));
+                    AddSystemStatEntry(name, id, Color.HSVToRGB((0.71405f + i * 0.37135766f) % 1.0f, 0.6f, 1.0f));
 
                     ++i;
                 }
@@ -564,7 +590,7 @@ namespace UnityEditor.VFX.UI
         void Efficiency()
         {
             // ui
-            m_DebugButton.text = "Efficiency plot";
+            m_DebugButton.text = "Efficiency Plot";
             m_Curves = new CurveContent(this, (int)(10.0f / 0.016f), 16);
             m_ComponentBoard.contentContainer.Add(m_Curves);
 
@@ -592,7 +618,7 @@ namespace UnityEditor.VFX.UI
         void Alive()
         {
             // ui
-            m_DebugButton.text = "Alive count plot";
+            m_DebugButton.text = "Alive Particles Count Plot";
             m_Curves = new CurveContent(this, (int)(10.0f / 0.016f), 16);
             m_ComponentBoard.contentContainer.Add(m_Curves);
 
@@ -618,17 +644,35 @@ namespace UnityEditor.VFX.UI
 
         VisualElement SetSettingsBox()
         {
-            var label = new Label();
-            label.text = "Sampling rate (ms)";
-            label.style.fontSize = 12;
-            var sampleRateField = new IntegerField();
-            sampleRateField.value = 16;
-            sampleRateField.RegisterValueChangedCallback(SetSampleRate);
+            // sampling rate
+            var labelSR = new Label();
+            labelSR.text = "Sampling rate (ms)";
+            labelSR.style.fontSize = 12;
+            var fieldSR = new IntegerField();
+            fieldSR.value = 16;
+            fieldSR.RegisterValueChangedCallback(SetSampleRate);
+            var containerSR = new VisualElement();
+            containerSR.name = "debug-settings-element-container";
+            containerSR.Add(labelSR);
+            containerSR.Add(fieldSR);
+
+            // time bars toggle
+            var labelTB = new Label();
+            labelTB.text = "Toggle time bars";
+            labelTB.style.fontSize = 12;
+            var toggleTB = new Toggle();
+            toggleTB.RegisterValueChangedCallback(ToggleTimeBars);
+            toggleTB.value = true;
+            toggleTB.style.justifyContent = Justify.Center;
+            var containerTB = new VisualElement();
+            containerTB.name = "debug-settings-element-container";
+            containerTB.Add(labelTB);
+            containerTB.Add(toggleTB);
 
             var settingsContainer = new VisualElement();
-            settingsContainer.name = "debug-setting-field";
-            settingsContainer.Add(label);
-            settingsContainer.Add(sampleRateField);
+            settingsContainer.name = "debug-settings-container";
+            settingsContainer.Add(containerSR);
+            settingsContainer.Add(containerTB);
             return settingsContainer;
         }
 
@@ -641,6 +685,15 @@ namespace UnityEditor.VFX.UI
                     intergerField.value = 1;
 
                 m_Curves.SetSamplingRate(intergerField.value);
+            }
+        }
+
+        void ToggleTimeBars(ChangeEvent<bool> e)
+        {
+            var toggle = e.currentTarget as Toggle;
+            if (toggle != null)
+            {
+                m_Curves.SetDrawTimeBars(e.newValue);
             }
         }
 
@@ -710,7 +763,7 @@ namespace UnityEditor.VFX.UI
 
             var systemStatCapacity = new TextElement();
             systemStatCapacity.name = "debug-system-stat-title";
-            systemStatCapacity.text = "Capacity";
+            systemStatCapacity.text = "Max Alive";
 
             var systemStatEfficiency = new TextElement();
             systemStatEfficiency.name = "debug-system-stat-title";
@@ -728,7 +781,7 @@ namespace UnityEditor.VFX.UI
             return titleContainer;
         }
 
-        void CreateSystemStatEntry(string systemName, int id, Color color)
+        void AddSystemStatEntry(string systemName, int id, Color color)
         {
             var statContainer = new VisualElement();
             statContainer.name = "debug-system-stat-entry-container";
@@ -746,9 +799,12 @@ namespace UnityEditor.VFX.UI
             alive.name = "debug-system-stat-entry";
             alive.text = " - ";
 
-            var capacity = new TextElement();
-            capacity.name = "debug-system-stat-entry";
-            capacity.text = " - ";
+            var maxAlive = new Button();
+            maxAlive.name = "debug-system-stat-entry";
+            maxAlive.text = "0";
+            maxAlive.clickable.clickedWithEventInfo += CapacitySetter(systemName);
+            //maxAlive.clickable.clicked
+            //maxAlive.tooltip = "Set the capacity of this particle system to this value";
 
             var efficiency = new TextElement();
             efficiency.name = "debug-system-stat-entry";
@@ -757,7 +813,7 @@ namespace UnityEditor.VFX.UI
             statContainer.Add(toggle);
             statContainer.Add(name);
             statContainer.Add(alive);
-            statContainer.Add(capacity);
+            statContainer.Add(maxAlive);
             statContainer.Add(efficiency);
 
             var stats = new VisualElement[6];
@@ -765,28 +821,56 @@ namespace UnityEditor.VFX.UI
             stats[1] = toggle;
             stats[2] = name;
             stats[3] = alive;
-            stats[4] = capacity;
+            stats[4] = maxAlive;
             stats[5] = efficiency;
 
             m_SystemStats[id] = stats;
         }
 
-        void UpdateEfficiency(int systemId, int alive, int capacity)
+        Action<EventBase> CapacitySetter(string systemName)
         {
-            var stat = m_SystemStats[systemId];// [0] is title bar
-            if (stat[3] is TextElement Alive)
-                Alive.text = alive.ToString();
-            if (stat[4] is TextElement Capacity)
-                Capacity.text = capacity.ToString();
-            if (stat[5] is TextElement Efficiency)
-                Efficiency.text = string.Format("{0} %", (int)((float)alive * 100.0f / (float)capacity));
+            var graph = m_View.controller.graph;
+            var models = new HashSet<ScriptableObject>();
+            graph.CollectDependencies(models, false);
+            var datas = models.OfType<VFXDataParticle>();
+
+            foreach (var data in datas)
+            {
+                if (graph.systemNames.GetUniqueSystemName(data) == systemName)
+                    return (e) =>
+                    {
+                        var button = e.currentTarget as Button;
+                        if (button != null)
+                            data.SetSettingValue("capacity", (uint)(float.Parse(button.text) * 1.05f));
+                    };
+            }
+            return (e) => { };
         }
 
-        void UpdateAlive(int systemId, int alive, int capacity)
+        void UpdateStatEntry(int systemId, VFXSystemStat stat)
         {
-            UpdateEfficiency(systemId, alive, capacity);
+            var statUI = m_SystemStats[systemId];// [0] is title bar
+            if (statUI[3] is TextElement alive)
+                alive.text = stat.alive.ToString();
+            if (statUI[4] is Button maxAlive)
+                maxAlive.text = Mathf.Max(int.Parse(maxAlive.text), stat.alive).ToString();
+            if (statUI[5] is TextElement efficiency)
+                efficiency.text = string.Format("{0} %", (int)((float)stat.alive * 100.0f / (float)stat.capacity));
         }
 
+        void InitStatArray()
+        {
+            if (m_SystemStats != null)
+                foreach (var statUI in m_SystemStats.Values)
+                {
+                    if (statUI[3] is TextElement alive)
+                        alive.text = " - ";
+                    if (statUI[4] is Button maxAlive)
+                        maxAlive.text = "0";
+                    if (statUI[5] is TextElement efficiency)
+                        efficiency.text = " - ";
+                }
+        }
 
         public void Clear()
         {

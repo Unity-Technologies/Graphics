@@ -1,4 +1,4 @@
-Shader "Hidden/VFX/VerticalBar"
+Shader "Hidden/VFX/TimeBar"
 {
     Properties
     {

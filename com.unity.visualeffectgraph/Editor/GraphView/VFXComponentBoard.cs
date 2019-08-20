@@ -315,6 +315,8 @@ namespace UnityEditor.VFX.UI
         {
             if (m_AttachedComponent != null)
                 m_AttachedComponent.ControlStep();
+            if (m_DebugUI != null)
+                m_DebugUI.Notify(VFXDebugUI.Events.VFXStep);
         }
 
         void EffectRestart()
