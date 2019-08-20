@@ -31,7 +31,6 @@ namespace UnityEditor.Rendering.Universal
         ShaderKeyword m_MixedLightingSubtractive = new ShaderKeyword(ShaderKeywordStrings.MixedLightingSubtractive);
         ShaderKeyword m_Lightmap = new ShaderKeyword("LIGHTMAP_ON");
         ShaderKeyword m_DirectionalLightmap = new ShaderKeyword("DIRLIGHTMAP_COMBINED");
-        ShaderKeyword m_KillAlpha = new ShaderKeyword("_KILL_ALPHA");
 
         ShaderKeyword m_DeprecatedVertexLights = new ShaderKeyword("_VERTEX_LIGHTS");
         ShaderKeyword m_DeprecatedShadowsEnabled = new ShaderKeyword("_SHADOWS_ENABLED");
@@ -53,15 +52,6 @@ namespace UnityEditor.Rendering.Universal
             if (!CoreUtils.HasFlag(features, ShaderFeatures.MainLightShadows) &&
                 shader.name.Contains("ScreenSpaceShadows"))
                 return true;
-
-            if (shader.name == "Hidden/Universal Render Pipeline/Blit")
-            {
-                bool preserveAlpha = PlayerSettings.preserveFramebufferAlpha && compilerData.platformKeywordSet.IsEnabled(BuiltinShaderDefine.SHADER_API_MOBILE);
-                bool shaderPreserveAlpha = !compilerData.shaderKeywordSet.IsEnabled(m_KillAlpha);
-
-                if (preserveAlpha != shaderPreserveAlpha)
-                    return true;
-            }
 
             return false;
         }

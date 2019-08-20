@@ -298,6 +298,9 @@ namespace UnityEngine.Rendering.Universal
                 // Only apply dithering & grain if we're the final pass
                 SetupGrain(cameraData.camera, m_Materials.uber);
                 SetupDithering(ref cameraData, m_Materials.uber);
+				
+				if (Display.main.requiresSrgbBlitToBackbuffer)
+					m_Materials.uber.EnableKeyword(ShaderKeywordStrings.LinearToSRGBConversion);
 
                 // Done with Uber, blit it
                 cmd.SetGlobalTexture("_BlitTex", GetSource());
@@ -935,6 +938,9 @@ namespace UnityEngine.Rendering.Universal
 
             SetupGrain(cameraData.camera, material);
             SetupDithering(ref cameraData, material);
+			
+			if (Display.main.requiresSrgbBlitToBackbuffer)
+				material.EnableKeyword(ShaderKeywordStrings.LinearToSRGBConversion);
 
             cmd.SetGlobalTexture("_BlitTex", m_Source.Identifier());
 

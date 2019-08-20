@@ -148,7 +148,7 @@ namespace UnityEngine.Rendering.Universal
         }
 
         static RenderTextureDescriptor CreateRenderTextureDescriptor(Camera camera, float renderScale,
-            bool isStereoEnabled, bool isHdrEnabled, int msaaSamples)
+            bool isStereoEnabled, bool isHdrEnabled, int msaaSamples, bool needsAlpha)
         {
             RenderTextureDescriptor desc;
             RenderTextureFormat renderTextureFormatDefault = RenderTextureFormat.Default;
@@ -165,14 +165,24 @@ namespace UnityEngine.Rendering.Universal
                 desc.height = (int)((float)desc.height * renderScale);
             }
 
-            // TODO: when preserve framebuffer alpha is enabled we can't use RGB111110Float format.
-            bool useRGB111110 = Application.isMobilePlatform && RenderingUtils.SupportsRenderTextureFormat(RenderTextureFormat.RGB111110Float);
-            RenderTextureFormat hdrFormat = (useRGB111110) ? RenderTextureFormat.RGB111110Float : RenderTextureFormat.DefaultHDR;
-            desc.colorFormat = isHdrEnabled ? hdrFormat : renderTextureFormatDefault;
-            desc.depthBufferBits = 32;
+            bool use32BitHDR = !needsAlpha && RenderingUtils.SupportsRenderTextureFormat(RenderTextureFormat.RGB111110Float);
+            RenderTextureFormat hdrFormat = (use32BitHDR) ? RenderTextureFormat.RGB111110Float : RenderTextureFormat.DefaultHDR;
+            if (camera.targetTexture != null)
+            {
+                desc.colorFormat = camera.targetTexture.descriptor.colorFormat;
+                desc.depthBufferBits = camera.targetTexture.descriptor.depthBufferBits;
+                desc.msaaSamples = camera.targetTexture.descriptor.msaaSamples;
+                desc.sRGB = camera.targetTexture.descriptor.sRGB;
+            }
+            else
+            {
+                desc.colorFormat = isHdrEnabled ? hdrFormat : renderTextureFormatDefault;
+                desc.depthBufferBits = 32;
+                desc.msaaSamples = msaaSamples;
+                desc.sRGB = (QualitySettings.activeColorSpace == ColorSpace.Linear);
+            }
+            
             desc.enableRandomWrite = false;
-            desc.sRGB = (QualitySettings.activeColorSpace == ColorSpace.Linear);
-            desc.msaaSamples = msaaSamples;
             desc.bindMS = false;
             desc.useDynamicScale = camera.allowDynamicResolution;
             return desc;
