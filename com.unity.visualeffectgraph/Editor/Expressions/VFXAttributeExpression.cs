@@ -52,15 +52,14 @@ namespace UnityEditor.VFX
         public static readonly VFXAttribute TargetPosition          = new VFXAttribute("targetPosition", VFXValueType.Float3, VFXVariadic.False, SpaceableType.Position);
         public static readonly VFXAttribute EventCount              = new VFXAttribute("eventCount", VFXValueType.Uint32);
         public static readonly VFXAttribute SpawnTime               = new VFXAttribute("spawnTime", VFXValueType.Float);
-        public static readonly VFXAttribute ParticleIndex           = new VFXAttribute("particleIndex", VFXValueType.Uint32);
         public static readonly VFXAttribute ParticleIndexInStrip    = new VFXAttribute("particleIndexInStrip", VFXValueType.Uint32);
         public static readonly VFXAttribute SpawnIndex              = new VFXAttribute("spawnIndex", VFXValueType.Uint32);
         public static readonly VFXAttribute StripIndex              = new VFXAttribute("stripIndex", VFXValueType.Uint32);
 
         public static readonly VFXAttribute[] AllAttribute = VFXReflectionHelper.CollectStaticReadOnlyExpression<VFXAttribute>(typeof(VFXAttribute));
-        public static readonly VFXAttribute[] AllAttributeReadOnly = new VFXAttribute[] { Seed, ParticleId, SpawnTime, ParticleIndex, ParticleIndexInStrip, SpawnIndex, StripIndex };
+        public static readonly VFXAttribute[] AllAttributeReadOnly = new VFXAttribute[] { Seed, ParticleId, SpawnTime, ParticleIndexInStrip, SpawnIndex, StripIndex };
         public static readonly VFXAttribute[] AllAttributeWriteOnly = new VFXAttribute[] { EventCount };
-        public static readonly VFXAttribute[] AllAttributeLocalOnly = new VFXAttribute[] { EventCount, ParticleIndex, ParticleIndexInStrip, SpawnIndex, StripIndex };
+        public static readonly VFXAttribute[] AllAttributeLocalOnly = new VFXAttribute[] { EventCount, ParticleIndexInStrip, StripIndex };
 
         public static readonly string[] All = AllAttribute.Select(e => e.name).ToArray();
         public static readonly string[] AllReadOnly = AllAttributeReadOnly.Select(e => e.name).ToArray();

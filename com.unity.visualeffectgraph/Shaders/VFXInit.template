@@ -106,6 +106,8 @@ void CSMain(uint3 groupId          : SV_GroupID,
 #if HAS_STRIPS
 		${VFXLoadParameter:{stripIndex}}
 		stripIndex = min(stripIndex, STRIP_COUNT);
+		const StripData stripData = GetStripDataFromStripIndex(stripIndex, PARTICLE_PER_STRIP_COUNT);
+		InitStripAttributes(attributes, stripData);
 		// TODO Change seed to be sure we're deterministic on random with strip
 #else
 		uint stripIndex = 0;

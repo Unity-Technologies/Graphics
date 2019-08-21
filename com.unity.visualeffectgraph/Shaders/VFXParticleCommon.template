@@ -94,9 +94,6 @@ ${VFXLoadAttributes:{(?!(alive))(\b\w)}}
 #endif
 
 // Initialize built-in needed attributes
-#if VFX_USE_PARTICLEINDEX_CURRENT
-attributes.particleIndex = index; 
-#endif
 #if HAS_STRIPS
 InitStripAttributes(attributes, stripData);
 #endif

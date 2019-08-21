@@ -42,10 +42,10 @@ uint GetRelativeIndex(uint particleIndex, const StripData data)
 void InitStripAttributes(Attributes attributes, const StripData data)
 {
 #if VFX_USE_STRIPINDEX_CURRENT
-    attributes.stripIndex = stripData.stripIndex;
+    attributes.stripIndex = data.stripIndex;
 #endif
 #if VFX_USE_PARTICLEINDEXINSTRIP_CURRENT
-    attributes.particleIndexInStrip = GetRelativeIndex(particleIndex, stripData);
+    attributes.particleIndexInStrip = GetRelativeIndex(particleIndex, data);
 #endif	
 }
 #endif

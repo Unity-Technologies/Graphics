@@ -46,9 +46,6 @@ void CSMain(uint3 groupId          : SV_GroupID,
 			${VFXLoadAttributes:{(?!(alive))(\b\w)}}
 
 // Initialize built-in needed attributes
-#if VFX_USE_PARTICLEINDEX_CURRENT
-           attributes.particleIndex = index; 
-#endif
 #if VFX_USE_OLDPOSITION_CURRENT
 			attributes.oldPosition = position;
 #endif
@@ -87,6 +84,10 @@ void CSMain(uint3 groupId          : SV_GroupID,
 		
 #if VFX_USE_OLDPOSITION_CURRENT
 		attributes.oldPosition = attributes.position;
+#endif
+#if HAS_STRIPS
+        const StripData stripData = GetStripDataFromParticleIndex(index, PARTICLE_PER_STRIP_COUNT);
+        InitStripAttributes(attributes, stripData);
 #endif
 		
 		${VFXProcessBlocks}
