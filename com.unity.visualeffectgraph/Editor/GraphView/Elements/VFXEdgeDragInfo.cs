@@ -22,10 +22,10 @@ namespace UnityEditor.VFX.UI
         public VFXEdgeDragInfo(VFXView view)
         {
             m_View = view;
-            var tpl = Resources.Load<VisualTreeAsset>("uxml/VFXEdgeDragInfo");
+            var tpl = VFXView.LoadUXML("VFXEdgeDragInfo");
             tpl.CloneTree(this);
 
-            this.AddStyleSheetPath("VFXEdgeDragInfo");
+            this.styleSheets.Add(VFXView.LoadStyleSheet("VFXEdgeDragInfo"));
 
             m_Text = this.Q<Label>("title");
 
