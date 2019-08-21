@@ -1,6 +1,7 @@
 //#define OLD_COPY_PASTE
 using System;
 using System.Collections;
+using System.Collections.ObjectModel;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -1720,6 +1721,11 @@ namespace UnityEditor.VFX.UI
         }
 
         List<VFXSystemBorder> m_Systems = new List<VFXSystemBorder>();
+
+        public ReadOnlyCollection<VFXSystemBorder> systems
+        {
+            get { return m_Systems.AsReadOnly(); }
+        }
 
         public void UpdateSystems()
         {

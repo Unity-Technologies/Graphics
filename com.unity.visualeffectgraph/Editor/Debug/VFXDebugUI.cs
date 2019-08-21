@@ -301,7 +301,7 @@ namespace UnityEditor.VFX.UI
                             var stat = m_DebugUI.m_VFX.GetParticleSystemStat(switchableCurve.id);
                             float maxAlive = (float)data;
 
-                            int superior2 = (int)Mathf.Pow(2, Mathf.CeilToInt(Mathf.Log(maxAlive, 2.0f)));
+                            var superior2 = 1u << (int)Mathf.CeilToInt(Mathf.Log(maxAlive, 2.0f));
                             m_DebugUI.m_YaxisElts[1].text = (superior2 / 2).ToString();
                             m_DebugUI.m_YaxisElts[2].text = superior2.ToString();
 
@@ -761,9 +761,10 @@ namespace UnityEditor.VFX.UI
             systemStatAlive.name = "debug-system-stat-title";
             systemStatAlive.text = "Alive";
 
-            var systemStatCapacity = new TextElement();
-            systemStatCapacity.name = "debug-system-stat-title";
-            systemStatCapacity.text = "Max Alive";
+            var systemStatMaxAlive = new TextElement();
+            systemStatMaxAlive.name = "debug-system-stat-title";
+            systemStatMaxAlive.text = "Max Alive";
+            systemStatMaxAlive.tooltip = "Click on a value to set the capacity of a particle system";
 
             var systemStatEfficiency = new TextElement();
             systemStatEfficiency.name = "debug-system-stat-title";
@@ -775,7 +776,7 @@ namespace UnityEditor.VFX.UI
             titleContainer.Add(toggleAll);
             titleContainer.Add(systemStatName);
             titleContainer.Add(systemStatAlive);
-            titleContainer.Add(systemStatCapacity);
+            titleContainer.Add(systemStatMaxAlive);
             titleContainer.Add(systemStatEfficiency);
 
             return titleContainer;
@@ -790,10 +791,11 @@ namespace UnityEditor.VFX.UI
             var toggle = new Toggle();
             toggle.value = true;
 
-            var name = new TextElement();
+            var name = new Button();
             name.name = "debug-system-stat-entry-name";
             name.text = systemName;
             name.style.color = color;
+            name.clickable.clicked += FocusParticleSystem(systemName);
 
             var alive = new TextElement();
             alive.name = "debug-system-stat-entry";
@@ -803,8 +805,6 @@ namespace UnityEditor.VFX.UI
             maxAlive.name = "debug-system-stat-entry";
             maxAlive.text = "0";
             maxAlive.clickable.clickedWithEventInfo += CapacitySetter(systemName);
-            //maxAlive.clickable.clicked
-            //maxAlive.tooltip = "Set the capacity of this particle system to this value";
 
             var efficiency = new TextElement();
             efficiency.name = "debug-system-stat-entry";
@@ -827,6 +827,38 @@ namespace UnityEditor.VFX.UI
             m_SystemStats[id] = stats;
         }
 
+        Action FocusParticleSystem(string systemName)
+        {
+            var systems = m_View.systems;
+
+            foreach (var system in systems)
+            {
+                if (system.controller.title == systemName)
+                {
+                    return () =>
+                    {
+                        Rect rectToFit = system.GetPosition();
+                        var frameTranslation = Vector3.zero;
+                        var frameScaling = Vector3.one;
+
+                        if (rectToFit.width <= 50 || rectToFit.height <= 50)
+                        {
+                            return;
+                        }
+
+                        VFXView.CalculateFrameTransform(rectToFit, m_View.layout, 30, out frameTranslation, out frameScaling);
+
+                        Matrix4x4.TRS(frameTranslation, Quaternion.identity, frameScaling);
+
+                        m_View.UpdateViewTransform(frameTranslation, frameScaling);
+
+                        m_View.contentViewContainer.MarkDirtyRepaint();
+                    };
+                }
+            }
+            return () => { };
+        }
+
         Action<EventBase> CapacitySetter(string systemName)
         {
             var graph = m_View.controller.graph;
@@ -841,7 +873,7 @@ namespace UnityEditor.VFX.UI
                     {
                         var button = e.currentTarget as Button;
                         if (button != null)
-                            data.SetSettingValue("capacity", (uint)(float.Parse(button.text) * 1.05f));
+                            data.SetSettingValue("capacity", (uint)(float.Parse(button.text) * 1.01f));
                     };
             }
             return (e) => { };
