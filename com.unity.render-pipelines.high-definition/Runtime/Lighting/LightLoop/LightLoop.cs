@@ -475,10 +475,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
             //public List<LightsPerView> lightsPerView;
 
-            public void AllocateLightArraysPerFrame(int punctualLightCount, int areaLightCount, int decalCount, int numViews)
+            public void AllocateLightArraysPerFrame(int punctualLightCount, int areaLightCount, int decalCount, int envLightCount, int numViews)
             {
-                m_LightVolumeData = new NativeArray<LightVolumeData>((punctualLightCount + areaLightCount + decalCount) * numViews, Allocator.TempJob);
-                m_Bounds = new NativeArray<SFiniteLightBound>((punctualLightCount + areaLightCount + decalCount) * numViews, Allocator.TempJob);
+                m_LightVolumeData = new NativeArray<LightVolumeData>((punctualLightCount + areaLightCount + envLightCount + decalCount) * numViews, Allocator.TempJob);
+                m_Bounds = new NativeArray<SFiniteLightBound>((punctualLightCount + areaLightCount + envLightCount + decalCount) * numViews, Allocator.TempJob);
                 m_LightData = new NativeArray<LightData>((punctualLightCount + areaLightCount), Allocator.TempJob);
             }
 
@@ -1611,7 +1611,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_lightList.lightsPerView[viewIndex].lightVolumes.Add(lightVolumeData);
         }*/
 
-        internal bool GetEnvLightData(CommandBuffer cmd, HDCamera hdCamera, HDProbe probe, DebugDisplaySettings debugDisplaySettings, ref EnvLightData envLightData)
+        internal bool GetEnvLightData(CommandBuffer cmd, HDCamera hdCamera, HDProbe probe, DebugDisplaySettings debugDisplaySettings, ref EnvLightData envLightData, int probeIndex)
         {
             Camera camera = hdCamera.camera;
 
@@ -1629,7 +1629,7 @@ namespace UnityEngine.Rendering.HighDefinition
             var influenceToWorld = probe.influenceToWorld;
 
             // 31 bits index, 1 bit cache type
-            var envIndex = int.MinValue;
+            var envIndex = m_EnvIndex[probeIndex];
             switch (probe)
             {
                 case PlanarReflectionProbe planarProbe:
@@ -1638,10 +1638,10 @@ namespace UnityEngine.Rendering.HighDefinition
                             && !hdCamera.frameSettings.IsEnabled(FrameSettingsField.RealtimePlanarReflection))
                             break;
 
-                        var fetchIndex = m_TextureCaches.reflectionPlanarProbeCache.FetchSlice(cmd, probe.texture);
+                        //   var fetchIndex = m_TextureCaches.reflectionPlanarProbeCache.FetchSlice(cmd, probe.texture);
                         // Indices start at 1, because -0 == 0, we can know from the bit sign which cache to use
-                        envIndex = fetchIndex == -1 ? int.MinValue : -(fetchIndex + 1);
-
+                        //  envIndex = fetchIndex == -1 ? int.MinValue : -(fetchIndex + 1);
+                        var fetchIndex = envIndex;
                         var renderData = planarProbe.renderData;
                         var worldToCameraRHSMatrix = renderData.worldToCameraRHS;
                         var projectionMatrix = renderData.projectionMatrix;
@@ -1665,9 +1665,9 @@ namespace UnityEngine.Rendering.HighDefinition
                     }
                 case HDAdditionalReflectionData _:
                     {
-                        envIndex = m_TextureCaches.reflectionProbeCache.FetchSlice(cmd, probe.texture);
+                       // envIndex = m_TextureCaches.reflectionProbeCache.FetchSlice(cmd, probe.texture);
                         // Indices start at 1, because -0 == 0, we can know from the bit sign which cache to use
-                        envIndex = envIndex == -1 ? int.MinValue : (envIndex + 1);
+                       // envIndex = envIndex == -1 ? int.MinValue : (envIndex + 1);
 
                         // Calculate settings to use for the probe
                         var probePositionSettings = ProbeCapturePositionSettings.ComputeFrom(probe, camera.transform);
@@ -1681,8 +1681,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     }
             }
             // int.MinValue means that the texture is not ready yet (ie not convolved/compressed yet)
-            if (envIndex == int.MinValue)
-                return false;
+        //    if (envIndex == int.MinValue)
+         //       return false;
 
             InfluenceVolume influence = probe.influenceVolume;
             envLightData.lightLayers = probe.lightLayersAsUInt;
@@ -1728,10 +1728,11 @@ namespace UnityEngine.Rendering.HighDefinition
             return true;
         }
 
-        void GetEnvLightVolumeDataAndBound(HDProbe probe, LightVolumeType lightVolumeType, Matrix4x4 worldToView, int viewIndex)
+        void GetEnvLightVolumeDataAndBound(HDProbe probe, LightVolumeType lightVolumeType, Matrix4x4 worldToView, int stride, int offset, int viewIndex)
         {
-            var bound = new SFiniteLightBound();
-            var lightVolumeData = new LightVolumeData();
+            // m_lightList.m_Bounds
+            var bound = m_lightList.m_Bounds[viewIndex * stride + offset];
+            var lightVolumeData = m_lightList.m_LightVolumeData[viewIndex * stride + offset];
 
             // C is reflection volume center in world space (NOT same as cube map capture point)
             var influenceExtents = probe.influenceExtents;       // 0.5f * Vector3.Max(-boxSizes[p], boxSizes[p]);
@@ -1787,9 +1788,11 @@ namespace UnityEngine.Rendering.HighDefinition
                     break;
                 }
             }
-//            Debug.Assert(false,"Implement for Env lights");
-//            m_lightList.lightsPerView[viewIndex].bounds.Add(bound);
-//            m_lightList.lightsPerView[viewIndex].lightVolumes.Add(lightVolumeData);
+            m_lightList.m_Bounds[viewIndex * stride + offset] = bound;
+            m_lightList.m_LightVolumeData[viewIndex * stride + offset] = lightVolumeData;
+            //            Debug.Assert(false,"Implement for Env lights");
+            //            m_lightList.lightsPerView[viewIndex].bounds.Add(bound);
+            //            m_lightList.lightsPerView[viewIndex].lightVolumes.Add(lightVolumeData);
         }
 
         void AddBoxVolumeDataAndBound(OrientedBBox obb, LightCategory category, LightFeatureFlags featureFlags, Matrix4x4 worldToView, int viewIndex)
@@ -2504,7 +2507,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     // ProcessPunctualAndAreaLights
                     {
                         AllocateVolumeBoundsJobArrays(punctualLightCount + areaLightCount, hdCamera.viewCount); // needs to be above GetLightData, because m_LightDimensions get computed there
-                        m_lightList.AllocateLightArraysPerFrame(punctualLightCount, areaLightCount, decalDatasCount, hdCamera.viewCount);
+                        m_lightList.AllocateLightArraysPerFrame(punctualLightCount, areaLightCount, decalDatasCount, reflectionProbeCount, hdCamera.viewCount);
                   
                         Profiler.BeginSample("Light datas");
                         GetCookies(punctualLightCount + areaLightCount, cmd);
@@ -2559,7 +2562,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                         EnvLightData envLightData = new EnvLightData();
 
-                        if (GetEnvLightData(cmd, hdCamera, probeWrapper, debugDisplaySettings, ref envLightData))
+                        if (GetEnvLightData(cmd, hdCamera, probeWrapper, debugDisplaySettings, ref envLightData, probeIndex))
                         {
                             // it has been filled
                             m_lightList.envLights.Add(envLightData);
@@ -2567,7 +2570,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             for (int viewIndex = 0; viewIndex < hdCamera.viewCount; ++viewIndex)
                             {
                                 var worldToView = GetWorldToViewMatrix(hdCamera, viewIndex);
-                                GetEnvLightVolumeDataAndBound(probeWrapper, lightVolumeType, worldToView, viewIndex);
+                                GetEnvLightVolumeDataAndBound(probeWrapper, lightVolumeType, worldToView, punctualLightCount + areaLightCount + reflectionProbeCount + decalDatasCount, punctualLightCount + areaLightCount, viewIndex);
                             }
 
                             // We make the light position camera-relative as late as possible in order
@@ -2624,9 +2627,9 @@ namespace UnityEngine.Rendering.HighDefinition
                     }
                 }
 
-                m_TotalLightCount = m_lightList.m_LightData.Length + decalDatasCount;
-                Debug.Assert(m_TotalLightCount == m_lightList.m_Bounds.Length);
-                Debug.Assert(m_TotalLightCount == m_lightList.m_LightVolumeData.Length); // todo add density volumes and env lights
+                m_TotalLightCount = m_lightList.m_LightData.Length + decalDatasCount + reflectionProbeCount;
+                Debug.Assert(m_TotalLightCount == m_lightList.m_Bounds.Length, "m_TotalLightCount == m_lightList.m_Bounds.Length ");
+                Debug.Assert(m_TotalLightCount == m_lightList.m_LightVolumeData.Length, "m_TotalLightCount == m_lightList.m_Bounds.Length"); // todo add density volumes and env lights
                 /*
                 m_TotalLightCount = m_lightList.lights.Count + m_lightList.envLights.Count + decalDatasCount + m_densityVolumeCount;
                 Debug.Assert(m_TotalLightCount == m_lightList.lightsPerView[0].bounds.Count);
