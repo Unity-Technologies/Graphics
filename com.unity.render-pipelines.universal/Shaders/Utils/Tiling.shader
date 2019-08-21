@@ -54,6 +54,7 @@ Shader "Hidden/Universal Render Pipeline/Tiling"
 
             uint g_TilePixelWidth;
             uint g_TilePixelHeight;
+            uint g_InstanceOffset;
 
             struct Attributes
             {
@@ -69,7 +70,8 @@ Shader "Hidden/Universal Render Pipeline/Tiling"
 
             Varyings Vertex(Attributes input)
             {
-                uint  tileID = g_TileIDBuffer[input.instanceID >> 2][input.instanceID & 3];
+                uint instanceID = g_InstanceOffset + input.instanceID;
+                uint  tileID = g_TileIDBuffer[instanceID >> 2][instanceID & 3];
                 uint2 tileCoord = UnpackTileID(tileID);
                 uint2 pixelCoord  = tileCoord * uint2(g_TilePixelWidth, g_TilePixelHeight);
 
@@ -85,7 +87,7 @@ Shader "Hidden/Universal Render Pipeline/Tiling"
 //                // Clip-space coordinatea always have y axis up. Hence, we must always flip y.
 //                output.positionCS.y *= -1.0;
 
-                output.relLightOffset = g_TileRelLightBuffer[input.instanceID >> 2][input.instanceID & 3];
+                output.relLightOffset = g_TileRelLightBuffer[instanceID >> 2][instanceID & 3];
 
                 return output;
             }

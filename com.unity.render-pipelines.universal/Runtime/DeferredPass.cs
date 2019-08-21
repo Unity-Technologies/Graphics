@@ -1,4 +1,5 @@
 using UnityEngine.Experimental.GlobalIllumination;
+using UnityEngine.Profiling;
 using Unity.Collections;
 
 // TODO use Unity.Mathematics
@@ -9,7 +10,7 @@ using Unity.Collections;
 
 namespace UnityEngine.Rendering.Universal
 {
-    internal struct BitArray
+    internal struct BitArray : System.IDisposable
     {
         NativeArray<uint> m_Mem; // ulong not supported in il2cpp???
         int m_BitCount;
@@ -61,12 +62,15 @@ namespace UnityEngine.Rendering.Universal
     internal struct DrawCall
     {
         public ComputeBuffer tileIDBuffer;
-        public ComputeBuffer _TileRelLightBuffer;
-        public ComputeBuffer _PointLightBuffer;
-        public ComputeBuffer _RelLightIndexBuffer;
-        public int tileCount;
-        public int lightCount;
-        public int relLightIndices;
+        public ComputeBuffer tileRelLightBuffer;
+        public ComputeBuffer pointLightBuffer;
+        public ComputeBuffer relLightIndexBuffer;
+        public int tileIDBufferSize;
+        public int tileRelLightBufferSize;
+        public int pointLightBufferSize;
+        public int relLightIndexBufferSize;
+        public int instanceOffset;
+        public int instanceCount;
     }
 
     // Render all tiled-based deferred lights.
@@ -159,25 +163,29 @@ namespace UnityEngine.Rendering.Universal
             if (m_TilingMaterial == null)
                 return;
 
-            CommandBuffer cmd = CommandBufferPool.Get(k_TileBasedDeferredShading);
-            using (new ProfilingSample(cmd, k_TileBasedDeferredShading))
-            {
-                // It doesn't seem UniversalRP use this.
-                Vector4 screenSize = new Vector4(m_RenderWidth, m_RenderHeight, 1.0f / m_RenderWidth, 1.0f / m_RenderHeight);
-                cmd.SetGlobalVector("_ScreenSize", screenSize);
-                cmd.SetGlobalInt("g_TilePixelWidth", m_TilePixelWidth);
-                cmd.SetGlobalInt("g_TilePixelHeight", m_TilePixelHeight);
+            // Allow max 256 draw calls for rendering all the batches of tiles
+            DrawCall[] drawCalls = new DrawCall[256];
+            int drawCallCount = 0;
 
-                MeshTopology topology = k_HasNativeQuadSupport ? MeshTopology.Quads : MeshTopology.Triangles;
+            {
+                Profiler.BeginSample("k_TileBasedDeferredShading");
+
                 int sizeof_PointLightData = System.Runtime.InteropServices.Marshal.SizeOf(typeof(PointLightData));
                 int sizeof_vec4_PointLightData = sizeof_PointLightData / 16;
 
                 int tileXStride = m_TileSize;
                 int tileYStride = m_TileSize * m_TileXCount;
                 int maxLightPerTile = m_TileSize - 1;
+
+                int instanceOffset = 0;
                 int tileCount = 0;
                 int lightCount = 0;
                 int relLightIndices = 0;
+
+                ComputeBuffer _tileIDBuffer = DeferredShaderData.instance.ReserveTileIDBuffer(m_MaxTilesPerBatch);
+                ComputeBuffer _tileRelLightBuffer = DeferredShaderData.instance.ReserveTileRelLightBuffer(m_MaxTilesPerBatch);
+                ComputeBuffer _pointLightBuffer = DeferredShaderData.instance.ReservePointLightBuffer(m_MaxPointLightPerBatch);
+                ComputeBuffer _relLightIndexBuffer = DeferredShaderData.instance.ReserveRelLightIndexBuffer(m_MaxRelLightIndicesPerBatch);
 
                 // Acceleration structure to quickly find if a light has already been added to the uniform block data for the current draw call.
                 NativeArray<ushort> trimmedLights = new NativeArray<ushort>(maxLightPerTile, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
@@ -204,43 +212,70 @@ namespace UnityEngine.Rendering.Universal
 
                         // Find lights that are not in the batch yet.
                         int trimmedLightCount = TrimLights(trimmedLights, m_Tiles, tileOffset + 1, tileLightCount, usedLights);
+                        Assertions.Assert.IsTrue(trimmedLightCount <= maxLightPerTile, "too many lights overlaps a tile: max allowed is " + maxLightPerTile);
 
                         // Find if one of the GPU buffers is reaching max capacity.
                         // In that case, the draw call must be flushed and new GPU buffer(s) be allocated.
                         bool tileIDBufferIsFull = (tileCount == m_MaxTilesPerBatch);
-                        bool lightBufferIsFull = (lightCount + trimmedLightCount >= m_MaxPointLightPerBatch);
-                        bool relLightIndexBufferIsFull = (relLightIndices + 1 + tileLightCount >= m_MaxRelLightIndicesPerBatch); // +1 for list size
+                        bool lightBufferIsFull = (lightCount + trimmedLightCount > m_MaxPointLightPerBatch);
+                        bool relLightIndexBufferIsFull = (relLightIndices + 1 + tileLightCount > m_MaxRelLightIndicesPerBatch); // +1 for list size
 
                         if (tileIDBufferIsFull || lightBufferIsFull || relLightIndexBufferIsFull)
                         {
-                            ComputeBuffer _TileIDBuffer = DeferredShaderData.instance.ReserveTileIDBuffer(m_MaxTilesPerBatch);
-                            ComputeBuffer _TileRelLightBuffer = DeferredShaderData.instance.ReserveTileRelLightBuffer(m_MaxTilesPerBatch);
-                            ComputeBuffer _PointLightBuffer = DeferredShaderData.instance.ReservePointLightBuffer(m_MaxPointLightPerBatch);
-                            ComputeBuffer _RelLightIndexBuffer = DeferredShaderData.instance.ReserveRelLightIndexBuffer(m_MaxRelLightIndicesPerBatch);
-                            _TileIDBuffer.SetData(tileIDBuffer, 0, 0, m_MaxTilesPerBatch); // Must pass complete array (restriction for binding Unity Constant Buffers)
-                            _TileRelLightBuffer.SetData(tileRelLightBuffer, 0, 0, m_MaxTilesPerBatch);
-                            _PointLightBuffer.SetData(pointLightBuffer, 0, 0, m_MaxPointLightPerBatch * sizeof_vec4_PointLightData);
-                            _RelLightIndexBuffer.SetData(relLightIndexBuffer, 0, 0, m_MaxRelLightIndicesPerBatch);
-
-                            cmd.SetGlobalConstantBuffer(_TileIDBuffer, Shader.PropertyToID("UTileIDBuffer"), 0, Align(tileCount, 4) * 4);
-                            cmd.SetGlobalConstantBuffer(_TileRelLightBuffer, Shader.PropertyToID("UTileRelLightBuffer"), 0, Align(tileCount, 4) * 4);
+                            int _instanceCount = tileCount - instanceOffset;
+                            int _tileIDBufferSize = Align(tileCount, 4) * 4;
+                            int _tileRelLightBufferSize = Align(tileCount, 4) * 4;
 #if UNITY_SUPPORT_STRUCT_IN_CBUFFER
-                            cmd.SetGlobalConstantBuffer(_PointLightBuffer, Shader.PropertyToID("UPointLightBuffer"), 0, lightCount * sizeof_PointLightData);
+                            int _pointLightBufferSize = lightCount * sizeof_PointLightData;
 #else
-                            cmd.SetGlobalConstantBuffer(_PointLightBuffer, Shader.PropertyToID("UPointLightBuffer"), 0, m_MaxPointLightPerBatch * sizeof_PointLightData);
+                            int _pointLightBufferSize = m_MaxPointLightPerBatch * sizeof_PointLightData;
 #endif
-                            cmd.SetGlobalConstantBuffer(_RelLightIndexBuffer, Shader.PropertyToID("URelLightIndexBuffer"), 0, Align(relLightIndices, 4) * 4);
-                            cmd.DrawProcedural(Matrix4x4.identity, m_TilingMaterial, 0, topology, 6, tileCount);
+                            int _relLightIndexBufferSize = Align(relLightIndices, 4) * 4;
 
-                            tileCount = 0;
-                            lightCount = 0;
-                            relLightIndices = 0;
-                            usedLights.Clear();
+                            drawCalls[drawCallCount++] = new DrawCall
+                            {
+                                tileIDBuffer = _tileIDBuffer,
+                                tileRelLightBuffer = _tileRelLightBuffer,
+                                pointLightBuffer = _pointLightBuffer,
+                                relLightIndexBuffer = _relLightIndexBuffer,
+                                tileIDBufferSize = _tileIDBufferSize,
+                                tileRelLightBufferSize = _tileRelLightBufferSize,
+                                pointLightBufferSize = _pointLightBufferSize,
+                                relLightIndexBufferSize = _relLightIndexBufferSize,
+                                instanceOffset = instanceOffset,
+                                instanceCount = _instanceCount
+                            };
 
-                            // If pointLightBuffer was reset, then all lights in the current tile must be added.
-                            trimmedLightCount = tileLightCount;
-                            for (int l = 0; l < tileLightCount; ++l)
-                                trimmedLights[l] = m_Tiles[tileOffset + 1 + l];
+                            if (tileIDBufferIsFull)
+                            {
+                                _tileIDBuffer.SetData(tileIDBuffer, 0, 0, m_MaxTilesPerBatch); // Must pass complete array (restriction for binding Unity Constant Buffers)
+                                _tileRelLightBuffer.SetData(tileRelLightBuffer, 0, 0, m_MaxTilesPerBatch);
+                                _tileIDBuffer = DeferredShaderData.instance.ReserveTileIDBuffer(m_MaxTilesPerBatch);
+                                _tileRelLightBuffer = DeferredShaderData.instance.ReserveTileRelLightBuffer(m_MaxTilesPerBatch);
+                                tileCount = 0;
+                            }
+
+                            if (lightBufferIsFull)
+                            {
+                                _pointLightBuffer.SetData(pointLightBuffer, 0, 0, m_MaxPointLightPerBatch * sizeof_vec4_PointLightData);
+                                _pointLightBuffer = DeferredShaderData.instance.ReservePointLightBuffer(m_MaxPointLightPerBatch);
+                                lightCount = 0;
+
+                                // If pointLightBuffer was reset, then all lights in the current tile must be added.
+                                trimmedLightCount = tileLightCount;
+                                for (int l = 0; l < tileLightCount; ++l)
+                                    trimmedLights[l] = m_Tiles[tileOffset + 1 + l];
+                                usedLights.Clear();
+                            }
+
+                            if (relLightIndexBufferIsFull)
+                            {
+                                _relLightIndexBuffer.SetData(relLightIndexBuffer, 0, 0, m_MaxRelLightIndicesPerBatch);
+                                _relLightIndexBuffer = DeferredShaderData.instance.ReserveRelLightIndexBuffer(m_MaxRelLightIndicesPerBatch);
+                                relLightIndices = 0;
+                            }
+
+                            instanceOffset = tileCount;
                         }
 
                         // Add TileID.
@@ -248,7 +283,7 @@ namespace UnityEngine.Rendering.Universal
                         tileRelLightBuffer[tileCount] = (ushort)relLightIndices;
                         ++tileCount;
 
-                        // Add new lights.
+                        // Add newly discovered lights.
                         for (int l = 0; l < trimmedLightCount; ++l)
                         {
                             int visLightIndex = trimmedLights[l];
@@ -269,30 +304,32 @@ namespace UnityEngine.Rendering.Universal
                     }
                 }
 
-                if (tileCount > 0)
+                int instanceCount = tileCount - instanceOffset;
+                if (instanceCount > 0)
                 {
-                    ComputeBuffer _TileIDBuffer = DeferredShaderData.instance.ReserveTileIDBuffer(m_MaxTilesPerBatch);
-                    ComputeBuffer _TileRelLightBuffer = DeferredShaderData.instance.ReserveTileRelLightBuffer(m_MaxTilesPerBatch);
-                    ComputeBuffer _PointLightBuffer = DeferredShaderData.instance.ReservePointLightBuffer(m_MaxPointLightPerBatch);
-                    ComputeBuffer _RelLightIndexBuffer = DeferredShaderData.instance.ReserveRelLightIndexBuffer(m_MaxRelLightIndicesPerBatch);
-                    _TileIDBuffer.SetData(tileIDBuffer, 0, 0, m_MaxTilesPerBatch); // Must pass complete array (restriction for binding Unity Constant Buffers)
-                    _TileRelLightBuffer.SetData(tileRelLightBuffer, 0, 0, m_MaxTilesPerBatch);
-                    _PointLightBuffer.SetData(pointLightBuffer, 0, 0, m_MaxPointLightPerBatch * sizeof_vec4_PointLightData);
-                    _RelLightIndexBuffer.SetData(relLightIndexBuffer, 0, 0, m_MaxRelLightIndicesPerBatch);
+                    _tileIDBuffer.SetData(tileIDBuffer, 0, 0, m_MaxTilesPerBatch); // Must pass complete array (restriction for binding Unity Constant Buffers)
+                    _tileRelLightBuffer.SetData(tileRelLightBuffer, 0, 0, m_MaxTilesPerBatch);
+                    _pointLightBuffer.SetData(pointLightBuffer, 0, 0, m_MaxPointLightPerBatch * sizeof_vec4_PointLightData);
+                    _relLightIndexBuffer.SetData(relLightIndexBuffer, 0, 0, m_MaxRelLightIndicesPerBatch);
 
-                    //cmd.SetGlobalBuffer("g_TileIDBuffer", _TileIDBuffer);
-                    cmd.SetGlobalConstantBuffer(_TileIDBuffer, Shader.PropertyToID("UTileIDBuffer"), 0, Align(tileCount, 4) * 4);
-                    cmd.SetGlobalConstantBuffer(_TileRelLightBuffer, Shader.PropertyToID("UTileRelLightBuffer"), 0, Align(tileCount, 4) * 4);
+                    drawCalls[drawCallCount++] = new DrawCall
+                    {
+                        tileIDBuffer = _tileIDBuffer,
+                        tileRelLightBuffer = _tileRelLightBuffer,
+                        pointLightBuffer = _pointLightBuffer,
+                        relLightIndexBuffer = _relLightIndexBuffer,
+                        tileIDBufferSize = Align(tileCount, 4) * 4,
+                        tileRelLightBufferSize = Align(tileCount, 4) * 4,
 #if UNITY_SUPPORT_STRUCT_IN_CBUFFER
-                    cmd.SetGlobalConstantBuffer(_PointLightBuffer, Shader.PropertyToID("UPointLightBuffer"), 0, lightCount * sizeof_PointLightData);
+                        pointLightBufferSize = lightCount * sizeof_PointLightData,
 #else
-                    cmd.SetGlobalConstantBuffer(_PointLightBuffer, Shader.PropertyToID("UPointLightBuffer"), 0, m_MaxPointLightPerBatch * sizeof_PointLightData);
+                        pointLightBufferSize = m_MaxPointLightPerBatch * sizeof_PointLightData,
 #endif
-                    cmd.SetGlobalConstantBuffer(_RelLightIndexBuffer, Shader.PropertyToID("URelLightIndexBuffer"), 0, Align(relLightIndices, 4) * 4);
-                    cmd.DrawProcedural(Matrix4x4.identity, m_TilingMaterial, 0, topology, 6, tileCount);
+                        relLightIndexBufferSize = Align(relLightIndices, 4) * 4,
+                        instanceOffset = instanceOffset,
+                        instanceCount = instanceCount
+                    };
                 }
-
-                DeferredShaderData.instance.ResetBuffers();
 
                 trimmedLights.Dispose();
                 visLightToRelLights.Dispose();
@@ -301,10 +338,38 @@ namespace UnityEngine.Rendering.Universal
                 tileRelLightBuffer.Dispose();
                 pointLightBuffer.Dispose();
                 relLightIndexBuffer.Dispose();
+
+                DeferredShaderData.instance.ResetBuffers();
+
+                Profiler.EndSample();
             }
 
-            context.ExecuteCommandBuffer(cmd);
-            CommandBufferPool.Release(cmd);
+            CommandBuffer cmd = CommandBufferPool.Get(k_TileBasedDeferredShading);
+            using (new ProfilingSample(cmd, k_TileBasedDeferredShading))
+            {
+                MeshTopology topology = k_HasNativeQuadSupport ? MeshTopology.Quads : MeshTopology.Triangles;
+                int vertexCount = k_HasNativeQuadSupport ? 4 : 6;
+
+                // It doesn't seem UniversalRP use this.
+                Vector4 screenSize = new Vector4(m_RenderWidth, m_RenderHeight, 1.0f / m_RenderWidth, 1.0f / m_RenderHeight);
+                cmd.SetGlobalVector("_ScreenSize", screenSize);
+                cmd.SetGlobalInt("g_TilePixelWidth", m_TilePixelWidth);
+                cmd.SetGlobalInt("g_TilePixelHeight", m_TilePixelHeight);
+
+                for (int i = 0; i < drawCallCount; ++i)
+                { 
+                    DrawCall dc = drawCalls[i];
+                    cmd.SetGlobalConstantBuffer(dc.tileIDBuffer, Shader.PropertyToID("UTileIDBuffer"), 0, dc.tileIDBufferSize);
+                    cmd.SetGlobalConstantBuffer(dc.tileRelLightBuffer, Shader.PropertyToID("UTileRelLightBuffer"), 0, dc.tileRelLightBufferSize);
+                    cmd.SetGlobalConstantBuffer(dc.pointLightBuffer, Shader.PropertyToID("UPointLightBuffer"), 0, dc.pointLightBufferSize);
+                    cmd.SetGlobalConstantBuffer(dc.relLightIndexBuffer, Shader.PropertyToID("URelLightIndexBuffer"), 0, dc.relLightIndexBufferSize);
+                    cmd.SetGlobalInt("g_InstanceOffset", dc.instanceOffset);
+                    cmd.DrawProcedural(Matrix4x4.identity, m_TilingMaterial, 0, topology, vertexCount, dc.instanceCount);
+                }
+
+                context.ExecuteCommandBuffer(cmd);
+                CommandBufferPool.Release(cmd);
+            }
         }
 
         // ScriptableRenderPass
@@ -418,6 +483,8 @@ namespace UnityEngine.Rendering.Universal
 
         void CullLights(NativeArray<PrePointLight> visPointLights)
         {
+            Profiler.BeginSample("CullLights");
+
             int tileXStride = m_TileSize;
             int tileYStride = m_TileSize * m_TileXCount;
             int maxLightPerTile = m_TileSize - 1;
@@ -450,6 +517,8 @@ namespace UnityEngine.Rendering.Universal
                     m_Tiles[tileOffset] = tileLightCount;
                 }
             }
+
+            Profiler.EndSample();
         }
 
         int TrimLights(NativeArray<ushort> trimmedLights, NativeArray<ushort> tiles, int offset, int lightCount, BitArray usedLights)
