@@ -138,7 +138,7 @@ namespace UnityEditor.VFX
 
         protected virtual IEnumerable<VFXNamedExpression> CollectGPUExpressions(IEnumerable<VFXNamedExpression> slotExpressions)
         {
-            if (blendMode == BlendMode.Masked)
+            if (useAlphaClipping)
                 yield return slotExpressions.First(o => o.name == "alphaThreshold");
 
             if (colorMappingMode == ColorMappingMode.GradientMapped)
@@ -188,6 +188,8 @@ namespace UnityEditor.VFX
             {
                 var gpuMapper = VFXExpressionMapper.FromBlocks(activeFlattenedChildrenWithImplicit);
                 gpuMapper.AddExpressions(CollectGPUExpressions(GetExpressionsFromSlots(this)), -1);
+                if (generateMotionVector)
+                    gpuMapper.AddExpression(VFXBuiltInExpression.FrameIndex, "currentFrameIndex", -1);
                 return gpuMapper;
             }
             return new VFXExpressionMapper();
@@ -234,8 +236,9 @@ namespace UnityEditor.VFX
                     }
                 }
 
-                if (blendMode == BlendMode.Masked)
-                    yield return new VFXPropertyWithValue(new VFXProperty(typeof(float), "alphaThreshold", VFXPropertyAttribute.Create(new RangeAttribute(0.0f, 1.0f))), 0.5f);
+                if (useAlphaClipping)
+                    yield return new VFXPropertyWithValue(new VFXProperty(typeof(float), "alphaThreshold", VFXPropertyAttribute.Create(new RangeAttribute(0.0f, 1.0f), new TooltipAttribute("Alpha threshold used for pixel clipping"))), 0.5f);
+
                 if (supportSoftParticles)
                     yield return new VFXPropertyWithValue(new VFXProperty(typeof(float), "softParticlesFadeDistance", VFXPropertyAttribute.Create(new MinAttribute(0.001f))), 1.0f);
 
@@ -263,7 +266,7 @@ namespace UnityEditor.VFX
                 else
                     yield return "IS_TRANSPARENT_PARTICLE";
 
-                if (blendMode == BlendMode.Masked)
+                if (useAlphaClipping)
                     yield return "USE_ALPHA_TEST";
                 if (supportSoftParticles)
                     yield return "USE_SOFT_PARTICLE";
@@ -281,12 +284,12 @@ namespace UnityEditor.VFX
                         break;
                 }
 
-                VisualEffectResource asset = GetResource();
-                if (asset != null)
                 {
-                    var settings = asset.rendererSettings;
-                    if (settings.motionVectorGenerationMode == MotionVectorGenerationMode.Object)
-                        yield return "USE_MOTION_VECTORS_PASS";
+                    if (hasMotionVector)
+                        if (isBlendModeOpaque)
+                            yield return "USE_MOTION_VECTORS_PASS";
+                        else
+                            yield return "WRITE_MOTION_VECTOR_IN_FORWARD";
                     if (hasShadowCasting)
                         yield return "USE_CAST_SHADOWS_PASS";
                 }
@@ -335,6 +338,9 @@ namespace UnityEditor.VFX
                 if (!supportsUV)
                     yield return "uvMode";
 
+                if (!implementsMotionVector || !subOutput.supportsMotionVector)
+                    yield return "generateMotionVector";
+
                 if (isBlendModeOpaque)
                 {
                     yield return "useSoftParticle";
@@ -354,9 +360,13 @@ namespace UnityEditor.VFX
                 var shaderTags = new VFXShaderWriter();
                 var renderQueueStr = subOutput.GetRenderQueueStr();
                 var renderTypeStr = isBlendModeOpaque ? "Opaque" : "Transparent";
-
                 shaderTags.Write(string.Format("Tags {{ \"Queue\"=\"{0}\" \"IgnoreProjector\"=\"{1}\" \"RenderType\"=\"{2}\" }}", renderQueueStr, !isBlendModeOpaque, renderTypeStr));
                 yield return new KeyValuePair<string, VFXShaderWriter>("${VFXShaderTags}", shaderTags);
+
+                foreach (var additionnalStencilReplacement in subOutput.GetStencilStateOverridesStr())
+                {
+                    yield return additionnalStencilReplacement;
+                }
             }
         }
 

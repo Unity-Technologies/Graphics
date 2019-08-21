@@ -15,7 +15,7 @@ To help you decide which techniques to use in your Unity Project, the following 
 | **Baked Reflection Probes**    | Manually placed, local Reflection Probe. Only captures static GameObjects during the baking process. | Low.                                                         |
 | **Sky reflection**             | Reflective Materials show a reflection of the sky.           | Low.                                                         |
 
-<a name=”ReflectionHierarchy”></a>
+<a name="ReflectionHierarchy"></a>
 
 ## Reflection hierarchy
 

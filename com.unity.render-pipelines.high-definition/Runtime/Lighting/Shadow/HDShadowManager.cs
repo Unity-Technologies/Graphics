@@ -108,13 +108,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public HDShadowData cachedShadowData;
     }
 
-    public enum HDShadowFilteringQuality
-    {
-        Low = 0,
-        Medium = 1,
-        High = 2,
-    }
-
     public enum DirectionalShadowAlgorithm
     {
         PCF5x5,
@@ -190,7 +183,7 @@ namespace UnityEngine.Rendering.HighDefinition
             directionalLightsResolutionTiers    = HDShadowTierParams.GetDefault(),
             punctualLightsResolutionTiers       = HDShadowTierParams.GetDefault(),
             areaLightsResolutionTiers           = HDShadowTierParams.GetDefault(),
-            shadowFilteringQuality              = HDShadowFilteringQuality.Medium,
+            shadowFilteringQuality              = ShaderConfig.s_DeferredShadowFiltering,
             supportScreenSpaceShadows   = false,
             maxScreenSpaceShadows       = 2,
             maxDirectionalShadowMapResolution   = 2048,
@@ -555,7 +548,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             using (new ProfilingSample(cmd, "Area Light Shadows rendering", CustomSamplerId.RenderShadowMaps.GetSampler()))
             {
-                m_AreaLightShadowAtlas.RenderShadows(cullResults, hdCamera.frameSettings, renderContext, cmd);
+                if (ShaderConfig.s_AreaLights == 1)
+                    m_AreaLightShadowAtlas.RenderShadows(cullResults, hdCamera.frameSettings, renderContext, cmd);
             }
         }
 

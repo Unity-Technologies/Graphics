@@ -220,7 +220,7 @@ namespace UnityEditor.VFX
                             LinkFrom(link.context,link.slotIndex,i);
                 }
             }
-
+            PatchInputExpressions();
             SyncSlots(VFXSlot.Direction.kInput,true);
         }
 
@@ -292,9 +292,20 @@ namespace UnityEditor.VFX
 
             var inputExpressions = new List<VFXExpression>();
 
-            foreach (var slot in inputSlots.SelectMany(t => t.GetVFXValueTypeSlots()))
+            foreach (var slot in inputSlots)
             {
-                inputExpressions.Add(slot.GetExpression());
+                var expression = slot.GetExpression();
+                if( expression == null)
+                {
+                    foreach( var subSlot in inputSlots.SelectMany(t=>t.GetExpressionSlots()))
+                    {
+                        inputExpressions.Add(subSlot.GetExpression());
+                    }
+                }
+                else
+                {
+                    inputExpressions.Add(expression);
+                }
             }
 
             VFXSubgraphUtility.TransferExpressionToParameters(inputExpressions, GetParameters(t => VFXSubgraphUtility.InputPredicate(t)));

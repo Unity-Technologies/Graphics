@@ -13,7 +13,7 @@ namespace UnityEditor.Rendering.LookDev
     /// <summary>
     /// Class containing a collection of Environment
     /// </summary>
-    public class EnvironmentLibrary : ScriptableObject
+    public class EnvironmentLibrary : BaseEnvironmentLibrary
     {
         [field: SerializeField]
         List<Environment> environments { get; set; } = new List<Environment>();

@@ -23,14 +23,17 @@ namespace UnityEngine.Rendering.HighDefinition
         int m_LastPrecomputationParamHash;
 
         // We compute at most one bounce per frame for perf reasons.
+        // We need to store the frame index because more than one render can happen during a frame (cubemap update + regular rendering).
         int m_LastPrecomputedBounce;
+        int m_LastPrecomputationFrameIndex;
 
         bool m_IsBuilt = false;
 
-        PhysicallyBasedSky   m_Settings;
+        PhysicallyBasedSky           m_Settings;
+
         // Precomputed data below.
-        RTHandle[]    m_GroundIrradianceTables;    // All orders, one order
-        RTHandle[]    m_InScatteredRadianceTables; // Air SS, Aerosol SS, Atmosphere MS, Atmosphere one order, Temp
+        RTHandle[]                   m_GroundIrradianceTables;    // All orders, one order
+        RTHandle[]                   m_InScatteredRadianceTables; // Air SS, Aerosol SS, Atmosphere MS, Atmosphere one order, Temp
 
         static ComputeShader         s_GroundIrradiancePrecomputationCS;
         static ComputeShader         s_InScatteredRadiancePrecomputationCS;
@@ -162,11 +165,11 @@ namespace UnityEngine.Rendering.HighDefinition
         // For both precomputation and runtime lighting passes.
         void UpdateGlobalConstantBuffer(CommandBuffer cmd)
         {
-
             float R    = m_Settings.planetaryRadius.value;
             float D    = Mathf.Max(m_Settings.airMaximumAltitude.value, m_Settings.aerosolMaximumAltitude.value);
             float airH = m_Settings.GetAirScaleHeight();
             float aerH = m_Settings.GetAerosolScaleHeight();
+            float iMul = Mathf.Pow(2.0f, m_Settings.exposure.value) * m_Settings.multiplier.value;
 
             cmd.SetGlobalFloat( HDShaderIDs._PlanetaryRadius,           R);
             cmd.SetGlobalFloat( HDShaderIDs._RcpPlanetaryRadius,        1.0f / R);
@@ -189,6 +192,8 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetGlobalFloat( HDShaderIDs._AerosolSeaLevelScattering, m_Settings.GetAerosolScatteringCoefficient());
 
             cmd.SetGlobalVector(HDShaderIDs._GroundAlbedo,              m_Settings.groundColor.value);
+            cmd.SetGlobalFloat(HDShaderIDs._IntensityMultiplier,        iMul);
+
             cmd.SetGlobalVector(HDShaderIDs._PlanetCenterPosition,      m_Settings.planetCenterPosition.value);
         }
 
@@ -196,7 +201,6 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             using (new ProfilingSample(cmd, "In-Scattered Radiance Precomputation"))
             {
-                //for (int order = 1; order <= m_Settings.numBounces; order++)
                 int order = m_LastPrecomputedBounce + 1;
                 {
                     // For efficiency reasons, multiple scattering is computed in 2 passes:
@@ -293,48 +297,65 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_LastPrecomputedBounce = 0;
             }
 
-            // F**k cubemap.
-            if (!renderForCubemap)
+            if (m_LastPrecomputedBounce == 0)
             {
-                if (m_LastPrecomputedBounce == 0)
+                // Allocate temp tables if needed
+                if (m_GroundIrradianceTables[1] == null)
                 {
-                    // Allocate temp tables if needed
-                    if (m_GroundIrradianceTables[1] == null)
-                    {
-                        m_GroundIrradianceTables[1] = AllocateGroundIrradianceTable(1);
-                    }
-
-                    if (m_InScatteredRadianceTables[3] == null)
-                    {
-                        m_InScatteredRadianceTables[3] = AllocateInScatteredRadianceTable(3);
-                    }
-
-                    if (m_InScatteredRadianceTables[4] == null)
-                    {
-                        m_InScatteredRadianceTables[4] = AllocateInScatteredRadianceTable(4);
-                    }
+                    m_GroundIrradianceTables[1] = AllocateGroundIrradianceTable(1);
                 }
 
-                if (m_LastPrecomputedBounce == m_Settings.numberOfBounces.value)
+                if (m_InScatteredRadianceTables[3] == null)
                 {
-                    // Free temp tables.
-                    // This is a deferred release (one frame late)!
-                    RTHandles.Release(m_GroundIrradianceTables[1]);
-                    RTHandles.Release(m_InScatteredRadianceTables[3]);
-                    RTHandles.Release(m_InScatteredRadianceTables[4]);
-                    m_GroundIrradianceTables[1]    = null;
-                    m_InScatteredRadianceTables[3] = null;
-                    m_InScatteredRadianceTables[4] = null;
+                    m_InScatteredRadianceTables[3] = AllocateInScatteredRadianceTable(3);
                 }
 
-                if (m_LastPrecomputedBounce < m_Settings.numberOfBounces.value)
+                if (m_InScatteredRadianceTables[4] == null)
                 {
-                    // We precompute one bounce per render call.
+                    m_InScatteredRadianceTables[4] = AllocateInScatteredRadianceTable(4);
+                }
+            }
+
+            if (m_LastPrecomputedBounce == m_Settings.numberOfBounces.value && m_LastPrecomputationFrameIndex < builtinParams.frameIndex)
+            {
+                // Free temp tables.
+                // This is a deferred release (one frame late)!
+                RTHandles.Release(m_GroundIrradianceTables[1]);
+                RTHandles.Release(m_InScatteredRadianceTables[3]);
+                RTHandles.Release(m_InScatteredRadianceTables[4]);
+                m_GroundIrradianceTables[1]    = null;
+                m_InScatteredRadianceTables[3] = null;
+                m_InScatteredRadianceTables[4] = null;
+            }
+
+            if (m_LastPrecomputedBounce < m_Settings.numberOfBounces.value)
+            {
+                // When rendering into a cubemap for environment lighting, if the sky is not realtime, then we need to do all the bounces at once
+                // It's ok in terms of performance because it's only done once (as long as parameters don't change).
+                // However, editing parameters will be very slow.
+                if (builtinParams.updateMode != EnvironmentUpdateMode.Realtime)
+                {
+                    for (int i = m_LastPrecomputedBounce; i < m_Settings.numberOfBounces.value; ++i)
+                    {
+                        PrecomputeTables(cmd);
+                        m_LastPrecomputedBounce++;
+                    }
+
+                    // Update the hash for the current bounce.
+                    m_LastPrecomputationParamHash  = currentParamHash;
+                    m_LastPrecomputationFrameIndex = builtinParams.frameIndex;
+                }
+                // In case of realtime environment lighting, we need to update only one bounce and only once per frame
+                // (the same sky can be rendered into a cubemap and in the regular view).
+                // Also, we obviously want the precomputation to run at least once.
+                else if ((m_LastPrecomputationFrameIndex < builtinParams.frameIndex) || (m_LastPrecomputedBounce == 0))
+                {
                     PrecomputeTables(cmd);
                     m_LastPrecomputedBounce++;
 
                     // Update the hash for the current bounce.
-                    m_LastPrecomputationParamHash = currentParamHash;
+                    m_LastPrecomputationParamHash  = currentParamHash;
+                    m_LastPrecomputationFrameIndex = builtinParams.frameIndex;
                 }
             }
 
@@ -347,8 +368,9 @@ namespace UnityEngine.Rendering.HighDefinition
                                                          m_Settings.spaceRotation.value.y,
                                                          m_Settings.spaceRotation.value.z);
 
-            // This matrix needs to be updated at the draw call frequency.
             s_PbrSkyMaterialProperties.SetMatrix(HDShaderIDs._PixelCoordToViewDirWS, builtinParams.pixelCoordToViewDirMatrix);
+            s_PbrSkyMaterialProperties.SetVector(HDShaderIDs._WorldSpaceCameraPos1,  builtinParams.worldSpaceCameraPos);
+            s_PbrSkyMaterialProperties.SetMatrix(HDShaderIDs._ViewMatrix1,           builtinParams.viewMatrix);
             s_PbrSkyMaterialProperties.SetMatrix(HDShaderIDs._PlanetRotation,        Matrix4x4.Rotate(planetRotation));
             s_PbrSkyMaterialProperties.SetMatrix(HDShaderIDs._SpaceRotation,         Matrix4x4.Rotate(spaceRotation));
 

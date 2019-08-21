@@ -32,7 +32,6 @@
 
 // ----------------------------------------------------------------------------
 
-CBUFFER_START(UnityPerCamera)
 // Time (t = time since current level load) values from Unity
 float4 _Time; // (t/20, t, t*2, t*3)
 float4 _SinTime; // sin(t/8), sin(t/4), sin(t/2), sin(t)
@@ -73,10 +72,7 @@ float4 _ZBufferParams;
 // z = unused
 // w = 1.0 if camera is ortho, 0.0 if perspective
 float4 unity_OrthoParams;
-CBUFFER_END
 
-
-CBUFFER_START(UnityPerCameraRare)
 float4 unity_CameraWorldClipPlanes[6];
 
 #if !defined(USING_STEREO_MATRICES)
@@ -88,7 +84,6 @@ float4x4 unity_CameraInvProjection;
 float4x4 unity_WorldToCamera;
 float4x4 unity_CameraToWorld;
 #endif
-CBUFFER_END
 
 // ----------------------------------------------------------------------------
 
@@ -176,13 +171,10 @@ int unity_StereoEyeIndex;
 GLOBAL_CBUFFER_END
 #endif
 
-CBUFFER_START(UnityPerDrawRare)
 float4x4 glstate_matrix_transpose_modelview0;
-CBUFFER_END
 
 // ----------------------------------------------------------------------------
 
-CBUFFER_START(UnityPerFrame)
 real4 glstate_lightmodel_ambient;
 real4 unity_AmbientSky;
 real4 unity_AmbientEquator;
@@ -201,7 +193,6 @@ int unity_StereoEyeIndex;
 #endif
 
 real4 unity_ShadowColor;
-CBUFFER_END
 
 // ----------------------------------------------------------------------------
 
@@ -223,7 +214,6 @@ TEXTURE2D(unity_ShadowMask);
 // TODO: all affine matrices should be 3x4.
 // TODO: sort these vars by the frequency of use (descending), and put commonly used vars together.
 // Note: please use UNITY_MATRIX_X macros instead of referencing matrix variables directly.
-CBUFFER_START(UnityPerPass)
 float4x4 _PrevViewProjMatrix;
 float4x4 _ViewProjMatrix;
 float4x4 _NonJitteredViewProjMatrix;
@@ -235,7 +225,6 @@ float4x4 _InvProjMatrix;
 float4   _InvProjParam;
 float4   _ScreenSize;       // {w, h, 1/w, 1/h}
 float4   _FrustumPlanes[6]; // {(a, b, c) = N, d = -dot(N, P)} [L, R, T, B, N, F]
-CBUFFER_END
 
 float4x4 OptimizeProjectionMatrix(float4x4 M)
 {

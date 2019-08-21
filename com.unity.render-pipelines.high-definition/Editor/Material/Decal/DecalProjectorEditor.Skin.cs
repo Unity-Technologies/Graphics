@@ -4,8 +4,8 @@ namespace UnityEditor.Rendering.HighDefinition
 {
     partial class DecalProjectorEditor
     {
-        const string k_EditShapePreservingUVTooltip = "Modify Decal size preserving UV positions. They will be stretched.\nIn addition to customizable shortcut, you can press shift to quickly swap between preserving and not preserving UV.";
-        const string k_EditShapeWithoutPreservingUVTooltip = "Modify Decal volume without preserving UV positions. They will be cropped.\nIn addition to customizable shortcut, you can press shift to quickly swap between preserving and not preserving UV.";
+        const string k_EditShapePreservingUVTooltip = "Modifies the projector boundaries and crops/tiles the decal to fill them.";
+        const string k_EditShapeWithoutPreservingUVTooltip = "Modifies the projector boundaries and stretches the decal to fill them.";
         const string k_EditUVTooltip = "Modify the UV positions only";
 
         static readonly GUIContent k_SizeContent = EditorGUIUtility.TrTextContent("Size", "Sets the size of the projector.");

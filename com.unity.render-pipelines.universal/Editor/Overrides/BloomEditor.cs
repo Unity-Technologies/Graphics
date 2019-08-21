@@ -1,3 +1,5 @@
+using System.Linq;
+using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 
 namespace UnityEditor.Rendering.Universal
@@ -38,6 +40,9 @@ namespace UnityEditor.Rendering.Universal
             PropertyField(m_Tint);
             PropertyField(m_Clamp);
             PropertyField(m_HighQualityFiltering);
+
+            if (m_HighQualityFiltering.overrideState.boolValue && m_HighQualityFiltering.value.boolValue && CoreEditorUtils.buildTargets.Contains(GraphicsDeviceType.OpenGLES2))
+                EditorGUILayout.HelpBox("High Quality Bloom isn't supported on GLES2 platforms.", MessageType.Warning);
 
             EditorGUILayout.LabelField("Lens Dirt", EditorStyles.miniLabel);
 

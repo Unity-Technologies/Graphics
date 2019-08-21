@@ -1,4 +1,5 @@
 using System;
+using System.Text;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -93,10 +94,7 @@ namespace UnityEditor.VFX
 
         protected void ApplyVariant(VFXModel model)
         {
-            foreach (var variant in m_Variants)
-            {
-                model.SetSettingValue(variant.Key, variant.Value);
-            }
+            model.SetSettingValues(m_Variants);
         }
 
         private IEnumerable<KeyValuePair<string, object>> m_Variants;
@@ -158,6 +156,7 @@ namespace UnityEditor.VFX
     abstract class VFXSRPBinder
     {
         abstract public string templatePath { get; }
+        virtual public string runtimePath { get { return templatePath; } } //optional different path for .hlsl included in runtime
         abstract public string SRPAssetTypeStr { get; }
         abstract public Type SRPOutputDataType { get; }
     }
@@ -167,6 +166,14 @@ namespace UnityEditor.VFX
     {
         public override string templatePath { get { return "Packages/com.unity.visualeffectgraph/Shaders/RenderPipeline/Universal"; } }
         public override string SRPAssetTypeStr { get { return "UniversalRenderPipelineAsset"; } }
+        public override Type SRPOutputDataType { get { return null; } }
+    }
+
+    // This is the default binder used if no SRP is used in the project
+    class VFXLegacyBinder : VFXSRPBinder
+    {
+        public override string templatePath { get { return "Packages/com.unity.visualeffectgraph/Shaders/RenderPipeline/Legacy"; } }
+        public override string SRPAssetTypeStr { get { return "None"; } }
         public override Type SRPOutputDataType { get { return null; } }
     }
 
@@ -299,6 +306,9 @@ namespace UnityEditor.VFX
         {
             var modelTypes = FindConcreteSubclasses(typeof(T), typeof(VFXInfoAttribute));
             var modelDescs = new List<VFXModelDescriptor<T>>();
+            var nameAlreadyAdded = new HashSet<string>();
+            var error = new StringBuilder();
+
             foreach (var modelType in modelTypes)
             {
                 try
@@ -313,8 +323,19 @@ namespace UnityEditor.VFX
                             foreach (var variant in provider.ComputeVariants())
                             {
                                 var variantArray = variant.ToArray();
-                                modelDescs.Add(new VFXModelDescriptor<T>((T)ScriptableObject.CreateInstance(modelType), variant));
+                                var currentVariant = new VFXModelDescriptor<T>((T)ScriptableObject.CreateInstance(modelType), variant);
+                                if (!nameAlreadyAdded.Contains(currentVariant.name))
+                                {
+                                    modelDescs.Add(currentVariant);
+                                    nameAlreadyAdded.Add(currentVariant.name);
+                                }
+                                else
+                                {
+                                    error.AppendFormat("Trying to add twice : {0}", currentVariant.name);
+                                    error.AppendLine();
+                                }
                             }
+                            nameAlreadyAdded.Clear();
                         }
                         else
                         {
@@ -324,8 +345,14 @@ namespace UnityEditor.VFX
                 }
                 catch (Exception e)
                 {
-                    Debug.LogError("Error while loading model from type " + modelType + ": " + e);
+                    error.AppendFormat("Error while loading model from type " + modelType + ": " + e);
+                    error.AppendLine();
                 }
+            }
+
+            if (error.Length != 0)
+            {
+                Debug.LogError(error);
             }
 
             return modelDescs.OrderBy(o => o.name).ToList();
@@ -417,12 +444,13 @@ namespace UnityEditor.VFX
                 {
                     VFXSRPBinder binder = (VFXSRPBinder)Activator.CreateInstance(binderType);
                     string SRPAssetTypeStr = binder.SRPAssetTypeStr;
+
                     if (srpBinders.ContainsKey(SRPAssetTypeStr))
                         throw new Exception(string.Format("The SRP of asset type {0} is already registered ({1})", SRPAssetTypeStr, srpBinders[SRPAssetTypeStr].GetType()));
                     srpBinders[SRPAssetTypeStr] = binder;
 
                     if (VFXViewPreference.advancedLogs)
-                        Debug.Log(string.Format("Register {0} SRP for VFX", SRPAssetTypeStr));
+                        Debug.Log(string.Format("Register {0} for VFX", SRPAssetTypeStr));
                 }
                 catch(Exception e)
                 {
@@ -435,12 +463,9 @@ namespace UnityEditor.VFX
         {
             get
             {
-                if (GraphicsSettings.renderPipelineAsset == null)
-                    return null;
-
                 LoadSRPBindersIfNeeded();
                 VFXSRPBinder binder = null;
-                srpBinders.TryGetValue(GraphicsSettings.renderPipelineAsset.GetType().Name, out binder);
+                srpBinders.TryGetValue(GraphicsSettings.renderPipelineAsset == null ? "None" : GraphicsSettings.renderPipelineAsset.GetType().Name, out binder);
 
                 if (binder == null)
                     throw new NullReferenceException("The SRP was not registered in VFX: " + GraphicsSettings.renderPipelineAsset.GetType());

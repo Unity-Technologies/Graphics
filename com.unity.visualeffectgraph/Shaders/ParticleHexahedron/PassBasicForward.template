@@ -23,13 +23,21 @@ Pass
 		#if VFX_NEEDS_POSWS_INTERPOLATOR
 		float3 posWS : TEXCOORD3;
 		#endif
-
+		
+		#if WRITE_MOTION_VECTOR_IN_FORWARD
+		float4 cPosPrevious : TEXCOORD4;
+		float4 cPosNonJiterred : TEXCOORD5;
+		#endif
+		
 		UNITY_VERTEX_OUTPUT_STEREO
 	};
 	
 	struct ps_output
 	{
 		float4 color : SV_Target0;
+#if WRITE_MOTION_VECTOR_IN_FORWARD
+		float4 outMotionVector : SV_Target1;
+#endif
 	};
 
 #define VFX_VARYING_PS_INPUTS ps_input
@@ -43,7 +51,11 @@ Pass
 #if VFX_NEEDS_POSWS_INTERPOLATOR
 #define VFX_VARYING_POSWS posWS
 #endif
-								
+#if WRITE_MOTION_VECTOR_IN_FORWARD
+#define VFX_VARYING_VELOCITY_CPOS cPosNonJiterred
+#define VFX_VARYING_VELOCITY_CPOS_PREVIOUS cPosPrevious
+#endif
+
 	${VFXInclude("Shaders/ParticleHexahedron/Pass.template")}	
 		
 	#pragma fragment frag
@@ -57,6 +69,11 @@ Pass
 		o.color *= VFXGetTextureColorWithProceduralUV(VFX_SAMPLER(mainTexture),i,VFXCubeGetUV(i));
 		o.color = VFXApplyFog(o.color,i);
 		VFXClipFragmentColor(o.color.a,i);
+
+#if WRITE_MOTION_VECTOR_IN_FORWARD
+		${VFXComputeOutputMotionVector}
+		o.outMotionVector = encodedMotionVector;
+#endif
 		return o;
 	}
 	ENDHLSL

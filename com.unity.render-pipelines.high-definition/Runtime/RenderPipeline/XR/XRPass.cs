@@ -12,7 +12,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine.Rendering;
 #if USE_XR_SDK
-using UnityEngine.Experimental.XR;
+using UnityEngine.XR;
 #endif
 
 namespace UnityEngine.Rendering.HighDefinition
@@ -44,13 +44,19 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
 #if USE_XR_SDK
-        internal XRView(XRDisplaySubsystem.XRRenderParameter renderParameter)
+        internal XRView(XRDisplaySubsystem.XRRenderPass renderPass, XRDisplaySubsystem.XRRenderParameter renderParameter)
         {
             projMatrix = renderParameter.projection;
             viewMatrix = renderParameter.view;
             viewport = renderParameter.viewport;
             occlusionMesh = renderParameter.occlusionMesh;
             legacyStereoEye = (Camera.StereoscopicEye)(-1);
+
+            // Convert viewport from normalized to screen space
+            viewport.x      *= renderPass.renderTargetDesc.width;
+            viewport.width  *= renderPass.renderTargetDesc.width;
+            viewport.y      *= renderPass.renderTargetDesc.height;
+            viewport.height *= renderPass.renderTargetDesc.height;
         }
 #endif
     }
@@ -76,6 +82,9 @@ namespace UnityEngine.Rendering.HighDefinition
         internal Matrix4x4 GetViewMatrix(int viewIndex = 0) { return views[viewIndex].viewMatrix; }
         internal Rect GetViewport(int viewIndex = 0)        { return views[viewIndex].viewport; }
 
+        // Combined projection and view matrices for culling
+        internal ScriptableCullingParameters cullingParams { get; private set; }
+
         // Instanced views support (instanced draw calls or multiview extension)
         internal int viewCount { get => views.Count; }
         internal bool instancingEnabled { get => viewCount > 1; }
@@ -87,12 +96,13 @@ namespace UnityEngine.Rendering.HighDefinition
         internal int  legacyMultipassEye      { get => (int)views[0].legacyStereoEye; }
         internal bool legacyMultipassEnabled  { get => enabled && !instancingEnabled && legacyMultipassEye >= 0; }
 
-        internal static XRPass Create(int multipassId, RenderTexture rt = null)
+        internal static XRPass Create(int multipassId, ScriptableCullingParameters cullingParameters, RenderTexture rt = null)
         {
             XRPass passInfo = GenericPool<XRPass>.Get();
 
             passInfo.multipassId = multipassId;
             passInfo.cullingPassId = multipassId;
+            passInfo.cullingParams = cullingParameters;
             passInfo.views.Clear();
 
             if (rt != null)
@@ -123,12 +133,13 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
 #if USE_XR_SDK
-        internal static XRPass Create(XRDisplaySubsystem.XRRenderPass xrRenderPass, int multipassId, Material occlusionMeshMaterial)
+        internal static XRPass Create(XRDisplaySubsystem.XRRenderPass xrRenderPass, int multipassId, ScriptableCullingParameters cullingParameters, Material occlusionMeshMaterial)
         {
             XRPass passInfo = GenericPool<XRPass>.Get();
 
             passInfo.multipassId = multipassId;
             passInfo.cullingPassId = xrRenderPass.cullingPassIndex;
+            passInfo.cullingParams = cullingParameters;
             passInfo.views.Clear();
             passInfo.renderTarget = xrRenderPass.renderTarget;
             passInfo.renderTargetDesc = xrRenderPass.renderTargetDesc;
@@ -140,9 +151,9 @@ namespace UnityEngine.Rendering.HighDefinition
             return passInfo;
         }
 
-        internal void AddView(XRDisplaySubsystem.XRRenderParameter xrSdkRenderParameter)
+        internal void AddView(XRDisplaySubsystem.XRRenderPass xrSdkRenderPass, XRDisplaySubsystem.XRRenderParameter xrSdkRenderParameter)
         {
-            AddViewInternal(new XRView(xrSdkRenderParameter));
+            AddViewInternal(new XRView(xrSdkRenderPass, xrSdkRenderParameter));
         }
 #endif
         internal static void Release(XRPass xrPass)
@@ -229,7 +240,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Legacy VR - push to XR headset and/or display mirror
             if (hdCamera.camera.stereoEnabled)
-                        {
+            {
                 if (legacyMultipassEnabled)
                     renderContext.StereoEndRender(hdCamera.camera, legacyMultipassEye, legacyMultipassEye == 1);
                 else
@@ -250,7 +261,7 @@ namespace UnityEngine.Rendering.HighDefinition
             //        {
             //            if (views[viewId].occlusionMesh != null)
             //            {
-            //                HDUtils.SetRenderTarget(cmd, depthBuffer, ClearFlag.None, 0, CubemapFace.Unknown, viewId);
+            //                CoreUtils.SetRenderTarget(cmd, depthBuffer, ClearFlag.None, 0, CubemapFace.Unknown, viewId);
             //                cmd.DrawMesh(views[viewId].occlusionMesh, m, occlusionMeshMaterial);
             //            }
             //        }

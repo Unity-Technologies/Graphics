@@ -6,6 +6,7 @@ using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 namespace UnityEditor.Rendering
 {
@@ -106,6 +107,9 @@ namespace UnityEditor.Rendering
             static void ReleaseMouseControl() => s_GrabbedID = -1;
             static bool HasMouseControl(int id) => s_GrabbedID == id;
         }
+
+        static GraphicsDeviceType[] m_BuildTargets;
+        public static GraphicsDeviceType[] buildTargets => m_BuildTargets ?? (m_BuildTargets = PlayerSettings.GetGraphicsAPIs(EditorUserBuildSettings.activeBuildTarget));
 
         static CoreEditorUtils()
         {
@@ -727,16 +731,14 @@ namespace UnityEditor.Rendering
         /// <param name="name">Icon name without suffix, prefix or extention</param>
         /// <param name="extention">[Optional] Extention of file (png per default)</param>
         /// <param name="skin">[Optional] Load icon for this skin (Auto per default take current skin)</param>
-        internal static Texture2D LoadIcon(string path, string name, string extention = ".png", Skin skin = Skin.Auto, bool forceLowRes = false)
+        public static Texture2D LoadIcon(string path, string name, string extention = ".png", bool forceLowRes = false)
         {
             if (String.IsNullOrEmpty(path) || String.IsNullOrEmpty(name))
                 return null;
 
             string prefix = "";
 
-            if (skin == Skin.Auto)
-                skin = currentSkin;
-
+            var skin = currentSkin;
             if (skin == Skin.Professional)
                 prefix = "d_";
             

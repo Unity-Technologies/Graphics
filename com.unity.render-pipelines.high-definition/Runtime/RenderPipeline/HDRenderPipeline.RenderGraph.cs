@@ -719,7 +719,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     var intermediateBuffer = context.resources.GetTexture(data.intermediateBuffer);
                     var inputVolumetric = context.resources.GetTexture(data.volumetricLighting);
 
-                    data.skyManager.RenderSky(data.hdCamera, data.sunLight, destination, depthBuffer, data.debugDisplaySettings, context.cmd);
+                    data.skyManager.RenderSky(data.hdCamera, data.sunLight, destination, depthBuffer, data.debugDisplaySettings, m_FrameCount, context.cmd);
 
                     if ((data.visualEnvironment.fogType.value != FogType.None) || (data.visualEnvironment.skyType.value == (int)SkyType.PhysicallyBased))
                     {

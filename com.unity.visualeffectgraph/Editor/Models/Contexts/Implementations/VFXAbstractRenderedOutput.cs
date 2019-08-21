@@ -13,7 +13,6 @@ namespace UnityEditor.VFX
         {
             Additive,
             Alpha,
-            Masked,
             AlphaPremultiplied,
             Opaque,
         }
@@ -21,7 +20,25 @@ namespace UnityEditor.VFX
         [VFXSetting, Header("Render States")]
         public BlendMode blendMode = BlendMode.Alpha;
 
-        public bool isBlendModeOpaque { get { return blendMode == BlendMode.Opaque || blendMode == BlendMode.Masked; } }
+        [VFXSetting,Tooltip("Use Pixel Clipping using an alpha threshold.")]
+        public bool useAlphaClipping = false;
+
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]
+        protected bool generateMotionVector = false;
+
+        public bool isBlendModeOpaque { get { return blendMode == BlendMode.Opaque; } }
+
+        public virtual bool hasMotionVector
+        {
+            get
+            {
+                return subOutput.supportsMotionVector
+                    && implementsMotionVector
+                    && generateMotionVector;
+            }
+        }
+
+        public virtual bool implementsMotionVector { get { return false; } }
 
         protected VFXAbstractRenderedOutput(VFXDataType dataType) : base(VFXContextType.Output, dataType, VFXDataType.None) { }
 
@@ -137,8 +154,38 @@ namespace UnityEditor.VFX
         protected virtual void WriteBlendMode(VFXShaderWriter writer)
         {
             var blendModeStr = subOutput.GetBlendModeStr();
-            if (!String.IsNullOrEmpty(blendModeStr))
+            if (!string.IsNullOrEmpty(blendModeStr))
                 writer.WriteLine(blendModeStr);
+            if (hasMotionVector && !isBlendModeOpaque)
+                writer.WriteLine("Blend 1 Off"); //Disable blending for velocity target in forward
+        }
+
+        public override void Sanitize(int version)
+        {
+            if (version < 3) // Fix Blend Modes and useAlphaClipping
+            {
+                int blendModeValue = (int)blendMode; 
+                switch(blendModeValue)
+                {
+                    case 0: // No change required for 0 and 1 (Additive and AlphaBlend)
+                    case 1:
+                        break;
+                    case 2: // Masked
+                        SetSettingValue("useAlphaClipping", true);
+                        SetSettingValue("blendMode",(int)BlendMode.Opaque);
+                        break;
+                    case 3: // Alpha Premultiplied
+                        SetSettingValue("blendMode", (int)BlendMode.AlphaPremultiplied);
+
+                        break;
+                    case 4: // Opaque
+                        SetSettingValue("blendMode", (int)BlendMode.Opaque);
+                        break;
+                    default: 
+                        break;
+                }
+            }
+            base.Sanitize(version);
         }
 
         [SerializeField]
