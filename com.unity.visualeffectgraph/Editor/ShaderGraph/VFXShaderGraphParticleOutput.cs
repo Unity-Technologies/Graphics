@@ -355,7 +355,7 @@ namespace UnityEditor.VFX
                             if( graphCode.requirements.requiresVertexColor)
                             {
                                 yield return new KeyValuePair<string, VFXShaderWriter>($"VFX_SHADERGRAPH_HAS_COLOR", new VFXShaderWriter("1"));
-                                callSG.builder.AppendLine($"INSG.color = i.vertexColor;");
+                                callSG.builder.AppendLine($"INSG.VertexColor = i.vertexColor;");
                             }
                         }
                         /*
