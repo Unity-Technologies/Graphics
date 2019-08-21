@@ -547,11 +547,10 @@ namespace UnityEditor.VFX.UI
                 return DropdownMenuAction.Status.Normal;
         }
 
-        List<IconBadge> m_ErrorBadges = new List<IconBadge>();
+        List<IconBadge> m_Badges = new List<IconBadge>();
 
         internal void UpdateStatus(VFXCompilationStatus status)
         {
-
             foreach(var badge in m_Badges)
             {
                 badge.Detach();
@@ -563,15 +562,15 @@ namespace UnityEditor.VFX.UI
             if (status == null)
                 return;
 
-            foreach( var error in status.errors.Select(t=>new { value = t,error = true }).Concat( status.warnings.Select(t=> new { value = t, error = false})))
+            foreach( var error in status.logs)
             {
                 VisualElement target = null;
                 VisualElement targetParent = null;
                 SpriteAlignment alignement = SpriteAlignment.TopLeft;
 
-                if( error.value.model is VFXSlot)
+                if( error.model is VFXSlot)
                 {
-                    var slot = (VFXSlot)error.value.model;
+                    var slot = (VFXSlot)error.model;
                     // todo manage parameter slot if they can have error
 
                     var nodeController = controller.GetNodeController(slot.owner as VFXModel, 0);
@@ -585,9 +584,9 @@ namespace UnityEditor.VFX.UI
                     target = (targetParent as VFXNodeUI).GetPorts(slot.direction == VFXSlot.Direction.kInput, slot.direction != VFXSlot.Direction.kInput).FirstOrDefault(t => t.controller == anchorController);
                     alignement = slot.direction == VFXSlot.Direction.kInput ? SpriteAlignment.LeftCenter : SpriteAlignment.RightCenter;
                 }
-                else if( error.value.model is IVFXSlotContainer)
+                else if( error.model is IVFXSlotContainer)
                 {
-                    var context = (VFXModel)error.value.model;
+                    var context = (VFXModel)error.model;
                     var nodeController = controller.GetNodeController(context, 0);
                     if (nodeController == null)
                         continue;
@@ -598,7 +597,7 @@ namespace UnityEditor.VFX.UI
                 }
                 if( target != null)
                 {
-                    var badge = error.error ? IconBadge.CreateError(error.value.error) : IconBadge.CreateComment(error.value.error);
+                    var badge = error.type == MessageType.Error ? IconBadge.CreateError(error.error) : IconBadge.CreateComment(error.error);
                     targetParent.Add(badge);
                     badge.AttachTo(target, alignement);
                     m_Badges.Add(badge);
