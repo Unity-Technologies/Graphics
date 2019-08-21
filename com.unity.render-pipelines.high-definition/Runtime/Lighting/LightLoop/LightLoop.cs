@@ -1976,7 +1976,7 @@ namespace UnityEngine.Rendering.HighDefinition
             for (int sortIndex = 0; sortIndex < sortCount; ++sortIndex)
             {
                 // In 1. we have already classify and sorted the light, we need to use this sorted order here
-                uint sortKey = m_SortKeys[sortIndex];
+                uint sortKey = m_ProbeSortKeys[sortIndex];
                 LightVolumeType lightVolumeType;
                 int probeIndex;
                 int listType;
@@ -1999,7 +1999,7 @@ namespace UnityEngine.Rendering.HighDefinition
             for (int sortIndex = 0; sortIndex < sortCount; ++sortIndex)
             {
                 // In 1. we have already classify and sorted the light, we need to use this sorted order here
-                uint sortKey = m_SortKeys[sortIndex];
+                uint sortKey = m_ProbeSortKeys[sortIndex];
                 LightVolumeType lightVolumeType;
                 int probeIndex;
                 int listType;
@@ -2076,7 +2076,7 @@ namespace UnityEngine.Rendering.HighDefinition
             for (int lightIndex = 0; lightIndex < cullResults.visibleLights.Length; ++lightIndex)
             {
                 Light light = m_VisibleLights[lightIndex].light;
-                if (!aovRequest.IsLightEnabled(m_LightComponents[lightIndex].gameObject))
+                if (!aovRequest.IsLightEnabled(light.gameObject))
                     continue;
 
                 HDAdditionalLightData additionalData = GetHDAdditionalLightData(light);
@@ -2177,7 +2177,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_HDLightDatas[sortCount] = additionalData;
                 // 5 bit (0x1F) light category, 5 bit (0x1F) GPULightType, 5 bit (0x1F) lightVolume, 1 bit for shadow casting, 16 bit index
                 m_SortKeys[sortCount++] = (uint)lightCategory << 27 | (uint)gpuLightType << 22 | (uint)lightVolumeType << 17 | (uint)lightIndex;
-                sortCount++;
             }
             CoreUnsafeUtils.QuickSort(m_SortKeys, 0, sortCount - 1); // Call our own quicksort instead of Array.Sort(sortKeys, 0, sortCount) so we don't allocate memory (note the SortCount-1 that is different from original call).
             return sortCount;
@@ -2279,7 +2278,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void CullLightsByDebugSettingAndDistance(int sortCount, HDCamera hdCamera,ref int punctualLightCount, ref int areaLightCount, ref int directionalLightCount)
         {
-           
             punctualLightCount = 0;
             areaLightCount = 0;
             directionalLightCount = 0;
@@ -2354,6 +2352,8 @@ namespace UnityEngine.Rendering.HighDefinition
             UpdateArraySize(lightCount, ref m_LightComponents);
 
             int sortCount = CreateLightSortKeys(cullResults, debugDisplaySettings, aovRequest);
+            Debug.Assert(sortCount <= lightCount);
+            UpdateArraySize(sortCount, ref m_DirLightIndices);
             AllocatePunctualLightScratchData(sortCount);
             CullLightsByDebugSettingAndDistance(sortCount, hdCamera, ref punctualLightCount, ref areaLightCount, ref directionalLightCount);           
         }
@@ -2467,7 +2467,7 @@ namespace UnityEngine.Rendering.HighDefinition
             var hasDebugLightFilter = debugLightFilter != DebugLightFilterMode.None;
 
             using (new ProfilingSample(cmd, "Prepare Lights For GPU"))
-            {
+            {   
                 Camera camera = hdCamera.camera;
                 // If any light require it, we need to enabled bake shadow mask feature
                 m_enableBakeShadowMask = false;
