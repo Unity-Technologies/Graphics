@@ -273,7 +273,7 @@ namespace UnityEditor.VFX
                         yield return new KeyValuePair<string, VFXShaderWriter>("${SHADERGRAPH_PIXEL_CODE_" + kvPass.Key.ToUpper() + "}", new VFXShaderWriter(graphCode.code));
 
                         var callSG = new VFXShaderWriter("//Call Shader Graph\n");
-                        callSG.builder.AppendLine($"{shaderGraph.inputStructName} INSG;");
+                        callSG.builder.AppendLine($"{shaderGraph.inputStructName} INSG = ({shaderGraph.inputStructName})0;");
 
                         if (graphCode.requirements.requiresNormal != NeededCoordinateSpace.None)
                         {
@@ -342,7 +342,7 @@ namespace UnityEditor.VFX
 
                         if (taskType == VFXTaskType.ParticleMeshOutput)
                         {
-                            for (UVChannel uv = UVChannel.UV1; uv != UVChannel.UV3; ++uv)
+                            for (UVChannel uv = UVChannel.UV1; uv <= UVChannel.UV3; ++uv)
                             {
                                 if (graphCode.requirements.requiresMeshUVs.Contains(uv))
                                 {
