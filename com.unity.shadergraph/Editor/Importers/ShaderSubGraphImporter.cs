@@ -143,6 +143,8 @@ namespace UnityEditor.ShaderGraph
                 return;
             }
 
+            var collector = new PropertyCollector();
+            asset.nodeProperties = collector.properties;
             foreach (var node in nodes)
             {
                 if (node is IGeneratesFunction generatesFunction)
@@ -150,6 +152,25 @@ namespace UnityEditor.ShaderGraph
                     registry.builder.currentNode = node;
                     generatesFunction.GenerateNodeFunction(registry, new GraphContext(asset.inputStructName), GenerationMode.ForReals);
                     registry.builder.ReplaceInCurrentMapping(PrecisionUtil.Token, node.concretePrecision.ToShaderString());
+                }
+
+                node.CollectShaderProperties(collector, GenerationMode.ForReals);
+            }
+
+            foreach (var prop in graph.properties)
+            {
+                if (prop.IsAnyTextureType())
+                {
+                    // Find the corresponding SamplerState property.
+                    var samplerStateName = $"sampler{prop.referenceName}";
+                    int samplerStatePropIndex = collector.properties.FindIndex(p => p is SamplerStateShaderProperty && p.referenceName == samplerStateName);
+                    if (samplerStatePropIndex >= 0)
+                    {
+                        // Make it as a hidden input, not a uniform.
+                        collector.properties[samplerStatePropIndex].hidden = true;
+                        asset.inputs.Add(collector.properties[samplerStatePropIndex]);
+                        collector.properties.RemoveAt(samplerStatePropIndex);
+                    }
                 }
             }
 
@@ -200,15 +221,7 @@ namespace UnityEditor.ShaderGraph
                     }
                 }
             });
-
             asset.functions.AddRange(registry.names.Select(x => new FunctionPair(x, registry.sources[x])));
-
-            var collector = new PropertyCollector();
-            asset.nodeProperties = collector.properties;
-            foreach (var node in nodes)
-            {
-                node.CollectShaderProperties(collector, GenerationMode.ForReals);
-            }
 
             asset.OnBeforeSerialize();
         }

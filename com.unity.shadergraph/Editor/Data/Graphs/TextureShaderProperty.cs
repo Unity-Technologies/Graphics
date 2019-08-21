@@ -28,7 +28,7 @@ namespace UnityEditor.ShaderGraph
         
         public override string GetPropertyAsArgumentString()
         {
-            return $"TEXTURE2D_PARAM({referenceName}, sampler{referenceName})";
+            return $"TEXTURE2D({referenceName})";
         }
         
         [SerializeField]

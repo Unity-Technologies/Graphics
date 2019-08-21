@@ -28,7 +28,7 @@ namespace UnityEditor.ShaderGraph
 
         public override string GetPropertyAsArgumentString()
         {
-            return $"SamplerState {referenceName}";
+            return $"SAMPLER({referenceName})";
         }
         
         public override AbstractMaterialNode ToConcreteNode()

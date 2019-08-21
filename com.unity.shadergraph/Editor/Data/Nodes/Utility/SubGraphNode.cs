@@ -61,7 +61,7 @@ namespace UnityEditor.ShaderGraph
 
         [Serializable]
         class AssetReference
-            {
+        {
             public long fileID = default;
             public string guid = default;
             public int type = default;
@@ -195,25 +195,7 @@ namespace UnityEditor.ShaderGraph
             {               
                 prop.ValidateConcretePrecision(asset.graphPrecision);
                 var inSlotId = m_PropertyIds[m_PropertyGuids.IndexOf(prop.guid.ToString())];
-
-                switch(prop)
-                {
-                    case TextureShaderProperty texture2DProp:
-                        arguments.Add(string.Format("TEXTURE2D_ARGS({0}, sampler{0})", GetSlotValue(inSlotId, generationMode, prop.concretePrecision)));
-                        break;
-                    case Texture2DArrayShaderProperty texture2DArrayProp:
-                        arguments.Add(string.Format("TEXTURE2D_ARRAY_ARGS({0}, sampler{0})", GetSlotValue(inSlotId, generationMode, prop.concretePrecision)));
-                        break;
-                    case Texture3DShaderProperty texture3DProp:
-                        arguments.Add(string.Format("TEXTURE3D_ARGS({0}, sampler{0})", GetSlotValue(inSlotId, generationMode, prop.concretePrecision)));
-                        break;
-                    case CubemapShaderProperty cubemapProp:
-                        arguments.Add(string.Format("TEXTURECUBE_ARGS({0}, sampler{0})", GetSlotValue(inSlotId, generationMode, prop.concretePrecision)));
-                        break;
-                    default:
-                        arguments.Add(string.Format("{0}", GetSlotValue(inSlotId, generationMode, prop.concretePrecision)));
-                        break;
-                }
+                arguments.Add(string.Format("{0}", GetSlotValue(inSlotId, generationMode, prop.concretePrecision)));
             }
 
             // pass surface inputs through
@@ -263,7 +245,7 @@ namespace UnityEditor.ShaderGraph
                     m_PropertyIds.Add(prop.guid.GetHashCode());
                 }
                 var id = m_PropertyIds[propertyIndex];
-                MaterialSlot slot = MaterialSlot.CreateMaterialSlot(valueType, id, prop.displayName, prop.referenceName, SlotType.Input, Vector4.zero, ShaderStageCapability.All);
+                MaterialSlot slot = MaterialSlot.CreateMaterialSlot(valueType, id, prop.displayName, prop.referenceName, SlotType.Input, Vector4.zero, ShaderStageCapability.All, hidden: prop.hidden);
                 
                 // Copy defaults
                 switch(prop.concreteShaderValueType)
@@ -379,6 +361,18 @@ namespace UnityEditor.ShaderGraph
                 
                 AddSlot(slot);
                 validNames.Add(id);
+            }
+
+            // Go over all hidden sampler inputs: link them to the texture input.
+            foreach (var hiddenSampler in props.Where(p => p is SamplerStateShaderProperty && p.hidden))
+            {
+                var guidIndex = m_PropertyGuids.IndexOf(hiddenSampler.guid.ToString());
+                var samplerStateSlot = FindInputSlot<SamplerStateMaterialSlot>(m_PropertyIds[guidIndex]);
+
+                var texturePropName = hiddenSampler.referenceName.Substring("sampler".Length);
+                int textureGuidIndex = m_PropertyGuids.IndexOf(props.FirstOrDefault(p => p.IsAnyTextureType() && p.referenceName == texturePropName)?.guid.ToString());
+                if (textureGuidIndex >= 0)
+                    samplerStateSlot.textureSlotId = m_PropertyIds[textureGuidIndex];
             }
 
             var outputStage = asset.effectiveShaderStage;

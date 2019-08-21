@@ -26,7 +26,7 @@ namespace UnityEditor.ShaderGraph
         
         public override string GetPropertyAsArgumentString()
         {
-            return $"TEXTURECUBE_PARAM({referenceName}, sampler{referenceName})";
+            return $"TEXTURECUBE({referenceName})";
         }
         
         [SerializeField]

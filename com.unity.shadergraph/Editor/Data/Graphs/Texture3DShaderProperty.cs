@@ -26,7 +26,7 @@ namespace UnityEditor.ShaderGraph
         
         public override string GetPropertyAsArgumentString()
         {
-            return $"TEXTURE3D_PARAM({referenceName}, sampler{referenceName})";
+            return $"TEXTURE3D({referenceName})";
         }
         
         [SerializeField]
