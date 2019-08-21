@@ -47,7 +47,7 @@ namespace UnityEditor.VFX
             AssetDatabase.SaveAssets();
         }
 
-        [MenuItem("Edit/Visual Effects//Clear All Visual Effect Runtime Data", priority = 321)]
+        [MenuItem("Edit/Visual Effects//Clear All Visual Effect Runtime Data", /* validate = */false, /*priority =*/ 321, /* internalMenu = */ true)]
         public static void ClearRuntime()
         {
             var vfxAssets = GetAllVisualEffectAssets();
@@ -62,7 +62,6 @@ namespace UnityEditor.VFX
                 vfxAsset.GetResource().GetOrCreateGraph().OnSaved();
 
                 //Now effective clear runtime data
-                vfxAsset.GetResource().shaderSources = new VFXShaderSourceDesc[] { }; //TODO: Should be done by ClearRuntimeData, remove this when it's fixed
                 vfxAsset.GetResource().ClearRuntimeData();
             }
             AssetDatabase.SaveAssets();
