@@ -3,6 +3,7 @@ using System.Text;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.IO.IsolatedStorage;
 using System.Linq;
 using System.Text.RegularExpressions;
 using UnityEditor.Graphing;
@@ -10,6 +11,8 @@ using UnityEditor.Graphing.Util;
 using UnityEditorInternal;
 using Debug = UnityEngine.Debug;
 using System.Reflection;
+using System.Runtime.Remoting.Metadata.W3cXsd2001;
+using Data.Util;
 using UnityEditor.ProjectWindowCallback;
 using UnityEditor.ShaderGraph.Internal;
 using UnityEngine;
@@ -188,7 +191,7 @@ namespace UnityEditor.ShaderGraph
             return result.ToString();
         }
 
-        private static bool ShouldSpliceField(System.Type parentType, FieldInfo field, HashSet<string> activeFields, out bool isOptional)
+        private static bool ShouldSpliceField(System.Type parentType, FieldInfo field, IActiveFields activeFields, out bool isOptional)
         {
             bool fieldActive = true;
             isOptional = field.IsDefined(typeof(Optional), false);
@@ -263,7 +266,7 @@ namespace UnityEditor.ShaderGraph
             return conditional;
         }
 
-        public static void BuildType(System.Type t, HashSet<string> activeFields, ShaderGenerator result)
+        public static void BuildType(System.Type t, ActiveFields activeFields, ShaderGenerator result)
         {
             result.AddShaderChunk("struct " + t.Name + " {");
             result.Indent();
@@ -272,38 +275,98 @@ namespace UnityEditor.ShaderGraph
             {
                 if (field.MemberType == MemberTypes.Field)
                 {
-                    bool isOptional;
-                    if (ShouldSpliceField(t, field, activeFields, out isOptional))
+                    bool isOptional = false;
+
+                    var fieldIsActive = false;
+                    var keywordIfdefs = string.Empty;
+
+                    if (activeFields.permutationCount > 0)
                     {
-                        string semanticString = GetFieldSemantic(field);
+                        // Evaluate all activeFields instance
+                        var instances = activeFields
+                            .allPermutations.instances
+                            .Where(i => ShouldSpliceField(t, field, i, out isOptional))
+                            .ToList();
+
+                        fieldIsActive = instances.Count > 0;
+                        if (fieldIsActive)
+                            keywordIfdefs = KeywordUtil.GetKeywordPermutationSetConditional(instances
+                                .Select(i => i.permutationIndex).ToList());
+                    }
+                    else
+                    {
+                        fieldIsActive = ShouldSpliceField(t, field, activeFields.baseInstance, out isOptional);
+                    }
+
+
+                    if (fieldIsActive)
+                    {
+                        // The field is used, so generate it
+                        var semanticString = GetFieldSemantic(field);
                         int componentCount;
-                        string fieldType = GetFieldType(field, out componentCount);
-                        string conditional = GetFieldConditional(field);
+                        var fieldType = GetFieldType(field, out componentCount);
+                        var conditional = GetFieldConditional(field);
 
                         if (conditional != null)
-                        {
                             result.AddShaderChunk("#if " + conditional);
-                        }
-                        string fieldDecl = fieldType + " " + field.Name + semanticString + ";" + (isOptional ? " // optional" : string.Empty);
+                        if (!string.IsNullOrEmpty(keywordIfdefs))
+                            result.AddShaderChunk(keywordIfdefs);
+
+                        var fieldDecl = fieldType + " " + field.Name + semanticString + ";" + (isOptional ? " // optional" : string.Empty);
                         result.AddShaderChunk(fieldDecl);
+
+                        if (!string.IsNullOrEmpty(keywordIfdefs))
+                            result.AddShaderChunk("#endif // Shader Graph Keywords");
                         if (conditional != null)
-                        {
                             result.AddShaderChunk("#endif // " + conditional);
                         }
                     }
                 }
-            }
             result.Deindent();
             result.AddShaderChunk("};");
 
             object[] packAttributes = t.GetCustomAttributes(typeof(InterpolatorPack), false);
             if (packAttributes.Length > 0)
             {
-                BuildPackedType(t, activeFields, result);
+                var generatedPackedTypes = new Dictionary<string, (ShaderGenerator, List<int>)>();
+
+                if (activeFields.permutationCount > 0)
+                {
+                    foreach (var instance in activeFields.allPermutations.instances)
+                    {
+                        var instanceGenerator = new ShaderGenerator();
+                        BuildPackedType(t, instance, instanceGenerator);
+                        var key = instanceGenerator.GetShaderString(0);
+                        if (generatedPackedTypes.TryGetValue(key, out var value))
+                            value.Item2.Add(instance.permutationIndex);
+                        else
+                            generatedPackedTypes.Add(key, (instanceGenerator, new List<int> { instance.permutationIndex }));
+            }
+
+                    var isFirst = true;
+                    foreach (var generated in generatedPackedTypes)
+                    {
+                        if (isFirst)
+                        {
+                            isFirst = false;
+                            result.AddShaderChunk(KeywordUtil.GetKeywordPermutationSetConditional(generated.Value.Item2));
+        }
+                        else
+                            result.AddShaderChunk(KeywordUtil.GetKeywordPermutationSetConditional(generated.Value.Item2).Replace("#if", "#elif"));
+
+                        result.AddGenerator(generated.Value.Item1);
+                    }
+                    if (generatedPackedTypes.Count > 0)
+                        result.AddShaderChunk("#endif");
+                }
+                else
+                {
+                    BuildPackedType(t, activeFields.baseInstance, result);
+                }
             }
         }
 
-        public static void BuildPackedType(System.Type unpacked, HashSet<string> activeFields, ShaderGenerator result)
+        public static void BuildPackedType(System.Type unpacked, IActiveFields activeFields, ShaderGenerator result)
         {
             // for each interpolator, the number of components used (up to 4 for a float4 interpolator)
             List<int> packedCounts = new List<int>();
@@ -447,7 +510,7 @@ namespace UnityEditor.ShaderGraph
         public class TemplatePreprocessor
         {
             // inputs
-            HashSet<string> activeFields;
+            ActiveFields activeFields;
             Dictionary<string, string> namedFragments;
             string templatePath;
             bool debugOutput;
@@ -460,7 +523,7 @@ namespace UnityEditor.ShaderGraph
             ShaderStringBuilder result;
             List<string> sourceAssetDependencyPaths;
 
-            public TemplatePreprocessor(HashSet<string> activeFields, Dictionary<string, string> namedFragments, bool debugOutput, string templatePath, List<string> sourceAssetDependencyPaths, string buildTypeAssemblyNameFormat, ShaderStringBuilder outShaderCodeResult = null)
+            public TemplatePreprocessor(ActiveFields activeFields, Dictionary<string, string> namedFragments, bool debugOutput, string templatePath, List<string> sourceAssetDependencyPaths, string buildTypeAssemblyNameFormat, ShaderStringBuilder outShaderCodeResult = null)
             {
                 this.activeFields = activeFields;
                 this.namedFragments = namedFragments;
@@ -711,9 +774,35 @@ namespace UnityEditor.ShaderGraph
             private bool ProcessPredicate(Token predicate, int endLine, ref int cur, ref bool appendEndln)
             {
                 // eval if(param)
-                string fieldName = predicate.GetString();
-                int nonwhitespace = SkipWhitespace(predicate.s, predicate.end + 1, endLine);
-                if (activeFields.Contains(fieldName))
+                var fieldName = predicate.GetString();
+                var nonwhitespace = SkipWhitespace(predicate.s, predicate.end + 1, endLine);
+
+                if (activeFields.permutationCount > 0)
+                {
+                    var passedPermutations = activeFields.allPermutations.instances
+                        .Where(i => i.Contains(fieldName))
+                        .ToList();
+
+                    if (passedPermutations.Count > 0)
+                    {
+                        var ifdefs = KeywordUtil.GetKeywordPermutationSetConditional(
+                            passedPermutations.Select(i => i.permutationIndex).ToList()
+                        );
+                        result.AppendLine(ifdefs);
+                        // Append the rest of the line
+                        AppendSubstring(predicate.s, nonwhitespace, true, endLine, false);
+                        result.AppendLine("");
+                        result.AppendLine("#endif");
+
+                        return false;
+                    }
+
+                    return false;
+                }
+                else
+                {
+                    // eval if(param)
+                    if (activeFields.baseInstance.Contains(fieldName))
                 {
                     // predicate is active
                     // append everything before the beginning of the escape sequence
@@ -741,6 +830,7 @@ namespace UnityEditor.ShaderGraph
                     }
                     return false;
                 }
+            }
             }
 
             private Token ParseIdentifier(string code, int start, int end)
@@ -831,11 +921,11 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        public static void ApplyDependencies(HashSet<string> activeFields, List<Dependency[]> dependsList)
+        public static void ApplyDependencies(IActiveFields activeFields, List<Dependency[]> dependsList)
         {
             // add active fields to queue
             Queue<string> fieldsToPropagate = new Queue<string>();
-            foreach (string f in activeFields)
+            foreach (var f in activeFields.fields)
             {
                 fieldsToPropagate.Enqueue(f);
             }
@@ -927,7 +1017,7 @@ namespace UnityEditor.ShaderGraph
             return importer is ShaderGraphImporter;
         }
 
-        public static void GeneratePropertiesBlock(ShaderStringBuilder sb, PropertyCollector propertyCollector, GenerationMode mode)
+        public static void GeneratePropertiesBlock(ShaderStringBuilder sb, PropertyCollector propertyCollector, KeywordCollector keywordCollector, GenerationMode mode)
         {
             sb.AppendLine("Properties");
             using (sb.BlockScope())
@@ -935,6 +1025,16 @@ namespace UnityEditor.ShaderGraph
                 foreach (var prop in propertyCollector.properties.Where(x => x.generatePropertyBlock))
                 {
                     sb.AppendLine(prop.GetPropertyBlockString());
+                }
+
+                // Keywords use hardcoded state in preview
+                // Do not add them to the Property Block
+                if(mode == GenerationMode.Preview)
+                    return;
+
+                foreach (var key in keywordCollector.keywords.Where(x => x.generatePropertyBlock))
+                {
+                    sb.AppendLine(key.GetPropertyBlockString());
                 }
             }
         }
@@ -988,7 +1088,11 @@ namespace UnityEditor.ShaderGraph
             var results = new GenerationResults();
 
             var shaderProperties = new PropertyCollector();
+            var shaderKeywords = new KeywordCollector();
             var shaderPropertyUniforms = new ShaderStringBuilder();
+            var shaderKeywordDeclarations = new ShaderStringBuilder();
+            var shaderKeywordPermutations = new ShaderStringBuilder(1);
+
             var functionBuilder = new ShaderStringBuilder();
             var functionRegistry = new FunctionRegistry(functionBuilder);
 
@@ -999,6 +1103,17 @@ namespace UnityEditor.ShaderGraph
             var surfaceDescriptionFunction = new ShaderStringBuilder(0);
 
             var vertexInputs = new ShaderStringBuilder(0);
+
+            graph.CollectShaderKeywords(shaderKeywords, mode);
+
+            if(graph.GetKeywordPermutationCount() > ShaderGraphPreferences.variantLimit)
+            {
+                graph.AddValidationError(node.tempId, ShaderKeyword.kVariantLimitWarning, Rendering.ShaderCompilerMessageSeverity.Error);
+
+                results.configuredTextures = shaderProperties.GetConfiguredTexutres();
+                results.shader = string.Empty;
+                return results;
+            }
 
             // -------------------------------------
             // Get Slot and Node lists
@@ -1020,6 +1135,43 @@ namespace UnityEditor.ShaderGraph
             // Get Requirements
 
             var requirements = ShaderGraphRequirements.FromNodes(activeNodeList, ShaderStageCapability.Fragment);
+
+            // ----------------------------------------------------- //
+            //                         KEYWORDS                      //
+            // ----------------------------------------------------- //
+
+            // -------------------------------------
+            // Get keyword permutations
+
+            graph.CollectShaderKeywords(shaderKeywords, mode);
+
+            // Track permutation indicies for all nodes and requirements
+            List<int>[] keywordPermutationsPerNode = new List<int>[activeNodeList.Count];
+
+            // -------------------------------------
+            // Evaluate all permutations
+
+            for(int i = 0; i < shaderKeywords.permutations.Count; i++)
+            {
+                // Get active nodes for this permutation
+                var localNodes = ListPool<AbstractMaterialNode>.Get();
+                NodeUtils.DepthFirstCollectNodesFromNode(localNodes, node, keywordPermutation: shaderKeywords.permutations[i]);
+
+                // Track each pixel node in this permutation
+                foreach(AbstractMaterialNode pixelNode in localNodes)
+                {
+                    int nodeIndex = activeNodeList.IndexOf(pixelNode);
+
+                    if(keywordPermutationsPerNode[nodeIndex] == null)
+                        keywordPermutationsPerNode[nodeIndex] = new List<int>();
+                    keywordPermutationsPerNode[nodeIndex].Add(i);
+                }
+
+                // Get active requirements for this permutation
+                var localSurfaceRequirements = ShaderGraphRequirements.FromNodes(localNodes, ShaderStageCapability.Fragment, false);
+                var localPixelRequirements = ShaderGraphRequirements.FromNodes(localNodes, ShaderStageCapability.Fragment);
+            }
+
 
             // ----------------------------------------------------- //
             //                START VERTEX DESCRIPTION               //
@@ -1044,7 +1196,7 @@ namespace UnityEditor.ShaderGraph
 
             GenerateSurfaceInputStruct(surfaceDescriptionInputStruct, requirements, "SurfaceDescriptionInputs");
 
-            results.previewMode = PreviewMode.Preview3D;
+            results.previewMode = PreviewMode.Preview2D;
             foreach (var pNode in activeNodeList)
             {
                 if (pNode.previewMode == PreviewMode.Preview3D)
@@ -1064,18 +1216,24 @@ namespace UnityEditor.ShaderGraph
 
             GenerateSurfaceDescriptionFunction(
                 activeNodeList,
+                keywordPermutationsPerNode,
                 node,
                 graph,
                 surfaceDescriptionFunction,
                 functionRegistry,
                 shaderProperties,
-                requirements,
+                shaderKeywords,
                 mode,
                 outputIdProperty: results.outputIdProperty);
 
             // ----------------------------------------------------- //
             //           GENERATE VERTEX > PIXEL PIPELINE            //
             // ----------------------------------------------------- //
+
+            // -------------------------------------
+            // Keyword declarations
+
+            shaderKeywords.GetKeywordsDeclaration(shaderKeywordDeclarations, mode);
 
             // -------------------------------------
             // Property uniforms
@@ -1097,7 +1255,7 @@ namespace UnityEditor.ShaderGraph
             finalShader.AppendLine(@"Shader ""{0}""", name);
             using (finalShader.BlockScope())
             {
-                GraphUtil.GeneratePropertiesBlock(finalShader, shaderProperties, mode);
+                GraphUtil.GeneratePropertiesBlock(finalShader, shaderProperties, shaderKeywords, mode);
                 finalShader.AppendNewLine();
 
                 finalShader.AppendLine(@"HLSLINCLUDE");
@@ -1110,8 +1268,12 @@ namespace UnityEditor.ShaderGraph
                 finalShader.AppendLine(@"#include ""Packages/com.unity.shadergraph/ShaderGraphLibrary/ShaderVariables.hlsl""");
                 finalShader.AppendLine(@"#include ""Packages/com.unity.shadergraph/ShaderGraphLibrary/ShaderVariablesFunctions.hlsl""");
                 finalShader.AppendLine(@"#include ""Packages/com.unity.shadergraph/ShaderGraphLibrary/Functions.hlsl""");
+
+                finalShader.AppendLines(shaderKeywordDeclarations.ToString());
                 finalShader.AppendLine(@"#define SHADERGRAPH_PREVIEW 1");
                 finalShader.AppendNewLine();
+
+                finalShader.AppendLines(shaderKeywordPermutations.ToString());
 
                 finalShader.AppendLines(shaderPropertyUniforms.ToString());
                 finalShader.AppendNewLine();
@@ -1206,7 +1368,7 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        public static void GenerateSurfaceDescriptionStruct(ShaderStringBuilder surfaceDescriptionStruct, List<MaterialSlot> slots, string structName = "SurfaceDescription", HashSet<string> activeFields = null, bool useIdsInNames = false)
+        public static void GenerateSurfaceDescriptionStruct(ShaderStringBuilder surfaceDescriptionStruct, List<MaterialSlot> slots, string structName = "SurfaceDescription", IActiveFieldsSet activeFields = null, bool useIdsInNames = false)
         {
             surfaceDescriptionStruct.AppendLine("struct {0}", structName);
             using (surfaceDescriptionStruct.BlockSemicolonScope())
@@ -1223,20 +1385,21 @@ namespace UnityEditor.ShaderGraph
 
                     if (activeFields != null)
                     {
-                        activeFields.Add(structName + "." + hlslName);
+                        activeFields.AddAll(structName + "." + hlslName);
                     }
                 }
             }
         }
 
         public static void GenerateSurfaceDescriptionFunction(
-            List<AbstractMaterialNode> activeNodeList,
+            List<AbstractMaterialNode> nodes,
+            List<int>[] keywordPermutationsPerNode,
             AbstractMaterialNode rootNode,
             GraphData graph,
             ShaderStringBuilder surfaceDescriptionFunction,
             FunctionRegistry functionRegistry,
             PropertyCollector shaderProperties,
-            ShaderGraphRequirements requirements,
+            KeywordCollector shaderKeywords,
             GenerationMode mode,
             string functionName = "PopulateSurfaceData",
             string surfaceDescriptionName = "SurfaceDescription",
@@ -1253,28 +1416,71 @@ namespace UnityEditor.ShaderGraph
             using (surfaceDescriptionFunction.BlockScope())
             {
                 surfaceDescriptionFunction.AppendLine("{0} surface = ({0})0;", surfaceDescriptionName);
-                foreach (var activeNode in activeNodeList)
+                for(int i = 0; i < nodes.Count; i++)
                 {
-                    if (activeNode is IGeneratesFunction functionNode)
-                    {
-                        functionRegistry.builder.currentNode = activeNode;
-                        functionNode.GenerateNodeFunction(functionRegistry, mode);
-                        functionRegistry.builder.ReplaceInCurrentMapping(PrecisionUtil.Token, activeNode.concretePrecision.ToShaderString());
-                    }
-
-                    if (activeNode is IGeneratesBodyCode bodyNode)
-                    {
-                        surfaceDescriptionFunction.currentNode = activeNode;
-                        bodyNode.GenerateNodeCode(surfaceDescriptionFunction, mode);
-                        surfaceDescriptionFunction.ReplaceInCurrentMapping(PrecisionUtil.Token, activeNode.concretePrecision.ToShaderString());
-                    }
-
-                    activeNode.CollectShaderProperties(shaderProperties, mode);
+                    GenerateDescriptionForNode(nodes[i], keywordPermutationsPerNode[i], functionRegistry, surfaceDescriptionFunction,
+                        shaderProperties, shaderKeywords,
+                        graph, mode);
                 }
 
                 functionRegistry.builder.currentNode = null;
                 surfaceDescriptionFunction.currentNode = null;
 
+                GenerateSurfaceDescriptionRemap(graph, rootNode, slots,
+                    surfaceDescriptionFunction, mode);
+
+                surfaceDescriptionFunction.AppendLine("return surface;");
+            }
+        }
+
+        static void GenerateDescriptionForNode(
+            AbstractMaterialNode activeNode,
+            List<int> keywordPermutations,
+            FunctionRegistry functionRegistry,
+            ShaderStringBuilder descriptionFunction,
+            PropertyCollector shaderProperties,
+            KeywordCollector shaderKeywords,
+            GraphData graph,
+            GenerationMode mode)
+        {
+            if (activeNode is IGeneratesFunction functionNode)
+            {
+                functionRegistry.builder.currentNode = activeNode;
+                functionNode.GenerateNodeFunction(functionRegistry, mode);
+                functionRegistry.builder.ReplaceInCurrentMapping(PrecisionUtil.Token,
+                    activeNode.concretePrecision.ToShaderString());
+            }
+
+            if (activeNode is IGeneratesBodyCode bodyNode)
+            {
+                if (keywordPermutations != null)
+                    descriptionFunction.AppendLine(
+                        KeywordUtil.GetKeywordPermutationSetConditional(keywordPermutations));
+
+                descriptionFunction.currentNode = activeNode;
+                bodyNode.GenerateNodeCode(descriptionFunction, mode);
+                descriptionFunction.ReplaceInCurrentMapping(PrecisionUtil.Token,
+                    activeNode.concretePrecision.ToShaderString());
+
+                if (keywordPermutations != null)
+                    descriptionFunction.AppendLine("#endif");
+            }
+
+            activeNode.CollectShaderProperties(shaderProperties, mode);
+
+            if (activeNode is SubGraphNode subGraphNode)
+            {
+                subGraphNode.CollectShaderKeywords(shaderKeywords, mode);
+            }
+        }
+
+        static void GenerateSurfaceDescriptionRemap(
+            GraphData graph,
+            AbstractMaterialNode rootNode,
+            IEnumerable<MaterialSlot> slots,
+            ShaderStringBuilder surfaceDescriptionFunction,
+            GenerationMode mode)
+        {
                 if (rootNode is IMasterNode || rootNode is SubGraphOutputNode)
                 {
                     var usedSlots = slots ?? rootNode.GetInputSlots<MaterialSlot>();
@@ -1312,13 +1518,10 @@ namespace UnityEditor.ShaderGraph
                             hlslSafeName, rootNode.GetSlotValue(slot.id, mode, rootNode.concretePrecision));
                     }
                 }
-
-                surfaceDescriptionFunction.AppendLine("return surface;");
-            }
         }
 
         const string k_VertexDescriptionStructName = "VertexDescription";
-        public static void GenerateVertexDescriptionStruct(ShaderStringBuilder builder, List<MaterialSlot> slots, string structName = k_VertexDescriptionStructName, HashSet<string> activeFields = null)
+        public static void GenerateVertexDescriptionStruct(ShaderStringBuilder builder, List<MaterialSlot> slots, string structName = k_VertexDescriptionStructName, IActiveFieldsSet activeFields = null)
         {
             builder.AppendLine("struct {0}", structName);
             using (builder.BlockSemicolonScope())
@@ -1330,7 +1533,7 @@ namespace UnityEditor.ShaderGraph
 
                     if (activeFields != null)
                     {
-                        activeFields.Add(structName + "." + hlslName);
+                        activeFields.AddAll(structName + "." + hlslName);
                     }
                 }
             }
@@ -1341,8 +1544,11 @@ namespace UnityEditor.ShaderGraph
             ShaderStringBuilder builder,
             FunctionRegistry functionRegistry,
             PropertyCollector shaderProperties,
+            KeywordCollector shaderKeywords,
             GenerationMode mode,
+            AbstractMaterialNode rootNode,
             List<AbstractMaterialNode> nodes,
+            List<int>[] keywordPermutationsPerNode,
             List<MaterialSlot> slots,
             string graphInputStructName = "VertexDescriptionInputs",
             string functionName = "PopulateVertexData",
@@ -1357,22 +1563,11 @@ namespace UnityEditor.ShaderGraph
             using (builder.BlockScope())
             {
                 builder.AppendLine("{0} description = ({0})0;", graphOutputStructName);
-                foreach (var node in nodes)
+                for(int i = 0; i < nodes.Count; i++)
                 {
-                    if (node is IGeneratesFunction generatesFunction)
-                    {
-                        functionRegistry.builder.currentNode = node;
-                        generatesFunction.GenerateNodeFunction(functionRegistry, mode);
-                        functionRegistry.builder.ReplaceInCurrentMapping(PrecisionUtil.Token, node.concretePrecision.ToShaderString());
-                    }
-
-                    if (node is IGeneratesBodyCode generatesBodyCode)
-                    {
-                        builder.currentNode = node;
-                        generatesBodyCode.GenerateNodeCode(builder, mode);
-                        builder.ReplaceInCurrentMapping(PrecisionUtil.Token, node.concretePrecision.ToShaderString());
-                    }
-                    node.CollectShaderProperties(shaderProperties, mode);
+                    GenerateDescriptionForNode(nodes[i], keywordPermutationsPerNode[i], functionRegistry, builder,
+                        shaderProperties, shaderKeywords,
+                        graph, mode);
                 }
 
                 functionRegistry.builder.currentNode = null;

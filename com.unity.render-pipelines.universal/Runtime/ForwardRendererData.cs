@@ -8,6 +8,7 @@ using UnityEngine.Scripting.APIUpdating;
 namespace UnityEngine.Rendering.Universal
 {
     [Serializable, ReloadGroup]
+    [MovedFrom("UnityEngine.Rendering.LWRP")]
     public class ForwardRendererData : ScriptableRendererData
     {
 #if UNITY_EDITOR
@@ -31,7 +32,7 @@ namespace UnityEngine.Rendering.Universal
 #endif
 
         [Serializable, ReloadGroup]
-        [MovedFrom("UnityEngine.Rendering.LWRP")] public sealed class ShaderResources
+        public sealed class ShaderResources
         {
             [Reload("Shaders/Utils/Blit.shader")]
             public Shader blitPS;
@@ -86,8 +87,12 @@ namespace UnityEngine.Rendering.Universal
                 return;
 
 #if UNITY_EDITOR
-            ResourceReloader.ReloadAllNullIn(this, UniversalRenderPipelineAsset.packagePath);
-            ResourceReloader.ReloadAllNullIn(postProcessData, UniversalRenderPipelineAsset.packagePath);
+            try
+            {
+                ResourceReloader.ReloadAllNullIn(this, UniversalRenderPipelineAsset.packagePath);
+                ResourceReloader.ReloadAllNullIn(postProcessData, UniversalRenderPipelineAsset.packagePath);
+            }
+            catch {}
 #endif
         }
     }

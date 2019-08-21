@@ -305,9 +305,9 @@ namespace UnityEditor.ShaderGraph.Drawing
                 });
             AddRow("Default", field);
 
-            if(!graph.isSubGraph)
-            {
-                var defaultModeField = new EnumField((Enum)property.defaultType);
+            var defaultMode = (Enum)Texture2DShaderProperty.DefaultType.Grey;
+            var textureMode = property.generatePropertyBlock ? (Enum)property.defaultType : defaultMode;
+            var defaultModeField = new EnumField(textureMode);
                 defaultModeField.RegisterValueChangedCallback(evt =>
                     {
                         graph.owner.RegisterCompleteObjectUndo("Change Texture Mode");
@@ -316,14 +316,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                         property.defaultType = (Texture2DShaderProperty.DefaultType)evt.newValue;
                         DirtyNodes(ModificationScope.Graph);
                     });
-
-                void ToggleDefaultModeFieldEnabled()
-                {
-                    defaultModeField.SetEnabled(!defaultModeField.enabledSelf);
-                }
-                onExposedToggle += ToggleDefaultModeFieldEnabled;
-                AddRow("Mode", defaultModeField);
-            }
+            AddRow("Mode", defaultModeField, !graph.isSubGraph && property.generatePropertyBlock);
         }
 
         void BuildTexture2DArrayPropertyField(Texture2DArrayShaderProperty property)
@@ -652,7 +645,10 @@ namespace UnityEditor.ShaderGraph.Drawing
             filterField.RegisterValueChangedCallback(evt =>
                 {
                     graph.owner.RegisterCompleteObjectUndo("Change Property Value");
-                    property.value.filter = (TextureSamplerState.FilterMode)evt.newValue;
+                    TextureSamplerState state = property.value;
+                    state.filter = (TextureSamplerState.FilterMode)evt.newValue;
+                    property.value = state;
+                    Rebuild();
                     DirtyNodes(ModificationScope.Graph);
                 });
             AddRow("Filter", filterField);
@@ -661,7 +657,10 @@ namespace UnityEditor.ShaderGraph.Drawing
             wrapField.RegisterValueChangedCallback(evt =>
                 {
                     graph.owner.RegisterCompleteObjectUndo("Change Property Value");
-                    property.value.wrap = (TextureSamplerState.WrapMode)evt.newValue;
+                    TextureSamplerState state = property.value;
+                    state.wrap = (TextureSamplerState.WrapMode)evt.newValue;
+                    property.value = state;
+                    Rebuild();
                     DirtyNodes(ModificationScope.Graph);
                 });
             AddRow("Wrap", wrapField);

@@ -7,6 +7,15 @@ The High Definition Render Pipeline (HDRP) uses a refraction algorithm to simula
 
 The refraction model allows the refraction algorithm to calculate light deviation and the distance that light travels within the Material. HDRP then uses [Proxy Raycasting](Reflection-Proxy-Volume.html) to compute a raycast and find the hit point of the deviated light ray.
 
+## Using Refraction
+
+To set up refraction on your Material, you need to do the following:
+
+1. Click on your Material to open it in the Inspector.
+2. Click the **Surface Type** drop-down and select **Transparent**. This exposes the **Transparency Inputs** section in the Inspector.
+3. Click the **Refraction Model** drop-down to select the [Refraction Model](#RefractionModel) for the Material.
+4. Make sure the alpha value for the **Base Map** is less than **1** to make the Material refractive. A value of **0** means that the Material is fully refractive.
+
 ## Refraction calculation
 
 HDRP uses these techniques to calculate light refraction:
@@ -24,7 +33,7 @@ To help you decide which techniques to use in your Unity Project, the following 
 
  
 
-<a name=”RefractionHierarchy”></a>
+<a name="RefractionHierarchy"></a>
 
 ## Refraction hierarchy
 

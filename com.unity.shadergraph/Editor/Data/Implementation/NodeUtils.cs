@@ -81,7 +81,8 @@ namespace UnityEditor.Graphing
             Exclude
         }
 
-        public static void DepthFirstCollectNodesFromNode(List<AbstractMaterialNode> nodeList, AbstractMaterialNode node, IncludeSelf includeSelf = IncludeSelf.Include, List<int> slotIds = null)
+        public static void DepthFirstCollectNodesFromNode(List<AbstractMaterialNode> nodeList, AbstractMaterialNode node, 
+            IncludeSelf includeSelf = IncludeSelf.Include, IEnumerable<int> slotIds = null, List<KeyValuePair<ShaderKeyword, int>> keywordPermutation = null)
         {
             // no where to start
             if (node == null)
@@ -92,17 +93,30 @@ namespace UnityEditor.Graphing
                 return;
 
             IEnumerable<int> ids;
-            if (slotIds == null)
+
+            // If this node is a keyword node and we have an active keyword permutation
+            // The only valid port id is the port that corresponds to that keywords value in the active permutation
+            if(node is KeywordNode keywordNode && keywordPermutation != null)
+            {
+                var valueInPermutation = keywordPermutation.Where(x => x.Key.guid == keywordNode.keywordGuid).FirstOrDefault();
+                ids = new int[] { keywordNode.GetSlotIdForPermutation(valueInPermutation) };
+            }
+            else if (slotIds == null)
+            {
                 ids = node.GetInputSlots<ISlot>().Select(x => x.id);
+            }
             else
+            {
                 ids = node.GetInputSlots<ISlot>().Where(x => slotIds.Contains(x.id)).Select(x => x.id);
+            }
 
             foreach (var slot in ids)
             {
                 foreach (var edge in node.owner.GetEdges(node.GetSlotReference(slot)))
                 {
-                    if (node.owner.GetNodeFromGuid(edge.outputSlot.nodeGuid) is AbstractMaterialNode outputNode)
-                        DepthFirstCollectNodesFromNode(nodeList, outputNode);
+                    var outputNode = node.owner.GetNodeFromGuid(edge.outputSlot.nodeGuid);
+                    if (outputNode != null)
+                        DepthFirstCollectNodesFromNode(nodeList, outputNode, keywordPermutation: keywordPermutation);
                 }
             }
 
@@ -283,7 +297,7 @@ namespace UnityEditor.Graphing
             char[] arr = input.ToCharArray();
             arr = Array.FindAll<char>(arr, (c => (Char.IsLetterOrDigit(c))));
             var safeName = new string(arr);
-            if (char.IsDigit(safeName[0]))
+            if (safeName.Length > 1 && char.IsDigit(safeName[0]))
             {
                 safeName = $"var{safeName}";
             }

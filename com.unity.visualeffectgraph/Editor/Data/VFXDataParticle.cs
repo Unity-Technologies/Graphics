@@ -258,8 +258,8 @@ namespace UnityEditor.VFX
             {
                 if (hasStrip)
                 {
-                    yield return "#define STRIP_COUNT " + stripCapacity;
-                    yield return "#define PARTICLE_PER_STRIP_COUNT " + particlePerStripCount;
+                    yield return "#define STRIP_COUNT " + stripCapacity + "u";
+                    yield return "#define PARTICLE_PER_STRIP_COUNT " + particlePerStripCount + "u";
                     yield return "#include \"Packages/com.unity.visualeffectgraph/Shaders/VFXParticleStripCommon.hlsl\"";
                 }
             }
