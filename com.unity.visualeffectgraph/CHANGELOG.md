@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 - Moved High Definition templates and includes to com.unity.render-pipelines.high-definition package
 - Navigation commands for subgraph.
+- Allow choosing the place to save vfx subgraph.
 
 ### Fixed
 - Using struct as subgraph parameters.
@@ -16,6 +17,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Selecting a GameObject with a VFX Property Binder spams exception.
 - Wrong motion vector while modifying local matrix of a VisualEffect.
 - Convert output settings copy.
+- category rename rect.
+- copy settings while converting an output
+- toolbar toggle appearing light with light skin.
+- multiselection of gradient in visual effect graph
+- clipped "reseed" in visual effect editor
 
 ## [7.0.1] - 2019-07-25
 ### Added
