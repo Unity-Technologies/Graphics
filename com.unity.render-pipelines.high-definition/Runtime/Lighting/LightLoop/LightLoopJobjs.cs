@@ -350,9 +350,9 @@ namespace UnityEngine.Rendering.HighDefinition
             [ReadOnly]
             public NativeArray<int> m_VisibleLightRemapping;
             [ReadOnly]
-            public int m_LightsPerView;
+            public int m_Stride;
             [ReadOnly]
-            public int m_DecalsPerView;
+            public int m_Offset;
             [ReadOnly]
             public int m_NumViews;
 
@@ -366,8 +366,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 NativeArray<Vector3> lightDimensions,
                 NativeArray<Matrix4x4> worldToView,
                 NativeArray<int> visibleLightRemapping,
-                int lightsPerView,
-                int decalsPerView,
+                int stride,
+                int offset,
                 int numViews)
             {
                 m_Bounds = bounds;
@@ -380,19 +380,17 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_LightDimensions = lightDimensions;
                 m_WorldToView = worldToView;
                 m_VisibleLightRemapping = visibleLightRemapping;
-                m_LightsPerView = lightsPerView;
-                m_DecalsPerView = decalsPerView;
+                m_Stride = stride;
+                m_Offset = offset;
                 m_NumViews = numViews;                
             }
 //            [BurstCompile(CompileSynchronously = true)]
             public void Execute(int index)
             {
-                // Then Culling side
-                int entriesPerView = (m_LightsPerView + m_DecalsPerView);
+                // Then Culling side               
                 for(int viewIndex = 0; viewIndex < m_NumViews; viewIndex++)
                 {
-                    int offsetPerView = viewIndex * entriesPerView;
-                    index = offsetPerView + (index % m_LightsPerView); // calculate actual index in the array padded with decal datas
+                    index = viewIndex * m_Stride + m_Offset + index;
                     var range = m_LightDimensions[index].z;
                     var lightToWorld = m_VisibleLights[m_VisibleLightRemapping[index]].localToWorldMatrix;
                     Vector3 positionWS = m_LightData[index].positionRWS;
@@ -403,8 +401,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     Vector3 yAxisVS = lightToView.GetColumn(1);
                     Vector3 zAxisVS = lightToView.GetColumn(2);
 
-                    LightVolumeData lvd = m_LightVolumeData[offsetPerView + index];
-                    SFiniteLightBound sflb = m_Bounds[offsetPerView + index];
+                    LightVolumeData lvd = m_LightVolumeData[index];
+                    SFiniteLightBound sflb = m_Bounds[index];
                 
                     lvd.lightCategory = (uint)m_LightCategory[index];
                     lvd.lightVolume = (uint)m_LightVolumeType[index];
@@ -557,26 +555,49 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         Debug.Assert(false, "TODO: encountered an unknown GPULightType.");
                     }
-                    m_LightVolumeData[offsetPerView + index] = lvd;
-                    m_Bounds[offsetPerView + index] = sflb;
+                    m_LightVolumeData[index] = lvd;
+                    m_Bounds[index] = sflb;
                 }
             }
         }
 
-        void AllocateRemappingArray(int sortCount)
+        void AllocateRefProbeScratchData(int sortCount)
+        {
+            m_RefProbesSortIndexRemapping = new NativeArray<int>(sortCount, Allocator.TempJob);
+            m_EnvIndex = new NativeArray<int>(sortCount, Allocator.TempJob);
+        }
+
+        void DisposeRefProbeScratchData()
+        {
+            m_RefProbesSortIndexRemapping.Dispose();
+            m_EnvIndex.Dispose();
+        }
+
+        void AllocatePunctualLightScratchData(int sortCount)
         {
             m_VisibleLightRemapping = new NativeArray<int>(sortCount, Allocator.TempJob);
             m_SortIndexRemapping = new NativeArray<int>(sortCount, Allocator.TempJob);
             m_LightPositions = new NativeArray<Vector3>(sortCount, Allocator.TempJob);
             m_LightTypes = new NativeArray<LightType>(sortCount, Allocator.TempJob);
+            m_DistanceToCamera = new NativeArray<float>(sortCount, Allocator.TempJob);
+            m_LightDistanceFade = new NativeArray<float>(sortCount, Allocator.TempJob);
+            m_ShadowIndices = new NativeArray<int>(sortCount, Allocator.TempJob);
+            m_AdditionalLightData = new NativeArray<LightDatasJob.AdditionalLightData>(sortCount, Allocator.TempJob);
+            m_BakedShadowMaskdatas = new NativeArray<LightDatasJob.BakedShadowMaskdata>(sortCount, Allocator.TempJob);
+        
         }
 
-        void DisposeRemappingArray()
+        void DisposePunctualLightAcratchData()
         {
             m_VisibleLightRemapping.Dispose();
             m_SortIndexRemapping.Dispose();
             m_LightPositions.Dispose();
             m_LightTypes.Dispose();
+            m_DistanceToCamera.Dispose(); 
+            m_LightDistanceFade.Dispose();
+            m_ShadowIndices.Dispose();
+            m_AdditionalLightData.Dispose();
+            m_BakedShadowMaskdatas.Dispose();
         }
         
         void AllocateVolumeBoundsJobArrays(int lightCount, int numViews)
@@ -597,24 +618,6 @@ namespace UnityEngine.Rendering.HighDefinition
             m_WorldToView.Dispose();
         }
 
-        void AllocateDistanceAndFadeArrays(int lightCount)
-        {
-            m_DistanceToCamera = new NativeArray<float>(lightCount, Allocator.TempJob);
-            m_LightDistanceFade = new NativeArray<float>(lightCount, Allocator.TempJob);
-            m_ShadowIndices = new NativeArray<int>(lightCount, Allocator.TempJob);
-            m_AdditionalLightData = new NativeArray<LightDatasJob.AdditionalLightData>(lightCount, Allocator.TempJob);
-            m_BakedShadowMaskdatas = new NativeArray<LightDatasJob.BakedShadowMaskdata>(lightCount, Allocator.TempJob);
-        }
-
-        void DisposeDistanceAndFadeArrays()
-        {
-            m_DistanceToCamera.Dispose(); 
-            m_LightDistanceFade.Dispose();
-            m_ShadowIndices.Dispose();
-            m_AdditionalLightData.Dispose();
-            m_BakedShadowMaskdatas.Dispose();
-        }
-
         NativeArray<LightCategory> m_LightCategory;
         NativeArray<GPULightType> m_GpuLightType;
         NativeArray<LightVolumeType> m_LightVolumeType;
@@ -631,6 +634,9 @@ namespace UnityEngine.Rendering.HighDefinition
         NativeArray<LightDatasJob.AdditionalLightData> m_AdditionalLightData;
         NativeArray<int> m_ShadowIndices;
         NativeArray<LightDatasJob.BakedShadowMaskdata> m_BakedShadowMaskdatas;
+
+        NativeArray<int>m_RefProbesSortIndexRemapping;
+        NativeArray<int>m_EnvIndex;
 
         LightVolumeBoundsJob m_LightVolumeBoundsJob;
         LightDatasJob m_LightDatasJob;
