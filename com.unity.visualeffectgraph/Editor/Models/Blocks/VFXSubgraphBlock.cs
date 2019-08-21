@@ -162,7 +162,7 @@ namespace UnityEditor.VFX
 
             var inputExpressions = new List<VFXExpression>();
 
-            foreach (var slot in inputSlots.SelectMany(t => t.GetVFXValueTypeSlots()))
+            foreach (var slot in inputSlots.SelectMany(t=>t.GetExpressionSlots()))
             {
                 inputExpressions.Add(slot.GetExpression());
             }

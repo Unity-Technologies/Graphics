@@ -69,20 +69,44 @@ namespace  UnityEditor.VFX.UI
 
         public void LoadResource(VisualEffectResource resource, VisualEffect effectToAttach = null)
         {
+            m_ResourceHistory.Clear();
             if (graphView.controller == null || graphView.controller.model != resource)
             {
-                bool differentAsset = resource != m_DisplayedResource;
-
-                m_DisplayedResource = resource;
-                graphView.controller = VFXViewController.GetController(resource, true);
-                graphView.UpdateGlobalSelection();
-                if (differentAsset)
-                {
-                    graphView.FrameNewController();
-                }
+                InternalLoadResource(resource);
             }
             if (effectToAttach != null && graphView.controller != null && graphView.controller.model != null && effectToAttach.visualEffectAsset == graphView.controller.model.asset)
                 graphView.attachedComponent = effectToAttach;
+        }
+
+        List<VisualEffectResource> m_ResourceHistory = new List<VisualEffectResource>();
+
+        public IEnumerable<VisualEffectResource> resourceHistory
+        {
+            get { return m_ResourceHistory; }
+        }
+
+        public void PushResource(VisualEffectResource resource)
+        {
+            if (graphView.controller == null || graphView.controller.model != resource)
+            {
+                m_ResourceHistory.Add(m_DisplayedResource);
+                InternalLoadResource(resource);
+            }
+        }
+
+        void InternalLoadResource(VisualEffectResource resource)
+        {
+            m_DisplayedResource = resource;
+            graphView.controller = VFXViewController.GetController(resource, true);
+            graphView.UpdateGlobalSelection();
+            graphView.FrameNewController();
+        }
+
+        public void PopResource()
+        {
+            InternalLoadResource(m_ResourceHistory.Last());
+
+            m_ResourceHistory.RemoveAt(m_ResourceHistory.Count-1);
         }
 
         protected VisualEffectResource GetCurrentResource()

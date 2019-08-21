@@ -16,16 +16,16 @@ namespace UnityEditor.VFX
                 VFXSlot outputSlot = param.outputSlots[0];
 
                 param.subgraphMode = true;
-                if (inputExpression.Count > cptSlot)
-                {
-                    if(backedUpExpressions!= null)
-                    {
-                        backedUpExpressions.Add(outputSlot.GetExpression());
-                    }
-                    outputSlot.SetExpression(inputExpression[cptSlot]);
-                }
+                if (inputExpression.Count <= cptSlot)
+                    continue;
 
-                cptSlot += 1;
+                foreach(var slot in outputSlot.GetExpressionSlots())
+                {
+                    if (backedUpExpressions != null)
+                        backedUpExpressions.Add(slot.GetExpression());
+                    slot.SetExpression(inputExpression[cptSlot]);
+                    cptSlot += 1;
+                }
             }
 
             return cptSlot;
@@ -150,7 +150,7 @@ namespace UnityEditor.VFX
             List<VFXExpression> outputExpressions = new List<VFXExpression>();
             foreach (var param in GetParameters(t => VFXSubgraphUtility.OutputPredicate(t)))
             {
-                outputExpressions.AddRange(param.inputSlots[0].GetVFXValueTypeSlots().Select(t => t.GetExpression()));
+                outputExpressions.AddRange(param.inputSlots[0].GetExpressionSlots().Select(t => t.GetExpression()));
             }
 
             foreach (var param in parameters)

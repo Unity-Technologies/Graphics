@@ -27,14 +27,19 @@ namespace UnityEditor.VFX.UI
             m_ObjectField.RegisterCallback<ChangeEvent<UnityObject>>(OnValueChanged);
             m_ObjectField.control.allowSceneObjects = false;
             m_ObjectField.style.flexGrow = 1f;
-            m_ObjectField.style.flexShrink = 0f;
-
+            m_ObjectField.style.flexShrink = 1f;
+            RegisterCallback<KeyDownEvent>(StopKeyPropagation);
             Add(m_ObjectField);
         }
 
         public override float GetPreferredControlWidth()
         {
             return 120;
+        }
+
+        void StopKeyPropagation(KeyDownEvent e)
+        {
+            e.StopPropagation();
         }
 
         public void OnValueChanged(ChangeEvent<UnityObject> onObjectChanged)

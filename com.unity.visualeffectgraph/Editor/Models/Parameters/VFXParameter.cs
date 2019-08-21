@@ -543,6 +543,11 @@ namespace UnityEditor.VFX
                     {
                         info.expandedSlots = new List<VFXSlot>();
                     }
+                    else
+                    {
+                        if (info.expandedSlots.Any(t => t == null))
+                            info.expandedSlots = info.expandedSlots.Where(t => t != null).ToList();
+                    }
 
                     if (usedIds.Contains(info.id))
                     {

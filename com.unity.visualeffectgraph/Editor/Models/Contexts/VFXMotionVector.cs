@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using UnityEditor.Experimental.VFX;
 using UnityEngine;
-using UnityEngine.Experimental.VFX;
 
 namespace UnityEditor.VFX
 {
