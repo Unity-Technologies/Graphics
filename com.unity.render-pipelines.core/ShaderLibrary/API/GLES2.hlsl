@@ -88,28 +88,31 @@
 #define RW_TEXTURE2D_ARRAY(type, textureName)           ERROR_ON_UNSUPPORTED_FUNCTION(RWTexture2DArray)
 #define RW_TEXTURE3D(type, textureNam)                  ERROR_ON_UNSUPPORTED_FUNCTION(RWTexture3D)
 
-#define SAMPLER(samplerName)
-#define SAMPLER_CMP(samplerName)
+struct FakeSamplerState
+{ };
 
-#define TEXTURE2D_PARAM(textureName, samplerName)                sampler2D textureName
-#define TEXTURE2D_ARRAY_PARAM(textureName, samplerName)          samplerCUBE textureName
-#define TEXTURECUBE_PARAM(textureName, samplerName)              samplerCUBE textureName
-#define TEXTURECUBE_ARRAY_PARAM(textureName, samplerName)        samplerCUBE textureName
-#define TEXTURE3D_PARAM(textureName, samplerName)                sampler3D textureName
-#define TEXTURE2D_SHADOW_PARAM(textureName, samplerName)         SHADOW2D_TEXTURE_AND_SAMPLER textureName
-#define TEXTURE2D_ARRAY_SHADOW_PARAM(textureName, samplerName)   SHADOWCUBE_TEXTURE_AND_SAMPLER textureName
-#define TEXTURECUBE_SHADOW_PARAM(textureName, samplerName)       SHADOWCUBE_TEXTURE_AND_SAMPLER textureName
+#define SAMPLER(samplerName)                                    FakeSamplerState samplerName
+#define SAMPLER_CMP(samplerName)                                FakeSamplerState samplerName
 
-#define TEXTURE2D_ARGS(textureName, samplerName)               textureName
-#define TEXTURE2D_ARRAY_ARGS(textureName, samplerName)         textureName
-#define TEXTURECUBE_ARGS(textureName, samplerName)             textureName
-#define TEXTURECUBE_ARRAY_ARGS(textureName, samplerName)       textureName
-#define TEXTURE3D_ARGS(textureName, samplerName)               textureName
-#define TEXTURE2D_SHADOW_ARGS(textureName, samplerName)        textureName
-#define TEXTURE2D_ARRAY_SHADOW_ARGS(textureName, samplerName)  textureName
-#define TEXTURECUBE_SHADOW_ARGS(textureName, samplerName)      textureName
+#define TEXTURE2D_PARAM(textureName, samplerName)               TEXTURE2D(textureName),                 SAMPLER(samplerName)
+#define TEXTURE2D_ARRAY_PARAM(textureName, samplerName)         TEXTURE2D_ARRAY(textureName),           SAMPLER(samplerName)
+#define TEXTURECUBE_PARAM(textureName, samplerName)             TEXTURECUBE(textureName),               SAMPLER(samplerName)
+#define TEXTURECUBE_ARRAY_PARAM(textureName, samplerName)       TEXTURECUBE_ARRAY(textureName),         SAMPLER(samplerName)
+#define TEXTURE3D_PARAM(textureName, samplerName)               TEXTURE3D(textureName),                 SAMPLER(samplerName)
+#define TEXTURE2D_SHADOW_PARAM(textureName, samplerName)        TEXTURE2D_SHADOW(textureName),          SAMPLER_CMP(samplerName)
+#define TEXTURE2D_ARRAY_SHADOW_PARAM(textureName, samplerName)  TEXTURE2D_ARRAY_SHADOW(textureName),    SAMPLER_CMP(samplerName)
+#define TEXTURECUBE_SHADOW_PARAM(textureName, samplerName)      TEXTURECUBE_SHADOW(textureName),        SAMPLER_CMP(samplerName)
 
-#define SAMPLE_TEXTURE2D(textureName, samplerName, coord2) tex2D(textureName, coord2)
+#define TEXTURE2D_ARGS(textureName, samplerName)                textureName, samplerName
+#define TEXTURE2D_ARRAY_ARGS(textureName, samplerName)          textureName, samplerName
+#define TEXTURECUBE_ARGS(textureName, samplerName)              textureName, samplerName
+#define TEXTURECUBE_ARRAY_ARGS(textureName, samplerName)        textureName, samplerName
+#define TEXTURE3D_ARGS(textureName, samplerName)                textureName, samplerName
+#define TEXTURE2D_SHADOW_ARGS(textureName, samplerName)         textureName, samplerName
+#define TEXTURE2D_ARRAY_SHADOW_ARGS(textureName, samplerName)   textureName, samplerName
+#define TEXTURECUBE_SHADOW_ARGS(textureName, samplerName)       textureName, samplerName
+
+#define SAMPLE_TEXTURE2D(textureName, samplerName, coord2)      tex2D(textureName, coord2)
 
 #if (SHADER_TARGET >= 30)
     #define SAMPLE_TEXTURE2D_LOD(textureName, samplerName, coord2, lod) tex2Dlod(textureName, float4(coord2, 0, lod))
