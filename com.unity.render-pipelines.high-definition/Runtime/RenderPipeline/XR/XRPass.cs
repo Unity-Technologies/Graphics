@@ -4,16 +4,9 @@
 // When a pass has 2+ views, hardware instancing will be active.
 // To avoid allocating every frame, XRView is a struct and XRPass is pooled.
 
-#if UNITY_2019_3_OR_NEWER && ENABLE_VR
-#define USE_XR_SDK
-#endif
-
 using System;
 using System.Collections.Generic;
-using UnityEngine.Rendering;
-#if USE_XR_SDK
 using UnityEngine.XR;
-#endif
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -43,7 +36,7 @@ namespace UnityEngine.Rendering.HighDefinition
             legacyStereoEye = (Camera.StereoscopicEye)(-1);
         }
 
-#if USE_XR_SDK
+#if ENABLE_XR_MODULE
         internal XRView(XRDisplaySubsystem.XRRenderPass renderPass, XRDisplaySubsystem.XRRenderParameter renderParameter)
         {
             projMatrix = renderParameter.projection;
@@ -132,7 +125,7 @@ namespace UnityEngine.Rendering.HighDefinition
             AddViewInternal(new XRView(proj, view, vp));
         }
 
-#if USE_XR_SDK
+#if ENABLE_XR_MODULE
         internal static XRPass Create(XRDisplaySubsystem.XRRenderPass xrRenderPass, int multipassId, ScriptableCullingParameters cullingParameters, Material occlusionMeshMaterial)
         {
             XRPass passInfo = GenericPool<XRPass>.Get();
@@ -156,6 +149,7 @@ namespace UnityEngine.Rendering.HighDefinition
             AddViewInternal(new XRView(xrSdkRenderPass, xrSdkRenderParameter));
         }
 #endif
+
         internal static void Release(XRPass xrPass)
         {
             GenericPool<XRPass>.Release(xrPass);
@@ -199,9 +193,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     if (viewCount <= TextureXR.slices)
                     {
                         cmd.EnableShaderKeyword("STEREO_INSTANCING_ON");
-#if UNITY_2019_3_OR_NEWER
-                        //cmd.SetInstanceMultiplier((uint)viewCount);
-#endif
+                        cmd.SetInstanceMultiplier((uint)viewCount);
                     }
                     else
                     {
@@ -224,9 +216,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 else
                 {
                     cmd.DisableShaderKeyword("STEREO_INSTANCING_ON");
-#if UNITY_2019_3_OR_NEWER
-                    //cmd.SetInstanceMultiplier(1);
-#endif
+                    cmd.SetInstanceMultiplier(1);
                 }
             }
         }

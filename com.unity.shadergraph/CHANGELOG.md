@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 - You can now define shader keywords on the Blackboard. Use these keywords on the graph to create static branches in the generated shader.
 
+### Fixed
+- The Shader Graph preview no longer breaks when you create new PBR Graphs.
+
 ## [7.0.1] - 2019-07-25
 ### Changed
 - New Shader Graph windows are now docked to either existing Shader Graph windows, or to the Scene View.

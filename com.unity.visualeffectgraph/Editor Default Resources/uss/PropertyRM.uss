@@ -144,7 +144,7 @@ BoolPropertyRM > .unity-toggle
 
 .propertyrm  .maincontainer
 {
-    flex:1 0 auto;
+    flex:1 1 auto;
     flex-direction:column;
     align-items:stretch;
 }

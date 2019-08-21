@@ -13,6 +13,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Increased visible lights limit for the forward renderer. It now supports 256 visible lights except in mobile platforms. Mobile platforms support 32 visible lights.
 - Increased per-object lights limit for the forward renderer. It now supports 8 per-object lights in all platforms except GLES2. GLES2 supports 4 per-object lights.
 - The Sprite-Lit-Default shader and the Sprite Lit Shader Graph shaders now use the vertex tangents for tangent space calculations.
+- Temporary render textures for cameras rendering to render textures now use the same format and multisampling configuration as camera's target texture.
+- All platforms now use R11G11B10_UFloat format for HDR render textures if supported.
 
 ### Fixed
 - Fixed LightProbe occlusion contribution. [case 1146667](https://issuetracker.unity3d.com/product/unity/issues/guid/1146667/)
@@ -22,6 +24,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed memory leaks when using the Frame Debugger with the 2D Renderer.
 - Fixed an issue where materials using `_Time` did not animate in the scene. [1175396](https://issuetracker.unity3d.com/product/unity/issues/guid/1175396/)
 - Fixed an issue where the Particle Lit shader had artifacts when both soft particles and HDR were enabled. [1136285](https://issuetracker.unity3d.com/product/unity/issues/guid/1136285/)
+- Fixed alpha being killed when opaque texture is requested on an offscreen camera with HDR enabled [case 1163320](https://issuetracker.unity3d.com/issues/lwrp-mobile-secondary-camera-background-alpha-value-is-lost-when-hdr-and-opaque-texture-are-enabled-in-lwrp-asset).
 
 ## [7.0.1] - 2019-07-25
 ### Changed
