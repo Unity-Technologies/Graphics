@@ -4,6 +4,15 @@ using Unity.Collections;
 
 namespace UnityEngine.Rendering.Universal
 {
+    // Vector2Int  and Vector3Int exist, but not Vector4Int ...
+    struct Vector4Int
+    {
+        uint x;
+        uint y;
+        uint z;
+        uint w;
+    };
+
     class DeferredShaderData : IDisposable
     {
         static DeferredShaderData m_Instance = null;
@@ -74,22 +83,28 @@ namespace UnityEngine.Rendering.Universal
 
         internal ComputeBuffer ReserveTileIDBuffer(int size)
         {
-            return GetOrUpdateBuffer<uint>(m_TileIDBuffers, size, m_TileIDBuffer_UsedCount++);
+            return GetOrUpdateBuffer<Vector4Int>(m_TileIDBuffers, (size + 3) / 4, ComputeBufferType.Constant, m_TileIDBuffer_UsedCount++);
         }
 
         internal ComputeBuffer ReserveTileRelLightBuffer(int size)
         {
-            return GetOrUpdateBuffer<uint>(m_TileRelLightBuffers, size, m_TileRelLightBuffer_UsedCount++);
+            return GetOrUpdateBuffer<Vector4Int>(m_TileRelLightBuffers, (size + 3) / 4, ComputeBufferType.Constant, m_TileRelLightBuffer_UsedCount++);
         }
 
         internal ComputeBuffer ReservePointLightBuffer(int size)
         {
-            return GetOrUpdateBuffer<PointLightData>(m_PointLightBuffers, size, m_PointLightBuffer_UsedCount++);
+#if UNITY_SUPPORT_STRUCT_IN_CBUFFER
+            return GetOrUpdateBuffer<PointLightData>(m_PointLightBuffers, size, ComputeBufferType.Constant, m_PointLightBuffer_UsedCount++);
+#else
+            int sizeof_PointLightData = System.Runtime.InteropServices.Marshal.SizeOf(typeof(PointLightData));
+            int float4Count = sizeof_PointLightData / 16;
+            return GetOrUpdateBuffer<Vector4>(m_PointLightBuffers, size * float4Count, ComputeBufferType.Constant, m_PointLightBuffer_UsedCount++);
+#endif
         }
 
         internal ComputeBuffer ReserveRelLightIndexBuffer(int size)
         {
-            return GetOrUpdateBuffer<uint>(m_RelLightIndexBuffers, size, m_RelLightIndexBuffer_UsedCount++);
+            return GetOrUpdateBuffer<Vector4Int>(m_RelLightIndexBuffers, (size + 3) / 4, ComputeBufferType.Constant, m_RelLightIndexBuffer_UsedCount++);
         }
 
         NativeArray<T> GetOrUpdateNativeArray<T>(ref NativeArray<T> nativeArray, int size) where T : struct
@@ -113,16 +128,16 @@ namespace UnityEngine.Rendering.Universal
                 nativeArray.Dispose();
         }
 
-        ComputeBuffer GetOrUpdateBuffer<T>(ComputeBuffer[] buffers, int size, int index) where T : struct
+        ComputeBuffer GetOrUpdateBuffer<T>(ComputeBuffer[] buffers, int size, ComputeBufferType type, int index) where T : struct
         {
             if (buffers[index] == null)
             {
-                buffers[index] = new ComputeBuffer(size, Marshal.SizeOf<T>());
+                buffers[index] = new ComputeBuffer(size, Marshal.SizeOf<T>(), type, ComputeBufferMode.Immutable);
             }
             else if (size > buffers[index].count)
             {
                 buffers[index].Dispose();
-                buffers[index] = new ComputeBuffer(size, Marshal.SizeOf<T>());
+                buffers[index] = new ComputeBuffer(size, Marshal.SizeOf<T>(), type, ComputeBufferMode.Immutable);
             }
 
             return buffers[index];
