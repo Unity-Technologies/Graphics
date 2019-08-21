@@ -113,8 +113,9 @@ namespace UnityEditor.VFX
         {
             base.Invalidate(model, cause);
 
-            foreach (VFXContext owner in owners)
-                owner.Invalidate(model, cause);
+            if (cause == InvalidationCause.kSettingChanged) // As data settings are supposed to be implicitely context settings at the same time, throw an invalidate for each contexts
+                foreach (VFXContext owner in owners)
+                    owner.Invalidate(owner, cause);
         }
 
         public override void Sanitize(int version)
