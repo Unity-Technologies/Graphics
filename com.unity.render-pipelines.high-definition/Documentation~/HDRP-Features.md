@@ -15,7 +15,11 @@ This is a high level overview of all of the features you can use in the High Def
 
 ### Platform support
 
-You can run HDRP Projects on XboxOne, PS4, and compute Shader compatible devices for DirectX 11, DirectX 12, Metal, and Vulkan.
+You can run HDRP Projects on Xbox One, PS4, and compute Shader compatible devices for DirectX 11, DirectX 12, Metal, and Vulkan.
+
+### Virtual Reality
+
+HDRP is compatible with VR and optimized for single-pass rendering. For more information about Virtual Reality, see the [VR documentation](VR-in-HDRP.html).
 
 ### Camera-relative rendering
 
@@ -37,13 +41,13 @@ The HDRP Shaders allow you to use the following features:
 
 - [Opaque/transparent surfaces](Surface-Type.html).
 
-- - Different blend modes for transparent surfaces.
+  - Different blend modes for transparent surfaces.
   - Transparent surfaces that work with fog.
   - Refraction and distortion for transparent surfaces.
 
 - [Material types](Material-Type.html).
 
-- - Anisotropy, for surfaces that have highlights that change when you view them from different angles, like brushed metal or velvet.
+  - Anisotropy, for surfaces that have highlights that change when you view them from different angles, like brushed metal or velvet.
   - Iridescence, for surfaces that appear to change color as you view them from different angles, like soap bubbles or insect wings.
   - Metallic, for surfaces that appear smooth, reflective, and have specular highlights.
   - Specular Color, for surfaces that you want to have a colored specular highlight.
@@ -123,33 +127,28 @@ The Terrain Lit Shader is compatible with the built-in terrain system and suppor
 The HDRP light types use [physical light units](#PLU) to help you light your Scene in the most realistic way possible. The HDRP light types are:
 
 - **Directional**
-
-- - Color temperature
+  - Color temperature
   - Colored cookie
   - Shadow mask support
 
 - **Spot**
-
-- - Color temperature
+  - Color temperature
   - Colored cookie
   - Shadow mask support
   - Cone, pyramid and box shapes
 
 - **Point**
-
-- - Color temperature
+  - Color temperature
   - Colored cookie
   - Shadow mask support
 
-- **Area**
-
-- - Color temperature
+- **Rectangle**
+  - Color temperature
   - Colored Cookie
   - Shadow mask support
 
-- **Line**
-
-- - Color temperature
+- **Tube**
+  - Color temperature
   - No shadow masks
 
 For more information, including the full list of light properties, see the [Light component documentation](Light-Component.html).
@@ -188,7 +187,8 @@ In HDRP, you set up the sky inside a [Volume](Volumes.html), so you can change s
 
 - [Gradient Sky](Override-Gradient-Sky.html): Renders a simple sky with three color zones for the top, middle, and bottom sections of the sky.
 - [HDRI Sky](Override-HDRI-Sky.html): Constructs a sky environment based on a cubemap texture you set within the HDRI Volume component.
-- [Procedural Sky](Override-Procedural-Sky.html): Produces an environment based on the values you choose within the Procedural Sky Volume component. This is similar to Unity’s [built-in render pipeline procedural sky](https://docs.unity3d.com/Manual/class-Skybox.html).
+- [Physically Based Sky](Override-Physically-Based-Sky.html): Simulates a spherical planet with a two-part atmosphere which features exponentially decreasing density with respect to altitude.
+- [Procedural Sky](Override-Procedural-Sky.html): Produces an environment based on the values you choose within the Procedural Sky Volume component. This is similar to Unity’s [built-in render pipeline procedural sky](https://docs.unity3d.com/Manual/class-Skybox.html). This sky type has been deprecated, but you can still use it in your HDRP Project. For information on how, see [Upgrading to 2019.3](Upgrading-from-2019.2-to-2019.3.html).
 
 <a name="FogOverview"></a>
 
@@ -206,7 +206,7 @@ In HDRP, you set up fog, inside a [Volume](Volumes.html),so you can change fog s
 
 ![](Images/HDRPFeatures-LightLayers.png)
 
-Light Layers are LayerMasks that you specify for Lights and Meshes. Lights only illuminate Meshes that are on Light Layers that you enable on the Light. For more information on Light Layers, see the [Light Layers documentation](Light-Layers.html).
+Light Layers are LayerMasks that you specify for Lights and Meshes. Lights only illuminate Meshes that are on Light Layers that you enable on the Light. You can also use Light Layers in the shadow map settings to decouple shadows from lighting. For more information on Light Layers, see the [Light Layers documentation](Light-Layers.html).  
 
 ### Screen space ambient occlusion 
 
@@ -271,4 +271,4 @@ HDRP's Material architecture allows you to add your own forward Materials and in
 
 ### Lighting architecture
 
-HDRP uses a hybrid tile and cluster renderer for [forward and deferred rendering](Forward-And-Deferred-Rendering.html) of opaque and transparent GameObjects. This creates a local light list to allow HDRP to render a high number of Lights. Use the forward renderer to light more complex Materials, such as those that use subsurface scattering or are anisotropic. Use the deferred renderer to increase the processing speed of lighting for common Materials, such as standard Lit or Unlit Materials. For more information on HDRP's lighting architecture, including an explanation of tile and cluster rendering, see the [lighting pipeline documentation](<https://docs.unity3d.com/Manual/BestPracticeLightingPipelines.html>).
+HDRP uses a hybrid tile and cluster renderer for [forward and deferred rendering](Forward-And-Deferred-Rendering.html) of opaque and transparent GameObjects. This creates a local light list to allow HDRP to render a high number of Lights. Use the forward renderer to light more complex Materials, such as those that use subsurface scattering or are anisotropic. Use the deferred renderer to increase the processing speed of lighting for common Materials, such as standard Lit or Unlit Materials. For more information on HDRP's lighting architecture, including an explanation of tile and cluster rendering, see the [lighting pipeline documentation](https://docs.unity3d.com/Manual/BestPracticeLightingPipelines.html).

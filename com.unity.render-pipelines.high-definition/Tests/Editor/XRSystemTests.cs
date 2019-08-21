@@ -45,7 +45,7 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
             {
                 for (int passIndex = 0; passIndex < k_PassCount; ++passIndex)
                 {
-                    var xrPass = XRPass.Create(passIndex);
+                    var xrPass = XRPass.Create(passIndex, new ScriptableCullingParameters());
 
                     for (int viewIndex = 0; viewIndex < k_ViewCount; ++viewIndex)
                     {

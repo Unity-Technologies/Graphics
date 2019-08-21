@@ -4,6 +4,8 @@ using UnityEngine.Assertions;
 
 namespace UnityEngine.Rendering
 {
+    //Volumes are documented in HDRP for now
+    [HelpURL(Documentation.baseURLHDRP + Documentation.version + Documentation.subURL + "Volume-Profile" + Documentation.endURL)]
     public sealed class VolumeProfile : ScriptableObject
     {
         public List<VolumeComponent> components = new List<VolumeComponent>();

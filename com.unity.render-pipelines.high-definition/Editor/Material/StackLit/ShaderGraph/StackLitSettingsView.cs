@@ -364,6 +364,7 @@ namespace UnityEditor.Rendering.HighDefinition.Drawing
             //    });
             //});
 
+            // SpecularOcclusion from SSAO
             if (m_Node.devMode.isOn)
             {
                 // Only in dev mode do we show controls for SO fed from SSAO: otherwise, we keep the default which is DirectFromAO
@@ -399,17 +400,7 @@ namespace UnityEditor.Rendering.HighDefinition.Drawing
                 }
             }
 
-            // TODO: we would ideally need one value per lobe
-            //ps.Add(new PropertyRow(CreateLabel("Specular Occlusion Custom Input", indentLevel)), (row) =>
-            //{
-            //    row.Add(new Toggle(), (toggle) =>
-            //    {
-            //        toggle.value = m_Node.specularOcclusionIsCustom.isOn;
-            //        toggle.OnToggleChanged(ChangeSpecularOcclusionIsCustom);
-            //    });
-            //});
-
-            //if (!m_Node.specularOcclusionIsCustom.isOn)
+            // SpecularOcclusion from input AO (baked or data-based SO)
             {
                 ps.Add(new PropertyRow(CreateLabel("Specular Occlusion (from input AO)", indentLevel)), (row) =>
                 {
@@ -488,45 +479,44 @@ namespace UnityEditor.Rendering.HighDefinition.Drawing
                 });
             });
 
-            if (m_Node.coat.isOn || m_Node.iridescence.isOn)
+            // Per Punctual/Directional Lights
             {
                 ps.Add(new PropertyRow(CreateLabel("Per Punctual/Directional Lights:", indentLevel)), (row) => { });
                 ++indentLevel;
-            }
-            if (m_Node.coat.isOn)
-            {
-                ps.Add(new PropertyRow(CreateLabel("Base Layer Uses Refracted Angles", indentLevel)), (row) =>
+
+                if (m_Node.coat.isOn)
+                {
+                    ps.Add(new PropertyRow(CreateLabel("Base Layer Uses Refracted Angles", indentLevel)), (row) =>
+                    {
+                        row.Add(new Toggle(), (toggle) =>
+                        {
+                            toggle.value = m_Node.shadeBaseUsingRefractedAngles.isOn;
+                            toggle.OnToggleChanged(ChangeShadeBaseUsingRefractedAngles);
+                        });
+                    });
+                }
+                if (m_Node.coat.isOn || m_Node.iridescence.isOn)
+                {
+                    ps.Add(new PropertyRow(CreateLabel("Recompute Stack & Iridescence", indentLevel)), (row) =>
+                    {
+                        row.Add(new Toggle(), (toggle) =>
+                        {
+                            toggle.value = m_Node.recomputeStackPerLight.isOn;
+                            toggle.OnToggleChanged(ChangeRecomputeStackPerLight);
+                        });
+                    });
+                }
+                ps.Add(new PropertyRow(CreateLabel("Honor Per Light Max Smoothness", indentLevel)), (row) =>
                 {
                     row.Add(new Toggle(), (toggle) =>
                     {
-                        toggle.value = m_Node.shadeBaseUsingRefractedAngles.isOn;
-                        toggle.OnToggleChanged(ChangeShadeBaseUsingRefractedAngles);
+                        toggle.value = m_Node.honorPerLightMinRoughness.isOn;
+                        toggle.OnToggleChanged(ChangeHonorPerLightMinRoughness);
                     });
                 });
-            }
-            if (m_Node.coat.isOn || m_Node.iridescence.isOn)
-            {
-                ps.Add(new PropertyRow(CreateLabel("Recompute Stack & Iridescence", indentLevel)), (row) =>
-                {
-                    row.Add(new Toggle(), (toggle) =>
-                    {
-                        toggle.value = m_Node.recomputeStackPerLight.isOn;
-                        toggle.OnToggleChanged(ChangeRecomputeStackPerLight);
-                    });
-                });
-            }
-            ps.Add(new PropertyRow(CreateLabel("Honor Per Light Max Smoothness", indentLevel)), (row) =>
-            {
-                row.Add(new Toggle(), (toggle) =>
-                {
-                    toggle.value = m_Node.honorPerLightMinRoughness.isOn;
-                    toggle.OnToggleChanged(ChangeHonorPerLightMinRoughness);
-                });
-            });
-            if (m_Node.coat.isOn || m_Node.iridescence.isOn)
-            {
-                --indentLevel; // Per Punctual/Directional Lights:
-            }
+
+                --indentLevel;
+            } // Per Punctual/Directional Lights
 
             // Uncomment to show the dev mode UI:
             //
@@ -799,6 +789,17 @@ namespace UnityEditor.Rendering.HighDefinition.Drawing
             if (Equals(m_Node.screenSpaceSpecularOcclusionBaseMode, evt.newValue))
                 return;
 
+            if (Equals(evt.newValue, StackLitMasterNode.SpecularOcclusionBaseMode.Custom))
+            {
+                Debug.LogWarning("Custom input not supported for SSAO based specular occlusion.");
+                // Make sure the UI field doesn't switch and stays in synch with the master node property:
+                if (evt.currentTarget is EnumField enumField)
+                {
+                    enumField.value = m_Node.screenSpaceSpecularOcclusionBaseMode;
+                }
+                return;
+            }
+
             m_Node.owner.owner.RegisterCompleteObjectUndo("ScreenSpaceSpecularOcclusionBaseMode Change");
             m_Node.screenSpaceSpecularOcclusionBaseMode = (StackLitMasterNode.SpecularOcclusionBaseMode)evt.newValue;
         }
@@ -821,14 +822,6 @@ namespace UnityEditor.Rendering.HighDefinition.Drawing
             m_Node.screenSpaceSpecularOcclusionAOConeDir = (StackLitMasterNode.SpecularOcclusionAOConeDir)evt.newValue;
         }
 
-        //void ChangeSpecularOcclusionIsCustom(ChangeEvent<bool> evt)
-        //{
-        //    m_Node.owner.owner.RegisterCompleteObjectUndo("SpecularOcclusionIsCustom Change");
-        //    ToggleData td = m_Node.specularOcclusionIsCustom;
-        //    td.isOn = evt.newValue;
-        //    m_Node.specularOcclusionIsCustom = td;
-        //}
-
         void ChangeDataBasedSpecularOcclusionBaseMode(ChangeEvent<Enum> evt)
         {
             if (Equals(m_Node.dataBasedSpecularOcclusionBaseMode, evt.newValue))
@@ -841,7 +834,6 @@ namespace UnityEditor.Rendering.HighDefinition.Drawing
         void ChangeDataBasedSpecularOcclusionBaseModeSimpleUI(ChangeEvent<Enum> evt)
         {
             // StackLitMasterNode.SpecularOcclusionBaseModeSimple should always be a subset of StackLitMasterNode.SpecularOcclusionBaseMode:
-
             if (Equals(m_Node.dataBasedSpecularOcclusionBaseMode, (StackLitMasterNode.SpecularOcclusionBaseMode) evt.newValue))
                 return;
 
