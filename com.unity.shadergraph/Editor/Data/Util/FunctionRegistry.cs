@@ -53,9 +53,8 @@ namespace UnityEditor.ShaderGraph
                 var length = builder.length - startIndex;
                 var code = m_Validate ? builder.ToString(startIndex, length) : string.Empty;
                 m_Sources.Add(name, new FunctionSource { code = code, nodes = new HashSet<AbstractMaterialNode> {builder.currentNode} });
+                names.Add(name);
             }
-
-            names.Add(name);
         }
     }
 }
