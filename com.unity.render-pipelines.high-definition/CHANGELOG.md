@@ -25,6 +25,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Changeg framesettings migration order of postprocess flags as a pr for reflection settings flags have been backported to 2019.2
 - Replaced usage of ENABLE_VR in XRSystem.cs by version defines based on the presence of the built-in VR and XR modules
 
+### Added
+- Support for Material Quality in Shader Graph
+- Material Quality support selection in HDRP Asset
+
 ## [7.0.1] - 2019-07-25
 
 ### Added
