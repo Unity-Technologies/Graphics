@@ -779,19 +779,6 @@ namespace UnityEditor.VFX
             });
         }
 
-        IEnumerable<VFXAttributeInfo> GetAllExpressionNeededAttributes(VFXExpression exp)
-        {
-            foreach (var attr in exp.GetNeededAttributes())
-                yield return attr;
-
-            foreach( var parentExp in exp.parents)
-            {
-                foreach (var attr in GetAllExpressionNeededAttributes(parentExp))
-                    yield return attr;
-            }
-        }
-
-
         public override void CopySettings<T>(T dst)
         {
             var instance = dst as VFXDataParticle;
