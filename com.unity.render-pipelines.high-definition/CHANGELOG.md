@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Added
 - Enabled single-pass instancing support for XR SDK with new API cmd.SetInstanceMultiplier()
+- XR settings are now available in the HDRP asset
 
 ### Fixed
 - Fixed wizard infinite loop on cancellation
@@ -17,6 +18,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed typo in AXF decal property preventing to compile
 - Fixed reflection probe with XR single-pass and FPTL
 - Fixed force gizmo shown when selecting camera in hierarchy
+- Fixed issue with XR occlusion mesh and dynamic resolution
 
 ### Changed
 - Update Wizard layout.
