@@ -1728,11 +1728,12 @@ namespace UnityEngine.Rendering.HighDefinition
             return true;
         }
 
-        void GetEnvLightVolumeDataAndBound(HDProbe probe, LightVolumeType lightVolumeType, Matrix4x4 worldToView, int stride, int offset, int viewIndex)
+        void GetEnvLightVolumeDataAndBound(HDProbe probe, LightVolumeType lightVolumeType, Matrix4x4 worldToView, int stride, int offset, int probeIndex, int viewIndex)
         {
             // m_lightList.m_Bounds
-            var bound = m_lightList.m_Bounds[viewIndex * stride + offset];
-            var lightVolumeData = m_lightList.m_LightVolumeData[viewIndex * stride + offset];
+            probeIndex = probeIndex + viewIndex * stride + offset;
+            var bound = m_lightList.m_Bounds[probeIndex];
+            var lightVolumeData = m_lightList.m_LightVolumeData[probeIndex];
 
             // C is reflection volume center in world space (NOT same as cube map capture point)
             var influenceExtents = probe.influenceExtents;       // 0.5f * Vector3.Max(-boxSizes[p], boxSizes[p]);
@@ -1788,11 +1789,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     break;
                 }
             }
-            m_lightList.m_Bounds[viewIndex * stride + offset] = bound;
-            m_lightList.m_LightVolumeData[viewIndex * stride + offset] = lightVolumeData;
-            //            Debug.Assert(false,"Implement for Env lights");
-            //            m_lightList.lightsPerView[viewIndex].bounds.Add(bound);
-            //            m_lightList.lightsPerView[viewIndex].lightVolumes.Add(lightVolumeData);
+            m_lightList.m_Bounds[probeIndex] = bound;
+            m_lightList.m_LightVolumeData[probeIndex] = lightVolumeData;
         }
 
         void AddBoxVolumeDataAndBound(OrientedBBox obb, LightCategory category, LightFeatureFlags featureFlags, Matrix4x4 worldToView, int viewIndex)
@@ -2570,7 +2568,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             for (int viewIndex = 0; viewIndex < hdCamera.viewCount; ++viewIndex)
                             {
                                 var worldToView = GetWorldToViewMatrix(hdCamera, viewIndex);
-                                GetEnvLightVolumeDataAndBound(probeWrapper, lightVolumeType, worldToView, punctualLightCount + areaLightCount + reflectionProbeCount + decalDatasCount, punctualLightCount + areaLightCount, viewIndex);
+                                GetEnvLightVolumeDataAndBound(probeWrapper, lightVolumeType, worldToView, punctualLightCount + areaLightCount + reflectionProbeCount + decalDatasCount, punctualLightCount + areaLightCount, probeIndex, viewIndex);
                             }
 
                             // We make the light position camera-relative as late as possible in order
