@@ -615,7 +615,6 @@ namespace UnityEditor.VFX.UI
             var settingsBox = SetSettingsBox();
             var plotArea = SetPlotArea(m_DebugDrawingBox, Yaxis);
             var title = SetSystemStatsTitle();
-
             m_SystemStatsContainer = SetSystemStatsContainer();
 
             m_DebugContainer.Add(settingsBox);
@@ -858,11 +857,8 @@ namespace UnityEditor.VFX.UI
                         }
 
                         VFXView.CalculateFrameTransform(rectToFit, m_View.layout, 30, out frameTranslation, out frameScaling);
-
                         Matrix4x4.TRS(frameTranslation, Quaternion.identity, frameScaling);
-
                         m_View.UpdateViewTransform(frameTranslation, frameScaling);
-
                         m_View.contentViewContainer.MarkDirtyRepaint();
                     };
                 }
@@ -936,8 +932,5 @@ namespace UnityEditor.VFX.UI
             m_SystemStatsContainer = null;
             m_DebugContainer = null;
         }
-
-
-
     }
 }

@@ -10,7 +10,7 @@ VFXComponentBoard.graphElement
     padding-top:0;
     padding-bottom:0;
 
-    min-width: 278px;
+    min-width: 286px;
     min-height: 100px;
 }
 
@@ -200,7 +200,7 @@ VFXComponentBoardEventUI .unity-button, #on-play-button, #on-stop-button,#attach
     width: 100%;
     margin-top: 7px;
     margin-bottom: 12px;
-    padding-left:8px;
+    padding-left:4px;
 }
 
 #debug-box-axis-100 {
@@ -219,7 +219,7 @@ VFXComponentBoardEventUI .unity-button, #on-play-button, #on-stop-button,#attach
 #debug-system-stat-container
 {
     flex-direction:row;
-    height:100px;
+    height:200px;
     width: 100%;
 }
 
