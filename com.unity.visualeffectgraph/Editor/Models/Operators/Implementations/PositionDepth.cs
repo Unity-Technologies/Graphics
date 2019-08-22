@@ -158,7 +158,7 @@ namespace UnityEditor.VFX.Operator
             {
                 case PositionMode.Random:
                     // Random UVs
-                    uv = new VFXExpressionCombine(VFXOperatorUtility.FixedRandom(0, true), VFXOperatorUtility.FixedRandom(1, true));
+                    uv = new VFXExpressionCombine(VFXOperatorUtility.FixedRandom(0, VFXSeedMode.PerParticle), VFXOperatorUtility.FixedRandom(1, VFXSeedMode.PerParticle));
                     break;
 
                 case PositionMode.Sequential:

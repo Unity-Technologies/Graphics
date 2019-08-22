@@ -499,16 +499,16 @@ namespace UnityEditor.VFX
             return combine;
         }
 
-        static public VFXExpression FixedRandom(uint hash, bool perElement)
+        static public VFXExpression FixedRandom(uint hash, VFXSeedMode mode)
         {
-            return FixedRandom(VFXValue.Constant<uint>(hash), perElement);
+            return FixedRandom(VFXValue.Constant<uint>(hash), mode);
         }
 
-        static public VFXExpression FixedRandom(VFXExpression hash, bool perElement)
+        static public VFXExpression FixedRandom(VFXExpression hash, VFXSeedMode mode)
         {
             VFXExpression seed = new VFXExpressionBitwiseXor(hash, VFXBuiltInExpression.SystemSeed);
-            if (perElement)
-                seed = new VFXExpressionBitwiseXor(new VFXAttributeExpression(VFXAttribute.ParticleId), seed);
+            if (mode != VFXSeedMode.PerComponent)
+                seed = new VFXExpressionBitwiseXor(new VFXAttributeExpression(mode == VFXSeedMode.PerParticle ? VFXAttribute.ParticleId : VFXAttribute.StripIndex), seed);
             return new VFXExpressionFixedRandom(seed);
         }
 
