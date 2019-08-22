@@ -28,6 +28,7 @@ Pass
 		// y: motion vectors scale Y
 		VFX_OPTIONAL_INTERPOLATION float2 builtInInterpolants2 : TEXCOORD2;
 		#endif
+        ${VFXAdditionalInterpolantsDeclaration}
 
 		UNITY_VERTEX_OUTPUT_STEREO
 	};

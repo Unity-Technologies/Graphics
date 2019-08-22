@@ -82,6 +82,8 @@ VFX_VARYING_PS_INPUTS vert(vs_input i)
 	${VFXVertexSetFlipbooksInterpolants}
 
 	${VFXVertexAdditionalProcess}
+    
+    ${VFXAdditionalInterpolantsGeneration}
 	
 	return o;
 }

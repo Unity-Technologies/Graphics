@@ -432,6 +432,8 @@ namespace UnityEditor.VFX
             foreach (var includePath in uniqueIncludes)
                 perPassIncludeContent.WriteLine(string.Format("#include \"{0}\"", includePath));
 
+
+
             ReplaceMultiline(stringBuilder, "${VFXGlobalInclude}", globalIncludeContent.builder);
             ReplaceMultiline(stringBuilder, "${VFXGlobalDeclaration}", globalDeclaration.builder);
             ReplaceMultiline(stringBuilder, "${VFXPerPassInclude}", perPassIncludeContent.builder);
@@ -446,6 +448,41 @@ namespace UnityEditor.VFX
                 var loadParameters = GenerateLoadParameter(pattern, mainParameters, expressionToName);
                 ReplaceMultiline(stringBuilder, str, loadParameters.builder);
             }
+            var additionalInterpolantsGeneration = new VFXShaderWriter();
+            var additionalInterpolantsDeclaration = new VFXShaderWriter();
+            var additionalInterpolantsPreparation = new VFXShaderWriter();
+
+
+            int normSemantic = 0;
+
+            foreach (string fragmentParameter in context.fragmentParameters)
+            {
+                var filteredNamedExpression = mainParameters.FirstOrDefault(o => fragmentParameter == o.name &&
+                !(expressionToName.ContainsKey(o.exp) && expressionToName[o.exp] == o.name));     // if parameter already in the global scope, there's nothing to do
+
+                if (filteredNamedExpression.exp != null)
+                {
+                    additionalInterpolantsDeclaration.WriteDeclaration(filteredNamedExpression.exp.valueType, filteredNamedExpression.name, $"NORMAL{normSemantic++}");
+                    additionalInterpolantsGeneration.WriteVariable(filteredNamedExpression.exp.valueType, filteredNamedExpression.name, "0");
+                    var expressionToNameLocal = new Dictionary<VFXExpression, string>(expressionToName);
+                    additionalInterpolantsGeneration.EnterScope();
+                    { 
+                        if (!expressionToNameLocal.ContainsKey(filteredNamedExpression.exp))
+                        {
+                            additionalInterpolantsGeneration.WriteVariable(filteredNamedExpression.exp, expressionToNameLocal);
+                            additionalInterpolantsGeneration.WriteLine();
+                        }
+                        additionalInterpolantsGeneration.WriteAssignement(filteredNamedExpression.exp.valueType, filteredNamedExpression.name, expressionToNameLocal[filteredNamedExpression.exp]);
+                        additionalInterpolantsGeneration.WriteLine();
+                    }
+                    additionalInterpolantsGeneration.ExitScope();
+                    additionalInterpolantsGeneration.WriteAssignement(filteredNamedExpression.exp.valueType, "o." + filteredNamedExpression.name, filteredNamedExpression.name);
+                    additionalInterpolantsPreparation.WriteVariable(filteredNamedExpression.exp.valueType, filteredNamedExpression.name, "i." + filteredNamedExpression.name);
+                }
+            }
+            ReplaceMultiline(stringBuilder, "${VFXAdditionalInterpolantsGeneration}", additionalInterpolantsGeneration.builder);
+            ReplaceMultiline(stringBuilder, "${VFXAdditionalInterpolantsDeclaration}", additionalInterpolantsDeclaration.builder);
+            ReplaceMultiline(stringBuilder, "${VFXAdditionalInterpolantsPreparation}", additionalInterpolantsPreparation.builder);
 
             //< Compute sourceIndex
             if (stringBuilder.ToString().Contains("${VFXComputeSourceIndex}"))

@@ -38,6 +38,8 @@ struct ps_input
 	float4 cPosPrevious : TEXCOORD6;
 	float4 cPosNonJiterred : TEXCOORD7;
 	#endif
+    
+    ${VFXAdditionalInterpolantsDeclaration}
 	
 	UNITY_VERTEX_OUTPUT_STEREO
 };
@@ -100,6 +102,9 @@ void frag(ps_input i
 	UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i);
 	VFXTransformPSInputs(i);
 	#ifdef VFX_SHADERGRAPH
+    
+        ${VFXAdditionalInterpolantsPreparation}
+        
         ${SHADERGRAPH_PIXEL_CALL_DEPTHONLY}
         
         float alpha = OUTSG.${SHADERGRAPH_PARAM_ALPHA};

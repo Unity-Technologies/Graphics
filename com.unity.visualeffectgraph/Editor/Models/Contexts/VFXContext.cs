@@ -131,6 +131,7 @@ namespace UnityEditor.VFX
         public virtual IEnumerable<string> additionalDataHeaders        { get { return GetData().additionalHeaders; } }
         public virtual IEnumerable<string> additionalDefines            { get { return Enumerable.Empty<string>(); } }
         public virtual IEnumerable<KeyValuePair<string, VFXShaderWriter>> additionalReplacements { get { return Enumerable.Empty<KeyValuePair<string, VFXShaderWriter>>(); } }
+        public virtual IEnumerable<string> fragmentParameters           { get { return Enumerable.Empty<string>(); } }
 
         public virtual bool CanBeCompiled()
         {

@@ -377,6 +377,21 @@ namespace UnityEditor.VFX
             WriteAssignement(type, variableName, value);
         }
 
+        public void WriteDeclaration(VFXValueType type, string variableName)
+        {
+            if (!VFXExpression.IsTypeValidOnGPU(type))
+                throw new ArgumentException(string.Format("Invalid GPU Type: {0}", type));
+
+            WriteFormat("{0} {1};\n", VFXExpression.TypeToCode(type), variableName);
+        }
+        public void WriteDeclaration(VFXValueType type, string variableName,string semantic)
+        {
+            if (!VFXExpression.IsTypeValidOnGPU(type))
+                throw new ArgumentException(string.Format("Invalid GPU Type: {0}", type));
+
+            WriteFormat("nointerpolation {0} {1} : {2};\n", VFXExpression.TypeToCode(type), variableName,semantic);
+        }
+
         public void WriteVariable(VFXExpression exp, Dictionary<VFXExpression, string> variableNames)
         {
             if (!variableNames.ContainsKey(exp))

@@ -61,6 +61,8 @@ Pass
 		#endif
 
 		float3 posWS : TEXCOORD8;
+        
+        ${VFXAdditionalInterpolantsDeclaration}
 		
 		UNITY_VERTEX_OUTPUT_STEREO
 	};
@@ -115,6 +117,7 @@ ${VFXEnd}
 		VFXTransformPSInputs(i);
 		${VFXComputeNormalWS}
         #ifdef VFX_SHADERGRAPH
+        ${VFXAdditionalInterpolantsPreparation}
             SurfaceData surface = (SurfaceData)0;
             BuiltinData builtin = (BuiltinData)0;
             

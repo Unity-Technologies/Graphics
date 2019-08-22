@@ -157,7 +157,7 @@ namespace UnityEditor.VFX
             foreach (var exp in base.CollectGPUExpressions(slotExpressions))
                 yield return exp;
 
-            if( shaderGraph != null)
+            if (shaderGraph != null)
             {
                 foreach (var sgProperty in shaderGraph.properties)
                 {
@@ -173,7 +173,7 @@ namespace UnityEditor.VFX
                 foreach (var def in base.additionalDefines)
                     yield return def;
 
-                if( shaderGraph != null)
+                if (shaderGraph != null)
                 {
                     yield return "VFX_SHADERGRAPH";
                     RPInfo info = currentRP;
@@ -203,7 +203,7 @@ namespace UnityEditor.VFX
                     break;
                 case VFXDeviceTarget.GPU:
 
-                    if( shaderGraph != null)
+                    if (shaderGraph != null)
                     {
                         foreach (var tex in shaderGraph.textureInfos.Where(t => t.texture != null).OrderBy(t => t.name))
                         {
@@ -236,7 +236,7 @@ namespace UnityEditor.VFX
 
         bool IsTexture(PropertyType type)
         {
-            switch( type)
+            switch (type)
             {
                 case PropertyType.Texture2D:
                 case PropertyType.Texture2DArray:
@@ -248,7 +248,17 @@ namespace UnityEditor.VFX
             }
         }
 
-        public override IEnumerable<KeyValuePair<string, VFXShaderWriter>> additionalReplacements
+        public override IEnumerable<string> fragmentParameters
+        {
+            get
+            {
+                if (shaderGraph != null)
+                    foreach (var param in shaderGraph.properties)
+                        yield return param.referenceName;
+            }
+        }
+
+public override IEnumerable<KeyValuePair<string, VFXShaderWriter>> additionalReplacements
         {
             get
             {
@@ -358,24 +368,7 @@ namespace UnityEditor.VFX
                                 callSG.builder.AppendLine($"INSG.VertexColor = i.vertexColor;");
                             }
                         }
-                        /*
-        
-        $SurfaceDescriptionInputs.WorldSpaceViewDirection:   output.WorldSpaceViewDirection = normalize(viewWS);
-        $SurfaceDescriptionInputs.ObjectSpaceViewDirection:  output.ObjectSpaceViewDirection = TransformWorldToObjectDir(output.WorldSpaceViewDirection);
-        $SurfaceDescriptionInputs.ViewSpaceViewDirection:    output.ViewSpaceViewDirection = TransformWorldToViewDir(output.WorldSpaceViewDirection);
-        $SurfaceDescriptionInputs.TangentSpaceViewDirection: float3x3 tangentSpaceTransform = float3x3(output.WorldSpaceTangent, output.WorldSpaceBiTangent, output.WorldSpaceNormal);
-        $SurfaceDescriptionInputs.TangentSpaceViewDirection: output.TangentSpaceViewDirection = mul(tangentSpaceTransform, output.WorldSpaceViewDirection);
-        */
-                        /*
-                        $SurfaceDescriptionInputs.VertexColor:               output.VertexColor = input.color;
-                        $SurfaceDescriptionInputs.FaceSign:                  output.FaceSign = input.isFrontFace;
-                        $SurfaceDescriptionInputs.TimeParameters:            output.TimeParameters = _TimeParameters.xyz; // This is mainly for LW as HD overwrite this value
-                        */
                         
-                        foreach ( var property in graphCode.properties)
-                        {
-                            callSG.builder.AppendLine($"${{VFXLoadParameter:{property.referenceName}}}");
-                        }
                         callSG.builder.Append($"\n{shaderGraph.outputStructName} OUTSG = {shaderGraph.evaluationFunctionName}(INSG");
 
                         if(graphCode.properties.Any())

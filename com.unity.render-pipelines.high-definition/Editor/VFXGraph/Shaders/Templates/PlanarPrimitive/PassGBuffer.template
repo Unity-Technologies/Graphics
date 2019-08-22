@@ -49,6 +49,7 @@ Pass
 		#if USE_NORMAL_BENDING
 		float2 bentFactors : TEXCOORD6;
 		#endif
+        ${VFXAdditionalInterpolantsDeclaration}
 
 		UNITY_VERTEX_OUTPUT_STEREO
 	};
@@ -91,29 +92,11 @@ ${VFXEnd}
 		${VFXComputeNormalWS}
 
         #ifdef VFX_SHADERGRAPH
-            SurfaceData surface = (SurfaceData)0;
-            BuiltinData builtin = (BuiltinData)0;
-            
-            ${SHADERGRAPH_PIXEL_CALL_GBUFFER}
-            #if HAS_SHADERGRAPH_PARAM_SMOOTHNESS
-                surface.perceptualSmoothness = OUTSG.${SHADERGRAPH_PARAM_SMOOTHNESS};
-            #endif
-            #if HAS_SHADERGRAPH_PARAM_METALLIC
-                surface.metallic = OUTSG.${SHADERGRAPH_PARAM_METALLIC};
-            #endif
-            #if HAS_SHADERGRAPH_PARAM_BASECOLOR
-                surface.baseColor = OUTSG.${SHADERGRAPH_PARAM_BASECOLOR};
-            #endif
-            
-            surface.normalWS = normalWS;
-            #if HAS_SHADERGRAPH_PARAM_ALPHA
-                builtin.opacity = OUTSG.${SHADERGRAPH_PARAM_ALPHA};
-            #endif
-            #if HAS_SHADERGRAPH_PARAM_EMISSIVE
-                builtin.emissiveColor = OUTSG.${SHADERGRAPH_PARAM_EMISSIVE};
-            #endif
-        
-            ENCODE_INTO_GBUFFER(surface, builtin, i.VFX_VARYING_POSCS.xy, outGBuffer);
+           ${VFXAdditionalInterpolantsPreparation}
+           SurfaceData surface;
+           BuiltinData builtin,
+           VFXSGComputePixelOutput(surface, builtin,i,normalWS,tangentWS,bitangentWS,OUTSG);
+           ENCODE_INTO_GBUFFER(surface, builtin, i.VFX_VARYING_POSCS.xy, outGBuffer); \
         #else
             VFXComputePixelOutputToGBuffer(i,normalWS,uvData,outGBuffer);
         #endif

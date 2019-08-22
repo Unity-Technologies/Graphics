@@ -50,6 +50,7 @@ Pass
 		float4 cPosPrevious : TEXCOORD5;
 		float4 cPosNonJiterred : TEXCOORD6;
 		#endif
+        ${VFXAdditionalInterpolantsDeclaration}
 
 		UNITY_VERTEX_OUTPUT_STEREO
 	};
@@ -93,6 +94,7 @@ Pass
 		ps_output o = (ps_output)0;
 		VFXTransformPSInputs(i);
         #if VFX_SHADERGRAPH        
+            ${VFXAdditionalInterpolantsPreparation}
             ${SHADERGRAPH_PIXEL_CALL_FORWARD}
             
             #if HAS_SHADERGRAPH_PARAM_COLOR

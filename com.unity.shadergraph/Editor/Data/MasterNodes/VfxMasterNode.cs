@@ -13,9 +13,6 @@ namespace UnityEditor.ShaderGraph
 {
     sealed class VfxMasterNode : MasterNode, IMayRequirePosition
     {
-        public const string PositionName = "Position";
-        public const int PositionSlotId = 0;
-
         public const string BaseColorSlotName = "Base Color";
         public const int BaseColorSlotId = 1;
 
@@ -24,6 +21,9 @@ namespace UnityEditor.ShaderGraph
 
         public const string SmoothnessSlotName = "Smoothness";
         public const int SmoothnessSlotId = 3;
+
+        public const string NormalSlotName = "Normal";
+        public const int NormalSlotId = 8;
 
         public const string AlphaSlotName = "Alpha";
         public const int AlphaSlotId = 4;
@@ -83,8 +83,6 @@ namespace UnityEditor.ShaderGraph
 
             HashSet<int> usedSlots = new HashSet<int>();
 
-            AddSlot(new PositionMaterialSlot(PositionSlotId, PositionName, PositionName, CoordinateSpace.Object, ShaderStageCapability.Vertex));
-            usedSlots.Add(PositionSlotId);
             if ( lit.isOn)
             {
                 AddSlot(new ColorRGBMaterialSlot(BaseColorSlotId, BaseColorSlotName, NodeUtils.GetHLSLSafeName(BaseColorSlotName), SlotType.Input, Color.grey.gamma, ColorMode.Default, ShaderStageCapability.Fragment));
@@ -95,6 +93,9 @@ namespace UnityEditor.ShaderGraph
 
                 AddSlot(new Vector1MaterialSlot(SmoothnessSlotId, SmoothnessSlotName, SmoothnessSlotName, SlotType.Input, 0.5f, ShaderStageCapability.Fragment));
                 usedSlots.Add(SmoothnessSlotId);
+
+                AddSlot(new Vector3MaterialSlot(NormalSlotId, NormalSlotName, NormalSlotName, SlotType.Input, new Vector3(0,0,1), ShaderStageCapability.Fragment));
+                usedSlots.Add(NormalSlotId);
 
                 AddSlot(new ColorRGBMaterialSlot(EmissiveSlotId, EmissiveSlotName, NodeUtils.GetHLSLSafeName(EmissiveSlotName), SlotType.Input, Color.black, ColorMode.HDR, ShaderStageCapability.Fragment));
                 usedSlots.Add(EmissiveSlotId);
