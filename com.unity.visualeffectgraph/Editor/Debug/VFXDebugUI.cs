@@ -38,7 +38,7 @@ namespace UnityEditor.VFX.UI
                 public VerticalBar(float xPos)
                 {
                     m_Mesh = new Mesh();
-                    m_Mesh.vertices = new Vector3[] { new Vector3(xPos, -1, 0), new Vector3(xPos, 2, 0) };
+                    m_Mesh.vertices = new Vector3[] { new Vector3(xPos, -1, 0), new Vector3(xPos, 1, 0) };
                     m_Mesh.SetIndices(new int[] { 0, 1 }, MeshTopology.Lines, 0);
                 }
 
@@ -293,7 +293,7 @@ namespace UnityEditor.VFX.UI
 
                             m_CurveMat.SetFloat("_OrdinateScale", 1.0f);
                             switchableCurve.curve.AddPoint(efficiency);
-                            m_DebugUI.UpdateStatEntry(switchableCurve.id, stat);
+                            m_DebugUI.UpdateSystemStatEntry(switchableCurve.id, stat);
                         }
                         break;
                     case Modes.Alive:
@@ -307,7 +307,7 @@ namespace UnityEditor.VFX.UI
 
                             m_CurveMat.SetFloat("_OrdinateScale", 1.0f / (float)superior2);
                             switchableCurve.curve.AddPoint(stat.alive);
-                            m_DebugUI.UpdateStatEntry(switchableCurve.id, stat);
+                            m_DebugUI.UpdateSystemStatEntry(switchableCurve.id, stat);
 
                         }
                         break;
@@ -346,7 +346,7 @@ namespace UnityEditor.VFX.UI
                 m_BarMat.SetMatrix(m_ClippingMatrixId, baseChange);
 
 
-                // Updating curve
+                // curves update
                 var now = Time.time;
                 bool shouldSample = (!m_Pause && (now - m_LastSampleTime > m_TimeBetweenDraw)) || (m_Pause && m_Step);
                 m_Step = false;
@@ -385,7 +385,6 @@ namespace UnityEditor.VFX.UI
                 }
 
                 // time bars update
-                //m_TimeBarsOffsets.RemoveAll(timeBar => timeBar < 0);
                 var xShift = 1.0f / (float)(m_MaxPoints - 1);
                 Color timeBarColor = new Color(1, 0, 0, 0.5f).gamma;
                 for (int j = 0; j < m_TimeBarsOffsets.Count(); ++j)
@@ -396,6 +395,7 @@ namespace UnityEditor.VFX.UI
                         --j;
                         continue;
                     }
+
                     m_BarMat.SetFloat("_AbscissaOffset", m_TimeBarsOffsets[j]);
                     if (shouldSample)
                         m_TimeBarsOffsets[j] -= xShift;
@@ -418,7 +418,6 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        Modes m_CurrentMode;
 
         // graph characteristics
         VFXView m_View;
@@ -426,6 +425,7 @@ namespace UnityEditor.VFX.UI
         List<int> m_GpuSystems;
 
         // debug components
+        Modes m_CurrentMode;
         VFXComponentBoard m_ComponentBoard;
         VisualElement m_DebugContainer;
         Button m_DebugButton;
@@ -433,6 +433,7 @@ namespace UnityEditor.VFX.UI
         Box m_DebugDrawingBox;
         CurveContent m_Curves;
 
+        // VisualElement[] layout:
         // [0] container
         // [1] toggle
         // [2] system name
@@ -440,6 +441,8 @@ namespace UnityEditor.VFX.UI
         // [4] max alive (Button)
         // [5] efficiency
         Dictionary<int, VisualElement[]> m_SystemStats;
+
+        // TextElement[] layout:
         // [0] bottom value
         // [1] mid value
         // [2] top value
@@ -453,6 +456,10 @@ namespace UnityEditor.VFX.UI
         ~VFXDebugUI()
         {
             Clear();
+            m_View = null;
+            m_VFX = null;
+            m_GpuSystems = null;
+            m_CurrentMode = Modes.None;
         }
 
         public void SetDebugMode(Modes mode, VFXComponentBoard componentBoard, bool force = false)
@@ -493,11 +500,11 @@ namespace UnityEditor.VFX.UI
             {
                 case Modes.Efficiency:
                     RegisterParticleSystems();
-                    InitStatArray();
+                    InitSystemStatArray();
                     break;
                 case Modes.Alive:
                     RegisterParticleSystems();
-                    InitStatArray();
+                    InitSystemStatArray();
                     break;
                 default:
                     break;
@@ -524,10 +531,12 @@ namespace UnityEditor.VFX.UI
 
         public void SetVisualEffect(VisualEffect vfx)
         {
-            m_VFX = vfx;
-
-            if (m_Curves != null)
-                m_Curves.OnVFXChange();
+            if (m_VFX != vfx)
+            {
+                m_VFX = vfx;
+                if (m_Curves != null)
+                    m_Curves.OnVFXChange();
+            }
         }
 
         public void Notify(Events e)
@@ -535,10 +544,10 @@ namespace UnityEditor.VFX.UI
             switch (e)
             {
                 case Events.VFXReset:
-                    InitStatArray();
+                    InitSystemStatArray();
                     break;
                 case Events.VFXStop:
-                    InitStatArray();
+                    InitSystemStatArray();
                     break;
                 default:
                     break;
@@ -549,10 +558,17 @@ namespace UnityEditor.VFX.UI
         void RegisterParticleSystems()
         {
             if (m_SystemStats != null)
+            {
                 foreach (var systemStat in m_SystemStats.Values)
+                {
+                    systemStat[0].Clear();
                     m_SystemStatsContainer.Remove(systemStat[0]);
+                }
+                m_SystemStats.Clear();
+            }
+            else
+                m_SystemStats = new Dictionary<int, VisualElement[]>();
 
-            m_SystemStats = new Dictionary<int, VisualElement[]>();
             if (m_VFX != null)
             {
                 List<string> particleSystemNames = new List<string>();
@@ -596,14 +612,11 @@ namespace UnityEditor.VFX.UI
 
             var Yaxis = SetYAxis("100%", "50%", "0%");
             m_DebugDrawingBox = SetDebugDrawingBox();
-
             var settingsBox = SetSettingsBox();
-
             var plotArea = SetPlotArea(m_DebugDrawingBox, Yaxis);
+            var title = SetSystemStatsTitle();
 
-            var title = SetStatsTitle();
-
-            m_SystemStatsContainer = SetSystemStatContainer();
+            m_SystemStatsContainer = SetSystemStatsContainer();
 
             m_DebugContainer.Add(settingsBox);
             m_DebugContainer.Add(plotArea);
@@ -624,14 +637,10 @@ namespace UnityEditor.VFX.UI
 
             var Yaxis = SetYAxis("", "", "0");
             m_DebugDrawingBox = SetDebugDrawingBox();
-
             var settingsBox = SetSettingsBox();
-
             var plotArea = SetPlotArea(m_DebugDrawingBox, Yaxis);
-
-            var title = SetStatsTitle();
-
-            m_SystemStatsContainer = SetSystemStatContainer();
+            var title = SetSystemStatsTitle();
+            m_SystemStatsContainer = SetSystemStatsContainer();
 
             m_DebugContainer.Add(settingsBox);
             m_DebugContainer.Add(plotArea);
@@ -656,7 +665,7 @@ namespace UnityEditor.VFX.UI
             containerSR.Add(labelSR);
             containerSR.Add(fieldSR);
 
-            // time bars toggle
+            // time bar toggle
             var labelTB = new Label();
             labelTB.text = "Toggle time bars";
             labelTB.style.fontSize = 12;
@@ -740,14 +749,14 @@ namespace UnityEditor.VFX.UI
             return plotArea;
         }
 
-        VisualElement SetSystemStatContainer()
+        VisualElement SetSystemStatsContainer()
         {
             var scrollerContainer = new ScrollView();
             scrollerContainer.name = "debug-system-stat-container";
             return scrollerContainer;
         }
 
-        VisualElement SetStatsTitle()
+        VisualElement SetSystemStatsTitle()
         {
             var toggleAll = new Toggle();
             toggleAll.value = true;
@@ -756,6 +765,7 @@ namespace UnityEditor.VFX.UI
             var systemStatName = new TextElement();
             systemStatName.name = "debug-system-stat-title-name";
             systemStatName.text = "Particle System";
+            systemStatName.tooltip = "Click on a name to focus the corresponding particle system";
 
             var systemStatAlive = new TextElement();
             systemStatAlive.name = "debug-system-stat-title";
@@ -795,6 +805,7 @@ namespace UnityEditor.VFX.UI
             name.name = "debug-system-stat-entry-name";
             name.text = systemName;
             name.style.color = color;
+            name.style.backgroundColor = new Color(0.16f, 0.16f, 0.16f);
             name.clickable.clicked += FocusParticleSystem(systemName);
 
             var alive = new TextElement();
@@ -879,7 +890,7 @@ namespace UnityEditor.VFX.UI
             return (e) => { };
         }
 
-        void UpdateStatEntry(int systemId, VFXSystemStat stat)
+        void UpdateSystemStatEntry(int systemId, VFXSystemStat stat)
         {
             var statUI = m_SystemStats[systemId];// [0] is title bar
             if (statUI[3] is TextElement alive)
@@ -890,7 +901,7 @@ namespace UnityEditor.VFX.UI
                 efficiency.text = string.Format("{0} %", (int)((float)stat.alive * 100.0f / (float)stat.capacity));
         }
 
-        void InitStatArray()
+        void InitSystemStatArray()
         {
             if (m_SystemStats != null)
                 foreach (var statUI in m_SystemStats.Values)

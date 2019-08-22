@@ -10,7 +10,7 @@ VFXComponentBoard.graphElement
     padding-top:0;
     padding-bottom:0;
 
-    min-width: 240px;
+    min-width: 278px;
     min-height: 100px;
 }
 
