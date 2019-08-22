@@ -60,6 +60,10 @@ PackedVaryingsToPS VertTesselation(VaryingsToDS input)
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/TessellationShare.hlsl"
 #endif
 
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/TextureStack.hlsl"
+#if VIRTUAL_TEXTURES_ACTIVE
+[earlydepthstencil]
+#endif
 void Frag(PackedVaryingsToPS packedInput,
         #ifdef OUTPUT_SPLIT_LIGHTING
             out float4 outColor : SV_Target0,  // outSpecularLighting
@@ -220,4 +224,7 @@ void Frag(PackedVaryingsToPS packedInput,
     outputDepth = posInput.deviceDepth;
 #endif
 
+#if VIRTUAL_TEXTURES_ACTIVE
+    StoreVTFeedback(builtinData.vtFeedback, posInput.positionSS);
+#endif
 }

@@ -24,11 +24,12 @@ PackedVaryingsToPS VertTesselation(VaryingsToDS input)
 
 #endif // TESSELLATION_ON
 
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/TextureStack.hlsl"
+#if VIRTUAL_TEXTURES_ACTIVE
+[earlydepthstencil]
+#endif
 void Frag(PackedVaryingsToPS packedInput,
-    out float4 outResult : SV_Target0   
-#if VIRTUAL_TEXTURES_ENABLED    
-    ,out float4 outVTFeedback : SV_Target1
-#endif    
+    out float4 outResult : SV_Target0
 )
 {
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(packedInput);
@@ -92,9 +93,8 @@ void Frag(PackedVaryingsToPS packedInput,
 #endif
 
     outResult = outColor;
-#if VIRTUAL_TEXTURES_ACTIVE      
-    outVTFeedback = surfaceData.VTFeedback;
-#elif VIRTUAL_TEXTURES_ENABLED
-    outVTFeedback = float4(1,1,1,1);
-#endif    
+
+#if VIRTUAL_TEXTURES_ACTIVE
+    StoreVTFeedback(builtinData.vtFeedback, posInput.positionSS);
+#endif
 }

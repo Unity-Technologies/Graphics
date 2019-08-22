@@ -759,15 +759,6 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     surfaceData.materialFeatures |= MATERIALFEATUREFLAGS_LIT_TRANSMISSION;
 #endif
 
-    // VT Feedback
-    // TODO: properly
-    float4 _FeedbackAggregate[4];
-    _FeedbackAggregate[0] = surfaceData0.VTFeedback;
-    _FeedbackAggregate[1] = surfaceData1.VTFeedback;
-    _FeedbackAggregate[2] = surfaceData2.VTFeedback;
-    _FeedbackAggregate[3] = surfaceData3.VTFeedback;
-    surfaceData.VTFeedback = _FeedbackAggregate[input.positionSS.x%4];
-
     // Init other parameters
     surfaceData.anisotropy = 0.0;
     surfaceData.specularColor = float3(0.0, 0.0, 0.0);

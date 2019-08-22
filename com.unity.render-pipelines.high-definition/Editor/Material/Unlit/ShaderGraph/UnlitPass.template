@@ -138,6 +138,10 @@ $include("SharedCode.template.hlsl")
         // Builtin Data
         ZERO_INITIALIZE(BuiltinData, builtinData); // No call to InitBuiltinData as we don't have any lighting
         builtinData.opacity = surfaceDescription.Alpha;
+
+#if !defined(_SURFACE_TYPE_TRANSPARENT)
+        $SurfaceDescription.VTFeedback: builtinData.vtFeedback = surfaceDescription.VTFeedback;
+#endif
     }
 
     //-------------------------------------------------------------------------------------

@@ -332,6 +332,10 @@ $include("SharedCode.template.hlsl")
 
         $SurfaceDescription.Emission: builtinData.emissiveColor = surfaceDescription.Emission;
 
+#if !defined(_SURFACE_TYPE_TRANSPARENT)
+        $SurfaceDescription.VTFeedback: builtinData.vtFeedback = surfaceDescription.VTFeedback;
+#endif
+
         $DepthOffset: builtinData.depthOffset = surfaceDescription.DepthOffset;
 
 #if (SHADERPASS == SHADERPASS_DISTORTION)

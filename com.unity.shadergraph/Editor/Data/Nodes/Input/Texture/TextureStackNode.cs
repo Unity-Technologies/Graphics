@@ -3,6 +3,7 @@ using UnityEngine;
 using UnityEditor.Graphing;
 using System.Collections.Generic;
 using System;
+using System.Globalization;
 using UnityEditor.ShaderGraph.Drawing.Controls;
 
 namespace UnityEditor.ShaderGraph
@@ -443,37 +444,40 @@ namespace UnityEditor.ShaderGraph
         {
             var slots = this.GetInputSlots<ISlot>();
             int numSlots = slots.Count();
+            if (numSlots == 0)
+            {
+                return;
+            }
 
-           if (numSlots == 1)
-           {
-               string feedBackCode = $"float4 {GetVariableNameForSlot(AggregateOutputId)} = {GetSlotValue(AggregateInputFirstId, generationMode)};";
-               sb.AppendLine(feedBackCode);
-           }
-           else if (numSlots > 1)
-           {
-               string arrayName = $"{GetVariableNameForSlot(AggregateOutputId)}_array";
-               sb.AppendLine($"float4 {arrayName}[{numSlots}];");
+            if (numSlots == 1)
+            {
+                string feedBackCode = $"float4 {GetVariableNameForSlot(AggregateOutputId)} = {GetSlotValue(AggregateInputFirstId, generationMode)};";
+                sb.AppendLine(feedBackCode);
+            }
+            else if (numSlots > 1)
+            {
+                string arrayName = $"{GetVariableNameForSlot(AggregateOutputId)}_array";
+                sb.AppendLine($"float4 {arrayName}[{numSlots}];");
 
-               int arrayIndex = 0;
-               foreach (var slot in slots)
-               {
-                   string code = $"{arrayName}[{arrayIndex}] = {GetSlotValue(AggregateInputFirstId + arrayIndex, generationMode)};";
-                   sb.AppendLine(code);
-                   arrayIndex++;
-               }
+                int arrayIndex = 0;
+                foreach (var slot in slots)
+                {
+                    string code = $"{arrayName}[{arrayIndex}] = {GetSlotValue(AggregateInputFirstId + arrayIndex, generationMode)};";
+                    sb.AppendLine(code);
+                    arrayIndex++;
+                }
 
-               string feedBackCode = $"float4 {GetVariableNameForSlot(AggregateOutputId)} = {arrayName}[ (IN.{ShaderGeneratorNames.PixelCoordinate}.x  + _FrameCount )% (uint){numSlots}];";
+                string feedBackCode = $"float4 {GetVariableNameForSlot(AggregateOutputId)} = {arrayName}[ (IN.{ShaderGeneratorNames.PixelCoordinate}.x  + _FrameCount )% (uint){numSlots}];";
 
-               sb.AppendLine(feedBackCode);
-           }
-
-           string write = $"StoreVTFeedback({GetVariableNameForSlot(AggregateOutputId)}, (uint2)IN.{ShaderGeneratorNames.PixelCoordinate}.xy  );";
-           sb.AppendLine(write);
+                sb.AppendLine(feedBackCode);
+            }
         }
 
         public bool RequiresPixelCoordinate(ShaderStageCapability stageCapability)
         {
-            return true;
+            var slots = this.GetInputSlots<ISlot>();
+            int numSlots = slots.Count();
+            return numSlots > 1;
         }
 
         // Automatically add a  streaming feedback node and correctly connect it to stack samples are connected to it and it is connected to the master node output

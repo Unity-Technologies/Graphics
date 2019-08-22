@@ -1221,11 +1221,6 @@ namespace UnityEditor.ShaderGraph
             {
                 foreach (var slot in slots)
                 {
-                    if (slot.hidden)
-                    {
-                        continue;
-                    }
-
                     string hlslName = NodeUtils.GetHLSLSafeName(slot.shaderOutputName);
                     if (useIdsInNames)
                     {
@@ -1297,7 +1292,7 @@ namespace UnityEditor.ShaderGraph
                     var usedSlots = slots ?? rootNode.GetInputSlots<MaterialSlot>();
                     foreach (var input in usedSlots)
                     {
-                        if (input != null && input.hidden == false)
+                        if (input != null)
                         {
                             var foundEdges = graph.GetEdges(input.slotReference).ToArray();
                             var hlslName = NodeUtils.GetHLSLSafeName(input.shaderOutputName);

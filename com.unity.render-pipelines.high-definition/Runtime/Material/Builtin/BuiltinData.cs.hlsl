@@ -20,6 +20,7 @@
 #define DEBUGVIEW_BUILTIN_BUILTINDATA_DISTORTION_BLUR (110)
 #define DEBUGVIEW_BUILTIN_BUILTINDATA_RENDERING_LAYERS (111)
 #define DEBUGVIEW_BUILTIN_BUILTINDATA_DEPTH_OFFSET (112)
+#define DEBUGVIEW_BUILTIN_BUILTINDATA_VTFEEDBACK (113)
 
 // Generated from UnityEngine.Rendering.HighDefinition.Builtin+BuiltinData
 // PackingRules = Exact
@@ -38,6 +39,7 @@ struct BuiltinData
     real distortionBlur;
     uint renderingLayers;
     float depthOffset;
+    real4 vtFeedback;
 };
 
 // Generated from UnityEngine.Rendering.HighDefinition.Builtin+LightTransportData
@@ -95,6 +97,9 @@ void GetGeneratedBuiltinDataDebug(uint paramId, BuiltinData builtindata, inout f
             break;
         case DEBUGVIEW_BUILTIN_BUILTINDATA_DEPTH_OFFSET:
             result = builtindata.depthOffset.xxx;
+            break;
+        case DEBUGVIEW_BUILTIN_BUILTINDATA_VTFEEDBACK:
+            result = builtindata.vtFeedback.xyz;
             break;
     }
 }
