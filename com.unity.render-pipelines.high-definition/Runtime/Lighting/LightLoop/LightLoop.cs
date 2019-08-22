@@ -453,35 +453,26 @@ namespace UnityEngine.Rendering.HighDefinition
         internal class LightList
         {
             public List<DirectionalLightData> directionalLights;
-//            public List<LightData> lights;
-            public List<EnvLightData> envLights;
+            public NativeArray<EnvLightData> m_EnvLights;
+            public NativeArray<LightData> m_LightData;
+
             public int m_PunctualLightCount;
             public int m_AreaLightCount;
+            public int m_EnvLightCount;
 
-
-            public NativeArray<LightData> m_LightData;
             public NativeArray<SFiniteLightBound> m_Bounds;
             public NativeArray<LightVolumeData> m_LightVolumeData;
 
-
-//            public struct LightsPerView
-//            {
-//                public List<SFiniteLightBound> bounds;
-//                public List<LightVolumeData> lightVolumes;
-//            }
-
-//            public NativeArray<SFiniteLightBound> bounds;
-//            public NativeArray<LightVolumeData> lightVolumes;
-
-            //public List<LightsPerView> lightsPerView;
 
             public void AllocateLightArraysPerFrame(int punctualLightCount, int areaLightCount, int decalCount, int envLightCount, int numViews)
             {
                 m_LightVolumeData = new NativeArray<LightVolumeData>((punctualLightCount + areaLightCount + envLightCount + decalCount) * numViews, Allocator.TempJob);
                 m_Bounds = new NativeArray<SFiniteLightBound>((punctualLightCount + areaLightCount + envLightCount + decalCount) * numViews, Allocator.TempJob);
                 m_LightData = new NativeArray<LightData>((punctualLightCount + areaLightCount), Allocator.TempJob);
+                m_EnvLights = new NativeArray<EnvLightData>(envLightCount, Allocator.TempJob);
                 m_PunctualLightCount = punctualLightCount;
                 m_AreaLightCount = areaLightCount;
+                m_EnvLightCount = envLightCount;
             }
 
             public void DisposeLightArraysPerFrame()
@@ -489,34 +480,20 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_LightVolumeData.Dispose();
                 m_Bounds.Dispose();
                 m_LightData.Dispose();
+                m_EnvLights.Dispose();
             }
 
             public void Clear()
             {
-                directionalLights.Clear();
-//                lights.Clear();
-                envLights.Clear();
+                directionalLights.Clear();          
                 m_PunctualLightCount = 0;
                 m_AreaLightCount = 0;
-
-//                for (int i = 0; i < lightsPerView.Count; ++i)
-//                {
-//                    lightsPerView[i].bounds.Clear();
-//                    lightsPerView[i].lightVolumes.Clear();
-//                }
+                m_EnvLightCount = 0;
             }
 
             public void Allocate()
             {
                 directionalLights = new List<DirectionalLightData>();
-//                lights = new List<LightData>();
-                envLights = new List<EnvLightData>();
-
-//                lightsPerView = new List<LightsPerView>();
-//                for (int i = 0; i < TextureXR.slices; ++i)
-//                {
-//                    lightsPerView.Add(new LightsPerView { bounds = new List<SFiniteLightBound>(), lightVolumes = new List<LightVolumeData>() });
-//                }
             }
         }
 
@@ -2548,38 +2525,32 @@ namespace UnityEngine.Rendering.HighDefinition
                     // Redo everything but this time with envLights
                     Debug.Assert(m_MaxEnvLightsOnScreen <= 256); //for key construction
 
-                    for (int probeIndex = 0; probeIndex < reflectionProbeCount; ++probeIndex)
+                    for (int refProbeIndex = 0; refProbeIndex < reflectionProbeCount; ++refProbeIndex)
                     {
                         // In 1. we have already classify and sorted the light, we need to use this sorted order here
-                        int sortIndex = m_RefProbesSortIndexRemapping[probeIndex];
+                        int sortIndex = m_RefProbesSortIndexRemapping[refProbeIndex];
                         uint sortKey = m_ProbeSortKeys[sortIndex];
                         LightVolumeType lightVolumeType;
                         int listType;
+                        int probeIndex;
                         UnpackProbeSortKey(sortKey, out lightVolumeType, out probeIndex, out listType);
 
 
                         var probeWrapper = m_ProbeWrappers[sortIndex];
 
-                        EnvLightData envLightData = new EnvLightData();
+                        EnvLightData envLightData = m_lightList.m_EnvLights[refProbeIndex];
 
-                        if (GetEnvLightData(cmd, hdCamera, probeWrapper, debugDisplaySettings, ref envLightData, probeIndex))
+                        GetEnvLightData(cmd, hdCamera, probeWrapper, debugDisplaySettings, ref envLightData, refProbeIndex);
+                        for (int viewIndex = 0; viewIndex < hdCamera.viewCount; ++viewIndex)
                         {
-                            // it has been filled
-                            m_lightList.envLights.Add(envLightData);
-
-                            for (int viewIndex = 0; viewIndex < hdCamera.viewCount; ++viewIndex)
-                            {
-                                var worldToView = GetWorldToViewMatrix(hdCamera, viewIndex);
-                                GetEnvLightVolumeDataAndBound(probeWrapper, lightVolumeType, worldToView, punctualLightCount + areaLightCount + reflectionProbeCount + decalDatasCount, punctualLightCount + areaLightCount, probeIndex, viewIndex);
-                            }
-
-                            // We make the light position camera-relative as late as possible in order
-                            // to allow the preceding code to work with the absolute world space coordinates.
-                            UpdateEnvLighCameraRelativetData(ref envLightData, camPosWS);
-
-                            int last = m_lightList.envLights.Count - 1;
-                            m_lightList.envLights[last] = envLightData;
+                            var worldToView = GetWorldToViewMatrix(hdCamera, viewIndex);
+                            GetEnvLightVolumeDataAndBound(probeWrapper, lightVolumeType, worldToView, punctualLightCount + areaLightCount + reflectionProbeCount + decalDatasCount, punctualLightCount + areaLightCount, probeIndex, viewIndex);
                         }
+
+                        // We make the light position camera-relative as late as possible in order
+                        // to allow the preceding code to work with the absolute world space coordinates.
+                        UpdateEnvLighCameraRelativetData(ref envLightData, camPosWS);
+                        m_lightList.m_EnvLights[refProbeIndex] = envLightData;
                     }
                 }
 
@@ -2649,8 +2620,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 UpdateDataBuffers();
 
                 cmd.SetGlobalInt(HDShaderIDs._EnvLightIndexShift, m_lightList.m_PunctualLightCount);
-                cmd.SetGlobalInt(HDShaderIDs._DecalIndexShift, m_lightList.m_PunctualLightCount + m_lightList.envLights.Count);
-                cmd.SetGlobalInt(HDShaderIDs._DensityVolumeIndexShift, m_lightList.m_PunctualLightCount + m_lightList.envLights.Count + decalDatasCount);
+                cmd.SetGlobalInt(HDShaderIDs._DecalIndexShift, m_lightList.m_PunctualLightCount + m_lightList.m_EnvLightCount);
+                cmd.SetGlobalInt(HDShaderIDs._DensityVolumeIndexShift, m_lightList.m_PunctualLightCount + m_lightList.m_EnvLightCount + decalDatasCount);
 
                 DisposeBoundsJobArrays();
                 DisposeRefProbeScratchData();
@@ -2817,7 +2788,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // TODO: These two aren't actually used...
                 cmd.SetComputeIntParam(parameters.bigTilePrepassShader, HDShaderIDs._EnvLightIndexShift, parameters.lightList.m_PunctualLightCount);
-                cmd.SetComputeIntParam(parameters.bigTilePrepassShader, HDShaderIDs._DecalIndexShift, parameters.lightList.m_PunctualLightCount + parameters.lightList.envLights.Count);
+                cmd.SetComputeIntParam(parameters.bigTilePrepassShader, HDShaderIDs._DecalIndexShift, parameters.lightList.m_PunctualLightCount + parameters.lightList.m_EnvLightCount);
 
                 cmd.SetComputeMatrixArrayParam(parameters.bigTilePrepassShader, HDShaderIDs.g_mScrProjectionArr, parameters.lightListProjscrMatrices);
                 cmd.SetComputeMatrixArrayParam(parameters.bigTilePrepassShader, HDShaderIDs.g_mInvScrProjectionArr, parameters.lightListInvProjscrMatrices);
@@ -2843,7 +2814,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.SetComputeIntParam(parameters.buildPerTileLightListShader, HDShaderIDs.g_isOrthographic, parameters.isOrthographic ? 1 : 0);
                 cmd.SetComputeIntParams(parameters.buildPerTileLightListShader, HDShaderIDs.g_viDimensions, s_TempScreenDimArray);
                 cmd.SetComputeIntParam(parameters.buildPerTileLightListShader, HDShaderIDs._EnvLightIndexShift, parameters.lightList.m_PunctualLightCount);
-                cmd.SetComputeIntParam(parameters.buildPerTileLightListShader, HDShaderIDs._DecalIndexShift, parameters.lightList.m_PunctualLightCount + parameters.lightList.envLights.Count);
+                cmd.SetComputeIntParam(parameters.buildPerTileLightListShader, HDShaderIDs._DecalIndexShift, parameters.lightList.m_PunctualLightCount + parameters.lightList.m_EnvLightCount);
                 cmd.SetComputeIntParam(parameters.buildPerTileLightListShader, HDShaderIDs.g_iNrVisibLights, parameters.totalLightCount);
 
                 cmd.SetComputeBufferParam(parameters.buildPerTileLightListShader, parameters.buildPerTileLightListKernel, HDShaderIDs.g_vBoundsBuffer, tileAndCluster.AABBBoundsBuffer);
@@ -3160,7 +3131,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             m_LightLoopLightData.directionalLightData.SetData(m_lightList.directionalLights);
             m_LightLoopLightData.lightData.SetData(m_lightList.m_LightData);
-            m_LightLoopLightData.envLightData.SetData(m_lightList.envLights);
+            m_LightLoopLightData.envLightData.SetData(m_lightList.m_EnvLights);
             m_LightLoopLightData.decalData.SetData(DecalSystem.m_DecalDatas, 0, 0, Math.Min(DecalSystem.m_DecalDatasCount, m_MaxDecalsOnScreen)); // don't add more than the size of the buffer
 
             // These two buffers have been set in Rebuild(). At this point, view 0 contains combined data from all views
@@ -3242,7 +3213,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.SetGlobalInt(HDShaderIDs._PunctualLightCount, param.lightList.m_PunctualLightCount);
                 cmd.SetGlobalInt(HDShaderIDs._AreaLightCount, param.lightList.m_AreaLightCount);
                 cmd.SetGlobalBuffer(HDShaderIDs._EnvLightDatas, param.lightData.envLightData);
-                cmd.SetGlobalInt(HDShaderIDs._EnvLightCount, param.lightList.envLights.Count);
+                cmd.SetGlobalInt(HDShaderIDs._EnvLightCount, param.lightList.m_EnvLightCount);
                 cmd.SetGlobalBuffer(HDShaderIDs._DecalDatas, param.lightData.decalData);
                 cmd.SetGlobalInt(HDShaderIDs._DecalCount, DecalSystem.m_DecalDatasCount);
 
