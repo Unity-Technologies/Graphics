@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed  a bug where if Assembly.GetTypes throws an exception due to mis-versioned dlls, then no preprocessors are used in the shader stripper
 - Fixed typo in AXF decal property preventing to compile
 - Fixed reflection probe with XR single-pass and FPTL
+- Fixed force gizmo shown when selecting camera in hierarchy
 
 ### Changed
 - Update Wizard layout.
