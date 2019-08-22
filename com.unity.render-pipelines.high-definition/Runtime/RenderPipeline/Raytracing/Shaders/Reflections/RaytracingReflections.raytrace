@@ -159,7 +159,7 @@ void RayGenReflectionHalfRes()
     float samplePDF = roughness > 0.001 ? D_GGX(NdotH, roughness) * NdotH / (4.0 * VdotH) : 1.0;
 
     // Make sure we pre-expose and then we clamp
-    float3 exposedValue = clamp(rayIntersection.color * GetCurrentExposureMultiplier(), 0.0, _RaytracingIntensityClamp);
+    float3 exposedValue = clamp(rayIntersection.color * GetCurrentExposureMultiplier(), 0.0, _RaytracingIntensityClamp) * GetInverseCurrentExposureMultiplier();
 
     // We store the clamped, pre-exposed value and the index of the target pixel in the first texture
     _SsrLightingTextureRW[outputCoord] = float4(exposedValue, subPixelSample);
@@ -277,7 +277,7 @@ void RayGenReflectionFullRes()
     }
 
     // Make sure we pre-expose and then we clamp
-    float3 exposedValue = clamp(rayIntersection.color * GetCurrentExposureMultiplier(), 0.0, _RaytracingIntensityClamp);
+    float3 exposedValue = clamp(rayIntersection.color * GetCurrentExposureMultiplier(), 0.0, _RaytracingIntensityClamp) * GetInverseCurrentExposureMultiplier();
 
     // We store the clamped, pre-exposed value and the index of the target pixel in the first texture
     _SsrLightingTextureRW[currentCoord] = float4(exposedValue, 0.0);
@@ -394,7 +394,7 @@ void RayGenIntegration()
     finalColor *= 1.0 / realSampleCount;
 
     // Expose and clamp the final color
-    finalColor = clamp(finalColor * GetCurrentExposureMultiplier(), 0.0, _RaytracingIntensityClamp);
+    finalColor = clamp(finalColor * GetCurrentExposureMultiplier(), 0.0, _RaytracingIntensityClamp) * GetInverseCurrentExposureMultiplier();
 
     // We store the sampled color and the weight that shall be used for it (1.0)
     _SsrLightingTextureRW[currentCoord] = float4(finalColor, 1.0);
