@@ -23,10 +23,10 @@ struct RayIntersection
 	RayCone cone;
 	// The remaining available depth for the current Ray
 	uint    remainingDepth;
-	// Scrambling data
-	uint2 scramblingValue;
 	// Current sample index
 	uint sampleIndex;
+	// Pixel coordinate from which the initial ray was launched
+	uint2 pixelCoord;
 };
 
 struct AttributeData

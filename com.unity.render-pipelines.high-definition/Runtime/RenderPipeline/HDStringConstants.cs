@@ -757,6 +757,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _BlueNoiseTexture               = Shader.PropertyToID("_BlueNoiseTexture");
         public static readonly int _OwenScrambledRGTexture         = Shader.PropertyToID("_OwenScrambledRGTexture");
         public static readonly int _OwenScrambledTexture           = Shader.PropertyToID("_OwenScrambledTexture");
+        public static readonly int _ScramblingTileXSPP             = Shader.PropertyToID("_ScramblingTileXSPP");
+        public static readonly int _RankingTileXSPP                = Shader.PropertyToID("_RankingTileXSPP");
         public static readonly int _ScramblingTexture              = Shader.PropertyToID("_ScramblingTexture");
         public static readonly int _AfterPostProcessTexture        = Shader.PropertyToID("_AfterPostProcessTexture");
         public static readonly int _DitherParams                   = Shader.PropertyToID("_DitherParams");

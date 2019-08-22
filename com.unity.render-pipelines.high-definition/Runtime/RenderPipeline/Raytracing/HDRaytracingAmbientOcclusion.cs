@@ -72,7 +72,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             // Let's check all the resources
             HDRaytracingEnvironment rtEnvironment = m_RaytracingManager.CurrentEnvironment();
-
+            BlueNoise blueNoise = m_RaytracingManager.GetBlueNoiseManager();
 
             // Check if the state is valid for evaluating ambient occlusion
             bool invalidState = rtEnvironment == null;
@@ -96,11 +96,6 @@ namespace UnityEngine.Rendering.HighDefinition
             // Set the acceleration structure for the pass
             cmd.SetRayTracingAccelerationStructure(aoShader, HDShaderIDs._RaytracingAccelerationStructureName, accelerationStructure);
 
-            // Inject the ray-tracing sampling data
-            cmd.SetGlobalTexture(HDShaderIDs._OwenScrambledRGTexture, m_PipelineResources.textures.owenScrambledRGBATex);
-            cmd.SetGlobalTexture(HDShaderIDs._OwenScrambledTexture, m_PipelineResources.textures.owenScrambled256Tex);
-            cmd.SetGlobalTexture(HDShaderIDs._ScramblingTexture, m_PipelineResources.textures.scramblingTex);
-
             // Inject the ray generation data
             cmd.SetRayTracingFloatParams(aoShader, HDShaderIDs._RaytracingRayBias, rtEnvironment.rayBias);
             cmd.SetRayTracingFloatParams(aoShader, HDShaderIDs._RaytracingRayMaxLength, aoSettings.rayLength.value);
@@ -112,6 +107,9 @@ namespace UnityEngine.Rendering.HighDefinition
             int frameIndex = hdCamera.IsTAAEnabled() ? hdCamera.taaFrameIndex : (int)frameCount % 8;
             cmd.SetGlobalInt(HDShaderIDs._RaytracingFrameIndex, frameIndex);
 
+            // Inject the ray-tracing sampling data
+            blueNoise.BindDitheredRNGData8SPP(cmd);
+            
             // Value used to scale the ao intensity
             cmd.SetRayTracingFloatParam(aoShader, HDShaderIDs._RaytracingAOIntensity, aoSettings.intensity.value);
 
