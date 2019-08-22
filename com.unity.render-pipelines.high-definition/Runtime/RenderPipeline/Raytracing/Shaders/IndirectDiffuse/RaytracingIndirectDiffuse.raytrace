@@ -48,9 +48,6 @@ void RayGenFullRes()
     // Compute the pixel coordinate (which matches the half res of the effect)
     uint2 currentCoord = uint2(LaunchIndex.x, LaunchDim.y - LaunchIndex.y - 1);
 
-    // Get the scramblingValue of this pixel
-    uint2 scramblingValue = ScramblingValue(currentCoord.x, currentCoord.y);
-
     // Clear the textures (in case the sample that we generate does doesn't generate any )
     _IndirectDiffuseTextureRW[currentCoord] = float4(0.0, 0.0, 0.0, 0.0);
     _IndirectDiffuseHitPointTextureRW[currentCoord] = float4(0.0, 0.0, 0.0, 1.0);
@@ -75,7 +72,9 @@ void RayGenFullRes()
     DecodeFromNormalBuffer(currentCoord, normalData);
 
     // Generate a new sample
-    float2 sample = GetRaytracingNoiseSampleRG(_RaytracingFrameIndex, scramblingValue);
+    float2 sample;
+    sample.x = GetBNDSequenceSample(currentCoord, _RaytracingFrameIndex, 0);
+    sample.y = GetBNDSequenceSample(currentCoord, _RaytracingFrameIndex, 1);
 
     // Importance sample with a cosine lobe
     float3 sampleDir = SampleHemisphereCosine(sample.x, sample.y, normalData.normalWS);
@@ -124,9 +123,6 @@ void RayGenIntegration()
     // Compute the pixel coordinate to evaluate
     uint2 currentCoord = uint2(LaunchIndex.x, LaunchDim.y - LaunchIndex.y - 1);
 
-    // Get the scramblingValue of this pixel
-    uint2 scramblingValue = ScramblingValue(currentCoord.x, currentCoord.y);
-
     // Clear the output color texture
     _IndirectDiffuseTextureRW[currentCoord] = float4(0.0f, 0.0f, 0.0f, 0.0f);
 
@@ -165,7 +161,9 @@ void RayGenIntegration()
         int globalSampleIndex = _RaytracingFrameIndex * _RaytracingNumSamples + sampleIndex;
 
     	// Generate the new sample (follwing values of the sequence)
-        float2 sample = GetRaytracingNoiseSampleRG(globalSampleIndex, scramblingValue);
+        float2 sample;
+        sample.x = GetBNDSequenceSample(currentCoord, globalSampleIndex, 0);
+        sample.y = GetBNDSequenceSample(currentCoord, globalSampleIndex, 1);
 
         // Importance sample with a cosine lobe
         float3 sampleDir = SampleHemisphereCosine(sample.x, sample.y, normalData.normalWS);
@@ -184,7 +182,7 @@ void RayGenIntegration()
         rayIntersection.origin = rayDescriptor.Origin;
         rayIntersection.t = -1.0f;
         rayIntersection.remainingDepth = 1;
-        rayIntersection.scramblingValue = scramblingValue;
+        rayIntersection.pixelCoord = currentCoord;
         rayIntersection.sampleIndex = globalSampleIndex;
 
         // In order to achieve filtering for the textures, we need to compute the spread angle of the pixel

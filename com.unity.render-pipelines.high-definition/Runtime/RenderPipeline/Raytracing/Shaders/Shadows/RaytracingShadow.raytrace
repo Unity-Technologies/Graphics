@@ -150,9 +150,6 @@ void RayGenAreaShadows()
         _RayCountTexture[currentPixelCoord].z = _RayCountTexture[currentPixelCoord].z + (uint)_RaytracingNumSamples;
     }
 
-    // Get the scramblingValue of this pixel
-    uint2 scramblingValue = ScramblingValue(currentPixelCoord.x, currentPixelCoord.y);
-
     // Initialize Sn and Un
     float3 Sn = 0.0;
     float3 Un = 0.0;
@@ -168,7 +165,9 @@ void RayGenAreaShadows()
         int globalSampleIndex = _RaytracingFrameIndex * _RaytracingNumSamples + sampleIdx;
 
         // Generate the new sample (follwing values of the sequence)
-        misInput.noiseValue = GetRaytracingNoiseSampleRG(globalSampleIndex, scramblingValue);
+        misInput.noiseValue.x = GetBNDSequenceSample(currentPixelCoord, globalSampleIndex, 0);
+        misInput.noiseValue.y = GetBNDSequenceSample(currentPixelCoord, globalSampleIndex, 1);
+        
         // Pick the sampling technique
         EvaluateMISTechnique(misInput);
 

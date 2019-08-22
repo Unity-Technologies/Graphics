@@ -52,8 +52,8 @@ void ClosestHitMain(inout RayIntersection rayIntersection : SV_RayPayload, Attri
     {
         // Generate the new sample (follwing values of the sequence)
         float2 sample = float2(0.0, 0.0);
-        sample.x = GetRaytracingNoiseSample(rayIntersection.sampleIndex, rayIntersection.remainingDepth * 2, rayIntersection.scramblingValue.x);
-        sample.y = GetRaytracingNoiseSample(rayIntersection.sampleIndex, rayIntersection.remainingDepth * 2 + 1, rayIntersection.scramblingValue.y);
+        sample.x = GetBNDSequenceSample(rayIntersection.pixelCoord, rayIntersection.sampleIndex, rayIntersection.remainingDepth * 2);
+        sample.y = GetBNDSequenceSample(rayIntersection.pixelCoord, rayIntersection.sampleIndex, rayIntersection.remainingDepth * 2 + 1);
 
         #ifdef DIFFUSE_LIGHTING_ONLY
         // Importance sample with a cosine lobe
