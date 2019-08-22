@@ -2648,9 +2648,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 UpdateDataBuffers();
 
-                cmd.SetGlobalInt(HDShaderIDs._EnvLightIndexShift, m_lightList.m_LightData.Length);
-                cmd.SetGlobalInt(HDShaderIDs._DecalIndexShift, m_lightList.m_LightData.Length + m_lightList.envLights.Count);
-                cmd.SetGlobalInt(HDShaderIDs._DensityVolumeIndexShift, m_lightList.m_LightData.Length + m_lightList.envLights.Count + decalDatasCount);
+                cmd.SetGlobalInt(HDShaderIDs._EnvLightIndexShift, m_lightList.m_PunctualLightCount);
+                cmd.SetGlobalInt(HDShaderIDs._DecalIndexShift, m_lightList.m_PunctualLightCount + m_lightList.envLights.Count);
+                cmd.SetGlobalInt(HDShaderIDs._DensityVolumeIndexShift, m_lightList.m_PunctualLightCount + m_lightList.envLights.Count + decalDatasCount);
 
                 DisposeBoundsJobArrays();
                 DisposeRefProbeScratchData();
@@ -2816,8 +2816,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.SetComputeIntParams(parameters.bigTilePrepassShader, HDShaderIDs.g_viDimensions, s_TempScreenDimArray);
 
                 // TODO: These two aren't actually used...
-                cmd.SetComputeIntParam(parameters.bigTilePrepassShader, HDShaderIDs._EnvLightIndexShift, parameters.lightList.m_LightData.Length);
-                cmd.SetComputeIntParam(parameters.bigTilePrepassShader, HDShaderIDs._DecalIndexShift, parameters.lightList.m_LightData.Length + parameters.lightList.envLights.Count);
+                cmd.SetComputeIntParam(parameters.bigTilePrepassShader, HDShaderIDs._EnvLightIndexShift, parameters.lightList.m_PunctualLightCount);
+                cmd.SetComputeIntParam(parameters.bigTilePrepassShader, HDShaderIDs._DecalIndexShift, parameters.lightList.m_PunctualLightCount + parameters.lightList.envLights.Count);
 
                 cmd.SetComputeMatrixArrayParam(parameters.bigTilePrepassShader, HDShaderIDs.g_mScrProjectionArr, parameters.lightListProjscrMatrices);
                 cmd.SetComputeMatrixArrayParam(parameters.bigTilePrepassShader, HDShaderIDs.g_mInvScrProjectionArr, parameters.lightListInvProjscrMatrices);
@@ -2842,8 +2842,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 cmd.SetComputeIntParam(parameters.buildPerTileLightListShader, HDShaderIDs.g_isOrthographic, parameters.isOrthographic ? 1 : 0);
                 cmd.SetComputeIntParams(parameters.buildPerTileLightListShader, HDShaderIDs.g_viDimensions, s_TempScreenDimArray);
-                cmd.SetComputeIntParam(parameters.buildPerTileLightListShader, HDShaderIDs._EnvLightIndexShift, parameters.lightList.m_LightData.Length);
-                cmd.SetComputeIntParam(parameters.buildPerTileLightListShader, HDShaderIDs._DecalIndexShift, parameters.lightList.m_LightData.Length + parameters.lightList.envLights.Count);
+                cmd.SetComputeIntParam(parameters.buildPerTileLightListShader, HDShaderIDs._EnvLightIndexShift, parameters.lightList.m_PunctualLightCount);
+                cmd.SetComputeIntParam(parameters.buildPerTileLightListShader, HDShaderIDs._DecalIndexShift, parameters.lightList.m_PunctualLightCount + parameters.lightList.envLights.Count);
                 cmd.SetComputeIntParam(parameters.buildPerTileLightListShader, HDShaderIDs.g_iNrVisibLights, parameters.totalLightCount);
 
                 cmd.SetComputeBufferParam(parameters.buildPerTileLightListShader, parameters.buildPerTileLightListKernel, HDShaderIDs.g_vBoundsBuffer, tileAndCluster.AABBBoundsBuffer);
