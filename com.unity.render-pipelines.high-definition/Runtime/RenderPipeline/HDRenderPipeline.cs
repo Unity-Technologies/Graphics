@@ -3018,7 +3018,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void RenderTransparencyOverdraw(CullingResults cull, HDCamera hdCamera, ScriptableRenderContext renderContext, CommandBuffer cmd)
         {
-            if (m_CurrentDebugDisplaySettings.IsDebugDisplayEnabled())
+            if (m_CurrentDebugDisplaySettings.IsDebugDisplayEnabled() && m_CurrentDebugDisplaySettings.data.fullScreenDebugMode == FullScreenDebugMode.TransparencyOverdraw)
             {
 
                 CoreUtils.SetRenderTarget(cmd, m_CameraColorBuffer, m_SharedRTManager.GetDepthStencilBuffer(), clearFlag: ClearFlag.Color, clearColor: Color.black);
@@ -3045,7 +3045,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.SetGlobalFloat(HDShaderIDs._DebugTransparencyOverdrawWeight, 1.0f);
 
                 var passNames = m_Asset.currentPlatformRenderPipelineSettings.supportTransparentBackface ? m_AllTransparentPassNames : m_TransparentNoBackfaceNames;
-                m_DebugFullScreenPropertyBlock.SetFloat(HDShaderIDs._MaxPassCount, (float)m_DebugDisplaySettings.data.transparencyDebugSettings.maxPixelCost);
+                m_DebugFullScreenPropertyBlock.SetFloat(HDShaderIDs._TransparencyOverdrawMaxPixelCost, (float)m_DebugDisplaySettings.data.transparencyDebugSettings.maxPixelCost);
                 var rendererList = RendererList.Create(CreateTransparentRendererListDesc(cull, hdCamera.camera, passNames, stateBlock: stateBlock));
                 DrawTransparentRendererList(renderContext, cmd, hdCamera.frameSettings, rendererList);
                 rendererList = RendererList.Create(CreateTransparentRendererListDesc(cull, hdCamera.camera, passNames, renderQueueRange: HDRenderQueue.k_RenderQueue_AfterPostProcessTransparent, stateBlock: stateBlock));
