@@ -51,7 +51,7 @@ void CSMain(uint3 groupId          : SV_GroupID,
 #endif
 #if HAS_STRIPS
             const StripData stripData = GetStripDataFromParticleIndex(index, PARTICLE_PER_STRIP_COUNT);
-            InitStripAttributes(attributes, stripData);
+            InitStripAttributes(index, attributes, stripData);
 #endif
 			
 			${VFXProcessBlocks}
@@ -87,7 +87,7 @@ void CSMain(uint3 groupId          : SV_GroupID,
 #endif
 #if HAS_STRIPS
         const StripData stripData = GetStripDataFromParticleIndex(index, PARTICLE_PER_STRIP_COUNT);
-        InitStripAttributes(attributes, stripData);
+        InitStripAttributes(index, attributes, stripData);
 #endif
 		
 		${VFXProcessBlocks}

@@ -37,12 +37,9 @@ ${VFXPerPassInclude}
 
 ${VFXGeneratedBlockFunction}
 
-bool GetParticleIndex(inout uint particleIndex, bool alive, uint stripIndex)
-{
-	if (!alive)
-		return false;
-	
 #if HAS_STRIPS
+bool GetParticleIndex(inout uint particleIndex, uint stripIndex)
+{
 	uint relativeIndex;
 	InterlockedAdd(STRIP_DATA(STRIP_NEXT_INDEX, stripIndex), 1, relativeIndex);
 	if (relativeIndex >= PARTICLE_PER_STRIP_COUNT) // strip is full
@@ -52,12 +49,9 @@ bool GetParticleIndex(inout uint particleIndex, bool alive, uint stripIndex)
 	}
 
 	particleIndex = stripIndex * PARTICLE_PER_STRIP_COUNT + ((STRIP_DATA(STRIP_FIRST_INDEX, stripIndex) + relativeIndex) % PARTICLE_PER_STRIP_COUNT);
-#elif USE_DEAD_LIST
-	uint deadIndex = deadListIn.DecrementCounter();
-    particleIndex = deadListIn[deadIndex];
-#endif
-	return true;
+    return true;
 }
+#endif
 
 [numthreads(NB_THREADS_PER_GROUP,1,1)]
 void CSMain(uint3 groupId          : SV_GroupID,
@@ -106,23 +100,27 @@ void CSMain(uint3 groupId          : SV_GroupID,
 #if HAS_STRIPS
 		${VFXLoadParameter:{stripIndex}}
 		stripIndex = min(stripIndex, STRIP_COUNT);
-		const StripData stripData = GetStripDataFromStripIndex(stripIndex, PARTICLE_PER_STRIP_COUNT);
-		InitStripAttributes(attributes, stripData);
+
+        if (!GetParticleIndex(particleIndex, stripIndex))
+            return;
+
+        const StripData stripData = GetStripDataFromStripIndex(stripIndex, PARTICLE_PER_STRIP_COUNT);
+		InitStripAttributes(particleIndex, attributes, stripData);
 		// TODO Change seed to be sure we're deterministic on random with strip
-#else
-		uint stripIndex = 0;
 #endif
         
         ${VFXProcessBlocks}
-
-		uint index = particleIndex;
+		
 #if VFX_USE_ALIVE_CURRENT
-		bool alive = attributes.alive;
-#else
-		bool alive = true;
-#endif
-        if (GetParticleIndex(index, alive, stripIndex))
+        if (attributes.alive)
+#endif       
         {
+#if USE_DEAD_LIST
+	        uint deadIndex = deadListIn.DecrementCounter();
+            uint index = deadListIn[deadIndex];
+#else
+            uint index = particleIndex;
+#endif
             ${VFXStoreAttributes}
         }
     }

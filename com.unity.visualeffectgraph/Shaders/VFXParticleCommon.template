@@ -95,7 +95,7 @@ ${VFXLoadAttributes:{(?!(alive))(\b\w)}}
 
 // Initialize built-in needed attributes
 #if HAS_STRIPS
-InitStripAttributes(attributes, stripData);
+InitStripAttributes(index, attributes, stripData);
 #endif
 ${VFXEnd}
 
