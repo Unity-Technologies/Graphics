@@ -22,6 +22,7 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingSampling.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingCommon.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ScreenSpaceLighting/ScreenSpaceLighting.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Debug/RayCountManager.cs.hlsl"
 
 // The target acceleration structure that we will evaluate the reflexion in
 Texture2D<float> _StencilTexture;
@@ -148,7 +149,7 @@ void RayGenReflectionHalfRes()
 
     if (_RayCountEnabled > 0)
     {
-        _RayCountTexture[outputCoord].y = _RayCountTexture[outputCoord].y + 1;
+        _RayCountTexture[outputCoord][RAYCOUNTVALUES_INDIRECT] = _RayCountTexture[outputCoord][RAYCOUNTVALUES_INDIRECT] + 1;
     }
 
     // Evaluate the ray intersection
@@ -203,18 +204,18 @@ void RayGenReflectionFullRes()
     float4 coatMask = LOAD_TEXTURE2D_X(_SsrClearCoatMaskTexture, currentCoord);
     normalData.perceptualRoughness = HasClearCoatMask(coatMask) ? CLEAR_COAT_PERCEPTUAL_ROUGHNESS : normalData.perceptualRoughness;
 
+    // Create the local ortho basis
+    float3x3 localToWorld = GetLocalFrame(normalData.normalWS);
+    
     // If this value is beyond the smoothness that we allow, no need to compute it
     if (_RaytracingReflectionMinSmoothness > PerceptualRoughnessToPerceptualSmoothness(normalData.perceptualRoughness))
         return;
 
-    // Create the local ortho basis
-    float3x3 localToWorld = GetLocalFrame(normalData.normalWS);
-
     // Compute the actual roughness
     float roughness = PerceptualRoughnessToRoughness(normalData.perceptualRoughness);
 
+    // Generate the new sample (follwing values of the sequence)
     int globalSampleIndex = _RaytracingFrameIndex;
-
     float2 sample;
     sample.x = GetBNDSequenceSample(currentCoord, globalSampleIndex, 0);
     sample.y = GetBNDSequenceSample(currentCoord, globalSampleIndex, 1);
@@ -222,7 +223,6 @@ void RayGenReflectionFullRes()
     // Importance sample the direction
     float3 sampleDir = float3(0.0, 0.0, 0.0);
     float NdotL, NdotH, VdotH;
-    // TODO: use Eric's paper on visible normal distribution sampling in order to make all samples worth it
     SampleGGXDir(sample, viewWS, localToWorld, roughness, sampleDir, NdotL, NdotH, VdotH);
 
     // If this direction is under the surface, let's generate a new one that won't be
@@ -258,9 +258,10 @@ void RayGenReflectionFullRes()
     // In order to achieve filtering for the textures, we need to compute the spread angle of the pixel
     rayIntersection.cone.spreadAngle = _RaytracingPixelSpreadAngle + roughnessToSpreadAngle(roughness);
     rayIntersection.cone.width = distanceToCamera * _RaytracingPixelSpreadAngle;
+
     if (_RayCountEnabled > 0)
     {
-        _RayCountTexture[currentCoord].y = _RayCountTexture[currentCoord].y + 1;
+        _RayCountTexture[currentCoord][RAYCOUNTVALUES_INDIRECT] = _RayCountTexture[currentCoord][RAYCOUNTVALUES_INDIRECT] + 1;
     }
 
     // Evaluate the ray intersection
@@ -336,11 +337,6 @@ void RayGenIntegration()
     // Variable that accumulate the radiance
     float3 finalColor = float3(0.0, 0.0, 0.0);
 
-    if (_RayCountEnabled > 0)
-    {
-        _RayCountTexture[currentCoord].y = _RayCountTexture[currentCoord].y + (uint)realSampleCount;
-    }
-
     // Loop through the samples and add their contribution
     for (int sampleIndex = 0; sampleIndex < realSampleCount; ++sampleIndex)
     {
@@ -360,6 +356,11 @@ void RayGenIntegration()
         // If the sample is under the surface
         if (dot(sampleDir, normalData.normalWS) <= 0.0)
             continue;
+
+        if (_RayCountEnabled > 0)
+        {
+            _RayCountTexture[currentCoord][RAYCOUNTVALUES_INDIRECT] = _RayCountTexture[currentCoord][RAYCOUNTVALUES_INDIRECT] + 1;
+        }
 
         // Create the ray descriptor for this pixel
         RayDesc rayDescriptor;

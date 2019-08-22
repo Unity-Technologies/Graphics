@@ -155,9 +155,8 @@ void RaytracingReflectionsFullRes(uint2 groupThreadId : SV_GroupThreadID, uint2 
     // Compute the actual roughness
     float roughness = PerceptualRoughnessToRoughness(normalData.perceptualRoughness);
 
-    int globalSampleIndex = _RaytracingFrameIndex;
-
     // Generate the new sample (follwing values of the sequence)
+    int globalSampleIndex = _RaytracingFrameIndex;
     float2 sample;
     sample.x = GetBNDSequenceSample(currentCoord, globalSampleIndex, 0);
     sample.y = GetBNDSequenceSample(currentCoord, globalSampleIndex, 1);

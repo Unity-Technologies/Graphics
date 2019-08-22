@@ -34,6 +34,7 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingSampling.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/Shadows/SphericalQuad.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/Shadows/RaytracingMIS.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Debug/RayCountManager.cs.hlsl"
 
 // Light Data
 uint     _RaytracingTargetAreaLight;
@@ -145,11 +146,6 @@ void RayGenAreaShadows()
         return;
     }
 
-    if (_RayCountEnabled > 0)
-    {
-        _RayCountTexture[currentPixelCoord].z = _RayCountTexture[currentPixelCoord].z + (uint)_RaytracingNumSamples;
-    }
-
     // Initialize Sn and Un
     float3 Sn = 0.0;
     float3 Un = 0.0;
@@ -178,6 +174,11 @@ void RayGenAreaShadows()
         if (!validity || dot(misOutput.dir, normalData.normalWS) <= 0.0 || dot(misOutput.dir, lightData.forward) >= 0.0)
         {
             continue;
+        }
+
+        if (_RayCountEnabled > 0)
+        {
+            _RayCountTexture[currentPixelCoord][RAYCOUNTVALUES_VISIBILITY] = _RayCountTexture[currentPixelCoord][RAYCOUNTVALUES_VISIBILITY] + 1;
         }
 
         // Let's shift the origin and destination positions by a bias
@@ -287,6 +288,11 @@ void RayGenAreaShadowSingle()
         return;
     }
 
+    if (_RayCountEnabled > 0)
+    {
+        _RayCountTexture[currentPixelCoord][RAYCOUNTVALUES_VISIBILITY] = _RayCountTexture[currentPixelCoord][RAYCOUNTVALUES_VISIBILITY] + 1;
+    }
+
     // Fetch the data of the area light
     LightData lightData = _LightDatas[_RaytracingTargetAreaLight];
 
@@ -348,6 +354,11 @@ void RayGenDirectionalShadowSingle()
     // If this is the background, or UnL is null or this pixel has been flagged as invalid, no 
     if (depthValue == UNITY_RAW_FAR_CLIP_VALUE)
         return;
+
+    if (_RayCountEnabled > 0)
+    {
+        _RayCountTexture[currentPixelCoord][RAYCOUNTVALUES_VISIBILITY] = _RayCountTexture[currentPixelCoord][RAYCOUNTVALUES_VISIBILITY] + 1;
+    }
 
     // Compute the position input structure
     PositionInputs posInput = GetPositionInput(currentPixelCoord, _ScreenSize.zw, depthValue, UNITY_MATRIX_I_VP, GetWorldToViewMatrix(), 0);

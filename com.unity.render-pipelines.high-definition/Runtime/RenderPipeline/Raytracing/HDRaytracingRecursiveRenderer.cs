@@ -17,15 +17,8 @@ namespace UnityEngine.Rendering.HighDefinition
     }
 
 #if ENABLE_RAYTRACING
-    class HDRaytracingRenderer
+    public partial class HDRenderPipeline
     {
-        // External structures
-        HDRenderPipelineAsset m_PipelineAsset = null;
-        RenderPipelineResources m_PipelineResources = null;
-        SkyManager m_SkyManager = null;
-        HDRaytracingManager m_RaytracingManager = null;
-        SharedRTManager m_SharedRTManager = null;
-
         // Intermediate buffer that stores the reflection pre-denoising
         RTHandle m_RaytracingFlagTarget = null;
         RTHandle m_DebugRaytracingTexture = null;
@@ -35,33 +28,14 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // String values
         const string m_RayGenShaderName = "RayGenRenderer";
-        const string m_MissShaderName = "MissShaderRenderer";
-        const string m_ClosestHitShaderName = "ClosestHitMain";
 
         // Pass name for the flag pass
         ShaderTagId raytracingPassID = new ShaderTagId("Forward");
 
         RenderStateBlock m_RaytracingFlagStateBlock;
 
-        public HDRaytracingRenderer()
+        public void InitRecursiveRenderer()
         {
-        }
-
-        public void Init(HDRenderPipelineAsset asset, SkyManager skyManager, HDRaytracingManager raytracingManager, SharedRTManager sharedRTManager)
-        {
-            // Keep track of the pipeline asset
-            m_PipelineAsset = asset;
-            m_PipelineResources = asset.renderPipelineResources;
-
-            // Keep track of the sky manager
-            m_SkyManager = skyManager;
-
-            // keep track of the ray tracing manager
-            m_RaytracingManager = raytracingManager;
-
-            // Keep track of the shared rt manager
-            m_SharedRTManager = sharedRTManager;
-
             m_RaytracingFlagTarget = RTHandles.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: GraphicsFormat.R8_SNorm, enableRandomWrite: true, useMipMap: false, name: "RaytracingFlagTexture");
             m_DebugRaytracingTexture = RTHandles.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite: true, useDynamicScale: true, useMipMap: false, name: "DebugRaytracingBuffer");
 
@@ -72,7 +46,7 @@ namespace UnityEngine.Rendering.HighDefinition
             };
         }
 
-        public void Release()
+        public void ReleaseRecursiveRenderer()
         {
             RTHandles.Release(m_DebugRaytracingTexture);
             RTHandles.Release(m_RaytracingFlagTarget);
@@ -128,30 +102,30 @@ namespace UnityEngine.Rendering.HighDefinition
             renderContext.DrawRenderers(cull, ref drawSettings, ref filterSettings);
         }
 
-        public void Render(HDCamera hdCamera, CommandBuffer cmd, RTHandle outputTexture, ScriptableRenderContext renderContext, CullingResults cull)
+        public void RaytracingRecursiveRender(HDCamera hdCamera, CommandBuffer cmd, ScriptableRenderContext renderContext, CullingResults cull)
         {
             // First thing to check is: Do we have a valid ray-tracing environment?
-            HDRaytracingEnvironment rtEnvironment = m_RaytracingManager.CurrentEnvironment();
+            HDRaytracingEnvironment rtEnvironment = m_RayTracingManager.CurrentEnvironment();
             RecursiveRendering recursiveSettings = VolumeManager.instance.stack.GetComponent<RecursiveRendering>();
 
             // Check the validity of the state before computing the effect
             bool invalidState = !hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing)
                 || rtEnvironment == null
                 || !recursiveSettings.enable.value
-                || m_PipelineAsset.currentPlatformRenderPipelineSettings.supportedRaytracingTier == RenderPipelineSettings.RaytracingTier.Tier1;
+                || m_Asset.currentPlatformRenderPipelineSettings.supportedRaytracingTier == RenderPipelineSettings.RaytracingTier.Tier1;
 
             // If any resource or game-object is missing We stop right away
             if (invalidState)
                 return;
 
-            HDRenderPipeline renderPipeline = m_RaytracingManager.GetRenderPipeline();
-            RayTracingShader forwardShader = m_PipelineAsset.renderPipelineRayTracingResources.forwardRaytracing;
-            Shader raytracingMask = m_PipelineAsset.renderPipelineRayTracingResources.raytracingFlagMask;
+            HDRenderPipeline renderPipeline = m_RayTracingManager.GetRenderPipeline();
+            RayTracingShader forwardShader = m_Asset.renderPipelineRayTracingResources.forwardRaytracing;
+            Shader raytracingMask = m_Asset.renderPipelineRayTracingResources.raytracingFlagMask;
             LightCluster lightClusterSettings = VolumeManager.instance.stack.GetComponent<LightCluster>();
 
             // Grab the acceleration structure and the list of HD lights for the target camera
-            RayTracingAccelerationStructure accelerationStructure = m_RaytracingManager.RequestAccelerationStructure(rtEnvironment.raytracedLayerMask);
-            HDRaytracingLightCluster lightCluster = m_RaytracingManager.RequestLightCluster(rtEnvironment.raytracedLayerMask);
+            RayTracingAccelerationStructure accelerationStructure = m_RayTracingManager.RequestAccelerationStructure(rtEnvironment.raytracedLayerMask);
+            HDRaytracingLightCluster lightCluster = m_RayTracingManager.RequestLightCluster(rtEnvironment.raytracedLayerMask);
 
             if (m_RaytracingFlagMaterial == null)
                 m_RaytracingFlagMaterial = CoreUtils.CreateEngineMaterial(raytracingMask);
@@ -166,8 +140,8 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetRayTracingAccelerationStructure(forwardShader, HDShaderIDs._RaytracingAccelerationStructureName, accelerationStructure);
 
             // Inject the ray-tracing sampling data
-            cmd.SetRayTracingTextureParam(forwardShader, HDShaderIDs._OwenScrambledTexture, m_PipelineResources.textures.owenScrambledRGBATex);
-            cmd.SetRayTracingTextureParam(forwardShader, HDShaderIDs._ScramblingTexture, m_PipelineResources.textures.scramblingTex);
+            cmd.SetRayTracingTextureParam(forwardShader, HDShaderIDs._OwenScrambledTexture, m_Asset.renderPipelineResources.textures.owenScrambledRGBATex);
+            cmd.SetRayTracingTextureParam(forwardShader, HDShaderIDs._ScramblingTexture, m_Asset.renderPipelineResources.textures.scramblingTex);
 
             // Inject the ray generation data
             cmd.SetGlobalFloat(HDShaderIDs._RaytracingRayBias, rtEnvironment.rayBias);
@@ -178,8 +152,12 @@ namespace UnityEngine.Rendering.HighDefinition
             // Set the data for the ray generation
             cmd.SetRayTracingTextureParam(forwardShader, HDShaderIDs._RaytracingFlagMask, m_RaytracingFlagTarget);
             cmd.SetRayTracingTextureParam(forwardShader, HDShaderIDs._DepthTexture, m_SharedRTManager.GetDepthStencilBuffer());
-            cmd.SetRayTracingTextureParam(forwardShader, HDShaderIDs._CameraColorTextureRW, outputTexture);
+            cmd.SetRayTracingTextureParam(forwardShader, HDShaderIDs._CameraColorTextureRW, m_CameraColorBuffer);
 
+            // Set ray count texture
+            cmd.SetRayTracingIntParam(forwardShader, HDShaderIDs._RayCountEnabled, m_RayTracingManager.rayCountManager.RayCountIsEnabled());
+            cmd.SetRayTracingTextureParam(forwardShader, HDShaderIDs._RayCountTexture, m_RayTracingManager.rayCountManager.GetRayCountTexture());
+            
             // Compute an approximate pixel spread angle value (in radians)
             float pixelSpreadAngle = hdCamera.camera.fieldOfView * (Mathf.PI / 180.0f) / Mathf.Min(hdCamera.actualWidth, hdCamera.actualHeight);
             cmd.SetGlobalFloat(HDShaderIDs._RaytracingPixelSpreadAngle, pixelSpreadAngle);
@@ -200,7 +178,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // Set the data for the ray miss
             cmd.SetRayTracingTextureParam(forwardShader, HDShaderIDs._SkyTexture, m_SkyManager.skyReflection);
 
-            // If this is the right debug mode and we have at least one light, write the first shadow to the denoise texture
+            // If this is the right debug mode and we have at least one light, write the first shadow to the de-noised texture
             HDRenderPipeline hdrp = (RenderPipelineManager.currentPipeline as HDRenderPipeline);
             cmd.SetRayTracingTextureParam(forwardShader, HDShaderIDs._RaytracingPrimaryDebug, m_DebugRaytracingTexture);
             hdrp.PushFullScreenDebugTexture(hdCamera, cmd, m_DebugRaytracingTexture, FullScreenDebugMode.PrimaryVisibility);

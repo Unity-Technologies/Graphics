@@ -18,7 +18,7 @@ float2 ScramblingValueFloat2(uint2 pixelCoord)
 uint ScramblingValueUInt(uint2 pixelCoord)
 {
     pixelCoord = pixelCoord & 255;
-    return clamp((uint2)(_ScramblingTexture[uint2(pixelCoord.x, pixelCoord.y)].x * 256.0f), uint2(0,0), uint2(255, 255));
+    return clamp((uint)(_ScramblingTexture[uint2(pixelCoord.x, pixelCoord.y)].x * 256.0f), uint2(0,0), uint2(255, 255));
 }
 
 uint2 ScramblingValueUInt2(uint2 pixelCoord)
@@ -59,14 +59,14 @@ float GetBNDSequenceSample(uint2 pixelCoord, int sampleIndex, int sampleDimensio
     // sampleDimension = sampleDimension & 255;
 
     // xor index based on optimized ranking
-    uint rankingIndex = (pixelCoord.x + pixelCoord.y * 128) * 8 + sampleDimension & 7;
+    uint rankingIndex = (pixelCoord.x + pixelCoord.y * 128) * 8 + (sampleDimension & 7);
     uint rankedSampleIndex = sampleIndex ^ clamp((uint)(_RankingTileXSPP[uint2(rankingIndex & 127, rankingIndex / 128)] * 256.0f), 0, 255);
 
     // fetch value in sequence
     uint value = clamp((uint)(_OwenScrambledTexture[uint2(sampleDimension, rankedSampleIndex.x)] * 256.0f), 0, 255);
 
     // If the dimension is optimized, xor sequence value based on optimized scrambling
-    uint scramblingIndex = (pixelCoord.x + pixelCoord.y * 128) * 8 + sampleDimension & 7;
+    uint scramblingIndex = (pixelCoord.x + pixelCoord.y * 128) * 8 + (sampleDimension & 7);
     value = value ^ clamp((uint)(_ScramblingTileXSPP[uint2(scramblingIndex & 127, scramblingIndex / 128)] * 256.0f), 0, 255);
 
     // convert to float and return
