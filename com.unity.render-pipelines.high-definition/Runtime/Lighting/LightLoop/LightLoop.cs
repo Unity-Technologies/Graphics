@@ -455,8 +455,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public List<DirectionalLightData> directionalLights;
 //            public List<LightData> lights;
             public List<EnvLightData> envLights;
-            public int punctualLightCount;
-            public int areaLightCount;
+            public int m_PunctualLightCount;
+            public int m_AreaLightCount;
 
 
             public NativeArray<LightData> m_LightData;
@@ -480,6 +480,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_LightVolumeData = new NativeArray<LightVolumeData>((punctualLightCount + areaLightCount + envLightCount + decalCount) * numViews, Allocator.TempJob);
                 m_Bounds = new NativeArray<SFiniteLightBound>((punctualLightCount + areaLightCount + envLightCount + decalCount) * numViews, Allocator.TempJob);
                 m_LightData = new NativeArray<LightData>((punctualLightCount + areaLightCount), Allocator.TempJob);
+                m_PunctualLightCount = punctualLightCount;
+                m_AreaLightCount = areaLightCount;
             }
 
             public void DisposeLightArraysPerFrame()
@@ -494,8 +496,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 directionalLights.Clear();
 //                lights.Clear();
                 envLights.Clear();
-                punctualLightCount = 0;
-                areaLightCount = 0;
+                m_PunctualLightCount = 0;
+                m_AreaLightCount = 0;
 
 //                for (int i = 0; i < lightsPerView.Count; ++i)
 //                {
@@ -3237,8 +3239,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 // cmd.SetGlobalBuffer(HDShaderIDs._DirectionalLightDatas, param.lightData.directionalLightData);
                 // cmd.SetGlobalInt(HDShaderIDs._DirectionalLightCount, param.lightList.directionalLights.Count);
                 cmd.SetGlobalBuffer(HDShaderIDs._LightDatas, param.lightData.lightData);
-                cmd.SetGlobalInt(HDShaderIDs._PunctualLightCount, param.lightList.punctualLightCount);
-                cmd.SetGlobalInt(HDShaderIDs._AreaLightCount, param.lightList.areaLightCount);
+                cmd.SetGlobalInt(HDShaderIDs._PunctualLightCount, param.lightList.m_PunctualLightCount);
+                cmd.SetGlobalInt(HDShaderIDs._AreaLightCount, param.lightList.m_AreaLightCount);
                 cmd.SetGlobalBuffer(HDShaderIDs._EnvLightDatas, param.lightData.envLightData);
                 cmd.SetGlobalInt(HDShaderIDs._EnvLightCount, param.lightList.envLights.Count);
                 cmd.SetGlobalBuffer(HDShaderIDs._DecalDatas, param.lightData.decalData);
