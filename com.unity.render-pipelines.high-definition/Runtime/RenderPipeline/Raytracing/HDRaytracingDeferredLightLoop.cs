@@ -17,6 +17,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public bool diffuseLightingOnly;
             public bool halfResolution;
             public HDRaytracingEnvironment rtEnv;
+            public int rayCountFlag;
 
             // Camera data
             public int width;
@@ -48,6 +49,9 @@ namespace UnityEngine.Rendering.HighDefinition
             public RTHandle gbuffer2;
             public RTHandle gbuffer3;
             public RTHandle distanceBuffer;
+
+            // Debug textures
+            public RTHandle rayCountTexture;
 
             // Output Buffer
             public RTHandle litBuffer;
@@ -103,6 +107,9 @@ namespace UnityEngine.Rendering.HighDefinition
             deferredResources.gbuffer3 = m_RaytracingGBufferManager.GetBuffer(3);
             deferredResources.distanceBuffer = m_RaytracingDistanceBuffer;
 
+            // Debug textures
+            deferredResources.rayCountTexture = m_RayTracingManager.rayCountManager.GetRayCountTexture();
+
             // Output Buffer
             deferredResources.litBuffer = ouputBuffer;
 
@@ -110,7 +117,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         void CheckBinningBuffersSize(HDCamera hdCamera)
-            {
+        {
             // Evaluate the dispatch parameters
             int numTilesRayBinX = (hdCamera.actualWidth + (binningTileSize - 1)) / binningTileSize;
             int numTilesRayBinY = (hdCamera.actualHeight + (binningTileSize - 1)) / binningTileSize;
@@ -189,6 +196,10 @@ namespace UnityEngine.Rendering.HighDefinition
             // Set the acceleration structure for the pass
             cmd.SetRayTracingAccelerationStructure(parameters.gBufferRaytracingRT, HDShaderIDs._RaytracingAccelerationStructureName, parameters.accelerationStructure);
 
+            // Set ray count tex
+            cmd.SetRayTracingIntParam(parameters.gBufferRaytracingRT, HDShaderIDs._RayCountEnabled, parameters.rayCountFlag);
+            cmd.SetRayTracingTextureParam(parameters.gBufferRaytracingRT, HDShaderIDs._RayCountTexture, buffers.rayCountTexture);
+            
             // Bind all input parameter
             cmd.SetRayTracingFloatParams(parameters.gBufferRaytracingRT, HDShaderIDs._RaytracingRayBias, parameters.rtEnv.rayBias);
             cmd.SetRayTracingFloatParams(parameters.gBufferRaytracingRT, HDShaderIDs._RaytracingRayMaxLength, parameters.maxRayLength);

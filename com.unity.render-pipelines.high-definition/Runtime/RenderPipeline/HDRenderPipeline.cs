@@ -82,7 +82,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
 #if ENABLE_RAYTRACING
         internal HDRaytracingManager m_RayTracingManager = new HDRaytracingManager();
-        readonly HDRaytracingRenderer m_RaytracingRenderer = new HDRaytracingRenderer();
         internal float GetRaysPerFrame(RayCountManager.RayCountValues rayValues) { return m_RayTracingManager.rayCountManager.GetRaysPerFrame(rayValues); }
 #endif
 
@@ -409,7 +408,7 @@ namespace UnityEngine.Rendering.HighDefinition
             InitRayTracedReflections();
             InitRayTracedIndirectDiffuse();
             InitRaytracingDeferred();
-            m_RaytracingRenderer.Init(m_Asset, m_SkyManager, m_RayTracingManager, m_SharedRTManager);
+            InitRecursiveRenderer();
             m_AmbientOcclusionSystem.InitRaytracing(m_RayTracingManager, m_SharedRTManager);
 #endif
 
@@ -728,7 +727,7 @@ namespace UnityEngine.Rendering.HighDefinition
             ReleaseScreenSpaceShadows();
 
 #if ENABLE_RAYTRACING
-            m_RaytracingRenderer.Release();
+            ReleaseRecursiveRenderer();
             ReleaseRayTracingDeferred();
             ReleaseRayTracedIndirectDiffuse();
             ReleaseRayTracedReflections();
@@ -1687,9 +1686,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
 #if ENABLE_RAYTRACING
             // Must update after getting DebugDisplaySettings
-            m_RayTracingManager.rayCountManager.ClearRayCount(cmd, hdCamera);
+            m_RayTracingManager.rayCountManager.ClearRayCount(cmd, hdCamera, m_CurrentDebugDisplaySettings.data.countRays);
 #endif
-
 
             if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.Decals))
             {
@@ -2025,7 +2023,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 RenderTransparentDepthPrepass(cullingResults, hdCamera, renderContext, cmd);
 
 #if ENABLE_RAYTRACING
-                m_RaytracingRenderer.Render(hdCamera, cmd, m_CameraColorBuffer, renderContext, cullingResults);
+                RaytracingRecursiveRender(hdCamera, cmd, renderContext, cullingResults);
 #endif
                 // Render pre refraction objects
                 RenderForwardTransparent(cullingResults, hdCamera, true, renderContext, cmd);

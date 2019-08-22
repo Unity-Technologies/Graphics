@@ -367,12 +367,19 @@ namespace UnityEngine.Rendering.HighDefinition
             list.Add(new DebugUI.BoolField { displayName = "Count Rays", getter = () => data.countRays, setter = value => data.countRays = value, onValueChanged = RefreshDisplayStatsDebug });
             if (data.countRays)
             {
-                list.Add(new DebugUI.Value { displayName = "AO (MRays/s)", getter = () => ((float)(RenderPipelineManager.currentPipeline as HDRenderPipeline).GetRaysPerFrame(RayCountManager.RayCountValues.AmbientOcclusion)) / 1e6f, refreshRate = 1f / 30f });
-                list.Add(new DebugUI.Value { displayName = "Reflection (MRays/s)", getter = () => ((float)(RenderPipelineManager.currentPipeline as HDRenderPipeline).GetRaysPerFrame(RayCountManager.RayCountValues.Reflection)) / 1e6f, refreshRate = 1f / 30f });
-                list.Add(new DebugUI.Value { displayName = "Area Shadow (MRays/s)", getter = () => ((float)(RenderPipelineManager.currentPipeline as HDRenderPipeline).GetRaysPerFrame(RayCountManager.RayCountValues.AreaShadow)) / 1e6f, refreshRate = 1f / 30f });
-                list.Add(new DebugUI.Value { displayName = "Total (MRays/s)", getter = () => ((float)(RenderPipelineManager.currentPipeline as HDRenderPipeline).GetRaysPerFrame(RayCountManager.RayCountValues.Total)) / 1e6f, refreshRate = 1f / 30f });
-                list.Add(new DebugUI.BoolField { displayName = "Display Ray Count", getter = () => data.showRaysPerFrame, setter = value => data.showRaysPerFrame = value, onValueChanged = RefreshDisplayStatsDebug });
-                list.Add(new DebugUI.ColorField { displayName = "Ray Count Font Color", getter = () => data.raysPerFrameFontColor, setter = value => data.raysPerFrameFontColor = value });
+                list.Add(new DebugUI.Container
+                {
+                    children =
+                    {
+                        new DebugUI.Value { displayName = "Visibility (MRays/frame)", getter = () => ((float)(RenderPipelineManager.currentPipeline as HDRenderPipeline).GetRaysPerFrame(RayCountManager.RayCountValues.Visibility)) / 1e6f, refreshRate = 1f / 30f },
+                        new DebugUI.Value { displayName = "Indirect (MRays/frame)", getter = () => ((float)(RenderPipelineManager.currentPipeline as HDRenderPipeline).GetRaysPerFrame(RayCountManager.RayCountValues.Indirect)) / 1e6f, refreshRate = 1f / 30f },
+                        new DebugUI.Value { displayName = "Forward (MRays/frame)", getter = () => ((float)(RenderPipelineManager.currentPipeline as HDRenderPipeline).GetRaysPerFrame(RayCountManager.RayCountValues.Forward)) / 1e6f, refreshRate = 1f / 30f },
+                        new DebugUI.Value { displayName = "GBuffer (MRays/frame)", getter = () => ((float)(RenderPipelineManager.currentPipeline as HDRenderPipeline).GetRaysPerFrame(RayCountManager.RayCountValues.GBuffer)) / 1e6f, refreshRate = 1f / 30f },
+                        new DebugUI.Value { displayName = "Total (MRays/frame)", getter = () => ((float)(RenderPipelineManager.currentPipeline as HDRenderPipeline).GetRaysPerFrame(RayCountManager.RayCountValues.Total)) / 1e6f, refreshRate = 1f / 30f },
+                        new DebugUI.BoolField { displayName = "Display Ray Count", getter = () => data.showRaysPerFrame, setter = value => data.showRaysPerFrame = value, onValueChanged = RefreshDisplayStatsDebug },
+                        new DebugUI.ColorField { displayName = "Ray Count Font Color", getter = () => data.raysPerFrameFontColor, setter = value => data.raysPerFrameFontColor = value },
+                    }
+                });
             }
 #endif
             m_DebugDisplayStatsItems = list.ToArray();
