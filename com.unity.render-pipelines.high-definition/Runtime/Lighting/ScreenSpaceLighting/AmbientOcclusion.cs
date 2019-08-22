@@ -143,7 +143,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
 #if ENABLE_RAYTRACING
                 HDRaytracingEnvironment rtEnvironement = m_RayTracingManager.CurrentEnvironment();
-                if (rtEnvironement != null && settings.enableRaytracing.value)
+                if (camera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) && rtEnvironement != null && settings.enableRaytracing.value)
                     m_RaytracingAmbientOcclusion.RenderAO(camera, cmd, m_AmbientOcclusionTex, renderContext, frameCount);
                 else
 #endif
@@ -394,9 +394,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public void PostDispatchWork(CommandBuffer cmd, HDCamera camera)
         {
-            // Grab current settings
-            var settings = VolumeManager.instance.stack.GetComponent<AmbientOcclusion>();
-
             cmd.SetGlobalTexture(HDShaderIDs._AmbientOcclusionTexture, m_AmbientOcclusionTex);
             // TODO: All the push debug stuff should be centralized somewhere
             (RenderPipelineManager.currentPipeline as HDRenderPipeline).PushFullScreenDebugTexture(camera, cmd, m_AmbientOcclusionTex, FullScreenDebugMode.SSAO);

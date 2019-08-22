@@ -26,6 +26,7 @@ namespace UnityEditor.VFX.UI
             m_Container.style.flexDirection = FlexDirection.Column;
             m_Container.style.alignItems = Align.Stretch;
             m_Container.style.flexGrow = 1f;
+            m_Container.style.flexShrink = 1f;
             m_Container.AddToClassList("colorcontainer");
 
             m_ColorDisplay = new VisualElement();

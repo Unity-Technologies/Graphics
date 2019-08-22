@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using Data.Util;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph;
 using UnityEngine.Rendering.HighDefinition;
@@ -323,9 +324,10 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
-        private static HashSet<string> GetActiveFieldsFromMasterNode(AbstractMaterialNode iMasterNode, Pass pass)
+        private static ActiveFields GetActiveFieldsFromMasterNode(AbstractMaterialNode iMasterNode, Pass pass)
         {
-            HashSet<string> activeFields = new HashSet<string>();
+            var activeFields = new ActiveFields();
+            var baseActiveFields = activeFields.baseInstance;
 
             UnlitMasterNode masterNode = iMasterNode as UnlitMasterNode;
             if (masterNode == null)
@@ -336,7 +338,7 @@ namespace UnityEditor.Rendering.HighDefinition
             if (masterNode.IsSlotConnected(UnlitMasterNode.AlphaThresholdSlotId) ||
                 masterNode.GetInputSlots<Vector1MaterialSlot>().First(x => x.id == UnlitMasterNode.AlphaThresholdSlotId).value > 0.0f)
             {
-                activeFields.Add("AlphaTest");
+                baseActiveFields.Add("AlphaTest");
             }
 
             // Keywords for transparent
@@ -344,16 +346,16 @@ namespace UnityEditor.Rendering.HighDefinition
             if (masterNode.surfaceType != ShaderGraph.SurfaceType.Opaque)
             {
                 // transparent-only defines
-                activeFields.Add("SurfaceType.Transparent");
+                baseActiveFields.Add("SurfaceType.Transparent");
 
                 // #pragma shader_feature _ _BLENDMODE_ALPHA _BLENDMODE_ADD _BLENDMODE_PRE_MULTIPLY
                 if (masterNode.alphaMode == AlphaMode.Alpha)
                 {
-                    activeFields.Add("BlendMode.Alpha");
+                    baseActiveFields.Add("BlendMode.Alpha");
                 }
                 else if (masterNode.alphaMode == AlphaMode.Additive)
                 {
-                    activeFields.Add("BlendMode.Add");
+                    baseActiveFields.Add("BlendMode.Add");
                 }
             }
             else
@@ -361,9 +363,9 @@ namespace UnityEditor.Rendering.HighDefinition
                 // opaque-only defines
             }
 
-            if (masterNode.addVelocityChange.isOn)
+            if (masterNode.addPrecomputedVelocity.isOn)
             {
-                activeFields.Add("AdditionalVelocityChange");
+                baseActiveFields.Add("AddPrecomputedVelocity");
             }
 
             return activeFields;
@@ -374,7 +376,7 @@ namespace UnityEditor.Rendering.HighDefinition
             pass.OnGeneratePass(masterNode);
 
             // apply master node options to active fields
-            HashSet<string> activeFields = GetActiveFieldsFromMasterNode(masterNode, pass);
+            var activeFields = GetActiveFieldsFromMasterNode(masterNode, pass);
 
             // use standard shader pass generation
             bool vertexActive = masterNode.IsSlotConnected(UnlitMasterNode.PositionSlotId);
