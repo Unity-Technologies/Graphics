@@ -13,7 +13,7 @@ namespace UnityEngine.Rendering.HighDefinition
     {
         None,                       // default layout
         TestComposite,              // split the  into tiles to simulate multi-pass
-        TestSinglePassOneEye,       // render only eye with single-pass instancing path
+        TestSinglePassOneEye,       // render only eye with single-pass path
     }
 
     internal class XRSystem
@@ -216,7 +216,7 @@ namespace UnityEngine.Rendering.HighDefinition
 #if ENABLE_XR_MODULE
         void CreateLayoutFromXrSdk(Camera camera)
         {
-            bool CanUseInstancing(XRDisplaySubsystem.XRRenderPass renderPass)
+            bool CanUseSinglePass(XRDisplaySubsystem.XRRenderPass renderPass)
             {
                 if (renderPass.renderTargetDesc.dimension != TextureDimension.Tex2DArray)
                     return false;
@@ -241,7 +241,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 display.GetRenderPass(renderPassIndex, out var renderPass);
                 display.GetCullingParameters(camera, renderPass.cullingPassIndex, out var cullingParams);
 
-                if (CanUseInstancing(renderPass))
+                if (CanUseSinglePass(renderPass))
                 {
                     var xrPass = XRPass.Create(renderPass, multipassId: framePasses.Count, cullingParams, occlusionMeshMaterial);
 
@@ -345,7 +345,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 var xrPass = XRPass.Create(framePasses.Count, cullingParams, camera.targetTexture);
 
-                // 2x single-pass instancing
+                // 2x single-pass
                 for (int i = 0; i < 2; ++i)
                     xrPass.AddView(camera.projectionMatrix, camera.worldToCameraMatrix, camera.pixelRect);
 

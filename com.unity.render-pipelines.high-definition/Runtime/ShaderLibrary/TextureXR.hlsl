@@ -3,7 +3,7 @@
 
 // single-pass instancing is the default VR method for HDRP
 // multi-pass is working but not recommended due to lower performance
-// multi-view is not yet supported
+// single-pass multi-view is not yet supported
 // single-pass doule-wide is deprecated
 
 // Must be in sync with C# with property useTexArray in TextureXR.cs
@@ -13,7 +13,7 @@
 
 // Validate supported platforms
 #if defined(STEREO_INSTANCING_ON) && !defined(UNITY_TEXTURE2D_X_ARRAY_SUPPORTED)
-    #error Single-pass stereo instancing is not supported on this platform (see UNITY_TEXTURE2D_X_ARRAY_SUPPORTED).
+    #error Single-pass instancing is not supported on this platform (see UNITY_TEXTURE2D_X_ARRAY_SUPPORTED).
 #endif
 
 #if defined(UNITY_SINGLE_PASS_STEREO)
@@ -25,7 +25,7 @@
     #define USE_TEXTURE2D_X_AS_ARRAY
 #endif
 
-// Early defines for single-pass stereo instancing
+// Early defines for single-pass instancing
 #if defined(STEREO_INSTANCING_ON) && defined(UNITY_TEXTURE2D_X_ARRAY_SUPPORTED)
     #define UNITY_STEREO_INSTANCING_ENABLED
 #endif
@@ -40,8 +40,8 @@
     #define USING_STEREO_MATRICES
 #endif
 
-// Helper macros to handle XR instancing with Texture2DArray
-// With single-pass stereo instancing, unity_StereoEyeIndex is used to select the eye in the current context.
+// Helper macros to handle XR single-pass with Texture2DArray
+// With single-pass instancing, unity_StereoEyeIndex is used to select the eye in the current context.
 // Otherwise, the index is statically set to 0
 #if defined(USE_TEXTURE2D_X_AS_ARRAY)
 

@@ -125,7 +125,7 @@ float4 SampleTexture2DBicubic(TEXTURE2D_PARAM(tex, smp), float2 coord, float4 te
 
 #if !defined(SHADER_API_GLES)
 // texSize = (width, height, 1/width, 1/height)
-// texture array version for stereo instancing
+// texture array version for XR single-pass
 float4 SampleTexture2DBicubic(TEXTURE2D_ARRAY_PARAM(tex, smp), float2 coord, float4 texSize, float2 maxCoord, uint slice)
 {
     float2 xy = coord * texSize.xy + 0.5;
