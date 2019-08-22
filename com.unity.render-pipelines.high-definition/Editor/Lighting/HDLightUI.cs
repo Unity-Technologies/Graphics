@@ -104,7 +104,8 @@ namespace UnityEditor.Rendering.HighDefinition
                     DrawEmissionContent,
                     DrawEmissionAdvancedContent
                     ),
-                CED.FoldoutGroup(s_Styles.volumetricHeader, Expandable.Volumetric, k_ExpandedState, DrawVolumetric),
+                CED.Conditional((serialized, owner) => serialized.editorLightShape != LightShape.Tube && serialized.editorLightShape != LightShape.Rectangle,
+                    CED.FoldoutGroup(s_Styles.volumetricHeader, Expandable.Volumetric, k_ExpandedState, DrawVolumetric)),
                 CED.Conditional((serialized, owner) => serialized.editorLightShape != LightShape.Tube,
                     CED.AdvancedFoldoutGroup(s_Styles.shadowHeader, Expandable.Shadows, k_ExpandedState,
                         (serialized, owner) => GetAdvanced(Advanceable.Shadow, serialized, owner),
