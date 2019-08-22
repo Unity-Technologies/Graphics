@@ -827,7 +827,7 @@ namespace UnityEngine.Rendering.HighDefinition
             Assert.IsTrue(nearLayerActive || farLayerActive);
 
             bool bothLayersActive = nearLayerActive && farLayerActive;
-            bool useTiles = !camera.xr.instancingEnabled;
+            bool useTiles = !camera.xr.singlePassEnabled;
             bool hqFiltering = m_DepthOfField.highQualityFiltering.value;
 
             const uint kIndirectNearOffset = 0u * sizeof(uint);
