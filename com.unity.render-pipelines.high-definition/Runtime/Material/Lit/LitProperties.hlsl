@@ -4,8 +4,6 @@
 // Otherwise those parameters are not bound correctly at runtime.
 // ===========================================================================
 
-#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/TextureStack.hlsl"
-
 TEXTURE2D(_DistortionVectorMap);
 SAMPLER(sampler_DistortionVectorMap);
 
@@ -80,26 +78,11 @@ SAMPLER(sampler_CoatMaskMap);
     TEXTURE2D(MERGE_NAME(name, 3)); \
     SAMPLER(MERGE_NAME(MERGE_NAME(sampler, name), 3))
 
-#if !VIRTUAL_TEXTURES_ACTIVE
+
 PROP_DECL_TEX2D(_BaseColorMap);
 PROP_DECL_TEX2D(_MaskMap);
-PROP_DECL_TEX2D(_NormalMap);
-
-SAMPLER(sampler_LayerMaskMap);
-SAMPLER(sampler_LayerInfluenceMaskMap);
-#else
-// Have the _NormalMaps *with* their samplers for now, to catch unsupported normal map usage
-// TODO @jelsayeh can we do without the samplers? Look at UV_MAPPING_TRIPLANAR in GetNormalTS() (LitDataIndividualLayer.hlsl)
-PROP_DECL_TEX2D(_NormalMap);
-
-// The _BaseColorMaps are still required for sampling the mean color in ComputeMainBaseColorInfluence() (LayeredLitData.hlsl)
-TEXTURE2D(_BaseColorMap0);
-TEXTURE2D(_BaseColorMap1);
-TEXTURE2D(_BaseColorMap2);
-TEXTURE2D(_BaseColorMap3);
-#endif
-
 PROP_DECL_TEX2D(_BentNormalMap);
+PROP_DECL_TEX2D(_NormalMap);
 PROP_DECL_TEX2D(_NormalMapOS);
 PROP_DECL_TEX2D(_DetailMap);
 PROP_DECL_TEX2D(_HeightMap);
@@ -108,7 +91,9 @@ PROP_DECL_TEX2D(_SubsurfaceMaskMap);
 PROP_DECL_TEX2D(_ThicknessMap);
 
 TEXTURE2D(_LayerMaskMap);
+SAMPLER(sampler_LayerMaskMap);
 TEXTURE2D(_LayerInfluenceMaskMap);
+SAMPLER(sampler_LayerInfluenceMaskMap);
 
 #endif
 
@@ -166,15 +151,6 @@ float _ShiverDirectionality;
 float _EnableGeometricSpecularAA;
 float _SpecularAAScreenSpaceVariance;
 float _SpecularAAThreshold;
-
-#ifndef LAYERED_LIT_SHADER
-DECLARE_STACK_CB(_TextureStack);
-#else
-DECLARE_STACK_CB(_TextureStack0);
-DECLARE_STACK_CB(_TextureStack1);
-DECLARE_STACK_CB(_TextureStack2);
-DECLARE_STACK_CB(_TextureStack3);
-#endif
 
 #ifndef LAYERED_LIT_SHADER
 
@@ -312,12 +288,3 @@ int _ObjectId;
 int _PassValue;
 
 CBUFFER_END
-
-#ifndef LAYERED_LIT_SHADER
-DECLARE_STACK3(_TextureStack, _BaseColorMap, _MaskMap, _NormalMap);
-#else
-DECLARE_STACK3(_TextureStack0, _BaseColorMap0, _MaskMap0, _NormalMap0);
-DECLARE_STACK3(_TextureStack1, _BaseColorMap1, _MaskMap1, _NormalMap1);
-DECLARE_STACK3(_TextureStack2, _BaseColorMap2, _MaskMap2, _NormalMap2);
-DECLARE_STACK3(_TextureStack3, _BaseColorMap3, _MaskMap3, _NormalMap3);
-#endif

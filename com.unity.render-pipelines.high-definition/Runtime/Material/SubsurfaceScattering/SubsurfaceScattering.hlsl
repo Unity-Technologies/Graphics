@@ -92,13 +92,7 @@ void DecodeFromSSSBuffer(uint2 positionSS, out SSSData sssData)
 }
 
 // OUTPUT_SSSBUFFER start from SV_Target2 as SV_Target0 and SV_Target1 are used for lighting buffer
-
-#if VIRTUAL_TEXTURES_ENABLED
-#define SS_BUFFER_TARGET SV_Target3
-#else
 #define SS_BUFFER_TARGET SV_Target2
-#endif
-
 #define OUTPUT_SSSBUFFER(NAME) out SSSBufferType0 MERGE_NAME(NAME, 0) : SS_BUFFER_TARGET
 #define ENCODE_INTO_SSSBUFFER(SURFACE_DATA, UNPOSITIONSS, NAME) EncodeIntoSSSBuffer(ConvertSurfaceDataToSSSData(SURFACE_DATA), UNPOSITIONSS, MERGE_NAME(NAME, 0))
 
@@ -231,10 +225,10 @@ uint FindDiffusionProfileIndex(uint diffusionProfileHash)
 {
     if (diffusionProfileHash == 0)
         return 0;
-    
+
     uint diffusionProfileIndex = 0;
     uint i = 0;
-    
+
     // Fetch the 4 bit index number by looking for the diffusion profile unique ID:
     for (i = 0; i < _DiffusionProfileCount; i++)
     {

@@ -23,8 +23,6 @@ namespace UnityEditor.ShaderGraph
             public Cubemap cubemapValue;
             [FieldOffset(0)]
             public Gradient gradientValue;
-            [FieldOffset(0)]
-            public TextureStack textureStackValue;
         }
 
         [StructLayout(LayoutKind.Explicit)]
@@ -107,22 +105,6 @@ namespace UnityEditor.ShaderGraph
                 if (propType != PropertyType.Gradient)
                     throw new ArgumentException(string.Format(k_SetErrorMessage, PropertyType.Gradient, propType));
                 m_ClassData.gradientValue = value;
-            }
-        }
-
-        public TextureStack textureStackValue
-        {
-            get
-            {
-                if (propType != PropertyType.TextureStack)
-                    throw new ArgumentException(string.Format(k_GetErrorMessage, PropertyType.TextureStack, propType));
-                return m_ClassData.textureStackValue;
-            }
-            set
-            {
-                if (propType != PropertyType.TextureStack)
-                    throw new ArgumentException(string.Format(k_SetErrorMessage, PropertyType.TextureStack, propType));
-                m_ClassData.textureStackValue = value;
             }
         }
 
@@ -219,10 +201,6 @@ namespace UnityEditor.ShaderGraph
                     mat.SetVector(string.Format("{0}_ColorKey{1}", name, i), i < m_ClassData.gradientValue.colorKeys.Length ? GradientUtil.ColorKeyToVector(m_ClassData.gradientValue.colorKeys[i]) : Vector4.zero);
                 for (int i = 0; i < 8; i++)
                     mat.SetVector(string.Format("{0}_AlphaKey{1}", name, i), i < m_ClassData.gradientValue.alphaKeys.Length ? GradientUtil.AlphaKeyToVector(m_ClassData.gradientValue.alphaKeys[i]) : Vector2.zero);
-            }
-            else if (propType == PropertyType.TextureStack)
-            {
-                mat.SetTextureStack(name, m_ClassData.textureStackValue);
             }
         }
     }

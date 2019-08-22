@@ -811,7 +811,7 @@ namespace UnityEditor.ShaderGraph
                    DimensionToSwizzle(dimension));
         }
 
-        public static string GetPreviewSubShader(AbstractMaterialNode node, ShaderGraphRequirements shaderGraphRequirements, PragmaCollector pragmas)
+        public static string GetPreviewSubShader(AbstractMaterialNode node, ShaderGraphRequirements shaderGraphRequirements)
         {
             // Should never be called without a node
             Debug.Assert(node != null);
@@ -881,7 +881,6 @@ namespace UnityEditor.ShaderGraph
             res = res.Replace("${LocalPixelShader}", pixelShader.ToString());
             res = res.Replace("${SurfaceInputs}", pixelShaderSurfaceInputs.ToString());
             res = res.Replace("${SurfaceOutputRemap}", pixelShaderSurfaceRemap.ToString());
-            res = res.Replace("${Pragmas}", pragmas.ToString());
             return res;
         }
 
