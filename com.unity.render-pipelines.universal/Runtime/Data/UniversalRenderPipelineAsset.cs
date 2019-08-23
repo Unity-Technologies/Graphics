@@ -216,7 +216,11 @@ namespace UnityEngine.Rendering.Universal
             }
 
             // Validate the resource file
-            ResourceReloader.ReloadAllNullIn(resourceAsset, packagePath);
+            try
+            {
+                ResourceReloader.ReloadAllNullIn(resourceAsset, packagePath);
+            }
+            catch {}
 
             return resourceAsset;
         }
