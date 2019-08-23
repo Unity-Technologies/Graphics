@@ -33,7 +33,7 @@ struct ps_input
 	#endif
 	#ifdef WRITE_NORMAL_BUFFER
 	float4 normal : TEXCOORD4; // normal scale is stored in w
-	#if HDRP_USE_NORMAL_MAP
+	#if HDRP_USE_NORMAL_MAP || SHADERGRAPH_HAS_NORMAL
 	float4 tangent : TEXCOORD5;
 	#endif
 	#endif
@@ -63,7 +63,7 @@ struct ps_input
 #ifdef WRITE_NORMAL_BUFFER
 #define VFX_VARYING_NORMAL normal.xyz
 #define VFX_VARYING_SMOOTHNESS builtInInterpolants.w
-#if HDRP_USE_NORMAL_MAP
+#if HDRP_USE_NORMAL_MAP || SHADERGRAPH_HAS_NORMAL
 #define VFX_VARYING_TANGENT tangent
 #define VFX_VARYING_NORMALSCALE normal.w
 #endif

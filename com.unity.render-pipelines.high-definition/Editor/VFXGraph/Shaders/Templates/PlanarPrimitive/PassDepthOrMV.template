@@ -55,7 +55,7 @@ struct ps_input
 #ifdef WRITE_NORMAL_BUFFER
 #define VFX_VARYING_NORMAL normal.xyz
 #define VFX_VARYING_SMOOTHNESS builtInInterpolants.w
-#if USE_NORMAL_MAP
+#if USE_NORMAL_MAP || SHADERGRAPH_HAS_NORMAL
 #define VFX_VARYING_TANGENT tangent
 #define VFX_VARYING_NORMALSCALE normal.w
 #endif

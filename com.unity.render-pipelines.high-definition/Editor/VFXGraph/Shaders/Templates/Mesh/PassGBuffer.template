@@ -44,7 +44,7 @@ Pass
         float4 vertexColor : COLOR1;
         #endif
 		float3 normal : TEXCOORD2;
-		#if USE_NORMAL_MAP
+		#if USE_NORMAL_MAP || SHADERGRAPH_HAS_NORMAL
 		float4 tangent : TEXCOORD3;
 		#endif
 		#if USE_SOFT_PARTICLE || USE_ALPHA_TEST || USE_FLIPBOOK_INTERPOLATION
@@ -79,7 +79,7 @@ ${VFXHDRPLitVaryingsMacros}
 #define VFX_VARYING_FRAMEBLEND builtInInterpolants.z
 #define VFX_VARYING_MOTIONVECTORSCALE builtInInterpolants2.xy
 #define VFX_VARYING_NORMAL normal
-#if USE_NORMAL_MAP || SHADERGRAPH_NEEDS_TANGENT_GBUFFER
+#if USE_NORMAL_MAP || SHADERGRAPH_NEEDS_TANGENT_GBUFFER || SHADERGRAPH_HAS_NORMAL
 #define VFX_VARYING_TANGENT tangent
 #endif
 
@@ -103,12 +103,15 @@ ${VFXEnd}
 		UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i);
 		VFXTransformPSInputs(i);
 		${VFXComputeNormalWS}
+        
         #ifdef VFX_SHADERGRAPH
-        ${VFXAdditionalInterpolantsPreparation}
-            SurfaceData surface = (SurfaceData)0;
-            BuiltinData builtin = (BuiltinData)0;
-            
+            ${VFXAdditionalInterpolantsPreparation}
             ${SHADERGRAPH_PIXEL_CALL_GBUFFER}
+            SurfaceData surface;
+            BuiltinData builtin;
+            surface = (SurfaceData)0;
+            builtin = (BuiltinData)0;
+            
             #if HAS_SHADERGRAPH_PARAM_SMOOTHNESS
                 surface.perceptualSmoothness = OUTSG.${SHADERGRAPH_PARAM_SMOOTHNESS};
             #endif
@@ -119,6 +122,12 @@ ${VFXEnd}
                 surface.baseColor = OUTSG.${SHADERGRAPH_PARAM_BASECOLOR};
             #endif
             
+            #if HAS_SHADERGRAPH_PARAM_NORMAL
+                float3 n =  OUTSG.${SHADERGRAPH_PARAM_NORMAL};
+                float3x3 tbn = float3x3(tangentWS,bitangentWS,normalWS);
+                normalWS = mul(n,tbn);
+            #endif
+            
             surface.normalWS = normalWS;
             #if HAS_SHADERGRAPH_PARAM_ALPHA
                 builtin.opacity = OUTSG.${SHADERGRAPH_PARAM_ALPHA};
@@ -126,11 +135,9 @@ ${VFXEnd}
             #if HAS_SHADERGRAPH_PARAM_EMISSIVE
                 builtin.emissiveColor = OUTSG.${SHADERGRAPH_PARAM_EMISSIVE};
             #endif
-        
-            ENCODE_INTO_GBUFFER(surface, builtin, i.VFX_VARYING_POSCS.xy, outGBuffer);
+           ENCODE_INTO_GBUFFER(surface, builtin, i.VFX_VARYING_POSCS.xy, outGBuffer);
         #else
-        
-		VFXComputePixelOutputToGBuffer(i,normalWS,uvData,outGBuffer);
+            VFXComputePixelOutputToGBuffer(i,normalWS,uvData,outGBuffer);
         #endif
 	}
 	ENDHLSL

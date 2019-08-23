@@ -134,33 +134,3 @@ float4 VFXGetPixelOutputForwardShaderGraph(const SurfaceData surfaceData, const 
 }
 
 #endif
-
-#ifdef VFX_SHADERGRAPH
-#define VFXSGComputePixelOutput(surface,builtin,i,normalWS,tangentWS,bitangentWS,OUTSG) \
-    surface = (SurfaceData)0; \
-    builtin = (BuiltinData)0; \
-    ${SHADERGRAPH_PIXEL_CALL_GBUFFER} \
-    #if HAS_SHADERGRAPH_PARAM_SMOOTHNESS \
-        surface.perceptualSmoothness = OUTSG.${SHADERGRAPH_PARAM_SMOOTHNESS}; \
-    #endif \
-    #if HAS_SHADERGRAPH_PARAM_METALLIC \
-        surface.metallic = OUTSG.${SHADERGRAPH_PARAM_METALLIC}; \
-    #endif \
-    #if HAS_SHADERGRAPH_PARAM_BASECOLOR \
-        surface.baseColor = OUTSG.${SHADERGRAPH_PARAM_BASECOLOR}; \
-    #endif \
-     \
-    #if HAS_SHADERGRAPH_PARAM_NORMAL \
-        float3 n =  OUTSG.${SHADERGRAPH_PARAM_NORMAL}; \
-        float3x3 tbn = float3x3(tangentWS,bitangentWS,normalWS); \
-        normalWS = mul(n,tbn); \
-    #endif \
-    \
-    surface.normalWS = normalWS; \
-    #if HAS_SHADERGRAPH_PARAM_ALPHA \
-        builtin.opacity = OUTSG.${SHADERGRAPH_PARAM_ALPHA}; \
-    #endif \
-    #if HAS_SHADERGRAPH_PARAM_EMISSIVE \
-        builtin.emissiveColor = OUTSG.${SHADERGRAPH_PARAM_EMISSIVE}; \
-    #endif
-#endif

@@ -323,7 +323,12 @@ public override IEnumerable<KeyValuePair<string, VFXShaderWriter>> additionalRep
                                 callSG.builder.AppendLine("INSG.TangentSpaceBiTangent = float3(0.0f, 1.0f, 0.0f);");
                         }
 
-                         bool requiresTangent = (graphCode.requirements.requiresTangent & ~NeededCoordinateSpace.Tangent) != 0 || (graphCode.requirements.requiresBitangent & ~NeededCoordinateSpace.Tangent)!= 0;
+
+                        if(kvPass.Value.pixelPorts.Any(t => t == ShaderGraphVfxAsset.NormalSlotId) && shaderGraph.HasOutput(ShaderGraphVfxAsset.NormalSlotId))
+                        {
+                            yield return new KeyValuePair<string, VFXShaderWriter>("SHADERGRAPH_HAS_NORMAL", new VFXShaderWriter("1"));
+                        }
+                        bool requiresTangent = (graphCode.requirements.requiresTangent & ~NeededCoordinateSpace.Tangent) != 0 || (graphCode.requirements.requiresBitangent & ~NeededCoordinateSpace.Tangent)!= 0;
                         if(requiresTangent)
                             yield return new KeyValuePair<string, VFXShaderWriter>($"SHADERGRAPH_NEEDS_TANGENT_{kvPass.Key.ToUpper()}", new VFXShaderWriter("1"));
 

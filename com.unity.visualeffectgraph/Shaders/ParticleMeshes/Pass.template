@@ -22,7 +22,7 @@ struct vs_input
     float4 vertexColor : COLOR;
     #endif
 	float3 normal : NORMAL;
-	#ifdef VFX_VARYING_TANGENT
+	#if defined(VFX_VARYING_TANGENT) || SHADERGRAPH_HAS_NORMAL
 	float4 tangent : TANGENT;
 	#endif
 	VFX_DECLARE_INSTANCE_ID
@@ -98,9 +98,10 @@ const float faceMul = 1.0f;
 float3 normalWS = normalize(i.VFX_VARYING_NORMAL * faceMul);
 const VFXUVData uvData = GetUVData(i);
 
-#if defined(VFX_VARYING_TANGENT) && USE_NORMAL_MAP
+#if (defined(VFX_VARYING_TANGENT) && USE_NORMAL_MAP) || SHADERGRAPH_HAS_NORMAL
 float3 tangentWS = normalize(i.VFX_VARYING_TANGENT.xyz);
 float3 bitangentWS = cross(normalWS,tangentWS) * (i.VFX_VARYING_TANGENT.w * faceMul);
+#if USE_NORMAL_MAP
 float3 n = SampleNormalMap(VFX_SAMPLER(normalMap),uvData);
 float3x3 tbn = float3x3(tangentWS,bitangentWS,normalWS);
 float normalScale = 1.0f;
@@ -108,6 +109,7 @@ float normalScale = 1.0f;
 normalScale = i.VFX_VARYING_NORMALSCALE;
 #endif
 normalWS = normalize(lerp(normalWS,mul(n,tbn),normalScale));
+#endif
 #endif
 ${VFXEnd}
 

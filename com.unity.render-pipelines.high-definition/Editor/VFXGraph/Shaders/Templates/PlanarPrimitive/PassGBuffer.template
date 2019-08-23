@@ -18,7 +18,7 @@ Pass
 	
 	#define UNITY_MATERIAL_LIT
 		
-	${VFXInclude("Shaders/RenderPipeline/HDRP/VFXLitVaryings.template")}		
+	${VFXIncludeRP("VFXLitVaryings.template")}		
 		
 	struct ps_input
 	{
@@ -43,7 +43,7 @@ Pass
 		VFX_OPTIONAL_INTERPOLATION float2 builtInInterpolants2 : TEXCOORD3;
 		#endif
 		VFX_OPTIONAL_INTERPOLATION float3 normal : TEXCOORD4;
-		#if USE_NORMAL_MAP || USE_NORMAL_BENDING || SHADERGRAPH_NEEDS_TANGENT_GBUFFER
+		#if USE_NORMAL_MAP || USE_NORMAL_BENDING || SHADERGRAPH_NEEDS_TANGENT_GBUFFER || SHADERGRAPH_HAS_NORMAL
 		VFX_OPTIONAL_INTERPOLATION float3 tangent : TEXCOORD5;
 		#endif
 		#if USE_NORMAL_BENDING
@@ -64,7 +64,7 @@ ${VFXHDRPLitVaryingsMacros}
 #define VFX_VARYING_MOTIONVECTORSCALE builtInInterpolants2.xy
 #define VFX_VARYING_UV uv
 #define VFX_VARYING_NORMAL normal
-#if USE_NORMAL_MAP || USE_NORMAL_BENDING || SHADERGRAPH_NEEDS_TANGENT_GBUFFER
+#if USE_NORMAL_MAP || USE_NORMAL_BENDING || SHADERGRAPH_NEEDS_TANGENT_GBUFFER || SHADERGRAPH_HAS_NORMAL
 #define VFX_VARYING_TANGENT tangent
 #endif
 #if USE_NORMAL_BENDING
@@ -77,7 +77,7 @@ ${VFXEnd}
 	
 	${VFXInclude("Shaders/ParticlePlanarPrimitives/Pass.template")}
 	#define SHADERPASS SHADERPASS_GBUFFER
-	${VFXInclude("Shaders/RenderPipeline/HDRP/VFXLit.template")}
+    ${VFXIncludeRP("VFXLit.template")}
 			
     ${SHADERGRAPH_PIXEL_CODE_GBUFFER}
 	#pragma fragment frag
@@ -93,10 +93,36 @@ ${VFXEnd}
 
         #ifdef VFX_SHADERGRAPH
            ${VFXAdditionalInterpolantsPreparation}
+           ${SHADERGRAPH_PIXEL_CALL_GBUFFER}
            SurfaceData surface;
-           BuiltinData builtin,
-           VFXSGComputePixelOutput(surface, builtin,i,normalWS,tangentWS,bitangentWS,OUTSG);
-           ENCODE_INTO_GBUFFER(surface, builtin, i.VFX_VARYING_POSCS.xy, outGBuffer); \
+           BuiltinData builtin;
+           surface = (SurfaceData)0;
+            builtin = (BuiltinData)0;
+            
+            #if HAS_SHADERGRAPH_PARAM_SMOOTHNESS
+                surface.perceptualSmoothness = OUTSG.${SHADERGRAPH_PARAM_SMOOTHNESS};
+            #endif
+            #if HAS_SHADERGRAPH_PARAM_METALLIC
+                surface.metallic = OUTSG.${SHADERGRAPH_PARAM_METALLIC};
+            #endif
+            #if HAS_SHADERGRAPH_PARAM_BASECOLOR
+                surface.baseColor = OUTSG.${SHADERGRAPH_PARAM_BASECOLOR};
+            #endif
+            
+            #if HAS_SHADERGRAPH_PARAM_NORMAL
+                float3 n =  OUTSG.${SHADERGRAPH_PARAM_NORMAL};
+                float3x3 tbn = float3x3(tangentWS,bitangentWS,normalWS);
+                normalWS = mul(n,tbn);
+            #endif
+            
+            surface.normalWS = normalWS;
+            #if HAS_SHADERGRAPH_PARAM_ALPHA
+                builtin.opacity = OUTSG.${SHADERGRAPH_PARAM_ALPHA};
+            #endif
+            #if HAS_SHADERGRAPH_PARAM_EMISSIVE
+                builtin.emissiveColor = OUTSG.${SHADERGRAPH_PARAM_EMISSIVE};
+            #endif
+           ENCODE_INTO_GBUFFER(surface, builtin, i.VFX_VARYING_POSCS.xy, outGBuffer);
         #else
             VFXComputePixelOutputToGBuffer(i,normalWS,uvData,outGBuffer);
         #endif
