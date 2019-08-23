@@ -1593,17 +1593,7 @@ namespace UnityEngine.Rendering.HighDefinition
         internal bool GetEnvLightData(CommandBuffer cmd, HDCamera hdCamera, HDProbe probe, DebugDisplaySettings debugDisplaySettings, ref EnvLightData envLightData, int probeIndex)
         {
             Camera camera = hdCamera.camera;
-
-            // For now we won't display real time probe when rendering one.
-            // TODO: We may want to display last frame result but in this case we need to be careful not to update the atlas before all realtime probes are rendered (for frame coherency).
-            // Unfortunately we don't have this information at the moment.
-            if (probe.mode == ProbeSettings.Mode.Realtime && camera.cameraType == CameraType.Reflection)
-                return false;
-
-            // Discard probe if disabled in debug menu
-            if (!debugDisplaySettings.data.lightingDebugSettings.showReflectionProbe)
-                return false;
-
+         
             var capturePosition = Vector3.zero;
             var influenceToWorld = probe.influenceToWorld;
 
@@ -1612,57 +1602,46 @@ namespace UnityEngine.Rendering.HighDefinition
             switch (probe)
             {
                 case PlanarReflectionProbe planarProbe:
-                    {
-                        if (probe.mode == ProbeSettings.Mode.Realtime
-                            && !hdCamera.frameSettings.IsEnabled(FrameSettingsField.RealtimePlanarReflection))
-                            break;
-
-                        //   var fetchIndex = m_TextureCaches.reflectionPlanarProbeCache.FetchSlice(cmd, probe.texture);
-                        // Indices start at 1, because -0 == 0, we can know from the bit sign which cache to use
-                        //  envIndex = fetchIndex == -1 ? int.MinValue : -(fetchIndex + 1);
-                        var fetchIndex = envIndex;
-                        var renderData = planarProbe.renderData;
-                        var worldToCameraRHSMatrix = renderData.worldToCameraRHS;
-                        var projectionMatrix = renderData.projectionMatrix;
-
-                        // We don't need to provide the capture position
-                        // It is already encoded in the 'worldToCameraRHSMatrix'
-                        capturePosition = Vector3.zero;
-
-                        // get the device dependent projection matrix
-                        var gpuProj = GL.GetGPUProjectionMatrix(projectionMatrix, true);
-                        var gpuView = worldToCameraRHSMatrix;
-                        var vp = gpuProj * gpuView;
-                        m_TextureCaches.env2DCaptureVP[fetchIndex] = vp;
-
-                        var capturedForwardWS = renderData.captureRotation * Vector3.forward;
-                        //capturedForwardWS.z *= -1; // Transform to RHS standard
-                        m_TextureCaches.env2DCaptureForward[fetchIndex * 3 + 0] = capturedForwardWS.x;
-                        m_TextureCaches.env2DCaptureForward[fetchIndex * 3 + 1] = capturedForwardWS.y;
-                        m_TextureCaches.env2DCaptureForward[fetchIndex * 3 + 2] = capturedForwardWS.z;
+                {
+                    if (probe.mode == ProbeSettings.Mode.Realtime
+                        && !hdCamera.frameSettings.IsEnabled(FrameSettingsField.RealtimePlanarReflection))
                         break;
-                    }
+                    var fetchIndex = envIndex;
+                    var renderData = planarProbe.renderData;
+                    var worldToCameraRHSMatrix = renderData.worldToCameraRHS;
+                    var projectionMatrix = renderData.projectionMatrix;
+
+                    // We don't need to provide the capture position
+                    // It is already encoded in the 'worldToCameraRHSMatrix'
+                    capturePosition = Vector3.zero;
+
+                    // get the device dependent projection matrix
+                    var gpuProj = GL.GetGPUProjectionMatrix(projectionMatrix, true);
+                    var gpuView = worldToCameraRHSMatrix;
+                    var vp = gpuProj * gpuView;
+                    m_TextureCaches.env2DCaptureVP[fetchIndex] = vp;
+
+                    var capturedForwardWS = renderData.captureRotation * Vector3.forward;
+                    //capturedForwardWS.z *= -1; // Transform to RHS standard
+                    m_TextureCaches.env2DCaptureForward[fetchIndex * 3 + 0] = capturedForwardWS.x;
+                    m_TextureCaches.env2DCaptureForward[fetchIndex * 3 + 1] = capturedForwardWS.y;
+                    m_TextureCaches.env2DCaptureForward[fetchIndex * 3 + 2] = capturedForwardWS.z;
+                    break;
+                }
                 case HDAdditionalReflectionData _:
-                    {
-                       // envIndex = m_TextureCaches.reflectionProbeCache.FetchSlice(cmd, probe.texture);
-                        // Indices start at 1, because -0 == 0, we can know from the bit sign which cache to use
-                       // envIndex = envIndex == -1 ? int.MinValue : (envIndex + 1);
+                {
+                    // Calculate settings to use for the probe
+                    var probePositionSettings = ProbeCapturePositionSettings.ComputeFrom(probe, camera.transform);
+                    HDRenderUtilities.ComputeCameraSettingsFromProbeSettings(
+                        probe.settings, probePositionSettings,
+                        out _, out var cameraPositionSettings
+                    );
+                    capturePosition = cameraPositionSettings.position;
 
-                        // Calculate settings to use for the probe
-                        var probePositionSettings = ProbeCapturePositionSettings.ComputeFrom(probe, camera.transform);
-                        HDRenderUtilities.ComputeCameraSettingsFromProbeSettings(
-                            probe.settings, probePositionSettings,
-                            out _, out var cameraPositionSettings
-                        );
-                        capturePosition = cameraPositionSettings.position;
-
-                        break;
-                    }
+                    break;
+                }
             }
-            // int.MinValue means that the texture is not ready yet (ie not convolved/compressed yet)
-        //    if (envIndex == int.MinValue)
-         //       return false;
-
+     
             InfluenceVolume influence = probe.influenceVolume;
             envLightData.lightLayers = probe.lightLayersAsUInt;
             envLightData.influenceShapeType = influence.envShape;
@@ -2600,22 +2579,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 m_TotalLightCount = m_lightList.m_LightData.Length + decalDatasCount + reflectionProbeCount;
                 Debug.Assert(m_TotalLightCount == m_lightList.m_Bounds.Length, "m_TotalLightCount == m_lightList.m_Bounds.Length ");
-                Debug.Assert(m_TotalLightCount == m_lightList.m_LightVolumeData.Length, "m_TotalLightCount == m_lightList.m_Bounds.Length"); // todo add density volumes and env lights
-                /*
-                m_TotalLightCount = m_lightList.lights.Count + m_lightList.envLights.Count + decalDatasCount + m_densityVolumeCount;
-                Debug.Assert(m_TotalLightCount == m_lightList.lightsPerView[0].bounds.Count);
-                Debug.Assert(m_TotalLightCount == m_lightList.lightsPerView[0].lightVolumes.Count);
-
-                
-                // Aggregate the remaining views into the first entry of the list (view 0)                
-                for (int viewIndex = 1; viewIndex < hdCamera.viewCount; ++viewIndex)
-                {
-                    Debug.Assert(m_lightList.lightsPerView[viewIndex].bounds.Count == m_TotalLightCount);
-                    m_lightList.lightsPerView[0].bounds.AddRange(m_lightList.lightsPerView[viewIndex].bounds);
-
-                    Debug.Assert(m_lightList.lightsPerView[viewIndex].lightVolumes.Count == m_TotalLightCount);
-                    m_lightList.lightsPerView[0].lightVolumes.AddRange(m_lightList.lightsPerView[viewIndex].lightVolumes);
-                }*/
+                Debug.Assert(m_TotalLightCount == m_lightList.m_LightVolumeData.Length, "m_TotalLightCount == m_lightList.m_Bounds.Length"); // todo add density volumes and env lights              
 
                 UpdateDataBuffers();
 

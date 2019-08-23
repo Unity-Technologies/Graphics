@@ -137,13 +137,19 @@ namespace UnityEngine.Rendering.HighDefinition
         )
         {
             var result = new ProbeCapturePositionSettings();
-            var proxyToWorld = probe.proxyToWorld;
+            ComputeFrom(ref result, probe.proxyToWorld, probe.influenceToWorld, referencePosition, referenceRotation);           
+            return result;
+        }
+
+        public static void ComputeFrom(ref ProbeCapturePositionSettings result,
+            Matrix4x4 proxyToWorld, Matrix4x4 influenceToWorld,
+            Vector3 referencePosition, Quaternion referenceRotation)
+        {
             result.proxyPosition = proxyToWorld.GetColumn(3);
             result.proxyRotation = proxyToWorld.rotation;
             result.referencePosition = referencePosition;
             result.referenceRotation = referenceRotation;
-            result.influenceToWorld = probe.influenceToWorld;
-            return result;
+            result.influenceToWorld = influenceToWorld;
         }
     }
 }

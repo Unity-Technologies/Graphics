@@ -140,7 +140,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
 
     [GenerateHLSL]
-    enum EnvShapeType
+    public enum EnvShapeType
     {
         None,
         Box,
@@ -161,7 +161,7 @@ namespace UnityEngine.Rendering.HighDefinition
     // Users can also chose to not have any projection, in this case we use the property minProjectionDistance to minimize code change. minProjectionDistance is set to huge number
     // that simulate effect of no shape projection
     [GenerateHLSL(PackingRules.Exact, false)]
-    struct EnvLightData
+    public struct EnvLightData
     {
         // Packing order depends on chronological access to avoid cache misses
         public uint lightLayers;
