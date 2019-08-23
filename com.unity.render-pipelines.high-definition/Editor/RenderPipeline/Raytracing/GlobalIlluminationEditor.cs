@@ -14,13 +14,18 @@ namespace UnityEditor.Rendering.HighDefinition
 
         // Tier 1
         SerializedDataParameter m_DeferredMode;
+        SerializedDataParameter m_RayBinning;
 
         // Tier 2
         SerializedDataParameter m_NumSamples;
         SerializedDataParameter m_NumBounces;
 
+        // Filtering
         SerializedDataParameter m_EnableFilter;
-        SerializedDataParameter m_FilterRadius;
+        SerializedDataParameter m_FilterRadiusFirst;
+        SerializedDataParameter m_EnableSecondPass;
+        SerializedDataParameter m_FilterRadiusSecond;
+        SerializedDataParameter m_HalfResolutonFilter;
 
         public override void OnEnable()
         {
@@ -32,13 +37,18 @@ namespace UnityEditor.Rendering.HighDefinition
 
             // Tier 1
             m_DeferredMode = Unpack(o.Find(x => x.deferredMode));
+            m_RayBinning = Unpack(o.Find(x => x.rayBinning));
 
             // Tier 2
             m_NumSamples = Unpack(o.Find(x => x.numSamples));
             m_NumBounces = Unpack(o.Find(x => x.numBounces));
 
+            // Filtering
             m_EnableFilter = Unpack(o.Find(x => x.enableFilter));
-            m_FilterRadius = Unpack(o.Find(x => x.filterRadius));
+            m_FilterRadiusFirst = Unpack(o.Find(x => x.filterRadiusFirst));
+            m_FilterRadiusSecond = Unpack(o.Find(x => x.filterRadiusSecond));
+            m_EnableSecondPass = Unpack(o.Find(x => x.enableSecondPass));
+            m_HalfResolutonFilter = Unpack(o.Find(x => x.halfResolutonFilter));
         }
 
         public override void OnInspectorGUI()
@@ -66,6 +76,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     case RenderPipelineSettings.RaytracingTier.Tier1:
                     {
                         PropertyField(m_DeferredMode);
+                        PropertyField(m_RayBinning);
                     }
                     break;
                     case RenderPipelineSettings.RaytracingTier.Tier2:
@@ -77,7 +88,14 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
 
                 PropertyField(m_EnableFilter);
-                PropertyField(m_FilterRadius);
+                {
+                    EditorGUI.indentLevel++;
+                    PropertyField(m_FilterRadiusFirst);
+                    PropertyField(m_EnableSecondPass);
+                    PropertyField(m_FilterRadiusSecond);
+                    PropertyField(m_HalfResolutonFilter);
+                    EditorGUI.indentLevel--;
+                }
                 EditorGUI.indentLevel--;
             }
 #endif

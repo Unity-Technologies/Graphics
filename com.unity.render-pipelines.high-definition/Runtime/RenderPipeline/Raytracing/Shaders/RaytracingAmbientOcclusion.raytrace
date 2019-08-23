@@ -23,7 +23,6 @@ TEXTURE2D_X(_DepthTexture);
 // Output structure of the reflection raytrace shader
 float                                   _RaytracingAOIntensity;
 RWTexture2D<float4> 					_AmbientOcclusionTextureRW;
-RWTexture2D<float4> 					_RaytracingVSNormalTexture;
 
 [shader("miss")]
 void MissShaderAmbientOcclusion(inout RayIntersection rayIntersection : SV_RayPayload)
@@ -119,8 +118,6 @@ void RayGenAmbientOcclusion()
 
 	// Alright we are done
     _AmbientOcclusionTextureRW[currentPixelCoord] = float4(1.0 - finalColor, 1.0f);
-    float3 normalWS = mul(_InvViewMatrix, float4(normalData.normalWS, 0.0f)).xyz;
-    _RaytracingVSNormalTexture[currentPixelCoord] = float4(normalWS, 1.0f);
 }
 
 // Fallback default any hit shader for this raytrace shader
