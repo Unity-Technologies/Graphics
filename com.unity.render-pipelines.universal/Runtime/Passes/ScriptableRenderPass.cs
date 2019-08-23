@@ -55,7 +55,6 @@ namespace UnityEngine.Rendering.Universal
             get => m_ClearColor;
         }
 
-        internal bool overrideCameraTarget { get; set; }
         internal bool isBlitRenderPass { get; set; }
 
         RenderTargetIdentifier m_ColorAttachment = BuiltinRenderTextureType.CameraTarget;
@@ -70,7 +69,6 @@ namespace UnityEngine.Rendering.Universal
             m_DepthAttachment = BuiltinRenderTextureType.CameraTarget;
             m_ClearFlag = ClearFlag.None;
             m_ClearColor = Color.black;
-            overrideCameraTarget = false;
             isBlitRenderPass = false;
         }
 
@@ -83,7 +81,6 @@ namespace UnityEngine.Rendering.Universal
         /// <seealso cref="Configure"/>
         public void ConfigureTarget(RenderTargetIdentifier colorAttachment, RenderTargetIdentifier depthAttachment)
         {
-            overrideCameraTarget = true;
             m_ColorAttachment = colorAttachment;
             m_DepthAttachment = depthAttachment;
         }
@@ -96,7 +93,6 @@ namespace UnityEngine.Rendering.Universal
         /// <seealso cref="Configure"/>
         public void ConfigureTarget(RenderTargetIdentifier colorAttachment)
         {
-            overrideCameraTarget = true;
             m_ColorAttachment = colorAttachment;
             m_DepthAttachment = BuiltinRenderTextureType.CameraTarget;
         }
@@ -117,6 +113,7 @@ namespace UnityEngine.Rendering.Universal
         /// This method is called by the renderer before executing the render pass.
         /// Override this method if you need to to configure render targets and their clear state, and to create temporary render target textures.
         /// If a render pass doesn't override this method, this render pass renders to the active Camera's render target.
+        /// If you want this render pass to render to the current active render target, override this method to configure BuiltinRenderTextureType.CurrentActive. 
         /// You should never call CommandBuffer.SetRenderTarget. Instead call <c>ConfigureTarget</c> and <c>ConfigureClear</c>.
         /// </summary>
         /// <param name="cmd">CommandBuffer to enqueue rendering commands. This will be executed by the pipeline.</param>
@@ -124,7 +121,9 @@ namespace UnityEngine.Rendering.Universal
         /// <seealso cref="ConfigureTarget"/>
         /// <seealso cref="ConfigureClear"/>
         public virtual void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
-        {}
+        {
+            ConfigureTarget(BuiltinRenderTextureType.CameraTarget, BuiltinRenderTextureType.CameraTarget);
+        }
 
         /// <summary>
         /// Cleanup any allocated data that was created during the execution of the pass.

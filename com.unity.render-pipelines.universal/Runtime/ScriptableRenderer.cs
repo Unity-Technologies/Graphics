@@ -368,13 +368,19 @@ namespace UnityEngine.Rendering.Universal
             RenderTargetIdentifier passDepthAttachment = renderPass.depthAttachment;
             ref CameraData cameraData = ref renderingData.cameraData;
 
-            // When render pass doesn't call ConfigureTarget we assume it's expected to render to camera target
-            // which might be backbuffer or the framebuffer render textures.
-            if (!renderPass.overrideCameraTarget)
-            {
+            // BuiltinRenderTextureType.CameraTarget means it will bind to _CameraColorTexture and _CameraDepthTexture
+            // That might either be the backbuffer or an intermediate render texture. It depends on what the renderer
+            // setup as current camera target.
+            // BuiltinRenderTextureType.CurrentActive means the current bound render texture.
+            if (renderPass.colorAttachment == BuiltinRenderTextureType.CameraTarget)
                 passColorAttachment = m_CameraColorTarget;
+            else if (renderPass.colorAttachment == BuiltinRenderTextureType.CurrentActive)
+                passColorAttachment = m_ActiveColorAttachment;
+
+            if (renderPass.depthAttachment == BuiltinRenderTextureType.CameraTarget)
                 passDepthAttachment = m_CameraDepthTarget;
-            }
+            else if (renderPass.depthAttachment == BuiltinRenderTextureType.CurrentActive)
+                passDepthAttachment = m_ActiveDepthAttachment;
 
             if (passColorAttachment == m_CameraColorTarget && !m_FirstCameraRenderPassExecuted)
             {
