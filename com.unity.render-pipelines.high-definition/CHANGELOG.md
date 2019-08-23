@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed reflection probe with XR single-pass and FPTL
 - Fixed force gizmo shown when selecting camera in hierarchy
 - Fixed issue with XR occlusion mesh and dynamic resolution
+- Fixed an issue where lighting compute buffers were re-created with the wrong size when resizing the window, causing tile artefacts at the top of the screen.
 
 ### Changed
 - Update Wizard layout.

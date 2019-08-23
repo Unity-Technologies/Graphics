@@ -320,11 +320,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 globalLightListAtomic = new ComputeBuffer(1, sizeof(uint));
             }
 
-            public void AllocateResolutionDependentBuffers(HDCamera hdCamera, int viewCount, int maxLightOnScreen)
+            public void AllocateResolutionDependentBuffers(HDCamera hdCamera, int width, int height, int viewCount, int maxLightOnScreen)
             {
-                int width = (int)hdCamera.screenSize.x;
-                int height = (int)hdCamera.screenSize.y;
-
                 var nrTilesX = (width + LightDefinitions.s_TileSizeFptl - 1) / LightDefinitions.s_TileSizeFptl;
                 var nrTilesY = (height + LightDefinitions.s_TileSizeFptl - 1) / LightDefinitions.s_TileSizeFptl;
                 var nrTiles = nrTilesX * nrTilesY * viewCount;
@@ -918,11 +915,11 @@ namespace UnityEngine.Rendering.HighDefinition
             return 32 * (1 << k_Log2NumClusters);       // total footprint for all layers of the tile (measured in light index entries)
         }
 
-        void LightLoopAllocResolutionDependentBuffers(HDCamera hdCamera)
+        void LightLoopAllocResolutionDependentBuffers(HDCamera hdCamera, int width, int height)
         {
             m_MaxViewCount = Math.Max(hdCamera.viewCount, m_MaxViewCount);
 
-            m_TileAndClusterData.AllocateResolutionDependentBuffers(hdCamera, m_MaxViewCount, m_MaxLightsOnScreen);
+            m_TileAndClusterData.AllocateResolutionDependentBuffers(hdCamera, width, height, m_MaxViewCount, m_MaxLightsOnScreen);
 
             // Allocate matrix arrays used for LightList building
             {
@@ -1384,8 +1381,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
 #if ENABLE_RAYTRACING
             // If there is still a free slot in the screen space shadow array and this needs to render a screen space shadow
-            if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) 
-                && screenSpaceShadowIndex < m_Asset.currentPlatformRenderPipelineSettings.hdShadowInitParams.maxScreenSpaceShadows 
+            if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing)
+                && screenSpaceShadowIndex < m_Asset.currentPlatformRenderPipelineSettings.hdShadowInitParams.maxScreenSpaceShadows
                 && additionalLightData.WillRenderScreenSpaceShadow())
             {
                 lightData.screenSpaceShadowIndex = screenSpaceShadowIndex;
