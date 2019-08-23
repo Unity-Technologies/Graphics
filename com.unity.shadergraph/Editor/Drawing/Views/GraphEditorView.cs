@@ -240,7 +240,26 @@ namespace UnityEditor.ShaderGraph.Drawing
             foreach (var edge in graph.edges)
                 AddEdge(edge);
 
+            // Show which Master node is active
+            VisualizeActiveMasterNode();
+
             Add(content);
+        }
+
+        void VisualizeActiveMasterNode()
+        {
+            var nodeList = m_GraphView.Query<MaterialNodeView>().ToList();
+            foreach (var nodeView in nodeList)
+            {
+                if (m_Graph.activeOutputNodeGuid == nodeView.node.guid)
+                {
+                    foreach (GraphElement element in m_GraphView.masterScope.containedElements.ToList())
+                    {
+                        m_GraphView.masterScope.RemoveElement(element);
+                    }
+                    m_GraphView.masterScope.AddElement(nodeView);
+                }
+            }
         }
 
         void CreateMasterPreview()
@@ -889,6 +908,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_MasterPreviewView?.RemoveFromHierarchy();
             CreateMasterPreview();
             ApplyMasterPreviewLayout();
+            VisualizeActiveMasterNode();
         }
 
         void HandleEditorViewChanged(GeometryChangedEvent evt)

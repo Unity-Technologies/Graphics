@@ -26,6 +26,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             deleteSelection = DeleteSelectionImplementation;
             RegisterCallback<DragUpdatedEvent>(OnDragUpdatedEvent);
             RegisterCallback<DragPerformEvent>(OnDragPerformEvent);
+            AddElement(m_MasterScope);
         }
 
         protected override bool canCopySelection
@@ -40,6 +41,15 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         public GraphData graph { get; private set; }
         public Action onConvertToSubgraphClick { get; set; }
+
+        Scope m_MasterScope = new Scope();
+        public Scope masterScope
+        {
+            get
+            {
+                return m_MasterScope;
+            }
+        }
 
         public override List<Port> GetCompatiblePorts(Port startAnchor, NodeAdapter nodeAdapter)
         {
