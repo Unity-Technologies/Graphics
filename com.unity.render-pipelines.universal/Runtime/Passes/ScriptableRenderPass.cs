@@ -94,7 +94,7 @@ namespace UnityEngine.Rendering.Universal
         public void ConfigureTarget(RenderTargetIdentifier colorAttachment)
         {
             m_ColorAttachment = colorAttachment;
-            m_DepthAttachment = BuiltinRenderTextureType.CameraTarget;
+            m_DepthAttachment = BuiltinRenderTextureType.None;
         }
 
         /// <summary>

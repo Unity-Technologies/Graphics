@@ -467,7 +467,7 @@ namespace UnityEngine.Rendering.Universal
             Color clearColor,
             TextureDimension dimension)
         {
-            if (depthAttachment == BuiltinRenderTextureType.CameraTarget)
+            if (depthAttachment == BuiltinRenderTextureType.CameraTarget || depthAttachment == BuiltinRenderTextureType.None)
             {
                 SetRenderTarget(cmd, colorAttachment, colorLoadAction, colorStoreAction, clearFlags, clearColor,
                     dimension);
