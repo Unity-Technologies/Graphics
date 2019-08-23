@@ -367,8 +367,7 @@ namespace UnityEditor.VFX.UI
                             UpdateCurve(vfxCurve, curveData);
                         }
 
-                        var curveColor = Color.HSVToRGB((0.71405f + i * 0.37135766f) % 1.0f, 0.6f, 1.0f).gamma;
-                        m_CurveMat.SetColor("_Color", curveColor);
+                        m_CurveMat.SetColor("_Color", GetColor(i));
 
                         m_CurveMat.SetPass(0);
                         Graphics.DrawMeshNow(vfxCurve.curve.GetMesh(), TRS);
@@ -494,6 +493,37 @@ namespace UnityEditor.VFX.UI
             }
         }
 
+        public void SetVisualEffect(VisualEffect vfx)
+        {
+            if (m_VFX != vfx)
+            {
+                m_VFX = vfx;
+                if (m_Curves != null)
+                    m_Curves.OnVFXChange();
+            }
+        }
+
+        public void Notify(Events e)
+        {
+            switch (e)
+            {
+                case Events.VFXReset:
+                    InitSystemStatArray();
+                    break;
+                case Events.VFXStop:
+                    InitSystemStatArray();
+                    break;
+                default:
+                    break;
+            }
+            m_Curves.Notify(e);
+        }
+
+        static Color GetColor(int i)
+        {
+            return Color.HSVToRGB((i * 0.618033988749895f) % 1.0f, 0.6f, 1.0f).gamma;
+        }
+
         void UpdateDebugMode()
         {
             switch (m_CurrentMode)
@@ -528,33 +558,6 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-
-        public void SetVisualEffect(VisualEffect vfx)
-        {
-            if (m_VFX != vfx)
-            {
-                m_VFX = vfx;
-                if (m_Curves != null)
-                    m_Curves.OnVFXChange();
-            }
-        }
-
-        public void Notify(Events e)
-        {
-            switch (e)
-            {
-                case Events.VFXReset:
-                    InitSystemStatArray();
-                    break;
-                case Events.VFXStop:
-                    InitSystemStatArray();
-                    break;
-                default:
-                    break;
-            }
-            m_Curves.Notify(e);
-        }
-
         void RegisterParticleSystems()
         {
             if (m_SystemStats != null)
@@ -579,7 +582,7 @@ namespace UnityEditor.VFX.UI
                 {
                     int id = Shader.PropertyToID(name);
                     m_GpuSystems.Add(id);
-                    AddSystemStatEntry(name, id, Color.HSVToRGB((0.71405f + i * 0.37135766f) % 1.0f, 0.6f, 1.0f));
+                    AddSystemStatEntry(name, id, GetColor(i));
 
                     ++i;
                 }
