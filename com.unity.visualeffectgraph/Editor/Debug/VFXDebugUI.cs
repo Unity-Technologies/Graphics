@@ -894,7 +894,16 @@ namespace UnityEditor.VFX.UI
             if (statUI[4] is Button maxAlive)
                 maxAlive.text = Mathf.Max(int.Parse(maxAlive.text), stat.alive).ToString();
             if (statUI[5] is TextElement efficiency)
-                efficiency.text = string.Format("{0} %", (int)((float)stat.alive * 100.0f / (float)stat.capacity));
+            {
+                var eff = (int)((float)stat.alive * 100.0f / (float)stat.capacity);
+                efficiency.text = string.Format("{0} %", eff);
+                if (eff < 51)
+                    efficiency.style.color = Color.red.gamma;
+                else if (eff < 91)
+                    efficiency.style.color = new Color(1.0f, 0.5f, 0.32f).gamma;
+                else
+                    efficiency.style.color = Color.green.gamma;
+            }
         }
 
         void InitSystemStatArray()
