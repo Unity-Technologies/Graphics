@@ -6,14 +6,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [7.1.1] - 2019-XX-XX
 ### Upgrade Guide
-- The way custom renderers are handled is now different, the renderers available to the camera must be setup on the pipeline asset now.
-- Render pipeline assets will upgrade automatically and will either create a default forward renderer in your project or link the existing custom one assigned.
-- Custom renderers assigned to cameras must now be added to the current render pipeline asset, then you can select which renderer to use on the camera.
+- The render pipeline now handles custom renderers differently. You must now set up renderers for the Camera on the Render Pipeline Asset.
+- Render Pipeline Assets upgrades automatically and either creates a default forward renderer in your project or links the existing custom one that you've assigned.
+- If you have custom renderers assigned to Cameras, you must now add them to the current Render Pipeline Asset. Then you can select which renderer to use on the Camera.
 
 ### Added
 - Added shader function `GetMainLightShadowParams`. This returns a half4 for the main light that packs shadow strength in x component and shadow soft property in y component.
 - Added shader function `GetAdditionalLightShadowParams`. This returns a half4 for an additional light that packs shadow strength in x component and shadow soft property in y component.
-- You can now set the `ScriptableRenderer` that the camera renders with via C# using `UniversalAdditionalCameraData.SerRenderer(int index)`, this maps to the Renderer list on the pipeline asset.
+- Added ability to set the `ScriptableRenderer` that the Camera renders with via C# using `UniversalAdditionalCameraData.SerRenderer(int index)`. This maps to the **Renderer List** on the Render Pipeline Asset.
 
 ### Changed
 - Increased visible lights limit for the forward renderer. It now supports 256 visible lights except in mobile platforms. Mobile platforms support 32 visible lights.
@@ -21,8 +21,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - The Sprite-Lit-Default shader and the Sprite Lit Shader Graph shaders now use the vertex tangents for tangent space calculations.
 - Temporary render textures for cameras rendering to render textures now use the same format and multisampling configuration as camera's target texture.
 - All platforms now use R11G11B10_UFloat format for HDR render textures if supported.
-- There is now a list of `ScriptableRendererData` on the pipeline asset as opposed to a renderer type, these are available to all cameras and will be included in builds.
-- The renderer override on the camera is now an enum that maps to the list of `ScriptableRendererData` on the pipeline asset.
+- There is now a list of `ScriptableRendererData` on the Render Pipeline Asset as opposed to a renderer type. These are available to all Cameras and are included in builds.
+- The renderer override on the Camera is now an enum that maps to the list of `ScriptableRendererData` on the Render Pipeline Asset.
 
 ### Fixed
 - Fixed LightProbe occlusion contribution. [case 1146667](https://issuetracker.unity3d.com/product/unity/issues/guid/1146667/)
