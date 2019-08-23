@@ -15,6 +15,30 @@ namespace UnityEditor.ShaderGraph.Internal
 
     public sealed class ShaderGraphVfxAsset : ScriptableObject
     {
+        public const string BaseColorSlotName = "Base Color";
+        public const int BaseColorSlotId = 1;
+
+        public const string MetallicSlotName = "Metallic";
+        public const int MetallicSlotId = 2;
+
+        public const string SmoothnessSlotName = "Smoothness";
+        public const int SmoothnessSlotId = 3;
+
+        public const string NormalSlotName = "Normal";
+        public const int NormalSlotId = 8;
+
+        public const string AlphaSlotName = "Alpha";
+        public const int AlphaSlotId = 4;
+
+        public const string EmissiveSlotName = "Emissive";
+        public const int EmissiveSlotId = 5;
+
+        public const string ColorSlotName = "Color";
+        public const int ColorSlotId = 6;
+
+        public const string AlphaThresholdSlotName = "AlphaThreshold";
+        public const int AlphaThresholdSlotId = 7;
+
         [SerializeField]
         internal GraphCompilationResult compilationResult;
 
@@ -69,6 +93,15 @@ namespace UnityEditor.ShaderGraph.Internal
         public OutputMetadata GetOutput(string name)
         {
             return m_Outputs.FirstOrDefault(t => t.referenceName == name);
+        }
+        public OutputMetadata GetOutput(int id)
+        {
+            return m_Outputs.FirstOrDefault(t => t.id == id);
+        }
+
+        public bool HasOutput(int id)
+        {
+            return m_Outputs.Any(t => t.id == id);
         }
 
         public string evaluationFunctionName

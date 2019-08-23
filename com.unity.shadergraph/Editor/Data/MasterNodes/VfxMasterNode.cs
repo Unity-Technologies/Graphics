@@ -13,29 +13,6 @@ namespace UnityEditor.ShaderGraph
 {
     sealed class VfxMasterNode : MasterNode, IMayRequirePosition
     {
-        public const string BaseColorSlotName = "Base Color";
-        public const int BaseColorSlotId = 1;
-
-        public const string MetallicSlotName = "Metallic";
-        public const int MetallicSlotId = 2;
-
-        public const string SmoothnessSlotName = "Smoothness";
-        public const int SmoothnessSlotId = 3;
-
-        public const string NormalSlotName = "Normal";
-        public const int NormalSlotId = 8;
-
-        public const string AlphaSlotName = "Alpha";
-        public const int AlphaSlotId = 4;
-
-        public const string EmissiveSlotName = "Emissive";
-        public const int EmissiveSlotId = 5;
-
-        public const string ColorSlotName = "Color";
-        public const int ColorSlotId = 6;
-
-        public const string AlphaThresholdSlotName = "Alpha Threshold";
-        public const int AlphaThresholdSlotId = 7;
 
         public VfxMasterNode()
         {
@@ -85,34 +62,34 @@ namespace UnityEditor.ShaderGraph
 
             if ( lit.isOn)
             {
-                AddSlot(new ColorRGBMaterialSlot(BaseColorSlotId, BaseColorSlotName, NodeUtils.GetHLSLSafeName(BaseColorSlotName), SlotType.Input, Color.grey.gamma, ColorMode.Default, ShaderStageCapability.Fragment));
-                usedSlots.Add(BaseColorSlotId);
+                AddSlot(new ColorRGBMaterialSlot(ShaderGraphVfxAsset.BaseColorSlotId, ShaderGraphVfxAsset.BaseColorSlotName, NodeUtils.GetHLSLSafeName(ShaderGraphVfxAsset.BaseColorSlotName), SlotType.Input, Color.grey.gamma, ColorMode.Default, ShaderStageCapability.Fragment));
+                usedSlots.Add(ShaderGraphVfxAsset.BaseColorSlotId);
 
-                AddSlot(new Vector1MaterialSlot(MetallicSlotId, MetallicSlotName, MetallicSlotName, SlotType.Input, 0.5f, ShaderStageCapability.Fragment));
-                usedSlots.Add(MetallicSlotId);
+                AddSlot(new Vector1MaterialSlot(ShaderGraphVfxAsset.MetallicSlotId, ShaderGraphVfxAsset.MetallicSlotName, ShaderGraphVfxAsset.MetallicSlotName, SlotType.Input, 0.5f, ShaderStageCapability.Fragment));
+                usedSlots.Add(ShaderGraphVfxAsset.MetallicSlotId);
 
-                AddSlot(new Vector1MaterialSlot(SmoothnessSlotId, SmoothnessSlotName, SmoothnessSlotName, SlotType.Input, 0.5f, ShaderStageCapability.Fragment));
-                usedSlots.Add(SmoothnessSlotId);
+                AddSlot(new Vector1MaterialSlot(ShaderGraphVfxAsset.SmoothnessSlotId, ShaderGraphVfxAsset.SmoothnessSlotName, ShaderGraphVfxAsset.SmoothnessSlotName, SlotType.Input, 0.5f, ShaderStageCapability.Fragment));
+                usedSlots.Add(ShaderGraphVfxAsset.SmoothnessSlotId);
 
-                AddSlot(new Vector3MaterialSlot(NormalSlotId, NormalSlotName, NormalSlotName, SlotType.Input, new Vector3(0,0,1), ShaderStageCapability.Fragment));
-                usedSlots.Add(NormalSlotId);
+                AddSlot(new Vector3MaterialSlot(ShaderGraphVfxAsset.NormalSlotId, ShaderGraphVfxAsset.NormalSlotName, ShaderGraphVfxAsset.NormalSlotName, SlotType.Input, new Vector3(0,0,1), ShaderStageCapability.Fragment));
+                usedSlots.Add(ShaderGraphVfxAsset.NormalSlotId);
 
-                AddSlot(new ColorRGBMaterialSlot(EmissiveSlotId, EmissiveSlotName, NodeUtils.GetHLSLSafeName(EmissiveSlotName), SlotType.Input, Color.black, ColorMode.HDR, ShaderStageCapability.Fragment));
-                usedSlots.Add(EmissiveSlotId);
+                AddSlot(new ColorRGBMaterialSlot(ShaderGraphVfxAsset.EmissiveSlotId, ShaderGraphVfxAsset.EmissiveSlotName, NodeUtils.GetHLSLSafeName(ShaderGraphVfxAsset.EmissiveSlotName), SlotType.Input, Color.black, ColorMode.HDR, ShaderStageCapability.Fragment));
+                usedSlots.Add(ShaderGraphVfxAsset.EmissiveSlotId);
             }
             else
             {
-                AddSlot(new ColorRGBMaterialSlot(ColorSlotId, ColorSlotName, NodeUtils.GetHLSLSafeName(ColorSlotName), SlotType.Input, Color.black, ColorMode.HDR, ShaderStageCapability.Fragment));
-                usedSlots.Add(ColorSlotId);
+                AddSlot(new ColorRGBMaterialSlot(ShaderGraphVfxAsset.ColorSlotId, ShaderGraphVfxAsset.ColorSlotName, NodeUtils.GetHLSLSafeName(ShaderGraphVfxAsset.ColorSlotName), SlotType.Input, Color.black, ColorMode.HDR, ShaderStageCapability.Fragment));
+                usedSlots.Add(ShaderGraphVfxAsset.ColorSlotId);
             }
 
-            AddSlot(new Vector1MaterialSlot(AlphaSlotId, AlphaSlotName, AlphaSlotName, SlotType.Input, 1, ShaderStageCapability.Fragment));
-            usedSlots.Add(AlphaSlotId);
+            AddSlot(new Vector1MaterialSlot(ShaderGraphVfxAsset.AlphaSlotId, ShaderGraphVfxAsset.AlphaSlotName, ShaderGraphVfxAsset.AlphaSlotName, SlotType.Input, 1, ShaderStageCapability.Fragment));
+            usedSlots.Add(ShaderGraphVfxAsset.AlphaSlotId);
 
             if( alphaTest.isOn)
             {
-                AddSlot(new Vector1MaterialSlot(AlphaThresholdSlotId, AlphaThresholdSlotName, AlphaThresholdSlotName, SlotType.Input, 1, ShaderStageCapability.Fragment));
-                usedSlots.Add(AlphaThresholdSlotId);
+                AddSlot(new Vector1MaterialSlot(ShaderGraphVfxAsset.AlphaThresholdSlotId, ShaderGraphVfxAsset.AlphaThresholdSlotName, ShaderGraphVfxAsset.AlphaThresholdSlotName, SlotType.Input, 1, ShaderStageCapability.Fragment));
+                usedSlots.Add(ShaderGraphVfxAsset.AlphaThresholdSlotId);
             }
 
             RemoveSlotsNameNotMatching(usedSlots);
