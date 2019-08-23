@@ -68,10 +68,6 @@ namespace UnityEditor.Rendering.Universal
             public static GUIContent shaderVariantLogLevel = EditorGUIUtility.TrTextContent("Shader Variant Log Level", "Controls the level logging in of shader variants information is outputted when a build is performed. Information will appear in the Unity console when the build finishes.");
 
             // Renderer List Messages
-            public static GUIContent rendererListLastMessage =
-                EditorGUIUtility.TrTextContent("Cannot remove last Renderer",
-                    "Removal of the Last Renderer is not allowed.");
-
             public static GUIContent rendererListDefaultMessage =
                 EditorGUIUtility.TrTextContent("Cannot remove Default Renderer",
                     "Removal of the Default Renderer is not allowed. To remove, set another Renderer to be the new Default and then remove.");
@@ -447,11 +443,6 @@ namespace UnityEditor.Rendering.Universal
                         li.serializedProperty.DeleteArrayElementAtIndex(li.serializedProperty.arraySize - 1);
                     li.serializedProperty.arraySize--;
                     li.index = li.count - 1;
-                }
-                else if (li.serializedProperty.arraySize == 1)
-                {
-                    EditorUtility.DisplayDialog(Styles.rendererListLastMessage.text, Styles.rendererListLastMessage.tooltip,
-                        "Close");
                 }
                 else
                 {

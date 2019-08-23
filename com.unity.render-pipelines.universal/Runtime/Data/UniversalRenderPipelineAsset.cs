@@ -102,7 +102,7 @@ namespace UnityEngine.Rendering.Universal
 
         // Deprecated settings for upgrading sakes
         [SerializeField] RendererType m_RendererType = RendererType.ForwardRenderer;
-        [SerializeField]internal ScriptableRendererData m_RendererData;
+        [SerializeField] internal ScriptableRendererData m_RendererData = null;
 
         // Renderer settings
         [SerializeField] internal ScriptableRendererData[] m_RendererDataList = new ScriptableRendererData[1];
@@ -195,16 +195,33 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        [MenuItem("Assets/Create/Rendering/Universal Render Pipeline/Pipeline Asset/Forward Renderer", priority = CoreUtils.assetCreateMenuPriority1)]
+        [MenuItem("Assets/Create/Rendering/Universal Render Pipeline/Pipeline Asset(Forward Renderer)", priority = CoreUtils.assetCreateMenuPriority1)]
         static void CreateUniversalPipeline()
         {
             ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, CreateInstance<CreateUniversalPipelineAsset>(),
                 "UniversalRenderPipelineAsset.asset", null, null);
         }
 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1812")]
+        internal class CreateUniversalPipelineAsset2D : EndNameEditAction
+        {
+            public override void Action(int instanceId, string pathName, string resourceFile)
+            {
+                //Create asset
+                AssetDatabase.CreateAsset(Create(CreateRendererAsset(pathName, RendererType._2DRenderer)), pathName);
+            }
+        }
+
+        [MenuItem("Assets/Create/Rendering/Universal Render Pipeline/Pipeline Asset(2D Renderer(Experimental))", priority = CoreUtils.assetCreateMenuPriority1)]
+        static void CreateUniversalPipeline2D()
+        {
+            ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, CreateInstance<CreateUniversalPipelineAsset2D>(),
+                "UniversalRenderPipelineAsset.asset", null, null);
+        }
+
         static ScriptableRendererData CreateRendererAsset(string path, RendererType type, bool relativePath = true)
         {
-            ScriptableRendererData data = CreateRenderer(type);
+            ScriptableRendererData data = CreateRendererData(type);
             string dataPath;
             if (relativePath)
                 dataPath =
@@ -215,7 +232,7 @@ namespace UnityEngine.Rendering.Universal
             return data;
         }
 
-        static ScriptableRendererData CreateRenderer(RendererType type)
+        static ScriptableRendererData CreateRendererData(RendererType type)
         {
             switch (type)
             {
@@ -275,12 +292,12 @@ namespace UnityEngine.Rendering.Universal
         }
 #endif
 
-        public ScriptableRendererData LoadBuiltinRendererData(RendererType type)
+        public ScriptableRendererData LoadBuiltinRendererData(RendererType type = RendererType.ForwardRenderer)
         {
 #if UNITY_EDITOR
             EditorUtility.SetDirty(this);
             return m_RendererDataList[0] =
-                CreateRendererAsset("Assets/ForwardRenderer.asset", RendererType.ForwardRenderer, false);
+                CreateRendererAsset("Assets/ForwardRenderer.asset", type, false);
 #else
             m_RendererDataList[0] = null;
             return m_RendererDataList[0];
@@ -733,7 +750,7 @@ namespace UnityEngine.Rendering.Universal
                     }
                     else
                     {
-                        asset.LoadBuiltinRendererData(RendererType.ForwardRenderer);
+                        asset.LoadBuiltinRendererData();
                     }
                     asset.m_RendererData = null; // Clears the old renderer
                 }

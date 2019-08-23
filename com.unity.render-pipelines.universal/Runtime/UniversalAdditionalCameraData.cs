@@ -58,7 +58,7 @@ namespace UnityEngine.Rendering.Universal
         [Tooltip("If enabled opaque color texture will render for this camera and bound as _CameraOpaqueTexture.")]
         [SerializeField]
         CameraOverrideOption m_RequiresOpaqueTextureOption = CameraOverrideOption.UsePipelineSettings;
-        
+
         [SerializeField] int m_RendererIndex = -1;
 
         [SerializeField] LayerMask m_VolumeLayerMask = 1; // "Default"
@@ -136,6 +136,11 @@ namespace UnityEngine.Rendering.Universal
         public ScriptableRenderer scriptableRenderer
         {
             get => UniversalRenderPipeline.asset.GetRenderer(m_RendererIndex);
+        }
+
+        public void SetRenderer(int index)
+        {
+            m_RendererIndex = index;
         }
 
         public LayerMask volumeLayerMask
