@@ -4,6 +4,7 @@
 #define GRA_HLSL_5 1
 #define GRA_ROW_MAJOR 1
 #define GRA_TEXTURE_ARRAY_SUPPORT 0
+#define GRA_PACK_RESOLVE_OUTPUT 0
 #include "GraniteShaderLib3.cginc"
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
@@ -230,7 +231,7 @@ void StoreVTFeedback(float4 feedback, uint2 positionSS)
     {
 
         const uint2 vt_pos = positionSS / VTFeedbackScale;
-        VTFeedback[vt_pos] = feedback;
+        VTFeedback[vt_pos] = Granite_PackTileId(feedback);
     }
 }
 
