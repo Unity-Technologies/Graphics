@@ -16,8 +16,6 @@ namespace UnityEngine.Rendering.HighDefinition
         RTHandle m_AnalyticProbBuffer;
         RTHandle m_DenoiseBuffer0;
         RTHandle m_DenoiseBuffer1;
-        RTHandle m_RaytracingDirectionBuffer;
-        RTHandle m_RaytracingDistanceBuffer;
 
         // Temporary variable that allows us to store the world to local matrix of the lights
         Matrix4x4 worldToLocalArea = new Matrix4x4();
@@ -37,8 +35,6 @@ namespace UnityEngine.Rendering.HighDefinition
             m_AnalyticProbBuffer = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R16G16_SFloat, dimension: TextureXR.dimension, enableRandomWrite: true, useDynamicScale: true, useMipMap: false, name: "AnalyticProbBuffer");
             m_DenoiseBuffer0 = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, dimension: TextureXR.dimension, enableRandomWrite: true, useDynamicScale: true,  useMipMap: false, name: "DenoiseBuffer0");
             m_DenoiseBuffer1 = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, dimension: TextureXR.dimension, enableRandomWrite: true, useDynamicScale: true, useMipMap: false, name: "DenoiseBuffer1");
-            m_RaytracingDirectionBuffer = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, dimension: TextureXR.dimension, enableRandomWrite: true, useDynamicScale: true,useMipMap: false, name: "RaytracingDirectionBuffer");
-            m_RaytracingDistanceBuffer = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R32_SFloat, dimension: TextureXR.dimension, enableRandomWrite: true, useDynamicScale: true, useMipMap: false, name: "RaytracingDistanceBuffer");
 #endif
             s_ScreenSpaceShadowsMat = CoreUtils.CreateEngineMaterial(screenSpaceShadowsShader);
 
@@ -61,8 +57,6 @@ namespace UnityEngine.Rendering.HighDefinition
             CoreUtils.Destroy(s_ScreenSpaceShadowsMat);
 
 #if ENABLE_RAYTRACING
-            RTHandles.Release(m_RaytracingDistanceBuffer);
-            RTHandles.Release(m_RaytracingDirectionBuffer);
             RTHandles.Release(m_DenoiseBuffer1);
             RTHandles.Release(m_DenoiseBuffer0);
             RTHandles.Release(m_AnalyticProbBuffer);
@@ -113,10 +107,12 @@ namespace UnityEngine.Rendering.HighDefinition
             if (m_CurrentSunLightAdditionalLightData != null && m_CurrentSunLightAdditionalLightData.WillRenderScreenSpaceShadow())
             {
 #if ENABLE_RAYTRACING
+                // Grab the ray tracing environment
+                HDRaytracingEnvironment rtEnvironment = m_RayTracingManager.CurrentEnvironment();
+
                 // If the shadow is flagged as ray traced, we need to evaluate it completely
-                if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) && m_CurrentSunLightAdditionalLightData.WillRenderRayTracedShadow())
+                if (rtEnvironment != null && hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) && m_CurrentSunLightAdditionalLightData.WillRenderRayTracedShadow())
                 {
-                    HDRaytracingEnvironment rtEnvironment = m_RayTracingManager.CurrentEnvironment();
                     BlueNoise blueNoise = m_RayTracingManager.GetBlueNoiseManager();
                     ComputeShader shadowsCompute = m_Asset.renderPipelineRayTracingResources.shadowRaytracingCS;
                     RayTracingShader shadowRayTrace = m_Asset.renderPipelineRayTracingResources.shadowRaytracingRT;

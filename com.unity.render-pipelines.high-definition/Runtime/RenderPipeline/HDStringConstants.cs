@@ -287,6 +287,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _RTHandleScale = Shader.PropertyToID("_RTHandleScale");
         public static readonly int _RTHandleScaleHistory = Shader.PropertyToID("_RTHandleScaleHistory");
         public static readonly int _PrevViewProjMatrix = Shader.PropertyToID("_PrevViewProjMatrix");
+        public static readonly int _PrevInvViewProjMatrix = Shader.PropertyToID("_PrevInvViewProjMatrix");
         public static readonly int _FrustumPlanes = Shader.PropertyToID("_FrustumPlanes");
         public static readonly int _TaaFrameInfo = Shader.PropertyToID("_TaaFrameInfo");
         public static readonly int _TaaJitterStrength = Shader.PropertyToID("_TaaJitterStrength");
@@ -557,10 +558,16 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // Denoising
         public static readonly int _HistoryBuffer                   = Shader.PropertyToID("_HistoryBuffer");
+        public static readonly int _ValidationBuffer                = Shader.PropertyToID("_ValidationBuffer");
+        public static readonly int _ValidationBufferRW              = Shader.PropertyToID("_ValidationBufferRW");
+        public static readonly int _HistoryDepthTexture             = Shader.PropertyToID("_HistoryDepthTexture");
+        public static readonly int _HistoryNormalBufferTexture      = Shader.PropertyToID("_HistoryNormalBufferTexture");
         public static readonly int _RaytracingDenoiseRadius         = Shader.PropertyToID("_RaytracingDenoiseRadius");
         public static readonly int _DenoiserFilterRadius            = Shader.PropertyToID("_DenoiserFilterRadius");
+        public static readonly int _NormalHistoryCriterion          = Shader.PropertyToID("_NormalHistoryCriterion");
         public static readonly int _DenoiseInputTexture             = Shader.PropertyToID("_DenoiseInputTexture");
         public static readonly int _DenoiseOutputTextureRW          = Shader.PropertyToID("_DenoiseOutputTextureRW");
+        public static readonly int _HalfResolutionFilter            = Shader.PropertyToID("_HalfResolutionFilter"); 
 
         // Reflections
         public static readonly int _ReflectionHistorybufferRW       = Shader.PropertyToID("_ReflectionHistorybufferRW");

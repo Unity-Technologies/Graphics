@@ -15,10 +15,11 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedDataParameter m_MaximumRadiusInPixels;
         SerializedDataParameter m_DirectLightingStrength;
 
+        // Ray Tracing parameters
         SerializedDataParameter m_EnableRaytracing;
         SerializedDataParameter m_RayLength;
-        SerializedDataParameter m_EnableFilter;
         SerializedDataParameter m_NumSamples;
+        SerializedDataParameter m_EnableFilter;
         SerializedDataParameter m_FilterRadius;
 
         public override void OnEnable()
@@ -35,8 +36,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
             m_EnableRaytracing = Unpack(o.Find(x => x.enableRaytracing));
             m_RayLength = Unpack(o.Find(x => x.rayLength));
-            m_EnableFilter = Unpack(o.Find(x => x.enableFilter));
             m_NumSamples = Unpack(o.Find(x => x.numSamples));
+            m_EnableFilter = Unpack(o.Find(x => x.enableFilter));
             m_FilterRadius = Unpack(o.Find(x => x.filterRadius));
         }
 
@@ -64,9 +65,13 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 EditorGUI.indentLevel++;
                 PropertyField(m_RayLength);
-                PropertyField(m_EnableFilter);
                 PropertyField(m_NumSamples);
-                PropertyField(m_FilterRadius);
+                PropertyField(m_EnableFilter);
+                {
+                    EditorGUI.indentLevel++;
+                    PropertyField(m_FilterRadius);
+                    EditorGUI.indentLevel--;
+                }
                 EditorGUI.indentLevel--;
             }
 #endif
