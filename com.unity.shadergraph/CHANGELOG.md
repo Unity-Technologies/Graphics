@@ -5,9 +5,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## [6.9.2] - 2019-XX-XX
-
-### Version Updated
-The version number for this package has increased due to a version update of a related graphics package.
+### Fixed
+- The Shader Graph window no longer freezes when you rename properties.
 
 ## [6.9.1] - 2019-07-29
 ### Fixed
