@@ -243,15 +243,17 @@ namespace  UnityEditor.VFX.UI
             }
 
             titleContent.text = filename;
-
-            if (!AssetDatabase.IsOpenForEdit(graphView.controller.model.visualEffectObject,
-                StatusQueryOptions.UseCachedIfPossible))
+            if (graphView.controller.model.visualEffectObject != null)
             {
-                graphView.checkoutButton.visible = true;
-                graphView.checkoutButton.SetEnabled(true);
+                if (!AssetDatabase.IsOpenForEdit(graphView.controller.model.visualEffectObject,
+                    StatusQueryOptions.UseCachedIfPossible))
+                {
+                    graphView.checkoutButton.visible = true;
+                    graphView.checkoutButton.SetEnabled(true);
+                }
+                else
+                    graphView.checkoutButton.SetEnabled(false);
             }
-            else
-                graphView.checkoutButton.SetEnabled(false);
         }
 
         [SerializeField]
