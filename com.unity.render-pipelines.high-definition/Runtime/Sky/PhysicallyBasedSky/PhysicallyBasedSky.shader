@@ -171,7 +171,8 @@ Shader "Hidden/HDRP/Sky/PbrSky"
 
         if (rayIntersectsAtmosphere)
         {
-            EvaluatePbrAtmosphere(_WorldSpaceCameraPos1, V, tFrag, renderSunDisk, skyColor, skyOpacity);
+            float distAlongRay = tFrag * 1000; // Convert km to m
+            EvaluatePbrAtmosphere(_WorldSpaceCameraPos1, V, distAlongRay, renderSunDisk, skyColor, skyOpacity);
         }
 
         skyColor += radiance * (1 - skyOpacity);
