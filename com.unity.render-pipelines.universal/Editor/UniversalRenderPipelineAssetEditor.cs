@@ -20,12 +20,12 @@ namespace UnityEditor.Rendering.Universal
             public static GUIContent advancedSettingsText = EditorGUIUtility.TrTextContent("Advanced");
 
             // General
-            public static GUIContent rendererHeaderText = EditorGUIUtility.TrTextContent("Renderer List", "This list contains all the renderers available to this pipeline asset");
-            public static GUIContent rendererDefaultText = EditorGUIUtility.TrTextContent("Default", "This renderer is currently the default");
-            public static GUIContent rendererSetDefaultText = EditorGUIUtility.TrTextContent("Set Default", "Click this to make the renderer the default");
-            public static GUIContent rendererSettingsText = EditorGUIUtility.TrIconContent("Settings", "Click this to make the renderer the default");
-            public static GUIContent rendererMissingText = EditorGUIUtility.TrIconContent("console.warnicon.sml", "Renderer missing, click this to select a new renderer");
-            public static GUIContent rendererDefaultMissingText = EditorGUIUtility.TrIconContent("console.erroricon.sml", "Defaut renderer missing, click this to select a new renderer");
+            public static GUIContent rendererHeaderText = EditorGUIUtility.TrTextContent("Renderer List", "Lists all the renderers available to this Render Pipeline Asset.");
+            public static GUIContent rendererDefaultText = EditorGUIUtility.TrTextContent("Default", "This renderer is currently the default for the render pipeline.");
+            public static GUIContent rendererSetDefaultText = EditorGUIUtility.TrTextContent("Set Default", "Makes this renderer the default for the render pipeline.");
+            public static GUIContent rendererSettingsText = EditorGUIUtility.TrIconContent("Settings", "Opens settings for this renderer.");
+            public static GUIContent rendererMissingText = EditorGUIUtility.TrIconContent("console.warnicon.sml", "Renderer missing. Click this to select a new renderer.");
+            public static GUIContent rendererDefaultMissingText = EditorGUIUtility.TrIconContent("console.erroricon.sml", "Default renderer missing. Click this to select a new renderer.");
             public static GUIContent requireDepthTextureText = EditorGUIUtility.TrTextContent("Depth Texture", "If enabled the pipeline will generate camera's depth that can be bound in shaders as _CameraDepthTexture.");
             public static GUIContent requireOpaqueTextureText = EditorGUIUtility.TrTextContent("Opaque Texture", "If enabled the pipeline will copy the screen to texture after opaque objects are drawn. For transparent objects this can be bound in shaders as _CameraOpaqueTexture.");
             public static GUIContent opaqueDownsamplingText = EditorGUIUtility.TrTextContent("Opaque Downsampling", "The downsampling method that is used for the opaque texture");
@@ -73,9 +73,9 @@ namespace UnityEditor.Rendering.Universal
                     "Removal of the Default Renderer is not allowed. To remove, set another Renderer to be the new Default and then remove.");
 
             public static GUIContent rendererMissingDefaultMessage =
-                EditorGUIUtility.TrTextContent("Missing Default Renderer\nThe default renderer is not assigned, no rendering can be performed. Set another renderer to be the new Default or assign a renderer to the default slot.");
+                EditorGUIUtility.TrTextContent("Missing Default Renderer\nThere is no default renderer assigned, so Unity can’t perform any rendering. Set another renderer to be the new Default, or assign a renderer to the Default slot.");
             public static GUIContent rendererMissingMessage =
-                EditorGUIUtility.TrTextContent("Missing Renderer(s)\nThere are missing renderers not assigned. Switching to these renderers at runtime will have unforeseen consequences.");
+                EditorGUIUtility.TrTextContent("Missing Renderer(s)\nOne or more renderers are either missing or unassigned.  Switching to these renderers at runtime can cause issues.");
 
             // Dropdown menu options
             public static string[] mainLightOptions = { "Disabled", "Per Pixel" };
@@ -154,7 +154,7 @@ namespace UnityEditor.Rendering.Universal
             m_AdvancedSettingsFoldout = new SavedBool($"{target.GetType()}.AdvancedSettingsFoldout", false);
 
             m_RendererDataProp = serializedObject.FindProperty("m_RendererDataList");
-            m_DefaultRendererProp = serializedObject.FindProperty("m_DefaultRenderer");
+            m_DefaultRendererProp = serializedObject.FindProperty("m_DefaultRendererIndex");
             m_RendererDataList = new ReorderableList(serializedObject, m_RendererDataProp, false, true, true, true);
 
             DrawRendererListLayout(m_RendererDataList, m_RendererDataProp);

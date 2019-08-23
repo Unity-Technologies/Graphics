@@ -41,7 +41,7 @@ namespace UnityEditor.Rendering.Universal
 
             public readonly string hdrDisabledWarning = "HDR rendering is disabled in the Universal Render Pipeline asset.";
             public readonly string mssaDisabledWarning = "Anti-aliasing is disabled in the Universal Render Pipeline asset.";
-            
+
             public static readonly string missingRendererWarning = "The currently selected Renderer is missing form the Universal Render Pipeline asset.";
             public static readonly string noRendererError = "There are no valid Renderers available on the Universal Render Pipeline asset.";
 
@@ -354,7 +354,7 @@ namespace UnityEditor.Rendering.Universal
 
             hasChanged |= DrawLayerMask(m_AdditionalCameraDataVolumeLayerMask, ref selectedVolumeLayerMask, Styles.volumeLayerMask);
             hasChanged |= DrawObjectField(m_AdditionalCameraDataVolumeTrigger, ref selectedVolumeTrigger, Styles.volumeTrigger);
-            
+
             hasChanged |= DrawBasicIntPopup(m_AdditionalCameraDataRendererProp, ref selectedRendererOption, Styles.rendererType, UniversalRenderPipeline.asset.rendererDisplayList,
                 UniversalRenderPipeline.asset.rendererIndexList);
             if (!UniversalRenderPipeline.asset.ValidateRendererDataList())
@@ -365,7 +365,7 @@ namespace UnityEditor.Rendering.Universal
             {
                 EditorGUILayout.HelpBox(Styles.missingRendererWarning, MessageType.Warning);
             }
-            
+
             // TODO: Fix this for lw/postfx
             bool defaultDrawOfDepthTextureUI = true;
             if (defaultDrawOfDepthTextureUI)
@@ -478,16 +478,19 @@ namespace UnityEditor.Rendering.Universal
             EndProperty();
             return hasChanged;
         }
-        
+
         bool DrawBasicIntPopup(SerializedProperty prop, ref int value, GUIContent style, GUIContent[] optionNames, int[] optionValues)
         {
+            var defaultVal = value;
             bool hasChanged = false;
             var controlRect = BeginProperty(prop, style);
 
             EditorGUI.BeginChangeCheck();
             value = EditorGUI.IntPopup(controlRect, style, value, optionNames, optionValues);
-            if (EditorGUI.EndChangeCheck())
+            if (EditorGUI.EndChangeCheck() && !Equals(defaultVal, value))
+            {
                 hasChanged = true;
+            }
 
             EndProperty();
             return hasChanged;
