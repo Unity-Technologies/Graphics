@@ -5,6 +5,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## [7.1.1] - 2019-XX-XX
+
+## [7.0.1] - 2019-07-25
 ### Changed
 - New Shader Graph windows are now docked to either existing Shader Graph windows, or to the Scene View.
 
@@ -15,6 +17,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - `Position` node now draws the correct label for **Absolute World**. 
 - Node previews now inherit preview type correctly.
 - Normal maps now unpack correctly for mobile platforms.
+- Fixed an issue where you couldn't group several nodes.
 
 ## [7.0.0] - 2019-07-10
 ### Added

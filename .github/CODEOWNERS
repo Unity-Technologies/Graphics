@@ -13,9 +13,10 @@
 # Shadergraph
 /com.unity.shadergraph/CHANGELOG.md @Unity-Technologies/gfx-docs
 
-# Test systems - disabled for now till better solution is found
-# /.yamato/ @Unity-Technologies/gfx-sdets
-# /katana-ci/ @Unity-Technologies/gfx-sdets
+# Test systems
+/.yamato/ @Unity-Technologies/gfx-sdets
+/katana-ci/ @Unity-Technologies/gfx-sdets
+/com.unity.testframework.graphics/ @Unity-Technologies/gfx-sdets
 
 # LWRP (Legacy)
 /com.unity.render-pipelines.lightweight/ @Unity-Technologies/universal-rp-team

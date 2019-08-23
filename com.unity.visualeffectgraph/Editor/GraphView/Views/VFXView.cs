@@ -264,6 +264,25 @@ namespace UnityEditor.VFX.UI
         private bool m_IsRuntimeMode = false;
         private bool m_ForceShaderValidation = false;
 
+
+        public static StyleSheet LoadStyleSheet(string text)
+        {
+            string path = string.Format("{0}/Editor Default Resources/uss/{1}.uss", VisualEffectGraphPackageInfo.assetPackagePath, text);
+            return AssetDatabase.LoadAssetAtPath<StyleSheet>(path);
+        }
+
+        public static VisualTreeAsset LoadUXML(string text)
+        {
+            string path = string.Format("{0}/Editor Default Resources/uxml/{1}.uxml", VisualEffectGraphPackageInfo.assetPackagePath, text);
+            return AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(path);
+        }
+
+        public static Texture2D LoadImage(string text)
+        {
+            string path = string.Format("{0}/Editor Default Resources/VFX/{1}.png", VisualEffectGraphPackageInfo.assetPackagePath, text);
+            return AssetDatabase.LoadAssetAtPath<Texture2D>(path);
+        }
+
         public VFXView()
         {
             SetupZoom(0.125f, 8);
@@ -274,7 +293,11 @@ namespace UnityEditor.VFX.UI
             this.AddManipulator(new RectangleSelector());
             this.AddManipulator(new FreehandSelector());
 
-            styleSheets.Add(Resources.Load<StyleSheet>("VFXView"));
+            styleSheets.Add(LoadStyleSheet("VFXView"));
+            if( ! EditorGUIUtility.isProSkin)
+            { 
+                styleSheets.Add(LoadStyleSheet("VFXView-light"));
+            }
 
             AddLayer(-1);
             AddLayer(1);
