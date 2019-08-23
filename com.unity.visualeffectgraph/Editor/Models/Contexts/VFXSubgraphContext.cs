@@ -95,6 +95,12 @@ namespace UnityEditor.VFX
             base.OnEnable();
 
             OnGraphChanged += GraphParameterChanged;
+        }
+
+        public override void Sanitize(int version)
+        {
+            base.Sanitize(version);
+
             RecreateCopy();
         }
 
