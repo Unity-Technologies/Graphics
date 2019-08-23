@@ -138,6 +138,10 @@ namespace UnityEngine.Rendering.Universal
             get => UniversalRenderPipeline.asset.GetRenderer(m_RendererIndex);
         }
 
+        /// <summary>
+        /// Allows you to set this cameras current ScriptableRenderer to one listed on the render pipeline asset. Takes an index that maps to the list on the pipeline asset.
+        /// </summary>
+        /// <param name="index">The index that maps to the ReendererData list on the currently assigned pipeline asset</param>
         public void SetRenderer(int index)
         {
             m_RendererIndex = index;
