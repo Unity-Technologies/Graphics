@@ -1,5 +1,5 @@
 editors:
-  - version: graphics/vfx/feature/system-stat
+  - version: graphics/vfx/feature/named-systems
 platforms:
   - name: Windows64
     type: Unity::VM::GPU
