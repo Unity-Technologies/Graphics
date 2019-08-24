@@ -389,7 +389,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Then Culling side               
                 for(int viewIndex = 0; viewIndex < m_NumViews; viewIndex++)
                 {
-                    index = viewIndex * m_Stride + m_Offset + index;
+                    int lightIndex = viewIndex * m_Stride + m_Offset + index;
+
                     var range = m_LightDimensions[index].z;
                     var lightToWorld = m_VisibleLights[m_VisibleLightRemapping[index]].localToWorldMatrix;
                     Vector3 positionWS = m_LightData[index].positionRWS;
@@ -400,8 +401,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     Vector3 yAxisVS = lightToView.GetColumn(1);
                     Vector3 zAxisVS = lightToView.GetColumn(2);
 
-                    LightVolumeData lvd = m_LightVolumeData[index];
-                    SFiniteLightBound sflb = m_Bounds[index];
+                    LightVolumeData lvd = m_LightVolumeData[lightIndex];
+                    SFiniteLightBound sflb = m_Bounds[lightIndex];
                 
                     lvd.lightCategory = (uint)m_LightCategory[index];
                     lvd.lightVolume = (uint)m_LightVolumeType[index];
@@ -554,10 +555,127 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         Debug.Assert(false, "TODO: encountered an unknown GPULightType.");
                     }
-                    m_LightVolumeData[index] = lvd;
-                    m_Bounds[index] = sflb;
+                    m_LightVolumeData[lightIndex] = lvd;
+                    m_Bounds[lightIndex] = sflb;
                 }
             }
+        }
+
+       
+        public struct EnvBoundAndVolumeJob : IJobParallelFor
+        {
+            public void Execute(int index)
+            { // m_lightList.m_Bounds
+                for (int viewIndex = 0; viewIndex < m_NumViews; viewIndex++)
+                {
+                    Matrix4x4 worldToView = m_WorldToView[viewIndex];
+                    int probeIndex = index + viewIndex * m_Stride + m_Offset;
+                    var bound = m_Bounds[probeIndex];
+                    var lightVolumeData = m_LightVolumeData[probeIndex];
+
+                    // C is reflection volume center in world space (NOT same as cube map capture point)
+                    var influenceExtents = m_InfluenceExtents[index];       // 0.5f * Vector3.Max(-boxSizes[p], boxSizes[p]);
+
+                    var influenceToWorld = m_InfluenceToWorld[index];
+
+                    // transform to camera space (becomes a left hand coordinate frame in Unity since Determinant(worldToView)<0)
+                    var influenceRightVS = worldToView.MultiplyVector(influenceToWorld.GetColumn(0).normalized);
+                    var influenceUpVS = worldToView.MultiplyVector(influenceToWorld.GetColumn(1).normalized);
+                    var influenceForwardVS = worldToView.MultiplyVector(influenceToWorld.GetColumn(2).normalized);
+                    var influencePositionVS = worldToView.MultiplyPoint(influenceToWorld.GetColumn(3));
+
+                    lightVolumeData.lightCategory = (uint)LightCategory.Env;
+                    lightVolumeData.lightVolume = (uint)m_ProbeLightVolumeTypes[index];
+                    lightVolumeData.featureFlags = (uint)LightFeatureFlags.Env;
+
+                    switch (m_ProbeLightVolumeTypes[index])
+                    {
+                        case LightVolumeType.Sphere:
+                        {
+                            lightVolumeData.lightPos = influencePositionVS;
+                            lightVolumeData.radiusSq = influenceExtents.x * influenceExtents.x;
+                            lightVolumeData.lightAxisX = influenceRightVS;
+                            lightVolumeData.lightAxisY = influenceUpVS;
+                            lightVolumeData.lightAxisZ = influenceForwardVS;
+
+                            bound.center = influencePositionVS;
+                            bound.boxAxisX = influenceRightVS * influenceExtents.x;
+                            bound.boxAxisY = influenceUpVS * influenceExtents.x;
+                            bound.boxAxisZ = influenceForwardVS * influenceExtents.x;
+                            bound.scaleXY.Set(1.0f, 1.0f);
+                            bound.radius = influenceExtents.x;
+                            break;
+                        }
+                        case LightVolumeType.Box:
+                        {
+                            bound.center = influencePositionVS;
+                            bound.boxAxisX = influenceExtents.x * influenceRightVS;
+                            bound.boxAxisY = influenceExtents.y * influenceUpVS;
+                            bound.boxAxisZ = influenceExtents.z * influenceForwardVS;
+                            bound.scaleXY.Set(1.0f, 1.0f);
+                            bound.radius = influenceExtents.magnitude;
+
+                            // The culling system culls pixels that are further
+                            //   than a threshold to the box influence extents.
+                            // So we use an arbitrary threshold here (k_BoxCullingExtentOffset)
+                            lightVolumeData.lightPos = influencePositionVS;
+                            lightVolumeData.lightAxisX = influenceRightVS;
+                            lightVolumeData.lightAxisY = influenceUpVS;
+                            lightVolumeData.lightAxisZ = influenceForwardVS;
+                            lightVolumeData.boxInnerDist = influenceExtents - k_BoxCullingExtentThreshold;
+                            lightVolumeData.boxInvRange.Set(1.0f / k_BoxCullingExtentThreshold.x, 1.0f / k_BoxCullingExtentThreshold.y, 1.0f / k_BoxCullingExtentThreshold.z);
+                            break;
+                        }
+                    }
+                    m_Bounds[probeIndex] = bound;
+                    m_LightVolumeData[probeIndex] = lightVolumeData;
+                }
+            }
+
+            public void SetData( NativeArray<SFiniteLightBound> bounds,
+                NativeArray<LightVolumeData> lightVolumeData,
+                NativeArray<Matrix4x4> worldToView,
+                NativeArray<Vector3> influenceExtents,
+                NativeArray<Matrix4x4> influenceToWorld,
+                NativeArray<int> refProbesSortIndexRemapping,
+                NativeArray<LightVolumeType> probeLightVolumeTypes,
+                int stride,
+                int offset,
+                int numViews)
+            {
+                m_Bounds = bounds;
+                m_LightVolumeData = lightVolumeData;
+                m_WorldToView = worldToView;
+                m_InfluenceExtents = influenceExtents;
+                m_InfluenceToWorld = influenceToWorld;
+                m_RefProbesSortIndexRemapping = refProbesSortIndexRemapping;
+                m_ProbeLightVolumeTypes = probeLightVolumeTypes;
+                m_Stride = stride;
+                m_Offset = offset;
+                m_NumViews = numViews;
+            }
+
+            [NativeDisableParallelForRestriction]
+            public NativeArray<SFiniteLightBound> m_Bounds;
+            [NativeDisableParallelForRestriction]
+            public NativeArray<LightVolumeData> m_LightVolumeData;
+
+            [ReadOnly]
+            public NativeArray<Matrix4x4> m_WorldToView;
+            [ReadOnly]
+            public NativeArray<Vector3> m_InfluenceExtents;
+            [ReadOnly]
+            public NativeArray<Matrix4x4> m_InfluenceToWorld;
+            [ReadOnly]
+            NativeArray<int> m_RefProbesSortIndexRemapping;
+            [ReadOnly]
+            NativeArray<LightVolumeType> m_ProbeLightVolumeTypes;
+            [ReadOnly]
+            public int m_Stride;
+            [ReadOnly]
+            public int m_Offset;
+            [ReadOnly]
+            public int m_NumViews;
         }
 
         public struct EnvDatasJob : IJobParallelFor
@@ -751,6 +869,20 @@ namespace UnityEngine.Rendering.HighDefinition
             m_WorldToView.Dispose();
         }
 
+        void AllocateProbeVolumeBoundsJobArrays(int probeCount)
+        {
+            m_ProbeLightVolumeTypes = new NativeArray<LightVolumeType>(probeCount, Allocator.TempJob);
+            m_InfluenceExtents = new NativeArray<Vector3>(probeCount, Allocator.TempJob);
+            m_InfluenceToWorld = new NativeArray<Matrix4x4>(probeCount, Allocator.TempJob);
+        }
+
+        void DisposeProbeVolumeBoundsJobArrays()
+        {
+            m_ProbeLightVolumeTypes.Dispose();
+            m_InfluenceExtents.Dispose();
+            m_InfluenceToWorld.Dispose();
+        }
+
         NativeArray<LightCategory> m_LightCategory;
         NativeArray<GPULightType> m_GpuLightType;
         NativeArray<LightVolumeType> m_LightVolumeType;
@@ -773,8 +905,13 @@ namespace UnityEngine.Rendering.HighDefinition
         NativeArray<EnvDatasJob.TextureCacheData> m_TextureCacheData;
         NativeArray<EnvDatasJob.ProbeData> m_ProbeData;
 
+        NativeArray<LightVolumeType> m_ProbeLightVolumeTypes;
+        NativeArray<Vector3> m_InfluenceExtents;
+        NativeArray<Matrix4x4> m_InfluenceToWorld;
+
         LightVolumeBoundsJob m_LightVolumeBoundsJob;
         LightDatasJob m_LightDatasJob;
+        EnvBoundAndVolumeJob m_EnvBoundAndVolumeJob;
     }
 }
 

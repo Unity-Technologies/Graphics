@@ -1837,6 +1837,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         int CreateReflectionProbesSortKeys(HDCamera hdCamera, CullingResults cullResults, HDProbeCullingResults hdProbeCullingResults, DebugDisplaySettings debugDisplaySettings, AOVRequestData aovRequest)
         {
+            Profiler.BeginSample("CreateReflectionProbesSortKeys");
             var debugLightFilter = debugDisplaySettings.GetDebugLightFilterMode();
             var hasDebugLightFilter = debugLightFilter != DebugLightFilterMode.None;
 
@@ -1926,11 +1927,13 @@ namespace UnityEngine.Rendering.HighDefinition
             }
             // Not necessary yet but call it for future modification with sphere influence volume
             CoreUnsafeUtils.QuickSort(m_ProbeSortKeys, 0, sortCount - 1); // Call our own quicksort instead of Array.Sort(sortKeys, 0, sortCount) so we don't allocate memory (note the SortCount-1 that is different from original call).     
+            Profiler.EndSample();
             return sortCount;
         }
 
         void CreateProbeWrappers(int sortCount, HDProbeCullingResults hdProbeCullingResults)
         {
+            Profiler.BeginSample("CreateProbeWrappers");
             UpdateArraySize(sortCount, ref m_ProbeWrappers);
             for (int sortIndex = 0; sortIndex < sortCount; ++sortIndex)
             {
@@ -1950,10 +1953,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 m_ProbeWrappers[sortIndex] = SelectProbe(probe, planarProbe);
             }
+            Profiler.EndSample();
         }
 
         int FurtherCullAndAssignEnvIndex(int sortCount, HDCamera hdCamera, CommandBuffer cmd)
         {
+            Profiler.BeginSample("FurtherCullAndAssignEnvIndex");
             int culledReflectionProbeCount = 0;
             for (int sortIndex = 0; sortIndex < sortCount; ++sortIndex)
             {
@@ -2007,17 +2012,20 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_EnvIndex[culledReflectionProbeCount] = envIndex;
                 m_RefProbesSortIndexRemapping[culledReflectionProbeCount] = sortIndex;
                 culledReflectionProbeCount++;
-            }                       
+            }
+            Profiler.EndSample();
             return culledReflectionProbeCount;
         }
 
         void PreprocessReflectionProbes(CommandBuffer cmd, HDCamera hdCamera, CullingResults cullResults, HDProbeCullingResults hdProbeCullingResults, DebugDisplaySettings debugDisplaySettings, AOVRequestData aovRequest,ref int reflectionProbeCount)
         {
+            Profiler.BeginSample("PreprocessReflectionProbes");
             m_VisibleReflectionProbes = cullResults.visibleReflectionProbes.ToArray();
             int sortCount = CreateReflectionProbesSortKeys(hdCamera, cullResults, hdProbeCullingResults, debugDisplaySettings, aovRequest);
             CreateProbeWrappers(sortCount, hdProbeCullingResults);
             AllocateRefProbeScratchData(sortCount);
             reflectionProbeCount = FurtherCullAndAssignEnvIndex(sortCount, hdCamera, cmd);
+            Profiler.EndSample();
         }
 
         int CreateLightSortKeys(CullingResults cullResults, DebugDisplaySettings debugDisplaySettings, AOVRequestData aovRequest)
@@ -2143,7 +2151,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void ProcessShadowmapReservations(HDCamera hdCamera, CullingResults cullResults, int sortCount)
         {
-            for(int sortIndex = 0; sortIndex < sortCount; sortIndex++)
+            Profiler.BeginSample("ProcessShadowmapReservations");
+            for (int sortIndex = 0; sortIndex < sortCount; sortIndex++)
             {
                 Profiler.BeginSample("EvaluateShadowState");
                 uint sortKey = m_SortKeys[sortIndex];
@@ -2160,10 +2169,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
                 Profiler.EndSample();                
             }
+            Profiler.EndSample();
         }
 
         void UpdateShadowRequests(int sortCount, HDCamera hdCamera, CullingResults cullResults)
         {
+            Profiler.BeginSample("UpdateShadowRequest");
             for (int sortIndex = 0; sortIndex < sortCount; ++sortIndex)
             {
                 // In 1. we have already classify and sorted the light, we need to use this sorted order here
@@ -2179,7 +2190,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_ShadowIndices[sortIndex] = -1;
 
                 // Manage shadow requests
-                Profiler.BeginSample("UpdateShadowRequest");
+               
                 if (m_HDLightDatas[sortIndex].WillRenderShadowMap())
                 {
                     int shadowRequestCount;
@@ -2195,8 +2206,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     }
 #endif
                 }
-                Profiler.EndSample();
             }
+            Profiler.EndSample();
         }
 
         void ProcessDirectionalLights(int directionalLightCount, CommandBuffer cmd, HDCamera hdCamera)
@@ -2240,7 +2251,7 @@ namespace UnityEngine.Rendering.HighDefinition
             punctualLightCount = 0;
             areaLightCount = 0;
             directionalLightCount = 0;
-            Profiler.BeginSample("Discard Lights");
+            Profiler.BeginSample("CullLightsByDebugSettingAndDistance");
             Vector3 cameraPos = hdCamera.camera.transform.position;
             for (int sortIndex = 0; sortIndex < sortCount; ++sortIndex)
             {
@@ -2302,6 +2313,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void PreprocessLights(CommandBuffer cmd, HDCamera hdCamera, CullingResults cullResults, DebugDisplaySettings debugDisplaySettings, AOVRequestData aovRequest, ref int punctualLightCount, ref int areaLightCount, ref int directionalLightCount)
         {
+            Profiler.BeginSample("PreprocessLights");
             m_VisibleLights = cullResults.visibleLights.ToArray();
 
             int lightCount = Math.Min(cullResults.visibleLights.Length, m_MaxLightsOnScreen);
@@ -2314,7 +2326,8 @@ namespace UnityEngine.Rendering.HighDefinition
             Debug.Assert(sortCount <= lightCount);
             UpdateArraySize(sortCount, ref m_DirLightIndices);
             AllocatePunctualLightScratchData(sortCount);
-            CullLightsByDebugSettingAndDistance(sortCount, hdCamera, ref punctualLightCount, ref areaLightCount, ref directionalLightCount);           
+            CullLightsByDebugSettingAndDistance(sortCount, hdCamera, ref punctualLightCount, ref areaLightCount, ref directionalLightCount);
+            Profiler.EndSample();
         }
 
         void GetCookies(int lightCount, CommandBuffer cmd)
@@ -2370,8 +2383,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_BakedShadowMaskdatas,
                 hdCamera.frameSettings.specularGlobalDimmer,
                 maxShadowDistance);
-
-            Profiler.EndSample();
             Profiler.EndSample();
 
             Profiler.BeginSample("Light datas compute");
@@ -2411,6 +2422,55 @@ namespace UnityEngine.Rendering.HighDefinition
  
             JobHandle lightVolumeBoundsJobHandle = m_LightVolumeBoundsJob.Schedule(punctualLightCount + areaLightCount, 1);
             lightVolumeBoundsJobHandle.Complete();
+            Profiler.EndSample();
+        }
+
+        void ComputeEnvLightsData(CommandBuffer cmd, HDCamera hdCamera, int reflectionProbeCount, Vector3 camPosWS)
+        {
+            Profiler.BeginSample("ComputeEnvLightsData");
+            AllocateProbeVolumeBoundsJobArrays(reflectionProbeCount);
+            for (int refProbeIndex = 0; refProbeIndex < reflectionProbeCount; ++refProbeIndex)
+            {
+                // In 1. we have already classify and sorted the light, we need to use this sorted order here
+                int sortIndex = m_RefProbesSortIndexRemapping[refProbeIndex];
+                uint sortKey = m_ProbeSortKeys[sortIndex];
+                LightVolumeType lightVolumeType;
+                int listType;
+                int probeIndex;
+                UnpackProbeSortKey(sortKey, out lightVolumeType, out probeIndex, out listType);
+
+                var probeWrapper = m_ProbeWrappers[sortIndex];
+
+                EnvLightData envLightData = m_lightList.m_EnvLights[refProbeIndex];
+
+                GetEnvLightData(cmd, hdCamera, probeWrapper, debugDisplaySettings, ref envLightData, refProbeIndex);
+                m_ProbeLightVolumeTypes[refProbeIndex] = lightVolumeType;
+                m_InfluenceExtents[refProbeIndex] = probeWrapper.influenceExtents;
+                m_InfluenceToWorld[refProbeIndex] = probeWrapper.influenceToWorld;
+
+                // We make the light position camera-relative as late as possible in order
+                // to allow the preceding code to work with the absolute world space coordinates.
+                UpdateEnvLighCameraRelativetData(ref envLightData, camPosWS);
+                m_lightList.m_EnvLights[refProbeIndex] = envLightData;
+            }
+            Profiler.EndSample();
+        }
+
+        void ComputeEnvLightBoundsAndVolume(HDCamera hdCamera, int punctualLightCount, int areaLightCount, int reflectionProbeCount, int decalDatasCount)
+        {
+            Profiler.BeginSample("ComputeEnvLightBoundsAndVolume");
+            m_EnvBoundAndVolumeJob.SetData(m_lightList.m_Bounds,
+                          m_lightList.m_LightVolumeData,
+                          m_WorldToView,
+                          m_InfluenceExtents,
+                          m_InfluenceToWorld,
+                          m_RefProbesSortIndexRemapping,
+                          m_ProbeLightVolumeTypes,
+                          punctualLightCount + areaLightCount + reflectionProbeCount + decalDatasCount,
+                          punctualLightCount + areaLightCount,
+                          hdCamera.viewCount);
+            JobHandle envVolumeBoundsJobHandle = m_EnvBoundAndVolumeJob.Schedule(reflectionProbeCount, 1);
+            envVolumeBoundsJobHandle.Complete();
             Profiler.EndSample();
         }
 
@@ -2460,7 +2520,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     UpdateShadowRequests(punctualLightCount + areaLightCount + directionalLightCount, hdCamera, cullResults);
 
                     ProcessDirectionalLights(directionalLightCount, cmd, hdCamera);
-                    // ProcessPunctualAndAreaLights
+                    Profiler.BeginSample("ProcessPunctualAndAreaLights");
                     {
                         AllocateVolumeBoundsJobArrays(punctualLightCount + areaLightCount, hdCamera.viewCount); // needs to be above GetLightData, because m_LightDimensions get computed there
                         m_lightList.AllocateLightArraysPerFrame(punctualLightCount, areaLightCount, decalDatasCount, reflectionProbeCount, hdCamera.viewCount);
@@ -2493,6 +2553,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             }
                         }
                     }
+                    Profiler.EndSample();
                     // Update the compute buffer with the shadow request datas
                     m_ShadowManager.PrepareGPUShadowDatas(cullResults, hdCamera);
 
@@ -2500,37 +2561,14 @@ namespace UnityEngine.Rendering.HighDefinition
                     Debug.Assert(m_lightList.directionalLights.Count == directionalLightCount);
                     Debug.Assert(m_lightList.m_LightData.Length == areaLightCount + punctualLightCount);
 
-        
                     // Redo everything but this time with envLights
-                    Debug.Assert(m_MaxEnvLightsOnScreen <= 256); //for key construction
-
-                    for (int refProbeIndex = 0; refProbeIndex < reflectionProbeCount; ++refProbeIndex)
+                    Debug.Assert(m_MaxEnvLightsOnScreen <= 256); // for key construction
+                    Profiler.BeginSample("ProcessEnvironmentLights");
                     {
-                        // In 1. we have already classify and sorted the light, we need to use this sorted order here
-                        int sortIndex = m_RefProbesSortIndexRemapping[refProbeIndex];
-                        uint sortKey = m_ProbeSortKeys[sortIndex];
-                        LightVolumeType lightVolumeType;
-                        int listType;
-                        int probeIndex;
-                        UnpackProbeSortKey(sortKey, out lightVolumeType, out probeIndex, out listType);
-
-
-                        var probeWrapper = m_ProbeWrappers[sortIndex];
-
-                        EnvLightData envLightData = m_lightList.m_EnvLights[refProbeIndex];
-
-                        GetEnvLightData(cmd, hdCamera, probeWrapper, debugDisplaySettings, ref envLightData, refProbeIndex);
-                        for (int viewIndex = 0; viewIndex < hdCamera.viewCount; ++viewIndex)
-                        {
-                            var worldToView = GetWorldToViewMatrix(hdCamera, viewIndex);
-                            GetEnvLightVolumeDataAndBound(probeWrapper, lightVolumeType, worldToView, punctualLightCount + areaLightCount + reflectionProbeCount + decalDatasCount, punctualLightCount + areaLightCount, probeIndex, viewIndex);
-                        }
-
-                        // We make the light position camera-relative as late as possible in order
-                        // to allow the preceding code to work with the absolute world space coordinates.
-                        UpdateEnvLighCameraRelativetData(ref envLightData, camPosWS);
-                        m_lightList.m_EnvLights[refProbeIndex] = envLightData;
+                        ComputeEnvLightsData(cmd, hdCamera, reflectionProbeCount, camPosWS);
+                        ComputeEnvLightBoundsAndVolume(hdCamera, punctualLightCount, areaLightCount, reflectionProbeCount, decalDatasCount);
                     }
+                    Profiler.EndSample();
                 }
 
                 if (decalDatasCount > 0)
@@ -2590,8 +2628,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 DisposeBoundsJobArrays();
                 DisposeRefProbeScratchData();
                 DisposePunctualLightAcratchData();
+                DisposeProbeVolumeBoundsJobArrays();
                 m_lightList.DisposeLightArraysPerFrame();
-                Profiler.EndSample();
             }
 
             m_enableBakeShadowMask = m_enableBakeShadowMask && hdCamera.frameSettings.IsEnabled(FrameSettingsField.ShadowMask);
