@@ -51,9 +51,9 @@ namespace UnityEditor.Rendering.HighDefinition
                 SpeedTreeLitMasterNode.NormalSlotId,
                 SpeedTreeLitMasterNode.BentNormalSlotId,
                 SpeedTreeLitMasterNode.TangentSlotId,
-                //SpeedTreeLitMasterNode.SubsurfaceMaskSlotId,
-                //SpeedTreeLitMasterNode.ThicknessSlotId,
-                //SpeedTreeLitMasterNode.DiffusionProfileHashSlotId,
+                SpeedTreeLitMasterNode.SubsurfaceMaskSlotId,
+                SpeedTreeLitMasterNode.ThicknessSlotId,
+                SpeedTreeLitMasterNode.DiffusionProfileHashSlotId,
                 SpeedTreeLitMasterNode.IridescenceMaskSlotId,
                 SpeedTreeLitMasterNode.IridescenceThicknessSlotId,
                 SpeedTreeLitMasterNode.SpecularColorSlotId,
@@ -74,15 +74,12 @@ namespace UnityEditor.Rendering.HighDefinition
                 SpeedTreeLitMasterNode.LightingSlotId,
                 SpeedTreeLitMasterNode.BackLightingSlotId,
                 SpeedTreeLitMasterNode.DepthOffsetSlotId,
-                SpeedTreeLitMasterNode.HueVariationColorSlotId,
-                SpeedTreeLitMasterNode.WindQualitySlotId,
             },
             VertexShaderSlots = new List<int>()
             {
                 SpeedTreeLitMasterNode.PositionSlotId,
                 SpeedTreeLitMasterNode.NormalSlotId,
                 SpeedTreeLitMasterNode.TangentSlotId,
-                SpeedTreeLitMasterNode.WindQualitySlotId,
             },
             UseInPreview = true,
 
@@ -128,13 +125,6 @@ namespace UnityEditor.Rendering.HighDefinition
                             pass.ExtraDefines.Add("#define GEOM_TYPE_MESH");
                             break;
                     }
-                }
-                else
-                {
-                    // SpeedTree 8 supports this, but 7 doesn't
-                    pass.PixelShaderSlots.Add(SpeedTreeLitMasterNode.SubsurfaceMaskSlotId);
-                    pass.PixelShaderSlots.Add(SpeedTreeLitMasterNode.ThicknessSlotId);
-                    pass.PixelShaderSlots.Add(SpeedTreeLitMasterNode.DiffusionProfileHashSlotId);
                 }
             }
         };
@@ -197,7 +187,6 @@ namespace UnityEditor.Rendering.HighDefinition
             VertexShaderSlots = new List<int>()
             {
                 SpeedTreeLitMasterNode.PositionSlotId,
-                SpeedTreeLitMasterNode.WindQualitySlotId,
             },
             UseInPreview = false,
 
@@ -264,14 +253,11 @@ namespace UnityEditor.Rendering.HighDefinition
                 SpeedTreeLitMasterNode.AlphaThresholdSlotId,
                 SpeedTreeLitMasterNode.AlphaThresholdShadowSlotId,
                 SpeedTreeLitMasterNode.DepthOffsetSlotId,
-                SpeedTreeLitMasterNode.HueVariationColorSlotId,
-                SpeedTreeLitMasterNode.WindQualitySlotId,
                 SpeedTreeLitMasterNode.DepthBiasSlotId,
             },
             VertexShaderSlots = new List<int>()
             {
                 SpeedTreeLitMasterNode.PositionSlotId,
-                SpeedTreeLitMasterNode.WindQualitySlotId,
             },
             UseInPreview = false,
         };
@@ -306,7 +292,6 @@ namespace UnityEditor.Rendering.HighDefinition
             VertexShaderSlots = new List<int>()
             {
                 SpeedTreeLitMasterNode.PositionSlotId,
-                SpeedTreeLitMasterNode.WindQualitySlotId,
             },
             UseInPreview = false
         };
@@ -357,8 +342,7 @@ namespace UnityEditor.Rendering.HighDefinition
             },
             VertexShaderSlots = new List<int>()
             {
-                SpeedTreeLitMasterNode.PositionSlotId,
-                SpeedTreeLitMasterNode.WindQualitySlotId
+                SpeedTreeLitMasterNode.PositionSlotId
             },
             UseInPreview = true,
 
@@ -415,8 +399,7 @@ namespace UnityEditor.Rendering.HighDefinition
             },
             VertexShaderSlots = new List<int>()
             {
-                SpeedTreeLitMasterNode.PositionSlotId,
-                SpeedTreeLitMasterNode.WindQualitySlotId
+                SpeedTreeLitMasterNode.PositionSlotId
             },
             UseInPreview = false,
 
@@ -431,7 +414,6 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         };
 
-        /*
         Pass m_PassDistortion = new Pass()
         {
             Name = "DistortionVectors",
@@ -465,7 +447,6 @@ namespace UnityEditor.Rendering.HighDefinition
             VertexShaderSlots = new List<int>()
             {
                 SpeedTreeLitMasterNode.PositionSlotId,
-                SpeedTreeLitMasterNode.WindQualitySlotId
             },
             UseInPreview = true,
 
@@ -498,7 +479,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
             }
         };
-        */
 
         Pass m_PassTransparentDepthPrepass = new Pass()
         {
@@ -531,8 +511,7 @@ namespace UnityEditor.Rendering.HighDefinition
             },
             VertexShaderSlots = new List<int>()
             {
-                SpeedTreeLitMasterNode.PositionSlotId,
-                SpeedTreeLitMasterNode.WindQualitySlotId
+                SpeedTreeLitMasterNode.PositionSlotId
             },
             UseInPreview = true,
         };
@@ -610,6 +589,12 @@ namespace UnityEditor.Rendering.HighDefinition
             ZTestOverride = HDSubShaderUtilities.zTestDepthEqualForOpaque,
             ZWriteOverride = HDSubShaderUtilities.ZWriteDefault,
             // ExtraDefines are set when the pass is generated
+            ExtraDefines = new List<string>()
+            {
+                "#define ENABLE_WIND",
+                "#define EFFECT_BACKSIDE_NORMALS",
+                "#define SPEEDTREE_Y_UP",
+            },
             Includes = new List<string>()
             {
                 "#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassForward.hlsl\"",
@@ -620,6 +605,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 "FragInputs.positionRWS",
                 "FragInputs.texCoord1",
                 "FragInputs.texCoord2",
+                "FragInputs.texCoord3",
+                "FragInputs.color"
             },
             PixelShaderSlots = new List<int>()
             {
@@ -663,6 +650,12 @@ namespace UnityEditor.Rendering.HighDefinition
                 HDSubShaderUtilities.SetStencilStateForForward(ref pass);
                 HDSubShaderUtilities.SetBlendModeForForward(ref pass);
 
+                if (masterNode.speedTreeAssetVersion == SpeedTreeLitMasterNode.SpeedTreeVersion.SpeedTree8)
+                {
+                    pass.ExtraDefines.Add("#ifdef GEOM_TYPE_LEAF\n#define _SURFACE_TYPE_TRANSPARENT\n#endif");
+                    pass.ExtraDefines.Add("#ifndef _SURFACE_TYPE_TRANSPARENT\n#define SHADERPASS_FORWARD_BYPASS_ALPHA_TEST\n#endif");
+                }
+
                 pass.ExtraDefines.Remove("#ifndef DEBUG_DISPLAY\n#define SHADERPASS_FORWARD_BYPASS_ALPHA_TEST\n#endif");
 
                 pass.ColorMaskOverride = "ColorMask [_ColorMaskTransparentVel] 1";
@@ -690,6 +683,9 @@ namespace UnityEditor.Rendering.HighDefinition
             ExtraDefines = new List<string>()
             {
                 "#define CUTOFF_TRANSPARENT_DEPTH_POSTPASS",
+                "#define ENABLE_WIND",
+                "#define EFFECT_BACKSIDE_NORMALS",
+                "#define SPEEDTREE_Y_UP",
             },
             Includes = new List<string>()
             {
@@ -974,7 +970,76 @@ namespace UnityEditor.Rendering.HighDefinition
             // TODO
             subShader.Indent();
             {
+                //Handle data migration here as we need to have a renderingPass already set with accurate data at this point.
+                if (masterNode.renderingPass == HDRenderQueue.RenderQueueType.Unknown)
+                {
+                    switch (masterNode.surfaceType)
+                    {
+                        case SurfaceType.Opaque:
+                            masterNode.renderingPass = HDRenderQueue.RenderQueueType.Opaque;
+                            break;
+                        case SurfaceType.Transparent:
+#pragma warning disable CS0618 // Type or member is obsolete
+                            if (masterNode.m_DrawBeforeRefraction)
+                            {
+                                masterNode.m_DrawBeforeRefraction = false;
+#pragma warning restore CS0618 // Type or member is obsolete
+                                masterNode.renderingPass = HDRenderQueue.RenderQueueType.PreRefraction;
+                            }
+                            else
+                            {
+                                masterNode.renderingPass = HDRenderQueue.RenderQueueType.Transparent;
+                            }
+                            break;
+                        default:
+                            throw new System.ArgumentException("Unknown SurfaceType");
+                    }
+                }
 
+                // Add tags at the SubShader level
+                int queue = HDRenderQueue.ChangeType(masterNode.renderingPass, masterNode.sortPriority, masterNode.alphaTest.isOn);
+                HDSubShaderUtilities.AddTags(subShader, HDRenderPipeline.k_ShaderTagName, HDRenderTypeTags.HDLitShader, queue);
+
+                // generate the necessary shader passes
+                bool opaque = (masterNode.surfaceType == SurfaceType.Opaque);
+                bool transparent = !opaque;
+
+                bool distortionActive = transparent && masterNode.distortion.isOn;
+                bool transparentBackfaceActive = transparent && masterNode.backThenFrontRendering.isOn;
+                bool transparentDepthPrepassActive = transparent && masterNode.alphaTest.isOn && masterNode.alphaTestDepthPrepass.isOn;
+                bool transparentDepthPostpassActive = transparent && masterNode.alphaTest.isOn && masterNode.alphaTestDepthPostpass.isOn;
+
+                GenerateShaderPassLit(masterNode, m_PassShadowCaster, mode, subShader, sourceAssetDependencyPaths);
+                GenerateShaderPassLit(masterNode, m_PassMETA, mode, subShader, sourceAssetDependencyPaths);
+                GenerateShaderPassLit(masterNode, m_SceneSelectionPass, mode, subShader, sourceAssetDependencyPaths);
+
+                GenerateShaderPassLit(masterNode, m_PassDepthOnly, mode, subShader, sourceAssetDependencyPaths);
+                GenerateShaderPassLit(masterNode, m_PassGBuffer, mode, subShader, sourceAssetDependencyPaths);
+                GenerateShaderPassLit(masterNode, m_PassMotionVectors, mode, subShader, sourceAssetDependencyPaths);
+
+                if (distortionActive)
+                {
+                    GenerateShaderPassLit(masterNode, m_PassDistortion, mode, subShader, sourceAssetDependencyPaths);
+                }
+
+                if (transparentBackfaceActive)
+                {
+                    GenerateShaderPassLit(masterNode, m_PassTransparentBackface, mode, subShader, sourceAssetDependencyPaths);
+                }
+
+                // Assign define here based on opaque or transparent to save some variant
+                m_PassForward.ExtraDefines = opaque ? HDSubShaderUtilities.s_ExtraDefinesForwardOpaque : HDSubShaderUtilities.s_ExtraDefinesForwardTransparent;
+                GenerateShaderPassLit(masterNode, m_PassForward, mode, subShader, sourceAssetDependencyPaths);
+
+                if (transparentDepthPrepassActive)
+                {
+                    GenerateShaderPassLit(masterNode, m_PassTransparentDepthPrepass, mode, subShader, sourceAssetDependencyPaths);
+                }
+
+                if (transparentDepthPostpassActive)
+                {
+                    GenerateShaderPassLit(masterNode, m_PassTransparentDepthPostpass, mode, subShader, sourceAssetDependencyPaths);
+                }
             }
             subShader.Deindent();
             subShader.AddShaderChunk("}", false);
