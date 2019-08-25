@@ -270,12 +270,10 @@ namespace UnityEngine.Experimental.Rendering.Universal
 #endif
         }
 
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
         // Show on-screen warning about invalid render resolutions.
         void OnGUI()
         {
-            if (!Debug.isDebugBuild && !Application.isEditor)
-                return;
-
 #if UNITY_EDITOR
             if (!UnityEditor.EditorApplication.isPlaying && !runInEditMode)
                 return;
@@ -301,6 +299,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
             GUI.color = oldColor;
         }
+#endif
 
 #if UNITY_EDITOR
         void OnPlayModeChanged(UnityEditor.PlayModeStateChange state)
