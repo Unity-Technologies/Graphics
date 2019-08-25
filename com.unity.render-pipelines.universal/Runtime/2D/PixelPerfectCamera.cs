@@ -57,7 +57,25 @@ namespace UnityEngine.Experimental.Rendering.Universal
         /// <summary>
         /// Ratio of the rendered Sprites compared to their original size (readonly).
         /// </summary>
-        public int pixelRatio { get { return m_Internal.zoom; } }
+        public int pixelRatio
+        {
+            get
+            {
+#if CM_2_3_4_OR_NEWER
+                if (m_CinemachineCompatibilityMode)
+                {
+                    if (m_UpscaleRT)
+                        return m_Internal.zoom * m_Internal.cinemachineVCamZoom;
+                    else
+                        return m_Internal.cinemachineVCamZoom;
+                }
+                else
+#endif
+                {
+                    return m_Internal.zoom;
+                }
+            }
+        }
 
         /// <summary>
         /// Round a arbitrary position to an integer pixel position. Works in world space.
@@ -92,6 +110,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         Camera m_Camera;
         PixelPerfectCameraInternal m_Internal;
+        bool m_CinemachineCompatibilityMode;
 
         bool isRunning
         {
@@ -150,6 +169,19 @@ namespace UnityEngine.Experimental.Rendering.Universal
             m_Camera.worldToCameraMatrix = offsetMatrix * m_Camera.transform.worldToLocalMatrix;
         }
 
+#if CM_2_3_4_OR_NEWER
+        // Find a pixel-perfect orthographic size as close to targetOrthoSize as possible.
+        // Will also put us into Cinemachine compatibility mode.
+        internal float CorrectCinemachineOrthoSize(float targetOrthoSize)
+        {
+            m_CinemachineCompatibilityMode = true;
+            if (m_Internal == null)
+                return targetOrthoSize;
+            else
+                return m_Internal.CorrectCinemachineOrthoSize(targetOrthoSize);
+        }
+#endif
+
         void Awake()
         {
             m_Camera = GetComponent<Camera>();
@@ -159,6 +191,22 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
             if (m_Camera.targetTexture != null)
                 Debug.LogWarning("Render to texture is not supported by Pixel Perfect Camera.", m_Camera);
+        }
+
+        void LateUpdate()
+        {
+#if CM_2_3_4_OR_NEWER
+#if UNITY_EDITOR
+            if (!UnityEditor.EditorApplication.isPaused)
+#endif
+            {
+                // Reset the Cinemachine compatibility mode every frame.
+                // If any CinemachinePixelPerfect extension is present, they will turn this on 
+                // at a later time (during CinemachineBrain's LateUpdate(), which is 
+                // guaranteed to be after PixelPerfectCamera's LateUpdate()).
+                m_CinemachineCompatibilityMode = false;
+            }
+#endif
         }
 
         void OnBeginCameraRendering(ScriptableRenderContext context, Camera camera)
@@ -175,7 +223,16 @@ namespace UnityEngine.Experimental.Rendering.Universal
             else
                 m_Camera.rect = new Rect(0.0f, 0.0f, 1.0f, 1.0f);
 
-            m_Camera.orthographicSize = m_Internal.orthoSize;
+#if CM_2_3_4_OR_NEWER
+            // In Cinemachine compatibility mode the control over orthographic size should
+            // be given to the virtual cameras, whose orthographic sizes will be corrected to
+            // be pixel-perfect. This way when there's blending between virtual cameras, we
+            // can have temporary not-pixel-perfect but smooth transitions.
+            if (!m_CinemachineCompatibilityMode)
+#endif
+            {
+                m_Camera.orthographicSize = m_Internal.orthoSize;
+            }
 
             UnityEngine.U2D.PixelPerfectRendering.pixelSnapSpacing = m_Internal.unitsPerPixel;
         }
