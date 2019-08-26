@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
 using System.Text;
+using Utilities;
 using static UnityEngine.Rendering.HighDefinition.RenderPipelineSettings;
 
 namespace UnityEditor.Rendering.HighDefinition
@@ -27,7 +28,8 @@ namespace UnityEditor.Rendering.HighDefinition
             Decal = 1 << 12,
             PostProcess = 1 << 13,
             DynamicResolution = 1 << 14,
-            LowResTransparency = 1 << 15
+            LowResTransparency = 1 << 15,
+            XR = 1 << 16
         }
 
         static readonly ExpandedState<Expandable, HDRenderPipelineAsset> k_ExpandedState = new ExpandedState<Expandable, HDRenderPipelineAsset>(Expandable.CameraFrameSettings | Expandable.General, "HDRP");
@@ -74,7 +76,8 @@ namespace UnityEditor.Rendering.HighDefinition
                     CED.FoldoutGroup(k_LightLoopSubTitle, Expandable.LightLoop, k_ExpandedState, FoldoutOption.Indent | FoldoutOption.SubFoldout | FoldoutOption.NoSpaceAtEnd, Drawer_SectionLightLoop)
                     ),
                 CED.FoldoutGroup(k_MaterialSectionTitle, Expandable.Material, k_ExpandedState, Drawer_SectionMaterialUnsorted),
-                CED.FoldoutGroup(k_PostProcessSectionTitle, Expandable.PostProcess, k_ExpandedState, Drawer_SectionPostProcessSettings)
+                CED.FoldoutGroup(k_PostProcessSectionTitle, Expandable.PostProcess, k_ExpandedState, Drawer_SectionPostProcessSettings),
+                CED.FoldoutGroup(k_XrTitle, Expandable.XR, k_ExpandedState, Drawer_SectionXRSettings)
             );
 
             // fix init of selection along what is serialized
@@ -544,6 +547,11 @@ namespace UnityEditor.Rendering.HighDefinition
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.postProcessSettings.lutFormat, k_LutFormat);
         }
 
+        static void Drawer_SectionXRSettings(SerializedHDRenderPipelineAsset serialized, Editor owner)
+        {
+            EditorGUILayout.PropertyField(serialized.renderPipelineSettings.xrSettings.occlusionMesh, k_XROcclusionMesh);
+        }
+
         static void Drawer_SectionRenderingUnsorted(SerializedHDRenderPipelineAsset serialized, Editor owner)
         {
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.colorBufferFormat, k_ColorBufferFormatContent);
@@ -602,6 +610,10 @@ namespace UnityEditor.Rendering.HighDefinition
 
         static void Drawer_SectionMaterialUnsorted(SerializedHDRenderPipelineAsset serialized, Editor owner)
         {
+            EditorGUILayout.PropertyField(serialized.materialQualityLevels);
+            var v = EditorGUILayout.EnumPopup(k_CurrentMaterialQualityLevelContent, (MaterialQuality) serialized.currentMaterialQualityLevel.intValue);
+            serialized.currentMaterialQualityLevel.intValue = (int)(object)v;
+            
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportDistortion, k_SupportDistortion);
 
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportSubsurfaceScattering, k_SupportedSSSContent);
@@ -681,7 +693,7 @@ namespace UnityEditor.Rendering.HighDefinition
             AppendSupport(builder, serialized.renderPipelineSettings.supportMotionVectors, k_SupportMotionVectorContent);
             AppendSupport(builder, serialized.renderPipelineSettings.supportRuntimeDebugDisplay, k_SupportRuntimeDebugDisplayContent);
             AppendSupport(builder, serialized.renderPipelineSettings.supportDitheringCrossFade, k_SupportDitheringCrossFadeContent);
-            AppendSupport(builder, serialized.renderPipelineSettings.supportTerrainHole, k_SupportTerrainHoleContent);            
+            AppendSupport(builder, serialized.renderPipelineSettings.supportTerrainHole, k_SupportTerrainHoleContent);
             AppendSupport(builder, serialized.renderPipelineSettings.supportDistortion, k_SupportDistortion);
             AppendSupport(builder, serialized.renderPipelineSettings.supportTransparentBackface, k_SupportTransparentBackface);
             AppendSupport(builder, serialized.renderPipelineSettings.supportTransparentDepthPrepass, k_SupportTransparentDepthPrepass);

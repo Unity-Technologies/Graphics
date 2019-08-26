@@ -15,7 +15,7 @@ namespace UnityEditor.ShaderGraph
     {
         public const string Extension = "shadergraph";
 
-        const string k_ErrorShader = @"
+        public const string k_ErrorShader = @"
 Shader ""Hidden/GraphErrorShader2""
 {
     SubShader

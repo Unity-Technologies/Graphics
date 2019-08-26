@@ -5,6 +5,7 @@ Shader "Hidden/Universal Render Pipeline/FinalPost"
         #pragma multi_compile_local _ _FXAA
         #pragma multi_compile_local _ _FILM_GRAIN
         #pragma multi_compile_local _ _DITHERING
+		#pragma multi_compile_local _ _LINEAR_TO_SRGB_CONVERSION
         
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
@@ -113,6 +114,12 @@ Shader "Hidden/Universal Render Pipeline/FinalPost"
             #if _FILM_GRAIN
             {
                 color = ApplyGrain(color, positionNDC, TEXTURE2D_ARGS(_Grain_Texture, sampler_LinearRepeat), GrainIntensity, GrainResponse, GrainScale, GrainOffset);
+            }
+            #endif
+			
+			#if _LINEAR_TO_SRGB_CONVERSION
+            {
+                color = LinearToSRGB(color);
             }
             #endif
 

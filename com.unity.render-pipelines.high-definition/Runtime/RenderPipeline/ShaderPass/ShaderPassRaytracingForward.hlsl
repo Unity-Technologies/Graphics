@@ -42,6 +42,7 @@ void ClosestHitForward(inout RayIntersection rayIntersection : SV_RayPayload, At
     float reflectedWeight = 0.0;
     float3 transmitted = float3(0.0, 0.0, 0.0);
     float refractedWeight = 0.0;
+    uint additionalRayCount = 0;
 
     // The intersection will launch a refraction ray only if the object is transparent and is has the refraction flag
 #ifdef _SURFACE_TYPE_TRANSPARENT
@@ -77,6 +78,7 @@ void ClosestHitForward(inout RayIntersection rayIntersection : SV_RayPayload, At
         transmittedIntersection.origin = transmittedRay.Origin;
         transmittedIntersection.t = 0.0f;
         transmittedIntersection.remainingDepth = rayIntersection.remainingDepth - 1;
+        transmittedIntersection.rayCount = 1;
 
         // In order to achieve filtering for the textures, we need to compute the spread angle of the pixel
         transmittedIntersection.cone.spreadAngle = rayIntersection.cone.spreadAngle;
@@ -88,6 +90,7 @@ void ClosestHitForward(inout RayIntersection rayIntersection : SV_RayPayload, At
         // Override the transmitted color
         transmitted = transmittedIntersection.color;
         refractedWeight = 1.0;
+        additionalRayCount += transmittedIntersection.rayCount;
     }
 #endif
 #endif
@@ -115,6 +118,7 @@ void ClosestHitForward(inout RayIntersection rayIntersection : SV_RayPayload, At
         reflectedIntersection.origin = reflectedRay.Origin;
         reflectedIntersection.t = 0.0f;
         reflectedIntersection.remainingDepth = rayIntersection.remainingDepth - 1;
+        reflectedIntersection.rayCount = 1;
 
         // In order to achieve filtering for the textures, we need to compute the spread angle of the pixel
         reflectedIntersection.cone.spreadAngle = rayIntersection.cone.spreadAngle;
@@ -126,6 +130,7 @@ void ClosestHitForward(inout RayIntersection rayIntersection : SV_RayPayload, At
         // Override the transmitted color
         reflected = reflectedIntersection.color;
         reflectedWeight = 1.0;
+        additionalRayCount += reflectedIntersection.rayCount;
     }
 
     // Run the lightloop
@@ -135,6 +140,7 @@ void ClosestHitForward(inout RayIntersection rayIntersection : SV_RayPayload, At
 
     // Color display for the moment
     rayIntersection.color = diffuseLighting + specularLighting;
+    rayIntersection.rayCount += additionalRayCount;
 #else
     // Given that we will be multiplying the final color by the current exposure multiplier outside of this function, we need to make sure that
     // the unlit color is not impacted by that. Thus, we multiply it by the inverse of the current exposure multiplier.
