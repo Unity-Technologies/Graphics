@@ -2573,26 +2573,23 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 if (decalDatasCount > 0)
                 {
-                    /*
-                    for (int i = 0; i < decalDatasCount; i++)
-                    {
-                        for (int viewIndex = 0; viewIndex < hdCamera.viewCount; ++viewIndex)
-                        {
-                            m_lightList.lightsPerView[viewIndex].bounds.Add(DecalSystem.m_Bounds[i]);
-                            m_lightList.lightsPerView[viewIndex].lightVolumes.Add(DecalSystem.m_LightVolumes[i]);
-                        }
-                    }
-                    */
-                    /*
+
+                    int stride = punctualLightCount + areaLightCount + reflectionProbeCount + decalDatasCount;
+                    int offset = punctualLightCount + areaLightCount + reflectionProbeCount;
                     for (int viewIndex = 0; viewIndex < hdCamera.viewCount; ++viewIndex)
                     {
-                        int offset = viewIndex * (decalDatasCount + culledPunctualLightsCount);
+                        int viewOffset = stride * viewIndex;
                         for (int i = 0; i < decalDatasCount; i++)
                         {
-                            m_lightList.m_Bounds[offset + culledPunctualLightsCount + i] = DecalSystem.m_Bounds[i];
-                            m_lightList.m_LightVolumeData[offset + culledPunctualLightsCount + i] = DecalSystem.m_LightVolumes[i];
+                            int index = viewOffset + offset + i; 
+                            SFiniteLightBound sflb = m_lightList.m_Bounds[index];
+                            LightVolumeData lvd = m_lightList.m_LightVolumeData[index];
+                            sflb = DecalSystem.m_Bounds[i];
+                            lvd = DecalSystem.m_LightVolumes[i];
+                            m_lightList.m_Bounds[index] = sflb;
+                            m_lightList.m_LightVolumeData[index] = lvd;                            
                         }
-                    }*/
+                    }
                 }
                 // Inject density volumes into the clustered data structure for efficient look up.
                 m_densityVolumeCount = densityVolumes.bounds != null ? densityVolumes.bounds.Count : 0;
