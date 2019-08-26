@@ -18,7 +18,7 @@ float2 ScramblingValueFloat2(uint2 pixelCoord)
 uint ScramblingValueUInt(uint2 pixelCoord)
 {
     pixelCoord = pixelCoord & 255;
-    return clamp((uint)(_ScramblingTexture[uint2(pixelCoord.x, pixelCoord.y)].x * 256.0f), uint2(0,0), uint2(255, 255));
+    return clamp((uint)(_ScramblingTexture[uint2(pixelCoord.x, pixelCoord.y)].x * 256.0f), 0, 255);
 }
 
 uint2 ScramblingValueUInt2(uint2 pixelCoord)

@@ -5,8 +5,8 @@ namespace UnityEngine.Rendering.HighDefinition
     [Serializable, VolumeComponentMenu("Ray Tracing/Global Illumination")]
     public sealed class GlobalIllumination : VolumeComponent
     {
-        [Tooltip("Enable. Enable ray traced global illumination.")]
-        public BoolParameter enableRayTracing = new BoolParameter(false);
+        [Tooltip("Enable ray traced global illumination.")]
+        public BoolParameter rayTracing = new BoolParameter(false);
 
         [Tooltip("Controls the length of GI rays.")]
         public ClampedFloatParameter rayLength = new ClampedFloatParameter(10f, 0.001f, 50f);
@@ -23,25 +23,27 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // Tier 2
         [Tooltip("Number of samples for GI.")]
-        public ClampedIntParameter numSamples = new ClampedIntParameter(1, 1, 32);
+        public ClampedIntParameter sampleCount = new ClampedIntParameter(1, 1, 32);
 
         [Tooltip("Number of bounces for GI.")]
-        public ClampedIntParameter numBounces = new ClampedIntParameter(1, 1, 31);
+        public ClampedIntParameter bounceCount = new ClampedIntParameter(1, 1, 31);
 
         // Filtering
-        [Tooltip("Enable Filtering on the raytraced GI.")]
-        public BoolParameter enableFilter = new BoolParameter(false);
+        [Tooltip("Denoise the raytraced GI.")]
+        public BoolParameter denoise = new BoolParameter(false);
 
-        [Tooltip("Controls the radius of GI filtering (First Pass).")]
-        public ClampedFloatParameter filterRadiusFirst = new ClampedFloatParameter(0.6f, 0.001f, 1.0f);
+        [Tooltip("Use a half resolution denoiser.")]
+        public BoolParameter halfResolutionDenoiser = new BoolParameter(false);
 
-        [Tooltip("Enable second pass.")]
-        public BoolParameter enableSecondPass = new BoolParameter(false);
+        [Tooltip("Controls the radius of GI denoiser (First Pass).")]
+        public ClampedFloatParameter denoiserRadius = new ClampedFloatParameter(0.6f, 0.001f, 1.0f);
 
-        [Tooltip("Controls the radius of GI filtering (Second Pass).")]
-        public ClampedFloatParameter filterRadiusSecond = new ClampedFloatParameter(0.3f, 0.001f, 0.5f);
+        [Tooltip("Enable second denoising pass.")]
+        public BoolParameter secondDenoiserPass = new BoolParameter(false);
 
-        [Tooltip("Use a half resolution filter.")]
-        public BoolParameter halfResolutonFilter = new BoolParameter(false);
+        [Tooltip("Controls the radius of GI denoiser (Second Pass).")]
+        public ClampedFloatParameter secondDenoiserRadius = new ClampedFloatParameter(0.3f, 0.001f, 0.5f);
+
+
     }
 }
