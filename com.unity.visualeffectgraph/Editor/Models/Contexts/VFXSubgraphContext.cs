@@ -348,8 +348,13 @@ namespace UnityEditor.VFX
         {
             base.CollectDependencies(objs, ownedOnly);
 
-            if (m_SubChildren == null || ownedOnly)
+            if (ownedOnly)
                 return;
+
+            if( m_Subgraph != null && m_SubChildren == null)
+            {
+                RecreateCopy();
+            }
 
             foreach (var child in m_SubChildren)
             {
