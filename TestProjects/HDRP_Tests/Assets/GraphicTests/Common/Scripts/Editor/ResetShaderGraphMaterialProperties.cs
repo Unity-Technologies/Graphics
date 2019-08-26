@@ -48,7 +48,7 @@ public class ResetMaterialProperties : MonoBehaviour
                     if (mat.HasProperty(vectorToReset))
                         mat.SetVector(vectorToReset, defaultProperties.GetVector(vectorToReset));
 
-                HDEditorUtils.ResetMaterialKeywords(mat);
+                HDShaderUtils.ResetMaterialKeywords(mat);
 
                 mat.renderQueue = mat.shader.renderQueue;
 
