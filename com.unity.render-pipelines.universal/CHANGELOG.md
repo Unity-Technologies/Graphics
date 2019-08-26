@@ -28,6 +28,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where the Area Lights were set to Realtime, which caused them to not bake. [1159838](https://issuetracker.unity3d.com/issues/lwrp-template-baked-area-lights-do-not-work-if-project-is-created-with-lightweight-rp-template)
 - Fixed an issue where the Disc Light did not generate any light. [1175097](https://issuetracker.unity3d.com/issues/using-lwrp-area-light-does-not-generate-light-when-its-shape-is-set-to-disc)
 - Fixed alpha being killed when opaque texture is requested on an offscreen camera with HDR enabled [case 1163320](https://issuetracker.unity3d.com/issues/lwrp-mobile-secondary-camera-background-alpha-value-is-lost-when-hdr-and-opaque-texture-are-enabled-in-lwrp-asset).
+- Fixed an issue where **Undo** would not undo the creation of Additional Camera Data. [case 1158861](https://issuetracker.unity3d.com/issues/lwrp-additional-camera-data-script-component-appears-on-camera-after-manually-re-picking-use-pipeline-settings)
+- Fixed an issue where selecting the same drop-down menu item twice would trigger a change event. [case 1158861](https://issuetracker.unity3d.com/issues/lwrp-additional-camera-data-script-component-appears-on-camera-after-manually-re-picking-use-pipeline-settings)
 
 ## [7.0.1] - 2019-07-25
 ### Changed
