@@ -1081,7 +1081,6 @@ namespace UnityEngine.Rendering.HighDefinition
             dynResHandler.Update(m_Asset.currentPlatformRenderPipelineSettings.dynamicResolutionSettings, () =>
             {
                 var hdrp = (RenderPipelineManager.currentPipeline as HDRenderPipeline);
-                hdrp.m_PostProcessSystem.ResetHistory();
                 // We can't use dynResHandler here because it would capture the local field and so generate garbage
                 if (DynamicResolutionHandler.instance.DynamicResolutionEnabled())
                 {
