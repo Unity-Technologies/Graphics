@@ -21,7 +21,6 @@ namespace UnityEngine.Rendering.HighDefinition
         [Tooltip("This poses a maximum radius in pixels that we consider. It is very important to keep this as tight as possible to preserve good performance. Note that this is the value used for 1080p when *not* running the effect at full resolution, it will be scaled accordingly for other resolutions.")]
         public ClampedIntParameter maximumRadiusInPixels = new ClampedIntParameter(40, 16, 256);
 
-
         [Tooltip("Controls how much the ambient light affects occlusion.")]
         public ClampedFloatParameter directLightingStrength = new ClampedFloatParameter(0f, 0f, 1f);
 
@@ -31,15 +30,14 @@ namespace UnityEngine.Rendering.HighDefinition
         [Tooltip("Controls the length of ambient occlusion rays.")]
         public ClampedFloatParameter rayLength = new ClampedFloatParameter(0.5f, 0f, 50f);
 
+        [Tooltip("Controls the number of sample for ambient occlusion.")]
+        public ClampedIntParameter numSamples = new ClampedIntParameter(1, 1, 32);
+
         [Tooltip("Enable Filtering on the raytraced ambient occlusion.")]
         public BoolParameter enableFilter = new BoolParameter(false);
 
-        [Tooltip("Controls the length of ambient occlusion rays.")]
-        public ClampedIntParameter numSamples = new ClampedIntParameter(4, 1, 64);
-
-        [Tooltip("Controls the length of ambient occlusion rays.")]
-        public ClampedIntParameter filterRadius = new ClampedIntParameter(16, 1, 32);
-
+        [Tooltip("Controls the radius of ambient occlusion filtering.")]
+        public ClampedFloatParameter filterRadius = new ClampedFloatParameter(0.5f, 0.001f, 1.0f);
     }
 
     partial class AmbientOcclusionSystem

@@ -1,4 +1,6 @@
+using UnityEngine;
 using UnityEngine.Experimental.Rendering;
+using System.Collections.Generic;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -17,6 +19,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public bool diffuseLightingOnly;
             public bool halfResolution;
             public HDRaytracingEnvironment rtEnv;
+            public int rayCountFlag;
 
             // Camera data
             public int width;
@@ -49,9 +52,16 @@ namespace UnityEngine.Rendering.HighDefinition
             public RTHandle gbuffer3;
             public RTHandle distanceBuffer;
 
+            // Debug textures
+            public RTHandle rayCountTexture;
+
             // Output Buffer
             public RTHandle litBuffer;
         }
+
+        // Ray Direction/Distance buffers
+        RTHandle m_RaytracingDirectionBuffer;
+        RTHandle m_RaytracingDistanceBuffer;
 
         // Ray binning buffers
         ComputeBuffer m_RayBinResult = null;
@@ -75,7 +85,9 @@ namespace UnityEngine.Rendering.HighDefinition
             m_RayBinResult = new ComputeBuffer(1, sizeof(uint));
             m_RayBinSizeResult = new ComputeBuffer(1, sizeof(uint));
 
-            // Buffer manager used to do the split integration
+            m_RaytracingDirectionBuffer = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, dimension: TextureXR.dimension, enableRandomWrite: true, useDynamicScale: true,useMipMap: false, name: "RaytracingDirectionBuffer");
+            m_RaytracingDistanceBuffer = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R32_SFloat, dimension: TextureXR.dimension, enableRandomWrite: true, useDynamicScale: true, useMipMap: false, name: "RaytracingDistanceBuffer");
+
             m_RaytracingGBufferManager = new GBufferManager(asset, m_DeferredMaterial);
             m_RaytracingGBufferManager.CreateBuffers();
         }
@@ -85,6 +97,9 @@ namespace UnityEngine.Rendering.HighDefinition
             CoreUtils.SafeRelease(m_RayBinResult);
             CoreUtils.SafeRelease(m_RayBinSizeResult);
 
+            RTHandles.Release(m_RaytracingDistanceBuffer);
+            RTHandles.Release(m_RaytracingDirectionBuffer);
+            
             m_RaytracingGBufferManager.DestroyBuffers();
         }
 
@@ -103,6 +118,9 @@ namespace UnityEngine.Rendering.HighDefinition
             deferredResources.gbuffer3 = m_RaytracingGBufferManager.GetBuffer(3);
             deferredResources.distanceBuffer = m_RaytracingDistanceBuffer;
 
+            // Debug textures
+            deferredResources.rayCountTexture = m_RayTracingManager.rayCountManager.GetRayCountTexture();
+
             // Output Buffer
             deferredResources.litBuffer = ouputBuffer;
 
@@ -110,7 +128,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         void CheckBinningBuffersSize(HDCamera hdCamera)
-            {
+        {
             // Evaluate the dispatch parameters
             int numTilesRayBinX = (hdCamera.actualWidth + (binningTileSize - 1)) / binningTileSize;
             int numTilesRayBinY = (hdCamera.actualHeight + (binningTileSize - 1)) / binningTileSize;
@@ -189,6 +207,10 @@ namespace UnityEngine.Rendering.HighDefinition
             // Set the acceleration structure for the pass
             cmd.SetRayTracingAccelerationStructure(parameters.gBufferRaytracingRT, HDShaderIDs._RaytracingAccelerationStructureName, parameters.accelerationStructure);
 
+            // Set ray count tex
+            cmd.SetRayTracingIntParam(parameters.gBufferRaytracingRT, HDShaderIDs._RayCountEnabled, parameters.rayCountFlag);
+            cmd.SetRayTracingTextureParam(parameters.gBufferRaytracingRT, HDShaderIDs._RayCountTexture, buffers.rayCountTexture);
+            
             // Bind all input parameter
             cmd.SetRayTracingFloatParams(parameters.gBufferRaytracingRT, HDShaderIDs._RaytracingRayBias, parameters.rtEnv.rayBias);
             cmd.SetRayTracingFloatParams(parameters.gBufferRaytracingRT, HDShaderIDs._RaytracingRayMaxLength, parameters.maxRayLength);

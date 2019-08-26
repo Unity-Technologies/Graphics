@@ -5,6 +5,11 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## [7.1.1] - 2019-XX-XX
+### Added
+- You can now define shader keywords on the Blackboard. Use these keywords on the graph to create static branches in the generated shader.
+
+### Fixed
+- The Shader Graph preview no longer breaks when you create new PBR Graphs.
 
 ## [7.0.1] - 2019-07-25
 ### Changed
@@ -17,6 +22,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - `Position` node now draws the correct label for **Absolute World**. 
 - Node previews now inherit preview type correctly.
 - Normal maps now unpack correctly for mobile platforms.
+- Fixed an error that previously occurred when you used the Gradient Sample node and your system locale uses commas instead of periods.
 - Fixed an issue where you couldn't group several nodes.
 
 ## [7.0.0] - 2019-07-10

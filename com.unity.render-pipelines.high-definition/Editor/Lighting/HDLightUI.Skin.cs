@@ -23,7 +23,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public readonly GUIContent lowShadowQualitySubHeader = new GUIContent("Low Quality Settings");
 
             // Base (copy from LightEditor.cs)
-            public readonly GUIContent outterAngle = new GUIContent("Outter Angle", "Controls the angle, in degrees, at the base of a Spot Light's cone.");
+            public readonly GUIContent outterAngle = new GUIContent("Outer Angle", "Controls the angle, in degrees, at the base of a Spot Light's cone.");
             public readonly GUIContent cookieSizeX = new GUIContent("Size X", "Sets the width of the Cookie mask currently assigned to the Light.");
             public readonly GUIContent cookieSizeY = new GUIContent("Size Y", "Sets the height of the Cookie mask currently assigned to the Light.");
             public readonly GUIContent shadowBias = new GUIContent("Bias", "Controls the distance at which HDRP pushes shadows away from the Light. Useful for avoiding false self-shadowing artifacts.");
