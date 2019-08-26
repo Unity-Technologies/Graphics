@@ -16,6 +16,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Selecting a GameObject with a VFX Property Binder spams exception.
 - Wrong motion vector while modifying local matrix of a VisualEffect.
 - Convert output settings copy.
+- Fixed some outputs failing to compile when used with certain UV Modes [Case 1126200] (https://issuetracker.unity3d.com/issues/output-some-outputs-fail-to-compile-when-used-with-certain-uv-modes)
+- Removed Gradient Mapping Mode from some outputs type where it was irrelevant [Case 1164045]
 - Soft Particles work with Distortion outputs [Case 1167426] (https://issuetracker.unity3d.com/issues/output-soft-particles-do-not-work-with-distortion-outputs)
 
 ## [7.0.1] - 2019-07-25
