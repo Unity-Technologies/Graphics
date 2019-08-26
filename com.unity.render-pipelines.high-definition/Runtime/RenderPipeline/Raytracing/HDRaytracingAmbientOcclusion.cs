@@ -97,7 +97,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // Inject the ray generation data
             cmd.SetRayTracingFloatParams(aoShader, HDShaderIDs._RaytracingRayBias, rtEnvironment.rayBias);
             cmd.SetRayTracingFloatParams(aoShader, HDShaderIDs._RaytracingRayMaxLength, aoSettings.rayLength.value);
-            cmd.SetRayTracingIntParams(aoShader, HDShaderIDs._RaytracingNumSamples, aoSettings.numSamples.value);
+            cmd.SetRayTracingIntParams(aoShader, HDShaderIDs._RaytracingNumSamples, aoSettings.sampleCount.value);
 
             // Set the data for the ray generation
             cmd.SetRayTracingTextureParam(aoShader, HDShaderIDs._DepthTexture, m_SharedRTManager.GetDepthStencilBuffer());
@@ -122,7 +122,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             using (new ProfilingSample(cmd, "Filter Ambient Occlusion", CustomSamplerId.RaytracingAmbientOcclusion.GetSampler()))
             {
-                if(aoSettings.enableFilter.value)
+                if(aoSettings.denoise.value)
                 {
                     // Grab the history buffer
                     RTHandle ambientOcclusionHistory = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.RaytracedAmbientOcclusion)
@@ -134,7 +134,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     // Apply the diffuse denoiser
                     HDDiffuseDenoiser diffuseDenoiser = m_RaytracingManager.GetDiffuseDenoiser();
-                    diffuseDenoiser.DenoiseBuffer(cmd, hdCamera, m_AOIntermediateBuffer1, outputTexture, aoSettings.filterRadius.value);
+                    diffuseDenoiser.DenoiseBuffer(cmd, hdCamera, m_AOIntermediateBuffer1, outputTexture, aoSettings.denoiserRadius.value);
                 }
                 else
                 {

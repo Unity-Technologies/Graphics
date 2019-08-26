@@ -20,6 +20,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public bool halfResolution;
             public HDRaytracingEnvironment rtEnv;
             public int rayCountFlag;
+            public bool preExpose;
 
             // Camera data
             public int width;
@@ -276,7 +277,10 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetComputeTextureParam(parameters.deferredRaytracingCS, currentKernel, HDShaderIDs._GBufferTexture[2], buffers.gbuffer2);
             cmd.SetComputeTextureParam(parameters.deferredRaytracingCS, currentKernel, HDShaderIDs._GBufferTexture[3], buffers.gbuffer3);
             cmd.SetComputeTextureParam(parameters.deferredRaytracingCS, currentKernel, HDShaderIDs._LightLayersTexture, TextureXR.GetWhiteTexture());
+
+            // Inject the other parameters
             cmd.SetComputeFloatParam(parameters.deferredRaytracingCS, HDShaderIDs._RaytracingIntensityClamp, parameters.clampValue);
+            cmd.SetComputeIntParam(parameters.deferredRaytracingCS, HDShaderIDs._RaytracingPreExposition, parameters.preExpose ? 1 : 0);
 
             // Bind the output texture
             cmd.SetComputeTextureParam(parameters.deferredRaytracingCS, currentKernel, HDShaderIDs._RaytracingLitBufferRW, buffers.litBuffer);
