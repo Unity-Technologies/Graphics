@@ -142,6 +142,7 @@ void RayGenReflectionHalfRes()
     rayIntersection.incidentDirection = rayDescriptor.Direction;
     rayIntersection.origin = rayDescriptor.Origin;
     rayIntersection.t = -1.0;
+    rayIntersection.pixelCoord = halfResCoord;
 
     // In order to achieve filtering for the textures, we need to compute the spread angle of the pixel
     rayIntersection.cone.spreadAngle = _RaytracingPixelSpreadAngle + roughnessToSpreadAngle(roughness);
@@ -254,6 +255,7 @@ void RayGenReflectionFullRes()
     rayIntersection.incidentDirection = rayDescriptor.Direction;
     rayIntersection.origin = rayDescriptor.Origin;
     rayIntersection.t = -1.0;
+    rayIntersection.pixelCoord = currentCoord;
 
     // In order to achieve filtering for the textures, we need to compute the spread angle of the pixel
     rayIntersection.cone.spreadAngle = _RaytracingPixelSpreadAngle + roughnessToSpreadAngle(roughness);
