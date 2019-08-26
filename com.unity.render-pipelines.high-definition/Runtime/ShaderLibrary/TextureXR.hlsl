@@ -107,10 +107,13 @@
 // Helper macro to assign eye index during compute pass (usually from SV_DispatchThreadID)
 #if defined(SHADER_STAGE_COMPUTE)
     #if defined(UNITY_STEREO_INSTANCING_ENABLED)
-        #define UNITY_STEREO_ASSIGN_COMPUTE_EYE_INDEX(eyeIndex) unity_StereoEyeIndex = eyeIndex;
+        #define UNITY_XR_ASSIGN_VIEW_INDEX(eyeIndex) unity_StereoEyeIndex = eyeIndex;
     #else
-        #define UNITY_STEREO_ASSIGN_COMPUTE_EYE_INDEX(eyeIndex)
+        #define UNITY_XR_ASSIGN_VIEW_INDEX(eyeIndex)
     #endif
+
+    // Backward compatibility
+    #define UNITY_STEREO_ASSIGN_COMPUTE_EYE_INDEX   UNITY_XR_ASSIGN_VIEW_INDEX
 #endif
 
 #endif // UNITY_TEXTUREXR_INCLUDED
