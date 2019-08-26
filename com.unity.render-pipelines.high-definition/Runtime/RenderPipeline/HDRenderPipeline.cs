@@ -1776,10 +1776,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // Render XR occlusion mesh to depth buffer early in the frame to improve performance
             if (hdCamera.xr.enabled && m_Asset.currentPlatformRenderPipelineSettings.xrSettings.occlusionMesh)
             {
-                var msaa = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA);
-                var colorBuffer = msaa ? m_CameraColorMSAABuffer : m_CameraColorBuffer;
-                var depthBuffer = m_SharedRTManager.GetDepthStencilBuffer(msaa);
-                hdCamera.xr.RenderOcclusionMeshes(cmd, colorBuffer, depthBuffer);
+                hdCamera.xr.RenderOcclusionMeshes(cmd, m_SharedRTManager.GetDepthStencilBuffer(hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA)));
             }
 
             hdCamera.xr.StartSinglePass(cmd, camera, renderContext);

@@ -25,6 +25,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where lighting compute buffers were re-created with the wrong size when resizing the window, causing tile artefacts at the top of the screen.
 - Fix FrameSettings names and tooltips
 - Fixed error with XR SDK when the Editor is not in focus
+- Fixed errors with RenderGraph, XR SDK and occlusion mesh
 
 ### Changed
 - Update Wizard layout.
