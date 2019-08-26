@@ -210,7 +210,7 @@ namespace UnityEditor.VFX
         [VFXSetting, Delayed, SerializeField]
         protected uint particlePerStripCount = 16;
 
-        protected bool hasStrip { get { return dataType == DataType.ParticleStrip; } }
+        public bool hasStrip { get { return dataType == DataType.ParticleStrip; } }
 
         protected override void OnSettingModified(VFXSetting setting)
         {

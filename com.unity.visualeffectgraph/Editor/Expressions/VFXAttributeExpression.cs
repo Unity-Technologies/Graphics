@@ -55,9 +55,10 @@ namespace UnityEditor.VFX
         public static readonly VFXAttribute ParticleIndexInStrip    = new VFXAttribute("particleIndexInStrip", VFXValueType.Uint32);
         public static readonly VFXAttribute SpawnIndex              = new VFXAttribute("spawnIndex", VFXValueType.Uint32);
         public static readonly VFXAttribute StripIndex              = new VFXAttribute("stripIndex", VFXValueType.Uint32);
+        public static readonly VFXAttribute StripAlive              = new VFXAttribute("stripAlive", VFXValue.Constant(true)); // Internal attribute used to keep track of the state of the attached strip (TODO: Use a number to handle more tha 1 strip)
 
         public static readonly VFXAttribute[] AllAttribute = VFXReflectionHelper.CollectStaticReadOnlyExpression<VFXAttribute>(typeof(VFXAttribute));
-        public static readonly VFXAttribute[] AllAttributeReadOnly = new VFXAttribute[] { Seed, ParticleId, SpawnTime, ParticleIndexInStrip, SpawnIndex, StripIndex };
+        public static readonly VFXAttribute[] AllAttributeReadOnly = new VFXAttribute[] { Seed, ParticleId, SpawnTime, ParticleIndexInStrip, SpawnIndex, StripIndex, StripAlive };
         public static readonly VFXAttribute[] AllAttributeWriteOnly = new VFXAttribute[] { EventCount };
         public static readonly VFXAttribute[] AllAttributeLocalOnly = new VFXAttribute[] { EventCount, ParticleIndexInStrip, StripIndex };
 

@@ -582,6 +582,4 @@ float3 Noise3D(float3 position, int octaves, float roughness) {
 // Strips //
 ////////////
 
-#if HAS_STRIPS
 #include "Packages/com.unity.visualeffectgraph/Shaders/VFXParticleStripCommon.hlsl"
-#endif

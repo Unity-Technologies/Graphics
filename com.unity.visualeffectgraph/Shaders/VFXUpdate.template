@@ -18,6 +18,10 @@ RWStructuredBuffer<uint> indirectBuffer;
 RWBuffer<uint> stripDataBuffer;
 #endif
 
+#if VFX_USE_STRIPALIVE_CURRENT
+Buffer<uint> attachedStripDataBuffer;
+#endif
+
 CBUFFER_START(updateParams)
     uint nbMax;
 	uint dispatchWidth;
@@ -40,10 +44,10 @@ void CSMain(uint3 groupId          : SV_GroupID,
 		SourceAttributes sourceAttributes = (SourceAttributes)0;
 
 #if VFX_USE_ALIVE_CURRENT
-		${VFXLoadAttributes:{alive}}
+		${VFXLoadAttributes:{alive|stripAlive}}
 		if (attributes.alive)
 		{
-			${VFXLoadAttributes:{(?!(alive))(\b\w)}}
+			${VFXLoadAttributes:{(?!(alive|stripAlive))(\b\w)}}
 
 // Initialize built-in needed attributes
 #if VFX_USE_OLDPOSITION_CURRENT
@@ -73,12 +77,24 @@ void CSMain(uint3 groupId          : SV_GroupID,
 			else
 			{
 				${VFXStoreAttributes:{alive|eventCount}}
-#if USE_DEAD_LIST
+#if USE_DEAD_LIST && !VFX_USE_STRIPALIVE_CURRENT
 				uint deadIndex = deadListOut.IncrementCounter();
 				deadListOut[deadIndex] = index;
 #endif
 			}
 		}
+#if USE_DEAD_LIST && VFX_USE_STRIPALIVE_CURRENT
+        else if (attributes.stripAlive)
+        {
+            if (STRIP_DATA_X(attachedStripDataBuffer, STRIP_MIN_ALIVE, index) == ~0) // Attached strip is no longer alive, recycle the particle 
+            {
+                uint deadIndex = deadListOut.IncrementCounter();
+				deadListOut[deadIndex] = index;
+                attributes.stripAlive = false;
+            }
+            ${VFXStoreAttributes:{stripAlive}}
+        }
+#endif
 #else
 		${VFXLoadAttributes}
 		

@@ -2,7 +2,8 @@
 #define STRIP_NEXT_INDEX 1
 #define STRIP_MIN_ALIVE 2
 #define STRIP_MAX_ALIVE 3
-#define STRIP_DATA(data,stripIndex) stripDataBuffer[(stripIndex << 2) + (data)]
+#define STRIP_DATA_X(buffer,data,stripIndex) buffer[(stripIndex << 2) + (data)]
+#define STRIP_DATA(data,stripIndex) STRIP_DATA_X(stripDataBuffer,data,stripIndex)
 
 struct StripData
 {
@@ -12,6 +13,7 @@ struct StripData
 	uint nextIndex;
 };
 
+#if HAS_STRIPS
 const StripData GetStripDataFromStripIndex(uint stripIndex, uint particleCountInStrip)
 {
 	StripData stripData = (StripData)0;
@@ -48,4 +50,5 @@ void InitStripAttributes(uint particleIndex, inout Attributes attributes, const 
     attributes.particleIndexInStrip = GetRelativeIndex(particleIndex, data);
 #endif
 }
+#endif
 #endif
