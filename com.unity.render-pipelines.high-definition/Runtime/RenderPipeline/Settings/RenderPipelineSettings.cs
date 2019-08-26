@@ -64,6 +64,7 @@ namespace UnityEngine.Rendering.HighDefinition
             dynamicResolutionSettings = GlobalDynamicResolutionSettings.@default,
             lowresTransparentSettings = GlobalLowResolutionTransparencySettings.@default,
             xrSettings = GlobalXRSettings.@default,
+            postProcessQualitySettings = GlobalPostProcessingQualitySettings.@default,
             supportRayTracing = false,
             supportedRaytracingTier = RaytracingTier.Tier2,
         };
@@ -110,5 +111,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public GlobalDynamicResolutionSettings dynamicResolutionSettings;
         public GlobalLowResolutionTransparencySettings lowresTransparentSettings;
         public GlobalXRSettings xrSettings;
+        public GlobalPostProcessingQualitySettings postProcessQualitySettings;
     }
 }
