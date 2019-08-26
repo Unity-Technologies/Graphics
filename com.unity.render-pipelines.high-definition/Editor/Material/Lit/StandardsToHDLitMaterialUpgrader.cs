@@ -218,7 +218,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             dstMaterial.SetColor("_EmissiveColor", hdrEmission);
 
-            HDShaderUtils.ResetMaterialKeywords(dstMaterial);
+            HDEditorUtils.ResetMaterialKeywords(dstMaterial);
         }
     }
 }

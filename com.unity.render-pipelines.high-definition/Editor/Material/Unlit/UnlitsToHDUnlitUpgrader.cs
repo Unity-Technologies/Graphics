@@ -37,7 +37,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             base.Convert(srcMaterial, dstMaterial);
 
-            HDShaderUtils.ResetMaterialKeywords(dstMaterial);
+            HDEditorUtils.ResetMaterialKeywords(dstMaterial);
         }
     }
 }
