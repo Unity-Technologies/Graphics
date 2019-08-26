@@ -99,7 +99,7 @@ namespace UnityEditor.Rendering.HighDefinition
             if (CheckPropertyChanged(properties))
             {
                 foreach (var material in materials)
-                    HDShaderUtils.ResetMaterialKeywords(material);
+                    HDEditorUtils.ResetMaterialKeywords(material);
             }
 
             if (properties.Length > 0)

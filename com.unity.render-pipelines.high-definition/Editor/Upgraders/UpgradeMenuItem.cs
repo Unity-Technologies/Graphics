@@ -60,7 +60,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     if (mat.HasProperty(vectorToReset))
                         mat.SetVector(vectorToReset, defaultProperties.GetVector(vectorToReset));
 
-                HDShaderUtils.ResetMaterialKeywords(mat);
+                HDEditorUtils.ResetMaterialKeywords(mat);
 
                 mat.renderQueue = mat.shader.renderQueue;
 
@@ -92,8 +92,29 @@ namespace UnityEditor.Rendering.HighDefinition
                         "Update material " + caption + "...",
                         string.Format("{0} / {1} materials updated.", i, length),
                         i / (float)(length - 1));
-                    
-                    if (HDShaderUtils.IsHDRPShader(mat.shader))
+
+                    bool isHDRPShader = mat.shader.name == "HDRP/LitTessellation" ||
+                        mat.shader.name == "HDRP/Lit" ||
+                        mat.shader.name == "HDRP/LayeredLit" ||
+                        mat.shader.name == "HDRP/LayeredLitTessellation" ||
+                        mat.shader.name == "HDRP/StackLit" ||
+                        mat.shader.name == "HDRP/Unlit" ||
+                        mat.shader.name == "HDRP/Fabric" ||
+                        mat.shader.name == "HDRP/Decal" ||
+                        mat.shader.name == "HDRP/TerrainLit";
+
+                    if (mat.shader.IsShaderGraph())
+                    {
+                        var outputNodeType = GraphUtil.GetOutputNodeType(AssetDatabase.GetAssetPath(mat.shader));
+
+                        isHDRPShader |= outputNodeType == typeof(HDUnlitMasterNode);
+                        isHDRPShader |= outputNodeType == typeof(HDLitMasterNode);
+                        isHDRPShader |= outputNodeType == typeof(HairMasterNode);
+                        isHDRPShader |= outputNodeType == typeof(FabricMasterNode);
+                        isHDRPShader |= outputNodeType == typeof(StackLitMasterNode);
+                    }
+
+                    if (isHDRPShader)
                     {
                         // We don't handle embed material as we can't rewrite fbx files
                         if (Path.GetExtension(path).ToLower() == ".fbx")

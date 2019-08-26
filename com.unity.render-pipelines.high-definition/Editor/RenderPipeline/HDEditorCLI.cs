@@ -41,7 +41,7 @@ namespace UnityEditor.Rendering.HighDefinition
                         var path = AssetDatabase.GUIDToAssetPath(matIds[i]);
                         var mat = AssetDatabase.LoadAssetAtPath<Material>(path);
 
-                        if (HDShaderUtils.ResetMaterialKeywords(mat))
+                        if (HDEditorUtils.ResetMaterialKeywords(mat))
                             Console.WriteLine("[HDEditorCLI][ResetMaterialKeywords] " + path);
                     }
                     break;
