@@ -39,8 +39,6 @@ Pass
 		float4 cPosPrevious : TEXCOORD4;
 		float4 cPosNonJiterred : TEXCOORD5;
 		#endif
-		
-		UNITY_VERTEX_OUTPUT_STEREO
 	};
 	
 	struct ps_output
