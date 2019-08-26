@@ -2301,7 +2301,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 currentFrameSettings.SetEnabled(FrameSettingsField.ObjectMotionVectors, false);
             }
 
-            hdCamera = HDCamera.GetOrCreate(camera, xrPass);
+            hdCamera = HDCamera.GetOrCreate(camera, xrPass.multipassId);
 
             // From this point, we should only use frame settings from the camera
             hdCamera.Update(currentFrameSettings, this, m_MSAASamples, xrPass);

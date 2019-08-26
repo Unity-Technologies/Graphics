@@ -753,14 +753,14 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // Pass all the systems that may want to initialize per-camera data here.
         // That way you will never create an HDCamera and forget to initialize the data.
-        public static HDCamera GetOrCreate(Camera camera, XRPass xrPass)
+        public static HDCamera GetOrCreate(Camera camera, int xrMultipassId = 0)
         {
             HDCamera hdCamera;
 
-            if (!s_Cameras.TryGetValue((camera, xrPass.multipassId), out hdCamera))
-        {
+            if (!s_Cameras.TryGetValue((camera, xrMultipassId), out hdCamera))
+            {
                 hdCamera = new HDCamera(camera);
-                s_Cameras.Add((camera, xrPass.multipassId), hdCamera);
+                s_Cameras.Add((camera, xrMultipassId), hdCamera);
             }
 
             return hdCamera;
