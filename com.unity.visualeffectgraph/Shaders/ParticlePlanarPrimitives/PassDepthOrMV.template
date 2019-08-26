@@ -25,6 +25,10 @@ struct ps_input
 	float4 cPosPrevious : TEXCOORD3;
 	float4 cPosNonJiterred : TEXCOORD4;
 	#endif
+    
+    #if VFX_NEEDS_POSWS_INTERPOLATOR
+        float3 posWS : TEXCOORD5;
+    #endif
     ${VFXAdditionalInterpolantsDeclaration}
 	
 	UNITY_VERTEX_OUTPUT_STEREO

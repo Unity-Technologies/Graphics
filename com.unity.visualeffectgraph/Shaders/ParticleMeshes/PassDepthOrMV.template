@@ -32,6 +32,10 @@ struct ps_input
 	// y: motion vectors scale Y
 	nointerpolation float2 builtInInterpolants2 : TEXCOORD5;
 	#endif
+    
+    #if VFX_NEEDS_POSWS_INTERPOLATOR
+		float3 posWS : TEXCOORD8;
+    #endif
 	
 	#if IS_MOTION_VECTORS_PASS
 	float4 cPosPrevious : TEXCOORD6;
