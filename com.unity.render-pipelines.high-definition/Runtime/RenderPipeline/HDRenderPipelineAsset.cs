@@ -323,6 +323,22 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
 #endif
         }
+
+        public bool AddDiffusionProfile(DiffusionProfileSettings profile)
+        {
+            if (diffusionProfileSettingsList.Length < 15)
+            {
+                int index = diffusionProfileSettingsList.Length;
+                Array.Resize(ref diffusionProfileSettingsList, index + 1);
+                diffusionProfileSettingsList[index] = profile;
+                return true;
+            }
+            else
+            {
+                Debug.LogError("There are too many diffusion profile settings in your HDRP. Please remove one before adding a new one.");
+                return false;
+            }
+        }
 #endif
     }
 }

@@ -20,6 +20,11 @@
 // Helper functions/variable specific to this material
 //-----------------------------------------------------------------------------
 
+float4 GetDiffuseOrDefaultColor(BSDFData bsdfData, float replace)
+{
+    return float4(bsdfData.diffuseColor, 0.0);
+}
+
 float3 GetNormalForShadowBias(BSDFData bsdfData)
 {
 #if _USE_LIGHT_FACING_NORMAL

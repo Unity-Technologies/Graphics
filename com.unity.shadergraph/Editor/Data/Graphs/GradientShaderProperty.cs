@@ -17,11 +17,10 @@ namespace UnityEditor.ShaderGraph
             {
                 if(i < gradient.colorKeys.Length)
                 {
-                    colorKeys += string.Format("$precision4({0}, {1}, {2}, {3})"
-                        , gradient.colorKeys[i].color.r
-                        , gradient.colorKeys[i].color.g
-                        , gradient.colorKeys[i].color.b
-                        , gradient.colorKeys[i].time);
+                    colorKeys += $"$precision4({NodeUtils.FloatToShaderValue(gradient.colorKeys[i].color.r)}, " +
+                        $"{NodeUtils.FloatToShaderValue(gradient.colorKeys[i].color.g)}, " +
+                        $"{NodeUtils.FloatToShaderValue(gradient.colorKeys[i].color.b)}, " +
+                        $"{NodeUtils.FloatToShaderValue(gradient.colorKeys[i].time)})";
                 }
                 else
                     colorKeys += "$precision4(0, 0, 0, 0)";
@@ -34,9 +33,7 @@ namespace UnityEditor.ShaderGraph
             {
                 if(i < gradient.alphaKeys.Length)
                 {
-                    alphaKeys += string.Format("$precision2({0}, {1})"
-                        , gradient.alphaKeys[i].alpha
-                        , gradient.alphaKeys[i].time);
+                    alphaKeys += $"$precision2({NodeUtils.FloatToShaderValue(gradient.alphaKeys[i].alpha)}, {NodeUtils.FloatToShaderValue(gradient.alphaKeys[i].time)})";
                 }
                 else
                     alphaKeys += "$precision2(0, 0)";

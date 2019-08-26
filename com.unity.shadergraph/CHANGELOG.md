@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [6.10.0] - 2019-XX-XX
 ### Fixed
 - You can no longer directly connect slots with invalid types. When the graph detects that situation, it now doesn't break and gives an error instead.
+- Fixed an error that previously occurred when you used `Sampler State` input ports on Sub Graphs.
+- Fixed various dependency tracking issues with Sub Graphs and HLSL files from Custom Function Nodes.
+- Added support of Alembic velocity to various shaders
+- Renaming Properties no longer freezes the Shader Graph window.
+- Fixed an error that previously occurred when you used the Gradient Sample node and your system locale uses commas instead of periods.
 
 ## [6.9.0] - 2019-07-02
 

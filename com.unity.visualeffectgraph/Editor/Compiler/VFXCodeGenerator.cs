@@ -375,7 +375,7 @@ namespace UnityEditor.VFX
             }
 
             //< Final composition
-            var renderPipePath = UnityEngine.Experimental.VFX.VFXManager.renderPipeSettingsPath;
+            var renderPipePath = VFXLibrary.currentSRPBinder.templatePath;
             string renderPipeCommon = "Packages/com.unity.visualeffectgraph/Shaders/Common/VFXCommonCompute.cginc";
             string renderPipePasses = null;
 
