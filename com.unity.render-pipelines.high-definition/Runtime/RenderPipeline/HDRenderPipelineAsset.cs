@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine.Serialization;
+using Utilities;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -158,6 +159,31 @@ namespace UnityEngine.Rendering.HighDefinition
         [SerializeField]
         internal ShaderVariantLogLevel shaderVariantLogLevel = ShaderVariantLogLevel.Disabled;
 
+        public MaterialQuality materialQualityLevels = (MaterialQuality)(-1);
+
+        [SerializeField]
+        private MaterialQuality m_CurrentMaterialQualityLevel = MaterialQuality.High;
+
+        public MaterialQuality currentMaterialQualityLevel
+        {
+            get
+            {
+                if ((m_CurrentMaterialQualityLevel & materialQualityLevels) != m_CurrentMaterialQualityLevel)
+                {
+                    // Current quality level is not supported,
+                    // Pick the highest one
+                    var highest = materialQualityLevels.GetHighestQuality();
+                    if (highest == 0)
+                        // If none are available, still pick the lowest one
+                        highest = MaterialQuality.Low;
+
+                    return highest;
+                }
+
+                return m_CurrentMaterialQualityLevel;
+            }
+        }
+
         [SerializeField]
         [Obsolete("Use diffusionProfileSettingsList instead")]
         internal DiffusionProfileSettings diffusionProfileSettings;
@@ -211,6 +237,11 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 return m_RenderPipelineResources.shaders.defaultPS;
             }
+        }
+
+        static public bool AggreateRayTracingSupport(RenderPipelineSettings rpSetting)
+        {
+            return rpSetting.supportRayTracing && UnityEngine.SystemInfo.supportsRayTracing;
         }
 
 #if UNITY_EDITOR
@@ -314,11 +345,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
             }
             return false;
-        }
-
-        static public bool AggreateRayTracingSupport(RenderPipelineSettings rpSetting)
-        {
-            return rpSetting.supportRayTracing && UnityEngine.SystemInfo.supportsRayTracing;
         }
 
         // This function allows us to raise or remove some preprocessing defines based on the render pipeline settings

@@ -146,6 +146,7 @@ void InitBuiltinData(PositionInputs posInput, float alpha, float3 normalWS, floa
 
         #if SHADERPASS == SHADERPASS_FORWARD
         builtinData.bakeDiffuseLighting = LOAD_TEXTURE2D_X(_IndirectDiffuseTexture, posInput.positionSS).xyz;
+        builtinData.bakeDiffuseLighting *= GetInverseCurrentExposureMultiplier();
         #endif
     }
     else

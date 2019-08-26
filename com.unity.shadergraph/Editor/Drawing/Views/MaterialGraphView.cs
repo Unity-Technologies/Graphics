@@ -471,7 +471,11 @@ namespace UnityEditor.ShaderGraph.Drawing
             var propertyNodeGuids = nodes.OfType<PropertyNode>().Select(x => x.propertyGuid);
             var metaProperties = this.graph.properties.Where(x => propertyNodeGuids.Contains(x.guid));
 
-            var graph = new CopyPasteGraph(this.graph.assetGuid, groups, nodes, edges, inputs, metaProperties, notes);
+            // Collect the keyword nodes and get the corresponding keywords
+            var keywordNodeGuids = nodes.OfType<KeywordNode>().Select(x => x.keywordGuid);
+            var metaKeywords = this.graph.keywords.Where(x => keywordNodeGuids.Contains(x.guid));
+
+            var graph = new CopyPasteGraph(this.graph.assetGuid, groups, nodes, edges, inputs, metaProperties, metaKeywords, notes);
             return JsonUtility.ToJson(graph, true);
         }
 
@@ -491,6 +495,12 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             bool containsProperty = false;
 
+            // Keywords need to be tested against variant limit based on multiple factors
+            bool keywordsDirty = false;
+
+            // Track dependent keyword nodes to remove them
+            List<KeywordNode> keywordNodes = new List<KeywordNode>();
+
             foreach (var selectable in selection)
             {
                 var field = selectable as BlackboardField;
@@ -500,6 +510,9 @@ namespace UnityEditor.ShaderGraph.Drawing
                     {
                         case AbstractShaderProperty property:
                             containsProperty = true;
+                            break;
+                        case ShaderKeyword keyword:
+                            keywordNodes.AddRange(graph.GetNodes<KeywordNode>().Where(x => x.keywordGuid == keyword.guid));
                             break;
                         default:
                             throw new ArgumentOutOfRangeException();
@@ -516,12 +529,27 @@ namespace UnityEditor.ShaderGraph.Drawing
                 }
             }
 
+            // Filter nodes that cannot be deleted
+            var nodesToDelete = selection.OfType<IShaderNodeView>().Where(v => !(v.node is SubGraphOutputNode) && v.node.canDeleteNode).Select(x => x.node);
+            
+            // Add keyword nodes dependent on deleted keywords
+            nodesToDelete = nodesToDelete.Union(keywordNodes);
+
+            // If deleting a Sub Graph node whose asset contains Keywords test variant limit
+            foreach(SubGraphNode subGraphNode in nodesToDelete.OfType<SubGraphNode>())
+            {
+                if(subGraphNode.asset.keywords.Count > 0)
+                {
+                    keywordsDirty = true;
+                }
+            }
+            
             graph.owner.RegisterCompleteObjectUndo(operationName);
-            graph.RemoveElements(selection.OfType<IShaderNodeView>().Where(v => !(v.node is SubGraphOutputNode) && v.node.canDeleteNode).Select(x => x.node).ToArray(),
+            graph.RemoveElements(nodesToDelete.ToArray(),
                 selection.OfType<Edge>().Select(x => x.userData).OfType<IEdge>().ToArray(),
                 selection.OfType<ShaderGroup>().Select(x => x.userData).ToArray(),
                 selection.OfType<StickyNote>().Select(x => x.userData).ToArray());
-
+            
             foreach (var selectable in selection)
             {
                 var field = selectable as BlackboardField;
@@ -529,7 +557,19 @@ namespace UnityEditor.ShaderGraph.Drawing
                 {
                     var input = (ShaderInput)field.userData;
                     graph.RemoveGraphInput(input);
+
+                    // If deleting a Keyword test variant limit
+                    if(input is ShaderKeyword keyword)
+                    {
+                        keywordsDirty = true;
+                    }
                 }
+            }
+
+            // Test Keywords against variant limit
+            if(keywordsDirty)
+            {
+                graph.OnKeywordChangedNoValidate();
             }
 
             selection.Clear();
@@ -717,6 +757,18 @@ namespace UnityEditor.ShaderGraph.Drawing
                         node.propertyGuid = property.guid;
                         break;
                     }
+                    case ShaderKeyword keyword:
+                    {
+                        var node = new KeywordNode();
+                        var drawState = node.drawState;
+                        drawState.position =  new Rect(nodePosition, drawState.position.size);
+                        node.drawState = drawState;
+                        graph.AddNode(node);
+
+                        // Setting the guid requires the graph to be set first.
+                        node.keywordGuid = keyword.guid;
+                        break;
+                    }
                     default:
                         throw new ArgumentOutOfRangeException();
                 }
@@ -732,6 +784,9 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             if (copyGraph == null)
                 return;
+
+            // Keywords need to be tested against variant limit based on multiple factors
+            bool keywordsDirty = false;
 
             // Make new inputs from the copied graph
             foreach (ShaderInput input in copyGraph.inputs)
@@ -752,9 +807,36 @@ namespace UnityEditor.ShaderGraph.Drawing
                             node.propertyGuid = copiedInput.guid;
                         }
                         break;
+                    case ShaderKeyword shaderKeyword:
+                        // Update the keyword nodes that depends on the copied node
+                        var dependentKeywordNodes = copyGraph.GetNodes<KeywordNode>().Where(x => x.keywordGuid == input.guid);
+                        foreach (var node in dependentKeywordNodes)
+                        {
+                            node.owner = graphView.graph;
+                            node.keywordGuid = copiedInput.guid;
+                        }
+
+                        // Pasting a new Keyword so need to test against variant limit
+                        keywordsDirty = true;
+                        break;
                     default:
                         throw new ArgumentOutOfRangeException();
                 }
+            }
+
+            // Pasting a Sub Graph node that contains Keywords so need to test against variant limit
+            foreach(SubGraphNode subGraphNode in copyGraph.GetNodes<SubGraphNode>())
+            {
+                if(subGraphNode.asset.keywords.Count > 0)
+                {
+                    keywordsDirty = true;
+                }
+            }
+
+            // Test Keywords against variant limit
+            if(keywordsDirty)
+            {
+                graphView.graph.OnKeywordChangedNoValidate();
             }
 
             using (var remappedNodesDisposable = ListPool<AbstractMaterialNode>.GetDisposable())

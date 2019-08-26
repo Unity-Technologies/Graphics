@@ -27,6 +27,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // View-projection matrix from the previous frame (non-jittered)
             public Matrix4x4 prevViewProjMatrix;
+            public Matrix4x4 prevInvViewProjMatrix;
             public Matrix4x4 prevViewProjMatrixNoCameraTrans;
 
             // Utility matrix (used by sky) to map screen position to WS view direction
@@ -499,6 +500,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     viewConstants.prevWorldSpaceCameraPos = cameraPosition;
                     viewConstants.prevViewProjMatrix = gpuVP;
+                    viewConstants.prevInvViewProjMatrix = viewConstants.prevViewProjMatrix.inverse;
                 }
                 else
                 {
@@ -524,6 +526,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 Vector3 cameraDisplacement = viewConstants.worldSpaceCameraPos - viewConstants.prevWorldSpaceCameraPos;
                 viewConstants.prevWorldSpaceCameraPos -= viewConstants.worldSpaceCameraPos; // Make it relative w.r.t. the curr cam pos
                 viewConstants.prevViewProjMatrix *= Matrix4x4.Translate(cameraDisplacement); // Now prevViewProjMatrix correctly transforms this frame's camera-relative positionWS
+                viewConstants.prevInvViewProjMatrix = viewConstants.prevViewProjMatrix.inverse;
             }
             else
             {
@@ -750,14 +753,14 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // Pass all the systems that may want to initialize per-camera data here.
         // That way you will never create an HDCamera and forget to initialize the data.
-        public static HDCamera GetOrCreate(Camera camera, XRPass xrPass)
+        public static HDCamera GetOrCreate(Camera camera, int xrMultipassId = 0)
         {
             HDCamera hdCamera;
 
-            if (!s_Cameras.TryGetValue((camera, xrPass.multipassId), out hdCamera))
-        {
+            if (!s_Cameras.TryGetValue((camera, xrMultipassId), out hdCamera))
+            {
                 hdCamera = new HDCamera(camera);
-                s_Cameras.Add((camera, xrPass.multipassId), hdCamera);
+                s_Cameras.Add((camera, xrMultipassId), hdCamera);
             }
 
             return hdCamera;
@@ -815,6 +818,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetGlobalMatrix(HDShaderIDs._InvViewProjMatrix,         mainViewConstants.invViewProjMatrix);
             cmd.SetGlobalMatrix(HDShaderIDs._NonJitteredViewProjMatrix, mainViewConstants.nonJitteredViewProjMatrix);
             cmd.SetGlobalMatrix(HDShaderIDs._PrevViewProjMatrix,        mainViewConstants.prevViewProjMatrix);
+            cmd.SetGlobalMatrix(HDShaderIDs._PrevInvViewProjMatrix,     mainViewConstants.prevInvViewProjMatrix);
             cmd.SetGlobalMatrix(HDShaderIDs._CameraViewProjMatrix,      mainViewConstants.viewProjMatrix);
             cmd.SetGlobalVector(HDShaderIDs._WorldSpaceCameraPos,       mainViewConstants.worldSpaceCameraPos);
             cmd.SetGlobalVector(HDShaderIDs._PrevCamPosRWS,             mainViewConstants.prevWorldSpaceCameraPos);

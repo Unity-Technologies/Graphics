@@ -75,9 +75,19 @@ namespace UnityEditor.ShaderGraph
             NodeUtils.DepthFirstCollectNodesFromNode(activeNodeList, this);
 
             var shaderProperties = new PropertyCollector();
+            var shaderKeywords = new KeywordCollector();
             if (owner != null)
             {
                 owner.CollectShaderProperties(shaderProperties, mode);
+                owner.CollectShaderKeywords(shaderKeywords, mode);
+            }
+
+            if(owner.GetKeywordPermutationCount() > ShaderGraphPreferences.variantLimit)
+            {
+                owner.AddValidationError(tempId, ShaderKeyword.kVariantLimitWarning, Rendering.ShaderCompilerMessageSeverity.Error);
+                
+                configuredTextures = shaderProperties.GetConfiguredTexutres();
+                return ShaderGraphImporter.k_ErrorShader;
             }
 
             foreach (var activeNode in activeNodeList.OfType<AbstractMaterialNode>())
@@ -87,7 +97,7 @@ namespace UnityEditor.ShaderGraph
             finalShader.AppendLine(@"Shader ""{0}""", outputName);
             using (finalShader.BlockScope())
             {
-                GraphUtil.GeneratePropertiesBlock(finalShader, shaderProperties, mode);
+                GraphUtil.GeneratePropertiesBlock(finalShader, shaderProperties, shaderKeywords, mode);
 
                 foreach (var subShader in m_SubShaders)
                 {

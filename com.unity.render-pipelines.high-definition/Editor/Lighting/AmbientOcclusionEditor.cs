@@ -15,11 +15,12 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedDataParameter m_MaximumRadiusInPixels;
         SerializedDataParameter m_DirectLightingStrength;
 
-        SerializedDataParameter m_EnableRaytracing;
+        // Ray Tracing parameters
+        SerializedDataParameter m_RayTracing;
         SerializedDataParameter m_RayLength;
-        SerializedDataParameter m_EnableFilter;
-        SerializedDataParameter m_NumSamples;
-        SerializedDataParameter m_FilterRadius;
+        SerializedDataParameter m_SampleCount;
+        SerializedDataParameter m_Denoise;
+        SerializedDataParameter m_DenoiserRadius;
 
         public override void OnEnable()
         {
@@ -33,11 +34,12 @@ namespace UnityEditor.Rendering.HighDefinition
 
             m_DirectLightingStrength = Unpack(o.Find(x => x.directLightingStrength));
 
-            m_EnableRaytracing = Unpack(o.Find(x => x.enableRaytracing));
+            m_RayTracing = Unpack(o.Find(x => x.rayTracing));
             m_RayLength = Unpack(o.Find(x => x.rayLength));
-            m_EnableFilter = Unpack(o.Find(x => x.enableFilter));
-            m_NumSamples = Unpack(o.Find(x => x.numSamples));
-            m_FilterRadius = Unpack(o.Find(x => x.filterRadius));
+
+            m_Denoise = Unpack(o.Find(x => x.denoise));
+            m_SampleCount = Unpack(o.Find(x => x.sampleCount));
+            m_DenoiserRadius = Unpack(o.Find(x => x.denoiserRadius));
         }
 
         public override void OnInspectorGUI()
@@ -50,26 +52,34 @@ namespace UnityEditor.Rendering.HighDefinition
                 return;
             }
 
-            PropertyField(m_Intensity);
-            PropertyField(m_StepCount);
-            PropertyField(m_Radius);
-            PropertyField(m_MaximumRadiusInPixels);
-            PropertyField(m_FullResolution);
+#if ENABLE_RAYTRACING
+            PropertyField(m_RayTracing, EditorGUIUtility.TrTextContent("Ray Tracing", "Enable ray traced ambient occlusion."));
+#endif
 
-            PropertyField(m_DirectLightingStrength);
+            // Shared attributes
+            PropertyField(m_Intensity, EditorGUIUtility.TrTextContent("Intensity", "Controls the strength of the ambient occlusion effect. Increase this value to produce darker areas."));
+            PropertyField(m_DirectLightingStrength, EditorGUIUtility.TrTextContent("Direct Lighting Strength", "Controls how much the ambient light affects occlusion."));
 
 #if ENABLE_RAYTRACING
-            PropertyField(m_EnableRaytracing);
-            if (m_EnableRaytracing.overrideState.boolValue && m_EnableRaytracing.value.boolValue)
+            if (m_RayTracing.overrideState.boolValue && m_RayTracing.value.boolValue)
             {
-                EditorGUI.indentLevel++;
-                PropertyField(m_RayLength);
-                PropertyField(m_EnableFilter);
-                PropertyField(m_NumSamples);
-                PropertyField(m_FilterRadius);
-                EditorGUI.indentLevel--;
+                PropertyField(m_RayLength, EditorGUIUtility.TrTextContent("Ray Length", "Controls the length of ambient occlusion rays."));
+                PropertyField(m_SampleCount, EditorGUIUtility.TrTextContent("Sample Count", "Number of samples for ray traced ambient occlusion."));
+                PropertyField(m_Denoise, EditorGUIUtility.TrTextContent("Denoise", "Enable denoising on the ray traced ambient occlusion."));
+                {
+                    EditorGUI.indentLevel++;
+                    PropertyField(m_DenoiserRadius, EditorGUIUtility.TrTextContent("Denoiser Radius", "Radius parameter for the denoising."));
+                    EditorGUI.indentLevel--;
+                }
             }
+            else
 #endif
+            {
+                PropertyField(m_Radius, EditorGUIUtility.TrTextContent("Radius", "Sampling radius. Bigger the radius, wider AO will be achieved, risking to lose fine details and increasing cost of the effect due to increasing cache misses."));
+                PropertyField(m_MaximumRadiusInPixels, EditorGUIUtility.TrTextContent("Maximum Radius In Pixels", "This poses a maximum radius in pixels that we consider. It is very important to keep this as tight as possible to preserve good performance. Note that this is the value used for 1080p when *not* running the effect at full resolution, it will be scaled accordingly for other resolutions."));
+                PropertyField(m_FullResolution, EditorGUIUtility.TrTextContent("Full Resolution", "The effect runs at full resolution. This increases quality, but also decreases performance significantly."));
+                PropertyField(m_StepCount, EditorGUIUtility.TrTextContent("Step Count", "Number of steps to take along one signed direction during horizon search (this is the number of steps in positive and negative direction)."));
+            }
         }
     }
 }

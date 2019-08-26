@@ -12,6 +12,7 @@ namespace UnityEditor.Rendering.HighDefinition
         static readonly GUIContent k_LightingSectionTitle = EditorGUIUtility.TrTextContent("Lighting");
         static readonly GUIContent k_MaterialSectionTitle = EditorGUIUtility.TrTextContent("Material");
         static readonly GUIContent k_PostProcessSectionTitle = EditorGUIUtility.TrTextContent("Post-processing");
+        static readonly GUIContent k_XrTitle = EditorGUIUtility.TrTextContent("XR");
         static readonly GUIContent k_LightLoopSubTitle = EditorGUIUtility.TrTextContent("Lights");
         static readonly GUIContent k_PostProcessQualitySubTitle = EditorGUIUtility.TrTextContent("Post-processing Quality Settings");
 
@@ -47,6 +48,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         static readonly GUIContent k_DefaultFrameSettingsContent = EditorGUIUtility.TrTextContent("Default Frame Settings For");
 
+        static readonly GUIContent k_CurrentMaterialQualityLevelContent = EditorGUIUtility.TrTextContent("Current Material Quality Level", "");
         static readonly GUIContent k_RenderPipelineResourcesContent = EditorGUIUtility.TrTextContent("Render Pipeline Resources", "Set of resources that need to be loaded when creating stand alone");
         static readonly GUIContent k_RenderPipelineRayTracingResourcesContent = EditorGUIUtility.TrTextContent("Render Pipeline Ray Tracing Resources", "Set of resources that need to be loaded when using ray tracing");
         static readonly GUIContent k_RenderPipelineEditorResourcesContent = EditorGUIUtility.TrTextContent("Render Pipeline Editor Resources", "Set of resources that need to be loaded for working in editor");
@@ -139,6 +141,8 @@ namespace UnityEditor.Rendering.HighDefinition
         static readonly GUIContent k_LowResTransparentEnabled = EditorGUIUtility.TrTextContent("Enable", "When enabled, materials tagged as Low Res Transparent, will be rendered in a quarter res offscreen buffer and then composited to full res.");
         static readonly GUIContent k_CheckerboardDepthBuffer = EditorGUIUtility.TrTextContent("Checkerboarded depth buffer downsample", "When enabled, the depth buffer used for low res transparency is generated in a min/max checkerboard pattern from original full res buffer.");
         static readonly GUIContent k_LowResTranspUpsample = EditorGUIUtility.TrTextContent("Upsample type", "The type of upsampling filter used to composite the low resolution transparency.");
+
+        static readonly GUIContent k_XROcclusionMesh = EditorGUIUtility.TrTextContent("Occlusion Mesh", "When enabled, the occlusion mesh will be rendered for each view during the depth prepass to reduce shaded fragments.");
 
         static readonly GUIContent k_LutSize = EditorGUIUtility.TrTextContent("Grading LUT Size", "Sets size of the internal and external color grading lookup textures (LUTs).");
         static readonly GUIContent k_LutFormat = EditorGUIUtility.TrTextContent("Grading LUT Format", "Specifies the encoding format for color grading lookup textures. Lower precision formats are faster and use less memory at the expense of color precision.");

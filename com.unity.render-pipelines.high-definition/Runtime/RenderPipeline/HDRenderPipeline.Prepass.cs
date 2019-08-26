@@ -300,7 +300,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             bool clearGBuffer = NeedClearGBuffer();
             bool lightLayers = frameSettings.IsEnabled(FrameSettingsField.LightLayers);
-            bool shadowMasks = frameSettings.IsEnabled(FrameSettingsField.ShadowMask);
+            bool shadowMasks = frameSettings.IsEnabled(FrameSettingsField.Shadowmask);
 
             passData.depthBuffer = builder.UseDepthBuffer(prepassOutput.depthBuffer, DepthAccess.ReadWrite);
             passData.gbufferRT[0] = builder.UseColorBuffer(sssBuffer, 0);
