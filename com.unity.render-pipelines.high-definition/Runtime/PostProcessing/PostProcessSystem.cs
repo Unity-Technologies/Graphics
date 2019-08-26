@@ -524,7 +524,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Final pass
                 using (new ProfilingSample(cmd, "Final Pass", CustomSamplerId.FinalPost.GetSampler()))
                 {
-                    DoFinalPass(cmd, camera, blueNoise, source, afterPostProcessTexture, finalRT, flipY);
+                    DoFinalPass(cmd, camera, blueNoise, source, afterPostProcessTexture, depthBuffer, finalRT, flipY);
                     PoolSource(ref source, null);
                 }
             }
@@ -616,7 +616,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             int kernel = 0;
 
-            if (m_Exposure.mode == ExposureMode.Fixed)
+            if (m_Exposure.mode.value == ExposureMode.Fixed)
             {
                 kernel = cs.FindKernel("KFixedExposure");
                 cmd.SetComputeVectorParam(cs, HDShaderIDs._ExposureParams, new Vector4(m_Exposure.fixedExposure.value, 0f, 0f, 0f));
@@ -780,16 +780,9 @@ namespace UnityEngine.Rendering.HighDefinition
             m_TAAPropertyBlock.SetTexture(HDShaderIDs._InputHistoryTexture, prevHistory);
 
             CoreUtils.SetRenderTarget(cmd, destination, depthBuffer);
+            cmd.SetRandomWriteTarget(1, nextHistory);
             cmd.DrawProcedural(Matrix4x4.identity, m_TemporalAAMaterial, 0, MeshTopology.Triangles, 3, 1, m_TAAPropertyBlock);
-
-            // Copy history. 
-            var cs = m_Resources.shaders.CopyTAAHistoryCS;
-            var kernel = cs.FindKernel("CopyTAAHistory");
-
-            cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputHistoryTexture, destination);
-            cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputHistoryTexture, nextHistory);
-            cmd.DispatchCompute(cs, kernel, (camera.actualWidth + 7) / 8, (camera.actualHeight + 7) / 8, camera.viewCount);
-
+            cmd.ClearRandomWriteTargets();
         }
 
         static void GrabTemporalAntialiasingHistoryTextures(HDCamera camera, out RTHandle previous, out RTHandle next)
@@ -834,7 +827,7 @@ namespace UnityEngine.Rendering.HighDefinition
             Assert.IsTrue(nearLayerActive || farLayerActive);
 
             bool bothLayersActive = nearLayerActive && farLayerActive;
-            bool useTiles = !camera.xr.instancingEnabled;
+            bool useTiles = !camera.xr.singlePassEnabled;
             bool hqFiltering = m_DepthOfField.highQualityFiltering.value;
 
             const uint kIndirectNearOffset = 0u * sizeof(uint);
@@ -2198,7 +2191,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         #region Final Pass
 
-        void DoFinalPass(CommandBuffer cmd, HDCamera camera, BlueNoise blueNoise, RTHandle source, RTHandle afterPostProcessTexture, RenderTargetIdentifier destination, bool flipY)
+        void DoFinalPass(CommandBuffer cmd, HDCamera camera, BlueNoise blueNoise, RTHandle source, RTHandle afterPostProcessTexture, RTHandle depthBuffer, RenderTargetIdentifier destination, bool flipY)
         {
             // Final pass has to be done in a pixel shader as it will be the one writing straight
             // to the backbuffer eventually
@@ -2303,7 +2296,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_FinalPassMaterial.SetTexture(HDShaderIDs._AfterPostProcessTexture, TextureXR.GetBlackTexture());
             }
 
-            HDUtils.DrawFullScreen(cmd, backBufferRect, m_FinalPassMaterial, destination);
+            HDUtils.DrawFullScreen(cmd, backBufferRect, m_FinalPassMaterial, destination, depthBuffer);
         }
 
         #endregion

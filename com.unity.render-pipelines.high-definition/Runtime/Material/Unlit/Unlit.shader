@@ -69,7 +69,7 @@ Shader "HDRP/Unlit"
         [HideInInspector] _StencilRefMV("_StencilRefMV", Int) = 128 // StencilBitMask.ObjectMotionVectors
         [HideInInspector] _StencilWriteMaskMV("_StencilWriteMaskMV", Int) = 128 // StencilBitMask.ObjectMotionVectors
 
-        [ToggleUI] _AddVelocityChange("EnableAdditionalVelocity", Float) = 0.0
+        [ToggleUI] _AddPrecomputedVelocity("AddPrecomputedVelocity", Float) = 0.0
 
         // Distortion vector pass
         [HideInInspector] _StencilRefDistortionVec("_StencilRefDistortionVec", Int) = 64 // StencilBitMask.DistortionVectors
@@ -110,7 +110,7 @@ Shader "HDRP/Unlit"
     #pragma shader_feature_local _ _BLENDMODE_ALPHA _BLENDMODE_ADD _BLENDMODE_PRE_MULTIPLY
     #pragma shader_feature_local _ENABLE_FOG_ON_TRANSPARENT
 
-    #pragma shader_feature_local _ADDITIONAL_VELOCITY_CHANGE
+    #pragma shader_feature_local _ADD_PRECOMPUTED_VELOCITY
 
 
     //enable GPU instancing support

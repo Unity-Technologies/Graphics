@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 - Moved High Definition templates and includes to com.unity.render-pipelines.high-definition package
 - Navigation commands for subgraph.
+- Allow choosing the place to save vfx subgraph.
 
 ### Fixed
 - Using struct as subgraph parameters.
@@ -19,6 +20,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed some outputs failing to compile when used with certain UV Modes [Case 1126200] (https://issuetracker.unity3d.com/issues/output-some-outputs-fail-to-compile-when-used-with-certain-uv-modes)
 - Removed Gradient Mapping Mode from some outputs type where it was irrelevant [Case 1164045]
 - Soft Particles work with Distortion outputs [Case 1167426] (https://issuetracker.unity3d.com/issues/output-soft-particles-do-not-work-with-distortion-outputs)
+- category rename rect.
+- copy settings while converting an output
+- toolbar toggle appearing light with light skin.
+- multiselection of gradient in visual effect graph
+- clipped "reseed" in visual effect editor
 
 ## [7.0.1] - 2019-07-25
 ### Added

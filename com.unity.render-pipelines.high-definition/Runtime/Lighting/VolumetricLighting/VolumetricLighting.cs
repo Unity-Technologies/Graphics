@@ -420,7 +420,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (accountForXR)
             {
-                // With stereo instancing, the VBuffer is doubled and split into 2 compartments for each eye
+                // With XR single-pass, the VBuffer size is increased and split into compartments for each eye
                 if (TextureXR.useTexArray)
                     result = result * TextureXR.slices;
             }
@@ -525,9 +525,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_VisibleVolumeData.Clear();
 
                 // Collect all visible finite volume data, and upload it to the GPU.
-                DensityVolume[] volumes = DensityVolumeManager.manager.PrepareDensityVolumeData(cmd, hdCamera.camera, time);
+                var volumes = DensityVolumeManager.manager.PrepareDensityVolumeData(cmd, hdCamera.camera, time);
 
-                for (int i = 0; i < Math.Min(volumes.Length, k_MaxVisibleVolumeCount); i++)
+                for (int i = 0; i < Math.Min(volumes.Count, k_MaxVisibleVolumeCount); i++)
                 {
                     DensityVolume volume = volumes[i];
 

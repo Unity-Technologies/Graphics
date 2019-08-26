@@ -27,7 +27,7 @@ Use HDRP to render distance GameObjects with large world-space coordinates in a 
 
 ### Dynamic resolution
 
-When you use dynamic resolution, HDRP renders Scenes at the maximum resolution for your target platforms, and rescales the viewport accordingly, so it can render at varying resolutions. This helps maintain a stable frame rate in your Unity Project. For more information on dynamic resolution, as well as the types that HDRP supports, see the [dynamic resolution documentation](Dynamic-Resolution.html).
+When you use dynamic resolution, HDRP can render at varying resolutions. To do this, it either uses hardware features, if available, or renders to render targets that are equal size or smaller than the current viewport. This helps maintain a stable frame rate in your Unity Project. For more information on dynamic resolution, as well as the types that HDRP supports, see the [dynamic resolution documentation](Dynamic-Resolution.html).
 
 ### Volumes
 
@@ -159,6 +159,10 @@ For more information, including the full list of light properties, see the [Ligh
 
 HDRP supports cubemap and planar GPU Reflection Probes to help you produce realistic reflections in your Scene in real time. For more information, see the [introduction to Reflection Probes](Reflection-Probes-Intro.html)
 
+### Screen-space reflection and refraction
+
+HDRP provides a screen-space solution for reflection and refraction. It uses the depth and color buffer of the screen to help simulate the path that light travels to the Camera and thus calculate accurate reflection and refraction. For more information, see the [screen-space reflection](Reflection-in-HDRP.html#ScreenSPaceReflection) and [screen-space refraction](Refraction-in-HDRP.html#ScreenSpaceRefraction) documentation.
+
 ### Emission
 
 ![](Images/HDRPFeatures-Emission.png)
@@ -175,7 +179,9 @@ HDRP uses multiple methods to calculate shadows:
 - [Contact Shadows](Override-Contact-Shadows.html): HDRP [raymarches](Glossary.html#RayMarching) inside the depth buffer to process these shadows. That way, HDRP captures small details that regular shadow algorithms fail to capture.
 - [Micro Shadows](Override-Micro-Shadows.html): HDRP uses the normal map and ambient occlusion map of a Material to estimate the shadows that those maps would cast if they were Meshes.
 
-To decrease aliasing for the main cascade shadow maps, you can apply different filters to those maps. For more information on the filtering algorithms that HDRP uses, see the [filtering qualities documentation](Shadows-in-HDRP.html#FilteringQualities).
+To decrease aliasing for the main cascade shadow maps, you can apply different filters to them, like PCF or PCSS.
+
+For punctual and area light shadows, HDRP allows for dynamic resolution based on how much screen the light covers. HDRP rescales the content of the shadow atlas when it would be otherwise full.  For more information on the filtering algorithms that HDRP uses, see the [filtering qualities documentation](Shadows-in-HDRP.html#FilteringQualities).
 
 <a name="SkyOverview"></a>
 
@@ -201,6 +207,7 @@ In HDRP, you set up fog, inside a [Volume](Volumes.html),so you can change fog s
 - [Exponential Fog](Override-Exponential-Fog.html): Increases fog density exponentially with view distance and world space height. This fog type offers a more realistic fog effect than linear fog, but is more resource intensive. 
 - [Linear Fog](Override-Linear-Fog.html): Increases fog density linearly with view distance and world space height. This is useful for applying fog to rendering large low-priority areas of your Scene because it is less resource intensive than the other fog types. 
 - [Volumetric Fog](Override-Volumetric-Fog.html): Volumetric fog realistically simulates lights that interact with fog, such as glow and crepuscular rays. Volumetric fog works with Directional, Point, and Spot lights.
+
 
 ### Light Layers 
 
@@ -251,13 +258,21 @@ HDRP uses a physically-based Camera system that works seamlessly with the other 
 
 ## Tools
 
-### Render Pipeline Debugger
-
-The Render Pipeline Debugger contains many debugging and visualization tools to help you to understand and solve any issues quickly. For more information on the Render Pipeline Debugger, includings a description of how to use it, see the [Render Pipeline Debugger documentation](Render-Pipeline-Debug-Window.html).
-
 ### Render Pipeline Wizard
 
 To help you set up HDRP quickly and correctly, HDRP provides the Render Pipeline Wizard. Use the wizard to fix configuration issues with a single button click, and create a template Scene that is already configured with default Scene settings. For more information on the Render Pipeline Wizard, including a description of how to use it, see the [Render Pipeline Wizard documentation](Render-Pipeline-Wizard.html).
+
+### Render Pipeline Debugger
+
+The Render Pipeline Debugger contains many debugging and visualization tools to help you to understand and solve any issues quickly. For more information on the Render Pipeline Debugger, including a description of how to use it, see the [Render Pipeline Debugger documentation](Render-Pipeline-Debug-Window.html).
+
+### LookDev
+![](Images/HDRPFeatures-LookDev.png)
+The LookDev is a viewer that allows you to import and display Assets in a good, consistent lighting environment. Use it to validate outsourced Assets or to showcase your own created Asset with HDRP. For more information on the LookDev, including a description of how to use it, see the [LookDev documentation](LookDev.html).
+
+### MatCap mode
+
+In MatCap mode, HDRP replaces the functionality of the Scene window's Lighting button with a material capture (MatCap) view. This mode is particularly useful to navigate and get a sense of the Scene without setting up the Scene lighting. For more information on the MatCap mode, including a description of how to use it, see [MatCap mode](MatCap.html)
 
 <a name="Programming"></a>
 

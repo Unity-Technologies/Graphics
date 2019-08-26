@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine.Experimental.Rendering;
+using UnityEngine.Experimental.Rendering.RenderGraphModule;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -240,7 +241,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             // store a shortcut on HDAdditionalCameraData (done here and not in the constructor as
             // we don't create HDCamera at every frame and user can change the HDAdditionalData later (Like when they create a new scene).
-            m_AdditionalCameraData = camera.GetComponent<HDAdditionalCameraData>();
+            camera.TryGetComponent<HDAdditionalCameraData>(out m_AdditionalCameraData);
 
             m_XRPass = xrPass;
             m_frameSettings = currentFrameSettings;
@@ -417,8 +418,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             UpdateViewConstants(ref mainViewConstants, proj, view, cameraPosition, jitterProjectionMatrix, updatePreviousFrameConstants);
 
-            // XR instancing support
-            if (xr.instancingEnabled)
+            // XR single-pass support
+            if (xr.singlePassEnabled)
             {
                 for (int viewIndex = 0; viewIndex < viewCount; ++viewIndex)
                 {
@@ -431,7 +432,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
             else
             {
-                // Compute shaders always use the XR instancing path due to the lack of multi-compile
+                // Compute shaders always use the XR single-pass path due to the lack of multi-compile
                 xrViewConstants[0] = mainViewConstants;
             }
 
@@ -619,7 +620,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public void GetPixelCoordToViewDirWS(Vector4 resolution, ref Matrix4x4[] transforms)
         {
-            if (xr.instancingEnabled)
+            if (xr.singlePassEnabled)
             {
                 for (int viewIndex = 0; viewIndex < viewCount; ++viewIndex)
                 {
@@ -777,14 +778,17 @@ namespace UnityEngine.Rendering.HighDefinition
         // Look for any camera that hasn't been used in the last frame and remove them from the pool.
         public static void CleanUnused()
         {
-            foreach (var kvp in s_Cameras)
+
+            foreach (var key in s_Cameras.Keys)
             {
+                var camera = s_Cameras[key];
+
                 // Unfortunately, the scene view camera is always isActiveAndEnabled==false so we can't rely on this. For this reason we never release it (which should be fine in the editor)
-                if (kvp.Value.camera != null && kvp.Value.camera.cameraType == CameraType.SceneView)
+                if (camera.camera != null && camera.camera.cameraType == CameraType.SceneView)
                     continue;
 
-                if (kvp.Value.camera == null || !kvp.Value.camera.isActiveAndEnabled)
-                    s_Cleanup.Add(kvp.Key);
+                if (camera.camera == null || !camera.camera.isActiveAndEnabled)
+                    s_Cleanup.Add(key);
             }
 
             foreach (var cam in s_Cleanup)
@@ -843,7 +847,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             cmd.SetGlobalInt(HDShaderIDs._FrameCount,        frameCount);
 
-            // TODO: qualify this code with xrInstancingEnabled when compute shaders can use keywords
+            // TODO: qualify this code with xr.singlePassEnabled when compute shaders can use keywords
             cmd.SetGlobalInt(HDShaderIDs._XRViewCount, viewCount);
             cmd.SetGlobalBuffer(HDShaderIDs._XRViewConstants, xrViewConstantsGpu);
         }
@@ -892,7 +896,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_HistoryRTSystem.ReleaseAll();
         }
 
-        public void ExecuteCaptureActions(RTHandle input, CommandBuffer cmd)
+        internal void ExecuteCaptureActions(RTHandle input, CommandBuffer cmd)
         {
             if (m_RecorderCaptureActions == null || !m_RecorderCaptureActions.MoveNext())
                 return;
@@ -914,6 +918,50 @@ namespace UnityEngine.Rendering.HighDefinition
 
             for (m_RecorderCaptureActions.Reset(); m_RecorderCaptureActions.MoveNext();)
                 m_RecorderCaptureActions.Current(m_RecorderTempRT, cmd);
+        }
+
+        class ExecuteCaptureActionsPassData
+        {
+            public RenderGraphResource input;
+            public RenderGraphMutableResource tempTexture;
+            public IEnumerator<Action<RenderTargetIdentifier, CommandBuffer>> recorderCaptureActions;
+            public Vector2 viewportScale;
+            public Material blitMaterial;
+        }
+
+        internal void ExecuteCaptureActions(RenderGraph renderGraph, RenderGraphResource input)
+        {
+            if (m_RecorderCaptureActions == null || !m_RecorderCaptureActions.MoveNext())
+                return;
+
+            using (var builder = renderGraph.AddRenderPass<ExecuteCaptureActionsPassData>("Execute Capture Actions", out var passData))
+            {
+                var inputDesc = renderGraph.GetTextureDesc(input);
+                var rtHandleScale = renderGraph.rtHandleProperties.rtHandleScale;
+                passData.viewportScale = new Vector2(rtHandleScale.x, rtHandleScale.y);
+                passData.blitMaterial = HDUtils.GetBlitMaterial(inputDesc.dimension);
+                passData.recorderCaptureActions = m_RecorderCaptureActions;
+                passData.input = builder.ReadTexture(input);
+                // We need to blit to an intermediate texture because input resolution can be bigger than the camera resolution
+                // Since recorder does not know about this, we need to send a texture of the right size.
+                passData.tempTexture = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(actualWidth, actualHeight)
+                    { colorFormat = inputDesc.colorFormat, name = "TempCaptureActions" }));
+
+                builder.SetRenderFunc(
+                (ExecuteCaptureActionsPassData data, RenderGraphContext ctx) =>
+                {
+                    var tempRT = ctx.resources.GetTexture(data.tempTexture);
+                    var mpb = ctx.renderGraphPool.GetTempMaterialPropertyBlock();
+                    mpb.SetTexture(HDShaderIDs._BlitTexture, ctx.resources.GetTexture(data.input));
+                    mpb.SetVector(HDShaderIDs._BlitScaleBias, data.viewportScale);
+                    mpb.SetFloat(HDShaderIDs._BlitMipLevel, 0);
+                    ctx.cmd.SetRenderTarget(tempRT);
+                    ctx.cmd.DrawProcedural(Matrix4x4.identity, data.blitMaterial, 0, MeshTopology.Triangles, 3, 1, mpb);
+
+                    for (data.recorderCaptureActions.Reset(); data.recorderCaptureActions.MoveNext();)
+                        data.recorderCaptureActions.Current(tempRT, ctx.cmd);
+                });
+            }
         }
     }
 }

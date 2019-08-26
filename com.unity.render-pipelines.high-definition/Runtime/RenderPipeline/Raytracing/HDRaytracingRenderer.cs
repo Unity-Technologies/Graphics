@@ -135,8 +135,10 @@ namespace UnityEngine.Rendering.HighDefinition
             RecursiveRendering recursiveSettings = VolumeManager.instance.stack.GetComponent<RecursiveRendering>();
 
             // Check the validity of the state before computing the effect
-            bool invalidState = rtEnvironment == null || !recursiveSettings.enable.value
-            || m_PipelineAsset.currentPlatformRenderPipelineSettings.supportedRaytracingTier == RenderPipelineSettings.RaytracingTier.Tier1;
+            bool invalidState = !hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing)
+                || rtEnvironment == null
+                || !recursiveSettings.enable.value
+                || m_PipelineAsset.currentPlatformRenderPipelineSettings.supportedRaytracingTier == RenderPipelineSettings.RaytracingTier.Tier1;
 
             // If any resource or game-object is missing We stop right away
             if (invalidState)
