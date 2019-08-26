@@ -67,8 +67,11 @@ namespace UnityEditor.VFX
                 case PropertyType.Texture2DArray:
                     return ((Texture2DArrayShaderProperty)property).value.textureArray;
                 default:
-                    PropertyInfo info = property.GetType().GetProperty("value", BindingFlags.Public | BindingFlags.Instance | BindingFlags.FlattenHierarchy);
-                    return info?.GetValue(property);
+                    {
+                        var type = GetSGPropertyType(property);
+                        PropertyInfo info = property.GetType().GetProperty("value", BindingFlags.Public | BindingFlags.Instance | BindingFlags.FlattenHierarchy);
+                        return VFXConverter.ConvertTo(info?.GetValue(property),type);
+                    }
             }
         }
 
@@ -98,7 +101,7 @@ namespace UnityEditor.VFX
                         .Where(t => !t.hidden)
                         .Select(t => new { property = t, type = GetSGPropertyType(t) })
                         .Where(t => t.type != null)
-                        .Select(t => new VFXPropertyWithValue(new VFXProperty(t.type, t.property.referenceName), GetSGPropertyValue(t.property))));
+                        .Select(t => new VFXPropertyWithValue(new VFXProperty(t.type, t.property.referenceName), GetSGPropertyValue(t.property)))).ToArray();
                 }
                 return properties;
             }
