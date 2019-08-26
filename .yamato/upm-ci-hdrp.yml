@@ -1,5 +1,5 @@
 editors:
-  - version: graphics/vfx/feature/named-systems
+  - version: trunk
 platforms:
   - name: Windows64
     type: Unity::VM::GPU
