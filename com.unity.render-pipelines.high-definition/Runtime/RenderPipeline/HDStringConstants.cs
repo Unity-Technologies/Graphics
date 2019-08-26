@@ -567,7 +567,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _NormalHistoryCriterion          = Shader.PropertyToID("_NormalHistoryCriterion");
         public static readonly int _DenoiseInputTexture             = Shader.PropertyToID("_DenoiseInputTexture");
         public static readonly int _DenoiseOutputTextureRW          = Shader.PropertyToID("_DenoiseOutputTextureRW");
-        public static readonly int _HalfResolutionFilter            = Shader.PropertyToID("_HalfResolutionFilter"); 
+        public static readonly int _HalfResolutionFilter            = Shader.PropertyToID("_HalfResolutionFilter");
+        public static readonly int _DenoisingHistorySlot            = Shader.PropertyToID("_DenoisingHistorySlot");
 
         // Reflections
         public static readonly int _ReflectionHistorybufferRW       = Shader.PropertyToID("_ReflectionHistorybufferRW");

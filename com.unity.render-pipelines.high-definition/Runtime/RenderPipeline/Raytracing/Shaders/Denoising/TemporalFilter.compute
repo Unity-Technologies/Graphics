@@ -2,9 +2,11 @@
 
 #pragma kernel TemporalAccumulationSingle           TEMPORAL_ACCUMULATION=TemporalAccumulationSingle SINGLE_CHANNEL
 #pragma kernel TemporalAccumulationColor            TEMPORAL_ACCUMULATION=TemporalAccumulationColor
+#pragma kernel TemporalAccumulationSingleArray      TEMPORAL_ACCUMULATION=TemporalAccumulationSingleArray SINGLE_CHANNEL HISTORY_IS_ARRAY
 
 #pragma kernel CopyHistorySingle                    COPY_HISTORY=CopyHistorySingle SINGLE_CHANNEL
 #pragma kernel CopyHistoryColor                     COPY_HISTORY=CopyHistoryColor 
+#pragma kernel CopyHistorySingleArray               COPY_HISTORY=CopyHistorySingleArray SINGLE_CHANNEL HISTORY_IS_ARRAY
 
 // Common includes
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
@@ -116,6 +118,10 @@ RW_TEXTURE2D_X(float2, _DenoiseOutputTextureRW);
 RW_TEXTURE2D_X(float4, _DenoiseOutputTextureRW);
 #endif
 
+#ifdef HISTORY_IS_ARRAY
+int _DenoisingHistorySlot;
+#endif
+
 [numthreads(TEMPORAL_FILTER_TILE_SIZE, TEMPORAL_FILTER_TILE_SIZE, 1)]
 void TEMPORAL_ACCUMULATION(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
 {
@@ -144,13 +150,17 @@ void TEMPORAL_ACCUMULATION(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId
 
     // Fetch the current value, history value and current sample count
     #if SINGLE_CHANNEL
-    float color = _DenoiseInputTexture[COORD_TEXTURE2D_X(centerCoord)].x;
-    float2 history = _HistoryBuffer[COORD_TEXTURE2D_X(historyTapCoord)].xy;
+    float color = LOAD_TEXTURE2D_X(_DenoiseInputTexture, centerCoord).x;
+    #if HISTORY_IS_ARRAY
+    float2 history = LOAD_TEXTURE2D_ARRAY(_HistoryBuffer, historyTapCoord, _DenoisingHistorySlot).xy;
+    #else
+    float2 history = LOAD_TEXTURE2D_X(_HistoryBuffer, historyTapCoord).xy;
+    #endif
     float sampleCount = history.y;
     #else
     // Get the current sample to filter
-    float3 color = _DenoiseInputTexture[COORD_TEXTURE2D_X(centerCoord)].xyz;
-    float4 history = _HistoryBuffer[COORD_TEXTURE2D_X(historyTapCoord)];
+    float3 color = LOAD_TEXTURE2D_X(_DenoiseInputTexture, centerCoord).xyz;
+    float4 history = LOAD_TEXTURE2D_X(_HistoryBuffer, historyTapCoord);
     float sampleCount = history.w;
     #endif
 
@@ -188,9 +198,13 @@ void COPY_HISTORY(uint3 dispatchThreadId : SV_DispatchThreadID)
     if (any(dispatchThreadId.xy > uint2(_ScreenSize.xy)))
         return;  // Out of bounds, discard
 
-    #if SINGLE_CHANNEL
-    _DenoiseOutputTextureRW[COORD_TEXTURE2D_X(dispatchThreadId.xy)] = _DenoiseInputTexture[COORD_TEXTURE2D_X(dispatchThreadId.xy)].xy;
+#if SINGLE_CHANNEL
+    #if HISTORY_IS_ARRAY
+    _DenoiseOutputTextureRW[uint3(dispatchThreadId.xy, _DenoisingHistorySlot)] = _DenoiseInputTexture[COORD_TEXTURE2D_X(dispatchThreadId.xy)].xy;
     #else
-    _DenoiseOutputTextureRW[COORD_TEXTURE2D_X(dispatchThreadId.xy)] = _DenoiseInputTexture[COORD_TEXTURE2D_X(dispatchThreadId.xy)];
+    _DenoiseOutputTextureRW[COORD_TEXTURE2D_X(dispatchThreadId.xy)] = _DenoiseInputTexture[COORD_TEXTURE2D_X(dispatchThreadId.xy)].xy;
     #endif
+#else
+    _DenoiseOutputTextureRW[COORD_TEXTURE2D_X(dispatchThreadId.xy)] = _DenoiseInputTexture[COORD_TEXTURE2D_X(dispatchThreadId.xy)];
+#endif
 }

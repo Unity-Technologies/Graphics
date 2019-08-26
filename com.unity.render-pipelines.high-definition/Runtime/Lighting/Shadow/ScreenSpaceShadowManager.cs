@@ -1,5 +1,6 @@
 using System;
 using UnityEngine.Experimental.Rendering;
+using UnityEngine.Experimental.Rendering.HighDefinition;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -182,16 +183,17 @@ namespace UnityEngine.Rendering.HighDefinition
                     // Apply the simple denoiser (if required)
                     if (m_CurrentSunLightAdditionalLightData.filterTracedShadow)
                     {
+                        // Apply the temporal denoiser
+                        HDTemporalFilter temporalFilter = m_RayTracingManager.GetTemporalFilter();
+                        temporalFilter.DenoiseBuffer(cmd, hdCamera, m_DenoiseBuffer0, shadowHistoryArray, m_DenoiseBuffer1, singleChannel: true, slotIndex: m_CurrentSunLightDirectionalLightData.screenSpaceShadowIndex);
+
+                        // Apply the spatial denoiser
                         HDSimpleDenoiser simpleDenoiser = m_RayTracingManager.GetSimpleDenoiser();
-                        simpleDenoiser.DenoiseBuffer(cmd, hdCamera, m_DenoiseBuffer0, shadowHistoryArray, m_DenoiseBuffer1, m_CurrentSunLightAdditionalLightData.filterSizeTraced, singleChannel: true, slotIndex: m_CurrentSunLightDirectionalLightData.screenSpaceShadowIndex);
-                    }
-                    else
-                    {
-                        HDUtils.BlitCameraTexture(cmd, m_DenoiseBuffer0, m_DenoiseBuffer1);
+                        simpleDenoiser.DenoiseBufferNoHistory(cmd, hdCamera, m_DenoiseBuffer1, m_DenoiseBuffer0, m_CurrentSunLightAdditionalLightData.filterSizeTraced, singleChannel: true);
                     }
 
                     shadowComputeKernel = shadowsCompute.FindKernel("OutputShadowTexture");
-                    cmd.SetComputeTextureParam(shadowsCompute, shadowComputeKernel, HDShaderIDs._RaytracedDirectionalShadowIntegration, m_DenoiseBuffer1);
+                    cmd.SetComputeTextureParam(shadowsCompute, shadowComputeKernel, HDShaderIDs._RaytracedDirectionalShadowIntegration, m_DenoiseBuffer0);
                     cmd.SetComputeTextureParam(shadowsCompute, shadowComputeKernel, HDShaderIDs._ScreenSpaceShadowsTextureRW, m_ScreenSpaceShadowTextureArray);
                     cmd.SetComputeIntParam(shadowsCompute, HDShaderIDs._RaytracingShadowSlot, m_CurrentSunLightDirectionalLightData.screenSpaceShadowIndex);
                     cmd.DispatchCompute(shadowsCompute, shadowComputeKernel, numTilesX, numTilesY, 1);

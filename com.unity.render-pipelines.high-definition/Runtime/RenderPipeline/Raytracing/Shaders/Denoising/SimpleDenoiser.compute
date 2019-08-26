@@ -33,7 +33,7 @@ TEXTURE2D_X(_DenoiseInputTexture);
 int _DenoiserFilterRadius;
 
 #ifdef HISTORY_IS_ARRAY
-int _HistorySlot;
+int _DenoisingHistorySlot;
 Texture2DArray<float4> _HistoryBuffer;
 #else
 TEXTURE2D_X(_HistoryBuffer);
@@ -69,7 +69,7 @@ void TEMPORAL_ACCUMULATION_SINGLE(uint2 groupThreadId : SV_GroupThreadID, uint2 
 
     float color = Fetch4(_DenoiseInputTexture, uv, 0.0, _RTHandleScale.xy).x;
     #ifdef HISTORY_IS_ARRAY
-    float history = Fetch4Array(_HistoryBuffer, _HistorySlot, posInputs.positionNDC - velocity, 0.0, _RTHandleScaleHistory.xy).x;
+    float history = Fetch4Array(_HistoryBuffer, _DenoisingHistorySlot, posInputs.positionNDC - velocity, 0.0, _RTHandleScaleHistory.xy).x;
     #else
     float history = Fetch4(_HistoryBuffer, posInputs.positionNDC - velocity, 0.0, _RTHandleScaleHistory.xy).x;
     #endif
@@ -182,9 +182,9 @@ void COPY_HISTORY(uint3 dispatchThreadId : SV_DispatchThreadID)
 
     #ifdef HISTORY_IS_ARRAY
         #ifdef SINGLE_CHANNEL
-        _DenoiseOutputTextureRW[uint3(dispatchThreadId.xy, _HistorySlot)] = _DenoiseInputTexture[COORD_TEXTURE2D_X(dispatchThreadId.xy)].x;
+        _DenoiseOutputTextureRW[uint3(dispatchThreadId.xy, _DenoisingHistorySlot)] = _DenoiseInputTexture[COORD_TEXTURE2D_X(dispatchThreadId.xy)].x;
         #else
-        _DenoiseOutputTextureRW[uint3(dispatchThreadId.xy, _HistorySlot)] = _DenoiseInputTexture[COORD_TEXTURE2D_X(dispatchThreadId.xy)];
+        _DenoiseOutputTextureRW[uint3(dispatchThreadId.xy, _DenoisingHistorySlot)] = _DenoiseInputTexture[COORD_TEXTURE2D_X(dispatchThreadId.xy)];
         #endif
     #else
         #ifdef SINGLE_CHANNEL
