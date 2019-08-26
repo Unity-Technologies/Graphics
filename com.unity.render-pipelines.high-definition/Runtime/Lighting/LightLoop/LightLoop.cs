@@ -2474,6 +2474,37 @@ namespace UnityEngine.Rendering.HighDefinition
             Profiler.EndSample();
         }
 
+        void ProcessDecals(int punctualLightCount, int areaLightCount, int reflectionProbeCount, int decalDatasCount, int viewCount)
+        {
+            int stride = punctualLightCount + areaLightCount + reflectionProbeCount + decalDatasCount;
+            int offset = punctualLightCount + areaLightCount + reflectionProbeCount;
+            for (int viewIndex = 0; viewIndex < viewCount; ++viewIndex)
+            {
+                int decalIndexOffset = stride * viewIndex + offset;
+                for (int i = 0; i < decalDatasCount; i++)
+                {
+                    int index = decalIndexOffset + i; 
+                    SFiniteLightBound sflb = m_lightList.m_Bounds[index];
+                    LightVolumeData lvd = m_lightList.m_LightVolumeData[index];
+                    sflb = DecalSystem.m_Bounds[i];
+                    lvd = DecalSystem.m_LightVolumes[i];
+                    m_lightList.m_Bounds[index] = sflb;
+                    m_lightList.m_LightVolumeData[index] = lvd;                            
+                }
+            }
+        }
+
+        void AdjustLightDataToCameraRelative(Vector3 camPosWS)
+        {
+            for (int lightIndex = 0; lightIndex < m_lightList.m_LightData.Length; lightIndex++)
+            {
+                // Caution: 'LightData.positionWS' is camera-relative after this point.
+                LightData lightData = m_lightList.m_LightData[lightIndex];
+                lightData.positionRWS -= camPosWS;
+                m_lightList.m_LightData[lightIndex] = lightData;
+            }
+        }
+
         // Return true if BakedShadowMask are enabled
         bool PrepareLightsForGPU(CommandBuffer cmd, HDCamera hdCamera, CullingResults cullResults,
             HDProbeCullingResults hdProbeCullingResults, DensityVolumeList densityVolumes, DebugDisplaySettings debugDisplaySettings, AOVRequestData aovRequest)
@@ -2544,13 +2575,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         // to allow the preceding code to work with the absolute world space coordinates.
                         if (ShaderConfig.s_CameraRelativeRendering != 0)
                         {
-                            for (int lightIndex = 0; lightIndex < m_lightList.m_LightData.Length; lightIndex++)
-                            {
-                                // Caution: 'LightData.positionWS' is camera-relative after this point.
-                                LightData lightData = m_lightList.m_LightData[lightIndex];
-                                lightData.positionRWS -= camPosWS;
-                                m_lightList.m_LightData[lightIndex] = lightData;
-                            }
+                            AdjustLightDataToCameraRelative(camPosWS);
                         }
                     }
                     Profiler.EndSample();
@@ -2573,24 +2598,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 if (decalDatasCount > 0)
                 {
-
-                    int stride = punctualLightCount + areaLightCount + reflectionProbeCount + decalDatasCount;
-                    int offset = punctualLightCount + areaLightCount + reflectionProbeCount;
-                    for (int viewIndex = 0; viewIndex < hdCamera.viewCount; ++viewIndex)
-                    {
-                        int viewOffset = stride * viewIndex;
-                        for (int i = 0; i < decalDatasCount; i++)
-                        {
-                            int index = viewOffset + offset + i; 
-                            SFiniteLightBound sflb = m_lightList.m_Bounds[index];
-                            LightVolumeData lvd = m_lightList.m_LightVolumeData[index];
-                            sflb = DecalSystem.m_Bounds[i];
-                            lvd = DecalSystem.m_LightVolumes[i];
-                            m_lightList.m_Bounds[index] = sflb;
-                            m_lightList.m_LightVolumeData[index] = lvd;                            
-                        }
-                    }
+                    ProcessDecals(punctualLightCount, areaLightCount, reflectionProbeCount, decalDatasCount, hdCamera.viewCount);
                 }
+
                 // Inject density volumes into the clustered data structure for efficient look up.
                 m_densityVolumeCount = densityVolumes.bounds != null ? densityVolumes.bounds.Count : 0;
 
