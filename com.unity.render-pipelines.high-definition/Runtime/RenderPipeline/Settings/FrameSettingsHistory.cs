@@ -14,7 +14,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
     struct FrameSettingsHistory : IDebugData
     {
-        static readonly string[] foldoutNames = { "Rendering", "Lighting", "Async Compute", "Light Loop" };
+        internal static readonly string[] foldoutNames = { "Rendering", "Lighting", "Async Compute", "Light Loop" };
         static readonly string[] columnNames = { "Debug", "Sanitized", "Overridden", "Default" };
         static readonly Dictionary<FrameSettingsField, FrameSettingsFieldAttribute> attributes;
         static Dictionary<int, IOrderedEnumerable<KeyValuePair<FrameSettingsField, FrameSettingsFieldAttribute>>> attributesGroup = new Dictionary<int, IOrderedEnumerable<KeyValuePair<FrameSettingsField, FrameSettingsFieldAttribute>>>();
