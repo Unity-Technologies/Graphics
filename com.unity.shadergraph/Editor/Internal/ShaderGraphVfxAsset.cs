@@ -163,7 +163,7 @@ namespace UnityEditor.ShaderGraph.Internal
                 }
 
                 outputIndices[i] = outputs[i].index;
-                graphCode.requirements = graphCode.requirements.Union(portRequirements[i]);
+                graphCode.requirements = graphCode.requirements.Union(portRequirements[outputs[i].index]);
             }
 
             graphCode.code = compilationResult.GenerateCode(outputIndices);
