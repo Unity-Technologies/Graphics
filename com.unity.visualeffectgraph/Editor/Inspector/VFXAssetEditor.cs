@@ -598,7 +598,14 @@ public class VisualEffectAssetEditor : Editor
                 if (shader is Shader || shader is ComputeShader)
                 {
                     GUILayout.BeginHorizontal();
-                    GUILayout.Label(shader.name, GUILayout.ExpandWidth(true));
+                    Rect r = GUILayoutUtility.GetRect(0, 18, GUILayout.ExpandWidth(true));
+
+                    int buttonsWidth = VFXExternalShaderProcessor.allowExternalization? 250:200;
+
+
+                    Rect labelR = r;
+                    labelR.width -= buttonsWidth;
+                    GUI.Label(labelR, shader.name);
                     int index = resource.GetShaderIndex(shader);
                     if (index >= 0 && index < shaderSources.Length)
                     {
@@ -614,16 +621,20 @@ public class VisualEffectAssetEditor : Editor
                                 externalPath = directory + shaderSources[index].name + VFXExternalShaderProcessor.k_ShaderExt;
                             }
 
+                            Rect buttonRect = r;
+                            buttonRect.xMin = labelR.xMax;
+                            buttonRect.width = 80;
+                            labelR.width += 80;
                             if (System.IO.File.Exists(externalPath))
                             {
-                                if (GUILayout.Button("Reveal External"))
+                                if (GUI.Button(buttonRect, "Reveal External"))
                                 {
                                     EditorUtility.RevealInFinder(externalPath);
                                 }
                             }
                             else
                             {
-                                if (GUILayout.Button("Externalize", GUILayout.Width(80)))
+                                if (GUI.Button(buttonRect, "Externalize"))
                                 {
                                     Directory.CreateDirectory(directory);
 
@@ -632,12 +643,19 @@ public class VisualEffectAssetEditor : Editor
                             }
                         }
 
-                        if (GUILayout.Button("Show Generated", GUILayout.Width(110)))
+                        Rect buttonR = r;
+                        buttonR.xMin = labelR.xMax;
+                        buttonR.width = 110;
+                        labelR.width += 110;
+                        if (GUI.Button(buttonR, "Show Generated"))
                         {
                             resource.ShowGeneratedShaderFile(index);
                         }
                     }
-                    if (GUILayout.Button("Select", GUILayout.Width(50)))
+                    Rect selectButtonR = r;
+                    selectButtonR.xMin = labelR.xMax;
+                    selectButtonR.width = 50;
+                    if (GUI.Button(selectButtonR,"Select"))
                     {
                         Selection.activeObject = shader;
                     }
