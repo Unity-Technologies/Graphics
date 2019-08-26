@@ -9,10 +9,11 @@ using UnityEditor;
 using UnityEditor.ProjectWindowCallback;
 #endif
 
-
 namespace UnityEngine.Experimental.Rendering.Universal
 {
-    [MovedFrom("UnityEngine.Experimental.Rendering.LWRP")] public class Renderer2DData : ScriptableRendererData
+    [Serializable, ReloadGroup]
+    [MovedFrom("UnityEngine.Experimental.Rendering.LWRP")]
+    public class Renderer2DData : ScriptableRendererData
     {
         [SerializeField]
         float m_HDREmulationScale = 1;
@@ -35,6 +36,9 @@ namespace UnityEngine.Experimental.Rendering.Universal
         [SerializeField]
         Shader m_BlitShader = null;
 
+        [SerializeField, Reload("Runtime/Data/PostProcessData.asset")]
+        PostProcessData m_PostProcessData = null;
+
         public float hdrEmulationScale => m_HDREmulationScale;
         public Light2DBlendStyle[] lightBlendStyles => m_LightBlendStyles;
 
@@ -43,9 +47,17 @@ namespace UnityEngine.Experimental.Rendering.Universal
         internal Shader pointLightShader => m_PointLightShader;
         internal Shader pointLightVolumeShader => m_PointLightVolumeShader;
         internal Shader blitShader => m_BlitShader;
+        internal PostProcessData postProcessData => m_PostProcessData;
 
         protected override ScriptableRenderer Create()
         {
+#if UNITY_EDITOR
+            if (!Application.isPlaying)
+            {
+                ResourceReloader.ReloadAllNullIn(this, UniversalRenderPipelineAsset.packagePath);
+                ResourceReloader.ReloadAllNullIn(m_PostProcessData, UniversalRenderPipelineAsset.packagePath);
+            }
+#endif
             return new Renderer2D(this);
         }
 
@@ -118,6 +130,15 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
                 EditorPrefs.SetString(suggestedNamesKey, suggestedNamesPrefs);
             }
+
+#if UNITY_EDITOR
+            try
+            {
+                ResourceReloader.ReloadAllNullIn(this, UniversalRenderPipelineAsset.packagePath);
+                ResourceReloader.ReloadAllNullIn(m_PostProcessData, UniversalRenderPipelineAsset.packagePath);
+            }
+            catch { }
+#endif
         }
 
         internal override Material GetDefaultMaterial(DefaultMaterialType materialType)
