@@ -220,7 +220,7 @@ namespace UnityEngine.Rendering.Universal
                 // perform post with src / dest the same
                 if (postProcessEnabled)
                 {
-                    m_PostProcessPass.Setup(cameraTargetDescriptor, m_ActiveCameraColorAttachment, m_AfterPostProcessColor, m_ActiveCameraDepthAttachment, m_ColorGradingLut);
+                    m_PostProcessPass.Setup(cameraTargetDescriptor, m_ActiveCameraColorAttachment, m_AfterPostProcessColor, m_ActiveCameraDepthAttachment, m_ColorGradingLut, requiresFinalPostProcessPass);
                     EnqueuePass(m_PostProcessPass);
                 }
 
@@ -251,14 +251,14 @@ namespace UnityEngine.Rendering.Universal
                 {
                     if (requiresFinalPostProcessPass)
                     {
-                        m_PostProcessPass.Setup(cameraTargetDescriptor, m_ActiveCameraColorAttachment, m_AfterPostProcessColor, m_ActiveCameraDepthAttachment, m_ColorGradingLut);
+                        m_PostProcessPass.Setup(cameraTargetDescriptor, m_ActiveCameraColorAttachment, m_AfterPostProcessColor, m_ActiveCameraDepthAttachment, m_ColorGradingLut, true);
                         EnqueuePass(m_PostProcessPass);
                         m_FinalPostProcessPass.SetupFinalPass(m_AfterPostProcessColor);
                         EnqueuePass(m_FinalPostProcessPass);
                     }
                     else
                     {
-                        m_PostProcessPass.Setup(cameraTargetDescriptor, m_ActiveCameraColorAttachment, RenderTargetHandle.CameraTarget, m_ActiveCameraDepthAttachment, m_ColorGradingLut);
+                        m_PostProcessPass.Setup(cameraTargetDescriptor, m_ActiveCameraColorAttachment, RenderTargetHandle.CameraTarget, m_ActiveCameraDepthAttachment, m_ColorGradingLut, false);
                         EnqueuePass(m_PostProcessPass);
                     }
                 }

@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - The Sprite-Lit-Default shader and the Sprite Lit Shader Graph shaders now use the vertex tangents for tangent space calculations.
 - Temporary render textures for cameras rendering to render textures now use the same format and multisampling configuration as camera's target texture.
 - All platforms now use R11G11B10_UFloat format for HDR render textures if supported.
+- Pixel Perfect Camera now allows rendering to a render texture.
 
 ### Fixed
 - Fixed LightProbe occlusion contribution. [case 1146667](https://issuetracker.unity3d.com/product/unity/issues/guid/1146667/)
@@ -28,6 +29,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where the Area Lights were set to Realtime, which caused them to not bake. [1159838](https://issuetracker.unity3d.com/issues/lwrp-template-baked-area-lights-do-not-work-if-project-is-created-with-lightweight-rp-template)
 - Fixed an issue where the Disc Light did not generate any light. [1175097](https://issuetracker.unity3d.com/issues/using-lwrp-area-light-does-not-generate-light-when-its-shape-is-set-to-disc)
 - Fixed alpha being killed when opaque texture is requested on an offscreen camera with HDR enabled [case 1163320](https://issuetracker.unity3d.com/issues/lwrp-mobile-secondary-camera-background-alpha-value-is-lost-when-hdr-and-opaque-texture-are-enabled-in-lwrp-asset).
+- Fixed post-processing for the 2D Renderer.
+- Fixed a post-processing rendering issue with non-fullscreen viewport. [case 1177660](https://issuetracker.unity3d.com/issues/urp-render-scale-slider-value-modifies-viewport-coordinates-of-the-screen-instead-of-the-resolution)
 - Fixed an issue where **Undo** would not undo the creation of Additional Camera Data. [case 1158861](https://issuetracker.unity3d.com/issues/lwrp-additional-camera-data-script-component-appears-on-camera-after-manually-re-picking-use-pipeline-settings)
 - Fixed an issue where selecting the same drop-down menu item twice would trigger a change event. [case 1158861](https://issuetracker.unity3d.com/issues/lwrp-additional-camera-data-script-component-appears-on-camera-after-manually-re-picking-use-pipeline-settings)
 

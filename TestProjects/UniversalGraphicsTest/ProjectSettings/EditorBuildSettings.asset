@@ -168,6 +168,9 @@ EditorBuildSettings:
     path: Assets/Scenes/058_SpeedTree_V8.unity
     guid: 9227139f6abe79f42bf0defa48491666
   - enabled: 1
+    path: Assets/Scenes/059_2D_PixelPerfect_PostProcessing.unity
+    guid: 9f750aafa54d07a43b7601615bb2c7ea
+  - enabled: 1
     path: Assets/Scenes/071_ChromaticAberration.unity
     guid: 50a8dc518aa0c5e4fa5ae2ab2052bef4
   - enabled: 1

@@ -57,7 +57,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 s_LightMaterials = new Material[k_NumberOfLightMaterials];
         }
 
-        static public void CreateRenderTextures(CommandBuffer cmd, Camera camera)
+        static public void CreateRenderTextures(CommandBuffer cmd, int width, int height)
         {
             var renderTextureFormatToUse = RenderTextureFormat.ARGB32;
             if (SystemInfo.SupportsRenderTextureFormat(RenderTextureFormat.RGB111110Float))
@@ -65,7 +65,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             else if (SystemInfo.SupportsRenderTextureFormat(RenderTextureFormat.ARGBHalf))
                 renderTextureFormatToUse = RenderTextureFormat.ARGBHalf;
 
-            RenderTextureDescriptor descriptor = new RenderTextureDescriptor(camera.pixelWidth, camera.pixelHeight);
+            RenderTextureDescriptor descriptor = new RenderTextureDescriptor(width, height);
             descriptor.colorFormat = renderTextureFormatToUse;
             descriptor.sRGB = false;
             descriptor.useMipMap = false;
@@ -74,8 +74,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
             descriptor.msaaSamples = 1;
             descriptor.dimension = TextureDimension.Tex2D;
 
-            descriptor.width = camera.pixelWidth;
-            descriptor.height = camera.pixelHeight;
             cmd.GetTemporaryRT(s_NormalsTarget.id, descriptor, FilterMode.Bilinear);
 
             for (int i = 0; i < s_BlendStyles.Length; ++i)
@@ -84,8 +82,8 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     continue;
 
                 float renderTextureScale = Mathf.Clamp(s_BlendStyles[i].renderTextureScale, 0.01f, 1.0f);
-                descriptor.width = (int)(camera.pixelWidth * renderTextureScale);
-                descriptor.height = (int)(camera.pixelHeight * renderTextureScale);
+                descriptor.width = (int)(width * renderTextureScale);
+                descriptor.height = (int)(height * renderTextureScale);
                 cmd.GetTemporaryRT(s_RenderTargets[i].id, descriptor, FilterMode.Bilinear);
                 s_RenderTargetsDirty[i] = true;
             }

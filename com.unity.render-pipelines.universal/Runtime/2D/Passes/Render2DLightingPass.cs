@@ -38,7 +38,8 @@ namespace UnityEngine.Experimental.Rendering.Universal
             cmd.Clear();
 
             Profiler.BeginSample("RenderSpritesWithLighting - Create Render Textures");
-            RendererLighting.CreateRenderTextures(cmd, camera);
+            ref var targetDescriptor = ref renderingData.cameraData.cameraTargetDescriptor;
+            RendererLighting.CreateRenderTextures(cmd, targetDescriptor.width, targetDescriptor.height);
             Profiler.EndSample();
 
             cmd.SetGlobalFloat("_HDREmulationScale", m_RendererData.hdrEmulationScale);
