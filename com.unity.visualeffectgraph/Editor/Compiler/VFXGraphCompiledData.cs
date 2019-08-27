@@ -946,7 +946,6 @@ namespace UnityEditor.VFX
 
                 m_Graph.visualEffectResource.SetRuntimeData(expressionSheet, systemDescs.ToArray(), eventDescs.ToArray(), bufferDescs.ToArray(), cpuBufferDescs.ToArray(), temporaryBufferDescs.ToArray());
                 m_ExpressionValues = expressionSheet.values;
-                m_Graph.Modified();
 
                 if (k_FnVFXResource_SetCompileInitialVariants != null)
                 {
@@ -974,11 +973,15 @@ namespace UnityEditor.VFX
                 EditorUtility.DisplayProgressBar(progressBarTitle, "Importing VFX", 11 / nbSteps);
                 Profiler.BeginSample("VFXEditor.CompileAsset:ImportAsset");
                 AssetDatabase.ImportAsset(assetPath, ImportAssetOptions.ForceUpdate); //This should compile the shaders on the C++ size
+                AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(assetPath); // Force the reload to invoke the AwakeFromLoad as Import doesnt do it
                 Profiler.EndSample();
 
                 Profiler.EndSample();
                 EditorUtility.ClearProgressBar();
             }
+
+            m_Graph.onRuntimeDataChanged?.Invoke(m_Graph);
+
         }
 
         public void UpdateValues()

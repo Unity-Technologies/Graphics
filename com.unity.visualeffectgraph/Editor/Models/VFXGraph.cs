@@ -692,6 +692,9 @@ namespace UnityEditor.VFX
         private VFXCompilationMode m_CompilationMode = VFXCompilationMode.Runtime;
         private bool m_ForceShaderValidation = false;
 
+        [NonSerialized]
+        public Action<VFXGraph> onRuntimeDataChanged;
+
         [SerializeField]
         protected bool m_saved = false;
 

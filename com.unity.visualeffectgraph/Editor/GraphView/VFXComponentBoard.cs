@@ -147,7 +147,7 @@ namespace UnityEditor.VFX.UI
         }
 
         VFXView m_View;
-        VFXDebugUI m_DebugUI;
+        VFXUIDebug m_DebugUI;
 
         public VFXComponentBoard(VFXView view)
         {
@@ -158,8 +158,8 @@ namespace UnityEditor.VFX.UI
 
             contentContainer.AddStyleSheetPath("VFXComponentBoard");
 
-            m_DebugUI = new VFXDebugUI(m_View);
-            m_DebugUI.SetDebugMode(VFXDebugUI.Modes.None, this, true);
+            m_DebugUI = new VFXUIDebug(m_View);
+            m_DebugUI.SetDebugMode(VFXUIDebug.Modes.None, this, true);
 
             m_AttachButton = this.Query<Button>("attach");
             m_AttachButton.clickable.clicked += ToggleAttach;
@@ -274,7 +274,7 @@ namespace UnityEditor.VFX.UI
         void OnDebugModes()
         {
             GenericMenu menu = new GenericMenu();
-            foreach(VFXDebugUI.Modes mode in Enum.GetValues(typeof(VFXDebugUI.Modes)))
+            foreach(VFXUIDebug.Modes mode in Enum.GetValues(typeof(VFXUIDebug.Modes)))
             {
                 menu.AddItem(EditorGUIUtility.TextContent(mode.ToString()), false, SetDebugMode, mode);
             }
@@ -283,7 +283,7 @@ namespace UnityEditor.VFX.UI
 
         void SetDebugMode(object mode)
         {
-            m_DebugUI.SetDebugMode((VFXDebugUI.Modes)mode, this);
+            m_DebugUI.SetDebugMode((VFXUIDebug.Modes)mode, this);
         }
 
         void OnEffectSlider(float f)
@@ -300,7 +300,7 @@ namespace UnityEditor.VFX.UI
             if (m_AttachedComponent != null)
                 m_AttachedComponent.ControlStop();
             if (m_DebugUI != null)
-                m_DebugUI.Notify(VFXDebugUI.Events.VFXStop);
+                m_DebugUI.Notify(VFXUIDebug.Events.VFXStop);
         }
 
         void EffectPlay()
@@ -308,7 +308,7 @@ namespace UnityEditor.VFX.UI
             if (m_AttachedComponent != null)
                 m_AttachedComponent.ControlPlayPause();
             if (m_DebugUI != null)
-                m_DebugUI.Notify(VFXDebugUI.Events.VFXPlayPause);
+                m_DebugUI.Notify(VFXUIDebug.Events.VFXPlayPause);
         }
 
         void EffectStep()
@@ -316,7 +316,7 @@ namespace UnityEditor.VFX.UI
             if (m_AttachedComponent != null)
                 m_AttachedComponent.ControlStep();
             if (m_DebugUI != null)
-                m_DebugUI.Notify(VFXDebugUI.Events.VFXStep);
+                m_DebugUI.Notify(VFXUIDebug.Events.VFXStep);
         }
 
         void EffectRestart()
@@ -324,7 +324,7 @@ namespace UnityEditor.VFX.UI
             if (m_AttachedComponent != null)
                 m_AttachedComponent.ControlRestart();
             if (m_DebugUI != null)
-                m_DebugUI.Notify(VFXDebugUI.Events.VFXReset);
+                m_DebugUI.Notify(VFXUIDebug.Events.VFXReset);
         }
 
         void OnAttachToPanel(AttachToPanelEvent e)
@@ -429,7 +429,7 @@ namespace UnityEditor.VFX.UI
                 UpdateEventList();
                 m_SelectButton.visible = true;
 
-                m_DebugUI = new VFXDebugUI(m_View);
+                m_DebugUI = new VFXUIDebug(m_View);
                 m_DebugUI.SetVisualEffect(m_AttachedComponent);
             }
         }

@@ -8,11 +8,10 @@ using UnityEditor.UIElements;
 using UnityEngine.VFX;
 using Object = System.Object;
 
-using Random = System.Random;
 namespace UnityEditor.VFX.UI
 {
 
-    class VFXDebugUI
+    class VFXUIDebug : VFXObject
     {
         public enum Modes
         {
@@ -156,7 +155,7 @@ namespace UnityEditor.VFX.UI
 
             Material m_CurveMat;
             Material m_BarMat;
-            VFXDebugUI m_DebugUI;
+            VFXUIDebug m_DebugUI;
             int m_ClippingMatrixId;
 
             List<SwitchableCurve> m_VFXCurves;
@@ -191,13 +190,14 @@ namespace UnityEditor.VFX.UI
 
             static readonly Func<Box, Rect> k_BoxWorldclip = GetWorldClipRect();
 
-            public CurveContent(VFXDebugUI debugUI, int maxPoints, long timeBetweenDraw = 33)
+            public CurveContent(VFXUIDebug debugUI, int maxPoints, long timeBetweenDraw = 33)
             {
                 m_DebugUI = debugUI;
                 m_CurveMat = new Material(Shader.Find("Hidden/VFX/SystemStat"));
                 m_BarMat = new Material(Shader.Find("Hidden/VFX/TimeBar"));
                 m_ClippingMatrixId = Shader.PropertyToID("_ClipMatrix");
                 m_MaxPoints = maxPoints;
+                m_VFXCurves = new List<SwitchableCurve>();
 
                 m_VerticalBar = new VerticalBar(0);
                 m_TimeBarsOffsets = new List<float>();
@@ -216,7 +216,7 @@ namespace UnityEditor.VFX.UI
             {
                 if ((m_DebugUI.m_CurrentMode == Modes.Efficiency || m_DebugUI.m_CurrentMode == Modes.Alive) && m_DebugUI.m_VFX != null)
                 {
-                    m_VFXCurves = new List<SwitchableCurve>(m_DebugUI.m_GpuSystems.Count());
+                    m_VFXCurves.Clear();
                     m_TimeBarsOffsets.Clear();
                     for (int i = 0; i < m_DebugUI.m_GpuSystems.Count(); ++i)
                     {
@@ -294,6 +294,7 @@ namespace UnityEditor.VFX.UI
                             m_CurveMat.SetFloat("_OrdinateScale", 1.0f);
                             switchableCurve.curve.AddPoint(efficiency);
                             m_DebugUI.UpdateSystemStatEntry(switchableCurve.id, stat);
+
                         }
                         break;
                     case Modes.Alive:
@@ -325,12 +326,6 @@ namespace UnityEditor.VFX.UI
 
                 MarkDirtyRepaint();
 
-                if (m_CurveMat == null)
-                {
-                    m_CurveMat = new Material(Shader.Find("Hidden/VFX/SystemStat"));
-                    m_BarMat = new Material(Shader.Find("Hidden/VFX/VerticalBar"));
-                    m_ClippingMatrixId = Shader.PropertyToID("_ClipMatrix");
-                }
                 // drawing matrix
                 var debugRect = m_DebugUI.m_DebugDrawingBox.worldBound;
                 var clippedDebugRect = k_BoxWorldclip(m_DebugUI.m_DebugDrawingBox);
@@ -447,12 +442,13 @@ namespace UnityEditor.VFX.UI
         // [2] top value
         TextElement[] m_YaxisElts;
 
-        public VFXDebugUI(VFXView view)
+        public VFXUIDebug(VFXView view)
         {
             m_View = view;
+            m_GpuSystems = new List<int>();
         }
 
-        ~VFXDebugUI()
+        ~VFXUIDebug()
         {
             Clear();
             m_View = null;
@@ -476,11 +472,11 @@ namespace UnityEditor.VFX.UI
             switch (m_CurrentMode)
             {
                 case Modes.Efficiency:
-                    m_View.controller.RegisterNotification(m_View.controller.graph, UpdateDebugMode);
+                    m_View.controller.graph.onRuntimeDataChanged += UpdateDebugMode;
                     Efficiency();
                     break;
                 case Modes.Alive:
-                    m_View.controller.RegisterNotification(m_View.controller.graph, UpdateDebugMode);
+                    m_View.controller.graph.onRuntimeDataChanged += UpdateDebugMode;
                     Alive();
                     break;
                 case Modes.None:
@@ -489,6 +485,45 @@ namespace UnityEditor.VFX.UI
                     break;
                 default:
                     Clear();
+                    break;
+            }
+        }
+
+        public void UpdateDebugMode()
+        {
+            switch (m_CurrentMode)
+            {
+                case Modes.Efficiency:
+                    RegisterParticleSystems();
+                    InitSystemStatArray();
+                    break;
+                case Modes.Alive:
+                    RegisterParticleSystems();
+                    InitSystemStatArray();
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        private void UpdateDebugMode(VFXGraph graph)
+        {
+            UpdateDebugMode();
+        }
+
+        void ClearDebugMode()
+        {
+            switch (m_CurrentMode)
+            {
+                case Modes.Efficiency:
+                    m_View.controller.graph.onRuntimeDataChanged -= UpdateDebugMode;
+                    Clear();
+                    break;
+                case Modes.Alive:
+                    m_View.controller.graph.onRuntimeDataChanged -= UpdateDebugMode;
+                    Clear();
+                    break;
+                default:
                     break;
             }
         }
@@ -524,39 +559,7 @@ namespace UnityEditor.VFX.UI
             return Color.HSVToRGB((i * 0.618033988749895f) % 1.0f, 0.6f, 1.0f).gamma;
         }
 
-        void UpdateDebugMode()
-        {
-            switch (m_CurrentMode)
-            {
-                case Modes.Efficiency:
-                    RegisterParticleSystems();
-                    InitSystemStatArray();
-                    break;
-                case Modes.Alive:
-                    RegisterParticleSystems();
-                    InitSystemStatArray();
-                    break;
-                default:
-                    break;
-            }
-        }
-
-        void ClearDebugMode()
-        {
-            switch (m_CurrentMode)
-            {
-                case Modes.Efficiency:
-                    m_View.controller.UnRegisterNotification(m_View.controller.graph, UpdateDebugMode);
-                    Clear();
-                    break;
-                case Modes.Alive:
-                    m_View.controller.UnRegisterNotification(m_View.controller.graph, UpdateDebugMode);
-                    Clear();
-                    break;
-                default:
-                    break;
-            }
-        }
+        
 
         void RegisterParticleSystems()
         {
@@ -576,7 +579,7 @@ namespace UnityEditor.VFX.UI
             {
                 List<string> particleSystemNames = new List<string>();
                 m_VFX.GetParticleSystemNames(particleSystemNames);
-                m_GpuSystems = new List<int>();
+                m_GpuSystems.Clear();
                 int i = 0;
                 foreach (var name in particleSystemNames)
                 {
