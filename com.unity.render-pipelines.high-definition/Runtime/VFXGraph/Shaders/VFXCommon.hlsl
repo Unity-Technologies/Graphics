@@ -35,6 +35,18 @@ void VFXTransformPSInputs(inout VFX_VARYING_PS_INPUTS input)
 }
 #endif
 
+float4 VFXTransformFinalColor(float4 color)
+{
+#ifdef DEBUG_DISPLAY
+	if (_DebugFullScreenMode == FULLSCREENDEBUGMODE_TRANSPARENCY_OVERDRAW)
+    {
+        color = _DebugTransparencyOverdrawWeight * float4(TRANSPARENCY_OVERDRAW_COST, TRANSPARENCY_OVERDRAW_COST, TRANSPARENCY_OVERDRAW_COST, TRANSPARENCY_OVERDRAW_A);
+    }
+
+#endif
+	return color;
+}
+
 float4 VFXTransformPositionWorldToClip(float3 posWS)
 {
 #if VFX_WORLD_SPACE

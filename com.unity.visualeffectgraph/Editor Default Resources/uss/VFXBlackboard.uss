@@ -20,6 +20,11 @@
     height: initial;
 }
 
+Label
+{
+    overflow:hidden;
+}
+
 VFXStringField.fieldContainer > TextField
 {
     white-space:normal;

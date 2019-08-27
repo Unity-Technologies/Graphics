@@ -24,6 +24,11 @@ Pass
 		#if USE_FLIPBOOK
 		nointerpolation float4 flipbookSize : TEXCOORD1;
 		#endif
+		#if USE_FLIPBOOK_MOTIONVECTORS
+		// x: motion vectors scale X
+		// y: motion vectors scale Y
+		nointerpolation float2 builtInInterpolants2 : TEXCOORD7;
+		#endif
 		#endif
 		
 		nointerpolation float4 viewToDecal0 : TEXCOORD2;
@@ -33,8 +38,12 @@ Pass
 		#if VFX_NEEDS_POSWS_INTERPOLATOR
 		float3 posWS : TEXCOORD5;
 		#endif
-
+		
 		UNITY_VERTEX_OUTPUT_STEREO
+		
+		#if USE_UV_SCALE_BIAS
+		nointerpolation float4 scaleBias : TEXCOORD6;
+		#endif
 	};
 	
 	struct ps_output
@@ -52,11 +61,18 @@ Pass
 #define VFX_VARYING_FLIPBOOKSIZE flipbookSize.xy
 #define VFX_VARYING_INVFLIPBOOKSIZE flipbookSize.zw
 #endif
+#if USE_FLIPBOOK_MOTIONVECTORS
+#define VFX_VARYING_MOTIONVECTORSCALE builtInInterpolants2.xy	
+#endif
 #if VFX_NEEDS_POSWS_INTERPOLATOR
 #define VFX_VARYING_POSWS posWS
 #endif
 #if USE_EXPOSURE_WEIGHT
 #define VFX_VARYING_EXPOSUREWEIGHT builtInInterpolants.z
+#endif
+#if USE_UV_SCALE_BIAS
+#define VFX_VARYING_UV_SCALE scaleBias.xy
+#define VFX_VARYING_UV_BIAS scaleBias.zw
 #endif
 				
 ${VFXBegin:VFXVertexAdditionalProcess}
@@ -111,6 +127,7 @@ o.viewToDecal2 = viewToDecal[2];
 		o.color = VFXApplyFog(o.color,i);
 		VFXClipFragmentColor(o.color.a,i);
 		o.color.a = saturate(o.color.a);
+        o.color = VFXTransformFinalColor(o.color);
 		return o;
 	}
 	ENDHLSL

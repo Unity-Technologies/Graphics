@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [7.1.1] - 2019-XX-XX
 
 ### Added
+- Transparency Overdraw debug mode. Allows to visualize transparent objects draw calls as an "heat map".
 - Enabled single-pass instancing support for XR SDK with new API cmd.SetInstanceMultiplier()
 
 ### Fixed

@@ -19,6 +19,7 @@ namespace UnityEditor.VFX
                     yield return setting;
 
                 yield return "cullMode";
+                yield return "colorMappingMode";
             }
         }
 

@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Replaced usage of ENABLE_VR in XRGraphics.cs by a version define (ENABLE_VR_MODULE) based on the presence of the built-in VR module
 - `ResourceReloader` now works on non-public fields.
 
+
 ## [7.0.1] - 2019-07-25
 
 ### Fixed

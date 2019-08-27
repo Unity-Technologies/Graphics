@@ -44,7 +44,6 @@ namespace UnityEditor.VFX
                 case BlendMode.AlphaPremultiplied:
                     return string.Format("Blend One OneMinusSrcAlpha {0}", isOffscreen ? ", Zero OneMinusSrcAlpha" : "");
                 case BlendMode.Opaque:
-                case BlendMode.Masked:
                     return opaqueRenderQueue == OpaqueRenderQueue.AfterPostProcessing ? "Blend One Zero, Zero Zero" : string.Empty; // Blend on for opaque in after post-process for correct compositing TODO Handle that in shader templates directly
                 default:
                     return string.Empty;
@@ -66,7 +65,7 @@ namespace UnityEditor.VFX
                 renderQueueType = HDRenderQueue.ConvertFromTransparentRenderQueue(transparentRenderQueue);
             }
 
-            int renderQueue = HDRenderQueue.ChangeType(renderQueueType, 0, owner.blendMode == BlendMode.Masked) - (int)(owner.isBlendModeOpaque ? Priority.Opaque : Priority.Transparent);
+            int renderQueue = HDRenderQueue.ChangeType(renderQueueType, 0, owner.useAlphaClipping) - (int)(owner.isBlendModeOpaque ? Priority.Opaque : Priority.Transparent);
             return prefix + renderQueue.ToString("+#;-#;+0");
         }
 

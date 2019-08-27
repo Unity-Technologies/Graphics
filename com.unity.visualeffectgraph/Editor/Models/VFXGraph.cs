@@ -148,7 +148,8 @@ namespace UnityEditor.VFX
         // Please add increment reason for each version below
         // 1: Size refactor
         // 2: Change some SetAttribute to spaceable slot
-        public static readonly int CurrentVersion = 2;
+        // 3: Remove Masked from blendMode in Outputs and split feature to UseAlphaClipping
+        public static readonly int CurrentVersion = 3;
 
         string shaderNamePrefix = "Hidden/VFX";
         public string GetContextShaderName(VFXContext context)

@@ -1694,7 +1694,7 @@ namespace UnityEditor.VFX.UI
             }
 
 
-            if (selection.OfType<VFXNodeUI>().Any())
+            if (selection.OfType<VFXNodeUI>().Any() && evt.target is VFXNodeUI)
             {
                 if (selection.OfType<VFXOperatorUI>().Any() && !selection.OfType<VFXNodeUI>().Any(t => !(t is VFXOperatorUI) && !(t is VFXParameterUI)))
                     evt.menu.InsertAction(3, "Convert To Subgraph Operator", ToSubgraphOperator, e => DropdownMenuAction.Status.Normal);
@@ -1702,7 +1702,7 @@ namespace UnityEditor.VFX.UI
                     evt.menu.InsertAction(3, "Convert To Subgraph", ToSubgraphContext, e => DropdownMenuAction.Status.Normal);
                 else if (selection.OfType<VFXBlockUI>().Any() && selection.OfType<VFXBlockUI>().Select(t => t.context).Distinct().Count() == 1)
                 {
-                    evt.menu.InsertAction(3, "Convert To Subgraph Block", ToSubgraphBlock, e => DropdownMenuAction.Status.Normal);
+                    evt.menu.InsertAction(3, "To Subgraph Block", ToSubgraphBlock, e => DropdownMenuAction.Status.Normal);
                 }
             }
             

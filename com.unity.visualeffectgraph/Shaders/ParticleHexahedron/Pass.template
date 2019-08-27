@@ -14,7 +14,7 @@ struct vs_input
 VFX_VARYING_PS_INPUTS vert(uint id : SV_VertexID, vs_input i)
 {
 	VFX_VARYING_PS_INPUTS o = (VFX_VARYING_PS_INPUTS)0;
-
+	
 	UNITY_SETUP_INSTANCE_ID(i);
 	UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
 
@@ -28,8 +28,8 @@ VFX_VARYING_PS_INPUTS vert(uint id : SV_VertexID, vs_input i)
 	
 	float3 offsets = (float3)0;
 	offsets.x = float(id & 1);
-	offsets.y = float((id & 3) >> 1);
-	offsets.z = float((id & 7) >> 2);
+	offsets.y = float((id & 2) >> 1);
+	offsets.z = float((id & 6) >> 2);
 	offsets -= 0.5f;
 	
 	${VFXLoadSize}
@@ -64,14 +64,30 @@ VFX_VARYING_PS_INPUTS vert(uint id : SV_VertexID, vs_input i)
 
 	${VFXVertexCommonProcess}
 	
+	
+	#if USE_UV_SCALE_BIAS && defined(VFX_VARYING_UV_SCALE) && defined(VFX_VARYING_UV_BIAS)
+	o.VFX_VARYING_UV_SCALE = uvScale;
+	o.VFX_VARYING_UV_BIAS = uvBias;
+	#endif
+	
 	#if USE_FLIPBOOK
 	${VFXLoadParameter:{flipBookSize}}
 	${VFXLoadParameter:{invFlipBookSize}}
+	#ifdef VFX_VARYING_TEXINDEX
 	${VFXLoadParameter:{texIndex}}
+	#endif
 	
+	#if defined(VFX_VARYING_FLIPBOOKSIZE) && defined(VFX_VARYING_INVFLIPBOOKSIZE)
 	o.VFX_VARYING_FLIPBOOKSIZE = flipBookSize;
 	o.VFX_VARYING_INVFLIPBOOKSIZE = invFlipBookSize;
+	#endif
+	#ifdef VFX_VARYING_TEXINDEX
 	o.VFX_VARYING_TEXINDEX = texIndex;
+	#if USE_FLIPBOOK_MOTIONVECTORS && defined(VFX_VARYING_MOTIONVECTORSCALE)
+	${VFXLoadParameter:{motionVectorScale}}
+	o.VFX_VARYING_MOTIONVECTORSCALE = motionVectorScale * invFlipBookSize;
+	#endif
+	#endif
 	#endif
 
 	${VFXVertexAdditionalProcess}

@@ -138,7 +138,7 @@ namespace UnityEditor.VFX
 
         protected virtual IEnumerable<VFXNamedExpression> CollectGPUExpressions(IEnumerable<VFXNamedExpression> slotExpressions)
         {
-            if (blendMode == BlendMode.Masked)
+            if (useAlphaClipping)
                 yield return slotExpressions.First(o => o.name == "alphaThreshold");
 
             if (colorMappingMode == ColorMappingMode.GradientMapped)
@@ -236,8 +236,9 @@ namespace UnityEditor.VFX
                     }
                 }
 
-                if (blendMode == BlendMode.Masked)
-                    yield return new VFXPropertyWithValue(new VFXProperty(typeof(float), "alphaThreshold", VFXPropertyAttribute.Create(new RangeAttribute(0.0f, 1.0f))), 0.5f);
+                if (useAlphaClipping)
+                    yield return new VFXPropertyWithValue(new VFXProperty(typeof(float), "alphaThreshold", VFXPropertyAttribute.Create(new RangeAttribute(0.0f, 1.0f), new TooltipAttribute("Alpha threshold used for pixel clipping"))), 0.5f);
+
                 if (supportSoftParticles)
                     yield return new VFXPropertyWithValue(new VFXProperty(typeof(float), "softParticlesFadeDistance", VFXPropertyAttribute.Create(new MinAttribute(0.001f))), 1.0f);
 
@@ -265,7 +266,7 @@ namespace UnityEditor.VFX
                 else
                     yield return "IS_TRANSPARENT_PARTICLE";
 
-                if (blendMode == BlendMode.Masked)
+                if (useAlphaClipping)
                     yield return "USE_ALPHA_TEST";
                 if (supportSoftParticles)
                     yield return "USE_SOFT_PARTICLE";

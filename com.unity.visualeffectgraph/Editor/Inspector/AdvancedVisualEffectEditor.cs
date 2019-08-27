@@ -178,7 +178,7 @@ namespace UnityEditor.VFX
         {
             EditMode.DoEditModeInspectorModeButton(
                 EditMode.SceneViewEditMode.Collider,
-                "Show Parameter Gizmos",
+                "Show Property Gizmos",
                 EditorGUIUtility.IconContent("EditCollider"),
                 this
             );

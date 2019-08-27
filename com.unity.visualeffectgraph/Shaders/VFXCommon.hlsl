@@ -504,8 +504,11 @@ VFXUVData GetUVData(float2 flipBookSize, float2 invFlipBookSize, float2 uv, floa
     float frameIndex = texIndex - frameBlend;
 
     data.uvs.xy = GetSubUV(frameIndex, uv, flipBookSize, invFlipBookSize);
+#if USE_FLIPBOOK_INTERPOLATION
     data.uvs.zw = GetSubUV(frameIndex + 1, uv, flipBookSize, invFlipBookSize);
     data.blend = frameBlend;
+#endif
+	
     return data;
 }
 
