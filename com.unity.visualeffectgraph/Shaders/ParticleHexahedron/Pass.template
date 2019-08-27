@@ -81,7 +81,7 @@ VFX_VARYING_PS_INPUTS vert(uint id : SV_VertexID, vs_input i)
 	${VFXLoadParameter:{flipBookSize}}
 	${VFXLoadParameter:{invFlipBookSize}}
 	#ifdef VFX_VARYING_TEXINDEX
-	${VFXLoadParameter:{texIndex}}
+	o.VFX_VARYING_TEXINDEX = attributes.texIndex;
 	#endif
 	
 	#if defined(VFX_VARYING_FLIPBOOKSIZE) && defined(VFX_VARYING_INVFLIPBOOKSIZE)
