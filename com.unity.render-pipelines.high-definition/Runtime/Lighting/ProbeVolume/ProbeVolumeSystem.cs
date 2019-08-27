@@ -3,7 +3,7 @@ using UnityEngine.Rendering;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 
-namespace UnityEngine.Experimental.Rendering.HDPipeline
+namespace UnityEngine.Rendering.HighDefinition
 {
     // Optimized version of 'ProbeVolumeArtistParameters'.
     // TODO: pack better. This data structure contains a bunch of UNORMs.

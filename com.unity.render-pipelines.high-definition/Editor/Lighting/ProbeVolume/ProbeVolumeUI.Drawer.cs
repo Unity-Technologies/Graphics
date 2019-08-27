@@ -1,9 +1,10 @@
+using UnityEngine;
+using UnityEngine.Rendering.HighDefinition;
 using UnityEditor.Rendering;
 using UnityEditorInternal;
-using UnityEngine;
-using UnityEngine.Experimental.Rendering.HDPipeline;
 
-namespace UnityEditor.Experimental.Rendering.HDPipeline
+// TODO(Nicholas): deduplicate with DensityVolumeUI.Drawer.cs.
+namespace UnityEditor.Rendering.HighDefinition
 {
     using CED = CoreEditorDrawer<SerializedProbeVolume>;
 
@@ -91,26 +92,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             EditorGUI.BeginChangeCheck();
             if (serialized.advancedFade.boolValue)
             {
-                Vector3 positive = serialized.positiveFade.vector3Value;
-                positive.x *= s.x;
-                positive.y *= s.y;
-                positive.z *= s.z;
-                Vector3 negative = serialized.negativeFade.vector3Value;
-                negative.x *= s.x;
-                negative.y *= s.y;
-                negative.z *= s.z;
                 EditorGUI.BeginChangeCheck();
-                CoreEditorUtils.DrawVector6(Styles.s_BlendLabel, ref positive, ref negative, Vector3.zero, s, InfluenceVolumeUI.k_HandlesColor);
+                CoreEditorUtils.DrawVector6(Styles.s_BlendLabel, serialized.positiveFade, serialized.negativeFade, Vector3.zero, s, InfluenceVolumeUI.k_HandlesColor, serialized.size);
                 if (EditorGUI.EndChangeCheck())
                 {
-                    positive.x /= s.x;
-                    positive.y /= s.y;
-                    positive.z /= s.z;
-                    negative.x /= s.x;
-                    negative.y /= s.y;
-                    negative.z /= s.z;
-
                     //forbid positive/negative box that doesn't intersect in inspector too
+                    Vector3 positive = serialized.positiveFade.vector3Value;
+                    Vector3 negative = serialized.negativeFade.vector3Value;
                     for (int axis = 0; axis < 3; ++axis)
                     {
                         if (positive[axis] > 1f - negative[axis])

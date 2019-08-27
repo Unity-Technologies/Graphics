@@ -2342,6 +2342,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // Inject density volumes into the clustered data structure for efficient look up.
                 m_densityVolumeCount = densityVolumes.bounds != null ? densityVolumes.bounds.Count : 0;
+                m_probeVolumeCount = probeVolumes.bounds != null ? probeVolumes.bounds.Count : 0;
 
                 for (int viewIndex = 0; viewIndex < hdCamera.viewCount; ++viewIndex)
                 {
@@ -2359,14 +2360,13 @@ namespace UnityEngine.Rendering.HighDefinition
                         LightFeatureFlags featureFlags = 0;
                         AddBoxVolumeDataAndBound(densityVolumes.bounds[i], LightCategory.DensityVolume, featureFlags, worldToViewCR, viewIndex);
                     }
-                }
 
-                m_probeVolumeCount = probeVolumes.bounds != null ? probeVolumes.bounds.Count : 0;
-                for (int i = 0, n = m_probeVolumeCount; i < n; i++)
-                {
-                    // Probe volumes are not lights and therefore should not affect light classification.
-                    LightFeatureFlags featureFlags = 0;
-                    AddBoxVolumeDataAndBound(probeVolumes.bounds[i], LightCategory.ProbeVolume, featureFlags, worldToViewCR, camera.stereoEnabled);
+                    for (int i = 0, n = m_probeVolumeCount; i < n; i++)
+                    {
+                        // Probe volumes are not lights and therefore should not affect light classification.
+                        LightFeatureFlags featureFlags = 0;
+                        AddBoxVolumeDataAndBound(probeVolumes.bounds[i], LightCategory.ProbeVolume, featureFlags, worldToViewCR, viewIndex);
+                    }
                 }
 
                 m_TotalLightCount = m_lightList.lights.Count + m_lightList.envLights.Count + decalDatasCount + m_densityVolumeCount + m_probeVolumeCount;

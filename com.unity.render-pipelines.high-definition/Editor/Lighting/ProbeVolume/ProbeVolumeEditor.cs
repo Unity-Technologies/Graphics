@@ -1,9 +1,11 @@
-using UnityEngine;
-using UnityEngine.Experimental.Rendering.HDPipeline;
 using System.Collections.Generic;
+using UnityEngine;
+using UnityEditor;
+using UnityEditor.Rendering;
+using UnityEngine.Rendering.HighDefinition;
 using UnityEditorInternal;
 
-namespace UnityEditor.Experimental.Rendering.HDPipeline
+namespace UnityEditor.Rendering.HighDefinition
 {
     [CanEditMultipleObjects]
     [CustomEditor(typeof(ProbeVolume))]
