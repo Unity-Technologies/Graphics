@@ -34,7 +34,10 @@ namespace UnityEditor.Rendering.HighDefinition
             MotionBlurQuality = 1 << 18,
             BloomQuality = 1 << 19,
             ChromaticAberrationQuality = 1 << 20,
-            XR = 1 << 21
+            XR = 1 << 21,
+            LightingQuality = 1 << 22,
+            SSAOQuality = 1 << 23,
+            ContactShadowQuality = 1 << 24,
         }
 
         static readonly ExpandedState<Expandable, HDRenderPipelineAsset> k_ExpandedState = new ExpandedState<Expandable, HDRenderPipelineAsset>(Expandable.CameraFrameSettings | Expandable.General, "HDRP");
@@ -88,6 +91,10 @@ namespace UnityEditor.Rendering.HighDefinition
                     CED.FoldoutGroup(k_MotionBlurQualitySettings, Expandable.MotionBlurQuality, k_ExpandedState, FoldoutOption.Indent | FoldoutOption.SubFoldout | FoldoutOption.NoSpaceAtEnd, Drawer_SectionMotionBlurQualitySettings),
                     CED.FoldoutGroup(k_BloomQualitySettings, Expandable.BloomQuality, k_ExpandedState, FoldoutOption.Indent | FoldoutOption.SubFoldout | FoldoutOption.NoSpaceAtEnd, Drawer_SectionBloomQualitySettings),
                     CED.FoldoutGroup(k_ChromaticAberrationQualitySettings, Expandable.ChromaticAberrationQuality, k_ExpandedState, FoldoutOption.Indent | FoldoutOption.SubFoldout | FoldoutOption.NoSpaceAtEnd, Drawer_SectionChromaticAberrationQualitySettings)
+                    ),
+                CED.FoldoutGroup(k_LightingQualitySettings, Expandable.LightingQuality, k_ExpandedState,
+                    CED.FoldoutGroup(k_SSAOQualitySettingSubTitle, Expandable.SSAOQuality, k_ExpandedState, FoldoutOption.Indent | FoldoutOption.SubFoldout | FoldoutOption.NoSpaceAtEnd, Drawer_SectionSSAOQualitySettings),
+                    CED.FoldoutGroup(k_ContactShadowsSettingsSubTitle, Expandable.ContactShadowQuality, k_ExpandedState, FoldoutOption.Indent | FoldoutOption.SubFoldout | FoldoutOption.NoSpaceAtEnd, Drawer_SectionContactShadowQualitySettings)
                     )
             );
 
@@ -697,6 +704,70 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 int quality = (int)VolumeQualitySettingsLevels.High;
                 EditorGUILayout.PropertyField(serialized.renderPipelineSettings.postProcessQualitySettings.ChromaticAbMaxSamples.GetArrayElementAtIndex(quality), k_MaxSamplesQuality);
+            }
+        }
+
+
+        static private bool m_ShowAOLowQualitySection = false;
+        static private bool m_ShowAOMediumQualitySection = false;
+        static private bool m_ShowAOHighQualitySection = false;
+
+        static void DrawAOQualitySetting(SerializedHDRenderPipelineAsset serialized, int tier)
+        {
+            EditorGUILayout.PropertyField(serialized.renderPipelineSettings.lightingQualitySettings.AOStepCount.GetArrayElementAtIndex(tier), k_AOStepCount);
+            EditorGUILayout.PropertyField(serialized.renderPipelineSettings.lightingQualitySettings.AOFullRes.GetArrayElementAtIndex(tier), k_AOFullRes);
+            EditorGUILayout.PropertyField(serialized.renderPipelineSettings.lightingQualitySettings.AOMaximumRadiusPixels.GetArrayElementAtIndex(tier), k_AOMaxRadiusInPixels);
+        }
+
+        static void Drawer_SectionSSAOQualitySettings(SerializedHDRenderPipelineAsset serialized, Editor owner)
+        {
+            m_ShowAOLowQualitySection = EditorGUILayout.Foldout(m_ShowAOLowQualitySection, k_LowQualityContent);
+            if (m_ShowAOLowQualitySection)
+            {
+                int quality = (int)VolumeQualitySettingsLevels.Low;
+                DrawAOQualitySetting(serialized, quality);
+            }
+
+            m_ShowAOMediumQualitySection = EditorGUILayout.Foldout(m_ShowAOMediumQualitySection, k_MediumQualityContent);
+            if (m_ShowAOMediumQualitySection)
+            {
+                int quality = (int)VolumeQualitySettingsLevels.Medium;
+                DrawAOQualitySetting(serialized, quality);
+            }
+
+            m_ShowAOHighQualitySection = EditorGUILayout.Foldout(m_ShowAOHighQualitySection, k_HighQualityContent);
+            if (m_ShowAOHighQualitySection)
+            {
+                int quality = (int)VolumeQualitySettingsLevels.High;
+                DrawAOQualitySetting(serialized, quality);
+            }
+        }
+
+        static private bool m_ShowContactShadowLowQualitySection = false;
+        static private bool m_ShowContactShadowMediumQualitySection = false;
+        static private bool m_ShowContactShadowHighQualitySection = false;
+
+        static void Drawer_SectionContactShadowQualitySettings(SerializedHDRenderPipelineAsset serialized, Editor owner)
+        {
+            m_ShowContactShadowLowQualitySection = EditorGUILayout.Foldout(m_ShowContactShadowLowQualitySection, k_LowQualityContent);
+            if (m_ShowContactShadowLowQualitySection)
+            {
+                int quality = (int)VolumeQualitySettingsLevels.Low;
+                EditorGUILayout.PropertyField(serialized.renderPipelineSettings.lightingQualitySettings.ContactShadowSampleCount.GetArrayElementAtIndex(quality), k_ContactShadowsSampleCount);
+            }
+
+            m_ShowContactShadowMediumQualitySection = EditorGUILayout.Foldout(m_ShowContactShadowMediumQualitySection, k_MediumQualityContent);
+            if (m_ShowContactShadowMediumQualitySection)
+            {
+                int quality = (int)VolumeQualitySettingsLevels.Medium;
+                EditorGUILayout.PropertyField(serialized.renderPipelineSettings.lightingQualitySettings.ContactShadowSampleCount.GetArrayElementAtIndex(quality), k_ContactShadowsSampleCount);
+            }
+
+            m_ShowContactShadowHighQualitySection = EditorGUILayout.Foldout(m_ShowContactShadowHighQualitySection, k_HighQualityContent);
+            if (m_ShowContactShadowHighQualitySection)
+            {
+                int quality = (int)VolumeQualitySettingsLevels.High;
+                EditorGUILayout.PropertyField(serialized.renderPipelineSettings.lightingQualitySettings.ContactShadowSampleCount.GetArrayElementAtIndex(quality), k_ContactShadowsSampleCount);
             }
         }
 

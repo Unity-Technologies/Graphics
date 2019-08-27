@@ -1,25 +1,84 @@
 using System;
 using UnityEngine.Experimental.Rendering;
+using UnityEngine.Serialization;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
     [Serializable, VolumeComponentMenu("Lighting/Ambient Occlusion")]
-    public sealed class AmbientOcclusion : VolumeComponent
+    public sealed class AmbientOcclusion : VolumeComponentWithQuality
     {
         public BoolParameter rayTracing = new BoolParameter(false);
 
         public ClampedFloatParameter intensity = new ClampedFloatParameter(0f, 0f, 4f);
         public ClampedFloatParameter directLightingStrength = new ClampedFloatParameter(0f, 0f, 1f);
 
-        public ClampedIntParameter stepCount = new ClampedIntParameter(6, 2, 32);
         public ClampedFloatParameter radius = new ClampedFloatParameter(2.0f, 0.25f, 5.0f);
-        public BoolParameter fullResolution = new BoolParameter(false);
-        public ClampedIntParameter maximumRadiusInPixels = new ClampedIntParameter(40, 16, 256);
 
         public ClampedFloatParameter rayLength = new ClampedFloatParameter(0.5f, 0f, 50f);
         public ClampedIntParameter sampleCount = new ClampedIntParameter(4, 1, 64);
         public BoolParameter denoise = new BoolParameter(false);
         public ClampedFloatParameter denoiserRadius = new ClampedFloatParameter(0.5f, 0.001f, 1.0f);
+
+        public int stepCount
+        {
+            get
+            {
+                if (!UsesQualitySettings())
+                {
+                    return m_StepCount.value;
+                }
+                else
+                {
+                    int qualityLevel = (int)quality.value;
+                    return GetLightingQualitySettings().AOStepCount[qualityLevel];
+                }
+            }
+            set { m_StepCount.value = value; }
+        }
+
+        public bool fullResolution
+        {
+            get
+            {
+                if (!UsesQualitySettings())
+                {
+                    return m_FullResolution.value;
+                }
+                else
+                {
+                    int qualityLevel = (int)quality.value;
+                    return GetLightingQualitySettings().AOFullRes[qualityLevel];
+                }
+            }
+            set { m_FullResolution.value = value; }
+        }
+
+        public int maximumRadiusInPixels
+        {
+            get
+            {
+                if (!UsesQualitySettings())
+                {
+                    return m_MaximumRadiusInPixels.value;
+                }
+                else
+                {
+                    int qualityLevel = (int)quality.value;
+                    return GetLightingQualitySettings().AOMaximumRadiusPixels[qualityLevel];
+                }
+            }
+            set { m_MaximumRadiusInPixels.value = value; }
+        }
+
+        [SerializeField, FormerlySerializedAs("stepCount")]
+        private ClampedIntParameter m_StepCount = new ClampedIntParameter(6, 2, 32);
+
+        [SerializeField, FormerlySerializedAs("fullResolution")]
+        private BoolParameter m_FullResolution = new BoolParameter(false);
+
+        [SerializeField, FormerlySerializedAs("maximumRadiusInPixels")]
+        private ClampedIntParameter m_MaximumRadiusInPixels = new ClampedIntParameter(40, 16, 256);
+
     }
 
     partial class AmbientOcclusionSystem
@@ -67,7 +126,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 ReleaseRT();
 
-                m_RunningFullRes = settings.fullResolution.value;
+                m_RunningFullRes = settings.fullResolution;
                 scaleFactor = m_RunningFullRes ? 1.0f : 0.5f;
                 AllocRT(scaleFactor);
             }
@@ -164,7 +223,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Grab current settings
             var settings = VolumeManager.instance.stack.GetComponent<AmbientOcclusion>();
-            parameters.fullResolution = settings.fullResolution.value;
+            parameters.fullResolution = settings.fullResolution;
 
             if (parameters.fullResolution)
             {
@@ -184,7 +243,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 parameters.fullResolution ? 0.0f : 1.0f,
                 parameters.runningRes.y * invHalfTanFOV * 0.25f,
                 settings.radius.value,
-                settings.stepCount.value
+                settings.stepCount
                 );
 
 
@@ -204,12 +263,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 1.0f / invHalfTanFOV
                 );
 
-            float radInPixels = Mathf.Max(16, settings.maximumRadiusInPixels.value * ((parameters.runningRes.x * parameters.runningRes.y) / (540.0f * 960.0f)));
+            float radInPixels = Mathf.Max(16, settings.maximumRadiusInPixels * ((parameters.runningRes.x * parameters.runningRes.y) / (540.0f * 960.0f)));
 
             parameters.aoParams2 = new Vector4(
                 rtHandleProperties.currentRenderTargetSize.x,
                 rtHandleProperties.currentRenderTargetSize.y,
-                1.0f / (settings.stepCount.value + 1.0f),
+                1.0f / (settings.stepCount + 1.0f),
                  radInPixels
             );
 

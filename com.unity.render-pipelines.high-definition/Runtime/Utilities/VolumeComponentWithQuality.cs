@@ -22,6 +22,18 @@ namespace UnityEngine.Rendering.HighDefinition
             return null;
         }
 
+        static protected GlobalLightingQualitySettings GetLightingQualitySettings()
+        {
+
+            var pipeline = (HDRenderPipeline)RenderPipelineManager.currentPipeline;
+            if (pipeline != null)
+            {
+                return pipeline.currentPlatformRenderPipelineSettings.lightingQualitySettings;
+            }
+            // This shouldn't happen ever.
+            return null;
+        }
+
         protected bool UsesQualitySettings()
         {
             return useQualitySettings.value && (HDRenderPipeline)RenderPipelineManager.currentPipeline != null;

@@ -43,6 +43,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedLowResTransparencySettings lowresTransparentSettings;
         public SerializedXRSettings xrSettings;
         public SerializedPostProcessingQualitySettings postProcessQualitySettings;
+        public SerializedLightingQualitySettings lightingQualitySettings;
 
         public SerializedRenderPipelineSettings(SerializedProperty root)
         {
@@ -81,6 +82,7 @@ namespace UnityEditor.Rendering.HighDefinition
             lowresTransparentSettings = new SerializedLowResTransparencySettings(root.Find((RenderPipelineSettings s) => s.lowresTransparentSettings));
             xrSettings = new SerializedXRSettings(root.Find((RenderPipelineSettings s) => s.xrSettings));
             postProcessQualitySettings = new SerializedPostProcessingQualitySettings(root.Find((RenderPipelineSettings s) => s.postProcessQualitySettings));
+            lightingQualitySettings = new SerializedLightingQualitySettings(root.Find((RenderPipelineSettings s) => s.lightingQualitySettings));
         }
     }
 }
