@@ -335,7 +335,7 @@ namespace UnityEditor.VFX
         {
             get
             {
-                return m_layoutAttributeCurrent.GetBufferDesc(capacity);
+                return m_layoutAttributeCurrent.GetBufferDesc(alignedCapacity);
             }
         }
 
@@ -524,8 +524,7 @@ namespace UnityEditor.VFX
             VFXExpressionGraph expressionGraph,
             Dictionary<VFXContext, VFXContextCompiledData> contextToCompiledData,
             Dictionary<VFXContext, int> contextSpawnToBufferIndex,
-            Dictionary<VFXData, int> attributeBuffer,
-            Dictionary<VFXData, int> eventBuffer,
+            VFXDependentBuffersData dependentBuffers,
             Dictionary<VFXContext, List<VFXContextLink>[]> effectiveFlowInputLinks)
         {
             bool hasKill = IsAttributeStored(VFXAttribute.Alive);
@@ -536,7 +535,7 @@ namespace UnityEditor.VFX
             var systemBufferMappings = new List<VFXMapping>();
             var systemValueMappings = new List<VFXMapping>();
 
-            var attributeBufferIndex = attributeBuffer[this];
+            var attributeBufferIndex = dependentBuffers.attributeBuffers[this];
 
             int attributeSourceBufferIndex = -1;
             int eventGPUFrom = -1;
@@ -549,13 +548,12 @@ namespace UnityEditor.VFX
                 {
                     throw new InvalidOperationException("Unexpected multiple input dependency for GPU event");
                 }
-                attributeSourceBufferIndex = attributeBuffer[m_DependenciesIn.FirstOrDefault()];
-                eventGPUFrom = eventBuffer[this];
+                attributeSourceBufferIndex = dependentBuffers.attributeBuffers[m_DependenciesIn.FirstOrDefault()];
+                eventGPUFrom = dependentBuffers.eventBuffers[this];
             }
 
             if (attributeBufferIndex != -1)
             {
-                outBufferDescs.Add(m_layoutAttributeCurrent.GetBufferDesc(alignedCapacity));
                 systemBufferMappings.Add(new VFXMapping("attributeBuffer", attributeBufferIndex));
             }
 
@@ -602,8 +600,7 @@ namespace UnityEditor.VFX
                 systemValueMappings.Add(new VFXMapping("stripCount", (int)stripCapacity));
                 systemValueMappings.Add(new VFXMapping("particlePerStripCount", (int)particlePerStripCount));
 
-                stripDataIndex = outBufferDescs.Count;
-                outBufferDescs.Add(new VFXGPUBufferDesc() { type = ComputeBufferType.Default, size = stripCapacity * 4, stride = 4 });
+                stripDataIndex = dependentBuffers.stripBuffers[this];
                 systemBufferMappings.Add(new VFXMapping("stripDataBuffer", stripDataIndex));
             }
 
@@ -706,6 +703,13 @@ namespace UnityEditor.VFX
                 if (stripDataIndex != -1 && context.ownedType == VFXDataType.ParticleStrip)
                     bufferMappings.Add(new VFXMapping("stripDataBuffer", stripDataIndex));
 
+                bool hasAttachedStrip = IsAttributeStored(VFXAttribute.StripAlive);
+                if (hasAttachedStrip)
+                {
+                    var stripData = dependenciesOut.First(d => ((VFXDataParticle)d).hasStrip); // TODO Handle several strip attached
+                    bufferMappings.Add(new VFXMapping("attachedStripDataBuffer", dependentBuffers.stripBuffers[stripData]));
+                }
+
                 if (indirectBufferIndex != -1 &&
                     (context.contextType == VFXContextType.Update ||
                      (context.contextType == VFXContextType.Output && (context as VFXAbstractParticleOutput).HasIndirectDraw())))
@@ -725,7 +729,7 @@ namespace UnityEditor.VFX
 
                 var gpuTarget = context.allLinkedOutputSlot.SelectMany(o => (o.owner as VFXContext).outputContexts)
                     .Where(c => c.CanBeCompiled())
-                    .Select(o => eventBuffer[o.GetData()])
+                    .Select(o => dependentBuffers.eventBuffers[o.GetData()])
                     .ToArray();
                 for (uint indexTarget = 0; indexTarget < (uint)gpuTarget.Length; ++indexTarget)
                 {

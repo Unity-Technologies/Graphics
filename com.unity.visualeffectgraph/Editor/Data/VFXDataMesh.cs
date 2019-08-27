@@ -43,8 +43,7 @@ namespace UnityEditor.VFX
             VFXExpressionGraph expressionGraph,
             Dictionary<VFXContext, VFXContextCompiledData> contextToCompiledData,
             Dictionary<VFXContext, int> contextSpawnToBufferIndex,
-            Dictionary<VFXData, int> attributeBuffer,
-            Dictionary<VFXData, int> eventBuffer,
+            VFXDependentBuffersData dependentBuffers,
             Dictionary<VFXContext, List<VFXContextLink>[]> effectiveFlowInputLinks)
         {
             var context = m_Owners[0];
