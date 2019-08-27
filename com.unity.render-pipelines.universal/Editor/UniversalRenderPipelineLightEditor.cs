@@ -51,7 +51,7 @@ namespace UnityEditor.Rendering.Universal
         public bool spotOptionsValue { get { return typeIsSame && lightProperty.type == LightType.Spot; } }
         public bool pointOptionsValue { get { return typeIsSame && lightProperty.type == LightType.Point; } }
         public bool dirOptionsValue { get { return typeIsSame && lightProperty.type == LightType.Directional; } }
-        public bool areaOptionsValue { get { return typeIsSame && lightProperty.type == LightType.Rectangle; } }
+        public bool areaOptionsValue { get { return typeIsSame && (lightProperty.type == LightType.Rectangle || lightProperty.type == LightType.Disc); } }
 
         // Point light realtime shadows not supported
         public bool runtimeOptionsValue { get { return typeIsSame && (lightProperty.type != LightType.Rectangle && lightProperty.type != LightType.Point && !settings.isCompletelyBaked); } }
@@ -134,7 +134,13 @@ namespace UnityEditor.Rendering.Universal
 
             using (var group = new EditorGUILayout.FadeGroupScope(1.0f - m_AnimAreaOptions.faded))
                 if (group.visible)
-                    settings.DrawLightmapping();
+                {
+                    Light light = target as Light;
+                    if (light.type != LightType.Disc)
+                    {
+                        settings.DrawLightmapping();
+                    }
+                }
 
             settings.DrawIntensity();
 
@@ -190,6 +196,8 @@ namespace UnityEditor.Rendering.Universal
         void DrawSpotAngle()
         {
             EditorGUILayout.Slider(settings.spotAngle, 1f, 179f, s_Styles.SpotAngle);
+            // Disable until baking of inner angle works
+            //settings.DrawInnerAndOuterSpotAngle();
         }
 
         void DrawAdditionalShadowData()
@@ -296,6 +304,56 @@ namespace UnityEditor.Rendering.Universal
                 EditorGUILayout.HelpBox(s_Styles.ShadowsNotSupportedWarning.text, MessageType.Warning);
 
             EditorGUILayout.Space();
+        }
+
+        protected override void OnSceneGUI()
+        {
+            if (!(GraphicsSettings.currentRenderPipeline is UniversalRenderPipelineAsset))
+                return;
+
+            Light light = target as Light;
+
+            switch (light.type)
+            {
+                case LightType.Spot:
+                    using (new Handles.DrawingScope(Matrix4x4.TRS(light.transform.position, light.transform.rotation, Vector3.one)))
+                    {
+                        CoreLightEditorUtilities.DrawSpotLightGizmo(light);
+                    }
+                    break;
+
+                case LightType.Point:
+                    using (new Handles.DrawingScope(Matrix4x4.TRS(light.transform.position, Quaternion.identity, Vector3.one)))
+                    {
+                        CoreLightEditorUtilities.DrawPointLightGizmo(light);
+                    }
+                    break;
+
+                case LightType.Rectangle:
+                    using (new Handles.DrawingScope(Matrix4x4.TRS(light.transform.position, light.transform.rotation, Vector3.one)))
+                    {
+                        CoreLightEditorUtilities.DrawRectangleLightGizmo(light);
+                    }
+                    break;
+
+                case LightType.Disc:
+                    using (new Handles.DrawingScope(Matrix4x4.TRS(light.transform.position, light.transform.rotation, Vector3.one)))
+                    {
+                        CoreLightEditorUtilities.DrawDiscLightGizmo(light);
+                    }
+                    break;
+
+                case LightType.Directional:
+                    using (new Handles.DrawingScope(Matrix4x4.TRS(light.transform.position, light.transform.rotation, Vector3.one)))
+                    {
+                        CoreLightEditorUtilities.DrawDirectionalLightGizmo(light);
+                    }
+                    break;
+                
+                default:
+                    base.OnSceneGUI();
+                    break;
+            }
         }
     }
 }

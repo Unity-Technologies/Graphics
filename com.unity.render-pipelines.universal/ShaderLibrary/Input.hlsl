@@ -9,7 +9,7 @@
 // There are some performance issues by using SSBO in mobile.
 // Also some GPUs don't supports SSBO in vertex shader.
 #if !defined(SHADER_API_MOBILE) && (defined(SHADER_API_METAL) || defined(SHADER_API_VULKAN) || defined(SHADER_API_PS4) || defined(SHADER_API_XBOXONE))
-    #define USE_STRUCTURED_BUFFER_FOR_LIGHT_DATA 1
+    #define USE_STRUCTURED_BUFFER_FOR_LIGHT_DATA 0
     #define MAX_VISIBLE_LIGHTS MAX_VISIBLE_LIGHTS_SSBO
 // We don't use SSBO in D3D because we can't figure out without adding shader variants if platforms is D3D10.
 // We don't use SSBO on Nintendo Switch as UBO path is faster.
