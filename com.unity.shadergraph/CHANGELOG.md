@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Fixed
 - The Shader Graph preview no longer breaks when you create new PBR Graphs.
+- Fixed an issue where deleting a group and a property at the same time would cause an error.
 
 ## [7.0.1] - 2019-07-25
 ### Changed
