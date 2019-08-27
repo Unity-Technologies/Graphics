@@ -1,7 +1,7 @@
 // This file contain the two main data structures controlled by the XRSystem.
 // XRView contains the parameters required to render (proj and view matrices, viewport, etc)
 // XRPass holds the render target information and a list of XRView.
-// When a pass has 2+ views, hardware instancing will be active.
+// When a pass has 2+ views, single-pass will be active.
 // To avoid allocating every frame, XRView is a struct and XRPass is pooled.
 
 using System;
@@ -80,14 +80,14 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // Instanced views support (instanced draw calls or multiview extension)
         internal int viewCount { get => views.Count; }
-        internal bool instancingEnabled { get => viewCount > 1; }
+        internal bool singlePassEnabled { get => viewCount > 1; }
 
         // Occlusion mesh rendering
         Material occlusionMeshMaterial = null;
 
         // Legacy multipass support
         internal int  legacyMultipassEye      { get => (int)views[0].legacyStereoEye; }
-        internal bool legacyMultipassEnabled  { get => enabled && !instancingEnabled && legacyMultipassEye >= 0; }
+        internal bool legacyMultipassEnabled  { get => enabled && !singlePassEnabled && legacyMultipassEye >= 0; }
 
         internal static XRPass Create(int multipassId, ScriptableCullingParameters cullingParameters, RenderTexture rt = null)
         {
@@ -157,13 +157,15 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal void AddViewInternal(XRView xrView)
         {
-            if (views.Count < TextureXR.slices)
+            int maxSupportedViews = Math.Min(TextureXR.slices, ShaderConfig.s_XrMaxViews);
+
+            if (views.Count < maxSupportedViews)
             {
                 views.Add(xrView);
             }
             else
             {
-                throw new NotImplementedException($"Invalid XR setup for single-pass instancing, trying to add too many views! Max supported: {TextureXR.slices}");
+                throw new NotImplementedException($"Invalid XR setup for single-pass, trying to add too many views! Max supported: {maxSupportedViews}");
             }
         }
 
@@ -188,7 +190,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     else
                         renderContext.StartMultiEye(camera);
                 }
-                else if (instancingEnabled)
+                else if (singlePassEnabled)
                 {
                     if (viewCount <= TextureXR.slices)
                     {
@@ -197,7 +199,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     }
                     else
                     {
-                        throw new NotImplementedException($"Invalid XR setup for single-pass instancing, trying to render too many views! Max supported: {TextureXR.slices}");
+                        throw new NotImplementedException($"Invalid XR setup for single-pass, trying to render too many views! Max supported: {TextureXR.slices}");
                     }
                 }
             }
