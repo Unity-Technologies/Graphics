@@ -572,7 +572,7 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
         float4 normalizedBlendValue = normalizedVoxelValue;
 
     #if (SHADEROPTIONS_CAMERA_RELATIVE_RENDERING != 0) && defined(USING_STEREO_MATRICES)
-        // With XR single-pass instancing, remove the camera-relative offset for the reprojected sample
+        // With XR single-pass, remove the camera-relative offset for the reprojected sample
         centerWS -= _WorldSpaceCameraPosViewOffset;
     #endif
 

@@ -10,10 +10,7 @@ namespace UnityEngine.Rendering
         {
             set
             {
-                //if (value > HighDefinition.ShaderConfig.s_XrMaxViews)
-                //    throw new System.NotImplementedException("Invalid XR setup for single-pass instancing: you must increase ShaderConfig.XrMaxViews");
-                //else
-                    m_MaxViews = value;
+                m_MaxViews = value;
             }
         }
 
