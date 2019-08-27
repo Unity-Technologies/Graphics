@@ -9,10 +9,11 @@ using UnityEditor;
 using UnityEditor.ProjectWindowCallback;
 #endif
 
-
 namespace UnityEngine.Experimental.Rendering.Universal
 {
-    [MovedFrom("UnityEngine.Experimental.Rendering.LWRP")] public class Renderer2DData : ScriptableRendererData
+    [Serializable, ReloadGroup]
+    [MovedFrom("UnityEngine.Experimental.Rendering.LWRP")]
+    public class Renderer2DData : ScriptableRendererData
     {
         [SerializeField]
         float m_HDREmulationScale = 1;
@@ -35,17 +36,42 @@ namespace UnityEngine.Experimental.Rendering.Universal
         [SerializeField]
         Shader m_BlitShader = null;
 
+        [SerializeField]
+        Shader m_ShadowShader = null;
+
+        [SerializeField]
+        Shader m_ShadowGroupShader = null;
+
+        [SerializeField]
+        Shader m_RemoveSelfShadowShader = null;
+
+        [SerializeField, Reload("Runtime/Data/PostProcessData.asset")]
+        PostProcessData m_PostProcessData = null;
+
         public float hdrEmulationScale => m_HDREmulationScale;
         public Light2DBlendStyle[] lightBlendStyles => m_LightBlendStyles;
+
 
         internal Shader shapeLightShader => m_ShapeLightShader;
         internal Shader shapeLightVolumeShader => m_ShapeLightVolumeShader;
         internal Shader pointLightShader => m_PointLightShader;
         internal Shader pointLightVolumeShader => m_PointLightVolumeShader;
         internal Shader blitShader => m_BlitShader;
+        internal Shader shadowShader => m_ShadowShader;
+        internal Shader shadowGroupShader => m_ShadowGroupShader;
+        internal Shader removeSelfShadowShader => m_RemoveSelfShadowShader;
+        internal PostProcessData postProcessData => m_PostProcessData;
+
 
         protected override ScriptableRenderer Create()
         {
+#if UNITY_EDITOR
+            if (!Application.isPlaying)
+            {
+                ResourceReloader.ReloadAllNullIn(this, UniversalRenderPipelineAsset.packagePath);
+                ResourceReloader.ReloadAllNullIn(m_PostProcessData, UniversalRenderPipelineAsset.packagePath);
+            }
+#endif
             return new Renderer2D(this);
         }
 
@@ -94,6 +120,9 @@ namespace UnityEngine.Experimental.Rendering.Universal
             m_PointLightShader = Shader.Find("Hidden/Light2D-Point");
             m_PointLightVolumeShader = Shader.Find("Hidden/Light2d-Point-Volumetric");
             m_BlitShader = Shader.Find("Hidden/Universal Render Pipeline/Blit");
+            m_ShadowShader = Shader.Find("Hidden/Shadow2D");
+            m_ShadowGroupShader = Shader.Find("Hidden/ShadowGroup2D");
+            m_RemoveSelfShadowShader = Shader.Find("Hidden/Shadow2DRemoveSelf");
         }
 
         protected override void OnEnable()
@@ -118,6 +147,15 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
                 EditorPrefs.SetString(suggestedNamesKey, suggestedNamesPrefs);
             }
+
+#if UNITY_EDITOR
+            try
+            {
+                ResourceReloader.ReloadAllNullIn(this, UniversalRenderPipelineAsset.packagePath);
+                ResourceReloader.ReloadAllNullIn(m_PostProcessData, UniversalRenderPipelineAsset.packagePath);
+            }
+            catch { }
+#endif
         }
 
         internal override Material GetDefaultMaterial(DefaultMaterialType materialType)
