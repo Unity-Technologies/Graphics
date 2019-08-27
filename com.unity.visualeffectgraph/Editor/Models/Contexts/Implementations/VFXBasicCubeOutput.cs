@@ -59,5 +59,15 @@ namespace UnityEditor.VFX
         {
             public Texture2D mainTexture = VFXResources.defaultResources.particleTexture;
         }
+        protected override IEnumerable<string> filteredOutSettings
+        {
+            get
+            {
+                foreach (var setting in base.filteredOutSettings)
+                    yield return setting;
+
+                yield return "colorMappingMode";
+            }
+        }
     }
 }

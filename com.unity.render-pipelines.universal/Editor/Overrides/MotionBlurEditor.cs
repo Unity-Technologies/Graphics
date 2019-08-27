@@ -5,7 +5,7 @@ namespace UnityEditor.Rendering.Universal
     [VolumeComponentEditor(typeof(MotionBlur))]
     sealed class MotionBlurEditor : VolumeComponentEditor
     {
-        SerializedDataParameter m_Mode;
+        //SerializedDataParameter m_Mode;
         SerializedDataParameter m_Quality;
         SerializedDataParameter m_Intensity;
         SerializedDataParameter m_Clamp;
@@ -14,7 +14,7 @@ namespace UnityEditor.Rendering.Universal
         {
             var o = new PropertyFetcher<MotionBlur>(serializedObject);
 
-            m_Mode = Unpack(o.Find(x => x.mode));
+            //m_Mode = Unpack(o.Find(x => x.mode));
             m_Quality = Unpack(o.Find(x => x.quality));
             m_Intensity = Unpack(o.Find(x => x.intensity));
             m_Clamp = Unpack(o.Find(x => x.clamp));
@@ -22,18 +22,18 @@ namespace UnityEditor.Rendering.Universal
 
         public override void OnInspectorGUI()
         {
-            PropertyField(m_Mode);
+            //PropertyField(m_Mode);
 
-            if (m_Mode.value.intValue == (int)MotionBlurMode.CameraOnly)
-            {
+            //if (m_Mode.value.intValue == (int)MotionBlurMode.CameraOnly)
+            //{
                 PropertyField(m_Quality);
                 PropertyField(m_Intensity);
                 PropertyField(m_Clamp);
-            }
-            else
-            {
-                EditorGUILayout.HelpBox("Object motion blur is not supported on the Universal Render Pipeline yet.", MessageType.Info);
-            }
+            //}
+            //else
+            //{
+            //    EditorGUILayout.HelpBox("Object motion blur is not supported on the Universal Render Pipeline yet.", MessageType.Info);
+            //}
         }
     }
 }

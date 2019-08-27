@@ -2,15 +2,9 @@
 // - XRDisplaySubsystem from the XR SDK
 // - or the 'legacy' C++ stereo rendering path and XRSettings (will be removed in 2020.1)
 
-#if UNITY_2019_3_OR_NEWER && ENABLE_VR
-#define USE_XR_SDK
-#endif
-
 using System;
 using System.Collections.Generic;
-#if USE_XR_SDK
 using UnityEngine.XR;
-#endif
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -19,7 +13,7 @@ namespace UnityEngine.Rendering.HighDefinition
     {
         None,                       // default layout
         TestComposite,              // split the  into tiles to simulate multi-pass
-        TestSinglePassOneEye,       // render only eye with single-pass instancing path
+        TestSinglePassOneEye,       // render only eye with single-pass path
     }
 
     internal class XRSystem
@@ -33,35 +27,50 @@ namespace UnityEngine.Rendering.HighDefinition
         // Store active passes and avoid allocating memory every frames
         List<(Camera, XRPass)> framePasses = new List<(Camera, XRPass)>();
 
+#if ENABLE_XR_MODULE
+        // XR SDK display interface
+        static List<XRDisplaySubsystem> displayList = new List<XRDisplaySubsystem>();
+        XRDisplaySubsystem display = null;
+
         // Internal resources used by XR rendering
         Material occlusionMeshMaterial = null;
         Material mirrorViewMaterial = null;
         MaterialPropertyBlock mirrorViewMaterialProperty = new MaterialPropertyBlock();
-
-#if USE_XR_SDK
-        List<XRDisplaySubsystem> displayList = new List<XRDisplaySubsystem>();
-        XRDisplaySubsystem display = null;
 #endif
 
         internal XRSystem(RenderPipelineResources.ShaderResources shaders)
         {
+#if ENABLE_XR_MODULE
             RefreshXrSdk();
-            // XRTODO: replace by dynamic render graph
-            TextureXR.maxViews = GetMaxViews();
 
             if (shaders != null)
             {
                 occlusionMeshMaterial = CoreUtils.CreateEngineMaterial(shaders.xrOcclusionMeshPS);
                 mirrorViewMaterial = CoreUtils.CreateEngineMaterial(shaders.xrMirrorViewPS);
             }
+#endif
+            // XRTODO: replace by dynamic render graph
+            TextureXR.maxViews = GetMaxViews();
         }
+
+#if ENABLE_XR_MODULE
+        // With XR SDK: disable legacy VR system before rendering first frame
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSplashScreen)]
+        internal static void XRSystemInit()
+        {
+            SubsystemManager.GetInstances(displayList);
+
+            for (int i = 0; i < displayList.Count; i++)
+                displayList[i].disableLegacyRenderer = true;
+        }
+#endif
 
         // Compute the maximum number of views (slices) to allocate for texture arrays
         internal int GetMaxViews()
         {
             int maxViews = 1;
 
-#if USE_XR_SDK
+#if ENABLE_XR_MODULE
             if (display != null)
             {
                 // XRTODO : replace by API from XR SDK, assume we have 2 slices until then
@@ -90,14 +99,18 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             bool xrSdkActive = RefreshXrSdk();
 
-            // Validate state
-            Debug.Assert(framePasses.Count == 0, "XRSystem.ReleaseFrame() was not called!");
+            if (framePasses.Count > 0)
+            {
+                Debug.LogWarning("XRSystem.ReleaseFrame() was not called!");
+                ReleaseFrame();
+            }
 
             foreach (var camera in cameras)
             {
                 if (camera == null)
                     continue;
 
+#if ENABLE_VR_MODULE
                 // Read XR SDK or legacy settings
                 bool xrEnabled = xrSdkActive || (camera.stereoEnabled && XRGraphics.enabled);
 
@@ -110,6 +123,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 if (xrEnabled && xrSupported)
                 {
+                    if (XRGraphics.renderViewportScale != 1.0f)
+                    {
+                        Debug.LogWarning("RenderViewportScale has no effect with this render pipeline. Use dynamic resolution instead.");
+                    }
+
                     if (xrSdkActive)
                     {
                         CreateLayoutFromXrSdk(camera);
@@ -120,6 +138,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     }
                 }
                 else
+#endif
                 {
                     AddPassToFrame(camera, emptyPass);
                 }
@@ -141,7 +160,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         bool RefreshXrSdk()
         {
-#if USE_XR_SDK
+#if ENABLE_XR_MODULE
             SubsystemManager.GetInstances(displayList);
 
             if (displayList.Count > 0)
@@ -194,15 +213,35 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+#if ENABLE_XR_MODULE
         void CreateLayoutFromXrSdk(Camera camera)
         {
-#if USE_XR_SDK
+            bool CanUseSinglePass(XRDisplaySubsystem.XRRenderPass renderPass)
+            {
+                if (renderPass.renderTargetDesc.dimension != TextureDimension.Tex2DArray)
+                    return false;
+
+                if (renderPass.GetRenderParameterCount() != 2 || renderPass.renderTargetDesc.volumeDepth != 2)
+                    return false;
+
+                renderPass.GetRenderParameter(camera, 0, out var renderParam0);
+                renderPass.GetRenderParameter(camera, 1, out var renderParam1);
+
+                if (renderParam0.textureArraySlice != 0 || renderParam1.textureArraySlice != 1)
+                    return false;
+
+                if (renderParam0.viewport != renderParam1.viewport)
+                    return false;
+
+                return true;
+            }
+
             for (int renderPassIndex = 0; renderPassIndex < display.GetRenderPassCount(); ++renderPassIndex)
             {
                 display.GetRenderPass(renderPassIndex, out var renderPass);
                 display.GetCullingParameters(camera, renderPass.cullingPassIndex, out var cullingParams);
 
-                if (CanUseInstancing(camera, renderPass))
+                if (CanUseSinglePass(renderPass))
                 {
                     var xrPass = XRPass.Create(renderPass, multipassId: framePasses.Count, cullingParams, occlusionMeshMaterial);
 
@@ -227,13 +266,15 @@ namespace UnityEngine.Rendering.HighDefinition
                     }
                 }
             }
-#endif
         }
+#endif
 
         internal void Cleanup()
         {
+#if ENABLE_XR_MODULE
             CoreUtils.Destroy(occlusionMeshMaterial);
             CoreUtils.Destroy(mirrorViewMaterial);
+#endif
         }
 
         internal void AddPassToFrame(Camera camera, XRPass xrPass)
@@ -241,31 +282,9 @@ namespace UnityEngine.Rendering.HighDefinition
             framePasses.Add((camera, xrPass));
         }
 
-#if USE_XR_SDK
-        bool CanUseInstancing(Camera camera, XRDisplaySubsystem.XRRenderPass renderPass)
-        {
-            if (renderPass.renderTargetDesc.dimension != TextureDimension.Tex2DArray)
-                return false;
-
-            if (renderPass.GetRenderParameterCount() != 2 || renderPass.renderTargetDesc.volumeDepth != 2)
-                return false;
-
-            renderPass.GetRenderParameter(camera, 0, out var renderParam0);
-            renderPass.GetRenderParameter(camera, 1, out var renderParam1);
-
-            if (renderParam0.textureArraySlice != 0 || renderParam1.textureArraySlice != 1)
-                return false;
-
-            if (renderParam0.viewport != renderParam1.viewport)
-                return false;
-
-            return true;
-        }
-#endif
-
         internal void RenderMirrorView(CommandBuffer cmd)
         {
-#if USE_XR_SDK
+#if ENABLE_XR_MODULE
             if (display == null)
                 return;
 
@@ -326,7 +345,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 var xrPass = XRPass.Create(framePasses.Count, cullingParams, camera.targetTexture);
 
-                // 2x single-pass instancing
+                // 2x single-pass
                 for (int i = 0; i < 2; ++i)
                     xrPass.AddView(camera.projectionMatrix, camera.worldToCameraMatrix, camera.pixelRect);
 

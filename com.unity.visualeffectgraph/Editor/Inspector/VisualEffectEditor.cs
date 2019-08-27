@@ -57,12 +57,12 @@ namespace UnityEditor.VFX
     {
         const string kGeneralFoldoutStatePreferenceName = "VFX.VisualEffectEditor.Foldout.General";
         const string kRendererFoldoutStatePreferenceName = "VFX.VisualEffectEditor.Foldout.Renderer";
-        const string kParameterFoldoutStatePreferenceName = "VFX.VisualEffectEditor.Foldout.Parameter";
+        const string kPropertyFoldoutStatePreferenceName = "VFX.VisualEffectEditor.Foldout.Properties";
 
         bool showGeneralCategory;
 
         bool showRendererCategory;
-        bool showParameterCategory;
+        bool showPropertyCategory;
 
         protected SerializedProperty m_VisualEffectAsset;
         SerializedProperty m_ReseedOnPlay;
@@ -91,7 +91,7 @@ namespace UnityEditor.VFX
         protected void OnEnable()
         {
             m_SingleSerializedObject = targets.Length == 1 ? serializedObject : new SerializedObject(targets[0]);
-            showParameterCategory = EditorPrefs.GetBool(kParameterFoldoutStatePreferenceName, true);
+            showPropertyCategory = EditorPrefs.GetBool(kPropertyFoldoutStatePreferenceName, true);
             showRendererCategory = EditorPrefs.GetBool(kRendererFoldoutStatePreferenceName, true);
             showGeneralCategory = EditorPrefs.GetBool(kGeneralFoldoutStatePreferenceName, true);
 
@@ -343,7 +343,7 @@ namespace UnityEditor.VFX
                     default:
                         if(parameter.realType == typeof(Gradient).Name )
                         {
-                            Gradient newGradient = EditorGUI.GradientField(rect, nameContent, null, true);
+                            Gradient newGradient = EditorGUI.GradientField(rect, nameContent, s_DefaultGradient, true);
 
                             if (GUI.changed)
                             { 
@@ -360,6 +360,8 @@ namespace UnityEditor.VFX
 
             return changed;
         }
+
+        static Gradient s_DefaultGradient = new Gradient();
 
         protected static object GetObjectValue(SerializedProperty prop)
         {
@@ -761,20 +763,20 @@ namespace UnityEditor.VFX
 
                 if (m_graph.m_ParameterInfo != null)
                 {
-                    bool newShowParameterCategory = ShowHeader(Contents.headerParameters, true, showParameterCategory);
-                    if( newShowParameterCategory != showParameterCategory)
+                    bool newShowParameterCategory = ShowHeader(Contents.headerProperties, true, showPropertyCategory);
+                    if( newShowParameterCategory != showPropertyCategory)
                     {
-                        EditorPrefs.SetBool(kParameterFoldoutStatePreferenceName, newShowParameterCategory);
-                        showParameterCategory = newShowParameterCategory;
+                        EditorPrefs.SetBool(kPropertyFoldoutStatePreferenceName, newShowParameterCategory);
+                        showPropertyCategory = newShowParameterCategory;
                     }
 
-                    if(showParameterCategory)
+                    if(showPropertyCategory)
                     {
                         var stack = new List<int>();
                         int currentCount = m_graph.m_ParameterInfo.Length;
                         if (currentCount == 0)
                         {
-                            GUILayout.Label("No Parameter exposed in the asset");
+                            GUILayout.Label("No Property exposed in the Visual Effect Graph");
                         }
                         else
                         {
@@ -1170,7 +1172,7 @@ namespace UnityEditor.VFX
         {
             public static readonly GUIContent headerPlayControls =  EditorGUIUtility.TrTextContent("Play Controls");
             public static readonly GUIContent headerGeneral =       EditorGUIUtility.TrTextContent("General");
-            public static readonly GUIContent headerParameters =    EditorGUIUtility.TrTextContent("Parameters");
+            public static readonly GUIContent headerProperties =    EditorGUIUtility.TrTextContent("Properties");
             public static readonly GUIContent headerRenderer =      EditorGUIUtility.TrTextContent("Renderer");
 
             public static readonly GUIContent assetPath =           EditorGUIUtility.TrTextContent("Asset Template");
@@ -1230,7 +1232,7 @@ namespace UnityEditor.VFX
 
             public static readonly GUIStyle categoryHeader;
 
-            public static readonly GUILayoutOption MiniButtonWidth = GUILayout.Width(48);
+            public static readonly GUILayoutOption MiniButtonWidth = GUILayout.Width(56);
             public static readonly GUILayoutOption PlayControlsHeight = GUILayout.Height(24);
 
             static Styles()
@@ -1248,8 +1250,9 @@ namespace UnityEditor.VFX
                 categoryHeader.padding.left = 32;
                 categoryHeader.padding.top = 2;
                 categoryHeader.border.right = 2;
+
                 //TODO change to editor resources calls
-                categoryHeader.normal.background = Resources.Load<Texture2D>(EditorGUIUtility.isProSkin ? "VFX/cat-background-dark" : "VFX/cat-background-light");
+                categoryHeader.normal.background = (Texture2D)AssetDatabase.LoadAssetAtPath<Texture2D>(VisualEffectGraphPackageInfo.assetPackagePath +"/Editor Default Resources/" +(EditorGUIUtility.isProSkin ? "VFX/cat-background-dark.png" : "VFX/cat-background-light.png"));
             }
         }
     }
