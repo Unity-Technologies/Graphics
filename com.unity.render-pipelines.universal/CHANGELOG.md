@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 - Added shader function `GetMainLightShadowParams`. This returns a half4 for the main light that packs shadow strength in x component and shadow soft property in y component.
 - Added shader function `GetAdditionalLightShadowParams`. This returns a half4 for an additional light that packs shadow strength in x component and shadow soft property in y component.
+- Added shadow support for the 2D Renderer. 
+- Added LightReactor2D, and CompositeLightReactor2D components.
+- Added shadow intensity and shadow volume intensity properties to Light2D.
 - Added new Gizmos for Lights.
 
 ### Changed

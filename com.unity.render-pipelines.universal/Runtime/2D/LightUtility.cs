@@ -276,6 +276,90 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
             return localBounds;
         }
+
+
+        public static void AddShadowCasterGroupToList(ShadowCasterGroup2D shadowCaster, List<ShadowCasterGroup2D> list)
+        {
+            int positionToInsert = 0;
+            for (positionToInsert = 0; positionToInsert < list.Count; positionToInsert++)
+            {
+                if (shadowCaster.GetShadowGroup() == list[positionToInsert].GetShadowGroup())
+                    break;
+            }
+
+            list.Insert(positionToInsert, shadowCaster);
+        }
+
+
+        public static void RemoveShadowCasterGroupFromList(ShadowCasterGroup2D shadowCaster, List<ShadowCasterGroup2D> list)
+        {
+            list.Remove(shadowCaster);
+        }
+
+
+        static CompositeLightReactor2D FindTopMostCompositeLightReactor(LightReactor2D shadowCaster)
+        {
+            CompositeLightReactor2D retGroup = null;
+
+            Transform transformToCheck = shadowCaster.transform.parent;
+            while(transformToCheck != null)
+            {
+                CompositeLightReactor2D currentGroup = transformToCheck.GetComponent<CompositeLightReactor2D>();
+                if (currentGroup != null)
+                    retGroup = currentGroup;
+
+                transformToCheck = transformToCheck.parent;
+            }
+
+            return retGroup;
+        }
+
+
+        public static bool AddToShadowCasterGroup(LightReactor2D shadowCaster, ref ShadowCasterGroup2D shadowCasterGroup)
+        {
+            ShadowCasterGroup2D newShadowCasterGroup = FindTopMostCompositeLightReactor(shadowCaster) as ShadowCasterGroup2D;
+
+            if (newShadowCasterGroup == null)
+                newShadowCasterGroup = shadowCaster.GetComponent<LightReactor2D>();
+
+            if (newShadowCasterGroup != null && shadowCasterGroup != newShadowCasterGroup)
+            {
+                newShadowCasterGroup.RegisterShadowCaster2D(shadowCaster);
+                shadowCasterGroup = newShadowCasterGroup;
+                return true;
+            }
+
+            return false;
+        }
+
+        public static void RemoveFromShadowCasterGroup(LightReactor2D shadowCaster, ShadowCasterGroup2D shadowCasterGroup)
+        {
+            if(shadowCasterGroup != null)
+                shadowCasterGroup.UnregisterShadowCaster2D(shadowCaster);
+        }
+
+#if UNITY_EDITOR
+        public static int GetShapePathHash(Vector3[] path)
+        {
+            unchecked
+            {
+                int hashCode = (int)2166136261;
+
+                if (path != null)
+                {
+                    foreach (var point in path)
+                        hashCode = hashCode * 16777619 ^ point.GetHashCode();
+                }
+                else
+                {
+                    hashCode = 0;
+                }
+
+                return hashCode;
+            }
+        }
+#endif
+
     }
 }
 

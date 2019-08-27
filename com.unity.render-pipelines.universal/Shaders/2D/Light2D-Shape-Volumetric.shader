@@ -18,6 +18,7 @@ Shader "Hidden/Light2D-Shape-Volumetric"
             #pragma multi_compile_local SPRITE_LIGHT __
 
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
+            #include "Packages/com.unity.render-pipelines.universal/Shaders/2D/Include/LightingUtility.hlsl"
 
             struct Attributes
             {
@@ -35,6 +36,8 @@ Shader "Hidden/Light2D-Shape-Volumetric"
                 float4  positionCS  : SV_POSITION;
                 float4  color       : COLOR;
                 float2  uv          : TEXCOORD0;
+
+                SHADOW_COORDS(TEXCOORD1)
             };
 
             float4 _LightColor;
@@ -51,6 +54,8 @@ Shader "Hidden/Light2D-Shape-Volumetric"
             TEXTURE2D(_FalloffLookup);
             SAMPLER(sampler_FalloffLookup);
 #endif
+
+            SHADOW_VARIABLES
 
             Varyings vert(Attributes attributes)
             {
@@ -70,6 +75,7 @@ Shader "Hidden/Light2D-Shape-Volumetric"
 #else
                 o.uv = float2(attributes.color.a, _FalloffIntensity);
 #endif
+                TRANSFER_SHADOWS(o)
 
                 return o;
             }
@@ -83,6 +89,8 @@ Shader "Hidden/Light2D-Shape-Volumetric"
 #else
                 color.a = i.color.a * SAMPLE_TEXTURE2D(_FalloffLookup, sampler_FalloffLookup, i.uv).r;
 #endif
+
+                APPLY_SHADOWS(i, color, _ShadowVolumeIntensity);
 
                 return color;
 
