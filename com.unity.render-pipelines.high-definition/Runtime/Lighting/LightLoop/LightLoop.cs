@@ -2621,7 +2621,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
                 Profiler.EndSample();
 
-                Profiler.BeginSample("DensityVolume");
+                Profiler.BeginSample("DensityVolumes");
                 AllocateDensityVolumeJobArrays(densityVolumes.bounds);
                 ProcessDensityVolumes(punctualLightCount, areaLightCount, reflectionProbeCount, decalDatasCount, m_densityVolumeCount, hdCamera.viewCount);
                  Profiler.EndSample();
