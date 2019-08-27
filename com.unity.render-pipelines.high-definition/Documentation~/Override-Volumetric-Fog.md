@@ -1,6 +1,6 @@
 # Volumetric Fog
 
-Volumetric fog is the most advanced implementation of fog available in the High Definition Render Pipeline (HDRP). It realistically simulates the interaction of lights with fog, which allows for physically-plausible rendering of glow and crepuscular rays, which are beams of light that stream through gaps in objects like clouds and trees from a central point, like a God ray from the Sun..
+Volumetric fog is the most advanced implementation of fog available in the High Definition Render Pipeline (HDRP). It realistically simulates the interaction of lights with fog, which allows for physically-plausible rendering of glow and crepuscular rays, which are beams of light that stream through gaps in objects like clouds and trees from a central point.
 
 ## Using Volumetric Fog
 
@@ -19,25 +19,31 @@ At this point, the Scene contains global volumetric fog. However, the effect is 
 
 ## Customizing Global Volumetric Fog
 
-Use global fog, rather than local fog, because it provides the best performance and the best quality.
+Use global volumetric fog, rather than local fog, because it provides the best performance and the best quality.
 
-Global fog is a height fog. It has two logical components: the region at a distance closer to the Camera than the __Base Height__ is a constant (homogeneous) fog, and the region at a distance further than the __Base Height__ is the exponential fog.
+Global fog is a height fog which has two logical components:
 
-The __Volumetric Fog__ component of the active Volume controls the appearance of the global fog.
+- The region at a distance closer to the Camera than the **Base Height** is a constant (homogeneous) fog
+- The region at a distance further than the **Base Height** is the exponential fog.
+
+The **Volumetric Fog** override of the active Volume controls the appearance of the global fog. It includes two main properties that you can use to override the default density.
+
+* **Fog Attenuation Distance**: Controls the global density of the fog.
+* **Maximum Height**: Controls the density falloff with height; allows you to have a greater density near the ground and a lower density higher up.
 
 ## Properties
 
-![](Images/Override-VolumetricFog2.png)
+![](Images/Override-VolumetricFog1.png)
 
 | Property                 | Function                                                     |
 | :----------------------- | :----------------------------------------------------------- |
-| **Single Scattering Albedo** | Sets the fog color. Volumetric Fog tints lighting, so the fog scatters light to this color. It only tints lighting emitted by Lights behind or within the fog. This means that it does not tint lighting that reflects off GameObjects behind or within the fog - reflected lighting only gets dimmer (fades to black) as fog density increases. For example, if you shine a Light at a white wall behind fog with red Single Scattering Albedo, the fog looks red. If you shine a Light at a white wall and view it from the other side of the fog, the fog darkens the light but doesn’t tint it red. |
-| **Base Fog Distance**    | Controls the density at the base of the fog and determines how far you can see through the fog in Unity units. At this distance, the fog has absorbed and out-scattered 63% of background light. |
+| **Fog Albedo** | Sets the fog color. Volumetric Fog tints lighting, so the fog scatters light to this color. It only tints lighting emitted by Lights behind or within the fog. This means that it does not tint lighting that reflects off GameObjects behind or within the fog - reflected lighting only gets dimmer (fades to black) as fog density increases. For example, if you shine a Light at a white wall behind fog with red Single Scattering Albedo, the fog looks red. If you shine a Light at a white wall and view it from the other side of the fog, the fog darkens the light but doesn’t tint it red. |
+| **Fog Attenuation Distance** | Controls the density at the base of the fog and determines how far you can see through the fog in meters. At this distance, the fog has absorbed and out-scattered 63% of background light. |
 | **Base Height**          | The height of the boundary between the constant (homogeneous) fog and the exponential fog. |
-| **Mean Height**          | Controls the rate of falloff for the height fog in Unity units. Higher values stretch the fog vertically. At this height , the falloff reduces the initial base density by 63%. |
+| **Maximum Height**   | Controls the rate of falloff for the height fog in meters. Higher values stretch the fog vertically. At this height , the falloff reduces the initial base density by 63%. |
 | **Global Anisotropy** | Controls the angular distribution of scattered light. 0 is isotropic, 1 is forward scattering, and -1 is backward scattering. Note that non-zero values have a moderate performance impact. High values may have compatibility issues with the Enable Reprojection for Volumetrics Frame Setting. This is an experimental property that HDRP applies to both global and local fog. |
 | **Global Light Probe Dimmer** | Reduces the intensity of the global Light Probe that the sky generates. |
-| **Max Fog Distance** | Controls the distance (in Unity units) when applying fog to the skybox or background. Also determines the range of the Distant Fog. For optimal results, set this to be larger than the Camera’s Far value for its Clipping Plane. Otherwise, a discrepancy occurs between the fog on the Scene’s GameObjects and on the skybox. Note that the Camera’s Far Clipping Plane is flat whereas HDRP applies fog within a sphere surrounding the Camera. |
+| **Max Fog Distance** | Controls the distance (in meters) when applying fog to the skybox or background. Also determines the range of the Distant Fog. For optimal results, set this to be larger than the Camera’s Far value for its Clipping Plane. Otherwise, a discrepancy occurs between the fog on the Scene’s GameObjects and on the skybox. Note that the Camera’s Far Clipping Plane is flat whereas HDRP applies fog within a sphere surrounding the Camera. |
 | **Distant Fog** | <a name="DistantFog"></a>Activates the fog with precomputed lighting behind the volumetric section of the Camera’s frustum. The fog stretches from the maximum Distance Range in the Volumetric Lighting Controller to the Max Fog Distance. |
 | **Color Mode** | Use the drop-down to select the mode HDRP uses to calculate the color of the fog.<br />&#8226; **Sky Color**: HDRP shades the fog with a color it samples from the sky cubemap and its mipmaps.<br />&#8226; **Constant Color**: HDRP shades the fog with the color you set manually in the **Constant Color** field that appears when you select this option. |
 | **- Mip Fog Near**    | The distance (in meters) from the Camera that HDRP stops sampling the lowest resolution mipmap for the fog color.<br />This property only appears when you select **Sky Color** from the **Color Mode** drop-down. |
@@ -52,7 +58,6 @@ The __Volumetric Fog__ component of the active Volume controls the appearance of
 
 The [Light component](Light-Component.html) has several properties that are useful for volumetric lighting:
 
-- __Emission Radius__ is useful to simulate fill lighting. It acts by virtually "pushing" the light away from the Scene. As a result, it softens the core of punctual lights. Always use a non-zero value to reduce ghosting artifacts resulting from reprojection.
-- __Volumetric Dimmer__ only affects the fog and replaces the Light Dimmer that HDRP uses for surfaces.
-- __Shadow Dimmer__ only affects the fog and replaces the Shadow Dimmer that HDRP uses for surfaces.
-
+- **Emission Radius** is useful to simulate fill lighting. It acts by virtually "pushing" the light away from the Scene. As a result, it softens the core of [punctual lights](Glossary.html#PunctualLight). Always use a non-zero value to reduce ghosting artifacts resulting from reprojection.
+- **Volumetric Dimmer** only affects the fog and replaces the Light Dimmer that HDRP uses for surfaces.
+- **Shadow Dimmer** only affects the fog and replaces the Shadow Dimmer that HDRP uses for surfaces.

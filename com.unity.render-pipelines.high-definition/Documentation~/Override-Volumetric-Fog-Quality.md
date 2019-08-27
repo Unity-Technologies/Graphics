@@ -17,6 +17,6 @@ Adjust the **Depth Extent** on the Volumetric Lighting Controller component to d
 
 |**Property**| **Description**|
 |:----------------------------- |:------------------------------------------------------------ |
-| **Depth Extent** | Determines the distance (in Unity Units) from the Camera at which the volumetric fog section of the frustum ends. |
-| **Slice Distribution Uniformity** | Controls the uniformity of the distribution of slices along the Camera's focal axis. A value of 0 makes the distribution exponential (the spacing between the slices increases with the distance from the Camera), and the value of 1 results in a uniform distribution. |
+| **Depth Extent** | Determines the distance (in meters) from the Camera at which the volumetric fog section of the frustum ends. |
+| **Slice Distribution Uniformity** | Controls the uniformity of the distribution of slices along the Camera's focal axis. HDRP samples volumetric fog at multiple distances from the Camera. Each of these sample areas is called a slice. A value of 0 makes the distribution of slices exponential (the spacing between the slices increases with the distance from the Camera) which gives greater precision near to the Camera, and lower precision further away. A value of 1 results in a uniform distribution which gives the same level of precision regardless of the distance to the Camera. |
 
