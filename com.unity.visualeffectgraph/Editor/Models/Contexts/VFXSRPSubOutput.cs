@@ -48,9 +48,10 @@ namespace UnityEditor.VFX
                 case BlendMode.AlphaPremultiplied:
                     return "Transparent";
                 case BlendMode.Opaque:
-                    return "Geometry";
-                case BlendMode.Masked:
-                    return "AlphaTest";
+                    if(owner.useAlphaClipping)
+                        return "AlphaTest";
+                    else
+                        return "Geometry";
                 default:
                     throw new NotImplementedException("Unknown blend mode");
             }
