@@ -249,6 +249,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         readonly SkyManager m_SkyManager = new SkyManager();
         readonly AmbientOcclusionSystem m_AmbientOcclusionSystem;
+        readonly ProbeVolumeSystem m_ProbeVolumeSystem = new ProbeVolumeSystem();
 
         // Debugging
         MaterialPropertyBlock m_SharedPropertyBlock = new MaterialPropertyBlock();
@@ -465,6 +466,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             InitializePrepass(m_Asset);
             m_ColorResolveMaterial = CoreUtils.CreateEngineMaterial(asset.renderPipelineResources.shaders.colorResolvePS);
+
+            m_ProbeVolumeSystem.Build(asset);
         }
 
 #if UNITY_EDITOR
@@ -818,6 +821,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_XRSystem.Cleanup();
             m_SkyManager.Cleanup();
             CleanupVolumetricLighting();
+            m_ProbeVolumeSystem.Cleanup(); // TODO(Kuba)
 
             for(int bsdfIdx = 0; bsdfIdx < m_IBLFilterArray.Length; ++bsdfIdx)
             {
@@ -918,6 +922,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 Fog.PushFogShaderParameters(hdCamera, cmd);
 
                 PushVolumetricLightingGlobalParams(hdCamera, cmd, m_FrameCount);
+                m_ProbeVolumeSystem.PushGlobalParams(hdCamera, cmd, m_FrameCount); // TODO(Kuba)
 
                 SetMicroShadowingSettings(cmd);
 
@@ -1802,6 +1807,9 @@ namespace UnityEngine.Rendering.HighDefinition
             // Frustum cull density volumes on the CPU. Can be performed as soon as the camera is set up.
             DensityVolumeList densityVolumes = PrepareVisibleDensityVolumeList(hdCamera, cmd, m_Time);
 
+            // Frustum cull probe volumes on the CPU. Can be performed as soon as the camera is set up.
+            ProbeVolumeList probeVolumes = m_ProbeVolumeSystem.PrepareVisibleProbeVolumeList(hdCamera, cmd);
+
             // Note: Legacy Unity behave like this for ShadowMask
             // When you select ShadowMask in Lighting panel it recompile shaders on the fly with the SHADOW_MASK keyword.
             // However there is no C# function that we can query to know what mode have been select in Lighting Panel and it will be wrong anyway. Lighting Panel setup what will be the next bake mode. But until light is bake, it is wrong.
@@ -1811,7 +1819,7 @@ namespace UnityEngine.Rendering.HighDefinition
             bool enableBakeShadowMask;
             using (new ProfilingSample(cmd, "TP_PrepareLightsForGPU", CustomSamplerId.TPPrepareLightsForGPU.GetSampler()))
             {
-                enableBakeShadowMask = PrepareLightsForGPU(cmd, hdCamera, cullingResults, hdProbeCullingResults, densityVolumes, m_CurrentDebugDisplaySettings, aovRequest);
+                enableBakeShadowMask = PrepareLightsForGPU(cmd, hdCamera, cullingResults, hdProbeCullingResults, densityVolumes, probeVolumes, m_CurrentDebugDisplaySettings, aovRequest);
 
                 // Directional lights are made available immediately after PrepareLightsForGPU for the PBR sky.
                 cmd.SetGlobalBuffer(HDShaderIDs._DirectionalLightDatas, m_LightLoopLightData.directionalLightData);
@@ -2406,7 +2414,7 @@ namespace UnityEngine.Rendering.HighDefinition
             hdCamera = HDCamera.GetOrCreate(camera, xrPass.multipassId);
 
             // From this point, we should only use frame settings from the camera
-            hdCamera.Update(currentFrameSettings, this, m_MSAASamples, xrPass);
+            hdCamera.Update(currentFrameSettings, this, m_ProbeVolumeSystem, m_MSAASamples, xrPass); // TODO(Kuba) this probably doesn't actually want the  m_ProbeVolumeSystem
 
             // Custom Render requires a proper HDCamera, so we return after the HDCamera was setup
             if (additionalCameraData != null && additionalCameraData.hasCustomRender)

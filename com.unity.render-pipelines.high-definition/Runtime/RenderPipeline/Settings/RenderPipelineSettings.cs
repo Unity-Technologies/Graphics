@@ -109,6 +109,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public bool supportRuntimeDebugDisplay;
         public bool supportDitheringCrossFade;
         public bool supportTerrainHole;
+        public bool supportProbeVolume;
         public bool supportRayTracing;
         public RaytracingTier supportedRaytracingTier;
 

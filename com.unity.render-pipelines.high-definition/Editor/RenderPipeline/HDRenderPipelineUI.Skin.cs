@@ -78,6 +78,7 @@ namespace UnityEditor.Rendering.HighDefinition
         static readonly GUIContent k_SupportTransparentDepthPostpass = EditorGUIUtility.TrTextContent("Transparent Depth Postpass", "When disabled, HDRP removes all transparent depth postpass Shader variants when you build for the Unity Player. This decreases build time.");
         static readonly GUIContent k_SupportRaytracing = EditorGUIUtility.TrTextContent("Realtime Raytracing");
         static readonly GUIContent k_RaytracingTier = EditorGUIUtility.TrTextContent("Raytracing Tier");
+        static readonly GUIContent k_SupportProbeVolumeContent = EditorGUIUtility.TrTextContent("Probe Volume Diffuse Global Illumination", "When enabled, HDRP allocates Shader variants and memory for probe volume based GI. This allows you to use probe volumes in your Unity Project.");
         static readonly GUIContent k_RayTracingUnsupportedWarning = EditorGUIUtility.TrTextContent("Ray tracing is not supported on your device. Please refer to the documentation.");
         static readonly GUIContent k_MaximumLODLevel = EditorGUIUtility.TrTextContent("Maximum LOD Level");
         static readonly GUIContent k_LODBias = EditorGUIUtility.TrTextContent("LOD Bias");
@@ -181,7 +182,8 @@ namespace UnityEditor.Rendering.HighDefinition
             { k_SupportTransparentBackface         , shaderVariantDrawback },
             { k_SupportTransparentDepthPrepass     , shaderVariantDrawback },
             { k_SupportTransparentDepthPostpass    , shaderVariantDrawback },
-            { k_SupportRaytracing                  , string.Format("{0}, {1}", memoryDrawback, lotShaderVariantDrawback) }
+            { k_SupportRaytracing                  , string.Format("{0}, {1}", memoryDrawback, lotShaderVariantDrawback) },
+            { k_SupportProbeVolumeContent          , memoryDrawback }
         };
 
         static Dictionary<SupportedLitShaderMode, string> k_SupportLitShaderModeDrawbacks = new Dictionary<SupportedLitShaderMode, string>
