@@ -9,4 +9,14 @@ public class SetupGraphicsTestCases : IPrebuildSetup
     {
         new UnityEditor.TestTools.Graphics.SetupGraphicsTestCases().Setup(UniversalGraphicsTests.universalPackagePath);
     }
+
+    /*
+     * private static APIClient ConnectToTestrail()
+		{
+			APIClient client = new APIClient("https://qatestrail.hq.unity3d.com");
+			client.User = "sophia@unity3d.com";
+			client.Password = "H19Ck5MV8Lnk3lTtc6jf-AjdMzKP/YEt7KtMd/pfH";
+			return client;
+		}
+        */
 }
