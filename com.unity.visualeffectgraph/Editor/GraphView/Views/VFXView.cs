@@ -545,12 +545,13 @@ namespace UnityEditor.VFX.UI
             else if (e.controller is VFXNodeController)
             {
                 UpdateUIBounds();
-                if (e.controller is VFXContextController)
+                if (e.controller is VFXContextController && e.target is VFXContextUI)
                 {
                     if (m_ComponentBoard != null)
                     {
                         m_ComponentBoard.UpdateEventList();
                     }
+                    UpdateSystemNames();
                 }
             }
         }
@@ -616,7 +617,7 @@ namespace UnityEditor.VFX.UI
             }
 
             m_InControllerChanged = false;
-            if(change != VFXViewController.Change.dataEdge)
+            if (change != VFXViewController.Change.dataEdge)
                 UpdateSystems();
 
             if (m_UpdateUIBounds)
@@ -1750,6 +1751,15 @@ namespace UnityEditor.VFX.UI
             get { return m_Systems.AsReadOnly(); }
         }
 
+        public void UpdateSystemNames()
+        {
+            if (m_Systems != null)
+                foreach (var system in m_Systems)
+                {
+                    system.Update();
+                }
+        }
+
         public void UpdateSystems()
         {
             while (m_Systems.Count() > controller.systems.Count())
@@ -1759,10 +1769,7 @@ namespace UnityEditor.VFX.UI
                 border.RemoveFromHierarchy();
             }
 
-            foreach(var system in m_Systems)
-            {
-                system.Update();
-            }
+            UpdateSystemNames();
 
             while (m_Systems.Count() < controller.systems.Count())
             {

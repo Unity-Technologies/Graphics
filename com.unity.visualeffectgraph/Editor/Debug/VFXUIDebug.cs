@@ -414,9 +414,11 @@ namespace UnityEditor.VFX.UI
 
 
         // graph characteristics
+        VFXGraph m_Graph;
         VFXView m_View;
         VisualEffect m_VFX;
         List<int> m_GpuSystems;
+
 
         // debug components
         Modes m_CurrentMode;
@@ -445,6 +447,7 @@ namespace UnityEditor.VFX.UI
         public VFXUIDebug(VFXView view)
         {
             m_View = view;
+            m_Graph = m_View.controller.graph;
             m_GpuSystems = new List<int>();
         }
 
@@ -462,7 +465,7 @@ namespace UnityEditor.VFX.UI
             if (mode == m_CurrentMode && !force)
                 return;
 
-            ClearDebugMode();
+            Clear();
             m_CurrentMode = mode;
 
             m_ComponentBoard = componentBoard;
@@ -472,11 +475,11 @@ namespace UnityEditor.VFX.UI
             switch (m_CurrentMode)
             {
                 case Modes.Efficiency:
-                    m_View.controller.graph.onRuntimeDataChanged += UpdateDebugMode;
+                    m_Graph.onRuntimeDataChanged += UpdateDebugMode;
                     Efficiency();
                     break;
                 case Modes.Alive:
-                    m_View.controller.graph.onRuntimeDataChanged += UpdateDebugMode;
+                    m_Graph.onRuntimeDataChanged += UpdateDebugMode;
                     Alive();
                     break;
                 case Modes.None:
@@ -516,12 +519,10 @@ namespace UnityEditor.VFX.UI
             switch (m_CurrentMode)
             {
                 case Modes.Efficiency:
-                    m_View.controller.graph.onRuntimeDataChanged -= UpdateDebugMode;
-                    Clear();
+                    m_Graph.onRuntimeDataChanged -= UpdateDebugMode;
                     break;
                 case Modes.Alive:
-                    m_View.controller.graph.onRuntimeDataChanged -= UpdateDebugMode;
-                    Clear();
+                    m_Graph.onRuntimeDataChanged -= UpdateDebugMode;
                     break;
                 default:
                     break;
@@ -559,7 +560,7 @@ namespace UnityEditor.VFX.UI
             return Color.HSVToRGB((i * 0.618033988749895f) % 1.0f, 0.6f, 1.0f).gamma;
         }
 
-        
+
 
         void RegisterParticleSystems()
         {
@@ -874,14 +875,13 @@ namespace UnityEditor.VFX.UI
 
         Action<EventBase> CapacitySetter(string systemName)
         {
-            var graph = m_View.controller.graph;
             var models = new HashSet<ScriptableObject>();
-            graph.CollectDependencies(models, false);
+            m_Graph.CollectDependencies(models, false);
             var datas = models.OfType<VFXDataParticle>();
 
             foreach (var data in datas)
             {
-                if (graph.systemNames.GetUniqueSystemName(data) == systemName)
+                if (m_Graph.systemNames.GetUniqueSystemName(data) == systemName)
                     return (e) =>
                     {
                         var button = e.currentTarget as Button;
@@ -928,6 +928,8 @@ namespace UnityEditor.VFX.UI
 
         public void Clear()
         {
+            ClearDebugMode();
+
             if (m_ComponentBoard != null && m_Curves != null)
                 m_ComponentBoard.contentContainer.Remove(m_Curves);
             m_ComponentBoard = null;

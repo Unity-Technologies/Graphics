@@ -180,6 +180,7 @@ namespace UnityEditor.VFX.UI
                 if(m_Title.text != value)
                 {
                     m_Title.text = value;
+                    RecomputeBounds();
                 }
             }
         }
