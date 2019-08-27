@@ -57,6 +57,16 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_InternalLut = internalLut;
         }
 
+        public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
+        {
+            ConfigureTarget(m_InternalLut.Identifier(), BuiltinRenderTextureType.None);
+            
+            // This allows to do RenderBufferLoadAction.DontCare in mobile and avoid clear on other platforms.
+            // Thus saving bandwidth or clear by drawing a quad.
+            ConfigureClear(ClearFlag.None, Color.black);
+            loadColorContents = false;
+        }
+
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             var cmd = CommandBufferPool.Get(m_ProfilerTag);

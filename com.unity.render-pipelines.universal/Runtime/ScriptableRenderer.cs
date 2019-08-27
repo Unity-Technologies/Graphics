@@ -389,7 +389,7 @@ namespace UnityEngine.Rendering.Universal
                 Camera camera = cameraData.camera;
                 ClearFlag clearFlag = GetCameraClearFlag(camera.clearFlags);
                 SetRenderTarget(cmd, m_CameraColorTarget, m_CameraDepthTarget, clearFlag,
-                    CoreUtils.ConvertSRGBToActiveColorSpace(camera.backgroundColor));
+                    CoreUtils.ConvertSRGBToActiveColorSpace(camera.backgroundColor), renderPass.loadColorContents);
 
                 context.ExecuteCommandBuffer(cmd);
                 cmd.Clear();
@@ -403,7 +403,7 @@ namespace UnityEngine.Rendering.Universal
 
             // Only setup render target if current render pass attachments are different from the active ones
             else if (passColorAttachment != m_ActiveColorAttachment || passDepthAttachment != m_ActiveDepthAttachment)
-                SetRenderTarget(cmd, passColorAttachment, passDepthAttachment, renderPass.clearFlag, renderPass.clearColor);
+                SetRenderTarget(cmd, passColorAttachment, passDepthAttachment, renderPass.clearFlag, renderPass.clearColor, renderPass.loadColorContents);
 
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
@@ -424,13 +424,19 @@ namespace UnityEngine.Rendering.Universal
             m_InsideStereoRenderBlock = false;
         }
 
-        internal static void SetRenderTarget(CommandBuffer cmd, RenderTargetIdentifier colorAttachment, RenderTargetIdentifier depthAttachment, ClearFlag clearFlag, Color clearColor)
+        internal static void SetRenderTarget(CommandBuffer cmd, RenderTargetIdentifier colorAttachment, RenderTargetIdentifier depthAttachment, ClearFlag clearFlag, Color clearColor, bool loadExistingContents)
         {
             m_ActiveColorAttachment = colorAttachment;
             m_ActiveDepthAttachment = depthAttachment;
 
-            RenderBufferLoadAction colorLoadAction = clearFlag != ClearFlag.None ?
-                RenderBufferLoadAction.DontCare : RenderBufferLoadAction.Load;
+            
+            RenderBufferLoadAction colorLoadAction;
+            if (loadExistingContents)
+                colorLoadAction = ((uint) clearFlag & (uint) ClearFlag.Color) != 0
+                    ? RenderBufferLoadAction.DontCare
+                    : RenderBufferLoadAction.Load;
+            else
+                colorLoadAction = RenderBufferLoadAction.DontCare;
 
             RenderBufferLoadAction depthLoadAction = ((uint)clearFlag & (uint)ClearFlag.Depth) != 0 ?
                 RenderBufferLoadAction.DontCare : RenderBufferLoadAction.Load;

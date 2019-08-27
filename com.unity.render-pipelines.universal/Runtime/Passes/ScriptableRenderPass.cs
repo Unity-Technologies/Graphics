@@ -29,11 +29,16 @@ namespace UnityEngine.Rendering.Universal
     }
 
     /// <summary>
-    /// <c>ScriptableRenderPass</c> implements a logical rendering pass that can be used to extend LWRP renderer.
+    /// <c>ScriptableRenderPass</c> implements a logical rendering pass that can be used to extend UniversalRP renderer.
     /// </summary>
     [MovedFrom("UnityEngine.Rendering.LWRP")] public abstract class ScriptableRenderPass
     {
         public RenderPassEvent renderPassEvent { get; set; }
+        
+        // Tells if this render pass should use RenderBufferAction.Load when clearing is not requested.
+        // This is an interim solution until we don't have render pass API working that will allow us to
+        // set action to DontCare.
+        internal bool loadColorContents { get; set; } = true;
 
         public RenderTargetIdentifier colorAttachment
         {
@@ -151,7 +156,7 @@ namespace UnityEngine.Rendering.Universal
         /// <seealso cref="ScriptableRenderer"/>
         public void Blit(CommandBuffer cmd, RenderTargetIdentifier source, RenderTargetIdentifier destination, Material material = null, int passIndex = 0)
         {
-            ScriptableRenderer.SetRenderTarget(cmd, destination, BuiltinRenderTextureType.CameraTarget, clearFlag, clearColor);
+            ScriptableRenderer.SetRenderTarget(cmd, destination, BuiltinRenderTextureType.CameraTarget, clearFlag, clearColor, loadColorContents);
             cmd.Blit(source, destination, material, passIndex);
         }
 
