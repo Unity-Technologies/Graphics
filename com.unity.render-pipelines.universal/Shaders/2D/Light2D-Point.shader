@@ -26,7 +26,7 @@ Shader "Hidden/Light2D-Point"
             #pragma multi_compile_local USE_ADDITIVE_BLENDING __
 
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
-            #include "Include/LightingUtility.hlsl"
+            #include "Packages/com.unity.render-pipelines.universal/Shaders/2D/Include/LightingUtility.hlsl"
 
             struct Attributes
             {
@@ -42,6 +42,7 @@ Shader "Hidden/Light2D-Point"
                 float2	lookupNoRotUV   : TEXCOORD3;  // This is used for screen relative direction of a light
 
                 NORMALS_LIGHTING_COORDS(TEXCOORD4, TEXCOORD5)
+                SHADOW_COORDS(TEXCOORD6)
             };
 
 #if USE_POINT_LIGHT_COOKIES
@@ -58,6 +59,7 @@ Shader "Hidden/Light2D-Point"
             float4 _LightLookup_TexelSize;
 
             NORMALS_LIGHTING_VARIABLES
+            SHADOW_VARIABLES
 
             half4	    _LightColor;
             half4x4	    _LightInvMatrix;
@@ -84,6 +86,7 @@ Shader "Hidden/Light2D-Point"
                 output.lookupNoRotUV = 0.5 * (lightSpaceNoRotPos.xy + 1) + halfTexelOffset;
 
                 TRANSFER_NORMALS_LIGHTING(output, worldSpacePos)
+                TRANSFER_SHADOWS(output)
 
                 return output;
             }
@@ -120,6 +123,7 @@ Shader "Hidden/Light2D-Point"
 #endif
 
                 APPLY_NORMALS_LIGHTING(input, lightColor);
+                APPLY_SHADOWS(input, lightColor, _ShadowIntensity);
 
                 return lightColor * _InverseHDREmulationScale;
             }

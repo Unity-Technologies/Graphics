@@ -18,6 +18,7 @@ Shader "Hidden/Light2d-Point-Volumetric"
             #pragma multi_compile_local LIGHT_QUALITY_FAST __
 
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
+            #include "Packages/com.unity.render-pipelines.universal/Shaders/2D/Include/LightingUtility.hlsl"
 
             struct Attributes
             {
@@ -38,6 +39,7 @@ Shader "Hidden/Light2d-Point-Volumetric"
 #else
                 float4	positionWS : TEXCOORD4;
 #endif
+                SHADOW_COORDS(TEXCOORD5)
             };
 
 #if USE_POINT_LIGHT_COOKIES
@@ -67,6 +69,8 @@ Shader "Hidden/Light2d-Point-Volumetric"
             half	_InnerRadiusMult;			// 1-0 where 1 is the value at the center and 0 is the value at the outer radius
             half	_InverseHDREmulationScale;
 
+            SHADOW_VARIABLES
+
             Varyings vert(Attributes input)
             {
                 Varyings output = (Varyings)0;
@@ -95,6 +99,8 @@ Shader "Hidden/Light2d-Point-Volumetric"
                 float4 clipVertex = output.positionCS / output.positionCS.w;
                 output.screenUV = ComputeScreenPos(clipVertex).xy;
 
+                TRANSFER_SHADOWS(output)
+
                 return output;
             }
 
@@ -122,6 +128,8 @@ Shader "Hidden/Light2d-Point-Volumetric"
 #else
                 half4 lightColor = _LightColor * attenuation;
 #endif
+
+                APPLY_SHADOWS(input, lightColor, _ShadowVolumeIntensity);
 
                 return _VolumeOpacity * lightColor * _InverseHDREmulationScale;
             }

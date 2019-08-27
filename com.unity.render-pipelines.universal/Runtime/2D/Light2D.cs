@@ -112,9 +112,9 @@ namespace UnityEngine.Experimental.Rendering.Universal
         }
     }
 
-    // TODO:
-    //     Fix parametric mesh code so that the vertices, triangle, and color arrays are only recreated when number of sides change
-    //     Change code to update mesh only when it is on screen. Maybe we can recreate a changed mesh if it was on screen last update (in the update), and if it wasn't set it dirty. If dirty, in the OnBecameVisible function create the mesh and clear the dirty flag.
+    /// <summary>
+    /// Class <c>Light2D</c> is a 2D light which can be used with the 2D Renderer.
+    /// </summary>
     [ExecuteAlways, DisallowMultipleComponent]
     [AddComponentMenu("Rendering/2D/Light 2D (Experimental)")]
     sealed public partial class Light2D : MonoBehaviour
@@ -144,7 +144,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
         [SerializeField]
         float m_FalloffIntensity = 0.5f;
 
-        [ColorUsage(false, false)]
+        [ColorUsage(false)]
         [SerializeField]
         Color m_Color = Color.white;
         [SerializeField]
@@ -166,6 +166,11 @@ namespace UnityEngine.Experimental.Rendering.Universal
         int         m_LightCullingIndex             = -1;
         Bounds      m_LocalBounds;
 
+        [Range(0,1)]
+        [SerializeField] float m_ShadowIntensity    = 0.0f;
+        [Range(0,1)]
+        [SerializeField] float m_ShadowVolumeIntensity = 0.0f;
+
         internal struct LightStats
         {
             public int totalLights;
@@ -186,6 +191,17 @@ namespace UnityEngine.Experimental.Rendering.Universal
         /// The lights current operation index
         /// </summary>
         public int blendStyleIndex { get => m_BlendStyleIndex; set => m_BlendStyleIndex = value; }
+
+        /// <summary>
+        /// Specifies the darkness of the shadow
+        /// </summary>
+        public float shadowIntensity { get => m_ShadowIntensity; set => m_ShadowIntensity = Mathf.Clamp01(value); }
+
+        /// <summary>
+        /// Specifies the darkness of the shadow
+        /// </summary>
+        public float shadowVolumeIntensity { get => m_ShadowVolumeIntensity; set => m_ShadowVolumeIntensity = Mathf.Clamp01(value); }
+
 
         /// <summary>
         /// The lights current color
@@ -328,7 +344,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 ErrorIfDuplicateGlobalLight();
         }
 
-        BoundingSphere GetBoundingSphere()
+        internal BoundingSphere GetBoundingSphere()
         {
             return IsShapeLight() ? GetShapeLightBoundingSphere() : GetPointLightBoundingSphere();
         }
@@ -493,6 +509,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             }
 
             // Mesh Rebuilding
+            rebuildMesh |= LightUtility.CheckForChange(m_ShapeLightFalloffSize, ref m_PreviousShapeLightFalloffSize);
             rebuildMesh |= LightUtility.CheckForChange(m_ShapeLightParametricRadius, ref m_PreviousShapeLightParametricRadius);
             rebuildMesh |= LightUtility.CheckForChange(m_ShapeLightParametricSides, ref m_PreviousShapeLightParametricSides);
             rebuildMesh |= LightUtility.CheckForChange(m_LightVolumeOpacity, ref m_PreviousLightVolumeOpacity);
@@ -501,7 +518,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             rebuildMesh |= LightUtility.CheckForChange(m_ShapeLightFalloffOffset, ref m_PreviousShapeLightFalloffOffset);
 
 #if UNITY_EDITOR
-            rebuildMesh |= LightUtility.CheckForChange(GetShapePathHash(), ref m_PreviousShapePathHash);
+            rebuildMesh |= LightUtility.CheckForChange(LightUtility.GetShapePathHash(m_ShapePath), ref m_PreviousShapePathHash);
 #endif
             if(rebuildMesh && m_LightType != LightType.Global)
                 UpdateMesh();

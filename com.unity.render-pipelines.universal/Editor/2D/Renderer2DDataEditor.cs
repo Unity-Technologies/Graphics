@@ -178,6 +178,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
                 }
             }
 
+            
             EditorGUI.indentLevel--;
             EditorGUILayout.PropertyField(m_PostProcessData, Styles.postProcessData);
 

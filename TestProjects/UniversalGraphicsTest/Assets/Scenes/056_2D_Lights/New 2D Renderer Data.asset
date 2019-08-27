@@ -10,13 +10,13 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 11145981673336645838492a2d98e247, type: 3}
-  m_Name: 2DRendererData
+  m_Name: New 2D Renderer Data
   m_EditorClassIdentifier: 
   m_RendererFeatures: []
   m_HDREmulationScale: 1
   m_LightBlendStyles:
   - enabled: 1
-    name: Op0
+    name: Operation 0
     maskTextureChannel: 0
     renderTextureScale: 1
     blendMode: 1
@@ -24,15 +24,15 @@ MonoBehaviour:
       multiplicative: 0
       additive: 0
   - enabled: 1
-    name: Op1
+    name: Operation 1
     maskTextureChannel: 1
-    renderTextureScale: 0.5
+    renderTextureScale: 1
     blendMode: 0
     customBlendFactors:
       multiplicative: 0
       additive: 0
   - enabled: 0
-    name: Disabled
+    name: Blend Style 2
     maskTextureChannel: 0
     renderTextureScale: 1
     blendMode: 1
@@ -40,7 +40,7 @@ MonoBehaviour:
       multiplicative: 0
       additive: 0
   - enabled: 0
-    name: Disabled
+    name: Blend Style 3
     maskTextureChannel: 0
     renderTextureScale: 1
     blendMode: 1
@@ -54,4 +54,8 @@ MonoBehaviour:
   m_PointLightVolumeShader: {fileID: 4800000, guid: c7d04ca57e5449d49ad9cee1c604bc26,
     type: 3}
   m_BlitShader: {fileID: 4800000, guid: c17132b1f77d20942aa75f8429c0f8bc, type: 3}
+  m_ShadowShader: {fileID: 0}
+  m_ShadowGroupShader: {fileID: 4800000, guid: d33b6d70b14697547ad0dc2d4debb009, type: 3}
+  m_RemoveSelfShadowShader: {fileID: 4800000, guid: 02e071f10b6a15d4d87dac88ce529302,
+    type: 3}
   m_PostProcessData: {fileID: 11400000, guid: 41439944d30ece34e96484bdb6645b55, type: 2}
