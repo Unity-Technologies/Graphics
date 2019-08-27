@@ -5,9 +5,15 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## [7.1.1] - 2019-XX-XX
+### Upgrade Guide
+- The render pipeline now handles custom renderers differently. You must now set up renderers for the Camera on the Render Pipeline Asset.
+- Render Pipeline Assets upgrades automatically and either creates a default forward renderer in your project or links the existing custom one that you've assigned.
+- If you have custom renderers assigned to Cameras, you must now add them to the current Render Pipeline Asset. Then you can select which renderer to use on the Camera.
+
 ### Added
 - Added shader function `GetMainLightShadowParams`. This returns a half4 for the main light that packs shadow strength in x component and shadow soft property in y component.
 - Added shader function `GetAdditionalLightShadowParams`. This returns a half4 for an additional light that packs shadow strength in x component and shadow soft property in y component.
+- Added ability to set the `ScriptableRenderer` that the Camera renders with via C# using `UniversalAdditionalCameraData.SerRenderer(int index)`. This maps to the **Renderer List** on the Render Pipeline Asset.
 - Added shadow support for the 2D Renderer. 
 - Added LightReactor2D, and CompositeLightReactor2D components.
 - Added shadow intensity and shadow volume intensity properties to Light2D.
@@ -19,6 +25,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - The Sprite-Lit-Default shader and the Sprite Lit Shader Graph shaders now use the vertex tangents for tangent space calculations.
 - Temporary render textures for cameras rendering to render textures now use the same format and multisampling configuration as camera's target texture.
 - All platforms now use R11G11B10_UFloat format for HDR render textures if supported.
+- There is now a list of `ScriptableRendererData` on the Render Pipeline Asset as opposed to a renderer type. These are available to all Cameras and are included in builds.
+- The renderer override on the Camera is now an enum that maps to the list of `ScriptableRendererData` on the Render Pipeline Asset.
 - Pixel Perfect Camera now allows rendering to a render texture.
 
 ### Fixed

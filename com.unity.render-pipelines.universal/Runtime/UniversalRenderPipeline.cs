@@ -97,6 +97,12 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
+        // Internal max count for how many ScriptableRendererData can be added to a single Universal RP asset
+        internal static int maxScriptableRenderers
+        {
+            get => 8;
+        }
+
         public static UniversalRenderPipelineAsset asset
         {
             get
