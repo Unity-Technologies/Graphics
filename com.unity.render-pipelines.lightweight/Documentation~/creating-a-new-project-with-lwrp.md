@@ -1,5 +1,3 @@
-**Note:** This page is subject to change during the 2019.1 beta cycle.
-
 # Using LWRP in a new Project
 
 If you want to use the Lightweight Render Pipeline in a new Project, you can create a new Project using Templates.

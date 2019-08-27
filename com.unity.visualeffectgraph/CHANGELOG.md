@@ -4,7 +4,36 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [5.13.0-preview] - 2019-XX-XX
+## [5.17.0-preview] - 2019-XX-XX
+### Added
+- Add Exposure Weight for emissive in lit outputs
+
+### Fixed
+- Position (Circle) does not take the Center Z value into account [Case 1146850](https://issuetracker.unity3d.com/issues/blocks-position-circle-does-not-take-the-center-z-value-into-account)
+
+## [5.16.1-preview] - 2019-05-22
+### Changed
+- This package now requires Unity 2019.1.3f1 or later to run.
+
+## [5.16.0-preview] - 2019-05-20
+
+### Version Updated
+The version number for this package has increased due to a version update of a related graphics package.
+
+## [5.15.0-preview] - 2019-05-13
+### Changed
+The version number for this package has increased due to a version update of a related graphics package.
+
+## [5.14.0-preview] - 2019-05-09
+### Fixed
+- Improve AA line rendering
+- Fix screen space size block
+- Crash chaining two spawners each other [Case 1135299](https://issuetracker.unity3d.com/issues/crash-chaining-two-spawners-to-each-other-produces-an-infinite-loop)
+- Inspector : Exposed parameters disregard the initial value [Case 1126471](https://issuetracker.unity3d.com/issues/parameters-exposed-parameters-disregard-the-initial-value)
+- Fix for linking spawner to spawner while first spawner is linked to initialize + test 
+- Deactivate pre-exposure multiplier in unlit outputs
+
+## [5.13.0-preview] - 2019-04-15
 
 ## [5.12.0-preview] - 2019-04-11
 ### Fixed

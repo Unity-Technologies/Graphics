@@ -24,7 +24,6 @@ SAMPLER_CMP(sampler_MainLightShadowmapTexture);
 TEXTURE2D_SHADOW(_AdditionalLightsShadowmapTexture);
 SAMPLER_CMP(sampler_AdditionalLightsShadowmapTexture);
 
-CBUFFER_START(_MainLightShadowBuffer)
 // Last cascade is initialized with a no-op matrix. It always transforms
 // shadow coord to half3(0, 0, NEAR_PLANE). We use this trick to avoid
 // branching since ComputeCascadeIndex can return cascade index = MAX_SHADOW_CASCADES
@@ -40,9 +39,7 @@ half4       _MainLightShadowOffset2;
 half4       _MainLightShadowOffset3;
 half4       _MainLightShadowData;    // (x: shadowStrength)
 float4      _MainLightShadowmapSize; // (xy: 1/width and 1/height, zw: width and height)
-CBUFFER_END
 
-CBUFFER_START(_AdditionalLightsShadowBuffer)
 float4x4    _AdditionalLightsWorldToShadow[MAX_VISIBLE_LIGHTS];
 half        _AdditionalShadowStrength[MAX_VISIBLE_LIGHTS];
 half4       _AdditionalShadowOffset0;
@@ -50,7 +47,6 @@ half4       _AdditionalShadowOffset1;
 half4       _AdditionalShadowOffset2;
 half4       _AdditionalShadowOffset3;
 float4      _AdditionalShadowmapSize; // (xy: 1/width and 1/height, zw: width and height)
-CBUFFER_END
 
 float4 _ShadowBias; // x: depth bias, y: normal bias
 

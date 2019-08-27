@@ -8,7 +8,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public ColorParameter        albedo                 = new ColorParameter(Color.white);
         public MinFloatParameter     meanFreePath           = new MinFloatParameter(1000000.0f, 1.0f);
         public FloatParameter        baseHeight             = new FloatParameter(0.0f);
-        public MinFloatParameter     meanHeight             = new MinFloatParameter(10.0f, 1.0f);
+        public FloatParameter        meanHeight             = new FloatParameter(10.0f);
         public ClampedFloatParameter anisotropy             = new ClampedFloatParameter(0.0f, -1.0f, 1.0f);
         public ClampedFloatParameter globalLightProbeDimmer = new ClampedFloatParameter(1.0f, 0.0f, 1.0f);
         public BoolParameter         enableDistantFog       = new BoolParameter(false);
@@ -33,7 +33,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             float relativeMeanHeight = Mathf.Max(0.01f, meanHeight.value - baseHeight.value);
 
-            // FogExponent = 1 / BaseRelative(MeanHeight)
+            // FogExponent = 1 / BaseRelative(MeanHeight).
             cmd.SetGlobalVector(HDShaderIDs._HeightFogExponents,  new Vector2(1.0f / relativeMeanHeight, relativeMeanHeight));
             cmd.SetGlobalFloat( HDShaderIDs._HeightFogBaseHeight, crBaseHeight);
             cmd.SetGlobalFloat( HDShaderIDs._GlobalFogAnisotropy, anisotropy.value);

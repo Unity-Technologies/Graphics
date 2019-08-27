@@ -36,7 +36,6 @@ namespace UnityEditor.Rendering.LWRP
                 }
 
                 var material = (Material)AssetDatabase.LoadAssetAtPath(asset, typeof(Material));
-                //var shaderGuid = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(material.shader));
                 if (!ShaderUtils.IsLWShader(material.shader))
                 {
                     continue;

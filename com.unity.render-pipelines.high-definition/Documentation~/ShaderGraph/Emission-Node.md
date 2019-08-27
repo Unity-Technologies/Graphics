@@ -8,7 +8,7 @@
 | output       | Output      | HDR Color(RGB) | Output value                    |
 
 ## Emission Unit
-There are two emission units available for this node: Luminance and EV100.
+There are two emission units available for this node: Luminance and EV<sub>100</sub>.
 
 
 ## Exposure Weight

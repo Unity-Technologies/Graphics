@@ -4,7 +4,44 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [5.13.0] - 2019-XX-XX
+## [5.17.0] - 2019-XX-XX
+### Fixed
+- Fixed garbage collection spikes caused by LWRP allocating heap memory every frame.
+- Fixed distortion effect on the particle unlit Shader.
+- Fixed warnings about unsupported shadow map format for GLES2 API.
+- Disabled shadows for devices that do not support shadow map nor depth textures.
+- Fixed the shadow resolve pass and the final pass, so they don't consume unnecessary bandwidth. [case 1152439](https://issuetracker.unity3d.com/issues/lwrp-mobile-increased-memory-usage-and-extra-rendering-steps)
+- Fixed BeforeTransparent post-processing not working.
+- Fixed issue that caused scene to render darker in GLES3 and linear color space. [case 1169789](https://issuetracker.unity3d.com/issues/lwrp-android-scene-is-rendered-darker-in-build-when-graphics-api-set-to-gles3-and-color-space-set-to-linear)
+
+## [5.16.1] - 2019-05-22
+### Changed
+- This package now requires Unity 2019.1.3f1 or later to run.
+
+## [5.16.0] - 2019-05-20
+
+### Version Updated
+The version number for this package has increased due to a version update of a related graphics package.
+
+## [5.15.0] - 2019-05-13
+### Changed
+- Updated the [Feature Comparison Table](lwrp-builtin-feature-comparison.md) to reflect the current state of LWRP features.
+
+### Fixed
+- Fixed a NullReference exception when you create a new Lightweight Render Pipeline Asset. [case 1153388](https://issuetracker.unity3d.com/product/unity/issues/guid/1153388/) 
+
+## [5.14.0] - 2019-05-09
+### Added
+- Added SpeedTree shaders.
+
+### Fixed
+- Fixed a typo in the Particle Unlit Shader, so Soft Particles now work correctly.
+- Fixed emissive Materials not being baked for some meshes. [case 1145297](https://issuetracker.unity3d.com/issues/lwrp-emissive-materials-are-not-baked)
+- Camera matrices are now correctly set up when you call rendering functions in EndCameraRendering. [case 1146586](https://issuetracker.unity3d.com/issues/lwrp-drawmeshnow-returns-wrong-positions-slash-scales-when-called-from-endcamerarendering-hook)
+- Fixed GI not baking correctly while in gamma color space.
+- Fixed a NullReference exception when adding a renderer feature that is contained in a global namespace. [case 1147068](https://issuetracker.unity3d.com/issues/scriptablerenderpipeline-inspector-ui-crashes-when-a-scriptablerenderfeature-is-not-in-a-namespace)
+
+## [5.13.0] - 2019-04-15
 ### Fixed
 - When in playmode, the error 'Non matching Profiler.EndSample' no longer appears. [case 1140750](https://fogbugz.unity3d.com/f/cases/1140750/)
 - LWRP Particle Shaders now correctly render in stereo rendering modes. [case 1106699](https://fogbugz.unity3d.com/f/cases/1106699/)

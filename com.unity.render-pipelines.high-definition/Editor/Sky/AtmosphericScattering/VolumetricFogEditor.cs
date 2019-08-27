@@ -48,6 +48,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             PropertyField(m_GlobalLightProbeDimmer, s_GlobalLightProbeDimmerLabel);
             PropertyField(m_MaxFogDistance);
             PropertyField(m_EnableDistantFog,       s_EnableDistantFog);
+            
+            if (m_MeanHeight.value.floatValue < m_BaseHeight.value.floatValue)
+            {
+                m_MeanHeight.value.floatValue = m_BaseHeight.value.floatValue;
+                serializedObject.ApplyModifiedProperties();
+            }
 
             if (m_EnableDistantFog.value.boolValue)
             {

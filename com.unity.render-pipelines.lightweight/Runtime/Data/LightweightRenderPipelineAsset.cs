@@ -142,6 +142,7 @@ namespace UnityEngine.Rendering.LWRP
 
             instance.LoadBuiltinRendererData();
             instance.m_EditorResourcesAsset = LoadResourceFile<LightweightRenderPipelineEditorResources>();
+            instance.m_Renderer = instance.m_RendererData.InternalCreateRenderer();
             return instance;
         }
 
@@ -484,6 +485,16 @@ namespace UnityEngine.Rendering.LWRP
         {
             get { return editorResources.terrainDetailGrassBillboardShader; }
         }
+
+        public override Shader defaultSpeedTree7Shader
+        {
+            get { return editorResources.defaultSpeedTree7Shader; }
+        }
+
+        public override Shader defaultSpeedTree8Shader
+        {
+            get { return editorResources.defaultSpeedTree8Shader; }
+        }						
 #endif
 
         public void OnBeforeSerialize()

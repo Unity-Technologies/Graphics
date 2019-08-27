@@ -48,9 +48,9 @@ float3 PreEvaluateDirectionalLightTransmission(BSDFData bsdfData, inout Directio
             // We use the precomputed value (based on "baked" thickness).
             transmittance = bsdfData.transmittance;
 
-            if (!HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_TRANSMISSION_MODE_THIN_THICKNESS))
+            if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_TRANSMISSION_MODE_THICK_THICKNESS))
             {
-                // The mixed thickness mode is not supported by directional lights
+                // The thick thickness mode is not supported by directional lights
                 // due to poor quality and high performance impact.
                 // Keeping NdotL negative will ensure that nothing is evaluated.
                 light.shadowIndex = -1;
@@ -166,7 +166,7 @@ float3 PreEvaluatePunctualLightTransmission(LightLoopContext lightLoopContext,
 
             transmittance = bsdfData.transmittance;
 
-            if (!HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_TRANSMISSION_MODE_THIN_THICKNESS) && (light.shadowIndex >= 0))
+            if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_TRANSMISSION_MODE_THICK_THICKNESS) && (light.shadowIndex >= 0))
             {
                 // We can compute thickness from shadow.
                 // Compute the distance from the light to the back face of the object along the light direction.

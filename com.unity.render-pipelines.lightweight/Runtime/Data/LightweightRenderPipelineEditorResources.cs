@@ -30,6 +30,12 @@ namespace UnityEngine.Rendering.LWRP
 
         [SerializeField]
         private Shader m_TerrainDetailGrassBillboardShader = null;
+				
+        [SerializeField]
+        private Shader m_SpeedTree7Shader = null;
+
+        [SerializeField]
+        private Shader m_SpeedTree8Shader = null;
 
         public Material litMaterial
         {
@@ -74,6 +80,16 @@ namespace UnityEngine.Rendering.LWRP
         public Shader terrainDetailGrassBillboardShader
         {
             get { return m_TerrainDetailGrassBillboardShader; }
+        }
+
+        public Shader defaultSpeedTree7Shader
+        {
+            get { return m_SpeedTree7Shader; }
+        }
+
+        public Shader defaultSpeedTree8Shader
+        {
+            get { return m_SpeedTree8Shader; }
         }
     }
 }

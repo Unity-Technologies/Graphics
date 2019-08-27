@@ -4,7 +4,39 @@ All notable changes to this package are documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [5.13.0] - 2019-XX-XX
+## [5.17.0] - 2019-XX-XX
+
+## [5.16.1] - 2019-05-22
+### Changed
+- This package now requires Unity 2019.1.3f1 or later to run.
+
+## [5.16.0] - 2019-05-20
+### Fixed
+- Fixed an error in `Custom Function Node` port naming.
+
+## [5.15.0] - 2019-05-13
+### Changed
+The version number for this package has increased due to a version update of a related graphics package.
+
+## [5.14.0] - 2019-05-09
+### Fixed
+- You can now reference Scene Color and Scene Depth correctly from within a Sub Graph. 
+- Fixed an error that occured when using multiple Sampler State nodes with different parameters.
+- When you perform an undo or redo to an inactive Shader Graph window, the window no longer breaks.
+- When you rapidly perform an undo or redo, Shader Graph windows no longer break.
+- Sub Graphs that contain references to non-existing Sub Graphs no longer break the Sub Graph Importer.
+- You can now reference sub-assets such as Textures.
+- When you create a new empty Sub Graph, it no longer shows a warning about a missing output.
+- When you create outputs that start with a digit, Shader generation no longer fails.
+- You can no longer add nodes that are not allowed into Sub Graphs.
+- A graph must now always contain at least one Master Node.
+- Duplicate output names are now allowed.
+- Fixed an issue where the main preview was always redrawing.
+- When you set a Master Node as active, the Main Preview now shows the correct result.
+- Removed outdated documentation.
+- Sub Graph input slots no longer produce errors when you generate preview shaders.
+
+## [5.13.0] - 2019-04-15
 
 ## [5.12.0] - 2019-04-11
 

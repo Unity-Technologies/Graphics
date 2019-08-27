@@ -2653,7 +2653,7 @@ VisualEffectResource:
       \           if (id < currentSumSpawnCount)\n            {\n                break;\n
       \           }\n        }\n        */\n        \n\n#endif\n        float3 position
       = float3(0,0,0);\n        uint particleId = (uint)0;\n        float3 color =
-      float3(1,1,1);\n        float lifetime = (float)0;\n        uint seed = (uint)0;\n
+      float3(1,1,1);\n        float lifetime = (float)1;\n        uint seed = (uint)0;\n
       \       float3 velocity = float3(0,0,0);\n        bool alive = (bool)true;\n
       \       float age = (float)0;\n        \n\n#if VFX_USE_PARTICLEID_CURRENT\n
       \        particleId = particleIndex;\n#endif\n#if VFX_USE_SEED_CURRENT\n        seed

@@ -317,9 +317,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             DebugLightingMode debugLighting = data.lightingDebugSettings.debugLightingMode;
             DebugViewGbuffer debugGBuffer = (DebugViewGbuffer)data.materialDebugSettings.debugViewGBuffer;
-            return (debugLighting == DebugLightingMode.DiffuseLighting || debugLighting == DebugLightingMode.SpecularLighting) ||
+            return (debugLighting == DebugLightingMode.DiffuseLighting || debugLighting == DebugLightingMode.SpecularLighting || debugLighting == DebugLightingMode.VisualizeCascade) ||
+                (data.lightingDebugSettings.overrideAlbedo || data.lightingDebugSettings.overrideNormal || data.lightingDebugSettings.overrideSmoothness || data.lightingDebugSettings.overrideSpecularColor || data.lightingDebugSettings.overrideEmissiveColor) ||
                 (debugGBuffer == DebugViewGbuffer.BakeDiffuseLightingWithAlbedoPlusEmissive) ||
-                (data.fullScreenDebugMode == FullScreenDebugMode.PreRefractionColorPyramid || data.fullScreenDebugMode == FullScreenDebugMode.FinalColorPyramid || data.fullScreenDebugMode == FullScreenDebugMode.ScreenSpaceReflections || data.fullScreenDebugMode == FullScreenDebugMode.LightCluster || data.fullScreenDebugMode == FullScreenDebugMode.RaytracedAreaShadow);
+                (data.fullScreenDebugMode == FullScreenDebugMode.PreRefractionColorPyramid || data.fullScreenDebugMode == FullScreenDebugMode.FinalColorPyramid || data.fullScreenDebugMode == FullScreenDebugMode.ScreenSpaceReflections || data.fullScreenDebugMode == FullScreenDebugMode.LightCluster || data.fullScreenDebugMode == FullScreenDebugMode.RaytracedAreaShadow || data.fullScreenDebugMode == FullScreenDebugMode.NanTracker);
         }
 
         void RegisterDisplayStatsDebug()
@@ -761,8 +762,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 needsRefreshingCameraFreezeList = true;
             }
             
-            var history = FrameSettingsHistory.RegisterDebug(camera, additionalData);
-            DebugManager.instance.RegisterData(history);
+            if (!FrameSettingsHistory.IsRegistered(camera))
+            {
+                var history = FrameSettingsHistory.RegisterDebug(camera, additionalData);
+                DebugManager.instance.RegisterData(history);
+            }
         }
 
         public static void UnRegisterCamera(Camera camera, HDAdditionalCameraData additionalData)
@@ -775,8 +779,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 needsRefreshingCameraFreezeList = true;
             }
 
-            DebugManager.instance.UnregisterData(FrameSettingsHistory.GetPersistantDebugDataCopy(camera));
-            FrameSettingsHistory.UnRegisterDebug(camera);
+            if (FrameSettingsHistory.IsRegistered(camera))
+            {
+                DebugManager.instance.UnregisterData(FrameSettingsHistory.GetPersistantDebugDataCopy(camera));
+                FrameSettingsHistory.UnRegisterDebug(camera);
+            }
         }
     }
 }

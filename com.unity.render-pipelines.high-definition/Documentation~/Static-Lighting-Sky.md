@@ -10,7 +10,7 @@ To manually add a Static Lighting Sky component to any GameObject;
 2. Click **Add Component** and type **Static Lighting Sky** into the search bar. 
 3. Select **Static Lighting Sky** in the drop-down to add a Static Lighting Sky component to the GameObject.
 
-To select the [sky type](Sky-Overview.html), you must specify a [Volume Profile](Volume-Profile.html) in the **Profile** field. The Volume Profile must contain at least one sky type Volume override, for example, **Exponential Sky**. When you specify a Volume Profile, you can use the **Static Lighting Sky** drop-down to select the type of sky to use for the light baking process. The drop-down only exposes sky types that the **Profile** includes as Volume overrides.
+To select the [sky type](HDRP-Features.html#SkyOverview.html), you must specify a [Volume Profile](Volume-Profile.html) in the **Profile** field. The Volume Profile must contain at least one sky type Volume override, for example, **Exponential Sky**. When you specify a Volume Profile, you can use the **Static Lighting Sky** drop-down to select the type of sky to use for the light baking process. The drop-down only exposes sky types that the **Profile** includes as Volume overrides.
 
 ## Properties
 
