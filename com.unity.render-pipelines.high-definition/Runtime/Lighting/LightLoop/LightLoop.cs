@@ -464,10 +464,11 @@ namespace UnityEngine.Rendering.HighDefinition
             public NativeArray<LightVolumeData> m_LightVolumeData;
 
 
-            public void AllocateLightArraysPerFrame(int punctualLightCount, int areaLightCount, int decalCount, int envLightCount, int numViews)
+            public void AllocateLightArraysPerFrame(int punctualLightCount, int areaLightCount, int decalCount, int envLightCount, int densityVolumeCount, int numViews)
             {
-                m_LightVolumeData = new NativeArray<LightVolumeData>((punctualLightCount + areaLightCount + envLightCount + decalCount) * numViews, Allocator.TempJob);
-                m_Bounds = new NativeArray<SFiniteLightBound>((punctualLightCount + areaLightCount + envLightCount + decalCount) * numViews, Allocator.TempJob);
+                m_LightVolumeData = new NativeArray<LightVolumeData>((punctualLightCount + areaLightCount + envLightCount + decalCount + densityVolumeCount) * numViews, Allocator.TempJob);
+                m_Bounds = new NativeArray<SFiniteLightBound>((punctualLightCount + areaLightCount + envLightCount + decalCount + densityVolumeCount) * numViews, Allocator.TempJob);
+
                 m_LightData = new NativeArray<LightData>((punctualLightCount + areaLightCount), Allocator.TempJob);
                 m_EnvLights = new NativeArray<EnvLightData>(envLightCount, Allocator.TempJob);
                 m_PunctualLightCount = punctualLightCount;
@@ -1751,10 +1752,13 @@ namespace UnityEngine.Rendering.HighDefinition
             m_lightList.m_LightVolumeData[probeIndex] = lightVolumeData;
         }
 
-        void AddBoxVolumeDataAndBound(OrientedBBox obb, LightCategory category, LightFeatureFlags featureFlags, Matrix4x4 worldToView, int viewIndex)
+        void AddBoxVolumeDataAndBound(OrientedBBox obb, LightCategory category, LightFeatureFlags featureFlags, Matrix4x4 worldToView, int punctualLightCount, int areaLightCount, int reflectionProbeCount, int decalDatasCount, int densityVolumeCount, int densityVolumeIndex, int viewIndex)
         {
-            var bound      = new SFiniteLightBound();
-            var volumeData = new LightVolumeData();
+            int stride = punctualLightCount + areaLightCount + reflectionProbeCount + decalDatasCount + densityVolumeCount;
+            int offset = punctualLightCount + areaLightCount + reflectionProbeCount + decalDatasCount;
+            int index = viewIndex * stride + offset + densityVolumeIndex;
+            var bound      = m_lightList.m_Bounds[index];
+            var volumeData = m_lightList.m_LightVolumeData[index];
 
             // transform to camera space (becomes a left hand coordinate frame in Unity since Determinant(worldToView)<0)
             var positionVS = worldToView.MultiplyPoint(obb.center);
@@ -1784,9 +1788,8 @@ namespace UnityEngine.Rendering.HighDefinition
             volumeData.boxInnerDist = extents - k_BoxCullingExtentThreshold; // We have no blend range, but the culling code needs a small EPS value for some reason???
             volumeData.boxInvRange.Set(1.0f / k_BoxCullingExtentThreshold.x, 1.0f / k_BoxCullingExtentThreshold.y, 1.0f / k_BoxCullingExtentThreshold.z);
 
-//            m_lightList.lightsPerView[viewIndex].bounds.Add(bound);
-//            m_lightList.lightsPerView[viewIndex].lightVolumes.Add(volumeData);
-            Debug.Assert(false,"Implement for Box lights");
+            m_lightList.m_Bounds[index] = bound;
+            m_lightList.m_LightVolumeData[index] = volumeData;
         }
 
         internal int GetCurrentShadowCount()
@@ -2392,7 +2395,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
 
-        void ComputeLightVolumesAndBounds(int punctualLightCount, int areaLightCount, int envLightCount, int decalLightCount, CullingResults cullResults, HDCamera hdCamera)
+        void ComputeLightVolumesAndBounds(int punctualLightCount, int areaLightCount, int envLightCount, int decalLightCount, int densityVolumeCount, CullingResults cullResults, HDCamera hdCamera)
         {
             Profiler.BeginSample("Light Volume and Bounds Prepare");
             m_LightVolumeBoundsJob.m_VisibleLights = cullResults.visibleLights;
@@ -2416,7 +2419,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_LightDimensions,
                 m_WorldToView,
                 m_VisibleLightRemapping,
-                punctualLightCount + areaLightCount + envLightCount + decalLightCount,
+                punctualLightCount + areaLightCount + envLightCount + decalLightCount + densityVolumeCount,
                 0,
                 hdCamera.viewCount);
  
@@ -2456,7 +2459,7 @@ namespace UnityEngine.Rendering.HighDefinition
             Profiler.EndSample();
         }
 
-        void ComputeEnvLightBoundsAndVolume(HDCamera hdCamera, int punctualLightCount, int areaLightCount, int reflectionProbeCount, int decalDatasCount)
+        void ComputeEnvLightBoundsAndVolume(HDCamera hdCamera, int punctualLightCount, int areaLightCount, int reflectionProbeCount, int decalDatasCount, int densityVolumeCount)
         {
             Profiler.BeginSample("ComputeEnvLightBoundsAndVolume");
             m_EnvBoundAndVolumeJob.SetData(m_lightList.m_Bounds,
@@ -2466,7 +2469,7 @@ namespace UnityEngine.Rendering.HighDefinition
                           m_InfluenceToWorld,
                           m_RefProbesSortIndexRemapping,
                           m_ProbeLightVolumeTypes,
-                          punctualLightCount + areaLightCount + reflectionProbeCount + decalDatasCount,
+                          punctualLightCount + areaLightCount + reflectionProbeCount + decalDatasCount + densityVolumeCount,
                           punctualLightCount + areaLightCount,
                           hdCamera.viewCount);
             JobHandle envVolumeBoundsJobHandle = m_EnvBoundAndVolumeJob.Schedule(reflectionProbeCount, 1);
@@ -2474,9 +2477,9 @@ namespace UnityEngine.Rendering.HighDefinition
             Profiler.EndSample();
         }
 
-        void ProcessDecals(int punctualLightCount, int areaLightCount, int reflectionProbeCount, int decalDatasCount, int viewCount)
+        void ProcessDecals(int punctualLightCount, int areaLightCount, int reflectionProbeCount, int decalDatasCount, int densityVolumeCount, int viewCount)
         {
-            int stride = punctualLightCount + areaLightCount + reflectionProbeCount + decalDatasCount;
+            int stride = punctualLightCount + areaLightCount + reflectionProbeCount + decalDatasCount + densityVolumeCount;
             int offset = punctualLightCount + areaLightCount + reflectionProbeCount;
             for (int viewIndex = 0; viewIndex < viewCount; ++viewIndex)
             {
@@ -2540,6 +2543,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 int punctualLightCount = 0;
                 int areaLightCount = 0;
                 int directionalLightCount = 0;
+                m_densityVolumeCount = densityVolumes.bounds != null ? densityVolumes.bounds.Count : 0;
                 // Note: Light with null intensity/Color are culled by the C++, no need to test it here
                 if (cullResults.visibleLights.Length != 0 || cullResults.visibleReflectionProbes.Length != 0)
                 {
@@ -2554,7 +2558,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     Profiler.BeginSample("ProcessPunctualAndAreaLights");
                     {
                         AllocateVolumeBoundsJobArrays(punctualLightCount + areaLightCount, hdCamera.viewCount); // needs to be above GetLightData, because m_LightDimensions get computed there
-                        m_lightList.AllocateLightArraysPerFrame(punctualLightCount, areaLightCount, decalDatasCount, reflectionProbeCount, hdCamera.viewCount);
+                        m_lightList.AllocateLightArraysPerFrame(punctualLightCount, areaLightCount, decalDatasCount, reflectionProbeCount, m_densityVolumeCount,  hdCamera.viewCount);
                   
                         Profiler.BeginSample("Light datas");
                         GetCookies(punctualLightCount + areaLightCount, cmd);
@@ -2568,7 +2572,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         }
 
                         Profiler.BeginSample("Light Volume and Bounds");
-                        ComputeLightVolumesAndBounds(punctualLightCount, areaLightCount, reflectionProbeCount, decalDatasCount, cullResults, hdCamera);
+                        ComputeLightVolumesAndBounds(punctualLightCount, areaLightCount, reflectionProbeCount, decalDatasCount, m_densityVolumeCount, cullResults, hdCamera);
                         Profiler.EndSample();
                 
                         // We make the light position camera-relative as late as possible in order
@@ -2591,19 +2595,17 @@ namespace UnityEngine.Rendering.HighDefinition
                     Profiler.BeginSample("ProcessEnvironmentLights");
                     {
                         ComputeEnvLightsData(cmd, hdCamera, reflectionProbeCount, camPosWS);
-                        ComputeEnvLightBoundsAndVolume(hdCamera, punctualLightCount, areaLightCount, reflectionProbeCount, decalDatasCount);
+                        ComputeEnvLightBoundsAndVolume(hdCamera, punctualLightCount, areaLightCount, reflectionProbeCount, decalDatasCount, m_densityVolumeCount);
                     }
                     Profiler.EndSample();
                 }
 
                 if (decalDatasCount > 0)
                 {
-                    ProcessDecals(punctualLightCount, areaLightCount, reflectionProbeCount, decalDatasCount, hdCamera.viewCount);
+                    ProcessDecals(punctualLightCount, areaLightCount, reflectionProbeCount, decalDatasCount, m_densityVolumeCount,  hdCamera.viewCount);
                 }
 
-                // Inject density volumes into the clustered data structure for efficient look up.
-                m_densityVolumeCount = densityVolumes.bounds != null ? densityVolumes.bounds.Count : 0;
-
+                // Inject density volumes into the clustered data structure for efficient look up.            
                 for (int viewIndex = 0; viewIndex < hdCamera.viewCount; ++viewIndex)
                 {
                     Matrix4x4 worldToViewCR = GetWorldToViewMatrix(hdCamera, viewIndex);
@@ -2618,13 +2620,13 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         // Density volumes are not lights and therefore should not affect light classification.
                         LightFeatureFlags featureFlags = 0;
-                        AddBoxVolumeDataAndBound(densityVolumes.bounds[i], LightCategory.DensityVolume, featureFlags, worldToViewCR, viewIndex);
+                        AddBoxVolumeDataAndBound(densityVolumes.bounds[i], LightCategory.DensityVolume, featureFlags, worldToViewCR, punctualLightCount, areaLightCount, reflectionProbeCount, decalDatasCount, m_densityVolumeCount, i, viewIndex);
                     }
                 }
 
-                m_TotalLightCount = m_lightList.m_LightData.Length + decalDatasCount + reflectionProbeCount;
+                m_TotalLightCount = m_lightList.m_LightData.Length + decalDatasCount + reflectionProbeCount + m_densityVolumeCount;
                 Debug.Assert(m_TotalLightCount == m_lightList.m_Bounds.Length, "m_TotalLightCount == m_lightList.m_Bounds.Length ");
-                Debug.Assert(m_TotalLightCount == m_lightList.m_LightVolumeData.Length, "m_TotalLightCount == m_lightList.m_Bounds.Length"); // todo add density volumes and env lights              
+                Debug.Assert(m_TotalLightCount == m_lightList.m_LightVolumeData.Length, "m_TotalLightCount == m_lightList.m_Bounds.Length"); //            
 
                 UpdateDataBuffers();
 
