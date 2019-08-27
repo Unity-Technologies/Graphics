@@ -14,7 +14,8 @@ namespace UnityEngine.Rendering.HighDefinition
         VisualizeCascade,
         VisualizeShadowMasks,
         IndirectDiffuseOcclusion,
-        IndirectSpecularOcclusion
+        IndirectSpecularOcclusion,
+        ProbeVolume
     }
 
     [GenerateHLSL]

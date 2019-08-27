@@ -108,7 +108,7 @@ void ApplyAmbientOcclusionFactor(AmbientOcclusionFactor aoFactor, inout BuiltinD
     // Also, we have double occlusion for diffuse lighting since it already had precomputed AO (aka "FromData") applied
     // (the * surfaceData.ambientOcclusion above)
     // This is a tradeoff to avoid storing the precomputed (from data) AO in the GBuffer.
-    // (This is also why GetScreenSpaceAmbientOcclusion*() is effectively called with AOFromData = 1.0 in Lit:PostEvaluateBSDF() in the 
+    // (This is also why GetScreenSpaceAmbientOcclusion*() is effectively called with AOFromData = 1.0 in Lit:PostEvaluateBSDF() in the
     // deferred case since DecodeFromGBuffer will init bsdfData.ambientOcclusion to 1.0 and we will only have SSAO in the aoFactor here)
     builtinData.bakeDiffuseLighting *= aoFactor.indirectAmbientOcclusion;
     lighting.indirect.specularReflected *= aoFactor.indirectSpecularOcclusion;
@@ -144,7 +144,7 @@ void PostEvaluateBSDFDebugDisplay(  AmbientOcclusionFactor aoFactor, BuiltinData
             //Compress lighting values for color picker if enabled
             if (_ColorPickerMode != COLORPICKERDEBUGMODE_NONE)
                 diffuseLighting = diffuseLighting / LUXMETER_COMPRESSION_RATIO;
-            
+
             specularLighting = float3(0.0, 0.0, 0.0); // Disable specular lighting
             break;
 
@@ -168,6 +168,11 @@ void PostEvaluateBSDFDebugDisplay(  AmbientOcclusionFactor aoFactor, BuiltinData
             specularLighting = float3(0, 0, 0);
             #endif
             break ;
+
+        case DEBUGLIGHTINGMODE_PROBE_VOLUME:
+            diffuseLighting = builtinData.bakeDiffuseLighting;
+            specularLighting = float3(0, 0, 0);
+            break;
         }
     }
     else if (_DebugMipMapMode != DEBUGMIPMAPMODE_NONE)

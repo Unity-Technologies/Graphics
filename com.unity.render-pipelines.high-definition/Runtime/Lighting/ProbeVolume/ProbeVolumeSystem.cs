@@ -145,7 +145,9 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             var currFrameParams = hdCamera.probeVolumeSystemParams;
 
-            // TODO: Assign any global shader variables here.
+            cmd.SetGlobalBuffer(HDShaderIDs._ProbeVolumeBounds, s_VisibleProbeVolumeBoundsBuffer);
+            cmd.SetGlobalBuffer(HDShaderIDs._ProbeVolumeDatas, s_VisibleProbeVolumeDataBuffer);
+            cmd.SetGlobalInt(HDShaderIDs._ProbeVolumeCount, m_VisibleProbeVolumeBounds.Count);
         }
 
         public ProbeVolumeList PrepareVisibleProbeVolumeList(HDCamera hdCamera, CommandBuffer cmd)

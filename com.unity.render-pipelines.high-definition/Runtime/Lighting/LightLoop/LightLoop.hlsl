@@ -1,12 +1,32 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Macros.hlsl"
 
-// We perform scalarization only for forward rendering as for deferred loads will already be scalar since tiles will match waves and therefore all threads will read from the same tile. 
+// We perform scalarization only for forward rendering as for deferred loads will already be scalar since tiles will match waves and therefore all threads will read from the same tile.
 // More info on scalarization: https://flashypixels.wordpress.com/2018/11/10/intro-to-gpu-scalarization-part-2-scalarize-all-the-lights/
 #define SCALARIZE_LIGHT_LOOP (defined(PLATFORM_SUPPORTS_WAVE_INTRINSICS) && !defined(LIGHTLOOP_DISABLE_TILE_AND_CLUSTER) && SHADERPASS == SHADERPASS_FORWARD)
 
 //-----------------------------------------------------------------------------
 // LightLoop
 // ----------------------------------------------------------------------------
+
+// Copied from VolumeVoxelization.compute
+float ProbeVolumeComputeFadeFactor(
+    float3 samplePositionBoxNDC,
+    float depthWS,
+    float3 rcpPosFaceFade,
+    float3 rcpNegFaceFade,
+    float rcpDistFadeLen,
+    float endTimesRcpDistFadeLen)
+{
+    // We have to account for handedness.
+    samplePositionBoxNDC.z = 1 - samplePositionBoxNDC.z;
+
+    float3 posF = Remap10(samplePositionBoxNDC, rcpPosFaceFade, rcpPosFaceFade);
+    float3 negF = Remap01(samplePositionBoxNDC, rcpNegFaceFade, 0);
+    float  dstF = Remap10(depthWS, rcpDistFadeLen, endTimesRcpDistFadeLen);
+    float  fade = posF.x * posF.y * posF.z * negF.x * negF.y * negF.z;
+
+    return dstF * fade;
+}
 
 void ApplyDebug(LightLoopContext context, PositionInputs posInput, BSDFData bsdfData, inout float3 diffuseLighting, inout float3 specularLighting)
 {
@@ -92,6 +112,11 @@ void ApplyDebug(LightLoopContext context, PositionInputs posInput, BSDFData bsdf
         }
 
         diffuseLighting = SAMPLE_TEXTURE2D_LOD(_DebugMatCapTexture, s_linear_repeat_sampler, UV, 0).rgb * (_MatcapMixAlbedo > 0  ? defaultColor.rgb * _MatcapViewScale : 1.0f);
+    }
+    else if (_DebugLightingMode == DEBUGLIGHTINGMODE_PROBE_VOLUME)
+    {
+        // Debug info is written to diffuseColor inside of light loop.
+        specularLighting = float3(0.0, 0.0, 0.0);
     }
 
     // We always apply exposure when in debug mode. The exposure value will be at a neutral 0.0 when not needed.
@@ -408,6 +433,130 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
         }
     }
 #endif
+
+    // TODO(Nicholas): verify this copy-pasted code against the source.
+    if (featureFlags & LIGHTFEATUREFLAGS_PROBE_VOLUME)
+    {
+        float probeVolumeHierarchyWeight = 0.0; // Max: 1.0
+        float3 probeVolumeDiffuseLighting = 0.0;
+
+        uint probeVolumeStart, probeVolumeCount;
+
+        bool fastPath = false;
+        // Fetch first probe volume to provide the scene proxy for screen space computation
+#ifndef LIGHTLOOP_DISABLE_TILE_AND_CLUSTER
+        GetCountAndStart(posInput, LIGHTCATEGORY_PROBE_VOLUME, probeVolumeStart, probeVolumeCount);
+
+    #if SCALARIZE_LIGHT_LOOP
+        // Fast path is when we all pixels in a wave is accessing same tile or cluster.
+        uint probeVolumeStartFirstLane = WaveReadLaneFirst(probeVolumeStart);
+        fastPath = WaveActiveAllTrue(probeVolumeStart == probeVolumeStartFirstLane);
+    #endif
+
+#else   // LIGHTLOOP_DISABLE_TILE_AND_CLUSTER
+        probeVolumeCount = _ProbeVolumeCount;
+        probeVolumeStart = 0;
+#endif
+
+        // Reflection probes are sorted by volume (in the increasing order).
+
+        // context.sampleReflection = SINGLE_PASS_CONTEXT_SAMPLE_REFLECTION_PROBES;
+    #if SCALARIZE_LIGHT_LOOP
+        if (fastPath)
+        {
+            probeVolumeStart = probeVolumeStartFirstLane;
+        }
+    #endif
+
+        // Scalarized loop, same rationale of the punctual light version
+        uint v_probeVolumeListOffset = 0;
+        uint v_probeVolumeIdx = probeVolumeStart;
+        while (v_probeVolumeListOffset < probeVolumeCount)
+        {
+            v_probeVolumeIdx = FetchIndex(probeVolumeStart, v_probeVolumeListOffset);
+            uint s_probeVolumeIdx = v_probeVolumeIdx;
+
+        #if SCALARIZE_LIGHT_LOOP
+            if (!fastPath)
+            {
+                s_probeVolumeIdx = WaveActiveMin(v_probeVolumeIdx);
+                // If we are not in fast path, s_probeVolumeIdx is not scalar
+               // If WaveActiveMin returns 0xffffffff it means that all lanes are actually dead, so we can safely ignore the loop and move forward.
+               // This could happen as an helper lane could reach this point, hence having a valid v_lightIdx, but their values will be ignored by the WaveActiveMin
+                if (s_probeVolumeIdx == -1)
+                {
+                    break;
+                }
+            }
+            // Note that the WaveReadLaneFirst should not be needed, but the compiler might insist in putting the result in VGPR.
+            // However, we are certain at this point that the index is scalar.
+            s_probeVolumeIdx = WaveReadLaneFirst(s_probeVolumeIdx);
+
+        #endif
+
+            // Scalar load.
+            ProbeVolumeEngineData s_probeVolumeData = _ProbeVolumeDatas[s_probeVolumeIdx];
+            OrientedBBox s_probeVolumeBounds = _ProbeVolumeBounds[s_probeVolumeIdx];
+
+            // If current scalar and vector light index match, we process the light. The v_envLightListOffset for current thread is increased.
+            // Note that the following should really be ==, however, since helper lanes are not considered by WaveActiveMin, such helper lanes could
+            // end up with a unique v_envLightIdx value that is smaller than s_envLightIdx hence being stuck in a loop. All the active lanes will not have this problem.
+            if (s_probeVolumeIdx >= v_probeVolumeIdx)
+            {
+                v_probeVolumeListOffset++;
+                if (probeVolumeHierarchyWeight < 1.0)
+                {
+                    // TODO: Implement light layer support for probe volumes.
+                    // if (IsMatchingLightLayer(s_probeVolumeData.lightLayers, builtinData.renderingLayers)) { EVALUATE_BSDF_ENV_SKY(s_probeVolumeData, TYPE, type) }
+
+                    // TODO: Implement per-probe user defined max weight.
+                    float weight = 0.0f;
+                    {
+                        float3x3 obbFrame = float3x3(s_probeVolumeBounds.right, s_probeVolumeBounds.up, cross(s_probeVolumeBounds.up, s_probeVolumeBounds.right));
+                        float3 obbExtents = float3(s_probeVolumeBounds.extentX, s_probeVolumeBounds.extentY, s_probeVolumeBounds.extentZ);
+
+                        float3 samplePositionBS = mul(obbFrame, posInput.positionWS - s_probeVolumeBounds.center);
+                        float3 samplePositionBCS = samplePositionBS * rcp(obbExtents);
+
+                        // TODO: Verify if this early out is actually improving performance.
+                        bool isInsideProbeVolume = max(abs(samplePositionBCS.x), max(abs(samplePositionBCS.y), abs(samplePositionBCS.z))) < 1.0f;
+                        if (!isInsideProbeVolume) { continue; }
+
+                        float3 samplePositionBNDC = samplePositionBCS * 0.5f + 0.5f;
+
+                        float fadeFactor = ProbeVolumeComputeFadeFactor(
+                            samplePositionBNDC,
+                            posInput.linearDepth,
+                            s_probeVolumeData.rcpPosFaceFade,
+                            s_probeVolumeData.rcpNegFaceFade,
+                            s_probeVolumeData.rcpDistFadeLen,
+                            s_probeVolumeData.endTimesRcpDistFadeLen
+                        );
+
+                        // Alpha composite: weight = (1.0f - probeVolumeHierarchyWeight) * fadeFactor;
+                        weight = probeVolumeHierarchyWeight * -fadeFactor + fadeFactor;
+                    }
+
+                    // TODO: Sample irradiance data from atlas and integrate against diffuse BRDF.
+                    probeVolumeDiffuseLighting += s_probeVolumeData.debugColor * weight;
+                    probeVolumeHierarchyWeight = saturate(probeVolumeHierarchyWeight + weight);
+                }
+            }
+        }
+
+    #ifdef DEBUG_DISPLAY
+        if (_DebugLightingMode == DEBUGLIGHTINGMODE_PROBE_VOLUME)
+        {
+            builtinData.bakeDiffuseLighting = 0.0;
+        }
+    #endif
+
+        // Lerp down any baked diffuse lighting where probe volume lighting data is present.
+        // This allows us to fallback to lightmaps and / or legacy probes for distant features (such as terrain).
+        // TODO: We may want to elect to fully disable the code paths + memory for baked diffuse lighting and simply anticipate a low resolution
+        // global volume will always be present. Needs discussion. For now, this lerp between baked and probe volumes is the least invasive approach.
+        builtinData.bakeDiffuseLighting = builtinData.bakeDiffuseLighting * (1.0 - probeVolumeHierarchyWeight) + probeVolumeDiffuseLighting;
+    }
 
     // Also Apply indiret diffuse (GI)
     // PostEvaluateBSDF will perform any operation wanted by the material and sum everything into diffuseLighting and specularLighting

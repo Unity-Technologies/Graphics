@@ -45,9 +45,9 @@ namespace UnityEngine.Rendering.HighDefinition
         Punctual,
         Area,
         Env,
-        Decal,
-        DensityVolume,
         ProbeVolume,
+        Decal,
+        DensityVolume, // WARNING: Currently lightlistbuild.compute assumes density volume is the last element in the LightCategory enum. Do not append new LightCategory types after DensityVolume. TODO: Fix .compute code.
         Count
     }
 
@@ -61,7 +61,8 @@ namespace UnityEngine.Rendering.HighDefinition
         Env         = 1 << 15,
         Sky         = 1 << 16,
         SSRefraction = 1 << 17,
-        SSReflection = 1 << 18
+        SSReflection = 1 << 18,
+        ProbeVolume = 1 << 19
             // If adding more light be sure to not overflow LightDefinitions.s_LightFeatureMaskFlags
     }
 
@@ -2604,6 +2605,11 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         baseFeatureFlags |= LightDefinitions.s_MaterialFeatureMaskFlags;
                     }
+                    if (m_FrameSettings.IsEnabled(FrameSettingsField.ProbeVolume) && m_probeVolumeCount > 0)
+                    {
+                        // TODO: Verify that we should be globally enabling ProbeVolume feature for all tiles here, or if we should be using per-tile culling.
+                        baseFeatureFlags |= (uint)LightFeatureFlags.ProbeVolume;
+                    }
                     cmd.SetComputeIntParam(parameters.buildPerTileLightListShader, HDShaderIDs.g_BaseFeatureFlags, (int)baseFeatureFlags);
                     cmd.SetComputeBufferParam(parameters.buildPerTileLightListShader, parameters.buildPerTileLightListKernel, HDShaderIDs.g_TileFeatureFlags, tileAndCluster.tileFeatureFlags);
                     tileFlagsWritten = true;
@@ -2674,6 +2680,11 @@ namespace UnityEngine.Rendering.HighDefinition
                     if (!parameters.computeLightVariants)
                     {
                         baseFeatureFlags |= LightDefinitions.s_LightFeatureMaskFlags;
+                    }
+                    if (m_FrameSettings.IsEnabled(FrameSettingsField.ProbeVolume) && m_probeVolumeCount > 0)
+                    {
+                        // TODO: Verify that we should be globally enabling ProbeVolume feature for all tiles here, or if we should be using per-tile culling.
+                        baseFeatureFlags |= (uint)LightFeatureFlags.ProbeVolume;
                     }
 
                     // If we haven't run the light list building, we are missing some basic lighting flags.
