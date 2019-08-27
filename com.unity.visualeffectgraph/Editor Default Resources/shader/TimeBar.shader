@@ -6,7 +6,7 @@ Shader "Hidden/VFX/TimeBar"
         _AbscissaOffset("AbscissaOffset", float) = 0
     }
 
-        SubShader
+    SubShader
     {
         Tags { "RenderType" = "Transparent" "Queue" = "Transparent" }
         LOD 100

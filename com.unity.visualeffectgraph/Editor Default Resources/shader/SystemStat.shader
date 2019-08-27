@@ -6,7 +6,7 @@ Shader "Hidden/VFX/SystemStat"
         _OrdinateScale("OrdinateScale", float) = 1 
     } 
 
-        SubShader
+    SubShader
     {
         Tags { "RenderType" = "Transparent" "Queue" = "Transparent" }
         LOD 100

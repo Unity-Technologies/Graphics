@@ -291,8 +291,7 @@ namespace UnityEditor.VFX
             var scriptableObject = k_fnExtractObjects(str, false);
 
             Profiler.BeginSample("VFXGraph.Restore SendUnknownChange");
-            var models = scriptableObject.OfType<VFXModel>();
-            foreach (var model in models)
+            foreach (var model in scriptableObject.OfType<VFXModel>())
             {
                 model.OnUnknownChange();
             }
