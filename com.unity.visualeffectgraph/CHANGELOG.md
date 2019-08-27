@@ -8,6 +8,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 - Moved High Definition templates and includes to com.unity.render-pipelines.high-definition package
 - Navigation commands for subgraph.
+- Unique names for spawners and GPU systems
+- Debug plots in the Target GameObject view
 
 ### Fixed
 - Using struct as subgraph parameters.
@@ -21,7 +23,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [7.0.1] - 2019-07-25
 ### Added
 - Add Position depth operator along with TransformVector4 and LoadTexture2D expressions.
-- Unique names for spawners and GPU systems
+
 ### Fixed
 - Inherit attribute block appears three times [Case 1166905](https://issuetracker.unity3d.com/issues/attributes-each-inherit-attribute-block-appears-3-times-in-the-search-and-some-have-a-seed-attribute)
 - Unexpected exception : `Trying to modify space on a not spaceable slot` error when adding collision or conform blocks [Case 1163442](https://issuetracker.unity3d.com/issues/block-trying-to-modify-space-on-a-not-spaceable-slot-error-when-adding-collision-or-conform-blocks)
