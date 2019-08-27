@@ -90,10 +90,6 @@ namespace UnityEditor.ShaderGraph.Internal
             m_Outputs = outputs;
         }
 
-        public OutputMetadata GetOutput(string name)
-        {
-            return m_Outputs.FirstOrDefault(t => t.referenceName == name);
-        }
         public OutputMetadata GetOutput(int id)
         {
             return m_Outputs.FirstOrDefault(t => t.id == id);
