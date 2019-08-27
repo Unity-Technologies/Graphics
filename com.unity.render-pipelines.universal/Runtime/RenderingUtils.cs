@@ -56,6 +56,25 @@ namespace UnityEngine.Rendering.Universal
         public static UnityEngine.Rendering.PostProcessing.PostProcessRenderContext postProcessRenderContext => null;
 #endif
 
+        internal static bool useStructuredBuffer
+        {
+            // There are some performance issues with StructuredBuffers in some platforms.
+            // We fallback to UBO in those cases.
+            get
+            {
+                // TODO: For now disabling SSBO until figure out Vulkan binding issues.
+                // When enabling this also enable it in shader side in Input.hlsl
+                return false;
+
+                // We don't use SSBO in D3D because we can't figure out without adding shader variants if platforms is D3D10.
+                //GraphicsDeviceType deviceType = SystemInfo.graphicsDeviceType;
+                //return !Application.isMobilePlatform &&
+                //    (deviceType == GraphicsDeviceType.Metal || deviceType == GraphicsDeviceType.Vulkan ||
+                //     deviceType == GraphicsDeviceType.PlayStation4 || deviceType == GraphicsDeviceType.XboxOne);
+            }
+            
+        }
+
         static Material s_ErrorMaterial;
         static Material errorMaterial
         {

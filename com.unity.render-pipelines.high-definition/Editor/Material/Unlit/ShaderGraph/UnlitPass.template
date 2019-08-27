@@ -33,7 +33,7 @@ Pass
     $BlendMode.Alpha:                    #define _BLENDMODE_ALPHA 1
     $BlendMode.Add:                      #define _BLENDMODE_ADD 1
     $BlendMode.Premultiply:              #define _BLENDMODE_PRE_MULTIPLY 1
-    $AdditionalVelocityChange:           #define _ADDITIONAL_VELOCITY_CHANGE
+    $AddPrecomputedVelocity:           #define _ADD_PRECOMPUTED_VELOCITY
 
     //-------------------------------------------------------------------------------------
     // End Variant Definitions

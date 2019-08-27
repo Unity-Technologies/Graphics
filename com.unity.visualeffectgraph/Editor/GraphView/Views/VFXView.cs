@@ -10,6 +10,7 @@ using UnityEngine.Rendering;
 using UnityEditor.VFX;
 using UnityEngine.VFX;
 using UnityEngine.UIElements;
+using UnityEditor.UIElements;
 using UnityEngine.Profiling;
 using System.Reflection;
 
@@ -257,8 +258,29 @@ namespace UnityEditor.VFX.UI
         }
 
         VFXNodeProvider m_NodeProvider;
-
         VisualElement m_Toolbar;
+
+        private bool m_IsRuntimeMode = false;
+        private bool m_ForceShaderValidation = false;
+
+
+        public static StyleSheet LoadStyleSheet(string text)
+        {
+            string path = string.Format("{0}/Editor Default Resources/uss/{1}.uss", VisualEffectGraphPackageInfo.assetPackagePath, text);
+            return AssetDatabase.LoadAssetAtPath<StyleSheet>(path);
+        }
+
+        public static VisualTreeAsset LoadUXML(string text)
+        {
+            string path = string.Format("{0}/Editor Default Resources/uxml/{1}.uxml", VisualEffectGraphPackageInfo.assetPackagePath, text);
+            return AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(path);
+        }
+
+        public static Texture2D LoadImage(string text)
+        {
+            string path = string.Format("{0}/Editor Default Resources/VFX/{1}.png", VisualEffectGraphPackageInfo.assetPackagePath, text);
+            return AssetDatabase.LoadAssetAtPath<Texture2D>(path);
+        }
 
         public VFXView()
         {
@@ -270,7 +292,11 @@ namespace UnityEditor.VFX.UI
             this.AddManipulator(new RectangleSelector());
             this.AddManipulator(new FreehandSelector());
 
-            styleSheets.Add(Resources.Load<StyleSheet>("VFXView"));
+            styleSheets.Add(LoadStyleSheet("VFXView"));
+            if( ! EditorGUIUtility.isProSkin)
+            { 
+                styleSheets.Add(LoadStyleSheet("VFXView-light"));
+            }
 
             AddLayer(-1);
             AddLayer(1);
@@ -278,69 +304,51 @@ namespace UnityEditor.VFX.UI
 
             focusable = true;
 
-            m_Toolbar = new VisualElement();
-            m_Toolbar.AddToClassList("toolbar");
+            m_Toolbar = new UnityEditor.UIElements.Toolbar();
 
-
-            Button button = new Button(() => { Resync(); });
-            button.text = "Refresh";
-            button.AddToClassList("toolbarItem");
-            m_Toolbar.Add(button);
-            button = new Button(() => { SelectAsset(); });
-            button.text = "Select Asset";
-            button.AddToClassList("toolbarItem");
-            m_Toolbar.Add(button);
-
-            VisualElement spacer = new VisualElement();
-            spacer.style.width = 10;
-            m_Toolbar.Add(spacer);
-
-            Toggle toggleBlackboard = new Toggle();
-            toggleBlackboard.text = "Blackboard";
-            toggleBlackboard.AddToClassList("toolbarItem");
-            toggleBlackboard.RegisterCallback<ChangeEvent<bool>>(ToggleBlackboard);
-            m_Toolbar.Add(toggleBlackboard);
-
-            m_ToggleComponentBoard = new Toggle();
-            m_ToggleComponentBoard.text = "Target GameObject";
-            m_ToggleComponentBoard.AddToClassList("toolbarItem");
-            m_ToggleComponentBoard.RegisterCallback<ChangeEvent<bool>>(ToggleComponentBoard);
-            m_Toolbar.Add(m_ToggleComponentBoard);
-
-
-            spacer = new VisualElement();
-            spacer.style.flexGrow = 1f;
-            m_Toolbar.Add(spacer);
-
-            Toggle toggleRuntimeMode = new Toggle();
-            toggleRuntimeMode.text = "Force Runtime Mode";
-            toggleRuntimeMode.SetValueWithoutNotify(m_IsRuntimeMode);
-            toggleRuntimeMode.RegisterCallback<ChangeEvent<bool>>(OnToggleRuntimeMode);
-            m_Toolbar.Add(toggleRuntimeMode);
-            toggleRuntimeMode.AddToClassList("toolbarItem");
-
-            if (VFXGraphCompiledData.k_FnVFXResource_SetCompileInitialVariants != null)
-            {
-                Toggle toogleForceShaderValidation = new Toggle();
-                toogleForceShaderValidation.text = "Force Shader Validation";
-                toogleForceShaderValidation.SetValueWithoutNotify(m_ForceShaderValidation);
-                toogleForceShaderValidation.RegisterCallback<ChangeEvent<bool>>(OnToggleForceShaderValidation);
-                m_Toolbar.Add(toogleForceShaderValidation);
-                toogleForceShaderValidation.AddToClassList("toolbarItem");
-            }
-
-            Toggle toggleAutoCompile = new Toggle();
-            toggleAutoCompile.text = "Auto Compile";
+            var toggleAutoCompile = new ToolbarToggle();
+            toggleAutoCompile.text = "Auto";
+            toggleAutoCompile.style.unityTextAlign = TextAnchor.MiddleRight;
             toggleAutoCompile.SetValueWithoutNotify(true);
             toggleAutoCompile.RegisterCallback<ChangeEvent<bool>>(OnToggleCompile);
             m_Toolbar.Add(toggleAutoCompile);
-            toggleAutoCompile.AddToClassList("toolbarItem");
 
-            button = new Button(OnCompile);
-            button.text = "Compile";
-            button.AddToClassList("toolbarItem");
-            m_Toolbar.Add(button);
+            var compileButton = new ToolbarButton(OnCompile);
+            compileButton.style.unityTextAlign = TextAnchor.MiddleLeft;
+            compileButton.text = "Compile";
+            m_Toolbar.Add(compileButton);
 
+            var spacer = new ToolbarSpacer();
+            spacer.style.width = 12f;
+            m_Toolbar.Add(spacer);
+
+            var selectAssetButton = new ToolbarButton(() => { SelectAsset(); });
+            selectAssetButton.text = "Show in Project";
+            m_Toolbar.Add(selectAssetButton);
+
+            var flexSpacer = new ToolbarSpacer();
+            flexSpacer.style.flexGrow = 1f;
+            m_Toolbar.Add(flexSpacer);
+
+            var toggleBlackboard = new ToolbarToggle();
+            toggleBlackboard.text = "Blackboard";
+            toggleBlackboard.RegisterCallback<ChangeEvent<bool>>(ToggleBlackboard);
+            m_Toolbar.Add(toggleBlackboard);
+
+            m_ToggleComponentBoard = new ToolbarToggle();
+            m_ToggleComponentBoard.text = "Target GameObject";
+            m_ToggleComponentBoard.RegisterCallback<ChangeEvent<bool>>(ToggleComponentBoard);
+            m_Toolbar.Add(m_ToggleComponentBoard);
+
+            var showDebugMenu = new ToolbarMenu();
+            showDebugMenu.text = "Advanced";
+            showDebugMenu.menu.AppendAction("Runtime Mode (Forced)", OnRuntimeModeChanged, RuntimeModeStatus);
+            showDebugMenu.menu.AppendAction("Shader Validation (Forced)", OnShaderValidationChanged, ShaderValidationStatus);
+            showDebugMenu.menu.AppendSeparator();
+            showDebugMenu.menu.AppendAction("Refresh UI", OnRefreshUI, DropdownMenuAction.Status.Normal);
+            m_Toolbar.Add(showDebugMenu);
+
+            // End Toolbar
 
             m_NoAssetLabel = new Label("Please Select An Asset");
             m_NoAssetLabel.style.position = PositionType.Absolute;
@@ -355,8 +363,6 @@ namespace UnityEditor.VFX.UI
             Add(m_NoAssetLabel);
 
             m_Blackboard = new VFXBlackboard(this);
-
-
             bool blackboardVisible = BoardPreferenceHelper.IsVisible(BoardPreferenceHelper.Board.blackboard, true);
             if (blackboardVisible)
                 Add(m_Blackboard);
@@ -385,6 +391,42 @@ namespace UnityEditor.VFX.UI
 
             RegisterCallback<GeometryChangedEvent>(OnFirstResize);
         }
+
+        void OnRefreshUI(DropdownMenuAction action)
+        {
+            Resync();
+        }
+
+        void OnRuntimeModeChanged(DropdownMenuAction action)
+        {
+            m_IsRuntimeMode = !m_IsRuntimeMode;
+            controller.graph.SetCompilationMode(m_IsRuntimeMode ? VFXCompilationMode.Runtime : VFXCompilationMode.Edition);
+        }
+
+        DropdownMenuAction.Status RuntimeModeStatus(DropdownMenuAction action)
+        {
+            if (m_IsRuntimeMode)
+                return DropdownMenuAction.Status.Checked;
+            else
+                return DropdownMenuAction.Status.Normal;
+        }
+
+        void OnShaderValidationChanged(DropdownMenuAction action)
+        {
+            m_ForceShaderValidation = !m_ForceShaderValidation;
+            controller.graph.SetForceShaderValidation(m_ForceShaderValidation);
+        }
+
+        DropdownMenuAction.Status ShaderValidationStatus(DropdownMenuAction action)
+        {
+            if (VFXGraphCompiledData.k_FnVFXResource_SetCompileInitialVariants == null)
+                return DropdownMenuAction.Status.Disabled;
+            else if (m_ForceShaderValidation)
+                return DropdownMenuAction.Status.Checked;
+            else
+                return DropdownMenuAction.Status.Normal;
+        }
+
 
         public void SetBoardToFront(GraphElement board)
         {
@@ -1017,19 +1059,6 @@ namespace UnityEditor.VFX.UI
             graph.RecompileIfNeeded(false, false);
         }
 
-        private bool m_IsRuntimeMode = false;
-        void OnToggleRuntimeMode(ChangeEvent<bool> e)
-        {
-            m_IsRuntimeMode = e.newValue;
-            controller.graph.SetCompilationMode(m_IsRuntimeMode ? VFXCompilationMode.Runtime : VFXCompilationMode.Edition);
-        }
-
-        private bool m_ForceShaderValidation = false;
-        void OnToggleForceShaderValidation(ChangeEvent<bool> e)
-        {
-            m_ForceShaderValidation = e.newValue;
-            controller.graph.SetForceShaderValidation(m_ForceShaderValidation);
-        }
 
         public EventPropagation Compile()
         {
@@ -1596,6 +1625,23 @@ namespace UnityEditor.VFX.UI
             VFXFilterWindow.Show(VFXViewWindow.currentWindow, e.eventInfo.mousePosition, ViewToScreenPosition(e.eventInfo.mousePosition), m_NodeProvider);
         }
 
+        void OnEnterSubgraph(DropdownMenuAction e)
+        {
+            var node = e.userData as VFXModel;
+            if( node is VFXSubgraphOperator subGraph)
+            {
+                VFXViewWindow.currentWindow.PushResource(subGraph.subgraph.GetResource());
+            }
+            else if (node is VFXSubgraphBlock subGraph2)
+            {
+                VFXViewWindow.currentWindow.PushResource(subGraph2.subgraph.GetResource());
+            }
+            else if (node is VFXSubgraphContext subGraph3)
+            {
+                VFXViewWindow.currentWindow.PushResource(subGraph3.subgraph.GetResource());
+            }
+        }
+
         public override void BuildContextualMenu(ContextualMenuPopulateEvent evt)
         {
             if (evt.target is VFXGroupNode || evt.target is VFXSystemBorder) // Default behaviour only shows the OnCreateNode if the target is the view itself.
@@ -1605,10 +1651,15 @@ namespace UnityEditor.VFX.UI
 
             Vector2 mousePosition = evt.mousePosition;
 
-            if (evt.target is VFXNodeUI)
+            if (evt.target is VFXNodeUI node)
             {
                 evt.menu.InsertAction(evt.target is VFXContextUI ? 1 : 0, "Group Selection", (e) => { GroupSelection(); },
                     (e) => { return canGroupSelection ? DropdownMenuAction.Status.Normal : DropdownMenuAction.Status.Disabled; });
+
+                if( node.controller.model is VFXSubgraphOperator || node.controller.model is VFXSubgraphContext || node.controller.model is VFXSubgraphBlock)
+                {
+                    evt.menu.AppendAction("Enter Subgraph",OnEnterSubgraph,e=>DropdownMenuAction.Status.Normal, node.controller.model);
+                }
             }
 
             if (evt.target is VFXView)
@@ -1628,6 +1679,11 @@ namespace UnityEditor.VFX.UI
                         }
                     }
                 }
+
+                if( VFXViewWindow.currentWindow.resourceHistory.Count() > 0)
+                {
+                    evt.menu.AppendAction(" Back To Parent Graph", e => VFXViewWindow.currentWindow.PopResource());
+                }
             }
 
             if (evt.target is VFXContextUI)
@@ -1638,12 +1694,12 @@ namespace UnityEditor.VFX.UI
             }
 
 
-            if (selection.OfType<VFXNodeUI>().Any())
+            if (selection.OfType<VFXNodeUI>().Any() && evt.target is VFXNodeUI)
             {
                 if (selection.OfType<VFXOperatorUI>().Any() && !selection.OfType<VFXNodeUI>().Any(t => !(t is VFXOperatorUI) && !(t is VFXParameterUI)))
-                    evt.menu.InsertAction(3, "To Subgraph Operator", ToSubgraphOperator, e => DropdownMenuAction.Status.Normal);
+                    evt.menu.InsertAction(3, "Convert To Subgraph Operator", ToSubgraphOperator, e => DropdownMenuAction.Status.Normal);
                 else if (SelectionHasCompleteSystems())
-                    evt.menu.InsertAction(3, "To Subgraph", ToSubgraphContext, e => DropdownMenuAction.Status.Normal);
+                    evt.menu.InsertAction(3, "Convert To Subgraph", ToSubgraphContext, e => DropdownMenuAction.Status.Normal);
                 else if (selection.OfType<VFXBlockUI>().Any() && selection.OfType<VFXBlockUI>().Select(t => t.context).Distinct().Count() == 1)
                 {
                     evt.menu.InsertAction(3, "To Subgraph Block", ToSubgraphBlock, e => DropdownMenuAction.Status.Normal);

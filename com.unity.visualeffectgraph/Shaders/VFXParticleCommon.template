@@ -24,7 +24,9 @@ o.VFX_VARYING_ALPHATHRESHOLD = alphaThreshold;
 #if USE_UV_SCALE_BIAS
 ${VFXLoadParameter:{uvScale}}
 ${VFXLoadParameter:{uvBias}}
+#if defined (VFX_VARYING_UV)
 o.VFX_VARYING_UV.xy = o.VFX_VARYING_UV.xy * uvScale + uvBias;
+#endif
 #endif
 
 #if defined(VFX_VARYING_POSWS)
@@ -46,15 +48,15 @@ size3.z *= scaleZ;
 ${VFXEnd}
 
 ${VFXBegin:VFXVertexSetFlipbooksInterpolants}
-#if USE_FLIPBOOK
+#if USE_FLIPBOOK && defined(VFX_VARYING_UV)
 ${VFXLoadParameter:{flipBookSize}}
 ${VFXLoadParameter:{invFlipBookSize}}
 VFXUVData uvData = GetUVData(flipBookSize, invFlipBookSize, o.VFX_VARYING_UV.xy, texIndex);
 o.VFX_VARYING_UV.xy = uvData.uvs.xy;
-#if USE_FLIPBOOK_INTERPOLATION
+#if USE_FLIPBOOK_INTERPOLATION && defined(VFX_VARYING_UV) && defined (VFX_VARYING_FRAMEBLEND)
 o.VFX_VARYING_UV.zw = uvData.uvs.zw;
 o.VFX_VARYING_FRAMEBLEND = uvData.blend;
-#if USE_FLIPBOOK_MOTIONVECTORS
+#if USE_FLIPBOOK_MOTIONVECTORS && defined(VFX_VARYING_MOTIONVECTORSCALE)
 ${VFXLoadParameter:{motionVectorScale}}
 o.VFX_VARYING_MOTIONVECTORSCALE = motionVectorScale * invFlipBookSize;
 #endif
@@ -62,7 +64,7 @@ o.VFX_VARYING_MOTIONVECTORSCALE = motionVectorScale * invFlipBookSize;
 #endif
 ${VFXEnd}
 
-${VFXBegin:VFXFragmentCommonFunctions}#include "Packages/com.unity.visualeffectgraph/Shaders/VFXCommonOutput.cginc"${VFXEnd}
+${VFXBegin:VFXFragmentCommonFunctions}#include "Packages/com.unity.visualeffectgraph/Shaders/VFXCommonOutput.hlsl"${VFXEnd}
 
 ${VFXBegin:VFXLoadAttributesOrCull}
 uint deadCount = 0;
@@ -81,7 +83,6 @@ index = indirectBuffer[index];
 ${VFXLoadAttributes}
 #else
 ${VFXLoadAttributes:{alive}}
-
 #if !HAS_STRIPS
 if (!alive)
 	return o;

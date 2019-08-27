@@ -197,6 +197,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _DebugLightingMaterialValidateLowColor = Shader.PropertyToID("_DebugLightingMaterialValidateLowColor");
         public static readonly int _DebugLightingMaterialValidatePureMetalColor = Shader.PropertyToID("_DebugLightingMaterialValidatePureMetalColor");
         public static readonly int _DebugFullScreenMode = Shader.PropertyToID("_DebugFullScreenMode");
+        public static readonly int _DebugTransparencyOverdrawWeight = Shader.PropertyToID("_DebugTransparencyOverdrawWeight");
 
         public static readonly int _UseTileLightList = Shader.PropertyToID("_UseTileLightList");
 
@@ -408,6 +409,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _CameraMotionVectorsSize = Shader.PropertyToID("_CameraMotionVectorsSize");
         public static readonly int _CameraMotionVectorsScale = Shader.PropertyToID("_CameraMotionVectorsScale");
         public static readonly int _FullScreenDebugMode = Shader.PropertyToID("_FullScreenDebugMode");
+        public static readonly int _TransparencyOverdrawMaxPixelCost = Shader.PropertyToID("_TransparencyOverdrawMaxPixelCost");
 
         public static readonly int _InputCubemap = Shader.PropertyToID("_InputCubemap");
         public static readonly int _Mipmap = Shader.PropertyToID("_Mipmap");
@@ -530,6 +532,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public static readonly int _HasSpaceEmissionTexture        = Shader.PropertyToID("_HasSpaceEmissionTexture");
         public static readonly int _SpaceEmissionTexture           = Shader.PropertyToID("_SpaceEmissionTexture");
+
+        public static readonly int _RenderSunDisk                  = Shader.PropertyToID("_RenderSunDisk");
 
 #if ENABLE_RAYTRACING
         // Raytracing variables
@@ -851,7 +855,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public const string kUVDetail = "_UVDetail";
         public const string kUVDetailsMappingMask = "_UVDetailsMappingMask";
         public const string kReceivesSSR = "_ReceivesSSR";
-        public const string kAdditionalVelocityChange = "_AddVelocityChange";
+        public const string kAddPrecomputedVelocity = "_AddPrecomputedVelocity";
 
         public static readonly Color[] kLayerColors =
         {

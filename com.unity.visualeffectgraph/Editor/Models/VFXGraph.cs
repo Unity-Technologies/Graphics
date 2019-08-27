@@ -47,7 +47,7 @@ namespace UnityEditor.VFX
             AssetDatabase.SaveAssets();
         }
 
-        [MenuItem("Edit/Visual Effects//Clear All Visual Effect Runtime Data", priority = 321)]
+        [MenuItem("Edit/Visual Effects//Clear All Visual Effect Runtime Data", /* validate = */false, /*priority =*/ 321, /* internalMenu = */ true)]
         public static void ClearRuntime()
         {
             var vfxAssets = GetAllVisualEffectAssets();
@@ -62,7 +62,6 @@ namespace UnityEditor.VFX
                 vfxAsset.GetResource().GetOrCreateGraph().OnSaved();
 
                 //Now effective clear runtime data
-                vfxAsset.GetResource().shaderSources = new VFXShaderSourceDesc[] { }; //TODO: Should be done by ClearRuntimeData, remove this when it's fixed
                 vfxAsset.GetResource().ClearRuntimeData();
             }
             AssetDatabase.SaveAssets();
@@ -149,7 +148,8 @@ namespace UnityEditor.VFX
         // Please add increment reason for each version below
         // 1: Size refactor
         // 2: Change some SetAttribute to spaceable slot
-        public static readonly int CurrentVersion = 2;
+        // 3: Remove Masked from blendMode in Outputs and split feature to UseAlphaClipping
+        public static readonly int CurrentVersion = 3;
 
         string shaderNamePrefix = "Hidden/VFX";
         public string GetContextShaderName(VFXContext context)

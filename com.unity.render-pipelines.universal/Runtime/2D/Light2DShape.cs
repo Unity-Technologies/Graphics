@@ -12,6 +12,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
         [SerializeField] Vector2            m_ShapeLightFalloffOffset           = Vector2.zero;
         [SerializeField] Vector3[]          m_ShapePath;
 
+        float   m_PreviousShapeLightFalloffSize             = -1;
         int     m_PreviousShapeLightParametricSides         = -1;
         float   m_PreviousShapeLightParametricAngleOffset   = -1;
         float   m_PreviousShapeLightParametricRadius        = -1;
@@ -52,27 +53,5 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
             return boundingSphere;
         }
-
-#if UNITY_EDITOR
-        int GetShapePathHash()
-        {
-            unchecked
-            {
-                int hashCode = (int)2166136261;
-
-                if (m_ShapePath != null)
-                {
-                    foreach (var point in m_ShapePath)
-                        hashCode = hashCode * 16777619 ^ point.GetHashCode();
-                }
-                else
-                {
-                    hashCode = 0;
-                }
-
-                return hashCode;
-            }
-        }
-#endif
     }
 }

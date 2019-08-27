@@ -95,6 +95,12 @@ namespace UnityEditor.VFX
             base.OnEnable();
 
             OnGraphChanged += GraphParameterChanged;
+        }
+
+        public override void Sanitize(int version)
+        {
+            base.Sanitize(version);
+
             RecreateCopy();
         }
 
@@ -220,7 +226,7 @@ namespace UnityEditor.VFX
                             LinkFrom(link.context,link.slotIndex,i);
                 }
             }
-
+            PatchInputExpressions();
             SyncSlots(VFXSlot.Direction.kInput,true);
         }
 
@@ -292,9 +298,20 @@ namespace UnityEditor.VFX
 
             var inputExpressions = new List<VFXExpression>();
 
-            foreach (var slot in inputSlots.SelectMany(t => t.GetVFXValueTypeSlots()))
+            foreach (var slot in inputSlots)
             {
-                inputExpressions.Add(slot.GetExpression());
+                var expression = slot.GetExpression();
+                if( expression == null)
+                {
+                    foreach( var subSlot in inputSlots.SelectMany(t=>t.GetExpressionSlots()))
+                    {
+                        inputExpressions.Add(subSlot.GetExpression());
+                    }
+                }
+                else
+                {
+                    inputExpressions.Add(expression);
+                }
             }
 
             VFXSubgraphUtility.TransferExpressionToParameters(inputExpressions, GetParameters(t => VFXSubgraphUtility.InputPredicate(t)));
@@ -331,8 +348,13 @@ namespace UnityEditor.VFX
         {
             base.CollectDependencies(objs, ownedOnly);
 
-            if (m_SubChildren == null || ownedOnly)
+            if (ownedOnly)
                 return;
+
+            if( m_Subgraph != null && m_SubChildren == null)
+            {
+                RecreateCopy();
+            }
 
             foreach (var child in m_SubChildren)
             {

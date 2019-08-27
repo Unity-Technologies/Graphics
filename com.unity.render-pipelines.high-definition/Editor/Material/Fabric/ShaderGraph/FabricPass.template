@@ -48,7 +48,7 @@ Pass
     $Specular.AA:                       #define _ENABLE_GEOMETRIC_SPECULAR_AA 1
     $DisableDecals:                     #define _DISABLE_DECALS 1
     $DisableSSR:                        #define _DISABLE_SSR 1
-    $AdditionalVelocityChange:          #define _ADDITIONAL_VELOCITY_CHANGE
+    $AddPrecomputedVelocity:          #define _ADD_PRECOMPUTED_VELOCITY
     $DepthOffset:                       #define _DEPTHOFFSET_ON 1
     $BlendMode.PreserveSpecular:        #define _BLENDMODE_PRESERVE_SPECULAR_LIGHTING 1
 
