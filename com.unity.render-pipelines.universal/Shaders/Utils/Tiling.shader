@@ -66,6 +66,7 @@ Shader "Hidden/Universal Render Pipeline/Tiling"
             {
                 float4 positionCS : SV_POSITION;
                 nointerpolation uint relLightOffset : TEXCOORD0;
+                noperspective float2 clipCoord : TEXCOORD1;
             };
 
             Varyings Vertex(Attributes input)
@@ -79,15 +80,17 @@ Shader "Hidden/Universal Render Pipeline/Tiling"
                 uint quadIndex = (input.vertexID & 0x03) + (input.vertexID >> 2) * (input.vertexID & 0x01);
                 float2 pp = GetQuadVertexPosition(quadIndex).xy;
                 pixelCoord += uint2(pp.xy * uint2(g_TilePixelWidth, g_TilePixelHeight));
+                float2 clipCoord = (pixelCoord * _ScreenSize.zw) * 2.0 - 1.0;
 
                 Varyings output;
-                output.positionCS = float4((pixelCoord * _ScreenSize.zw) * 2.0 - 1.0, 0, 1);
+                output.positionCS = float4(clipCoord, 0, 1);
 //              Screen is already y flipped (different from HDRP)?
 //                // Tiles coordinates always start at upper-left corner of the screen (y axis down).
 //                // Clip-space coordinatea always have y axis up. Hence, we must always flip y.
 //                output.positionCS.y *= -1.0;
 
                 output.relLightOffset = g_TileRelLightBuffer[instanceID >> 2][instanceID & 3];
+                output.clipCoord = clipCoord;
 
                 return output;
             }
@@ -109,6 +112,10 @@ Shader "Hidden/Universal Render Pipeline/Tiling"
             uint4 g_RelLightIndexBuffer[MAX_REL_LIGHT_INDICES_PER_BATCH/4];
             CBUFFER_END
 
+            float4 g_unproject0;
+            float4 g_unproject1;
+            Texture2D g_DepthTex;
+
             PointLightData LoadPointLightData(int relLightIndex)
             {
                 PointLightData pl;
@@ -118,21 +125,50 @@ Shader "Hidden/Universal Render Pipeline/Tiling"
                 return pl;
             }
 
+            uint LoadRelLightIndex(int i)
+            {
+                return g_RelLightIndexBuffer[i >> 2][i & 3];
+            }
+
+            bool IsWithinRange(float d, float minDepth, float maxDepth, uint bitMask)
+            {
+                if (d < minDepth || d > maxDepth)
+                    return false;
+                int bitIndex = int(32.0 * (d - minDepth) / (maxDepth - minDepth));
+                return (bitMask & (1u << bitIndex)) !=  0;
+            }
+
             half4 PointLightShading(Varyings input) : SV_Target
             {
-                uint lightCount = g_RelLightIndexBuffer[input.relLightOffset >> 2][input.relLightOffset & 3];
+                uint lightCount = LoadRelLightIndex(input.relLightOffset);
+                // absolute min&max depth range of the light list in view space.
+                float minDepth = f16tof32(LoadRelLightIndex(input.relLightOffset + 1));
+                float maxDepth = f16tof32(LoadRelLightIndex(input.relLightOffset + 2));
+                uint bitMask =  LoadRelLightIndex(input.relLightOffset + 3)
+                             | (LoadRelLightIndex(input.relLightOffset + 4) << 16);
+
+                #if UNITY_REVERSED_Z // TODO: can fold reversed_z into g_unproject parameters.
+                float d = 1.0 - g_DepthTex.Load(int3(input.positionCS.xy, 0)).x;
+                #else
+                float d = g_DepthTex.Load(int3(input.positionCS.xy, 0)).x;
+                #endif
+                // View space depth (signed).
+                float z = dot(g_unproject0, float4(0, 0, d, 1)) / dot(g_unproject1, float4(0, 0, d, 1));
 
                 float3 color = 0.0.xxx;
 
-                for (int li = 0; li < lightCount; ++li)
+                [branch] if (IsWithinRange(-z, minDepth, maxDepth, bitMask))
                 {
-                    int offsetInList = input.relLightOffset + 1 + li;
-                    uint relLightIndex = g_RelLightIndexBuffer[offsetInList >> 2][offsetInList & 3];
-                    PointLightData light = LoadPointLightData(relLightIndex);
+                    for (int li = 0; li < lightCount; ++li)
+                    {
+                        int offsetInList = input.relLightOffset + 5 + li;
+                        uint relLightIndex = LoadRelLightIndex(offsetInList);
+                        PointLightData light = LoadPointLightData(relLightIndex);
 
-                    // TODO calculate lighting.
+                        // TODO calculate lighting.
 
-                    color += light.Color.rgb * 0.06;
+                        color += light.Color.rgb * 0.1;
+                    }
                 }
 
                 return half4(color, 0.0);

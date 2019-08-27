@@ -5,6 +5,7 @@ namespace UnityEngine.Rendering.Universal
         const int k_DepthStencilBufferBits = 32;
         const string k_CreateCameraTextures = "Create Camera Texture";
 
+        DepthOnlyPass m_DepthPrepass;
         DrawObjectsPass m_RenderOpaqueForwardPass;
         FinalBlitPass m_FinalBlitPass;
 
@@ -39,6 +40,7 @@ namespace UnityEngine.Rendering.Universal
 
             // Note: Since all custom render passes inject first and we have stable sort,
             // we inject the builtin passes in the before events.
+            m_DepthPrepass = new DepthOnlyPass(RenderPassEvent.BeforeRenderingPrepasses, RenderQueueRange.opaque, data.opaqueLayerMask);
             m_RenderOpaqueForwardPass = new DrawObjectsPass("Render Opaques", true, RenderPassEvent.BeforeRenderingOpaques, RenderQueueRange.opaque, data.opaqueLayerMask, m_DefaultStencilState, stencilData.stencilReference);
             //            m_DeferredPass = new DeferredPass();
             m_DeferredPass = new DeferredPass(RenderPassEvent.BeforeRenderingSkybox, RenderQueueRange.opaque, tilingMaterial);
@@ -59,6 +61,7 @@ namespace UnityEngine.Rendering.Universal
             Camera camera = renderingData.cameraData.camera;
             RenderTextureDescriptor cameraTargetDescriptor = renderingData.cameraData.cameraTargetDescriptor;
 
+            /*
             // Depth prepass is generated in the following cases:
             // - We resolve shadows in screen space
             // - Scene view camera always requires a depth texture. We do a depth pre-pass to simplify it and it shouldn't matter much for editor.
@@ -70,6 +73,10 @@ namespace UnityEngine.Rendering.Universal
             // we have a proper fix.
             if (renderingData.cameraData.isStereoEnabled && renderingData.cameraData.requiresDepthTexture)
                 requiresDepthPrepass = true;
+            */
+
+            // Temporary always need depth-prepass for testing (we don't have gbuffer pass yet).
+            bool requiresDepthPrepass = true;
 
             bool createColorTexture = RequiresIntermediateColorTexture(ref renderingData, cameraTargetDescriptor)
                                       || rendererFeatures.Count != 0;
@@ -107,8 +114,15 @@ namespace UnityEngine.Rendering.Universal
             }
             bool hasAfterRendering = activeRenderPassQueue.Find(x => x.renderPassEvent == RenderPassEvent.AfterRendering) != null;
 
+            if (requiresDepthPrepass)
+            {
+                m_DepthPrepass.Setup(cameraTargetDescriptor, m_DepthTexture);
+                EnqueuePass(m_DepthPrepass);
+            }
+
             EnqueuePass(m_RenderOpaqueForwardPass);
 
+            m_DeferredPass.Setup(m_DepthTexture);
             EnqueuePass(m_DeferredPass);
 
             bool afterRenderExists = renderingData.cameraData.captureActions != null ||
