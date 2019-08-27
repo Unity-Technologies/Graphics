@@ -678,138 +678,90 @@ namespace UnityEngine.Rendering.HighDefinition
             public int m_NumViews;
         }
 
-        public struct EnvDatasJob : IJobParallelFor
+        public struct DensityVolumeBoundAndVolumeJob : IJobParallelFor
         {
-            public struct ProbeData
-            {
-                public Matrix4x4 m_InfluenceToWorld;
-                public bool m_IsPlanar;
-                public ProbeSettings.Mode m_Mode;
-                public Matrix4x4 m_WorldToCameraRHS;
-                public Matrix4x4 m_ProjectionMatrix;
-                public Quaternion m_CaptureRotation;
-                public Matrix4x4 m_ProxyToWorld;
-            }
-
-            public struct TextureCacheData
-            {
-                public int m_Index;
-                public Matrix4x4 m_Vp;
-                public Vector3 m_CapturedForwardWS;
-            }
-
-            public NativeArray<EnvLightData> m_EnvData;
-            public NativeArray<EnvDatasJob.TextureCacheData> m_TextureCacheData;
-
-            [ReadOnly]
-            public bool m_RealtimePlanarReflecions;
-            [ReadOnly]
-            NativeArray<int> m_EnvIndex;
-            [ReadOnly]
-            NativeArray<ProbeData> m_ProbeData;
-            [ReadOnly]
-            Vector3 m_ReferencePosition;
-            [ReadOnly]
-            Quaternion m_ReferenceRotation;
-
             public void Execute(int index)
             {
-                EnvLightData envLightData = m_EnvData[index];
-                ProbeData probe = m_ProbeData[index];
-                Vector3 capturePosition = Vector3.zero;
-                Matrix4x4 influenceToWorld = probe.m_InfluenceToWorld;
-                var envIndex = m_EnvIndex[index];/*
-                if (probe.m_IsPlanar)
+                OrientedBBox obb = m_Obb[index];
+                for(int viewIndex = 0; viewIndex < m_NumViews; viewIndex++)
                 {
-                    if ((probe.m_Mode != ProbeSettings.Mode.Realtime) || m_RealtimePlanarReflecions)
+                    Matrix4x4 worldToView = m_WorldToView[viewIndex];
+                    if(m_IsCameraRelative)
                     {
-                        var fetchIndex = envIndex;                       
-                        var worldToCameraRHSMatrix = probe.m_WorldToCameraRHS;
-                        var projectionMatrix = probe.m_ProjectionMatrix;
-
-                        // We don't need to provide the capture position
-                        // It is already encoded in the 'worldToCameraRHSMatrix'
-                        capturePosition = Vector3.zero;
-
-                        // get the device dependent projection matrix
-                        var gpuProj = GL.GetGPUProjectionMatrix(projectionMatrix, true);
-                        var gpuView = worldToCameraRHSMatrix;
-                        var vp = gpuProj * gpuView;
-                        TextureCacheData textureCacheData = m_TextureCacheData[index];
-                        textureCacheData.m_Index = envIndex;
-                        textureCacheData.m_Vp = vp;
-                        textureCacheData.m_CapturedForwardWS = probe.m_CaptureRotation * Vector3.forward;
-                        m_TextureCacheData[index] = textureCacheData;                     
+                         worldToView.SetColumn(3, new Vector4(0, 0, 0, 1));
                     }
+                    int densityVolumeIndex = viewIndex * m_Stride + m_Offset + index;
+                    var bound      = m_Bounds[densityVolumeIndex];
+                    var volumeData = m_LightVolumeData[densityVolumeIndex];
+
+                    // transform to camera space (becomes a left hand coordinate frame in Unity since Determinant(worldToView)<0)
+                    var positionVS = worldToView.MultiplyPoint(obb.center);
+                    var rightVS    = worldToView.MultiplyVector(obb.right);
+                    var upVS       = worldToView.MultiplyVector(obb.up);
+                    var forwardVS  = Vector3.Cross(upVS, rightVS);
+                    var extents    = new Vector3(obb.extentX, obb.extentY, obb.extentZ);
+
+                    volumeData.lightVolume   = (uint)LightVolumeType.Box;
+                    volumeData.lightCategory = (uint)LightCategory.DensityVolume;
+                    volumeData.featureFlags  = 0;
+
+                    bound.center   = positionVS;
+                    bound.boxAxisX = obb.extentX * rightVS;
+                    bound.boxAxisY = obb.extentY * upVS;
+                    bound.boxAxisZ = obb.extentZ * forwardVS;
+                    bound.radius   = extents.magnitude;
+                    bound.scaleXY.Set(1.0f, 1.0f);
+
+                    // The culling system culls pixels that are further
+                    //   than a threshold to the box influence extents.
+                    // So we use an arbitrary threshold here (k_BoxCullingExtentOffset)
+                    volumeData.lightPos     = positionVS;
+                    volumeData.lightAxisX   = rightVS;
+                    volumeData.lightAxisY   = upVS;
+                    volumeData.lightAxisZ   = forwardVS;
+                    volumeData.boxInnerDist = extents - k_BoxCullingExtentThreshold; // We have no blend range, but the culling code needs a small EPS value for some reason???
+                    volumeData.boxInvRange.Set(1.0f / k_BoxCullingExtentThreshold.x, 1.0f / k_BoxCullingExtentThreshold.y, 1.0f / k_BoxCullingExtentThreshold.z);
+
+                    m_Bounds[densityVolumeIndex] = bound;
+                    m_LightVolumeData[densityVolumeIndex] = volumeData;
                 }
-                else
-                {
-                    // Calculate settings to use for the probe
-                    ProbeCapturePositionSettings probeCapturePositionSettings = new ProbeCapturePositionSettings();
-                    ProbeCapturePositionSettings.ComputeFrom(ref probeCapturePositionSettings, probe.m_ProxyToWorld, probe.m_InfluenceToWorld, m_ReferencePosition, m_ReferenceRotation);
-                    HDRenderUtilities.ComputeCameraSettingsFromProbeSettings(probe.settings, probeCapturePositionSettings, out _, out var cameraPositionSettings);
-                    capturePosition = cameraPositionSettings.position;
-                }
-
-                InfluenceVolume influence = probe.influenceVolume;
-                envLightData.lightLayers = probe.lightLayersAsUInt;
-                envLightData.influenceShapeType = influence.envShape;
-                envLightData.weight = probe.weight;
-                envLightData.multiplier = probe.multiplier * m_indirectLightingController.indirectSpecularIntensity.value;
-                envLightData.influenceExtents = influence.extents;
-                switch (influence.envShape)
-                {
-                    case EnvShapeType.Box:
-                        envLightData.blendNormalDistancePositive = influence.boxBlendNormalDistancePositive;
-                        envLightData.blendNormalDistanceNegative = influence.boxBlendNormalDistanceNegative;
-                        envLightData.blendDistancePositive = influence.boxBlendDistancePositive;
-                        envLightData.blendDistanceNegative = influence.boxBlendDistanceNegative;
-                        envLightData.boxSideFadePositive = influence.boxSideFadePositive;
-                        envLightData.boxSideFadeNegative = influence.boxSideFadeNegative;
-                        break;
-                    case EnvShapeType.Sphere:
-                        envLightData.blendNormalDistancePositive.x = influence.sphereBlendNormalDistance;
-                        envLightData.blendDistancePositive.x = influence.sphereBlendDistance;
-                        break;
-                    default:
-                        throw new ArgumentOutOfRangeException("Unknown EnvShapeType");
-                }
-
-                envLightData.influenceRight = influenceToWorld.GetColumn(0).normalized;
-                envLightData.influenceUp = influenceToWorld.GetColumn(1).normalized;
-                envLightData.influenceForward = influenceToWorld.GetColumn(2).normalized;
-                envLightData.capturePositionRWS = capturePosition;
-                envLightData.influencePositionRWS = influenceToWorld.GetColumn(3);
-
-                envLightData.envIndex = envIndex;
-
-                // Proxy data
-                var proxyToWorld = probe.proxyToWorld;
-                envLightData.proxyExtents = probe.proxyExtents;
-                envLightData.minProjectionDistance = probe.isProjectionInfinite ? 65504f : 0;
-                envLightData.proxyRight = proxyToWorld.GetColumn(0).normalized;
-                envLightData.proxyUp = proxyToWorld.GetColumn(1).normalized;
-                envLightData.proxyForward = proxyToWorld.GetColumn(2).normalized;
-                envLightData.proxyPositionRWS = proxyToWorld.GetColumn(3);
-                m_EnvData[index] = envLightData;*/
             }
 
-            public void SetData(NativeArray<EnvLightData> envData,
-                bool realtimePlanarReflections,
-                NativeArray<int> envIndex,
-                NativeArray<TextureCacheData> textureCacheData,
-                NativeArray<ProbeData> probeData,
-                Vector3 referencePosition,
-                Quaternion referenceRotation)
+            public void SetData(NativeArray<SFiniteLightBound> bounds,
+                NativeArray<LightVolumeData> lightVolumeData,
+                NativeArray<Matrix4x4> worldToView,
+                NativeArray<OrientedBBox> obb,
+                int stride,
+                int offset,
+                int numViews,
+                bool cameraRelative)
             {
-                m_EnvData = envData;
-                m_RealtimePlanarReflecions = realtimePlanarReflections;
-                m_EnvIndex = envIndex;
-                m_TextureCacheData = textureCacheData;
-                m_ProbeData = probeData;
-                m_ReferencePosition = referencePosition;
-                m_ReferenceRotation = referenceRotation;
+                m_Bounds = bounds;
+                m_LightVolumeData = lightVolumeData;
+                m_WorldToView = worldToView;
+                m_Obb = obb;
+                m_Stride = stride;
+                m_Offset = offset;
+                m_NumViews = numViews;
+                m_IsCameraRelative = cameraRelative;
             }
+
+            [NativeDisableParallelForRestriction]
+            public NativeArray<SFiniteLightBound> m_Bounds;
+            [NativeDisableParallelForRestriction]
+            public NativeArray<LightVolumeData> m_LightVolumeData;
+            [ReadOnly]
+            public NativeArray<Matrix4x4> m_WorldToView;
+            [ReadOnly]
+            public NativeArray<OrientedBBox> m_Obb;
+            [ReadOnly]
+            public int m_Stride;
+            [ReadOnly]
+            public int m_Offset;
+            [ReadOnly]
+            public int m_NumViews;
+            [ReadOnly]
+            public bool m_IsCameraRelative;
         }
 
         void AllocateRefProbeScratchData(int sortCount)
@@ -883,6 +835,20 @@ namespace UnityEngine.Rendering.HighDefinition
             m_InfluenceToWorld.Dispose();
         }
 
+        void AllocateDensityVolumeJobArrays(List<OrientedBBox> obb)
+        {
+            m_Obb = new NativeArray<OrientedBBox>(obb.Count, Allocator.TempJob);
+            for(int i = 0; i < obb.Count; i++)
+            {
+                m_Obb[i] = obb[i];                
+            }
+        }
+
+        void DisposeDensityVolumeJobArrays()
+        {
+            m_Obb.Dispose();
+        }
+
         NativeArray<LightCategory> m_LightCategory;
         NativeArray<GPULightType> m_GpuLightType;
         NativeArray<LightVolumeType> m_LightVolumeType;
@@ -902,16 +868,154 @@ namespace UnityEngine.Rendering.HighDefinition
 
         NativeArray<int>m_RefProbesSortIndexRemapping;
         NativeArray<int>m_EnvIndex;
-        NativeArray<EnvDatasJob.TextureCacheData> m_TextureCacheData;
-        NativeArray<EnvDatasJob.ProbeData> m_ProbeData;
 
         NativeArray<LightVolumeType> m_ProbeLightVolumeTypes;
         NativeArray<Vector3> m_InfluenceExtents;
         NativeArray<Matrix4x4> m_InfluenceToWorld;
 
+        NativeArray<OrientedBBox> m_Obb;
+
         LightVolumeBoundsJob m_LightVolumeBoundsJob;
         LightDatasJob m_LightDatasJob;
         EnvBoundAndVolumeJob m_EnvBoundAndVolumeJob;
+        DensityVolumeBoundAndVolumeJob m_DensityVolumeBoundAndVolumeJob;
     }
 }
 
+
+
+/*
+        public struct EnvDatasJob : IJobParallelFor
+        {
+            public struct ProbeData
+            {
+                public Matrix4x4 m_InfluenceToWorld;
+                public bool m_IsPlanar;
+                public ProbeSettings.Mode m_Mode;
+                public Matrix4x4 m_WorldToCameraRHS;
+                public Matrix4x4 m_ProjectionMatrix;
+                public Quaternion m_CaptureRotation;
+                public Matrix4x4 m_ProxyToWorld;
+            }
+
+            public struct TextureCacheData
+            {
+                public int m_Index;
+                public Matrix4x4 m_Vp;
+                public Vector3 m_CapturedForwardWS;
+            }
+
+            public NativeArray<EnvLightData> m_EnvData;
+            public NativeArray<EnvDatasJob.TextureCacheData> m_TextureCacheData;
+
+            [ReadOnly]
+            public bool m_RealtimePlanarReflecions;
+            [ReadOnly]
+            NativeArray<int> m_EnvIndex;
+            [ReadOnly]
+            NativeArray<ProbeData> m_ProbeData;
+            [ReadOnly]
+            Vector3 m_ReferencePosition;
+            [ReadOnly]
+            Quaternion m_ReferenceRotation;
+
+            public void Execute(int index)
+            {
+                EnvLightData envLightData = m_EnvData[index];
+                ProbeData probe = m_ProbeData[index];
+                Vector3 capturePosition = Vector3.zero;
+                Matrix4x4 influenceToWorld = probe.m_InfluenceToWorld;
+                var envIndex = m_EnvIndex[index];
+                if (probe.m_IsPlanar)
+                {
+                    if ((probe.m_Mode != ProbeSettings.Mode.Realtime) || m_RealtimePlanarReflecions)
+                    {
+                        var fetchIndex = envIndex;                       
+                        var worldToCameraRHSMatrix = probe.m_WorldToCameraRHS;
+                        var projectionMatrix = probe.m_ProjectionMatrix;
+
+                        // We don't need to provide the capture position
+                        // It is already encoded in the 'worldToCameraRHSMatrix'
+                        capturePosition = Vector3.zero;
+
+                        // get the device dependent projection matrix
+                        var gpuProj = GL.GetGPUProjectionMatrix(projectionMatrix, true);
+                        var gpuView = worldToCameraRHSMatrix;
+                        var vp = gpuProj * gpuView;
+                        TextureCacheData textureCacheData = m_TextureCacheData[index];
+                        textureCacheData.m_Index = envIndex;
+                        textureCacheData.m_Vp = vp;
+                        textureCacheData.m_CapturedForwardWS = probe.m_CaptureRotation * Vector3.forward;
+                        m_TextureCacheData[index] = textureCacheData;                     
+                    }
+                }
+                else
+                {
+                    // Calculate settings to use for the probe
+                    ProbeCapturePositionSettings probeCapturePositionSettings = new ProbeCapturePositionSettings();
+                    ProbeCapturePositionSettings.ComputeFrom(ref probeCapturePositionSettings, probe.m_ProxyToWorld, probe.m_InfluenceToWorld, m_ReferencePosition, m_ReferenceRotation);
+                    HDRenderUtilities.ComputeCameraSettingsFromProbeSettings(probe.settings, probeCapturePositionSettings, out _, out var cameraPositionSettings);
+                    capturePosition = cameraPositionSettings.position;
+                }
+
+                InfluenceVolume influence = probe.influenceVolume;
+                envLightData.lightLayers = probe.lightLayersAsUInt;
+                envLightData.influenceShapeType = influence.envShape;
+                envLightData.weight = probe.weight;
+                envLightData.multiplier = probe.multiplier * m_indirectLightingController.indirectSpecularIntensity.value;
+                envLightData.influenceExtents = influence.extents;
+                switch (influence.envShape)
+                {
+                    case EnvShapeType.Box:
+                        envLightData.blendNormalDistancePositive = influence.boxBlendNormalDistancePositive;
+                        envLightData.blendNormalDistanceNegative = influence.boxBlendNormalDistanceNegative;
+                        envLightData.blendDistancePositive = influence.boxBlendDistancePositive;
+                        envLightData.blendDistanceNegative = influence.boxBlendDistanceNegative;
+                        envLightData.boxSideFadePositive = influence.boxSideFadePositive;
+                        envLightData.boxSideFadeNegative = influence.boxSideFadeNegative;
+                        break;
+                    case EnvShapeType.Sphere:
+                        envLightData.blendNormalDistancePositive.x = influence.sphereBlendNormalDistance;
+                        envLightData.blendDistancePositive.x = influence.sphereBlendDistance;
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException("Unknown EnvShapeType");
+                }
+
+                envLightData.influenceRight = influenceToWorld.GetColumn(0).normalized;
+                envLightData.influenceUp = influenceToWorld.GetColumn(1).normalized;
+                envLightData.influenceForward = influenceToWorld.GetColumn(2).normalized;
+                envLightData.capturePositionRWS = capturePosition;
+                envLightData.influencePositionRWS = influenceToWorld.GetColumn(3);
+
+                envLightData.envIndex = envIndex;
+
+                // Proxy data
+                var proxyToWorld = probe.proxyToWorld;
+                envLightData.proxyExtents = probe.proxyExtents;
+                envLightData.minProjectionDistance = probe.isProjectionInfinite ? 65504f : 0;
+                envLightData.proxyRight = proxyToWorld.GetColumn(0).normalized;
+                envLightData.proxyUp = proxyToWorld.GetColumn(1).normalized;
+                envLightData.proxyForward = proxyToWorld.GetColumn(2).normalized;
+                envLightData.proxyPositionRWS = proxyToWorld.GetColumn(3);
+                m_EnvData[index] = envLightData;
+            }
+
+            public void SetData(NativeArray<EnvLightData> envData,
+                bool realtimePlanarReflections,
+                NativeArray<int> envIndex,
+                NativeArray<TextureCacheData> textureCacheData,
+                NativeArray<ProbeData> probeData,
+                Vector3 referencePosition,
+                Quaternion referenceRotation)
+            {
+                m_EnvData = envData;
+                m_RealtimePlanarReflecions = realtimePlanarReflections;
+                m_EnvIndex = envIndex;
+                m_TextureCacheData = textureCacheData;
+                m_ProbeData = probeData;
+                m_ReferencePosition = referencePosition;
+                m_ReferenceRotation = referenceRotation;
+            }
+        }
+*/

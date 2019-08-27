@@ -1779,7 +1779,7 @@ namespace UnityEngine.Rendering.HighDefinition
             bound.scaleXY.Set(1.0f, 1.0f);
 
             // The culling system culls pixels that are further
-            //   than a threshold to the box influence extents.
+            // than a threshold to the box influence extents.
             // So we use an arbitrary threshold here (k_BoxCullingExtentOffset)
             volumeData.lightPos     = positionVS;
             volumeData.lightAxisX   = rightVS;
@@ -2508,6 +2508,20 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        void ProcessDensityVolumes(int punctualLightCount, int areaLightCount, int reflectionProbeCount, int decalDatasCount, int m_densityVolumeCount, int viewCount)
+        {
+            m_DensityVolumeBoundAndVolumeJob.SetData(m_lightList.m_Bounds,
+                m_lightList.m_LightVolumeData,
+                m_WorldToView,
+                m_Obb,
+                punctualLightCount + areaLightCount + reflectionProbeCount + decalDatasCount + m_densityVolumeCount,
+                punctualLightCount + areaLightCount + reflectionProbeCount + decalDatasCount,
+                viewCount,
+                (ShaderConfig.s_CameraRelativeRendering != 0));
+            JobHandle densityVolumeJobHandle = m_DensityVolumeBoundAndVolumeJob.Schedule(m_densityVolumeCount, 1);
+            densityVolumeJobHandle.Complete();
+        }
+
         // Return true if BakedShadowMask are enabled
         bool PrepareLightsForGPU(CommandBuffer cmd, HDCamera hdCamera, CullingResults cullResults,
             HDProbeCullingResults hdProbeCullingResults, DensityVolumeList densityVolumes, DebugDisplaySettings debugDisplaySettings, AOVRequestData aovRequest)
@@ -2600,30 +2614,18 @@ namespace UnityEngine.Rendering.HighDefinition
                     Profiler.EndSample();
                 }
 
+                Profiler.BeginSample("ProcessDecals");
                 if (decalDatasCount > 0)
                 {
-                    ProcessDecals(punctualLightCount, areaLightCount, reflectionProbeCount, decalDatasCount, m_densityVolumeCount,  hdCamera.viewCount);
+                    ProcessDecals(punctualLightCount, areaLightCount, reflectionProbeCount, decalDatasCount, m_densityVolumeCount, hdCamera.viewCount);
                 }
+                Profiler.EndSample();
 
-                // Inject density volumes into the clustered data structure for efficient look up.            
-                for (int viewIndex = 0; viewIndex < hdCamera.viewCount; ++viewIndex)
-                {
-                    Matrix4x4 worldToViewCR = GetWorldToViewMatrix(hdCamera, viewIndex);
-
-                    if (ShaderConfig.s_CameraRelativeRendering != 0)
-                    {
-                        // The OBBs are camera-relative, the matrix is not. Fix it.
-                        worldToViewCR.SetColumn(3, new Vector4(0, 0, 0, 1));
-                    }
-
-                    for (int i = 0, n = m_densityVolumeCount; i < n; i++)
-                    {
-                        // Density volumes are not lights and therefore should not affect light classification.
-                        LightFeatureFlags featureFlags = 0;
-                        AddBoxVolumeDataAndBound(densityVolumes.bounds[i], LightCategory.DensityVolume, featureFlags, worldToViewCR, punctualLightCount, areaLightCount, reflectionProbeCount, decalDatasCount, m_densityVolumeCount, i, viewIndex);
-                    }
-                }
-
+                Profiler.BeginSample("DensityVolume");
+                AllocateDensityVolumeJobArrays(densityVolumes.bounds);
+                ProcessDensityVolumes(punctualLightCount, areaLightCount, reflectionProbeCount, decalDatasCount, m_densityVolumeCount, hdCamera.viewCount);
+                 Profiler.EndSample();
+               
                 m_TotalLightCount = m_lightList.m_LightData.Length + decalDatasCount + reflectionProbeCount + m_densityVolumeCount;
                 Debug.Assert(m_TotalLightCount == m_lightList.m_Bounds.Length, "m_TotalLightCount == m_lightList.m_Bounds.Length ");
                 Debug.Assert(m_TotalLightCount == m_lightList.m_LightVolumeData.Length, "m_TotalLightCount == m_lightList.m_Bounds.Length"); //            
@@ -2638,6 +2640,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 DisposeRefProbeScratchData();
                 DisposePunctualLightAcratchData();
                 DisposeProbeVolumeBoundsJobArrays();
+                DisposeDensityVolumeJobArrays();
                 m_lightList.DisposeLightArraysPerFrame();
             }
 
