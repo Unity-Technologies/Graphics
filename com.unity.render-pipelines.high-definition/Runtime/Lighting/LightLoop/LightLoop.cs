@@ -590,6 +590,7 @@ namespace UnityEngine.Rendering.HighDefinition
         Material[] m_deferredLightingMaterial;
         Material m_DebugViewTilesMaterial;
         Material m_DebugHDShadowMapMaterial;
+        Material m_DebugDisplayProbeVolumeMaterial;
 
         // Directional light
         Light m_CurrentSunLight;
@@ -711,6 +712,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             m_DebugViewTilesMaterial = CoreUtils.CreateEngineMaterial(defaultResources.shaders.debugViewTilesPS);
             m_DebugHDShadowMapMaterial = CoreUtils.CreateEngineMaterial(defaultResources.shaders.debugHDShadowMapPS);
+            m_DebugDisplayProbeVolumeMaterial = CoreUtils.CreateEngineMaterial(defaultResources.shaders.debugDisplayProbeVolumePS);
 
             m_MaxDirectionalLightsOnScreen = lightLoopSettings.maxDirectionalLightsOnScreen;
             m_MaxPunctualLightsOnScreen = lightLoopSettings.maxPunctualLightsOnScreen;
@@ -862,6 +864,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             CoreUtils.Destroy(m_DebugViewTilesMaterial);
             CoreUtils.Destroy(m_DebugHDShadowMapMaterial);
+            CoreUtils.Destroy(m_DebugDisplayProbeVolumeMaterial);
 
             CoreUtils.Destroy(m_CopyStencil);
             CoreUtils.Destroy(m_CopyStencilForSSR);
@@ -3594,5 +3597,24 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
             }
         }
+
+        // TODO(Kuba)
+        /*static void RenderProbeVolumeDebugOverlay(in DebugParameters debugParameters, in HDShadowManager.ShadowDebugAtlasTextures atlasTextures, CommandBuffer cmd, ref float x, ref float y, float overlaySize, MaterialPropertyBlock mpb)
+        {
+            if (lightingDebug.probeVolumeDebugMode != ProbeVolumeDebugMode.None)
+            {
+                using (new ProfilingSample(cmd, "Probe Volume Debug", CustomSamplerId.ProbeVolumeDebug.GetSampler()))
+                {
+                    if (lightingDebug.probeVolumeDebugMode == ProbeVolumeDebugMode.VisualizeAtlas)
+                    {
+                        HDRenderPipeline hdrp = RenderPipelineManager.currentPipeline as HDRenderPipeline;
+                        ProbeVolumeSystem pvs = hdrp.m_ProbeVolumeSystem;
+                        pvs.DisplayProbeVolumeAtlas(cmd, m_DebugDisplayProbeVolumeMaterial, x, y, overlaySize, overlaySize, lightingDebug.probeVolumeMinValue, lightingDebug.probeVolumeMaxValue);
+                        HDUtils.NextOverlayCoord(ref x, ref y, overlaySize, overlaySize, hdCamera);
+                    }
+
+                }
+            }
+        }*/
     }
 }

@@ -54,6 +54,16 @@ namespace UnityEditor.Rendering.HighDefinition
         static void Drawer_PrimarySettings(SerializedProbeVolume serialized, Editor owner)
         {
             EditorGUILayout.PropertyField(serialized.debugColor, Styles.s_DebugColorLabel);
+            EditorGUI.BeginChangeCheck();
+            EditorGUILayout.PropertyField(serialized.resolutionX, Styles.s_ResolutionXLabel);
+            EditorGUILayout.PropertyField(serialized.resolutionY, Styles.s_ResolutionYLabel);
+            EditorGUILayout.PropertyField(serialized.resolutionZ, Styles.s_ResolutionZLabel);
+            if (EditorGUI.EndChangeCheck())
+            {
+                serialized.resolutionX.intValue = Mathf.Clamp(serialized.resolutionX.intValue, 1, ProbeVolumeSystem.s_ProbeVolumeMaxResolutionSide);
+                serialized.resolutionY.intValue = Mathf.Clamp(serialized.resolutionY.intValue, 1, ProbeVolumeSystem.s_ProbeVolumeMaxResolutionSide);
+                serialized.resolutionZ.intValue = Mathf.Clamp(serialized.resolutionZ.intValue, 1, ProbeVolumeSystem.s_ProbeVolumeMaxResolutionSide);
+            }
         }
 
         static void Drawer_AdvancedSwitch(SerializedProbeVolume serialized, Editor owner)

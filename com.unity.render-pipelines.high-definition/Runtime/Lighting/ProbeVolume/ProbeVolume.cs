@@ -22,6 +22,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public Vector4 scaleBias;
 
+        public int resolutionX;
+        public int resolutionY;
+        public int resolutionZ;
+
         public Vector3 positiveFade
         {
             get
@@ -72,6 +76,9 @@ namespace UnityEngine.Rendering.HighDefinition
             this.distanceFadeStart = 10000.0f;
             this.distanceFadeEnd = 10000.0f;
             this.scaleBias = Vector4.zero;
+            this.resolutionX = 0;
+            this.resolutionY = 0;
+            this.resolutionZ = 0;
         }
 
         public void Constrain()
@@ -106,6 +113,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
             data.scaleBias = this.scaleBias;
 
+            data.resolution = new Vector3(this.resolutionX, this.resolutionY, this.resolutionZ);
+            data.resolutionInverse = new Vector3(1.0f / (float)this.resolutionX, 1.0f / (float)this.resolutionY, 1.0f / (float)this.resolutionZ);
+
             return data;
         }
 
@@ -115,7 +125,7 @@ namespace UnityEngine.Rendering.HighDefinition
     [AddComponentMenu("Rendering/Probe Volume")]
     public class ProbeVolume : MonoBehaviour
     {
-        public Texture ProbeVolumeTexture { get; set; }
+        // public Texture ProbeVolumeTexture { get; set; }
 
         enum Version
         {
@@ -130,19 +140,25 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public ProbeVolumeArtistParameters parameters = new ProbeVolumeArtistParameters(Color.white);
 
-        public Action OnTextureUpdated;
-
-        //Gather and Update any parameters that may have changed
-        public void PrepareParameters()
+        private int id = -1;
+        private static int s_IDNext = 0;
+        public int GetID()
         {
+            if (id == -1) { id = s_IDNext++; }
+            return id;
         }
 
-        private void NotifyUpdatedTexure()
+        // TODO: Replace with real data from lightmapper.
+        public Vector3[] GetDataStub()
         {
-            if (OnTextureUpdated != null)
+            var res = new Vector3[parameters.resolutionX * parameters.resolutionY * parameters.resolutionZ];
+            for (int i = 0, iLen = res.Length; i < iLen; ++i)
             {
-                OnTextureUpdated();
+                // res[i] = new Vector3(Random.value, Random.value, Random.value);
+                res[i] = new Vector3(parameters.debugColor.r + (Random.value * 2.0f - 1.0f) * 0.1f, parameters.debugColor.g + (Random.value * 2.0f - 1.0f) * 0.1f, parameters.debugColor.b + (Random.value * 2.0f - 1.0f) * 0.1f);
+
             }
+            return res;
         }
 
         protected void Awake()
@@ -177,6 +193,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         protected void OnEnable()
         {
+            id = -1;
             ProbeVolumeManager.manager.RegisterVolume(this);
         }
 

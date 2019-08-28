@@ -4,6 +4,9 @@ namespace UnityEditor.Rendering.HighDefinition
     {
         public SerializedProperty probeVolumeParams;
         public SerializedProperty debugColor;
+        public SerializedProperty resolutionX;
+        public SerializedProperty resolutionY;
+        public SerializedProperty resolutionZ;
 
         public SerializedProperty size;
 
@@ -24,6 +27,10 @@ namespace UnityEditor.Rendering.HighDefinition
             probeVolumeParams = m_SerializedObject.FindProperty("parameters");
 
             debugColor = probeVolumeParams.FindPropertyRelative("debugColor");
+
+            resolutionX = probeVolumeParams.FindPropertyRelative("resolutionX");
+            resolutionY = probeVolumeParams.FindPropertyRelative("resolutionY");
+            resolutionZ = probeVolumeParams.FindPropertyRelative("resolutionZ");
 
             size = probeVolumeParams.FindPropertyRelative("size");
 

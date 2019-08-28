@@ -119,6 +119,9 @@ namespace UnityEngine.Rendering.HighDefinition
         CustomPostProcessAfterPP,
         CustomPostProcessBeforeTransparent,
 
+        PrepareProbeVolumeList,
+        ProbeVolumeDebug,
+
         Max
     }
 

@@ -15,6 +15,8 @@ struct ProbeVolumeEngineData
     float rcpDistFadeLen;
     float endTimesRcpDistFadeLen;
     float4 scaleBias;
+    float3 resolution;
+    float3 resolutionInverse;
 };
 
 //
@@ -47,6 +49,14 @@ float GetEndTimesRcpDistFadeLen(ProbeVolumeEngineData value)
 float4 GetScaleBias(ProbeVolumeEngineData value)
 {
     return value.scaleBias;
+}
+float3 GetResolution(ProbeVolumeEngineData value)
+{
+    return value.resolution;
+}
+float3 GetResolutionInverse(ProbeVolumeEngineData value)
+{
+    return value.resolutionInverse;
 }
 
 #endif

@@ -17,6 +17,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public float   rcpDistFadeLen;
         public float   endTimesRcpDistFadeLen;
         public Vector4 scaleBias;
+        public Vector3 resolution;
+        public Vector3 resolutionInverse;
 
         public static ProbeVolumeEngineData GetNeutralValues()
         {
@@ -29,6 +31,8 @@ namespace UnityEngine.Rendering.HighDefinition
             data.rcpDistFadeLen = 0;
             data.endTimesRcpDistFadeLen = 1;
             data.scaleBias = Vector4.zero;
+            data.resolution = Vector3.zero;
+            data.resolutionInverse = Vector3.zero;
 
             return data;
         }
@@ -75,6 +79,16 @@ namespace UnityEngine.Rendering.HighDefinition
         // Pre-allocate sort keys array to max size to avoid creating allocations / garbage at runtime.
         uint[] m_SortKeys = new uint[k_MaxVisibleProbeVolumeCount];
 
+        static ComputeShader s_ProbeVolumeAtlasBlitCS = null;
+        static int s_ProbeVolumeAtlasBlitKernel = -1;
+        static ComputeBuffer s_ProbeVolumeAtlasBlitDataBuffer = null;
+        public const int k_MaxProbeVolumeProbeCount = 1 << 19;
+        public const int k_ProbeVolumeAtlasWidth = 1024;
+        public const int k_ProbeVolumeAtlasHeight = 1024;
+        RTHandleSystem.RTHandle m_ProbeVolumeAtlasRTHandle;
+        public Texture2DAtlas probeVolumeAtlas = null;
+        public static int s_ProbeVolumeMaxResolutionSide = 1024;
+
         public void Build(HDRenderPipelineAsset asset)
         {
             m_SupportProbeVolume = asset.currentPlatformRenderPipelineSettings.supportProbeVolume;
@@ -84,6 +98,9 @@ namespace UnityEngine.Rendering.HighDefinition
             if (preset != ProbeVolumeSystemPreset.Off)
             {
                 CreateBuffers();
+
+                s_ProbeVolumeAtlasBlitCS = asset.renderPipelineResources.shaders.probeVolumeAtlasBlitCS;
+                s_ProbeVolumeAtlasBlitKernel = s_ProbeVolumeAtlasBlitCS.FindKernel("ProbeVolumeAtlasBlitKernel");
             }
         }
 
@@ -93,6 +110,20 @@ namespace UnityEngine.Rendering.HighDefinition
             m_VisibleProbeVolumeData = new List<ProbeVolumeEngineData>();
             s_VisibleProbeVolumeBoundsBuffer = new ComputeBuffer(k_MaxVisibleProbeVolumeCount, Marshal.SizeOf(typeof(OrientedBBox)));
             s_VisibleProbeVolumeDataBuffer = new ComputeBuffer(k_MaxVisibleProbeVolumeCount, Marshal.SizeOf(typeof(ProbeVolumeEngineData)));
+
+            // TODO: This will expand out to full SH coefficients set, not just a vector3 color.
+            s_ProbeVolumeAtlasBlitDataBuffer = new ComputeBuffer(k_MaxProbeVolumeProbeCount, Marshal.SizeOf(typeof(Vector3)));
+
+            m_ProbeVolumeAtlasRTHandle = RTHandles.Alloc(
+                width: k_ProbeVolumeAtlasWidth,
+                height: k_ProbeVolumeAtlasHeight,
+                dimension: TextureDimension.Tex2D,
+                colorFormat: GraphicsFormat.R16G16B16A16_SFloat,//GraphicsFormat.B10G11R11_UFloatPack32,
+                enableRandomWrite: true,
+                useMipMap: false,
+                name: "ProbeVolumeAtlas"
+            );
+            probeVolumeAtlas = new Texture2DAtlas(k_ProbeVolumeAtlasWidth, k_ProbeVolumeAtlasHeight, m_ProbeVolumeAtlasRTHandle);
         }
 
         // For the initial allocation, no suballocation happens (the texture is full size).
@@ -136,6 +167,13 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             CoreUtils.SafeRelease(s_VisibleProbeVolumeBoundsBuffer);
             CoreUtils.SafeRelease(s_VisibleProbeVolumeDataBuffer);
+            CoreUtils.SafeRelease(s_ProbeVolumeAtlasBlitDataBuffer);
+
+            if (m_ProbeVolumeAtlasRTHandle != null)
+                RTHandles.Release(m_ProbeVolumeAtlasRTHandle);
+
+            if (probeVolumeAtlas != null)
+                probeVolumeAtlas.Release();
 
             m_VisibleProbeVolumeBounds = null;
             m_VisibleProbeVolumeData = null;
@@ -156,16 +194,83 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetGlobalBuffer(HDShaderIDs._ProbeVolumeBounds, s_VisibleProbeVolumeBoundsBuffer);
             cmd.SetGlobalBuffer(HDShaderIDs._ProbeVolumeDatas, s_VisibleProbeVolumeDataBuffer);
             cmd.SetGlobalInt(HDShaderIDs._ProbeVolumeCount, m_VisibleProbeVolumeBounds.Count);
+            cmd.SetGlobalTexture("_ProbeVolumeAtlas", m_ProbeVolumeAtlasRTHandle);
+            cmd.SetGlobalVector("_ProbeVolumeAtlasResolutionAndInverse", new Vector4(
+                    m_ProbeVolumeAtlasRTHandle.rt.width,
+                    m_ProbeVolumeAtlasRTHandle.rt.height,
+                    1.0f / (float)m_ProbeVolumeAtlasRTHandle.rt.width,
+                    1.0f / (float)m_ProbeVolumeAtlasRTHandle.rt.height
+            ));
         }
 
-        public ProbeVolumeList PrepareVisibleProbeVolumeList(HDCamera hdCamera, CommandBuffer cmd)
+        private bool EnsureProbeVolumeInAtlas(ScriptableRenderContext renderContext, CommandBuffer cmd, ProbeVolume volume)
+        {
+            int key = volume.GetID();
+            int width = volume.parameters.resolutionX * volume.parameters.resolutionZ;
+            int height = volume.parameters.resolutionY;
+            int size = volume.parameters.resolutionX * volume.parameters.resolutionY * volume.parameters.resolutionZ;
+            Debug.Assert(size > 0, "Error: ProbeVolumeSystem: Encountered probe volume with resolution set to zero on all three axes.");
+
+            // TODO: Store volume resolution inside the atlas's key->bias dictionary.
+            // If resolution has changed since upload, need to free previous allocation from atlas,
+            // and attempt to allocate a new chunk from the atlas for the new resolution settings.
+            // Currently atlas allocator only handles spliting. Need to add merging of neighboring, empty chunks to avoid fragmentation.
+            bool isSlotAllocated = probeVolumeAtlas.EnsureTextureSlot(out bool isUploadNeeded, ref volume.parameters.scaleBias, key, width, height);
+            if (isSlotAllocated)
+            {
+                if (isUploadNeeded)
+                {
+                    Debug.Log("Uploading Probe Volume Data with key " + key + " at scale bias = " + volume.parameters.scaleBias);
+                    cmd.SetComputeVectorParam(s_ProbeVolumeAtlasBlitCS, "_ProbeVolumeResolution", new Vector3(
+                        volume.parameters.resolutionX,
+                        volume.parameters.resolutionY,
+                        volume.parameters.resolutionZ
+                    ));
+                    cmd.SetComputeVectorParam(s_ProbeVolumeAtlasBlitCS, "_ProbeVolumeResolutionInverse", new Vector3(
+                        1.0f / (float)volume.parameters.resolutionX,
+                        1.0f / (float)volume.parameters.resolutionY,
+                        1.0f / (float)volume.parameters.resolutionZ
+                    ));
+                    cmd.SetComputeVectorParam(s_ProbeVolumeAtlasBlitCS, "_ProbeVolumeAtlasScaleBias",
+                        volume.parameters.scaleBias
+                    );
+                    cmd.SetComputeVectorParam(s_ProbeVolumeAtlasBlitCS, "_ProbeVolumeAtlasResolutionAndInverse", new Vector4(
+                        m_ProbeVolumeAtlasRTHandle.rt.width,
+                        m_ProbeVolumeAtlasRTHandle.rt.height,
+                        1.0f / (float)m_ProbeVolumeAtlasRTHandle.rt.width,
+                        1.0f / (float)m_ProbeVolumeAtlasRTHandle.rt.height
+                    ));
+
+                    var data = volume.GetDataStub();
+                    Debug.Log("data[0] = " + data[0]);
+                    Debug.Assert(data.Length == size, "Error: ProbeVolumeSystem: volume data length = " + data.Length + ", resolution size = " + size);
+                    s_ProbeVolumeAtlasBlitDataBuffer.SetData(data);
+                    cmd.SetComputeIntParam(s_ProbeVolumeAtlasBlitCS, "_ProbeVolumeAtlasReadBufferCount", size);
+                    cmd.SetComputeBufferParam(s_ProbeVolumeAtlasBlitCS, s_ProbeVolumeAtlasBlitKernel, "_ProbeVolumeAtlasReadBuffer", s_ProbeVolumeAtlasBlitDataBuffer);
+                    cmd.SetComputeTextureParam(s_ProbeVolumeAtlasBlitCS, s_ProbeVolumeAtlasBlitKernel, "_ProbeVolumeAtlasWriteTexture", m_ProbeVolumeAtlasRTHandle);
+
+                    // TODO: Determine optimal batch size.
+                    const int kBatchSize = 256;
+                    int numThreadGroups = Mathf.CeilToInt((float)size / (float)kBatchSize);
+                    cmd.DispatchCompute(s_ProbeVolumeAtlasBlitCS, s_ProbeVolumeAtlasBlitKernel, numThreadGroups, 1, 1);
+                    return true;
+
+                }
+                return false;
+            }
+
+            Debug.Assert(isSlotAllocated, "Warning: ProbeVolumeSystem: Texture Atlas failed to allocate space for texture { key: " + key + "width: " + width + ", height: " + height);
+            return false;
+        }
+
+        public ProbeVolumeList PrepareVisibleProbeVolumeList(ScriptableRenderContext renderContext, HDCamera hdCamera, CommandBuffer cmd)
         {
             ProbeVolumeList probeVolumes = new ProbeVolumeList();
 
             if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.ProbeVolume))
                 return probeVolumes;
 
-            using (new ProfilingSample(cmd, "Prepare Probe Volume List"))
+            using (new ProfilingSample(cmd, "Prepare Probe Volume List", CustomSamplerId.PrepareProbeVolumeList.GetSampler()))
             {
                 Vector3 camPosition = hdCamera.camera.transform.position;
                 Vector3 camOffset   = Vector3.zero;// World-origin-relative
@@ -179,7 +284,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_VisibleProbeVolumeData.Clear();
 
                 // Collect all visible finite volume data, and upload it to the GPU.
-                List<ProbeVolume> volumes = ProbeVolumeManager.manager.PrepareProbeVolumeData(cmd, hdCamera.camera);
+                List<ProbeVolume> volumes = ProbeVolumeManager.manager.volumes;
+
 
                 int probeVolumesCount = Math.Min(volumes.Count, k_MaxVisibleProbeVolumeCount);
                 int sortCount = 0;
@@ -237,6 +343,25 @@ namespace UnityEngine.Rendering.HighDefinition
                 probeVolumes.bounds  = m_VisibleProbeVolumeBounds;
                 probeVolumes.data = m_VisibleProbeVolumeData;
 
+                for (int sortIndex = 0; sortIndex < sortCount; ++sortIndex)
+                {
+                    uint sortKey = m_SortKeys[sortIndex];
+                    int probeVolumesIndex;
+                    UnpackProbeVolumeSortKey(sortKey, out probeVolumesIndex);
+
+                    ProbeVolume volume = volumes[probeVolumesIndex];
+
+                    bool volumeWasUploaded = EnsureProbeVolumeInAtlas(renderContext, cmd, volume);
+                    if (volumeWasUploaded)
+                    {
+                        // For now, only upload one volume per frame.
+                        // This is done:
+                        // 1) To timeslice upload cost across N frames for N volumes.
+                        // 2) To avoid creating a sync point between compute buffer upload and each volume upload.
+                        break;
+                    }
+                }
+
                 return probeVolumes;
             }
         }
@@ -271,6 +396,21 @@ namespace UnityEngine.Rendering.HighDefinition
             Debug.Assert((uint)probeVolumeIndex < (1 << 12));
             const uint PROBE_VOLUME_MASK = (1 << 12) - 1;
             return (uint)logVolume << 12 | ((uint)probeVolumeIndex & PROBE_VOLUME_MASK);
+        }
+
+        public void DisplayProbeVolumeAtlas(CommandBuffer cmd, Material debugMaterial, float screenX, float screenY, float screenSizeX, float screenSizeY, float minValue, float maxValue)
+        {
+            Vector4 validRange = new Vector4(minValue, 1.0f / (maxValue - minValue));
+            float rWidth = 1.0f / m_ProbeVolumeAtlasRTHandle.rt.width;
+            float rHeight = 1.0f / m_ProbeVolumeAtlasRTHandle.rt.height;
+            Vector4 scaleBias = Vector4.Scale(new Vector4(rWidth, rHeight, rWidth, rHeight), new Vector4(m_ProbeVolumeAtlasRTHandle.rt.width, m_ProbeVolumeAtlasRTHandle.rt.height, 0, 0));
+
+            MaterialPropertyBlock propertyBlock = new MaterialPropertyBlock();
+            propertyBlock.SetTexture("_AtlasTexture", m_ProbeVolumeAtlasRTHandle.rt);
+            propertyBlock.SetVector("_TextureScaleBias", scaleBias);
+            propertyBlock.SetVector("_ValidRange", validRange);
+            cmd.SetViewport(new Rect(screenX, screenY, screenSizeX, screenSizeY));
+            cmd.DrawProcedural(Matrix4x4.identity, debugMaterial, debugMaterial.FindPass("ProbeVolume"), MeshTopology.Triangles, 3, 1, propertyBlock);
         }
 
     } // class ProbeVolumeSystem
