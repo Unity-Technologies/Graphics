@@ -6,8 +6,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [6.9.2] - 2019-XX-XX
 
-### Version Updated
-The version number for this package has increased due to a version update of a related graphics package.
+### Fixed
+- Fixed an issue where Sprite Masks didn't function properly when using the 2D Renderer. [case 1163474](https://issuetracker.unity3d.com/issues/lwrp-sprite-renderer-ignores-sprite-mask-when-lightweight-render-pipeline-asset-data-is-set-to-2d-renderer-experimental)
+- Fixed memory leaks when using the Frame Debugger with the 2D Renderer.
 
 ## [6.9.1] - 2019-07-29
 
