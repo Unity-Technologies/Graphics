@@ -1,0 +1,37 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!21 &2100000
+Material:
+  serializedVersion: 6
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: WaterPuddle
+  m_Shader: {fileID: -6465566751694194690, guid: fbcacd03a3d00c64d842bb22798ef951,
+    type: 3}
+  m_ShaderKeywords: 
+  m_LightmapFlags: 4
+  m_EnableInstancingVariants: 1
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
+  disabledShaderPasses: []
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs: []
+    m_Floats:
+    - Vector1_606D5E25: 21.65
+    - Vector1_78E97303: 0.957
+    - Vector1_B296B2C3: 5.49
+    - Vector1_C7FFC8D3: 1
+    - Vector1_CD293CA6: 0.09
+    - Vector1_F5341B3C: 0.05
+    - _DecalMeshDepthBias: 0
+    - _DrawOrder: 0
+    m_Colors:
+    - Color_C99A5354: {r: 0.72300005, g: 0.72300005, b: 0.72300005, a: 1}
+    - Vector2_402719F0: {r: 0.84, g: 0.37, b: 0, a: 0}
+    - Vector2_80775A9: {r: 0.6, g: 0.7, b: 0, a: 0}
+    - Vector2_99DCC162: {r: 1.91, g: 0, b: 0, a: 0}
+    - Vector3_B5054D22: {r: 0, g: 1, b: 0.7, a: 0}

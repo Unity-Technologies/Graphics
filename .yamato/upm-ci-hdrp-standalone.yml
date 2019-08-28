@@ -10,17 +10,12 @@ platforms:
 #    image: buildfarm/mac:stable
 #    flavor: m1.mac
 testplatforms:
-  - name: playmode
-    args: --suite=playmode
-  - name: editmode
-    args: --suite=editor --platform=editmode
+  - name: Standalone
+    args: --suite=playmode --platform=Standalone
 projects:
-  - name: HDRP
-    folder: HDRP_Tests
+  - name: HDRP_Standalone
+    folder: HDRP_RuntimeTests
     packagename: com.unity.render-pipelines.high-definition
-# - name: HDRP_DebugCrossFade_Tests
-#   folder: HDRP_DebugCrossFade_Tests
-#   packagename: none
 ---
 {% for project in projects %}
 {% for editor in editors %}
