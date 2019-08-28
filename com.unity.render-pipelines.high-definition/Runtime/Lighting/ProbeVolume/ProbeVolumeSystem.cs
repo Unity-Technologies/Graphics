@@ -141,8 +141,11 @@ namespace UnityEngine.Rendering.HighDefinition
             DestroyBuffers();
         }
 
-        public void PushGlobalParams(HDCamera hdCamera, CommandBuffer cmd, uint frameIndex)
+        public void PushGlobalParams(HDCamera hdCamera, CommandBuffer cmd, int frameIndex)
         {
+            if (!m_SupportProbeVolume)
+                return;
+
             var currFrameParams = hdCamera.probeVolumeSystemParams;
 
             cmd.SetGlobalBuffer(HDShaderIDs._ProbeVolumeBounds, s_VisibleProbeVolumeBoundsBuffer);
