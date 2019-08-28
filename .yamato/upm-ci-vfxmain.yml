@@ -1,5 +1,5 @@
 editors:
-  - version: trunk
+  - version: graphics/compute/multi_compile
 platforms:
   - name: Windows64
     type: Unity::VM::GPU
