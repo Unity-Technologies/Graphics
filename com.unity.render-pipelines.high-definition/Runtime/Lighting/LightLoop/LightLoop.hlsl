@@ -539,7 +539,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
 
                     // TODO: Sample irradiance data from atlas and integrate against diffuse BRDF.
                     probeVolumeDiffuseLighting += s_probeVolumeData.debugColor * weight;
-                    probeVolumeHierarchyWeight = saturate(probeVolumeHierarchyWeight + weight);
+                    probeVolumeHierarchyWeight = probeVolumeHierarchyWeight + weight;
                 }
             }
         }

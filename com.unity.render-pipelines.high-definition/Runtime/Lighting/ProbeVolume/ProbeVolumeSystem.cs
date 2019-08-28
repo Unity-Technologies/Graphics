@@ -72,6 +72,9 @@ namespace UnityEngine.Rendering.HighDefinition
         // Is the feature globally disabled?
         bool m_SupportProbeVolume = false;
 
+        // Pre-allocate sort keys array to max size to avoid creating allocations / garbage at runtime.
+        uint[] m_SortKeys = new uint[k_MaxVisibleProbeVolumeCount];
+
         public void Build(HDRenderPipelineAsset asset)
         {
             m_SupportProbeVolume = asset.currentPlatformRenderPipelineSettings.supportProbeVolume;
@@ -176,11 +179,17 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_VisibleProbeVolumeData.Clear();
 
                 // Collect all visible finite volume data, and upload it to the GPU.
-                ProbeVolume[] volumes = ProbeVolumeManager.manager.PrepareProbeVolumeData(cmd, hdCamera.camera);
+                List<ProbeVolume> volumes = ProbeVolumeManager.manager.PrepareProbeVolumeData(cmd, hdCamera.camera);
 
-                for (int i = 0; i < Math.Min(volumes.Length, k_MaxVisibleProbeVolumeCount); i++)
+                int probeVolumesCount = Math.Min(volumes.Count, k_MaxVisibleProbeVolumeCount);
+                int sortCount = 0;
+
+                // Sort probe volumes smallest from smallest to largest volume.
+                // Same as is done with reflection probes.
+                // See LightLoop.cs::PrepareLightsForGPU() for original example of this.
+                for (int probeVolumesIndex = 0; (probeVolumesIndex < volumes.Count) && (sortCount < probeVolumesCount); probeVolumesIndex++)
                 {
-                    ProbeVolume volume = volumes[i];
+                    ProbeVolume volume = volumes[probeVolumesIndex];
 
                     // TODO: cache these?
                     var obb = new OrientedBBox(Matrix4x4.TRS(volume.transform.position, volume.transform.rotation, volume.parameters.size));
@@ -191,12 +200,34 @@ namespace UnityEngine.Rendering.HighDefinition
                     // Frustum cull on the CPU for now. TODO: do it on the GPU.
                     if (GeometryUtils.Overlap(obb, hdCamera.frustum))
                     {
-                        // TODO: cache these?
-                        var data = volume.parameters.ConvertToEngineData();
+                        var logVolume = CalculateProbeVolumeLogVolume(volume.parameters.size);
 
-                        m_VisibleProbeVolumeBounds.Add(obb);
-                        m_VisibleProbeVolumeData.Add(data);
+                        m_SortKeys[sortCount++] = PackProbeVolumeSortKey(logVolume, probeVolumesIndex);
                     }
+                }
+
+                CoreUnsafeUtils.QuickSort(m_SortKeys, 0, sortCount - 1); // Call our own quicksort instead of Array.Sort(sortKeys, 0, sortCount) so we don't allocate memory (note the SortCount-1 that is different from original call).
+
+                for (int sortIndex = 0; sortIndex < sortCount; ++sortIndex)
+                {
+                    // In 1. we have already classify and sorted the probe volume, we need to use this sorted order here
+                    uint sortKey = m_SortKeys[sortIndex];
+                    int probeVolumesIndex;
+                    UnpackProbeVolumeSortKey(sortKey, out probeVolumesIndex);
+
+                    ProbeVolume volume = volumes[probeVolumesIndex];
+
+                    // TODO: cache these?
+                    var obb = new OrientedBBox(Matrix4x4.TRS(volume.transform.position, volume.transform.rotation, volume.parameters.size));
+
+                    // Handle camera-relative rendering.
+                    obb.center -= camOffset;
+
+                    // TODO: cache these?
+                    var data = volume.parameters.ConvertToEngineData();
+
+                    m_VisibleProbeVolumeBounds.Add(obb);
+                    m_VisibleProbeVolumeData.Add(data);
                 }
 
                 s_VisibleProbeVolumeBoundsBuffer.SetData(m_VisibleProbeVolumeBounds);
@@ -214,6 +245,32 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.ProbeVolume))
                 return;
+        }
+
+        static float CalculateProbeVolumeLogVolume(Vector3 size)
+        {
+            //Notes:
+            // - 1+ term is to prevent having negative values in the log result
+            // - 1000* is too keep 3 digit after the dot while we truncate the result later
+            // - 1048575 is 2^20-1 as we pack the result on 20bit later
+            float boxVolume = 8f* size.x * size.y * size.z;
+            float logVolume = Mathf.Clamp(Mathf.Log(1 + boxVolume, 1.05f)*1000, 0, 1048575);
+            return logVolume;
+        }
+
+        static void UnpackProbeVolumeSortKey(uint sortKey, out int probeIndex)
+        {
+            const uint PROBE_VOLUME_MASK = (1 << 12) - 1;
+            probeIndex = (int)(sortKey & PROBE_VOLUME_MASK);
+        }
+
+        static uint PackProbeVolumeSortKey(float logVolume, int probeVolumeIndex)
+        {
+            // 20 bit volume, 12 bit index
+            Debug.Assert((uint)logVolume < (1 << 20));
+            Debug.Assert((uint)probeVolumeIndex < (1 << 12));
+            const uint PROBE_VOLUME_MASK = (1 << 12) - 1;
+            return (uint)logVolume << 12 | ((uint)probeVolumeIndex & PROBE_VOLUME_MASK);
         }
 
     } // class ProbeVolumeSystem

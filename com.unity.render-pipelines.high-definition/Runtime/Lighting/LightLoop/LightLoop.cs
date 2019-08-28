@@ -145,6 +145,9 @@ namespace UnityEngine.Rendering.HighDefinition
             ColorAndEdge
         };
 
+        // Warning: These must stay in sync with LightCategory.
+        // Specifically, TileClusterCategoryDebug is used as a bitmask in the debug shader applied as:
+        // (1 << lightCatagory) & tileClusterCategoryDebug
         public enum TileClusterCategoryDebug : int
         {
             Punctual = 1,
@@ -154,9 +157,9 @@ namespace UnityEngine.Rendering.HighDefinition
             EnvironmentAndPunctual = 5,
             EnvironmentAndArea = 6,
             EnvironmentAndAreaAndPunctual = 7,
-            Decal = 8,
-            DensityVolumes = 16,
-            ProbeVolumes = 32
+            ProbeVolumes = 8,
+            Decal = 16,
+            DensityVolumes = 32
         };
 
     public partial class HDRenderPipeline

@@ -28,7 +28,6 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         private List<ProbeVolume> volumes = null;
-        private ProbeVolume[] volumesArray = null;
         private bool volumesArrayIsDirty = true;
 
         public void RegisterVolume(ProbeVolume volume)
@@ -37,7 +36,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 return;
 
             volumes.Add(volume);
-            volumesArrayIsDirty = true;
         }
 
         public void DeRegisterVolume(ProbeVolume volume)
@@ -46,17 +44,25 @@ namespace UnityEngine.Rendering.HighDefinition
                 return;
 
             volumes.Remove(volume);
-            volumesArrayIsDirty = true;
         }
 
-        public ProbeVolume[] PrepareProbeVolumeData(CommandBuffer cmd, Camera currentCam)
+        public List<ProbeVolume> PrepareProbeVolumeData(CommandBuffer cmd, Camera currentCam)
         {
             foreach (ProbeVolume volume in volumes)
             {
                 volume.PrepareParameters();
             }
 
-            if (volumesArrayIsDirty)
+            // if (atlasNeedsRefresh)
+            // {
+            //     atlasNeedsRefresh = false;
+            //     VolumeAtlasRefresh();
+            // }
+
+            // volumeAtlas.GenerateAtlas(cmd);
+
+            // TODO(Nicholas): this was not doing volumeAtlas.AddTexture in the base for this function, should it stay or should it go?
+            /*if (volumesArrayIsDirty)
             {
                 foreach (ProbeVolume volume in volumes)
                 {
@@ -65,7 +71,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 volumesArrayIsDirty = false;
                 volumesArray = volumes.ToArray();
-            }
+            }*/
 
             return volumesArray;
         }
