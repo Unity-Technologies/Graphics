@@ -995,8 +995,6 @@ SubShader
         #pragma vertex vert
         #pragma fragment frag
 
-    ${Pragmas}
-
         struct GraphVertexOutput
         {
             float4 position : POSITION;
