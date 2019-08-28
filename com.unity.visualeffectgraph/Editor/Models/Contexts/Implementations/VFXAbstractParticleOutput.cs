@@ -136,9 +136,11 @@ namespace UnityEditor.VFX
 
         protected bool usesFlipbook { get { return supportsUV && (uvMode == UVMode.Flipbook || uvMode == UVMode.FlipbookBlend || uvMode == UVMode.FlipbookMotionBlend); } }
 
+        public virtual bool exposeAlphaThreshold { get => useAlphaClipping; }
+
         protected virtual IEnumerable<VFXNamedExpression> CollectGPUExpressions(IEnumerable<VFXNamedExpression> slotExpressions)
         {
-            if (useAlphaClipping)
+            if (exposeAlphaThreshold)
                 yield return slotExpressions.First(o => o.name == "alphaThreshold");
 
             if (colorMappingMode == ColorMappingMode.GradientMapped)
@@ -236,7 +238,7 @@ namespace UnityEditor.VFX
                     }
                 }
 
-                if (useAlphaClipping)
+                if (exposeAlphaThreshold)
                     yield return new VFXPropertyWithValue(new VFXProperty(typeof(float), "alphaThreshold", VFXPropertyAttribute.Create(new RangeAttribute(0.0f, 1.0f), new TooltipAttribute("Alpha threshold used for pixel clipping"))), 0.5f);
 
                 if (supportSoftParticles)

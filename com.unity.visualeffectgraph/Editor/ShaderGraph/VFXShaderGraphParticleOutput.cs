@@ -89,6 +89,7 @@ namespace UnityEditor.VFX
         }
 
         public override bool supportsUV => base.supportsUV && shaderGraph == null;
+        public override bool exposeAlphaThreshold { get => base.exposeAlphaThreshold && shaderGraph == null; }
 
         protected override IEnumerable<VFXPropertyWithValue> inputProperties
         {
@@ -99,7 +100,6 @@ namespace UnityEditor.VFX
 
                 if (shaderGraph != null)
                 {
-                    properties = properties.Where(t => t.property.name != "alphaThreshold");
                     properties = properties.Concat(shaderGraph.properties
                         .Where(t => !t.hidden)
                         .Select(t => new { property = t, type = GetSGPropertyType(t) })
@@ -161,7 +161,6 @@ namespace UnityEditor.VFX
         protected override IEnumerable<VFXNamedExpression> CollectGPUExpressions(IEnumerable<VFXNamedExpression> slotExpressions)
         {
             foreach (var exp in base.CollectGPUExpressions(slotExpressions))
-                if(shaderGraph == null && exp.name != "alphaThreshold")
                 yield return exp;
 
             if (shaderGraph != null)
