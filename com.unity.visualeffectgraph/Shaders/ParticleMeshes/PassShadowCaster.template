@@ -67,6 +67,8 @@ ${VFXEnd}
 #define SHADERPASS SHADERPASS_SHADOWS
 		
 	${VFXInclude("Shaders/ParticleMeshes/Pass.template")}	
+    
+    ${SHADERGRAPH_PIXEL_CODE_DEPTHONLY}
 		
 	#pragma fragment frag
 	float frag(ps_input i) : SV_TARGET
