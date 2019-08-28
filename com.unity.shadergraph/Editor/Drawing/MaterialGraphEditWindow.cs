@@ -35,6 +35,8 @@ namespace UnityEditor.ShaderGraph.Drawing
         RenderPipelineAsset m_RenderPipelineAsset;
         bool m_FrameAllAfterLayout;
 
+        bool m_ProTheme;
+
         GraphEditorView m_GraphEditorView;
 
         MessageManager m_MessageManager;
@@ -109,6 +111,18 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 graphEditorView = null;
                 m_RenderPipelineAsset = GraphicsSettings.renderPipelineAsset;
+            }
+
+            if (EditorGUIUtility.isProSkin != m_ProTheme)
+            {
+                if (graphObject != null && graphObject.graph != null)
+                {
+                    Texture2D icon = GetThemeIcon(graphObject.graph);
+
+                    // This is adding the icon at the front of the tab
+                    titleContent = EditorGUIUtility.TrTextContentWithIcon(assetName, icon);
+                    m_ProTheme = EditorGUIUtility.isProSkin;
+                }
             }
 
             try
@@ -622,7 +636,10 @@ namespace UnityEditor.ShaderGraph.Drawing
                     assetName = asset.name.Split('/').Last()
                 };
 
-                titleContent = new GUIContent(asset.name.Split('/').Last());
+                Texture2D icon = GetThemeIcon(graphObject.graph);
+
+                // This is adding the icon at the front of the tab
+                titleContent = EditorGUIUtility.TrTextContentWithIcon(asset.name.Split('/').Last(), icon);
 
                 Repaint();
             }
@@ -633,6 +650,18 @@ namespace UnityEditor.ShaderGraph.Drawing
                 graphObject = null;
                 throw;
             }
+        }
+
+        Texture2D GetThemeIcon(GraphData graphdata)
+        {
+            string theme = EditorGUIUtility.isProSkin ? "_dark" : "_light";
+            Texture2D icon = Resources.Load<Texture2D>("Icons/sg_graph_icon_gray"+theme+"@16");
+            if (graphdata.isSubGraph)
+            {
+                icon = Resources.Load<Texture2D>("Icons/sg_subgraph_icon_gray"+theme+"@16");
+            }
+
+            return icon;
         }
 
         void OnGeometryChanged(GeometryChangedEvent evt)
