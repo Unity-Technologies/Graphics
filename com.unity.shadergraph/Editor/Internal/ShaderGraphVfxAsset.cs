@@ -172,7 +172,7 @@ namespace UnityEditor.ShaderGraph.Internal
                     propertyIndexSet.Add(propertyIndex);
                 }
             }
-
+            EnsureProperties();
             var propertyIndices = propertyIndexSet.ToArray();
             Array.Sort(propertyIndices);
             var filteredProperties = propertyIndices.Select(i => m_Properties[i]).ToArray();
