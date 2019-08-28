@@ -60,7 +60,7 @@ Shader "Hidden/HDRP/TemporalAntialiasing"
             float2 uv = input.texcoord - jitter;
 
             float3 color = Fetch(_InputTexture, uv, 0.0, _RTHandleScale.xy);
-            float3 history = Fetch(_InputHistoryTexture, input.texcoord - motionVector, 0.0, _RTHandleScaleHistory.xy);
+            float3 history = Fetch(_InputHistoryTexture, input.texcoord - motionVector, 0.0, _RTHandleScaleHistory.zw);
 
             float3 topLeft = Fetch(_InputTexture, uv, -RADIUS, _RTHandleScale.xy);
             float3 bottomRight = Fetch(_InputTexture, uv, RADIUS, _RTHandleScale.xy);
