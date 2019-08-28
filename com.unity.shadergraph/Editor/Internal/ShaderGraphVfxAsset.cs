@@ -13,7 +13,7 @@ namespace UnityEditor.ShaderGraph.Internal
         public Texture texture;
     }
 
-    public sealed class ShaderGraphVfxAsset : ScriptableObject
+    public sealed class ShaderGraphVfxAsset : ScriptableObject, ISerializationCallbackReceiver
     {
         public const string BaseColorSlotName = "Base Color";
         public const int BaseColorSlotId = 1;
@@ -144,6 +144,14 @@ namespace UnityEditor.ShaderGraph.Internal
                 }
             }
         }
+
+        void ISerializationCallbackReceiver.OnAfterDeserialize()
+        {
+            //After import the object will be deserialized into the previous instance, leading to an descynchronization between m_SerializedProperties and m_Properties
+            m_Properties = null;
+        }
+
+        void ISerializationCallbackReceiver.OnBeforeSerialize() { }
 
         public GraphCode GetCode(OutputMetadata[] outputs)
         {
