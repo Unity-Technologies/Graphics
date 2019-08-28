@@ -383,7 +383,7 @@ namespace UnityEngine.Rendering.Universal
 
                 Matrix4x4 proj = renderingData.cameraData.camera.projectionMatrix;
                 Matrix4x4 view = renderingData.cameraData.camera.worldToCameraMatrix;
-                Matrix4x4 viewProjInv = Matrix4x4.Inverse(view * proj);
+                Matrix4x4 viewProjInv = Matrix4x4.Inverse(proj * view);
                 cmd.SetGlobalMatrix("_InvCameraViewProj", viewProjInv);
 
                 Matrix4x4 clip = new Matrix4x4(new Vector4(1, 0, 0, 0), new Vector4(0, 1, 0, 0), new Vector4(0, 0, 0.5f, 0), new Vector4(0, 0, 0.5f, 1));

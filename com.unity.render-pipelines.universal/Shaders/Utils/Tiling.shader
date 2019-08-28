@@ -92,6 +92,9 @@ Shader "Hidden/Universal Render Pipeline/Tiling"
                 output.relLightOffset = g_TileRelLightBuffer[instanceID >> 2][instanceID & 3];
                 output.clipCoord = clipCoord;
 
+                // Screen is flipped!!!!!!
+                output.clipCoord.y *= -1.0;
+
                 return output;
             }
 
@@ -152,8 +155,12 @@ Shader "Hidden/Universal Render Pipeline/Tiling"
                 #else
                 float d = g_DepthTex.Load(int3(input.positionCS.xy, 0)).x;
                 #endif
+
                 // View space depth (signed).
                 float z = dot(g_unproject0, float4(0, 0, d, 1)) / dot(g_unproject1, float4(0, 0, d, 1));
+
+                float4 wsPos = mul(_InvCameraViewProj, float4(input.clipCoord, d * 2.0 - 1.0, 1.0));
+                wsPos.xyz *= 1.0 / wsPos.w;
 
                 float3 color = 0.0.xxx;
 
@@ -166,8 +173,10 @@ Shader "Hidden/Universal Render Pipeline/Tiling"
                         PointLightData light = LoadPointLightData(relLightIndex);
 
                         // TODO calculate lighting.
+                        float3 L = light.WsPos - wsPos;
+                        half att = dot(L, L) < light.Radius*light.Radius ? 1.0 : 0.0;
 
-                        color += light.Color.rgb * 0.1;
+                        color += light.Color.rgb * att * 0.1;
                     }
                 }
 
