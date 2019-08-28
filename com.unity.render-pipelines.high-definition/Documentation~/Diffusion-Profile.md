@@ -26,7 +26,7 @@ To create a Diffusion Profile, navigate to __Assets > Create > Rendering > Diffu
 
 | Property| Description |
 |:---|:---|
-| **Transmission Mode** | Use the drop-down to select a method for calculating light transmission. <br />&#8226; **Thick Object**: is for geometrically thick meshes.<br />&#8226; **Thin Object**: is for thin, double-sided, geometry. |
+| **Transmission Mode** | Use the drop-down to select a method for calculating light transmission. <br />&#8226; **Thick Object**: is for geometrically thick Meshes.<br />&#8226; **Thin Object**: is for thin, double-sided, geometry. |
 | **Transmission Tint** | Specifies a color to tint the translucent lighting. Unlike the Scattering Distance, its effect does not change depending on the distance below the surface. |
 | **Min-Max Thickness (mm)** | Sets the range of the thickness of the Mesh. Displays the minimum and maximum values of the Thickness Remap (mm) slider property below. |
 | **Thickness Remap (mm)** | Sets the range of the thickness. The Material’s Thickness Map modulates this value. |

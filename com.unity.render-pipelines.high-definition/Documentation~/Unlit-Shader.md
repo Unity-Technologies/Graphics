@@ -59,7 +59,7 @@ Unity exposes this section if you select **Transparent** from the **Surface Type
 
 | Property| Description |
 |:---|:---|
-| **Enable GPU instancing** | Tick this checkbox to tell HDRP to render meshes with the same geometry and Material/Shader in one batch when possible. This makes rendering faster. HDRP can not render Meshes in one batch if they have different Materials, or if the hardware does not support GPU instancing.  |
+| **Enable GPU instancing** | Enable the checkbox to tell HDRP to render Meshes with the same geometry and Material/Shader in one batch when possible. This makes rendering faster. HDRP can not render Meshes in one batch if they have different Materials, or if the hardware does not support GPU instancing. For example, you can not static-batch GameObjects that have an animation based on the object pivot, but the GPU can instance them.  |
 
 
 

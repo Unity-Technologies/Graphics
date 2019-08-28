@@ -39,13 +39,13 @@ To edit properties for Materials that use Shader Graphs, the Inspector window on
 2. To expose the rest of the properties, click on the cog in the top right of the Master Node. See these other properties in the **Surface Options** section of the screenshot below.
 3. Edit the values for the cog's properties in the same way as you would do in the Inspector window. The list of inputs on the Master Node, and the available properties in the cog's list, changes depending on what options you select.
 
-![](Images/CreatingAndEditingHDRPShaderGraphs1.png))
+![](Images/CreatingAndEditingHDRPShaderGraphs1.png)
 
 <a name="KnownIssues"></a>
 
 ## Known issues
 
-- When you create a new Material, it must inherit from the default Shader Graph properties (in the Master Node settings). To do this, you must use the method described in the [Creation](#Creation) section. If you don’t do this, and instead use **Assets > Create > Material** to create a Material, Unity assigns the Lit Shader to the Material and then writes all the default Lit Shader properties to it. This means that, when you assign the Shader Graph to the Material, the Material uses the default properties from the Lit shader instead of those from the Shader Graph Master Node.
+- When you create a new Material, it must inherit from the default Shader Graph properties (in the Master Node settings). To do this, you must use the method described in the [Creation](#Creation) section. If you don’t do this, and instead use **Assets > Create > Material** to create a Material, Unity assigns the Lit Shader to the Material and then writes all the default Lit Shader properties to it. This means that, when you assign the Shader Graph to the Material, the Material uses the default properties from the Lit Shader instead of those from the Shader Graph Master Node.
 
 - When you modify the properties of the Master Mode in a Shader Graph, Unity does not synchronize them with Materials unless the Material is open in the Inspector. This means that, when you change certain properties in the Master Node settings, like **Material Type**, Materials that are not open in the Inspector fall out of sync, which breaks the rendering of these Materials. To fix the rendering and synchronize the properties of a Material with its Shader Graph, you can do the following:
 

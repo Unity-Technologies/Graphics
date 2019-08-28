@@ -33,7 +33,7 @@ To create a new Layered Lit Material, navigate to your Project's Asset window, r
 
 | **Property**                           | **Description**                                              |
 | -------------------------------------- | ------------------------------------------------------------ |
-| **Motion Vector For Vertex Animation** | Enable the checkbox to make HDRP write motion vectors for objects that use vertex animation. This removes the ghosting that vertex animation can cause. |
+| **Motion Vector For Vertex Animation** | Enable the checkbox to make HDRP write motion vectors for GameObjects that use vertex animation. This removes the ghosting that vertex animation can cause. |
 
 ### Surface Inputs
 
@@ -138,5 +138,5 @@ Unity exposes up to four Material layers for you to use in your Layered Material
 
 | **Property**                            | **Description**                                              |
 | --------------------------------------- | ------------------------------------------------------------ |
-| **Enable GPU instancing**               | Enable the checkbox to tell HDRP to render meshes with the same geometry and Material/Shader in one batch when possible. This makes rendering faster. HDRP can not render Meshes in one batch if they have different Materials, or if the hardware does not support GPU instancing. For example, you can not static-batch GameObjects that have an animation based on the object pivot, but the GPU can instance them. |
+| **Enable GPU instancing**               | Enable the checkbox to tell HDRP to render Meshes with the same geometry and Material/Shader in one batch when possible. This makes rendering faster. HDRP can not render Meshes in one batch if they have different Materials, or if the hardware does not support GPU instancing. For example, you can not static-batch GameObjects that have an animation based on the object pivot, but the GPU can instance them. |
 | **Specular Occlusion from Bent normal** | Enable the checkbox to make HDRP use the Bent Normal Map to process specular occlusion for Reflection Probes. |
