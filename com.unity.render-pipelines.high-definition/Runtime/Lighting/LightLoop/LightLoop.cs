@@ -2454,6 +2454,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public bool computeMaterialVariants;
             public bool computeLightVariants;
             public bool skyEnabled;
+            public bool probeVolumeEnabled;
             public LightList lightList;
             public Matrix4x4[] lightListProjscrMatrices;
             public Matrix4x4[] lightListInvProjscrMatrices;
@@ -2605,7 +2606,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         baseFeatureFlags |= LightDefinitions.s_MaterialFeatureMaskFlags;
                     }
-                    if (m_FrameSettings.IsEnabled(FrameSettingsField.ProbeVolume) && m_probeVolumeCount > 0)
+                    if (parameters.probeVolumeEnabled)
                     {
                         // TODO: Verify that we should be globally enabling ProbeVolume feature for all tiles here, or if we should be using per-tile culling.
                         baseFeatureFlags |= (uint)LightFeatureFlags.ProbeVolume;
@@ -2681,7 +2682,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         baseFeatureFlags |= LightDefinitions.s_LightFeatureMaskFlags;
                     }
-                    if (m_FrameSettings.IsEnabled(FrameSettingsField.ProbeVolume) && m_probeVolumeCount > 0)
+                    if (parameters.probeVolumeEnabled)
                     {
                         // TODO: Verify that we should be globally enabling ProbeVolume feature for all tiles here, or if we should be using per-tile culling.
                         baseFeatureFlags |= (uint)LightFeatureFlags.ProbeVolume;
@@ -2812,6 +2813,7 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.farClipPlane = camera.farClipPlane;
             parameters.lightList = m_lightList;
             parameters.skyEnabled = m_SkyManager.IsLightingSkyValid();
+            parameters.probeVolumeEnabled = hdCamera.frameSettings.IsEnabled(FrameSettingsField.ProbeVolume) && m_probeVolumeCount > 0;
             parameters.screenSize = hdCamera.screenSize;
             parameters.msaaSamples = (int)hdCamera.msaaSamples;
             parameters.useComputeAsPixel = DeferredUseComputeAsPixel(hdCamera.frameSettings);
