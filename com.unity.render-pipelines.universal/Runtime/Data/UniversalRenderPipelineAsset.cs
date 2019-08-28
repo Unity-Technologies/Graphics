@@ -79,6 +79,12 @@ namespace UnityEngine.Rendering.Universal
         AllShaders,
     }
 
+    public enum PipelineDebugLevel
+    {
+        Disabled,
+        Profiling,
+    }
+
     [MovedFrom("UnityEngine.Rendering.LWRP")] public enum RendererType
     {
         Custom,
@@ -145,6 +151,7 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] bool m_UseSRPBatcher = true;
         [SerializeField] bool m_SupportsDynamicBatching = false;
         [SerializeField] bool m_MixedLightingSupported = true;
+        [SerializeField] PipelineDebugLevel m_DebugLevel = PipelineDebugLevel.Disabled;
 
         // Post-processing settings
         [SerializeField] ColorGradingMode m_ColorGradingMode = ColorGradingMode.LowDynamicRange;
@@ -566,6 +573,11 @@ namespace UnityEngine.Rendering.Universal
         {
             get { return m_ShaderVariantLogLevel; }
             set { m_ShaderVariantLogLevel = value; }
+        }
+
+        public PipelineDebugLevel debugLevel
+        {
+            get => m_DebugLevel;
         }
 
         public bool useSRPBatcher
