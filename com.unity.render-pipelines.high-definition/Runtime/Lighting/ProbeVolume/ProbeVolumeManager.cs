@@ -28,14 +28,15 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         private List<ProbeVolume> volumes = null;
-        private bool volumesArrayIsDirty = true;
+        private bool volumesIsDirty = true;
 
         public void RegisterVolume(ProbeVolume volume)
         {
-            if (!volumes.Contains(volume))
+            if (volumes.Contains(volume))
                 return;
 
             volumes.Add(volume);
+            volumesIsDirty = true;
         }
 
         public void DeRegisterVolume(ProbeVolume volume)
@@ -44,6 +45,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 return;
 
             volumes.Remove(volume);
+            volumesIsDirty = true;
         }
 
         public List<ProbeVolume> PrepareProbeVolumeData(CommandBuffer cmd, Camera currentCam)
@@ -53,27 +55,20 @@ namespace UnityEngine.Rendering.HighDefinition
                 volume.PrepareParameters();
             }
 
-            // if (atlasNeedsRefresh)
-            // {
-            //     atlasNeedsRefresh = false;
-            //     VolumeAtlasRefresh();
-            // }
-
-            // volumeAtlas.GenerateAtlas(cmd);
-
-            // TODO(Nicholas): this was not doing volumeAtlas.AddTexture in the base for this function, should it stay or should it go?
-            /*if (volumesArrayIsDirty)
+            if (volumesIsDirty)
             {
                 foreach (ProbeVolume volume in volumes)
                 {
-                    volumeAtlas.AddTexture(cmd, ref volume.parameters.scaleBias, volume.ProbeVolumeTexture);
+                    if (volume.ProbeVolumeTexture != null)
+                    {
+                        volumeAtlas.AddTexture(cmd, ref volume.parameters.scaleBias, volume.ProbeVolumeTexture);
+                    }
                 }
 
-                volumesArrayIsDirty = false;
-                volumesArray = volumes.ToArray();
-            }*/
+                volumesIsDirty = false;
+            }
 
-            return volumesArray;
+            return volumes;
         }
     }
 }

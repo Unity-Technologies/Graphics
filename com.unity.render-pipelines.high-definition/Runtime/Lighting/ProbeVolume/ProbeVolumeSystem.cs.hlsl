@@ -14,6 +14,7 @@ struct ProbeVolumeEngineData
     float3 rcpNegFaceFade;
     float rcpDistFadeLen;
     float endTimesRcpDistFadeLen;
+    float4 scaleBias;
 };
 
 //
@@ -42,6 +43,10 @@ float GetRcpDistFadeLen(ProbeVolumeEngineData value)
 float GetEndTimesRcpDistFadeLen(ProbeVolumeEngineData value)
 {
     return value.endTimesRcpDistFadeLen;
+}
+float4 GetScaleBias(ProbeVolumeEngineData value)
+{
+    return value.scaleBias;
 }
 
 #endif
