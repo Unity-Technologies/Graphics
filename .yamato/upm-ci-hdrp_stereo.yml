@@ -14,7 +14,7 @@ testplatforms:
     args: --suite=editor --platform=editmode
 projects:
   - name: HDRP_Stereo
-    folder: HDRP_MockHMD_Tests
+    folder: HDRP_Tests_Stereo
     packagename: com.unity.render-pipelines.high-definition
 ---
 {% for project in projects %}
