@@ -19,20 +19,12 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        // TODO: Store payload atlas.
-        // public Texture3DAtlas volumeAtlas = null;
-        // private bool atlasNeedsRefresh = false;
-
-        //TODO: hardcoded size....:-(
-        // public static int volumeTextureSize = 32;
+        public Texture2DAtlas volumeAtlas = null;
 
         private ProbeVolumeManager()
         {
             volumes = new List<ProbeVolume>();
-
-            // volumeAtlas = new Texture3DAtlas(TextureFormat.Alpha8, volumeTextureSize);
-
-            // volumeAtlas.OnAtlasUpdated += AtlasUpdated;
+            volumeAtlas = new Texture2DAtlas(1024, 1024, GraphicsFormat.B10G11R11_UFloatPack32);
         }
 
         private List<ProbeVolume> volumes = null;
@@ -43,32 +35,18 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             volumes.Add(volume);
             volumesArrayIsDirty = true;
-
-            // volume.OnTextureUpdated += TriggerVolumeAtlasRefresh;
-
-            // if (volume.parameters.volumeMask != null)
-            // {
-            //     volumeAtlas.AddTexture(volume.parameters.volumeMask);
-            // }
+            
+            // TODO
+            //Vector4f scaleBias = new Vector4f(1,1,1,1);
+            //volumeAtlas.AddTexture(volume);
         }
 
         public void DeRegisterVolume(ProbeVolume volume)
         {
-            if (volumes.Contains(volume))
-            {
-                volumes.Remove(volume);
-                volumesArrayIsDirty = true;
-            }
-
-            // volume.OnTextureUpdated -= TriggerVolumeAtlasRefresh;
-
-            // if (volume.parameters.volumeMask != null)
-            // {
-            //     volumeAtlas.RemoveTexture(volume.parameters.volumeMask);
-            // }
-
-            //Upon removal we have to refresh the texture list.
-            // TriggerVolumeAtlasRefresh();
+            if (!volumes.Contains(volume))
+                return;
+            
+            // TODO
         }
 
         public ProbeVolume[] PrepareProbeVolumeData(CommandBuffer cmd, Camera currentCam)
@@ -78,49 +56,13 @@ namespace UnityEngine.Rendering.HighDefinition
                 volume.PrepareParameters();
             }
 
-            // if (atlasNeedsRefresh)
-            // {
-            //     atlasNeedsRefresh = false;
-            //     VolumeAtlasRefresh();
-            // }
-
-            // volumeAtlas.GenerateAtlas(cmd);
-
             if (volumesArrayIsDirty)
             {
                 volumesArrayIsDirty = false;
-
-                // GC.Alloc
-                // List`1.ToArray()
                 volumesArray = volumes.ToArray();
             }
 
             return volumesArray;
         }
-
-        // private void VolumeAtlasRefresh()
-        // {
-        //     volumeAtlas.ClearTextures();
-        //     foreach (ProbeVolume volume in volumes)
-        //     {
-        //         if (volume.parameters.volumeMask != null)
-        //         {
-        //             volumeAtlas.AddTexture(volume.parameters.volumeMask);
-        //         }
-        //     }
-        // }
-
-        // public void TriggerVolumeAtlasRefresh()
-        // {
-        //     atlasNeedsRefresh = true;
-        // }
-
-        // private void AtlasUpdated()
-        // {
-        //     foreach (ProbeVolume volume in volumes)
-        //     {
-        //         volume.parameters.textureIndex = volumeAtlas.GetTextureIndex(volume.parameters.volumeMask);
-        //     }
-        // }
     }
 }
