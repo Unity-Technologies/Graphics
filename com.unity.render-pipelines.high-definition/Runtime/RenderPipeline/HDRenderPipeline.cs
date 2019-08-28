@@ -1029,42 +1029,43 @@ namespace UnityEngine.Rendering.HighDefinition
             m_FrameSettingsHistoryEnabled = FrameSettingsHistory.enabled;
 
             {
-                // SRP.Render() can be called several times per frame.
-                // Also, most Time variables do not consistently update in the Scene View.
-                // This makes reliable detection of the start of the new frame VERY hard.
-                // One of the exceptions is 'Time.realtimeSinceStartup'.
-                // Therefore, outside of the Play Mode we update the time at 60 fps,
-                // and in the Play Mode we rely on 'Time.frameCount'.
-                float t = Time.realtimeSinceStartup;
-                int c = Time.frameCount;
-
-                bool newFrame;
+                float newTime;
+                bool  newFrame;
 
                 if (Application.isPlaying)
                 {
+                    newTime  = Time.time; // Using this allows time pausing and scaling
+                    int c    = Time.frameCount;
                     newFrame = m_FrameCount != c;
-
-                    m_FrameCount = c;
                 }
                 else
                 {
-                    // If we switch to other scene Time.realtimeSinceStartup is reset, so we need to
+                    // SRP.Render() can be called several times per frame.
+                    // Also, most Time variables do not consistently update in the Scene View.
+                    // This makes reliable detection of the start of the new frame VERY hard.
+                    // One of the exceptions is 'Time.realtimeSinceStartup'.
+                    // Therefore, outside of the Play Mode we update the time at 60 fps,
+                    // and in the Play Mode we can rely on 'Time.frameCount'.
+                    newTime  = Time.realtimeSinceStartup;
+                    newFrame = (newTime - m_Time) > 0.0166f;
+
+                    // If we switch to other scene 'Time.realtimeSinceStartup' is reset, so we need to
                     // reset also m_Time. Here we simply detect ill case to trigger the reset.
-                    m_Time = m_Time > t ? 0.0f : m_Time;
-
-                    newFrame = (t - m_Time) > 0.0166f;
-
-                    if (newFrame)
-                        m_FrameCount++;
+                    newFrame = newFrame || (newTime <= m_Time);
                 }
 
                 if (newFrame)
                 {
                     HDCamera.CleanUnused();
 
-                    // Make sure both are never 0.
-                    m_LastTime = (m_Time > 0) ? m_Time : t;
-                    m_Time = t;
+                    if (newTime > m_Time)
+                        m_FrameCount++;
+                    else
+                        m_FrameCount = 0;
+
+                    // Make sure (m_Time > m_LastTime).
+                    m_LastTime = (newTime > m_Time) ? m_Time : 0;
+                    m_Time     = newTime;
                 }
             }
 
