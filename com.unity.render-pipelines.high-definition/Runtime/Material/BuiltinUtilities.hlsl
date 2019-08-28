@@ -1,3 +1,6 @@
+#ifndef __MATERIALUTILITIES_HLSL__
+#define __MATERIALUTILITIES_HLSL__
+
 // Return camera relative probe volume world to object transformation
 float4x4 GetProbeVolumeWorldToObject()
 {
@@ -216,3 +219,5 @@ void PostInitBuiltinData(   float3 V, PositionInputs posInput, SurfaceData surfa
 #endif
     ApplyDebugToBuiltinData(builtinData);
 }
+
+#endif //__MATERIALUTILITIES_HLSL__
