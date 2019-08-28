@@ -1,3 +1,6 @@
+#ifndef __MATERIALUTILITIES_HLSL__
+#define __MATERIALUTILITIES_HLSL__
+
 // Return camera relative probe volume world to object transformation
 float4x4 GetProbeVolumeWorldToObject()
 {
@@ -146,6 +149,7 @@ void InitBuiltinData(PositionInputs posInput, float alpha, float3 normalWS, floa
 
         #if SHADERPASS == SHADERPASS_FORWARD
         builtinData.bakeDiffuseLighting = LOAD_TEXTURE2D_X(_IndirectDiffuseTexture, posInput.positionSS).xyz;
+        builtinData.bakeDiffuseLighting *= GetInverseCurrentExposureMultiplier();
         #endif
     }
     else
@@ -215,3 +219,5 @@ void PostInitBuiltinData(   float3 V, PositionInputs posInput, SurfaceData surfa
 #endif
     ApplyDebugToBuiltinData(builtinData);
 }
+
+#endif //__MATERIALUTILITIES_HLSL__

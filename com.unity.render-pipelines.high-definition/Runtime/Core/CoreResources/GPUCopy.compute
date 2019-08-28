@@ -15,7 +15,7 @@ TEXTURE2D_X(_Source4);
 [numthreads(KERNEL_SIZE, KERNEL_SIZE, 1)]
 void KERNEL_NAME41(uint3 dispatchThreadId : SV_DispatchThreadID)
 {
-    UNITY_STEREO_ASSIGN_COMPUTE_EYE_INDEX(dispatchThreadId.z);
+    UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
 
     uint2 positionSS = _RectOffset + dispatchThreadId.xy;
     _Result1[COORD_TEXTURE2D_X(positionSS)] = LOAD_TEXTURE2D_X(_Source4, positionSS).x;

@@ -265,7 +265,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 CoreEditorUtils.CheckOutFile(VCSEnabled, mat);
                 var h = Debug.unityLogger.logHandler;
                 Debug.unityLogger.logHandler = new UnityContextualLogHandler(mat);
-                HDEditorUtils.ResetMaterialKeywords(mat);
+                HDShaderUtils.ResetMaterialKeywords(mat);
                 Debug.unityLogger.logHandler = h;
             }
         }
@@ -287,7 +287,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 CoreEditorUtils.CheckOutFile(VCSEnabled, materials[i]);
 
-                if (HDEditorUtils.ResetMaterialKeywords(materials[i]))
+                if (HDShaderUtils.ResetMaterialKeywords(materials[i]))
                 {
                     anyMaterialDirty = true;
                 }
