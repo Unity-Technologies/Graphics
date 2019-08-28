@@ -214,6 +214,10 @@ namespace UnityEditor.ShaderGraph.Drawing
                 m_GraphView.graphViewChanged = GraphViewChanged;
 
                 RegisterCallback<GeometryChangedEvent>(ApplySerializewindowLayouts);
+                if (m_Graph.isSubGraph)
+                {
+                    m_GraphView.AddToClassList("subgraph");
+                }
             }
 
             m_SearchWindowProvider = ScriptableObject.CreateInstance<SearchWindowProvider>();
