@@ -613,7 +613,7 @@ MonoBehaviour:
   m_RequiresDepthTextureOption: 0
   m_RequiresOpaqueTextureOption: 0
   m_RendererOverrideOption: 0
-  m_RendererData: {fileID: 11400000, guid: f6f9d91c7f6d2b8429154378935b8a89, type: 2}
+  m_RendererData: {fileID: 11400000, guid: d5955759d603da64a9b41edf667c7011, type: 2}
   m_VolumeLayerMask:
     serializedVersion: 2
     m_Bits: 1
@@ -720,6 +720,7 @@ MonoBehaviour:
     TargetHeight: 360
     PerPixelCorrectnessThreshold: 0.005
     AverageCorrectnessThreshold: 0.0005
+    UseHDR: 0
   WaitFrames: 0
 --- !u!114 &599516828
 MonoBehaviour:

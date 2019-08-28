@@ -1,22 +1,29 @@
+float4 GetFlipbookMotionVectors(VFX_VARYING_PS_INPUTS i, float4 uvs, float blend)
+{
+	float4 mvs = (float4)0;
+#if USE_FLIPBOOK_MOTIONVECTORS && defined(VFX_VARYING_MOTIONVECTORSCALE)
+	float2 mvPrev = -(SampleTexture(VFX_SAMPLER(motionVectorMap), uvs.xy).rg * 2 - 1) * i.VFX_VARYING_MOTIONVECTORSCALE * blend;
+    float2 mvNext = (SampleTexture(VFX_SAMPLER(motionVectorMap), uvs.zw).rg * 2 - 1) * i.VFX_VARYING_MOTIONVECTORSCALE * (1.0-blend);
+    mvs.xy = mvPrev;
+    mvs.zw = mvNext;
+#endif
+	return mvs;
+}
+
 VFXUVData GetUVData(VFX_VARYING_PS_INPUTS i) // uvs are provided from interpolants
 {
     VFXUVData data = (VFXUVData)0;
 #ifdef VFX_VARYING_UV
     data.uvs.xy = i.VFX_VARYING_UV.xy;
-#if USE_FLIPBOOK_INTERPOLATION && defined(VFX_VARYING_FRAMEBLEND)
+#if USE_FLIPBOOK_INTERPOLATION && defined(VFX_VARYING_FRAMEBLEND) && defined(VFX_VARYING_UV)
     data.uvs.zw = i.VFX_VARYING_UV.zw;
     data.blend = i.VFX_VARYING_FRAMEBLEND;
-#if USE_FLIPBOOK_MOTIONVECTORS && defined(VFX_VARYING_MOTIONVECTORSCALE)
-    float2 mvPrev = -(SampleTexture(VFX_SAMPLER(motionVectorMap), data.uvs.xy).rg * 2 - 1) * i.VFX_VARYING_MOTIONVECTORSCALE * data.blend;
-    float2 mvNext = (SampleTexture(VFX_SAMPLER(motionVectorMap), data.uvs.zy).rg * 2 - 1) * i.VFX_VARYING_MOTIONVECTORSCALE * (1.0-data.blend);
-    data.mvs.xy = mvPrev;
-    data.mvs.zw = mvNext;
-#endif
+	data.mvs = GetFlipbookMotionVectors(i, data.uvs, data.blend);
 #endif
 #endif
     return data;
 }
-
+ 
 VFXUVData GetUVData(VFX_VARYING_PS_INPUTS i,float2 uv) // uvs are provided from ps directly
 {
 #ifdef VFX_VARYING_FLIPBOOKSIZE
@@ -37,7 +44,14 @@ VFXUVData GetUVData(VFX_VARYING_PS_INPUTS i,float2 uv) // uvs are provided from 
     float texIndex = 0.0f;
 #endif
 
-    return GetUVData(flipBookSize, invFlipBookSize, uv, texIndex);
+#if USE_UV_SCALE_BIAS && defined(VFX_VARYING_UV_SCALE)
+	uv.xy = uv.xy * i.VFX_VARYING_UV_SCALE + i.VFX_VARYING_UV_BIAS;
+#endif
+	
+	VFXUVData data;
+    data = GetUVData(flipBookSize, invFlipBookSize, uv, texIndex);
+	data.mvs = GetFlipbookMotionVectors(i, data.uvs, data.blend);
+	return data;
 }
 
 float4 VFXGetParticleColor(VFX_VARYING_PS_INPUTS i)
