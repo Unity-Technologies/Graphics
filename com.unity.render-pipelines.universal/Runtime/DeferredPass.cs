@@ -115,6 +115,9 @@ namespace UnityEngine.Rendering.Universal
         int m_TileSize = 32;
         int m_TileHeader = 5; // ushort lightCount, half minDepth, half maxDepth, uint bitmask
 
+        // Cached.
+        Matrix4x4 m_ProjectionMatrix;
+
         // Adjusted frustum planes to account for tile size.
         FrustumPlanes m_FrustumPlanes;
 
@@ -150,10 +153,12 @@ namespace UnityEngine.Rendering.Universal
         public void SetupLights(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             if (m_RenderWidth != renderingData.cameraData.cameraTargetDescriptor.width
-             || m_RenderHeight != renderingData.cameraData.cameraTargetDescriptor.height)
+             || m_RenderHeight != renderingData.cameraData.cameraTargetDescriptor.height
+             || m_ProjectionMatrix != renderingData.cameraData.camera.projectionMatrix)
             {
                 m_RenderWidth = renderingData.cameraData.cameraTargetDescriptor.width;
                 m_RenderHeight = renderingData.cameraData.cameraTargetDescriptor.height;
+                m_ProjectionMatrix = renderingData.cameraData.camera.projectionMatrix;
 
                 m_TileXCount = (m_RenderWidth + m_TilePixelWidth - 1) / m_TilePixelWidth;
                 m_TileYCount = (m_RenderHeight + m_TilePixelHeight - 1) / m_TilePixelHeight;
@@ -381,8 +386,8 @@ namespace UnityEngine.Rendering.Universal
                 Matrix4x4 viewProjInv = Matrix4x4.Inverse(view * proj);
                 cmd.SetGlobalMatrix("_InvCameraViewProj", viewProjInv);
 
-                Matrix4x4 clip = new Matrix4x4(new Vector4(1, 0, 0, 0), new Vector4(0, 1, 0, 0), new Vector4(0, 0, 2, 0), new Vector4(0, 0, -1, 1));
-                Matrix4x4 projScreenInv = Matrix4x4.Inverse(proj * clip);
+                Matrix4x4 clip = new Matrix4x4(new Vector4(1, 0, 0, 0), new Vector4(0, 1, 0, 0), new Vector4(0, 0, 0.5f, 0), new Vector4(0, 0, 0.5f, 1));
+                Matrix4x4 projScreenInv = Matrix4x4.Inverse(clip * proj);
                 cmd.SetGlobalVector("g_unproject0", projScreenInv.GetRow(2));
                 cmd.SetGlobalVector("g_unproject1", projScreenInv.GetRow(3));
 
