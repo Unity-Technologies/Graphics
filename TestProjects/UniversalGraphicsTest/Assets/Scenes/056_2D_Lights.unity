@@ -229,6 +229,7 @@ MonoBehaviour:
     TargetHeight: 360
     PerPixelCorrectnessThreshold: 0.005
     AverageCorrectnessThreshold: 0.0005
+    UseHDR: 0
   WaitFrames: 0
 --- !u!20 &380492253
 Camera:
@@ -302,8 +303,7 @@ MonoBehaviour:
   m_RenderShadows: 0
   m_RequiresDepthTextureOption: 2
   m_RequiresOpaqueTextureOption: 2
-  m_RendererOverrideOption: 0
-  m_RendererData: {fileID: 11400000, guid: d5955759d603da64a9b41edf667c7011, type: 2}
+  m_RendererIndex: 3
   m_VolumeLayerMask:
     serializedVersion: 2
     m_Bits: 1
