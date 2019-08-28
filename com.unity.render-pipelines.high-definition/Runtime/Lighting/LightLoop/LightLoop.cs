@@ -3598,9 +3598,9 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        // TODO(Kuba)
-        /*static void RenderProbeVolumeDebugOverlay(in DebugParameters debugParameters, in HDShadowManager.ShadowDebugAtlasTextures atlasTextures, CommandBuffer cmd, ref float x, ref float y, float overlaySize, MaterialPropertyBlock mpb)
+        static void RenderProbeVolumeDebugOverlay(in DebugParameters debugParameters, CommandBuffer cmd, ref float x, ref float y, float overlaySize, Material debugDisplayProbeVolumeMaterial)
         {
+            LightingDebugSettings lightingDebug = debugParameters.debugDisplaySettings.data.lightingDebugSettings;
             if (lightingDebug.probeVolumeDebugMode != ProbeVolumeDebugMode.None)
             {
                 using (new ProfilingSample(cmd, "Probe Volume Debug", CustomSamplerId.ProbeVolumeDebug.GetSampler()))
@@ -3609,12 +3609,13 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         HDRenderPipeline hdrp = RenderPipelineManager.currentPipeline as HDRenderPipeline;
                         ProbeVolumeSystem pvs = hdrp.m_ProbeVolumeSystem;
-                        pvs.DisplayProbeVolumeAtlas(cmd, m_DebugDisplayProbeVolumeMaterial, x, y, overlaySize, overlaySize, lightingDebug.probeVolumeMinValue, lightingDebug.probeVolumeMaxValue);
+                        HDCamera hdCamera = debugParameters.hdCamera;
+                        pvs.DisplayProbeVolumeAtlas(cmd, debugDisplayProbeVolumeMaterial, x, y, overlaySize, overlaySize, lightingDebug.probeVolumeMinValue, lightingDebug.probeVolumeMaxValue);
                         HDUtils.NextOverlayCoord(ref x, ref y, overlaySize, overlaySize, hdCamera);
                     }
 
                 }
             }
-        }*/
+        }
     }
 }
