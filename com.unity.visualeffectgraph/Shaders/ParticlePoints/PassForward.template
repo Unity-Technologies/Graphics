@@ -19,6 +19,7 @@ Pass
 		#if VFX_NEEDS_POSWS_INTERPOLATOR
 		float3 posWS : TEXCOORD1;
 		#endif
+                float pointSize : PSIZE;
 	};
 	
 	struct ps_output

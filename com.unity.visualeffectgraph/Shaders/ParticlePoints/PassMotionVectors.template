@@ -22,6 +22,8 @@ Pass
 		
 		float4 previousPos : TEXCOORD1;
 		float4 currentPos : TEXCOORD2;
+        
+                float pointSize : PSIZE;
 	};
 	
 	struct ps_output
