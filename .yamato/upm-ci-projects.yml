@@ -13,6 +13,8 @@ projects:
     folder: HDRP_Tests
   - name: HDRP_Stereo
     folder: HDRP_Tests_Stereo
+  - name: HDRP_Standalone
+    folder: HDRP_RuntimeTests
   - name: VFXMain
     folder: VisualEffectGraph
   - name: VFX_LWRP

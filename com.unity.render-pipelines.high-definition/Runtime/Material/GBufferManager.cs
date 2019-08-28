@@ -83,7 +83,7 @@ namespace UnityEngine.Rendering.HighDefinition
             int gbufferIndex = 0;
             for (int i = 0; i < m_BufferCount; ++i)
             {
-                if (m_GBufferUsage[i] == GBufferUsage.ShadowMask && !frameSettings.IsEnabled(FrameSettingsField.ShadowMask))
+                if (m_GBufferUsage[i] == GBufferUsage.ShadowMask && !frameSettings.IsEnabled(FrameSettingsField.Shadowmask))
                     continue; // Skip
 
                 if (m_GBufferUsage[i] == GBufferUsage.LightLayers && !frameSettings.IsEnabled(FrameSettingsField.LightLayers))
@@ -99,7 +99,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // nameID can change from one frame to another depending on the msaa flag so so we need to update this array to be sure it's up to date.
             for (int i = 0; i < m_BufferCount; ++i)
             {
-                if (m_GBufferUsage[i] == GBufferUsage.ShadowMask && !frameSettings.IsEnabled(FrameSettingsField.ShadowMask))
+                if (m_GBufferUsage[i] == GBufferUsage.ShadowMask && !frameSettings.IsEnabled(FrameSettingsField.Shadowmask))
                     continue; // Skip
 
                 if (m_GBufferUsage[i] == GBufferUsage.LightLayers && !frameSettings.IsEnabled(FrameSettingsField.LightLayers))

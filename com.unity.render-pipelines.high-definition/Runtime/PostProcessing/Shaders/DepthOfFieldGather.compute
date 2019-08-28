@@ -68,7 +68,7 @@ void MAIN(uint3 dispatchThreadId : SV_DispatchThreadID)
     // Compute the actual pixel coordinate we're working
     uint2 dispatchThreadId = gs_tileCoord + uint2(groupThreadId % GROUP_RES, groupThreadId / GROUP_RES);
 #else
-    UNITY_STEREO_ASSIGN_COMPUTE_EYE_INDEX(dispatchThreadId.z);
+    UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
 #endif
 
     if (any(dispatchThreadId.xy >= uint2(_TexelSize.xy)))

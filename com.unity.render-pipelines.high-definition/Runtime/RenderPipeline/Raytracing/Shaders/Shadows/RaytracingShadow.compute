@@ -142,9 +142,6 @@ void RaytracingAreaShadowPrepass(uint2 groupThreadId : SV_GroupThreadID, uint2 g
         return;
     }
 
-    // Get the scramblingValue of this pixel
-    uint2 scramblingValue = ScramblingValue(currentCoord.x, currentCoord.y);
-
     // Structure that holds all the output data from the MIS
     MISSamplingOuput misOutput;
     ZERO_INITIALIZE(MISSamplingOuput, misOutput);
@@ -153,7 +150,10 @@ void RaytracingAreaShadowPrepass(uint2 groupThreadId : SV_GroupThreadID, uint2 g
     int globalSampleIndex = _RaytracingFrameIndex * _RaytracingNumSamples;
 
     // Generate the new sample (follwing values of the sequence)
-    misInput.noiseValue = GetRaytracingNoiseSampleRG(globalSampleIndex, scramblingValue);
+    float2 noiseValue;
+    misInput.noiseValue.x = GetBNDSequenceSample(currentCoord, globalSampleIndex, 0);
+    misInput.noiseValue.y = GetBNDSequenceSample(currentCoord, globalSampleIndex, 1);
+
     // Pick the sampling technique
     EvaluateMISTechnique(misInput);
 
@@ -284,15 +284,13 @@ void RaytracingAreaShadowNewSample(uint2 groupThreadId : SV_GroupThreadID, uint2
     MISSamplingOuput misOutput;
     ZERO_INITIALIZE(MISSamplingOuput, misOutput);
 
-    // Get the scramblingValue of this pixel
-    uint2 scramblingValue = ScramblingValue(currentCoord.x, currentCoord.y);
-
     // Compute the current sample index
     int globalSampleIndex = _RaytracingFrameIndex * _RaytracingNumSamples + _RaytracingSampleIndex;
 
     // Generate the new sample (follwing values of the sequence)
-    misInput.noiseValue = GetRaytracingNoiseSampleRG(globalSampleIndex, scramblingValue);
-
+    misInput.noiseValue.x = GetBNDSequenceSample(currentCoord, globalSampleIndex, 0);
+    misInput.noiseValue.y = GetBNDSequenceSample(currentCoord, globalSampleIndex, 1);
+    
     // Pick the sampling technique
     EvaluateMISTechnique(misInput);
 
@@ -389,14 +387,13 @@ void RaytracingDirectionalShadowSample(uint2 groupThreadId : SV_GroupThreadID, u
     // Fetch the data of the area light
     DirectionalLightData lightData = _DirectionalLightDatas[_DirectionalShadowIndex];
 
-    // Get the scramblingValue of this pixel
-    uint2 scramblingValue = ScramblingValue(currentCoord.x, currentCoord.y);
-
     // Compute the current sample index
     int globalSampleIndex = _RaytracingFrameIndex * _RaytracingNumSamples + _RaytracingSampleIndex;
 
     // Generate the new sample (follwing values of the sequence)
-    float2 noiseValue = GetRaytracingNoiseSampleRG(globalSampleIndex, scramblingValue);
+    float2 noiseValue;
+    noiseValue.x = GetBNDSequenceSample(currentCoord, globalSampleIndex, 0);
+    noiseValue.y = GetBNDSequenceSample(currentCoord, globalSampleIndex, 1);
 
     // Create the local ortho basis
     float3x3 localToWorld = GetLocalFrame(-lightData.forward);
