@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.18028378, g: 0.22571412, b: 0.30692285, a: 1}
+  m_IndirectSpecularColor: {r: 0.1802837, g: 0.22571404, b: 0.30692273, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -96,7 +96,8 @@ LightmapSettings:
     m_PVRFilteringAtrousPositionSigmaAO: 1
     m_ExportTrainingData: 0
     m_TrainingDataDestination: TrainingData
-  m_LightingDataAsset: {fileID: 112000002, guid: 27168aa7a3b58824d82d4f8e64521b74,
+    m_LightProbeSampleCountMultiplier: 4
+  m_LightingDataAsset: {fileID: 112000002, guid: 0d54ea8b8bb6b46af9f185f49efa3381,
     type: 2}
   m_UseShadowmask: 0
 --- !u!196 &4
@@ -268,6 +269,7 @@ MonoBehaviour:
     TargetHeight: 512
     PerPixelCorrectnessThreshold: 0.005
     AverageCorrectnessThreshold: 0.001
+    UseHDR: 0
   WaitFrames: 0
 --- !u!20 &380492253
 Camera:
@@ -341,8 +343,16 @@ MonoBehaviour:
   m_RenderShadows: 1
   m_RequiresDepthTextureOption: 2
   m_RequiresOpaqueTextureOption: 2
-  m_RendererOverrideOption: 0
-  m_RendererData: {fileID: 11400000, guid: e46834cadfc4eb241bd46a362765a390, type: 2}
+  m_RendererIndex: 4
+  m_VolumeLayerMask:
+    serializedVersion: 2
+    m_Bits: 1
+  m_VolumeTrigger: {fileID: 0}
+  m_RenderPostProcessing: 0
+  m_Antialiasing: 0
+  m_AntialiasingQuality: 2
+  m_StopNaN: 0
+  m_Dithering: 0
   m_RequiresDepthTexture: 0
   m_RequiresColorTexture: 0
   m_Version: 2
@@ -371,8 +381,9 @@ Light:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 707831285}
   m_Enabled: 1
-  serializedVersion: 9
+  serializedVersion: 10
   m_Type: 1
+  m_Shape: 0
   m_Color: {r: 1, g: 0.95686275, b: 0.8392157, a: 1}
   m_Intensity: 1
   m_Range: 10
